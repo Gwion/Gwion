@@ -9,13 +9,12 @@
 #include "mpool.h"
 
 struct M_Vector_ {
-  m_bit* ptr;   // data
-  m_uint len;   // number of elements
+  m_bit*  ptr;   // data
+  m_uint len;   // number of elements * size
   m_uint size;  // size of objects
   m_uint depth;
   m_uint cap;
 };
-
 POOL_HANDLE(M_Vector, 512)
 ANN m_uint m_vector_size(const M_Vector v) {
   return v->len;
@@ -35,7 +34,7 @@ static DTOR(array_dtor) {
 ANN M_Object new_M_Array(const Type t, const m_uint size,
     const m_uint length, const m_uint depth) {
   m_uint cap = 1;
-  const M_Object a = new_M_Object(NULL);
+  M_Object a = new_M_Object(NULL);
   initialize_object(a, t);
   while(cap < length)
     cap *= 2;
@@ -69,17 +68,16 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
   if(index)
     memcpy(c, v->ptr, index * v->size);
   ++index;
-  memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->len - index)*v->size);
+  memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
   if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
     v->ptr = (m_bit*)xrealloc(v->ptr, v->cap * v->size);
   }
   memcpy(v->ptr, c, v->cap * v->size);
-  --v->len;
 }
 
 static MFUN(vm_vector_rem) {
-  const m_int index = *(m_int*)MEM(SZ_INT);
+  const m_int index = *(m_int*)(shred + SZ_INT);
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= v->len)
     return;
@@ -92,17 +90,9 @@ static MFUN(vm_vector_rem) {
 }
 
 ANN m_bit* m_vector_addr(const M_Vector v, const m_uint i) {
-  return (m_bit*)(v->ptr + i * v->size);
+  return &*(m_bit*)(v->ptr + i * v->size);
 }
 
-#define describe_vm_vector_x(name, field) \
-static MFUN(vm_vector_##name) { *(m_uint*)RETURN = ARRAY(o)->field; }
-
-describe_vm_vector_x(size, len)
-describe_vm_vector_x(depth, depth)
-describe_vm_vector_x(cap, cap)
-
-/*
 static MFUN(vm_vector_size) {
   *(m_uint*)RETURN = ARRAY(o)->len;
 }
@@ -114,12 +104,12 @@ static MFUN(vm_vector_depth) {
 static MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY(o)->cap;
 }
-*/
+
 INSTR(Array_Append) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val);
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!o)
-    Except(shred, "NullPtrEception");
+    Except(shred, "NullPtrException");
   m_vector_add(ARRAY(o), REG(0));
   release(o, shred);
   *(M_Object*)REG(-SZ_INT) = o;
@@ -245,19 +235,25 @@ INSTR(Instr_Pre_Ctor_Array_Post) { GWDEBUG_EXE
 }
 
 struct ArrayAllocInfo {
-  const m_int capacity;
+  m_int capacity;
   const m_int top;
-  const Type type, base;
+  Type type, base;
   m_uint* objs;
   m_int* index;
-  const m_bool is_obj;
+  m_bool is_obj;
 };
 
 ANN static M_Object do_alloc_array_object(const struct ArrayAllocInfo* info, const m_int cap) {
-  if(cap < 0)
+  if(cap < 0) {
+    gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
+  }
   const M_Object base = new_M_Array(info->type, info->capacity >= info->top ?
       info->base->size : SZ_INT, cap, -info->capacity);
+  if(!base) {
+    gw_err("[gwion](VM): OutOfMemory: while allocating arrays...\n");
+    return NULL;
+  }
   ADD_REF(info->type);
   return base;
 }
@@ -275,7 +271,7 @@ ANN static M_Object do_alloc_array_init(const struct ArrayAllocInfo* info, const
 
 ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAllocInfo* info);
 ANN static M_Object do_alloc_array_loop(const VM_Shred shred, const struct ArrayAllocInfo* info,
-    const m_uint cap, const M_Object base) {
+    m_uint cap, M_Object base) {
   for(m_uint i = 0; i < cap; ++i) {
     const struct ArrayAllocInfo aai = { info->capacity + 1, info->top, info->type,
       info->base, info->objs, info->index, info->is_obj };
@@ -302,7 +298,7 @@ ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAlloc
 }
 
 INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
-  /* const */ VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   POP_REG(shred, instr->m_val2 * info->length);
   const M_Object obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
   vector_add(&shred->gc, (vtype) obj);
@@ -310,7 +306,6 @@ INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));
   *(M_Object*)REG(0) = obj;
   PUSH_REG(shred, SZ_INT);
-  instr->m_val = 1;
   info->init = 1;
 }
 
@@ -330,26 +325,37 @@ ANN static m_uint* init_array(const VM_Shred shred, const VM_Array_Info* info, m
 }
 
 INSTR(Instr_Array_Alloc) { GWDEBUG_EXE
-  /* const */ VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
+  M_Object ref;
   m_uint num_obj = 0;
   m_int index = 0;
   struct ArrayAllocInfo aai = { -info->depth, -1, info->type, info->base,
          NULL, &index, info->is_obj};
-  if(info->is_obj && !info->is_ref)
-      aai.objs = init_array(shred, info, &num_obj);
-  const M_Object ref = do_alloc_array(shred, &aai);
-  if(!ref)
-    Except(shred, "NegativeArraySize");
-  POP_REG(shred, SZ_INT * (info->depth - 1));
-  *(M_Object*)REG(-SZ_INT) = ref;
+  if(info->is_obj && !info->is_ref &&
+      !(aai.objs = init_array(shred, info, &num_obj)))
+      goto out_of_memory;
+  if(!(ref = do_alloc_array(shred, &aai)))
+    goto error;
+  POP_REG(shred, SZ_INT * info->depth);
+  *(M_Object*)REG(0) = ref;
+  PUSH_REG(shred, SZ_INT);
   if(info->is_obj && !info->is_ref) {
     *(m_uint**)REG(0) = aai.objs;
-    *(m_uint*) REG(SZ_INT) = 0;
-    *(m_uint*) REG(SZ_INT*2) = num_obj;
-    PUSH_REG(shred, SZ_INT*3);
+    PUSH_REG(shred, SZ_INT);
+    *(m_uint*) REG(0) = 0;
+    PUSH_REG(shred, SZ_INT);
+    *(m_uint*) REG(0) = num_obj;
+    PUSH_REG(shred, SZ_INT);
   }
   REM_REF(info->type);
   info->init = 1;
+  return;
+
+out_of_memory:
+  gw_err("[Gwion](VM): OutOfMemory: while allocating arrays...\n"); // LCOV_EXCL_LINE
+error:
+  gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->xid, shred->name);
+  vm_shred_exit(shred);
 }
 
 ANN static void array_push(const VM_Shred shred, const M_Vector a,
@@ -361,51 +367,40 @@ ANN static void array_push(const VM_Shred shred, const M_Vector a,
   PUSH_REG(shred, size);
 }
 
-ANN static inline void array_msg(const m_uint dim, const m_int idx) {
-  if(dim)
-    gw_err("at dimension[%" INT_F "], ", dim);
-  gw_err("at index=[%" INT_F "]\n", idx);
+ANN static void oob(const M_Object obj, const VM_Shred shred, const m_int i) {
+  _release(obj, shred);
+  exception(shred, "ArrayOutofBounds");
+  gw_err("\t... at index [%" INT_F "]\n", i);
 }
 
-#define OOB(shred, obj, dim, idx, base)            \
-  if(idx < 0 || (m_uint)idx >= ARRAY(obj)->len) {  \
-    _release(base, shred);                         \
-    array_msg(dim, idx);                           \
-    Except(shred, "ArrayOutofBounds");             \
-  }
+#define OOB(shred, obj, i, base) if(i < 0 || (m_uint)i >= ARRAY(obj)->len) { \
+  oob(base, shred, i); return; }
 
 INSTR(Instr_Array_Access) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2);
   const M_Object obj = *(M_Object*)REG(0);
   if(!obj)
     Except(shred, "NullPtrException");
-  const m_int idx = *(m_int*)REG(SZ_INT);
-  OOB(shred, obj, 0, idx, obj)
-  array_push(shred, ARRAY(obj), idx, instr->m_val2, instr->m_val);
+  const m_int i = *(m_int*)REG(SZ_INT);
+  OOB(shred, obj, i, obj)
+  array_push(shred, ARRAY(obj), i, instr->m_val2, instr->m_val);
 }
 
 INSTR(Instr_Array_Access_Multi) { GWDEBUG_EXE
-  const m_uint val = instr->m_val;
-  POP_REG(shred, SZ_INT * (val + 1));
-  const M_Object base = *(M_Object*)REG(0);
-  M_Object obj = base;
-  if(!obj)
+  POP_REG(shred, SZ_INT * (instr->m_val + 1));
+  M_Object obj, *base = (M_Object*)REG(0);
+  if(!(obj = *base))
     Except(shred, "NullPtrException");
-  for(m_uint dim = 1; dim < val; ++dim) {
-    const m_int idx = *(m_int*)REG(SZ_INT * dim);
-    OOB(shred, obj, dim, idx, base)
-    m_vector_get(ARRAY(obj), idx, &obj);
+  for(m_uint j = 1; j < instr->m_val; ++j) {
+    const m_int i = *(m_int*)REG(SZ_INT * j);
+    OOB(shred, obj, i, *base)
+    m_vector_get(ARRAY(obj), i, &obj);
     if(!obj) {
-      release(base, shred);
+      release(*base, shred);
       Except(shred, "NullPtrException");
     }
   }
-  const m_int idx = *(m_int*)REG(SZ_INT * val);
-  OOB(shred, obj, val, idx, base)
-  array_push(shred, ARRAY(obj), idx, instr->m_val2, *(m_uint*)instr->ptr);
+  const m_int i = *(m_int*)REG(SZ_INT * instr->m_val);
+  OOB(shred, obj, i, *base)
+  array_push(shred, ARRAY(obj), i, instr->m_val2, *(m_uint*)instr->ptr);
 }
-
-#ifdef JIT
-#include "ctrl/array.h"
-#include "code/array.h"
-#endif
