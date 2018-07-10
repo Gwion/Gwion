@@ -37,10 +37,11 @@ static m_bool cmp(const m_bit* restrict a, const unsigned char*restrict b, const
 static CTOR(map_ctor) {
   struct Map_Info_* info = mp_alloc(Map_Info);
   info->t = array_base(o->type_ref->parent);
-  Env env = shred->vm_ref->emit->env;
-  Nspc curr = env->curr;
-  m_str   key_name = get_type_name(info->t->name, 1);
+  const Env env = shred->vm_ref->emit->env;
+  const Nspc curr = env->curr;
+  const m_str key_name = get_type_name(info->t->name, 1);
   m_uint depth;
+  env->curr = o->type_ref->owner;
   Type_Decl* key_decl = str2decl(env, key_name, &depth);
   Type key_type = type_decl_resolve(env, key_decl);
   free_type_decl(key_decl);
@@ -50,8 +51,8 @@ static CTOR(map_ctor) {
   Type val_type = type_decl_resolve(env, val_decl);
   free_type_decl(val_decl);
   info->val_size = val_type->size;
-  MAP_INFO(o) = info;
   env->curr = curr;
+  MAP_INFO(o) = info;
   if(isa(key_type, t_string) > 0)
     MAP_INFO(o)->cmp = string_cmp;
   else
@@ -63,10 +64,9 @@ static DTOR(map_dtor) {
   mp_free(Map_Info, MAP_INFO(o));
 }
 
-
 static MFUN(gw_map_get) {
-  M_Vector v = ARRAY(o);
-  m_uint size = m_vector_size(v);
+  const M_Vector v = ARRAY(o);
+  const m_uint size = m_vector_size(v);
   for(m_uint i = 0; i < size; i++) {
     M_Object p;
     m_vector_get(v, i, &p);
@@ -79,18 +79,18 @@ static MFUN(gw_map_get) {
 }
 
 static MFUN(gw_map_set) {
-  M_Vector v = ARRAY(o);
-  m_uint size = m_vector_size(v);
+  const M_Vector v = ARRAY(o);
+  const m_uint size = m_vector_size(v);
   memcpy((m_bit*)RETURN, MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->val_size);
   for(m_uint i = 0; i < size; i++) {
     M_Object p;
     m_vector_get(v, i, &p);
     if(MAP_INFO(o)->cmp(MAP_KEY(p), MEM(SZ_INT), MAP_INFO(o)->key_size)) {
-      memcpy(MAP_VAL(p, o), MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->key_size);
+      memcpy(MAP_VAL(p, o), MEM(SZ_INT + MAP_INFO(o)->key_size), MAP_INFO(o)->val_size);
       return;
     }
   }
-  M_Object pair = new_M_Object(NULL);
+  const M_Object pair = new_M_Object(NULL);
   initialize_object(pair, MAP_INFO(o)->t);
   memcpy(pair->data, MEM(SZ_INT), MAP_INFO(o)->key_size + MAP_INFO(o)->val_size);
   m_vector_add(v, (m_bit*)&pair);
@@ -98,7 +98,7 @@ static MFUN(gw_map_set) {
 
 m_bool import_map(Gwi gwi) {
   Type t_map;
-  m_str types[] = { "A", "B" };
+  const m_str types[] = { "A", "B" };
   CHECK_OB((t_map = gwi_mk_type(gwi, "Map", SZ_INT, NULL)))
   CHECK_BB(gwi_tmpl_ini(gwi, 2, types))
   CHECK_BB(gwi_class_ini(gwi, t_map, map_ctor, map_dtor))

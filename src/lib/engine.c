@@ -56,7 +56,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(gwi_add_type(gwi, t_function))
   CHECK_OB((t_func_ptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function)))
   CHECK_BB(gwi_add_type(gwi, t_func_ptr))
-  CHECK_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
+  CHECK_OB((t_gack = gwi_mk_type(gwi, "@Gack", 0, NULL)))
   CHECK_BB(gwi_add_type(gwi, t_gack))
   CHECK_OB((t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL)))
   CHECK_BB(gwi_add_type(gwi, t_int))
@@ -131,7 +131,7 @@ ANN static void handle_plug(const Gwi gwi, const m_str c) {
     if(import) {
       if(import(gwi) > 0) {
         vector_add(&gwi->vm->plug, (vtype)handler);
-        nspc_commit(gwi->env->curr);
+//        nspc_commit(gwi->env->curr);
       } else { // maybe we should rollback
         env_reset(gwi->env);
 // remove it here
@@ -179,10 +179,11 @@ ANN Env type_engine_init(VM* vm, const Vector plug_dirs) {
     free_env(env);
     return NULL;
   }
-  nspc_commit(env->global_nspc);
+//  nspc_commit(env->global_nspc);
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/
   add_plugs(&gwi, plug_dirs);
+  nspc_commit(env->curr);
   return env;
 }

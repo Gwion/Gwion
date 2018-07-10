@@ -16,20 +16,14 @@ static INSTR(my_ret) { GWDEBUG_EXE
   POP_MEM(shred, info->offset);
         vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
   shred->code = *(VM_Code*)instr->ptr;
-  /*if(shred->mem == shred->_mem)*/
   POP_REG(shred, info->size)
-  /*POP_REG(shred, shred->code->stack_depth)*/
-  /*else*/
-    if(shred->mem == shred->_mem)
+  if(shred->mem == shred->_mem)
     POP_REG(shred, SZ_INT)
   POP_REG(shred, shred->code->stack_depth);
-  
   shred->pc = instr->m_val2;
   free(info);
-  free_instr(instr);
   *(m_int*)shred->reg = 2;
   PUSH_REG(shred, SZ_INT);
-  /*POP_REG(shred, shred->code->stack_depth);*/
 }
 
 static SFUN(cb_func) {

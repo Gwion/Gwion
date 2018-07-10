@@ -22,10 +22,9 @@ INSTR(Vararg_start) { GWDEBUG_EXE
 }
 
 INSTR(MkVararg) { GWDEBUG_EXE
-  const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
-    POP_REG(shred,  instr->m_val)
+    POP_REG(shred, instr->m_val)
     arg->d = (m_bit*)xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
   } else {
@@ -33,10 +32,11 @@ INSTR(MkVararg) { GWDEBUG_EXE
       POP_REG(shred, SZ_INT)
     arg->d = NULL;
   }
+  const Vector kinds = (Vector)instr->m_val2;
   if(kinds) {
     arg->s = vector_size(kinds);
     if(arg->s) {
-      arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
+      arg->k = (m_uint*)xmalloc(arg->s * SZ_INT);
       memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
     }
   } else {
@@ -50,14 +50,14 @@ INSTR(MkVararg) { GWDEBUG_EXE
 }
 
 INSTR(Vararg_end) { GWDEBUG_EXE
-  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   PUSH_REG(shred, SZ_INT);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   arg->o += arg->k[arg->i];
   if(++arg->i < arg->s)
     shred->pc = instr->m_val2;
   else {
-    free(arg->d);
-    free(arg->k);
+    xfree(arg->d);
+    xfree(arg->k);
     mp_free(Vararg, arg);
   }
 }
@@ -75,7 +75,7 @@ static OP_CHECK(at_varobj) {
 
 INSTR(varobj_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
-  *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
+  *(M_Object**)REG(0) = (M_Object*)REG(-SZ_INT);
 }
 
 ANN m_bool import_vararg(const Gwi gwi) {
@@ -119,3 +119,8 @@ ANN m_bool import_vararg(const Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_at_chuck, varobj_assign))
   return 1;
 }
+
+#ifdef JIT
+#include "ctrl/vararg.h"
+#include "code/vararg.h"
+#endif
