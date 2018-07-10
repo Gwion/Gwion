@@ -229,7 +229,3 @@ ANN m_bool import_std(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/std.h"
-#endif

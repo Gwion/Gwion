@@ -137,11 +137,11 @@ ANN static m_bool connect_init(const VM_Shred shred, restrict M_Object* lhs, res
   return 1;
 }
 
-#define describe_connect(name, func)                                   \
-ANN static inline void name##connect(const UGen lhs, const UGen rhs) { \
-  func(&rhs->connect.net.from, (vtype)lhs);                            \
-  func(&lhs->connect.net.to,   (vtype)rhs);                            \
-  rhs->connect.net.size = vector_size(&rhs->connect.net.from);         \
+#define describe_connect(name, func)                                       \
+ANN static inline void name##connect(const UGen lhs, const UGen rhs) {     \
+  func(&rhs->connect.net.from, (vtype)lhs);                                        \
+  func(&lhs->connect.net.to,   (vtype)rhs);                                        \
+  rhs->connect.net.size = vector_size(&rhs->connect.net.from);                             \
 }
 describe_connect(,vector_add)
 describe_connect(dis,vector_rem2)
@@ -166,28 +166,21 @@ ANN static void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
     const UGen l = l_multi ? UGEN(lhs->connect.multi->channel[i % l_max]) : lhs;
     const UGen r = r_multi ? UGEN(rhs->connect.multi->channel[i % r_max]) : rhs;
     f(l, r);
-  } while(++i < max);
+  }while(++i < max);
 }
 
-#define TRIG_EX                         \
-if(!UGEN(rhs)->module.gen.trig) {       \
-  release_connect(shred);               \
-  Except(shred, "NonTriggerException"); \
-}
 #define describe_connect_instr(name, func, opt) \
-static INSTR(name##_##func) { GWDEBUG_EXE       \
-  M_Object lhs, rhs;                            \
-  if(connect_init(shred, &lhs, &rhs) > 0) {     \
-    opt                                         \
-    _do_(func, UGEN(lhs), UGEN(rhs)); }         \
-  release_connect(shred);                       \
+static INSTR(name##_##func) { GWDEBUG_EXE      \
+  M_Object lhs, rhs;                           \
+  if(connect_init(shred, &lhs, &rhs) > 0) {    \
+    opt                                        \
+    _do_(func, UGEN(lhs), UGEN(rhs)); }        \
+  release_connect(shred);                      \
 }
 describe_connect_instr(ugen, connect,)
 describe_connect_instr(ugen, disconnect,)
-//describe_connect_instr(trig, connect,    if(UGEN(rhs)->module.gen.trig))
-//describe_connect_instr(trig, disconnect, if(UGEN(rhs)->module.gen.trig))
-describe_connect_instr(trig, connect,    TRIG_EX)
-describe_connect_instr(trig, disconnect, TRIG_EX)
+describe_connect_instr(trig, connect,    if(UGEN(rhs)->module.gen.trig))
+describe_connect_instr(trig, disconnect, if(UGEN(rhs)->module.gen.trig))
 
 static CTOR(ugen_ctor) {
   UGEN(o) = new_UGen();
@@ -252,24 +245,17 @@ static MFUN(ugen_get_op) {
   else if(f == ugop_divide)
     *(m_uint*)RETURN = 4;
 }
-ANN static void set_op(const UGen u, const f_ugop f) {
-  if(GET_FLAG(u, UGEN_MULTI)) {
-    for(m_uint i = u->connect.multi->n_chan + 1; --i;)
-      UGEN(u->connect.multi->channel[i-1])->op = f;
-  }
-  u->op = f;
-}
 
 static MFUN(ugen_set_op) {
   const m_int i = *(m_int*)MEM(SZ_INT);
   if(i == 1)
-    set_op(UGEN(o), ugop_plus);
+    UGEN(o)->op = ugop_plus;
   else if(i == 2)
-    set_op(UGEN(o), ugop_minus);
+    UGEN(o)->op = ugop_minus;
   else if(i == 3)
-    set_op(UGEN(o), ugop_times);
+    UGEN(o)->op = ugop_times;
   else if(i == 4)
-    set_op(UGEN(o), ugop_divide);
+    UGEN(o)->op = ugop_divide;
   *(m_uint*)RETURN = i;
 }
 
@@ -287,23 +273,19 @@ ANN static m_bool import_global_ugens(const Gwi gwi) {
   gwi_item_ini(gwi, "UGen", "dac");
   gwi_item_end(gwi, ae_flag_const, vm->dac);
 
+  vm->adc       = new_M_UGen();
+  ugen_ini(UGEN(vm->adc), vm->n_in, vm->n_in);
+  ugen_gen(UGEN(vm->adc), adc_tick, vm, 0);
+  vector_add(&vm->ugen, (vtype)UGEN(vm->adc));
+  gwi_item_ini(gwi, "UGen", "adc");
+  gwi_item_end(gwi, ae_flag_const, vm->adc);
+
   vm->blackhole = new_M_UGen();
   ugen_ini(UGEN(vm->blackhole), 1, 1);
   vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
   gwi_item_ini(gwi, "UGen", "blackhole");
   gwi_item_end(gwi, ae_flag_const, vm->blackhole);
   UGEN(vm->blackhole)->compute = compute_mono;
-
-
-  M_Object adc       = new_M_UGen();
-  ugen_ini(UGEN(adc), vm->n_in, vm->n_in);
-  ugen_gen(UGEN(adc), adc_tick, vm, 0);
-  vector_add(&vm->ugen, (vtype)UGEN(adc));
-  gwi_item_ini(gwi, "UGen", "adc");
-  gwi_item_end(gwi, ae_flag_const, adc);
-
-
-//_do_(connect, UGEN(vm->blackhole), UGEN(vm->dac));
   return 1;
 }
 
@@ -341,7 +323,3 @@ ANN m_bool import_ugen(const Gwi gwi) {
   CHECK_BB(import_global_ugens(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/ugen.h"
-#endif

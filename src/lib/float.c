@@ -7,9 +7,9 @@
 #include "import.h"
 
 static INSTR(float_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(-SZ_FLOAT) =
-    *(m_float*)REG(SZ_INT - SZ_FLOAT));
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_float*)REG(SZ_INT));
+  PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe(name, op) \
@@ -25,8 +25,9 @@ static describe(divide, /)
 
 #define describe_logical(name, op) \
 static INSTR(float_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_FLOAT * 2 - SZ_INT); \
-  *(m_int*)REG(-SZ_INT) = (*(m_float*)REG(-SZ_INT) op *(m_float*)REG(SZ_FLOAT -SZ_INT)); \
+  POP_REG(shred, SZ_FLOAT * 2); \
+  *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_float*)REG(SZ_FLOAT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
 describe_logical(and, &&)
 describe_logical(or,  ||)
@@ -38,30 +39,28 @@ describe_logical(lt,   <)
 describe_logical(le,  <=)
 
 INSTR(float_negate) { GWDEBUG_EXE
-  *(m_float*)REG(-SZ_FLOAT) = -*(m_float*)REG(-SZ_FLOAT);
-}
-
-
-OP_CHECK(opck_unary_meta2) {
-  const Exp_Unary* unary = (Exp_Unary*)data;
-  unary->self->meta = ae_meta_value;
-  return t_int;
+  POP_REG(shred, SZ_FLOAT)
+    *(m_float*)REG(0) = -*(m_float*)REG(0);
+  PUSH_REG(shred, SZ_FLOAT);
 }
 
 INSTR(float_not) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT - SZ_INT)
-    *(m_int*)REG(-SZ_INT) = !*(m_float*)REG(-SZ_INT);
+  POP_REG(shred, SZ_FLOAT)
+    *(m_int*)REG(0) = !*(m_float*)REG(0);
+  PUSH_REG(shred, SZ_INT);
 }
 
 static INSTR(float_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  **(m_float**)REG(0) = *(m_float*)REG(-SZ_FLOAT);
+  POP_REG(shred, SZ_FLOAT + SZ_INT);
+  **(m_float**)REG(SZ_FLOAT) = *(m_float*)REG(0);
+  PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe_r(name, op) \
 static INSTR(float_r_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT); \
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(0) op##= (*(m_float*)REG(-SZ_FLOAT))); \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
 
 describe_r(plus,   +)
@@ -70,14 +69,16 @@ describe_r(times,  *)
 describe_r(divide, /)
 
 static INSTR(int_float_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT);
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = *(m_float*)REG(0));
+  POP_REG(shred, SZ_INT + SZ_FLOAT);
+  *(m_int*)REG(0) = (**(m_int**)REG(0) = *(m_float*)REG(SZ_INT));
+  PUSH_REG(shred, SZ_INT);
 }
 
 #define describe_if(name, op) \
 static INSTR(int_float_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT); \
-  *(m_float*)REG(-SZ_FLOAT) = *(m_int*)REG(-SZ_FLOAT) op *(m_float*)REG(SZ_INT-SZ_FLOAT); \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_float*)REG(0) = *(m_int*)REG(0) op *(m_float*)REG(SZ_INT); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
 describe_if(plus,   +)
 describe_if(minus,  -)
@@ -86,8 +87,9 @@ describe_if(divide, /)
 
 #define describe_logical_if(name, op) \
 static INSTR(int_float_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (*(m_int*)REG(-SZ_INT) op *(m_float*)REG(0)); \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_int*)REG(0) = (*(m_int*)REG(0) op *(m_float*)REG(SZ_INT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
 describe_logical_if(and, &&)
 describe_logical_if(or,  ||)
@@ -100,8 +102,9 @@ describe_logical_if(le,  <=)
 
 #define describe_r_if(name, op) \
 static INSTR(int_float_r_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT * 2 - SZ_FLOAT); \
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(SZ_INT - SZ_FLOAT) op##= *(m_int*)REG(-SZ_FLOAT)); \
+  POP_REG(shred, SZ_INT * 2); \
+  *(m_float*)REG(0) = (**(m_float**)REG(SZ_INT) op##= *(m_int*)REG(0)); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
 describe_r_if(assign,  )
 describe_r_if(plus,   +)
@@ -110,15 +113,16 @@ describe_r_if(times,  *)
 describe_r_if(divide, /)
 
 static INSTR(float_int_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 2 - SZ_FLOAT);
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(-SZ_FLOAT) =
-    *(m_int*)REG(SZ_INT - SZ_FLOAT));
+  POP_REG(shred, SZ_INT * 2);
+  *(m_float*)REG(0) = (**(m_float**)REG(0) = *(m_int*)REG(SZ_INT));
+  PUSH_REG(shred, SZ_FLOAT);
 }
 
 #define describe_fi(name, op) \
 static INSTR(float_int_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT); \
-  *(m_float*)REG(-SZ_FLOAT) op##= *(m_int*)REG(0); \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_float*)REG(0) op##= *(m_int*)REG(SZ_FLOAT); \
+  PUSH_REG(shred, SZ_FLOAT); \
 }
 describe_fi(plus,   +)
 describe_fi(minus,  -)
@@ -127,8 +131,9 @@ describe_fi(divide, /)
 
 #define describe_logical_fi(name, op) \
 static INSTR(float_int_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (*(m_float*)REG(-SZ_INT) op *(m_int*)REG(SZ_FLOAT-SZ_INT)); \
+  POP_REG(shred, SZ_FLOAT + SZ_INT); \
+  *(m_int*)REG(0) = (*(m_float*)REG(0) op *(m_int*)REG(SZ_FLOAT)); \
+  PUSH_REG(shred, SZ_INT); \
 }
 describe_logical_fi(and, &&)
 describe_logical_fi(or,  ||)
@@ -140,15 +145,17 @@ describe_logical_fi(lt,   <)
 describe_logical_fi(le,  <=)
 
 static INSTR(float_int_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT);
-  *(m_int*)REG(-SZ_INT) = **(m_int**)REG(SZ_FLOAT-SZ_INT) =
-    *(m_float*)REG(-SZ_INT);
+  POP_REG(shred, SZ_FLOAT + SZ_INT);
+  **(m_int**)REG(SZ_FLOAT) = *(m_float*)REG(0);
+  *(m_int*)REG(0) = **(m_int**)REG(SZ_FLOAT);
+  PUSH_REG(shred, SZ_INT);
 }
 
 #define describe_r_fi(name, op) \
 static INSTR(float_int_r_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(SZ_FLOAT -SZ_INT) op##= (*(m_float*)REG(-SZ_INT))); \
+  POP_REG(shred, SZ_INT + SZ_FLOAT); \
+  *(m_int*)REG(0) = (**(m_int**)REG(SZ_FLOAT) op##= (*(m_float*)REG(0))); \
+  PUSH_REG(shred, SZ_INT); \
 }
 describe_r_fi(plus,   +)
 describe_r_fi(minus,  -)
@@ -223,14 +230,16 @@ static OP_EMIT(opem_f2i) {
 }
 
 INSTR(Cast_i2f) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT - SZ_FLOAT);
-  *(m_float*)REG(-SZ_FLOAT) = *(m_int*)REG(-SZ_FLOAT);
+  POP_REG(shred,  SZ_INT);
+  *(m_float*)REG(0) = *(m_int*)REG(0);
+  PUSH_REG(shred,  SZ_FLOAT);
 }
 
 
 INSTR(Cast_f2i) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT - SZ_INT);
-  *(m_int*)REG(-SZ_INT) = *(m_float*)REG(-SZ_INT);
+  POP_REG(shred,  SZ_FLOAT);
+  *(m_int*)REG(0) = *(m_float*)REG(0);
+  PUSH_REG(shred,  SZ_INT);
 }
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, float_##func)
@@ -261,7 +270,7 @@ ANN m_bool import_float(const Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "float"))
   CHECK_OP(minus, unary_meta, negate)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "int"))
-  CHECK_OP(exclamation, unary_meta2, not)
+  CHECK_OP(exclamation, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "time", "int"))
   CHECK_OP(exclamation, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
@@ -347,8 +356,3 @@ ANN m_bool import_float(const Gwi gwi) {
   CHECK_BB(import_values(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/float.h"
-#include "code/float.h"
-#endif

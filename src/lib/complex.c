@@ -5,10 +5,13 @@
 #include "instr.h"
 #include "import.h"
 
+m_int o_complex_real, o_complex_imag;
+m_int o_polar_mod,    o_polar_phase;
+
 static INSTR(complex_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(-SZ_COMPLEX) =
-     *(m_complex*)REG(SZ_INT-SZ_COMPLEX));
+  POP_REG(shred, SZ_INT + SZ_COMPLEX);
+  *(m_complex*)REG(0) = (**(m_complex**)REG(0) = *(m_complex*)REG(SZ_INT));
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 #define describe(name, op) \
@@ -22,14 +25,16 @@ describe(times,  *)
 describe(divide, /)
 
 static INSTR(complex_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  **(m_complex**)REG(0) = *(m_complex*)REG(-SZ_COMPLEX);
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
+  **(m_complex**)REG(SZ_COMPLEX) = *(m_complex*)REG(0);
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
 #define describe_r(name, op) \
 static INSTR(complex_r_##name) { GWDEBUG_EXE \
-  POP_REG(shred, SZ_INT); \
-  *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(0) op##= (*(m_complex*)REG(-SZ_COMPLEX))); \
+  POP_REG(shred, SZ_COMPLEX + SZ_INT); \
+  *(m_complex*)REG(0) = (**(m_complex**)REG(SZ_COMPLEX) op##= (*(m_complex*)REG(0))); \
+  PUSH_REG(shred, SZ_COMPLEX); \
 }
 describe_r(plus,  +)
 describe_r(minus, -)
@@ -37,86 +42,124 @@ describe_r(times, *)
 describe_r(divide, /)
 
 INSTR(complex_real) { GWDEBUG_EXE
-  if(!instr->m_val) {
-    *(m_float*)REG(-SZ_INT) = **(m_float**)REG(-SZ_INT);
-    PUSH_REG(shred, SZ_FLOAT - SZ_INT);
+  POP_REG(shred, SZ_INT);
+  if(instr->m_val)
+    PUSH_REG(shred, SZ_INT)
+  else {
+    *(m_float*)REG(0) = **(m_float**)REG(0);  // coverity
+    PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
 INSTR(complex_imag) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT);
   if(instr->m_val) {
-    const m_float* f = *(m_float**)REG(-SZ_INT);
-    *(const m_float**)REG(-SZ_INT) = (f + 1);
+    m_float* f = &**(m_float**)REG(0);
+    *(m_float**)REG(0) = &*(f + 1);
+    PUSH_REG(shred, SZ_INT);
   } else {
-    const m_float* f = *(m_float**)REG(-SZ_INT);
-    *(m_float*)REG(-SZ_INT) = *(f + 1);
-    PUSH_REG(shred, SZ_FLOAT - SZ_INT);
+    m_float* f = &**(m_float**)REG(0);
+    *(m_float*)REG(0) = *(f + 1);
+    PUSH_REG(shred, SZ_FLOAT);
   }
 }
 
-#define polar_def1(name, op)                                               \
-static INSTR(polar_##name) { GWDEBUG_EXE                                   \
-  POP_REG(shred, SZ_COMPLEX);                                              \
-  const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
-  const m_complex b = *(m_complex*)REG(0);                                 \
-  const m_float re = creal(a) * cos(cimag(a)) op creal(b) * cos(cimag(b)); \
-  const m_float im = creal(a) * sin(cimag(a)) op creal(b) * sin(cimag(b)); \
-  *(m_complex*)REG(-SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;       \
+static INSTR(polar_plus) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX * 2);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = *(m_complex*)REG(SZ_COMPLEX);
+  const m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
+  const m_float im = creal(a) * sin(cimag(a)) + creal(b) * sin(cimag(b));
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
 
-polar_def1(plus,  +)
-polar_def1(minus, -)
-
-#define polar_def2(name, op1, op2)                   \
-static INSTR(polar_##name) { GWDEBUG_EXE             \
-  POP_REG(shred, SZ_COMPLEX);                        \
-  const m_complex a = *(m_complex*)REG(-SZ_COMPLEX); \
-  const m_complex b = *(m_complex*)REG(0);           \
-  const m_float mag   = creal(a) op1 creal(b);       \
-  const m_float phase = cimag(a) op2 cimag(b);       \
-  *(m_complex*)REG(-SZ_COMPLEX) = mag  + phase * I;  \
+static INSTR(polar_minus) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX * 2);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = *(m_complex*)REG(SZ_COMPLEX);
+  const m_float re = creal(a) * cos(cimag(a)) - creal(b) * cos(cimag(b));
+  const m_float im = creal(a) * sin(cimag(a)) - creal(b) * sin(cimag(b));
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
-polar_def2(times, *, +)
-polar_def2(divide, /, -)
 
-#define polar_def1_r(name, op)                                             \
-static INSTR(polar_##name##_r) { GWDEBUG_EXE                               \
-  POP_REG(shred, SZ_INT);                                                  \
-  const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
-  const m_complex b = **(m_complex**)REG(0);                               \
-  const m_float re = creal(a) * cos(cimag(a)) op creal(b) * cos(cimag(b)); \
-  const m_float im = creal(a) * sin(cimag(a)) op creal(b) * sin(cimag(b)); \
-  *(m_complex*)REG(-SZ_COMPLEX) = **(m_complex**)REG(0) =                  \
-    hypot(re, im) + atan2(im, re) * I;                                     \
+static INSTR(polar_times) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX * 2);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = *(m_complex*)REG(SZ_COMPLEX);
+  const m_float mag   = creal(a) * creal(b);
+  const m_float phase = cimag(a) + cimag(b);
+  *(m_complex*)REG(0) = mag  + phase * I;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
-polar_def1_r(plus, +)
-polar_def1_r(minus, -)
 
-#define polar_def2_r(name, op1, op2)                      \
-static INSTR(polar_##name##_r) { GWDEBUG_EXE              \
-  POP_REG(shred, SZ_INT);                                 \
-  const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);      \
-  const m_complex b = **(m_complex**)REG(0);              \
-  const m_float mag   = creal(a) op1 creal(b);            \
-  const m_float phase = cimag(a) op2 cimag(b);            \
-  *(m_complex*)REG(-SZ_COMPLEX) = **(m_complex**)REG(0) = \
-    mag + phase * I;                                      \
+static INSTR(polar_divide) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX * 2);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = *(m_complex*)REG(SZ_COMPLEX);
+  const m_float mag   = creal(a) / creal(b);
+  const m_float phase = cimag(a) - cimag(b);
+  *(m_complex*)REG(0) = mag  + phase * I;
+  PUSH_REG(shred, SZ_COMPLEX);
 }
-polar_def2_r(times, *, +)
-polar_def2_r(divide, /, -)
+
+static INSTR(polar_plus_r) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = **(m_complex**)REG(SZ_COMPLEX);
+  const m_float re = creal(a) * cos(cimag(a)) + creal(b) * cos(cimag(b));
+  const m_float im = creal(a) * sin(cimag(a)) + sin(cimag(b));
+  *(m_complex*)REG(0) = **(m_complex**)REG(SZ_COMPLEX) =
+    hypot(re, im) + atan2(im, re) * I;
+  PUSH_REG(shred, SZ_COMPLEX);
+}
+
+static INSTR(polar_minus_r) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = **(m_complex**)REG(SZ_COMPLEX);
+  const m_float re = creal(a) * cos(cimag(a)) - creal(b) * cos(cimag(b));
+  const float im = creal(a) * sin(cimag(a)) - sin(cimag(b));
+  **(m_complex**)REG(SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;
+  *(m_complex*)REG(0) = hypot(re, im) + atan2(im, re) * I;
+  PUSH_REG(shred, SZ_COMPLEX);
+}
+
+static INSTR(polar_times_r) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = **(m_complex**)REG(SZ_COMPLEX);
+  const m_float mag   = creal(a) * creal(b);
+  const m_float phase = cimag(a) + cimag(b);
+  *(m_complex*)REG(0) = **(m_complex**)REG(SZ_COMPLEX) = mag  + phase * I;
+  PUSH_REG(shred, SZ_COMPLEX);
+}
+
+static INSTR(polar_divide_r) { GWDEBUG_EXE
+  POP_REG(shred, SZ_COMPLEX + SZ_INT);
+  const m_complex a = *(m_complex*)REG(0);
+  const m_complex b = **(m_complex**)REG(SZ_COMPLEX);
+  const m_float mag   = creal(a) / creal(b);
+  const m_float phase = cimag(a) - cimag(b);
+  *(m_complex*)REG(0) = **(m_complex**)REG(SZ_COMPLEX) = mag  + phase * I;
+  PUSH_REG(shred, SZ_COMPLEX);
+}
 
 ANN m_bool import_complex(const Gwi gwi) {
   CHECK_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
 	gwi_item_ini(gwi, "float", "re");
-  CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
+  o_complex_real = gwi_item_end(gwi,   ae_flag_member, NULL);
+  CHECK_BB(o_complex_real)
 	gwi_item_ini(gwi, "float", "im");
-  CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
+  o_complex_imag = gwi_item_end(gwi,   ae_flag_member, NULL);
+  CHECK_BB(o_complex_imag)
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_class_ini(gwi,  t_polar, NULL, NULL))
   CHECK_BB(gwi_item_ini(gwi, "float", "mod"))
-  CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
+  CHECK_BB((o_polar_mod = gwi_item_end(gwi,   ae_flag_member, NULL)))
   CHECK_BB(gwi_item_ini(gwi, "float", "phase"))
-  CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
+  CHECK_BB((o_polar_phase = gwi_item_end(gwi,   ae_flag_member, NULL)))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
@@ -154,7 +197,3 @@ ANN m_bool import_complex(const Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  polar_divide_r))
   return 1;
 }
-
-#ifdef JIT
-#include "code/complex.h"
-#endif

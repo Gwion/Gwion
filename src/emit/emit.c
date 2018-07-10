@@ -216,6 +216,16 @@ ANN VM_Array_Info* emit_array_extend_inner(const Emitter emit, const Type t, con
   return info;
 }
 
+static INSTR(pop_array_class) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT);
+  const M_Object obj = *(M_Object*)REG(-SZ_INT);
+  const M_Object tmp = *(M_Object*)REG(0);
+  ARRAY(obj) = ARRAY(tmp);
+  free(tmp->data);
+  free_object(tmp);
+  ADD_REF(obj->type_ref) // add ref to typedef array type
+}
+
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   emitter_add_instr(emit, Reg_Dup_Last);
   const Instr push_f = emitter_add_instr(emit, Reg_Push_Imm);
@@ -429,12 +439,8 @@ ANN static m_bool emit_exp_prim_str(const Emitter emit, const m_str str) { GWDEB
 ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBUG_EXE
   const Vector v = new_vector();
   Exp e = exp;
-  m_uint offset = 0;
-  m_uint size = 0;
   do {
     vector_add(v, (vtype)e->type);
-    offset += e->type->size;
-    ++size;
     if(e->type != emit->env->class_def)
       ADD_REF(e->type);
   } while((e = e->next));
@@ -444,8 +450,6 @@ ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBU
   }
   const Instr instr = emitter_add_instr(emit, Gack);
   *(Vector*)instr->ptr = v;
-  instr->m_val = offset;
-  instr->m_val2 = size;
   return 1;
 }
 
@@ -557,8 +561,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const Instr alloc = GET_FLAG(value, ae_flag_member) ?
     emitter_add_instr(emit, Alloc_Member) :
     emit_exp_decl_global(emit, value, is_obj);
+  alloc->m_val2 = type->size;
   alloc->m_val = value->offset;
-  alloc->m_val2 = emit_var ? SZ_INT : type->size;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, t_object) < 0)  ? emit_var : 1;
   if(is_obj) {
     if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
@@ -1619,10 +1623,10 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
 
 ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, const Func func) { GWDEBUG_EXE
   const Instr push_i = emitter_add_instr(emit, Reg_Push_Imm);
-  const Instr func_i = emitter_add_instr(emit, Reg_Push_Ptr);
+  const Instr func_i = emitter_add_instr(emit, Dot_Static_Func);
   push_i->m_val = SZ_INT;
   *(Type*)push_i->ptr = type;
-  *(Func*)func_i->ptr = func;
+  func_i->m_val = (m_uint)func;
   return 1;
 }
 

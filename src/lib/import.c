@@ -564,6 +564,11 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 
 ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name) {
   const Exp exp = make_exp(type, name);
+  const Type t = type_decl_resolve(gwi->env, exp->d.exp_decl.td);
+  if(!t)
+    CHECK_BB(err_msg(TYPE_, 0, "type '%s' unknown in union declaration."))
+  if(isa(t, t_object) > 0)
+    SET_FLAG(exp->d.exp_decl.td, ae_flag_ref);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
   return 1;
 }
