@@ -561,7 +561,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const Instr alloc = GET_FLAG(value, ae_flag_member) ?
     emitter_add_instr(emit, Alloc_Member) :
     emit_exp_decl_global(emit, value, is_obj);
-  alloc->m_val2 = type->size;
+  alloc->m_val2 = emit_var ? SZ_INT : type->size;
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, t_object) < 0)  ? emit_var : 1;
   if(is_obj) {
