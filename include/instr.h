@@ -76,7 +76,6 @@ INSTR(Alloc_Word);
 /* function */
 INSTR(Spork);
 INSTR(Instr_Exp_Func);
-INSTR(Dot_Static_Func);
 INSTR(Exp_Dot_Func);
 INSTR(Func_Static);
 INSTR(Func_Member);

@@ -1623,10 +1623,10 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
 
 ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, const Func func) { GWDEBUG_EXE
   const Instr push_i = emitter_add_instr(emit, Reg_Push_Imm);
-  const Instr func_i = emitter_add_instr(emit, Dot_Static_Func);
+  const Instr func_i = emitter_add_instr(emit, Reg_Push_Ptr);
   push_i->m_val = SZ_INT;
   *(Type*)push_i->ptr = type;
-  func_i->m_val = (m_uint)func;
+  *(Func*)func_i->ptr = func;
   return 1;
 }
 

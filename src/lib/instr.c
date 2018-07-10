@@ -254,10 +254,6 @@ INSTR(Call_Binary) { GWDEBUG_EXE
   shred_func_finish(shred);
 }
 
-INSTR(Dot_Static_Func) { GWDEBUG_EXE
-  *(m_uint*)REG(-SZ_INT) = instr->m_val;
-}
-
 INSTR(member_function) { GWDEBUG_EXE
   *(VM_Code*)REG(-SZ_INT) = ((Func)vector_at(*(Vector*)instr->ptr, instr->m_val))->code;
 }
