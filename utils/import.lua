@@ -22,6 +22,7 @@ function declare_c_param(param, offset)
     print("\t\t\tm_vector_get(ARRAY("..param.name.."_ptr), "..param.name.."_iter, &"..param.name.."_ftl_obj);")
     print("\t\t\t"..param.name.."["..param.name.."_iter] = FTBL("..param.name.."_ftl_obj);\n\t}")
     print("\trelease("..param.name.."_ptr, shred);")
+    print("\tREM_REF("..param.name.."_ptr->type_ref);")
   elseif string.match(param.type, "&sp_ftbl%s*") then
     print("\tM_Object "..param.name.."_obj = *(M_Object*)(shred->mem + gw_offset);")
     print("\tsp_ftbl** "..param.name.." = &FTBL("..param.name.."_obj);")
@@ -123,7 +124,7 @@ function print_mod_func(name, mod)
     print("\tif(!ug->is_init) { // LCOV_EXCL_START\n\t\tu->out = 0;\n\t\treturn;\n\t} // LCOV_EXCL_STOP")
   end
   local args = ""
-  if ninputs > 1 then
+  if ninputs > 1 or mod.noutputs > 1 then
     for i = 1, ninputs do
       args = string.format("%s, &UGEN(u->connect.multi->channel["..(i - 1).."])->in", args)
     end
@@ -223,6 +224,7 @@ function print_mod_func(name, mod)
       end
     end
     print("\tug->is_init = 1;\n}\n")
+--    print("#ifdef JIT\nJIT_MFUN("..name.."_init)\n#endif\n")
   end
   local opt = mod.params.optional
   if opt then
@@ -296,7 +298,10 @@ print('#include <stdlib.h>\
 #include "import.h"\
 #include "ugen.h"\
 #include "func.h"\
-#include "lang.h"')
+#include "lang.h"\
+#ifdef JIT\
+#include "ctrl.h"\
+#endif')
 
 print("m_uint o_ftbl_data;")
 print("#define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)")

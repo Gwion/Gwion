@@ -1272,8 +1272,10 @@ ANN static m_bool emit_stmt_gotolabel(const Emitter emit, const Stmt_Goto_Label 
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
       const Stmt_Goto_Label label = (Stmt_Goto_Label)vector_at(&stmt->data.v, i - 1);
-    if(!label->data.instr)
-      CHECK_BB(err_msg(EMIT_, label->self->pos, "you are trying to use a upper label."))
+      if(!label->data.instr) {
+        vector_release(&stmt->data.v);
+        CHECK_BB(err_msg(EMIT_, label->self->pos, "you are trying to use a upper label."))
+      }
       label->data.instr->m_val = emit_code_size(emit);
     }
     vector_release(&stmt->data.v);

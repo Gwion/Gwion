@@ -470,10 +470,8 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       if((mismatch = template_match(base->tmpl->list, types)) < 0)
         goto next;
     }
-    if(template_push_types(env, base->tmpl->list, types) < 0) {
-      nspc_pop_type(env->curr);
+    if(template_push_types(env, base->tmpl->list, types) < 0)
       goto next;
-    }
     if(find_template_match_inner(env, exp_func, def) < 0)
       goto next;
     Func next = def->func->next;
@@ -875,7 +873,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     member->self->meta = ae_meta_value;
   return value->type;
 }
-
+/*
 ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   const Type t     = nspc_lookup_type1(env->curr, ptr->xid);
   t->size    = SZ_INT;
@@ -886,7 +884,7 @@ ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   t->d.func = ptr->func;
   return 1;
 }
-
+*/
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
@@ -1222,7 +1220,8 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       ret = check_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
       break;
     case ae_stmt_funcptr:
-      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
+      ret = 1;
+//      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
       ret = check_stmt_type(env, &stmt->d.stmt_type);
@@ -1415,7 +1414,8 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
     if(class_def->tmpl)
       CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
     CHECK_BB(template_push_types(env, t->def->tmpl->list.list, class_def->ext->types))
-    CHECK_BB(traverse_class_def(env, t->def))
+    if(!GET_FLAG(t, ae_flag_checked))
+      CHECK_BB(traverse_class_def(env, t->def))
     nspc_pop_type(env->curr);
     if(class_def->tmpl)
       nspc_pop_type(env->curr);

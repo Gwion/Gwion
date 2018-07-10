@@ -120,10 +120,15 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, Type_Lis
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List call) {
   nspc_push_type(env->curr);
   do {
-    CHECK_OB(call);
+    if(!call) {
+      nspc_pop_type(env->curr);
+      return -1;
+    }
     Type t = type_decl_resolve(env, call->td);
-    if(!t)
+    if(!t) {
+      nspc_pop_type(env->curr);
       CHECK_BB(type_unknown(call->td->xid, "template"))
+    }
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
   } while((base = base->next));

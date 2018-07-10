@@ -17,7 +17,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def def);
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr def);
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr def);
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr def);
-ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr def);
+//ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr def);
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union def);
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union def);
@@ -77,8 +77,8 @@ ANN m_bool traverse_stmt_enum(const Env env, const Stmt_Enum def) {
 ANN m_bool traverse_stmt_fptr(const Env env, const Stmt_Ptr def) {
   if(scan0_stmt_fptr(env, def) < 0 ||
      scan1_stmt_fptr(env, def) < 0 ||
-     scan2_stmt_fptr(env, def) < 0 ||
-     check_stmt_fptr(env, def) < 0)
+     scan2_stmt_fptr(env, def) < 0 )// ||
+//     check_stmt_fptr(env, def) < 0)
     return -1;
   return 1;
 }

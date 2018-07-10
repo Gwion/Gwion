@@ -7,6 +7,9 @@
 #include "ugen.h"
 #include "func.h"
 #include "lang.h"
+#ifdef JIT
+#include "ctrl.h"
+#endif
 m_uint o_ftbl_data;
 #define FTBL(o) *((sp_ftbl**)((M_Object)o)->data + o_ftbl_data)
 #define CHECK_SIZE(size)	if(size <= 0){fprintf(stderr, "'gen_ftbl' size argument must be more than 0");return;}
@@ -2835,7 +2838,7 @@ typedef struct {
 
 static TICK(hilbert_tick) {
 	const GW_hilbert* ug = (GW_hilbert*)u->module.gen.data;
-	sp_hilbert_compute(ug->sp, ug->osc, &u->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
+	sp_hilbert_compute(ug->sp, ug->osc, &UGEN(u->connect.multi->channel[0])->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
 
 }
 
@@ -3737,6 +3740,7 @@ MFUN(oscmorph_init) {
 			tbl[tbl_iter] = FTBL(tbl_ftl_obj);
 	}
 	release(tbl_ptr, shred);
+	REM_REF(tbl_ptr->type_ref);
 	gw_offset +=SZ_INT;
 	m_int nft = *(m_int*)(shred->mem + gw_offset);
 	gw_offset +=SZ_INT;
@@ -3792,7 +3796,7 @@ typedef struct {
 
 static TICK(pan2_tick) {
 	const GW_pan2* ug = (GW_pan2*)u->module.gen.data;
-	sp_pan2_compute(ug->sp, ug->osc, &u->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
+	sp_pan2_compute(ug->sp, ug->osc, &UGEN(u->connect.multi->channel[0])->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
 
 }
 
@@ -4369,7 +4373,7 @@ static TICK(pitchamdf_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_pitchamdf_compute(ug->sp, ug->osc, &u->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
+	sp_pitchamdf_compute(ug->sp, ug->osc, &UGEN(u->connect.multi->channel[0])->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
 
 }
 
@@ -4787,7 +4791,7 @@ static TICK(ptrack_tick) {
 		u->out = 0;
 		return;
 	} // LCOV_EXCL_STOP
-	sp_ptrack_compute(ug->sp, ug->osc, &u->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
+	sp_ptrack_compute(ug->sp, ug->osc, &UGEN(u->connect.multi->channel[0])->in, &UGEN(u->connect.multi->channel[0])->out, &UGEN(u->connect.multi->channel[1])->out);
 
 }
 

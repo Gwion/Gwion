@@ -117,6 +117,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   ptr->func = new_func(s_name(ptr->xid), def);
   ptr->value->d.func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
+  ptr->type->d.func = ptr->func;
   SET_FLAG(ptr->value, ae_flag_func);
   if(env->class_def) {
     if(!GET_FLAG(ptr, ae_flag_static)) {
@@ -591,6 +592,9 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
+
+f->stack_depth = 0;
+
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   const m_uint len = strlen(func_name) +
