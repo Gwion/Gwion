@@ -1411,14 +1411,15 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
-    if(class_def->tmpl)
-      CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
-    CHECK_BB(template_push_types(env, t->def->tmpl->list.list, class_def->ext->types))
-    if(!GET_FLAG(t, ae_flag_checked))
+    if(!GET_FLAG(t, ae_flag_checked)) {
+      if(class_def->tmpl)
+        CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
+      CHECK_BB(template_push_types(env, t->def->tmpl->list.list, class_def->ext->types))
       CHECK_BB(traverse_class_def(env, t->def))
-    nspc_pop_type(env->curr);
-    if(class_def->tmpl)
       nspc_pop_type(env->curr);
+      if(class_def->tmpl)
+        nspc_pop_type(env->curr);
+    }
   }
   if(isa(class_def->type->parent, t_object) < 0)
     CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
