@@ -574,8 +574,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
       const Instr assign = emitter_add_instr(emit, Assign_Object);
       assign->m_val = emit_var;
     }
-    if(is_array)
-      ADD_REF(type);
   }
   return 1;
 }
