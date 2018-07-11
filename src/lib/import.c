@@ -780,16 +780,15 @@ post->exp->d.exp_primary.value->name);
 }
 
 ANN Type check_exp(const Env env, const Exp exp);
-ANN m_bool check_exp_array_subscripts(const Exp exp);
+ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   const Type t = type_decl_resolve(env, unary->td);
   if(!t)
     CHECK_BO(type_unknown(unary->td->xid, "'new' expression"))
-  if(unary->td->array) {
-    CHECK_OO(check_exp(env, unary->td->array->exp))
-    CHECK_BO(check_exp_array_subscripts(unary->td->array->exp))
-  } else
+  if(unary->td->array)
+    CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
+  else
     CHECK_BO(prim_ref(unary->td, t))
   return t;
 }

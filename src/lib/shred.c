@@ -72,8 +72,7 @@ static MFUN(shred_dir) {
   const m_str str = code_name(s->code->name, 1);
   const size_t len = strlen(str);
   char c[len + 1];
-  memset(c, 0, len + 1);
-  strncpy(c, str, len);
+  strcpy(c, str);
   *(m_uint*)RETURN = (m_uint)new_String(shred, dirname(c));
 }
 
@@ -120,3 +119,7 @@ ANN m_bool import_shred(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
+
+#ifdef JIT
+#include "ctrl/shred.h"
+#endif

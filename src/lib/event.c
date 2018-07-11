@@ -58,3 +58,8 @@ m_bool import_event(Gwi gwi) {
   _CHECK_OP(chuck, rassign, Event_Wait)
   return 1;
 }
+
+#ifdef JIT
+#include "ctrl/event.h"
+#include "code/event.h"
+#endif

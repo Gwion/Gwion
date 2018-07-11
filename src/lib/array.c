@@ -69,10 +69,12 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
     memcpy(c, v->ptr, index * v->size);
   ++index;
   memcpy(c + (index - 1) * v->size, v->ptr + index * v->size, (v->cap - index)*v->size);
+/*
   if(v->len > 2 && v->len < v->cap / 2) {
     v->cap /= 2;
     v->ptr = (m_bit*)xrealloc(v->ptr, v->cap * v->size);
   }
+*/
   memcpy(v->ptr, c, v->cap * v->size);
 }
 

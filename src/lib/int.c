@@ -32,6 +32,7 @@ static INSTR(int_assign) { GWDEBUG_EXE
 }
 
 static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
+static INSTR(int_cmp) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = ~*(m_int*)REG(-SZ_INT); }
 
 INSTR(int_not) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(-SZ_INT); }
 
@@ -62,6 +63,7 @@ describe_logical(xor,   ^)
 
 describe_pre(inc, ++)
 describe_pre(dec, --)
+//describe_pre(cmp, ~)
 describe_post(inc, ++)
 describe_post(dec, --)
 
@@ -119,8 +121,15 @@ ANN m_bool import_int(const Gwi gwi) {
   CHECK_OP(exclamation, unary_meta, not)
   CHECK_OP(plusplus,   unary, pre_inc)
   CHECK_OP(minusminus, unary, pre_dec)
+  CHECK_BB(gwi_oper_end(gwi,  op_tilda, int_cmp))
+//  CHECK_OP(tilda, unary, pre_cmp)
   CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP(plusplus,   post,  post_inc)
   CHECK_OP(minusminus, post,  post_dec)
   return 1;
 }
+
+#ifdef JIT
+#include "ctrl/int.h"
+#include "code/int.h"
+#endif

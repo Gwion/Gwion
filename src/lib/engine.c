@@ -131,10 +131,8 @@ ANN static void handle_plug(const Gwi gwi, const m_str c) {
     if(import) {
       if(import(gwi) > 0) {
         vector_add(&gwi->vm->plug, (vtype)handler);
-        nspc_commit(gwi->env->curr);
       } else { // maybe we should rollback
         env_reset(gwi->env);
-// remove it here
         vector_add(&gwi->vm->plug, (vtype)handler);
        }
     } else {
@@ -179,7 +177,6 @@ ANN Env type_engine_init(VM* vm, const Vector plug_dirs) {
     free_env(env);
     return NULL;
   }
-  nspc_commit(env->global_nspc);
   // user nspc
   /*  env->curr = env->user_nspc = new_nspc("[user]");*/
   /*  env->user_nspc->parent = env->global_nspc;*/

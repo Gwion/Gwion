@@ -25,7 +25,8 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN m_bool check_exp_array_subscripts(Exp exp) { GWDEBUG_EXE
+ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
+  CHECK_OB(check_exp(env, exp))
   do if(isa(exp->type, t_int) < 0)
       CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
   while((exp = exp->next));
@@ -34,7 +35,12 @@ ANN m_bool check_exp_array_subscripts(Exp exp) { GWDEBUG_EXE
 
 ANN static m_bool check_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
+// TODO: check this {
+if(!decl->type->parent->array_depth)
+  CHECK_BB(traverse_class_def(env, decl->type->def))
+else
   CHECK_BB(check_class_def(env, decl->type->def))
+// }
   nspc_pop_type(env->curr);
   return 1;
 }
@@ -46,11 +52,6 @@ ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWD
           "in class '%s': '%s' has already been defined in parent class '%s'...",
           env->class_def->name, s_name(var->xid), value->owner_class->name))
   return 1;
-}
-
-ANN static m_bool check_exp_decl_array(const Env env, const Exp array) { GWDEBUG_EXE
-  CHECK_OB(check_exp(env, array))
-  return check_exp_array_subscripts(array);
 }
 
 ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { GWDEBUG_EXE
@@ -85,7 +86,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
-      CHECK_BO(check_exp_decl_array(env, var->array->exp))
+      CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
     if(GET_FLAG(value, ae_flag_member))
       check_exp_decl_member(env->curr, value);
     else if(GET_FLAG(decl->td, ae_flag_static))
@@ -1344,10 +1345,10 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
     const Value override = find_value(env->class_def->parent, f->name);
     if(override) {
       if(isa(override->type, t_function) < 0)
-    CHECK_BB(err_msg(TYPE_, f->td->pos,
-          "function name '%s' conflicts with previously defined value...\n"
-          "\tfrom super class '%s'...",
-          s_name(f->name), override->owner_class->name))
+        CHECK_BB(err_msg(TYPE_, f->td->pos,
+              "function name '%s' conflicts with previously defined value...\n"
+              "\tfrom super class '%s'...",
+              s_name(f->name), override->owner_class->name))
       while(func->next)
         func = func->next;
       func->next = override->d.func_ref;
@@ -1404,10 +1405,8 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 }
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(class_def->ext->array) {
-    CHECK_OB(check_exp(env, class_def->ext->array->exp))
-    CHECK_BB(check_exp_array_subscripts(class_def->ext->array->exp))
-  }
+  if(class_def->ext->array)
+    CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;

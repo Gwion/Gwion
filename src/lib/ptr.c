@@ -50,10 +50,9 @@ static OP_CHECK(opck_ptr_assign) {
 }
 
 static INSTR(instr_ptr_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 2)
-  const M_Object o = *(M_Object*)REG(SZ_INT);
-  *(m_uint**)o->data = *(m_uint**)REG(0);
-  PUSH_REG(shred, SZ_INT)
+  POP_REG(shred, SZ_INT)
+  const M_Object o = *(M_Object*)REG(0);
+  *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
 }
 
 static OP_CHECK(opck_ptr_deref) {
@@ -78,13 +77,11 @@ static OP_CHECK(opck_implicit_ptr) {
 }
 
 static INSTR(instr_ptr_deref) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT)
-  const M_Object o = *(M_Object*)REG(0);
+  const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(instr->m_val2)
-    memcpy(REG(0), o->data, SZ_INT);
+    memcpy(REG(-SZ_INT), o->data, SZ_INT);
   else
-  memcpy(REG(0), *(m_bit**)o->data, instr->m_val);
-  PUSH_REG(shred, SZ_INT);
+    memcpy(REG(-SZ_INT), *(m_bit**)o->data, instr->m_val);
 }
 
 static OP_EMIT(opem_ptr_deref) {
@@ -96,12 +93,10 @@ static OP_EMIT(opem_ptr_deref) {
 }
 
 INSTR(Cast2Ptr) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT)
   const M_Object o = new_M_Object(shred);
   o->data = (m_bit*)xmalloc(SZ_INT);
-  *(m_uint**)o->data = *(m_uint**)REG(0);
-  *(M_Object*)REG(0) = o;
-  PUSH_REG(shred, SZ_INT)
+  *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
+  *(M_Object*)REG(-SZ_INT) = o;
 }
 
 ANN m_bool import_ptr(const Gwi gwi) {
@@ -124,3 +119,7 @@ ANN m_bool import_ptr(const Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_times, instr_ptr_deref))
   return 1;
 }
+
+#ifdef JIT
+#include "code/ptr.h"
+#endif

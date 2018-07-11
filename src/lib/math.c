@@ -8,10 +8,6 @@ static SFUN(math_abs) {
   *(m_uint*)RETURN = labs(*(m_int*)MEM(SZ_INT));
 }
 
-static SFUN(math_fabs) {
-  *(m_float*)RETURN = fabs(*(m_float*)MEM(SZ_INT));
-}
-
 static SFUN(math_rand) {
   *(m_uint*)RETURN = sp_rand(shred->vm_ref->sp);
 }
@@ -51,176 +47,73 @@ static SFUN(math_sgn) {
   *(m_uint*)RETURN = ret < 0. ? -1 : ret > 0. ? 1 : 0;
 }
 
-static SFUN(math_sin) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = sin(ret);
+#define math1(func)                           \
+static SFUN(math_##func) {                    \
+  const m_float ret = *(m_float*)MEM(SZ_INT); \
+  *(m_float*)RETURN = func(ret);              \
 }
 
-static SFUN(math_cos) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = cos(ret);
-}
+math1(fabs)
+math1(sin)
+math1(cos)
+math1(tan)
+math1(asin)
+math1(acos)
+math1(atan)
+math1(sinh)
+math1(cosh)
+math1(tanh)
+math1(asinh)
+math1(acosh)
+math1(atanh)
+math1(sqrt)
+math1(exp)
+math1(log)
+math1(log2)
+math1(log10)
+math1(floor)
+math1(ceil)
+math1(round)
+math1(trunc)
+math1(isinf)
+math1(isnan)
 
-static SFUN(math_tan) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = tan(ret);
-}
+static m_float min(m_float f1, m_float f2) { return f1 < f2 ? f1 : f2; }
+static m_float max(m_float f1, m_float f2) { return f1 > f2 ? f1 : f2; }
 
-static SFUN(math_asin) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = asin(ret);
+#define math2(func)                                       \
+static SFUN(math_##func) {                                \
+  const m_float ret1 = *(m_float*)MEM(SZ_INT);            \
+  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT); \
+  *(m_float*)RETURN = func(ret1, ret2);                   \
 }
+math2(atan2)
+math2(hypot)
+math2(pow)
+math2(fmod)
+math2(remainder)
+math2(min)
+math2(max)
 
-static SFUN(math_acos) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = acos(ret);
-}
+#define decl_math1(name, func)                   \
+  gwi_func_ini(gwi, "float", name, math_##func); \
+  gwi_func_arg(gwi, "float", "value");           \
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))    \
 
-static SFUN(math_atan) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = atan(ret);
-}
-
-static SFUN(math_sinh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = sinh(ret);
-}
-
-static SFUN(math_cosh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = cosh(ret);
-}
-
-static SFUN(math_tanh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = tanh(ret);
-}
-
-static SFUN(math_asinh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = sinh(ret);
-}
-
-static SFUN(math_acosh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = cosh(ret);
-}
-
-static SFUN(math_atanh) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = atanh(ret);
-}
-
-static SFUN(math_atan2) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = atan2(ret1, ret2);
-}
-
-static SFUN(math_hypot) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = hypot(ret1, ret2);
-}
-
-static SFUN(math_pow) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = pow(ret1, ret2);
-}
-
-static SFUN(math_sqrt) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = sqrt(ret);
-}
-
-static SFUN(math_exp) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = exp(ret);
-}
-
-static SFUN(math_log) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = log(ret);
-}
-
-static SFUN(math_log2) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = log2(ret);
-}
-
-static SFUN(math_log10) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = log10(ret);
-}
-
-static SFUN(math_floor) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = floor(ret);
-}
-
-static SFUN(math_ceil) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = floor(ret);
-}
-
-static SFUN(math_round) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = round(ret);
-}
-
-static SFUN(math_trunc) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_float*)RETURN = trunc(ret);
-}
-
-static SFUN(math_fmod) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = fmod(ret1, ret2);
-}
-
-static SFUN(math_remainder) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = remainder(ret1, ret2);
-}
-
-static SFUN(math_min) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = ret1 < ret2 ? ret1 : ret2;
-}
-
-static SFUN(math_max) {
-  const m_float ret1 = *(m_float*)MEM(SZ_INT);
-  const m_float ret2 = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
-  *(m_float*)RETURN = ret1 > ret2 ? ret1 : ret2;
-}
-
-static SFUN(math_isinf) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_uint*)RETURN = isinf(ret);
-}
-
-static SFUN(math_isnan) {
-  const m_float ret = *(m_float*)MEM(SZ_INT);
-  *(m_uint*)RETURN = isnan(ret);
-}
+#define decl_math2(name, func)                   \
+  gwi_func_ini(gwi, "float", name, math_##func); \
+  gwi_func_arg(gwi, "float", "value1");          \
+  gwi_func_arg(gwi, "float", "value2");          \
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))    \
 
 ANN m_bool import_math(const Gwi gwi) {
-  Type t_math;
-  CHECK_OB((t_math = gwi_mk_type(gwi, "Math", 0, NULL)))
+  const Type t_math = gwi_mk_type(gwi, "Math", 0, NULL);
+  CHECK_OB(t_math)
 
-
-  CHECK_BB(gwi_class_ini(gwi,  t_math, NULL, NULL))
+  CHECK_BB(gwi_class_ini(gwi, t_math, NULL, NULL))
 
   gwi_func_ini(gwi, "int", "abs", math_abs);
   gwi_func_arg(gwi, "int", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "fabs", math_fabs);
-  gwi_func_arg(gwi, "float", "value");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
   gwi_func_ini(gwi, "int", "rand", math_rand);
@@ -234,146 +127,42 @@ ANN m_bool import_math(const Gwi gwi) {
   gwi_func_ini(gwi, "float", "randf", math_randf);
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  gwi_func_ini(gwi, "float", "rand2f", math_rand2f);
-  gwi_func_arg(gwi, "float", "min");
-  gwi_func_arg(gwi, "float", "max");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  decl_math2("rand2f", rand2f)
 
-  gwi_func_ini(gwi, "float", "srand", math_srand);
-  gwi_func_arg(gwi, "float", "seed");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  decl_math1("fabs",  fabs)
+  decl_math1("srand", srand)
+  decl_math1("sgn",   sgn)
+  decl_math1("sin",   sin)
+  decl_math1("cos",   cos)
+  decl_math1("tan",   tan)
+  decl_math1("asin",  asin)
+  decl_math1("acos",  acos)
+  decl_math1("atan",  atan)
+  decl_math1("sinh",  sinh)
+  decl_math1("cosh",  cosh)
+  decl_math1("tanh",  tanh)
+  decl_math1("asinh", asinh)
+  decl_math1("acosh", acosh)
+  decl_math1("atanh", atanh)
+  decl_math1("sqrt",  sqrt)
+  decl_math1("exp",   exp)
+  decl_math1("log",   log)
+  decl_math1("log2",  log2)
+  decl_math1("log10", log10)
+  decl_math1("floor", floor)
+  decl_math1("ceil",  ceil)
+  decl_math1("round", round)
+  decl_math1("trunc", trunc)
+  decl_math1("isinf", isinf)
+  decl_math1("isnan", isnan)
 
-  gwi_func_ini(gwi, "int", "sgn", math_sgn);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "hypot", math_hypot);
-  gwi_func_arg(gwi, "float", "min");
-  gwi_func_arg(gwi, "float", "max");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "sin", math_sin);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "cos", math_cos);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "tan", math_tan);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "asin", math_asin);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "acos", math_acos);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "atan", math_atan);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "atan2", math_atan2);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "sinh", math_sinh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "cosh", math_cosh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "tanh", math_tanh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "asinh", math_asinh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "acosh", math_acosh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "atanh", math_atanh);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "pow", math_pow);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "sqrt", math_sqrt);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "exp", math_exp);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "log", math_log);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "log2", math_log2);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "log10", math_log10);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "floor", math_floor);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "ceil", math_ceil);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "round", math_round);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "trunc", math_trunc);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "fmod", math_fmod);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "remainder", math_remainder);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "min", math_min);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "max", math_max);
-  gwi_func_arg(gwi, "float", "value");
-  gwi_func_arg(gwi, "float", "value2");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "isinf", math_isinf);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "isnan", math_isnan);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  decl_math2("hypot",     hypot)
+  decl_math2("atan2",     atan2)
+  decl_math2("pow",       pow)
+  decl_math2("fmod",      fmod)
+  decl_math2("remainder", remainder)
+  decl_math2("min",       min)
+  decl_math2("max",       max)
   CHECK_BB(gwi_class_end(gwi))
-
   return 1;
 }
