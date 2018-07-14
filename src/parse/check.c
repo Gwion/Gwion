@@ -35,12 +35,8 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
 
 ANN static m_bool check_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
-// TODO: check this {
-//if(!decl->type->parent->array_depth)
   CHECK_BB(traverse_class_def(env, decl->type->def))
-//else
-//  CHECK_BB(check_class_def(env, decl->type->def))
-// }
+  CHECK_BB(check_class_def(env, decl->type->def))
   nspc_pop_type(env->curr);
   return 1;
 }
@@ -487,6 +483,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       return m_func;
     }
 next:
+    SET_FLAG(base, ae_flag_template);
     if(def->func) // still leaks
       def->func->def = NULL;
     free_func_def(def);
@@ -566,8 +563,9 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Val
     env->current->tmpl->base = v->d.func_ref->def->tmpl->list;
     return f;
   }
-  if(err_msg(TYPE_, func->self->pos, "function is template. automatic type guess not fully implemented yet.\n"
-                   "\tplease provide template types. eg: '<type1, type2, ...>'") < 0){}
+  (void)err_msg(TYPE_, func->self->pos,
+        "function is template. automatic type guess not fully implemented yet.\n"
+        "\tplease provide template types. eg: '<type1, type2, ...>'");
   return NULL;
 }
 
@@ -603,13 +601,13 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
     CHECK_BO(err_msg(TYPE_, exp_func->pos,
           "not able to guess types for template call."))
   Tmpl_Call tmpl = { tl[0], NULL };
-  Exp_Func tmp_func = { exp_func, args, NULL, &tmpl, NULL };
+  const Exp_Func tmp_func = { exp_func, args, NULL, &tmpl, NULL };
   *m_func = get_template_func(env, &tmp_func, value);
   return *m_func ? (*m_func)->def->ret_type : NULL;
 }
 
 ANN2(1) static m_bool check_exp_call1_template(const Env env, const Value value) { GWDEBUG_EXE
-  Class_Def def = value->owner_class->def;
+  const Class_Def def = value->owner_class->def;
   CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
   CHECK_BB(traverse_class_def(env, def))
   nspc_pop_type(env->curr);
@@ -635,8 +633,8 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
     const Value value = exp_func->type->d.func->value_ref;
-    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) &&
-      !GET_FLAG(value->owner_class, ae_flag_builtin))
+    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) // &&
+/*      !GET_FLAG(value->owner_class, ae_flag_builtin) */)
     CHECK_BO(check_exp_call1_template(env, value))
   }
   if(args)
