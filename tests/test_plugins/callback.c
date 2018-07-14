@@ -16,20 +16,14 @@ static INSTR(my_ret) { GWDEBUG_EXE
   POP_MEM(shred, info->offset);
         vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
   shred->code = *(VM_Code*)instr->ptr;
-  /*if(shred->mem == shred->_mem)*/
   POP_REG(shred, info->size)
-  /*POP_REG(shred, shred->code->stack_depth)*/
-  /*else*/
-    if(shred->mem == shred->_mem)
+  if(shred->mem == shred->_mem)
     POP_REG(shred, SZ_INT)
   POP_REG(shred, shred->code->stack_depth);
-  
   shred->pc = instr->m_val2;
   free(info);
-  free_instr(instr);
   *(m_int*)shred->reg = 2;
   PUSH_REG(shred, SZ_INT);
-  /*POP_REG(shred, shred->code->stack_depth);*/
 }
 
 static SFUN(cb_func) {
@@ -47,7 +41,6 @@ static SFUN(cb_func) {
   instr->execute = my_ret;
   *(VM_Code*)instr->ptr = shred->code;
   instr->m_val = (m_uint)info;
-//  instr->m_val2 = shred->pc + 1;
   instr->m_val2 = shred->pc;
   for(i = 0; i < vector_size(f->code->instr); i++) {
     Instr in = (Instr)vector_at(f->code->instr, i);
@@ -63,15 +56,13 @@ static SFUN(cb_func) {
 }
 
 IMPORT {
-  Type t_callback;
   CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
   CHECK_BB(gwi_fptr_end(gwi, 0))
 
-  CHECK_OB((t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, t_object)))
+  const Type t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, t_object);
   CHECK_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))
     CHECK_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
       CHECK_BB(gwi_func_arg(gwi, "PtrType", "func"))
-      /*CHECK_BB(gwi_func_arg(gwi, "int", "unused"))*/
     CHECK_BB(gwi_func_end(gwi, ae_flag_static))
   CHECK_BB(gwi_class_end(gwi))
   return 1;
