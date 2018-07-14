@@ -165,7 +165,7 @@ ANN static inline m_uint emit_code_offset(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static inline m_uint emit_alloc_local(const Emitter emit, const m_uint size, const m_bool is_obj) { GWDEBUG_EXE
-  Local* l = frame_alloc_local(emit->code->frame, size, is_obj);
+  const Local* l = frame_alloc_local(emit->code->frame, size, is_obj);
   return l->offset;
 }
 
@@ -581,11 +581,9 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
-  if(!GET_FLAG(decl->type, ae_flag_emit)) {
-    CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
-    CHECK_BB(emit_class_def(emit, decl->type->def))
-    nspc_pop_type(emit->env->curr);
-  }
+  CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
+  CHECK_BB(emit_class_def(emit, decl->type->def))
+  nspc_pop_type(emit->env->curr);
   return 1;
 }
 
@@ -594,7 +592,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   const m_bool ref = GET_FLAG(decl->td, ae_flag_ref) || type_ref(decl->type);
   const m_bool var = decl->self->emit_var;
 
-  if(GET_FLAG(decl->type, ae_flag_template))
+  if(GET_FLAG(decl->type, ae_flag_template) && !GET_FLAG(decl->type, ae_flag_emit))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
@@ -648,7 +646,7 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
   CHECK_BB(emit_exp(emit, exp_func->func, 0))
   if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
     // handle empty call to variadic functions
-    Instr mk = emitter_add_instr(emit, MkVararg);
+    const Instr mk = emitter_add_instr(emit, MkVararg);
     *(m_uint*)mk->ptr = 1;
     const Instr push = emitter_add_instr(emit, Reg_Push_Imm);
     push->m_val = SZ_INT;
@@ -658,16 +656,15 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
   const Func_Def def = exp_func->m_func->def;
-  vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
-  emit->env->class_def = exp_func->m_func->value_ref->owner_class;
-  vector_add(&emit->env->nspc_stack, (vtype)emit->env->curr);
-  emit->env->curr = exp_func->m_func->value_ref->owner;
+  if(exp_func->m_func->value_ref->owner_class)
+    env_push_class(emit->env, exp_func->m_func->value_ref->owner_class);
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(template_push_types(emit->env, def->tmpl->list, exp_func->tmpl->types))
   CHECK_BB(traverse_func_def(emit->env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(emit->env->curr);
-  env_pop_class(emit->env);
+  if(exp_func->m_func->value_ref->owner_class)
+    env_pop_class(emit->env);
   UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
@@ -1144,9 +1141,8 @@ ANN Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   Instr op = NULL;
   emit_push_scope(emit);
   emit_push_stack(emit);
-  if(!stmt->is_do) {
+  if(!stmt->is_do)
     op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
-  }
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
@@ -1740,7 +1736,6 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   }
   vector_clear(&emit->code->stack_return);
   emit_pop_scope(emit);
-//  emit_func_release(emit);
   emitter_add_instr(emit, Func_Return);
 }
 
@@ -1926,13 +1921,11 @@ ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG
   emit->code = new_code();
   vector_clear(&emit->stack);
   emit_push_scope(emit);
-/*  emitter_add_instr(emit, start_gc); */
   const m_bool ret = emit_ast_inner(emit, ast);
   emit_pop_scope(emit);
-  if(ret > 0) {
-/*    emitter_add_instr(emit, stop_gc); */
+  if(ret > 0)
     code_optim(emit);
-  } else { // should free all stack.
+  else { // should free all stack.
     gw_err("in file '%s'\n", filename);
     emit_free_stack(emit);
     free(filename);

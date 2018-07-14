@@ -36,10 +36,10 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
 ANN static m_bool check_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
 // TODO: check this {
-if(!decl->type->parent->array_depth)
+//if(!decl->type->parent->array_depth)
   CHECK_BB(traverse_class_def(env, decl->type->def))
-else
-  CHECK_BB(check_class_def(env, decl->type->def))
+//else
+//  CHECK_BB(check_class_def(env, decl->type->def))
 // }
   nspc_pop_type(env->curr);
   return 1;
@@ -78,7 +78,7 @@ ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol 
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-  if(GET_FLAG(decl->type , ae_flag_template) && !GET_FLAG(decl->type, ae_flag_check))
+  if(GET_FLAG(decl->type , ae_flag_template) && !GET_FLAG(decl->type, ae_flag_checked))
     CHECK_BO(check_exp_decl_template(env, decl))
   do {
     const Var_Decl var = list->self;
@@ -1377,6 +1377,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
   env->func = func;
+  ++env->class_scope;
   nspc_push_value(env->curr);
   if(f->arg_list)
     ret = check_func_args(env, f->arg_list);
@@ -1389,6 +1390,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_builtin))
     func->code->stack_depth = f->stack_depth;
   nspc_pop_value(env->curr);
+  --env->class_scope;
   env->func = NULL;
   return ret;
 }
@@ -1405,8 +1407,10 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 }
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(class_def->ext->array)
+  if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
+    REM_REF(class_def->type->parent->nspc);
+  }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
