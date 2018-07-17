@@ -582,6 +582,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
+  CHECK_BB(traverse_class_def(emit->env, decl->type->def))
   CHECK_BB(emit_class_def(emit, decl->type->def))
   nspc_pop_type(emit->env->curr);
   return 1;
@@ -764,14 +765,13 @@ ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
 ANN static m_bool emit_exp_call_code_template(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
   CHECK_BB(traverse_class_def(env, class_def))
-  nspc_pop_type(env->curr);
+//  nspc_pop_type(env->curr);
   return 1;
 }
 
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
   if(!emit_get_func(emit->env->curr, func)) { GWDEBUG_EXE //template with no list
-    if(func->value_ref->owner_class &&
-        GET_FLAG(func->value_ref->owner_class, ae_flag_template))
+    if(GET_FLAG(func, ae_flag_ref))
       CHECK_BB(emit_exp_call_code_template(emit->env,
             func->value_ref->owner_class->def))
     else if(!GET_FLAG(func->def, ae_flag_template)) {
@@ -780,8 +780,15 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       SET_FLAG(emit->code, ae_flag_recurs);
       return 1;
     }
+    if(func->value_ref->owner_class)
+      env_push_class(emit->env, func->value_ref->owner_class);
     if(emit_func_def(emit, func->def) < 0)
       CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
+    if(func->value_ref->owner_class) {
+      env_pop_class(emit->env);
+      if(GET_FLAG(func, ae_flag_ref))
+        nspc_pop_type(emit->env->curr);
+    }
     const Instr code = emitter_add_instr(emit, Reg_Push_Ptr);
     *(VM_Code*)code->ptr = func->code = func->def->func->code;
   } else {

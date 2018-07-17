@@ -61,6 +61,8 @@ ANN static void free_nspc_value(const Nspc a) {
     if(isa(value->type, t_class) > 0) {
       if(GET_FLAG(value->type->d.base_type, ae_flag_template)) {
         UNSET_FLAG(value->type->d.base_type, ae_flag_template);
+        if(GET_FLAG(value->type->d.base_type, ae_flag_typedef))
+          REM_REF(value->type->d.base_type->parent->nspc)
         if(GET_FLAG(value->type->d.base_type, ae_flag_ref)) {
           if(!GET_FLAG(value->type->d.base_type, ae_flag_builtin)) {
             free_class_def(value->type->d.base_type->def);

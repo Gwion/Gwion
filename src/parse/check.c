@@ -633,8 +633,7 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
     const Value value = exp_func->type->d.func->value_ref;
-    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) // &&
-/*      !GET_FLAG(value->owner_class, ae_flag_builtin) */)
+    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
     CHECK_BO(check_exp_call1_template(env, value))
   }
   if(args)
@@ -872,18 +871,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     member->self->meta = ae_meta_value;
   return value->type;
 }
-/*
-ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
-  const Type t     = nspc_lookup_type1(env->curr, ptr->xid);
-  t->size    = SZ_INT;
-  t->name    = s_name(ptr->xid);
-  t->parent  = t_func_ptr;
-  nspc_add_type(env->curr, ptr->xid, t);
-  ptr->type = t;
-  t->d.func = ptr->func;
-  return 1;
-}
-*/
+
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
@@ -1220,7 +1208,6 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       break;
     case ae_stmt_funcptr:
       ret = 1;
-//      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
       ret = check_stmt_type(env, &stmt->d.stmt_type);
@@ -1385,8 +1372,10 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
                   "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
-  if(GET_FLAG(f, ae_flag_builtin))
+  if(GET_FLAG(f, ae_flag_builtin)) {
+    f->stack_depth += SZ_INT;
     func->code->stack_depth = f->stack_depth;
+  }
   nspc_pop_value(env->curr);
   --env->class_scope;
   env->func = NULL;
@@ -1405,10 +1394,8 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 }
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(class_def->ext->array) {
+  if(class_def->ext->array)
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
-    REM_REF(class_def->type->parent->nspc);
-  }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
