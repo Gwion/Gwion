@@ -20,14 +20,14 @@ ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
-  Type t = type_decl_resolve(env, decl->td);
+  const Type t = type_decl_resolve(env, decl->td);
   if(!t)
     CHECK_BO(type_unknown(decl->td->xid, "declaration"))
   if(!t->size)
     CHECK_BO(err_msg(SCAN1_, decl->self->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
   if(!GET_FLAG(decl->td, ae_flag_ref)) {
-    if(env->class_def && (t == env->class_def) && !env->class_scope)
+    if(t == env->class_def && !env->class_scope)
       CHECK_BO(err_msg(SCAN1_, decl->self->pos,
             "...(note: object of type '%s' declared inside itself)", t->name))
   } else
@@ -37,16 +37,6 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
             "must declare private variables at class scope..."))
   if(GET_FLAG(t, ae_flag_template))
     scan1_exp_decl_template(t, decl);
-/*
-//    t = decl->type;
-  if(decl->type && !env->func &&
-//    !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
-    !SAFE_FLAG(env->class_def, ae_flag_builtin))
-    t = decl->type;
-  else
-    ((Exp_Decl*)decl)->type = t;
-  }
-*/
   return t;
 }
 
@@ -133,10 +123,10 @@ ANN static m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Func* exp_func) { GWDEBUG_EXE
-  Exp args = exp_func->args;
   if(exp_func->tmpl)
     return 1;
   CHECK_BB(scan1_exp(env, exp_func->func))
+  const Exp args = exp_func->args;
   return args ? scan1_exp(env, args) : 1;
 }
 
@@ -456,7 +446,6 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
-  f->stack_depth = 0;
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
@@ -482,19 +471,21 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   if(class_def->ext) {
-    if(!(class_def->type->parent = type_decl_resolve(env, class_def->ext)))
+    const Type parent = type_decl_resolve(env, class_def->ext);
+    if(!parent)
       CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-    if(!GET_FLAG(class_def->type->parent, ae_flag_scan1) && class_def->type->parent->def)
-      CHECK_BB(scan1_class_def(env, class_def->type->parent->def))
+    if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
+      CHECK_BB(scan1_class_def(env, parent->def))
     if(class_def->ext->array) {
       if(!class_def->ext->array->exp)
         CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend"))
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
-    if(type_ref(class_def->type->parent)) {
-      REM_REF(t_array->nspc)
+    if(type_ref(parent)) {
+      REM_REF(class_def->type->nspc)
       CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
     }
+    class_def->type->parent = parent;
   }
   if(class_def->body) {
     Class_Body body = class_def->body;
