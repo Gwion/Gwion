@@ -593,7 +593,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
 
-f->stack_depth = 0;
+  f->stack_depth = 0;
 
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);

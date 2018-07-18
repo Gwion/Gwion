@@ -68,7 +68,7 @@ ANN static m_uint template_size(const Env env, const Class_Def c,
     if(base)
       ++size;
   }
-  return size;
+  return size + 16;
 }
 
 ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call, m_str str) {
@@ -84,6 +84,12 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
       strcat(str, ",");
   }
   strcat(str, ">");
+  if((c->type->owner == env->global_nspc)) {
+    char ptr[16];
+    sprintf(ptr, "%p", (void*)env->curr);
+    ptr[15] = '0';
+    strcat(str, ptr);
+  }
   return 1;
 }
 
@@ -177,4 +183,13 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
       CHECK_BO(err_msg(SCAN1_, type->pos,
             "type '%s' is not template. You should not provide template types", t->name))
   return t;
+}
+
+ANN m_bool traverse_class_def(const Env, const Class_Def def);
+ANN m_bool traverse_template(const Env env, const Class_Def def) {
+  CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
+  CHECK_BB(traverse_class_def(env, def))
+  nspc_pop_type(env->curr);
+  return 1;
+
 }

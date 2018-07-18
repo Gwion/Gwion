@@ -33,14 +33,6 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool check_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
-  CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types))
-  CHECK_BB(traverse_class_def(env, decl->type->def))
-  CHECK_BB(check_class_def(env, decl->type->def))
-  nspc_pop_type(env->curr);
-  return 1;
-}
-
 ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWDEBUG_EXE
   const Value value = find_value(env->class_def->parent, var->xid);
   if(value)
@@ -74,8 +66,8 @@ ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol 
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-  if(GET_FLAG(decl->type , ae_flag_template) && !GET_FLAG(decl->type, ae_flag_checked))
-    CHECK_BO(check_exp_decl_template(env, decl))
+  if(GET_FLAG(decl->type , ae_flag_template))
+    CHECK_BO(traverse_template(env, decl->type->def))
   do {
     const Var_Decl var = list->self;
     const Value value = var->value;
@@ -606,14 +598,6 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
   return *m_func ? (*m_func)->def->ret_type : NULL;
 }
 
-ANN2(1) static m_bool check_exp_call1_template(const Env env, const Value value) { GWDEBUG_EXE
-  const Class_Def def = value->owner_class->def;
-  CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
-  CHECK_BB(traverse_class_def(env, def))
-  nspc_pop_type(env->curr);
-  return 1;
-}
-
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value* ptr) { GWDEBUG_EXE
   if(!(exp_func->type = check_exp(env, exp_func)))
     CHECK_BB(err_msg(TYPE_, exp_func->pos,
@@ -633,8 +617,11 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
     const Value value = exp_func->type->d.func->value_ref;
-    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template))
-    CHECK_BO(check_exp_call1_template(env, value))
+//    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) // &&
+    if(GET_FLAG(exp_func->type->d.func, ae_flag_ref) // &&
+/* && !GET_FLAG(value->owner_class, ae_flag_emit) */
+/*      !GET_FLAG(value->owner_class, ae_flag_builtin) */)
+    CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
     CHECK_OO(check_exp(env, args))
@@ -871,7 +858,18 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     member->self->meta = ae_meta_value;
   return value->type;
 }
-
+/*
+ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+  const Type t     = nspc_lookup_type1(env->curr, ptr->xid);
+  t->size    = SZ_INT;
+  t->name    = s_name(ptr->xid);
+  t->parent  = t_func_ptr;
+  nspc_add_type(env->curr, ptr->xid, t);
+  ptr->type = t;
+  t->d.func = ptr->func;
+  return 1;
+}
+*/
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
@@ -1208,6 +1206,7 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       break;
     case ae_stmt_funcptr:
       ret = 1;
+//      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
       ret = check_stmt_type(env, &stmt->d.stmt_type);
@@ -1373,7 +1372,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(variadic)
     REM_REF(variadic)
   if(GET_FLAG(f, ae_flag_builtin)) {
-    f->stack_depth += SZ_INT;
+    if(GET_FLAG(func, ae_flag_member | ae_flag_ref))
+      f->stack_depth += SZ_INT;
     func->code->stack_depth = f->stack_depth;
   }
   nspc_pop_value(env->curr);
@@ -1394,17 +1394,18 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 }
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(class_def->ext->array)
+  if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
+if(!GET_FLAG(class_def->type, ae_flag_check))
+    REM_REF(class_def->type->parent->nspc);
+  }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
     if(!GET_FLAG(t, ae_flag_checked)) {
       if(class_def->tmpl)
         CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
-      CHECK_BB(template_push_types(env, t->def->tmpl->list.list, class_def->ext->types))
-      CHECK_BB(traverse_class_def(env, t->def))
-      nspc_pop_type(env->curr);
+      CHECK_BB(traverse_template(env, t->def))
       if(class_def->tmpl)
         nspc_pop_type(env->curr);
     }
