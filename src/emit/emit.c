@@ -216,16 +216,6 @@ ANN VM_Array_Info* emit_array_extend_inner(const Emitter emit, const Type t, con
   return info;
 }
 
-static INSTR(pop_array_class) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  const M_Object obj = *(M_Object*)REG(-SZ_INT);
-  const M_Object tmp = *(M_Object*)REG(0);
-  ARRAY(obj) = ARRAY(tmp);
-  free(tmp->data);
-  free_object(tmp);
-  ADD_REF(obj->type_ref) // add ref to typedef array type
-}
-
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   emitter_add_instr(emit, Reg_Dup_Last);
   const Instr push_f = emitter_add_instr(emit, Reg_Push_Imm);
@@ -1445,7 +1435,7 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool po
     COVERAGE(stmt)
 #ifdef CURSES
   {
-    const Instr instr = emitter_add_instr(emit, dbg_pos);
+    const Instr instr = emitter_add_instr(emit,  dbg_pos);
     instr->m_val = stmt->pos;
   }
 #endif

@@ -111,6 +111,7 @@ INSTR(Vararg_Member);
 
 INSTR(member_function);
 INSTR(vec_member);
+INSTR(pop_array_class);
 
 INSTR(Call_Binary);
 
