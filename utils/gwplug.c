@@ -61,8 +61,7 @@ static void directory_handler(const char* dirname) {
 
 static void find(const char* c) {
   PlugInfo i;
-  strcpy(i.name, c);
-  strcat(i.name, ".so");
+  sprintf(i.name, "%s.so", c);
   PlugInfo* p = lfind(&i, info, &n, sizeof(PlugInfo), compar);
   char tgt[128*2];
   snprintf(tgt, 128*2, "%s/%s", pdir, p->name);

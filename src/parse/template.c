@@ -15,7 +15,7 @@ ANN static Type owner_type(const Type t) {
 }
 
 ANEW ANN static Vector get_types(Type t) {
-  Vector v = new_vector();
+  const Vector v = new_vector();
   do if(GET_FLAG(t, ae_flag_template))
       vector_add(v, (vtype)t->def->tmpl->list.list);
   while((t = owner_type(t)));
@@ -23,9 +23,9 @@ ANEW ANN static Vector get_types(Type t) {
 }
 
 ANEW ANN static ID_List id_list_copy(ID_List src) {
-  ID_List tmp, list = new_id_list(src->xid, src->pos);
+  const ID_List list = new_id_list(src->xid, src->pos);
+  ID_List tmp = list;
   src = src->next;
-  tmp = list;
   while(src) {
     tmp->next = new_id_list(src->xid, src->pos);
     tmp = tmp->next;
@@ -84,7 +84,7 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
       strcat(str, ",");
   }
   strcat(str, ">");
-  if((c->type->owner == env->global_nspc)) {
+  if(c->type->owner == env->global_nspc) {
     char ptr[16];
     sprintf(ptr, "%p", (void*)env->curr);
     ptr[15] = '0';
@@ -113,17 +113,18 @@ ANN m_bool template_match(ID_List base, Type_List call) {
   return 1;
 }
 
-ANN static Class_Def template_class(const Env env, const Class_Def def, Type_List call) {
-  Type t;
-  ID_List name = template_id(env, def, call);
-  if((t = nspc_lookup_type1(env->curr, name->xid))) {
+ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
+  const ID_List name = template_id(env, def, call);
+  const Type t = nspc_lookup_type1(env->curr, name->xid);
+  if(t) {
     free_id_list(name);
     return t->def;
   }
   return new_class_def(def->flag, name, def->ext, def->body);
 }
 
-ANN m_bool template_push_types(const Env env, ID_List base, Type_List call) {
+ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
+  Type_List call = tl;
   nspc_push_type(env->curr);
   do {
     if(!call) {

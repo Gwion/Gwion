@@ -511,7 +511,7 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void* function_alternative(const Type f, Exp args){
-  if(err_msg(TYPE_, 0, "argument type(s) do not match for function. should be :") < 0){}
+  if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
   do {
     const Arg_List e = up->def->arg_list;
@@ -688,7 +688,7 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
     if(!f1 || !f2)
       CHECK_BO(err_msg(TYPE_, bin->self->pos, "function not found."))
     if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
-      CHECK_BO(err_msg(TYPE_, 0, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+      CHECK_BO(err_msg(TYPE_, bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
            f1->def->ret_type->name, f2->def->ret_type->name))
     for(m_uint i = 0; i <= v->offset; ++i) {
       if(bin->lhs->exp_type == ae_exp_primary) {
@@ -703,7 +703,7 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
         return ret_type;
       }
     }
-  CHECK_BO(err_msg(TYPE_, 0, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
+  CHECK_BO(err_msg(TYPE_, bin->self->pos, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
   return NULL;
 }
 

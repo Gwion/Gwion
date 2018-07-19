@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdio_ext.h>
 #include <signal.h>
 #include <getopt.h>
 #include <string.h>
@@ -97,6 +99,10 @@ int main(int argc, char** argv) {
   arg.udp = &udpif;
   udp.arg = &arg;
 #endif
+
+__fsetlocking(stdout, FSETLOCKING_BYCALLER);
+__fsetlocking(stderr, FSETLOCKING_BYCALLER);
+
   parse_args(&arg, &di);
 
 #ifdef GWUDP
