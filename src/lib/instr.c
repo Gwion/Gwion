@@ -23,7 +23,11 @@ INSTR(EOC) { GWDEBUG_EXE
 }
 
 INSTR(DTOR_EOC) { GWDEBUG_EXE
-  REM_REF(shred->code);
+  const M_Object o = *(M_Object*)MEM(0);
+  o->type_ref = o->type_ref->parent;
+  o->ref = 1;
+  _release(o, shred);
+  _release(shred->me, shred);
   vm_shred_exit(shred);
 }
 

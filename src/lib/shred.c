@@ -5,7 +5,7 @@
 #include "instr.h"
 #include "import.h"
 
-M_Object new_shred(VM_Shred shred) {
+M_Object new_shred(const VM_Shred shred) {
   const M_Object obj = new_M_Object(NULL);
   initialize_object(obj, t_shred);
   ME(obj) = shred;

@@ -44,25 +44,31 @@ ANN void instantiate_object(const VM_Shred shred, const Type type) {
   return;
 }
 
-ANN static void handle_dtor(const Type t, const VM_Shred shred) {
+ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
+  const Type t = object->type_ref;
   const VM_Code code = new_vm_code(t->nspc->dtor->instr, SZ_INT, 1, "[dtor]");
   const VM_Shred sh = new_vm_shred(code);
-  memcpy(sh->mem, shred->mem, SIZEOF_MEM);
+  memcpy(sh->base, shred->base, SIZEOF_MEM);
+  memcpy(sh->reg, shred->reg, SIZEOF_REG);
+  *(M_Object*)sh->mem = object;
+  sh->mem += SZ_INT;
+  *(M_Object*)sh->mem = object;
   vector_pop(code->instr);
   const Instr eoc = new_instr();
-  eoc->execute = EOC;
+  eoc->execute = DTOR_EOC;
+  eoc->m_val = (m_uint)shred;
   vector_add(code->instr, (vtype)eoc);
   vm_add_shred(shred->vm_ref, sh);
+  ++sh->me->ref;
 }
 
 ANN void _release(const M_Object obj, const VM_Shred shred) {
   if(!--obj->ref) {
     Type t = obj->type_ref;
     while(t) {
-      m_uint i;
-      Vector v = scope_get(&t->nspc->value);
-      for(i = 0; i < vector_size(v); i++) {
-        Value value = (Value)vector_at(v, i);
+      const Vector v = scope_get(&t->nspc->value);
+      for(m_uint i = 0; i < vector_size(v); i++) {
+        const Value value = (Value)vector_at(v, i);
         if(!GET_FLAG(value, ae_flag_static) && isa(value->type, t_object) > 0)
           release(*(M_Object*)(obj->data + value->offset), shred);
       }
@@ -70,8 +76,10 @@ ANN void _release(const M_Object obj, const VM_Shred shred) {
       if(GET_FLAG(t, ae_flag_dtor)) {
         if(t->nspc->dtor->native_func)
           ((f_xtor)t->nspc->dtor->native_func)(obj, shred);
-        else
-          handle_dtor(t, shred);
+        else {
+          handle_dtor(obj, shred);
+          return;
+        }
       }
       t = t->parent;
     }

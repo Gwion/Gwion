@@ -22,6 +22,7 @@ struct Instr_ {
 ANEW Instr new_instr(void);
 ANN void free_instr(Instr instr);
 INSTR(EOC);
+INSTR(DTOR_EOC);
 INSTR(Dtor_Return);
 
 

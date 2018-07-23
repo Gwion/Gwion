@@ -5,6 +5,6 @@
 #include "array.h"
 #include "emit.h"
 
-ANEW M_Object new_shred(VM_Shred shred);
-ANN void broadcast(M_Object o);
+ANEW M_Object new_shred(const VM_Shred shred);
+ANN void broadcast(const M_Object o);
 #endif
