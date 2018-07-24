@@ -6,7 +6,7 @@ n=0
 
 make gwlint && echo "ok $n make gwlint" || echo "not ok $n make gwlint"
 n=$((n+1))
-./gwlint examples/*.gw && echo "ok $n test gwlint"
+./gwlint examples/*.gw 2>/dev/null && echo "ok $n test gwlint"
 n=$((n+1))
 make gwtag && echo "ok $n make gwtag" || echo "not ok $n make gwtag"
 n=$((n+1))

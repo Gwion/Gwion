@@ -2,7 +2,7 @@ variadic int test(){
 
   vararg.start;
   <<<"test">>>; 
-<<<vararg.i>>>;
+  <<<vararg.i>>>;
   vararg.end;
   return 1;
 }

@@ -1,4 +1,4 @@
-class C { static union { int i; } u;<<<this, u, this.u.i>>>;  }
+class C { static union { int i; } u;<<<this, " ", u, " ", this.u.i>>>;  }
 C c;
 <<<c>>>;
 <<<C.u>>>;

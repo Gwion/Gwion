@@ -7,6 +7,6 @@ class C
 	function void test() {}
 	//! operator
 	operator => void(C c, C d){
-      <<<c, d>>>;
+      <<<c, " ", d>>>;
     }
 }

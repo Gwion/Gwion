@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <complex.h>
 #include "type.h"
 #include "err_msg.h"
@@ -17,20 +18,10 @@
 #define BLUE  ""
 #endif
 
-static void pop(VM_Shred shred, Vector v) {
-  m_uint i, size = vector_size(v);
-  for(i = 0; i < size; i++) {
-    Type type = (Type)vector_at(v, i);
-    POP_REG(shred,  type->size);
-  }
-}
-
 static void print_type(Type type) {
-  m_bool is_func = isa(type, t_function) > 0 && isa(type, t_func_ptr) < 0;
-  m_str name;
-  name = is_func ? strdup("@function") : strdup(type->name);
-  gw_out(BOLD "(" GREEN "%s" CLEAR BOLD, name);
-  gw_out(") " CLEAR);
+  const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_func_ptr) < 0;
+  const m_str name = is_func ? strdup("@function") : strdup(type->name);
+  gw_out(BOLD "(" GREEN "%s" CLEAR BOLD ") " CLEAR, name);
   free(name);
   if(GET_FLAG(type, ae_flag_typedef)) {
     gw_out(" aka ");
@@ -46,22 +37,19 @@ static void print_float(m_float f) {
   gw_out(BOLD "%.4f" CLEAR, f);
 }
 
-
-static void print_complex_inner(m_complex c) {
+static void print_complex(m_complex c) {
+  gw_out("#(");
   print_float(creal(c));
   gw_out(", ");
   print_float(cimag(c));
-}
-
-static void print_complex(m_complex c) {
-  gw_out("#(");
-  print_complex_inner(c);
   gw_out(")");
 }
 
 static void print_polar(m_complex c) {
   gw_out("%%(");
-  print_complex_inner(c);
+  print_float(creal(c));
+  gw_out(", ");
+  print_float(cimag(c) / M_PI);
   gw_out("*pi)");
 }
 
@@ -114,27 +102,24 @@ static void print_prim(Type type, m_bit* stack) {
 }
 
 INSTR(Gack) { GWDEBUG_EXE
-  Type type;
-  Vector v = *(Vector*)instr->ptr;
-  m_uint i, size = vector_size(v);
-  pop(shred, v);
-  for(i = size + 1; --i;) {
-    type = (Type)vector_at(v, size - i);
+  const Vector v = *(Vector*)instr->ptr;
+  const m_uint size = vector_size(v);
+  m_uint offset = instr->m_val;
+  for(m_uint i = size + 1; --i;) {
+    const Type type = (Type)vector_at(v, size - i);
     if(size == 1 && isa(type, t_class) < 0)
       print_type(type);
     if(isa(type, t_object) > 0)
-      print_object(type, *(M_Object*)REG(0));
+      print_object(type, *(M_Object*)REG(-offset));
     else if(isa(type, t_function) > 0)
-      print_func(type, REG(0));
+      print_func(type, REG(-offset));
     else if(isa(type, t_class) > 0)
-        print_type(type->d.base_type);
+      print_type(type->d.base_type);
     else if(isa(type, t_void) > 0)
       print_string1("void");
     else
-      print_prim(type, REG(0));
-    if(i > 1)
-      gw_out(", " CLEAR);
-    PUSH_REG(shred,  type->size);
+      print_prim(type, REG(-offset));
+    offset -= type->size;
   }
   gw_out(CLEAR"\n");
 }

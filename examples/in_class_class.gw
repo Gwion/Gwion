@@ -3,10 +3,10 @@ class C
 	template<{a}>
 	function void test(a var){ <<<var>>>; }
 	class D { int i;}
-}	
+}
 
 C c;
 <C.D> d;
 <C.D> @d_ref;
 
-<<< c, d >>>;
+<<< c, " ", d >>>;

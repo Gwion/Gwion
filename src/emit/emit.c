@@ -427,9 +427,11 @@ ANN static m_bool emit_exp_prim_str(const Emitter emit, const m_str str) { GWDEB
 
 ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBUG_EXE
   const Vector v = new_vector();
+  m_uint offset = 0;
   Exp e = exp;
   do {
     vector_add(v, (vtype)e->type);
+    offset += e->type->size;
     if(e->type != emit->env->class_def)
       ADD_REF(e->type);
   } while((e = e->next));
@@ -439,6 +441,7 @@ ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBU
   }
   const Instr instr = emitter_add_instr(emit, Gack);
   *(Vector*)instr->ptr = v;
+  instr->m_val = offset;
   return 1;
 }
 

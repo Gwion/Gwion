@@ -12,11 +12,11 @@ Vec4 v, w;
 <<< 1 => v.w >>>;
 <<< @(.1, .2, .4, .5) => v >>>;
 
-<<< "set",      v.set(1,2,3,4) >>>;
-<<< "setAll",    v.setAll(1.2) >>>;
-<<< "should be 1.2 1.2 1.2", v >>>;
-<<< "magnitude", v.magnitude() >>>;
-<<< "normalize", v.normalize() >>>;
+<<< "set ",      v.set(1,2,3,4) >>>;
+<<< "setAll ",    v.setAll(1.2) >>>;
+<<< "should be 1.2 1.2 1.2 ", v >>>;
+<<< "magnitude ", v.magnitude() >>>;
+<<< "normalize ", v.normalize() >>>;
 w.setAll(1);
 v+w;
 v-w;

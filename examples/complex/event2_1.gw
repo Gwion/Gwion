@@ -3,7 +3,7 @@ public class TestEvent {
 }
 second => now;
 //second => now;
-<<<"base", me>>>;
+<<<"base ", me>>>;
 //TestEvent.e => now;
 <<<"ok">>>;
 second => now;

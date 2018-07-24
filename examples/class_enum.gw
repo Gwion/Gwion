@@ -5,6 +5,6 @@ class C {
     two,
     three
   };
-  <<<zero, one, two, three>>>;
+  <<<zero, " ", one, " ", two, " ", three>>>;
 }
 C c;
