@@ -36,7 +36,7 @@ ANN static void lint_nl(Linter* linter) {
   fprintf(linter->file, "\n");
   linter->pos = ftell(linter->file);
   if(linter->pos - pos > 80)
-    fprintf(stderr, "'\033[31;1m%s\033[0m'long line %" INT_F "\n",
+    fprintf(stderr, "'\033[31;1m%s\033[0m' long line %" INT_F "\n",
         linter->name, linter->line);
   linter->line++;
 }
