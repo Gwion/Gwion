@@ -857,7 +857,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     CHECK_BO(err_msg(TYPE_, member->self->pos,
           "cannot access member '%s.%s' without object instance...",
           the_base->name, str))
-  if(GET_FLAG(value, ae_flag_enum))
+  if(GET_FLAG(value, ae_flag_const) || GET_FLAG(value, ae_flag_enum))
     member->self->meta = ae_meta_value;
   return value->type;
 }
