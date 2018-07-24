@@ -511,7 +511,7 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void* function_alternative(const Type f, Exp args){
-  if(err_msg(TYPE_, args->pos, "argument type(s) do not match for function. should be :") < 0){}
+  if(err_msg(TYPE_, args ? args->pos : 0, "argument type(s) do not match for function. should be :") < 0){}
   Func up = f->d.func;
   do {
     const Arg_List e = up->def->arg_list;
@@ -522,7 +522,10 @@ ANN2(1) static void* function_alternative(const Type f, Exp args){
       gw_err("\033[32mvoid\033[0m");
     gw_err(". (%s)\n%s", f->name, up->next ? "or :" : "");
   } while((up = up->next));
-  print_current_args(args);
+  if(args)
+    print_current_args(args);
+  else
+    gw_err("and not:\n\t\033[32mvoid\033[0m\n");
   return NULL;
 }
 

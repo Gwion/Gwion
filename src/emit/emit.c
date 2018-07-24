@@ -276,7 +276,6 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
 ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
-
   if(GET_FLAG(v, ae_flag_func)) {
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->d.func_ref;

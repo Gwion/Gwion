@@ -636,7 +636,7 @@ m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const,
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and'%s'..."
+    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s' ..."
           "...(reason: --- left-side operand is not mutable)",
           op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
     return t_null;
