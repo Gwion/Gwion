@@ -584,8 +584,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   const m_bool ref = GET_FLAG(decl->td, ae_flag_ref) || type_ref(decl->type);
   const m_bool var = decl->self->emit_var;
 
-  if(GET_FLAG(decl->type, ae_flag_template) /* && !GET_FLAG(decl->type, 
-ae_flag_emit)*/)
+  if(GET_FLAG(decl->type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
@@ -756,8 +755,7 @@ ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
 
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
   if(!emit_get_func(emit->env->curr, func)) { GWDEBUG_EXE //template with no list
-    if(func->value_ref->owner_class &&
-        GET_FLAG(func->value_ref->owner_class, ae_flag_template))
+    if(GET_FLAG(func, ae_flag_ref))
       CHECK_BB(traverse_template(emit->env,
             func->value_ref->owner_class->def))
     else if(!GET_FLAG(func->def, ae_flag_template)) {
