@@ -620,10 +620,7 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
     const Value value = exp_func->type->d.func->value_ref;
-//    if(value->owner_class && GET_FLAG(value->owner_class, ae_flag_template) // &&
-    if(GET_FLAG(exp_func->type->d.func, ae_flag_ref) // &&
-/* && !GET_FLAG(value->owner_class, ae_flag_emit) */
-/*      !GET_FLAG(value->owner_class, ae_flag_builtin) */)
+    if(GET_FLAG(exp_func->type->d.func, ae_flag_ref))
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
@@ -1255,7 +1252,6 @@ ANN static m_bool parent_match_actual(const Env env, const Func_Def f, const Fun
       const Func func = f->func;
       func->vt_index = parent_func->vt_index;
       vector_set(&env->curr->vtable, func->vt_index, (vtype)func);
-      func->value_ref->name = func->name = parent_func->name;
       return 1;
     }
   } while((parent_func = parent_func->next));
@@ -1330,17 +1326,11 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
   Func func = f->func;
   if(env->class_def) {
     const Value override = find_value(env->class_def->parent, f->name);
-    if(override) {
-      if(isa(override->type, t_function) < 0)
-        CHECK_BB(err_msg(TYPE_, f->td->pos,
-              "function name '%s' conflicts with previously defined value...\n"
-              "\tfrom super class '%s'...",
-              s_name(f->name), override->owner_class->name))
-      while(func->next)
-        func = func->next;
-      func->next = override->d.func_ref;
-
-    }
+    if(override && isa(override->type, t_function) < 0)
+      CHECK_BB(err_msg(TYPE_, f->td->pos,
+            "function name '%s' conflicts with previously defined value...\n"
+            "\tfrom super class '%s'...",
+            s_name(f->name), override->owner_class->name))
   } else if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
   return 1;
@@ -1399,8 +1389,8 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
-if(!GET_FLAG(class_def->type, ae_flag_check))
-    REM_REF(class_def->type->parent->nspc);
+    if(!GET_FLAG(class_def->type, ae_flag_check))
+      REM_REF(class_def->type->parent->nspc);
   }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
