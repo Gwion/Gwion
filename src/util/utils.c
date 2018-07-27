@@ -105,26 +105,6 @@ ANN Type array_type(const Type base, const m_uint depth) {
   return t;
 }
 
-static const char escape1[] = "0'abfnrtv";
-static const char escape2[] = "\0\'\a\b\f\n\r\t\v";
-
-m_int get_escape(const char c, const int linepos) {
-  m_uint i = 0;
-  while(escape1[i] != '\0') {
-    if(c == escape1[i])
-      return escape2[i];
-    ++i;
-  }
-  return err_msg(UTIL_, linepos, "unrecognized escape sequence '\\%c'", c);
-}
-
-ANN m_int str2char(const m_str c, const m_int linepos) {
-  if(c[0] != '\\')
-    return c[0];
-  else
-    return get_escape(c[1], linepos);
-}
-
 ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);

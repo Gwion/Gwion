@@ -10,6 +10,7 @@
 #include "func.h"
 #include "traverse.h"
 #include "mpool.h"
+#include "escape.h"
 
 #define INSTR_RECURS (f_instr)1
 #define INSTR_INLINE (f_instr)2
@@ -413,13 +414,17 @@ ANN static m_bool emit_exp_prim_float(const Emitter emit, const m_float f) { GWD
 }
 
 ANN static m_bool emit_exp_prim_char(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
+  const m_int c = str2char(prim->d.chr, prim->self->pos);
+  CHECK_BB(c);
   const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
   instr->m_val = SZ_INT;
-  *(m_uint*)instr->ptr = str2char(prim->d.chr, prim->self->pos);
+  *(m_uint*)instr->ptr = c;
   return 1;
 }
 
-ANN static m_bool emit_exp_prim_str(const Emitter emit, const m_str str) { GWDEBUG_EXE
+ANN static m_bool emit_exp_prim_str(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
+  m_str str = prim->d.str;
+  CHECK_BB(escape_str(str, prim->self->pos));
   const Instr instr = emitter_add_instr(emit, Reg_Push_Str);
   instr->m_val = (m_uint)str;
   return 1;
@@ -448,7 +453,7 @@ ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBU
 ANN static m_bool emit_exp_primary2(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   switch(prim->primary_type) {
     case ae_primary_str:
-      return emit_exp_prim_str(emit, prim->d.str);
+      return emit_exp_prim_str(emit, prim);
     case ae_primary_array:
       return emit_exp_prim_array(emit, prim->d.array);
     case ae_primary_hack:

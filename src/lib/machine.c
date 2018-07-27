@@ -6,17 +6,6 @@
 #include "compile.h"
 #include "traverse.h"
 
-ANN static void unescape(const m_str s) {
-  m_uint j = 0;
-  const m_uint l = strlen(s);
-  for(m_uint i = 0; i < l; i++) {
-    if(s[i] == '\\')
-      i++;
-    s[j++] = s[i];
-  }
-  memset(s+j, 0, l-j);
-}
-
 static SFUN(machine_add) {
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
@@ -34,10 +23,7 @@ static SFUN(machine_check) {
   const m_str line = code_obj ? STRING(code_obj) : NULL;
   release(code_obj, shred);
   if(!line)return;
-  const m_str _code = strdup(line);
-  unescape(_code);
-//  release(code_obj, shred);
-  FILE* f = fmemopen(_code, strlen(_code), "r");
+  FILE* f = fmemopen(line, strlen(line), "r");
   const Ast ast = parse("Machine.check", f);
   if(!ast)
     goto close;
@@ -45,7 +31,6 @@ static SFUN(machine_check) {
 close:
   if(ast)
     free_ast(ast);
-  free(_code);
   fclose(f);
 }
 
@@ -55,9 +40,7 @@ static SFUN(machine_compile) {
   const m_str line = code_obj ? STRING(code_obj) : NULL;
   release(code_obj, shred);
   if(!line)return;
-  const m_str _code = strdup(line);
-  unescape(_code);
-  FILE* f = fmemopen(_code, strlen(_code), "r");
+  FILE* f = fmemopen(line, strlen(line), "r");
   const Ast ast = parse("Machine.compile", f);
   if(!ast)
     goto close;
@@ -76,7 +59,6 @@ static SFUN(machine_compile) {
 close:
   if(ast)
     free_ast(ast);
-  free(_code);
   fclose(f);
 }
 
