@@ -127,6 +127,11 @@ static MFUN(file_close) {
     *(m_uint*)RETURN = !IO_FILE(o) ? 1 : 0;
 }
 
+static MFUN(file_fileno) {
+  FILE* file = IO_FILE(o);
+  *(m_int*)RETURN = file ? fileno(file) : -1;
+}
+
 static SFUN(file_remove) {
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(!obj)
@@ -182,6 +187,8 @@ ANN m_bool import_fileio(const Gwi gwi) {
   gwi_func_arg(gwi, "string", "mode");
   CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "int", "close", file_close);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "fileno", file_fileno);
   CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "int", "remove", file_remove);
   gwi_func_arg(gwi, "string", "filename");

@@ -39,3 +39,4 @@ f.close();
 %(1.2) => cerr;
 @(1.2) => cerr;
 @(1.2, 2, 3, 4) => cerr;
+<<<"\nfileno: ", cerr.fileno()>>>;
