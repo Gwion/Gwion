@@ -112,20 +112,16 @@ static SFUN(std_atof) {
   GETSTRING(val, SZ_INT)
   *(m_float*)RETURN = atof(val);
 }
-
-static SFUN(std_itoa) {
-  char c[1024];
-  const m_int value = *(m_int*)MEM(SZ_INT);
-  sprintf(c, "%"INT_F, value);
-  *(M_Object*)RETURN = new_String(shred, c);
+#define describe_xtoa(name, type, format)    \
+static SFUN(std_##name##toa) {               \
+  char c[1024];                              \
+  const type value = *(type*)MEM(SZ_INT);    \
+  sprintf(c, format, value);                 \
+  *(M_Object*)RETURN = new_String(shred, c); \
 }
-
-static SFUN(std_ftoa) {
-  char c[1024];
-  const m_float value = *(m_float*)MEM(SZ_INT);
-  sprintf(c, "%f", value);
-  *(M_Object*)RETURN = new_String(shred, c);
-}
+describe_xtoa(i, m_int, "%"INT_F)
+describe_xtoa(c, char, "%c")
+describe_xtoa(f, m_float, "%f")
 
 #define pow10(a) pow(10.0, (a) / 20.0)
 #define std(name, func)\
@@ -140,6 +136,11 @@ std(dbtopow, dbtopow)
 std(dbtorms, dbtorms)
 std(dbtolin, pow10)
 std(lintodb, 20.0 * log10)
+
+#define import_stdx(name, t1, t2)                        \
+  gwi_func_ini(gwi, #t1, #name, std_##name); \
+  gwi_func_arg(gwi, #t2, "value");           \
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))    \
 
 ANN m_bool import_std(const Gwi gwi) {
   const Type t_std = gwi_mk_type(gwi, "Std", 0, NULL);
@@ -166,70 +167,26 @@ ANN m_bool import_std(const Gwi gwi) {
   gwi_func_arg(gwi, "float", "dstmax");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  gwi_func_ini(gwi, "int", "system", std_system);
-  gwi_func_arg(gwi, "string", "cmd");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "string", "getenv", std_getenv);
-  gwi_func_arg(gwi, "string", "key");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
   gwi_func_ini(gwi, "int", "setenv", std_setenv);
   gwi_func_arg(gwi, "string", "key");
   gwi_func_arg(gwi, "string", "value");
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  gwi_func_ini(gwi, "int", "atoi", std_atoi);
-  gwi_func_arg(gwi, "string", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "atof", std_atof);
-  gwi_func_arg(gwi, "string", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "string", "itoa", std_itoa);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "string", "ftoa", std_ftoa);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "mtof", std_mtof);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "ftom", std_ftom);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "powtodb", std_powtodb);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "rmstodb", std_rmstodb);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "dbtopow", std_dbtopow);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "dbtorms", std_dbtorms);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "dbtolin", std_dbtolin);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-
-  gwi_func_ini(gwi, "float", "lintodb", std_lintodb);
-  gwi_func_arg(gwi, "float", "value");
-  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+  import_stdx(system , int, string)
+  import_stdx(getenv , string, string)
+  import_stdx(atoi   , int, string)
+  import_stdx(atof   , float, string)
+  import_stdx(itoa   , string, int)
+  import_stdx(ctoa   , string, int)
+  import_stdx(ftoa   , string, float)
+  import_stdx(mtof   , float, float)
+  import_stdx(ftom   , float, float)
+  import_stdx(powtodb, float, float)
+  import_stdx(rmstodb, float, float)
+  import_stdx(dbtopow, float, float)
+  import_stdx(dbtorms, float, float)
+  import_stdx(dbtolin, float, float)
+  import_stdx(lintodb, float, float)
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/std.h"
-#endif

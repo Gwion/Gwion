@@ -7,6 +7,7 @@
 <<< Std.atoi("102")                   >>>;
 <<< Std.atof("0.2")                   >>>;
 <<< Std.itoa(1)                       >>>;
+<<< Std.ctoa('a')                     >>>;
 <<< Std.ftoa(1.2)                     >>>;
 <<< Std.mtof(60)                      >>>;
 <<< Std.ftom(440)                     >>>;

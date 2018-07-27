@@ -76,3 +76,4 @@ s.substring(2);
 <<< "test" != "test" >>>;
 <<< "test" == "test1" >>>;
 <<< "test" != "test1" >>>;
+<<<string.char('t')>>>;

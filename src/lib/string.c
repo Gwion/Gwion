@@ -581,6 +581,12 @@ static MFUN(string_toFloat) {
   *(m_float*)RETURN = atof(STRING(o));
 }
 
+static SFUN(char_toString) {
+  char c[2];
+  sprintf(c, "%c", *(char*)MEM(SZ_INT));
+  *(M_Object*)RETURN = new_String(shred, c);
+}
+
 ANN m_bool import_string(const Gwi gwi) {
   CHECK_OB((t_string = gwi_mk_type(gwi, "string", SZ_INT, t_object)))
   CHECK_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
@@ -687,6 +693,10 @@ ANN m_bool import_string(const Gwi gwi) {
   gwi_func_ini(gwi, "float", "toFloat", string_toFloat);
   CHECK_BB(gwi_func_end(gwi, 0))
 
+  gwi_func_ini(gwi, "string", "char", char_toString);
+  gwi_func_arg(gwi, "int", "c");
+  CHECK_BB(gwi_func_end(gwi, ae_flag_static))
+
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "string",  "string", "string"))
   CHECK_BB(gwi_oper_add(gwi, opck_const_rhs))
@@ -733,7 +743,7 @@ ANN m_bool import_string(const Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_plus,       Vec3_String))
   CHECK_BB(gwi_oper_add(gwi, opck_const_rhs))
   CHECK_BB(gwi_oper_end(gwi, op_plus_chuck, Vec3_String_Plus))
-  
+
   CHECK_BB(gwi_oper_ini(gwi, "Vec4",    "string", "string"))
   CHECK_BB(gwi_oper_add(gwi, opck_const_rhs))
   CHECK_BB(gwi_oper_end(gwi, op_chuck,      Vec4_String_Assign))
