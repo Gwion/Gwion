@@ -423,10 +423,11 @@ ANN static m_bool emit_exp_prim_char(const Emitter emit, const Exp_Primary* prim
 }
 
 ANN static m_bool emit_exp_prim_str(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
-  m_str str = prim->d.str;
-  CHECK_BB(escape_str(str, prim->self->pos));
+  char c[strlen(prim->d.str)];
+  strcpy(c, prim->d.str);
+  CHECK_BB(escape_str(c, prim->self->pos));
   const Instr instr = emitter_add_instr(emit, Reg_Push_Str);
-  instr->m_val = (m_uint)str;
+  instr->m_val = (m_uint)s_name(insert_symbol(c));
   return 1;
 }
 
