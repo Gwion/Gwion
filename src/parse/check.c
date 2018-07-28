@@ -566,11 +566,11 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Val
 
 ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
     const Exp args, Func* m_func) {
-  m_uint type_number, args_number = 0;
+  m_uint args_number = 0;
   ID_List list;
   const Value value = get_template_value(env, exp_func);
   CHECK_OO(value)
-  type_number = get_type_number(value->d.func_ref->def->tmpl->list);
+  const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
 
   list = value->d.func_ref->def->tmpl->list;
   Type_List tl[type_number];
@@ -615,7 +615,6 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value
 }
 
 ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args, Func *m_func) { GWDEBUG_EXE
-  Func func = NULL;
   Value ptr = NULL;
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
@@ -627,7 +626,8 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
     CHECK_OO(check_exp(env, args))
   if(!exp_func->type->d.func)
     return check_exp_call_template(env, exp_func, args, m_func);
-  if(!(func = find_func_match(env, exp_func->type->d.func, args)))
+  Func func = find_func_match(env, exp_func->type->d.func, args);
+  if(!func)
     return function_alternative(exp_func->type, args);
   if(ptr) {
     const Func f = new_func_simple();
@@ -647,7 +647,6 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
   Func f1 = NULL;
   Func f2 = NULL;
   Value v = NULL;
-  Type ret_type;
 
   bin->rhs->emit_var = 1;
   if(bin->rhs->exp_type == ae_exp_primary) {
@@ -699,8 +698,7 @@ ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
       }
       if(f2 && compat_func(f1->def, f2->def) > 0) {
         bin->func = f2;
-        ret_type = f1->value_ref->type;
-        return ret_type;
+        return f1->value_ref->type;
       }
     }
   CHECK_BO(err_msg(TYPE_, bin->self->pos, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
@@ -858,18 +856,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     member->self->meta = ae_meta_value;
   return value->type;
 }
-/*
-ANN m_bool check_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
-  const Type t     = nspc_lookup_type1(env->curr, ptr->xid);
-  t->size    = SZ_INT;
-  t->name    = s_name(ptr->xid);
-  t->parent  = t_func_ptr;
-  nspc_add_type(env->curr, ptr->xid, t);
-  ptr->type = t;
-  t->d.func = ptr->func;
-  return 1;
-}
-*/
+
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
@@ -1206,7 +1193,6 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       break;
     case ae_stmt_funcptr:
       ret = 1;
-//      ret = check_stmt_fptr(env, &stmt->d.stmt_ptr);
       break;
     case ae_stmt_typedef:
       ret = check_stmt_type(env, &stmt->d.stmt_type);
@@ -1297,7 +1283,7 @@ ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
   const m_str name, const m_uint j) {
   sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
   const Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
-  if(compat_func(def, f2->def) > 0) {
+  if(f2 && compat_func(def, f2->def) > 0) {
     CHECK_BB(err_msg(TYPE_, f2->def->td->pos,
         "global function '%s' already defined for those arguments",
         s_name(def->name)))
@@ -1314,7 +1300,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
       sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
       const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
       for(m_uint j = 1; j <= v->offset; ++j) {
-        if(i != j)
+        if(i != j && f1)
           CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
       }
     }
@@ -1323,7 +1309,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
 }
 
 ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWDEBUG_EXE
-  Func func = f->func;
+  const Func func = f->func;
   if(env->class_def) {
     const Value override = find_value(env->class_def->parent, f->name);
     if(override && isa(override->type, t_function) < 0)
@@ -1331,7 +1317,8 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
             s_name(f->name), override->owner_class->name))
-  } else if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
+  }
+  if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
   return 1;
 }
