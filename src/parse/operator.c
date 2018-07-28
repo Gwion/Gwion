@@ -115,7 +115,6 @@ ANN static Type op_check_inner(const Env env, const Map map, const struct Op_Imp
   do {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(map, (vtype)opi->op);
-
     if(v && (mo = operator_find(v, opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(env, (void*)opi->data))))
         return t;
@@ -132,7 +131,7 @@ static m_str type_name(const Type t) {
 
 ANN Type op_check(const Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
-  while(nspc) {
+  do {
     if(nspc->op_map.ptr) {
       Type l = opi->lhs;
       do {
@@ -148,7 +147,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
       } while(l && (l = op_parent(env, l)));
     }
     nspc = nspc->parent;
-  }
+  } while(nspc);
   if(opi->op != op_implicit)
   (void)err_msg(TYPE_, 0, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
@@ -159,13 +158,13 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
   const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
-  mo->func = ((Func)opi->data);
+  mo->func = (Func)opi->data;
   return 1;
 }
 
 ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
+    const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
     instr->m_val = SZ_INT;
     CHECK_BB(emit_exp_call1(emit, mo->func))
     return 1;
@@ -199,12 +198,11 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   do {
     Type r = opi->rhs;
     do {
-      M_Operator* mo;
-      Vector v;
       if(!nspc->op_map.ptr)
         continue;
-      v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
-      if((mo = operator_find(v, l, r))) {
+      const Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
+      const M_Operator* mo = operator_find(v, l, r);
+      if(mo) {
         if(mo->em)
           return mo->em(emit, (void*)opi->data);
         return  handle_instr(emit, mo);
