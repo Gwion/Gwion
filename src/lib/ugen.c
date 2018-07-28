@@ -184,8 +184,6 @@ static INSTR(name##_##func) { GWDEBUG_EXE       \
 }
 describe_connect_instr(ugen, connect,)
 describe_connect_instr(ugen, disconnect,)
-//describe_connect_instr(trig, connect,    if(UGEN(rhs)->module.gen.trig))
-//describe_connect_instr(trig, disconnect, if(UGEN(rhs)->module.gen.trig))
 describe_connect_instr(trig, connect,    TRIG_EX)
 describe_connect_instr(trig, disconnect, TRIG_EX)
 
