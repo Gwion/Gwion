@@ -414,8 +414,6 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
 ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = new_func(func_name, f);
-  Value value;
-  Type type;
   const m_uint len = strlen(func_name) +
     num_digit(overload ? overload->offset + 1 : 0) +
     strlen(env->curr->name) + 13;
@@ -429,10 +427,10 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
     if(!GET_FLAG(f, ae_flag_static))
       SET_FLAG(func, ae_flag_member);
   }
-  type = type_copy(t_function);
+  const Type type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
-  value = new_value(type, func_name);
+  const Value value = new_value(type, func_name);
   SET_FLAG(value, ae_flag_func);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
