@@ -49,7 +49,7 @@ ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { G
 
 ANN static m_bool check_exp_decl_static(const Env env , const Value v, const m_uint pos) { GWDEBUG_EXE
   const Nspc nspc = env->curr;
-  if(!env->class_def || env->class_scope > 0)
+  if(!env->class_def || env->class_scope)
     CHECK_BB(err_msg(TYPE_, pos,
           "static variables must be declared at class scope..."))
   SET_FLAG(v, ae_flag_static);

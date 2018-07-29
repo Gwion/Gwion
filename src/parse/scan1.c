@@ -446,6 +446,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return 1;
   env->func = FAKE_FUNC;
+  ++env->class_scope;
   if(scan1_func_def_flag(env, f) < 0 ||
      scan1_func_def_type(env, f) < 0 ||
     (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
@@ -453,6 +454,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
         scan1_func_def_code(env, f) < 0))
     CHECK_BB(err_msg(SCAN1_, f->td->pos, "\t...in function '%s'", s_name(f->name)))
   env->func = NULL;
+  --env->class_scope;
   return 1;
 }
 
