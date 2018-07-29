@@ -125,6 +125,8 @@ static OP_CHECK(at_object) {
   const Type r = bin->rhs->type;
   if(opck_rassign(env, data) == t_null)
     return t_null;
+  if(bin->rhs->exp_type == ae_exp_decl)
+    SET_FLAG(bin->rhs->d.exp_decl.td, ae_flag_ref);
   if(l != t_null && isa(l, r) < 0) {
     if(err_msg(TYPE_, bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
     return t_null;
