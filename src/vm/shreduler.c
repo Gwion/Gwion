@@ -31,6 +31,7 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
     vector_release(v);
     out->parent->child.ptr = NULL;
   }
+  out->parent = NULL;
 }
 
 ANN static void shreduler_child(const Shreduler s, const Vector v) {
@@ -83,8 +84,8 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
       shred->prev = prev;
       prev->next = shred;
     }
-    if(s->curr == shred)
-      s->curr = NULL;
   } else
     s->list = shred;
+  if(s->curr == shred)
+    s->curr = NULL;
 }
