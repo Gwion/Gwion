@@ -28,15 +28,8 @@ void vm_remove(const VM* vm, const m_uint index) {
   LOOP_OPTIM
   for(m_uint i = vector_size(v) + 1; i--;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
-    const Vector w = (Vector)&sh->child;
-    if(sh->xid == index) {
-      if(sh->child.ptr)
-        LOOP_OPTIM
-        for(m_uint j = vector_size(w) + 1; --j;)
-          exception((VM_Shred)vector_at(w, j - 1), "MsgRemove");
-       exception(sh, "MsgRemove");
-       return;
-    }
+    if(sh->xid == index)
+       Except(sh, "MsgRemove");
   }
 }
 
