@@ -8,10 +8,6 @@
 #include "ugen.h"
 #include "shreduler_private.h"
 
-#ifdef CURSES
-extern void gw_shred(VM_Shred shred);
-#endif
-
 VM* new_vm(const m_bool loop) {
   VM* vm = (VM*)xcalloc(1, sizeof(VM));
   vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
@@ -78,9 +74,6 @@ ANN static inline void vm_ugen_init(const VM* vm) {
   dac->compute(dac);
 }
 
-#ifdef CURSES
-#define VM_INFO gw_shred(s->curr);
-#else
 #ifdef DEBUG_STACK
 #define VM_INFO                                                              \
   if(s->curr)                                                                \
@@ -88,7 +81,6 @@ ANN static inline void vm_ugen_init(const VM* vm) {
     shred->mem - shred->_mem, shred->reg - shred->_reg);
 #else
 #define VM_INFO
-#endif
 #endif
 
 __attribute__((hot))

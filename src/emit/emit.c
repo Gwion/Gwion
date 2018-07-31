@@ -1431,20 +1431,10 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp,
   }
  return 1;
 }
-#ifdef CURSES
-static INSTR(dbg_pos) {
-  gw_pos(instr->m_val);
-}
-#endif
+
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) { GWDEBUG_EXE
   if(stmt->stmt_type != ae_stmt_if || stmt->stmt_type != ae_stmt_while)
     COVERAGE(stmt)
-#ifdef CURSES
-  {
-    const Instr instr = emitter_add_instr(emit,  dbg_pos);
-    instr->m_val = stmt->pos;
-  }
-#endif
   switch(stmt->stmt_type) {
     case ae_stmt_exp:
       return stmt->d.stmt_exp.val ?
