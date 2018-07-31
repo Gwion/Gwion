@@ -57,10 +57,10 @@ ANN void free_vm(VM* vm) {
 }
 
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
-  const Vector v = (Vector)&vm->shred;
-  shred->vm_ref = (VM*)vm;
   if(!shred->xid) {
+    const Vector v = (Vector)&vm->shred;
     vector_add(v, (vtype)shred);
+    shred->vm_ref = (VM*)vm;
     shred->xid = vector_size(v);;
     shred->me = new_shred(shred);
   }
@@ -98,15 +98,16 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 #endif
 #endif
 
-void vm_run(const VM* vm) {
+__attribute__((hot))
+ANN void vm_run(const VM* vm) {
   const Shreduler s = vm->shreduler;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
-    while(s->curr) {
+    do {
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
       instr->execute(shred, instr);
       VM_INFO;
-    }
+    } while(s->curr);
   }
   if(!vm->is_running)
     return;
