@@ -16,15 +16,6 @@ emit_src := $(wildcard src/emit/*.c)
 drvr_src := src/drvr/driver.c
 
 # add libraries
-ifeq (${CURSES_DEBUG}, 1)
-$(msg compile debug)
-#CURSES_DEBUG=1
-DEBUG_STACK=0
-CFLAGS+=-DCURSES
-LDFLAGS+=-lcurses
-CFLAGS+=-DD_FUNC=dummy_driver
-drvr_src +=src/drvr/dummy.c
-else
 ifeq (${DUMMY_D}, 1)
 CFLAGS +=-DHAVE_DUMMY
 drvr_src +=src/drvr/dummy.c
@@ -58,7 +49,7 @@ LDFLAGS += -lpulse-simple
 CFLAGS +=-DHAVE_PULSE
 drvr_src +=src/drvr/pulse.c
 endif
-endif
+
 ifeq (${SNDFILE_D}, 1)
 #LDFLAGS += -lsndfile
 CFLAGS +=-DHAVE_SNDFILE
@@ -217,9 +208,5 @@ gwdot:
 
 directories:
 	mkdir -p ${PREFIX} ${GWION_ADD_DIR}
-
-gwdbg:
-	$(info compiling gwdbg)
-	CURSES_DEBUG=1 PRG=gwdbg make
 
 include $(wildcard .d/*.d)
