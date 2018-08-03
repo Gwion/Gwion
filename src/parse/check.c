@@ -773,7 +773,7 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
   struct Op_Import opi = { unary->op, NULL, unary->exp ? check_exp(env, unary->exp) : NULL,
     NULL, NULL, NULL, (uintptr_t)unary };
-  if(unary->exp && !opi.ret)return NULL;
+  if(unary->exp && !opi.rhs)return NULL;
   OP_RET(unary, "unary")
 }
 
