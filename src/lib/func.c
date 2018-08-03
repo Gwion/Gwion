@@ -66,6 +66,11 @@ static OP_CHECK(opck_fptr_at) {
     err_msg(TYPE_, bin->self->pos,
           "return type '%s' does not match '%s'\n\t... in pointer assignement",
          r_fdef->ret_type->name, l_fdef->ret_type->name);
+  }
+  if(GET_FLAG(l_fdef, ae_flag_variadic) != GET_FLAG(r_fdef, ae_flag_variadic)) {
+    err_msg(TYPE_, bin->self->pos,
+          "function must be of same argument kind.",
+         r_fdef->ret_type->name, l_fdef->ret_type->name);
     return t_null;
   }
   const Nspc nspc = l_func->value_ref->owner;

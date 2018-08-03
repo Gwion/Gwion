@@ -463,8 +463,6 @@ ANN void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
 ANN void lint_stmt_fptr(Linter* linter, Stmt_Fptr ptr) {
   Arg_List list = ptr->args;
   lint_print(linter, "typedef ");
-  lint_print(linter, "%s", GET_FLAG(ptr->td, ae_flag_variadic) ?
-      "variadic " : "function ");
   lint_type_decl(linter, ptr->td);
   lint_print(linter, " ");
   lint_print(linter, s_name(ptr->xid));
@@ -473,9 +471,11 @@ ANN void lint_stmt_fptr(Linter* linter, Stmt_Fptr ptr) {
     lint_type_decl(linter, list->td);
     lint_print(linter, " %s", s_name(list->var_decl->xid));
     list = list->next;
-    if(list)
+    if(list || GET_FLAG(ptr->td, ae_flag_variadic))
       lint_print(linter, ", ");
   }
+  if(GET_FLAG(ptr->td, ae_flag_variadic))
+    lint_print(linter, "...");
   lint_print(linter, ")");
   lint_nl(linter);
 }

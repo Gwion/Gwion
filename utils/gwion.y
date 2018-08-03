@@ -56,11 +56,11 @@ m_str op2str(const Operator op);
   SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
+  NOELSE LTB GTB UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
-%type<ival> atsym static_decl function_decl vec_type
+%type<ival> atsym static_decl vec_type arg_type
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
 %type<sym>id opt_id
@@ -91,7 +91,7 @@ m_str op2str(const Operator op);
 %nonassoc NOELSE
 %nonassoc ELSE
 
-%expect 49
+//%expect 51
 
 %destructor { free_stmt($$); } <stmt>
 %destructor { free_exp($$); } <exp>
@@ -145,13 +145,9 @@ static_decl
   |                                   { $$ = 0; }
   ;
 
-function_decl
-  : FUNCTION { $$ = 0; }
-  | VARARG   { $$ = ae_flag_variadic; }
-  ;
-
 func_ptr
-  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_stmt_fptr($4, $2, $6, 0, get_pos(arg)); }
+  : TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
+    { $$ = new_stmt_fptr($4, $2, $6, $7, get_pos(arg)); }
   | STATIC func_ptr
     { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static); $$ = $2; }
   | PUBLIC func_ptr
@@ -170,7 +166,7 @@ type_decl2
 
 arg_list
   : type_decl var_decl { $$ = new_arg_list($1, $2, NULL); }
-  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4); }
+  | type_decl var_decl COMMA arg_list { $$ = new_arg_list($1, $2, $4); }
   ;
 
 code_segment
@@ -304,15 +300,20 @@ decl_exp
   ;
 
 func_args
-  : LPAREN RPAREN          { $$ = NULL; }
-  | LPAREN arg_list RPAREN { $$ = $2; }
+  : LPAREN          { $$ = NULL; }
+  | LPAREN arg_list { $$ = $2; }
+  ;
+
+arg_type
+  : RPAREN                   { $$ = 0; }
+  | DOT DOT DOT RPAREN       { $$ = ae_flag_variadic; }
   ;
 
 decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
-  : function_decl static_decl type_decl2 id func_args code_segment
-    { $$ = new_func_def($3, $4, $5, $6, $1 | $2); }
+  : FUNCTION static_decl type_decl2 id func_args arg_type code_segment
+    { $$ = new_func_def($3, $4, $5, $7, $2 | $6); }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | decl_template func_def_base
@@ -331,10 +332,10 @@ func_def_base
 op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def
   : func_def_base
-  |  OPERATOR op_op type_decl2 func_args code_segment
-    { $$ = new_func_def($3, OP_SYM($2), $4, $5, ae_flag_op); }
-  |  unary_op OPERATOR type_decl2 func_args code_segment
-    { $$ = new_func_def($3, OP_SYM($1), $4, $5, ae_flag_op | ae_flag_unary); }
+  |  OPERATOR op_op type_decl2 func_args RPAREN code_segment
+    { $$ = new_func_def($3, OP_SYM($2), $4, $6, ae_flag_op); }
+  |  unary_op OPERATOR type_decl2 func_args RPAREN code_segment
+    { $$ = new_func_def($3, OP_SYM($1), $4, $6, ae_flag_op | ae_flag_unary); }
   | AST_DTOR LPAREN RPAREN code_segment
     { $$ = new_func_def(new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
       get_pos(arg)), insert_symbol("dtor"), NULL, $4, ae_flag_dtor); }

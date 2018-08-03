@@ -28,7 +28,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, exp))
   do if(isa(exp->type, t_int) < 0)
-      CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s'...", exp->type->name))
+      CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s' ...", exp->type->name))
   while((exp = exp->next));
   return 1;
 }
@@ -37,7 +37,7 @@ ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWD
   const Value value = find_value(env->class_def->parent, var->xid);
   if(value)
     CHECK_BB(err_msg(TYPE_, var->pos,
-          "in class '%s': '%s' has already been defined in parent class '%s'...",
+          "in class '%s': '%s' has already been defined in parent class '%s' ...",
           env->class_def->name, s_name(var->xid), value->owner_class->name))
   return 1;
 }
@@ -51,7 +51,7 @@ ANN static m_bool check_exp_decl_static(const Env env , const Value v, const m_u
   const Nspc nspc = env->curr;
   if(!env->class_def || env->class_scope)
     CHECK_BB(err_msg(TYPE_, pos,
-          "static variables must be declared at class scope..."))
+          "static variables must be declared at class scope ..."))
   SET_FLAG(v, ae_flag_static);
   v->offset = nspc->class_data_size;
   nspc->class_data_size += v->type->size;
@@ -125,7 +125,7 @@ ANN static m_bool check_exp_prim_array_inner(const Type t, Type type, const Exp 
       e->cast_to = type;
       return 1;
     } else
-      CHECK_BB(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types..."))
+      CHECK_BB(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types ..."))
   }
   return 1;
 }
@@ -151,7 +151,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
     if(v && SAFE_FLAG(env->func, ae_flag_static) && GET_FLAG(v, ae_flag_member))
       CHECK_BO(err_msg(TYPE_, primary->self->pos,
-            "non-static member '%s' used from static function...", s_name(primary->d.var)))
+            "non-static member '%s' used from static function.", s_name(primary->d.var)))
     return v;
   }
   return value;

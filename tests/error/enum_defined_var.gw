@@ -1,5 +1,5 @@
 // [contains] already declared as variable
- enum
+enum
 {
 	first,
 	first

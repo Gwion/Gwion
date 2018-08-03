@@ -1,5 +1,5 @@
-variadic void test(){
-vararg.start;
-vararg.end;
+fun void test( ...){
+  vararg.start;
+  vararg.end;
 }
 test();

@@ -1,4 +1,4 @@
-variadic int test(){
+fun int test( ...){
 
   vararg.start;
   <<<"test">>>; 

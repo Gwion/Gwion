@@ -1,5 +1,4 @@
-variadic void test()
-{
+fun void test( ...) {
   int i;
   vararg.start;
 

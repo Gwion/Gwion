@@ -1,2 +1,2 @@
-// [contains] keyword 'this' can be used only inside class definition...
+// [contains] keyword 'this' can be used only inside class definition
  this;

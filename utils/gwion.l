@@ -68,7 +68,6 @@ ANN static int adjust(const void* data);
 "++"                                { adjust(yyscanner); return PLUSPLUS;}
 "--"                                { adjust(yyscanner); return MINUSMINUS;}
 "fun"|"function"                    { adjust(yyscanner); return FUNCTION;}
-"variadic"                          { adjust(yyscanner); return VARARG; }
 "typedef"                           { adjust(yyscanner); return TYPEDEF;}
 "<<<"                               { adjust(yyscanner); return L_HACK;}
 ">>>"                               { adjust(yyscanner); return R_HACK;}
