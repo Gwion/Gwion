@@ -65,8 +65,6 @@ OP_CHECK(opck_assign);
 OP_CHECK(opck_rassign);
 OP_CHECK(opck_rhs_emit_var);
 OP_CHECK(opck_basic_cast);
-OP_CHECK(opck_spork);
 OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
-OP_EMIT(opem_spork);

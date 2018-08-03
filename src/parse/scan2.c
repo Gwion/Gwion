@@ -111,7 +111,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  const Func_Def def = new_func_def(GET_FLAG(ptr, ae_flag_static) ? ae_flag_static : 0,
+  const Func_Def def = new_func_def(ptr->td->flag,
       ptr->td, ptr->xid, ptr->args, NULL);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
@@ -120,11 +120,16 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   ptr->type->d.func = ptr->func;
   SET_FLAG(ptr->value, ae_flag_func);
   if(env->class_def) {
-    if(!GET_FLAG(ptr, ae_flag_static)) {
+    if(GET_FLAG(ptr->td, ae_flag_global)) {
+      SET_FLAG(ptr->value, ae_flag_global);
+      SET_FLAG(ptr->func, ae_flag_global);
+    } else if(!GET_FLAG(ptr->td, ae_flag_static)) {
       SET_FLAG(ptr->value, ae_flag_member);
       SET_FLAG(ptr->func, ae_flag_member);
-    } else
+    } else {
       SET_FLAG(ptr->value, ae_flag_static);
+      SET_FLAG(ptr->func, ae_flag_static);
+    }
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(env->curr, ptr->xid, ptr->func);

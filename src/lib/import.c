@@ -724,19 +724,6 @@ if(unary->exp->exp_type == ae_exp_primary &&
   return unary->exp->type;
 }
 
-ANN Type check_exp_unary_spork(const Env env, const Stmt code);
-OP_CHECK(opck_spork) {
-  const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return t_shred;
-  else if(unary->code)
-    return check_exp_unary_spork(env, unary->code);
-  else
-    CHECK_BO(err_msg(TYPE_,  unary->self->pos,
-          "only function calls can be sporked..."))
-  return NULL;
-}
-
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var)
@@ -801,13 +788,3 @@ OP_EMIT(opem_new) {
   return 1;
 }
 
-
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp);
-ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
-
-OP_EMIT(opem_spork) {
-  const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) :
-        emit_exp_spork(emit, &unary->exp->d.exp_func)))
-  return 1;
-}

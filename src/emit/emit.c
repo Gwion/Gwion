@@ -553,9 +553,9 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const Array_Sub array = var_decl->array;
   const m_bool is_array = array && array->exp;
   const m_bool is_obj = isa(type, t_object) > 0 || var_decl->array;
+
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-
   const Instr alloc = GET_FLAG(value, ae_flag_member) ?
     emitter_add_instr(emit, Alloc_Member) :
     emit_exp_decl_global(emit, value, is_obj);
@@ -675,28 +675,6 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Func* exp_func, co
   return emit_exp_call1(emit, exp_func->m_func);
 }
 
-ANN m_bool emit_exp_binary_ptr(const Emitter emit, const Exp rhs) { GWDEBUG_EXE
-  Value v = NULL;
-  const Instr instr = emitter_add_instr(emit, assign_func);
-  if(rhs->exp_type == ae_exp_dot) {
-    Type t = rhs->d.exp_dot.t_base;
-    if(isa(t, t_class) > 0)
-      t = t->d.base_type;
-    v = find_value(t, rhs->d.exp_dot.xid);
-    if(GET_FLAG(v, ae_flag_member))
-        instr->m_val = 1;
-  } else if(rhs->exp_type == ae_exp_primary) {
-    if(GET_FLAG(rhs->d.exp_primary.value, ae_flag_member)) {
-      v = rhs->d.exp_primary.value;
-      instr->m_val = 1;
-    }
-  } else if(rhs->exp_type == ae_exp_decl)
-      v = rhs->d.exp_decl.list->self->value;
-  else return -1;
-  instr->m_val2 = v ? v->offset : 0;
-  return 1;
-}
-
 ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
@@ -753,10 +731,11 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
 }
 
 ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
-  return isa(f->value_ref->type, t_func_ptr) > 0 ||
+  const Symbol s = insert_symbol(f->name);
+  const Nspc n = isa(f->value_ref->type, t_func_ptr) > 0 ||
          isa(f->value_ref->type, t_class) > 0 ?
-         nspc_lookup_func1(f->value_ref->owner, f->def->name) :
-         nspc_lookup_func2(nspc, insert_symbol(f->name));
+         f->value_ref->owner  : nspc;
+  return nspc_lookup_func2(n, s);
 }
 
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
@@ -765,6 +744,12 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       CHECK_BB(traverse_template(emit->env,
             func->value_ref->owner_class->def))
     else if(!GET_FLAG(func->def, ae_flag_template)) {
+      if(isa(func->value_ref->type, t_func_ptr) > 0) {
+        if(GET_FLAG(func, ae_flag_global)) {
+          emitter_add_instr(emit, Reg_Push_Code);
+          return 1;
+        }
+      }
       const Instr code = emitter_add_instr(emit, INSTR_RECURS);
       code->m_val = (m_uint)func;
       SET_FLAG(emit->code, ae_flag_recurs);
@@ -774,11 +759,8 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
     const Instr code = emitter_add_instr(emit, Reg_Push_Ptr);
     *(VM_Code*)code->ptr = func->code = func->def->func->code;
-  } else {
-    const Instr code = emitter_add_instr(emit, Reg_Push_Code);
-    code->m_val = func->value_ref->offset;
-    code->m_val2 = func->value_ref->owner_class ? 1 : 0;
-  }
+  } else
+    emitter_add_instr(emit, Reg_Push_Code);
   return 1;
 }
 
@@ -852,7 +834,7 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   *(VM_Code*)push_code->ptr = code;
   const Instr spork = emitter_add_instr(emit, f ? Spork : Spork_Func);
   spork->m_val = arg_size;
-  spork->m_val2 = (m_uint)f ? f : code;
+  spork->m_val2 = f ? (m_uint)f : (m_uint)code;
   *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
   return 1;
 }
@@ -1631,6 +1613,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
     if(GET_FLAG(value, ae_flag_member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
         CHECK_BB(err_msg(EMIT_, member->self->pos, "... in member function")) // LCOV_EXCL_LINE
+    if(!GET_FLAG(value->type->d.func, ae_flag_global))
       emitter_add_instr(emit, Reg_Dup_Last);
       return emit_member(emit, value, emit_addr);
     } else
@@ -1718,7 +1701,6 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   emit_pop_scope(emit);
   emitter_add_instr(emit, Func_Return);
 }
-
 ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBUG_EXE
   func->code = emit_code(emit);
   if(GET_FLAG(func->def, ae_flag_dtor)) {

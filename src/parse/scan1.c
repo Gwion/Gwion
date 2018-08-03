@@ -284,7 +284,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
     CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->td)))
     CHECK_BB(type_unknown(ptr->td->xid, "func pointer definition"))
-  if(!env->class_def && GET_FLAG(ptr, ae_flag_static))
+  if(!env->class_def && GET_FLAG(ptr->td, ae_flag_static))
     CHECK_BB(err_msg(SCAN1_, ptr->td->pos,
           "can't declare func pointer static outside of a class"))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)

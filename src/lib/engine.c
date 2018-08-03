@@ -11,32 +11,6 @@
 #include "lang_private.h"
 #include "emit.h"
 
-ANN Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
-ANN m_bool emit_exp_binary_ptr(const Emitter emit, const Exp rhs);
-OP_CHECK(opck_fptr_at);
-
-static OP_CHECK(opck_func_call) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
-}
-
-static OP_EMIT(opem_fptr_at) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  return emit_exp_binary_ptr(emit, bin->rhs);
-}
-#include "func.h"
-static OP_CHECK(opck_fptr_cast) {
-  Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = cast->self->type;
-  const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  const Func  f = isa(v->type, t_func_ptr) > 0 ?
-            v->type->d.func :
-            nspc_lookup_func1(env->curr, insert_symbol(v->name));
-  CHECK_BO(compat_func(t->d.func->def, f->def))
-  cast->func = f;
-  return t;
-}
-
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return cast->self->type;
@@ -72,27 +46,19 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL)))
   CHECK_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
   CHECK_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
+
+
+//  CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
+//  CHECK_BB(gwi_add_type(gwi, t_shred))
+
   CHECK_BB(import_object(gwi))
   CHECK_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
-  CHECK_BB(import_array(gwi))
   CHECK_BB(gwi_add_type(gwi, t_union))
+  CHECK_BB(import_array(gwi))
   CHECK_BB(import_event(gwi))
   CHECK_BB(import_ugen(gwi))
   CHECK_BB(import_ptr(gwi))
-  CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_func_call))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
-  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_at))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_spork))
-  CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
+  CHECK_BB(import_func(gwi))
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_new))
   CHECK_BB(gwi_oper_emi(gwi, opem_new))

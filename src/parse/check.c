@@ -64,6 +64,33 @@ ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol 
     nspc_add_value(env->curr, xid, v);
 }
 
+ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
+  const Value v    = var->value;
+  const Func  func = v->type->d.func;
+  const Type type = func->value_ref->owner_class;
+
+  if(!env->class_def) {
+    if(!type || GET_FLAG(func, ae_flag_global))
+      return 1;
+    CHECK_BB(err_msg(TYPE_, var->pos,
+          "can't use non public typedef at global scope."))
+  }
+  if(isa(type, env->class_def) < 0)
+    CHECK_BB(err_msg(TYPE_, var->pos,
+          "can't use static variables for member function."))
+  if(GET_FLAG(func, ae_flag_member)) {
+    if(GET_FLAG(v, ae_flag_static))
+      CHECK_BB(err_msg(TYPE_, var->pos,
+            "can't use static variables for member function."))
+    if(!GET_FLAG(v, ae_flag_member))
+      CHECK_BB(err_msg(TYPE_, var->pos,
+            "can't use member variables for static function."))
+  } else if(GET_FLAG(v, ae_flag_member))
+  CHECK_BB(err_msg(TYPE_, var->pos,
+      "can't use member variables for static function."))
+  return 1;
+}
+
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   if(GET_FLAG(decl->type , ae_flag_template))
@@ -71,6 +98,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->self;
     const Value value = var->value;
+    if(isa(decl->type, t_func_ptr) > 0)
+      CHECK_BO(check_fptr_decl(env, var))
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
@@ -640,69 +669,6 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   }
   *m_func = func;
   return func->def->ret_type;
-}
-
-ANN Type opck_fptr_at(const Env env, Exp_Binary* bin ) {
-  Type r_nspc, l_nspc = NULL;
-  Func f1 = NULL;
-  Func f2 = NULL;
-  Value v = NULL;
-
-  bin->rhs->emit_var = 1;
-  if(bin->rhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value1(env->curr, bin->rhs->d.exp_primary.d.var);
-    f1 = v->d.func_ref ? v->d.func_ref :
-      nspc_lookup_func1(env->curr, insert_symbol(v->type->name));
-  } else if(bin->rhs->exp_type == ae_exp_dot) {
-    Type t = bin->rhs->d.exp_dot.t_base;
-    if(isa(t, t_class) > 0)
-      t = t->d.base_type;
-    v = find_value(t, bin->rhs->d.exp_dot.xid);
-    f1 = find_func(t, insert_symbol(v->type->name));
-  } else if(bin->rhs->exp_type == ae_exp_decl) {
-    v = bin->rhs->d.exp_decl.list->self->value;
-    f1 = v->type->d.func;
-  } else
-    CHECK_BO(err_msg(TYPE_, bin->self->pos, "unhandled function pointer assignement (rhs)."))
-    r_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
-  if(bin->lhs->exp_type == ae_exp_primary) {
-    v = nspc_lookup_value1(env->curr, bin->lhs->d.exp_primary.d.var);
-    f2 = nspc_lookup_func1(env->curr, insert_symbol(v->type->name));
-    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
-  } else if(bin->lhs->exp_type == ae_exp_dot) {
-    Type t = bin->lhs->d.exp_dot.t_base;
-    if(isa(t, t_class) > 0)
-      t = t->d.base_type;
-    v = find_value(t, bin->lhs->d.exp_dot.xid);
-    f2 = v->d.func_ref;
-    l_nspc = (v->owner_class && GET_FLAG(v, ae_flag_member)) ? v->owner_class : NULL;
-  } else
-    CHECK_BO(err_msg(TYPE_, bin->self->pos, "unhandled function pointer assignement (lhs)."))
-    if((r_nspc && l_nspc) && (r_nspc != l_nspc))
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign member function to member function pointer of an other class"))
-    if(!r_nspc && l_nspc)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign member function to non member function pointer"))
-    if(r_nspc && !l_nspc)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign non member function to member function pointer"))
-    if(!f1 || !f2)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "function not found."))
-    if(isa(f1->def->ret_type, f2->def->ret_type) < 0)
-      CHECK_BO(err_msg(TYPE_, bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
-           f1->def->ret_type->name, f2->def->ret_type->name))
-    for(m_uint i = 0; i <= v->offset; ++i) {
-      if(bin->lhs->exp_type == ae_exp_primary) {
-        m_str c = f2 && f2->def ? s_name(f2->def->name) : NULL;
-        char name[(c ? strlen(c) : 0) + strlen(env->curr->name) + num_digit(v->offset) + 3];
-        sprintf(name, "%s@%" INT_F "@%s", c, i, env->curr->name);
-        f2 = nspc_lookup_func1(env->curr, insert_symbol(name));
-      }
-      if(f2 && compat_func(f1->def, f2->def) > 0) {
-        bin->func = f2;
-        return f1->value_ref->type;
-      }
-    }
-  CHECK_BO(err_msg(TYPE_, bin->self->pos, "no match found for function '%s'", f2 ? s_name(f2->def->name) : "[broken]"))
-  return NULL;
 }
 
 ANN static m_bool multi_decl(const Exp e, const Operator op) {

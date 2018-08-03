@@ -76,6 +76,7 @@ INSTR(Alloc_Word);
 
 /* function */
 INSTR(Spork);
+INSTR(Spork_Func);
 INSTR(Instr_Exp_Func);
 INSTR(Exp_Dot_Func);
 INSTR(Func_Static);
@@ -102,7 +103,6 @@ INSTR(Instr_Array_Alloc);
 INSTR(Instr_Array_Access);
 INSTR(Instr_Array_Access_Multi);
 INSTR(Array_Append);
-INSTR(assign_func);
 
 /* vararg */
 INSTR(MkVararg);

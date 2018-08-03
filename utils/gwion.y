@@ -91,7 +91,7 @@ m_str op2str(const Operator op);
 %nonassoc NOELSE
 %nonassoc ELSE
 
-%expect 48
+%expect 49
 
 %destructor { free_stmt($$); } <stmt>
 %destructor { free_exp($$); } <exp>
@@ -153,7 +153,9 @@ function_decl
 func_ptr
   : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_func_ptr_stmt(0, $4, $2, $6, get_pos(arg)); }
   | STATIC func_ptr
-    { CHECK_FLAG(arg, (&$2->d.stmt_ptr), ae_flag_static); $$ = $2; }
+    { CHECK_FLAG(arg, ($2->d.stmt_ptr.td), ae_flag_static); $$ = $2; }
+  | PUBLIC func_ptr
+    { CHECK_FLAG(arg, ($2->d.stmt_ptr.td), ae_flag_global); $$ = $2; }
   ;
 
 stmt_typedef

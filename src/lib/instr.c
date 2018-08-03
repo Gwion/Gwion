@@ -60,21 +60,6 @@ INSTR(Mem_Set_Imm) { GWDEBUG_EXE
   *(m_uint**)MEM(instr->m_val) = *(m_uint**)instr->ptr;
 }
 
-INSTR(assign_func) { GWDEBUG_EXE
-  if(!instr->m_val) {
-    POP_REG(shred, SZ_INT);
-    **(m_uint**)REG(0) = *(m_uint*)REG(-SZ_INT);
-  } else {
-    POP_REG(shred, SZ_INT * 3);
-    const Func f = *(Func*)REG(0);
-    const M_Object obj = *(M_Object*)REG(SZ_INT);
-    *(Func*)(obj->data + instr->m_val2) = f;
-//    *(m_uint*)REG(-SZ_INT) = *(m_uint*)REG(0);
-    *(Func*)REG(-SZ_INT) = f;
-    *(const Func**)REG(SZ_INT * 3) = &f;
-  }
-}
-
 INSTR(Reg_Push_Mem) { GWDEBUG_EXE
   memcpy(REG(0), !*(m_uint*)instr->ptr ?
       MEM(instr->m_val) : (shred->base + instr->m_val), instr->m_val2);
@@ -86,7 +71,7 @@ INSTR(Reg_Push_Ptr) { GWDEBUG_EXE
 }
 
 INSTR(Reg_Push_Code) { GWDEBUG_EXE
-  const Func f = *(Func*)(instr->m_val2 ? REG(-SZ_INT) : MEM(instr->m_val));
+  const Func f = *(Func*)REG(-SZ_INT);
   if(!f)
     Except(shred, "NullFuncPtrException");
   *(VM_Code*)REG(-SZ_INT) = f->code;
@@ -367,7 +352,7 @@ INSTR(Alloc_Member) { GWDEBUG_EXE
 }
 
 INSTR(Dot_Static_Data) { GWDEBUG_EXE
-  m_bit* tgt = REG(-SZ_INT);
+  const m_bit* tgt = REG(-SZ_INT);
   const Type t = *(Type*)tgt;
   const m_bit* data = t->nspc->class_data + instr->m_val;
   if(*(m_uint*)instr->ptr)

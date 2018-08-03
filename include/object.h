@@ -1,7 +1,8 @@
 struct M_Object_ {
   m_bit* data;
   Type type_ref;
-  m_uint ref;
+//  m_uint ref;
+  m_int ref;
 };
 
 ANN void initialize_object(const M_Object, const Type);
