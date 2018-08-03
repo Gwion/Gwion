@@ -159,8 +159,7 @@ func_ptr
   ;
 
 stmt_type
-  :
-  TYPEDEF type_decl2 id SEMICOLON
+  : TYPEDEF type_decl2 id SEMICOLON
   { $$ = new_stmt_type($2, $3, get_pos(arg)); };
 
 type_decl2
