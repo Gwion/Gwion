@@ -338,8 +338,7 @@ struct Stmt_Enum_ {
 struct Stmt_Ptr_ {
   Type_Decl* td;
   Type       type;
-  Symbol   xid;
-  ae_flag    flag;
+  Symbol     xid;
   Arg_List   args;
   Type       ret_type;
   Func       func;
@@ -348,7 +347,7 @@ struct Stmt_Ptr_ {
 struct Stmt_Typedef_ {
   Type_Decl* td;
   Type       type;
-  Symbol   xid;
+  Symbol     xid;
 };
 struct Stmt_Union_ {
   Decl_List l;

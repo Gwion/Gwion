@@ -442,8 +442,9 @@ void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 Stmt new_func_ptr_stmt(const ae_flag key, const Symbol xid, Type_Decl* td, const Arg_List args, const int pos) {
   Stmt a              = mp_alloc(Stmt);
   a->stmt_type        = ae_stmt_funcptr;
-  a->d.stmt_ptr.flag  = key;
+//  a->d.stmt_ptr.flag  = key;
   a->d.stmt_ptr.td    = td;
+  SET_FLAG(td, key);
   a->d.stmt_ptr.xid   = xid;
   a->d.stmt_ptr.args  = args;
   a->pos = pos;

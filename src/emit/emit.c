@@ -1318,12 +1318,6 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDE
   return 1;
 }
 
-ANN static m_bool emit_stmt_fptr(const Emitter emit __attribute__((unused)), const Stmt_Ptr ptr) { GWDEBUG_EXE
-  if(GET_FLAG(ptr, ae_flag_static))
-    ADD_REF(ptr->func)
-  return 1;
-}
-
 ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Typedef stmt) { GWDEBUG_EXE
   return stmt->type->def ? emit_class_def(emit, stmt->type->def) : 1;
 }
@@ -1449,7 +1443,7 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool po
     case ae_stmt_switch:
       return emit_stmt_switch(emit, &stmt->d.stmt_switch);
     case ae_stmt_funcptr:
-      return emit_stmt_fptr(emit, &stmt->d.stmt_ptr);
+      return 1;
     case ae_stmt_typedef:
       return emit_stmt_type(emit, &stmt->d.stmt_type);
     case ae_stmt_union:

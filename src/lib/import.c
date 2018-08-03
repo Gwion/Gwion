@@ -529,12 +529,13 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
+
   CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
   if(gwi->env->class_def)
     SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
   else
     SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
-  ADD_REF(stmt->d.stmt_ptr.func);
+//  ADD_REF(stmt->d.stmt_ptr.func);
   ADD_REF(stmt->d.stmt_ptr.type);
   free_stmt(stmt);
   return 1;
