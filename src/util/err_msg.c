@@ -30,18 +30,13 @@ m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...) {
   return -1;
 }
 
-m_bool gw_err(const char* fmt, ...) {
-  va_list arg;
-  va_start(arg, fmt);
-  vfprintf(stderr, fmt, arg);
-  va_end(arg);
-  return -1;
+#define describe_gw_xxx(name)            \
+m_bool gw_##name(const char* fmt, ...) { \
+  va_list arg;                           \
+  va_start(arg, fmt);                    \
+  vfprintf(std##name, fmt, arg);         \
+  va_end(arg);                           \
+  return -1;                             \
 }
-
-m_bool gw_out(const char* fmt, ...) {
-  va_list arg;
-  va_start(arg, fmt);
-  vfprintf(stdout, fmt, arg);
-  va_end(arg);
-  return -1;
-}
+describe_gw_xxx(err)
+describe_gw_xxx(out)
