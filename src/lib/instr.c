@@ -168,6 +168,7 @@ INSTR(Goto) { GWDEBUG_EXE
 
 ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(code);
+  ADD_REF(code)
   sh->parent = shred;
   if(!shred->child.ptr)
     vector_init(&shred->child);
@@ -177,50 +178,54 @@ ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   vm_add_shred(shred->vm_ref, sh);
   return sh;
 }
+#include "value.h"
+INSTR(Spork_Func) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT*2);
+  const VM_Code code = *(VM_Code*)REG(SZ_INT);
+  const VM_Shred sh = init_spork_shred(shred, code);
+  const Func func = *(Func*)REG(0);
+  if(GET_FLAG(code, _NEED_THIS_))
+    POP_REG(shred, SZ_INT)
+  if(instr->m_val) {
+    memcpy(sh->reg, shred->reg - instr->m_val, instr->m_val);
+    sh->reg += instr->m_val;
+  }
+  if(GET_FLAG(code, _NEED_THIS_)) {
+    *(M_Object*)sh->reg = *(M_Object*)REG(0);
+    PUSH_REG(sh, SZ_INT);
+  }
+  if(instr->m_val)
+    shred->reg -= instr->m_val;
+  *(M_Object*)REG(0) = sh->me;
+  PUSH_REG(shred, SZ_INT)
+  *(Func*)sh->reg = func;
+  PUSH_REG(sh, SZ_INT);
+}
 
 INSTR(Spork) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT*2);
   const VM_Code code = *(VM_Code*)REG(SZ_INT);
   const VM_Shred sh = init_spork_shred(shred, code);
-  const Func func = *(Func*)REG(0);
-  if(GET_FLAG(func, ae_flag_member))
+  if(GET_FLAG(code, _NEED_THIS_))
     POP_REG(shred, SZ_INT);
-  if(instr->m_val) {
-    memcpy(sh->reg, shred->reg - instr->m_val, instr->m_val);
-    sh->reg += instr->m_val;
-  }
-  if(*(m_uint*)instr->ptr)
-    memcpy(sh->mem + SZ_INT, shred->mem, SIZEOF_MEM - (shred->mem - shred->_mem));
-  if(GET_FLAG(func, ae_flag_member)) {
-    if(!instr->m_val2) {
-      *(M_Object*)sh->reg = *(M_Object*)REG(0);
-      PUSH_REG(sh, SZ_INT);
-    } else
-      *(M_Object*)(sh->mem+SZ_INT) = *(M_Object*)REG(0);
-  }
+  if(GET_FLAG(code, _NEED_THIS_))
+    *(M_Object*)(sh->mem+SZ_INT) = *(M_Object*)REG(0);
   *(M_Object*)REG(0) = sh->me;
   PUSH_REG(shred, SZ_INT);
-  if(instr->m_val2)
-    ADD_REF(code)
-  else {
-    *(Func*)sh->reg = func;
-    PUSH_REG(sh, SZ_INT);
-  }
 }
 
 ANN static void shred_func_prepare(const VM_Shred shred) {
   POP_REG(shred, SZ_INT * 2);
   const VM_Code code = *(VM_Code*)REG(0);
   const m_uint local_depth = *(m_uint*)REG(SZ_INT);
-//  const m_uint prev_stack = shred->mem == shred->base ? 0 : *(m_uint*)MEM(-SZ_INT);
   const m_uint prev_stack = *(m_uint*)MEM(-SZ_INT);
   const m_uint push = prev_stack + local_depth;
 
   PUSH_MEM(shred, push + SZ_INT*4);
-  *(m_uint*)MEM(-SZ_INT*4)  = push;
-  *(m_uint*)MEM(-SZ_INT*3)  = (m_uint)shred->code;
-  *(m_uint*)MEM(-SZ_INT*2)  = shred->pc;
-  *(m_uint*)MEM(-SZ_INT)  = (m_uint)code->stack_depth;
+  *(m_uint*)  MEM(-SZ_INT*4) = push;
+  *(VM_Code*) MEM(-SZ_INT*3) = shred->code;
+  *(m_uint*)  MEM(-SZ_INT*2) = shred->pc;
+  *(m_uint*)  MEM(-SZ_INT)   = (m_uint)code->stack_depth;
   shred->pc = 0;
   shred->code = code;
 }

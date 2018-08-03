@@ -850,9 +850,9 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   const Instr push_code = emitter_add_instr(emit, Reg_Push_Imm);
   push_code->m_val = SZ_INT;
   *(VM_Code*)push_code->ptr = code;
-  const Instr spork = emitter_add_instr(emit, Spork);
+  const Instr spork = emitter_add_instr(emit, f ? Spork : Spork_Func);
   spork->m_val = arg_size;
-  spork->m_val2 = (m_uint)f;
+  spork->m_val2 = (m_uint)f ? f : code;
   *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
   return 1;
 }
@@ -904,7 +904,7 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
 
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code();
-  if(emit->env->class_def) {
+  if(emit->env->class_def) { // check we're not in static func ?
     SET_FLAG(f, ae_flag_member);
     SET_FLAG(emit->code, ae_flag_member);
   }
