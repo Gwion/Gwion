@@ -876,7 +876,8 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp) { GWDEBUG_EXE
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   const Symbol sporked = insert_symbol("sporked");
   const ID_List list = new_id_list(sporked, stmt->pos);
-  const Func f = new_func("sporked", new_func_def(0, new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt));
+  const Func_Def def = new_func_def(new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt, 0);
+  const Func f = new_func("sporked", def);
 
   if(emit->env->class_def)
     push_this(emit);

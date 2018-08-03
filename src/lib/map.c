@@ -90,7 +90,7 @@ static MFUN(gw_map_set) {
       return;
     }
   }
-  M_Object pair = new_M_Object(NULL);
+  M_Object pair = new_object(NULL);
   initialize_object(pair, MAP_INFO(o)->t);
   memcpy(pair->data, MEM(SZ_INT), MAP_INFO(o)->key_size + MAP_INFO(o)->val_size);
   m_vector_add(v, (m_bit*)&pair);

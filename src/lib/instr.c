@@ -410,7 +410,7 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
   if(t) {
     M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
     if(!idx) {
-      ptr = new_M_Object(shred);
+      ptr = new_object(shred);
       initialize_object(ptr, t);
       *(M_Object*)MEM(instr->m_val + SZ_INT) = ptr;
     }

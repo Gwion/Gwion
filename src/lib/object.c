@@ -15,7 +15,7 @@ ANN void exception(const VM_Shred shred, const m_str c) {
   vm_shred_exit(shred);
 }
 
-M_Object new_M_Object(const VM_Shred shred) {
+M_Object new_object(const VM_Shred shred) {
   const M_Object a = mp_alloc(M_Object);
   a->ref = 1;
   if(shred)
@@ -23,8 +23,8 @@ M_Object new_M_Object(const VM_Shred shred) {
   return a;
 }
 
-M_Object new_String(const VM_Shred shred, const m_str str) {
-  const M_Object o = new_M_Object(shred);
+M_Object new_string(const VM_Shred shred, const m_str str) {
+  const M_Object o = new_object(shred);
   initialize_object(o, t_string);
   STRING(o) = s_name(insert_symbol(str));
   return o;
@@ -37,7 +37,7 @@ ANN void initialize_object(const M_Object o, const Type t) {
 }
 
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
-  const M_Object object = new_M_Object(NULL);
+  const M_Object object = new_object(NULL);
   initialize_object(object, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred,  SZ_INT);

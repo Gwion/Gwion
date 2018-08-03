@@ -414,14 +414,14 @@ m_bool tmpl_class_base(const Tmpl_Class* a) {
   return a ? tmpl_list_base(&a->list) : 0;
 }
 
-Func_Def new_func_def(const ae_flag flag, Type_Decl* td, const Symbol xid,
-  const Arg_List arg_list, const Stmt code) {
+Func_Def new_func_def(Type_Decl* td, const Symbol xid,
+  const Arg_List arg_list, const Stmt code, const ae_flag flag) {
   Func_Def a = mp_alloc(Func_Def);
-  a->flag = flag;
   a->td   = td;
   a->name = xid;
   a->arg_list = arg_list;
   a->d.code = code;
+  a->flag = flag;
   return a;
 }
 
@@ -439,12 +439,12 @@ void free_func_def(Func_Def a) {
 }
 void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 
-Stmt new_stmt_fptr(const ae_flag key, const Symbol xid, Type_Decl* td, const Arg_List args, const int pos) {
+Stmt new_stmt_fptr(const Symbol xid, Type_Decl* td, const Arg_List args, const ae_flag flag, const int pos) {
   Stmt a              = mp_alloc(Stmt);
   a->stmt_type        = ae_stmt_fptr;
 //  a->d.stmt_fptr.flag  = key;
   a->d.stmt_fptr.td    = td;
-  SET_FLAG(td, key);
+  SET_FLAG(td, flag);
   a->d.stmt_fptr.xid   = xid;
   a->d.stmt_fptr.args  = args;
   a->pos = pos;

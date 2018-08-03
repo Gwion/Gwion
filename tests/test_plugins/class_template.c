@@ -14,8 +14,8 @@ static CTOR(class_template_ctor) {
 /*Type t1 = nspc_lookup_type1(o->type_ref->info->parent, insert_symbol(name1));*/
   /*Type t2 = nspc_lookup_type0(shred->vm_ref->emit->env->curr, insert_symbol(name));*/
 /*free(tmp);*/
-/**(M_Object*)(o->data) = new_M_Array(t1->size, 0, t1->array_depth);*/
-  /**(M_Object*)(o->data + SZ_INT) = new_M_Array(t2->size, 0, t2->array_depth);*/
+/**(M_Object*)(o->data) = new_array(t1->size, 0, t1->array_depth);*/
+  /**(M_Object*)(o->data + SZ_INT) = new_array(t2->size, 0, t2->array_depth);*/
 }
 
 static MFUN(class_template_set) {

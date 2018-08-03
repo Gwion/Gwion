@@ -155,10 +155,10 @@ static SFUN(file_list) {
     return;
   }
   const Type t = array_type(t_string, 1);
-  const M_Object ret = new_M_Array(t, SZ_INT, n, 1);
+  const M_Object ret = new_array(t, SZ_INT, n, 1);
   vector_add(&shred->gc, (vtype)ret);
   for(m_uint i = 0; i < (m_uint)n; i++) {
-    const M_Object string = new_String(NULL, namelist[i]->d_name);
+    const M_Object string = new_string(NULL, namelist[i]->d_name);
     m_vector_set(ARRAY(ret), i, &string);
     free(namelist[i]);
   }
@@ -236,15 +236,15 @@ ANN m_bool import_fileio(const Gwi gwi) {
   CHECK_BB(gwi_class_ini(gwi,  t_cin, NULL, static_fileio_dtor))
   CHECK_BB(gwi_class_end(gwi))
 
-  const M_Object gw_cin = new_M_Object(NULL);
+  const M_Object gw_cin = new_object(NULL);
   initialize_object(gw_cin, t_cin);
   IO_FILE(gw_cin) = stdin;
   EV_SHREDS(gw_cin) = new_vector();
-  const M_Object gw_cout = new_M_Object(NULL);
+  const M_Object gw_cout = new_object(NULL);
   initialize_object(gw_cout, t_cout);
   IO_FILE(gw_cout) = stdout;
   EV_SHREDS(gw_cout) = new_vector();
-  const M_Object gw_cerr = new_M_Object(NULL);
+  const M_Object gw_cerr = new_object(NULL);
   initialize_object(gw_cerr, t_cerr);
   IO_FILE(gw_cerr) = stderr;
   EV_SHREDS(gw_cerr) = new_vector();

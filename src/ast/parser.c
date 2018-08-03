@@ -2372,7 +2372,7 @@ yyreduce:
 
   case 26:
 #line 154 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.stmt) = new_stmt_fptr(0, (yyvsp[-2].sym), (yyvsp[-4].type_decl), (yyvsp[0].arg_list), get_pos(arg)); }
+    { (yyval.stmt) = new_stmt_fptr((yyvsp[-2].sym), (yyvsp[-4].type_decl), (yyvsp[0].arg_list), 0, get_pos(arg)); }
 #line 2377 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -2786,7 +2786,7 @@ yyreduce:
 
   case 113:
 #line 316 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.func_def) = new_func_def((yyvsp[-5].ival) | (yyvsp[-4].ival), (yyvsp[-3].type_decl), (yyvsp[-2].sym), (yyvsp[-1].arg_list), (yyvsp[0].stmt)); }
+    { (yyval.func_def) = new_func_def((yyvsp[-3].type_decl), (yyvsp[-2].sym), (yyvsp[-1].arg_list), (yyvsp[0].stmt), (yyvsp[-5].ival) | (yyvsp[-4].ival)); }
 #line 2791 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -2814,20 +2814,20 @@ yyreduce:
 
   case 123:
 #line 336 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.func_def) = new_func_def(ae_flag_op , (yyvsp[-2].type_decl), OP_SYM((yyvsp[-3].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt)); }
+    { (yyval.func_def) = new_func_def((yyvsp[-2].type_decl), OP_SYM((yyvsp[-3].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), ae_flag_op); }
 #line 2819 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 124:
 #line 338 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.func_def) = new_func_def(ae_flag_op | ae_flag_unary, (yyvsp[-2].type_decl), OP_SYM((yyvsp[-4].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt)); }
+    { (yyval.func_def) = new_func_def((yyvsp[-2].type_decl), OP_SYM((yyvsp[-4].ival)), (yyvsp[-1].arg_list), (yyvsp[0].stmt), ae_flag_op | ae_flag_unary); }
 #line 2825 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 125:
 #line 340 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.func_def) = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
-      get_pos(arg)), insert_symbol("dtor"), NULL, (yyvsp[0].stmt)); }
+    { (yyval.func_def) = new_func_def(new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
+      get_pos(arg)), insert_symbol("dtor"), NULL, (yyvsp[0].stmt), ae_flag_dtor); }
 #line 2832 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 

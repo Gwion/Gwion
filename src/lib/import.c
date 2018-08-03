@@ -426,7 +426,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
-  func_def = new_func_def(flag, type_decl, insert_symbol(name), arg_list, NULL);
+  func_def = new_func_def(type_decl, insert_symbol(name), arg_list, NULL, flag);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -441,7 +441,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
   CHECK_OB(def)
   if(gwi->templater.n) {
-    def = new_func_def(0, NULL, NULL, NULL, NULL);
+    def = new_func_def(NULL, NULL, NULL, NULL, 0);
     const ID_List list = templater_def(&gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, ae_flag_template);
@@ -524,7 +524,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...",
           dl_fun->name))
-  return new_stmt_fptr(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
+  return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag, 0);
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {

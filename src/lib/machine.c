@@ -65,7 +65,7 @@ close:
 static SFUN(machine_shreds) {
   VM* vm = shred->vm_ref;
   const Type t = array_type(t_int, 1);
-  const M_Object obj = new_M_Array(t, SZ_INT, vector_size(&vm->shred), 1);
+  const M_Object obj = new_array(t, SZ_INT, vector_size(&vm->shred), 1);
   for(m_uint i = 0; i < vector_size(&vm->shred); i++) {
     const VM_Shred sh = (VM_Shred)vector_at(&vm->shred, i);
     m_vector_set(ARRAY(obj), i, &sh->xid);

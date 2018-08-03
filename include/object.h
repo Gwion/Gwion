@@ -1,17 +1,16 @@
 struct M_Object_ {
   m_bit* data;
   Type type_ref;
-//  m_uint ref;
-  m_int ref;
+  m_uint ref;
 };
 
 ANN void initialize_object(const M_Object, const Type);
 ANN void instantiate_object(const VM_Shred, const Type);
 ANN void free_object(const M_Object);
-ANEW M_Object new_M_Object(const VM_Shred);
-ANN ANEW M_Object new_M_Array(const Type t, const m_uint size,
+ANEW M_Object new_object(const VM_Shred);
+ANN ANEW M_Object new_array(const Type t, const m_uint size,
   const m_uint length, const m_uint depth);
-ANEW M_Object new_String(const VM_Shred, const m_str);
+ANEW M_Object new_string(const VM_Shred, const m_str);
 ANN void _release(const M_Object, const VM_Shred);
 ANN void exception(const VM_Shred, const m_str);
 

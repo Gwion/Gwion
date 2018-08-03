@@ -5,7 +5,7 @@
 #include "import.h"
 
 M_Object new_shred(const VM_Shred shred) {
-  const M_Object obj = new_M_Object(NULL);
+  const M_Object obj = new_object(NULL);
   initialize_object(obj, t_shred);
   ME(obj) = shred;
   return obj;
@@ -57,7 +57,7 @@ static MFUN(shred_arg) {
   const m_int idx = *(m_int*)MEM(SZ_INT);
   if(s->args && idx >= 0) {
     const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
-    *(M_Object*)RETURN = str ? new_String(shred, str) : NULL;
+    *(M_Object*)RETURN = str ? new_string(shred, str) : NULL;
   } else
     *(M_Object*)RETURN = NULL;
 }
@@ -66,7 +66,7 @@ static MFUN(shred_arg) {
 static MFUN(shred##name##_path) { \
   const VM_Shred s = ME(o); \
   const m_str str = code_name((src), 1); \
-  *(m_uint*)RETURN = (m_uint)new_String(shred, str); \
+  *(m_uint*)RETURN = (m_uint)new_string(shred, str); \
 } \
 static MFUN(shred##name##_dir) { \
   const VM_Shred  s = ME(o); \
@@ -74,7 +74,7 @@ static MFUN(shred##name##_dir) { \
   const size_t len = strlen(str); \
   char c[len + 1]; \
   strcpy(c, str); \
-  *(m_uint*)RETURN = (m_uint)new_String(shred, dirname(c)); \
+  *(m_uint*)RETURN = (m_uint)new_string(shred, dirname(c)); \
 }
 describe_path_and_dir(, s->name)
 describe_path_and_dir(_code, s->code->name)

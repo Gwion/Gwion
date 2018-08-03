@@ -31,10 +31,10 @@ static DTOR(array_dtor) {
   REM_REF(o->type_ref)
 }
 
-ANN M_Object new_M_Array(const Type t, const m_uint size,
+ANN M_Object new_array(const Type t, const m_uint size,
     const m_uint length, const m_uint depth) {
   m_uint cap = 1;
-  M_Object a = new_M_Object(NULL);
+  M_Object a = new_object(NULL);
   initialize_object(a, t);
   while(cap < length)
     cap *= 2;
@@ -250,7 +250,7 @@ ANN static M_Object do_alloc_array_object(const struct ArrayAllocInfo* info, con
     gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
-  const M_Object base = new_M_Array(info->type, info->capacity >= info->top ?
+  const M_Object base = new_array(info->type, info->capacity >= info->top ?
       info->base->size : SZ_INT, cap, -info->capacity);
   if(!base) {
     gw_err("[gwion](VM): OutOfMemory: while allocating arrays...\n");
@@ -302,7 +302,7 @@ ANN static M_Object do_alloc_array(const VM_Shred shred, const struct ArrayAlloc
 INSTR(Instr_Array_Init) { GWDEBUG_EXE // for litteral array
   VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
   POP_REG(shred, instr->m_val2 * info->length);
-  const M_Object obj = new_M_Array(info->type, info->base->size, info->length, info->depth);
+  const M_Object obj = new_array(info->type, info->base->size, info->length, info->depth);
   vector_add(&shred->gc, (vtype) obj);
   for(m_uint i = 0; i < info->length; ++i)
     m_vector_set(ARRAY(obj), i, REG(instr->m_val2 * i));

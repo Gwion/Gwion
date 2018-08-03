@@ -81,7 +81,7 @@ ANEW static UGen new_UGen() {
 }
 
 ANEW static M_Object new_M_UGen() {
-  const M_Object o = new_M_Object(NULL);
+  const M_Object o = new_object(NULL);
   initialize_object(o, t_ugen);
   UGEN(o) = new_UGen();
   return o;

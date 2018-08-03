@@ -16,7 +16,7 @@ ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_st
 }
 
 ANN static void push_new_string(const VM_Shred shred, const m_str c) {
-  const M_Object obj = new_String(shred, c);
+  const M_Object obj = new_string(shred, c);
   *(M_Object*)REG(-SZ_INT) = (M_Object)obj;
 }
 
@@ -159,7 +159,7 @@ describe_string_plus(Object_, SZ_INT, M_Object, release(lhs, shred),
   11, "%p", (void*)lhs)
 
 INSTR(Reg_Push_Str) { GWDEBUG_EXE
-  *(M_Object*)REG(0) = new_String(shred, (m_str)instr->m_val);
+  *(M_Object*)REG(0) = new_string(shred, (m_str)instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
@@ -177,7 +177,7 @@ static MFUN(string_upper) {
   for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_lower) {
@@ -186,7 +186,7 @@ static MFUN(string_lower) {
   for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_ltrim) {
@@ -196,7 +196,7 @@ static MFUN(string_ltrim) {
     i++;
   char c[strlen(str) - i + 1];
   strcpy(c, STRING(o) + i);
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_rtrim) {
@@ -207,7 +207,7 @@ static MFUN(string_rtrim) {
   char c[len + 2];
   strncpy(c, str, len + 1);
   c[len + 1] = '\0';
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_trim) {
@@ -233,7 +233,7 @@ static MFUN(string_trim) {
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_charAt) {
@@ -272,7 +272,7 @@ static MFUN(string_substring) {
   memset(c, 0, len - index + 1);
   for(m_uint i = index; i < len; i++)
     c[i - index] = str[i];
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_substringN) {
@@ -290,7 +290,7 @@ static MFUN(string_substringN) {
   for(i = index; i < (m_int)len; i++)
     c[i - index] = str[i];
   c[i - index] = '\0';
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 static MFUN(string_insert) {
@@ -316,7 +316,7 @@ static MFUN(string_insert) {
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
   release(arg, shred);
-  *(M_Object*)RETURN = new_String(shred, c);;
+  *(M_Object*)RETURN = new_string(shred, c);;
 }
 
 static MFUN(string_replace) {
@@ -344,7 +344,7 @@ static MFUN(string_replace) {
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
   release(arg, shred);
-  *(M_Object*)RETURN = new_String(shred, c);;
+  *(M_Object*)RETURN = new_string(shred, c);;
 }
 
 static MFUN(string_replaceN) {
@@ -374,7 +374,7 @@ static MFUN(string_replaceN) {
     c[i] = str[i];
   c[len + _len - 1] = '\0';
   release(arg, shred);
-  *(M_Object*)RETURN = new_String(shred, c);;
+  *(M_Object*)RETURN = new_string(shred, c);;
 }
 
 static MFUN(string_find) {
@@ -584,7 +584,7 @@ static MFUN(string_toFloat) {
 static SFUN(char_toString) {
   char c[2];
   sprintf(c, "%c", *(char*)MEM(SZ_INT));
-  *(M_Object*)RETURN = new_String(shred, c);
+  *(M_Object*)RETURN = new_string(shred, c);
 }
 
 ANN m_bool import_string(const Gwi gwi) {

@@ -58,8 +58,8 @@ typedef struct Type_Decl_ {
   Array_Sub array;
   Exp_Dot* dot;
   Type_List types;
-  ae_flag flag;
   int pos;
+  ae_flag flag;
 } Type_Decl;
 ANEW ANN Type_Decl* new_type_decl(const ID_List, const ae_flag, const int);
 ANEW ANN Type_Decl* new_type_decl2(const ID_List, const ae_flag, const int);
@@ -330,9 +330,9 @@ struct Stmt_Enum_ {
   ID_List list;
   Symbol xid;
   Type t;
-  ae_flag flag;
   struct Vector_ values;
   Stmt self;
+  ae_flag flag;
 };
 
 struct Stmt_Fptr_ {
@@ -354,10 +354,10 @@ struct Stmt_Union_ {
   struct Vector_ v;
   Symbol xid;
   Value value;
-  ae_flag flag;
   m_uint s;
   m_uint o;
   Stmt self;
+  ae_flag flag;
 };
 
 struct Stmt_ {
@@ -392,7 +392,7 @@ ANEW ANN Stmt new_stmt_jump(const Symbol, const m_bool, const int);
 ANN2(1) ANEW Stmt new_stmt_enum(const ID_List, const Symbol, const int);
 ANEW ANN Stmt new_stmt_switch(Exp, Stmt, const int);
 ANEW ANN Stmt new_stmt_union(const Decl_List, const int);
-ANEW ANN Stmt new_stmt_fptr(const ae_flag, const Symbol, Type_Decl*, const Arg_List, const int);
+ANEW ANN Stmt new_stmt_fptr(const Symbol, Type_Decl*, const Arg_List, const ae_flag, const int);
 ANEW ANN Stmt new_stmt_type(Type_Decl*, const Symbol, const int);
 ANN void free_stmt(Stmt);
 struct Stmt_List_ {
@@ -412,7 +412,6 @@ typedef struct Tmpl_List_ {
 struct Func_Def_ {
   Type_Decl* td;
   Type ret_type;
-  ae_flag flag;
   Symbol name;
   Arg_List arg_list;
   m_uint stack_depth;
@@ -422,11 +421,12 @@ struct Func_Def_ {
     void* dl_func_ptr;
   } d;
   Tmpl_List* tmpl;
+  ae_flag flag;
 };
 ANEW ANN Tmpl_List* new_tmpl_list(const ID_List, const m_int);
 ANN void free_tmpl_list(Tmpl_List*);
 m_bool tmpl_list_base(const Tmpl_List*);
-ANEW Func_Def new_func_def(const ae_flag, Type_Decl*, const Symbol, const Arg_List, const Stmt);
+ANEW Func_Def new_func_def(Type_Decl*, const Symbol, const Arg_List, const Stmt, const ae_flag);
 ANN void free_func_def(Func_Def def);
 ANN void free_func_def_simple(Func_Def def);
 
@@ -456,12 +456,12 @@ ANEW ANN Tmpl_Class* new_tmpl_class(const ID_List, const m_bool);
 m_bool tmpl_class_base(const Tmpl_Class*);
 ANN void free_tmpl_class(Tmpl_Class*);
 struct Class_Def_ {
-  ae_flag flag;
   ID_List name;
   Type_Decl* ext;
   Class_Body body;
   Type type;
   Tmpl_Class*  tmpl;
+  ae_flag flag;
 };
 ANN2(2) ANEW Class_Def new_class_def(const ae_flag, const ID_List,
                         Type_Decl*, const Class_Body);

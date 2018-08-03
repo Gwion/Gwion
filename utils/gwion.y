@@ -151,7 +151,7 @@ function_decl
   ;
 
 func_ptr
-  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_stmt_fptr(0, $4, $2, $6, get_pos(arg)); }
+  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_stmt_fptr($4, $2, $6, 0, get_pos(arg)); }
   | STATIC func_ptr
     { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static); $$ = $2; }
   | PUBLIC func_ptr
@@ -313,7 +313,7 @@ decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
   : function_decl static_decl type_decl2 id func_args code_segment
-    { $$ = new_func_def($1 | $2, $3, $4, $5, $6); }
+    { $$ = new_func_def($3, $4, $5, $6, $1 | $2); }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | decl_template func_def_base
@@ -333,12 +333,12 @@ op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def
   : func_def_base
   |  OPERATOR op_op type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op , $3, OP_SYM($2), $4, $5); }
+    { $$ = new_func_def($3, OP_SYM($2), $4, $5, ae_flag_op); }
   |  unary_op OPERATOR type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op | ae_flag_unary, $3, OP_SYM($1), $4, $5); }
+    { $$ = new_func_def($3, OP_SYM($1), $4, $5, ae_flag_op | ae_flag_unary); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
-      get_pos(arg)), insert_symbol("dtor"), NULL, $4); }
+    { $$ = new_func_def(new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
+      get_pos(arg)), insert_symbol("dtor"), NULL, $4, ae_flag_dtor); }
   ;
 
 atsym: { $$ = 0; } | ATSYM { $$ = ae_flag_ref; };

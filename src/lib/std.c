@@ -94,7 +94,7 @@ static SFUN(std_scale) {
 static SFUN(std_getenv) {
   GETSTRING(env, SZ_INT)
   const m_str str = getenv(env);
-  *(M_Object*)RETURN = str ? new_String(shred, str) : 0;
+  *(M_Object*)RETURN = str ? new_string(shred, str) : 0;
 }
 
 static SFUN(std_setenv) {
@@ -117,7 +117,7 @@ static SFUN(std_##name##toa) {               \
   char c[1024];                              \
   const type value = *(type*)MEM(SZ_INT);    \
   sprintf(c, format, value);                 \
-  *(M_Object*)RETURN = new_String(shred, c); \
+  *(M_Object*)RETURN = new_string(shred, c); \
 }
 describe_xtoa(i, m_int, "%"INT_F)
 describe_xtoa(c, char, "%c")

@@ -95,7 +95,7 @@ static OP_EMIT(opem_ptr_deref) {
 }
 
 INSTR(Cast2Ptr) { GWDEBUG_EXE
-  const M_Object o = new_M_Object(shred);
+  const M_Object o = new_object(shred);
   o->data = (m_bit*)xmalloc(SZ_INT);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
   *(M_Object*)REG(-SZ_INT) = o;

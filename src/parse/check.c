@@ -479,9 +479,8 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       continue;
       mismatch = 0;
       base = value->d.func_ref->def;
-      def = new_func_def(base->flag,
-                base->td, func->d.exp_primary.d.var,
-                base->arg_list, base->d.code);
+      def = new_func_def(base->td, func->d.exp_primary.d.var,
+                base->arg_list, base->d.code, base->flag);
       def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
       UNSET_FLAG(base, ae_flag_template);
       SET_FLAG(def, ae_flag_template);
