@@ -249,7 +249,7 @@ void tag_stmt_enum(Tagger* tagger, Stmt_Enum stmt) {
   }
 }
 
-void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
+void tag_stmt_fptr(Tagger* tagger, Stmt_Fptr ptr) {
   Arg_List list = ptr->args;
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
@@ -270,7 +270,7 @@ void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
   tag_print(tagger, ") {$/;\tt\n");
 }
 
-void tag_stmt_typedef(Tagger* tagger, Stmt_Typedef ptr) {
+void tag_stmt_type(Tagger* tagger, Stmt_Type ptr) {
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
   tag_type_decl(tagger, ptr->td);
@@ -291,7 +291,7 @@ void tag_stmt_union(Tagger* tagger, Stmt_Union stmt) {
   }
 }
 
-void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Goto_Label stmt __attribute__((unused))) {
+void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Jump stmt __attribute__((unused))) {
   return;
 }
 
@@ -349,14 +349,14 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
     case ae_stmt_break:
       tag_stmt_break(tagger, stmt);
       break;
-    case ae_stmt_gotolabel:
-      tag_stmt_goto(tagger, &stmt->d.stmt_gotolabel);
+    case ae_stmt_jump:
+      tag_stmt_goto(tagger, &stmt->d.stmt_jump);
       break;
-    case ae_stmt_funcptr:
-      tag_stmt_fptr(tagger, &stmt->d.stmt_ptr);
+    case ae_stmt_fptr:
+      tag_stmt_fptr(tagger, &stmt->d.stmt_fptr);
       break;
-    case ae_stmt_typedef:
-      tag_stmt_typedef(tagger, &stmt->d.stmt_type);
+    case ae_stmt_type:
+      tag_stmt_type(tagger, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       tag_stmt_union(tagger, &stmt->d.stmt_union);

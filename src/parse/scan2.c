@@ -100,7 +100,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
   return f->value_ref = v;
 }
 
-ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
   if(nspc_lookup_func2(env->curr, ptr->xid))
@@ -137,7 +137,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan2_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? scan2_class_def(env, stmt->type->def) : 1;
 }
 
@@ -303,11 +303,11 @@ ANN static Map scan2_label_map(const Env env) { GWDEBUG_EXE
   return m;
 }
 
-ANN static m_bool scan2_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
+ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG_EXE
   if(stmt->is_label) {
     const Map m = scan2_label_map(env);
     if(map_get(m, (vtype)stmt->name)) {
-      Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+      Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
       CHECK_BB(err_msg(SCAN2_, stmt->self->pos,
             "label '%s' already defined", s_name(stmt->name)))
@@ -373,8 +373,8 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     case ae_stmt_case:
       CHECK_BB(scan2_stmt_case(env, &stmt->d.stmt_exp))
       break;
-    case ae_stmt_gotolabel:
-      CHECK_BB(scan2_stmt_gotolabel(env, &stmt->d.stmt_gotolabel))
+    case ae_stmt_jump:
+      CHECK_BB(scan2_stmt_jump(env, &stmt->d.stmt_jump))
       break;
     case ae_stmt_continue:
     case ae_stmt_break:
@@ -382,10 +382,10 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     case ae_stmt_enum:
       CHECK_BB(scan2_stmt_enum(env, &stmt->d.stmt_enum))
       break;
-    case ae_stmt_funcptr:
-      CHECK_BB(scan2_stmt_fptr(env, &stmt->d.stmt_ptr))
+    case ae_stmt_fptr:
+      CHECK_BB(scan2_stmt_fptr(env, &stmt->d.stmt_fptr))
       break;
-    case ae_stmt_typedef:
+    case ae_stmt_type:
       CHECK_BB(scan2_stmt_type(env, &stmt->d.stmt_type))
       break;
     case ae_stmt_union:

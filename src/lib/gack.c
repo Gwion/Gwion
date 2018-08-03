@@ -7,7 +7,7 @@
 #include "instr.h"
 
 static void print_type(const Type type) {
-  const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_func_ptr) < 0;
+  const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_fptr) < 0;
   const m_str name = is_func ? strdup("@function") : strdup(type->name);
   gw_out("(%s) ", name);
   free(name);
@@ -67,7 +67,7 @@ static void print_object(const Type type, const M_Object obj) {
 }
 
 static void print_func(const Type type, const m_bit* stack) {
-  const Func func = isa(type, t_func_ptr) > 0 ?
+  const Func func = isa(type, t_fptr) > 0 ?
     *(Func*)stack : type->d.func;
   gw_out("%s %p", (void*)func);
 }

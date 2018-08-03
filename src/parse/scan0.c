@@ -18,9 +18,9 @@ ANN static Value mk_class(const Env env, const Type base) {
   return v;
 }
 
-ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   const m_str name = s_name(ptr->xid);
-  const Type t = new_type(t_func_ptr->xid, name, t_func_ptr);
+  const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = env->curr;
   t->size = SZ_INT;
   t->nspc = new_nspc(name);
@@ -30,7 +30,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   const Type base = type_decl_resolve(env, stmt->td);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
@@ -107,9 +107,9 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
 }
 
 ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  if(stmt->stmt_type == ae_stmt_funcptr)
-    return scan0_stmt_fptr(env, &stmt->d.stmt_ptr);
-  if(stmt->stmt_type == ae_stmt_typedef)
+  if(stmt->stmt_type == ae_stmt_fptr)
+    return scan0_stmt_fptr(env, &stmt->d.stmt_fptr);
+  if(stmt->stmt_type == ae_stmt_type)
     return scan0_stmt_type(env, &stmt->d.stmt_type);
   if(stmt->stmt_type == ae_stmt_enum)
     return scan0_stmt_enum(env, &stmt->d.stmt_enum);

@@ -267,7 +267,7 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   return import_class_end(gwi->env);
 }
 
-ANN static void dl_var_new_array(DL_Var* v) {
+ANN static void dl_var_new_exp_array(DL_Var* v) {
   v->t.array = new_array_sub(NULL, 0);
   v->t.array->depth = v->array_depth;
   v->var.array = new_array_sub(NULL, 0);
@@ -282,7 +282,7 @@ ANN static void dl_var_set(DL_Var* v, const ae_flag flag) {
   v->exp.d.exp_decl.list = &v->list;
   v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
-    dl_var_new_array(v);
+    dl_var_new_exp_array(v);
 }
 
 ANN static void dl_var_release(const DL_Var* v) {
@@ -524,19 +524,19 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(type_path, 0, 0)))
     CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...",
           dl_fun->name))
-  return new_func_ptr_stmt(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
+  return new_stmt_fptr(flag, insert_symbol(dl_fun->name), type_decl, args, 0);
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
 
-  CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_ptr))
+  CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_fptr))
   if(gwi->env->class_def)
-    SET_FLAG(stmt->d.stmt_ptr.func->def, ae_flag_builtin);
+    SET_FLAG(stmt->d.stmt_fptr.func->def, ae_flag_builtin);
   else
-    SET_FLAG(stmt->d.stmt_ptr.func, ae_flag_builtin);
-//  ADD_REF(stmt->d.stmt_ptr.func);
-  ADD_REF(stmt->d.stmt_ptr.type);
+    SET_FLAG(stmt->d.stmt_fptr.func, ae_flag_builtin);
+//  ADD_REF(stmt->d.stmt_fptr.func);
+  ADD_REF(stmt->d.stmt_fptr.type);
   free_stmt(stmt);
   return 1;
 }

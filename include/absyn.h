@@ -1,6 +1,6 @@
 #ifndef __ABSYN
 #define __ABSYN
-#include <vm.h>
+#include "vm.h"
 
 typedef struct Ast_           * Ast;
 typedef struct Class_Def_     * Class_Def;
@@ -36,7 +36,7 @@ typedef struct {
   Exp       self;
 } Exp_Array;
 
-ANEW ANN Exp new_array(const Exp, const Array_Sub, const int);
+ANEW ANN Exp new_exp_array(const Exp, const Array_Sub, const int);
 
 struct Var_Decl_ {
   Symbol xid;
@@ -253,23 +253,23 @@ ANN2(1) ANEW Decl_List new_decl_list(Exp d, Decl_List l);
 
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_auto, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
-               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_gotolabel,
-               ae_stmt_enum, ae_stmt_funcptr, ae_stmt_typedef, ae_stmt_union
+               ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_jump,
+               ae_stmt_enum, ae_stmt_fptr, ae_stmt_type, ae_stmt_union
              } ae_Stmt_Type;
 
-typedef struct Stmt_Exp_        * Stmt_Exp;
-typedef struct Stmt_Code_       * Stmt_Code;
-typedef struct Stmt_For_        * Stmt_For;
-typedef struct Stmt_Flow_       * Stmt_Flow;
-typedef struct Stmt_Auto_       * Stmt_Auto;
-typedef struct Stmt_Loop_       * Stmt_Loop;
-typedef struct Stmt_If_         * Stmt_If;
-typedef struct Stmt_Switch_     * Stmt_Switch;
-typedef struct Stmt_Goto_Label_ * Stmt_Goto_Label;
-typedef struct Stmt_Enum_       * Stmt_Enum;
-typedef struct Stmt_Ptr_        * Stmt_Ptr;
-typedef struct Stmt_Typedef_    * Stmt_Typedef;
-typedef struct Stmt_Union_      * Stmt_Union;
+typedef struct Stmt_Exp_     * Stmt_Exp;
+typedef struct Stmt_Code_    * Stmt_Code;
+typedef struct Stmt_For_     * Stmt_For;
+typedef struct Stmt_Flow_    * Stmt_Flow;
+typedef struct Stmt_Auto_    * Stmt_Auto;
+typedef struct Stmt_Loop_    * Stmt_Loop;
+typedef struct Stmt_If_      * Stmt_If;
+typedef struct Stmt_Switch_  * Stmt_Switch;
+typedef struct Stmt_Jump_    * Stmt_Jump;
+typedef struct Stmt_Enum_    * Stmt_Enum;
+typedef struct Stmt_Fptr_    * Stmt_Fptr;
+typedef struct Stmt_Type_    * Stmt_Type;
+typedef struct Stmt_Union_   * Stmt_Union;
 
 struct Stmt_Basic_ {
   int pos;
@@ -312,7 +312,7 @@ struct Stmt_If_ {
   Stmt if_body;
   Stmt else_body;
 };
-struct Stmt_Goto_Label_ {
+struct Stmt_Jump_ {
   Symbol name;
   union stmt_goto_data {
     struct Vector_ v;
@@ -335,7 +335,7 @@ struct Stmt_Enum_ {
   Stmt self;
 };
 
-struct Stmt_Ptr_ {
+struct Stmt_Fptr_ {
   Type_Decl* td;
   Type       type;
   Symbol     xid;
@@ -344,7 +344,7 @@ struct Stmt_Ptr_ {
   Func       func;
   Value      value;
 };
-struct Stmt_Typedef_ {
+struct Stmt_Type_ {
   Type_Decl* td;
   Type       type;
   Symbol     xid;
@@ -370,11 +370,11 @@ struct Stmt_ {
     struct Stmt_For_        stmt_for;
     struct Stmt_Auto_       stmt_auto;
     struct Stmt_If_         stmt_if;
-    struct Stmt_Goto_Label_ stmt_gotolabel;
+    struct Stmt_Jump_       stmt_jump;
     struct Stmt_Switch_     stmt_switch;
     struct Stmt_Enum_       stmt_enum;
-    struct Stmt_Ptr_        stmt_ptr;
-    struct Stmt_Typedef_    stmt_type;
+    struct Stmt_Fptr_       stmt_fptr;
+    struct Stmt_Type_       stmt_type;
     struct Stmt_Union_      stmt_union;
   } d;
   int pos;
@@ -388,12 +388,12 @@ ANEW ANN Stmt new_stmt_flow(const ae_Stmt_Type, const Exp, const Stmt, const m_b
 ANN2(1,2,4) ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
 ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const int);
 ANEW ANN Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
-ANEW ANN Stmt new_stmt_gotolabel(const Symbol, const m_bool, const int);
+ANEW ANN Stmt new_stmt_jump(const Symbol, const m_bool, const int);
 ANN2(1) ANEW Stmt new_stmt_enum(const ID_List, const Symbol, const int);
 ANEW ANN Stmt new_stmt_switch(Exp, Stmt, const int);
 ANEW ANN Stmt new_stmt_union(const Decl_List, const int);
-ANEW ANN Stmt new_func_ptr_stmt(const ae_flag, const Symbol, Type_Decl*, const Arg_List, const int);
-ANEW ANN Stmt new_stmt_typedef(Type_Decl*, const Symbol, const int);
+ANEW ANN Stmt new_stmt_fptr(const ae_flag, const Symbol, Type_Decl*, const Arg_List, const int);
+ANEW ANN Stmt new_stmt_type(Type_Decl*, const Symbol, const int);
 ANN void free_stmt(Stmt);
 struct Stmt_List_ {
   Stmt stmt;

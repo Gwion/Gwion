@@ -595,7 +595,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
-    if(isa(list->self->value->type, t_func_ptr) > 0)
+    if(isa(list->self->value->type, t_fptr) > 0)
       REM_REF(list->self->value->type)
 
     if(GET_FLAG(decl->td, ae_flag_static))
@@ -732,7 +732,7 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
 
 ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
   const Symbol s = insert_symbol(f->name);
-  const Nspc n = isa(f->value_ref->type, t_func_ptr) > 0 ||
+  const Nspc n = isa(f->value_ref->type, t_fptr) > 0 ||
          isa(f->value_ref->type, t_class) > 0 ?
          f->value_ref->owner  : nspc;
   return nspc_lookup_func2(n, s);
@@ -744,7 +744,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       CHECK_BB(traverse_template(emit->env,
             func->value_ref->owner_class->def))
     else if(!GET_FLAG(func->def, ae_flag_template)) {
-      if(isa(func->value_ref->type, t_func_ptr) > 0) {
+      if(isa(func->value_ref->type, t_fptr) > 0) {
         if(GET_FLAG(func, ae_flag_global)) {
           emitter_add_instr(emit, Reg_Push_Code);
           return 1;
@@ -775,7 +775,7 @@ ANN m_bool emit_exp_call1_builtin(const Emitter emit, const Func func) { GWDEBUG
   Type t = func->value_ref->type;
   if(isa(t, t_class) > 0)
     t = t->d.base_type;
-  if(isa(t, t_func_ptr) < 0)
+  if(isa(t, t_fptr) < 0)
   if(!func->code || !func->code->native_func)
     CHECK_BB(err_msg(EMIT_, func->def->td->pos,
           "missing native func. are you trying to spork?"))
@@ -1216,7 +1216,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   return 1;
 }
 
-ANN static m_bool emit_stmt_gotolabel(const Emitter emit, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
+ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWDEBUG_EXE
   if(!stmt->is_label)
     stmt->data.instr = emitter_add_instr(emit, Goto);
   else {
@@ -1237,7 +1237,7 @@ ANN static m_bool emit_stmt_gotolabel(const Emitter emit, const Stmt_Goto_Label 
     }
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
-      const Stmt_Goto_Label label = (Stmt_Goto_Label)vector_at(&stmt->data.v, i - 1);
+      const Stmt_Jump label = (Stmt_Jump)vector_at(&stmt->data.v, i - 1);
       if(!label->data.instr) {
         vector_release(&stmt->data.v);
         CHECK_BB(err_msg(EMIT_, label->self->pos, "you are trying to use a upper label."))
@@ -1318,7 +1318,7 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDE
   return 1;
 }
 
-ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? emit_class_def(emit, stmt->type->def) : 1;
 }
 
@@ -1434,17 +1434,17 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool po
       return emit_stmt_auto(emit, &stmt->d.stmt_auto);
     case ae_stmt_loop:
       return emit_stmt_loop(emit, &stmt->d.stmt_loop);
-    case ae_stmt_gotolabel:
-      return emit_stmt_gotolabel(emit, &stmt->d.stmt_gotolabel);
+    case ae_stmt_jump:
+      return emit_stmt_jump(emit, &stmt->d.stmt_jump);
     case ae_stmt_case:
       return emit_stmt_case(emit, &stmt->d.stmt_exp);
     case ae_stmt_enum:
       return emit_stmt_enum(emit, &stmt->d.stmt_enum);
     case ae_stmt_switch:
       return emit_stmt_switch(emit, &stmt->d.stmt_switch);
-    case ae_stmt_funcptr:
+    case ae_stmt_fptr:
       return 1;
-    case ae_stmt_typedef:
+    case ae_stmt_type:
       return emit_stmt_type(emit, &stmt->d.stmt_type);
     case ae_stmt_union:
       return emit_stmt_union(emit, &stmt->d.stmt_union);
@@ -1603,7 +1603,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
   const Type t_base = member->t_base;
   const Value value = find_value(t_base, member->xid);
   const m_bool emit_addr = member->self->emit_var;
-  if(isa(member->self->type, t_func_ptr) > 0) { // function pointer
+  if(isa(member->self->type, t_fptr) > 0) { // function pointer
     if(GET_FLAG(value, ae_flag_member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
         CHECK_BB(err_msg(EMIT_, member->self->pos, "... in member function")) // LCOV_EXCL_LINE
@@ -1632,7 +1632,7 @@ ANN static m_bool emit_exp_dot_static(const Emitter emit, const Exp_Dot* member)
   const Type t_base = member->t_base->d.base_type;
   const Value value = find_value(t_base, member->xid);
 
-  if(isa(member->self->type, t_func_ptr) > 0)
+  if(isa(member->self->type, t_fptr) > 0)
     return emit_dot_static_import_data(emit, value, member->self->emit_var);
   if(isa(member->self->type, t_function) > 0)
     return emit_dot_static_func(emit, t_base, value->d.func_ref);

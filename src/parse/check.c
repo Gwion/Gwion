@@ -98,7 +98,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->self;
     const Value value = var->value;
-    if(isa(decl->type, t_func_ptr) > 0)
+    if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
@@ -110,7 +110,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       CHECK_BO(check_exp_decl_static(env, value, var->pos))
     check_exp_decl_valid(env, value, var->xid);
 
-    if(isa(value->type, t_func_ptr) > 0)
+    if(isa(value->type, t_fptr) > 0)
       ADD_REF(value->type)
 
   } while((list = list->next));
@@ -824,7 +824,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   return value->type;
 }
 
-ANN static m_bool check_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
 
@@ -1056,7 +1056,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
   return 1;
 }
 
-ANN static m_bool check_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG_EXE
   if(stmt->is_label)
     return 1;
   const Map label = env_label(env);
@@ -1066,10 +1066,10 @@ ANN static m_bool check_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt
   if(!m)
     CHECK_BB(err_msg(TYPE_, stmt->self->pos,
           "label '%s' used but not defined", s_name(stmt->name)))
-  const Stmt_Goto_Label ref = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+  const Stmt_Jump ref = (Stmt_Jump)map_get(m, (vtype)stmt->name);
   if(!ref) {
     for(m_uint i = 0; i < map_size(m); ++i) {
-      const Stmt_Goto_Label s = (Stmt_Goto_Label)map_at(m, i);
+      const Stmt_Jump s = (Stmt_Jump)map_at(m, i);
       vector_release(&s->data.v);
     }
     CHECK_BB(err_msg(TYPE_, stmt->self->pos,
@@ -1155,13 +1155,13 @@ ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     case ae_stmt_enum:
       ret = check_stmt_enum(env, &stmt->d.stmt_enum);
       break;
-    case ae_stmt_gotolabel:
-      ret = check_stmt_gotolabel(env, &stmt->d.stmt_gotolabel);
+    case ae_stmt_jump:
+      ret = check_stmt_jump(env, &stmt->d.stmt_jump);
       break;
-    case ae_stmt_funcptr:
+    case ae_stmt_fptr:
       ret = 1;
       break;
-    case ae_stmt_typedef:
+    case ae_stmt_type:
       ret = check_stmt_type(env, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:

@@ -84,7 +84,7 @@ ANN static void free_nspc_value(const Nspc a) {
     }
     else if(isa(value->type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->type, t_func_ptr) > 0 && value->d.func_ref)
+    else if(isa(value->type, t_fptr) > 0 && value->d.func_ref)
       free_nspc_value_fptr(value->d.func_ref);
     else if(isa(value->type, t_function) > 0) {
       if(GET_FLAG(value, ae_flag_template)) {

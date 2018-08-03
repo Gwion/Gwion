@@ -71,7 +71,7 @@ static OP_CHECK(opck_fptr_at) {
   const Nspc nspc = l_func->value_ref->owner;
   const m_str c = s_name(l_fdef->name);
   const Value v = l_func->value_ref;
-  if(isa(bin->lhs->type, t_func_ptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
+  if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
     return bin->rhs->type;
   for(m_uint i = 0; i <= v->offset; ++i) {
     char name[strlen(c) + strlen(nspc->name) + num_digit(v->offset) + 3];
@@ -89,7 +89,7 @@ static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   const Type t = cast->self->type;
   const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  const Func  f = isa(v->type, t_func_ptr) > 0 ?
+  const Func  f = isa(v->type, t_fptr) > 0 ?
             v->type->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
   CHECK_BO(compat_func(t->d.func->def, f->def))

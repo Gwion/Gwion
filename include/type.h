@@ -23,7 +23,7 @@ struct Type_ {
 
 Type t_void, t_int, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
   t_null, t_object, t_shred, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
-  t_function, t_func_ptr, t_vararg, t_class, t_union;
+  t_function, t_fptr, t_vararg, t_class, t_union;
 
 ANN m_bool type_engine_check_prog(const Env, const Ast, const m_str);
 ANN2(2) ANEW Type new_type(const m_uint xid, const m_str name, const Type);

@@ -338,7 +338,7 @@ union YYSTYPE
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Exp   exp;
-  Stmt_Ptr func_ptr;
+  Stmt_Fptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
@@ -721,7 +721,7 @@ static const char *const yytname[] =
   "AUTO_PTR", "NUM", "FLOAT", "ID", "STRING_LIT", "CHAR_LIT", "$accept",
   "ast", "section", "class_def", "class_ext", "class_body", "class_body2",
   "id_list", "id_dot", "stmt_list", "static_decl", "function_decl",
-  "func_ptr", "stmt_typedef", "type_decl2", "arg_list", "code_segment",
+  "func_ptr", "stmt_type", "type_decl2", "arg_list", "code_segment",
   "stmt", "id", "opt_id", "enum_stmt", "label_stmt", "goto_stmt",
   "case_stmt", "switch_stmt", "loop_stmt", "selection_stmt", "jump_stmt",
   "exp_stmt", "exp", "binary_exp", "template", "op", "array_exp",
@@ -1772,7 +1772,7 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, Scanner* arg)
 #line 1773 "src/ast/parser.c" /* yacc.c:1258  */
         break;
 
-    case 113: /* stmt_typedef  */
+    case 113: /* stmt_type  */
 #line 96 "utils/gwion.y" /* yacc.c:1258  */
       { free_stmt(((*yyvaluep).stmt)); }
 #line 1779 "src/ast/parser.c" /* yacc.c:1258  */
@@ -2372,25 +2372,25 @@ yyreduce:
 
   case 26:
 #line 154 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.stmt) = new_func_ptr_stmt(0, (yyvsp[-2].sym), (yyvsp[-4].type_decl), (yyvsp[0].arg_list), get_pos(arg)); }
+    { (yyval.stmt) = new_stmt_fptr(0, (yyvsp[-2].sym), (yyvsp[-4].type_decl), (yyvsp[0].arg_list), get_pos(arg)); }
 #line 2377 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 27:
 #line 156 "utils/gwion.y" /* yacc.c:1648  */
-    { CHECK_FLAG(arg, ((yyvsp[0].stmt)->d.stmt_ptr.td), ae_flag_static); (yyval.stmt) = (yyvsp[0].stmt); }
+    { CHECK_FLAG(arg, ((yyvsp[0].stmt)->d.stmt_fptr.td), ae_flag_static); (yyval.stmt) = (yyvsp[0].stmt); }
 #line 2383 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 28:
 #line 158 "utils/gwion.y" /* yacc.c:1648  */
-    { CHECK_FLAG(arg, ((yyvsp[0].stmt)->d.stmt_ptr.td), ae_flag_global); (yyval.stmt) = (yyvsp[0].stmt); }
+    { CHECK_FLAG(arg, ((yyvsp[0].stmt)->d.stmt_fptr.td), ae_flag_global); (yyval.stmt) = (yyvsp[0].stmt); }
 #line 2389 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 29:
 #line 164 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.stmt) = new_stmt_typedef((yyvsp[-2].type_decl), (yyvsp[-1].sym), get_pos(arg)); }
+    { (yyval.stmt) = new_stmt_type((yyvsp[-2].type_decl), (yyvsp[-1].sym), get_pos(arg)); }
 #line 2395 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -2456,13 +2456,13 @@ yyreduce:
 
   case 55:
 #line 208 "utils/gwion.y" /* yacc.c:1648  */
-    {  (yyval.stmt) = new_stmt_gotolabel((yyvsp[-1].sym), 1, get_pos(arg)); }
+    {  (yyval.stmt) = new_stmt_jump((yyvsp[-1].sym), 1, get_pos(arg)); }
 #line 2461 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 56:
 #line 212 "utils/gwion.y" /* yacc.c:1648  */
-    {  (yyval.stmt) = new_stmt_gotolabel((yyvsp[-1].sym), 0, get_pos(arg)); }
+    {  (yyval.stmt) = new_stmt_jump((yyvsp[-1].sym), 0, get_pos(arg)); }
 #line 2467 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3202,7 +3202,7 @@ yyreduce:
 
   case 201:
 #line 463 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.exp) = new_array((yyvsp[-1].exp), (yyvsp[0].array_sub), get_pos(arg)); }
+    { (yyval.exp) = new_exp_array((yyvsp[-1].exp), (yyvsp[0].array_sub), get_pos(arg)); }
 #line 3207 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 

@@ -111,7 +111,7 @@ Type_Decl* add_type_decl_array(Type_Decl* a, const Array_Sub array) {
   return a;
 }
 
-Exp new_array(const Exp base, const Array_Sub array, const int pos) {
+Exp new_exp_array(const Exp base, const Array_Sub array, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_array;
   a->meta = ae_meta_var;
@@ -439,34 +439,34 @@ void free_func_def(Func_Def a) {
 }
 void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 
-Stmt new_func_ptr_stmt(const ae_flag key, const Symbol xid, Type_Decl* td, const Arg_List args, const int pos) {
+Stmt new_stmt_fptr(const ae_flag key, const Symbol xid, Type_Decl* td, const Arg_List args, const int pos) {
   Stmt a              = mp_alloc(Stmt);
-  a->stmt_type        = ae_stmt_funcptr;
-//  a->d.stmt_ptr.flag  = key;
-  a->d.stmt_ptr.td    = td;
+  a->stmt_type        = ae_stmt_fptr;
+//  a->d.stmt_fptr.flag  = key;
+  a->d.stmt_fptr.td    = td;
   SET_FLAG(td, key);
-  a->d.stmt_ptr.xid   = xid;
-  a->d.stmt_ptr.args  = args;
+  a->d.stmt_fptr.xid   = xid;
+  a->d.stmt_fptr.args  = args;
   a->pos = pos;
   return a;
 
 }
 
-Stmt new_stmt_typedef(Type_Decl* td, const Symbol xid, const int pos) {
+Stmt new_stmt_type(Type_Decl* td, const Symbol xid, const int pos) {
   Stmt a              = mp_alloc(Stmt);
-  a->stmt_type        = ae_stmt_typedef;
+  a->stmt_type        = ae_stmt_type;
   a->d.stmt_type.td   = td;
   a->d.stmt_type.xid  = xid;
   a->pos = pos;
   return a;
 }
 
-ANN static void free_stmt_typedef(Stmt_Typedef a){
+ANN static void free_stmt_type(Stmt_Type a){
   if(!a->type)
     free_type_decl(a->td);
 }
 
-ANN static void free_stmt_func_ptr(Stmt_Ptr a) {
+ANN static void free_stmt_fptr(Stmt_Fptr a) {
   if(a->func)
     REM_REF(a->func)
   else {
@@ -695,12 +695,12 @@ ANN static void free_stmt_auto(Stmt_Auto a) {
     REM_REF(a->v)
 }
 
-Stmt new_stmt_gotolabel(const Symbol xid, const m_bool is_label, const int pos) {
+Stmt new_stmt_jump(const Symbol xid, const m_bool is_label, const int pos) {
   Stmt a = mp_alloc(Stmt);
-  a->stmt_type = ae_stmt_gotolabel;
-  a->d.stmt_gotolabel.name = xid;
-  a->d.stmt_gotolabel.is_label = is_label;
-  a->d.stmt_gotolabel.self = a;
+  a->stmt_type = ae_stmt_jump;
+  a->d.stmt_jump.name = xid;
+  a->d.stmt_jump.is_label = is_label;
+  a->d.stmt_jump.self = a;
   a->pos = pos;
   return a;
 }
@@ -837,16 +837,16 @@ void free_stmt(Stmt stmt) {
     case ae_stmt_case:
       free_stmt_exp(&stmt->d.stmt_exp);
       break;
-    case ae_stmt_gotolabel:
+    case ae_stmt_jump:
       break;
     case ae_stmt_enum:
       free_stmt_enum(&stmt->d.stmt_enum);
       break;
-    case ae_stmt_funcptr:
-      free_stmt_func_ptr(&stmt->d.stmt_ptr);
+    case ae_stmt_fptr:
+      free_stmt_fptr(&stmt->d.stmt_fptr);
       break;
-    case ae_stmt_typedef:
-      free_stmt_typedef(&stmt->d.stmt_type);
+    case ae_stmt_type:
+      free_stmt_type(&stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       free_stmt_union(&stmt->d.stmt_union);

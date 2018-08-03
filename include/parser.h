@@ -259,7 +259,7 @@ union YYSTYPE
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Exp   exp;
-  Stmt_Ptr func_ptr;
+  Stmt_Fptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;

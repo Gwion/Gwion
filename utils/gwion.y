@@ -33,7 +33,7 @@ m_str op2str(const Operator op);
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Exp   exp;
-  Stmt_Ptr func_ptr;
+  Stmt_Fptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
@@ -74,7 +74,7 @@ m_str op2str(const Operator op);
 %type<array_sub> array_exp array_empty
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
-%type<stmt> enum_stmt func_ptr stmt_typedef union_stmt
+%type<stmt> enum_stmt func_ptr stmt_type union_stmt
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
@@ -151,17 +151,17 @@ function_decl
   ;
 
 func_ptr
-  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_func_ptr_stmt(0, $4, $2, $6, get_pos(arg)); }
+  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_stmt_fptr(0, $4, $2, $6, get_pos(arg)); }
   | STATIC func_ptr
-    { CHECK_FLAG(arg, ($2->d.stmt_ptr.td), ae_flag_static); $$ = $2; }
+    { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static); $$ = $2; }
   | PUBLIC func_ptr
-    { CHECK_FLAG(arg, ($2->d.stmt_ptr.td), ae_flag_global); $$ = $2; }
+    { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_global); $$ = $2; }
   ;
 
-stmt_typedef
+stmt_type
   :
   TYPEDEF type_decl2 id SEMICOLON
-  { $$ = new_stmt_typedef($2, $3, get_pos(arg)); };
+  { $$ = new_stmt_type($2, $3, get_pos(arg)); };
 
 type_decl2
   : type_decl
@@ -191,7 +191,7 @@ stmt
   | enum_stmt
   | jump_stmt
   | func_ptr
-  | stmt_typedef
+  | stmt_type
   | union_stmt
   ;
 
@@ -205,11 +205,11 @@ enum_stmt
   ;
 
 label_stmt
-  : id COLON {  $$ = new_stmt_gotolabel($1, 1, get_pos(arg)); }
+  : id COLON {  $$ = new_stmt_jump($1, 1, get_pos(arg)); }
   ;
 
 goto_stmt
-  : GOTO id SEMICOLON {  $$ = new_stmt_gotolabel($2, 0, get_pos(arg)); }
+  : GOTO id SEMICOLON {  $$ = new_stmt_jump($2, 0, get_pos(arg)); }
   ;
 
 case_stmt
@@ -460,7 +460,7 @@ call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
 
 post_exp: primary_exp | post_exp array_exp
-    { $$ = new_array($1, $2, get_pos(arg)); }
+    { $$ = new_exp_array($1, $2, get_pos(arg)); }
   | post_exp template call_paren
     { $$ = new_exp_call($1, $3, get_pos(arg));
       if($2)$$->d.exp_func.tmpl = new_tmpl_call($2); }

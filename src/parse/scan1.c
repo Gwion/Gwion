@@ -279,7 +279,7 @@ ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG
   return 1;
 }
 
-ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   if(ptr->td->array)
     CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->td)))
@@ -293,7 +293,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan1_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;
 }
 
@@ -371,12 +371,12 @@ ANN static m_bool scan1_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
       break;
     case ae_stmt_continue:
     case ae_stmt_break:
-    case ae_stmt_gotolabel:
+    case ae_stmt_jump:
       break;
-    case ae_stmt_funcptr:
-      CHECK_BB(scan1_stmt_fptr(env, &stmt->d.stmt_ptr))
+    case ae_stmt_fptr:
+      CHECK_BB(scan1_stmt_fptr(env, &stmt->d.stmt_fptr))
       break;
-    case ae_stmt_typedef:
+    case ae_stmt_type:
       CHECK_BB(scan1_stmt_type(env, &stmt->d.stmt_type))
       break;
     case ae_stmt_union:

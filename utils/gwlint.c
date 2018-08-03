@@ -460,7 +460,7 @@ ANN void lint_stmt_enum(Linter* linter, Stmt_Enum stmt) {
   lint_nl(linter);
 }
 
-ANN void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
+ANN void lint_stmt_fptr(Linter* linter, Stmt_Fptr ptr) {
   Arg_List list = ptr->args;
   lint_print(linter, "typedef ");
   lint_print(linter, "%s", GET_FLAG(ptr->td, ae_flag_variadic) ?
@@ -480,7 +480,7 @@ ANN void lint_stmt_fptr(Linter* linter, Stmt_Ptr ptr) {
   lint_nl(linter);
 }
 
-ANN void lint_stmt_typedef(Linter* linter, Stmt_Typedef ptr) {
+ANN void lint_stmt_type(Linter* linter, Stmt_Type ptr) {
   lint_print(linter, "typedef ");
   lint_type_decl(linter, ptr->td);
   lint_print(linter, " ");
@@ -510,7 +510,7 @@ ANN void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   lint_nl(linter);
 }
 
-ANN void lint_stmt_goto(Linter* linter, Stmt_Goto_Label stmt) {
+ANN void lint_stmt_goto(Linter* linter, Stmt_Jump stmt) {
   if(stmt->is_label)
     lint_print(linter, "%s:", s_name(stmt->name));
   else
@@ -578,14 +578,14 @@ ANN static void lint_stmt(Linter* linter, Stmt stmt) {
     case ae_stmt_break:
       lint_stmt_break(linter, stmt);
       break;
-    case ae_stmt_gotolabel:
-      lint_stmt_goto(linter, &stmt->d.stmt_gotolabel);
+    case ae_stmt_jump:
+      lint_stmt_goto(linter, &stmt->d.stmt_jump);
       break;
-    case ae_stmt_funcptr:
-      lint_stmt_fptr(linter, &stmt->d.stmt_ptr);
+    case ae_stmt_fptr:
+      lint_stmt_fptr(linter, &stmt->d.stmt_fptr);
       break;
-    case ae_stmt_typedef:
-      lint_stmt_typedef(linter, &stmt->d.stmt_type);
+    case ae_stmt_type:
+      lint_stmt_type(linter, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       lint_stmt_union(linter, &stmt->d.stmt_union);
