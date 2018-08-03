@@ -70,8 +70,10 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Type type = func->value_ref->owner_class;
 
   if(!env->class_def) {
-    if(!type || GET_FLAG(func, ae_flag_global))
+    if(!type || GET_FLAG(func, ae_flag_global)) {
+      ADD_REF(var->value->type)
       return 1;
+    }
     CHECK_BB(err_msg(TYPE_, var->pos,
           "can't use non public typedef at global scope."))
   }
@@ -88,6 +90,7 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   } else if(GET_FLAG(v, ae_flag_member))
   CHECK_BB(err_msg(TYPE_, var->pos,
       "can't use member variables for static function."))
+  ADD_REF(var->value->type)
   return 1;
 }
 
@@ -109,10 +112,6 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     else if(GET_FLAG(decl->td, ae_flag_static))
       CHECK_BO(check_exp_decl_static(env, value, var->pos))
     check_exp_decl_valid(env, value, var->xid);
-
-    if(isa(value->type, t_fptr) > 0)
-      ADD_REF(value->type)
-
   } while((list = list->next));
   return decl->type;
 }
