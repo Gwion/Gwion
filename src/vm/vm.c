@@ -45,12 +45,13 @@ ANN void free_vm(VM* vm) {
   free(vm);
 }
 
+static  m_uint shred_ids;
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   if(!shred->xid) {
     const Vector v = (Vector)&vm->shred;
     vector_add(v, (vtype)shred);
     shred->vm_ref = (VM*)vm;
-    shred->xid = vector_size(v);;
+    shred->xid = ++shred_ids;
     shred->me = new_shred(shred);
   }
   shredule(vm->shreduler, shred, .5);
@@ -89,6 +90,7 @@ ANN void vm_run(const VM* vm) {
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
     do {
+//printf("shred[%li] code %p\n", shred->xid, shred->code->instr);
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
       instr->execute(shred, instr);
       VM_INFO;

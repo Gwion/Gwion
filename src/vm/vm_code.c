@@ -27,6 +27,7 @@ ANN static void free_code_instr_gack(const Instr instr) {
 }
 
 ANN void jit_instr(const Instr);
+
 ANN static void free_code_instr(Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
 /*
@@ -36,7 +37,7 @@ ANN static void free_code_instr(Vector v) {
       const Instr base  = *(Instr*)instr->ptr;
     memcpy(instr, base, sizeof(struct Instr_));
     free_jit_instr(base);
-    }
+   }
 #else
 */
     const Instr instr = (Instr)vector_at(v, i - 1);
@@ -53,14 +54,16 @@ jit_instr(instr);
       if(!info->init)
         REM_REF(info->type)
       free_array_info(info);
-    }
-    else if(instr->execute == Gack)
+    } else if(instr->execute == Gack)
       free_code_instr_gack(instr);
     else if(instr->execute == Branch_Switch)
       free_map(*(Map*)instr->ptr);
-    else if(instr->execute == Spork && instr->m_val2)
-        REM_REF(((Func)instr->m_val2))
-    else if(instr->execute == Init_Loop_Counter)
+    else if(instr->execute == Spork) {
+      if(instr->m_val2)
+        REM_REF((Func)instr->m_val2)
+    } else if(instr->execute == Spork_Func) {
+        REM_REF((VM_Code)instr->m_val2)
+    } else if(instr->execute == Init_Loop_Counter)
       free((m_int*)instr->m_val);
     else if(instr->execute == MkVararg) {
       if(instr->m_val2)
