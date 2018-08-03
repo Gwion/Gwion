@@ -1,4 +1,4 @@
-// [contains] no match found for function 'test'
+// [contains] no match found
 function void test(int i){}
 function void test(float f){}
 
