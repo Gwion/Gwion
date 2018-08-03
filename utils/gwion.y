@@ -148,10 +148,10 @@ static_decl
 func_ptr
   : TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
     { $$ = new_stmt_fptr($4, $2, $6, $7, get_pos(arg)); }
-  | STATIC func_ptr
-    { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static); $$ = $2; }
-  | PUBLIC func_ptr
-    { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_global); $$ = $2; }
+  | STATIC TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
+    { $$ = new_stmt_fptr($5, $3, $7, $8 | ae_flag_static, get_pos(arg)); }
+  | PUBLIC TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
+    { $$ = new_stmt_fptr($5, $3, $7, $8 | ae_flag_global, get_pos(arg)); }
   ;
 
 stmt_type

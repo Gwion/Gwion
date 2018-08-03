@@ -130,18 +130,17 @@ extern int gwion_debug;
     NOELSE = 340,
     LTB = 341,
     GTB = 342,
-    VARARG = 343,
-    UNION = 344,
-    ATPAREN = 345,
-    TYPEOF = 346,
-    CONST = 347,
-    AUTO = 348,
-    AUTO_PTR = 349,
-    NUM = 350,
-    FLOAT = 351,
-    ID = 352,
-    STRING_LIT = 353,
-    CHAR_LIT = 354
+    UNION = 343,
+    ATPAREN = 344,
+    TYPEOF = 345,
+    CONST = 346,
+    AUTO = 347,
+    AUTO_PTR = 348,
+    NUM = 349,
+    FLOAT = 350,
+    ID = 351,
+    STRING_LIT = 352,
+    CHAR_LIT = 353
   };
 #endif
 /* Tokens.  */
@@ -230,18 +229,17 @@ extern int gwion_debug;
 #define NOELSE 340
 #define LTB 341
 #define GTB 342
-#define VARARG 343
-#define UNION 344
-#define ATPAREN 345
-#define TYPEOF 346
-#define CONST 347
-#define AUTO 348
-#define AUTO_PTR 349
-#define NUM 350
-#define FLOAT 351
-#define ID 352
-#define STRING_LIT 353
-#define CHAR_LIT 354
+#define UNION 343
+#define ATPAREN 344
+#define TYPEOF 345
+#define CONST 346
+#define AUTO 347
+#define AUTO_PTR 348
+#define NUM 349
+#define FLOAT 350
+#define ID 351
+#define STRING_LIT 352
+#define CHAR_LIT 353
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -273,7 +271,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 277 "include/parser.h" /* yacc.c:1910  */
+#line 275 "include/parser.h" /* yacc.c:1910  */
 };
 
 typedef union YYSTYPE YYSTYPE;
