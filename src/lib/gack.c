@@ -69,7 +69,7 @@ static void print_object(const Type type, const M_Object obj) {
 static void print_func(const Type type, const m_bit* stack) {
   const Func func = isa(type, t_fptr) > 0 ?
     *(Func*)stack : type->d.func;
-  gw_out("%s %p", (void*)func);
+  gw_out("%s %p", type->name, (void*)func);
 }
 
 static void print_prim(const Type type, const m_bit* stack) {
