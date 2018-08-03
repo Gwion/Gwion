@@ -99,9 +99,11 @@ INSTR(Assign_Object) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const M_Object src = *(M_Object*)REG(-SZ_INT);
   const M_Object tgt = **(M_Object**)REG(0);
-  if(tgt)
+
+  if(tgt) {
     release(tgt, shred);
-  release(tgt, shred);
+    release(tgt, shred);
+  }
   **(M_Object**)REG((instr->m_val ? -SZ_INT : 0)) = src;
   **(M_Object**)REG(0) = src;
 }
