@@ -29,7 +29,7 @@ ANN Nspc new_nspc(const m_str name) {
 
 ANN static void nspc_release_object(const Nspc a, Value value) {
   if(value->d.ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
-(value->d.ptr && GET_FLAG(value, ae_flag_builtin))
+    (value->d.ptr && GET_FLAG(value, ae_flag_builtin))
 
 ) {
     const VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
