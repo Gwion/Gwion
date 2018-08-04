@@ -251,13 +251,13 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
 ANN static void prepare_this_exp(Exp base, Exp dot) {
   memset(base, 0, sizeof(struct Exp_));
   memset(dot, 0, sizeof(struct Exp_));
-  base->meta = ae_meta_var;
+//  base->meta = ae_meta_var;
   base->exp_type = ae_exp_primary;
   base->d.exp_primary.primary_type = ae_primary_id;
   base->d.exp_primary.d.var = insert_symbol("this");
   base->d.exp_primary.self = base;
   dot->exp_type = ae_exp_dot;
-  dot->meta = ae_meta_var;
+//  dot->meta = ae_meta_var;
   dot->d.exp_dot.base = base;
   dot->d.exp_dot.self = dot;
 }

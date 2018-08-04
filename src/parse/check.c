@@ -809,10 +809,13 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   if(!value)
     CHECK_BO(err_msg(TYPE_,  member->base->pos,
           "class '%s' has no member '%s'", the_base->name, str))
-  if(GET_FLAG(value, ae_flag_private) &&
-        (!env->class_def || isa(env->class_def, value->owner_class) < 0))
-    CHECK_BO(err_msg(TYPE_,  member->self->pos,
+  if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
+    if(GET_FLAG(value, ae_flag_private))
+      CHECK_BO(err_msg(TYPE_,  member->self->pos,
           "can't access private '%s' outside of class...", value->name))
+    else if(GET_FLAG(value, ae_flag_protect))
+      member->self->meta = ae_flag_protect;
+  }
   if(base_static && GET_FLAG(value, ae_flag_member))
     CHECK_BO(err_msg(TYPE_, member->self->pos,
           "cannot access member '%s.%s' without object instance...",

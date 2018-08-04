@@ -1,6 +1,6 @@
 // just to check uncalled function to not push the stack
 
-class C { fun void test(){} fun static void stest() {}}
+class C { fun void test(){} fun static  void stest() {}}
 C c;
 SinOsc s;
 

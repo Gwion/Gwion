@@ -90,16 +90,16 @@ ANN static m_bool name_valid(const m_str a) {
     }
     if(c == ',') {
       if(!lvl)
-        CHECK_BB(err_msg(UTIL_,  0, "illegal use of ',' outside of templating in name '%s'...", a))
+        CHECK_BB(err_msg(UTIL_,  0, "illegal use of ',' outside of templating in name '%s'.", a))
       continue;
     }
     if(c == '>') {
       if(!lvl)
-        CHECK_BB(err_msg(UTIL_,  0, "illegal templating in name '%s'...", a))
+        CHECK_BB(err_msg(UTIL_,  0, "illegal templating in name '%s'.", a))
       lvl--;
       continue;
     }
-    CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'...", c, a))
+    CHECK_BB(err_msg(UTIL_,  0, "illegal character '%c' in name '%s'.", c, a))
   }
   return !lvl ? 1 : -1;
 }
@@ -119,7 +119,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
     const char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0)
       CHECK_BB(err_msg(UTIL_,  0,
-            "illegal character '%c' in path '%s'...", c, p->path))
+            "illegal character '%c' in path '%s'.", c, p->path))
     if(c == '.' || i == 1) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
@@ -128,7 +128,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
         memset(p->curr, 0, p->len + 1);
       } else
         CHECK_BB(err_msg(UTIL_,  0,
-              "path '%s' must not ini or end with '.'", p->path))
+              "path '%s' must not ini or end with '.'.", p->path))
     }
     last = c;
   }
@@ -204,7 +204,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
   if(type->nspc)
-    CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported...", type->name))
+    CHECK_BB(err_msg(TYPE_, 0, "during import: class '%s' already imported.", type->name))
   if(gwi->templater.n) {
     const ID_List types = templater_def(&gwi->templater);
     type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL);
@@ -255,7 +255,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 
 ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
-    CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called..."))
+    CHECK_BB(err_msg(TYPE_, 0, "import: too many class_end called."))
   const Nspc nspc = env->class_def->nspc;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
@@ -297,7 +297,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
-    CHECK_BB(err_msg(TYPE_, 0, "... during var import '%s.%s'...",
+    CHECK_BB(err_msg(TYPE_, 0, "\t...\tduring var import '%s.%s'.",
           gwi->env->class_def->name, name))
   v->var.xid = insert_symbol(name);
   return 1;
@@ -389,7 +389,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(arg_list);
-      CHECK_BO(err_msg(TYPE_,  0, "...at argument '%i'...", i + 1))
+      CHECK_BO(err_msg(TYPE_,  0, "\t...\tat argument '%i'", i + 1))
     }
     if((type_path2 = str2list(arg->name, &array_depth2)))
       free_id_list(type_path2);
@@ -417,7 +417,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
-    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...", dl_fun->name))
+    CHECK_BO(err_msg(TYPE_, 0, "\t...\tduring @ function import '%s' (type).", dl_fun->name))
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL, 0);
     for(i = 1; i < array_depth; i++)
@@ -522,7 +522,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0, 0)))
-    CHECK_BO(err_msg(TYPE_, 0, "...during @ function import '%s' (type)...",
+    CHECK_BO(err_msg(TYPE_, 0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name))
   return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag, 0);
 }
@@ -637,9 +637,10 @@ m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const,
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s' ..."
-          "...(reason: --- left-side operand is not mutable)",
-          op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name) < 0)
+  err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+   "\t...\t(reason: --- left-side operand is %s.)",
+         op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
+      bin->lhs->meta == ae_meta_value ? "non-mutable" : "protected");
     return t_null;
   }
   return bin->lhs->type;
@@ -648,9 +649,10 @@ OP_CHECK(opck_const_lhs) {
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and'%s'..."
-          "...(reason: --- rigth-side operand is not mutable)",
-          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
+    err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+         "\t...\t(reason: --- right-side operand is %s.)",
+         op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
+       bin->lhs->meta == ae_meta_value ? "non-mutable" : "protected");
     return t_null;
   }
   return bin->rhs->type;
@@ -672,13 +674,8 @@ OP_CHECK(opck_rhs_emit_var) {
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->meta != ae_meta_var) {
-    if(err_msg(TYPE_, bin->self->pos,
-          "cannot assign '%s' on types '%s' and'%s'...\n"
-          "\t...(reason: --- right-side operand is not mutable)",
-          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name) < 0)
-      return t_null;
-  }
+  if(opck_const_rhs(env, data) == t_null)
+    return t_null;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -700,11 +697,13 @@ OP_CHECK(opck_unary_meta) {
 
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->exp->meta != ae_meta_var)
-    if(err_msg(TYPE_, unary->exp->pos,
-          "unary operator '%s' cannot be used on non-mutable data-types...",
-          op2str(unary->op)) < 0)
+  if(unary->exp->meta != ae_meta_var) {
+    err_msg(TYPE_, unary->exp->pos,
+          "unary operator '%s' cannot be used on %s data-types.",
+          op2str(unary->op), unary->exp->meta == ae_meta_value ?
+          "non-mutable" : "protected");
       return t_null;
+  }
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
 #ifdef OPTIMIZE
@@ -727,11 +726,13 @@ if(unary->exp->exp_type == ae_exp_primary &&
 
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
-  if(post->exp->meta != ae_meta_var)
-    if(err_msg(TYPE_, post->exp->pos,
-          "post operator '%s' cannot be used on non-mutable data-type...",
-          op2str(post->op)) < 0)
+  if(post->exp->meta != ae_meta_var) {
+    err_msg(TYPE_, post->exp->pos,
+          "post operator '%s' cannot be used on %s data-type.",
+          op2str(post->op), post->exp->meta == ae_meta_value ?
+          "non-mutable" : "protected");
         return t_null;
+  }
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
 #ifdef OPTIMIZE

@@ -104,7 +104,7 @@ typedef enum { ae_exp_decl, ae_exp_binary, ae_exp_unary, ae_exp_primary,
                 ,ae_exp_constprop, ae_exp_constprop2
 #endif
 } Exp_type;
-typedef enum { ae_meta_var, ae_meta_value } ae_Exp_Meta;
+typedef enum { ae_meta_var, ae_meta_value, ae_meta_protect } ae_Exp_Meta;
 typedef enum { ae_primary_id, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
                ae_primary_hack, ae_primary_complex, ae_primary_polar, ae_primary_vec,

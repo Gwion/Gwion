@@ -3,11 +3,11 @@ class C {
 	typedef void (func_t)();
 //	static typedef void (s_func_t)();
 	func_t func_p;
-//	static func_t s_func_p;
+//	fun static c_t s_func_p;
 //	static s_func_t s_ptr;
 	function void test() { <<<"member function.">>>; }
 	function void test2() { <<<"member function variant.">>>; }
-//	function static void s_test() { <<<"member function.">>>; }
+//	fun static  void s_test() { <<<"member function.">>>; }
 //	test @=> func_p;
 //	test @=> s_ptr;
 

@@ -122,6 +122,7 @@ ANN static int adjust(const void* data);
 "extends"                           { adjust(yyscanner); return EXTENDS;}
 "public"                            { adjust(yyscanner); return PUBLIC;}
 "private"                           { adjust(yyscanner); return PRIVATE;}
+"protect"                           { adjust(yyscanner); return PROTECT;}
 "static "                           { adjust(yyscanner); return STATIC;}
 "."                                 { adjust(yyscanner); return DOT;}
 

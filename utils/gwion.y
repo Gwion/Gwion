@@ -53,7 +53,7 @@ m_str op2str(const Operator op);
   DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG PERCENTPAREN SHARPPAREN
   ATSYM FUNCTION DOLLAR TILDA QUESTION COLON EXCLAMATION IF ELSE WHILE DO UNTIL
   LOOP FOR GOTO SWITCH CASE ENUM RETURN BREAK CONTINUE PLUSPLUS MINUSMINUS NEW
-  SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
+  SPORK CLASS STATIC PUBLIC PRIVATE PROTECT EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
   NOELSE LTB GTB UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
@@ -197,6 +197,7 @@ opt_id: { $$ = NULL; } | id;
 enum_stmt
   : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(arg)); }
   | PRIVATE enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_private); $$ = $2; }
+  | PROTECT enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_protect); $$ = $2; }
   ;
 
 label_stmt
@@ -297,6 +298,8 @@ decl_exp
     { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static); $$ = $2; }
   | PRIVATE decl_exp
     { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_private); $$ = $2; }
+  | PROTECT decl_exp
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_protect); $$ = $2; }
   ;
 
 func_args
@@ -365,6 +368,8 @@ union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_static); $$ = $2; }
   | PRIVATE union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_private); $$ = $2; }
+  | PROTECT union_stmt
+    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_protect); $$ = $2; }
   ;
 
 var_decl_list
