@@ -739,7 +739,8 @@ ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
 }
 
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
-  if(!emit_get_func(emit->env->curr, func)) { GWDEBUG_EXE //template with no list
+  if(isa(func->value_ref->type , t_fptr) < 0 &&
+      !emit_get_func(emit->env->curr, func)) {
     if(GET_FLAG(func, ae_flag_ref))
       CHECK_BB(traverse_template(emit->env,
             func->value_ref->owner_class->def))
@@ -775,12 +776,14 @@ ANN m_bool emit_exp_call1_builtin(const Emitter emit, const Func func) { GWDEBUG
   Type t = func->value_ref->type;
   if(isa(t, t_class) > 0)
     t = t->d.base_type;
-  if(isa(t, t_fptr) < 0)
-  if(!func->code || !func->code->native_func)
-    CHECK_BB(err_msg(EMIT_, func->def->td->pos,
-          "missing native func. are you trying to spork?"))
-  const Instr call = emitter_add_instr(emit, GET_FLAG(func, ae_flag_member) ?
-    Func_Member : Func_Static);
+  const f_instr exec =  GET_FLAG(func, ae_flag_member) ? Func_Member : Func_Static;
+  const Instr call = emitter_add_instr(emit, exec);
+  call->m_val = func->def->ret_type->size;
+  return 1;
+}
+
+ANN m_bool emit_exp_call1_fptr(const Emitter emit, const Func func) { GWDEBUG_EXE
+  const Instr call = emitter_add_instr(emit, Func_Ptr);
   call->m_val = func->def->ret_type->size;
   return 1;
 }
@@ -793,9 +796,11 @@ ANN static m_bool emit_exp_call1_op(const Emitter emit, const Arg_List list) { G
   return 1;
 }
 
-ANN static m_bool emit_exp_call1_usr(const Emitter emit) { GWDEBUG_EXE
-  const Instr call = emitter_add_instr(emit, Instr_Exp_Func);
-  call->m_val = emit->code->stack_depth;
+ANN static m_bool emit_exp_call1_usr(const Emitter emit, const Func func) { GWDEBUG_EXE
+  const f_instr exec = isa(func->value_ref->type, t_fptr) > 0 ? Func_Ptr :
+    Instr_Exp_Func;
+  const Instr call = emitter_add_instr(emit, exec);
+  call->m_val = func->def->ret_type->size;
   return 1;
 }
 
@@ -818,13 +823,15 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
     *(VM_Code*)code->ptr = func->code;
   }
   CHECK_BB(emit_exp_call1_offset(emit))
-  if(GET_FLAG(func->def, ae_flag_builtin))
-    CHECK_BB(emit_exp_call1_builtin(emit, func))
-  else if(GET_FLAG(func->def, ae_flag_op))
-    CHECK_BB(emit_exp_call1_op(emit, func->def->arg_list))
-  else
-    CHECK_BB(emit_exp_call1_usr(emit))
-  return 1;
+  if(isa(func->value_ref->type, t_fptr) < 0) {
+    if(GET_FLAG(func->def, ae_flag_builtin))
+      return emit_exp_call1_builtin(emit, func);
+    else if(!GET_FLAG(func->def, ae_flag_op))
+      return emit_exp_call1_usr(emit, func);
+    else
+      return emit_exp_call1_op(emit, func->def->arg_list);
+  }
+  return emit_exp_call1_fptr(emit, func);
 }
 
 ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code, const Func f,

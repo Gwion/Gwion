@@ -227,6 +227,16 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
     Except(shred, "StackOverflow");
 }
 
+INSTR(Func_Ptr) { GWDEBUG_EXE
+  const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
+  if(GET_FLAG(code, NATIVE_NOT))
+    Instr_Exp_Func(shred, instr);
+  else if(GET_FLAG(code, _NEED_THIS_))
+    Func_Member(shred, instr);
+  else
+    Func_Static(shred, instr);
+}
+
 INSTR(Instr_Exp_Func) { GWDEBUG_EXE
   shred_func_prepare(shred);
   const VM_Code code = shred->code;

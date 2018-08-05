@@ -81,6 +81,7 @@ INSTR(Instr_Exp_Func);
 INSTR(Exp_Dot_Func);
 INSTR(Func_Static);
 INSTR(Func_Member);
+INSTR(Func_Ptr);
 INSTR(Func_Return);
 INSTR(Dtor_Return);
 
