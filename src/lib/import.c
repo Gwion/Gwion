@@ -640,7 +640,7 @@ OP_CHECK(opck_const_lhs) {
   err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
    "\t...\t(reason: --- left-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
-      bin->lhs->meta == ae_meta_value ? "non-mutable" : "protected");
+      bin->rhs->meta == ae_meta_value ? "non-mutable" : "protected");
     return t_null;
   }
   return bin->lhs->type;
@@ -652,7 +652,7 @@ OP_CHECK(opck_const_rhs) {
     err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
          "\t...\t(reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
-       bin->lhs->meta == ae_meta_value ? "non-mutable" : "protected");
+       bin->rhs->meta == ae_meta_value ? "non-mutable" : "protected");
     return t_null;
   }
   return bin->rhs->type;
