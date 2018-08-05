@@ -801,7 +801,7 @@ ANN static m_bool emit_exp_call1_op(const Emitter emit, const Arg_List list) { G
 
 ANN static m_bool emit_exp_call1_usr(const Emitter emit, const Func func) { GWDEBUG_EXE
   const f_instr exec = isa(func->value_ref->type, t_fptr) > 0 ? Func_Ptr :
-    Instr_Exp_Func;
+    Func_Usr;
   const Instr call = emitter_add_instr(emit, exec);
   call->m_val = func->def->ret_type->size;
   return 1;

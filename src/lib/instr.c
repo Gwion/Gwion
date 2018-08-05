@@ -230,14 +230,14 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
 INSTR(Func_Ptr) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
   if(GET_FLAG(code, NATIVE_NOT))
-    Instr_Exp_Func(shred, instr);
+    Func_Usr(shred, instr);
   else if(GET_FLAG(code, _NEED_THIS_))
     Func_Member(shred, instr);
   else
     Func_Static(shred, instr);
 }
 
-INSTR(Instr_Exp_Func) { GWDEBUG_EXE
+INSTR(Func_Usr) { GWDEBUG_EXE
   shred_func_prepare(shred);
   const VM_Code code = shred->code;
   m_uint stack_depth = code->stack_depth;
@@ -343,7 +343,7 @@ INSTR(Pre_Constructor) { GWDEBUG_EXE
   if(!GET_FLAG(pre_ctor, NATIVE_NOT))
     Func_Member(shred, NULL);
   else
-    Instr_Exp_Func(shred, NULL);
+    Func_Usr(shred, NULL);
 }
 
 INSTR(Instantiate_Object) { GWDEBUG_EXE
