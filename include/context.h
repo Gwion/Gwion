@@ -2,7 +2,6 @@ struct Context_ {
   m_str       name;
   Ast         tree;
   Nspc        nspc;
-  Class_Def   cdef;
   struct Map_ lbls;
   HAS_OBJ
 };

@@ -106,12 +106,6 @@ ANN Nspc env_nspc(const Env env) {
   return env->context->nspc;
 }
 
-ANN2(1) Class_Def env_class_def(const Env env, const Class_Def def) {
-  if(def)
-    env->context->cdef = def;
-  return env->context ? env->context->cdef : NULL;
-}
-
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str) {
   const Context ctx = new_context(ast, str);
   env_reset(env);

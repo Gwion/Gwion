@@ -157,6 +157,8 @@ func_ptr
 stmt_type
   : TYPEDEF type_decl2 id SEMICOLON
   { $$ = new_stmt_type($2, $3, get_pos(arg)); };
+  | PUBLIC TYPEDEF type_decl2 id SEMICOLON
+  { SET_FLAG($3, ae_flag_global); $$ = new_stmt_type($3, $4, get_pos(arg)); };
 
 type_decl2
   : type_decl

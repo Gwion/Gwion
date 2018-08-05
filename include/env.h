@@ -30,7 +30,6 @@ ANN void env_push_class(const Env, const Type);
 ANN void env_pop_class(const Env);
 ANN Map env_label(const Env);
 ANN Nspc env_nspc(const Env);
-ANN2(1) Class_Def env_class_def(const Env, const Class_Def);
 ANN Type scan_type(const Env, const Type, const Type_Decl*);
 ANN Type type_decl_resolve(const Env, const Type_Decl*);
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
