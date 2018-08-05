@@ -653,16 +653,19 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
 }
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
+  const Env env = emit->env;
+  const Value val = exp_func->m_func->value_ref;
   const Func_Def def = exp_func->m_func->def;
-  if(exp_func->m_func->value_ref->owner_class)
-    env_push_class(emit->env, exp_func->m_func->value_ref->owner_class);
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = val->owner;
+  vector_add(&env->class_stack, (vtype)env->class_def);
+  env->class_def = val->owner_class;
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(template_push_types(emit->env, def->tmpl->list, exp_func->tmpl->types))
-  CHECK_BB(traverse_func_def(emit->env, def))
+  CHECK_BB(template_push_types(env, def->tmpl->list, exp_func->tmpl->types))
+  CHECK_BB(traverse_func_def(env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
-  nspc_pop_type(emit->env->curr);
-  if(exp_func->m_func->value_ref->owner_class)
-    env_pop_class(emit->env);
+  nspc_pop_type(env->curr);
+  env_pop_class(env);
   UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
