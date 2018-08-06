@@ -454,16 +454,22 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
   const m_uint len = strlen(v->name) + strlen(env->curr->name);
   const m_str tmpl_name = tl2str(env, types);
   const m_uint tlen = strlen(tmpl_name);
-
   m_uint class_scope;
   env_push(env, v->owner_class, v->owner, &class_scope);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
     Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
-    if(value)
+    if(value) {
+      if(env->func == value->d.func_ref) {
+        free(tmpl_name);
+        if(!check_exp(env, exp_func->func) ||
+            (exp_func->args  && !check_exp(env, exp_func->args)))
+          return NULL;
+        return env->func;
+      }
       base = def = value->d.func_ref->def;
-    else {
+    } else {
       char name[len + digit + 13];
       snprintf(name, len + digit + 13, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
       if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
@@ -1303,6 +1309,9 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
   const Func former = env->func;
+  if(former) // parsing a template call in a func
+    SET_FLAG(former, ae_flag_recurs);
+
   env->func = func;
   ++env->class_scope;
   nspc_push_value(env->curr);

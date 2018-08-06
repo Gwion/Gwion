@@ -654,6 +654,8 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
 
 ANN static m_bool emit_exp_call_template(const Emitter emit,
     const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
+  if(emit->env->func && emit->env->func == exp_func->m_func)
+    return emit_exp_call_helper(emit, exp_func, spork);
   const Env env = emit->env;
   const Value val = exp_func->m_func->value_ref;
   const Func_Def def = exp_func->m_func->def;
@@ -732,32 +734,18 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
   return 1;
 }
 
-ANN static Func emit_get_func(const Nspc nspc, const Func f) { GWDEBUG_EXE
-  const Symbol s = insert_symbol(f->name);
-  const Nspc n = isa(f->value_ref->type, t_fptr) > 0 ||
-         isa(f->value_ref->type, t_class) > 0 ?
-         f->value_ref->owner  : nspc;
-  return nspc_lookup_func2(n, s);
-}
-
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
-  if(isa(func->value_ref->type , t_fptr) < 0 &&
-      !emit_get_func(emit->env->curr, func)) {
-    if(GET_FLAG(func, ae_flag_ref))
-      CHECK_BB(traverse_template(emit->env,
-            func->value_ref->owner_class->def))
-    else if(!GET_FLAG(func->def, ae_flag_template)) {
-      if(isa(func->value_ref->type, t_fptr) > 0) {
-        if(GET_FLAG(func, ae_flag_global)) {
-          emitter_add_instr(emit, Reg_Push_Code);
-          return 1;
-        }
-      }
+  if((emit->env->func && emit->env->func == func) ||
+    GET_FLAG(func, ae_flag_recurs)) {
       const Instr code = emitter_add_instr(emit, INSTR_RECURS);
       code->m_val = (m_uint)func;
       SET_FLAG(emit->code, ae_flag_recurs);
       return 1;
-    }
+  }
+  if(GET_FLAG(func, ae_flag_template)) {
+    if(GET_FLAG(func, ae_flag_ref))
+      CHECK_BB(traverse_template(emit->env,
+            func->value_ref->owner_class->def))
     if(emit_func_def(emit, func->def) < 0)
       CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
     const Instr code = emitter_add_instr(emit, Reg_Push_Ptr);
@@ -1871,7 +1859,7 @@ ANN static void handle_code(const VM_Code c) {
   }
 }
 
-ANN static void code_optim(const Emitter emit) {
+ANN /* static */ void code_optim(const Emitter emit) {
   for(m_uint i = vector_size(&emit->codes) + 1; --i;) {
     const VM_Code c = (VM_Code)vector_at(&emit->codes, i - 1);
     if(GET_FLAG(c, ae_flag_recurs))
