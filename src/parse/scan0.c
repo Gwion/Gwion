@@ -53,8 +53,8 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     SET_FLAG(t, ae_flag_checked);
     if(stmt->td->array && !stmt->td->array->exp)
       SET_FLAG(t, ae_flag_empty);
-    const Nspc nspc = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
-      env->curr : env->global_nspc;
+    const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, ae_flag_global))
+?      env->global_nspc : env->curr;
     nspc_add_type(nspc, stmt->xid, t);
     t->owner = nspc;
     stmt->type = t;
@@ -141,15 +141,6 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
   return 1;
 }
 
-ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG_EXE
-  if(section->section_type == ae_section_stmt)
-    return scan0_Stmt_List(env, section->d.stmt_list);
-  if(section->section_type == ae_section_class)
-      return scan0_class_def(env, section->d.class_def);
-  return 1;
-}
-
-
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   const Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
   the_class->owner = env->curr;
@@ -167,12 +158,20 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
   return the_class;
 }
 
+ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG_EXE
+  if(section->section_type == ae_section_stmt)
+    return scan0_Stmt_List(env, section->d.stmt_list);
+  if(section->section_type == ae_section_class)
+      return scan0_class_def(env, section->d.class_def);
+  return 1;
+}
+
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   CHECK_BB(scan0_class_def_pre(env, class_def))
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   if(class_def->body) {
-    env_push_class(env, class_def->type);
     Class_Body body = class_def->body;
+    env_push_class(env, class_def->type);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
     env_pop_class(env);
@@ -183,36 +182,8 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   return 1;
 }
 
-ANN m_bool scan0_ast(const Env env, Ast* base) { GWDEBUG_EXE
-  Ast prog = *base;
-  Ast first = NULL, prev = NULL, next = NULL, last = NULL;
-  do {
-    Section* section = prog->section;
-    next = prog->next;
-    if(section->section_type == ae_section_stmt)
-      CHECK_BB(scan0_Stmt_List(env, section->d.stmt_list))
-    else if(section->section_type == ae_section_class)
-      CHECK_BB(scan0_class_def(env, section->d.class_def))
-    else if(!GET_FLAG(section->d.func_def, ae_flag_scan1) &&
-    section->d.func_def->tmpl) {
-      SET_FLAG(section->d.func_def, ae_flag_scan1);
-      if(!last) {
-        Ast s = prog;
-        while(s->next)
-          s = s->next;
-        last = prog;
-      }
-      if(prev)
-        prev->next = next ? next : last;
-      if(last)
-        last->next = prog;
-      prog->next = NULL;
-      last = prog;
-      prog = prev;
-    }
-    prev = prog;
-    if(!first && prev)
-      first = *base = prev;
-  } while((prog = next));
+ANN m_bool scan0_ast(const Env env, Ast prog) { GWDEBUG_EXE
+  do CHECK_BB(scan0_section(env, prog->section))
+  while((prog = prog->next));
   return 1;
 }

@@ -1,7 +1,7 @@
 #include "absyn.h"
 #include "traverse.h"
 
-ANN m_bool scan0_ast(const Env env, Ast* ast);
+ANN m_bool scan0_ast(const Env env, Ast ast);
 ANN m_bool scan1_ast(const Env env, Ast ast);
 ANN m_bool scan2_ast(const Env env, Ast ast);
 ANN m_bool check_ast(const Env env, Ast ast);
@@ -33,7 +33,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def def);
 ANN m_bool check_class_def(const Env env, const Class_Def def);
 
 ANN m_bool traverse_ast(const Env env, const Ast ast) {
-  if(scan0_ast(env, &ast) < 0 ||
+  if(scan0_ast(env, ast) < 0 ||
      scan1_ast(env, ast) < 0 ||
      scan2_ast(env, ast) < 0 ||
      check_ast(env, ast) < 0)
