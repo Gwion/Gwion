@@ -258,7 +258,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
        SET_FLAG(v, ae_flag_private);
     }
     SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
-    nspc_add_value(env->curr, list->xid, v);
+    nspc_add_value(stmt->t->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
     ++count;
   } while((list = list->next));

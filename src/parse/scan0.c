@@ -74,13 +74,17 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
     CHECK_BB(err_msg(SCAN0_, stmt->self->pos, "'private' can only be used at class scope."))
+  else if(env->class_def && GET_FLAG(stmt, ae_flag_global))
+    UNSET_FLAG(stmt, ae_flag_global);
   if(stmt->xid && nspc_lookup_value0(env->curr, stmt->xid))
     CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
           "'%s' already declared as variable", s_name(stmt->xid)))
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
-  nspc_add_type(env->curr, stmt->xid, t);
+  const Nspc nspc = GET_FLAG(stmt, ae_flag_global) ? env->global_nspc : env->curr;
+  t->owner = nspc;
+  nspc_add_type(nspc, stmt->xid, t);
   stmt->t = t;
   return 1;
 }
