@@ -621,9 +621,15 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       return scan2_arg_def(env, f);
   }
   const Func base = get_func(env, f);
-  if(!base)
-    CHECK_OB((value = func_create(env, f, overload, func_name)))
-  else
+  if(!base) {
+    m_uint class_scope;
+    if(GET_FLAG(f, ae_flag_global))
+    env_push(env, NULL, env->global_nspc, &class_scope);
+      CHECK_OB((value = func_create(env, f, overload, func_name)))
+    if(GET_FLAG(f, ae_flag_global))
+    env_pop(env, class_scope);
+
+  } else
     f->func = base;
   if(f->arg_list && scan2_arg_def(env, f) < 0)
     CHECK_BB(err_msg(SCAN2_, f->td->pos,

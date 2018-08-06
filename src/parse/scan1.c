@@ -440,8 +440,15 @@ ANN static m_bool scan1_func_def_code(const Env env, const Func_Def f) { GWDEBUG
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(GET_FLAG(f, ae_flag_private) && !env->class_def)
-    CHECK_BB(err_msg(SCAN1_, f->td->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
+  if(!env->class_def) {
+    if(GET_FLAG(f, ae_flag_private))
+      CHECK_BB(err_msg(SCAN1_, f->td->pos,
+            "can't declare func '%s' private outside of class", s_name(f->name)))
+    else if(GET_FLAG(f, ae_flag_protect))
+      CHECK_BB(err_msg(SCAN1_, f->td->pos,
+            "can't declare func '%s' protected outside of class", s_name(f->name)))
+  } else if(GET_FLAG(f, ae_flag_global))
+    UNSET_FLAG(f, ae_flag_global);
   if(tmpl_list_base(f->tmpl))
     return 1;
   const Func former = env->func;

@@ -318,10 +318,14 @@ arg_type
 decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
-  : FUNCTION static_decl type_decl2 id func_args arg_type code_segment
-    { $$ = new_func_def($3, $4, $5, $7, $2 | $6); }
+  : FUNCTION type_decl2 id func_args arg_type code_segment
+    { $$ = new_func_def($2, $3, $4, $6, $5); }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | STATIC func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_static); $$ = $2; }
+  | PUBLIC func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
   | decl_template func_def_base
     { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
 

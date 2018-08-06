@@ -14,12 +14,12 @@ class C
 	function Vec4    m_w() { return w; }
 	function Object  m_o() { return o; }
 
-	fun static  int     _i() { return i; }
-	fun static  float   _f() { return f; }
-	fun static  complex _c() { return c; }
-	fun static  Vec3    _v() { return v; }
-	fun static  Vec4    _w() { return w; }
-	fun static  Object  _o() { return o; }
+	static fun  int     _i() { return i; }
+	static fun  float   _f() { return f; }
+	static fun  complex _c() { return c; }
+	static fun  Vec3    _v() { return v; }
+	static fun  Vec4    _w() { return w; }
+	static fun  Object  _o() { return o; }
 }
 
 // read members
