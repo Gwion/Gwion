@@ -171,10 +171,11 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   if(class_def->body) {
     Class_Body body = class_def->body;
-    env_push_class(env, class_def->type);
+    m_uint class_scope;
+    env_push_class(env, class_def->type, &class_scope);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
-    env_pop_class(env);
+    env_pop_class(env, class_scope);
   }
   (void)mk_class(class_def->type);
   if(GET_FLAG(class_def, ae_flag_global))

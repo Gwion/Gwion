@@ -327,12 +327,13 @@ ANN m_bool scan2_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
+  m_uint class_scope;
   if(stmt->xid)
-    env_push_class(env, stmt->value->type);
+    env_push_class(env, stmt->value->type, &class_scope);
   do CHECK_BB(scan2_exp(env, l->self))
   while((l = l->next));
   if(stmt->xid)
-    env_pop_class(env);
+    env_pop_class(env, class_scope);
   return 1;
 }
 
@@ -660,10 +661,11 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   }
   if(class_def->body) {
     Class_Body body = class_def->body;
-    env_push_class(env, class_def->type);
+    m_uint class_scope;
+    env_push_class(env, class_def->type, &class_scope);
     do CHECK_BB(scan2_section(env, body->section))
     while((body = body->next));
-    env_pop_class(env);
+    env_pop_class(env, class_scope);
   }
   SET_FLAG(class_def->type, ae_flag_scan2);
   return 1;

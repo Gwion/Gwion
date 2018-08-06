@@ -198,7 +198,8 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   }
   type->owner = env->curr;
   SET_FLAG(type, ae_flag_checked);
-  env_push_class(env, type);
+  m_uint class_scope;
+  env_push_class(env, type, &class_scope);
   return 1;
 }
 
@@ -259,7 +260,7 @@ ANN static m_int import_class_end(const Env env) {
   const Nspc nspc = env->class_def->nspc;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
-  env_pop_class(env);
+  env_pop_class(env, 0);
   return 1;
 }
 

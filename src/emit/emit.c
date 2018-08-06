@@ -652,20 +652,19 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
   return 1;
 }
 
-ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
+ANN static m_bool emit_exp_call_template(const Emitter emit,
+    const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
   const Env env = emit->env;
   const Value val = exp_func->m_func->value_ref;
   const Func_Def def = exp_func->m_func->def;
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = val->owner;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = val->owner_class;
+  m_uint class_scope;
+  env_push_owner(emit->env, val, &class_scope);
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(template_push_types(env, def->tmpl->list, exp_func->tmpl->types))
   CHECK_BB(traverse_func_def(env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(env->curr);
-  env_pop_class(env);
+  env_pop_class(env, class_scope);
   UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
@@ -1357,7 +1356,7 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) { GWDEBUG_EXE
 
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
-
+  m_uint class_scope;
   if(stmt->xid) {
     if(!stmt->value->type->nspc->class_data)
       stmt->value->type->nspc->class_data =
@@ -1374,14 +1373,14 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!emit->env->class_def)
       ADD_REF(stmt->value);
     free_exp(exp);
-    env_push_class(emit->env, stmt->value->type);
+    env_push_class(emit->env, stmt->value->type, &class_scope);
   } else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
     stmt->o = emit_alloc_local(emit, stmt->s, 0);
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, Reg_Pop_Word);
     instr->m_val = SZ_INT;
-    env_pop_class(emit->env);
+    env_pop_class(emit->env, class_scope);
   }
   return 1;
 }
