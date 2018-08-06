@@ -60,26 +60,17 @@ ANN void free_env(const Env a) {
   free(a);
 }
 
-ANN void env_push_class(const Env env, const Type type, m_uint* class_scope) {
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = type->nspc;
+ANN void env_push(const Env env, const Type type,
+    const Nspc nspc, m_uint* class_scope) {
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
-  *class_scope = env->class_scope;
-  env->class_scope = 0;
-}
-
-ANN void env_push_owner(const Env env, const Value v,
-    m_uint* class_scope) {
   vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = v->owner;
-  vector_add(&env->class_stack, (vtype)env->class_def);
-  env->class_def = v->owner_class;
+  env->curr = nspc;
   *class_scope = env->class_scope;
   env->class_scope = 0;
 }
 
-ANN void env_pop_class(const Env env, const m_uint class_scope) {
+ANN void env_pop(const Env env, const m_uint class_scope) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
   env->class_scope = class_scope;

@@ -658,13 +658,13 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   const Value val = exp_func->m_func->value_ref;
   const Func_Def def = exp_func->m_func->def;
   m_uint class_scope;
-  env_push_owner(emit->env, val, &class_scope);
+  env_push(emit->env, val->owner_class, val->owner, &class_scope);
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(template_push_types(env, def->tmpl->list, exp_func->tmpl->types))
   CHECK_BB(traverse_func_def(env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
   nspc_pop_type(env->curr);
-  env_pop_class(env, class_scope);
+  env_pop(env, class_scope);
   UNSET_FLAG(exp_func->m_func, ae_flag_checked);
   return 1;
 }
@@ -1373,14 +1373,14 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!emit->env->class_def)
       ADD_REF(stmt->value);
     free_exp(exp);
-    env_push_class(emit->env, stmt->value->type, &class_scope);
+    env_push(emit->env, stmt->value->type, stmt->value->type->nspc, &class_scope);
   } else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
     stmt->o = emit_alloc_local(emit, stmt->s, 0);
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, Reg_Pop_Word);
     instr->m_val = SZ_INT;
-    env_pop_class(emit->env, class_scope);
+    env_pop(emit->env, class_scope);
   }
   return 1;
 }

@@ -456,7 +456,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
   const m_uint tlen = strlen(tmpl_name);
 
   m_uint class_scope;
-  env_push_owner(env, v, &class_scope);
+  env_push(env, v->owner_class, v->owner, &class_scope);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
@@ -489,7 +489,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
     def->func->next = next;
     if(m_func) {
       free(tmpl_name);
-      env_pop_class(env, class_scope);
+      env_pop(env, class_scope);
       SET_FLAG(base, ae_flag_template);
       SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
       return m_func;
@@ -503,7 +503,7 @@ next:
   free(tmpl_name);
   if(mismatch < 0)
     CHECK_BO(err_msg(TYPE_, exp_func->self->pos, "template type number mismatch."))
-  env_pop_class(env, class_scope);
+  env_pop(env, class_scope);
   (void)err_msg(TYPE_, exp_func->self->pos, "arguments do not match for template call");
   return NULL;
 }
@@ -1083,7 +1083,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
       else
         check_exp_decl_static(env, stmt->value, stmt->self->pos);
     }
-    env_push_class(env, stmt->value->type, &class_scope);
+    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
   } else if(env->class_def)  {
       if(!GET_FLAG(stmt, ae_flag_static))
         stmt->o = env->class_def->nspc->offset;
@@ -1100,7 +1100,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
       stmt->s = l->self->type->size;
   } while((l = l->next));
   if(stmt->xid)
-    env_pop_class(env, class_scope);
+    env_pop(env, class_scope);
   return 1;
 }
 
@@ -1384,10 +1384,10 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(class_def->body) {
     Class_Body body = class_def->body;
     m_uint class_scope;
-    env_push_class(env, the_class, &class_scope);
+    env_push(env, the_class, the_class->nspc, &class_scope);
     do CHECK_BB(check_section(env, body->section))
     while((body = body->next));
-    env_pop_class(env, class_scope);
+    env_pop(env, class_scope);
   }
   SET_FLAG(the_class, ae_flag_checked);
   SET_FLAG(class_def->type, ae_flag_check);
