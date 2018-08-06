@@ -191,11 +191,7 @@ ANN static m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 }
 
 ANN static m_bool scan2_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  const Func f = env->func;
-  env->func = f ? f : (Func)1;
-  CHECK_BB(scan2_stmt(env, code))
-  env->func = f;
-  return 1;
+  return scan2_stmt(env, code);
 }
 
 static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
@@ -482,13 +478,14 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 }
 
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
+  const Func former = env->func;
   env->func = f->func;
   nspc_push_value(env->curr);
   const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
   if(ret < 0)
     err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name));
   nspc_pop_value(env->curr);
-  env->func = NULL;
+  env->func = former;
   return ret;
 }
 

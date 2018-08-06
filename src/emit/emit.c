@@ -1666,7 +1666,6 @@ ANN static void emit_func_def_global(const Emitter emit, const Value value) { GW
 ANN static void emit_func_def_init(const Emitter emit, const Func func) { GWDEBUG_EXE
   const Type t = emit->env->class_def;
   char c[(t ? strlen(t->name) + 1 : 0) + strlen(func->name) + 6];
-  emit->env->func = func;
   emit_push_code(emit);
 //  emit->code = new_code();
   sprintf(c, "%s%s%s(...)", t ? t->name : "", t ? "." : "", func->name);
@@ -1756,6 +1755,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
     emit_alloc_local(emit, SZ_INT, 0);
   }
   emit_push_scope(emit);
+  const Func former = emit->env->func;
+  emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
       !*(m_uint*)emit->env->func->variadic->ptr))
@@ -1763,7 +1764,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit_func_def_return(emit);
 //  emit_pop_scope(emit);
   emit_func_def_code(emit, func);
-  emit->env->func = NULL;
+  emit->env->func = former;
   emit->code = emit_pop_code(emit);
   return 1;
 }

@@ -1302,6 +1302,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
+  const Func former = env->func;
   env->func = func;
   ++env->class_scope;
   nspc_push_value(env->curr);
@@ -1320,7 +1321,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   }
   nspc_pop_value(env->curr);
   --env->class_scope;
-  env->func = NULL;
+  env->func = former;
   return ret;
 }
 

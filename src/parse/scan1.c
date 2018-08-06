@@ -79,7 +79,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
           SET_FLAG(v->value, ae_flag_member);
       } else
         SET_FLAG(v->value, ae_flag_global);
-    }
+    };
     v->value->d.ptr = v->addr;
     v->value->owner = env->curr;
     v->value->owner_class = env->func ? NULL : env->class_def;
@@ -141,11 +141,7 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 }
 
 ANN static m_bool scan1_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  const Func f = env->func;
-  env->func = f ? f: FAKE_FUNC;
-  CHECK_BB(scan1_stmt(env, code))
-  env->func = f;
-  return 1;
+  return scan1_stmt(env, code);
 }
 
 ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
@@ -208,13 +204,13 @@ ANN static m_bool scan1_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
   const Func f = env->func;
   if(env->class_def && !env->func)
    env->func = FAKE_FUNC;
-  nspc_push_value(env->curr);
+//  nspc_push_value(env->curr);
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
   if(stmt->c3)
     CHECK_BB(scan1_exp(env, stmt->c3))
   CHECK_BB(scan1_stmt(env, stmt->body))
-  nspc_pop_value(env->curr);
+//  nspc_pop_value(env->curr);
   env->func = f;
   return 1;
 }
@@ -445,6 +441,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_BB(err_msg(SCAN1_, f->td->pos, "can't declare func '%s' private outside of class", s_name(f->name)))
   if(tmpl_list_base(f->tmpl))
     return 1;
+  const Func former = env->func;
   env->func = FAKE_FUNC;
   ++env->class_scope;
   if(scan1_func_def_flag(env, f) < 0 ||
@@ -453,7 +450,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     (!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list &&
         scan1_func_def_code(env, f) < 0))
     CHECK_BB(err_msg(SCAN1_, f->td->pos, "\t...in function '%s'", s_name(f->name)))
-  env->func = NULL;
+  env->func = former;
   --env->class_scope;
   return 1;
 }
