@@ -303,10 +303,13 @@ ANN static m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   m_uint class_scope;
+  const m_bool global = GET_FLAG(stmt, ae_flag_global);
+
   if(stmt->xid) {
     UNSET_FLAG(stmt, ae_flag_private);
     env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  }
+  } else if(global)
+    env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     Var_Decl_List list = l->self->d.exp_decl.list;
 
@@ -323,7 +326,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
-  if(stmt->xid)
+  if(stmt->xid || global)
     env_pop(env, class_scope);
   return 1;
 }

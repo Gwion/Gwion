@@ -373,6 +373,8 @@ union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_private); $$ = $2; }
   | PROTECT union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_protect); $$ = $2; }
+  | PUBLIC union_stmt
+    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_global);  $$ = $2; }
   ;
 
 var_decl_list

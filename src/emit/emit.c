@@ -280,6 +280,20 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   if(GET_FLAG(v, ae_flag_func)) {
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->d.func_ref;
+  } else if(GET_FLAG(v, ae_flag_union)) {
+instr->execute = Reg_Push_Deref;
+if(prim->self->emit_var) {
+//instr->m_val2 = 1;
+    instr->m_val = SZ_INT;
+    *(m_uint*)instr->ptr = (m_uint)&v->d.ptr;
+
+} else {
+instr->m_val2 = 2;
+    instr->m_val = v->type->size;
+    *(m_uint*)instr->ptr = (m_uint)v->d.ptr;
+
+
+}
   } else if(!prim->self->emit_var && isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) { GWDEBUG_EXE
     instr->m_val = v->type->size;
     if(v->d.ptr)
@@ -295,7 +309,8 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
   const Value v = prim->value;
   if(v->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, ae_flag_builtin) || GET_FLAG(v, ae_flag_enum))
+  if(GET_FLAG(v, ae_flag_builtin) || GET_FLAG(v, ae_flag_enum) ||
+      GET_FLAG(v, ae_flag_union))
     return emit_symbol_builtin(emit, prim);
   const Instr instr = emitter_add_instr(emit, prim->self->emit_var ?
       Reg_Push_Mem_Addr : Reg_Push_Mem);
@@ -1196,7 +1211,9 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const m_uint index = emit_code_size(emit);
   emit_push_stack(emit);
   const Instr deref = emitter_add_instr(emit, Reg_Push_Deref);
-  deref->m_val = (m_uint)counter;
+  deref->m_val = counter;
+  deref->m_val = SZ_INT;
+  *(m_uint*)deref->ptr = counter;
   const Instr push = emitter_add_instr(emit, Reg_Push_Imm);
   push->m_val = SZ_INT;
   const Instr op = emitter_add_instr(emit, Branch_Eq_Int);
@@ -1345,6 +1362,7 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) { GWDEBUG_EXE
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   m_uint class_scope;
+  const m_bool global = GET_FLAG(stmt, ae_flag_global);
   if(stmt->xid) {
     if(!stmt->value->type->nspc->class_data)
       stmt->value->type->nspc->class_data =
@@ -1361,9 +1379,29 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!emit->env->class_def)
       ADD_REF(stmt->value);
     free_exp(exp);
+    if(global) {
+      const M_Object o = new_object(NULL);
+      initialize_object(o, stmt->value->type);
+      stmt->value->d.ptr = o;
+      SET_FLAG(stmt->value, ae_flag_builtin);
+      SET_FLAG(stmt->value, ae_flag_global);
+    }
     env_push(emit->env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  } else if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
-    stmt->o = emit_alloc_local(emit, stmt->s, 0);
+  } else if(emit->env->class_def) {
+    if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
+      stmt->o = emit_alloc_local(emit, stmt->s, 0);
+  } else if(global) {
+    void* ptr = xcalloc(1, stmt->s);
+    l = stmt->l;
+    do {
+      Var_Decl_List list = l->self->d.exp_decl.list;
+      do {
+        list->self->value->d.ptr = ptr;
+        SET_FLAG(list->self->value, ae_flag_union);
+      } while((list = list->next));
+    } while((l = l->next));
+    SET_FLAG(stmt->l->self->d.exp_decl.list->self->value, ae_flag_enum);
+  }
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, Reg_Pop_Word);

@@ -1082,6 +1082,8 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
 ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   m_uint class_scope;
+  const m_bool global = GET_FLAG(stmt, ae_flag_global);
+
   if(stmt->xid) {
     if(env->class_def) {
       if(!GET_FLAG(stmt, ae_flag_static))
@@ -1097,7 +1099,9 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
         env->class_def->nspc->class_data_size += SZ_INT;
         env->class_def->nspc->offset += SZ_INT;
       }
-  }
+  } else if(global)
+    env_push(env, NULL, env->global_nspc, &class_scope);
+
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ae_flag_ref))
@@ -1105,7 +1109,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
   } while((l = l->next));
-  if(stmt->xid)
+  if(stmt->xid || global)
     env_pop(env, class_scope);
   return 1;
 }

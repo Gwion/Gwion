@@ -139,8 +139,9 @@ INSTR(Init_Loop_Counter) { GWDEBUG_EXE
 }
 
 INSTR(Reg_Push_Deref) { GWDEBUG_EXE
-  *(m_uint*)REG(0) = *(m_uint*)instr->m_val;
-  PUSH_REG(shred, SZ_INT);
+puts(__func__);
+  memcpy(REG(0), *(void**)instr->ptr, instr->m_val);
+  PUSH_REG(shred, instr->m_val);
 }
 
 INSTR(Dec_int_Addr) { GWDEBUG_EXE

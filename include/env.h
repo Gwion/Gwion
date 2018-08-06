@@ -26,7 +26,7 @@ struct Env_ {
 ANEW Env new_env();
 ANN void env_reset(const Env);
 ANN void free_env(Env);
-ANN void env_push(const Env, const Type, const Nspc, m_uint*);
+ANN2(1,3,4) void env_push(const Env, const Type, const Nspc, m_uint*);
 ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
 ANN Nspc env_nspc(const Env);

@@ -94,16 +94,21 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
       !env->class_def)
       CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
             "'static' and 'private' can only be used at class scope."))
+  else if(env->class_def && GET_FLAG(stmt, ae_flag_global))
+    UNSET_FLAG(stmt, ae_flag_global);
   if(stmt->xid) {
     const m_str name = s_name(stmt->xid);
     const Type t = type_copy(t_union);
+    const Nspc nspc = !GET_FLAG(stmt, ae_flag_global) ?
+      env->curr : env->global_nspc;
     t->name = name;
     t->nspc = new_nspc(name);
-    t->nspc->parent = env->curr;
+    t->nspc->parent = nspc;
+    t->owner = nspc;
     stmt->value = new_value(t, name);
     stmt->value->owner_class = env->class_def;
-    stmt->value->owner = env->curr;
-    nspc_add_value(env->curr, stmt->xid, stmt->value);
+    stmt->value->owner = nspc;
+    nspc_add_value(nspc, stmt->xid, stmt->value);
     SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
     if(env->class_def && !GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(stmt->value, ae_flag_member);

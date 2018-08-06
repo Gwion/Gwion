@@ -60,7 +60,7 @@ ANN void free_env(const Env a) {
   free(a);
 }
 
-ANN void env_push(const Env env, const Type type,
+ANN2(1,3,4) void env_push(const Env env, const Type type,
     const Nspc nspc, m_uint* class_scope) {
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
