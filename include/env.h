@@ -36,4 +36,6 @@ ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const Func_Def, const Func_Def);
 ANN m_bool type_unknown(const ID_List, const m_str);
 ANN m_bool env_add_op(const Env, const struct Op_Import*);
+ANN m_bool env_access(const Env env, const ae_flag flag);
+ANN void env_storage(const Env env, ae_flag* flag);
 #endif

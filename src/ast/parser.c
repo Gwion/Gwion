@@ -2261,13 +2261,13 @@ yyreduce:
 
   case 8:
 #line 115 "utils/gwion.y" /* yacc.c:1648  */
-    { CHECK_FLAG(arg, (yyvsp[0].class_def), ae_flag_static); (yyval.class_def) = (yyvsp[0].class_def); }
+    { CHECK_FLAG(arg, (yyvsp[0].class_def), ae_flag_static);  (yyval.class_def) = (yyvsp[0].class_def); }
 #line 2266 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 9:
 #line 116 "utils/gwion.y" /* yacc.c:1648  */
-    { CHECK_FLAG(arg, (yyvsp[0].class_def), ae_flag_global); (yyval.class_def) = (yyvsp[0].class_def); }
+    { CHECK_FLAG(arg, (yyvsp[0].class_def), ae_flag_global);  (yyval.class_def) = (yyvsp[0].class_def); }
 #line 2272 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 

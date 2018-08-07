@@ -112,8 +112,8 @@ section
 class_def
   : CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def(0, $2, $3, $5); }
-  | STATIC  class_def { CHECK_FLAG(arg, $2, ae_flag_static); $$ = $2; }
-  | GLOBAL  class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
+  | STATIC  class_def { CHECK_FLAG(arg, $2, ae_flag_static);  $$ = $2; }
+  | GLOBAL  class_def { CHECK_FLAG(arg, $2, ae_flag_global);  $$ = $2; }
   | PRIVATE class_def { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | PROTECT class_def { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
   | decl_template class_def { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }

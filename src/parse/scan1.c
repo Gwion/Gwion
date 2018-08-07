@@ -50,6 +50,8 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
 }
 
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
+  CHECK_BB(env_access(env, decl->td->flag))
+  env_storage(env, &decl->td->flag);
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
   const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, ae_flag_template);
@@ -296,9 +298,6 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
   if(!(ptr->ret_type = type_decl_resolve(env, ptr->td)))
     CHECK_BB(type_unknown(ptr->td->xid, "func pointer definition"))
-  if(!env->class_def && GET_FLAG(ptr->td, ae_flag_static))
-    CHECK_BB(err_msg(SCAN1_, ptr->td->pos,
-          "can't declare func pointer static outside of a class"))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
     CHECK_BB(err_msg(SCAN1_, ptr->td->pos,
           "\t... in typedef '%s'...", s_name(ptr->xid)))
@@ -456,6 +455,8 @@ ANN static m_bool scan1_func_def_code(const Env env, const Func_Def f) { GWDEBUG
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
+  CHECK_BB(env_access(env, f->flag))
+  env_storage(env, &f->flag);
   if(!env->class_def) {
     if(GET_FLAG(f, ae_flag_private))
       CHECK_BB(err_msg(SCAN1_, f->td->pos,

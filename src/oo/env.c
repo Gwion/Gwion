@@ -134,3 +134,31 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
     map_init(&nspc->op_map);
   return add_op(nspc, opi);
 }
+
+
+#define GET(a,b) ((a) & (b)) == (b)
+ANN m_bool env_access(const Env env, const ae_flag flag) {
+  if(env->class_scope) {
+   if(GET(flag, ae_flag_global))
+      CHECK_BB(err_msg(SCAN0_, 0,
+          "'global' can only be used at %s scope.",
+          GET(flag, ae_flag_global) && !env->class_def ?
+           "file" : "class"))
+  }
+  if((GET(flag, ae_flag_static) ||
+      GET(flag, ae_flag_private) ||
+      GET(flag, ae_flag_protect)) && (!env->class_def || env->class_scope))
+      CHECK_BB(err_msg(SCAN0_, 0,
+            "'%s' can only be used at %s scope.",
+            GET(flag, ae_flag_static) ?
+            "static" : GET(flag, ae_flag_private) ?
+            "private" : "protect",
+            GET(flag, ae_flag_global) && !env->class_def ?
+            "file" : "class"))
+  return 1;
+}
+
+ANN void env_storage(const Env env, ae_flag* flag) {
+  if(env->class_def && GET(*flag, ae_flag_global))
+    *flag &= ~ae_flag_global;
+}

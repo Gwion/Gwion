@@ -19,6 +19,7 @@ ANN static Value mk_class(const Type base) {
 }
 
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
+  CHECK_BB(env_access(env, stmt->td->flag))
   const m_str name = s_name(stmt->xid);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
@@ -34,12 +35,11 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   stmt->type = t;
   nspc_add_type(t->owner, stmt->xid, t);
   stmt->value = mk_class(t);
-  if(!env->class_def && GET_FLAG(stmt->td, ae_flag_global))
-    ADD_REF(stmt->value);
   return 1;
 }
 
 ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
+  CHECK_BB(env_access(env, stmt->td->flag))
   const Type base = type_decl_resolve(env, stmt->td);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(!base)
@@ -91,12 +91,8 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
-  if((GET_FLAG(stmt, ae_flag_static) || GET_FLAG(stmt, ae_flag_private)) &&
-      !env->class_def)
-      CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
-            "'static' and 'private' can only be used at class scope."))
-  else if(env->class_def && GET_FLAG(stmt, ae_flag_global))
-    UNSET_FLAG(stmt, ae_flag_global);
+  CHECK_BB(env_access(env, stmt->flag))
+  env_storage(env, &stmt->flag);
   if(stmt->xid) {
     const m_str name = s_name(stmt->xid);
     const Type t = type_copy(t_union);
@@ -136,6 +132,8 @@ ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
+  CHECK_BB(env_access(env, class_def->flag))
+  env_storage(env, &class_def->flag);
   if(GET_FLAG(class_def, ae_flag_global)) {
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
@@ -159,6 +157,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
   the_class->nspc->parent = GET_FLAG(class_def, ae_flag_global) ?
       env_nspc(env) : env->curr;
   the_class->def = class_def;
+  the_class->flag = class_def->flag;
   if(!strstr(the_class->name, "<"))
     nspc_add_type(env->curr, class_def->name->xid, the_class);
   if(class_def->tmpl)
