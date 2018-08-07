@@ -635,13 +635,17 @@ m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const,
   return env_add_value(gwi->env, name, type, is_const, value);
 }
 
+static inline m_str access(ae_Exp_Meta meta) {
+  return meta == ae_meta_value ? "non-mutable" : "protected";
+}
+
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
   err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
    "\t...\t(reason: --- left-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
-      bin->rhs->meta == ae_meta_value ? "non-mutable" : "protected");
+      access(bin->rhs->meta));
     return t_null;
   }
   return bin->lhs->type;
@@ -653,7 +657,7 @@ OP_CHECK(opck_const_rhs) {
     err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
          "\t...\t(reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
-       bin->rhs->meta == ae_meta_value ? "non-mutable" : "protected");
+         access(bin->rhs->meta));
     return t_null;
   }
   return bin->rhs->type;
@@ -701,8 +705,7 @@ OP_CHECK(opck_unary) {
   if(unary->exp->meta != ae_meta_var) {
     err_msg(TYPE_, unary->exp->pos,
           "unary operator '%s' cannot be used on %s data-types.",
-          op2str(unary->op), unary->exp->meta == ae_meta_value ?
-          "non-mutable" : "protected");
+          op2str(unary->op), access(unary->exp->meta));
       return t_null;
   }
   unary->exp->emit_var = 1;
@@ -730,8 +733,7 @@ OP_CHECK(opck_post) {
   if(post->exp->meta != ae_meta_var) {
     err_msg(TYPE_, post->exp->pos,
           "post operator '%s' cannot be used on %s data-type.",
-          op2str(post->op), post->exp->meta == ae_meta_value ?
-          "non-mutable" : "protected");
+          op2str(post->op), access(post->exp->meta));
         return t_null;
   }
   post->exp->emit_var = 1;
