@@ -30,6 +30,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
     env->curr : env->global_nspc;
   t->size = SZ_INT;
   t->nspc = new_nspc(name);
+  t->flag = stmt->td->flag;
   stmt->type = t;
   nspc_add_type(t->owner, stmt->xid, t);
   stmt->value = mk_class(t);
@@ -47,17 +48,17 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     CHECK_BB(err_msg(SCAN0_, stmt->td->pos,
           "value '%s' already defined in this scope"
           " with type '%s'.", s_name(stmt->xid), v->type->name))
-  if(!stmt->td->array || !stmt->td->array->exp) {
+  if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
-    SET_FLAG(t, ae_flag_checked);
-    if(stmt->td->array && !stmt->td->array->exp)
-      SET_FLAG(t, ae_flag_empty);
-    const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, ae_flag_global))
-?      env->global_nspc : env->curr;
+    const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
+      env->global_nspc : env->curr;
     nspc_add_type(nspc, stmt->xid, t);
     t->owner = nspc;
     stmt->type = t;
+    t->flag = stmt->td->flag | ae_flag_checked;
+    if(stmt->td->array && !stmt->td->array->exp)
+      SET_FLAG(t, ae_flag_empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),

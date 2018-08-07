@@ -60,7 +60,7 @@ m_str op2str(const Operator op);
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
-%type<ival> atsym static_decl vec_type arg_type
+%type<ival> atsym vec_type arg_type
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
 %type<sym>id opt_id
@@ -112,9 +112,11 @@ section
 class_def
   : CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def(0, $2, $3, $5); }
-  | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
-  | decl_template class_def
-    { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
+  | STATIC  class_def { CHECK_FLAG(arg, $2, ae_flag_static); $$ = $2; }
+  | PUBLIC  class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
+  | PRIVATE class_def { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | PROTECT class_def { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
+  | decl_template class_def { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
 
 class_ext : EXTENDS type_decl2 { $$ = $2; } | { $$ = NULL; };
 
@@ -140,25 +142,22 @@ stmt_list
   | stmt stmt_list { $$ = new_stmt_list($1, $2);}
   ;
 
-static_decl
-  : STATIC                            { $$ = ae_flag_static;   }
-  |                                   { $$ = 0; }
-  ;
-
 func_ptr
   : TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
     { $$ = new_stmt_fptr($4, $2, $6, $7, get_pos(arg)); }
-  | STATIC TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
-    { $$ = new_stmt_fptr($5, $3, $7, $8 | ae_flag_static, get_pos(arg)); }
-  | PUBLIC TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
-    { $$ = new_stmt_fptr($5, $3, $7, $8 | ae_flag_global, get_pos(arg)); }
+  | STATIC  func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static);  $$ = $2; }
+  | PUBLIC  func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_global);  $$ = $2; }
+  | PRIVATE func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_private); $$ = $2; }
+  | PROTECT func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_protect); $$ = $2; }
   ;
 
 stmt_type
   : TYPEDEF type_decl2 id SEMICOLON
-  { $$ = new_stmt_type($2, $3, get_pos(arg)); };
-  | PUBLIC TYPEDEF type_decl2 id SEMICOLON
-  { SET_FLAG($3, ae_flag_global); $$ = new_stmt_type($3, $4, get_pos(arg)); };
+    { $$ = new_stmt_type($2, $3, get_pos(arg)); };
+  | STATIC  stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_static); $$ = $2; }
+  | PUBLIC  stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_global); $$ = $2; }
+  | PRIVATE stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_private); $$ = $2; }
+  | PROTECT stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_protect); $$ = $2; }
 
 type_decl2
   : type_decl
@@ -198,9 +197,10 @@ opt_id: { $$ = NULL; } | id;
 
 enum_stmt
   : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(arg)); }
+  | STATIC  enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_static);  $$ = $2; }
+  | PUBLIC  enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_global);  $$ = $2; }
   | PRIVATE enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_private); $$ = $2; }
   | PROTECT enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_protect); $$ = $2; }
-  | PUBLIC  enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_global);  $$ = $2; }
   ;
 
 label_stmt
@@ -298,7 +298,9 @@ decl_exp
   : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(arg)); }
   | STATIC decl_exp
-    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static); $$ = $2; }
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static);  $$ = $2; }
+  | PUBLIC  decl_exp
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_global);  $$ = $2; }
   | PRIVATE decl_exp
     { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_private); $$ = $2; }
   | PROTECT decl_exp
@@ -320,12 +322,14 @@ decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 func_def_base
   : FUNCTION type_decl2 id func_args arg_type code_segment
     { $$ = new_func_def($2, $3, $4, $6, $5); }
-  | PRIVATE func_def_base
-    { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
   | STATIC func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_static); $$ = $2; }
   | PUBLIC func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
+  | PRIVATE func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | PROTECT func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
   | decl_template func_def_base
     { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
 
@@ -373,12 +377,12 @@ union_stmt
   : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(arg));$$->d.stmt_union.xid = $5; }
   | STATIC union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_static); $$ = $2; }
+  | PUBLIC union_stmt
+    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_global);  $$ = $2; }
   | PRIVATE union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_private); $$ = $2; }
   | PROTECT union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_protect); $$ = $2; }
-  | PUBLIC union_stmt
-    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_global);  $$ = $2; }
   ;
 
 var_decl_list

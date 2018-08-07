@@ -26,6 +26,13 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   if(!t->size)
     CHECK_BO(err_msg(SCAN1_, decl->self->pos,
           "cannot declare variables of size '0' (i.e. 'void')..."))
+  if(GET_FLAG(t, ae_flag_private) && t->owner != env->curr)
+    CHECK_BO(err_msg(SCAN1_, decl->self->pos,
+          "can't use private type %s", t->name))
+  if(GET_FLAG(t, ae_flag_protect) &&
+    (!env->class_def || isa(t, env->class_def) < 0))
+    CHECK_BO(err_msg(SCAN1_, decl->self->pos,
+          "can't use protected type %s", t->name))
   if(!GET_FLAG(decl->td, ae_flag_ref)) {
     if(t == env->class_def && !env->class_scope)
       CHECK_BO(err_msg(SCAN1_, decl->self->pos,
@@ -35,6 +42,8 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
       CHECK_BO(err_msg(SCAN1_, decl->self->pos,
             "must declare private variables at class scope..."))
+  if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)
+     UNSET_FLAG(decl->td, ae_flag_global);
   if(GET_FLAG(t, ae_flag_template))
     scan1_exp_decl_template(t, decl);
   return t;
@@ -44,12 +53,17 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   Type t = scan1_exp_decl_type(env, decl);
   const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, ae_flag_template);
+  m_uint class_scope;
   CHECK_OB(t)
   if(decl->type && !env->func &&
     !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->type;
   else
     ((Exp_Decl*)decl)->type = t;
+  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  const Nspc nspc = !global ? env->curr : env->global_nspc;
+  if(global)
+    env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     const Var_Decl v = list->self;
     const Value value = nspc_lookup_value0(env->curr, v->xid);
@@ -69,7 +83,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       t = array_type(decl->type, v->array->depth);
     }
     v->value = value ? value : new_value(t, s_name(v->xid));
-    nspc_add_value(env->curr, v->xid, v->value);
+    nspc_add_value(nspc, v->xid, v->value);
     v->value->flag = decl->td->flag;
     if(v->array && !v->array->exp)
       SET_FLAG(v->value, ae_flag_ref);
@@ -85,6 +99,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     v->value->owner_class = env->func ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
+  if(global)
+    env_pop(env, class_scope);
   return 1;
 }
 

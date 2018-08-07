@@ -607,6 +607,10 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
 
   if(GET_FLAG(decl->type, ae_flag_template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
+  m_uint class_scope;
+  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  if(global)
+    env_push(emit->env, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
@@ -618,6 +622,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
     else
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
   } while((list = list->next));
+  if(global)
+    env_pop(emit->env, class_scope);
   return 1;
 }
 

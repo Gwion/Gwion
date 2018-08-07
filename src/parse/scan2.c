@@ -23,17 +23,22 @@ ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   const Type type = decl->type;
-
   if(GET_FLAG(type, ae_flag_abstract) && !GET_FLAG(decl->td, ae_flag_ref))
     CHECK_BB(err_msg(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
         ". (use @)", type->name))
   if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2))
     CHECK_BB(scan2_exp_decl_template(env, decl))
+  m_uint class_scope;
+  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  if(global)
+   env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     const Array_Sub array = list->self->array;
     if(array && array->exp)
         CHECK_BB(scan2_exp(env, array->exp))
   } while((list = list->next));
+  if(global)
+    env_pop(env, class_scope);
   return 1;
 }
 

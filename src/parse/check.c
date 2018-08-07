@@ -98,6 +98,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   if(GET_FLAG(decl->type , ae_flag_template))
     CHECK_BO(traverse_template(env, decl->type->def))
+  m_uint class_scope;
+  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  if(global)
+    env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     const Var_Decl var = list->self;
     const Value value = var->value;
@@ -113,6 +117,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       CHECK_BO(check_exp_decl_static(env, value, var->pos))
     check_exp_decl_valid(env, value, var->xid);
   } while((list = list->next));
+  if(global)
+    env_pop(env, class_scope);
   return decl->type;
 }
 
