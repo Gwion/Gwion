@@ -808,9 +808,7 @@ ANN static m_bool emit_exp_call1_op(const Emitter emit, const Arg_List list) { G
 }
 
 ANN static m_bool emit_exp_call1_usr(const Emitter emit, const Func func) { GWDEBUG_EXE
-  const f_instr exec = isa(func->value_ref->type, t_fptr) > 0 ? Func_Ptr :
-    Func_Usr;
-  const Instr call = emitter_add_instr(emit, exec);
+  const Instr call = emitter_add_instr(emit, Func_Usr);
   call->m_val = func->def->ret_type->size;
   return 1;
 }
@@ -1211,15 +1209,14 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
 ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWDEBUG_EXE
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  const m_int* counter = (m_int*)xcalloc(1, SZ_INT);
+  m_int* counter = (m_int*)xcalloc(1, SZ_INT);
   const Instr init = emitter_add_instr(emit, Init_Loop_Counter);
   init->m_val = (m_uint)counter;
   const m_uint index = emit_code_size(emit);
   emit_push_stack(emit);
   const Instr deref = emitter_add_instr(emit, Reg_Push_Deref);
-  deref->m_val = counter;
   deref->m_val = SZ_INT;
-  *(m_uint*)deref->ptr = counter;
+  *(m_int**)deref->ptr = counter;
   const Instr push = emitter_add_instr(emit, Reg_Push_Imm);
   push->m_val = SZ_INT;
   const Instr op = emitter_add_instr(emit, Branch_Eq_Int);
@@ -1388,7 +1385,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(global) {
       const M_Object o = new_object(NULL);
       initialize_object(o, stmt->value->type);
-      stmt->value->d.ptr = o;
+      stmt->value->d.ptr = (m_uint*)o;
       SET_FLAG(stmt->value, ae_flag_builtin);
       SET_FLAG(stmt->value, ae_flag_global);
     }
@@ -1397,7 +1394,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
       stmt->o = emit_alloc_local(emit, stmt->s, 0);
   } else if(global) {
-    void* ptr = xcalloc(1, stmt->s);
+    void* ptr = (void*)xcalloc(1, stmt->s);
     l = stmt->l;
     do {
       Var_Decl_List list = l->self->d.exp_decl.list;
