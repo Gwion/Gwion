@@ -71,25 +71,34 @@ ANN static m_uint template_size(const Env env, const Class_Def c,
   return size + 16;
 }
 
-ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call, m_str str) {
+ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call, m_str s) {
+  m_str str = s;
   ID_List base = c->tmpl->list.list;
+  size_t len = strlen(c->type->name);
   strcpy(str, c->type->name);
-  strcat(str, "<");
+  str += len;
+  strcpy(str, "<");
+  ++str;
   while(base) { // TODO: error checking
     Type t = type_decl_resolve(env, call->td);
-    strcat(str, t->name);
+    strcpy(str, t->name);
+    str += strlen(t->name);
     call = call->next;
     base = base->next;
-    if(base)
-      strcat(str, ",");
+    if(base) {
+      strcpy(str, ",");
+      ++str;
+    }
   }
-  strcat(str, ">");
+  strcpy(str, ">");
+  ++str;
   if(c->type->owner == env->global_nspc) {
     char ptr[16];
     sprintf(ptr, "%p", (void*)env->curr);
     ptr[15] = '0';
-    strcat(str, ptr);
+    strcpy(str, ptr);
   }
+puts(s);
   return 1;
 }
 

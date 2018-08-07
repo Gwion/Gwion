@@ -551,10 +551,15 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
   memset(name, 0, len + tlen + 3);
   memset(tmpl_name, 0, tlen + 1);
   tmpl_name[0] = '\0';
+  m_str str = tmpl_name;
   for(m_uint i = 0; i < vector_size(&v); ++i) {
-    strcat(tmpl_name, ((Type)vector_at(&v, i))->name);
-    if(i + 1 < vector_size(&v))
-      strcat(tmpl_name, ",");
+    const m_str name = ((Type)vector_at(&v, i))->name;
+    strcpy(str, name);
+    str += strlen(name);
+    if(i + 1 < vector_size(&v)) {
+      strcpy(str, ",");
+      ++str;
+    }
   }
   tmpl_name[len+1] = '\0';
   vector_release(&v);

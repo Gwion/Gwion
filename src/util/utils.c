@@ -66,10 +66,16 @@ ANN m_uint id_list_len(ID_List l) {
   return len + 1;
 }
 
-ANN void type_path(const m_str s, ID_List l) {
-  s[0] = '\0';
-  do strcat(s, s_name(l->xid));
-  while((l = l->next) && strcat(s, "."));
+ANN void type_path(const m_str str, ID_List l) {
+  m_str s = str;
+  do {
+    const m_str name = s_name(l->xid);
+    strcpy(s, name);
+    s += strlen(name);
+    if(l->next)
+      strcpy(s++, ".");
+  }
+  while((l = l->next));
 }
 
 ANN Type array_base(Type t) {
@@ -80,11 +86,14 @@ ANN Type array_base(Type t) {
 
 ANN Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth + 1;
-  char name[strlen(base->name) + 2* depth + 1];
+  size_t len = strlen(base->name);
+  char name[len + 2* depth + 1];
 
   strcpy(name, base->name);
-  while(--i)
-    strcat(name, "[]");
+  while(--i) {
+    strcpy(name+len, "[]");
+    len += 2;
+  }
   const Symbol sym = insert_symbol(name);
   const Type type = nspc_lookup_type1(base->owner, sym);
   if(type) {
