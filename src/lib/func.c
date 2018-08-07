@@ -111,8 +111,8 @@ static OP_CHECK(opck_spork) {
   else if(unary->code)
     return check_exp_unary_spork(env, unary->code);
   else
-    CHECK_BO(err_msg(TYPE_,  unary->self->pos,
-          "only function calls can be sporked..."))
+    ERR_O(TYPE_,  unary->self->pos,
+          "only function calls can be sporked...")
   return NULL;
 }
 static OP_EMIT(opem_fptr_at) {

@@ -39,8 +39,8 @@ ANN Type find_type(const Env env, ID_List path) {
       type = type->parent;
     }
     if(!t)
-      CHECK_BO(err_msg(UTIL_, path->pos,
-            "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name))
+      ERR_O(UTIL_, path->pos,
+            "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
     type = t;
     nspc = type->nspc;
     path = path->next;
@@ -108,15 +108,15 @@ ANN Type array_type(const Type base, const m_uint depth) {
 ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
-  CHECK_BB(err_msg(SCAN1_, id->pos,
-        "'%s' unknown type in %s", path, orig))
+  ERR_B(SCAN1_, id->pos,
+        "'%s' unknown type in %s", path, orig)
   return -1;
 }
 
 m_bool check_array_empty(const Array_Sub a, const m_str orig) {
   if(a->exp)
-    CHECK_BB(err_msg(SCAN1_, a->pos, "type must be defined with empty []'s"
-          " in %s declaration", orig))
+    ERR_B(SCAN1_, a->pos, "type must be defined with empty []'s"
+          " in %s declaration", orig)
   return 1;
 }
 

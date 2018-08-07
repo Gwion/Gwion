@@ -150,10 +150,10 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     if(GET_FLAG(t, ae_flag_ref))
       return t;
     if(!type->types)
-      CHECK_BO(err_msg(SCAN1_, type->pos,
-        "you must provide template types for type '%s'", t->name))
+      ERR_O(SCAN1_, type->pos,
+        "you must provide template types for type '%s'", t->name)
     if(template_match(t->def->tmpl->list.list, type->types) < 0)
-      CHECK_BO(err_msg(SCAN1_, type->pos, "invalid template types number"))
+      ERR_O(SCAN1_, type->pos, "invalid template types number")
 
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
     Class_Def a = template_class(env, t->def, type->types);
@@ -181,8 +181,8 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     ADD_REF((t = a->type))
     t = a->type;
   } else if(type->types)
-      CHECK_BO(err_msg(SCAN1_, type->pos,
-            "type '%s' is not template. You should not provide template types", t->name))
+      ERR_O(SCAN1_, type->pos,
+            "type '%s' is not template. You should not provide template types", t->name)
   return t;
 }
 

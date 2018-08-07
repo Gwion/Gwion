@@ -17,7 +17,7 @@
 #define OP_RET(a, b)\
   const Type op_ret = op_check(env, &opi);\
   if(!op_ret)\
-    CHECK_BO(err_msg(TYPE_, a->self->pos, "in %s expression", b))\
+    ERR_O(TYPE_, a->self->pos, "in %s expression", b)\
   return op_ret;
 
 ANN Type   check_exp(const Env env, Exp exp);
@@ -28,7 +28,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, exp))
   do if(isa(exp->type, t_int) < 0)
-      CHECK_BB(err_msg(TYPE_, exp->pos, "incompatible array subscript type '%s' ...", exp->type->name))
+      ERR_B(TYPE_, exp->pos, "incompatible array subscript type '%s' ...", exp->type->name)
   while((exp = exp->next));
   return 1;
 }
@@ -36,9 +36,9 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
 ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWDEBUG_EXE
   const Value value = find_value(env->class_def->parent, var->xid);
   if(value)
-    CHECK_BB(err_msg(TYPE_, var->pos,
+    ERR_B(TYPE_, var->pos,
           "in class '%s': '%s' has already been defined in parent class '%s' ...",
-          env->class_def->name, s_name(var->xid), value->owner_class->name))
+          env->class_def->name, s_name(var->xid), value->owner_class->name)
   return 1;
 }
 
@@ -47,7 +47,7 @@ ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { G
   nspc->offset += v->type->size;
 }
 
-ANN static m_bool check_exp_decl_static(const Env env , const Value v, const m_uint pos) { GWDEBUG_EXE
+ANN static m_bool check_exp_decl_static(const Env env , const Value v) { GWDEBUG_EXE
   const Nspc nspc = env->curr;
   SET_FLAG(v, ae_flag_static);
   v->offset = nspc->class_data_size;
@@ -71,22 +71,22 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
       ADD_REF(var->value->type)
       return 1;
     }
-    CHECK_BB(err_msg(TYPE_, var->pos,
-          "can't use non public typedef at global scope."))
+    ERR_B(TYPE_, var->pos,
+          "can't use non public typedef at global scope.")
   }
   if(isa(type, env->class_def) < 0)
-    CHECK_BB(err_msg(TYPE_, var->pos,
-          "can't use static variables for member function."))
+    ERR_B(TYPE_, var->pos,
+          "can't use static variables for member function.")
   if(GET_FLAG(func, ae_flag_member)) {
     if(GET_FLAG(v, ae_flag_static))
-      CHECK_BB(err_msg(TYPE_, var->pos,
-            "can't use static variables for member function."))
+      ERR_B(TYPE_, var->pos,
+            "can't use static variables for member function.")
     if(!GET_FLAG(v, ae_flag_member))
-      CHECK_BB(err_msg(TYPE_, var->pos,
-            "can't use member variables for static function."))
+      ERR_B(TYPE_, var->pos,
+            "can't use member variables for static function.")
   } else if(GET_FLAG(v, ae_flag_member))
-  CHECK_BB(err_msg(TYPE_, var->pos,
-      "can't use member variables for static function."))
+  ERR_B(TYPE_, var->pos,
+      "can't use member variables for static function.")
   ADD_REF(var->value->type)
   return 1;
 }
@@ -111,7 +111,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     if(GET_FLAG(value, ae_flag_member))
       check_exp_decl_member(env->curr, value);
     else if(GET_FLAG(decl->td, ae_flag_static))
-      CHECK_BO(check_exp_decl_static(env, value, var->pos))
+      CHECK_BO(check_exp_decl_static(env, value))
     check_exp_decl_valid(env, value, var->xid);
   } while((list = list->next));
   if(global)
@@ -128,7 +128,7 @@ ANN static m_bool check_exp_prim_array_inner(const Type t, Type type, const Exp 
       e->cast_to = type;
       return 1;
     } else
-      CHECK_BB(err_msg(TYPE_, e->pos, "array init [...] contains incompatible types ..."))
+      ERR_B(TYPE_, e->pos, "array init [...] contains incompatible types ...")
   }
   return 1;
 }
@@ -143,7 +143,7 @@ ANN static Type check_exp_prim_array_match(Exp e) { GWDEBUG_EXE
 ANN static Type check_exp_prim_array(const Env env, const Array_Sub array) { GWDEBUG_EXE
   const Exp e = array->exp;
   if(!e)
-    CHECK_BO(err_msg(TYPE_, array->pos, "must provide values/expressions for array [...]"))
+    ERR_O(TYPE_, array->pos, "must provide values/expressions for array [...]")
   CHECK_OO(check_exp(env, e))
   return (array->type = check_exp_prim_array_match(e));
 }
@@ -153,8 +153,8 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
     if(v && SAFE_FLAG(env->func, ae_flag_static) && GET_FLAG(v, ae_flag_member))
-      CHECK_BO(err_msg(TYPE_, primary->self->pos,
-            "non-static member '%s' used from static function.", s_name(primary->d.var)))
+      ERR_O(TYPE_, primary->self->pos,
+            "non-static member '%s' used from static function.", s_name(primary->d.var))
     return v;
   }
   return value;
@@ -163,8 +163,8 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 ANN static Type check_exp_prim_id_non_res(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
   const Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, ae_flag_checked))
-    CHECK_BO(err_msg(TYPE_, primary->self->pos,
-          "variable %s not legit at this point.", s_name(primary->d.var)))
+    ERR_O(TYPE_, primary->self->pos,
+          "variable %s not legit at this point.", s_name(primary->d.var))
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;
@@ -174,9 +174,9 @@ ANN static Type check_exp_prim_id_non_res(const Env env, const Exp_Primary* prim
 
 ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
   if(!env->class_def)
-    CHECK_BO(err_msg(TYPE_, primary->self->pos, "keyword 'this' can be used only inside class definition..."))
+    ERR_O(TYPE_, primary->self->pos, "keyword 'this' can be used only inside class definition...")
   if(env->func && !GET_FLAG(env->func, ae_flag_member))
-    CHECK_BO(err_msg(TYPE_, primary->self->pos, "keyword 'this' cannot be used inside static functions..."))
+    ERR_O(TYPE_, primary->self->pos, "keyword 'this' cannot be used inside static functions...")
   primary->self->meta = ae_meta_value;
   return env->class_def;
 }
@@ -230,9 +230,9 @@ ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
       if(isa(t, t_int) > 0)
         e->cast_to = t_float;
       else
-        CHECK_BB(err_msg(TYPE_, e->pos,
+        ERR_B(TYPE_, e->pos,
               "invalid type '%s' in %s value #%d...\n"
-              "    (must be of type 'int' or 'float')", t->name, s, count))
+              "    (must be of type 'int' or 'float')", t->name, s, count)
     }
     ++count;
   } while((e = e->next));
@@ -265,15 +265,15 @@ ANN static Type check_exp_prim_vec(const Env env, const Vec* vec, const ae_Exp_P
   struct VecInfo info = { NULL, NULL, vec->dim };
   vec_info(t, &info);
   if(vec->dim > info.n)
-    CHECK_BO(err_msg(TYPE_, vec->exp->pos,
-          "extraneous component of %s value...", info.s))
+    ERR_O(TYPE_, vec->exp->pos,
+          "extraneous component of %s value...", info.s)
   CHECK_BO(vec_value(env, vec->exp, info.s))
   return info.t;
 }
 
 ANN static Type check_exp_prim_gack(const Env env, const Exp e) { GWDEBUG_EXE
   if(e->exp_type == ae_exp_decl)
-    CHECK_BO(err_msg(TYPE_, e->pos, "cannot use <<< >>> on variable declarations...\n"))
+    ERR_O(TYPE_, e->pos, "cannot use <<< >>> on variable declarations...\n")
   CHECK_OO((check_exp(env, e)))
   return t_gack;
 }
@@ -323,20 +323,20 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   do {
     ++depth;
     if(isa(e->type, t_int) < 0)
-      CHECK_BO(err_msg(TYPE_,  e->pos, "array index %i must be of type 'int', not '%s'",
-            depth, e->type->name))
+      ERR_O(TYPE_,  e->pos, "array index %i must be of type 'int', not '%s'",
+            depth, e->type->name)
   } while((e = e->next));
   if(depth != array->array->depth)
-    CHECK_BO(err_msg(TYPE_, array->self->pos, "invalid array acces expression."))
+    ERR_O(TYPE_, array->self->pos, "invalid array acces expression.")
 
   while(t_base && array->array->depth > t_base->array_depth) {
      depth -= t_base->array_depth;
      if(t_base->parent)
        t_base = t_base->parent;
      else
-       CHECK_BO(err_msg(TYPE_,  array->self->pos,
+       ERR_O(TYPE_,  array->self->pos,
              "array subscripts (%i) exceeds defined dimension (%i)",
-             array->array->depth, t_base->array_depth))
+             array->array->depth, t_base->array_depth)
   }
   return depth == t_base->array_depth ? array_base(t_base) :
     array_type(array_base(t_base), t_base->array_depth - depth);
@@ -511,7 +511,7 @@ next:
   }
   free(tmpl_name);
   if(mismatch < 0)
-    CHECK_BO(err_msg(TYPE_, exp_func->self->pos, "template type number mismatch."))
+    ERR_O(TYPE_, exp_func->self->pos, "template type number mismatch.")
   env_pop(env, class_scope);
   (void)err_msg(TYPE_, exp_func->self->pos, "arguments do not match for template call");
   return NULL;
@@ -567,9 +567,9 @@ ANN static Value get_template_value(const Env env, const Exp exp_func) {
   if(v)
     UNSET_FLAG(v->d.func_ref->def, ae_flag_template);
   else
-    CHECK_BO(err_msg(TYPE_, exp_func->pos,
+    ERR_O(TYPE_, exp_func->pos,
       "unhandled expression type '%" UINT_F "\' in template call.",
-      exp_func->exp_type))
+      exp_func->exp_type)
   return v;
 }
 
@@ -622,8 +622,8 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
     list = list->next;
   }
   if(args_number < type_number)
-    CHECK_BO(err_msg(TYPE_, exp_func->pos,
-          "not able to guess types for template call."))
+    ERR_O(TYPE_, exp_func->pos,
+          "not able to guess types for template call.")
   Tmpl_Call tmpl = { tl[0], NULL };
   const Exp_Func tmp_func = { exp_func, args, NULL, &tmpl, NULL };
   *m_func = get_template_func(env, &tmp_func, value);
@@ -632,11 +632,11 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value* ptr) { GWDEBUG_EXE
   if(!(exp_func->type = check_exp(env, exp_func)))
-    CHECK_BB(err_msg(TYPE_, exp_func->pos,
-          "function call using a non-existing function"))
+    ERR_B(TYPE_, exp_func->pos,
+          "function call using a non-existing function")
   if(isa(exp_func->type, t_function) < 0)
-    CHECK_BB(err_msg(TYPE_, exp_func->pos,
-          "function call using a non-function value"))
+    ERR_B(TYPE_, exp_func->pos,
+          "function call using a non-function value")
   if(exp_func->exp_type == ae_exp_primary && exp_func->d.exp_primary.value &&
     !GET_FLAG(exp_func->d.exp_primary.value, ae_flag_const))
       *ptr = exp_func->d.exp_primary.value;
@@ -673,8 +673,8 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
 
 ANN static m_bool multi_decl(const Exp e, const Operator op) {
   if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.list->next)
-    CHECK_BB(err_msg(TYPE_, e->pos,
-          "cant '%s' from/to a multi-variable declaration.", op2str(op)))
+    ERR_B(TYPE_, e->pos,
+          "cant '%s' from/to a multi-variable declaration.", op2str(op))
   return 1;
 }
 
@@ -689,7 +689,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
   CHECK_OO(opi.rhs)
   const Type op_ret = op_check(env, &opi);
   if(!op_ret)
-    CHECK_BO(err_msg(TYPE_, bin->self->pos, "in binary expression"))
+    ERR_O(TYPE_, bin->self->pos, "in binary expression")
   OPTIMIZE_CONST(bin)
   return op_ret;
 }
@@ -717,14 +717,14 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   const Type unit = check_exp(env, dur->unit);
   CHECK_OO(unit)
   if(isa(base, t_int) < 0 && isa(base, t_float) < 0) {
-    CHECK_BO(err_msg(TYPE_, dur->base->pos,
+    ERR_O(TYPE_, dur->base->pos,
           "invalid type '%s' in prefix of dur expression...\n"
-          "    (must be of type 'int' or 'float')", base->name))
+          "    (must be of type 'int' or 'float')", base->name)
   }
   if(isa(unit, t_dur) < 0) {
-    CHECK_BO(err_msg(TYPE_, dur->unit->pos,
+    ERR_O(TYPE_, dur->unit->pos,
           "invalid type '%s' in postfix of dur expression...\n"
-          "    (must be of type 'dur')", unit->name))
+          "    (must be of type 'dur')", unit->name)
   }
   return unit;
 }
@@ -740,16 +740,16 @@ ANN static Type check_exp_call(const Env env, Exp_Func* call) { GWDEBUG_EXE
       const Type t = isa(base, t_class) > 0 ? base->d.base_type : base;
       v = find_value(t, call->func->d.exp_dot.xid);
       } else
-      CHECK_BO(err_msg(TYPE_, call->self->pos, "invalid template call."))
+      ERR_O(TYPE_, call->self->pos, "invalid template call.")
     if(!v)
-      CHECK_BO(err_msg(TYPE_, call->self->pos,
-            " template call of non-existant function."))
+      ERR_O(TYPE_, call->self->pos,
+            " template call of non-existant function.")
     if(!GET_FLAG(v, ae_flag_func))
-      CHECK_BO(err_msg(TYPE_, call->self->pos,
-            "template call of non-function value."))
+      ERR_O(TYPE_, call->self->pos,
+            "template call of non-function value.")
     if(!v->d.func_ref->def->tmpl)
-      CHECK_BO(err_msg(TYPE_, call->self->pos,
-            "template call of non-template function."))
+      ERR_O(TYPE_, call->self->pos,
+            "template call of non-template function.")
     const Func ret = find_template_match(env, v, call);
     CHECK_OO(ret)
       call->m_func = ret;
@@ -785,13 +785,13 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
   const Type else_exp = check_exp(env, exp_if->else_exp);
   CHECK_OO(else_exp)
   if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
-    CHECK_BO(err_msg(TYPE_, exp_if->self->pos,
-          "Invalid type '%s' in if expression condition.", cond->name))
+    ERR_O(TYPE_, exp_if->self->pos,
+          "Invalid type '%s' in if expression condition.", cond->name)
   const Type ret = find_common_anc(if_exp, else_exp);
   if(!ret)
-    CHECK_BO(err_msg(TYPE_, exp_if->self->pos,
+    ERR_O(TYPE_, exp_if->self->pos,
           "incompatible types '%s' and '%s' in if expression...",
-          if_exp->name, else_exp->name))
+          if_exp->name, else_exp->name)
   return ret;
 }
 
@@ -801,27 +801,27 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   const m_bool base_static = isa(member->t_base, t_class) > 0;
   const Type the_base = base_static ? member->t_base->d.base_type : member->t_base;
   if(!the_base->nspc)
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
+    ERR_O(TYPE_,  member->base->pos,
           "type '%s' does not have members - invalid use in dot expression of %s",
-          the_base->name, str))
+          the_base->name, str)
   if(!strcmp(str, "this") && base_static)
-    CHECK_BO(err_msg(TYPE_,  member->self->pos,
-          "keyword 'this' must be associated with object instance..."))
+    ERR_O(TYPE_,  member->self->pos,
+          "keyword 'this' must be associated with object instance...")
   const Value value = find_value(the_base, member->xid);
   if(!value)
-    CHECK_BO(err_msg(TYPE_,  member->base->pos,
-          "class '%s' has no member '%s'", the_base->name, str))
+    ERR_O(TYPE_,  member->base->pos,
+          "class '%s' has no member '%s'", the_base->name, str)
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
     if(GET_FLAG(value, ae_flag_private))
-      CHECK_BO(err_msg(TYPE_,  member->self->pos,
-          "can't access private '%s' outside of class...", value->name))
+      ERR_O(TYPE_,  member->self->pos,
+          "can't access private '%s' outside of class...", value->name)
     else if(GET_FLAG(value, ae_flag_protect))
       member->self->meta = ae_flag_protect;
   }
   if(base_static && GET_FLAG(value, ae_flag_member))
-    CHECK_BO(err_msg(TYPE_, member->self->pos,
+    ERR_O(TYPE_, member->self->pos,
           "cannot access member '%s.%s' without object instance...",
-          the_base->name, str))
+          the_base->name, str)
   if(GET_FLAG(value, ae_flag_const) || GET_FLAG(value, ae_flag_enum))
     member->self->meta = ae_meta_value;
   return value->type;
@@ -898,8 +898,7 @@ ANN static m_bool check_flow(const Exp exp) { GWDEBUG_EXE
   if(isa(exp->type, t_object) > 0 || isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
      isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
     return 1;
-  CHECK_BB(err_msg(TYPE_,  exp->pos,
-        "invalid type '%s'", exp->type->name))
+  ERR_B(TYPE_,  exp->pos, "invalid type '%s'", exp->type->name)
   return 1;
 }
 
@@ -915,7 +914,7 @@ const m_str str = stmt->self->stmt_type == ae_stmt_while ? "while" : "until";
   if(stmt->is_do)
     CHECK_OB(check_exp(env, stmt->cond))
   if(check_flow(stmt->cond) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in '%s' condition.", str))
+    ERR_B(TYPE_, stmt->cond->pos, "\t... in '%s' condition.", str)
   vector_pop(&env->breaks);
   vector_pop(&env->conts);
   return 1;
@@ -932,11 +931,11 @@ ANN static m_bool check_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
   CHECK_BB(check_stmt(env, stmt->c1))
   CHECK_BB(check_stmt(env, stmt->c2))
   if(!stmt->c2 || !stmt->c2->d.stmt_exp.val)
-    CHECK_BB(err_msg(EMIT_, stmt->self->pos, "empty for loop condition...",
+    ERR_B(EMIT_, stmt->self->pos, "empty for loop condition...",
           "...(note: explicitly use 'true' if it's the intent)",
-          "...(e.g., 'for(; true;){ /*...*/ }')"))
+          "...(e.g., 'for(; true;){ /*...*/ }')")
   if(check_flow(stmt->c2->d.stmt_exp.val) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->c2->pos, "\t... in 'for' condition."))
+    ERR_B(TYPE_, stmt->c2->pos, "\t... in 'for' condition.")
   if(stmt->c3)
     CHECK_OB(check_exp(env, stmt->c3))
   return check_breaks(env, stmt->self, stmt->body);
@@ -949,8 +948,8 @@ ANN static m_bool check_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG
   if(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
   if(!t || !ptr || isa(t, t_array) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos, "type '%s' is not array.\n"
-          " This is not allowed in auto loop", stmt->exp->type->name))
+    ERR_B(TYPE_, stmt->self->pos, "type '%s' is not array.\n"
+          " This is not allowed in auto loop", stmt->exp->type->name)
   if(stmt->is_ptr) {
     struct ID_List_   id0, id;
     struct Type_List_ tl;
@@ -990,8 +989,8 @@ ANN static m_bool check_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG
     if(isa(type, t_float) > 0)
       stmt->cond->cast_to = t_int;
     else
-      CHECK_BB(err_msg(TYPE_, stmt->self->pos,
-            "loop * conditional must be of type 'int'..."))
+      ERR_B(TYPE_, stmt->self->pos,
+            "loop * conditional must be of type 'int'...")
   }
   return check_breaks(env, stmt->self, stmt->body);
 }
@@ -1000,7 +999,7 @@ ANN static m_bool check_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
   CHECK_OB(check_exp(env, stmt->cond))
   if(isa(stmt->cond->type, t_object) > 0)
     if(check_flow(stmt->cond) < 0)
-      CHECK_BB(err_msg(TYPE_, stmt->cond->pos, "\t... in 'if' condition."))
+      ERR_B(TYPE_, stmt->cond->pos, "\t... in 'if' condition.")
   CHECK_BB(check_stmt(env, stmt->if_body))
   if(stmt->else_body)
     CHECK_BB(check_stmt(env, stmt->else_body))
@@ -1009,53 +1008,53 @@ ANN static m_bool check_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   if(!env->func)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
-          "'return' statement found outside function definition"))
+    ERR_B(TYPE_, stmt->self->pos,
+          "'return' statement found outside function definition")
   const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
   CHECK_OB(ret_type)
   if(isa(ret_type, t_null) > 0 &&
      isa(env->func->def->ret_type, t_object) > 0)
     return 1;
   if(isa(ret_type, env->func->def->ret_type) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
+    ERR_B(TYPE_, stmt->self->pos,
           "invalid return type '%s' -- expecting '%s'",
-          ret_type->name, env->func->def->ret_type->name))
+          ret_type->name, env->func->def->ret_type->name)
   return 1;
 }
 
 ANN static m_bool check_stmt_continue(const Env env, const Stmt stmt) { GWDEBUG_EXE
   if(!vector_size(&env->conts))
-    CHECK_BB(err_msg(TYPE_, stmt->pos,
-             "'continue' found outside of for/while/until..."))
+    ERR_B(TYPE_, stmt->pos,
+             "'continue' found outside of for/while/until...")
   return 1;
 }
 
 ANN static m_bool check_stmt_break(const Env env, const Stmt stmt) { GWDEBUG_EXE
   if(!vector_size(&env->breaks))
-    CHECK_BB(err_msg(TYPE_,  stmt->pos,
-             "'break' found outside of for/while/until..."))
+    ERR_B(TYPE_,  stmt->pos,
+             "'break' found outside of for/while/until...")
   return 1;
 }
 
 ANN static m_bool check_stmt_switch(const Env env, const Stmt_Switch a) { GWDEBUG_EXE
   const Type t = check_exp(env, a->val);
   if(!t || isa(t, t_int) < 0)
-    CHECK_BB(err_msg(TYPE_, a->val->pos,
+    ERR_B(TYPE_, a->val->pos,
           "invalid type '%s' in switch expression. should be 'int'",
-          t ? t->name : "unknown"))
+          t ? t->name : "unknown")
   return check_breaks(env, a->self, a->stmt);
 }
 
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   if(stmt->val->exp_type  != ae_exp_primary &&
       stmt->val->exp_type != ae_exp_dot)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
-          "unhandled expression type '%i'", stmt->val->exp_type))
+    ERR_B(TYPE_, stmt->self->pos,
+          "unhandled expression type '%i'", stmt->val->exp_type)
   const Type t = check_exp(env, stmt->val);
   if(!t || isa(t, t_int) < 0)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
+    ERR_B(TYPE_, stmt->self->pos,
           "invalid type '%s' case expression. should be 'int'",
-          t ? t->name : "unknown"))
+          t ? t->name : "unknown")
   return 1;
 }
 
@@ -1067,16 +1066,16 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
                 (m_uint*)env->class_def : (m_uint*)env->func;
   const Map m = label->ptr ? (Map)map_get(label, (vtype)key) : NULL;
   if(!m)
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
-          "label '%s' used but not defined", s_name(stmt->name)))
+    ERR_B(TYPE_, stmt->self->pos,
+          "label '%s' used but not defined", s_name(stmt->name))
   const Stmt_Jump ref = (Stmt_Jump)map_get(m, (vtype)stmt->name);
   if(!ref) {
     for(m_uint i = 0; i < map_size(m); ++i) {
       const Stmt_Jump s = (Stmt_Jump)map_at(m, i);
       vector_release(&s->data.v);
     }
-    CHECK_BB(err_msg(TYPE_, stmt->self->pos,
-          "label '%s' used but not defined", s_name(stmt->name)))
+    ERR_B(TYPE_, stmt->self->pos,
+          "label '%s' used but not defined", s_name(stmt->name))
   }
   vector_add(&ref->data.v, (vtype)stmt);
   return 1;
@@ -1092,7 +1091,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
       if(!GET_FLAG(stmt, ae_flag_static))
         check_exp_decl_member(env->curr, stmt->value);
       else
-        check_exp_decl_static(env, stmt->value, stmt->self->pos);
+        check_exp_decl_static(env, stmt->value);
     }
     env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
   } else if(env->class_def)  {
@@ -1108,7 +1107,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ae_flag_ref))
-      CHECK_BB(err_msg(TYPE_, l->self->pos, "In union, Objects must be declared as reference (use '@')"))
+      ERR_B(TYPE_, l->self->pos, "In union, Objects must be declared as reference (use '@')")
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
   } while((l = l->next));
@@ -1190,17 +1189,17 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
   const m_str p_name = parent->value_ref->owner_class->name;
   const m_str f_name = s_name(f->name);
   if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
-    CHECK_BB(err_msg(TYPE_, f->td->pos,
+    ERR_B(TYPE_, f->td->pos,
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
-          GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name))
+          GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name)
   }
   if(isa(f->ret_type, parent->def->ret_type) <  0) {
-    CHECK_BB(err_msg(TYPE_, f->td->pos,
+    ERR_B(TYPE_, f->td->pos,
           "function signatures differ in return type...\n"
           "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-          c_name, f_name, p_name, f_name))
+          c_name, f_name, p_name, f_name)
   }
   return 1;
 }
@@ -1244,9 +1243,9 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
   do {
     const Value v = arg_list->var_decl->value;
     if(nspc_lookup_value0(env->curr, arg_list->var_decl->xid))
-      CHECK_BB(err_msg(TYPE_, arg_list->var_decl->pos,
-                    "argument %i '%s' is already defined in this scope\n",
-                    count, s_name(arg_list->var_decl->xid)))
+      ERR_B(TYPE_, arg_list->var_decl->pos,
+                    "argument %i '%s' is already defined in this scope",
+                    count, s_name(arg_list->var_decl->xid))
     SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, arg_list->var_decl->xid, v);
     ++count;
@@ -1259,9 +1258,9 @@ ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
   sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
   const Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
   if(f2 && compat_func(def, f2->def) > 0) {
-    CHECK_BB(err_msg(TYPE_, f2->def->td->pos,
+    ERR_B(TYPE_, f2->def->td->pos,
         "global function '%s' already defined for those arguments",
-        s_name(def->name)))
+        s_name(def->name))
   }
   return 1;
 }
@@ -1288,10 +1287,10 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
   if(env->class_def) {
     const Value override = find_value(env->class_def->parent, f->name);
     if(override && isa(override->type, t_function) < 0)
-      CHECK_BB(err_msg(TYPE_, f->td->pos,
+      ERR_B(TYPE_, f->td->pos,
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
-            s_name(f->name), override->owner_class->name))
+            s_name(f->name), override->owner_class->name)
   }
   if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
@@ -1370,16 +1369,16 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
     }
   }
   if(isa(class_def->type->parent, t_object) < 0)
-    CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
-            "cannot extend primitive type '%s'", class_def->type->parent->name))
+    ERR_B(TYPE_, class_def->ext->pos,
+            "cannot extend primitive type '%s'", class_def->type->parent->name)
   if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {
     if(GET_FLAG(class_def->ext, ae_flag_typedef)) // ??????
       CHECK_BB(check_class_def(env, class_def->type->parent->def))
     else
-      CHECK_BB(err_msg(TYPE_, class_def->ext->pos,
+      ERR_B(TYPE_, class_def->ext->pos,
             "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
-            class_def->type->parent->name))
+            class_def->type->parent->name)
   }
   if(GET_FLAG(class_def->type->parent, ae_flag_typedef))
     SET_FLAG(class_def->type, ae_flag_typedef);

@@ -24,8 +24,8 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   const Type type = decl->type;
   if(GET_FLAG(type, ae_flag_abstract) && !GET_FLAG(decl->td, ae_flag_ref))
-    CHECK_BB(err_msg(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
-        ". (use @)", type->name))
+    ERR_B(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
+        ". (use @)", type->name)
   if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2))
     CHECK_BB(scan2_exp_decl_template(env, decl))
   m_uint class_scope;
@@ -49,8 +49,8 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
       list->var_decl->value->type = list->type;
   }
   if(!list->type->size)
-    CHECK_BB(err_msg(SCAN2_, list->var_decl->pos,
-          "cannot declare variables of size '0' (i.e. 'void')..."))
+    ERR_B(SCAN2_, list->var_decl->pos,
+          "cannot declare variables of size '0' (i.e. 'void')...")
   if(isres(list->var_decl->xid) > 0)
     return -1;
   if(GET_FLAG(list->td, ae_flag_ref))
@@ -109,10 +109,10 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
   if(nspc_lookup_func2(env->curr, ptr->xid))
-    CHECK_BB(err_msg(SCAN2_, ptr->td->pos,
-          "function type '%s' already defined.", s_name(ptr->xid)))
+    ERR_B(SCAN2_, ptr->td->pos,
+          "function type '%s' already defined.", s_name(ptr->xid))
   if(d.arg_list && scan2_arg_def(env, &d) < 0)
-    CHECK_BB(err_msg(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid)))
+    ERR_B(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid))
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
@@ -309,8 +309,8 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
     if(map_get(m, (vtype)stmt->name)) {
       Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
-      CHECK_BB(err_msg(SCAN2_, stmt->self->pos,
-            "label '%s' already defined", s_name(stmt->name)))
+      ERR_B(SCAN2_, stmt->self->pos,
+            "label '%s' already defined", s_name(stmt->name))
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);
@@ -321,8 +321,8 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
 ANN m_bool scan2_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
-    CHECK_BB(err_msg(SCAN2_, stmt->self->pos,
-          "'%s' already declared as variable", s_name(stmt->xid)))
+    ERR_B(SCAN2_, stmt->self->pos,
+          "'%s' already declared as variable", s_name(stmt->xid))
   return 1;
 }
 
@@ -409,13 +409,13 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, ae_flag_template);
   if(isa(overload->type, t_function) < 0)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
+    ERR_B(SCAN2_, f->td->pos,
           "function name '%s' is already used by another value",
-          s_name(f->name)))
+          s_name(f->name))
   if((!tmpl && base) ||
       (tmpl && !base && !GET_FLAG(f, ae_flag_template)))
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
-          "must override template function with template"))
+    ERR_B(SCAN2_, f->td->pos,
+          "must override template function with template")
   return 1;
 }
 
@@ -510,10 +510,10 @@ ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, con
                   func->def->ret_type->name,
                   overload->d.func_ref->def->ret_type->name);
           if(env->class_def)
-            CHECK_BB(err_msg(SCAN2_, func->def->td->pos,
+            ERR_B(SCAN2_, func->def->td->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, name,
-                    value->owner_class->name, name))
+                    value->owner_class->name, name)
         }
   }
   SET_FLAG(value, ae_flag_checked);
@@ -637,8 +637,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   } else
     f->func = base;
   if(f->arg_list && scan2_arg_def(env, f) < 0)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
-          "\t... in function '%s'\n", s_name(f->name)))
+    ERR_B(SCAN2_, f->td->pos,
+          "\t... in function '%s'\n", s_name(f->name))
   if(!base) {
     if(GET_FLAG(f, ae_flag_op))
       return scan2_func_def_op(env, f);

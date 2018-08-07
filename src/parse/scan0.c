@@ -23,9 +23,9 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   const m_str name = s_name(stmt->xid);
   const Value v = nspc_lookup_value1(env->curr, stmt->xid);
   if(v)
-    CHECK_BB(err_msg(SCAN0_, stmt->td->pos,
+    ERR_B(SCAN0_, stmt->td->pos,
           "value '%s' already defined in this scope"
-          " with type '%s'.", s_name(stmt->xid), v->type->name))
+          " with type '%s'.", s_name(stmt->xid), v->type->name)
   const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
     env->curr : env->global_nspc;
@@ -45,9 +45,9 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   if(!base)
     CHECK_BB(type_unknown(stmt->td->xid, "typedef"))
   if(v)
-    CHECK_BB(err_msg(SCAN0_, stmt->td->pos,
+    ERR_B(SCAN0_, stmt->td->pos,
           "value '%s' already defined in this scope"
-          " with type '%s'.", s_name(stmt->xid), v->type->name))
+          " with type '%s'.", s_name(stmt->xid), v->type->name)
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
@@ -73,13 +73,11 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 }
 
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  if(!env->class_def && GET_FLAG(stmt, ae_flag_private))
-    CHECK_BB(err_msg(SCAN0_, stmt->self->pos, "'private' can only be used at class scope."))
-  else if(env->class_def && GET_FLAG(stmt, ae_flag_global))
-    UNSET_FLAG(stmt, ae_flag_global);
+  CHECK_BB(env_access(env, stmt->flag))
+  env_storage(env, &stmt->flag);
   if(stmt->xid && nspc_lookup_value0(env->curr, stmt->xid))
-    CHECK_BB(err_msg(SCAN0_, stmt->self->pos,
-          "'%s' already declared as variable", s_name(stmt->xid)))
+    ERR_B(SCAN0_, stmt->self->pos,
+          "'%s' already declared as variable", s_name(stmt->xid))
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
@@ -139,12 +137,12 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     env->curr = env->global_nspc;
   }
   if(nspc_lookup_type1(env->curr, class_def->name->xid))
-    CHECK_BB(err_msg(SCAN0_,  class_def->name->pos,
+    ERR_B(SCAN0_,  class_def->name->pos,
           "class/type '%s' is already defined in namespace '%s'",
-          s_name(class_def->name->xid), env->curr->name))
+          s_name(class_def->name->xid), env->curr->name)
   if(isres(class_def->name->xid) > 0) {
-    CHECK_BB(err_msg(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
-          s_name(class_def->name->xid)))
+    ERR_B(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
+          s_name(class_def->name->xid))
   }
   return 1;
 }

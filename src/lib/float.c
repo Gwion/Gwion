@@ -198,7 +198,7 @@ ANN static m_bool import_values(const Gwi gwi) {
 
 static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  CHECK_BO(err_msg(TYPE_, bin->self->pos, "can't assign 'now' to 'now'"))
+  ERR_O(TYPE_, bin->self->pos, "can't assign 'now' to 'now'")
   return NULL;
 }
 

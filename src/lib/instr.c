@@ -363,11 +363,11 @@ INSTR(Alloc_Member) { GWDEBUG_EXE
 }
 
 INSTR(Dot_Static_Data) { GWDEBUG_EXE
-  const m_bit* tgt = REG(-SZ_INT);
   const Type t = *(Type*)tgt;
-  const m_bit* data = t->nspc->class_data + instr->m_val;
+  m_bit* tgt = REG(-SZ_INT);
+  m_bit* data = t->nspc->class_data + instr->m_val;
   if(*(m_uint*)instr->ptr)
-    *(const m_bit**)tgt = data;
+    *(m_bit**)tgt = data;
   else
     memcpy(tgt, data, instr->m_val2);
   PUSH_REG(shred, instr->m_val2 - SZ_INT);

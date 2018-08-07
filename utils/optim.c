@@ -133,13 +133,13 @@ ANN static m_bool constant_folding(const Exp_Binary* bin) {
       if(r->d.exp_primary.d.num)
        ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
       else
-       CHECK_BB(err_msg(TYPE_, r->pos, "divide by zero"))
+       ERR_B(TYPE_, r->pos, "divide by zero")
        break;
     case op_percent:
       if(r->d.exp_primary.d.num)
         ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
       else
-        CHECK_BB(err_msg(TYPE_, r->pos, "divide by zero"))
+        ERR_B(TYPE_, r->pos, "divide by zero")
       break;
     case op_shift_left:
       ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;

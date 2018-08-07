@@ -458,7 +458,7 @@ ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBU
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) { GWDEBUG_EXE
     free_vector(v);
-    CHECK_BB(err_msg(EMIT_, exp->pos, "\t... in 'gack' expression."))
+    ERR_B(EMIT_, exp->pos, "\t... in 'gack' expression.")
   }
   const Instr instr = emitter_add_instr(emit, Gack);
   *(Vector*)instr->ptr = v;
@@ -768,7 +768,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       CHECK_BB(traverse_template(emit->env,
             func->value_ref->owner_class->def))
     if(emit_func_def(emit, func->def) < 0)
-      CHECK_BB(err_msg(EMIT_, 0, "can't emit func.")) // LCOV_EXCL_LINE
+      ERR_B(EMIT_, 0, "can't emit func.") // LCOV_EXCL_LINE
     const Instr code = emitter_add_instr(emit, Reg_Push_Ptr);
     *(VM_Code*)code->ptr = func->code = func->def->func->code;
   } else
@@ -1240,25 +1240,25 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   else {
     if(emit->cases && !strcmp(s_name(stmt->name), "default")) {
       if(emit->default_case_index != -1)
-        CHECK_BB(err_msg(EMIT_, stmt->self->pos, "default case already defined"))
+        ERR_B(EMIT_, stmt->self->pos, "default case already defined")
         emit->default_case_index = emit_code_size(emit);
       return 1;
     }
     if(!stmt->data.v.ptr) {
       emit->cases = NULL; // check me (mem leak?)
-      CHECK_BB(err_msg(EMIT_, stmt->self->pos, "illegal case"))
+      ERR_B(EMIT_, stmt->self->pos, "illegal case")
     }
     const m_uint size = vector_size(&stmt->data.v);
     if(!size) {
       vector_release(&stmt->data.v);
-      CHECK_BB(err_msg(EMIT_, stmt->self->pos, "label '%s' defined but not used.", s_name(stmt->name)))
+      ERR_B(EMIT_, stmt->self->pos, "label '%s' defined but not used.", s_name(stmt->name))
     }
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
       const Stmt_Jump label = (Stmt_Jump)vector_at(&stmt->data.v, i - 1);
       if(!label->data.instr) {
         vector_release(&stmt->data.v);
-        CHECK_BB(err_msg(EMIT_, label->self->pos, "you are trying to use a upper label."))
+        ERR_B(EMIT_, label->self->pos, "you are trying to use a upper label.")
       }
       label->data.instr->m_val = emit_code_size(emit);
     }
@@ -1271,7 +1271,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   vector_add(&emit->code->stack_break, (vtype)NULL);
   CHECK_BB(emit_exp(emit, stmt->val, 0))
   if(emit->cases)
-    CHECK_BB(err_msg(EMIT_, stmt->self->pos, "swith inside an other switch. this is not allowed for now"))
+    ERR_B(EMIT_, stmt->self->pos, "swith inside an other switch. this is not allowed for now")
     emit->default_case_index = -1;
   emitter_add_instr(emit, start_gc);
   const Instr instr = emitter_add_instr(emit, Branch_Switch);
@@ -1301,11 +1301,11 @@ ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
   else if(prim->d.var == insert_symbol("false"))
     *value = 0;
   else if(prim->d.var == insert_symbol("maybe"))
-    CHECK_BB(err_msg(EMIT_, prim->self->pos, "'maybe' is not constant."))
+    ERR_B(EMIT_, prim->self->pos, "'maybe' is not constant.")
   else {
     if(!GET_FLAG(prim->value, ae_flag_const))
-      CHECK_BB(err_msg(EMIT_, prim->self->pos,
-            "value is not constant."))
+      ERR_B(EMIT_, prim->self->pos,
+            "value is not constant.")
     *value = (m_uint)prim->value->d.ptr; // assume enum.
   }
   return 1;
@@ -1328,10 +1328,10 @@ ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
 ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDEBUG_EXE
   m_int value = 0;
   if(!emit->cases)
-    CHECK_BB(err_msg(EMIT_, stmt->self->pos, "case found outside switch statement. this is not allowed for now"))
+    ERR_B(EMIT_, stmt->self->pos, "case found outside switch statement. this is not allowed for now")
   CHECK_BB(get_case_value(stmt, &value))
   if(map_get(emit->cases, (vtype)value))
-    CHECK_BB(err_msg(EMIT_, stmt->self->pos, "duplicated cases value %i", value))
+    ERR_B(EMIT_, stmt->self->pos, "duplicated cases value %i", value)
   map_set(emit->cases, (vtype)value, (vtype)emit_code_size(emit));
   return 1;
 }
@@ -1564,7 +1564,7 @@ ANN static m_bool emit_vec_member(const Emitter emit, const Exp_Dot* member) { G
 
 ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) { GWDEBUG_EXE
   if(emit->env->func->variadic)
-    CHECK_BB(err_msg(EMIT_, 0, "vararg.start already used. this is an error"))
+    ERR_B(EMIT_, 0, "vararg.start already used. this is an error")
   emit->env->func->variadic = emitter_add_instr(emit, Vararg_start);
   emit->env->func->variadic->m_val = offset;
   emit->env->func->variadic->m_val2 = emit_code_size(emit);
@@ -1573,7 +1573,7 @@ ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) { G
 
 ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWDEBUG_EXE
   if(!emit->env->func->variadic)
-    CHECK_BB(err_msg(EMIT_, 0, "vararg.start not used before vararg.end. this is an error"))
+    ERR_B(EMIT_, 0, "vararg.start not used before vararg.end. this is an error")
   const Instr instr = emitter_add_instr(emit, Vararg_end);
   instr->m_val = offset;
   instr->m_val2 = emit->env->func->variadic->m_val2;
@@ -1622,7 +1622,7 @@ ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, cons
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
   if(GET_FLAG(func, ae_flag_member)) {
     if(emit_exp(emit, member->base, 0) < 0)
-      CHECK_BB(err_msg(EMIT_, member->self->pos, "... in member function")) // LCOV_EXCL_LINE
+      ERR_B(EMIT_, member->self->pos, "... in member function") // LCOV_EXCL_LINE
     emitter_add_instr(emit, Reg_Dup_Last);
     const Instr func_i = emitter_add_instr(emit, Exp_Dot_Func);
     func_i->m_val = func->vt_index;
@@ -1645,7 +1645,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
   if(isa(member->self->type, t_fptr) > 0) { // function pointer
     if(GET_FLAG(value, ae_flag_member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
-        CHECK_BB(err_msg(EMIT_, member->self->pos, "... in member function")) // LCOV_EXCL_LINE
+        ERR_B(EMIT_, member->self->pos, "... in member function") // LCOV_EXCL_LINE
     if(!GET_FLAG(value->type->d.func, ae_flag_global))
       emitter_add_instr(emit, Reg_Dup_Last);
       return emit_member(emit, value, emit_addr);
@@ -1789,7 +1789,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
       !*(m_uint*)emit->env->func->variadic->ptr))
-    CHECK_BB(err_msg(EMIT_, func_def->td->pos, "invalid variadic use"))
+    ERR_B(EMIT_, func_def->td->pos, "invalid variadic use")
   emit_func_def_return(emit);
 //  emit_pop_scope(emit);
   emit_func_def_code(emit, func);
