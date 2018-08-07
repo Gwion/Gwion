@@ -57,7 +57,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, ae_flag_template);
   m_uint class_scope;
   CHECK_OB(t)
-  if(decl->type && !env->func &&
+  if(decl->type && !env->class_scope &&
     !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
     t = decl->type;
   else
@@ -98,7 +98,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     };
     v->value->d.ptr = v->addr;
     v->value->owner = env->curr;
-    v->value->owner_class = env->func ? NULL : env->class_def;
+    v->value->owner_class = env->class_scope ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -219,18 +219,11 @@ ANN static m_bool scan1_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) 
 }
 
 ANN static m_bool scan1_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_EXE
-  const Func f = env->func;
-  if(env->class_def && !env->func)
-   env->func = FAKE_FUNC;
-//  nspc_push_value(env->curr);
   CHECK_BB(scan1_stmt(env, stmt->c1))
   CHECK_BB(scan1_stmt(env, stmt->c2))
   if(stmt->c3)
     CHECK_BB(scan1_exp(env, stmt->c3))
-  CHECK_BB(scan1_stmt(env, stmt->body))
-//  nspc_pop_value(env->curr);
-  env->func = f;
-  return 1;
+  return scan1_stmt(env, stmt->body);
 }
 
 ANN static m_bool scan1_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
@@ -241,7 +234,6 @@ ANN static m_bool scan1_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG
 ANN static m_bool scan1_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, stmt->cond))
   return scan1_stmt(env, stmt->body);
-  return 1;
 }
 
 ANN static m_bool scan1_stmt_switch(const Env env, const Stmt_Switch stmt) { GWDEBUG_EXE
@@ -255,9 +247,7 @@ ANN static m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
 ANN static m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, stmt->cond))
   CHECK_BB(scan1_stmt(env, stmt->if_body))
-  if(stmt->else_body)
-    CHECK_BB(scan1_stmt(env, stmt->else_body))
-  return 1;
+  return stmt->else_body ? scan1_stmt(env, stmt->else_body) : 1;
 }
 
 ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
@@ -510,8 +500,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
     if(type_ref(parent)) {
-//      REM_REF(class_def->type->nspc)
-      REM_REF(t_array->nspc)
+      REM_REF(class_def->type->nspc) // => t_array->nspc
       CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
     }
     class_def->type->parent = parent;
