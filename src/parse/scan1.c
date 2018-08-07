@@ -500,7 +500,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
     if(type_ref(parent)) {
-      REM_REF(class_def->type->nspc) // => t_array->nspc
+      REM_REF(t_array->nspc)
       CHECK_BB(err_msg(SCAN1_, class_def->ext->pos, "can't use ref type in class extend"))
     }
     class_def->type->parent = parent;
