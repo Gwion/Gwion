@@ -177,7 +177,7 @@ extern int gwion_debug;
     SPORK = 308,
     CLASS = 309,
     STATIC = 310,
-    PUBLIC = 311,
+    GLOBAL = 311,
     PRIVATE = 312,
     PROTECT = 313,
     EXTENDS = 314,
@@ -277,7 +277,7 @@ extern int gwion_debug;
 #define SPORK 308
 #define CLASS 309
 #define STATIC 310
-#define PUBLIC 311
+#define GLOBAL 311
 #define PRIVATE 312
 #define PROTECT 313
 #define EXTENDS 314
@@ -715,7 +715,7 @@ static const char *const yytname[] =
   "TILDA", "QUESTION", "COLON", "EXCLAMATION", "IF", "ELSE", "WHILE", "DO",
   "UNTIL", "LOOP", "FOR", "GOTO", "SWITCH", "CASE", "ENUM", "RETURN",
   "BREAK", "CONTINUE", "PLUSPLUS", "MINUSMINUS", "NEW", "SPORK", "CLASS",
-  "STATIC", "PUBLIC", "PRIVATE", "PROTECT", "EXTENDS", "DOT", "COLONCOLON",
+  "STATIC", "GLOBAL", "PRIVATE", "PROTECT", "EXTENDS", "DOT", "COLONCOLON",
   "AND", "EQ", "GE", "GT", "LE", "LT", "MINUS", "PLUS", "NEQ",
   "SHIFT_LEFT", "SHIFT_RIGHT", "S_AND", "S_OR", "S_XOR", "OR", "AST_DTOR",
   "OPERATOR", "TYPEDEF", "RSL", "RSR", "RSAND", "RSOR", "RSXOR",

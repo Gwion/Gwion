@@ -98,7 +98,7 @@ extern int gwion_debug;
     SPORK = 308,
     CLASS = 309,
     STATIC = 310,
-    PUBLIC = 311,
+    GLOBAL = 311,
     PRIVATE = 312,
     PROTECT = 313,
     EXTENDS = 314,
@@ -198,7 +198,7 @@ extern int gwion_debug;
 #define SPORK 308
 #define CLASS 309
 #define STATIC 310
-#define PUBLIC 311
+#define GLOBAL 311
 #define PRIVATE 312
 #define PROTECT 313
 #define EXTENDS 314

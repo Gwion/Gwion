@@ -120,11 +120,15 @@ ANN static int adjust(const void* data);
 "dtor"                              { adjust(yyscanner); return AST_DTOR;}
 "operator"                          { adjust(yyscanner); return OPERATOR;}
 "extends"                           { adjust(yyscanner); return EXTENDS;}
-"public"                            { adjust(yyscanner); return PUBLIC;}
-"private"                           { adjust(yyscanner); return PRIVATE;}
-"protect"                           { adjust(yyscanner); return PROTECT;}
-"static "                           { adjust(yyscanner); return STATIC;}
 "."                                 { adjust(yyscanner); return DOT;}
+
+%{/* storage modifiers */%}
+"global"                            { adjust(yyscanner); return GLOBAL;}
+"private"                           { adjust(yyscanner); return PRIVATE;}
+
+%{/*access modifiers */%}
+"protect"                           { adjust(yyscanner); return PROTECT;}
+"static"                            { adjust(yyscanner); return STATIC;}
 
 "if"                                { adjust(yyscanner); return IF;}
 "else"                              { adjust(yyscanner); return ELSE;}
