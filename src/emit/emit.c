@@ -407,9 +407,17 @@ ANN static m_bool emit_exp_prim_id(const Emitter emit, const Exp_Primary* prim) 
     const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
     instr->m_val = SZ_INT;
     *(m_uint*)instr->ptr = 1;
-  }  else if(prim->d.var == insert_symbol("maybe"))
+  } else if(prim->d.var == insert_symbol("maybe"))
     emitter_add_instr(emit, Reg_Push_Maybe);
-  else
+  else if(prim->d.var == insert_symbol("__func__")) {
+    if(emit->env->func) {
+      const Instr instr = emitter_add_instr(emit, Reg_Push_Str);
+      instr->m_val = s_name(insert_symbol(emit->env->func->name));
+    } else {
+      const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
+      instr->m_val = SZ_INT;
+    }
+  } else
     emit_symbol(emit, prim);
   return 1;
 }

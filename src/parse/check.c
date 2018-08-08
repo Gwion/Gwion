@@ -205,6 +205,9 @@ ANN static Type check_exp_prim_id1(const Env env, const Exp_Primary* primary) { 
   if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
     primary->self->meta = ae_meta_value;
     return t_null;
+  } else if(!strcmp(str, "__func__")) {
+    primary->self->meta = ae_meta_value;
+    return t_string;
   } else
     return check_exp_prim_id2(env, primary);
 }

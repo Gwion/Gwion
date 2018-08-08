@@ -18,6 +18,8 @@ ANN static char* alloc_str(const char* str);
 ANN static long htol(const char* str);
 ANN static int newline(const void* data);
 ANN static int adjust(const void* data);
+ANN static int  get_currline(const void* data);
+ANN static char* get_currfile(const void* data);
 %}
 %option noyywrap
 %option noyylineno noyymore
@@ -149,6 +151,8 @@ ANN static int adjust(const void* data);
 "auto_ptr"                          { adjust(yyscanner); return AUTO_PTR;}
 "auto"                              { adjust(yyscanner); return AUTO;}
 
+"__line__"                              { adjust(yyscanner); yylval->ival = get_currline(yyscanner); return NUM;}
+"__file__"                              { adjust(yyscanner); yylval->sval = get_currfile(yyscanner); return STRING_LIT;}
 
 0[xX][0-9a-fA-F]+{IS}?              { adjust(yyscanner); yylval->ival = htol(yytext);                 return NUM;        }
 0[cC][0-7]+{IS}?                    { adjust(yyscanner); yylval->ival = atoi(yytext);                 return NUM;        }
@@ -212,6 +216,16 @@ int newline(const void* data) {
   scan->line++;
   scan->pos = 1;
   return 1;
+}
+
+int get_currline(const void* data) {
+  Scanner* scan = *(Scanner**)data;
+  return scan->line;
+}
+
+char* get_currfile(const void* data) {
+  Scanner* scan = *(Scanner**)data;
+  return alloc_str(scan->filename);
 }
 
 int adjust(const void* data) {
