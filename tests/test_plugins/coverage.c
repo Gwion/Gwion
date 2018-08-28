@@ -8,7 +8,7 @@ SFUN(coverage_complex) { *(m_complex*)RETURN = 0; }
 SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   *(m_vec3*)RETURN = v; }
 SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
-IMPORT {
+GWION_IMPORT(coverage) {
   Type t_coverage;
   CHECK_OB((t_coverage = gwi_mk_type(gwi, "Coverage", SZ_INT, t_object)))
   CHECK_BB(gwi_class_ini(gwi, t_coverage, NULL, NULL))

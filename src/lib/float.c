@@ -13,15 +13,15 @@ static INSTR(float_assign) { GWDEBUG_EXE
 }
 
 #define describe(name, op) \
-INSTR(float_##name) { GWDEBUG_EXE \
+INSTR(Float##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_FLOAT); \
   *(m_float*)REG(-SZ_FLOAT) op##= *(m_float*)REG(0); \
 }
 
-static describe(plus, +)
-static describe(minus, -)
-describe(times, *)
-static describe(divide, /)
+static describe(Plus, +)
+static describe(Minus, -)
+describe(Times, *)
+static describe(Divide, /)
 
 #define describe_logical(name, op) \
 static INSTR(float_##name) { GWDEBUG_EXE \
@@ -163,7 +163,7 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
 }
 
 
-ANN static m_bool import_values(const Gwi gwi) {
+static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
@@ -213,22 +213,22 @@ static OP_CHECK(opck_implicit_i2f) {
 }
 
 static OP_EMIT(opem_i2f) {
-  CHECK_OB(emitter_add_instr(emit, Cast_i2f))
+  CHECK_OB(emitter_add_instr(emit, CastI2F))
   return 1;
 }
 
 static OP_EMIT(opem_f2i) {
-  CHECK_OB(emitter_add_instr(emit, Cast_f2i))
+  CHECK_OB(emitter_add_instr(emit, CastF2I))
   return 1;
 }
 
-INSTR(Cast_i2f) { GWDEBUG_EXE
+INSTR(CastI2F) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT - SZ_FLOAT);
   *(m_float*)REG(-SZ_FLOAT) = *(m_int*)REG(-SZ_FLOAT);
 }
 
 
-INSTR(Cast_f2i) { GWDEBUG_EXE
+INSTR(CastF2I) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT - SZ_INT);
   *(m_int*)REG(-SZ_INT) = *(m_float*)REG(-SZ_INT);
 }
@@ -237,13 +237,13 @@ INSTR(Cast_f2i) { GWDEBUG_EXE
 #define CHECK_IF(op, check, func) _CHECK_OP(op, check, int_float_##func)
 #define CHECK_FI(op, check, func) _CHECK_OP(op, check, float_int_##func)
 
-ANN m_bool import_float(const Gwi gwi) {
+GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
   CHECK_OP(assign, assign, assign)
-  CHECK_BB(gwi_oper_end(gwi, op_plus,          float_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_minus,         float_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,         float_times))
-  CHECK_BB(gwi_oper_end(gwi, op_divide,        float_divide))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,          FloatPlus))
+  CHECK_BB(gwi_oper_end(gwi, op_minus,         FloatMinus))
+  CHECK_BB(gwi_oper_end(gwi, op_times,         FloatTimes))
+  CHECK_BB(gwi_oper_end(gwi, op_divide,        FloatDivide))
   CHECK_OP(chuck, rassign, r_assign)
   CHECK_OP(plus_chuck, rassign, r_plus)
   CHECK_OP(minus_chuck, rassign, r_minus)
@@ -287,8 +287,8 @@ ANN m_bool import_float(const Gwi gwi) {
   CHECK_IF(times_chuck, rassign, r_times)
   CHECK_IF(divide_chuck, rassign, r_divide)
   CHECK_BB(gwi_oper_emi(gwi, opem_i2f))
-  _CHECK_OP(dollar, basic_cast, Cast_i2f)
-  _CHECK_OP(implicit, implicit_i2f, Cast_i2f)
+  _CHECK_OP(dollar, basic_cast, CastI2F)
+  _CHECK_OP(implicit, implicit_i2f, CastI2F)
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
   CHECK_FI(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_plus,         float_int_plus))
@@ -310,15 +310,15 @@ ANN m_bool import_float(const Gwi gwi) {
   CHECK_FI(times_chuck, rassign, r_times)
   CHECK_FI(divide_chuck, rassign, r_divide)
   CHECK_BB(gwi_oper_emi(gwi, opem_f2i))
-  _CHECK_OP(dollar, basic_cast, Cast_f2i)
-  _CHECK_OP(implicit, implicit_f2i, Cast_f2i)
+  _CHECK_OP(dollar, basic_cast, CastF2I)
+  _CHECK_OP(implicit, implicit_f2i, CastF2I)
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
   CHECK_OP(chuck, rassign, r_assign)
-  CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_minus,        float_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,        float_times))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,         FloatPlus))
+  CHECK_BB(gwi_oper_end(gwi, op_minus,        FloatMinus))
+  CHECK_BB(gwi_oper_end(gwi, op_times,        FloatTimes))
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "float"))
-  CHECK_BB(gwi_oper_end(gwi, op_divide,       float_divide))
+  CHECK_BB(gwi_oper_end(gwi, op_divide,       FloatDivide))
 
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))
@@ -330,10 +330,10 @@ ANN m_bool import_float(const Gwi gwi) {
   CHECK_OP(chuck, rassign, r_assign)
 
   CHECK_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
-  CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,         FloatPlus))
   CHECK_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
   CHECK_OP(chuck, rassign, r_assign)
-  CHECK_BB(gwi_oper_end(gwi, op_plus,         float_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_plus,         FloatPlus))
   CHECK_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
   _CHECK_OP(chuck, rassign, Time_Advance)
   CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
@@ -352,3 +352,4 @@ ANN m_bool import_float(const Gwi gwi) {
 #include "ctrl/float.h"
 #include "code/float.h"
 #endif
+

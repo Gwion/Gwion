@@ -27,7 +27,7 @@ ANN void free_vector(const Vector v) {
 }
 
 ANN void vector_add(const Vector v, const vtype data) {
-  if(!(VCAP(v) - VLEN(v) - OFFSET))
+  if(VCAP(v) - VLEN(v) == OFFSET)
     v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) *= 2) * SZ_INT);
   VPTR(v, VLEN(v)++) = (vtype)data;
 }

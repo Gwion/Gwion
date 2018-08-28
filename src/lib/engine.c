@@ -46,15 +46,10 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL)))
   CHECK_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
   CHECK_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
-
-
-//  CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
-//  CHECK_BB(gwi_add_type(gwi, t_shred))
-
   CHECK_BB(import_object(gwi))
+  CHECK_BB(import_array(gwi))
   CHECK_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
   CHECK_BB(gwi_add_type(gwi, t_union))
-  CHECK_BB(import_array(gwi))
   CHECK_BB(import_event(gwi))
   CHECK_BB(import_ugen(gwi))
   CHECK_BB(import_ptr(gwi))
@@ -74,78 +69,24 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   return 1;
 }
 
-ANN static m_bool import_other_libs(const Gwi gwi) {
-  CHECK_BB(import_pair(gwi))
-  CHECK_BB(import_map(gwi))
-  CHECK_BB(import_fileio(gwi))
-  CHECK_BB(import_std(gwi))
-  CHECK_BB(import_math(gwi))
-  CHECK_BB(import_machine(gwi))
-  CHECK_BB(import_soundpipe(gwi))
-  CHECK_BB(import_modules(gwi))
-  return 1;
-}
-
-static int so_filter(const struct dirent* dir) {
-  return strstr(dir->d_name, ".so") ? 1 : 0;
-}
-
-ANN static void handle_plug(const Gwi gwi, const m_str c) {
-  void* handler;
-  if((handler = dlopen(c, RTLD_LAZY))) {
-    m_bool(*import)(Gwi) = (m_bool(*)(Gwi))(intptr_t)dlsym(handler, "import");
-    if(import) {
-      if(import(gwi) > 0) {
-        vector_add(&gwi->vm->plug, (vtype)handler);
-      } else { // maybe we should rollback
-        env_reset(gwi->env);
-        vector_add(&gwi->vm->plug, (vtype)handler);
-       }
-    } else {
-      const char* err = dlerror();
-      if(err_msg(TYPE_, 0, "%s: no import function.", err) < 0)
-        dlclose(handler);
-     }
-  } else {
-    const char* err = dlerror();
-    if(err_msg(TYPE_, 0, "error in %s.", err) < 0){}
-   }
-}
-
-static void add_plugs(Gwi gwi, Vector plug_dirs) {
-   for(m_uint i = 0; i < vector_size(plug_dirs); i++) {
-    const m_str dirname = (m_str)vector_at(plug_dirs, i);
-    struct dirent **namelist;
-    int n = scandir(dirname, &namelist, so_filter, alphasort);
-    if(n > 0) {
-      while(n--) {
-        char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
-        sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-        handle_plug(gwi, c);
-        free(namelist[n]);
-       }
-      free(namelist);
-     }
-   }
-}
-
 ANN Env type_engine_init(VM* vm, const Vector plug_dirs) {
   const Env env = new_env();
-  vm->emit = new_emitter(env);
+  vm->emit->env = env;
   vm->emit->filename = "[builtin]";
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.vm = vm;
   gwi.emit = vm->emit;
   gwi.env = env;
-  if(import_core_libs(&gwi) < 0 ||
-      import_other_libs(&gwi) < 0 ) {
+  if(import_core_libs(&gwi) < 0) {
     free_env(env);
     return NULL;
   }
-  // user nspc
-  /*  env->curr = env->user_nspc = new_nspc("[user]");*/
-  /*  env->user_nspc->parent = env->global_nspc;*/
-  add_plugs(&gwi, plug_dirs);
+  vm->emit->filename = "[imported]";
+  for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
+    m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
+    if(import && import(&gwi) < 0)
+      env_reset(gwi.env);
+  }
   return env;
 }

@@ -44,9 +44,11 @@ ANN void free_op_map(Map map) {
 ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
     const m_str post = strstr(t->name, "<");
-    char c[strlen(t->name) - strlen(post) + 1];
-    memset(c, 0, strlen(t->name) - strlen(post) + 1);
-    strncpy(c, t->name, strlen(t->name) - strlen(post));
+    size_t len = strlen(t->name) -strlen(post);
+    char c[len + 1];
+    for(size_t i = 0; i < len; i++)
+      c[i] = t->name[i];
+    c[len] = 0;
     return nspc_lookup_type1(env->curr, insert_symbol(c));
   }
   return t->parent;
@@ -93,7 +95,7 @@ ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
   if(opi->rhs && opi->rhs != OP_ANY_TYPE)
     ADD_REF(opi->rhs)
   if(opi->ret)
-  ADD_REF(opi->ret)
+    ADD_REF(opi->ret)
   return 1;
 }
 
@@ -164,7 +166,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
 
 ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    const Instr instr = emitter_add_instr(emit, Reg_Push_Imm);
+    const Instr instr = emitter_add_instr(emit, RegPushImm);
     instr->m_val = SZ_INT;
     CHECK_BB(emit_exp_call1(emit, mo->func))
     return 1;

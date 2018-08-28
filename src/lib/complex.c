@@ -36,14 +36,14 @@ describe_r(minus, -)
 describe_r(times, *)
 describe_r(divide, /)
 
-INSTR(complex_real) { GWDEBUG_EXE
+INSTR(ComplexReal) { GWDEBUG_EXE
   if(!instr->m_val) {
     *(m_float*)REG(-SZ_INT) = **(m_float**)REG(-SZ_INT);
     PUSH_REG(shred, SZ_FLOAT - SZ_INT);
   }
 }
 
-INSTR(complex_imag) { GWDEBUG_EXE
+INSTR(ComplexImag) { GWDEBUG_EXE
   if(instr->m_val) {
     const m_float* f = *(m_float**)REG(-SZ_INT);
     *(const m_float**)REG(-SZ_INT) = (f + 1);
@@ -105,7 +105,7 @@ static INSTR(polar_##name##_r) { GWDEBUG_EXE              \
 polar_def2_r(times, *, +)
 polar_def2_r(divide, /, -)
 
-ANN m_bool import_complex(const Gwi gwi) {
+GWION_IMPORT(complex) {
   CHECK_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
 	gwi_item_ini(gwi, "float", "re");
   CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))

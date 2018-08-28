@@ -1,0 +1,10 @@
+class C {
+  fun void test(int i) { <<< "int arg" >>>; }
+  static typedef void (PtrType)(int i);
+  test @=>
+  PtrType p;
+  p(1);
+  test @=> p;
+  p(1);
+}
+C c;

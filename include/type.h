@@ -17,6 +17,9 @@ struct Type_ {
     Func      func;
     Type      base_type;
   } d;
+#ifdef GWMPOOL_DATA
+  struct pool* p;
+#endif
   ae_flag flag;
   HAS_OBJ
 };

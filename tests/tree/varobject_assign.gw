@@ -1,4 +1,4 @@
-fun void test( ...) {
+fun void test(...) {
 	Object o;
 	vararg.start;
 	vararg.o @=> o;

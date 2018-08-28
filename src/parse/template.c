@@ -98,7 +98,6 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
     ptr[15] = '0';
     strcpy(str, ptr);
   }
-puts(s);
   return 1;
 }
 

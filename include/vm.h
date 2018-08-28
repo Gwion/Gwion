@@ -32,17 +32,20 @@ struct VM_Code_ {
 };
 
 typedef struct Shreduler_* Shreduler;
-typedef struct {
-  unsigned int n_in;
-  SPFLOAT* in;
-  sp_data* sp;
+typedef struct VM_ {
   Shreduler shreduler;
   M_Object adc, dac, blackhole; // in a struct with ugen
   Emitter emit;
   struct Vector_ shred;
   struct Vector_ ugen;
-  struct Vector_ plug; // in main?
-  volatile m_bool is_running; // => shreduler
+  struct Scanner_* scan;
+  SPFLOAT* in;
+  sp_data* sp;
+  unsigned int n_in;
+#ifdef JIT
+  pthread_mutex_t mutex;
+#endif
+  volatile unsigned is_running : 1; // => shreduler
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;
@@ -52,7 +55,7 @@ struct VM_Shred_ {
   m_bit* reg;
   m_bit* mem;
   m_bit* _reg;
-  m_bit* _mem;
+//  m_bit* _mem;
   m_bit* base;
   m_uint pc, xid;
   m_str name;

@@ -4,7 +4,7 @@
 
 static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); }
 
-IMPORT {
+GWION_IMPORT(extend_event_test) {
   Type t_ev ;
   CHECK_OB((t_ev = gwi_mk_type(gwi, "Ev", SZ_INT , NULL)))
   CHECK_BB(gwi_class_ini(gwi, t_ev, ev_ctor, NULL))

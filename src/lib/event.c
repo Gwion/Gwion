@@ -44,8 +44,8 @@ static MFUN(event_broadcast) {
   broadcast(o);
 }
 
-m_bool import_event(Gwi gwi) {
-  CHECK_OB((t_event = gwi_mk_type(gwi, "Event", SZ_INT, t_object )))
+GWION_IMPORT(event) {
+  t_event = gwi_mk_type(gwi, "Event", SZ_INT, t_object );
   CHECK_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
   CHECK_BB(gwi_item_ini(gwi, "int", "@shreds"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
@@ -63,3 +63,4 @@ m_bool import_event(Gwi gwi) {
 #include "ctrl/event.h"
 #include "code/event.h"
 #endif
+

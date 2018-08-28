@@ -14,10 +14,10 @@ struct ret_info {
 static INSTR(my_ret) { GWDEBUG_EXE
   struct ret_info* info = (struct ret_info*)instr->m_val;
   POP_MEM(shred, info->offset);
-        vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
+  vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
   shred->code = *(VM_Code*)instr->ptr;
   POP_REG(shred, info->size)
-  if(shred->mem == shred->_mem)
+  if(shred->mem == shred->_reg + SIZEOF_REG)
     POP_REG(shred, SZ_INT)
   POP_REG(shred, shred->code->stack_depth);
   shred->pc = instr->m_val2;
@@ -32,7 +32,7 @@ static SFUN(cb_func) {
   if(!f){
     Except(shred, "NullCallbackException");
   }
-  m_uint offset = shred->mem -shred->_mem;
+  m_uint offset = shred->mem - (shred->_reg + SIZEOF_REG);
   PUSH_MEM(shred, offset);
   Instr instr = new_instr();
   struct ret_info* info = (struct ret_info*)xmalloc(sizeof(struct ret_info));
@@ -44,7 +44,7 @@ static SFUN(cb_func) {
   instr->m_val2 = shred->pc;
   for(i = 0; i < vector_size(f->code->instr); i++) {
     Instr in = (Instr)vector_at(f->code->instr, i);
-    if(in->execute == Func_Return ||
+    if(in->execute == FuncReturn ||
       in->execute == my_ret) {
       info->instr = in;
       vector_set(f->code->instr, i, (vtype)instr);
@@ -55,7 +55,7 @@ static SFUN(cb_func) {
   shred->code = f->code;
 }
 
-IMPORT {
+GWION_IMPORT(callback) {
   CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
   CHECK_BB(gwi_fptr_end(gwi, 0))
 

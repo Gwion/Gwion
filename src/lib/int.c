@@ -34,7 +34,7 @@ static INSTR(int_assign) { GWDEBUG_EXE
 static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
 static INSTR(int_cmp) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = ~*(m_int*)REG(-SZ_INT); }
 
-INSTR(int_not) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(-SZ_INT); }
+INSTR(IntNot) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(-SZ_INT); }
 
 static INSTR(int_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
@@ -80,7 +80,7 @@ describe_r(sxor,   ^,)
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
-ANN m_bool import_int(const Gwi gwi) {
+GWION_IMPORT(int) {
   CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,       int_assign))
@@ -116,9 +116,9 @@ ANN m_bool import_int(const Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi,  op_minus,       int_negate))
-//  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
-//  CHECK_BB(gwi_oper_end(gwi,  op_exclamation, int_not))
-  CHECK_OP(exclamation, unary_meta, not)
+  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
+  CHECK_BB(gwi_oper_end(gwi,  op_exclamation, IntNot))
+//  CHECK_OP(exclamation, unary_meta, not)
   CHECK_OP(plusplus,   unary, pre_inc)
   CHECK_OP(minusminus, unary, pre_dec)
   CHECK_BB(gwi_oper_end(gwi,  op_tilda, int_cmp))
@@ -133,3 +133,4 @@ ANN m_bool import_int(const Gwi gwi) {
 #include "ctrl/int.h"
 #include "code/int.h"
 #endif
+

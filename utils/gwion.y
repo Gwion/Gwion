@@ -3,8 +3,13 @@
 %lex-param  { void* scan }
 %name-prefix "gwion_"
 %{
+#include <string.h> // strlen in paste operation
 #include "absyn.h"
+#include "hash.h"
 #include "scanner.h"
+#include "parser.h"
+#include "lexer.h"
+//ANN int gwion_parse(Scanner* arg);
 #define YYMALLOC xmalloc
 #define scan arg->scanner
 #define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) { gwion_error(a, "flag set twice");  ; } SET_FLAG(b, c);
@@ -17,9 +22,8 @@
       c->tmpl = new_tmpl_class(b, -1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
-int gwion_error(Scanner*, const char*);
-int gwion_lex(void*, Scanner*);
 ANN int get_pos(const Scanner*);
+ANN void gwion_error(const Scanner*, const m_str s);
 m_str op2str(const Operator op);
 %}
 
@@ -56,13 +60,15 @@ m_str op2str(const Operator op);
   SPORK CLASS STATIC GLOBAL PRIVATE PROTECT EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR
+  NOELSE LTB GTB UNION ATPAREN TYPEOF CONST AUTO PASTE ELLIPSE
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
-%type<ival> atsym vec_type arg_type
+%type<ival> atsym vec_type arg_type auto
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
+
+  PP_COMMENT PP_INCLUDE PP_DEFINE PP_UNDEF PP_IFDEF PP_IFNDEF PP_ELSE PP_ENDIF PP_NL
 %type<sym>id opt_id
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
@@ -74,7 +80,7 @@ m_str op2str(const Operator op);
 %type<array_sub> array_exp array_empty
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
-%type<stmt> enum_stmt func_ptr stmt_type union_stmt
+%type<stmt> enum_stmt func_ptr stmt_type union_stmt stmt_pp
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
@@ -90,12 +96,10 @@ m_str op2str(const Operator op);
 
 %nonassoc NOELSE
 %nonassoc ELSE
-
 //%expect 51
 
 %destructor { free_stmt($$); } <stmt>
 %destructor { free_exp($$); } <exp>
-//%destructor { free_type_decl($$); } <type_decl>
 %%
 
 ast
@@ -175,6 +179,18 @@ code_segment
   | LBRACE stmt_list RBRACE { $$ = new_stmt_code($2, get_pos(arg)); }
   ;
 
+stmt_pp
+  : PP_COMMENT { $$ = new_stmt_pp(ae_pp_comment, $1); }
+  | PP_INCLUDE { $$ = new_stmt_pp(ae_pp_include, $1); }
+  | PP_DEFINE  { $$ = new_stmt_pp(ae_pp_define,  $1); }
+  | PP_UNDEF   { $$ = new_stmt_pp(ae_pp_undef,   $1); }
+  | PP_IFDEF   { $$ = new_stmt_pp(ae_pp_ifdef,   $1); }
+  | PP_IFNDEF  { $$ = new_stmt_pp(ae_pp_ifndef,  $1); }
+  | PP_ELSE    { $$ = new_stmt_pp(ae_pp_else,    $1); }
+  | PP_ENDIF   { $$ = new_stmt_pp(ae_pp_endif,   $1); }
+  | PP_NL      { $$ = new_stmt_pp(ae_pp_nl,      $1); }
+  ;
+
 stmt
   : exp_stmt
   | loop_stmt
@@ -189,9 +205,17 @@ stmt
   | func_ptr
   | stmt_type
   | union_stmt
-  ;
+  | stmt_pp
+;
 
-id: ID { $$ = insert_symbol($1); }
+id
+  : ID { $$ = insert_symbol($1); }
+  | ID PASTE id {
+    char c[strlen(s_name($3)) + strlen($1)];
+    sprintf(c, "%s%s", $1, s_name($3));
+    $$ = insert_symbol(c);
+  }
+  ;
 
 opt_id: { $$ = NULL; } | id;
 
@@ -220,6 +244,8 @@ switch_stmt
   : SWITCH LPAREN exp RPAREN code_segment { $$ = new_stmt_switch($3, $5, get_pos(arg));}
   ;
 
+auto: AUTO ATSYM { $$ = 1; } | AUTO { $$ = 0; }
+
 loop_stmt
   : WHILE LPAREN exp RPAREN stmt
     { $$ = new_stmt_flow(ae_stmt_while, $3, $5, 0, get_pos(arg)); }
@@ -229,10 +255,8 @@ loop_stmt
       { $$ = new_stmt_for($3, $4, NULL, $6, get_pos(arg)); }
   | FOR LPAREN exp_stmt exp_stmt exp RPAREN stmt
       { $$ = new_stmt_for($3, $4, $5, $7, get_pos(arg)); }
-  | FOR LPAREN AUTO id COLON binary_exp RPAREN stmt
-      { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); }
-  | FOR LPAREN AUTO_PTR id COLON binary_exp RPAREN stmt
-      { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); $$->d.stmt_auto.is_ptr = 1;}
+  | FOR LPAREN auto id COLON binary_exp RPAREN stmt
+      { $$ = new_stmt_auto($4, $6, $8, $3, get_pos(arg)); }
   | UNTIL LPAREN exp RPAREN stmt
       { $$ = new_stmt_flow(ae_stmt_until, $3, $5, 0, get_pos(arg)); }
   | DO stmt UNTIL LPAREN exp RPAREN SEMICOLON
@@ -309,12 +333,12 @@ decl_exp
 
 func_args
   : LPAREN          { $$ = NULL; }
-  | LPAREN arg_list { $$ = $2; }
+  | LPAREN arg_list  { $$ = $2; }
   ;
 
 arg_type
   : RPAREN                   { $$ = 0; }
-  | DOT DOT DOT RPAREN       { $$ = ae_flag_variadic; }
+  | ELLIPSE RPAREN       { $$ = ae_flag_variadic; }
   ;
 
 decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
@@ -331,8 +355,7 @@ func_def_base
   | PROTECT func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
   | decl_template func_def_base
-    { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
-
+    {
       if($2->tmpl) {
         free_id_list($1);
         free_func_def($2);

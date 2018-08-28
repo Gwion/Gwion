@@ -2,7 +2,7 @@
 #include "type.h"
 #include "import.h"
 
-IMPORT {
+GWION_IMPORT(op_err_test) {
   gwi_oper_ini(gwi, "int", "int", "int"); // ignore the check
   gwi_oper_end(gwi, 220, NULL); // ignore the check.
   CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))

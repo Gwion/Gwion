@@ -1,6 +1,6 @@
 class C
 {
-	template<{a}>
+	template“a”
 	function void test(a var){ <<<var>>>; }
 	class D { int i;}
 }

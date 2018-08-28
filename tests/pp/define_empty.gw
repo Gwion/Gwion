@@ -1,0 +1,5 @@
+//[contains] end of text
+#define macro
+macro
+
+<<<"end of test">>>;

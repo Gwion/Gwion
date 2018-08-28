@@ -1,3 +1,4 @@
+#define PARSE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -11,8 +12,8 @@
 #include "func.h"
 #include "import.h"
 #include "traverse.h"
-#include "plug.h"
 #include "optim.h"
+#include "mpool.h" // for allocating object data
 
 #define OP_RET(a, b)\
   const Type op_ret = op_check(env, &opi);\
@@ -583,11 +584,15 @@ ANN static m_uint get_type_number(ID_List list) {
   return type_number;
 }
 
-ANN static Func get_template_func(const Env env, const Exp_Func* func, const Value v) {
+ANN static Func get_template_func(const Env env, const Exp_Func* func, const Exp base, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
-    env->current->tmpl = new_tmpl_call(func->tmpl->types);
-    env->current->tmpl->base = v->d.func_ref->def->tmpl->list;
+    Tmpl_Call* tmpl = new_tmpl_call(func->tmpl->types);
+    tmpl->base = v->d.func_ref->def->tmpl->list;
+    if(base->exp_type == ae_exp_call)
+      base->d.exp_func.tmpl = tmpl;
+    else //if(base->exp_type == ae_exp_call)
+      base->d.exp_binary.tmpl = tmpl;
     return f;
   }
   (void)err_msg(TYPE_, func->self->pos,
@@ -597,7 +602,7 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Val
 }
 
 ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
-    const Exp args, Func* m_func) {
+    const Exp args, const Exp base) {
   m_uint args_number = 0;
   ID_List list;
   const Value value = get_template_value(env, exp_func);
@@ -629,8 +634,12 @@ ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
           "not able to guess types for template call.")
   Tmpl_Call tmpl = { tl[0], NULL };
   const Exp_Func tmp_func = { exp_func, args, NULL, &tmpl, NULL };
-  *m_func = get_template_func(env, &tmp_func, value);
-  return *m_func ? (*m_func)->def->ret_type : NULL;
+  Func func = get_template_func(env, &tmp_func, base, value);
+  if(base->exp_type == ae_exp_call)
+    base->d.exp_func.m_func = func;
+  else // if(base->exp_type == ae_exp_binary)
+    base->d.exp_binary.func = func;
+  return func ? func->def->ret_type : NULL;
 }
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value* ptr) { GWDEBUG_EXE
@@ -646,7 +655,7 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value
   return 1;
 }
 
-ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args, Func *m_func) { GWDEBUG_EXE
+ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args, Exp base) { GWDEBUG_EXE
   Value ptr = NULL;
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
@@ -657,7 +666,7 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
   if(args)
     CHECK_OO(check_exp(env, args))
   if(!exp_func->type->d.func)
-    return check_exp_call_template(env, exp_func, args, m_func);
+    return check_exp_call_template(env, exp_func, args, base);
   Func func = find_func_match(env, exp_func->type->d.func, args);
   if(!func)
     return function_alternative(exp_func->type, args);
@@ -670,7 +679,10 @@ ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args
       f->next = ptr->d.func_ref;
     func = ptr->d.func_ref = f;
   }
-  *m_func = func;
+  if(base->exp_type == ae_exp_call)
+    base->d.exp_func.m_func = func;
+  else // if(base->exp_type == ae_exp_binary)
+    base->d.exp_binary.func = func;
   return func->def->ret_type;
 }
 
@@ -758,8 +770,7 @@ ANN static Type check_exp_call(const Env env, Exp_Func* call) { GWDEBUG_EXE
       call->m_func = ret;
     return ret->def->ret_type;
   }
-  env->current = call;
-  return check_exp_call1(env, call->func, call->args, &call->m_func);
+  return check_exp_call1(env, call->func, call->args, call->self);
 }
 
 //static
@@ -906,7 +917,6 @@ ANN static m_bool check_flow(const Exp exp) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_stmt_flow(const Env env, const Stmt_Flow stmt) { GWDEBUG_EXE
-const m_str str = stmt->self->stmt_type == ae_stmt_while ? "while" : "until";
   if(!stmt->is_do)
     CHECK_OB(check_exp(env, stmt->cond))
   vector_add(&env->breaks, (vtype)stmt->self);
@@ -916,8 +926,10 @@ const m_str str = stmt->self->stmt_type == ae_stmt_while ? "while" : "until";
   nspc_pop_value(env->curr);
   if(stmt->is_do)
     CHECK_OB(check_exp(env, stmt->cond))
-  if(check_flow(stmt->cond) < 0)
+  if(check_flow(stmt->cond) < 0) {
+    const m_str str = stmt->self->stmt_type == ae_stmt_while ? "while" : "until";
     ERR_B(TYPE_, stmt->cond->pos, "\t... in '%s' condition.", str)
+  }
   vector_pop(&env->breaks);
   vector_pop(&env->conts);
   return 1;
@@ -1357,7 +1369,7 @@ ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
-    if(!GET_FLAG(class_def->type, ae_flag_check))
+    if(!GET_FLAG(class_def->type, ae_flag_check) && class_def->tmpl)
       REM_REF(class_def->type->parent->nspc);
   }
   if(class_def->ext->types) {
@@ -1407,8 +1419,12 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     while((body = body->next));
     env_pop(env, class_scope);
   }
+#ifdef GWMPOOL_DATA
+  if(!the_class->p && the_class->nspc->offset)
+  the_class->p = new_pool(the_class->nspc->offset, 256);
+#endif
   SET_FLAG(the_class, ae_flag_checked);
-  SET_FLAG(class_def->type, ae_flag_check);
+  SET_FLAG(the_class, ae_flag_check);
   return 1;
 }
 

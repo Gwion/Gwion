@@ -1,5 +1,4 @@
-fun int test( ...){
-
+fun int test(...){
   vararg.start;
   <<<"test">>>; 
   <<<vararg.i>>>;

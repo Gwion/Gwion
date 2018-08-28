@@ -442,7 +442,6 @@ void free_func_def_simple(Func_Def a) { mp_free(Func_Def, a); }
 Stmt new_stmt_fptr(const Symbol xid, Type_Decl* td, const Arg_List args, const ae_flag flag, const int pos) {
   Stmt a              = mp_alloc(Stmt);
   a->stmt_type        = ae_stmt_fptr;
-//  a->d.stmt_fptr.flag  = key;
   a->d.stmt_fptr.td    = td;
   SET_FLAG(td, flag);
   a->d.stmt_fptr.xid   = xid;
@@ -677,12 +676,13 @@ ANN static void free_stmt_for(Stmt_For a) {
   free_stmt(a->body);
 }
 
-Stmt new_stmt_auto(const Symbol sym, const Exp exp, const Stmt body, const int pos) {
+Stmt new_stmt_auto(const Symbol sym, const Exp exp, const Stmt body, const m_bool ptr, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_auto;
   a->d.stmt_auto.sym = sym;
   a->d.stmt_auto.exp = exp;
   a->d.stmt_auto.body = body;
+  a->d.stmt_auto.is_ptr = ptr;
   a->d.stmt_auto.self = a;
   a->pos = pos;
   return a;
@@ -778,7 +778,21 @@ Stmt new_stmt_union(const Decl_List l, const int pos) {
   a->pos = pos;
   return a;
 }
+#ifndef TINY_MODE
+Stmt new_stmt_pp(const enum ae_pp_type type, const m_str data) {
+  Stmt a = mp_alloc(Stmt);
+  a->stmt_type = ae_stmt_pp;
+  a->d.stmt_pp.type = type;
+  a->d.stmt_pp.data = data;
+  return a;
+}
 
+ANN inline static void free_stmt_pp(Stmt_PP a) {
+  if(a->data)
+    xfree(a->data);
+}
+
+#endif
 Decl_List new_decl_list(const Exp d, const Decl_List l) {
   Decl_List a = mp_alloc(Decl_List);
   a->self = d;
@@ -851,6 +865,11 @@ void free_stmt(Stmt stmt) {
     case ae_stmt_union:
       free_stmt_union(&stmt->d.stmt_union);
       break;
+#ifndef TINY_MODE
+    case ae_stmt_pp:
+      free_stmt_pp(&stmt->d.stmt_pp);
+      break;
+#endif
   }
   mp_free(Stmt, stmt);
 }

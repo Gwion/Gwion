@@ -5,6 +5,10 @@
 #include "instr.h"
 #include "mpool.h"
 
+#ifdef JIT
+#include "jitter.h"
+#endif
+
 POOL_HANDLE(VM_Code, 2048)
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
     const m_bool need_this, const m_str name) {
@@ -26,46 +30,36 @@ ANN static void free_code_instr_gack(const Instr instr) {
   free_vector(v);
 }
 
-ANN void jit_instr(const Instr);
-
 ANN static void free_code_instr(Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
-/*
 #ifdef JIT
     Instr instr = (Instr)vector_at(v, i - 1);
-    if(instr->execute == execute_jit) {
+    if(instr->execute == JitExec) {
+      struct JitThread_* p = (struct JitThread_*)instr->m_val2;
       const Instr base  = *(Instr*)instr->ptr;
-    memcpy(instr, base, sizeof(struct Instr_));
-    free_jit_instr(base);
+//      memcpy(instr, base, sizeof(struct Instr_));
+      free_jit_instr(p, instr);
+      instr = base;
    }
 #else
-*/
     const Instr instr = (Instr)vector_at(v, i - 1);
-//#endif
-
-#ifdef JIT
-    if(instr->execute == execute_jit)
-jit_instr(instr);
 #endif
-
-    if(instr->execute == Instr_Array_Init ||
-        instr->execute == Instr_Array_Alloc) {
-      VM_Array_Info* info = *(VM_Array_Info**)instr->ptr;
-      if(!info->init)
-        REM_REF(info->type)
+    if(instr->execute == ArrayInit || instr->execute == ArrayAlloc) {
+      ArrayInfo* info = *(ArrayInfo**)instr->ptr;
+      REM_REF(info->type)
       free_array_info(info);
     } else if(instr->execute == Gack)
       free_code_instr_gack(instr);
-    else if(instr->execute == Branch_Switch)
+    else if(instr->execute == BranchSwitch)
       free_map(*(Map*)instr->ptr);
-    else if(instr->execute == Spork) {
-      if(instr->m_val2)
+    else if(instr->execute == SporkExp) {
+//      if(instr->m_val2)
         REM_REF((Func)instr->m_val2)
-    } else if(instr->execute == Spork_Func) {
+    } else if(instr->execute == SporkFunc) {
         REM_REF((VM_Code)instr->m_val2)
-    } else if(instr->execute == Init_Loop_Counter)
+    } else if(instr->execute == InitLoopCounter)
       free((m_int*)instr->m_val);
-    else if(instr->execute == MkVararg) {
+    else if(instr->execute == VarargIni) {
       if(instr->m_val2)
       free_vector((Vector)instr->m_val2);
     }
@@ -75,10 +69,7 @@ jit_instr(instr);
 }
 
 void free_vm_code(VM_Code a) {
-  if(!strcmp(a->name, "[dtor]")) { // dtor from release. free only EOC
-    free_instr((void*)vector_back(a->instr));
-    free_vector(a->instr);
-  } else if(a->instr)
+  if(a->instr)
     free_code_instr(a->instr);
   free(a->name);
   mp_free(VM_Code, a);

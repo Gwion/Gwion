@@ -160,6 +160,7 @@ typedef struct {
   Operator op;
   Nspc nspc;
   Func func;
+  Tmpl_Call* tmpl;
   Exp self;
 } Exp_Binary;
 typedef struct {
@@ -195,8 +196,6 @@ typedef struct {
 } Exp_Constprop;
 #endif
 struct Exp_ {
-  Exp_type exp_type;
-  ae_Exp_Meta meta;
   Type type;
   Type cast_to;
   Exp next;
@@ -217,7 +216,9 @@ struct Exp_ {
 #endif
   } d;
   int pos;
-  m_bool emit_var;
+  Exp_type exp_type;
+  ae_Exp_Meta meta;
+  unsigned emit_var : 1;
 };
 
 ANEW ANN Exp new_exp_prim_id(const Symbol, const int);
@@ -254,7 +255,12 @@ ANN2(1) ANEW Decl_List new_decl_list(Exp d, Decl_List l);
 typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_auto, ae_stmt_loop,
                ae_stmt_if, ae_stmt_code, ae_stmt_switch, ae_stmt_break,
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_jump,
-               ae_stmt_enum, ae_stmt_fptr, ae_stmt_type, ae_stmt_union
+               ae_stmt_enum, ae_stmt_fptr, ae_stmt_type, ae_stmt_union,
+#ifndef TINY_MODE
+#ifndef PARSE
+ae_stmt_pp
+#endif
+#endif
              } ae_Stmt_Type;
 
 typedef struct Stmt_Exp_     * Stmt_Exp;
@@ -270,7 +276,9 @@ typedef struct Stmt_Enum_    * Stmt_Enum;
 typedef struct Stmt_Fptr_    * Stmt_Fptr;
 typedef struct Stmt_Type_    * Stmt_Type;
 typedef struct Stmt_Union_   * Stmt_Union;
-
+#ifndef TINY_MODE
+typedef struct Stmt_PP_      * Stmt_PP;
+#endif
 struct Stmt_Basic_ {
   int pos;
 };
@@ -282,7 +290,7 @@ struct Stmt_Flow_ {
   Exp cond;
   Stmt body;
   Stmt self;
-  m_bool is_do;
+  unsigned is_do : 1;
 };
 struct Stmt_Code_ {
   Stmt_List stmt_list;
@@ -360,6 +368,23 @@ struct Stmt_Union_ {
   ae_flag flag;
 };
 
+#ifndef TINY_MODE
+enum ae_pp_type {
+  ae_pp_comment,
+  ae_pp_include,
+  ae_pp_define,
+  ae_pp_undef,
+  ae_pp_ifdef,
+  ae_pp_ifndef,
+  ae_pp_else,
+  ae_pp_endif,
+  ae_pp_nl
+};
+struct Stmt_PP_ {
+  enum ae_pp_type type;
+  m_str data;
+};
+#endif
 struct Stmt_ {
   ae_Stmt_Type stmt_type;
   union stmt_data {
@@ -376,6 +401,9 @@ struct Stmt_ {
     struct Stmt_Fptr_       stmt_fptr;
     struct Stmt_Type_       stmt_type;
     struct Stmt_Union_      stmt_union;
+#ifndef TINY_MODE
+    struct Stmt_PP_    stmt_pp;
+#endif
   } d;
   int pos;
 };
@@ -386,7 +414,7 @@ ANEW Stmt new_stmt_code(const Stmt_List, const int);
 ANN2(1,2) ANEW Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
 ANEW ANN Stmt new_stmt_flow(const ae_Stmt_Type, const Exp, const Stmt, const m_bool, const int);
 ANN2(1,2,4) ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
-ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const int);
+ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const m_bool, const int);
 ANEW ANN Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
 ANEW ANN Stmt new_stmt_jump(const Symbol, const m_bool, const int);
 ANN2(1) ANEW Stmt new_stmt_enum(const ID_List, const Symbol, const int);
@@ -394,6 +422,9 @@ ANEW ANN Stmt new_stmt_switch(Exp, Stmt, const int);
 ANEW ANN Stmt new_stmt_union(const Decl_List, const int);
 ANEW ANN Stmt new_stmt_fptr(const Symbol, Type_Decl*, const Arg_List, const ae_flag, const int);
 ANEW ANN Stmt new_stmt_type(Type_Decl*, const Symbol, const int);
+#ifndef TINY_MODE
+ANEW     Stmt new_stmt_pp(const enum ae_pp_type, const m_str);
+#endif
 ANN void free_stmt(Stmt);
 struct Stmt_List_ {
   Stmt stmt;
@@ -475,6 +506,5 @@ struct Ast_ {
   Ast next;
 };
 ANN2(1) ANEW Ast new_ast(Section*, const Ast);
-ANN Ast parse(const m_str, FILE*);
 ANN void free_ast(Ast);
 #endif

@@ -6,7 +6,7 @@
 #include "instr.h"
 #include "import.h"
 
-m_str get_type_name(const m_str s, const m_uint index) {
+ANN m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
   m_uint i = 0;
   m_uint lvl = 0;
@@ -18,7 +18,6 @@ m_str get_type_name(const m_str s, const m_uint index) {
 
   if(!name)
     return index ? NULL : s_name(insert_symbol(s));
-  memset(c, 0, slen);
   if(index == 0) {
     snprintf(c, tlen, "%s", s);
     return s_name(insert_symbol(c));
@@ -35,6 +34,7 @@ m_str get_type_name(const m_str s, const m_uint index) {
     if(n == index)
       c[i++] = *name;
   }
+  c[i] = '\0';
   return strlen(c) ? s_name(insert_symbol(c)) : NULL;
 }
 
@@ -94,14 +94,13 @@ static OP_EMIT(opem_ptr_deref) {
   return 1;
 }
 
-INSTR(Cast2Ptr) { GWDEBUG_EXE
-  const M_Object o = new_object(shred);
-  o->data = (m_bit*)xmalloc(SZ_INT);
+static INSTR(Cast2Ptr) { GWDEBUG_EXE
+  const M_Object o = new_object(shred, t_ptr);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
   *(M_Object*)REG(-SZ_INT) = o;
 }
 
-ANN m_bool import_ptr(const Gwi gwi) {
+GWION_IMPORT(ptr) {
   const m_str list[] = { "A" };
   CHECK_OB((t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, t_object)))
   CHECK_BB(gwi_tmpl_ini(gwi, 1, list))
@@ -125,3 +124,4 @@ ANN m_bool import_ptr(const Gwi gwi) {
 #ifdef JIT
 #include "code/ptr.h"
 #endif
+

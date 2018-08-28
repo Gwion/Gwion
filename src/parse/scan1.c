@@ -1,3 +1,4 @@
+#define PARSE
 #include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
@@ -277,8 +278,8 @@ ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG
   do {
     if(!(arg_list->type = type_decl_resolve(env, arg_list->td)))
       CHECK_BB(type_unknown(arg_list->td->xid, "function argument"))
-    if(arg_list->td->types)
-      ADD_REF(arg_list->type)
+//    if(arg_list->td->types)
+//      ADD_REF(arg_list->type)
   } while((arg_list = arg_list->next));
   return 1;
 }

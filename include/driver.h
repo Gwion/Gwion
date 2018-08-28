@@ -11,7 +11,7 @@ typedef struct containing_driver_info {
   void (*func)(Driver_);
   void (*run)(const VM*);
   void* data;
-  m_bool raw;
+  unsigned raw : 1;
 } DriverInfo;
 
 

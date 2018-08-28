@@ -81,8 +81,7 @@ ANEW static UGen new_UGen() {
 }
 
 ANEW static M_Object new_M_UGen() {
-  const M_Object o = new_object(NULL);
-  initialize_object(o, t_ugen);
+  const M_Object o = new_object(NULL, t_ugen);
   UGEN(o) = new_UGen();
   return o;
 }
@@ -128,13 +127,21 @@ ANN void ugen_ini(const UGen u, const m_uint in, const m_uint out) {
 
 ANN static m_bool connect_init(const VM_Shred shred, restrict M_Object* lhs, restrict M_Object* rhs) {
   POP_REG(shred, SZ_INT * 2);
-  *lhs = *(M_Object*)REG(0);
   *rhs = *(M_Object*)REG(SZ_INT);
-  if(!*lhs || !*rhs) {
-    exception(shred, "UgenConnectException");
-    return -1;
+  *lhs = *(M_Object*)REG(0);
+  if(!*lhs) {
+    if(*rhs)
+      _release(*rhs, shred);
+    goto end;
+  }
+  if(!*rhs) {
+    _release(*lhs, shred);
+    goto end;
   }
   return 1;
+end:
+  exception(shred, "UgenConnectException");
+  return -1;
 }
 
 #define describe_connect(name, func)                                   \
@@ -148,8 +155,8 @@ describe_connect(dis,vector_rem2)
 
 
 ANN static void release_connect(const VM_Shred shred) {
-  release(*(M_Object*)REG(0), shred);
-  release(*(M_Object*)REG(SZ_INT), shred);
+  _release(*(M_Object*)REG(0), shred);
+  _release(*(M_Object*)REG(SZ_INT), shred);
   *(M_Object*)REG(0) = *(M_Object*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }
@@ -179,8 +186,8 @@ static INSTR(name##_##func) { GWDEBUG_EXE       \
   M_Object lhs, rhs;                            \
   if(connect_init(shred, &lhs, &rhs) > 0) {     \
     opt                                         \
-    _do_(func, UGEN(lhs), UGEN(rhs)); }         \
-  release_connect(shred);                       \
+    _do_(func, UGEN(lhs), UGEN(rhs)); /*}*/         \
+  release_connect(shred);      }                 \
 }
 describe_connect_instr(ugen, connect,)
 describe_connect_instr(ugen, disconnect,)
@@ -275,7 +282,7 @@ static MFUN(ugen_get_last) {
   *(m_float*)RETURN = UGEN(o)->out;
 }
 
-ANN static m_bool import_global_ugens(const Gwi gwi) {
+static GWION_IMPORT(global_ugens) {
   VM* vm = gwi_vm(gwi);
 
   vm->dac       = new_M_UGen();
@@ -299,9 +306,6 @@ ANN static m_bool import_global_ugens(const Gwi gwi) {
   vector_add(&vm->ugen, (vtype)UGEN(adc));
   gwi_item_ini(gwi, "UGen", "adc");
   gwi_item_end(gwi, ae_flag_const, adc);
-
-
-//_do_(connect, UGEN(vm->blackhole), UGEN(vm->dac));
   return 1;
 }
 
@@ -310,8 +314,8 @@ static OP_CHECK(opck_chuck_ugen) {
   return bin->rhs->type;
 }
 
-ANN m_bool import_ugen(const Gwi gwi) {
-  CHECK_OB((t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, t_object)))
+GWION_IMPORT(ugen) {
+  t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, t_object);
   CHECK_BB(gwi_class_ini(gwi,  t_ugen, ugen_ctor, ugen_dtor))
   CHECK_BB(gwi_item_ini(gwi, "int", "@ugen"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
@@ -342,4 +346,6 @@ ANN m_bool import_ugen(const Gwi gwi) {
 
 #ifdef JIT
 #include "ctrl/ugen.h"
+#include "code/ugen.h"
 #endif
+

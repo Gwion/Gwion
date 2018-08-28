@@ -17,19 +17,22 @@ typedef struct Code_ {
 
 struct Emitter_ {
   Env    env;
-  m_int	 default_case_index;
-  m_str  filename;
-  Map    cases; // passed to instr: is a pointer
   Code*  code;
   struct Vector_    stack;
   struct Vector_    codes;
+  m_str  filename;
+  Map    cases; // passed to instr: is a pointer
+  m_int	 default_case_index;
+#ifdef JIT
+  struct Jit* jit;
+#endif
 #ifdef GWCOV
   FILE* cov_file;
-  m_bool coverage;
+  unsigned coverage : 1;
 #endif
 };
 
-ANEW ANN Emitter new_emitter(const Env);
+ANEW ANN Emitter new_emitter(void/*const Env*/);
 ANN void free_emitter(Emitter);
 ANEW ANN VM_Code emit_code(const Emitter);
 ANN m_bool emit_ast(const Emitter emit, Ast ast, m_str filename);

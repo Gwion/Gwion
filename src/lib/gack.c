@@ -17,15 +17,15 @@ static void print_type(const Type type) {
   }
 }
 
-static void print_int(const m_int i) {
+static inline void print_int(const m_int i) {
   gw_out("%" INT_F "", i);
 }
 
-static void print_float(const m_float f) {
+static inline void print_float(const m_float f) {
   gw_out("%.4f", f);
 }
 
-static void print_complex(const m_complex c) {
+static inline void print_complex(const m_complex c) {
   gw_out("#(");
   print_float(creal(c));
   gw_out(", ");
@@ -33,7 +33,7 @@ static void print_complex(const m_complex c) {
   gw_out(")");
 }
 
-static void print_polar(const m_complex c) {
+static inline void print_polar(const m_complex c) {
   gw_out("%%(");
   print_float(creal(c));
   gw_out(", ");
@@ -41,7 +41,7 @@ static void print_polar(const m_complex c) {
   gw_out("*pi)");
 }
 
-static void print_vec(const m_bit* f, const m_uint size) {
+static inline void print_vec(const m_bit* f, const m_uint size) {
   gw_out("@(");
   for(m_uint i = 0; i < size; i++) {
     print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
@@ -51,22 +51,22 @@ static void print_vec(const m_bit* f, const m_uint size) {
   gw_out(")");
 }
 
-static void print_string1(const m_str str) {
+static inline void print_string1(const m_str str) {
   gw_out("%s", str);
 }
 
-static void print_string(const M_Object obj) {
+static inline void print_string(const M_Object obj) {
   print_string1(obj ? STRING(obj) : "(null string)");
 }
 
-static void print_object(const Type type, const M_Object obj) {
+static inline void print_object(const Type type, const M_Object obj) {
   if(isa(type, t_string) > 0)
     print_string(obj);
   else
     gw_out("%p", (void*)obj);
 }
 
-static void print_func(const Type type, const m_bit* stack) {
+static inline void print_func(const Type type, const m_bit* stack) {
   const Func func = isa(type, t_fptr) > 0 ?
     *(Func*)stack : type->d.func;
   gw_out("%s %p", type->name, (void*)func);
@@ -109,3 +109,7 @@ INSTR(Gack) { GWDEBUG_EXE
   }
   gw_out("\n");
 }
+
+#ifdef JIT
+#include "code/gack.h"
+#endif

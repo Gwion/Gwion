@@ -4,7 +4,7 @@
 #include "object.h"
 
 
-IMPORT {
+GWION_IMPORT(global_var_test) {
 //  ALLOC_PTR(i, m_uint, 1);
   M_Object i = new_string(NULL, "test");
   CHECK_BB(gwi_item_ini(gwi,"string", "i"))

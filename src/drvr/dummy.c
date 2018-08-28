@@ -14,10 +14,9 @@ static void dummy_run(VM* vm, DriverInfo* di) {
 
 static void silent_run(VM* vm, DriverInfo* di) {
   sp_data* sp = vm->sp;
-  m_uint timer = (vm->sp->sr / 100000);
+  const m_uint timer = 1000000 / sp->sr;
   while(vm->is_running) {
     di->run(vm);
-    vm_run(vm);
     ++sp->pos;
     usleep(timer);
   }

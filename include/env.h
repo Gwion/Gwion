@@ -2,9 +2,8 @@
 #define __ENV
 #include "absyn.h"
 
-#define SCOPE(a) { ++env->class_scope;a;--env->class_scope; }
+#define SCOPE(a) { ++env->class_scope; a ;--env->class_scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
-
 
 struct Env_ {
   Nspc curr;
@@ -14,7 +13,6 @@ struct Env_ {
   Context   context;
   Type      class_def;
   Func      func;
-  Exp_Func* current; // template helper
   m_uint type_xid;
   struct Vector_    nspc_stack;
   struct Vector_    class_stack;

@@ -52,13 +52,26 @@ ANN void scope_release(Scope a) {
 }
 
 ANN Vector scope_get(const Scope s) {
+  m_uint size = OFFSET + VLEN(&s->commit_map);
+  m_uint iter = 0;
+  for(m_uint j = 0; j < vector_size(&s->vector); j++) {
+    const Map map = (Map)vector_at(&s->vector, j);
+    size += VLEN(map);
+  }
   const Vector ret = new_vector();
+  if(size > MAP_CAP)
+    ret->ptr = (vtype*)xrealloc(ret->ptr, size * SZ_INT);
+
   for(m_uint j = 0; j < vector_size(&s->vector); j++) {
     const Map map = (Map)vector_at(&s->vector, j);
     for(m_uint i = 0; i < VLEN(map); i++)
-      vector_add(ret, VVAL(map, i));
+//      vector_add(ret, VVAL(map, i));
+      VPTR(ret, iter++) =  VVAL(map, i);
   }
   for(m_uint i = 0; i < VLEN(&s->commit_map); i++)
-    vector_add(ret, VVAL(&s->commit_map, i));
+//    vector_add(ret, VVAL(&s->commit_map, i));
+      VPTR(ret, iter++) =  VVAL(&s->commit_map, i);
+  VCAP(ret) = size;
+  VLEN(ret) = iter;
   return ret;
 }

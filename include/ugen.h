@@ -34,8 +34,8 @@ struct UGen_ {
     UGen ref;
   } module;
   m_float in, out;
-  m_bool done;
   enum ugen_flag flag;
+  unsigned done : 1;
 };
 ANN void ugen_ini(const UGen, const m_uint, const m_uint);
 ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);

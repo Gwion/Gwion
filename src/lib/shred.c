@@ -5,8 +5,7 @@
 #include "import.h"
 
 M_Object new_shred(const VM_Shred shred) {
-  const M_Object obj = new_object(NULL);
-  initialize_object(obj, t_shred);
+  const M_Object obj = new_object(NULL, t_shred);
   ME(obj) = shred;
   return obj;
 }
@@ -79,7 +78,7 @@ static MFUN(shred##name##_dir) { \
 describe_path_and_dir(, s->name)
 describe_path_and_dir(_code, s->code->name)
 
-ANN m_bool import_shred(const Gwi gwi) {
+GWION_IMPORT(shred) {
   CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
   SET_FLAG((t_shred), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, NULL))
@@ -128,7 +127,3 @@ ANN m_bool import_shred(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/shred.h"
-#endif

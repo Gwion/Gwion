@@ -1,3 +1,4 @@
+#define PARSE
 #include <string.h>
 #include "defs.h"
 #include "err_msg.h"
@@ -60,7 +61,7 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
 
 ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
-  m_uint count = 1;
+//  m_uint count = 1;
   nspc_push_value(env->curr);
   do {
     if(list->var_decl->array && check_array_empty(list->var_decl->array, "argument") < 0) {
@@ -83,7 +84,7 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
     }
     nspc_add_value(env->curr, list->var_decl->xid, v);
     list->var_decl->value = v;
-    ++count;
+//    ++count;
   } while((list = list->next));
   nspc_pop_value(env->curr);
   return 1;

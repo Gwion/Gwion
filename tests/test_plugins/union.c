@@ -2,7 +2,7 @@
 #include "type.h"
 #include "import.h"
 
-IMPORT {
+GWION_IMPORT(union_test) {
   CHECK_BB(gwi_union_ini(gwi, NULL))
   CHECK_BB(gwi_union_add(gwi,"float", "f"))
   CHECK_BB(gwi_union_add(gwi,"int", "i"))

@@ -7,7 +7,7 @@
 #include "func.h"
 #include "instr.h"
 
-ANN Type check_exp_call1(Env env, Exp exp_func, Exp args, Func *m_func);
+ANN Type check_exp_call1(Env env, Exp exp_func, Exp args, Exp base);
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp);
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
 
@@ -20,7 +20,7 @@ static INSTR(assign_func) { GWDEBUG_EXE
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  return check_exp_call1(env, bin->rhs, bin->lhs, &bin->func);
+  return check_exp_call1(env, bin->rhs, bin->lhs, bin->self);
 }
 
 static OP_CHECK(opck_fptr_at) {
@@ -84,7 +84,7 @@ static OP_CHECK(opck_fptr_at) {
     const Func f = nspc_lookup_func1(nspc, insert_symbol(name));
     if(compat_func(r_fdef, f->def) > 0) {
       bin->func = f;
-      return r_func->value_ref->type;
+      return r_func->value_ref->type->d.base_type;
     }
   }
   return NULL;
@@ -139,7 +139,7 @@ static OP_EMIT(opem_spork) {
   return 1;
 }
 
-ANN m_bool import_func(const Gwi gwi) {
+GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
@@ -156,3 +156,7 @@ ANN m_bool import_func(const Gwi gwi) {
   CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
   return 1;
 }
+
+#ifdef JIT
+#include "code/func_code.h"
+#endif

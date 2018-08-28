@@ -1,4 +1,4 @@
-fun void test( ...){
+fun void test(...){
   vararg.start;
   vararg.end;
 }

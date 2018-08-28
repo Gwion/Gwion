@@ -1,5 +1,5 @@
 // [contains] unhandled expression type '8' in template call
-template<{a}>
+template“a”
 function void test(){}
 
 (maybe ? test : test)();

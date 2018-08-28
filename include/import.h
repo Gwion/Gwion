@@ -12,7 +12,11 @@ typedef struct Gwi_* Gwi;
 #define DTOR(a) ANN void a(const M_Object o, const VM_Shred shred __attribute__((unused)))
 #define OP_CHECK(a) ANN Type a(const Env env __attribute__((unused)), void* data __attribute__((unused)))
 #define OP_EMIT(a)  ANN m_bool a(const Emitter emit __attribute__((unused)), void* data __attribute__((unused)))
-#define IMPORT ANN m_bool import(const Gwi gwi)
+#ifdef GWION_BUILTIN
+#define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
+#else
+#define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
+#endif
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\

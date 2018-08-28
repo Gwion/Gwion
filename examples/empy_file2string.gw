@@ -1,3 +1,0 @@
-FileIO file;
-string s;
-file => s;

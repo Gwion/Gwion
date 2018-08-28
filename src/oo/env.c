@@ -112,13 +112,13 @@ ANN Nspc env_nspc(const Env env) {
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str) {
   const Context ctx = new_context(ast, str);
   env_reset(env);
-  CHECK_BB(load_context(ctx, env))
+  load_context(ctx, env);
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)ctx);
   } // else { nspc_rollback(env->global_nspc); }
-  CHECK_BB(unload_context(ctx, env)) // no real need to check that
+  unload_context(ctx, env);
   if(ret < 0) {
     gw_err("in file '%s'\n", str);
     free_ast(ast);

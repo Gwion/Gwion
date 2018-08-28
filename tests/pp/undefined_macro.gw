@@ -1,0 +1,2 @@
+//[contains] undefined macro
+#undef macro

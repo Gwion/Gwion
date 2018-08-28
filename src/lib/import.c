@@ -12,6 +12,9 @@
 #include "emit.h"
 #include "func.h"
 
+#ifdef JIT
+#include "jitter.h"
+#endif
 struct Path {
   m_str path, curr;
   m_uint len;
@@ -263,8 +266,14 @@ ANN static m_int import_class_end(const Env env) {
   env_pop(env, 0);
   return 1;
 }
-
+#include "mpool.h"
 ANN m_int gwi_class_end(const Gwi gwi) {
+  if(!gwi->env->class_def)return -1;
+#ifdef GWMPOOL_DATA
+  const Type t = gwi->env->class_def;
+  if(t->nspc && t->nspc->offset)
+    t->p = new_pool(t->nspc->offset, 256);
+#endif
   return import_class_end(gwi->env);
 }
 
@@ -536,7 +545,6 @@ ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     SET_FLAG(stmt->d.stmt_fptr.func->def, ae_flag_builtin);
   else
     SET_FLAG(stmt->d.stmt_fptr.func, ae_flag_builtin);
-//  ADD_REF(stmt->d.stmt_fptr.func);
   ADD_REF(stmt->d.stmt_fptr.type);
   free_stmt(stmt);
   return 1;
@@ -742,15 +750,7 @@ OP_CHECK(opck_post) {
 if(post->exp->exp_type == ae_exp_primary &&
     GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop)) {
     UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
-//    post->exp->d.exp_primary.primary_type = (m_uint)ae_primary_id;
-//    post->exp->d.exp_primary.d.var = insert_symbol(post->exp->d.exp_primary.value->name);
-printf("value -- %p %i\n",post->exp->d.exp_primary.value, 
-GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop));
-printf("%i %s\n",post->exp->d.exp_primary.value->d.ptr, 
-post->exp->d.exp_primary.value->name);
     post->exp->d.exp_primary.value->d.ptr = 0;
-
-//exit(3);
   return post->exp->type;
 }
   if(post->exp->exp_type == ae_exp_constprop2) {exit(3);
@@ -789,7 +789,7 @@ OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,
     unary->td->array, GET_FLAG(unary->td, ae_flag_ref)))
-  CHECK_OB(emitter_add_instr(emit, add2gc))
+  CHECK_OB(emitter_add_instr(emit, GcAdd))
   return 1;
 }
 

@@ -22,8 +22,7 @@ static MFUN(class_template_set) {
 
 }
 
-IMPORT
-{
+GWION_IMPORT(class_template) {
   Type t_class_template;
   const m_str list[2] = { "A", "B" };
   gwi_tmpl_ini(gwi, 2, list);

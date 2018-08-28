@@ -19,28 +19,17 @@ ANN static m_bool is_const(Exp e) {
 }
 
 ANN static m_bool is_constprop_value(const Exp e) {
-if (e->exp_type == ae_exp_decl
-&& isa(e->d.exp_decl.list->self->value->type, t_int) > 0 && 
-!e->d.exp_decl.list->self->value->type->array_depth &&
-!e->d.exp_decl.list->self->value->owner_class && 
-!GET_FLAG(e->d.exp_decl.list->self->value, ae_flag_arg))
-exit(12);
-
+  if (e->exp_type == ae_exp_decl
+    && isa(e->d.exp_decl.list->self->value->type, t_int) > 0 &&
+    !e->d.exp_decl.list->self->value->type->array_depth &&
+    !e->d.exp_decl.list->self->value->owner_class &&
+    !GET_FLAG(e->d.exp_decl.list->self->value, ae_flag_arg))
   return (e->exp_type == ae_exp_primary &&
-e->d.exp_primary.primary_type == ae_primary_id &&
-isa(e->type, t_int) > 0 &&
-   !e->d.exp_primary.value->owner_class) ||
-   e->exp_type == ae_exp_constprop2 
-/*
-|| (e->exp_type == ae_exp_decl
-&& isa(e->d.exp_decl.list->self->value->type, t_int) > 0 && 
-!e->d.exp_decl.list->self->value->type->array_depth &&
-!e->d.exp_decl.list->self->value->owner_class && 
-!GET_FLAG(e->d.exp_decl.list->self->value, ae_flag_arg)
-);
-*/
-;
-
+    e->d.exp_primary.primary_type == ae_primary_id &&
+    isa(e->type, t_int) > 0 &&
+    !e->d.exp_primary.value->owner_class) ||
+    e->exp_type == ae_exp_constprop2;
+  return 0;
 }
 
 ANN static void constprop_exp(const Exp_Binary* bin, long num) {
@@ -72,23 +61,17 @@ ANN static m_bool constant_propagation(const Exp_Binary* bin) {
       break;
     case op_chuck:
       if(isa(r->type, t_function) < 0) {
-puts("is not func");
         if(is_constprop_value(r)) {
           if(is_const(l)) {
-if(r->d.exp_primary.primary_type == ae_exp_primary) {
-if(r->d.exp_primary.primary_type == ae_exp_constprop) exit(19);
-if(r->exp_type == ae_exp_constprop2) exit(20);
-printf("value => %p %i\n", r->d.exp_primary.value,
-GET_FLAG(r->d.exp_primary.value, ae_flag_constprop));
+if(r->d.exp_primary.primary_type == ae_primary_num) {
             constprop_value(r->d.exp_primary.value,
               l->d.exp_primary.d.num);
             constprop_exp(bin, l->d.exp_primary.d.num);
 }
-else if(r->exp_type == ae_exp_decl) {//exit(3);
-puts("kughku");
-  SET_FLAG(r->d.exp_decl.list->self->value, ae_flag_constprop);
-r->d.exp_decl.list->self->value->d.ptr = l->d.exp_primary.d.num;
-}
+  else if(r->exp_type == ae_exp_decl) {
+    SET_FLAG(r->d.exp_decl.list->self->value, ae_flag_constprop);
+  *(m_uint*)r->d.exp_decl.list->self->value->d.ptr = l->d.exp_primary.d.num;
+  }
             return 1;
           }
         }
@@ -164,7 +147,7 @@ ANN static m_bool constant_folding(const Exp_Binary* bin) {
 }
 
 m_bool optimize_const(const Exp_Binary* bin) {
-//  constant_propagation(bin);
+  constant_propagation(bin);
   if(is_const(bin->lhs) && is_const(bin->rhs))
     CHECK_BB(constant_folding(bin))
   return 1;

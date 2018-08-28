@@ -3,8 +3,11 @@
 #include "defs.h"
 #include "symbol.h"
 #include "mpool.h"
+#ifdef TINY_MODE
+#define SIZE 32653  /* should be prime */
+#else
 #define SIZE 65347  /* should be prime */
-
+#endif
 struct Symbol_ {
   m_str name;
   Symbol next;
@@ -12,9 +15,6 @@ struct Symbol_ {
 
 POOL_HANDLE(Symbol, 2048)
 static Symbol hashtable[SIZE];
-//static Symbol* hashtable;
-
-//void init_symbols() { hashtable = calloc(SIZE, sizeof(struct Symbol_)); }
 
 ANN static void free_symbol(const Symbol s) {
   if(s->next)
@@ -57,7 +57,7 @@ ANN Symbol insert_symbol(const m_str name) {
   for(Symbol sym = syms; sym; sym = sym->next)
     if(!strcmp(sym->name, name))
       return sym;
-  return hashtable[index] = mksymbol(name, syms);
+   return hashtable[index] = mksymbol(name, syms);
 }
 
 m_str s_name(const Symbol s) { return s->name; }

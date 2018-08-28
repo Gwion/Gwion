@@ -15,4 +15,3 @@ void gw_pos(int pos);
 #else
 #define GWDEBUG_EXE
 #endif
-

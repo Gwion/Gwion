@@ -95,6 +95,7 @@ src_src += utils/udp.c
 endif
 ifeq (${USE_GWMPOOL}, 1)
 CFLAGS+=-DGWMPOOL
+CFLAGS+=-DGWMPOOL_DATA
 TOOL_OBJ += utils/mpool.o src/util/map.o
 util_src += utils/mpool.c
 endif
@@ -106,8 +107,19 @@ ifeq (${USE_COLOR}, 1)
 CFLAGS+= -DCOLOR
 endif
 ifeq (${USE_JIT}, 1)
-include jit.mk
+include jit/config.mk
 endif
+
+ifeq (${USE_LTO}, 1)
+CFLAGS += -flto
+LDFLAGS += -flto
+endif
+
+ifeq (${USE_VMBENCH}, 1)
+CFLAGS += -DVMBENCH
+LDFLAGS += -lbsd
+endif
+
 # add definitions
 CFLAGS+= -DD_FUNC=${D_FUNC}
 
@@ -129,18 +141,23 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
-TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/util/xmalloc.o
-GW_OBJ=${src_obj} ${lib_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${drvr_obj}
+TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/ast/hash.o src/ast/scanner.o
+TOOL_SRC += utils/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c
+GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
-CCFG="${CFLAGS}"
-LDCFG="${LDFLAGS}"
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
 endif
 
-all: include/generated.h options ${GW_OBJ}
+CCFG="${CFLAGS}"
+LDCFG="${LDFLAGS}"
+
+# hide this from gwion -v
+CFLAGS += -DGWION_BUILTIN
+
+all: include/generated.h options ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
-	@${CC} ${GW_OBJ} ${LDFLAGS} -o ${PRG}
+	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
 
 config.mk:
 	$(info generating config.mk)
@@ -173,14 +190,14 @@ src/arg.o:
 	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
-install: directories
-	cp ${PRG} ${PREFIX}
+install:
+	install ${PRG} ${PREFIX}
 
 uninstall:
 	rm ${PREFIX}/${PRG}
 
 test:
-	@bash utils/test.sh tests/sh severity=11 test/sh examples severity=10 tests/error tests/tree tests/ugen_coverage test/bug
+	@bash utils/test.sh tests/* examples
 
 parser:
 	$(info generating parser)
@@ -194,19 +211,12 @@ gwcov: utils/gwcov.o
 	$(info compiling gwcov)
 	@${CC} ${CFLAGS} utils/gwcov.o -o gwcov ${LDFLAGS}
 
-gwlint: ${TOOL_OBJ} src/util/vector.o utils/gwlint.o
-	$(info compiling gwlint)
-	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwlint -DGWLINT utils/gwlint.o ${LDFLAGS}
+gwpp: ${TOOL_SRC}
+	$(info compiling gwpp)
+	@${CC} ${CFLAGS} -o gwpp -DTOOL_MODE -DLINT_MODE utils/gwpp.c ${LDFLAGS}  ${TOOL_SRC}
 
 gwtag: ${TOOL_OBJ} utils/gwtag.o
 	$(info compiling gwtag)
-	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwtag -DGWLINT utils/gwtag.o ${LDFLAGS}
-
-gwdot:
-	$(info compiling gwdot)
-	@cc -lbsd -Wall -lcgraph -lgvc -lm -I include utils/gwdot.c -o gwdot
-
-directories:
-	mkdir -p ${PREFIX} ${GWION_ADD_DIR}
+	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwtag -DTOOL_MODE utils/gwtag.o ${LDFLAGS}
 
 include $(wildcard .d/*.d)

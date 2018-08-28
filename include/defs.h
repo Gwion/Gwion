@@ -1,6 +1,15 @@
 #ifndef __DEF
 #define __DEF
 
+#define MEM_STEP 16
+#define SIZEOF_MEM (0x1 << MEM_STEP)
+#define SIZEOF_REG (0x1 << 14)
+
+#ifdef __GNUC__
+#define __builtin_memcpy memcpy
+#define __builtin_memset memset
+#endif
+
 #define ANN __attribute__((nonnull))
 #define ANN2(...) __attribute__((nonnull(__VA_ARGS__)))
 #define ANEW __attribute__((returns_nonnull,malloc))
@@ -79,7 +88,7 @@ typedef enum {
   ae_flag_constprop = 1 << 27,
   ae_flag_inline = 1 << 28,
   ae_flag_recurs = 1 << 29,
-  ae_flag_protect = 1 << 30
+  ae_flag_protect = 1 << 30,
 } ae_flag;
 
 typedef enum {

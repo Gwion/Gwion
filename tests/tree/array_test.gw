@@ -1,6 +1,6 @@
 function void print_array(int a[]){
 	for(int i; i < a.size(); i++)
-		a[i] => cerr;
+		<<<a[i]>>>;
 }
 
 int i[3][3];

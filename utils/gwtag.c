@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include "absyn.h"
+#include "hash.h"
+#include "scanner.h"
 
 #define TABLEN 2
 
@@ -361,6 +363,7 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
     case ae_stmt_union:
       tag_stmt_union(tagger, &stmt->d.stmt_union);
       break;
+    default:break;
   }
 }
 
@@ -434,6 +437,7 @@ void tag_ast(Tagger* tagger, Ast ast) {
 
 int main(int argc, char** argv) {
   argc--; argv++;
+  Scanner* scan = new_scanner(127); // magic number
   while(argc--) {
     Ast ast;
     Tagger tagger = { *argv , new_vector(), NULL };
@@ -441,7 +445,7 @@ int main(int argc, char** argv) {
     sprintf(c, "%s.tag", *argv);
     FILE* f = fopen(*argv, "r");
     if(!f)continue;
-    if(!(ast = parse(*argv++, f))) {
+    if(!(ast = parse(scan, *argv++, f))) {
       fclose(f);
       continue;
     }
@@ -452,6 +456,7 @@ int main(int argc, char** argv) {
     fclose(tagger.file);
     fclose(f);
   }
+  free_scanner(scan);
   free_symbols();
   return 0;
 }

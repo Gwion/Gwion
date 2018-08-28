@@ -1,0 +1,24 @@
+#line 1 "../examples/Gain.gw"
+SinOsc s, t;
+#line 2 "../examples/Gain.gw"
+Gain g => dac;
+#line 3 "../examples/Gain.gw"
+1 => t.freq;
+#line 4 "../examples/Gain.gw"
+s => g;
+#line 5 "../examples/Gain.gw"
+t => g;
+#line 6 "../examples/Gain.gw"
+g.chan(0);
+#line 7 "../examples/Gain.gw"
+spork ~ { while(true) { Math.rand2f(100, 800) => s.freq; .15::second => now; }};
+#line 8 "../examples/Gain.gw"
+for(int i; i < 5; i++) {
+#line 9 "../examples/Gain.gw"
+    <<<g.op()>>>;
+#line 10 "../examples/Gain.gw"
+	i => g.op;
+#line 11 "../examples/Gain.gw"
+	2::second => now;	
+#line 12 "../examples/Gain.gw"
+}

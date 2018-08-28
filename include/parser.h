@@ -136,12 +136,22 @@ extern int gwion_debug;
     TYPEOF = 346,
     CONST = 347,
     AUTO = 348,
-    AUTO_PTR = 349,
-    NUM = 350,
-    FLOAT = 351,
-    ID = 352,
-    STRING_LIT = 353,
-    CHAR_LIT = 354
+    PASTE = 349,
+    ELLIPSE = 350,
+    NUM = 351,
+    FLOAT = 352,
+    ID = 353,
+    STRING_LIT = 354,
+    CHAR_LIT = 355,
+    PP_COMMENT = 356,
+    PP_INCLUDE = 357,
+    PP_DEFINE = 358,
+    PP_UNDEF = 359,
+    PP_IFDEF = 360,
+    PP_IFNDEF = 361,
+    PP_ELSE = 362,
+    PP_ENDIF = 363,
+    PP_NL = 364
   };
 #endif
 /* Tokens.  */
@@ -236,19 +246,29 @@ extern int gwion_debug;
 #define TYPEOF 346
 #define CONST 347
 #define AUTO 348
-#define AUTO_PTR 349
-#define NUM 350
-#define FLOAT 351
-#define ID 352
-#define STRING_LIT 353
-#define CHAR_LIT 354
+#define PASTE 349
+#define ELLIPSE 350
+#define NUM 351
+#define FLOAT 352
+#define ID 353
+#define STRING_LIT 354
+#define CHAR_LIT 355
+#define PP_COMMENT 356
+#define PP_INCLUDE 357
+#define PP_DEFINE 358
+#define PP_UNDEF 359
+#define PP_IFDEF 360
+#define PP_IFNDEF 361
+#define PP_ELSE 362
+#define PP_ENDIF 363
+#define PP_NL 364
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 26 "utils/gwion.y" /* yacc.c:1910  */
+#line 30 "utils/gwion.y" /* yacc.c:1910  */
 
   char* sval;
   int ival;
@@ -273,7 +293,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 277 "include/parser.h" /* yacc.c:1910  */
+#line 297 "include/parser.h" /* yacc.c:1910  */
 };
 
 typedef union YYSTYPE YYSTYPE;

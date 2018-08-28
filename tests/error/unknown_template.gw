@@ -1,2 +1,2 @@
 // [contains] template call of non-existant function.
-test<{int}>();
+test“int”();

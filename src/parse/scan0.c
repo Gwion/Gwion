@@ -1,3 +1,4 @@
+#define PARSE
 #include <string.h>
 #include "defs.h"
 #include "err_msg.h"

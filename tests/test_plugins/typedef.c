@@ -3,7 +3,7 @@
 #include "object.h"
 
 static MFUN(test_func) { puts("test"); }
-IMPORT {
+GWION_IMPORT(typedef_test) {
   Type t_func_typedef;
   CHECK_OB((t_func_typedef = gwi_mk_type(gwi, "FuncTypedef", SZ_INT , NULL)))
   CHECK_BB(gwi_fptr_ini(gwi, "void", "PtrType"))

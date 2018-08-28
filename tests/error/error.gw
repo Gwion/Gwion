@@ -1,2 +1,4 @@
 // [contains] right-side operand is non-mutable
-Gain a @=> dac;
+const int i;
+12 => i;
+

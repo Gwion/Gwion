@@ -22,15 +22,14 @@ ANN void free_context(const Context a) {
   mp_free(Context, a);
 }
 
-ANN m_bool load_context(const Context context, const Env env) {
+ANN void load_context(const Context context, const Env env) {
   ADD_REF((env->context = context))
   vector_add(&env->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
   env->curr = context->nspc;
-  return 1;
 }
 
-ANN m_bool unload_context(const Context context, const Env env) {
+ANN void unload_context(const Context context, const Env env) {
   if(context->lbls.ptr) {
     LOOP_OPTIM
     for(m_uint i = 0; i < map_size(&context->lbls); i++)
@@ -39,5 +38,4 @@ ANN m_bool unload_context(const Context context, const Env env) {
   }
   REM_REF(context);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  return 1;
 }

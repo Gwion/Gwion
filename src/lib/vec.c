@@ -4,7 +4,7 @@
 #include "instr.h"
 #include "import.h"
 
-INSTR(vec_member) { GWDEBUG_EXE
+INSTR(VecMember) { GWDEBUG_EXE
   if(instr->m_val)
     *(m_float**)REG(-SZ_INT) = (m_float*)(*(m_bit**)REG(-SZ_INT) + instr->m_val2);
   else {
@@ -137,8 +137,8 @@ static INSTR(vec3_##name##assign) { GWDEBUG_EXE      \
 describe_vec3_assign(, -SZ_VEC3, SZ_INT)
 describe_vec3_assign(r_, 0, )
 
-ANN m_bool import_vec3(const Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  t_vec3, NULL, NULL))
+GWION_IMPORT(vec3) {
+  CHECK_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "y");
@@ -285,7 +285,7 @@ static INSTR(vec4_##name##assign) { GWDEBUG_EXE      \
 describe_vec4_assign(, -SZ_VEC4, SZ_INT)
 describe_vec4_assign(r_, 0, )
 
-m_bool import_vec4(Gwi gwi) {
+GWION_IMPORT(vec4) {
   CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);

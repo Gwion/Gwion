@@ -6,6 +6,8 @@
 #include <readline/history.h>
 #include "vm.h"
 #include "type.h"
+#include "hash.h"
+#include "scanner.h"
 #include "err_msg.h"
 #include "instr.h"
 #include "context.h"
@@ -15,7 +17,7 @@
 
 #define PROMPT_SZ 128
 
-static m_bool accept, chctx, fork, add, sys;
+static m_bool accept, cancel, chctx, fork, add, sys;
 
 static inline int _bind_cr(int count __attribute__((unused)), int key __attribute__((unused))) {
   if(accept) {
@@ -27,6 +29,12 @@ static inline int _bind_cr(int count __attribute__((unused)), int key __attribut
 }
 
 static inline int _bind_accept(int count __attribute__((unused)), int key __attribute__((unused))) {
+  accept = 1;
+  return 0;
+}
+
+static inline int _bind_cancel(int count __attribute__((unused)), int key __attribute__((unused))) {
+  cancel = 1;
   accept = 1;
   return 0;
 }
@@ -67,7 +75,7 @@ ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
     return;
   }
   FILE* f = fmemopen(line, strlen(line), "r");
-  const Ast ast = parse("repl", f);
+  const Ast ast = parse(vm->scan, "repl", f);
   if(!ast)
     goto close;
   const m_str str = strdup("repl");
@@ -75,7 +83,7 @@ ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
     goto close;
   if(emit_ast(vm->emit, ast, str) < 0)
     goto close;
-  ((Instr)vector_back(&vm->emit->code->code))->execute = EOC2;
+  ((Instr)vector_back(&vm->emit->code->instr))->execute = EOC2;
   vm->emit->code->name = str;
   if(shred->code)
     free_vm_code(shred->code);
@@ -101,7 +109,7 @@ ANN static struct Repl* new_repl(const m_str name) {
 ANN static void free_repl(struct Repl* repl, VM* vm) {
   if(repl->shred->code->instr) {
     ((Instr)vector_back(repl->shred->code->instr))->execute = EOC;
-    repl->shred->next_pc = vector_size(repl->shred->code->instr) - 2;
+    repl->shred->pc = vector_size(repl->shred->code->instr) - 2;
     vm_add_shred(vm, repl->shred);
   } else
     shreduler_remove(vm->shreduler, repl->shred, 1);
@@ -115,15 +123,15 @@ ANN static struct Repl* repl_ctx(struct Repl* repl, const Vector v, VM* vm) {
   const m_str ln = readline("\033[1mcontext:\033[0m ");
   for(m_uint i = vector_size(v) + 1; --i;) {
     struct Repl* s = (struct Repl*)vector_at(v, i-1);
-    if(!strcmp(ln, s->ctx->filename)) {
+    if(!strcmp(ln, s->ctx->name)) {
        r = s;
        break;
     }
   }
   if(!r) {
-      printf("creating new context \033[1m'%s'\033[0m\n", ln);
-      r = new_repl(ln);
-      vector_add(v, (vtype)r);
+    printf("creating new context \033[1m'%s'\033[0m\n", ln);
+    r = new_repl(ln);
+    vector_add(v, (vtype)r);
   }
   if(repl != r) {
     unload_context(repl->ctx, vm->emit->env);
@@ -142,7 +150,7 @@ ANN static void repl_fork(struct Repl* repl) {
   if(!repl->shred->child.ptr)
     vector_init(&repl->shred->child);
   vector_add(&repl->shred->child, (vtype)old);
-  memcpy(repl->shred->_mem, old->_mem, SIZEOF_MEM);
+  memcpy(repl->shred->_reg + SIZEOF_REG, old->_reg + SIZEOF_REG, SIZEOF_MEM);
   memcpy(repl->shred->_reg, old->_reg, SIZEOF_REG);
   fork = 0;
 }
@@ -172,11 +180,17 @@ ANN static void repl_add(VM* vm) {
 ANN static m_str repl_prompt(struct Repl* repl) {
   char prompt[PROMPT_SZ];
   if(repl->shred->xid)
-    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", repl->ctx->filename, repl->shred->xid);
+    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", repl->ctx->name, repl->shred->xid);
   else
-    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[!]\033[32m=>\033[0m ", repl->ctx->filename);
+    snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[!]\033[32m=>\033[0m ", repl->ctx->name);
   accept = 0;
-  return readline(prompt);
+  char* ret = readline(prompt);
+  if(cancel) {
+    cancel = 0;
+    xfree(ret);
+    return (m_str)1;
+  }
+  return ret;
 }
 
 ANN static void repl_cmd(struct Repl* repl, VM* vm, const Vector v) {
@@ -201,6 +215,7 @@ ANN static struct Repl* repl_ini(const VM* vm, const Vector v) {
   rl_bind_keyseq("\\M-g", _bind_accept);\
   rl_bind_keyseq("\\M-f", _bind_fork);\
   rl_bind_keyseq("\\M-c", _bind_ctx);\
+  rl_bind_keyseq("\\M-z", _bind_cancel);\
   rl_bind_keyseq("\\M-a", _bind_add);\
   rl_bind_keyseq("\\M-r", _bind_add);\
   rl_bind_keyseq("\\M-s", _bind_sys);\
@@ -224,6 +239,8 @@ ANN static void* repl_process(void* data) {
     char* line = repl_prompt(repl);
     if(!line)
       break;
+    if(line == (m_str) 1)
+      continue;
     if(strlen(line)) {
       eval(vm, repl->shred, line);
       add_history(line);

@@ -10,7 +10,7 @@
 
 POOL_HANDLE(Vararg, 4)
 
-INSTR(Vararg_start) { GWDEBUG_EXE
+INSTR(VarargTop) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(arg->d)
     PUSH_REG(shred, SZ_INT)
@@ -21,7 +21,7 @@ INSTR(Vararg_start) { GWDEBUG_EXE
   }
 }
 
-INSTR(MkVararg) { GWDEBUG_EXE
+INSTR(VarargIni) { GWDEBUG_EXE
   const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
@@ -49,7 +49,7 @@ INSTR(MkVararg) { GWDEBUG_EXE
   PUSH_REG(shred,  SZ_INT);
 }
 
-INSTR(Vararg_end) { GWDEBUG_EXE
+INSTR(VarargEnd) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   PUSH_REG(shred, SZ_INT);
   arg->o += arg->k[arg->i];
@@ -62,7 +62,7 @@ INSTR(Vararg_end) { GWDEBUG_EXE
   }
 }
 
-INSTR(Vararg_Member) { GWDEBUG_EXE
+INSTR(VarargMember) { GWDEBUG_EXE
   const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   memcpy(REG(0), (arg->d + arg->o), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
@@ -73,12 +73,12 @@ static OP_CHECK(at_varobj) {
   return bin->rhs->type;
 }
 
-static INSTR(varobj_assign) { GWDEBUG_EXE
+static INSTR(VarargAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
 }
 
-ANN m_bool import_vararg(const Gwi gwi) {
+GWION_IMPORT(vararg) {
   CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
   CHECK_OB(t_varobj)
@@ -104,9 +104,14 @@ ANN m_bool import_vararg(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, varobj_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, VarargAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, varobj_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, VarargAssign))
   return 1;
 }
+
+#ifdef JIT
+#include "ctrl/vararg.h"
+#include "code/vararg.h"
+#endif

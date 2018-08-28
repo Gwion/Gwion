@@ -2,7 +2,7 @@
 typedef struct {
   m_str  host;
   int    port;
-  m_bool on;
+  unsigned on : 1;
 } UdpIf;
 #endif
 typedef struct {
@@ -18,10 +18,14 @@ typedef struct {
   UdpIf* udp;
 #endif
 #ifdef GWCOV
-  m_bool coverage;
+  unsigned coverage : 1;
 #endif
 #ifdef GWREPL
-  m_bool repl;
+  unsigned m_bool repl : 1;
+#endif
+#ifdef JIT
+  unsigned jit_thread : 1;
+  unsigned jit_wait : 1;
 #endif
 } Arg;
 

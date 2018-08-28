@@ -8,14 +8,19 @@
 #include "ugen.h"
 #include "shreduler_private.h"
 
+// not the best place
+ANEW struct Scanner_* new_scanner(const m_uint size);
+ANN void free_scanner(struct Scanner_* scan);
+
 VM* new_vm(const m_bool loop) {
   VM* vm = (VM*)xcalloc(1, sizeof(VM));
   vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
   vm->shreduler->vm = vm;
   vector_init(&vm->shred);
   vector_init(&vm->ugen);
-  vector_init(&vm->plug);
   shreduler_set_loop(vm->shreduler, loop);
+  vm->scan = new_scanner(127); // !!! magic number
+//  pthread_mutex_init(&vm->mutex, NULL);
   return vm;
 }
 
@@ -32,28 +37,24 @@ void vm_remove(const VM* vm, const m_uint index) {
 ANN void free_vm(VM* vm) {
   if(vm->emit)
     free_emitter(vm->emit);
-  LOOP_OPTIM
-  for(m_uint i = vector_size(&vm->plug) + 1; --i;)
-    dlclose((void*)vector_at(&vm->plug, i - 1));
-  vector_release(&vm->plug);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
   if(vm->sp)
     sp_destroy(&vm->sp);
   free(vm->in);
   free(vm->shreduler);
+  free_scanner(vm->scan);
+//  pthread_mutex_destroy(&vm->mutex);
   free(vm);
 }
 
 static  m_uint shred_ids;
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
-  if(!shred->xid) {
-    const Vector v = (Vector)&vm->shred;
-    vector_add(v, (vtype)shred);
-    shred->vm_ref = (VM*)vm;
-    shred->xid = ++shred_ids;
-    shred->me = new_shred(shred);
-  }
+  const Vector v = (Vector)&vm->shred;
+  vector_add(v, (vtype)shred);
+  shred->vm_ref = (VM*)vm;
+  shred->xid = ++shred_ids;
+  shred->me = new_shred(shred);
   shredule(vm->shreduler, shred, .5);
 }
 
@@ -64,10 +65,12 @@ ANN static inline void vm_ugen_init(const VM* vm) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const UGen u = (UGen)vector_at(v, i - 1);
     u->done = 0;
-    if(GET_FLAG(u, UGEN_MULTI))
+    if(GET_FLAG(u, UGEN_MULTI)) {
+      struct ugen_multi_* m = u->connect.multi;
       LOOP_OPTIM
-      for(m_uint j = u->connect.multi->n_chan + 1; --j;)
-        UGEN(u->connect.multi->channel[j - 1])->done = 0;
+      for(m_uint j = m->n_chan + 1; --j;)
+        UGEN(m->channel[j - 1])->done = 0;
+    }
   }
   const UGen hole = UGEN(vm->blackhole);
   hole->compute(hole);
@@ -79,9 +82,15 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 #define VM_INFO                                                              \
   if(s->curr)                                                                \
     gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid, \
-    shred->mem - shred->_mem, shred->reg - shred->_reg);
+    shred->mem - (shred->_reg + SIZEOF_REG), shred->reg - shred->_reg);
 #else
 #define VM_INFO
+#endif
+
+#ifdef VMBENCH
+#include <time.h>
+static struct timespec exec_time;
+#include <bsd/sys/time.h>
 #endif
 
 __attribute__((hot))
@@ -89,14 +98,29 @@ ANN void vm_run(const VM* vm) {
   const Shreduler s = vm->shreduler;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
-    do {
-//printf("shred[%li] code %p\n", shred->xid, shred->code->instr);
+//  pthread_mutex_lock(&vm->mutex);
+
+#ifdef VMBENCH
+struct timespec exec_ini, exec_end, exec_ret;
+clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
+#endif
+  do {
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
       instr->execute(shred, instr);
       VM_INFO;
     } while(s->curr);
+//  pthread_mutex_unlock(&vm->mutex);
+#ifdef VMBENCH
+clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
+timespecsub(&exec_end, &exec_ini, &exec_ret);
+timespecadd(&exec_time, &exec_ret, &exec_time);
+#endif
   }
-  if(!vm->is_running)
+  if(!vm->is_running) {
+#ifdef VMBENCH
+    printf("[VM] exec time %lu.%09lu\n", exec_time.tv_sec, exec_time.tv_nsec);
+#endif
     return;
+  }
   vm_ugen_init(vm);
 }
