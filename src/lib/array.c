@@ -242,7 +242,7 @@ INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
   const M_Object obj = new_array(info->type, info->base->size, info->d.length, info->depth);
   vector_add(&shred->gc, (vtype)obj);
   ADD_REF(obj->type_ref);
-  memcpy(ARRAY(obj)->ptr, REG(-SZ_INT), instr->m_val2 * info->d.length);
+  memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), instr->m_val2 * info->d.length);
   *(M_Object*)REG(-SZ_INT) = obj;
 }
 
