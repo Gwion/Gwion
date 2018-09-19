@@ -49,7 +49,7 @@ jit_branch(NeqFloat, float, SZ_FLOAT, ne)
 JIT_CODE(BranchSwitch) {
   push_reg(cc, -SZ_INT);
   CJval idx = JLOADR(cc->reg, 0, nint);
-  CJval map = JCONST(void_ptr, (m_uint)*(Map*)instr->ptr);
+  CJval map = JCONST(void_ptr, instr->m_val2);
   Jval arg[] = { map, idx };
   CJval pc = CALL_NATIVE(map_get, "IpI", arg);
   INIT_LABEL(lbl)
@@ -185,7 +185,7 @@ JIT_CODE(MemPushImm) {
 }
 
 JIT_CODE(MemSetImm) {
-  CJval val = JCONST(nuint, *(m_uint*)instr->ptr);
+  CJval val = JCONST(nuint, instr->m_val2);
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
   JSTORER(mem, instr->m_val, val);
 }
@@ -201,7 +201,7 @@ JIT_CODE(RegPushMem) {
 }
 
 JIT_CODE(RegPushPtr) {
-  CJval val = JCONST(nuint, *(m_uint*)instr->ptr);
+  CJval val = JCONST(nuint, instr->m_val);
   JSTORER(cc->reg, -SZ_INT, val);
 }
 
@@ -406,7 +406,7 @@ JIT_CODE(DotData) {
 }
 
 JIT_CODE(ObjectInstantiate) {
-  Jval arg[] = { cc->shred, JCONST(void_ptr, *(Type*)instr->ptr) };
+  Jval arg[] = { cc->shred, JCONST(void_ptr, instr->m_val) };
   CJval obj = CALL_NATIVE(new_object, "ppp", arg);
   JSTORER(cc->reg, 0, obj);
   push_reg(cc, SZ_INT);
@@ -661,7 +661,7 @@ JIT_CODE(AutoLoopStart) {
   CJval array = JLOADR(data, 0, void_ptr);
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
   CJval idx = JLOADR(mem, instr->m_val, nuint);
-  const Type t = *(Type*)instr->ptr;
+  const Type t = instr->m_val2;
   if(t) {
     INIT_LABEL(lbl);
     JINSN(branch_if, idx, &lbl);
@@ -683,7 +683,7 @@ JIT_CODE(AutoLoopStart) {
 
 JIT_CODE(AutoLoopEnd) {
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
-  if(*(Type*)instr->ptr) {
+  if(instr->m_val2) {
     CJval ptr = JLOADR(mem, instr->m_val + SZ_INT, void_ptr);
     cc_release(cc, ptr);
   }
@@ -699,7 +699,7 @@ JIT_CODE(AutoLoopEnd) {
   CJval cond = JINSN(ge, sum, size);
   INIT_LABEL(lbl);
   JINSN(branch_if_not, cond, &lbl);
-  next_pc(cc, instr->m_val2);
+  next_pc(cc, *(m_uint*)instr->ptr);
   jit_insn_default_return(cc->f);
   push_reg(cc, -SZ_INT);
   JINSN(label, &lbl);

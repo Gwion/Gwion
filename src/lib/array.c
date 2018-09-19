@@ -215,7 +215,7 @@ GWION_IMPORT(array) {
 
 INSTR(ArrayTop) { GWDEBUG_EXE
   if(*(m_uint*)REG(-SZ_INT * 2) < *(m_uint*)REG(-SZ_INT))
-    instantiate_object(shred, *(Type*)instr->ptr);
+    instantiate_object(shred, (Type)instr->m_val2);
   else
     shred->pc = instr->m_val;
 }

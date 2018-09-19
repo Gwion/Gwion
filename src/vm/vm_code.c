@@ -51,7 +51,7 @@ ANN static void free_code_instr(Vector v) {
     } else if(instr->execute == Gack)
       free_code_instr_gack(instr);
     else if(instr->execute == BranchSwitch)
-      free_map(*(Map*)instr->ptr);
+      free_map((Map)instr->m_val2);
     else if(instr->execute == SporkExp) {
 //      if(instr->m_val2)
         REM_REF((Func)instr->m_val2)

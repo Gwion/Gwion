@@ -59,7 +59,7 @@ INSTR(MemPushImm) { GWDEBUG_EXE
 }
 
 INSTR(MemSetImm) { GWDEBUG_EXE
-  *(m_uint**)MEM(instr->m_val) = *(m_uint**)instr->ptr;
+  *(m_uint*)MEM(instr->m_val) = instr->m_val2;
 }
 
 INSTR(RegPushMem) { GWDEBUG_EXE
@@ -69,7 +69,7 @@ INSTR(RegPushMem) { GWDEBUG_EXE
 }
 
 INSTR(RegPushPtr) { GWDEBUG_EXE
-  *(m_uint*)REG(-SZ_INT) = *(m_uint*)instr->ptr;
+  *(m_uint*)REG(-SZ_INT) = instr->m_val;
 }
 
 INSTR(RegPushCode) { GWDEBUG_EXE
@@ -118,7 +118,7 @@ INSTR(AllocWord) { GWDEBUG_EXE
 /* branching */
 INSTR(BranchSwitch) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
-  const Map map = *(Map*)instr->ptr;
+  const Map map = (Map)instr->m_val2;
   shred->pc = (m_int)map_get(map, *(m_int*)REG(0));
   if(!shred->pc)
     shred->pc = instr->m_val;
@@ -307,8 +307,7 @@ INSTR(FuncMember) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(0);
   const m_uint local_depth =   *(m_uint*)REG(SZ_INT);
   PUSH_MEM(shred, local_depth);
-//  if(code->stack_depth)
-    copy_member_args(shred, code);
+  copy_member_args(shred, code);
   if(overflow_(shred))
     Except(shred, "StackOverflow");
   if(GET_FLAG(code, NATIVE_CTOR)) {
@@ -342,7 +341,7 @@ INSTR(PreCtor) { GWDEBUG_EXE
 }
 
 INSTR(ObjectInstantiate) { GWDEBUG_EXE
-  const M_Object o = new_object(shred, *(Type*)instr->ptr);
+  const M_Object o = new_object(shred, (Type)instr->m_val);
   *(M_Object*)REG(0) = o;
   PUSH_REG(shred, SZ_INT);
 }
@@ -412,7 +411,7 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
   if(!o)
     Except(shred, "NullPtrException");
   const m_uint idx = *(m_uint*)MEM(instr->m_val);
-  const Type t = *(Type*)instr->ptr;
+  const Type t = (Type)instr->m_val2;
   if(t) {
     M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
     if(!idx) {
@@ -425,7 +424,7 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
 }
 
 INSTR(AutoLoopEnd) { GWDEBUG_EXE
-  if(*(Type*)instr->ptr) {
+  if(instr->m_val2) {
     const M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
     _release(ptr, shred);
   }
@@ -433,7 +432,7 @@ INSTR(AutoLoopEnd) { GWDEBUG_EXE
   ++*idx;
   const M_Object o =  *(M_Object*)REG(-SZ_INT);
   if(*idx >= m_vector_size(ARRAY(o))) {
-    shred->pc = instr->m_val2;
+    shred->pc = *(m_uint*)instr->ptr;
     POP_REG(shred, SZ_INT);
   }
 }
