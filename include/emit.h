@@ -19,7 +19,6 @@ struct Emitter_ {
   Env    env;
   Code*  code;
   struct Vector_    stack;
-  struct Vector_    codes;
   m_str  filename;
   Map    cases; // passed to instr: is a pointer
   m_int	 default_case_index;

@@ -90,14 +90,12 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 ANEW Emitter new_emitter(void) {
   Emitter emit = (Emitter)xcalloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
-  vector_init(&emit->codes);
   return emit;
 }
 
 ANN void free_emitter(Emitter a) {
   free_env(a->env);
   vector_release(&a->stack);
-  vector_release(&a->codes);
   xfree(a);
 }
 
@@ -311,12 +309,7 @@ ANEW ANN VM_Code emit_code(const Emitter emit) { GWDEBUG_EXE
   Code* c = emit->code;
   const VM_Code code = new_vm_code(&c->instr, c->stack_depth,
       GET_FLAG(c, ae_flag_member), c->name);
-  if(GET_FLAG(c, ae_flag_recurs)) {
-    SET_FLAG(code, ae_flag_recurs);
-    vector_add(&emit->codes, (vtype)code);
-  }
 #ifdef JIT
-  else
   jitq(emit->jit, code);
 #endif
   free_code(c);
@@ -774,9 +767,10 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
   if((emit->env->func && emit->env->func == func) ||
     GET_FLAG(func, ae_flag_recurs)) {
-      const Instr code = emitter_add_instr(emit, INSTR_RECURS);
-      code->m_val = (m_uint)func;
-      SET_FLAG(emit->code, ae_flag_recurs);
+    emitter_add_instr(emit, RegPushCode);
+//      const Instr code = emitter_add_instr(emit, INSTR_RECURS);
+//      code->m_val = (m_uint)func;
+//      SET_FLAG(emit->code, ae_flag_recurs);
       return 1;
   }
   if(GET_FLAG(func, ae_flag_template)) {
@@ -814,7 +808,7 @@ ANN static void emit_exp_call1_builtin(const Emitter emit, const Func func) {
   call->m_val = func->def->ret_type->size;
 }
 
-ANN inline void emit_exp_call1_fptr(const Emitter emit, const Func func) {
+ANN static inline void emit_exp_call1_fptr(const Emitter emit, const Func func) {
   const Instr call = emitter_add_instr(emit, FuncPtr);
   call->m_val = func->def->ret_type->size;
 }
@@ -1911,31 +1905,6 @@ ANN static m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static void handle_code(const VM_Code c) {
-  LOOP_OPTIM
-  for(m_uint i = 0; i < vector_size(c->instr); ++i) {
-    const Instr instr = (Instr)vector_at(c->instr, i);
-    if(instr->execute == INSTR_RECURS) {
-      instr->execute = RegPushPtr;
-      const Func func = (Func)instr->m_val;
-      instr->m_val = (m_uint)func->code;
-    }
-  }
-}
-
-ANN /* static */ void code_optim(const Emitter emit) {
-  for(m_uint i = vector_size(&emit->codes) + 1; --i;) {
-    const VM_Code c = (VM_Code)vector_at(&emit->codes, i - 1);
-//    if(GET_FLAG(c, ae_flag_recurs)) {
-      handle_code(c);
-#ifdef JIT
-      jitq(emit->jit, c);
-#endif
-//    }
-  }
-  vector_clear(&emit->codes);
-}
-
 ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG_EXE
 #ifdef GWCOV
   if(emit->coverage) {
@@ -1950,17 +1919,15 @@ ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);
   emit_pop_scope(emit);
-  if(ret > 0)
-    code_optim(emit);
-  else { // should free all stack.
+  if(ret < 0) {
     gw_err("in file '%s'\n", filename);
     emit_free_stack(emit);
     free(filename);
     free_ast(ast);
-  }
-  if(emit->cases) {
-    free_map(emit->cases);
-    emit->cases = NULL;
+    if(emit->cases) {
+      free_map(emit->cases);
+      emit->cases = NULL;
+    }
   }
 #ifdef GWCOV
   if(emit->coverage)
