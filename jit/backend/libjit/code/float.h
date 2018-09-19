@@ -28,42 +28,32 @@ jit_describe(Times, mul)
 jit_describe(Divide, div)
 
 JIT_CODE(float_and) {
-  CJval reg = push_reg(cc, SZ_INT-SZ_FLOAT*2);
-  CJval one = JCONST(nint, 1);
-  CJval zero = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, SZ_INT-SZ_FLOAT*2);
   INIT_LABEL(end)
   INIT_LABEL(nok)
-  CJval lhs = JLOADR(reg, -SZ_INT, float);
-  CJval ok1 = JINSN(eq, lhs, zedf);
-  JINSN(branch_if, ok1, &nok);
-  CJval rhs = JLOADR(reg, SZ_FLOAT-SZ_INT, float);
-  CJval ok2 = JINSN(eq, rhs, zedf);
-  JINSN(branch_if, ok2, &nok);
-  JSTORER(reg, -SZ_INT, one);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, float);
+  JINSN(branch_if_not, lhs, &nok);
+  CJval rhs = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, float);
+  JINSN(branch_if_not, rhs, &nok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(branch, &end);
   JINSN(label, &nok);
-  JSTORER(reg, -SZ_INT, zero);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(label, &end);
 }
 
 JIT_CODE(float_or) {
-  CJval reg = push_reg(cc, SZ_INT-SZ_FLOAT*2);
-  CJval one = JCONST(nint, 1);
-  CJval zed = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, SZ_INT-SZ_FLOAT*2);
   INIT_LABEL(end)
   INIT_LABEL(ok)
-  CJval lhs = JLOADR(reg, -SZ_INT, float);
-  CJval ok1 = JINSN(eq, lhs, zedf);
-  JINSN(branch_if_not, ok1, &ok);
-  CJval rhs = JLOADR(reg, SZ_FLOAT-SZ_INT, float);
-  CJval ok2 = JINSN(eq, rhs, zedf);
-  JINSN(branch_if_not, ok2, &ok);
-  JSTORER(reg, -SZ_INT, zed);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, float);
+  JINSN(branch_if, lhs, &ok);
+  CJval rhs = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, float);
+  JINSN(branch_if, rhs, &ok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(branch, &end);
   JINSN(label, &ok);
-  JSTORER(reg, -SZ_INT, one);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(label, &end);
 }
 
@@ -143,42 +133,32 @@ jit_describe_if(times,  mul)
 jit_describe_if(divide, div)
 
 JIT_CODE(int_float_and) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval one = JCONST(nint, 1);
-  CJval zero = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, -SZ_FLOAT);
   INIT_LABEL(end)
   INIT_LABEL(nok)
-  CJval lhs = JLOADR(reg, -SZ_INT, nint);
-  CJval ok1 = JINSN(eq, lhs, zero);
-  JINSN(branch_if, ok1, &nok);
-  CJval rhs = JLOADR(reg, 0, float);
-  CJval ok2 = JINSN(eq, rhs, zedf);
-  JINSN(branch_if, ok2, &nok);
-  JSTORER(reg, -SZ_INT, one);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, nint);
+  JINSN(branch_if_not, lhs, &nok);
+  CJval rhs = JLOADR(cc->reg, 0, float);
+  JINSN(branch_if_not, rhs, &nok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(branch, &end);
   JINSN(label, &nok);
-  JSTORER(reg, -SZ_INT, zero);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(label, &end);
 }
 
 JIT_CODE(int_float_or) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval one = JCONST(nint, 1);
-  CJval zed = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, -SZ_FLOAT);
   INIT_LABEL(end)
   INIT_LABEL(ok)
-  CJval lhs = JLOADR(reg, -SZ_INT, nint);
-  CJval ok1 = JINSN(eq, lhs, zed);
-  JINSN(branch_if_not, ok1, &ok);
-  CJval rhs = JLOADR(reg, 0, float);
-  CJval ok2 = JINSN(eq, rhs, zedf);
-  JINSN(branch_if_not, ok2, &ok);
-  JSTORER(reg, -SZ_INT, zed);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, nint);
+  JINSN(branch_if, lhs, &ok);
+  CJval rhs = JLOADR(cc->reg, 0, float);
+  JINSN(branch_if, rhs, &ok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(branch, &end);
   JINSN(label, &ok);
-  JSTORER(reg, -SZ_INT, one);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(label, &end);
 }
 
@@ -248,42 +228,32 @@ jit_describe_fi(times,  mul)
 jit_describe_fi(divide, div)
 
 JIT_CODE(float_int_and) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval one = JCONST(nint, 1);
-  CJval zero = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, -SZ_FLOAT);
   INIT_LABEL(end)
   INIT_LABEL(nok)
-  CJval lhs = JLOADR(reg, -SZ_INT, float);
-  CJval ok1 = JINSN(eq, lhs, zedf);
-  JINSN(branch_if, ok1, &nok);
-  CJval rhs = JLOADR(reg, SZ_FLOAT-SZ_INT, nint);
-  CJval ok2 = JINSN(eq, rhs, zero);
-  JINSN(branch_if, ok2, &nok);
-  JSTORER(reg, -SZ_INT, one);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, float);
+  JINSN(branch_if_not, lhs, &nok);
+  CJval rhs = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, nint);
+  JINSN(branch_if_not, rhs, &nok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(branch, &end);
   JINSN(label, &nok);
-  JSTORER(reg, -SZ_INT, zero);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(label, &end);
 }
 
 JIT_CODE(float_int_or) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval one = JCONST(nint, 1);
-  CJval zed = JCONST(nint, 0);
-  CJval zedf = JCONSTF(0.0);
+  push_reg(cc, -SZ_FLOAT);
   INIT_LABEL(end)
   INIT_LABEL(ok)
-  CJval lhs = JLOADR(reg, -SZ_INT, float);
-  CJval ok1 = JINSN(eq, lhs, zedf);
-  JINSN(branch_if_not, ok1, &ok);
-  CJval rhs = JLOADR(reg, SZ_FLOAT-SZ_INT, nint);
-  CJval ok2 = JINSN(eq, rhs, zed);
-  JINSN(branch_if_not, ok2, &ok);
-  JSTORER(reg, -SZ_INT, zed);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, float);
+  JINSN(branch_if, lhs, &ok);
+  CJval rhs = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, nint);
+  JINSN(branch_if, rhs, &ok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(branch, &end);
   JINSN(label, &ok);
-  JSTORER(reg, -SZ_INT, one);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(label, &end);
 }
 

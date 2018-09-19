@@ -17,13 +17,15 @@
 ANN Jval push_reg(JitCC* const cc, const m_int i) {
   CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
   cc->reg = JADDR(ptr, i);
+//  cc->reg = JADDR(cc->reg, i);
   JSTORER(cc->shred, JOFF(VM_Shred, reg), cc->reg);
   return cc->reg;
 }
 
 ANN void push_reg2(JitCC* const cc, CJval i) {
-  CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
-  cc->reg = JINSN(add, ptr, i);
+//  CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
+//  cc->reg = JINSN(add, ptr, i);
+  cc->reg = JINSN(add, cc->reg, i);
   JSTORER(cc->shred, JOFF(VM_Shred, reg), cc->reg);
 }
 
@@ -87,10 +89,6 @@ ANN Jval cc_get_flag(CC cc, CJval a, ae_flag flag) {
   CJval b = JCONST(nuint, flag);
   CJval c = JINSN(and, a, b);
   return JINSN(eq, c, b);
-}
-
-m_str safe_string(M_Object a) {
-  return a ? STRING(a) : NULL;
 }
 
 Jval cc_call(CC cc, void* func, const m_str s, Jval *arg) {

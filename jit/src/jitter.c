@@ -226,7 +226,7 @@ void jitq(struct Jit* j, VM_Code c) {
 }
 
 void jit_sync(struct Jit* j) {
-  if(j->wait)
+  if(j->init && j->wait)
     pthread_barrier_wait(&j->barrier);
 }
 

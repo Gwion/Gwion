@@ -28,6 +28,7 @@ JIT_CODE(ArrayTop) {
   CJval type = JCONST(void_ptr, *(Type*)instr->ptr);
   Jval arg[] = { cc->shred, type };
   CALL_NATIVE(instantiate_object, "vpp", arg);
+push_reg(cc, 0);
   JINSN(branch, &lbl1);
   JINSN(label, &lbl0);
   next_pc(cc, instr->m_val);
@@ -157,12 +158,8 @@ JIT_CODE(ArrayAlloc) {
   Jval data;
   JINSN(store, num_obj, JCONST(nuint, 1));
   const m_bool is_obj = info->is_obj && !info->is_ref;
-//  CJval size = JCONST(nuint, sizeof(struct ArrayInfo_) * 2);
-//  CJval _aai = JINSN(alloca, size);
-//  CJval aai = JINSN(address_of, _aai);
-
-  Jval aarg[] = { JCONST(nuint, sizeof(struct ArrayInfo_)) };
-  CJval aai = CALL_NATIVE(xmalloc, "pU", aarg);
+  CJval size = JCONST(nuint, sizeof(struct ArrayInfo_) * 2);
+  CJval aai = JINSN(alloca, size);
   CJval depth = JCONST(nint, -info->depth);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, depth), depth);
   CJval type = JCONST(void_ptr, info->type);
@@ -181,10 +178,12 @@ JIT_CODE(ArrayAlloc) {
     CJval anum_obj = JINSN(address_of, num_obj);
     Jval arg[] = { cc->shred, jinfo, anum_obj };
     data = CALL_NATIVE(init_array, "pppp", arg);
+push_reg(cc, 0);
     JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, data), data);
   }
   Jval arg[] = { cc->shred, aai };
   CJval ref = CALL_NATIVE(do_alloc_array, "ppp", arg);
+push_reg(cc, 0);
 
   if(!is_obj) {
     if(info->depth > 1)
@@ -210,8 +209,10 @@ static void jit_oob(const CC cc, CJval obj,
   INIT_LABEL(lbl);
   INIT_LABEL(lbl2);
   JINSN(branch_if, cond, &lbl);
-  CJval uidx = JINSN(convert, idx, jit_type_nuint, 0);
-  CJval cond1 = JINSN(ge, uidx, len);
+//  JINSN(branch_if_not, cond, &lbl);
+//  CJval uidx = JINSN(convert, idx, jit_type_nuint, 0);
+//  CJval cond1 = JINSN(ge, uidx, len);
+  CJval cond1 = JINSN(ge, idx, len);
   JINSN(branch_if_not, cond1, &lbl2);
   JINSN(label, &lbl);
   cc_release(cc, base);
@@ -270,7 +271,7 @@ JIT_CODE(ArrayAccessMulti) {
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 void jit_code_import_array(struct Jit* j) {
   JIT_IMPORT(ArrayInit)
-//  JIT_IMPORT(ArrayAlloc)
+  JIT_IMPORT(ArrayAlloc)
   JIT_IMPORT(ArrayAppend)
   JIT_IMPORT(ArrayTop)
   JIT_IMPORT(ArrayBottom)

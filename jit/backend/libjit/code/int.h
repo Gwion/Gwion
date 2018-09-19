@@ -123,40 +123,32 @@ JIT_CODE(int_r_assign) {
 }
 
 JIT_CODE(int_and) {
-  CJval reg  = push_reg(cc, -SZ_INT);
-  CJval one = JCONST(nint, 1);
-  CJval zero = JCONST(nint, 0);
+  push_reg(cc, -SZ_INT);
   INIT_LABEL(end)
   INIT_LABEL(nok)
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval ok1 = JINSN(eq, lhs, zero);
-  JINSN(branch_if, ok1, &nok);
-  CJval rhs = JLOADR(reg, 0, void_ptr);
-  CJval ok2 = JINSN(eq, rhs, zero);
-  JINSN(branch_if, ok2, &nok);
-  JSTORER(reg, -SZ_INT, one);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  JINSN(branch_if_not, lhs, &nok);
+  CJval rhs = JLOADR(cc->reg, 0, void_ptr);
+  JINSN(branch_if_not, rhs, &nok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(branch, &end);
   JINSN(label, &nok);
-  JSTORER(reg, -SZ_INT, zero);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(label, &end);
 }
 
 JIT_CODE(int_or) {
-  CJval reg  = push_reg(cc, -SZ_INT);
-  CJval one = JCONST(nint, 1);
-  CJval zed = JCONST(nint, 0);
+  push_reg(cc, -SZ_INT);
   INIT_LABEL(end)
   INIT_LABEL(ok)
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval ok1 = JINSN(eq, lhs, zed);
-  JINSN(branch_if_not, ok1, &ok);
-  CJval rhs = JLOADR(reg, 0, void_ptr);
-  CJval ok2 = JINSN(eq, rhs, zed);
-  JINSN(branch_if_not, ok2, &ok);
-  JSTORER(reg, -SZ_INT, zed);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  JINSN(branch_if, lhs, &ok);
+  CJval rhs = JLOADR(cc->reg, 0, void_ptr);
+  JINSN(branch_if, rhs, &ok);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 0));
   JINSN(branch, &end);
   JINSN(label, &ok);
-  JSTORER(reg, -SZ_INT, one);
+  JSTORER(cc->reg, -SZ_INT, JCONST(nuint, 1));
   JINSN(label, &end);
 }
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);

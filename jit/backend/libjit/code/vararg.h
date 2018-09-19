@@ -14,11 +14,9 @@ ANN static inline Jval get_vararg(CC cc, const Instr instr) {
 JIT_CODE(VarargTop) {
   CJval var = get_vararg(cc, instr);
   CJval data = JLOADR(var, JOFF(Vararg, d), void_ptr);
-  CJval null = JCONST(void_ptr, 0);
-  CJval cond = JINSN(eq, data, null);
   INIT_LABEL(lbl);
   INIT_LABEL(end);
-  JINSN(branch_if, cond, &lbl);
+  JINSN(branch_if_not, data, &lbl);
   push_reg(cc, SZ_INT);
   JINSN(branch, &end);
   JINSN(label, &lbl);

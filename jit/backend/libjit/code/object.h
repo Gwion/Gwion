@@ -18,10 +18,8 @@ JIT_CODE(ObjectAssign) {
   CJval ptr = JLOADR(reg, 0, void_ptr);
   if(!instr->m_val2) {
     CJval rhs = JLOADR(ptr, 0, void_ptr);
-    CJval null = JCONST(void_ptr, 0);
     INIT_LABEL(lbl)
-    CJval cond = JINSN(eq, rhs, null);
-    JINSN(branch_if, cond, &lbl);
+    JINSN(branch_if_not, rhs, &lbl);
     CJval ref = JLOADR(rhs, JOFF(M_Object, ref), nuint);
     CJval one = JCONST(nuint, 1);
     CJval sum = JINSN(sub, ref, one);

@@ -25,10 +25,8 @@ JIT_CODE(name##_##func) { \
   CJval reg = push_reg(cc, -SZ_INT*2);\
   CJval lhs = JLOADR(reg, 0, void_ptr);\
   CJval rhs = JLOADR(reg, SZ_INT, void_ptr);\
-  CJval null = JCONST(void_ptr, 0);\
-  CJval has_lhs = JINSN(eq, lhs, null);\
   INIT_LABEL(end);\
-  JINSN(branch_if, has_lhs, &end);\
+  JINSN(branch_if_not, lhs, &end);\
   CJval ldata = JLOADR(lhs, JOFF(M_Object, data), void_ptr); \
   CJval lu = JLOADR(ldata, 0, void_ptr); \
   CJval rdata = JLOADR(rhs, JOFF(M_Object, data), void_ptr);\

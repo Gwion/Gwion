@@ -51,9 +51,11 @@ drvr_src +=src/drvr/pulse.c
 endif
 
 ifeq (${SNDFILE_D}, 1)
-#LDFLAGS += -lsndfile
+LDFLAGS += -lsndfile
 CFLAGS +=-DHAVE_SNDFILE
 drvr_src +=src/drvr/sndfile.c
+else
+CFLAGS +=-DNO_LIBSNDFILE
 endif
 ifeq (${PLOT_D}, 1)
 CFLAGS +=-DHAVE_PLOT
@@ -128,7 +130,7 @@ CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
 # add soundpipe
 LDFLAGS += ${SOUNDPIPE_LIB}
-LDFLAGS += -lsndfile # and sndfile
+#LDFLAGS += -lsndfile # and sndfile
 CFLAGS  += ${SOUNDPIPE_INC}
 
 # initialize object lists
