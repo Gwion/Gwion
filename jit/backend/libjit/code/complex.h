@@ -36,7 +36,7 @@ JIT_CODE(complex_##name) {                                     \
 jit_describe1(plus,   add)
 jit_describe1(minus,  sub)
 
-JIT_CODE(complex_times) {
+JIT_CODE(complex_mul) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -54,7 +54,7 @@ JIT_CODE(complex_times) {
   JSTORER(cc->reg, -SZ_FLOAT, imag);
 }
 
-JIT_CODE(complex_divide) {
+JIT_CODE(complex_div) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -108,7 +108,7 @@ JIT_CODE(complex_r_##name) {                                   \
 jit_describe_r1(plus,   add)
 jit_describe_r1(minus,  sub)
 
-JIT_CODE(complex_r_times) {
+JIT_CODE(complex_r_mul) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -129,7 +129,7 @@ JIT_CODE(complex_r_times) {
   JSTORER(cc->reg, -SZ_FLOAT, imag);
 }
 
-JIT_CODE(complex_r_divide) {
+JIT_CODE(complex_r_div) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -222,8 +222,8 @@ JIT_CODE(polar_##name) {\
   JSTORER(cc->reg, -SZ_COMPLEX, mag);\
   JSTORER(cc->reg, -SZ_FLOAT, pha);\
 }
-jit_polar_def2(times,  mul, add)
-jit_polar_def2(divide, div, sub)
+jit_polar_def2(mul,  mul, add)
+jit_polar_def2(div, div, sub)
 
 #define jit_polar_def1_r(name, op)\
 JIT_CODE(polar_##name##_r) {\
@@ -269,30 +269,30 @@ JIT_CODE(polar_##name##_r) {\
   JSTORER(cc->reg, -SZ_COMPLEX, mag);\
   JSTORER(cc->reg, -SZ_FLOAT, pha);\
 }
-jit_polar_def2_r(times,  mul, add)
-jit_polar_def2_r(divide, div, sub)
+jit_polar_def2_r(mul,  mul, add)
+jit_polar_def2_r(div, div, sub)
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 void jit_code_import_complex(struct Jit* j) {
   JIT_IMPORT(complex_assign)
   JIT_IMPORT(complex_plus)
   JIT_IMPORT(complex_minus)
-  JIT_IMPORT(complex_times)
-  JIT_IMPORT(complex_divide)
+  JIT_IMPORT(complex_mul)
+  JIT_IMPORT(complex_div)
   JIT_IMPORT(complex_r_assign)
   JIT_IMPORT(complex_r_plus)
   JIT_IMPORT(complex_r_minus)
-  JIT_IMPORT(complex_r_times)
-  JIT_IMPORT(complex_r_divide)
+  JIT_IMPORT(complex_r_mul)
+  JIT_IMPORT(complex_r_div)
   JIT_IMPORT(ComplexReal)
   JIT_IMPORT(ComplexImag)
   JIT_IMPORT(polar_plus)
   JIT_IMPORT(polar_minus)
-  JIT_IMPORT(polar_times)
-  JIT_IMPORT(polar_divide)
+  JIT_IMPORT(polar_mul)
+  JIT_IMPORT(polar_div)
   // nalmeing incons
   JIT_IMPORT(polar_plus_r)
   JIT_IMPORT(polar_minus_r)
-  JIT_IMPORT(polar_times_r)
-  JIT_IMPORT(polar_divide_r)
+  JIT_IMPORT(polar_mul_r)
+  JIT_IMPORT(polar_div_r)
 }

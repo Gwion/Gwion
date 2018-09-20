@@ -104,10 +104,10 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, VarargAssign))
+  CHECK_BB(gwi_oper_end(gwi, op_ref, VarargAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, VarargAssign))
+  CHECK_BB(gwi_oper_end(gwi, op_ref, VarargAssign))
   return 1;
 }
 

@@ -2782,37 +2782,37 @@ yyreduce:
 
   case 106:
 #line 300 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_at_chuck; }
+    { (yyval.ival) = op_ref; }
 #line 2787 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 107:
 #line 300 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_plus_chuck; }
+    { (yyval.ival) = op_radd; }
 #line 2793 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 108:
 #line 301 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_minus_chuck; }
+    { (yyval.ival) = op_rsub; }
 #line 2799 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 109:
 #line 301 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_times_chuck; }
+    { (yyval.ival) = op_rmul; }
 #line 2805 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 110:
 #line 302 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_divide_chuck; }
+    { (yyval.ival) = op_rdiv; }
 #line 2811 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 111:
 #line 302 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_modulo_chuck; }
+    { (yyval.ival) = op_rmod; }
 #line 2817 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3166,19 +3166,19 @@ yyreduce:
 
   case 180:
 #line 432 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_s_or, (yyvsp[0].exp), get_pos(arg)); }
+    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_sor, (yyvsp[0].exp), get_pos(arg)); }
 #line 3171 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 182:
 #line 435 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_s_xor, (yyvsp[0].exp), get_pos(arg)); }
+    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_sxor, (yyvsp[0].exp), get_pos(arg)); }
 #line 3177 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 184:
 #line 438 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_s_and, (yyvsp[0].exp), get_pos(arg)); }
+    { (yyval.exp) = new_exp_binary((yyvsp[-2].exp), op_sand, (yyvsp[0].exp), get_pos(arg)); }
 #line 3183 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3190,7 +3190,7 @@ yyreduce:
 
   case 186:
 #line 440 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_neq; }
+    { (yyval.ival) = op_ne; }
 #line 3195 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3232,13 +3232,13 @@ yyreduce:
 
   case 195:
 #line 452 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_shift_left;  }
+    { (yyval.ival) = op_shl;  }
 #line 3237 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 196:
 #line 453 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_shift_right; }
+    { (yyval.ival) = op_shr; }
 #line 3243 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3250,13 +3250,13 @@ yyreduce:
 
   case 199:
 #line 459 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_plus; }
+    { (yyval.ival) = op_add; }
 #line 3255 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 200:
 #line 459 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_minus; }
+    { (yyval.ival) = op_sub; }
 #line 3261 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3268,19 +3268,19 @@ yyreduce:
 
   case 203:
 #line 464 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_times; }
+    { (yyval.ival) = op_mul; }
 #line 3273 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 204:
 #line 464 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_divide; }
+    { (yyval.ival) = op_div; }
 #line 3279 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 205:
 #line 464 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_percent; }
+    { (yyval.ival) = op_mod; }
 #line 3285 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3298,37 +3298,37 @@ yyreduce:
 
   case 210:
 #line 472 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_plus; }
+    { (yyval.ival) = op_add; }
 #line 3303 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 211:
 #line 472 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_minus; }
+    { (yyval.ival) = op_sub; }
 #line 3309 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 212:
 #line 472 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_times; }
+    { (yyval.ival) = op_mul; }
 #line 3315 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 213:
 #line 473 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_plusplus; }
+    { (yyval.ival) = op_inc; }
 #line 3321 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 214:
 #line 473 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_minusminus; }
+    { (yyval.ival) = op_dec; }
 #line 3327 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 215:
 #line 474 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_exclamation; }
+    { (yyval.ival) = op_not; }
 #line 3333 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3395,13 +3395,13 @@ yyreduce:
 
   case 227:
 #line 501 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_plusplus; }
+    { (yyval.ival) = op_inc; }
 #line 3400 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
   case 228:
 #line 501 "utils/gwion.y" /* yacc.c:1648  */
-    { (yyval.ival) = op_minusminus; }
+    { (yyval.ival) = op_dec; }
 #line 3406 "src/ast/parser.c" /* yacc.c:1648  */
     break;
 
@@ -3518,7 +3518,7 @@ yyreduce:
 #line 3519 "src/ast/parser.c" /* yacc.c:1648  */
       default: break;
     }
-  /* User semantic actions sometimes alter yychar, and that requires
+  /* User semantic actions somemul alter yychar, and that requires
      that yytoken be updated with the new translation.  We take the
      approach of translating immediately before every use of yytoken.
      One alternative is translating here after every semantic action,

@@ -89,7 +89,7 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 
 #ifdef VMBENCH
 #include <time.h>
-static struct timespec exec_time;
+static struct mulpec exec_time;
 #include <bsd/sys/time.h>
 #endif
 
@@ -101,7 +101,7 @@ ANN void vm_run(const VM* vm) {
 //  pthread_mutex_lock(&vm->mutex);
 
 #ifdef VMBENCH
-struct timespec exec_ini, exec_end, exec_ret;
+struct mulpec exec_ini, exec_end, exec_ret;
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 #endif
   do {
@@ -112,8 +112,8 @@ clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 //  pthread_mutex_unlock(&vm->mutex);
 #ifdef VMBENCH
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
-timespecsub(&exec_end, &exec_ini, &exec_ret);
-timespecadd(&exec_time, &exec_ret, &exec_time);
+mulpecsub(&exec_end, &exec_ini, &exec_ret);
+mulpecadd(&exec_time, &exec_ret, &exec_time);
 #endif
   }
   if(!vm->is_running) {

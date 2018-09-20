@@ -31,12 +31,12 @@
 #include <time.h>
 #include <bsd/sys/time.h>
 #define VMBENCH_INI                             \
-  struct timespec ini, end, ret;                \
+  struct mulpec ini, end, ret;                \
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ini);
 #define VMBENCH_END                                      \
   clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);          \
-  timespecsub(&end, &ini, &ret);                         \
-  printf("timespec %lu.%09lu\n", ret.tv_sec, ret.tv_nsec);
+  mulpecsub(&end, &ini, &ret);                         \
+  printf("mulpec %lu.%09lu\n", ret.tv_sec, ret.tv_nsec);
 #else
 #define VMBENCH_INI
 #define VMBENCH_END

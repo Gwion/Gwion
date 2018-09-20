@@ -18,8 +18,8 @@ static INSTR(complex_##name) { GWDEBUG_EXE \
 }
 describe(plus,   +)
 describe(minus,  -)
-describe(times,  *)
-describe(divide, /)
+describe(mul,  *)
+describe(div, /)
 
 static INSTR(complex_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
@@ -33,8 +33,8 @@ static INSTR(complex_r_##name) { GWDEBUG_EXE \
 }
 describe_r(plus,  +)
 describe_r(minus, -)
-describe_r(times, *)
-describe_r(divide, /)
+describe_r(mul, *)
+describe_r(div, /)
 
 INSTR(ComplexReal) { GWDEBUG_EXE
   if(!instr->m_val) {
@@ -76,8 +76,8 @@ static INSTR(polar_##name) { GWDEBUG_EXE             \
   const m_float phase = cimag(a) op2 cimag(b);       \
   *(m_complex*)REG(-SZ_COMPLEX) = mag  + phase * I;  \
 }
-polar_def2(times, *, +)
-polar_def2(divide, /, -)
+polar_def2(mul, *, +)
+polar_def2(div, /, -)
 
 #define polar_def1_r(name, op)                                             \
 static INSTR(polar_##name##_r) { GWDEBUG_EXE                               \
@@ -102,8 +102,8 @@ static INSTR(polar_##name##_r) { GWDEBUG_EXE              \
   *(m_complex*)REG(-SZ_COMPLEX) = **(m_complex**)REG(0) = \
     mag + phase * I;                                      \
 }
-polar_def2_r(times, *, +)
-polar_def2_r(divide, /, -)
+polar_def2_r(mul, *, +)
+polar_def2_r(div, /, -)
 
 GWION_IMPORT(complex) {
   CHECK_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
@@ -121,37 +121,37 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus,          complex_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_minus,         complex_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,         complex_times))
-  CHECK_BB(gwi_oper_end(gwi, op_divide,        complex_divide))
+  CHECK_BB(gwi_oper_end(gwi, op_add,          complex_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_sub,         complex_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,         complex_mul))
+  CHECK_BB(gwi_oper_end(gwi, op_div,        complex_div))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,    complex_r_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_radd,    complex_r_plus))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,   complex_r_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_rsub,   complex_r_minus))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,   complex_r_times))
+  CHECK_BB(gwi_oper_end(gwi, op_rmul,   complex_r_mul))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  complex_r_divide))
+  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  complex_r_div))
   CHECK_BB(gwi_oper_ini(gwi, "polar", "polar", "polar"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
   CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus,          polar_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_minus,         polar_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times,         polar_times))
-  CHECK_BB(gwi_oper_end(gwi, op_divide,        polar_divide))
+  CHECK_BB(gwi_oper_end(gwi, op_add,          polar_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_sub,         polar_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,         polar_mul))
+  CHECK_BB(gwi_oper_end(gwi, op_div,        polar_div))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_plus_chuck,    polar_plus_r))
+  CHECK_BB(gwi_oper_end(gwi, op_radd,    polar_plus_r))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_minus_chuck,   polar_minus_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rsub,   polar_minus_r))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_times_chuck,   polar_times_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rmul,   polar_mul_r))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_divide_chuck,  polar_divide_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  polar_div_r))
   return 1;
 }
 

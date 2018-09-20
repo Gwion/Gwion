@@ -10,10 +10,10 @@
 POOL_HANDLE(UGen,       POOL_UGEN_BLK_SIZE)
 POOL_HANDLE(ugen_multi, POOL_UGEN_BLK_SIZE/2)
 
-ANN static inline void ugop_plus   (const UGen u, const m_float f) { u->in += f; }
-ANN static inline void ugop_minus  (const UGen u, const m_float f) { u->in -= f; }
-ANN static inline void ugop_times  (const UGen u, const m_float f) { u->in *= f; }
-ANN static inline void ugop_divide (const UGen u, const m_float f) { u->in /= f; }
+ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
+ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }
+ANN static inline void ugop_mul  (const UGen u, const m_float f) { u->in *= f; }
+ANN static inline void ugop_div (const UGen u, const m_float f) { u->in /= f; }
 
 static TICK(dac_tick) {
   m_float* out = ((VM*)u->module.gen.data)->sp->out;
@@ -75,7 +75,7 @@ describe_compute(multi, trig, {u->module.gen.trig->compute(u->module.gen.trig);}
 
 ANEW static UGen new_UGen() {
   const UGen u = mp_alloc(UGen);
-  u->op = ugop_plus;
+  u->op = ugop_add;
   u->compute = gen_compute_mono;
   return u;
 }
@@ -248,13 +248,13 @@ static MFUN(ugen_channel) {
 
 static MFUN(ugen_get_op) {
   const f_ugop f = UGEN(o)->op;
-  if(f == ugop_plus)
+  if(f == ugop_add)
     *(m_uint*)RETURN = 1;
-  else if(f == ugop_minus)
+  else if(f == ugop_sub)
     *(m_uint*)RETURN = 2;
-  else if(f == ugop_times)
+  else if(f == ugop_mul)
     *(m_uint*)RETURN = 3;
-  else if(f == ugop_divide)
+  else if(f == ugop_div)
     *(m_uint*)RETURN = 4;
 }
 ANN static void set_op(const UGen u, const f_ugop f) {
@@ -268,13 +268,13 @@ ANN static void set_op(const UGen u, const f_ugop f) {
 static MFUN(ugen_set_op) {
   const m_int i = *(m_int*)MEM(SZ_INT);
   if(i == 1)
-    set_op(UGEN(o), ugop_plus);
+    set_op(UGEN(o), ugop_add);
   else if(i == 2)
-    set_op(UGEN(o), ugop_minus);
+    set_op(UGEN(o), ugop_sub);
   else if(i == 3)
-    set_op(UGEN(o), ugop_times);
+    set_op(UGEN(o), ugop_mul);
   else if(i == 4)
-    set_op(UGEN(o), ugop_divide);
+    set_op(UGEN(o), ugop_div);
   *(m_uint*)RETURN = i;
 }
 

@@ -100,8 +100,8 @@ ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
-  if(opi->op == op_implicit)return;
-  if(opi->op == op_dollar)
+  if(opi->op == op_impl)return;
+  if(opi->op == op_cast)
     ((Exp_Cast*)opi->data)->nspc = nspc;
   if(opi->lhs) {
     if(opi->rhs)
@@ -150,7 +150,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     }
     nspc = nspc->parent;
   } while(nspc);
-  if(opi->op != op_implicit)
+  if(opi->op != op_impl)
   (void)err_msg(TYPE_, 0, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
   return NULL;
@@ -180,9 +180,9 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
 }
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {
-  if(opi->op == op_implicit)
+  if(opi->op == op_impl)
     return opi->rhs->owner;
-  if(opi->op == op_dollar)
+  if(opi->op == op_cast)
     return ((Exp_Cast*)opi->data)->nspc;
   if(opi->lhs) {
     if(opi->rhs)

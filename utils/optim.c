@@ -76,18 +76,18 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
           }
         }
       } /* fallthrough */
-    case op_plus_chuck:
-    case op_minus_chuck:
-    case op_times_chuck:
-    case op_divide_chuck:
-    case op_modulo_chuck:
+    case op_radd:
+    case op_rsub:
+    case op_rmul:
+    case op_rdiv:
+    case op_rmod:
     case op_rsl:
     case op_rsr:
     case op_rsand:
     case op_rsor:
     case op_rsxor:
-    case op_at_chuck:
-    case op_at_unchuck:
+    case op_ref:
+    case op_unref:
     case op_trig:
     case op_untrig:
       if(r->exp_type == ae_exp_constprop2) {
@@ -103,31 +103,31 @@ ANN static m_bool constant_folding(const Exp_Binary* bin) {
   const Exp l = bin->lhs, r = bin->rhs;
   m_int ret = 0;
   switch(bin->op) {
-    case op_plus:
+    case op_add:
       ret = l->d.exp_primary.d.num + r->d.exp_primary.d.num;
       break;
-    case op_minus:
+    case op_sub:
       ret = l->d.exp_primary.d.num - r->d.exp_primary.d.num;
       break;
-    case op_times:
+    case op_mul:
        ret = l->d.exp_primary.d.num * r->d.exp_primary.d.num;
        break;
-    case op_divide:
+    case op_div:
       if(r->d.exp_primary.d.num)
        ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
       else
-       ERR_B(TYPE_, r->pos, "divide by zero")
+       ERR_B(TYPE_, r->pos, "div by zero")
        break;
-    case op_percent:
+    case op_mod:
       if(r->d.exp_primary.d.num)
         ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
       else
-        ERR_B(TYPE_, r->pos, "divide by zero")
+        ERR_B(TYPE_, r->pos, "div by zero")
       break;
-    case op_shift_left:
+    case op_shl:
       ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;
       break;
-    case op_shift_right:
+    case op_shr:
       ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
       break;
     default:

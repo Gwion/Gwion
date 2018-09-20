@@ -106,8 +106,8 @@ JIT_CODE(float_r_##name) {                   \
 }
 jit_describe_r(plus, add)
 jit_describe_r(minus, sub)
-jit_describe_r(times, mul)
-jit_describe_r(divide, div)
+jit_describe_r(mul, mul)
+jit_describe_r(div, div)
 
 JIT_CODE(int_float_assign) {
   CJval reg = push_reg(cc, -SZ_FLOAT);
@@ -129,8 +129,8 @@ JIT_CODE(int_float_##name) {                           \
 }
 jit_describe_if(plus,   add)
 jit_describe_if(minus,  sub)
-jit_describe_if(times,  mul)
-jit_describe_if(divide, div)
+jit_describe_if(mul,  mul)
+jit_describe_if(div, div)
 
 JIT_CODE(int_float_and) {
   push_reg(cc, -SZ_FLOAT);
@@ -201,8 +201,8 @@ JIT_CODE(int_float_r_##name) {                         \
 }
 jit_describe_r_if(plus,   add)
 jit_describe_r_if(minus,  sub)
-jit_describe_r_if(times,  mul)
-jit_describe_r_if(divide, div)
+jit_describe_r_if(mul,  mul)
+jit_describe_r_if(div, div)
 
 JIT_CODE(float_int_assign) {
   CJval reg = push_reg(cc, -SZ_INT*2 + SZ_FLOAT);
@@ -224,8 +224,8 @@ JIT_CODE(float_int_##name) {                           \
 }
 jit_describe_fi(plus,   add)
 jit_describe_fi(minus,  sub)
-jit_describe_fi(times,  mul)
-jit_describe_fi(divide, div)
+jit_describe_fi(mul,  mul)
+jit_describe_fi(div, div)
 
 JIT_CODE(float_int_and) {
   push_reg(cc, -SZ_FLOAT);
@@ -295,8 +295,8 @@ JIT_CODE(float_int_r_##name) {                          \
 }
 jit_describe_r_fi(plus,   add)
 jit_describe_r_fi(minus,  sub)
-jit_describe_r_fi(times,  mul)
-jit_describe_r_fi(divide, div)
+jit_describe_r_fi(mul,  mul)
+jit_describe_r_fi(div, div)
 
 JIT_CODE(Time_Advance) {
   CJval reg = push_reg(cc, -SZ_FLOAT);
@@ -341,13 +341,13 @@ void jit_code_import_float(struct Jit* j) {
   JIT_IMPORT(float_r_assign)
   JIT_IMPORT(float_r_plus)
   JIT_IMPORT(float_r_minus)
-  JIT_IMPORT(float_r_times)
-  JIT_IMPORT(float_r_divide)
+  JIT_IMPORT(float_r_mul)
+  JIT_IMPORT(float_r_div)
   JIT_IMPORT(int_float_assign)
   JIT_IMPORT(int_float_plus)
   JIT_IMPORT(int_float_minus)
-  JIT_IMPORT(int_float_times)
-  JIT_IMPORT(int_float_divide)
+  JIT_IMPORT(int_float_mul)
+  JIT_IMPORT(int_float_div)
   JIT_IMPORT(int_float_and)
   JIT_IMPORT(int_float_or)
   JIT_IMPORT(int_float_eq)
@@ -359,13 +359,13 @@ void jit_code_import_float(struct Jit* j) {
   JIT_IMPORT(int_float_r_assign)
   JIT_IMPORT(int_float_r_plus)
   JIT_IMPORT(int_float_r_minus)
-  JIT_IMPORT(int_float_r_times)
-  JIT_IMPORT(int_float_r_divide)
+  JIT_IMPORT(int_float_r_mul)
+  JIT_IMPORT(int_float_r_div)
   JIT_IMPORT(float_int_assign)
   JIT_IMPORT(float_int_plus)
   JIT_IMPORT(float_int_minus)
-  JIT_IMPORT(float_int_times)
-  JIT_IMPORT(float_int_divide)
+  JIT_IMPORT(float_int_mul)
+  JIT_IMPORT(float_int_div)
   JIT_IMPORT(float_int_and)
   JIT_IMPORT(float_int_or)
   JIT_IMPORT(float_int_eq)
@@ -377,8 +377,8 @@ void jit_code_import_float(struct Jit* j) {
   JIT_IMPORT(float_int_r_assign)
   JIT_IMPORT(float_int_r_plus)
   JIT_IMPORT(float_int_r_minus)
-  JIT_IMPORT(float_int_r_times)
-  JIT_IMPORT(float_int_r_divide)
+  JIT_IMPORT(float_int_r_mul)
+  JIT_IMPORT(float_int_r_div)
   JIT_IMPORT(Time_Advance)
   JIT_IMPORT(CastI2F)
   JIT_IMPORT(CastF2I)

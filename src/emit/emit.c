@@ -738,7 +738,7 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) { G
 }
 
 ANN static m_bool exp_exp_cast(const Emitter emit, const Exp_Cast* cast) {
-  struct Op_Import opi = { op_dollar, cast->exp->type, cast->self->type, NULL,
+  struct Op_Import opi = { op_cast, cast->exp->type, cast->self->type, NULL,
     NULL, NULL, (uintptr_t)cast};
   CHECK_BB(emit_exp(emit, cast->exp, 0))
   (void)op_emit(emit, &opi);
@@ -951,7 +951,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { G
 }
 
 ANN static m_bool emit_implicit_cast(const Emitter emit, const Type from, const Type to) { GWDEBUG_EXE
-  struct Op_Import opi = { op_implicit, from, to, NULL,
+  struct Op_Import opi = { op_impl, from, to, NULL,
          NULL, NULL, (m_uint)from };
   return op_emit(emit, &opi);
 }

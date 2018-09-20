@@ -202,14 +202,14 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_at))
-  CHECK_BB(gwi_oper_end(gwi, op_at_chuck, ObjectAssign))
+  CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
   CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
-  CHECK_BB(gwi_oper_end(gwi, op_shift_left, ArrayAppend))
+  CHECK_BB(gwi_oper_end(gwi, op_shl, ArrayAppend))
   CHECK_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_dollar, NULL))
+  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
   return 1;
 }
 

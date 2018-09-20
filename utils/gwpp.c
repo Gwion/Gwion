@@ -166,8 +166,8 @@ ANN static void lint_exp_decl(Linter* linter, Exp_Decl* decl) {
 ANN static void lint_exp_unary(Linter* linter, Exp_Unary* unary) {
   lint_print(linter, "%s", op2str(unary->op));
   switch(unary->op) {
-    case op_plusplus:
-    case op_minusminus:
+    case op_inc:
+    case op_dec:
       lint_exp(linter, unary->exp);
       break;
     case op_new:

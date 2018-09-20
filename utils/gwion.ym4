@@ -297,9 +297,9 @@ binary_exp
 template: { $$ = NULL; } | LTB type_list GTB { $$ = $2; };
 
 op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
-  | ATCHUCK     { $$ = op_at_chuck; } | PLUSCHUCK   { $$ = op_plus_chuck; }
-  | MINUSCHUCK  { $$ = op_minus_chuck; } | TIMESCHUCK  { $$ = op_times_chuck; }
-  | DIVIDECHUCK { $$ = op_divide_chuck; } | MODULOCHUCK { $$ = op_modulo_chuck; }
+  | ATCHUCK     { $$ = op_ref; } | PLUSCHUCK   { $$ = op_radd; }
+  | MINUSCHUCK  { $$ = op_rsub; } | TIMESCHUCK  { $$ = op_rmul; }
+  | DIVIDECHUCK { $$ = op_rdiv; } | MODULOCHUCK { $$ = op_rmod; }
   | TRIG { $$ = op_trig; } | UNTRIG { $$ = op_untrig; }
   | RSL { $$ = op_rsl; } | RSR { $$ = op_rsr; } | RSAND { $$ = op_rsand; }
   | RSOR { $$ = op_rsor; } | RSXOR { $$ = op_rsxor; }
@@ -429,15 +429,15 @@ log_and_exp: inc_or_exp | log_and_exp AND inc_or_exp
       { $$ = new_exp_binary($1, op_and, $3, get_pos(arg)); };
 
 inc_or_exp: exc_or_exp | inc_or_exp S_OR exc_or_exp
-      { $$ = new_exp_binary($1, op_s_or, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sor, $3, get_pos(arg)); };
 
 exc_or_exp: and_exp | exc_or_exp S_XOR and_exp
-      { $$ = new_exp_binary($1, op_s_xor, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sxor, $3, get_pos(arg)); };
 
 and_exp: eq_exp | and_exp S_AND eq_exp
-      { $$ = new_exp_binary($1, op_s_and, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sand, $3, get_pos(arg)); };
 
-eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
+eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_ne; };
 
 eq_exp: relational_exp | eq_exp eq_op relational_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
@@ -449,19 +449,19 @@ relational_exp: shift_exp | relational_exp rel_op shift_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
 shift_op
-  : SHIFT_LEFT  { $$ = op_shift_left;  }
-  | SHIFT_RIGHT { $$ = op_shift_right; }
+  : SHIFT_LEFT  { $$ = op_shl;  }
+  | SHIFT_RIGHT { $$ = op_shr; }
   ;
 
 shift_exp: add_exp | shift_exp shift_op  add_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-add_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
+add_op: PLUS { $$ = op_add; } | MINUS { $$ = op_sub; };
 
 add_exp: mul_exp | add_exp add_op mul_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-mul_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
+mul_op: TIMES { $$ = op_mul; } | DIVIDE { $$ = op_div; } | PERCENT { $$ = op_mod; };
 
 mul_exp: cast_exp | mul_exp mul_op cast_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
@@ -469,9 +469,9 @@ mul_exp: cast_exp | mul_exp mul_op cast_exp
 cast_exp: unary_exp | cast_exp DOLLAR type_decl2
     { $$ = new_exp_cast($3, $1, get_pos(arg)); };
 
-unary_op : PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; } | TIMES { $$ = op_times; }
-         | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
-  | EXCLAMATION { $$ = op_exclamation; } | SPORK TILDA { $$ = op_spork; }
+unary_op : PLUS { $$ = op_add; } | MINUS { $$ = op_sub; } | TIMES { $$ = op_mul; }
+         | PLUSPLUS { $$ = op_inc; } | MINUSMINUS { $$ = op_dec; }
+  | EXCLAMATION { $$ = op_not; } | SPORK TILDA { $$ = op_spork; }
   ;
 
 unary_exp : dur_exp | unary_op unary_exp
@@ -498,7 +498,7 @@ type_list
 
 call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
-post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
+post_op : PLUSPLUS { $$ = op_inc; } | MINUSMINUS { $$ = op_dec; };
 
 post_exp: primary_exp | post_exp array_exp
     { $$ = new_exp_array($1, $2, get_pos(arg)); }

@@ -92,14 +92,14 @@ typedef enum {
 } ae_flag;
 
 typedef enum {
-  op_assign, op_plus, op_minus, op_times, op_divide, op_percent,
-  op_and, op_or, op_eq, op_neq, op_gt, op_ge, op_lt, op_le,
-  op_shift_left, op_shift_right, op_s_or, op_s_and, op_s_xor,
-  op_plusplus, op_minusminus, op_exclamation, op_tilda, op_new, op_spork,
-  op_plus_chuck, op_minus_chuck, op_times_chuck, op_divide_chuck, op_modulo_chuck,
+  op_assign, op_add, op_sub, op_mul, op_div, op_mod,
+  op_and, op_or, op_eq, op_ne, op_gt, op_ge, op_lt, op_le,
+  op_shl, op_shr, op_sor, op_sand, op_sxor,
+  op_inc, op_dec, op_not, op_cmp, op_new, op_spork,
+  op_radd, op_rsub, op_rmul, op_rdiv, op_rmod,
   op_rsl, op_rsr, op_rsand, op_rsor, op_rsxor,
-  op_chuck, op_unchuck, op_at_chuck, op_at_unchuck, op_trig, op_untrig,
-  op_dollar, op_implicit
+  op_chuck, op_unchuck, op_ref, op_unref, op_trig, op_untrig,
+  op_cast, op_impl
 } Operator;
 
 #endif

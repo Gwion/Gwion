@@ -391,7 +391,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->type) == array_base(t);
   if(!match && implicit) {
     const struct Implicit imp = { e, t };
-    struct Op_Import opi = { op_implicit, e->type, t, NULL,
+    struct Op_Import opi = { op_impl, e->type, t, NULL,
       NULL, NULL, (m_uint)&imp };
     return op_check(env, &opi) ? 1 : -1;
   }
@@ -714,7 +714,7 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EX
   CHECK_OO(t)
   if(!(cast->self->type = type_decl_resolve(env, cast->td)))
     CHECK_BO(type_unknown(cast->td->xid, "cast expression"))
-  struct Op_Import opi = { op_dollar, t, cast->self->type, NULL,
+  struct Op_Import opi = { op_cast, t, cast->self->type, NULL,
     NULL, NULL, (uintptr_t)cast };
   OP_RET(cast, "cast")
 }
