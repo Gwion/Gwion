@@ -36,13 +36,14 @@ ANN void free_cc(CC cc) {
   xfree(cc);
 }
 
-ANN static void ini(const JitThread jt) {
+ANN static void libjit_ini(const JitThread jt) {
   CC cc = jt->cc;
   jit_context_build_start(cc->ctx);
   cc->f = jit_function_create(cc->ctx, sig(&cc->sig, "vp", jit_abi_fastcall));
   cc->shred = jit_value_get_param(cc->f, 0);
   cc->vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
   cc->reg = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
+  jt->compiling = 1;
 }
 
 INSTR(JitExec) {
@@ -70,21 +71,20 @@ ANN static void libjit_end(const JitThread jt) {
 //jit_dump_function(stdout, cc->f, NULL);
   map_clear(&cc->vtable);
   cc->f = NULL;
+  jt->compiling = 0;
 }
 
 ANN static void libjit_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
+/*
   const Instr byte = ctrl_byte(ctrl);
-#ifdef JIT_SKIP
-  if(byte == (Instr)1)
-    return;
-#endif
   if(ctrl_pc(ctrl)) {
     if(cc->f)
       libjit_end(jt);
     jt->base = byte;
     ini(jt);
   }
+*/
   CJval pc = JCONST(nuint, ctrl_idx(ctrl));
   JSTORER(cc->shred, JOFF(VM_Shred, pc), pc);
 }
@@ -139,6 +139,7 @@ struct JitBackend* new_jit_backend() {
   be->no   = libjit_no;
   be->pc   = libjit_pc;
   be->ex   = libjit_ex;
+  be->ini  = libjit_ini;
   be->end  = libjit_end;
   be->ctrl = libjit_ctrl;
   be->code = libjit_code;

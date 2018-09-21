@@ -96,6 +96,12 @@ static void code(struct JitThread_* jt, Q q) {
     if(byte == (Instr)1)continue;
 #endif
     pthread_testcancel();
+    if(ctrl_pc(ctrl)) {
+      if(jt->compiling)
+        be->end(jt);
+      jt->base = byte;
+      be->ini(jt);
+    }
     be->pc(jt, ctrl);
     const Instr ins = get_instr(jt, byte);
 #ifdef JIT_DEV
@@ -152,13 +158,15 @@ static void* qprocess(void* data) {
 }
 
 static JitThread* new_process(struct Jit* j) {
-  JitThread* jts = (JitThread*)xmalloc(j->n * sizeof(JitThread));
+//  JitThread* jts = (JitThread*)xmalloc(j->n * sizeof(JitThread));
+  JitThread* jts = (JitThread*)xmalloc(j->n * SZ_INT);
   for(m_uint i = 0; i < j->n; ++i) {
     JitThread jt = (JitThread)xmalloc(sizeof(struct JitThread_));
     jt->j = j;
     jts[i] = jt;
     jt->top = NULL;
     jt->base = NULL;
+    jt->compiling = 0;
     jt->pool = new_pool(sizeof(struct Instr_), 128);
     jt->cc = new_cc();
     pthread_mutex_init(&jt->mutex, NULL);

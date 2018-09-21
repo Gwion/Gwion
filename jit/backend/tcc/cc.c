@@ -97,15 +97,11 @@ tcc_add_include_path(cc->s, "../Soundpipe/h");
 
 
 static void tcc_pc(JitThread jt, struct ctrl* ctrl) {
-  CC cc = jt->cc;
-  if(cc->str)
-    tcc_end(jt);
-  jt->base = byte;
-  tcc_ini(jt);
+  printf("%-12s %p\n", __func__, (void*)j);
 }
 
 static void tcc_code(struct Jit* j) {
-//  printf("%-12s %p\n", __func__, (void*)j);
+  printf("%-12s %p\n", __func__, (void*)j);
 }
 
 static void tcc_ctrl(struct Jit* j) {

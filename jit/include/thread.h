@@ -7,4 +7,5 @@ struct JitThread_ {
   Instr top, base;
   struct Jit * j;
   struct pool * pool;
+  m_bool compiling;
 };

@@ -88,21 +88,9 @@ mem[3] = 0xc3;
   cc->idx = 0;
 }
 
-ANN static void refresh(const JitThread jt, const Instr byte) {
-  CC cc = jt->cc;
-printf("%s %lu\n", __func__, cc->idx);
-  if(jt->top)
-    naive_end(jt);
-//  if(!jt->top) jt->base = jt->base;
-  jt->base = byte;
-
-//  ini(jt);
-}
-
 static void naive_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
-//  if(ctrl_pc(ctrl))
-    refresh(jt, ctrl_byte(ctrl));
+  printf("%s %lu\n", __func__, cc->idx);
 }
 static void naive_ctrl(struct Jit* j) {
 /*
