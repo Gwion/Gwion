@@ -4,9 +4,9 @@ CFLAGS += -Ijit -DJIT
 #CFLAGS += -DJIT_DEV
 
 #jit_backend := naive
-#jit_backend := gccjit
+jit_backend := gccjit
 #jit_backend := dummy
-jit_backend := libjit
+#jit_backend := libjit
 #jit_backend := tcc
 #jit_backend := dynasm
 

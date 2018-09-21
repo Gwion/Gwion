@@ -1,13 +1,13 @@
-ANN Jval cc_get_flag(JitCC*const, CJval , const ae_flag);
-ANN void cc_release(JitCC *const , CJval);
-ANN void cc_release2(JitCC *const , CJval);
-ANN void cc_shredule(JitCC *const, CJval);
-ANN void cc_remove(JitCC *const, const m_bool);
-ANN void cc_except(JitCC *const, const m_str);
-ANN void cc_check(JitCC *const, CJval, const m_str);
-ANN Jval push_reg(JitCC* const j, const m_int i);
-ANN void push_reg2(JitCC* const j, CJval i);
-ANN void next_pc(JitCC* const j, const m_uint i);
+ANN Jval cc_get_flag(CC const, CJval , const ae_flag);
+ANN void cc_release(CC const , CJval);
+ANN void cc_release2(CC const , CJval);
+ANN void cc_shredule(CC const, CJval);
+ANN void cc_remove(CC const, const m_bool);
+ANN void cc_except(CC const, const m_str);
+ANN void cc_check(CC const, CJval, const m_str);
+ANN Jval push_reg(CC const j, const m_int i);
+ANN void push_reg2(CC const j, CJval i);
+ANN void next_pc(CC const j, const m_uint i);
 void add_to_gc(VM_Shred shred, M_Object obj); // move from array to func
 #include "type.h"
 ANN static inline void type_add_ref(Type t) { ++t->obj.ref_count; }

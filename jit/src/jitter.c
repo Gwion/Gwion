@@ -158,7 +158,6 @@ static void* qprocess(void* data) {
 }
 
 static JitThread* new_process(struct Jit* j) {
-//  JitThread* jts = (JitThread*)xmalloc(j->n * sizeof(JitThread));
   JitThread* jts = (JitThread*)xmalloc(j->n * SZ_INT);
   for(m_uint i = 0; i < j->n; ++i) {
     JitThread jt = (JitThread)xmalloc(sizeof(struct JitThread_));

@@ -135,7 +135,7 @@ ANN void jit_vector_add(CC cc, CJval v, CJval data) {
   len = JINSN(add, len, one);
 //  JSTORER(_ptr, 0, len);
   JSTOREE(_ptr, JCONST(nuint, 0), len);
-
+//  JSTORER(_ptr, 0, len);
 //  CJval arg[] = { v, data };
 //  CALL_NATIVE2(vector_add, "vpp", arg);
 //  CALL_NATIVE(vector_add, "vpp", arg);

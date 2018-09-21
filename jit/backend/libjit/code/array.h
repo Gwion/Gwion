@@ -56,9 +56,11 @@ ANN void jit_type_add_ref(CC cc, CJval type) {
   CJval _ref = JINSN(add, ref, JCONST(nuint, 1));
   JSTORER(type, JOFF(Type, obj), _ref);
 }
-
+void add2gc(const VM_Shred shred , const M_Object obj) {
+  vector_add(&shred->gc, (vtype)obj);
+}
 JIT_CODE(ArrayInit) {
-  ArrayInfo* info = *(ArrayInfo**)instr->ptr;
+  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
   push_reg(cc, -instr->m_val2 * info->d.length + SZ_INT);
   CJval type   = JCONST(void_ptr, info->type);
   CJval size   = JCONST(nuint, info->base->size);
@@ -71,18 +73,20 @@ JIT_CODE(ArrayInit) {
   jit_type_add_ref(cc, type);
   CJval data  = JLOADR(obj, JOFF(M_Object, data), void_ptr);
   CJval array = JLOADR(data, 0, void_ptr);
-  CJval ptr = JLOADR(array, JOFF(M_Vector, ptr), void_ptr);
+  CJval _ptr = JLOADR(array, JOFF(M_Vector, ptr), void_ptr);
+  CJval ptr = JADDR(_ptr, ARRAY_OFFSET);
   CJval data_size = JCONST(nuint, instr->m_val2 * info->d.length);
-  JINSN(memcpy, ptr, JADDR(cc->reg, -SZ_INT), data_size);
-  JSTORER(cc->reg, -SZ_INT, obj);
+CJval _reg = JADDR(cc->reg , -SZ_INT);
+  JINSN(memcpy, ptr, _reg, data_size);
+  JSTORER(_reg, 0, obj);
+//  JINSN(memcpy, ptr, JADDR(cc->reg, -SZ_INT), data_size);
+//  JSTORER(cc->reg, -SZ_INT, obj);
 }
 
 JIT_CODE(ArrayAlloc) {
-  ArrayInfo* info = *(ArrayInfo**)instr->ptr;
-  Jval num_obj = jit_value_create(cc->f, jit_type_nuint);
-  JINSN(store, num_obj, JCONST(nuint, 1));
+  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
   const m_bool is_obj = info->is_obj && !info->is_ref;
-  CJval size = JCONST(nuint, sizeof(struct ArrayInfo_) * 2);
+  CJval size = JCONST(nuint, sizeof(struct ArrayInfo_));
   CJval aai = JINSN(alloca, size);
   CJval depth = JCONST(nint, -info->depth);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, depth), depth);
@@ -97,12 +101,13 @@ JIT_CODE(ArrayAlloc) {
   CJval jobj = JCONST(int, info->is_obj);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, is_obj), jobj);
 
-  Jval data;
   if(is_obj) {
     CJval jinfo = JCONST(void_ptr, info);
+    Jval num_obj = jit_value_create(cc->f, jit_type_nuint);
+    JINSN(store, num_obj, JCONST(nuint, 1));
     CJval anum_obj = JINSN(address_of, num_obj);
     Jval arg_ini[] = { cc->shred, jinfo, anum_obj };
-    data = CALL_NATIVE2(init_array, "pppp", arg_ini);
+    CJval data = CALL_NATIVE2(init_array, "pppp", arg_ini);
     JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, data), data);
     CJval arg[] = { cc->shred, aai };
     CJval ref = CALL_NATIVE2(do_alloc_array, "ppp", arg);
@@ -135,6 +140,8 @@ static void jit_oob(const CC cc, CJval obj,
   JINSN(branch_if_not, cond1, &lbl2);
   JINSN(label, &lbl);
   cc_release(cc, base);
+//CJval arg[] = { JCONST(void_ptr, "idx %li\n"), idx };
+//CALL_NATIVE2(printf, "ipI", arg);
   cc_except(cc, "ArrayOutofBounds");
   JINSN(label, &lbl2);
 }
@@ -170,7 +177,7 @@ JIT_CODE(ArrayAccessMulti) {
   cc_check(cc, base, "NullPtrException");
   CJval dim = JCONST(nuint, depth);
   Jval  obj = JINSN(dup, base); // ???
-  for(m_uint i = 0; i < depth; ++i) {
+  for(m_uint i = 1; i < depth; ++i) {
     CJval idx = JLOADR(cc->reg, SZ_INT * i, nint);
     jit_oob(cc, obj, dim, idx, base);
     CJval _obj = JINSN(address_of, obj);

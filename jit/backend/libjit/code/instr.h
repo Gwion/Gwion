@@ -401,7 +401,7 @@ JIT_CODE(ObjectInstantiate) {
   push_reg(cc, SZ_INT);
 }
 
-ANN static void jit_overflow(JitCC *const cc) {
+ANN static void jit_overflow(CC const cc) {
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
   CJval reg = JADDR(cc->reg, SIZEOF_REG);
   CJval val = JINSN(add, reg, JCONST(nuint, (SIZEOF_MEM) - (MEM_STEP)));
@@ -627,19 +627,18 @@ JIT_CODE(DotFunc) {
 JIT_CODE(PreCtor) {
   const VM_Code pre_ctor = (VM_Code)instr->m_val;
   CJval obj = JLOADR(cc->reg, -SZ_INT, void_ptr);
-  if(!GET_FLAG(pre_ctor, NATIVE_NOT)) {
-// fast builtin constructor call
+  if(!GET_FLAG(pre_ctor, NATIVE_NOT)) { // fast builtin constructor
     Jval arg[] = { obj, cc->shred };
     CALL_NATIVE(pre_ctor->native_func, "vpp", arg);
-    return;
+  } else {
+    JSTORER(cc->reg, 0, obj);
+    CJval code = JCONST(nuint, pre_ctor);
+    JSTORER(cc->reg, SZ_INT, code);
+    CJval depth = JCONST(nuint, instr->m_val2);
+    JSTORER(cc->reg, SZ_INT*2, depth);
+    push_reg(cc, SZ_INT*3);
+    jitcode_FuncUsr(cc, NULL);
   }
-  JSTORER(cc->reg, 0, obj);
-  CJval code = JCONST(nuint, pre_ctor);
-  JSTORER(cc->reg, SZ_INT, code);
-  CJval depth = JCONST(nuint, instr->m_val2);
-  JSTORER(cc->reg, SZ_INT*2, depth);
-  push_reg(cc, SZ_INT*3);
-  jitcode_FuncUsr(cc, NULL);
 }
 
 
