@@ -130,7 +130,7 @@ CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
 # add soundpipe
 LDFLAGS += ${SOUNDPIPE_LIB}
-#LDFLAGS += -lsndfile # and sndfile
+LDFLAGS += -lsndfile # and sndfile
 CFLAGS  += ${SOUNDPIPE_INC}
 
 # initialize object lists

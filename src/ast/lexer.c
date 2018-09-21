@@ -2572,7 +2572,7 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
 }
 
 /* Initializes or reinitializes a buffer.
- * This function is somemul called more than once on the same buffer,
+ * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
  */
     static void yy_init_buffer  (YY_BUFFER_STATE  b, FILE * file , yyscan_t yyscanner)

@@ -13,9 +13,9 @@ JIT_CODE(ObjectAssign) {
       JSTORER(cc->reg, -SZ_INT, JADDR(cc->reg, -SZ_INT));
     return;
   }
-  CJval reg = push_reg(cc, -SZ_INT);
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval ptr = JLOADR(reg, 0, void_ptr);
+  push_reg(cc, -SZ_INT);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  CJval ptr = JLOADR(cc->reg, 0, void_ptr);
   if(!instr->m_val2) {
     CJval rhs = JLOADR(ptr, 0, void_ptr);
     INIT_LABEL(lbl)
@@ -28,18 +28,18 @@ JIT_CODE(ObjectAssign) {
     JINSN(label, &lbl);
   }
   if(instr->m_val)
-    JSTORER(reg, -SZ_INT, JADDR(reg, -SZ_INT));
+    JSTORER(cc->reg, -SZ_INT, JADDR(cc->reg, -SZ_INT));
   JSTORER(ptr, 0, lhs);
 }
 
 #define jit_describe_logical(name, op)        \
 JIT_CODE(name##Object) {                     \
-  CJval reg = push_reg(cc, -SZ_INT);           \
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr); \
-  CJval rhs = JLOADR(reg, 0, void_ptr);       \
+  push_reg(cc, -SZ_INT);           \
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr); \
+  CJval rhs = JLOADR(cc->reg, 0, void_ptr);       \
   CJval ret = JINSN(op, lhs, rhs);           \
   CJval val = JINSN(convert, ret, jit_type_nuint, 0);           \
-  JSTORER(reg, -SZ_INT, val);                 \
+  JSTORER(cc->reg, -SZ_INT, val);                 \
   cc_release2(cc, lhs);                         \
   cc_release2(cc, rhs);                         \
 }

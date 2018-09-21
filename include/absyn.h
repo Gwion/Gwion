@@ -103,7 +103,7 @@ typedef enum { ae_exp_decl, ae_exp_binary, ae_exp_unary, ae_exp_primary,
 #ifdef OPTIMIZE
                 ,ae_exp_constprop, ae_exp_constprop2
 #endif
-} Exp_type;
+} ae_exp_t;
 typedef enum { ae_meta_var, ae_meta_value, ae_meta_protect } ae_Exp_Meta;
 typedef enum { ae_primary_id, ae_primary_num, ae_primary_float,
                ae_primary_str, ae_primary_array,
@@ -112,7 +112,7 @@ typedef enum { ae_primary_id, ae_primary_num, ae_primary_float,
 #ifdef OPTIMIZE
   , ae_primary_constprop
 #endif
-             } ae_Exp_Primary_Type;
+             } ae_prim_t;
 typedef struct {
   Type_Decl* td;
   Type type;
@@ -121,7 +121,7 @@ typedef struct {
   Exp self;
 } Exp_Decl;
 typedef struct {
-  ae_Exp_Primary_Type primary_type;
+  ae_prim_t primary_type; // FIXME can't be move for some reason
   Value value;
   union exp_primary_data {
     Symbol var;
@@ -216,7 +216,7 @@ struct Exp_ {
 #endif
   } d;
   int pos;
-  Exp_type exp_type;
+  ae_exp_t exp_type;
   ae_Exp_Meta meta;
   unsigned emit_var : 1;
 };
@@ -227,7 +227,7 @@ ANEW Exp new_exp_prim_float(const m_float, const int);
 ANEW ANN Exp new_exp_prim_string(const m_str, const int);
 ANEW ANN Exp new_exp_prim_array(const Array_Sub, const int);
 ANEW Exp new_exp_prim_hack(const Exp, const int);
-ANEW ANN Exp new_exp_prim_vec(const ae_Exp_Primary_Type t, Exp, const int pos);
+ANEW ANN Exp new_exp_prim_vec(const ae_prim_t t, Exp, const int pos);
 ANEW ANN Exp new_exp_prim_char(const m_str, const int);
 ANEW Exp new_exp_prim_nil(const int pos);
 ANEW ANN Exp new_exp_decl(Type_Decl*, const Var_Decl_List, const int);
@@ -261,7 +261,7 @@ typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_a
 ae_stmt_pp
 #endif
 #endif
-             } ae_Stmt_Type;
+             } ae_stmt_t;
 
 typedef struct Stmt_Exp_     * Stmt_Exp;
 typedef struct Stmt_Code_    * Stmt_Code;
@@ -282,19 +282,23 @@ typedef struct Stmt_PP_      * Stmt_PP;
 struct Stmt_Basic_ {
   int pos;
 };
+
 struct Stmt_Exp_ {
   Exp val;
   Stmt self;
 };
+
 struct Stmt_Flow_ {
   Exp cond;
   Stmt body;
   Stmt self;
   unsigned is_do : 1;
 };
+
 struct Stmt_Code_ {
   Stmt_List stmt_list;
 };
+
 struct Stmt_For_ {
   Stmt c1;
   Stmt c2;
@@ -302,6 +306,7 @@ struct Stmt_For_ {
   Stmt body;
   Stmt self;
 };
+
 struct Stmt_Auto_ {
   Symbol sym;
   Exp exp;
@@ -310,16 +315,19 @@ struct Stmt_Auto_ {
   m_bool is_ptr;
   Stmt self;
 };
+
 struct Stmt_Loop_ {
   Exp cond;
   Stmt body;
   Stmt self;
 };
+
 struct Stmt_If_ {
   Exp cond;
   Stmt if_body;
   Stmt else_body;
 };
+
 struct Stmt_Jump_ {
   Symbol name;
   union stmt_goto_data {
@@ -329,11 +337,13 @@ struct Stmt_Jump_ {
   m_bool is_label;
   Stmt self;
 };
+
 struct Stmt_Switch_ {
   Exp val;
   Stmt stmt;
   Stmt self;
 };
+
 struct Stmt_Enum_ {
   ID_List list;
   Symbol xid;
@@ -352,11 +362,13 @@ struct Stmt_Fptr_ {
   Func       func;
   Value      value;
 };
+
 struct Stmt_Type_ {
   Type_Decl* td;
   Type       type;
   Symbol     xid;
 };
+
 struct Stmt_Union_ {
   Decl_List l;
   struct Vector_ v;
@@ -386,7 +398,6 @@ struct Stmt_PP_ {
 };
 #endif
 struct Stmt_ {
-  ae_Stmt_Type stmt_type;
   union stmt_data {
     struct Stmt_Exp_        stmt_exp;
     struct Stmt_Code_       stmt_code;
@@ -406,13 +417,14 @@ struct Stmt_ {
 #endif
   } d;
   int pos;
+  ae_stmt_t stmt_type;
 };
 
-ANEW Stmt new_stmt(const ae_Stmt_Type, const int);
-ANEW Stmt new_stmt_exp(const ae_Stmt_Type, const Exp, const int);
+ANEW Stmt new_stmt(const ae_stmt_t, const int);
+ANEW Stmt new_stmt_exp(const ae_stmt_t, const Exp, const int);
 ANEW Stmt new_stmt_code(const Stmt_List, const int);
 ANN2(1,2) ANEW Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
-ANEW ANN Stmt new_stmt_flow(const ae_Stmt_Type, const Exp, const Stmt, const m_bool, const int);
+ANEW ANN Stmt new_stmt_flow(const ae_stmt_t, const Exp, const Stmt, const m_bool, const int);
 ANN2(1,2,4) ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
 ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const m_bool, const int);
 ANEW ANN Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
@@ -461,14 +473,14 @@ ANEW Func_Def new_func_def(Type_Decl*, const Symbol, const Arg_List, const Stmt,
 ANN void free_func_def(Func_Def def);
 ANN void free_func_def_simple(Func_Def def);
 
-typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_Section_Type;
+typedef enum { ae_section_stmt, ae_section_func, ae_section_class } ae_section_t;
 typedef struct Section_ {
-  ae_Section_Type section_type;
   union section_data {
     Stmt_List stmt_list;
     Class_Def class_def;
     Func_Def func_def;
   } d;
+  ae_section_t section_type;
 } Section;
 ANEW ANN Section* new_section_stmt_list(const Stmt_List);
 ANEW ANN Section* new_section_func_def(const Func_Def);

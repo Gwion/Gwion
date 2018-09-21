@@ -22,7 +22,7 @@ JIT_CODE(VarargTop) {
   JINSN(label, &lbl);
   CJval pool = JCONST(nuint, sizeof(struct Vararg_));
   CJval arg[] = { pool, var };
-  CALL_NATIVE(_mp_free, "vpp", arg);
+  CALL_NATIVE2(_mp_free, "vpp", arg);
   next_pc(cc, instr->m_val2 + 1);
   jit_insn_default_return(cc->f);
   JINSN(label, &end);
@@ -31,13 +31,13 @@ JIT_CODE(VarargTop) {
 JIT_CODE(VarargIni) {
   CJval pool = JCONST(nuint, sizeof(struct Vararg_));
   CJval arg[] = { pool };
-  CJval var = CALL_NATIVE(_mp_alloc, "pp", arg);
+  CJval var = CALL_NATIVE2(_mp_alloc, "pp", arg);
   if(instr->m_val) {
-    CJval reg = push_reg(cc, -instr->m_val);
+    push_reg(cc, -instr->m_val);
     CJval size = JCONST(nuint, instr->m_val);
     CJval arg[] = { size };
-    CJval d = CALL_NATIVE(xmalloc, "pU", arg);
-    JINSN(memcpy, d, reg, size);
+    CJval d = CALL_NATIVE2(xmalloc, "pU", arg);
+    JINSN(memcpy, d, cc->reg, size);
     JSTORER(var, JOFF(Vararg, d), d);
   } else {
     if(*(m_uint*)instr->ptr)
@@ -53,7 +53,7 @@ JIT_CODE(VarargIni) {
       JSTORER(var, JOFF(Vararg, s), s);
       CJval size = JCONST(nuint, len * SZ_INT);
       CJval arg[] = { size };
-      CJval k = CALL_NATIVE(xmalloc, "pU", arg);
+      CJval k = CALL_NATIVE2(xmalloc, "pU", arg);
       CJval ptr = JCONST(void_ptr, kinds->ptr + OFFSET);
       JINSN(memcpy, k, ptr, size);
       JSTORER(var, JOFF(Vararg, k), k);
@@ -67,8 +67,8 @@ JIT_CODE(VarargIni) {
   CJval zero = JCONST(nuint, 0);
   JSTORER(var, JOFF(Vararg, o), zero);
   JSTORER(var, JOFF(Vararg, i), zero);
-  CJval reg = push_reg(cc, SZ_INT);
-  JSTORER(reg, -SZ_INT, var);
+  push_reg(cc, SZ_INT);
+  JSTORER(cc->reg, -SZ_INT, var);
 }
 
 JIT_CODE(VarargEnd) {
@@ -93,12 +93,12 @@ JIT_CODE(VarargEnd) {
   JINSN(branch, &end);
   JINSN(label, &lbl);
   CJval arg0[] = { d };
-  CALL_NATIVE(xfree, "vp", arg0);
+  CALL_NATIVE2(cc_free, "vp", arg0);
   CJval arg1[] = { k };
-  CALL_NATIVE(xfree, "vp", arg1);
+  CALL_NATIVE2(cc_free, "vp", arg1);
   CJval pool = JCONST(nuint, sizeof(struct Vararg_));
   CJval arg2[] = { pool, var };
-  CALL_NATIVE(_mp_free, "vpp", arg2);
+  CALL_NATIVE2(_mp_free, "vpp", arg2);
   JINSN(label, &end);
 }
 
@@ -113,9 +113,9 @@ JIT_CODE(VarargMember) {
 }
 
 JIT_CODE(VarargAssign) {
-  CJval reg = push_reg(cc, -SZ_INT);
-  CJval obj = JLOADR(reg, -SZ_INT, void_ptr);
-  JSTORER(reg, 0, obj);
+  push_reg(cc, -SZ_INT);
+  CJval obj = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  JSTORER(cc->reg, 0, obj);
 }
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);

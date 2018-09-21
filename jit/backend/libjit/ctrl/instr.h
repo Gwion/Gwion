@@ -9,7 +9,7 @@ JIT_CTRL(FuncOp) {
 }
 
 JIT_CTRL(PreCtor) {
-ctrl_skip(ctrl);
+//ctrl_skip(ctrl);
   if(GET_FLAG((VM_Code)instr->m_val, NATIVE_NOT))
     ctrl_next(ctrl);
 }
@@ -28,14 +28,14 @@ JIT_CTRL(FuncPtr) {
 
 JIT_CTRL(AutoLoopStart) { ctrl_next(ctrl); }
 JIT_CTRL(AutoLoopEnd) {
-  ctrl_set_pc(ctrl, instr->m_val2 + 1);
+  ctrl_set_pc(ctrl, *(m_uint*)instr->ptr + 1);
   ctrl_next(ctrl);
 }
 
 JIT_CTRL(BranchSwitch) {
   ctrl_set_pc(ctrl, ctrl_idx(ctrl)); // watch me
-  ctrl_set_pc(ctrl, instr->m_val);
-  const Map m = *(Map*)instr->ptr;
+  ctrl_set_pc(ctrl, *(m_uint*)instr->ptr);
+  const Map m = (Map)instr->m_val2;
    const m_uint size = map_size(m);
   for(m_uint i = 0; i < size; ++i)
     ctrl_set_pc(ctrl, map_at(m, i));
@@ -65,7 +65,7 @@ void jit_ctrl_import_instr(struct Jit* jit) {
   jit_ctrl_import(jit, FuncStatic, FuncStatic_ctrl);
   jit_ctrl_import(jit, FuncMember, FuncMember_ctrl);
   jit_ctrl_import(jit, FuncPtr, FuncPtr_ctrl);
-  jit_ctrl_import(jit, AutoLoopStart, AutoLoopStart_ctrl);
+//  jit_ctrl_import(jit, AutoLoopStart, AutoLoopStart_ctrl);
   jit_ctrl_import(jit, AutoLoopEnd, AutoLoopEnd_ctrl);
   jit_ctrl_import(jit, BranchSwitch, BranchSwitch_ctrl);
   jit_ctrl_import(jit, BranchEqInt, BranchEqInt_ctrl);

@@ -17,7 +17,7 @@ typedef struct JitCC_ {
 #define CALL_NATIVE(func, s, argv) \
 jit_insn_call_native(cc->f, NULL, (void*)(m_uint)func, sig(&cc->sig, s, jit_abi_fastcall) , (Jval*)argv, strlen(s) - 1, JIT_CALL);
 #define CALL_NATIVE2(func, s, argv) \
-cc_call(cc, (void*)(m_uint)func, s, (Jval*)argv);
+cc_call(cc, #func, s, (Jval*)argv);
 #define JOFF(a,b) __builtin_offsetof(struct a##_, b)
 #define JLOADR(a,b,c) jit_insn_load_relative(cc->f, (a), (b), jit_type_##c)
 #define JADDR(a,b) jit_insn_add_relative(cc->f, (a), (b))
@@ -33,4 +33,5 @@ cc_call(cc, (void*)(m_uint)func, s, (Jval*)argv);
 #endif
 #define JINSN(a, ...) jit_insn_##a(cc->f, ## __VA_ARGS__)
 
-Jval cc_call(CC cc, void* func, const m_str s, Jval *arg);
+//Jval cc_call(CC cc, void* func, const m_str s, Jval *arg);
+Jval cc_call(CC cc, const m_str name, const m_str s, Jval *arg);

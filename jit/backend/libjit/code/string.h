@@ -11,9 +11,9 @@
 // insn_memcmp instead of strcmp ?
 #define jit_describe_string_logical(name, op)  \
 JIT_CODE(String_##name) { GWDEBUG_EXE          \
-  CJval reg = push_reg(cc, -SZ_INT);            \
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr);  \
-  CJval rhs = JLOADR(reg, 0,       void_ptr);  \
+  push_reg(cc, -SZ_INT);            \
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr);  \
+  CJval rhs = JLOADR(cc->reg, 0,       void_ptr);  \
   CJval null = JCONST(void_ptr, 0);            \
   CJval l = JINSN(eq, lhs, null);             \
   CJval r = JINSN(eq, rhs, null);             \
@@ -28,13 +28,13 @@ JIT_CODE(String_##name) { GWDEBUG_EXE          \
   CJval lstr = JLOADR(ldata, 0, void_ptr);  \
   CJval rstr = JLOADR(rdata, 0, void_ptr);  \
   CJval arg[] = { lstr, rstr };               \
-  CJval ret = CALL_NATIVE(strcmp, "ipp", arg); \
+  CJval ret = CALL_NATIVE2(strcmp, "ipp", arg); \
   JINSN(branch_if, ret, &nok);            \
   CJval one = JCONST(nuint, 1);                \
-  JSTORER(reg, -SZ_INT, one);                  \
+  JSTORER(cc->reg, -SZ_INT, one);                  \
   JINSN(branch, &end);                        \
   JINSN(label, &nok);                         \
-  JSTORER(reg, -SZ_INT, zero);                 \
+  JSTORER(cc->reg, -SZ_INT, zero);                 \
   JINSN(label, &end);                         \
   cc_release(cc, lhs); \
   cc_release(cc, rhs); \
@@ -45,15 +45,15 @@ jit_describe_string_logical(neq, ne)
 JIT_CODE(RegPushStr) {
   CJval str = JCONST(void_ptr, instr->m_val);
   CJval arg[] = { cc->shred, str };
-  CJval obj = CALL_NATIVE(new_string2, "ppp", arg);
+  CJval obj = CALL_NATIVE2(new_string2, "ppp", arg);
   JSTORER(cc->reg, 0, obj);
   push_reg(cc, SZ_INT);
 }
 
 JIT_CODE(String_Assign) {
-  CJval reg = push_reg(cc, -SZ_INT);
-  CJval lhs = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval rhs = JLOADR(reg, 0, void_ptr);
+  push_reg(cc, -SZ_INT);
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  CJval rhs = JLOADR(cc->reg, 0, void_ptr);
   cc_release2(cc, lhs);
   cc_check(cc, rhs, "NullStringException");
   Jval str = JCONST(void_ptr, "");

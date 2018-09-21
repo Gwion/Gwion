@@ -249,7 +249,7 @@ struct VecInfo {
   m_uint n;
 };
 
-ANN static void vec_info(const ae_Exp_Primary_Type t, struct VecInfo* v) {
+ANN static void vec_info(const ae_prim_t t, struct VecInfo* v) {
   if(t == ae_primary_complex) {
     v->s = "complex";
     v->t = t_complex;
@@ -265,7 +265,7 @@ ANN static void vec_info(const ae_Exp_Primary_Type t, struct VecInfo* v) {
   }
 }
 
-ANN static Type check_exp_prim_vec(const Env env, const Vec* vec, const ae_Exp_Primary_Type t) { GWDEBUG_EXE
+ANN static Type check_exp_prim_vec(const Env env, const Vec* vec, const ae_prim_t t) { GWDEBUG_EXE
   struct VecInfo info = { NULL, NULL, vec->dim };
   vec_info(t, &info);
   if(vec->dim > info.n)
@@ -1356,7 +1356,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_section(const Env env, const Section* section) { GWDEBUG_EXE
-  const ae_Section_Type t = section->section_type;
+  const ae_section_t t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(check_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)

@@ -55,7 +55,6 @@ struct VM_Shred_ {
   m_bit* reg;
   m_bit* mem;
   m_bit* _reg;
-//  m_bit* _mem;
   m_bit* base;
   m_uint pc, xid;
   m_str name;

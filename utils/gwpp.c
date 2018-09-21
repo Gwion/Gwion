@@ -648,7 +648,7 @@ ANN static void lint_func_def(Linter* linter, Func_Def f) {
 }
 
 ANN static void lint_section(Linter* linter, Section* section) {
-  ae_Section_Type t = section->section_type;
+  ae_section_t t = section->section_type;
   if(t == ae_section_stmt)
     lint_stmt_list(linter, section->d.stmt_list);
   else if(t == ae_section_func)

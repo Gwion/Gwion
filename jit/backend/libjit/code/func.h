@@ -15,3 +15,5 @@ ANN static inline void type_add_ref(Type t) { ++t->obj.ref_count; }
 
 ANN void jit_vector_add(CC, CJval, CJval);
 ANN void jit_type_add_ref(CC cc, CJval type);
+
+ANN void cc_free(void*);

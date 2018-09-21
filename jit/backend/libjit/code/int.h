@@ -11,27 +11,27 @@ cc_check(cc, val, "ZeroDivideException");
 
 #define _describe_jit(prefix, sz, type, name, action, ...)                 \
 JIT_CODE(prefix##_##name) {                                                \
-  CJval reg = push_reg(cc, -SZ_INT);\
-  CJval lhs = JLOADR(reg, -SZ_INT, nint);                      \
-  CJval rhs = JLOADR(reg, 0, type);                            \
+  push_reg(cc, -SZ_INT);\
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, nint);                      \
+  CJval rhs = JLOADR(cc->reg, 0, type);                            \
    __VA_ARGS__                                                             \
   action                                                                   \
 }
 
 #define describe_jit(name, op, ...) _describe_jit(int, SZ_INT, nint, name, {\
   CJval ret = JINSN(op, lhs, rhs); \
-  JSTORER(reg, -SZ_INT, ret); }, __VA_ARGS__)
+  JSTORER(cc->reg, -SZ_INT, ret); }, __VA_ARGS__)
 
 #define describe_r_jit(name, op, ...) _describe_jit(int_r, SZ_INT, void_ptr, name, {\
   CJval val = JLOADR(rhs, 0, nint);\
   CJval ret = JINSN(op, val, lhs);\
   JSTORER(rhs, 0, ret); \
-  JSTORER(reg, -SZ_INT, ret);\
+  JSTORER(cc->reg, -SZ_INT, ret);\
 },__VA_ARGS__)
 
 #define describe_logical_jit(name, op) _describe_jit(int, SZ_INT, nint, name, {\
   CJval ret = JINSN(op, lhs, rhs); \
-  JSTORER(reg, -SZ_INT, ret);},)
+  JSTORER(cc->reg, -SZ_INT, ret);},)
 
 describe_jit(plus,   add,)
 describe_jit(minus,  sub,)
@@ -108,17 +108,17 @@ JIT_CODE(int_cmp) {
 }
 
 JIT_CODE(int_assign) {
-  CJval reg  = push_reg(cc, -SZ_INT);
-  CJval ret = JLOADR(reg, 0, nint);
-  CJval ptr = JLOADR(reg, -SZ_INT, void_ptr);
+  push_reg(cc, -SZ_INT);
+  CJval ret = JLOADR(cc->reg, 0, nint);
+  CJval ptr = JLOADR(cc->reg, -SZ_INT, void_ptr);
   JSTORER(ptr, 0, ret);
-  JSTORER(reg, -SZ_INT, ret);
+  JSTORER(cc->reg, -SZ_INT, ret);
 }
 
 JIT_CODE(int_r_assign) {
-  CJval reg  = push_reg(cc, -SZ_INT);
-  CJval ret = JLOADR(reg, -SZ_INT, nint);
-  CJval ptr = JLOADR(reg, 0, void_ptr);
+  push_reg(cc, -SZ_INT);
+  CJval ret = JLOADR(cc->reg, -SZ_INT, nint);
+  CJval ptr = JLOADR(cc->reg, 0, void_ptr);
   JSTORER(ptr, 0, ret);
 }
 

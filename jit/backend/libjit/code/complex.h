@@ -202,7 +202,7 @@ JIT_CODE(polar_##name) {\
   CJval im01   = JINSN(mul, bre,  sinbim);\
   CJval im0    = JINSN(op,  im00, im01);\
   CJval arg[] = { re0, im0 };\
-  CJval re     = CALL_NATIVE(hypot, "fff", arg);\
+  CJval re     = CALL_NATIVE2(hypot, "fff", arg);\
   CJval im     = JINSN(atan2, im0, re0);\
   JSTORER(cc->reg, -SZ_COMPLEX, re);\
   JSTORER(cc->reg, -SZ_FLOAT, im);\
@@ -244,7 +244,7 @@ JIT_CODE(polar_##name##_r) {\
   CJval im01   = JINSN(mul, bre,  sinbim);\
   CJval im0    = JINSN(op,  im00, im01);\
   CJval arg[] = { re0, im0 };\
-  CJval re     = CALL_NATIVE(hypot, "fff", arg);\
+  CJval re     = CALL_NATIVE2(hypot, "fff", arg);\
   CJval im     = JINSN(atan2, im0, re0);\
   JSTORER(ptr, 0, re);\
   JSTORER(ptr, SZ_FLOAT, im);\

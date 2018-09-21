@@ -306,7 +306,7 @@ Exp new_exp_prim_array(const Array_Sub exp, const int pos) {
   return a;
 }
 
-Exp new_exp_prim_vec(const ae_Exp_Primary_Type t, Exp e, const int pos) {
+Exp new_exp_prim_vec(const ae_prim_t t, Exp e, const int pos) {
   Exp a = new_exp_prim(pos);
   a->d.exp_primary.primary_type = t;
   a->d.exp_primary.d.vec.exp = e;
@@ -531,7 +531,7 @@ Exp prepend_exp(const Exp exp, const Exp next) {
 }
 
 ANN static void free_exp_primary(Exp_Primary* a) {
-  ae_Exp_Primary_Type t = a->primary_type;
+  ae_prim_t t = a->primary_type;
   if(t == ae_primary_hack)
     free_exp(a->d.exp);
   else if(t == ae_primary_array)
@@ -606,7 +606,7 @@ void free_arg_list(Arg_List a) {
 
 }
 
-Stmt new_stmt_exp(const ae_Stmt_Type type, const Exp exp, const int pos) {
+Stmt new_stmt_exp(const ae_stmt_t type, const Exp exp, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = type;
   a->d.stmt_exp.val = exp;
@@ -633,14 +633,14 @@ ANN inline static void free_stmt_exp(struct Stmt_Exp_* a) {
     free_exp(a->val);
 }
 
-Stmt new_stmt(const ae_Stmt_Type type, const int pos) {
+Stmt new_stmt(const ae_stmt_t type, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = type;
   a->pos = pos;
   return a;
 }
 
-Stmt new_stmt_flow(const ae_Stmt_Type type, const Exp cond, const Stmt body, const m_bool is_do, const int pos) {
+Stmt new_stmt_flow(const ae_stmt_t type, const Exp cond, const Stmt body, const m_bool is_do, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = type;
   a->d.stmt_flow.is_do = is_do;

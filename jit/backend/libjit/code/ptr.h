@@ -7,9 +7,9 @@
 #include "code/func.h"
 
 JIT_CODE(instr_ptr_assign) {
-  CJval reg = push_reg(cc, -SZ_INT*2);
-  CJval val = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval obj = JLOADR(reg, 0, void_ptr);
+  push_reg(cc, -SZ_INT*2);
+  CJval val = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  CJval obj = JLOADR(cc->reg, 0, void_ptr);
   CJval data = JLOADR(obj, JOFF(M_Object, data), void_ptr);
   JSTORER(data, 0, val);
 }
@@ -30,7 +30,7 @@ JIT_CODE(instr_ptr_deref) {
 JIT_CODE(Cast2Ptr) {
   CJval val = JLOADR(cc->reg, -SZ_INT, void_ptr);
   CJval arg0[] = { cc->shred };
-  CJval obj = CALL_NATIVE(new_object, "pp", arg0);
+  CJval obj = CALL_NATIVE2(new_object, "pp", arg0);
   CJval data = JLOADR(obj, JOFF(M_Object , data), void_ptr);
   JSTORER(data, 0, val);
   JSTORER(cc->reg, -SZ_INT, obj);

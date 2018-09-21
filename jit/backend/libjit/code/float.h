@@ -7,20 +7,20 @@
 #include "code/func.h"
 
 JIT_CODE(float_assign) {
-  CJval reg = push_reg(cc, -SZ_INT);
-  CJval src = JLOADR(reg, SZ_INT - SZ_FLOAT, float);
-  CJval ptr = JLOADR(reg, -SZ_FLOAT, void_ptr);
+  push_reg(cc, -SZ_INT);
+  CJval src = JLOADR(cc->reg, SZ_INT - SZ_FLOAT, float);
+  CJval ptr = JLOADR(cc->reg, -SZ_FLOAT, void_ptr);
   JSTORER(ptr, 0, src);
-  JSTORER(reg, -SZ_FLOAT, src);
+  JSTORER(cc->reg, -SZ_FLOAT, src);
 }
 
 #define jit_describe(name, op)               \
 JIT_CODE(Float##name) {                     \
-  CJval reg = push_reg(cc, -SZ_FLOAT);        \
-  CJval src = JLOADR(reg, 0, float);         \
-  CJval tgt = JLOADR(reg, -SZ_FLOAT, float); \
+  push_reg(cc, -SZ_FLOAT);        \
+  CJval src = JLOADR(cc->reg, 0, float);         \
+  CJval tgt = JLOADR(cc->reg, -SZ_FLOAT, float); \
   CJval ret = JINSN(op, tgt, src);          \
-  JSTORER(reg, -SZ_FLOAT, ret);              \
+  JSTORER(cc->reg, -SZ_FLOAT, ret);              \
 }
 jit_describe(Plus, add)
 jit_describe(Minus, sub)
@@ -59,12 +59,12 @@ JIT_CODE(float_or) {
 
 #define jit_describe_logical(name, op)                \
 JIT_CODE(float_##name) {                              \
-  CJval reg = push_reg(cc, SZ_INT-SZ_FLOAT*2);         \
-  CJval src = JLOADR(reg, SZ_FLOAT-SZ_INT, float);    \
-  CJval tgt = JLOADR(reg, -SZ_INT, float);            \
+  push_reg(cc, SZ_INT-SZ_FLOAT*2);         \
+  CJval src = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, float);    \
+  CJval tgt = JLOADR(cc->reg, -SZ_INT, float);            \
   CJval ret = JINSN(op, tgt, src);                   \
   CJval val = JINSN(convert, ret, jit_type_nint, 0); \
-  JSTORER(reg, -SZ_INT, val);                         \
+  JSTORER(cc->reg, -SZ_INT, val);                         \
 }
 jit_describe_logical(eq,  eq)
 jit_describe_logical(neq, ne)
@@ -80,29 +80,29 @@ JIT_CODE(float_negate) {
 }
 
 JIT_CODE(float_not) {
-  CJval reg = push_reg(cc, SZ_INT-SZ_FLOAT);
-  CJval src = JLOADR(reg, -SZ_INT, float);
+  push_reg(cc, SZ_INT-SZ_FLOAT);
+  CJval src = JLOADR(cc->reg, -SZ_INT, float);
   CJval zero = JCONSTF(0.0);
   CJval ret1 = JINSN(eq, src, zero);
-  JSTORER(reg, -SZ_INT, ret1);
+  JSTORER(cc->reg, -SZ_INT, ret1);
 }
 
 JIT_CODE(float_r_assign) {
-  CJval reg = push_reg(cc, -SZ_INT);
-  CJval ptr = JLOADR(reg, 0, void_ptr);
-  CJval src = JLOADR(reg, -SZ_FLOAT, float);
+  push_reg(cc, -SZ_INT);
+  CJval ptr = JLOADR(cc->reg, 0, void_ptr);
+  CJval src = JLOADR(cc->reg, -SZ_FLOAT, float);
   JSTORER(ptr, 0, src);
 }
 
 #define jit_describe_r(name, op)             \
 JIT_CODE(float_r_##name) {                   \
-  CJval reg = push_reg(cc, -SZ_INT);          \
-  CJval ptr = JLOADR(reg, 0, void_ptr);      \
+  push_reg(cc, -SZ_INT);          \
+  CJval ptr = JLOADR(cc->reg, 0, void_ptr);      \
   CJval src = JLOADR(ptr, 0, float);         \
-  CJval tgt = JLOADR(reg, -SZ_FLOAT, float); \
+  CJval tgt = JLOADR(cc->reg, -SZ_FLOAT, float); \
   CJval ret = JINSN(op, src, tgt);          \
   JSTORER(ptr, 0, ret);                      \
-  JSTORER(reg, -SZ_FLOAT, ret);              \
+  JSTORER(cc->reg, -SZ_FLOAT, ret);              \
 }
 jit_describe_r(plus, add)
 jit_describe_r(minus, sub)
@@ -110,22 +110,22 @@ jit_describe_r(mul, mul)
 jit_describe_r(div, div)
 
 JIT_CODE(int_float_assign) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval ptr = JLOADR(reg, -SZ_INT, void_ptr);
-  CJval src = JLOADR(reg, 0, float);
+  push_reg(cc, -SZ_FLOAT);
+  CJval ptr = JLOADR(cc->reg, -SZ_INT, void_ptr);
+  CJval src = JLOADR(cc->reg, 0, float);
   CJval ret = JINSN(convert, src, jit_type_nint, 0);
   JSTORER(ptr, 0, ret);
-  JSTORER(reg, -SZ_INT, ret);
+  JSTORER(cc->reg, -SZ_INT, ret);
 }
 
 #define jit_describe_if(name, op)                      \
 JIT_CODE(int_float_##name) {                           \
-  CJval reg = push_reg(cc, -SZ_INT);                    \
-  CJval lhs = JLOADR(reg, -SZ_FLOAT, nint);            \
-  CJval rhs = JLOADR(reg, SZ_INT-SZ_FLOAT, float);     \
+  push_reg(cc, -SZ_INT);                    \
+  CJval lhs = JLOADR(cc->reg, -SZ_FLOAT, nint);            \
+  CJval rhs = JLOADR(cc->reg, SZ_INT-SZ_FLOAT, float);     \
   CJval val = JINSN(convert, lhs, jit_type_float, 0); \
   CJval ret = JINSN(op, val, rhs);                    \
-  JSTORER(reg, -SZ_FLOAT, ret);                        \
+  JSTORER(cc->reg, -SZ_FLOAT, ret);                        \
 }
 jit_describe_if(plus,   add)
 jit_describe_if(minus,  sub)
@@ -164,13 +164,13 @@ JIT_CODE(int_float_or) {
 
 #define jit_describe_logical_if(name, op)              \
 JIT_CODE(int_float_##name) {                           \
-  CJval reg = push_reg(cc, -SZ_FLOAT);                  \
-  CJval lhs = JLOADR(reg, -SZ_INT, nint);              \
+  push_reg(cc, -SZ_FLOAT);                  \
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, nint);              \
   CJval ptr = JINSN(convert, lhs, jit_type_float, 0); \
-  CJval rhs = JLOADR(reg, 0, float);                   \
+  CJval rhs = JLOADR(cc->reg, 0, float);                   \
   CJval val = JINSN(op, ptr, rhs);                    \
   CJval ret = JINSN(convert, val, jit_type_nint, 0);  \
-  JSTORER(reg, -SZ_INT, ret);                          \
+  JSTORER(cc->reg, -SZ_INT, ret);                          \
 }
 jit_describe_logical_if(eq,  eq)
 jit_describe_logical_if(neq, ne)
@@ -180,24 +180,24 @@ jit_describe_logical_if(lt,  lt)
 jit_describe_logical_if(le,  le)
 
 JIT_CODE(int_float_r_assign) {
-  CJval reg = push_reg(cc, -SZ_INT*2 + SZ_FLOAT);
-  CJval ptr = JLOADR(reg, SZ_INT-SZ_FLOAT, void_ptr);
-  CJval tgt = JLOADR(reg, -SZ_FLOAT, nint);
+  push_reg(cc, -SZ_INT*2 + SZ_FLOAT);
+  CJval ptr = JLOADR(cc->reg, SZ_INT-SZ_FLOAT, void_ptr);
+  CJval tgt = JLOADR(cc->reg, -SZ_FLOAT, nint);
   CJval ret = JINSN(convert, tgt, jit_type_float, 0);
   JSTORER(ptr, 0, ret);
-  JSTORER(reg, -SZ_FLOAT, ret);
+  JSTORER(cc->reg, -SZ_FLOAT, ret);
 }
 
 #define jit_describe_r_if(name, op)                    \
 JIT_CODE(int_float_r_##name) {                         \
-  CJval reg = push_reg(cc, -SZ_INT*2 + SZ_FLOAT);       \
-  CJval ptr = JLOADR(reg, SZ_INT-SZ_FLOAT, void_ptr);  \
+  push_reg(cc, -SZ_INT*2 + SZ_FLOAT);       \
+  CJval ptr = JLOADR(cc->reg, SZ_INT-SZ_FLOAT, void_ptr);  \
   CJval src = JLOADR(ptr, 0, float);                   \
-  CJval tgt = JLOADR(reg, -SZ_FLOAT, nint);            \
+  CJval tgt = JLOADR(cc->reg, -SZ_FLOAT, nint);            \
   CJval val = JINSN(convert, tgt, jit_type_float, 0); \
   CJval ret = JINSN(op, src, val);                    \
   JSTORER(ptr, 0, ret);                                \
-  JSTORER(reg, -SZ_FLOAT, ret);                        \
+  JSTORER(cc->reg, -SZ_FLOAT, ret);                        \
 }
 jit_describe_r_if(plus,   add)
 jit_describe_r_if(minus,  sub)
@@ -205,22 +205,22 @@ jit_describe_r_if(mul,  mul)
 jit_describe_r_if(div, div)
 
 JIT_CODE(float_int_assign) {
-  CJval reg = push_reg(cc, -SZ_INT*2 + SZ_FLOAT);
-  CJval src = JLOADR(reg, SZ_INT-SZ_FLOAT, nint);
-  CJval ptr = JLOADR(reg, -SZ_FLOAT, void_ptr);
+  push_reg(cc, -SZ_INT*2 + SZ_FLOAT);
+  CJval src = JLOADR(cc->reg, SZ_INT-SZ_FLOAT, nint);
+  CJval ptr = JLOADR(cc->reg, -SZ_FLOAT, void_ptr);
   CJval ret = JINSN(convert, src, jit_type_float, 0);
   JSTORER(ptr, 0, ret);
-  JSTORER(reg, -SZ_FLOAT, ret);
+  JSTORER(cc->reg, -SZ_FLOAT, ret);
 }
 
 #define jit_describe_fi(name, op)                      \
 JIT_CODE(float_int_##name) {                           \
-  CJval reg = push_reg(cc, -SZ_INT);                    \
-  CJval lhs = JLOADR(reg, 0, nint);                    \
+  push_reg(cc, -SZ_INT);                    \
+  CJval lhs = JLOADR(cc->reg, 0, nint);                    \
   CJval val = JINSN(convert, lhs, jit_type_float, 0); \
-  CJval rhs = JLOADR(reg, -SZ_FLOAT, float);           \
+  CJval rhs = JLOADR(cc->reg, -SZ_FLOAT, float);           \
   CJval ret = JINSN(op, val, rhs);                    \
-  JSTORER(reg, -SZ_FLOAT, ret);                        \
+  JSTORER(cc->reg, -SZ_FLOAT, ret);                        \
 }
 jit_describe_fi(plus,   add)
 jit_describe_fi(minus,  sub)
@@ -259,12 +259,12 @@ JIT_CODE(float_int_or) {
 
 #define jit_describe_logical_fi(name, op)              \
 JIT_CODE(float_int_##name) {                           \
-  CJval reg = push_reg(cc, -SZ_FLOAT);                  \
-  CJval lhs = JLOADR(reg, -SZ_INT, float);             \
-  CJval rhs = JLOADR(reg, SZ_FLOAT-SZ_INT, nint);      \
+  push_reg(cc, -SZ_FLOAT);                  \
+  CJval lhs = JLOADR(cc->reg, -SZ_INT, float);             \
+  CJval rhs = JLOADR(cc->reg, SZ_FLOAT-SZ_INT, nint);      \
   CJval val = JINSN(convert, lhs, jit_type_nint, 0);  \
   CJval ret = JINSN(op, val, rhs);                    \
-  JSTORER(reg, -SZ_INT, ret);                          \
+  JSTORER(cc->reg, -SZ_INT, ret);                          \
 }
 jit_describe_logical_fi(eq,  eq)
 jit_describe_logical_fi(neq, ne)
@@ -274,24 +274,24 @@ jit_describe_logical_fi(lt,  lt)
 jit_describe_logical_fi(le,  le)
 
 JIT_CODE(float_int_r_assign) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval ptr = JLOADR(reg, SZ_FLOAT - SZ_INT, void_ptr);
-  CJval tgt = JLOADR(reg, -SZ_INT, float);
+  push_reg(cc, -SZ_FLOAT);
+  CJval ptr = JLOADR(cc->reg, SZ_FLOAT - SZ_INT, void_ptr);
+  CJval tgt = JLOADR(cc->reg, -SZ_INT, float);
   CJval ret = JINSN(convert, tgt, jit_type_nint, 0);
   JSTORER(ptr, 0, ret);
-  JSTORER(reg, -SZ_INT, ret);
+  JSTORER(cc->reg, -SZ_INT, ret);
 }
 
 #define jit_describe_r_fi(name, op)                     \
 JIT_CODE(float_int_r_##name) {                          \
-  CJval reg = push_reg(cc, -SZ_FLOAT);                   \
-  CJval ptr = JLOADR(reg, SZ_FLOAT - SZ_INT, void_ptr); \
+  push_reg(cc, -SZ_FLOAT);                   \
+  CJval ptr = JLOADR(cc->reg, SZ_FLOAT - SZ_INT, void_ptr); \
   CJval src = JLOADR(ptr, 0, nint);                     \
-  CJval tgt = JLOADR(reg, -SZ_INT, float);              \
+  CJval tgt = JLOADR(cc->reg, -SZ_INT, float);              \
   CJval val = JINSN(convert, tgt, jit_type_nint, 0);   \
   CJval ret = JINSN(op, src, val);                     \
   JSTORER(ptr, 0, ret);                                 \
-  JSTORER(reg, -SZ_INT, ret);                           \
+  JSTORER(cc->reg, -SZ_INT, ret);                           \
 }
 jit_describe_r_fi(plus,   add)
 jit_describe_r_fi(minus,  sub)
@@ -299,26 +299,26 @@ jit_describe_r_fi(mul,  mul)
 jit_describe_r_fi(div, div)
 
 JIT_CODE(Time_Advance) {
-  CJval reg = push_reg(cc, -SZ_FLOAT);
-  CJval f = JLOADR(reg, -SZ_FLOAT, float);
+  push_reg(cc, -SZ_FLOAT);
+  CJval f = JLOADR(cc->reg, -SZ_FLOAT, float);
   CJval wake = JLOADR(cc->shred, JOFF(VM_Shred, wake_time), float);
   CJval sum = JINSN(add, f, wake);
-  JSTORER(reg, -SZ_FLOAT, sum);
+  JSTORER(cc->reg, -SZ_FLOAT, sum);
   cc_shredule(cc, f);
 }
 
 JIT_CODE(CastI2F) {
-  CJval reg = push_reg(cc, -(SZ_INT-SZ_FLOAT));
-  CJval val = JLOADR(reg, -SZ_FLOAT, nint);
+  push_reg(cc, -(SZ_INT-SZ_FLOAT));
+  CJval val = JLOADR(cc->reg, -SZ_FLOAT, nint);
   CJval ret = JINSN(convert, val, jit_type_float, 0);
-  JSTORER(reg, -SZ_FLOAT, ret);
+  JSTORER(cc->reg, -SZ_FLOAT, ret);
 }
 
 JIT_CODE(CastF2I) {
-  CJval reg = push_reg(cc, -(SZ_FLOAT-SZ_INT));
-  CJval val = JLOADR(reg, -SZ_INT, float);
+  push_reg(cc, -(SZ_FLOAT-SZ_INT));
+  CJval val = JLOADR(cc->reg, -SZ_INT, float);
   CJval ret = JINSN(convert, val, jit_type_nint, 0);
-  JSTORER(reg, -SZ_INT, ret);
+  JSTORER(cc->reg, -SZ_INT, ret);
 }
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);

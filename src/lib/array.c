@@ -272,7 +272,7 @@ ANN static M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
   return base;
 }
 
-ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info);
+ANN /*static */M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info);
 ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
     const m_uint cap, const M_Object base) {
   for(m_uint i = 0; i < cap; ++i) {
@@ -288,7 +288,7 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
   return base;
 }
 
-ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
+ANN /* static */ M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
   const m_int cap = *(m_int*)REG(info->depth * SZ_INT);
   const M_Object base = do_alloc_array_object(info, cap);
   if(!base)
@@ -297,7 +297,7 @@ ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
     do_alloc_array_init(info, cap, base);
 }
 
-ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_uint* num_obj) {
+ANN /*static */M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_uint* num_obj) {
   m_int curr = -info->depth;
   while(curr <= TOP) {
     *num_obj *= *(m_int*)REG(SZ_INT * curr);

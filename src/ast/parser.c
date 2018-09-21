@@ -3518,7 +3518,7 @@ yyreduce:
 #line 3519 "src/ast/parser.c" /* yacc.c:1648  */
       default: break;
     }
-  /* User semantic actions somemul alter yychar, and that requires
+  /* User semantic actions sometimes alter yychar, and that requires
      that yytoken be updated with the new translation.  We take the
      approach of translating immediately before every use of yytoken.
      One alternative is translating here after every semantic action,

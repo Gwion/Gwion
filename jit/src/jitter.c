@@ -92,15 +92,15 @@ static void code(struct JitThread_* jt, Q q) {
   struct JitBackend* be = jt->j->be;
   Instr byte;
   while((byte = ctrl_run(ctrl, v))) {
+#ifdef JIT_SKIP
     if(byte == (Instr)1)continue;
-//    pthread_testcancel();
+#endif
+    pthread_testcancel();
     be->pc(jt, ctrl);
-//    pthread_testcancel();
     const Instr ins = get_instr(jt, byte);
 #ifdef JIT_DEV
   printf("[JIT] instr %s\n", (m_str)map_get(&dev_map, (vtype)byte->execute));
 #endif
-//    pthread_testcancel();
     const _code code = (_code)map_get(&jt->j->code, (vtype)byte->execute);
     if(code)
       code(jt->cc, ins);
@@ -133,7 +133,6 @@ static void* qprocess(void* data) {
       j->q = q->next;
       pthread_mutex_unlock(&j->qmutex);
       pthread_cleanup_push(free_q, q);
-//      flow(&j->ctrl, q);
       flow(jt, q);
       ctrl_done(q->ctrl);
       code(jt,q);

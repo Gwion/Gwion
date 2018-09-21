@@ -7,8 +7,9 @@
 #include "code/func.h"
 
 JIT_CODE(EOC) {
-  CJval arg[] = { cc->shred };
-  CALL_NATIVE(vm_shred_exit, "vp", arg);
+  CJval shreduler = JLOADR(cc->vm, JOFF(VM, shreduler), void_ptr);
+  CJval arg[] = { shreduler, cc->shred, JCONST(int, 1) };
+  CALL_NATIVE2(shreduler_remove, "vppi", arg);
 }
 
 JIT_CODE(DTOR_EOC) {
@@ -22,8 +23,9 @@ JIT_CODE(DTOR_EOC) {
   JSTORER(obj, JOFF(M_Object, ref), one);
   cc_release(cc, obj);
   cc_release(cc, me);
-  CJval arg2[] = { cc->shred };
-  CALL_NATIVE(vm_shred_exit, "vp", arg2);
+  CJval shreduler = JLOADR(cc->vm, JOFF(VM, shreduler), void_ptr);
+  CJval arg[] = { shreduler, cc->shred, JCONST(int, 1) };
+  CALL_NATIVE2(shreduler_remove, "vppi", arg);
 }
 
 #define jit_branch(name, type, sz, op) \
@@ -51,7 +53,7 @@ JIT_CODE(BranchSwitch) {
   CJval idx = JLOADR(cc->reg, 0, nint);
   CJval map = JCONST(void_ptr, instr->m_val2);
   Jval arg[] = { map, idx };
-  CJval pc = CALL_NATIVE(map_get, "IpI", arg);
+  CJval pc = CALL_NATIVE2(map_get, "IpI", arg);
   INIT_LABEL(lbl)
   INIT_LABEL(end)
   JINSN(branch_if, pc, &lbl);
@@ -126,9 +128,11 @@ JIT_CODE(GcAdd) {
   CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
   CJval obj = JLOADR(cc->reg, -SZ_INT,void_ptr);
   jit_vector_add(cc, gc, obj);
+//  CJval arg[] = { gc, obj };
+//  CALL_NATIVE2(vector_add, "vpp", arg);
 }
 
-ANN static inline void gcend(const VM_Shred shred) { GWDEBUG_EXE
+ANN /*static inline */void gcend(const VM_Shred shred) {
   M_Object o;
   while((o = (M_Object)vector_pop(&shred->gc)))
     _release(o, shred);
@@ -136,19 +140,7 @@ ANN static inline void gcend(const VM_Shred shred) { GWDEBUG_EXE
 
 JIT_CODE(GcEnd) {
   CJval arg[] = { cc->shred };
-  CALL_NATIVE(gcend, "vp", arg);
-/*
-  CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
-//  CJval ptr = JLOADR(gc, JOFF(Vector, ptr), void_ptr);
-  INIT_LABEL(lbl);
-  INIT_LABEL(end);
-  JINSN(label, &lbl);
-  CJval obj = CALL_NATIVE(vector_pop, "pp", &gc);
-  JINSN(branch_if_not, obj, &end);
-  cc_release(cc, obj);
-  JINSN(branch, &lbl);
-  JINSN(label, &end);
-*/
+  CALL_NATIVE2(gcend, "vp", arg);
 }
 
 JIT_CODE(RegPop) {
@@ -250,7 +242,7 @@ JIT_CODE(RegPushMaybe) {
   CJval   vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
   CJval   sp = JLOADR(vm, __builtin_offsetof(VM, sp), void_ptr);
   CJval arg[] = { sp };
-  CJval  ret = CALL_NATIVE(sp_rand, "Up", arg);
+  CJval  ret = CALL_NATIVE2(sp_rand, "Up", arg);
   CJval  mid = JCONST(nuint, SP_RANDMAX / 2);
   CJval maybe = JINSN(gt, ret, mid);
   JSTORER(cc->reg, 0, maybe);
@@ -291,7 +283,7 @@ static inline void jit_push_me(CC cc, CJval sh) {
 
 
 static Jval jit_init_spork_shred(CC cc, CJval code) {
-  CJval sh = CALL_NATIVE(new_vm_shred, "pp", &code);
+  CJval sh = CALL_NATIVE2(new_vm_shred, "pp", &code);
 // ref ++
   Jval ref = JLOADR(code, JOFF(VM_Code, obj), nuint);
   ref = JINSN(add, ref, JCONST(nuint, 1));
@@ -304,10 +296,8 @@ static Jval jit_init_spork_shred(CC cc, CJval code) {
   INIT_LABEL(lbl);
   CJval ptr = JLOADR(child, JOFF(Vector, ptr), void_ptr);
   JINSN(branch_if, ptr, &lbl);
-//  CALL_NATIVE(vector_init, "vp", &child);
-
   CJval arg0[] = { JCONST(nuint, MAP_CAP), JCONST(nuint, SZ_INT) };
-  CJval data = CALL_NATIVE(xcalloc, "pUU", arg0);
+  CJval data = CALL_NATIVE2(xcalloc, "pUU", arg0);
   JSTOREE(data, JCONST(nuint, 1), JCONST(nuint, MAP_CAP));
   JSTORER(child, JOFF(Vector, ptr), data);
   JINSN(label, &lbl);
@@ -317,15 +307,13 @@ static Jval jit_init_spork_shred(CC cc, CJval code) {
   JSTORER(sh, JOFF(VM_Shred, base), base);
   CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
   Jval arg[] = { vm, sh };
-  CALL_NATIVE(vm_add_shred, "vpp", arg);
+  CALL_NATIVE2(vm_add_shred, "vpp", arg);
   return sh;
 }
 
 JIT_CODE(SporkFunc) {
   push_reg(cc, -SZ_INT*2);
   CJval code = JLOADR(cc->reg, SZ_INT, void_ptr);
-//  CJval arg0[] = { cc->shred, code };
-//  CJval sh   = CALL_NATIVE(init_spork_shred, "ppp", arg0);
   CJval sh = jit_init_spork_shred(cc, code);
   Jval  sh_reg = JLOADR(sh, JOFF(VM_Shred, reg), void_ptr);
   CJval func = JLOADR(cc->reg, 0, void_ptr);
@@ -377,8 +365,9 @@ JIT_CODE(SporkExp) {
   jit_push_me(cc, sh);
 }
 
-JIT_CODE(Goto) { next_pc(cc, instr->m_val);
-jit_insn_default_return(cc->f);
+JIT_CODE(Goto) {
+  next_pc(cc, instr->m_val);
+  jit_insn_default_return(cc->f);
 }
 
 JIT_CODE(ObjectRelease) {
@@ -407,7 +396,7 @@ JIT_CODE(DotData) {
 
 JIT_CODE(ObjectInstantiate) {
   Jval arg[] = { cc->shred, JCONST(void_ptr, instr->m_val) };
-  CJval obj = CALL_NATIVE(new_object, "ppp", arg);
+  CJval obj = CALL_NATIVE2(new_object, "ppp", arg);
   JSTORER(cc->reg, 0, obj);
   push_reg(cc, SZ_INT);
 }
@@ -515,15 +504,15 @@ JIT_CODE(FuncPtr) {
   CJval flag = JLOADR(code, JOFF(VM_Code, flag), nuint);
   CJval native = cc_get_flag(cc, flag, NATIVE_NOT);
   JINSN(branch_if_not, native, &mid);
-  CALL_NATIVE(FuncUsr, "vpp", arg);
+  CALL_NATIVE2(FuncUsr, "vpp", arg);
   JINSN(branch, &end);
   JINSN(label, &mid);
   CJval member = cc_get_flag(cc, flag, _NEED_THIS_);
   JINSN(branch_if_not, member, &post);
-  CALL_NATIVE(FuncMember, "vpp", arg);
+  CALL_NATIVE2(FuncMember, "vpp", arg);
   JINSN(branch, &end);
   JINSN(label, &post);
-  CALL_NATIVE(FuncStatic, "vpp", arg);
+  CALL_NATIVE2(FuncStatic, "vpp", arg);
   JINSN(label, &end);
 push_reg(cc, 0);
 }
@@ -661,23 +650,23 @@ JIT_CODE(AutoLoopStart) {
   CJval array = JLOADR(data, 0, void_ptr);
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
   CJval idx = JLOADR(mem, instr->m_val, nuint);
-  const Type t = instr->m_val2;
+  const Type t = (Type)instr->m_val2;
   if(t) {
     INIT_LABEL(lbl);
     JINSN(branch_if, idx, &lbl);
     Jval new_arg[] = { cc->shred, JCONST(void_ptr, t) };
-    CJval _ptr = CALL_NATIVE(new_object, "ppp", new_arg);
+    CJval _ptr = CALL_NATIVE2(new_object, "ppp", new_arg);
     JSTORER(mem, instr->m_val + SZ_INT, _ptr);
     JINSN(label, &lbl);
     CJval ptr = JLOADR(mem, instr->m_val + SZ_INT, void_ptr);
     Jval arg[] = { array, idx };
-    CJval ret = CALL_NATIVE(m_vector_addr, "ppU", arg);
+    CJval ret = CALL_NATIVE2(m_vector_addr, "ppU", arg);
     CJval ptr_data = JLOADR(ptr, JOFF(M_Object, data), void_ptr);
     JSTORER(ptr_data, 0, ret);
   } else {
     CJval ptr = JADDR(mem, instr->m_val + SZ_INT);
     Jval arg[] = { array, idx, ptr };
-    CALL_NATIVE(m_vector_get, "vpUp", arg);
+    CALL_NATIVE2(m_vector_get, "vpUp", arg);
   }
 }
 
@@ -695,7 +684,7 @@ JIT_CODE(AutoLoopEnd) {
   CJval data = JLOADR(obj, JOFF(M_Object, data), void_ptr);
   CJval array = JLOADR(data, 0, void_ptr);
   CJval arg[] = { array };
-  CJval size = CALL_NATIVE(m_vector_size, "Up", arg);
+  CJval size = CALL_NATIVE2(m_vector_size, "Up", arg);
   CJval cond = JINSN(ge, sum, size);
   INIT_LABEL(lbl);
   JINSN(branch_if_not, cond, &lbl);
@@ -714,7 +703,7 @@ JIT_CODE(PopArrayClass) {
   CJval array = JLOADR(tdata, 0, void_ptr);
   JSTORER(odata, 0, array);
   Jval arg1[] = { tmp };
-  CALL_NATIVE(free_object, "vp", arg1);
+  CALL_NATIVE2(free_object, "vp", arg1);
   CJval type = JLOADR(obj, JOFF(M_Object, type_ref), void_ptr);
   jit_type_add_ref(cc, type);
 }

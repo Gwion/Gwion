@@ -360,7 +360,7 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) { G
   return 1;
 }
 
-ANN static m_bool emit_exp_prim_vec(const Emitter emit, const Vec* vec, const ae_Exp_Primary_Type t) { GWDEBUG_EXE
+ANN static m_bool emit_exp_prim_vec(const Emitter emit, const Vec* vec, const ae_prim_t t) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, vec->exp, 0));
   m_int n = (t == ae_primary_vec ? 3 : 2) - vec->dim + 1;
   while(--n > 0) {
@@ -1816,7 +1816,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
 }
 
 ANN static m_bool emit_section(const Emitter emit, const Section* section) { GWDEBUG_EXE
-  const ae_Section_Type t = section->section_type;
+  const ae_section_t t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(emit_stmt_list(emit, section->d.stmt_list))
   else if(t == ae_section_func)

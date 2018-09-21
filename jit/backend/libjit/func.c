@@ -14,7 +14,9 @@
 #include "ctrl.h"
 #define JIT_CALL JIT_CALL_NOTHROW
 
-ANN Jval push_reg(JitCC* const cc, const m_int i) {
+ANN void cc_free(void* v) { xfree(v); }
+
+ANN Jval push_reg(CC const cc, const m_int i) {
   CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
   cc->reg = JADDR(ptr, i);
 //  cc->reg = JADDR(cc->reg, i);
@@ -22,7 +24,7 @@ ANN Jval push_reg(JitCC* const cc, const m_int i) {
   return cc->reg;
 }
 
-ANN void push_reg2(JitCC* const cc, CJval i) {
+ANN void push_reg2(CC const cc, CJval i) {
 //  CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
 //  cc->reg = JINSN(add, ptr, i);
   cc->reg = JINSN(add, cc->reg, i);
@@ -41,7 +43,7 @@ ANN void cc_release(CC cc, CJval  obj) {
   INIT_LABEL(lbl);
   JINSN(branch_if, ref, &lbl);
   Jval args[] = { obj, cc->shred };
-  CALL_NATIVE(__release, "vpp", args);
+  CALL_NATIVE2(__release, "vpp", args);
   JINSN(label, &lbl);
 }
 
@@ -58,7 +60,7 @@ ANN void cc_shredule(CC cc, CJval wake_time) {
   CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
   CJval shreduler = JLOADR(vm, __builtin_offsetof(VM, shreduler), void_ptr);
   Jval args[] = { shreduler, cc->shred, wake_time };
-  CALL_NATIVE(shredule, "vppf", args);
+  CALL_NATIVE2(shredule, "vppf", args);
 }
 
 ANN void cc_remove(CC cc, const m_bool b) {
@@ -66,13 +68,13 @@ ANN void cc_remove(CC cc, const m_bool b) {
   CJval shreduler = JLOADR(vm, __builtin_offsetof(VM, shreduler), void_ptr);
   CJval rem = JCONST(int, b);
   Jval args[] = { shreduler, cc->shred, rem };
-  CALL_NATIVE(shreduler_remove, "vppi", args);
+  CALL_NATIVE2(shreduler_remove, "vppi", args);
 }
 
-ANN void cc_except(JitCC *const cc, const m_str c) {
+ANN void cc_except(CC const cc, const m_str c) {
   CJval str = JCONST(void_ptr, (m_uint)c);
   Jval args[] = { cc->shred, str };
-  CALL_NATIVE(exception, "vpp", args);
+  CALL_NATIVE2(exception, "vpp", args);
   jit_insn_default_return(cc->f);
 }
 
@@ -90,13 +92,18 @@ ANN Jval cc_get_flag(CC cc, CJval a, ae_flag flag) {
   CJval c = JINSN(and, a, b);
   return JINSN(eq, c, b);
 }
-
-Jval cc_call(CC cc, void* func, const m_str s, Jval *arg) {
-  Jval f = (Jval)map_get(&cc->vtable, (vtype)func);
-  if(!f) {
-    f = JCONST(void_ptr, func);
-    map_set(&cc->vtable, (vtype)func, (vtype)f);
-  }
+#include "dlfcn.h"
+Jval cc_call(CC cc, const m_str name, const m_str s, Jval *arg) {
+//  Jval f = (Jval)map_get(&cc->vtable, (vtype)name);
+//  if(!f) {
+//    const void* handle = dlopen(NULL, RTLD_LOCAL);
+//puts(name);
+    const void* func = dlsym(NULL, name);
+//if(!func)exit(2); // keep me
+    Jval f = JCONST(void_ptr, func);
+//    map_set(&cc->vtable, (vtype)func, (vtype)f);
+//  }
+//  return jit_insn_call_native(cc->f, NULL, f,
   return jit_insn_call_indirect_vtable(cc->f, f,
     sig(&cc->sig, s, jit_abi_fastcall), arg, strlen(s) - 1, JIT_CALL);
 }
@@ -105,8 +112,8 @@ Jval cc_call(CC cc, void* func, const m_str s, Jval *arg) {
 ANN void jit_vector_add(CC cc, CJval v, CJval data) {
   CJval offset = JCONST(nuint, OFFSET);
   Jval ptr = JLOADR(v, JOFF(Vector, ptr), void_ptr);
-  Jval len = JINSN(load_elem, ptr, JCONST(nuint, 0), jit_type_nuint);
-  Jval cap = JINSN(load_elem, ptr, JCONST(nuint, 1), jit_type_nuint);
+  Jval len = JLOADE(ptr, JCONST(nuint, 0), nuint);
+  Jval cap = JLOADE(ptr, JCONST(nuint, 1), nuint);
   INIT_LABEL(lbl);
   CJval sub = JINSN(sub, cap , len);
   CJval cond = JINSN(eq, sub, offset);
@@ -114,16 +121,22 @@ ANN void jit_vector_add(CC cc, CJval v, CJval data) {
   cap = JINSN(mul, cap , JCONST(nuint, 2));
   CJval size = JINSN(mul, cap, JCONST(nuint, SZ_INT));
   CJval arg[] = { ptr, size };
-  CJval nptr = CALL_NATIVE(xrealloc, "ppU", arg);
-  JSTORER(nptr, SZ_INT, cap);
+  CJval nptr = CALL_NATIVE2(xrealloc, "ppU", arg);
+//  JSTORER(nptr, SZ_INT, cap);
+  JSTOREE(nptr, JCONST(nuint, 1), cap);
   JSTORER(v, JOFF(Vector, ptr), nptr);
   JINSN(label, &lbl);
 
   CJval _ptr = JLOADR(v, JOFF(Vector, ptr), void_ptr);
   Jval idx = JINSN(add, len, offset);
-  JINSN(store_elem, _ptr, idx, data);
+  JSTOREE(_ptr, idx, data);
 // ++len
   CJval one = JCONST(nuint, 1);
   len = JINSN(add, len, one);
-  JSTORER(_ptr, 0, len);
+//  JSTORER(_ptr, 0, len);
+  JSTOREE(_ptr, JCONST(nuint, 0), len);
+
+//  CJval arg[] = { v, data };
+//  CALL_NATIVE2(vector_add, "vpp", arg);
+//  CALL_NATIVE(vector_add, "vpp", arg);
 }

@@ -473,7 +473,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan1_section(const Env env, const Section* section) { GWDEBUG_EXE
-  const ae_Section_Type t = section->section_type;
+  const ae_section_t t = section->section_type;
   if(t == ae_section_stmt)
     CHECK_BB(scan1_stmt_list(env, section->d.stmt_list))
   else if(t == ae_section_func)
