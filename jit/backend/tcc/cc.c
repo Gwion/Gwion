@@ -121,6 +121,7 @@ struct JitBackend* new_jit_backend() {
   be->end = tcc_end;
   be->code = tcc_code;
   be->ctrl = tcc_ctrl;
+  be->free = NULL;
   return be;
 }
 
@@ -152,11 +153,3 @@ CC new_cc(void) {
   vector_init(&cc->code);
   return cc;
 }
-
-void free_jit_instr(JitThread jt, Instr instr){
-  pthread_mutex_lock(&jt->imutex);
-//  tcc_delete((TCCState*)instr->m_val);
-  _mp_free2(jt->pool, instr);
-  pthread_mutex_unlock(&jt->imutex);
-}
-

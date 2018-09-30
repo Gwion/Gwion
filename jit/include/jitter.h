@@ -19,7 +19,7 @@ struct Jit {
   struct JitThread_** process;
   struct JitBackend* be;
   pthread_mutex_t qmutex;
-  pthread_mutex_t* vmmutex;
+//  pthread_mutex_t* vmmutex;
   pthread_cond_t cond;
   pthread_barrier_t barrier;
   struct Map_ ctrl;

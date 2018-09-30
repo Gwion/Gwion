@@ -6,7 +6,7 @@ struct JitBackend {
   void (*end)(JitThread);
   void (*ctrl)(struct Jit*);
   void (*code)(struct Jit*);
-//  void (*free)(JitThread, void*); //optionnal
+  void (*free)(JitThread, void*); //optionnal
 };
 
 struct JitBackend* new_jit_backend();

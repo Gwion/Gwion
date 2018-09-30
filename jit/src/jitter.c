@@ -49,7 +49,6 @@ m_str dev_get(f_instr f) {
 }
 #endif
 
-//ANN static m_bool flow(Map m, Q q) {
 ANN static m_bool flow(JitThread jt, Q q) {
   const Map m = &jt->j->ctrl;
   const VM_Code code = q->code;
@@ -63,7 +62,7 @@ ANN static m_bool flow(JitThread jt, Q q) {
       ctrl_set_skip(q->ctrl);
       ctrl_next(q->ctrl);
       continue;
-    } else 
+    } else
 #endif
 {
       const _ctrl ctrl = (_ctrl)map_get(m, (vtype)byte->execute);
@@ -90,37 +89,32 @@ static void code(struct JitThread_* jt, Q q) {
   struct ctrl* ctrl = q->ctrl;
   const Vector v = c->instr;
   struct JitBackend* be = jt->j->be;
-  Instr byte;
-  while((byte = ctrl_run(ctrl, v))) {
-#ifdef JIT_SKIP
-    if(byte == (Instr)1)continue;
-#endif
+  m_uint part = 0;
+  Instr byte = jt->base = (Instr)vector_front(c->instr);
+  be->ini(jt);
+  do {
     pthread_testcancel();
-    if(ctrl_pc(ctrl)) {
-      if(jt->compiling)
-        be->end(jt);
+    if(ctrl_pc(ctrl) && ctrl_idx(ctrl) != 1) {
+      be->end(jt);
       jt->base = byte;
       be->ini(jt);
     }
     be->pc(jt, ctrl);
     const Instr ins = get_instr(jt, byte);
-#ifdef JIT_DEV
-  printf("[JIT] instr %s\n", (m_str)map_get(&dev_map, (vtype)byte->execute));
-#endif
     const _code code = (_code)map_get(&jt->j->code, (vtype)byte->execute);
+#ifdef JIT_DEV
+  printf("[JIT](%lu) %s%s\033[0m\n", ctrl_idx(ctrl), code ? "\033[32m" : "\033[31m",
+    (m_str)map_get(&dev_map, (vtype)byte->execute));
+#endif
     if(code)
       code(jt->cc, ins);
     else {
-#ifdef JIT_DEV
-  printf("[JIT](%lu) instr not found %s\n", ctrl_idx(ctrl), (m_str)map_get(&dev_map, (vtype)byte->execute));
-#endif
-#ifndef JIT_SKIP
       be->no(jt, ins);
       if(ctrl_ex(ctrl))
         be->ex(jt);
-#endif
     }
   }
+  while((byte = ctrl_run(ctrl, v)));
   be->end(jt);
 }
 
@@ -165,7 +159,6 @@ static JitThread* new_process(struct Jit* j) {
     jts[i] = jt;
     jt->top = NULL;
     jt->base = NULL;
-    jt->compiling = 0;
     jt->pool = new_pool(sizeof(struct Instr_), 128);
     jt->cc = new_cc();
     pthread_mutex_init(&jt->mutex, NULL);
@@ -179,7 +172,6 @@ static void free_process1(struct Jit* j) {
   const m_uint n = j->n;
   const JitThread* jts = j->process;
   j->done = 1;
-//  pthread_cond_broadcast(&jts[0]->j->cond);
   for(m_uint i = 0; i < n; ++i) {
     const JitThread jt = jts[i];
     pthread_cancel(jt->thread);
@@ -204,7 +196,6 @@ static void free_process2(struct Jit* j) {
 
 void free_jit(struct Jit* j) {
   j->done = 1;
-//  pthread_mutex_lock(&j->qmutex);
   pthread_cond_broadcast(&j->cond);
   free_process1(j);
   Q q = j->q;
@@ -214,7 +205,6 @@ void free_jit(struct Jit* j) {
     q = next;
   }
   free_process2(j);
-//  pthread_mutex_unlock(&j->qmutex);
   pthread_mutex_destroy(&j->qmutex);
   pthread_cond_destroy(&j->cond);
   pthread_barrier_destroy(&j->barrier);
@@ -286,11 +276,11 @@ struct Jit* new_jit(const m_uint n, const m_uint wait) {
   map_init(&j->code);
   return j;
 }
-/*
+
 void free_jit_instr(JitThread jt, Instr instr){
-  pthread_mutext_lock(&jt->qmutex);
-  jt->j->be->instr_end(jt->j->be, j);
-  _mp_free(jt->pool, instr);
-  pthread_mutext_unlock(&jt->qmutex);
+  pthread_mutex_lock(&jt->mutex);
+  if(jt->j->be->free)
+    jt->j->be->free(jt, (void*)instr->m_val);
+  _mp_free2(jt->pool, instr);
+  pthread_mutex_unlock(&jt->mutex);
 }
-*/

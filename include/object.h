@@ -22,5 +22,9 @@ ANN void exception(const VM_Shred, const m_str);
 #define ARRAY(o)     (*(M_Vector*) ((M_Object)o)->data)
 #define IO_FILE(o)   (*(FILE**)    (((M_Object)o)->data + SZ_INT))
 #define Except(s, c) { exception(s, c); return; }
-#define _release(a,b) if(!--(a)->ref)__release((a), (b))
-#define release(a,b) if((a))_release((a), (b))
+static inline void _release(const M_Object obj, const VM_Shred shred) {
+  if(!--obj->ref)__release(obj, shred);
+}
+static inline void release(const M_Object obj, const VM_Shred shred) {
+  if(obj)_release(obj, shred);
+}

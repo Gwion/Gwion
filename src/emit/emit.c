@@ -1150,7 +1150,9 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
   if(!stmt->is_do)
     op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
   emit_push_scope(emit);
+  emitter_add_instr(emit, GcIni); // ???
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
+  emitter_add_instr(emit, GcEnd); // ???
   emit_pop_scope(emit);
   if(stmt->is_do) {
     op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while);
@@ -1238,9 +1240,11 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const Instr dec = emitter_add_instr(emit, DecIntAddr);
   dec->m_val = (m_uint)counter;
 
+emitter_add_instr(emit, GcIni); // ???
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
+emitter_add_instr(emit, GcEnd); // ???
 
   const Instr _goto = emitter_add_instr(emit, Goto);
   _goto->m_val = index;

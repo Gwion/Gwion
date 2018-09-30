@@ -47,10 +47,3 @@ INSTR(JitExec){}
 
 void free_cc(void* cc) { (void)cc; }
 void* new_cc(){ return NULL; }
-
-void free_jit_instr(JitThread jt, Instr instr){
-  pthread_mutex_lock(&jt->imutex);
-  _mp_free2(jt->pool, instr);
-  pthread_mutex_unlock(&jt->imutex);
-}
-

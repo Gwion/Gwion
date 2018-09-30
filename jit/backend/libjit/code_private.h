@@ -12,3 +12,4 @@ ANN void jit_code_import_ptr(const struct Jit*);
 ANN void jit_code_import_gack(const struct Jit*);
 ANN void jit_code_import_vararg(const struct Jit*);
 ANN void jit_code_import_array(const struct Jit*);
+ANN void jit_code_import_func(const struct Jit*);

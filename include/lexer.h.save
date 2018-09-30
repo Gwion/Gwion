@@ -342,8 +342,8 @@ typedef void* yyscan_t;
 #define yyextra yyg->yyextra_r
 #define yyleng yyg->yyleng_r
 #define yytext yyg->yytext_r
-#define yylineno (YY_CURRENT_BUFFER_LVALUE->yy_bs_lineno)
-#define yycolumn (YY_CURRENT_BUFFER_LVALUE->yy_bs_column)
+#define yylineno (YY_CURRENT_BUFFER_LVAL UE->yy_bs_lineno)
+#define yycolumn (YY_CURRENT_BUFFER_LVAL UE->yy_bs_column)
 #define yy_flex_debug yyg->yy_flex_debug_r
 
 /* Size of default input buffer. */

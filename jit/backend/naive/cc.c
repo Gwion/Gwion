@@ -170,6 +170,7 @@ struct JitBackend* new_jit_backend() {
   be->end  = naive_end;
   be->ctrl = naive_ctrl;
   be->code = naive_code;
+  be->free = NULL;
   return be;
 }
 
@@ -193,7 +194,3 @@ vm_shred_exit(shred);
 
 void free_cc(CC cc) { xfree(cc); }
 CC new_cc(){ return xcalloc(1, sizeof(struct JitCC_)); }
-void free_jit_instr(JitThread jt, Instr instr){
-//  munmap((void*)instr->m_val, 4096);
-  _mp_free2(jt->pool, instr);
-}

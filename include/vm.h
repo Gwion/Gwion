@@ -42,9 +42,6 @@ typedef struct VM_ {
   SPFLOAT* in;
   sp_data* sp;
   unsigned int n_in;
-#ifdef JIT
-  pthread_mutex_t mutex;
-#endif
   volatile unsigned is_running : 1; // => shreduler
 } VM;
 

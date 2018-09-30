@@ -16,10 +16,10 @@ JIT_CTRL(FuncOp) {
 
 JIT_CTRL(PreCtor) {
   //  ctrl_set_nf(ctrl);
-//  if(GET_FLAG((VM_Code)instr->m_val, NATIVE_NOT)) {
+  if(GET_FLAG((VM_Code)instr->m_val, NATIVE_NOT)) {
     ctrl_next(ctrl);
     ctrl_set_ex(ctrl);
-//  }
+  }
 }
 
 JIT_CTRL(FuncStatic) {
@@ -40,34 +40,42 @@ JIT_CTRL(FuncPtr) {
   ctrl_next(ctrl);
 }
 
-JIT_CTRL(AutoLoopStart) { ctrl_set_ex(ctrl); ctrl_next(ctrl); }
+JIT_CTRL(AutoLoopStart) {
+  ctrl_set_ex(ctrl);
+  ctrl_next(ctrl);
+  ctrl_curr(ctrl);
+}
 JIT_CTRL(AutoLoopEnd) {
-  ctrl_set_pc(ctrl, instr->m_val2 + 1);
- ctrl_next(ctrl);
+// ctrl_set_pc(ctrl, instr->m_val2 + 1);
+  ctrl_next(ctrl);
 }
 
 JIT_CTRL(BranchSwitch) {
   ctrl_set_pc(ctrl, ctrl_idx(ctrl)); // watch me
   ctrl_set_pc(ctrl, instr->m_val);
-  const Map m = *(Map*)instr->ptr;
+  const Map m = (Map)instr->m_val2;
    const m_uint size = map_size(m);
   for(m_uint i = 0; i < size; ++i)
     ctrl_set_pc(ctrl, map_at(m, i));
 }
 
 JIT_CTRL(BranchEqInt) {
+//  ctrl_curr(ctrl);
   ctrl_next(ctrl);
   ctrl_set_pc(ctrl, instr->m_val);
 }
 JIT_CTRL(BranchNeqInt) {
+//  ctrl_curr(ctrl);
   ctrl_next(ctrl);
   ctrl_set_pc(ctrl, instr->m_val);
 }
 JIT_CTRL(BranchEqFloat) {
+//  ctrl_curr(ctrl);
   ctrl_next(ctrl);
   ctrl_set_pc(ctrl, instr->m_val);
 }
 JIT_CTRL(BranchNeqFloat) {
+//  ctrl_curr(ctrl);
   ctrl_next(ctrl);
   ctrl_set_pc(ctrl, instr->m_val);
 }

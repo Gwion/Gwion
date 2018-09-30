@@ -37,6 +37,7 @@ struct JitBackend* new_jit_backend() {
   be->end = dynasm_end;
   be->code = dynasm_code;
   be->ctrl = dynasm_ctrl;
+  be->free = NULL;
   return be;
 }
 
@@ -47,16 +48,3 @@ INSTR(JitExec){}
 
 void free_cc(struct CC* cc) { /* (xfree(cc);*/ }
 struct CC* new_cc(){ /* return; */}
-
-void test_me(VM_Shred shred, Instr instr) {
-  Instr i;
-  i->execute = instr->execute;
-}
-
-void free_jit_instr(JitThread jt, Instr instr){
-test_me(NULL, instr);
-  pthread_mutex_lock(&jt->imutex);
-  _mp_free2(jt->pool, instr);
-  pthread_mutex_unlock(&jt->imutex);
-}
-

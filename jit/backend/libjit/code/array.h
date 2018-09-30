@@ -68,6 +68,7 @@ JIT_CODE(ArrayInit) {
   CJval depth  = JCONST(nuint, info->depth);
   CJval arg0[] = { type, size, len , depth };
   CJval obj = CALL_NATIVE2(new_array, "ppUUU", arg0);
+//  JSTORER(cc->reg, -SZ_INT, obj);
   CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
   jit_vector_add(cc, gc, obj);
   jit_type_add_ref(cc, type);
@@ -76,7 +77,7 @@ JIT_CODE(ArrayInit) {
   CJval _ptr = JLOADR(array, JOFF(M_Vector, ptr), void_ptr);
   CJval ptr = JADDR(_ptr, ARRAY_OFFSET);
   CJval data_size = JCONST(nuint, instr->m_val2 * info->d.length);
-CJval _reg = JADDR(cc->reg , -SZ_INT);
+  CJval _reg = JADDR(cc->reg , -SZ_INT);
   JINSN(memcpy, ptr, _reg, data_size);
   JSTORER(_reg, 0, obj);
 //  JINSN(memcpy, ptr, JADDR(cc->reg, -SZ_INT), data_size);
@@ -119,7 +120,7 @@ JIT_CODE(ArrayAlloc) {
   } else {
     CJval arg[] = { cc->shred, aai };
     CJval ref = CALL_NATIVE2(do_alloc_array, "ppp", arg);
-    if(info->depth > 1)
+//    if(info->depth > 1)
       push_reg(cc, -SZ_INT * (info->depth - 1));
     JSTORER(cc->reg, -SZ_INT, ref);
   }

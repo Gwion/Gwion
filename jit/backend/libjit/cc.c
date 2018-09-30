@@ -43,7 +43,6 @@ ANN static void libjit_ini(const JitThread jt) {
   cc->shred = jit_value_get_param(cc->f, 0);
   cc->vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
   cc->reg = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
-  jt->compiling = 1;
 }
 
 INSTR(JitExec) {
@@ -71,20 +70,10 @@ ANN static void libjit_end(const JitThread jt) {
 //jit_dump_function(stdout, cc->f, NULL);
   map_clear(&cc->vtable);
   cc->f = NULL;
-  jt->compiling = 0;
 }
 
 ANN static void libjit_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
-/*
-  const Instr byte = ctrl_byte(ctrl);
-  if(ctrl_pc(ctrl)) {
-    if(cc->f)
-      libjit_end(jt);
-    jt->base = byte;
-    ini(jt);
-  }
-*/
   CJval pc = JCONST(nuint, ctrl_idx(ctrl));
   JSTORER(cc->shred, JOFF(VM_Shred, pc), pc);
 }
@@ -132,10 +121,11 @@ static void libjit_code(struct Jit* j) {
   jit_code_import_ptr(j);
   jit_code_import_gack(j);
   jit_code_import_vararg(j);
+  jit_code_import_func(j);
 }
 
 struct JitBackend* new_jit_backend() {
-  struct JitBackend* be = (struct JitBackend*)xcalloc(1, sizeof(struct JitBackend));
+  struct JitBackend* be = (struct JitBackend*)xmalloc(sizeof(struct JitBackend));
   be->no   = libjit_no;
   be->pc   = libjit_pc;
   be->ex   = libjit_ex;
@@ -143,15 +133,10 @@ struct JitBackend* new_jit_backend() {
   be->end  = libjit_end;
   be->ctrl = libjit_ctrl;
   be->code = libjit_code;
+  be->free = NULL;
   return be;
 }
 
 void free_jit_backend(struct JitBackend* be) {
   xfree(be);
-}
-
-void free_jit_instr(JitThread jt, Instr instr){
-  pthread_mutex_lock(&jt->imutex);
-  _mp_free2(jt->pool, instr);
-  pthread_mutex_unlock(&jt->imutex);
 }
