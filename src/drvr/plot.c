@@ -18,15 +18,14 @@ static m_bool plot_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
 
 static void plot_run(VM* vm __attribute__((unused)), DriverInfo* di) {
   m_uint i, chan;
-  sp_data* sp = vm->sp;
   FILE** sf = (FILE**)di->data;
   while(vm->is_running) {
     for(i = 0; i < di->bufsize; i++) {
       di->run(vm);
       LOOP_OPTIM
       for(chan = 0; chan < di->chan; chan++)
-        fprintf(sf[chan], "%"UINT_F" %g\n", sp->pos, (const m_float)sp->out[chan]);
-      ++sp->pos;
+        fprintf(sf[chan], "%"UINT_F" %g\n", vm->pos, (const m_float)vm->out[chan]);
+      ++vm->pos;
     }
   }
 }

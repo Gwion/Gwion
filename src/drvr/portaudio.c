@@ -20,7 +20,6 @@ static int callback(const void *inputBuffer, void *outputBuffer,
                     unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo __attribute__((unused)),
                     PaStreamCallbackFlags statusFlags __attribute__((unused)), void *userData) {
   VM* vm = (VM*)userData;
-  sp_data* sp = vm->sp;
   float *in  = (float*)inputBuffer;
   float *out = (float*)outputBuffer;
   m_uint i, j;
@@ -29,9 +28,9 @@ static int callback(const void *inputBuffer, void *outputBuffer,
       vm->in[j] = *in++;
 //    di->run(vm);
     vm_run(vm);
-    for(j = 0; j < (m_uint)sp->nchan; j++)
-      *out++ = sp->out[j];
-    ++sp->pos;
+    for(j = 0; j < (m_uint)vm->nchan; j++)
+      *out++ = vm->out[j];
+    ++vm->pos;
   }
   return paContinue;
 }

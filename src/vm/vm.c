@@ -20,7 +20,7 @@ VM* new_vm(const m_bool loop) {
   vector_init(&vm->ugen);
   shreduler_set_loop(vm->shreduler, loop);
   vm->scan = new_scanner(127); // !!! magic number
-//  pthread_mutex_init(&vm->mutex, NULL);
+  srand(time(NULL));
   return vm;
 }
 
@@ -39,10 +39,9 @@ ANN void free_vm(VM* vm) {
     free_emitter(vm->emit);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
-  if(vm->sp)
-    sp_destroy(&vm->sp);
-  free(vm->in);
-  free(vm->shreduler);
+  xfree(vm->in);
+  xfree(vm->out);
+  xfree(vm->shreduler);
   free_scanner(vm->scan);
 //  pthread_mutex_destroy(&vm->mutex);
   free(vm);

@@ -34,17 +34,17 @@ static void pulse_run(VM* vm, DriverInfo* di) {
   sp_data* sp = vm->sp;
   while(vm->is_running) {
     m_uint frame, chan;
-    float  in_data[BUFSIZE * sp->nchan];
-    float out_data[BUFSIZE * sp->nchan];
+    float  in_data[BUFSIZE * vm->nchan];
+    float out_data[BUFSIZE * vm->nchan];
     if(pa_simple_read(info->in, in_data, sizeof(in_data), &error) < 0)
       return;
     for(frame = 0; frame < BUFSIZE; frame++) {
-      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
-        vm->in[chan] = in_data[frame * sp->nchan + chan];
+      for(chan = 0; chan < (m_uint)vm->nchan; chan++)
+        vm->in[chan] = in_data[frame * vm->nchan + chan];
       di->run(vm);
-      for(chan = 0; chan < (m_uint)sp->nchan; chan++)
-        out_data[frame * sp->nchan + chan] = (float)sp->out[chan];
-      ++sp->pos;
+      for(chan = 0; chan < (m_uint)vm->nchan; chan++)
+        out_data[frame * vm->nchan + chan] = (float)vm->out[chan];
+      ++vm->pos;
     }
     if(pa_simple_write(info->out, out_data, sizeof(out_data), &error) < 0)
       return;

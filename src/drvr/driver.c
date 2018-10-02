@@ -11,12 +11,14 @@ ANN m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
   di->func(d);
   if(d->ini(vm, di) < 0)
     return -1; // LCOV_EXCL_LINE
-  sp_createn(&vm->sp, di->out);
-  vm->sp->out   = (m_float*)xrealloc(vm->sp->out, di->out * SZ_FLOAT);
+//  sp_createn(&vm->sp, di->out);
+  vm->out   = (m_float*)xcalloc(di->out, SZ_FLOAT);
   vm->in   = (m_float*)xcalloc(di->in, SZ_FLOAT);
+  vm->pos = 0;
   vm->n_in = di->in;
-  vm->sp->sr = di->sr;
-  sp_srand(vm->sp, time(NULL));
+  vm->sr = di->sr;
+  vm->nchan = di->chan;
+//  sp_srand(vm->sp, time(NULL));
   return 1;
 }
 

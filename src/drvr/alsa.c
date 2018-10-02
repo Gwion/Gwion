@@ -100,13 +100,13 @@ static m_bool alsa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   return 1;
 }
 
-static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
+static void alsa_run_init_non_interleaved(VM* vm, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
-  info->in_buf  = (m_float**)xcalloc(sp->nchan, SZ_FLOAT);
-  info->out_buf = (m_float**)xcalloc(sp->nchan, SZ_FLOAT);
-  info->_out_buf   = (void**)xcalloc(sp->nchan, SZ_INT);
-  info->_in_buf    = (void**)xcalloc(sp->nchan, SZ_INT);
-  for(m_uint i = 0; i < (m_uint)sp->nchan; i++) {
+  info->in_buf  = (m_float**)xcalloc(vm->nchan, SZ_FLOAT);
+  info->out_buf = (m_float**)xcalloc(vm->nchan, SZ_FLOAT);
+  info->_out_buf   = (void**)xcalloc(vm->nchan, SZ_INT);
+  info->_in_buf    = (void**)xcalloc(vm->nchan, SZ_INT);
+  for(m_uint i = 0; i < (m_uint)vm->nchan; i++) {
     info->out_buf[i]  = (m_float*)xcalloc(di->bufsize, SZ_FLOAT);
     info->_out_buf[i] = info->out_buf[i];
     info->in_buf[i]   = (m_float*)xcalloc(di->bufsize, SZ_FLOAT);
@@ -116,18 +116,17 @@ static void alsa_run_init_non_interleaved(sp_data* sp, DriverInfo* di) {
 
 static void alsa_run_non_interleaved(VM* vm, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
-  sp_data* sp = vm->sp;
   while(vm->is_running) {
     snd_pcm_readn(info->pcm_in, info->_in_buf, di->bufsize);
     LOOP_OPTIM
     for(m_uint i = 0; i < di->bufsize; i++) {
-      for(m_uint chan = 0; chan < (m_uint)sp->nchan; chan++)
+      for(m_uint chan = 0; chan < (m_uint)vm->nchan; chan++)
         vm->in[chan] = ((m_float**)(info->_in_buf))[chan][i];
       di->run(vm);
       LOOP_OPTIM
-      for(m_uint chan = 0; chan < (m_uint)sp->nchan; chan++)
-        info->out_buf[chan][i] = sp->out[chan];
-      ++sp->pos;
+      for(m_uint chan = 0; chan < (m_uint)vm->nchan; chan++)
+        info->out_buf[chan][i] = vm->out[chan];
+      ++vm->pos;
     }
     if(snd_pcm_writen(info->pcm_out, info->_out_buf, di->bufsize) < 0)
       snd_pcm_prepare(info->pcm_out);
@@ -136,20 +135,19 @@ static void alsa_run_non_interleaved(VM* vm, DriverInfo* di) {
 
 static void alsa_run_interleaved(VM* vm, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
-  sp_data* sp = vm->sp;
   while(vm->is_running) {
     m_int j = 0, k = 0;
     snd_pcm_readi(info->pcm_in, info->in_bufi, di->bufsize);
     LOOP_OPTIM
     for(m_uint i = 0; i < di->bufsize; i++) {
       LOOP_OPTIM
-      for(m_uint chan = 0; chan < (m_uint)sp->nchan; chan++)
+      for(m_uint chan = 0; chan < (m_uint)vm->nchan; chan++)
         vm->in[chan] = ((m_float*)(info->in_bufi))[j++];
       di->run(vm);
       LOOP_OPTIM
-      for(m_uint chan = 0; chan < (m_uint)sp->nchan; chan++)
-        ((m_float*)info->out_bufi)[k++] = sp->out[chan];
-      ++sp->pos;
+      for(m_uint chan = 0; chan < (m_uint)vm->nchan; chan++)
+        ((m_float*)info->out_bufi)[k++] = vm->out[chan];
+      ++vm->pos;
     }
     if(snd_pcm_writei(info->pcm_out, info->out_bufi, di->bufsize) < 0)
       snd_pcm_prepare(info->pcm_out);
@@ -158,21 +156,20 @@ static void alsa_run_interleaved(VM* vm, DriverInfo* di) {
 
 static void alsa_run(VM* vm, DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*) di->data;
-  sp_data* sp = vm->sp;
   alsa_run_init(vm, di);
   if(SP_ALSA_ACCESS == SND_PCM_ACCESS_RW_NONINTERLEAVED) {
-    alsa_run_init_non_interleaved(sp, di);
+    alsa_run_init_non_interleaved(vm, di);
     alsa_run_non_interleaved(vm, di);
   } else {
-    info->in_bufi  = (void*)xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
-    info->out_bufi = (void*)xcalloc(sp->nchan * di->bufsize, SZ_FLOAT);
+    info->in_bufi  = (void*)xcalloc(vm->nchan * di->bufsize, SZ_FLOAT);
+    info->out_bufi = (void*)xcalloc(vm->nchan * di->bufsize, SZ_FLOAT);
     alsa_run_interleaved(vm, di);
   }
 }
 
 static void alsa_del_non_interleaved(VM* vm, struct AlsaInfo* info) {
   if(info->in_buf && info->out_buf) {
-    for(m_uint chan = 0; chan < (m_uint)vm->sp->nchan; chan++) {
+    for(m_uint chan = 0; chan < (m_uint)vm->nchan; chan++) {
       free(info->in_buf[chan]);
       free(info->out_buf[chan]);
     }

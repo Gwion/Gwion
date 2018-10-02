@@ -5,19 +5,17 @@
 #include "driver.h"
 
 static void dummy_run(VM* vm, DriverInfo* di) {
-  sp_data* sp = vm->sp;
   while(vm->is_running) {
     di->run(vm);
-    ++sp->pos;
+    ++vm->pos;
   }
 }
 
 static void silent_run(VM* vm, DriverInfo* di) {
-  sp_data* sp = vm->sp;
-  const m_uint timer = 1000000 / sp->sr;
+  const m_uint timer = 1000000 / vm->sr;
   while(vm->is_running) {
     di->run(vm);
-    ++sp->pos;
+    ++vm->pos;
     usleep(timer);
   }
 }

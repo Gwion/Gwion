@@ -122,7 +122,7 @@ static OP_EMIT(opem_fptr_at) {
   else if(GET_FLAG(bin->rhs->type->d.func, ae_flag_member)) {
     if(bin->rhs->exp_type != ae_exp_decl)
       instr->m_val2 = SZ_INT;
-      instr->m_val = SZ_INT*2;
+    instr->m_val = SZ_INT*2;
   }
   else if(GET_FLAG(bin->rhs->type->d.func, ae_flag_static))
     instr->m_val = SZ_INT;

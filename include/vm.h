@@ -4,9 +4,6 @@
 #ifdef USE_DOUBLE
 #undef USE_DOUBLE
 #endif
-#ifndef SOUNDPIPE_H
-#include <soundpipe.h>
-#endif
 
 #include <pthread.h>
 #include "defs.h"
@@ -30,7 +27,16 @@ struct VM_Code_ {
   e_func flag;
   HAS_OBJ
 };
-
+/*
+struct BBQ_ {
+  m_float* in;
+  m_float* out;
+  m_uint pos;
+  m_uint sr;
+  unsigned int nchan;
+  unsigned int n_in;
+};
+*/
 typedef struct Shreduler_* Shreduler;
 typedef struct VM_ {
   Shreduler shreduler;
@@ -39,8 +45,11 @@ typedef struct VM_ {
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Scanner_* scan;
-  SPFLOAT* in;
-  sp_data* sp;
+  m_float* in;
+  m_float* out;
+  m_uint pos;
+  m_uint sr;
+  m_uint nchan;
   unsigned int n_in;
   volatile unsigned is_running : 1; // => shreduler
 } VM;

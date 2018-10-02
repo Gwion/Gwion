@@ -128,11 +128,6 @@ CFLAGS+= -DD_FUNC=${D_FUNC}
 # add directories
 CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
-# add soundpipe
-LDFLAGS += ${SOUNDPIPE_LIB}
-LDFLAGS += -lsndfile # and sndfile
-CFLAGS  += ${SOUNDPIPE_INC}
-
 # initialize object lists
 src_obj := $(src_src:.c=.o)
 lib_obj := $(lib_src:.c=.o)
@@ -143,9 +138,9 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
-TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/ast/hash.o src/ast/scanner.o \
-TOOL_SRC += utils/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c \
-src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c \
+TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/ast/hash.o src/ast/scanner.o
+
+TOOL_SRC += utils/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c
 
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
@@ -216,11 +211,12 @@ gwcov: utils/gwcov.o
 	@${CC} ${CFLAGS} utils/gwcov.o -o gwcov ${LDFLAGS}
 
 gwpp: ${TOOL_SRC}
+	echo lol ${TOOL_SRC}
 	$(info compiling gwpp)
 	@${CC} ${CFLAGS} -o gwpp -DTOOL_MODE -DLINT_MODE utils/gwpp.c ${LDFLAGS}  ${TOOL_SRC}
 
-gwtag: ${TOOL_OBJ} utils/gwtag.o
+gwtag: ${TOOL_SRC} utils/gwtag.o
 	$(info compiling gwtag)
-	@${CC} ${CFLAGS} ${TOOL_OBJ} -o gwtag -DTOOL_MODE utils/gwtag.o ${LDFLAGS}
+	@${CC} ${CFLAGS} ${TOOL_SRC} -o gwtag -DTOOL_MODE utils/gwtag.o ${LDFLAGS}
 
 include $(wildcard .d/*.d)

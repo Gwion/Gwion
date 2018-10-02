@@ -16,7 +16,7 @@ ANN static inline void ugop_mul  (const UGen u, const m_float f) { u->in *= f; }
 ANN static inline void ugop_div (const UGen u, const m_float f) { u->in /= f; }
 
 static TICK(dac_tick) {
-  m_float* out = ((VM*)u->module.gen.data)->sp->out;
+  m_float* out = ((VM*)u->module.gen.data)->out;
   m_uint i = 0;
   do out[i] = UGEN(u->connect.multi->channel[i])->in;
   while(++i < u->connect.multi->n_out);
@@ -286,7 +286,7 @@ static GWION_IMPORT(global_ugens) {
   VM* vm = gwi_vm(gwi);
 
   vm->dac       = new_M_UGen();
-  ugen_ini(UGEN(vm->dac), vm->sp->nchan, vm->sp->nchan);
+  ugen_ini(UGEN(vm->dac), vm->nchan, vm->nchan);
   ugen_gen(UGEN(vm->dac), dac_tick, vm, 0);
   vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
   gwi_item_ini(gwi, "UGen", "dac");

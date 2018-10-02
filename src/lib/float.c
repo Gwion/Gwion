@@ -166,7 +166,7 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->sp->sr);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->sr);
   ALLOC_PTR(samp,   m_float, 1.0);
   ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
   ALLOC_PTR(second, m_float, (m_float)*sr);

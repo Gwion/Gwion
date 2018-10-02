@@ -1,5 +1,6 @@
 IS          (u|U|l|L)*
 %{
+#include <stdio.h>
 #include <ctype.h>
 #include "absyn.h"
 #include "hash.h"

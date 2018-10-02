@@ -15,7 +15,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
       vm->is_running = 0;
     return NULL;
   }
-  const m_float time = vm->sp->pos + .5;
+  const m_float time = vm->pos + .5;
   if(shred->wake_time <= time) {
     if((s->list = shred->next))
       s->list->prev = NULL;
@@ -66,7 +66,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool er
 }
 
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time) {
-  const m_float time = wake_time + s->vm->sp->pos;
+  const m_float time = wake_time + s->vm->pos;
   shred->wake_time = time;
   if(s->list) {
     VM_Shred curr = s->list, prev = NULL;

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "absyn.h"
 #include "hash.h"
 #include "scanner.h"

@@ -3,6 +3,7 @@
 %lex-param  { void* scan }
 %name-prefix "gwion_"
 %{
+#include <stdio.h> // strlen in paste operation
 #include <string.h> // strlen in paste operation
 #include "absyn.h"
 #include "hash.h"
