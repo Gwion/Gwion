@@ -35,8 +35,8 @@ static void sndfile_run(VM* vm, DriverInfo* di) {
     for(i = 0; i < di->bufsize; i++) {
       di->run(vm);
       for(chan = 0; chan < di->chan; chan++)
-        buf[chan][i] = vm->out[chan];
-      ++vm->pos;
+        buf[chan][i] = vm->bbq->out[chan];
+      ++vm->bbq->pos;
     }
     for(chan = 0; chan < di->chan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], di->bufsize);

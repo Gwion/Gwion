@@ -27,11 +27,11 @@ static void inner_cb(struct JackInfo* info, jack_default_audio_sample_t** in,
   m_uint chan;
   for(frame = 0; frame < nframes; frame++) {
     for(chan = 0; chan < vm->n_in; chan++)
-      vm->in[chan] = in[chan][frame];
+      vm->bbq->in[chan] = in[chan][frame];
     vm_run(vm);
-    for(chan = 0; chan < (m_uint)vm->nchan; chan++)
-      out[chan][frame] = vm->out[chan];
-    ++vm->pos;
+    for(chan = 0; chan < (m_uint)vm->bbq->nchan; chan++)
+      out[chan][frame] = vm->bbq->out[chan];
+    ++vm->bbq->pos;
   }
 }
 
@@ -40,10 +40,10 @@ static int gwion_cb(jack_nframes_t nframes, void *arg) {
   struct JackInfo* info = (struct JackInfo*)arg;
   VM* vm  = info->vm;
   jack_default_audio_sample_t  * in[vm->n_in];
-  jack_default_audio_sample_t  * out[vm->nchan];
+  jack_default_audio_sample_t  * out[vm->bbq->nchan];
   for(chan = 0; chan < vm->n_in; chan++)
     in[chan] = jack_port_get_buffer(info->iport[chan], nframes);
-  for(chan = 0; chan < (m_uint)vm->nchan; chan++)
+  for(chan = 0; chan < (m_uint)vm->bbq->nchan; chan++)
     out[chan] = jack_port_get_buffer(info->oport[chan], nframes);
   inner_cb(info, in, out, nframes);
   return 0;

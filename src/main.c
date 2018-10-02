@@ -150,7 +150,8 @@ __fsetlocking(stderr, FSETLOCKING_BYCALLER);
 #endif
   vm = new_vm(arg.loop);
   vm->emit = new_emitter();
-  if(init_bbq(vm, &di, &d) < 0)
+  di.func(&d);
+  if(d.ini(vm, &di) < 0 || !(vm->bbq = new_bbq(&di)))
     goto clean;
 #ifdef JIT
   pthread_join(ji.thread, NULL);

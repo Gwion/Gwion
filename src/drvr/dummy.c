@@ -7,15 +7,15 @@
 static void dummy_run(VM* vm, DriverInfo* di) {
   while(vm->is_running) {
     di->run(vm);
-    ++vm->pos;
+    ++vm->bbq->pos;
   }
 }
 
 static void silent_run(VM* vm, DriverInfo* di) {
-  const m_uint timer = 1000000 / vm->sr;
+  const m_uint timer = 1000000 / vm->bbq->sr;
   while(vm->is_running) {
     di->run(vm);
-    ++vm->pos;
+    ++vm->bbq->pos;
     usleep(timer);
   }
 }

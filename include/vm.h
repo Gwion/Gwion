@@ -27,30 +27,25 @@ struct VM_Code_ {
   e_func flag;
   HAS_OBJ
 };
-/*
+
 struct BBQ_ {
+  uint64_t pos;
   m_float* in;
   m_float* out;
-  m_uint pos;
-  m_uint sr;
-  unsigned int nchan;
-  unsigned int n_in;
+  uint32_t sr; // int 32
+  uint8_t nchan;
+  uint8_t n_in;
 };
-*/
+
 typedef struct Shreduler_* Shreduler;
 typedef struct VM_ {
   Shreduler shreduler;
-  M_Object adc, dac, blackhole; // in a struct with ugen
+  M_Object dac, blackhole; // in a struct with ugen
   Emitter emit;
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Scanner_* scan;
-  m_float* in;
-  m_float* out;
-  m_uint pos;
-  m_uint sr;
-  m_uint nchan;
-  unsigned int n_in;
+  struct BBQ_* bbq;
   volatile unsigned is_running : 1; // => shreduler
 } VM;
 

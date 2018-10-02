@@ -39,11 +39,11 @@ ANN void free_vm(VM* vm) {
     free_emitter(vm->emit);
   vector_release(&vm->shred);
   vector_release(&vm->ugen);
-  xfree(vm->in);
-  xfree(vm->out);
+  xfree(vm->bbq->in);
+  xfree(vm->bbq->out);
+  xfree(vm->bbq);
   xfree(vm->shreduler);
   free_scanner(vm->scan);
-//  pthread_mutex_destroy(&vm->mutex);
   free(vm);
 }
 

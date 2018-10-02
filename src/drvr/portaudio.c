@@ -25,12 +25,12 @@ static int callback(const void *inputBuffer, void *outputBuffer,
   m_uint i, j;
   for(i = 0; i < framesPerBuffer; i++) {
     for(j = 0; j < vm->n_in; j++)
-      vm->in[j] = *in++;
+      vm->bbq->in[j] = *in++;
 //    di->run(vm);
     vm_run(vm);
-    for(j = 0; j < (m_uint)vm->nchan; j++)
-      *out++ = vm->out[j];
-    ++vm->pos;
+    for(j = 0; j < (m_uint)vm->bbq->nchan; j++)
+      *out++ = vm->bbq->out[j];
+    ++vm->bbq->pos;
   }
   return paContinue;
 }

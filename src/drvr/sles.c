@@ -69,8 +69,8 @@ static void sles_run(VM* vm, DriverInfo* di) {
   while(vm->is_running) {
     for(m_uint i = 0; i < BUFSIZE; i++) {
       di->run(vm);
-      out_buf[i].l = vm->out[0];
-      out_buf[i].r = vm->out[1];
+      out_buf[i].l = vm->bbq->out[0];
+      out_buf[i].r = vm->bbq->out[1];
     }
   }
 }

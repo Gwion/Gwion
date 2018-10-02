@@ -24,8 +24,8 @@ static void plot_run(VM* vm __attribute__((unused)), DriverInfo* di) {
       di->run(vm);
       LOOP_OPTIM
       for(chan = 0; chan < di->chan; chan++)
-        fprintf(sf[chan], "%"UINT_F" %g\n", vm->pos, (const m_float)vm->out[chan]);
-      ++vm->pos;
+        fprintf(sf[chan], "%"UINT_F" %g\n", vm->bbq->pos, (const m_float)vm->bbq->out[chan]);
+      ++vm->bbq->pos;
     }
   }
 }
