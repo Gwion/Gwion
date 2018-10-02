@@ -80,7 +80,7 @@ ANEW static UGen new_UGen() {
   return u;
 }
 
-ANEW static M_Object new_M_UGen() {
+ANEW /*static */M_Object new_M_UGen() {
   const M_Object o = new_object(NULL, t_ugen);
   UGEN(o) = new_UGen();
   return o;
@@ -153,7 +153,6 @@ ANN static inline void name##connect(const UGen lhs, const UGen rhs) { \
 describe_connect(,vector_add)
 describe_connect(dis,vector_rem2)
 
-
 ANN static void release_connect(const VM_Shred shred) {
   _release(*(M_Object*)REG(0), shred);
   _release(*(M_Object*)REG(SZ_INT), shred);
@@ -174,6 +173,14 @@ ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
     const UGen r = r_multi ? UGEN(rhs->connect.multi->channel[i % r_max]) : rhs;
     f(l, r);
   } while(++i < max);
+}
+
+void gw_connect(const UGen lhs, const UGen rhs) {
+  _do_(connect, lhs, rhs);
+}
+
+void gw_disconnect(const UGen lhs, const UGen rhs) {
+  _do_(disconnect, lhs, rhs);
 }
 
 #define TRIG_EX                         \
