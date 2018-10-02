@@ -255,24 +255,18 @@ ANN static M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap
   }
   const M_Object base = new_array(info->type, info->depth >= TOP  ?
       info->base->size : SZ_INT, cap, -info->depth);
-  if(!base) {
-    gw_err("[gwion](VM): OutOfMemory: while allocating arrays...\n");
-    return NULL;
-  }
   ADD_REF(info->type);
   return base;
 }
 
-ANN static M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
+ANN static inline M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
     const M_Object base) {
-  if(info->is_obj && info->data) {
-    for(m_uint i = 0; i < cap; ++i)
-      info->data[(*info->d.idx)++] = (M_Object)m_vector_addr(ARRAY(base), i);
-  }
+  for(m_uint i = 0; i < cap; ++i)
+    info->data[(*info->d.idx)++] = (M_Object)m_vector_addr(ARRAY(base), i);
   return base;
 }
 
-ANN /*static */M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info);
+ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info);
 ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
     const m_uint cap, const M_Object base) {
   for(m_uint i = 0; i < cap; ++i) {
@@ -288,16 +282,16 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
   return base;
 }
 
-ANN /* static */ M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
+ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
   const m_int cap = *(m_int*)REG(info->depth * SZ_INT);
   const M_Object base = do_alloc_array_object(info, cap);
   if(!base)
     return NULL;
   return info->depth < TOP ? do_alloc_array_loop(shred, info, cap, base) :
-    do_alloc_array_init(info, cap, base);
+    info->data ? do_alloc_array_init(info, cap, base) : base;
 }
 
-ANN /*static */M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_uint* num_obj) {
+ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_uint* num_obj) {
   m_int curr = -info->depth;
   while(curr <= TOP) {
     *num_obj *= *(m_int*)REG(SZ_INT * curr);

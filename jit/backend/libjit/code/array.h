@@ -39,7 +39,8 @@ JIT_CODE(ArrayBottom) {
   CJval arr = JLOADR(cc->reg, -SZ_INT*3, void_ptr);
   CJval idx = JLOADR(cc->reg, -SZ_INT*2, nuint);
   CJval obj = JLOADR(cc->reg, 0, void_ptr);
-  JSTOREE(arr, idx, obj);
+  CJval ptr = JLOADE(arr, idx, void_ptr);
+  JSTORER(ptr, 0, obj);
   CJval sum  = JINSN(add, idx, JCONST(nuint, 1));
   JSTORER(cc->reg, -SZ_INT*2, sum);
   next_pc(cc, instr->m_val);
@@ -56,6 +57,7 @@ ANN void jit_type_add_ref(CC cc, CJval type) {
   CJval _ref = JINSN(add, ref, JCONST(nuint, 1));
   JSTORER(type, JOFF(Type, obj), _ref);
 }
+
 void add2gc(const VM_Shred shred , const M_Object obj) {
   vector_add(&shred->gc, (vtype)obj);
 }
@@ -68,7 +70,7 @@ JIT_CODE(ArrayInit) {
   CJval depth  = JCONST(nuint, info->depth);
   CJval arg0[] = { type, size, len , depth };
   CJval obj = CALL_NATIVE2(new_array, "ppUUU", arg0);
-//  JSTORER(cc->reg, -SZ_INT, obj);
+  JSTORER(cc->reg, -SZ_INT, obj);
   CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
   jit_vector_add(cc, gc, obj);
   jit_type_add_ref(cc, type);
@@ -79,9 +81,15 @@ JIT_CODE(ArrayInit) {
   CJval data_size = JCONST(nuint, instr->m_val2 * info->d.length);
   CJval _reg = JADDR(cc->reg , -SZ_INT);
   JINSN(memcpy, ptr, _reg, data_size);
-  JSTORER(_reg, 0, obj);
-//  JINSN(memcpy, ptr, JADDR(cc->reg, -SZ_INT), data_size);
-//  JSTORER(cc->reg, -SZ_INT, obj);
+}
+
+ANN static void jit_init_array(CC cc, m_int curr,  CJval num_obj) {
+  while(curr <= TOP) {
+    CJval val = JLOADR(cc->reg, curr * SZ_INT, nint);
+    CJval mul = JINSN(mul, JLOADR(num_obj, 0, nint), val);
+    JSTORER(num_obj, 0, mul);
+    ++curr;
+  }
 }
 
 JIT_CODE(ArrayAlloc) {
@@ -103,24 +111,30 @@ JIT_CODE(ArrayAlloc) {
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, is_obj), jobj);
 
   if(is_obj) {
-    CJval jinfo = JCONST(void_ptr, info);
     Jval num_obj = jit_value_create(cc->f, jit_type_nuint);
     JINSN(store, num_obj, JCONST(nuint, 1));
     CJval anum_obj = JINSN(address_of, num_obj);
-    Jval arg_ini[] = { cc->shred, jinfo, anum_obj };
-    CJval data = CALL_NATIVE2(init_array, "pppp", arg_ini);
+    jit_init_array(cc, -info->depth, anum_obj);
+    INIT_LABEL(lbl);
+    Jval data = JCONST(void_ptr, NULL);
+    CJval cond = JINSN(gt, num_obj, JCONST(nint, 0));
+    JINSN(branch_if_not, cond, &lbl);
+    CJval arg0[] = { num_obj, JCONST(nuint, SZ_INT) };
+    data = CALL_NATIVE2(xcalloc, "pUU", arg0);
+    JINSN(label, &lbl);
     JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, data), data);
     CJval arg[] = { cc->shred, aai };
-    CJval ref = CALL_NATIVE2(do_alloc_array, "ppp", arg);
+    CJval ref = CALL_NATIVE(do_alloc_array, "ppp", arg);
     push_reg(cc, -SZ_INT * (info->depth - 4));
     JSTORER(cc->reg, -SZ_INT*4, ref);
     JSTORER(cc->reg, -SZ_INT*3, data);
     JSTORER(cc->reg, -SZ_INT*2, JCONST(nuint, 0));
     JSTORER(cc->reg, -SZ_INT, num_obj);
   } else {
+    JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, data), JCONST(void_ptr, NULL));
     CJval arg[] = { cc->shred, aai };
-    CJval ref = CALL_NATIVE2(do_alloc_array, "ppp", arg);
-//    if(info->depth > 1)
+    CJval ref = CALL_NATIVE(do_alloc_array, "ppp", arg);
+    if(info->depth > 1)
       push_reg(cc, -SZ_INT * (info->depth - 1));
     JSTORER(cc->reg, -SZ_INT, ref);
   }

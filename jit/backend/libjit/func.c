@@ -94,20 +94,11 @@ ANN Jval cc_get_flag(CC cc, CJval a, ae_flag flag) {
 }
 #include "dlfcn.h"
 Jval cc_call(CC cc, const m_str name, const m_str s, Jval *arg) {
-//  Jval f = (Jval)map_get(&cc->vtable, (vtype)name);
-//  if(!f) {
-//    const void* handle = dlopen(NULL, RTLD_LOCAL);
-//puts(name);
-    const void* func = dlsym(NULL, name);
-//if(!func)exit(2); // keep me
-    Jval f = JCONST(void_ptr, func);
-//    map_set(&cc->vtable, (vtype)func, (vtype)f);
-//  }
-//  return jit_insn_call_native(cc->f, NULL, f,
+  const void* func = dlsym(NULL, name);
+  Jval f = JCONST(void_ptr, func);
   return jit_insn_call_indirect_vtable(cc->f, f,
     sig(&cc->sig, s, jit_abi_fastcall), arg, strlen(s) - 1, JIT_CALL);
 }
-
 
 ANN void jit_vector_add(CC cc, CJval v, CJval data) {
   CJval offset = JCONST(nuint, OFFSET);

@@ -92,7 +92,7 @@ static void code(struct JitThread_* jt, Q q) {
   m_uint part = 0;
   Instr byte = jt->base = (Instr)vector_front(c->instr);
   be->ini(jt);
-  do {
+  while((byte = ctrl_run(ctrl, v))) {
     pthread_testcancel();
     if(ctrl_pc(ctrl) && ctrl_idx(ctrl) != 1) {
       be->end(jt);
@@ -114,7 +114,6 @@ static void code(struct JitThread_* jt, Q q) {
         be->ex(jt);
     }
   }
-  while((byte = ctrl_run(ctrl, v)));
   be->end(jt);
 }
 

@@ -67,10 +67,11 @@ ANN jit_type_t sig(const Map m, m_str s, jit_abi_t abi) {
 ANN void sig_end(const Map m) {
   const m_uint size = map_size(m);
   for(m_uint i = 0; i < size; ++i) {
+    const m_str str = (m_str)vector_at((Vector)m, i*2);
     const jit_type_t t = (jit_type_t)map_at(m, i);
-    xfree((m_str)vector_at((Vector)m, i*2));
-//    jit_type_free((jit_type_t)map_at(m, i));
-    jit_type_free(t);
+    if(str[0] != '@')
+      jit_type_free(t);
+    xfree(str);
   }
   map_release(m);
 }

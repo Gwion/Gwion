@@ -117,8 +117,8 @@ ANN Type array_type(const Type base, const m_uint depth) {
 ANN m_bool type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
-  ERR_B(SCAN1_, id->pos,
-        "'%s' unknown type in %s", path, orig)
+  err_msg(SCAN1_, id->pos,
+        "'%s' unknown type in %s", path, orig);
   return -1;
 }
 
