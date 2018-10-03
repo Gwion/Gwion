@@ -235,13 +235,13 @@ ANEW ANN Exp new_exp_binary(const Exp, const Operator, const Exp, const int);
 ANEW ANN Exp new_exp_post(const Exp, const Operator, const int);
 ANN2(1) ANEW Exp new_exp_call(const Exp, const Exp args, const int pos);
 ANEW ANN Exp new_exp_cast(Type_Decl*, const Exp, const int);
-ANN2(1,2) ANEW Exp new_exp_if(const Exp, const Exp, const Exp, const int);
+ANN2(1,2) ANEW Exp new_exp_if(const __restrict__ Exp, const __restrict__ Exp, const __restrict__ Exp, const int);
 ANEW ANN Exp new_exp_dur(const Exp, const Exp, const int);
 ANEW ANN Exp new_exp_dot(const Exp, const Symbol, const int);
 ANEW ANN Exp new_exp_unary(const Operator, const Exp, const int);
 ANEW ANN Exp new_exp_unary2(const Operator, Type_Decl*, const int);
 ANEW ANN Exp new_exp_unary3(const Operator, const Stmt, const int);
-ANEW ANN Exp prepend_exp(const Exp, const Exp);
+ANEW ANN Exp prepend_exp(const __restrict__ Exp, const __restrict__ Exp);
 ANN void free_exp(Exp exp);
 
 typedef struct Decl_List_* Decl_List;
@@ -423,9 +423,9 @@ struct Stmt_ {
 ANEW Stmt new_stmt(const ae_stmt_t, const int);
 ANEW Stmt new_stmt_exp(const ae_stmt_t, const Exp, const int);
 ANEW Stmt new_stmt_code(const Stmt_List, const int);
-ANN2(1,2) ANEW Stmt new_stmt_if(const Exp, const Stmt, const Stmt, const int);
+ANN2(1,2) ANEW Stmt new_stmt_if(const Exp, const __restrict__ Stmt, const __restrict__ Stmt, const int);
 ANEW ANN Stmt new_stmt_flow(const ae_stmt_t, const Exp, const Stmt, const m_bool, const int);
-ANN2(1,2,4) ANEW Stmt new_stmt_for(const Stmt, const Stmt, const Exp, const Stmt, const int);
+ANN2(1,2,4) ANEW Stmt new_stmt_for(const __restrict__ Stmt, const __restrict__ Stmt, const Exp, const __restrict__ Stmt, const int);
 ANEW ANN Stmt new_stmt_auto(const Symbol, const Exp, const Stmt, const m_bool, const int);
 ANEW ANN Stmt new_stmt_loop(const Exp, const Stmt, const int pos);
 ANEW ANN Stmt new_stmt_jump(const Symbol, const m_bool, const int);

@@ -358,7 +358,7 @@ ANN static void free_unary_exp(Exp_Unary* a) {
     free_stmt(a->code);
 }
 
-Exp new_exp_if(const Exp cond, const Exp if_exp, const Exp else_exp, const int pos) {
+Exp new_exp_if(const restrict Exp cond, const restrict Exp if_exp, const restrict Exp else_exp, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_if;
   a->meta = ((if_exp->meta == ae_meta_var &&
@@ -525,7 +525,7 @@ ANN static void free_dot_member_exp(Exp_Dot* dot) {
     free_exp(dot->base);
 }
 
-Exp prepend_exp(const Exp exp, const Exp next) {
+Exp prepend_exp(const restrict Exp exp, const restrict Exp next) {
   exp->next = next;
   return exp;
 }
@@ -543,6 +543,8 @@ ANN static void free_exp_primary(Exp_Primary* a) {
 }
 
 void free_exp(Exp exp) {
+  if(exp->next)
+    free_exp(exp->next);
   switch(exp->exp_type) {
     case ae_exp_decl:
       free_exp_decl(&exp->d.exp_decl);
@@ -584,8 +586,8 @@ void free_exp(Exp exp) {
       break;
 #endif
   }
-  if(exp->next)
-    free_exp(exp->next);
+//  if(exp->next)
+//    free_exp(exp->next);
   mp_free(Exp, exp);
 }
 
@@ -656,7 +658,7 @@ ANN static void free_stmt_flow(struct Stmt_Flow_* a) {
   free_stmt(a->body);
 }
 
-Stmt new_stmt_for(const Stmt c1, const Stmt c2, const Exp c3, const Stmt body, const int pos) {
+Stmt new_stmt_for(const restrict Stmt c1, const restrict Stmt c2, const restrict Exp c3, const Stmt body, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_for;
   a->d.stmt_for.c1 = c1;
@@ -720,7 +722,7 @@ ANN static void free_stmt_loop(Stmt_Loop a) {
   free_stmt(a->body);
 }
 
-Stmt new_stmt_if(const Exp cond, const Stmt if_body, const Stmt else_body, const int pos) {
+Stmt new_stmt_if(const Exp cond, const restrict Stmt if_body, const restrict Stmt else_body, const int pos) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_if;
   a->d.stmt_if.cond = cond;

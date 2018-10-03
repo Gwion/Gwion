@@ -34,7 +34,7 @@ static void tcc_no(JitThread jt, Instr instr) {
   xfree(str);
 //  if(instr->execute == EOC)
 //cc_add(jt->cc, "  vm_shred_exit(shred);");
-//    cc_add(jt->cc, "shred->vm_ref->shreduler->curr = NULL;\n");
+//    cc_add(jt->cc, "shred->vm->shreduler->curr = NULL;\n");
 }
 static void tcc_ex(JitThread jt) {
 //  printf("%-12s %p\n", __func__, (void*)jt);

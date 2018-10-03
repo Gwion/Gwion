@@ -41,7 +41,7 @@ ANN static void libjit_ini(const JitThread jt) {
   jit_context_build_start(cc->ctx);
   cc->f = jit_function_create(cc->ctx, sig(&cc->sig, "vp", jit_abi_fastcall));
   cc->shred = jit_value_get_param(cc->f, 0);
-  cc->vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
+  cc->vm = JLOADR(cc->shred, JOFF(VM_Shred, vm), void_ptr);
   cc->reg = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
 }
 

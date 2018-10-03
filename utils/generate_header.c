@@ -7,7 +7,6 @@
 #define GW_DOUBLE
 #undef USE_DOUBLE
 #endif
-#include <soundpipe.h>
 
 static const char* filename = "include/generated.h";
 
@@ -21,11 +20,6 @@ static const char* type	 = "float ";
 
 int main(int argc, char** argv) {
   FILE* file;
-  if(SZ != sizeof(SPFLOAT)) {
-    fprintf(stderr, "sizes do not match.\n"
-        "please recompile soundpipe to use %s.\n", type);
-    return 1;
-  }
   if(argc >= 2)
     filename = argv[1];
   file = fopen(filename, "w");
@@ -40,10 +34,10 @@ typedef        int m_bool;\ntypedef %s            m_float;\ntypedef char *      
 typedef struct { m_float x, y, z; }  m_vec3;\ntypedef struct { m_float x, y, z, w; } m_vec4;\n\
 typedef _Complex %s m_complex;\n", type, type);
   fprintf(file, "#define SZ_INT     %zu\n", sizeof(uintptr_t));
-  fprintf(file, "#define SZ_FLOAT   %zu\n", sizeof(SPFLOAT));
-  fprintf(file, "#define SZ_COMPLEX %zu\n", sizeof(SPFLOAT) * 2);
-  fprintf(file, "#define SZ_VEC3    %zu\n", sizeof(SPFLOAT) * 3);
-  fprintf(file, "#define SZ_VEC4    %zu\n", sizeof(SPFLOAT) * 4);
+  fprintf(file, "#define SZ_FLOAT   %zu\n", SZ);
+  fprintf(file, "#define SZ_COMPLEX %zu\n", SZ * 2);
+  fprintf(file, "#define SZ_VEC3    %zu\n", SZ * 3);
+  fprintf(file, "#define SZ_VEC4    %zu\n", SZ * 4);
   if(sizeof(uintptr_t) == sizeof(unsigned int)) {
     fprintf(file, "#define  INT_F \"i\"\n");
     fprintf(file, "#define UINT_F \"u\"\n");

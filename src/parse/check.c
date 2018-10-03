@@ -601,8 +601,8 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Exp
   return NULL;
 }
 
-ANN static Type check_exp_call_template(const Env env, const Exp exp_func,
-    const Exp args, const Exp base) {
+ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_func,
+    const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
   ID_List list;
   const Value value = get_template_value(env, exp_func);
@@ -655,7 +655,8 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_func, Value
   return 1;
 }
 
-ANN2(1,2) Type check_exp_call1(const Env env, const Exp exp_func, const Exp args, Exp base) { GWDEBUG_EXE
+ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_func,
+    const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
   Value ptr = NULL;
   CHECK_BO(check_exp_call1_check(env, exp_func, &ptr))
   if(exp_func->type->d.func) {
@@ -1219,7 +1220,8 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
   return 1;
 }
 
-ANN static m_bool parent_match_actual(const Env env, const Func_Def f, const Func func) {
+ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
+    const restrict Func func) {
   Func parent_func = func;
   do {
     if(compat_func(f, parent_func->def) > 0) {
@@ -1421,7 +1423,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   }
 #ifdef GWMPOOL_DATA
   if(!the_class->p && the_class->nspc->offset)
-  the_class->p = new_pool(the_class->nspc->offset, 256);
+  the_class->p = new_pool(the_class->nspc->offset);
 #endif
   SET_FLAG(the_class, ae_flag_checked);
   SET_FLAG(the_class, ae_flag_check);

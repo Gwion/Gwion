@@ -230,20 +230,17 @@ JIT_CODE(RegPushMe) {
 }
 
 JIT_CODE(RegPushNow) {
-  CJval   vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
-  CJval   sp = JLOADR(vm, __builtin_offsetof(VM, sp), void_ptr);
-  CJval  pos = JLOADR(sp, __builtin_offsetof(sp_data, pos), nuint);
+  CJval   vm = JLOADR(cc->shred, JOFF(VM_Shred, vm), void_ptr);
+  CJval  bbq = JLOADR(vm, __builtin_offsetof(VM, bbq), void_ptr);
+  CJval  pos = JLOADR(bbq, JOFF(BBQ, pos), nuint);
   CJval f = JINSN(convert, pos, jit_type_float, 0);
   JSTORER(cc->reg, 0, f);
   push_reg(cc, SZ_FLOAT);
 }
 
 JIT_CODE(RegPushMaybe) {
-  CJval   vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
-  CJval   sp = JLOADR(vm, __builtin_offsetof(VM, sp), void_ptr);
-  CJval arg[] = { sp };
-  CJval  ret = CALL_NATIVE2(sp_rand, "Up", arg);
-  CJval  mid = JCONST(nuint, SP_RANDMAX / 2);
+  CJval  ret = CALL_NATIVE2(rand, "U", NULL);
+  CJval  mid = JCONST(nuint, RAND_MAX / 2);
   CJval maybe = JINSN(gt, ret, mid);
   JSTORER(cc->reg, 0, maybe);
   push_reg(cc, SZ_INT);
@@ -305,7 +302,7 @@ static Jval jit_init_spork_shred(CC cc, CJval code) {
   jit_vector_add(cc, child, sh);
   CJval base = JLOADR(cc->shred, JOFF(VM_Shred, base), void_ptr);
   JSTORER(sh, JOFF(VM_Shred, base), base);
-  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
+  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm), void_ptr);
   Jval arg[] = { vm, sh };
   CALL_NATIVE2(vm_add_shred, "vpp", arg);
   return sh;
@@ -403,7 +400,8 @@ JIT_CODE(ObjectInstantiate) {
 
 ANN static void jit_overflow(CC const cc) {
   CJval mem = JLOADR(cc->shred, JOFF(VM_Shred, mem), void_ptr);
-  CJval reg = JADDR(cc->reg, SIZEOF_REG);
+  CJval _reg = JLOADR(cc->shred, JOFF(VM_Shred, _reg), void_ptr);
+  CJval reg = JADDR(_reg, SIZEOF_REG);
   CJval val = JINSN(add, reg, JCONST(nuint, (SIZEOF_MEM) - (MEM_STEP)));
   CJval ovf = JINSN(gt, mem, val);
   INIT_LABEL(lbl);

@@ -950,13 +950,15 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { G
   return op_emit(emit, &opi);
 }
 
-ANN static m_bool emit_implicit_cast(const Emitter emit, const Type from, const Type to) { GWDEBUG_EXE
+ANN static m_bool emit_implicit_cast(const Emitter emit,
+    const restrict Type from, const restrict Type to) { GWDEBUG_EXE
   struct Op_Import opi = { op_impl, from, to, NULL,
          NULL, NULL, (m_uint)from };
   return op_emit(emit, &opi);
 }
 
-ANN static Instr emit_flow(const Emitter emit, const Type type, const f_instr f1, const f_instr f2) { GWDEBUG_EXE
+ANN static Instr emit_flow(const Emitter emit, const Type type,
+    const f_instr f1, const f_instr f2) { GWDEBUG_EXE
   const Instr push = emitter_add_instr(emit, RegPushImm);
   if(isa(type, t_float) > 0) {
     push->m_val = SZ_FLOAT;
@@ -1392,7 +1394,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->value->type->nspc->offset = stmt->s;
 #ifdef GWMPOOL_DATA
     if(!stmt->value->type->p)
-      stmt->value->type->p = new_pool(stmt->value->type->size, 256);
+      stmt->value->type->p = new_pool(stmt->value->type->size);
 #endif
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         0, emit->env->class_def ? ae_flag_member : 0);

@@ -18,7 +18,9 @@ ANN2(2) Context new_context(const Ast ast, const m_str str) {
 }
 
 ANN void free_context(const Context a) {
-  REM_REF(a->nspc);
+//if(a->nspc->obj.ref_count > 1)exit(2);
+//  REM_REF(a->nspc);
+  free_nspc(a->nspc);
   mp_free(Context, a);
 }
 

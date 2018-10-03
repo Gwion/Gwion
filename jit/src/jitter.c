@@ -158,7 +158,7 @@ static JitThread* new_process(struct Jit* j) {
     jts[i] = jt;
     jt->top = NULL;
     jt->base = NULL;
-    jt->pool = new_pool(sizeof(struct Instr_), 128);
+    jt->pool = new_pool(sizeof(struct Instr_));
     jt->cc = new_cc();
     pthread_mutex_init(&jt->mutex, NULL);
     pthread_mutex_init(&jt->imutex, NULL);

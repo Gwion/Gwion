@@ -4,8 +4,8 @@
 #define mp_free(p, d) free((d))
 #else
 #define POOL_HANDLE(name, nelem)
-ANN struct pool* new_pool(const uint32_t elementSize, const uint32_t blockSize);
-ANN struct pool* mp_ini(const uint32_t elementSize, const uint32_t blockSize);
+ANN struct pool* new_pool(const uint32_t elementSize);
+ANN struct pool* mp_ini(const uint32_t elementSize);
 ANN void mp_end(struct pool*);
 ANEW ANN void *_mp_alloc2(struct pool*) __attribute__((hot));
 ANEW ANN void *_mp_alloc(const m_uint) __attribute__((hot));

@@ -175,7 +175,8 @@ ANN static m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   return scan2_exp(env, dur->unit);
 }
 
-ANN2(1,2) static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
+ANN2(1,2) static m_bool scan2_exp_call1(const Env env, const restrict Exp func,
+    const restrict Exp args) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, func))
   return args ? scan2_exp(env, args) : 1;
 }
@@ -498,7 +499,8 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
   return ret;
 }
 
-ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, const Value overload) { GWDEBUG_EXE
+ANN2(1,2) static m_bool scan2_func_def_add(const Env env,
+    const restrict Value value, const restrict Value overload) { GWDEBUG_EXE
   const m_str name = s_name(value->d.func_ref->def->name);
   const Func func = value->d.func_ref;
 

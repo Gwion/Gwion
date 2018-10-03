@@ -59,7 +59,7 @@ struct VM_Shred_ {
   m_bit* base;
   m_uint pc, xid;
   m_str name;
-  VM* vm_ref;
+  VM* vm;
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
   M_Object me;
@@ -77,7 +77,7 @@ ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
-ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
+ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm->shreduler, shred, 1); }
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));

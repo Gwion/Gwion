@@ -62,7 +62,7 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   *(M_Object*)sh->mem = object;
   sh->mem += SZ_INT;
   *(M_Object*)sh->mem = object;
-  vm_add_shred(shred->vm_ref, sh);
+  vm_add_shred(shred->vm, sh);
   ++sh->me->ref;
 }
 __attribute__((hot))

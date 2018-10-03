@@ -57,14 +57,14 @@ ANN void cc_release2(CC cc, CJval  obj) {
 }
 
 ANN void cc_shredule(CC cc, CJval wake_time) {
-  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
+  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm), void_ptr);
   CJval shreduler = JLOADR(vm, __builtin_offsetof(VM, shreduler), void_ptr);
   Jval args[] = { shreduler, cc->shred, wake_time };
   CALL_NATIVE2(shredule, "vppf", args);
 }
 
 ANN void cc_remove(CC cc, const m_bool b) {
-  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm_ref), void_ptr);
+  CJval vm = JLOADR(cc->shred, JOFF(VM_Shred, vm), void_ptr);
   CJval shreduler = JLOADR(vm, __builtin_offsetof(VM, shreduler), void_ptr);
   CJval rem = JCONST(int, b);
   Jval args[] = { shreduler, cc->shred, rem };

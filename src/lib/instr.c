@@ -35,7 +35,7 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
 
 INSTR(EOC2) { GWDEBUG_EXE
   shred->pc = 0;
-  shreduler_remove(shred->vm_ref->shreduler, shred, 0);
+  shreduler_remove(shred->vm->shreduler, shred, 0);
 }
 
 INSTR(RegPop) { GWDEBUG_EXE
@@ -97,7 +97,7 @@ INSTR(RegPushMe) { GWDEBUG_EXE
 }
 
 INSTR(RegPushNow) { GWDEBUG_EXE
-  *(m_float*)REG(0) = shred->vm_ref->bbq->pos;
+  *(m_float*)REG(0) = shred->vm->bbq->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
@@ -163,7 +163,7 @@ ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   vector_add(&shred->child, (vtype)sh);
 //  sh->mem = sh->base;
   sh->base = shred->base;
-  vm_add_shred(shred->vm_ref, sh);
+  vm_add_shred(shred->vm, sh);
   return sh;
 }
 #include "value.h"

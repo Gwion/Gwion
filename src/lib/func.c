@@ -7,7 +7,8 @@
 #include "func.h"
 #include "instr.h"
 
-ANN Type check_exp_call1(Env env, Exp exp_func, Exp args, Exp base);
+ANN Type check_exp_call1(Env env, Exp restrict exp_func,
+  restrict Exp args, restrict Exp base);
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp);
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
 

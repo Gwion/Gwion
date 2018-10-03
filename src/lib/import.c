@@ -272,7 +272,7 @@ ANN m_int gwi_class_end(const Gwi gwi) {
 #ifdef GWMPOOL_DATA
   const Type t = gwi->env->class_def;
   if(t->nspc && t->nspc->offset)
-    t->p = new_pool(t->nspc->offset, 256);
+    t->p = new_pool(t->nspc->offset);
 #endif
   return import_class_end(gwi->env);
 }

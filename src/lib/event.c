@@ -16,7 +16,7 @@ static INSTR(Event_Wait) { GWDEBUG_EXE
   const M_Object event = *(M_Object*)REG(-SZ_INT);
   if(!event)
     Except(shred, "NullEventWait");
-  shreduler_remove(shred->vm_ref->shreduler, shred, 0);
+  shreduler_remove(shred->vm->shreduler, shred, 0);
   const Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int*)REG(-SZ_INT) = 1;
@@ -27,7 +27,7 @@ static MFUN(event_signal) {
   const Vector v = EV_SHREDS(o);
   const VM_Shred sh = (VM_Shred)vector_front(v);
   if(sh) {
-    shredule(shred->vm_ref->shreduler, sh, .5);
+    shredule(shred->vm->shreduler, sh, .5);
     vector_rem(v, 0);
   }
 }
@@ -35,7 +35,7 @@ static MFUN(event_signal) {
 ANN void broadcast(const M_Object o) {
   for(m_uint i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     const VM_Shred sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
-    shredule(sh->vm_ref->shreduler, sh, .5);
+    shredule(sh->vm->shreduler, sh, .5);
   }
   vector_clear(EV_SHREDS(o));
 }
