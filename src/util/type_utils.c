@@ -4,7 +4,7 @@
 #include "type.h"
 #include "err_msg.h"
 
-ANN m_bool isa(const Type var, const Type parent) {
+ANN m_bool isa(const restrict Type var, const restrict Type parent) {
   return (var->xid == parent->xid) ? 1 : var->parent ? isa(var->parent, parent) : -1;
 }
 
@@ -19,6 +19,6 @@ ANN m_bool isres(const Symbol xid) {
   return -1;
 }
 
-ANN Type find_common_anc(const Type lhs, const Type rhs) {
+ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
   return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
 }
