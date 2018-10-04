@@ -1,12 +1,36 @@
 #include <stdlib.h>
-#include <dlfcn.h>
-#include <pthread.h>
+#include <string.h>
 #include "vm.h"
-#include "err_msg.h"
 #include "type.h"
 #include "instr.h"
 #include "ugen.h"
 #include "shreduler_private.h"
+
+#ifdef DEBUG_STACK
+#include "err_msg.h"
+#endif
+
+
+static inline uint64_t splitmix64_stateless(uint64_t index) {
+  uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
+  z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
+  z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB);
+  return z ^ (z >> 31);
+}
+
+static inline uint32_t rotl(const uint32_t x, int k) {
+  return (x << k) | (x >> (32 -k));
+}
+
+/*xoroshiro32** */
+uint32_t gw_rand(uint32_t s[2]) {
+  const uint32_t s0 = s[0];
+  const uint32_t s1 = s[1] ^ s0;
+  const uint32_t ret = rotl(s0 * 0x9E3779BB, 5) * 5;
+  s[0] = rotl(s0, 26) ^ s1 ^ (s1 << 9);
+  s[1] = rotl(s1, 13);
+  return ret;
+}
 
 // not the best place
 ANEW struct Scanner_* new_scanner(const m_uint size);
@@ -20,7 +44,8 @@ VM* new_vm(const m_bool loop) {
   vector_init(&vm->ugen);
   shreduler_set_loop(vm->shreduler, loop);
   vm->scan = new_scanner(127); // !!! magic number
-  srand(time(NULL));
+  uint64_t seed = splitmix64_stateless(time(NULL));
+  memcpy(vm->rand, &seed, sizeof(uint64_t));
   return vm;
 }
 

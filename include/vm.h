@@ -46,6 +46,7 @@ typedef struct VM_ {
   struct Vector_ ugen;
   struct Scanner_* scan;
   struct BBQ_* bbq;
+  uint32_t rand[2];
   volatile unsigned is_running : 1; // => shreduler
 } VM;
 
