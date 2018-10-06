@@ -94,12 +94,14 @@ static void code(struct JitThread_* jt, Q q) {
   be->ini(jt);
   while((byte = ctrl_run(ctrl, v))) {
     pthread_testcancel();
+
     if(ctrl_pc(ctrl) && ctrl_idx(ctrl) != 1) {
       be->end(jt);
       jt->base = byte;
       be->ini(jt);
     }
-    be->pc(jt, ctrl);
+
+    be->pc(jt, ctrl); // maybe we can get rid of that with a {set,get}_need_pc command (every call to FuncUsr)
     const Instr ins = get_instr(jt, byte);
     const _code code = (_code)map_get(&jt->j->code, (vtype)byte->execute);
 #ifdef JIT_DEV

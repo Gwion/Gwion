@@ -87,3 +87,12 @@ ANN Instr ctrl_run(const struct ctrl* ctrl, const Vector v) {
   return c->instr = c->idx < c->len ?
     (Instr)vector_at(v, c->idx++) : NULL;
 }
+
+ANN void ctrl_label(const ctrl* ctrl, void* data, void (*f)(void*, vtype)) {
+  for(m_uint i = 0; i < ctrl->len; ++i) {
+    if((ctrl->pcs[i] & JIT_PC) == JIT_PC) {
+      printf("set label to %lu\n", i+1);
+      f(data, i);
+    }
+  }
+}

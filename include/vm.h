@@ -88,4 +88,5 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));
 ANN m_str code_name_set(const m_str, const m_str);
 ANN m_str code_name(const m_str, const m_bool);
+ANN uint32_t gw_rand(uint32_t s[2]);
 #endif

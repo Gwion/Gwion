@@ -44,14 +44,12 @@ ANN void env_reset(const Env env) {
 }
 
 ANN void free_env(const Env a) {
-
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = 0; i < size; i++)
     REM_REF((Context)vector_at(&a->known_ctx, i));
-//  Context ctx;
-//  while((ctx = (Context)vector_pop(&a->known_ctx)))
-//    REM_REF(ctx)
   REM_REF(a->global_nspc);
+REM_REF(t_array->nspc)
+REM_REF(t_object->nspc)
   vector_release(&a->known_ctx);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);

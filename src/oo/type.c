@@ -14,13 +14,13 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
 }
 
 ANN void free_type(Type a) {
+if(a == t_object)ADD_REF(a->nspc)
 #ifdef GWMPOOL_DATA
   if(a->p) {
     mp_end(a->p);
     xfree(a->p);
   }
 #endif
-
   if(a->nspc)
     REM_REF(a->nspc);
   if(GET_FLAG(a, ae_flag_builtin)) {

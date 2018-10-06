@@ -58,8 +58,14 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     t->owner = nspc;
     stmt->type = t;
     t->flag = stmt->td->flag | ae_flag_checked;
-    if(stmt->td->array && !stmt->td->array->exp)
+    if(stmt->td->array && !stmt->td->array->exp) {
+//ADD_REF(base->nspc)
+//REM_REF(t_array->nspc)
+//ADD_REF((t->nspc = t_array->nspc))
+//t->nspc = t_array->nspc;
       SET_FLAG(t, ae_flag_empty);
+
+}
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
@@ -170,7 +176,7 @@ ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG
   if(section->section_type == ae_section_stmt)
     return scan0_Stmt_List(env, section->d.stmt_list);
   if(section->section_type == ae_section_class)
-      return scan0_class_def(env, section->d.class_def);
+    return scan0_class_def(env, section->d.class_def);
   return 1;
 }
 

@@ -61,24 +61,25 @@ ANN void jit_type_add_ref(CC cc, CJval type) {
 void add2gc(const VM_Shred shred , const M_Object obj) {
   vector_add(&shred->gc, (vtype)obj);
 }
+
 JIT_CODE(ArrayInit) {
-  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
-  push_reg(cc, -instr->m_val2 * info->d.length + SZ_INT);
-  CJval type   = JCONST(void_ptr, info->type);
-  CJval size   = JCONST(nuint, info->base->size);
-  CJval len    = JCONST(nuint, info->d.length);
-  CJval depth  = JCONST(nuint, info->depth);
+  const m_uint off = instr->m_val * instr->m_val2;
+  const Type t = *(Type*)instr->ptr;
+  push_reg(cc, -off + SZ_INT);
+  CJval type   = JCONST(void_ptr, t);
+  CJval size   = JCONST(nuint, instr->m_val2);
+  CJval len    = JCONST(nuint, instr->m_val);
+  CJval depth  = JCONST(nuint, t->array_depth);
   CJval arg0[] = { type, size, len , depth };
   CJval obj = CALL_NATIVE2(new_array, "ppUUU", arg0);
   JSTORER(cc->reg, -SZ_INT, obj);
   CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
   jit_vector_add(cc, gc, obj);
-  jit_type_add_ref(cc, type);
   CJval data  = JLOADR(obj, JOFF(M_Object, data), void_ptr);
   CJval array = JLOADR(data, 0, void_ptr);
   CJval _ptr = JLOADR(array, JOFF(M_Vector, ptr), void_ptr);
   CJval ptr = JADDR(_ptr, ARRAY_OFFSET);
-  CJval data_size = JCONST(nuint, instr->m_val2 * info->d.length);
+  CJval data_size = JCONST(nuint, off);
   CJval _reg = JADDR(cc->reg , -SZ_INT);
   JINSN(memcpy, ptr, _reg, data_size);
 }

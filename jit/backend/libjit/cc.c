@@ -26,16 +26,19 @@ CC new_cc() {
   cc->f = NULL;
   sig_ini(&cc->sig);
   map_init(&cc->vtable);
+  map_init(&cc->label);
   return cc;
 }
 
 ANN void free_cc(CC cc) {
   sig_end(&cc->sig);
   map_release(&cc->vtable);
+  map_release(&cc->label);
   jit_context_destroy(cc->ctx);
   xfree(cc);
 }
 
+//ANN static void libjit_ini(const JitThread jt) {
 ANN static void libjit_ini(const JitThread jt) {
   CC cc = jt->cc;
   jit_context_build_start(cc->ctx);
@@ -72,8 +75,23 @@ ANN static void libjit_end(const JitThread jt) {
   cc->f = NULL;
 }
 
+ANN static void label_func(CC cc, const vtype idx) {
+//  jit_label_t* lbl = xmalloc(sizeof(jit_label_t));
+//  *lbl = jit_label_undefined;
+//  map_set(&cc->label, idx, lbl);
+  map_set(&cc->label, idx, jit_function_reserve_label(cc->f));
+}
+
 ANN static void libjit_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
+/*
+  if(ctrl_idx(ctrl) == 1) // => jitter
+    ctrl_label(ctrl, cc, label_func);
+  if(ctrl_pc(ctrl)) {
+    jit_label_t lbl = (jit_label_t)map_get(&cc->label, ctrl_idx(ctrl)-1);
+    JINSN(label, &lbl);
+  }
+*/
   CJval pc = JCONST(nuint, ctrl_idx(ctrl));
   JSTORER(cc->shred, JOFF(VM_Shred, pc), pc);
 }
@@ -86,8 +104,7 @@ ANN void libjit_no(const JitThread jt, Instr byte) {
   push_reg(cc, 0); // sync CC->shred
 }
 
-ANN static void libjit_ex(const JitThread jt) {
-  CC cc = jt->cc;
+ANN void cc_ex(const CC cc) {
   CJval tick = JLOADR(cc->vm, JOFF(VM, shreduler), void_ptr);
   CJval curr = JLOADR(tick, JOFF(Shreduler, curr), void_ptr);
   CJval null = JCONST(void_ptr, 0);
@@ -96,6 +113,10 @@ ANN static void libjit_ex(const JitThread jt) {
   JINSN(branch_if_not, cond, &lbl);
   jit_insn_default_return(cc->f);
   JINSN(label, &lbl);
+}
+
+ANN static void libjit_ex(const JitThread jt) {
+  cc_ex(jt->cc);
 }
 
 static void libjit_ctrl(struct Jit* j) {

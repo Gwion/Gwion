@@ -17,7 +17,7 @@
 ANN void cc_free(void* v) { xfree(v); }
 
 ANN Jval push_reg(CC const cc, const m_int i) {
-  CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);
+  CJval ptr = JLOADR(cc->shred, JOFF(VM_Shred, reg), void_ptr);cc->reg = JADDR(ptr, i);
   cc->reg = JADDR(ptr, i);
 //  cc->reg = JADDR(cc->reg, i);
   JSTORER(cc->shred, JOFF(VM_Shred, reg), cc->reg);
@@ -30,10 +30,15 @@ ANN void push_reg2(CC const cc, CJval i) {
   cc->reg = JINSN(add, cc->reg, i);
   JSTORER(cc->shred, JOFF(VM_Shred, reg), cc->reg);
 }
-
+#include <stdio.h>
 ANN void next_pc(CC cc, const m_uint index) {
-  CJval v = JCONST(nuint, index);
-  JSTORER(cc->shred, JOFF(VM_Shred, pc), v);
+/*  jit_label_t lbl = (jit_label_t)map_get(&cc->label, index);
+  if(lbl) {
+    JINSN(branch, &lbl);
+  } else */{
+    CJval v = JCONST(nuint, index);
+    JSTORER(cc->shred, JOFF(VM_Shred, pc), v);
+  }
 }
 
 ANN void cc_release(CC cc, CJval  obj) {

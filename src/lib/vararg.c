@@ -22,7 +22,6 @@ INSTR(VarargTop) { GWDEBUG_EXE
 }
 
 INSTR(VarargIni) { GWDEBUG_EXE
-  const Vector kinds = (Vector)instr->m_val2;
   struct Vararg_* arg = mp_alloc(Vararg);
   if(instr->m_val) {
     POP_REG(shred,  instr->m_val)
@@ -33,6 +32,7 @@ INSTR(VarargIni) { GWDEBUG_EXE
       POP_REG(shred, SZ_INT)
     arg->d = NULL;
   }
+  const Vector kinds = (Vector)instr->m_val2;
   if(kinds) {
     arg->s = vector_size(kinds);
     if(arg->s) {

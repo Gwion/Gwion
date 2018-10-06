@@ -107,23 +107,23 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, bin->lhs))
   return scan1_exp(env, bin->rhs);
 }
 
-ANN static m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
   return 1;
 }
 
-ANN static m_bool scan1_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, array->base))
   return scan1_exp(env, array->array->exp);
 }
 
-ANN static m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   return scan1_exp(env, cast->exp);
 }
 
@@ -136,7 +136,7 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) { GWDEB
   return 1;
 }
 
-ANN static m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, dur->base))
   return scan1_exp(env, dur->unit);
 }
@@ -149,7 +149,7 @@ ANN static m_bool scan1_exp_call(const Env env, const Exp_Func* exp_func) { GWDE
   return args ? scan1_exp(env, args) : 1;
 }
 
-ANN static m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
+ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
   return scan1_exp(env, member->base);
 }
 
@@ -210,11 +210,11 @@ ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) { 
   return stmt->stmt_list ? scan1_stmt_list(env, stmt->stmt_list) : 1;
 }
 
-ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
-ANN static m_bool scan1_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, stmt->cond))
   return scan1_stmt(env, stmt->body);
 }
@@ -227,21 +227,21 @@ ANN static m_bool scan1_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_E
   return scan1_stmt(env, stmt->body);
 }
 
-ANN static m_bool scan1_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, stmt->exp))
   return scan1_stmt(env, stmt->body);
 }
 
-ANN static m_bool scan1_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, stmt->cond))
   return scan1_stmt(env, stmt->body);
 }
 
-ANN static m_bool scan1_stmt_switch(const Env env, const Stmt_Switch stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_switch(const Env env, const Stmt_Switch stmt) { GWDEBUG_EXE
   return scan1_exp(env, stmt->val);
 }
 
-ANN static m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
@@ -278,8 +278,6 @@ ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG
   do {
     if(!(arg_list->type = type_decl_resolve(env, arg_list->td)))
       CHECK_BB(type_unknown(arg_list->td->xid, "function argument"))
-//    if(arg_list->td->types)
-//      ADD_REF(arg_list->type)
   } while((arg_list = arg_list->next));
   return 1;
 }
@@ -295,11 +293,11 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;
 }
 
-ANN static m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
+ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
   if(array->exp)
     ERR_B(SCAN1_, array->pos, "array declaration must be empty in union.")
   return 1;
@@ -316,14 +314,14 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   } else if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
-    Var_Decl_List list = l->self->d.exp_decl.list;
-
     if(l->self->exp_type != ae_exp_decl)
       ERR_B(SCAN1_, stmt->self->pos,
             "invalid expression type '%i' in union declaration.")
-    SET_FLAG(l->self->d.exp_decl.td, ae_flag_checked | stmt->flag);
+    const Exp_Decl decl = l->self->d.exp_decl;
+    Var_Decl_List list = decl.list;
+    SET_FLAG(decl.td, ae_flag_checked | stmt->flag);
     if(GET_FLAG(stmt, ae_flag_static))
-      SET_FLAG(l->self->d.exp_decl.td, ae_flag_static);
+      SET_FLAG(decl.td, ae_flag_static);
     do {
       const Var_Decl var_decl = list->self;
       if(var_decl->array)
@@ -432,7 +430,7 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
     ERR_B(SCAN1_, f->td->pos, "dtor must be in class def!!")
-  if(GET_FLAG(f, ae_flag_op))
+  else if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(f))
   return 1;
 }
@@ -493,17 +491,15 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
       CHECK_BB(scan1_class_def(env, parent->def))
     if(class_def->ext->array) {
-      if(!class_def->ext->array->exp) {
-        REM_REF(t_array->nspc)
+      if(class_def->ext->array->exp)
+        CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
+      else
         ERR_B(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend")
-      }
-      CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     }
-    if(type_ref(parent)) {
-      REM_REF(t_array->nspc)
+    if(!type_ref(parent))
+      class_def->type->parent = parent;
+    else
       ERR_B(SCAN1_, class_def->ext->pos, "can't use ref type in class extend")
-    }
-    class_def->type->parent = parent;
   }
   if(class_def->body) {
     Class_Body body = class_def->body;

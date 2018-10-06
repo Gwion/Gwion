@@ -202,13 +202,13 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   emitter_add_instr(emit, ArrayPost);
 }
 
-ANN void free_array_info(ArrayInfo* info) { mp_free(ArrayInfo, info); }
+ANN void free_array_info(ArrayInfo* info) { REM_REF(info->type); mp_free(ArrayInfo, info); }
 ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
-  const Type base = array_base(t);
   CHECK_BO(emit_exp(emit, e, 0))
+  const Type base = array_base(t);
   ArrayInfo* info = mp_alloc(ArrayInfo);
-  info->depth = t->array_depth;
   info->type = t;
+  info->depth = t->array_depth;
   info->base = base;
   const Instr alloc = emitter_add_instr(emit, ArrayAlloc);
   *(ArrayInfo**)alloc->ptr = info;
@@ -325,12 +325,9 @@ ANN static m_bool emit_exp_prim_array(const Emitter emit, const Array_Sub array)
   const Type type = array->type;
   const Type base = array_base(type);
   const Instr instr = emitter_add_instr(emit, ArrayInit);
+  instr->m_val = count;
   instr->m_val2 = base->size;
-  ArrayInfo* info = mp_alloc(ArrayInfo);
-  info->type = type;
-  info->base = base;
-  info->d.length = count;
-  *(ArrayInfo**)instr->ptr = info;
+  *(Type*)instr->ptr = type;
   return 1;
 }
 
@@ -449,7 +446,7 @@ ANN static m_bool emit_exp_prim_gack(const Emitter emit, const Exp exp) { GWDEBU
     if(e->type != emit->env->class_def)
       ADD_REF(e->type);
   } while((e = e->next));
-  if(emit_exp(emit, exp, 0) < 0) { GWDEBUG_EXE
+  if(emit_exp(emit, exp, 0) < 0) {
     free_vector(v);
     ERR_B(EMIT_, exp->pos, "\t... in 'gack' expression.")
   }

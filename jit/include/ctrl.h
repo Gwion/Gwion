@@ -23,6 +23,7 @@ ANN void ctrl_inc_idx(const struct ctrl* ctrl);
 ANN void ctrl_done(const struct ctrl* ctrl);
 ANN m_uint ctrl_state(const struct ctrl* ctrl);
 ANN void ctrl_ini(const vtype, const vtype);
+ANN void ctrl_label(const struct ctrl*, void* data, void (*)(void*, vtype));
 ANN Instr ctrl_run(const struct ctrl* ctrl, const Vector v);
 ANN Instr ctrl_byte(const struct ctrl*);
 

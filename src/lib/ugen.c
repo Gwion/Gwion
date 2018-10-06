@@ -226,7 +226,7 @@ ANN static void release_mono(const UGen ug) {
 ANN static void release_multi(const UGen ug, const VM_Shred shred) {
   for(m_uint i = ug->connect.multi->n_chan + 1; --i;)
     release(ug->connect.multi->channel[i - 1], shred);
-  free(ug->connect.multi->channel);
+  xfree(ug->connect.multi->channel);
 }
 
 static DTOR(ugen_dtor) {
@@ -313,6 +313,7 @@ static GWION_IMPORT(global_ugens) {
   vector_add(&vm->ugen, (vtype)UGEN(adc));
   gwi_item_ini(gwi, "UGen", "adc");
   gwi_item_end(gwi, ae_flag_const, adc);
+  SET_FLAG(t_ugen, ae_flag_abstract);
   return 1;
 }
 

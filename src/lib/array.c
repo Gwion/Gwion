@@ -82,7 +82,7 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
 }
 
 static MFUN(vm_vector_rem) {
-  const m_int index = *(m_int*)(shred + SZ_INT);
+  const m_int index = *(m_int*)(shred->reg + SZ_INT);
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
@@ -237,26 +237,21 @@ INSTR(ArrayPost) { GWDEBUG_EXE
 }
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
-  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
-  POP_REG(shred, instr->m_val2 * info->d.length  -SZ_INT);
-  const M_Object obj = new_array(info->type, info->base->size, info->d.length, info->depth);
+  const m_uint off = instr->m_val * instr->m_val2;
+  const Type t = *(Type*)instr->ptr;
+  POP_REG(shred, off - SZ_INT);
+  const M_Object obj = new_array(t, instr->m_val2, instr->m_val, t->array_depth);
   vector_add(&shred->gc, (vtype)obj);
-  ADD_REF(obj->type_ref);
-  memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), instr->m_val2 * info->d.length);
+  memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
 }
 
 #define TOP -1
 
-ANN static M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap) {
-  if(cap < 0) {
-    gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
-    return NULL;
-  }
-  const M_Object base = new_array(info->type, info->depth >= TOP  ?
-      info->base->size : SZ_INT, cap, -info->depth);
+ANN static inline M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap) {
   ADD_REF(info->type);
-  return base;
+  return new_array(info->type, info->depth >= TOP  ?
+      info->base->size : SZ_INT, cap, -info->depth);
 }
 
 ANN static inline M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
@@ -284,9 +279,11 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
 
 ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
   const m_int cap = *(m_int*)REG(info->depth * SZ_INT);
-  const M_Object base = do_alloc_array_object(info, cap);
-  if(!base)
+  if(cap < 0) {
+    gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
+  }
+  const M_Object base = do_alloc_array_object(info, cap);
   return info->depth < TOP ? do_alloc_array_loop(shred, info, cap, base) :
     info->data ? do_alloc_array_init(info, cap, base) : base;
 }

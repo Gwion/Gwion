@@ -5,7 +5,9 @@ typedef struct JitCC_ {
   Jval shred;
   Jval vm;
   Jval reg;
+  struct ctrl *ctrl;
   struct Map_ sig;
+  struct Map_ label;
   struct Map_ vtable;
   jit_context_t ctx;
 } JitCC;
@@ -15,9 +17,13 @@ typedef struct JitCC_ {
 #define INIT_LABEL(lbl) jit_label_t lbl = jit_label_undefined;
 
 #define CALL_NATIVE(func, s, argv) \
-jit_insn_call_native(cc->f, NULL, (void*)(m_uint)func, sig(&cc->sig, s, jit_abi_fastcall) , (Jval*)argv, strlen(s) - 1, JIT_CALL);
+jit_insn_call_native(cc->f, NULL, (void*)(m_uint)func, sig(&cc->sig, s, jit_abi_fastcall) , (Jval*)argv, strlen(s) - 1, JIT_CALL);\
+//push_reg(cc, 0);
+
 #define CALL_NATIVE2(func, s, argv) \
-cc_call(cc, #func, s, (Jval*)argv);
+cc_call(cc, #func, s, (Jval*)argv);\
+//push_reg(cc, 0);
+
 #define JOFF(a,b) __builtin_offsetof(struct a##_, b)
 #define JLOADR(a,b,c) jit_insn_load_relative(cc->f, (a), (b), jit_type_##c)
 #define JADDR(a,b) jit_insn_add_relative(cc->f, (a), (b))
@@ -35,3 +41,4 @@ cc_call(cc, #func, s, (Jval*)argv);
 
 //Jval cc_call(CC cc, void* func, const m_str s, Jval *arg);
 Jval cc_call(CC cc, const m_str name, const m_str s, Jval *arg);
+ANN void cc_ex(const CC cc);
