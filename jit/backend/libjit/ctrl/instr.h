@@ -9,7 +9,6 @@ JIT_CTRL(FuncOp) {
 }
 
 JIT_CTRL(PreCtor) {
-//ctrl_skip(ctrl);
   if(GET_FLAG((VM_Code)instr->m_val, NATIVE_NOT))
     ctrl_next(ctrl);
 }
@@ -28,7 +27,7 @@ JIT_CTRL(FuncPtr) {
 
 JIT_CTRL(AutoLoopStart) { ctrl_next(ctrl); }
 JIT_CTRL(AutoLoopEnd) {
-  ctrl_set_pc(ctrl, *(m_uint*)instr->ptr + 1);
+  ctrl_set_pc(ctrl, *(m_uint*)instr->ptr);
   ctrl_next(ctrl);
 }
 
@@ -51,8 +50,13 @@ JIT_CTRL(BranchEqFloat) {
 JIT_CTRL(BranchNeqFloat) {
   ctrl_set_pc(ctrl, instr->m_val);
 }
+
 JIT_CTRL(Goto) {
   ctrl_set_pc(ctrl, instr->m_val);
+}
+
+JIT_CTRL(SporkExp) {
+  ctrl_curr(ctrl);
 }
 
 
@@ -71,5 +75,8 @@ void jit_ctrl_import_instr(struct Jit* jit) {
   jit_ctrl_import(jit, BranchEqFloat, BranchEqFloat_ctrl);
   jit_ctrl_import(jit, BranchNeqFloat, BranchNeqFloat_ctrl);
   jit_ctrl_import(jit, Goto, Goto_ctrl);
+
+
+//  jit_ctrl_import(jit, SporkExp, SporkExp_ctrl);
 }
 

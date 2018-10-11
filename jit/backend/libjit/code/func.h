@@ -8,7 +8,7 @@ ANN void cc_check(CC const, CJval, const m_str);
 ANN Jval push_reg(CC const j, const m_int i);
 ANN void push_reg2(CC const j, CJval i);
 ANN void next_pc(CC const j, const m_uint i);
-void add_to_gc(VM_Shred shred, M_Object obj); // move from array to func
+void cc_add2gc(CC, CJval);
 #include "type.h"
 ANN static inline void type_add_ref(Type t) { ++t->obj.ref_count; }
 
@@ -17,3 +17,7 @@ ANN void jit_vector_add(CC, CJval, CJval);
 ANN void jit_type_add_ref(CC cc, CJval type);
 
 ANN void cc_free(void*);
+Jval jit_mp_alloc(CC cc, const m_uint size);
+jit_function_t get_jit_func(CC cc, const m_str s);
+//ANN Jval cc_inc(CC cc, Jval val);
+//ANN Jval cc_dec(CC cc, Jval val);

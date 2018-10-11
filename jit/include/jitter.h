@@ -19,13 +19,11 @@ struct Jit {
   struct JitThread_** process;
   struct JitBackend* be;
   pthread_mutex_t qmutex;
-//  pthread_mutex_t* vmmutex;
   pthread_cond_t cond;
-  pthread_barrier_t barrier;
   struct Map_ ctrl;
   struct Map_ code;
   unsigned int n;
-  unsigned int jdone;
+//  unsigned int jdone;
   m_bool wait;
   m_bool done;
   m_bool init;

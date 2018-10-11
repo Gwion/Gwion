@@ -780,7 +780,9 @@ Stmt new_stmt_union(const Decl_List l, const int pos) {
   a->pos = pos;
   return a;
 }
+
 #ifndef TINY_MODE
+#ifdef TOOL_MODE
 Stmt new_stmt_pp(const enum ae_pp_type type, const m_str data) {
   Stmt a = mp_alloc(Stmt);
   a->stmt_type = ae_stmt_pp;
@@ -793,8 +795,9 @@ ANN inline static void free_stmt_pp(Stmt_PP a) {
   if(a->data)
     xfree(a->data);
 }
-
 #endif
+#endif
+
 Decl_List new_decl_list(const Exp d, const Decl_List l) {
   Decl_List a = mp_alloc(Decl_List);
   a->self = d;
@@ -868,9 +871,11 @@ void free_stmt(Stmt stmt) {
       free_stmt_union(&stmt->d.stmt_union);
       break;
 #ifndef TINY_MODE
+#ifdef TOOL_MODE
     case ae_stmt_pp:
       free_stmt_pp(&stmt->d.stmt_pp);
       break;
+#endif
 #endif
   }
   mp_free(Stmt, stmt);
@@ -922,11 +927,8 @@ void free_class_body(Class_Body a) {
 void free_class_def(Class_Def a) {
   if(a->type && GET_FLAG(a->type, ae_flag_template))
     return;
-  if(a->ext) {
-    if(a->ext->array && a->type->parent)
-      REM_REF(a->type->parent); // ?
+  if(a->ext)
     free_type_decl(a->ext);
-  }
   if(a->tmpl)
     free_tmpl_class(a->tmpl);
   if(a->body && (!a->type || !GET_FLAG(a->type, ae_flag_ref)))

@@ -58,21 +58,15 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     t->owner = nspc;
     stmt->type = t;
     t->flag = stmt->td->flag | ae_flag_checked;
-    if(stmt->td->array && !stmt->td->array->exp) {
-//ADD_REF(base->nspc)
-//REM_REF(t_array->nspc)
-//ADD_REF((t->nspc = t_array->nspc))
-//t->nspc = t_array->nspc;
+    if(stmt->td->array && !stmt->td->array->exp)
       SET_FLAG(t, ae_flag_empty);
-
-}
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
       stmt->td, NULL);
     CHECK_BB(scan0_class_def(env, def))
-    if(stmt->td->array)
-      REM_REF(base)
+//    if(stmt->td->array)
+//      REM_REF(base)
     stmt->type = def->type;
   }
   SET_FLAG(stmt->type, ae_flag_typedef);

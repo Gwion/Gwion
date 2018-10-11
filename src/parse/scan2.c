@@ -1,4 +1,3 @@
-#define PARSE
 #include <string.h>
 #include "defs.h"
 #include "err_msg.h"
@@ -109,9 +108,9 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
-  if(nspc_lookup_func2(env->curr, ptr->xid))
+/*  if(nspc_lookup_func2(env->curr, ptr->xid))
     ERR_B(SCAN2_, ptr->td->pos,
-          "function type '%s' already defined.", s_name(ptr->xid))
+          "function type '%s' already defined.", s_name(ptr->xid)) */
   if(d.arg_list && scan2_arg_def(env, &d) < 0)
     ERR_B(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid))
   SET_FLAG(ptr->value, ae_flag_checked);
@@ -319,14 +318,14 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
   }
   return 1;
 }
-
+/*
 ANN m_bool scan2_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   if(nspc_lookup_value1(env->curr, stmt->xid))
     ERR_B(SCAN2_, stmt->self->pos,
           "'%s' already declared as variable", s_name(stmt->xid))
   return 1;
 }
-
+*/
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   m_uint class_scope;
@@ -385,7 +384,8 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     case ae_stmt_break:
       break;
     case ae_stmt_enum:
-      CHECK_BB(scan2_stmt_enum(env, &stmt->d.stmt_enum))
+      return 1;
+//      CHECK_BB(scan2_stmt_enum(env, &stmt->d.stmt_enum))
       break;
     case ae_stmt_fptr:
       CHECK_BB(scan2_stmt_fptr(env, &stmt->d.stmt_fptr))
@@ -628,8 +628,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   } else {
     func_name = func_tmpl_name(env, f, len);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
-    if(func && f->arg_list)
-      return scan2_arg_def(env, f);
+    if(func)
+      return f->arg_list ? scan2_arg_def(env, f) : 1;
   }
   const Func base = get_func(env, f);
   if(!base) {
@@ -665,25 +665,32 @@ ANN static m_bool scan2_section(const Env env, const Section* section) { GWDEBUG
   return 1;
 }
 
+ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
+  const Type t = class_def->type->parent->array_depth ?
+    array_base(class_def->type->parent) : class_def->type->parent;
+  if(!GET_FLAG(t, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+    CHECK_BB(scan2_class_def(env, t->def))
+  if(class_def->ext->array)
+    CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
+  return 1;
+}
+ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
+  m_uint class_scope;
+  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  Class_Body body = class_def->body;
+  do CHECK_BB(scan2_section(env, body->section))
+  while((body = body->next));
+  env_pop(env, class_scope);
+  return 1;
+}
+
 ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
     return 1;
-  if(class_def->ext) {
-    const Type t = class_def->type->parent->array_depth ?
-      array_base(class_def->type->parent) : class_def->type->parent;
-    if(!GET_FLAG(t, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
-      CHECK_BB(scan2_class_def(env, t->def))
-    if(class_def->ext->array)
-      CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
-  }
-  if(class_def->body) {
-    Class_Body body = class_def->body;
-    m_uint class_scope;
-    env_push(env, class_def->type, class_def->type->nspc, &class_scope);
-    do CHECK_BB(scan2_section(env, body->section))
-    while((body = body->next));
-    env_pop(env, class_scope);
-  }
+  if(class_def->ext)
+    CHECK_BB(scan2_class_parent(env, class_def))
+  if(class_def->body)
+    CHECK_BB(scan2_class_body(env, class_def))
   SET_FLAG(class_def->type, ae_flag_scan2);
   return 1;
 }

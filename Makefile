@@ -97,7 +97,6 @@ src_src += utils/udp.c
 endif
 ifeq (${USE_GWMPOOL}, 1)
 CFLAGS+=-DGWMPOOL
-CFLAGS+=-DGWMPOOL_DATA
 TOOL_OBJ += utils/mpool.o src/util/map.o
 util_src += utils/mpool.c
 endif

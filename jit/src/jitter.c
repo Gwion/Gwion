@@ -4,7 +4,8 @@
 #include "defs.h"
 #include "absyn.h"
 #include "mpool.h"
-#include "operator.h"
+#include "type.h"
+//#include "operator.h"
 #include "instr.h"
 #include "jitter.h"
 #include "ctrl.h"
@@ -13,6 +14,8 @@
 #include "backend.h"
 #include "ctrl_private.h"
 #include "code_private.h"
+
+
 
 static Q new_q(const VM_Code code, Q next) {
   Q q = (Q)xcalloc(1, sizeof(struct Q_));
@@ -89,9 +92,11 @@ static void code(struct JitThread_* jt, Q q) {
   struct ctrl* ctrl = q->ctrl;
   const Vector v = c->instr;
   struct JitBackend* be = jt->j->be;
-  m_uint part = 0;
   Instr byte = jt->base = (Instr)vector_front(c->instr);
   be->ini(jt);
+#ifdef JIT_DEV
+  printf("[JIT]     \033[1m%s\033[0m\n", c->name);
+#endif
   while((byte = ctrl_run(ctrl, v))) {
     pthread_testcancel();
 
@@ -105,7 +110,7 @@ static void code(struct JitThread_* jt, Q q) {
     const Instr ins = get_instr(jt, byte);
     const _code code = (_code)map_get(&jt->j->code, (vtype)byte->execute);
 #ifdef JIT_DEV
-  printf("[JIT](%lu) %s%s\033[0m\n", ctrl_idx(ctrl), code ? "\033[32m" : "\033[31m",
+  printf("[%sJIT\033[0m](%4lu) %s%s\033[0m\n", ctrl_pc(ctrl) ? "\033[36m" : "\033[0m", ctrl_idx(ctrl), code ? "\033[32m" : "\033[31m",
     (m_str)map_get(&dev_map, (vtype)byte->execute));
 #endif
     if(code)
@@ -122,11 +127,9 @@ static void code(struct JitThread_* jt, Q q) {
 static void* qprocess(void* data) {
   JitThread jt = (JitThread)data;
   struct Jit* j = jt->j;
-  ++j->init;
   while(1) {
     pthread_cond_wait(&j->cond, &jt->mutex);
     while(j->q) {
-      ++j->jdone;
       if(j->done)
         break;
       pthread_mutex_lock(&j->qmutex);
@@ -142,9 +145,9 @@ static void* qprocess(void* data) {
     if(j->done)
       break;
     if(j->wait) {
-      ++j->jdone;
-      pthread_barrier_wait(&j->barrier);
-      j->jdone = j->wait = 0;
+      ++jt->done;
+      pthread_barrier_wait(&jt->barrier);
+      jt->done = 0;
     }
     if(j->done)
       break;
@@ -162,6 +165,7 @@ static JitThread* new_process(struct Jit* j) {
     jt->base = NULL;
     jt->pool = new_pool(sizeof(struct Instr_));
     jt->cc = new_cc();
+    pthread_barrier_init(&jt->barrier, NULL, 2);
     pthread_mutex_init(&jt->mutex, NULL);
     pthread_mutex_init(&jt->imutex, NULL);
     pthread_create(&jt->thread, NULL, qprocess, jt);
@@ -187,6 +191,7 @@ static void free_process2(struct Jit* j) {
     const JitThread jt = jts[i];
     mp_end(jt->pool);
     free_cc(jt->cc);
+    pthread_barrier_destroy(&jt->barrier);
     pthread_mutex_destroy(&jt->mutex);
     pthread_mutex_destroy(&jt->imutex);
     xfree(jt->pool);
@@ -208,11 +213,11 @@ void free_jit(struct Jit* j) {
   free_process2(j);
   pthread_mutex_destroy(&j->qmutex);
   pthread_cond_destroy(&j->cond);
-  pthread_barrier_destroy(&j->barrier);
   free_jit_backend(j->be);
   map_release(&j->ctrl);
   map_release(&j->code);
   xfree(j);
+
 }
 
 void jitq(struct Jit* j, VM_Code c) {
@@ -223,8 +228,14 @@ void jitq(struct Jit* j, VM_Code c) {
 }
 
 void jit_sync(struct Jit* j) {
-  if(j->init && j->wait)
-    pthread_barrier_wait(&j->barrier);
+  if(j->wait) {
+    for(m_uint i = 0; i < j->n; ++i) {
+      const JitThread jt = j->process[i];
+//      if(jt->done)
+        pthread_barrier_wait(&jt->barrier);
+    }
+    j->wait = 0;
+  }
 }
 
 #define describe_import(name) \
@@ -266,7 +277,6 @@ void jit_init_gwion(struct JitInfo* ji) {
 struct Jit* new_jit(const m_uint n, const m_uint wait) {
   struct Jit* j = (struct Jit*)xcalloc(1, sizeof(struct Jit));
   j->q = NULL;
-  pthread_barrier_init(&j->barrier, NULL, n + 1);
   pthread_mutex_init(&j->qmutex, NULL);
   pthread_cond_init(&j->cond, NULL);
   j->n = n;

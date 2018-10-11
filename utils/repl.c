@@ -14,9 +14,11 @@
 #include "compile.h"
 #include "traverse.h"
 #include "shreduler_private.h"
+#include "repl.h"
 
 #define PROMPT_SZ 128
 
+static pthread_t repl_thread;
 static m_bool accept, cancel, chctx, fork, add, sys;
 
 static inline int _bind_cr(int count __attribute__((unused)), int key __attribute__((unused))) {
@@ -63,13 +65,13 @@ static inline int _bind_sys(int count __attribute__((unused)), int key __attribu
   return accept = rl_done = 1;
 }
 
-static inline VM_Shred repl_shred() {
+static inline VM_Shred repl_shred(void) {
   const VM_Code code = new_vm_code(NULL, 0, 0, "repl");
   const VM_Shred shred = new_vm_shred(code);
   return shred;
 }
 
-ANN static void eval(VM* vm, VM_Shred shred, const m_str line) {
+ANN static void eval(const VM* vm, const VM_Shred shred, const m_str line) {
   if(shred == vm->shreduler->list) {
     gw_err("shred[%"UINT_F"] is running.please use '\\C-f' to spork it\n", shred->xid);
     return;
@@ -106,7 +108,7 @@ ANN static struct Repl* new_repl(const m_str name) {
   return repl;
 }
 
-ANN static void free_repl(struct Repl* repl, VM* vm) {
+ANN static void free_repl(struct Repl* repl, const VM* vm) {
   if(repl->shred->code->instr) {
     ((Instr)vector_back(repl->shred->code->instr))->execute = EOC;
     repl->shred->pc = vector_size(repl->shred->code->instr) - 2;
@@ -117,7 +119,7 @@ ANN static void free_repl(struct Repl* repl, VM* vm) {
   free(repl);
 }
 
-ANN static struct Repl* repl_ctx(struct Repl* repl, const Vector v, VM* vm) {
+ANN static struct Repl* repl_ctx(struct Repl* repl, const Vector v, const VM* vm) {
   struct Repl* r = NULL;
   accept = 1;
   const m_str ln = readline("\033[1mcontext:\033[0m ");
@@ -177,7 +179,7 @@ ANN static void repl_add(VM* vm) {
   add = 0;
 }
 
-ANN static m_str repl_prompt(struct Repl* repl) {
+ANN static m_str repl_prompt(const struct Repl* repl) {
   char prompt[PROMPT_SZ];
   if(repl->shred->xid)
     snprintf(prompt, PROMPT_SZ, "'%s'\033[30;3;1m[%"UINT_F"]\033[32m=>\033[0m ", repl->ctx->name, repl->shred->xid);
@@ -252,9 +254,15 @@ ANN static void* repl_process(void* data) {
   return NULL;
 }
 
-ANN void repl_init(VM* vm, pthread_t* p) {
-  pthread_create(p, NULL, repl_process, vm);
+ANN void repl_init(VM* vm) {
+  pthread_create(&repl_thread, NULL, repl_process, vm);
 #ifndef __linux__
-  pthread_detach(*p);
+  pthread_detach(repl_thread);
+#endif
+}
+
+void repl_fini() {
+#ifdef __linux__
+  pthread_join(repl_thread, NULL);
 #endif
 }

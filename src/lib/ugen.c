@@ -145,7 +145,7 @@ end:
 }
 
 #define describe_connect(name, func)                                   \
-ANN static inline void name##connect(const UGen lhs, const UGen rhs) { \
+ANN static inline void name##connect(const restrict UGen lhs, const restrict UGen rhs) { \
   func(&rhs->connect.net.from, (vtype)lhs);                            \
   func(&lhs->connect.net.to,   (vtype)rhs);                            \
   rhs->connect.net.size = vector_size(&rhs->connect.net.from);         \
@@ -175,11 +175,11 @@ ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
   } while(++i < max);
 }
 
-void gw_connect(const UGen lhs, const UGen rhs) {
+void gw_connect(const restrict UGen lhs, const restrict UGen rhs) {
   _do_(connect, lhs, rhs);
 }
 
-void gw_disconnect(const UGen lhs, const UGen rhs) {
+void gw_disconnect(const restrict UGen lhs, const restrict UGen rhs) {
   _do_(disconnect, lhs, rhs);
 }
 

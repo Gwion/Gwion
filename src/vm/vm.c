@@ -122,18 +122,16 @@ ANN void vm_run(const VM* vm) {
   const Shreduler s = vm->shreduler;
   VM_Shred shred;
   while((shred = shreduler_get(s))) {
-//  pthread_mutex_lock(&vm->mutex);
-
 #ifdef VMBENCH
 struct timespec exec_ini, exec_end, exec_ret;
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 #endif
   do {
       const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
+//if(instr->execute != JitExec)exit(shred->pc);
       instr->execute(shred, instr);
       VM_INFO;
     } while(s->curr);
-//  pthread_mutex_unlock(&vm->mutex);
 #ifdef VMBENCH
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
 timespecsub(&exec_end, &exec_ini, &exec_ret);

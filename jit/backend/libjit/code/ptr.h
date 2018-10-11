@@ -29,8 +29,10 @@ JIT_CODE(instr_ptr_deref) {
 }
 JIT_CODE(Cast2Ptr) {
   CJval val = JLOADR(cc->reg, -SZ_INT, void_ptr);
-  CJval arg0[] = { cc->shred };
-  CJval obj = CALL_NATIVE2(new_object, "pp", arg0);
+  CJval arg0[] = { cc->shred, t_ptr };
+//  CJval obj = CALL_NATIVE2(new_object, "pp", arg0);
+  CJval obj = jit_insn_call(cc->f, "jit_new_object",
+    get_jit_func(cc, "jit_new_object"), 0, arg0, 2, JIT_CALL);
   CJval data = JLOADR(obj, JOFF(M_Object , data), void_ptr);
   JSTORER(data, 0, val);
   JSTORER(cc->reg, -SZ_INT, obj);

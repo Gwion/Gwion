@@ -1,5 +1,4 @@
 #include "lang.h"
-
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;
@@ -13,7 +12,7 @@ ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  
 struct Instr_ {
   void (*execute)(const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
-  m_bit ptr[SZ_VEC4];
+  m_bit ptr[SZ_MINVAL];
 };
 
 ANEW Instr new_instr(void);
@@ -21,11 +20,6 @@ ANN void free_instr(Instr instr);
 INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);
-
-
-#ifdef GWREPL
-INSTR(EOC2); // repl
-#endif
 
 INSTR(RegPushMe);
 INSTR(RegPushNow);

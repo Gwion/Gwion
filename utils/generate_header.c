@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     return 1;
   }
   fprintf(file,
-          "#include <inttypes.h>\n/* common typedefs */\ntypedef intptr_t m_int;\ntypedef uintptr_t m_uint;\n\
+          "#include <stdlib.h>\n#include <inttypes.h>\n/* common typedefs */\ntypedef intptr_t m_int;\ntypedef uintptr_t m_uint;\n\
 typedef unsigned char m_bit;\n\
 typedef        int m_bool;\ntypedef %s            m_float;\ntypedef char *            m_str;\n\
 typedef struct { m_float x, y, z; }  m_vec3;\ntypedef struct { m_float x, y, z, w; } m_vec4;\n\
@@ -44,10 +44,11 @@ typedef _Complex %s m_complex;\n", type, type);
   } else {
     fprintf(file, "#define  INT_F \"li\"\n");
     fprintf(file, "#define UINT_F \"lu\"\n");
+    fprintf(file, "#define abs labs\n");
   }
   if(strcmp(type, "double"))
     fprintf(file, "#define creal crealf\n#define cimag cimagf\n"
-                  "#define abs fabs\n"
+                  "#define fabs fabsf\n"
                   "#define cos cosf\n#define sin sinf\n#define tan tanf\n"
                   "#define acos acosf\n#define asin asinf\n#define atan atanf\n"
                   "#define cosh coshf\n#define sinh sinhf\n#define tanh tanhf\n"
@@ -59,6 +60,10 @@ typedef _Complex %s m_complex;\n", type, type);
                   "#define floor floorf\n#define ceil ceilf\n"
                   "#define round roundf\n#define trunc truncf\n"
                   "#define fmod fmodf\n#define remainder remainderf\n");
+  if(sizeof(uintptr_t) > SZ)
+    fprintf(file, "#define SZ_MINVAL SZ_INT");
+  else
+    fprintf(file, "#define SZ_MINVAL SZ_FLOAT");
   fclose(file);
   return 0;
 }

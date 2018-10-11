@@ -21,7 +21,7 @@ typedef struct {
   unsigned coverage : 1;
 #endif
 #ifdef GWREPL
-  unsigned m_bool repl : 1;
+  unsigned repl : 1;
 #endif
 #ifdef JIT
   unsigned jit_thread : 1;

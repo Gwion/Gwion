@@ -202,12 +202,22 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   emitter_add_instr(emit, ArrayPost);
 }
 
-ANN void free_array_info(ArrayInfo* info) { REM_REF(info->type); mp_free(ArrayInfo, info); }
+ANN void free_array_info(ArrayInfo* info) {
+  for(m_uint i = 0; i < vector_size(&info->type); ++i)
+    REM_REF((Type)vector_at(&info->type, i));
+  vector_release(&info->type);
+  mp_free(ArrayInfo, info);
+}
+
 ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
   CHECK_BO(emit_exp(emit, e, 0))
   const Type base = array_base(t);
   ArrayInfo* info = mp_alloc(ArrayInfo);
-  info->type = t;
+//  info->type = t;
+  vector_init(&info->type);
+  for(m_uint i = 1; i < t->array_depth; ++i)
+    vector_add(&info->type, (vtype)array_type(base, i));
+  vector_add(&info->type, (vtype)t);
   info->depth = t->array_depth;
   info->base = base;
   const Instr alloc = emitter_add_instr(emit, ArrayAlloc);
@@ -270,7 +280,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
     instr->m_val = SZ_INT;
     *(Func*)instr->ptr = v->d.func_ref;
   } else if(GET_FLAG(v, ae_flag_union)) {
-    instr->execute = RegPushDeref;
+      instr->execute = RegPushDeref;
       if(prim->self->emit_var) {
         instr->m_val = SZ_INT;
         *(m_uint*)instr->ptr = (m_uint)&v->d.ptr;
@@ -1078,7 +1088,8 @@ return ret;
 #ifdef OPTIMIZE
 ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Func* e) {
   Exp arg = e->args;
-  CHECK_BB(emit_exp(emit, e->args, 0))
+  if(arg)
+    CHECK_BB(emit_exp(emit, e->args, 0))
   const Instr instr = emitter_add_instr(emit, PutArgsInMem);
   while(arg) {
     instr->m_val += arg->type->size;
@@ -1389,10 +1400,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       stmt->value->type->nspc->class_data =
         (m_bit*)xcalloc(1, stmt->value->type->nspc->class_data_size);
     stmt->value->type->nspc->offset = stmt->s;
-#ifdef GWMPOOL_DATA
     if(!stmt->value->type->p)
       stmt->value->type->p = new_pool(stmt->value->type->size);
-#endif
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
@@ -1554,6 +1563,8 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
   CHECK_BB(emit_exp(emit, base, 0))
   const m_bool is_complex = !strcmp((isa(base->type, t_complex) > 0  ? "re" : "phase") ,
         s_name(member->xid));
+  if(is_complex && member->self->emit_var) // skip
+    return 1;
   const Instr instr = is_complex ? emitter_add_instr(emit, ComplexReal) :
       emitter_add_instr(emit, ComplexImag);
   instr->m_val = member->self->emit_var;

@@ -1,7 +1,7 @@
 jit_dir := jit
 jit_src := $(wildcard ${jit_dir}/src/*.c)
 CFLAGS += -Ijit -DJIT
-CFLAGS += -DJIT_DEV
+#CFLAGS += -DJIT_DEV
 
 #jit_backend := naive
 #jit_backend := gccjit

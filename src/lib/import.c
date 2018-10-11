@@ -46,24 +46,25 @@ ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str* list) {
   return 1;
 }
 
-ANN2(1,2,3) static void dl_func_init(DL_Func* a, const m_str t, const m_str n, const f_xfun addr) {
+ANN2(1,2,3) static void dl_func_init(DL_Func* a, const restrict m_str t,
+    const restrict m_str n, const f_xfun addr) {
   a->name = n;
   a->type = t;
   a->addr = addr;
   a->narg = 0;
 }
 
-ANN m_int gwi_func_ini(const Gwi gwi, const m_str t, const m_str n, const f_xfun addr) {
+ANN m_int gwi_func_ini(const Gwi gwi, const restrict m_str t, const restrict m_str n, const f_xfun addr) {
   dl_func_init(&gwi->func, t, n, addr);
   return 1;
 }
 
-ANN static void dl_func_func_arg(DL_Func* a, const m_str t, const m_str n) {
+ANN static void dl_func_func_arg(DL_Func* a, const restrict m_str t, const restrict m_str n) {
   a->args[a->narg].type = t;
   a->args[a->narg++].name = n;
 }
 
-ANN m_int gwi_func_arg(const Gwi gwi, const m_str t, const m_str n) {
+ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   if(gwi->func.narg == DLARG_MAX - 1)
     ERR_B(UTIL_, 0,
           "too many arguments for function '%s'.", gwi->func.name)
@@ -269,11 +270,9 @@ ANN static m_int import_class_end(const Env env) {
 #include "mpool.h"
 ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->env->class_def)return -1;
-#ifdef GWMPOOL_DATA
   const Type t = gwi->env->class_def;
   if(t->nspc && t->nspc->offset)
     t->p = new_pool(t->nspc->offset);
-#endif
   return import_class_end(gwi->env);
 }
 
@@ -303,7 +302,7 @@ ANN static void dl_var_release(const DL_Var* v) {
   free_id_list(v->t.xid);
 }
 
-ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
@@ -326,7 +325,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     const Stmt stmt = new_stmt_exp(ae_stmt_exp, exp, 0);
     const Stmt_List list = new_stmt_list(stmt, NULL);
     Section* section = new_section_stmt_list(list);
-    Class_Body body = new_class_body(section, NULL);
+    const Class_Body body = new_class_body(section, NULL);
     type_decl->array = v->t.array;
     if(!gwi->env->class_def->def->body)
       gwi->env->class_def->def->body = gwi->body = body;
@@ -354,7 +353,6 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   return array_sub;
 }
 
-ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth);
 ANN static Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
   Type_Decl* td = str2decl(env, s, depth);
   td->array = make_dll_arg_list_array(NULL, depth, 0);
@@ -494,7 +492,8 @@ ANN2(1,2) static m_int import_op(const Env env, const DL_Oper* op,
 }
 
 
-ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t) {
+ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
+    const restrict m_str r, const restrict m_str t) {
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
@@ -519,7 +518,7 @@ ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
   return ret;
 }
 
-ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   dl_func_init(&gwi->func, type, name, 0);
   return 1;
 }
@@ -572,7 +571,7 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   return 1;
 }
 
-ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   const Exp exp = make_exp(type, name);
   const Type t = type_decl_resolve(gwi->env, exp->d.exp_decl.td);
   if(!t)
@@ -771,7 +770,6 @@ if(post->exp->exp_type == ae_exp_primary &&
   return post->exp->type;
 }
 
-ANN Type check_exp(const Env env, const Exp exp);
 ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;

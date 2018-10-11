@@ -32,6 +32,8 @@
 #define SAFE_FLAG(a, b) (a && ((a)->flag & (b)) == (b))
 #define UNSET_FLAG(a, b) ((a)->flag &= ~b)
 
+#include <stdio.h>
+
 #include "generated.h"
 
 ANEW const void* xmalloc(const m_uint);

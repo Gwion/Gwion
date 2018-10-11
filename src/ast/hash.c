@@ -5,12 +5,6 @@
 #include "defs.h"
 #include "mpool.h"
 
-POOL_HANDLE(Args, 256)
-POOL_HANDLE(Macro, 256)
-#define xmalloc malloc
-#define xcalloc calloc
-#define xfree free
-
 Args new_args(const char* name) {
   const Args a = mp_alloc(Args);
   a->name = strdup(name);
@@ -46,7 +40,7 @@ static void free_entry(const Macro s) {
 }
 
 void hini(Hash h, const unsigned int size) {
-  h->table = xcalloc(((size  + 3) & 0xfffffffc), sizeof(struct Macro_));
+  h->table = (Macro*)xcalloc(((size  + 3) & 0xfffffffc), sizeof(struct Macro_));
   h->size = size;
 }
 

@@ -20,15 +20,11 @@ M_Object new_object(const VM_Shred shred, const Type t) {
   a->ref = 1;
   a->type_ref = t;
   if(t->nspc->offset) {
-#ifdef GWMPOOL_DATA
     Type type = t;
-    while(!type->p && type->parent)
+    while(!type->p)
       type = type->parent;
     a->p = type->p;
     a->data = (m_bit*)_mp_alloc2(type->p);
-#else
-    a->data = (m_bit*)xcalloc(1, t->nspc->offset);
-#endif
   }
   if(shred)
     vector_add(&shred->gc, (vtype)a);
@@ -89,12 +85,8 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
 }
 
 void free_object(const M_Object o) {
-#ifdef GWMPOOL_DATA
   if(o->data)
     _mp_free2(o->p, o->data);
-#else
-  xfree(o->data);
-#endif
   mp_free(M_Object, o);
 }
 

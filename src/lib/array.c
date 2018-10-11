@@ -16,35 +16,37 @@ struct M_Vector_ {
 #define ARRAY_LEN(array) *(m_uint*)(array->ptr)
 #define ARRAY_SIZE(array) *(m_uint*)(array->ptr + SZ_INT)
 #define ARRAY_CAP(array) *(m_uint*)(array->ptr + SZ_INT*2)
-#define ARRAY_DEPTH(array) *(m_uint*)(array->ptr + SZ_INT*3)
+
 POOL_HANDLE(M_Vector, 512)
 ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }
 
 static DTOR(array_dtor) {
-  const Type base = array_base(o->type_ref);
+  const Type t = o->type_ref;
+  const Type base = array_base(t);
   struct M_Vector_* a = ARRAY(o);
-  if(ARRAY_DEPTH(a) > 1 || isa(base, t_object) > 0)
+  if(t->array_depth > 1 || isa(base, t_object) > 0)
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
   xfree(a->ptr);
   mp_free(M_Vector, a);
-  REM_REF(o->type_ref)
+  REM_REF(t)
 }
 
-ANN M_Object new_array(const Type t, const m_uint size,
-    const m_uint length, const m_uint depth) {
+ANN M_Object new_array(const Type t, const m_uint length) {
   const M_Object a = new_object(NULL, t);
   m_uint cap = 1;
   while(cap < length)
     cap *= 2;
+  const m_uint depth = t->array_depth;
+  const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
   const M_Vector array = ARRAY(a) = mp_alloc(M_Vector);
   array->ptr   = (m_bit*)xcalloc(ARRAY_OFFSET + cap, size);
   ARRAY_CAP(array)   = cap;
   ARRAY_SIZE(array)  = size;
   ARRAY_LEN(array) = length;
-  ARRAY_DEPTH(array) = depth;
+  ADD_REF(t);
   return a;
 }
 
@@ -54,11 +56,11 @@ ANN void m_vector_get(const M_Vector v, const m_uint i, void* c) {
 }
 
 ANN void m_vector_add(const M_Vector v, const void* data) {
+  const m_uint size = ARRAY_SIZE(v);
   if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
     const m_uint cap = ARRAY_CAP(v) *=2;
-    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * ARRAY_SIZE(v));
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
   }
-  const m_uint size = ARRAY_SIZE(v);
   memcpy(ARRAY_PTR(v) + (ARRAY_LEN(v) - 1) * size, data, size);
 }
 
@@ -103,7 +105,7 @@ static MFUN(vm_vector_size) {
 }
 
 static MFUN(vm_vector_depth) {
-  *(m_uint*)RETURN = ARRAY_DEPTH(ARRAY(o));
+  *(m_uint*)RETURN = o->type_ref->array_depth;
 }
 
 static MFUN(vm_vector_cap) {
@@ -240,7 +242,7 @@ INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
   const m_uint off = instr->m_val * instr->m_val2;
   const Type t = *(Type*)instr->ptr;
   POP_REG(shred, off - SZ_INT);
-  const M_Object obj = new_array(t, instr->m_val2, instr->m_val, t->array_depth);
+  const M_Object obj = new_array(t, instr->m_val);
   vector_add(&shred->gc, (vtype)obj);
   memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
@@ -249,9 +251,8 @@ INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
 #define TOP -1
 
 ANN static inline M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap) {
-  ADD_REF(info->type);
-  return new_array(info->type, info->depth >= TOP  ?
-      info->base->size : SZ_INT, cap, -info->depth);
+  struct Vector_ v = info->type;
+  return new_array((Type)vector_at(&v, -info->depth - 1), cap);
 }
 
 ANN static inline M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,

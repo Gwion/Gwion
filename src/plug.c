@@ -6,10 +6,10 @@
 #include "absyn.h"
 #include "err_msg.h"
 #include "operator.h"
+#include "instr.h"
 #include "import.h"
 #include "plug.h"
 #ifdef JIT
-#include "instr.h"
 #include "jitter.h"
 #endif
 static inline int so_filter(const struct dirent* dir) {

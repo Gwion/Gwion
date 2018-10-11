@@ -3,9 +3,9 @@
 #include "defs.h"
 #include "err_msg.h"
 #include "type.h"
+#include "instr.h"
 #include "value.h"
 #include "func.h"
-#include "instr.h"
 #include "mpool.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);

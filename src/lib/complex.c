@@ -37,10 +37,10 @@ describe_r(mul, *)
 describe_r(div, /)
 
 INSTR(ComplexReal) { GWDEBUG_EXE
-  if(!instr->m_val) {
+//  if(!instr->m_val) { // other case skipped in emit.c
     *(m_float*)REG(-SZ_INT) = **(m_float**)REG(-SZ_INT);
     PUSH_REG(shred, SZ_FLOAT - SZ_INT);
-  }
+//  }
 }
 
 INSTR(ComplexImag) { GWDEBUG_EXE

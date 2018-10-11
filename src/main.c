@@ -111,7 +111,6 @@ int main(int argc, char** argv) {
 #ifdef GWUDP
   pthread_t thread;
 #endif
-  GWREPL_THREAD
   d.del = NULL;
   memset(&arg, 0, sizeof(Arg));
   arg.argc = argc;
@@ -180,11 +179,11 @@ __fsetlocking(stderr, FSETLOCKING_BYCALLER);
 #endif
   }
 #endif
-  GWREPL_INI(vm, &repl_thread)
+  GWREPL_INI(vm)
   VMBENCH_INI
   d.run(vm, &di);
   VMBENCH_END
-  GWREPL_END(repl_thread)
+  GWREPL_END()
 #ifdef GWUDP
   if(udpif.on)
     udp_release(&udp, thread);

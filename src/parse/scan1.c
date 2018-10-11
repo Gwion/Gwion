@@ -1,4 +1,3 @@
-#define PARSE
 #include "defs.h"
 #include "err_msg.h"
 #include "absyn.h"
@@ -254,11 +253,11 @@ ANN static m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
 ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   m_uint count = 1;
+  if(nspc_lookup_value1(env->curr, stmt->xid))
+    ERR_B(SCAN2_, stmt->self->pos,
+          "'%s' already declared as variable", s_name(stmt->xid))
   do {
-    if(nspc_lookup_value0(env->curr, list->xid))
-      ERR_B(SCAN1_, stmt->self->pos,
-            "in enum argument %i '%s' already declared as variable",
-            count, s_name(list->xid))
+    CHECK_BB(already_defined(env, list->xid, stmt->self->pos))
     const Value v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
@@ -481,34 +480,49 @@ ANN static m_bool scan1_section(const Env env, const Section* section) { GWDEBUG
   return 1;
 }
 
+
+ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
+/*
+  const Type parent = class_def->type->parent = type_decl_resolve(env, class_def->ext);
+  if(!parent)
+    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
+  if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
+    CHECK_BB(scan1_class_def(env, parent->def))
+*/
+  if(class_def->ext->array) {
+    if(class_def->ext->array->exp)
+      CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
+    else {
+      ERR_B(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend")
+    }
+  }
+  const Type parent = class_def->type->parent = type_decl_resolve(env, class_def->ext);
+  if(!parent)
+    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
+  if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
+    CHECK_BB(scan1_class_def(env, parent->def))
+  if(type_ref(parent))
+    ERR_B(SCAN1_, class_def->ext->pos, "can't use ref type in class extend")
+  return 1;
+}
+
+ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
+  m_uint class_scope;
+  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  Class_Body body = class_def->body;
+  do CHECK_BB(scan1_section(env, body->section))
+  while((body = body->next));
+  env_pop(env, class_scope);
+  return 1;
+}
+
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
     return 1;
-  if(class_def->ext) {
-    const Type parent = type_decl_resolve(env, class_def->ext);
-    if(!parent)
-      CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-    if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
-      CHECK_BB(scan1_class_def(env, parent->def))
-    if(class_def->ext->array) {
-      if(class_def->ext->array->exp)
-        CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
-      else
-        ERR_B(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend")
-    }
-    if(!type_ref(parent))
-      class_def->type->parent = parent;
-    else
-      ERR_B(SCAN1_, class_def->ext->pos, "can't use ref type in class extend")
-  }
-  if(class_def->body) {
-    Class_Body body = class_def->body;
-    m_uint class_scope;
-    env_push(env, class_def->type, class_def->type->nspc, &class_scope);
-    do CHECK_BB(scan1_section(env, body->section))
-    while((body = body->next));
-    env_pop(env, class_scope);
-  }
+  if(class_def->ext)
+    CHECK_BB(scan1_class_parent(env, class_def))
+  if(class_def->body)
+    CHECK_BB(scan1_class_body(env, class_def))
   SET_FLAG(class_def->type, ae_flag_scan1);
   return 1;
 }

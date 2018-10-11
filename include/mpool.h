@@ -1,8 +1,3 @@
-#ifndef GWMPOOL
-#define POOL_HANDLE(name, nelem)
-#define mp_alloc(name) calloc(1, sizeof(struct name##_))
-#define mp_free(p, d) free((d))
-#else
 #define POOL_HANDLE(name, nelem)
 ANN struct pool* new_pool(const uint32_t elementSize);
 ANN struct pool* mp_ini(const uint32_t elementSize);
@@ -13,4 +8,3 @@ ANN void _mp_free(const m_uint, void*);
 ANN void _mp_free2(struct pool*, void*);
 #define mp_alloc(name) _mp_alloc(sizeof(struct name##_))
 #define mp_free(name, a) _mp_free(sizeof(struct name##_), (a))
-#endif

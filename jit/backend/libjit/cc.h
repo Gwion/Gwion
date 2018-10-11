@@ -9,6 +9,7 @@ typedef struct JitCC_ {
   struct Map_ sig;
   struct Map_ label;
   struct Map_ vtable;
+  struct Map_ jvtable;
   jit_context_t ctx;
 } JitCC;
 
@@ -42,3 +43,4 @@ cc_call(cc, #func, s, (Jval*)argv);\
 //Jval cc_call(CC cc, void* func, const m_str s, Jval *arg);
 Jval cc_call(CC cc, const m_str name, const m_str s, Jval *arg);
 ANN void cc_ex(const CC cc);
+ANN /*int*/ void jit_mp_alloc2(const CC);

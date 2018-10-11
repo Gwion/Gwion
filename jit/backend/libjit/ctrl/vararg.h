@@ -7,4 +7,3 @@ JIT_CTRL(VarargTop) {
 void jit_ctrl_import_vararg(struct Jit* jit) {
   jit_ctrl_import(jit, VarargTop, VarargTop_ctrl);
 }
-

@@ -700,7 +700,9 @@ int main(int argc, char** argv) {
     }
     Ast ast;
     FILE* f = fopen(*argv, "r");
-    if(!f || !(ast = parse(scan, *argv++, f)))
+    if(!f)
+      continue;
+    if(!(ast = parse(scan, *argv++, f)))
       goto close;
     linter.file = stdout;
     lint_ast(&linter, ast);

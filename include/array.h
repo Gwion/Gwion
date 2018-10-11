@@ -1,6 +1,8 @@
 typedef struct ArrayInfo_ {
   m_int depth;
-  Type   type, base;
+//  Type   type, base;
+  struct Vector_   type;
+  Type   base;
   M_Object* data;
   union {
     m_int* idx;    // for object array

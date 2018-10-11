@@ -20,19 +20,48 @@
 #include "ctrl.h"
 #include "ctrl_private.h"
 
+jit_function_t get_jit_func(CC cc, const m_str s) {
+  Map m = &cc->jvtable;
+  const m_uint size = map_size(m);
+  for(m_uint i = 0; i < size; ++i)
+    if(!strcmp((m_str)vector_at((Vector)m, i*2), s))
+      return (jit_function_t)map_at(m, i);
+  return NULL;
+}
+
+//extern void jit_new_object(CC);
+//extern void jit_mp_alloc2(CC);
+
 CC new_cc() {
   CC cc = (CC)xmalloc(sizeof(struct JitCC_));
   cc->ctx = jit_context_create();
-  cc->f = NULL;
   sig_ini(&cc->sig);
   map_init(&cc->vtable);
+  map_init(&cc->jvtable);
   map_init(&cc->label);
+
+  jit_context_build_start(cc->ctx);
+  cc->f = jit_function_create(cc->ctx, sig(&cc->sig, "pp", jit_abi_fastcall));
+  jit_mp_alloc2(cc);
+  jit_function_compile(cc->f);
+  jit_context_build_end(cc->ctx);
+  map_set(&cc->jvtable, (vtype)strdup("jit_mp_alloc"), (vtype)cc->f);
+
+  jit_context_build_start(cc->ctx);
+  cc->f = jit_function_create(cc->ctx, sig(&cc->sig, "ppp", jit_abi_fastcall));
+  jit_new_object(cc);
+  jit_function_compile(cc->f);
+  jit_context_build_end(cc->ctx);
+  map_set(&cc->jvtable, (vtype)strdup("jit_new_object"), (vtype)cc->f);
+
+  cc->f = NULL;
   return cc;
 }
 
 ANN void free_cc(CC cc) {
   sig_end(&cc->sig);
   map_release(&cc->vtable);
+  map_release(&cc->jvtable);
   map_release(&cc->label);
   jit_context_destroy(cc->ctx);
   xfree(cc);
@@ -76,20 +105,30 @@ ANN static void libjit_end(const JitThread jt) {
 }
 
 ANN static void label_func(CC cc, const vtype idx) {
-//  jit_label_t* lbl = xmalloc(sizeof(jit_label_t));
-//  *lbl = jit_label_undefined;
-//  map_set(&cc->label, idx, lbl);
-  map_set(&cc->label, idx, jit_function_reserve_label(cc->f));
+  jit_label_t* lbl = (jit_label_t*)xmalloc(sizeof(jit_label_t));
+  *lbl = jit_label_undefined;
+  map_set(&cc->label, idx, (vtype)lbl);
+//  map_set(&cc->label, idx, jit_function_reserve_label(cc->f));
 }
 
 ANN static void libjit_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
+  cc->ctrl = ctrl;
 /*
   if(ctrl_idx(ctrl) == 1) // => jitter
     ctrl_label(ctrl, cc, label_func);
   if(ctrl_pc(ctrl)) {
-    jit_label_t lbl = (jit_label_t)map_get(&cc->label, ctrl_idx(ctrl)-1);
-    JINSN(label, &lbl);
+//    jit_label_t lbl = (jit_label_t)map_get(&cc->label, ctrl_idx(ctrl)-1);
+    jit_label_t* lbl = (jit_label_t*)map_get(&cc->label, ctrl_idx(ctrl)-1);
+if(!lbl) {
+printf("no label at %lu\n", ctrl_idx(ctrl));
+//label_func(cc, ctrl_idx(ctrl) - 1);
+//lbl = map_get(&cc->label, ctrl_idx(ctrl)-1);;
+//if(!lbl)
+exit(2);
+}
+//    JINSN(label, &lbl);
+    JINSN(label, lbl);
   }
 */
   CJval pc = JCONST(nuint, ctrl_idx(ctrl));

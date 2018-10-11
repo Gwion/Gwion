@@ -46,6 +46,8 @@ ANN static void free_code_instr(Vector v) {
       REM_REF((Func)instr->m_val2)
     else if(instr->execute == SporkFunc)
       REM_REF((VM_Code)instr->m_val2)
+    else if(instr->execute == ArrayInit)
+      REM_REF(*(Type*)instr->ptr)
     else if(instr->execute == ArrayAlloc)
       free_array_info(*(ArrayInfo**)instr->ptr);
     else if(instr->execute == Gack)

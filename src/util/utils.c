@@ -139,3 +139,10 @@ ANN m_bool type_ref(Type t) {
   } while((t = t->parent));
   return 0;
 }
+
+ANN m_bool already_defined(const Env env, const Symbol s, const int pos) {
+  const Value v = nspc_lookup_value0(env->curr, s);
+  return v ? err_msg(TYPE_, pos,
+    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;
+}
+

@@ -32,6 +32,7 @@ JIT_CODE(VarargIni) {
   CJval pool = JCONST(nuint, sizeof(struct Vararg_));
   CJval arg[] = { pool };
   CJval var = CALL_NATIVE2(_mp_alloc, "pp", arg);
+//  CJval var = jit_mp_alloc(cc, sizeof(struct Vararg_));
   if(instr->m_val) {
     push_reg(cc, -instr->m_val);
     CJval size = JCONST(nuint, instr->m_val);

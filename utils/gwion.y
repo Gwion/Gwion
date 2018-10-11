@@ -5,6 +5,7 @@
 %{
 #include <stdio.h> // strlen in paste operation
 #include <string.h> // strlen in paste operation
+#include <math.h>
 #include "absyn.h"
 #include "hash.h"
 #include "scanner.h"
@@ -81,7 +82,7 @@ m_str op2str(const Operator op);
 %type<array_sub> array_exp array_empty
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
-%type<stmt> enum_stmt func_ptr stmt_type union_stmt stmt_pp
+%type<stmt> enum_stmt func_ptr stmt_type union_stmt 
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
@@ -180,17 +181,7 @@ code_segment
   | LBRACE stmt_list RBRACE { $$ = new_stmt_code($2, get_pos(arg)); }
   ;
 
-stmt_pp
-  : PP_COMMENT { $$ = new_stmt_pp(ae_pp_comment, $1); }
-  | PP_INCLUDE { $$ = new_stmt_pp(ae_pp_include, $1); }
-  | PP_DEFINE  { $$ = new_stmt_pp(ae_pp_define,  $1); }
-  | PP_UNDEF   { $$ = new_stmt_pp(ae_pp_undef,   $1); }
-  | PP_IFDEF   { $$ = new_stmt_pp(ae_pp_ifdef,   $1); }
-  | PP_IFNDEF  { $$ = new_stmt_pp(ae_pp_ifndef,  $1); }
-  | PP_ELSE    { $$ = new_stmt_pp(ae_pp_else,    $1); }
-  | PP_ENDIF   { $$ = new_stmt_pp(ae_pp_endif,   $1); }
-  | PP_NL      { $$ = new_stmt_pp(ae_pp_nl,      $1); }
-  ;
+
 
 stmt
   : exp_stmt
@@ -206,7 +197,6 @@ stmt
   | func_ptr
   | stmt_type
   | union_stmt
-  | stmt_pp
 ;
 
 id
@@ -472,7 +462,7 @@ cast_exp: unary_exp | cast_exp DOLLAR type_decl2
 
 unary_op : PLUS { $$ = op_add; } | MINUS { $$ = op_sub; } | TIMES { $$ = op_mul; }
          | PLUSPLUS { $$ = op_inc; } | MINUSMINUS { $$ = op_dec; }
-  | EXCLAMATION { $$ = op_not; } | SPORK TILDA { $$ = op_spork; }
+  | EXCLAMATION { $$ = op_not; } | SPORK TILDA { $$ = op_spork; } | TILDA { $$ = op_cmp; }
   ;
 
 unary_exp : dur_exp | unary_op unary_exp

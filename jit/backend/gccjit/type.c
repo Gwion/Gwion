@@ -106,17 +106,11 @@ static void import_type_type(struct CCImport* cci) {
     ADD_FIELD("m_uint", "array_depth"),
     ADD_FIELD("pointer", "def"), // Class_Sef
     ADD_FIELD("pointer", "d"), // union type_data
-#ifdef GWMPOOL_DATA
     ADD_FIELD("pointer", "p"), // union type_data
-#endif
     ADD_FIELD("m_bool", "flag"),
     ADD_FIELD("struct oo", "obj")
   };
-#ifdef GWMPOOL_DATA
   SET_FIELDS(type, 12);
-#else
-  SET_FIELDS(type, 11);
-#endif
 }
 
 static void import_vector_type(struct CCImport  *cci) {

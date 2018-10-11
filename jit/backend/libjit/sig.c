@@ -8,6 +8,7 @@
 
 ANN void sig_ini(Map m) {
   map_init(m);
+/*
   jit_type_t vector_fields[] = { jit_type_void_ptr };
   map_set(m, (vtype)strdup("@vector"),
 (vtype)jit_type_create_struct(vector_fields, 1, 0));
@@ -18,6 +19,7 @@ jit_type_void_ptr,
      jit_type_void_ptr, jit_type_void_ptr, jit_type_sys_int };
   map_set(m, (vtype)strdup("@ArrayInfo"),
     (vtype)jit_type_create_struct(aai_fields, 1, 0));
+*/
 }
 
 

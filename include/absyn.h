@@ -257,7 +257,7 @@ typedef enum { ae_stmt_exp, ae_stmt_while, ae_stmt_until, ae_stmt_for, ae_stmt_a
                ae_stmt_continue, ae_stmt_return, ae_stmt_case, ae_stmt_jump,
                ae_stmt_enum, ae_stmt_fptr, ae_stmt_type, ae_stmt_union,
 #ifndef TINY_MODE
-#ifndef PARSE
+#ifdef TOOL_MODE
 ae_stmt_pp
 #endif
 #endif

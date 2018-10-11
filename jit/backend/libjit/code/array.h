@@ -6,6 +6,9 @@
 #include "code.h"
 #include "code/func.h"
 
+
+#include "stdio.h" // debug only
+
 JIT_CODE(ArrayAppend) {
   push_reg(cc, -instr->m_val);
   CJval o = JLOADR(cc->reg, -SZ_INT, void_ptr);
@@ -28,6 +31,7 @@ JIT_CODE(ArrayTop) {
   CJval type = JCONST(void_ptr, instr->m_val2);
   Jval arg[] = { cc->shred, type };
   CALL_NATIVE2(instantiate_object, "vpp", arg);
+push_reg(cc, 0);
   JINSN(branch, &lbl1);
   JINSN(label, &lbl0);
   next_pc(cc, instr->m_val);
@@ -52,29 +56,18 @@ JIT_CODE(ArrayPost) {
   CALL_NATIVE2(cc_free, "vp", &arr);
 }
 
-ANN void jit_type_add_ref(CC cc, CJval type) {
-  CJval ref = JLOADR(type, JOFF(Type, obj), void_ptr);
-  CJval _ref = JINSN(add, ref, JCONST(nuint, 1));
-  JSTORER(type, JOFF(Type, obj), _ref);
-}
-
-void add2gc(const VM_Shred shred , const M_Object obj) {
-  vector_add(&shred->gc, (vtype)obj);
-}
-
 JIT_CODE(ArrayInit) {
   const m_uint off = instr->m_val * instr->m_val2;
   const Type t = *(Type*)instr->ptr;
   push_reg(cc, -off + SZ_INT);
   CJval type   = JCONST(void_ptr, t);
-  CJval size   = JCONST(nuint, instr->m_val2);
+//  CJval size   = JCONST(nuint, instr->m_val2);
   CJval len    = JCONST(nuint, instr->m_val);
-  CJval depth  = JCONST(nuint, t->array_depth);
-  CJval arg0[] = { type, size, len , depth };
-  CJval obj = CALL_NATIVE2(new_array, "ppUUU", arg0);
+//  CJval depth  = JCONST(nuint, t->array_depth);
+  CJval arg0[] = { type, len };
+  CJval obj = CALL_NATIVE2(new_array, "ppU", arg0);
   JSTORER(cc->reg, -SZ_INT, obj);
-  CJval gc = JADDR(cc->shred, JOFF(VM_Shred, gc));
-  jit_vector_add(cc, gc, obj);
+  cc_add2gc(cc, obj);
   CJval data  = JLOADR(obj, JOFF(M_Object, data), void_ptr);
   CJval array = JLOADR(data, 0, void_ptr);
   CJval _ptr = JLOADR(array, JOFF(M_Vector, ptr), void_ptr);
@@ -92,7 +85,6 @@ ANN static void jit_init_array(CC cc, m_int curr,  CJval num_obj) {
     ++curr;
   }
 }
-
 JIT_CODE(ArrayAlloc) {
   const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
   const m_bool is_obj = info->is_obj && !info->is_ref;
@@ -100,10 +92,14 @@ JIT_CODE(ArrayAlloc) {
   CJval aai = JINSN(alloca, size);
   CJval depth = JCONST(nint, -info->depth);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, depth), depth);
-  CJval type = JCONST(void_ptr, info->type);
+  CJval type = JCONST(void_ptr, *(void**)&info->type);
+//  CJval type = JCONST(nuint, &info->type.ptr);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, type), type);
   CJval base = JCONST(void_ptr, info->base);
   JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, base), base);
+//  CJval _aai = JINSN(address_of, aai);
+//  JINSN(memcpy, _aai, JCONST(void_ptr, info), 
+//  JCONST(nuint, SZ_INT*3));
   Jval index = jit_value_create(cc->f, jit_type_nint);
   JINSN(store, index, JCONST(nuint, 0));
   CJval aindex = JINSN(address_of, index);
@@ -135,14 +131,14 @@ JIT_CODE(ArrayAlloc) {
     JSTORER(aai, __builtin_offsetof(struct ArrayInfo_, data), JCONST(void_ptr, NULL));
     CJval arg[] = { cc->shred, aai };
     CJval ref = CALL_NATIVE(do_alloc_array, "ppp", arg);
-    if(info->depth > 1)
+//    if(info->depth > 1)
       push_reg(cc, -SZ_INT * (info->depth - 1));
     JSTORER(cc->reg, -SZ_INT, ref);
   }
 }
 
 static void jit_oob(const CC cc, CJval obj,
-  CJval dim, CJval idx, CJval base) {(void)dim;
+  CJval dim, CJval idx, CJval base) {
   CJval zero = JCONST(nint, 0);
   CJval cond = JINSN(lt, idx, zero);
   CJval data = JLOADR(obj, JOFF(M_Object, data), void_ptr);
@@ -159,6 +155,7 @@ static void jit_oob(const CC cc, CJval obj,
 //CJval arg[] = { JCONST(void_ptr, "idx %li\n"), idx };
 //CALL_NATIVE2(printf, "ipI", arg);
   cc_except(cc, "ArrayOutofBounds");
+  // TODO fix err_msg
   JINSN(label, &lbl2);
 }
 

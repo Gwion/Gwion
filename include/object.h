@@ -9,8 +9,7 @@ ANN void instantiate_object(const VM_Shred, const Type);
 ANN void free_object(const M_Object);
 ANEW M_Object new_object(const VM_Shred, const Type);
 ANEW M_Object new_M_UGen(void);
-ANN ANEW M_Object new_array(const Type t, const m_uint size,
-  const m_uint length, const m_uint depth);
+ANN ANEW M_Object new_array(const Type t, const m_uint length);
 ANEW M_Object new_string(const VM_Shred, const m_str);
 ANEW M_Object new_string2(const VM_Shred, const m_str);
 ANN void __release(const M_Object, const VM_Shred);
