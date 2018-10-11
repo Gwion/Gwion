@@ -1,4 +1,3 @@
-#define PARSE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,6 +9,7 @@
 #include "type.h"
 #include "value.h"
 #include "func.h"
+#include "instr.h"
 #include "import.h"
 #include "traverse.h"
 #include "optim.h"
@@ -34,7 +34,7 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWDEBUG_EXE
+ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWDEBUG_EXE
   const Value value = find_value(env->class_def->parent, var->xid);
   if(value)
     ERR_B(TYPE_, var->pos,
@@ -48,12 +48,11 @@ ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { G
   nspc->offset += v->type->size;
 }
 
-ANN static m_bool check_exp_decl_static(const Env env , const Value v) { GWDEBUG_EXE
+ANN static void check_exp_decl_static(const Env env , const Value v) {
   const Nspc nspc = env->curr;
   SET_FLAG(v, ae_flag_static);
   v->offset = nspc->class_data_size;
   nspc->class_data_size += v->type->size;
-  return 1;
 }
 
 ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol xid) {
@@ -112,7 +111,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     if(GET_FLAG(value, ae_flag_member))
       check_exp_decl_member(env->curr, value);
     else if(GET_FLAG(decl->td, ae_flag_static))
-      CHECK_BO(check_exp_decl_static(env, value))
+      check_exp_decl_static(env, value);
     check_exp_decl_valid(env, value, var->xid);
   } while((list = list->next));
   if(global)
@@ -318,12 +317,11 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) { G
 }
 
 ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
-  Type t_base;
-  m_uint depth = 0;
+  Type t_base = check_exp(env, array->base);
+  CHECK_OO(t_base)
   Exp e = array->array->exp;
-
-  CHECK_OO((t_base = check_exp(env, array->base)))
   CHECK_OO(check_exp(env, e))
+  m_uint depth = 0;
   do {
     ++depth;
     if(isa(e->type, t_int) < 0)
@@ -1256,16 +1254,12 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
 }
 
 ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
-  m_uint count = 1;
   do {
-    const Value v = arg_list->var_decl->value;
-    if(nspc_lookup_value0(env->curr, arg_list->var_decl->xid))
-      ERR_B(TYPE_, arg_list->var_decl->pos,
-                    "argument %i '%s' is already defined in this scope",
-                    count, s_name(arg_list->var_decl->xid))
+    const Var_Decl decl = arg_list->var_decl;
+    const Value v = decl->value;
+    CHECK_BB(already_defined(env, decl->xid, decl->pos))
     SET_FLAG(v, ae_flag_checked);
-    nspc_add_value(env->curr, arg_list->var_decl->xid, v);
-    ++count;
+    nspc_add_value(env->curr, decl->xid, v);
   } while((arg_list = arg_list->next));
   return 1;
 }
@@ -1301,7 +1295,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG
 
 ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = f->func;
-  if(env->class_def) {
+  if(env->class_def && env->class_def->parent) {
     const Value override = find_value(env->class_def->parent, f->name);
     if(override && isa(override->type, t_function) < 0)
       ERR_B(TYPE_, f->td->pos,
@@ -1327,8 +1321,9 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 
   if(tmpl_list_base(f->tmpl))
     return 1;
-  if(!GET_FLAG(f, ae_flag_builtin))
-    CHECK_BB(check_func_def_override(env, f))
+//  if(env->class_def && env->class_def->parent)
+//  if(!GET_FLAG(f, ae_flag_builtin))
+  CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
   const Func former = env->func;
@@ -1402,6 +1397,23 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   return 1;
 }
 
+ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
+  Class_Body body = class_def->body;
+  m_uint class_scope;
+  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  do CHECK_BB(check_section(env, body->section))
+  while((body = body->next));
+  env_pop(env, class_scope);
+  return 1;
+}
+
+ANN static inline void inherit(const Type t) {
+  const Nspc nspc = t->nspc, parent = t->parent->nspc;
+  nspc->offset = parent->offset;
+  if(parent->vtable.ptr)
+    vector_copy2(&parent->vtable, &nspc->vtable);
+}
+
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
     return 1;
@@ -1410,23 +1422,12 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     CHECK_BB(check_class_parent(env, class_def))
   else
     the_class->parent = t_object;
-  the_class->nspc->offset = the_class->parent->nspc->offset;
-  if(the_class->parent->nspc->vtable.ptr)
-    vector_copy2(&the_class->parent->nspc->vtable, &the_class->nspc->vtable);
-  if(class_def->body) {
-    Class_Body body = class_def->body;
-    m_uint class_scope;
-    env_push(env, the_class, the_class->nspc, &class_scope);
-    do CHECK_BB(check_section(env, body->section))
-    while((body = body->next));
-    env_pop(env, class_scope);
-  }
-#ifdef GWMPOOL_DATA
+  inherit(the_class);
+  if(class_def->body)
+    CHECK_BB(check_class_body(env, class_def))
   if(!the_class->p && the_class->nspc->offset)
-  the_class->p = new_pool(the_class->nspc->offset);
-#endif
-  SET_FLAG(the_class, ae_flag_checked);
-  SET_FLAG(the_class, ae_flag_check);
+    the_class->p = new_pool(the_class->nspc->offset);
+  SET_FLAG(the_class, ae_flag_checked | ae_flag_check);
   return 1;
 }
 
