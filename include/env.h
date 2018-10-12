@@ -32,7 +32,7 @@ ANN Type scan_type(const Env, const Type, const Type_Decl*);
 ANN Type type_decl_resolve(const Env, const Type_Decl*);
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
-ANN m_bool type_unknown(const ID_List, const m_str);
+ANN Type known_type(const Env env, const Type_Decl*, const m_str);
 ANN m_bool env_add_op(const Env, const struct Op_Import*);
 ANN m_bool env_access(const Env env, const ae_flag flag);
 ANN void env_storage(const Env env, ae_flag* flag);

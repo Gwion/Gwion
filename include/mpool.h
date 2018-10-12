@@ -1,4 +1,3 @@
-#define POOL_HANDLE(name, nelem)
 ANN struct pool* new_pool(const uint32_t elementSize);
 ANN struct pool* mp_ini(const uint32_t elementSize);
 ANN void mp_end(struct pool*);

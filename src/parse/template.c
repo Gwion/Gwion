@@ -139,10 +139,10 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
       nspc_pop_type(env->curr);
       return -1;
     }
-    Type t = type_decl_resolve(env, call->td);
+    const Type t = known_type(env, call->td, "template");
     if(!t) {
       nspc_pop_type(env->curr);
-      CHECK_BB(type_unknown(call->td->xid, "template"))
+      return -1;
     }
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;

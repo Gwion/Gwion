@@ -17,7 +17,6 @@ typedef struct M_Operator_{
   Type (*ck)(Env, void*);
   m_bool (*em)(Emitter, void*);
 } M_Operator;
-POOL_HANDLE(M_Operator, 256)
 
 ANN static void free_op(M_Operator* a) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)
@@ -32,7 +31,7 @@ ANN static void free_op(M_Operator* a) {
 ANN void free_op_map(Map map) {
   LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
-    Vector v = (Vector)map_at(map, (vtype)i - 1);
+    const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
       free_op((M_Operator*)vector_at(v, j - 1));
@@ -54,7 +53,7 @@ ANN static Type op_parent(const Env env, const Type t) {
   return t->parent;
 }
 
-static m_bool op_match(const Type t, const Type mo) {
+static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return 1;
   if((t && mo && mo->xid == t->xid) || (!t && !mo))
@@ -62,7 +61,7 @@ static m_bool op_match(const Type t, const Type mo) {
   return 0;
 }
 
-ANN2(1) static M_Operator* operator_find(const Vector v, const Type lhs, const Type rhs) {
+ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs, const restrict Type rhs) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))
@@ -153,6 +152,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
   if(opi->op != op_impl)
   (void)err_msg(TYPE_, 0, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
+
   return NULL;
 }
 
@@ -195,7 +195,6 @@ ANN static Nspc get_nspc(const struct Op_Import* opi) {
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   const Nspc nspc = get_nspc(opi);
-
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;

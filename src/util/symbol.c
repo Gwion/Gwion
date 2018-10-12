@@ -13,7 +13,6 @@ struct Symbol_ {
   Symbol next;
 };
 
-POOL_HANDLE(Symbol, 2048)
 static Symbol hashtable[SIZE];
 
 ANN static void free_symbol(const Symbol s) {

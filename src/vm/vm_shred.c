@@ -10,8 +10,6 @@ struct Stack_ {
   char c[SIZEOF_REG];
   char d[SIZEOF_MEM];
 };
-POOL_HANDLE(VM_Shred, 512)
-POOL_HANDLE(Stack, 512)
 
 VM_Shred new_vm_shred(VM_Code c) {
   const VM_Shred shred = mp_alloc(VM_Shred);

@@ -234,9 +234,8 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(td->array && !td->array->exp)
     ERR_B(TYPE_, 0, "class extend array can't be empty")
   if(!gwi->env->class_def->def) {
-    const Type t =type_decl_resolve(gwi->env, td);
-    if(!t)
-      CHECK_BB(type_unknown(td->xid, "builtin class extend"))
+    const Type t = known_type(gwi->env, td, "builtin class extend");
+    CHECK_OB(t)
     if(td->array)
       SET_FLAG(gwi->env->class_def, ae_flag_typedef);
     gwi->env->class_def->parent = t;
@@ -773,9 +772,8 @@ if(post->exp->exp_type == ae_exp_primary &&
 ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  const Type t = type_decl_resolve(env, unary->td);
-  if(!t)
-    CHECK_BO(type_unknown(unary->td->xid, "'new' expression"))
+  const Type t = known_type(env, unary->td, "'new' expression");
+  CHECK_OO(t)
   if(unary->td->array)
     CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
   else

@@ -25,11 +25,6 @@ typedef struct Local_ {
   m_uint offset;
   m_bool is_obj;
 } Local;
-POOL_HANDLE(Local, 128)
-POOL_HANDLE(Frame, 8)
-POOL_HANDLE(Code,  8)
-POOL_HANDLE(Instr, 2048)
-POOL_HANDLE(ArrayInfo, 64)
 
 #ifdef GWCOV
 #define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);

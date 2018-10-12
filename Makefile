@@ -97,8 +97,8 @@ src_src += utils/udp.c
 endif
 ifeq (${USE_GWMPOOL}, 1)
 CFLAGS+=-DGWMPOOL
-TOOL_OBJ += utils/mpool.o src/util/map.o
-util_src += utils/mpool.c
+TOOL_OBJ += src/util/mpool.o src/util/map.o
+util_src += src/util/mpool.c
 endif
 ifeq (${USE_OPTIMIZE}, 1)
 util_src += utils/optim.c
@@ -139,7 +139,7 @@ util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
 TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/ast/hash.o src/ast/scanner.o
 
-TOOL_SRC += utils/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c
+TOOL_SRC += src/util/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c
 
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
@@ -210,7 +210,6 @@ gwcov: utils/gwcov.o
 	@${CC} ${CFLAGS} utils/gwcov.o -o gwcov ${LDFLAGS}
 
 gwpp: ${TOOL_SRC}
-	echo lol ${TOOL_SRC}
 	$(info compiling gwpp)
 	@${CC} ${CFLAGS} -o gwpp -DTOOL_MODE -DLINT_MODE utils/gwpp.c ${LDFLAGS}  ${TOOL_SRC}
 

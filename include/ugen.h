@@ -39,5 +39,5 @@ struct UGen_ {
 };
 ANN void ugen_ini(const UGen, const m_uint, const m_uint);
 ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);
-ANN void gw_connect(const UGen lhs, const UGen rhs);
-ANN void gw_disconnect(const UGen lhs, const UGen rhs);
+ANN void ugen_connect(const UGen lhs, const UGen rhs);
+ANN void ugen_disconnect(const UGen lhs, const UGen rhs);

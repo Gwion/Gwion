@@ -1,4 +1,3 @@
-#define PARSE
 #include <string.h>
 #include "defs.h"
 #include "err_msg.h"
@@ -21,12 +20,8 @@ ANN static Value mk_class(const Type base) {
 
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->td->flag))
+  CHECK_BB(already_defined(env, stmt->xid, stmt->td->pos)) // test for type ?
   const m_str name = s_name(stmt->xid);
-  const Value v = nspc_lookup_value1(env->curr, stmt->xid);
-  if(v)
-    ERR_B(SCAN0_, stmt->td->pos,
-          "value '%s' already defined in this scope"
-          " with type '%s'.", s_name(stmt->xid), v->type->name)
   const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
     env->curr : env->global_nspc;
@@ -41,14 +36,9 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
 
 ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->td->flag))
-  const Type base = type_decl_resolve(env, stmt->td);
-  const Value v = nspc_lookup_value1(env->curr, stmt->xid);
-  if(!base)
-    CHECK_BB(type_unknown(stmt->td->xid, "typedef"))
-  if(v)
-    ERR_B(SCAN0_, stmt->td->pos,
-          "value '%s' already defined in this scope"
-          " with type '%s'.", s_name(stmt->xid), v->type->name)
+  const Type base = known_type(env, stmt->td, "typedef");
+  CHECK_OB(base)
+  CHECK_BB(already_defined(env, stmt->xid, stmt->td->pos)) // test for type ?
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
@@ -65,8 +55,6 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
       stmt->td, NULL);
     CHECK_BB(scan0_class_def(env, def))
-//    if(stmt->td->array)
-//      REM_REF(base)
     stmt->type = def->type;
   }
   SET_FLAG(stmt->type, ae_flag_typedef);
@@ -76,9 +64,8 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->flag))
   env_storage(env, &stmt->flag);
-  if(stmt->xid && nspc_lookup_value0(env->curr, stmt->xid))
-    ERR_B(SCAN0_, stmt->self->pos,
-          "'%s' already declared as variable", s_name(stmt->xid))
+  if(stmt->xid)
+    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
@@ -105,6 +92,10 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
+
+//    nspc_add_type(nspc, stmt->xid, t);
+//    (void)mk_class(t);
+
     SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
     if(env->class_def && !GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(stmt->value, ae_flag_member);
@@ -137,10 +128,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
-  if(nspc_lookup_type1(env->curr, class_def->name->xid))
-    ERR_B(SCAN0_,  class_def->name->pos,
-          "class/type '%s' is already defined in namespace '%s'",
-          s_name(class_def->name->xid), env->curr->name)
+  CHECK_BB(already_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
   if(isres(class_def->name->xid) > 0) {
     ERR_B(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
           s_name(class_def->name->xid))

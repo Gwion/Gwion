@@ -9,7 +9,6 @@
 #include "jitter.h"
 #endif
 
-POOL_HANDLE(VM_Code, 2048)
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
     const m_bool need_this, const m_str name) {
   VM_Code code           = mp_alloc(VM_Code);

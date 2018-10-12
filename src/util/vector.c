@@ -4,8 +4,6 @@
 #include "map.h"
 #include "mpool.h"
 
-POOL_HANDLE(Vector, 2048)
-
 ANN inline void vector_init(const Vector v) {
   v->ptr = (m_uint*)xcalloc(MAP_CAP, SZ_INT);
   VCAP(v) = MAP_CAP;

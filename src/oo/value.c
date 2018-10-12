@@ -5,8 +5,6 @@
 #include "type.h"
 #include "mpool.h"
 
-POOL_HANDLE(Value, 2048)
-
 ANN Value new_value(const Type type, const m_str name) {
   const Value a = mp_alloc(Value);
   a->type       = type;

@@ -7,8 +7,6 @@
 #include "ugen.h"
 #include "mpool.h"
 #define POOL_UGEN_BLK_SIZE 256
-POOL_HANDLE(UGen,       POOL_UGEN_BLK_SIZE)
-POOL_HANDLE(ugen_multi, POOL_UGEN_BLK_SIZE/2)
 
 ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
 ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }
@@ -145,13 +143,13 @@ end:
 }
 
 #define describe_connect(name, func)                                   \
-ANN static inline void name##connect(const restrict UGen lhs, const restrict UGen rhs) { \
+ANN static inline void name##onnect(const restrict UGen lhs, const restrict UGen rhs) { \
   func(&rhs->connect.net.from, (vtype)lhs);                            \
   func(&lhs->connect.net.to,   (vtype)rhs);                            \
   rhs->connect.net.size = vector_size(&rhs->connect.net.from);         \
 }
-describe_connect(,vector_add)
-describe_connect(dis,vector_rem2)
+describe_connect(C,vector_add)
+describe_connect(Disc,vector_rem2)
 
 ANN static void release_connect(const VM_Shred shred) {
   _release(*(M_Object*)REG(0), shred);
@@ -175,12 +173,12 @@ ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
   } while(++i < max);
 }
 
-void gw_connect(const restrict UGen lhs, const restrict UGen rhs) {
-  _do_(connect, lhs, rhs);
+ANN void ugen_connect(const restrict UGen lhs, const restrict UGen rhs) {
+  _do_(Connect, lhs, rhs);
 }
 
-void gw_disconnect(const restrict UGen lhs, const restrict UGen rhs) {
-  _do_(disconnect, lhs, rhs);
+ANN void ugen_disconnect(const restrict UGen lhs, const restrict UGen rhs) {
+  _do_(Disconnect, lhs, rhs);
 }
 
 #define TRIG_EX                         \
@@ -189,17 +187,17 @@ if(!UGEN(rhs)->module.gen.trig) {       \
   Except(shred, "NonTriggerException"); \
 }
 #define describe_connect_instr(name, func, opt) \
-static INSTR(name##_##func) { GWDEBUG_EXE       \
+static INSTR(name##func) { GWDEBUG_EXE       \
   M_Object lhs, rhs;                            \
   if(connect_init(shred, &lhs, &rhs) > 0) {     \
     opt                                         \
     _do_(func, UGEN(lhs), UGEN(rhs)); /*}*/         \
   release_connect(shred);      }                 \
 }
-describe_connect_instr(ugen, connect,)
-describe_connect_instr(ugen, disconnect,)
-describe_connect_instr(trig, connect,    TRIG_EX)
-describe_connect_instr(trig, disconnect, TRIG_EX)
+describe_connect_instr(Ugen, Connect,)
+describe_connect_instr(Ugen, Disconnect,)
+describe_connect_instr(Trig, Connect,    TRIG_EX)
+describe_connect_instr(Trig, Disconnect, TRIG_EX)
 
 static CTOR(ugen_ctor) {
   UGEN(o) = new_UGen();
@@ -344,10 +342,10 @@ GWION_IMPORT(ugen) {
   CHECK_BB(gwi_class_end(gwi))
 
   CHECK_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
-  _CHECK_OP(chuck, chuck_ugen, ugen_connect)
-  _CHECK_OP(unchuck, chuck_ugen, ugen_disconnect)
-  _CHECK_OP(trig, chuck_ugen, trig_connect)
-  _CHECK_OP(untrig, chuck_ugen, trig_disconnect)
+  _CHECK_OP(chuck, chuck_ugen, UgenConnect)
+  _CHECK_OP(unchuck, chuck_ugen, UgenDisconnect)
+  _CHECK_OP(trig, chuck_ugen, TrigConnect)
+  _CHECK_OP(untrig, chuck_ugen, TrigDisconnect)
   CHECK_BB(import_global_ugens(gwi))
   return 1;
 }

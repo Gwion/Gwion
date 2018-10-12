@@ -4,8 +4,6 @@
 #include "map_private.h"
 #include "mpool.h"
 
-POOL_HANDLE(Map, 2048)
-
 ANN void map_clear(const Map v) {
   v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) = MAP_CAP) * SZ_INT);
   VLEN(v) = 0;

@@ -7,7 +7,6 @@
 #include "instr.h"
 #include "import.h"
 #include "mpool.h"
-POOL_HANDLE(M_Object, 512)
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",

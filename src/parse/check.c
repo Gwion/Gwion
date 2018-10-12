@@ -589,7 +589,7 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Exp
     tmpl->base = v->d.func_ref->def->tmpl->list;
     if(base->exp_type == ae_exp_call)
       base->d.exp_func.tmpl = tmpl;
-    else //if(base->exp_type == ae_exp_call)
+    else if(base->exp_type == ae_exp_call)
       base->d.exp_binary.tmpl = tmpl;
     return f;
   }
@@ -635,7 +635,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_fu
   Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_func.m_func = func;
-  else // if(base->exp_type == ae_exp_binary)
+  else if(base->exp_type == ae_exp_binary)
     base->d.exp_binary.func = func;
   return func ? func->def->ret_type : NULL;
 }
@@ -711,8 +711,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
-  if(!(cast->self->type = type_decl_resolve(env, cast->td)))
-    CHECK_BO(type_unknown(cast->td->xid, "cast expression"))
+  CHECK_OO((cast->self->type = known_type(env, cast->td, "cast expression")))
   struct Op_Import opi = { op_cast, t, cast->self->type, NULL,
     NULL, NULL, (uintptr_t)cast };
   OP_RET(cast, "cast")

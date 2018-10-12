@@ -6,8 +6,6 @@
 #include "env.h"
 #include "mpool.h"
 
-POOL_HANDLE(Context, 32)
-
 ANN2(2) Context new_context(const Ast ast, const m_str str) {
   const Context context = mp_alloc(Context);
   context->nspc = new_nspc(str);

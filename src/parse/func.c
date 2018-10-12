@@ -4,8 +4,6 @@
 #include "func.h"
 #include "mpool.h"
 
-POOL_HANDLE(Func, 1024)
-
 ANN Func new_func(const m_str name, const Func_Def def) {
   Func func = mp_alloc(Func);
   func->name = name;

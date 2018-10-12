@@ -121,7 +121,7 @@ typedef struct {
   Exp self;
 } Exp_Decl;
 typedef struct {
-  ae_prim_t primary_type; // FIXME can't be move for some reason
+  ae_prim_t primary_type; // FIXME can't be moved for some reason
   Value value;
   union exp_primary_data {
     Symbol var;

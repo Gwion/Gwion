@@ -5,25 +5,6 @@
 #include "type.h"
 #include "value.h"
 #include "mpool.h"
-POOL_HANDLE(Ast,           8)
-POOL_HANDLE(Section,       32)
-POOL_HANDLE(Class_Def,     32)
-POOL_HANDLE(Class_Body,    32)
-POOL_HANDLE(Func_Def,      1024)
-POOL_HANDLE(Arg_List,      1024)
-POOL_HANDLE(Array_Sub,     128)
-POOL_HANDLE(Stmt_List,     1024)
-POOL_HANDLE(Stmt,          1024)
-POOL_HANDLE(Type_Decl,     512)
-POOL_HANDLE(Type_List,     32)
-POOL_HANDLE(Tmpl_Call,     32)
-POOL_HANDLE(Tmpl_Class,    32)
-POOL_HANDLE(Tmpl_List,     32)
-POOL_HANDLE(Decl_List,     8)
-POOL_HANDLE(ID_List,       512)
-POOL_HANDLE(Var_Decl_List, 256)
-POOL_HANDLE(Var_Decl,      1024)
-POOL_HANDLE(Exp,           1024)
 
 ANN static void free_section(Section*);
 

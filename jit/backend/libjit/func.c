@@ -204,7 +204,7 @@ static void jit_mp_alloc_inner(CC cc, CJval p) {
 jit_function_t get_jit_func(CC cc, const m_str s);
 
 Jval jit_mp_alloc(CC cc, const m_uint size) {
-  struct pool* p = mp_get(size);
+  struct pool* p = mp_ini(size);
   Jval arg[] = { JCONST(void_ptr, p) };
   return jit_insn_call(cc->f, "jit_mp_alloc",
     get_jit_func(cc, "jit_mp_alloc"), 0, arg, 1, JIT_CALL);
@@ -220,7 +220,7 @@ void jit_mp_free2(CC cc, CJval p, CJval ptr) {
 }
 
 void jit_mp_free(CC cc, const m_uint size, CJval ptr) {
-  struct pool* p = mp_get(size);
+  struct pool* p = mp_ini(size);
   jit_mp_free2(cc, JCONST(void_ptr, p), ptr);
 }
 

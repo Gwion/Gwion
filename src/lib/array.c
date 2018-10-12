@@ -17,7 +17,6 @@ struct M_Vector_ {
 #define ARRAY_SIZE(array) *(m_uint*)(array->ptr + SZ_INT)
 #define ARRAY_CAP(array) *(m_uint*)(array->ptr + SZ_INT*2)
 
-POOL_HANDLE(M_Vector, 512)
 ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }

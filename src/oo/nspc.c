@@ -8,7 +8,6 @@
 #include "object.h"
 #include "mpool.h"
 
-POOL_HANDLE(Nspc, 1024)
 extern VM* vm;
 
 ANN void nspc_commit(const Nspc nspc) {

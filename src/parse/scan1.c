@@ -20,9 +20,8 @@ ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
-  const Type t = type_decl_resolve(env, decl->td);
-  if(!t)
-    CHECK_BO(type_unknown(decl->td->xid, "declaration"))
+  const Type t = known_type(env, decl->td, "declaration");
+  CHECK_OO(t)
   if(!t->size)
     ERR_O(SCAN1_, decl->self->pos,
           "cannot declare variables of size '0' (i.e. 'void')...")
@@ -273,19 +272,16 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_int scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
-  do {
-    if(!(arg_list->type = type_decl_resolve(env, arg_list->td)))
-      CHECK_BB(type_unknown(arg_list->td->xid, "function argument"))
-  } while((arg_list = arg_list->next));
+ANN static m_bool scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
+  do CHECK_OB((arg_list->type = known_type(env, arg_list->td, "function argument")))
+  while((arg_list = arg_list->next));
   return 1;
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   if(ptr->td->array)
     CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
-  if(!(ptr->ret_type = type_decl_resolve(env, ptr->td)))
-    CHECK_BB(type_unknown(ptr->td->xid, "func pointer definition"))
+  CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
     ERR_B(SCAN1_, ptr->td->pos,
           "\t... in typedef '%s'...", s_name(ptr->xid))
@@ -408,8 +404,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->td->array)
     CHECK_BB(check_array_empty(f->td->array, "function return"))
-  if(!(f->ret_type = type_decl_resolve(env, f->td)))
-      CHECK_BB(type_unknown(f->td->xid, "function return"))
+  CHECK_OB((f->ret_type = known_type(env, f->td, "function return")))
   return 1;
 }
 
@@ -482,13 +477,6 @@ ANN static m_bool scan1_section(const Env env, const Section* section) { GWDEBUG
 
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-/*
-  const Type parent = class_def->type->parent = type_decl_resolve(env, class_def->ext);
-  if(!parent)
-    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
-  if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
-    CHECK_BB(scan1_class_def(env, parent->def))
-*/
   if(class_def->ext->array) {
     if(class_def->ext->array->exp)
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
@@ -496,9 +484,8 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
       ERR_B(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend")
     }
   }
-  const Type parent = class_def->type->parent = type_decl_resolve(env, class_def->ext);
-  if(!parent)
-    CHECK_BB(type_unknown(class_def->ext->xid, "child class definition"))
+  const Type parent = class_def->type->parent = known_type(env, class_def->ext, "child class definition");
+  CHECK_OB(parent)
   if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))

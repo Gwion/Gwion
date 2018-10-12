@@ -8,8 +8,6 @@
 #include "vararg.h"
 #include "mpool.h"
 
-POOL_HANDLE(Vararg, 4)
-
 INSTR(VarargTop) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(arg->d)
