@@ -450,7 +450,6 @@ ANN static Value template_get_ready(const Env env, const Value v, const m_str tm
 }
 
 ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_func) {
-  const Exp func = exp_func->func;
   const Exp args = exp_func->args;
   const Type_List types = exp_func->tmpl->types;
   Func m_func = exp_func->m_func;
@@ -482,7 +481,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       continue;
       mismatch = 0;
       base = value->d.func_ref->def;
-      def = new_func_def(base->td, func->d.exp_primary.d.var,
+      def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
       def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
       UNSET_FLAG(base, ae_flag_template);
@@ -729,16 +728,14 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_OO(base)
   const Type unit = check_exp(env, dur->unit);
   CHECK_OO(unit)
-  if(isa(base, t_int) < 0 && isa(base, t_float) < 0) {
+  if(isa(base, t_int) < 0 && isa(base, t_float) < 0)
     ERR_O(TYPE_, dur->base->pos,
           "invalid type '%s' in prefix of dur expression...\n"
           "    (must be of type 'int' or 'float')", base->name)
-  }
-  if(isa(unit, t_dur) < 0) {
+  if(isa(unit, t_dur) < 0)
     ERR_O(TYPE_, dur->unit->pos,
           "invalid type '%s' in postfix of dur expression...\n"
           "    (must be of type 'dur')", unit->name)
-  }
   return unit;
 }
 
@@ -757,8 +754,7 @@ ANN static Type check_exp_call(const Env env, Exp_Func* call) { GWDEBUG_EXE
       ERR_O(TYPE_, call->self->pos,
             "template call of non-template function.")
     const Func ret = find_template_match(env, v, call);
-    CHECK_OO(ret)
-      call->m_func = ret;
+    CHECK_OO((call->m_func = ret))
     return ret->def->ret_type;
   }
   return check_exp_call1(env, call->func, call->args, call->self);
