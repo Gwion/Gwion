@@ -452,7 +452,7 @@ ANN static Value template_get_ready(const Env env, const Value v, const m_str tm
 ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_func) {
   const Exp func = exp_func->func;
   const Exp args = exp_func->args;
-  const Type_List types = exp_func->tmpl ? exp_func->tmpl->types : NULL; // check me
+  const Type_List types = exp_func->tmpl->types;
   Func m_func = exp_func->m_func;
   m_int mismatch = 0;
   const m_uint digit = num_digit(v->offset + 1);
@@ -469,7 +469,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Func* exp_f
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
         if(!check_exp(env, exp_func->func) ||
-            (exp_func->args  && !check_exp(env, exp_func->args)))
+            (exp_func->args && !check_exp(env, exp_func->args)))
           return NULL;
         return env->func;
       }
@@ -589,7 +589,7 @@ ANN static Func get_template_func(const Env env, const Exp_Func* func, const Exp
     tmpl->base = v->d.func_ref->def->tmpl->list;
     if(base->exp_type == ae_exp_call)
       base->d.exp_func.tmpl = tmpl;
-    else if(base->exp_type == ae_exp_call)
+    else if(base->exp_type == ae_exp_binary)
       base->d.exp_binary.tmpl = tmpl;
     return f;
   }
@@ -744,16 +744,9 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
 
 ANN static Type check_exp_call(const Env env, Exp_Func* call) { GWDEBUG_EXE
   if(call->tmpl) {
-    Value v = NULL;
-    if(call->func->exp_type == ae_exp_primary)
-      v = nspc_lookup_value1(env->curr, call->func->d.exp_primary.d.var);
-    else if(call->func->exp_type == ae_exp_dot) {
-      CHECK_OO(check_exp(env, call->func)) // → puts this up ?
-      const Type base = call->func->d.exp_dot.t_base;
-      const Type t = isa(base, t_class) > 0 ? base->d.base_type : base;
-      v = find_value(t, call->func->d.exp_dot.xid);
-      } else
-      ERR_O(TYPE_, call->self->pos, "invalid template call.")
+    CHECK_OO(check_exp(env, call->func)) // → puts this up ?
+    const Type t = actual_type(call->func->type);
+    const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
       ERR_O(TYPE_, call->self->pos,
             " template call of non-existant function.")
@@ -1425,7 +1418,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))
   if(!the_class->p && the_class->nspc->offset)
-    the_class->p = new_pool(the_class->nspc->offset);
+    the_class->p = mp_ini(the_class->nspc->offset);
   SET_FLAG(the_class, ae_flag_checked | ae_flag_check);
   return 1;
 }

@@ -12,7 +12,7 @@ ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  
 struct Instr_ {
   void (*execute)(const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
-  m_bit ptr[SZ_VEC4];
+  m_bit ptr[SZ_MINVAL];
 };
 
 ANEW Instr new_instr(void);

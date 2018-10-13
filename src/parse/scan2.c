@@ -583,6 +583,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = new_type(t_function->xid, func_name, t_function);
   type->size = SZ_INT;
+  type->owner = env->curr;
   if(GET_FLAG(func, ae_flag_member))
     type->size += SZ_INT;
   type->d.func = func;
@@ -607,7 +608,6 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
 
   f->stack_depth = 0;
-
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   const m_uint len = strlen(func_name) +
