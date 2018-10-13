@@ -389,9 +389,9 @@ JIT_CODE(DotData) {
 
 JIT_CODE(ObjectInstantiate) {
   Jval arg[] = { cc->shred, JCONST(void_ptr, instr->m_val) };
-//  CJval obj = CALL_NATIVE2(new_object, "ppp", arg);
-  CJval obj = jit_insn_call(cc->f, "jit_new_object",
-    get_jit_func(cc, "jit_new_object"), 0, arg, 2, JIT_CALL);
+  CJval obj = CALL_NATIVE2(new_object, "ppp", arg);
+//  CJval obj = jit_insn_call(cc->f, "jit_new_object",
+//    get_jit_func(cc, "jit_new_object"), 0, arg, 2, JIT_CALL);
 //    get_jit_func(cc, "jit_new_object"), sig(&cc->sig, "ppp", jit_abi_fastcall), arg, 2, JIT_CALL);
   JSTORER(cc->reg, 0, obj);
   push_reg(cc, SZ_INT);
@@ -614,10 +614,7 @@ JIT_CODE(FuncUsr) {
 
 JIT_CODE(FuncOp) {
   CJval code = jit_shred_func_prepare(cc);
-  const Type l = (Type)instr->m_val2;
-  const Type r = *(Type*)instr->ptr;
-  const m_uint size = l->size + (r ? r->size : 0);
-
+  const m_uint size = instr->m_val;
   push_reg(cc, -size);
   INIT_LABEL(lbl);
   CJval depth = JCONST(nuint, size);
@@ -673,9 +670,9 @@ JIT_CODE(AutoLoopStart) {
     INIT_LABEL(lbl);
     JINSN(branch_if, idx, &lbl);
     Jval new_arg[] = { cc->shred, JCONST(void_ptr, t) };
-//    CJval _ptr = CALL_NATIVE2(new_object, "ppp", new_arg);
-    CJval _ptr = jit_insn_call(cc->f, "jit_new_object",
-      get_jit_func(cc, "jit_new_object"), 0, new_arg, 2, JIT_CALL);
+    CJval _ptr = CALL_NATIVE2(new_object, "ppp", new_arg);
+//    CJval _ptr = jit_insn_call(cc->f, "jit_new_object",
+//      get_jit_func(cc, "jit_new_object"), 0, new_arg, 2, JIT_CALL);
     JSTORER(mem, instr->m_val + SZ_INT, _ptr);
     JINSN(label, &lbl);
     CJval ptr = JLOADR(mem, instr->m_val + SZ_INT, void_ptr);

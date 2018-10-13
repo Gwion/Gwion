@@ -21,7 +21,7 @@ static inline int trig_ex(const UGen u, const VM_Shred shred) {
   CALL_NATIVE2(trig_ex, "ipp", trig_arg); \
 
 #define jit_describe_connect_instr(name, func, opt) \
-JIT_CODE(name##_##func) { \
+JIT_CODE(name##func) { \
   push_reg(cc, -SZ_INT*2);\
   CJval lhs = JLOADR(cc->reg, 0, void_ptr);\
   CJval rhs = JLOADR(cc->reg, SZ_INT, void_ptr);\
@@ -41,15 +41,15 @@ JIT_CODE(name##_##func) { \
   cc_release2(cc, rhs);\
   push_reg(cc, SZ_INT);\
 }
-jit_describe_connect_instr(ugen, connect,)
-jit_describe_connect_instr(ugen, disconnect,)
-jit_describe_connect_instr(trig, connect, JIT_TRIG_EX)
-jit_describe_connect_instr(trig, disconnect, JIT_TRIG_EX)
+jit_describe_connect_instr(Ugen, Connect,)
+jit_describe_connect_instr(Ugen, Disconnect,)
+jit_describe_connect_instr(Trig, Connect, JIT_TRIG_EX)
+jit_describe_connect_instr(Trig, Disconnect, JIT_TRIG_EX)
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 ANN void jit_code_import_ugen(struct Jit* j) {
-  JIT_IMPORT(ugen_connect);
-  JIT_IMPORT(ugen_disconnect);
-  JIT_IMPORT(trig_connect);
-  JIT_IMPORT(trig_disconnect);
+  JIT_IMPORT(UgenConnect);
+  JIT_IMPORT(UgenDisconnect);
+  JIT_IMPORT(TrigConnect);
+  JIT_IMPORT(TrigDisconnect);
 }

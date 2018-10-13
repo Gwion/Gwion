@@ -4,7 +4,9 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
+#include "emit.h"
 
 ANN m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");

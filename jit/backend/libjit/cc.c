@@ -29,8 +29,8 @@ jit_function_t get_jit_func(CC cc, const m_str s) {
   return NULL;
 }
 
-//extern void jit_new_object(CC);
-//extern void jit_mp_alloc2(CC);
+extern void jit_new_object(CC);
+extern void jit_mp_alloc2(CC);
 
 CC new_cc() {
   CC cc = (CC)xmalloc(sizeof(struct JitCC_));
@@ -103,14 +103,14 @@ ANN static void libjit_end(const JitThread jt) {
   map_clear(&cc->vtable);
   cc->f = NULL;
 }
-
+/*
 ANN static void label_func(CC cc, const vtype idx) {
   jit_label_t* lbl = (jit_label_t*)xmalloc(sizeof(jit_label_t));
   *lbl = jit_label_undefined;
   map_set(&cc->label, idx, (vtype)lbl);
 //  map_set(&cc->label, idx, jit_function_reserve_label(cc->f));
 }
-
+*/
 ANN static void libjit_pc(JitThread jt, struct ctrl* ctrl) {
   CC cc = jt->cc;
   cc->ctrl = ctrl;

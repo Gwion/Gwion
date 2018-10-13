@@ -271,7 +271,7 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->env->class_def)return -1;
   const Type t = gwi->env->class_def;
   if(t->nspc && t->nspc->offset)
-    t->p = new_pool(t->nspc->offset);
+    t->p = mp_ini(t->nspc->offset);
   return import_class_end(gwi->env);
 }
 

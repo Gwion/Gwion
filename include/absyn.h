@@ -393,8 +393,8 @@ enum ae_pp_type {
   ae_pp_nl
 };
 struct Stmt_PP_ {
-  enum ae_pp_type type;
   m_str data;
+  enum ae_pp_type type;
 };
 #endif
 struct Stmt_ {

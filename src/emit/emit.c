@@ -7,6 +7,9 @@
 #include "type.h"
 #include "value.h"
 #include "instr.h"
+#include "emit.h"
+#include "array.h"
+#include "object.h"
 #include "context.h"
 #include "func.h"
 #include "traverse.h"
@@ -801,25 +804,20 @@ ANN static m_bool emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static void emit_exp_call1_builtin(const Emitter emit, const Func func) {
-  Type t = func->value_ref->type;
-  if(isa(t, t_class) > 0)
-    t = t->d.base_type;
-  const f_instr exec =  GET_FLAG(func, ae_flag_member) ? FuncMember : FuncStatic;
+ANN static void emit_exp_call1_builtin(const restrict Emitter emit, const restrict Func f) {
+  const f_instr exec =  GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic;
   const Instr call = emitter_add_instr(emit, exec);
-  call->m_val = func->def->ret_type->size;
+  call->m_val = f->def->ret_type->size;
 }
 
-ANN static inline void emit_exp_call1_fptr(const Emitter emit, const Func func) {
+ANN static inline void emit_exp_call1_fptr(const restrict Emitter emit, const restrict Func f) {
   const Instr call = emitter_add_instr(emit, FuncPtr);
-  call->m_val = func->def->ret_type->size;
+  call->m_val = f->def->ret_type->size;
 }
 
 ANN static inline void emit_exp_call1_op(const Emitter emit, const Arg_List list) {
   const Instr call    = emitter_add_instr(emit, FuncOp);
-  call->m_val   = emit->code->stack_depth; // unused ?
-  call->m_val2  = (m_uint)list->type;
-  *(Type*)call->ptr     = list->next ? list->next->type : NULL;
+  call->m_val   = list->type->size + (list->next ? list->next->type->size : 0);
 }
 
 ANN static inline void emit_exp_call1_usr(const Emitter emit, const Func func) { GWDEBUG_EXE
@@ -1339,9 +1337,7 @@ ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
   if(stmt->val->exp_type == ae_exp_primary)
     CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
   else {
-    const Type t = isa(stmt->val->d.exp_dot.t_base, t_class) > 0 ?
-        stmt->val->d.exp_dot.t_base->d.base_type :
-        stmt->val->d.exp_dot.t_base;
+    const Type t = actual_type(stmt->val->d.exp_dot.t_base);
     const Value v = find_value(t, stmt->val->d.exp_dot.xid);
     *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
       (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr;
@@ -1396,7 +1392,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
         (m_bit*)xcalloc(1, stmt->value->type->nspc->class_data_size);
     stmt->value->type->nspc->offset = stmt->s;
     if(!stmt->value->type->p)
-      stmt->value->type->p = new_pool(stmt->value->type->size);
+      stmt->value->type->p = mp_ini(stmt->value->type->size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         0, emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;

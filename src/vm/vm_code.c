@@ -3,6 +3,7 @@
 #include "type.h"
 #include "func.h"
 #include "instr.h"
+#include "array.h"
 #include "mpool.h"
 
 #ifdef JIT
@@ -28,18 +29,12 @@ ANN static void free_code_instr_gack(const Instr instr) {
   free_vector(v);
 }
 
-ANN static void free_code_instr(Vector v) {
+ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
-#ifdef JIT
-    Instr instr = (Instr)vector_at(v, i - 1);
-    if(instr->execute == JitExec) {
-      struct JitThread_* p = (struct JitThread_*)instr->m_val2;
-      const Instr base  = *(Instr*)instr->ptr;
-      free_jit_instr(p, instr);
-      instr = base;
-   }
-#else
     const Instr instr = (Instr)vector_at(v, i - 1);
+#ifdef JIT
+    if(instr->execute == JitExec)
+      free_jit_instr(instr);
 #endif
     if(instr->execute == SporkExp)
       REM_REF((Func)instr->m_val2)

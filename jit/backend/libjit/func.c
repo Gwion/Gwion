@@ -13,6 +13,8 @@
 #include "code.h"
 #include "ctrl.h"
 #include "func.h"
+#include "object.h"
+#include "mpool.h"
 #define JIT_CALL JIT_CALL_NOTHROW
 
 ANN void cc_free(void* v) { xfree(v); }
@@ -204,6 +206,7 @@ static void jit_mp_alloc_inner(CC cc, CJval p) {
 jit_function_t get_jit_func(CC cc, const m_str s);
 
 Jval jit_mp_alloc(CC cc, const m_uint size) {
+//exit(2);
   struct pool* p = mp_ini(size);
   Jval arg[] = { JCONST(void_ptr, p) };
   return jit_insn_call(cc->f, "jit_mp_alloc",
@@ -216,7 +219,6 @@ void jit_mp_free2(CC cc, CJval p, CJval ptr) {
   CJval next = JLOADR(p, __builtin_offsetof(struct pool, next), void_ptr);
   JSTORER(p, __builtin_offsetof(struct pool, next), ptr);
   JSTORER(ptr, __builtin_offsetof(struct Recycle, next), next);
-//  JSTORER(ptr, 0, next);
 }
 
 void jit_mp_free(CC cc, const m_uint size, CJval ptr) {

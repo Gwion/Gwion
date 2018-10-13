@@ -82,6 +82,8 @@ ANN static Instr get_instr(const JitThread jt, const Instr instr) {
     return instr;
   pthread_mutex_lock(&jt->imutex);
   const Instr ret = (Instr)_mp_alloc2(jt->pool);
+printf("create %p\n", ret);
+//  const Instr ret = (Instr)xmalloc(sizeof(struct Instr_));
   memcpy(ret, instr, sizeof(struct Instr_));
   pthread_mutex_unlock(&jt->imutex);
   return jt->top = ret;
@@ -288,10 +290,18 @@ struct Jit* new_jit(const m_uint n, const m_uint wait) {
   return j;
 }
 
-void free_jit_instr(JitThread jt, Instr instr){
+void free_jit_instr(Instr instr){
+  const JitThread jt = (struct JitThread_*)instr->m_val2;
   pthread_mutex_lock(&jt->mutex);
   if(jt->j->be->free)
     jt->j->be->free(jt, (void*)instr->m_val);
-  _mp_free2(jt->pool, instr);
+   memcpy(instr, instr->ptr, sizeof(struct Instr_));
+printf("to free %p\n", instr);
+printf("to free %p\n", instr->ptr);
+Instr i = *(Instr*)instr->ptr;
+printf("to free %p\n", i);
+   _mp_free2(jt->pool, instr->ptr);
+//exit(2);
+//  xfree(instr);
   pthread_mutex_unlock(&jt->mutex);
 }

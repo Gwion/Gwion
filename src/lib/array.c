@@ -5,6 +5,9 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
+#include "array.h"
+#include "emit.h"
 #include "import.h"
 #include "mpool.h"
 

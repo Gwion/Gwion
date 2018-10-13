@@ -33,7 +33,7 @@ struct Jit* new_jit(const m_uint, const m_uint);
 void jitq(struct Jit*, VM_Code);
 void jit_sync(struct Jit*);
 void free_jit(struct Jit*);
-void free_jit_instr(struct JitThread_*,Instr instr);
+void free_jit_instr(Instr instr);
 void jit_init_gwion(struct JitInfo *);
 CC new_cc(void);
 void free_cc(CC);

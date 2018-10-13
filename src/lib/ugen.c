@@ -4,9 +4,9 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "object.h"
 #include "ugen.h"
 #include "mpool.h"
-#define POOL_UGEN_BLK_SIZE 256
 
 ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
 ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }

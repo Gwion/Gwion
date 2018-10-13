@@ -5,6 +5,7 @@
 #include "type.h"
 #include "instr.h"
 #include "import.h"
+#include "emit.h"
 
 static INSTR(float_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);

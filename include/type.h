@@ -47,5 +47,8 @@ ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
 ANN m_bool prim_ref(const Type_Decl*, const Type);
 ANN m_bool already_defined(const Env env, const Symbol s, const int pos);
+static inline Type actual_type(const Type t) {
+  return isa(t, t_class) > 0 ? t->d.base_type : t;
+}
 #endif
 

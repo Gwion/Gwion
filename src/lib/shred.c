@@ -2,6 +2,7 @@
 #include <libgen.h>
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 M_Object new_shred(const VM_Shred shred) {

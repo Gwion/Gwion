@@ -4,6 +4,7 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
+#include "emit.h"
 #include "value.h"
 #include "func.h"
 #include "mpool.h"

@@ -3,6 +3,7 @@
 #include <math.h>
 #include <complex.h>
 #include "type.h"
+#include "object.h"
 #include "err_msg.h"
 #include "instr.h"
 

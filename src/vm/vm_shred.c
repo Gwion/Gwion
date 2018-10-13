@@ -3,6 +3,7 @@
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "mpool.h"
 
 struct Stack_ {

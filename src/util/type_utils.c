@@ -32,7 +32,7 @@ m_uint num_digit(const m_uint i) {
 
 ANN static Type find_typeof(const Env env, ID_List path) {
   Value v = nspc_lookup_value2(env->curr, path->xid);
-  Type t = (isa(v->type, t_class) > 0) ? v->type->d.base_type : v->type;
+  Type t = actual_type(v->type);
   path = path->next;
   while(path) {
     CHECK_OO((v = find_value(t, path->xid)))

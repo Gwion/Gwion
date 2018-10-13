@@ -12,7 +12,3 @@ struct pool {
 };
 
 #define BLK 64
-#ifndef JIT
-static
-#endif
-struct pool* mp_get(const uint32_t obj_sz);

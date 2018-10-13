@@ -5,6 +5,7 @@
 #include "type.h"
 #include "value.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "mpool.h"
 

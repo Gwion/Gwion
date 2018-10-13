@@ -6,6 +6,7 @@
 #include "value.h"
 #include "func.h"
 #include "instr.h"
+#include "emit.h"
 
 ANN Type check_exp_call1(Env env, Exp restrict exp_func,
   restrict Exp args, restrict Exp base);

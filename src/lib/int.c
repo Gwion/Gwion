@@ -1,6 +1,7 @@
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 #define TEST0(pos) if(!*(m_int*)REG(pos))Except(shred, "ZeroDivideException")

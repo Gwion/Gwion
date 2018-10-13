@@ -8,6 +8,8 @@
 #include "instr.h"
 #include "import.h"
 #include "func.h"
+#include "object.h"
+#include "array.h"
 
 ANN static inline m_bool overflow_(const VM_Shred c) {
 //  return c->mem >  ((c->_mem) + (SIZEOF_MEM) - (MEM_STEP));
@@ -257,9 +259,7 @@ INSTR(FuncUsr) { GWDEBUG_EXE
 
 INSTR(FuncOp) { GWDEBUG_EXE
   shred_func_prepare(shred);
-  const Type l = (Type)instr->m_val2;
-  const Type r = *(Type*)instr->ptr;
-  const m_uint size = l->size + (r ? r->size : 0);
+  const m_uint size = instr->m_val;
   POP_REG(shred, size);
   if(GET_FLAG(shred->code, _NEED_THIS_))
     shred_func_need_this(shred);

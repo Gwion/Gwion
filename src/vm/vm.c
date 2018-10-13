@@ -3,8 +3,10 @@
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "ugen.h"
 #include "shreduler_private.h"
+#include "emit.h"
 
 #ifdef DEBUG_STACK
 #include "err_msg.h"

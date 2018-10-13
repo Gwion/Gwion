@@ -12,10 +12,10 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
 }
 
 ANN void free_type(Type a) {
-  if(a->p) {
-    mp_end(a->p);
-    xfree(a->p);
-  }
+//  if(a->p) {
+//    mp_end(a->p);
+//    xfree(a->p);
+//  }
   if(a->nspc)
     REM_REF(a->nspc);
   if(GET_FLAG(a, ae_flag_builtin)) {
