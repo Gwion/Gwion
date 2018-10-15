@@ -79,6 +79,7 @@ ANN static void free_nspc_value(const Nspc a) {
     } else if(isa(value->type, t_union) > 0) {
       if(GET_FLAG(value, ae_flag_static) ||GET_FLAG(value, ae_flag_global))
         nspc_release_object(a, value);
+if(GET_FLAG(value->type, ae_flag_op))
       REM_REF(value->type)
     }
     else if(isa(value->type, t_object) > 0)

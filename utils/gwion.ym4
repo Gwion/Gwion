@@ -403,7 +403,11 @@ decl_list
   ;
 
 union_stmt
-  : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(arg));$$->d.stmt_union.xid = $5; }
+  : UNION opt_id LBRACE decl_list RBRACE opt_id SEMICOLON {
+      $$ = new_stmt_union($4, get_pos(arg));
+      $$->d.stmt_union.type_xid = $2;
+      $$->d.stmt_union.xid = $6;
+    }
   | STATIC union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_static); $$ = $2; }
   | GLOBAL union_stmt

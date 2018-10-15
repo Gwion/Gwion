@@ -107,13 +107,13 @@ ANN static void lint_array_lit(Linter* linter, Array_Sub array) {
 }
 
 ANN static void lint_type_list(Linter* linter, Type_List list) {
-  lint_print(linter, "<{");
+  lint_print(linter, "“");
   do {
     lint_type_decl(linter, list->td);
     if(list->next)
       lint_print(linter, ", ");
   } while((list = list->next));
-  lint_print(linter, "}>");
+  lint_print(linter, "”");
 }
 
 ANN static void lint_type_decl(Linter* linter, Type_Decl* type) {
@@ -495,7 +495,10 @@ ANN void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
     lint_print(linter, "private ");
   if(GET_FLAG(stmt, ae_flag_static))
     lint_print(linter, "static ");
-  lint_print(linter, "union {");
+  lint_print(linter, "union ");
+  if(stmt->type_xid)
+    lint_print(linter, "%s ", s_name(stmt->type_xid));
+  lint_print(linter, "{");
   lint_nl(linter);
   linter->indent++;
   do {
@@ -506,6 +509,9 @@ ANN void lint_stmt_union(Linter* linter, Stmt_Union stmt) {
   } while((l = l->next));
   linter->indent--;
   lint_print(linter, "}");
+  if(stmt->xid)
+    lint_print(linter, " %s", s_name(stmt->xid));
+  lint_print(linter, ";");
   lint_nl(linter);
 }
 

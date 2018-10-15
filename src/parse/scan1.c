@@ -252,9 +252,6 @@ ANN static m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
 ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   m_uint count = 1;
-  if(nspc_lookup_value1(env->curr, stmt->xid))
-    ERR_B(SCAN2_, stmt->self->pos,
-          "'%s' already declared as variable", s_name(stmt->xid))
   do {
     CHECK_BB(already_defined(env, list->xid, stmt->self->pos))
     const Value v = new_value(stmt->t, s_name(list->xid));
@@ -306,6 +303,9 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   if(stmt->xid) {
     UNSET_FLAG(stmt, ae_flag_private);
     env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+  } else if(stmt->type_xid) {
+    UNSET_FLAG(stmt, ae_flag_private);
+    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
   } else if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
@@ -324,7 +324,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
-  if(stmt->xid || global)
+  if(stmt->xid || stmt->type_xid || global)
     env_pop(env, class_scope);
   return 1;
 }

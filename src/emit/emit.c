@@ -1412,6 +1412,14 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, ae_flag_global);
     }
     env_push(emit->env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+  } else if(stmt->type_xid) {
+    if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
+      stmt->type->nspc->class_data =
+        (m_bit*)xcalloc(1, stmt->type->nspc->class_data_size);
+    stmt->type->nspc->offset = stmt->s;
+    if(!stmt->type->p)
+      stmt->type->p = mp_ini(stmt->type->size);
+    env_push(emit->env, stmt->type, stmt->type->nspc, &class_scope);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
       stmt->o = emit_alloc_local(emit, stmt->s, 0);
@@ -1432,7 +1440,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     const Instr instr = emitter_add_instr(emit, RegPop);
     instr->m_val = SZ_INT;
     env_pop(emit->env, class_scope);
-  }
+  } else if(stmt->type_xid)
+    env_pop(emit->env, class_scope);
   return 1;
 }
 

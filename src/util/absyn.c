@@ -757,7 +757,6 @@ Stmt new_stmt_union(const Decl_List l, const int pos) {
   a->stmt_type = ae_stmt_union;
   a->d.stmt_union.l = l;
   a->d.stmt_union.self = a;
-  vector_init(&a->d.stmt_union.v);
   a->pos = pos;
   return a;
 }
@@ -796,7 +795,6 @@ ANN static void free_decl_list(Decl_List a) {
 
 ANN inline static void free_stmt_union(Stmt_Union a) {
   free_decl_list(a->l);
-  vector_release(&a->v);
 }
 
 void free_stmt(Stmt stmt) {

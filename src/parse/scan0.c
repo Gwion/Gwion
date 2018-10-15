@@ -64,41 +64,65 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->flag))
   env_storage(env, &stmt->flag);
-  if(stmt->xid)
-    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
+  if(stmt->xid) {
+  const Value v = nspc_lookup_value1(env->curr, 
+stmt->xid);
+  if(v)
+CHECK_BB(err_msg(TYPE_, stmt->self->pos,
+    "'%s' already declared as variable of type '%s'.", 
+s_name(stmt->xid), v->type->name) )
+//    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
+
+}
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
   const Nspc nspc = GET_FLAG(stmt, ae_flag_global) ? env->global_nspc : env->curr;
   t->owner = nspc;
-  nspc_add_type(nspc, stmt->xid, t);
   stmt->t = t;
+  if(stmt->xid) {
+    nspc_add_type(nspc, stmt->xid, t);
+    mk_class(t);
+  }
   return 1;
+}
+
+ANN static Type union_type(const Nspc nspc, const Symbol s, const m_bool add) {
+  const m_str name = s_name(s);
+  const Type t = type_copy(t_union);
+  t->name = name;
+  t->nspc = new_nspc(name);
+  t->nspc->parent = nspc;
+  t->owner = nspc;
+  if(add) {
+    nspc_add_type(nspc, s, t);
+    mk_class(t);
+  }
+  return t;
 }
 
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->flag))
   env_storage(env, &stmt->flag);
   if(stmt->xid) {
-    const m_str name = s_name(stmt->xid);
-    const Type t = type_copy(t_union);
+    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos))
     const Nspc nspc = !GET_FLAG(stmt, ae_flag_global) ?
       env->curr : env->global_nspc;
-    t->name = name;
-    t->nspc = new_nspc(name);
-    t->nspc->parent = nspc;
-    t->owner = nspc;
-    stmt->value = new_value(t, name);
+    const Type t = union_type(nspc, stmt->type_xid ?: stmt->xid,
+       !!stmt->type_xid);
+    stmt->value = new_value(t, s_name(stmt->xid));
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
-
-//    nspc_add_type(nspc, stmt->xid, t);
-//    (void)mk_class(t);
-
     SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
     if(env->class_def && !GET_FLAG(stmt, ae_flag_static))
       SET_FLAG(stmt->value, ae_flag_member);
+    if(!stmt->type_xid)
+      SET_FLAG(t, ae_flag_op);
+  } else if(stmt->type_xid) {
+    const Nspc nspc = !GET_FLAG(stmt, ae_flag_global) ?
+      env->curr : env->global_nspc;
+    stmt->type = union_type(nspc, stmt->type_xid, 1);
   }
   return 1;
 }

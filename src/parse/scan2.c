@@ -332,11 +332,13 @@ ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   const m_bool global = GET_FLAG(stmt, ae_flag_global);
   if(stmt->xid)
     env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+  else if(stmt->type_xid)
+    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
   else if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do CHECK_BB(scan2_exp(env, l->self))
   while((l = l->next));
-  if(stmt->xid || global)
+  if(stmt->xid || stmt->type_xid || global)
     env_pop(env, class_scope);
   return 1;
 }

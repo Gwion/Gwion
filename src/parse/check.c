@@ -1096,7 +1096,9 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
         check_exp_decl_static(env, stmt->value);
     }
     env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  } else if(env->class_def)  {
+  } else if(stmt->type_xid)
+    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
+  else if(env->class_def)  {
       if(!GET_FLAG(stmt, ae_flag_static))
         stmt->o = env->class_def->nspc->offset;
       else {
@@ -1113,7 +1115,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
   } while((l = l->next));
-  if(stmt->xid || global)
+  if(stmt->xid || stmt->type_xid || global)
     env_pop(env, class_scope);
   return 1;
 }

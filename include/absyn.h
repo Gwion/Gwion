@@ -371,9 +371,12 @@ struct Stmt_Type_ {
 
 struct Stmt_Union_ {
   Decl_List l;
-  struct Vector_ v;
   Symbol xid;
+  Symbol type_xid;
+union {
   Value value;
+  Type type;
+};
   m_uint s;
   m_uint o;
   Stmt self;
