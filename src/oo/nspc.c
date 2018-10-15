@@ -28,9 +28,7 @@ ANN Nspc new_nspc(const m_str name) {
 
 ANN static void nspc_release_object(const Nspc a, Value value) {
   if(value->d.ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
-    (value->d.ptr && GET_FLAG(value, ae_flag_builtin))
-
-) {
+    (value->d.ptr && GET_FLAG(value, ae_flag_builtin))) {
     const VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
     const VM_Shred s = new_vm_shred(code);
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
@@ -79,8 +77,8 @@ ANN static void free_nspc_value(const Nspc a) {
     } else if(isa(value->type, t_union) > 0) {
       if(GET_FLAG(value, ae_flag_static) ||GET_FLAG(value, ae_flag_global))
         nspc_release_object(a, value);
-if(GET_FLAG(value->type, ae_flag_op))
-      REM_REF(value->type)
+      if(GET_FLAG(value->type, ae_flag_op)) // only free untyped unions
+        REM_REF(value->type)
     }
     else if(isa(value->type, t_object) > 0)
       nspc_release_object(a, value);
