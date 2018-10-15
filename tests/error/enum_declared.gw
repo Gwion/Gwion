@@ -1,5 +1,5 @@
-// [contains] already declared as variable
- int i;
+// [contains] already been defined
+int i;
 enum
 {
   test
