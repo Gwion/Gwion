@@ -180,10 +180,10 @@ ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp
   return args ? scan2_exp(env, args) : 1;
 }
 
-ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(exp_func->tmpl)
+ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
+  if(exp_call->tmpl)
     return 1;
-  return scan2_exp_call1(env, exp_func->func, exp_func->args);
+  return scan2_exp_call1(env, exp_call->func, exp_call->args);
 }
 
 ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
@@ -223,7 +223,7 @@ static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
         CHECK_BB(scan2_exp_cast(env, &exp->d.exp_cast))
         break;
       case ae_exp_call:
-        CHECK_BB(scan2_exp_call(env, &exp->d.exp_func))
+        CHECK_BB(scan2_exp_call(env, &exp->d.exp_call))
         break;
       case ae_exp_array:
         CHECK_BB(scan2_exp_array(env, &exp->d.exp_array))

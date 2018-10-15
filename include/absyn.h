@@ -147,7 +147,7 @@ typedef struct {
   Func m_func;
   Tmpl_Call* tmpl;
   Exp self;
-} Exp_Func;
+} Exp_Call;
 typedef struct {
   Type_Decl* td;
   Exp exp;
@@ -206,7 +206,7 @@ struct Exp_ {
     Exp_Unary     exp_unary;
     Exp_Binary    exp_binary;
     Exp_Cast      exp_cast;
-    Exp_Func      exp_func;
+    Exp_Call      exp_call;
     Exp_If        exp_if;
     Exp_Dot       exp_dot;
     Exp_Array     exp_array;

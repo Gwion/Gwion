@@ -262,13 +262,13 @@ ANN static void lint_exp_dur(Linter* linter, Exp_Dur* dur) {
   lint_exp(linter, dur->unit);
 }
 
-ANN static void lint_exp_call(Linter* linter, Exp_Func* exp_func) {
-  if(exp_func->tmpl)
-    lint_type_list(linter, exp_func->tmpl->types);
-  lint_exp(linter, exp_func->func);
+ANN static void lint_exp_call(Linter* linter, Exp_Call* exp_call) {
+  if(exp_call->tmpl)
+    lint_type_list(linter, exp_call->tmpl->types);
+  lint_exp(linter, exp_call->func);
   lint_print(linter, "(");
-  if(exp_func->args)
-   lint_exp(linter, exp_func->args);
+  if(exp_call->args)
+   lint_exp(linter, exp_call->args);
   lint_print(linter, ")");
 }
 
@@ -307,7 +307,7 @@ ANN static void lint_exp(Linter* linter, Exp exp) {
         lint_exp_cast(linter, &exp->d.exp_cast);
         break;
       case ae_exp_call:
-        lint_exp_call(linter, &exp->d.exp_func);
+        lint_exp_call(linter, &exp->d.exp_call);
         break;
       case ae_exp_array:
         lint_exp_array(linter, &exp->d.exp_array);

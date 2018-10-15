@@ -8,9 +8,9 @@
 #include "instr.h"
 #include "emit.h"
 
-ANN Type check_exp_call1(Env env, Exp restrict exp_func,
+ANN Type check_exp_call1(Env env, Exp restrict exp_call,
   restrict Exp args, restrict Exp base);
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp);
+ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp);
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
 
 static INSTR(assign_func) { GWDEBUG_EXE
@@ -136,7 +136,7 @@ static OP_EMIT(opem_fptr_at) {
 static OP_EMIT(opem_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) :
-        emit_exp_spork(emit, &unary->exp->d.exp_func)))
+        emit_exp_spork(emit, &unary->exp->d.exp_call)))
   return 1;
 }
 

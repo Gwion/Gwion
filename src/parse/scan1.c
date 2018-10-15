@@ -139,11 +139,11 @@ ANN static inline m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDE
   return scan1_exp(env, dur->unit);
 }
 
-ANN static m_bool scan1_exp_call(const Env env, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(exp_func->tmpl)
+ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
+  if(exp_call->tmpl)
     return 1;
-  CHECK_BB(scan1_exp(env, exp_func->func))
-  const Exp args = exp_func->args;
+  CHECK_BB(scan1_exp(env, exp_call->func))
+  const Exp args = exp_call->args;
   return args ? scan1_exp(env, args) : 1;
 }
 
@@ -184,7 +184,7 @@ ANN static m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
         CHECK_BB(scan1_exp_cast(env, &exp->d.exp_cast))
         break;
       case ae_exp_call:
-        CHECK_BB(scan1_exp_call(env, &exp->d.exp_func))
+        CHECK_BB(scan1_exp_call(env, &exp->d.exp_call))
         break;
       case ae_exp_array:
         CHECK_BB(scan1_exp_array(env, &exp->d.exp_array))

@@ -472,14 +472,14 @@ Exp new_exp_call(const Exp base, const Exp args, const int pos) {
   Exp a = mp_alloc(Exp);
   a->exp_type = ae_exp_call;
   a->meta = ae_meta_value;
-  a->d.exp_func.func = base;
-  a->d.exp_func.args = args;
+  a->d.exp_call.func = base;
+  a->d.exp_call.args = args;
   a->pos = pos;
-  a->d.exp_func.self = a;
+  a->d.exp_call.self = a;
   return a;
 }
 
-ANN static void free_exp_call(Exp_Func* a) {
+ANN static void free_exp_call(Exp_Call* a) {
   if(a->m_func && GET_FLAG(a->m_func, ae_flag_checked))
     if(a->m_func->def)
       free_func_def_simple(a->m_func->def);
@@ -546,7 +546,7 @@ void free_exp(Exp exp) {
       free_exp_post(&exp->d.exp_post);
       break;
     case ae_exp_call:
-      free_exp_call(&exp->d.exp_func);
+      free_exp_call(&exp->d.exp_call);
       break;
     case ae_exp_array:
       free_array_exp(&exp->d.exp_array);

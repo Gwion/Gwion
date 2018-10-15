@@ -130,7 +130,7 @@ static void tag_exp_post(Tagger* tagger, Exp_Postfix* post) {
   tag_exp(tagger, post->exp);
 }
 
-static void tag_exp_call(Tagger* tagger __attribute__((unused)), Exp_Func* exp_func __attribute__((unused))) {
+static void tag_exp_call(Tagger* tagger __attribute__((unused)), Exp_Call* exp_call __attribute__((unused))) {
   return;
 }
 
@@ -170,7 +170,7 @@ static void tag_exp(Tagger* tagger,  Exp exp) {
         tag_exp_cast(tagger, &exp->d.exp_cast);
         break;
       case ae_exp_call:
-        tag_exp_call(tagger, &exp->d.exp_func);
+        tag_exp_call(tagger, &exp->d.exp_call);
         break;
       case ae_exp_array:
         tag_exp_array(tagger, &exp->d.exp_array);

@@ -635,9 +635,9 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   return 1;
 }
 
-ANN static m_uint vararg_size(const Exp_Func* exp_func, const Vector kinds) {
-  Exp e = exp_func->args;
-  Arg_List l = exp_func->m_func->def->arg_list;
+ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
+  Exp e = exp_call->args;
+  Arg_List l = exp_call->m_func->def->arg_list;
   m_uint size = 0;
   while(e) {
     if(!l) {
@@ -651,27 +651,27 @@ ANN static m_uint vararg_size(const Exp_Func* exp_func, const Vector kinds) {
   return size;
 }
 
-ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Func* exp_func) { GWDEBUG_EXE
+ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   const Vector kinds = new_vector();
   const Instr instr = emitter_add_instr(emit, VarargIni);
-  instr->m_val = vararg_size(exp_func, kinds);
+  instr->m_val = vararg_size(exp_call, kinds);
   instr->m_val2 = (m_uint)kinds;
   return 1;
 }
 
-ANN static m_bool emit_func_args(const Emitter emit, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(exp_func->args)
-    CHECK_BB(emit_exp(emit, exp_func->args, 1))
-  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic))
-    CHECK_BB(emit_func_arg_vararg(emit, exp_func))
+ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+  if(exp_call->args)
+    CHECK_BB(emit_exp(emit, exp_call->args, 1))
+  if(GET_FLAG(exp_call->m_func->def, ae_flag_variadic))
+    CHECK_BB(emit_func_arg_vararg(emit, exp_call))
   return 1;
 }
 
-ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
-  if(exp_func->args && !spork)
-    CHECK_BB(emit_func_args(emit, exp_func))
-  CHECK_BB(emit_exp(emit, exp_func->func, 0))
-  if(GET_FLAG(exp_func->m_func->def, ae_flag_variadic) && !exp_func->args) {
+ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
+  if(exp_call->args && !spork)
+    CHECK_BB(emit_func_args(emit, exp_call))
+  CHECK_BB(emit_exp(emit, exp_call->func, 0))
+  if(GET_FLAG(exp_call->m_func->def, ae_flag_variadic) && !exp_call->args) {
     // handle empty call to variadic functions
     const Instr mk = emitter_add_instr(emit, VarargIni);
     *(m_uint*)mk->ptr = 1;
@@ -682,30 +682,30 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Func* exp_f
 }
 
 ANN static m_bool emit_exp_call_template(const Emitter emit,
-    const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
-  if(emit->env->func && emit->env->func == exp_func->m_func)
-    return emit_exp_call_helper(emit, exp_func, spork);
+    const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
+  if(emit->env->func && emit->env->func == exp_call->m_func)
+    return emit_exp_call_helper(emit, exp_call, spork);
   const Env env = emit->env;
-  const Value val = exp_func->m_func->value_ref;
-  const Func_Def def = exp_func->m_func->def;
+  const Value val = exp_call->m_func->value_ref;
+  const Func_Def def = exp_call->m_func->def;
   m_uint class_scope;
   env_push(emit->env, val->owner_class, val->owner, &class_scope);
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(template_push_types(env, def->tmpl->list, exp_func->tmpl->types))
+  CHECK_BB(template_push_types(env, def->tmpl->list, exp_call->tmpl->types))
   CHECK_BB(traverse_func_def(env, def))
-  CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
+  CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   nspc_pop_type(env->curr);
   env_pop(env, class_scope);
-  UNSET_FLAG(exp_func->m_func, ae_flag_checked);
+  UNSET_FLAG(exp_call->m_func, ae_flag_checked);
   return 1;
 }
 
-ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Func* exp_func, const m_bool spork) { GWDEBUG_EXE
-  if(!exp_func->tmpl)
-    CHECK_BB(emit_exp_call_helper(emit, exp_func, spork))
+ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
+  if(!exp_call->tmpl)
+    CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   else
-    CHECK_BB(emit_exp_call_template(emit, exp_func, spork))
-  return emit_exp_call1(emit, exp_func->m_func);
+    CHECK_BB(emit_exp_call_template(emit, exp_call, spork))
+  return emit_exp_call1(emit, exp_call->m_func);
 }
 
 ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
@@ -720,7 +720,7 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
     nspc_pop_type(emit->env->curr);
   }
   if(GET_FLAG(f->def, ae_flag_variadic)) {
-    Exp_Func exp;
+    Exp_Call exp;
     exp.args = lhs;
     exp.m_func = rhs->type->d.func;
     emit_func_arg_vararg(emit, &exp);
@@ -874,7 +874,7 @@ ANN static m_uint emit_exp_spork_size(Exp e) { GWDEBUG_EXE
   return size;
 }
 
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Func* exp) { GWDEBUG_EXE
+ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   CHECK_BB(emit_func_args(emit, exp))
   CHECK_BB(emit_exp(emit, exp->func, 0))
   vector_add(&emit->stack, (vtype)emit->code);
@@ -1022,7 +1022,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
       case ae_exp_dot:
         CHECK_BB(emit_exp_dot(emit, &exp->d.exp_dot))         break;
       case ae_exp_call:
-        CHECK_BB(emit_exp_call(emit, &exp->d.exp_func, 0))    break;
+        CHECK_BB(emit_exp_call(emit, &exp->d.exp_call, 0))    break;
       case ae_exp_array:
         CHECK_BB(emit_exp_array(emit, &exp->d.exp_array))     break;
       case ae_exp_if:
@@ -1079,7 +1079,7 @@ return ret;
 }
 
 #ifdef OPTIMIZE
-ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Func* e) {
+ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   Exp arg = e->args;
   if(arg)
     CHECK_BB(emit_exp(emit, e->args, 0))
@@ -1092,8 +1092,8 @@ ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Func* e) {
   return 1;
 }
 #define OPTIMIZE_TCO\
-  if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_func.m_func)\
-    return optimize_taill_call(emit, &stmt->val->d.exp_func);
+  if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)\
+    return optimize_taill_call(emit, &stmt->val->d.exp_call);
 #else
 #define OPTIMIZE_TCO
 #endif
