@@ -134,14 +134,11 @@ static OP_CHECK(opck_array_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type l = get_array_type(bin->lhs->type);
   const Type r = get_array_type(bin->rhs->type);
-
   if(isa(l, r) < 0) {
-    REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->self->pos, "array types do not match.");
     return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
-    REM_REF(bin->lhs->type)
     err_msg(TYPE_, bin->self->pos, "array depths do not match.");
     return t_null;
   }

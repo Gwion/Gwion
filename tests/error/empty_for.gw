@@ -1,2 +1,3 @@
 // [contains] empty for loop condition
+<<<"test">>>;
 for(;;){}

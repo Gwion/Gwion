@@ -52,7 +52,7 @@ ANN static void free_var_decl_list(Var_Decl_List a) {
 
 
 static Type_Decl* td_alloc(const ae_flag flag, const int pos) {
-  Type_Decl* a = mp_alloc(Type_Decl);\
+  Type_Decl* a = mp_alloc(Type_Decl);
   a->flag = flag;
   a->pos = pos;
   return a;
@@ -103,7 +103,7 @@ Exp new_exp_array(const Exp base, const Array_Sub array, const int pos) {
   return a;
 }
 
-ANN static void free_array_exp(Exp_Array* a) {
+ANN static void free_exp_array(Exp_Array* a) {
   if(a->base && a->base->type && a->array->depth < a->base->type->array_depth)
     REM_REF(a->self->type);
   free_array_sub(a->array);
@@ -217,7 +217,7 @@ Exp new_exp_dur(const Exp base, const Exp unit, const int pos) {
   return a;
 }
 
-ANN static void free_dur_exp(Exp_Dur* a) {
+ANN static void free_exp_dur(Exp_Dur* a) {
   free_exp(a->base);
   free_exp(a->unit);
 }
@@ -330,7 +330,7 @@ Exp new_exp_unary3(const Operator oper, const Stmt code, const int pos) {
   return a;
 }
 
-ANN static void free_unary_exp(Exp_Unary* a) {
+ANN static void free_exp_unary(Exp_Unary* a) {
   if(a->exp)
     free_exp(a->exp);
   if(a->td)
@@ -352,7 +352,7 @@ Exp new_exp_if(const restrict Exp cond, const restrict Exp if_exp, const restric
   return a;
 }
 
-ANN static void free_if_exp(Exp_If* a) {
+ANN static void free_exp_if(Exp_If* a) {
   free_exp(a->cond);
   free_exp(a->if_exp);
   free_exp(a->else_exp);
@@ -501,7 +501,7 @@ Exp new_exp_dot(const Exp base, const Symbol xid, const int pos) {
   return a;
 }
 
-ANN static void free_dot_member_exp(Exp_Dot* dot) {
+ANN static void free_exp_dot(Exp_Dot* dot) {
   if(dot->base)
     free_exp(dot->base);
 }
@@ -512,7 +512,7 @@ Exp prepend_exp(const restrict Exp exp, const restrict Exp next) {
 }
 
 ANN static void free_exp_primary(Exp_Primary* a) {
-  ae_prim_t t = a->primary_type;
+  const ae_prim_t t = a->primary_type;
   if(t == ae_primary_hack)
     free_exp(a->d.exp);
   else if(t == ae_primary_array)
@@ -523,52 +523,19 @@ ANN static void free_exp_primary(Exp_Primary* a) {
     free_exp(a->d.vec.exp);
 }
 
+typedef void (*_exp_func)(const union exp_data *);
+static const _exp_func exp_func[] = {
+  (_exp_func)free_exp_decl,    (_exp_func)free_exp_binary, (_exp_func)free_exp_unary,
+  (_exp_func)free_exp_primary, (_exp_func)free_exp_cast,   (_exp_func)free_exp_post,
+  (_exp_func)free_exp_call,    (_exp_func)free_exp_array,  (_exp_func)free_exp_if,
+  (_exp_func)free_exp_dot,     (_exp_func)free_exp_dur
+// (_exp_func)free_exp_constprop
+};
+
 void free_exp(Exp exp) {
   if(exp->next)
     free_exp(exp->next);
-  switch(exp->exp_type) {
-    case ae_exp_decl:
-      free_exp_decl(&exp->d.exp_decl);
-      break;
-    case ae_exp_binary:
-      free_exp_binary(&exp->d.exp_binary);
-      break;
-    case ae_exp_unary:
-      free_unary_exp(&exp->d.exp_unary);
-      break;
-    case ae_exp_primary:
-      free_exp_primary(&exp->d.exp_primary);
-      break;
-    case ae_exp_cast:
-      free_exp_cast(&exp->d.exp_cast);
-      break;
-    case ae_exp_post:
-      free_exp_post(&exp->d.exp_post);
-      break;
-    case ae_exp_call:
-      free_exp_call(&exp->d.exp_call);
-      break;
-    case ae_exp_array:
-      free_array_exp(&exp->d.exp_array);
-      break;
-    case ae_exp_if:
-      free_if_exp(&exp->d.exp_if);
-      break;
-    case ae_exp_dot:
-      free_dot_member_exp(&exp->d.exp_dot);
-      break;
-    case ae_exp_dur:
-      free_dur_exp(&exp->d.exp_dur);
-      break;
-#ifdef OPTIMIZE
-    case ae_exp_constprop:
-    case ae_exp_constprop2:
-      /*free_exp_constprop(&exp->d.exp_constprop);*/
-      break;
-#endif
-  }
-//  if(exp->next)
-//    free_exp(exp->next);
+  exp_func[exp->exp_type](&exp->d);
   mp_free(Exp, exp);
 }
 
@@ -797,66 +764,24 @@ ANN inline static void free_stmt_union(Stmt_Union a) {
   free_decl_list(a->l);
 }
 
-void free_stmt(Stmt stmt) {
-  switch(stmt->stmt_type) {
-    case ae_stmt_exp:
-      free_stmt_exp(&stmt->d.stmt_exp);
-      break;
-    case ae_stmt_while:
-      free_stmt_flow(&stmt->d.stmt_flow);
-      break;
-    case ae_stmt_until:
-      free_stmt_flow(&stmt->d.stmt_flow);
-      break;
-    case ae_stmt_for:
-      free_stmt_for(&stmt->d.stmt_for);
-      break;
-    case ae_stmt_auto:
-      free_stmt_auto(&stmt->d.stmt_auto);
-      break;
-    case ae_stmt_loop:
-      free_stmt_loop(&stmt->d.stmt_loop);
-      break;
-    case ae_stmt_if:
-      free_stmt_if(&stmt->d.stmt_if);
-      break;
-    case ae_stmt_code:
-      free_stmt_code(&stmt->d.stmt_code);
-      break;
-    case ae_stmt_switch:
-      free_stmt_switch(&stmt->d.stmt_switch);
-      break;
-    case ae_stmt_break:
-    case ae_stmt_continue:
-      break;
-    case ae_stmt_return:
-      free_stmt_exp(&stmt->d.stmt_exp);
-      break;
-    case ae_stmt_case:
-      free_stmt_exp(&stmt->d.stmt_exp);
-      break;
-    case ae_stmt_jump:
-      break;
-    case ae_stmt_enum:
-      free_stmt_enum(&stmt->d.stmt_enum);
-      break;
-    case ae_stmt_fptr:
-      free_stmt_fptr(&stmt->d.stmt_fptr);
-      break;
-    case ae_stmt_type:
-      free_stmt_type(&stmt->d.stmt_type);
-      break;
-    case ae_stmt_union:
-      free_stmt_union(&stmt->d.stmt_union);
-      break;
+ANN static void free_stmt_xxx(const union stmt_data *d) { return; }
+typedef void (*_stmt_func)(const union stmt_data *);
+static const _stmt_func stmt_func[] = {
+  (_stmt_func)free_stmt_exp,  (_stmt_func)free_stmt_flow, (_stmt_func)free_stmt_flow,
+  (_stmt_func)free_stmt_for,  (_stmt_func)free_stmt_auto, (_stmt_func)free_stmt_loop,
+  (_stmt_func)free_stmt_if,   (_stmt_func)free_stmt_code, (_stmt_func)free_stmt_switch,
+  (_stmt_func)free_stmt_xxx,  (_stmt_func)free_stmt_xxx,  (_stmt_func)free_stmt_xxx,
+  (_stmt_func)free_stmt_xxx,  (_stmt_func)free_stmt_xxx,  (_stmt_func)free_stmt_enum,
+  (_stmt_func)free_stmt_fptr, (_stmt_func)free_stmt_type, (_stmt_func)free_stmt_union,
 #ifndef TINY_MODE
 #ifdef TOOL_MODE
-    case ae_stmt_pp:
-      free_stmt_pp(&stmt->d.stmt_pp);
-      break;
+  (_stmt_func)free_stmt_pp
 #endif
 #endif
-  }
+};
+
+void free_stmt(Stmt stmt) {
+  stmt_func[stmt->stmt_type](&stmt->d);
   mp_free(Stmt, stmt);
 }
 

@@ -1,2 +1,2 @@
-// [contains] in switch expression. should be 'int'
+// [contains] conditional must be of type
 switch(NULL){}
