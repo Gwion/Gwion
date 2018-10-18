@@ -13,7 +13,7 @@ static DTOR(event_dtor) {
   free_vector(EV_SHREDS(o));
 }
 
-static INSTR(Event_Wait) { GWDEBUG_EXE
+static INSTR(EventWait) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT);
   const M_Object event = *(M_Object*)REG(-SZ_INT);
   if(!event)

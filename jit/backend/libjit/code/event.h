@@ -7,7 +7,7 @@
 #include "code.h"
 #include "code/func.h"
 
-JIT_CODE(Event_Wait) {
+JIT_CODE(EventWait) {
   push_reg(cc, -SZ_FLOAT);
   CJval obj = JLOADR(cc->reg, -SZ_INT, void_ptr);
   cc_check(cc, obj, "NullEventWait");
@@ -22,5 +22,5 @@ JIT_CODE(Event_Wait) {
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 void jit_code_import_event(struct Jit* j) {
-  JIT_IMPORT(Event_Wait);
+  JIT_IMPORT(EventWait);
 }
