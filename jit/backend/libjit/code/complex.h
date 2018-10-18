@@ -8,7 +8,7 @@
 #include "code.h"
 #include "code/func.h"
 
-JIT_CODE(complex_assign) {
+JIT_CODE(ComplexAssign) {
   push_reg(cc, -SZ_INT);
   CJval rea = JLOADR(cc->reg, SZ_INT - SZ_COMPLEX , float);
   CJval img = JLOADR(cc->reg, SZ_INT - SZ_FLOAT, float);
@@ -20,7 +20,7 @@ JIT_CODE(complex_assign) {
 }
 
 #define jit_describe1(name, op)                                \
-JIT_CODE(complex_##name) {                                     \
+JIT_CODE(Complex##name) {                                     \
   push_reg(cc, -SZ_COMPLEX);                        \
   CJval lhs = JADDR(cc->reg, -SZ_COMPLEX);                         \
   CJval lreal = JLOADR(lhs, 0, float);                         \
@@ -33,10 +33,10 @@ JIT_CODE(complex_##name) {                                     \
   JSTORER(cc->reg, -SZ_COMPLEX, real);                             \
   JSTORER(cc->reg, -SZ_FLOAT, imag);                               \
 }
-jit_describe1(plus,   add)
-jit_describe1(minus,  sub)
+jit_describe1(Add,  add)
+jit_describe1(Sub, sub)
 
-JIT_CODE(complex_mul) {
+JIT_CODE(ComplexMul) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -54,7 +54,7 @@ JIT_CODE(complex_mul) {
   JSTORER(cc->reg, -SZ_FLOAT, imag);
 }
 
-JIT_CODE(complex_div) {
+JIT_CODE(ComplexDiv) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -77,7 +77,7 @@ JIT_CODE(complex_div) {
   JSTORER(cc->reg, -SZ_FLOAT, imag);
 }
 
-JIT_CODE(complex_r_assign) {
+JIT_CODE(ComplexRAssign) {
   push_reg(cc, -SZ_INT);
   CJval rea = JLOADR(cc->reg, -SZ_COMPLEX , float);
   CJval img = JLOADR(cc->reg, -SZ_FLOAT, float);
@@ -89,7 +89,7 @@ JIT_CODE(complex_r_assign) {
 }
 
 #define jit_describe_r1(name, op)                              \
-JIT_CODE(complex_r_##name) {                                   \
+JIT_CODE(ComplexR##name) {                                   \
   push_reg(cc, -SZ_COMPLEX);                        \
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);                       \
   CJval lreal = JLOADR(lhs, 0, float);                         \
@@ -105,10 +105,10 @@ JIT_CODE(complex_r_##name) {                                   \
   JSTORER(cc->reg, -SZ_COMPLEX, real);                             \
   JSTORER(cc->reg, -SZ_FLOAT, imag);                               \
 }
-jit_describe_r1(plus,   add)
-jit_describe_r1(minus,  sub)
+jit_describe_r1(Add,   add)
+jit_describe_r1(Sub, sub)
 
-JIT_CODE(complex_r_mul) {
+JIT_CODE(ComplexRMul) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -129,7 +129,7 @@ JIT_CODE(complex_r_mul) {
   JSTORER(cc->reg, -SZ_FLOAT, imag);
 }
 
-JIT_CODE(complex_r_div) {
+JIT_CODE(ComplexRDiv) {
   push_reg(cc, -SZ_COMPLEX);
   CJval lhs   = JADDR(cc->reg, -SZ_COMPLEX);
   CJval lreal = JLOADR(lhs, 0, float);
@@ -185,7 +185,7 @@ JIT_CODE(ComplexImag) {
 #endif
 
 #define jit_polar_def1(name, op)\
-JIT_CODE(polar_##name) {\
+JIT_CODE(Polar##name) {\
   push_reg(cc, -SZ_COMPLEX);\
   CJval are = JLOADR(cc->reg, -SZ_COMPLEX, float);\
   CJval aim = JLOADR(cc->reg, -SZ_FLOAT,   float);\
@@ -207,11 +207,11 @@ JIT_CODE(polar_##name) {\
   JSTORER(cc->reg, -SZ_COMPLEX, re);\
   JSTORER(cc->reg, -SZ_FLOAT, im);\
 }
-jit_polar_def1(plus,  add)
-jit_polar_def1(minus, sub)
+jit_polar_def1(Add,  add)
+jit_polar_def1(Sub, sub)
 
 #define jit_polar_def2(name, op1, op2)\
-JIT_CODE(polar_##name) {\
+JIT_CODE(Polar##name) {\
   push_reg(cc, -SZ_COMPLEX);\
   CJval are = JLOADR(cc->reg, -SZ_COMPLEX, float);\
   CJval aim = JLOADR(cc->reg, -SZ_FLOAT,   float);\
@@ -222,11 +222,11 @@ JIT_CODE(polar_##name) {\
   JSTORER(cc->reg, -SZ_COMPLEX, mag);\
   JSTORER(cc->reg, -SZ_FLOAT, pha);\
 }
-jit_polar_def2(mul,  mul, add)
-jit_polar_def2(div, div, sub)
+jit_polar_def2(Mul,  mul, add)
+jit_polar_def2(Div, div, sub)
 
 #define jit_polar_def1_r(name, op)\
-JIT_CODE(polar_##name##_r) {\
+JIT_CODE(PolarR##name) {\
   push_reg(cc, -SZ_INT);\
   CJval are = JLOADR(cc->reg, -SZ_COMPLEX, float);\
   CJval aim = JLOADR(cc->reg, -SZ_FLOAT,   float);\
@@ -251,11 +251,11 @@ JIT_CODE(polar_##name##_r) {\
   JSTORER(cc->reg, -SZ_COMPLEX, re);\
   JSTORER(cc->reg, -SZ_FLOAT, im);\
 }
-jit_polar_def1_r(plus,  add)
-jit_polar_def1_r(minus, sub)
+jit_polar_def1_r(Add,  add)
+jit_polar_def1_r(Sub, sub)
 
 #define jit_polar_def2_r(name, op1, op2)\
-JIT_CODE(polar_##name##_r) {\
+JIT_CODE(PolarR##name) {\
   push_reg(cc, -SZ_COMPLEX);\
   CJval are = JLOADR(cc->reg, -SZ_COMPLEX, float);\
   CJval aim = JLOADR(cc->reg, -SZ_FLOAT,   float);\
@@ -269,30 +269,29 @@ JIT_CODE(polar_##name##_r) {\
   JSTORER(cc->reg, -SZ_COMPLEX, mag);\
   JSTORER(cc->reg, -SZ_FLOAT, pha);\
 }
-jit_polar_def2_r(mul,  mul, add)
-jit_polar_def2_r(div, div, sub)
+jit_polar_def2_r(Mul,  mul, add)
+jit_polar_def2_r(Div, div, sub)
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 void jit_code_import_complex(struct Jit* j) {
-  JIT_IMPORT(complex_assign)
-  JIT_IMPORT(complex_plus)
-  JIT_IMPORT(complex_minus)
-  JIT_IMPORT(complex_mul)
-  JIT_IMPORT(complex_div)
-  JIT_IMPORT(complex_r_assign)
-  JIT_IMPORT(complex_r_plus)
-  JIT_IMPORT(complex_r_minus)
-  JIT_IMPORT(complex_r_mul)
-  JIT_IMPORT(complex_r_div)
+  JIT_IMPORT(ComplexAssign)
+  JIT_IMPORT(ComplexAdd)
+  JIT_IMPORT(ComplexSub)
+  JIT_IMPORT(ComplexMul)
+  JIT_IMPORT(ComplexDiv)
+  JIT_IMPORT(ComplexRAssign)
+  JIT_IMPORT(ComplexRAdd)
+  JIT_IMPORT(ComplexRSub)
+  JIT_IMPORT(ComplexRMul)
+  JIT_IMPORT(ComplexRDiv)
   JIT_IMPORT(ComplexReal)
   JIT_IMPORT(ComplexImag)
-  JIT_IMPORT(polar_plus)
-  JIT_IMPORT(polar_minus)
-  JIT_IMPORT(polar_mul)
-  JIT_IMPORT(polar_div)
-  // nalmeing incons
-  JIT_IMPORT(polar_plus_r)
-  JIT_IMPORT(polar_minus_r)
-  JIT_IMPORT(polar_mul_r)
-  JIT_IMPORT(polar_div_r)
+  JIT_IMPORT(PolarAdd)
+  JIT_IMPORT(PolarSub)
+  JIT_IMPORT(PolarMul)
+  JIT_IMPORT(PolarDiv)
+  JIT_IMPORT(PolarRAdd)
+  JIT_IMPORT(PolarRSub)
+  JIT_IMPORT(PolarRMul)
+  JIT_IMPORT(PolarRDiv)
 }

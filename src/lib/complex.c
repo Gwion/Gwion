@@ -5,36 +5,36 @@
 #include "instr.h"
 #include "import.h"
 
-static INSTR(complex_assign) { GWDEBUG_EXE
+static INSTR(ComplexAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(-SZ_COMPLEX) =
      *(m_complex*)REG(SZ_INT-SZ_COMPLEX));
 }
 
 #define describe(name, op) \
-static INSTR(complex_##name) { GWDEBUG_EXE \
+static INSTR(Complex##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_COMPLEX); \
   *(m_complex*)REG(-SZ_COMPLEX) op##= *(m_complex*)REG(0); \
 }
-describe(plus,   +)
-describe(minus,  -)
-describe(mul,  *)
-describe(div, /)
+describe(Add,   +)
+describe(Sub,  -)
+describe(Mul,  *)
+describe(Div, /)
 
-static INSTR(complex_r_assign) { GWDEBUG_EXE
+static INSTR(ComplexRAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   **(m_complex**)REG(0) = *(m_complex*)REG(-SZ_COMPLEX);
 }
 
 #define describe_r(name, op) \
-static INSTR(complex_r_##name) { GWDEBUG_EXE \
+static INSTR(ComplexR##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT); \
   *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(0) op##= (*(m_complex*)REG(-SZ_COMPLEX))); \
 }
-describe_r(plus,  +)
-describe_r(minus, -)
-describe_r(mul, *)
-describe_r(div, /)
+describe_r(Add,  +)
+describe_r(Sub, -)
+describe_r(Mul, *)
+describe_r(Div, /)
 
 INSTR(ComplexReal) { GWDEBUG_EXE
 //  if(!instr->m_val) { // other case skipped in emit.c
@@ -55,7 +55,7 @@ INSTR(ComplexImag) { GWDEBUG_EXE
 }
 
 #define polar_def1(name, op)                                               \
-static INSTR(polar_##name) { GWDEBUG_EXE                                   \
+static INSTR(Polar##name) { GWDEBUG_EXE                                   \
   POP_REG(shred, SZ_COMPLEX);                                              \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
   const m_complex b = *(m_complex*)REG(0);                                 \
@@ -64,11 +64,11 @@ static INSTR(polar_##name) { GWDEBUG_EXE                                   \
   *(m_complex*)REG(-SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;       \
 }
 
-polar_def1(plus,  +)
-polar_def1(minus, -)
+polar_def1(Add,  +)
+polar_def1(Sub, -)
 
 #define polar_def2(name, op1, op2)                   \
-static INSTR(polar_##name) { GWDEBUG_EXE             \
+static INSTR(Polar##name) { GWDEBUG_EXE             \
   POP_REG(shred, SZ_COMPLEX);                        \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX); \
   const m_complex b = *(m_complex*)REG(0);           \
@@ -76,11 +76,11 @@ static INSTR(polar_##name) { GWDEBUG_EXE             \
   const m_float phase = cimag(a) op2 cimag(b);       \
   *(m_complex*)REG(-SZ_COMPLEX) = mag  + phase * I;  \
 }
-polar_def2(mul, *, +)
-polar_def2(div, /, -)
+polar_def2(Mul, *, +)
+polar_def2(Div, /, -)
 
 #define polar_def1_r(name, op)                                             \
-static INSTR(polar_##name##_r) { GWDEBUG_EXE                               \
+static INSTR(PolarR##name) { GWDEBUG_EXE                               \
   POP_REG(shred, SZ_INT);                                                  \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
   const m_complex b = **(m_complex**)REG(0);                               \
@@ -89,11 +89,11 @@ static INSTR(polar_##name##_r) { GWDEBUG_EXE                               \
   *(m_complex*)REG(-SZ_COMPLEX) = **(m_complex**)REG(0) =                  \
     hypot(re, im) + atan2(im, re) * I;                                     \
 }
-polar_def1_r(plus, +)
-polar_def1_r(minus, -)
+polar_def1_r(Add, +)
+polar_def1_r(Sub, -)
 
 #define polar_def2_r(name, op1, op2)                      \
-static INSTR(polar_##name##_r) { GWDEBUG_EXE              \
+static INSTR(PolarR##name) { GWDEBUG_EXE              \
   POP_REG(shred, SZ_INT);                                 \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);      \
   const m_complex b = **(m_complex**)REG(0);              \
@@ -102,8 +102,8 @@ static INSTR(polar_##name##_r) { GWDEBUG_EXE              \
   *(m_complex*)REG(-SZ_COMPLEX) = **(m_complex**)REG(0) = \
     mag + phase * I;                                      \
 }
-polar_def2_r(mul, *, +)
-polar_def2_r(div, /, -)
+polar_def2_r(Mul, *, +)
+polar_def2_r(Div, /, -)
 
 GWION_IMPORT(complex) {
   CHECK_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
@@ -120,38 +120,38 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_add,          complex_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,         complex_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,         complex_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_div,        complex_div))
+  CHECK_BB(gwi_oper_end(gwi, op_assign,        ComplexAssign))
+  CHECK_BB(gwi_oper_end(gwi, op_add,          ComplexAdd))
+  CHECK_BB(gwi_oper_end(gwi, op_sub,         ComplexSub))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,         ComplexMul))
+  CHECK_BB(gwi_oper_end(gwi, op_div,        ComplexDiv))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,         ComplexRAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_radd,    complex_r_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_radd,    ComplexRAdd))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rsub,   complex_r_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_rsub,   ComplexRSub))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rmul,   complex_r_mul))
+  CHECK_BB(gwi_oper_end(gwi, op_rmul,   ComplexRMul))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  complex_r_div))
+  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  ComplexRDiv))
   CHECK_BB(gwi_oper_ini(gwi, "polar", "polar", "polar"))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        complex_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign,        ComplexAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck,         complex_r_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_add,          polar_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,         polar_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,         polar_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_div,        polar_div))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck,         ComplexRAssign))
+  CHECK_BB(gwi_oper_end(gwi, op_add,          PolarAdd))
+  CHECK_BB(gwi_oper_end(gwi, op_sub,         PolarSub))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,         PolarMul))
+  CHECK_BB(gwi_oper_end(gwi, op_div,        PolarDiv))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_radd,    polar_plus_r))
+  CHECK_BB(gwi_oper_end(gwi, op_radd,    PolarRAdd))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rsub,   polar_minus_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rsub,   PolarRSub))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rmul,   polar_mul_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rmul,   PolarRMul))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  polar_div_r))
+  CHECK_BB(gwi_oper_end(gwi, op_rdiv,  PolarRDiv))
   return 1;
 }
 
