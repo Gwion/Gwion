@@ -19,7 +19,7 @@ JIT_CODE(VecMember) {
 }
 
 #define jit_describe_vec3(name, op)\
-JIT_CODE(vec3_##name) {\
+JIT_CODE(Vec3##name) {\
   push_reg(cc, -SZ_VEC3);\
   CJval ax = JLOADR(cc->reg, -SZ_VEC3,    float);\
   CJval ay = JLOADR(cc->reg, -SZ_COMPLEX, float);\
@@ -34,13 +34,13 @@ JIT_CODE(vec3_##name) {\
   JSTORER(cc->reg, -SZ_COMPLEX, y);\
   JSTORER(cc->reg, -SZ_FLOAT, z);\
 }
-jit_describe_vec3(add, add)
-jit_describe_vec3(sub, sub)
-jit_describe_vec3(mul, mul)
-jit_describe_vec3(div, div)
+jit_describe_vec3(Add, add)
+jit_describe_vec3(Sub, sub)
+jit_describe_vec3(Mul, mul)
+jit_describe_vec3(Div, div)
 
-#define jit_describe_float_vec3(func)\
-JIT_CODE(float_##func##_vec3) {\
+#define jit_describe_float_vec3(name, func)\
+JIT_CODE(Float##name##Vec3) {\
   push_reg(cc, -SZ_FLOAT);\
   CJval  f = JLOADR(cc->reg, -SZ_VEC3,    float);\
   CJval ax = JLOADR(cc->reg, -SZ_COMPLEX, float);\
@@ -53,13 +53,13 @@ JIT_CODE(float_##func##_vec3) {\
   JSTORER(cc->reg, -SZ_COMPLEX, y);\
   JSTORER(cc->reg, -SZ_FLOAT, z);\
 }
-jit_describe_float_vec3(add)
-jit_describe_float_vec3(sub)
-jit_describe_float_vec3(mul)
-jit_describe_float_vec3(div)
+jit_describe_float_vec3(Add, add)
+jit_describe_float_vec3(Sub, sub)
+jit_describe_float_vec3(Mul, mul)
+jit_describe_float_vec3(Div, div)
 
-#define jit_describe_vec3_float(func)\
-JIT_CODE(vec3_##func##_float) {\
+#define jit_describe_vec3_float(name, func)\
+JIT_CODE(Vec3##name##Float) {\
   push_reg(cc, -SZ_FLOAT);\
   CJval ax = JLOADR(cc->reg, -SZ_VEC3,    float);\
   CJval ay = JLOADR(cc->reg, -SZ_COMPLEX, float);\
@@ -72,13 +72,13 @@ JIT_CODE(vec3_##func##_float) {\
   JSTORER(cc->reg, -SZ_COMPLEX, y);\
   JSTORER(cc->reg, -SZ_FLOAT, z);\
 }
-jit_describe_vec3_float(add)
-jit_describe_vec3_float(sub)
-jit_describe_vec3_float(mul)
-jit_describe_vec3_float(div)
+jit_describe_vec3_float(Add, add)
+jit_describe_vec3_float(Sub, sub)
+jit_describe_vec3_float(Mul, mul)
+jit_describe_vec3_float(Div, div)
 
 #define jit_describe_vec3_assign(name, offset1, offset2)\
-JIT_CODE(vec3_##name##assign) {\
+JIT_CODE(Vec3##name##Assign) {\
   push_reg(cc, -SZ_INT);\
   CJval src = JLOADR(cc->reg,  offset1, void_ptr);\
   CJval x = JLOADR(cc->reg, offset2-SZ_VEC3,    float);\
@@ -92,10 +92,10 @@ JIT_CODE(vec3_##name##assign) {\
   JSTORER(cc->reg, -SZ_FLOAT, z);\
 }
 jit_describe_vec3_assign(, -SZ_VEC3, SZ_INT)
-jit_describe_vec3_assign(r_, 0, )
+jit_describe_vec3_assign(R, 0, )
 
 #define jit_describe_vec4(name, op)\
-JIT_CODE(vec4_##name) {\
+JIT_CODE(Vec4##name) {\
   push_reg(cc, -SZ_VEC4);\
   CJval ax = JLOADR(cc->reg, -SZ_VEC4,    float);\
   CJval ay = JLOADR(cc->reg, -SZ_VEC3,    float);\
@@ -114,13 +114,13 @@ JIT_CODE(vec4_##name) {\
   JSTORER(cc->reg, -SZ_COMPLEX, z);\
   JSTORER(cc->reg, -SZ_FLOAT, w);\
 }
-jit_describe_vec4(add, add)
-jit_describe_vec4(sub, sub)
-jit_describe_vec4(mul, mul)
-jit_describe_vec4(div, div)
+jit_describe_vec4(Add, add)
+jit_describe_vec4(Sub, sub)
+jit_describe_vec4(Mul, mul)
+jit_describe_vec4(Div, div)
 
-#define jit_describe_float_vec4(func)\
-JIT_CODE(float_##func##_vec4) {\
+#define jit_describe_float_vec4(name, func)\
+JIT_CODE(Float##name##Vec4) {\
   push_reg(cc, -SZ_FLOAT);\
   CJval  f = JLOADR(cc->reg, -SZ_VEC4,    float);\
   CJval ax = JLOADR(cc->reg, -SZ_VEC3,    float);\
@@ -136,13 +136,13 @@ JIT_CODE(float_##func##_vec4) {\
   JSTORER(cc->reg, -SZ_FLOAT, z);\
   JSTORER(cc->reg, -SZ_FLOAT, w);\
 }
-jit_describe_float_vec4(add)
-jit_describe_float_vec4(sub)
-jit_describe_float_vec4(mul)
-jit_describe_float_vec4(div)
+jit_describe_float_vec4(Add, add)
+jit_describe_float_vec4(Sub, add)
+jit_describe_float_vec4(Mul, add)
+jit_describe_float_vec4(Div, add)
 
-#define jit_describe_vec4_float(func)\
-JIT_CODE(vec4_##func##_float) {\
+#define jit_describe_vec4_float(name, func)\
+JIT_CODE(Vec4##name##Float) {\
   push_reg(cc, -SZ_FLOAT);\
   CJval ax = JLOADR(cc->reg, -SZ_VEC4,    float);\
   CJval ay = JLOADR(cc->reg, -SZ_VEC3,    float);\
@@ -158,13 +158,13 @@ JIT_CODE(vec4_##func##_float) {\
   JSTORER(cc->reg, -SZ_COMPLEX, z);\
   JSTORER(cc->reg, -SZ_FLOAT, w);\
 }
-jit_describe_vec4_float(add)
-jit_describe_vec4_float(sub)
-jit_describe_vec4_float(mul)
-jit_describe_vec4_float(div)
+jit_describe_vec4_float(Add, add)
+jit_describe_vec4_float(Sub, sub)
+jit_describe_vec4_float(Mul, mul)
+jit_describe_vec4_float(Div, div)
 
 #define jit_describe_vec4_assign(name, offset1, offset2)\
-JIT_CODE(vec4_##name##assign) {\
+JIT_CODE(Vec4##name##Assign) {\
   push_reg(cc, -SZ_INT);\
   CJval src = JLOADR(cc->reg,  offset1, void_ptr);\
   CJval x = JLOADR(cc->reg, offset2-SZ_VEC4,    float);\
@@ -181,37 +181,37 @@ JIT_CODE(vec4_##name##assign) {\
   JSTORER(cc->reg, -SZ_FLOAT, w);\
 }
 jit_describe_vec4_assign(, -SZ_VEC4, SZ_INT)
-jit_describe_vec4_assign(r_, 0, )
+jit_describe_vec4_assign(R, 0, )
 
 #define JIT_IMPORT(a) jit_code_import(j, a, jitcode_##a);
 void jit_code_import_vec(struct Jit* j) {
   JIT_IMPORT(VecMember)
-  JIT_IMPORT(vec3_assign)
-  JIT_IMPORT(vec3_add)
-  JIT_IMPORT(vec3_sub)
-  JIT_IMPORT(vec3_mul)
-  JIT_IMPORT(vec3_div)
-  JIT_IMPORT(float_add_vec3)
-  JIT_IMPORT(float_sub_vec3)
-  JIT_IMPORT(float_mul_vec3)
-  JIT_IMPORT(float_div_vec3)
-  JIT_IMPORT(vec3_add_float)
-  JIT_IMPORT(vec3_sub_float)
-  JIT_IMPORT(vec3_mul_float)
-  JIT_IMPORT(vec3_div_float)
-  JIT_IMPORT(vec3_r_assign)
-  JIT_IMPORT(vec4_assign)
-  JIT_IMPORT(vec4_add)
-  JIT_IMPORT(vec4_sub)
-  JIT_IMPORT(vec4_mul)
-  JIT_IMPORT(vec4_div)
-  JIT_IMPORT(float_add_vec4)
-  JIT_IMPORT(float_sub_vec4)
-  JIT_IMPORT(float_mul_vec4)
-  JIT_IMPORT(float_div_vec4)
-  JIT_IMPORT(vec4_add_float)
-  JIT_IMPORT(vec4_sub_float)
-  JIT_IMPORT(vec4_mul_float)
-  JIT_IMPORT(vec4_div_float)
-  JIT_IMPORT(vec4_r_assign)
+  JIT_IMPORT(Vec3Assign)
+  JIT_IMPORT(Vec3Add)
+  JIT_IMPORT(Vec3Sub)
+  JIT_IMPORT(Vec3Mul)
+  JIT_IMPORT(Vec3Div)
+  JIT_IMPORT(FloatAddVec3)
+  JIT_IMPORT(FloatSubVec3)
+  JIT_IMPORT(FloatMulVec3)
+  JIT_IMPORT(FloatDivVec3)
+  JIT_IMPORT(Vec3AddFloat)
+  JIT_IMPORT(Vec3SubFloat)
+  JIT_IMPORT(Vec3MulFloat)
+  JIT_IMPORT(Vec3DivFloat)
+  JIT_IMPORT(Vec3RAssign)
+  JIT_IMPORT(Vec4Assign)
+  JIT_IMPORT(Vec4Add)
+  JIT_IMPORT(Vec4Sub)
+  JIT_IMPORT(Vec4Mul)
+  JIT_IMPORT(Vec4Div)
+  JIT_IMPORT(FloatAddVec4)
+  JIT_IMPORT(FloatSubVec4)
+  JIT_IMPORT(FloatMulVec4)
+  JIT_IMPORT(FloatDivVec4)
+  JIT_IMPORT(Vec4AddFloat)
+  JIT_IMPORT(Vec4SubFloat)
+  JIT_IMPORT(Vec4MulFloat)
+  JIT_IMPORT(Vec4DivFloat)
+  JIT_IMPORT(Vec4RAssign)
 }

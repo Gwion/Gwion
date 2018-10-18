@@ -57,7 +57,7 @@ GWION_IMPORT(event) {
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
-  _CHECK_OP(chuck, rassign, Event_Wait)
+  _CHECK_OP(chuck, rassign, EventWait)
   return 1;
 }
 
