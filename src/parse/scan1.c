@@ -165,18 +165,8 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
 }
 
 typedef m_bool (*_exp_func)(const Env, const union exp_data *);
-static const _exp_func exp_func[] = {
-  (_exp_func)scan1_exp_decl,    (_exp_func)scan1_exp_binary, (_exp_func)scan1_exp_unary,
-  (_exp_func)scan1_exp_primary, (_exp_func)scan1_exp_cast,   (_exp_func)scan1_exp_post,
-  (_exp_func)scan1_exp_call,    (_exp_func)scan1_exp_array,  (_exp_func)scan1_exp_if,
-  (_exp_func)scan1_exp_dot,     (_exp_func)scan1_exp_dur
-};
+HANDLE_EXP_FUNC(scan1, m_bool, 1)
 
-ANN static inline m_bool scan1_exp(const Env env, Exp exp) { GWDEBUG_EXE
-  do CHECK_BB(exp_func[exp->exp_type](env, &exp->d))
-  while((exp = exp->next));
-  return 1;
-}
 #define describe_ret_nspc(name, type, exp) describe_stmt_func(scan1, name, type, exp)
 describe_ret_nspc(flow, Stmt_Flow, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)

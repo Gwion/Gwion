@@ -1,4 +1,3 @@
-#define PARSE
 #include <stdlib.h>
 #include <string.h>
 #include "defs.h"
@@ -15,7 +14,7 @@
 #include "traverse.h"
 #include "mpool.h"
 #include "escape.h"
-
+#include "parse.h"
 #ifdef JIT
 #include "jitter.h"
 #endif
@@ -675,11 +674,11 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   return 1;
 }
 
-ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
+ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(!exp_call->tmpl)
-    CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
+    CHECK_BB(emit_exp_call_helper(emit, exp_call, 0))
   else
-    CHECK_BB(emit_exp_call_template(emit, exp_call, spork))
+    CHECK_BB(emit_exp_call_template(emit, exp_call, 0))
   return emit_exp_call1(emit, exp_call->m_func);
 }
 
@@ -977,16 +976,9 @@ ANN static void emit_exp_constprop(const Emitter emit, const Exp e) {
   }
 }
 #endif
-static inline m_bool emit_exp_call0(const Emitter emit, const Exp_Call* call) {
-  return emit_exp_call(emit, call, 0);
-}
+
 typedef m_bool (*_exp_func)(const Emitter, const union exp_data *);
-static const _exp_func exp_func[] = {
-  (_exp_func)emit_exp_decl,    (_exp_func)emit_exp_binary, (_exp_func)emit_exp_unary,
-  (_exp_func)emit_exp_primary, (_exp_func)emit_exp_cast,   (_exp_func)emit_exp_post,
-  (_exp_func)emit_exp_call0,   (_exp_func)emit_exp_array,  (_exp_func)emit_exp_if,
-  (_exp_func)emit_exp_dot,     (_exp_func)emit_exp_dur
-};
+DECL_EXP_FUNC(emit)
 
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_EXE
   do {
