@@ -13,7 +13,8 @@ addons:
 
 env:
   global:
-    - CFLAGS=-Wno-attributes
+#because travis's gcc doesn't known some warnings
+    - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - PREFIX=$TRAVIS_BUILD_DIR
   matrix:

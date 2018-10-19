@@ -215,6 +215,6 @@ gwpp: ${TOOL_SRC}
 
 gwtag: ${TOOL_SRC} utils/gwtag.o
 	$(info compiling gwtag)
-	@${CC} ${CFLAGS} ${TOOL_SRC} -o gwtag -DTOOL_MODE utils/gwtag.o ${LDFLAGS}
+	@${CC} ${CFLAGS} ${TOOL_SRC} -o gwtag -DTOOL_MODE utils/gwtag.o ${CI_FLAGS} ${LDFLAGS}
 
 include $(wildcard .d/*.d)
