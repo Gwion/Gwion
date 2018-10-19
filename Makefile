@@ -95,11 +95,6 @@ ifeq (${USE_GWUDP}, 1)
 CFLAGS+=-DGWUDP
 src_src += utils/udp.c
 endif
-ifeq (${USE_GWMPOOL}, 1)
-CFLAGS+=-DGWMPOOL
-TOOL_OBJ += src/util/mpool.o src/util/map.o
-util_src += src/util/mpool.c
-endif
 ifeq (${USE_OPTIMIZE}, 1)
 util_src += utils/optim.c
 CFLAGS+= -DOPTIMIZE
@@ -137,9 +132,6 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 drvr_obj := $(drvr_src:.c=.o)
-TOOL_OBJ += src/util/err_msg.o src/util/vector.o src/util/symbol.o src/util/absyn.c src/ast/lexer.o src/ast/parser.o src/parse/op_utils.o src/ast/hash.o src/ast/scanner.o
-
-TOOL_SRC += src/util/mpool.c src/util/err_msg.c src/util/vector.c src/util/map.c src/util/symbol.c src/util/absyn.c src/ast/lexer.c src/ast/parser.c src/parse/op_utils.c src/ast/hash.c src/ast/scanner.c
 
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
@@ -204,17 +196,5 @@ parser:
 lexer:
 	$(info generating lexer)
 	@${LEX}  -o src/ast/lexer.c utils/gwion.l
-
-gwcov: utils/gwcov.o
-	$(info compiling gwcov)
-	@${CC} ${CFLAGS} utils/gwcov.o -o gwcov ${LDFLAGS}
-
-gwpp: ${TOOL_SRC}
-	$(info compiling gwpp)
-	@${CC} ${CFLAGS} -o gwpp -DTOOL_MODE -DLINT_MODE utils/gwpp.c ${LDFLAGS}  ${TOOL_SRC}
-
-gwtag: ${TOOL_SRC} utils/gwtag.o
-	$(info compiling gwtag)
-	@${CC} ${CFLAGS} ${TOOL_SRC} -o gwtag -DTOOL_MODE utils/gwtag.o ${CI_FLAGS} ${LDFLAGS}
 
 include $(wildcard .d/*.d)
