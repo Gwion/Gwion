@@ -14,20 +14,6 @@ CFLAGS += -Wall -Wextra
 #-pedantic
 CFLAGS += -fPIC
 
-CFLAGS += -O2
-#CFLAGS += -O2
-#CFLAGS += -Os
-#CFLAGS += -Ofast
-
-CFLAGS  += -fno-signed-zeros -ffinite-math-only -fno-trapping-math -fno-sanitize=all
-CFLAGS  += -ffast-math -msse3 -mssse3 -msse4 -mavx
-CFLAGS += -fomit-frame-pointer
-CFLAGS += -fdelete-null-pointer-checks
-CFLAGS += -fdata-sections
-CFLAGS += -ffunction-sections
-CFLAGS += -Wl,--gc-sections
-CFLAGS += -fno-plt
-
 # handle boolean options
 USE_DOUBLE    = 0
 USE_COVERAGE ?= 0
