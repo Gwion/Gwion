@@ -46,7 +46,7 @@ s.substring(2);
 <<< o => s >>>;
 <<<o>>>;
 // look at me!!!
-<<< o => s>>>; // hang . grrr...
+<<< o => s>>>; // hang . grrr ...
 <<<"test" + "another test" >>>; // mem leak
 <<<"1".toInt()>>>;
 <<<"1".toFloat()>>>;
@@ -76,3 +76,4 @@ s.substring(2);
 <<< "test" != "test" >>>;
 <<< "test" == "test1" >>>;
 <<< "test" != "test1" >>>;
+<<<string.char('t')>>>;

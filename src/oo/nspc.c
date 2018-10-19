@@ -8,7 +8,6 @@
 #include "object.h"
 #include "mpool.h"
 
-POOL_HANDLE(Nspc, 1024)
 extern VM* vm;
 
 ANN void nspc_commit(const Nspc nspc) {
@@ -29,14 +28,12 @@ ANN Nspc new_nspc(const m_str name) {
 
 ANN static void nspc_release_object(const Nspc a, Value value) {
   if(value->d.ptr || (GET_FLAG(value, ae_flag_static) && a->class_data) ||
-(value->d.ptr && GET_FLAG(value, ae_flag_builtin))
-
-) {
+    (value->d.ptr && GET_FLAG(value, ae_flag_builtin))) {
     const VM_Code code = new_vm_code(NULL, 0, 0, "in code dtor");
     const VM_Shred s = new_vm_shred(code);
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->class_data + value->offset);
-    s->vm_ref = vm;
+    s->vm = vm;
     release(obj, s);
     free_vm_shred(s);
   }
@@ -45,13 +42,7 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
   else if(GET_FLAG(value->type, ae_flag_builtin) && GET_FLAG(value->type, ae_flag_typedef))
     REM_REF(value->type->parent)
   else if(GET_FLAG(value->type, ae_flag_typedef))
-    REM_REF(t_array->info)
-}
-
-ANN static void free_nspc_value_fptr(Func f) {
-  if(f->next)
-    free_nspc_value_fptr(f->next);
-  free_func_simple(f);
+    REM_REF(t_array->nspc)
 }
 
 ANN static void free_nspc_value(const Nspc a) {
@@ -78,21 +69,15 @@ ANN static void free_nspc_value(const Nspc a) {
       }
       REM_REF(value->type)
     } else if(isa(value->type, t_union) > 0) {
-      if(GET_FLAG(value, ae_flag_static))
+      if(GET_FLAG(value, ae_flag_static) ||GET_FLAG(value, ae_flag_global))
         nspc_release_object(a, value);
-      REM_REF(value->type)
+      if(GET_FLAG(value->type, ae_flag_op)) // only free untyped unions
+        REM_REF(value->type)
     }
+    else if(isa(value->type, t_function) > 0)
+      REM_REF(value->type)
     else if(isa(value->type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->type, t_func_ptr) > 0 && value->d.func_ref)
-      free_nspc_value_fptr(value->d.func_ref);
-    else if(isa(value->type, t_function) > 0) {
-      if(GET_FLAG(value, ae_flag_template)) {
-        REM_REF(value->type)
-        REM_REF(value->d.func_ref)
-      } else
-        REM_REF(value->type)
-    }
     REM_REF(value);
   }
   free_vector(v);

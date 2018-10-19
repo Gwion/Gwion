@@ -4,7 +4,7 @@
 
 static MFUN(template_arg_fun) {}
 
-IMPORT {
+GWION_IMPORT(template_arg_test) {
   Type t_template_arg;
   CHECK_OB((t_template_arg = gwi_mk_type(gwi, "TemplateArg", SZ_INT , NULL)))
   CHECK_BB(gwi_class_ini(gwi, t_template_arg, NULL, NULL))

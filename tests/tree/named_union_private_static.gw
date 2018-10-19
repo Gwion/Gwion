@@ -1,2 +1,2 @@
-class C { private static union { int i; } u;<<<this, u, this.u.i>>>;  }
+class C { private static union { int i; } u;<<<this, " ", u, " ", this.u.i>>>;  }
 C c;

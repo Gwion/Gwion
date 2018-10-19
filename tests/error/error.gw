@@ -1,2 +1,4 @@
-// [contains] right-side operand is not mutable
-Gain a @=> dac;
+// [contains] right-side operand is non-mutable
+const int i;
+12 => i;
+

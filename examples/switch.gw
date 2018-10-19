@@ -9,7 +9,7 @@ function void test(int i) {
 		<<<"'i' is 2">>>;
 		break;
 	  default:
-	    <<<1, 2>>>;
+	    <<<1, ", ", 2>>>;
 	  break;
 	}
 }

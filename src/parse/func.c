@@ -4,8 +4,6 @@
 #include "func.h"
 #include "mpool.h"
 
-POOL_HANDLE(Func, 1024)
-
 ANN Func new_func(const m_str name, const Func_Def def) {
   Func func = mp_alloc(Func);
   func->name = name;
@@ -39,11 +37,12 @@ ANN Func get_func(const Env env, const Func_Def def) {
   if(end && env->class_def && GET_FLAG(env->class_def, ae_flag_template)) {
     ++end;
     const size_t len = strlen(f->name) - strlen(end);
-    char c[len + strlen(env->class_def->name) + 1];
-    memset(c, 0, len + strlen(env->class_def->name) + 1);
+    const size_t elen = strlen(env->class_def->name);
+    char c[len + elen + 1];
+    memset(c, 0, len + elen + 1);
     strncpy(c, f->name, len);
-    strcat(c, env->class_def->name);
-    f = nspc_lookup_func1(env->class_def->info, insert_symbol(c));
+    memcpy(c + len, env->class_def->name, elen);
+    f = nspc_lookup_func1(env->class_def->nspc, insert_symbol(c));
   }
   return f;
 }

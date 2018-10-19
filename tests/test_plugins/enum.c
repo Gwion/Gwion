@@ -2,7 +2,7 @@
 #include "type.h"
 #include "import.h"
 
-IMPORT {
+GWION_IMPORT(enum_test) {
   CHECK_BB(gwi_enum_ini(gwi, NULL))
   CHECK_BB(gwi_enum_add(gwi, "ENUM0", 0))
   CHECK_BB(gwi_enum_add(gwi, "ENUM1", 0))

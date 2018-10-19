@@ -14,7 +14,7 @@ struct Nspc_ {
   struct Scope_     value;
   struct Scope_     type;
   struct Scope_     func;
-  struct VM_Object_ obj;
+  HAS_OBJ
 };
 
 extern ANEW ANN Nspc new_nspc(const m_str name);
@@ -57,4 +57,4 @@ describe_lookups(A, b)
 describe_nspc_func(Value, value)
 describe_nspc_func(Type, type)
 describe_nspc_func(Func, func)
-/* howere there is no need for lokkup_func0, push_func, pop_func */
+/* howere there is no need for lookup_func0, push_func, pop_func */

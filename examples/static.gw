@@ -14,19 +14,19 @@ class C
 	function Vec4    m_w() { return w; }
 	function Object  m_o() { return o; }
 
-	function static int     _i() { return i; }
-	function static float   _f() { return f; }
-	function static complex _c() { return c; }
-	function static Vec3    _v() { return v; }
-	function static Vec4    _w() { return w; }
-	function static Object  _o() { return o; }
+	static fun  int     _i() { return i; }
+	static fun  float   _f() { return f; }
+	static fun  complex _c() { return c; }
+	static fun  Vec3    _v() { return v; }
+	static fun  Vec4    _w() { return w; }
+	static fun  Object  _o() { return o; }
 }
 
 // read members
 <<< C.i, C.c, C.f, C.v, C.w, C.o >>>;
 
 // call function members
-<<< C._i(), C._f(), C._c(), C._v(), C._w(), C._o()>>>;
+<<< C._i(), " ", C._f(), " ", C._c(), " ", C._v(), " ", C._w(), " ", C._o()>>>;
 
 // write members
 <<< 12  => C.i >>>;

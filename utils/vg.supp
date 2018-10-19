@@ -1,0 +1,10 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_jit_regclass_create
+   fun:_jit_init_backend
+   fun:jit_init
+   fun:jit_context_create
+}

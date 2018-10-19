@@ -1,5 +1,3 @@
-#include "lang.h"
-
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;
@@ -9,117 +7,112 @@
 #define REG(a) (shred->reg + (a))
 #define INSTR(a) __attribute__((hot))\
 ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
-#define MEM_STEP 16
-#define SIZEOF_MEM (0x1 << MEM_STEP)
-#define SIZEOF_REG (0x1 << 14)
 
 struct Instr_ {
   void (*execute)(const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
-  char ptr[SZ_VEC4];
+  m_bit ptr[SZ_MINVAL];
 };
 
-ANEW Instr new_instr();
+ANEW Instr new_instr(void);
 ANN void free_instr(Instr instr);
 INSTR(EOC);
+INSTR(DTOR_EOC);
+INSTR(DtorReturn);
 
-
-#ifdef GWREPL
-INSTR(EOC2); // repl
-#endif
-
-INSTR(Reg_Push_Me);
-INSTR(Reg_Push_Now);
-INSTR(Reg_Push_Maybe);
+INSTR(RegPushMe);
+INSTR(RegPushNow);
+INSTR(RegPushMaybe);
 
 /* staking */
-INSTR(Reg_Pop_Word);
-INSTR(Reg_Push_Imm);
-INSTR(Reg_Push_Mem_Addr);
-INSTR(Mem_Push_Imm);
-INSTR(Mem_Set_Imm);
-INSTR(Reg_Push_Mem);
-INSTR(Reg_Push_Ptr);
-INSTR(Reg_Push_Code);
-INSTR(Reg_Dup_Last);
-INSTR(Reg_Add_Ref);
+INSTR(RegPop);
+INSTR(RegPushImm);
+INSTR(RegPushMemAddr);
+INSTR(MemPushImm);
+INSTR(MemSetImm);
+INSTR(RegPushMem);
+INSTR(RegPushPtr);
+INSTR(RegPushCode);
+INSTR(RegDup);
+INSTR(RegAddRef);
 
 /* branching */
-INSTR(Branch_Switch);
-INSTR(Branch_Eq_Int);
-INSTR(Branch_Neq_Int);
-INSTR(Branch_Eq_Float);
-INSTR(Branch_Neq_Float);
-INSTR(Init_Loop_Counter);
-INSTR(Reg_Push_Deref);
-INSTR(Dec_int_Addr);
+INSTR(BranchSwitch);
+INSTR(BranchEqInt);
+INSTR(BranchNeqInt);
+INSTR(BranchEqFloat);
+INSTR(BranchNeqFloat);
+INSTR(InitLoopCounter);
+INSTR(RegPushDeref);
+INSTR(DecIntAddr);
 INSTR(Goto);
 
 /* casting */
-INSTR(Cast_i2f);
-INSTR(Cast_f2i);
+INSTR(CastI2F);
+INSTR(CastF2I);
 
 /* debugging */
 INSTR(Gack);
 
-INSTR(Reg_Push_Str);
+INSTR(RegPushStr);
 
-INSTR(int_not);
-INSTR(float_times);
+INSTR(IntNot);
+INSTR(FloatTimes);
 
-INSTR(complex_real);
-INSTR(complex_imag);
+INSTR(ComplexReal);
+INSTR(ComplexImag);
 
-INSTR(Alloc_Word);
+INSTR(AllocWord);
 
 /* function */
-INSTR(Spork);
-INSTR(Instr_Exp_Func);
-INSTR(Dot_Static_Func);
-INSTR(Exp_Dot_Func);
-INSTR(Func_Static);
-INSTR(Func_Member);
-INSTR(Func_Return);
+INSTR(SporkExp);
+INSTR(SporkFunc);
+INSTR(FuncUsr);
+INSTR(DotFunc);
+INSTR(FuncStatic);
+INSTR(FuncMember);
+INSTR(FuncPtr);
+INSTR(FuncReturn);
+INSTR(DtorReturn);
 
 /* object */
-INSTR(Pre_Constructor);
-INSTR(Instantiate_Object);
-INSTR(Assign_Object);
-INSTR(Alloc_Member);
-INSTR(Dot_Static_Data);
-INSTR(Dot_Static_Import_Data);
-INSTR(Exp_Dot_Data);
-INSTR(Release_Object);
+INSTR(PreCtor);
+INSTR(ObjectInstantiate);
+INSTR(ObjectAssign);
+INSTR(AllocMember);
+INSTR(DotStatic);
+INSTR(DotImport);
+INSTR(DotData);
+INSTR(ObjectRelease);
 
 /* array */
-INSTR(Instr_Pre_Ctor_Array_Top);
-INSTR(Instr_Pre_Ctor_Array_Bottom);
-INSTR(Instr_Pre_Ctor_Array_Post);
-INSTR(Instr_Array_Init);
-INSTR(Instr_Array_Alloc);
-INSTR(Instr_Array_Access);
-INSTR(Instr_Array_Access_Multi);
-INSTR(Array_Append);
-INSTR(assign_func);
+INSTR(ArrayTop);
+INSTR(ArrayBottom);
+INSTR(ArrayPost);
+INSTR(ArrayInit);
+INSTR(ArrayAlloc);
+INSTR(ArrayAccess);
+INSTR(ArrayAccessMulti);
+INSTR(ArrayAppend);
 
 /* vararg */
-INSTR(MkVararg);
-INSTR(Vararg_start);
-INSTR(Vararg_end);
-INSTR(Vararg_Member);
+INSTR(VarargIni);
+INSTR(VarargTop);
+INSTR(VarargEnd);
+INSTR(VarargMember);
 
-INSTR(member_function);
-INSTR(vec_member);
+INSTR(MemberFunction);
+INSTR(VecMember);
+INSTR(PopArrayClass);
 
-INSTR(Call_Binary);
+INSTR(FuncOp);
 
-INSTR(start_gc);
-INSTR(stop_gc);
-INSTR(add2gc);
+INSTR(GcIni);
+INSTR(GcEnd);
+INSTR(GcAdd);
 
 INSTR(AutoLoopStart);
 INSTR(AutoLoopEnd);
-INSTR(Cast2Ptr);
 
 #ifdef GWCOV
 INSTR(InstrCoverage);
@@ -130,9 +123,19 @@ INSTR(InstrCoverage);
 INSTR(PutArgsInMem);
 INSTR(ConstPropSet);
 INSTR(ConstPropGet);
-INSTR(InlineStart);
-INSTR(InlineStop);
-INSTR(InlineGoto);
 #endif
 
+#ifdef JIT
+INSTR(JitExec);
+#endif
 
+#ifdef JIT_DEV
+#undef INSTR
+#define INSTR(a) __attribute__((hot))\
+ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)));\
+__attribute__((constructor(800))) void jit_dev_##a() { jit_dev(a, #a, __FILE__, __LINE__); } \
+ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
+void jit_dev(f_instr f, m_str str, const m_str __file__, const m_uint line);
+#endif
+
+//#endif

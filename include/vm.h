@@ -4,9 +4,6 @@
 #ifdef USE_DOUBLE
 #undef USE_DOUBLE
 #endif
-#ifndef SOUNDPIPE_H
-#include <soundpipe.h>
-#endif
 
 #include <pthread.h>
 #include "defs.h"
@@ -28,21 +25,29 @@ struct VM_Code_ {
   m_uint stack_depth;
   m_uint native_func;
   e_func flag;
-  struct VM_Object_ obj;
+  HAS_OBJ
+};
+
+struct BBQ_ {
+  uint64_t pos;
+  m_float* in;
+  m_float* out;
+  uint32_t sr; // int 32
+  uint8_t nchan;
+  uint8_t n_in;
 };
 
 typedef struct Shreduler_* Shreduler;
-typedef struct {
-  unsigned int n_in;
-  SPFLOAT* in;
-  sp_data* sp;
+typedef struct VM_ {
   Shreduler shreduler;
-  M_Object adc, dac, blackhole;
+  M_Object dac, blackhole; // in a struct with ugen
   Emitter emit;
   struct Vector_ shred;
   struct Vector_ ugen;
-  struct Vector_ plug; // in main?
-  volatile m_bool is_running; // => shreduler
+  struct Scanner_* scan;
+  struct BBQ_* bbq;
+  uint32_t rand[2];
+  volatile unsigned is_running : 1; // => shreduler
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;
@@ -52,16 +57,15 @@ struct VM_Shred_ {
   m_bit* reg;
   m_bit* mem;
   m_bit* _reg;
-  m_bit* _mem;
   m_bit* base;
   m_uint pc, xid;
   m_str name;
-  VM* vm_ref;
+  VM* vm;
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
   M_Object me;
   struct Vector_ child;
-  struct Vector_ gc, gc1;
+  struct Vector_ gc;//, gc1;
   m_float wake_time;
 };
 ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);
@@ -74,7 +78,7 @@ ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
-ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm_ref->shreduler, shred, 1); }
+ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm->shreduler, shred, 1); }
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
@@ -84,4 +88,5 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));
 ANN m_str code_name_set(const m_str, const m_str);
 ANN m_str code_name(const m_str, const m_bool);
+ANN uint32_t gw_rand(uint32_t s[2]);
 #endif

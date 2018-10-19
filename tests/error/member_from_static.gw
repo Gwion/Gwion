@@ -1,7 +1,7 @@
 // [contains] 
 class C {
   int i;
-  function static void test() {
+  static fun  void test() {
     <<<i>>>;
   }
 }

@@ -1,7 +1,7 @@
 //! test operator
 
 operator => void (Object o, int i) {
-  <<<o, i, "success">>>;
+  <<<o, " ", i, " success">>>;
 }
 
 class C {
@@ -17,7 +17,7 @@ operator => void (Object o, C c) {
 //operator int plusplus(NULL d, int i){}
 int i;
 Object o;
-<<<o, i>>>;
+<<<o, " ", i>>>;
 12 => i;
 //o => i;
 C c;

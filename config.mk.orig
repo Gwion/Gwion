@@ -7,30 +7,26 @@ PREFIX ?=/usr/local
 SOUNDPIPE_LIB ?=-lsoundpipe
 SOUNDPIPE_INC ?=
 LDFLAGS += -lm -ldl -rdynamic -lpthread
-CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fno-strict-aliasing -D_GNU_SOURCE
-# complier warnings
-CFLAGS += -Wall -Wextra -pedantic
-
-
-#CFLAGS += -Og
-
-#CFLAGS += -fno-signed-zeros -ffinite-math-only -fno-trapping-math -fno-sanitize=all
-#LDFLAGS += -fno-signed-zeros -ffinite-math-only -fno-trapping-math -fno-sanitize=all
-#CFLAGS += -Ofast -flto -ffast-math -msse3 -mssse3 -msse4 -mavx
-#LDFLAGS += -Ofast -flto -ffast-math -msse3 -mssse3 -msse4 -mavx
+CFLAGS += -Iinclude -std=c99 -O3 -mfpmath=sse -mtune=native -fstrict-aliasing -D_GNU_SOURCE
+#CFLAGS += -Iinclude -std=c99 -m32 -fstrict-aliasing -D_GNU_SOURCE
+# compiler warnings
+CFLAGS += -Wall -Wextra 
+#-pedantic
+CFLAGS += -fPIC
 
 # handle boolean options
 USE_DOUBLE    = 0
 USE_COVERAGE ?= 0
 USE_GWCOV    ?= 0
 USE_MEMCHECK ?= 0
-USE_GWCGRAPH ?= 0
 USE_GWREPL   ?= 0
 USE_GWUDP    ?= 0
-USE_GWMPOOL  ?= 0
 USE_OPTIMIZE ?= 0
 USE_OBSTACK  ?= 0
 USE_COLOR    ?= 0
+USE_JIT      ?= 0
+USE_LTO      ?= 0
+USE_VMBENCH  ?= 0
 
 # handle definitions
 D_FUNC       ?= dummy_driver
@@ -42,7 +38,7 @@ GWPLUG_DIR   ?= $(shell echo ~/.gwplug)
 DUMMY_D      ?= 1
 SILENT_D     ?= 0
 SPA_D        ?= 0
-SNDFILE_D    ?= 1
+SNDFILE_D    ?= 0
 ALSA_D       ?= 0
 JACK_D       ?= 0
 PORTAUDIO_D  ?= 0
@@ -52,3 +48,5 @@ PLOT_D       ?= 0
 SLES_D       ?= 0
 
 DEBUG_STACK  ?= 0
+#COLOR        ?= 1
+#CFLAGS+= -DCOLOR

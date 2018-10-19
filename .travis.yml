@@ -9,29 +9,23 @@ addons:
   apt:
     packages:
     - valgrind
-    - libsndfile1-dev
     - lcov
-
-cache:
-  directories:
-    - Soundpipe
 
 env:
   global:
-    - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
-    - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
-    - CFLAGS=-I$SOUNDPIPE_INC
-    - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
+#because travis's gcc doesn't known some warnings
+    - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - PREFIX=$TRAVIS_BUILD_DIR
   matrix:
-    - USE_DOUBLE=1 SP_BRANCH=dev
-    - USE_DOUBLE=0 SP_BRANCH=dev
+    - USE_DOUBLE=1
+    - USE_DOUBLE=0
 
 matrix:
   fast_finish: true
   allow_failures:
   - os: osx
+  - compiler: clang
 
 compiler:
   - gcc

@@ -29,15 +29,14 @@ static m_bool sndfile_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
 
 static void sndfile_run(VM* vm, DriverInfo* di) {
   m_uint i, chan;
-  sp_data* sp = vm->sp;
   SNDFILE** sf = (SNDFILE**)di->data;
   m_float buf[di->chan][di->bufsize];
   while(vm->is_running) {
     for(i = 0; i < di->bufsize; i++) {
       di->run(vm);
       for(chan = 0; chan < di->chan; chan++)
-        buf[chan][i] = sp->out[chan];
-      ++sp->pos;
+        buf[chan][i] = vm->bbq->out[chan];
+      ++vm->bbq->pos;
     }
     for(chan = 0; chan < di->chan; chan++)
       sf_write(sf[chan], (const m_float*)buf[chan], di->bufsize);

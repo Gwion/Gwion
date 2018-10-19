@@ -1,2 +1,2 @@
-// [contains] must declare private variables at class scope
+// [contains] 'private' can only be used at class scope
 private int i;

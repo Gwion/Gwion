@@ -1,13 +1,10 @@
 #ifdef GWREPL
-#include <readline/readline.h>
-extern void* repl_init(VM* vm, pthread_t*) ANN;
-#define GWREPL_THREAD pthread_t repl_thread;
-#define GWREPL_INI(a, b) if(arg.repl)repl_init(a, b);
-#define GWREPL_END(a) if(arg.repl) pthread_join(a, NULL);
-
-
+extern void repl_init(VM* vm) ANN;
+extern void repl_fini(void);
+#define GWREPL_INI(a) if(arg.repl) repl_init((a));
+#define GWREPL_END() if(arg.repl) repl_fini();
+INSTR(EOC2);
 #else
-#define GWREPL_THREAD
-#define GWREPL_INI(a, b)
-#define GWREPL_END(a)
+#define GWREPL_INI(a)
+#define GWREPL_END()
 #endif

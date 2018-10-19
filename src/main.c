@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+//#include <stdio_ext.h>
 #include <signal.h>
 #include <getopt.h>
 #include <string.h>
@@ -10,6 +12,8 @@
 #include "absyn.h"
 #include "type.h"
 #include "emit.h"
+#include "hash.h"
+#include "scanner.h"
 #include "compile.h"
 #ifdef GWUDP
 #include "udp.h"
@@ -18,6 +22,29 @@
 #include "instr.h"
 #include "arg.h"
 #include "repl.h"
+
+#ifdef JIT
+#include "jitter.h"
+#endif
+
+#ifdef VMBENCH
+#include <time.h>
+#include <bsd/sys/time.h>
+#define VMBENCH_INI                             \
+  struct timespec ini, end, ret;                \
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ini);
+#define VMBENCH_END                                      \
+  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);          \
+  timespecsub(&end, &ini, &ret);                         \
+  printf("timespec %lu.%09lu\n", ret.tv_sec, ret.tv_nsec);
+#else
+#define VMBENCH_INI
+#define VMBENCH_END
+#endif
+
+#include "plug.h"
+#include <dlfcn.h>
+#include <dirent.h>
 
 extern void parse_args(Arg*, DriverInfo*);
 
@@ -48,7 +75,7 @@ m_uint compile(VM* vm, const m_str filename) {
   }
   if(!(f = fopen(name, "r")))
     free(name);
-  if(!(ast = parse(name, f))) {
+  if(!(ast = parse(vm->scan, name, f))) {
     free(name);
     fclose(f);
     return 0;
@@ -61,8 +88,6 @@ m_uint compile(VM* vm, const m_str filename) {
   emitter_add_instr(vm->emit, EOC);
   vm->emit->code->name = strdup(name);
   code = emit_code(vm->emit);
-//  if(GET_FLAG(code, ae_flag_recurs))
-//    code_optim(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);
   shred->args = args;
@@ -86,7 +111,6 @@ int main(int argc, char** argv) {
 #ifdef GWUDP
   pthread_t thread;
 #endif
-  GWREPL_THREAD
   d.del = NULL;
   memset(&arg, 0, sizeof(Arg));
   arg.argc = argc;
@@ -97,6 +121,14 @@ int main(int argc, char** argv) {
   arg.udp = &udpif;
   udp.arg = &arg;
 #endif
+#ifdef JIT
+  arg.jit_thread = 1;
+  arg.jit_wait = 0;
+#endif
+
+//__fsetlocking(stdout, FSETLOCKING_BYCALLER);
+//__fsetlocking(stderr, FSETLOCKING_BYCALLER);
+
   parse_args(&arg, &di);
 
 #ifdef GWUDP
@@ -107,29 +139,37 @@ int main(int argc, char** argv) {
     goto clean;
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
+
+//  init_symbols();
+  PlugInfo pi;
+  plug_ini(pi, &arg.lib);
+#ifdef JIT
+  struct JitInfo ji = { new_jit(arg.jit_thread, arg.jit_wait),
+    &pi[2], &pi[3], &pi[4], 0};
+  jit_init_gwion(&ji);
+#endif
   vm = new_vm(arg.loop);
-  if(init_bbq(vm, &di, &d) < 0)
+  vm->emit = new_emitter();
+  di.func(&d);
+  if(d.ini(vm, &di) < 0 || !(vm->bbq = new_bbq(&di)))
     goto clean;
-  if(!(env = type_engine_init(vm, &arg.lib)))
+#ifdef JIT
+  pthread_join(ji.thread, NULL);
+  vm->emit->jit = ji.j;
+//  ji.j->vmmutex = &vm->mutex;
+#endif
+  if(!(env = type_engine_init(vm, &pi[1])))
     goto clean;
 #ifdef GWCOV
   if(arg.coverage)
     vm->emit->coverage = 1;
 #endif
-#ifdef GWCGRAPH
-  if(arg.profile) {
-    vm->emit->profile = 1;
-    vm->emit->call_file = fopen("gwmon.out", "w");
-  }
-#endif
   srand(time(NULL));
-
-//#include <sys/mman.h>
-//mlockall(MCL_CURRENT|MCL_FUTURE);
-
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
-
+#ifdef JIT
+  jit_sync(ji.j);
+#endif
   vm->is_running = 1;
 #ifdef GWUDP
   if(udpif.on) {
@@ -140,11 +180,11 @@ int main(int argc, char** argv) {
 #endif
   }
 #endif
-  GWREPL_INI(vm, &repl_thread)
+  GWREPL_INI(vm)
+  VMBENCH_INI
   d.run(vm, &di);
-//munlockall();
-  GWREPL_END(repl_thread)
-
+  VMBENCH_END
+  GWREPL_END()
 #ifdef GWUDP
   if(udpif.on)
     udp_release(&udp, thread);
@@ -156,8 +196,13 @@ clean:
 #ifndef __linux__
   sleep(1);
 #endif
-    if(!vm->emit && env)
-      free(env);
-    free_vm(vm);
+  if(!vm->emit && env)
+    free(env);
+  free_vm(vm);
+#ifdef JIT
+  free_jit(ji.j);
+#endif
+  free_symbols();
+  plug_end(pi);
   return 0;
 }

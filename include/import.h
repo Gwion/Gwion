@@ -12,7 +12,11 @@ typedef struct Gwi_* Gwi;
 #define DTOR(a) ANN void a(const M_Object o, const VM_Shred shred __attribute__((unused)))
 #define OP_CHECK(a) ANN Type a(const Env env __attribute__((unused)), void* data __attribute__((unused)))
 #define OP_EMIT(a)  ANN m_bool a(const Emitter emit __attribute__((unused)), void* data __attribute__((unused)))
-#define IMPORT ANN m_bool import(const Gwi gwi)
+#ifdef GWION_BUILTIN
+#define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
+#else
+#define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
+#endif
 #define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\
@@ -31,22 +35,22 @@ ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name);
 ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr);
 #define gwi_item_end(a, b, c) gwi_item_end(a, (const ae_flag)(b), (const m_uint*)c)
 
-ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str type, const m_str name);
+ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag);
 
 ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
 ANN m_int gwi_tmpl_end(const Gwi gwi);
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name);
-ANN m_int gwi_union_add(const Gwi gwi, const m_str type, const m_str name);
+ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
 ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag);
 
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type);
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint value);
 ANN m_int gwi_enum_end(const Gwi gwi);
 
-ANN m_int gwi_func_ini(const Gwi gwi, const m_str type, const m_str name, const f_xfun addr);
-ANN m_int gwi_func_arg(const Gwi gwi, const m_str t, const m_str n);
+ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name, const f_xfun addr);
+ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
@@ -57,6 +61,7 @@ ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 
 OP_CHECK(opck_const_lhs);
+OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
 OP_CHECK(opck_unary);
 OP_CHECK(opck_post);
@@ -64,8 +69,6 @@ OP_CHECK(opck_assign);
 OP_CHECK(opck_rassign);
 OP_CHECK(opck_rhs_emit_var);
 OP_CHECK(opck_basic_cast);
-OP_CHECK(opck_spork);
 OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
-OP_EMIT(opem_spork);

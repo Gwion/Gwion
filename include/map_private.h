@@ -14,7 +14,7 @@ struct Scope_ {
   struct Vector_ vector;
 };
 
-#define MAP_CAP 4
+#define MAP_CAP 8
 #define OFFSET 2
 #define VLEN(v)    (v)->ptr[0]
 #define VCAP(v)    (v)->ptr[1]

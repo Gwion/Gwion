@@ -1,0 +1,3 @@
+//[contains] not enough arguments
+#define macro(a, b) a, b
+<<<macro(1)>>>;

@@ -1,12 +1,17 @@
-typedef struct VM_Array_Info_ {
-  Type   type, base;
-  m_uint length;
-  m_uint depth;
-  m_bool is_obj;
-  m_bool is_ref;
-  m_bool init;
-} VM_Array_Info;
-ANN void free_array_info(VM_Array_Info* info);
+typedef struct ArrayInfo_ {
+  m_int depth;
+//  Type   type, base;
+  struct Vector_   type;
+  Type   base;
+  M_Object* data;
+  union {
+    m_int* idx;    // for object array
+    m_uint length; // array init
+  } d;
+  unsigned is_ref;
+  unsigned is_obj;
+} ArrayInfo;
+ANN void free_array_info(ArrayInfo* info);
 ANN m_uint     m_vector_size(const M_Vector v);
 ANN void       m_vector_set(const M_Vector v,  const m_uint i, const void* data);
 ANN void       m_vector_get(const M_Vector v,  const m_uint i, void* data);

@@ -7,9 +7,9 @@ struct Func_ {
   Value value_ref;
   Func next;
   m_uint vt_index;
-  ae_flag flag;
   Instr variadic;
-  struct VM_Object_ obj;
+  ae_flag flag;
+  HAS_OBJ
 };
 
 ANEW ANN Func new_func(const m_str name, const Func_Def def);

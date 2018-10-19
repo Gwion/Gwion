@@ -38,12 +38,12 @@ class C
   function float test(Vec3 v) {}
   function float test(Vec4 w) {}
 
-  function static float s_test() {}
-  function static float s_test(int i) {}
-  function static float s_test(float f) {}
-  function static float s_test(complex c) {}
-  function static float s_test(Vec3 v) {}
-  function static float s_test(Vec4 w) {}
+  static fun  float s_test() {}
+  static fun  float s_test(int i) {}
+  static fun  float s_test(float f) {}
+  static fun  float s_test(complex c) {}
+  static fun  float s_test(Vec3 v) {}
+  static fun  float s_test(Vec4 w) {}
 }
 
 C c;

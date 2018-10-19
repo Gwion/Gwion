@@ -15,7 +15,6 @@ Env new_env() {
   env->context = NULL;
   vector_init(&env->breaks);
   vector_init(&env->conts);
-  vector_init(&env->contexts);
   vector_init(&env->class_stack);
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
@@ -48,11 +47,7 @@ ANN void free_env(const Env a) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = 0; i < size; i++)
     REM_REF((Context)vector_at(&a->known_ctx, i));
-//  Context ctx;
-//  while((ctx = (Context)vector_pop(&a->known_ctx)))
-//    REM_REF(ctx)
   REM_REF(a->global_nspc);
-  vector_release(&a->contexts);
   vector_release(&a->known_ctx);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
@@ -61,17 +56,20 @@ ANN void free_env(const Env a) {
   free(a);
 }
 
-ANN void env_push_class(const Env env, const Type type) {
-  vector_add(&env->nspc_stack, (vtype)env->curr);
-  env->curr = type->info;
+ANN2(1,3,4) void env_push(const Env env, const Type type,
+    const Nspc nspc, m_uint* class_scope) {
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = nspc;
+  *class_scope = env->class_scope;
   env->class_scope = 0;
 }
 
-ANN void env_pop_class(const Env env) {
+ANN void env_pop(const Env env, const m_uint class_scope) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  env->class_scope = class_scope;
 }
 
 ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,
@@ -97,34 +95,28 @@ ANN void env_add_type(const Env env, const Type type) {
 }
 
 ANN Map env_label(const Env env) {
-  return &env->context->label;
+  return &env->context->lbls;
 }
 
 ANN Nspc env_nspc(const Env env) {
   return env->context->nspc;
 }
 
-ANN2(1) Class_Def env_class_def(const Env env, const Class_Def def) {
-  if(def)
-    env->context->public_class_def = def;
-  return env->context ? env->context->public_class_def : NULL;
-}
-
-ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str filename) {
-  const Context context = new_context(ast, filename);
+ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str) {
+  const Context ctx = new_context(ast, str);
   env_reset(env);
-  load_context(context, env);
+  load_context(ctx, env);
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
-    vector_add(&env->known_ctx, (vtype)context);
+    vector_add(&env->known_ctx, (vtype)ctx);
   } // else { nspc_rollback(env->global_nspc); }
-  unload_context(context, env);
+  unload_context(ctx, env);
   if(ret < 0) {
-    gw_err("in file '%s'\n", context->filename);
+    gw_err("in file '%s'\n", str);
     free_ast(ast);
-    REM_REF(context);
-    free(filename);
+    REM_REF(ctx);
+    free(str);
   }
   return ret;
 }
@@ -134,4 +126,32 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   if(!nspc->op_map.ptr)
     map_init(&nspc->op_map);
   return add_op(nspc, opi);
+}
+
+
+#define GET(a,b) ((a) & (b)) == (b)
+ANN m_bool env_access(const Env env, const ae_flag flag) {
+  if(env->class_scope) {
+   if(GET(flag, ae_flag_global))
+      ERR_B(SCAN0_, 0,
+          "'global' can only be used at %s scope.",
+          GET(flag, ae_flag_global) && !env->class_def ?
+           "file" : "class")
+  }
+  if((GET(flag, ae_flag_static) ||
+      GET(flag, ae_flag_private) ||
+      GET(flag, ae_flag_protect)) && (!env->class_def || env->class_scope))
+      ERR_B(SCAN0_, 0,
+            "'%s' can only be used at %s scope.",
+            GET(flag, ae_flag_static) ?
+            "static" : GET(flag, ae_flag_private) ?
+            "private" : "protect",
+            GET(flag, ae_flag_global) && !env->class_def ?
+            "file" : "class")
+  return 1;
+}
+
+ANN void env_storage(const Env env, ae_flag* flag) {
+  if(env->class_def && GET(*flag, ae_flag_global))
+    *flag &= ~ae_flag_global;
 }

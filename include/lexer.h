@@ -277,7 +277,7 @@ typedef uint32_t flex_uint32_t;
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
 typedef int flex_int32_t;
-typedef m_bit flex_uint8_t; 
+typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
 
@@ -438,14 +438,16 @@ void yyfree ( void * , yyscan_t yyscanner );
 
 /* Begin user sect3 */
 
-#define gwion_wrap(yyscanner) (/*CONSTCOND*/1)
-#define YY_SKIP_YYWRAP
-
 #define yytext_ptr yytext_r
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
 #define comment 1
+#define define 2
+#define define_arg_start 3
+#define define_arg 4
+#define skip 5
+#define get_arg 6
 
 #endif
 
@@ -469,6 +471,8 @@ int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
    These are made visible to non-reentrant scanners for convenience. */
 
 int yylex_destroy ( yyscan_t yyscanner );
+
+YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 
 void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 
@@ -693,9 +697,9 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 160 "utils/gwion.l"
+#line 278 "utils/gwion.l"
 
 
-#line 699 "include/lexer.h"
+#line 703 "include/lexer.h"
 #undef gwion_IN_HEADER
 #endif /* gwion_HEADER_H */

@@ -4,174 +4,141 @@
 #include "instr.h"
 #include "import.h"
 
-INSTR(vec_member) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  if(instr->m_val) {
-    *(m_float**)REG(0) = &*(m_float*)(*(m_bit**)shred->reg + instr->m_val2);
-    PUSH_REG(shred, SZ_INT);
-  } else {
-    *(m_float*)REG(0) = *(m_float*)(*(m_bit**)shred->reg + instr->m_val2);
-    PUSH_REG(shred, SZ_FLOAT);
+INSTR(VecMember) { GWDEBUG_EXE
+  if(instr->m_val)
+    *(m_float**)REG(-SZ_INT) = (m_float*)(*(m_bit**)REG(-SZ_INT) + instr->m_val2);
+  else {
+    *(m_float*)REG(-SZ_INT) = *(m_float*)(*(m_bit**)REG(-SZ_INT) + instr->m_val2);
+    PUSH_REG(shred, SZ_FLOAT - SZ_INT);
   }
 }
 
-ANN static void vec_times(const m_bit* v, const int size, const m_float f) {
-  for(int i = size + 1; --i;)
-    *(m_float*)(v + (i-1) * SZ_FLOAT) *= f;
+#define describe_vec(func, op)                                                \
+ANN static void vec_##func(const m_bit* v, const int size, const m_float f) { \
+  for(int i = size + 1; --i;)                                                 \
+    *(m_float*)(v + (i-1) * SZ_FLOAT) op##= f;                                \
 }
-
-ANN static void vec_divide(const m_bit* v, const int size, const m_float f) {
-  for(int i = size + 1; --i;)
-    *(m_float*)(v + (i-1) * SZ_FLOAT) /= f;
-}
+describe_vec(Add, +)
+describe_vec(Sub, -)
+describe_vec(Mul, *)
+describe_vec(Div, /)
 
 static MFUN(vec3_set) {
-  m_vec3* v =  &*(m_vec3*)MEM(0);
+  m_vec3* v =  (m_vec3*)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   v->z = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 2);
 }
 
 static MFUN(vec3_setAll) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  m_vec3* v =  *(m_vec3**)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT);
   v->z = *(m_float*)MEM(SZ_INT);
 }
 
 static MFUN(vec3_magnitude) {
-  const m_vec3* v =  &**(m_vec3**)MEM(0);
+  const m_vec3* v =  *(m_vec3**)MEM(0);
   *(m_float*)RETURN = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
 }
 
 static MFUN(vec3_normalize) {
-  const m_vec3* v =  &**(m_vec3**)MEM(0);
+  const m_vec3* v =  *(m_vec3**)MEM(0);
   const m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
   if(mag  > 0)
-    vec_divide((m_bit*)v, 3, mag);
+    vec_Div((m_bit*)v, 3, mag);
 }
 
-static MFUN(vec3_interp) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
-  v->x = (v->y - v->x) * v->z + v->x;
-  *(m_float*)RETURN = v->x;
+#define describe_vec3_x(name, arg)    \
+static MFUN(vec3_##name) {            \
+  m_vec3* v =  *(m_vec3**)MEM(0);   \
+  v->x = (v->y - v->x) * v->z arg;    \
+  *(m_float*)RETURN = v->x;           \
 }
-
-static MFUN(vec3_float) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
-  v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT)) + v->x;
-  *(m_float*)RETURN = v->x;
-}
-
-static MFUN(vec3_dur) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
-  v->x = (v->y - v->x) * v->z * (*(m_float*)MEM(SZ_INT) / shred->vm_ref->sp->sr) + v->x;
-  *(m_float*)RETURN = v->x;
-}
+describe_vec3_x(interp, + v->x)
+describe_vec3_x(float, * v->z * (*(m_float*)MEM(SZ_INT)) + v->x)
+describe_vec3_x(dur, * (*(m_float*)MEM(SZ_INT) / shred->vm->bbq->sr) + v->x)
 
 static MFUN(vec3_update) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  m_vec3* v =  *(m_vec3**)MEM(0);
   v->y = *(m_float*)MEM(SZ_INT);
 }
 
 static MFUN(vec3_update_slew) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  m_vec3* v =  *(m_vec3**)MEM(0);
   v->y = *(m_float*)MEM(SZ_INT);
   v->z = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
 }
 
 static MFUN(vec3_update_set) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  m_vec3* v =  *(m_vec3**)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT);
 
 }
 
 static MFUN(vec3_update_set_slew) {
-  m_vec3* v =  &**(m_vec3**)MEM(0);
+  m_vec3* v =  *(m_vec3**)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT);
   v->z = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
 }
 
-static INSTR(vec3_add) { GWDEBUG_EXE
-  m_vec3 r, * t = (m_vec3*)REG(0);
-  POP_REG(shred, SZ_VEC3 * 2);
-  r.x = t->x + (t + 1)->x;
-  r.y = t->y + (t + 1)->y;
-  r.z = t->z + (t + 1)->z;
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
+#define describe_vec3(name, op)           \
+static INSTR(Vec3##name) { GWDEBUG_EXE   \
+  POP_REG(shred, SZ_VEC3);                \
+  m_vec3 r, * t = (m_vec3*)REG(-SZ_VEC3); \
+  r.x = t->x op (t + 1)->x;               \
+  r.y = t->y op (t + 1)->y;               \
+  r.z = t->z op (t + 1)->z;               \
+  *(m_vec3*)REG(-SZ_VEC3) = r;            \
 }
+describe_vec3(Add, +)
+describe_vec3(Sub, -)
+describe_vec3(Mul, *)
+describe_vec3(Div, /)
 
-static INSTR(vec3_minus) { GWDEBUG_EXE
-  m_vec3 r, * t = (m_vec3*)REG(0);
-  POP_REG(shred, SZ_VEC3 * 2);
-  r.x = t->x - (t + 1)->x;
-  r.y = t->y - (t + 1)->y;
-  r.z = t->z - (t + 1)->z;
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
-}
 
-static INSTR(vec3_xproduct) { GWDEBUG_EXE
-  m_vec3 r, * t = (m_vec3*)REG(0);
-  POP_REG(shred, SZ_VEC3 * 2);
-  r.x = t->x * (t + 1)->x;
-  r.y = t->y * (t + 1)->y;
-  r.z = t->z * (t + 1)->z;
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
+#define describe_float_vec3(func)               \
+static INSTR(Float##func##Vec3) { GWDEBUG_EXE \
+  POP_REG(shred, SZ_FLOAT);                     \
+  const m_float f = *(m_float*)REG(-SZ_VEC3);   \
+  const m_vec3 r = *(m_vec3*)REG(-SZ_COMPLEX);  \
+  vec_Mul((m_bit*)&r, 3, f);                    \
+  *(m_vec3*)REG(-SZ_VEC3) = r;                  \
 }
+describe_float_vec3(Add)
+describe_float_vec3(Sub)
+describe_float_vec3(Mul)
+describe_float_vec3(Div)
 
-static INSTR(float_times_vec3) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC3);
-  m_float f = *(m_float*)REG(0);
-  m_vec3 r = *(m_vec3*)REG(SZ_FLOAT);
-  vec_times((m_bit*)&r, 3, f);
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
+#define describe_vec3_float(func)               \
+static INSTR(Vec3##func##Float) { GWDEBUG_EXE \
+  POP_REG(shred, SZ_FLOAT);                     \
+  const m_vec3 r = *(m_vec3*)REG(-SZ_VEC3);     \
+  const m_float f = *(m_float*)REG(0);          \
+  vec_##func((m_bit*)&r, 3, f);                 \
+  *(m_vec3*)REG(-SZ_VEC3) = r;                  \
 }
+describe_vec3_float(Add)
+describe_vec3_float(Sub)
+describe_vec3_float(Mul)
+describe_vec3_float(Div)
 
-static INSTR(vec3_times_float) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC3);
-  m_vec3 r = *(m_vec3*)REG(0);
-  const m_float f = *(m_float*)REG(SZ_VEC3);
-  vec_times((m_bit*)&r, 3, f);
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
+#define describe_vec3_assign(name, offset1, offset2) \
+static INSTR(Vec3##name##Assign) { GWDEBUG_EXE      \
+  POP_REG(shred, SZ_INT);                            \
+  m_vec3* r = *(m_vec3**)REG(offset1);             \
+  r->x = *(m_float*)REG(offset2-SZ_VEC3);            \
+  r->y = *(m_float*)REG(offset2-SZ_COMPLEX);         \
+  r->z = *(m_float*)REG(offset2-SZ_FLOAT);           \
+  *(m_vec3*)REG(0) = *r;                             \
 }
+describe_vec3_assign(, -SZ_VEC3, SZ_INT)
+describe_vec3_assign(R, 0, )
 
-static INSTR(vec3_divide_float) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC3);
-  m_vec3 r = *(m_vec3*)REG(0);
-  const m_float f = *(m_float*)REG(SZ_VEC3);
-  vec_divide((m_bit*)&r, 3, f);
-  *(m_vec3*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC3);
-}
-
-static INSTR(vec3_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_VEC3 + SZ_INT);
-  m_vec3* r = &**(m_vec3**)REG(0);
-  r->x = *(m_float*)REG(SZ_INT);
-  r->y = *(m_float*)REG(SZ_INT+SZ_FLOAT);
-  r->z = *(m_float*)REG(SZ_INT+SZ_COMPLEX);
-  *(m_vec3*)REG(0) = *r;
-  PUSH_REG(shred, SZ_VEC3);
-}
-static INSTR(vec3_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_VEC3 + SZ_INT);
-  m_vec3* r = &**(m_vec3**)REG(SZ_VEC3);
-  r->x = *(m_float*)REG(0);
-  r->y = *(m_float*)REG(SZ_FLOAT);
-  r->z = *(m_float*)REG(SZ_COMPLEX);
-  *(m_vec3*)REG(0) = *r;
-  PUSH_REG(shred, SZ_VEC3);
-}
-
-ANN m_bool import_vec3(const Gwi gwi) {
-  CHECK_BB(gwi_class_ini(gwi,  t_vec3, NULL, NULL))
+GWION_IMPORT(vec3) {
+  CHECK_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "y");
@@ -215,23 +182,29 @@ ANN m_bool import_vec3(const Gwi gwi) {
   CHECK_BB(gwi_class_end(gwi))
 
   CHECK_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, op_plus, vec3_add))
-  CHECK_BB(gwi_oper_end(gwi, op_minus, vec3_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times, vec3_xproduct))
+  CHECK_BB(gwi_oper_end(gwi, op_add, Vec3Add))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, Vec3Sub))
+  CHECK_BB(gwi_oper_end(gwi, op_mul, Vec3Mul))
+  CHECK_BB(gwi_oper_end(gwi, op_div, Vec3Div))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign, vec3_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign, Vec3Assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec3_r_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, Vec3RAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, op_times,  vec3_times_float))
-  CHECK_BB(gwi_oper_end(gwi, op_divide, vec3_divide_float))
+  CHECK_BB(gwi_oper_end(gwi, op_add,  Vec3AddFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, Vec3SubFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,  Vec3MulFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_div, Vec3DivFloat))
   CHECK_BB(gwi_oper_ini(gwi, "float", "Vec3", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, op_times,  float_times_vec3))
+  CHECK_BB(gwi_oper_end(gwi, op_add,  FloatAddVec3))
+  CHECK_BB(gwi_oper_end(gwi, op_sub,  FloatSubVec3))
+  CHECK_BB(gwi_oper_end(gwi, op_mul,  FloatMulVec3))
+  CHECK_BB(gwi_oper_end(gwi, op_div,  FloatDivVec3))
   return 1;
 }
 
 static MFUN(vec4_set) {
-  m_vec4* v =  &**(m_vec4**)MEM(0);
+  m_vec4* v =  *(m_vec4**)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT + SZ_FLOAT);
   v->z = *(m_float*)MEM(SZ_INT + SZ_FLOAT * 2);
@@ -239,7 +212,7 @@ static MFUN(vec4_set) {
 }
 
 static MFUN(vec4_setAll) {
-  m_vec4* v =  &**(m_vec4**)MEM(0);
+  m_vec4* v =  *(m_vec4**)MEM(0);
   v->x = *(m_float*)MEM(SZ_INT);
   v->y = *(m_float*)MEM(SZ_INT);
   v->z = *(m_float*)MEM(SZ_INT);
@@ -247,98 +220,72 @@ static MFUN(vec4_setAll) {
 }
 
 static MFUN(vec4_magnitude) {
-  m_vec4* v =  &**(m_vec4**)MEM(0);
+  m_vec4* v =  *(m_vec4**)MEM(0);
   *(m_float*)RETURN = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
 }
 
 static MFUN(vec4_normalize) {
-  m_vec4* v =  &**(m_vec4**)MEM(0);
+  m_vec4* v =  *(m_vec4**)MEM(0);
   m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
   if(mag  > 0)
-    vec_divide((m_bit*)v, 4, mag);
+    vec_Div((m_bit*)v, 4, mag);
 }
 
-static INSTR(vec4_add) { GWDEBUG_EXE
-  m_vec4 r, * t = (m_vec4*)REG(0);
-  POP_REG(shred, SZ_VEC4 * 2);
-  r.x = t->x + (t + 1)->x;
-  r.y = t->y + (t + 1)->y;
-  r.z = t->z + (t + 1)->z;
-  r.w = t->w + (t + 1)->w;
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
+#define describe_vec4(name, op)           \
+static INSTR(Vec4##name) { GWDEBUG_EXE   \
+  POP_REG(shred, SZ_VEC4);                \
+  m_vec4 r, * t = (m_vec4*)REG(-SZ_VEC4); \
+  r.x = t->x op (t + 1)->x;               \
+  r.y = t->y op (t + 1)->y;               \
+  r.z = t->z op (t + 1)->z;               \
+  r.w = t->w op (t + 1)->w;               \
+  *(m_vec4*)REG(-SZ_VEC4) = r;            \
 }
+describe_vec4(Add, +)
+describe_vec4(Sub, -)
+describe_vec4(Mul, *)
+describe_vec4(Div, /)
 
-static INSTR(vec4_minus) { GWDEBUG_EXE
-  m_vec4 r, * t = (m_vec4*)REG(0);
-  POP_REG(shred, SZ_VEC4 * 2);
-  r.x = t->x - (t + 1)->x;
-  r.y = t->y - (t + 1)->y;
-  r.z = t->z - (t + 1)->z;
-  r.w = t->w - (t + 1)->w;
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
+#define describe_float_vec4(func)               \
+static INSTR(Float##func##Vec4) { GWDEBUG_EXE \
+  POP_REG(shred, SZ_FLOAT);                     \
+  m_float f = *(m_float*)REG(-SZ_VEC4);         \
+  m_vec4 r = *(m_vec4*)REG(-SZ_VEC3);           \
+  vec_##func((m_bit*)&r, 4, f);                 \
+  *(m_vec4*)REG(-SZ_VEC4) = r;                  \
 }
+describe_float_vec4(Add)
+describe_float_vec4(Sub)
+describe_float_vec4(Mul)
+describe_float_vec4(Div)
 
-static INSTR(vec4_xproduct) { GWDEBUG_EXE
-  m_vec4 r, * t = (m_vec4*)REG(0);
-  POP_REG(shred, SZ_VEC4 * 2);
-  r.x = t->x * (t + 1)->x;
-  r.y = t->y * (t + 1)->y;
-  r.z = t->z * (t + 1)->z;
-  r.w = t->w * (t + 1)->w;
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
+#define describe_vec4_float(func)               \
+static INSTR(Vec4##func##Float) { GWDEBUG_EXE \
+  POP_REG(shred, SZ_FLOAT);                     \
+  m_vec4 r = *(m_vec4*)REG(-SZ_VEC4);           \
+  m_float f = *(m_float*)REG(0);                \
+  vec_##func((m_bit*)&r, 4, f);                 \
+  *(m_vec4*)REG(-SZ_VEC4) = r;                  \
 }
+describe_vec4_float(Add)
+describe_vec4_float(Sub)
+describe_vec4_float(Mul)
+describe_vec4_float(Div)
 
-static INSTR(float_times_vec4) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC4);
-  m_float f = *(m_float*)REG(0);
-  m_vec4 r = *(m_vec4*)REG(SZ_FLOAT);
-  vec_times((m_bit*)&r, 4, f);
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
+#define describe_vec4_assign(name, offset1, offset2) \
+static INSTR(Vec4##name##Assign) { GWDEBUG_EXE      \
+  POP_REG(shred, SZ_INT);                            \
+  m_vec4* r = *(m_vec4**)REG(offset1);             \
+  r->x = *(m_float*)REG(offset2-SZ_VEC4);            \
+  r->y = *(m_float*)REG(offset2-SZ_VEC3);            \
+  r->z = *(m_float*)REG(offset2-SZ_COMPLEX);         \
+  r->w = *(m_float*)REG(offset2-SZ_FLOAT);           \
+  *(m_vec4*)REG(0) = *r;                             \
 }
+describe_vec4_assign(, -SZ_VEC4, SZ_INT)
+describe_vec4_assign(R, 0, )
 
-static INSTR(vec4_times_float) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC4);
-  m_vec4 r = *(m_vec4*)REG(0);
-  m_float f = *(m_float*)REG(SZ_VEC4);
-  vec_times((m_bit*)&r, 4, f);
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
-}
-
-static INSTR(vec4_divide_float) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT + SZ_VEC4);
-  m_vec4 r = *(m_vec4*)REG(0);
-  m_float f = *(m_float*)REG(SZ_VEC4);
-  vec_divide((m_bit*)&r, 4, f);
-  *(m_vec4*)REG(0) = r;
-  PUSH_REG(shred,  SZ_VEC4);
-}
-
-static INSTR(vec4_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_VEC4 + SZ_INT);
-  m_vec4* r = *(m_vec4**)REG(0);
-  r->x = *(m_float*)REG(SZ_INT);
-  r->y = *(m_float*)REG(SZ_INT+SZ_FLOAT);
-  r->z = *(m_float*)REG(SZ_INT+SZ_FLOAT * 2);
-  r->w = *(m_float*)REG(SZ_INT+SZ_FLOAT * 3);
-  PUSH_REG(shred, SZ_VEC4);
-}
-
-static INSTR(vec4_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_VEC4 + SZ_INT);
-  m_vec4* r = *(m_vec4**)REG(SZ_VEC4);
-  r->x = *(m_float*)REG(0);
-  r->y = *(m_float*)REG(SZ_FLOAT);
-  r->z = *(m_float*)REG(SZ_FLOAT * 2);
-  r->w = *(m_float*)REG(SZ_FLOAT * 3);
-  PUSH_REG(shred, SZ_VEC4);
-}
-
-m_bool import_vec4(Gwi gwi) {
+GWION_IMPORT(vec4) {
   CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
 	gwi_item_ini(gwi, "float", "x");
     gwi_item_end(gwi, ae_flag_member, NULL);
@@ -363,17 +310,27 @@ m_bool import_vec4(Gwi gwi) {
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "Vec4"))
-  CHECK_BB(gwi_oper_end(gwi, op_plus,  vec4_add))
-  CHECK_BB(gwi_oper_end(gwi, op_minus, vec4_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_times, vec4_xproduct))
+  CHECK_BB(gwi_oper_end(gwi, op_add,  Vec4Add))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, Vec4Sub))
+  CHECK_BB(gwi_oper_end(gwi, op_mul, Vec4Mul))
+  CHECK_BB(gwi_oper_end(gwi, op_div, Vec4Div))
   CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign, vec4_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_assign, Vec4Assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck, vec4_r_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_chuck, Vec4RAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4", "float", "Vec4"))
-  CHECK_BB(gwi_oper_end(gwi, op_times, vec4_times_float))
-  CHECK_BB(gwi_oper_end(gwi, op_divide, vec4_divide_float))
+  CHECK_BB(gwi_oper_end(gwi, op_add, Vec4AddFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, Vec4SubFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_mul, Vec4MulFloat))
+  CHECK_BB(gwi_oper_end(gwi, op_div, Vec4DivFloat))
   CHECK_BB(gwi_oper_ini(gwi, "float", "Vec4", "Vec4"))
-  CHECK_BB(gwi_oper_end(gwi, op_times, float_times_vec4))
+  CHECK_BB(gwi_oper_end(gwi, op_add, FloatAddVec4))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, FloatSubVec4))
+  CHECK_BB(gwi_oper_end(gwi, op_mul, FloatMulVec4))
+  CHECK_BB(gwi_oper_end(gwi, op_div, FloatDivVec4))
     return 1;
 }
+
+#ifdef JIT
+#include "code/vec.h"
+#endif

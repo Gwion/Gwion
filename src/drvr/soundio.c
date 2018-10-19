@@ -110,7 +110,6 @@ static void write_callback(Out stream, int min __attribute__((unused)), int left
   Areas areas;
   struct SioInfo* info = (struct SioInfo*)stream->userdata;
   VM* vm = info->vm;
-  sp_data* sp = vm->sp;
   DriverInfo* di = info->di;
   while(left > 0) {
     int count = left;
@@ -123,10 +122,10 @@ static void write_callback(Out stream, int min __attribute__((unused)), int left
     else for(int  frame = 0; frame < count; frame++) {
       di->run(vm);
       for(int  channel = 0; channel < stream->layout.channel_count; channel++) {
-        info->write_sample(areas[channel].ptr, sp->out[channel]);
+        info->write_sample(areas[channel].ptr, vm->bbq->out[channel]);
         areas[channel].ptr += areas[channel].step;
       }
-      ++sp->pos;
+      ++vm->bbq->pos;
     }
     check_cb_error2(info->vm, stream, (int (*)(void*))soundio_outstream_end_write);
     left -= count;
@@ -148,7 +147,7 @@ static void read_callback(In stream, int min __attribute__((unused)), int left) 
       gw_err("Dropped %d frames due to internal overflow\n", count);
     else for(int frame = 0; frame < count; frame += 1) {
       for(int ch = 0; ch < stream->layout.channel_count; ch += 1) {
-        info->read_sample(areas[ch].ptr, &vm->in[ch]);
+        info->read_sample(areas[ch].ptr, &vm->bbq->in[ch]);
         areas[ch].ptr += areas[ch].step;
       }
     }

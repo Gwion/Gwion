@@ -3,8 +3,15 @@
 %lex-param  { void* scan }
 %name-prefix "gwion_"
 %{
+#include <stdio.h> // strlen in paste operation
+#include <string.h> // strlen in paste operation
+#include <math.h>
 #include "absyn.h"
+#include "hash.h"
 #include "scanner.h"
+#include "parser.h"
+#include "lexer.h"
+//ANN int gwion_parse(Scanner* arg);
 #define YYMALLOC xmalloc
 #define scan arg->scanner
 #define CHECK_FLAG(a,b,c) if(GET_FLAG(b, c)) { gwion_error(a, "flag set twice");  ; } SET_FLAG(b, c);
@@ -17,9 +24,8 @@
       c->tmpl = new_tmpl_class(b, -1);\
     };
 #define OP_SYM(a) insert_symbol(op2str(a))
-int gwion_error(Scanner*, const char*);
-int gwion_lex(void*, Scanner*);
 ANN int get_pos(const Scanner*);
+ANN void gwion_error(const Scanner*, const m_str s);
 m_str op2str(const Operator op);
 %}
 
@@ -33,7 +39,7 @@ m_str op2str(const Operator op);
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Exp   exp;
-  Stmt_Ptr func_ptr;
+  Stmt_Fptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
@@ -53,16 +59,18 @@ m_str op2str(const Operator op);
   DIVIDECHUCK MODULOCHUCK ATCHUCK UNCHUCK TRIG UNTRIG PERCENTPAREN SHARPPAREN
   ATSYM FUNCTION DOLLAR TILDA QUESTION COLON EXCLAMATION IF ELSE WHILE DO UNTIL
   LOOP FOR GOTO SWITCH CASE ENUM RETURN BREAK CONTINUE PLUSPLUS MINUSMINUS NEW
-  SPORK CLASS STATIC PUBLIC PRIVATE EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
+  SPORK CLASS STATIC GLOBAL PRIVATE PROTECT EXTENDS DOT COLONCOLON AND EQ GE GT LE LT
   MINUS PLUS NEQ SHIFT_LEFT SHIFT_RIGHT S_AND S_OR S_XOR OR AST_DTOR OPERATOR
   TYPEDEF RSL RSR RSAND RSOR RSXOR TEMPLATE
-  NOELSE LTB GTB VARARG UNION ATPAREN TYPEOF CONST AUTO AUTO_PTR INLINE
+  NOELSE LTB GTB UNION ATPAREN TYPEOF CONST AUTO PASTE ELLIPSE
 
 %token<ival> NUM
 %type<ival>op shift_op post_op rel_op eq_op unary_op add_op mul_op op_op
-%type<ival> atsym static_decl function_decl vec_type
+%type<ival> atsym vec_type arg_type auto
 %token<fval> FLOAT
 %token<sval> ID STRING_LIT CHAR_LIT
+
+  PP_COMMENT PP_INCLUDE PP_DEFINE PP_UNDEF PP_IFDEF PP_IFNDEF PP_ELSE PP_ENDIF PP_NL
 %type<sym>id opt_id
 %type<var_decl> var_decl
 %type<var_decl_list> var_decl_list
@@ -74,7 +82,7 @@ m_str op2str(const Operator op);
 %type<array_sub> array_exp array_empty
 %type<stmt> stmt loop_stmt selection_stmt jump_stmt code_segment exp_stmt
 %type<stmt> case_stmt label_stmt goto_stmt switch_stmt
-%type<stmt> enum_stmt func_ptr stmt_typedef union_stmt
+%type<stmt> enum_stmt func_ptr stmt_type union_stmt 
 %type<stmt_list> stmt_list
 %type<arg_list> arg_list func_args
 %type<decl_list> decl_list
@@ -90,12 +98,10 @@ m_str op2str(const Operator op);
 
 %nonassoc NOELSE
 %nonassoc ELSE
-
-%expect 48
+//%expect 51
 
 %destructor { free_stmt($$); } <stmt>
 %destructor { free_exp($$); } <exp>
-//%destructor { free_type_decl($$); } <type_decl>
 %%
 
 ast
@@ -112,9 +118,11 @@ section
 class_def
   : CLASS id_list class_ext LBRACE class_body RBRACE
       { $$ = new_class_def(0, $2, $3, $5); }
-  | PUBLIC class_def { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
-  | decl_template class_def
-    { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
+  | STATIC  class_def { CHECK_FLAG(arg, $2, ae_flag_static);  $$ = $2; }
+  | GLOBAL  class_def { CHECK_FLAG(arg, $2, ae_flag_global);  $$ = $2; }
+  | PRIVATE class_def { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
+  | PROTECT class_def { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
+  | decl_template class_def { CHECK_TEMPLATE(arg, $1, $2, free_class_def); $$ = $2; }
 
 class_ext : EXTENDS type_decl2 { $$ = $2; } | { $$ = NULL; };
 
@@ -140,26 +148,22 @@ stmt_list
   | stmt stmt_list { $$ = new_stmt_list($1, $2);}
   ;
 
-static_decl
-  : STATIC                            { $$ = ae_flag_static;   }
-  |                                   { $$ = 0; }
-  ;
-
-function_decl
-  : FUNCTION { $$ = 0; }
-  | VARARG   { $$ = ae_flag_variadic; }
-  ;
-
 func_ptr
-  : TYPEDEF type_decl2 LPAREN id RPAREN func_args { $$ = new_func_ptr_stmt(0, $4, $2, $6, get_pos(arg)); }
-  | STATIC func_ptr
-    { CHECK_FLAG(arg, (&$2->d.stmt_ptr), ae_flag_static); $$ = $2; }
+  : TYPEDEF type_decl2 LPAREN id RPAREN func_args arg_type
+    { $$ = new_stmt_fptr($4, $2, $6, $7, get_pos(arg)); }
+  | STATIC  func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_static);  $$ = $2; }
+  | GLOBAL  func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_global);  $$ = $2; }
+  | PRIVATE func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_private); $$ = $2; }
+  | PROTECT func_ptr { CHECK_FLAG(arg, ($2->d.stmt_fptr.td), ae_flag_protect); $$ = $2; }
   ;
 
-stmt_typedef
-  :
-  TYPEDEF type_decl2 id SEMICOLON
-  { $$ = new_stmt_typedef($2, $3, get_pos(arg)); };
+stmt_type
+  : TYPEDEF type_decl2 id SEMICOLON
+    { $$ = new_stmt_type($2, $3, get_pos(arg)); };
+  | STATIC  stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_static); $$ = $2; }
+  | GLOBAL  stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_global); $$ = $2; }
+  | PRIVATE stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_private); $$ = $2; }
+  | PROTECT stmt_type { CHECK_FLAG(arg, ($2->d.stmt_type.td), ae_flag_protect); $$ = $2; }
 
 type_decl2
   : type_decl
@@ -169,13 +173,15 @@ type_decl2
 
 arg_list
   : type_decl var_decl { $$ = new_arg_list($1, $2, NULL); }
-  | type_decl var_decl COMMA arg_list{ $$ = new_arg_list($1, $2, $4); }
+  | type_decl var_decl COMMA arg_list { $$ = new_arg_list($1, $2, $4); }
   ;
 
 code_segment
   : LBRACE RBRACE { $$ = new_stmt_code(NULL, get_pos(arg)); }
   | LBRACE stmt_list RBRACE { $$ = new_stmt_code($2, get_pos(arg)); }
   ;
+
+
 
 stmt
   : exp_stmt
@@ -189,25 +195,35 @@ stmt
   | enum_stmt
   | jump_stmt
   | func_ptr
-  | stmt_typedef
+  | stmt_type
   | union_stmt
-  ;
+;
 
-id: ID { $$ = insert_symbol($1); }
+id
+  : ID { $$ = insert_symbol($1); }
+  | ID PASTE id {
+    char c[strlen(s_name($3)) + strlen($1)];
+    sprintf(c, "%s%s", $1, s_name($3));
+    $$ = insert_symbol(c);
+  }
+  ;
 
 opt_id: { $$ = NULL; } | id;
 
 enum_stmt
   : ENUM LBRACE id_list RBRACE opt_id SEMICOLON    { $$ = new_stmt_enum($3, $5, get_pos(arg)); }
+  | STATIC  enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_static);  $$ = $2; }
+  | GLOBAL  enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_global);  $$ = $2; }
   | PRIVATE enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_private); $$ = $2; }
+  | PROTECT enum_stmt { CHECK_FLAG(arg, (&$2->d.stmt_enum), ae_flag_protect); $$ = $2; }
   ;
 
 label_stmt
-  : id COLON {  $$ = new_stmt_gotolabel($1, 1, get_pos(arg)); }
+  : id COLON {  $$ = new_stmt_jump($1, 1, get_pos(arg)); }
   ;
 
 goto_stmt
-  : GOTO id SEMICOLON {  $$ = new_stmt_gotolabel($2, 0, get_pos(arg)); }
+  : GOTO id SEMICOLON {  $$ = new_stmt_jump($2, 0, get_pos(arg)); }
   ;
 
 case_stmt
@@ -219,6 +235,8 @@ switch_stmt
   : SWITCH LPAREN exp RPAREN code_segment { $$ = new_stmt_switch($3, $5, get_pos(arg));}
   ;
 
+auto: AUTO ATSYM { $$ = 1; } | AUTO { $$ = 0; }
+
 loop_stmt
   : WHILE LPAREN exp RPAREN stmt
     { $$ = new_stmt_flow(ae_stmt_while, $3, $5, 0, get_pos(arg)); }
@@ -228,10 +246,8 @@ loop_stmt
       { $$ = new_stmt_for($3, $4, NULL, $6, get_pos(arg)); }
   | FOR LPAREN exp_stmt exp_stmt exp RPAREN stmt
       { $$ = new_stmt_for($3, $4, $5, $7, get_pos(arg)); }
-  | FOR LPAREN AUTO id COLON binary_exp RPAREN stmt
-      { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); }
-  | FOR LPAREN AUTO_PTR id COLON binary_exp RPAREN stmt
-      { $$ = new_stmt_auto($4, $6, $8, get_pos(arg)); $$->d.stmt_auto.is_ptr = 1;}
+  | FOR LPAREN auto id COLON binary_exp RPAREN stmt
+      { $$ = new_stmt_auto($4, $6, $8, $3, get_pos(arg)); }
   | UNTIL LPAREN exp RPAREN stmt
       { $$ = new_stmt_flow(ae_stmt_until, $3, $5, 0, get_pos(arg)); }
   | DO stmt UNTIL LPAREN exp RPAREN SEMICOLON
@@ -272,9 +288,9 @@ binary_exp
 template: { $$ = NULL; } | LTB type_list GTB { $$ = $2; };
 
 op: CHUCK { $$ = op_chuck; } | UNCHUCK { $$ = op_unchuck; } | EQ { $$ = op_eq; }
-  | ATCHUCK     { $$ = op_at_chuck; } | PLUSCHUCK   { $$ = op_plus_chuck; }
-  | MINUSCHUCK  { $$ = op_minus_chuck; } | TIMESCHUCK  { $$ = op_times_chuck; }
-  | DIVIDECHUCK { $$ = op_divide_chuck; } | MODULOCHUCK { $$ = op_modulo_chuck; }
+  | ATCHUCK     { $$ = op_ref; } | PLUSCHUCK   { $$ = op_radd; }
+  | MINUSCHUCK  { $$ = op_rsub; } | TIMESCHUCK  { $$ = op_rmul; }
+  | DIVIDECHUCK { $$ = op_rdiv; } | MODULOCHUCK { $$ = op_rmod; }
   | TRIG { $$ = op_trig; } | UNTRIG { $$ = op_untrig; }
   | RSL { $$ = op_rsl; } | RSR { $$ = op_rsr; } | RSAND { $$ = op_rsand; }
   | RSOR { $$ = op_rsor; } | RSXOR { $$ = op_rsxor; }
@@ -297,28 +313,40 @@ decl_exp
   : con_exp
   | type_decl var_decl_list { $$= new_exp_decl($1, $2, get_pos(arg)); }
   | STATIC decl_exp
-    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static); $$ = $2; }
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_static);  $$ = $2; }
+  | GLOBAL  decl_exp
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_global);  $$ = $2; }
   | PRIVATE decl_exp
     { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_private); $$ = $2; }
+  | PROTECT decl_exp
+    { CHECK_FLAG(arg, $2->d.exp_decl.td, ae_flag_protect); $$ = $2; }
   ;
 
 func_args
-  : LPAREN RPAREN          { $$ = NULL; }
-  | LPAREN arg_list RPAREN { $$ = $2; }
+  : LPAREN          { $$ = NULL; }
+  | LPAREN arg_list  { $$ = $2; }
+  ;
+
+arg_type
+  : RPAREN                   { $$ = 0; }
+  | ELLIPSE RPAREN       { $$ = ae_flag_variadic; }
   ;
 
 decl_template: TEMPLATE LTB id_list GTB { $$ = $3; };
 
 func_def_base
-  : function_decl static_decl type_decl2 id func_args code_segment
-    { $$ = new_func_def($1 | $2, $3, $4, $5, $6); }
+  : FUNCTION type_decl2 id func_args arg_type code_segment
+    { $$ = new_func_def($2, $3, $4, $6, $5); }
+  | STATIC func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_static); $$ = $2; }
+  | GLOBAL func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_global); $$ = $2; }
   | PRIVATE func_def_base
     { CHECK_FLAG(arg, $2, ae_flag_private); $$ = $2; }
-  | INLINE func_def_base
-    { CHECK_FLAG(arg, $2, ae_flag_inline); $$ = $2; }
+  | PROTECT func_def_base
+    { CHECK_FLAG(arg, $2, ae_flag_protect); $$ = $2; }
   | decl_template func_def_base
-    { //CHECK_TEMPLATE(arg, $1, $2, free_func_def);
-
+    {
       if($2->tmpl) {
         free_id_list($1);
         free_func_def($2);
@@ -332,13 +360,13 @@ func_def_base
 op_op: op | shift_op | post_op | rel_op | mul_op | add_op;
 func_def
   : func_def_base
-  |  OPERATOR op_op type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op , $3, OP_SYM($2), $4, $5); }
-  |  unary_op OPERATOR type_decl2 func_args code_segment
-    { $$ = new_func_def(ae_flag_op | ae_flag_unary, $3, OP_SYM($1), $4, $5); }
+  |  OPERATOR op_op type_decl2 func_args RPAREN code_segment
+    { $$ = new_func_def($3, OP_SYM($2), $4, $6, ae_flag_op); }
+  |  unary_op OPERATOR type_decl2 func_args RPAREN code_segment
+    { $$ = new_func_def($3, OP_SYM($1), $4, $6, ae_flag_op | ae_flag_unary); }
   | AST_DTOR LPAREN RPAREN code_segment
-    { $$ = new_func_def(ae_flag_dtor, new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
-      get_pos(arg)), insert_symbol("dtor"), NULL, $4); }
+    { $$ = new_func_def(new_type_decl(new_id_list(insert_symbol("void"), get_pos(arg)), 0,
+      get_pos(arg)), insert_symbol("dtor"), NULL, $4, ae_flag_dtor); }
   ;
 
 atsym: { $$ = 0; } | ATSYM { $$ = ae_flag_ref; };
@@ -360,11 +388,19 @@ decl_list
   ;
 
 union_stmt
-  : UNION LBRACE decl_list RBRACE opt_id SEMICOLON { $$ = new_stmt_union($3, get_pos(arg));$$->d.stmt_union.xid = $5; }
+  : UNION opt_id LBRACE decl_list RBRACE opt_id SEMICOLON {
+      $$ = new_stmt_union($4, get_pos(arg));
+      $$->d.stmt_union.type_xid = $2;
+      $$->d.stmt_union.xid = $6;
+    }
   | STATIC union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_static); $$ = $2; }
+  | GLOBAL union_stmt
+    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_global);  $$ = $2; }
   | PRIVATE union_stmt
     { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_private); $$ = $2; }
+  | PROTECT union_stmt
+    { CHECK_FLAG(arg, (&$2->d.stmt_union), ae_flag_protect); $$ = $2; }
   ;
 
 var_decl_list
@@ -388,15 +424,15 @@ log_and_exp: inc_or_exp | log_and_exp AND inc_or_exp
       { $$ = new_exp_binary($1, op_and, $3, get_pos(arg)); };
 
 inc_or_exp: exc_or_exp | inc_or_exp S_OR exc_or_exp
-      { $$ = new_exp_binary($1, op_s_or, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sor, $3, get_pos(arg)); };
 
 exc_or_exp: and_exp | exc_or_exp S_XOR and_exp
-      { $$ = new_exp_binary($1, op_s_xor, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sxor, $3, get_pos(arg)); };
 
 and_exp: eq_exp | and_exp S_AND eq_exp
-      { $$ = new_exp_binary($1, op_s_and, $3, get_pos(arg)); };
+      { $$ = new_exp_binary($1, op_sand, $3, get_pos(arg)); };
 
-eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_neq; };
+eq_op : EQ { $$ = op_eq; } | NEQ { $$ = op_ne; };
 
 eq_exp: relational_exp | eq_exp eq_op relational_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
@@ -408,19 +444,19 @@ relational_exp: shift_exp | relational_exp rel_op shift_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
 shift_op
-  : SHIFT_LEFT  { $$ = op_shift_left;  }
-  | SHIFT_RIGHT { $$ = op_shift_right; }
+  : SHIFT_LEFT  { $$ = op_shl;  }
+  | SHIFT_RIGHT { $$ = op_shr; }
   ;
 
 shift_exp: add_exp | shift_exp shift_op  add_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-add_op: PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; };
+add_op: PLUS { $$ = op_add; } | MINUS { $$ = op_sub; };
 
 add_exp: mul_exp | add_exp add_op mul_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
 
-mul_op: TIMES { $$ = op_times; } | DIVIDE { $$ = op_divide; } | PERCENT { $$ = op_percent; };
+mul_op: TIMES { $$ = op_mul; } | DIVIDE { $$ = op_div; } | PERCENT { $$ = op_mod; };
 
 mul_exp: cast_exp | mul_exp mul_op cast_exp
     { $$ = new_exp_binary($1, $2, $3, get_pos(arg)); };
@@ -428,9 +464,9 @@ mul_exp: cast_exp | mul_exp mul_op cast_exp
 cast_exp: unary_exp | cast_exp DOLLAR type_decl2
     { $$ = new_exp_cast($3, $1, get_pos(arg)); };
 
-unary_op : PLUS { $$ = op_plus; } | MINUS { $$ = op_minus; } | TIMES { $$ = op_times; }
-         | PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; }
-  | EXCLAMATION { $$ = op_exclamation; } | SPORK TILDA { $$ = op_spork; }
+unary_op : PLUS { $$ = op_add; } | MINUS { $$ = op_sub; } | TIMES { $$ = op_mul; }
+         | PLUSPLUS { $$ = op_inc; } | MINUSMINUS { $$ = op_dec; }
+  | EXCLAMATION { $$ = op_not; } | SPORK TILDA { $$ = op_spork; } | TILDA { $$ = op_cmp; }
   ;
 
 unary_exp : dur_exp | unary_op unary_exp
@@ -457,10 +493,10 @@ type_list
 
 call_paren : LPAREN RPAREN { $$ = NULL; } | LPAREN exp RPAREN { $$ = $2; } ;
 
-post_op : PLUSPLUS { $$ = op_plusplus; } | MINUSMINUS { $$ = op_minusminus; };
+post_op : PLUSPLUS { $$ = op_inc; } | MINUSMINUS { $$ = op_dec; };
 
 post_exp: primary_exp | post_exp array_exp
-    { $$ = new_array($1, $2, get_pos(arg)); }
+    { $$ = new_exp_array($1, $2, get_pos(arg)); }
   | post_exp template call_paren
     { $$ = new_exp_call($1, $3, get_pos(arg));
       if($2)$$->d.exp_func.tmpl = new_tmpl_call($2); }

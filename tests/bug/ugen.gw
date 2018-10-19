@@ -11,7 +11,7 @@ samp => now;
 
 
 // there a bug somewhere.
-// probably deref 'dac' to many times ...
+// probably deref 'dac' to many mul  ...
 //dac => blackhole;
 //dac =< blackhole;
 //dac =< s;

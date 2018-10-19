@@ -7,17 +7,14 @@
 #include "err_msg.h"
 #include "driver.h"
 
-ANN m_bool init_bbq(VM* vm, DriverInfo* di, Driver* d) {
-  di->func(d);
-  if(d->ini(vm, di) < 0)
-    return -1; // LCOV_EXCL_LINE
-  sp_createn(&vm->sp, di->out);
-  vm->sp->out   = (m_float*)xrealloc(vm->sp->out, di->out * SZ_FLOAT);
-  vm->in   = (m_float*)xcalloc(di->in, SZ_FLOAT);
-  vm->n_in = di->in;
-  vm->sp->sr = di->sr;
-  sp_srand(vm->sp, time(NULL));
-  return 1;
+ANN struct BBQ_* new_bbq(DriverInfo* di) {
+  struct BBQ_* bbq   = (struct BBQ_*)xcalloc(1, sizeof(struct BBQ_));
+  bbq->out = (m_float*)xcalloc(di->out, SZ_FLOAT);
+  bbq->in  = (m_float*)xcalloc(di->in, SZ_FLOAT);
+  bbq->n_in = di->in;
+  bbq->sr = di->sr;
+  bbq->nchan = di->chan;
+  return bbq;
 }
 
 void select_driver(DriverInfo* di, const m_str d) {

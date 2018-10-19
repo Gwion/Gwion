@@ -7,11 +7,13 @@ typedef enum {
 } e_obj;
 
 struct VM_Object_ {
-  e_obj  type;
   m_uint ref_count;
-};
+  e_obj  type;
+} __attribute__((packed));
 
-#ifndef GWLINT
+
+#define HAS_OBJ struct VM_Object_ obj;
+#ifndef TOOL_MODE
 #define INIT_OO(a, b) { (a)->obj.type = b; (a)->obj.ref_count = 1; }
 #define REM_REF(a)    { rem_ref(&(a)->obj, (a)); }
 #define ADD_REF(a)    { ++(a)->obj.ref_count; }

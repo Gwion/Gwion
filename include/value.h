@@ -9,7 +9,7 @@ struct Value_ {
     Func func_ref;
   } d;
   ae_flag flag;
-  struct VM_Object_ obj;
+  HAS_OBJ
 };
 
 ANEW ANN Value new_value(const Type type, const m_str name);

@@ -1,8 +1,7 @@
-template <{a}>
-variadic void test()
-{
+template “a”
+fun void test(...) {
   vararg.start;
-<<<vararg.i>>>;
+  <<<vararg.i>>>;
   vararg.end;
 }
-test<{int}>(1, 2);
+test“int”(1, 2);

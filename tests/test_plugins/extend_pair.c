@@ -2,7 +2,7 @@
 #include "instr.h"
 #include "import.h"
 
-IMPORT {
+GWION_IMPORT(extend_pair_test) {
   m_str types[] = { "A", "B" };
   Type t_pair_ext ;
   CHECK_OB((t_pair_ext = gwi_mk_type(gwi, "PairExt", SZ_INT , NULL)))

@@ -1,2 +1,2 @@
-// [contains] 'static' and 'private' can only be used at class scope.
+// [contains] 'private' can only be used at class scope.
 private union { int i; } u;

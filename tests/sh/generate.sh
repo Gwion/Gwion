@@ -11,17 +11,19 @@ then echo "ok $n gwion is a file"
 else echo "not ok $n gwion is not a file"
 fi
 n=$((n+1))
+n=$(printf "% 4i" "$n")
 
 if [ -x  ./gwion ]
-then echo "ok    $n gwion is executable"
+then echo "ok $n gwion is executable"
 else echo "not ok $n gwion is not executable"
 fi
 n=$((n+1))
+n=$(printf "% 4i" "$n")
 
 ./util/generate_header "/invalid" &> /dev/null
 ret=$?
 if [ $ret ]
-then echo "ok    $n header wrong target"
+then echo "ok $n header wrong target"
 else echo "not ok $n header wrong target"
 fi
 

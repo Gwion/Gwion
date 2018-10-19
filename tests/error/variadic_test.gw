@@ -1,5 +1,5 @@
 // [contains] vararg.start not used before vararg.end. this is an error
-variadic void test(int i) {
+fun void test(int i, ...) {
 	vararg.end;
 //	vararg.start;
 }

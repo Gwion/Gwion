@@ -1,2 +1,2 @@
-// [contains] private outside of class
+// [contains] 'private' can only be used at class scope
 private fun void test(){}

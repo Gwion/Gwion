@@ -7,6 +7,7 @@
 #include "func.h"
 #include "traverse.h"
 #include "optim.h"
+#include "parse.h"
 
 ANN static m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
@@ -23,18 +24,22 @@ ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   const Type type = decl->type;
-
   if(GET_FLAG(type, ae_flag_abstract) && !GET_FLAG(decl->td, ae_flag_ref))
-    CHECK_BB(err_msg(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
-        ". (use @)", type->name))
+    ERR_B(SCAN2_, decl->self->pos, "Type '%s' is abstract, declare as ref"
+        ". (use @)", type->name)
   if(GET_FLAG(type, ae_flag_template) && !GET_FLAG(type, ae_flag_scan2))
     CHECK_BB(scan2_exp_decl_template(env, decl))
-  while(list) {
+  m_uint class_scope;
+  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  if(global)
+   env_push(env, NULL, env->global_nspc, &class_scope);
+  do {
     const Array_Sub array = list->self->array;
     if(array && array->exp)
         CHECK_BB(scan2_exp(env, array->exp))
-    list = list->next;
-  }
+  } while((list = list->next));
+  if(global)
+    env_pop(env, class_scope);
   return 1;
 }
 
@@ -45,8 +50,8 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
       list->var_decl->value->type = list->type;
   }
   if(!list->type->size)
-    CHECK_BB(err_msg(SCAN2_, list->var_decl->pos,
-          "cannot declare variables of size '0' (i.e. 'void')..."))
+    ERR_B(SCAN2_, list->var_decl->pos,
+          "cannot declare variables of size '0' (i.e. 'void')...")
   if(isres(list->var_decl->xid) > 0)
     return -1;
   if(GET_FLAG(list->td, ae_flag_ref))
@@ -56,9 +61,8 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
 
 ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
-  m_uint count = 1;
   nspc_push_value(env->curr);
-  while(list) {
+  do {
     if(list->var_decl->array && check_array_empty(list->var_decl->array, "argument") < 0) {
       nspc_pop_value(env->curr);
       return -1;
@@ -79,9 +83,7 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
     }
     nspc_add_value(env->curr, list->var_decl->xid, v);
     list->var_decl->value = v;
-    ++count;
-    list = list->next;
-  }
+  } while((list = list->next));
   nspc_pop_value(env->curr);
   return 1;
 }
@@ -102,188 +104,163 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
   return f->value_ref = v;
 }
 
-ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Ptr ptr) { GWDEBUG_EXE
+ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
-  if(nspc_lookup_func2(env->curr, ptr->xid))
-    CHECK_BB(err_msg(SCAN2_, ptr->td->pos,
-          "function type '%s' already defined.", s_name(ptr->xid)))
-    if(scan2_arg_def(env, &d) < 0)
-      CHECK_BB(err_msg(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid)))
-      SET_FLAG(ptr->value, ae_flag_checked);
+  if(d.arg_list && scan2_arg_def(env, &d) < 0)
+    ERR_B(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid))
+  SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
-  const Func_Def def = new_func_def(GET_FLAG(ptr, ae_flag_static) ? ae_flag_static : 0,
-      ptr->td, ptr->xid, ptr->args, NULL);
+  const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
   ptr->value->d.func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
+  ptr->type->d.func = ptr->func;
   SET_FLAG(ptr->value, ae_flag_func);
   if(env->class_def) {
-    if(!GET_FLAG(ptr, ae_flag_static)) {
+    if(GET_FLAG(ptr->td, ae_flag_global)) {
+      SET_FLAG(ptr->value, ae_flag_global);
+      SET_FLAG(ptr->func, ae_flag_global);
+    } else if(!GET_FLAG(ptr->td, ae_flag_static)) {
       SET_FLAG(ptr->value, ae_flag_member);
       SET_FLAG(ptr->func, ae_flag_member);
-    } else
+    } else {
       SET_FLAG(ptr->value, ae_flag_static);
+      SET_FLAG(ptr->func, ae_flag_static);
+    }
     ptr->value->owner_class = env->class_def;
   }
-  nspc_add_func(env->curr, ptr->xid, ptr->func);
-  if(!GET_FLAG(ptr, ae_flag_builtin))
-    ADD_REF(ptr->func);
+  nspc_add_func(ptr->type->owner, ptr->xid, ptr->func);
+  ADD_REF(ptr->func);
   return 1;
 }
 
-ANN static m_bool scan2_stmt_type(const Env env, const Stmt_Typedef stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? scan2_class_def(env, stmt->type->def) : 1;
 }
 
-ANN static m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
+ANN static inline Value prim_value(const Env env, const Symbol s) {
+  const Value value = nspc_lookup_value1(env->curr, s);
+  if(env->class_def) {
+    const Value v = value ? value : find_value(env->class_def, s);
+    return v;
+  }
+  return value;
+}
+
+ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
+  else if(prim->primary_type == ae_primary_id) {
+    const Value v = prim_value(env, prim->d.var);
+    if(v)
+      SET_FLAG(v, ae_flag_used);
+  }
   return 1;
 }
 
-ANN static m_bool scan2_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, array->base))
   return scan2_exp(env, array->array->exp);
 }
 
-ANN static m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, bin->lhs))
-  return scan2_exp(env, bin->rhs);
+
+ANN static m_bool multi_decl(const Exp e, const Operator op) {
+  if(e->exp_type == ae_exp_decl) {
+    if(e->d.exp_decl.list->next)
+      ERR_B(TYPE_, e->pos,
+          "cant '%s' from/to a multi-variable declaration.", op2str(op))
+    SET_FLAG(e->d.exp_decl.list->self->value, ae_flag_used);
+  }
+  return 1;
 }
 
-ANN static m_bool scan2_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
+  CHECK_BB(scan2_exp(env, bin->lhs))
+  CHECK_BB(scan2_exp(env, bin->rhs))
+  CHECK_BB(multi_decl(bin->lhs, bin->op))
+  return multi_decl(bin->rhs, bin->op);
+}
+
+ANN static inline m_bool scan2_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   return scan2_exp(env, cast->exp);
 }
 
-ANN static m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
   return scan2_exp(env, post->exp);
 }
 
-ANN static m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, dur->base))
   return scan2_exp(env, dur->unit);
 }
 
-ANN2(1,2) static m_bool scan2_exp_call1(const Env env, const Exp func, const Exp args) { GWDEBUG_EXE
+ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp func,
+    const restrict Exp args) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, func))
   return args ? scan2_exp(env, args) : 1;
 }
 
-ANN static m_bool scan2_exp_call(const Env env, const Exp_Func* exp_func) { GWDEBUG_EXE
-  if(exp_func->tmpl)
-    return 1;
-  return scan2_exp_call1(env, exp_func->func, exp_func->args);
+ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
+  if(!exp_call->tmpl) // avoid unused var
+    return scan2_exp_call1(env, exp_call->func, exp_call->args);
+  return scan2_exp(env, exp_call->func);
 }
 
-ANN static m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
   return scan2_exp(env, member->base);
 }
 
-ANN static m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
+ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, exp_if->cond))
   CHECK_BB(scan2_exp(env, exp_if->if_exp))
   return scan2_exp(env, exp_if->else_exp);
 }
 
-ANN static m_bool scan2_exp_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  const Func f = env->func;
-  env->func = f ? f : (Func)1;
-  CHECK_BB(scan2_stmt(env, code))
-  env->func = f;
+ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
+  if(unary->op == op_spork && unary->code)
+    return scan2_stmt(env, unary->code);
+  else if(unary->exp)
+    return scan2_exp(env, unary->exp);
   return 1;
 }
 
-static m_bool scan2_exp(const Env env, Exp exp) { GWDEBUG_EXE
-  do {
-    switch(exp->exp_type) {
-      case ae_exp_primary:
-        CHECK_BB(scan2_exp_primary(env, &exp->d.exp_primary))
-        break;
-      case ae_exp_decl:
-        CHECK_BB(scan2_exp_decl(env, &exp->d.exp_decl))
-        break;
-      case ae_exp_unary:
-        if(exp->d.exp_unary.op == op_spork && exp->d.exp_unary.code)
-          CHECK_BB(scan2_exp_spork(env, exp->d.exp_unary.code))
-        break;
-      case ae_exp_binary:
-        CHECK_BB(scan2_exp_binary(env, &exp->d.exp_binary))
-        break;
-      case ae_exp_post:
-        CHECK_BB(scan2_exp_post(env, &exp->d.exp_post))
-        break;
-      case ae_exp_cast:
-        CHECK_BB(scan2_exp_cast(env, &exp->d.exp_cast))
-        break;
-      case ae_exp_call:
-        CHECK_BB(scan2_exp_call(env, &exp->d.exp_func))
-        break;
-      case ae_exp_array:
-        CHECK_BB(scan2_exp_array(env, &exp->d.exp_array))
-        break;
-      case ae_exp_dot:
-        CHECK_BB(scan2_exp_dot(env, &exp->d.exp_dot))
-        break;
-      case ae_exp_if:
-        CHECK_BB(scan2_exp_if(env, &exp->d.exp_if))
-        break;
-      case ae_exp_dur:
-        CHECK_BB(scan2_exp_dur(env, &exp->d.exp_dur))
-        break;
-      OPTIMIZE_DEFAULT
-    }
-  } while((exp = exp->next));
+typedef m_bool (*_exp_func)(const Env, const union exp_data *);
+HANDLE_EXP_FUNC(scan2, m_bool, 1)
+
+#define scan2_stmt_func(name, type, exp) describe_stmt_func(scan2, name, type, exp)
+scan2_stmt_func(flow, Stmt_Flow, !(scan2_exp(env, stmt->cond) < 0 ||
+    scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
+scan2_stmt_func(for, Stmt_For, !(scan2_stmt(env, stmt->c1) < 0 ||
+    scan2_stmt(env, stmt->c2) < 0 ||
+    (stmt->c3 && scan2_exp(env, stmt->c3) < 0) ||
+    scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
+
+scan2_stmt_func(auto, Stmt_Auto, !(scan2_exp(env, stmt->exp) < 0 ||
+    scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
+scan2_stmt_func(loop, Stmt_Loop, !(scan2_exp(env, stmt->cond) < 0 ||
+    scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
+scan2_stmt_func(switch, Stmt_Switch, !(scan2_exp(env, stmt->val) < 0 ||
+    scan2_stmt(env, stmt->stmt) < 0) ? 1 : -1)
+scan2_stmt_func(if, Stmt_If, !(scan2_exp(env, stmt->cond) < 0 ||
+    scan2_stmt(env, stmt->if_body) < 0 ||
+    (stmt->else_body && scan2_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
+
+ANN static inline m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
+  if(stmt->stmt_list) {
+    RET_NSPC(scan2_stmt_list(env, stmt->stmt_list))
+  }
   return 1;
 }
 
-ANN static m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
-  return scan2_stmt_list(env, stmt->stmt_list);
-}
-
-ANN static m_bool scan2_stmt_if(const Env env, const Stmt_If stmt) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, stmt->cond))
-  CHECK_BB(scan2_stmt(env, stmt->if_body))
-  if(stmt->else_body)
-    CHECK_BB(scan2_stmt(env, stmt->else_body))
-  return 1;
-}
-
-ANN static m_bool scan2_stmt_flow(const Env env, const struct Stmt_Flow_* stmt) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, stmt->cond))
-  return scan2_stmt(env, stmt->body);
-}
-
-ANN static m_bool scan2_stmt_for(const Env env, const Stmt_For stmt) { GWDEBUG_EXE
-  CHECK_BB(scan2_stmt(env, stmt->c1))
-  CHECK_BB(scan2_stmt(env, stmt->c2))
-  if(stmt->c3)
-    CHECK_BB(scan2_exp(env, stmt->c3))
-  return scan2_stmt(env, stmt->body);
-}
-
-ANN static m_bool scan2_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, stmt->exp))
-  return scan2_stmt(env, stmt->body);
-}
-
-ANN static m_bool scan2_stmt_loop(const Env env, const Stmt_Loop stmt) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, stmt->cond))
-  return scan2_stmt(env, stmt->body);
-}
-
-ANN static m_bool scan2_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan2_stmt_exp(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
-ANN static m_bool scan2_stmt_switch(const Env env, const Stmt_Switch stmt) { GWDEBUG_EXE
+ANN static inline m_bool scan2_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   return scan2_exp(env, stmt->val);
-}
-
-ANN static m_bool scan2_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
-  return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
 __attribute__((returns_nonnull))
@@ -300,14 +277,14 @@ ANN static Map scan2_label_map(const Env env) { GWDEBUG_EXE
   return m;
 }
 
-ANN static m_bool scan2_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt) { GWDEBUG_EXE
+ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG_EXE
   if(stmt->is_label) {
     const Map m = scan2_label_map(env);
     if(map_get(m, (vtype)stmt->name)) {
-      Stmt_Goto_Label l = (Stmt_Goto_Label)map_get(m, (vtype)stmt->name);
+      const Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
-      CHECK_BB(err_msg(SCAN2_, stmt->self->pos,
-            "label '%s' already defined", s_name(stmt->name)))
+      ERR_B(SCAN2_, stmt->self->pos,
+            "label '%s' already defined", s_name(stmt->name))
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);
@@ -315,84 +292,36 @@ ANN static m_bool scan2_stmt_gotolabel(const Env env, const Stmt_Goto_Label stmt
   return 1;
 }
 
-ANN m_bool scan2_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  const Value v = nspc_lookup_value1(env->curr, stmt->xid);
-  if(v)
-    CHECK_BB(err_msg(SCAN2_, stmt->self->pos,
-          "'%s' already declared as variable", s_name(stmt->xid)))
-  return 1;
-}
-
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
+  m_uint class_scope;
+  const m_bool global = GET_FLAG(stmt, ae_flag_global);
   if(stmt->xid)
-    env_push_class(env, stmt->value->type);
-  while(l) {
-    CHECK_BB(scan2_exp(env, l->self))
-    l = l->next;
-  }
-  if(stmt->xid)
-    env_pop_class(env);
+    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+  else if(stmt->type_xid)
+    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
+  else if(global)
+    env_push(env, NULL, env->global_nspc, &class_scope);
+  do CHECK_BB(scan2_exp(env, l->self))
+  while((l = l->next));
+  if(stmt->xid || stmt->type_xid || global)
+    env_pop(env, class_scope);
   return 1;
 }
 
+static m_bool scan2_stmt_xxx(const Env env, const union stmt_data * d) { return 1; }
+typedef m_bool (*_stmt_func)(const Env, const union stmt_data *);
+static const _stmt_func stmt_func[] = {
+  (_stmt_func)scan2_stmt_exp,  (_stmt_func)scan2_stmt_flow, (_stmt_func)scan2_stmt_flow,
+  (_stmt_func)scan2_stmt_for,  (_stmt_func)scan2_stmt_auto, (_stmt_func)scan2_stmt_loop,
+  (_stmt_func)scan2_stmt_if,   (_stmt_func)scan2_stmt_code, (_stmt_func)scan2_stmt_switch,
+  (_stmt_func)scan2_stmt_xxx,  (_stmt_func)scan2_stmt_xxx,  (_stmt_func)scan2_stmt_exp,
+  (_stmt_func)scan2_stmt_case, (_stmt_func)scan2_stmt_jump, (_stmt_func)scan2_stmt_xxx,
+  (_stmt_func)scan2_stmt_fptr, (_stmt_func)scan2_stmt_type, (_stmt_func)scan2_stmt_union,
+};
+
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  switch(stmt->stmt_type) {
-    case ae_stmt_exp:
-      if(stmt->d.stmt_exp.val)
-        CHECK_BB(scan2_exp(env, stmt->d.stmt_exp.val));
-      break;
-    case ae_stmt_return:
-      CHECK_BB(scan2_stmt_return(env, &stmt->d.stmt_exp))
-      break;
-    case ae_stmt_code:
-      if(stmt->d.stmt_code.stmt_list)
-        NSPC(CHECK_BB(scan2_stmt_code(env, &stmt->d.stmt_code)))
-      break;
-    case ae_stmt_if:
-      NSPC(CHECK_BB(scan2_stmt_if(env, &stmt->d.stmt_if)))
-      break;
-    case ae_stmt_while:
-      NSPC(CHECK_BB(scan2_stmt_flow(env, &stmt->d.stmt_flow)))
-      break;
-    case ae_stmt_until:
-      NSPC(CHECK_BB(scan2_stmt_flow(env, &stmt->d.stmt_flow)))
-      break;
-    case ae_stmt_for:
-      NSPC(CHECK_BB(scan2_stmt_for(env, &stmt->d.stmt_for)))
-      break;
-    case ae_stmt_auto:
-      NSPC(CHECK_BB(scan2_stmt_auto(env, &stmt->d.stmt_auto)))
-      break;
-    case ae_stmt_loop:
-      NSPC(CHECK_BB(scan2_stmt_loop(env, &stmt->d.stmt_loop)))
-      break;
-    case ae_stmt_switch:
-      NSPC(CHECK_BB(scan2_stmt_switch(env, &stmt->d.stmt_switch)))
-      break;
-    case ae_stmt_case:
-      CHECK_BB(scan2_stmt_case(env, &stmt->d.stmt_exp))
-      break;
-    case ae_stmt_gotolabel:
-      CHECK_BB(scan2_stmt_gotolabel(env, &stmt->d.stmt_gotolabel))
-      break;
-    case ae_stmt_continue:
-    case ae_stmt_break:
-      break;
-    case ae_stmt_enum:
-      CHECK_BB(scan2_stmt_enum(env, &stmt->d.stmt_enum))
-      break;
-    case ae_stmt_funcptr:
-      CHECK_BB(scan2_stmt_fptr(env, &stmt->d.stmt_ptr))
-      break;
-    case ae_stmt_typedef:
-      CHECK_BB(scan2_stmt_type(env, &stmt->d.stmt_type))
-      break;
-    case ae_stmt_union:
-      CHECK_BB(scan2_stmt_union(env, &stmt->d.stmt_union))
-      break;
-  }
-  return 1;
+  return stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
@@ -405,21 +334,19 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, ae_flag_template);
   if(isa(overload->type, t_function) < 0)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
+    ERR_B(SCAN2_, f->td->pos,
           "function name '%s' is already used by another value",
-          s_name(f->name)))
+          s_name(f->name))
   if((!tmpl && base) ||
       (tmpl && !base && !GET_FLAG(f, ae_flag_template)))
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
-          "must override template function with template"))
+    ERR_B(SCAN2_, f->td->pos,
+          "must override template function with template")
   return 1;
 }
 
 ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = new_func(func_name, f);
-  Value value;
-  Type type;
   const m_uint len = strlen(func_name) +
     num_digit(overload ? overload->offset + 1 : 0) +
     strlen(env->curr->name) + 13;
@@ -433,10 +360,10 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
     if(!GET_FLAG(f, ae_flag_static))
       SET_FLAG(func, ae_flag_member);
   }
-  type = type_copy(t_function);
+  const Type type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
-  value = new_value(type, func_name);
+  const Value value = new_value(type, func_name);
   SET_FLAG(value, ae_flag_func);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
@@ -445,7 +372,6 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   else {
     ADD_REF(type);
     ADD_REF(value);
-    ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
   }
   snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
@@ -484,17 +410,17 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 }
 
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
+  const Func former = env->func;
   env->func = f->func;
-  nspc_push_value(env->curr);
   const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
   if(ret < 0)
     err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name));
-  nspc_pop_value(env->curr);
-  env->func = NULL;
+  env->func = former;
   return ret;
 }
 
-ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, const Value overload) { GWDEBUG_EXE
+ANN2(1,2) static m_bool scan2_func_def_add(const Env env,
+    const restrict Value value, const restrict Value overload) { GWDEBUG_EXE
   const m_str name = s_name(value->d.func_ref->def->name);
   const Func func = value->d.func_ref;
 
@@ -507,10 +433,10 @@ ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, con
                   func->def->ret_type->name,
                   overload->d.func_ref->def->ret_type->name);
           if(env->class_def)
-            CHECK_BB(err_msg(SCAN2_, func->def->td->pos,
+            ERR_B(SCAN2_, func->def->td->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, name,
-                    value->owner_class->name, name))
+                    value->owner_class->name, name)
         }
   }
   SET_FLAG(value, ae_flag_checked);
@@ -518,14 +444,12 @@ ANN2(1,2) static m_bool scan2_func_def_add(const Env env, const Value value, con
 }
 
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
-  if(GET_FLAG(f, ae_flag_inline))
-    SET_FLAG(f->func, ae_flag_inline);
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(f->func->value_ref, ae_flag_builtin);
-  if(GET_FLAG(f, ae_flag_dtor))
+  if(GET_FLAG(f, ae_flag_dtor)) {
     SET_FLAG(f->func, ae_flag_dtor);
-  if(GET_FLAG(f, ae_flag_dtor))
     SET_FLAG(f->func->value_ref->owner_class, ae_flag_dtor);
+  }
   else if(GET_FLAG(f, ae_flag_variadic))
     f->stack_depth += SZ_INT;
   SET_FLAG(f->func->value_ref, ae_flag_const);
@@ -537,23 +461,27 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
   ID_List id = f->tmpl->list;
   m_uint tlen = 0;
   vector_init(&v);
-  while(id) {
+  do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
     vector_add(&v, (vtype)t);
-    tlen += strlen (t->name);
-    id = id->next;
-    if(id)
+    tlen += strlen(t->name);
+    if(id->next)
       ++tlen;
-  }
+  } while((id = id->next));
   char name[len + tlen + 3];
   char tmpl_name[tlen + 1];
   memset(name, 0, len + tlen + 3);
   memset(tmpl_name, 0, tlen + 1);
   tmpl_name[0] = '\0';
+  m_str str = tmpl_name;
   for(m_uint i = 0; i < vector_size(&v); ++i) {
-    strcat(tmpl_name, ((Type)vector_at(&v, i))->name);
-    if(i + 1 < vector_size(&v))
-      strcat(tmpl_name, ",");
+    const m_str name = ((Type)vector_at(&v, i))->name;
+    strcpy(str, name);
+    str += strlen(name);
+    if(i + 1 < vector_size(&v)) {
+      strcpy(str, ",");
+      ++str;
+    }
   }
   tmpl_name[len+1] = '\0';
   vector_release(&v);
@@ -576,6 +504,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = new_type(t_function->xid, func_name, t_function);
   type->size = SZ_INT;
+  type->owner = env->curr;
   if(GET_FLAG(func, ae_flag_member))
     type->size += SZ_INT;
   type->d.func = func;
@@ -598,6 +527,8 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
+
+  f->stack_depth = 0;
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   const m_uint len = strlen(func_name) +
@@ -619,55 +550,67 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     func_name = func_tmpl_name(env, f, len);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func)
-      return scan2_arg_def(env, f);
+      return f->arg_list ? scan2_arg_def(env, f) : 1;
   }
   const Func base = get_func(env, f);
-  if(!base)
-    CHECK_OB((value = func_create(env, f, overload, func_name)))
-  else
-    f->func = base;
-  if(scan2_arg_def(env, f) < 0)
-    CHECK_BB(err_msg(SCAN2_, f->td->pos,
-          "\t... in function '%s'\n", s_name(f->name)))
   if(!base) {
-    if(GET_FLAG(f, ae_flag_op))
-      return scan2_func_def_op(env, f);
+    m_uint class_scope;
+    if(GET_FLAG(f, ae_flag_global))
+      env_push(env, NULL, env->global_nspc, &class_scope);
+      CHECK_OB((value = func_create(env, f, overload, func_name)))
+    if(GET_FLAG(f, ae_flag_global))
+      env_pop(env, class_scope);
+  } else
+    f->func = base;
+  if(f->arg_list && scan2_arg_def(env, f) < 0)
+    ERR_B(SCAN2_, f->td->pos,
+          "\t... in function '%s'\n", s_name(f->name))
+  if(!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list)
+      CHECK_BB(scan2_func_def_code(env, f))
+  if(!base) {
     CHECK_BB(scan2_func_def_add(env, value, overload))
+    if(GET_FLAG(f, ae_flag_op))
+      CHECK_BB(scan2_func_def_op(env, f))
   }
-  return (!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list) ?
-      scan2_func_def_code(env, f) : 1;
+  return 1;
 }
 
-ANN static m_bool scan2_section(const Env env, const Section* section) { GWDEBUG_EXE
-  const ae_Section_Type t = section->section_type;
-  if(t == ae_section_stmt)
-    CHECK_BB(scan2_stmt_list(env, section->d.stmt_list))
-  else if(t == ae_section_func)
-    CHECK_BB(scan2_func_def(env, section->d.func_def))
-  else if(t == ae_section_class)
-    CHECK_BB(scan2_class_def(env, section->d.class_def))
+typedef m_bool (*_section_func)(const Env, const void*);
+static const _section_func section_func[] = {
+  (_section_func)scan2_stmt_list, (_section_func)scan2_func_def, (_section_func)scan2_class_def
+};
+
+ANN static inline m_bool scan2_section(const Env env, const Section* section) { GWDEBUG_EXE
+  return section_func[section->section_type](env, *(void**)&section->d);
+}
+
+ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
+  const Type t = class_def->type->parent->array_depth ?
+    array_base(class_def->type->parent) : class_def->type->parent;
+  if(!GET_FLAG(t, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
+    CHECK_BB(scan2_class_def(env, t->def))
+  if(class_def->ext->array)
+    CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
+  return 1;
+}
+
+ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
+  m_uint class_scope;
+  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  Class_Body body = class_def->body;
+  do CHECK_BB(scan2_section(env, body->section))
+  while((body = body->next));
+  env_pop(env, class_scope);
   return 1;
 }
 
 ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  Class_Body body = class_def->body;
-
   if(tmpl_class_base(class_def->tmpl))
     return 1;
-  if(class_def->ext) {
-    const Type t = class_def->type->parent->array_depth ?
-      array_base(class_def->type->parent) : class_def->type->parent;
-    if(!GET_FLAG(t, ae_flag_scan2) && GET_FLAG(class_def->ext, ae_flag_typedef))
-      CHECK_BB(scan2_class_def(env, t->def))
-    if(class_def->ext->array)
-      CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
-  }
-  if(body) {
-    env_push_class(env, class_def->type);
-    do CHECK_BB(scan2_section(env, body->section))
-    while((body = body->next));
-    env_pop_class(env);
-  }
+  if(class_def->ext)
+    CHECK_BB(scan2_class_parent(env, class_def))
+  if(class_def->body)
+    CHECK_BB(scan2_class_body(env, class_def))
   SET_FLAG(class_def->type, ae_flag_scan2);
   return 1;
 }

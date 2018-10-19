@@ -1,8 +1,7 @@
-variadic int test(){
-
+fun int test(...){
   vararg.start;
   <<<"test">>>; 
-<<<vararg.i>>>;
+  <<<vararg.i>>>;
   vararg.end;
   return 1;
 }

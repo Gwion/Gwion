@@ -1,9 +1,0 @@
-// [contains] can't use empty
-class C extends int[] {
-  <<<"test">>>;
-  123 => int i;
-}
-
-C c;
-<<<c.size()>>>;
-<<<c.i>>>;

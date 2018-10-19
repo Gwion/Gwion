@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include "absyn.h"
+#include "hash.h"
+#include "scanner.h"
 
 #define TABLEN 2
 
@@ -128,7 +130,7 @@ static void tag_exp_post(Tagger* tagger, Exp_Postfix* post) {
   tag_exp(tagger, post->exp);
 }
 
-static void tag_exp_call(Tagger* tagger __attribute__((unused)), Exp_Func* exp_func __attribute__((unused))) {
+static void tag_exp_call(Tagger* tagger __attribute__((unused)), Exp_Call* exp_call __attribute__((unused))) {
   return;
 }
 
@@ -168,7 +170,7 @@ static void tag_exp(Tagger* tagger,  Exp exp) {
         tag_exp_cast(tagger, &exp->d.exp_cast);
         break;
       case ae_exp_call:
-        tag_exp_call(tagger, &exp->d.exp_func);
+        tag_exp_call(tagger, &exp->d.exp_call);
         break;
       case ae_exp_array:
         tag_exp_array(tagger, &exp->d.exp_array);
@@ -249,7 +251,7 @@ void tag_stmt_enum(Tagger* tagger, Stmt_Enum stmt) {
   }
 }
 
-void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
+void tag_stmt_fptr(Tagger* tagger, Stmt_Fptr ptr) {
   Arg_List list = ptr->args;
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
@@ -270,7 +272,7 @@ void tag_stmt_fptr(Tagger* tagger, Stmt_Ptr ptr) {
   tag_print(tagger, ") {$/;\tt\n");
 }
 
-void tag_stmt_typedef(Tagger* tagger, Stmt_Typedef ptr) {
+void tag_stmt_type(Tagger* tagger, Stmt_Type ptr) {
   tag(tagger, s_name(ptr->xid));
   tag_print(tagger, "/^");
   tag_type_decl(tagger, ptr->td);
@@ -291,7 +293,7 @@ void tag_stmt_union(Tagger* tagger, Stmt_Union stmt) {
   }
 }
 
-void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Goto_Label stmt __attribute__((unused))) {
+void tag_stmt_goto(Tagger* tagger __attribute__((unused)), Stmt_Jump stmt __attribute__((unused))) {
   return;
 }
 
@@ -349,18 +351,19 @@ static void tag_stmt(Tagger* tagger, Stmt stmt) {
     case ae_stmt_break:
       tag_stmt_break(tagger, stmt);
       break;
-    case ae_stmt_gotolabel:
-      tag_stmt_goto(tagger, &stmt->d.stmt_gotolabel);
+    case ae_stmt_jump:
+      tag_stmt_goto(tagger, &stmt->d.stmt_jump);
       break;
-    case ae_stmt_funcptr:
-      tag_stmt_fptr(tagger, &stmt->d.stmt_ptr);
+    case ae_stmt_fptr:
+      tag_stmt_fptr(tagger, &stmt->d.stmt_fptr);
       break;
-    case ae_stmt_typedef:
-      tag_stmt_typedef(tagger, &stmt->d.stmt_type);
+    case ae_stmt_type:
+      tag_stmt_type(tagger, &stmt->d.stmt_type);
       break;
     case ae_stmt_union:
       tag_stmt_union(tagger, &stmt->d.stmt_union);
       break;
+    default:break;
   }
 }
 
@@ -398,7 +401,7 @@ static void tag_func_def(Tagger* tagger, Func_Def f) {
 }
 
 static void tag_section(Tagger* tagger, Section* section) {
-  ae_Section_Type t = section->section_type;
+  ae_section_t t = section->section_type;
   if(t == ae_section_stmt)
     tag_stmt_list(tagger, section->d.stmt_list);
   else if(t == ae_section_func)
@@ -434,6 +437,7 @@ void tag_ast(Tagger* tagger, Ast ast) {
 
 int main(int argc, char** argv) {
   argc--; argv++;
+  Scanner* scan = new_scanner(127); // magic number
   while(argc--) {
     Ast ast;
     Tagger tagger = { *argv , new_vector(), NULL };
@@ -441,7 +445,7 @@ int main(int argc, char** argv) {
     sprintf(c, "%s.tag", *argv);
     FILE* f = fopen(*argv, "r");
     if(!f)continue;
-    if(!(ast = parse(*argv++, f))) {
+    if(!(ast = parse(scan, *argv++, f))) {
       fclose(f);
       continue;
     }
@@ -452,6 +456,7 @@ int main(int argc, char** argv) {
     fclose(tagger.file);
     fclose(f);
   }
+  free_scanner(scan);
   free_symbols();
   return 0;
 }

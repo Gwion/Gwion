@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.0.5.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,51 +98,60 @@ extern int gwion_debug;
     SPORK = 308,
     CLASS = 309,
     STATIC = 310,
-    PUBLIC = 311,
+    GLOBAL = 311,
     PRIVATE = 312,
-    EXTENDS = 313,
-    DOT = 314,
-    COLONCOLON = 315,
-    AND = 316,
-    EQ = 317,
-    GE = 318,
-    GT = 319,
-    LE = 320,
-    LT = 321,
-    MINUS = 322,
-    PLUS = 323,
-    NEQ = 324,
-    SHIFT_LEFT = 325,
-    SHIFT_RIGHT = 326,
-    S_AND = 327,
-    S_OR = 328,
-    S_XOR = 329,
-    OR = 330,
-    AST_DTOR = 331,
-    OPERATOR = 332,
-    TYPEDEF = 333,
-    RSL = 334,
-    RSR = 335,
-    RSAND = 336,
-    RSOR = 337,
-    RSXOR = 338,
-    TEMPLATE = 339,
-    NOELSE = 340,
-    LTB = 341,
-    GTB = 342,
-    VARARG = 343,
+    PROTECT = 313,
+    EXTENDS = 314,
+    DOT = 315,
+    COLONCOLON = 316,
+    AND = 317,
+    EQ = 318,
+    GE = 319,
+    GT = 320,
+    LE = 321,
+    LT = 322,
+    MINUS = 323,
+    PLUS = 324,
+    NEQ = 325,
+    SHIFT_LEFT = 326,
+    SHIFT_RIGHT = 327,
+    S_AND = 328,
+    S_OR = 329,
+    S_XOR = 330,
+    OR = 331,
+    AST_DTOR = 332,
+    OPERATOR = 333,
+    TYPEDEF = 334,
+    RSL = 335,
+    RSR = 336,
+    RSAND = 337,
+    RSOR = 338,
+    RSXOR = 339,
+    TEMPLATE = 340,
+    NOELSE = 341,
+    LTB = 342,
+    GTB = 343,
     UNION = 344,
     ATPAREN = 345,
     TYPEOF = 346,
     CONST = 347,
     AUTO = 348,
-    AUTO_PTR = 349,
-    INLINE = 350,
+    PASTE = 349,
+    ELLIPSE = 350,
     NUM = 351,
     FLOAT = 352,
     ID = 353,
     STRING_LIT = 354,
-    CHAR_LIT = 355
+    CHAR_LIT = 355,
+    PP_COMMENT = 356,
+    PP_INCLUDE = 357,
+    PP_DEFINE = 358,
+    PP_UNDEF = 359,
+    PP_IFDEF = 360,
+    PP_IFNDEF = 361,
+    PP_ELSE = 362,
+    PP_ENDIF = 363,
+    PP_NL = 364
   };
 #endif
 /* Tokens.  */
@@ -199,58 +208,67 @@ extern int gwion_debug;
 #define SPORK 308
 #define CLASS 309
 #define STATIC 310
-#define PUBLIC 311
+#define GLOBAL 311
 #define PRIVATE 312
-#define EXTENDS 313
-#define DOT 314
-#define COLONCOLON 315
-#define AND 316
-#define EQ 317
-#define GE 318
-#define GT 319
-#define LE 320
-#define LT 321
-#define MINUS 322
-#define PLUS 323
-#define NEQ 324
-#define SHIFT_LEFT 325
-#define SHIFT_RIGHT 326
-#define S_AND 327
-#define S_OR 328
-#define S_XOR 329
-#define OR 330
-#define AST_DTOR 331
-#define OPERATOR 332
-#define TYPEDEF 333
-#define RSL 334
-#define RSR 335
-#define RSAND 336
-#define RSOR 337
-#define RSXOR 338
-#define TEMPLATE 339
-#define NOELSE 340
-#define LTB 341
-#define GTB 342
-#define VARARG 343
+#define PROTECT 313
+#define EXTENDS 314
+#define DOT 315
+#define COLONCOLON 316
+#define AND 317
+#define EQ 318
+#define GE 319
+#define GT 320
+#define LE 321
+#define LT 322
+#define MINUS 323
+#define PLUS 324
+#define NEQ 325
+#define SHIFT_LEFT 326
+#define SHIFT_RIGHT 327
+#define S_AND 328
+#define S_OR 329
+#define S_XOR 330
+#define OR 331
+#define AST_DTOR 332
+#define OPERATOR 333
+#define TYPEDEF 334
+#define RSL 335
+#define RSR 336
+#define RSAND 337
+#define RSOR 338
+#define RSXOR 339
+#define TEMPLATE 340
+#define NOELSE 341
+#define LTB 342
+#define GTB 343
 #define UNION 344
 #define ATPAREN 345
 #define TYPEOF 346
 #define CONST 347
 #define AUTO 348
-#define AUTO_PTR 349
-#define INLINE 350
+#define PASTE 349
+#define ELLIPSE 350
 #define NUM 351
 #define FLOAT 352
 #define ID 353
 #define STRING_LIT 354
 #define CHAR_LIT 355
+#define PP_COMMENT 356
+#define PP_INCLUDE 357
+#define PP_DEFINE 358
+#define PP_UNDEF 359
+#define PP_IFDEF 360
+#define PP_IFNDEF 361
+#define PP_ELSE 362
+#define PP_ENDIF 363
+#define PP_NL 364
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 26 "utils/gwion.y" /* yacc.c:1909  */
+#line 32 "utils/gwion.y" /* yacc.c:1910  */
 
   char* sval;
   int ival;
@@ -261,7 +279,7 @@ union YYSTYPE
   Var_Decl_List var_decl_list;
   Type_Decl* type_decl;
   Exp   exp;
-  Stmt_Ptr func_ptr;
+  Stmt_Fptr func_ptr;
   Stmt stmt;
   Stmt_List stmt_list;
   Arg_List arg_list;
@@ -275,7 +293,7 @@ union YYSTYPE
   Class_Def class_def;
   Ast ast;
 
-#line 279 "include/parser.h" /* yacc.c:1909  */
+#line 297 "include/parser.h" /* yacc.c:1910  */
 };
 
 typedef union YYSTYPE YYSTYPE;

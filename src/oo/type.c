@@ -2,8 +2,6 @@
 #include "type.h"
 #include "mpool.h"
 
-POOL_HANDLE(Type, 2048)
-
 ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   const Type type = mp_alloc(Type);
   type->xid    = xid;
@@ -14,8 +12,12 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
 }
 
 ANN void free_type(Type a) {
-  if(a->info)
-    REM_REF(a->info);
+//  if(a->p) {
+//    mp_end(a->p);
+//    xfree(a->p);
+//  }
+  if(a->nspc)
+    REM_REF(a->nspc);
   if(GET_FLAG(a, ae_flag_builtin)) {
     if(a->parent && a->parent->array_depth)
       REM_REF(a->parent)
@@ -30,7 +32,7 @@ ANN void free_type(Type a) {
 
 ANN Type type_copy(const Type type) {
   const Type a = new_type(type->xid, type->name, type->parent);
-  a->info          = type->info;
+  a->nspc          = type->nspc;
   a->owner         = type->owner;
   a->size          = type->size;
   a->d.base_type = type->d.base_type;

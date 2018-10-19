@@ -4,8 +4,6 @@
 #include "map_private.h"
 #include "mpool.h"
 
-POOL_HANDLE(Map, 2048)
-
 ANN void map_clear(const Map v) {
   v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) = MAP_CAP) * SZ_INT);
   VLEN(v) = 0;
@@ -36,7 +34,7 @@ ANN void map_set(const Map map, const vtype key, const vtype ptr) {
       return;
     }
   }
-  if((OFFSET + VLEN(map) * 2 + 1) > VCAP(map)) {
+  if((OFFSET + (VLEN(map) << 1) + 1) > VCAP(map)) {
     VCAP(map) *= 2;
     map->ptr = (m_uint*)xrealloc(map->ptr, VCAP(map) * SZ_INT);
   }

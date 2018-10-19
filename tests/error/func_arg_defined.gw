@@ -1,2 +1,2 @@
-// [contains] is already defined in this scope
+// [contains] already declared
 function void test(int i, int i){}

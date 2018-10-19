@@ -1,4 +1,5 @@
 do{
+  <<<"'do' loop">>>;
   if(maybe)
     break;
   else continue;

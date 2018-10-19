@@ -1,2 +1,2 @@
 // [contains] vararg.start already used. this is an error
-variadic void test() { vararg.start; vararg.start;}
+fun void test(...) { vararg.start; vararg.start;}

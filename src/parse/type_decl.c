@@ -7,11 +7,11 @@
 
 ANN m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, t_object) < 0)
-    CHECK_BB(err_msg(SCAN2_, td->pos,
+    ERR_B(SCAN2_, td->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
           "\t... complex, polar, Vec3, Vec4)",
-          t->name))
+          t->name)
   return 1;
 }
 
@@ -31,45 +31,73 @@ ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = 1 + (td->array ? td->array->depth : 0);
-  m_uint l = id_list_len(td->xid) + depth *2;
+  const size_t len = id_list_len(td->xid);
+  size_t l = len + depth *2;
   const m_uint m = l;
-  const m_str s = (m_str)xmalloc(m);
+  const m_str str = (m_str)xmalloc(m);
+  m_str s = str;
   type_path(s, td->xid);
-  while(--depth)
-    strcat(s, "[]");
+  s += len;
+  while(--depth) {
+    strcpy(s, "[]");
+    s += 2;
+  }
   Type_List tl = td->types;
   if(tl) {
-    l += 2;
+    ++l;
     strcheck(s, m, l);
-    strcat(s, "<");
+    strcpy(s, "<");
+    ++s;
     while(tl) {
       m_str name = td2str(env, tl->td);
-      l += strlen(name);
+      const size_t len = strlen(name);
+      l += len;
       strcheck(s, m, l);
-      strcat(s, name);
+      strcpy(s, name);
+      s += len;
       free(name);
       tl = tl->next;
-      if(tl)
-        strcat(s, ",");
+      if(tl) {
+        strcpy(s, ",");
+        ++s;
+      }
     }
-    strcat(s, ">");
+    strcpy(s, ">");
   }
-  return s;
+  return str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   m_uint l = 0;
   const m_uint m = 32;
-  const m_str s = (m_str)xmalloc(m);
-  memset(s, 0, 32);
+  const m_str str = (m_str)xmalloc(m);
+  m_str s = str;
   do {
     const m_str name = td2str(env, tl->td);
-    l += strlen(name) + 1;
+    l += strlen(name);
     strcheck(s, m, l);
-    strcat(s, name);
+    strcpy(s, name);
+    s += l;
     free(name);
-    if(tl->next)
-      strcat(s, ",");
+    if(tl->next) {
+      strcpy(s, ",");
+      ++l;
+      ++s;
+    }
   } while((tl = tl->next));
-  return s;
+  return str;
+}
+
+ANN static inline void type_unknown(const ID_List id, const m_str orig) {
+  char path[id_list_len(id)];
+  type_path(path, id);
+  err_msg(SCAN1_, id->pos, "'%s' unknown type in %s", path, orig);
+}
+
+ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
+  const Type t = type_decl_resolve(env, td);
+  if(t)
+    return t;
+  type_unknown(td->xid, orig);
+  return NULL;
 }

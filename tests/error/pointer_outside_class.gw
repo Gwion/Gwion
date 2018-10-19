@@ -1,2 +1,2 @@
-// [contains] can't declare func pointer static outside of a class
+// [contains] 'static' can only be used at class scope
 static typedef void (my_function)(){}

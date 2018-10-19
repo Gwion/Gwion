@@ -19,11 +19,17 @@ ANN static m_bool is_const(Exp e) {
 }
 
 ANN static m_bool is_constprop_value(const Exp e) {
+  if (e->exp_type == ae_exp_decl
+    && isa(e->d.exp_decl.list->self->value->type, t_int) > 0 &&
+    !e->d.exp_decl.list->self->value->type->array_depth &&
+    !e->d.exp_decl.list->self->value->owner_class &&
+    !GET_FLAG(e->d.exp_decl.list->self->value, ae_flag_arg))
   return (e->exp_type == ae_exp_primary &&
-e->d.exp_primary.primary_type == ae_primary_id &&
-isa(e->type, t_int) > 0 &&
-   !e->d.exp_primary.value->owner_class) ||
-   e->exp_type == ae_exp_constprop2;
+    e->d.exp_primary.primary_type == ae_primary_id &&
+    isa(e->type, t_int) > 0 &&
+    !e->d.exp_primary.value->owner_class) ||
+    e->exp_type == ae_exp_constprop2;
+  return 0;
 }
 
 ANN static void constprop_exp(const Exp_Binary* bin, long num) {
@@ -57,25 +63,31 @@ ANN static m_bool constant_propagation(const Exp_Binary* bin) {
       if(isa(r->type, t_function) < 0) {
         if(is_constprop_value(r)) {
           if(is_const(l)) {
+if(r->d.exp_primary.primary_type == ae_primary_num) {
             constprop_value(r->d.exp_primary.value,
               l->d.exp_primary.d.num);
             constprop_exp(bin, l->d.exp_primary.d.num);
+}
+  else if(r->exp_type == ae_exp_decl) {
+    SET_FLAG(r->d.exp_decl.list->self->value, ae_flag_constprop);
+  *(m_uint*)r->d.exp_decl.list->self->value->d.ptr = l->d.exp_primary.d.num;
+  }
             return 1;
           }
         }
       } /* fallthrough */
-    case op_plus_chuck:
-    case op_minus_chuck:
-    case op_times_chuck:
-    case op_divide_chuck:
-    case op_modulo_chuck:
+    case op_radd:
+    case op_rsub:
+    case op_rmul:
+    case op_rdiv:
+    case op_rmod:
     case op_rsl:
     case op_rsr:
     case op_rsand:
     case op_rsor:
     case op_rsxor:
-    case op_at_chuck:
-    case op_at_unchuck:
+    case op_ref:
+    case op_unref:
     case op_trig:
     case op_untrig:
       if(r->exp_type == ae_exp_constprop2) {
@@ -89,33 +101,33 @@ ANN static m_bool constant_propagation(const Exp_Binary* bin) {
 
 ANN static m_bool constant_folding(const Exp_Binary* bin) {
   const Exp l = bin->lhs, r = bin->rhs;
-  m_int ret;
+  m_int ret = 0;
   switch(bin->op) {
-    case op_plus:
+    case op_add:
       ret = l->d.exp_primary.d.num + r->d.exp_primary.d.num;
       break;
-    case op_minus:
+    case op_sub:
       ret = l->d.exp_primary.d.num - r->d.exp_primary.d.num;
       break;
-    case op_times:
+    case op_mul:
        ret = l->d.exp_primary.d.num * r->d.exp_primary.d.num;
        break;
-    case op_divide:
+    case op_div:
       if(r->d.exp_primary.d.num)
        ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
       else
-       CHECK_BB(err_msg(TYPE_, r->pos, "divide by zero"))
+       ERR_B(TYPE_, r->pos, "div by zero")
        break;
-    case op_percent:
+    case op_mod:
       if(r->d.exp_primary.d.num)
         ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
       else
-        CHECK_BB(err_msg(TYPE_, r->pos, "divide by zero"))
+        ERR_B(TYPE_, r->pos, "div by zero")
       break;
-    case op_shift_left:
+    case op_shl:
       ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;
       break;
-    case op_shift_right:
+    case op_shr:
       ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
       break;
     default:

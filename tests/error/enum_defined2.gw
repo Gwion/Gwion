@@ -1,5 +1,5 @@
-// [contains] already declared
- int i;
+// [contains] already been defined
+int i;
 enum
 {
 	first

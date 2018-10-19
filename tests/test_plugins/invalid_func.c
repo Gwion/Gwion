@@ -3,7 +3,7 @@
 #include "import.h"
 
 static MFUN(test_mfun){}
-IMPORT {
+GWION_IMPORT(invalid_func_test) {
   Type t_invalid_var_type ;
   CHECK_OB((t_invalid_var_type = gwi_mk_type(gwi, "invalid_var_type",
           SZ_INT , NULL)))

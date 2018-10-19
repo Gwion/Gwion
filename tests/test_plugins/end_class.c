@@ -3,8 +3,7 @@
 #include "import.h"
 
 MFUN(test_mfun){}
-IMPORT
-{
+GWION_IMPORT(end_class) {
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

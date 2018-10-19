@@ -4,8 +4,6 @@
 #include "map.h"
 #include "mpool.h"
 
-POOL_HANDLE(Vector, 2048)
-
 ANN inline void vector_init(const Vector v) {
   v->ptr = (m_uint*)xcalloc(MAP_CAP, SZ_INT);
   VCAP(v) = MAP_CAP;
@@ -27,7 +25,7 @@ ANN void free_vector(const Vector v) {
 }
 
 ANN void vector_add(const Vector v, const vtype data) {
-  if(!(VCAP(v) - VLEN(v) - OFFSET))
+  if(VCAP(v) - VLEN(v) == OFFSET)
     v->ptr = (m_uint*)xrealloc(v->ptr, (VCAP(v) *= 2) * SZ_INT);
   VPTR(v, VLEN(v)++) = (vtype)data;
 }

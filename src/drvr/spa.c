@@ -11,7 +11,6 @@ static m_bool spa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
 
 static void spa_run(VM* vm, DriverInfo* di) {
   char tmp[strlen(di->card) + 5];
-  sp_data* sp = vm->sp;
   sp_audio* spa = di->data;
   sprintf(tmp, "%s.spa", di->card);
   if(spa_open(vm->sp, spa, tmp, SPA_WRITE) == SP_NOT_OK) {
