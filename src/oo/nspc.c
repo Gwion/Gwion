@@ -45,12 +45,6 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
     REM_REF(t_array->nspc)
 }
 
-ANN static void free_nspc_value_fptr(Func f) {
-  if(f->next)
-    free_nspc_value_fptr(f->next);
-  free_func_simple(f);
-}
-
 ANN static void free_nspc_value(const Nspc a) {
   const Vector v = scope_get(&a->value);
   for(m_uint i = vector_size(v) + 1; --i;) {
@@ -80,17 +74,10 @@ ANN static void free_nspc_value(const Nspc a) {
       if(GET_FLAG(value->type, ae_flag_op)) // only free untyped unions
         REM_REF(value->type)
     }
+    else if(isa(value->type, t_function) > 0)
+      REM_REF(value->type)
     else if(isa(value->type, t_object) > 0)
       nspc_release_object(a, value);
-    else if(isa(value->type, t_fptr) > 0 && value->d.func_ref)
-      free_nspc_value_fptr(value->d.func_ref);
-    else if(isa(value->type, t_function) > 0) {
-      if(GET_FLAG(value, ae_flag_template)) {
-        REM_REF(value->type)
-        REM_REF(value->d.func_ref)
-      } else
-        REM_REF(value->type)
-    }
     REM_REF(value);
   }
   free_vector(v);

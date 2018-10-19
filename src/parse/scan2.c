@@ -342,7 +342,6 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   else {
     ADD_REF(type);
     ADD_REF(value);
-    ADD_REF(func);
     nspc_add_value(env->curr, f->name, value);
   }
   snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
@@ -383,11 +382,9 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func former = env->func;
   env->func = f->func;
-  nspc_push_value(env->curr);
   const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
   if(ret < 0)
     err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name));
-  nspc_pop_value(env->curr);
   env->func = former;
   return ret;
 }
@@ -529,11 +526,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!base) {
     m_uint class_scope;
     if(GET_FLAG(f, ae_flag_global))
-    env_push(env, NULL, env->global_nspc, &class_scope);
+      env_push(env, NULL, env->global_nspc, &class_scope);
       CHECK_OB((value = func_create(env, f, overload, func_name)))
     if(GET_FLAG(f, ae_flag_global))
-    env_pop(env, class_scope);
-
+      env_pop(env, class_scope);
   } else
     f->func = base;
   if(f->arg_list && scan2_arg_def(env, f) < 0)
@@ -566,6 +562,7 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
     CHECK_BB(scan2_exp(env, class_def->ext->array->exp))
   return 1;
 }
+
 ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
   m_uint class_scope;
   env_push(env, class_def->type, class_def->type->nspc, &class_scope);
