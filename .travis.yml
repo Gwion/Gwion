@@ -20,7 +20,7 @@ env:
   global:
     - SOUNDPIPE_LIB=$TRAVIS_BUILD_DIR/Soundpipe/libsoundpipe.a
     - SOUNDPIPE_INC=-I$TRAVIS_BUILD_DIR/Soundpipe/h
-    - CFLAGS=-I$SOUNDPIPE_INC
+    - CFLAGS=-I$SOUNDPIPE_INC -Wno-attributes
     - DATA=$TRAVIS_BUILD_DIR/Soundpipe/modules/data
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - PREFIX=$TRAVIS_BUILD_DIR
