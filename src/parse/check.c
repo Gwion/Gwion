@@ -123,15 +123,12 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
 ANN static m_bool prim_array_inner(const Type t, Type type, const Exp e) {
   const Type common = find_common_anc(t, type);
   if(common)
-    type = common;
-  else {
-    if(isa(t, t_int) > 0 && isa(type, t_float) > 0) {
+    return 1;
+  else if(isa(t, t_int) > 0 && isa(type, t_float) > 0) {
       e->cast_to = type;
       return 1;
-    } else
-      ERR_B(TYPE_, e->pos, "array init [...] contains incompatible types ...")
   }
-  return 1;
+  return err_msg(TYPE_, e->pos, "array init [...] contains incompatible types ...");
 }
 
 ANN static inline Type prim_array_match(Exp e) {
