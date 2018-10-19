@@ -9,7 +9,6 @@
 : "${ANSI_CLEAR:=\033[0K}"
 : "${ANSI_BOLD:=\033[33;1m}"
 
-: "${UDP:=-a}"
 : "${DRIVER:=dummy}"
 
 : "${ASYNC:=4}"
@@ -179,7 +178,7 @@ test_gw(){
   vlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWT_OUTDIR}/${GWT_PREFIX}$(printf "%04i" "$n").log
   valgrind --log-file="$vlog" --suppressions=utils/vg.supp \
-  ./gwion $GWOPT $UDP -d $DRIVER "$file" > "$slog" 2>"$elog" |:
+  ./gwion $GWOPT -d $DRIVER "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
