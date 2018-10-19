@@ -18,15 +18,15 @@ CFLAGS += -fPIC
 USE_DOUBLE    = 0
 USE_COVERAGE ?= 0
 USE_GWCOV    ?= 0
-USE_MEMCHECK ?= 1
+USE_MEMCHECK ?= 0
 USE_GWREPL   ?= 0
 USE_GWUDP    ?= 0
 USE_OPTIMIZE ?= 0
 USE_OBSTACK  ?= 0
 USE_COLOR    ?= 0
-USE_JIT      ?= 1
+USE_JIT      ?= 0
 USE_LTO      ?= 0
-USE_VMBENCH  ?= 1
+USE_VMBENCH  ?= 0
 
 # handle definitions
 D_FUNC       ?= dummy_driver
