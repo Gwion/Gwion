@@ -16,6 +16,7 @@ env:
 #because travis's gcc doesn't known some warnings
     - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
+    - GWION_TEST_DIR=tmp/test
     - PREFIX=$TRAVIS_BUILD_DIR
   matrix:
     - USE_DOUBLE=1
@@ -36,8 +37,9 @@ install:
 
 before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
-  - bash utils/travis_prepare.sh
-
+  - mkdir -p "$GWION_ADD_DIR"
+  - mkdir -p "$GWION_TEST_DIR"
+  - [ $(uname) = Linux ] || brew update
 script:
   - make && make test
 
