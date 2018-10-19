@@ -8,3 +8,6 @@
 [submodule "tools"]
 	path = tools
 	url = https://github.com/fennecdjay/gwion-tools.git
+[submodule "mod"]
+	path = mod
+	url = https://github.com/fennecdjay/gwion-mod.git
