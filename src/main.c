@@ -15,9 +15,6 @@
 #include "hash.h"
 #include "scanner.h"
 #include "compile.h"
-#ifdef GWUDP
-#include "udp.h"
-#endif
 #include "driver.h"
 #include "instr.h"
 #include "arg.h"
@@ -101,26 +98,15 @@ int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;
   Arg arg;
-#ifdef GWUDP
-  Udp udp;
-  UdpIf udpif = { "localhost", 8888, 1 };
-#endif
   DriverInfo di = { 2, 2, 2,
   48000, 256, 3, "default:CARD=CODEC", 0, 0, D_FUNC, vm_run, 0, 0};
 
-#ifdef GWUDP
-  pthread_t thread;
-#endif
   d.del = NULL;
   memset(&arg, 0, sizeof(Arg));
   arg.argc = argc;
   arg.argv = argv;
   arg.loop = -1;
   arg_init(&arg);
-#ifdef GWUDP
-  arg.udp = &udpif;
-  udp.arg = &arg;
-#endif
 #ifdef JIT
   arg.jit_thread = 1;
   arg.jit_wait = 0;
@@ -131,10 +117,6 @@ int main(int argc, char** argv) {
 
   parse_args(&arg, &di);
 
-#ifdef GWUDP
-  if(udpif.on)
-    udp_client(&udp);
-#endif
   if(arg.quit)
     goto clean;
   signal(SIGINT, sig);
@@ -171,24 +153,11 @@ int main(int argc, char** argv) {
   jit_sync(ji.j);
 #endif
   vm->is_running = 1;
-#ifdef GWUDP
-  if(udpif.on) {
-    udp.vm = vm;
-    pthread_create(&thread, NULL, udp_process, &udp);
-#ifndef __linux__
-    pthread_detach(thread);
-#endif
-  }
-#endif
   GWREPL_INI(vm)
   VMBENCH_INI
   d.run(vm, &di);
   VMBENCH_END
   GWREPL_END()
-#ifdef GWUDP
-  if(udpif.on)
-    udp_release(&udp, thread);
-#endif
 clean:
   arg_release(&arg);
   if(d.del)
