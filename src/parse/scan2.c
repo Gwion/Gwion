@@ -535,13 +535,14 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->arg_list && scan2_arg_def(env, f) < 0)
     ERR_B(SCAN2_, f->td->pos,
           "\t... in function '%s'\n", s_name(f->name))
+  if(!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list)
+      CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
-    if(GET_FLAG(f, ae_flag_op))
-      return scan2_func_def_op(env, f);
     CHECK_BB(scan2_func_def_add(env, value, overload))
+    if(GET_FLAG(f, ae_flag_op))
+      CHECK_BB(scan2_func_def_op(env, f))
   }
-  return (!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list) ?
-      scan2_func_def_code(env, f) : 1;
+  return 1;
 }
 
 typedef m_bool (*_section_func)(const Env, const void*);
