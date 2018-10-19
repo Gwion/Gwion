@@ -1,2 +1,2 @@
-// [contains] 'private' can only be used at class scope.
+// [contains] can only be used at class scope.
 private union { int i; };

@@ -1,2 +1,2 @@
-// [contains] 'static' can only be used at class scope
+// [contains] can only be used at class scope
 static typedef void (my_function)(){}
