@@ -17,9 +17,6 @@ typedef struct {
 #ifdef GWCOV
   unsigned coverage : 1;
 #endif
-#ifdef GWREPL
-  unsigned repl : 1;
-#endif
 } Arg;
 
 ANN void arg_init(Arg* arg);

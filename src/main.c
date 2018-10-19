@@ -18,7 +18,6 @@
 #include "driver.h"
 #include "instr.h"
 #include "arg.h"
-#include "repl.h"
 
 #ifdef VMBENCH
 #include <time.h>
@@ -131,11 +130,9 @@ int main(int argc, char** argv) {
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
   vm->is_running = 1;
-  GWREPL_INI(vm)
   VMBENCH_INI
   d.run(vm, &di);
   VMBENCH_END
-  GWREPL_END()
 clean:
   arg_release(&arg);
   if(d.del)

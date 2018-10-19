@@ -51,9 +51,6 @@ static const struct option long_option[] = {
 #ifdef GWCOV
   { "coverage", 0, NULL, 'K' },
 #endif
-#ifdef GWREPL
-  { "repl",  0, NULL, 'R' },
-#endif
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -71,7 +68,6 @@ static const char usage[] =
 "\t--quit       -q\t             : quit the vm\n"
 "\t--profile    -G\t             : enter profile mode (if enabled)\n"
 "\t--coverage   -k\t             : enter coverage mode (if enabled)\n"
-"\t--repl       -R\t             : enter repl  mode (if enabled)\n"
 "DRIVER options:\n"
 "\t--driver     -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n"
 "\t--sr         -s\t  <number>   : set samplerate\n"
@@ -144,7 +140,7 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
 
 ANN void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:P:CKR ",
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:P:CK ",
       long_option, &index)) != -1) {
     switch(i) {
       case '?':
@@ -166,11 +162,6 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
 #ifdef GWCOV
       case 'K':
         arg->coverage = 1;
-        break;
-#endif
-#ifdef GWREPL
-      case 'R':
-        arg->repl = 1;
         break;
 #endif
       default:
