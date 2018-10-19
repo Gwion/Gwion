@@ -25,17 +25,6 @@ typedef struct Local_ {
   m_bool is_obj;
 } Local;
 
-#ifdef GWCOV
-#define COVERAGE(a) if(emit->coverage)coverage(emit, a->pos);
-ANN static void coverage(const Emitter emit, const m_uint pos) {
-  fprintf(emit->cov_file, "%" INT_F " ini\n", pos);
-  const Instr cov = emitter_add_instr(emit, InstrCoverage);
-  cov->m_val = pos;
-}
-#else
-#define COVERAGE(a)
-#endif
-
 ANEW static Frame* new_frame() {
   Frame* frame = mp_alloc(Frame);
   vector_init(&frame->stack);
@@ -984,7 +973,6 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
 ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG_EXE
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  COVERAGE(stmt->cond)
   const Instr op = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
       t_int : stmt->cond->type, BranchEqInt, BranchEqFloat);
   CHECK_OB(op)
@@ -1074,7 +1062,6 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp(emit, e, 0))
-  COVERAGE(e)
   const f_instr instr_i = b ? BranchEqInt : BranchNeqInt;
   const f_instr instr_f = b ? BranchEqFloat : BranchNeqFloat;
   return emit_flow(emit, e->type, instr_i, instr_f);
@@ -1420,10 +1407,6 @@ static const _stmt_func stmt_func[] = {
 };
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) { GWDEBUG_EXE
-#ifdef COVERAGE
-  if(stmt->stmt_type != ae_stmt_if || stmt->stmt_type != ae_stmt_while)
-    COVERAGE(stmt)
-#endif
   CHECK_BB(stmt_func[stmt->stmt_type](emit, &stmt->d))
   if(pop && stmt->stmt_type == ae_stmt_exp && stmt->d.stmt_exp.val) {
     const m_uint size = pop_exp(emit, stmt->d.stmt_exp.val);
@@ -1834,13 +1817,6 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
 }
 
 ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG_EXE
-#ifdef GWCOV
-  if(emit->coverage) {
-    char cov_filename[strlen(filename) + 3];
-    sprintf(cov_filename, "%sda", filename);
-    emit->cov_file = fopen(cov_filename, "a");
-  }
-#endif
   emit->filename = filename;
   emit->code = new_code();
   vector_clear(&emit->stack);
@@ -1857,9 +1833,5 @@ ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG
       emit->cases = NULL;
     }
   }
-#ifdef GWCOV
-  if(emit->coverage)
-    fclose(emit->cov_file);
-#endif
   return ret;
 }

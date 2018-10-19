@@ -17,7 +17,6 @@ CFLAGS += -fPIC
 # handle boolean options
 USE_DOUBLE    = 0
 USE_COVERAGE ?= 0
-USE_GWCOV    ?= 0
 USE_MEMCHECK ?= 0
 USE_GWREPL   ?= 0
 USE_GWUDP    ?= 0
