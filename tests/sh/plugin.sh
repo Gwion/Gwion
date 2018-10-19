@@ -29,14 +29,12 @@ n=$((n+1))
 rm "empty.so"
 
 
-pushd tests/test_plugins
-for test_file in $(ls *.c)
-do
-  name=$(echo $test_file | sed 's/\.c//')
-  test_plugin $name
+BASE_DIR="$PWD"
+cd tests/test_plugins || exit
+for test_file in *.c
+do test_plugin "${test_file:0:-2}"
 done
 
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
-
-popd
+cd "$BASE_DIR" || exit

@@ -25,7 +25,7 @@ assert_returns() {
 
 assert_contain() {
   local contains
-  contains=$(grep "// \[contains\]" "$1" | cut -d "]" -f2)
+  contains=$(grep '// \[contains\]' "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null && return 0
@@ -35,7 +35,7 @@ assert_contain() {
 
 assert_exclude() {
   local contains
-  contains=$(grep "// \[excludes\]" "$1" | cut -d "]" -f2)
+  contains=$(grep '// \[excludes\]' "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null || return 0
@@ -44,37 +44,37 @@ assert_exclude() {
 }
 
 assert_rw() {
-  grep "Invalid \(read\|write\) of size" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Invalid \(read\|write\) of size' "$2.valgrind.log" > /dev/null || return 0
   echo "invalid read/write" > "$2.log"
   return 1
 }
 
 assert_free() {
-  grep "Invalid free()" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Invalid free()' "$2.valgrind.log" > /dev/null || return 0
   echo "invalid free" > "$2.log"
   return 1
 }
 
 assert_initial() {
-  grep "Conditional jump or move depends on uninitialised value(s)" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Conditional jump or move depends on uninitialised value(s)' "$2.valgrind.log" > /dev/null || return 0
   echo "uninitialed value" > "$2.log"
   return 1
 }
 
 assert_syscall() {
-  grep "Syscall param .* uninitialised byte(s)" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Syscall param .* uninitialised byte(s)' "$2.valgrind.log" > /dev/null || return 0
   echo "uninitialed value in syscall" > "$2.log"
   return 1
 }
 
 assert_mismatch() {
-  grep "Mismatched free() / delete / delete \[\]" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Mismatched free() / delete / delete \[\]' "$2.valgrind.log" > /dev/null || return 0
   echo "mismatched free" > "$2.log"
   return 1
 }
 
 assert_overlap() {
-  grep "Source and destination overlap" "$2.valgrind.log" > /dev/null || return 0
+  grep 'Source and destination overlap' "$2.valgrind.log" > /dev/null || return 0
   echo "mem overlap" > "$2.log"
   return 1
 }
@@ -99,7 +99,7 @@ read_test() {
   while read -r line
   do
     if [ "$line" = "#*" ]
-    then printf "\t%s\n" line >&2
+    then printf '\t%s\n' line >&2
     else echo "$line"
     fi
   done < "$1"
@@ -138,7 +138,7 @@ fail() {
 do_skip() {
   local n SKIP skip
   SKIP=0
-  skip=$(grep "// \[skip\]" "$1")
+  skip=$(grep '// \[skip\]' "$1")
   [ "$skip" ] && SKIP=1
   [ $SKIP = 0 ] && return 1
   skip=$(echo "$skip" | cut -d ']' -f2 )
@@ -153,7 +153,7 @@ do_skip() {
 do_todo() {
   local n SKIP skip
   SKIP=0
-  skip=$(grep "// \[todo\]" "$1")
+  skip=$(grep '// \[todo\]' "$1")
   [ "$skip" ] && SKIP=1
   [ $SKIP = 0 ] && return 1
   skip=$(echo "$skip" | cut -d ']' -f2 )
@@ -175,7 +175,7 @@ test_gw(){
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
   valgrind --log-file="$vlog" \
-  ./gwion $GWOPT -d $DRIVER "$file" > "$slog" 2>"$elog" |:
+  ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
@@ -209,7 +209,7 @@ test_gw(){
 
 count_tests_sh(){
   local count
-  count=$(grep "\[test\] #" "$1" | cut -d '#' -f 3)
+  count=$(grep '\[test\] #' "$1" | cut -d '#' -f 3)
   echo "$count"
 }
 
@@ -249,7 +249,7 @@ test_dir() {
   base=$((n-1))
   [ "$async" -lt 0 ] && set -m
   found=0
-  grep "\.gw" <<< "$(ls "$1")" &> /dev/null && found=1
+  grep '\.gw' <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
   then
     for file in "$1"/*.gw
@@ -283,7 +283,7 @@ test_dir() {
 
 
   found=0
-  grep "\.sh" <<< "$(ls "$1")" &> /dev/null && found=1
+  grep '\.sh' <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
   then
     local old_async=$async
@@ -293,7 +293,7 @@ test_dir() {
     do
       [ "$file" = "$1/*.sh" ] && continue
       local count
-      count=$(grep "\[test\] #" "$file" | cut -d '#' -f 3)
+      count=$(grep '\[test\] #' "$file" | cut -d '#' -f 3)
       [ "$count" -gt 0 ] && echo "## $file"
       bash "$file" "$((n))"
       n=$((n+count))
@@ -332,7 +332,7 @@ do_test() {
   local n_test res1
   n_test=1
   count_test "$@"
-  which bc && res1=$(date +%s.%N)
+  command -v bc && res1=$(date +%s.%N)
   for arg in "$@"
   do
     if [ "${arg:0:6}" = "async=" ]
@@ -371,14 +371,14 @@ do_test() {
     [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
     # make header
     for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-    echo -e "\n# $arg #\t${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
+    echo -e '\n'"# $arg #"'\t'"${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
     for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
-    echo -e "\n"
+    echo -e '\n'
     test_dir "$arg" "$n_test"
     n_test=$((n_test + $(count_tests "$arg")))
   fi
 done
-which bc > /dev/null && {
+command -v bc > /dev/null && {
 local dt dd dt2 dh dt3 dm ds res2
 res2=$(date +%s.%N)
 dt=$(echo "$res2 - $res1" | bc)
@@ -388,7 +388,7 @@ dh=$(echo "$dt2/3600" | bc)
 dt3=$(echo "$dt2-3600*$dh" | bc)
 dm=$(echo "$dt3/60" | bc)
 ds=$(echo "$dt3-60*$dm" | bc)
-printf "# Total runtime: %d:%02d:%02d:%s\n" "$dd" "$dh" "$dm" "$ds"
+printf "# Total runtime: %d:%02d:%02d:%s%s" "$dd" "$dh" "$dm" "$ds" '\n'
   }
 }
 
@@ -437,12 +437,12 @@ consummer() {
     # ignore the rest
   done <&0
   if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
-  then echo -e "\n\t${ANSI_GREEN}Everything is OK!${ANSI_RESET}\n"
+  then echo -e '\n\t'"${ANSI_GREEN}Everything is OK!${ANSI_RESET}"'\n'
   else
-    echo -e "\n\t${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
-    echo -e "\t${ANSI_RED}Failure: $failure${ANSI_RESET}"
-    echo -e "\tSkipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
-    echo -e "\ttodo   : ${ANSI_BOLD}$todo${ANSI_RESET}\n" >&2
+    echo -e '\n\t'"${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
+    echo -e '\t'"${ANSI_RED}Failure: $failure${ANSI_RESET}"
+    echo -e '\t'"Skipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
+    echo -e '\t'"todo   : ${ANSI_BOLD}$todo${ANSI_RESET}"'\n' >&2
   fi
   [ "$failure" -gt 0 ] && return 1
   return 0
