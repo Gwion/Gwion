@@ -1,2 +1,0 @@
-// [contains] in function
-function void test() { Unknown var; }

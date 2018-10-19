@@ -344,25 +344,17 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   CHECK_BB(env_access(env, f->flag))
   env_storage(env, &f->flag);
-  if(!env->class_def) {
-    if(GET_FLAG(f, ae_flag_private))
-      ERR_B(SCAN1_, f->td->pos,
-            "can't declare func '%s' private outside of class", s_name(f->name))
-    else if(GET_FLAG(f, ae_flag_protect))
-      ERR_B(SCAN1_, f->td->pos,
-            "can't declare func '%s' protected outside of class", s_name(f->name))
-  } else if(GET_FLAG(f, ae_flag_global))
-    UNSET_FLAG(f, ae_flag_global);
   if(tmpl_list_base(f->tmpl))
     return 1;
   const Func former = env->func;
   env->func = FAKE_FUNC;
   ++env->class_scope;
-  if(scan1_func_def_flag(env, f) < 0 ||
-     scan1_func_def_type(env, f) < 0 ||
-    (f->arg_list && scan1_func_def_args(env, f->arg_list) < 0) ||
-    (!GET_FLAG(f, ae_flag_builtin) && scan1_stmt_code(env, &f->d.code->d.stmt_code) < 0))
-    ERR_B(SCAN1_, f->td->pos, "\t...in function '%s'", s_name(f->name))
+  CHECK_BB(scan1_func_def_flag(env, f))
+  CHECK_BB(scan1_func_def_type(env, f))
+  if(f->arg_list)
+    CHECK_BB(scan1_func_def_args(env, f->arg_list))
+  if(!GET_FLAG(f, ae_flag_builtin))
+    CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
   env->func = former;
   --env->class_scope;
   return 1;

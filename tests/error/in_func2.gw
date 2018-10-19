@@ -1,4 +1,0 @@
-// [contains] in function 'test'
-function void test() {
-	void i;
-}
