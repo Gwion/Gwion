@@ -1,5 +1,5 @@
 #!/bin/bash
-# needed variables: TRAVIS_OS_NAME SP_BRANCH GWION_PLUG_DIR
+# needed variables: TRAVIS_OS_NAME GWION_PLUG_DIR
 
 brew_dependencies() {
 	brew update
