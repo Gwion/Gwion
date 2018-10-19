@@ -1,19 +1,9 @@
 #!/bin/bash
 
-test_test_plugin() {
-  [ -z "$TRAVIS_BUILD_DIR" ] && export GWION_ADD_DIR="$TRAVIS_BUILD_DIR"
-
-  NAME=$1 make install
-  valgrind ../../gwion
-  ../../gwion
-  NAME=$1 make uninstall clean
-}
-
 OUTFILE=lcov/lcov.info
 
 [ -d lcov ] || mkdir lcov
 
-[ -z "$TRAVIS_BUILD_DIR" ] || source utils/test.sh; do_test "tests/bug"
 [ -z "$TRAVIS_BUILD_DIR" ] || {
   pushd tests/test_plugins
   for file in *.c
@@ -23,7 +13,7 @@ OUTFILE=lcov/lcov.info
   done
   popd
 }
-lcov --capture --directory src --output-file "$OUTFILE"
+lcov --no-external --capture --directory src --output-file "$OUTFILE"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {
   coveralls-lcov lcov/lcov.info
