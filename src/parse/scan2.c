@@ -141,9 +141,23 @@ ANN static inline m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) { 
   return stmt->type->def ? scan2_class_def(env, stmt->type->def) : 1;
 }
 
+ANN static inline Value prim_value(const Env env, const Symbol s) {
+  const Value value = nspc_lookup_value1(env->curr, s);
+  if(env->class_def) {
+    const Value v = value ? value : find_value(env->class_def, s);
+    return v;
+  }
+  return value;
+}
+
 ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
+  else if(prim->primary_type == ae_primary_id) {
+    const Value v = prim_value(env, prim->d.var);
+    if(v)
+      SET_FLAG(v, ae_flag_used);
+  }
   return 1;
 }
 
@@ -152,9 +166,22 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
   return scan2_exp(env, array->array->exp);
 }
 
+
+ANN static m_bool multi_decl(const Exp e, const Operator op) {
+  if(e->exp_type == ae_exp_decl) {
+    if(e->d.exp_decl.list->next)
+      ERR_B(TYPE_, e->pos,
+          "cant '%s' from/to a multi-variable declaration.", op2str(op))
+    SET_FLAG(e->d.exp_decl.list->self->value, ae_flag_used);
+  }
+  return 1;
+}
+
 ANN static inline m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, bin->lhs))
-  return scan2_exp(env, bin->rhs);
+  CHECK_BB(scan2_exp(env, bin->rhs))
+  CHECK_BB(multi_decl(bin->lhs, bin->op))
+  return multi_decl(bin->rhs, bin->op);
 }
 
 ANN static inline m_bool scan2_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
@@ -177,9 +204,9 @@ ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp
 }
 
 ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
-  if(exp_call->tmpl)
-    return 1;
-  return scan2_exp_call1(env, exp_call->func, exp_call->args);
+  if(!exp_call->tmpl) // avoid unused var
+    return scan2_exp_call1(env, exp_call->func, exp_call->args);
+  return scan2_exp(env, exp_call->func);
 }
 
 ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
@@ -195,6 +222,8 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) { GWD
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
   if(unary->op == op_spork && unary->code)
     return scan2_stmt(env, unary->code);
+  else if(unary->exp)
+    return scan2_exp(env, unary->exp);
   return 1;
 }
 
@@ -213,7 +242,8 @@ scan2_stmt_func(auto, Stmt_Auto, !(scan2_exp(env, stmt->exp) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
 scan2_stmt_func(loop, Stmt_Loop, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-scan2_stmt_func(switch, Stmt_Switch, scan2_exp(env, stmt->val))
+scan2_stmt_func(switch, Stmt_Switch, !(scan2_exp(env, stmt->val) < 0 ||
+    scan2_stmt(env, stmt->stmt) < 0) ? 1 : -1)
 scan2_stmt_func(if, Stmt_If, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->if_body) < 0 ||
     (stmt->else_body && scan2_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
@@ -251,7 +281,7 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
   if(stmt->is_label) {
     const Map m = scan2_label_map(env);
     if(map_get(m, (vtype)stmt->name)) {
-      Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
+      const Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
       ERR_B(SCAN2_, stmt->self->pos,
             "label '%s' already defined", s_name(stmt->name))

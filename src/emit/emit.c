@@ -597,7 +597,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
     if(!GET_FLAG(list->self->value, ae_flag_used))
-      err_msg(EMIT_, list->self->pos, "unused variable '%s'", list->self->value->name);
+      continue;
     if(isa(list->self->value->type, t_fptr) > 0)
       REM_REF(list->self->value->type)
 
@@ -1210,9 +1210,11 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
     stmt->data.instr = emitter_add_instr(emit, Goto);
   else {
     if(emit->cases && !strcmp(s_name(stmt->name), "default")) {
+      if(!strcmp(s_name(stmt->name), "default"))
+        vector_release(&stmt->data.v);
       if(emit->default_case_index != -1)
         ERR_B(EMIT_, stmt->self->pos, "default case already defined")
-        emit->default_case_index = emit_code_size(emit);
+      emit->default_case_index = emit_code_size(emit);
       return 1;
     }
     if(!stmt->data.v.ptr) {
@@ -1243,7 +1245,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   CHECK_BB(emit_exp(emit, stmt->val, 0))
   if(emit->cases)
     ERR_B(EMIT_, stmt->self->pos, "swith inside an other switch. this is not allowed for now")
-    emit->default_case_index = -1;
+  emit->default_case_index = -1;
   emitter_add_instr(emit, GcIni);
   const Instr instr = emitter_add_instr(emit, BranchSwitch);
   emit->cases = new_map();
@@ -1396,7 +1398,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
-  do size += a->self->value->type->size;
+  do if(GET_FLAG( a->self->value, ae_flag_used))
+    size += a->self->value->type->size;
   while((a = a->next));
   return size;
 }

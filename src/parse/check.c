@@ -101,6 +101,13 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
+    if(!env->class_def && !GET_FLAG(list->self->value, ae_flag_builtin) &&
+        !GET_FLAG(list->self->value, ae_flag_used)) {
+      err_msg(TYPE_, list->self->pos, "unused variable '%s'", 
+          list->self->value->name);
+      continue;
+    }
+    SET_FLAG(list->self->value, ae_flag_used);
     const Var_Decl var = list->self;
     const Value value = var->value;
     if(isa(decl->type, t_fptr) > 0)
@@ -670,20 +677,10 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_call,
   return func->def->ret_type;
 }
 
-ANN static m_bool multi_decl(const Exp e, const Operator op) {
-  if(e->exp_type == ae_exp_decl &&  e->d.exp_decl.list->next)
-    ERR_B(TYPE_, e->pos,
-          "cant '%s' from/to a multi-variable declaration.", op2str(op))
-  return 1;
-}
-
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
   struct Op_Import opi = { bin->op,
     check_exp(env, bin->lhs), check_exp(env, bin->rhs), NULL,
     NULL, NULL, (uintptr_t)bin };
-
-  CHECK_BO(multi_decl(bin->lhs, bin->op));
-  CHECK_BO(multi_decl(bin->rhs, bin->op));
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
   const Type op_ret = op_check(env, &opi);
