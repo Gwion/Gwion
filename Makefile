@@ -86,17 +86,8 @@ endif
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
-ifeq (${USE_GWREPL}, 1)
-CFLAGS+=-DGWREPL
-LDFLAGS+=-lreadline
-src_src += utils/repl.c
-endif
-ifeq (${USE_GWUDP}, 1)
-CFLAGS+=-DGWUDP
-src_src += utils/udp.c
-endif
 ifeq (${USE_OPTIMIZE}, 1)
-util_src += utils/optim.c
+util_src += opt/optim.c
 CFLAGS+= -DOPTIMIZE
 endif
 ifeq (${USE_COLOR}, 1)
@@ -145,6 +136,8 @@ LDCFG="${LDFLAGS}"
 # hide this from gwion -v
 CFLAGS += -DGWION_BUILTIN
 
+LDFLAGS += ast/libgwion_ast.a
+
 all: include/generated.h options ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
@@ -153,9 +146,9 @@ config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
 
-include/generated.h: utils/generate_header.c
+include/generated.h: help/generate_header.c
 	$(info generating generated.h)
-	@cc ${DFLAGS} utils/generate_header.c -o generate_header
+	@cc ${DFLAGS} help/generate_header.c -o generate_header
 	@./generate_header > include/generated.h
 	@rm generate_header
 
@@ -187,7 +180,7 @@ uninstall:
 	rm ${PREFIX}/${PRG}
 
 test:
-	@bash utils/test.sh tests/* examples
+	@bash help/test.sh tests/* examples
 
 parser:
 	$(info generating parser)

@@ -11,3 +11,6 @@
 [submodule "mod"]
 	path = mod
 	url = https://github.com/fennecdjay/gwion-mod.git
+[submodule "util"]
+	path = util
+	url = https://github.com/fennecdjay/gwion-util

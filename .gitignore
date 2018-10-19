@@ -1,16 +1,5 @@
 gwion
-gwlint
-gwlit
-gwtag
-gwcov
-gwdbg
-gwdot
 .d
-*.gw.lint
-*.gw.tag
-*.gwcov
-*.gwda
-*.out
 config.mk
 include/generated.h
 docs/WIP_*.md
