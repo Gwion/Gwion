@@ -4,7 +4,7 @@
 #include "err_msg.h"
 
 static const char* err_headers[] = { "PARSE", "SCAN0", "SCAN1", "SCAN2_", "CHECK", "EMIT!", "UTILS", "LEXER",
-                                     "INSTR", " UDP ", "ALSA", " VM  ", " OP  "
+                                     "INSTR", "ALSA", " VM  ", " OP  "
 
 };
 

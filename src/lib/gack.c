@@ -110,7 +110,3 @@ INSTR(Gack) { GWDEBUG_EXE
   }
   gw_out("\n");
 }
-
-#ifdef JIT
-#include "code/gack.h"
-#endif

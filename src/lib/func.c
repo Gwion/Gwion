@@ -157,7 +157,3 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
   return 1;
 }
-
-#ifdef JIT
-#include "code/func_code.h"
-#endif

@@ -108,8 +108,3 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_oper_end(gwi, op_ref, VarargAssign))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/vararg.h"
-#include "code/vararg.h"
-#endif

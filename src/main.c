@@ -20,10 +20,6 @@
 #include "arg.h"
 #include "repl.h"
 
-#ifdef JIT
-#include "jitter.h"
-#endif
-
 #ifdef VMBENCH
 #include <time.h>
 #include <bsd/sys/time.h>
@@ -107,11 +103,6 @@ int main(int argc, char** argv) {
   arg.argv = argv;
   arg.loop = -1;
   arg_init(&arg);
-#ifdef JIT
-  arg.jit_thread = 1;
-  arg.jit_wait = 0;
-#endif
-
 //__fsetlocking(stdout, FSETLOCKING_BYCALLER);
 //__fsetlocking(stderr, FSETLOCKING_BYCALLER);
 
@@ -125,21 +116,11 @@ int main(int argc, char** argv) {
 //  init_symbols();
   PlugInfo pi;
   plug_ini(pi, &arg.lib);
-#ifdef JIT
-  struct JitInfo ji = { new_jit(arg.jit_thread, arg.jit_wait),
-    &pi[2], &pi[3], &pi[4], 0};
-  jit_init_gwion(&ji);
-#endif
   vm = new_vm(arg.loop);
   vm->emit = new_emitter();
   di.func(&d);
   if(d.ini(vm, &di) < 0 || !(vm->bbq = new_bbq(&di)))
     goto clean;
-#ifdef JIT
-  pthread_join(ji.thread, NULL);
-  vm->emit->jit = ji.j;
-//  ji.j->vmmutex = &vm->mutex;
-#endif
   if(!(env = type_engine_init(vm, &pi[1])))
     goto clean;
 #ifdef GWCOV
@@ -149,9 +130,6 @@ int main(int argc, char** argv) {
   srand(time(NULL));
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));
-#ifdef JIT
-  jit_sync(ji.j);
-#endif
   vm->is_running = 1;
   GWREPL_INI(vm)
   VMBENCH_INI
@@ -168,9 +146,6 @@ clean:
   if(!vm->emit && env)
     free(env);
   free_vm(vm);
-#ifdef JIT
-  free_jit(ji.j);
-#endif
   free_symbols();
   plug_end(pi);
   return 0;

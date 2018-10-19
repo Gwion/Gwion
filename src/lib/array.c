@@ -374,8 +374,3 @@ INSTR(ArrayAccessMulti) { GWDEBUG_EXE
   OOB(shred, obj, DIM(depth), idx, base);
   array_push(shred, ARRAY(obj), idx, instr);
 }
-
-#ifdef JIT
-#include "ctrl/array.h"
-#include "code/array.h"
-#endif

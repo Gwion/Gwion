@@ -124,18 +124,3 @@ INSTR(PutArgsInMem);
 INSTR(ConstPropSet);
 INSTR(ConstPropGet);
 #endif
-
-#ifdef JIT
-INSTR(JitExec);
-#endif
-
-#ifdef JIT_DEV
-#undef INSTR
-#define INSTR(a) __attribute__((hot))\
-ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)));\
-__attribute__((constructor(800))) void jit_dev_##a() { jit_dev(a, #a, __FILE__, __LINE__); } \
-ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
-void jit_dev(f_instr f, m_str str, const m_str __file__, const m_uint line);
-#endif
-
-//#endif

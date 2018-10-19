@@ -349,9 +349,3 @@ GWION_IMPORT(ugen) {
   CHECK_BB(import_global_ugens(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/ugen.h"
-#include "code/ugen.h"
-#endif
-

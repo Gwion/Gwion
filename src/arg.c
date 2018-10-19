@@ -54,10 +54,6 @@ static const struct option long_option[] = {
 #ifdef GWREPL
   { "repl",  0, NULL, 'R' },
 #endif
-#ifdef JIT
-  { "jit_thread",  1, NULL, 'T' },
-  { "jit_wait",  0, NULL, 'w' },
-#endif
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -76,11 +72,6 @@ static const char usage[] =
 "\t--profile    -G\t             : enter profile mode (if enabled)\n"
 "\t--coverage   -k\t             : enter coverage mode (if enabled)\n"
 "\t--repl       -R\t             : enter repl  mode (if enabled)\n"
-"UDP    options (if enabled):\n"
-"\t--host       -h\t  <string>   : set host\n"
-"\t--port       -p\t  <number>   : set port\n"
-"\t--loop       -l\t  <0 or 1>   : loop state (0 or 1)\n"
-"\t--alone      -a\t             : standalone mode. (no udp)\n"
 "DRIVER options:\n"
 "\t--driver     -d\t  <string>   : set the driver (one of: alsa jack soundio portaudio file dummy silent raw)\n"
 "\t--sr         -s\t  <number>   : set samplerate\n"
@@ -93,11 +84,6 @@ static const char usage[] =
 "\t--raw        -r\t  <0 or 1>   : enable raw mode (file and soundio only)\n"
 "\t--format     -f\t  <string>   : soundio format (one of: S8 U8 S16 U16 S24 U24 S32 U32 F32 F64)\n"
 "\t--backend    -e\t  <string>   : soundio backend (one of: jack pulse alsa core wasapi dummy)\n"
-#ifdef JIT
-"JIT    options:\n"
-"\t--jit_thread -f\t  <string>   : number of jit threads\n"
-"\t--jit_wait   -e\t  <string>   : wait after initial compile\n"
-#endif
 ;
 
 ANN static void arg_add(Arg* arg) {
@@ -156,36 +142,10 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
   }
 }
 
-#ifdef GWUDP
-ANN static void arg_udp(UdpIf* udp, const char c) {
-  switch(c) {
-    case 'a':
-      udp->on = 0;
-      break;
-    case 'h':
-      udp->host = optarg;
-      break;
-    case 'p':
-      udp->port = strtol(optarg, NULL, 10);
-      break;
-  }
-}
-#endif
-
-#ifdef JIT
-#define JIT_ARG "t:w"
-#else
-#define JIT_ARG
-#endif
 ANN void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:al:g:-:rc:f:P:CKR " JIT_ARG,
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:P:CKR ",
       long_option, &index)) != -1) {
-#ifdef GWUDP
-    if(strchr("ahp", i))
-      arg_udp(arg->udp, i);
-    else
-#endif
     switch(i) {
       case '?':
         gw_err(usage);
@@ -211,14 +171,6 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
 #ifdef GWREPL
       case 'R':
         arg->repl = 1;
-        break;
-#endif
-#ifdef JIT
-      case 't':
-        arg->jit_thread = strtol(optarg, NULL, 10);
-        break;
-      case 'w':
-        arg->jit_wait = 1;
         break;
 #endif
       default:

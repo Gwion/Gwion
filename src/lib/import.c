@@ -12,9 +12,6 @@
 #include "emit.h"
 #include "func.h"
 
-#ifdef JIT
-#include "jitter.h"
-#endif
 struct Path {
   m_str path, curr;
   m_uint len;

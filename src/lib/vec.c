@@ -330,7 +330,3 @@ GWION_IMPORT(vec4) {
   CHECK_BB(gwi_oper_end(gwi, op_div, FloatDivVec4))
     return 1;
 }
-
-#ifdef JIT
-#include "code/vec.h"
-#endif

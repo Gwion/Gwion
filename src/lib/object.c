@@ -177,7 +177,3 @@ GWION_IMPORT(object) {
   CHECK_BB(gwi_oper_end(gwi, op_not, IntNot))
   return 1;
 }
-
-#ifdef JIT
-#include "code/object.h"
-#endif

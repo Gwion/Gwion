@@ -122,8 +122,3 @@ GWION_IMPORT(ptr) {
   CHECK_BB(gwi_oper_end(gwi, op_mul, instr_ptr_deref))
   return 1;
 }
-
-#ifdef JIT
-#include "code/ptr.h"
-#endif
-

@@ -60,9 +60,3 @@ GWION_IMPORT(event) {
   _CHECK_OP(chuck, rassign, EventWait)
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/event.h"
-#include "code/event.h"
-#endif
-

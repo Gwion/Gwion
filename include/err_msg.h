@@ -1,5 +1,5 @@
 #include <stdarg.h>
-typedef enum { PARSE_, SCAN0_, SCAN1_, SCAN2_, TYPE_, EMIT_, UTIL_, COMPILE_, INSTR_, UDP, ALSA_,
+typedef enum { PARSE_, SCAN0_, SCAN1_, SCAN2_, TYPE_, EMIT_, UTIL_, COMPILE_, INSTR_, ALSA_,
                VM_, OPERATOR_
              } a_header;
 m_bool err_msg(a_header header, m_uint pos, const char* fmt, ...);

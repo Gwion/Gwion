@@ -23,10 +23,6 @@ typedef struct {
 #ifdef GWREPL
   unsigned repl : 1;
 #endif
-#ifdef JIT
-  unsigned jit_thread : 1;
-  unsigned jit_wait : 1;
-#endif
 } Arg;
 
 ANN void arg_init(Arg* arg);

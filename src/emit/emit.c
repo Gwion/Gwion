@@ -15,9 +15,6 @@
 #include "mpool.h"
 #include "escape.h"
 #include "parse.h"
-#ifdef JIT
-#include "jitter.h"
-#endif
 
 #define INSTR_RECURS (f_instr)1
 #define INSTR_INLINE (f_instr)2
@@ -316,9 +313,6 @@ ANEW ANN VM_Code emit_code(const Emitter emit) { GWDEBUG_EXE
   Code* c = emit->code;
   const VM_Code code = new_vm_code(&c->instr, c->stack_depth,
       GET_FLAG(c, ae_flag_member), c->name);
-#ifdef JIT
-  jitq(emit->jit, code);
-#endif
   free_code(c);
   return code;
 }
@@ -550,10 +544,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   alloc->m_val = value->offset;
   *(m_uint*)alloc->ptr = ((is_ref && !array) || isa(type, t_object) < 0)  ? emit_var : 1;
   if(is_obj) {
-#ifdef JIT
-if(!is_ref)
-  ++*(m_uint*)alloc->ptr;
-#endif
     if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
       if(!(type->def && type->def->ext &&
           GET_FLAG(type->def->ext, ae_flag_typedef)))
@@ -562,10 +552,6 @@ if(!is_ref)
     if((is_array) || !is_ref) {
       const Instr assign = emitter_add_instr(emit, ObjectAssign);
       assign->m_val = emit_var;
-#ifdef JIT
-if(!GET_FLAG(value, ae_flag_member))
-      assign->m_val2 = 2;
-#endif
       if(is_array && !emit->env->class_scope)
         ADD_REF(type)
     }

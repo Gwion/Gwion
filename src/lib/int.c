@@ -129,9 +129,3 @@ GWION_IMPORT(int) {
   CHECK_OP(dec, post,  post_dec)
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/int.h"
-#include "code/int.h"
-#endif
-

@@ -244,8 +244,3 @@ GWION_IMPORT(string) {
   CHECK_BB(gwi_oper_end(gwi, op_radd, Object_String_Plus))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/string.h"
-#include "code/string.h"
-#endif

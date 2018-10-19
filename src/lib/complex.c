@@ -154,7 +154,3 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_oper_end(gwi, op_rdiv,  PolarRDiv))
   return 1;
 }
-
-#ifdef JIT
-#include "code/complex.h"
-#endif

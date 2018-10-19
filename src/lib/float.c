@@ -348,9 +348,3 @@ GWION_IMPORT(float) {
   CHECK_BB(import_values(gwi))
   return 1;
 }
-
-#ifdef JIT
-#include "ctrl/float.h"
-#include "code/float.h"
-#endif
-

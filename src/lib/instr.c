@@ -489,8 +489,3 @@ INSTR(PopArrayClass) { GWDEBUG_EXE
   free_object(tmp);
   ADD_REF(obj->type_ref) // add ref to typedef array type
 }
-
-#ifdef JIT
-#include "ctrl/instr.h"
-#include "code/instr.h"
-#endif

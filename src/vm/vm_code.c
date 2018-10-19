@@ -6,10 +6,6 @@
 #include "array.h"
 #include "mpool.h"
 
-#ifdef JIT
-#include "jitter.h"
-#endif
-
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
     const m_bool need_this, const m_str name) {
   VM_Code code           = mp_alloc(VM_Code);
@@ -32,10 +28,6 @@ ANN static void free_code_instr_gack(const Instr instr) {
 ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
-#ifdef JIT
-    if(instr->execute == JitExec)
-      free_jit_instr(instr);
-#endif
     if(instr->execute == SporkExp)
       REM_REF((Func)instr->m_val2)
     else if(instr->execute == SporkFunc)
