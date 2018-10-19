@@ -1,7 +1,7 @@
 #!/bin/bash
 
 : "${GWION_TEST_DIR:=/tmp}"
-: "${Gwion_TEST_PREFIX:=gwt_}"
+: "${GWION_TEST_PREFIX:=gwt_}"
 
 : "${ANSI_RED:=\033[31;1m}"
 : "${ANSI_GREEN:=\033[32;1m}"
@@ -16,9 +16,6 @@
 
 : "${SEVERITY:=11}"
 : "${severity:=$SEVERITY}"
-
-: "${SUPPRESSIONS:=1}"
-: "${suppressions:=$SUPPRESSIONS}"
 
 assert_returns() {
   [ "$1" -eq 0   ] && return 0
@@ -172,12 +169,12 @@ test_gw(){
   local n file log ret
   n=$2
   file=$1
-  log=${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$n")
-  slog=${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$n").std.log
-  elog=${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$n").err.log
-  vlog=${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
-  rlog=${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$n").log
-  valgrind --log-file="$vlog" --suppressions=utils/vg.supp \
+  log=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n")
+  slog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
+  elog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
+  vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
+  rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
+  valgrind --log-file="$vlog" \
   ./gwion $GWOPT -d $DRIVER "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
@@ -267,7 +264,7 @@ test_dir() {
         wait
         for i in $(seq "$offset" "$n")
         do
-          read_test "${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$i").log"
+          read_test "${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
         done
         offset=$((offset + async));
       fi
@@ -279,7 +276,7 @@ test_dir() {
   wait
   local rest=$(( $((n-base-1)) %async))
   for i in $(seq $((n-rest))  $((n-1)))
-  do read_test "${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}$(printf "%04i" "$i").log"
+  do read_test "${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
   done
 }
   fi
@@ -291,7 +288,7 @@ test_dir() {
   then
     local old_async=$async
     async=0;
-    #		[ -f ${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}bailout ] && exit 1
+    #		[ -f ${GWION_TEST_DIR}/${GWION_TEST_PREFIX}bailout ] && exit 1
     for file in "$1"/*.sh
     do
       [ "$file" = "$1/*.sh" ] && continue
@@ -352,7 +349,7 @@ do_test() {
     #		then bailout=$(echo "$arg" | cut -d '=' -f 2);
   elif [ -f "$arg" ]
   then
-    #			[ -f ${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}bailout ] && exit 1
+    #			[ -f ${GWION_TEST_DIR}/${GWION_TEST_PREFIX}bailout ] && exit 1
     if [ "${arg: -3}" = ".gw" ]
     then test_gw "$arg" "$n_test"
       n_test=$((n_test + 1))
@@ -370,7 +367,7 @@ do_test() {
     fi
   elif [ -d "$arg" ]
   then
-    #			[ -f ${GWION_TEST_DIR}/${Gwion_TEST_PREFIX}bailout ] && exit 1
+    #			[ -f ${GWION_TEST_DIR}/${GWION_TEST_PREFIX}bailout ] && exit 1
     [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
     # make header
     for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
@@ -452,7 +449,7 @@ consummer() {
 }
 
 clean() {
-  rm -f ${GWION_TEST_DIR}/{${Gwion_TEST_PREFIX}{*.log,bailout},In.gw}
+  rm -f ${GWION_TEST_DIR}/{${GWION_TEST_PREFIX}{*.log,bailout},In.gw}
 }
 
 [ $# -ne 0 ] && do_test "${@}" | consummer
