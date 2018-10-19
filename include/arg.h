@@ -14,9 +14,6 @@ typedef struct {
   struct Vector_ rem;
   struct Vector_ lib;
   Vector ref;
-#ifdef GWUDP
-  UdpIf* udp;
-#endif
 #ifdef GWCOV
   unsigned coverage : 1;
 #endif
