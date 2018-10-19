@@ -2,9 +2,6 @@
 [submodule "plug"]
 	path = plug
 	url = https://github.com/fennecdjay/Gwion-plug
-[submodule "gwion-jit"]
-	path = gwion-jit
-	url = https://github.com/fennecdjay/gwion-jit.git
 [submodule "jit"]
 	path = jit
 	url = https://github.com/fennecdjay/gwion-jit.git
