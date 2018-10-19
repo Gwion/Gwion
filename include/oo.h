@@ -9,7 +9,7 @@ typedef enum {
 struct VM_Object_ {
   m_uint ref_count;
   e_obj  type;
-};
+} __attribute__((packed));
 
 
 #define HAS_OBJ struct VM_Object_ obj;

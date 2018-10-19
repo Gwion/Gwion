@@ -167,6 +167,7 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, ae_flag_checked))
     ERR_O(TYPE_, primary->self->pos,
           "variable %s not legit at this point.", s_name(primary->d.var))
+  SET_FLAG(v, ae_flag_used);
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, ae_flag_const))
     primary->self->meta = ae_meta_value;

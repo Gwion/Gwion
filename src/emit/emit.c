@@ -596,6 +596,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
+    if(!GET_FLAG(list->self->value, ae_flag_used))
+      err_msg(EMIT_, list->self->pos, "unused variable '%s'", list->self->value->name);
     if(isa(list->self->value->type, t_fptr) > 0)
       REM_REF(list->self->value->type)
 

@@ -89,6 +89,7 @@ typedef enum {
   ae_flag_inline = 1 << 27,
   ae_flag_recurs = 1 << 28,
   ae_flag_protect = 1 << 29,
+  ae_flag_used = 1 << 30,
 } ae_flag;
 
 typedef enum {
