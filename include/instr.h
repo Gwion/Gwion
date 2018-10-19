@@ -114,10 +114,6 @@ INSTR(GcAdd);
 INSTR(AutoLoopStart);
 INSTR(AutoLoopEnd);
 
-#ifdef GWCOV
-INSTR(InstrCoverage);
-#endif
-
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);

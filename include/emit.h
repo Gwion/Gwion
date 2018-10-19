@@ -22,10 +22,6 @@ struct Emitter_ {
   m_str  filename;
   Map    cases; // passed to instr: is a pointer
   m_int	 default_case_index;
-#ifdef GWCOV
-  FILE* cov_file;
-  unsigned coverage : 1;
-#endif
 };
 
 ANEW ANN Emitter new_emitter(void/*const Env*/);

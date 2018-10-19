@@ -122,10 +122,6 @@ int main(int argc, char** argv) {
     goto clean;
   if(!(env = type_engine_init(vm, &pi[1])))
     goto clean;
-#ifdef GWCOV
-  if(arg.coverage)
-    vm->emit->coverage = 1;
-#endif
   srand(time(NULL));
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile(vm, (m_str)vector_at(&arg.add, i));

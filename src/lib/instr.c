@@ -437,20 +437,6 @@ INSTR(AutoLoopEnd) { GWDEBUG_EXE
   }
 }
 
-#ifdef GWCOV
-INSTR(InstrCoverage) { GWDEBUG_EXE
-  const m_str str = code_name(shred->name, 1);
-  if(!strcmp(str, "[dtor]"))
-    return;
-  const size_t len = str ? strlen(str) : 6;
-  char c[len + 4];
-  sprintf(c, "%scov", str ? str : "gwion.");
-  FILE* file = fopen(c, "a");
-  fprintf(file, "%" UINT_F " %s \n", instr->m_val, instr->m_val2 ? "end" : "ini");
-  fclose(file);
-}
-#endif
-
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val)
