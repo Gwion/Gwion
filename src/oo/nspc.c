@@ -60,7 +60,7 @@ ANN static void free_nspc_value(const Nspc a) {
             if(value->type->d.base_type->def->tmpl)
               free_tmpl_class(value->type->d.base_type->def->tmpl);
             free_id_list(value->type->d.base_type->def->name);
-            free_class_def_simple(value->type->d.base_type->def);
+            mp_free(Class_Def, value->type->d.base_type->def);
             SET_FLAG(value->type->d.base_type, ae_flag_template);
             REM_REF(value->type->d.base_type)
           }
