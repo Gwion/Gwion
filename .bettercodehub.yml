@@ -19,13 +19,8 @@ languages:
        - fake_entry
     test:
       include:
-        - /examples/.*\.gw
-        - /examples/complex/.*\.gw
-        - /tests/bug/.*\.gw
-        - /tests/error/.*\.gw
-        - /tests/test_plugin/.*\.gw
-        - /tests/tree/.*\.gw
-        - /tests/ugen_coverage/.*\.gw
+        - /examples/.*/.*\.gw
+        - /tests/.*/.*\.gw
 
   - name: script
     production:
@@ -33,5 +28,5 @@ languages:
        - fake_entry
     test:
       include:
-      - /utils/.*\.sh
+      - /help/.*\.sh
       - /tests/sh/.*\.sh
