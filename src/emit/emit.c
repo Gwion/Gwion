@@ -246,7 +246,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
-  const Exp dot = new_exp_dot(exp, prim->d.var, prim->self->pos);
+  const Exp dot = new_exp_dot(exp, prim->d.var);
   exp->type = v->owner_class;
   dot->d.exp_dot.t_base = v->owner_class;
   dot->type = v->type;
