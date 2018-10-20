@@ -172,6 +172,7 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->type, ae_flag_template);
     SET_FLAG(a->type, ae_flag_ref);
+    SET_FLAG(a, ae_flag_ref);
     a->type->owner = t->owner;
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
