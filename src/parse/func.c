@@ -11,13 +11,12 @@ ANN Func new_func(const m_str name, const Func_Def def) {
   INIT_OO(func, e_func_obj);
   return func;
 }
-Func new_func_simple() { return mp_alloc(Func); }
 
 ANN void free_func(Func a) {
   if(GET_FLAG(a, ae_flag_ref)) {
     if(GET_FLAG(a, ae_flag_template)) {
       free_tmpl_list(a->def->tmpl);
-      free_func_def_simple(a->def);
+      mp_free(Func_Def, a->def);
     }
   } else if(a->def)
     free_func_def(a->def);

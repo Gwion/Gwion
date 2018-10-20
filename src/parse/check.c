@@ -662,7 +662,7 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_call,
   if(!func)
     return function_alternative(exp_call->type, args);
   if(ptr) {
-    const Func f = new_func_simple();
+    const Func f = mp_alloc(Func_Def);
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
     SET_FLAG(ptr, ae_flag_func); // there might be a better place
