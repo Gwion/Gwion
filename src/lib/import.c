@@ -321,7 +321,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
     const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
-    const Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
+    const Exp exp = new_exp_decl(type_decl, var_decl_list);
     const Stmt stmt = new_stmt_exp(ae_stmt_exp, exp, 0);
     const Stmt_List list = new_stmt_list(stmt, NULL);
     Section* section = new_section_stmt_list(list);
@@ -562,7 +562,7 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
   type_decl = new_type_decl(id_list, 0, 0);
   const Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
   const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
-  return new_exp_decl(type_decl, var_decl_list, 0);
+  return new_exp_decl(type_decl, var_decl_list);
 }
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {

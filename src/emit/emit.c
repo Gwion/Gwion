@@ -1322,7 +1322,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     type_decl->flag = stmt->flag;
     const Var_Decl var_decl = new_var_decl(stmt->xid, NULL, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
-    const Exp exp = new_exp_decl(type_decl, var_decl_list, 0);
+    const Exp exp = new_exp_decl(type_decl, var_decl_list);
     exp->d.exp_decl.type = stmt->value->type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
