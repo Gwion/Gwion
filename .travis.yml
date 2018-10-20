@@ -41,7 +41,7 @@ before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - mkdir -p "$GWION_ADD_DIR"
   - mkdir -p "$GWION_TEST_DIR"
-  - [ $(uname) = Linux ] || brew update
+  - if [ $(uname) != Linux ]; then brew update; done
 
 script:
   - make && make test
