@@ -35,7 +35,7 @@ install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
 
 before_script:
-  - git submodule init https://github.com/fennecdjay/gwion-util/
+  - git submodule update --init util
   - git submodule update
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - mkdir -p "$GWION_ADD_DIR"
