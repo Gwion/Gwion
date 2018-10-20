@@ -13,7 +13,6 @@ addons:
 
 env:
   global:
-#because travis's gcc doesn't known some warnings
     - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - GWION_TEST_DIR=tmp/test
@@ -41,7 +40,7 @@ before_script:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - mkdir -p "$GWION_ADD_DIR"
   - mkdir -p "$GWION_TEST_DIR"
-  - if [ $(uname) != Linux ]; then brew update; done
+  - if [ $(uname) != Linux ]; then brew update; fi
 
 script:
   - make && make test
