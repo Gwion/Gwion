@@ -7,7 +7,7 @@ PREFIX ?=/usr/local
 SOUNDPIPE_LIB ?=-lsoundpipe
 SOUNDPIPE_INC ?=
 LDFLAGS += -lm -ldl -rdynamic -lpthread
-CFLAGS += -Iinclude -Iast/include -std=c99 -O3 -mfpmath=sse -mtune=native -fstrict-aliasing -D_GNU_SOURCE
+CFLAGS += -Iinclude -Iutil/include -std=c99 -O3 -mfpmath=sse -mtune=native -fstrict-aliasing -D_GNU_SOURCE
 #CFLAGS += -Iinclude -std=c99 -m32 -fstrict-aliasing -D_GNU_SOURCE
 # compiler warnings
 CFLAGS += -Wall -Wextra 
