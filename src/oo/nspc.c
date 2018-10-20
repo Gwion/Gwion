@@ -37,12 +37,6 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
     release(obj, s);
     free_vm_shred(s);
   }
-  if(value->type->array_depth && !GET_FLAG(value->type, ae_flag_typedef))
-    REM_REF(value->type)
-  else if(GET_FLAG(value->type, ae_flag_builtin) && GET_FLAG(value->type, ae_flag_typedef))
-    REM_REF(value->type->parent)
-  else if(GET_FLAG(value->type, ae_flag_typedef))
-    REM_REF(t_array->nspc)
 }
 
 ANN static void free_nspc_value(const Nspc a) {

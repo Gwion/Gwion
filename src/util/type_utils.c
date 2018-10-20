@@ -116,10 +116,8 @@ ANN Type array_type(const Type base, const m_uint depth) {
   }
   const Symbol sym = insert_symbol(name);
   const Type type = nspc_lookup_type1(base->owner, sym);
-  if(type) {
-    ADD_REF(type)
+  if(type)
     return type;
-  }
   const Type t = new_type(t_array->xid, base->name, t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
