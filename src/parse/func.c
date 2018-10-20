@@ -17,7 +17,7 @@ ANN void free_func(Func a) {
   if(GET_FLAG(a, ae_flag_ref)) {
     if(GET_FLAG(a, ae_flag_template)) {
       free_tmpl_list(a->def->tmpl);
-      mp_free(Func_Def, a->def);
+      free_func_def_simple(a->def);
     }
   } else if(a->def)
     free_func_def(a->def);

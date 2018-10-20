@@ -1145,7 +1145,6 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
     const Value v = decl->value;
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
     SET_FLAG(v, ae_flag_checked);
-    if(v->type->array_depth)REM_REF(v->type) // CHECK_ME array ref
     nspc_add_value(env->curr, decl->xid, v);
   } while((arg_list = arg_list->next));
   return 1;
