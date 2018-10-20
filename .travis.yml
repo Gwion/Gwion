@@ -36,7 +36,6 @@ install:
 
 before_script:
   - git submodule update --init util
-  - git submodule update
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - mkdir -p "$GWION_ADD_DIR"
   - mkdir -p "$GWION_TEST_DIR"
