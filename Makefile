@@ -9,7 +9,6 @@ src_src := $(wildcard src/*.c)
 lib_src := $(wildcard src/lib/*.c)
 oo_src := $(wildcard src/oo/*.c)
 vm_src := $(wildcard src/vm/*.c)
-ast_src := $(wildcard src/ast/*.c)
 parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
@@ -136,7 +135,7 @@ LDCFG="${LDFLAGS}"
 # hide this from gwion -v
 CFLAGS += -DGWION_BUILTIN
 
-LDFLAGS += ast/libgwion_ast.a
+LDFLAGS += util/libgwion_ast.a
 
 all: include/generated.h options ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
@@ -181,13 +180,5 @@ uninstall:
 
 test:
 	@bash help/test.sh tests/* examples
-
-parser:
-	$(info generating parser)
-	@${YACC} -o src/ast/parser.c --defines=include/parser.h utils/gwion.y
-
-lexer:
-	$(info generating lexer)
-	@${LEX}  -o src/ast/lexer.c utils/gwion.l
 
 include $(wildcard .d/*.d)
