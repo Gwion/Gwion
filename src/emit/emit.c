@@ -186,8 +186,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
 }
 
 ANN void free_array_info(ArrayInfo* info) {
-  for(m_uint i = 0; i < vector_size(&info->type); ++i)
-    REM_REF((Type)vector_at(&info->type, i));
+  REM_REF((Type)vector_back(&info->type));
   vector_release(&info->type);
   mp_free(ArrayInfo, info);
 }
@@ -196,7 +195,6 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
   CHECK_BO(emit_exp(emit, e, 0))
   const Type base = array_base(t);
   ArrayInfo* info = mp_alloc(ArrayInfo);
-//  info->type = t;
   vector_init(&info->type);
   for(m_uint i = 1; i < t->array_depth; ++i)
     vector_add(&info->type, (vtype)array_type(base, i));
