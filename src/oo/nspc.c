@@ -43,26 +43,9 @@ ANN static void free_nspc_value(const Nspc a) {
   const Vector v = scope_get(&a->value);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->type, t_class) > 0) {
-      if(GET_FLAG(value->type->d.base_type, ae_flag_template)) {
-        UNSET_FLAG(value->type->d.base_type, ae_flag_template);
-        if(GET_FLAG(value->type->d.base_type, ae_flag_ref)) {
-          if(!GET_FLAG(value->type->d.base_type, ae_flag_builtin)) {
-            free_class_def(value->type->d.base_type->def);
-            REM_REF(value->type->d.base_type)
-          } else {
-            if(value->type->d.base_type->def->tmpl)
-              free_tmpl_class(value->type->d.base_type->def->tmpl);
-            free_id_list(value->type->d.base_type->def->name);
-            mp_free(Class_Def, value->type->d.base_type->def);
-            SET_FLAG(value->type->d.base_type, ae_flag_template);
-            REM_REF(value->type->d.base_type)
-          }
-        } else
-          free_class_def(value->type->d.base_type->def);
-      }
+    if(isa(value->type, t_class) > 0)
       REM_REF(value->type)
-    } else if(isa(value->type, t_union) > 0) {
+    else if(isa(value->type, t_union) > 0) {
       if(GET_FLAG(value, ae_flag_static) ||GET_FLAG(value, ae_flag_global))
         nspc_release_object(a, value);
       if(GET_FLAG(value->type, ae_flag_op)) // only free untyped unions

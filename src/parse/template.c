@@ -187,7 +187,6 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     a->tmpl = new_tmpl_class(list, 0);
     a->tmpl->base = type->types;
     nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
-    ADD_REF((t = a->type))
     t = a->type;
   } else if(type->types)
       ERR_O(SCAN1_, type->pos,

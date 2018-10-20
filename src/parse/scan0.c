@@ -171,8 +171,10 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
   the_class->flag = class_def->flag;
   if(!strstr(the_class->name, "<"))
     nspc_add_type(env->curr, class_def->name->xid, the_class);
-  if(class_def->tmpl)
+  if(class_def->tmpl) {
     SET_FLAG(the_class, ae_flag_template);
+    SET_FLAG(class_def, ae_flag_template);
+  }
   if(class_def->ext && class_def->ext->array)
     SET_FLAG(the_class, ae_flag_typedef);
   return the_class;

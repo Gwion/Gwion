@@ -11,6 +11,8 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
 }
 
 ANN void free_type(Type a) {
+  if(GET_FLAG(a, ae_flag_template))
+    free_class_def(a->def);
   if(a->nspc)
     REM_REF(a->nspc);
   mp_free(Type, a);
