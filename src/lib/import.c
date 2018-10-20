@@ -533,7 +533,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(type_path, 0, 0)))
     ERR_O(TYPE_, 0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
-  return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag, 0);
+  return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag);
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
