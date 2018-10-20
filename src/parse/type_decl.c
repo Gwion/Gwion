@@ -88,16 +88,13 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   return str;
 }
 
-ANN static inline void type_unknown(const ID_List id, const m_str orig) {
+ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
   err_msg(SCAN1_, id->pos, "'%s' unknown type in %s", path, orig);
+  return NULL;
 }
 
 ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
-  const Type t = type_decl_resolve(env, td);
-  if(t)
-    return t;
-  type_unknown(td->xid, orig);
-  return NULL;
+  return type_decl_resolve(env, td) ?: type_unknown(td->xid, orig);
 }
