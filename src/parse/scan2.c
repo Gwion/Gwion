@@ -133,7 +133,6 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_func(ptr->type->owner, ptr->xid, ptr->func);
-//  ADD_REF(ptr->func);
   return 1;
 }
 
