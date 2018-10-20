@@ -20,8 +20,7 @@ ANN void free_func(Func a) {
       free_tmpl_list(a->def->tmpl);
       mp_free(Func_Def, a->def);
     }
-  } else if(a->def)
-    free_func_def(a->def);
+  }
   if(a->code)
     REM_REF(a->code);
   mp_free(Func, a);
