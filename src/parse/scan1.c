@@ -225,7 +225,7 @@ ANN static m_bool scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBU
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   if(ptr->td->array)
-    CHECK_BB(check_array_empty(ptr->td->array, "function pointer"))
+    CHECK_BB(check_array_empty(ptr->td->array, ptr->td->pos))
   CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
     ERR_B(SCAN1_, ptr->td->pos,
@@ -239,7 +239,7 @@ ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { 
 
 ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
   if(array->exp)
-    ERR_B(SCAN1_, array->pos, "array declaration must be empty in union.")
+    ERR_B(SCAN1_, array->exp->pos, "array declaration must be empty in union.")
   return 1;
 }
 
@@ -316,7 +316,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->td->array)
-    CHECK_BB(check_array_empty(f->td->array, "function return"))
+    CHECK_BB(check_array_empty(f->td->array, f->td->pos))
   CHECK_OB((f->ret_type = known_type(env, f->td, "function return")))
   return 1;
 }

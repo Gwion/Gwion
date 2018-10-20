@@ -133,10 +133,9 @@ ANN Type array_type(const Type base, const m_uint depth) {
   return t;
 }
 
-m_bool check_array_empty(const Array_Sub a, const m_str orig) {
+m_bool check_array_empty(const Array_Sub a, const int pos) {
   if(a->exp)
-    ERR_B(SCAN1_, a->pos, "type must be defined with empty []'s"
-          " in %s declaration", orig)
+    ERR_B(SCAN1_, pos, "type must be defined with empty []'s")
   return 1;
 }
 

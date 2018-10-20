@@ -151,7 +151,7 @@ ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
   const Array_Sub array = primary->d.array;
   const Exp e = array->exp;
   if(!e)
-    ERR_O(TYPE_, array->pos, "must provide values/expressions for array [...]")
+    ERR_O(TYPE_, primary->self->pos, "must provide values/expressions for array [...]")
   CHECK_OO(check_exp(env, e))
   return (array->type = prim_array_match(e));
 }
@@ -371,7 +371,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   vector_release(&v);
   Type_Decl* td = new_type_decl(id, 0, 0);
   if(type->array_depth) {
-    Array_Sub array = new_array_sub(NULL, 0);
+    Array_Sub array = new_array_sub(NULL);
     array->depth = type->array_depth;
     add_type_decl_array(td, array);
   }

@@ -277,9 +277,9 @@ ANN m_int gwi_class_end(const Gwi gwi) {
 }
 
 ANN static void dl_var_new_exp_array(DL_Var* v) {
-  v->t.array = new_array_sub(NULL, 0);
+  v->t.array = new_array_sub(NULL);
   v->t.array->depth = v->array_depth;
-  v->var.array = new_array_sub(NULL, 0);
+  v->var.array = new_array_sub(NULL);
   v->var.array->depth = v->array_depth;
 }
 
@@ -346,7 +346,7 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   if(array_depth2)
     *array_depth = array_depth2;
   if(*array_depth) {
-    array_sub = new_array_sub(NULL, 0);
+    array_sub = new_array_sub(NULL);
     for(m_uint i = 1; i < *array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
   }
@@ -427,7 +427,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
       !(type_decl = new_type_decl(type_path, 0, 0)))
     ERR_O(TYPE_, 0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
   if(array_depth) {
-    Array_Sub array_sub = new_array_sub(NULL, 0);
+    Array_Sub array_sub = new_array_sub(NULL);
     for(i = 1; i < array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
     type_decl = add_type_decl_array(type_decl, array_sub);
@@ -556,7 +556,7 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
   Array_Sub array = NULL;
   CHECK_OO((id_list = str2list(type, &array_depth)))
   if(array_depth) {
-    array = new_array_sub(NULL, 0);
+    array = new_array_sub(NULL);
     array->depth = array_depth;
   }
   type_decl = new_type_decl(id_list, 0, 0);

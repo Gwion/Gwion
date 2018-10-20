@@ -36,7 +36,7 @@ ANN Type find_type(const Env, ID_List);
 ANN m_bool isa(const Type, const Type) __attribute__((pure));
 ANN m_bool isres(const Symbol);
 ANN Type array_type(const Type, const m_uint);
-ANN m_bool check_array_empty(const Array_Sub, const m_str);
+ANN m_bool check_array_empty(const Array_Sub, const int);
 ANN Type find_common_anc(const Type, const Type) __attribute__((pure));
 ANN m_uint id_list_len(ID_List);
 ANN void type_path(const m_str, const ID_List);
