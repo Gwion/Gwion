@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "defs.h"
+#include "map.h"
 #include "absyn.h"
 #include "nspc.h"
 #include "context.h"

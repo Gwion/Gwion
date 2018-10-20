@@ -2,8 +2,11 @@
 #include <string.h>
 #include <ctype.h>
 #include "defs.h"
+#include "map.h"
+#include "absyn.h"
 #include "err_msg.h"
 #include "type.h"
+#include "env.h"
 #include "value.h"
 #include "traverse.h"
 #include "instr.h"

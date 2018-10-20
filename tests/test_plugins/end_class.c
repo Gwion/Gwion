@@ -1,5 +1,8 @@
 #include "defs.h"
-#include "type.h"
+#include "map.h"
+#include "absyn.h"
+#include "vm.h"
+#include "operator.h"
 #include "import.h"
 
 MFUN(test_mfun){}

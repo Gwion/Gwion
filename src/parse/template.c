@@ -1,5 +1,6 @@
 #include <string.h>
 #include "defs.h"
+#include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
 #include "type.h"

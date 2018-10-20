@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
-#include "type.h"
+#include "defs.h"
+#include "map.h"
+#include "absyn.h"
+#include "vm.h"
 #include "func.h"
+#include "type.h"
 #include "instr.h"
 #include "array.h"
 #include "mpool.h"

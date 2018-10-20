@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+#include "defs.h"
+#include "map.h"
+#include "absyn.h"
 #include "vm.h"
 #include "type.h"
 #include "instr.h"

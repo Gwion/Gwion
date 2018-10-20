@@ -3,8 +3,10 @@
 #include <dlfcn.h>
 #include <dirent.h>
 #include "defs.h"
+#include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
+#include "vm.h"
 #include "operator.h"
 #include "instr.h"
 #include "import.h"

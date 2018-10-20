@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "map.h"
 #include "absyn.h"
+#include "oo.h"
 #include "value.h"
-#include "defs.h"
 #include "type.h"
 #include "err_msg.h"
 

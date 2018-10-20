@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include "defs.h"
 #include "err_msg.h"
+#include "defs.h"
+#include "map.h"
 #include "absyn.h"
+#include "oo.h"
 #include "context.h"
 #include "value.h"
 #include "traverse.h"

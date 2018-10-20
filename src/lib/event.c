@@ -1,3 +1,6 @@
+#include "defs.h"
+#include "map.h"
+#include "absyn.h"
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
