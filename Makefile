@@ -138,6 +138,7 @@ CFLAGS += -DGWION_BUILTIN
 LDFLAGS += util/libgwion_ast.a
 
 all: include/generated.h options ${GW_OBJ} ${jit_obj}
+  @make -C util
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
 
