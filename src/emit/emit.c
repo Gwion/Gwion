@@ -11,7 +11,6 @@
 #include "emit.h"
 #include "array.h"
 #include "object.h"
-#include "context.h"
 #include "func.h"
 #include "traverse.h"
 #include "mpool.h"

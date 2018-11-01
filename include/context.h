@@ -1,3 +1,4 @@
+typedef struct Context_   * Context;
 struct Context_ {
   m_str       name;
   Ast         tree;

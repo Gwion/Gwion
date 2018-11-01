@@ -1,3 +1,4 @@
+include util/config.mk
 include config.mk
 
 DEPDIR := .d
@@ -66,22 +67,10 @@ CFLAGS +=-DHAVE_SLES
 drvr_src +=src/drvr/sles.c
 endif
 # add boolean
-ifeq (${USE_COVERAGE}, 1)
-CFLAGS += -ftest-coverage -fprofile-arcs
-LDFLAGS += --coverage
-endif
 ifeq (${USE_GWCOV}, 1)
 CFLAGS += -DGWCOV
 endif
-ifeq (${USE_MEMCHECK}, 1)
-CFLAGS += -g -Og
-endif
 
-ifeq (${USE_DOUBLE}, 1)
-CFLAGS +=-DUSE_DOUBLE -DSPFLOAT=double
-else
-CFLAGS+=-DSPFLOAT=float
-endif
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
@@ -89,16 +78,8 @@ ifeq (${USE_OPTIMIZE}, 1)
 util_src += opt/optim.c
 CFLAGS+= -DOPTIMIZE
 endif
-ifeq (${USE_COLOR}, 1)
-CFLAGS+= -DCOLOR
-endif
 ifeq (${USE_JIT}, 1)
 include jit/config.mk
-endif
-
-ifeq (${USE_LTO}, 1)
-CFLAGS += -flto
-LDFLAGS += -flto
 endif
 
 ifeq (${USE_VMBENCH}, 1)
@@ -145,12 +126,6 @@ all: include/generated.h options ${GW_OBJ} ${jit_obj}
 config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
-
-include/generated.h: help/generate_header.c
-	$(info generating generated.h)
-	@cc ${DFLAGS} help/generate_header.c -o generate_header
-	@./generate_header > include/generated.h
-	@rm generate_header
 
 options:
 	$(info CC      : ${CC})

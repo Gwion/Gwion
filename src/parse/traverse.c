@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "map.h"
 #include "absyn.h"
+#include "oo.h"
 #include "traverse.h"
 
 ANN m_bool scan0_ast(const Env env, Ast ast);
