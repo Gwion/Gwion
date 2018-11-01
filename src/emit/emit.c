@@ -572,9 +572,6 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
 
     if(!GET_FLAG(list->self->value, ae_flag_used))
       continue;
-    if(isa(list->self->value->type, t_fptr) > 0)
-      REM_REF(list->self->value->type)
-
     if(GET_FLAG(decl->td, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r))
     else
