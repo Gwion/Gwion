@@ -318,7 +318,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
   if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
-    Type_Decl *type_decl = new_type_decl(v->t.xid, flag, 0);
+    Type_Decl *type_decl = new_type_decl(v->t.xid, flag);
     const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
     const Exp exp = new_exp_decl(type_decl, var_decl_list);
@@ -365,7 +365,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   CHECK_OO(type_name)
   ID_List id = str2list(type_name, depth);
   CHECK_OO(id)
-  Type_Decl* td = new_type_decl(id, 0, 0);
+  Type_Decl* td = new_type_decl(id, 0);
   Type_List tmp = NULL;
   if(!td) {
     free_id_list(id);
@@ -424,7 +424,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
 
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(type_path, 0, 0)))
+      !(type_decl = new_type_decl(type_path, 0)))
     ERR_O(TYPE_, 0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL);
@@ -530,7 +530,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   const Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(type_path, 0, 0)))
+      !(type_decl = new_type_decl(type_path, 0)))
     ERR_O(TYPE_, 0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
   return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag);
@@ -559,7 +559,7 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
     array = new_array_sub(NULL);
     array->depth = array_depth;
   }
-  type_decl = new_type_decl(id_list, 0, 0);
+  type_decl = new_type_decl(id_list, 0);
   const Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
   const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
   return new_exp_decl(type_decl, var_decl_list);

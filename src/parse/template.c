@@ -108,7 +108,7 @@ ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type
   ID_List list;
 
   template_name(env, c, call, name);
-  list = new_id_list(insert_symbol(name), call->td->pos);
+  list = new_id_list(insert_symbol(name), call->td->xid->pos);
   return list;
 }
 
@@ -159,10 +159,10 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     if(GET_FLAG(t, ae_flag_ref))
       return t;
     if(!type->types)
-      ERR_O(SCAN1_, type->pos,
+      ERR_O(SCAN1_, type->xid->pos,
         "you must provide template types for type '%s'", t->name)
     if(template_match(t->def->tmpl->list.list, type->types) < 0)
-      ERR_O(SCAN1_, type->pos, "invalid template types number")
+      ERR_O(SCAN1_, type->xid->pos, "invalid template types number")
 
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
     Class_Def a = template_class(env, t->def, type->types);
@@ -190,7 +190,7 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
     nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
     t = a->type;
   } else if(type->types)
-      ERR_O(SCAN1_, type->pos,
+      ERR_O(SCAN1_, type->xid->pos,
             "type '%s' is not template. You should not provide template types", t->name)
   return t;
 }

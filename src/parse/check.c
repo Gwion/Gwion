@@ -369,7 +369,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   for(m_uint i = vector_size(&v) + 1; --i;)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
   vector_release(&v);
-  Type_Decl* td = new_type_decl(id, 0, 0);
+  Type_Decl* td = new_type_decl(id, 0);
   if(type->array_depth) {
     Array_Sub array = new_array_sub(NULL);
     array->depth = type->array_depth;
@@ -1091,14 +1091,14 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
   const m_str p_name = parent->value_ref->owner_class->name;
   const m_str f_name = s_name(f->name);
   if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
-    ERR_B(TYPE_, f->td->pos,
+    ERR_B(TYPE_, f->td->xid->pos,
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name)
   }
   if(isa(f->ret_type, parent->def->ret_type) <  0) {
-    ERR_B(TYPE_, f->td->pos,
+    ERR_B(TYPE_, f->td->xid->pos,
           "function signatures differ in return type...\n"
           "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
           c_name, f_name, p_name, f_name)
@@ -1157,7 +1157,7 @@ ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
   sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
   const Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
   if(f2 && compat_func(def, f2->def) > 0) {
-    ERR_B(TYPE_, f2->def->td->pos,
+    ERR_B(TYPE_, f2->def->td->xid->pos,
         "global function '%s' already defined for those arguments",
         s_name(def->name))
   }
@@ -1186,7 +1186,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
   if(env->class_def && env->class_def->parent) {
     const Value override = find_value(env->class_def->parent, f->name);
     if(override && isa(override->type, t_function) < 0)
-      ERR_B(TYPE_, f->td->pos,
+      ERR_B(TYPE_, f->td->xid->pos,
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
             s_name(f->name), override->owner_class->name)
@@ -1223,7 +1223,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     ret = check_func_args(env, f->arg_list);
   const Value variadic = GET_FLAG(f, ae_flag_variadic) ? set_variadic(env) : NULL;
   if(!GET_FLAG(f, ae_flag_builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    ret = err_msg(TYPE_, f->td->pos,
+    ret = err_msg(TYPE_, f->td->xid->pos,
                   "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
@@ -1265,13 +1265,13 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
     }
   }
   if(isa(class_def->type->parent, t_object) < 0)
-    ERR_B(TYPE_, class_def->ext->pos,
+    ERR_B(TYPE_, class_def->ext->xid->pos,
             "cannot extend primitive type '%s'", class_def->type->parent->name)
   if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {
     if(GET_FLAG(class_def->ext, ae_flag_typedef)) // ??????
       CHECK_BB(check_class_def(env, class_def->type->parent->def))
     else
-      ERR_B(TYPE_, class_def->ext->pos,
+      ERR_B(TYPE_, class_def->ext->xid->pos,
             "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
             class_def->type->parent->name)

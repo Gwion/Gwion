@@ -854,7 +854,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   const Symbol sporked = insert_symbol("sporked");
   const ID_List list = new_id_list(sporked, stmt->pos);
-  const Func_Def def = new_func_def(new_type_decl(list, 0, stmt->pos), sporked, NULL, stmt, 0);
+  const Func_Def def = new_func_def(new_type_decl(list, 0), sporked, NULL, stmt, 0);
   const Func f = new_func("sporked", def);
 
   if(emit->env->class_def)
@@ -1318,7 +1318,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!stmt->value->type->p)
       stmt->value->type->p = mp_ini(stmt->value->type->size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
-        0, emit->env->class_def ? ae_flag_member : 0);
+        emit->env->class_def ? ae_flag_member : 0); // or zero ?
     type_decl->flag = stmt->flag;
     const Var_Decl var_decl = new_var_decl(stmt->xid, NULL, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
@@ -1720,7 +1720,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, ae_flag_variadic) && (!emit->env->func->variadic ||
       !*(m_uint*)emit->env->func->variadic->ptr))
-    ERR_B(EMIT_, func_def->td->pos, "invalid variadic use")
+    ERR_B(EMIT_, func_def->td->xid->pos, "invalid variadic use")
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;

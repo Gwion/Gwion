@@ -8,7 +8,7 @@
 
 ANN m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, t_object) < 0)
-    ERR_B(SCAN2_, td->pos,
+    ERR_B(SCAN2_, td->xid->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
           "\t... complex, polar, Vec3, Vec4)",

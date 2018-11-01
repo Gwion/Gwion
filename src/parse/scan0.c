@@ -21,7 +21,7 @@ ANN static Value mk_class(const Type base) {
 
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->td->flag))
-  CHECK_BB(already_defined(env, stmt->xid, stmt->td->pos)) // test for type ?
+  CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
   const m_str name = s_name(stmt->xid);
   const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
@@ -39,7 +39,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   CHECK_BB(env_access(env, stmt->td->flag))
   const Type base = known_type(env, stmt->td, "typedef");
   CHECK_OB(base)
-  CHECK_BB(already_defined(env, stmt->xid, stmt->td->pos)) // test for type ?
+  CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
@@ -53,7 +53,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
       SET_FLAG(t, ae_flag_empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
-    const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->pos),
+    const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->xid->pos),
       stmt->td, NULL);
     CHECK_BB(scan0_class_def(env, def))
     stmt->type = def->type;

@@ -225,10 +225,10 @@ ANN static m_bool scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBU
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   if(ptr->td->array)
-    CHECK_BB(check_array_empty(ptr->td->array, ptr->td->pos))
+    CHECK_BB(check_array_empty(ptr->td->array, ptr->td->xid->pos))
   CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
-    ERR_B(SCAN1_, ptr->td->pos,
+    ERR_B(SCAN1_, ptr->td->xid->pos,
           "\t... in typedef '%s'...", s_name(ptr->xid))
   return 1;
 }
@@ -316,7 +316,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->td->array)
-    CHECK_BB(check_array_empty(f->td->array, f->td->pos))
+    CHECK_BB(check_array_empty(f->td->array, f->td->xid->pos))
   CHECK_OB((f->ret_type = known_type(env, f->td, "function return")))
   return 1;
 }
@@ -329,14 +329,14 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
     list = list->next;
   }
   if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)
-    ERR_B(SCAN1_, f->td->pos,
+    ERR_B(SCAN1_, f->td->xid->pos,
           "operators can only have one or two arguments")
   return 1;
 }
 
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
-    ERR_B(SCAN1_, f->td->pos, "dtor must be in class def!!")
+    ERR_B(SCAN1_, f->td->xid->pos, "dtor must be in class def!!")
   else if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(f))
   return 1;
@@ -375,7 +375,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
     if(class_def->ext->array->exp)
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
     else {
-      ERR_B(SCAN1_, class_def->ext->pos, "can't use empty []'s in class extend")
+      ERR_B(SCAN1_, class_def->ext->xid->pos, "can't use empty []'s in class extend")
     }
   }
   const Type parent = class_def->type->parent = known_type(env, class_def->ext, "child class definition");
@@ -383,7 +383,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
   if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
-    ERR_B(SCAN1_, class_def->ext->pos, "can't use ref type in class extend")
+    ERR_B(SCAN1_, class_def->ext->xid->pos, "can't use ref type in class extend")
   return 1;
 }
 

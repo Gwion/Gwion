@@ -109,7 +109,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
   if(d.arg_list && scan2_arg_def(env, &d) < 0)
-    ERR_B(SCAN2_, ptr->td->pos, "in typedef '%s'", s_name(ptr->xid))
+    ERR_B(SCAN2_, ptr->td->xid->pos, "in typedef '%s'", s_name(ptr->xid))
   SET_FLAG(ptr->value, ae_flag_checked);
   nspc_add_value(env->curr, ptr->xid, ptr->value);
 
@@ -334,12 +334,12 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, ae_flag_template);
   if(isa(overload->type, t_function) < 0)
-    ERR_B(SCAN2_, f->td->pos,
+    ERR_B(SCAN2_, f->td->xid->pos,
           "function name '%s' is already used by another value",
           s_name(f->name))
   if((!tmpl && base) ||
       (tmpl && !base && !GET_FLAG(f, ae_flag_template)))
-    ERR_B(SCAN2_, f->td->pos,
+    ERR_B(SCAN2_, f->td->xid->pos,
           "must override template function with template")
   return 1;
 }
@@ -414,7 +414,7 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
   env->func = f->func;
   const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
   if(ret < 0)
-    err_msg(SCAN2_, f->td->pos, "... in function '%s'", s_name(f->name));
+    err_msg(SCAN2_, f->td->xid->pos, "... in function '%s'", s_name(f->name));
   env->func = former;
   return ret;
 }
@@ -428,12 +428,12 @@ ANN2(1,2) static m_bool scan2_func_def_add(const Env env,
     if(overload->d.func_ref->def->ret_type)
       if(!GET_FLAG(func->def, ae_flag_template))
         if(func->def->ret_type->xid != overload->d.func_ref->def->ret_type->xid) {
-          err_msg(SCAN2_,  func->def->td->pos,
+          err_msg(SCAN2_,  func->def->td->xid->pos,
               "function signatures differ in return type... '%s' and '%s'",
                   func->def->ret_type->name,
                   overload->d.func_ref->def->ret_type->name);
           if(env->class_def)
-            ERR_B(SCAN2_, func->def->td->pos,
+            ERR_B(SCAN2_, func->def->td->xid->pos,
                     "function '%s.%s' matches '%s.%s' but cannot overload...",
                     env->class_def->name, name,
                     value->owner_class->name, name)
@@ -563,7 +563,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   } else
     f->func = base;
   if(f->arg_list && scan2_arg_def(env, f) < 0)
-    ERR_B(SCAN2_, f->td->pos,
+    ERR_B(SCAN2_, f->td->xid->pos,
           "\t... in function '%s'\n", s_name(f->name))
   if(!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list)
       CHECK_BB(scan2_func_def_code(env, f))
