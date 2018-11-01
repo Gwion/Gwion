@@ -7,6 +7,7 @@
 #include "err_msg.h"
 #include "map_private.h"
 #include "arg.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
 
