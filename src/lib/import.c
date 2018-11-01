@@ -322,7 +322,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
     const Exp exp = new_exp_decl(type_decl, var_decl_list);
-    const Stmt stmt = new_stmt_exp(ae_stmt_exp, exp, 0);
+    const Stmt stmt = new_stmt_exp(ae_stmt_exp, exp);
     const Stmt_List list = new_stmt_list(stmt, NULL);
     Section* section = new_section_stmt_list(list);
     const Class_Body body = new_class_body(section, NULL);
@@ -628,7 +628,7 @@ ANN static void import_enum_end(DL_Enum* d, const Vector v) {
 
 ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
-  const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL, 0);
+  const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL);
   if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return -1;
