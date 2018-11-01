@@ -1,3 +1,4 @@
+typedef struct M_Vector_  * M_Vector;
 typedef struct ArrayInfo_ {
   m_int depth;
 //  Type   type, base;

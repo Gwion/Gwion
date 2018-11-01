@@ -1,6 +1,5 @@
 #ifndef __ENV
 #define __ENV
-//#include "absyn.h"
 
 #define SCOPE(a) { ++env->class_scope; a ;--env->class_scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }

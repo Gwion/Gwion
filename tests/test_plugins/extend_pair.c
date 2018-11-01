@@ -12,9 +12,9 @@ GWION_IMPORT(extend_pair_test) {
   CHECK_BB(gwi_tmpl_ini(gwi, 2, types))
   CHECK_BB(gwi_class_ini(gwi, t_pair_ext, NULL, NULL))
   CHECK_BB(gwi_tmpl_end(gwi))
-  Type_Decl* td  = new_type_decl(new_id_list(insert_symbol("Pair"), 0), 0, 0);
-  Type_Decl* td0 = new_type_decl(new_id_list(insert_symbol("A"), 0), 0, 0);
-  Type_Decl* td1 = new_type_decl(new_id_list(insert_symbol("B"), 0), 0, 0);
+  Type_Decl* td  = new_type_decl(new_id_list(insert_symbol("Pair"), 0), 0);
+  Type_Decl* td0 = new_type_decl(new_id_list(insert_symbol("A"), 0), 0);
+  Type_Decl* td1 = new_type_decl(new_id_list(insert_symbol("B"), 0), 0);
   Type_List tl1  = new_type_list(td1, NULL);
   Type_List tl0  = new_type_list(td0, tl1);
   td->types = tl0;

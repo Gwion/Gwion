@@ -1,4 +1,4 @@
-#define TICK(a) __attribute__((hot)) ANN inline void a(const UGen u)
+typedef struct UGen_      * UGen;
 typedef void (*f_tick)(const UGen ug) ANN;
 typedef void (*f_ugop)(const UGen, const m_float) ANN;
 
@@ -22,6 +22,7 @@ struct ugen_gen {
 };
 
 enum ugen_flag { UGEN_MULTI = 1 << 1 };
+
 struct UGen_ {
   f_tick compute;
   f_ugop op;
@@ -37,6 +38,9 @@ struct UGen_ {
   enum ugen_flag flag;
   unsigned done : 1;
 };
+
+#define TICK(a) __attribute__((hot)) ANN inline void a(const UGen u)
+
 ANN void ugen_ini(const UGen, const m_uint, const m_uint);
 ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);
 ANN void ugen_connect(const UGen lhs, const UGen rhs);
