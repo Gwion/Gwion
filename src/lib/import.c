@@ -66,8 +66,7 @@ ANN static void dl_func_func_arg(DL_Func* a, const restrict m_str t, const restr
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   if(gwi->func.narg == DLARG_MAX - 1)
-    ERR_B(UTIL_, 0,
-          "too many arguments for function '%s'.", gwi->func.name)
+    ERR_B(0, "too many arguments for function '%s'.", gwi->func.name)
   dl_func_func_arg(&gwi->func, t, n);
   return 1;
 }
@@ -94,16 +93,16 @@ ANN static m_bool name_valid(const m_str a) {
     }
     if(c == ',') {
       if(!lvl)
-        ERR_B(UTIL_,  0, "illegal use of ',' outside of templating in name '%s'.", a)
+        ERR_B(0, "illegal use of ',' outside of templating in name '%s'.", a)
       continue;
     }
     if(c == '>') {
       if(!lvl)
-        ERR_B(UTIL_,  0, "illegal templating in name '%s'.", a)
+        ERR_B(0, "illegal templating in name '%s'.", a)
       lvl--;
       continue;
     }
-    ERR_B(UTIL_,  0, "illegal character '%c' in name '%s'.", c, a)
+    ERR_B(0, "illegal character '%c' in name '%s'.", c, a)
   }
   return !lvl ? 1 : -1;
 }
@@ -122,8 +121,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0)
-      ERR_B(UTIL_,  0,
-            "illegal character '%c' in path '%s'.", c, p->path)
+      ERR_B(0, "illegal character '%c' in path '%s'.", c, p->path)
     if(c == '.' || i == 1) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
@@ -131,8 +129,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
         *list = prepend_id_list(insert_symbol(p->curr), *list, 0);
         memset(p->curr, 0, p->len + 1);
       } else
-        ERR_B(UTIL_,  0,
-              "path '%s' must not ini or end with '.'.", p->path)
+        ERR_B(0, "path '%s' must not ini or end with '.'.", p->path)
     }
     last = c;
   }
@@ -209,7 +206,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
   if(type->nspc)
-    ERR_B(TYPE_, 0, "during import: class '%s' already imported.", type->name)
+    ERR_B(0, "during import: class '%s' already imported.", type->name)
   if(gwi->templater.n) {
     const ID_List types = templater_def(&gwi->templater);
     type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL);
@@ -225,14 +222,14 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
 
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->env->class_def)
-    ERR_B(TYPE_, 0, "gwi_class_ext invoked before "
+    ERR_B(0, "gwi_class_ext invoked before "
           "gwi_class_ini")
   const VM_Code ctor = gwi->env->class_def->nspc->pre_ctor;
   if(gwi->env->class_def->parent ||
       (gwi->env->class_def->def && gwi->env->class_def->def->ext))
-    ERR_B(TYPE_, 0, "class extend already set")
+    ERR_B(0, "class extend already set")
   if(td->array && !td->array->exp)
-    ERR_B(TYPE_, 0, "class extend array can't be empty")
+    ERR_B(0, "class extend array can't be empty")
   if(!gwi->env->class_def->def) {
     const Type t = known_type(gwi->env, td, "builtin class extend");
     CHECK_OB(t)
@@ -259,7 +256,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 
 ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
-    ERR_B(TYPE_, 0, "import: too many class_end called.")
+    ERR_B(0, "import: too many class_end called.")
   const Nspc nspc = env->class_def->nspc;
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
@@ -306,7 +303,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
-    ERR_B(TYPE_, 0, "\t...\tduring var import '%s.%s'.",
+    ERR_B(0, "\t...\tduring var import '%s.%s'.",
           gwi->env->class_def->name, name)
   v->var.xid = insert_symbol(name);
   return 1;
@@ -397,7 +394,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(arg_list);
-      ERR_O(TYPE_,  0, "\t...\tat argument '%i'", i + 1)
+      ERR_O(0, "\t...\tat argument '%i'", i + 1)
     }
     if((type_path2 = str2list(arg->name, &array_depth2)))
       free_id_list(type_path2);
@@ -405,7 +402,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
       free_type_decl(type_decl);
       if(arg_list)
         free_arg_list(arg_list);
-      ERR_O(TYPE_, 0, "array subscript specified incorrectly for built-in module")
+      ERR_O(0, "array subscript specified incorrectly for built-in module")
     }
     array_sub = make_dll_arg_list_array(array_sub, &array_depth, array_depth2);
     var_decl = new_var_decl(insert_symbol(arg->name), array_sub, 0);
@@ -425,7 +422,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0)))
-    ERR_O(TYPE_, 0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
+    ERR_O(0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(NULL);
     for(i = 1; i < array_depth; i++)
@@ -531,7 +528,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0)))
-    ERR_O(TYPE_, 0, "\t...\tduring fptr import '%s' (type).",
+    ERR_O(0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
   return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag);
 }
@@ -575,7 +572,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
   const Exp exp = make_exp(type, name);
   const Type t = type_decl_resolve(gwi->env, exp->d.exp_decl.td);
   if(!t)
-    ERR_B(TYPE_, 0, "type '%s' unknown in union declaration.")
+    ERR_B(0, "type '%s' unknown in union declaration.")
   if(isa(t, t_object) > 0)
     SET_FLAG(exp->d.exp_decl.td, ae_flag_ref);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
@@ -650,7 +647,7 @@ static inline m_str access(ae_Exp_Meta meta) {
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {
-  err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+  err_msg(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
    "\t...\t(reason: --- left-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
       access(bin->rhs->meta));
@@ -662,7 +659,7 @@ OP_CHECK(opck_const_lhs) {
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var) {
-    err_msg(TYPE_, bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+    err_msg(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
          "\t...\t(reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access(bin->rhs->meta));
@@ -711,7 +708,7 @@ OP_CHECK(opck_unary_meta) {
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var) {
-    err_msg(TYPE_, unary->exp->pos,
+    err_msg(unary->exp->pos,
           "unary operator '%s' cannot be used on %s data-types.",
           op2str(unary->op), access(unary->exp->meta));
       return t_null;
@@ -739,7 +736,7 @@ if(unary->exp->exp_type == ae_exp_primary &&
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var) {
-    err_msg(TYPE_, post->exp->pos,
+    err_msg(post->exp->pos,
           "post operator '%s' cannot be used on %s data-type.",
           op2str(post->op), access(post->exp->meta));
         return t_null;

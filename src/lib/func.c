@@ -36,19 +36,19 @@ static OP_CHECK(opck_fptr_at) {
   const Type r_type = r_func->value_ref->owner_class;
   bin->rhs->emit_var = 1;
   if(!r_type && l_type) {
-    err_msg(TYPE_, bin->self->pos,
+    err_msg(bin->self->pos,
           "can't assign member function to non member function pointer");
     return t_null;
   }
   else if(r_type && !l_type) {
     if(!GET_FLAG(r_func, ae_flag_global)) {
-      err_msg(TYPE_, bin->self->pos,
+      err_msg(bin->self->pos,
           "can't assign non member function to member function pointer");
       return t_null;
     }
   }
   else if(r_type && isa(r_type, l_type) < 0) {
-      err_msg(TYPE_, bin->self->pos,
+      err_msg(bin->self->pos,
             "can't assign member function to member function pointer"
             " of an other class");
     return t_null;
@@ -56,22 +56,22 @@ static OP_CHECK(opck_fptr_at) {
 
   if(GET_FLAG(r_func, ae_flag_member)) {
       if(!GET_FLAG(l_func, ae_flag_member)) {
-      err_msg(TYPE_, bin->self->pos,
+      err_msg(bin->self->pos,
           "can't assign static function to member function pointer");
       return t_null;
     }
   } else if(GET_FLAG(l_func, ae_flag_member)) {
-      err_msg(TYPE_, bin->self->pos,
+      err_msg(bin->self->pos,
           "can't assign member function to static function pointer");
       return t_null;
   }
   if(isa(r_fdef->ret_type, l_fdef->ret_type) < 0) {
-    err_msg(TYPE_, bin->self->pos,
+    err_msg(bin->self->pos,
           "return type '%s' does not match '%s'\n\t... in pointer assignement",
          r_fdef->ret_type->name, l_fdef->ret_type->name);
   }
   if(GET_FLAG(l_fdef, ae_flag_variadic) != GET_FLAG(r_fdef, ae_flag_variadic)) {
-    err_msg(TYPE_, bin->self->pos,
+    err_msg(bin->self->pos,
           "function must be of same argument kind.",
          r_fdef->ret_type->name, l_fdef->ret_type->name);
     return t_null;
@@ -114,8 +114,7 @@ static OP_CHECK(opck_spork) {
   else if(unary->code)
     return check_exp_unary_spork(env, unary->code);
   else
-    ERR_O(TYPE_,  unary->self->pos,
-          "only function calls can be sporked...")
+    ERR_O(unary->self->pos, "only function calls can be sporked...")
   return NULL;
 }
 static OP_EMIT(opem_fptr_at) {

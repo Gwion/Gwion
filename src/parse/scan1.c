@@ -25,24 +25,19 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   const Type t = known_type(env, decl->td, "declaration");
   CHECK_OO(t)
   if(!t->size)
-    ERR_O(SCAN1_, decl->self->pos,
-          "cannot declare variables of size '0' (i.e. 'void')...")
+    ERR_O(decl->self->pos, "cannot declare variables of size '0' (i.e. 'void')...")
   if(GET_FLAG(t, ae_flag_private) && t->owner != env->curr)
-    ERR_O(SCAN1_, decl->self->pos,
-          "can't use private type %s", t->name)
+    ERR_O(decl->self->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, ae_flag_protect) &&
     (!env->class_def || isa(t, env->class_def) < 0))
-    ERR_O(SCAN1_, decl->self->pos,
-          "can't use protected type %s", t->name)
+    ERR_O(decl->self->pos, "can't use protected type %s", t->name)
   if(!GET_FLAG(decl->td, ae_flag_ref)) {
     if(t == env->class_def && !env->class_scope)
-      ERR_O(SCAN1_, decl->self->pos,
-            "...(note: object of type '%s' declared inside itself)", t->name)
+      ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
   } else
     CHECK_BO(prim_ref(decl->td, t))
   if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
-      ERR_O(SCAN1_, decl->self->pos,
-            "must declare private variables at class scope...")
+      ERR_O(decl->self->pos, "must declare private variables at class scope...")
   if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)
      UNSET_FLAG(decl->td, ae_flag_global);
   if(GET_FLAG(t, ae_flag_template))
@@ -71,12 +66,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     const Var_Decl v = list->self;
     const Value value = nspc_lookup_value0(env->curr, v->xid);
     if(isres(v->xid) > 0)
-      ERR_B(SCAN1_, v->pos,
-            "\t... in variable declaration", s_name(v->xid))
+      ERR_B(v->pos, "\t... in variable declaration", s_name(v->xid))
     if(value && (!is_tmpl_class ||
         (is_tmpl_class && !GET_FLAG(env->class_def, ae_flag_scan1))))
-      ERR_B(SCAN1_, v->pos,
-              "variable %s has already been defined in the same scope...",
+      ERR_B(v->pos, "variable %s has already been defined in the same scope...",
               s_name(v->xid))
     if(!v->array)
       t = decl->type;
@@ -130,8 +123,7 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) { G
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, post->exp))
   if(post->exp->meta != ae_meta_var)
-    ERR_B(SCAN1_, post->exp->pos,
-          "post operator '%s' cannot be used"
+    ERR_B(post->exp->pos, "post operator '%s' cannot be used"
           " on non-mutable data-type...", op2str(post->op))
   return 1;
 }
@@ -228,8 +220,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     CHECK_BB(check_array_empty(ptr->td->array, ptr->td->xid->pos))
   CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
-    ERR_B(SCAN1_, ptr->td->xid->pos,
-          "\t... in typedef '%s'...", s_name(ptr->xid))
+    ERR_B(ptr->td->xid->pos, "\t... in typedef '%s'...", s_name(ptr->xid))
   return 1;
 }
 
@@ -239,7 +230,7 @@ ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { 
 
 ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
   if(array->exp)
-    ERR_B(SCAN1_, array->exp->pos, "array declaration must be empty in union.")
+    ERR_B(array->exp->pos, "array declaration must be empty in union.")
   return 1;
 }
 
@@ -258,8 +249,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     if(l->self->exp_type != ae_exp_decl)
-      ERR_B(SCAN1_, stmt->self->pos,
-            "invalid expression type '%i' in union declaration.")
+      ERR_B(stmt->self->pos, "invalid expression type '%i' in union declaration.")
     const Exp_Decl decl = l->self->d.exp_decl;
     Var_Decl_List list = decl.list;
     SET_FLAG(decl.td, ae_flag_checked | stmt->flag);
@@ -329,14 +319,13 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
     list = list->next;
   }
   if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)
-    ERR_B(SCAN1_, f->td->xid->pos,
-          "operators can only have one or two arguments")
+    ERR_B(f->td->xid->pos, "operators can only have one or two arguments")
   return 1;
 }
 
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
-    ERR_B(SCAN1_, f->td->xid->pos, "dtor must be in class def!!")
+    ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   else if(GET_FLAG(f, ae_flag_op))
     CHECK_BB(scan1_func_def_op(f))
   return 1;
@@ -374,16 +363,15 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->ext->array) {
     if(class_def->ext->array->exp)
       CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
-    else {
-      ERR_B(SCAN1_, class_def->ext->xid->pos, "can't use empty []'s in class extend")
-    }
+    else
+      ERR_B(class_def->ext->xid->pos, "can't use empty []'s in class extend")
   }
   const Type parent = class_def->type->parent = known_type(env, class_def->ext, "child class definition");
   CHECK_OB(parent)
   if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
-    ERR_B(SCAN1_, class_def->ext->xid->pos, "can't use ref type in class extend")
+    ERR_B(class_def->ext->xid->pos, "can't use ref type in class extend")
   return 1;
 }
 

@@ -69,7 +69,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   const Value v = nspc_lookup_value1(env->curr, 
 stmt->xid);
   if(v)
-CHECK_BB(err_msg(TYPE_, stmt->self->pos,
+CHECK_BB(err_msg(stmt->self->pos,
     "'%s' already declared as variable of type '%s'.", 
 s_name(stmt->xid), v->type->name) )
 //    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
@@ -155,7 +155,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
   }
   CHECK_BB(already_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
   if(isres(class_def->name->xid) > 0) {
-    ERR_B(SCAN0_, class_def->name->pos, "...in class definition: '%s' is reserved",
+    ERR_B(class_def->name->pos, "...in class definition: '%s' is reserved",
           s_name(class_def->name->xid))
   }
   return 1;

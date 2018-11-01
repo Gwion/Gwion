@@ -137,11 +137,11 @@ static OP_CHECK(opck_array_at) {
   const Type l = get_array_type(bin->lhs->type);
   const Type r = get_array_type(bin->rhs->type);
   if(isa(l, r) < 0) {
-    err_msg(TYPE_, bin->self->pos, "array types do not match.");
+    err_msg(bin->self->pos, "array types do not match.");
     return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
-    err_msg(TYPE_, bin->self->pos, "array depths do not match.");
+    err_msg(bin->self->pos, "array depths do not match.");
     return t_null;
   }
   bin->rhs->emit_var = 1;
@@ -153,7 +153,7 @@ static OP_CHECK(opck_array_shift) {
   const Type l = get_array_type(bin->lhs->type);
   const Type r = get_array_type(bin->rhs->type);
   if(isa(l, r) < 0) {
-    err_msg(TYPE_, bin->self->pos, "array types do not match.");
+    err_msg(bin->self->pos, "array types do not match.");
     return t_null;
   }
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)

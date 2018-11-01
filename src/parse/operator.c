@@ -81,7 +81,7 @@ ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
     map_set(&nspc->op_map, (vtype)opi->op, (vtype)v);
   }
   if((mo = operator_find(v, opi->lhs, opi->rhs)))
-    CHECK_BB((err_msg(TYPE_, 0, "operator '%s', for type '%s' and '%s' already imported",
+    CHECK_BB((err_msg(0, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
             opi->rhs ? opi->rhs->name : NULL)))
   mo = mp_alloc(M_Operator);
@@ -153,7 +153,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     nspc = nspc->parent;
   } while(nspc);
   if(opi->op != op_impl)
-  (void)err_msg(TYPE_, 0, "%s %s %s: no match found for operator",
+  (void)err_msg(0, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
 
   return NULL;
@@ -178,8 +178,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
     emitter_add_instr(emit, mo->instr);
     return 1;
   }
-  ERR_B(EMIT_, 0, "Trying to call non emitted operator.")
-  return -1;
+  ERR_B(0, "Trying to call non emitted operator.")
 }
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {

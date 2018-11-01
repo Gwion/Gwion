@@ -46,7 +46,7 @@ static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {
     if(bin->lhs->meta != ae_meta_var) {
-      err_msg(INSTR_, 0, "left side operand is constant");
+      err_msg(0, "left side operand is constant");
       return t_null;
     }
     bin->lhs->emit_var = 1;
@@ -72,7 +72,7 @@ static OP_CHECK(opck_implicit_ptr) {
   const Exp e = (Exp)imp->e;
   if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
     if(e->meta == ae_meta_value) {
-      err_msg(INSTR_, 0, "can't cast constant to Ptr");
+      err_msg(0, "can't cast constant to Ptr");
       return t_null;
     }
     e->cast_to = imp->t;

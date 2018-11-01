@@ -24,7 +24,7 @@ ANN static void handle_plug(PlugInfo v, const m_str c) {
     if(import)
       vector_add(&v[1], (vtype)import);
   } else
-    err_msg(TYPE_, 0, "error in %s.", dlerror());
+    err_msg(0, "error in %s.", dlerror());
 }
 
 void plug_ini(PlugInfo v, Vector list) {

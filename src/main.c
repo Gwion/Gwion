@@ -63,7 +63,7 @@ m_uint compile(VM* vm, const m_str filename) {
   name = realpath(_name, NULL);
   free(_name);
   if(!name) {
-    err_msg(COMPILE_, 0, "error while opening file '%s'", filename);
+    err_msg(0, "error while opening file '%s'", filename);
     return 0;
   }
   if(!(f = fopen(name, "r")))

@@ -12,7 +12,7 @@
 #include "mpool.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
-  err_msg(INSTR_, 0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
+  err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
           c, shred->xid, shred->name, shred->pc - 1);
   vm_shred_exit(shred);
 }
@@ -128,7 +128,7 @@ static OP_CHECK(at_object) {
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ae_flag_ref);
   if(l != t_null && isa(l, r) < 0) {
-    if(err_msg(TYPE_, bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
+    if(err_msg(bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
     return t_null;
   }
   bin->rhs->emit_var = 1;

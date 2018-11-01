@@ -18,7 +18,7 @@ ANN m_bool isres(const Symbol xid) {
   if(!strcmp(s, "this") || !strcmp(s, "now") ||
      !strcmp(s, "me")   || !strcmp(s, "vararg") ||
      !name2op(s)) {
-    err_msg(TYPE_, 0, "%s is reserved.", s_name(xid));
+    err_msg(0, "%s is reserved.", s_name(xid));
     return 1;
   }
   return -1;
@@ -61,8 +61,7 @@ ANN Type find_type(const Env env, ID_List path) {
       type = type->parent;
     }
     if(!t)
-      ERR_O(UTIL_, path->pos,
-            "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
+      ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
     type = t;
     nspc = type->nspc;
     path = path->next;
@@ -135,7 +134,7 @@ ANN Type array_type(const Type base, const m_uint depth) {
 
 m_bool check_array_empty(const Array_Sub a, const int pos) {
   if(a->exp)
-    ERR_B(SCAN1_, pos, "type must be defined with empty []'s")
+    ERR_B(pos, "type must be defined with empty []'s")
   return 1;
 }
 
@@ -152,6 +151,6 @@ ANN m_bool type_ref(Type t) {
 
 ANN m_bool already_defined(const Env env, const Symbol s, const int pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
-  return v ? err_msg(TYPE_, pos,
+  return v ? err_msg(pos,
     "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;
 }

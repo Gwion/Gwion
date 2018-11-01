@@ -136,14 +136,13 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
 ANN m_bool env_access(const Env env, const ae_flag flag) {
   if(env->class_scope) {
    if(GET(flag, ae_flag_global))
-      ERR_B(SCAN0_, 0,
-          "'global' can only be used at %s scope.",
+      ERR_B(0, "'global' can only be used at %s scope.",
           GET(flag, ae_flag_global) && !env->class_def ?
            "file" : "class")
   }
   if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
       GET(flag, ae_flag_protect)) && (!env->class_def || env->class_scope))
-      ERR_B(SCAN0_, 0, "static/private/protect can only be used at class scope.")
+      ERR_B(0, "static/private/protect can only be used at class scope.")
   return 1;
 }
 

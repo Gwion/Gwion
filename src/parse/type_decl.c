@@ -8,7 +8,7 @@
 
 ANN m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, t_object) < 0)
-    ERR_B(SCAN2_, td->xid->pos,
+    ERR_B(td->xid->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"
           "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
           "\t... complex, polar, Vec3, Vec4)",
@@ -92,7 +92,7 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
 ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
-  err_msg(SCAN1_, id->pos, "'%s' unknown type in %s", path, orig);
+  err_msg(id->pos, "'%s' unknown type in %s", path, orig);
   return NULL;
 }
 

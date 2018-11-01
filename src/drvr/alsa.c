@@ -85,14 +85,14 @@ static m_bool alsa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   struct AlsaInfo* info = (struct AlsaInfo*)xcalloc(1, sizeof(struct AlsaInfo));
   di->data = info;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
-    err_msg(ALSA_, 0, "problem with playback");
+    err_msg(0, "problem with playback");
     return -1;
   }
   info->pcm_out = info->handle;
   di->out = di->chan;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC |
       SND_PCM_NONBLOCK) < 0) {
-    err_msg(ALSA_, 0, "problem with capture");
+    err_msg(0, "problem with capture");
     return -1;
   }
   info->pcm_in = info->handle;
