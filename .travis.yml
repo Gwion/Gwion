@@ -10,9 +10,11 @@ addons:
     packages:
     - valgrind
     - lcov
+    - gcc-4.8
 
 env:
   global:
+    - CC=gcc-4.8
     - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - GWION_TEST_DIR=tmp/test
