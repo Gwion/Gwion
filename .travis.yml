@@ -1,5 +1,6 @@
 language: c
-sudo: false
+sudo: required
+#sudo: false
 
 os:
   - linux
@@ -7,6 +8,8 @@ os:
 
 addons:
   apt:
+    config:
+      retries: true
     sources:
     - ubuntu-toolchain-r-test
     - llvm-toolchain-trusty-6.0
@@ -14,7 +17,7 @@ addons:
     - valgrind
     - lcov
     - gcc-8
-    - clang-6
+    - clang-6.0
 
 env:
   global:
