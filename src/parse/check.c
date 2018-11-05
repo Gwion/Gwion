@@ -787,7 +787,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
       ERR_O(member->self->pos,
           "can't access private '%s' outside of class...", value->name)
     else if(GET_FLAG(value, ae_flag_protect))
-      member->self->meta = ae_flag_protect;
+      member->self->meta = ae_meta_protect;
   }
   if(base_static && GET_FLAG(value, ae_flag_member))
     ERR_O(member->self->pos,
