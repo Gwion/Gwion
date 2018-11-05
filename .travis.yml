@@ -44,6 +44,7 @@ install:
 
 before_script:
   - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-4.8; fi; fi
+  - if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi; fi
   - git submodule update --init util
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
   - mkdir -p "$GWION_ADD_DIR"
