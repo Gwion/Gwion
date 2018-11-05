@@ -1,5 +1,5 @@
 ifeq (,$(wildcard util/config.mk))
-$(shell make -C util config.mk)
+$(shell cp util/config.mk.orig util/config.mk)
 endif
 ifeq (,$(wildcard config.mk))
 $(shell cp config.mk.orig config.mk)
