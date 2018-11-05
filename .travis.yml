@@ -9,10 +9,12 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
+    - h-rayflood/llvm
     packages:
     - valgrind
     - lcov
     - gcc-8
+    - clang-7
 
 env:
   global:
