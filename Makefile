@@ -149,7 +149,7 @@ src/arg.o:
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
 install:
-	install ${PRG} ${PREFIX}
+	install ${PRG} ${PREFIX}/bin
 
 uninstall:
 	rm ${PREFIX}/${PRG}

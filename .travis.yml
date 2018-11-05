@@ -12,7 +12,7 @@ addons:
     packages:
     - valgrind
     - lcov
-    - gcc-9
+    - gcc-8
 
 env:
   global:
