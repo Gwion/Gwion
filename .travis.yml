@@ -9,7 +9,7 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - h-rayflood/llvm
+    - lvm-toolchain-trusty-7.0
     packages:
     - valgrind
     - lcov
