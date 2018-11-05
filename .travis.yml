@@ -35,13 +35,12 @@ compiler:
   - clang
 
 install:
-  - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-4.8; fi; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
 
 before_script:
+  - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-4.8; fi; fi
   - git submodule update --init util
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
-  - export CC=gcc-8
   - mkdir -p "$GWION_ADD_DIR"
   - mkdir -p "$GWION_TEST_DIR"
   - if [ $(uname) != Linux ]; then brew update; fi
