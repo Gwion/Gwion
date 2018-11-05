@@ -16,7 +16,6 @@ addons:
 
 env:
   global:
-    - CC=gcc-4.8
     - CIFLAGS=-Wno-attributes
     - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
     - GWION_TEST_DIR=tmp/test
@@ -36,6 +35,7 @@ compiler:
   - clang
 
 install:
+  - if [ $(uname = Linux ] && [ $CC = gcc ]; then export CC=gcc-4.8; fi
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
 
 before_script:
