@@ -1,3 +1,9 @@
+ifeq (,$(wildcard util/config.mk))
+$(shell make -C util config.mk)
+endif
+ifeq (,$(wildcard config.mk))
+$(shell cp config.mk.orig config.mk)
+endif
 include util/config.mk
 include config.mk
 
