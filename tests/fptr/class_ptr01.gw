@@ -1,6 +1,6 @@
 //[contains] cant't assign
 class C {
-  static fun  void test(int i) { <<< "int arg" >>>; }
+  fun static void test(int i) { <<< "int arg" >>>; }
   typedef void (PtrType)(int i);
   test @=> PtrType p;
   p(1);

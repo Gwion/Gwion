@@ -1,6 +1,6 @@
 class C {
   static int i;
-  static typedef void (Test)(){};
+  typedef static void (Test)(){};
   static Test test;
 }
 

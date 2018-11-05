@@ -1,2 +1,2 @@
 // [contains] can only be used at class scope
-static typedef void (Test)(int i);
+typedef static void (Test)(int i);

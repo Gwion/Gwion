@@ -1,7 +1,7 @@
 // [contains] but cannot override
 class C
 {
-	static fun  void test() {}
+	fun static void test() {}
 }
 
 class D extends C

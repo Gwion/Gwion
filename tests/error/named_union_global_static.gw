@@ -1,2 +1,2 @@
 // [contains] can only be used at class scope.
-static union { int i; } u;
+union static { int i; } u;

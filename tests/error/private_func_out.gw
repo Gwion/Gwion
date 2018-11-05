@@ -1,2 +1,2 @@
 // [contains] can only be used at class scope
-private fun void test(){}
+fun private void test(){}

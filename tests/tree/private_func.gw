@@ -1,5 +1,5 @@
 class C {
-  private fun void test(){}
+  fun private void test(){}
   test();
 }
 

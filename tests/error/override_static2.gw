@@ -6,5 +6,5 @@ class C
 
 class D extends C
 {
-	static fun  void test() {}
+	fun static void test() {}
 }
