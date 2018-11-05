@@ -7,10 +7,12 @@ os:
 
 addons:
   apt:
+    sources:
+    - ubuntu-toolchain-r-test
     packages:
     - valgrind
     - lcov
-    - gcc-4.8
+    - gcc-7
 
 env:
   global:
