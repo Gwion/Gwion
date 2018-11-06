@@ -4,11 +4,12 @@
 #include "absyn.h"
 #include "err_msg.h"
 #include "type.h"
-#include "import.h"
 #include "value.h"
 #include "func.h"
 #include "instr.h"
 #include "emit.h"
+#include "object.h"
+#include "import.h"
 
 ANN Type check_exp_call1(Env env, Exp restrict exp_call,
   restrict Exp args, restrict Exp base);

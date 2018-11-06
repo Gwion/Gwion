@@ -1,3 +1,4 @@
+typedef struct M_Object_  * M_Object;
 struct M_Object_ {
   m_bit* data;
   m_uint ref;

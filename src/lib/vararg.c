@@ -6,6 +6,7 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "vararg.h"
 #include "mpool.h"

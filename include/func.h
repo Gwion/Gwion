@@ -7,7 +7,7 @@ struct Func_ {
   Value value_ref;
   Func next;
   m_uint vt_index;
-  Instr variadic;
+  struct Instr_* variadic;
   ae_flag flag;
   HAS_OBJ
 };

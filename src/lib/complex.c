@@ -7,6 +7,7 @@
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 static INSTR(ComplexAssign) { GWDEBUG_EXE

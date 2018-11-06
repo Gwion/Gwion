@@ -6,6 +6,7 @@
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 INSTR(VecMember) { GWDEBUG_EXE

@@ -7,6 +7,7 @@
 #include "func.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "array.h"
 #include "mpool.h"
 

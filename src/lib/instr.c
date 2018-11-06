@@ -8,9 +8,9 @@
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "func.h"
-#include "object.h"
 #include "array.h"
 
 ANN static inline m_bool overflow_(const VM_Shred c) {

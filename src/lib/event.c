@@ -4,9 +4,9 @@
 #include "type.h"
 #include "err_msg.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "map.h"
-#include "object.h"
 
 static CTOR(event_ctor) {
   EV_SHREDS(o) = new_vector();

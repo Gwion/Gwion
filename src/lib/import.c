@@ -10,6 +10,7 @@
 #include "value.h"
 #include "traverse.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "gwi.h"
 #include "emit.h"

@@ -5,8 +5,8 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
-#include "import.h"
 #include "object.h"
+#include "import.h"
 #include "ugen.h"
 #include "mpool.h"
 

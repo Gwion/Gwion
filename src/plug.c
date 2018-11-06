@@ -9,6 +9,7 @@
 #include "vm.h"
 #include "operator.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "plug.h"
 

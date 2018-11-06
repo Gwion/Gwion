@@ -40,7 +40,7 @@ struct BBQ_ {
 typedef struct Shreduler_* Shreduler;
 typedef struct VM_ {
   Shreduler shreduler;
-  M_Object dac, blackhole; // in a struct with ugen
+  struct M_Object_* dac, *blackhole; // in a struct with ugen
   Emitter emit;
   struct Vector_ shred;
   struct Vector_ ugen;
@@ -63,7 +63,7 @@ struct VM_Shred_ {
   VM* vm;
   VM_Shred prev, next;
   Vector args; // passed pointer from compile
-  M_Object me;
+  struct M_Object_* me;
   struct Vector_ child;
   struct Vector_ gc;//, gc1;
   m_float wake_time;

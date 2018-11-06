@@ -8,6 +8,7 @@
 #include "err_msg.h"
 #include "type.h"
 #include "value.h"
+#include "object.h"
 #include "import.h"
 #include "gwi.h"
 #include "lang_private.h"

@@ -12,6 +12,7 @@
 #include "value.h"
 #include "func.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "traverse.h"
 #include "optim.h"
