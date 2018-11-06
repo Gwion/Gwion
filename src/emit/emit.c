@@ -18,7 +18,6 @@
 #include "parse.h"
 
 #define INSTR_RECURS (f_instr)1
-#define INSTR_INLINE (f_instr)2
 
 typedef struct Local_ {
   m_uint size;
@@ -773,15 +772,6 @@ ANN static inline void emit_exp_call1_usr(const Emitter emit, const Func func) {
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
-#ifdef OPTIMIZE
-  if(GET_FLAG(func, ae_flag_inline)) {
-    SET_FLAG(emit->code, ae_flag_recurs);
-    const Instr instr = emitter_add_instr(emit, INSTR_INLINE);
-    *(Func*)instr->ptr = func;
-    instr->m_val = emit_code_offset(emit);
-    return 1;
-  }
-#endif
   if(!func->code ||(GET_FLAG(func, ae_flag_ref) && !GET_FLAG(func, ae_flag_builtin)))
     CHECK_BB(emit_exp_call1_code(emit, func))
   else {
@@ -828,10 +818,6 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   emitter_add_instr(emit, GcIni);
   if(GET_FLAG(exp->m_func, ae_flag_member))
     SET_FLAG(emit->code, ae_flag_member);
-#ifdef OPTIMIZE
-  if(GET_FLAG(exp->m_func, ae_flag_inline))
-    SET_FLAG(emit->code, ae_flag_recurs);
-#endif
   char c[11 + num_digit(exp->self->pos)];
   sprintf(c, "spork~exp:%i", exp->self->pos);
   emit->code->name = code_name_set(c, emit->filename);
