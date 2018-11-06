@@ -2,7 +2,7 @@ class C
 {
   12 => int i;
   Object o;
-  spork ~ {
+  spork  {
     "test";
     second => now;
     string s;

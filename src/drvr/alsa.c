@@ -14,11 +14,12 @@
 #else
 #define ALSA_FORMAT SND_PCM_FORMAT_FLOAT
 #endif
-
+/*
 struct AlsaNi {
   void** buf;
   void* bufi;
 };
+*/
 struct AlsaInfo {
   snd_pcm_t* handle;
   snd_pcm_t *pcm_in,       *pcm_out;

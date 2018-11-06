@@ -1,7 +1,7 @@
 // [contains] NullFuncPtrException
 class C
 {
-	typedef void (test)();
+	typedef void test();
 	test t;
 }
 C c;

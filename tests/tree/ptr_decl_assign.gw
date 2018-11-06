@@ -1,4 +1,4 @@
-typedef void (Test)();
+typedef void Test();
 function void t(){<<<"lol">>>;}
 t @=> Test test;
 test();

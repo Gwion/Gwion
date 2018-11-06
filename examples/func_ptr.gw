@@ -1,5 +1,5 @@
 // define a function pointer type
-typedef void (Test)()
+typedef void Test()
 
 // define a few functions
 function void test1(){ <<<"test">>>; };

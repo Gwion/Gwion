@@ -154,7 +154,7 @@ src/arg.o:
 	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
-install:
+install: ${PRG}
 	install ${PRG} ${PREFIX}/bin
 
 uninstall:

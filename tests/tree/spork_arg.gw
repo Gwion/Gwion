@@ -1,2 +1,2 @@
 function void test(int i, int j){}
-spork ~ test(1,2);
+spork  test(1,2);

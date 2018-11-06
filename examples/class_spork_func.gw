@@ -5,10 +5,10 @@ class C
     samp => now;
     <<<"and now">>>;
   }
-  spork ~ test();
+  spork  test();
 }
 
 C c;
-spork ~c.test();
+spork c.test();
 me.yield();
 4::samp => now;

@@ -1,3 +1,3 @@
 // [contains] only function calls can be sporked
 int i;
-spork ~i;
+spork i;

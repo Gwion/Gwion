@@ -1,6 +1,6 @@
  class C
 {
-	typedef void (Test)();
+	typedef void Test();
 	function void test1(){};
     Test test0;
 	<<<test1 @=> test0>>>;

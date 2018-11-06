@@ -1,6 +1,6 @@
 fun Vec4 test(int i) { <<<"test with arg ", i>>>; }
 
-//typedef Vec4 (PT)();
+//typedef Vec4 PT();
 //test @=> 
 PtrTypeI p;
 test @=> p;

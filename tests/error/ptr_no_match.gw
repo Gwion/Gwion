@@ -2,6 +2,6 @@
 function void test(int i){}
 function void test(float f){}
 
-typedef void (Test)();
+typedef void Test();
 Test t;
 test @=> t; 
