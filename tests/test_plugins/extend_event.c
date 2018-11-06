@@ -3,6 +3,7 @@
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); }

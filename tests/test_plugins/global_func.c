@@ -4,6 +4,7 @@
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 SFUN(coverage_int) {

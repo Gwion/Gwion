@@ -3,6 +3,7 @@
 #include "absyn.h"
 #include "vm.h"
 #include "operator.h"
+#include "object.h"
 #include "import.h"
 
 MFUN(test_mfun){}

@@ -2,8 +2,8 @@
 #include "map.h"
 #include "absyn.h"
 #include "type.h"
-#include "import.h"
 #include "object.h"
+#include "import.h"
 
 static MFUN(test_func) { puts("test"); }
 GWION_IMPORT(typedef_test) {

@@ -2,6 +2,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "type.h"
+#include "object.h"
 #include "import.h"
 
 static struct Type_ t_invalid_var_type = { 0, SZ_INT, ".invalid_var_type" };

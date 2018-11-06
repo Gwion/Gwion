@@ -5,9 +5,9 @@
 #include "err_msg.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 #include "func.h"
-#include "object.h"
 
 struct ret_info {
   Instr instr;

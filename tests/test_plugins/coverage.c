@@ -3,6 +3,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "type.h"
+#include "object.h"
 #include "import.h"
 
 SFUN(coverage_int)     { *(m_uint*)RETURN    = 0; }

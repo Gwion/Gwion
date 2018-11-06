@@ -3,6 +3,7 @@
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
+#include "object.h"
 #include "import.h"
 
 GWION_IMPORT(extend_pair_test) {

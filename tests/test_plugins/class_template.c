@@ -2,8 +2,8 @@
 #include "map.h"
 #include "absyn.h"
 #include "type.h"
-#include "import.h"
 #include "object.h"
+#include "import.h"
 
 static m_int o_map_key;
 static m_int o_map_value;

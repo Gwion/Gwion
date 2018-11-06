@@ -3,8 +3,8 @@
 #include "absyn.h"
 #include "type.h"
 #include "instr.h"
-#include "import.h"
 #include "object.h"
+#include "import.h"
 #include "vararg.h"
 
 static MFUN(m_variadic) {
