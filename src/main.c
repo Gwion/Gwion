@@ -11,6 +11,7 @@
 #include "defs.h"
 #include "absyn.h"
 #include "vm.h"
+#include "env.h"
 #include "type.h"
 #include "emit.h"
 #include "hash.h"

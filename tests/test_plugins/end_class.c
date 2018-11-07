@@ -2,6 +2,8 @@
 #include "map.h"
 #include "absyn.h"
 #include "vm.h"
+#include "oo.h"
+#include "env.h"
 #include "operator.h"
 #include "object.h"
 #include "import.h"

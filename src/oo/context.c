@@ -2,9 +2,10 @@
 #include "defs.h"
 #include "map.h"
 #include "absyn.h"
+#include "oo.h"
+#include "env.h"
 #include "nspc.h"
 #include "context.h"
-#include "env.h"
 #include "mpool.h"
 
 ANN2(2) Context new_context(const Ast ast, const m_str str) {

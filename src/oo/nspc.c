@@ -4,6 +4,8 @@
 #include "absyn.h"
 #include "symbol.h"
 #include "map.h"
+#include "oo.h"
+#include "env.h"
 #include "type.h"
 #include "value.h"
 #include "func.h"

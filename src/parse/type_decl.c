@@ -4,6 +4,8 @@
 #include "err_msg.h"
 #include "map.h"
 #include "absyn.h"
+#include "oo.h"
+#include "env.h"
 #include "type.h"
 
 ANN m_bool prim_ref(const Type_Decl* td, const Type t) {

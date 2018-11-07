@@ -3,8 +3,9 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
-#include "type.h"
+#include "oo.h"
 #include "env.h"
+#include "type.h"
 
 ANN static Type owner_type(const Type t) {
   if(!t->nspc)

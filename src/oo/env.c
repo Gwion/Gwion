@@ -5,11 +5,11 @@
 #include "map.h"
 #include "absyn.h"
 #include "oo.h"
+#include "env.h"
 #include "value.h"
 #include "traverse.h"
 #include "type.h"
 #include "context.h"
-#include "env.h"
 
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));

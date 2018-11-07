@@ -7,6 +7,7 @@
 #include "absyn.h"
 #include "err_msg.h"
 #include "vm.h"
+#include "env.h"
 #include "operator.h"
 #include "instr.h"
 #include "object.h"

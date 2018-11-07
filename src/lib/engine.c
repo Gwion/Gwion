@@ -6,6 +6,8 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
+#include "oo.h"
+#include "env.h"
 #include "type.h"
 #include "value.h"
 #include "object.h"
