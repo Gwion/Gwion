@@ -38,10 +38,11 @@ struct BBQ_ {
 };
 
 typedef struct Shreduler_* Shreduler;
+typedef struct Emitter_   * Emitter;
 typedef struct VM_ {
   Shreduler shreduler;
   struct M_Object_* dac, *blackhole; // in a struct with ugen
-  Emitter emit;
+  struct Emitter_* emit;
   struct Vector_ shred;
   struct Vector_ ugen;
   struct Scanner_* scan;
