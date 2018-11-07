@@ -1,7 +1,8 @@
 # Gwion
 ![](https://img.shields.io/badge/language-C-yellowgreen.svg)
 [![release](http://github-release-version.herokuapp.com/github/fennecdjay/Gwion/release.svg)](https://github.com/fennecdjay/Gwion/releases/latest)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)  
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion?ref=badge_shield)
+ 
 
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7669efe4c1c84b888cea5885201c79ae)](https://www.codacy.com/app/fennecdjay/Gwion?utm_source=github.com&utm_medium=referral&utm_content=fennecdjay/Gwion&utm_campaign=badger)
@@ -66,3 +67,7 @@ make
 
 :+1: Every helping hand is welcome!!! :+1:  
 :book: Please see the [contributing](.github/CONTRIBUTING.md) page for more information.
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion?ref=badge_large)
