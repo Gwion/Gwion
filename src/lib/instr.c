@@ -258,7 +258,6 @@ INSTR(FuncUsr) { GWDEBUG_EXE
     memcpy(shred->mem, shred->reg, stack_depth);
   }
   shred_func_finish(shred);
-  return;
 }
 
 INSTR(DotFunc) { GWDEBUG_EXE

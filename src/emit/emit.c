@@ -730,7 +730,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
     if(emit_func_def(emit, func->def) < 0)
       ERR_B(0, "can't emit func.") // LCOV_EXCL_LINE
     const Instr code = emitter_add_instr(emit, RegPushPtr);
-    code->m_val = (m_uint)(func->code = func->def->func->code);
+    code->m_val = (m_uint)func->code;
   } else {
     if(!func->value_ref->owner_class && isa(func->value_ref->type, t_fptr) < 0) {
       Instr instr = emitter_add_instr(emit, RegPushPtr);
