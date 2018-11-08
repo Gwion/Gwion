@@ -123,13 +123,33 @@ INSTR(RegPushMaybe) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(AllocWord) { GWDEBUG_EXE
+INSTR(AllocWord3) { GWDEBUG_EXE
   memset(MEM(instr->m_val), 0, instr->m_val2);
   if(*(m_uint*)instr->ptr)
     *(m_bit**)REG(0) = (m_bit*)MEM(instr->m_val);
   else
-    memcpy(REG(0), MEM(instr->m_val), instr->m_val2);
+    memset(REG(0), 0, instr->m_val2); // MEM(instr->m_val)
   PUSH_REG(shred, instr->m_val2);
+}
+
+INSTR(AllocWord) { GWDEBUG_EXE
+  *(m_uint*)MEM(instr->m_val) = 0;
+  if(*(m_uint*)instr->ptr)
+    *(m_bit**)REG(0) = (m_bit*)MEM(instr->m_val);
+  else
+    *(m_uint*)REG(0) = 0; // MEM(instr->m_val);
+  PUSH_REG(shred, SZ_INT);
+}
+
+INSTR(AllocWord2) { GWDEBUG_EXE
+  *(m_float*)MEM(instr->m_val) = 0.0;
+  if(*(m_uint*)instr->ptr) {
+    *(m_bit**)REG(0) = (m_bit*)MEM(instr->m_val);
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_float*)REG(0) = 0.0; // MEM(instr->m_val);
+    PUSH_REG(shred, SZ_FLOAT);
+  }
 }
 
 /* branching */
@@ -356,7 +376,29 @@ INSTR(AllocMember) { GWDEBUG_EXE
   if(*(m_uint*)instr->ptr)
     *(const m_bit**)REG(0) = data;
   else
-    memset(REG(0), *data, instr->m_val2);
+    *(m_uint*)REG(0) = 0;
+  PUSH_REG(shred, SZ_INT);
+}
+
+INSTR(AllocMember2) { GWDEBUG_EXE
+  const M_Object obj = *(M_Object*)MEM(0);
+  const m_bit* data = obj->data + instr->m_val;
+  if(*(m_uint*)instr->ptr) {
+    *(const m_bit**)REG(0) = data;
+    PUSH_REG(shred, SZ_INT);
+  } else {
+    *(m_float*)REG(0) = 0.0;
+    PUSH_REG(shred, SZ_FLOAT);
+  }
+}
+
+INSTR(AllocMember3) { GWDEBUG_EXE
+  const M_Object obj = *(M_Object*)MEM(0);
+  const m_bit* data = obj->data + instr->m_val;
+  if(*(m_uint*)instr->ptr)
+    *(const m_bit**)REG(0) = data;
+  else
+    memset(REG(0), 0, instr->m_val2); // 0 <=> *data
   PUSH_REG(shred, instr->m_val2);
 }
 

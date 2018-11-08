@@ -515,9 +515,17 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
   return 1;
 }
 
+ANN static Instr emit_exp_decl_member(const Emitter emit, const Value v) { GWDEBUG_EXE
+  const f_instr exec = v->type->size == SZ_INT ? AllocMember : v->type->size == SZ_FLOAT ?
+    AllocMember2 : AllocMember3;
+  return emitter_add_instr(emit, exec);
+}
+
 ANN static Instr emit_exp_decl_global(const Emitter emit, const Value v, const m_bool is_obj) { GWDEBUG_EXE
   v->offset = emit_alloc_local(emit, v->type->size, is_obj);
-  return emitter_add_instr(emit, AllocWord);
+  const f_instr exec = v->type->size == SZ_INT ? AllocWord : v->type->size == SZ_FLOAT ?
+    AllocWord2 : AllocWord3;
+  return emitter_add_instr(emit, exec);
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl var_decl,
@@ -526,12 +534,12 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const Type type = value->type;
   const Array_Sub array = var_decl->array;
   const m_bool is_array = array && array->exp;
-  const m_bool is_obj = isa(type, t_object) > 0 || var_decl->array;
+  const m_bool is_obj = isa(type, t_object) > 0;
 
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   const Instr alloc = GET_FLAG(value, ae_flag_member) ?
-    emitter_add_instr(emit, AllocMember) :
+    emit_exp_decl_member(emit, value) :
     emit_exp_decl_global(emit, value, is_obj);
   alloc->m_val2 = emit_var ? SZ_INT : type->size;
   alloc->m_val = value->offset;
