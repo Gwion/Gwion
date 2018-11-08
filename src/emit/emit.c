@@ -1417,6 +1417,7 @@ ANN static m_bool is_special(const Type t) {
   return -1;
 }
 
+static f_instr dotimport[] = { DotImport, DotImport2, DotImport3, DotImport4 };
 ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const m_bool emit_addr) { GWDEBUG_EXE
   if(v->d.ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
     if(GET_FLAG(v, ae_flag_enum)) {
@@ -1424,13 +1425,12 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       *(m_uint*)func_i->ptr = (m_uint)v->d.ptr;
     } else {
       const m_uint size = v->type->size;
-      const f_instr exec = size == SZ_INT ? DotImport :size == SZ_FLOAT ?
-        DotImport2 : DotImport3;
-      const Instr func_i = emitter_add_instr(emit, exec);
+      const enum Kind kind = kindof(size, emit_addr);
+      const Instr func_i = emitter_add_instr(emit, dotimport[kind]);
       func_i->m_val = (isa(v->type, t_object) > 0 ?
         (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-      func_i->m_val2 = emit_addr ? SZ_INT : size;
-      *(m_uint*)func_i->ptr = emit_addr;
+      if(kind == KIND_OTHER)
+        func_i->m_val2 = size;
     }
   } else { // from code
     const Instr push_i = emitter_add_instr(emit, RegPushImm);
