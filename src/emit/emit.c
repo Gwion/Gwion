@@ -289,6 +289,13 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   return 1;
 }
 
+ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
+  if(emit_var)
+    return KIND_ADDR;
+  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
+}
+
+static f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
 ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   if(v->owner_class)
@@ -296,20 +303,13 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
   if(GET_FLAG(v, ae_flag_builtin) || GET_FLAG(v, ae_flag_enum) ||
       GET_FLAG(v, ae_flag_union))
     return emit_symbol_builtin(emit, prim);
-
-  if(prim->self->emit_var) {
-    const Instr instr = emitter_add_instr(emit, prim->self->emit_var ?
-      RegPushMemAddr : RegPushMem);
-    instr->m_val  = v->offset;
-    *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
-  } else {
-    const m_uint size = v->type->size;
-    const f_instr exec = size == SZ_INT ? RegPushMem : size == SZ_FLOAT ?
-      RegPushMem2 : size == SZ_VEC3 ? RegPushMem3 : RegPushMem4;
-    const Instr instr = emitter_add_instr(emit, exec);
-    instr->m_val  = v->offset;
-    *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
-  }
+  const m_uint size = v->type->size;
+  const enum Kind kind = kindof(size, prim->self->emit_var);
+  const Instr instr = emitter_add_instr(emit, regpushmem[kind]);
+  instr->m_val  = v->offset;
+  if(kind == KIND_OTHER)
+    instr->m_val2 = size;
+  *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
   return 1;
 }
 
@@ -482,11 +482,6 @@ static const _prim_func prim_func[] = {
 
 ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   return prim_func[prim->primary_type](emit, prim);
-}
-ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
-  if(emit_var)
-    return KIND_ADDR;
-  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
 }
 
 static const f_instr dotstatic[] = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };

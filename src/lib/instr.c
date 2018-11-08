@@ -59,12 +59,6 @@ describe_regpushimmxxx(Imm2, m_float, SZ_FLOAT)
 describe_regpushimmxxx(Imm3, m_vec3,  SZ_VEC3)
 describe_regpushimmxxx(Imm4, m_vec4,  SZ_VEC4)
 
-INSTR(RegPushMemAddr) { GWDEBUG_EXE
-  *(m_uint**)REG(0) = (m_uint*)((*(m_uint*)instr->ptr ?
-        shred->base : shred->mem) + instr->m_val);
-  PUSH_REG(shred, SZ_INT);
-}
-
 INSTR(MemPushImm) { GWDEBUG_EXE
   *(m_uint*)MEM(0) = instr->m_val;
   PUSH_MEM(shred, SZ_INT);
@@ -80,10 +74,19 @@ INSTR(RegPush##name) { GWDEBUG_EXE            \
       *(type*)MEM(instr->m_val) : *(type*)(shred->base + instr->m_val); \
   PUSH_REG(shred, size);                     \
 }
+
 describe_regpushxxx(Mem,  m_int,   SZ_INT)
 describe_regpushxxx(Mem2, m_float, SZ_FLOAT)
-describe_regpushxxx(Mem3, m_vec3,  SZ_VEC3)
-describe_regpushxxx(Mem4, m_vec4,  SZ_VEC4)
+INSTR(RegPushMem3) { GWDEBUG_EXE
+  memcpy(REG(0), (shred->base + instr->m_val), instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
+}
+INSTR(RegPushMem4) { GWDEBUG_EXE
+  *(m_uint**)REG(0) = (m_uint*)((*(m_uint*)instr->ptr ?
+        shred->base : shred->mem) + instr->m_val);
+  PUSH_REG(shred, SZ_INT);
+}
+
 
 INSTR(RegPushPtr) { GWDEBUG_EXE
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
