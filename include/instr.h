@@ -107,6 +107,7 @@ INSTR(DotImport3);
 INSTR(DotData);
 INSTR(DotData2);
 INSTR(DotData3);
+INSTR(DotData4);
 INSTR(ObjectRelease);
 
 /* array */
