@@ -1544,13 +1544,11 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
   return 1;
 }
 
-//static const f_instr dotstatic[] = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
-
+static f_instr dotdata[] = { DotData, DotData2, DotData3, DotData4 };
 ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
   const m_uint size = v->type->size;
-  const f_instr exec = emit_addr ? DotData4 : size == SZ_INT ? DotData :
-    size == SZ_FLOAT ? DotData2 : DotData3;
-  const Instr func_i = emitter_add_instr(emit, exec);
+  const enum Kind kind = kindof(size, emit_addr);
+  const Instr func_i = emitter_add_instr(emit, dotdata[kind]);
   func_i->m_val = v->offset;
   func_i->m_val2 = v->type->size;
   *(m_uint*)func_i->ptr = emit_addr;
