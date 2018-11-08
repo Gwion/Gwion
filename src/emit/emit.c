@@ -1414,10 +1414,13 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       const Instr func_i = emitter_add_instr(emit, RegPushImm);
       *(m_uint*)func_i->ptr = (m_uint)v->d.ptr;
     } else {
-      const Instr func_i = emitter_add_instr(emit, DotImport);
+      const m_uint size = v->type->size;
+      const f_instr exec = size == SZ_INT ? DotImport :size == SZ_FLOAT ?
+        DotImport2 : DotImport3;
+      const Instr func_i = emitter_add_instr(emit, exec);
       func_i->m_val = (isa(v->type, t_object) > 0 ?
         (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-      func_i->m_val2 = emit_addr ? SZ_INT : v->type->size;
+      func_i->m_val2 = emit_addr ? SZ_INT : size;
       *(m_uint*)func_i->ptr = emit_addr;
     }
   } else { // from code

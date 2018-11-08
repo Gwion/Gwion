@@ -415,6 +415,22 @@ INSTR(DotStatic) { GWDEBUG_EXE
 
 INSTR(DotImport) { GWDEBUG_EXE
   if(!*(m_uint*)instr->ptr)
+    *(m_uint*)REG(0) =  *(m_uint*)instr->m_val;
+  else
+    *(m_bit**)REG(0) = (m_bit*)(instr->m_val);
+  PUSH_REG(shred, SZ_INT);
+}
+
+INSTR(DotImport2) { GWDEBUG_EXE
+  if(!*(m_uint*)instr->ptr)
+    *(m_float*)REG(0) =  *(m_float*)instr->m_val;
+  else
+    *(m_bit**)REG(0) = (m_bit*)(instr->m_val);
+  PUSH_REG(shred, SZ_FLOAT);
+}
+
+INSTR(DotImport3) { GWDEBUG_EXE
+  if(!*(m_uint*)instr->ptr)
     memcpy(REG(0), (m_bit*)instr->m_val, instr->m_val2);
   else
     *(m_bit**)REG(0) = (m_bit*)(instr->m_val);
@@ -431,7 +447,7 @@ INSTR(DotData) { GWDEBUG_EXE
     PUSH_REG(shred, instr->m_val2 - SZ_INT);
   }
   else
-    memcpy(REG(-SZ_INT), &c, SZ_INT);
+    *(m_uint*)REG(-SZ_INT) = (m_uint)c;
 }
 
 INSTR(ObjectRelease) { GWDEBUG_EXE

@@ -92,6 +92,8 @@ INSTR(AllocMember2);
 INSTR(AllocMember3);
 INSTR(DotStatic);
 INSTR(DotImport);
+INSTR(DotImport2);
+INSTR(DotImport3);
 INSTR(DotData);
 INSTR(ObjectRelease);
 
