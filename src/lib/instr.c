@@ -441,6 +441,30 @@ INSTR(DotData) { GWDEBUG_EXE
   const M_Object obj  = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
+  const m_uint* c = (m_uint*)(obj->data + instr->m_val);
+  if(!*(m_uint*)instr->ptr)
+    *(m_uint*)REG(-SZ_INT) = *c;
+  else
+    *(m_uint**)REG(-SZ_INT) = c;
+}
+
+INSTR(DotData2) { GWDEBUG_EXE
+  const M_Object obj  = *(M_Object*)REG(-SZ_INT);
+  if(!obj)
+    Except(shred, "NullPtrException");
+  m_float* c = (m_float*)(obj->data + instr->m_val);
+  if(!*(m_uint*)instr->ptr) {
+    *(m_float*)REG(-SZ_INT) = *c;
+    PUSH_REG(shred, SZ_FLOAT - SZ_INT);
+  }
+  else
+    *(m_float**)REG(-SZ_INT) = c;
+}
+
+INSTR(DotData3) { GWDEBUG_EXE
+  const M_Object obj  = *(M_Object*)REG(-SZ_INT);
+  if(!obj)
+    Except(shred, "NullPtrException");
   const m_bit* c = (m_bit*)(obj->data + instr->m_val);
   if(!*(m_uint*)instr->ptr) {
     memcpy(REG(-SZ_INT), c, instr->m_val2);

@@ -1534,7 +1534,10 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
 }
 
 ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
-  const Instr func_i = emitter_add_instr(emit, DotData);
+  const m_uint size = v->type->size;
+  const f_instr exec = size == SZ_INT ? DotData : size == SZ_FLOAT ?
+    DotData2 : DotData3;
+  const Instr func_i = emitter_add_instr(emit, exec);
   func_i->m_val = v->offset;
   func_i->m_val2 = v->type->size;
   *(m_uint*)func_i->ptr = emit_addr;
