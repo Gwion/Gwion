@@ -241,10 +241,19 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
   return 1;
 }
 
-ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
+static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
   if(emit_var)
     return KIND_ADDR;
   return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
+}
+
+ANN static Instr emit_kind(Emitter emit, const m_uint size, const m_bool addr,
+    const f_instr func[]) {
+  const enum Kind kind = kindof(size, addr);
+  const Instr instr = emitter_add_instr(emit, func[kind]);
+  if(kind == KIND_OTHER)
+    instr->m_val2 = size;
+  return instr;
 }
 
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
@@ -285,10 +294,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
     }
   } else {
     const m_uint size = v->type->size;
-    const enum Kind kind = kindof(size, prim->self->emit_var);
-    const Instr instr = emitter_add_instr(emit, regpushimm[kind]);
-    if(kind == KIND_OTHER)
-      instr->m_val2 = size;
+    const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushimm);
     if(isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
       if(v->d.ptr)
         memcpy(instr->ptr, v->d.ptr, v->type->size);
@@ -306,11 +312,8 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
       GET_FLAG(v, ae_flag_union))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
-  const enum Kind kind = kindof(size, prim->self->emit_var);
-  const Instr instr = emitter_add_instr(emit, regpushmem[kind]);
+  const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushmem);
   instr->m_val  = v->offset;
-  if(kind == KIND_OTHER)
-    instr->m_val2 = size;
   *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
   return 1;
 }
@@ -490,11 +493,8 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Type*)push->ptr = v->owner_class;
   const m_uint size = v->type->size;
-  const enum Kind kind = kindof(emit_var, size);
-  const Instr alloc = emitter_add_instr(emit, dotstatic[kind]);
-  alloc->m_val = v->offset;
-  if(kind == KIND_OTHER)
-    alloc->m_val2 = size;
+  const Instr instr = emit_kind(emit, emit_var, size, dotstatic);
+  instr->m_val = v->offset;
   return 1;
 }
 
@@ -1419,22 +1419,16 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       *(m_uint*)func_i->ptr = (m_uint)v->d.ptr;
     } else {
       const m_uint size = v->type->size;
-      const enum Kind kind = kindof(size, emit_addr);
-      const Instr func_i = emitter_add_instr(emit, dotimport[kind]);
-      func_i->m_val = (isa(v->type, t_object) > 0 ?
+      const Instr instr = emit_kind(emit, size, emit_addr, dotimport);
+      instr->m_val = (isa(v->type, t_object) > 0 ?
         (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-      if(kind == KIND_OTHER)
-        func_i->m_val2 = size;
     }
   } else { // from code
     const Instr push_i = emitter_add_instr(emit, RegPushImm);
     *(Type*)push_i->ptr = v->owner_class;
     const m_uint size = v->type->size;
-    const enum Kind kind = kindof(size, emit_addr);
-    const Instr func_i = emitter_add_instr(emit, dotstatic[kind]);
-    func_i->m_val =  v->offset;
-    if(kind == KIND_OTHER)
-      func_i->m_val2 = v->type->size;
+    const Instr instr = emit_kind(emit, size, emit_addr, dotstatic);
+    instr->m_val =  v->offset;
   }
   return 1;
 }
@@ -1540,12 +1534,8 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
 
 ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
   const m_uint size = v->type->size;
-  const enum Kind kind = kindof(size, emit_addr);
-  const Instr instr = emitter_add_instr(emit, dotmember[kind]);
+  const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->offset;
-  if(kind == KIND_OTHER)
-    instr->m_val2 = v->type->size;
-//  *(m_uint*)instr->ptr = emit_addr;
 }
 
 ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
@@ -1626,12 +1616,8 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_EXE
 }
 
 ANN static inline void emit_func_def_ensure(const Emitter emit, const m_uint size) { GWDEBUG_EXE
-  if(size) {
-    const enum Kind kind = kindof(size, 0);
-    const Instr instr = emitter_add_instr(emit, regpushimm[kind]);
-    if(kind == KIND_OTHER)
-      instr->m_val2 = size;
-  }
+  if(size)
+    emit_kind(emit, size, 0, regpushimm);
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
 }
 
