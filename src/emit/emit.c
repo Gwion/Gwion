@@ -290,11 +290,21 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
   if(GET_FLAG(v, ae_flag_builtin) || GET_FLAG(v, ae_flag_enum) ||
       GET_FLAG(v, ae_flag_union))
     return emit_symbol_builtin(emit, prim);
-  const Instr instr = emitter_add_instr(emit, prim->self->emit_var ?
+
+  if(prim->self->emit_var) {
+    const Instr instr = emitter_add_instr(emit, prim->self->emit_var ?
       RegPushMemAddr : RegPushMem);
-  instr->m_val  = v->offset;
-  instr->m_val2 = v->type->size;
-  *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
+    instr->m_val  = v->offset;
+    *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
+  } else {
+    const m_uint size = v->type->size;
+    const f_instr exec = size == SZ_INT ? RegPushMem : size == SZ_FLOAT ?
+      RegPushMem2 : size == SZ_VEC3 ? RegPushMem3 : RegPushMem4;
+// keep one RegPushMem with memcpy(REG(0), instr->ptr, instr->m_val2) ?
+    const Instr instr = emitter_add_instr(emit, exec);
+    instr->m_val  = v->offset;
+    *(m_uint*)instr->ptr = GET_FLAG(v, ae_flag_global);
+  }
   return 1;
 }
 
@@ -362,7 +372,6 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) { GW
 
 ANN static inline void push_this(const Emitter emit) {
   const Instr instr = emitter_add_instr(emit, RegPushMem);
-  instr->m_val2 = SZ_INT;
 }
 
 ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
@@ -908,7 +917,6 @@ ANN static void emit_exp_constprop(const Emitter emit, const Exp e) {
     if(e->exp_type == ae_exp_constprop) {
       const Instr instr = emitter_add_instr(emit, RegPushMem);
       instr->m_val = e->d.exp_primary.value->offset;
-      instr->m_val2 = SZ_INT;
       *(m_uint*)instr->ptr = GET_FLAG(e->d.exp_primary.value, ae_flag_global);
       return;
     }
