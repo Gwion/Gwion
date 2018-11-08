@@ -48,10 +48,16 @@ INSTR(RegPop) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val);
 }
 
-INSTR(RegPushImm) { GWDEBUG_EXE
-  memcpy(REG(0), instr->ptr, instr->m_val);
-  PUSH_REG(shred, instr->m_val);
+#define describe_regpushimmxxx(name, type, size) \
+INSTR(RegPush##name) { GWDEBUG_EXE               \
+  *(type*)REG(0) = *(type*)instr->ptr;           \
+  PUSH_REG(shred, size);                         \
 }
+
+describe_regpushimmxxx(Imm,  m_int,   SZ_INT)
+describe_regpushimmxxx(Imm2, m_float, SZ_FLOAT)
+describe_regpushimmxxx(Imm3, m_vec3,  SZ_VEC3)
+describe_regpushimmxxx(Imm4, m_vec4,  SZ_VEC4)
 
 INSTR(RegPushMemAddr) { GWDEBUG_EXE
   *(m_uint**)REG(0) = (m_uint*)((*(m_uint*)instr->ptr ?
