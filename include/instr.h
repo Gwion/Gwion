@@ -78,6 +78,7 @@ INSTR(ComplexImag);
 INSTR(AllocWord);
 INSTR(AllocWord2);
 INSTR(AllocWord3);
+INSTR(AllocWord4);
 
 /* function */
 INSTR(SporkExp);
@@ -97,6 +98,7 @@ INSTR(ObjectAssign);
 INSTR(AllocMember);
 INSTR(AllocMember2);
 INSTR(AllocMember3);
+INSTR(AllocMember4);
 INSTR(DotStatic);
 INSTR(DotStatic2);
 INSTR(DotStatic3);
