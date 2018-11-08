@@ -56,8 +56,10 @@ INSTR(RegPush##name) { GWDEBUG_EXE               \
 
 describe_regpushimmxxx(Imm,  m_int,   SZ_INT)
 describe_regpushimmxxx(Imm2, m_float, SZ_FLOAT)
-describe_regpushimmxxx(Imm3, m_vec3,  SZ_VEC3)
-describe_regpushimmxxx(Imm4, m_vec4,  SZ_VEC4)
+INSTR(RegPushImm3) { GWDEBUG_EXE
+  memcpy(REG(0), instr->ptr, instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
+}
 
 INSTR(MemPushImm) { GWDEBUG_EXE
   *(m_uint*)MEM(0) = instr->m_val;

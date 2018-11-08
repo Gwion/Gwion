@@ -241,6 +241,13 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
   return 1;
 }
 
+ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
+  if(emit_var)
+    return KIND_ADDR;
+  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
+}
+
+static f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
@@ -256,43 +263,34 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
 
 ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
-  const Instr instr = emitter_add_instr(emit, RegPushImm);
   if(GET_FLAG(v, ae_flag_func)) {
+    const Instr instr = emitter_add_instr(emit, RegPushImm);
     *(Func*)instr->ptr = v->d.func_ref;
-  } else if(GET_FLAG(v, ae_flag_union)) {
-      instr->execute = RegPushDeref;
-      if(prim->self->emit_var) {
-        instr->m_val = SZ_INT;
-        *(m_uint*)instr->ptr = (m_uint)&v->d.ptr;
-      } else {
-        instr->m_val2 = 2;
-        instr->m_val = v->type->size;
-        *(m_uint*)instr->ptr = (m_uint)v->d.ptr;
+    return 1;
+  }
+  if(GET_FLAG(v, ae_flag_union)) {
+    const Instr instr = emitter_add_instr(emit, RegPushDeref);
+    if(prim->self->emit_var) {
+      instr->m_val = SZ_INT;
+      *(m_uint*)instr->ptr = (m_uint)&v->d.ptr;
+    } else {
+      instr->m_val2 = 2;
+      instr->m_val = v->type->size;
+      *(m_uint*)instr->ptr = (m_uint)v->d.ptr;
     }
   } else {
     const m_uint size = v->type->size;
-#ifndef USE_DOUBLE
-    if(size == SZ_FLOAT)
-      instr->execute = RegPushImm2;
-    else
-#endif
-    if(size == SZ_VEC3)
-      instr->execute = RegPushImm3;
-    else if(size == SZ_VEC4)
-      instr->execute = RegPushImm4;
-  if(!prim->self->emit_var && isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
-    if(v->d.ptr)
-      memcpy(instr->ptr, v->d.ptr, v->type->size); // push deref ?
-  } else
-    *(m_uint*)instr->ptr = (prim->self->emit_var ? (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-}
+    const enum Kind kind = kindof(size, prim->self->emit_var);
+    const Instr instr = emitter_add_instr(emit, regpushimm[kind]);
+    if(kind == KIND_OTHER)
+      instr->m_val2 = size;
+    if(isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
+      if(v->d.ptr)
+        memcpy(instr->ptr, v->d.ptr, v->type->size);
+    } else
+      *(m_bit**)instr->ptr = v->d.ptr;
+  }
   return 1;
-}
-
-ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
-  if(emit_var)
-    return KIND_ADDR;
-  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
 }
 
 static f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
@@ -1543,10 +1541,11 @@ static f_instr dotdata[] = { DotData, DotData2, DotData3, DotData4 };
 ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
   const m_uint size = v->type->size;
   const enum Kind kind = kindof(size, emit_addr);
-  const Instr func_i = emitter_add_instr(emit, dotdata[kind]);
-  func_i->m_val = v->offset;
-  func_i->m_val2 = v->type->size;
-  *(m_uint*)func_i->ptr = emit_addr;
+  const Instr instr = emitter_add_instr(emit, dotdata[kind]);
+  instr->m_val = v->offset;
+  if(kind == KIND_OTHER)
+    instr->m_val2 = v->type->size;
+//  *(m_uint*)instr->ptr = emit_addr;
 }
 
 ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
@@ -1628,10 +1627,10 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_EXE
 
 ANN static inline void emit_func_def_ensure(const Emitter emit, const m_uint size) { GWDEBUG_EXE
   if(size) {
-    // keep one RegPushImmx with memcpy(REG(0), instr->ptr, instr->m_val2) ?
-    const f_instr exec = size == SZ_INT ? RegPushImm : size == SZ_FLOAT ?
-      RegPushImm2 : size == SZ_VEC3 ? RegPushImm3 : RegPushImm4;
-   emitter_add_instr(emit, exec);
+    const enum Kind kind = kindof(size, 0);
+    const Instr instr = emitter_add_instr(emit, regpushimm[kind]);
+    if(kind == KIND_OTHER)
+      instr->m_val2 = size;
   }
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
 }
