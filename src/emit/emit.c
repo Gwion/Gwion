@@ -487,8 +487,11 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const m_bool emit_var) { GWDEBUG_EXE
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Type*)push->ptr = v->owner_class;
-  const Instr alloc = emitter_add_instr(emit, DotStatic);
-  alloc->m_val2 = emit_var ? SZ_INT : v->type->size;
+  const m_uint size = v->type->size;
+  const f_instr exec = size == SZ_INT ? DotStatic : size == SZ_FLOAT ?
+    DotStatic2 : DotStatic3;
+  const Instr alloc = emitter_add_instr(emit, exec);
+  alloc->m_val2 = emit_var ? SZ_INT : size;
   *(m_uint*)alloc->ptr = emit_var;
   alloc->m_val = v->offset;
   return 1;
@@ -1426,7 +1429,10 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
   } else { // from code
     const Instr push_i = emitter_add_instr(emit, RegPushImm);
     *(Type*)push_i->ptr = v->owner_class;
-    const Instr func_i = emitter_add_instr(emit, DotStatic);
+  const m_uint size = v->type->size;
+  const f_instr exec = size == SZ_INT ? DotStatic : size == SZ_FLOAT ?
+    DotStatic2 : DotStatic3;
+  const Instr func_i = emitter_add_instr(emit, exec);
     func_i->m_val = (m_uint)v->offset;
     func_i->m_val2 = emit_addr ? SZ_INT : v->type->size;
     *(m_uint*)func_i->ptr = emit_addr;

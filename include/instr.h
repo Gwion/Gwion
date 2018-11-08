@@ -91,6 +91,8 @@ INSTR(AllocMember);
 INSTR(AllocMember2);
 INSTR(AllocMember3);
 INSTR(DotStatic);
+INSTR(DotStatic2);
+INSTR(DotStatic3);
 INSTR(DotImport);
 INSTR(DotImport2);
 INSTR(DotImport3);

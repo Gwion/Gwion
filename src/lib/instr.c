@@ -403,14 +403,34 @@ INSTR(AllocMember3) { GWDEBUG_EXE
 }
 
 INSTR(DotStatic) { GWDEBUG_EXE
-  m_bit* tgt = REG(-SZ_INT);
-  const Type t = *(Type*)tgt;
+  const Type t = *(Type*)REG(-SZ_INT);
+  m_uint *const data = (m_uint*)(t->nspc->class_data + instr->m_val);
+  if(*(m_uint*)instr->ptr)
+    *(m_uint**)REG(-SZ_INT) = data;
+  else
+    *(m_uint*)REG(-SZ_INT) = *data;
+}
+
+INSTR(DotStatic2) { GWDEBUG_EXE
+  const Type t = *(Type*)REG(-SZ_INT);
+  m_float *const data = (m_float*)(t->nspc->class_data + instr->m_val);
+  if(*(m_uint*)instr->ptr)
+    *(m_float**)REG(-SZ_INT) = data;
+  else {
+    *(m_float*)REG(-SZ_INT) = *data;
+    PUSH_REG(shred, SZ_FLOAT - SZ_INT);
+  }
+}
+
+INSTR(DotStatic3) { GWDEBUG_EXE
+  const Type t = *(Type*)REG(-SZ_INT);
   m_bit* data = t->nspc->class_data + instr->m_val;
   if(*(m_uint*)instr->ptr)
-    *(m_bit**)tgt = data;
-  else
-    memcpy(tgt, data, instr->m_val2);
-  PUSH_REG(shred, instr->m_val2 - SZ_INT);
+    *(m_bit**)REG(-SZ_INT) = data;
+  else {
+    memcpy(REG(-SZ_INT), data, instr->m_val2);
+    PUSH_REG(shred, instr->m_val2 - SZ_INT);
+  }
 }
 
 INSTR(DotImport) { GWDEBUG_EXE
