@@ -261,16 +261,6 @@ INSTR(FuncUsr) { GWDEBUG_EXE
   return;
 }
 
-INSTR(FuncOp) { GWDEBUG_EXE
-  shred_func_prepare(shred);
-  const m_uint size = instr->m_val;
-  POP_REG(shred, size);
-  if(GET_FLAG(shred->code, _NEED_THIS_))
-    shred_func_need_this(shred);
-  memcpy(MEM(0), REG(0), size);
-  shred_func_finish(shred);
-}
-
 INSTR(DotFunc) { GWDEBUG_EXE
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   if(!obj)

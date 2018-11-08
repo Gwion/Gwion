@@ -721,10 +721,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   if((emit->env->func && emit->env->func == func) ||
     GET_FLAG(func, ae_flag_recurs)) {
     emitter_add_instr(emit, RegPushCode);
-//      const Instr code = emitter_add_instr(emit, INSTR_RECURS);
-//      code->m_val = (m_uint)func;
-//      SET_FLAG(emit->code, ae_flag_recurs);
-      return 1;
+    return 1;
   }
   if(GET_FLAG(func, ae_flag_template)) {
     if(GET_FLAG(func, ae_flag_ref))
@@ -734,8 +731,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
       ERR_B(0, "can't emit func.") // LCOV_EXCL_LINE
     const Instr code = emitter_add_instr(emit, RegPushPtr);
     code->m_val = (m_uint)(func->code = func->def->func->code);
-  }
-  else {
+  } else {
     if(!func->value_ref->owner_class && isa(func->value_ref->type, t_fptr) < 0) {
       Instr instr = emitter_add_instr(emit, RegPushPtr);
       instr->m_val = (m_uint)func;
@@ -745,11 +741,10 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   return 1;
 }
 
-ANN static m_bool emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
+ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   const Instr offset = emitter_add_instr(emit, RegPushImm);
   offset->m_val = SZ_INT;
   *(m_uint*)offset->ptr = emit_code_offset(emit);
-  return 1;
 }
 
 ANN static void emit_exp_call1_builtin(const restrict Emitter emit, const restrict Func f) {
@@ -763,31 +758,23 @@ ANN static inline void emit_exp_call1_fptr(const restrict Emitter emit, const re
   call->m_val = f->def->ret_type->size;
 }
 
-ANN static inline void emit_exp_call1_op(const Emitter emit, const Arg_List list) {
-  const Instr call    = emitter_add_instr(emit, FuncOp);
-  call->m_val   = list->type->size + (list->next ? list->next->type->size : 0);
-}
-
-ANN static inline void emit_exp_call1_usr(const Emitter emit, const Func func) { GWDEBUG_EXE
-  const Instr call = emitter_add_instr(emit, FuncUsr);
-  call->m_val = func->def->ret_type->size;
+ANN static inline void emit_exp_call1_usr(const Emitter emit) {
+  emitter_add_instr(emit, FuncUsr);
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
-  if(!func->code ||(GET_FLAG(func, ae_flag_ref) && !GET_FLAG(func, ae_flag_builtin)))
+  if(!func->code || (GET_FLAG(func, ae_flag_ref) && !GET_FLAG(func, ae_flag_builtin)))
     CHECK_BB(emit_exp_call1_code(emit, func))
   else {
     const Instr code = emitter_add_instr(emit, RegPushPtr);
     code->m_val = (m_uint)func->code;
   }
-  CHECK_BB(emit_exp_call1_offset(emit))
+  emit_exp_call1_offset(emit);
   if(isa(func->value_ref->type, t_fptr) < 0) {
     if(GET_FLAG(func->def, ae_flag_builtin))
       emit_exp_call1_builtin(emit, func);
-    else if(!GET_FLAG(func->def, ae_flag_op))
-      emit_exp_call1_usr(emit, func);
     else
-      emit_exp_call1_op(emit, func->def->arg_list);
+      emit_exp_call1_usr(emit);
   } else
     emit_exp_call1_fptr(emit, func);
   return 1;

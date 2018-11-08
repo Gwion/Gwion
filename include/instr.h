@@ -105,8 +105,6 @@ INSTR(MemberFunction);
 INSTR(VecMember);
 INSTR(PopArrayClass);
 
-INSTR(FuncOp);
-
 INSTR(GcIni);
 INSTR(GcEnd);
 INSTR(GcAdd);
