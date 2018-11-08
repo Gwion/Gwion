@@ -463,14 +463,14 @@ INSTR(DotImport4) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(DotData) { GWDEBUG_EXE
+INSTR(DotMember) { GWDEBUG_EXE
   const M_Object obj  = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
   *(m_uint*)REG(-SZ_INT) = *(m_uint*)(obj->data + instr->m_val);
 }
 
-INSTR(DotData2) { GWDEBUG_EXE
+INSTR(DotMember2) { GWDEBUG_EXE
   const M_Object obj  = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
@@ -478,7 +478,7 @@ INSTR(DotData2) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_FLOAT - SZ_INT);
 }
 
-INSTR(DotData3) { GWDEBUG_EXE
+INSTR(DotMember3) { GWDEBUG_EXE
   const M_Object obj  = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
@@ -486,7 +486,7 @@ INSTR(DotData3) { GWDEBUG_EXE
   PUSH_REG(shred, instr->m_val2 - SZ_INT);
 }
 
-INSTR(DotData4) { GWDEBUG_EXE
+INSTR(DotMember4) { GWDEBUG_EXE
   const M_Object obj  = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");

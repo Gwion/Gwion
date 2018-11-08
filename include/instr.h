@@ -105,10 +105,10 @@ INSTR(DotImport);
 INSTR(DotImport2);
 INSTR(DotImport3);
 INSTR(DotImport4);
-INSTR(DotData);
-INSTR(DotData2);
-INSTR(DotData3);
-INSTR(DotData4);
+INSTR(DotMember);
+INSTR(DotMember2);
+INSTR(DotMember3);
+INSTR(DotMember4);
 INSTR(ObjectRelease);
 
 /* array */

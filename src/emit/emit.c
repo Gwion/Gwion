@@ -247,7 +247,12 @@ ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
   return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
 }
 
-static f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
+static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
+static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
+static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
+static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
+static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
+
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
@@ -293,7 +298,6 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   return 1;
 }
 
-static f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
 ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   if(v->owner_class)
@@ -481,8 +485,6 @@ static const _prim_func prim_func[] = {
 ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   return prim_func[prim->primary_type](emit, prim);
 }
-
-static const f_instr dotstatic[] = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const m_bool emit_var) { GWDEBUG_EXE
   const Instr push = emitter_add_instr(emit, RegPushImm);
@@ -1410,7 +1412,6 @@ ANN static m_bool is_special(const Type t) {
   return -1;
 }
 
-static f_instr dotimport[] = { DotImport, DotImport2, DotImport3, DotImport4 };
 ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const m_bool emit_addr) { GWDEBUG_EXE
   if(v->d.ptr && GET_FLAG(v, ae_flag_builtin)) { // from C
     if(GET_FLAG(v, ae_flag_enum)) {
@@ -1537,11 +1538,10 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
   return 1;
 }
 
-static f_instr dotdata[] = { DotData, DotData2, DotData3, DotData4 };
 ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
   const m_uint size = v->type->size;
   const enum Kind kind = kindof(size, emit_addr);
-  const Instr instr = emitter_add_instr(emit, dotdata[kind]);
+  const Instr instr = emitter_add_instr(emit, dotmember[kind]);
   instr->m_val = v->offset;
   if(kind == KIND_OTHER)
     instr->m_val2 = v->type->size;
