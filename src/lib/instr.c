@@ -433,6 +433,11 @@ INSTR(DotStatic3) { GWDEBUG_EXE
   }
 }
 
+INSTR(DotStatic4) { GWDEBUG_EXE
+  const Type t = *(Type*)REG(-SZ_INT);
+  *(m_bit**)REG(-SZ_INT) = (t->nspc->class_data + instr->m_val);
+}
+
 INSTR(DotImport) { GWDEBUG_EXE
   if(!*(m_uint*)instr->ptr)
     *(m_uint*)REG(0) =  *(m_uint*)instr->m_val;

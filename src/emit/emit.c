@@ -483,17 +483,23 @@ static const _prim_func prim_func[] = {
 ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   return prim_func[prim->primary_type](emit, prim);
 }
+ANN static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
+  if(emit_var)
+    return KIND_ADDR;
+  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
+}
+
+static const f_instr dotstatic[] = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const m_bool emit_var) { GWDEBUG_EXE
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Type*)push->ptr = v->owner_class;
   const m_uint size = v->type->size;
-  const f_instr exec = size == SZ_INT ? DotStatic : size == SZ_FLOAT ?
-    DotStatic2 : DotStatic3;
-  const Instr alloc = emitter_add_instr(emit, exec);
-  alloc->m_val2 = emit_var ? SZ_INT : size;
-  *(m_uint*)alloc->ptr = emit_var;
+  const enum Kind kind = kindof(emit_var, size);
+  const Instr alloc = emitter_add_instr(emit, dotstatic[kind]);
   alloc->m_val = v->offset;
+  if(kind == KIND_OTHER)
+    alloc->m_val2 = size;
   return 1;
 }
 
@@ -1429,13 +1435,12 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
   } else { // from code
     const Instr push_i = emitter_add_instr(emit, RegPushImm);
     *(Type*)push_i->ptr = v->owner_class;
-  const m_uint size = v->type->size;
-  const f_instr exec = size == SZ_INT ? DotStatic : size == SZ_FLOAT ?
-    DotStatic2 : DotStatic3;
-  const Instr func_i = emitter_add_instr(emit, exec);
-    func_i->m_val = (m_uint)v->offset;
-    func_i->m_val2 = emit_addr ? SZ_INT : v->type->size;
-    *(m_uint*)func_i->ptr = emit_addr;
+    const m_uint size = v->type->size;
+    const enum Kind kind = kindof(size, emit_addr);
+    const Instr func_i = emitter_add_instr(emit, dotstatic[kind]);
+    func_i->m_val =  v->offset;
+    if(kind == KIND_OTHER)
+      func_i->m_val2 = v->type->size;
   }
   return 1;
 }

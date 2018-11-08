@@ -8,6 +8,13 @@
 #define INSTR(a) __attribute__((hot))\
 ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
 
+enum Kind {
+  KIND_INT,
+  KIND_FLOAT,
+  KIND_OTHER,
+  KIND_ADDR
+};
+
 struct Instr_ {
   void (*execute)(const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;
@@ -93,6 +100,7 @@ INSTR(AllocMember3);
 INSTR(DotStatic);
 INSTR(DotStatic2);
 INSTR(DotStatic3);
+INSTR(DotStatic4);
 INSTR(DotImport);
 INSTR(DotImport2);
 INSTR(DotImport3);
