@@ -1043,7 +1043,8 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
  return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
 }
 
-static m_bool check_stmt_xxx(const Env env, const union stmt_data * d) { return 1; }
+static m_bool check_stmt_xxx(const Env env __attribute__((unused)),
+  const union stmt_data * d __attribute__((unused))) { return 1; }
 typedef m_bool (*_stmt_func)(const Env, const union stmt_data *);
 static const _stmt_func stmt_func[] = {
   (_stmt_func)check_stmt_exp,   (_stmt_func)check_stmt_flow,     (_stmt_func)check_stmt_flow,
@@ -1214,13 +1215,13 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   return ret;
 }
 
-typedef m_bool (*_section_func)(const Env, const union section_data);
+typedef m_bool (*_section_func)(const Env, const void*);
 static const _section_func section_func[] = {
   (_section_func)check_stmt_list, (_section_func)check_func_def, (_section_func)check_class_def
 };
 
 ANN static inline m_bool check_section(const Env env, const Section* section) { GWDEBUG_EXE
-  return section_func[section->section_type](env, section->d);
+  return section_func[section->section_type](env, *(void**)&section->d);
 }
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
@@ -1274,7 +1275,6 @@ ANN static inline void inherit(const Type t) {
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  Class_Body body = class_def->body;
   if(tmpl_class_base(class_def->tmpl))
     return 1;
   const Type the_class = class_def->type;

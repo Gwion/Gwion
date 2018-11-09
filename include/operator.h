@@ -23,5 +23,4 @@ ANN m_int name2op(const m_str);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map);
 ANN m_str get_type_name(const m_str, const m_uint);
-//m_str op2str(const Operator);
 ANN m_bool env_add_op(const Env, const struct Op_Import*);
