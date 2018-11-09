@@ -16,9 +16,7 @@
 #include "array.h"
 
 ANN static inline m_bool overflow_(const VM_Shred c) {
-//  return c->mem >  ((c->_mem) + (SIZEOF_MEM) - (MEM_STEP));
   return c->mem >  ((c->_reg + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
-//  return c->mem >  (c + sizeof(struct VM_Shred_) + (SIZEOF_MEM) - (MEM_STEP));
 }
 
 static inline void dl_return_push(const m_bit* retval, const VM_Shred shred,
@@ -34,12 +32,13 @@ static inline void dl_return_push2(const m_bit* retval, const VM_Shred shred,
 }
 
 static inline void dl_return_push3(const m_bit* retval, const VM_Shred shred, const m_uint size) {
-  memcpy(REG(0), retval, size);
-  PUSH_REG(shred, size);
+    memcpy(REG(0), retval, size);
+    PUSH_REG(shred, size);
 }
 
 static void (*dl_return[])(const m_bit*, const VM_Shred, const m_uint) =
   { dl_return_push, dl_return_push2, dl_return_push3 };
+
 INSTR(EOC) { GWDEBUG_EXE
   vm_shred_exit(shred);
 }
@@ -192,8 +191,8 @@ INSTR(InitLoopCounter) { GWDEBUG_EXE
 }
 
 INSTR(RegPushDeref) { GWDEBUG_EXE
-  memcpy(REG(0), *(void**)instr->ptr, instr->m_val2);
-  PUSH_REG(shred, instr->m_val2);
+  *(m_uint*)REG(0) =  **(m_uint**)instr->ptr;
+  PUSH_REG(shred, SZ_INT);
 }
 
 INSTR(RegPushDeref2) { GWDEBUG_EXE
@@ -221,7 +220,6 @@ ANN static VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   if(!shred->child.ptr)
     vector_init(&shred->child);
   vector_add(&shred->child, (vtype)sh);
-//  sh->mem = sh->base;
   sh->base = shred->base;
   vm_add_shred(shred->vm, sh);
   return sh;
@@ -240,7 +238,8 @@ INSTR(SporkFunc) { GWDEBUG_EXE
   const m_uint need = GET_FLAG(code, _NEED_THIS_) ? SZ_INT : 0;
   shred->reg -= instr->m_val + need;
   if(instr->m_val) {
-    memcpy(sh->reg, shred->reg, instr->m_val);
+    for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
+      *(m_uint*)(sh->reg + i) = *(m_uint*)REG(i);
     sh->reg += instr->m_val;
   }
   if(need) {
@@ -258,7 +257,8 @@ INSTR(SporkExp) { GWDEBUG_EXE
   const VM_Shred sh = init_spork_shred(shred, code);
   if(GET_FLAG(code, _NEED_THIS_))
     POP_REG(shred, SZ_INT);
-  memcpy(sh->mem + SZ_INT, shred->mem, instr->m_val);
+  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
+    *(m_uint*)(sh->reg + i + SZ_INT) = *(m_uint*)MEM(i);
   push_me(shred, sh);
 }
 
@@ -310,7 +310,8 @@ INSTR(FuncUsr) { GWDEBUG_EXE
       shred_func_need_this(shred);
       stack_depth -= SZ_INT;
     }
-    memcpy(shred->mem, shred->reg, stack_depth);
+    for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
+      *(m_uint*)MEM(i) = *(m_uint*)REG(i);
   }
   shred_func_finish(shred);
 }
@@ -330,16 +331,16 @@ INSTR(FuncStatic) { GWDEBUG_EXE
   const m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
-    memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
+    for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
+      *(m_uint*)MEM(i) = *(m_uint*)REG(i);
   }
   if(overflow_(shred))
     Except(shred, "StackOverflow");
   const m_bit retval[instr->m_val];
-  const f_sfun f     = (f_sfun)code->native_func;
+  const f_sfun f = (f_sfun)code->native_func;
   f(retval, shred);
   if(instr->m_val)
     dl_return[instr->m_val2](retval, shred, instr->m_val);
-//    dl_return[2](retval, shred, instr->m_val);
   POP_MEM(shred, local_depth);
 }
 
@@ -348,8 +349,8 @@ ANN static inline void copy_member_args(const VM_Shred shred, const VM_Code func
   const m_uint depth = stack_depth -SZ_INT;
   POP_REG(shred, stack_depth);
   *(m_uint*)MEM(0) = *(m_uint*)REG(depth);
-  if(stack_depth)
-    memcpy(shred->mem + SZ_INT, shred->reg, stack_depth);
+    for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
+      *(m_uint*)MEM(i+SZ_INT) = *(m_uint*)REG(i);
 }
 
 INSTR(FuncMember) { GWDEBUG_EXE
