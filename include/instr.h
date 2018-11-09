@@ -57,6 +57,8 @@ INSTR(BranchEqFloat);
 INSTR(BranchNeqFloat);
 INSTR(InitLoopCounter);
 INSTR(RegPushDeref);
+INSTR(RegPushDeref2);
+INSTR(RegPushDeref3);
 INSTR(DecIntAddr);
 INSTR(Goto);
 

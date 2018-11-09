@@ -4,7 +4,7 @@ sudo: required
 
 os:
   - linux
-  - osx
+#  - osx
 
 addons:
   apt:
@@ -30,7 +30,7 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-  - os: osx
+ # - os: osx
   - compiler: clang
 
 compiler:

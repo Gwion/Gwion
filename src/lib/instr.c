@@ -192,8 +192,18 @@ INSTR(InitLoopCounter) { GWDEBUG_EXE
 }
 
 INSTR(RegPushDeref) { GWDEBUG_EXE
-  memcpy(REG(0), *(void**)instr->ptr, instr->m_val);
-  PUSH_REG(shred, instr->m_val);
+  memcpy(REG(0), *(void**)instr->ptr, instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
+}
+
+INSTR(RegPushDeref2) { GWDEBUG_EXE
+  *(m_float*)REG(0) = *(m_float*)instr->ptr;
+  PUSH_REG(shred, SZ_FLOAT);
+}
+
+INSTR(RegPushDeref3) { GWDEBUG_EXE
+  memcpy(REG(0), *(void**)instr->ptr, instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
 }
 
 INSTR(DecIntAddr) { GWDEBUG_EXE

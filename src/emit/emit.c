@@ -256,6 +256,7 @@ ANN static Instr emit_kind(Emitter emit, const m_uint size, const m_bool addr,
 }
 
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
+static const f_instr regpushderef[] = { RegPushDeref, RegPushDeref2, RegPushDeref3, /* RegPushImm4 */};
 static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
@@ -284,15 +285,9 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
     return 1;
   }
   if(GET_FLAG(v, ae_flag_union)) {
-    const Instr instr = emitter_add_instr(emit, RegPushDeref);
-    if(prim->self->emit_var) {
-      instr->m_val = SZ_INT;
-      *(m_uint*)instr->ptr = (m_uint)&v->d.ptr;
-    } else {
-      instr->m_val2 = 2;
-      instr->m_val = v->type->size;
-      *(m_uint*)instr->ptr = (m_uint)v->d.ptr;
-    }
+    const m_uint size = v->type->size;
+    const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushderef);
+    *(m_uint*)instr->ptr = (m_uint)v->d.ptr;
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushimm);
@@ -1119,7 +1114,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const m_uint index = emit_code_size(emit);
   emit_push_stack(emit);
   const Instr deref = emitter_add_instr(emit, RegPushDeref);
-  deref->m_val = SZ_INT;
+  deref->m_val2 = SZ_INT;
   *(m_int**)deref->ptr = counter;
   emitter_add_instr(emit, PushNull);
   const Instr op = emitter_add_instr(emit, BranchEqInt);
