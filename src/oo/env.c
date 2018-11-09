@@ -150,3 +150,45 @@ ANN void env_storage(const Env env, ae_flag* flag) {
   if(env->class_def && GET(*flag, ae_flag_global))
     *flag &= ~ae_flag_global;
 }
+
+ANN static Type find_typeof(const Env env, ID_List path) {
+  Value v = nspc_lookup_value2(env->curr, path->xid);
+  Type t = actual_type(v->type);
+  path = path->next;
+  while(path) {
+    CHECK_OO((v = find_value(t, path->xid)))
+    t = v->type;
+    path = path->next;
+  }
+  return v->type;
+}
+
+ANN Type find_type(const Env env, ID_List path) {
+  Type type;
+  if(path->ref)
+    return find_typeof(env, path->ref);
+  CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
+  Nspc nspc = type->nspc;
+  path = path->next;
+  while(path) {
+    const Symbol xid = path->xid;
+    Type t = nspc_lookup_type1(nspc, xid);
+    while(!t && type && type->parent) {
+      t = nspc_lookup_type2(type->parent->nspc, xid);
+      type = type->parent;
+    }
+    if(!t)
+      ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
+    type = t;
+    nspc = type->nspc;
+    path = path->next;
+  }
+  return type;
+}
+
+ANN m_bool already_defined(const Env env, const Symbol s, const int pos) {
+  const Value v = nspc_lookup_value0(env->curr, s);
+  return v ? err_msg(pos,
+    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;
+}
+

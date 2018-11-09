@@ -65,10 +65,6 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
   Arg_List list = f->arg_list;
   nspc_push_value(env->curr);
   do {
-    if(list->var_decl->array && check_array_empty(list->var_decl->array, list->var_decl->pos) < 0) {
-      nspc_pop_value(env->curr);
-      return -1;
-    }
     if(scan2_arg_def_check(list) < 0 ||
         (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
       nspc_pop_value(env->curr);

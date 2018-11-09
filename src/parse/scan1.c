@@ -17,6 +17,12 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
+ANN static m_bool check_array_empty(const Array_Sub a, const int pos) {
+  if(!a->exp)
+    return 1;
+  ERR_B(pos, "type must be defined with empty []'s")
+}
+
 ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
   Exp_Decl* d = (Exp_Decl*)decl;
   d->base = t->def;
@@ -211,9 +217,12 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   return 1;
 }
 
-ANN static m_bool scan1_func_def_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
-  do CHECK_OB((arg_list->type = known_type(env, arg_list->td, "function argument")))
-  while((arg_list = arg_list->next));
+ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EXE
+  do {
+    if(list->var_decl->array)
+      CHECK_BB(check_array_empty(list->var_decl->array, list->var_decl->pos))
+    CHECK_OB((list->type = known_type(env, list->td, "function argument")))
+  } while((list = list->next));
   return 1;
 }
 
