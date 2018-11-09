@@ -21,11 +21,25 @@ ANN static inline m_bool overflow_(const VM_Shred c) {
 //  return c->mem >  (c + sizeof(struct VM_Shred_) + (SIZEOF_MEM) - (MEM_STEP));
 }
 
-static inline void dl_return_push(const m_bit* retval, const VM_Shred shred, const m_uint size) {
+static inline void dl_return_push(const m_bit* retval, const VM_Shred shred,
+  const m_uint size  __attribute__((unused))) {
+  *(m_uint*)REG(0) = *(m_uint*)retval;
+  PUSH_REG(shred, SZ_INT);
+}
+
+static inline void dl_return_push2(const m_bit* retval, const VM_Shred shred,
+  const m_uint size  __attribute__((unused))) {
+  *(m_float*)REG(0) = *(m_float*)retval;
+  PUSH_REG(shred, SZ_FLOAT);
+}
+
+static inline void dl_return_push3(const m_bit* retval, const VM_Shred shred, const m_uint size) {
   memcpy(REG(0), retval, size);
   PUSH_REG(shred, size);
 }
 
+static void (*dl_return[])(const m_bit*, const VM_Shred, const m_uint) =
+  { dl_return_push, dl_return_push2, dl_return_push3 };
 INSTR(EOC) { GWDEBUG_EXE
   vm_shred_exit(shred);
 }
@@ -313,7 +327,9 @@ INSTR(FuncStatic) { GWDEBUG_EXE
   const m_bit retval[instr->m_val];
   const f_sfun f     = (f_sfun)code->native_func;
   f(retval, shred);
-  dl_return_push(retval, shred, instr->m_val);
+  if(instr->m_val)
+    dl_return[instr->m_val2](retval, shred, instr->m_val);
+//    dl_return[2](retval, shred, instr->m_val);
   POP_MEM(shred, local_depth);
 }
 
@@ -341,7 +357,8 @@ INSTR(FuncMember) { GWDEBUG_EXE
     const m_bit retval[instr->m_val];
     const f_mfun f = (f_mfun)code->native_func;
     f((*(M_Object*)MEM(0)), retval, shred);
-    dl_return_push(retval, shred, instr->m_val);
+    if(instr->m_val)
+      dl_return[instr->m_val2](retval, shred, instr->m_val);
   }
   POP_MEM(shred, local_depth);
 }

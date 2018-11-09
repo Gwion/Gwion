@@ -215,8 +215,8 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   emitter_add_instr(emit, RegDup);
   const Instr push_f = emitter_add_instr(emit, RegPushImm);
-  const Instr offset = emitter_add_instr(emit, RegPushImm);
   *(VM_Code*)push_f->ptr = code;
+  const Instr offset = emitter_add_instr(emit, RegPushImm);
   *(m_uint*)offset->ptr = emit_code_offset(emit);
   emitter_add_instr(emit, FuncMember);
 }
@@ -377,6 +377,7 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) { GW
   m_int n = (t == ae_primary_vec ? 3 : 2) - vec->dim + 1;
   while(--n > 0)
     emitter_add_instr(emit, RegPushImm2);
+//    emitter_add_instr(emit, AllocMember2);
   return 1;
 }
 
@@ -752,19 +753,13 @@ ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   *(m_uint*)offset->ptr = emit_code_offset(emit);
 }
 
-ANN static void emit_exp_call1_builtin(const restrict Emitter emit, const restrict Func f) {
-  const f_instr exec =  GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic;
-  const Instr call = emitter_add_instr(emit, exec);
-  call->m_val = f->def->ret_type->size;
-}
-
-ANN static inline void emit_exp_call1_fptr(const restrict Emitter emit, const restrict Func f) {
-  const Instr call = emitter_add_instr(emit, FuncPtr);
-  call->m_val = f->def->ret_type->size;
-}
-
-ANN static inline void emit_exp_call1_usr(const Emitter emit) {
-  emitter_add_instr(emit, FuncUsr);
+ANN static Instr emit_call(const Emitter emit, const Func f) {
+  if(isa(f->value_ref->type, t_fptr) < 0) {
+    if(GET_FLAG(f->def, ae_flag_builtin))
+      return emitter_add_instr(emit, GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic);
+    return emitter_add_instr(emit, FuncUsr);
+  }
+  return emitter_add_instr(emit, FuncPtr);
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
@@ -775,13 +770,10 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
     code->m_val = (m_uint)func->code;
   }
   emit_exp_call1_offset(emit);
-  if(isa(func->value_ref->type, t_fptr) < 0) {
-    if(GET_FLAG(func->def, ae_flag_builtin))
-      emit_exp_call1_builtin(emit, func);
-    else
-      emit_exp_call1_usr(emit);
-  } else
-    emit_exp_call1_fptr(emit, func);
+  const Instr instr = emit_call(emit, func);
+  const m_uint size = func->def->ret_type->size;
+  instr->m_val = size;
+  instr->m_val2 = kindof(size, !size);
   return 1;
 }
 
