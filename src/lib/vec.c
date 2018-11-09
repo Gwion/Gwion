@@ -144,14 +144,18 @@ static INSTR(Vec3##name##Assign) { GWDEBUG_EXE      \
 describe_vec3_assign(, -SZ_VEC3, SZ_INT)
 describe_vec3_assign(R, 0, )
 
-GWION_IMPORT(vec3) {
-  CHECK_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
+static void vecx_base(const Gwi gwi) {
 	gwi_item_ini(gwi, "float", "x");
-    gwi_item_end(gwi, ae_flag_member, NULL);
+  gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "y");
   gwi_item_end(gwi, ae_flag_member, NULL);
 	gwi_item_ini(gwi, "float", "z");
   gwi_item_end(gwi, ae_flag_member, NULL);
+}
+
+GWION_IMPORT(vec3) {
+  CHECK_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
+  vecx_base(gwi);
   gwi_func_ini(gwi, "void", "set", vec3_set);
   gwi_func_arg(gwi, "float", "x");
   gwi_func_arg(gwi, "float", "y");
@@ -294,12 +298,7 @@ describe_vec4_assign(R, 0, )
 
 GWION_IMPORT(vec4) {
   CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
-	gwi_item_ini(gwi, "float", "x");
-    gwi_item_end(gwi, ae_flag_member, NULL);
-	gwi_item_ini(gwi, "float", "y");
-  gwi_item_end(gwi, ae_flag_member, NULL);
-	gwi_item_ini(gwi, "float", "z");
-  gwi_item_end(gwi, ae_flag_member, NULL);
+  vecx_base(gwi);
 	gwi_item_ini(gwi, "float", "w");
   gwi_item_end(gwi, ae_flag_member, NULL);
   gwi_func_ini(gwi, "void", "set", vec4_set);

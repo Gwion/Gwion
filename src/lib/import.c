@@ -312,6 +312,15 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
 }
 
 #undef gwi_item_end
+
+static void gwi_body(const Gwi gwi, const Class_Body body) {
+  if(!gwi->env->class_def->def->body)
+    gwi->env->class_def->def->body = body;
+  else
+    gwi->body->next = body;
+  gwi->body = body;
+}
+
 ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
   DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
@@ -326,12 +335,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     Section* section = new_section_stmt_list(list);
     const Class_Body body = new_class_body(section, NULL);
     type_decl->array = v->t.array;
-    if(!gwi->env->class_def->def->body)
-      gwi->env->class_def->def->body = gwi->body = body;
-    else {
-      gwi->body->next = body;
-      gwi->body = body;
-    }
+    gwi_body(gwi, body);
     return 1;
   }
   CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
@@ -456,12 +460,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
     Section* section = new_section_func_def(def);
     Class_Body body = new_class_body(section, NULL);
-    if(!gwi->env->class_def->def->body)
-      gwi->env->class_def->def->body = gwi->body = body;
-    else {
-      gwi->body->next = body;
-      gwi->body = body;
-    }
+    gwi_body(gwi, body);
     return 1;
   }
   if(traverse_func_def(gwi->env, def) < 0) {
