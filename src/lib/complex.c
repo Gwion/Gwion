@@ -1,4 +1,3 @@
-#include <math.h>
 #include <complex.h>
 #include "defs.h"
 #include "map.h"
