@@ -251,7 +251,6 @@ ANN static Instr emit_kind(Emitter emit, const m_uint size, const m_bool addr,
     const f_instr func[]) {
   const enum Kind kind = kindof(size, addr);
   const Instr instr = emitter_add_instr(emit, func[kind]);
-//  if(kind == KIND_OTHER)
   instr->m_val2 = size;
   return instr;
 }
@@ -261,7 +260,7 @@ static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegP
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
-static const f_instr allocmember[]  = { AllocMember, AllocMember2, AllocMember3, AllocMember4 };
+static const f_instr allocmember[]  = { PushNull, PushNull2, PushNull3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord, AllocWord3, AllocWord4 };
 
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
@@ -376,8 +375,7 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) { GW
   CHECK_BB(emit_exp(emit, vec->exp, 0));
   m_int n = (t == ae_primary_vec ? 3 : 2) - vec->dim + 1;
   while(--n > 0)
-    emitter_add_instr(emit, RegPushImm2);
-//    emitter_add_instr(emit, AllocMember2);
+    emitter_add_instr(emit, PushNull2);
   return 1;
 }
 
@@ -395,7 +393,7 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
   else if(prim->d.var == insert_symbol("false") ||
       prim->d.var == insert_symbol("null") ||
       prim->d.var == insert_symbol("NULL")) {
-    emitter_add_instr(emit, RegPushImm);
+    emitter_add_instr(emit, PushNull);
   }
   else if(prim->d.var == insert_symbol("true")) {
     const Instr instr = emitter_add_instr(emit, RegPushImm);
@@ -407,7 +405,7 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
       const Instr instr = emitter_add_instr(emit, RegPushStr);
       instr->m_val = (m_uint)s_name(insert_symbol(emit->env->func->name));
     } else
-      emitter_add_instr(emit, RegPushImm);
+      emitter_add_instr(emit, PushNull);
   } else
     emit_symbol(emit, prim);
   return 1;
@@ -631,7 +629,7 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_c
     // handle empty call to variadic functions
     const Instr mk = emitter_add_instr(emit, VarargIni);
     *(m_uint*)mk->ptr = 1;
-    emitter_add_instr(emit, RegPushImm);
+    emitter_add_instr(emit, PushNull);
   }
   return 1;
 }
@@ -876,10 +874,10 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 ANN static Instr emit_flow(const Emitter emit, const Type type,
     const f_instr f1, const f_instr f2) { GWDEBUG_EXE
   if(isa(type, t_float) > 0) {
-    emitter_add_instr(emit, RegPushImm2);
+    emitter_add_instr(emit, PushNull2);
     return emitter_add_instr(emit, f2);
   }
-  emitter_add_instr(emit, RegPushImm);
+  emitter_add_instr(emit, PushNull);
   return emitter_add_instr(emit, f1);
 }
 
@@ -1123,7 +1121,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const Instr deref = emitter_add_instr(emit, RegPushDeref);
   deref->m_val = SZ_INT;
   *(m_int**)deref->ptr = counter;
-  emitter_add_instr(emit, RegPushImm);
+  emitter_add_instr(emit, PushNull);
   const Instr op = emitter_add_instr(emit, BranchEqInt);
   const Instr dec = emitter_add_instr(emit, DecIntAddr);
   dec->m_val = (m_uint)counter;
@@ -1501,8 +1499,8 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
 
 ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, const Func func) { GWDEBUG_EXE
   const Instr push_i = emitter_add_instr(emit, RegPushImm);
-  const Instr func_i = emitter_add_instr(emit, RegPushPtr);
   *(Type*)push_i->ptr = type;
+  const Instr func_i = emitter_add_instr(emit, RegPushPtr);
   func_i->m_val = (m_uint)func;
   return 1;
 }

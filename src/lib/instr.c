@@ -387,17 +387,17 @@ INSTR(ObjectInstantiate) { GWDEBUG_EXE
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(AllocMember) { GWDEBUG_EXE
+INSTR(PushNull) { GWDEBUG_EXE
   *(m_uint*)REG(0) = 0;
   PUSH_REG(shred, SZ_INT);
 }
 
-INSTR(AllocMember2) { GWDEBUG_EXE
+INSTR(PushNull2) { GWDEBUG_EXE
   *(m_float*)REG(0) = 0.0;
   PUSH_REG(shred, SZ_FLOAT);
 }
 
-INSTR(AllocMember3) { GWDEBUG_EXE
+INSTR(PushNull3) { GWDEBUG_EXE
   memset(REG(0), 0, instr->m_val2); // 0 <=> *data
   PUSH_REG(shred, instr->m_val2);
 }
