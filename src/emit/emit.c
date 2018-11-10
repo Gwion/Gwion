@@ -717,28 +717,28 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
   return 1;
 }
 
+static m_bool emit_template_code(const Emitter emit, const Func f) {
+  if(GET_FLAG(f, ae_flag_ref))
+    CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->def))
+   return emit_func_def(emit, f->def) > 0 ? 1:
+      err_msg(0, "can't emit func.");
+}
+
+static m_bool push_func_code(const Emitter emit, const Func f) {
+  const Instr instr = emitter_add_instr(emit, RegPushPtr);
+  return !!(instr->m_val = (m_uint)f->code);
+}
+
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
-  if((emit->env->func && emit->env->func == func) ||
-    GET_FLAG(func, ae_flag_recurs)) {
-    emitter_add_instr(emit, RegPushCode);
-    return 1;
-  }
-  if(GET_FLAG(func, ae_flag_template)) {
-    if(GET_FLAG(func, ae_flag_ref))
-      CHECK_BB(traverse_template(emit->env,
-            func->value_ref->owner_class->def))
-    if(emit_func_def(emit, func->def) < 0)
-      ERR_B(0, "can't emit func.") // LCOV_EXCL_LINE
-    const Instr code = emitter_add_instr(emit, RegPushPtr);
-    code->m_val = (m_uint)func->code;
-  } else {
-    if(!func->value_ref->owner_class && isa(func->value_ref->type, t_fptr) < 0) {
-      Instr instr = emitter_add_instr(emit, RegPushPtr);
-      instr->m_val = (m_uint)func;
+  if(emit->env->func != func) {
+    if(GET_FLAG(func, ae_flag_template)) {
+      CHECK_BB(emit_template_code(emit, func))
+      return push_func_code(emit, func);
     }
-    emitter_add_instr(emit, RegPushCode);
+    if(!func->value_ref->owner_class && isa(func->value_ref->type, t_fptr) < 0)
+      return push_func_code(emit, func);
   }
-  return 1;
+  return !!emitter_add_instr(emit, RegPushCode);
 }
 
 ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
@@ -758,10 +758,8 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
   if(!func->code || (GET_FLAG(func, ae_flag_ref) && !GET_FLAG(func, ae_flag_builtin)))
     CHECK_BB(emit_exp_call1_code(emit, func))
-  else {
-    const Instr code = emitter_add_instr(emit, RegPushPtr);
-    code->m_val = (m_uint)func->code;
-  }
+  else
+    push_func_code(emit, func);
   emit_exp_call1_offset(emit);
   const Instr instr = emit_call(emit, func);
   const m_uint size = func->def->ret_type->size;
