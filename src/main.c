@@ -80,7 +80,6 @@ m_uint compile(VM* vm, const m_str filename) {
     return 0;
   }
   emitter_add_instr(vm->emit, EOC);
-  vm->emit->code->name = strdup(name);
   code = emit_code(vm->emit);
   free_ast(ast);
   shred = new_vm_shred(code);

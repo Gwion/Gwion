@@ -788,4 +788,3 @@ OP_EMIT(opem_new) {
   CHECK_OB(emitter_add_instr(emit, GcAdd))
   return 1;
 }
-

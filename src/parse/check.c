@@ -1190,9 +1190,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
   const Func former = env->func;
-  if(former) // parsing a template call in a func
-    SET_FLAG(former, ae_flag_recurs);
-
   env->func = func;
   ++env->class_scope;
   nspc_push_value(env->curr);
