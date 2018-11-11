@@ -71,7 +71,6 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
       return -1;
     }
     const Value v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
-    v->owner = env->curr;
     SET_FLAG(v, ae_flag_arg);
     if(GET_FLAG(list->td, ae_flag_const))
       SET_FLAG(v, ae_flag_const);

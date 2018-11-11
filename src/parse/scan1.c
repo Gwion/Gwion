@@ -99,7 +99,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
         SET_FLAG(v->value, ae_flag_global);
     };
     v->value->d.ptr = v->addr;
-    v->value->owner = env->curr;
+    v->value->owner = !env->func ? env->curr : NULL;
     v->value->owner_class = env->class_scope ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
