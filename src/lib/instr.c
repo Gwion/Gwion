@@ -264,6 +264,7 @@ INSTR(SporkExp) { GWDEBUG_EXE
 ANN static void shred_func_prepare(const VM_Shred shred) {
   POP_REG(shred, SZ_INT * 2);
   const VM_Code code = *(VM_Code*)REG(0);
+
   const m_uint local_depth = *(m_uint*)REG(SZ_INT);
   const m_uint prev_stack = *(m_uint*)MEM(-SZ_INT);
   const m_uint push = prev_stack + local_depth;

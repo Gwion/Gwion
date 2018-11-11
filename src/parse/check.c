@@ -171,6 +171,8 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, ae_flag_checked))
     ERR_O(primary->self->pos,
           "variable %s not legit at this point.", s_name(primary->d.var))
+  if(env->func && !GET_FLAG(v, ae_flag_const) && v->owner)
+    UNSET_FLAG(env->func, ae_flag_pure);
   SET_FLAG(v, ae_flag_used);
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, ae_flag_const))
@@ -282,6 +284,8 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
 }
 
 ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
+  if(env->func)
+    UNSET_FLAG(env->func, ae_flag_pure);
   Exp e = primary->d.exp;
   do if(e->exp_type == ae_exp_decl)
     ERR_O(e->pos, "cannot use <<< >>> on variable declarations...\n")
@@ -815,8 +819,16 @@ static const _exp_func exp_func[] = {
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
-  do CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-  while((curr = curr->next));
+  do {CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
+  if(env->func) {
+// check fptr ?
+    if(isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, ae_flag_pure))
+      UNSET_FLAG(env->func, ae_flag_pure);
+//    else 
+//    if(!v->owner_class && isa(v->type, t_object) > 0)
+//      UNSET_FLAG(env->func, ae_flag_pure);
+    }
+  } while((curr = curr->next));
   return exp->type;
 }
 
@@ -1124,6 +1136,8 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
   do {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
+    if(isa(v->type, t_object) > 0 || isa(v->type, t_function) > 0)
+      UNSET_FLAG(env->func, ae_flag_pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
     SET_FLAG(v, ae_flag_checked);
     nspc_add_value(env->curr, decl->xid, v);

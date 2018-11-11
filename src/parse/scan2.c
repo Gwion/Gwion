@@ -438,6 +438,8 @@ ANN2(1,2) static m_bool scan2_func_def_add(const Env env,
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(f->func->value_ref, ae_flag_builtin);
+  else
+    SET_FLAG(f->func, ae_flag_pure);
   if(GET_FLAG(f, ae_flag_dtor)) {
     SET_FLAG(f->func, ae_flag_dtor);
     SET_FLAG(f->func->value_ref->owner_class, ae_flag_dtor);

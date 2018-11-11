@@ -27,6 +27,19 @@ ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }
 
+M_Vector new_m_vector(const m_uint size) {
+  const M_Vector array = mp_alloc(M_Vector);
+  array->ptr   = (m_bit*)xcalloc(ARRAY_OFFSET + 2, size);
+  ARRAY_CAP(array)   = 2;
+  ARRAY_SIZE(array)  = size;
+  return array;
+}
+
+void free_m_vector(M_Vector a) {
+  xfree(a->ptr);
+  mp_free(M_Vector, a);
+}
+
 static DTOR(array_dtor) {
   const Type t = o->type_ref;
   const Type base = array_base(t);
@@ -34,8 +47,7 @@ static DTOR(array_dtor) {
   if(t->array_depth > 1 || isa(base, t_object) > 0)
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
-  xfree(a->ptr);
-  mp_free(M_Vector, a);
+  free_m_vector(a);
   REM_REF(t)
 }
 
@@ -46,10 +58,8 @@ ANN M_Object new_array(const Type t, const m_uint length) {
     cap *= 2;
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  const M_Vector array = ARRAY(a) = mp_alloc(M_Vector);
-  array->ptr   = (m_bit*)xcalloc(ARRAY_OFFSET + cap, size);
+  const M_Vector array = ARRAY(a) = new_m_vector(size);
   ARRAY_CAP(array)   = cap;
-  ARRAY_SIZE(array)  = size;
   ARRAY_LEN(array) = length;
   ADD_REF(t);
   return a;

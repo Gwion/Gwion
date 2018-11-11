@@ -24,6 +24,7 @@ struct VM_Code_ {
   m_str name;
   m_uint stack_depth;
   m_uint native_func;
+  void* memoize;
   e_func flag;
   HAS_OBJ
 };

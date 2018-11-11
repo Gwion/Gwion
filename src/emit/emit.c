@@ -18,6 +18,7 @@
 #include "mpool.h"
 #include "escape.h"
 #include "parse.h"
+#include "memoize.h"
 
 typedef struct Local_ {
   m_uint size;
@@ -739,12 +740,15 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   return !!emitter_add_instr(emit, RegPushCode);
 }
 
-ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
+//ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
+ANN static inline void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   const Instr offset = emitter_add_instr(emit, RegPushImm);
   *(m_uint*)offset->ptr = emit_code_offset(emit);
 }
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
+  if(GET_FLAG(f, ae_flag_pure))
+    emitter_add_instr(emit, MemoizeCall);
   if(isa(f->value_ref->type, t_fptr) < 0) {
     if(GET_FLAG(f->def, ae_flag_builtin))
       return emitter_add_instr(emit, GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic);
@@ -916,6 +920,9 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
       const Instr ref = emitter_add_instr(emit, RegAddRef);
       ref->m_val = exp->emit_var;
     }
+    if(emit->env->func && isa(exp->type, t_function) > 0 &&
+        !GET_FLAG(exp->type->d.func->value_ref->d.func_ref, ae_flag_pure))
+      UNSET_FLAG(emit->env->func, ae_flag_pure);
   } while((exp = exp->next));
   return 1;
 }
@@ -1602,6 +1609,8 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   }
   vector_clear(&emit->code->stack_return);
   emit_pop_scope(emit);
+  if(GET_FLAG(emit->env->func, ae_flag_pure))
+    emitter_add_instr(emit, MemoizeStore);
   emitter_add_instr(emit, FuncReturn);
 }
 
@@ -1665,6 +1674,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit->code = emit_pop_code(emit);
+  if(GET_FLAG(func, ae_flag_pure))
+    func->code->memoize = memoize_ini(func);
   return 1;
 }
 
