@@ -8,8 +8,14 @@ os:
 
 addons:
   apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-trusty-6.0
+    packages:
     - valgrind
     - lcov
+    - gcc-8
+    - clang-6.0
 
 env:
   global:
@@ -29,24 +35,13 @@ matrix:
 
 compiler:
   - gcc
-  addons:
-    apt:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty-6.0
-      packages:
-      - gcc-8
   - clang
-  addons:
-    sources:
-    - llvm-toolchain-trusty-6.0
-    packages:
-    - clang-6.0
 
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
 
 before_script:
-  - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc8; fi; fi
+  - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-8; fi; fi
   - if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi; fi
   - git submodule update --init util
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
