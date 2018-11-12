@@ -1773,10 +1773,7 @@ ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG
   const m_bool ret = emit_ast_inner(emit, ast);
   emit_pop_scope(emit);
   if(ret < 0) {
-    gw_err("in file '%s'\n", filename);
     emit_free_stack(emit);
-    free(filename);
-    free_ast(ast);
     if(emit->cases) {
       free_map(emit->cases);
       emit->cases = NULL;

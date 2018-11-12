@@ -48,48 +48,6 @@ static void sig(int unused __attribute__((unused))) {
   vm->is_running = 0;
 }
 
-m_uint compile(VM* vm, const m_str filename) {
-  VM_Shred shred;
-  VM_Code  code;
-  Ast      ast;
-  FILE* f;
-  Vector args = NULL;
-  m_str _name, name, d = strdup(filename);
-  _name = strsep(&d, ":");
-  if(d)
-    args = new_vector();
-  while(d)
-    vector_add(args, (vtype)strdup(strsep(&d, ":")));
-  free(d);
-  name = realpath(_name, NULL);
-  free(_name);
-  if(!name) {
-    err_msg(0, "error while opening file '%s'", filename);
-    return 0;
-  }
-  if(!(f = fopen(name, "r")))
-    free(name);
-  if(!(ast = parse(vm->scan, name, f))) {
-    free(name);
-    fclose(f);
-    return 0;
-  }
-  if(type_engine_check_prog(vm->emit->env, ast, name) < 0 ||
-    emit_ast(vm->emit, ast, name) < 0) {
-    fclose(f);
-    return 0;
-  }
-  emitter_add_instr(vm->emit, EOC);
-  code = emit_code(vm->emit);
-  free_ast(ast);
-  shred = new_vm_shred(code);
-  shred->args = args;
-  vm_add_shred(vm, shred);
-  free(name);
-  fclose(f);
-  return shred->xid;
-}
-
 int main(int argc, char** argv) {
   Env env = NULL;
   Driver d;

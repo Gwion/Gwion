@@ -113,14 +113,9 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str)
   if(ret > 0) {
     nspc_commit(env->curr);
     vector_add(&env->known_ctx, (vtype)ctx);
-  } // else { nspc_rollback(env->global_nspc); }
-  unload_context(ctx, env);
-  if(ret < 0) {
-    gw_err("in file '%s'\n", str);
-    free_ast(ast);
+  } else //nspc_rollback(env->global_nspc);
     REM_REF(ctx);
-    free(str);
-  }
+  unload_context(ctx, env);
   return ret;
 }
 

@@ -80,13 +80,14 @@ ANN void free_vm(VM* vm) {
 }
 
 static  m_uint shred_ids;
-ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
+ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
   const Vector v = (Vector)&vm->shred;
   vector_add(v, (vtype)shred);
   shred->vm = (VM*)vm;
   shred->xid = ++shred_ids;
   shred->me = new_shred(shred);
   shredule(vm->shreduler, shred, .5);
+  return shred->xid;
 }
 
 __attribute__((hot))
