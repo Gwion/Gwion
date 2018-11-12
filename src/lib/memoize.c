@@ -53,7 +53,7 @@ m_bool memoize_get(VM_Shred shred) {
     m_bit* data = (m_bit*)vector_at(&m->v, i);
     if(memcmp(arg, data, m->arg_sz))
       continue;
-    POP_REG(shred, SZ_INT + m->arg_sz + m->member);
+    POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + m->member)
     *(m_bit**)REG(-m->ret_sz) = *(m_bit**)(data + m->arg_sz);
     return 1;
   }
