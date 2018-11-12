@@ -15,12 +15,35 @@ struct Memoize_ {
   m_uint ret_sz;
   struct pool *p;
   m_bool member;
+  enum Kind kind;
 };
 
-Memoize memoize_ini(const Func f) {
+static inline void memoize_return1(const m_bit* retval, const VM_Shred shred,
+  const m_uint size  __attribute__((unused))) {
+  *(m_uint*)REG(-SZ_INT) = *(m_uint*)retval;
+}
+
+static inline void memoize_return2(const m_bit* retval, const VM_Shred shred,
+  const m_uint size  __attribute__((unused))) {
+  *(m_float*)REG(-SZ_FLOAT) = *(m_float*)retval;
+}
+
+static inline void memoize_return3(const m_bit* retval, const VM_Shred shred,
+  const m_uint size) {
+  memcpy(REG(-size), retval, size);
+}
+
+static inline void memoize_return4(const m_bit* retval, const VM_Shred shred,
+  const m_uint size) {}
+
+static void(*memoize_return[])(const m_bit*, const VM_Shred, const m_uint) =
+  { memoize_return1, memoize_return2, memoize_return3, memoize_return4 };
+
+Memoize memoize_ini(const Func f, const enum Kind kind) {
   Memoize m = mp_alloc(Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->ret_type->size;
+  m->kind = kind;
   if(!GET_FLAG(f, ae_flag_member))
     m->arg_sz = f->def->stack_depth;
   else {
@@ -54,7 +77,7 @@ m_bool memoize_get(VM_Shred shred) {
     if(memcmp(arg, data, m->arg_sz))
       continue;
     POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + m->member)
-    *(m_bit**)REG(-m->ret_sz) = *(m_bit**)(data + m->arg_sz);
+    memoize_return[m->kind](data + m->arg_sz, shred, m->ret_sz);
     return 1;
   }
   memoize_set(m, arg);

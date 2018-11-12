@@ -1675,7 +1675,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit->env->func = former;
   emit->code = emit_pop_code(emit);
   if(GET_FLAG(func, ae_flag_pure))
-    func->code->memoize = memoize_ini(func);
+    func->code->memoize = memoize_ini(func, kindof(func->def->ret_type->size, !!func->def->ret_type->size));
   return 1;
 }
 
