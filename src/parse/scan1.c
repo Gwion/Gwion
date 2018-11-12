@@ -259,8 +259,6 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   } else if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
-    if(l->self->exp_type != ae_exp_decl)
-      ERR_B(stmt->self->pos, "invalid expression type '%i' in union declaration.")
     const Exp_Decl decl = l->self->d.exp_decl;
     Var_Decl_List list = decl.list;
     SET_FLAG(decl.td, ae_flag_checked | stmt->flag);

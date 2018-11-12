@@ -536,7 +536,7 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void* function_alternative(const Type f, Exp args){
-  if(err_msg(args ? args->pos : 0, "argument type(s) do not match for function. should be :") < 0){}
+  err_msg(args ? args->pos : 0, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {
     const Arg_List e = up->def->arg_list;
@@ -1103,9 +1103,8 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   do {
     if(compat_func(f, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(f, parent_func))
-      const Func func = f->func;
-      func->vt_index = parent_func->vt_index;
-      vector_set(&env->curr->vtable, func->vt_index, (vtype)func);
+      f->func->vt_index = parent_func->vt_index;
+      vector_set(&env->curr->vtable, f->func->vt_index, (vtype)func);
       return 1;
     }
   } while((parent_func = parent_func->next));

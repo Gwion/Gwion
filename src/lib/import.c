@@ -573,7 +573,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
   const Exp exp = make_exp(type, name);
   const Type t = type_decl_resolve(gwi->env, exp->d.exp_decl.td);
   if(!t)
-    ERR_B(0, "type '%s' unknown in union declaration.")
+    ERR_B(0, "type '%s' unknown in union declaration.", type)
   if(isa(t, t_object) > 0)
     SET_FLAG(exp->d.exp_decl.td, ae_flag_ref);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);

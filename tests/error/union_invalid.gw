@@ -1,4 +1,4 @@
-// [contains] in union declaration.
+// [contains] Unions should only contain declarations
  union
 {
   one; two;
