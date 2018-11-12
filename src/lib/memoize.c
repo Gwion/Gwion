@@ -18,26 +18,25 @@ struct Memoize_ {
   enum Kind kind;
 };
 
-static inline void memoize_return1(const m_bit* retval, const VM_Shred shred,
-  const m_uint size  __attribute__((unused))) {
-  *(m_uint*)REG(-SZ_INT) = *(m_uint*)retval;
+static inline void memoize_return1(m_bit* tgt, const m_bit* src,
+  const m_uint size __attribute__((unused))) {
+  *(m_uint*)tgt = *(m_uint*)src;
 }
 
-static inline void memoize_return2(const m_bit* retval, const VM_Shred shred,
-  const m_uint size  __attribute__((unused))) {
-  *(m_float*)REG(-SZ_FLOAT) = *(m_float*)retval;
+static inline void memoize_return2(m_bit* tgt, const m_bit* src,
+  const m_uint size __attribute__((unused))) {
+  *(m_float*)tgt = *(m_float*)src;
 }
 
-static inline void memoize_return3(const m_bit* retval, const VM_Shred shred,
+static inline void memoize_return3(m_bit* tgt, const m_bit* src,
   const m_uint size) {
-  memcpy(REG(-size), retval, size);
+  memcpy(tgt, src, size);
 }
+static inline void memoize_return4(m_bit* tgt, const m_bit* src,
+  const m_uint size __attribute__((unused))) {}
 
-static inline void memoize_return4(const m_bit* retval, const VM_Shred shred,
-  const m_uint size) {}
-
-static void(*memoize_return[])(const m_bit*, const VM_Shred, const m_uint) =
-  { memoize_return1, memoize_return2, memoize_return3, memoize_return4 };
+static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
+  { memoize_return1, memoize_return2, memoize_return3, memoize_return4};
 
 Memoize memoize_ini(const Func f, const enum Kind kind) {
   Memoize m = mp_alloc(Memoize);
@@ -77,7 +76,7 @@ m_bool memoize_get(VM_Shred shred) {
     if(memcmp(arg, data, m->arg_sz))
       continue;
     POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + m->member)
-    memoize_return[m->kind](data + m->arg_sz, shred, m->ret_sz);
+    mreturn[m->kind](shred->reg-m->ret_sz, data + m->arg_sz, m->ret_sz);
     return 1;
   }
   memoize_set(m, arg);
@@ -97,7 +96,7 @@ INSTR(MemoizeStore) {
     m_bit* data = (m_bit*)vector_at(&m->v, i-1);
     if(memcmp(data, arg, m->arg_sz))
       continue;
-    memcpy(data + m->arg_sz, REG(-m->ret_sz), m->ret_sz);
+    mreturn[m->kind](data + m->arg_sz, shred->reg-m->ret_sz, m->ret_sz);
     return;
   }
 }

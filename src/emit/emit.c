@@ -1675,7 +1675,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit->env->func = former;
   emit->code = emit_pop_code(emit);
   if(GET_FLAG(func, ae_flag_pure))
-    func->code->memoize = memoize_ini(func, kindof(func->def->ret_type->size, !!func->def->ret_type->size));
+    func->code->memoize = memoize_ini(func, kindof(func->def->ret_type->size, !func->def->ret_type->size));
   return 1;
 }
 
@@ -1765,8 +1765,8 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
   return 1;
 }
 
-ANN m_bool emit_ast(const Emitter emit, Ast ast, const m_str filename) { GWDEBUG_EXE
-  emit->filename = filename;
+ANN m_bool emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
+  emit->filename = emit->env->name;
   emit->code = new_code(emit, "");
   vector_clear(&emit->stack);
   emit_push_scope(emit);

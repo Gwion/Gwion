@@ -6,6 +6,7 @@
 
 typedef struct Env_       * Env;
 struct Env_ {
+  m_str name;
   Nspc curr;
   Nspc global_nspc;
 //  Nspc user_nspc;
@@ -39,5 +40,5 @@ ANN2(1,2) void env_add_value(const Env, const m_str, const Type, 	const m_bool, 
 ANN void env_add_type(const Env, const Type);
 ANN Type find_type(const Env, ID_List);
 ANN m_bool already_defined(const Env env, const Symbol s, const int pos);
-ANN m_bool type_engine_check_prog(const Env, const Ast, const m_str);
+ANN m_bool type_engine_check_prog(const Env, const Ast);
 #endif

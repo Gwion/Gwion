@@ -105,8 +105,8 @@ ANN Nspc env_nspc(const Env env) {
   return env->context->nspc;
 }
 
-ANN m_bool type_engine_check_prog(const Env env, const Ast ast, const m_str str) {
-  const Context ctx = new_context(ast, str);
+ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
+  const Context ctx = new_context(ast, env->name);
   env_reset(env);
   load_context(ctx, env);
   const m_bool ret = traverse_ast(env, ast);

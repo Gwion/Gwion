@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     goto clean;
   srand(time(NULL));
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
-    compile(vm, (m_str)vector_at(&arg.add, i));
+    compile_filename(vm, (m_str)vector_at(&arg.add, i));
   vm->is_running = 1;
   VMBENCH_INI
   d.run(vm, &di);
