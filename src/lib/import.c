@@ -375,11 +375,11 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
     return NULL;
   }
   while((type_name = get_type_name(s, i++))) {
-    m_uint depth = 0;
+    m_uint d = 0;
     if(!tmp)
-      td->types = tmp = str2tl(env, type_name, &depth);
+      td->types = tmp = str2tl(env, type_name, &d);
     else {
-      tmp->next = str2tl(env, type_name, &depth);
+      tmp->next = str2tl(env, type_name, &d);
       tmp = tmp->next;
     }
   }

@@ -917,8 +917,8 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp->type, exp->cast_to))
     if(ref && isa(exp->type, t_object) > 0) {
-      const Instr ref = emitter_add_instr(emit, RegAddRef);
-      ref->m_val = exp->emit_var;
+      const Instr instr = emitter_add_instr(emit, RegAddRef);
+      instr->m_val = exp->emit_var;
     }
     if(emit->env->func && isa(exp->type, t_function) > 0 &&
         !GET_FLAG(exp->type->d.func->value_ref->d.func_ref, ae_flag_pure))
