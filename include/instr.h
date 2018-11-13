@@ -15,6 +15,8 @@ enum Kind {
   KIND_ADDR
 };
 
+typedef struct Instr_     * Instr;
+typedef void (*f_instr)(const VM_Shred, const Instr);
 struct Instr_ {
   void (*execute)(const VM_Shred shred, const Instr instr);
   m_uint m_val, m_val2;

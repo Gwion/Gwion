@@ -8,12 +8,12 @@
 #include "absyn.h"
 #include "vm.h"
 #include "env.h"
+#include "instr.h"
 #include "type.h"
 #include "emit.h"
 #include "hash.h"
 #include "scanner.h"
 #include "compile.h"
-#include "instr.h"
 
 enum compile_type {
   COMPILE_NAME,

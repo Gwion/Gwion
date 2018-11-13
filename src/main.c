@@ -13,12 +13,12 @@
 #include "vm.h"
 #include "env.h"
 #include "type.h"
+#include "instr.h"
 #include "emit.h"
 #include "hash.h"
 #include "scanner.h"
 #include "compile.h"
 #include "driver.h"
-#include "instr.h"
 #include "arg.h"
 
 #ifdef VMBENCH
