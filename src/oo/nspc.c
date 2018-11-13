@@ -7,6 +7,7 @@
 #include "oo.h"
 #include "env.h"
 #include "type.h"
+#include "nspc.h"
 #include "value.h"
 #include "func.h"
 #include "object.h"

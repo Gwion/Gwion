@@ -6,6 +6,7 @@
 #include "oo.h"
 #include "env.h"
 #include "type.h"
+#include "nspc.h"
 
 ANN static Type owner_type(const Type t) {
   if(!t->nspc)

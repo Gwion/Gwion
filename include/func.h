@@ -3,7 +3,7 @@
 struct Func_ {
   m_str name;
   Func_Def def;
-  VM_Code code;
+  struct VM_Code_* code;
   Value value_ref;
   Func next;
   m_uint vt_index;

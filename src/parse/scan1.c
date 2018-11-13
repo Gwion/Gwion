@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "env.h"
 #include "type.h"
+#include "nspc.h"
 #include "value.h"
 #include "optim.h"
 #include "parse.h"

@@ -16,6 +16,7 @@
 #include "gwi.h"
 #include "lang_private.h"
 #include "emit.h"
+#include "operator.h"
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;

@@ -8,6 +8,7 @@
 #include "type.h"
 #include "value.h"
 #include "func.h"
+#include "nspc.h"
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 

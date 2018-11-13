@@ -3,11 +3,11 @@
 #include "map.h"
 #include "absyn.h"
 #include "mpool.h"
+#include "vm.h"
 #include "type.h"
 #include "instr.h"
 #include "func.h"
 #include "memoize.h"
-#include "vm.h"
 
 struct Memoize_ {
   struct Vector_ v;

@@ -8,7 +8,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
-#include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "value.h"
@@ -20,6 +20,7 @@
 #include "optim.h"
 #include "mpool.h" // for allocating object data
 #include "parse.h"
+#include "nspc.h"
 
 #define OP_RET(a, b)\
   const Type op_ret = op_check(env, &opi);\

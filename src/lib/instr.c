@@ -13,6 +13,7 @@
 #include "import.h"
 #include "func.h"
 #include "array.h"
+#include "nspc.h"
 
 ANN static inline m_bool overflow_(const VM_Shred c) {
   return c->mem >  ((c->_reg + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));

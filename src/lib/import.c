@@ -5,7 +5,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
-#include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "value.h"
@@ -16,6 +16,7 @@
 #include "gwi.h"
 #include "emit.h"
 #include "func.h"
+#include "nspc.h"
 
 struct Path {
   m_str path, curr;

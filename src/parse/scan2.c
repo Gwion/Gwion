@@ -3,7 +3,7 @@
 #include "err_msg.h"
 #include "map.h"
 #include "absyn.h"
-#include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "value.h"
@@ -11,6 +11,7 @@
 #include "traverse.h"
 #include "optim.h"
 #include "parse.h"
+#include "nspc.h"
 
 ANN static m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);

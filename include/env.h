@@ -23,6 +23,7 @@ struct Env_ {
 };
 
 ANEW Env new_env();
+//ANEW ANN Env type_engine_init(struct VM_*, const Vector);
 ANN void env_reset(const Env);
 ANN void free_env(Env);
 ANN2(1,3,4) void env_push(const Env, const Type, const Nspc, m_uint*);

@@ -10,6 +10,7 @@
 #include "traverse.h"
 #include "type.h"
 #include "context.h"
+#include "nspc.h"
 
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));

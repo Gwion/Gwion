@@ -3,13 +3,14 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
-#include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
 #include "import.h"
 #include "emit.h"
+#include "operator.h"
 
 static INSTR(float_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
