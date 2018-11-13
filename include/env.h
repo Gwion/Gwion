@@ -42,4 +42,5 @@ ANN void env_add_type(const Env, const Type);
 ANN Type find_type(const Env, ID_List);
 ANN m_bool already_defined(const Env env, const Symbol s, const int pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
+ANN Func get_func(const Env, const Func_Def);
 #endif

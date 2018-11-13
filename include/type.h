@@ -1,9 +1,6 @@
 #ifndef __TYPE
 #define __TYPE
 
-//#include "nspc.h"
-//#include "env.h"
-
 struct Type_ {
   m_uint    xid;
   m_uint    size;

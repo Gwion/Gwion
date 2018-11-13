@@ -21,6 +21,7 @@
 #include "compile.h"
 #include "driver.h"
 #include "arg.h"
+#include "engine.h"
 
 #ifdef VMBENCH
 #include <time.h>

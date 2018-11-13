@@ -5,12 +5,6 @@
 #undef USE_DOUBLE
 #endif
 
-#include <pthread.h>
-#include "defs.h"
-#include "oo.h"
-#include "map.h"
-#include "map_private.h"
-
 typedef enum {
   NATIVE_NOT  = 1 << 1,
   NATIVE_CTOR = 1 << 2,
