@@ -18,7 +18,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static m_bool check_array_empty(const Array_Sub a, const int pos) {
+ANN static m_bool check_array_empty(const Array_Sub a, const uint pos) {
   if(!a->exp)
     return 1;
   ERR_B(pos, "type must be defined with empty []'s")

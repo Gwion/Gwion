@@ -484,7 +484,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
-      def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, i);
+      def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, (m_int)i);
       UNSET_FLAG(base, ae_flag_template);
       SET_FLAG(def, ae_flag_template);
       if((mismatch = template_match(base->tmpl->list, types)) < 0)

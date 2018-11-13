@@ -204,7 +204,7 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
   for(m_uint i = 1; i < t->array_depth; ++i)
     vector_add(&info->type, (vtype)array_type(base, i));
   vector_add(&info->type, (vtype)t);
-  info->depth = t->array_depth;
+  info->depth = (m_int)t->array_depth;
   info->base = base;
   const Instr alloc = emitter_add_instr(emit, ArrayAlloc);
   *(ArrayInfo**)alloc->ptr = info;
@@ -234,7 +234,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
   if(type->array_depth) {
     ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
     CHECK_OB(info)
-    info->is_ref = is_ref;
+    info->is_ref = (uint)is_ref;
   } else if(!is_ref) {
     const Instr instr = emitter_add_instr(emit, ObjectInstantiate);
     instr->m_val = (m_uint)type;
@@ -370,7 +370,7 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) { GW
   const Vec * vec = &primary->d.vec;
   const ae_prim_t t = primary->primary_type;
   CHECK_BB(emit_exp(emit, vec->exp, 0));
-  m_int n = (t == ae_primary_vec ? 3 : 2) - vec->dim + 1;
+  m_int n = (m_int)((t == ae_primary_vec ? 3 : 2) - vec->dim + 1);
   while(--n > 0)
     emitter_add_instr(emit, PushNull2);
   return 1;
@@ -424,7 +424,7 @@ ANN static m_bool prim_char(const Emitter emit, const Exp_Primary* prim) {
   const m_int c = str2char(prim->d.chr, prim->self->pos);
   CHECK_BB(c);
   const Instr instr = emitter_add_instr(emit, RegPushImm);
-  *(m_uint*)instr->ptr = c;
+  *(m_int*)instr->ptr = c;
   return 1;
 }
 
@@ -487,7 +487,7 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Type*)push->ptr = v->owner_class;
   const m_uint size = v->type->size;
-  const Instr instr = emit_kind(emit, emit_var, size, dotstatic);
+  const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
   instr->m_val = v->offset;
   return 1;
 }
@@ -539,7 +539,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
     }
     if((is_array) || !is_ref) {
       const Instr assign = emitter_add_instr(emit, ObjectAssign);
-      assign->m_val = emit_var;
+      assign->m_val = (m_uint)emit_var;
       if(is_array && !emit->env->class_scope)
         ADD_REF(type)
     }
@@ -1141,7 +1141,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
         vector_release(&stmt->data.v);
       if(emit->default_case_index != -1)
         ERR_B(stmt->self->pos, "default case already defined")
-      emit->default_case_index = emit_code_size(emit);
+      emit->default_case_index = (m_int)emit_code_size(emit);
       return 1;
     }
     if(!stmt->data.v.ptr) {
@@ -1195,7 +1195,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
 
 ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
   if(prim->primary_type == ae_primary_num)
-    *value = prim->d.num;
+    *value = (m_int)prim->d.num;
   else if(prim->d.var == insert_symbol("true"))
     *value = 1;
   else if(prim->d.var == insert_symbol("false"))
@@ -1206,7 +1206,7 @@ ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
     if(!GET_FLAG(prim->value, ae_flag_const))
       ERR_B(prim->self->pos,
             "value is not constant.")
-    *value = (m_uint)prim->value->d.ptr; // assume enum.
+    *value = (m_int)prim->value->d.ptr; // assume enum.
   }
   return 1;
 }
@@ -1217,8 +1217,8 @@ ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
   else {
     const Type t = actual_type(stmt->val->d.exp_dot.t_base);
     const Value v = find_value(t, stmt->val->d.exp_dot.xid);
-    *value = GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
-      (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr;
+    *value = (m_int)(GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
+      (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr);
   }
   return 1;
 }
@@ -1646,7 +1646,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   const Func func = get_func(emit->env, func_def);
   if(func->code)return 1;
   if(tmpl_list_base(func_def->tmpl)) { // don't check template definition
-    func_def->flag &= ~ae_flag_template;
+    UNSET_FLAG(func_def, ae_flag_template);;
     return 1;
   }
   if(!emit->env->class_def)

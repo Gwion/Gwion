@@ -107,10 +107,10 @@ static MFUN(vm_vector_rem) {
     return;
   if(isa(o->type_ref, t_object) > 0) {
     M_Object obj;
-    m_vector_get(v, index, &obj);
+    m_vector_get(v, (vtype)index, &obj);
     release(obj,shred);
   }
-  m_vector_rem(v, index);
+  m_vector_rem(v, (vtype)index);
 }
 
 ANN m_bit* m_vector_addr(const M_Vector v, const m_uint i) {
@@ -263,7 +263,8 @@ INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
 
 ANN static inline M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap) {
   struct Vector_ v = info->type;
-  return new_array((Type)vector_at(&v, -info->depth - 1), cap);
+  const Type t = (Type)vector_at(&v, (vtype)(-info->depth - 1));
+  return new_array(t, (m_uint)cap);
 }
 
 ANN static inline M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
@@ -296,14 +297,14 @@ ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
     return NULL;
   }
   const M_Object base = do_alloc_array_object(info, cap);
-  return info->depth < TOP ? do_alloc_array_loop(shred, info, cap, base) :
-    info->data ? do_alloc_array_init(info, cap, base) : base;
+  return info->depth < TOP ? do_alloc_array_loop(shred, info, (m_uint)cap, base) :
+    info->data ? do_alloc_array_init(info, (m_uint)cap, base) : base;
 }
 
 ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_uint* num_obj) {
   m_int curr = -info->depth;
   while(curr <= TOP) {
-    *num_obj *= *(m_int*)REG(SZ_INT * curr);
+    *num_obj *= *(m_uint*)REG(SZ_INT * curr);
     ++curr;
   }
   return *num_obj > 0 ? (M_Object*)xcalloc(*num_obj, SZ_INT) : NULL;
@@ -337,7 +338,7 @@ INSTR(ArrayAlloc) { GWDEBUG_EXE
 }
 
 ANN static inline void array_push(const VM_Shred shred, const M_Vector a,
-    const m_int i, const Instr instr) {
+    const m_uint i, const Instr instr) {
   if(instr->m_val)
     *(m_bit**)REG(0) = m_vector_addr(a, i);
   else
@@ -361,7 +362,7 @@ INSTR(ArrayAccess) { GWDEBUG_EXE
     Except(shred, "NullPtrException");
   const m_int i = *(m_int*)REG(SZ_INT);
   OOB(shred, obj,, i, obj);
-  array_push(shred, ARRAY(obj), i, instr);
+  array_push(shred, ARRAY(obj), (m_uint)i, instr);
 }
 
 #define DIM(a) gw_err("\t... at dim [%" INT_F "]\n", (a))
@@ -376,7 +377,7 @@ INSTR(ArrayAccessMulti) { GWDEBUG_EXE
   for(m_uint i = 1; i < depth; ++i) {
     const m_int idx = *(m_int*)REG(SZ_INT * i);
     OOB(shred, obj, DIM(i), idx, base);
-    m_vector_get(ARRAY(obj), idx, &obj);
+    m_vector_get(ARRAY(obj), (m_uint)idx, &obj);
     if(!obj) {
       release(base, shred);
       Except(shred, "NullPtrException");
@@ -384,5 +385,5 @@ INSTR(ArrayAccessMulti) { GWDEBUG_EXE
   }
   const m_int idx = *(m_int*)REG(SZ_INT * depth);
   OOB(shred, obj, DIM(depth), idx, base);
-  array_push(shred, ARRAY(obj), idx, instr);
+  array_push(shred, ARRAY(obj), (m_uint)idx, instr);
 }

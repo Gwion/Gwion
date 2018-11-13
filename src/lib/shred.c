@@ -44,7 +44,7 @@ static MFUN(shred_yield) {
 
 static SFUN(vm_shred_from_id) {
   const m_int index =  *(m_int*)MEM(SZ_INT);
-  const VM_Shred s = (VM_Shred)vector_at(&shred->vm->shred, index);
+  const VM_Shred s = (VM_Shred)vector_at(&shred->vm->shred, (vtype)index);
   if(s) {
     *(M_Object*)RETURN = s->me;
     s->me->ref++;

@@ -147,7 +147,7 @@ ANN m_bool env_access(const Env env, const ae_flag flag) {
 
 ANN void env_storage(const Env env, ae_flag* flag) {
   if(env->class_def && GET(*flag, ae_flag_global))
-    *flag &= ~ae_flag_global;
+    *flag &= (uint)~ae_flag_global;
 }
 
 ANN static Type find_typeof(const Env env, ID_List path) {
@@ -185,7 +185,7 @@ ANN Type find_type(const Env env, ID_List path) {
   return type;
 }
 
-ANN m_bool already_defined(const Env env, const Symbol s, const int pos) {
+ANN m_bool already_defined(const Env env, const Symbol s, const uint pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
   return v ? err_msg(pos,
     "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;

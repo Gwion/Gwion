@@ -22,7 +22,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp);
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
 
 static INSTR(assign_func) { GWDEBUG_EXE
-  const Func f = **(Func**)REG(-SZ_INT) = *(Func*)REG(-SZ_INT*2-instr->m_val2);
+  const Func f = **(Func**)REG(-SZ_INT) = *(Func*)REG(-(SZ_INT*2+instr->m_val2));
   POP_REG(shred, instr->m_val + instr->m_val2)
   *(Func*)REG(-SZ_INT) = f; // do we need this ?
 }

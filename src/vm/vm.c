@@ -41,7 +41,7 @@ uint32_t gw_rand(uint32_t s[2]) {
 }
 
 // not the best place
-ANEW struct Scanner_* new_scanner(const m_uint size);
+ANEW struct Scanner_* new_scanner(const uint size);
 ANN void free_scanner(struct Scanner_* scan);
 
 VM* new_vm(const m_bool loop) {
@@ -52,7 +52,7 @@ VM* new_vm(const m_bool loop) {
   vector_init(&vm->ugen);
   shreduler_set_loop(vm->shreduler, loop);
   vm->scan = new_scanner(127); // !!! magic number
-  uint64_t seed = splitmix64_stateless(time(NULL));
+  uint64_t seed = splitmix64_stateless((uint64_t)time(NULL));
   memcpy(vm->rand, &seed, sizeof(uint64_t));
   return vm;
 }

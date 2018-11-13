@@ -21,7 +21,7 @@ VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
   code->name             = strdup(name);
   code->stack_depth      = stack_depth;
   code->native_func      = 0;
-  SET_FLAG(code, NATIVE_NOT | (need_this ? _NEED_THIS_ : 0));
+  SET_FLAG(code, NATIVE_NOT | (uint)(need_this ? _NEED_THIS_ : 0));
   INIT_OO(code, e_code_obj)
   return code;
 }

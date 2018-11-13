@@ -17,14 +17,15 @@ void escape_table() {
     g_escape['v'] = (char)11; // vertical tab
 }
 
-static char get_escape(const char c, const int pos) {
+static int get_escape(const char c, const uint pos) {
   if(g_escape[(int)c])
     return g_escape[(int)c];
   return err_msg(pos, "unrecognized escape sequence '\\%c'", c);
 }
 
-m_bool escape_str(m_str str_lit, const int pos) {
-  m_str str = str_lit;
+m_bool escape_str(const m_str base, const uint pos) {
+  unsigned char* str_lit = (unsigned char*)base;
+  m_str str = base;
   while(*str_lit) {
     if(*str_lit == '\\')  {
       ++str_lit;
@@ -53,17 +54,17 @@ m_bool escape_str(m_str str_lit, const int pos) {
         } else
           ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c1, c3)
       } else
-        CHECK_BB((*str++ = get_escape(c, pos)))
+        CHECK_BB((*str++ = get_escape((char)c, pos)))
     }
     else
-        *str++ = *str_lit;
+        *str++ = (char)*str_lit;
     ++str_lit;
   }
   *str = '\0';
   return 1;
 }
 
-ANN m_int str2char(const m_str c, const m_int pos) {
+ANN m_int str2char(const m_str c, const uint pos) {
   if(c[0] != '\\')
     return c[0];
   return get_escape(c[1], pos);

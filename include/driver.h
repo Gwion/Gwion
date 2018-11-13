@@ -2,7 +2,7 @@ typedef struct driver_wrapper* Driver_;
 typedef struct containing_driver_info {
   m_uint in, out;
   m_uint chan;
-  unsigned int sr;
+  uint   sr;
   m_uint bufsize;
   m_uint bufnum;
   m_str card;

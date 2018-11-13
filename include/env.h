@@ -40,7 +40,7 @@ ANN void env_storage(const Env env, ae_flag* flag);
 ANN2(1,2) void env_add_value(const Env, const m_str, const Type, 	const m_bool, void*);
 ANN void env_add_type(const Env, const Type);
 ANN Type find_type(const Env, ID_List);
-ANN m_bool already_defined(const Env env, const Symbol s, const int pos);
+ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
 #endif

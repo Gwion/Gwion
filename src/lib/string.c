@@ -62,16 +62,16 @@ static INSTR(String_Assign) { GWDEBUG_EXE
 }
 
 describe_string_assign(Int_, m_int, SZ_INT,,
-  num_digit(labs(lhs)) + 1,
+  num_digit((m_uint)labs(lhs)) + 1,
   "%" INT_F "", lhs)
 describe_string_assign(Float_, m_float, SZ_FLOAT,,
   num_digit((m_uint)lhs) + 5,
   "%.4f", lhs)
 describe_string_assign(Complex_, m_complex, SZ_COMPLEX,,
-  num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 16,
+  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 16,
   "#(%.4f, %.4f)", creal(lhs), cimag(lhs))
 describe_string_assign(Polar_, m_complex, SZ_COMPLEX,,
-  num_digit(creal(lhs)) + num_digit(cimag(lhs)) + 16,
+  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 16,
   "#(%.4f, %.4f)", creal(lhs), cimag(lhs)/M_PI)
 describe_string_assign(Vec3_, m_vec3, SZ_VEC3,,
   num_digit(lhs.x) + num_digit(lhs.y) + num_digit(lhs.z) + 23,
@@ -106,7 +106,7 @@ static INSTR(name##_String) { GWDEBUG_EXE \
   release(rhs, shred);\
 }
 describe_string(Int, m_int, SZ_INT,
-  num_digit(lhs) + (rhs ? strlen(STRING(rhs)) : 0) + 1,,
+  num_digit((m_uint)lhs) + (rhs ? strlen(STRING(rhs)) : 0) + 1,,
   "%" INT_F "%s", lhs, rhs ? STRING(rhs) : "")
 describe_string(Float, m_float, SZ_FLOAT,
   (num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)) : 0) + 1),,
@@ -145,7 +145,7 @@ static INSTR(name##String_Plus) { GWDEBUG_EXE       \
 describe_string_plus(,SZ_INT, M_Object, release(lhs, shred),
   strlen(STRING(rhs)), "%s", lhs ? STRING(lhs) : "")
 describe_string_plus(Int_, SZ_INT, m_int,,
-  num_digit(lhs), "%"INT_F, lhs)
+  num_digit((m_uint)lhs), "%"INT_F, lhs)
 describe_string_plus(Float_, SZ_FLOAT, m_float,,
   num_digit(lhs) + 6, "%s%.4f", STRING(rhs), lhs)
 describe_string_plus(Complex_, SZ_COMPLEX, m_complex,,

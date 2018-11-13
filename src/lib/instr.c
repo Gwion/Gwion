@@ -170,7 +170,7 @@ INSTR(AllocWord4) { GWDEBUG_EXE
 INSTR(BranchSwitch) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const Map map = (Map)instr->m_val2;
-  shred->pc = (m_int)map_get(map, *(m_int*)REG(0));
+  shred->pc = map_get(map, (vtype)*(m_int*)REG(0));
   if(!shred->pc)
     shred->pc = instr->m_val;
 }
@@ -188,7 +188,7 @@ branch(NeqFloat, m_float, SZ_FLOAT, !=)
 
 INSTR(InitLoopCounter) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
-  (*(m_uint*)instr->m_val) = labs(*(m_int*)REG(0));
+  (*(m_int*)instr->m_val) = labs(*(m_int*)REG(0));
 }
 
 INSTR(RegPushDeref) { GWDEBUG_EXE

@@ -99,18 +99,18 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
         di->card     = optarg;
         break;
       case 'g':
-        di->chan     = strtol(optarg, NULL, 10);
-        di->in       = strtol(optarg, NULL, 10);
-        di->out      = strtol(optarg, NULL, 10);
+        di->chan     = (m_uint)strtol(optarg, NULL, 10);
+        di->in       = (m_uint)strtol(optarg, NULL, 10);
+        di->out      = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 'i':
-        di->in       = strtol(optarg, NULL, 10);
+        di->in       = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 'o':
-        di->out      = strtol(optarg, NULL, 10);
+        di->out      = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 's':
-        di->sr       = strtol(optarg, NULL, 10);
+        di->sr       = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 'd':
         select_driver(di, optarg);
@@ -125,10 +125,10 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
         di->raw = 1;
         break;
       case 'n':
-        di->bufnum    = strtol(optarg, NULL, 10);
+        di->bufnum    = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 'b':
-        di->bufsize    = strtol(optarg, NULL, 10);
+        di->bufsize    = (m_uint)strtol(optarg, NULL, 10);
         break;
     default:
       gw_err("Unknown argument '%c'\n", i);

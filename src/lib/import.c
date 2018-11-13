@@ -113,7 +113,7 @@ ANN static m_bool name_valid(const m_str a) {
 }
 
 ANN static void path_valid_inner(const m_str curr) {
-  const m_int size = strlen(curr);
+  const size_t size = strlen(curr);
   for(m_uint j = (size / 2) + 1; --j;) {
     const char s = curr[j];
     curr[j] = curr[size - j - 1];
@@ -186,7 +186,7 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
   env_add_type(gwi->env, type);
-  return type->xid;
+  return (m_int)type->xid;
 }
 
 ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
@@ -222,7 +222,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi_add_type(gwi, type);
   CHECK_BB(import_class_ini(gwi->env, type, pre_ctor, dtor))
-  return type->xid;
+  return (m_int)type->xid;
 }
 
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
@@ -344,7 +344,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, ae_flag_builtin);
   dl_var_release(v);
-  return v->var.value->offset;
+  return (m_int)v->var.value->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,

@@ -285,7 +285,7 @@ static MFUN(ugen_set_op) {
     set_op(UGEN(o), ugop_mul);
   else if(i == 4)
     set_op(UGEN(o), ugop_div);
-  *(m_uint*)RETURN = i;
+  *(m_int*)RETURN = i;
 }
 
 static MFUN(ugen_get_last) {

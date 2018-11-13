@@ -72,13 +72,13 @@ static inline void memoize_set(Memoize m, const m_bit* arg) {
 m_bool memoize_get(VM_Shred shred) {
   const VM_Code code = *(VM_Code*)REG(-SZ_INT * 2);
   const Memoize m = code->memoize;
-  const m_bit* arg = REG(-SZ_INT*2-m->arg_sz - m->member);
+  const m_bit* arg = REG(-(SZ_INT*2 + m->arg_sz + (m_uint)m->member));
   const m_uint size = vector_size(&m->v);
   for(m_uint i = 0; i < size; ++i) {
     m_bit* data = (m_bit*)vector_at(&m->v, i);
     if(memcmp(arg, data, m->arg_sz))
       continue;
-    POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + m->member)
+    POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + (m_uint)m->member)
     mreturn[m->kind](shred->reg-m->ret_sz, data + m->arg_sz, m->ret_sz);
     return 1;
   }
