@@ -44,9 +44,9 @@ ANN void compute_mono(const UGen u) {
     COMPUTE(v)
     u->in = v->out;
     for(m_uint i = 1; i < size; ++i) {
-      const UGen v = (UGen)vector_at(vec, i);
-      COMPUTE(v)
-      u->op(u, v->out);
+      const UGen w = (UGen)vector_at(vec, i);
+      COMPUTE(w)
+      u->op(u, w->out);
     }
   }
 }

@@ -53,11 +53,11 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
     ++s;
     while(tl) {
       m_str name = td2str(env, tl->td);
-      const size_t len = strlen(name);
-      l += len;
+      const size_t nlen = strlen(name);
+      l += nlen;
       strcheck(s, m, l);
       strcpy(s, name);
-      s += len;
+      s += nlen;
       free(name);
       tl = tl->next;
       if(tl) {

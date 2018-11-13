@@ -469,9 +469,9 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
   tmpl_name[0] = '\0';
   m_str str = tmpl_name;
   for(m_uint i = 0; i < vector_size(&v); ++i) {
-    const m_str name = ((Type)vector_at(&v, i))->name;
-    strcpy(str, name);
-    str += strlen(name);
+    const m_str s = ((Type)vector_at(&v, i))->name;
+    strcpy(str, s);
+    str += strlen(s);
     if(i + 1 < vector_size(&v)) {
       strcpy(str, ",");
       ++str;

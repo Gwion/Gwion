@@ -45,13 +45,13 @@ m_bool escape_str(m_str str_lit, const int pos) {
         }
       } else if(c == 'x') {
         ++str_lit;
-        const unsigned char c = *(str_lit);
-        const unsigned char c2 = *(str_lit+1);
-        if(c >= '0' && c <= 'F' && c2 >= '0' && c2 <= 'F') {
-          *str++ =(c-'0') * 16 + (c2-'0');
+        const unsigned char c1 = *(str_lit);
+        const unsigned char c3 = *(str_lit+1);
+        if(c1 >= '0' && c1 <= 'F' && c3 >= '0' && c3 <= 'F') {
+          *str++ =(c1-'0') * 16 + (c3-'0');
           ++str_lit;
         } else
-          ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c, c2)
+          ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c1, c3)
       } else
         CHECK_BB((*str++ = get_escape(c, pos)))
     }

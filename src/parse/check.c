@@ -488,24 +488,24 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
       UNSET_FLAG(base, ae_flag_template);
       SET_FLAG(def, ae_flag_template);
       if((mismatch = template_match(base->tmpl->list, types)) < 0)
-        goto next;
+        goto fail;
     }
     if(template_push_types(env, base->tmpl->list, types) < 0)
-      goto next;
-    if(find_template_match_inner(env, exp_call, def) < 0)
-      goto next;
-    Func next = def->func->next;
-    def->func->next = NULL;
-    m_func = find_func_match(env, def->func, args);
-    def->func->next = next;
-    if(m_func) {
-      free(tmpl_name);
-      env_pop(env, class_scope);
-      SET_FLAG(base, ae_flag_template);
-      SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-      return m_func;
+      goto fail;
+    if(find_template_match_inner(env, exp_call, def) > 0) {
+      Func next = def->func->next;
+      def->func->next = NULL;
+      m_func = find_func_match(env, def->func, args);
+      def->func->next = next;
+      if(m_func) {
+        free(tmpl_name);
+        env_pop(env, class_scope);
+        SET_FLAG(base, ae_flag_template);
+        SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
+        return m_func;
+      }
     }
-next:
+fail:
     SET_FLAG(base, ae_flag_template);
     if(def->func) // still leaks
       def->func->def = NULL;
