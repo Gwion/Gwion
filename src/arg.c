@@ -110,7 +110,7 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
         di->out      = (m_uint)strtol(optarg, NULL, 10);
         break;
       case 's':
-        di->sr       = (m_uint)strtol(optarg, NULL, 10);
+        di->sr       = (uint)strtol(optarg, NULL, 10);
         break;
       case 'd':
         select_driver(di, optarg);

@@ -43,7 +43,7 @@
   gw_out("%%(");
   print_float(creal(c));
   gw_out(", ");
-  print_float(cimag(c) / M_PI);
+  print_float((m_float)cimag(c) / (m_float)M_PI);
   gw_out("*pi)");
 }
 

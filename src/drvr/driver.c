@@ -14,9 +14,9 @@ ANN struct BBQ_* new_bbq(DriverInfo* di) {
   struct BBQ_* bbq   = (struct BBQ_*)xcalloc(1, sizeof(struct BBQ_));
   bbq->out = (m_float*)xcalloc(di->out, SZ_FLOAT);
   bbq->in  = (m_float*)xcalloc(di->in, SZ_FLOAT);
-  bbq->n_in = di->in;
+  bbq->n_in = (uint8_t)di->in;
   bbq->sr = di->sr;
-  bbq->nchan = di->chan;
+  bbq->nchan = (uint8_t)di->chan;
   return bbq;
 }
 

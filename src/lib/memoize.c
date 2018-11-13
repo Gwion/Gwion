@@ -52,7 +52,7 @@ Memoize memoize_ini(const Func f, const enum Kind kind) {
     m->member = SZ_INT;
     m->arg_sz = f->def->stack_depth - SZ_INT;
   }
-  m->p = new_pool(m->arg_sz + m->ret_sz);
+  m->p = new_pool((uint32_t)(m->arg_sz + m->ret_sz));
   return m;
 }
 

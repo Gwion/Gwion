@@ -1247,7 +1247,7 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
       v->offset = offset;
       v->d.ptr = (m_uint*)i;
     } else
-      emit->env->class_def->nspc->class_data[v->offset] = i;
+      *(m_uint*)(emit->env->class_def->nspc->class_data + v->offset) = i;
   }
   return 1;
 }
@@ -1270,7 +1270,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
         (m_bit*)xcalloc(1, stmt->value->type->nspc->class_data_size);
     stmt->value->type->nspc->offset = stmt->s;
     if(!stmt->value->type->p)
-      stmt->value->type->p = mp_ini(stmt->value->type->size);
+      stmt->value->type->p = mp_ini((uint32_t)stmt->value->type->size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
         emit->env->class_def ? ae_flag_member : 0); // or zero ?
     type_decl->flag = stmt->flag;
@@ -1296,7 +1296,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
         (m_bit*)xcalloc(1, stmt->type->nspc->class_data_size);
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
-      stmt->type->p = mp_ini(stmt->type->size);
+      stmt->type->p = mp_ini((uint32_t)stmt->type->size);
     env_push(emit->env, stmt->type, stmt->type->nspc, &class_scope);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))

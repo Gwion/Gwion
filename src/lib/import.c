@@ -274,7 +274,7 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->env->class_def)return -1;
   const Type t = gwi->env->class_def;
   if(t->nspc && t->nspc->offset)
-    t->p = mp_ini(t->nspc->offset);
+    t->p = mp_ini((uint32_t)t->nspc->offset);
   return import_class_end(gwi->env);
 }
 
@@ -482,7 +482,7 @@ static Type get_type(const Env env, const m_str str) {
   return t ? (depth ? array_type(t, depth) : t) : NULL;
 }
 
-ANN2(1,2) static m_int import_op(const Env env, const DL_Oper* op,
+ANN2(1,2) static int import_op(const Env env, const DL_Oper* op,
     const f_instr f) {
   const Type lhs = op->lhs ? get_type(env, op->lhs) : NULL;
   const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;

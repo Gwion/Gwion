@@ -133,7 +133,7 @@ INSTR(RegPushMe) { GWDEBUG_EXE
 }
 
 INSTR(RegPushNow) { GWDEBUG_EXE
-  *(m_float*)REG(0) = shred->vm->bbq->pos;
+  *(m_float*)REG(0) = (m_float)shred->vm->bbq->pos;
   PUSH_REG(shred, SZ_FLOAT);
 }
 

@@ -39,7 +39,7 @@ m_bool escape_str(const m_str base, const uint pos) {
         else {
           const unsigned char c3 = *(str_lit+2);
           if(c2 >= '0' && c2 <= '7' && c3 >= '0' && c3 <= '7') {
-            *str++ = (c-'0') * 64 + (c2-'0') * 8 + (c3-'0');
+            *str++ = (char)((c-'0') * 64 + (c2-'0') * 8 + (c3-'0'));
             str_lit += 2;
           } else
             ERR_B(pos, "malformed octal escape sequence '\\%c%c%c'", c, c2, c3)
@@ -49,12 +49,12 @@ m_bool escape_str(const m_str base, const uint pos) {
         const unsigned char c1 = *(str_lit);
         const unsigned char c3 = *(str_lit+1);
         if(c1 >= '0' && c1 <= 'F' && c3 >= '0' && c3 <= 'F') {
-          *str++ =(c1-'0') * 16 + (c3-'0');
+          *str++ = (char)((c1-'0') * 16 + (c3-'0'));
           ++str_lit;
         } else
           ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c1, c3)
       } else
-        CHECK_BB((*str++ = get_escape((char)c, pos)))
+        CHECK_BB((*str++ = (char)get_escape((char)c, pos)))
     }
     else
         *str++ = (char)*str_lit;

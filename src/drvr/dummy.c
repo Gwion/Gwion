@@ -14,7 +14,7 @@ static void dummy_run(VM* vm, DriverInfo* di) {
 }
 
 static void silent_run(VM* vm, DriverInfo* di) {
-  const m_uint timer = 1000000 / vm->bbq->sr;
+  const uint timer = 1000000 / vm->bbq->sr;
   while(vm->is_running) {
     di->run(vm);
     ++vm->bbq->pos;

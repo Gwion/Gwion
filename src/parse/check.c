@@ -1290,7 +1290,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))
   if(!the_class->p && the_class->nspc->offset)
-    the_class->p = mp_ini(the_class->nspc->offset);
+    the_class->p = mp_ini((uint32_t)the_class->nspc->offset);
   SET_FLAG(the_class, ae_flag_checked | ae_flag_check);
   return 1;
 }

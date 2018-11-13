@@ -76,14 +76,14 @@ int main(int argc, char** argv) {
 //  init_symbols();
   PlugInfo pi;
   plug_ini(pi, &arg.lib);
-  vm = new_vm(arg.loop);
+  vm = new_vm((m_bool)arg.loop); // change type in struct to m_bool
   vm->emit = new_emitter();
   di.func(&d);
   if(d.ini(vm, &di) < 0 || !(vm->bbq = new_bbq(&di)))
     goto clean;
   if(!(env = type_engine_init(vm, &pi[1])))
     goto clean;
-  srand(time(NULL));
+  srand((uint)time(NULL));
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile_filename(vm, (m_str)vector_at(&arg.add, i));
   vm->is_running = 1;

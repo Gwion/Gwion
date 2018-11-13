@@ -63,7 +63,7 @@ static MFUN(vec3_##name) {            \
 }
 describe_vec3_x(interp, + v->x)
 describe_vec3_x(float, * v->z * (*(m_float*)MEM(SZ_INT)) + v->x)
-describe_vec3_x(dur, * (*(m_float*)MEM(SZ_INT) / shred->vm->bbq->sr) + v->x)
+describe_vec3_x(dur, * (*(m_float*)MEM(SZ_INT) / (m_float)shred->vm->bbq->sr) + v->x)
 
 static MFUN(vec3_update) {
   m_vec3* v =  *(m_vec3**)MEM(0);

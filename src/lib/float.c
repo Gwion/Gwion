@@ -78,13 +78,14 @@ describe_r(div, /)
 
 static INSTR(int_float_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT);
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = *(m_float*)REG(0));
+  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = (m_int)*(m_float*)REG(0));
 }
 
 #define describe_if(name, op) \
 static INSTR(int_float_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT); \
-  *(m_float*)REG(-SZ_FLOAT) = *(m_int*)REG(-SZ_FLOAT) op *(m_float*)REG(SZ_INT-SZ_FLOAT); \
+  *(m_float*)REG(-SZ_FLOAT) = (m_float)*(m_int*)REG(-SZ_FLOAT) op \
+    *(m_float*)REG(SZ_INT-SZ_FLOAT); \
 }
 describe_if(plus,   +)
 describe_if(minus,  -)
@@ -94,7 +95,7 @@ describe_if(div, /)
 #define describe_logical_if(name, op) \
 static INSTR(int_float_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (*(m_int*)REG(-SZ_INT) op *(m_float*)REG(0)); \
+  *(m_int*)REG(-SZ_INT) = (*(m_int*)REG(-SZ_INT) op (m_int)*(m_float*)REG(0)); \
 }
 describe_logical_if(and, &&)
 describe_logical_if(or,  ||)
@@ -108,7 +109,8 @@ describe_logical_if(le,  <=)
 #define describe_r_if(name, op) \
 static INSTR(int_float_r_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT * 2 - SZ_FLOAT); \
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(SZ_INT - SZ_FLOAT) op##= *(m_int*)REG(-SZ_FLOAT)); \
+  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(SZ_INT - SZ_FLOAT) op##= \
+    (m_float)*(m_int*)REG(-SZ_FLOAT)); \
 }
 describe_r_if(assign,  )
 describe_r_if(plus,   +)
@@ -119,13 +121,13 @@ describe_r_if(div, /)
 static INSTR(float_int_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 2 - SZ_FLOAT);
   *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(-SZ_FLOAT) =
-    *(m_int*)REG(SZ_INT - SZ_FLOAT));
+    (m_float)*(m_int*)REG(SZ_INT - SZ_FLOAT));
 }
 
 #define describe_fi(name, op) \
 static INSTR(float_int_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT); \
-  *(m_float*)REG(-SZ_FLOAT) op##= *(m_int*)REG(0); \
+  *(m_float*)REG(-SZ_FLOAT) op##= (m_float)*(m_int*)REG(0); \
 }
 describe_fi(plus,   +)
 describe_fi(minus,  -)
@@ -135,7 +137,7 @@ describe_fi(div, /)
 #define describe_logical_fi(name, op) \
 static INSTR(float_int_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (*(m_float*)REG(-SZ_INT) op *(m_int*)REG(SZ_FLOAT-SZ_INT)); \
+  *(m_int*)REG(-SZ_INT) = ((m_int)*(m_float*)REG(-SZ_INT) op *(m_int*)REG(SZ_FLOAT-SZ_INT)); \
 }
 describe_logical_fi(and, &&)
 describe_logical_fi(or,  ||)
@@ -149,13 +151,13 @@ describe_logical_fi(le,  <=)
 static INSTR(float_int_r_assign) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT);
   *(m_int*)REG(-SZ_INT) = **(m_int**)REG(SZ_FLOAT-SZ_INT) =
-    *(m_float*)REG(-SZ_INT);
+    (m_int)*(m_float*)REG(-SZ_INT);
 }
 
 #define describe_r_fi(name, op) \
 static INSTR(float_int_r_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_FLOAT); \
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(SZ_FLOAT -SZ_INT) op##= (*(m_float*)REG(-SZ_INT))); \
+  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(SZ_FLOAT -SZ_INT) op##= (m_int)(*(m_float*)REG(-SZ_INT))); \
 }
 describe_r_fi(plus,   +)
 describe_r_fi(minus,  -)
@@ -175,13 +177,13 @@ static GWION_IMPORT(values) {
   ALLOC_PTR(d_zero, m_float, 0.0);
   ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sr);
   ALLOC_PTR(samp,   m_float, 1.0);
-  ALLOC_PTR(ms,     m_float, (m_float)*sr     / 1000.);
+  ALLOC_PTR(ms,     m_float, (m_float)(*sr     / 1000.));
   ALLOC_PTR(second, m_float, (m_float)*sr);
-  ALLOC_PTR(minute, m_float, (m_float)*sr     * 60.0);
-  ALLOC_PTR(hour,   m_float, (m_float)*minute * 60.0);
+  ALLOC_PTR(minute, m_float, (m_float)(*sr     * 60.0));
+  ALLOC_PTR(hour,   m_float, (m_float)(*minute * 60.0));
 //  ALLOC_PTR(day,    m_float, (m_float)*hour   * 24.0);
   ALLOC_PTR(t_zero, m_float, 0.0);
-  ALLOC_PTR(pi, m_float, M_PI);
+  ALLOC_PTR(pi, m_float, (m_float)M_PI);
   gwi_item_ini(gwi, "float", "samplerate");
   gwi_item_end(gwi, ae_flag_const, sr);
   gwi_item_ini(gwi, "float", "pi");
@@ -231,13 +233,13 @@ static OP_EMIT(opem_f2i) {
 
 INSTR(CastI2F) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT - SZ_FLOAT);
-  *(m_float*)REG(-SZ_FLOAT) = *(m_int*)REG(-SZ_FLOAT);
+  *(m_float*)REG(-SZ_FLOAT) = (m_float)*(m_int*)REG(-SZ_FLOAT);
 }
 
 
 INSTR(CastF2I) { GWDEBUG_EXE
   POP_REG(shred, SZ_FLOAT - SZ_INT);
-  *(m_int*)REG(-SZ_INT) = *(m_float*)REG(-SZ_INT);
+  *(m_int*)REG(-SZ_INT) = (m_int)*(m_float*)REG(-SZ_INT);
 }
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, float_##func)
