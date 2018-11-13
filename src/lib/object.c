@@ -4,6 +4,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
+#include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "type.h"
@@ -13,6 +14,7 @@
 #include "object.h"
 #include "import.h"
 #include "mpool.h"
+#include "operator.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",

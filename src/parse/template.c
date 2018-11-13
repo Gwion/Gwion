@@ -4,6 +4,7 @@
 #include "absyn.h"
 #include "err_msg.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "nspc.h"

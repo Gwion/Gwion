@@ -1,4 +1,7 @@
 #include <stdlib.h>
+#include "defs.h"
+#include "map.h"
+#include "oo.h"
 #include "vm.h"
 #include "object.h"
 #include "shreduler_private.h"

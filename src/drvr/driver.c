@@ -3,6 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include "defs.h"
+#include "map.h"
+#include "oo.h"
 #include "vm.h"
 #include "err_msg.h"
 #include "driver.h"

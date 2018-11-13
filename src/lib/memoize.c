@@ -3,6 +3,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "mpool.h"
+#include "oo.h"
 #include "vm.h"
 #include "type.h"
 #include "instr.h"
@@ -32,7 +33,9 @@ static inline void memoize_return3(m_bit* tgt, const m_bit* src,
   const m_uint size) {
   memcpy(tgt, src, size);
 }
-static inline void memoize_return4(m_bit* tgt, const m_bit* src,
+
+static inline void memoize_return4(m_bit* tgt __attribute__((unused)),
+  const m_bit* src __attribute__((unused)),
   const m_uint size __attribute__((unused))) {}
 
 static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =

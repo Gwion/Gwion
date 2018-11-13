@@ -3,8 +3,10 @@
 #include "map.h"
 #include "absyn.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
+#include "nspc.h"
 #include "func.h"
 #include "mpool.h"
 

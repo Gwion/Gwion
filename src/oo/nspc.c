@@ -5,6 +5,7 @@
 #include "symbol.h"
 #include "map.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
@@ -12,6 +13,7 @@
 #include "func.h"
 #include "object.h"
 #include "mpool.h"
+#include "operator.h"
 
 extern VM* vm;
 

@@ -6,6 +6,7 @@
 #include "map.h"
 #include "defs.h"
 #include "absyn.h"
+#include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "instr.h"

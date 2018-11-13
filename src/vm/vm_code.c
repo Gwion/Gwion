@@ -3,8 +3,8 @@
 #include "defs.h"
 #include "map.h"
 #include "absyn.h"
-#include "vm.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "func.h"
@@ -12,6 +12,7 @@
 #include "object.h"
 #include "array.h"
 #include "mpool.h"
+#include "memoize.h"
 
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
     const m_bool need_this, const m_str name) {

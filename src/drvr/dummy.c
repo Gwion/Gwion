@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "defs.h"
+#include "map.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
 

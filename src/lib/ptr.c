@@ -4,6 +4,7 @@
 #include "map.h"
 #include "absyn.h"
 #include "err_msg.h"
+#include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "type.h"
@@ -12,6 +13,7 @@
 #include "object.h"
 #include "import.h"
 #include "emit.h"
+#include "operator.h"
 
 ANN m_str get_type_name(const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
