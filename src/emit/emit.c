@@ -1672,14 +1672,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   return 1;
 }
 
-typedef m_bool (*_section_func)(const Emitter, const void*);
-static const _section_func section_func[] = {
-  (_section_func)emit_stmt_list, (_section_func)emit_func_def, (_section_func)emit_class_def
-};
-
-ANN static inline m_bool emit_section(const Emitter emit, const Section* section) { GWDEBUG_EXE
-  return section_func[section->section_type](emit, *(void**)&section->d);
-}
+DECL_SECTION_FUNC(emit)
 
 ANN Code* emit_class_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
   const m_uint len = strlen(name) + 7;

@@ -17,6 +17,14 @@ static const _exp_func exp_func[] = {                                           
   (_exp_func)prefix##_exp_dot,     (_exp_func)prefix##_exp_dur                                    \
 };
 
+#define DECL_SECTION_FUNC(prefix)                                                                 \
+static const _exp_func section_func[] = {                                                         \
+  (_exp_func)prefix##_stmt_list, (_exp_func)prefix##_func_def, (_exp_func)prefix##_class_def      \
+};                                                                                                \
+ANN static inline m_bool prefix##_section(const void* a, const Section* section) { GWDEBUG_EXE    \
+  return section_func[section->section_type](a, *(void**)&section->d);                            \
+}
+
 #define HANDLE_EXP_FUNC(prefix, type, ret)                                                        \
 DECL_EXP_FUNC(prefix)                                                                             \
 ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE                         \
@@ -24,8 +32,6 @@ ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE       
   while((exp = exp->next));                                                                       \
   return ret;                                                                                     \
 }
-
-
 
 #define describe_stmt_func(prefix, name, type, exp) \
 ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \

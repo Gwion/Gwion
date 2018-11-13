@@ -568,14 +568,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   return 1;
 }
 
-typedef m_bool (*_section_func)(const Env, const void*);
-static const _section_func section_func[] = {
-  (_section_func)scan2_stmt_list, (_section_func)scan2_func_def, (_section_func)scan2_class_def
-};
-
-ANN static inline m_bool scan2_section(const Env env, const Section* section) { GWDEBUG_EXE
-  return section_func[section->section_type](env, *(void**)&section->d);
-}
+DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
   const Type t = class_def->type->parent->array_depth ?
