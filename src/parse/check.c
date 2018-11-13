@@ -305,10 +305,12 @@ describe_prim_xxx(num, t_int)
 describe_prim_xxx(float, t_float)
 describe_prim_xxx(str, t_string)
 describe_prim_xxx(nil, t_void)
-typedef Type (*_prim_func)(const Env, const Exp_Primary*);
-static const _prim_func prim_func[] = {
-  prim_id, prim_num, prim_float, prim_str, prim_array,
-  prim_gack, prim_vec, prim_vec, prim_vec, prim_num, prim_nil,
+
+typedef Type (*_type_func)(const Env, const void*);
+static const _type_func prim_func[] = {
+  (_type_func)prim_id,    (_type_func)prim_num,  (_type_func)prim_float, (_type_func)prim_str,
+  (_type_func)prim_array, (_type_func)prim_gack, (_type_func)prim_vec,   (_type_func)prim_vec,
+  (_type_func)prim_vec,   (_type_func)prim_num,  (_type_func)prim_nil,
 };
 
 ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
@@ -812,12 +814,11 @@ ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
 
-typedef Type (*_exp_func)(const Env, const union exp_data *);
-static const _exp_func exp_func[] = {
-  (_exp_func)check_exp_decl,    (_exp_func)check_exp_binary, (_exp_func)check_exp_unary,
-  (_exp_func)check_exp_primary, (_exp_func)check_exp_cast,   (_exp_func)check_exp_post,
-  (_exp_func)check_exp_call,    (_exp_func)check_exp_array,  (_exp_func)check_exp_if,
-  (_exp_func)check_exp_dot,     (_exp_func)check_exp_dur
+static const _type_func exp_func[] = {
+  (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,
+  (_type_func)check_exp_primary, (_type_func)check_exp_cast,   (_type_func)check_exp_post,
+  (_type_func)check_exp_call,    (_type_func)check_exp_array,  (_type_func)check_exp_if,
+  (_type_func)check_exp_dot,     (_type_func)check_exp_dur
 };
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
@@ -1058,16 +1059,13 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
  return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
 }
 
-static m_bool check_stmt_xxx(const Env env __attribute__((unused)),
-  const union stmt_data * d __attribute__((unused))) { return 1; }
-typedef m_bool (*_stmt_func)(const Env, const union stmt_data *);
-static const _stmt_func stmt_func[] = {
-  (_stmt_func)check_stmt_exp,   (_stmt_func)check_stmt_flow,     (_stmt_func)check_stmt_flow,
-  (_stmt_func)check_stmt_for,   (_stmt_func)check_stmt_auto,     (_stmt_func)check_stmt_loop,
-  (_stmt_func)check_stmt_if,    (_stmt_func)check_stmt_code,     (_stmt_func)check_stmt_switch,
-  (_stmt_func)check_stmt_break, (_stmt_func)check_stmt_continue, (_stmt_func)check_stmt_return,
-  (_stmt_func)check_stmt_case,  (_stmt_func)check_stmt_jump,     (_stmt_func)check_stmt_enum,
-  (_stmt_func)check_stmt_xxx,   (_stmt_func)check_stmt_type,     (_stmt_func)check_stmt_union,
+static const _exp_func stmt_func[] = {
+  (_exp_func)check_stmt_exp,   (_exp_func)check_stmt_flow,     (_exp_func)check_stmt_flow,
+  (_exp_func)check_stmt_for,   (_exp_func)check_stmt_auto,     (_exp_func)check_stmt_loop,
+  (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,     (_exp_func)check_stmt_switch,
+  (_exp_func)check_stmt_break, (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return,
+  (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,     (_exp_func)check_stmt_enum,
+  (_exp_func)dummy_func,       (_exp_func)check_stmt_type,     (_exp_func)check_stmt_union,
 };
 
 ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE

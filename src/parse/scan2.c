@@ -225,7 +225,6 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
   return 1;
 }
 
-typedef m_bool (*_exp_func)(const Env, const union exp_data *);
 HANDLE_EXP_FUNC(scan2, m_bool, 1)
 
 #define scan2_stmt_func(name, type, exp) describe_stmt_func(scan2, name, type, exp)
@@ -306,15 +305,13 @@ ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   return 1;
 }
 
-static m_bool scan2_stmt_xxx(const Env env, const union stmt_data * d) { return 1; }
-typedef m_bool (*_stmt_func)(const Env, const union stmt_data *);
-static const _stmt_func stmt_func[] = {
-  (_stmt_func)scan2_stmt_exp,  (_stmt_func)scan2_stmt_flow, (_stmt_func)scan2_stmt_flow,
-  (_stmt_func)scan2_stmt_for,  (_stmt_func)scan2_stmt_auto, (_stmt_func)scan2_stmt_loop,
-  (_stmt_func)scan2_stmt_if,   (_stmt_func)scan2_stmt_code, (_stmt_func)scan2_stmt_switch,
-  (_stmt_func)scan2_stmt_xxx,  (_stmt_func)scan2_stmt_xxx,  (_stmt_func)scan2_stmt_exp,
-  (_stmt_func)scan2_stmt_case, (_stmt_func)scan2_stmt_jump, (_stmt_func)scan2_stmt_xxx,
-  (_stmt_func)scan2_stmt_fptr, (_stmt_func)scan2_stmt_type, (_stmt_func)scan2_stmt_union,
+static const _exp_func stmt_func[] = {
+  (_exp_func)scan2_stmt_exp,  (_exp_func)scan2_stmt_flow, (_exp_func)scan2_stmt_flow,
+  (_exp_func)scan2_stmt_for,  (_exp_func)scan2_stmt_auto, (_exp_func)scan2_stmt_loop,
+  (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)scan2_stmt_switch,
+  (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,
+  (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump, (_exp_func)dummy_func,
+  (_exp_func)scan2_stmt_fptr, (_exp_func)scan2_stmt_type, (_exp_func)scan2_stmt_union,
 };
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE

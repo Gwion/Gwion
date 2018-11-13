@@ -469,16 +469,12 @@ ANN static m_bool prim_constprop(Emitter emit, const Exp_Primary* prim) {
 #endif
 
 
-static m_bool prim_nil(const Emitter emit __attribute__((unused)), const Exp_Primary *p __attribute__((unused))) {
-  return 1;
-}
-
-typedef m_bool (*_prim_func)(const Emitter emit, const Exp_Primary *);
-static const _prim_func prim_func[] = {
-  prim_id, prim_num, prim_float, prim_str, prim_array,
-  prim_gack, prim_vec, prim_vec, prim_vec, prim_char, prim_nil,
+static const _exp_func prim_func[] = {
+  (_exp_func)prim_id, (_exp_func)prim_num, (_exp_func)prim_float, (_exp_func)prim_str,
+  (_exp_func)prim_array, (_exp_func)prim_gack, (_exp_func)prim_vec, (_exp_func)prim_vec,
+  (_exp_func)prim_vec, (_exp_func)prim_char, (_exp_func)dummy_func,
 #ifdef OPTIMIZE
-  prim_constprop
+  (_exp_func)prim_constprop
 #endif
 };
 
@@ -911,7 +907,6 @@ ANN static void emit_exp_constprop(const Emitter emit, const Exp e) {
 }
 #endif
 
-typedef m_bool (*_exp_func)(const Emitter, const union exp_data *);
 DECL_EXP_FUNC(emit)
 
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { GWDEBUG_EXE
@@ -1354,18 +1349,13 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
   return exp->val ? emit_exp(emit, exp->val, 0) : 1;
 }
 
-ANN static m_bool emit_stmt_fptr(const Emitter emit __attribute__((unused)), const union stmt_data *d __attribute__((unused))) {
-  return 1;
-}
-
-typedef m_bool (*_stmt_func)(const Emitter Emit, const union stmt_data *);
-static const _stmt_func stmt_func[] = {
-  (_stmt_func)emit_stmt_exp,   (_stmt_func)emit_stmt_flow,     (_stmt_func)emit_stmt_flow,
-  (_stmt_func)emit_stmt_for,   (_stmt_func)emit_stmt_auto,     (_stmt_func)emit_stmt_loop,
-  (_stmt_func)emit_stmt_if,    (_stmt_func)emit_stmt_code,     (_stmt_func)emit_stmt_switch,
-  (_stmt_func)emit_stmt_break, (_stmt_func)emit_stmt_continue, (_stmt_func)emit_stmt_return,
-  (_stmt_func)emit_stmt_case,  (_stmt_func)emit_stmt_jump,     (_stmt_func)emit_stmt_enum,
-  (_stmt_func)emit_stmt_fptr,  (_stmt_func)emit_stmt_type,     (_stmt_func)emit_stmt_union,
+static const _exp_func stmt_func[] = {
+  (_exp_func)emit_stmt_exp,   (_exp_func)emit_stmt_flow,     (_exp_func)emit_stmt_flow,
+  (_exp_func)emit_stmt_for,   (_exp_func)emit_stmt_auto,     (_exp_func)emit_stmt_loop,
+  (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,     (_exp_func)emit_stmt_switch,
+  (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
+  (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,     (_exp_func)emit_stmt_enum,
+  (_exp_func)dummy_func,      (_exp_func)emit_stmt_type,     (_exp_func)emit_stmt_union,
 };
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) { GWDEBUG_EXE
