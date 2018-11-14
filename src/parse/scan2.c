@@ -336,22 +336,22 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   return 1;
 }
 
-ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
-  const m_str func_name = s_name(f->name);
-  const Func func = new_func(func_name, f);
-  const m_uint len = strlen(func_name) +
-    num_digit(overload ? overload->offset + 1 : 0) +
-    strlen(env->curr->name) + 13;
-
-  char name[len];
-  if(overload)
-    func->next = overload->d.func_ref->next;
+ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name) {
+  const Func func = new_func(name, f);
   if(env->class_def) {
     if(GET_FLAG(env->class_def, ae_flag_template))
       SET_FLAG(func, ae_flag_ref);
     if(!GET_FLAG(f, ae_flag_static))
       SET_FLAG(func, ae_flag_member);
   }
+  return func;
+}
+
+ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
+  const m_str func_name = s_name(f->name);
+  const Func func = scan_new_func(env, f, func_name);
+  if(overload)
+    func->next = overload->d.func_ref->next;
   const Type type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
@@ -366,6 +366,10 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
     ADD_REF(value);
     nspc_add_value(env->curr, f->name, value);
   }
+  const m_uint len = strlen(func_name) +
+    num_digit(overload ? overload->offset + 1 : 0) +
+    strlen(env->curr->name) + 13;
+  char name[len];
   snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
            overload ? overload->offset : 0, env->curr->name);
   nspc_add_value(env->curr, insert_symbol(name), value);
@@ -486,14 +490,8 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
 
 ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     const Value overload, const m_str func_name) {
-  const Func func = new_func(func_name, f);
+  const Func func = scan_new_func(env, f, func_name);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
-  if(env->class_def) {
-    if(GET_FLAG(env->class_def, ae_flag_template))
-      SET_FLAG(func, ae_flag_ref);
-    if(!GET_FLAG(f, ae_flag_static))
-      SET_FLAG(func, ae_flag_member);
-  }
   if(GET_FLAG(f, ae_flag_builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = new_type(t_function->xid, func_name, t_function);
