@@ -45,7 +45,7 @@ ANN static void free_frame(Frame* a) {
   mp_free(Frame, a);
 }
 
-ANN static m_uint frame_alloc_local(Frame* frame, const m_uint size, const m_bool is_obj) {
+ANN static m_uint frame_alloc(Frame* frame, const m_uint size, const m_bool is_obj) {
   Local* local = mp_alloc(Local);
   local->size = size;
   local->offset = frame->curr_offset;
@@ -55,17 +55,16 @@ ANN static m_uint frame_alloc_local(Frame* frame, const m_uint size, const m_boo
   return local->offset;
 }
 
-ANN static void frame_push_scope(Frame* frame) {
+ANN static void frame_push(Frame* frame) {
   vector_add(&frame->stack, (vtype)NULL);
 }
 
-ANN static void frame_pop_scope(Frame* frame, Vector v) {
-  while(vector_back(&frame->stack)) {
-    const Local* local = (Local*)vector_pop(&frame->stack);
-    frame->curr_offset -= local->size;
-    vector_add(v, (vtype)local);
-  }
-  vector_pop(&frame->stack);
+ANN static m_int frame_pop(Frame* frame) {
+  const Local* l = (Local*)vector_pop(&frame->stack);
+  if(!l)
+    return -1;
+  frame->curr_offset -= l->size;
+  return l->is_obj ? (m_int)l->offset : frame_pop(frame);
 }
 
 ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
@@ -120,18 +119,11 @@ ANN static void free_code(Code* code) {
 }
 
 ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
-  struct Vector_ v;
-  vector_init(&v);
-  frame_pop_scope(emit->code->frame, &v);
-  for(m_uint i = 0; i < vector_size(&v); ++i) {
-    Local* l = (Local*)vector_at(&v, i);
-    if(l->is_obj) {
-      Instr instr = emitter_add_instr(emit, ObjectRelease);
-      instr->m_val = l->offset;
-    }
-    mp_free(Local, l);
+  m_int offset;
+  while((offset = frame_pop(emit->code->frame)) > - 1) {
+    Instr instr = emitter_add_instr(emit, ObjectRelease);
+    instr->m_val = (m_uint)offset;
   }
-  vector_release(&v);
 }
 
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
@@ -144,7 +136,7 @@ ANN static inline void emit_pop_code(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static inline void emit_push_scope(const Emitter emit) { GWDEBUG_EXE
-  frame_push_scope(emit->code->frame);
+  frame_push(emit->code->frame);
 }
 
 ANN static inline m_uint emit_code_size(const Emitter emit) { GWDEBUG_EXE
@@ -156,7 +148,7 @@ ANN static inline m_uint emit_code_offset(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static inline m_uint emit_alloc_local(const Emitter emit, const m_uint size, const m_bool is_obj) { GWDEBUG_EXE
-  return frame_alloc_local(emit->code->frame, size, is_obj);
+  return frame_alloc(emit->code->frame, size, is_obj);
 }
 
 ANN static void emit_pre_ctor_inner(const Emitter emit, const Type type) { GWDEBUG_EXE
