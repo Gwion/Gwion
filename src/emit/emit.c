@@ -1485,11 +1485,9 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
   return emit_vararg(emit, member);
 }
 
-ANN static m_bool emit_dot_static_func(const Emitter emit, const Type type, const Func func) { GWDEBUG_EXE
-  const Instr push_i = emitter_add_instr(emit, RegPushImm);
-  *(Type*)push_i->ptr = type;
-  const Instr func_i = emitter_add_instr(emit, RegPushPtr);
-  func_i->m_val = (m_uint)func;
+ANN static m_bool emit_dot_static_func(const Emitter emit, const Func func) { GWDEBUG_EXE
+  const Instr func_i = emitter_add_instr(emit, RegPushImm);
+  *(Func*)func_i->ptr = func;
   return 1;
 }
 
@@ -1529,7 +1527,7 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
     if(GET_FLAG(func, ae_flag_member)) {
       return emit_member_func(emit, member, func);
     } else
-      return emit_dot_static_func(emit, t_base, func);
+      return emit_dot_static_func(emit, func);
   } else { // variable
     if(GET_FLAG(value, ae_flag_member)) { // member
       CHECK_BB(emit_exp(emit, member->base, 0))
@@ -1545,7 +1543,7 @@ ANN static m_bool emit_exp_dot_static(const Emitter emit, const Exp_Dot* member)
   const Type t_base = member->t_base->d.base_type;
   const Value value = find_value(t_base, member->xid);
   if(isa(member->self->type, t_function) > 0 && isa(member->self->type, t_fptr) < 0)
-    return emit_dot_static_func(emit, t_base, value->d.func_ref);
+    return emit_dot_static_func(emit, value->d.func_ref);
   return emit_dot_static_import_data(emit, value, member->self->emit_var);
 }
 
