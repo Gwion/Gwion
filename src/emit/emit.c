@@ -45,14 +45,14 @@ ANN static void free_frame(Frame* a) {
   mp_free(Frame, a);
 }
 
-ANEW ANN static Local* frame_alloc_local(Frame* frame, const m_uint size, const m_bool is_obj) {
+ANN static m_uint frame_alloc_local(Frame* frame, const m_uint size, const m_bool is_obj) {
   Local* local = mp_alloc(Local);
   local->size = size;
   local->offset = frame->curr_offset;
   local->is_obj = is_obj;
-  frame->curr_offset += local->size;
+  frame->curr_offset += (local->size = size);
   vector_add(&frame->stack, (vtype)local);
-  return local;
+  return local->offset;
 }
 
 ANN static void frame_push_scope(Frame* frame) {
@@ -156,8 +156,7 @@ ANN static inline m_uint emit_code_offset(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static inline m_uint emit_alloc_local(const Emitter emit, const m_uint size, const m_bool is_obj) { GWDEBUG_EXE
-  const Local* l = frame_alloc_local(emit->code->frame, size, is_obj);
-  return l->offset;
+  return frame_alloc_local(emit->code->frame, size, is_obj);
 }
 
 ANN static void emit_pre_ctor_inner(const Emitter emit, const Type type) { GWDEBUG_EXE
