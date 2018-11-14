@@ -18,4 +18,4 @@
 [submodule "util"]
 	path = util
 	url = https://github.com/fennecdjay/gwion-util
-  active = false
+  active = active
