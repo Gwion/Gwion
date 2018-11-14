@@ -6,6 +6,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7669efe4c1c84b888cea5885201c79ae)](https://www.codacy.com/app/fennecdjay/Gwion?utm_source=github.com&utm_medium=referral&utm_content=fennecdjay/Gwion&utm_campaign=badger)
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=master)](https://travis-ci.org/fennecdjay/Gwion)
 [![Coveralls branch](https://img.shields.io/coveralls/fennecdjay/Gwion/master.svg)](https://coveralls.io/github/fennecdjay/Gwion?branch=master)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/fennecdjay/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion?ref=badge_shield)
 
 # Gwion
