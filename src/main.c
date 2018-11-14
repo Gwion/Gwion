@@ -44,13 +44,14 @@
 
 extern void parse_args(Arg*, DriverInfo*);
 
-VM* vm;
+VM* some_global_vm_soon_to_disapear;
 
 static void sig(int unused __attribute__((unused))) {
-  vm->is_running = 0;
+  some_global_vm_soon_to_disapear->is_running = 0;
 }
 
 int main(int argc, char** argv) {
+  VM* vm = NULL;
   Env env = NULL;
   Driver d;
   Arg arg;
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
 //  init_symbols();
   PlugInfo pi;
   plug_ini(pi, &arg.lib);
-  vm = new_vm((m_bool)arg.loop); // change type in struct to m_bool
+  vm = some_global_vm_soon_to_disapear = new_vm((m_bool)arg.loop); // change type in struct to m_bool
   vm->emit = new_emitter();
   di.func(&d);
   if(d.ini(vm, &di) < 0 || !(vm->bbq = new_bbq(&di)))
