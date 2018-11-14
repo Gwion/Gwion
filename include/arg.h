@@ -1,3 +1,5 @@
+#ifndef __ARG
+#define __ARG
 typedef struct {
   int argc;
   char** argv;
@@ -11,3 +13,4 @@ typedef struct {
 
 ANN void arg_init(Arg* arg);
 ANN void arg_release(Arg* arg);
+#endif

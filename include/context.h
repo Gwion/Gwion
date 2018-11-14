@@ -1,3 +1,5 @@
+#ifndef __CONTEXT
+#define __CONTEXT
 typedef struct Context_   * Context;
 struct Context_ {
   m_str       name;
@@ -11,3 +13,4 @@ ANN2(2) ANEW Context new_context(const Ast, const m_str);
 ANN void load_context(const Context, const Env);
 ANN void unload_context(const Context, const Env);
 ANN void free_context(const Context);
+#endif

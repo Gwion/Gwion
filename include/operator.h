@@ -1,3 +1,5 @@
+#ifndef __OPERATOR
+#define __OPERATOR
 #define OP_ANY_TYPE (Type)1
 typedef Type (*opck)(const Env, void*);
 typedef m_bool (*opem)(const Emitter, void*);
@@ -21,3 +23,4 @@ ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map);
 ANN m_str get_type_name(const m_str, const m_uint);
 ANN m_bool env_add_op(const Env, const struct Op_Import*);
+#endif

@@ -1,3 +1,5 @@
+#ifndef __DRIVER
+#define __DRIVER
 typedef struct driver_wrapper* Driver_;
 typedef struct containing_driver_info {
   m_uint in, out;
@@ -58,3 +60,4 @@ void plot_driver(Driver* d);
 void sles_driver(Driver* d);
 #endif
 ANN struct BBQ_* new_bbq(DriverInfo* di);
+#endif

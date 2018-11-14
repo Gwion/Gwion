@@ -1,3 +1,5 @@
+#ifndef __INSTR
+#define __INSTR
 #define PUSH_MEM(a, b) a->mem += b;
 #define POP_MEM(a, b)  a->mem -= b;
 #define PUSH_REG(a, b) a->reg += b;
@@ -149,4 +151,5 @@ INSTR(AutoLoopEnd);
 INSTR(PutArgsInMem);
 INSTR(ConstPropSet);
 INSTR(ConstPropGet);
+#endif
 #endif

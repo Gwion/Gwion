@@ -1,3 +1,5 @@
+#ifndef __IMPORT
+#define __IMPORT
 #define DLARG_MAX 6
 
 typedef void (*f_xtor)(const M_Object o, const VM_Shred sh);
@@ -72,3 +74,4 @@ OP_CHECK(opck_basic_cast);
 OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
+#endif

@@ -1,3 +1,5 @@
+#ifndef __FUNC
+#define __FUNC
 struct Func_ {
   m_str name;
   Func_Def def;
@@ -12,3 +14,4 @@ struct Func_ {
 
 ANEW ANN Func new_func(const m_str name, const Func_Def def);
 ANN void free_func_simple(Func);
+#endif

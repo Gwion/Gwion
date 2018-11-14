@@ -1,3 +1,5 @@
+#ifndef __OPTIM
+#define __OPTIM
 #ifdef OPTIMIZE
 #define OPTIMIZE_DEFAULT default: break;
 #define OPTIMIZE_CONST(a) optimize_const(a);
@@ -10,4 +12,5 @@ else if(GET_FLAG(v, ae_flag_constprop)) \
 #define OPTIMIZE_DEFAULT
 #define OPTIMIZE_CONST(a)
 #define OPTIMIZE_PRIM_CONST(a, b)
+#endif
 #endif

@@ -1,3 +1,5 @@
+#ifndef __UGEN
+#define __UGEN
 typedef struct UGen_      * UGen;
 typedef void (*f_tick)(const UGen ug) ANN;
 typedef void (*f_ugop)(const UGen, const m_float) ANN;
@@ -45,3 +47,4 @@ ANN void ugen_ini(const UGen, const m_uint, const m_uint);
 ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);
 ANN void ugen_connect(const UGen lhs, const UGen rhs);
 ANN void ugen_disconnect(const UGen lhs, const UGen rhs);
+#endif

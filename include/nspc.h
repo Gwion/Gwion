@@ -1,3 +1,5 @@
+#ifndef __NSPC
+#define __NSPC
 struct Nspc_ {
   m_str     name;
   m_uint    offset;
@@ -55,3 +57,4 @@ describe_nspc_func(Value, value)
 describe_nspc_func(Type, type)
 describe_nspc_func(Func, func)
 /* howere there is no need for lookup_func0, push_func, pop_func */
+#endif

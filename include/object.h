@@ -1,3 +1,5 @@
+#ifndef __OBJECT
+#define __OBJECT
 typedef struct M_Object_  * M_Object;
 struct M_Object_ {
   m_bit* data;
@@ -30,3 +32,4 @@ static inline void _release(const restrict M_Object obj, const restrict VM_Shred
 static inline void release(const restrict M_Object obj, const restrict VM_Shred shred) {
   if(obj)_release(obj, shred);
 }
+#endif

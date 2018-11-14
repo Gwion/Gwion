@@ -1,3 +1,5 @@
+#ifndef __TRAVERSE
+#define __TRAVERSE
 m_bool traverse_ast(const Env, const Ast);
 m_bool traverse_class_def(const Env, const Class_Def);
 m_bool traverse_template(const Env, const Class_Def);
@@ -10,3 +12,4 @@ m_bool traverse_decl(const Env, const Exp_Decl*);
 ANN Class_Def template_class(const Env, const Class_Def, Type_List);
 ANN m_bool template_push_types(const Env, ID_List, Type_List);
 ANN m_bool template_match(ID_List, Type_List);
+#endif

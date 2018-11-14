@@ -1,3 +1,5 @@
+#ifndef __PARSE
+#define __PARSE
 #define RET_NSPC(exp)       \
 ++env->class_scope;         \
 nspc_push_value(env->curr); \
@@ -37,3 +39,4 @@ ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE       
 ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \
   RET_NSPC(exp) \
 }
+#endif

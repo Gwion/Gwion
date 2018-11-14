@@ -1,3 +1,5 @@
+#ifndef __VALUE
+#define __VALUE
 struct Value_ {
   Type type;
   m_str name;
@@ -14,3 +16,4 @@ struct Value_ {
 
 ANEW ANN Value new_value(const Type type, const m_str name);
 ANN void free_value(Value a);
+#endif

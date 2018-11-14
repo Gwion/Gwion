@@ -1,3 +1,5 @@
+#ifndef __GWI
+#define __GWI
 typedef struct {
   Type_Decl t;
   struct Var_Decl_List_ list;
@@ -55,3 +57,4 @@ struct Gwi_{
   void* addr;
   Templater templater;
 };
+#endif
