@@ -794,18 +794,25 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   char c[11 + num_digit(exp->self->pos)];
   sprintf(c, "spork~exp:%i", exp->self->pos);
   emit->code = new_code(emit, c);
-  emitter_add_instr(emit, GcIni);
   if(GET_FLAG(exp->m_func, ae_flag_member))
     SET_FLAG(emit->code, ae_flag_member);
   const Instr op = emitter_add_instr(emit, MemPushImm);
-  CHECK_BB(emit_exp_call1(emit, exp->m_func))
-  emitter_add_instr(emit, GcEnd);
-  emitter_add_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
+  CHECK_BB(emit_exp_call1(emit, exp->m_func))
+  emitter_add_instr(emit, EOC);
   const VM_Code code = emit_code(emit);
   emit->code = (Code*)vector_pop(&emit->stack);
   const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
   return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_code_offset(emit)'
+}
+
+static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
+  emit_push_scope(emit);
+  emitter_add_instr(emit, GcIni);
+  CHECK_BB(emit_stmt(emit, stmt, pop))
+  emitter_add_instr(emit, GcEnd);
+  emit_pop_scope(emit);
+  return 1;
 }
 
 ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
@@ -829,13 +836,9 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
     emit_alloc_local(emit, SZ_INT, 0);
   }
   const Instr op = emitter_add_instr(emit, MemPushImm);
-  emit_push_scope(emit);
-  emitter_add_instr(emit, GcIni);
-  CHECK_BB(emit_stmt(emit, stmt, 0))
-  emitter_add_instr(emit, GcEnd);
-  emit_pop_scope(emit);
-  emitter_add_instr(emit, EOC);
   op->m_val = emit->code->stack_depth;
+  CHECK_BB(scoped_stmt(emit, stmt, 0))
+  emitter_add_instr(emit, EOC);
   f->code = emit_code(emit);
   emit->code = (Code*)vector_pop(&emit->stack);
   CHECK_BB(emit_exp_spork_finish(emit, f->code, f, 0, emit->env->func ?
@@ -1029,11 +1032,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
   emit_push_stack(emit);
   if(!stmt->is_do)
     op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
-  emit_push_scope(emit);
-  emitter_add_instr(emit, GcIni); // ???
-  CHECK_BB(emit_stmt(emit, stmt->body, 1))
-  emitter_add_instr(emit, GcEnd); // ???
-  emit_pop_scope(emit);
+  CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   if(stmt->is_do) {
     op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while);
     op->m_val = index;
@@ -1118,13 +1117,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const Instr op = emitter_add_instr(emit, BranchEqInt);
   const Instr dec = emitter_add_instr(emit, DecIntAddr);
   dec->m_val = (m_uint)counter;
-
-emitter_add_instr(emit, GcIni); // ???
-  emit_push_scope(emit);
-  CHECK_BB(emit_stmt(emit, stmt->body, 1))
-  emit_pop_scope(emit);
-emitter_add_instr(emit, GcEnd); // ???
-
+  CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const Instr _goto = emitter_add_instr(emit, Goto);
   _goto->m_val = index;
   op->m_val = emit_code_size(emit);
@@ -1173,14 +1166,10 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   if(emit->cases)
     ERR_B(stmt->self->pos, "swith inside an other switch. this is not allowed for now")
   emit->default_case_index = -1;
-  emitter_add_instr(emit, GcIni);
   const Instr instr = emitter_add_instr(emit, BranchSwitch);
   emit->cases = new_map();
   instr->m_val2 = (m_uint)emit->cases;
-
-  emit_push_scope(emit);
-  CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
-  emit_pop_scope(emit);
+  CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
   instr->m_val = emit->default_case_index > -1 ? (m_uint)emit->default_case_index : emit_code_size(emit);
   emit->default_case_index = -1;
   while(vector_back(&emit->code->stack_break)) {
@@ -1188,7 +1177,6 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
     _break->m_val = emit_code_size(emit);
   }
   vector_pop(&emit->code->stack_break);
-  emitter_add_instr(emit, GcEnd);
   emit->cases = NULL;
   return 1;
 }
