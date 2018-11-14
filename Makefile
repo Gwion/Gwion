@@ -124,8 +124,7 @@ CFLAGS += -DGWION_BUILTIN
 
 LDFLAGS += util/libgwion_ast.a
 
-all: options ${GW_OBJ} ${jit_obj}
-	@make -C util
+all: options util/libgwion_ast.a ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
 
@@ -133,6 +132,8 @@ config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
 
+util/libgwion_ast.a:
+	@make -C util
 options:
 	$(info CC      : ${CC})
 	$(info CFLAGS  : ${CFLAGS})
