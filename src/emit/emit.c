@@ -134,13 +134,13 @@ ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
   vector_release(&v);
 }
 
-ANN static inline Code* emit_push_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
+ANN static inline void emit_push_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
   vector_add(&emit->stack, (vtype)emit->code);
-  return emit->code = new_code(emit, name);
+  emit->code = new_code(emit, name);
 }
 
-ANN static inline Code* emit_pop_code(const Emitter emit) { GWDEBUG_EXE
-  return (Code*)vector_pop(&emit->stack);
+ANN static inline void emit_pop_code(const Emitter emit) { GWDEBUG_EXE
+  emit->code = (Code*)vector_pop(&emit->stack);
 }
 
 ANN static inline void emit_push_scope(const Emitter emit) { GWDEBUG_EXE
@@ -790,10 +790,9 @@ ANN static m_uint emit_exp_spork_size(Exp e) { GWDEBUG_EXE
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   CHECK_BB(emit_func_args(emit, exp))
   CHECK_BB(emit_exp(emit, exp->func, 0))
-  vector_add(&emit->stack, (vtype)emit->code);
   char c[11 + num_digit(exp->self->pos)];
   sprintf(c, "spork~exp:%i", exp->self->pos);
-  emit->code = new_code(emit, c);
+  emit_push_code(emit, c);
   if(GET_FLAG(exp->m_func, ae_flag_member))
     SET_FLAG(emit->code, ae_flag_member);
   const Instr op = emitter_add_instr(emit, MemPushImm);
@@ -801,7 +800,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
   emitter_add_instr(emit, EOC);
   const VM_Code code = emit_code(emit);
-  emit->code = (Code*)vector_pop(&emit->stack);
+  emit_pop_code(emit);
   const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
   return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_code_offset(emit)'
 }
@@ -825,11 +824,9 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
     push_this(emit);
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Func*)push->ptr = f;
-
-  vector_add(&emit->stack, (vtype)emit->code);
   char c[12 + num_digit(stmt->pos)];
   sprintf(c, "spork~code:%i", stmt->pos);
-  emit->code = new_code(emit, c);
+  emit_push_code(emit, c);
   if(emit->env->class_def) { // check we're not in static func ?
     SET_FLAG(f, ae_flag_member);
     SET_FLAG(emit->code, ae_flag_member);
@@ -840,7 +837,7 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   CHECK_BB(scoped_stmt(emit, stmt, 0))
   emitter_add_instr(emit, EOC);
   f->code = emit_code(emit);
-  emit->code = (Code*)vector_pop(&emit->stack);
+  emit_pop_code(emit);
   CHECK_BB(emit_exp_spork_finish(emit, f->code, f, 0, emit->env->func ?
       emit->env->func->def->stack_depth : 0))
   return 1;
@@ -1652,7 +1649,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;
-  emit->code = emit_pop_code(emit);
+  emit_pop_code(emit);
   if(GET_FLAG(func, ae_flag_pure))
     func->code->memoize = memoize_ini(func, kindof(func->def->ret_type->size, !func->def->ret_type->size));
   return 1;
@@ -1664,9 +1661,9 @@ ANN Code* emit_class_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
   const m_uint len = strlen(name) + 7;
   char c[len];
   snprintf(c, len, "class %s", name);
-  Code* code = emit_push_code(emit, c);
-  SET_FLAG(code, ae_flag_member);
-  code->stack_depth += SZ_INT;
+  emit_push_code(emit, c);
+  SET_FLAG(emit->code, ae_flag_member);
+  emit->code->stack_depth += SZ_INT;
   return emit->code;
 }
 
@@ -1682,7 +1679,7 @@ ANN static inline void emit_class_push(const Emitter emit, const Type type) { GW
 
 ANN static inline void emit_class_pop(const Emitter emit) { GWDEBUG_EXE
   emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
-  emit->code = emit_pop_code(emit);
+  emit_pop_code(emit);
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) { GWDEBUG_EXE
