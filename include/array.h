@@ -14,7 +14,7 @@ typedef struct ArrayInfo_ {
   unsigned is_ref;
   unsigned is_obj;
 } ArrayInfo;
-ANN void free_array_info(ArrayInfo* info);
+
 ANN m_uint     m_vector_size(const M_Vector v);
 ANN void       m_vector_set(const M_Vector v,  const m_uint i, const void* data);
 ANN void       m_vector_get(const M_Vector v,  const m_uint i, void* data);

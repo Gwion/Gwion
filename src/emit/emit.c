@@ -181,12 +181,6 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   emitter_add_instr(emit, ArrayPost);
 }
 
-ANN void free_array_info(ArrayInfo* info) {
-  REM_REF((Type)vector_back(&info->type));
-  vector_release(&info->type);
-  mp_free(ArrayInfo, info);
-}
-
 ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
   CHECK_BO(emit_exp(emit, e, 0))
   const Type base = array_base(t);

@@ -33,6 +33,12 @@ ANN static void free_code_instr_gack(const Instr instr) {
   free_vector(v);
 }
 
+ANN static void free_array_info(ArrayInfo* info) {
+  REM_REF((Type)vector_back(&info->type));
+  vector_release(&info->type);
+  mp_free(ArrayInfo, info);
+}
+
 ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
