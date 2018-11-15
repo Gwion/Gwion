@@ -387,3 +387,9 @@ INSTR(ArrayAccessMulti) { GWDEBUG_EXE
   OOB(shred, obj, DIM(depth), idx, base);
   array_push(shred, ARRAY(obj), (m_uint)idx, instr);
 }
+
+ANN void free_array_info(ArrayInfo* info) {
+  REM_REF((Type)vector_back(&info->type));
+  vector_release(&info->type);
+  mp_free(ArrayInfo, info);
+}
