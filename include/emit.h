@@ -1,23 +1,9 @@
 #ifndef EMIT_H
 #define EMIT_H
 
-typedef struct Frame_ {
-  m_uint curr_offset;
-  struct Vector_ stack;
-} Frame;
-
-typedef struct Code_ {
-  m_str  name;
-  m_uint stack_depth;
-  struct Vector_ instr;
-  struct Vector_ stack_cont, stack_break, stack_return;
-  Frame* frame;
-  ae_flag flag;
-} Code;
-
 struct Emitter_ {
   Env    env;
-  Code*  code;
+  struct Code_*  code;
   struct Vector_    stack;
   m_str  filename;
   Map    cases; // passed to instr: is a pointer
@@ -30,7 +16,7 @@ ANEW ANN VM_Code emit_code(const Emitter);
 ANN m_bool emit_ast(const Emitter emit, Ast ast);
 ANN m_bool emit_exp_call1(const Emitter, const Func);
 ANN2(1) Instr emitter_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull));
-ANN Code* emit_class_code(const Emitter, const m_str);
+ANN struct Code_* emit_class_code(const Emitter, const m_str);
 ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
 ANN void emit_class_finish(const Emitter, const Nspc);
 ANN void emit_ext_ctor(const Emitter, const VM_Code);

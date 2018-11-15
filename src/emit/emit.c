@@ -22,12 +22,7 @@
 #include "parse.h"
 #include "memoize.h"
 #include "operator.h"
-
-ANEW Frame* new_frame();
-ANN void free_frame(Frame* a);
-ANN m_uint frame_alloc(Frame* frame, const m_uint size, const m_bool is_obj);
-ANN m_int frame_push(Frame* frame);
-ANN m_int frame_pop(Frame* frame);
+#include "code.h"
 
 ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
@@ -35,31 +30,9 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
-ANEW static Code* new_code(const Emitter emit, const m_str name) {
-  Code* code = mp_alloc(Code);
-  code->name = code_name_set(name, emit->filename);
-  code->stack_depth = 0;
-  vector_init(&code->instr);
-  vector_init(&code->stack_break);
-  vector_init(&code->stack_cont);
-  vector_init(&code->stack_return);
-  code->frame = new_frame();
-  return code;
-}
-
-ANN static void free_code(Code* code) {
-  vector_release(&code->instr);
-  vector_release(&code->stack_break);
-  vector_release(&code->stack_cont);
-  vector_release(&code->stack_return);
-  free_frame(code->frame);
-  free(code->name);
-  mp_free(Code, code);
-}
-
 ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
   m_int offset;
-  while((offset = frame_pop(emit->code->frame)) > - 1) {
+  while((offset = code_pop(emit->code)) > - 1) {
     Instr instr = emitter_add_instr(emit, ObjectRelease);
     instr->m_val = (m_uint)offset;
   }
@@ -67,33 +40,33 @@ ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
 
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
   vector_add(&emit->stack, (vtype)emit->code);
-  emit->code = new_code(emit, name);
+  emit->code = new_code(emit->env->name, name);
 }
 
-ANN static inline void emit_pop_code(const Emitter emit) { GWDEBUG_EXE
+ANN static inline void emit_pop_code(const Emitter emit) {
   emit->code = (Code*)vector_pop(&emit->stack);
 }
 
-ANN static inline void emit_push_scope(const Emitter emit) { GWDEBUG_EXE
-  frame_push(emit->code->frame);
+ANN static inline void emit_push_scope(const Emitter emit) {
+  code_push(emit->code);
 }
 
-ANN static inline m_uint emit_code_size(const Emitter emit) { GWDEBUG_EXE
+ANN static inline m_uint emit_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
 
-ANN static inline m_uint emit_code_offset(const Emitter emit) { GWDEBUG_EXE
-  return emit->code->frame->curr_offset;
+ANN static inline m_uint emit_offset(const Emitter emit) {
+  return code_offset(emit->code);
 }
 
 ANN static inline m_uint emit_alloc_local(const Emitter emit, const m_uint size, const m_bool is_obj) { GWDEBUG_EXE
-  return frame_alloc(emit->code->frame, size, is_obj);
+  return code_alloc(emit->code, size, is_obj);
 }
 
 ANN static void emit_pre_ctor_inner(const Emitter emit, const Type type) { GWDEBUG_EXE
   const Instr instr = emitter_add_instr(emit, PreCtor);
   instr->m_val = (m_uint)type->nspc->pre_ctor;
-  instr->m_val2 = (m_uint)emit_code_offset(emit);
+  instr->m_val2 = (m_uint)emit_offset(emit);
 }
 
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) { GWDEBUG_EXE
@@ -110,12 +83,12 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) { GWDEBUG_EXE
 }
 
 ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) {
-  const m_uint start_index = emit_code_size(emit);
+  const m_uint start_index = emit_size(emit);
   const Instr top = emitter_add_instr(emit, ArrayTop);
   top->m_val2 = (m_uint)type;
   emit_pre_ctor(emit, type);
   const Instr bottom = emitter_add_instr(emit, ArrayBottom);
-  top->m_val = emit_code_size(emit);
+  top->m_val = emit_size(emit);
   bottom->m_val = start_index;
   emitter_add_instr(emit, ArrayPost);
 }
@@ -150,7 +123,7 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   const Instr push_f = emitter_add_instr(emit, RegPushImm);
   *(VM_Code*)push_f->ptr = code;
   const Instr offset = emitter_add_instr(emit, RegPushImm);
-  *(m_uint*)offset->ptr = emit_code_offset(emit);
+  *(m_uint*)offset->ptr = emit_offset(emit);
   emitter_add_instr(emit, FuncMember);
 }
 
@@ -669,10 +642,9 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   return !!emitter_add_instr(emit, RegPushCode);
 }
 
-//ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
 ANN static inline void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   const Instr offset = emitter_add_instr(emit, RegPushImm);
-  *(m_uint*)offset->ptr = emit_code_offset(emit);
+  *(m_uint*)offset->ptr = emit_offset(emit);
 }
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
@@ -704,7 +676,7 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   const Instr push_code = emitter_add_instr(emit, RegPushImm);
   *(VM_Code*)push_code->ptr = code;
   const Instr spork = emitter_add_instr(emit, f ? SporkExp : SporkFunc);
-  spork->m_val = f ? emit_code_offset(emit) : arg_size;
+  spork->m_val = f ? emit_offset(emit) : arg_size;
   spork->m_val2 = f ? (m_uint)f : (m_uint)code;
   *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
   return 1;
@@ -732,7 +704,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   const VM_Code code = emit_code(emit);
   emit_pop_code(emit);
   const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
-  return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_code_offset(emit)'
+  return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_offset(emit)'
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
@@ -803,15 +775,13 @@ ANN static Instr emit_flow(const Emitter emit, const Type type,
 }
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBUG_EXE
-//  nspc_push_value(emit->env->curr);
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   const Instr op = emit_flow(emit, exp_if->cond->type, BranchEqInt, BranchEqFloat);
   CHECK_BB(emit_exp(emit, exp_if->if_exp, 0))
   const Instr op2 = emitter_add_instr(emit, Goto);
-  op->m_val = emit_code_size(emit);
+  op->m_val = emit_size(emit);
   const m_bool ret = emit_exp(emit, exp_if->else_exp, 0);
-//  nspc_pop_value(emit->env->curr);
-  op2->m_val = emit_code_size(emit);
+  op2->m_val = emit_size(emit);
   return ret;
 }
 
@@ -865,14 +835,14 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
   CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
   emit_pop_scope(emit);
   const Instr op2 = emitter_add_instr(emit, Goto);
-  op->m_val = emit_code_size(emit);
+  op->m_val = emit_size(emit);
 
   if(stmt->else_body) {
     emit_push_scope(emit);
     CHECK_BB(emit_stmt(emit, stmt->else_body, 1))
     emit_pop_scope(emit);
   }
-  op2->m_val = emit_code_size(emit);
+  op2->m_val = emit_size(emit);
   emit_pop_scope(emit);
   return 1;
 }
@@ -938,7 +908,7 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
   }
   while(vector_back(&emit->code->stack_break)) {
     const Instr instr = (Instr)vector_pop(&emit->code->stack_break);
-    instr->m_val = emit_code_size(emit);
+    instr->m_val = emit_size(emit);
   }
   emit_pop_scope(emit);
   vector_pop(&emit->code->stack_cont);
@@ -953,20 +923,21 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
 }
 
 ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWDEBUG_EXE
-  const m_uint index = emit_code_size(emit);
-  Instr op = NULL;
+  const m_uint index = emit_size(emit);
   emit_push_scope(emit);
   emit_push_stack(emit);
-  if(!stmt->is_do)
-    op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
-  CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   if(stmt->is_do) {
-    op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while);
+    CHECK_BB(scoped_stmt(emit, stmt->body, 1))
+    const Instr op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while);
+    CHECK_OB(op)
     op->m_val = index;
   } else {
+    const Instr op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
+    CHECK_OB(op)
+    CHECK_BB(scoped_stmt(emit, stmt->body, 1))
     const Instr goto_ = emitter_add_instr(emit, Goto);
     goto_->m_val = index;
-    op->m_val = emit_code_size(emit);
+    op->m_val = emit_size(emit);
   }
   emit_pop_stack(emit, index);
   return 1;
@@ -975,7 +946,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
 ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEBUG_EXE
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
-  const m_uint index = emit_code_size(emit);
+  const m_uint index = emit_size(emit);
   emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c2, 0))
   const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val->type,
@@ -983,7 +954,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEB
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
-  const m_uint action_index = emit_code_size(emit);
+  const m_uint action_index = emit_size(emit);
   if(stmt->c3) {
     CHECK_BB(emit_exp(emit, stmt->c3, 0))
     Exp e = stmt->c3;
@@ -997,7 +968,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEB
   }
   const Instr _goto = emitter_add_instr(emit, Goto);
   _goto->m_val = index;
-  op->m_val = emit_code_size(emit);
+  op->m_val = emit_size(emit);
   emit_pop_stack(emit, action_index);
   return 1;
 }
@@ -1006,7 +977,7 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   const Instr s1 = emitter_add_instr(emit, MemSetImm);
   const Instr s2 = emitter_add_instr(emit, MemSetImm);
-  const m_uint start  = emit_code_size(emit);
+  const m_uint start  = emit_size(emit);
   emit_push_stack(emit);
   const Instr loop = emitter_add_instr(emit, AutoLoopStart);
   const m_uint offset = emit_alloc_local(emit, 2*SZ_INT, 0);
@@ -1014,10 +985,10 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
   emit_push_scope(emit);
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   emit_pop_scope(emit);
-  const m_uint index = emit_code_size(emit);
+  const m_uint index = emit_size(emit);
   const Instr end = emitter_add_instr(emit, AutoLoopEnd);
   const Instr tgt = emitter_add_instr(emit, Goto);
-  *(m_uint*)end->ptr = emit_code_size(emit);
+  *(m_uint*)end->ptr = emit_size(emit);
   tgt->m_val = start;
   loop->m_val = offset;
   end->m_val = offset;
@@ -1035,7 +1006,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   m_int* counter = (m_int*)xcalloc(1, SZ_INT);
   const Instr init = emitter_add_instr(emit, InitLoopCounter);
   init->m_val = (m_uint)counter;
-  const m_uint index = emit_code_size(emit);
+  const m_uint index = emit_size(emit);
   emit_push_stack(emit);
   const Instr deref = emitter_add_instr(emit, RegPushDeref);
   deref->m_val2 = SZ_INT;
@@ -1047,7 +1018,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const Instr _goto = emitter_add_instr(emit, Goto);
   _goto->m_val = index;
-  op->m_val = emit_code_size(emit);
+  op->m_val = emit_size(emit);
   emit_pop_stack(emit, index);
   return 1;
 }
@@ -1061,7 +1032,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
         vector_release(&stmt->data.v);
       if(emit->default_case_index != -1)
         ERR_B(stmt->self->pos, "default case already defined")
-      emit->default_case_index = (m_int)emit_code_size(emit);
+      emit->default_case_index = (m_int)emit_size(emit);
       return 1;
     }
     if(!stmt->data.v.ptr) {
@@ -1080,7 +1051,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
         vector_release(&stmt->data.v);
         ERR_B(label->self->pos, "you are trying to use a upper label.")
       }
-      label->data.instr->m_val = emit_code_size(emit);
+      label->data.instr->m_val = emit_size(emit);
     }
     vector_release(&stmt->data.v);
   }
@@ -1097,11 +1068,11 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   emit->cases = new_map();
   instr->m_val2 = (m_uint)emit->cases;
   CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
-  instr->m_val = emit->default_case_index > -1 ? (m_uint)emit->default_case_index : emit_code_size(emit);
+  instr->m_val = emit->default_case_index > -1 ? (m_uint)emit->default_case_index : emit_size(emit);
   emit->default_case_index = -1;
   while(vector_back(&emit->code->stack_break)) {
     const Instr _break = (Instr)vector_pop(&emit->code->stack_break);
-    _break->m_val = emit_code_size(emit);
+    _break->m_val = emit_size(emit);
   }
   vector_pop(&emit->code->stack_break);
   emit->cases = NULL;
@@ -1145,7 +1116,7 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDE
   CHECK_BB(get_case_value(stmt, &value))
   if(map_get(emit->cases, (vtype)value))
     ERR_B(stmt->self->pos, "duplicated cases value %i", value)
-  map_set(emit->cases, (vtype)value, (vtype)emit_code_size(emit));
+  map_set(emit->cases, (vtype)value, (vtype)emit_size(emit));
   return 1;
 }
 
@@ -1358,7 +1329,7 @@ ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) { G
     ERR_B(0, "vararg.start already used. this is an error")
   emit->env->func->variadic = emitter_add_instr(emit, VarargTop);
   emit->env->func->variadic->m_val = offset;
-  emit->env->func->variadic->m_val2 = emit_code_size(emit);
+  emit->env->func->variadic->m_val2 = emit_size(emit);
   return 1;
 }
 
@@ -1368,7 +1339,7 @@ ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWD
   const Instr instr = emitter_add_instr(emit, VarargEnd);
   instr->m_val = offset;
   instr->m_val2 = emit->env->func->variadic->m_val2;
-  emit->env->func->variadic->m_val2 = emit_code_size(emit);
+  emit->env->func->variadic->m_val2 = emit_size(emit);
   *(m_uint*)emit->env->func->variadic->ptr = 1;
   return 1;
 }
@@ -1507,7 +1478,7 @@ ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def func_def
 }
 
 ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
-  const m_uint val = emit_code_size(emit);
+  const m_uint val = emit_size(emit);
   LOOP_OPTIM
   for(m_uint i = vector_size(&emit->code->stack_return) + 1; --i; ) {
     const Instr instr = (Instr)vector_at(&emit->code->stack_return, i-1);
@@ -1666,7 +1637,7 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
 
 ANN m_bool emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
   emit->filename = emit->env->name;
-  emit->code = new_code(emit, "");
+  emit->code = new_code(emit->env->name, "");
   vector_clear(&emit->stack);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);

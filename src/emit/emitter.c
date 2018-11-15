@@ -7,6 +7,7 @@
 #include "vm.h"
 #include "env.h"
 #include "instr.h"
+#include "code.h"
 #include "emit.h"
 
 ANEW Emitter new_emitter(void) {
