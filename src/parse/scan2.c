@@ -541,8 +541,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   } else {
     func_name = func_tmpl_name(env, f, len);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
-    if(func)
+    if(func) {
+      f->ret_type = type_decl_resolve(env, f->td);
       return f->arg_list ? scan2_arg_def(env, f) : 1;
+    }
   }
   const Func base = get_func(env, f);
   if(!base) {

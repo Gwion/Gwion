@@ -1558,10 +1558,6 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_EXE
 
 ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
   m_uint size = func_def->ret_type->size;
-  if(GET_FLAG(func_def->func, ae_flag_ref)) {
-    const Type t = type_decl_resolve(emit->env, func_def->td);
-    size = t->size;
-  }
   if(size)
     emit_kind(emit, size, 0, regpushimm);
   vector_add(&emit->code->stack_return, (vtype)emitter_add_instr(emit, Goto));
