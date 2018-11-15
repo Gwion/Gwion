@@ -345,21 +345,6 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
     array_type(array_base(t_base), t_base->array_depth - depth);
 }
 
-ANN m_bool compat_func(const restrict Func_Def lhs, const restrict Func_Def rhs) {
-  Arg_List e1 = lhs->arg_list;
-  Arg_List e2 = rhs->arg_list;
-
-  while(e1 && e2) {
-    if(e1->type != e2->type)
-      return -1;
-    e1 = e1->next;
-    e2 = e2->next;
-  }
-  if(e1 || e2)
-    return -1;
-  return 1;
-}
-
 ANN static Type_List mk_type_list(const Env env, const Type type) {
   Nspc nspc = type->nspc;
   struct Vector_ v;
