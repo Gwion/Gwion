@@ -42,14 +42,6 @@ static void compiler_name(struct Compiler* c) {
   free(d);
 }
 
-static m_uint finalize(const VM* vm, const Vector args) {
-  emitter_add_instr(vm->emit, EOC);
-  const VM_Code code = emit_code(vm->emit);
-  const VM_Shred shred = new_vm_shred(code);
-  shred->args = args;
-  return vm_add_shred(vm, shred);
-}
-
 static void compiler_clean(const struct Compiler* c) {
   if(c->name)
     free(c->name);
@@ -79,12 +71,16 @@ static m_bool check(struct Compiler* c, VM* vm) {
 
 static m_uint compile(VM* vm, struct Compiler* c) {
   m_uint xid = 0;
+  VM_Code code;
   compiler_name(c);
   if(check(c, vm) < 0 ||
-     emit_ast(vm->emit, c->ast) < 0)
+     !(code = emit_ast(vm->emit, c->ast)))
      gw_err("while compiling file '%s'\n", c->base);
-  else
-    xid = finalize(vm, c->args);
+  else {
+    const VM_Shred shred = new_vm_shred(code);
+    shred->args = c->args;
+    xid = vm_add_shred(vm, shred);
+  }
   compiler_clean(c);
   return xid;
 }

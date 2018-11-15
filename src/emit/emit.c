@@ -315,6 +315,10 @@ ANEW ANN VM_Code emit_code(const Emitter emit) { GWDEBUG_EXE
   return code;
 }
 
+ANN static VM_Code finalyze(const Emitter emit) {
+  emitter_add_instr(emit, EOC);
+  return emit_code(emit);
+}
 ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   const Array_Sub array = primary->d.array;
   Exp e = array->exp;
@@ -789,8 +793,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   const Instr op = emitter_add_instr(emit, MemPushImm);
   op->m_val = emit->code->stack_depth;
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
-  emitter_add_instr(emit, EOC);
-  const VM_Code code = emit_code(emit);
+  const VM_Code code = finalyze(emit);
   emit_pop_code(emit);
   const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
   return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_code_offset(emit)'
@@ -826,8 +829,7 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   const Instr op = emitter_add_instr(emit, MemPushImm);
   op->m_val = emit->code->stack_depth;
   CHECK_BB(scoped_stmt(emit, stmt, 0))
-  emitter_add_instr(emit, EOC);
-  f->code = emit_code(emit);
+  f->code = finalyze(emit);
   emit_pop_code(emit);
   CHECK_BB(emit_exp_spork_finish(emit, f->code, f, 0, emit->env->func ?
       emit->env->func->def->stack_depth : 0))
@@ -1721,7 +1723,7 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
   return 1;
 }
 
-ANN m_bool emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
+ANN VM_Code emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
   emit->filename = emit->env->name;
   emit->code = new_code(emit, "");
   vector_clear(&emit->stack);
@@ -1734,6 +1736,7 @@ ANN m_bool emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
       free_map(emit->cases);
       emit->cases = NULL;
     }
+    return NULL;
   }
-  return ret;
+  return finalyze(emit);
 }
