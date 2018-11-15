@@ -15,6 +15,15 @@ static inline m_str access(ae_Exp_Meta meta) {
   return meta == ae_meta_value ? "non-mutable" : "protected";
 }
 
+OP_CHECK(opck_basic_cast) {
+  const Exp_Cast* cast = (Exp_Cast*)data;
+  return cast->self->type;
+}
+
+OP_EMIT(opem_basic_cast) {
+  return 1;
+}
+
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->meta != ae_meta_var) {

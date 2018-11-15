@@ -20,15 +20,6 @@
 #include "operator.h"
 #include "engine.h"
 
-OP_CHECK(opck_basic_cast) {
-  const Exp_Cast* cast = (Exp_Cast*)data;
-  return cast->self->type;
-}
-
-OP_EMIT(opem_basic_cast) {
-  return 1;
-}
-
 ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
   CHECK_OB((t_void  = gwi_mk_type(gwi, "void", 0, NULL)))
