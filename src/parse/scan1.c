@@ -43,8 +43,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   if(!GET_FLAG(decl->td, ae_flag_ref)) {
     if(t == env->class_def && !env->class_scope)
       ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
-  } else
-    CHECK_BO(prim_ref(decl->td, t))
+  }
   if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
       ERR_O(decl->self->pos, "must declare private variables at class scope...")
   if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)

@@ -8,7 +8,7 @@
 #include "env.h"
 #include "type.h"
 
-ANN m_bool prim_ref(const Type_Decl* td, const Type t) {
+ANN static inline m_bool prim_ref(const Type_Decl* td, const Type t) {
   if(isa(t, t_object) < 0)
     ERR_B(td->xid->pos,
           "cannot declare/instantiate references (@) of primitive type '%s'...\n"
@@ -99,5 +99,10 @@ ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
 }
 
 ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
-  return type_decl_resolve(env, td) ?: type_unknown(td->xid, orig);
+  const Type t = type_decl_resolve(env, td);
+  if(!t)
+    return type_unknown(td->xid, orig);
+  if(!td->array && (GET_FLAG(td, ae_flag_ref) || GET_FLAG(td, ae_flag_emit)))
+    CHECK_BO(prim_ref(td, t))
+  return t;
 }
