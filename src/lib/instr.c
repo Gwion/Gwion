@@ -14,6 +14,10 @@
 #include "func.h"
 #include "array.h"
 #include "nspc.h"
+#include "mpool.h"
+
+ANEW Instr new_instr() { return mp_alloc(Instr); }
+ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
 
 ANN static inline m_bool overflow_(const VM_Shred c) {
   return c->mem >  ((c->_reg + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));

@@ -73,9 +73,6 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
-ANEW Instr new_instr() { return mp_alloc(Instr); }
-ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
-
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_alloc(Code);
   code->name = code_name_set(name, emit->filename);
