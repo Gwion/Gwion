@@ -23,49 +23,11 @@
 #include "memoize.h"
 #include "operator.h"
 
-typedef struct Local_ {
-  m_uint size;
-  m_uint offset;
-  m_bool is_obj;
-} Local;
-
-ANEW static Frame* new_frame() {
-  Frame* frame = mp_alloc(Frame);
-  vector_init(&frame->stack);
-  vector_add(&frame->stack, (vtype)NULL);
-  return frame;
-}
-
-ANN static void free_frame(Frame* a) {
-  LOOP_OPTIM
-  for(vtype i = vector_size(&a->stack) + 1; --i;)
-    if(vector_at(&a->stack, i - 1))
-      mp_free(Local, (Local*)vector_at(&a->stack, i - 1));
-  vector_release(&a->stack);
-  mp_free(Frame, a);
-}
-
-ANN static m_uint frame_alloc(Frame* frame, const m_uint size, const m_bool is_obj) {
-  Local* local = mp_alloc(Local);
-  local->size = size;
-  local->offset = frame->curr_offset;
-  local->is_obj = is_obj;
-  frame->curr_offset += (local->size = size);
-  vector_add(&frame->stack, (vtype)local);
-  return local->offset;
-}
-
-ANN static inline void frame_push(Frame* frame) {
-  vector_add(&frame->stack, (vtype)NULL);
-}
-
-ANN static m_int frame_pop(Frame* frame) {
-  const Local* l = (Local*)vector_pop(&frame->stack);
-  if(!l)
-    return -1;
-  frame->curr_offset -= l->size;
-  return l->is_obj ? (m_int)l->offset : frame_pop(frame);
-}
+ANEW Frame* new_frame();
+ANN void free_frame(Frame* a);
+ANN m_uint frame_alloc(Frame* frame, const m_uint size, const m_bool is_obj);
+ANN m_int frame_push(Frame* frame);
+ANN m_int frame_pop(Frame* frame);
 
 ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);

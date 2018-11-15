@@ -1,7 +1,4 @@
-#include <stdlib.h>
-#include <string.h>
 #include "defs.h"
-#include "err_msg.h"
 #include "defs.h"
 #include "map.h"
 #include "mpool.h"
@@ -9,9 +6,6 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
-#include "type.h"
-#include "nspc.h"
-#include "value.h"
 #include "instr.h"
 #include "emit.h"
 
