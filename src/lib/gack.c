@@ -1,15 +1,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "object.h"
-#include "err_msg.h"
 #include "instr.h"
 
 /* static */ void print_type(const Type type) {

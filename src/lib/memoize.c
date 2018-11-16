@@ -1,8 +1,5 @@
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "mpool.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "type.h"

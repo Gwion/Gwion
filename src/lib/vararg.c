@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -12,7 +9,6 @@
 #include "object.h"
 #include "import.h"
 #include "vararg.h"
-#include "mpool.h"
 
 INSTR(VarargTop) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
