@@ -549,7 +549,7 @@ ANN2(1,3,4) static inline void emit_push(const Env env, const Type type, const N
   env_push(env, type, nspc, class_scope);
 }
 
-ANN2(1,3,4) static inline void emit_pop(const Env env, m_uint class_scope) {
+ANN static inline void emit_pop(const Env env, m_uint class_scope) {
   env_pop(env, class_scope);
 }
 
