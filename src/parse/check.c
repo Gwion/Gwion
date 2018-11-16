@@ -4,10 +4,7 @@
 #include <dlfcn.h>
 #include <dirent.h>
 #include <inttypes.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -19,7 +16,6 @@
 #include "import.h"
 #include "traverse.h"
 #include "optim.h"
-#include "mpool.h" // for allocating object data
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"

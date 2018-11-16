@@ -1,7 +1,4 @@
-#include "defs.h"
-#include "err_msg.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "env.h"
 #include "type.h"
