@@ -545,12 +545,12 @@ ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* dec
   return 1;
 }
 
-ANN2(1,3,4) static inline void emit_push(const Env env, const Type type, const Nspc nspc, m_uint* class_scope) {
-  env_push(env, type, nspc, class_scope);
+ANN2(1,3,4) static inline void emit_push(const Emitter emit, const Type type, const Nspc nspc, m_uint* class_scope) {
+  env_push(emit->env, type, nspc, class_scope);
 }
 
-ANN static inline void emit_pop(const Env env, m_uint class_scope) {
-  env_pop(env, class_scope);
+ANN static inline void emit_pop(const Emitter emit, m_uint class_scope) {
+  env_pop(emit->env, class_scope);
 }
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
@@ -638,7 +638,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   CHECK_BB(traverse_func_def(env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   nspc_pop_type(env->curr);
-  emit__pop(emit, class_scope);
+  emit_pop(emit, class_scope);
   UNSET_FLAG(exp_call->m_func, ae_flag_checked);
   return 1;
 }
