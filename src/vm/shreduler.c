@@ -1,6 +1,5 @@
 #include <stdlib.h>
-#include "defs.h"
-#include "map.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "object.h"
