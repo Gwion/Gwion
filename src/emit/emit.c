@@ -545,11 +545,11 @@ ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* dec
   return 1;
 }
 
-ANN(1,3,4) static inline void emit_push(const Env env, const Type type, const Nspc nspc, m_uint* class_scope) {
+ANN2(1,3,4) static inline void emit_push(const Env env, const Type type, const Nspc nspc, m_uint* class_scope) {
   env_push(env, type, nspc, class_scope);
 }
 
-ANN(1,3,4) static inline void emit_pop(const Env env, m_uint class_scope) {
+ANN2(1,3,4) static inline void emit_pop(const Env env, m_uint class_scope) {
   env_pop(env, class_scope);
 }
 
@@ -736,7 +736,6 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   return !!emitter_add_instr(emit, RegPushCode);
 }
 
-//ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
 ANN static inline void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   const Instr offset = emitter_add_instr(emit, RegPushImm);
   *(m_uint*)offset->ptr = emit_code_offset(emit);
@@ -868,14 +867,12 @@ ANN static Instr emit_flow(const Emitter emit, const Type type,
 }
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBUG_EXE
-//  nspc_push_value(emit->env->curr);
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   const Instr op = emit_flow(emit, exp_if->cond->type, BranchEqInt, BranchEqFloat);
   CHECK_BB(emit_exp(emit, exp_if->if_exp, 0))
   const Instr op2 = emitter_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
   const m_bool ret = emit_exp(emit, exp_if->else_exp, 0);
-//  nspc_pop_value(emit->env->curr);
   op2->m_val = emit_code_size(emit);
   return ret;
 }
@@ -943,10 +940,8 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) { GWDEBUG_EXE
-//    emit_push_scope(emit);
   ++emit->env->class_scope;
   const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
-//    emit_pop_scope(emit);
   --emit->env->class_scope;
 return ret;
 }
