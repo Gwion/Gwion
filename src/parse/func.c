@@ -1,14 +1,11 @@
 #include <stdlib.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
 #include "func.h"
-#include "mpool.h"
 
 ANN Func new_func(const m_str name, const Func_Def def) {
   Func func = mp_alloc(Func);

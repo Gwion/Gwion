@@ -1,8 +1,5 @@
 #include <stdlib.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -11,7 +8,6 @@
 #include "object.h"
 #include "import.h"
 #include "ugen.h"
-#include "mpool.h"
 
 ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
 ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }

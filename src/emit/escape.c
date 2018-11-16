@@ -1,5 +1,4 @@
-#include "defs.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 
 static char g_escape[256];
 __attribute__((constructor(300)))

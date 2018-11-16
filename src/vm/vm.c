@@ -1,9 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -13,11 +11,6 @@
 #include "ugen.h"
 #include "shreduler_private.h"
 #include "emit.h"
-
-#ifdef DEBUG_STACK
-#include "err_msg.h"
-#endif
-
 
 static inline uint64_t splitmix64_stateless(uint64_t index) {
   uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));

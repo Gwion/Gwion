@@ -1,4 +1,4 @@
-#include "defs.h"
+#include "gwion_util.h"
 #include "oo.h"
 
 extern ANN void free_nspc(void* a);

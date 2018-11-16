@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
-#include "err_msg.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -12,7 +9,6 @@
 #include "emit.h"
 #include "value.h"
 #include "func.h"
-#include "mpool.h"
 #include "nspc.h"
 #include "operator.h"
 

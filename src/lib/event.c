@@ -1,7 +1,4 @@
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -9,7 +6,6 @@
 #include "instr.h"
 #include "object.h"
 #include "import.h"
-#include "map.h"
 
 static CTOR(event_ctor) {
   EV_SHREDS(o) = new_vector();

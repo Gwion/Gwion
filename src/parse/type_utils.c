@@ -1,13 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "env.h"
 #include "value.h"
 #include "type.h"
-#include "err_msg.h"
 
 ANN m_bool isres(const Symbol xid) {
   const m_str s = s_name(xid);

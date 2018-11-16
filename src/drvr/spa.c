@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+#include <soundpipe.h>
+#include "gwion_util.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
-#include "err_msg.h"
 
 static m_bool spa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   di->data = (sp_audio*)xmalloc(sizeof(sp_audio));

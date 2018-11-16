@@ -1,9 +1,9 @@
 #include <portaudio.h>
-#include "defs.h"
-#include "err_msg.h"
-#include "vm.h"
+#include "gwion_util.h"
 #include "oo.h"
+#include "vm.h"
 #include "type.h"
+#include "object.h"
 #include "ugen.h"
 #include "driver.h"
 
@@ -24,7 +24,7 @@ static int callback(const void *inputBuffer, void *outputBuffer,
   float *out = (float*)outputBuffer;
   m_uint i, j;
   for(i = 0; i < framesPerBuffer; i++) {
-    for(j = 0; j < vm->n_in; j++)
+    for(j = 0; j < vm->bbq->n_in; j++)
       vm->bbq->in[j] = *in++;
 //    di->run(vm);
     vm_run(vm);

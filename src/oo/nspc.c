@@ -1,9 +1,5 @@
 #include <stdlib.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "symbol.h"
-#include "map.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -12,7 +8,6 @@
 #include "value.h"
 #include "func.h"
 #include "object.h"
-#include "mpool.h"
 #include "operator.h"
 
 extern VM* some_global_vm_soon_to_disapear;

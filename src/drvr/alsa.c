@@ -1,7 +1,7 @@
 #include <alsa/asoundlib.h>
 #include <alsa/mixer.h>
-#include "defs.h"
-#include "err_msg.h"
+#include "gwion_util.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
 

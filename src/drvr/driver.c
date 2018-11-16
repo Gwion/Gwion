@@ -3,11 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
-#include "defs.h"
-#include "map.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
-#include "err_msg.h"
 #include "driver.h"
 
 ANN struct BBQ_* new_bbq(DriverInfo* di) {
@@ -82,7 +80,7 @@ void select_driver(DriverInfo* di, const m_str d) {
   else if(!strcmp("plot", d))
     di->func = plot_driver;
 #endif
-#ifdef HAVE_PLOT
+#ifdef HAVE_SLES
   else if(!strcmp("sles", d))
     di->func = sles_driver;
 #endif

@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
@@ -11,7 +9,6 @@
 #include "instr.h"
 #include "object.h"
 #include "array.h"
-#include "mpool.h"
 #include "memoize.h"
 
 VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
