@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <getopt.h>
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "err_msg.h"
+#include "gwion_util.h"
 #include "map_private.h"
 #include "arg.h"
 #include "oo.h"

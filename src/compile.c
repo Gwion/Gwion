@@ -1,19 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "defs.h"
-#include "err_msg.h"
-#include "map.h"
-#include "defs.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "instr.h"
 #include "type.h"
 #include "emit.h"
-#include "hash.h"
-#include "scanner.h"
 #include "compile.h"
 
 enum compile_type {
