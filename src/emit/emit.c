@@ -545,6 +545,14 @@ ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* dec
   return 1;
 }
 
+ANN(1,3,4) static inline void emit_push(const Env env, const Type type, const Nspc nspc, m_uint* class_scope) {
+  env_push(env, type, nspc, class_scope);
+}
+
+ANN(1,3,4) static inline void emit_pop(const Env env, m_uint class_scope) {
+  env_pop(env, class_scope);
+}
+
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   const m_bool ref = GET_FLAG(decl->td, ae_flag_ref) || type_ref(decl->type);
@@ -555,7 +563,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   m_uint class_scope;
   const m_bool global = GET_FLAG(decl->td, ae_flag_global);
   if(global)
-    env_push(emit->env, NULL, emit->env->global_nspc, &class_scope);
+    emit_push(emit, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
 
@@ -567,7 +575,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
   } while((list = list->next));
   if(global)
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   return 1;
 }
 
@@ -624,13 +632,13 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   const Value val = exp_call->m_func->value_ref;
   const Func_Def def = exp_call->m_func->def;
   m_uint class_scope;
-  env_push(emit->env, val->owner_class, val->owner, &class_scope);
+  emit_push(emit, val->owner_class, val->owner, &class_scope);
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(template_push_types(env, def->tmpl->list, exp_call->tmpl->types))
   CHECK_BB(traverse_func_def(env, def))
   CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   nspc_pop_type(env->curr);
-  env_pop(env, class_scope);
+  emit__pop(emit, class_scope);
   UNSET_FLAG(exp_call->m_func, ae_flag_checked);
   return 1;
 }
@@ -1261,7 +1269,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, ae_flag_builtin);
       SET_FLAG(stmt->value, ae_flag_global);
     }
-    env_push(emit->env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+    emit_push(emit, stmt->value->type, stmt->value->type->nspc, &class_scope);
   } else if(stmt->type_xid) {
     if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
       stmt->type->nspc->class_data =
@@ -1269,7 +1277,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
       stmt->type->p = mp_ini((uint32_t)stmt->type->size);
-    env_push(emit->env, stmt->type, stmt->type->nspc, &class_scope);
+    emit_push(emit, stmt->type, stmt->type->nspc, &class_scope);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
       stmt->o = emit_alloc_local(emit, stmt->s, 0);
@@ -1289,9 +1297,9 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, RegPop);
     instr->m_val = SZ_INT;
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   } else if(stmt->type_xid)
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   return 1;
 }
 
