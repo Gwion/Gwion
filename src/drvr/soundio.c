@@ -3,10 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <soundio/soundio.h>
-#include "defs.h"
+#include "gwion_util.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
-#include "err_msg.h"
 
 typedef struct SoundIoChannelArea* Areas;
 typedef struct SoundIoOutStream * Out;

@@ -1,4 +1,6 @@
 #include <pulse/simple.h>
+#include "gwion_util.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
 
@@ -31,7 +33,6 @@ static m_bool pulse_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
 static void pulse_run(VM* vm, DriverInfo* di) {
   int error;
   struct PaInfo* info = (struct PaInfo*)di->data;
-  sp_data* sp = vm->sp;
   while(vm->is_running) {
     m_uint frame, chan;
     float  in_data[BUFSIZE * vm->bbq->nchan];

@@ -4,9 +4,10 @@
 
 #include <unistd.h> // for sleep
 
+#include "gwion_util.h"
+#include "oo.h"
 #include "vm.h"
 #include "driver.h"
-#include "err_msg.h"
 
 struct JackInfo {
   jack_port_t** iport;
@@ -26,7 +27,7 @@ static void inner_cb(struct JackInfo* info, jack_default_audio_sample_t** in,
   VM* vm = info->vm;
   m_uint chan;
   for(frame = 0; frame < nframes; frame++) {
-    for(chan = 0; chan < vm->n_in; chan++)
+    for(chan = 0; chan < vm->bbq->n_in; chan++)
       vm->bbq->in[chan] = in[chan][frame];
     vm_run(vm);
     for(chan = 0; chan < (m_uint)vm->bbq->nchan; chan++)
@@ -39,9 +40,9 @@ static int gwion_cb(jack_nframes_t nframes, void *arg) {
   m_uint chan;
   struct JackInfo* info = (struct JackInfo*)arg;
   VM* vm  = info->vm;
-  jack_default_audio_sample_t  * in[vm->n_in];
+  jack_default_audio_sample_t  * in[vm->bbq->n_in];
   jack_default_audio_sample_t  * out[vm->bbq->nchan];
-  for(chan = 0; chan < vm->n_in; chan++)
+  for(chan = 0; chan < vm->bbq->n_in; chan++)
     in[chan] = jack_port_get_buffer(info->iport[chan], nframes);
   for(chan = 0; chan < (m_uint)vm->bbq->nchan; chan++)
     out[chan] = jack_port_get_buffer(info->oport[chan], nframes);
