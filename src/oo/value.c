@@ -1,12 +1,9 @@
 #include <stdlib.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "env.h"
 #include "value.h"
 #include "type.h"
-#include "mpool.h"
 
 ANN Value new_value(const Type type, const m_str name) {
   const Value a = mp_alloc(Value);

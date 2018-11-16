@@ -1,12 +1,9 @@
 #include <string.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
 #include "oo.h"
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
-#include "mpool.h"
 
 ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   const Type type = mp_alloc(Type);
