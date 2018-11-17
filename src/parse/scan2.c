@@ -56,8 +56,6 @@ ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
     ERR_B(list->var_decl->pos, "cannot declare variables of size '0' (i.e. 'void')...")
   if(isres(list->var_decl->xid) > 0)
     return -1;
-  if(GET_FLAG(list->td, ae_flag_ref))
-    CHECK_BB(prim_ref(list->td, list->type))
   return 1;
 }
 
@@ -507,8 +505,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
     func->next = overload->d.func_ref->next;
     overload->d.func_ref->next = func;
   }
-  if(GET_FLAG(f->td, ae_flag_ref))
-    CHECK_BO(prim_ref(f->td, f->ret_type))
   if(GET_FLAG(func, ae_flag_member))
     f->stack_depth += SZ_INT;
   return value;

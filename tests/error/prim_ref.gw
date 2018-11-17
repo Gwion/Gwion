@@ -1,2 +1,2 @@
-// [contains] cannot declare/instantiate references (@) of primitive type
+// [contains] primitive types cannot be used as reference
 int @i;

@@ -9,14 +9,12 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   Type t = find_type(env, td->xid);
   CHECK_OO(t)
   CHECK_OO((t = scan_type(env, t, td)))
-  if(td->array)
-    CHECK_OO((t = array_type(t, td->array->depth)))
-  return t;
+  return !td->array ? t : array_type(t, td->array->depth);
 }
 
 ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
   while(tgt >= src)
-    str = (m_str)xrealloc(str, src *= 2);
+    str = (m_str)xrealloc(str, src <<= 1);
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
@@ -81,25 +79,18 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
 ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
-  err_msg(id->pos, "'%s' unknown type in %s", path, orig);
-  return NULL;
+  ERR_O(id->pos, "'%s' unknown type in %s", path, orig);
 }
 
-ANN static m_bool prim_ref(const Type t, const Type_Decl* td) {
-  if(isa(t, t_object) < 0)
-    ERR_B(td->xid->pos,
-          "cannot declare/instantiate references (@) of primitive type '%s'...\n"
-          "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
-          "\t... complex, polar, Vec3, Vec4)",
-          t->name)
-  return 1;
+ANN static Type prim_ref(const Type t, const Type_Decl* td) {
+  if(GET_FLAG(td, ae_flag_ref) && isa(t, t_object) < 0)
+    ERR_O(td->xid->pos, "primitive types cannot be used as reference (@)...\n")
+  return t;
 }
 
 ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
   const Type t = type_decl_resolve(env, td);
   if(!t)
     return type_unknown(td->xid, orig);
-  if(GET_FLAG(td, ae_flag_ref))
-    CHECK_BO(prim_ref(t, td))
-  return t;
+  return prim_ref(t, td);
 }
