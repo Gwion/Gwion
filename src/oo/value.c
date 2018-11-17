@@ -20,6 +20,8 @@ ANN void free_value(Value a) {
     free(a->d.ptr);
   if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0)
     REM_REF(a->type)
+  if(GET_FLAG(a->type, ae_flag_op))
+    REM_REF(a->type)
   mp_free(Value, a);
 }
 

@@ -1247,8 +1247,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     exp->d.exp_decl.type = stmt->value->type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
-    if(!emit->env->class_def)
-      ADD_REF(stmt->value);
+//    if(!emit->env->class_def)
+//      ADD_REF(stmt->value->type);
     free_exp(exp);
     if(global) {
       const M_Object o = new_object(NULL, stmt->value->type);

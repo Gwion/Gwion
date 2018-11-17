@@ -49,8 +49,6 @@ ANN static void free_nspc_value(const Nspc a) {
         (isa(value->type, t_union) > 0 &&
           (GET_FLAG(value, ae_flag_static) ||GET_FLAG(value, ae_flag_global)))) {
       nspc_release_object(a, value);
-      if(GET_FLAG(value->type, ae_flag_op)) // only free untyped unions
-        REM_REF(value->type)
     }
     REM_REF(value);
   }
