@@ -15,6 +15,7 @@
 #include "object.h"
 #include "import.h"
 #include "traverse.h"
+#include "template.h"
 #include "optim.h"
 #include "parse.h"
 #include "nspc.h"

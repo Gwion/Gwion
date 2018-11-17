@@ -13,6 +13,7 @@
 #include "array.h"
 #include "func.h"
 #include "traverse.h"
+#include "template.h"
 #include "escape.h"
 #include "parse.h"
 #include "memoize.h"
