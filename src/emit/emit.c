@@ -531,7 +531,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   return 1;
 }
 
-ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_Def);
+ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
@@ -553,7 +553,6 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
     env_push(emit->env, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
-
     if(!GET_FLAG(list->self->value, ae_flag_used))
       continue;
     if(GET_FLAG(decl->td, ae_flag_static))
@@ -723,7 +722,6 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWD
   return !!emitter_add_instr(emit, RegPushCode);
 }
 
-//ANN static void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
 ANN static inline void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
   const Instr offset = emitter_add_instr(emit, RegPushImm);
   *(m_uint*)offset->ptr = emit_code_offset(emit);
@@ -855,14 +853,12 @@ ANN static Instr emit_flow(const Emitter emit, const Type type,
 }
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBUG_EXE
-//  nspc_push_value(emit->env->curr);
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   const Instr op = emit_flow(emit, exp_if->cond->type, BranchEqInt, BranchEqFloat);
   CHECK_BB(emit_exp(emit, exp_if->if_exp, 0))
   const Instr op2 = emitter_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
   const m_bool ret = emit_exp(emit, exp_if->else_exp, 0);
-//  nspc_pop_value(emit->env->curr);
   op2->m_val = emit_code_size(emit);
   return ret;
 }
@@ -930,12 +926,10 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) { GWDEBUG_EXE
-//    emit_push_scope(emit);
   ++emit->env->class_scope;
   const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
-//    emit_pop_scope(emit);
   --emit->env->class_scope;
-return ret;
+  return ret;
 }
 
 #ifdef OPTIMIZE
