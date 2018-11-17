@@ -128,7 +128,9 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
   } while((base = base->next));
-  return 1;
+  if(!call)
+    return 1;
+  POP_RET(-1);
 }
 
 extern ANN m_bool scan0_class_def(const Env, const Class_Def);

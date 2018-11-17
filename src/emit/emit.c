@@ -610,6 +610,7 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_c
   return 1;
 }
 
+
 ANN static m_bool emit_exp_call_template(const Emitter emit,
     const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
   if(emit->env->func && emit->env->func == exp_call->m_func)
@@ -620,8 +621,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   m_uint class_scope;
   env_push(emit->env, val->owner_class, val->owner, &class_scope);
   SET_FLAG(def, ae_flag_template);
-  CHECK_BB(template_push_types(env, def->tmpl->list, exp_call->tmpl->types))
-  CHECK_BB(traverse_func_def(env, def))
+  CHECK_BB(traverse_func_template(env, def, exp_call->tmpl->types))
   CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   nspc_pop_type(env->curr);
   env_pop(env, class_scope);
@@ -643,9 +643,8 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
   const Exp rhs = bin->rhs;
   const Func f = rhs->type->d.func ? rhs->type->d.func : bin->func;
   if(bin->tmpl) {
-    CHECK_BB(template_push_types(emit->env, f->def->tmpl->list, bin->tmpl->types))
-    CHECK_BB(traverse_func_def(emit->env, bin->func->def))
-    CHECK_BB(emit_func_def(emit, bin->func->def))
+    CHECK_BB(traverse_func_template(emit->env, f->def, bin->tmpl->types))
+    CHECK_BB(emit_func_def(emit, f->def))
     nspc_pop_type(emit->env->curr);
   }
   if(GET_FLAG(f->def, ae_flag_variadic)) {
