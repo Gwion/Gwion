@@ -7,12 +7,9 @@
 #include "nspc.h"
 
 ANN static Type owner_type(const Type t) {
-  if(!t->nspc)
-    return NULL;
-  const Nspc nspc = t->nspc->parent;
-  if(!nspc || !nspc->parent)
-    return NULL;
-  return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
+  const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
+  CHECK_OO(nspc);
+  return nspc->parent ? nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name)) : NULL;
 }
 
 ANEW ANN static Vector get_types(Type t) {
@@ -26,32 +23,25 @@ ANEW ANN static Vector get_types(Type t) {
 ANEW ANN static ID_List id_list_copy(ID_List src) {
   const ID_List list = new_id_list(src->xid, src->pos);
   ID_List tmp = list;
-  src = src->next;
-  while(src) {
-    tmp->next = new_id_list(src->xid, src->pos);
-    tmp = tmp->next;
-    src = src->next;
-  }
+  while((src = src->next))
+    tmp = (tmp->next = new_id_list(src->xid, src->pos));
   return list;
 }
 
 ANN static ID_List get_total_type_list(const Type t) {
-  Type parent = owner_type(t);
+  const Type parent = owner_type(t);
   if(!parent)
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
-  Vector v = get_types(parent);
+  const Vector v = get_types(parent);
   ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(v);
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
   }
-  ID_List tmp, types = id_list_copy(base);
-  tmp = types;
-  while(vector_size(v)) {
-    base = (ID_List)vector_pop(v);
-    tmp->next = id_list_copy(base);
-    tmp = tmp->next;
-  }
+  const ID_List types = id_list_copy(base);
+  ID_List tmp = types;
+  while(vector_size(v))
+    tmp = (tmp->next = id_list_copy((ID_List)vector_pop(v)));
   tmp->next = t->def->tmpl->list.list;
   free_vector(v);
   return types;
@@ -103,13 +93,9 @@ ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call
 }
 
 ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
-  m_uint size = template_size(env, c, call);
-  char name[size];
-  ID_List list;
-
+  char name[template_size(env, c, call)];
   template_name(env, c, call, name);
-  list = new_id_list(insert_symbol(name), call->td->xid->pos);
-  return list;
+  return new_id_list(insert_symbol(name), call->td->xid->pos);
 }
 
 ANN m_bool template_match(ID_List base, Type_List call) {
@@ -165,14 +151,13 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
       ERR_O(type->xid->pos, "invalid template types number")
 
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
-    Class_Def a = template_class(env, t->def, type->types);
+    const Class_Def a = template_class(env, t->def, type->types);
     if(a->type) {
       nspc_pop_type(env->curr);
       return a->type;
     }
     CHECK_BO(scan0_class_def(env, a))
-    SET_FLAG(a->type, ae_flag_template);
-    SET_FLAG(a->type, ae_flag_ref);
+    SET_FLAG(a->type, ae_flag_template | ae_flag_ref);
     SET_FLAG(a, ae_flag_ref);
     a->type->owner = t->owner;
     if(GET_FLAG(t, ae_flag_builtin))
