@@ -5,16 +5,6 @@
 #include "env.h"
 #include "type.h"
 
-ANN m_bool prim_ref(const Type_Decl* td, const Type t) {
-  if(isa(t, t_object) < 0)
-    ERR_B(td->xid->pos,
-          "cannot declare/instantiate references (@) of primitive type '%s'...\n"
-          "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
-          "\t... complex, polar, Vec3, Vec4)",
-          t->name)
-  return 1;
-}
-
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   Type t = find_type(env, td->xid);
   CHECK_OO(t)
@@ -95,6 +85,21 @@ ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
   return NULL;
 }
 
+ANN static m_bool prim_ref(const Type t, const Type_Decl* td) {
+  if(isa(t, t_object) < 0)
+    ERR_B(td->xid->pos,
+          "cannot declare/instantiate references (@) of primitive type '%s'...\n"
+          "\t...(primitive types: 'int', 'float', 'time', 'dur',\n"
+          "\t... complex, polar, Vec3, Vec4)",
+          t->name)
+  return 1;
+}
+
 ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
-  return type_decl_resolve(env, td) ?: type_unknown(td->xid, orig);
+  const Type t = type_decl_resolve(env, td);
+  if(!t)
+    return type_unknown(td->xid, orig);
+  if(GET_FLAG(td, ae_flag_ref))
+    CHECK_BO(prim_ref(t, td))
+  return t;
 }

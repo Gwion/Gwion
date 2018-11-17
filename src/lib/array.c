@@ -193,11 +193,10 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
   CHECK_BB(gwi_item_ini(gwi, "int", "@array"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
 
   CHECK_BB(gwi_func_ini(gwi, "int", "size", vm_vector_size))
   CHECK_BB(gwi_func_end(gwi, 0))
-
   CHECK_BB(gwi_func_ini(gwi, "int", "depth", vm_vector_depth))
   CHECK_BB(gwi_func_end(gwi, 0))
 

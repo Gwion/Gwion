@@ -148,12 +148,12 @@ if(post->exp->exp_type == ae_exp_primary &&
 ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
+  SET_FLAG(unary->td, ae_flag_ref);
   const Type t = known_type(env, unary->td, "'new' expression");
+  UNSET_FLAG(unary->td, ae_flag_ref);
   CHECK_OO(t)
   if(unary->td->array)
     CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
-  else
-    CHECK_BO(prim_ref(unary->td, t))
   return t;
 }
 
