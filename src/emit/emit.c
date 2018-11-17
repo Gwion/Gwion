@@ -24,6 +24,12 @@ typedef struct Local_ {
   m_bool is_obj;
 } Local;
 
+static inline void emit_pop_type(const Emitter emit) { nspc_pop_type(emit->env->curr); }
+static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(emit->env, scope); }
+static inline void emit_push(const Emitter emit, const Type type, const Nspc nspc, m_uint *scope) {
+  env_push(emit->env, type, nspc, scope);
+}
+
 ANEW static Frame* new_frame() {
   Frame* frame = mp_alloc(Frame);
   vector_init(&frame->stack);
@@ -536,7 +542,7 @@ ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
   CHECK_BB(emit_class_def(emit, decl->type->def))
-  nspc_pop_type(emit->env->curr);
+  emit_pop_type(emit);
   return 1;
 }
 
@@ -550,7 +556,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   m_uint class_scope;
   const m_bool global = GET_FLAG(decl->td, ae_flag_global);
   if(global)
-    env_push(emit->env, NULL, emit->env->global_nspc, &class_scope);
+    emit_push(emit, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
     if(!GET_FLAG(list->self->value, ae_flag_used))
@@ -561,7 +567,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
   } while((list = list->next));
   if(global)
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   return 1;
 }
 
@@ -619,12 +625,12 @@ ANN static m_bool emit_exp_call_template(const Emitter emit,
   const Value val = exp_call->m_func->value_ref;
   const Func_Def def = exp_call->m_func->def;
   m_uint class_scope;
-  env_push(emit->env, val->owner_class, val->owner, &class_scope);
+  emit_push(emit, val->owner_class, val->owner, &class_scope);
   SET_FLAG(def, ae_flag_template);
   CHECK_BB(traverse_func_template(env, def, exp_call->tmpl->types))
   CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
-  nspc_pop_type(env->curr);
-  env_pop(env, class_scope);
+  emit_pop_type(emit);
+  emit_pop(emit, class_scope);
   UNSET_FLAG(exp_call->m_func, ae_flag_checked);
   return 1;
 }
@@ -645,7 +651,7 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
   if(bin->tmpl) {
     CHECK_BB(traverse_func_template(emit->env, f->def, bin->tmpl->types))
     CHECK_BB(emit_func_def(emit, f->def))
-    nspc_pop_type(emit->env->curr);
+    emit_pop_type(emit);
   }
   if(GET_FLAG(f->def, ae_flag_variadic)) {
     Exp_Call exp;
@@ -1249,7 +1255,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, ae_flag_builtin);
       SET_FLAG(stmt->value, ae_flag_global);
     }
-    env_push(emit->env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+    emit_push(emit, stmt->value->type, stmt->value->type->nspc, &class_scope);
   } else if(stmt->type_xid) {
     if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
       stmt->type->nspc->class_data =
@@ -1257,7 +1263,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
       stmt->type->p = mp_ini((uint32_t)stmt->type->size);
-    env_push(emit->env, stmt->type, stmt->type->nspc, &class_scope);
+    emit_push(emit, stmt->type, stmt->type->nspc, &class_scope);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, ae_flag_member))
       stmt->o = emit_alloc_local(emit, stmt->s, 0);
@@ -1277,9 +1283,9 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, RegPop);
     instr->m_val = SZ_INT;
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   } else if(stmt->type_xid)
-    env_pop(emit->env, class_scope);
+    emit_pop(emit, class_scope);
   return 1;
 }
 
