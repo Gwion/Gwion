@@ -135,6 +135,7 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
 
 extern ANN m_bool scan0_class_def(const Env, const Class_Def);
 extern ANN m_bool scan1_class_def(const Env, const Class_Def);
+extern ANN m_bool traverse_func_def(const Env, const Func_Def);
 extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
 ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
@@ -177,4 +178,9 @@ ANN m_bool traverse_template(const Env env, const Class_Def def) {
   CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
   CHECK_BB(traverse_class_def(env, def))
   POP_RET(1);
+}
+
+ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types) {
+  CHECK_BB(template_push_types(env, def->tmpl->list, types))
+  return traverse_func_def(env, def);
 }

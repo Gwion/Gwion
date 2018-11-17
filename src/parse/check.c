@@ -414,11 +414,6 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, Exp args) {
   return NULL;
 }
 
-ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types) {
-  CHECK_BB(template_push_types(env, def->tmpl->list, types))
-  return traverse_func_def(env, def);
-}
-
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   if(!check_exp(env, exp->func) ||
      (exp->args  && !check_exp(env, exp->args)))
