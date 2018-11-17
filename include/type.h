@@ -35,7 +35,6 @@ ANN m_uint id_list_len(ID_List);
 ANN void type_path(const m_str, const ID_List);
 ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
-ANN m_bool prim_ref(const Type_Decl*, const Type);
 static inline Type actual_type(const Type t) {
   return isa(t, t_class) > 0 ? t->d.base_type : t;
 }

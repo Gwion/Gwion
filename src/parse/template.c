@@ -6,19 +6,17 @@
 #include "type.h"
 #include "nspc.h"
 
-ANN static Type owner_type(const Type t) {
-  if(!t->nspc)
-    return NULL;
-  const Nspc nspc = t->nspc->parent;
-  if(!nspc || !nspc->parent)
-    return NULL;
-  return nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name));
+#define POP_RET(a) { nspc_pop_type(env->curr); return (a); }
+
+ANN static inline Type owner_type(const Type t) {
+  const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
+  return (nspc && nspc->parent) ? nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name)) : NULL;
 }
 
 ANEW ANN static Vector get_types(Type t) {
   const Vector v = new_vector();
   do if(GET_FLAG(t, ae_flag_template))
-      vector_add(v, (vtype)t->def->tmpl->list.list);
+    vector_add(v, (vtype)t->def->tmpl->list.list);
   while((t = owner_type(t)));
   return v;
 }
@@ -26,100 +24,88 @@ ANEW ANN static Vector get_types(Type t) {
 ANEW ANN static ID_List id_list_copy(ID_List src) {
   const ID_List list = new_id_list(src->xid, src->pos);
   ID_List tmp = list;
-  src = src->next;
-  while(src) {
-    tmp->next = new_id_list(src->xid, src->pos);
-    tmp = tmp->next;
-    src = src->next;
-  }
+  while((src = src->next))
+    tmp = (tmp->next = new_id_list(src->xid, src->pos));
   return list;
 }
 
 ANN static ID_List get_total_type_list(const Type t) {
-  Type parent = owner_type(t);
+  const Type parent = owner_type(t);
   if(!parent)
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
-  Vector v = get_types(parent);
-  ID_List base = (ID_List)vector_pop(v);
+  const Vector v = get_types(parent);
+  const ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(v);
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
   }
-  ID_List tmp, types = id_list_copy(base);
-  tmp = types;
-  while(vector_size(v)) {
-    base = (ID_List)vector_pop(v);
-    tmp->next = id_list_copy(base);
-    tmp = tmp->next;
-  }
+  const ID_List types = id_list_copy(base);
+  ID_List tmp = types;
+  while(vector_size(v))
+    tmp = (tmp->next = id_list_copy((ID_List)vector_pop(v)));
   tmp->next = t->def->tmpl->list.list;
   free_vector(v);
   return types;
 }
 
-ANN static m_uint template_size(const Env env, const Class_Def c,
-    Type_List call) {
-  ID_List base = c->tmpl->list.list;
-  m_uint size = strlen(c->type->name) + 3;
-  while(base) {
-    Type t = type_decl_resolve(env, call->td);
-    size += strlen(t->name);
-    call = call->next;
-    base = base->next;
-    if(base)
-      ++size;
-  }
-  return size + 16;
+struct tmpl_info {
+  const  Class_Def cdef;
+  Type_List        call;
+  struct Vector_   type;
+  struct Vector_   size;
+  uint8_t index;
+};
+
+ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
+  vector_add(&info->type, (vtype)t);
+  const size_t len = strlen(t->name);
+  vector_add(&info->size, len);
+  return len;
 }
 
-ANN static m_bool template_name(const Env env, const Class_Def c, Type_List call, m_str s) {
+ANN static size_t template_size(const Env env, struct tmpl_info* info) {
+  ID_List base = info->cdef->tmpl->list.list;
+  size_t size = tmpl_set(info, info->cdef->type);
+  do size += tmpl_set(info, type_decl_resolve(env, info->call->td));
+  while((info->call = info->call->next) && (base = base->next) && ++size);
+  return size + 16 + 3;
+}
+
+ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
+  const Type t = (Type)vector_at(&info->type, info->index);
+  strcpy(str, t->name);
+  return str += vector_at(&info->size, info->index);
+}
+
+ANN static void template_name(const Env env, struct tmpl_info* info, m_str s) {
   m_str str = s;
-  ID_List base = c->tmpl->list.list;
-  size_t len = strlen(c->type->name);
-  strcpy(str, c->type->name);
-  str += len;
-  strcpy(str, "<");
-  ++str;
-  while(base) { // TODO: error checking
-    Type t = type_decl_resolve(env, call->td);
-    strcpy(str, t->name);
-    str += strlen(t->name);
-    call = call->next;
-    base = base->next;
-    if(base) {
-      strcpy(str, ",");
-      ++str;
-    }
-  }
-  strcpy(str, ">");
-  ++str;
-  if(c->type->owner == env->global_nspc) {
-    char ptr[16];
-    sprintf(ptr, "%p", (void*)env->curr);
-    ptr[15] = '0';
-    strcpy(str, ptr);
-  }
-  return 1;
+  str = tmpl_get(info, str);
+  *str++ = '<';
+  const m_uint size = vector_size(&info->type);
+  for(info->index = 1; info->index < size; ++info->index) {
+    str = tmpl_get(info, str);
+    *str++ = (info->index < size - 1) ? ',' : '>';
+   }
+  if(info->cdef->type->owner == env->global_nspc)
+    sprintf(str, "%p", (void*)env->curr);
+  else
+    *str = '\0';
 }
 
 ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
-  m_uint size = template_size(env, c, call);
-  char name[size];
-  ID_List list;
-
-  template_name(env, c, call, name);
-  list = new_id_list(insert_symbol(name), call->td->xid->pos);
-  return list;
+  struct tmpl_info info = { .cdef=c, .call=call };
+  vector_init(&info.type);
+  vector_init(&info.size);
+  char name[template_size(env, &info)];
+  template_name(env, &info, name);
+  vector_release(&info.type);
+  vector_release(&info.size);
+  return new_id_list(insert_symbol(name), call->td->xid->pos);
 }
 
 ANN m_bool template_match(ID_List base, Type_List call) {
-  do{
-    CHECK_OB(call)
-    call = call->next;
-  } while((base = base->next));
-  if(call)
-    return -1;
-  return 1;
+  while((call = call->next) && (base = base->next));
+  return !call ? 1 : -1;
 }
 
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
@@ -136,15 +122,9 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
   Type_List call = tl;
   nspc_push_type(env->curr);
   do {
-    if(!call) {
-      nspc_pop_type(env->curr);
-      return -1;
-    }
-    const Type t = known_type(env, call->td, "template");
-    if(!t) {
-      nspc_pop_type(env->curr);
-      return -1;
-    }
+    const Type t = call ? known_type(env, call->td, "template") : NULL;
+    if(!t)
+      POP_RET(-1);
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
   } while((base = base->next));
@@ -152,9 +132,10 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
 }
 
 extern ANN m_bool scan0_class_def(const Env, const Class_Def);
-extern ANN m_bool scan1_class_def(Env, Class_Def);
+extern ANN m_bool scan1_class_def(const Env, const Class_Def);
+extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
-ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
+ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
   if(GET_FLAG(t, ae_flag_template)) {
     if(GET_FLAG(t, ae_flag_ref))
       return t;
@@ -163,17 +144,13 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
         "you must provide template types for type '%s'", t->name)
     if(template_match(t->def->tmpl->list.list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
-
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
-    Class_Def a = template_class(env, t->def, type->types);
-    if(a->type) {
-      nspc_pop_type(env->curr);
-      return a->type;
-    }
-    CHECK_BO(scan0_class_def(env, a))
-    SET_FLAG(a->type, ae_flag_template);
-    SET_FLAG(a->type, ae_flag_ref);
+    const Class_Def a = template_class(env, t->def, type->types);
     SET_FLAG(a, ae_flag_ref);
+    if(a->type)
+      POP_RET(a->type);
+    CHECK_BO(scan0_class_def(env, a))
+    SET_FLAG(a->type, ae_flag_template | ae_flag_ref);
     a->type->owner = t->owner;
     if(GET_FLAG(t, ae_flag_builtin))
       SET_FLAG(a->type, ae_flag_builtin);
@@ -184,22 +161,18 @@ ANN Type scan_type(const Env env, Type t, const Type_Decl* type) {
       SET_FLAG(a->type, ae_flag_dtor);
       ADD_REF(t->nspc->dtor)
     }
-    ID_List list = get_total_type_list(t);
-    a->tmpl = new_tmpl_class(list, 0);
+    a->tmpl = new_tmpl_class(get_total_type_list(t), 0);
     a->tmpl->base = type->types;
     nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
-    t = a->type;
+    return a->type;
   } else if(type->types)
       ERR_O(type->xid->pos,
             "type '%s' is not template. You should not provide template types", t->name)
   return t;
 }
 
-ANN m_bool traverse_class_def(const Env, const Class_Def def);
 ANN m_bool traverse_template(const Env env, const Class_Def def) {
   CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
   CHECK_BB(traverse_class_def(env, def))
-  nspc_pop_type(env->curr);
-  return 1;
-
+  POP_RET(1);
 }
