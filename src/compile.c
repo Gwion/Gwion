@@ -9,6 +9,7 @@
 #include "type.h"
 #include "emit.h"
 #include "compile.h"
+#include "gwion.h"
 
 enum compile_type {
   COMPILE_NAME,
@@ -56,55 +57,56 @@ static m_bool compiler_open(struct Compiler* c) {
   return 1;
 }
 
-static m_bool check(struct Compiler* c, VM* vm) {
+static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
   CHECK_BB(compiler_open(c))
-  CHECK_OB((c->ast = parse(vm->scan, c->name, c->file)))
-  vm->emit->env->name = c->name;
-  return type_engine_check_prog(vm->emit->env, c->ast);
+  CHECK_OB((c->ast = parse(gwion->scan, c->name, c->file)))
+  gwion->env->name = c->name;
+  return type_engine_check_prog(gwion->env, c->ast);
 }
 
-static m_uint compile(VM* vm, struct Compiler* c) {
+static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   m_uint xid = 0;
   VM_Code code;
   compiler_name(c);
-  if(check(c, vm) < 0 ||
-     !(code = emit_ast(vm->emit, c->ast)))
+  if(check(gwion, c) < 0 ||
+     !(code = emit_ast(gwion->emit, c->ast)))
      gw_err("while compiling file '%s'\n", c->base);
   else {
     const VM_Shred shred = new_vm_shred(code);
     shred->args = c->args;
-    xid = vm_add_shred(vm, shred);
+    xid = vm_add_shred(gwion->vm, shred);
   }
   compiler_clean(c);
   return xid;
 }
 /*
-m_bool check_filename(VM* vm, const m_str filename) {
+m_bool check_filename(struct Gwion_* vm, const m_str filename) {
   struct Compiler c = { .base=filename, .type=COMPILE_NAME };
   return check(&c, vm);
 }
 
-m_bool check_string(VM* vm, const m_str filename, const m_str data) {
+m_bool check_string(struct Gwion_* vm, const m_str filename, const m_str data) {
   struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .data=data };
   return check(&c, vm);
 }
 
-m_bool check_file(VM* vm, const m_str filename, FILE* file) {
+m_bool check_file(struct Gwion_* vm, const m_str filename, FILE* file) {
   struct Compiler c = { .base=filename, .type=COMPILE_FILE, .file = file};
   return check(&c, vm);
 }
 */
-m_uint compile_filename(VM* vm, const m_str filename) {
+//m_uint compile_filename(struct Gwion_* vm, const m_str filename) {
+m_uint compile_filename(struct Gwion_* gwion, const m_str filename) {
   struct Compiler c = { .base=filename, .type=COMPILE_NAME };
-  return compile(vm, &c);
+  return compile(gwion, &c);
 }
 /*
-m_uint compile_string(VM* vm, const m_str filename, const m_str data) {
+m_uint compile_string(struct Gwion_* vm, const m_str filename, const m_str data) {
   struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .data=data };
   return compile(vm, &c);
 }
 
-m_uint compile_file(VM* vm, const m_str filename, FILE* file) {
+m_uint compile_file(struct Gwion_* vm, const m_str filename, FILE* file) {
   struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .file=file };
   return compile(vm, &c);
 }

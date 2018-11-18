@@ -1,14 +1,10 @@
-#include <stdlib.h>
 #include <string.h>
-#include <dirent.h>
-#include <dlfcn.h>
 #include "gwion_util.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
 #include "instr.h"
 #include "type.h"
-#include "value.h"
 #include "object.h"
 #include "import.h"
 #include "gwi.h"
@@ -16,6 +12,7 @@
 #include "emit.h"
 #include "operator.h"
 #include "engine.h"
+#include "gwion.h"
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
@@ -66,24 +63,19 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   return 1;
 }
 
-ANN Env type_engine_init(VM* vm, const Vector plug_dirs) {
-  const Env env = new_env();
-  vm->emit->env = env;
-  vm->emit->filename = "[builtin]";
+ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
+  vm->gwion->emit->filename = "[builtin]";
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.vm = vm;
-  gwi.emit = vm->emit;
-  gwi.env = env;
-  if(import_core_libs(&gwi) < 0) {
-    free_env(env);
-    return NULL;
-  }
-  vm->emit->filename = "[imported]";
+  gwi.emit = vm->gwion->emit;
+  gwi.env = vm->gwion->env;
+  CHECK_BB(import_core_libs(&gwi))
+  vm->gwion->emit->filename = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)
       env_reset(gwi.env);
   }
-  return env;
+  return 1;
 }

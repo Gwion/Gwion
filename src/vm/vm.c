@@ -11,7 +11,7 @@
 #include "ugen.h"
 #include "shreduler_private.h"
 #include "emit.h"
-
+#include "gwion.h"
 static inline uint64_t splitmix64_stateless(uint64_t index) {
   uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
   z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9);
@@ -33,25 +33,19 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
-// not the best place
-ANEW struct Scanner_* new_scanner(const uint size);
-ANN void free_scanner(struct Scanner_* scan);
-
-VM* new_vm(const m_bool loop) {
+VM* new_vm(void) {
   VM* vm = (VM*)xcalloc(1, sizeof(VM));
   vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
   vm->shreduler->vm = vm;
-  vector_init(&vm->shred);
+  vector_init(&vm->shreduler->shreds);
   vector_init(&vm->ugen);
-  shreduler_set_loop(vm->shreduler, loop);
-  vm->scan = new_scanner(127); // !!! magic number
   uint64_t seed = splitmix64_stateless((uint64_t)time(NULL));
   memcpy(vm->rand, &seed, sizeof(uint64_t));
   return vm;
 }
 
 void vm_remove(const VM* vm, const m_uint index) {
-  const Vector v = (Vector)&vm->shred;
+  const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
   for(m_uint i = vector_size(v) + 1; i--;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
@@ -61,25 +55,19 @@ void vm_remove(const VM* vm, const m_uint index) {
 }
 
 ANN void free_vm(VM* vm) {
-  if(vm->emit)
-    free_emitter(vm->emit);
-  vector_release(&vm->shred);
+  vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
   xfree(vm->bbq->in);
   xfree(vm->bbq->out);
   xfree(vm->bbq);
   xfree(vm->shreduler);
-  free_scanner(vm->scan);
   free(vm);
 }
 
-static  m_uint shred_ids;
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
-  const Vector v = (Vector)&vm->shred;
-  vector_add(v, (vtype)shred);
   shred->vm = (VM*)vm;
-  shred->xid = ++shred_ids;
   shred->me = new_shred(shred);
+  shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
   return shred->xid;
 }
@@ -98,10 +86,8 @@ ANN static inline void vm_ugen_init(const VM* vm) {
         UGEN(m->channel[j - 1])->done = 0;
     }
   }
-  const UGen hole = UGEN(vm->blackhole);
+  const UGen hole = (UGen)vector_at(v, 0);
   hole->compute(hole);
-  const UGen dac = UGEN(vm->dac);
-  dac->compute(dac);
 }
 
 #ifdef DEBUG_STACK

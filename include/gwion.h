@@ -1,9 +1,16 @@
 #ifndef __GWION
 #define __GWION
+typedef struct Gwion_* Gwion;
 struct Gwion_ {
-  Scanner scan
-  Env     env
-  Emit    emit
-  VM      vm
+// sym
+// mem
+// rnd
+// dl
+  Scanner*  scan;
+  Env      env;
+  Emitter  emit;
+  VM*      vm;
 };
+ANN void gwion_init(Gwion gwion);
+ANN void gwion_release(Gwion gwion);
 #endif

@@ -5,8 +5,7 @@
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
-
-#define POP_RET(a) { nspc_pop_type(env->curr); return (a); }
+#include "template.h"
 
 ANN static inline Type owner_type(const Type t) {
   const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
@@ -128,11 +127,14 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
     nspc_add_type(env->curr, base->xid, t);
     call = call->next;
   } while((base = base->next));
-  return 1;
+  if(!call)
+    return 1;
+  POP_RET(-1);
 }
 
 extern ANN m_bool scan0_class_def(const Env, const Class_Def);
 extern ANN m_bool scan1_class_def(const Env, const Class_Def);
+extern ANN m_bool traverse_func_def(const Env, const Func_Def);
 extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
 ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
@@ -169,10 +171,4 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       ERR_O(type->xid->pos,
             "type '%s' is not template. You should not provide template types", t->name)
   return t;
-}
-
-ANN m_bool traverse_template(const Env env, const Class_Def def) {
-  CHECK_BB(template_push_types(env, def->tmpl->list.list, def->tmpl->base))
-  CHECK_BB(traverse_class_def(env, def))
-  POP_RET(1);
 }

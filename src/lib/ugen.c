@@ -46,7 +46,6 @@ ANN void compute_mono(const UGen u) {
     }
   }
 }
-
 __attribute__((hot))
 ANN void compute_multi(const UGen u) {
   u->done = 1;
@@ -288,30 +287,34 @@ static MFUN(ugen_get_last) {
   *(m_float*)RETURN = UGEN(o)->out;
 }
 
-static GWION_IMPORT(global_ugens) {
+struct ugen_importer {
+  const VM* vm;
+  const f_tick tick;
+  const m_str name;
+  const m_uint nchan;
+  UGen ugen;
+};
+
+ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
   VM* vm = gwi_vm(gwi);
+  const M_Object o = new_M_UGen();
+  const UGen u = imp->ugen = UGEN(o);
+  ugen_ini(u, imp->nchan, imp->nchan);
+  ugen_gen(u, imp->tick, (void*)imp->vm, 0);
+  vector_add(&vm->ugen, (vtype)u);
+  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
+  return gwi_item_end(gwi, ae_flag_const, o);
+}
 
-  vm->dac       = new_M_UGen();
-  ugen_ini(UGEN(vm->dac), vm->bbq->nchan, vm->bbq->nchan);
-  ugen_gen(UGEN(vm->dac), dac_tick, vm, 0);
-  vector_add(&vm->ugen, (vtype)UGEN(vm->dac));
-  gwi_item_ini(gwi, "UGen", "dac");
-  gwi_item_end(gwi, ae_flag_const, vm->dac);
-
-  vm->blackhole = new_M_UGen();
-  ugen_ini(UGEN(vm->blackhole), 1, 1);
-  vector_add(&vm->ugen, (vtype)UGEN(vm->blackhole));
-  gwi_item_ini(gwi, "UGen", "blackhole");
-  gwi_item_end(gwi, ae_flag_const, vm->blackhole);
-  UGEN(vm->blackhole)->compute = compute_mono;
-
-
-  M_Object adc       = new_M_UGen();
-  ugen_ini(UGEN(adc), vm->bbq->n_in, vm->bbq->n_in);
-  ugen_gen(UGEN(adc), adc_tick, vm, 0);
-  vector_add(&vm->ugen, (vtype)UGEN(adc));
-  gwi_item_ini(gwi, "UGen", "adc");
-  gwi_item_end(gwi, ae_flag_const, adc);
+static GWION_IMPORT(global_ugens) {
+  const VM* vm = gwi_vm(gwi);
+  struct ugen_importer hole = { vm, compute_mono, "blackhole", 1, NULL };
+  add_ugen(gwi, &hole);
+  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->nchan, NULL };
+  add_ugen(gwi, &dac);
+  struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->n_in, NULL };
+  add_ugen(gwi, &adc);
+  ugen_connect(dac.ugen, hole.ugen);
   SET_FLAG(t_ugen, ae_flag_abstract);
   return 1;
 }
@@ -347,6 +350,5 @@ GWION_IMPORT(ugen) {
   _CHECK_OP(unchuck, chuck_ugen, UgenDisconnect)
   _CHECK_OP(trig, chuck_ugen, TrigConnect)
   _CHECK_OP(untrig, chuck_ugen, TrigDisconnect)
-  CHECK_BB(import_global_ugens(gwi))
-  return 1;
+  return import_global_ugens(gwi);
 }

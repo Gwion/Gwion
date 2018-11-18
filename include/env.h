@@ -23,7 +23,6 @@ struct Env_ {
 };
 
 ANEW Env new_env();
-//ANEW ANN Env type_engine_init(struct VM_*, const Vector);
 ANN void env_reset(const Env);
 ANN void free_env(Env);
 ANN2(1,3,4) void env_push(const Env, const Type, const Nspc, m_uint*);
@@ -43,4 +42,5 @@ ANN Type find_type(const Env, ID_List);
 ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
+ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types);
 #endif

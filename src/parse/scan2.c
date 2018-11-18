@@ -6,7 +6,7 @@
 #include "type.h"
 #include "value.h"
 #include "func.h"
-#include "traverse.h"
+#include "template.h"
 #include "optim.h"
 #include "parse.h"
 #include "nspc.h"

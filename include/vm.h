@@ -36,11 +36,8 @@ typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_ {
   Shreduler shreduler;
-  struct M_Object_* dac, *blackhole; // in a struct with ugen
-  struct Emitter_* emit;
-  struct Vector_ shred;
   struct Vector_ ugen;
-  struct Scanner_* scan;
+  struct Gwion_* gwion;
   struct BBQ_* bbq;
   uint32_t rand[2];
   volatile unsigned is_running : 1; // => shreduler
@@ -71,6 +68,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time)__attribute__((hot));
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
+ANN void shreduler_add(const Shreduler s, const VM_Shred shred);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
@@ -78,7 +76,7 @@ ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(sh
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
-ANEW VM* new_vm(const m_bool loop);
+ANEW VM* new_vm(void);
 ANN void free_vm(VM* vm);
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));

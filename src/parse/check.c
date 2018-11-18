@@ -15,6 +15,7 @@
 #include "object.h"
 #include "import.h"
 #include "traverse.h"
+#include "template.h"
 #include "optim.h"
 #include "parse.h"
 #include "nspc.h"
@@ -414,10 +415,8 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, Exp args) {
   return NULL;
 }
 
-ANN static m_bool find_template_match_inner(const Env env, const Exp_Call* exp, const Func_Def def) {
-  const m_bool ret = traverse_func_def(env, def);
-  nspc_pop_type(env->curr);
-  if(ret < 0 || !check_exp(env, exp->func) ||
+ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
+  if(!check_exp(env, exp->func) ||
      (exp->args  && !check_exp(env, exp->args)))
     return -1;
   return 1;
@@ -435,7 +434,6 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
   const Exp args = exp_call->args;
   const Type_List types = exp_call->tmpl->types;
   Func m_func = exp_call->m_func;
-  m_int mismatch = 0;
   const m_uint digit = num_digit(v->offset + 1);
   const m_uint len = strlen(v->name) + strlen(env->curr->name);
   const m_str tmpl_name = tl2str(env, types);
@@ -449,9 +447,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
     if(value) {
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
-        if(!check_exp(env, exp_call->func) ||
-            (exp_call->args && !check_exp(env, exp_call->args)))
-          return NULL;
+        CHECK_BO(check_call(env, exp_call))
         return env->func;
       }
       base = def = value->d.func_ref->def;
@@ -461,43 +457,37 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
       if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
             nspc_lookup_value1(env->curr, insert_symbol(name))))
       continue;
-      mismatch = 0;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
-      def->tmpl = new_tmpl_list(value->d.func_ref->def->tmpl->list, (m_int)i);
+      def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       UNSET_FLAG(base, ae_flag_template);
       SET_FLAG(def, ae_flag_template);
-      if((mismatch = template_match(base->tmpl->list, types)) < 0)
-        goto fail;
     }
-    if(template_push_types(env, base->tmpl->list, types) < 0)
-      goto fail;
-    if(find_template_match_inner(env, exp_call, def) > 0) {
-      Func next = def->func->next;
-      def->func->next = NULL;
-      m_func = find_func_match(env, def->func, args);
-      def->func->next = next;
-      if(m_func) {
-        free(tmpl_name);
-        env_pop(env, class_scope);
-        SET_FLAG(base, ae_flag_template);
-        SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-        return m_func;
+    if(traverse_func_template(env, def, types) > 0) {
+      nspc_pop_type(env->curr);
+      if(check_call(env, exp_call) > 0) {
+        const Func next = def->func->next;
+        def->func->next = NULL;
+        m_func = find_func_match(env, def->func, args);
+        def->func->next = next;
+        if(m_func) {
+          free(tmpl_name);
+          env_pop(env, class_scope);
+          SET_FLAG(base, ae_flag_template);
+          SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
+          return m_func;
+        }
       }
     }
-fail:
     SET_FLAG(base, ae_flag_template);
     if(def->func) // still leaks
       def->func->def = NULL;
     free_func_def(def);
   }
   free(tmpl_name);
-  if(mismatch < 0)
-    ERR_O(exp_call->self->pos, "template type number mismatch.")
   env_pop(env, class_scope);
-  (void)err_msg(exp_call->self->pos, "arguments do not match for template call");
-  return NULL;
+  ERR_O(exp_call->self->pos, "arguments do not match for template call")
 }
 
 ANN static void print_current_args(Exp e) {

@@ -1,4 +1,4 @@
-// [contains] template type number mismatch
+// [contains] arguments do not match for template call
 template “i”
 function void test(){ <<<"func">>>;}
 template “i”
