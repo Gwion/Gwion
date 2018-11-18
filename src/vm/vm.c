@@ -41,7 +41,7 @@ VM* new_vm(const m_bool loop) {
   VM* vm = (VM*)xcalloc(1, sizeof(VM));
   vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
   vm->shreduler->vm = vm;
-  vector_init(&vm->shred);
+  vector_init(&vm->shreduler->shreds);
   vector_init(&vm->ugen);
   shreduler_set_loop(vm->shreduler, loop);
   vm->scan = new_scanner(127); // !!! magic number
@@ -51,7 +51,7 @@ VM* new_vm(const m_bool loop) {
 }
 
 void vm_remove(const VM* vm, const m_uint index) {
-  const Vector v = (Vector)&vm->shred;
+  const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
   for(m_uint i = vector_size(v) + 1; i--;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
@@ -63,7 +63,7 @@ void vm_remove(const VM* vm, const m_uint index) {
 ANN void free_vm(VM* vm) {
   if(vm->emit)
     free_emitter(vm->emit);
-  vector_release(&vm->shred);
+  vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
   xfree(vm->bbq->in);
   xfree(vm->bbq->out);
@@ -73,13 +73,11 @@ ANN void free_vm(VM* vm) {
   free(vm);
 }
 
-static  m_uint shred_ids;
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
-  const Vector v = (Vector)&vm->shred;
-  vector_add(v, (vtype)shred);
+  const Vector v = (Vector)&vm->shreduler->shreds;
   shred->vm = (VM*)vm;
-  shred->xid = ++shred_ids;
   shred->me = new_shred(shred);
+  shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
   return shred->xid;
 }

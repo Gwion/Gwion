@@ -37,9 +37,8 @@ typedef struct Emitter_   * Emitter;
 typedef struct VM_ {
   Shreduler shreduler;
   struct M_Object_* dac, *blackhole; // in a struct with ugen
-  struct Emitter_* emit;
-  struct Vector_ shred;
   struct Vector_ ugen;
+  struct Emitter_* emit;
   struct Scanner_* scan;
   struct BBQ_* bbq;
   uint32_t rand[2];

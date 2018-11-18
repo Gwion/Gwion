@@ -13,7 +13,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   VM* vm = s->vm;
   const VM_Shred shred = s->list;
   if(!shred) {
-    if(!vector_size(&vm->shred) && !s->loop)
+    if(!vector_size(&s->shreds) && !s->loop)
       vm->is_running = 0;
     return NULL;
   }
@@ -48,7 +48,7 @@ ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
     shreduler_parent(out, &out->parent->child);
   if(out->child.ptr)
     shreduler_child(s, &out->child);
-  vector_rem2(&s->vm->shred, (vtype)out);
+  vector_rem2(&s->shreds, (vtype)out);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
@@ -90,4 +90,9 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
     s->list = shred;
   if(s->curr == shred)
     s->curr = NULL;
+}
+
+ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
+  shred->xid = ++s->shred_ids;
+  vector_add(&s->shreds, (vtype)shred);
 }
