@@ -74,7 +74,6 @@ ANN void free_vm(VM* vm) {
 }
 
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
-  const Vector v = (Vector)&vm->shreduler->shreds;
   shred->vm = (VM*)vm;
   shred->me = new_shred(shred);
   shreduler_add(vm->shreduler, shred);
@@ -96,10 +95,8 @@ ANN static inline void vm_ugen_init(const VM* vm) {
         UGEN(m->channel[j - 1])->done = 0;
     }
   }
-  const UGen hole = UGEN(vm->blackhole);
+  const UGen hole = (UGen)vector_at(v, 0);
   hole->compute(hole);
-  const UGen dac = UGEN(vm->dac);
-  dac->compute(dac);
 }
 
 #ifdef DEBUG_STACK

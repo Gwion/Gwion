@@ -36,7 +36,6 @@ typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_ {
   Shreduler shreduler;
-  struct M_Object_* dac, *blackhole; // in a struct with ugen
   struct Vector_ ugen;
   struct Emitter_* emit;
   struct Scanner_* scan;
@@ -70,6 +69,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time)__attribute__((hot));
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
+ANN void shreduler_add(const Shreduler s, const VM_Shred shred);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
