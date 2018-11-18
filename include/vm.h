@@ -37,8 +37,7 @@ typedef struct Emitter_   * Emitter;
 typedef struct VM_ {
   Shreduler shreduler;
   struct Vector_ ugen;
-  struct Emitter_* emit;
-  struct Scanner_* scan;
+  struct Gwion_* gwion;
   struct BBQ_* bbq;
   uint32_t rand[2];
   volatile unsigned is_running : 1; // => shreduler
@@ -77,7 +76,7 @@ ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(sh
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
-ANEW VM* new_vm(const m_bool loop);
+ANEW VM* new_vm(void);
 ANN void free_vm(VM* vm);
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));
