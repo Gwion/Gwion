@@ -82,7 +82,6 @@ ANEW Emitter new_emitter(void) {
 }
 
 ANN void free_emitter(Emitter a) {
-  free_env(a->env);
   vector_release(&a->stack);
   xfree(a);
 }

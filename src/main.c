@@ -11,7 +11,6 @@
 #include "env.h"
 #include "type.h"
 #include "instr.h"
-#include "emit.h"
 #include "compile.h"
 #include "driver.h"
 #include "arg.h"
