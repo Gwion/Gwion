@@ -18,10 +18,6 @@ ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
 
-ANN static inline void scan2_push(const Env env, const Type type,
-  const Nspc nspc, m_uint* scope) { env_push(env, type, nspc, scope); }
-ANN static inline void scan2_pop(const Env env) { env_pop(env); }
-
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
   CHECK_BB(scan2_class_def(env, decl->type->def))
@@ -40,14 +36,14 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   m_uint class_scope;
   const m_bool global = GET_FLAG(decl->td, ae_flag_global);
   if(global)
-   scan2_push(env, NULL, env->global_nspc, &class_scope);
+   env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     const Array_Sub array = list->self->array;
     if(array && array->exp)
         CHECK_BB(scan2_exp(env, array->exp))
   } while((list = list->next));
   if(global)
-    scan2_pop(env, class_scope);
+    env_pop(env, class_scope);
   return 1;
 }
 
@@ -293,15 +289,15 @@ ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   m_uint class_scope;
   const m_bool global = GET_FLAG(stmt, ae_flag_global);
   if(stmt->xid)
-    scan2_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
+    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
   else if(stmt->type_xid)
-    scan2_push(env, stmt->type, stmt->type->nspc, &class_scope);
+    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
   else if(global)
-    scan2_push(env, NULL, env->global_nspc, &class_scope);
+    env_push(env, NULL, env->global_nspc, &class_scope);
   do CHECK_BB(scan2_exp(env, l->self))
   while((l = l->next));
   if(stmt->xid || stmt->type_xid || global)
-    scan2_pop(env, class_scope);
+    env_pop(env, class_scope);
   return 1;
 }
 
@@ -548,10 +544,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!base) {
     m_uint class_scope;
     if(GET_FLAG(f, ae_flag_global))
-      scan2_push(env, NULL, env->global_nspc, &class_scope);
+      env_push(env, NULL, env->global_nspc, &class_scope);
       CHECK_OB((value = func_create(env, f, overload, func_name)))
     if(GET_FLAG(f, ae_flag_global))
-      scan2_pop(env, class_scope);
+      env_pop(env, class_scope);
   } else
     f->func = base;
   if(f->arg_list && scan2_arg_def(env, f) < 0)
@@ -580,11 +576,11 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
 
 ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
   m_uint class_scope;
-  scan2_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
   Class_Body body = class_def->body;
   do CHECK_BB(scan2_section(env, body->section))
   while((body = body->next));
-  scan2_pop(env, class_scope);
+  env_pop(env, class_scope);
   return 1;
 }
 
