@@ -756,13 +756,12 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
 }
 
 ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code, const Func f,
-    const m_uint arg_size, const m_uint stack_depth) {
+    const m_uint arg_size) {
   const Instr push_code = emitter_add_instr(emit, RegPushImm);
   *(VM_Code*)push_code->ptr = code;
   const Instr spork = emitter_add_instr(emit, f ? SporkExp : SporkFunc);
   spork->m_val = f ? emit_code_offset(emit) : arg_size;
   spork->m_val2 = f ? (m_uint)f : (m_uint)code;
-  *(m_uint*)spork->ptr = stack_depth; // only for some sporked expressions
   return 1;
 }
 
@@ -773,7 +772,7 @@ ANN static m_uint emit_exp_spork_size(Exp e) { GWDEBUG_EXE
   return size;
 }
 
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
+ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   CHECK_BB(emit_func_args(emit, exp))
   CHECK_BB(emit_exp(emit, exp->func, 0))
   char c[11 + num_digit(exp->self->pos)];
@@ -787,7 +786,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   const VM_Code code = finalyze(emit);
   emit_pop_code(emit);
   const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
-  return emit_exp_spork_finish(emit, code, NULL, size, 0); // last arg migth have to be 'emit_code_offset(emit)'
+  return emit_exp_spork_finish(emit, code, NULL, size);
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
@@ -799,19 +798,22 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   return 1;
 }
 
-ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
-  const Symbol sporked = insert_symbol("sporked");
+ANN static Func make_spork_func(const Stmt stmt) {
+  char c[12 + num_digit(stmt->pos)];
+  sprintf(c, "spork~func:%i", stmt->pos);
+  const Symbol sporked = insert_symbol(c);
   const ID_List list = new_id_list(sporked, stmt->pos);
   const Func_Def def = new_func_def(new_type_decl(list, 0), sporked, NULL, stmt, 0);
-  const Func f = new_func("sporked", def);
+  return new_func(c, def);
+}
 
+ANN static m_bool spork_func(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   if(emit->env->class_def)
     push_this(emit);
+  const Func f = make_spork_func(stmt);
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Func*)push->ptr = f;
-  char c[12 + num_digit(stmt->pos)];
-  sprintf(c, "spork~code:%i", stmt->pos);
-  emit_push_code(emit, c);
+  emit_push_code(emit, f->name);
   if(emit->env->class_def) { // check we're not in static func ?
     SET_FLAG(f, ae_flag_member);
     SET_FLAG(emit->code, ae_flag_member);
@@ -822,9 +824,12 @@ ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   CHECK_BB(scoped_stmt(emit, stmt, 0))
   f->code = finalyze(emit);
   emit_pop_code(emit);
-  CHECK_BB(emit_exp_spork_finish(emit, f->code, f, 0, emit->env->func ?
-      emit->env->func->def->stack_depth : 0))
-  return 1;
+  return emit_exp_spork_finish(emit, f->code, f, 0);
+}
+
+ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
+  return unary->code ? spork_func(emit, unary->code) :
+    spork_exp(emit, &unary->exp->d.exp_call);
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { GWDEBUG_EXE

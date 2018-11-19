@@ -15,7 +15,6 @@
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
-//  env->user_nspc = NULL;
   env->context = NULL;
   vector_init(&env->breaks);
   vector_init(&env->conts);
@@ -32,15 +31,8 @@ ANN void env_reset(const Env env) {
   vector_clear(&env->conts);
   vector_clear(&env->nspc_stack);
   vector_add(&env->nspc_stack, (vtype)env->global_nspc);
-
-//  if(env->user_nspc)
-//    vector_add(env->nspc_stack, (vtype)env->user_nspc);
-
   vector_clear(&env->class_stack);
   vector_add(&env->class_stack, (vtype)NULL);
-//  if(env->user_nspc)
-//    env->curr = env->user_nspc;
-//  else
   env->curr = env->global_nspc;
   env->class_def = NULL;
   env->func = NULL;
@@ -160,10 +152,10 @@ ANN static Type find_typeof(const Env env, ID_List path) {
 }
 
 ANN Type find_type(const Env env, ID_List path) {
-  Type type;
   if(path->ref)
     return find_typeof(env, path->ref);
-  CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
+  Type type = nspc_lookup_type1(env->curr, path->xid);
+  CHECK_OO(type)
   Nspc nspc = type->nspc;
   path = path->next;
   while(path) {

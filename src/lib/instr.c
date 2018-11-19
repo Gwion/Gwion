@@ -253,7 +253,7 @@ INSTR(SporkFunc) { GWDEBUG_EXE
     PUSH_REG(sh, SZ_INT);
   }
   push_me(shred, sh);
-  *(Func*)sh->reg = func;
+  *(Func*)sh->reg = func; // ???
   PUSH_REG(sh, SZ_INT);
 }
 

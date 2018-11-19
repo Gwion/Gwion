@@ -14,10 +14,8 @@
 #include "nspc.h"
 #include "operator.h"
 
-ANN Type check_exp_call1(Env env, Exp restrict exp_call,
-  restrict Exp args, restrict Exp base);
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Call* exp);
-ANN m_bool emit_exp_spork1(const Emitter emit, const Stmt stmt);
+ANN Type check_exp_call1(const Env, const Exp restrict,const Exp, const Exp);
+ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 
 static INSTR(assign_func) { GWDEBUG_EXE
   const Func f = **(Func**)REG(-SZ_INT) = *(Func*)REG(-(SZ_INT*2+instr->m_val2));
@@ -140,9 +138,7 @@ static OP_EMIT(opem_fptr_at) {
 
 static OP_EMIT(opem_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB((unary->code ? emit_exp_spork1(emit, unary->code) :
-        emit_exp_spork(emit, &unary->exp->d.exp_call)))
-  return 1;
+  return emit_exp_spork(emit, unary);
 }
 
 GWION_IMPORT(func) {
@@ -159,6 +155,5 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
-  return 1;
+  return (m_bool)gwi_oper_end(gwi, op_spork, NULL);
 }
