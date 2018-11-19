@@ -48,17 +48,6 @@ ANN static void constprop_value(const Value v, const long num) {
 ANN static m_bool constant_propagation(const Exp_Binary* bin) {
   const Exp l = bin->lhs, r = bin->rhs;
   switch(bin->op) {
-    case op_assign:
-      if(is_constprop_value(l)) {
-        if(is_const(r)) {
-          constprop_value(l->d.exp_primary.value,
-            r->d.exp_primary.d.num);
-          constprop_exp(bin, r->d.exp_primary.d.num);
-          return 1;
-        } else
-          UNSET_FLAG(l->d.exp_primary.value, ae_flag_constprop);
-      }
-      break;
     case op_chuck:
       if(isa(r->type, t_function) < 0) {
         if(is_constprop_value(r)) {

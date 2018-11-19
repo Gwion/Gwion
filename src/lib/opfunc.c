@@ -22,16 +22,6 @@ OP_EMIT(opem_basic_cast) {
   return 1;
 }
 
-OP_CHECK(opck_const_lhs) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->lhs->meta != ae_meta_var)
-     ERR_N(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
-     "\t...\t(reason: --- left-side operand is %s.)",
-        op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
-     access(bin->rhs->meta))
-  return bin->lhs->type;
-}
-
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var)
@@ -40,14 +30,6 @@ OP_CHECK(opck_const_rhs) {
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access(bin->rhs->meta))
   return bin->rhs->type;
-}
-
-OP_CHECK(opck_assign) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_lhs(env, data) == t_null)
-    return t_null;
-  bin->lhs->emit_var = 1;
-  return bin->lhs->type;
 }
 
 OP_CHECK(opck_rhs_emit_var) {

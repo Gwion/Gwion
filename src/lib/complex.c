@@ -9,12 +9,6 @@
 #include "object.h"
 #include "import.h"
 
-static INSTR(ComplexAssign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(-SZ_COMPLEX) =
-     *(m_complex*)REG(SZ_INT-SZ_COMPLEX));
-}
-
 #define describe(name, op) \
 static INSTR(Complex##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_COMPLEX); \
@@ -123,8 +117,6 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        ComplexAssign))
   CHECK_BB(gwi_oper_end(gwi, op_add,          ComplexAdd))
   CHECK_BB(gwi_oper_end(gwi, op_sub,         ComplexSub))
   CHECK_BB(gwi_oper_end(gwi, op_mul,         ComplexMul))
@@ -140,8 +132,6 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_rdiv,  ComplexRDiv))
   CHECK_BB(gwi_oper_ini(gwi, "polar", "polar", "polar"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,        ComplexAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck,         ComplexRAssign))
   CHECK_BB(gwi_oper_end(gwi, op_add,          PolarAdd))

@@ -31,11 +31,6 @@ static INSTR(int_pre_##name)  { *(m_int*)REG(- SZ_INT) = op(**(m_int**)REG(- SZ_
 #define describe_post(name, op) \
 static INSTR(int_post_##name) { GWDEBUG_EXE *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))op; }
 
-static INSTR(int_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = *(m_int*)REG(0));
-}
-
 static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
 static INSTR(int_cmp) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = ~*(m_int*)REG(-SZ_INT); }
 
@@ -87,8 +82,6 @@ describe_r(sxor,   ^,)
 
 GWION_IMPORT(int) {
   CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign,       int_assign))
   CHECK_BB(gwi_oper_end(gwi, op_add,         int_plus))
   CHECK_BB(gwi_oper_end(gwi, op_sub,        int_minus))
   CHECK_BB(gwi_oper_end(gwi, op_mul,        int_mul))
