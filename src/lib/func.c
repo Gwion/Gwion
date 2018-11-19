@@ -89,6 +89,7 @@ static OP_CHECK(opck_fptr_at) {
     char name[strlen(c) + strlen(nspc->name) + num_digit(v->offset) + 3];
     sprintf(name, "%s@%" INT_F "@%s", c, i, nspc->name);
     const Func f = nspc_lookup_func1(nspc, insert_symbol(name));
+    CHECK_OO(f)
     if(compat_func(r_fdef, f->def) > 0) {
       bin->func = f;
       return r_func->value_ref->type->d.base_type;
@@ -101,9 +102,11 @@ static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   const Type t = cast->self->type;
   const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  const Func  f = isa(v->type, t_fptr) > 0 ?
+  CHECK_OO(v)
+  const Func f = isa(v->type, t_fptr) > 0 ?
             v->type->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
+  CHECK_OO(f)
   CHECK_BO(compat_func(t->d.func->def, f->def))
   cast->func = f;
   return t;

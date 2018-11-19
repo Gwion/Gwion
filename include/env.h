@@ -9,7 +9,6 @@ struct Env_ {
   m_str name;
   Nspc curr;
   Nspc global_nspc;
-//  Nspc user_nspc;
   m_uint    class_scope;
   struct Context_ *context;
   Type      class_def;

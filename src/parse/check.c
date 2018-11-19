@@ -863,6 +863,7 @@ ANN static inline m_bool for_empty(const Stmt_For stmt) {
 
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
   Type t = check_exp(env, stmt->exp);
+  CHECK_OB(t)
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
   if(GET_FLAG(t, ae_flag_typedef))

@@ -165,6 +165,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
   const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
+  CHECK_OB(mo)
   mo->func = (Func)opi->data;
   return 1;
 }
