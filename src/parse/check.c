@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <inttypes.h>
 #include "gwion_util.h"
+#include "gwion_ast.h"
 #include "oo.h"
 #include "vm.h"
 #include "env.h"

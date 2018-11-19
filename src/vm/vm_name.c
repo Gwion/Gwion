@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "gwion_util.h"
+#include "gwion_ast.h"
 
 m_str code_name_set(const m_str name, const m_str file) {
   const size_t len = strlen(name) + strlen(file) + 2;

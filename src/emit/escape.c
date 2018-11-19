@@ -1,4 +1,5 @@
 #include "gwion_util.h"
+#include "gwion_ast.h"
 
 static char g_escape[256];
 __attribute__((constructor(300)))
