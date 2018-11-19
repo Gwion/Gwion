@@ -165,8 +165,7 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) { GWDEBUG_EXE
   if(type->nspc->pre_ctor)
     emit_pre_ctor_inner(emit, type);
   if(GET_FLAG(type, ae_flag_template) && GET_FLAG(type, ae_flag_builtin)) {
-    const m_str name = get_type_name(type->name, 0);
-    const Type t = nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
+    const Type t = template_parent(type);
     if(t->nspc->pre_ctor)
       emit_pre_ctor_inner(emit, t);
   }
@@ -717,13 +716,14 @@ static m_bool push_func_code(const Emitter emit, const Func f) {
 }
 
 ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func func) { GWDEBUG_EXE
-  if(emit->env->func != func) {
-    if(GET_FLAG(func, ae_flag_template)) {
-      CHECK_BB(emit_template_code(emit, func))
-      return push_func_code(emit, func);
-    }
-    if(!func->value_ref->owner_class && isa(func->value_ref->type, t_fptr) < 0)
-      return push_func_code(emit, func);
+  const Type t = actual_type(func->value_ref->type);
+  if(GET_FLAG(func, ae_flag_template) && emit->env->func != func) {
+    CHECK_BB(emit_template_code(emit, func))
+    return push_func_code(emit, func);
+  }
+  if(isa(t, t_fptr) < 0) {
+    const Instr instr = emitter_add_instr(emit, RegPushPtr2);
+    return !!(instr->m_val = (m_uint)func);
   }
   return !!emitter_add_instr(emit, RegPushCode);
 }
@@ -736,12 +736,10 @@ ANN static inline void emit_exp_call1_offset(const Emitter emit) { GWDEBUG_EXE
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   if(GET_FLAG(f, ae_flag_pure))
     emitter_add_instr(emit, MemoizeCall);
-  if(isa(f->value_ref->type, t_fptr) < 0) {
-    if(GET_FLAG(f->def, ae_flag_builtin))
-      return emitter_add_instr(emit, GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic);
-    return emitter_add_instr(emit, FuncUsr);
-  }
-  return emitter_add_instr(emit, FuncPtr);
+  const Type t = actual_type(f->value_ref->type);
+  const f_instr exec = isa(t, t_fptr) < 0 ? GET_FLAG(f->def, ae_flag_builtin) ?
+     GET_FLAG(f, ae_flag_member) ? FuncMember : FuncStatic : FuncUsr : FuncPtr;
+  return emitter_add_instr(emit, exec);
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func func) { GWDEBUG_EXE
@@ -1013,7 +1011,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
     op = _flow(emit, stmt->cond, stmt->self->stmt_type == ae_stmt_while);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   if(stmt->is_do) {
-    op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while);
+    CHECK_OB((op = _flow(emit, stmt->cond, stmt->self->stmt_type != ae_stmt_while)))
     op->m_val = index;
   } else {
     const Instr goto_ = emitter_add_instr(emit, Goto);

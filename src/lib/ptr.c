@@ -13,38 +13,6 @@
 #include "emit.h"
 #include "operator.h"
 
-ANN m_str get_type_name(const m_str s, const m_uint index) {
-  m_str name = strstr(s, "<");
-  m_uint i = 0;
-  m_uint lvl = 0;
-  m_uint n = 1;
-  const size_t len = name ? strlen(name) : 0;
-  const size_t slen = strlen(s);
-  const size_t tlen = slen -len + 1;
-  char c[slen];
-
-  if(!name)
-    return index ? NULL : s_name(insert_symbol(s));
-  if(index == 0) {
-    snprintf(c, tlen, "%s", s);
-    return s_name(insert_symbol(c));
-  }
-  while(*name++) {
-    if(*name == '<')
-      lvl++;
-    else if(*name == '>' && !lvl--)
-      break;
-    if(*name == ',' && !lvl) {
-      ++name;
-      ++n;
-    }
-    if(n == index)
-      c[i++] = *name;
-  }
-  c[i] = '\0';
-  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
-}
-
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {

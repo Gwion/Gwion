@@ -106,6 +106,13 @@ INSTR(RegPushPtr) { GWDEBUG_EXE
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
 }
 
+INSTR(RegPushPtr2) { GWDEBUG_EXE
+  const VM_Code code = ((Func)instr->m_val)->code;
+  instr->m_val = (m_uint)code;
+  instr->execute = RegPushPtr;
+  *(VM_Code*)REG(-SZ_INT) = code;
+}
+
 INSTR(RegPushCode) { GWDEBUG_EXE
   const Func f = *(Func*)REG(-SZ_INT);
   if(!f)

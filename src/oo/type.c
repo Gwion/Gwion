@@ -85,6 +85,13 @@ ANN Type array_type(const Type base, const m_uint depth) {
   return t;
 }
 
+__attribute__((returns_nonnull))
+ANN Type template_parent(const Type type) {
+  const m_str name = get_type_name(type->name, 0);
+  const Type t = nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
+  return t;
+}
+
 ANN m_bool type_ref(Type t) {
   do {
     if(GET_FLAG(t, ae_flag_empty))
@@ -96,3 +103,34 @@ ANN m_bool type_ref(Type t) {
   return 0;
 }
 
+ANN m_str get_type_name(const m_str s, const m_uint index) {
+  m_str name = strstr(s, "<");
+  m_uint i = 0;
+  m_uint lvl = 0;
+  m_uint n = 1;
+  const size_t len = name ? strlen(name) : 0;
+  const size_t slen = strlen(s);
+  const size_t tlen = slen -len + 1;
+  char c[slen];
+
+  if(!name)
+    return index ? NULL : s_name(insert_symbol(s));
+  if(index == 0) {
+    snprintf(c, tlen, "%s", s);
+    return s_name(insert_symbol(c));
+  }
+  while(*name++) {
+    if(*name == '<')
+      lvl++;
+    else if(*name == '>' && !lvl--)
+      break;
+    if(*name == ',' && !lvl) {
+      ++name;
+      ++n;
+    }
+    if(n == index)
+      c[i++] = *name;
+  }
+  c[i] = '\0';
+  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
+}
