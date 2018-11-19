@@ -129,10 +129,8 @@ static OP_CHECK(at_object) {
     return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ae_flag_ref);
-  if(l != t_null && isa(l, r) < 0) {
-    if(err_msg(bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name))
-    return t_null;
-  }
+  if(l != t_null && isa(l, r) < 0)
+    ERR_N(bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name)
   bin->rhs->emit_var = 1;
   return r;
 }

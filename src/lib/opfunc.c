@@ -24,25 +24,21 @@ OP_EMIT(opem_basic_cast) {
 
 OP_CHECK(opck_const_lhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->lhs->meta != ae_meta_var) {
-     err_msg(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+  if(bin->lhs->meta != ae_meta_var)
+     ERR_N(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
      "\t...\t(reason: --- left-side operand is %s.)",
         op2str(bin->op), bin->lhs->type->name, bin->lhs->type->name,
-     access(bin->rhs->meta));
-   return t_null;
-  }
+     access(bin->rhs->meta))
   return bin->lhs->type;
 }
 
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->meta != ae_meta_var) {
-    err_msg(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+  if(bin->rhs->meta != ae_meta_var)
+    ERR_N(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
          "\t...\t(reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
-         access(bin->rhs->meta));
-    return t_null;
-  }
+         access(bin->rhs->meta))
   return bin->rhs->type;
 }
 
@@ -85,12 +81,10 @@ OP_CHECK(opck_unary_meta) {
 
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->exp->meta != ae_meta_var) {
-    err_msg(unary->exp->pos,
+  if(unary->exp->meta != ae_meta_var)
+    ERR_N(unary->exp->pos,
           "unary operator '%s' cannot be used on %s data-types.",
-          op2str(unary->op), access(unary->exp->meta));
-      return t_null;
-  }
+          op2str(unary->op), access(unary->exp->meta))
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
 #ifdef OPTIMIZE
@@ -113,12 +107,9 @@ if(unary->exp->exp_type == ae_exp_primary &&
 
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
-  if(post->exp->meta != ae_meta_var) {
-    err_msg(post->exp->pos,
-          "post operator '%s' cannot be used on %s data-type.",
-          op2str(post->op), access(post->exp->meta));
-        return t_null;
-  }
+  if(post->exp->meta != ae_meta_var)
+    ERR_N(post->exp->pos, "post operator '%s' cannot be used on %s data-type.",
+          op2str(post->op), access(post->exp->meta))
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
 #ifdef OPTIMIZE

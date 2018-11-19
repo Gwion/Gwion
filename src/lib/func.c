@@ -28,6 +28,25 @@ static OP_CHECK(opck_func_call) {
   return check_exp_call1(env, bin->rhs, bin->lhs, bin->self);
 }
 
+ANN static Type fptr_type(Exp_Binary* bin) {
+  const Func l_func = bin->lhs->type->d.func;
+  const Func r_func = bin->rhs->type->d.func;
+  const Nspc nspc = l_func->value_ref->owner;
+  const m_str c = s_name(l_func->def->name);
+  const Value v = l_func->value_ref;
+  for(m_uint i = 0; i <= v->offset; ++i) {
+    char name[strlen(c) + strlen(nspc->name) + num_digit(v->offset) + 3];
+    sprintf(name, "%s@%" INT_F "@%s", c, i, nspc->name);
+    const Func f = nspc_lookup_func1(nspc, insert_symbol(name));
+    CHECK_OO(f)
+    if(compat_func(r_func->def, f->def) > 0) {
+      bin->func = f;
+      return r_func->value_ref->type->d.base_type;
+    }
+  }
+  return NULL;
+}
+
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
   const Func l_func = bin->lhs->type->d.func;
@@ -37,63 +56,28 @@ static OP_CHECK(opck_fptr_at) {
   const Func_Def r_fdef = r_func->def;
   const Type r_type = r_func->value_ref->owner_class;
   bin->rhs->emit_var = 1;
-  if(!r_type && l_type) {
-    err_msg(bin->self->pos,
-          "can't assign member function to non member function pointer");
-    return t_null;
-  }
+  if(!r_type && l_type)
+    ERR_N(bin->self->pos, "can't assign member function to non member function pointer")
   else if(r_type && !l_type) {
-    if(!GET_FLAG(r_func, ae_flag_global)) {
-      err_msg(bin->self->pos,
-          "can't assign non member function to member function pointer");
-      return t_null;
-    }
-  }
-  else if(r_type && isa(r_type, l_type) < 0) {
-      err_msg(bin->self->pos,
-            "can't assign member function to member function pointer"
-            " of an other class");
-    return t_null;
-  }
-
+    if(!GET_FLAG(r_func, ae_flag_global))
+      ERR_N(bin->self->pos, "can't assign non member function to member function pointer")
+  } else if(r_type && isa(r_type, l_type) < 0)
+      ERR_N(bin->self->pos, "can't assign member function to member function pointer"
+            " of an other class")
   if(GET_FLAG(r_func, ae_flag_member)) {
-      if(!GET_FLAG(l_func, ae_flag_member)) {
-      err_msg(bin->self->pos,
-          "can't assign static function to member function pointer");
-      return t_null;
-    }
-  } else if(GET_FLAG(l_func, ae_flag_member)) {
-      err_msg(bin->self->pos,
-          "can't assign member function to static function pointer");
-      return t_null;
-  }
-  if(isa(r_fdef->ret_type, l_fdef->ret_type) < 0) {
-    err_msg(bin->self->pos,
-          "return type '%s' does not match '%s'\n\t... in pointer assignement",
-         r_fdef->ret_type->name, l_fdef->ret_type->name);
-  }
-  if(GET_FLAG(l_fdef, ae_flag_variadic) != GET_FLAG(r_fdef, ae_flag_variadic)) {
-    err_msg(bin->self->pos,
-          "function must be of same argument kind.",
-         r_fdef->ret_type->name, l_fdef->ret_type->name);
-    return t_null;
-  }
-  const Nspc nspc = l_func->value_ref->owner;
-  const m_str c = s_name(l_fdef->name);
-  const Value v = l_func->value_ref;
+    if(!GET_FLAG(l_func, ae_flag_member))
+      ERR_N(bin->self->pos, "can't assign static function to member function pointer")
+  } else if(GET_FLAG(l_func, ae_flag_member))
+      ERR_N(bin->self->pos, "can't assign member function to static function pointer")
+  if(isa(r_fdef->ret_type, l_fdef->ret_type) < 0)
+    ERR_N(bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+         r_fdef->ret_type->name, l_fdef->ret_type->name)
+  if(GET_FLAG(l_fdef, ae_flag_variadic) != GET_FLAG(r_fdef, ae_flag_variadic))
+    ERR_N(bin->self->pos, "function must be of same argument kind.",
+         r_fdef->ret_type->name, l_fdef->ret_type->name)
   if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
     return bin->rhs->type;
-  for(m_uint i = 0; i <= v->offset; ++i) {
-    char name[strlen(c) + strlen(nspc->name) + num_digit(v->offset) + 3];
-    sprintf(name, "%s@%" INT_F "@%s", c, i, nspc->name);
-    const Func f = nspc_lookup_func1(nspc, insert_symbol(name));
-    CHECK_OO(f)
-    if(compat_func(r_fdef, f->def) > 0) {
-      bin->func = f;
-      return r_func->value_ref->type->d.base_type;
-    }
-  }
-  return NULL;
+  return fptr_type(bin);
 }
 
 static OP_CHECK(opck_fptr_cast) {
