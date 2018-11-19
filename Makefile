@@ -122,9 +122,9 @@ LDCFG="${LDFLAGS}"
 # hide this from gwion -v
 CFLAGS += -DGWION_BUILTIN
 
-LDFLAGS += util/libgwion_ast.a
+LDFLAGS += ast/libgwion_ast.a util/libgwion_util.a
 
-all: options util/libgwion_ast.a ${GW_OBJ} ${jit_obj}
+all: options util/libgwion_util.a ast/libgwion_ast.a ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
 	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
 
@@ -132,8 +132,12 @@ config.mk:
 	$(info generating config.mk)
 	@cp config.mk.orig config.mk
 
-util/libgwion_ast.a:
+util/libgwion_util.a:
 	@make -C util
+
+ast/libgwion_ast.a:
+	@make -C ast
+
 options:
 	$(info CC      : ${CC})
 	$(info CFLAGS  : ${CFLAGS})

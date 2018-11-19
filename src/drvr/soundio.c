@@ -4,6 +4,7 @@
 #include <string.h>
 #include <soundio/soundio.h>
 #include "gwion_util.h"
+#include "gwion_ast.h"
 #include "oo.h"
 #include "vm.h"
 #include "driver.h"

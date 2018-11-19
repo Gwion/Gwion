@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <string.h>
 #include "gwion_util.h"
+#include "gwion_ast.h"
 #include "map_private.h"
 #include "arg.h"
 #include "oo.h"
