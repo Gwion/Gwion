@@ -761,7 +761,7 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   *(VM_Code*)push_code->ptr = code;
   const Instr spork = emitter_add_instr(emit, f ? SporkExp : SporkFunc);
   spork->m_val = f ? emit_code_offset(emit) : arg_size;
-  spork->m_val2 = f;
+  spork->m_val2 = f ? (m_uint)f : (m_uint)code;
   *(m_uint*)spork->ptr = 0;
   return 1;
 }
