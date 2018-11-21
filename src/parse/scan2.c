@@ -411,30 +411,6 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
   return ret;
 }
 
-ANN2(1,2) static m_bool scan2_func_def_add(const Env env,
-    const restrict Value value, const restrict Value overload) { GWDEBUG_EXE
-  const m_str name = s_name(value->d.func_ref->def->name);
-  const Func func = value->d.func_ref;
-
-  if(overload) {
-    if(overload->d.func_ref->def->ret_type)
-      if(!GET_FLAG(func->def, ae_flag_template))
-        if(func->def->ret_type->xid != overload->d.func_ref->def->ret_type->xid) {
-          err_msg(func->def->td->xid->pos,
-              "function signatures differ in return type... '%s' and '%s'",
-                  func->def->ret_type->name,
-                  overload->d.func_ref->def->ret_type->name);
-          if(env->class_def)
-            ERR_B(func->def->td->xid->pos,
-                    "function '%s.%s' matches '%s.%s' but cannot overload...",
-                    env->class_def->name, name,
-                    value->owner_class->name, name)
-        }
-  }
-  SET_FLAG(value, ae_flag_checked);
-  return 1;
-}
-
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, ae_flag_builtin))
     SET_FLAG(f->func->value_ref, ae_flag_builtin);
@@ -555,9 +531,9 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list)
       CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
-    CHECK_BB(scan2_func_def_add(env, value, overload))
-    if(GET_FLAG(f, ae_flag_op))
-      CHECK_BB(scan2_func_def_op(env, f))
+      if(GET_FLAG(f, ae_flag_op))
+        CHECK_BB(scan2_func_def_op(env, f))
+      SET_FLAG(value, ae_flag_checked);
   }
   return 1;
 }

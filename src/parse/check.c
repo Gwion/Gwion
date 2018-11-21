@@ -1062,13 +1062,7 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name)
   }
-  if(isa(f->ret_type, parent->def->ret_type) <  0) {
-    ERR_B(f->td->xid->pos,
-          "function signatures differ in return type...\n"
-          "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-          c_name, f_name, p_name, f_name)
-  }
-  return 1;
+  return isa(f->ret_type, parent->def->ret_type);
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
