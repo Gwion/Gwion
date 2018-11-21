@@ -250,7 +250,7 @@ static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStat
 static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 static const f_instr allocmember[]  = { PushNull, PushNull2, PushNull3, AllocMember4 };
-static const f_instr allocword[]  = { AllocWord, AllocWord, AllocWord3, AllocWord4 };
+static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
