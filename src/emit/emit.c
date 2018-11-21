@@ -128,24 +128,24 @@ ANN static void emit_pop_scope(const Emitter emit) { GWDEBUG_EXE
   }
 }
 
-ANN static inline void emit_push_code(const Emitter emit, const m_str name) { GWDEBUG_EXE
+ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code(emit, name);
 }
 
-ANN static inline void emit_pop_code(const Emitter emit) { GWDEBUG_EXE
+ANN static inline void emit_pop_code(const Emitter emit)   {
   emit->code = (Code*)vector_pop(&emit->stack);
 }
 
-ANN static inline void emit_push_scope(const Emitter emit) { GWDEBUG_EXE
+ANN static inline void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
 }
 
-ANN static inline m_uint emit_code_size(const Emitter emit) { GWDEBUG_EXE
+ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
 
-ANN static inline m_uint emit_code_offset(const Emitter emit) { GWDEBUG_EXE
+ANN static inline m_uint emit_code_offset(const Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
