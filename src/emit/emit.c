@@ -559,8 +559,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
     emit_push(emit, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ae_flag_ref) + ref;
-    if(!GET_FLAG(list->self->value, ae_flag_used))
-      continue;
+//    if(!GET_FLAG(list->self->value, ae_flag_used))
+//      continue;
     if(GET_FLAG(decl->td, ae_flag_static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r))
     else
@@ -761,9 +761,8 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   *(VM_Code*)push_code->ptr = code;
   const Instr spork = emitter_add_instr(emit, f ? SporkExp : SporkFunc);
   spork->m_val = f ? emit_code_offset(emit) : arg_size;
-//  spork->m_val2 = f ? (m_uint)f : (m_uint)code;
   spork->m_val2 = (m_uint)code;
-  *(m_uint*)spork->ptr = depth;
+//  *(m_uint*)spork->ptr = depth;
   return 1;
 }
 
@@ -812,25 +811,17 @@ ANN static Func make_spork_func(const Stmt stmt) {
 ANN static m_bool spork_func(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   if(emit->env->class_def)
     push_this(emit);
-//  const Func f = make_spork_func(stmt);
-//  const Instr push = 
-emitter_add_instr(emit, RegPushImm);
-//  *(Func*)push->ptr = f;
-//  emit_push_code(emit, f->name);
+    emitter_add_instr(emit, RegPushImm);
   emit_push_code(emit, "sporked");
   if(emit->env->class_def) { // check we're not in static func ?
-//    SET_FLAG(f, ae_flag_member);
     SET_FLAG(emit->code, ae_flag_member);
     emit_alloc_local(emit, SZ_INT, 0);
   }
   const Instr op = emitter_add_instr(emit, MemPushImm);
   op->m_val = emit->code->stack_depth;
   CHECK_BB(scoped_stmt(emit, stmt, 0))
-//  f->code = finalyze(emit);
   VM_Code code = finalyze(emit);
   emit_pop_code(emit);
-//  return emit_exp_spork_finish(emit, f->code, f, 0, emit->env->func ?
-//      emit->env->func->def->stack_depth : 0);
   return emit_exp_spork_finish(emit, code, (Func)code, 0, emit->env->func ?
       emit->env->func->def->stack_depth : 0);
 }
