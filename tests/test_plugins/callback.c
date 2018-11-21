@@ -33,7 +33,7 @@ static INSTR(my_ret) { GWDEBUG_EXE
 
 static SFUN(cb_func) {
   m_uint i;
-  Func f = *(Func*)(shred->mem + SZ_INT);
+  Func f = *(Func*)MEM(0);
   if(!f){
     Except(shred, "NullCallbackException");
   }
