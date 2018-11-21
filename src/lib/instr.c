@@ -106,13 +106,6 @@ INSTR(RegPushPtr) { GWDEBUG_EXE
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
 }
 
-INSTR(RegPushPtr2) { GWDEBUG_EXE
-  const VM_Code code = ((Func)instr->m_val)->code;
-  instr->m_val = (m_uint)code;
-  instr->execute = RegPushPtr;
-  *(VM_Code*)REG(-SZ_INT) = code;
-}
-
 INSTR(RegPushCode) { GWDEBUG_EXE
   const Func f = *(Func*)REG(-SZ_INT);
   if(!f)
@@ -253,7 +246,7 @@ INSTR(SporkFunc) { GWDEBUG_EXE
     PUSH_REG(sh, SZ_INT);
   }
   push_me(shred, sh);
-  *(Func*)sh->reg = func; // ???
+  *(Func*)sh->reg = func;
   PUSH_REG(sh, SZ_INT);
 }
 
@@ -261,10 +254,8 @@ INSTR(SporkExp) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT*2);
   const VM_Code code = *(VM_Code*)REG(SZ_INT);
   const VM_Shred sh = init_spork_shred(shred, code);
-  if(GET_FLAG(code, _NEED_THIS_))
-    POP_REG(shred, SZ_INT);
-  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
-    *(m_uint*)(sh->reg + i + SZ_INT) = *(m_uint*)MEM(i);
+  for(m_uint i = 0; i < *(m_uint*)instr->ptr; i+= SZ_INT)
+    *(m_uint*)(sh->mem + i) = *(m_uint*)MEM(i);
   push_me(shred, sh);
 }
 

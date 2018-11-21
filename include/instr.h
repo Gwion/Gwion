@@ -49,7 +49,6 @@ INSTR(RegPushMem2);
 INSTR(RegPushMem3);
 INSTR(RegPushMem4);
 INSTR(RegPushPtr);
-INSTR(RegPushPtr2);
 INSTR(RegPushCode);
 INSTR(RegDup);
 INSTR(RegAddRef);
