@@ -62,12 +62,6 @@ ANN static void check_exp_decl_static(const Env env , const Value v) {
   nspc->class_data_size += v->type->size;
 }
 
-ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol xid) {
-  SET_FLAG(v, ae_flag_checked);
-  if(!env->class_def || env->class_scope)
-    nspc_add_value(env->curr, xid, v);
-}
-
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
   const Func  func = v->type->d.func;
@@ -88,7 +82,7 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
     if(!GET_FLAG(v, ae_flag_member))
       ERR_B(var->pos, "can't use member variables for static function.")
   } else if(GET_FLAG(v, ae_flag_member))
-  ERR_B(var->pos, "can't use member variables for static function.")
+    ERR_B(var->pos, "can't use member variables for static function.")
   ADD_REF(var->value->type)
   return 1;
 }
@@ -104,9 +98,9 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   do {
     if(!env->class_def && !GET_FLAG(list->self->value, ae_flag_builtin) &&
         !GET_FLAG(list->self->value, ae_flag_used)) {
-      err_msg(list->self->pos, "unused variable '%s'", 
+      err_msg(list->self->pos, "unused variable '%s'",
           list->self->value->name);
-      continue;
+//      continue;
     }
     SET_FLAG(list->self->value, ae_flag_used);
     const Var_Decl var = list->self;
@@ -121,7 +115,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       check_exp_decl_member(env->curr, value);
     else if(GET_FLAG(decl->td, ae_flag_static))
       check_exp_decl_static(env, value);
-    check_exp_decl_valid(env, value, var->xid);
+    SET_FLAG(value, ae_flag_checked);
   } while((list = list->next));
   if(global)
     env_pop(env, class_scope);
@@ -462,7 +456,6 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
       def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
-      UNSET_FLAG(base, ae_flag_template);
       SET_FLAG(def, ae_flag_template);
     }
     if(traverse_func_template(env, def, types) > 0) {
@@ -531,21 +524,6 @@ ANN2(1) static void* function_alternative(const Type f, Exp args){
   return NULL;
 }
 
-ANN static Value get_template_value(const Env env, const Exp exp_call) {
-  Value v = NULL;
-  if(exp_call->exp_type == ae_exp_primary)
-    v = nspc_lookup_value1(env->curr, exp_call->d.exp_primary.d.var);
-  else if(exp_call->exp_type == ae_exp_dot)
-    v = find_value(exp_call->d.exp_dot.t_base, exp_call->d.exp_dot.xid);
-  if(v)
-    UNSET_FLAG(v->d.func_ref->def, ae_flag_template);
-  else
-    ERR_O(exp_call->pos,
-      "unhandled expression type '%" UINT_F "\' in template call.",
-      exp_call->exp_type)
-  return v;
-}
-
 ANN static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
   do ++type_number;
@@ -574,7 +552,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_ca
     const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
   ID_List list;
-  const Value value = get_template_value(env, exp_call);
+  const Value value = nspc_lookup_value1(exp_call->type->owner, insert_symbol(exp_call->type->name));
   CHECK_OO(value)
   const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
 
@@ -795,15 +773,10 @@ static const _type_func exp_func[] = {
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
-  do {CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-  if(env->func) {
-// check fptr ?
-    if(isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, ae_flag_pure))
+  do {
+    CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
+    if(env->func && isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, ae_flag_pure))
       UNSET_FLAG(env->func, ae_flag_pure);
-//    else 
-//    if(!v->owner_class && isa(v->type, t_object) > 0)
-//      UNSET_FLAG(env->func, ae_flag_pure);
-    }
   } while((curr = curr->next));
   return exp->type;
 }
@@ -920,9 +893,9 @@ stmt_func_xxx(if, Stmt_If, !(!check_exp(env, stmt->cond) ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For, !(
   for_empty(stmt) < 0 ||
+  check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
   check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
-  check_stmt(env, stmt->c1) < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop, !(!check_exp(env, stmt->cond) ||
