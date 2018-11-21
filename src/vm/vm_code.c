@@ -41,7 +41,7 @@ ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
     if(instr->execute == SporkExp)
-      REM_REF((Func)instr->m_val2)
+      REM_REF((VM_Code)instr->m_val2)
     else if(instr->execute == SporkFunc)
       REM_REF((VM_Code)instr->m_val2)
     else if(instr->execute == ArrayAlloc)
