@@ -347,6 +347,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_BB(scan1_func_def_args(env, f->arg_list))
   if(!GET_FLAG(f, ae_flag_builtin))
     CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
+  if(GET_FLAG(f, ae_flag_op) && env->class_def)
+    SET_FLAG(f, ae_flag_static);
   env->func = former;
   --env->class_scope;
   return 1;
