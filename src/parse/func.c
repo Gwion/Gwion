@@ -27,7 +27,6 @@ ANN void free_func(Func a) {
     REM_REF(a->code);
   mp_free(Func, a);
 }
-void free_func_simple(Func a) { mp_free(Func, a); }
 
 #include <string.h>
 #include "env.h"
@@ -41,10 +40,9 @@ ANN Func get_func(const Env env, const Func_Def def) {
     const size_t len = strlen(f->name) - strlen(end);
     const size_t elen = strlen(env->class_def->name);
     char c[len + elen + 1];
-    memset(c, 0, len + elen + 1);
-    strncpy(c, f->name, len);
-    memcpy(c + len, env->class_def->name, elen);
-    f = nspc_lookup_func1(env->class_def->nspc, insert_symbol(c));
+    memcpy(c, f->name, len);
+    strcpy(c + len, env->class_def->name);
+    return nspc_lookup_func1(env->class_def->nspc, insert_symbol(c));
   }
   return f;
 }

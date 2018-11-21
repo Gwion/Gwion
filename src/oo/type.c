@@ -62,7 +62,6 @@ ANN Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth + 1;
   size_t len = strlen(base->name);
   char name[len + 2* depth + 1];
-
   strcpy(name, base->name);
   while(--i) {
     strcpy(name+len, "[]");
@@ -88,8 +87,7 @@ ANN Type array_type(const Type base, const m_uint depth) {
 __attribute__((returns_nonnull))
 ANN Type template_parent(const Type type) {
   const m_str name = get_type_name(type->name, 0);
-  const Type t = nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
-  return t;
+  return nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
 }
 
 ANN m_bool type_ref(Type t) {
