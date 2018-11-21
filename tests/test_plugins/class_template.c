@@ -1,10 +1,11 @@
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
+#include "gwion_ast.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "object.h"
+#include "instr.h"
 #include "import.h"
 
 static m_int o_map_key;
@@ -12,7 +13,6 @@ static m_int o_map_value;
 #define MAP_KEY(a) *((M_Object*)(a->data + o_map_key))
 #define MAP_VAL(a) *((M_Object*)(a->data + o_map_value))
 static CTOR(class_template_ctor) {
-//exit(2);
   /*char* name = strdup(o->type_ref->name);*/
   /*char* tmp = strsep(&name, "@");*/
   /*char* name1 = strsep(&name, "@");*/

@@ -1,10 +1,12 @@
-#include "defs.h"
-#include "map.h"
+#include "gwion_util.h"
+#include "gwion_ast.h"
 #include "absyn.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "object.h"
+#include "instr.h"
 #include "import.h"
 
 static struct Type_ t_invalid_var_type = { 0, SZ_INT, ".invalid_var_type" };

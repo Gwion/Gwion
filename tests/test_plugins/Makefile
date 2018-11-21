@@ -1,4 +1,4 @@
-INC      = -I../../include -I../../util/include
+INC      = -I../../include -I../../util/include -I../../ast/include
 CC       ?= gcc
 
 SRC = ${NAME}.c
