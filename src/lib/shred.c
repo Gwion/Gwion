@@ -42,7 +42,7 @@ static MFUN(shred_yield) {
 }
 #include "shreduler_private.h"
 static SFUN(vm_shred_from_id) {
-  const m_int index =  *(m_int*)MEM(SZ_INT);
+  const m_int index =  *(m_int*)MEM(0);
   const VM_Shred s = (VM_Shred)vector_at(&shred->vm->shreduler->shreds, (vtype)index);
   if(s) {
     *(M_Object*)RETURN = s->me;

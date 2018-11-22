@@ -40,9 +40,9 @@ ANN static ID_List get_total_type_list(const Type t) {
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
   }
   const ID_List types = id_list_copy(base);
-  ID_List tmp = types;
-  while(vector_size(v))
-    tmp = (tmp->next = id_list_copy((ID_List)vector_pop(v)));
+  ID_List list, tmp = types;
+  while((list = (ID_List)vector_pop(v)))
+    tmp = (tmp->next = id_list_copy(list));
   tmp->next = t->def->tmpl->list.list;
   free_vector(v);
   return types;

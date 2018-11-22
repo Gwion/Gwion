@@ -997,7 +997,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
-  do if(GET_FLAG( a->self->value, ae_flag_used))
+  do //if(GET_FLAG( a->self->value, ae_flag_used))
     size += a->self->value->type->size;
   while((a = a->next));
   return size;
@@ -1267,8 +1267,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
   if(stmt->xid) {
     const Instr instr = emitter_add_instr(emit, RegPop);
     instr->m_val = SZ_INT;
-    emit_pop(emit, class_scope);
-  } else if(stmt->type_xid)
+  }
+  if(stmt->xid || stmt->type_xid || global)
     emit_pop(emit, class_scope);
   return 1;
 }

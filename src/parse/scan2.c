@@ -38,47 +38,48 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(global)
    env_push(env, NULL, env->global_nspc, &class_scope);
   do {
-    const Array_Sub array = list->self->array;
+    const Var_Decl var = list->self;
+    nspc_add_value(env->curr, var->xid, var->value); // ???
+    const Array_Sub array = var->array;
     if(array && array->exp)
-        CHECK_BB(scan2_exp(env, array->exp))
+      CHECK_BB(scan2_exp(env, array->exp))
   } while((list = list->next));
   if(global)
     env_pop(env, class_scope);
   return 1;
 }
 
-ANN static m_bool scan2_arg_def_check(Arg_List list) { GWDEBUG_EXE
-  if(list->var_decl->value) {
-    if(list->var_decl->value->type->array_depth)
-      REM_REF(array_base(list->var_decl->value->type))
-      list->var_decl->value->type = list->type;
+ANN static m_bool scan2_arg_def_check(const Var_Decl var, const Type t) { GWDEBUG_EXE
+  if(var->value) {
+    if(var->value->type->array_depth)
+      REM_REF(array_base(var->value->type))
+    var->value->type = t;
   }
-  if(!list->type->size)
-    ERR_B(list->var_decl->pos, "cannot declare variables of size '0' (i.e. 'void')...")
-  if(isres(list->var_decl->xid) > 0)
+  if(!t->size)
+    ERR_B(var->pos, "cannot declare variables of size '0' (i.e. 'void')...")
+  if(isres(var->xid) > 0)
     return -1;
   return 1;
 }
 
 ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
-  Arg_List list = f->arg_list;
   nspc_push_value(env->curr);
+  Arg_List list = f->arg_list;
   do {
-    if(scan2_arg_def_check(list) < 0 ||
-        (list->var_decl->array && !(list->type = array_type(list->type, list->var_decl->array->depth)))) {
+    const Var_Decl var = list->var_decl;
+    if(scan2_arg_def_check(var, list->type) < 0 ||
+        (var->array && !(list->type = array_type(list->type, var->array->depth)))) {
       nspc_pop_value(env->curr);
       return -1;
     }
-    const Value v = list->var_decl->value ? list->var_decl->value : new_value(list->type, s_name(list->var_decl->xid));
-    SET_FLAG(v, ae_flag_arg);
-    if(GET_FLAG(list->td, ae_flag_const))
-      SET_FLAG(v, ae_flag_const);
+    const Value v = var->value ? var->value : new_value(list->type, s_name(var->xid));
+    v->flag = list->td->flag | ae_flag_arg;
     if(f) {
       v->offset = f->stack_depth;
       f->stack_depth += list->type->size;
     }
-    nspc_add_value(env->curr, list->var_decl->xid, v);
-    list->var_decl->value = v;
+    nspc_add_value(env->curr, var->xid, v);
+    var->value = v;
   } while((list = list->next));
   nspc_pop_value(env->curr);
   return 1;
@@ -352,23 +353,15 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   type->name = func_name;
   type->owner = env->curr;
   const Value value = new_value(type, func_name);
-  SET_FLAG(value, ae_flag_func);
   CHECK_OB(scan2_func_assign(env, f, func, value))
-  SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template);
-  if(overload)
-    ++overload->offset;
-  else {
+  SET_FLAG(value, ae_flag_const | ae_flag_checked | ae_flag_template | ae_flag_func);
+  if(!overload) {
     ADD_REF(type);
     ADD_REF(value);
     nspc_add_value(env->curr, f->name, value);
   }
-  const m_uint len = strlen(func_name) +
-    num_digit(overload ? overload->offset + 1 : 0) +
-    strlen(env->curr->name) + 13;
-  char name[len];
-  snprintf(name, len, "%s<template>@%" INT_F "@%s", func_name,
-           overload ? overload->offset : 0, env->curr->name);
-  nspc_add_value(env->curr, insert_symbol(name), value);
+  const Symbol sym = func_symbol(env, func_name, "template", overload ? ++overload->offset : 0);
+  nspc_add_value(env->curr, sym, value);
   return 1;
 }
 
@@ -425,7 +418,7 @@ ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
   SET_FLAG(f->func->value_ref, ae_flag_const);
 }
 
-ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
+ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str func_name = s_name(f->name);
   struct Vector_ v;
   ID_List id = f->tmpl->list;
@@ -435,29 +428,20 @@ ANN m_str func_tmpl_name(const Env env, const Func_Def f, const m_uint len) {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
-    if(id->next)
-      ++tlen;
-  } while((id = id->next));
-  char name[len + tlen + 3];
+  } while((id = id->next) && ++tlen);
   char tmpl_name[tlen + 1];
-  memset(name, 0, len + tlen + 3);
-  memset(tmpl_name, 0, tlen + 1);
-  tmpl_name[0] = '\0';
   m_str str = tmpl_name;
   for(m_uint i = 0; i < vector_size(&v); ++i) {
     const m_str s = ((Type)vector_at(&v, i))->name;
     strcpy(str, s);
     str += strlen(s);
-    if(i + 1 < vector_size(&v)) {
-      strcpy(str, ",");
-      ++str;
-    }
+    if(i + 1 < vector_size(&v))
+      *str++ = ',';
   }
-  tmpl_name[len+1] = '\0';
+  tmpl_name[tlen+1] = '\0';
   vector_release(&v);
-  snprintf(name, len + tlen + 3, "%s<%s>@%" INT_F "@%s",
-  func_name, tmpl_name, f->tmpl->base, env->curr->name);
-  return s_name(insert_symbol(name));
+  const Symbol sym = func_symbol(env, func_name, tmpl_name, (m_uint)f->tmpl->base);
+  return s_name(sym);
 }
 
 ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
@@ -489,27 +473,18 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
-
   f->stack_depth = 0;
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
-  const m_uint len = strlen(func_name) +
-    num_digit(overload ? overload->offset + 1 : 0) +
-    strlen(env->curr->name) + 3;
-
   if(overload)
     CHECK_BB(scan2_func_def_overload(f, overload))
-
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
-
   if(!f->tmpl) {
-    char name[len];
-    snprintf(name, len, "%s@%" INT_F "@%s", func_name,
-           overload ? ++overload->offset : 0, env->curr->name);
-    func_name = s_name(insert_symbol(name));
+    const Symbol sym  = func_symbol(env, func_name, NULL, overload ? ++overload->offset : 0);
+    func_name = s_name(sym);
   } else {
-    func_name = func_tmpl_name(env, f, len);
+    func_name = func_tmpl_name(env, f);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);
@@ -531,9 +506,9 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!GET_FLAG(f, ae_flag_builtin) && f->d.code->d.stmt_code.stmt_list)
       CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
-      if(GET_FLAG(f, ae_flag_op))
-        CHECK_BB(scan2_func_def_op(env, f))
-      SET_FLAG(value, ae_flag_checked);
+    if(GET_FLAG(f, ae_flag_op))
+      CHECK_BB(scan2_func_def_op(env, f))
+    SET_FLAG(value, ae_flag_checked);
   }
   return 1;
 }

@@ -28,16 +28,15 @@ static OP_CHECK(opck_func_call) {
   return check_exp_call1(env, bin->rhs, bin->lhs, bin->self);
 }
 
-ANN static Type fptr_type(Exp_Binary* bin) {
+ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
   const Func l_func = bin->lhs->type->d.func;
   const Func r_func = bin->rhs->type->d.func;
   const Nspc nspc = l_func->value_ref->owner;
   const m_str c = s_name(l_func->def->name);
   const Value v = l_func->value_ref;
   for(m_uint i = 0; i <= v->offset; ++i) {
-    char name[strlen(c) + strlen(nspc->name) + num_digit(v->offset) + 3];
-    sprintf(name, "%s@%" INT_F "@%s", c, i, nspc->name);
-    const Func f = nspc_lookup_func1(nspc, insert_symbol(name));
+    const Symbol sym = func_symbol(env, c, NULL, i);
+    const Func f = nspc_lookup_func2(nspc, sym);
     CHECK_OO(f)
     if(compat_func(r_func->def, f->def) > 0) {
       bin->func = f;
@@ -77,7 +76,7 @@ static OP_CHECK(opck_fptr_at) {
          r_fdef->ret_type->name, l_fdef->ret_type->name)
   if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
     return bin->rhs->type;
-  return fptr_type(bin);
+  return fptr_type(env, bin);
 }
 
 static OP_CHECK(opck_fptr_cast) {

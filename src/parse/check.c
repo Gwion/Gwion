@@ -66,7 +66,6 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
   const Func  func = v->type->d.func;
   const Type type = func->value_ref->owner_class;
-
   if(!env->class_def) {
     if(!type || GET_FLAG(func, ae_flag_global)) {
       ADD_REF(var->value->type)
@@ -102,20 +101,21 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
           list->self->value->name);
 //      continue;
     }
-    SET_FLAG(list->self->value, ae_flag_used);
     const Var_Decl var = list->self;
-    const Value value = var->value;
+    const Value v = var->value;
     if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(GET_FLAG(value, ae_flag_member))
-      check_exp_decl_member(env->curr, value);
+    if(GET_FLAG(v, ae_flag_member))
+      check_exp_decl_member(env->curr, v);
     else if(GET_FLAG(decl->td, ae_flag_static))
-      check_exp_decl_static(env, value);
-    SET_FLAG(value, ae_flag_checked);
+      check_exp_decl_static(env, v);
+SET_FLAG(v, ae_flag_used);
+  SET_FLAG(v, ae_flag_checked);
+  nspc_add_value(env->curr, var->xid, v);
   } while((list = list->next));
   if(global)
     env_pop(env, class_scope);
@@ -417,41 +417,34 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   return 1;
 }
 
-ANN static Value template_get_ready(const Env env, const Value v, const m_str tmpl,
-    const m_uint len, const m_uint i) {
-  char c[len + 2];
-  snprintf(c, len + 2, "%s<%s>@%" INT_F "@%s", v->name, tmpl, i, env->curr->name);
-  return v->owner_class ? find_value(v->owner_class, insert_symbol(c)) :
-      nspc_lookup_value1(env->curr, insert_symbol(c));
+ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl,
+    const m_uint i) {
+  const Symbol sym = func_symbol(env, v->name, tmpl, i);
+  return v->owner_class ? find_value(v->owner_class, sym) :
+      nspc_lookup_value1(env->curr, sym);
 }
 
-ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_call) {
-  const Exp args = exp_call->args;
-  const Type_List types = exp_call->tmpl->types;
-  Func m_func = exp_call->m_func;
-  const m_uint digit = num_digit(v->offset + 1);
-  const m_uint len = strlen(v->name) + strlen(env->curr->name);
+ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+  const Exp args = exp->args;
+  const Type_List types = exp->tmpl->types;
+  Func m_func = exp->m_func;
   const m_str tmpl_name = tl2str(env, types);
-  const m_uint tlen = strlen(tmpl_name);
   m_uint class_scope;
   env_push(env, v->owner_class, v->owner, &class_scope);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
-    Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
+    Value value = template_get_ready(env, v, tmpl_name, i);
     if(value) {
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
-        CHECK_BO(check_call(env, exp_call))
+        CHECK_BO(check_call(env, exp))
         return env->func;
       }
       base = def = value->d.func_ref->def;
     } else {
-      char name[len + digit + 13];
-      snprintf(name, len + digit + 13, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
-      if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
-            nspc_lookup_value1(env->curr, insert_symbol(name))))
-      continue;
+      if(!(value = template_get_ready(env, v, "template", i)))
+        continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
@@ -460,7 +453,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
     }
     if(traverse_func_template(env, def, types) > 0) {
       nspc_pop_type(env->curr);
-      if(check_call(env, exp_call) > 0) {
+      if(check_call(env, exp) > 0) {
         const Func next = def->func->next;
         def->func->next = NULL;
         m_func = find_func_match(env, def->func, args);
@@ -468,20 +461,17 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_c
         if(m_func) {
           free(tmpl_name);
           env_pop(env, class_scope);
-          SET_FLAG(base, ae_flag_template);
           SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
           return m_func;
         }
       }
     }
     SET_FLAG(base, ae_flag_template);
-    if(def->func) // still leaks
-      def->func->def = NULL;
     free_func_def(def);
   }
   free(tmpl_name);
   env_pop(env, class_scope);
-  ERR_O(exp_call->self->pos, "arguments do not match for template call")
+  ERR_O(exp->self->pos, "arguments do not match for template call")
 }
 
 ANN static void print_current_args(Exp e) {
@@ -548,11 +538,11 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
   return NULL;
 }
 
-ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_call,
+ANN static Type check_exp_call_template(const Env env, const Exp restrict call,
     const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
   ID_List list;
-  const Value value = nspc_lookup_value1(exp_call->type->owner, insert_symbol(exp_call->type->name));
+  const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
   const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
 
@@ -577,9 +567,9 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_ca
     list = list->next;
   }
   if(args_number < type_number)
-    ERR_O(exp_call->pos, "not able to guess types for template call.")
+    ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { tl[0], NULL };
-  const Exp_Call tmp_func = { exp_call, args, NULL, &tmpl, NULL };
+  const Exp_Call tmp_func = { call, args, NULL, &tmpl, NULL };
   Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
@@ -588,40 +578,39 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_ca
   return func ? func->def->ret_type : NULL;
 }
 
-ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_call, Value* ptr) { GWDEBUG_EXE
-  if(!(exp_call->type = check_exp(env, exp_call)))
-    ERR_B(exp_call->pos, "function call using a non-existing function")
-  if(isa(exp_call->type, t_function) < 0)
-    ERR_B(exp_call->pos, "function call using a non-function value")
-  if(exp_call->exp_type == ae_exp_primary && exp_call->d.exp_primary.value &&
-    !GET_FLAG(exp_call->d.exp_primary.value, ae_flag_const))
-      *ptr = exp_call->d.exp_primary.value;
+ANN static m_bool check_exp_call1_check(const Env env, const Exp exp, Value* ptr) {
+  if(!check_exp(env, exp))
+    ERR_B(exp->pos, "function call using a non-existing function")
+  if(isa(exp->type, t_function) < 0)
+    ERR_B(exp->pos, "function call using a non-function value")
+  if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.value &&
+    !GET_FLAG(exp->d.exp_primary.value, ae_flag_const))
+      *ptr = exp->d.exp_primary.value;
   return 1;
 }
 
-ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_call,
+ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
     const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
   Value ptr = NULL;
-  CHECK_BO(check_exp_call1_check(env, exp_call, &ptr))
-  if(exp_call->type->d.func) {
-    const Value value = exp_call->type->d.func->value_ref;
-    if(GET_FLAG(exp_call->type->d.func, ae_flag_ref))
+  CHECK_BO(check_exp_call1_check(env, call, &ptr))
+  if(call->type->d.func) {
+    const Value value = call->type->d.func->value_ref;
+    if(GET_FLAG(call->type->d.func, ae_flag_ref))
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
     CHECK_OO(check_exp(env, args))
-  if(!exp_call->type->d.func)
-    return check_exp_call_template(env, exp_call, args, base);
-  Func func = find_func_match(env, exp_call->type->d.func, args);
+  if(!call->type->d.func)
+    return check_exp_call_template(env, call, args, base);
+  Func func = find_func_match(env, call->type->d.func, args);
   if(!func)
-    return function_alternative(exp_call->type, args);
+    return function_alternative(call->type, args);
   if(ptr) {
     const Func f = mp_alloc(Func_Def);
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
     SET_FLAG(ptr, ae_flag_func); // there might be a better place
-    if(ptr->d.func_ref)
-      f->next = ptr->d.func_ref;
+    f->next = ptr->d.func_ref;
     func = ptr->d.func_ref = f;
   }
   if(base->exp_type == ae_exp_call)
@@ -674,26 +663,24 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   return unit;
 }
 
-ANN static Type check_exp_call(const Env env, Exp_Call* call) { GWDEBUG_EXE
-  if(call->tmpl) {
-    CHECK_OO(check_exp(env, call->func)) // → puts this up ?
-    const Type t = actual_type(call->func->type);
+ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
+  if(exp->tmpl) {
+    CHECK_OO(check_exp(env, exp->func)) // → puts this up ?
+    const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
-      ERR_O(call->self->pos, " template call of non-existant function.")
+      ERR_O(exp->self->pos, " template call of non-existant function.")
     if(!GET_FLAG(v, ae_flag_func))
-      ERR_O(call->self->pos, "template call of non-function value.")
+      ERR_O(exp->self->pos, "template call of non-function value.")
     if(!v->d.func_ref->def->tmpl)
-      ERR_O(call->self->pos, "template call of non-template function.")
-    const Func ret = find_template_match(env, v, call);
-    CHECK_OO((call->m_func = ret))
+      ERR_O(exp->self->pos, "template call of non-template function.")
+    const Func ret = find_template_match(env, v, exp);
+    CHECK_OO((exp->m_func = ret))
     return ret->def->ret_type;
   }
-  return check_exp_call1(env, call->func, call->args, call->self);
+  return check_exp_call1(env, exp->func, exp->args, exp->self);
 }
 
-//static
-// Move me ?
 ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
   ++env->class_scope;
   nspc_push_value(env->curr);
@@ -988,7 +975,6 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
       }
   } else if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
-
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ae_flag_ref))
@@ -1085,28 +1071,20 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
   return 1;
 }
 
-ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
-  const m_str name, const m_uint j) {
-  sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
-  const Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
-  if(f2 && compat_func(def, f2->def) > 0)
-    ERR_B(f2->def->td->xid->pos,
-        "global function '%s' already defined for those arguments", s_name(def->name))
-  return 1;
+ANN static Func get_overload(const Env env, const Func_Def def, const m_uint i) {
+  const Symbol sym = func_symbol(env, s_name(def->name), NULL, i);
+  return nspc_lookup_func2(env->curr, sym);
 }
 
-ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
   const Value v = f->func->value_ref;
-  if(!f->tmpl || !f->tmpl->base) {
-    char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
-                                      num_digit(v->offset) + 3];
-    for(m_uint i = 0; i <= v->offset; ++i) {
-      sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
-      const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
-      for(m_uint j = 1; j <= v->offset; ++j) {
-        if(i != j && f1)
-          CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
-      }
+  for(m_uint i = 0; i <= v->offset; ++i) {
+    const Func f1 = get_overload(env, f, i);
+    for(m_uint j = i + 1; f1 && j <= v->offset; ++j) {
+      const Func f2 = get_overload(env, f, j);
+      if(f2 && compat_func(f1->def, f2->def) > 0)
+        ERR_B(f2->def->td->xid->pos, "global function '%s' already defined"
+          " for those arguments", s_name(f->name))
     }
   }
   return 1;
@@ -1151,8 +1129,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     ret = check_func_args(env, f->arg_list);
   const Value variadic = GET_FLAG(f, ae_flag_variadic) ? set_variadic(env) : NULL;
   if(!GET_FLAG(f, ae_flag_builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    ret = err_msg(f->td->xid->pos,
-                  "...in function '%s'", s_name(f->name));
+    ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
   if(GET_FLAG(f, ae_flag_builtin)) {
