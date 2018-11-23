@@ -602,10 +602,11 @@ ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   return 1;
 }
 
-ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint addr) {
+ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   const ID_List list = new_id_list(insert_symbol(name), 0);
   DL_Enum* d = &gwi->enum_data;
-  vector_add(&gwi->enum_data.addr, addr);
+  ALLOC_PTR(addr, m_int, i);
+  vector_add(&gwi->enum_data.addr, (vtype)addr);
   if(!d->base)
     d->base = list;
   else

@@ -19,6 +19,7 @@
 #include "parse.h"
 #include "memoize.h"
 #include "operator.h"
+#include "import.h"
 
 typedef struct Local_ {
   m_uint size;
@@ -279,7 +280,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushimm);
-    if(isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
+    if(isa(v->type, t_object) < 0) {
       if(v->d.ptr)
         memcpy(instr->ptr, v->d.ptr, v->type->size);
     } else
@@ -1148,8 +1149,7 @@ ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
   else {
     if(!GET_FLAG(prim->value, ae_flag_const))
       ERR_B(prim->self->pos, "'%s' is not constant.", prim->value->name)
-    *value = GET_FLAG(prim->value, ae_flag_enum) ? (m_int)prim->value->d.ptr :
-      *(m_int*)prim->value->d.ptr;
+    *value = prim->value->owner_class ? prim->value->owner->class_data[prim->value->offset] : *(m_int*)prim->value->d.ptr;
   }
   return 1;
 }
@@ -1160,8 +1160,7 @@ ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
   else {
     const Type t = actual_type(stmt->val->d.exp_dot.t_base);
     const Value v = find_value(t, stmt->val->d.exp_dot.xid);
-    *value = (m_int)(GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
-      (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr);
+    *value = !v->d.ptr ? t->nspc->class_data[v->offset] : (m_int)v->d.ptr;
   }
   return 1;
 }
@@ -1186,8 +1185,9 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
   for(m_uint i = 0; i < vector_size(&stmt->values); ++i) {
     const Value v = (Value)vector_at(&stmt->values, i);
     if(!emit->env->class_def) {
+      ALLOC_PTR(addr, m_uint, i);
       v->offset = emit_alloc_local(emit, SZ_INT, 0);
-      v->d.ptr = (m_uint*)i;
+      v->d.ptr = addr;
     } else
       *(m_uint*)(emit->env->class_def->nspc->class_data + v->offset) = i;
   }
