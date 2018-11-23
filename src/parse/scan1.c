@@ -237,17 +237,11 @@ ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
-  m_uint class_scope;
-  const m_bool global = GET_FLAG(stmt, ae_flag_global);
-
-  if(stmt->xid) {
+  const m_uint scope = union_push(env, stmt);
+  if(stmt->xid)
     UNSET_FLAG(stmt, ae_flag_private);
-    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  } else if(stmt->type_xid) {
+  else if(stmt->type_xid)
     UNSET_FLAG(stmt, ae_flag_private);
-    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
-  } else if(global)
-    env_push(env, NULL, env->global_nspc, &class_scope);
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
     Var_Decl_List list = decl.list;
@@ -261,8 +255,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
-  if(stmt->xid || stmt->type_xid || global)
-    env_pop(env, class_scope);
+  union_pop(env, stmt, scope);
   return 1;
 }
 
