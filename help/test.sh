@@ -5,6 +5,7 @@
 
 : "${ANSI_RED:=\033[31;1m}"
 : "${ANSI_GREEN:=\033[32;1m}"
+: "${ANSI_BLUE:=\033[34;1m}"
 : "${ANSI_RESET:=\033[0m}"
 : "${ANSI_CLEAR:=\033[0K}"
 : "${ANSI_BOLD:=\033[33;1m}"
@@ -418,7 +419,7 @@ consummer() {
       base=$(echo "$line" | cut -d "#" -f 1)
       directive=$(echo "$line" | cut -d "#" -f 2)
       if [ "$directive" != "$base" ]
-      then echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2} ${ANSI_RED}# ${directive:1:4}${ANSI_RESET}${directive:5}"
+      then echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2} ${ANSI_BLUE}# ${directive:1:4}${ANSI_RESET}${directive:5}"
       else echo -e "${ANSI_GREEN}ok   ${ANSI_RESET}${base:2}"
       fi
       [ "${directive:1:4}" = "Todo" ] && todo=$((todo+1))
