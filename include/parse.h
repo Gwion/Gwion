@@ -39,4 +39,7 @@ ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE       
 ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \
   RET_NSPC(exp) \
 }
+
+ANN m_uint union_push(const Env, const Stmt_Union);
+ANN void union_pop(const Env, const Stmt_Union, const m_uint);
 #endif
