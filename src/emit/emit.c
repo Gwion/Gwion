@@ -528,8 +528,7 @@ ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   m_uint scope;
   env_push(emit->env, NULL, decl->list->self->value->type->nspc, &scope);
-  Type t = decl->type;
-  while(GET_FLAG(t, ae_flag_typedef)) t = t->parent;
+  const Type t = typedef_base(decl->type);
   CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
   if(!GET_FLAG(t, ae_flag_emit))
     CHECK_BB(emit_class_def(emit, t->def))
@@ -897,7 +896,6 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
   emit_pop_scope(emit);
   const Instr op2 = emitter_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
-
   if(stmt->else_body) {
     emit_push_scope(emit);
     CHECK_BB(emit_stmt(emit, stmt->else_body, 1))

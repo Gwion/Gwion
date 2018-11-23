@@ -34,6 +34,7 @@ ANN Type array_type(const Type, const m_uint);
 ANN Type find_common_anc(const Type, const Type) __attribute__((pure));
 ANN m_uint id_list_len(ID_List);
 ANN void type_path(const m_str, const ID_List);
+ANN Type typedef_base(Type) __attribute__((pure));
 ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
 __attribute__((returns_nonnull))

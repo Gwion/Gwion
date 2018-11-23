@@ -83,8 +83,7 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   if(GET_FLAG(decl->type , ae_flag_template)) {
-    Type t = decl->type;
-    while(GET_FLAG(t, ae_flag_typedef)) t = t->parent;
+    const Type t = typedef_base(decl->type);
     CHECK_BO(traverse_template(env, t->def))
   }
   m_uint class_scope;

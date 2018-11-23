@@ -54,9 +54,14 @@ ANN t find_##name(const Type type, const Symbol xid) {         \
 describe_find(value, Value)
 describe_find(func,  Func)
 
-ANN Type array_base(Type t) {
+ANN Type typedef_base(Type t) {
   while(GET_FLAG(t, ae_flag_typedef))
     t = t->parent;
+  return t;
+}
+
+ANN Type array_base(Type type) {
+  const Type t = typedef_base(type);
   return t->d.base_type;
 }
 
