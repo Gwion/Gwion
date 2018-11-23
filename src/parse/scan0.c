@@ -70,9 +70,8 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     if(v)
       ERR_B(stmt->self->pos, "'%s' already declared as variable of type '%s'.",
         s_name(stmt->xid),  v->type->name)
-//    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
-
-}
+    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
+  }
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;

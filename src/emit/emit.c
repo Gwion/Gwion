@@ -514,18 +514,11 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   }
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, exec);
   instr->m_val = v->offset;
-  if(is_obj) {
-    if(GET_FLAG(type, ae_flag_typedef | ae_flag_ref)) {
-      if(!(type->def && type->def->ext &&
-          GET_FLAG(type->def->ext, ae_flag_typedef)))
-        return 1;
-    }
-    if(is_array || !is_ref) {
-      const Instr assign = emitter_add_instr(emit, ObjectAssign);
-      assign->m_val = (m_uint)emit_var;
-      if(is_array && !emit->env->class_scope)
-        ADD_REF(type)
-    }
+  if(is_obj && (is_array || !is_ref)) {
+    const Instr assign = emitter_add_instr(emit, ObjectAssign);
+    assign->m_val = (m_uint)emit_var;
+    if(is_array && !emit->env->class_scope)
+      ADD_REF(type)
   }
   return 1;
 }
@@ -533,9 +526,14 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
-  CHECK_BB(template_push_types(emit->env, decl->base->tmpl->list.list, decl->td->types))
-  CHECK_BB(emit_class_def(emit, decl->type->def))
+m_uint scope;
+env_push(emit->env, NULL, decl->list->self->value->type->nspc, &scope);
+  Type t = decl->type;
+  while(GET_FLAG(t, ae_flag_typedef)) t = t->parent;
+  CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
+  CHECK_BB(emit_class_def(emit, t->def))
   emit_pop_type(emit);
+env_pop(emit->env, scope);
   return 1;
 }
 
@@ -609,21 +607,24 @@ ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_c
   return 1;
 }
 
+ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
+    const Type_List types) {
+  const Value v = f->value_ref;
+  m_uint scope;
+  emit_push(emit, v->owner_class, v->owner, &scope);
+  CHECK_BB(traverse_func_template(emit->env, f->def, types))
+  return (m_int)scope;
+}
 
 ANN static m_bool emit_exp_call_template(const Emitter emit,
     const Exp_Call* exp_call, const m_bool spork) { GWDEBUG_EXE
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return emit_exp_call_helper(emit, exp_call, spork);
-  const Env env = emit->env;
-  const Value val = exp_call->m_func->value_ref;
-  const Func_Def def = exp_call->m_func->def;
-  m_uint class_scope;
-  emit_push(emit, val->owner_class, val->owner, &class_scope);
-  SET_FLAG(def, ae_flag_template);
-  CHECK_BB(traverse_func_template(env, def, exp_call->tmpl->types))
+  m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
+  CHECK_BB(scope);
   CHECK_BB(emit_exp_call_helper(emit, exp_call, spork))
   emit_pop_type(emit);
-  emit_pop(emit, class_scope);
+  emit_pop(emit, (m_uint)scope);
   UNSET_FLAG(exp_call->m_func, ae_flag_checked);
   return 1;
 }
@@ -642,9 +643,11 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
   const Exp rhs = bin->rhs;
   const Func f = rhs->type->d.func ? rhs->type->d.func : bin->func;
   if(bin->tmpl) {
-    CHECK_BB(traverse_func_template(emit->env, f->def, bin->tmpl->types))
-    CHECK_BB(emit_func_def(emit, f->def))
-    emit_pop_type(emit);
+  m_int scope = push_tmpl_func(emit, bin->func, bin->tmpl->types);
+  CHECK_BB(scope);
+  CHECK_BB(emit_func_def(emit, f->def))
+  emit_pop_type(emit);
+  emit_pop(emit, (m_uint)scope);
   }
   if(GET_FLAG(f->def, ae_flag_variadic)) {
     Exp_Call exp;

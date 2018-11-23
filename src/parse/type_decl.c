@@ -53,6 +53,7 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
     }
     strcpy(s, ">");
   }
+//puts(str);
   return str;
 }
 

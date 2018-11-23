@@ -15,12 +15,15 @@
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {
+Type t = bin->lhs->type;
+do {
+  if(!strcmp(t->name, get_type_name(bin->rhs->type->name, 1))) {
     if(bin->lhs->meta != ae_meta_var)
       ERR_N(0, "left side operand is constant")
     bin->lhs->emit_var = 1;
     return bin->lhs->type;
   }
+} while((t = t->parent));
   return t_null;
 }
 
