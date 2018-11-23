@@ -773,9 +773,7 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     ID_List list = stmt->list;
     do {
       const Value v = nspc_lookup_value0(env->curr, list->xid);
-      SET_FLAG(v, ae_flag_static);
-      v->offset = env->class_def->nspc->class_data_size;
-      env->class_def->nspc->class_data_size += SZ_INT;
+      check_exp_decl_static(env , v);
     } while((list = list->next));
   }
   return 1;
