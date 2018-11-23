@@ -11,6 +11,8 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   type->xid    = xid;
   type->name   = name;
   type->parent = parent;
+  if(type->parent)
+    type->size = parent->size;
   INIT_OO(type, e_type_obj);
   return type;
 }

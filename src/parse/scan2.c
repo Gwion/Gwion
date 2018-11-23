@@ -57,9 +57,7 @@ ANN static m_bool scan2_arg_def_check(const Var_Decl var, const Type t) { GWDEBU
   }
   if(!t->size)
     ERR_B(var->pos, "cannot declare variables of size '0' (i.e. 'void')...")
-  if(isres(var->xid) > 0)
-    return -1;
-  return 1;
+  return -isres(var->xid);
 }
 
 ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
@@ -67,11 +65,12 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
   Arg_List list = f->arg_list;
   do {
     const Var_Decl var = list->var_decl;
-    if(scan2_arg_def_check(var, list->type) < 0 ||
-        (var->array && !(list->type = array_type(list->type, var->array->depth)))) {
+    if(scan2_arg_def_check(var, list->type) < 0) {
       nspc_pop_value(env->curr);
       return -1;
     }
+    if(var->array)
+      list->type = array_type(list->type, var->array->depth);
     const Value v = var->value ? var->value : new_value(list->type, s_name(var->xid));
     v->flag = list->td->flag | ae_flag_arg;
     if(f) {
@@ -107,8 +106,6 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   if(d.arg_list && scan2_arg_def(env, &d) < 0)
     ERR_B(ptr->td->xid->pos, "in typedef '%s'", s_name(ptr->xid))
   SET_FLAG(ptr->value, ae_flag_checked);
-  nspc_add_value(env->curr, ptr->xid, ptr->value);
-
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
@@ -129,6 +126,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     }
     ptr->value->owner_class = env->class_def;
   }
+  nspc_add_value(env->curr, ptr->xid, ptr->value);
   nspc_add_func(ptr->type->owner, ptr->xid, ptr->func);
   return 1;
 }
@@ -443,7 +441,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   if(GET_FLAG(f, ae_flag_builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = new_type(t_function->xid, func_name, t_function);
-  type->size = SZ_INT;
   type->owner = env->curr;
   if(GET_FLAG(func, ae_flag_member))
     type->size += SZ_INT;

@@ -451,19 +451,19 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
         m_func = find_func_match(env, def->func, args);
         def->func->next = next;
         if(m_func) {
-          free(tmpl_name);
-          env_pop(env, class_scope);
           SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-          return m_func;
+          goto end;
         }
       }
     }
     SET_FLAG(base, ae_flag_template);
     free_func_def(def);
   }
+  err_msg(exp->self->pos, "arguments do not match for template call");
+end:
   free(tmpl_name);
   env_pop(env, class_scope);
-  ERR_O(exp->self->pos, "arguments do not match for template call")
+  return m_func;
 }
 
 ANN static void print_current_args(Exp e) {
@@ -1156,9 +1156,9 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  Class_Body body = class_def->body;
   m_uint class_scope;
   env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  Class_Body body = class_def->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));
   env_pop(env, class_scope);

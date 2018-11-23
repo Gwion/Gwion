@@ -27,7 +27,6 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
     env->curr : env->global_nspc;
-  t->size = SZ_INT;
   t->nspc = new_nspc(name);
   t->flag = stmt->td->flag;
   stmt->type = t;
@@ -67,12 +66,10 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->flag))
   env_storage(env, &stmt->flag);
   if(stmt->xid) {
-  const Value v = nspc_lookup_value1(env->curr, 
-stmt->xid);
-  if(v)
-CHECK_BB(err_msg(stmt->self->pos,
-    "'%s' already declared as variable of type '%s'.", 
-s_name(stmt->xid), v->type->name) )
+    const Value v = nspc_lookup_value1(env->curr, stmt->xid);
+    if(v)
+      ERR_B(stmt->self->pos, "'%s' already declared as variable of type '%s'.",
+        s_name(stmt->xid),  v->type->name)
 //    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
 
 }
@@ -163,23 +160,21 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  const Type the_class = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
-  the_class->owner = env->curr;
-  the_class->size = SZ_INT;
-  the_class->nspc = new_nspc(the_class->name);
-  the_class->nspc->parent = GET_FLAG(class_def, ae_flag_global) ?
-      env_nspc(env) : env->curr;
-  the_class->def = class_def;
-  the_class->flag = class_def->flag;
-  if(!strstr(the_class->name, "<"))
-    nspc_add_type(env->curr, class_def->name->xid, the_class);
+  const Type t = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
+  t->owner = env->curr;
+  t->nspc = new_nspc(t->name);
+  t->nspc->parent = GET_FLAG(class_def, ae_flag_global) ? env_nspc(env) : env->curr;
+  t->def = class_def;
+  t->flag = class_def->flag;
+  if(!strstr(t->name, "<"))
+    nspc_add_type(env->curr, class_def->name->xid, t);
   if(class_def->tmpl) {
-    SET_FLAG(the_class, ae_flag_template);
+    SET_FLAG(t, ae_flag_template);
     SET_FLAG(class_def, ae_flag_template);
   }
   if(class_def->ext && class_def->ext->array)
-    SET_FLAG(the_class, ae_flag_typedef);
-  return the_class;
+    SET_FLAG(t, ae_flag_typedef);
+  return t;
 }
 
 ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG_EXE
