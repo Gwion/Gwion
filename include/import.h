@@ -19,7 +19,7 @@ typedef struct Gwi_* Gwi;
 #else
 #define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
 #endif
-#define ALLOC_PTR(a, b, c) b* a = (b*)xmalloc(sizeof(b)); *a =c
+#define ALLOC_PTR(a, b, c) b* a = (b*)_mp_alloc(sizeof(b)); *a =c
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\
     CHECK_BB(gwi_oper_end(gwi, op_##op, func))

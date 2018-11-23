@@ -18,7 +18,7 @@ ANN void free_value(Value a) {
   if(!GET_FLAG(a, ae_flag_func) && !GET_FLAG(a, ae_flag_constprop) && a->d.ptr && isa(a->type, t_object) < 0 &&
       /*if(!GET_FLAG(a, ae_flag_func) && a->d.ptr && isa(a->type, t_object) < 0 &&*/
      !GET_FLAG(a, ae_flag_enum))
-    free(a->d.ptr);
+    _mp_free(a->type->size, a->d.ptr);
   if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0)
     REM_REF(a->type)
   if(GET_FLAG(a->type, ae_flag_op))
