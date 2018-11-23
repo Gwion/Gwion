@@ -18,9 +18,7 @@ typedef struct Code_ {
 struct Emitter_ {
   Env    env;
   Code*  code;
-  struct Vector_    stack;
-  Map    cases; // passed to instr: is a pointer
-  m_int	 default_case_index;
+  struct Vector_  stack;
 };
 
 ANEW ANN Emitter new_emitter(void/*const Env*/);

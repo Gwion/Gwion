@@ -50,7 +50,10 @@ ANN static void free_code_instr(const Vector v) {
       free_code_instr_gack(instr);
     else if(instr->execute == BranchSwitch)
       free_map((Map)instr->m_val2);
-    else if(instr->execute == InitLoopCounter)
+    else if(instr->execute == SwitchIni) {
+      free_vector((Vector)instr->m_val);
+      free_map((Map)instr->m_val2);
+    } else if(instr->execute == InitLoopCounter)
       free((m_int*)instr->m_val);
     else if(instr->execute == VarargIni) {
       if(instr->m_val2)

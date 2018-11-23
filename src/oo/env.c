@@ -11,6 +11,8 @@
 #include "context.h"
 #include "nspc.h"
 
+#include "mpool.h"
+
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
@@ -21,6 +23,8 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
   env->type_xid = 0;
+  env->sw = mp_alloc(Switch);
+  vector_init(&env->sw->exp);
   env_reset(env);
   return env;
 }
@@ -36,6 +40,10 @@ ANN void env_reset(const Env env) {
   env->class_def = NULL;
   env->func = NULL;
   env->class_scope = 0;
+  if(env->sw->cases)
+    free_map(env->sw->cases);
+  vector_clear(&env->sw->exp);
+  env->sw->cases = NULL;
 }
 
 ANN void free_env(const Env a) {
@@ -48,6 +56,10 @@ ANN void free_env(const Env a) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
+  if(a->sw->cases)
+    free_map(a->sw->cases);
+  vector_release(&a->sw->exp);
+  mp_free(Switch, a->sw);
   free(a);
 }
 

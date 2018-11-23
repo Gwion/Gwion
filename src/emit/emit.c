@@ -19,6 +19,7 @@
 #include "parse.h"
 #include "memoize.h"
 #include "operator.h"
+#include "import.h"
 
 typedef struct Local_ {
   m_uint size;
@@ -279,7 +280,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushimm);
-    if(isa(v->type, t_object) < 0 && !GET_FLAG(v,ae_flag_enum)) {
+    if(isa(v->type, t_object) < 0) {
       if(v->d.ptr)
         memcpy(instr->ptr, v->d.ptr, v->type->size);
     } else
@@ -1096,12 +1097,12 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   if(!stmt->is_label)
     stmt->data.instr = emitter_add_instr(emit, Goto);
   else {
-    if(emit->cases && !strcmp(s_name(stmt->name), "default")) {
+    if(emit->env->sw->cases && !strcmp(s_name(stmt->name), "default")) {
       if(!strcmp(s_name(stmt->name), "default"))
         vector_release(&stmt->data.v);
-      if(emit->default_case_index != -1)
+      if(emit->env->sw->default_case_index)
         ERR_B(stmt->self->pos, "default case already defined")
-      emit->default_case_index = (m_int)emit_code_size(emit);
+      emit->env->sw->default_case_index = emit_code_size(emit);
       return 1;
     }
     if(!stmt->data.v.ptr)
@@ -1126,54 +1127,69 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
 }
 
 ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) { GWDEBUG_EXE
+  const m_uint dyn = vector_size(&emit->env->sw->exp);
+  Instr push;
+  if(dyn) {
+    for(m_uint i = 0; i < dyn; ++i)
+      CHECK_BB(emit_exp(emit, (Exp)vector_at(&emit->env->sw->exp, i), 0))
+    push = emitter_add_instr(emit, SwitchIni);
+    emit->env->sw->vec = new_vector();
+    push->m_val = (m_uint)emit->env->sw->vec;
+    push->m_val2 = (m_uint)new_map();
+  }
   vector_add(&emit->code->stack_break, (vtype)NULL);
   CHECK_BB(emit_exp(emit, stmt->val, 0))
-  if(emit->cases)
+  if(emit->env->sw->cases)
     ERR_B(stmt->self->pos, "swith inside an other switch. this is not allowed for now")
-  emit->default_case_index = -1;
+  emit->env->sw->default_case_index = 0;
+  emit->env->sw->cases = NULL;
   const Instr instr = emitter_add_instr(emit, BranchSwitch);
-  emit->cases = new_map();
-  instr->m_val2 = (m_uint)emit->cases;
+  emit->env->sw->cases = new_map();
+  instr->m_val2 = (m_uint)emit->env->sw->cases;
   CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
-  instr->m_val = emit->default_case_index > -1 ? (m_uint)emit->default_case_index : emit_code_size(emit);
-  emit->default_case_index = -1;
+  if(dyn) {
+    const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
+    for(m_uint i = 0; i < map_size(map); ++i)
+      map_set(m, VKEY(map, i), VVAL(map, i));
+  }
+  instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
+  *(m_uint*)instr->ptr = dyn ? SZ_INT : 0;
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
-  emit->cases = NULL;
+  emit->env->sw->cases = NULL;
   return 1;
 }
 
-ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
-  if(prim->primary_type == ae_primary_num)
-    *value = (m_int)prim->d.num;
-  else {
-    if(!GET_FLAG(prim->value, ae_flag_const))
-      ERR_B(prim->self->pos, "'%s' is not constant.", prim->value->name)
-    *value = GET_FLAG(prim->value, ae_flag_enum) ? (m_int)prim->value->d.ptr :
-      *(m_int*)prim->value->d.ptr;
-  }
+ANN m_bool value_value(const Value v, m_int *value) {
+  if((!GET_FLAG(v, ae_flag_builtin) && !GET_FLAG(v, ae_flag_enum)) || GET_FLAG(v, ae_flag_member))
+     return 0;
+  *value = v->d.ptr ? *(m_int*)v->d.ptr : v->owner->class_data[v->offset];
   return 1;
 }
 
-ANN static m_int get_case_value(const Stmt_Exp stmt, m_int* value) {
-  if(stmt->val->exp_type == ae_exp_primary)
-    CHECK_BB(primary_case(&stmt->val->d.exp_primary, value))
-  else {
-    const Type t = actual_type(stmt->val->d.exp_dot.t_base);
-    const Value v = find_value(t, stmt->val->d.exp_dot.xid);
-    *value = (m_int)(GET_FLAG(v, ae_flag_enum) ? !GET_FLAG(v, ae_flag_builtin) ?
-      (m_uint)t->nspc->class_data[v->offset] : (m_uint)v->d.ptr : *(m_uint*)v->d.ptr);
+ANN Value case_value(const Exp exp, m_int *value) {
+  if(exp->exp_type == ae_exp_primary) {
+    const Exp_Primary* prim = &exp->d.exp_primary;
+    if(prim->primary_type == ae_primary_num) {
+      *value = (m_int)prim->d.num;
+      return NULL;
+    }
+    return prim->value;
   }
-  return 1;
+  const Exp_Dot* dot = &exp->d.exp_dot;
+  return find_value(actual_type(dot->t_base), dot->xid);
 }
 
 ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDEBUG_EXE
+  if(!emit->env->sw->cases)
+    ERR_B(stmt->self->pos, "case found outside switch statement.")
   m_int value = 0;
-  if(!emit->cases)
-    ERR_B(stmt->self->pos, "case found outside switch statement. this is not allowed for now")
-  CHECK_BB(get_case_value(stmt, &value))
-  if(map_get(emit->cases, (vtype)value))
-    ERR_B(stmt->self->pos, "duplicated cases value %i", value)
-  map_set(emit->cases, (vtype)value, (vtype)emit_code_size(emit));
+  const Value v = case_value(stmt->val, &value);
+  if(!v || value_value(v, &value)) {
+    if(map_get(emit->env->sw->cases, (vtype)value))
+      ERR_B(stmt->val->pos, "duplicated cases value %i", value)
+    map_set(emit->env->sw->cases, (vtype)value, emit_code_size(emit));
+  } else
+    vector_add(emit->env->sw->vec, emit_code_size(emit));
   return 1;
 }
 
@@ -1186,8 +1202,9 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
   for(m_uint i = 0; i < vector_size(&stmt->values); ++i) {
     const Value v = (Value)vector_at(&stmt->values, i);
     if(!emit->env->class_def) {
+      ALLOC_PTR(addr, m_uint, i);
       v->offset = emit_alloc_local(emit, SZ_INT, 0);
-      v->d.ptr = (m_uint*)i;
+      v->d.ptr = addr;
     } else
       *(m_uint*)(emit->env->class_def->nspc->class_data + v->offset) = i;
   }
@@ -1654,9 +1671,11 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
 
 ANN static void* emitter_reset(const Emitter emit) {
   emit_free_stack(emit);
-  if(emit->cases)
-    free_map(emit->cases);
-  return emit->cases = NULL;
+  if(emit->env->sw->cases)
+    free_map(emit->env->sw->cases);
+  if(emit->env->sw->exp.ptr)
+    vector_clear(&emit->env->sw->exp);
+  return emit->env->sw->cases = NULL;
 }
 
 ANN VM_Code emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE

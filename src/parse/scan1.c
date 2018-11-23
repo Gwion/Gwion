@@ -196,6 +196,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     const Value v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
+      v->owner = env->curr;
       SET_FLAG(v, ae_flag_static);
       if(GET_FLAG(stmt, ae_flag_private))
         SET_FLAG(v, ae_flag_private);

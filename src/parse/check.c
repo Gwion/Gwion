@@ -900,10 +900,24 @@ ANN static m_bool check_stmt_break(const Env env, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
-  if(stmt->val->exp_type  != ae_exp_primary &&
-      stmt->val->exp_type != ae_exp_dot)
-    ERR_B(stmt->self->pos, "unhandled expression type '%i'", stmt->val->exp_type)
   const Type t = check_exp(env, stmt->val);
+  if(stmt->val->exp_type  == ae_exp_primary) {
+    const Value v = stmt->val->d.exp_primary.value;
+    if(v) {
+      if(!GET_FLAG(v, ae_flag_const))
+        ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
+      if(!GET_FLAG(v, ae_flag_builtin) && !GET_FLAG(v, ae_flag_enum))
+        vector_add(&env->sw->exp, (vtype)stmt->val);
+    }
+  } else if(stmt->val->exp_type  == ae_exp_dot) {
+    const Type base = actual_type(stmt->val->d.exp_dot.t_base);
+    const Value v = find_value(base, stmt->val->d.exp_dot.xid);
+    if(!GET_FLAG(v, ae_flag_const))
+      ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
+      if(!GET_FLAG(v, ae_flag_builtin) && !GET_FLAG(v, ae_flag_enum))
+        vector_add(&env->sw->exp, (vtype)stmt->val);
+  } else
+    ERR_B(stmt->self->pos, "unhandled expression type '%i'", stmt->val->exp_type)
   if(!t || isa(t, t_int) < 0)
     ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'",
           t ? t->name : "unknown")

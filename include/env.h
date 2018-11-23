@@ -4,6 +4,13 @@
 #define SCOPE(a) { ++env->class_scope; a ;--env->class_scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
+struct Switch_ {
+  m_uint   default_case_index;
+  struct Vector_ exp;
+  Vector vec;
+  Map cases;
+};
+
 typedef struct Env_       * Env;
 struct Env_ {
   m_str name;
@@ -19,6 +26,7 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
+  struct Switch_* sw;
 };
 
 ANEW Env new_env();

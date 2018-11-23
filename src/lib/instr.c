@@ -165,12 +165,24 @@ INSTR(AllocWord4) { GWDEBUG_EXE
 }
 
 /* branching */
+INSTR(SwitchIni) {
+  const Vector v = (Vector)instr->m_val;
+  const m_uint size = vector_size(v);;
+  const Map m = (Map)instr->m_val2;
+  POP_REG(shred, SZ_INT * (size - 1));
+  for(m_uint i = 0; i < size; ++i)
+    map_set(m, *(vtype*)REG((i-1) * SZ_INT), vector_at(v, i));
+  *(Map*)REG(-SZ_INT) = m;
+}
+
 INSTR(BranchSwitch) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  const Map map = (Map)instr->m_val2;
-  shred->pc = map_get(map, (vtype)*(m_int*)REG(0));
+  const m_uint offset = *(m_uint*)instr->ptr;
+  POP_REG(shred, SZ_INT + offset);
+  const Map map = !offset ?(Map)instr->m_val2 : *(Map*)REG(0);
+  shred->pc = map_get(map, (vtype)*(m_int*)REG(offset));
   if(!shred->pc)
     shred->pc = instr->m_val;
+//  if(offset)free_map(map);
 }
 
 #define branch(name, type, sz, op)      \
