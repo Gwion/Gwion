@@ -38,12 +38,17 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   if(GET_FLAG(t, ae_flag_protect) &&
     (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
-  if(!GET_FLAG(decl->td, ae_flag_ref) && t == env->class_def && !env->class_scope)
-      ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
-  if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
+  if(env->class_def) {
+    if(!env->class_scope) {
+      if(!env->func && !GET_FLAG(decl->td, ae_flag_static))
+        SET_FLAG(decl->td, ae_flag_member);
+      if(!GET_FLAG(decl->td, ae_flag_ref) && t == env->class_def)
+        ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
+    }
+    if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)
+      UNSET_FLAG(decl->td, ae_flag_global);
+  } else if(GET_FLAG(decl->td, ae_flag_private))
       ERR_O(decl->self->pos, "must declare private variables at class scope...")
-  if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)
-     UNSET_FLAG(decl->td, ae_flag_global);
   if(GET_FLAG(t, ae_flag_template))
     scan1_exp_decl_template(t, decl);
   return t;
@@ -83,13 +88,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     var->value->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(var->value, ae_flag_ref);
-    if(!env->func && !env->class_scope) {
-      if(env->class_def) {
-        if(!GET_FLAG(decl->td, ae_flag_static))
-          SET_FLAG(var->value, ae_flag_member);
-      } else
-        SET_FLAG(var->value, ae_flag_global);
-    };
+    if(!env->func && !env->class_scope && !env->class_def)
+      SET_FLAG(var->value, ae_flag_global);
     var->value->d.ptr = var->addr;
     var->value->owner = !env->func ? env->curr : NULL;
     var->value->owner_class = env->class_scope ? NULL : env->class_def;

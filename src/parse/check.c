@@ -50,27 +50,22 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
   return 1;
 }
 
-ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { GWDEBUG_EXE
-  v->offset = nspc->offset;
-  nspc->offset += v->type->size;
+#define describe_check_decl(a, b)                                 \
+ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
+  SET_FLAG(v, ae_flag_##a);                                       \
+  v->offset = nspc->b;                                            \
+  nspc->b += v->type->size;                                       \
 }
-
-ANN static void check_exp_decl_static(const Env env , const Value v) {
-  const Nspc nspc = env->curr;
-  SET_FLAG(v, ae_flag_static);
-  v->offset = nspc->class_data_size;
-  nspc->class_data_size += v->type->size;
-}
+describe_check_decl(member, offset)
+describe_check_decl(static, class_data_size)
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
   const Func  func = v->type->d.func;
   const Type type = func->value_ref->owner_class;
   if(!env->class_def) {
-    if(!type || GET_FLAG(func, ae_flag_global)) {
-      ADD_REF(var->value->type)
+    if(!type || GET_FLAG(func, ae_flag_global))
       return 1;
-    }
     ERR_B(var->pos, "can't use non public typedef at global scope.")
   }
   if(isa(type, env->class_def) < 0)
@@ -82,7 +77,6 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
       ERR_B(var->pos, "can't use member variables for static function.")
   } else if(GET_FLAG(v, ae_flag_member))
     ERR_B(var->pos, "can't use member variables for static function.")
-  ADD_REF(var->value->type)
   return 1;
 }
 
@@ -103,16 +97,16 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     }
     const Var_Decl var = list->self;
     const Value v = var->value;
-    if(isa(decl->type, t_fptr) > 0)
-      CHECK_BO(check_fptr_decl(env, var))
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(GET_FLAG(v, ae_flag_member))
-      check_exp_decl_member(env->curr, v);
+    if(GET_FLAG(decl->td, ae_flag_member))
+      decl_member(env->curr, v);
     else if(GET_FLAG(decl->td, ae_flag_static))
-      check_exp_decl_static(env, v);
+      decl_static(env->curr, v);
+    if(isa(decl->type, t_fptr) > 0)
+      CHECK_BO(check_fptr_decl(env, var))
 SET_FLAG(v, ae_flag_used);
   SET_FLAG(v, ae_flag_checked);
   nspc_add_value(env->curr, var->xid, v);
@@ -367,8 +361,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->type) == array_base(t);
   if(!match && implicit) {
     const struct Implicit imp = { e, t };
-    struct Op_Import opi = { op_impl, e->type, t, NULL,
-      NULL, NULL, (m_uint)&imp };
+    struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, NULL, .data=(m_uint)&imp };
     return op_check(env, &opi) ? 1 : -1;
   }
   return match ? 1 : -1;
@@ -379,7 +372,6 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   do {
     Exp e = args;
     Arg_List e1 = func->def->arg_list;
-
     while(e) {
       if(!e1) {
         if(GET_FLAG(func->def, ae_flag_variadic))
@@ -621,9 +613,8 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
-  struct Op_Import opi = { bin->op,
-    check_exp(env, bin->lhs), check_exp(env, bin->rhs), NULL,
-    NULL, NULL, (uintptr_t)bin };
+  struct Op_Import opi = { .op=bin->op, .lhs=check_exp(env, bin->lhs),
+    .rhs=check_exp(env, bin->rhs), .data=(uintptr_t)bin };
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
   const Type op_ret = op_check(env, &opi);
@@ -637,14 +628,12 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EX
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
   CHECK_OO((cast->self->type = known_type(env, cast->td, "cast expression")))
-  struct Op_Import opi = { op_cast, t, cast->self->type, NULL,
-    NULL, NULL, (uintptr_t)cast };
+  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=cast->self->type, .data=(uintptr_t)cast };
   OP_RET(cast, "cast")
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
-  struct Op_Import opi = { post->op, check_exp(env, post->exp), NULL, NULL,
-    NULL, NULL, (uintptr_t)post };
+  struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post };
   CHECK_OO(opi.lhs)
   OP_RET(post, "postfix");
 }
@@ -691,8 +680,8 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
 }
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
-  struct Op_Import opi = { unary->op, NULL, unary->exp ? check_exp(env, unary->exp) : NULL,
-    NULL, NULL, NULL, (uintptr_t)unary };
+  struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
+    .data=(uintptr_t)unary };
   if(unary->exp && !opi.rhs)return NULL;
   OP_RET(unary, "unary")
 }
@@ -773,7 +762,7 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     ID_List list = stmt->list;
     do {
       const Value v = nspc_lookup_value0(env->curr, list->xid);
-      check_exp_decl_static(env , v);
+      decl_static(env->curr, v);
     } while((list = list->next));
   }
   return 1;
@@ -953,15 +942,15 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   if(stmt->xid) {
     if(env->class_def) {
       if(!GET_FLAG(stmt, ae_flag_static))
-        check_exp_decl_member(env->curr, stmt->value);
+        decl_member(env->curr, stmt->value);
       else
-        check_exp_decl_static(env, stmt->value);
+        decl_static(env->curr, stmt->value);
     }
   } else if(env->class_def)  {
     if(!GET_FLAG(stmt, ae_flag_static))
       stmt->o = env->class_def->nspc->offset;
     else
-      check_exp_decl_static(env, stmt->value);
+      decl_static(env->curr, stmt->value);
   }
   const m_uint scope = union_push(env, stmt);
   Decl_List l = stmt->l;
@@ -1000,10 +989,10 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
-  const m_str c_name  = f->func->value_ref->owner_class->name;
-  const m_str p_name = parent->value_ref->owner_class->name;
-  const m_str f_name = s_name(f->name);
   if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
+    const m_str c_name  = f->func->value_ref->owner_class->name;
+    const m_str p_name = parent->value_ref->owner_class->name;
+    const m_str f_name = s_name(f->name);
     ERR_B(f->td->xid->pos,
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
@@ -1060,7 +1049,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
   return 1;
 }
 
-ANN static Func get_overload(const Env env, const Func_Def def, const m_uint i) {
+ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
   const Symbol sym = func_symbol(env, s_name(def->name), NULL, i);
   return nspc_lookup_func2(env->curr, sym);
 }
@@ -1104,7 +1093,6 @@ ANN static Value set_variadic(const Env env) {
 ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
   m_bool ret = 1;
-
   if(tmpl_list_base(f->tmpl))
     return 1;
   CHECK_BB(check_func_def_override(env, f))
