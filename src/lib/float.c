@@ -152,7 +152,6 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
   shredule(shred->vm->shreduler, shred, f);
 }
 
-
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);

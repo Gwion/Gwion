@@ -124,5 +124,11 @@ GWION_IMPORT(int) {
   CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP(inc,   post,  post_inc)
   CHECK_OP(dec, post,  post_dec)
+  CHECK_BB(gwi_enum_ini(gwi, "bool"))
+  CHECK_BB(gwi_enum_add(gwi, "false", 0))
+  CHECK_BB(gwi_enum_add(gwi, "true", 1))
+  CHECK_BB(gwi_enum_end(gwi))
+  gwi_item_ini(gwi, "bool", "maybe");
+  gwi_item_end(gwi, ae_flag_global, NULL);
   return 1;
 }

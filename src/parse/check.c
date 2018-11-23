@@ -166,7 +166,7 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
     UNSET_FLAG(env->func, ae_flag_pure);
   SET_FLAG(v, ae_flag_used);
   ((Exp_Primary*)primary)->value = v;
-  if(GET_FLAG(v, ae_flag_const))
+  if(GET_FLAG(v, ae_flag_const) || !strcmp(s_name(primary->d.var), "maybe"))
     primary->self->meta = ae_meta_value;
 //  OPTIMIZE_PRIM_CONST(primary, v->d.ptr)
   return v->type;
@@ -191,15 +191,6 @@ ANN static inline Type check_exp_prim_now(const Exp_Primary* primary) {
   return t_now;
 }
 
-ANN static Type prim_id2(const Env env, const Exp_Primary* primary) {
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-    primary->self->meta = ae_meta_value;
-    return t_int;
-  } else
-    return prim_id_non_res(env, primary);
-}
-
 ANN static Type prim_id1(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
@@ -209,7 +200,7 @@ ANN static Type prim_id1(const Env env, const Exp_Primary* primary) {
     primary->self->meta = ae_meta_value;
     return t_string;
   } else
-    return prim_id2(env, primary);
+    return prim_id_non_res(env, primary);
 }
 
 ANN static Type prim_id(const Env env, const Exp_Primary* primary) {

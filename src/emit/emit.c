@@ -375,14 +375,9 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
     emitter_add_instr(emit, RegPushMe);
   else if(prim->d.var == insert_symbol("now"))
     emitter_add_instr(emit, RegPushNow);
-  else if(prim->d.var == insert_symbol("false") ||
-      prim->d.var == insert_symbol("null") ||
+  else if(prim->d.var == insert_symbol("null") ||
       prim->d.var == insert_symbol("NULL")) {
     emitter_add_instr(emit, PushNull);
-  }
-  else if(prim->d.var == insert_symbol("true")) {
-    const Instr instr = emitter_add_instr(emit, RegPushImm);
-    *(m_uint*)instr->ptr = 1;
   } else if(prim->d.var == insert_symbol("maybe"))
     emitter_add_instr(emit, RegPushMaybe);
   else if(prim->d.var == insert_symbol("__func__")) {
@@ -1150,16 +1145,11 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
 ANN static m_bool primary_case(const Exp_Primary* prim, m_int* value) {
   if(prim->primary_type == ae_primary_num)
     *value = (m_int)prim->d.num;
-  else if(prim->d.var == insert_symbol("true"))
-    *value = 1;
-  else if(prim->d.var == insert_symbol("false"))
-    *value = 0;
-  else if(prim->d.var == insert_symbol("maybe"))
-    ERR_B(prim->self->pos, "'maybe' is not constant.")
   else {
     if(!GET_FLAG(prim->value, ae_flag_const))
-      ERR_B(prim->self->pos, "value is not constant.")
-    *value = (m_int)prim->value->d.ptr; // assume enum.
+      ERR_B(prim->self->pos, "'%s' is not constant.", prim->value->name)
+    *value = GET_FLAG(prim->value, ae_flag_enum) ? (m_int)prim->value->d.ptr :
+      *(m_int*)prim->value->d.ptr;
   }
   return 1;
 }
