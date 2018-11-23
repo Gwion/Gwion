@@ -47,11 +47,13 @@ ANN void free_op_map(Map map) {
 
 ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
-    const m_str post = strstr(t->name, "<");
-    size_t len = strlen(t->name) -strlen(post);
+  Type type = t;
+  while(GET_FLAG(type, ae_flag_typedef)) type = type->parent;
+    const m_str post = strstr(type->name, "<");
+    size_t len = strlen(type->name) - strlen(post);
     char c[len + 1];
     for(size_t i = 0; i < len; i++)
-      c[i] = t->name[i];
+      c[i] = type->name[i];
     c[len] = 0;
     return nspc_lookup_type1(env->curr, insert_symbol(c));
   }

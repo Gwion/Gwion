@@ -526,14 +526,15 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
-m_uint scope;
-env_push(emit->env, NULL, decl->list->self->value->type->nspc, &scope);
+  m_uint scope;
+  env_push(emit->env, NULL, decl->list->self->value->type->nspc, &scope);
   Type t = decl->type;
   while(GET_FLAG(t, ae_flag_typedef)) t = t->parent;
   CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
-  CHECK_BB(emit_class_def(emit, t->def))
+  if(!GET_FLAG(t, ae_flag_emit))
+    CHECK_BB(emit_class_def(emit, t->def))
   emit_pop_type(emit);
-env_pop(emit->env, scope);
+  env_pop(emit->env, scope);
   return 1;
 }
 
@@ -643,11 +644,11 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
   const Exp rhs = bin->rhs;
   const Func f = rhs->type->d.func ? rhs->type->d.func : bin->func;
   if(bin->tmpl) {
-  m_int scope = push_tmpl_func(emit, bin->func, bin->tmpl->types);
-  CHECK_BB(scope);
-  CHECK_BB(emit_func_def(emit, f->def))
-  emit_pop_type(emit);
-  emit_pop(emit, (m_uint)scope);
+    m_int scope = push_tmpl_func(emit, bin->func, bin->tmpl->types);
+    CHECK_BB(scope);
+    CHECK_BB(emit_func_def(emit, f->def))
+    emit_pop_type(emit);
+    emit_pop(emit, (m_uint)scope);
   }
   if(GET_FLAG(f->def, ae_flag_variadic)) {
     Exp_Call exp;
