@@ -80,7 +80,7 @@ ANN static inline void vm_ugen_init(const VM* vm) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const UGen u = (UGen)vector_at(v, i - 1);
     u->done = 0;
-    if(GET_FLAG(u, UGEN_MULTI)) {
+    if(u->multi) {
       struct ugen_multi_* m = u->connect.multi;
       LOOP_OPTIM
       for(m_uint j = m->n_chan + 1; --j;)
