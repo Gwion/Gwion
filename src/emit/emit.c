@@ -1143,14 +1143,16 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   emit->env->sw->cases = new_map();
   instr->m_val2 = (m_uint)emit->env->sw->cases;
   emit_push_scope(emit);
+  emitter_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
+  instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
+  emitter_add_instr(emit, GcIni);
   emit_pop_scope(emit);
   if(dyn) {
     const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
     for(m_uint i = 0; i < map_size(map); ++i)
       map_set(m, VKEY(map, i), VVAL(map, i));
   }
-  instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
   *(m_uint*)instr->ptr = dyn ? SZ_INT : 0;
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
   emit->env->sw->cases = NULL;
