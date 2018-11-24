@@ -381,7 +381,8 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
   else if(prim->d.var == insert_symbol("__func__")) {
     const Instr instr = emitter_add_instr(emit, RegPushStr);
     instr->m_val = (m_uint)s_name(insert_symbol(emit->env->func ?
-      emit->env->func->name : emit->env->name));
+      emit->env->func->name : emit->env->class_def ?
+      emit->env->class_def->name : emit->env->name));
   } else
     emit_symbol(emit, prim);
   return 1;
