@@ -1,2 +1,2 @@
-// [skip] is reserved
+// [contains] is reserved
 class now{}

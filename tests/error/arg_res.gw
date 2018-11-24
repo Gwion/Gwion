@@ -1,2 +1,2 @@
-// [skip] this is reserved
+// [contains] this is reserved
 function void test(int this){}

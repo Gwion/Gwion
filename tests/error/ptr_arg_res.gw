@@ -1,2 +1,2 @@
-// [skip] is reserved
+// [contains] is reserved
 typedef void test(int this){}

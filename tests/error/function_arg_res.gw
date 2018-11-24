@@ -1,2 +1,2 @@
-// [skip] in function
+// [contains] in function
 function void test(int now){}
