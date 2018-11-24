@@ -181,11 +181,6 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   return env->class_def;
 }
 
-ANN static inline Type check_exp_prim_me(const Exp_Primary* primary) {
-  primary->self->meta = ae_meta_value;
-  return t_shred;
-}
-
 ANN static inline Type check_exp_prim_now(const Exp_Primary* primary) {
   primary->self->meta = ae_meta_var;
   return t_now;
@@ -204,8 +199,6 @@ ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "me"))
-    return check_exp_prim_me(primary);
   else if(!strcmp(str, "now"))
     return check_exp_prim_now(primary);
   else
