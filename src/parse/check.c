@@ -185,10 +185,7 @@ ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "__func__")) {
-    primary->self->meta = ae_meta_value;
-    return t_string;
-  } else
+  else
     return prim_id_non_res(env, primary);
 }
 
