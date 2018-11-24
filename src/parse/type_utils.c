@@ -9,8 +9,7 @@
 
 ANN m_bool isres(const Symbol xid) {
   const m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "now") ||
-       !strcmp(s, "vararg") ||
+  if(!strcmp(s, "this") || !strcmp(s, "vararg") ||
      !name2op(s)) {
     err_msg(0, "%s is reserved.", s_name(xid));
     return 1;

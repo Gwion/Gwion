@@ -181,28 +181,15 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   return env->class_def;
 }
 
-ANN static inline Type check_exp_prim_now(const Exp_Primary* primary) {
-  primary->self->meta = ae_meta_var;
-  return t_now;
-}
-
-ANN static Type prim_id1(const Env env, const Exp_Primary* primary) {
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "__func__")) {
-    primary->self->meta = ae_meta_value;
-    return t_string;
-  } else
-    return prim_id_non_res(env, primary);
-}
-
 ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "now"))
-    return check_exp_prim_now(primary);
-  else
-    return prim_id1(env, primary);
+  else if(!strcmp(str, "__func__")) {
+    primary->self->meta = ae_meta_value;
+    return t_string;
+  } else
+    return prim_id_non_res(env, primary);
 }
 
 ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {

@@ -182,6 +182,8 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, hour);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
+  gwi_item_ini(gwi, "@now", "now");
+  gwi_item_end(gwi, 0, NULL);
   return 1;
 }
 
