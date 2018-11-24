@@ -1,9 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <dlfcn.h>
-#include <dirent.h>
-#include <inttypes.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -861,17 +856,14 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
   return 1;
 }
 
-ANN static m_bool check_stmt_continue(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  if(!vector_size(&env->conts))
-    ERR_B(stmt->pos, "'continue' found outside of for/while/until...")
-  return 1;
+#define describe_check_stmt_stack(stack, name)                                     \
+ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) { GWDEBUG_EXE \
+  if(!vector_size(&env->stack))                                                    \
+    ERR_B(stmt->pos, "'"#name"' found outside of for/while/until...")             \
+  return 1;                                                                        \
 }
-
-ANN static m_bool check_stmt_break(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  if(!vector_size(&env->breaks))
-    ERR_B(stmt->pos, "'break' found outside of for/while/until...")
-  return 1;
-}
+describe_check_stmt_stack(conts,  continue)
+describe_check_stmt_stack(breaks, break)
 
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   const Type t = check_exp(env, stmt->val);
