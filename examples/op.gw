@@ -14,7 +14,7 @@ operator => void (Object o, C c) {
   <<<"success">>>;
 }
 
-//operator int plusplus(NULL d, int i){}
+//operator int plusplus(null d, int i){}
 int i;
 Object o;
 <<<o, " ", i>>>;

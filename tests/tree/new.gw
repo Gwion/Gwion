@@ -6,4 +6,4 @@ ev @=>
 Event @e;
 new Event @=> e;
 ev @=> e;
-NULL @=> e;
+null @=> e;

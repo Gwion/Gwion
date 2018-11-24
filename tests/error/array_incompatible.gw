@@ -1,2 +1,2 @@
 // [contains] contains incompatible types
-[NULL, 1];
+[null, 1];

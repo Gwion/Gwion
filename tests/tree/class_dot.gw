@@ -2,7 +2,7 @@ class C {
 	int i[];
 	int j[2];
 //	Machine.shreds() @=> i;
-//	NULL @=> i;
+//	null @=> i;
 }
 
 C c;

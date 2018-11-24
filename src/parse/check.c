@@ -193,10 +193,7 @@ ANN static inline Type check_exp_prim_now(const Exp_Primary* primary) {
 
 ANN static Type prim_id1(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-    primary->self->meta = ae_meta_value;
-    return t_null;
-  } else if(!strcmp(str, "__func__")) {
+  if(!strcmp(str, "__func__")) {
     primary->self->meta = ae_meta_value;
     return t_string;
   } else
