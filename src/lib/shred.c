@@ -132,7 +132,7 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_class_end(gwi))
 
   gwi_item_ini(gwi, "Shred", "me");
-  gwi_item_end(gwi, ae_flag_global, NULL);
+  gwi_item_end(gwi, ae_flag_const, NULL);
   SET_FLAG((t_shred), abstract);
   return 1;
 }
