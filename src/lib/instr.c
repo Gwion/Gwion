@@ -246,7 +246,7 @@ INSTR(SporkFunc) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(SZ_INT);
   const VM_Shred sh = init_spork_shred(shred, code);
   const Func func = *(Func*)REG(0);
-  const m_uint need = GET_FLAG(code, _NEED_THIS_) ? SZ_INT : 0;
+  const m_uint need = GET_FLAG(code, ae_flag_member) ? SZ_INT : 0;
   shred->reg -= instr->m_val + need;
   if(instr->m_val) {
     for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
@@ -294,7 +294,7 @@ ANN static inline void shred_func_need_this(const VM_Shred shred) {
 }
 
 ANN static inline void shred_func_finish(const VM_Shred shred) {
-  if(GET_FLAG(shred->code, _NEED_THIS_))
+  if(GET_FLAG(shred->code, ae_flag_member))
     POP_MEM(shred, SZ_INT);
   if(overflow_(shred))
     Except(shred, "StackOverflow");
@@ -302,9 +302,9 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
 
 INSTR(FuncPtr) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
-  if(GET_FLAG(code, NATIVE_NOT))
+  if(!GET_FLAG(code, ae_flag_builtin))
     FuncUsr(shred, instr);
-  else if(GET_FLAG(code, _NEED_THIS_))
+  else if(GET_FLAG(code, ae_flag_member))
     FuncMember(shred, instr);
   else
     FuncStatic(shred, instr);
@@ -316,7 +316,7 @@ INSTR(FuncUsr) { GWDEBUG_EXE
   m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
-    if(GET_FLAG(shred->code, _NEED_THIS_)) {
+    if(GET_FLAG(shred->code, ae_flag_member)) {
       shred_func_need_this(shred);
       stack_depth -= SZ_INT;
     }
@@ -371,7 +371,7 @@ INSTR(FuncMember) { GWDEBUG_EXE
   copy_member_args(shred, code);
   if(overflow_(shred))
     Except(shred, "StackOverflow");
-  if(GET_FLAG(code, NATIVE_CTOR)) {
+  if(GET_FLAG(code, ae_flag_ctor)) {
     const f_xtor f = (f_xtor)code->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
@@ -396,7 +396,7 @@ INSTR(PreCtor) { GWDEBUG_EXE
   *(VM_Code*)REG(SZ_INT) = pre_ctor;
   *(m_uint*)REG(SZ_INT*2) = instr->m_val2;
   PUSH_REG(shred, SZ_INT*3);
-  if(!GET_FLAG(pre_ctor, NATIVE_NOT))
+  if(GET_FLAG(pre_ctor, ae_flag_builtin))
     FuncMember(shred, NULL);
   else
     FuncUsr(shred, NULL);

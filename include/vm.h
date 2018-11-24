@@ -5,13 +5,6 @@
 #undef USE_DOUBLE
 #endif
 
-typedef enum {
-  NATIVE_NOT  = 1 << 1,
-  NATIVE_CTOR = 1 << 2,
-  NATIVE_DTOR = 1 << 3,
-  _NEED_THIS_ = 1 << 4
-} e_func;
-
 typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   Vector instr;
@@ -19,7 +12,7 @@ struct VM_Code_ {
   m_uint stack_depth;
   m_uint native_func;
   void* memoize;
-  e_func flag;
+  ae_flag flag;
   HAS_OBJ
 };
 

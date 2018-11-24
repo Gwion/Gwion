@@ -163,14 +163,14 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
   return list;
 }
 
-ANN static m_bool mk_xtor(const Type type, const m_uint d, const e_func e) {
-  VM_Code* code = e == NATIVE_CTOR ? &type->nspc->pre_ctor : &type->nspc->dtor;
+ANN static m_bool mk_xtor(const Type type, const m_uint d, const ae_flag e) {
+  VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
 
-  SET_FLAG(type, e == NATIVE_CTOR ? ae_flag_ctor : ae_flag_dtor);
+  SET_FLAG(type, e);
   *code = new_vm_code(NULL, SZ_INT, 1, name);
   (*code)->native_func = (m_uint)d;
-  (*code)->flag = (e | _NEED_THIS_);
+  (*code)->flag = (e | ae_flag_member | ae_flag_builtin);
   return 1;
 }
 
@@ -192,9 +192,9 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   type->nspc = new_nspc(type->name);
   type->nspc->parent = env->curr;
   if(pre_ctor)
-    mk_xtor(type, (m_uint)pre_ctor, NATIVE_CTOR);
+    mk_xtor(type, (m_uint)pre_ctor, ae_flag_ctor);
   if(dtor)
-    mk_xtor(type, (m_uint)dtor,     NATIVE_DTOR);
+    mk_xtor(type, (m_uint)dtor, ae_flag_dtor);
   if(type->parent) {
     type->nspc->offset = type->parent->nspc->offset;
     if(type->parent->nspc->vtable.ptr)
