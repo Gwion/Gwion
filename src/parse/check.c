@@ -180,10 +180,7 @@ ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "__func__")) {
-    primary->self->meta = ae_meta_value;
-    return t_string;
-  } else
+  else
     return prim_id_non_res(env, primary);
 }
 
@@ -868,27 +865,19 @@ ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) { GWDEBUG_EX
 describe_check_stmt_stack(conts,  continue)
 describe_check_stmt_stack(breaks, break)
 
+ANN Value case_value(const Exp exp);
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   const Type t = check_exp(env, stmt->val);
-  if(stmt->val->exp_type  == ae_exp_primary) {
-    const Value v = stmt->val->d.exp_primary.value;
-    if(v) {
-      if(!GET_FLAG(v, const))
-        ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
-      if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
-        vector_add(&env->sw->exp, (vtype)stmt->val);
-    }
-  } else if(stmt->val->exp_type  == ae_exp_dot) {
-    const Type base = actual_type(stmt->val->d.exp_dot.t_base);
-    const Value v = find_value(base, stmt->val->d.exp_dot.xid);
-    if(!GET_FLAG(v, const))
-      ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
-      if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
-        vector_add(&env->sw->exp, (vtype)stmt->val);
-  }
   if(!t || isa(t, t_int) < 0)
     ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'",
           t ? t->name : "unknown")
+  const Value v = case_value(stmt->val);
+  if(!v)
+    return 1;
+  if(!GET_FLAG(v, const))
+    ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
+    if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
+      vector_add(&env->sw->exp, (vtype)stmt->val);
   return 1;
 }
 

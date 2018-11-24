@@ -1142,7 +1142,9 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   const Instr instr = emitter_add_instr(emit, BranchSwitch);
   emit->env->sw->cases = new_map();
   instr->m_val2 = (m_uint)emit->env->sw->cases;
-  CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
+  emit_push_scope(emit);
+  CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
+  emit_pop_scope(emit);
   if(dyn) {
     const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
     for(m_uint i = 0; i < map_size(map); ++i)
@@ -1162,25 +1164,27 @@ ANN m_bool value_value(const Value v, m_int *value) {
   return 1;
 }
 
-ANN Value case_value(const Exp exp, m_int *value) {
+ANN Value case_value(const Exp exp) {
   if(exp->exp_type == ae_exp_primary) {
     const Exp_Primary* prim = &exp->d.exp_primary;
-    if(prim->primary_type == ae_primary_num) {
-      *value = (m_int)prim->d.num;
+    if(prim->primary_type == ae_primary_num)
       return NULL;
-    }
     return prim->value;
   }
   const Exp_Dot* dot = &exp->d.exp_dot;
   return find_value(actual_type(dot->t_base), dot->xid);
 }
 
+ANN static m_bool prim_value(const Exp exp, m_int *value) {
+  *value = (m_int)exp->d.exp_primary.d.num;
+  return 1;
+}
 ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDEBUG_EXE
   if(!emit->env->sw->cases)
     ERR_B(stmt->self->pos, "case found outside switch statement.")
   m_int value = 0;
-  const Value v = case_value(stmt->val, &value);
-  if(!v || value_value(v, &value)) {
+  const Value v = case_value(stmt->val);
+  if((!v && prim_value(stmt->val, &value)) || value_value(v, &value)) {
     if(map_get(emit->env->sw->cases, (vtype)value))
       ERR_B(stmt->val->pos, "duplicated cases value %i", value)
     map_set(emit->env->sw->cases, (vtype)value, emit_code_size(emit));

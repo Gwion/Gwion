@@ -1,2 +1,2 @@
-// [contains]  in variable declaration
- int now;
+// [skip]  in variable declaration
+int now;

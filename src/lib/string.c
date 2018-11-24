@@ -244,5 +244,8 @@ GWION_IMPORT(string) {
   CHECK_BB(gwi_oper_end(gwi, op_add,       Object_String))
   CHECK_BB(gwi_oper_add(gwi, opck_const_rhs))
   CHECK_BB(gwi_oper_end(gwi, op_radd, Object_String_Plus))
+
+  gwi_item_ini(gwi, "string", "__func__");
+  gwi_item_end(gwi, ae_flag_const, NULL);
   return 1;
 }

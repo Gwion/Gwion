@@ -129,6 +129,6 @@ GWION_IMPORT(int) {
   CHECK_BB(gwi_enum_add(gwi, "true", 1))
   CHECK_BB(gwi_enum_end(gwi))
   gwi_item_ini(gwi, "bool", "maybe");
-  gwi_item_end(gwi, ae_flag_global, NULL);
+  gwi_item_end(gwi, 0, NULL);
   return 1;
 }
