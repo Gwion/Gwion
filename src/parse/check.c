@@ -916,8 +916,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
       ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
       if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
         vector_add(&env->sw->exp, (vtype)stmt->val);
-  } else
-    ERR_B(stmt->self->pos, "unhandled expression type '%i'", stmt->val->exp_type)
+  }
   if(!t || isa(t, t_int) < 0)
     ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'",
           t ? t->name : "unknown")
