@@ -18,7 +18,7 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
 }
 
 ANN void free_type(Type a) {
-  if(GET_FLAG(a, ae_flag_template))
+  if(GET_FLAG(a, template))
     free_class_def(a->def);
   if(a->nspc)
     REM_REF(a->nspc);
@@ -55,7 +55,7 @@ describe_find(value, Value)
 describe_find(func,  Func)
 
 ANN Type typedef_base(Type t) {
-  while(GET_FLAG(t, ae_flag_typedef))
+  while(GET_FLAG(t, typedef))
     t = t->parent;
   return t;
 }
@@ -85,7 +85,7 @@ ANN Type array_type(const Type base, const m_uint depth) {
   t->d.base_type = base;
   t->nspc = t_array->nspc;
   ADD_REF(t->nspc);
-  SET_FLAG(t, ae_flag_checked);
+  SET_FLAG(t, checked);
   t->owner = base->owner;
   nspc_add_type(base->owner, sym, t);
   return t;
@@ -99,9 +99,9 @@ ANN Type template_parent(const Type type) {
 
 ANN m_bool type_ref(Type t) {
   do {
-    if(GET_FLAG(t, ae_flag_empty))
+    if(GET_FLAG(t, empty))
       return 1;
-    if(GET_FLAG(t, ae_flag_typedef) && t->def)
+    if(GET_FLAG(t, typedef) && t->def)
       if(t->def->ext && t->def->ext->array && !t->def->ext->array->exp)
         return 1;
   } while((t = t->parent));

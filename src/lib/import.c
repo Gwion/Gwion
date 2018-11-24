@@ -166,11 +166,10 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
 ANN static m_bool mk_xtor(const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
-
-  SET_FLAG(type, e);
   *code = new_vm_code(NULL, SZ_INT, 1, name);
   (*code)->native_func = (m_uint)d;
   (*code)->flag = (e | ae_flag_member | ae_flag_builtin);
+  type->flag |= e;
   return 1;
 }
 
@@ -201,7 +200,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
       vector_copy2(&type->parent->nspc->vtable, &type->nspc->vtable);
   }
   type->owner = env->curr;
-  SET_FLAG(type, ae_flag_checked);
+  SET_FLAG(type, checked);
   m_uint class_scope;
   env_push(env, type, type->nspc, &class_scope);
   return 1;
@@ -215,9 +214,9 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL);
     type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
-    SET_FLAG(type, ae_flag_template);
+    SET_FLAG(type, template);
   } else
-    SET_FLAG(type, ae_flag_scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+    SET_FLAG(type, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi_add_type(gwi, type);
   CHECK_BB(import_class_ini(gwi->env, type, pre_ctor, dtor))
   return (m_int)type->xid;
@@ -237,7 +236,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     const Type t = known_type(gwi->env, td, "builtin class extend");
     CHECK_OB(t)
     if(td->array)
-      SET_FLAG(gwi->env->class_def, ae_flag_typedef);
+      SET_FLAG(gwi->env->class_def, typedef);
     gwi->env->class_def->parent = t;
     gwi->env->class_def->nspc->offset = t->nspc->offset;
     if(t->nspc->vtable.ptr)
@@ -251,7 +250,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     emit_class_finish(gwi->emit, gwi->env->class_def->nspc);
     free_type_decl(td);
   } else {
-    SET_FLAG(td, ae_flag_typedef);
+    SET_FLAG(td, typedef);
     gwi->env->class_def->def->ext = td;
   }
   return 1;
@@ -326,7 +325,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
-  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
+  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag);
     const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
@@ -340,7 +339,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     return 1;
   }
   CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
-  SET_FLAG(v->var.value, ae_flag_builtin);
+  SET_FLAG(v->var.value, builtin);
   dl_var_release(v);
   return (m_int)v->var.value->offset;
 }
@@ -456,9 +455,9 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
     def = new_func_def(NULL, NULL, NULL, NULL, 0);
     const ID_List list = templater_def(&gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
-    SET_FLAG(def, ae_flag_template);
+    SET_FLAG(def, template);
   }
-  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, ae_flag_template)) {
+  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, template)) {
     Section* section = new_section_func_def(def);
     Class_Body body = new_class_body(section, NULL);
     gwi_body(gwi, body);
@@ -540,9 +539,9 @@ ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
 
   CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_fptr))
   if(gwi->env->class_def)
-    SET_FLAG(stmt->d.stmt_fptr.func->def, ae_flag_builtin);
+    SET_FLAG(stmt->d.stmt_fptr.func->def, builtin);
   else
-    SET_FLAG(stmt->d.stmt_fptr.func, ae_flag_builtin);
+    SET_FLAG(stmt->d.stmt_fptr.func, builtin);
   ADD_REF(stmt->d.stmt_fptr.type);
   free_stmt(stmt);
   return 1;
@@ -577,7 +576,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
   if(!t)
     ERR_B(0, "type '%s' unknown in union declaration.", type)
   if(isa(t, t_object) > 0)
-    SET_FLAG(exp->d.exp_decl.td, ae_flag_ref);
+    SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
   return 1;
 }
@@ -587,7 +586,7 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   stmt->d.stmt_union.flag = flag;
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
-  if(GET_FLAG((&stmt->d.stmt_union), ae_flag_member))
+  if(GET_FLAG((&stmt->d.stmt_union), member))
     gwi->env->class_def->nspc->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
@@ -619,7 +618,7 @@ ANN static void import_enum_end(DL_Enum* d, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&d->addr, i);
-    SET_FLAG(value, ae_flag_builtin);
+    SET_FLAG(value, builtin);
     value->d.ptr = (m_uint*)(addr ? addr : i);
   }
   d->t = NULL;

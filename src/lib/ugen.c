@@ -316,7 +316,7 @@ static GWION_IMPORT(global_ugens) {
   struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->n_in, NULL };
   add_ugen(gwi, &adc);
   ugen_connect(dac.ugen, hole.ugen);
-  SET_FLAG(t_ugen, ae_flag_abstract);
+  SET_FLAG(t_ugen, abstract);
   return 1;
 }
 

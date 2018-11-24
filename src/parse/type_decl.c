@@ -75,7 +75,7 @@ ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
 }
 
 ANN static Type prim_ref(const Type t, const Type_Decl* td) {
-  if(GET_FLAG(td, ae_flag_ref) && isa(t, t_object) < 0)
+  if(GET_FLAG(td, ref) && isa(t, t_object) < 0)
     ERR_O(td->xid->pos, "primitive types cannot be used as reference (@)...\n")
   return t;
 }

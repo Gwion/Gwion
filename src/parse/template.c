@@ -15,7 +15,7 @@ ANN static inline Type owner_type(const Type t) {
 
 ANEW ANN static Vector get_types(Type t) {
   const Vector v = new_vector();
-  do if(GET_FLAG(t, ae_flag_template))
+  do if(GET_FLAG(t, template))
     vector_add(v, (vtype)t->def->tmpl->list.list);
   while((t = owner_type(t)));
   return v;
@@ -139,8 +139,8 @@ extern ANN m_bool traverse_func_def(const Env, const Func_Def);
 extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
 ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
-  if(GET_FLAG(t, ae_flag_template)) {
-    if(GET_FLAG(t, ae_flag_ref))
+  if(GET_FLAG(t, template)) {
+    if(GET_FLAG(t, ref))
       return t;
     if(!type->types)
       ERR_O(type->xid->pos,
@@ -149,19 +149,19 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       ERR_O(type->xid->pos, "invalid template types number")
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
     const Class_Def a = template_class(env, t->def, type->types);
-    SET_FLAG(a, ae_flag_ref);
+    SET_FLAG(a, ref);
     if(a->type)
       POP_RET(a->type);
     CHECK_BO(scan0_class_def(env, a))
-    SET_FLAG(a->type, ae_flag_template | ae_flag_ref);
+    SET_FLAG(a->type, template | ae_flag_ref);
     a->type->owner = t->owner;
-    if(GET_FLAG(t, ae_flag_builtin))
-      SET_FLAG(a->type, ae_flag_builtin);
+    if(GET_FLAG(t, builtin))
+      SET_FLAG(a->type, builtin);
     CHECK_BO(scan1_class_def(env, a))
     nspc_pop_type(env->curr);
     if(t->nspc->dtor) {
       a->type->nspc->dtor = t->nspc->dtor;
-      SET_FLAG(a->type, ae_flag_dtor);
+      SET_FLAG(a->type, dtor);
       ADD_REF(t->nspc->dtor)
     }
     a->tmpl = new_tmpl_class(get_total_type_list(t), 0);

@@ -58,20 +58,20 @@ static OP_CHECK(opck_fptr_at) {
   if(!r_type && l_type)
     ERR_N(bin->self->pos, "can't assign member function to non member function pointer")
   else if(r_type && !l_type) {
-    if(!GET_FLAG(r_func, ae_flag_global))
+    if(!GET_FLAG(r_func, global))
       ERR_N(bin->self->pos, "can't assign non member function to member function pointer")
   } else if(r_type && isa(r_type, l_type) < 0)
       ERR_N(bin->self->pos, "can't assign member function to member function pointer"
             " of an other class")
-  if(GET_FLAG(r_func, ae_flag_member)) {
-    if(!GET_FLAG(l_func, ae_flag_member))
+  if(GET_FLAG(r_func, member)) {
+    if(!GET_FLAG(l_func, member))
       ERR_N(bin->self->pos, "can't assign static function to member function pointer")
-  } else if(GET_FLAG(l_func, ae_flag_member))
+  } else if(GET_FLAG(l_func, member))
       ERR_N(bin->self->pos, "can't assign member function to static function pointer")
   if(isa(r_fdef->ret_type, l_fdef->ret_type) < 0)
     ERR_N(bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
          r_fdef->ret_type->name, l_fdef->ret_type->name)
-  if(GET_FLAG(l_fdef, ae_flag_variadic) != GET_FLAG(r_fdef, ae_flag_variadic))
+  if(GET_FLAG(l_fdef, variadic) != GET_FLAG(r_fdef, variadic))
     ERR_N(bin->self->pos, "function must be of same argument kind.",
          r_fdef->ret_type->name, l_fdef->ret_type->name)
   if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
@@ -108,9 +108,9 @@ static OP_CHECK(opck_spork) {
 static OP_EMIT(opem_fptr_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Instr instr = emitter_add_instr(emit, assign_func);
-  if(GET_FLAG(bin->rhs->type->d.func, ae_flag_global))
+  if(GET_FLAG(bin->rhs->type->d.func, global))
     instr->m_val = SZ_INT;
-  else if(GET_FLAG(bin->rhs->type->d.func, ae_flag_member)) {
+  else if(GET_FLAG(bin->rhs->type->d.func, member)) {
     if(bin->rhs->exp_type != ae_exp_decl)
       instr->m_val2 = SZ_INT;
     instr->m_val = SZ_INT*2;

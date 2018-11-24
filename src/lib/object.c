@@ -72,11 +72,11 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
     const Vector v = scope_get(&t->nspc->value);
     for(m_uint i = 0; i < vector_size(v); i++) {
       const Value value = (Value)vector_at(v, i);
-      if(!GET_FLAG(value, ae_flag_static) && isa(value->type, t_object) > 0)
+      if(!GET_FLAG(value, static) && isa(value->type, t_object) > 0)
         release(*(M_Object*)(obj->data + value->offset), shred);
     }
     free_vector(v);
-    if(GET_FLAG(t, ae_flag_dtor)) {
+    if(GET_FLAG(t, dtor)) {
       if(t->nspc->dtor->native_func)
         ((f_xtor)t->nspc->dtor->native_func)(obj, shred);
       else {
@@ -128,7 +128,7 @@ static OP_CHECK(at_object) {
   if(opck_rassign(env, data) == t_null)
     return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.td, ae_flag_ref);
+    SET_FLAG(bin->rhs->d.exp_decl.td, ref);
   if(l != t_null && isa(l, r) < 0)
     ERR_N(bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name)
   bin->rhs->emit_var = 1;

@@ -54,7 +54,7 @@ OP_CHECK(opck_unary_meta) {
     unary->exp->exp_type =ae_exp_primary;
     unary->exp->d.exp_primary.primary_type = ae_primary_id;
     unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
     unary->exp->d.exp_primary.value->d.ptr = 0;
   }
 #endif
@@ -71,8 +71,8 @@ OP_CHECK(opck_unary) {
   unary->self->meta = ae_meta_value;
 #ifdef OPTIMIZE
 if(unary->exp->exp_type == ae_exp_primary &&
-    GET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop)) {
-    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    GET_FLAG(unary->exp->d.exp_primary.value, constprop)) {
+    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
     unary->exp->d.exp_primary.value->d.ptr = 0;
   return unary->exp->type;
 }
@@ -80,7 +80,7 @@ if(unary->exp->exp_type == ae_exp_primary &&
     unary->exp->exp_type = ae_exp_primary;
     unary->exp->d.exp_primary.primary_type = ae_primary_constprop;
     unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(unary->exp->d.exp_primary.value, ae_flag_constprop);
+    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
     unary->exp->d.exp_primary.value->d.ptr = 0;
   }
 #endif
@@ -96,8 +96,8 @@ OP_CHECK(opck_post) {
   post->self->meta = ae_meta_value;
 #ifdef OPTIMIZE
 if(post->exp->exp_type == ae_exp_primary &&
-    GET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop)) {
-    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    GET_FLAG(post->exp->d.exp_primary.value, constprop)) {
+    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
     post->exp->d.exp_primary.value->d.ptr = 0;
   return post->exp->type;
 }
@@ -105,14 +105,14 @@ if(post->exp->exp_type == ae_exp_primary &&
     post->exp->exp_type =ae_exp_primary;
     post->exp->d.exp_primary.primary_type = ae_primary_constprop;
     post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
     post->exp->d.exp_primary.value->d.ptr = 0;
 }
   if(post->exp->exp_type == ae_exp_constprop) {exit(2);
     post->exp->exp_type =ae_exp_primary;
     post->exp->d.exp_primary.primary_type = ae_primary_constprop;
     post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(post->exp->d.exp_primary.value, ae_flag_constprop);
+    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
     post->exp->d.exp_primary.value->d.ptr = 0;
 }
 #endif
@@ -122,9 +122,9 @@ if(post->exp->exp_type == ae_exp_primary &&
 ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  SET_FLAG(unary->td, ae_flag_ref);
+  SET_FLAG(unary->td, ref);
   const Type t = known_type(env, unary->td, "'new' expression");
-  UNSET_FLAG(unary->td, ae_flag_ref);
+  UNSET_FLAG(unary->td, ref);
   CHECK_OO(t)
   if(unary->td->array)
     CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
@@ -134,7 +134,7 @@ OP_CHECK(opck_new) {
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,
-    unary->td->array, GET_FLAG(unary->td, ae_flag_ref)))
+    unary->td->array, GET_FLAG(unary->td, ref)))
   CHECK_OB(emitter_add_instr(emit, GcAdd))
   return 1;
 }

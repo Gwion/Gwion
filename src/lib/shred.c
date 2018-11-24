@@ -86,7 +86,7 @@ describe_path_and_dir(_code, s->code->name)
 
 GWION_IMPORT(shred) {
   CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
-  SET_FLAG((t_shred), ae_flag_abstract);
+  SET_FLAG((t_shred), abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, NULL))
 
   gwi_item_ini(gwi, "int", "@me");

@@ -46,7 +46,7 @@ ANN void free_op_map(Map map) {
 }
 
 ANN static Type op_parent(const Env env, const Type t) {
-  if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
+  if(GET_FLAG(t, template) && GET_FLAG(t, ref)) {
     const Type type = typedef_base(t);
     const m_str post = strstr(type->name, "<");
     size_t len = strlen(type->name) - strlen(post);

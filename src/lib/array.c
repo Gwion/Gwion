@@ -186,7 +186,7 @@ static OP_CHECK(opck_array_cast) {
 
 GWION_IMPORT(array) {
   t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object);
-  SET_FLAG((t_array), ae_flag_abstract);
+  SET_FLAG((t_array), abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
   CHECK_BB(gwi_item_ini(gwi, "int", "@array"))

@@ -15,7 +15,7 @@ ANN static Value mk_class(const Type base) {
   const Value v = new_value(t, base->name);
   t->d.base_type = base;
   v->owner = base->owner;
-  SET_FLAG(v, ae_flag_const | ae_flag_checked);
+  SET_FLAG(v, const | ae_flag_checked);
   nspc_add_value(base->owner, insert_symbol(base->name), v);
   return v;
 }
@@ -25,7 +25,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
   const m_str name = s_name(stmt->xid);
   const Type t = new_type(t_fptr->xid, name, t_fptr);
-  t->owner = !(!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
+  t->owner = !(!env->class_def && GET_FLAG(stmt->td, global)) ?
     env->curr : env->global_nspc;
   t->nspc = new_nspc(name);
   t->flag = stmt->td->flag;
@@ -43,14 +43,14 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
-    const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, ae_flag_global)) ?
+    const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, global)) ?
       env->global_nspc : env->curr;
     nspc_add_type(nspc, stmt->xid, t);
     t->owner = nspc;
     stmt->type = t;
     t->flag = stmt->td->flag | ae_flag_checked;
     if(stmt->td->array && !stmt->td->array->exp)
-      SET_FLAG(t, ae_flag_empty);
+      SET_FLAG(t, empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
     const Class_Def def = new_class_def(flag, new_id_list(stmt->xid, stmt->td->xid->pos),
@@ -58,7 +58,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     CHECK_BB(scan0_class_def(env, def))
     stmt->type = def->type;
   }
-  SET_FLAG(stmt->type, ae_flag_typedef);
+  SET_FLAG(stmt->type, typedef);
   return 1;
 }
 
@@ -75,7 +75,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
-  const Nspc nspc = GET_FLAG(stmt, ae_flag_global) ? env->global_nspc : env->curr;
+  const Nspc nspc = GET_FLAG(stmt, global) ? env->global_nspc : env->curr;
   t->owner = nspc;
   stmt->t = t;
   if(stmt->xid) {
@@ -104,7 +104,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
   env_storage(env, &stmt->flag);
   if(stmt->xid) {
     CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos))
-    const Nspc nspc = !GET_FLAG(stmt, ae_flag_global) ?
+    const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     const Type t = union_type(nspc, stmt->type_xid ?: stmt->xid,
        !!stmt->type_xid);
@@ -112,13 +112,13 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
-    SET_FLAG(stmt->value, ae_flag_checked | stmt->flag);
-    if(env->class_def && !GET_FLAG(stmt, ae_flag_static))
-      SET_FLAG(stmt->value, ae_flag_member);
+    SET_FLAG(stmt->value, checked | stmt->flag);
+    if(env->class_def && !GET_FLAG(stmt, static))
+      SET_FLAG(stmt->value, member);
     if(!stmt->type_xid)
-      SET_FLAG(t, ae_flag_op);
+      SET_FLAG(t, op);
   } else if(stmt->type_xid) {
-    const Nspc nspc = !GET_FLAG(stmt, ae_flag_global) ?
+    const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     stmt->type = union_type(nspc, stmt->type_xid, 1);
   }
@@ -146,7 +146,7 @@ ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   CHECK_BB(env_access(env, class_def->flag))
   env_storage(env, &class_def->flag);
-  if(GET_FLAG(class_def, ae_flag_global)) {
+  if(GET_FLAG(class_def, global)) {
     vector_add(&env->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
@@ -162,17 +162,17 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) {
   const Type t = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
   t->owner = env->curr;
   t->nspc = new_nspc(t->name);
-  t->nspc->parent = GET_FLAG(class_def, ae_flag_global) ? env_nspc(env) : env->curr;
+  t->nspc->parent = GET_FLAG(class_def, global) ? env_nspc(env) : env->curr;
   t->def = class_def;
   t->flag = class_def->flag;
   if(!strstr(t->name, "<"))
     nspc_add_type(env->curr, class_def->name->xid, t);
   if(class_def->tmpl) {
-    SET_FLAG(t, ae_flag_template);
-    SET_FLAG(class_def, ae_flag_template);
+    SET_FLAG(t, template);
+    SET_FLAG(class_def, template);
   }
   if(class_def->ext && class_def->ext->array)
-    SET_FLAG(t, ae_flag_typedef);
+    SET_FLAG(t, typedef);
   return t;
 }
 
@@ -196,7 +196,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     env_pop(env, class_scope);
   }
   (void)mk_class(class_def->type);
-  if(GET_FLAG(class_def, ae_flag_global))
+  if(GET_FLAG(class_def, global))
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;
 }
