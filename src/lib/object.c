@@ -65,17 +65,17 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   vm_add_shred(shred->vm, sh);
   ++sh->me->ref;
 }
+
 __attribute__((hot))
 ANN void __release(const M_Object obj, const VM_Shred shred) {
   Type t = obj->type_ref;
-  while(t) {
-    const Vector v = scope_get(&t->nspc->value);
-    for(m_uint i = 0; i < vector_size(v); i++) {
-      const Value value = (Value)vector_at(v, i);
-      if(!GET_FLAG(value, static) && isa(value->type, t_object) > 0)
-        release(*(M_Object*)(obj->data + value->offset), shred);
+  do {
+    struct scope_iter iter = { &t->nspc->value, 0, 0 };\
+    Value v;
+    while(scope_iter(&iter, &v) > 0) {
+      if(!GET_FLAG(v, static) && isa(v->type, t_object) > 0)
+        release(*(M_Object*)(obj->data + v->offset), shred);
     }
-    free_vector(v);
     if(GET_FLAG(t, dtor)) {
       if(t->nspc->dtor->native_func)
         ((f_xtor)t->nspc->dtor->native_func)(obj, shred);
@@ -84,8 +84,7 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
         return;
       }
     }
-    t = t->parent;
-  }
+  } while((t = t->parent));
 }
 
 void free_object(const M_Object o) {

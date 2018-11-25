@@ -43,28 +43,25 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
 }
 
 ANN static void free_nspc_value(const Nspc a) {
-  const Vector v = scope_get(&a->value);
-  for(m_uint i = vector_size(v) + 1; --i;) {
-    const Value value = (Value)vector_at(v, i - 1);
-    if(isa(value->type, t_object) > 0  ||
-        (isa(value->type, t_union) > 0 &&
-          (GET_FLAG(value, static) ||GET_FLAG(value, global)))) {
-      nspc_release_object(a, value);
+  struct scope_iter iter = { &a->value, 0, 0 };
+  Value v;
+  while(scope_iter(&iter, &v) > 0) {
+    if(isa(v->type, t_object) > 0  ||
+        (isa(v->type, t_union) > 0 &&
+        (GET_FLAG(v, static) ||GET_FLAG(v, global)))) {
+      nspc_release_object(a, v);
     }
-    REM_REF(value);
+    REM_REF(v);
   }
-  free_vector(v);
   scope_release(&a->value);
 }
 
 #define describe_nspc_free(A, b) \
 ANN static void nspc_free_##b(Nspc n) {\
-  const Vector v = scope_get(&n->b);\
-  for(m_uint i = vector_size(v) + 1; --i;) {\
-    const A a = (A)vector_at(v, i - 1);\
+  struct scope_iter iter = { &n->b, 0, 0 };\
+  A a;\
+  while(scope_iter(&iter, &a) > 0) \
     REM_REF(a);\
-  }\
-  free_vector(v);\
   scope_release(&n->b);\
 }
 
