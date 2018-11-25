@@ -68,18 +68,8 @@ ANN static void nspc_free_##b(Nspc n) {\
   scope_release(&n->b);\
 }
 
-#define describe_nspc_free2(A, b)       \
-ANN static void nspc_free_##b(Nspc n) { \
-  Scope_Iter iter;                      \
-  scopeiter_ini(&iter, &n->b);          \
-  A a;                                  \
-  while(scopeiter_get(&iter, &a) > 0)   \
-    REM_REF(a);                         \
-  scope_release(&n->b);                 \
-}
-
-describe_nspc_free2(Func, func)
-describe_nspc_free2(Type, type)
+describe_nspc_free(Func, func)
+describe_nspc_free(Type, type)
 
 ANN void free_nspc(Nspc a) {
   free_nspc_value(a);
