@@ -158,19 +158,19 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
 
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
 
-#define describe_ret_nspc(name, type, exp) describe_stmt_func(scan1, name, type, exp)
-describe_ret_nspc(flow, Stmt_Flow, !(scan1_exp(env, stmt->cond) < 0 ||
+#define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
+describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(for, Stmt_For, !(scan1_stmt(env, stmt->c1) < 0 ||
+describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->c2) < 0 ||
     (stmt->c3 && scan1_exp(env, stmt->c3) < 0) ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(auto, Stmt_Auto, !(scan1_exp(env, stmt->exp) < 0 ||
+describe_ret_nspc(auto, Stmt_Auto,, !(scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(loop, Stmt_Loop, !(scan1_exp(env, stmt->cond) < 0 ||
+describe_ret_nspc(loop, Stmt_Loop,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(switch, Stmt_Switch, scan1_exp(env, stmt->val))
-describe_ret_nspc(if, Stmt_If, !(scan1_exp(env, stmt->cond) < 0 ||
+describe_ret_nspc(switch, Stmt_Switch,, scan1_exp(env, stmt->val))
+describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->if_body) < 0 ||
     (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 

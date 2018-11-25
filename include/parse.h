@@ -35,7 +35,7 @@ ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE       
   return ret;                                                                                     \
 }
 
-#define describe_stmt_func(prefix, name, type, exp) \
+#define describe_stmt_func(prefix, name, type, prolog, exp) \
 ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \
   RET_NSPC(exp) \
 }

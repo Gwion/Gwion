@@ -825,25 +825,25 @@ ANN static m_bool cond_type(const Exp e) {
   }
   ERR_B(e->pos, "conditional must be of type 'int'...")
 }
-#define stmt_func_xxx(name, type, exp) describe_stmt_func(check, name, type, exp)
-stmt_func_xxx(if, Stmt_If, !(!check_exp(env, stmt->cond) ||
+#define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
+stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
   check_flow(stmt->cond, "if") < 0   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
-stmt_func_xxx(for, Stmt_For, !(
+stmt_func_xxx(for, Stmt_For,, !(
   for_empty(stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
   check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(loop, Stmt_Loop, !(!check_exp(env, stmt->cond) ||
+stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(stmt->cond) < 0 ||
   check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(switch, Stmt_Switch, !(!check_exp(env, stmt->val) ||
+stmt_func_xxx(switch, Stmt_Switch, /* set switch */,!(!check_exp(env, stmt->val) ||
   cond_type(stmt->val) < 0 ||
   check_breaks(env, stmt->self, stmt->stmt) < 0) ? 1 : -1)
-stmt_func_xxx(auto, Stmt_Auto, do_stmt_auto(env, stmt))
+stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   if(!env->func)

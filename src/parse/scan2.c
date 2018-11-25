@@ -222,21 +222,20 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
 
 HANDLE_EXP_FUNC(scan2, m_bool, 1)
 
-#define scan2_stmt_func(name, type, exp) describe_stmt_func(scan2, name, type, exp)
-scan2_stmt_func(flow, Stmt_Flow, !(scan2_exp(env, stmt->cond) < 0 ||
+#define scan2_stmt_func(name, type, prolog, exp) describe_stmt_func(scan2, name, type, prolog, exp)
+scan2_stmt_func(flow, Stmt_Flow,, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-scan2_stmt_func(for, Stmt_For, !(scan2_stmt(env, stmt->c1) < 0 ||
+scan2_stmt_func(for, Stmt_For,, !(scan2_stmt(env, stmt->c1) < 0 ||
     scan2_stmt(env, stmt->c2) < 0 ||
     (stmt->c3 && scan2_exp(env, stmt->c3) < 0) ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-
-scan2_stmt_func(auto, Stmt_Auto, !(scan2_exp(env, stmt->exp) < 0 ||
+scan2_stmt_func(auto, Stmt_Auto,, !(scan2_exp(env, stmt->exp) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-scan2_stmt_func(loop, Stmt_Loop, !(scan2_exp(env, stmt->cond) < 0 ||
+scan2_stmt_func(loop, Stmt_Loop,, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-scan2_stmt_func(switch, Stmt_Switch, !(scan2_exp(env, stmt->val) < 0 ||
+scan2_stmt_func(switch, Stmt_Switch,, !(scan2_exp(env, stmt->val) < 0 ||
     scan2_stmt(env, stmt->stmt) < 0) ? 1 : -1)
-scan2_stmt_func(if, Stmt_If, !(scan2_exp(env, stmt->cond) < 0 ||
+scan2_stmt_func(if, Stmt_If,, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->if_body) < 0 ||
     (stmt->else_body && scan2_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 
