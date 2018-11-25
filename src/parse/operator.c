@@ -171,18 +171,14 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   return 1;
 }
 
-ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static m_bool  handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr instr = emitter_add_instr(emit, RegPushImm);
-    instr->m_val = SZ_INT;
-    CHECK_BB(emit_exp_call1(emit, mo->func))
-    return 1;
+    *(Func*)instr->ptr = mo->func;
+    return emit_exp_call1(emit, mo->func);
   }
-  if(mo->instr) {
-    emitter_add_instr(emit, mo->instr);
-    return 1;
-  }
-  ERR_B(0, "Trying to call non emitted operator.")
+  emitter_add_instr(emit, mo->instr);
+  return 1;
 }
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {
@@ -212,7 +208,7 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       if(mo) {
         if(mo->em)
           return mo->em(emit, (void*)opi->data);
-        return  handle_instr(emit, mo);
+        return handle_instr(emit, mo);
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));

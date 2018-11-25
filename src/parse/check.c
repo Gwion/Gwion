@@ -1057,6 +1057,16 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
+ANN static void operator_func(Func f) {
+  const Arg_List a = f->def->arg_list;
+  const m_bool is_unary = GET_FLAG(f->def, unary);
+  const Type l = is_unary ? NULL : a->type;
+  const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
+  const Operator op = name2op(s_name(f->def->name));
+  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .data=(m_uint)f };
+  operator_set_func(&opi);
+}
+
 ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
   m_bool ret = 1;
@@ -1081,6 +1091,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       f->stack_depth += SZ_INT;
     func->code->stack_depth = f->stack_depth;
   }
+  else if(GET_FLAG(f, op))
+    operator_func(func);
   nspc_pop_value(env->curr);
   --env->class_scope;
   env->func = former;

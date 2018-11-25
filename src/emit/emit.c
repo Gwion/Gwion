@@ -1540,15 +1540,6 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBU
     Instr instr = (Instr)vector_back(func->code->instr);
     instr->execute = DTOR_EOC;
     ADD_REF(func->code)
-  } else if(GET_FLAG(func->def, op)) {
-    const Arg_List a = func->def->arg_list;
-    const m_bool is_unary = GET_FLAG(func->def, unary);
-    const Type l = is_unary ? NULL : a->type;
-    const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
-    struct Op_Import opi = { name2op(s_name(func->def->name)), l, r, NULL,
-      NULL, NULL, 0 };
-    opi.data = (m_uint)func;
-    operator_set_func(&opi);
   }
 }
 
