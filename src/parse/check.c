@@ -154,9 +154,12 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
-  if(!v || !GET_FLAG(v, checked))
-    ERR_O(primary->self->pos,
-          "variable %s not legit at this point.", s_name(primary->d.var))
+  if(!v || !GET_FLAG(v, checked)) {
+    err_msg(primary->self->pos,
+          "variable %s not legit at this point.", s_name(primary->d.var));
+    did_you_mean(s_name(primary->d.var));
+    return NULL;
+  }
   if(env->func && !GET_FLAG(v, const) && v->owner)
     UNSET_FLAG(env->func, pure);
   SET_FLAG(v, used);
@@ -868,9 +871,9 @@ describe_check_stmt_stack(breaks, break)
 ANN Value case_value(const Exp exp);
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   const Type t = check_exp(env, stmt->val);
-  if(!t || isa(t, t_int) < 0)
-    ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'",
-          t ? t->name : "unknown")
+  CHECK_OB(t);
+  if(isa(t, t_int) < 0)
+    ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'", t->name)
   const Value v = case_value(stmt->val);
   if(!v)
     return 1;
