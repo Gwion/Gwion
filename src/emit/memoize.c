@@ -44,7 +44,7 @@ Memoize memoize_ini(const Func f, const enum Kind kind) {
   vector_init(&m->v);
   m->ret_sz = f->def->ret_type->size;
   m->kind = kind;
-  if(!GET_FLAG(f, ae_flag_member))
+  if(!GET_FLAG(f, member))
     m->arg_sz = f->def->stack_depth;
   else {
     m->member = SZ_INT;

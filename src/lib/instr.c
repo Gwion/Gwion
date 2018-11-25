@@ -165,12 +165,24 @@ INSTR(AllocWord4) { GWDEBUG_EXE
 }
 
 /* branching */
+INSTR(SwitchIni) {
+  const Vector v = (Vector)instr->m_val;
+  const m_uint size = vector_size(v);;
+  const Map m = (Map)instr->m_val2;
+  POP_REG(shred, SZ_INT * (size - 1));
+  for(m_uint i = 0; i < size; ++i)
+    map_set(m, *(vtype*)REG((i-1) * SZ_INT), vector_at(v, i));
+  *(Map*)REG(-SZ_INT) = m;
+}
+
 INSTR(BranchSwitch) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  const Map map = (Map)instr->m_val2;
-  shred->pc = map_get(map, (vtype)*(m_int*)REG(0));
+  const m_uint offset = *(m_uint*)instr->ptr;
+  POP_REG(shred, SZ_INT + offset);
+  const Map map = !offset ?(Map)instr->m_val2 : *(Map*)REG(0);
+  shred->pc = map_get(map, (vtype)*(m_int*)REG(offset));
   if(!shred->pc)
     shred->pc = instr->m_val;
+//  if(offset)free_map(map);
 }
 
 #define branch(name, type, sz, op)      \
@@ -234,7 +246,7 @@ INSTR(SporkFunc) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(SZ_INT);
   const VM_Shred sh = init_spork_shred(shred, code);
   const Func func = *(Func*)REG(0);
-  const m_uint need = GET_FLAG(code, _NEED_THIS_) ? SZ_INT : 0;
+  const m_uint need = GET_FLAG(code, member) ? SZ_INT : 0;
   shred->reg -= instr->m_val + need;
   if(instr->m_val) {
     for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
@@ -254,10 +266,8 @@ INSTR(SporkExp) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT*2);
   const VM_Code code = *(VM_Code*)REG(SZ_INT);
   const VM_Shred sh = init_spork_shred(shred, code);
-  if(GET_FLAG(code, _NEED_THIS_))
-    POP_REG(shred, SZ_INT);
-  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
-    *(m_uint*)(sh->reg + i + SZ_INT) = *(m_uint*)MEM(i);
+  for(m_uint i = 0; i < *(m_uint*)instr->ptr; i+= SZ_INT)
+    *(m_uint*)(sh->mem + i) = *(m_uint*)MEM(i);
   push_me(shred, sh);
 }
 
@@ -284,7 +294,7 @@ ANN static inline void shred_func_need_this(const VM_Shred shred) {
 }
 
 ANN static inline void shred_func_finish(const VM_Shred shred) {
-  if(GET_FLAG(shred->code, _NEED_THIS_))
+  if(GET_FLAG(shred->code, member))
     POP_MEM(shred, SZ_INT);
   if(overflow_(shred))
     Except(shred, "StackOverflow");
@@ -292,9 +302,9 @@ ANN static inline void shred_func_finish(const VM_Shred shred) {
 
 INSTR(FuncPtr) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
-  if(GET_FLAG(code, NATIVE_NOT))
+  if(!GET_FLAG(code, builtin))
     FuncUsr(shred, instr);
-  else if(GET_FLAG(code, _NEED_THIS_))
+  else if(GET_FLAG(code, member))
     FuncMember(shred, instr);
   else
     FuncStatic(shred, instr);
@@ -306,7 +316,7 @@ INSTR(FuncUsr) { GWDEBUG_EXE
   m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
-    if(GET_FLAG(shred->code, _NEED_THIS_)) {
+    if(GET_FLAG(shred->code, member)) {
       shred_func_need_this(shred);
       stack_depth -= SZ_INT;
     }
@@ -361,7 +371,7 @@ INSTR(FuncMember) { GWDEBUG_EXE
   copy_member_args(shred, code);
   if(overflow_(shred))
     Except(shred, "StackOverflow");
-  if(GET_FLAG(code, NATIVE_CTOR)) {
+  if(GET_FLAG(code, ctor)) {
     const f_xtor f = (f_xtor)code->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
@@ -386,7 +396,7 @@ INSTR(PreCtor) { GWDEBUG_EXE
   *(VM_Code*)REG(SZ_INT) = pre_ctor;
   *(m_uint*)REG(SZ_INT*2) = instr->m_val2;
   PUSH_REG(shred, SZ_INT*3);
-  if(!GET_FLAG(pre_ctor, NATIVE_NOT))
+  if(GET_FLAG(pre_ctor, builtin))
     FuncMember(shred, NULL);
   else
     FuncUsr(shred, NULL);

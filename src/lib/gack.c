@@ -15,7 +15,7 @@
   const m_str name = is_func ? strdup("@function") : strdup(type->name);
   gw_out("(%s) ", name);
   free(name);
-  if(GET_FLAG(type, ae_flag_typedef)) {
+  if(GET_FLAG(type, typedef)) {
     gw_out(" aka ");
     print_type(type->parent);
   }

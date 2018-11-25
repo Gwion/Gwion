@@ -65,14 +65,14 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 }
 
 ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
-  vm->gwion->emit->filename = "[builtin]";
+  vm->gwion->env->name = "[builtin]";
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.vm = vm;
   gwi.emit = vm->gwion->emit;
   gwi.env = vm->gwion->env;
   CHECK_BB(import_core_libs(&gwi))
-  vm->gwion->emit->filename = "[imported]";
+  vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)

@@ -129,17 +129,14 @@ describe_vec3_float(Sub)
 describe_vec3_float(Mul)
 describe_vec3_float(Div)
 
-#define describe_vec3_assign(name, offset1, offset2) \
-static INSTR(Vec3##name##Assign) { GWDEBUG_EXE      \
-  POP_REG(shred, SZ_INT);                            \
-  m_vec3* r = *(m_vec3**)REG(offset1);             \
-  r->x = *(m_float*)REG(offset2-SZ_VEC3);            \
-  r->y = *(m_float*)REG(offset2-SZ_COMPLEX);         \
-  r->z = *(m_float*)REG(offset2-SZ_FLOAT);           \
-  *(m_vec3*)REG(0) = *r;                             \
+static INSTR(Vec3RAssign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT);
+  m_vec3* r = *(m_vec3**)REG(0);
+  r->x = *(m_float*)REG(-SZ_VEC3);
+  r->y = *(m_float*)REG(-SZ_COMPLEX);
+  r->z = *(m_float*)REG(-SZ_FLOAT);
+  *(m_vec3*)REG(0) = *r;
 }
-describe_vec3_assign(, -SZ_VEC3, SZ_INT)
-describe_vec3_assign(R, 0, )
 
 static void vecx_base(const Gwi gwi) {
 	gwi_item_ini(gwi, "float", "x");
@@ -194,8 +191,6 @@ GWION_IMPORT(vec3) {
   CHECK_BB(gwi_oper_end(gwi, op_sub, Vec3Sub))
   CHECK_BB(gwi_oper_end(gwi, op_mul, Vec3Mul))
   CHECK_BB(gwi_oper_end(gwi, op_div, Vec3Div))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign, Vec3Assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, Vec3RAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
@@ -280,18 +275,15 @@ describe_vec4_float(Sub)
 describe_vec4_float(Mul)
 describe_vec4_float(Div)
 
-#define describe_vec4_assign(name, offset1, offset2) \
-static INSTR(Vec4##name##Assign) { GWDEBUG_EXE      \
-  POP_REG(shred, SZ_INT);                            \
-  m_vec4* r = *(m_vec4**)REG(offset1);             \
-  r->x = *(m_float*)REG(offset2-SZ_VEC4);            \
-  r->y = *(m_float*)REG(offset2-SZ_VEC3);            \
-  r->z = *(m_float*)REG(offset2-SZ_COMPLEX);         \
-  r->w = *(m_float*)REG(offset2-SZ_FLOAT);           \
-  *(m_vec4*)REG(0) = *r;                             \
+static INSTR(Vec4RAssign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT);
+  m_vec4* r = *(m_vec4**)REG(0);
+  r->x = *(m_float*)REG(-SZ_VEC4);
+  r->y = *(m_float*)REG(-SZ_VEC3);
+  r->z = *(m_float*)REG(-SZ_COMPLEX);
+  r->w = *(m_float*)REG(-SZ_FLOAT);
+  *(m_vec4*)REG(0) = *r;
 }
-describe_vec4_assign(, -SZ_VEC4, SZ_INT)
-describe_vec4_assign(R, 0, )
 
 GWION_IMPORT(vec4) {
   CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
@@ -317,8 +309,6 @@ GWION_IMPORT(vec4) {
   CHECK_BB(gwi_oper_end(gwi, op_sub, Vec4Sub))
   CHECK_BB(gwi_oper_end(gwi, op_mul, Vec4Mul))
   CHECK_BB(gwi_oper_end(gwi, op_div, Vec4Div))
-  CHECK_BB(gwi_oper_add(gwi, opck_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_assign, Vec4Assign))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_chuck, Vec4RAssign))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4", "float", "Vec4"))
@@ -330,6 +320,5 @@ GWION_IMPORT(vec4) {
   CHECK_BB(gwi_oper_end(gwi, op_add, FloatAddVec4))
   CHECK_BB(gwi_oper_end(gwi, op_sub, FloatSubVec4))
   CHECK_BB(gwi_oper_end(gwi, op_mul, FloatMulVec4))
-  CHECK_BB(gwi_oper_end(gwi, op_div, FloatDivVec4))
-    return 1;
+  return (m_bool)gwi_oper_end(gwi, op_div, FloatDivVec4);
 }

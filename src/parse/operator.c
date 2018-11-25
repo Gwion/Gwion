@@ -46,12 +46,13 @@ ANN void free_op_map(Map map) {
 }
 
 ANN static Type op_parent(const Env env, const Type t) {
-  if(GET_FLAG(t, ae_flag_template) && GET_FLAG(t, ae_flag_ref)) {
-    const m_str post = strstr(t->name, "<");
-    size_t len = strlen(t->name) -strlen(post);
+  if(GET_FLAG(t, template) && GET_FLAG(t, ref)) {
+    const Type type = typedef_base(t);
+    const m_str post = strstr(type->name, "<");
+    size_t len = strlen(type->name) - strlen(post);
     char c[len + 1];
     for(size_t i = 0; i < len; i++)
-      c[i] = t->name[i];
+      c[i] = type->name[i];
     c[len] = 0;
     return nspc_lookup_type1(env->curr, insert_symbol(c));
   }
@@ -165,6 +166,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
   const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
+  CHECK_OB(mo)
   mo->func = (Func)opi->data;
   return 1;
 }

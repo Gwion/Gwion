@@ -2,7 +2,6 @@ polar b;
 polar a;
 a.mod;
 a.phase;
-b = a;
 a;
 a + b;
 a - b;

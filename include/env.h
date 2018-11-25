@@ -4,12 +4,18 @@
 #define SCOPE(a) { ++env->class_scope; a ;--env->class_scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
+struct Switch_ {
+  m_uint   default_case_index;
+  struct Vector_ exp;
+  Vector vec;
+  Map cases;
+};
+
 typedef struct Env_       * Env;
 struct Env_ {
   m_str name;
   Nspc curr;
   Nspc global_nspc;
-//  Nspc user_nspc;
   m_uint    class_scope;
   struct Context_ *context;
   Type      class_def;
@@ -20,6 +26,7 @@ struct Env_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
+  struct Switch_* sw;
 };
 
 ANEW Env new_env();
@@ -43,4 +50,5 @@ ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
 ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types);
+ANN2(1,2) Symbol func_symbol(const Env env, const m_str, const m_str, const m_uint);
 #endif

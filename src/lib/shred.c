@@ -42,7 +42,7 @@ static MFUN(shred_yield) {
 }
 #include "shreduler_private.h"
 static SFUN(vm_shred_from_id) {
-  const m_int index =  *(m_int*)MEM(SZ_INT);
+  const m_int index =  *(m_int*)MEM(0);
   const VM_Shred s = (VM_Shred)vector_at(&shred->vm->shreduler->shreds, (vtype)index);
   if(s) {
     *(M_Object*)RETURN = s->me;
@@ -86,7 +86,6 @@ describe_path_and_dir(_code, s->code->name)
 
 GWION_IMPORT(shred) {
   CHECK_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
-  SET_FLAG((t_shred), ae_flag_abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_shred, NULL, NULL))
 
   gwi_item_ini(gwi, "int", "@me");
@@ -131,5 +130,9 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_func_end(gwi, 0))
 
   CHECK_BB(gwi_class_end(gwi))
+
+  gwi_item_ini(gwi, "Shred", "me");
+  gwi_item_end(gwi, ae_flag_const, NULL);
+  SET_FLAG((t_shred), abstract);
   return 1;
 }

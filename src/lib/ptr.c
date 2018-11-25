@@ -13,48 +13,17 @@
 #include "emit.h"
 #include "operator.h"
 
-ANN m_str get_type_name(const m_str s, const m_uint index) {
-  m_str name = strstr(s, "<");
-  m_uint i = 0;
-  m_uint lvl = 0;
-  m_uint n = 1;
-  const size_t len = name ? strlen(name) : 0;
-  const size_t slen = strlen(s);
-  const size_t tlen = slen -len + 1;
-  char c[slen];
-
-  if(!name)
-    return index ? NULL : s_name(insert_symbol(s));
-  if(index == 0) {
-    snprintf(c, tlen, "%s", s);
-    return s_name(insert_symbol(c));
-  }
-  while(*name++) {
-    if(*name == '<')
-      lvl++;
-    else if(*name == '>' && !lvl--)
-      break;
-    if(*name == ',' && !lvl) {
-      ++name;
-      ++n;
-    }
-    if(n == index)
-      c[i++] = *name;
-  }
-  c[i] = '\0';
-  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
-}
-
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(!strcmp(bin->lhs->type->name, get_type_name(bin->rhs->type->name, 1))) {
-    if(bin->lhs->meta != ae_meta_var) {
-      err_msg(0, "left side operand is constant");
-      return t_null;
-    }
+Type t = bin->lhs->type;
+do {
+  if(!strcmp(t->name, get_type_name(bin->rhs->type->name, 1))) {
+    if(bin->lhs->meta != ae_meta_var)
+      ERR_N(0, "left side operand is constant")
     bin->lhs->emit_var = 1;
     return bin->lhs->type;
   }
+} while((t = t->parent));
   return t_null;
 }
 
@@ -74,10 +43,8 @@ static OP_CHECK(opck_implicit_ptr) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = (Exp)imp->e;
   if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
-    if(e->meta == ae_meta_value) {
-      err_msg(0, "can't cast constant to Ptr");
-      return t_null;
-    }
+    if(e->meta == ae_meta_value)
+      ERR_N(0, "can't cast constant to Ptr");
     e->cast_to = imp->t;
     e->emit_var = 1;
     return imp->t;

@@ -1,2 +1,2 @@
 // [contains] in prefix of dur expression
- NULL::samp;
+ null::samp;

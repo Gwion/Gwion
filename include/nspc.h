@@ -24,12 +24,12 @@ extern ANN void nspc_commit(const Nspc);
 
 #define describe_lookup0(A, b)                                                 \
 static inline ANN A nspc_lookup_##b##0(const Nspc n, const Symbol s){          \
-  return (A)scope_lookup0(&n->b, s);                                           \
+  return (A)scope_lookup0(&n->b, (vtype)s);                                    \
 }
 
 #define describe_lookup1(A, b)                                                 \
 static inline ANN A nspc_lookup_##b##1(const Nspc n, const Symbol s) {         \
-  const A a = (A)scope_lookup1(&n->b, s);                                      \
+  const A a = (A)scope_lookup1(&n->b, (vtype)s);                               \
   if(!a && n->parent)                                                          \
     return nspc_lookup_##b##1(n->parent, s);                                   \
   return a;                                                                    \
@@ -37,7 +37,7 @@ static inline ANN A nspc_lookup_##b##1(const Nspc n, const Symbol s) {         \
 
 #define describe_lookup2(A, b)                                                 \
 static inline ANN A nspc_lookup_##b##2(const Nspc n, const Symbol s) {         \
-  return (A)scope_lookup2(&n->b, s);                                           \
+  return (A)scope_lookup2(&n->b, (vtype)s);                                    \
 }
 
 #define describe_lookups(A, b)                                                 \
@@ -47,7 +47,7 @@ describe_lookup2(A, b)
 
 #define describe_nspc_func(A, b)                                               \
 static inline ANN void nspc_add_##b(const Nspc n, const Symbol s, const A a) { \
-  scope_add(&n->b, s, (vtype)a);                                               \
+  scope_add(&n->b, (vtype)s, (vtype)a);                                        \
 }                                                                              \
 ANN static inline void nspc_push_##b(const Nspc n) { scope_push(&n->b); }      \
 ANN inline static void nspc_pop_##b (const Nspc n) { scope_pop (&n->b); }      \

@@ -1,9 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <dlfcn.h>
-#include <dirent.h>
-#include <inttypes.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -50,78 +45,68 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
   return 1;
 }
 
-ANN static inline void check_exp_decl_member(const Nspc nspc, const Value v) { GWDEBUG_EXE
-  v->offset = nspc->offset;
-  nspc->offset += v->type->size;
+#define describe_check_decl(a, b)                                 \
+ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
+  SET_FLAG(v, a);                                                 \
+  v->offset = nspc->b;                                            \
+  nspc->b += v->type->size;                                       \
 }
-
-ANN static void check_exp_decl_static(const Env env , const Value v) {
-  const Nspc nspc = env->curr;
-  SET_FLAG(v, ae_flag_static);
-  v->offset = nspc->class_data_size;
-  nspc->class_data_size += v->type->size;
-}
-
-ANN static void check_exp_decl_valid(const Env env, const Value v, const Symbol xid) {
-  SET_FLAG(v, ae_flag_checked);
-  if(!env->class_def || env->class_scope)
-    nspc_add_value(env->curr, xid, v);
-}
+describe_check_decl(member, offset)
+describe_check_decl(static, class_data_size)
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
   const Func  func = v->type->d.func;
   const Type type = func->value_ref->owner_class;
-
   if(!env->class_def) {
-    if(!type || GET_FLAG(func, ae_flag_global)) {
-      ADD_REF(var->value->type)
+    if(!type || GET_FLAG(func, global))
       return 1;
-    }
     ERR_B(var->pos, "can't use non public typedef at global scope.")
   }
   if(isa(type, env->class_def) < 0)
     ERR_B(var->pos, "can't use static variables for member function.")
-  if(GET_FLAG(func, ae_flag_member)) {
-    if(GET_FLAG(v, ae_flag_static))
+  if(GET_FLAG(func, member)) {
+    if(GET_FLAG(v, static))
       ERR_B(var->pos, "can't use static variables for member function.")
-    if(!GET_FLAG(v, ae_flag_member))
+    if(!GET_FLAG(v, member))
       ERR_B(var->pos, "can't use member variables for static function.")
-  } else if(GET_FLAG(v, ae_flag_member))
-  ERR_B(var->pos, "can't use member variables for static function.")
-  ADD_REF(var->value->type)
+  } else if(GET_FLAG(v, member))
+    ERR_B(var->pos, "can't use member variables for static function.")
   return 1;
 }
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-  if(GET_FLAG(decl->type , ae_flag_template))
-    CHECK_BO(traverse_template(env, decl->type->def))
+  if(GET_FLAG(decl->type , template)) {
+    const Type t = typedef_base(decl->type);
+    CHECK_BO(traverse_template(env, t->def))
+  }
   m_uint class_scope;
-  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  const m_bool global = GET_FLAG(decl->td, global);
   if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
-    if(!env->class_def && !GET_FLAG(list->self->value, ae_flag_builtin) &&
-        !GET_FLAG(list->self->value, ae_flag_used)) {
-      err_msg(list->self->pos, "unused variable '%s'", 
+    if(!env->class_def && !GET_FLAG(list->self->value, builtin) &&
+        !GET_FLAG(list->self->value, used)) {
+      err_msg(list->self->pos, "unused variable '%s'",
           list->self->value->name);
-      continue;
+//      continue;
     }
-    SET_FLAG(list->self->value, ae_flag_used);
     const Var_Decl var = list->self;
-    const Value value = var->value;
-    if(isa(decl->type, t_fptr) > 0)
-      CHECK_BO(check_fptr_decl(env, var))
+    const Value v = var->value;
     if(env->class_def && !env->class_scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(GET_FLAG(value, ae_flag_member))
-      check_exp_decl_member(env->curr, value);
-    else if(GET_FLAG(decl->td, ae_flag_static))
-      check_exp_decl_static(env, value);
-    check_exp_decl_valid(env, value, var->xid);
+    if(GET_FLAG(decl->td, member))
+      decl_member(env->curr, v);
+    else if(GET_FLAG(decl->td, static))
+      decl_static(env->curr, v);
+    if(isa(decl->type, t_fptr) > 0)
+      CHECK_BO(check_fptr_decl(env, var))
+SET_FLAG(v, used);
+  SET_FLAG(v, checked);
+  nspc_add_value(env->curr, var->xid, v);
   } while((list = list->next));
   if(global)
     env_pop(env, class_scope);
@@ -159,7 +144,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   const Value value = nspc_lookup_value1(env->curr, primary->d.var);
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
-    if(v && SAFE_FLAG(env->func, ae_flag_static) && GET_FLAG(v, ae_flag_member))
+    if(v && SAFE_FLAG(env->func, static) && GET_FLAG(v, member))
       ERR_O(primary->self->pos,
             "non-static member '%s' used from static function.", s_name(primary->d.var))
     return v;
@@ -169,14 +154,17 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
-  if(!v || !GET_FLAG(v, ae_flag_checked))
-    ERR_O(primary->self->pos,
-          "variable %s not legit at this point.", s_name(primary->d.var))
-  if(env->func && !GET_FLAG(v, ae_flag_const) && v->owner)
-    UNSET_FLAG(env->func, ae_flag_pure);
-  SET_FLAG(v, ae_flag_used);
+  if(!v || !GET_FLAG(v, checked)) {
+    err_msg(primary->self->pos,
+          "variable %s not legit at this point.", s_name(primary->d.var));
+    did_you_mean(s_name(primary->d.var));
+    return NULL;
+  }
+  if(env->func && !GET_FLAG(v, const) && v->owner)
+    UNSET_FLAG(env->func, pure);
+  SET_FLAG(v, used);
   ((Exp_Primary*)primary)->value = v;
-  if(GET_FLAG(v, ae_flag_const))
+  if(GET_FLAG(v, const) || !strcmp(s_name(primary->d.var), "maybe"))
     primary->self->meta = ae_meta_value;
 //  OPTIMIZE_PRIM_CONST(primary, v->d.ptr)
   return v->type;
@@ -185,53 +173,18 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
 ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   if(!env->class_def)
     ERR_O(primary->self->pos, "keyword 'this' can be used only inside class definition...")
-  if(env->func && !GET_FLAG(env->func, ae_flag_member))
+  if(env->func && !GET_FLAG(env->func, member))
     ERR_O(primary->self->pos, "keyword 'this' cannot be used inside static functions...")
   primary->self->meta = ae_meta_value;
   return env->class_def;
-}
-
-ANN static inline Type check_exp_prim_me(const Exp_Primary* primary) {
-  primary->self->meta = ae_meta_value;
-  return t_shred;
-}
-
-ANN static inline Type check_exp_prim_now(const Exp_Primary* primary) {
-  primary->self->meta = ae_meta_var;
-  return t_now;
-}
-
-ANN static Type prim_id2(const Env env, const Exp_Primary* primary) {
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "true") || !strcmp(str, "false") || !strcmp(str, "maybe")) {
-    primary->self->meta = ae_meta_value;
-    return t_int;
-  } else
-    return prim_id_non_res(env, primary);
-}
-
-ANN static Type prim_id1(const Env env, const Exp_Primary* primary) {
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "NULL") || !strcmp(str, "null")) {
-    primary->self->meta = ae_meta_value;
-    return t_null;
-  } else if(!strcmp(str, "__func__")) {
-    primary->self->meta = ae_meta_value;
-    return t_string;
-  } else
-    return prim_id2(env, primary);
 }
 
 ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "me"))
-    return check_exp_prim_me(primary);
-  else if(!strcmp(str, "now"))
-    return check_exp_prim_now(primary);
   else
-    return prim_id1(env, primary);
+    return prim_id_non_res(env, primary);
 }
 
 ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
@@ -286,7 +239,7 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
 
 ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
   if(env->func)
-    UNSET_FLAG(env->func, ae_flag_pure);
+    UNSET_FLAG(env->func, pure);
   Exp e = primary->d.exp;
   do if(e->exp_type == ae_exp_decl)
     ERR_O(e->pos, "cannot use <<< >>> on variable declarations...\n")
@@ -373,8 +326,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->type) == array_base(t);
   if(!match && implicit) {
     const struct Implicit imp = { e, t };
-    struct Op_Import opi = { op_impl, e->type, t, NULL,
-      NULL, NULL, (m_uint)&imp };
+    struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, NULL, .data=(m_uint)&imp };
     return op_check(env, &opi) ? 1 : -1;
   }
   return match ? 1 : -1;
@@ -385,10 +337,9 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   do {
     Exp e = args;
     Arg_List e1 = func->def->arg_list;
-
     while(e) {
       if(!e1) {
-        if(GET_FLAG(func->def, ae_flag_variadic))
+        if(GET_FLAG(func->def, variadic))
           return func;
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
@@ -423,72 +374,61 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   return 1;
 }
 
-ANN static Value template_get_ready(const Env env, const Value v, const m_str tmpl,
-    const m_uint len, const m_uint i) {
-  char c[len + 2];
-  snprintf(c, len + 2, "%s<%s>@%" INT_F "@%s", v->name, tmpl, i, env->curr->name);
-  return v->owner_class ? find_value(v->owner_class, insert_symbol(c)) :
-      nspc_lookup_value1(env->curr, insert_symbol(c));
+ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl,
+    const m_uint i) {
+  const Symbol sym = func_symbol(env, v->name, tmpl, i);
+  return v->owner_class ? find_value(v->owner_class, sym) :
+      nspc_lookup_value1(env->curr, sym);
 }
 
-ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp_call) {
-  const Exp args = exp_call->args;
-  const Type_List types = exp_call->tmpl->types;
-  Func m_func = exp_call->m_func;
-  const m_uint digit = num_digit(v->offset + 1);
-  const m_uint len = strlen(v->name) + strlen(env->curr->name);
+ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+  const Exp args = exp->args;
+  const Type_List types = exp->tmpl->types;
+  Func m_func = exp->m_func;
   const m_str tmpl_name = tl2str(env, types);
-  const m_uint tlen = strlen(tmpl_name);
   m_uint class_scope;
   env_push(env, v->owner_class, v->owner, &class_scope);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
-    Value value = template_get_ready(env, v, tmpl_name, len + tlen + digit + 3, i);
+    Value value = template_get_ready(env, v, tmpl_name, i);
     if(value) {
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
-        CHECK_BO(check_call(env, exp_call))
+        CHECK_BO(check_call(env, exp))
         return env->func;
       }
       base = def = value->d.func_ref->def;
     } else {
-      char name[len + digit + 13];
-      snprintf(name, len + digit + 13, "%s<template>@%" INT_F "@%s", v->name, i, env->curr->name);
-      if(!(value = v->owner_class ? find_value(v->owner_class, insert_symbol(name)) :
-            nspc_lookup_value1(env->curr, insert_symbol(name))))
-      continue;
+      if(!(value = template_get_ready(env, v, "template", i)))
+        continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
-      UNSET_FLAG(base, ae_flag_template);
-      SET_FLAG(def, ae_flag_template);
+      SET_FLAG(def, template);
     }
     if(traverse_func_template(env, def, types) > 0) {
       nspc_pop_type(env->curr);
-      if(check_call(env, exp_call) > 0) {
+      if(check_call(env, exp) > 0) {
         const Func next = def->func->next;
         def->func->next = NULL;
         m_func = find_func_match(env, def->func, args);
         def->func->next = next;
         if(m_func) {
-          free(tmpl_name);
-          env_pop(env, class_scope);
-          SET_FLAG(base, ae_flag_template);
-          SET_FLAG(m_func, ae_flag_checked | ae_flag_template);
-          return m_func;
+          SET_FLAG(m_func, checked | ae_flag_template);
+          goto end;
         }
       }
     }
-    SET_FLAG(base, ae_flag_template);
-    if(def->func) // still leaks
-      def->func->def = NULL;
+    SET_FLAG(base, template);
     free_func_def(def);
   }
+  err_msg(exp->self->pos, "arguments do not match for template call");
+end:
   free(tmpl_name);
   env_pop(env, class_scope);
-  ERR_O(exp_call->self->pos, "arguments do not match for template call")
+  return m_func;
 }
 
 ANN static void print_current_args(Exp e) {
@@ -531,21 +471,6 @@ ANN2(1) static void* function_alternative(const Type f, Exp args){
   return NULL;
 }
 
-ANN static Value get_template_value(const Env env, const Exp exp_call) {
-  Value v = NULL;
-  if(exp_call->exp_type == ae_exp_primary)
-    v = nspc_lookup_value1(env->curr, exp_call->d.exp_primary.d.var);
-  else if(exp_call->exp_type == ae_exp_dot)
-    v = find_value(exp_call->d.exp_dot.t_base, exp_call->d.exp_dot.xid);
-  if(v)
-    UNSET_FLAG(v->d.func_ref->def, ae_flag_template);
-  else
-    ERR_O(exp_call->pos,
-      "unhandled expression type '%" UINT_F "\' in template call.",
-      exp_call->exp_type)
-  return v;
-}
-
 ANN static m_uint get_type_number(ID_List list) {
   m_uint type_number = 0;
   do ++type_number;
@@ -570,11 +495,11 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
   return NULL;
 }
 
-ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_call,
+ANN static Type check_exp_call_template(const Env env, const Exp restrict call,
     const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
   ID_List list;
-  const Value value = get_template_value(env, exp_call);
+  const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
   const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
 
@@ -599,9 +524,9 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_ca
     list = list->next;
   }
   if(args_number < type_number)
-    ERR_O(exp_call->pos, "not able to guess types for template call.")
+    ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { tl[0], NULL };
-  const Exp_Call tmp_func = { exp_call, args, NULL, &tmpl, NULL };
+  const Exp_Call tmp_func = { call, args, NULL, &tmpl, NULL };
   Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
@@ -610,40 +535,39 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict exp_ca
   return func ? func->def->ret_type : NULL;
 }
 
-ANN static m_bool check_exp_call1_check(const Env env, const Exp exp_call, Value* ptr) { GWDEBUG_EXE
-  if(!(exp_call->type = check_exp(env, exp_call)))
-    ERR_B(exp_call->pos, "function call using a non-existing function")
-  if(isa(exp_call->type, t_function) < 0)
-    ERR_B(exp_call->pos, "function call using a non-function value")
-  if(exp_call->exp_type == ae_exp_primary && exp_call->d.exp_primary.value &&
-    !GET_FLAG(exp_call->d.exp_primary.value, ae_flag_const))
-      *ptr = exp_call->d.exp_primary.value;
+ANN static m_bool check_exp_call1_check(const Env env, const Exp exp, Value* ptr) {
+  if(!check_exp(env, exp))
+    ERR_B(exp->pos, "function call using a non-existing function")
+  if(isa(exp->type, t_function) < 0)
+    ERR_B(exp->pos, "function call using a non-function value")
+  if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.value &&
+    !GET_FLAG(exp->d.exp_primary.value, const))
+      *ptr = exp->d.exp_primary.value;
   return 1;
 }
 
-ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_call,
+ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
     const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
   Value ptr = NULL;
-  CHECK_BO(check_exp_call1_check(env, exp_call, &ptr))
-  if(exp_call->type->d.func) {
-    const Value value = exp_call->type->d.func->value_ref;
-    if(GET_FLAG(exp_call->type->d.func, ae_flag_ref))
+  CHECK_BO(check_exp_call1_check(env, call, &ptr))
+  if(call->type->d.func) {
+    const Value value = call->type->d.func->value_ref;
+    if(GET_FLAG(call->type->d.func, ref))
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
     CHECK_OO(check_exp(env, args))
-  if(!exp_call->type->d.func)
-    return check_exp_call_template(env, exp_call, args, base);
-  Func func = find_func_match(env, exp_call->type->d.func, args);
+  if(!call->type->d.func)
+    return check_exp_call_template(env, call, args, base);
+  Func func = find_func_match(env, call->type->d.func, args);
   if(!func)
-    return function_alternative(exp_call->type, args);
+    return function_alternative(call->type, args);
   if(ptr) {
     const Func f = mp_alloc(Func_Def);
     memcpy(f, func, sizeof(struct Func_));
     f->value_ref = ptr;
-    SET_FLAG(ptr, ae_flag_func); // there might be a better place
-    if(ptr->d.func_ref)
-      f->next = ptr->d.func_ref;
+    SET_FLAG(ptr, func); // there might be a better place
+    f->next = ptr->d.func_ref;
     func = ptr->d.func_ref = f;
   }
   if(base->exp_type == ae_exp_call)
@@ -654,9 +578,8 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp exp_call,
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
-  struct Op_Import opi = { bin->op,
-    check_exp(env, bin->lhs), check_exp(env, bin->rhs), NULL,
-    NULL, NULL, (uintptr_t)bin };
+  struct Op_Import opi = { .op=bin->op, .lhs=check_exp(env, bin->lhs),
+    .rhs=check_exp(env, bin->rhs), .data=(uintptr_t)bin };
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
   const Type op_ret = op_check(env, &opi);
@@ -670,14 +593,12 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EX
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
   CHECK_OO((cast->self->type = known_type(env, cast->td, "cast expression")))
-  struct Op_Import opi = { op_cast, t, cast->self->type, NULL,
-    NULL, NULL, (uintptr_t)cast };
+  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=cast->self->type, .data=(uintptr_t)cast };
   OP_RET(cast, "cast")
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
-  struct Op_Import opi = { post->op, check_exp(env, post->exp), NULL, NULL,
-    NULL, NULL, (uintptr_t)post };
+  struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post };
   CHECK_OO(opi.lhs)
   OP_RET(post, "postfix");
 }
@@ -696,26 +617,24 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
   return unit;
 }
 
-ANN static Type check_exp_call(const Env env, Exp_Call* call) { GWDEBUG_EXE
-  if(call->tmpl) {
-    CHECK_OO(check_exp(env, call->func)) // → puts this up ?
-    const Type t = actual_type(call->func->type);
+ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
+  if(exp->tmpl) {
+    CHECK_OO(check_exp(env, exp->func)) // → puts this up ?
+    const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
-      ERR_O(call->self->pos, " template call of non-existant function.")
-    if(!GET_FLAG(v, ae_flag_func))
-      ERR_O(call->self->pos, "template call of non-function value.")
+      ERR_O(exp->self->pos, " template call of non-existant function.")
+    if(!GET_FLAG(v, func))
+      ERR_O(exp->self->pos, "template call of non-function value.")
     if(!v->d.func_ref->def->tmpl)
-      ERR_O(call->self->pos, "template call of non-template function.")
-    const Func ret = find_template_match(env, v, call);
-    CHECK_OO((call->m_func = ret))
+      ERR_O(exp->self->pos, "template call of non-template function.")
+    const Func ret = find_template_match(env, v, exp);
+    CHECK_OO((exp->m_func = ret))
     return ret->def->ret_type;
   }
-  return check_exp_call1(env, call->func, call->args, call->self);
+  return check_exp_call1(env, exp->func, exp->args, exp->self);
 }
 
-//static
-// Move me ?
 ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
   ++env->class_scope;
   nspc_push_value(env->curr);
@@ -726,8 +645,8 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
 }
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
-  struct Op_Import opi = { unary->op, NULL, unary->exp ? check_exp(env, unary->exp) : NULL,
-    NULL, NULL, NULL, (uintptr_t)unary };
+  struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
+    .data=(uintptr_t)unary };
   if(unary->exp && !opi.rhs)return NULL;
   OP_RET(unary, "unary")
 }
@@ -767,17 +686,17 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     ERR_O(member->base->pos,
           "class '%s' has no member '%s'", the_base->name, str)
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
-    if(GET_FLAG(value, ae_flag_private))
+    if(GET_FLAG(value, private))
       ERR_O(member->self->pos,
           "can't access private '%s' outside of class...", value->name)
-    else if(GET_FLAG(value, ae_flag_protect))
+    else if(GET_FLAG(value, protect))
       member->self->meta = ae_meta_protect;
   }
-  if(base_static && GET_FLAG(value, ae_flag_member))
+  if(base_static && GET_FLAG(value, member))
     ERR_O(member->self->pos,
           "cannot access member '%s.%s' without object instance...",
           the_base->name, str)
-  if(GET_FLAG(value, ae_flag_const) || GET_FLAG(value, ae_flag_enum))
+  if(GET_FLAG(value, const) || GET_FLAG(value, enum))
     member->self->meta = ae_meta_value;
   return value->type;
 }
@@ -795,15 +714,10 @@ static const _type_func exp_func[] = {
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
-  do {CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-  if(env->func) {
-// check fptr ?
-    if(isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, ae_flag_pure))
-      UNSET_FLAG(env->func, ae_flag_pure);
-//    else 
-//    if(!v->owner_class && isa(v->type, t_object) > 0)
-//      UNSET_FLAG(env->func, ae_flag_pure);
-    }
+  do {
+    CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
+    if(env->func && isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, pure))
+      UNSET_FLAG(env->func, pure);
   } while((curr = curr->next));
   return exp->type;
 }
@@ -813,9 +727,7 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     ID_List list = stmt->list;
     do {
       const Value v = nspc_lookup_value0(env->curr, list->xid);
-      SET_FLAG(v, ae_flag_static);
-      v->offset = env->class_def->nspc->class_data_size;
-      env->class_def->nspc->class_data_size += SZ_INT;
+      decl_static(env->curr, v);
     } while((list = list->next));
   }
   return 1;
@@ -863,9 +775,10 @@ ANN static inline m_bool for_empty(const Stmt_For stmt) {
 
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
   Type t = check_exp(env, stmt->exp);
+  CHECK_OB(t)
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
-  if(GET_FLAG(t, ae_flag_typedef))
+  if(GET_FLAG(t, typedef))
     t = t->parent;
   if(!t || !ptr || isa(t, t_array) < 0)
     ERR_B(stmt->self->pos, "type '%s' is not array.\n"
@@ -892,12 +805,12 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
       td.array = &array;
     }
     ptr = type_decl_resolve(env, &td);
-    if(!GET_FLAG(ptr, ae_flag_checked))
+    if(!GET_FLAG(ptr, checked))
       check_class_def(env, ptr->def);
   }
   t = depth ? array_type(ptr, depth) : ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
-  SET_FLAG(stmt->v, ae_flag_checked);
+  SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_breaks(env, stmt->self, stmt->body);
 }
@@ -919,9 +832,9 @@ stmt_func_xxx(if, Stmt_If, !(!check_exp(env, stmt->cond) ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For, !(
   for_empty(stmt) < 0 ||
+  check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
   check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
-  check_stmt(env, stmt->c1) < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop, !(!check_exp(env, stmt->cond) ||
@@ -946,26 +859,28 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
   return 1;
 }
 
-ANN static m_bool check_stmt_continue(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  if(!vector_size(&env->conts))
-    ERR_B(stmt->pos, "'continue' found outside of for/while/until...")
-  return 1;
+#define describe_check_stmt_stack(stack, name)                                     \
+ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) { GWDEBUG_EXE \
+  if(!vector_size(&env->stack))                                                    \
+    ERR_B(stmt->pos, "'"#name"' found outside of for/while/until...")             \
+  return 1;                                                                        \
 }
+describe_check_stmt_stack(conts,  continue)
+describe_check_stmt_stack(breaks, break)
 
-ANN static m_bool check_stmt_break(const Env env, const Stmt stmt) { GWDEBUG_EXE
-  if(!vector_size(&env->breaks))
-    ERR_B(stmt->pos, "'break' found outside of for/while/until...")
-  return 1;
-}
-
+ANN Value case_value(const Exp exp);
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
-  if(stmt->val->exp_type  != ae_exp_primary &&
-      stmt->val->exp_type != ae_exp_dot)
-    ERR_B(stmt->self->pos, "unhandled expression type '%i'", stmt->val->exp_type)
   const Type t = check_exp(env, stmt->val);
-  if(!t || isa(t, t_int) < 0)
-    ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'",
-          t ? t->name : "unknown")
+  CHECK_OB(t);
+  if(isa(t, t_int) < 0)
+    ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'", t->name)
+  const Value v = case_value(stmt->val);
+  if(!v)
+    return 1;
+  if(!GET_FLAG(v, const))
+    ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
+    if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
+      vector_add(&env->sw->exp, (vtype)stmt->val);
   return 1;
 }
 
@@ -991,39 +906,29 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
 }
 
 ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
-  Decl_List l = stmt->l;
-  m_uint class_scope;
-  const m_bool global = GET_FLAG(stmt, ae_flag_global);
-
   if(stmt->xid) {
     if(env->class_def) {
-      if(!GET_FLAG(stmt, ae_flag_static))
-        check_exp_decl_member(env->curr, stmt->value);
+      if(!GET_FLAG(stmt, static))
+        decl_member(env->curr, stmt->value);
       else
-        check_exp_decl_static(env, stmt->value);
+        decl_static(env->curr, stmt->value);
     }
-    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  } else if(stmt->type_xid)
-    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
-  else if(env->class_def)  {
-      if(!GET_FLAG(stmt, ae_flag_static))
-        stmt->o = env->class_def->nspc->offset;
-      else {
-        env->class_def->nspc->class_data_size += SZ_INT;
-        env->class_def->nspc->offset += SZ_INT;
-      }
-  } else if(global)
-    env_push(env, NULL, env->global_nspc, &class_scope);
-
+  } else if(env->class_def)  {
+    if(!GET_FLAG(stmt, static))
+      stmt->o = env->class_def->nspc->offset;
+    else
+      decl_static(env->curr, stmt->value);
+  }
+  const m_uint scope = union_push(env, stmt);
+  Decl_List l = stmt->l;
   do {
     CHECK_OB(check_exp(env, l->self))
-    if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ae_flag_ref))
+    if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ref))
       ERR_B(l->self->pos, "In union, Objects must be declared as reference (use '@')")
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
   } while((l = l->next));
-  if(stmt->xid || stmt->type_xid || global)
-    env_pop(env, class_scope);
+  union_pop(env, stmt, scope);
   return 1;
 }
 
@@ -1051,23 +956,17 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
-  const m_str c_name  = f->func->value_ref->owner_class->name;
-  const m_str p_name = parent->value_ref->owner_class->name;
-  const m_str f_name = s_name(f->name);
-  if(GET_FLAG(parent->def, ae_flag_static) || GET_FLAG(f, ae_flag_static)) {
+  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
+    const m_str c_name  = f->func->value_ref->owner_class->name;
+    const m_str p_name = parent->value_ref->owner_class->name;
+    const m_str f_name = s_name(f->name);
     ERR_B(f->td->xid->pos,
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
-          GET_FLAG(f, ae_flag_static) ? c_name : p_name, f_name)
+          GET_FLAG(f, static) ? c_name : p_name, f_name)
   }
-  if(isa(f->ret_type, parent->def->ret_type) <  0) {
-    ERR_B(f->td->xid->pos,
-          "function signatures differ in return type...\n"
-          "\tfunction '%s.%s' matches '%s.%s' but cannot override...",
-          c_name, f_name, p_name, f_name)
-  }
-  return 1;
+  return isa(f->ret_type, parent->def->ret_type);
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
@@ -1095,7 +994,7 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-  if(GET_FLAG(func, ae_flag_member)) {
+  if(GET_FLAG(func, member)) {
     if(!env->curr->vtable.ptr)
       vector_init(&env->curr->vtable);
     func->vt_index = vector_size(&env->curr->vtable);
@@ -1109,36 +1008,28 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
     if(isa(v->type, t_object) > 0 || isa(v->type, t_function) > 0)
-      UNSET_FLAG(env->func, ae_flag_pure);
+      UNSET_FLAG(env->func, pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
-    SET_FLAG(v, ae_flag_checked);
+    SET_FLAG(v, checked);
     nspc_add_value(env->curr, decl->xid, v);
   } while((arg_list = arg_list->next));
   return 1;
 }
 
-ANN static m_bool check_func_overload_inner(const Env env, const Func_Def def,
-  const m_str name, const m_uint j) {
-  sprintf(name, "%s@%" INT_F "@%s", s_name(def->name), j, env->curr->name);
-  const Func f2 = nspc_lookup_func2(env->curr, insert_symbol(name));
-  if(f2 && compat_func(def, f2->def) > 0)
-    ERR_B(f2->def->td->xid->pos,
-        "global function '%s' already defined for those arguments", s_name(def->name))
-  return 1;
+ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
+  const Symbol sym = func_symbol(env, s_name(def->name), NULL, i);
+  return nspc_lookup_func2(env->curr, sym);
 }
 
-ANN static m_bool check_func_overload(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
   const Value v = f->func->value_ref;
-  if(!f->tmpl || !f->tmpl->base) {
-    char name[strlen(s_name(f->name)) + strlen(env->curr->name) +
-                                      num_digit(v->offset) + 3];
-    for(m_uint i = 0; i <= v->offset; ++i) {
-      sprintf(name, "%s@%" INT_F "@%s", s_name(f->name), i, env->curr->name);
-      const Func f1 = nspc_lookup_func2(env->curr, insert_symbol(name));
-      for(m_uint j = 1; j <= v->offset; ++j) {
-        if(i != j && f1)
-          CHECK_BB(check_func_overload_inner(env, f1->def, name, j))
-      }
+  for(m_uint i = 0; i <= v->offset; ++i) {
+    const Func f1 = get_overload(env, f, i);
+    for(m_uint j = i + 1; f1 && j <= v->offset; ++j) {
+      const Func f2 = get_overload(env, f, j);
+      if(f2 && compat_func(f1->def, f2->def) > 0)
+        ERR_B(f2->def->td->xid->pos, "global function '%s' already defined"
+          " for those arguments", s_name(f->name))
     }
   }
   return 1;
@@ -1161,7 +1052,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
 
 ANN static Value set_variadic(const Env env) {
   const Value variadic = new_value(t_vararg, "vararg");
-  SET_FLAG(variadic, ae_flag_checked);
+  SET_FLAG(variadic, checked);
   nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
   return variadic;
 }
@@ -1169,7 +1060,6 @@ ANN static Value set_variadic(const Env env) {
 ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
   m_bool ret = 1;
-
   if(tmpl_list_base(f->tmpl))
     return 1;
   CHECK_BB(check_func_def_override(env, f))
@@ -1181,14 +1071,13 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_push_value(env->curr);
   if(f->arg_list)
     ret = check_func_args(env, f->arg_list);
-  const Value variadic = GET_FLAG(f, ae_flag_variadic) ? set_variadic(env) : NULL;
-  if(!GET_FLAG(f, ae_flag_builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    ret = err_msg(f->td->xid->pos,
-                  "...in function '%s'", s_name(f->name));
+  const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
+  if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
+    ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
-  if(GET_FLAG(f, ae_flag_builtin)) {
-    if(GET_FLAG(func, ae_flag_member | ae_flag_ref))
+  if(GET_FLAG(f, builtin)) {
+    if(GET_FLAG(func, member) && GET_FLAG(func, ref))
       f->stack_depth += SZ_INT;
     func->code->stack_depth = f->stack_depth;
   }
@@ -1203,13 +1092,13 @@ DECL_SECTION_FUNC(check)
 ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
-    if(!GET_FLAG(class_def->type, ae_flag_check) && class_def->tmpl)
+    if(!GET_FLAG(class_def->type, check) && class_def->tmpl)
       REM_REF(class_def->type->parent->nspc);
   }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?
       array_base(class_def->type->parent) : class_def->type->parent;
-    if(!GET_FLAG(t, ae_flag_checked)) {
+    if(!GET_FLAG(t, checked)) {
       if(class_def->tmpl)
         CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
       CHECK_BB(traverse_template(env, t->def))
@@ -1220,23 +1109,23 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(isa(class_def->type->parent, t_object) < 0)
     ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
             class_def->type->parent->name)
-  if(!GET_FLAG(class_def->type->parent, ae_flag_checked)) {
-    if(GET_FLAG(class_def->ext, ae_flag_typedef)) // ??????
+  if(!GET_FLAG(class_def->type->parent, checked)) {
+    if(GET_FLAG(class_def->ext, typedef)) // ??????
       CHECK_BB(check_class_def(env, class_def->type->parent->def))
     else
       ERR_B(class_def->ext->xid->pos, "cannot extend incomplete type '%s'\n"
             "\t...(note: the parent's declaration must preceed child's)",
             class_def->type->parent->name)
   }
-  if(GET_FLAG(class_def->type->parent, ae_flag_typedef))
-    SET_FLAG(class_def->type, ae_flag_typedef);
+  if(GET_FLAG(class_def->type->parent, typedef))
+    SET_FLAG(class_def->type, typedef);
   return 1;
 }
 
 ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  Class_Body body = class_def->body;
   m_uint class_scope;
   env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  Class_Body body = class_def->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));
   env_pop(env, class_scope);
@@ -1263,7 +1152,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     CHECK_BB(check_class_body(env, class_def))
   if(!the_class->p && the_class->nspc->offset)
     the_class->p = mp_ini((uint32_t)the_class->nspc->offset);
-  SET_FLAG(the_class, ae_flag_checked | ae_flag_check);
+  SET_FLAG(the_class, checked | ae_flag_check);
   return 1;
 }
 

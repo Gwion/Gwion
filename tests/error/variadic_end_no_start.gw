@@ -4,4 +4,4 @@ fun void test(int i, ...) {
 //	vararg.start;
 }
 
-test(1, 2.3, NULL);
+test(1, 2.3, null);

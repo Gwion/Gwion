@@ -11,12 +11,14 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   type->xid    = xid;
   type->name   = name;
   type->parent = parent;
+  if(type->parent)
+    type->size = parent->size;
   INIT_OO(type, e_type_obj);
   return type;
 }
 
 ANN void free_type(Type a) {
-  if(GET_FLAG(a, ae_flag_template))
+  if(GET_FLAG(a, template))
     free_class_def(a->def);
   if(a->nspc)
     REM_REF(a->nspc);
@@ -52,9 +54,14 @@ ANN t find_##name(const Type type, const Symbol xid) {         \
 describe_find(value, Value)
 describe_find(func,  Func)
 
-ANN Type array_base(Type t) {
-  while(GET_FLAG(t, ae_flag_typedef))
+ANN Type typedef_base(Type t) {
+  while(GET_FLAG(t, typedef))
     t = t->parent;
+  return t;
+}
+
+ANN Type array_base(Type type) {
+  const Type t = typedef_base(type);
   return t->d.base_type;
 }
 
@@ -62,7 +69,6 @@ ANN Type array_type(const Type base, const m_uint depth) {
   m_uint i = depth + 1;
   size_t len = strlen(base->name);
   char name[len + 2* depth + 1];
-
   strcpy(name, base->name);
   while(--i) {
     strcpy(name+len, "[]");
@@ -79,20 +85,57 @@ ANN Type array_type(const Type base, const m_uint depth) {
   t->d.base_type = base;
   t->nspc = t_array->nspc;
   ADD_REF(t->nspc);
-  SET_FLAG(t, ae_flag_checked);
+  SET_FLAG(t, checked);
   t->owner = base->owner;
   nspc_add_type(base->owner, sym, t);
   return t;
 }
 
+__attribute__((returns_nonnull))
+ANN Type template_parent(const Type type) {
+  const m_str name = get_type_name(type->name, 0);
+  return nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
+}
+
 ANN m_bool type_ref(Type t) {
   do {
-    if(GET_FLAG(t, ae_flag_empty))
+    if(GET_FLAG(t, empty))
       return 1;
-    if(GET_FLAG(t, ae_flag_typedef) && t->def)
+    if(GET_FLAG(t, typedef) && t->def)
       if(t->def->ext && t->def->ext->array && !t->def->ext->array->exp)
         return 1;
   } while((t = t->parent));
   return 0;
 }
 
+ANN m_str get_type_name(const m_str s, const m_uint index) {
+  m_str name = strstr(s, "<");
+  m_uint i = 0;
+  m_uint lvl = 0;
+  m_uint n = 1;
+  const size_t len = name ? strlen(name) : 0;
+  const size_t slen = strlen(s);
+  const size_t tlen = slen -len + 1;
+  char c[slen];
+
+  if(!name)
+    return index ? NULL : s_name(insert_symbol(s));
+  if(index == 0) {
+    snprintf(c, tlen, "%s", s);
+    return s_name(insert_symbol(c));
+  }
+  while(*name++) {
+    if(*name == '<')
+      lvl++;
+    else if(*name == '>' && !lvl--)
+      break;
+    if(*name == ',' && !lvl) {
+      ++name;
+      ++n;
+    }
+    if(n == index)
+      c[i++] = *name;
+  }
+  c[i] = '\0';
+  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
+}

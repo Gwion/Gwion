@@ -33,18 +33,23 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   CHECK_OO(t)
   if(!t->size)
     ERR_O(decl->self->pos, "cannot declare variables of size '0' (i.e. 'void')...")
-  if(GET_FLAG(t, ae_flag_private) && t->owner != env->curr)
+  if(GET_FLAG(t, private) && t->owner != env->curr)
     ERR_O(decl->self->pos, "can't use private type %s", t->name)
-  if(GET_FLAG(t, ae_flag_protect) &&
+  if(GET_FLAG(t, protect) &&
     (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
-  if(!GET_FLAG(decl->td, ae_flag_ref) && t == env->class_def && !env->class_scope)
-      ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
-  if(GET_FLAG(decl->td, ae_flag_private) && !env->class_def)
+  if(env->class_def) {
+    if(!env->class_scope) {
+      if(!env->func && !GET_FLAG(decl->td, static))
+        SET_FLAG(decl->td, member);
+      if(!GET_FLAG(decl->td, ref) && t == env->class_def)
+        ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
+    }
+    if(GET_FLAG(decl->td, global) && env->class_def)
+      UNSET_FLAG(decl->td, global);
+  } else if(GET_FLAG(decl->td, private))
       ERR_O(decl->self->pos, "must declare private variables at class scope...")
-  if(GET_FLAG(decl->td, ae_flag_global) && env->class_def)
-     UNSET_FLAG(decl->td, ae_flag_global);
-  if(GET_FLAG(t, ae_flag_template))
+  if(GET_FLAG(t, template))
     scan1_exp_decl_template(t, decl);
   return t;
 }
@@ -53,50 +58,41 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(env_access(env, decl->td->flag))
   env_storage(env, &decl->td->flag);
   Var_Decl_List list = decl->list;
-  Type t = scan1_exp_decl_type(env, decl);
-  const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, ae_flag_template);
+  const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, template);
   m_uint class_scope;
-  CHECK_OB(t)
-  if(decl->type && !env->class_scope &&
-    !(is_tmpl_class && GET_FLAG(env->class_def, ae_flag_builtin)))
-    t = decl->type;
-  else
-    ((Exp_Decl*)decl)->type = t;
-  const m_bool global = GET_FLAG(decl->td, ae_flag_global);
+  ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, decl);
+  CHECK_OB(decl->type)
+  const m_bool global = GET_FLAG(decl->td, global);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   if(global)
     env_push(env, NULL, env->global_nspc, &class_scope);
   do {
-    const Var_Decl v = list->self;
-    const Value value = nspc_lookup_value0(env->curr, v->xid);
-    if(isres(v->xid) > 0)
-      ERR_B(v->pos, "\t... in variable declaration", s_name(v->xid))
+    Type t;
+    const Var_Decl var = list->self;
+    const Value value = nspc_lookup_value0(env->curr, var->xid);
+    if(isres(var->xid) > 0)
+      ERR_B(var->pos, "\t... in variable declaration", s_name(var->xid))
     if(value && (!is_tmpl_class ||
-        (is_tmpl_class && !GET_FLAG(env->class_def, ae_flag_scan1))))
-      ERR_B(v->pos, "variable %s has already been defined in the same scope...",
-              s_name(v->xid))
-    if(!v->array)
+        (is_tmpl_class && !GET_FLAG(env->class_def, scan1))))
+      ERR_B(var->pos, "variable %s has already been defined in the same scope...",
+              s_name(var->xid))
+    if(!var->array)
       t = decl->type;
     else {
-      if(v->array->exp)
-        CHECK_BB(scan1_exp(env, v->array->exp))
-      t = array_type(decl->type, v->array->depth);
+      if(var->array->exp)
+        CHECK_BB(scan1_exp(env, var->array->exp))
+      t = array_type(decl->type, var->array->depth);
     }
-    v->value = value ? value : new_value(t, s_name(v->xid));
-    nspc_add_value(nspc, v->xid, v->value);
-    v->value->flag = decl->td->flag;
-    if(v->array && !v->array->exp)
-      SET_FLAG(v->value, ae_flag_ref);
-    if(!env->func && !env->class_scope) {
-      if(env->class_def) {
-        if(!GET_FLAG(decl->td, ae_flag_static))
-          SET_FLAG(v->value, ae_flag_member);
-      } else
-        SET_FLAG(v->value, ae_flag_global);
-    };
-    v->value->d.ptr = v->addr;
-    v->value->owner = !env->func ? env->curr : NULL;
-    v->value->owner_class = env->class_scope ? NULL : env->class_def;
+    var->value = value ? value : new_value(t, s_name(var->xid));
+    nspc_add_value(nspc, var->xid, var->value);
+    var->value->flag = decl->td->flag;
+    if(var->array && !var->array->exp)
+      SET_FLAG(var->value, ref);
+    if(!env->func && !env->class_scope && !env->class_def)
+      SET_FLAG(var->value, global);
+    var->value->d.ptr = var->addr;
+    var->value->owner = !env->func ? env->curr : NULL;
+    var->value->owner_class = env->class_scope ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -126,10 +122,9 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) { G
 
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
   CHECK_BB(scan1_exp(env, post->exp))
-  if(post->exp->meta != ae_meta_var)
-    ERR_B(post->exp->pos, "post operator '%s' cannot be used"
-          " on non-mutable data-type...", op2str(post->op))
-  return 1;
+  return post->exp->meta == ae_meta_var ? 1 :
+    err_msg(post->exp->pos, "post operator '%s' cannot be used"
+          " on non-mutable data-type...", op2str(post->op));
 }
 
 ANN static inline m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
@@ -201,11 +196,12 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     const Value v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
-      SET_FLAG(v, ae_flag_static);
-      if(GET_FLAG(stmt, ae_flag_private))
-       SET_FLAG(v, ae_flag_private);
+      v->owner = env->curr;
+      SET_FLAG(v, static);
+      if(GET_FLAG(stmt, private))
+        SET_FLAG(v, private);
     }
-    SET_FLAG(v, ae_flag_const | ae_flag_enum | ae_flag_checked);
+    SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(stmt->t->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
   } while((list = list->next));
@@ -242,23 +238,17 @@ ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
-  m_uint class_scope;
-  const m_bool global = GET_FLAG(stmt, ae_flag_global);
-
-  if(stmt->xid) {
-    UNSET_FLAG(stmt, ae_flag_private);
-    env_push(env, stmt->value->type, stmt->value->type->nspc, &class_scope);
-  } else if(stmt->type_xid) {
-    UNSET_FLAG(stmt, ae_flag_private);
-    env_push(env, stmt->type, stmt->type->nspc, &class_scope);
-  } else if(global)
-    env_push(env, NULL, env->global_nspc, &class_scope);
+  const m_uint scope = union_push(env, stmt);
+  if(stmt->xid)
+    UNSET_FLAG(stmt, private);
+  else if(stmt->type_xid)
+    UNSET_FLAG(stmt, private);
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
     Var_Decl_List list = decl.list;
-    SET_FLAG(decl.td, ae_flag_checked | stmt->flag);
-    if(GET_FLAG(stmt, ae_flag_static))
-      SET_FLAG(decl.td, ae_flag_static);
+    SET_FLAG(decl.td, checked | stmt->flag);
+    if(GET_FLAG(stmt, static))
+      SET_FLAG(decl.td, static);
     do {
       const Var_Decl var_decl = list->self;
       if(var_decl->array)
@@ -266,8 +256,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
-  if(stmt->xid || stmt->type_xid || global)
-    env_pop(env, class_scope);
+  union_pop(env, stmt, scope);
   return 1;
 }
 
@@ -320,15 +309,15 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
     ++count;
     list = list->next;
   }
-  if(count > (GET_FLAG(f, ae_flag_unary) ? 1 : 2) || !count)
+  if(count > (GET_FLAG(f, unary) ? 1 : 2) || !count)
     ERR_B(f->td->xid->pos, "operators can only have one or two arguments")
   return 1;
 }
 
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(GET_FLAG(f, ae_flag_dtor) && !env->class_def)
+  if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  else if(GET_FLAG(f, ae_flag_op))
+  else if(GET_FLAG(f, op))
     CHECK_BB(scan1_func_def_op(f))
   return 1;
 }
@@ -345,8 +334,10 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   CHECK_BB(scan1_func_def_type(env, f))
   if(f->arg_list)
     CHECK_BB(scan1_func_def_args(env, f->arg_list))
-  if(!GET_FLAG(f, ae_flag_builtin))
+  if(!GET_FLAG(f, builtin))
     CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
+  if(GET_FLAG(f, op) && env->class_def)
+    SET_FLAG(f, static);
   env->func = former;
   --env->class_scope;
   return 1;
@@ -361,9 +352,9 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
     else
       ERR_B(class_def->ext->xid->pos, "can't use empty []'s in class extend")
   }
-  const Type parent = class_def->type->parent = known_type(env, class_def->ext, "child class definition");
+  const Type parent = class_def->type->parent = known_type(env, class_def->ext, "class definition");
   CHECK_OB(parent)
-  if(!GET_FLAG(parent, ae_flag_scan1) && parent->def)
+  if(!GET_FLAG(parent, scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
     ERR_B(class_def->ext->xid->pos, "can't use ref type in class extend")
@@ -387,7 +378,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     CHECK_BB(scan1_class_parent(env, class_def))
   if(class_def->body)
     CHECK_BB(scan1_class_body(env, class_def))
-  SET_FLAG(class_def->type, ae_flag_scan1);
+  SET_FLAG(class_def->type, scan1);
   return 1;
 }
 

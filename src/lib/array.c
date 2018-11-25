@@ -146,17 +146,13 @@ ANN static Type get_array_type(Type t) {
   const Exp_Binary* bin = (Exp_Binary*)data;              \
   const Type l = get_array_type(bin->lhs->type);          \
   const Type r = get_array_type(bin->rhs->type);          \
-  if(isa(l, r) < 0) {                                     \
-    err_msg(bin->self->pos, "array types do not match."); \
-    return t_null;                                        \
-  }                                                       \
+  if(isa(l, r) < 0)                                       \
+    ERR_N(bin->self->pos, "array types do not match.")
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
-  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth) {
-    err_msg(bin->self->pos, "array depths do not match.");
-    return t_null;
-  }
+  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
+    ERR_N(bin->self->pos, "array depths do not match.")
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -190,7 +186,7 @@ static OP_CHECK(opck_array_cast) {
 
 GWION_IMPORT(array) {
   t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object);
-  SET_FLAG((t_array), ae_flag_abstract);
+  SET_FLAG((t_array), abstract);
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
   CHECK_BB(gwi_item_ini(gwi, "int", "@array"))

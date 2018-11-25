@@ -1,15 +1,15 @@
-// [contains] 'maybe' is not constant
+// [contains] is not constant
 // also coverage for 'case'
-enum {a , b, c };
+enum {zero, one, a , b, c };
 
-class C
-{
-	enum {a , b, c };
+class C {
+	enum { zero, one, a , b, c };
 }
 
 switch(maybe) {
   case a:
   case true:
+  case false:
   case C.c:
   case maybe:
 }

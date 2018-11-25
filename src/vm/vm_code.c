@@ -19,7 +19,8 @@ VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
   code->name             = strdup(name);
   code->stack_depth      = stack_depth;
   code->native_func      = 0;
-  SET_FLAG(code, NATIVE_NOT | (uint)(need_this ? _NEED_THIS_ : 0));
+  if(need_this)
+    SET_FLAG(code, member);
   INIT_OO(code, e_code_obj)
   return code;
 }
@@ -41,7 +42,7 @@ ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
     if(instr->execute == SporkExp)
-      REM_REF((Func)instr->m_val2)
+      REM_REF((VM_Code)instr->m_val2)
     else if(instr->execute == SporkFunc)
       REM_REF((VM_Code)instr->m_val2)
     else if(instr->execute == ArrayAlloc)
@@ -50,7 +51,10 @@ ANN static void free_code_instr(const Vector v) {
       free_code_instr_gack(instr);
     else if(instr->execute == BranchSwitch)
       free_map((Map)instr->m_val2);
-    else if(instr->execute == InitLoopCounter)
+    else if(instr->execute == SwitchIni) {
+      free_vector((Vector)instr->m_val);
+      free_map((Map)instr->m_val2);
+    } else if(instr->execute == InitLoopCounter)
       free((m_int*)instr->m_val);
     else if(instr->execute == VarargIni) {
       if(instr->m_val2)

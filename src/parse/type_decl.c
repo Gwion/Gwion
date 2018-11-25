@@ -13,85 +13,76 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   return !td->array ? t : array_type(t, td->array->depth);
 }
 
-ANN static inline void strcheck(m_str str, m_uint src, const m_uint tgt) {
-  while(tgt >= src)
-    str = (m_str)xrealloc(str, src <<= 1);
+struct td_info {
+  Type_List tl;
+  m_str str;
+  size_t len;
+  size_t cap;
+};
+
+ANN static inline m_bool td_add(struct td_info* info, const char c) {
+  return *(info->str + info->len++ - 1) = c;
+}
+
+ANN static inline void td_check(struct td_info* info, const size_t len) {
+  if(info->len + len >= info->cap) {
+    while(info->len + len >= info->cap)
+      info->cap <<= 1;
+    info->str = (m_str)xrealloc(info->str, info->cap);
+  }
+}
+
+ANEW ANN static m_str td2str(const Env env, const Type_Decl* td);
+ANN static void td_info_run(const Env env, struct td_info* info) {
+  Type_List tl = info->tl;
+  do {
+    m_str name = td2str(env, tl->td);
+    const size_t nlen = strlen(name);
+    td_check(info, nlen + !!tl->next);
+    strcpy(info->str + info->len -1, name);
+    info->len += nlen;
+    xfree(name);
+  } while((tl = tl->next) && td_add(info, ','));
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
-  m_uint depth = 1 + (td->array ? td->array->depth : 0);
-  const size_t len = id_list_len(td->xid);
-  size_t l = len + depth *2;
-  const m_uint m = l;
-  const m_str str = (m_str)xmalloc(m);
-  m_str s = str;
-  type_path(s, td->xid);
-  s += len;
-  while(--depth) {
-    strcpy(s, "[]");
-    s += 2;
-  }
+  m_uint depth = td->array ? td->array->depth : 0;
+  size_t l = id_list_len(td->xid)  + depth *2;
+  struct td_info info = { td->types, (m_str)xmalloc(l), l, l };
+  type_path(info.str, td->xid);
+  while(depth--) { td_add(&info, '['); td_add(&info, ']'); }
   Type_List tl = td->types;
   if(tl) {
-    ++l;
-    strcheck(s, m, l);
-    strcpy(s, "<");
-    ++s;
-    while(tl) {
-      m_str name = td2str(env, tl->td);
-      const size_t nlen = strlen(name);
-      l += nlen;
-      strcheck(s, m, l);
-      strcpy(s, name);
-      s += nlen;
-      free(name);
-      tl = tl->next;
-      if(tl) {
-        strcpy(s, ",");
-        ++s;
-      }
-    }
-    strcpy(s, ">");
+    td_check(&info, 2);
+    td_add(&info, '<');
+    td_info_run(env, &info);
+    td_add(&info, '>');
   }
-  return str;
+  info.str[info.len - 1] = '\0';
+  return info.str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
-  m_uint l = 0;
-  const m_uint m = 32;
-  const m_str str = (m_str)xmalloc(m);
-  m_str s = str;
-  do {
-    const m_str name = td2str(env, tl->td);
-    l += strlen(name);
-    strcheck(s, m, l);
-    strcpy(s, name);
-    s += l;
-    free(name);
-    if(tl->next) {
-      strcpy(s, ",");
-      ++l;
-      ++s;
-    }
-  } while((tl = tl->next));
-  return str;
+  struct td_info info = { tl, (m_str)xmalloc(32), 1, 32 };
+  td_info_run(env, &info);
+  return info.str;
 }
 
 ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
   char path[id_list_len(id)];
   type_path(path, id);
-  ERR_O(id->pos, "'%s' unknown type in %s", path, orig);
+  err_msg(id->pos, "'%s' unknown type in %s.", path, orig);
+  did_you_mean(s_name(id->xid));
+  return NULL;
 }
 
 ANN static Type prim_ref(const Type t, const Type_Decl* td) {
-  if(GET_FLAG(td, ae_flag_ref) && isa(t, t_object) < 0)
+  if(GET_FLAG(td, ref) && isa(t, t_object) < 0)
     ERR_O(td->xid->pos, "primitive types cannot be used as reference (@)...\n")
   return t;
 }
 
 ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
   const Type t = type_decl_resolve(env, td);
-  if(!t)
-    return type_unknown(td->xid, orig);
-  return prim_ref(t, td);
+  return t ? prim_ref(t, td) : type_unknown(td->xid, orig);
 }

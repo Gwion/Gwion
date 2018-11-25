@@ -55,6 +55,8 @@ INSTR(RegAddRef);
 
 /* branching */
 INSTR(BranchSwitch);
+INSTR(SwitchIni);
+INSTR(SwitchEnd);
 INSTR(BranchEqInt);
 INSTR(BranchNeqInt);
 INSTR(BranchEqFloat);

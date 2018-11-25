@@ -1,4 +1,4 @@
-// [contains] unhandled expression type '8' in template call
+// [skip] unhandled expression type '8' in template call
 template“a”
 function void test(){}
 

@@ -1,2 +1,2 @@
 // [contains] in 'until' condition
-until(NULL);
+until(null);

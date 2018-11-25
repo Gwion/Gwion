@@ -86,7 +86,7 @@ ANEW /*static */M_Object new_M_UGen() {
 }
 
 ANN static void assign_channel(const UGen u) {
-  SET_FLAG(u, UGEN_MULTI);
+  u->multi = 1;
   u->compute = gen_compute_multi;
   u->connect.multi->channel = (M_Object*)xmalloc(u->connect.multi->n_chan * SZ_INT);
   for(m_uint i = u->connect.multi->n_chan + 1; --i;) {
@@ -161,8 +161,8 @@ ANN static void release_connect(const VM_Shred shred) {
 
 typedef ANN void (*f_connect)(const UGen lhs, const UGen rhs);
 ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
-  const m_bool l_multi = GET_FLAG(lhs, UGEN_MULTI);
-  const m_bool r_multi = GET_FLAG(rhs, UGEN_MULTI);
+  const m_bool l_multi = lhs->multi;
+  const m_bool r_multi = rhs->multi;
   const m_uint l_max = l_multi ? lhs->connect.multi->n_out : 1;
   const m_uint r_max = r_multi ? rhs->connect.multi->n_in  : 1;
   const m_uint max   = l_max > r_max ? l_max : r_max;
@@ -231,7 +231,7 @@ ANN static void release_multi(const UGen ug, const VM_Shred shred) {
 static DTOR(ugen_dtor) {
   const UGen ug = UGEN(o);
   vector_rem2(&shred->vm->ugen, (vtype)ug);
-  if(!GET_FLAG(ug, UGEN_MULTI))
+  if(!ug->multi)
     release_mono(ug);
   else
     release_multi(ug, shred);
@@ -244,7 +244,7 @@ static DTOR(ugen_dtor) {
 
 static MFUN(ugen_channel) {
   const m_int i = *(m_int*)MEM(SZ_INT);
-  if(!GET_FLAG(UGEN(o), UGEN_MULTI))
+  if(!UGEN(o)->multi)
     *(M_Object*)RETURN = !i ? o : NULL;
   else if(i < 0 || (m_uint)i >= UGEN(o)->connect.multi->n_chan)
     *(M_Object*)RETURN = NULL;
@@ -264,7 +264,7 @@ static MFUN(ugen_get_op) {
     *(m_uint*)RETURN = 4;
 }
 ANN static void set_op(const UGen u, const f_ugop f) {
-  if(GET_FLAG(u, UGEN_MULTI)) {
+  if(u->multi) {
     for(m_uint i = u->connect.multi->n_chan + 1; --i;)
       UGEN(u->connect.multi->channel[i-1])->op = f;
   }
@@ -316,7 +316,7 @@ static GWION_IMPORT(global_ugens) {
   struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->n_in, NULL };
   add_ugen(gwi, &adc);
   ugen_connect(dac.ugen, hole.ugen);
-  SET_FLAG(t_ugen, ae_flag_abstract);
+  SET_FLAG(t_ugen, abstract);
   return 1;
 }
 

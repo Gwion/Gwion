@@ -1,13 +1,12 @@
-#include <stdlib.h>
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
+#include "gwion_ast.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "instr.h"
 #include "import.h"
 #include "func.h"
 
@@ -34,7 +33,7 @@ static INSTR(my_ret) { GWDEBUG_EXE
 
 static SFUN(cb_func) {
   m_uint i;
-  Func f = *(Func*)(shred->mem + SZ_INT);
+  Func f = *(Func*)MEM(0);
   if(!f){
     Except(shred, "NullCallbackException");
   }

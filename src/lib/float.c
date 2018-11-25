@@ -11,12 +11,6 @@
 #include "emit.h"
 #include "operator.h"
 
-static INSTR(float_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(-SZ_FLOAT) =
-    *(m_float*)REG(SZ_INT - SZ_FLOAT));
-}
-
 #define describe(name, op) \
 INSTR(Float##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_FLOAT); \
@@ -74,11 +68,6 @@ describe_r(minus,  -)
 describe_r(mul,  *)
 describe_r(div, /)
 
-static INSTR(int_float_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_FLOAT);
-  *(m_int*)REG(-SZ_INT) = (**(m_int**)REG(-SZ_INT) = (m_int)*(m_float*)REG(0));
-}
-
 #define describe_if(name, op) \
 static INSTR(int_float_##name) { GWDEBUG_EXE \
   POP_REG(shred, SZ_INT); \
@@ -115,12 +104,6 @@ describe_r_if(plus,   +)
 describe_r_if(minus,  -)
 describe_r_if(mul,  *)
 describe_r_if(div, /)
-
-static INSTR(float_int_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 2 - SZ_FLOAT);
-  *(m_float*)REG(-SZ_FLOAT) = (**(m_float**)REG(-SZ_FLOAT) =
-    (m_float)*(m_int*)REG(SZ_INT - SZ_FLOAT));
-}
 
 #define describe_fi(name, op) \
 static INSTR(float_int_##name) { GWDEBUG_EXE \
@@ -169,7 +152,6 @@ static INSTR(Time_Advance) { GWDEBUG_EXE
   shredule(shred->vm->shreduler, shred, f);
 }
 
-
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
@@ -200,6 +182,8 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, hour);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
+  gwi_item_ini(gwi, "@now", "now");
+  gwi_item_end(gwi, 0, NULL);
   return 1;
 }
 
@@ -246,7 +230,6 @@ INSTR(CastF2I) { GWDEBUG_EXE
 
 GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
-  CHECK_OP(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_add,          FloatPlus))
   CHECK_BB(gwi_oper_end(gwi, op_sub,         FloatMinus))
   CHECK_BB(gwi_oper_end(gwi, op_mul,         FloatTimes))
@@ -274,7 +257,6 @@ GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
   CHECK_OP(not, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, "int", "float", "int"))
-  CHECK_IF(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_and,           int_float_and))
   CHECK_BB(gwi_oper_end(gwi, op_or,            int_float_or))
   CHECK_BB(gwi_oper_end(gwi, op_eq, 			 int_float_eq))
@@ -297,7 +279,6 @@ GWION_IMPORT(float) {
   _CHECK_OP(cast, basic_cast, CastI2F)
   _CHECK_OP(impl, implicit_i2f, CastI2F)
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
-  CHECK_FI(assign, assign, assign)
   CHECK_BB(gwi_oper_end(gwi, op_add,         float_int_plus))
   CHECK_BB(gwi_oper_end(gwi, op_sub,        float_int_minus))
   CHECK_BB(gwi_oper_end(gwi, op_mul,        float_int_mul))

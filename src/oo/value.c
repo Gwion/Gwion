@@ -13,15 +13,12 @@ ANN Value new_value(const Type type, const m_str name) {
   INIT_OO(a, e_value_obj);
   return a;
 }
-
 ANN void free_value(Value a) {
-  if(!GET_FLAG(a, ae_flag_func) && !GET_FLAG(a, ae_flag_constprop) && a->d.ptr && isa(a->type, t_object) < 0 &&
-      /*if(!GET_FLAG(a, ae_flag_func) && a->d.ptr && isa(a->type, t_object) < 0 &&*/
-      !GET_FLAG(a, ae_flag_enum))
-    free(a->d.ptr);
+  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr && isa(a->type, t_object) < 0)
+    _mp_free(a->type->size, a->d.ptr);
   if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0)
     REM_REF(a->type)
-  if(GET_FLAG(a->type, ae_flag_op))
+  if(GET_FLAG(a->type, op))
     REM_REF(a->type)
   mp_free(Value, a);
 }

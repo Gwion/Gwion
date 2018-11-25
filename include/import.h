@@ -19,10 +19,11 @@ typedef struct Gwi_* Gwi;
 #else
 #define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
 #endif
-#define ALLOC_PTR(a, b, c) b* a = (b*)malloc(sizeof(b)); *a =c
+#define ALLOC_PTR(a, b, c) b* a = (b*)_mp_alloc(sizeof(b)); *a = (b)c
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\
-    CHECK_BB(gwi_oper_end(gwi, op_##op, func))\
+    CHECK_BB(gwi_oper_end(gwi, op_##op, func))
+#define ERR_N(a,...) { err_msg(a,__VA_ARGS__); return t_null; }
 
 ANN VM* gwi_vm(const Gwi);
 ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
@@ -62,12 +63,10 @@ ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
 
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 
-OP_CHECK(opck_const_lhs);
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
 OP_CHECK(opck_unary);
 OP_CHECK(opck_post);
-OP_CHECK(opck_assign);
 OP_CHECK(opck_rassign);
 OP_CHECK(opck_rhs_emit_var);
 OP_CHECK(opck_basic_cast);

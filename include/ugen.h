@@ -23,8 +23,6 @@ struct ugen_gen {
   UGen   trig;
 };
 
-enum ugen_flag { UGEN_MULTI = 1 << 1 };
-
 struct UGen_ {
   f_tick compute;
   f_ugop op;
@@ -37,7 +35,7 @@ struct UGen_ {
     UGen ref;
   } module;
   m_float in, out;
-  enum ugen_flag flag;
+  unsigned multi : 1;
   unsigned done : 1;
 };
 

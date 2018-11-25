@@ -83,7 +83,7 @@ GWION_IMPORT(vararg) {
   CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
   CHECK_OB(t_varobj)
-  SET_FLAG(t_varobj, ae_flag_abstract);
+  SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   CHECK_OB(t_varloop)
   CHECK_BB(gwi_add_type(gwi,  t_varobj))

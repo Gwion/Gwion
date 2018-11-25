@@ -4,7 +4,6 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
-#include "instr.h"
 #include "operator.h"
 #include "value.h"
 #include "traverse.h"
@@ -12,10 +11,11 @@
 #include "context.h"
 #include "nspc.h"
 
+#include "mpool.h"
+
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
-//  env->user_nspc = NULL;
   env->context = NULL;
   vector_init(&env->breaks);
   vector_init(&env->conts);
@@ -23,6 +23,8 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
   env->type_xid = 0;
+  env->sw = mp_alloc(Switch);
+  vector_init(&env->sw->exp);
   env_reset(env);
   return env;
 }
@@ -32,19 +34,16 @@ ANN void env_reset(const Env env) {
   vector_clear(&env->conts);
   vector_clear(&env->nspc_stack);
   vector_add(&env->nspc_stack, (vtype)env->global_nspc);
-
-//  if(env->user_nspc)
-//    vector_add(env->nspc_stack, (vtype)env->user_nspc);
-
   vector_clear(&env->class_stack);
   vector_add(&env->class_stack, (vtype)NULL);
-//  if(env->user_nspc)
-//    env->curr = env->user_nspc;
-//  else
   env->curr = env->global_nspc;
   env->class_def = NULL;
   env->func = NULL;
   env->class_scope = 0;
+  if(env->sw->cases)
+    free_map(env->sw->cases);
+  vector_clear(&env->sw->exp);
+  env->sw->cases = NULL;
 }
 
 ANN void free_env(const Env a) {
@@ -57,6 +56,10 @@ ANN void free_env(const Env a) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
+  if(a->sw->cases)
+    free_map(a->sw->cases);
+  vector_release(&a->sw->exp);
+  mp_free(Switch, a->sw);
   free(a);
 }
 
@@ -89,21 +92,13 @@ ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(t_class);
   v_type->d.base_type = type;
-  SET_FLAG(type, ae_flag_builtin);
+  SET_FLAG(type, builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
   const Value v = new_value(v_type, type->name);
-  SET_FLAG(v, ae_flag_checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
+  SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
   type->xid = ++env->type_xid;
-}
-
-ANN Map env_label(const Env env) {
-  return &env->context->lbls;
-}
-
-ANN Nspc env_nspc(const Env env) {
-  return env->context->nspc;
 }
 
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
@@ -127,64 +122,13 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   return add_op(nspc, opi);
 }
 
-
-#define GET(a,b) ((a) & (b)) == (b)
-ANN m_bool env_access(const Env env, const ae_flag flag) {
-  if(env->class_scope) {
-   if(GET(flag, ae_flag_global))
-      ERR_B(0, "'global' can only be used at %s scope.",
-          GET(flag, ae_flag_global) && !env->class_def ?
-           "file" : "class")
-  }
-  if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
-      GET(flag, ae_flag_protect)) && (!env->class_def || env->class_scope))
-      ERR_B(0, "static/private/protect can only be used at class scope.")
-  return 1;
+ANN2(1,2) Symbol func_symbol(const Env env, const m_str base,
+    const m_str tmpl, const m_uint i) {
+  char* name;
+  CHECK_BO(asprintf(&name, "%s%s%s%s@%" UINT_F "@%s",
+    base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
+    i, env->curr->name))
+  const Symbol sym = insert_symbol(name);
+  free(name);
+  return sym;
 }
-
-ANN void env_storage(const Env env, ae_flag* flag) {
-  if(env->class_def && GET(*flag, ae_flag_global))
-    *flag &= (uint)~ae_flag_global;
-}
-
-ANN static Type find_typeof(const Env env, ID_List path) {
-  Value v = nspc_lookup_value2(env->curr, path->xid);
-  Type t = actual_type(v->type);
-  path = path->next;
-  while(path) {
-    CHECK_OO((v = find_value(t, path->xid)))
-    t = v->type;
-    path = path->next;
-  }
-  return v->type;
-}
-
-ANN Type find_type(const Env env, ID_List path) {
-  Type type;
-  if(path->ref)
-    return find_typeof(env, path->ref);
-  CHECK_OO((type = nspc_lookup_type1(env->curr, path->xid)))
-  Nspc nspc = type->nspc;
-  path = path->next;
-  while(path) {
-    const Symbol xid = path->xid;
-    Type t = nspc_lookup_type1(nspc, xid);
-    while(!t && type && type->parent) {
-      t = nspc_lookup_type2(type->parent->nspc, xid);
-      type = type->parent;
-    }
-    if(!t)
-      ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
-    type = t;
-    nspc = type->nspc;
-    path = path->next;
-  }
-  return type;
-}
-
-ANN m_bool already_defined(const Env env, const Symbol s, const uint pos) {
-  const Value v = nspc_lookup_value0(env->curr, s);
-  return v ? err_msg(pos,
-    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;
-}
-

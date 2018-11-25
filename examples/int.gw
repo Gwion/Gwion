@@ -74,7 +74,7 @@ int a;
 //testing operator for Object and 
 {
 	Object	@variable1;
-<<< variable1!= NULL>>>;
+<<< variable1!= null>>>;
 }
 //testing operator for int and int
 {

@@ -1,11 +1,12 @@
-#include "defs.h"
-#include "map.h"
-#include "absyn.h"
+#include "gwion_util.h"
+#include "gwion_ast.h"
 #include "oo.h"
+#include "vm.h"
 #include "env.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "instr.h"
 #include "import.h"
 
 static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); }
