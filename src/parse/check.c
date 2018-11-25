@@ -1018,7 +1018,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
 
 ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
   const Symbol sym = func_symbol(env, s_name(def->name), NULL, i);
-  return nspc_lookup_func2(env->curr, sym);
+  return nspc_lookup_func1(env->curr, sym); // was lookup2
 }
 
 ANN static m_bool check_func_overload(const Env env, const Func_Def f) {

@@ -37,7 +37,7 @@ ANN void env_storage(const Env env, ae_flag* flag) {
 }
 
 ANN static Type find_typeof(const Env env, ID_List path) {
-  Value v = nspc_lookup_value2(env->curr, path->xid);
+  Value v = nspc_lookup_value1(env->curr, path->xid); // was lookup2
   Type t = actual_type(v->type);
   path = path->next;
   while(path) {
@@ -59,7 +59,7 @@ ANN Type find_type(const Env env, ID_List path) {
     const Symbol xid = path->xid;
     Type t = nspc_lookup_type1(nspc, xid);
     while(!t && type && type->parent) {
-      t = nspc_lookup_type2(type->parent->nspc, xid);
+      t = nspc_lookup_type1(type->parent->nspc, xid); // was lookup2
       type = type->parent;
     }
     if(!t)

@@ -36,7 +36,7 @@ ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
   const Value v = l_func->value_ref;
   for(m_uint i = 0; i <= v->offset; ++i) {
     const Symbol sym = func_symbol(env, c, NULL, i);
-    const Func f = nspc_lookup_func2(nspc, sym);
+    const Func f = nspc_lookup_func1(nspc, sym); // was lookup2
     CHECK_OO(f)
     if(compat_func(r_func->def, f->def) > 0) {
       bin->func = f;

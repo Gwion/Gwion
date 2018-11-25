@@ -35,15 +35,9 @@ static inline ANN A nspc_lookup_##b##1(const Nspc n, const Symbol s) {         \
   return a;                                                                    \
 }
 
-#define describe_lookup2(A, b)                                                 \
-static inline ANN A nspc_lookup_##b##2(const Nspc n, const Symbol s) {         \
-  return (A)scope_lookup2(&n->b, (vtype)s);                                    \
-}
-
 #define describe_lookups(A, b)                                                 \
 describe_lookup0(A, b)                                                         \
 describe_lookup1(A, b)                                                         \
-describe_lookup2(A, b)
 
 #define describe_nspc_func(A, b)                                               \
 static inline ANN void nspc_add_##b(const Nspc n, const Symbol s, const A a) { \
