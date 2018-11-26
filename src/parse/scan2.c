@@ -341,6 +341,8 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   const Type type = type_copy(t_function);
   type->name = func_name;
   type->owner = env->curr;
+  if(GET_FLAG(func, member))
+    type->size += SZ_INT;
   const Value value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, const | ae_flag_checked | ae_flag_template | ae_flag_func);
