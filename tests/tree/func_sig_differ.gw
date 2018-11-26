@@ -1,3 +1,4 @@
-// [skip] function signatures differ in return type
- function void test(){}
+function void test(int i){}
 function int  test(){}
+<<<test(1)>>>;
+<<<test()>>>;

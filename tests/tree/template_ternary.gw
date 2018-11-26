@@ -1,5 +1,4 @@
-// [skip] unhandled expression type '8' in template call
-template“a”
-function void test(){}
+template“A”
+function void test(A a){}
 
-(maybe ? test : test)();
+(maybe ? test : test)(1);

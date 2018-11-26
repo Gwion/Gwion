@@ -5,3 +5,4 @@ fun void test(...) {
   vararg.end;
 }
 test“int”(1, 2);
+test“float”(1, 2, 3);

@@ -1,2 +1,2 @@
-// [skip] unused variable
+// [contains] unused variable
 int i;
