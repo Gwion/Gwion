@@ -87,6 +87,7 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
   v->owner = env->curr;
+  SET_FLAG(v, func | ae_flag_const);
   if(!(v->owner_class = env->class_def))
     SET_FLAG(v, global);
   else {
@@ -105,14 +106,13 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   d.arg_list = ptr->args;
   if(d.arg_list && scan2_arg_def(env, &d) < 0)
     ERR_B(ptr->td->xid->pos, "in typedef '%s'", s_name(ptr->xid))
-  SET_FLAG(ptr->value, checked);
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
   ptr->value->d.func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;
   ptr->type->d.func = ptr->func;
-  SET_FLAG(ptr->value, func);
+  SET_FLAG(ptr->value, func | ae_flag_checked);
   if(env->class_def) {
     if(GET_FLAG(ptr->td, global)) {
       SET_FLAG(ptr->value, global);
@@ -137,10 +137,8 @@ ANN static inline m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) { 
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
   const Value value = nspc_lookup_value1(env->curr, s);
-  if(env->class_def) {
-    const Value v = value ? value : find_value(env->class_def, s);
-    return v;
-  }
+  if(env->class_def)
+    return value ?: find_value(env->class_def, s);
   return value;
 }
 
@@ -240,9 +238,8 @@ scan2_stmt_func(if, Stmt_If,, !(scan2_exp(env, stmt->cond) < 0 ||
     (stmt->else_body && scan2_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 
 ANN static inline m_bool scan2_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
-  if(stmt->stmt_list) {
-    RET_NSPC(scan2_stmt_list(env, stmt->stmt_list))
-  }
+  if(stmt->stmt_list)
+    { RET_NSPC(scan2_stmt_list(env, stmt->stmt_list)) }
   return 1;
 }
 
@@ -316,9 +313,8 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   if(isa(overload->type, t_function) < 0)
     ERR_B(f->td->xid->pos, "function name '%s' is already used by another value",
           s_name(f->name))
-  if((!tmpl && base) ||
-      (tmpl && !base && !GET_FLAG(f, template)))
-    ERR_B(f->td->xid->pos, "must override template function with template")
+  if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
+    ERR_B(f->td->xid->pos, "must overload template function with template")
   return 1;
 }
 
@@ -333,21 +329,25 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
   return func;
 }
 
+ANN static Type func_type(const Env env, const Func func) {
+  const Type t = type_copy(t_function);
+  t->name = func->name;
+  t->owner = env->curr;
+  if(GET_FLAG(func, member))
+    t->size += SZ_INT;
+  return t;
+}
+
 ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = scan_new_func(env, f, func_name);
   if(overload)
     func->next = overload->d.func_ref->next;
-  const Type type = type_copy(t_function);
-  type->name = func_name;
-  type->owner = env->curr;
-  if(GET_FLAG(func, member))
-    type->size += SZ_INT;
+  const Type type = func_type(env, func);
   const Value value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
-  SET_FLAG(value, const | ae_flag_checked | ae_flag_template | ae_flag_func);
+  SET_FLAG(value, checked | ae_flag_template);
   if(!overload) {
-    ADD_REF(type);
     ADD_REF(value);
     nspc_add_value(env->curr, f->name, value);
   }
@@ -396,17 +396,10 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
 }
 
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
-  if(GET_FLAG(f, builtin))
-    SET_FLAG(f->func->value_ref, builtin);
-  else
+  if(!GET_FLAG(f, builtin))
     SET_FLAG(f->func, pure);
-  if(GET_FLAG(f, dtor)) {
+  if(GET_FLAG(f, dtor))
     SET_FLAG(f->func, dtor);
-    SET_FLAG(f->func->value_ref->owner_class, dtor);
-  }
-  else if(GET_FLAG(f, variadic))
-    f->stack_depth += SZ_INT;
-  SET_FLAG(f->func->value_ref, const);
 }
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
@@ -441,21 +434,19 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
-  const Type type = new_type(t_function->xid, func_name, t_function);
-  type->owner = env->curr;
-  if(GET_FLAG(func, member))
-    type->size += SZ_INT;
+  const Type type = func_type(env, func);
   type->d.func = func;
   const Value value = new_value(type, func_name);
-  SET_FLAG(value, func);
-  nspc_add_value(env->curr, !overload ?
-      f->name : insert_symbol(func->name), value);
+  nspc_add_value(env->curr, insert_symbol(func->name), value);
   CHECK_OO(scan2_func_assign(env, f, func, value))
-  scan2_func_def_flag(f);
-  if(overload) {
+  if(!overload) {
+    ADD_REF(value);
+    nspc_add_value(env->curr, f->name, value);
+  } else {
     func->next = overload->d.func_ref->next;
     overload->d.func_ref->next = func;
   }
+  scan2_func_def_flag(f);
   if(GET_FLAG(func, member))
     f->stack_depth += SZ_INT;
   return value;
@@ -494,7 +485,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->arg_list && scan2_arg_def(env, f) < 0)
     ERR_B(f->td->xid->pos, "\t... in function '%s'\n", s_name(f->name))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
-      CHECK_BB(scan2_func_def_code(env, f))
+    CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
     if(GET_FLAG(f, op))
       CHECK_BB(scan2_func_def_op(env, f))

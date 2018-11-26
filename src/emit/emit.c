@@ -542,8 +542,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
     emit_push(emit, NULL, emit->env->global_nspc, &class_scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ref) + ref;
-//    if(!GET_FLAG(list->self->value, used))
-//      continue;
+    if(!GET_FLAG(list->self->value, used))
+      continue;
     if(GET_FLAG(decl->td, static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r))
     else
@@ -991,7 +991,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) { GWD
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
-  do //if(GET_FLAG( a->self->value, used))
+  do if(GET_FLAG(a->self->value, used))
     size += a->self->value->type->size;
   while((a = a->next));
   return size;
