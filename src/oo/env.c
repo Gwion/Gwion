@@ -122,12 +122,12 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   return add_op(nspc, opi);
 }
 
-ANN2(1,2) Symbol func_symbol(const Env env, const m_str base,
+ANN2(1,2) Symbol func_symbol(const Nspc nspc, const m_str base,
     const m_str tmpl, const m_uint i) {
   char* name;
   CHECK_BO(asprintf(&name, "%s%s%s%s@%" UINT_F "@%s",
     base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
-    i, env->curr->name))
+    i, nspc->name))
   const Symbol sym = insert_symbol(name);
   free(name);
   return sym;

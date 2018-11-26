@@ -342,13 +342,11 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = scan_new_func(env, f, func_name);
-  if(overload)
-    func->next = overload->d.func_ref->next;
   const Type type = func_type(env, func);
   const Value value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, checked | ae_flag_template);
-  SET_FLAG(type, func);
+  SET_FLAG(type, func); // the only types with func flag, name could be better
   if(!overload) {
     ADD_REF(value);
     nspc_add_value(env->curr, f->name, value);
@@ -356,7 +354,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
     func->next = overload->d.func_ref->next;
     overload->d.func_ref->next = func;
   }
-  const Symbol sym = func_symbol(env, func_name, "template", overload ? ++overload->offset : 0);
+  const Symbol sym = func_symbol(env->curr, func_name, "template", overload ? ++overload->offset : 0);
   nspc_add_value(env->curr, sym, value);
   return 1;
 }
@@ -429,7 +427,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   }
   tmpl_name[tlen+1] = '\0';
   vector_release(&v);
-  const Symbol sym = func_symbol(env, func_name, tmpl_name, (m_uint)f->tmpl->base);
+  const Symbol sym = func_symbol(env->curr, func_name, tmpl_name, (m_uint)f->tmpl->base);
   return s_name(sym);
 }
 
@@ -466,7 +464,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
   if(!f->tmpl) {
-    const Symbol sym  = func_symbol(env, func_name, NULL, overload ? ++overload->offset : 0);
+    const Symbol sym  = func_symbol(env->curr, func_name, NULL, overload ? ++overload->offset : 0);
     func_name = s_name(sym);
   } else {
     func_name = func_tmpl_name(env, f);

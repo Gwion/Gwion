@@ -50,5 +50,5 @@ ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
 ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types);
-ANN2(1,2) Symbol func_symbol(const Env env, const m_str, const m_str, const m_uint);
+ANN2(1,2) Symbol func_symbol(const Nspc nspc, const m_str, const m_str, const m_uint);
 #endif

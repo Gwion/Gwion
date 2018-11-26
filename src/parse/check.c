@@ -376,7 +376,7 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
 
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl,
     const m_uint i) {
-  const Symbol sym = func_symbol(env, v->name, tmpl, i);
+  const Symbol sym = func_symbol(env->curr, v->name, tmpl, i);
   return v->owner_class ? find_value(v->owner_class, sym) :
       nspc_lookup_value1(env->curr, sym);
 }
@@ -535,21 +535,17 @@ ANN static Type check_exp_call_template(const Env env, const Exp restrict call,
   return func ? func->def->ret_type : NULL;
 }
 
-ANN static m_bool check_exp_call1_check(const Env env, const Exp exp, Value* ptr) {
+ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
   if(!check_exp(env, exp))
     ERR_B(exp->pos, "function call using a non-existing function")
   if(isa(exp->type, t_function) < 0)
     ERR_B(exp->pos, "function call using a non-function value")
-  if(exp->exp_type == ae_exp_primary && exp->d.exp_primary.value &&
-    !GET_FLAG(exp->d.exp_primary.value, const))
-      *ptr = exp->d.exp_primary.value;
   return 1;
 }
 
 ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
     const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
-  Value ptr = NULL;
-  CHECK_BO(check_exp_call1_check(env, call, &ptr))
+  CHECK_BO(check_exp_call1_check(env, call))
   if(GET_FLAG(call->type, func)) {
     const Value value = call->type->d.func->value_ref;
     if(GET_FLAG(call->type->d.func, ref))
@@ -563,14 +559,6 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
   Func func = find_func_match(env, call->type->d.func, args);
   if(!func)
     return function_alternative(call->type, args);
-  if(ptr) {
-    const Func f = mp_alloc(Func_Def);
-    memcpy(f, func, sizeof(struct Func_));
-    f->value_ref = ptr;
-    SET_FLAG(ptr, func); // there might be a better place
-    f->next = ptr->d.func_ref;
-    func = ptr->d.func_ref = f;
-  }
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
   else // if(base->exp_type == ae_exp_binary)
@@ -1018,7 +1006,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
 }
 
 ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
-  const Symbol sym = func_symbol(env, s_name(def->name), NULL, i);
+  const Symbol sym = func_symbol(env->curr, s_name(def->name), NULL, i);
   return nspc_lookup_func1(env->curr, sym); // was lookup2
 }
 
