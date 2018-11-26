@@ -90,7 +90,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
         !GET_FLAG(list->self->value, used)) {
       err_msg(list->self->pos, "unused variable '%s'",
           list->self->value->name);
-//      continue;
+      continue;
     }
     const Var_Decl var = list->self;
     const Value v = var->value;
@@ -1071,7 +1071,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
   m_bool ret = 1;
   if(tmpl_list_base(f->tmpl))
-    return 1;
+    return env->class_def ? check_parent_match(env, f) : 1;
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
