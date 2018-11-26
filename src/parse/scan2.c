@@ -335,6 +335,7 @@ ANN static Type func_type(const Env env, const Func func) {
   t->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
+  t->d.func = func;
   return t;
 }
 
@@ -347,9 +348,13 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   const Value value = new_value(type, func_name);
   CHECK_OB(scan2_func_assign(env, f, func, value))
   SET_FLAG(value, checked | ae_flag_template);
+  SET_FLAG(type, func);
   if(!overload) {
     ADD_REF(value);
     nspc_add_value(env->curr, f->name, value);
+  } else {
+    func->next = overload->d.func_ref->next;
+    overload->d.func_ref->next = func;
   }
   const Symbol sym = func_symbol(env, func_name, "template", overload ? ++overload->offset : 0);
   nspc_add_value(env->curr, sym, value);
@@ -435,7 +440,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   const Type type = func_type(env, func);
-  type->d.func = func;
   const Value value = new_value(type, func_name);
   nspc_add_value(env->curr, insert_symbol(func->name), value);
   CHECK_OO(scan2_func_assign(env, f, func, value))

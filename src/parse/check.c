@@ -550,15 +550,16 @@ ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
     const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
   Value ptr = NULL;
   CHECK_BO(check_exp_call1_check(env, call, &ptr))
-  if(call->type->d.func) {
+  if(GET_FLAG(call->type, func)) {
     const Value value = call->type->d.func->value_ref;
     if(GET_FLAG(call->type->d.func, ref))
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
     CHECK_OO(check_exp(env, args))
-  if(!call->type->d.func)
+  if(GET_FLAG(call->type, func)) {
     return check_exp_call_template(env, call, args, base);
+}
   Func func = find_func_match(env, call->type->d.func, args);
   if(!func)
     return function_alternative(call->type, args);
