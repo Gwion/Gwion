@@ -375,6 +375,7 @@ INSTR(FuncMember) { GWDEBUG_EXE
     const f_xtor f = (f_xtor)code->native_func;
     f(*(M_Object*)MEM(0), shred);
   } else {
+    assert(instr);
     const m_bit retval[instr->m_val];
     const f_mfun f = (f_mfun)code->native_func;
     f((*(M_Object*)MEM(0)), retval, shred);

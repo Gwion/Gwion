@@ -177,8 +177,10 @@ static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = cast->self->type;
-  if(!l->d.base_type) l = l->parent;
-  if(!r->d.base_type) l = r->parent;
+  while(!l->d.base_type)
+    l = l->parent;
+  while(!r->d.base_type)
+    r = r->parent;
   if(l->array_depth == r->array_depth || isa(l->d.base_type, r->d.base_type) > 0)
     return l;
   return t_null;

@@ -201,8 +201,8 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   }
   type->owner = env->curr;
   SET_FLAG(type, checked);
-  m_uint class_scope;
-  env_push(env, type, type->nspc, &class_scope);
+  m_uint scope;
+  env_push(env, type, type->nspc, &scope);
   return 1;
 }
 

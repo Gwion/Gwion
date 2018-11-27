@@ -189,11 +189,11 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   if(class_def->body) {
     Class_Body body = class_def->body;
-    m_uint class_scope;
-    env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+    m_uint scope;
+    env_push(env, class_def->type, class_def->type->nspc, &scope);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
-    env_pop(env, class_scope);
+    env_pop(env, scope);
   }
   (void)mk_class(class_def->type);
   if(GET_FLAG(class_def, global))

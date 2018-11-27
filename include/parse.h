@@ -1,11 +1,11 @@
 #ifndef __PARSE
 #define __PARSE
 #define RET_NSPC(exp)       \
-++env->class_scope;         \
+++env->scope;         \
 nspc_push_value(env->curr); \
 const m_bool ret = exp;     \
 nspc_pop_value(env->curr);  \
---env->class_scope;         \
+--env->scope;         \
 return ret;
 
 typedef m_bool (*_exp_func)(const void*, const void*);

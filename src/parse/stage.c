@@ -6,7 +6,7 @@
 #include "type.h"
 
 ANN m_uint union_push(const Env env, const Stmt_Union stmt) {
-  m_uint scope;
+  m_uint scope = env->scope;
   const Type type = stmt->xid ? stmt->value->type : stmt->type_xid ?
     stmt->type : NULL;
   const Nspc nspc = type ? type->nspc : GET_FLAG(stmt, global) ?

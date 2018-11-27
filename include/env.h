@@ -1,7 +1,7 @@
 #ifndef __ENV
 #define __ENV
 
-#define SCOPE(a) { ++env->class_scope; a ;--env->class_scope; }
+#define SCOPE(a) { ++env->scope; a ;--env->scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
 struct Switch_ {
@@ -16,7 +16,7 @@ struct Env_ {
   m_str name;
   Nspc curr;
   Nspc global_nspc;
-  m_uint    class_scope;
+  m_uint    scope;
   struct Context_ *context;
   Type      class_def;
   Func      func;

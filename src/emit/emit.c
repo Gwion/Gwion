@@ -219,6 +219,7 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GW
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     const Array_Sub array, const m_bool is_ref) {
   if(type->array_depth) {
+    assert(array && array->exp);
     ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
     CHECK_OB(info)
     info->is_ref = (uint)is_ref;
@@ -244,8 +245,8 @@ ANN static Instr emit_kind(Emitter emit, const m_uint size, const m_bool addr,
   return instr;
 }
 
-static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, /* RegPushImm4 */};
-static const f_instr regpushderef[] = { RegPushDeref, RegPushDeref2, RegPushDeref3, /* RegPushImm4 */};
+static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushDeref }; // caution last
+static const f_instr regpushderef[] = { RegPushDeref, RegPushDeref2, RegPushDeref3,  RegPushDeref }; // caution last
 static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
@@ -509,7 +510,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emitter_add_instr(emit, ObjectAssign);
     assign->m_val = (m_uint)emit_var;
-    if(is_array && !emit->env->class_scope)
+    if(is_array && !emit->env->scope)
       ADD_REF(type)
   }
   return 1;
@@ -536,10 +537,10 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
 
   if(GET_FLAG(decl->type, template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
-  m_uint class_scope;
+  m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    emit_push(emit, NULL, emit->env->global_nspc, &class_scope);
+    emit_push(emit, NULL, emit->env->global_nspc, &scope);
   do {
     const m_bool r = GET_FLAG(list->self->value, ref) + ref;
     if(!GET_FLAG(list->self->value, used))
@@ -550,7 +551,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
   } while((list = list->next));
   if(global)
-    emit_pop(emit, class_scope);
+    emit_pop(emit, scope);
   return 1;
 }
 
@@ -642,9 +643,7 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
     emit_pop(emit, (m_uint)scope);
   }
   if(GET_FLAG(f->def, variadic)) {
-    Exp_Call exp;
-    exp.args = lhs;
-    exp.m_func = rhs->type->d.func;
+    Exp_Call exp = { .args=lhs, .m_func=rhs->type->d.func };
     emit_func_arg_vararg(emit, &exp);
   }
   CHECK_BB(emit_exp(emit, rhs, 1))
@@ -654,9 +653,7 @@ ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { 
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
-  struct Op_Import opi = { bin->op, lhs->type, rhs->type, NULL,
-    NULL, NULL, (uintptr_t)bin };
-
+  struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type, .data = (uintptr_t)bin };
   if(bin->op == op_chuck && isa(rhs->type, t_function) > 0)
     return emit_binary_func(emit, bin);
   CHECK_BB(emit_exp(emit, lhs, 1))
@@ -665,19 +662,14 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) { G
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
-  struct Op_Import opi = { op_cast, cast->exp->type, cast->self->type, NULL,
-    NULL, NULL, (uintptr_t)cast};
+  struct Op_Import opi = { .op=op_cast, .lhs=cast->exp->type, .rhs=cast->self->type, .data=(uintptr_t)cast};
   CHECK_BB(emit_exp(emit, cast->exp, 0))
   (void)op_emit(emit, &opi);
   return 1;
 }
 
 ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { GWDEBUG_EXE
-  struct Op_Import opi;
-  memset(&opi, 0, sizeof(struct Op_Import));
-  opi.op = post->op;
-  opi.lhs = post->exp->type;
-  opi.data = (uintptr_t)post;
+  struct Op_Import opi = { .op=post->op, .lhs=post->exp->type, .data=(uintptr_t)post };
   CHECK_BB(emit_exp(emit, post->exp, 1))
   return op_emit(emit, &opi);
 }
@@ -798,10 +790,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { GWDEBUG_EXE
-  struct Op_Import opi;
-  memset(&opi, 0, sizeof(struct Op_Import));
-  opi.op = unary->op;
-  opi.data = (uintptr_t)unary;
+  struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary };
   if(unary->op != op_spork && unary->exp) {
     CHECK_BB(emit_exp(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
@@ -811,8 +800,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { G
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Type from, const restrict Type to) { GWDEBUG_EXE
-  struct Op_Import opi = { op_impl, from, to, NULL,
-         NULL, NULL, (m_uint)from };
+  struct Op_Import opi = { .op=op_impl, .lhs=from, .rhs=to, .data=(m_uint)from };
   return op_emit(emit, &opi);
 }
 
@@ -899,9 +887,9 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) { GWDEBUG_EXE
-  ++emit->env->class_scope;
+  ++emit->env->scope;
   const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
-  --emit->env->class_scope;
+  --emit->env->scope;
   return ret;
 }
 
@@ -1223,7 +1211,7 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) { GWDEBUG_EXE
 
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
-  m_uint class_scope;
+  m_uint scope = emit->env->scope;
   const m_bool global = GET_FLAG(stmt, global);
   if(stmt->xid) {
     if(stmt->value->type->nspc->class_data_size && !stmt->value->type->nspc->class_data)
@@ -1250,7 +1238,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, builtin);
       SET_FLAG(stmt->value, global);
     }
-    emit_push(emit, stmt->value->type, stmt->value->type->nspc, &class_scope);
+    emit_push(emit, stmt->value->type, stmt->value->type->nspc, &scope);
   } else if(stmt->type_xid) {
     if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
       stmt->type->nspc->class_data =
@@ -1258,7 +1246,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
       stmt->type->p = mp_ini((uint32_t)stmt->type->size);
-    emit_push(emit, stmt->type, stmt->type->nspc, &class_scope);
+    emit_push(emit, stmt->type, stmt->type->nspc, &scope);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
       stmt->o = emit_alloc_local(emit, stmt->s, 0);
@@ -1280,7 +1268,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     instr->m_val = SZ_INT;
   }
   if(stmt->xid || stmt->type_xid || global)
-    emit_pop(emit, class_scope);
+    emit_pop(emit, scope);
   return 1;
 }
 

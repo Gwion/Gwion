@@ -81,10 +81,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     const Type t = typedef_base(decl->type);
     CHECK_BO(traverse_template(env, t->def))
   }
-  m_uint class_scope;
+  m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    env_push(env, NULL, env->global_nspc, &class_scope);
+    env_push(env, NULL, env->global_nspc, &scope);
   do {
     if(!env->class_def && !GET_FLAG(list->self->value, builtin) &&
         !GET_FLAG(list->self->value, used)) {
@@ -94,7 +94,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     }
     const Var_Decl var = list->self;
     const Value v = var->value;
-    if(env->class_def && !env->class_scope && env->class_def->parent)
+    if(env->class_def && !env->scope && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
@@ -109,7 +109,7 @@ SET_FLAG(v, used);
   nspc_add_value(env->curr, var->xid, v);
   } while((list = list->next));
   if(global)
-    env_pop(env, class_scope);
+    env_pop(env, scope);
   return decl->type;
 }
 
@@ -310,6 +310,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   for(m_uint i = vector_size(&v) + 1; --i;)
     id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
   vector_release(&v);
+  assert(id);
   Type_Decl* td = new_type_decl(id, 0);
   if(type->array_depth) {
     Array_Sub array = new_array_sub(NULL);
@@ -326,7 +327,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->type) == array_base(t);
   if(!match && implicit) {
     const struct Implicit imp = { e, t };
-    struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, NULL, .data=(m_uint)&imp };
+    struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp };
     return op_check(env, &opi) ? 1 : -1;
   }
   return match ? 1 : -1;
@@ -386,8 +387,8 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func;
   const m_str tmpl_name = tl2str(env, types);
-  m_uint class_scope;
-  env_push(env, v->owner_class, v->owner, &class_scope);
+  m_uint scope;
+  env_push(env, v->owner_class, v->owner, &scope);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
@@ -424,10 +425,11 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
     SET_FLAG(base, template);
     free_func_def(def);
   }
+  assert(exp->self);
   err_msg(exp->self->pos, "arguments do not match for template call");
 end:
   free(tmpl_name);
-  env_pop(env, class_scope);
+  env_pop(env, scope);
   return m_func;
 }
 
@@ -489,13 +491,14 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
       base->d.exp_binary.tmpl = tmpl;
     return f;
   }
+  assert(func->self);
   (void)err_msg(func->self->pos,
         "function is template. automatic type guess not fully implemented yet.\n"
         "\tplease provide template types. eg: '<type1, type2, ...>'");
   return NULL;
 }
 
-ANN static Type check_exp_call_template(const Env env, const Exp restrict call,
+ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restrict call,
     const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
   ID_List list;
@@ -625,11 +628,11 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
 }
 
 ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  ++env->class_scope;
+  ++env->scope;
   nspc_push_value(env->curr);
   const m_bool ret = check_stmt(env, code);
   nspc_pop_value(env->curr);
-  --env->class_scope;
+  --env->scope;
   return (ret > 0) ? t_shred : NULL;
 }
 
@@ -1066,7 +1069,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_BB(check_parent_match(env, f))
   const Func former = env->func;
   env->func = func;
-  ++env->class_scope;
+  ++env->scope;
   nspc_push_value(env->curr);
   if(f->arg_list)
     ret = check_func_args(env, f->arg_list);
@@ -1083,7 +1086,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   else if(GET_FLAG(f, op))
     operator_func(func);
   nspc_pop_value(env->curr);
-  --env->class_scope;
+  --env->scope;
   env->func = former;
   return ret;
 }
@@ -1124,12 +1127,12 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  m_uint class_scope;
-  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  m_uint scope;
+  env_push(env, class_def->type, class_def->type->nspc, &scope);
   Class_Body body = class_def->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));
-  env_pop(env, class_scope);
+  env_pop(env, scope);
   return 1;
 }
 

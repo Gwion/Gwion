@@ -17,14 +17,14 @@ ANN static inline void ugop_div (const UGen u, const m_float f) { u->in /= f; }
 
 static TICK(dac_tick) {
   m_float* out = ((VM*)u->module.gen.data)->bbq->out;
-  m_uint i = 0;
+  uint i = 0;
   do out[i] = UGEN(u->connect.multi->channel[i])->in;
   while(++i < u->connect.multi->n_out);
 }
 
 static TICK(adc_tick) {
   const m_float* in = ((VM*)u->module.gen.data)->bbq->in;
-  m_uint i = 0;
+  uint i = 0;
   do UGEN(u->connect.multi->channel[i])->out = in[i];
   while(++i < u->connect.multi->n_out);
 }
@@ -34,13 +34,13 @@ static TICK(adc_tick) {
 __attribute__((hot))
 ANN void compute_mono(const UGen u) {
   u->done = 1;
-  const m_uint size = u->connect.net.size;
+  const uint size = u->connect.net.size;
   if(size) {
     const Vector vec = &u->connect.net.from;
     const UGen   v   = (UGen)vector_front(vec);
     COMPUTE(v)
     u->in = v->out;
-    for(m_uint i = 1; i < size; ++i) {
+    for(uint i = 1; i < size; ++i) {
       const UGen w = (UGen)vector_at(vec, i);
       COMPUTE(w)
       u->op(u, w->out);
@@ -50,7 +50,7 @@ ANN void compute_mono(const UGen u) {
 __attribute__((hot))
 ANN void compute_multi(const UGen u) {
   u->done = 1;
-  m_uint i = 0;
+  uint i = 0;
   do compute_mono(UGEN(u->connect.multi->channel[i]));
   while(++i < u->connect.multi->n_chan);
 }
@@ -89,8 +89,8 @@ ANN static void assign_channel(const UGen u) {
   u->multi = 1;
   u->compute = gen_compute_multi;
   u->connect.multi->channel = (M_Object*)xmalloc(u->connect.multi->n_chan * SZ_INT);
-  for(m_uint i = u->connect.multi->n_chan + 1; --i;) {
-    const m_uint j = i - 1;
+  for(uint i = u->connect.multi->n_chan + 1; --i;) {
+    const uint j = i - 1;
     const M_Object chan = new_M_UGen();
     ugen_ini(UGEN(chan), u->connect.multi->n_in > j, u->connect.multi->n_out > j);
     UGEN(chan)->module.ref = u;
@@ -110,8 +110,8 @@ ANN void ugen_gen(const UGen u, const f_tick tick, void* data, const m_bool trig
   }
 }
 
-ANN void ugen_ini(const UGen u, const m_uint in, const m_uint out) {
-  const m_uint chan = in > out ? in : out;
+ANN void ugen_ini(const UGen u, const uint in, const uint out) {
+  const uint chan = in > out ? in : out;
   if(chan == 1) {
     vector_init(&u->connect.net.from);
     vector_init(&u->connect.net.to);
@@ -143,11 +143,11 @@ end:
   return -1;
 }
 
-#define describe_connect(name, func)                                   \
+#define describe_connect(name, func)                                                    \
 ANN static inline void name##onnect(const restrict UGen lhs, const restrict UGen rhs) { \
-  func(&rhs->connect.net.from, (vtype)lhs);                            \
-  func(&lhs->connect.net.to,   (vtype)rhs);                            \
-  rhs->connect.net.size = vector_size(&rhs->connect.net.from);         \
+  func(&rhs->connect.net.from, (vtype)lhs);                                             \
+  func(&lhs->connect.net.to,   (vtype)rhs);                                             \
+  rhs->connect.net.size = (uint)vector_size(&rhs->connect.net.from);                    \
 }
 describe_connect(C,vector_add)
 describe_connect(Disc,vector_rem2)
@@ -163,10 +163,11 @@ typedef ANN void (*f_connect)(const UGen lhs, const UGen rhs);
 ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
   const m_bool l_multi = lhs->multi;
   const m_bool r_multi = rhs->multi;
-  const m_uint l_max = l_multi ? lhs->connect.multi->n_out : 1;
-  const m_uint r_max = r_multi ? rhs->connect.multi->n_in  : 1;
-  const m_uint max   = l_max > r_max ? l_max : r_max;
-  m_uint i = 0;
+  const uint l_max = l_multi ? lhs->connect.multi->n_out : 1;
+  const uint r_max = r_multi ? rhs->connect.multi->n_in  : 1;
+  const uint max   = l_max > r_max ? l_max : r_max;
+  uint i = 0;
+  assert(r_max > 0);
   do {
     const UGen l = l_multi ? UGEN(lhs->connect.multi->channel[i % l_max]) : lhs;
     const UGen r = r_multi ? UGEN(rhs->connect.multi->channel[i % r_max]) : rhs;
@@ -205,14 +206,14 @@ static CTOR(ugen_ctor) {
   vector_add(&shred->vm->ugen, (vtype)UGEN(o));
 }
 
-#define describe_release_func(src, tgt, opt)                 \
-ANN static void release_##src(const UGen ug) {               \
-  for(m_uint i = vector_size(&ug->connect.net.src) + 1; --i;) {      \
-    const UGen u = (UGen)vector_at(&ug->connect.net.src, i - 1);     \
-    vector_rem2(&u->connect.net.tgt, (vtype)ug);                     \
-    opt                                                      \
-  }                                                          \
-  vector_release(&ug->connect.net.src);                              \
+#define describe_release_func(src, tgt, opt)                        \
+ANN static void release_##src(const UGen ug) {                      \
+  for(uint i = (uint)vector_size(&ug->connect.net.src) + 1; --i;) { \
+    const UGen u = (UGen)vector_at(&ug->connect.net.src, i - 1);    \
+    vector_rem2(&u->connect.net.tgt, (vtype)ug);                    \
+    opt                                                             \
+  }                                                                 \
+  vector_release(&ug->connect.net.src);                             \
 }
 describe_release_func(from, to,)
 describe_release_func(to, from, --u->connect.net.size;)
@@ -223,7 +224,7 @@ ANN static void release_mono(const UGen ug) {
 }
 
 ANN static void release_multi(const UGen ug, const VM_Shred shred) {
-  for(m_uint i = ug->connect.multi->n_chan + 1; --i;)
+  for(uint i = ug->connect.multi->n_chan + 1; --i;)
     release(ug->connect.multi->channel[i - 1], shred);
   xfree(ug->connect.multi->channel);
 }
@@ -265,7 +266,7 @@ static MFUN(ugen_get_op) {
 }
 ANN static void set_op(const UGen u, const f_ugop f) {
   if(u->multi) {
-    for(m_uint i = u->connect.multi->n_chan + 1; --i;)
+    for(uint i = u->connect.multi->n_chan + 1; --i;)
       UGEN(u->connect.multi->channel[i-1])->op = f;
   }
   u->op = f;
@@ -292,7 +293,7 @@ struct ugen_importer {
   const VM* vm;
   const f_tick tick;
   const m_str name;
-  const m_uint nchan;
+  const uint nchan;
   UGen ugen;
 };
 

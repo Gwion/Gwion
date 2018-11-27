@@ -39,7 +39,7 @@ ANN void env_reset(const Env env) {
   env->curr = env->global_nspc;
   env->class_def = NULL;
   env->func = NULL;
-  env->class_scope = 0;
+  env->scope = 0;
   if(env->sw->cases)
     free_map(env->sw->cases);
   vector_clear(&env->sw->exp);
@@ -64,19 +64,19 @@ ANN void free_env(const Env a) {
 }
 
 ANN2(1,3,4) void env_push(const Env env, const Type type,
-    const Nspc nspc, m_uint* class_scope) {
+    const Nspc nspc, m_uint* scope) {
   vector_add(&env->class_stack, (vtype)env->class_def);
   env->class_def = type;
   vector_add(&env->nspc_stack, (vtype)env->curr);
   env->curr = nspc;
-  *class_scope = env->class_scope;
-  env->class_scope = 0;
+  *scope = env->scope;
+  env->scope = 0;
 }
 
-ANN void env_pop(const Env env, const m_uint class_scope) {
+ANN void env_pop(const Env env, const m_uint scope) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  env->class_scope = class_scope;
+  env->scope = scope;
 }
 
 ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,

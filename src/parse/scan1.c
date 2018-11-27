@@ -39,7 +39,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
     (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
   if(env->class_def) {
-    if(!env->class_scope) {
+    if(!env->scope) {
       if(!env->func && !GET_FLAG(decl->td, static))
         SET_FLAG(decl->td, member);
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
@@ -58,22 +58,21 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(env_access(env, decl->td->flag))
   env_storage(env, &decl->td->flag);
   Var_Decl_List list = decl->list;
-  const m_bool is_tmpl_class = SAFE_FLAG(env->class_def, template);
-  m_uint class_scope;
+  m_uint scope;
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   if(global)
-    env_push(env, NULL, env->global_nspc, &class_scope);
+    env_push(env, NULL, env->global_nspc, &scope);
   do {
     Type t;
     const Var_Decl var = list->self;
     const Value value = nspc_lookup_value0(env->curr, var->xid);
     if(isres(var->xid) > 0)
       ERR_B(var->pos, "\t... in variable declaration", s_name(var->xid))
-    if(value && (!is_tmpl_class ||
-        (is_tmpl_class && !GET_FLAG(env->class_def, scan1))))
+    if(value && (!env->class_def ||
+        (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
     if(!var->array)
@@ -88,15 +87,15 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     var->value->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(var->value, ref);
-    if(!env->func && !env->class_scope && !env->class_def)
+    if(!env->func && !env->scope && !env->class_def)
       SET_FLAG(var->value, global);
     var->value->d.ptr = var->addr;
     var->value->owner = !env->func ? env->curr : NULL;
-    var->value->owner_class = env->class_scope ? NULL : env->class_def;
+    var->value->owner_class = env->scope ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
-    env_pop(env, class_scope);
+    env_pop(env, scope);
   return 1;
 }
 
@@ -329,7 +328,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     return 1;
   const Func former = env->func;
   env->func = FAKE_FUNC;
-  ++env->class_scope;
+  ++env->scope;
   CHECK_BB(scan1_func_def_flag(env, f))
   CHECK_BB(scan1_func_def_type(env, f))
   if(f->arg_list)
@@ -339,7 +338,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, op) && env->class_def)
     SET_FLAG(f, static);
   env->func = former;
-  --env->class_scope;
+  --env->scope;
   return 1;
 }
 
@@ -362,12 +361,12 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
-  m_uint class_scope;
-  env_push(env, class_def->type, class_def->type->nspc, &class_scope);
+  m_uint scope;
+  env_push(env, class_def->type, class_def->type->nspc, &scope);
   Class_Body body = class_def->body;
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));
-  env_pop(env, class_scope);
+  env_pop(env, scope);
   return 1;
 }
 
