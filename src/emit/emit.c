@@ -631,23 +631,8 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { 
 }
 
 ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
-  const Exp lhs = bin->lhs;
-  CHECK_BB(emit_exp(emit, lhs, 1))
-  const Exp rhs = bin->rhs;
-  const Func f = rhs->type->d.func ? rhs->type->d.func : bin->func;
-  if(bin->tmpl) {
-    m_int scope = push_tmpl_func(emit, bin->func, bin->tmpl->types);
-    CHECK_BB(scope);
-    CHECK_BB(emit_func_def(emit, f->def))
-    emit_pop_type(emit);
-    emit_pop(emit, (m_uint)scope);
-  }
-  if(GET_FLAG(f->def, variadic)) {
-    Exp_Call exp = { .args=lhs, .m_func=rhs->type->d.func };
-    emit_func_arg_vararg(emit, &exp);
-  }
-  CHECK_BB(emit_exp(emit, rhs, 1))
-  return emit_exp_call1(emit, bin->func);
+  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func };
+  return emit_exp_call(emit, &exp);
 }
 
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
