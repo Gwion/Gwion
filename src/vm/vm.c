@@ -24,6 +24,11 @@ static inline uint32_t rotl(const uint32_t x, int k) {
   return (x << k) | (x >> (32 -k));
 }
 
+void gw_seed(uint32_t rnd[2], const uint64_t s) {
+  uint64_t seed = splitmix64_stateless(s);
+  memcpy(rnd, &seed, sizeof(uint64_t));
+}
+
 /*xoroshiro32** */
 uint32_t gw_rand(uint32_t s[2]) {
   const uint32_t s0 = s[0];
@@ -40,8 +45,7 @@ VM* new_vm(void) {
   vm->shreduler->vm = vm;
   vector_init(&vm->shreduler->shreds);
   vector_init(&vm->ugen);
-  uint64_t seed = splitmix64_stateless((uint64_t)time(NULL));
-  memcpy(vm->rand, &seed, sizeof(uint64_t));
+  gw_seed(vm->rand, (uint64_t)time(NULL));
   return vm;
 }
 
