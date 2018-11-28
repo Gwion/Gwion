@@ -14,6 +14,7 @@ ANN void gwion_init(const Gwion gwion) {
   gwion->scan = new_scanner(127); // !!! magic number
   gwion->emit->env = gwion->env;
   gwion->vm->gwion = gwion;
+  gwion->env->gwion = gwion;
 }
 
 ANN void gwion_release(const Gwion gwion) {

@@ -21,6 +21,7 @@ struct Env_ {
   Type      class_def;
   Func      func;
   m_uint type_xid;
+  struct Gwion_ *gwion;
   struct Vector_    nspc_stack;
   struct Vector_    class_stack;
   struct Vector_    breaks;

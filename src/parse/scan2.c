@@ -71,7 +71,7 @@ ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_E
     }
     if(var->array)
       list->type = array_type(list->type, var->array->depth);
-    const Value v = var->value ? var->value : new_value(list->type, s_name(var->xid));
+    const Value v = var->value ? var->value : new_value(env->gwion, list->type, s_name(var->xid));
     v->flag = list->td->flag | ae_flag_arg;
     if(f) {
       v->offset = f->stack_depth;
@@ -342,7 +342,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(t, t->name);
+  const Value v = new_value(env->gwion, t, t->name);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);

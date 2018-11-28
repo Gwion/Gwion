@@ -6,10 +6,11 @@
 #include "value.h"
 #include "type.h"
 
-ANN Value new_value(const Type type, const m_str name) {
+ANN Value new_value(struct Gwion_* gwion, const Type type, const m_str name) {
   const Value a = mp_alloc(Value);
   a->type       = type;
   a->name       = name;
+  a->gwion = gwion;
   INIT_OO(a, e_value_obj);
   return a;
 }
