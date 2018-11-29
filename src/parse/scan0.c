@@ -10,9 +10,9 @@
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 
-ANN static Value mk_class(const Type base) {
+ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(t_class);
-  const Value v = new_value(t, base->name);
+  const Value v = new_value(env->gwion, t, base->name);
   t->d.base_type = base;
   v->owner = base->owner;
   SET_FLAG(v, const | ae_flag_checked);
@@ -31,7 +31,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   t->flag = stmt->td->flag;
   stmt->type = t;
   nspc_add_type(t->owner, stmt->xid, t);
-  stmt->value = mk_class(t);
+  stmt->value = mk_class(env, t);
   return 1;
 }
 
@@ -80,12 +80,12 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   stmt->t = t;
   if(stmt->xid) {
     nspc_add_type(nspc, stmt->xid, t);
-    mk_class(t);
+    mk_class(env, t);
   }
   return 1;
 }
 
-ANN static Type union_type(const Nspc nspc, const Symbol s, const m_bool add) {
+ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
   const Type t = type_copy(t_union);
   t->name = name;
@@ -94,7 +94,7 @@ ANN static Type union_type(const Nspc nspc, const Symbol s, const m_bool add) {
   t->owner = nspc;
   if(add) {
     nspc_add_type(nspc, s, t);
-    mk_class(t);
+    mk_class(env, t);
   }
   return t;
 }
@@ -106,9 +106,9 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
     CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
-    const Type t = union_type(nspc, stmt->type_xid ?: stmt->xid,
+    const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
        !!stmt->type_xid);
-    stmt->value = new_value(t, s_name(stmt->xid));
+    stmt->value = new_value(env->gwion, t, s_name(stmt->xid));
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
@@ -120,7 +120,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
   } else if(stmt->type_xid) {
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
-    stmt->type = union_type(nspc, stmt->type_xid, 1);
+    stmt->type = union_type(env, nspc, stmt->type_xid, 1);
   }
   return 1;
 }
@@ -195,7 +195,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
     while((body = body->next));
     env_pop(env, scope);
   }
-  (void)mk_class(class_def->type);
+  (void)mk_class(env, class_def->type);
   if(GET_FLAG(class_def, global))
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
   return 1;

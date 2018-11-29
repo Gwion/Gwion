@@ -10,8 +10,7 @@
 #include "func.h"
 #include "object.h"
 #include "operator.h"
-
-extern VM* some_global_vm_soon_to_disapear;
+#include "gwion.h"
 
 ANN void nspc_commit(const Nspc nspc) {
   scope_commit(&nspc->value);
@@ -36,7 +35,7 @@ ANN static void nspc_release_object(const Nspc a, Value value) {
     const VM_Shred s = new_vm_shred(code);
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->class_data + value->offset);
-    s->vm = some_global_vm_soon_to_disapear;
+    s->vm = value->gwion->vm;
     release(obj, s);
     free_vm_shred(s);
   }

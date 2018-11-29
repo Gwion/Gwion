@@ -10,10 +10,11 @@ struct Value_ {
     m_uint* ptr;
     Func func_ref;
   } d;
+  struct Gwion_ *gwion;
   ae_flag flag;
   HAS_OBJ
 };
 
-ANEW ANN Value new_value(const Type type, const m_str name);
+ANEW ANN Value new_value(struct Gwion_* gwion, const Type type, const m_str name);
 ANN void free_value(Value a);
 #endif

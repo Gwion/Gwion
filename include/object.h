@@ -18,7 +18,7 @@ ANEW M_Object new_string2(const VM_Shred, const m_str);
 ANEW M_Object new_shred(const VM_Shred);
 ANN void __release(const M_Object, const VM_Shred);
 ANN void exception(const VM_Shred, const m_str);
-
+ANN void broadcast(const M_Object);
 #define STRING(o)    (*(m_str*)    ((M_Object)o)->data)
 #define ME(o)        (*(VM_Shred*) ((M_Object)o)->data)
 #define EV_SHREDS(o) (*(Vector*)   ((M_Object)o)->data)
