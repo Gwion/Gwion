@@ -1024,7 +1024,6 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
   const m_uint offset = emit_alloc_local(emit, 2*SZ_INT, 0);
   stmt->v->offset = offset + SZ_INT;
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-  emit_pop_scope(emit);
   const m_uint index = emit_code_size(emit);
   const Instr end = emitter_add_instr(emit, AutoLoopEnd);
   const Instr tgt = emitter_add_instr(emit, Goto);
