@@ -1,12 +1,15 @@
 language: c
 sudo: required
-#sudo: false
-
 os:
-  - linux
-#  - osx
-
+- linux
 addons:
+  coverity_scan:
+    project:
+      name: "fennecdjay/Gwion"
+      description: "<Your project description here>"
+    notification_email: astor.jeremie@wanadoo.fr
+    build_command: make
+    branch_pattern: coverity_scan
   apt:
     sources:
     - ubuntu-toolchain-r-test
@@ -16,47 +19,40 @@ addons:
     - lcov
     - gcc-8
     - clang-6.0
-
 env:
   global:
-    - CIFLAGS=-Wno-attributes
-    - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
-    - GWION_TEST_DIR=tmp/test
-    - PREFIX=$TRAVIS_BUILD_DIR
+  - CIFLAGS=-Wno-attributes
+  - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
+  - GWION_TEST_DIR=tmp/test
+  - PREFIX=$TRAVIS_BUILD_DIR
+  - secure: qC1iGXWyzrJrn6pIxZup0CYThjZC44NuEStU50wx3Jdi1owYkkQ/eXWw55TvhswmnnO7l+wQsN2RnP6zsjJTq6wuNjAyG8w89rgCevbCpOu5vZAWF0+/c5H7qDG+NS9aumfd53QPC55ZcjjjM+5j71+J8XXoj+n4ygR5dVtTk/xF4sTBBwyaUkG9r/Hoocd3gtd3Up/ZlDYQd5/tCrfiFcWvAs4197LPfCDIW7k/tnXEmKV3le/yTXU0/ZByzjGQkhhpqvMqh3BTQrKExxeBt8utqnwLVwUAIWnACUIJz8bjyWWX++DwP1cFExAUBWB21A4i/qpXAieu7whcwE/hPkrVJjqEedbXNonyFHAwwOVhPIckk2OVzD6tCNp8IJZkccq8ONbqM/WpPAKip//13wttDvsDRgva2nkS7LZ6n/V1MHye6OgZD3778bty6YGOSkyEiT9ryZGaDrGbNbdXcAyCUmbd8a/N1RnQC+TSkvRBAhVL50dgSHNYNXZNn02hqiD/QNDqgdjOQ/jkgROQxMj8EnsVDPTOWIYkKpiTawQF9WqCPdQLl7+P5+uuUhfeMiyohu90yDOl7BXxhS8FJt/YUCMBLGS3OsmnVpA5XoG2aBZKDz1gXedNcQJ1JAEB0XO5mSJn4jXbDtI9QMZu/jNxm1TmyJaItv1l0ln3zn0=
   matrix:
-    - USE_DOUBLE=1
-    - USE_DOUBLE=0
-
+  - USE_DOUBLE=1
+  - USE_DOUBLE=0
 matrix:
   fast_finish: true
   allow_failures:
- # - os: osx
   - compiler: clang
-
 compiler:
-  - gcc
-  - clang
-
+- gcc
+- clang
 install:
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
-
+- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov;
+  fi
 before_script:
-  - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-8; fi; fi
-  - if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi; fi
-  - git submodule update --init util ast
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
-  - mkdir -p "$GWION_ADD_DIR"
-  - mkdir -p "$GWION_TEST_DIR"
-  - if [ $(uname) != Linux ]; then brew update; fi
-
+- if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-8; fi; fi
+- if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi;
+  fi
+- git submodule update --init util ast
+- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1;
+  fi
+- mkdir -p "$GWION_ADD_DIR"
+- mkdir -p "$GWION_TEST_DIR"
+- if [ $(uname) != Linux ]; then brew update; fi
 script:
-  - make && make test
-
+- make && make test
 after_success:
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then bash help/lcov.sh; fi
-
-after_failure:
-  valgrind ./gwion examples/func_ptr.gw
-
+- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then bash help/lcov.sh; fi
+after_failure: valgrind ./gwion examples/func_ptr.gw
 git:
   submodules: false
