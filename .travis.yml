@@ -41,6 +41,9 @@ install:
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov;
   fi
 before_script:
+  - echo 'Setting Compilers ...' && echo -en 'travis_fold:start:compiler\\r'
+  - eval "./autogen.sh && ./configure"
+  - echo -en 'travis_fold:end:compiler\\r'
 - if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-8; fi; fi
 - if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi;
   fi
