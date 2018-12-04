@@ -67,7 +67,7 @@ script:
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       bash help/lcov.sh;
-      ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT;
+      ./cc-test-reporter after-build -r $TRAVIS_TEST_RESULT;
     fi
 
 
