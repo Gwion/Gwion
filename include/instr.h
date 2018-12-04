@@ -25,8 +25,6 @@ struct Instr_ {
   m_bit ptr[SZ_MINVAL];
 };
 
-ANEW Instr new_instr(void);
-ANN void free_instr(Instr instr);
 INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);

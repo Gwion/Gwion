@@ -65,8 +65,7 @@ ANN static void frame_push(Frame* frame) {
 
 ANN static m_int frame_pop(Frame* frame) {
   const Local* l = (Local*)vector_pop(&frame->stack);
-  if(!l)
-    return -1;
+  CHECK_OB(l)
   frame->curr_offset -= l->size;
   return l->is_obj ? (m_int)l->offset : frame_pop(frame);
 }
@@ -87,9 +86,6 @@ ANN void free_emitter(Emitter a) {
   vector_release(&a->stack);
   xfree(a);
 }
-
-ANEW Instr new_instr() { return mp_alloc(Instr); }
-ANN void free_instr(Instr instr) { mp_free(Instr, instr); }
 
 __attribute__((returns_nonnull))
 ANN2(1) Instr emitter_add_instr(const Emitter emit, const f_instr f) {
@@ -1616,7 +1612,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
 ANN static void emit_free_code(Code* code) {
   LOOP_OPTIM
   for(m_uint j = 0; j < vector_size(&code->instr); ++j)
-    free_instr((Instr)vector_at(&code->instr, j));
+    mp_free(Instr, (Instr)vector_at(&code->instr, j));
   free_code(code);
 }
 

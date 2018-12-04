@@ -60,7 +60,7 @@ ANN static void free_code_instr(const Vector v) {
       if(instr->m_val2)
       free_vector((Vector)instr->m_val2);
     }
-    free_instr(instr);
+    mp_free(Instr, instr);
   }
   free_vector(v);
 }

@@ -39,7 +39,7 @@ static SFUN(cb_func) {
   }
   m_uint offset = shred->mem - (shred->_reg + SIZEOF_REG);
   PUSH_MEM(shred, offset);
-  Instr instr = new_instr();
+  Instr instr = mp_alloc(Instr);
   struct ret_info* info = (struct ret_info*)xmalloc(sizeof(struct ret_info));
   info->offset = offset;
   info->size = f->def->ret_type->size;
