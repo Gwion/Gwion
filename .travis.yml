@@ -42,9 +42,8 @@ install:
   fi
 before_script:
   - if [ $(uname) = Linux ]; then
-    if [ $CC = gcc ];
-    then export CC=gcc-8;
-    elif if [ $CC = clang ]; then export CC=clang-6.0;
+      if [ $CC = gcc ];        then export CC=gcc-8;
+      elif [ $CC = clang ]; then export CC=clang-6.0;
     fi;
   fi
 - git submodule update --init util ast
