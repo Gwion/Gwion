@@ -16,6 +16,7 @@ addons:
     - llvm-toolchain-trusty-6.0
     packages:
     - valgrind
+    - gcov
     - lcov
     - gcc-8
     - clang-6.0
