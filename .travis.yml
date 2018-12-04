@@ -16,7 +16,6 @@ addons:
     - llvm-toolchain-trusty-6.0
     packages:
     - valgrind
-    - gcov
     - lcov
     - gcc-8
     - clang-6.0
@@ -46,7 +45,8 @@ before_script:
 - if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi;
   fi
 - git submodule update --init util ast
-- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1;
+- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+  export USE_COVERAGE=1;
   curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
   chmod +x ./cc-test-reporter;
   ./cc-test-reporter before-build;
@@ -57,11 +57,10 @@ before_script:
 script:
 - make && make test
 after_success:
-- echo -en 'travis_fold:start:Coverage Finish\\r';
-if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-  bash help/lcov.sh;
-  ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-fi
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+      bash help/lcov.sh;
+      ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+    fi
 
 
 git:
