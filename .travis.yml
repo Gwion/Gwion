@@ -41,11 +41,14 @@ install:
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov;
   fi
 before_script:
-- echo "Set Compiler" && echo 'travis_fold:start:compiler\\r'
-- if [ $(uname) = Linux ]; then if [ $CC = gcc ]; then export CC=gcc-8; fi; fi
-- if [ $(uname) = Linux ]; then if [ $CC = clang ]; then export CC=clang-6.0; fi;
+- echo -e "Set Compiler\n" && echo 'travis_fold:start:compiler\\r'
+  if [ $(uname) = Linux ]; then
+    if [ $CC = gcc ];
+    then export CC=gcc-8;
+    elif if [ $CC = clang ]; then export CC=clang-6.0;
+    fi;
   fi
-- echo 'travis_fold:end:compiler\\r'
+  echo 'travis_fold:end:compiler\\r'
 - git submodule update --init util ast
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
   export USE_COVERAGE=1;
