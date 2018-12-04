@@ -56,10 +56,12 @@ before_script:
 script:
 - make && make test
 after_success:
-- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then bash help/lcov.sh; fi
-after_failure: valgrind ./gwion examples/func_ptr.gw
+- echo -en 'travis_fold:start:Coverage Finish\\r';
+if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+  bash help/lcov.sh;
+  ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+fi
+
+
 git:
   submodules: false
-
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
