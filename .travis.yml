@@ -21,6 +21,7 @@ addons:
     - clang-6.0
 env:
   global:
+  - CC_TEST_REPORTER_ID=1ef7168aff2b8902922b345c8b1b9be3fd2442fa4f2096634b42235bcbaa2c47
   - CIFLAGS=-Wno-attributes
   - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
   - GWION_TEST_DIR=tmp/test
@@ -45,7 +46,10 @@ before_script:
   fi
 - git submodule update --init util ast
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1;
-  fi
+  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
+  chmod +x ./cc-test-reporter;
+  ./cc-test-reporter before-build;
+  fi;
 - mkdir -p "$GWION_ADD_DIR"
 - mkdir -p "$GWION_TEST_DIR"
 - if [ $(uname) != Linux ]; then brew update; fi
@@ -56,3 +60,6 @@ after_success:
 after_failure: valgrind ./gwion examples/func_ptr.gw
 git:
   submodules: false
+
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
