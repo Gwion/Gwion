@@ -44,17 +44,18 @@ install:
 
 before_script:
   - if [ $(uname) = Linux ]; then
-     if [ $CC = gcc ]; then export CC=gcc-8;
-     elif [ $CC = clang ]; then export CC=clang-6.0;
-     fi;
+      if [ $CC = gcc ]; then export CC=gcc-8;
+      elif [ $CC = clang ]; then export CC=clang-6.0;
+      fi;
     fi;
   - git submodule update --init util ast
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
-#    curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
-#    chmod +x ./cc-test-reporter;
-#    ./cc-test-reporter before-build; fi;
-  - mkdir -p "$GWION_ADD_DIR"
-  - mkdir -p "$GWION_TEST_DIR"
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+      export USE_COVERAGE=1;
+      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
+      chmod +x ./cc-test-reporter;
+    ./cc-test-reporter before-build;
+    fi;
+  - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
   - if [ $(uname) != Linux ]; then brew update; fi
 
 script:
