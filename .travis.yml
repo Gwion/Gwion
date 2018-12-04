@@ -1,7 +1,9 @@
 language: c
 sudo: required
 os:
-- linux
+  - linux
+  - osx
+
 addons:
   coverity_scan:
     project:
@@ -32,7 +34,8 @@ env:
   - USE_DOUBLE=0
 matrix:
   fast_finish: true
-#  allow_failures:
+  allow_failures:
+   - os: osx
 #  - compiler: clang
 
 compiler:
