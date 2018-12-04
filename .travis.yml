@@ -31,6 +31,13 @@ env:
   - USE_DOUBLE=1
   - USE_DOUBLE=0
 matrix:
+  include:
+    env: USE_DOUBLE=1   CC=gcc
+    addons:
+      apt:
+        packages:
+          - valgrind
+          - lcov
   fast_finish: true
 #  allow_failures:
 #  - compiler: clang
