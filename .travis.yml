@@ -32,32 +32,34 @@ env:
   - USE_DOUBLE=0
 matrix:
   fast_finish: true
-  allow_failures:
-  - compiler: clang
+#  allow_failures:
+#  - compiler: clang
+
 compiler:
-- gcc
-- clang
+  - gcc
+  - clang
+
 install:
-- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov;
-  fi
+- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
+
 before_script:
   - if [ $(uname) = Linux ]; then
-      if [ $CC = gcc ];        then export CC=gcc-8;
-      elif [ $CC = clang ]; then export CC=clang-6.0;
+     if [ $CC = gcc ]; then export CC=gcc-8;
+     elif [ $CC = clang ]; then export CC=clang-6.0;
+     fi;
     fi;
-  fi
-- git submodule update --init util ast
-- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-  export USE_COVERAGE=1;
-  curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
-  chmod +x ./cc-test-reporter;
-  ./cc-test-reporter before-build;
-  fi;
-- mkdir -p "$GWION_ADD_DIR"
-- mkdir -p "$GWION_TEST_DIR"
-- if [ $(uname) != Linux ]; then brew update; fi
+  - git submodule update --init util ast
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then export USE_COVERAGE=1; fi
+#    curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
+#    chmod +x ./cc-test-reporter;
+#    ./cc-test-reporter before-build; fi;
+  - mkdir -p "$GWION_ADD_DIR"
+  - mkdir -p "$GWION_TEST_DIR"
+  - if [ $(uname) != Linux ]; then brew update; fi
+
 script:
-- make && make test
+  - make && make test
+
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       bash help/lcov.sh;
