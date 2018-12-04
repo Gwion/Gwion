@@ -301,14 +301,14 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   struct Vector_ v;
   vector_init(&v);
   if(!nspc)
-    vector_add(&v, (vtype)type->name);
+    vector_add(&v, (vtype)insert_symbol(type->name));
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_add(&v, (vtype)s_name(insert_symbol((nspc->name))));
+    vector_add(&v, (vtype)insert_symbol(nspc->name));
     nspc = nspc->parent;
   }
   ID_List id = NULL;
   for(m_uint i = vector_size(&v) + 1; --i;)
-    id = prepend_id_list(insert_symbol((m_str)vector_at(&v, i - 1)), id, 0);
+    id = prepend_id_list((Symbol)vector_at(&v, i - 1), id, 0);
   vector_release(&v);
   assert(id);
   Type_Decl* td = new_type_decl(id, 0);
@@ -369,8 +369,7 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, Exp args) {
 }
 
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
-  if(!check_exp(env, exp->func) ||
-     (exp->args  && !check_exp(env, exp->args)))
+  if(!check_exp(env, exp->func) || (exp->args && !check_exp(env, exp->args)))
     return -1;
   return 1;
 }
