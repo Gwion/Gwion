@@ -515,14 +515,12 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
-  m_uint scope;
-  env_push(emit->env, NULL, decl->list->self->value->type->nspc, &scope);
   const Type t = typedef_base(decl->type);
-  CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
-  if(!GET_FLAG(t, emit))
+  if(!GET_FLAG(t, emit)) {
+    CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
     CHECK_BB(emit_class_def(emit, t->def))
-  emit_pop_type(emit);
-  env_pop(emit->env, scope);
+    emit_pop_type(emit);
+  }
   return 1;
 }
 

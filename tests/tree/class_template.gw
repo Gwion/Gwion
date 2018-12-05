@@ -18,9 +18,9 @@ class C {
 “Vec3, int”C f;
 “Object, int”C g;
 //C c;
-//<<<c.a>>>;
-//<<<d.a>>>;
-//<<<e.a>>>;
+<<<c.a>>>;
+<<<d.a>>>;
+<<<e.a>>>;
 <<<c.test()>>>;
 <<<d.test()>>>;
 <<<e.test()>>>;

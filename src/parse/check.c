@@ -547,17 +547,15 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
 ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
     const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
   CHECK_BO(check_exp_call1_check(env, call))
-  if(GET_FLAG(call->type, func)) {
+  if(GET_FLAG(call->type->d.func, ref)) {
     const Value value = call->type->d.func->value_ref;
-    if(GET_FLAG(call->type->d.func, ref))
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
   if(args)
     CHECK_OO(check_exp(env, args))
-  if(GET_FLAG(call->type, func)) {
+  if(GET_FLAG(call->type, func))
     return check_exp_call_template(env, call, args, base);
-}
-  Func func = find_func_match(env, call->type->d.func, args);
+  const Func func = find_func_match(env, call->type->d.func, args);
   if(!func)
     return function_alternative(call->type, args);
   if(base->exp_type == ae_exp_call)
@@ -735,23 +733,19 @@ ANN static m_bool check_flow(const Exp exp, const m_str orig) { GWDEBUG_EXE
   ERR_B(exp->pos, "invalid type '%s' (in '%s' condition)", exp->type->name, orig)
 }
 
-ANN static m_bool check_stmt_flow(const Env env, const Stmt_Flow stmt) { GWDEBUG_EXE
-  CHECK_OB(check_exp(env, stmt->cond))
-  CHECK_BB(check_flow(stmt->cond, stmt->self->stmt_type == ae_stmt_while ? "while" : "until"))
-  vector_add(&env->breaks, (vtype)stmt->self);
-  vector_add(&env->conts, (vtype)stmt->self);
+ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
+  vector_add(&env->breaks, (vtype)a);
   nspc_push_value(env->curr);
-  const m_bool ret = check_stmt(env, stmt->body);
+  const m_bool ret = check_stmt(env, b);
   nspc_pop_value(env->curr);
   vector_pop(&env->breaks);
-  vector_pop(&env->conts);
   return ret;
 }
 
-ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
-  vector_add(&env->breaks, (vtype)a);
-  CHECK_BB(check_stmt(env, b))
-  vector_pop(&env->breaks);
+ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
+  vector_add(&env->conts, (vtype)a);
+  CHECK_BB(check_breaks(env, a, b))
+  vector_pop(&env->conts);
   return 1;
 }
 
@@ -802,7 +796,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
   stmt->v = new_value(env->gwion, t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
-  return check_breaks(env, stmt->self, stmt->body);
+  return check_conts(env, stmt->self, stmt->body);
 }
 
 ANN static m_bool cond_type(const Exp e) {
@@ -820,16 +814,20 @@ stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
   check_flow(stmt->cond, "if") < 0   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
+stmt_func_xxx(flow, Stmt_Flow,,
+  !(!check_exp(env, stmt->cond) ||
+    check_flow(stmt->cond, stmt->self->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
+    check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For,, !(
   for_empty(stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
   check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
-  check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
+  check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(stmt->cond) < 0 ||
-  check_breaks(env, stmt->self, stmt->body) < 0) ? 1 : -1)
+  check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(switch, Stmt_Switch, /* set switch */,!(!check_exp(env, stmt->val) ||
   cond_type(stmt->val) < 0 ||
   check_breaks(env, stmt->self, stmt->stmt) < 0) ? 1 : -1)
@@ -1111,14 +1109,8 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(isa(class_def->type->parent, t_object) < 0)
     ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
             class_def->type->parent->name)
-  if(!GET_FLAG(class_def->type->parent, checked)) {
-    if(GET_FLAG(class_def->ext, typedef)) // ??????
+  if(!GET_FLAG(class_def->type->parent, checked))
       CHECK_BB(check_class_def(env, class_def->type->parent->def))
-    else
-      ERR_B(class_def->ext->xid->pos, "cannot extend incomplete type '%s'\n"
-            "\t...(note: the parent's declaration must preceed child's)",
-            class_def->type->parent->name)
-  }
   if(GET_FLAG(class_def->type->parent, typedef))
     SET_FLAG(class_def->type, typedef);
   return 1;

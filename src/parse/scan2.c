@@ -16,10 +16,12 @@
 ANN static m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
+extern ANN m_bool scan1_class_def(const Env, const Class_Def);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
 
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
+  CHECK_BB(scan1_class_def(env, decl->type->def))
   CHECK_BB(scan2_class_def(env, decl->type->def))
   nspc_pop_type(env->curr);
   return 1;
