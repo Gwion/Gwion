@@ -104,8 +104,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       decl_static(env->curr, v);
     if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
-SET_FLAG(v, used);
-  SET_FLAG(v, checked);
+  SET_FLAG(v, checked | ae_flag_used);
   nspc_add_value(env->curr, var->xid, v);
   } while((list = list->next));
   if(global)
