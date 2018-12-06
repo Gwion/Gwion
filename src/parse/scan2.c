@@ -476,7 +476,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   }
   const Func base = get_func(env, f);
   if(!base) {
-    m_uint scope = env->scope;;
+    m_uint scope = env->scope;
     if(GET_FLAG(f, global))
       env_push(env, NULL, env->global_nspc, &scope);
       CHECK_OB((value = func_create(env, f, overload, func_name)))

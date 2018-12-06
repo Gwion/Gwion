@@ -449,7 +449,6 @@ ANN static Func_Def import_fun(const Env env, DL_Func * mfun, const ae_flag flag
 
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   Func_Def def = import_fun(gwi->env, &gwi->func, flag);
-
   CHECK_OB(def)
   if(gwi->templater.n) {
     def = new_func_def(NULL, NULL, NULL, NULL, 0);

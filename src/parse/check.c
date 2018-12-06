@@ -976,7 +976,7 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
   const Type parent = env->class_def->parent;
   if(parent) {
     const Value v = find_value(parent, f->name);
-    if(v) {
+    if(v && isa(v->type, t_function) > 0) {
       const m_bool match = parent_match_actual(env, f, v->d.func_ref);
       if(match)
         return match;
@@ -1027,7 +1027,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
   const Func func = f->func;
   if(env->class_def && env->class_def->parent) {
     const Value override = find_value(env->class_def->parent, f->name);
-    if(override && isa(override->type, t_function) < 0)
+    if(override && override->owner_class && isa(override->type, t_function) < 0)
       ERR_B(f->td->xid->pos,
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
