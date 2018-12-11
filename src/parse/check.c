@@ -1074,11 +1074,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
-  if(GET_FLAG(f, builtin)) {
-    if(GET_FLAG(func, member) && GET_FLAG(func, ref))
-      f->stack_depth += SZ_INT;
+  if(GET_FLAG(f, builtin))
     func->code->stack_depth = f->stack_depth;
-  }
   else if(GET_FLAG(f, op))
     operator_func(func);
   nspc_pop_value(env->curr);

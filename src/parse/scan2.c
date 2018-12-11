@@ -369,6 +369,8 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
 
 ANN static m_bool scan2_func_def_builtin(const Func func, const m_str name) { GWDEBUG_EXE
   SET_FLAG(func, builtin);
+  if(GET_FLAG(func->def, variadic))
+    func->def->stack_depth += SZ_INT;
   func->code = new_vm_code(NULL, func->def->stack_depth,
       GET_FLAG(func, member), name);
   SET_FLAG(func->code, builtin);
