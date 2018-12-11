@@ -11,6 +11,12 @@
 #include "import.h"
 #include "vararg.h"
 
+void free_vararg(struct Vararg_* arg) {
+  xfree(arg->d);
+  xfree(arg->k);
+  mp_free(Vararg, arg);
+}
+
 INSTR(VarargTop) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(arg->d)
@@ -18,7 +24,6 @@ INSTR(VarargTop) { GWDEBUG_EXE
   else {
     shred->pc = instr->m_val2 + 1;
     mp_free(Vararg, arg);
-    return;
   }
 }
 
@@ -28,24 +33,15 @@ INSTR(VarargIni) { GWDEBUG_EXE
     POP_REG(shred,  instr->m_val)
     arg->d = (m_bit*)xmalloc(instr->m_val);
     memcpy(arg->d, shred->reg, instr->m_val);
-  } else {
-    if(*(m_uint*)instr->ptr)
-      POP_REG(shred, SZ_INT)
-    arg->d = NULL;
-  }
+  } else if(*(m_uint*)instr->ptr)
+    POP_REG(shred, SZ_INT)
   const Vector kinds = (Vector)instr->m_val2;
   if(kinds) {
-    arg->s = vector_size(kinds);
-    if(arg->s) {
+    if((arg->s = vector_size(kinds))) {
       arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
       memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
     }
-  } else {
-    arg->s = 0;
-    arg->k = NULL;
   }
-  arg->o = 0;
-  arg->i = 0;
   *(struct Vararg_**)REG(0) = arg;
   PUSH_REG(shred,  SZ_INT);
 }
@@ -56,11 +52,8 @@ INSTR(VarargEnd) { GWDEBUG_EXE
   arg->o += arg->k[arg->i];
   if(++arg->i < arg->s)
     shred->pc = instr->m_val2;
-  else {
-    free(arg->d);
-    free(arg->k);
-    mp_free(Vararg, arg);
-  }
+  else
+    free_vararg(arg);
 }
 
 INSTR(VarargMember) { GWDEBUG_EXE

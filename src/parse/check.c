@@ -272,13 +272,12 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
   CHECK_OO(t_base)
   Exp e = array->array->exp;
   CHECK_OO(check_exp(env, e))
-  m_uint depth = 0;
+  m_uint depth = 1;
   do {
-    ++depth;
     if(isa(e->type, t_int) < 0)
       ERR_O(e->pos, "array index %i must be of type 'int', not '%s'",
             depth, e->type->name)
-  } while((e = e->next));
+  } while((e = e->next) && ++depth);
   if(depth != array->array->depth)
     ERR_O(array->self->pos, "invalid array acces expression.")
 
@@ -355,10 +354,9 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   return NULL;
 }
 
-ANN2(1, 2) static Func find_func_match(const Env env, const Func up, Exp args) {
+ANN2(1, 2) static Func find_func_match(const Env env, const Func up, const Exp exp) {
   Func func;
-  if(args && isa(args->type, t_void) > 0)
-    args = NULL;
+  const Exp args = (exp && isa(exp->type, t_void) < 0) ? exp : NULL;
   if((func = find_func_match_actual(env, up, args, 0, 1)) ||
      (func = find_func_match_actual(env, up, args, 1, 1)) ||
      (func = find_func_match_actual(env, up, args, 0, 0)) ||
@@ -368,16 +366,14 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, Exp args) {
 }
 
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
-  if(!check_exp(env, exp->func) || (exp->args && !check_exp(env, exp->args)))
-    return -1;
-  return 1;
+  CHECK_OB(check_exp(env, exp->func))
+  return exp->args ? !!check_exp(env, exp->args) : -1;
 }
 
-ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl,
-    const m_uint i) {
-  const Symbol sym = func_symbol(env->curr, v->name, tmpl, i);
+ANN static inline Value template_get_ready(const Value v, const m_str tmpl, const m_uint i) {
+  const Symbol sym = func_symbol(v->owner, v->name, tmpl, i);
   return v->owner_class ? find_value(v->owner_class, sym) :
-      nspc_lookup_value1(env->curr, sym);
+      nspc_lookup_value1(v->owner, sym);
 }
 
 ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) {
@@ -390,7 +386,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
-    Value value = template_get_ready(env, v, tmpl_name, i);
+    Value value = template_get_ready(v, tmpl_name, i);
     if(value) {
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
@@ -399,7 +395,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
       }
       base = def = value->d.func_ref->def;
     } else {
-      if(!(value = template_get_ready(env, v, "template", i)))
+      if(!(value = template_get_ready(v, "template", i)))
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
@@ -437,32 +433,28 @@ ANN static void print_current_args(Exp e) {
     gw_err(" \033[32m%s\033[0m", e->type->name);
     if(e->type->array_depth)
       REM_REF(e->type)
-    if(e->next)
-      gw_err(",");
-  } while((e = e->next));
+  } while((e = e->next) && gw_err(","));
   gw_err("\n");
 }
 
 ANN static void print_arg(Arg_List e) {
-  do {
-    gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
-        s_name(e->var_decl->xid));
-    if(e->next)
-      gw_err(",");
-  } while((e = e->next));
+  do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
+     s_name(e->var_decl->xid));
+  while((e = e->next) && gw_err(","));
 }
 
 ANN2(1) static void* function_alternative(const Type f, Exp args){
   err_msg(args ? args->pos : 0, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {
+    gw_err("(%s)\t", up->name);
     const Arg_List e = up->def->arg_list;
     gw_err("\t");
     if(e)
       print_arg(e);
     else
       gw_err("\033[32mvoid\033[0m");
-    gw_err(". (%s)\n%s", f->name, up->next ? "or :" : "");
+    gw_err("\n");
   } while((up = up->next));
   if(args)
     print_current_args(args);
@@ -490,22 +482,19 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
     return f;
   }
   assert(func->self);
-  (void)err_msg(func->self->pos,
+  ERR_O(func->self->pos,
         "function is template. automatic type guess not fully implemented yet.\n"
-        "\tplease provide template types. eg: '<type1, type2, ...>'");
-  return NULL;
+        "\tplease provide template types. eg: '<type1, type2, ...>'")
 }
 
 ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restrict call,
     const restrict Exp args, const restrict Exp base) {
   m_uint args_number = 0;
-  ID_List list;
   const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
   const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
-
-  list = value->d.func_ref->def->tmpl->list;
   Type_List tl[type_number];
+  ID_List list = value->d.func_ref->def->tmpl->list;
   while(list) {
     Arg_List arg = value->d.func_ref->def->arg_list;
     Exp template_arg = args;
@@ -528,7 +517,7 @@ ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restric
     ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { tl[0], NULL };
   const Exp_Call tmp_func = { call, args, NULL, &tmpl, NULL };
-  Func func = get_template_func(env, &tmp_func, base, value);
+  const Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
   else if(base->exp_type == ae_exp_binary)
@@ -591,18 +580,16 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG
   OP_RET(post, "postfix");
 }
 
-ANN static Type check_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
-  const Type base = check_exp(env, dur->base);
-  CHECK_OO(base)
-  const Type unit = check_exp(env, dur->unit);
-  CHECK_OO(unit)
-  if(isa(base, t_int) < 0 && isa(base, t_float) < 0)
-    ERR_O(dur->base->pos, "invalid type '%s' in prefix of dur expression...\n"
-          "    (must be of type 'int' or 'float')", base->name)
-  if(isa(unit, t_dur) < 0)
-    ERR_O(dur->unit->pos, "invalid type '%s' in postfix of dur expression...\n"
-          "    (must be of type 'dur')", unit->name)
-  return unit;
+ANN static Type check_exp_dur(const Env env, const Exp_Dur* exp) { GWDEBUG_EXE
+  CHECK_OO(check_exp(env, exp->base))
+  CHECK_OO(check_exp(env, exp->unit))
+  if(isa(exp->base->type, t_int) < 0 && isa(exp->base->type, t_float) < 0)
+    ERR_O(exp->base->pos, "invalid type '%s' in prefix of dur expression...\n"
+          "    (must be of type 'int' or 'float')", exp->base->type->name)
+  if(isa(exp->unit->type, t_dur) < 0)
+    ERR_O(exp->unit->pos, "invalid type '%s' in postfix of dur expression...\n"
+          "    (must be of type 'dur')", exp->base->type->name)
+  return exp->unit->type;
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
@@ -623,19 +610,20 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   return check_exp_call1(env, exp->func, exp->args, exp->self);
 }
 
+ANN static inline m_bool check_exp_unary_spork1(const Env env, const Stmt code) {
+  RET_NSPC(check_stmt(env, code))
+}
+
 ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  ++env->scope;
-  nspc_push_value(env->curr);
-  const m_bool ret = check_stmt(env, code);
-  nspc_pop_value(env->curr);
-  --env->scope;
-  return (ret > 0) ? t_shred : NULL;
+  CHECK_BO(check_exp_unary_spork1(env, code))
+  return t_shred;
 }
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
   struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
     .data=(uintptr_t)unary };
-  if(unary->exp && !opi.rhs)return NULL;
+  if(unary->exp && !opi.rhs)
+    return NULL;
   OP_RET(unary, "unary")
 }
 
@@ -735,9 +723,7 @@ ANN static m_bool check_flow(const Exp exp, const m_str orig) { GWDEBUG_EXE
 
 ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
   vector_add(&env->breaks, (vtype)a);
-  nspc_push_value(env->curr);
-  const m_bool ret = check_stmt(env, b);
-  nspc_pop_value(env->curr);
+  RET_NSPC(check_stmt(env, b))
   vector_pop(&env->breaks);
   return ret;
 }
@@ -1074,11 +1060,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
-  if(GET_FLAG(f, builtin)) {
-    if(GET_FLAG(func, member) && GET_FLAG(func, ref))
-      f->stack_depth += SZ_INT;
+  if(GET_FLAG(f, builtin))
     func->code->stack_depth = f->stack_depth;
-  }
   else if(GET_FLAG(f, op))
     operator_func(func);
   nspc_pop_value(env->curr);

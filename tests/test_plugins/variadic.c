@@ -9,6 +9,10 @@
 #include "import.h"
 #include "vararg.h"
 
+static MFUN(m_test) {
+  printf("%p\n", *(M_Object*)MEM(0));
+}
+
 static MFUN(m_variadic) {
   M_Object str_obj = *(M_Object*)MEM(SZ_INT);
   if(!str_obj)return;
@@ -29,7 +33,7 @@ static MFUN(m_variadic) {
     arg->i++;
     str++;
   }
-  POP_REG(shred, SZ_INT);
+  free_vararg(arg);
 }
 
 GWION_IMPORT(variadic test) {
@@ -38,6 +42,8 @@ GWION_IMPORT(variadic test) {
   CHECK_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
   CHECK_BB(gwi_func_arg(gwi, "string", "format"))
   CHECK_BB(gwi_func_end(gwi, ae_flag_variadic))
+  CHECK_BB(gwi_func_ini(gwi, "void", "test", m_test))
+  CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
   return 1;
 }

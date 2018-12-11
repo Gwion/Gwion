@@ -2,7 +2,12 @@
 Variadic v;
 "iiii" => string format;
 <<<v, " ", format $ Object>>>;
-//v.member(format);
 v.member(format, 1,2,3,4);
-//v.member(1,2,3,4);
-//v.member(1,2,3,4);
+v.member(format, 1,2,3,4);
+v.test();
+v.member(format, 1,2,3,4);
+v.member(format, 1,2,3,4);
+v.test();
+v.member(format, 1,2,3,4);
+v.member(format, 1,2,3,4);
+v.test();
