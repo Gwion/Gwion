@@ -34,7 +34,7 @@ static int sp_alsa_init(DriverInfo* di, const char* device,
   struct AlsaInfo* info = (struct AlsaInfo*)di->data;
   static snd_pcm_t* handle;
   snd_pcm_hw_params_t* params;
-  unsigned int num = di->bufnum;
+  uint num = (uint)di->bufnum;
   int dir = 0;
 
   if(snd_pcm_open(&handle, device, stream, mode) > 0 || !handle)
@@ -55,8 +55,8 @@ static int sp_alsa_init(DriverInfo* di, const char* device,
   if(!snd_pcm_hw_params_test_rate(handle, params, di->sr, dir))
     snd_pcm_hw_params_set_rate_near(handle, params, &di->sr, &dir);
 
-  if(!snd_pcm_hw_params_test_channels(handle, params, di->chan))
-    snd_pcm_hw_params_set_channels(handle, params, di->chan);
+  if(!snd_pcm_hw_params_test_channels(handle, params, (uint)di->chan))
+    snd_pcm_hw_params_set_channels(handle, params, (uint)di->chan);
   else return -1;
 
   snd_pcm_uframes_t size = di->bufsize;
