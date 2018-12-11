@@ -41,10 +41,10 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
    env_push(env, NULL, env->global_nspc, &scope);
   do {
     const Var_Decl var = list->self;
-    nspc_add_value(env->curr, var->xid, var->value); // ???
     const Array_Sub array = var->array;
     if(array && array->exp)
       CHECK_BB(scan2_exp(env, array->exp))
+    nspc_add_value(env->curr, var->xid, var->value); // ???
   } while((list = list->next));
   if(global)
     env_pop(env, scope);
@@ -197,9 +197,7 @@ ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp
 }
 
 ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
-  if(!exp_call->tmpl) // avoid unused var
     return scan2_exp_call1(env, exp_call->func, exp_call->args);
-  return scan2_exp(env, exp_call->func);
 }
 
 ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) { GWDEBUG_EXE
@@ -371,8 +369,7 @@ ANN static m_bool scan2_func_def_builtin(const Func func, const m_str name) { GW
   SET_FLAG(func, builtin);
   if(GET_FLAG(func->def, variadic))
     func->def->stack_depth += SZ_INT;
-  func->code = new_vm_code(NULL, func->def->stack_depth,
-      GET_FLAG(func, member), name);
+  func->code = new_vm_code(NULL, func->def->stack_depth, GET_FLAG(func, member), name);
   SET_FLAG(func->code, builtin);
   func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   return 1;
