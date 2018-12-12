@@ -5,7 +5,7 @@ typedef struct {
   struct Var_Decl_List_ list;
   struct Var_Decl_ var;
   struct Exp_ exp;
-  m_uint array_depth;
+  size_t array_depth;
 } DL_Var;
 
 typedef struct {
@@ -17,8 +17,8 @@ typedef struct {
   m_str    name;
   m_str    type;
   f_xfun   addr;
-  m_uint   narg;
   DL_Value args[DLARG_MAX];
+  uint narg;
 } DL_Func;
 
 typedef struct {
@@ -29,8 +29,8 @@ typedef struct {
 } DL_Oper;
 
 typedef struct {
-  m_uint n;
   m_str* list;
+  size_t n;
 } Templater;
 
 typedef struct {

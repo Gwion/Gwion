@@ -3,9 +3,9 @@
 typedef struct M_Object_  * M_Object;
 struct M_Object_ {
   m_bit* data;
-  m_uint ref;
   Type type_ref;
   struct pool* p;
+  size_t ref;
 };
 
 ANN void instantiate_object(const VM_Shred, const Type);

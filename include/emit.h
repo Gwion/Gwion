@@ -2,13 +2,13 @@
 #define EMIT_H
 
 typedef struct Frame_ {
-  m_uint curr_offset;
+  size_t curr_offset;
   struct Vector_ stack;
 } Frame;
 
 typedef struct Code_ {
   m_str  name;
-  m_uint stack_depth;
+  size_t stack_depth;
   struct Vector_ instr;
   struct Vector_ stack_cont, stack_break, stack_return;
   Frame* frame;

@@ -9,9 +9,9 @@ typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   Vector instr;
   m_str name;
-  m_uint stack_depth;
   m_uint native_func;
   void* memoize;
+  size_t stack_depth;
   ae_flag flag;
   HAS_OBJ
 };
@@ -44,7 +44,6 @@ struct VM_Shred_ {
   m_bit* mem;
   m_bit* _reg;
   m_bit* base;
-  m_uint pc, xid;
   m_str name;
   VM* vm;
   VM_Shred prev, next;
@@ -52,6 +51,7 @@ struct VM_Shred_ {
   struct M_Object_* me;
   struct Vector_ child;
   struct Vector_ gc;//, gc1;
+  size_t pc, xid;
   m_float wake_time;
 };
 ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const m_bool need_this, const m_str name);

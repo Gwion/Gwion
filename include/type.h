@@ -2,19 +2,19 @@
 #define __TYPE
 
 struct Type_ {
-  m_uint    xid;
-  m_uint    size;
   m_str     name;
   Nspc      nspc;
   Type      parent;
   Nspc      owner;
-  m_uint    array_depth;
   Class_Def def;
   union type_data {
     Func      func;
     Type      base_type;
   } d;
   struct pool* p;
+  size_t xid;
+  size_t size;
+  size_t array_depth;
   ae_flag flag;
   HAS_OBJ
 };

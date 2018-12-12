@@ -5,10 +5,10 @@
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
 struct Switch_ {
-  m_uint   default_case_index;
   struct Vector_ exp;
   Vector vec;
   Map cases;
+  size_t default_case_index;
 };
 
 typedef struct Env_       * Env;
@@ -16,11 +16,9 @@ struct Env_ {
   m_str name;
   Nspc curr;
   Nspc global_nspc;
-  m_uint    scope;
   struct Context_ *context;
   Type      class_def;
   Func      func;
-  m_uint type_xid;
   struct Gwion_ *gwion;
   struct Vector_    nspc_stack;
   struct Vector_    class_stack;
@@ -28,6 +26,8 @@ struct Env_ {
   struct Vector_    conts;
   struct Vector_    known_ctx;
   struct Switch_* sw;
+  size_t scope;
+  size_t type_xid;
 };
 
 ANEW Env new_env();

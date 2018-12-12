@@ -4,8 +4,8 @@ struct  Shreduler_ {
   VM* vm;
   VM_Shred list;
   VM_Shred curr;
-  m_uint shred_ids;
   struct Vector_ shreds;
+  size_t shred_ids;
   m_bool   loop;
 };
 #endif

@@ -9,10 +9,10 @@ typedef struct ArrayInfo_ {
   M_Object* data;
   union {
     m_int* idx;    // for object array
-    m_uint length; // array init
+    size_t length; // array init
   } d;
-  unsigned is_ref;
-  unsigned is_obj;
+  unsigned is_ref : 1;
+  unsigned is_obj : 1;
 } ArrayInfo;
 
 ANN m_uint     m_vector_size(const M_Vector v);

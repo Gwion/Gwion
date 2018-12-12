@@ -5,12 +5,12 @@ struct Value_ {
   m_str name;
   Nspc owner;
   Type owner_class;
-  m_uint offset;
   union value_data{
     m_uint* ptr;
     Func func_ref;
   } d;
   struct Gwion_ *gwion;
+  size_t offset;
   ae_flag flag;
   HAS_OBJ
 };

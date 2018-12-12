@@ -12,7 +12,7 @@ typedef enum {
 } e_obj;
 
 struct VM_Object_ {
-  m_uint ref_count;
+  size_t ref_count;
   e_obj  type;
 } __attribute__((packed));
 

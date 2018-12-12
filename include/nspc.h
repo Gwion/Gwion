@@ -2,17 +2,17 @@
 #define __NSPC
 struct Nspc_ {
   m_str     name;
-  m_uint    offset;
   Nspc parent;
   struct VM_Code_*   pre_ctor;
   struct VM_Code_*   dtor;
   m_bit* class_data;
-  m_uint    class_data_size;
   struct Vector_    vtable;
   struct Map_      	op_map;
   struct Scope_     value;
   struct Scope_     type;
   struct Scope_     func;
+  size_t offset;
+  size_t class_data_size;
   HAS_OBJ
 };
 
