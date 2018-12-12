@@ -213,12 +213,12 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GW
 }
 
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
-    const Array_Sub array, const m_bool is_ref) {
+    const Array_Sub array, const uint is_ref) {
   if(type->array_depth) {
     assert(array && array->exp);
     ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
     CHECK_OB(info)
-    info->is_ref = (uint)is_ref;
+    info->is_ref = !!is_ref;
   } else if(!is_ref) {
     const Instr instr = emitter_add_instr(emit, ObjectInstantiate);
     instr->m_val = (m_uint)type;
@@ -467,7 +467,7 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   return 1;
 }
 
-ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const m_bool is_ref) {
+ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref) {
   const Value v = var_decl->value;
   Code* code = emit->code;
   emit->code = (Code*)vector_back(&emit->stack);
@@ -478,7 +478,7 @@ ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const
   return 1;
 }
 
-ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const m_bool is_ref) { GWDEBUG_EXE
+ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref) { GWDEBUG_EXE
   const Value value = var_decl->value;
   if(isa(value->type, t_object) > 0 && !is_ref)
     CHECK_BB(decl_static(emit, var_decl, 0))
@@ -486,7 +486,7 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl var_decl,
-  const m_bool is_ref, const m_bool emit_var) { GWDEBUG_EXE
+  const uint is_ref, const m_bool emit_var) { GWDEBUG_EXE
   const Value v = var_decl->value;
   const Type type = v->type;
   const Array_Sub array = var_decl->array;
@@ -536,7 +536,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   if(global)
     emit_push(emit, NULL, emit->env->global_nspc, &scope);
   do {
-    const m_bool r = GET_FLAG(list->self->value, ref) + ref;
+    const uint r = (uint)(GET_FLAG(list->self->value, ref) + ref);
     if(!GET_FLAG(list->self->value, used))
       continue;
     if(GET_FLAG(decl->td, static))
