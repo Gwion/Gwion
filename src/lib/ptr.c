@@ -62,7 +62,7 @@ static INSTR(instr_ptr_deref) { GWDEBUG_EXE
 
 static OP_EMIT(opem_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  const Instr instr = emitter_add_instr(emit, instr_ptr_deref);
+  const Instr instr = emit_add_instr(emit, instr_ptr_deref);
   instr->m_val = unary->self->type->size;
   instr->m_val2 = unary->self->emit_var;
   return 1;

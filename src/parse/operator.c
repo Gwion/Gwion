@@ -173,11 +173,11 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
 
 ANN static m_bool  handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    const Instr instr = emitter_add_instr(emit, RegPushImm);
+    const Instr instr = emit_add_instr(emit, RegPushImm);
     *(Func*)instr->ptr = mo->func;
     return emit_exp_call1(emit, mo->func);
   }
-  emitter_add_instr(emit, mo->instr);
+  emit_add_instr(emit, mo->instr);
   return 1;
 }
 

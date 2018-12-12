@@ -167,7 +167,7 @@ static OP_CHECK(opck_array_shift) {
 static OP_EMIT(opem_array_shift) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type type = bin->rhs->type;
-  Instr instr = emitter_add_instr(emit, ArrayAppend);
+  Instr instr = emit_add_instr(emit, ArrayAppend);
   instr->m_val = type->size;
   return 1;
 }

@@ -107,7 +107,7 @@ static OP_CHECK(opck_spork) {
 }
 static OP_EMIT(opem_fptr_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const Instr instr = emitter_add_instr(emit, assign_func);
+  const Instr instr = emit_add_instr(emit, assign_func);
   if(GET_FLAG(bin->rhs->type->d.func, global))
     instr->m_val = SZ_INT;
   else if(GET_FLAG(bin->rhs->type->d.func, member)) {

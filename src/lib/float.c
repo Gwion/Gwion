@@ -204,12 +204,12 @@ static OP_CHECK(opck_implicit_i2f) {
 }
 
 static OP_EMIT(opem_i2f) {
-  CHECK_OB(emitter_add_instr(emit, CastI2F))
+  CHECK_OB(emit_add_instr(emit, CastI2F))
   return 1;
 }
 
 static OP_EMIT(opem_f2i) {
-  CHECK_OB(emitter_add_instr(emit, CastF2I))
+  CHECK_OB(emit_add_instr(emit, CastF2I))
   return 1;
 }
 
