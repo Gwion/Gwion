@@ -59,5 +59,5 @@ GWION_IMPORT(coverage) {
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)w))
 
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }

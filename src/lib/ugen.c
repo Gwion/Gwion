@@ -137,10 +137,10 @@ ANN static m_bool connect_init(const VM_Shred shred, restrict M_Object* lhs, res
     _release(*lhs, shred);
     goto end;
   }
-  return 1;
+  return GW_OK;
 end:
   exception(shred, "UgenConnectException");
-  return -1;
+  return GW_ERROR;
 }
 
 #define describe_connect(name, func)                                                    \
@@ -318,7 +318,7 @@ static GWION_IMPORT(global_ugens) {
   add_ugen(gwi, &adc);
   ugen_connect(dac.ugen, hole.ugen);
   SET_FLAG(t_ugen, abstract);
-  return 1;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_chuck_ugen) {

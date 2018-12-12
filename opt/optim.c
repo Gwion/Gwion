@@ -61,7 +61,7 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
     SET_FLAG(r->d.exp_decl.list->self->value, ae_flag_constprop);
   *(m_uint*)r->d.exp_decl.list->self->value->d.ptr = l->d.exp_primary.d.num;
   }
-            return 1;
+            return GW_OK;
           }
         }
       } /* fallthrough */
@@ -85,7 +85,7 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
       }
     default: break;
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool constant_folding(const Exp_Binary* bin) {
@@ -120,7 +120,7 @@ ANN static m_bool constant_folding(const Exp_Binary* bin) {
       ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
       break;
     default:
-      return 1;
+      return GW_OK;
   }
   const Exp n = bin->self->next;
   const Exp e = bin->self;
@@ -132,12 +132,12 @@ ANN static m_bool constant_folding(const Exp_Binary* bin) {
   e->d.exp_primary.d.num = ret;
   e->d.exp_primary.self = e;
   e->next = n;
-  return 1;
+  return GW_OK;
 }
 
 m_bool optimize_const(const Exp_Binary* bin) {
   constant_propagation(bin);
   if(is_const(bin->lhs) && is_const(bin->rhs))
     CHECK_BB(constant_folding(bin))
-  return 1;
+  return GW_OK;
 }

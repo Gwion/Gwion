@@ -92,9 +92,9 @@ static m_bool check_cb_error1(VM* vm, void* data, Areas* areas, int* count, m_bo
   if(err) {
     gw_err("unrecoverable stream error: %s\n", soundio_strerror(err));
     vm->is_running = 0;
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool check_cb_error2(VM* vm, void* data, int (*f)(void*)) {
@@ -102,9 +102,9 @@ static m_bool check_cb_error2(VM* vm, void* data, int (*f)(void*)) {
   if(err) {
     gw_err("%s\n", soundio_strerror(err));
     vm->is_running = 0;
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static void write_callback(Out stream, int min __attribute__((unused)), int left) {
@@ -161,16 +161,16 @@ static m_bool init_soundio(struct SioInfo* info) {
   int err;
   if(!(info->soundio = soundio_create())) {
     gw_err("out of memory\n");
-    return -1;
+    return GW_ERROR;
   }
   err = (info->backend == SoundIoBackendNone) ?
             soundio_connect(info->soundio) : soundio_connect_backend(info->soundio, info->backend);
   if(err) {
     gw_err("Unable to connect to backend: %s\n", soundio_strerror(err));
-    return -1;
+    return GW_ERROR;
   }
   soundio_flush_events(info->soundio);
-  return 1;
+  return GW_OK;
 }
 
 static int get_index(struct SioInfo* info) {
@@ -190,7 +190,7 @@ static int get_index(struct SioInfo* info) {
     selected_device_index = soundio_default_output_device_index(info->soundio);
   if(selected_device_index < 0) {
     gw_err("Output device not found\n");
-    return -1;
+    return GW_ERROR;
   }
   return selected_device_index;
 }
@@ -199,26 +199,26 @@ static m_bool get_device(struct SioInfo* info, int selected_device_index) {
   info->out_device = soundio_get_output_device(info->soundio, selected_device_index);
   if(!info->out_device) {
     gw_err("out of memory\n");
-    return -1;
+    return GW_ERROR;
   }
   info->in_device = soundio_get_input_device(info->soundio, selected_device_index);
   if(!info->in_device) {
     gw_err("out of memory\n");
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool probe(struct SioInfo* info) {
   if(info->out_device->probe_error) {
     gw_err("Cannot probe device: %s\n", soundio_strerror(info->out_device->probe_error));
-    return -1;
+    return GW_ERROR;
   }
   if(info->in_device->probe_error) {
     gw_err("Cannot probe device: %s\n", soundio_strerror(info->in_device->probe_error));
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool out_create(DriverInfo* di) {
@@ -226,7 +226,7 @@ static m_bool out_create(DriverInfo* di) {
   info->outstream = soundio_outstream_create(info->out_device);
   if(!info->outstream) {
     gw_err("out of memory\n");
-    return -1;
+    return GW_ERROR;
   }
   info->outstream->write_callback = write_callback;
   info->outstream->underflow_callback = underflow_callback;
@@ -234,7 +234,7 @@ static m_bool out_create(DriverInfo* di) {
   info->outstream->software_latency = 0;
   info->outstream->sample_rate = di->sr;
   info->outstream->userdata = info;
-  return 1;
+  return GW_OK;
 }
 
 static m_bool in_create(DriverInfo* di) {
@@ -242,7 +242,7 @@ static m_bool in_create(DriverInfo* di) {
   info->instream = soundio_instream_create(info->in_device);
   if(!info->instream) {
     gw_err("out of memory\n");
-    return -1;
+    return GW_ERROR;
   }
   info->instream->read_callback = read_callback;
   info->instream->overflow_callback = overflow_callback;
@@ -250,7 +250,7 @@ static m_bool in_create(DriverInfo* di) {
   info->instream->software_latency = 0;
   info->instream->sample_rate = di->sr;
   info->instream->userdata = info;
-  return 1;
+  return GW_OK;
 }
 
 static m_bool out_format(struct SioInfo* info) {
@@ -268,9 +268,9 @@ static m_bool out_format(struct SioInfo* info) {
     info->write_sample = write_sample_s16ne;
   } else {
     gw_err("No suitable device format available.\n");
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool in_format(struct SioInfo* info) {
@@ -288,36 +288,36 @@ static m_bool in_format(struct SioInfo* info) {
     info->read_sample = read_sample_s16ne;
   } else {
     gw_err("No suitable device format available.\n");
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool open_stream(struct SioInfo* info) {
   int err;
   if((err = soundio_outstream_open(info->outstream))) {
     gw_err("unable to open output device: %s", soundio_strerror(err));
-    return -1;
+    return GW_ERROR;
   }
   if((err = soundio_instream_open(info->instream))) {
     gw_err("unable to open input device: %s", soundio_strerror(err));
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool check_layout(struct SioInfo* info) {
   if(info->outstream->layout_error) {
     gw_err("unable to set output channel layout: %s\n",
         soundio_strerror(info->outstream->layout_error));
-    return -1;
+    return GW_ERROR;
   }
   if(info->instream->layout_error) {
     gw_err("unable to set input channel layout: %s\n",
         soundio_strerror(info->instream->layout_error));
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool sio_ini(VM* vm, DriverInfo* di) {
@@ -338,7 +338,7 @@ static m_bool sio_ini(VM* vm, DriverInfo* di) {
   CHECK_BB(in_format(info))
   CHECK_BB(open_stream(info))
   CHECK_BB(check_layout(info))
-  return 1;
+  return GW_OK;
 }
 
 static void sio_run(VM* vm, DriverInfo* di) {

@@ -58,12 +58,12 @@ static m_bool init_client(VM* vm, struct JackInfo* info) {
     gw_err("jack_client_open() failed, status = 0x%2.0x\n", status);
     if(status & JackServerFailed)
       gw_err("Unable to connect to JACK server\n");
-    return -1;
+    return GW_ERROR;
   }
   info->vm = vm;
   jack_set_process_callback(info->client, gwion_cb, info);
   jack_on_shutdown(info->client, gwion_shutdown, vm);
-  return 1;
+  return GW_OK;
 }
 
 static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
@@ -77,10 +77,10 @@ static m_bool set_chan(struct JackInfo* info, m_uint nchan, m_bool input) {
         JackPortIsInput : JackPortIsOutput , chan))) {
       gw_err("no more JACK %s ports available\n", input ?
           "input" : "output");
-      return -1;
+      return GW_ERROR;
     }
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool jack_ini(VM* vm, DriverInfo* di) {
@@ -92,7 +92,7 @@ static m_bool jack_ini(VM* vm, DriverInfo* di) {
   CHECK_BB(set_chan(info, di->in,  1))
   di->sr = jack_get_sample_rate(info->client);
   di->data = info;
-  return 1;
+  return GW_OK;
 }
 
 static m_bool connect_ports(struct JackInfo* info, const char** ports,
@@ -104,10 +104,10 @@ static m_bool connect_ports(struct JackInfo* info, const char** ports,
     const char* r = input ? jack_port_name(jport[chan]) : ports[chan];
     if(jack_connect(info->client, l, r)) {
       gw_err("cannot connect %s ports\n", input ? "input" : "output");
-      return -1;
+      return GW_ERROR;
     }
   }
-  return 1;
+  return GW_OK;
 }
 
 static m_bool init_ports(struct JackInfo* info, m_uint nchan, m_bool input) {
@@ -115,7 +115,7 @@ static m_bool init_ports(struct JackInfo* info, m_uint nchan, m_bool input) {
   const char** ports = jack_get_ports(info->client, NULL, NULL,
       JackPortIsPhysical | (input ? JackPortIsOutput : JackPortIsInput));
   if(!ports)
-    return - 1;
+    return GW_ERROR;
   ret = connect_ports(info, ports, nchan, input);
   free(ports);
   return ret;

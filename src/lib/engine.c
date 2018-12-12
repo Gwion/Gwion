@@ -61,7 +61,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(import_vararg(gwi))
   CHECK_BB(import_string(gwi))
   CHECK_BB(import_shred(gwi))
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
@@ -78,5 +78,5 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
     if(import && import(&gwi) < 0)
       env_reset(gwi.env);
   }
-  return 1;
+  return GW_OK;
 }

@@ -203,7 +203,7 @@ GWION_IMPORT(vec3) {
   CHECK_BB(gwi_oper_end(gwi, op_sub,  FloatSubVec3))
   CHECK_BB(gwi_oper_end(gwi, op_mul,  FloatMulVec3))
   CHECK_BB(gwi_oper_end(gwi, op_div,  FloatDivVec3))
-  return 1;
+  return GW_OK;
 }
 
 static MFUN(vec4_set) {

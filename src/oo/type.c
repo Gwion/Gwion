@@ -100,10 +100,10 @@ ANN Type template_parent(const Type type) {
 ANN m_bool type_ref(Type t) {
   do {
     if(GET_FLAG(t, empty))
-      return 1;
+      return GW_OK;
     if(GET_FLAG(t, typedef) && t->def)
       if(t->def->ext && t->def->ext->array && !t->def->ext->array->exp)
-        return 1;
+        return GW_OK;
   } while((t = t->parent));
   return 0;
 }

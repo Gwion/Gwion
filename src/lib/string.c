@@ -247,5 +247,5 @@ GWION_IMPORT(string) {
 
   gwi_item_ini(gwi, "string", "__func__");
   gwi_item_end(gwi, ae_flag_const, NULL);
-  return 1;
+  return GW_OK;
 }

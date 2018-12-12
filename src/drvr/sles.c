@@ -6,7 +6,7 @@
 #include "driver.h"
 
 #define BUFSIZE 1024
-#define CHECK_SL(a) if((a) != SL_RESULT_SUCCESS) return -1;
+#define CHECK_SL(a) if((a) != SL_RESULT_SUCCESS) return GW_ERROR;
 
 typedef struct {
   long l, r;
@@ -62,7 +62,7 @@ static m_bool sles_ini(VM* vm, DriverInfo* di) {
   SLAndroidSimpleBufferQueueItf playerBufferqueue;
   CHECK_SL((*playerObject)->GetInterface(playerObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &playerBufferqueue))
   CHECK_SL((*playerPlay)->SetPlayState(playerPlay, SL_PLAYSTATE_PLAYING))
-  return 1;
+  return GW_OK;
 }
 
 static void sles_run(VM* vm, DriverInfo* di) {

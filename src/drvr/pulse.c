@@ -28,7 +28,7 @@ static m_bool pulse_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   CHECK_OB((info->out = pulse_open(PA_STREAM_PLAYBACK, &ss)))
   CHECK_OB((info->in  = pulse_open(PA_STREAM_RECORD,   &ss)))
   di->data = info;
-  return 1;
+  return GW_OK;
 }
 
 static void pulse_run(VM* vm, DriverInfo* di) {

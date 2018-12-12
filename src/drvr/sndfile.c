@@ -27,7 +27,7 @@ static m_bool sndfile_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
       sf[chan] = sf_open(tmp, SFM_WRITE, &info);
   }
   di->data = sf;
-  return 1;
+  return GW_OK;
 }
 
 static void sndfile_run(VM* vm, DriverInfo* di) {

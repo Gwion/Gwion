@@ -19,7 +19,7 @@ OP_CHECK(opck_basic_cast) {
 }
 
 OP_EMIT(opem_basic_cast) {
-  return 1;
+  return GW_OK;
 }
 
 OP_CHECK(opck_const_rhs) {
@@ -136,5 +136,5 @@ OP_EMIT(opem_new) {
   CHECK_BB(emit_instantiate_object(emit, unary->self->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
   CHECK_OB(emit_add_instr(emit, GcAdd))
-  return 1;
+  return GW_OK;
 }

@@ -40,13 +40,13 @@ ANN VM* gwi_vm(const Gwi gwi) {
 ANN m_int gwi_tmpl_end(const Gwi gwi) {
   gwi->templater.n = 0;
   gwi->templater.list = NULL;
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str* list) {
   gwi->templater.n = n;
   gwi->templater.list = (m_str*)list;
-  return 1;
+  return GW_OK;
 }
 
 ANN2(1,2,3) static void dl_func_init(DL_Func* a, const restrict m_str t,
@@ -59,7 +59,7 @@ ANN2(1,2,3) static void dl_func_init(DL_Func* a, const restrict m_str t,
 
 ANN m_int gwi_func_ini(const Gwi gwi, const restrict m_str t, const restrict m_str n, const f_xfun addr) {
   dl_func_init(&gwi->func, t, n, addr);
-  return 1;
+  return GW_OK;
 }
 
 ANN static void dl_func_func_arg(DL_Func* a, const restrict m_str t, const restrict m_str n) {
@@ -71,15 +71,15 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
   if(gwi->func.narg == DLARG_MAX - 1)
     ERR_B(0, "too many arguments for function '%s'.", gwi->func.name)
   dl_func_func_arg(&gwi->func, t, n);
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
   if(isalnum(c) || c == '_' || (i == 1 && c== '@'))
     curr[i - 1] = c;
   else
-    return -1;
-  return 1;
+    return GW_ERROR;
+  return GW_OK;
 }
 
 ANN static m_bool name_valid(const m_str a) {
@@ -136,7 +136,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
     }
     last = c;
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
@@ -170,7 +170,7 @@ ANN static m_bool mk_xtor(const Type type, const m_uint d, const ae_flag e) {
   (*code)->native_func = (m_uint)d;
   (*code)->flag = (e | ae_flag_member | ae_flag_builtin);
   type->flag |= e;
-  return 1;
+  return GW_OK;
 }
 
 ANN2(1,2) Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
@@ -203,7 +203,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   SET_FLAG(type, checked);
   m_uint scope;
   env_push(env, type, type->nspc, &scope);
-  return 1;
+  return GW_OK;
 }
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
@@ -253,7 +253,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     SET_FLAG(td, typedef);
     gwi->env->class_def->def->ext = td;
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_int import_class_end(const Env env) {
@@ -263,12 +263,12 @@ ANN static m_int import_class_end(const Env env) {
   if(nspc->class_data_size && !nspc->class_data)
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
   env_pop(env, 0);
-  return 1;
+  return GW_OK;
 }
 
 #include "mpool.h"
 ANN m_int gwi_class_end(const Gwi gwi) {
-  if(!gwi->env->class_def)return -1;
+  if(!gwi->env->class_def)return GW_ERROR;
   const Type t = gwi->env->class_def;
   if(t->nspc && t->nspc->offset)
     t->p = mp_ini((uint32_t)t->nspc->offset);
@@ -308,7 +308,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
     ERR_B(0, "\t...\tduring var import '%s.%s'.",
           gwi->env->class_def->name, name)
   v->var.xid = insert_symbol(name);
-  return 1;
+  return GW_OK;
 }
 
 #undef gwi_item_end
@@ -336,7 +336,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     const Class_Body body = new_class_body(section, NULL);
     type_decl->array = v->t.array;
     gwi_body(gwi, body);
-    return 1;
+    return GW_OK;
   }
   CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, builtin);
@@ -460,13 +460,13 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
     Section* section = new_section_func_def(def);
     Class_Body body = new_class_body(section, NULL);
     gwi_body(gwi, body);
-    return 1;
+    return GW_OK;
   }
   if(traverse_func_def(gwi->env, def) < 0) {
     free_func_def(def);
-    return -1;
+    return GW_ERROR;
   }
-  return 1;
+  return GW_OK;
 }
 
 static Type get_type(const Env env, const m_str str) {
@@ -494,17 +494,17 @@ ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
   gwi->oper.ck = ck;
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
   gwi->oper.em = em;
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
@@ -517,7 +517,7 @@ ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
 
 ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   dl_func_init(&gwi->func, type, name, 0);
-  return 1;
+  return GW_OK;
 }
 
 ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
@@ -543,7 +543,7 @@ ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     SET_FLAG(stmt->d.stmt_fptr.func, builtin);
   ADD_REF(stmt->d.stmt_fptr.type);
   free_stmt(stmt);
-  return 1;
+  return GW_OK;
 }
 
 ANN static Exp make_exp(const m_str type, const m_str name) {
@@ -565,7 +565,7 @@ ANN static Exp make_exp(const m_str type, const m_str name) {
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   if(name)
     gwi->union_data.xid = insert_symbol(name);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
@@ -577,7 +577,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
   if(isa(t, t_object) > 0)
     SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(exp, gwi->union_data.list);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
@@ -591,13 +591,13 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   free_stmt(stmt);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;
-  return 1;
+  return GW_OK;
 }
 
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   gwi->enum_data.t = type;
   vector_init(&gwi->enum_data.addr);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
@@ -630,14 +630,14 @@ ANN m_int gwi_enum_end(const Gwi gwi) {
   const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL);
   if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
-    return -1;
+    return GW_ERROR;
   }
   import_enum_end(d, &stmt->d.stmt_enum.values);
   free_stmt(stmt);
-  return 1;
+  return GW_OK;
 }
 
 m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* value) {
   env_add_value(gwi->env, name, type, is_const, value);
-  return 1;
+  return GW_OK;
 }

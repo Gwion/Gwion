@@ -40,7 +40,7 @@ static m_bool ini(VM* vm, DriverInfo* di) {
   struct PaInfo* info = (struct PaInfo*)xmalloc(sizeof(struct PaInfo*));
   di->data = info;
   if(Pa_Initialize() != paNoError)
-    return -1;
+    return GW_ERROR;
   info->outputParameters.device = Pa_GetDefaultOutputDevice();
   if(info->outputParameters.device == paNoDevice) {
     gw_err("Error: No default output device.\n");
@@ -71,10 +71,10 @@ static m_bool ini(VM* vm, DriverInfo* di) {
         callback,
         vm) != paNoError)
     goto error;
-  return 1;
+  return GW_OK;
 error:
   Pa_Terminate();
-  return -1;
+  return GW_ERROR;
 }
 
 static void del(VM* vm __attribute__((unused)), DriverInfo* di) {

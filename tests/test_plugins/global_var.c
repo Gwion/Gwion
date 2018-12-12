@@ -14,5 +14,5 @@ GWION_IMPORT(global_var_test) {
   M_Object i = new_string(NULL, "test");
   CHECK_BB(gwi_item_ini(gwi,"string", "i"))
   CHECK_BB(gwi_item_end(gwi, 0, i))
-  return 1;
+  return GW_OK;
 }

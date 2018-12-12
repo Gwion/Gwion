@@ -9,7 +9,7 @@
 
 static m_bool spa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   di->data = (sp_audio*)xmalloc(sizeof(sp_audio));
-  return 1;
+  return GW_OK;
 }
 
 static void spa_run(VM* vm, DriverInfo* di) {

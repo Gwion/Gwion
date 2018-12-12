@@ -38,12 +38,12 @@ static int sp_alsa_init(DriverInfo* di, const char* device,
   int dir = 0;
 
   if(snd_pcm_open(&handle, device, stream, mode) > 0 || !handle)
-    return -1;
+    return GW_ERROR;
   snd_pcm_hw_params_alloca(&params);
 
   if(snd_pcm_hw_params_any(handle, params) > 0) {
     snd_pcm_close(handle);
-    return -1;
+    return GW_ERROR;
   }
 
   if(!snd_pcm_hw_params_test_access(handle, params, SP_ALSA_ACCESS))
@@ -57,22 +57,22 @@ static int sp_alsa_init(DriverInfo* di, const char* device,
 
   if(!snd_pcm_hw_params_test_channels(handle, params, (uint)di->chan))
     snd_pcm_hw_params_set_channels(handle, params, (uint)di->chan);
-  else return -1;
+  else return GW_ERROR;
 
   snd_pcm_uframes_t size = di->bufsize;
   if(snd_pcm_hw_params_set_period_size_near(handle, params, &size, &dir))
-    return -1;
+    return GW_ERROR;
   di->bufsize = size;
   if(snd_pcm_hw_params_set_periods_near(handle, params, &num, &dir))
-    return -1;
+    return GW_ERROR;
   di->bufnum = num;
   if(snd_pcm_hw_params(handle, params))
-    return -1;
+    return GW_ERROR;
 
   snd_pcm_hw_params_get_rate_max(params, &di->sr, &dir);
   snd_pcm_hw_params_set_rate_near(handle, params, &di->sr, &dir);
   info->handle = handle;
-  return 1;
+  return GW_OK;
 }
 
 static void alsa_run_init(VM* vm __attribute__((unused)), DriverInfo* di) {
@@ -88,18 +88,18 @@ static m_bool alsa_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
   di->data = info;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
     err_msg(0, "problem with playback");
-    return -1;
+    return GW_ERROR;
   }
   info->pcm_out = info->handle;
   di->out = di->chan;
   if(sp_alsa_init(di, di->card, SND_PCM_STREAM_CAPTURE, SND_PCM_ASYNC |
       SND_PCM_NONBLOCK) < 0) {
     err_msg(0, "problem with capture");
-    return -1;
+    return GW_ERROR;
   }
   info->pcm_in = info->handle;
   di->in = di->chan;
-  return 1;
+  return GW_OK;
 }
 
 static void alsa_run_init_non_interleaved(VM* vm, DriverInfo* di) {

@@ -18,7 +18,7 @@ ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static inline m_bool check_array_empty(const Array_Sub a, const uint pos) {
   if(!a->exp)
-    return 1;
+    return GW_OK;
   ERR_B(pos, "type must be defined with empty []'s")
 }
 
@@ -96,7 +96,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
     env_pop(env, scope);
-  return 1;
+  return GW_OK;
 }
 
 ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
@@ -107,7 +107,7 @@ ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) 
 ANN static inline m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan1_exp(env, prim->d.exp))
-  return 1;
+  return GW_OK;
 }
 
 ANN static inline m_bool scan1_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
@@ -133,7 +133,7 @@ ANN static inline m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDE
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(exp_call->tmpl)
-    return 1;
+    return GW_OK;
   CHECK_BB(scan1_exp(env, exp_call->func))
   const Exp args = exp_call->args;
   return args ? scan1_exp(env, args) : 1;
@@ -152,7 +152,7 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary * unary) {
   if(unary->op == op_spork && unary->code)
     return scan1_stmt(env, unary->code);
-  return 1;
+  return GW_OK;
 }
 
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
@@ -177,7 +177,7 @@ ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) { 
   if(stmt->stmt_list) {
     RET_NSPC(scan1_stmt_list(env, stmt->stmt_list))
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
@@ -204,7 +204,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     nspc_add_value(stmt->t->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
   } while((list = list->next));
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EXE
@@ -213,7 +213,7 @@ ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EX
       CHECK_BB(check_array_empty(list->var_decl->array, list->var_decl->pos))
     CHECK_OB((list->type = known_type(env, list->td, "function argument")))
   } while((list = list->next));
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
@@ -222,7 +222,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
   if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
     ERR_B(ptr->td->xid->pos, "\t... in typedef '%s'...", s_name(ptr->xid))
-  return 1;
+  return GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
@@ -232,7 +232,7 @@ ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { 
 ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
   if(array->exp)
     ERR_B(array->exp->pos, "array declaration must be empty in union.")
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
@@ -256,7 +256,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
   union_pop(env, stmt, scope);
-  return 1;
+  return GW_OK;
 }
 
 static const _exp_func stmt_func[] = {
@@ -291,14 +291,14 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
       }
     }
   } while((l = l->next));
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->td->array)
     CHECK_BB(check_array_empty(f->td->array, f->td->xid->pos))
   CHECK_OB((f->ret_type = known_type(env, f->td, "function return")))
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
@@ -310,7 +310,7 @@ ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
   }
   if(count > (GET_FLAG(f, unary) ? 1 : 2) || !count)
     ERR_B(f->td->xid->pos, "operators can only have one or two arguments")
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
@@ -318,14 +318,14 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   else if(GET_FLAG(f, op))
     CHECK_BB(scan1_func_def_op(f))
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   CHECK_BB(env_access(env, f->flag))
   env_storage(env, &f->flag);
   if(tmpl_list_base(f->tmpl))
-    return 1;
+    return GW_OK;
   const Func former = env->func;
   env->func = FAKE_FUNC;
   ++env->scope;
@@ -339,7 +339,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     SET_FLAG(f, static);
   env->func = former;
   --env->scope;
-  return 1;
+  return GW_OK;
 }
 
 DECL_SECTION_FUNC(scan1)
@@ -357,7 +357,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
     ERR_B(class_def->ext->xid->pos, "can't use ref type in class extend")
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
@@ -367,22 +367,22 @@ ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));
   env_pop(env, scope);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
-    return 1;
+    return GW_OK;
   if(class_def->ext)
     CHECK_BB(scan1_class_parent(env, class_def))
   if(class_def->body)
     CHECK_BB(scan1_class_body(env, class_def))
   SET_FLAG(class_def->type, scan1);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan1_ast(const Env env, Ast ast) { GWDEBUG_EXE
   do CHECK_BB(scan1_section(env, ast->section))
   while((ast = ast->next));
-  return 1;
+  return GW_OK;
 }

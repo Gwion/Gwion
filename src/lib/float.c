@@ -184,7 +184,7 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, t_zero);
   gwi_item_ini(gwi, "@now", "now");
   gwi_item_end(gwi, 0, NULL);
-  return 1;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_chuck_now) {
@@ -205,12 +205,12 @@ static OP_CHECK(opck_implicit_i2f) {
 
 static OP_EMIT(opem_i2f) {
   CHECK_OB(emit_add_instr(emit, CastI2F))
-  return 1;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_f2i) {
   CHECK_OB(emit_add_instr(emit, CastF2I))
-  return 1;
+  return GW_OK;
 }
 
 INSTR(CastI2F) { GWDEBUG_EXE
@@ -333,5 +333,5 @@ GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_end(gwi, op_le,           float_le))
 
   CHECK_BB(import_values(gwi))
-  return 1;
+  return GW_OK;
 }

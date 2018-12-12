@@ -169,7 +169,7 @@ static OP_EMIT(opem_array_shift) {
   const Type type = bin->rhs->type;
   Instr instr = emit_add_instr(emit, ArrayAppend);
   instr->m_val = type->size;
-  return 1;
+  return GW_OK;
 }
 
 // check me. use common ancestor maybe
@@ -217,7 +217,7 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
-  return 1;
+  return GW_OK;
 }
 
 INSTR(ArrayTop) { GWDEBUG_EXE

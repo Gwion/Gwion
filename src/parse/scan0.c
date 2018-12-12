@@ -32,7 +32,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   stmt->type = t;
   nspc_add_type(t->owner, stmt->xid, t);
   stmt->value = mk_class(env, t);
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
@@ -59,7 +59,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
     stmt->type = def->type;
   }
   SET_FLAG(stmt->type, typedef);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
@@ -82,7 +82,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     nspc_add_type(nspc, stmt->xid, t);
     mk_class(env, t);
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
@@ -122,7 +122,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
       env->curr : env->global_nspc;
     stmt->type = union_type(env, nspc, stmt->type_xid, 1);
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
@@ -134,13 +134,13 @@ ANN static m_bool scan0_Stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
     return scan0_stmt_enum(env, &stmt->d.stmt_enum);
   if(stmt->stmt_type == ae_stmt_union)
     return scan0_stmt_union(env, &stmt->d.stmt_union);
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
   do CHECK_BB(scan0_Stmt(env, l->stmt))
   while((l = l->next));
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
@@ -155,7 +155,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     ERR_B(class_def->name->pos, "...in class definition: '%s' is reserved",
           s_name(class_def->name->xid))
   }
-  return 1;
+  return GW_OK;
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
@@ -181,7 +181,7 @@ ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG
     return scan0_Stmt_List(env, section->d.stmt_list);
   if(section->section_type == ae_section_class)
     return scan0_class_def(env, section->d.class_def);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
@@ -198,11 +198,11 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   (void)mk_class(env, class_def->type);
   if(GET_FLAG(class_def, global))
     env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  return 1;
+  return GW_OK;
 }
 
 ANN m_bool scan0_ast(const Env env, Ast prog) { GWDEBUG_EXE
   do CHECK_BB(scan0_section(env, prog->section))
   while((prog = prog->next));
-  return 1;
+  return GW_OK;
 }

@@ -61,9 +61,9 @@ ANN static Type op_parent(const Env env, const Type t) {
 
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
-    return 1;
+    return GW_OK;
   if((t && mo && mo->xid == t->xid) || (!t && !mo))
-    return 1;
+    return GW_OK;
   return 0;
 }
 
@@ -101,7 +101,7 @@ ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
     ADD_REF(opi->rhs)
   if(opi->ret)
     ADD_REF(opi->ret)
-  return 1;
+  return GW_OK;
 }
 
 ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
@@ -168,7 +168,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
   CHECK_OB(mo)
   mo->func = (Func)opi->data;
-  return 1;
+  return GW_OK;
 }
 
 ANN static m_bool  handle_instr(const Emitter emit, const M_Operator* mo) {
@@ -178,7 +178,7 @@ ANN static m_bool  handle_instr(const Emitter emit, const M_Operator* mo) {
     return emit_exp_call1(emit, mo->func);
   }
   emit_add_instr(emit, mo->instr);
-  return 1;
+  return GW_OK;
 }
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {
@@ -212,5 +212,5 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));
-  return -1;
+  return GW_ERROR;
 }

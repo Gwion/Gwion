@@ -130,5 +130,5 @@ GWION_IMPORT(int) {
   CHECK_BB(gwi_enum_end(gwi))
   gwi_item_ini(gwi, "bool", "maybe");
   gwi_item_end(gwi, 0, NULL);
-  return 1;
+  return GW_OK;
 }

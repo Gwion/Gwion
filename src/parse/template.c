@@ -129,7 +129,7 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
     call = call->next;
   } while((base = base->next));
   if(!call)
-    return 1;
+    return GW_OK;
   POP_RET(-1);
 }
 

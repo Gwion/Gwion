@@ -61,7 +61,7 @@ m_bool escape_str(const m_str base, const uint pos) {
     ++str_lit;
   }
   *str = '\0';
-  return 1;
+  return GW_OK;
 }
 
 ANN m_int str2char(const m_str c, const uint pos) {

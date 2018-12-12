@@ -19,5 +19,5 @@ GWION_IMPORT(extend_array_test) {
   add_type_decl_array(td, array);
   CHECK_BB(gwi_class_ext(gwi, td))
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }

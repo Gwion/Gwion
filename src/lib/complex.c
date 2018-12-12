@@ -146,5 +146,5 @@ GWION_IMPORT(complex) {
   CHECK_BB(gwi_oper_end(gwi, op_rmul,   PolarRMul))
   CHECK_BB(gwi_oper_add(gwi, opck_rassign))
   CHECK_BB(gwi_oper_end(gwi, op_rdiv,  PolarRDiv))
-  return 1;
+  return GW_OK;
 }

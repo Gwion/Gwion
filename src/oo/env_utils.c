@@ -28,7 +28,7 @@ ANN m_bool env_access(const Env env, const ae_flag flag) {
   if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
       GET(flag, ae_flag_protect)) && (!env->class_def || env->scope))
       ERR_B(0, "static/private/protect can only be used at class scope.")
-  return 1;
+  return GW_OK;
 }
 
 ANN void env_storage(const Env env, ae_flag* flag) {

@@ -24,5 +24,5 @@ GWION_IMPORT(extend_pair_test) {
   td->types = tl0;
   CHECK_BB(gwi_class_ext(gwi, td))
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }

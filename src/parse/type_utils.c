@@ -12,9 +12,9 @@ ANN m_bool isres(const Symbol xid) {
   if(!strcmp(s, "this") || !strcmp(s, "vararg") ||
      !name2op(s)) {
     err_msg(0, "%s is reserved.", s_name(xid));
-    return 1;
+    return GW_OK;
   }
-  return -1;
+  return GW_ERROR;
 }
 
 ANN m_uint id_list_len(ID_List l) {

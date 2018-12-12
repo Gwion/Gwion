@@ -65,7 +65,7 @@ static OP_EMIT(opem_ptr_deref) {
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
   instr->m_val = unary->self->type->size;
   instr->m_val2 = unary->self->emit_var;
-  return 1;
+  return GW_OK;
 }
 
 static INSTR(Cast2Ptr) { GWDEBUG_EXE
@@ -92,5 +92,5 @@ GWION_IMPORT(ptr) {
   CHECK_BB(gwi_oper_add(gwi, opck_ptr_deref))
   CHECK_BB(gwi_oper_emi(gwi, opem_ptr_deref))
   CHECK_BB(gwi_oper_end(gwi, op_mul, instr_ptr_deref))
-  return 1;
+  return GW_OK;
 }

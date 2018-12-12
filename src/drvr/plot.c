@@ -16,7 +16,7 @@ static m_bool plot_ini(VM* vm __attribute__((unused)), DriverInfo* di) {
       sf[chan] = fopen(tmp, "w");
   }
   di->data = sf;
-  return 1;
+  return GW_OK;
 }
 
 static void plot_run(VM* vm __attribute__((unused)), DriverInfo* di) {

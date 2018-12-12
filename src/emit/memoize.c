@@ -78,7 +78,7 @@ m_bool memoize_get(VM_Shred shred) {
       continue;
     POP_REG(shred, SZ_INT*2 + (m->arg_sz - m->ret_sz) + (m_uint)m->member)
     mreturn[m->kind](shred->reg-m->ret_sz, data + m->arg_sz, m->ret_sz);
-    return 1;
+    return GW_OK;
   }
   memoize_set(m, arg);
   return 0;

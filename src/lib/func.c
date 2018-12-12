@@ -116,7 +116,7 @@ static OP_EMIT(opem_fptr_at) {
     instr->m_val = SZ_INT*2;
   } else
     instr->m_val = SZ_INT;
-  return 1;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_spork) {

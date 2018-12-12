@@ -18,5 +18,5 @@ GWION_IMPORT(extend_event_test) {
   Type_Decl* td = new_type_decl(new_id_list(insert_symbol("Event"), 0), 0);
   CHECK_BB(gwi_class_ext(gwi, td))
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }

@@ -14,5 +14,5 @@ GWION_IMPORT(begin_class) {
   CHECK_OB((t_invalid_var_name = gwi_mk_type(gwi, "invalid_var_name", SZ_INT, t_object)))
   CHECK_BB(gwi_class_ini(gwi, t_invalid_var_name, NULL, NULL))
   CHECK_BB(gwi_class_ini(gwi, t_invalid_var_name, NULL, NULL))
-  return 1;
+  return GW_OK;
 }

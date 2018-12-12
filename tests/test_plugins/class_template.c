@@ -43,5 +43,5 @@ GWION_IMPORT(class_template) {
     /*gwi_func_ini(gwi, "B", "set", class_template_set);*/
     /*gwi_func_end(gwi, ae_flag_member);*/
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }

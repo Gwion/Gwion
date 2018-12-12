@@ -67,5 +67,5 @@ GWION_IMPORT(enum_test) {
   
   CHECK_BB(gwi_class_end(gwi))
 
-  return 1;
+  return GW_OK;
 }

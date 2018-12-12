@@ -55,7 +55,7 @@ static m_bool compiler_open(struct Compiler* c) {
     return c->name ? !!(c->file = fopen(c->name, "r")) : -1;
   } else if(c->type == COMPILE_MSTR)
     return (c->file = fmemopen(c->data, strlen(c->data), "r")) ? 1 : - 1;
-  return 1;
+  return GW_OK;
 }
 
 static m_bool check(struct Gwion_* gwion, struct Compiler* c) {

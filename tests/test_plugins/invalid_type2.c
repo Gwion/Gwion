@@ -17,5 +17,5 @@ GWION_IMPORT(invalid_type2_test) {
   CHECK_BB(gwi_item_ini(gwi,".int", "test"))
   CHECK_BB(gwi_item_end(gwi, 0, NULL))
   CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return GW_OK;
 }
