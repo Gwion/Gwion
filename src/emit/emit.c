@@ -227,14 +227,13 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
   return 1;
 }
 
-static inline enum Kind kindof(const m_uint size, const m_bool emit_var) {
+static inline enum Kind kindof(const m_uint size, const uint emit_var) {
   if(emit_var)
     return KIND_ADDR;
   return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
 }
 
-ANN static Instr emit_kind(Emitter emit, const m_uint size, const m_bool addr,
-    const f_instr func[]) {
+ANN static Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]) {
   const enum Kind kind = kindof(size, addr);
   const Instr instr = emitter_add_instr(emit, func[kind]);
   instr->m_val2 = size;
@@ -458,7 +457,7 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
   return prim_func[prim->primary_type](emit, prim);
 }
 
-ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const m_bool emit_var) { GWDEBUG_EXE
+ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint  emit_var) { GWDEBUG_EXE
   const Instr push = emitter_add_instr(emit, RegPushImm);
   *(Type*)push->ptr = v->owner_class;
   const m_uint size = v->type->size;
@@ -486,13 +485,13 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl var_decl,
-  const uint is_ref, const m_bool emit_var) { GWDEBUG_EXE
+  const uint is_ref, const uint emit_var) { GWDEBUG_EXE
   const Value v = var_decl->value;
   const Type type = v->type;
   const Array_Sub array = var_decl->array;
   const m_bool is_array = array && array->exp;
   const m_bool is_obj = isa(type, t_object) > 0;
-  const m_bool emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
+  const uint emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
     emit_var : 1;
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
@@ -526,8 +525,8 @@ ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* dec
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-  const m_bool ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
-  const m_bool var = decl->self->emit_var;
+  const uint  ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
+  const uint var = decl->self->emit_var;
 
   if(GET_FLAG(decl->type, template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
@@ -1284,7 +1283,7 @@ ANN static m_bool is_special(const Type t) {
   return -1;
 }
 
-ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const m_bool emit_addr) { GWDEBUG_EXE
+ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const uint emit_addr) { GWDEBUG_EXE
   if(v->d.ptr && GET_FLAG(v, builtin)) { // from C
     if(GET_FLAG(v, enum)) {
       const Instr func_i = emitter_add_instr(emit, RegPushImm);
@@ -1402,7 +1401,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
   return 1;
 }
 
-ANN static inline void emit_member(const Emitter emit, const Value v, const m_bool emit_addr) {
+ANN static inline void emit_member(const Emitter emit, const Value v, const uint emit_addr) {
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->offset;
@@ -1411,7 +1410,7 @@ ANN static inline void emit_member(const Emitter emit, const Value v, const m_bo
 ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   const Type t_base = member->t_base;
   const Value value = find_value(t_base, member->xid);
-  const m_bool emit_addr = member->self->emit_var;
+  const uint emit_addr = member->self->emit_var;
   if(isa(member->self->type, t_fptr) > 0) { // function pointer
     if(GET_FLAG(value, member)) { // member
       if(emit_exp(emit, member->base, 0) < 0)
