@@ -9,6 +9,8 @@
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/fennecdjay/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ffennecdjay%2FGwion?ref=badge_shield)
 [![Supported achievements](http://achievibit.kibibit.io/achievementsShield)](https://achievibit.kibibit.io)
+<!--[![Income](https://img.shields.io/liberapay/receives/Liberapay.svg)](https://liberapay.com/Liberapay)-->
+[![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fennecdjay/donate)
 # Gwion
 gwion is a object-oriented programming language, aimed at making music
 
