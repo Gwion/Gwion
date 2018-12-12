@@ -9,8 +9,6 @@
 #include "instr.h"
 #include "import.h"
 
-static struct Type_ t_invalid_var_type = { 0, SZ_INT, ".invalid_var_type" };
-
 static MFUN(test_mfun){}
 GWION_IMPORT(invalid_type3_test) {
   Type t_invalid_var_type ;
