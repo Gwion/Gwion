@@ -583,9 +583,13 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG
 ANN static Type check_exp_dur(const Env env, const Exp_Dur* exp) { GWDEBUG_EXE
   CHECK_OO(check_exp(env, exp->base))
   CHECK_OO(check_exp(env, exp->unit))
-  if(isa(exp->base->type, t_int) < 0 && isa(exp->base->type, t_float) < 0)
-    ERR_O(exp->base->pos, "invalid type '%s' in prefix of dur expression...\n"
+  if(isa(exp->base->type, t_float) < 0) {
+    if(isa(exp->base->type, t_int) > 0)
+      exp->base->cast_to = t_float;
+    else
+      ERR_O(exp->base->pos, "invalid type '%s' in prefix of dur expression...\n"
           "    (must be of type 'int' or 'float')", exp->base->type->name)
+  }
   if(isa(exp->unit->type, t_dur) < 0)
     ERR_O(exp->unit->pos, "invalid type '%s' in postfix of dur expression...\n"
           "    (must be of type 'dur')", exp->base->type->name)

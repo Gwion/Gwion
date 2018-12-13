@@ -659,8 +659,6 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { G
 
 ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, dur->base, 0))
-  if(isa(dur->base->type, t_int) > 0)
-    emit_add_instr(emit, CastI2F);
   CHECK_BB(emit_exp(emit, dur->unit, 0))
   emit_add_instr(emit, FloatTimes);
   return GW_OK;
