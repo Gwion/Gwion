@@ -92,8 +92,7 @@ ANN void free_emitter(Emitter a) {
   xfree(a);
 }
 
-__attribute__((returns_nonnull))
-ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
+ANEW ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
   const Instr instr = mp_alloc(Instr);
   instr->execute = f;
   vector_add(&emit->code->instr, (vtype)instr);
@@ -577,24 +576,12 @@ ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_c
   return GW_OK;
 }
 
-ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
   if(exp_call->args)
     CHECK_BB(emit_exp(emit, exp_call->args, 1))
   if(GET_FLAG(exp_call->m_func->def, variadic))
     CHECK_BB(emit_func_arg_vararg(emit, exp_call))
-  return GW_OK;
-}
-
-ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
-  if(exp_call->args)
-    CHECK_BB(emit_func_args(emit, exp_call))
   CHECK_BB(emit_exp(emit, exp_call->func, 0))
-  if(GET_FLAG(exp_call->m_func->def, variadic) && !exp_call->args) {
-    // handle empty call to variadic functions
-    const Instr mk = emit_add_instr(emit, VarargIni);
-    *(m_uint*)mk->ptr = 1;
-    emit_add_instr(emit, PushNull);
-  }
   return GW_OK;
 }
 
@@ -712,16 +699,8 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   return (m_bool)(*(m_uint*)spork->ptr = depth);
 }
 
-ANN static m_uint emit_exp_spork_size(Exp e) { GWDEBUG_EXE
-  m_uint size = 0;
-  do size += e->cast_to ? e->cast_to->size : e->type->size;
-  while((e = e->next));
-  return size;
-}
-
 ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
-  CHECK_BB(emit_func_args(emit, exp))
-  CHECK_BB(emit_exp(emit, exp->func, 0))
+  CHECK_BB(prepare_call(emit, exp))
   char c[11 + num_digit(exp->self->pos)];
   sprintf(c, "spork~exp:%i", exp->self->pos);
   emit_push_code(emit, c);
@@ -731,18 +710,16 @@ ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_E
   op->m_val = emit->code->stack_depth;
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
   const VM_Code code = finalyze(emit);
-  const m_uint size = exp->args ? emit_exp_spork_size(exp->args) : 0;
+  const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func, member) ? SZ_INT : 0);
   return emit_exp_spork_finish(emit, code, NULL, size, 0);
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope;
   emit_push_scope(emit);
-  if(stmt->gc)
-    emit_add_instr(emit, GcIni);
+  emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
-  if(stmt->gc)
-    emit_add_instr(emit, GcEnd);
+  emit_add_instr(emit, GcEnd);
   emit_pop_scope(emit);
   --emit->env->scope;
   return GW_OK;
@@ -1110,8 +1087,8 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
   if(dyn) {
     const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
-    for(m_uint i = 0; i < map_size(map); ++i)
-      map_set(m, VKEY(map, i), VVAL(map, i));
+    for(m_uint i = map_size(map) + 1; --i;)
+      map_set(m, VKEY(map, i), VVAL(map, i - 1));
   }
   *(m_uint*)instr->ptr = dyn ? SZ_INT : 0;
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
@@ -1603,15 +1580,15 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
 
 ANN static void emit_free_code(Code* code) {
   LOOP_OPTIM
-  for(m_uint j = 0; j < vector_size(&code->instr); ++j)
-    mp_free(Instr, (Instr)vector_at(&code->instr, j));
+  for(m_uint i = vector_size(&code->instr) + 1; --i;)
+    mp_free(Instr, (Instr)vector_at(&code->instr, i - 1));
   free_code(code);
 }
 
 ANN static void emit_free_stack(const Emitter emit) { GWDEBUG_EXE
   LOOP_OPTIM
-  for(m_uint i = 0;  i < vector_size(&emit->stack); ++i)
-    emit_free_code((Code*)vector_at(&emit->stack, i));
+  for(m_uint i = vector_size(&emit->stack) + 1; --i;)
+    emit_free_code((Code*)vector_at(&emit->stack, i - 1));
   emit_free_code(emit->code);
   vector_clear(&emit->stack);
 }

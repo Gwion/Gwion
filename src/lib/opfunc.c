@@ -128,7 +128,6 @@ OP_CHECK(opck_new) {
   CHECK_OO(t)
   if(unary->td->array)
     CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
-  env->base->gc = 1;
   return t;
 }
 

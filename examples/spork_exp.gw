@@ -11,5 +11,6 @@ class C
 }
 
 C c;
+<<<c>>>;
 me.yield();
 second => now;
