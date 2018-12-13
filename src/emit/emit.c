@@ -254,12 +254,11 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 static const f_instr allocmember[]  = { PushNull, PushNull2, PushNull3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
-ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
+ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
   const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
   const Exp dot = new_exp_dot(exp, prim->d.var);
-  exp->type = v->owner_class;
-  dot->d.exp_dot.t_base = v->owner_class;
+  exp->type = dot->d.exp_dot.t_base = v->owner_class;
   dot->type = v->type;
   dot->emit_var = prim->self->emit_var;
   const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);
@@ -267,7 +266,7 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
   return ret;
 }
 
-ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
+ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
   if(GET_FLAG(v, func)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
@@ -586,7 +585,7 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
   return GW_OK;
 }
 
-ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
   if(exp_call->args)
     CHECK_BB(emit_func_args(emit, exp_call))
   CHECK_BB(emit_exp(emit, exp_call->func, 0))
@@ -610,10 +609,10 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
-    return emit_exp_call_helper(emit, exp_call);
+    return prepare_call(emit, exp_call);
   m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
-  CHECK_BB(scope);
-  CHECK_BB(emit_exp_call_helper(emit, exp_call))
+  CHECK_BB(scope)
+  CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
   emit_pop(emit, (m_uint)scope);
   UNSET_FLAG(exp_call->m_func, checked);
@@ -622,7 +621,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(!exp_call->tmpl)
-    CHECK_BB(emit_exp_call_helper(emit, exp_call))
+    CHECK_BB(prepare_call(emit, exp_call))
   else
     CHECK_BB(emit_exp_call_template(emit, exp_call))
   return emit_exp_call1(emit, exp_call->m_func);
