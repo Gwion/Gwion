@@ -1,6 +1,6 @@
-dist: xenial
+dist: trusty
 language: c
-sudo: required
+#sudo: required
 os:
   - linux
   - osx
