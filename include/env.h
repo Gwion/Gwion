@@ -16,6 +16,7 @@ struct Env_ {
   m_str name;
   Nspc curr;
   Nspc global_nspc;
+  Stmt base;
   struct Context_ *context;
   Type      class_def;
   Func      func;

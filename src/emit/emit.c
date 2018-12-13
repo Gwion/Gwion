@@ -738,9 +738,11 @@ ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_E
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope;
   emit_push_scope(emit);
-  emit_add_instr(emit, GcIni);
+  if(stmt->gc)
+    emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
-  emit_add_instr(emit, GcEnd);
+  if(stmt->gc)
+    emit_add_instr(emit, GcEnd);
   emit_pop_scope(emit);
   --emit->env->scope;
   return GW_OK;
