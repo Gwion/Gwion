@@ -19,7 +19,7 @@ addons:
     packages:
     - valgrind
     - lcov
-    - gcc-8
+    - gcc-9
     - clang-6.0
 env:
   global:
@@ -47,7 +47,7 @@ install:
 
 before_script:
   - if [ $(uname) = Linux ]; then
-      if [ $CC = gcc ]; then export CC=gcc-8;
+      if [ $CC = gcc ]; then export CC=gcc-9;
       elif [ $CC = clang ]; then export CC=clang-6.0;
       fi;
     fi;
