@@ -579,13 +579,14 @@ ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_c
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
-  CHECK_BB(emit_exp(emit, exp_call->args, 1))
+  if(exp_call->args)
+    CHECK_BB(emit_exp(emit, exp_call->args, 1))
   if(GET_FLAG(exp_call->m_func->def, variadic))
     CHECK_BB(emit_func_arg_vararg(emit, exp_call))
   return GW_OK;
 }
 
-ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+ANN static m_bool emit_exp_call_helper(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(exp_call->args)
     CHECK_BB(emit_func_args(emit, exp_call))
   CHECK_BB(emit_exp(emit, exp_call->func, 0))
@@ -609,10 +610,10 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
-    return prepare_call(emit, exp_call);
+    return emit_exp_call_helper(emit, exp_call);
   m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
   CHECK_BB(scope);
-  CHECK_BB(prepare_call(emit, exp_call))
+  CHECK_BB(emit_exp_call_helper(emit, exp_call))
   emit_pop_type(emit);
   emit_pop(emit, (m_uint)scope);
   UNSET_FLAG(exp_call->m_func, checked);
@@ -621,7 +622,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(!exp_call->tmpl)
-    CHECK_BB(prepare_call(emit, exp_call))
+    CHECK_BB(emit_exp_call_helper(emit, exp_call))
   else
     CHECK_BB(emit_exp_call_template(emit, exp_call))
   return emit_exp_call1(emit, exp_call->m_func);
@@ -658,6 +659,8 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { G
 
 ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, dur->base, 0))
+  if(isa(dur->base->type, t_int) > 0)
+    emit_add_instr(emit, CastI2F);
   CHECK_BB(emit_exp(emit, dur->unit, 0))
   emit_add_instr(emit, FloatTimes);
   return GW_OK;
