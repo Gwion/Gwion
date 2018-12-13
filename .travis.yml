@@ -37,7 +37,7 @@ matrix:
   allow_failures:
     - os: osx
     - compiler: gcc
-
+    - env: USE_DOUBLE=1
 compiler:
   - gcc
   - clang
