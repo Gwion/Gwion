@@ -740,11 +740,13 @@ ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_E
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
+  ++emit->env->scope;
   emit_push_scope(emit);
   emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
   emit_add_instr(emit, GcEnd);
   emit_pop_scope(emit);
+  --emit->env->scope;
   return GW_OK;
 }
 
@@ -855,16 +857,11 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
   const Instr op = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
       t_int : stmt->cond->type, BranchEqInt, BranchEqFloat);
   CHECK_OB(op)
-  emit_push_scope(emit);
-  CHECK_BB(emit_stmt(emit, stmt->if_body, 1))
-  emit_pop_scope(emit);
+  CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
-  if(stmt->else_body) {
-    emit_push_scope(emit);
-    CHECK_BB(emit_stmt(emit, stmt->else_body, 1))
-    emit_pop_scope(emit);
-  }
+  if(stmt->else_body)
+    CHECK_BB(scoped_stmt(emit, stmt->else_body, 1))
   op2->m_val = emit_code_size(emit);
   emit_pop_scope(emit);
   return GW_OK;
@@ -998,9 +995,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEB
   CHECK_BB(emit_stmt(emit, stmt->c2, 0))
   const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val->type,
     BranchEqInt, BranchEqFloat);
-  emit_push_scope(emit);
-  CHECK_BB(emit_stmt(emit, stmt->body, 1))
-  emit_pop_scope(emit);
+  CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const m_uint action_index = emit_code_size(emit);
   if(stmt->c3) {
     CHECK_BB(emit_exp(emit, stmt->c3, 0))
@@ -1113,12 +1108,8 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   const Instr instr = emit_add_instr(emit, BranchSwitch);
   emit->env->sw->cases = new_map();
   instr->m_val2 = (m_uint)emit->env->sw->cases;
-  emit_push_scope(emit);
-  emit_add_instr(emit, GcIni);
-  CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
+  CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
   instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
-  emit_add_instr(emit, GcIni);
-  emit_pop_scope(emit);
   if(dyn) {
     const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
     for(m_uint i = 0; i < map_size(map); ++i)
