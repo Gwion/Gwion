@@ -2,3 +2,4 @@
 int i[4];
 for(auto@ a : i)
   <<<*a>>>;
+<<<ptr>>>;

@@ -1,2 +1,2 @@
-function Object test(){ Object o; return new Object; }
+function Object test(){ Object o; <<<o>>>; return new Object; }
 test();

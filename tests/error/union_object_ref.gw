@@ -5,3 +5,4 @@ union
 	Object o;
 
 };
+<<<i, " ", o>>>;

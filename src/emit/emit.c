@@ -92,7 +92,8 @@ ANN void free_emitter(Emitter a) {
   xfree(a);
 }
 
-ANEW ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
+__attribute__((returns_nonnull))
+ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
   const Instr instr = mp_alloc(Instr);
   instr->execute = f;
   vector_add(&emit->code->instr, (vtype)instr);
@@ -253,11 +254,12 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 static const f_instr allocmember[]  = { PushNull, PushNull2, PushNull3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
-ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) {
+ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
   const Exp dot = new_exp_dot(exp, prim->d.var);
-  exp->type = dot->d.exp_dot.t_base = v->owner_class;
+  exp->type = v->owner_class;
+  dot->d.exp_dot.t_base = v->owner_class;
   dot->type = v->type;
   dot->emit_var = prim->self->emit_var;
   const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);
@@ -265,7 +267,7 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
   return ret;
 }
 
-ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) {
+ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
   const Value v = prim->value;
   if(GET_FLAG(v, func)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
@@ -576,12 +578,24 @@ ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_c
   return GW_OK;
 }
 
-ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
+ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(exp_call->args)
     CHECK_BB(emit_exp(emit, exp_call->args, 1))
   if(GET_FLAG(exp_call->m_func->def, variadic))
     CHECK_BB(emit_func_arg_vararg(emit, exp_call))
+  return GW_OK;
+}
+
+ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+  if(exp_call->args)
+    CHECK_BB(emit_func_args(emit, exp_call))
   CHECK_BB(emit_exp(emit, exp_call->func, 0))
+  if(GET_FLAG(exp_call->m_func->def, variadic) && !exp_call->args) {
+    // handle empty call to variadic functions
+    const Instr mk = emit_add_instr(emit, VarargIni);
+    *(m_uint*)mk->ptr = 1;
+    emit_add_instr(emit, PushNull);
+  }
   return GW_OK;
 }
 
@@ -598,7 +612,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
   m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
-  CHECK_BB(scope)
+  CHECK_BB(scope);
   CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
   emit_pop(emit, (m_uint)scope);
@@ -710,7 +724,8 @@ ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_E
   op->m_val = emit->code->stack_depth;
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
   const VM_Code code = finalyze(emit);
-  const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func, member) ? SZ_INT : 0);
+  const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func,
+    member) ? SZ_INT : 0);
   return emit_exp_spork_finish(emit, code, NULL, size, 0);
 }
 
@@ -1088,7 +1103,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   if(dyn) {
     const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
     for(m_uint i = map_size(map) + 1; --i;)
-      map_set(m, VKEY(map, i), VVAL(map, i - 1));
+      map_set(m, VKEY(map, i), VVAL(map, i -1));
   }
   *(m_uint*)instr->ptr = dyn ? SZ_INT : 0;
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
@@ -1580,8 +1595,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
 
 ANN static void emit_free_code(Code* code) {
   LOOP_OPTIM
-  for(m_uint i = vector_size(&code->instr) + 1; --i;)
-    mp_free(Instr, (Instr)vector_at(&code->instr, i - 1));
+  for(m_uint j = vector_size(&code->instr) + 1; --j;)
+    mp_free(Instr, (Instr)vector_at(&code->instr, j - 1));
   free_code(code);
 }
 

@@ -2,3 +2,4 @@ template“A”
 class C {}
 
 “int”C ref;
+<<<ref>>>;

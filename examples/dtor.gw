@@ -7,3 +7,4 @@ C c;
 C d;
 //me.yield();
 <<<"end of dtor test.">>>;
+<<<c," ", d>>>;

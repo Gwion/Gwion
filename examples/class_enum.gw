@@ -8,3 +8,4 @@ class C {
   <<<zero, " ", one, " ", two, " ", three>>>;
 }
 C c;
+<<<c>>>;

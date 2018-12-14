@@ -1,6 +1,5 @@
-dist: xenial
 language: c
-#sudo: required
+sudo: required
 os:
   - linux
   - osx
@@ -16,12 +15,12 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-#    - llvm-toolchain-trusty-7.0
+    - llvm-toolchain-trusty-6.0
     packages:
     - valgrind
     - lcov
     - gcc-8
-#    - clang-7.0
+    - clang-6.0
 env:
   global:
   - CC_TEST_REPORTER_ID=1ef7168aff2b8902922b345c8b1b9be3fd2442fa4f2096634b42235bcbaa2c47
@@ -36,9 +35,9 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-    - os: osx
-    - compiler: gcc
-    - env: USE_DOUBLE=1
+   - os: osx
+   - compiler: clang
+
 compiler:
   - gcc
   - clang
@@ -46,10 +45,10 @@ compiler:
 install:
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
 
-#      elif [ $CC = clang ]; then export CC=clang-7.0;
 before_script:
   - if [ $(uname) = Linux ]; then
       if [ $CC = gcc ]; then export CC=gcc-8;
+      elif [ $CC = clang ]; then export CC=clang-6.0;
       fi;
     fi;
   - git submodule update --init util ast
