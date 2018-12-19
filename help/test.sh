@@ -456,9 +456,11 @@ clean() {
 
 rm test.log
 [ $# -ne 0 ] && do_test "${@}" | consummer
+
 if [ -f test.log ]
 then
   cat test.log
   exit 1
 else
   exit 0
+fi
