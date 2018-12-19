@@ -132,7 +132,7 @@ fail() {
     info=$(cat "$log")
     echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
     echo "# $info" >> "$log"
-    echo "$desc $4" >> "test.log"
+    echo "$desc $(cat $4)" >> "test.log"
   fi
   return 1
 }
