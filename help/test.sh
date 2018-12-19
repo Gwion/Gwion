@@ -132,6 +132,7 @@ fail() {
     info=$(cat "$log")
     echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
     echo "# $info" >> "$log"
+    echo "$info" >> "test.log"
   fi
   return 1
 }
@@ -453,4 +454,6 @@ clean() {
   rm -f ${GWION_TEST_DIR}/{${GWION_TEST_PREFIX}{*.log,bailout},In.gw}
 }
 
+rm test.log
 [ $# -ne 0 ] && do_test "${@}" | consummer
+[ -f test.log ] && cat test.log
