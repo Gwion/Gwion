@@ -454,7 +454,7 @@ clean() {
   rm -f ${GWION_TEST_DIR}/{${GWION_TEST_PREFIX}{*.log,bailout},In.gw}
 }
 
-rm test.log
+[ -f test.log ] && rm test.log
 [ $# -ne 0 ] && do_test "${@}" | consummer
 
 if [ -f test.log ]
