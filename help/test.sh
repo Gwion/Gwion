@@ -132,7 +132,7 @@ fail() {
     info=$(cat "$log")
     echo "not ok $(printf "% 4i" "$n") $desc" > "$log"
     echo "# $info" >> "$log"
-    echo "$info" >> "test.log"
+    echo "$desc $4" >> "test.log"
   fi
   return 1
 }
@@ -184,28 +184,28 @@ test_gw(){
   # enable todo
   do_todo "$1" "$n" "$file" "$rlog" && return 0
 
-  [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_rw       "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 5  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_initial  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 6  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 7  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_free     "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 8  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 9  ]           && success "$n" "$file" "$rlog" && return 0
-  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 10 ]           && success "$n" "$file" "$rlog" && return 0
-  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
-  [ $severity -lt 11 ]           && success "$n" "$file" "$rlog" && return 0
-  assert_leak     "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_rw       "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 5  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_initial  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 6  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 7  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_free     "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 8  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 9  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 10 ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 11 ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  assert_leak     "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
   success "$n" "$file" "$rlog" && return 0
 }
 
@@ -456,4 +456,9 @@ clean() {
 
 rm test.log
 [ $# -ne 0 ] && do_test "${@}" | consummer
-[ -f test.log ] && cat test.log
+if [ -f test.log ]
+then
+  cat test.log
+  exit 1
+else
+  exit 0
