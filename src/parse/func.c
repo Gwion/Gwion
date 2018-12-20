@@ -46,3 +46,14 @@ ANN Func get_func(const Env env, const Func_Def def) {
   }
   return f;
 }
+
+ANN2(1,2) Symbol func_symbol(const m_str nspc, const m_str base,
+    const m_str tmpl, const m_uint i) {
+  char* name;
+  CHECK_BO(asprintf(&name, "%s%s%s%s@%" UINT_F "@%s",
+    base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
+    i, nspc))
+  const Symbol sym = insert_symbol(name);
+  free(name);
+  return sym;
+}
