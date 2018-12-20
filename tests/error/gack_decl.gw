@@ -1,2 +1,2 @@
-// [contains] cannot use <<< >>> on variable declarations
+// [skip] cannot use <<< >>> on variable declarations
  <<< int i >>>;

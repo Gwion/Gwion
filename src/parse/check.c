@@ -239,10 +239,6 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
 ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
   if(env->func)
     UNSET_FLAG(env->func, pure);
-  Exp e = primary->d.exp;
-  do if(e->exp_type == ae_exp_decl)
-    ERR_O(e->pos, "cannot use <<< >>> on variable declarations...\n")
-  while((e = e->next));
   CHECK_OO((check_exp(env, primary->d.exp)))
   return t_gack;
 }
