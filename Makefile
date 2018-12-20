@@ -19,6 +19,7 @@ vm_src := $(wildcard src/vm/*.c)
 parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
+opt_src := $(wildcard opt/*.c)
 drvr_src := src/drvr/driver.c
 
 # add libraries
@@ -81,7 +82,7 @@ ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
 ifeq (${USE_OPTIMIZE}, 1)
-util_src += opt/optim.c
+util_src += ${opt_src}
 CFLAGS+= -DOPTIMIZE
 endif
 ifeq (${USE_JIT}, 1)
