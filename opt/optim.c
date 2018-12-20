@@ -1,7 +1,8 @@
 #include <string.h>
-#include "defs.h"
-#include "absyn.h"
-#include "err_msg.h"
+#include "gwion_util.h"
+#include "gwion_ast.h"
+#include "oo.h"
+#include "env.h"
 #include "type.h"
 #include "value.h"
 #include "optim.h"
@@ -23,7 +24,7 @@ ANN static m_bool is_constprop_value(const Exp e) {
     && isa(e->d.exp_decl.list->self->value->type, t_int) > 0 &&
     !e->d.exp_decl.list->self->value->type->array_depth &&
     !e->d.exp_decl.list->self->value->owner_class &&
-    !GET_FLAG(e->d.exp_decl.list->self->value, ae_flag_arg))
+    !GET_FLAG(e->d.exp_decl.list->self->value, arg))
   return (e->exp_type == ae_exp_primary &&
     e->d.exp_primary.primary_type == ae_primary_id &&
     isa(e->type, t_int) > 0 &&
@@ -42,7 +43,7 @@ ANN static void constprop_exp(const Exp_Binary* bin, long num) {
 
 ANN static void constprop_value(const Value v, const long num) {
   v->d.ptr = (m_uint*)num; //fixme
-  SET_FLAG(v, ae_flag_constprop);
+  SET_FLAG(v, constprop);
 }
 
 ANN static m_bool constant_propagation(const Exp_Binary* bin) {
@@ -58,7 +59,7 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
             constprop_exp(bin, l->d.exp_primary.d.num);
 }
   else if(r->exp_type == ae_exp_decl) {
-    SET_FLAG(r->d.exp_decl.list->self->value, ae_flag_constprop);
+    SET_FLAG(r->d.exp_decl.list->self->value, constprop);
   *(m_uint*)r->d.exp_decl.list->self->value->d.ptr = l->d.exp_primary.d.num;
   }
             return GW_OK;
@@ -81,7 +82,7 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
     case op_untrig:
       if(r->exp_type == ae_exp_constprop2) {
         r->d.exp_primary.value->d.ptr = 0;
-        UNSET_FLAG(r->d.exp_primary.value, ae_flag_constprop);
+        UNSET_FLAG(r->d.exp_primary.value, constprop);
       }
     default: break;
   }

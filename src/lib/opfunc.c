@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "env.h"
 #include "type.h"
+#include "value.h"
 #include "instr.h"
 #include "object.h"
 #include "import.h"
