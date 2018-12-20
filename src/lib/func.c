@@ -35,7 +35,7 @@ ANN static Type fptr_type(Exp_Binary* bin) {
   const m_str c = s_name(l_func->def->name);
   const Value v = l_func->value_ref;
   for(m_uint i = 0; i <= v->offset; ++i) {
-    const Symbol sym = func_symbol(nspc, c, NULL, i);
+    const Symbol sym = func_symbol(nspc->name, c, NULL, i);
     const Func f = nspc_lookup_func1(nspc, sym); // was lookup2
     CHECK_OO(f)
     if(compat_func(r_func->def, f->def) > 0) {

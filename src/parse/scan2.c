@@ -360,7 +360,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   const Value value = func_value(env, func, overload);
   SET_FLAG(value, checked | ae_flag_template);
   SET_FLAG(value->type, func); // the only types with func flag, name could be better
-  const Symbol sym = func_symbol(env->curr, func_name, "template", overload ? ++overload->offset : 0);
+  const Symbol sym = func_symbol(env->curr->name, func_name, "template", overload ? ++overload->offset : 0);
   nspc_add_value(env->curr, sym, value);
   return GW_OK;
 }
@@ -432,7 +432,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   }
   tmpl_name[tlen+1] = '\0';
   vector_release(&v);
-  const Symbol sym = func_symbol(env->curr, func_name, tmpl_name, (m_uint)f->tmpl->base);
+  const Symbol sym = func_symbol(env->curr->name, func_name, tmpl_name, (m_uint)f->tmpl->base);
   return s_name(sym);
 }
 
@@ -463,7 +463,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
   if(!f->tmpl) {
-    const Symbol sym  = func_symbol(env->curr, func_name, NULL, overload ? ++overload->offset : 0);
+    const Symbol sym  = func_symbol(env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
     func_name = s_name(sym);
   } else {
     func_name = func_tmpl_name(env, f);

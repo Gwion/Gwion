@@ -371,7 +371,7 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
 }
 
 ANN static inline Value template_get_ready(const Value v, const m_str tmpl, const m_uint i) {
-  const Symbol sym = func_symbol(v->owner, v->name, tmpl, i);
+  const Symbol sym = func_symbol(v->owner->name, v->name, tmpl, i);
   return v->owner_class ? find_value(v->owner_class, sym) :
       nspc_lookup_value1(v->owner, sym);
 }
@@ -995,7 +995,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
 }
 
 ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
-  const Symbol sym = func_symbol(env->curr, s_name(def->name), NULL, i);
+  const Symbol sym = func_symbol(env->curr->name, s_name(def->name), NULL, i);
   return nspc_lookup_func1(env->curr, sym); // was lookup2
 }
 
