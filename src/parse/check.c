@@ -520,7 +520,7 @@ ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restric
   const Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
-  else if(base->exp_type == ae_exp_binary)
+  else // if(base->exp_type == ae_exp_binary)
     base->d.exp_binary.func = func;
   return func ? func->def->ret_type : NULL;
 }
@@ -857,8 +857,8 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
     return GW_OK;
   if(!GET_FLAG(v, const))
     ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
-    if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
-      vector_add(&env->sw->exp, (vtype)stmt->val);
+  if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
+    vector_add(&env->sw->exp, (vtype)stmt->val);
   return GW_OK;
 }
 

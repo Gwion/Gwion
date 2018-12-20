@@ -171,7 +171,7 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static m_bool  handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     *(Func*)instr->ptr = mo->func;

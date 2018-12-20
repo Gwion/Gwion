@@ -238,9 +238,7 @@ ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   const m_uint scope = union_push(env, stmt);
-  if(stmt->xid)
-    UNSET_FLAG(stmt, private);
-  else if(stmt->type_xid)
+  if(stmt->xid || stmt->type_xid)
     UNSET_FLAG(stmt, private);
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
