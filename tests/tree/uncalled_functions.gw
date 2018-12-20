@@ -2,30 +2,30 @@
 
 class C { fun void test(){} fun static void stest() {}}
 C c;
-SinOsc s;
+Event e;
 
 c.test;
 C.stest;
-s.amp;
-Math.min;
+e.signal;
+Shred.fromId;
 c.test;
 C.stest;
-s.amp;
-Math.min;
+e.signal;
+Shred.fromId;
 c.test;
 C.stest;
-s.amp;
-Math.min;
+e.signal;
+Shred.fromId;
 
 <<<c.test>>>;
 <<<C.stest>>>;
-<<<s.amp>>>;
-<<<Math.min>>>;
+<<<e.signal>>>;
+<<<Shred.fromId>>>;
 <<<c.test>>>;
 <<<C.stest>>>;
-<<<s.amp>>>;
-<<<Math.min>>>;
+<<<e.signal>>>;
+<<<Shred.fromId>>>;
 <<<c.test>>>;
 <<<C.stest>>>;
-<<<s.amp>>>;
-<<<Math.min>>>;
+<<<e.signal>>>;
+<<<Shred.fromId>>>;

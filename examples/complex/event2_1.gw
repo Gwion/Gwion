@@ -1,4 +1,4 @@
-global class TestEvent {
+class global TestEvent {
 	static Event e;
 }
 second => now;
