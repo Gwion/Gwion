@@ -1,4 +1,3 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -6,17 +5,12 @@
 #include "type.h"
 #include "value.h"
 #include "optim.h"
+#include "constant.h"
 
 void constprop_prim(const Exp_Primary* p, m_uint* ptr) {
   Exp_Primary* e = (Exp_Primary*)p;
   e->primary_type = ae_primary_constprop;
   e->d.num = (m_uint)ptr; // improve me
-}
-
-ANN static m_bool is_const(Exp e) {
-  return (e->exp_type == ae_exp_primary &&
-    e->d.exp_primary.primary_type == ae_primary_num) ||
-    e->exp_type == ae_exp_constprop;
 }
 
 ANN static m_bool is_constprop_value(const Exp e) {
@@ -52,7 +46,7 @@ ANN static m_bool constant_propagation(const Exp_Binary* bin) {
     case op_chuck:
       if(isa(r->type, t_function) < 0) {
         if(is_constprop_value(r)) {
-          if(is_const(l)) {
+          if(constant_int(l)) {
 if(r->d.exp_primary.primary_type == ae_primary_num) {
             constprop_value(r->d.exp_primary.value,
               l->d.exp_primary.d.num);
@@ -89,56 +83,7 @@ if(r->d.exp_primary.primary_type == ae_primary_num) {
   return GW_OK;
 }
 
-ANN static m_bool constant_folding(const Exp_Binary* bin) {
-  const Exp l = bin->lhs, r = bin->rhs;
-  m_int ret = 0;
-  switch(bin->op) {
-    case op_add:
-      ret = l->d.exp_primary.d.num + r->d.exp_primary.d.num;
-      break;
-    case op_sub:
-      ret = l->d.exp_primary.d.num - r->d.exp_primary.d.num;
-      break;
-    case op_mul:
-       ret = l->d.exp_primary.d.num * r->d.exp_primary.d.num;
-       break;
-    case op_div:
-      if(r->d.exp_primary.d.num)
-       ret = l->d.exp_primary.d.num / r->d.exp_primary.d.num;
-      else
-       ERR_B(r->pos, "div by zero")
-       break;
-    case op_mod:
-      if(r->d.exp_primary.d.num)
-        ret = l->d.exp_primary.d.num % r->d.exp_primary.d.num;
-      else
-        ERR_B(r->pos, "div by zero")
-      break;
-    case op_shl:
-      ret = l->d.exp_primary.d.num >> r->d.exp_primary.d.num;
-      break;
-    case op_shr:
-      ret = l->d.exp_primary.d.num << r->d.exp_primary.d.num;
-      break;
-    default:
-      return GW_OK;
-  }
-  const Exp n = bin->self->next;
-  const Exp e = bin->self;
-  free_exp(l);
-  free_exp(r);
-  memset(e, 0, sizeof(struct Exp_));
-  e->exp_type = ae_exp_primary;
-  e->d.exp_primary.primary_type = ae_primary_num;
-  e->d.exp_primary.d.num = ret;
-  e->d.exp_primary.self = e;
-  e->next = n;
-  return GW_OK;
-}
-
 m_bool optimize_const(const Exp_Binary* bin) {
   constant_propagation(bin);
-  if(is_const(bin->lhs) && is_const(bin->rhs))
-    CHECK_BB(constant_folding(bin))
-  return GW_OK;
+  return constant_folding(bin);
 }
