@@ -34,13 +34,13 @@ describe_xxx_exp(float, m_float, float, fnum)
     CASE(mul, l, /, r)                        \
     case op_div: DIV_BY_ZERO(l, / , r) break;
 
-#define describe_fold_xxx(name, type, _l, _r, etype, opt)         \
+#define describe_fold_xxx(name, type, _l, _r, etype, opt)       \
 ANN static m_bool fold_##name(const Exp_Binary* bin) {          \
   const union exp_primary_data *l = &bin->lhs->d.exp_primary.d; \
   const union exp_primary_data *r = &bin->rhs->d.exp_primary.d; \
   type ret = 0;                                                 \
   switch(bin->op) {                                             \
-    COMMON_CASE(l->_l, r->_r)                                           \
+    COMMON_CASE(l->_l, r->_r)                                   \
     opt                                                         \
     default:                                                    \
       return GW_OK;                                             \
@@ -51,6 +51,7 @@ ANN static m_bool fold_##name(const Exp_Binary* bin) {          \
   return GW_OK;                                                 \
 }
 describe_fold_xxx(ii, m_int, num, num, int,
+  case op_mod: DIV_BY_ZERO(l->num, % , r->num) break;
   CASE(shl, l->num, >>, r->num) CASE(shr, l->num, <<, r->num))
 describe_fold_xxx(ff, m_float, fnum, fnum, float,)
 describe_fold_xxx(if, m_float,  num, fnum, float,)
