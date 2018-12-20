@@ -1,5 +1,0 @@
-// [skip] cannot extend incomplete type
-class C extends UnknownParentClass { <<<"Hello, You!", "">>>; }
-class UnknownParentClass { <<<"Hello, World!", "">>>; }
-C c;
-<<<c>>>;

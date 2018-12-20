@@ -1,8 +1,0 @@
-// [skip] but cannot override
-class C {
-  function void test(){}
-}
-
-class D extends C {
-  function int  test(){}
-}

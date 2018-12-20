@@ -1,3 +1,0 @@
-// [skip]  in variable declaration
-int now;
-<<<now>>>;

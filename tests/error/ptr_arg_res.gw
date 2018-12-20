@@ -1,2 +1,0 @@
-// [skip] is reserved
-typedef void test(int this){}

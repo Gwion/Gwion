@@ -1,2 +1,0 @@
-// [skip] in function
-function void test(int now){}

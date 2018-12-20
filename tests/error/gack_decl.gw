@@ -1,2 +1,0 @@
-// [skip] cannot use <<< >>> on variable declarations
- <<< int i >>>;
