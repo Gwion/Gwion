@@ -571,19 +571,18 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   return size;
 }
 
-ANN static m_bool emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
+ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   const Vector kinds = new_vector();
   const Instr instr = emit_add_instr(emit, VarargIni);
   instr->m_val = vararg_size(exp_call, kinds);
   instr->m_val2 = (m_uint)kinds;
-  return GW_OK;
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(exp_call->args)
     CHECK_BB(emit_exp(emit, exp_call->args, 1))
   if(GET_FLAG(exp_call->m_func->def, variadic))
-    CHECK_BB(emit_func_arg_vararg(emit, exp_call))
+    emit_func_arg_vararg(emit, exp_call);
   return GW_OK;
 }
 
@@ -715,20 +714,14 @@ ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code 
   return (m_bool)(*(m_uint*)spork->ptr = depth);
 }
 
-ANN static m_bool spork_exp(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
-  CHECK_BB(prepare_call(emit, exp))
-  char c[11 + num_digit(exp->self->pos)];
-  sprintf(c, "spork~exp:%i", exp->self->pos);
-  emit_push_code(emit, c);
-  if(GET_FLAG(exp->m_func, member))
-    SET_FLAG(emit->code, member);
-  const Instr op = emit_add_instr(emit, MemPushImm);
-  op->m_val = emit->code->stack_depth;
-  CHECK_BB(emit_exp_call1(emit, exp->m_func))
-  const VM_Code code = finalyze(emit);
-  const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func,
-    member) ? SZ_INT : 0);
-  return emit_exp_spork_finish(emit, code, NULL, size, 0);
+static inline void stack_alloc(const Emitter emit) {
+  emit_local(emit, SZ_INT, 0);
+  emit->code->stack_depth += SZ_INT;
+}
+
+static inline void stack_alloc_this(const Emitter emit) {
+  SET_FLAG(emit->code, member);
+  stack_alloc(emit);
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
@@ -742,19 +735,32 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   return GW_OK;
 }
 
-static inline void stack_alloc(const Emitter emit) {
-  emit_local(emit, SZ_INT, 0);
-  emit->code->stack_depth += SZ_INT;
+#define SPORK_FUNC_PREFIX "spork~func:%i"
+#define SPORK_CODE_PREFIX "spork~code:%i"
+
+static void push_spork_code(const Emitter emit, const m_str prefix, const int pos) {
+  char c[strlen(SPORK_FUNC_PREFIX) + num_digit(pos) + 1];
+  sprintf(c, prefix, pos);
+  emit_push_code(emit, c);
 }
 
-static inline void stack_alloc_this(const Emitter emit) {
-  SET_FLAG(emit->code, member);
-  stack_alloc(emit);
+ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
+  CHECK_BB(prepare_call(emit, exp))
+  push_spork_code(emit, SPORK_FUNC_PREFIX, exp->self->pos);
+  if(GET_FLAG(exp->m_func, member))
+    SET_FLAG(emit->code, member);
+  const Instr op = emit_add_instr(emit, MemPushImm);
+  op->m_val = emit->code->stack_depth;
+  CHECK_BB(emit_exp_call1(emit, exp->m_func))
+  const VM_Code code = finalyze(emit);
+  const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func,
+    member) ? SZ_INT : 0);
+  return emit_exp_spork_finish(emit, code, NULL, size, 0);
 }
 
-ANN static m_bool spork_func(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
-  emit_add_instr(emit, RegPushImm); // could be reg_push_ptr
-  emit_push_code(emit, "sporked");
+ANN static m_bool spork_code(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
+  emit_add_instr(emit, RegPushImm);
+  push_spork_code(emit, SPORK_CODE_PREFIX, stmt->pos);
   if(SAFE_FLAG(emit->env->func, member))
     stack_alloc_this(emit);
   CHECK_BB(scoped_stmt(emit, stmt, 0))
@@ -763,8 +769,8 @@ ANN static m_bool spork_func(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
 }
 
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
-  return unary->code ? spork_func(emit, unary->code) :
-    spork_exp(emit, &unary->exp->d.exp_call);
+  return unary->code ? spork_code(emit, unary->code) :
+    spork_func(emit, &unary->exp->d.exp_call);
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { GWDEBUG_EXE
@@ -1004,24 +1010,21 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   const Instr s2 = emit_add_instr(emit, MemSetImm);
-  const m_uint start  = emit_code_size(emit);
+  const m_uint ini_pc  = emit_code_size(emit);
   emit_push_stack(emit);
   const Instr loop = emit_add_instr(emit, AutoLoopStart);
   const m_uint offset = emit_local(emit, 2*SZ_INT, 0);
-  stmt->v->offset = offset + SZ_INT;
+  s2->m_val = stmt->v->offset = offset + SZ_INT;
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
-  const m_uint index = emit_code_size(emit);
+  const m_uint end_pc = emit_code_size(emit);
   const Instr end = emit_add_instr(emit, AutoLoopEnd);
   const Instr tgt = emit_add_instr(emit, Goto);
   *(m_uint*)end->ptr = emit_code_size(emit);
-  tgt->m_val = start;
-  loop->m_val = offset;
-  end->m_val = offset;
-  s1->m_val = offset;
-  s2->m_val = offset + SZ_INT;
+  tgt->m_val = ini_pc;
+  s1->m_val = end->m_val = loop->m_val = offset;
   if(stmt->is_ptr)
     end->m_val2 = loop->m_val2 = (m_uint)stmt->v->type;
-  emit_pop_stack(emit, index);
+  emit_pop_stack(emit, end_pc);
   return GW_OK;
 }
 

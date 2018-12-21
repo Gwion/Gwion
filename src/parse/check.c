@@ -228,7 +228,7 @@ ANN static void vec_info(const ae_prim_t t, struct VecInfo* v) {
 ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
   const Vec * vec = &primary->d.vec;
   const ae_prim_t t = primary->primary_type;
-  struct VecInfo info = { NULL, NULL, vec->dim };
+  struct VecInfo info = { .n=vec->dim };
   vec_info(t, &info);
   if(vec->dim > info.n)
     ERR_O(vec->exp->pos, "extraneous component of %s value...", info.s)
@@ -473,7 +473,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
     tmpl->base = v->d.func_ref->def->tmpl->list;
     if(base->exp_type == ae_exp_call)
       base->d.exp_call.tmpl = tmpl;
-    else if(base->exp_type == ae_exp_binary)
+    else // if(base->exp_type == ae_exp_binary)
       base->d.exp_binary.tmpl = tmpl;
     return f;
   }
@@ -511,8 +511,8 @@ ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restric
   }
   if(args_number < type_number)
     ERR_O(call->pos, "not able to guess types for template call.")
-  Tmpl_Call tmpl = { tl[0], NULL };
-  const Exp_Call tmp_func = { call, args, NULL, &tmpl, NULL };
+  Tmpl_Call tmpl = { .types=tl[0] };
+  const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl };
   const Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;

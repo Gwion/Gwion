@@ -142,8 +142,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     if(nspc->op_map.ptr) {
       Type l = opi->lhs;
       do {
-        struct Op_Import opi2 = { opi->op, l, opi->rhs, NULL,
-          NULL, NULL, opi->data };
+        struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
         Type ret = op_check_inner(env, &nspc->op_map, &opi2);
         if(ret) {
           if(ret == t_null)
