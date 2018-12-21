@@ -14,4 +14,5 @@ ANN m_bool import_ugen(const Gwi gwi);
 ANN m_bool import_array(const Gwi gwi);
 ANN m_bool import_ptr(const Gwi gwi);
 ANN m_bool import_func(const Gwi gwi);
+ANN m_bool import_modules(const Gwi gwi);
 #endif

@@ -61,6 +61,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(import_vararg(gwi))
   CHECK_BB(import_string(gwi))
   CHECK_BB(import_shred(gwi))
+  CHECK_BB(import_modules(gwi))
   return GW_OK;
 }
 
