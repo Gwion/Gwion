@@ -33,6 +33,8 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
   CHECK_OO(t)
   if(!t->size)
     ERR_O(decl->self->pos, "cannot declare variables of size '0' (i.e. 'void')...")
+  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
+    ERR_O(decl->self->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->owner != env->curr)
     ERR_O(decl->self->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) &&

@@ -30,9 +30,6 @@ ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
   const Type type = decl->type;
-  if(GET_FLAG(type, abstract) && !GET_FLAG(decl->td, ref))
-    ERR_B(decl->self->pos, "Type '%s' is abstract, declare as ref"
-        ". (use @)", type->name)
   if(GET_FLAG(type, template) && !GET_FLAG(type, scan2))
     CHECK_BB(scan2_exp_decl_template(env, decl))
   m_uint scope;
