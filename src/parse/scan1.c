@@ -37,8 +37,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
     ERR_O(decl->self->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->owner != env->curr)
     ERR_O(decl->self->pos, "can't use private type %s", t->name)
-  if(GET_FLAG(t, protect) &&
-    (!env->class_def || isa(t, env->class_def) < 0))
+  if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
   if(env->class_def) {
     if(!env->scope) {
@@ -68,32 +67,30 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(global)
     env_push(env, NULL, env->global_nspc, &scope);
   do {
-    Type t;
+    Type t = decl->type;
     const Var_Decl var = list->self;
-    const Value value = nspc_lookup_value0(env->curr, var->xid);
+    const Value former = nspc_lookup_value0(env->curr, var->xid);
     if(isres(var->xid) > 0)
       ERR_B(var->pos, "\t... in variable declaration", s_name(var->xid))
-    if(value && (!env->class_def ||
+    if(former && (!env->class_def ||
         (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
-    if(!var->array)
-      t = decl->type;
-    else {
+    if(var->array) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(decl->type, var->array->depth);
     }
-    var->value = value ? value : new_value(env->gwion, t, s_name(var->xid));
-    nspc_add_value(nspc, var->xid, var->value);
-    var->value->flag = decl->td->flag;
+    const Value v = var->value = former ? former : new_value(env->gwion, t, s_name(var->xid));
+    nspc_add_value(nspc, var->xid, v);
+    v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
-      SET_FLAG(var->value, ref);
+      SET_FLAG(v, ref);
     if(!env->func && !env->scope && !env->class_def)
-      SET_FLAG(var->value, global);
-    var->value->d.ptr = var->addr;
-    var->value->owner = !env->func ? env->curr : NULL;
-    var->value->owner_class = env->scope ? NULL : env->class_def;
+      SET_FLAG(v, global);
+    v->d.ptr = var->addr;
+    v->owner = !env->func ? env->curr : NULL;
+    v->owner_class = env->scope ? NULL : env->class_def;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -108,7 +105,7 @@ ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) 
 
 ANN static inline m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
-    CHECK_BB(scan1_exp(env, prim->d.exp))
+    return scan1_exp(env, prim->d.exp);
   return GW_OK;
 }
 
@@ -152,9 +149,7 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary * unary) {
-  if(unary->op == op_spork && unary->code)
-    return scan1_stmt(env, unary->code);
-  return GW_OK;
+  return !(unary->op == op_spork && unary->code) ? GW_OK : scan1_stmt(env, unary->code);
 }
 
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
@@ -297,8 +292,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->td->array)
     CHECK_BB(check_array_empty(f->td->array, f->td->xid->pos))
-  CHECK_OB((f->ret_type = known_type(env, f->td, "function return")))
-  return GW_OK;
+  return (f->ret_type = known_type(env, f->td, "function return")) ? 1 : -1;
 }
 
 ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
@@ -317,7 +311,7 @@ ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG
   if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   else if(GET_FLAG(f, op))
-    CHECK_BB(scan1_func_def_op(f))
+    return scan1_func_def_op(f);
   return GW_OK;
 }
 
