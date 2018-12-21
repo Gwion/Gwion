@@ -629,7 +629,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { 
 }
 
 ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
-  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func };
+  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func, .tmpl=bin->tmpl };
   return emit_exp_call(emit, &exp);
 }
 
