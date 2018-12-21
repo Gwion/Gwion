@@ -204,6 +204,12 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   return GW_OK;
 }
 
+ANN static Type scan1_rettype(const Env env, const Type_Decl* td) { GWDEBUG_EXE
+  if(td->array)
+    CHECK_BO(check_array_empty(td->array, td->xid->pos))
+  return known_type(env, td, "return type definition");
+}
+
 ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     if(list->var_decl->array)
@@ -214,12 +220,8 @@ ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EX
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  if(ptr->td->array)
-    CHECK_BB(check_array_empty(ptr->td->array, ptr->td->xid->pos))
-  CHECK_OB((ptr->ret_type = known_type(env, ptr->td, "func pointer definition")))
-  if(ptr->args && scan1_func_def_args(env, ptr->args) < 0)
-    ERR_B(ptr->td->xid->pos, "\t... in typedef '%s'...", s_name(ptr->xid))
-  return GW_OK;
+  CHECK_OB((ptr->ret_type = scan1_rettype(env, ptr->td)))
+  return ptr->args ? scan1_func_def_args(env, ptr->args) : GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
@@ -227,9 +229,8 @@ ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { 
 }
 
 ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
-  if(array->exp)
-    ERR_B(array->exp->pos, "array declaration must be empty in union.")
-  return GW_OK;
+  return !array->exp ? GW_OK :
+    err_msg(array->exp->pos, "array declaration must be empty in union.");
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
@@ -289,12 +290,6 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static m_bool scan1_func_def_type(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(f->td->array)
-    CHECK_BB(check_array_empty(f->td->array, f->td->xid->pos))
-  return (f->ret_type = known_type(env, f->td, "function return")) ? 1 : -1;
-}
-
 ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
   m_int count = 0;
   Arg_List list = f->arg_list;
@@ -324,7 +319,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = FAKE_FUNC;
   ++env->scope;
   CHECK_BB(scan1_func_def_flag(env, f))
-  CHECK_BB(scan1_func_def_type(env, f))
+  CHECK_OB((f->ret_type = scan1_rettype(env, f->td)))
   if(f->arg_list)
     CHECK_BB(scan1_func_def_args(env, f->arg_list))
   if(!GET_FLAG(f, builtin))
