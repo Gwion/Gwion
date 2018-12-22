@@ -35,7 +35,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-   env_push(env, NULL, env->global_nspc, &scope);
+   scope = env_push(env, NULL, env->global_nspc);
   do {
     const Var_Decl var = list->self;
     const Array_Sub array = var->array;
@@ -474,7 +474,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!base) {
     m_uint scope = env->scope;
     if(GET_FLAG(f, global))
-      env_push(env, NULL, env->global_nspc, &scope);
+      scope = env_push(env, NULL, env->global_nspc);
       CHECK_OB((value = func_create(env, f, overload, func_name)))
     if(GET_FLAG(f, global))
       env_pop(env, scope);
@@ -505,8 +505,7 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
-  m_uint scope;
-  env_push(env, class_def->type, class_def->type->nspc, &scope);
+  const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
   Class_Body body = class_def->body;
   do CHECK_BB(scan2_section(env, body->section))
   while((body = body->next));

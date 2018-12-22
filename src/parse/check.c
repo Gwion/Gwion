@@ -84,7 +84,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    env_push(env, NULL, env->global_nspc, &scope);
+    scope = env_push(env, NULL, env->global_nspc);
   do {
     if(!env->class_def && !GET_FLAG(list->self->value, builtin) &&
         !GET_FLAG(list->self->value, used)) {
@@ -377,8 +377,7 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func;
   const m_str tmpl_name = tl2str(env, types);
-  m_uint scope;
-  env_push(env, v->owner_class, v->owner, &scope);
+  const m_uint scope = env_push(env, v->owner_class, v->owner);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
@@ -1100,8 +1099,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  m_uint scope;
-  env_push(env, class_def->type, class_def->type->nspc, &scope);
+  const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
   Class_Body body = class_def->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));

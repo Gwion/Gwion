@@ -189,8 +189,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   if(class_def->body) {
     Class_Body body = class_def->body;
-    m_uint scope;
-    env_push(env, class_def->type, class_def->type->nspc, &scope);
+    const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
     env_pop(env, scope);

@@ -29,8 +29,8 @@ typedef struct Local_ {
 
 static inline void emit_pop_type(const Emitter emit) { nspc_pop_type(emit->env->curr); }
 static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(emit->env, scope); }
-static inline void emit_push(const Emitter emit, const Type type, const Nspc nspc, m_uint *scope) {
-  env_push(emit->env, type, nspc, scope);
+static inline m_uint emit_push(const Emitter emit, const Type type, const Nspc nspc) {
+  return env_push(emit->env, type, nspc);
 }
 
 ANEW static Frame* new_frame() {
@@ -540,7 +540,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    emit_push(emit, NULL, emit->env->global_nspc, &scope);
+    scope = emit_push(emit, NULL, emit->env->global_nspc);
   do {
     const uint r = (uint)(GET_FLAG(list->self->value, ref) + ref);
     if(!GET_FLAG(list->self->value, used))
@@ -602,8 +602,7 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) { G
 ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
     const Type_List types) {
   const Value v = f->value_ref;
-  m_uint scope;
-  emit_push(emit, v->owner_class, v->owner, &scope);
+  const m_uint scope = emit_push(emit, v->owner_class, v->owner);
   CHECK_BB(traverse_func_template(emit->env, f->def, types))
   return (m_int)scope;
 }
@@ -1207,7 +1206,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, builtin);
       SET_FLAG(stmt->value, global);
     }
-    emit_push(emit, stmt->value->type, stmt->value->type->nspc, &scope);
+    scope = emit_push(emit, stmt->value->type, stmt->value->type->nspc);
   } else if(stmt->type_xid) {
     if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
       stmt->type->nspc->class_data =
@@ -1215,7 +1214,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
       stmt->type->p = mp_ini((uint32_t)stmt->type->size);
-    emit_push(emit, stmt->type, stmt->type->nspc, &scope);
+    scope = emit_push(emit, stmt->type, stmt->type->nspc);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
       stmt->o = emit_local(emit, stmt->s, 0);
