@@ -568,8 +568,7 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   while(e) {
     if(!l) {
       size += e->type->size;
-      if(e->type->size)
-        vector_add(kinds, e->type->size);
+      vector_add(kinds, e->type->size);
     } else
       l = l->next;
     e = e->next;
@@ -578,10 +577,14 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
 }
 
 ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
-  const Vector kinds = new_vector();
   const Instr instr = emit_add_instr(emit, VarargIni);
-  instr->m_val = vararg_size(exp_call, kinds);
-  instr->m_val2 = (m_uint)kinds;
+  const Vector kinds = new_vector();
+  if((instr->m_val = vararg_size(exp_call, kinds)))
+    instr->m_val2 = (m_uint)kinds;
+  else {
+    instr->execute = VarargEmpty;
+    free_vector(kinds);
+  }
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
@@ -593,16 +596,8 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
 }
 
 ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
-  if(exp_call->args)
-    CHECK_BB(emit_func_args(emit, exp_call))
-  CHECK_BB(emit_exp(emit, exp_call->func, 0))
-  if(GET_FLAG(exp_call->m_func->def, variadic) && !exp_call->args) {
-    // handle empty call to variadic functions
-    const Instr mk = emit_add_instr(emit, VarargIni);
-    *(m_uint*)mk->ptr = 1;
-    emit_add_instr(emit, PushNull);
-  }
-  return GW_OK;
+  CHECK_BB(emit_func_args(emit, exp_call))
+  return emit_exp(emit, exp_call->func, 0);
 }
 
 ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,

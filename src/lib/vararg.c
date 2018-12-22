@@ -19,31 +19,32 @@ void free_vararg(struct Vararg_* arg) {
 
 INSTR(VarargTop) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
-  if(arg->d)
-    PUSH_REG(shred, SZ_INT)
-  else {
+  if(arg) {
+    if(arg->d)
+      PUSH_REG(shred, SZ_INT)
+    else {
+      shred->pc = instr->m_val2 + 1;
+      mp_free(Vararg, arg);
+    }
+  } else
     shred->pc = instr->m_val2 + 1;
-    mp_free(Vararg, arg);
-  }
 }
 
 INSTR(VarargIni) { GWDEBUG_EXE
   struct Vararg_* arg = mp_alloc(Vararg);
-  if(instr->m_val) {
-    POP_REG(shred,  instr->m_val)
-    arg->d = (m_bit*)xmalloc(instr->m_val);
-    memcpy(arg->d, shred->reg, instr->m_val);
-  } else if(*(m_uint*)instr->ptr)
-    POP_REG(shred, SZ_INT)
+  POP_REG(shred,  instr->m_val - SZ_INT)
+  arg->d = (m_bit*)xmalloc(instr->m_val);
+  memcpy(arg->d, shred->reg - SZ_INT, instr->m_val);
   const Vector kinds = (Vector)instr->m_val2;
-  if(kinds) {
-    if((arg->s = vector_size(kinds))) {
-      arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
-      memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
-    }
-  }
-  *(struct Vararg_**)REG(0) = arg;
-  PUSH_REG(shred,  SZ_INT);
+  arg->s = vector_size(kinds);
+  arg->k = (m_uint*)xcalloc(arg->s, SZ_INT);
+  memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
+  *(struct Vararg_**)REG(-SZ_INT) = arg;
+}
+
+INSTR(VarargEmpty) { GWDEBUG_EXE
+  *(struct Vararg_**)REG(0) = NULL;
+  PUSH_REG(shred, SZ_INT)
 }
 
 INSTR(VarargEnd) { GWDEBUG_EXE
