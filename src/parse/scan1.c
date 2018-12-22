@@ -289,26 +289,6 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static m_bool scan1_func_def_op(const Func_Def f) { GWDEBUG_EXE
-  m_int count = 0;
-  Arg_List list = f->arg_list;
-  while(list) {
-    ++count;
-    list = list->next;
-  }
-  if(count > (GET_FLAG(f, unary) ? 1 : 2) || !count)
-    ERR_B(f->td->xid->pos, "operators can only have one or two arguments")
-  return GW_OK;
-}
-
-ANN static m_bool scan1_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(GET_FLAG(f, dtor) && !env->class_def)
-    ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  else if(GET_FLAG(f, op))
-    return scan1_func_def_op(f);
-  return GW_OK;
-}
-
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   CHECK_BB(env_access(env, f->flag))
   env_storage(env, &f->flag);
@@ -317,7 +297,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func former = env->func;
   env->func = FAKE_FUNC;
   ++env->scope;
-  CHECK_BB(scan1_func_def_flag(env, f))
+  if(GET_FLAG(f, dtor) && !env->class_def)
+    ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   CHECK_OB((f->ret_type = scan1_rettype(env, f->td)))
   if(f->arg_list)
     CHECK_BB(scan1_func_def_args(env, f->arg_list))
