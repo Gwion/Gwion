@@ -34,6 +34,8 @@ ANEW Env new_env();
 ANN void env_reset(const Env);
 ANN void free_env(Env);
 ANN2(1,3) m_uint env_push(const Env, const Type, const Nspc);
+ANN m_uint env_push_type(const Env env, const Type type);
+ANN m_uint env_push_global(const Env env);
 ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
 ANN Nspc env_nspc(const Env);

@@ -84,7 +84,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    scope = env_push(env, NULL, env->global_nspc);
+    scope = env_push_global(env);
   do {
     if(!env->class_def && !GET_FLAG(list->self->value, builtin) &&
         !GET_FLAG(list->self->value, used)) {
@@ -291,13 +291,13 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {
-  Nspc nspc = type->nspc;
   struct Vector_ v;
   vector_init(&v);
-  if(!nspc)
-    vector_add(&v, (vtype)insert_symbol(type->name));
+  vector_add(&v, (vtype)insert_symbol(type->name));
+  Nspc nspc = type->owner;
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    vector_add(&v, (vtype)insert_symbol(nspc->name));
+    const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
+    vector_add(&v, (vtype)insert_symbol(t->name));
     nspc = nspc->parent;
   }
   ID_List id = NULL;
@@ -306,11 +306,6 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   vector_release(&v);
   assert(id);
   Type_Decl* td = new_type_decl(id, 0);
-  if(type->array_depth) {
-    Array_Sub array = new_array_sub(NULL);
-    array->depth = type->array_depth;
-    add_type_decl_array(td, array);
-  }
   return new_type_list(td, NULL);
 }
 
@@ -511,7 +506,7 @@ ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restric
   if(args_number < type_number)
     ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { .types=tl[0] };
-  const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl };
+  const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl, .self=base };
   const Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
@@ -1099,7 +1094,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
+  const m_uint scope = env_push_type(env, class_def->type);
   Class_Body body = class_def->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));

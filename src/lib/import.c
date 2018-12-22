@@ -186,7 +186,7 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   return (m_int)type->xid;
 }
 
-ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
+ANN2(1,2) static void import_class_ini(const Env env, const Type type,
     const f_xtor pre_ctor, const f_xtor dtor) {
   type->nspc = new_nspc(type->name);
   type->nspc->parent = env->curr;
@@ -201,8 +201,7 @@ ANN2(1,2) static m_bool import_class_ini(const Env env, const Type type,
   }
   type->owner = env->curr;
   SET_FLAG(type, checked);
-  env_push(env, type, type->nspc);
-  return GW_OK;
+  env_push_type(env, type);
 }
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
@@ -217,7 +216,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
   } else
     SET_FLAG(type, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi_add_type(gwi, type);
-  CHECK_BB(import_class_ini(gwi->env, type, pre_ctor, dtor))
+  import_class_ini(gwi->env, type, pre_ctor, dtor);
   return (m_int)type->xid;
 }
 

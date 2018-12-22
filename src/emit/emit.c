@@ -32,6 +32,12 @@ static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(em
 static inline m_uint emit_push(const Emitter emit, const Type type, const Nspc nspc) {
   return env_push(emit->env, type, nspc);
 }
+static inline m_uint emit_push_type(const Emitter emit, const Type type) {
+  return env_push_type(emit->env, type);
+}
+static inline m_uint emit_push_global(const Emitter emit) {
+  return env_push_global(emit->env);
+}
 
 ANEW static Frame* new_frame() {
   Frame* frame = mp_alloc(Frame);
@@ -540,7 +546,7 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
   if(global)
-    scope = emit_push(emit, NULL, emit->env->global_nspc);
+    scope = emit_push_global(emit);
   do {
     const uint r = (uint)(GET_FLAG(list->self->value, ref) + ref);
     if(!GET_FLAG(list->self->value, used))
@@ -628,7 +634,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { 
 }
 
 ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
-  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func, .tmpl=bin->tmpl };
+  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func, .tmpl=bin->tmpl, .self=bin->self };
   return emit_exp_call(emit, &exp);
 }
 
@@ -1206,7 +1212,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
       SET_FLAG(stmt->value, builtin);
       SET_FLAG(stmt->value, global);
     }
-    scope = emit_push(emit, stmt->value->type, stmt->value->type->nspc);
+    scope = emit_push_type(emit, stmt->value->type);
   } else if(stmt->type_xid) {
     if(stmt->type->nspc->class_data_size && !stmt->type->nspc->class_data)
       stmt->type->nspc->class_data =
@@ -1214,7 +1220,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     stmt->type->nspc->offset = stmt->s;
     if(!stmt->type->p)
       stmt->type->p = mp_ini((uint32_t)stmt->type->size);
-    scope = emit_push(emit, stmt->type, stmt->type->nspc);
+    scope = emit_push_type(emit, stmt->type);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
       stmt->o = emit_local(emit, stmt->s, 0);

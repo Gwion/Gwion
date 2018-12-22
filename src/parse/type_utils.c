@@ -9,12 +9,9 @@
 
 ANN m_bool isres(const Symbol xid) {
   const m_str s = s_name(xid);
-  if(!strcmp(s, "this") || !strcmp(s, "vararg") ||
-     !name2op(s)) {
-    err_msg(0, "%s is reserved.", s_name(xid));
-    return GW_OK;
-  }
-  return GW_ERROR;
+  if(!strcmp(s, "this") || !strcmp(s, "vararg") || !name2op(s))
+    ERR_B(0, "%s is reserved.", s_name(xid));
+  return GW_OK;
 }
 
 ANN m_uint id_list_len(ID_List l) {

@@ -151,10 +151,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     env->curr = env->global_nspc;
   }
   CHECK_BB(already_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
-  if(isres(class_def->name->xid) > 0) {
-    ERR_B(class_def->name->pos, "...in class definition: '%s' is reserved",
-          s_name(class_def->name->xid))
-  }
+  CHECK_BB(isres(class_def->name->xid))
   return GW_OK;
 }
 
@@ -189,7 +186,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   CHECK_OB((class_def->type = scan0_class_def_init(env, class_def)))
   if(class_def->body) {
     Class_Body body = class_def->body;
-    const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
+    const m_uint scope = env_push_type(env, class_def->type);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
     env_pop(env, scope);

@@ -65,13 +65,12 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   const m_bool global = GET_FLAG(decl->td, global);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   if(global)
-    scope = env_push(env, NULL, env->global_nspc);
+    scope = env_push_global(env);
   do {
     Type t = decl->type;
     const Var_Decl var = list->self;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(isres(var->xid) > 0)
-      ERR_B(var->pos, "\t... in variable declaration", s_name(var->xid))
+    CHECK_BB(isres(var->xid))
     if(former && (!env->class_def ||
         (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
@@ -350,7 +349,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
 }
 
 ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push(env, class_def->type, class_def->type->nspc);
+  const m_uint scope = env_push_type(env, class_def->type);
   Class_Body body = class_def->body;
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));

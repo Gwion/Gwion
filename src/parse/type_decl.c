@@ -47,7 +47,7 @@ ANN static void td_info_run(const Env env, struct td_info* info) {
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
-  size_t l = id_list_len(td->xid)  + depth *2;
+  size_t l = id_list_len(td->xid)  + depth * 2;
   struct td_info info = { td->types, (m_str)xmalloc(l), l, l };
   type_path(info.str, td->xid);
   while(depth--) { td_add(&info, '['); td_add(&info, ']'); }

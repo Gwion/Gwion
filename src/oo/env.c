@@ -73,6 +73,26 @@ ANN2(1,3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {
   return scope;
 }
 
+ANN m_uint env_push_type(const Env env, const Type type) {
+  const m_uint scope = env->scope;
+  vector_add(&env->class_stack, (vtype)env->class_def);
+  env->class_def = type;
+  vector_add(&env->nspc_stack, (vtype)env->curr);
+  env->curr = type->nspc;
+  env->scope = 0;
+  return scope;
+}
+
+ANN m_uint env_push_global(const Env env) {
+  const m_uint scope = env->scope;
+  vector_add(&env->class_stack, (vtype)NULL);
+  env->class_def = NULL;
+  vector_add(&env->nspc_stack, (vtype)env->global_nspc);
+  env->curr = env->global_nspc;
+  env->scope = 0;
+  return scope;
+}
+
 ANN void env_pop(const Env env, const m_uint scope) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
