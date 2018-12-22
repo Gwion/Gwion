@@ -42,5 +42,6 @@ ANN Type template_parent(const Type type);
 static inline Type actual_type(const Type t) {
   return isa(t, t_class) > 0 ? t->d.base_type : t;
 }
+ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
 #endif
 
