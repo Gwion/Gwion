@@ -44,10 +44,6 @@ to run this, do
 ./gwion --help
 ```
 
-#### requires
-
-* [soundpipe](https://github.com/PaulBatchelor/Soundpipe)
-
 #### build
 
 first you need to configure the build system
