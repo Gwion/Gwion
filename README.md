@@ -11,6 +11,7 @@
 [![Supported achievements](http://achievibit.kibibit.io/achievementsShield)](https://achievibit.kibibit.io)
 <!--[![Income](https://img.shields.io/liberapay/receives/Liberapay.svg)](https://liberapay.com/Liberapay)-->
 [![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fennecdjay/donate)
+[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/15155.svg?style=flat-square)](https://scan.coverity.com/projects/fennecdjay-gwion)
 # Gwion
 gwion is a object-oriented programming language, aimed at making music
 
