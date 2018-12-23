@@ -18,5 +18,4 @@ ANN m_bool switch_dyn(const Env env);
 ANN m_bool switch_reset(const Env env);
 ANN m_bool switch_release(const Scope);
 ANN void   switch_get(const Env env, const Stmt_Switch stmt);
-
 #endif
