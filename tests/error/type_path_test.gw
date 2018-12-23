@@ -1,2 +1,2 @@
-// [contains] unknown type in function argument
+// [contains] unknown type
 function void test(<B.C> a){}

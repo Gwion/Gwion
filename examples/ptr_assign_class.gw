@@ -1,4 +1,4 @@
- class C
+class C
 {
 	typedef void Test();
 	function void test1(){};

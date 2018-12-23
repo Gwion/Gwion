@@ -28,11 +28,17 @@ ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
   d->type = t;
 }
 
-ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
-  const Type t = known_type(env, decl->td, "declaration");
+ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
+  const Type t = known_type(env, td);
   CHECK_OO(t)
-  if(!t->size)
-    ERR_O(decl->self->pos, "cannot declare variables of size '0' (i.e. 'void')...")
+  if(t->size)
+    return t;
+  ERR_O(pos, "cannot declare variables of size '0' (i.e. 'void')...")
+}
+
+ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
+  const Type t = void_type(env, decl->td, decl->self->pos);
+  CHECK_OO(t);
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
     ERR_O(decl->self->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->owner != env->curr)
@@ -206,21 +212,23 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 ANN static Type scan1_rettype(const Env env, const Type_Decl* td) { GWDEBUG_EXE
   if(td->array)
     CHECK_BO(check_array_empty(td->array, td->xid->pos))
-  return known_type(env, td, "return type definition");
+  return known_type(env, td);
 }
 
-ANN static m_bool scan1_func_def_args(const Env env, Arg_List list) { GWDEBUG_EXE
+ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
-    if(list->var_decl->array)
-      CHECK_BB(check_array_empty(list->var_decl->array, list->var_decl->pos))
-    CHECK_OB((list->type = known_type(env, list->td, "function argument")))
+    const Var_Decl var = list->var_decl;
+    CHECK_BB(isres(var->xid))
+    if(var->array)
+      CHECK_BB(check_array_empty(var->array, var->pos))
+    CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));
   return GW_OK;
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   CHECK_OB((ptr->ret_type = scan1_rettype(env, ptr->td)))
-  return ptr->args ? scan1_func_def_args(env, ptr->args) : GW_OK;
+  return ptr->args ? scan1_args(env, ptr->args) : GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
@@ -301,7 +309,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   CHECK_OB((f->ret_type = scan1_rettype(env, f->td)))
   if(f->arg_list)
-    CHECK_BB(scan1_func_def_args(env, f->arg_list))
+    CHECK_BB(scan1_args(env, f->arg_list))
   if(!GET_FLAG(f, builtin))
     CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
   if(GET_FLAG(f, op) && env->class_def)
@@ -320,8 +328,11 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
     else
       ERR_B(class_def->ext->xid->pos, "can't use empty []'s in class extend")
   }
-  const Type parent = class_def->type->parent = known_type(env, class_def->ext, "class definition");
+  const Type parent = class_def->type->parent = known_type(env, class_def->ext);
   CHECK_OB(parent)
+  if(isa(class_def->type->parent, t_object) < 0)
+    ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
+            class_def->type->parent->name)
   if(!GET_FLAG(parent, scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))

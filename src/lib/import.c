@@ -231,7 +231,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(td->array && !td->array->exp)
     ERR_B(0, "class extend array can't be empty")
   if(!gwi->env->class_def->def) {
-    const Type t = known_type(gwi->env, td, "builtin class extend");
+    const Type t = known_type(gwi->env, td);
     CHECK_OB(t)
     if(td->array)
       SET_FLAG(gwi->env->class_def, typedef);

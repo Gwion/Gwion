@@ -41,33 +41,33 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     const Array_Sub array = var->array;
     if(array && array->exp)
       CHECK_BB(scan2_exp(env, array->exp))
-    nspc_add_value(env->curr, var->xid, var->value); // ???
+    nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
   if(global)
     env_pop(env, scope);
   return GW_OK;
 }
 
-ANN static m_bool scan2_arg_def_check(const Var_Decl var, const Type t) { GWDEBUG_EXE
-  if(var->value)
-    var->value->type = t;
-  if(!t->size)
-    ERR_B(var->pos, "cannot declare variables of size '0' (i.e. 'void')...")
-  return isres(var->xid);
+ANN static Value arg_value(const Env env, const Arg_List list) {
+  const Var_Decl var = list->var_decl;
+  if(!var->value) {
+    const Value v = new_value(env->gwion, list->type, s_name(var->xid));
+    v->flag = list->td->flag | ae_flag_arg;
+    return v;
+  }
+  var->value->type = list->type;
+  return var->value;
 }
 
-ANN static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool scan2_args(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
   do {
     const Var_Decl var = list->var_decl;
     if(var->array)
       list->type = array_type(list->type, var->array->depth);
-    CHECK_BB(scan2_arg_def_check(var, list->type))
-    const Value v = var->value ? var->value : new_value(env->gwion, list->type, s_name(var->xid));
-    v->flag = list->td->flag | ae_flag_arg;
-    v->offset = f->stack_depth;
+    var->value = arg_value(env, list);
+    var->value->offset = f->stack_depth;
     f->stack_depth += list->type->size;
-    var->value = v;
   } while((list = list->next));
   return GW_OK;
 }
@@ -92,8 +92,8 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d;
   d.arg_list = ptr->args;
-  if(d.arg_list && scan2_arg_def(env, &d) < 0)
-    ERR_B(ptr->td->xid->pos, "in typedef '%s'", s_name(ptr->xid))
+  if(d.arg_list)
+    CHECK_BB(scan2_args(env, &d))
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   ptr->func = new_func(s_name(ptr->xid), def);
@@ -382,11 +382,9 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func former = env->func;
   env->func = f->func;
-  const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
-  if(ret < 0)
-    err_msg(f->td->xid->pos, "... in function '%s'", s_name(f->name));
+  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code))
   env->func = former;
-  return ret;
+  return GW_OK;
 }
 
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
@@ -456,7 +454,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);
-      return f->arg_list ? scan2_arg_def(env, f) : 1;
+      return f->arg_list ? scan2_args(env, f) : 1;
     }
   }
   const Func base = get_func(env, f);
@@ -469,8 +467,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       env_pop(env, scope);
   } else
     f->func = base;
-  if(f->arg_list && scan2_arg_def(env, f) < 0)
-    ERR_B(f->td->xid->pos, "\t... in function '%s'\n", s_name(f->name))
+  if(f->arg_list)
+    CHECK_BB(scan2_args(env, f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {

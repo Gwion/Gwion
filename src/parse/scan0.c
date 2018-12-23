@@ -37,7 +37,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
 
 ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->td->flag))
-  const Type base = known_type(env, stmt->td, "typedef");
+  const Type base = known_type(env, stmt->td);
   CHECK_OB(base)
   CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {

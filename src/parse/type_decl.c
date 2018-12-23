@@ -68,10 +68,10 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   return info.str;
 }
 
-ANN static inline void* type_unknown(const ID_List id, const m_str orig) {
+ANN static inline void* type_unknown(const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
-  err_msg(id->pos, "'%s' unknown type in %s.", path, orig);
+  err_msg(id->pos, "unknown type '%s'", path);
   did_you_mean(s_name(id->xid));
   return NULL;
 }
@@ -82,7 +82,7 @@ ANN static Type prim_ref(const Type t, const Type_Decl* td) {
   return t;
 }
 
-ANN Type known_type(const Env env, const Type_Decl* td, const m_str orig) {
+ANN Type known_type(const Env env, const Type_Decl* td) {
   const Type t = type_decl_resolve(env, td);
-  return t ? prim_ref(t, td) : type_unknown(td->xid, orig);
+  return t ? prim_ref(t, td) : type_unknown(td->xid);
 }

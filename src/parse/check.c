@@ -560,7 +560,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
-  CHECK_OO((cast->self->type = known_type(env, cast->td, "cast expression")))
+  CHECK_OO((cast->self->type = known_type(env, cast->td)))
   struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=cast->self->type, .data=(uintptr_t)cast };
   OP_RET(cast, "cast")
 }
@@ -1084,11 +1084,8 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
         nspc_pop_type(env->curr);
     }
   }
-  if(isa(class_def->type->parent, t_object) < 0)
-    ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
-            class_def->type->parent->name)
   if(!GET_FLAG(class_def->type->parent, checked))
-      CHECK_BB(check_class_def(env, class_def->type->parent->def))
+    CHECK_BB(check_class_def(env, class_def->type->parent->def))
   if(GET_FLAG(class_def->type->parent, typedef))
     SET_FLAG(class_def->type, typedef);
   return GW_OK;

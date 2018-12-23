@@ -124,7 +124,7 @@ ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
-  const Type t = known_type(env, unary->td, "'new' expression");
+  const Type t = known_type(env, unary->td);
   UNSET_FLAG(unary->td, ref);
   CHECK_OO(t)
   if(unary->td->array)

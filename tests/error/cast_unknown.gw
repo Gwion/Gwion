@@ -1,2 +1,2 @@
-// [contains] in cast expression
+// [contains] unknown type
  1 $ UnknownType;
