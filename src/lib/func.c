@@ -14,7 +14,7 @@
 #include "nspc.h"
 #include "operator.h"
 
-ANN Type check_exp_call1(const Env, const Exp restrict,const Exp, const Exp);
+ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 
 static INSTR(assign_func) { GWDEBUG_EXE
@@ -25,7 +25,8 @@ static INSTR(assign_func) { GWDEBUG_EXE
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  return check_exp_call1(env, bin->rhs, bin->lhs, bin->self);
+  Exp_Call call = { .func=bin->rhs, .args=bin->lhs, .self=bin->self };
+  return check_exp_call1(env, &call);
 }
 
 ANN static Type fptr_type(Exp_Binary* bin) {

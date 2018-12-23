@@ -478,8 +478,10 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
         "\tplease provide template types. eg: '<type1, type2, ...>'")
 }
 
-ANN2(1,2,4) static Type check_exp_call_template(const Env env, const Exp restrict call,
-    const restrict Exp args, const restrict Exp base) {
+ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
+  const Exp call = exp->func;
+  const Exp args = exp->args;
+  const Exp base = exp->self;
   m_uint args_number = 0;
   const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
@@ -524,24 +526,23 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
   return GW_OK;
 }
 
-ANN2(1,2) Type check_exp_call1(const Env env, const restrict Exp call,
-    const restrict Exp args, restrict Exp base) { GWDEBUG_EXE
-  CHECK_BO(check_exp_call1_check(env, call))
-  if(GET_FLAG(call->type->d.func, ref)) {
-    const Value value = call->type->d.func->value_ref;
+ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
+  CHECK_BO(check_exp_call1_check(env, exp->func))
+  if(GET_FLAG(exp->func->type->d.func, ref)) {
+    const Value value = exp->func->type->d.func->value_ref;
     CHECK_BO(traverse_template(env, value->owner_class->def))
   }
-  if(args)
-    CHECK_OO(check_exp(env, args))
-  if(GET_FLAG(call->type, func))
-    return check_exp_call_template(env, call, args, base);
-  const Func func = find_func_match(env, call->type->d.func, args);
+  if(exp->args)
+    CHECK_OO(check_exp(env, exp->args))
+  if(GET_FLAG(exp->func->type, func))
+    return check_exp_call_template(env, exp);
+  const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
   if(!func)
-    return function_alternative(call->type, args);
-  if(base->exp_type == ae_exp_call)
-    base->d.exp_call.m_func = func;
-  else // if(base->exp_type == ae_exp_binary)
-    base->d.exp_binary.func = func;
+    return function_alternative(exp->func->type, exp->args);
+  if(exp->self->exp_type == ae_exp_call)
+    exp->self->d.exp_call.m_func = func;
+  else // if(exp->self->exp_type == ae_exp_binary)
+    exp->self->d.exp_binary.func = func;
   return func->def->ret_type;
 }
 
@@ -602,7 +603,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
     CHECK_OO((exp->m_func = ret))
     return ret->def->ret_type;
   }
-  return check_exp_call1(env, exp->func, exp->args, exp->self);
+  return check_exp_call1(env, exp);
 }
 
 ANN static inline m_bool check_exp_unary_spork1(const Env env, const Stmt code) {
