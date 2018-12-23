@@ -551,7 +551,8 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
   const Type op_ret = op_check(env, &opi);
-  CHECK_OO(op_ret)
+  if(!op_ret)
+    ERR_O(bin->self->pos, "in binary expression")
   OPTIMIZE_CONST(bin)
   return op_ret;
 }
@@ -1050,8 +1051,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(f->arg_list)
     ret = check_func_args(env, f->arg_list);
   const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
-  if(!GET_FLAG(f, builtin))
-    CHECK_BB(check_stmt_code(env, &f->d.code->d.stmt_code))
+  if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
+    ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
   if(variadic)
     REM_REF(variadic)
   if(GET_FLAG(f, builtin))

@@ -440,7 +440,7 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(v);
-    return GW_ERROR;
+    ERR_B(exp->pos, "\t... in 'gack' expression.")
   }
   const Instr instr = emit_add_instr(emit, Gack);
   *(Vector*)instr->ptr = v;
@@ -1385,7 +1385,8 @@ ANN static m_bool emit_dot_static_func(const Emitter emit, const Func func) { GW
 
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
   if(GET_FLAG(func, member)) {
-    CHECK_BB(emit_exp(emit, member->base, 0))
+    if(emit_exp(emit, member->base, 0) < 0)
+      ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
     emit_add_instr(emit, RegDup);
     const Instr func_i = emit_add_instr(emit, DotFunc);
     func_i->m_val = func->vt_index;
@@ -1405,7 +1406,8 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
   const uint emit_addr = member->self->emit_var;
   if(isa(member->self->type, t_fptr) > 0) { // function pointer
     if(GET_FLAG(value, member)) { // member
-      CHECK_BB(emit_exp(emit, member->base, 0))
+      if(emit_exp(emit, member->base, 0) < 0)
+        ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
       if(!GET_FLAG(value->type->d.func, global))
         emit_add_instr(emit, RegDup);
       emit_member(emit, value, emit_addr);
