@@ -20,6 +20,7 @@
 #include "memoize.h"
 #include "operator.h"
 #include "import.h"
+#include "switch.h"
 
 typedef struct Local_ {
   m_uint size;
@@ -1054,13 +1055,10 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(emit->env->sw->cases && !strcmp(s_name(stmt->name), "default")) {
+    if(switch_inside(emit->env, stmt->self->pos) && !strcmp(s_name(stmt->name), "default")) {
       if(!strcmp(s_name(stmt->name), "default"))
         vector_release(&stmt->data.v);
-      if(emit->env->sw->default_case_index)
-        ERR_B(stmt->self->pos, "default case already defined")
-      emit->env->sw->default_case_index = emit_code_size(emit);
-      return GW_OK;
+      return switch_default(emit->env, emit_code_size(emit), stmt->self->pos);
     }
     if(!stmt->data.v.ptr)
       ERR_B(stmt->self->pos, "illegal case")
@@ -1083,36 +1081,41 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) { GWDEBUG_EXE
-  const m_uint dyn = vector_size(&emit->env->sw->exp);
-  Instr push;
+ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
+  const m_uint dyn = switch_dyn(emit->env);
   if(dyn) {
-    for(m_uint i = 0; i < dyn; ++i)
-      CHECK_BB(emit_exp(emit, (Exp)vector_at(&emit->env->sw->exp, i), 0))
-    push = emit_add_instr(emit, SwitchIni);
-    emit->env->sw->vec = new_vector();
-    push->m_val = (m_uint)emit->env->sw->vec;
-    push->m_val2 = (m_uint)new_map();
+    Exp e;
+    while((e = switch_expget(emit->env)))
+      CHECK_BB(emit_exp(emit, e, 0))
+    *instr = emit_add_instr(emit, SwitchIni);
+    (*instr)->m_val = (m_uint)switch_vec(emit->env);
   }
+  return GW_OK;
+}
+
+ANN static void emit_switch_map(const Instr instr, const Map map) {
+  const Map m = new_map();
+  for(m_uint i = map_size(map) + 1; --i;)
+    map_set(m, VKEY(map, i), VVAL(map, i -1));
+  instr->m_val2 = (m_uint)m;
+}
+
+ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) { GWDEBUG_EXE
+  switch_get(emit->env, stmt);
+  Instr push = NULL;
+  CHECK_BB(emit_switch_instr(emit, &push))
   vector_add(&emit->code->stack_break, (vtype)NULL);
   CHECK_BB(emit_exp(emit, stmt->val, 0))
-  if(emit->env->sw->cases)
-    ERR_B(stmt->self->pos, "swith inside an other switch. this is not allowed for now")
-  emit->env->sw->default_case_index = 0;
-  emit->env->sw->cases = NULL;
   const Instr instr = emit_add_instr(emit, BranchSwitch);
-  emit->env->sw->cases = new_map();
-  instr->m_val2 = (m_uint)emit->env->sw->cases;
+  instr->m_val2 = (m_uint)switch_map(emit->env);
   CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
-  instr->m_val = emit->env->sw->default_case_index ?: emit_code_size(emit);
-  if(dyn) {
-    const Map m = (Map)push->m_val2, map = emit->env->sw->cases;
-    for(m_uint i = map_size(map) + 1; --i;)
-      map_set(m, VKEY(map, i), VVAL(map, i -1));
+  instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
+  if(push) {
+    emit_switch_map(push, (Map)instr->m_val2);
+    *(m_uint*)instr->ptr = SZ_INT;
   }
-  *(m_uint*)instr->ptr = dyn ? SZ_INT : 0;
+  switch_end(emit->env);
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
-  emit->env->sw->cases = NULL;
   return GW_OK;
 }
 
@@ -1138,17 +1141,16 @@ ANN static m_bool prim_value(const Exp exp, m_int *value) {
   *value = (m_int)exp->d.exp_primary.d.num;
   return GW_OK;
 }
+
 ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) { GWDEBUG_EXE
-  if(!emit->env->sw->cases)
-    ERR_B(stmt->self->pos, "case found outside switch statement.")
+  CHECK_BB(switch_inside(emit->env, stmt->self->pos))
   m_int value = 0;
   const Value v = case_value(stmt->val);
   if((!v && prim_value(stmt->val, &value)) || value_value(v, &value)) {
-    if(map_get(emit->env->sw->cases, (vtype)value))
-      ERR_B(stmt->val->pos, "duplicated cases value %i", value)
-    map_set(emit->env->sw->cases, (vtype)value, emit_code_size(emit));
+    CHECK_BB(switch_dup(emit->env, value, stmt->val->pos))
+    switch_dynpc(emit->env, value, emit_code_size(emit));
   } else
-    vector_add(emit->env->sw->vec, emit_code_size(emit));
+    switch_pc(emit->env, emit_code_size(emit));
   return GW_OK;
 }
 
@@ -1583,10 +1585,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
     nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
   emit_class_push(emit, type);
   emit_class_code(emit, type->name);
-
   if(class_def->ext && class_def->ext->array)
-      CHECK_BB(emit_array_extend(emit, type->parent,
-            class_def->ext->array->exp))
+    CHECK_BB(emit_array_extend(emit, type->parent, class_def->ext->array->exp))
   if(class_def->body) {
     Class_Body body = class_def->body;
     do CHECK_BB(emit_section(emit, body->section))
@@ -1609,8 +1609,8 @@ ANN static void emit_free_stack(const Emitter emit) { GWDEBUG_EXE
   LOOP_OPTIM
   for(m_uint i = vector_size(&emit->stack) + 1; --i;)
     emit_free_code((Code*)vector_at(&emit->stack, i - 1));
-  emit_free_code(emit->code);
   vector_clear(&emit->stack);
+  emit_free_code(emit->code);
 }
 
 ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_EXE
@@ -1619,19 +1619,13 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) { GWDEBUG_E
   return GW_OK;
 }
 
-ANN static void* emitter_reset(const Emitter emit) {
-  emit_free_stack(emit);
-  if(emit->env->sw->cases)
-    free_map(emit->env->sw->cases);
-  if(emit->env->sw->exp.ptr)
-    vector_clear(&emit->env->sw->exp);
-  return emit->env->sw->cases = NULL;
-}
-
 ANN VM_Code emit_ast(const Emitter emit, Ast ast) { GWDEBUG_EXE
   emit->code = new_code(emit, emit->env->name);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);
   emit_pop_scope(emit);
-  return ret > 0 ? finalyze(emit) : emitter_reset(emit);
+  if(ret > 0)
+    return finalyze(emit);
+  emit_free_stack(emit);
+  return NULL;
 }

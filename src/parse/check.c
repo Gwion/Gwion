@@ -808,9 +808,9 @@ stmt_func_xxx(for, Stmt_For,, !(
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(stmt->cond) < 0 ||
   check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(switch, Stmt_Switch, /* set switch */,!(!check_exp(env, stmt->val) ||
-  cond_type(stmt->val) < 0 ||
-  check_breaks(env, stmt->self, stmt->stmt) < 0) ? 1 : -1)
+stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
+  cond_type(stmt->val) < 0 || !switch_add(env, stmt) ||
+  check_breaks(env, stmt->self, stmt->stmt) < 0 || !switch_pop(env)) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
@@ -848,7 +848,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
   if(!GET_FLAG(v, const))
     ERR_B(stmt->val->pos, "'%s' is not constant.", v->name)
   if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
-    vector_add(&env->sw->exp, (vtype)stmt->val);
+    switch_expset(env, stmt->val);
   return GW_OK;
 }
 

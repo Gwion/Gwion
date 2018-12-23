@@ -23,8 +23,11 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
   env->type_xid = 0;
-  env->sw = mp_alloc(Switch);
-  vector_init(&env->sw->exp);
+//  scope_init(&env->swi);
+//  vector_pop((Vector)&env->swi);
+  vector_init((Vector)&env->swi);
+  map_init(&env->swi.map);
+
   env_reset(env);
   return env;
 }
@@ -40,10 +43,7 @@ ANN void env_reset(const Env env) {
   env->class_def = NULL;
   env->func = NULL;
   env->scope = 0;
-  if(env->sw->cases)
-    free_map(env->sw->cases);
-  vector_clear(&env->sw->exp);
-  env->sw->cases = NULL;
+  switch_reset(env);
 }
 
 ANN void free_env(const Env a) {
@@ -56,10 +56,8 @@ ANN void free_env(const Env a) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
-  if(a->sw->cases)
-    free_map(a->sw->cases);
-  vector_release(&a->sw->exp);
-  mp_free(Switch, a->sw);
+  switch_reset(a);
+  switch_release(&a->swi);
   free(a);
 }
 
