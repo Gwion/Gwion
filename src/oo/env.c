@@ -10,8 +10,8 @@
 #include "type.h"
 #include "context.h"
 #include "nspc.h"
-
 #include "mpool.h"
+#include "switch.h"
 
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));

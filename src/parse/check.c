@@ -16,6 +16,7 @@
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"
+#include "switch.h"
 
 #define OP_RET(a, b)\
   const Type op_ret = op_check(env, &opi);\
