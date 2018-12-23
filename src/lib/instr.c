@@ -242,10 +242,9 @@ static inline void push_me(VM_Shred shred, VM_Shred sh) {
 }
 
 INSTR(SporkFunc) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT*2);
-  const VM_Code code = *(VM_Code*)REG(SZ_INT);
+  POP_REG(shred, SZ_INT);
+  const VM_Code code = (VM_Code)instr->m_val2;
   const VM_Shred sh = init_spork_shred(shred, code);
-  const Func func = *(Func*)REG(0);
   const m_uint need = GET_FLAG(code, member) ? SZ_INT : 0;
   shred->reg -= instr->m_val + need;
   if(instr->m_val) {
@@ -258,15 +257,13 @@ INSTR(SporkFunc) { GWDEBUG_EXE
     PUSH_REG(sh, SZ_INT);
   }
   push_me(shred, sh);
-  *(Func*)sh->reg = func;
-  PUSH_REG(sh, SZ_INT);
 }
 
 INSTR(SporkExp) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT*2);
-  const VM_Code code = *(VM_Code*)REG(SZ_INT);
+  POP_REG(shred, SZ_INT);
+  const VM_Code code = (VM_Code)instr->m_val2;
   const VM_Shred sh = init_spork_shred(shred, code);
-  for(m_uint i = 0; i < *(m_uint*)instr->ptr; i+= SZ_INT)
+  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
     *(m_uint*)(sh->mem + i) = *(m_uint*)MEM(i);
   push_me(shred, sh);
 }
