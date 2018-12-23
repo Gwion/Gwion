@@ -387,11 +387,9 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func former = env->func;
   env->func = f->func;
-  const m_bool ret = scan2_stmt_code(env, &f->d.code->d.stmt_code);
-  if(ret < 0)
-    err_msg(f->td->xid->pos, "... in function '%s'", s_name(f->name));
+  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code))
   env->func = former;
-  return ret;
+  return GW_OK;
 }
 
 ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
@@ -474,8 +472,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       env_pop(env, scope);
   } else
     f->func = base;
-  if(f->arg_list && scan2_arg_def(env, f) < 0)
-    ERR_B(f->td->xid->pos, "\t... in function '%s'\n", s_name(f->name))
+  if(f->arg_list)
+    CHECK_BB(scan2_arg_def(env, f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
