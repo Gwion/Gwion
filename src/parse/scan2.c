@@ -49,29 +49,24 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan2_arg_def_check(const Var_Decl var, const Type t) { GWDEBUG_EXE
-  if(var->value) {
-    if(var->value->type->array_depth)
-      REM_REF(array_base(var->value->type))
+  if(var->value)
     var->value->type = t;
-  }
   if(!t->size)
     ERR_B(var->pos, "cannot declare variables of size '0' (i.e. 'void')...")
   return isres(var->xid);
 }
 
-ANN2(1) static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool scan2_arg_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
   do {
     const Var_Decl var = list->var_decl;
-    CHECK_BB(scan2_arg_def_check(var, list->type))
     if(var->array)
       list->type = array_type(list->type, var->array->depth);
+    CHECK_BB(scan2_arg_def_check(var, list->type))
     const Value v = var->value ? var->value : new_value(env->gwion, list->type, s_name(var->xid));
     v->flag = list->td->flag | ae_flag_arg;
-    if(f) {
-      v->offset = f->stack_depth;
-      f->stack_depth += list->type->size;
-    }
+    v->offset = f->stack_depth;
+    f->stack_depth += list->type->size;
     var->value = v;
   } while((list = list->next));
   return GW_OK;
