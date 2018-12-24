@@ -54,8 +54,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
     }
     if(GET_FLAG(decl->td, global) && env->class_def)
       UNSET_FLAG(decl->td, global);
-  } else if(GET_FLAG(decl->td, private))
-      ERR_O(decl->self->pos, "must declare private variables at class scope...")
+  }
   if(GET_FLAG(t, template))
     scan1_exp_decl_template(t, decl);
   return t;
