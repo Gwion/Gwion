@@ -1,10 +1,10 @@
-template “A”
+template <A>
 class C {
   A a;
 }
 
 class D {
-  static “int”C c;
+  static <int>C c;
 }
 
 D d;

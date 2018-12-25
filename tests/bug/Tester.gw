@@ -1,8 +1,8 @@
 class Tester
 {
-	template“A”
+	template<A>
 	function int assert_equal(string description, A a, A b){ if(a == b) return 0; return 1; }
-	template“A”
+	template<A>
 	function int assert_not_equal(string description, A a, A b){ if(a != b) return 0; return 1; }
 }
 

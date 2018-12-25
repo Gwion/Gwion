@@ -1,2 +1,2 @@
 // [contains] unknown type
-function void test(<B.C> a){}
+function void test(B->C a){}

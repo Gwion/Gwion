@@ -1,4 +1,4 @@
-“int, float”Map pp;
+<int, float>Map pp;
 <<<pp>>>;
 <<<pp.size()>>>;
 <<<pp.set(1, 2)>>>;

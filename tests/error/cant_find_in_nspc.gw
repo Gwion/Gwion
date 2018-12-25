@@ -6,9 +6,9 @@ class C {
 }
 
 class E extends C {
-  <C.D> d;
+  C->D d;
 }
 
 class F {
-  <F.D> d;
+  F->D d;
 }

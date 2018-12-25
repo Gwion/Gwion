@@ -64,15 +64,15 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
       return GW_OK;
     ERR_B(var->pos, "can't use non public typedef at global scope.")
   }
-  if(isa(type, env->class_def) < 0)
-    ERR_B(var->pos, "can't use static variables for member function.")
+  if(isa(type, env->class_def) < 0 && !GET_FLAG(func, global))
+    ERR_B(var->pos, "can't use non global fptr of other class.")
   if(GET_FLAG(func, member)) {
     if(GET_FLAG(v, static))
       ERR_B(var->pos, "can't use static variables for member function.")
     if(!GET_FLAG(v, member))
       ERR_B(var->pos, "can't use member variables for static function.")
-  } else if(GET_FLAG(v, member))
-    ERR_B(var->pos, "can't use member variables for static function.")
+  } //else if(GET_FLAG(v, member))
+    //ERR_B(var->pos, "can't use member variables for static function.")
   return GW_OK;
 }
 

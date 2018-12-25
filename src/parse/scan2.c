@@ -84,6 +84,8 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     else SET_FLAG(v, static);
     if(GET_FLAG(d, private))
       SET_FLAG(v, private);
+    else if(GET_FLAG(d, protect))
+      SET_FLAG(v, protect);
   }
   d->func = v->d.func_ref = f;
   return f->value_ref = v;
@@ -462,7 +464,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     m_uint scope = env->scope;
     if(GET_FLAG(f, global))
       scope = env_push_global(env);
-      CHECK_OB((value = func_create(env, f, overload, func_name)))
+    CHECK_OB((value = func_create(env, f, overload, func_name)))
     if(GET_FLAG(f, global))
       env_pop(env, scope);
   } else

@@ -1,4 +1,4 @@
-“int”Ptr ptr;
+<int>Ptr ptr;
 int i[4];
 for(auto@ a : i)
   <<<*a>>>;

@@ -1,5 +1,5 @@
-template“A”
+template<A>
 class C {}
 
-“int”C ref;
+<int>C ref;
 <<<ref>>>;

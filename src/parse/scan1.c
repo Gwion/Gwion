@@ -52,7 +52,7 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
         ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
     }
-    if(GET_FLAG(decl->td, global) && env->class_def)
+    if(GET_FLAG(decl->td, global) && env->class_def) // forbid this ?
       UNSET_FLAG(decl->td, global);
   }
   if(GET_FLAG(t, template))
@@ -200,6 +200,8 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
       SET_FLAG(v, static);
       if(GET_FLAG(stmt, private))
         SET_FLAG(v, private);
+      else if(GET_FLAG(stmt, protect))
+        SET_FLAG(v, protect);
     }
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(stmt->t->owner, list->xid, v);
@@ -242,8 +244,10 @@ ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   const m_uint scope = union_push(env, stmt);
-  if(stmt->xid || stmt->type_xid)
+  if(stmt->xid || stmt->type_xid) {
     UNSET_FLAG(stmt, private);
+    UNSET_FLAG(stmt, protect);
+  }
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
     Var_Decl_List list = decl.list;

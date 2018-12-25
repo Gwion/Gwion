@@ -430,7 +430,7 @@ INSTR(AllocMember4) { GWDEBUG_EXE
 INSTR(DotStatic) { GWDEBUG_EXE
   const Type t = *(Type*)REG(-SZ_INT);
   m_uint *const data = (m_uint*)(t->nspc->class_data + instr->m_val);
-  *(m_uint*)REG(-SZ_INT) = *data;
+  *(m_uint*)REG(-SZ_INT) = data ? *data : 0;
 }
 
 INSTR(DotStatic2) { GWDEBUG_EXE
