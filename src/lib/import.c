@@ -222,8 +222,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
 
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->env->class_def)
-    ERR_B(0, "gwi_class_ext invoked before "
-          "gwi_class_ini")
+    ERR_B(0, "gwi_class_ext invoked before gwi_class_ini")
   const VM_Code ctor = gwi->env->class_def->nspc->pre_ctor;
   if(gwi->env->class_def->parent ||
       (gwi->env->class_def->def && gwi->env->class_def->def->ext))
