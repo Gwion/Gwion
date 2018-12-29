@@ -1,4 +1,4 @@
-template<A>
+template<~A~>
 function void test(A a){}
 
 (maybe ? test : test)(1);

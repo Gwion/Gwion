@@ -1,4 +1,4 @@
-//template <a>
+//template <~a~>
 function void test(){}
 //function void test(int i[]){<<<i>>>;}
 //function void test(Object o){}

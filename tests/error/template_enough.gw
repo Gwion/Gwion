@@ -1,4 +1,4 @@
 // [contains] 
- template<a, b>
+ template<~a, b~>
 function void test(){}
 test();

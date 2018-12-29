@@ -6,7 +6,6 @@ struct Gwion_ {
 // mem
 // rnd
 // dl
-  Scanner *scan;
   Env      env;
   Emitter  emit;
   VM*      vm;

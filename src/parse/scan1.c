@@ -312,12 +312,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 DECL_SECTION_FUNC(scan1)
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-  if(class_def->ext->array) {
-    if(class_def->ext->array->exp)
-      CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
-    else
-      ERR_B(class_def->ext->xid->pos, "can't use empty []'s in class extend")
-  }
+  if(class_def->ext->array)
+    CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
   const Type parent = class_def->type->parent = known_type(env, class_def->ext);
   CHECK_OB(parent)
   if(isa(class_def->type->parent, t_object) < 0)

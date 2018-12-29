@@ -1,2 +1,2 @@
-// [contains] can't use empty
+// [contains] instantiate with empty
 new Object[];
