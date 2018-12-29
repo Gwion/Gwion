@@ -234,11 +234,6 @@ ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { 
   return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;
 }
 
-ANN static inline m_bool scan1_stmt_union_array(const Array_Sub array) { GWDEBUG_EXE
-  return !array->exp ? GW_OK :
-    err_msg(array->exp->pos, "array declaration must be empty in union.");
-}
-
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   const m_uint scope = union_push(env, stmt);
@@ -248,15 +243,9 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   }
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
-    Var_Decl_List list = decl.list;
     SET_FLAG(decl.td, checked | stmt->flag);
     if(GET_FLAG(stmt, static))
       SET_FLAG(decl.td, static);
-    do {
-      const Var_Decl var_decl = list->self;
-      if(var_decl->array)
-        CHECK_BB(scan1_stmt_union_array(var_decl->array))
-    } while((list = list->next));
     CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
   } while((l = l->next));
   union_pop(env, stmt, scope);

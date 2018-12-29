@@ -1,6 +1,5 @@
-// [contains] array declaration must be empty in union
- union
-{
+// [contains] must be defined with empty
+union {
   int i;
   int @array[4];
 };
