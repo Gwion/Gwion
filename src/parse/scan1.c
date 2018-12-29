@@ -220,8 +220,6 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->var_decl;
     CHECK_BB(isres(var->xid))
-    if(var->array)
-      CHECK_BB(check_array_empty(var->array, var->pos))
     CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));
   return GW_OK;
