@@ -1225,10 +1225,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     l = stmt->l;
     do {
       Var_Decl_List list = l->self->d.exp_decl.list;
-      do {
-        list->self->value->d.ptr = ptr;
-        SET_FLAG(list->self->value, union);
-      } while((list = list->next));
+      list->self->value->d.ptr = ptr;
+      SET_FLAG(list->self->value, union);
     } while((l = l->next));
     SET_FLAG(stmt->l->self->d.exp_decl.list->self->value, enum);
   }

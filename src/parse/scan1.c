@@ -16,12 +16,6 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static inline m_bool check_array_empty(const Array_Sub a, const uint pos) {
-  if(!a->exp)
-    return GW_OK;
-  ERR_B(pos, "type must be defined with empty []'s")
-}
-
 ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
   Exp_Decl* d = (Exp_Decl*)decl;
   d->base = t->def;
@@ -210,12 +204,6 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static Type scan1_rettype(const Env env, const Type_Decl* td) { GWDEBUG_EXE
-  if(td->array)
-    CHECK_BO(check_array_empty(td->array, td->xid->pos))
-  return known_type(env, td);
-}
-
 ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->var_decl;
@@ -226,7 +214,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  CHECK_OB((ptr->ret_type = scan1_rettype(env, ptr->td)))
+  CHECK_OB((ptr->ret_type = known_type(env, ptr->td)))
   return ptr->args ? scan1_args(env, ptr->args) : GW_OK;
 }
 
@@ -246,7 +234,7 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     SET_FLAG(decl.td, checked | stmt->flag);
     if(GET_FLAG(stmt, static))
       SET_FLAG(decl.td, static);
-    CHECK_BB(scan1_exp_decl(env, &l->self->d.exp_decl))
+    CHECK_BB(scan1_exp(env, l->self))
   } while((l = l->next));
   union_pop(env, stmt, scope);
   return GW_OK;
@@ -297,7 +285,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   ++env->scope;
   if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  CHECK_OB((f->ret_type = scan1_rettype(env, f->td)))
+  CHECK_OB((f->ret_type = known_type(env, f->td)))
   if(f->arg_list)
     CHECK_BB(scan1_args(env, f->arg_list))
   if(!GET_FLAG(f, builtin))
