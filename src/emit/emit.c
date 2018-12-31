@@ -88,25 +88,6 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
-ANEW Emitter new_emitter(void) {
-  Emitter emit = (Emitter)xcalloc(1, sizeof(struct Emitter_));
-  vector_init(&emit->stack);
-  return emit;
-}
-
-ANN void free_emitter(Emitter a) {
-  vector_release(&a->stack);
-  xfree(a);
-}
-
-__attribute__((returns_nonnull))
-ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
-  const Instr instr = mp_alloc(Instr);
-  instr->execute = f;
-  vector_add(&emit->code->instr, (vtype)instr);
-  return instr;
-}
-
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_alloc(Code);
   code->name = code_name_set(name, emit->env->name);
