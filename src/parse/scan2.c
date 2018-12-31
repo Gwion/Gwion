@@ -92,7 +92,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  struct Func_Def_ d;
+  struct Func_Def_ d = { .stack_depth=0 };
   d.arg_list = ptr->args;
   if(d.arg_list)
     CHECK_BB(scan2_args(env, &d))
