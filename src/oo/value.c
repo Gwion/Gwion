@@ -15,7 +15,10 @@ ANN Value new_value(struct Gwion_* gwion, const Type type, const m_str name) {
   return a;
 }
 ANN void free_value(Value a) {
-  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr && isa(a->type, t_object) < 0)
+//  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr && isa(a->type, t_object) < 0)
+  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr &&
+!(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
+&& isa(a->type, t_object) < 0)
     _mp_free(a->type->size, a->d.ptr);
   if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0)
     REM_REF(a->type)

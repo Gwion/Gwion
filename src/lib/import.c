@@ -610,12 +610,16 @@ ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   return list ? 1 : -1;
 }
 
-ANN static void import_enum_end(DL_Enum* d, const Vector v) {
+ANN static void import_enum_end(const Gwi gwi, const Vector v) {
+  DL_Enum* d = &gwi->enum_data;
   for(m_uint i = 0; i < vector_size(v); i++) {
     Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&d->addr, i);
     SET_FLAG(value, builtin);
-    value->d.ptr = (m_uint*)(addr ? addr : i);
+    if(!gwi->env->class_def)
+      value->d.ptr = (m_uint*)(addr ? addr : i);
+    else
+      value->d.ptr = (m_uint*)(addr ? *(m_uint*)addr : i);
   }
   d->t = NULL;
   d->base = NULL;
@@ -629,7 +633,7 @@ ANN m_int gwi_enum_end(const Gwi gwi) {
     free_id_list(d->base);
     return GW_ERROR;
   }
-  import_enum_end(d, &stmt->d.stmt_enum.values);
+  import_enum_end(gwi, &stmt->d.stmt_enum.values);
   free_stmt(stmt);
   return GW_OK;
 }
