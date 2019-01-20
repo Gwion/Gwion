@@ -35,6 +35,7 @@ INSTR(RegPushMaybe);
 
 /* staking */
 INSTR(RegPop);
+INSTR(RegPushImm0);
 INSTR(RegPushImm);
 INSTR(RegPushImm2);
 INSTR(RegPushImm3);
