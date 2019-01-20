@@ -715,9 +715,12 @@ static inline void stack_alloc_this(const Emitter emit) {
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope;
   emit_push_scope(emit);
-  emit_add_instr(emit, GcIni);
+  const m_bool pure = SAFE_FLAG(emit->env->func, pure);
+  if(!pure)
+    emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
-  emit_add_instr(emit, GcEnd);
+  if(!pure)
+    emit_add_instr(emit, GcEnd);
   emit_pop_scope(emit);
   --emit->env->scope;
   return GW_OK;
