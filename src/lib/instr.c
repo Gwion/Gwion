@@ -87,24 +87,38 @@ INSTR(MemSetImm) { GWDEBUG_EXE
 
 #define describe_regpushxxx(name, type, size)                          \
 INSTR(RegPush##name) { GWDEBUG_EXE                                     \
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem; \
-  *(type*)REG(0) = *(type*)(data + instr->m_val);                      \
+  *(type*)REG(0) = *(type*)(shred->mem + instr->m_val);                \
   PUSH_REG(shred, size);                                               \
 }
 
 describe_regpushxxx(Mem,  m_int,   SZ_INT)
 describe_regpushxxx(Mem2, m_float, SZ_FLOAT)
 INSTR(RegPushMem3) { GWDEBUG_EXE
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem;
-  memcpy(REG(0), (data + instr->m_val), instr->m_val2);
+  memcpy(REG(0), (shred->mem + instr->m_val), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }
 INSTR(RegPushMem4) { GWDEBUG_EXE
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem;
-  *(m_bit**)REG(0) = (m_bit*)(data + instr->m_val);
+  *(m_bit**)REG(0) = (m_bit*)(shred->mem + instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
+
+#define describe_regpushbase(name, type, size)                         \
+INSTR(RegPush##name) { GWDEBUG_EXE                                     \
+  *(type*)REG(0) = *(type*)(shred->base + instr->m_val);               \
+  PUSH_REG(shred, size);                                               \
+}
+
+describe_regpushbase(Base,  m_int,   SZ_INT)
+describe_regpushbase(Base2, m_float, SZ_FLOAT)
+INSTR(RegPushBase3) { GWDEBUG_EXE
+  memcpy(REG(0), (shred->base + instr->m_val), instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
+}
+INSTR(RegPushBase4) { GWDEBUG_EXE
+  *(m_bit**)REG(0) = (m_bit*)(shred->base + instr->m_val);
+  PUSH_REG(shred, SZ_INT);
+}
 
 INSTR(RegPushPtr) { GWDEBUG_EXE
   *(m_uint*)REG(-SZ_INT) = instr->m_val;

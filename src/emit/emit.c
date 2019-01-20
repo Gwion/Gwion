@@ -237,6 +237,7 @@ ANN static Instr emit_kind(Emitter emit, const m_uint size, const uint addr, con
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushDeref }; // caution last
 static const f_instr regpushderef[] = { RegPushDeref, RegPushDeref2, RegPushDeref3,  RegPushDeref }; // caution last
 static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
+static const f_instr regpushbase[] = { RegPushBase, RegPushBase2, RegPushBase3, RegPushBase4 };
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 static const f_instr dotimport[]  = { DotImport, DotImport2, DotImport3, DotImport4 };
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
@@ -289,9 +290,8 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
       GET_FLAG(v, union))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
-  const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushmem);
+  const Instr instr = emit_kind(emit, size, prim->self->emit_var, !GET_FLAG(v, global) ? regpushmem : regpushbase);
   instr->m_val  = v->offset;
-  *(m_uint*)instr->ptr = GET_FLAG(v, global);
   return GW_OK;
 }
 
