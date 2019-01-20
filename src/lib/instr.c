@@ -308,13 +308,6 @@ ANN static inline void shred_func_need_this(const VM_Shred shred) {
   PUSH_MEM(shred, SZ_INT);
 }
 
-ANN static inline void shred_func_finish(const VM_Shred shred) {
-  if(GET_FLAG(shred->code, member))
-    POP_MEM(shred, SZ_INT);
-  if(overflow_(shred))
-    Except(shred, "StackOverflow");
-}
-
 INSTR(FuncPtr) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
   if(!GET_FLAG(code, builtin))
@@ -331,14 +324,17 @@ INSTR(FuncUsr) { GWDEBUG_EXE
   m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
-    if(GET_FLAG(shred->code, member)) {
+    if(GET_FLAG(code, member)) {
       shred_func_need_this(shred);
       stack_depth -= SZ_INT;
     }
     for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
       *(m_uint*)MEM(i) = *(m_uint*)REG(i);
+    if(GET_FLAG(code, member))
+      POP_MEM(shred, SZ_INT);
   }
-  shred_func_finish(shred);
+  if(overflow_(shred))
+    Except(shred, "StackOverflow");
 }
 
 INSTR(DotFunc) { GWDEBUG_EXE
