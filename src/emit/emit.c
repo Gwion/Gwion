@@ -649,6 +649,12 @@ ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG
 }
 
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
+  const Instr back = (Instr)vector_back(&emit->code->instr);
+  if(back->execute == RegPushBase) {
+    back->execute = RegPushImm0;
+    back->m_val = (m_uint)f->code;
+    return GW_OK;
+  }
   const Instr instr = emit_add_instr(emit, RegPushPtr);
   return !!(instr->m_val = (m_uint)f->code);
 }
