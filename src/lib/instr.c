@@ -200,7 +200,6 @@ INSTR(BranchSwitch) { GWDEBUG_EXE
   shred->pc = map_get(map, (vtype)*(m_int*)REG(offset));
   if(!shred->pc)
     shred->pc = instr->m_val;
-//  if(offset)free_map(map);
 }
 
 #define branch(name, type, sz, op)      \
