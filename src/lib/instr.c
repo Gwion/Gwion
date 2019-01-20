@@ -301,6 +301,7 @@ ANN static void shred_func_prepare(const VM_Shred shred) {
   *(m_uint*)  MEM(-SZ_INT)   = (m_uint)code->stack_depth;
   shred->pc = 0;
   shred->code = code;
+  shred->instr = code->instr;
 }
 
 ANN static inline void shred_func_need_this(const VM_Shred shred) {
@@ -403,6 +404,7 @@ INSTR(FuncMember) { GWDEBUG_EXE
 INSTR(FuncReturn) { GWDEBUG_EXE
   shred->pc = *(m_uint*)MEM(-SZ_INT*2);
   shred->code = *(VM_Code*)MEM(-SZ_INT*3);
+  shred->instr = shred->code->instr;
   POP_MEM(shred, *(m_uint*)MEM(-SZ_INT*4) + SZ_INT*4);
 }
 
