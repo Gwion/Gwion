@@ -59,7 +59,7 @@ INSTR(RegPop) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val);
 }
 
-INSTR(RegPushImm0) { GWDEBUG_EXE
+INSTR(RegPushImm) { GWDEBUG_EXE
   *(m_uint*)shred->reg = instr->m_val;
   shred->reg += SZ_INT;
 }
