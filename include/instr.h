@@ -52,7 +52,6 @@ INSTR(RegPushBase2);
 INSTR(RegPushBase3);
 INSTR(RegPushBase4);
 INSTR(RegPushPtr);
-INSTR(RegPushCode);
 INSTR(RegDup);
 INSTR(RegAddRef);
 
