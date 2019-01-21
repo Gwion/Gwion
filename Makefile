@@ -88,6 +88,9 @@ endif
 ifeq (${USE_JIT}, 1)
 include jit/config.mk
 endif
+ifeq (${USE_NOMEMOIZE}, 1)
+CFLAGS += -DNOMEMOIZE
+endif
 
 ifeq (${USE_VMBENCH}, 1)
 CFLAGS += -DVMBENCH

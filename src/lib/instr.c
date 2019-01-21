@@ -59,13 +59,16 @@ INSTR(RegPop) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val);
 }
 
+INSTR(RegPushImm) { GWDEBUG_EXE
+  *(m_uint*)shred->reg = instr->m_val;
+  shred->reg += SZ_INT;
+}
 #define describe_regpushimmxxx(name, type, size) \
 INSTR(RegPush##name) { GWDEBUG_EXE               \
   *(type*)REG(0) = *(type*)instr->ptr;           \
   PUSH_REG(shred, size);                         \
 }
 
-describe_regpushimmxxx(Imm,  m_int,   SZ_INT)
 describe_regpushimmxxx(Imm2, m_float, SZ_FLOAT)
 INSTR(RegPushImm3) { GWDEBUG_EXE
   memcpy(REG(0), instr->ptr, instr->m_val2);
@@ -83,34 +86,40 @@ INSTR(MemSetImm) { GWDEBUG_EXE
 
 #define describe_regpushxxx(name, type, size)                          \
 INSTR(RegPush##name) { GWDEBUG_EXE                                     \
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem; \
-  *(type*)REG(0) = *(type*)(data + instr->m_val);                      \
+  *(type*)REG(0) = *(type*)(shred->mem + instr->m_val);                \
   PUSH_REG(shred, size);                                               \
 }
 
 describe_regpushxxx(Mem,  m_int,   SZ_INT)
 describe_regpushxxx(Mem2, m_float, SZ_FLOAT)
 INSTR(RegPushMem3) { GWDEBUG_EXE
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem;
-  memcpy(REG(0), (data + instr->m_val), instr->m_val2);
+  memcpy(REG(0), (shred->mem + instr->m_val), instr->m_val2);
   PUSH_REG(shred, instr->m_val2);
 }
 INSTR(RegPushMem4) { GWDEBUG_EXE
-  const m_bit* data = *(m_uint*)instr->ptr ? shred->base : shred->mem;
-  *(m_bit**)REG(0) = (m_bit*)(data + instr->m_val);
+  *(m_bit**)REG(0) = (m_bit*)(shred->mem + instr->m_val);
   PUSH_REG(shred, SZ_INT);
 }
 
+#define describe_regpushbase(name, type, size)                         \
+INSTR(RegPush##name) { GWDEBUG_EXE                                     \
+  *(type*)REG(0) = *(type*)(shred->base + instr->m_val);               \
+  PUSH_REG(shred, size);                                               \
+}
+
+describe_regpushbase(Base,  m_int,   SZ_INT)
+describe_regpushbase(Base2, m_float, SZ_FLOAT)
+INSTR(RegPushBase3) { GWDEBUG_EXE
+  memcpy(REG(0), (shred->base + instr->m_val), instr->m_val2);
+  PUSH_REG(shred, instr->m_val2);
+}
+INSTR(RegPushBase4) { GWDEBUG_EXE
+  *(m_bit**)REG(0) = (m_bit*)(shred->base + instr->m_val);
+  PUSH_REG(shred, SZ_INT);
+}
 
 INSTR(RegPushPtr) { GWDEBUG_EXE
   *(m_uint*)REG(-SZ_INT) = instr->m_val;
-}
-
-INSTR(RegPushCode) { GWDEBUG_EXE
-  const Func f = *(Func*)REG(-SZ_INT);
-  if(!f)
-    Except(shred, "NullFuncPtrException");
-  *(VM_Code*)REG(-SZ_INT) = f->code;
 }
 
 INSTR(RegDup) { GWDEBUG_EXE
@@ -182,7 +191,6 @@ INSTR(BranchSwitch) { GWDEBUG_EXE
   shred->pc = map_get(map, (vtype)*(m_int*)REG(offset));
   if(!shred->pc)
     shred->pc = instr->m_val;
-//  if(offset)free_map(map);
 }
 
 #define branch(name, type, sz, op)      \
@@ -270,19 +278,15 @@ INSTR(SporkExp) { GWDEBUG_EXE
 
 ANN static void shred_func_prepare(const VM_Shred shred) {
   POP_REG(shred, SZ_INT * 2);
-  const VM_Code code = *(VM_Code*)REG(0);
-
-  const m_uint local_depth = *(m_uint*)REG(SZ_INT);
-  const m_uint prev_stack = *(m_uint*)MEM(-SZ_INT);
-  const m_uint push = prev_stack + local_depth;
-
-  PUSH_MEM(shred, push + SZ_INT*4);
-  *(m_uint*)  MEM(-SZ_INT*4) = push;
-  *(VM_Code*) MEM(-SZ_INT*3) = shred->code;
-  *(m_uint*)  MEM(-SZ_INT*2) = shred->pc;
-  *(m_uint*)  MEM(-SZ_INT)   = (m_uint)code->stack_depth;
+  // local depth + previous stack
+  const m_uint push = *(m_uint*)REG(SZ_INT) + *(m_uint*)MEM(-SZ_INT);
+  PUSH_MEM(shred, push + SZ_INT*3);
+  *(m_uint*)  MEM(-SZ_INT*3) = push;
+  *(VM_Code*) MEM(-SZ_INT*2) = shred->code;
+  *(m_uint*)  MEM(-SZ_INT) = shred->pc;
   shred->pc = 0;
-  shred->code = code;
+  shred->code = *(VM_Code*)REG(0);
+  shred->instr = shred->code->instr;
 }
 
 ANN static inline void shred_func_need_this(const VM_Shred shred) {
@@ -290,15 +294,10 @@ ANN static inline void shred_func_need_this(const VM_Shred shred) {
   PUSH_MEM(shred, SZ_INT);
 }
 
-ANN static inline void shred_func_finish(const VM_Shred shred) {
-  if(GET_FLAG(shred->code, member))
-    POP_MEM(shred, SZ_INT);
-  if(overflow_(shred))
-    Except(shred, "StackOverflow");
-}
-
 INSTR(FuncPtr) { GWDEBUG_EXE
   const VM_Code code = *(VM_Code*)REG(-SZ_INT*2);
+  if(!code)
+    Except(shred, "NullFuncPtrException");
   if(!GET_FLAG(code, builtin))
     FuncUsr(shred, instr);
   else if(GET_FLAG(code, member))
@@ -313,21 +312,24 @@ INSTR(FuncUsr) { GWDEBUG_EXE
   m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
     POP_REG(shred, stack_depth);
-    if(GET_FLAG(shred->code, member)) {
+    if(GET_FLAG(code, member)) {
       shred_func_need_this(shred);
       stack_depth -= SZ_INT;
     }
     for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
       *(m_uint*)MEM(i) = *(m_uint*)REG(i);
+    if(GET_FLAG(code, member))
+      POP_MEM(shred, SZ_INT);
   }
-  shred_func_finish(shred);
+  if(overflow_(shred))
+    Except(shred, "StackOverflow");
 }
 
 INSTR(DotFunc) { GWDEBUG_EXE
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   if(!obj)
     Except(shred, "NullPtrException");
-  *(Func*)REG(-SZ_INT) = (Func)vector_at(&obj->type_ref->nspc->vtable, instr->m_val);
+  *(VM_Code*)REG(-SZ_INT) = ((Func)vector_at(&obj->type_ref->nspc->vtable, instr->m_val))->code;
 }
 
 INSTR(FuncStatic) { GWDEBUG_EXE
@@ -383,9 +385,10 @@ INSTR(FuncMember) { GWDEBUG_EXE
 }
 
 INSTR(FuncReturn) { GWDEBUG_EXE
-  shred->pc = *(m_uint*)MEM(-SZ_INT*2);
-  shred->code = *(VM_Code*)MEM(-SZ_INT*3);
-  POP_MEM(shred, *(m_uint*)MEM(-SZ_INT*4) + SZ_INT*4);
+  shred->pc = *(m_uint*)MEM(-SZ_INT);
+  shred->code = *(VM_Code*)MEM(-SZ_INT*2);
+  shred->instr = shred->code->instr;
+  POP_MEM(shred, *(m_uint*)MEM(-SZ_INT*3) + SZ_INT*3);
 }
 
 INSTR(PreCtor) { GWDEBUG_EXE

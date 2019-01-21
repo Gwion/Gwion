@@ -35,6 +35,7 @@ INSTR(RegPushMaybe);
 
 /* staking */
 INSTR(RegPop);
+INSTR(RegPushImm0);
 INSTR(RegPushImm);
 INSTR(RegPushImm2);
 INSTR(RegPushImm3);
@@ -46,8 +47,11 @@ INSTR(RegPushMem);
 INSTR(RegPushMem2);
 INSTR(RegPushMem3);
 INSTR(RegPushMem4);
+INSTR(RegPushBase);
+INSTR(RegPushBase2);
+INSTR(RegPushBase3);
+INSTR(RegPushBase4);
 INSTR(RegPushPtr);
-INSTR(RegPushCode);
 INSTR(RegDup);
 INSTR(RegAddRef);
 

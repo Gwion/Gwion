@@ -38,6 +38,7 @@ typedef struct VM_ {
 
 typedef struct VM_Shred_* VM_Shred;
 struct VM_Shred_ {
+  Vector instr;
   VM_Code code;
   VM_Shred parent;
   m_bit* reg;

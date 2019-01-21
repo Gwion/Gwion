@@ -74,6 +74,7 @@ ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
   shred->me = new_shred(shred);
   shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
+  shred->instr = shred->code->instr;
   return shred->xid;
 }
 
@@ -120,7 +121,8 @@ struct timespec exec_ini, exec_end, exec_ret;
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 #endif
   do {
-      const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
+//      const Instr instr = (Instr)vector_at(shred->code->instr, shred->pc++);
+      const Instr instr = (Instr)vector_at(shred->instr, shred->pc++);
       instr->execute(shred, instr);
       VM_INFO;
     } while(s->curr);

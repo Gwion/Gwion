@@ -66,8 +66,10 @@ ANN static void free_code_instr(const Vector v) {
 }
 
 void free_vm_code(VM_Code a) {
+#ifndef NOMEMOIZE
   if(a->memoize)
     memoize_end(a->memoize);
+#endif
   if(a->instr)
     free_code_instr(a->instr);
   free(a->name);
