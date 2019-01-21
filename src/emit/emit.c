@@ -674,8 +674,7 @@ ANN static m_bool emit_exp_call1_code(const Emitter emit, const Func f) {
 }
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
-  if(GET_FLAG(f, pure))
-    emit_add_instr(emit, MemoizeCall);
+  MEMOIZE_CALL
   const Type t = actual_type(f->value_ref->type);
   const f_instr exec = isa(t, t_fptr) < 0 ? GET_FLAG(f->def, builtin) ?
      GET_FLAG(f, member) ? FuncMember : FuncStatic : FuncUsr : FuncPtr;
@@ -1480,8 +1479,7 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   }
   vector_clear(&emit->code->stack_return);
   emit_pop_scope(emit);
-  if(GET_FLAG(emit->env->func, pure))
-    emit_add_instr(emit, MemoizeStore);
+  MEMOIZE_STORE
   emit_add_instr(emit, FuncReturn);
 }
 
@@ -1531,8 +1529,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit_pop_code(emit);
-  if(GET_FLAG(func, pure))
-    func->code->memoize = memoize_ini(func, kindof(func->def->ret_type->size, !func->def->ret_type->size));
+  MEMOIZE_INI
   return GW_OK;
 }
 

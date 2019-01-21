@@ -17,18 +17,18 @@ CFLAGS += -mtune=native
 #CFLAGS += -fPIC
 
 # handle boolean options
-USE_DOUBLE    = 0
-USE_COVERAGE ?= 0
-USE_MEMCHECK ?= 0
-USE_GWREPL   ?= 0
-USE_GWUDP    ?= 0
-USE_OPTIMIZE ?= 0
-USE_OBSTACK  ?= 0
-USE_COLOR    ?= 0
-USE_JIT      ?= 0
-USE_LTO      ?= 0
-USE_VMBENCH  ?= 0
-
+USE_DOUBLE     = 0
+USE_COVERAGE  ?= 0
+USE_MEMCHECK  ?= 0
+USE_GWREPL    ?= 0
+USE_GWUDP     ?= 0
+USE_OPTIMIZE  ?= 0
+USE_OBSTACK   ?= 0
+USE_COLOR     ?= 0
+USE_JIT       ?= 0
+USE_LTO       ?= 0
+USE_VMBENCH   ?= 0
+USE_NOMEMOIZE ?= 0
 # handle definitions
 D_FUNC       ?= dummy_driver
 
