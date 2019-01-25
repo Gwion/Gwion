@@ -90,7 +90,7 @@ INSTR(RegPush##name) { GWDEBUG_EXE                                     \
   PUSH_REG(shred, size);                                               \
 }
 
-describe_regpushxxx(Mem,  m_int,   SZ_INT)
+describe_regpushxxx(Mem,  m_uint,   SZ_INT)
 describe_regpushxxx(Mem2, m_float, SZ_FLOAT)
 INSTR(RegPushMem3) { GWDEBUG_EXE
   memcpy(REG(0), (shred->mem + instr->m_val), instr->m_val2);
@@ -107,7 +107,7 @@ INSTR(RegPush##name) { GWDEBUG_EXE                                     \
   PUSH_REG(shred, size);                                               \
 }
 
-describe_regpushbase(Base,  m_int,   SZ_INT)
+describe_regpushbase(Base,  m_uint,   SZ_INT)
 describe_regpushbase(Base2, m_float, SZ_FLOAT)
 INSTR(RegPushBase3) { GWDEBUG_EXE
   memcpy(REG(0), (shred->base + instr->m_val), instr->m_val2);
@@ -188,7 +188,7 @@ INSTR(BranchSwitch) { GWDEBUG_EXE
   const m_uint offset = *(m_uint*)instr->ptr;
   POP_REG(shred, SZ_INT + offset);
   const Map map = !offset ?(Map)instr->m_val2 : *(Map*)REG(0);
-  shred->pc = map_get(map, (vtype)*(m_int*)REG(offset));
+  shred->pc = map_get(map, *(m_uint*)REG(offset));
   if(!shred->pc)
     shred->pc = instr->m_val;
 }
@@ -199,14 +199,14 @@ INSTR(Branch##name) { GWDEBUG_EXE      \
   if(*(type*)REG(0) op *(type*)REG(sz)) \
     shred->pc = instr->m_val;           \
 }
-branch(EqInt,    m_int,     SZ_INT, ==)
-branch(NeqInt,   m_int,     SZ_INT, !=)
-branch(EqFloat, m_float,  SZ_FLOAT, ==)
+branch(EqInt,    m_uint,     SZ_INT, ==)
+branch(NeqInt,   m_uint,     SZ_INT, !=)
+branch(EqFloat,  m_float,  SZ_FLOAT, ==)
 branch(NeqFloat, m_float, SZ_FLOAT, !=)
 
 INSTR(InitLoopCounter) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
-  (*(m_int*)instr->m_val) = labs(*(m_int*)REG(0));
+  (*(m_uint*)instr->m_val) = labs(*(m_int*)REG(0));
 }
 
 INSTR(RegPushDeref) { GWDEBUG_EXE
@@ -225,7 +225,7 @@ INSTR(RegPushDeref3) { GWDEBUG_EXE
 }
 
 INSTR(DecIntAddr) { GWDEBUG_EXE
-  --(*((m_int*)(instr->m_val)));
+  --(*((m_uint*)(instr->m_val)));
 }
 
 INSTR(Goto) { GWDEBUG_EXE
