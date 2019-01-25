@@ -286,8 +286,7 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
   const Value v = prim->value;
   if(v->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, builtin) || GET_FLAG(v, enum) ||
-      GET_FLAG(v, union))
+  if(GET_FLAG(v, builtin) || GET_FLAG(v, union))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, prim->self->emit_var, !GET_FLAG(v, global) ? regpushmem : regpushbase);
@@ -735,7 +734,7 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_
     SET_FLAG(emit->code, member);
   const Instr op = emit_add_instr(emit, MemPushImm);
   op->m_val = emit->code->stack_depth;
-  emit_add_instr(emit, RegPushImm); // should push func
+  emit_add_instr(emit, PushNull); // (was PushImm) should push func
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
   const VM_Code code = finalyze(emit);
   const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func,
@@ -744,7 +743,7 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_
 }
 
 ANN static m_bool spork_code(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
-  emit_add_instr(emit, RegPushImm);
+  emit_add_instr(emit, PushNull); // was PushImm
   push_spork_code(emit, SPORK_CODE_PREFIX, stmt->pos);
   if(SAFE_FLAG(emit->env->func, member))
     stack_alloc_this(emit);
@@ -1457,7 +1456,7 @@ ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def func_def
   const m_uint size = func_def->ret_type->size;
   if(size) {
     if(size == SZ_INT)
-       emit_add_instr(emit, RegPushImm);
+       emit_add_instr(emit, PushNull);
     else
       emit_kind(emit, size, 0, regpushimm);
   }
