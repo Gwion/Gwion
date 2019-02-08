@@ -9,6 +9,7 @@ languages:
         - /src/ast/parser\.c
         - /src/ast/lexer\.c
         - /src/lib/soundpipe\.c
+        - /src/drvr/*\.c
     test:
       include:
         - /tests/test_plugins/.*\.c
