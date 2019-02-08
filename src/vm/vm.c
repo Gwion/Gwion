@@ -136,8 +136,87 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
 }
 
 #define TEST0(t, pos) if(!*(t*)(reg-pos)){ exception(shred, "ZeroDivideException"); break; }
+#define DISPATCH()\
+  instr =(Instr)(ip[pc++]);\
+  VM_INFO;\
+  goto *dispatch[instr->opcode];
 
+#define OP(t, sz, op, ...) \
+  reg -= sz;\
+  __VA_ARGS__\
+  *(t*)(reg - sz) op##= *(t*)reg;\
+  DISPATCH();
+
+#define INT_OP(op, ...) OP(m_int, SZ_INT, op, __VA_ARGS__)
+#define FLOAT_OP(op) OP(m_float, SZ_FLOAT, op)
+
+#define LOGICAL(t, sz0, sz, op)\
+reg -= sz0;\
+*(m_int*)(reg-SZ_INT) = (*(t*)(reg - SZ_INT) op *(t*)(reg+sz));\
+DISPATCH()
+
+#define INT_LOGICAL(op) LOGICAL(m_int, SZ_INT, 0, op)
+
+#define FLOAT_LOGICAL(op) LOGICAL(m_float, SZ_FLOAT * 2 - SZ_INT, \
+  SZ_FLOAT - SZ_INT, op)
+
+#define SELF(t, sz,op) \
+  *(t*)(reg - sz) = op*(t*)(reg - sz);\
+  DISPATCH();
+
+#define R(t, sz, op, ...) \
+reg -= SZ_INT;\
+__VA_ARGS__\
+*(t*)(reg-sz) = (**(t**)reg op##= (*(t*)(reg-sz)));\
+DISPATCH()
+#define INT_R(op, ...) R(m_int, SZ_INT, op, __VA_ARGS__)
+#define FLOAT_R(op, ...) R(m_float, SZ_FLOAT, op)
+
+#define INT_PRE(op) \
+/*assert(*(m_int**)(reg-SZ_INT));*/\
+*(m_int*)(reg- SZ_INT) = op(**(m_int**)(reg-SZ_INT));\
+DISPATCH()
+
+#define INT_POST(op) \
+/*assert(*(m_int**)(reg-SZ_INT));*/\
+*(m_int*)(reg- SZ_INT) = (**(m_int**)(reg-SZ_INT))op;\
+DISPATCH()
+
+#define IF_OP(op) \
+  reg -=SZ_INT;\
+    *(m_float*)(reg-SZ_FLOAT) = (m_float)*(m_int*)(reg-SZ_FLOAT) op \
+    *(m_float*)(reg + SZ_INT - SZ_FLOAT); \
+  DISPATCH()
+
+#define IF_LOGICAL(op)\
+  reg -= SZ_FLOAT; \
+  *(m_int*)(reg-SZ_INT) = (*(m_int*)(reg-SZ_INT) op (m_int)*(m_float*)reg); \
+  DISPATCH()
 __attribute__((hot))
+
+#define IF_R(op) \
+  reg -= SZ_INT * 2 - SZ_FLOAT; \
+  *(m_float*)(reg-SZ_FLOAT) = (**(m_float**)(reg +SZ_INT - SZ_FLOAT) op##= \
+    (m_float)*(m_int*)(reg-SZ_FLOAT)); \
+  DISPATCH()
+
+#define FI_OP(op)\
+  reg -= SZ_INT; \
+  *(m_float*)(reg-SZ_FLOAT) op##= (m_float)*(m_int*)reg; \
+  DISPATCH()
+  
+#define FI_LOGICAL(op) \
+  reg -= SZ_FLOAT; \
+  *(m_int*)(reg-SZ_INT) = ((m_int)*(m_float*)(reg-SZ_INT) op\
+    *(m_int*)(reg + SZ_FLOAT-SZ_INT)); \
+  DISPATCH()
+
+#define FI_R(op) \
+  reg -= SZ_FLOAT; \
+  *(m_int*)(reg-SZ_INT) = (**(m_int**)(reg+SZ_FLOAT -SZ_INT) op##= \
+    (m_int)(*(m_float*)(reg-SZ_INT))); \
+  DISPATCH()
+
 ANN void vm_run(const VM* vm) {
   static const void* dispatch[] = {
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
@@ -189,13 +268,7 @@ ANN void vm_run(const VM* vm) {
     &&gack, &&other
   };
   const Shreduler s = vm->shreduler;
-  VM_Shred shred;
-
-
-#define DISPATCH()\
-  instr =(Instr)(ip[pc++]);\
-  VM_INFO;\
-  goto *dispatch[instr->opcode];
+  register VM_Shred shred;
 
   while((shred = shreduler_get(s))) {
 register VM_Code code = shred->code;
@@ -326,49 +399,31 @@ allocaddr:
   *(m_bit**)reg = mem + instr->m_val;
   reg += SZ_INT;
   DISPATCH()
-#define OP(t, sz, op, ...) \
-  reg -= sz;\
-  __VA_ARGS__\
-  *(t*)(reg - sz) op##= *(t*)reg;\
-  DISPATCH();
-
-#define INT_OP(op, ...) OP(m_int, SZ_INT, op, __VA_ARGS__)
 intplus:  INT_OP(+)
 intminus: INT_OP(-)
 intmul:   INT_OP(*)
 intdiv:   INT_OP(/, TEST0(m_int, 0))
 intmod:   INT_OP(%, TEST0(m_int, 0))
 
-#define LOGICAL(t, sz0, sz, op)\
-reg -= sz0;\
-*(m_int*)(reg-SZ_INT) = (*(t*)(reg - SZ_INT) op *(t*)(reg+sz));\
-DISPATCH()
+inteq:   INT_LOGICAL(==)
+intne:   INT_LOGICAL(!=)
+intand:  INT_LOGICAL(&&)
+intor:   INT_LOGICAL(||)
+intgt:   INT_LOGICAL(>)
+intge:   INT_LOGICAL(>=)
+intlt:   INT_LOGICAL(<)
+intle:   INT_LOGICAL(<=)
+intsl:   INT_LOGICAL(<<)
+intsr:   INT_LOGICAL(>>)
+intsand: INT_LOGICAL(&)
+intsor:  INT_LOGICAL(|)
+intxor:  INT_LOGICAL(^)
 
-// rename to int logical
-#define INT_REL(op) LOGICAL(m_int, SZ_INT, 0, op)
-inteq:   INT_REL(==)
-intne:   INT_REL(!=)
-intand:  INT_REL(&&)
-intor:   INT_REL(||)
-intgt:   INT_REL(>)
-intge:   INT_REL(>=)
-intlt:   INT_REL(<)
-intle:   INT_REL(<=)
-intsl:   INT_REL(<<)
-intsr:   INT_REL(>>)
-intsand: INT_REL(&)
-intsor:  INT_REL(|)
-intxor:  INT_REL(^)
-
-#define SELF(t, sz,op) \
-  *(t*)(reg - sz) = op*(t*)(reg - sz);\
-  DISPATCH();
-#define INT_SELF(op) SELF(m_int, SZ_INT, op)
 intnegate:
   *(m_int*)(reg - SZ_INT) *= -1;
   DISPATCH()
-intnot: INT_SELF(!)
-intcmp: INT_SELF(~)
+intnot: SELF(m_int, SZ_INT, !)
+intcmp: SELF(m_int, SZ_INT, ~)
 
 intrassign:
   reg -= SZ_INT;
@@ -376,12 +431,6 @@ intrassign:
   **(m_int**)reg = *(m_int*)(reg-SZ_INT);
   DISPATCH()
 
-#define R(t, sz, op, ...) \
-reg -= SZ_INT;\
-__VA_ARGS__\
-*(t*)(reg-sz) = (**(t**)reg op##= (*(t*)(reg-sz)));\
-DISPATCH()
-#define INT_R(op, ...) R(m_int, SZ_INT, op, __VA_ARGS__)
 intradd: INT_R(+)
 intrsub: INT_R(-)
 intrmul: INT_R(*)
@@ -393,30 +442,17 @@ intrsand: INT_R(&)
 intrsor: INT_R(|)
 intrxor: INT_R(^)
 
-#define INT_PRE(op) \
-/*assert(*(m_int**)(reg-SZ_INT));*/\
-*(m_int*)(reg- SZ_INT) = op(**(m_int**)(reg-SZ_INT));\
-DISPATCH()
 preinc: INT_PRE(++)
 predec: INT_PRE(--)
 
-#define INT_POST(op) \
-/*assert(*(m_int**)(reg-SZ_INT));*/\
-*(m_int*)(reg- SZ_INT) = (**(m_int**)(reg-SZ_INT))op;\
-DISPATCH()
 postinc: INT_POST(++)
 postdec: INT_POST(--)
-
-
-#define FLOAT_OP(op) OP(m_float, SZ_FLOAT, op)
 
 floatadd: FLOAT_OP(+)
 floatsub: FLOAT_OP(-)
 floatmul: FLOAT_OP(*)
 floatdiv: FLOAT_OP(/)
 
-#define FLOAT_LOGICAL(op) LOGICAL(m_float, SZ_FLOAT * 2 - SZ_INT, \
-  SZ_FLOAT - SZ_INT, op)
 floatand: FLOAT_LOGICAL(&&)
 floator: FLOAT_LOGICAL(||)
 floateq: FLOAT_LOGICAL(==)
@@ -438,26 +474,16 @@ floatrassign:
   **(m_float**)reg = *(m_float*)(reg-SZ_FLOAT);
   DISPATCH()
 
-#define FLOAT_R(op, ...) R(m_float, SZ_FLOAT, op)
 floatradd: FLOAT_R(+)
 floatrsub: FLOAT_R(-)
 floatrmul: FLOAT_R(*)
 floatrdiv: FLOAT_R(/)
 
-#define IF_OP(op) \
-  reg -=SZ_INT;\
-    *(m_float*)(reg-SZ_FLOAT) = (m_float)*(m_int*)(reg-SZ_FLOAT) op \
-    *(m_float*)(reg + SZ_INT - SZ_FLOAT); \
-  DISPATCH()
 ifadd: IF_OP(+)
 ifsub: IF_OP(-)
 ifmul: IF_OP(*)
 ifdiv: IF_OP(/)
 
-#define IF_LOGICAL(op)\
-  reg -= SZ_FLOAT; \
-  *(m_int*)(reg-SZ_INT) = (*(m_int*)(reg-SZ_INT) op (m_int)*(m_float*)reg); \
-  DISPATCH()
 ifand: IF_LOGICAL(&&)
 ifor: IF_LOGICAL(||)
 ifeq: IF_LOGICAL(==)
@@ -467,31 +493,17 @@ ifge: IF_LOGICAL(>=)
 iflt: IF_LOGICAL(<)
 ifle: IF_LOGICAL(<=)
 
-#define IF_R(op) \
-  reg -= SZ_INT * 2 - SZ_FLOAT; \
-  *(m_float*)(reg-SZ_FLOAT) = (**(m_float**)(reg +SZ_INT - SZ_FLOAT) op##= \
-    (m_float)*(m_int*)(reg-SZ_FLOAT)); \
-  DISPATCH()
 ifrassign: IF_R()
 ifradd: IF_R(+)
 ifrsub: IF_R(-)
 ifrmul: IF_R(*)
 ifrdiv: IF_R(/)
 
-#define FI_OP(op)\
-  reg -= SZ_INT; \
-  *(m_float*)(reg-SZ_FLOAT) op##= (m_float)*(m_int*)reg; \
-  DISPATCH()
 fiadd: FI_OP(+)
 fisub: FI_OP(-)
 fimul: FI_OP(*)
 fidiv: FI_OP(/)
 
-#define FI_LOGICAL(op) \
-  reg -= SZ_FLOAT; \
-  *(m_int*)(reg-SZ_INT) = ((m_int)*(m_float*)(reg-SZ_INT) op\
-    *(m_int*)(reg + SZ_FLOAT-SZ_INT)); \
-  DISPATCH()
 fiand: FI_LOGICAL(&&)
 fior: FI_LOGICAL(||)
 fieq: FI_LOGICAL(==)
@@ -507,11 +519,6 @@ firassign:
     (m_int)*(m_float*)(reg-SZ_INT);
   DISPATCH()
 
-#define FI_R(op) \
-  reg -= SZ_FLOAT; \
-  *(m_int*)(reg-SZ_INT) = (**(m_int**)(reg+SZ_FLOAT -SZ_INT) op##= \
-    (m_int)(*(m_float*)(reg-SZ_INT))); \
-  DISPATCH()
 firadd: FI_R(+)
 firsub: FI_R(-)
 firmul: FI_R(*)
