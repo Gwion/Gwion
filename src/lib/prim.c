@@ -12,27 +12,27 @@
 
 GWION_IMPORT(int_op) {
   CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_add,         int_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,        int_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,        int_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_div,       int_div))
-  return gwi_oper_end(gwi, op_mod,      int_modulo);
+  CHECK_BB(gwi_oper_end(gwi, op_add, int_plus))
+  CHECK_BB(gwi_oper_end(gwi, op_sub, int_minus))
+  CHECK_BB(gwi_oper_end(gwi, op_mul, int_mul))
+  CHECK_BB(gwi_oper_end(gwi, op_div, int_div))
+  return   gwi_oper_end(gwi, op_mod, int_modulo);
 }
 
 static GWION_IMPORT(int_logical) {
-  CHECK_BB(gwi_oper_end(gwi, op_and,          int_and))
-  CHECK_BB(gwi_oper_end(gwi, op_or,           int_or))
-  CHECK_BB(gwi_oper_end(gwi, op_eq,           int_eq))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, 		  int_neq))
-  CHECK_BB(gwi_oper_end(gwi, op_gt,           int_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 	      int_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 		  int_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le, 	      int_le))
+  CHECK_BB(gwi_oper_end(gwi, op_and,  int_and))
+  CHECK_BB(gwi_oper_end(gwi, op_or,   int_or))
+  CHECK_BB(gwi_oper_end(gwi, op_eq,   int_eq))
+  CHECK_BB(gwi_oper_end(gwi, op_ne,   int_neq))
+  CHECK_BB(gwi_oper_end(gwi, op_gt,   int_gt))
+  CHECK_BB(gwi_oper_end(gwi, op_ge,   int_ge))
+  CHECK_BB(gwi_oper_end(gwi, op_lt,   int_lt))
+  CHECK_BB(gwi_oper_end(gwi, op_le,   int_le))
   CHECK_BB(gwi_oper_end(gwi, op_shr,  int_sr))
-  CHECK_BB(gwi_oper_end(gwi, op_shl,   int_sl))
-  CHECK_BB(gwi_oper_end(gwi, op_sand,        int_sand))
-  CHECK_BB(gwi_oper_end(gwi, op_sor,         int_sor))
-  return gwi_oper_end(gwi, op_sxor, int_xor);
+  CHECK_BB(gwi_oper_end(gwi, op_shl,  int_sl))
+  CHECK_BB(gwi_oper_end(gwi, op_sand, int_sand))
+  CHECK_BB(gwi_oper_end(gwi, op_sor,  int_sor))
+  return   gwi_oper_end(gwi, op_sxor, int_xor);
 }
 
 static GWION_IMPORT(int_r) {
@@ -56,11 +56,11 @@ static GWION_IMPORT(int_unary) {
   CHECK_BB(gwi_oper_end(gwi,  op_sub,       int_negate))
   CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi,  op_not, IntNot))
-  CHECK_OP(inc,   unary, pre_inc)
+  CHECK_OP(inc, unary, pre_inc)
   CHECK_OP(dec, unary, pre_dec)
   CHECK_BB(gwi_oper_end(gwi,  op_cmp, int_cmp))
   CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
-  CHECK_OP(inc,   post,  post_inc)
+  CHECK_OP(inc, post, post_inc)
   CHECK_BB(gwi_oper_add(gwi, opck_post))
   CHECK_BB(gwi_oper_end(gwi, op_dec, int_post_dec))
   return GW_OK;
