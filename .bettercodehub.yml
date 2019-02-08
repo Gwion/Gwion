@@ -6,10 +6,8 @@ languages:
       include:
         - /src/.*\.c
       exclude:
-        - /src/ast/parser\.c
-        - /src/ast/lexer\.c
-        - /src/lib/soundpipe\.c
         - /src/drvr/.*\.c
+        - /src/vm/vm.c
     test:
       include:
         - /tests/test_plugins/.*\.c
