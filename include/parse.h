@@ -1,12 +1,18 @@
 #ifndef __PARSE
 #define __PARSE
 #define RET_NSPC(exp)       \
-++env->scope;         \
+++env->scope;               \
 nspc_push_value(env->curr); \
 const m_bool ret = exp;     \
 nspc_pop_value(env->curr);  \
---env->scope;         \
+--env->scope;               \
 return ret;
+
+#define SET_ACCESS(a,b)       \
+if(GET_FLAG(a, private))      \
+  SET_FLAG(b, private);       \
+else if(GET_FLAG(a, protect)) \
+  SET_FLAG(b, protect);
 
 typedef m_bool (*_exp_func)(const void*, const void*);
 static inline m_bool dummy_func(const void*a __attribute__((unused)),

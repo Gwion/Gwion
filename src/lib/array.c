@@ -28,9 +28,23 @@ ANN m_uint m_vector_size(const M_Vector v) {
 
 M_Vector new_m_vector(const m_uint size) {
   const M_Vector array = mp_alloc(M_Vector);
-  array->ptr   = (m_bit*)xcalloc(ARRAY_OFFSET + 2, size);
+const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
+  array->ptr   = (m_bit*)xcalloc(1, sz);
   ARRAY_CAP(array)   = 2;
   ARRAY_SIZE(array)  = size;
+  return array;
+}
+
+M_Vector new_m_vector2(const m_uint size, const m_uint len) {
+  const M_Vector array = mp_alloc(M_Vector);
+  const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
+  array->ptr   = (m_bit*)xcalloc(1, sz);
+  m_uint cap = 1;
+  while(cap < len)
+    cap *= 2;
+  ARRAY_CAP(array)   = cap;
+  ARRAY_SIZE(array)  = size;
+  ARRAY_LEN(array) = len;
   return array;
 }
 
@@ -52,14 +66,9 @@ static DTOR(array_dtor) {
 
 ANN M_Object new_array(const Type t, const m_uint length) {
   const M_Object a = new_object(NULL, t);
-  m_uint cap = 1;
-  while(cap < length)
-    cap *= 2;
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  const M_Vector array = ARRAY(a) = new_m_vector(size);
-  ARRAY_CAP(array)   = cap;
-  ARRAY_LEN(array) = length;
+  ARRAY(a) = new_m_vector2(size,length);
   ADD_REF(t);
   return a;
 }
@@ -305,7 +314,7 @@ ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_u
 }
 
 INSTR(ArrayAlloc) { GWDEBUG_EXE
-  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
+  const ArrayInfo* info = (ArrayInfo*)instr->m_val;
   m_uint num_obj = 1;
   m_int idx = 0;
   const m_bool is_obj = info->is_obj && !info->is_ref;

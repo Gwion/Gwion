@@ -2,11 +2,13 @@ class C
 {
   12 => int i;
   Object o;
+<<<this>>>;
   spork  {
     "test";
     second => now;
     string s;
-    <<<  "test spork exp." >>>;
+    <<< this,  " test spork exp. " , s>>>;
+
   } @=> Shred @shred;
 }
 

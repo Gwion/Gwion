@@ -16,12 +16,6 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static void scan1_exp_decl_template(const Type t, const Exp_Decl* decl) {
-  Exp_Decl* d = (Exp_Decl*)decl;
-  d->base = t->def;
-  d->type = t;
-}
-
 ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
   const Type t = known_type(env, td);
   CHECK_OO(t)
@@ -30,7 +24,7 @@ ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
   ERR_O(pos, "cannot declare variables of size '0' (i.e. 'void')...")
 }
 
-ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
+ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   const Type t = void_type(env, decl->td, decl->self->pos);
   CHECK_OO(t);
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
@@ -49,17 +43,18 @@ ANN static Type scan1_exp_decl_type(const Env env, const Exp_Decl* decl) {
     if(GET_FLAG(decl->td, global) && env->class_def) // forbid this ?
       UNSET_FLAG(decl->td, global);
   }
-  if(GET_FLAG(t, template))
-    scan1_exp_decl_template(t, decl);
+  // for template
+  decl->base = t->def;
+  decl->type = t;
   return t;
 }
 
-ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
+ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(env_access(env, decl->td->flag))
   env_storage(env, &decl->td->flag);
   Var_Decl_List list = decl->list;
   m_uint scope;
-  ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, decl);
+  ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
@@ -90,7 +85,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     v->owner = !env->func ? env->curr : NULL;
     v->owner_class = env->scope ? NULL : env->class_def;
   } while((list = list->next));
-  ((Exp_Decl*)decl)->type = decl->list->self->value->type;
+  decl->type = decl->list->self->value->type;
   if(global)
     env_pop(env, scope);
   return GW_OK;
@@ -192,10 +187,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
       v->owner_class = env->class_def;
       v->owner = env->curr;
       SET_FLAG(v, static);
-      if(GET_FLAG(stmt, private))
-        SET_FLAG(v, private);
-      else if(GET_FLAG(stmt, protect))
-        SET_FLAG(v, protect);
+      SET_ACCESS(stmt, v)
     }
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(stmt->t->owner, list->xid, v);

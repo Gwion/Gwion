@@ -16,5 +16,4 @@ struct Value_ {
 };
 
 ANEW ANN Value new_value(struct Gwion_* gwion, const Type type, const m_str name);
-ANN void free_value(Value a);
 #endif

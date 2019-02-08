@@ -8,76 +8,6 @@
 #include "object.h"
 #include "import.h"
 
-#define TEST0(pos) if(!*(m_int*)REG(pos))Except(shred, "ZeroDivideException")
-#define PREFIX int
-
-#define _describe(prefix, sz, name, action, ...) \
-static INSTR(prefix##_##name) { GWDEBUG_EXE \
-  POP_REG(shred, sz); \
-   __VA_ARGS__ \
-  action \
-}
-
-#define describe(name, op, ...) _describe(int, SZ_INT, name, \
-  {*(m_int*)REG(-SZ_INT) op##= *(m_int*)REG(0); }, __VA_ARGS__)
-
-#define describe_r(name, op, ...) _describe(int_r, SZ_INT, name, \
-  {*(m_int*)REG(-SZ_INT) = (**(m_int**)REG(0) op##= (*(m_int*)REG(-SZ_INT)));}, __VA_ARGS__)
-
-#define describe_logical(name, op) _describe(int, SZ_INT, name, \
-  {*(m_int*)REG(-SZ_INT) = (*(m_int*)REG(-SZ_INT) op *(m_int*)REG(0));},)
-#define describe_pre(name, op) \
-static INSTR(int_pre_##name)  { *(m_int*)REG(- SZ_INT) = op(**(m_int**)REG(- SZ_INT)); }
-#define describe_post(name, op) \
-static INSTR(int_post_##name) { GWDEBUG_EXE *(m_int*)REG(- SZ_INT) = (**(m_int**)REG(- SZ_INT))op; }
-
-static INSTR(int_negate) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) *= -1; }
-static INSTR(int_cmp) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = ~*(m_int*)REG(-SZ_INT); }
-
-INSTR(IntNot) { GWDEBUG_EXE *(m_int*)REG(-SZ_INT) = !*(m_int*)REG(-SZ_INT); }
-
-static INSTR(int_r_assign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  **(m_int**)REG(0) = *(m_int*)REG(-SZ_INT);
-}
-
-describe(plus,   +,)
-describe(minus,  -,)
-describe(mul,  *,)
-describe(div, /, TEST0(0))
-describe(modulo, %, TEST0(0))
-
-describe_logical(and,  &&)
-describe_logical(or,   ||)
-describe_logical(eq,   ==)
-describe_logical(neq,  !=)
-describe_logical(gt,    >)
-describe_logical(ge,   >=)
-describe_logical(lt,    <)
-describe_logical(le,   <=)
-describe_logical(sl,   <<)
-describe_logical(sr,   >>)
-describe_logical(sand,  &)
-describe_logical(sor,   |)
-describe_logical(xor,   ^)
-
-describe_pre(inc, ++)
-describe_pre(dec, --)
-//describe_pre(cmp, ~)
-describe_post(inc, ++)
-describe_post(dec, --)
-
-describe_r(plus,   +,)
-describe_r(minus,  -,)
-describe_r(mul,  *,)
-describe_r(div, /, TEST0(-SZ_INT))
-describe_r(modulo, %, TEST0(-SZ_INT))
-describe_r(sl,     <<,)
-describe_r(sr,     >>,)
-describe_r(sand,   &,)
-describe_r(sor,    |,)
-describe_r(sxor,   ^,)
-
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
 GWION_IMPORT(int) {
@@ -116,11 +46,9 @@ GWION_IMPORT(int) {
   CHECK_BB(gwi_oper_end(gwi,  op_sub,       int_negate))
   CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi,  op_not, IntNot))
-//  CHECK_OP(not, unary_meta, not)
   CHECK_OP(inc,   unary, pre_inc)
   CHECK_OP(dec, unary, pre_dec)
   CHECK_BB(gwi_oper_end(gwi,  op_cmp, int_cmp))
-//  CHECK_OP(cmp, unary, pre_cmp)
   CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP(inc,   post,  post_inc)
   CHECK_OP(dec, post,  post_dec)

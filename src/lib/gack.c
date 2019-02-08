@@ -91,11 +91,11 @@ static void print_prim(const Type type, const m_bit* stack) {
   else
    print_float(*(m_float*)stack);
 }
-
+/*
 INSTR(Gack) { GWDEBUG_EXE
-  const Vector v = *(Vector*)instr->ptr;
-  const m_uint size = vector_size(v);
   m_uint offset = instr->m_val;
+  const Vector v = (Vector)instr->m_val2;
+  const m_uint size = vector_size(v);
   for(m_uint i = size + 1; --i;) {
     const Type type = (Type)vector_at(v, size - i);
     if(size == 1)
@@ -110,6 +110,29 @@ INSTR(Gack) { GWDEBUG_EXE
       print_string1("void");
     else
       print_prim(type, REG(-offset));
+    offset -= type->size;
+  }
+  gw_out("\n");
+}
+*/
+void gack(const m_bit* reg, const Instr instr) {
+  m_uint offset = instr->m_val;
+  const Vector v = (Vector)instr->m_val2;
+  const m_uint size = vector_size(v);
+  for(m_uint i = size + 1; --i;) {
+    const Type type = (Type)vector_at(v, size - i);
+    if(size == 1)
+      print_type(type);
+    if(isa(type, t_object) > 0)
+      print_object(type, *(M_Object*)(reg-offset));
+    else if(isa(type, t_function) > 0)
+      print_func(type, (reg-offset));
+    else if(isa(type, t_class) > 0)
+      print_type(type->d.base_type);
+    else if(isa(type, t_void) > 0)
+      print_string1("void");
+    else
+      print_prim(type, (reg-offset));
     offset -= type->size;
   }
   gw_out("\n");

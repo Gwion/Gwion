@@ -23,6 +23,7 @@ M_Object new_object(const VM_Shred shred, const Type t) {
   const M_Object a = mp_alloc(M_Object);
   a->ref = 1;
   a->type_ref = t;
+  a->vtable = &t->nspc->vtable;
   if(t->nspc->offset) {
     Type type = t;
     while(!type->p)
@@ -69,7 +70,7 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
 __attribute__((hot))
 ANN void __release(const M_Object obj, const VM_Shred shred) {
   Type t = obj->type_ref;
-  do {
+  while(t->parent) {
     struct scope_iter iter = { &t->nspc->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
@@ -77,34 +78,22 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
         release(*(M_Object*)(obj->data + v->offset), shred);
     }
     if(GET_FLAG(t, dtor)) {
-      if(t->nspc->dtor->native_func)
-        ((f_xtor)t->nspc->dtor->native_func)(obj, shred);
+      if(GET_FLAG(t->nspc->dtor, builtin))
+        ((f_xtor)t->nspc->dtor->native_func)(obj, NULL, shred);
       else {
         handle_dtor(obj, shred);
         return;
       }
     }
-  } while((t = t->parent));
+    t = t->parent;
+  }
+  free_object(obj);
 }
 
-void free_object(const M_Object o) {
+ANN void free_object(const M_Object o) {
   if(o->data)
     _mp_free2(o->p, o->data);
   mp_free(M_Object, o);
-}
-
-static DTOR(object_dtor) { free_object(o); }
-INSTR(ObjectAssign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  const M_Object src = *(M_Object*)REG(-SZ_INT);
-  const M_Object tgt = **(M_Object**)REG(0);
-  if(tgt) {
-    --tgt->ref;
-    _release(tgt, shred);
-  }
-  if(instr->m_val)
-    *(m_bit**)REG(-SZ_INT) = REG(-SZ_INT);
-  **(M_Object**)REG(0) = src;
 }
 
 #define describe_logical(name, op)               \
@@ -138,7 +127,14 @@ static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->type;
   const Type r = cast->self->type;
-  return isa(l, r) > 0 ? r : t_null;
+//  return isa(l, r) > 0 ? r : t_null;
+  if(isa(l, r) > 0) {
+    const Type t = type_copy(r);
+    SET_FLAG(t, force);
+    env_add_type(env, t);
+    return t;
+  }
+  return t_null;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
@@ -148,7 +144,7 @@ static OP_CHECK(opck_implicit_null2obj) {
 
 GWION_IMPORT(object) {
   CHECK_OB((t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL)))
-  CHECK_BB(gwi_class_ini(gwi, t_object, NULL, object_dtor))
+  CHECK_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
   CHECK_BB(gwi_oper_add(gwi, at_object))

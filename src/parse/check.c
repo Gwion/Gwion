@@ -368,7 +368,7 @@ ANN static inline Value template_get_ready(const Value v, const m_str tmpl, cons
       nspc_lookup_value1(v->owner, sym);
 }
 
-ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   const Exp args = exp->args;
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func;
@@ -385,15 +385,25 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
         return env->func;
       }
       base = def = value->d.func_ref->def;
+if(!def->tmpl) {
+      if(!(value = template_get_ready(v, "template", i)))
+        continue;
+      base = value->d.func_ref->def;
+      def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
+}
     } else {
       if(!(value = template_get_ready(v, "template", i)))
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
+//      def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
+//create = 1;
+//assert(base->tmpl);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
+//assert(def->tmpl);
     if(traverse_func_template(env, def, types) > 0) {
       nspc_pop_type(env->curr);
       if(check_call(env, exp) > 0) {
@@ -402,21 +412,49 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
         m_func = find_func_match(env, def->func, args);
         def->func->next = next;
         if(m_func) {
+if(!m_func->def->ret_type) {
+if(!m_func->def->td)exit(76);
+m_func->def->ret_type = type_decl_resolve(env, m_func->def->td);
+exit(77);
+}
           SET_FLAG(m_func, checked | ae_flag_template);
           goto end;
         }
       }
     }
     SET_FLAG(base, template);
-    free_func_def(def);
+//if(create)
+//    free_func_def(def);
   }
-  assert(exp->self);
-  err_msg(exp->self->pos, "arguments do not match for template call");
+//  assert(exp->self);
+//  err_msg(exp->self->pos, "arguments do not match for template call");
 end:
   free(tmpl_name);
   env_pop(env, scope);
   return m_func;
 }
+ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
+//  Value v = value;
+  Type t = value->owner_class;
+  const Func f = _find_template_match(env, value, exp);
+  if(f)
+    return f;
+  while(t) {
+//assert(t->nspc);
+    const Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->name);
+if(!v)goto next;
+    const Func f = _find_template_match(env, v, exp);
+    if(f)
+      return f;
+next:
+t = t->parent;
+}
+
+  assert(exp->self);
+  err_msg(exp->self->pos, "arguments do not match for template call");
+  return NULL;
+}
+
 
 ANN static void print_current_args(Exp e) {
   gw_err("and not\n\t");
@@ -511,6 +549,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   Tmpl_Call tmpl = { .types=tl[0] };
   const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl, .self=base };
   const Func func = get_template_func(env, &tmp_func, base, value);
+//exit(2);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
   else // if(base->exp_type == ae_exp_binary)
@@ -590,7 +629,7 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* exp) { GWDEBUG_EXE
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   if(exp->tmpl) {
-    CHECK_OO(check_exp(env, exp->func)) // → puts this up ?
+    CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
@@ -926,7 +965,8 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
-  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
+//  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
+  if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) { // wath me
     const m_str c_name  = f->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
     const m_str f_name = s_name(f->name);
@@ -946,7 +986,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
     if(compat_func(f, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(f, parent_func))
       f->func->vt_index = parent_func->vt_index;
-      vector_set(&env->curr->vtable, f->func->vt_index, (vtype)func);
+      vector_set(&env->curr->vtable, f->func->vt_index, (vtype)f->func);
       return GW_OK;
     }
   } while((parent_func = parent_func->next));
@@ -964,7 +1004,9 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-  if(GET_FLAG(func, member)) {
+//  if(SAFE_FLAG(func, member)) {
+//  if(GET_FLAG(func, member)) {
+  if(func->value_ref->owner_class) {
     if(!env->curr->vtable.ptr)
       vector_init(&env->curr->vtable);
     func->vt_index = vector_size(&env->curr->vtable);

@@ -82,10 +82,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     if(GET_FLAG(f, member))
       SET_FLAG(v, member);
     else SET_FLAG(v, static);
-    if(GET_FLAG(d, private))
-      SET_FLAG(v, private);
-    else if(GET_FLAG(d, protect))
-      SET_FLAG(v, protect);
+    SET_ACCESS(d, v)
   }
   d->func = v->d.func_ref = f;
   return f->value_ref = v;
@@ -133,9 +130,19 @@ ANN static inline Value prim_value(const Env env, const Symbol s) {
 }
 
 ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
-  if(prim->primary_type == ae_primary_hack)
+  if(prim->primary_type == ae_primary_hack) {
     CHECK_BB(scan2_exp(env, prim->d.exp))
-  else if(prim->primary_type == ae_primary_id) {
+    Exp e = prim->d.exp;
+    do {
+      if(e->exp_type == ae_exp_decl) {
+        Var_Decl_List l = e->d.exp_decl.list;
+        do {
+           const Value v = l->self->value;
+           SET_FLAG(v, used);
+        }while ((l = l->next));
+      }
+    } while((e = e->next));
+  } else if(prim->primary_type == ae_primary_id) {
     const Value v = prim_value(env, prim->d.var);
     if(v)
       SET_FLAG(v, used);
@@ -335,14 +342,14 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   if(!overload) {
     ADD_REF(v);
     nspc_add_value(env->curr, f->def->name, v);
-  } else {
+  } else if(!GET_FLAG(f->def, template)) {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
   }
   return v;
 }
 
-ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
+ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_str func_name = s_name(f->name);
   const Func func = scan_new_func(env, f, func_name);
   const Value value = func_value(env, func, overload);
@@ -350,13 +357,16 @@ ANN2(1, 2) static m_bool scan2_func_def_template (const Env env, const Func_Def 
   SET_FLAG(value->type, func); // the only types with func flag, name could be better
   const Symbol sym = func_symbol(env->curr->name, func_name, "template", overload ? ++overload->offset : 0);
   nspc_add_value(env->curr, sym, value);
+if(!overload) {
+  ADD_REF(value)
+  nspc_add_value(env->curr, f->name, value);
+}
   return GW_OK;
 }
 
 ANN static m_bool scan2_func_def_builtin(const Func func, const m_str name) { GWDEBUG_EXE
   SET_FLAG(func, builtin);
-  func->code = new_vm_code(NULL, func->def->stack_depth, GET_FLAG(func, member), name);
-  SET_FLAG(func->code, builtin);
+  func->code = new_vm_code(NULL, func->def->stack_depth, func->flag, name);
   func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   return GW_OK;
 }
@@ -431,6 +441,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   scan2_func_def_flag(f);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
+//  if(GET_FLAG(func, member) && !GET_FLAG(func->def, func))
   if(GET_FLAG(func, member))
     f->stack_depth += SZ_INT;
   if(GET_FLAG(func->def, variadic))
@@ -452,11 +463,14 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Symbol sym  = func_symbol(env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
     func_name = s_name(sym);
   } else {
+if(f->func)
+  func_name = f->func->name;
+else
     func_name = func_tmpl_name(env, f);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);
-      return f->arg_list ? scan2_args(env, f) : 1;
+      return f->arg_list ? scan2_args(env, f) : GW_OK;
     }
   }
   const Func base = get_func(env, f);
@@ -467,8 +481,9 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     CHECK_OB((value = func_create(env, f, overload, func_name)))
     if(GET_FLAG(f, global))
       env_pop(env, scope);
-  } else
+  } else {
     f->func = base;
+}
   if(f->arg_list)
     CHECK_BB(scan2_args(env, f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)

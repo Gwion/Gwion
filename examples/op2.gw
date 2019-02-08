@@ -12,9 +12,9 @@ operator => Vec3    (Vec3    c, C d){ <<<c.z   => d.f>>>; return @(1.2, 6.1, 2.3
 operator => Vec4    (Vec4    c, C d){ <<<"Vec4    => C: ", c.w   => d.f>>>; return @(1.2, 6.1, 2.3, 9.3);}
 
 operator => float   (C d, int     c){ <<<"int   => C: ", c => d.f>>>; return 2.0;}
-operator => float   (C d,  float   f){ <<<"float   => C: ", f     => d.f>>>; return 2.0;}
+operator => float   (C d,  float   f){ <<<"C   => float: ", f     => d.f>>>; return 2.0;}
 
-operator => float   (Vec3 v, float   f){ <<<"float   => C: ", f, v.x => f>>>; return 2.0;}
+operator => float   (Vec3 v, float   f){ <<<"vec3 => C: ", f, " ", v.x => f>>>; return 2.0;}
 
 operator => complex (C d, complex c){ <<<"complex => C: ", c.re  => d.f>>>; return #(1.2, 6.1);}
 operator => polar   (C d, polar   c){ <<<"complex => C: ", c.mod => d.f>>>; return %(2.3, 4.1);}

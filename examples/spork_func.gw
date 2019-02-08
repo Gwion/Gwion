@@ -1,13 +1,13 @@
 class C
 {
-  function void test() {
-    <<<"here">>>;
+  function void test(int i) {
+    <<<"here => ", i>>>;
     samp => now;
     <<<"and now">>>;
   }
 }
 
 C c;
-spork c.test();
+spork c.test(2);
 me.yield();
 4::samp => now;
