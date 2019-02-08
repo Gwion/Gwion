@@ -47,11 +47,11 @@ int main(int argc, char** argv) {
 
   arg_init(&arg);
 
-#define STD_BUFSZ 10000
-char buf[STD_BUFSZ];
-setvbuf(stdout, buf, _IOFBF, STD_BUFSZ);
-char buf2[STD_BUFSZ];
-setvbuf(stderr, buf2, _IOFBF, STD_BUFSZ);
+//#define STD_BUFSZ 10000
+//char buf[STD_BUFSZ];
+//setvbuf(stdout, buf, _IOFBF, STD_BUFSZ);
+//char buf2[STD_BUFSZ];
+//setvbuf(stderr, buf2, _IOFBF, STD_BUFSZ);
 
   parse_args(&arg, &di);
 struct Gwion_ gwion;
