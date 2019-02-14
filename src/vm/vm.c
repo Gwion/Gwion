@@ -628,6 +628,7 @@ funcstatic:
 funcend:
   reg += instr->m_val;
 funcend2:
+  shred->mem = mem;
   if(!s->curr)break;
   pc = shred->pc;
   DISPATCH()
