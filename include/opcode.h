@@ -15,10 +15,11 @@ enum {
   RegPushBase3,
   RegPushBase4,
   RegDup,
-  MemPushImm,
   MemSetImm,
   RegPop,
   RegPushPtr,
+  RegPushMe,
+  RegPushMaybe,
   FuncReturn,
   Goto,
   AllocWord,
@@ -169,10 +170,11 @@ enum {
 #define  RegPushBase3        (f_instr)RegPushBase3
 #define  RegPushBase4        (f_instr)RegPushBase4
 #define  RegDup              (f_instr)RegDup
-#define  MemPushImm          (f_instr)MemPushImm
 #define  MemSetImm           (f_instr)MemSetImm
 #define  RegPop              (f_instr)RegPop
 #define  RegPushPtr          (f_instr)RegPushPtr
+#define  RegPushMe           (f_instr)RegPushMe
+#define  RegPushMaybe        (f_instr)RegPushMaybe
 #define  FuncReturn          (f_instr)FuncReturn
 #define  Goto                (f_instr)Goto
 #define  AllocWord           (f_instr)AllocWord

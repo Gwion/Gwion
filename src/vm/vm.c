@@ -224,8 +224,8 @@ ANN void vm_run(const VM* vm) {
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
     &&regdup,
-    &&mempushimm, &&memsetimm,
-    &&regpop, &&regpushptr,
+    &&memsetimm,
+    &&regpop, &&regpushptr, &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
     &&allocint, &&allocfloat, &&allocother, &&allocaddr,
@@ -358,10 +358,6 @@ regdup:
   *(m_uint*)reg = *(m_uint*)(reg-SZ_INT);
   reg += SZ_INT;
   DISPATCH()
-mempushimm:
-  *(m_uint*)mem = instr->m_val;
-  mem += SZ_INT;
-  DISPATCH();
 memsetimm:
   *(m_uint*)(mem+instr->m_val) = instr->m_val2;
   DISPATCH();
@@ -371,6 +367,14 @@ regpop:
 regpushptr:
   *(m_uint*)(reg-SZ_INT) = instr->m_val;
   DISPATCH()
+regpushme:
+  *(M_Object*)reg = shred->me;
+  reg += SZ_INT;
+  DISPATCH()
+regpushmaybe:
+  *(m_uint*)reg = gw_rand((uint32_t*)vm->rand) > (UINT32_MAX / 2);
+  reg += SZ_INT;
+  DISPATCH();
 funcreturn:
   pc = *(m_uint*)(mem-SZ_INT);
   code = *(VM_Code*)(mem-SZ_INT*2);

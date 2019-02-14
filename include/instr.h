@@ -34,9 +34,6 @@ INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);
 
-INSTR(RegPushMe);
-INSTR(RegPushMaybe);
-
 /* branching */
 INSTR(BranchSwitch);
 INSTR(SwitchIni);

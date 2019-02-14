@@ -31,16 +31,6 @@ INSTR(EOC2) { GWDEBUG_EXE
   shreduler_remove(shred->vm->shreduler, shred, 0);
 }
 
-INSTR(RegPushMe) { GWDEBUG_EXE
-  *(M_Object*)REG(0) = shred->me;
-  PUSH_REG(shred, SZ_INT);
-}
-
-INSTR(RegPushMaybe) { GWDEBUG_EXE
-  *(m_uint*)REG(0) = gw_rand(shred->vm->rand) > (UINT32_MAX / 2);
-  PUSH_REG(shred, SZ_INT);
-}
-
 /* branching */
 INSTR(SwitchIni) {
   const Vector v = (Vector)instr->m_val;

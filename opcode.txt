@@ -12,10 +12,11 @@ RegPushBase2
 RegPushBase3
 RegPushBase4
 RegDup
-MemPushImm
 MemSetImm
 RegPop
 RegPushPtr
+RegPushMe
+RegPushMaybe
 FuncReturn
 Goto
 AllocWord
