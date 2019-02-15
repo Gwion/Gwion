@@ -322,6 +322,7 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
   instr->m_val2 = base->size;
+  emit_add_instr(emit, GcAdd);
   return GW_OK;
 }
 
@@ -342,11 +343,12 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) { G
     instr->m_val = is_var;
     instr->m_val2 = is_var ? SZ_INT : array->self->type->size;
   } else {
+    const Instr push = emit_add_instr(emit, RegPushImm);
+    push->m_val = depth;
     const Instr instr = emit_add_instr(emit, ArrayAccessMulti);
     instr->m_val = is_var || array->self->type->array_depth;
     instr->m_val2 = (is_var || array->self->type->array_depth) ?
       SZ_INT : array_base(array->base->type)->size;
-    *(m_uint*)instr->ptr = depth;
   }
   return GW_OK;
 }

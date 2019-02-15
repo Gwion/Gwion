@@ -371,8 +371,8 @@ INSTR(ArrayAccess) { GWDEBUG_EXE
 #define DIM(a) gw_err("\t... at dim [%" INT_F "]\n", (a))
 
 INSTR(ArrayAccessMulti) { GWDEBUG_EXE
-  const m_uint depth = *(m_uint*)instr->ptr;
-  POP_REG(shred, SZ_INT * (depth + 1));
+  const m_uint depth = *(m_uint*)REG(-SZ_INT);
+  POP_REG(shred, SZ_INT * (depth + 2))
   const M_Object base = *(M_Object*)REG(0);
   M_Object obj = base;
   if(!obj)
