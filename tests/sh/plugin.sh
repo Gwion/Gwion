@@ -30,7 +30,7 @@ rm "empty.so"
 
 
 BASE_DIR="$PWD"
-cd tests/test_plugins || exit
+cd tests/import || exit
 for test_file in *.c
 do test_plugin "${test_file:0:-2}"
 done
