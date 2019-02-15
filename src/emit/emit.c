@@ -91,7 +91,6 @@ ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def)
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_alloc(Code);
   code->name = code_name_set(name, emit->env->name);
-  code->stack_depth = 0;
   vector_init(&code->instr);
   vector_init(&code->stack_break);
   vector_init(&code->stack_cont);
@@ -232,7 +231,6 @@ ANN static Instr emit_kind(Emitter emit, const m_uint size, const uint addr, con
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
 static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
 static const f_instr regpushbase[] = { RegPushBase, RegPushBase2, RegPushBase3, RegPushBase4 };
-//static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, DotStatic4 };
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
@@ -618,15 +616,14 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
     const Type_List types) {
   const Value v = f->value_ref;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
-//  CHECK_BB(traverse_func_template(emit->env, f->def, types))
-  CHECK_BB(traverse_func_template(emit->env, v->d.func_ref->def, types))
+  CHECK_BB(traverse_func_template(emit->env, f->def, types))
   return (m_int)scope;
 }
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
-  m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
+  const m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
   CHECK_BB(scope);
   CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
@@ -1372,7 +1369,7 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
 
 ANN static inline void emit_vec_func(const Emitter emit, const Value v) {
   const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = (m_uint)((Func)vector_at(&v->owner_class->nspc->vtable, v->d.func_ref->vt_index))->code;
+  instr->m_val = (m_uint)v->d.func_ref->code;
 }
 
 ANN static m_bool emit_VecMember(const Emitter emit, const Exp_Dot* member) {
@@ -1587,7 +1584,7 @@ ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def)
   const Func func = get_func(emit->env, func_def);
   if(func->code)return GW_OK;
   if(tmpl_list_base(func_def->tmpl)) { // don't check template definition
-    UNSET_FLAG(func_def, template);;
+    UNSET_FLAG(func_def, template);
     return GW_OK;
   }
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))

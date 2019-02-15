@@ -296,6 +296,9 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
     CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
   const Type parent = class_def->type->parent = known_type(env, class_def->ext);
   CHECK_OB(parent)
+  if(parent == class_def->type)
+    ERR_B(class_def->ext->xid->pos, "class '%s' cannot extend itself", 
+      class_def->type->name);
   if(isa(class_def->type->parent, t_object) < 0)
     ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
             class_def->type->parent->name)

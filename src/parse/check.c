@@ -1004,14 +1004,12 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-//  if(SAFE_FLAG(func, member)) {
 //  if(GET_FLAG(func, member)) {
-  if(func->value_ref->owner_class) {
-    if(!env->curr->vtable.ptr)
-      vector_init(&env->curr->vtable);
-    func->vt_index = vector_size(&env->curr->vtable);
-    vector_add(&env->curr->vtable, (vtype)func);
-  }
+  if(!env->curr->vtable.ptr)
+    vector_init(&env->curr->vtable);
+  func->vt_index = vector_size(&env->curr->vtable);
+  vector_add(&env->curr->vtable, (vtype)func);
+//  }
   return GW_OK;
 }
 
@@ -1081,7 +1079,7 @@ ANN static void operator_func(Func f) {
 
 ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
-  m_bool ret = 1;
+  m_bool ret = GW_OK;
   if(tmpl_list_base(f->tmpl))
     return env->class_def ? check_parent_match(env, f) : 1;
   CHECK_BB(check_func_def_override(env, f))
