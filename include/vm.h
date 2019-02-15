@@ -35,6 +35,24 @@ typedef struct VM_ {
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;
+
+struct ShredInfo_ {
+  VM* vm;
+  struct M_Object_* me;
+  m_str name;
+  Vector args;
+};
+
+struct ShredTick_ {
+  VM_Shred self;
+  struct ShredTick_ *prev;
+  struct ShredTick_ *next;
+  struct ShredTick_ *parent;
+  struct Vector_ child;
+  size_t xid;
+  m_float wake_time;
+};
+
 struct VM_Shred_ {
   VM_Code code;
   m_bit* reg;
@@ -42,15 +60,8 @@ struct VM_Shred_ {
   m_bit* base;
   size_t pc;
   struct Vector_ gc;
-  m_bit* _reg;
-  VM_Shred prev, next, parent;
-  m_str name;
-  VM* vm;
-  Vector args; // passed pointer from compile
-  struct M_Object_* me;
-  struct Vector_ child;
-  size_t xid;
-  m_float wake_time;
+  struct ShredTick_ * tick;
+  struct ShredInfo_ * info;
 };
 ANN2(4) ANEW VM_Code new_vm_code(const Vector instr, const m_uint stack_depth, const ae_flag, const m_str name);
 
@@ -62,7 +73,7 @@ ANN void shreduler_add(const Shreduler s, const VM_Shred shred);
 
 ANEW ANN VM_Shred new_vm_shred(const VM_Code code) __attribute__((hot));
 __attribute__((hot))
-ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->vm->shreduler, shred, 1); }
+ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->info->vm->shreduler, shred, 1); }
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));

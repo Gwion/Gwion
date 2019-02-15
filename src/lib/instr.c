@@ -22,13 +22,13 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
   o->type_ref = o->type_ref->parent;
   o->ref = 1;
   _release(o, shred);
-  _release(shred->me, shred);
+  _release(shred->info->me, shred);
   vm_shred_exit(shred);
 }
 
 INSTR(EOC2) { GWDEBUG_EXE
   shred->pc = 0;
-  shreduler_remove(shred->vm->shreduler, shred, 0);
+  shreduler_remove(shred->info->vm->shreduler, shred, 0);
 }
 
 /* branching */
@@ -144,7 +144,7 @@ INSTR(DotTmpl) {
     const Func f = nspc_lookup_func1(t->nspc, insert_symbol(str));
     if(f) {
       if(!f->code) {
-      const Emitter emit = shred->vm->gwion->emit;
+      const Emitter emit = shred->info->vm->gwion->emit;
 emit->env->name = "runtime";
   const Value v = f->value_ref;
 m_str start = strchr(name, '<');
@@ -172,7 +172,7 @@ f->def->func->code->stack_depth -= SZ_INT;
       shred->reg += SZ_INT;
       return;
     } else {
-      const Emitter emit = shred->vm->gwion->emit;
+      const Emitter emit = shred->info->vm->gwion->emit;
 emit->env->name = "runtime";
 //m_str start = strchr(name, '<');
 m_str start = name;

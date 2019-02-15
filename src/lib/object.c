@@ -15,7 +15,7 @@
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
-          c, shred->xid, shred->name, shred->pc - 1);
+          c, shred->tick->xid, shred->info->name, shred->pc - 1);
   vm_shred_exit(shred);
 }
 
@@ -63,8 +63,8 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   *(M_Object*)sh->mem = object;
   sh->mem += SZ_INT;
   *(M_Object*)sh->mem = object;
-  vm_add_shred(shred->vm, sh);
-  ++sh->me->ref;
+  vm_add_shred(shred->info->vm, sh);
+  ++sh->info->me->ref;
 }
 
 __attribute__((hot))

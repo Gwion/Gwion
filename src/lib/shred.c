@@ -23,12 +23,12 @@ static MFUN(gw_shred_exit) {
 
 static MFUN(vm_shred_id) {
   const VM_Shred s = ME(o);
-  *(m_int*)RETURN = s ? (m_int)s->xid : -1;
+  *(m_int*)RETURN = s ? (m_int)s->tick->xid : -1;
 }
 
 static MFUN(vm_shred_is_running) {
   const VM_Shred s = ME(o);
-  *(m_uint*)RETURN = (s->next || s->prev) ? 1 : 0;
+  *(m_uint*)RETURN = (s->tick->next || s->tick->prev) ? 1 : 0;
 }
 
 static MFUN(vm_shred_is_done) {
@@ -37,31 +37,33 @@ static MFUN(vm_shred_is_done) {
 
 static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
-  const Shreduler sh = shred->vm->shreduler;
+  const Shreduler sh = shred->info->vm->shreduler;
   shredule(sh, s, .5);
+//  shred->mem += (m_bit*)o - shred->mem;
+//  shred->mem -= SZ_INT;//!!!
 }
 #include "shreduler_private.h"
 static SFUN(vm_shred_from_id) {
   const m_int index =  *(m_int*)MEM(0);
-  const VM_Shred s = (VM_Shred)vector_at(&shred->vm->shreduler->shreds, (vtype)index);
+  const VM_Shred s = (VM_Shred)vector_at(&shred->info->vm->shreduler->shreds, (vtype)index);
   if(s) {
-    *(M_Object*)RETURN = s->me;
-    s->me->ref++;
-    vector_add(&shred->gc, (vtype) s->me);
+    *(M_Object*)RETURN = s->info->me;
+    s->info->me->ref++;
+    vector_add(&shred->gc, (vtype) s->info->me);
   } else
     *(m_uint*)RETURN = 0;
 }
 
 static MFUN(shred_args) {
   const VM_Shred s = ME(o);
-  *(m_uint*)RETURN = s->args ? vector_size(s->args) : 0;
+  *(m_uint*)RETURN = s->info->args ? vector_size(s->info->args) : 0;
 }
 
 static MFUN(shred_arg) {
   const VM_Shred s = ME(o);
   const m_int idx = *(m_int*)MEM(SZ_INT);
-  if(s->args && idx >= 0) {
-    const m_str str = (m_str)vector_at(s->args, *(m_uint*)MEM(SZ_INT));
+  if(s->info->args && idx >= 0) {
+    const m_str str = (m_str)vector_at(s->info->args, *(m_uint*)MEM(SZ_INT));
     *(M_Object*)RETURN = str ? new_string(shred, str) : NULL;
   } else
     *(m_uint*)RETURN = 0;
@@ -81,7 +83,7 @@ static MFUN(shred##name##_dir) { \
   strcpy(c, str); \
   *(m_uint*)RETURN = (m_uint)new_string(shred, dirname(c)); \
 }
-describe_path_and_dir(, s->name)
+describe_path_and_dir(, s->info->name)
 describe_path_and_dir(_code, s->code->name)
 
 GWION_IMPORT(shred) {

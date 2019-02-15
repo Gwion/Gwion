@@ -12,18 +12,19 @@ ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
 
 ANN VM_Shred shreduler_get(const Shreduler s) {
   VM* vm = s->vm;
-  const VM_Shred shred = s->list;
-  if(!shred) {
+  struct ShredTick_ *tk = s->list;
+  if(!tk) {
     if(!vector_size(&s->shreds) && !s->loop)
       vm->is_running = 0;
     return NULL;
   }
   const m_float time = (m_float)vm->bbq->pos + (m_float).5;
-  if(shred->wake_time <= time) {
-    if((s->list = shred->next))
+  if(tk->wake_time <= time) {
+    if((s->list = tk->next))
       s->list->prev = NULL;
-    shred->next = shred->prev = NULL;
-    return s->curr = shred;
+    tk->next = tk->prev = NULL;
+    s->curr = tk;
+    return tk->self;
   }
   return NULL;
 }
@@ -32,7 +33,7 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
   vector_rem2(v, (vtype)out);
   if(!vector_size(v)) {
     vector_release(v);
-    out->parent->child.ptr = NULL;
+    out->tick->parent->child.ptr = NULL;
   }
 }
 
@@ -43,56 +44,59 @@ ANN static void shreduler_child(const Shreduler s, const Vector v) {
   }
 }
 
-ANN static void shreduler_erase(const Shreduler s, const VM_Shred out) {
-  if(out->parent)
-    shreduler_parent(out, &out->parent->child);
-  if(out->child.ptr)
-    shreduler_child(s, &out->child);
-  vector_rem2(&s->shreds, (vtype)out);
+ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
+  if(tk->parent)
+    shreduler_parent(tk->self, &tk->parent->child);
+  if(tk->child.ptr)
+    shreduler_child(s, &tk->child);
+  vector_rem2(&s->shreds, (vtype)tk->self);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
-  if(s->curr == out)
+  struct ShredTick_ *tk = out->tick;
+  assert(tk);
+  if(tk == s->curr)
     s->curr = NULL;
-  else if(out == s->list)
-    s->list = out->next;
-  if(out->prev)
-    out->prev->next = out->next;
-  if(out->next)
-    out->next->prev = out->prev;
-  out->prev = out->next = NULL;
+  else if(tk == s->list)
+    s->list = tk->next;
+  if(tk->prev)
+    tk->prev->next = tk->next;
+  if(tk->next)
+    tk->next->prev = tk->prev;
+  tk->prev = tk->next = NULL;
   if(erase) {
-    shreduler_erase(s, out);
+    shreduler_erase(s, tk);
     free_vm_shred(out);
   }
 }
 
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time) {
   const m_float time = wake_time + (m_float)s->vm->bbq->pos;
-  shred->wake_time = time;
+  struct ShredTick_ *tk = shred->tick;
+  tk->wake_time = time;
   if(s->list) {
-    VM_Shred curr = s->list, prev = NULL;
+    struct ShredTick_ *curr = s->list, *prev = NULL;
     do {
       if(curr->wake_time > time)
         break;
       prev = curr;
     } while((curr = curr->next));
     if(!prev) {
-      shred->next = s->list;
-      s->list = (s->list->prev = shred);
+      tk->next = s->list;
+      s->list = (s->list->prev = tk);
     } else {
-      if((shred->next = prev->next))
-        prev->next->prev = shred;
-      shred->prev = prev;
-      prev->next = shred;
+      if((tk->next = prev->next))
+        prev->next->prev = tk;
+      tk->prev = prev;
+      prev->next = tk;
     }
   } else
-    s->list = shred;
-  if(s->curr == shred)
+    s->list = tk;
+  if(tk == s->curr)
     s->curr = NULL;
 }
 
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
-  shred->xid = ++s->shred_ids;
+  shred->tick->xid = ++s->shred_ids;
   vector_add(&s->shreds, (vtype)shred);
 }

@@ -203,7 +203,7 @@ describe_connect_instr(Trig, Disconnect, TRIG_EX)
 
 static CTOR(ugen_ctor) {
   UGEN(o) = new_UGen();
-  vector_add(&shred->vm->ugen, (vtype)UGEN(o));
+  vector_add(&shred->info->vm->ugen, (vtype)UGEN(o));
 }
 
 #define describe_release_func(src, tgt, opt)                        \
@@ -231,7 +231,7 @@ ANN static void release_multi(const UGen ug, const VM_Shred shred) {
 
 static DTOR(ugen_dtor) {
   const UGen ug = UGEN(o);
-  vector_rem2(&shred->vm->ugen, (vtype)ug);
+  vector_rem2(&shred->info->vm->ugen, (vtype)ug);
   if(!ug->multi)
     release_mono(ug);
   else

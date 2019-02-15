@@ -1,0 +1,3 @@
+ArrayExt a;
+<<<a>>>;
+<<<a.size()>>>;

@@ -62,7 +62,7 @@ void vm_remove(const VM* vm, const m_uint index) {
   LOOP_OPTIM
   for(m_uint i = vector_size(v) + 1; i--;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
-    if(sh->xid == index)
+    if(sh->tick->xid == index)
        Except(sh, "MsgRemove");
   }
 }
@@ -78,11 +78,11 @@ ANN void free_vm(VM* vm) {
 }
 
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
-  shred->vm = (VM*)vm;
-  shred->me = new_shred(shred);
+  shred->info->vm = (VM*)vm;
+  shred->info->me = new_shred(shred);
   shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
-  return shred->xid;
+  return shred->tick->xid;
 }
 
 __attribute__((hot))
@@ -106,8 +106,9 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 #ifdef DEBUG_STACK
 #define VM_INFO                                                              \
   if(s->curr)                                                                \
-    gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", shred->xid, \
-    mem - (shred->_reg + SIZEOF_REG), reg - shred->_reg);
+    gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", \
+    shred->tick->xid, \
+    mem - ((m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG), reg - (m_bit*)shred + sizeof(struct VM_Shred_));
 #else
 #define VM_INFO
 #endif
@@ -120,18 +121,18 @@ static struct timespec exec_time;
 
 
 ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
-  return mem >  ((c->_reg + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
+  return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
 }
 
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(code);
   ADD_REF(code)
-  sh->parent = shred;
-  if(!shred->child.ptr)
-    vector_init(&shred->child);
-  vector_add(&shred->child, (vtype)sh);
+  sh->tick->parent = shred->tick;
+  if(!shred->tick->child.ptr)
+    vector_init(&shred->tick->child);
+  vector_add(&shred->tick->child, (vtype)sh);
   sh->base = shred->base;
-  vm_add_shred(shred->vm, sh);
+  vm_add_shred(shred->info->vm, sh);
   return sh;
 }
 
@@ -368,7 +369,7 @@ regpushptr:
   *(m_uint*)(reg-SZ_INT) = instr->m_val;
   DISPATCH()
 regpushme:
-  *(M_Object*)reg = shred->me;
+  *(M_Object*)reg = shred->info->me;
   reg += SZ_INT;
   DISPATCH()
 regpushmaybe:
@@ -541,7 +542,7 @@ timeadv:
   reg -= SZ_FLOAT;
 {
   register const m_float f = *(m_float*)(reg-SZ_FLOAT);
-  *(m_float*)(reg-SZ_FLOAT) = (shred->wake_time += f);
+  *(m_float*)(reg-SZ_FLOAT) = (shred->tick->wake_time += f);
   shredule(s, shred, f);
 }
 shred->code = code;
@@ -656,7 +657,7 @@ sporkexp:
     *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
 sporkend:
-  *(M_Object*)(reg-SZ_INT) = a.child->me;
+  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
 funcptr:
   if(!GET_FLAG((VM_Code)a.code, builtin))
