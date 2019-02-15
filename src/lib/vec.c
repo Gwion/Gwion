@@ -8,6 +8,13 @@
 #include "object.h"
 #include "import.h"
 
+INSTR(VecCpy) {
+  POP_REG(shred, instr->m_val2);
+  for(m_uint i = 0; i < instr->m_val2; i += SZ_FLOAT)
+    *(m_float*)(shred->mem +instr->m_val-instr->m_val2+i) = *(m_float*)(shred->reg+i);
+  *(m_bit**)(shred->mem + instr->m_val) = (shred->mem + instr->m_val - instr->m_val2);
+}
+
 INSTR(VecMember) { GWDEBUG_EXE
   if(instr->m_val)
     *(m_float**)REG(-SZ_INT) = (m_float*)(*(m_bit**)REG(-SZ_INT) + instr->m_val2);

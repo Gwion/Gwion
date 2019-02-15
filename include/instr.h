@@ -62,6 +62,7 @@ INSTR(VarargTop);
 INSTR(VarargEnd);
 INSTR(VarargMember);
 
+INSTR(VecCpy);
 INSTR(VecMember);
 INSTR(PopArrayClass);
 

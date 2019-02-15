@@ -356,8 +356,16 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) { GW
   CHECK_BB(emit_exp(emit, vec->exp, 0));
   m_int n = (m_int)((t == ae_primary_vec ? 3 : 2) - vec->dim + 1);
   while(--n > 0)
-//    emit_add_instr(emit, PushNull2);
     emit_add_instr(emit, RegPushImm2);
+  if(primary->self->emit_var) {
+    emit_local(emit, primary->self->type->size, 0);
+    const m_uint offset = emit_local(emit, SZ_INT, 0);
+    const Instr cpy = emit_add_instr(emit, VecCpy);
+    cpy->m_val = offset;
+    cpy->m_val2 = primary->self->type->size;
+    const Instr instr = emit_add_instr(emit, RegPushMem);
+    instr->m_val = offset;
+  }
   return GW_OK;
 }
 
