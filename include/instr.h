@@ -21,10 +21,10 @@ typedef struct Instr_     * Instr;
 typedef void (*f_instr)(const VM_Shred, const Instr);
 struct Instr_ {
   m_bit opcode;
-//  union {
-//    m_float f;
+  union {
+    m_float f;
     m_uint m_val;
-//  };
+  };
   m_uint m_val2;
   m_bit ptr[SZ_MINVAL];
   void (*execute)(const VM_Shred shred, const Instr instr);

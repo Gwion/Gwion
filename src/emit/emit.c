@@ -269,13 +269,10 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
       instr->m_val = (m_uint)v->d.ptr;
     } else if(v->d.ptr)
       instr->m_val = *(m_uint*)v->d.ptr;
-}
-else if(v->d.ptr)
-        memcpy(instr->ptr, v->d.ptr, v->type->size);
-//        memcpy(&instr->m_val, v->d.ptr, v->type->size);
+    } else if(v->d.ptr)
+      memcpy(&instr->m_val, v->d.ptr, v->type->size);
     else
-      *(m_uint**)instr->ptr = v->d.ptr;
-//      instr->m_val = v->d.ptr;
+      instr->m_val = v->d.ptr;
     instr->m_val2 = size;
   }
   return GW_OK;
@@ -399,7 +396,8 @@ ANN static m_bool prim_num(const Emitter emit, const Exp_Primary * primary) {
 
 ANN static m_bool prim_float(const Emitter emit, const Exp_Primary* primary) {
   const Instr instr = emit_add_instr(emit, RegPushImm2);
-  *(m_float*)instr->ptr = primary->d.fnum;
+//  *(m_float*)instr->ptr = primary->d.fnum;
+  instr->f = primary->d.fnum;
   return GW_OK;
 }
 
@@ -1194,7 +1192,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
   if(push) {
     emit_switch_map(push, (Map)instr->m_val2);
-    *(m_uint*)instr->ptr = SZ_INT;
+//    *(m_uint*)instr->ptr = SZ_INT;
   }
   switch_end(emit->env);
   pop_vector(&emit->code->stack_break, emit_code_size(emit));

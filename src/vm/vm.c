@@ -299,20 +299,17 @@ regpushimm:
   reg += SZ_INT;
   DISPATCH();
 regpushfloat:
-//  *(m_float*)reg = instr->f;
-  *(m_float*)reg = *(m_float*)instr->ptr;
+  *(m_float*)reg = instr->f;
   reg += SZ_FLOAT;
   DISPATCH();
 regpushother:
   LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
-//    *(m_bit**)(reg+i) = (m_bit*)(instr->m_val + i);
-    *(m_bit**)(reg+i) = (m_bit*)(instr->ptr + i);
+    *(m_bit**)(reg+i) = (m_bit*)(instr->m_val + i);
   reg += instr->m_val2;
   DISPATCH();
 regpushaddr:
-//  *(m_bit**)reg =  &instr->m_val;
-  *(m_bit**)reg =  instr->ptr;
+  *(m_bit**)reg =  &instr->m_val;
   reg += SZ_INT;
   DISPATCH()
 regpushmem:
