@@ -317,10 +317,11 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   while((e = e->next));
   const Type type = array->type;
   const Type base = array_base(type);
+  const Instr push = emit_add_instr(emit, RegPushImm);
+  push->m_val = count;
   const Instr instr = emit_add_instr(emit, ArrayInit);
-  instr->m_val = count;
+  instr->m_val = (m_uint)type;
   instr->m_val2 = base->size;
-  *(Type*)instr->ptr = type;
   return GW_OK;
 }
 

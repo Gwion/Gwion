@@ -253,11 +253,11 @@ INSTR(ArrayPost) { GWDEBUG_EXE
 }
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
-  const m_uint off = instr->m_val * instr->m_val2;
-  const Type t = *(Type*)instr->ptr;
-  POP_REG(shred, off - SZ_INT);
-  const M_Object obj = new_array(t, instr->m_val);
-  vector_add(&shred->gc, (vtype)obj);
+  const Type t = (Type)instr->m_val;
+  const m_uint sz = *(m_uint*)REG(-SZ_INT);
+  const m_uint off = instr->m_val2 * sz;
+  POP_REG(shred, off /*- SZ_INT*/);
+  const M_Object obj = new_array(t, sz);
   memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
 }
