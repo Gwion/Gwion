@@ -1168,6 +1168,9 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
       CHECK_BB(emit_exp(emit, e, 0))
     *instr = emit_add_instr(emit, SwitchIni);
     (*instr)->m_val = (m_uint)switch_vec(emit->env);
+  } else {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)switch_map(emit->env);
   }
   return GW_OK;
 }

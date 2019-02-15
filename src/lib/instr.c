@@ -43,10 +43,9 @@ INSTR(SwitchIni) {
 }
 
 INSTR(BranchSwitch) { GWDEBUG_EXE
-  const m_uint offset = *(m_uint*)instr->ptr;
-  POP_REG(shred, SZ_INT + offset);
-  const Map map = !offset ?(Map)instr->m_val2 : *(Map*)REG(0);
-  shred->pc = map_get(map, *(m_uint*)REG(offset));
+  POP_REG(shred, SZ_INT*2);
+  const Map map = *(Map*)REG(0);
+  shred->pc = map_get(map, *(m_uint*)REG(SZ_INT));
   if(!shred->pc)
     shred->pc = instr->m_val;
 }
