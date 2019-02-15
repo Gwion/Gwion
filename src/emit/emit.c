@@ -1402,7 +1402,6 @@ ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWD
   instr->m_val = offset;
   instr->m_val2 = emit->env->func->variadic->m_val2;
   emit->env->func->variadic->m_val2 = emit_code_size(emit);
-  *(m_uint*)emit->env->func->variadic->ptr = 1;
   return GW_OK;
 }
 
@@ -1596,8 +1595,7 @@ ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def)
   const Func former = emit->env->func;
   emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
-  if(GET_FLAG(func_def, variadic) && (!emit->env->func->variadic ||
-      !*(m_uint*)emit->env->func->variadic->ptr))
+  if(GET_FLAG(func_def, variadic) && !emit->env->func->variadic)
     ERR_B(func_def->td->xid->pos, "invalid variadic use")
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
