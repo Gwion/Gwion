@@ -7,8 +7,7 @@
 #include "type.h"
 
 ANN static void free_value(Value a) {
-//  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr && isa(a->type, t_object) < 0)
-  if(!GET_FLAG(a, func) && !GET_FLAG(a, constprop) && a->d.ptr &&
+  if(!GET_FLAG(a, func) && a->d.ptr &&
 !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
 && isa(a->type, t_object) < 0)
     _mp_free(a->type->size, a->d.ptr);

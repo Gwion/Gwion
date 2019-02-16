@@ -264,11 +264,11 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, prim->self->emit_var, regpushimm);
     if(!prim->self->emit_var && size == SZ_INT) {
-    if(isa(v->type, t_object) > 0) {
-      instr->execute = RegPushImm;
-      instr->m_val = (m_uint)v->d.ptr;
-    } else if(v->d.ptr)
-      instr->m_val = *(m_uint*)v->d.ptr;
+      if(isa(v->type, t_object) > 0) {
+        instr->execute = RegPushImm;
+        instr->m_val = (m_uint)v->d.ptr;
+      } else if(v->d.ptr)
+        instr->m_val = *(m_uint*)v->d.ptr;
     } else if(v->d.ptr)
       memcpy(&instr->m_val, v->d.ptr, v->type->size);
     else
@@ -439,23 +439,10 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   return GW_OK;
 }
 
-#ifdef OPTIMIZE
-ANN static m_bool prim_constprop(Emitter emit, const Exp_Primary* prim) {
-  const Instr instr = emit_add_instr(emit, ConstPropSet);
-  instr->m_val = prim->value->offset;
-  instr->m_val2 = prim->d.num;
-  *(m_bool*)instr->ptr = prim->self->emit_var;
-  return GW_OK;
-}
-#endif
-
 static const _exp_func prim_func[] = {
   (_exp_func)prim_id, (_exp_func)prim_num, (_exp_func)prim_float, (_exp_func)prim_str,
   (_exp_func)prim_array, (_exp_func)prim_gack, (_exp_func)prim_vec, (_exp_func)prim_vec,
   (_exp_func)prim_vec, (_exp_func)prim_char, (_exp_func)dummy_func,
-#ifdef OPTIMIZE
-  (_exp_func)prim_constprop
-#endif
 };
 
 ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
@@ -880,28 +867,6 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBU
   op2->m_val = emit_code_size(emit);
   return ret;
 }
-
-#ifdef OPTIMIZE
-ANN static void emit_exp_constprop(const Emitter emit, const Exp e) {
-  if(!e->emit_var) {
-    if(e->exp_type == ae_exp_constprop) {
-      const Instr instr = emit_add_instr(emit, RegPushMem);
-      instr->m_val = e->d.exp_primary.value->offset;
-      *(m_uint*)instr->ptr = GET_FLAG(e->d.exp_primary.value, global);
-      return;
-    }
-    const Instr instr = emit_add_instr(emit, ConstPropGet);
-    instr->m_val2 = e->d.exp_primary.value->offset;
-    instr->m_val = e->d.exp_primary.d.num;
-    *(m_uint*)instr->ptr = 1;
-  } else {
-    const Instr instr = emit_add_instr(emit, ConstPropSet);
-    instr->m_val = e->d.exp_primary.value->offset;
-    *(m_bool*)instr->ptr = 1;
-    instr->m_val2 = e->d.exp_primary.d.num;
-  }
-}
-#endif
 
 DECL_EXP_FUNC(emit)
 

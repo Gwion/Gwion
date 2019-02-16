@@ -50,15 +50,6 @@ OP_CHECK(opck_rassign) {
 OP_CHECK(opck_unary_meta) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   unary->self->meta = ae_meta_value;
-#ifdef OPTIMIZE
-  if(unary->exp->exp_type == ae_exp_constprop2) {
-    unary->exp->exp_type =ae_exp_primary;
-    unary->exp->d.exp_primary.primary_type = ae_primary_id;
-    unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
-    unary->exp->d.exp_primary.value->d.ptr = 0;
-  }
-#endif
   return unary->exp->type;
 }
 
@@ -70,21 +61,6 @@ OP_CHECK(opck_unary) {
           op2str(unary->op), access(unary->exp->meta))
   unary->exp->emit_var = 1;
   unary->self->meta = ae_meta_value;
-#ifdef OPTIMIZE
-if(unary->exp->exp_type == ae_exp_primary &&
-    GET_FLAG(unary->exp->d.exp_primary.value, constprop)) {
-    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
-    unary->exp->d.exp_primary.value->d.ptr = 0;
-  return unary->exp->type;
-}
-  if(unary->exp->exp_type == ae_exp_constprop) {
-    unary->exp->exp_type = ae_exp_primary;
-    unary->exp->d.exp_primary.primary_type = ae_primary_constprop;
-    unary->exp->d.exp_primary.d.num = (m_uint)unary->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(unary->exp->d.exp_primary.value, constprop);
-    unary->exp->d.exp_primary.value->d.ptr = 0;
-  }
-#endif
   return unary->exp->type;
 }
 
@@ -95,28 +71,6 @@ OP_CHECK(opck_post) {
           op2str(post->op), access(post->exp->meta))
   post->exp->emit_var = 1;
   post->self->meta = ae_meta_value;
-#ifdef OPTIMIZE
-if(post->exp->exp_type == ae_exp_primary &&
-    GET_FLAG(post->exp->d.exp_primary.value, constprop)) {
-    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
-    post->exp->d.exp_primary.value->d.ptr = 0;
-  return post->exp->type;
-}
-  if(post->exp->exp_type == ae_exp_constprop2) {exit(3);
-    post->exp->exp_type =ae_exp_primary;
-    post->exp->d.exp_primary.primary_type = ae_primary_constprop;
-    post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
-    post->exp->d.exp_primary.value->d.ptr = 0;
-}
-  if(post->exp->exp_type == ae_exp_constprop) {exit(2);
-    post->exp->exp_type =ae_exp_primary;
-    post->exp->d.exp_primary.primary_type = ae_primary_constprop;
-    post->exp->d.exp_primary.d.num = (m_uint)post->exp->d.exp_primary.value->d.ptr;
-    UNSET_FLAG(post->exp->d.exp_primary.value, constprop);
-    post->exp->d.exp_primary.value->d.ptr = 0;
-}
-#endif
   return post->exp->type;
 }
 

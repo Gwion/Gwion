@@ -82,29 +82,6 @@ INSTR(PutArgsInMem) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val)
   memcpy(shred->mem, shred->reg, instr->m_val);
 }
-
-INSTR(ConstPropSet) { GWDEBUG_EXE
-  if(*(m_uint*)instr->ptr >= 2) {
-    *(m_int**)(shred->reg) = (m_int*)(shred->mem + instr->m_val);
-    PUSH_REG(shred, SZ_INT);
-    return;
-  }
-  *(m_int*)(shred->mem + instr->m_val) = instr->m_val2;
-  if(*(m_bool*)instr->ptr)
-    *(m_int**)(shred->reg) = (m_int*)(shred->mem + instr->m_val);
-  else
-    *(m_int*)(shred->reg) = instr->m_val2;
-  PUSH_REG(shred, SZ_INT);
-  *(m_uint*)instr->ptr = 2 + *(m_uint*)instr->ptr;
-}
-
-INSTR(ConstPropGet) { GWDEBUG_EXE
-  if(!*(m_uint*)instr->ptr)
-    memcpy(REG(0), MEM(instr->m_val2), SZ_INT);
-  else
-    memcpy(REG(0), &instr->m_val, SZ_INT);
-  PUSH_REG(shred, SZ_INT);
-}
 #endif
 
 Type_List tmpl_tl(const Env env, const m_str name) {

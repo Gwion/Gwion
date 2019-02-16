@@ -72,8 +72,6 @@ INSTR(DotTmpl);
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
-INSTR(ConstPropSet);
-INSTR(ConstPropGet);
 #endif
 #include "opcode.h"
 #endif
