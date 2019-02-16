@@ -434,22 +434,20 @@ end:
   return m_func;
 }
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
-//  Value v = value;
   Type t = value->owner_class;
   const Func f = _find_template_match(env, value, exp);
   if(f)
     return f;
   while(t) {
-//assert(t->nspc);
-    const Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->name);
-if(!v)goto next;
-    const Func f = _find_template_match(env, v, exp);
-    if(f)
-      return f;
-next:
-t = t->parent;
-}
-
+   Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->name);
+   if(!v)
+     goto next;
+     const Func f = _find_template_match(env, v, exp);
+     if(f)
+       return f;
+   next:
+     t = t->parent;
+  }
   assert(exp->self);
   err_msg(exp->self->pos, "arguments do not match for template call");
   return NULL;
@@ -976,7 +974,9 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, static) ? c_name : p_name, f_name)
   }
-  return isa(f->ret_type, parent->def->ret_type);
+  if(!f->tmpl) // ???
+    return isa(f->ret_type, parent->def->ret_type);
+  return GW_OK;
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
@@ -985,8 +985,10 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   do {
     if(compat_func(f, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(f, parent_func))
-      f->func->vt_index = parent_func->vt_index;
-      vector_set(&env->curr->vtable, f->func->vt_index, (vtype)f->func);
+      if(!f->tmpl) {
+        f->func->vt_index = parent_func->vt_index;
+        vector_set(&env->curr->vtable, f->func->vt_index, (vtype)f->func);
+      }
       return GW_OK;
     }
   } while((parent_func = parent_func->next));

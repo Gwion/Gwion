@@ -109,7 +109,8 @@ INSTR(PopArrayClass) { GWDEBUG_EXE
 #include "value.h"
 #include "template.h"
 INSTR(DotTmpl) {
-  const m_str name = (m_str)instr->m_val;
+  const struct dottmpl_ * dt = (struct dottmpl_*)instr->m_val;
+  const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   Type t = o->type_ref;
   do {
@@ -130,19 +131,17 @@ strcpy(c, start + 1);
 c[strlen(start) - strlen(end) - 2] = '\0';
 m_uint depth;
 const Type_List tl = str2tl(emit->env, c, &depth);
-assert(v);
-assert(v->d.func_ref->def = f->def);
-env_push_type(emit->env, v->owner_class);
-if(template_push_types(emit->env, f->def->tmpl->list, tl) > 0)
-//  if(traverse_func_def(emit->env, f->value_ref->d.func_ref->def) > 0)
-  if(traverse_func_def(emit->env, f->def) > 0)
-emit_func_def(emit, f->def);
-assert(f->code);
-assert(f->code = f->def->func->code);
-nspc_pop_type(emit->env->curr);
-env_pop(emit->env, 0);
-free_type_list(tl);
-f->def->func->code->stack_depth -= SZ_INT;
+  m_uint scope = env_push_type(emit->env, v->owner_class);
+  m_bool ret = GW_ERROR;
+  if(traverse_func_template(emit->env, f->def, tl) > 0) {
+    ret = emit_func_def(emit, f->def);
+    nspc_pop_type(emit->env->curr);
+  }//}
+  env_pop(emit->env, scope);
+  free_type_list(tl);
+  if(ret < 0)
+    continue;
+
 }
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;
@@ -156,31 +155,30 @@ m_str end = strchr(name, '<');
 char c[instr->m_val2];
 strcpy(c, start);
 c[strlen(start) - strlen(end)] = '\0';
-const Symbol sym = func_symbol(o->type_ref->name, c, "template", 
-*(m_uint*)instr->ptr);
+const Symbol sym = func_symbol(o->type_ref->name, c, "template", dt->overload);
     const Value v = nspc_lookup_value1(o->type_ref->nspc, sym);
+    if(!v)
+      continue;
       const Func_Def base = v->d.func_ref->def; 
       const Func_Def def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
-      def->tmpl = new_tmpl_list(base->tmpl->list, *(m_int*)instr->ptr);
+      def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
       SET_FLAG(def, template);
-  Type_List tl = tmpl_tl(emit->env, name);
-  env_push_type(emit->env, v->owner_class);
-  if(template_push_types(emit->env, def->tmpl->list, tl) > 0)
-    if(traverse_func_def(emit->env, def) > 0) {
-      emit_func_def(emit, def);
-    nspc_pop_type(emit->env->curr);
-  }
-env_pop(emit->env, 0);
-def->func->code->stack_depth -= SZ_INT;
-      *(VM_Code*)shred->reg = def->func->code;
-      shred->reg += SZ_INT;
-      return;
-
-
-
-}
+      Type_List tl = tmpl_tl(emit->env, name);
+      m_uint scope = env_push_type(emit->env, v->owner_class);
+      m_bool ret = GW_ERROR;
+      if(traverse_func_template(emit->env, def, tl) > 0) {
+          ret = emit_func_def(emit, def);
+          nspc_pop_type(emit->env->curr);
+      }
+      env_pop(emit->env, scope);
+      free_type_list(tl);
+      if(ret > 0) {
+        *(VM_Code*)shred->reg = def->func->code;
+        shred->reg += SZ_INT;
+        return;
+      }
+    }
   } while((t = t->parent));
-// should not be reached
-  Except(shred, "MissigTmplException[internal]");
+  Except(shred, "MissigTmplException[internal]"); //unreachable
 }

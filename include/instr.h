@@ -69,9 +69,19 @@ INSTR(PopArrayClass);
 INSTR(AutoLoopStart);
 INSTR(AutoLoopEnd);
 INSTR(DotTmpl);
+
+struct dottmpl_ {
+  size_t len;
+  m_str name;
+  Func_Def base;
+  size_t overload; // => vtindex ?
+  Type_List tl;
+};
+ANN void free_dottmpl(struct dottmpl_*);
+#endif
+
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
-#endif
 #include "opcode.h"
 #endif

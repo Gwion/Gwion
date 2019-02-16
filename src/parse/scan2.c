@@ -342,7 +342,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   if(!overload) {
     ADD_REF(v);
     nspc_add_value(env->curr, f->def->name, v);
-  } else if(!GET_FLAG(f->def, template)) {
+  } else /* if(!GET_FLAG(f->def, template)) */ {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
   }
@@ -355,12 +355,43 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
   const Value value = func_value(env, func, overload);
   SET_FLAG(value, checked | ae_flag_template);
   SET_FLAG(value->type, func); // the only types with func flag, name could be better
-  const Symbol sym = func_symbol(env->curr->name, func_name, "template", overload ? ++overload->offset : 0);
+  Type type = env->class_def;
+  Nspc nspc = env->curr;
+  uint i = 0;
+  do {
+    const Value v = nspc_lookup_value1(nspc, f->name);
+    if(v) {
+      Func ff = v->d.func_ref;
+      do {
+        if(ff->def == f) {
+          ++i;
+          continue;
+        }
+        m_bool ret = compat_func(ff->def, f);
+        if(ret > 0) {
+          const Symbol sym = func_symbol(env->curr->name, func_name,
+            "template", ff->vt_index);
+          nspc_add_value(env->curr, sym, value);
+          if(!overload) {
+            ADD_REF(value)
+            nspc_add_value(env->curr, f->name, value);
+          }
+          func->vt_index = ff->vt_index;
+          return GW_OK;
+        }
+      } while((ff = ff->next) && ++i);
+   }
+  } while(type && (type = type->parent) && (nspc = type->nspc));
+  --i;
+  const Symbol sym = func_symbol(env->curr->name, func_name, "template", i);
   nspc_add_value(env->curr, sym, value);
-if(!overload) {
-  ADD_REF(value)
-  nspc_add_value(env->curr, f->name, value);
-}
+   nspc_add_value(env->curr, sym, value);
+  if(!overload) {
+    func->vt_index = i;
+    ADD_REF(value)
+    nspc_add_value(env->curr, f->name, value);
+  } else
+    func->vt_index = ++overload->offset;
   return GW_OK;
 }
 
