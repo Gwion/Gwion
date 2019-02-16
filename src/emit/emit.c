@@ -396,7 +396,6 @@ ANN static m_bool prim_num(const Emitter emit, const Exp_Primary * primary) {
 
 ANN static m_bool prim_float(const Emitter emit, const Exp_Primary* primary) {
   const Instr instr = emit_add_instr(emit, RegPushImm2);
-//  *(m_float*)instr->ptr = primary->d.fnum;
   instr->f = primary->d.fnum;
   return GW_OK;
 }
@@ -696,7 +695,6 @@ assert(_instr->execute == DotTmpl);
     dt->base = f->def;
    _instr->m_val = (m_uint)dt;
     _instr->m_val2 = strlen(c);
-    *(m_int*)_instr->ptr = f->def->tmpl->base;
     return GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegPushPtr);
@@ -1161,7 +1159,6 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
   if(push) {
     emit_switch_map(push, (Map)instr->m_val2);
-//    *(m_uint*)instr->ptr = SZ_INT;
   }
   switch_end(emit->env);
   pop_vector(&emit->code->stack_break, emit_code_size(emit));
@@ -1326,8 +1323,6 @@ ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v,
       const Instr instr = emit_kind(emit, size, emit_addr, regpushimm);
       instr->m_val = (isa(v->type, t_object) > 0 ?
         (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-      *(m_uint**)instr->ptr = (m_uint*)(isa(v->type, t_object) > 0 ?
-        (m_uint*)&v->d.ptr : v->d.ptr);
       instr->m_val2 = size;
     }
     return GW_OK;
