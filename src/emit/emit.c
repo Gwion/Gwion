@@ -1357,6 +1357,8 @@ ANN static m_bool emit_VecMember(const Emitter emit, const Exp_Dot* member) {
     emit_vec_func(emit, v);
     return GW_OK;
   }
+  if(!v->offset && member->self->emit_var) // skip
+    return GW_OK;
   const Instr instr = emit_add_instr(emit, VecMember);
   instr->m_val2 = v->offset;
   instr->m_val = member->self->emit_var;
