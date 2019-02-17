@@ -77,10 +77,9 @@ struct dottmpl_ {
   Type_List tl;
 };
 ANN void free_dottmpl(struct dottmpl_*);
-#endif
-
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
+#endif
 #include "opcode.h"
 #endif
