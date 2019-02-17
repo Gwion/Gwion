@@ -304,7 +304,7 @@ regpushfloat:
   reg += SZ_FLOAT;
   DISPATCH();
 regpushother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
     *(m_bit**)(reg+i) = (m_bit*)(instr->m_val + i);
   reg += instr->m_val2;
@@ -322,7 +322,7 @@ regpushmemfloat:
   reg += SZ_FLOAT;
   DISPATCH();
 regpushmemother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
     *(m_uint*)(reg+i) = *(m_uint*)((mem + instr->m_val) + i);
   reg += instr->m_val2;
@@ -344,7 +344,7 @@ basefloat:
   reg += SZ_FLOAT;
   DISPATCH();
 baseother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
     *(m_uint*)(reg+i) = *(m_uint*)((shred->base + instr->m_val) + i);
   reg += instr->m_val2;
@@ -392,7 +392,7 @@ allocfloat:
   reg += SZ_FLOAT;
   DISPATCH()
 allocother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val; i += SZ_INT)
     *(m_uint*)(reg+i) = (*(m_uint*)(mem+instr->m_val+i) = 0);
   reg += instr->m_val2;
@@ -570,7 +570,7 @@ funcusr:
       stack_depth -= SZ_INT;
     }
     reg-=code->stack_depth;
-    LOOP_OPTIM
+//    LOOP_OPTIM
     for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
       *(m_uint*)(mem+i+f) = *(m_uint*)(reg+i);
   }
@@ -590,8 +590,7 @@ funcmember:
   register const m_uint depth = stack_depth -SZ_INT;
   reg -= stack_depth;
   *(m_uint*)m = *(m_uint*)(reg + depth);
-//  for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i < depth; i+= SZ_INT)
     *(m_uint*)(m+i+SZ_INT) = *(m_uint*)(reg+i);
   if(overflow_(m, shred))
@@ -617,7 +616,7 @@ funcstatic:
   register const m_uint stack_depth = a.code->stack_depth;
   if(stack_depth) {
     reg -= stack_depth;
-    LOOP_OPTIM
+//    LOOP_OPTIM
     for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
       *(m_uint*)(m+i) = *(m_uint*)(reg+i);
   }
@@ -640,7 +639,7 @@ sporkini:
   a.child = init_spork_shred(shred, (VM_Code)instr->m_val);
   DISPATCH()
 sporkfunc:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
     *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i - SZ_INT);
   a.child->reg += instr->m_val;
@@ -650,7 +649,7 @@ sporkthis:
   a.child->reg += SZ_INT;
   DISPATCH()
 sporkexp:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
     *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
@@ -732,7 +731,7 @@ dotfloat:
   reg += SZ_FLOAT - SZ_INT;
   DISPATCH()
 dotother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
     *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)((a.obj->data + instr->m_val) + i);
   reg += instr->m_val2 - SZ_INT;
@@ -749,7 +748,7 @@ staticfloat:
   reg += SZ_FLOAT;
   DISPATCH()
 staticother:
-  LOOP_OPTIM
+//  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
     *(m_uint*)(reg+i) = *(m_uint*)(instr->m_val + i);
   reg += instr->m_val2;

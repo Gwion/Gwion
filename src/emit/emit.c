@@ -707,11 +707,6 @@ static m_bool emit_template_code(const Emitter emit, const Func f) {
   size_t scope = emit_push(emit, v->owner_class, v->owner);
   CHECK_BB(emit_func_def(emit, f->def)) // orig
   emit_pop(emit, scope);
-if(!v->owner_class) {
-/* no need for dynamicity */
-//assert(instr->opcode != MemSetImm);
-//assert(instr->opcode == RegPushBase);
-} // else push_tmpl_func
   return push_func_code(emit, f);
 }
 
@@ -732,13 +727,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   if(!f->code || (GET_FLAG(f, ref) && !GET_FLAG(f, builtin))) {
     if(GET_FLAG(f, template) && emit->env->func != f)
       CHECK_BB(emit_template_code(emit, f))
-  }
-else if(
-(f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
-
-!f->value_ref->owner_class || GET_FLAG(f, template)
-|| (f->value_ref->owner_class && GET_FLAG(f->def, op))
-)
+  } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
+  !f->value_ref->owner_class || GET_FLAG(f, template))
     push_func_code(emit, f);
   const Instr offset = emit_add_instr(emit, RegPushImm);
   offset->m_val = emit_code_offset(emit);
@@ -821,7 +811,6 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_
 ANN static m_bool spork_code(const Emitter emit, const Stmt stmt) { GWDEBUG_EXE
   emit_add_instr(emit, RegPushImm);
   push_spork_code(emit, SPORK_CODE_PREFIX, stmt->pos);
-//  if(emit->env->class_def && !SAFE_FLAG(emit->env->func, static))
   if(!SAFE_FLAG(emit->env->func, member))
     stack_alloc_this(emit);
   CHECK_BB(scoped_stmt(emit, stmt, 0))
@@ -852,10 +841,8 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 ANN static Instr emit_flow(const Emitter emit, const Type type,
     const f_instr f1, const f_instr f2) { GWDEBUG_EXE
   if(isa(type, t_float) > 0) {
-//    emit_add_instr(emit, RegPushImm2);
     return emit_add_instr(emit, f2);
   }
-//  emit_add_instr(emit, RegPushImm);
   return emit_add_instr(emit, f1);
 }
 
@@ -1083,7 +1070,6 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   const Instr deref = emit_add_instr(emit, DotStatic);
   deref->m_val = (m_uint)counter;
   deref->m_val2 = SZ_INT;
-//  emit_add_instr(emit, RegPushImm);
   const Instr op = emit_add_instr(emit, BranchEqInt);
   const Instr dec = emit_add_instr(emit, DecIntAddr);
   dec->m_val = (m_uint)counter;
@@ -1155,7 +1141,6 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   CHECK_BB(emit_exp(emit, stmt->val, 0))
   const Instr instr = emit_add_instr(emit, BranchSwitch);
   instr->m_val2 = (m_uint)switch_map(emit->env);
-//  CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
   if(push) {
@@ -1247,8 +1232,6 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     exp->d.exp_decl.type = stmt->value->type;
     var_decl->value = stmt->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
-//    if(!emit->env->class_def)
-//      ADD_REF(stmt->value->type);
     free_exp(exp);
     if(global) {
       const M_Object o = new_object(NULL, stmt->value->type);
@@ -1494,7 +1477,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) { GWDE
 
 ANN static inline void emit_func_def_global(const Emitter emit, const Value value) { GWDEBUG_EXE
   const Instr set_mem = emit_add_instr(emit, MemSetImm);
-  set_mem->m_val = value->offset = emit_local(emit, value->type->size, 0); // size -> SZ_INT ?
+  set_mem->m_val = value->offset = emit_local(emit, SZ_INT, 0);
   set_mem->m_val2 = (m_uint)value->d.func_ref->code;
 }
 
