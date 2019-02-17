@@ -117,14 +117,13 @@ INSTR(DotTmpl) {
     char str[instr->m_val2 + strlen(t->name) + 1];
     strcpy(str, name);
     strcpy(str + instr->m_val2, t->name);
-    const Value value = nspc_lookup_value1(t->nspc, insert_symbol(str));
     const Func f = nspc_lookup_func1(t->nspc, insert_symbol(str));
     if(f) {
       if(!f->code) {
-      const Emitter emit = shred->info->vm->gwion->emit;
-emit->env->name = "runtime";
-  const Value v = f->value_ref;
-m_str start = strchr(name, '<');
+        const Emitter emit = shred->info->vm->gwion->emit;
+        emit->env->name = "runtime";
+        const Value v = f->value_ref;
+        m_str start = strchr(name, '<');
 m_str end = strchr(name, '@');
 char c[instr->m_val2];
 strcpy(c, start + 1);

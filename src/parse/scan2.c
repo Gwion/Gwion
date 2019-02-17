@@ -494,10 +494,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Symbol sym  = func_symbol(env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
     func_name = s_name(sym);
   } else {
-if(f->func)
-  func_name = f->func->name;
-else
-    func_name = func_tmpl_name(env, f);
+    if(f->func)
+      func_name = f->func->name;
+    else
+      func_name = func_tmpl_name(env, f);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);

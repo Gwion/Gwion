@@ -272,7 +272,7 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
     } else if(v->d.ptr)
       memcpy(&instr->m_val, v->d.ptr, v->type->size);
     else
-      instr->m_val = v->d.ptr;
+      instr->m_val = (m_uint)v->d.ptr;
     instr->m_val2 = size;
   }
   return GW_OK;

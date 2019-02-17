@@ -19,6 +19,7 @@
 #include "map_private.h"
 
 #include "value.h"
+#include "gack.h"
 
 
 static inline uint64_t splitmix64_stateless(uint64_t index) {
@@ -309,7 +310,7 @@ regpushother:
   reg += instr->m_val2;
   DISPATCH();
 regpushaddr:
-  *(m_bit**)reg =  &instr->m_val;
+  *(m_uint**)reg =  &instr->m_val;
   reg += SZ_INT;
   DISPATCH()
 regpushmem:

@@ -442,9 +442,9 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
    Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->name);
    if(!v)
      goto next;
-     const Func f = _find_template_match(env, v, exp);
-     if(f)
-       return f;
+   const Func f = _find_template_match(env, v, exp);
+   if(f)
+     return f;
    next:
      t = t->parent;
   }
