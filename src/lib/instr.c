@@ -45,9 +45,7 @@ INSTR(SwitchIni) {
 INSTR(BranchSwitch) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT*2);
   const Map map = *(Map*)REG(0);
-  shred->pc = map_get(map, *(m_uint*)REG(SZ_INT));
-  if(!shred->pc)
-    shred->pc = instr->m_val;
+  shred->pc = map_get(map, *(m_uint*)REG(SZ_INT)) ?: instr->m_val;
 }
 
 INSTR(AutoLoopStart) { GWDEBUG_EXE
@@ -84,18 +82,6 @@ INSTR(PutArgsInMem) { GWDEBUG_EXE
 }
 #endif
 
-Type_List tmpl_tl(const Env env, const m_str name) {
-//  const Value v = f->value_ref;
-m_str start = strchr(name, '<');
-m_str end = strchr(name, '@');
-char c[strlen(name)];
-strcpy(c, start + 1);
-c[strlen(start) - strlen(end) - 2] = '\0';
-m_uint depth;
-  return str2tl(env, c, &depth);
-}
-
-
 INSTR(PopArrayClass) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
@@ -108,70 +94,58 @@ INSTR(PopArrayClass) { GWDEBUG_EXE
 #include "emit.h"
 #include "value.h"
 #include "template.h"
+
+ANN static Func_Def from_base(const struct dottmpl_ *dt, const Type t) {
+  const Symbol sym = func_symbol(t->name, s_name(dt->base->name),
+    "template", dt->overload);
+  const Value v = nspc_lookup_value1(t->nspc, sym);
+  CHECK_OO(v)
+  const Func_Def base = v->d.func_ref->def;
+  const Func_Def def = new_func_def(base->td, insert_symbol(v->name),
+            base->arg_list, base->d.code, base->flag);
+  def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
+  SET_FLAG(def, template);
+  return def;
+}
+
 INSTR(DotTmpl) {
   const struct dottmpl_ * dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   Type t = o->type_ref;
   do {
+    const Emitter emit = shred->info->vm->gwion->emit;
+    emit->env->name = "runtime";
     char str[instr->m_val2 + strlen(t->name) + 1];
     strcpy(str, name);
     strcpy(str + instr->m_val2, t->name);
     const Func f = nspc_lookup_func1(t->nspc, insert_symbol(str));
     if(f) {
       if(!f->code) {
-        const Emitter emit = shred->info->vm->gwion->emit;
-        emit->env->name = "runtime";
-        const Value v = f->value_ref;
-        m_str start = strchr(name, '<');
-m_str end = strchr(name, '@');
-char c[instr->m_val2];
-strcpy(c, start + 1);
-c[strlen(start) - strlen(end) - 2] = '\0';
-m_uint depth;
-const Type_List tl = str2tl(emit->env, c, &depth);
-  m_uint scope = env_push_type(emit->env, v->owner_class);
-  m_bool ret = GW_ERROR;
-  if(traverse_func_template(emit->env, f->def, tl) > 0) {
-    ret = emit_func_def(emit, f->def);
-    nspc_pop_type(emit->env->curr);
-  }//}
-  env_pop(emit->env, scope);
-  free_type_list(tl);
-  if(ret < 0)
-    continue;
-
-}
+        const m_uint scope = env_push_type(emit->env, t);
+        m_bool ret = GW_ERROR;
+        if(traverse_func_template(emit->env, f->def, dt->tl) > 0) {
+          ret = emit_func_def(emit, f->def);
+          nspc_pop_type(emit->env->curr);
+        }
+        env_pop(emit->env, scope);
+        if(ret < 0)
+          continue;
+      }
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;
       return;
     } else {
-      const Emitter emit = shred->info->vm->gwion->emit;
-emit->env->name = "runtime";
-//m_str start = strchr(name, '<');
-m_str start = name;
-m_str end = strchr(name, '<');
-char c[instr->m_val2];
-strcpy(c, start);
-c[strlen(start) - strlen(end)] = '\0';
-const Symbol sym = func_symbol(o->type_ref->name, c, "template", dt->overload);
-    const Value v = nspc_lookup_value1(o->type_ref->nspc, sym);
-    if(!v)
-      continue;
-      const Func_Def base = v->d.func_ref->def; 
-      const Func_Def def = new_func_def(base->td, insert_symbol(v->name),
-                base->arg_list, base->d.code, base->flag);
-      def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
-      SET_FLAG(def, template);
-      Type_List tl = tmpl_tl(emit->env, name);
-      m_uint scope = env_push_type(emit->env, v->owner_class);
+      const Func_Def def = from_base(dt, t);
+      if(!def)
+        continue;
+      const m_uint scope = env_push_type(emit->env, t);
       m_bool ret = GW_ERROR;
-      if(traverse_func_template(emit->env, def, tl) > 0) {
+      if(traverse_func_template(emit->env, def, dt->tl) > 0) {
           ret = emit_func_def(emit, def);
           nspc_pop_type(emit->env->curr);
       }
       env_pop(emit->env, scope);
-      free_type_list(tl);
       if(ret > 0) {
         *(VM_Code*)shred->reg = def->func->code;
         shred->reg += SZ_INT;

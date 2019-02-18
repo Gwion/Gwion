@@ -679,6 +679,15 @@ ANN static m_bool is_special(const Type t) {
   return GW_ERROR;
 }
 
+ANN static Type_List tmpl_tl(const Env env, const m_str name) {
+  const m_str start = strchr(name, '<');
+  const m_str end = strchr(name, '@');
+  char c[strlen(name)];
+  strcpy(c, start + 1);
+  c[strlen(start) - strlen(end) - 2] = '\0';
+  m_uint depth;
+  return str2tl(env, c, &depth);
+}
 
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
@@ -692,6 +701,7 @@ assert(_instr->execute == DotTmpl);
     struct dottmpl_ *dt = mp_alloc(dottmpl);
     dt->name = s_name(insert_symbol(c));
     dt->overload = f->def->tmpl->base;
+    dt->tl = tmpl_tl(emit->env, c);
     dt->base = f->def;
    _instr->m_val = (m_uint)dt;
     _instr->m_val2 = strlen(c);

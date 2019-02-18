@@ -36,6 +36,11 @@ ANN static void free_code_instr(const Vector v) {
       free_code_instr_gack(instr);
     else if(instr->execute == BranchSwitch)
       free_map((Map)instr->m_val2);
+    else if(instr->execute == DotTmpl) {
+      struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
+      free_type_list(dt->tl);
+      mp_free(dottmpl, dt);
+    }
     else if(instr->execute == SwitchIni) {
       free_vector((Vector)instr->m_val);
       free_map((Map)instr->m_val2);
@@ -56,7 +61,6 @@ ANN static void free_vm_code(VM_Code a) {
     memoize_end(a->memoize);
 #endif
   if(!GET_FLAG(a, builtin))
-//  if(a->instr)
     free_code_instr(a->instr);
   free(a->name);
   mp_free(VM_Code, a);

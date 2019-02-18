@@ -72,7 +72,7 @@ INSTR(DotTmpl);
 struct dottmpl_ {
   size_t len;
   m_str name;
-  Func_Def base;
+  Func_Def base, def;
   size_t overload; // => vtindex ?
   Type_List tl;
 };
