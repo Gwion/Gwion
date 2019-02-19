@@ -1,6 +1,7 @@
 #ifndef __GWION_OPCODES__
 #define __GWION_OPCODES__
 enum {
+  RegSetImm,
   RegPushImm,
   RegPushImm2,
   RegPushImm3,
@@ -156,6 +157,7 @@ enum {
   OP_MAX,
 };
 
+#define  RegSetImm           (f_instr)RegSetImm
 #define  RegPushImm          (f_instr)RegPushImm
 #define  RegPushImm2         (f_instr)RegPushImm2
 #define  RegPushImm3         (f_instr)RegPushImm3

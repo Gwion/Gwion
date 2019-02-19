@@ -221,6 +221,7 @@ __attribute__((hot))
 
 ANN void vm_run(const VM* vm) {
   static const void* dispatch[] = {
+    &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
     &&pushnow,
@@ -295,6 +296,9 @@ clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 #endif
   do {
     register Instr instr; DISPATCH();
+regsetimm:
+  *(m_uint*)reg = instr->m_val;
+  DISPATCH();
 regpushimm:
   *(m_uint*)reg = instr->m_val;
   reg += SZ_INT;
@@ -551,7 +555,7 @@ shred->pc = pc;
 
 funcusr:
 {
-  reg -= SZ_INT * 2;
+  reg -= SZ_INT;
   register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
   mem += push;
   *(m_uint*)  mem = push;mem += SZ_INT;
@@ -581,7 +585,7 @@ funcusr:
 DISPATCH();
 funcmember:
 {
-  reg -= SZ_INT * 2;
+  reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
   register const m_uint local_depth =   *(m_uint*)(reg + SZ_INT);
   register m_bit* m = mem + local_depth;
@@ -608,7 +612,7 @@ funcmember:
 }
 funcstatic:
 {
-  reg -= SZ_INT * 2;
+  reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
   register const m_uint local_depth = *(m_uint*)(reg + SZ_INT);
   register m_bit* m = mem + local_depth;

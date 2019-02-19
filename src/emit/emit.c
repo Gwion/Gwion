@@ -188,7 +188,7 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   emit_add_instr(emit, RegDup);
   const Instr push_f = emit_add_instr(emit, RegPushImm);
   push_f->m_val = (m_uint)code;
-  const Instr offset = emit_add_instr(emit, RegPushImm);
+  const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   emit_add_instr(emit, !GET_FLAG(code, builtin) ? FuncUsr : FuncMember);
 }
@@ -314,7 +314,7 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   while((e = e->next));
   const Type type = array->type;
   const Type base = array_base(type);
-  const Instr push = emit_add_instr(emit, RegPushImm);
+  const Instr push = emit_add_instr(emit, RegSetImm);
   push->m_val = count;
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
@@ -340,7 +340,7 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) { G
     instr->m_val = is_var;
     instr->m_val2 = is_var ? SZ_INT : array->self->type->size;
   } else {
-    const Instr push = emit_add_instr(emit, RegPushImm);
+    const Instr push = emit_add_instr(emit, RegSetImm);
     push->m_val = depth;
     const Instr instr = emit_add_instr(emit, ArrayAccessMulti);
     instr->m_val = is_var || array->self->type->array_depth;
@@ -729,7 +729,7 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
     return emit_add_instr(emit, exec);
   }
   const Instr ex = emit_add_instr(emit, GWOP_EXCEPT);
-  ex->m_val = -SZ_INT*2;
+  ex->m_val = -SZ_INT;
   return emit_add_instr(emit, FuncPtr);
 }
 
@@ -740,7 +740,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
   !f->value_ref->owner_class || GET_FLAG(f, template))
     push_func_code(emit, f);
-  const Instr offset = emit_add_instr(emit, RegPushImm);
+  const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   const Instr instr = emit_call(emit, f);
   const m_uint size = instr->m_val = f->def->ret_type->size;

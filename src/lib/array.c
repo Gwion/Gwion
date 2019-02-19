@@ -254,9 +254,9 @@ INSTR(ArrayPost) { GWDEBUG_EXE
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
   const Type t = (Type)instr->m_val;
-  const m_uint sz = *(m_uint*)REG(-SZ_INT);
+  const m_uint sz = *(m_uint*)REG(0);
   const m_uint off = instr->m_val2 * sz;
-  POP_REG(shred, off /*- SZ_INT*/);
+  POP_REG(shred, off - SZ_INT);
   const M_Object obj = new_array(t, sz);
   memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
@@ -371,8 +371,8 @@ INSTR(ArrayAccess) { GWDEBUG_EXE
 #define DIM(a) gw_err("\t... at dim [%" INT_F "]\n", (a))
 
 INSTR(ArrayAccessMulti) { GWDEBUG_EXE
-  const m_uint depth = *(m_uint*)REG(-SZ_INT);
-  POP_REG(shred, SZ_INT * (depth + 2))
+  const m_uint depth = *(m_uint*)REG(0);
+  POP_REG(shred, SZ_INT * (depth + 1))
   const M_Object base = *(M_Object*)REG(0);
   M_Object obj = base;
   if(!obj)

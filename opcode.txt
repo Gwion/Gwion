@@ -1,3 +1,4 @@
+RegSetImm
 RegPushImm
 RegPushImm2
 RegPushImm3
