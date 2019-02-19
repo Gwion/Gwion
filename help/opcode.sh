@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "#ifndef __GWION_OPCODES__"
 echo "#define __GWION_OPCODES__"
 
