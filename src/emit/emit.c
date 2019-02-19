@@ -1128,7 +1128,6 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
     while((e = switch_expget(emit->env)))
       CHECK_BB(emit_exp(emit, e, 0))
     *instr = emit_add_instr(emit, SwitchIni);
-    (*instr)->m_val = (m_uint)switch_vec(emit->env);
   } else {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val = (m_uint)switch_map(emit->env);
@@ -1139,7 +1138,7 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
 ANN static void emit_switch_map(const Instr instr, const Map map) {
   const Map m = new_map();
   for(m_uint i = map_size(map) + 1; --i;)
-    map_set(m, VKEY(map, i), VVAL(map, i -1));
+    map_set(m, VKEY(map, i-1), VVAL(map, i -1));
   instr->m_val2 = (m_uint)m;
 }
 
@@ -1155,6 +1154,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
   if(push) {
     emit_switch_map(push, (Map)instr->m_val2);
+    (push)->m_val = (m_uint)switch_vec(emit->env);
   }
   switch_end(emit->env);
   pop_vector(&emit->code->stack_break, emit_code_size(emit));

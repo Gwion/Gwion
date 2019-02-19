@@ -36,7 +36,7 @@ INSTR(SwitchIni) {
   const Vector v = (Vector)instr->m_val;
   const m_uint size = vector_size(v);
   const Map m = (Map)instr->m_val2;
-  POP_REG(shred, SZ_INT * (size - 1));
+  POP_REG(shred, SZ_INT * (size-1));
   for(m_uint i = 0; i < size; ++i)
     map_set(m, *(vtype*)REG((i-1) * SZ_INT), vector_at(v, i));
   *(Map*)REG(-SZ_INT) = m;
