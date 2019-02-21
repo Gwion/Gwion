@@ -103,6 +103,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       decl_member(env->curr, v);
     else if(GET_FLAG(decl->td, static))
       decl_static(env->curr, v);
+    else if(global || (env->func && GET_FLAG(env->func->def, global)))
+      SET_FLAG(v, abstract);
     if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
   SET_FLAG(v, checked | ae_flag_used);
@@ -148,6 +150,10 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
       ERR_O(primary->self->pos,
             "non-static member '%s' used from static function.", s_name(primary->d.var))
     return v;
+  } else if(env->func && GET_FLAG(env->func->def, global)) {
+    if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
+      ERR_O(primary->self->pos,
+            "non-global variable '%s' used from global function.", s_name(primary->d.var))
   }
   return value;
 }
@@ -1087,6 +1093,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
+  else if(GET_FLAG(f, global))
+    env_push_global(env);
   const Func former = env->func;
   env->func = func;
   ++env->scope;
@@ -1105,6 +1113,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_pop_value(env->curr);
   --env->scope;
   env->func = former;
+  if(GET_FLAG(f, global))
+    env_push_global(env);
   return ret;
 }
 

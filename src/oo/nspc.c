@@ -58,9 +58,9 @@ describe_nspc_free(Func, func)
 describe_nspc_free(Type, type)
 
 ANN static void free_nspc(Nspc a) {
-  free_nspc_value(a);
   nspc_free_func(a);
   nspc_free_type(a);
+  free_nspc_value(a);
 
   if(a->class_data)
     free(a->class_data);

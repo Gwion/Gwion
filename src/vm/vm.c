@@ -563,8 +563,6 @@ funcusr:
   *(m_uint*)  mem = pc; mem += SZ_INT;
   pc = 0;
   code = *(VM_Code*)reg;
-//puts(code->name);
-//  assert(code);
   ip = code->instr->ptr + OFFSET;
   m_uint stack_depth = code->stack_depth;
   if(stack_depth) {
@@ -581,7 +579,6 @@ funcusr:
   if(overflow_(mem, shred))
     Except(shred, "StackOverflow");
 }
-//puts(code->name);
 DISPATCH();
 funcmember:
 {

@@ -515,9 +515,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)dotstatic;
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, exec);
-v->d.ptr = _mp_alloc(v->type->size);
-// here union flag is more like 'treat as builtin'
-SET_FLAG(v, builtin | ae_flag_union);
+  v->d.ptr = _mp_alloc(v->type->size);
+  SET_FLAG(v, union);
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
@@ -525,6 +524,8 @@ SET_FLAG(v, builtin | ae_flag_union);
     assign->m_val = (m_uint)emit_var;
     if(is_array && !emit->env->scope)
       ADD_REF(type)
+    const Instr instr = emit_add_instr(emit, RegAddRef);
+    instr->m_val = emit_var;
   }
   return GW_OK;
 }
@@ -1573,8 +1574,7 @@ ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def)
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit_pop_code(emit);
-//  if(!emit->env->class_def && !GET_FLAG(func_def, template))
-  if(!emit->env->class_def)
+  if(!emit->env->class_def && !GET_FLAG(func_def, global))
     emit_func_def_global(emit, func->value_ref);
   MEMOIZE_INI
   return GW_OK;

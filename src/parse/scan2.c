@@ -385,7 +385,6 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
   --i;
   const Symbol sym = func_symbol(env->curr->name, func_name, "template", i);
   nspc_add_value(env->curr, sym, value);
-   nspc_add_value(env->curr, sym, value);
   if(!overload) {
     func->vt_index = i;
     ADD_REF(value)
@@ -484,6 +483,9 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
   f->stack_depth = 0;
+  m_uint scope = env->scope;
+  if(GET_FLAG(f, global))
+    scope = env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->name);
   m_str func_name = s_name(f->name);
   if(overload)
@@ -506,12 +508,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   }
   const Func base = get_func(env, f);
   if(!base) {
-    m_uint scope = env->scope;
-    if(GET_FLAG(f, global))
-      scope = env_push_global(env);
     CHECK_OB((value = func_create(env, f, overload, func_name)))
-    if(GET_FLAG(f, global))
-      env_pop(env, scope);
   } else {
     f->func = base;
 }
@@ -524,6 +521,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       CHECK_BB(scan2_func_def_op(env, f))
     SET_FLAG(value, checked);
   }
+  if(GET_FLAG(f, global))
+    env_pop(env, scope);
   return GW_OK;
 }
 

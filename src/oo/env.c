@@ -23,8 +23,6 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
   env->type_xid = 0;
-//  scope_init(&env->swi);
-//  vector_pop((Vector)&env->swi);
   vector_init((Vector)&env->swi);
   map_init(&env->swi.map);
 
@@ -48,10 +46,10 @@ ANN void env_reset(const Env env) {
 
 ANN void free_env(const Env a) {
   const m_uint size = vector_size(&a->known_ctx);
-  for(m_uint i = 0; i < size; i++)
-    REM_REF((Context)vector_at(&a->known_ctx, i));
-  REM_REF(a->global_nspc);
+  for(m_uint i = size + 1; --i;)
+    REM_REF((Context)vector_at(&a->known_ctx, i - 1));
   vector_release(&a->known_ctx);
+  REM_REF(a->global_nspc);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
