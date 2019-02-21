@@ -1130,7 +1130,7 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
       CHECK_BB(emit_exp(emit, e, 0))
     *instr = emit_add_instr(emit, SwitchIni);
   } else {
-    const Instr instr = emit_add_instr(emit, RegPushImm);
+    const Instr instr = emit_add_instr(emit, RegSetImm);
     instr->m_val = (m_uint)switch_map(emit->env);
   }
   return GW_OK;
@@ -1146,9 +1146,9 @@ ANN static void emit_switch_map(const Instr instr, const Map map) {
 ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) { GWDEBUG_EXE
   switch_get(emit->env, stmt);
   Instr push = NULL;
+  CHECK_BB(emit_exp(emit, stmt->val, 0))
   CHECK_BB(emit_switch_instr(emit, &push))
   vector_add(&emit->code->stack_break, (vtype)NULL);
-  CHECK_BB(emit_exp(emit, stmt->val, 0))
   const Instr instr = emit_add_instr(emit, BranchSwitch);
   instr->m_val2 = (m_uint)switch_map(emit->env);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))

@@ -532,11 +532,11 @@ firmul: FI_R(*)
 firdiv: FI_R(/)
 
 itof:
-  reg -=SZ_INT - SZ_FLOAT;
+  reg -= SZ_INT - SZ_FLOAT;
   *(m_float*)(reg-SZ_FLOAT) = (m_float)*(m_int*)(reg-SZ_FLOAT);
   DISPATCH()
 ftoi:
-  reg -= SZ_FLOAT -SZ_INT;
+  reg -= SZ_FLOAT - SZ_INT;
   *(m_int*)(reg-SZ_INT) = (m_int)*(m_float*)(reg-SZ_INT);
   DISPATCH()
 
@@ -756,11 +756,9 @@ staticother:
   DISPATCH()
 dotfunc:
   assert(a.obj);
-//  *(VM_Code*)(reg) = ((Func)vector_at(&a.obj->type_ref->nspc->vtable, instr->m_val))->code;
   *(VM_Code*)(reg) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   reg += SZ_INT;
   DISPATCH()
-//dottemplate:
 staticcode:
   (*(VM_Code*)reg = ((Func)instr->m_val)->code);
   reg += SZ_INT;

@@ -36,16 +36,16 @@ INSTR(SwitchIni) {
   const Vector v = (Vector)instr->m_val;
   const m_uint size = vector_size(v);
   const Map m = (Map)instr->m_val2;
-  POP_REG(shred, SZ_INT * (size-1));
+  POP_REG(shred, SZ_INT * (size));
   for(m_uint i = 0; i < size; ++i)
-    map_set(m, *(vtype*)REG((i-1) * SZ_INT), vector_at(v, i));
-  *(Map*)REG(-SZ_INT) = m;
+    map_set(m, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
+  *(Map*)REG(0) = m;
 }
 
 INSTR(BranchSwitch) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT*2);
-  const Map map = *(Map*)REG(0);
-  shred->pc = map_get(map, *(m_uint*)REG(SZ_INT)) ?: instr->m_val;
+  POP_REG(shred, SZ_INT);
+  const Map map = *(Map*)REG(SZ_INT);
+  shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;
 }
 
 INSTR(AutoLoopStart) { GWDEBUG_EXE

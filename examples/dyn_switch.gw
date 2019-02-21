@@ -1,5 +1,4 @@
-3 => 
-const int i;
+3 => const int i;
 2 => const int y;
 switch(i) {
   case 1: <<<1>>>;break;
