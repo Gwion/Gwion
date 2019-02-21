@@ -729,8 +729,8 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
        FuncMember : FuncStatic : FuncUsr;
     return emit_add_instr(emit, exec);
   }
-  const Instr ex = emit_add_instr(emit, GWOP_EXCEPT);
-  ex->m_val = -SZ_INT;
+  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
+//  ex->m_val = -SZ_INT;
   return emit_add_instr(emit, FuncPtr);
 }
 
@@ -1420,8 +1420,8 @@ ANN static m_bool emit_dot_static_func(const Emitter emit, const Func func) { GW
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
   if(emit_exp(emit, member->base, 0) < 0)
     ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
-  const Instr ex = emit_add_instr(emit, GWOP_EXCEPT);
-  ex->m_val = -SZ_INT;
+  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
+  //ex->m_val = -SZ_INT;
   if(GET_FLAG(member->base->type, force)) {
     const Instr func_i = emit_add_instr(emit, RegPushImm);
     func_i->m_val = (m_uint)func->code;
@@ -1437,8 +1437,8 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
 }
 
 ANN static inline void emit_member(const Emitter emit, const Value v, const uint emit_addr) {
-  const Instr ex = emit_add_instr(emit, GWOP_EXCEPT);
-  ex->m_val = -SZ_INT;
+  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
+  //ex->m_val = -SZ_INT;
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->offset;

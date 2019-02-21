@@ -716,7 +716,7 @@ remref:
   release(*(M_Object*)(mem + instr->m_val), shred);
   DISPATCH()
 except:
-  if(!(a.obj  = *(M_Object*)(reg+instr->m_val)))
+  if(!(a.obj  = *(M_Object*)(reg-SZ_INT)))
     Except(shred, "NullPtrException");
   DISPATCH();
 allocmemberaddr:
