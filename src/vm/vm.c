@@ -228,7 +228,7 @@ ANN void vm_run(const VM* vm) {
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
     &&regdup,
     &&memsetimm,
-    &&regpop, &&regpushptr, &&regpushme, &&regpushmaybe,
+    &&regpop, &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
     &&allocint, &&allocfloat, &&allocother, &&allocaddr,
@@ -367,9 +367,6 @@ memsetimm:
 regpop:
   reg -= instr->m_val;
   DISPATCH();
-regpushptr:
-  *(m_uint*)(reg-SZ_INT) = instr->m_val;
-  DISPATCH()
 regpushme:
   *(M_Object*)reg = shred->info->me;
   reg += SZ_INT;

@@ -18,7 +18,6 @@ enum {
   RegDup,
   MemSetImm,
   RegPop,
-  RegPushPtr,
   RegPushMe,
   RegPushMaybe,
   FuncReturn,
@@ -174,7 +173,6 @@ enum {
 #define  RegDup              (f_instr)RegDup
 #define  MemSetImm           (f_instr)MemSetImm
 #define  RegPop              (f_instr)RegPop
-#define  RegPushPtr          (f_instr)RegPushPtr
 #define  RegPushMe           (f_instr)RegPushMe
 #define  RegPushMaybe        (f_instr)RegPushMaybe
 #define  FuncReturn          (f_instr)FuncReturn

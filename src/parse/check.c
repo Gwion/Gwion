@@ -364,6 +364,9 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, const Exp e
 }
 
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
+  ae_exp_t et = exp->func->exp_type;
+  if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
+    ERR_B(exp->func->pos, "invalid expression for function call.")
   CHECK_OB(check_exp(env, exp->func))
   return exp->args ? !!check_exp(env, exp->args) : -1;
 }
@@ -553,7 +556,6 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   Tmpl_Call tmpl = { .types=tl[0] };
   const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl, .self=base };
   const Func func = get_template_func(env, &tmp_func, base, value);
-//exit(2);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
   else // if(base->exp_type == ae_exp_binary)

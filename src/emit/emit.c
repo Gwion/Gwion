@@ -708,9 +708,15 @@ assert(_instr->execute == DotTmpl);
     _instr->m_val2 = strlen(c);
     return GW_OK;
   }
-  const Instr instr = emit_add_instr(emit, RegPushPtr);
-  return !!(instr->m_val = (m_uint)f->code);
+  const Instr _instr = (Instr)vector_back(&emit->code->instr);
+  if(_instr->opcode == (m_bit)(m_uint)RegPushImm)
+    return !!(_instr->m_val = (m_uint)f->code);
+  assert(_instr->opcode == (m_bit)(m_uint)RegPushBase);
+  _instr->m_val = (m_uint)f->code;
+  _instr->opcode = (m_bit)(m_uint)RegPushImm;
+  return GW_OK;
 }
+
 static m_bool emit_template_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, ref))
     CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->def))
@@ -1574,7 +1580,7 @@ ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def)
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit_pop_code(emit);
-  if(!emit->env->class_def && !GET_FLAG(func_def, global))
+  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl)
     emit_func_def_global(emit, func->value_ref);
   MEMOIZE_INI
   return GW_OK;
