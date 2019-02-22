@@ -29,7 +29,9 @@
 #define VMBENCH_END
 #endif
 
+#include "gwion.h"
 #include "plug.h"
+#include "module.h"
 
 extern void parse_args(Arg*, DriverInfo*);
 static VM* some_static_vm;
@@ -38,7 +40,6 @@ static void sig(int unused __attribute__((unused))) {
   some_static_vm->is_running = 0;
 }
 
-#include "gwion.h"
 int main(int argc, char** argv) {
   Driver d = { };
   Arg arg = { .argc = argc, .argv=argv, .loop=-1, .quit=0};
@@ -73,8 +74,9 @@ struct Gwion_ gwion;
   shreduler_set_loop(gwion.vm->shreduler, arg.loop);
   if(d.ini(gwion.vm, &di) < 0 || !(gwion.vm->bbq = new_bbq(&di)))
     goto clean;
-  if(type_engine_init(gwion.vm, &pi[1]) < 0)
+  if(type_engine_init(gwion.vm, &pi[GWPLUG_IMPORT]) < 0)
     goto clean;
+  module_ini(&gwion, &pi[GWPLUG_MODULE], &arg.mod);
   srand((uint)time(NULL));
   for(m_uint i = 0; i < vector_size(&arg.add); i++)
     compile_filename(&gwion, (m_str)vector_at(&arg.add, i));
@@ -86,7 +88,7 @@ clean:
   arg_release(&arg);
   if(d.del)
     d.del(gwion.vm, &di);
-  plug_end(pi);
+  plug_end(&gwion, pi);
   gwion_release(&gwion);
   return 0;
 }

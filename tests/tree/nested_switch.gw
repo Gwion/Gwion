@@ -1,5 +1,3 @@
-// [skip]
-// [contains] swith inside an other switch
 switch(maybe) {
   case 1: <<<1>>>;break;
   case 0:

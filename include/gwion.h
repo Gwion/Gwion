@@ -2,6 +2,9 @@
 #define __GWION
 typedef struct Gwion_* Gwion;
 struct Gwion_ {
+// Vector args
+// PlugInfo
+// => Vector v[GWION_NVEC];
 // sym
 // mem
 // rnd

@@ -14,6 +14,7 @@ ANN void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->rem);
   vector_init(&arg->lib);
+  vector_init(&arg->mod);
   vector_add(&arg->lib, (vtype)GWPLUG_DIR);
   arg->ref = &arg->add;
 }
@@ -22,6 +23,7 @@ ANN void arg_release(Arg* arg) {
   vector_release(&arg->add);
   vector_release(&arg->rem);
   vector_release(&arg->lib);
+  vector_release(&arg->mod);
 }
 
 static const struct option long_option[] = {
@@ -48,6 +50,7 @@ static const struct option long_option[] = {
   { "help",     0, NULL, '?' },
   { "version",  0, NULL, 'v' },
   { "config",   0, NULL, 'C' },
+  { "module",   0, NULL, 'm' },
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -136,7 +139,7 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
 
 ANN void parse_args(Arg* arg, DriverInfo* di) {
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:P:C ",
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:m:P:C ",
       long_option, &index)) != -1) {
     switch(i) {
       case '?':
@@ -154,6 +157,9 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
         break;
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);
+        break;
+      case 'm':
+        vector_add(&arg->mod, (vtype)optarg);
         break;
       default:
         arg_drvr(di, i);

@@ -6,6 +6,7 @@ typedef struct {
   struct Vector_ add;
   struct Vector_ rem;
   struct Vector_ lib;
+  struct Vector_ mod;
   Vector ref;
   m_bool loop;
   unsigned quit : 1;
