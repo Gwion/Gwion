@@ -91,6 +91,7 @@ ANN static Vector get_arg(const m_str name, const Vector v) {
         vector_add(args, (vtype)strdup(strsep(&d, ",")));
       free(d);
       free(c);
+      vector_rem(v, i-1);
       return args;
     }
   }
