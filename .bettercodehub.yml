@@ -8,6 +8,7 @@ languages:
       exclude:
         - /src/drvr/.*\.c
         - /src/vm/vm.c
+        - include/.*\.h
     test:
       include:
         - /tests/test_plugins/.*\.c
