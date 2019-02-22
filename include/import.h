@@ -34,8 +34,6 @@ typedef struct Gwi_* Gwi;
 ANN VM* gwi_vm(const Gwi);
 ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
 ANN m_int gwi_add_type(const Gwi gwi, Type type);
-ANN2(1,2,3)m_int gwi_add_value(const Gwi gwi, const m_str name, Type type, const m_bool is_const, void* data);
-
 ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor);
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
 ANN m_int gwi_class_end(const Gwi gwi);

@@ -75,16 +75,6 @@ ANN void env_pop(const Env env, const m_uint scope) {
   env->scope = scope;
 }
 
-ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,
-      const m_bool is_const, void* data) {
-  const Value v = new_value(env->gwion, type, name);
-  ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
-  v->flag = flag;
-  v->d.ptr = data;
-  v->owner = env->global_nspc;
-  nspc_add_value(env->global_nspc, insert_symbol(name), v);
-}
-
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(t_class);
   v_type->d.base_type = type;

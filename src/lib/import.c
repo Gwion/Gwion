@@ -636,8 +636,3 @@ ANN m_int gwi_enum_end(const Gwi gwi) {
   free_stmt(stmt);
   return GW_OK;
 }
-
-m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* value) {
-  env_add_value(gwi->env, name, type, is_const, value);
-  return GW_OK;
-}
