@@ -81,8 +81,8 @@ ANN static Vector get_arg(const m_str name, const Vector v) {
   const size_t len = strlen(name);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const m_str str = (m_str)vector_at(v, i - 1);
-    const m_str arg = strchr(str, '=');
     if(!strncmp(name, str, len)) {
+      const m_str arg = strchr(str, '=');
       m_str c, d = strdup(arg+1);
       c = d;
       const Vector args = new_vector();
