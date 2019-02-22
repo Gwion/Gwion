@@ -9,9 +9,10 @@ languages:
         - /src/drvr/.*\.c
         - /src/vm/vm.c
         - /include/.*\.h
+        - /tests/import/.*\.c
     test:
       include:
-        - /tests/test_plugins/.*\.c
+        - /tests/import/.*\.c
 
   - name: go
     production:
