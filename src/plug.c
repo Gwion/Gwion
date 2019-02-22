@@ -13,7 +13,6 @@
 #include "import.h"
 #include "gwion.h"
 #include "plug.h"
-#include "module.h"
 
 static inline int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
@@ -65,7 +64,8 @@ void plug_ini(PlugInfo v, Vector list) {
   }
 }
 
-void plug_end(const Gwion gwion, PlugInfo v) {
+void plug_end(const Gwion gwion) {
+  struct Vector_ *v = gwion->plug;
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_MODULE]); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
     if(plug->end)
@@ -98,7 +98,8 @@ ANN static Vector get_arg(const m_str name, const Vector v) {
   return NULL;
 }
 
-void module_ini(const Gwion gwion, Vector v, Vector args) {
+void module_ini(const Gwion gwion, Vector args) {
+  Vector v = &gwion->plug[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
     const Vector arg = get_arg(plug->name, args);

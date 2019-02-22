@@ -4,8 +4,6 @@
 #include "vm.h"
 #include "env.h"
 #include "gwion.h"
-#include "plug.h"
-#include "module.h"
 
 GWMODNAME("basic_module")
 
