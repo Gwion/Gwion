@@ -12,7 +12,6 @@
 #include "object.h"
 #include "import.h"
 #include "gwion.h"
-#include "plug.h"
 
 static inline int so_filter(const struct dirent* dir) {
   return strstr(dir->d_name, ".so") ? 1 : 0;
