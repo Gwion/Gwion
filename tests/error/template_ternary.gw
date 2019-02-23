@@ -1,3 +1,4 @@
+// [contains] invalid expression for function call
 template<~A~>
 function void test(A a){}
 

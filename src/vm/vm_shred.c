@@ -10,44 +10,48 @@
 #include "object.h"
 
 struct Stack_ {
-//  VM_Shred shred;
+  VM_Shred shred;
   char c[SIZEOF_REG];
   char d[SIZEOF_MEM];
 };
 
-VM_Shred new_vm_shred(VM_Code c) {
-  const VM_Shred shred = mp_alloc(VM_Shred);
-  shred->_reg          = mp_alloc(Stack);
-//  const VM_Shred shred = mp_alloc(Stack);
-//  shred->reg           = (m_bit*)shred + sizeof(struct VM_Shred_);
-  shred->mem           = shred->_reg + SIZEOF_REG;
-  shred->reg = shred->_reg;
-  shred->base          = shred->mem;
-//  shred->_mem          = shred->base;
-  shred->code          = c;
-  shred->name          = strdup(c->name);
-  vector_init(&shred->gc);
-  return shred;
+static inline struct ShredInfo_ *new_shredinfo(const m_str name) {
+  struct ShredInfo_ *info = mp_alloc(ShredInfo);
+  info->name = strdup(name);
+  return info;
 }
 
-static void vm_shred_free_args(Vector v) {
-  LOOP_OPTIM
-  for(m_uint i = vector_size(v) + 1; --i;)
-    free((void*)vector_at(v, i - 1));
-  free_vector(v);
+static inline void free_shredinfo(struct ShredInfo_ *info, const VM_Shred shred) {
+  free(info->name);
+  release(info->me, shred);
+  if(info->args) {
+    const Vector v = info->args;
+    LOOP_OPTIM
+    for(m_uint i = vector_size(v) + 1; --i;)
+      free((void*)vector_at(v, i - 1));
+    free_vector(v);
+  }
+  mp_free(ShredInfo, info);
+}
+
+VM_Shred new_vm_shred(VM_Code c) {
+  const VM_Shred shred = mp_alloc(Stack);
+  shred->code          = c;
+  shred->reg           = (m_bit*)shred + sizeof(struct VM_Shred_);
+  shred->base = shred->mem = shred->reg + SIZEOF_REG;
+  shred->tick = mp_alloc(ShredTick);
+  shred->tick->self = shred;
+  shred->info = new_shredinfo(c->name);
+  vector_init(&shred->gc);
+  return shred;
 }
 
 void free_vm_shred(VM_Shred shred) {
   for(m_uint i = vector_size(&shred->gc) + 1; --i;)
     release((M_Object)vector_at(&shred->gc, i - 1), shred);
   vector_release(&shred->gc);
-  release(shred->me, shred);
-  mp_free(Stack, shred->_reg);
-//  mp_free(Stack, shred->mem);
   REM_REF(shred->code);
-  free(shred->name);
-  if(shred->args)
-    vm_shred_free_args(shred->args);
-  mp_free(VM_Shred, shred);
-//  mp_free(Stack, shred);
+  mp_free(ShredTick, shred->tick);
+  free_shredinfo(shred->info, shred);
+  mp_free(Stack, shred);
 }

@@ -46,7 +46,7 @@ static inline void print_polar(const m_complex c) {
   gw_out("*pi)");
 }
 
-static inline void print_vec(const m_bit* f, const m_uint size) {
+ANN static inline void print_vec(const m_bit* f, const m_uint size) {
   gw_out("@(");
   for(m_uint i = 0; i < size; i++) {
     print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
@@ -64,20 +64,20 @@ static inline void print_string(const M_Object obj) {
   print_string1(obj ? STRING(obj) : "(null string)");
 }
 
-static inline void print_object(const Type type, const M_Object obj) {
+ANN2(1) static inline void print_object(const Type type, const M_Object obj) {
   if(isa(type, t_string) > 0)
     print_string(obj);
   else
     gw_out("%p", (void*)obj);
 }
 
-static inline void print_func(const Type type, const m_bit* stack) {
+ANN static inline void print_func(const Type type, const m_bit* stack) {
   const VM_Code code = isa(type, t_fptr) > 0 ?
     *(VM_Code*)stack : type->d.func->code;
   gw_out("%s %p", type->name, (void*)code);
 }
 
-static void print_prim(const Type type, const m_bit* stack) {
+ANN static void print_prim(const Type type, const m_bit* stack) {
   if(isa(type, t_int) > 0)
     print_int(*(m_int*)stack);
   else if(isa(type, t_complex) > 0)
@@ -92,24 +92,24 @@ static void print_prim(const Type type, const m_bit* stack) {
    print_float(*(m_float*)stack);
 }
 
-INSTR(Gack) { GWDEBUG_EXE
-  const Vector v = *(Vector*)instr->ptr;
-  const m_uint size = vector_size(v);
+ANN void gack(const m_bit* reg, const Instr instr) {
   m_uint offset = instr->m_val;
+  const Vector v = (Vector)instr->m_val2;
+  const m_uint size = vector_size(v);
   for(m_uint i = size + 1; --i;) {
     const Type type = (Type)vector_at(v, size - i);
     if(size == 1)
       print_type(type);
     if(isa(type, t_object) > 0)
-      print_object(type, *(M_Object*)REG(-offset));
+      print_object(type, *(M_Object*)(reg-offset));
     else if(isa(type, t_function) > 0)
-      print_func(type, REG(-offset));
+      print_func(type, (reg-offset));
     else if(isa(type, t_class) > 0)
       print_type(type->d.base_type);
     else if(isa(type, t_void) > 0)
       print_string1("void");
     else
-      print_prim(type, REG(-offset));
+      print_prim(type, (reg-offset));
     offset -= type->size;
   }
   gw_out("\n");

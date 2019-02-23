@@ -6,6 +6,14 @@
 #include "type.h"
 #include "nspc.h"
 
+ANN static void free_type(Type a) {
+  if(GET_FLAG(a, template))
+    free_class_def(a->def);
+  if(a->nspc)
+    REM_REF(a->nspc);
+  mp_free(Type, a);
+}
+
 ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   const Type type = mp_alloc(Type);
   type->xid    = xid;
@@ -13,16 +21,8 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   type->parent = parent;
   if(type->parent)
     type->size = parent->size;
-  INIT_OO(type, e_type_obj);
+  INIT_OO(type, free_type);
   return type;
-}
-
-ANN void free_type(Type a) {
-  if(GET_FLAG(a, template))
-    free_class_def(a->def);
-  if(a->nspc)
-    REM_REF(a->nspc);
-  mp_free(Type, a);
 }
 
 ANN Type type_copy(const Type type) {

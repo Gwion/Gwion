@@ -1,0 +1,4 @@
+// [contains] cannot extend itself
+class C extends C {
+
+}

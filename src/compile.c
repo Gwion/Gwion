@@ -74,7 +74,7 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
      gw_err("while compiling file '%s'\n", c->base);
   else {
     const VM_Shred shred = new_vm_shred(code);
-    shred->args = c->args;
+    shred->info->args = c->args;
     xid = vm_add_shred(gwion->vm, shred);
   }
   compiler_clean(c);

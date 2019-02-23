@@ -161,11 +161,6 @@ describe_string_plus(Vec4_, SZ_VEC4, m_vec4,,
 describe_string_plus(Object_, SZ_INT, M_Object, release(lhs, shred),
   11, "%p", (void*)lhs)
 
-INSTR(RegPushStr) { GWDEBUG_EXE
-  *(M_Object*)REG(0) = new_string2(shred, (m_str)instr->m_val);
-  PUSH_REG(shred, SZ_INT);
-}
-
 static CTOR(string_ctor) {
   STRING(o) = "";
 }

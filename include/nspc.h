@@ -17,7 +17,6 @@ struct Nspc_ {
 };
 
 extern ANEW ANN Nspc new_nspc(const m_str name);
-extern ANN void free_nspc(const Nspc a);
 
 extern ANN void nspc_commit(const Nspc);
 //extern ANN void nspc_rollback(const Nspc);

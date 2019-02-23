@@ -141,7 +141,7 @@ ANN Map switch_map(const Env env) {
 
 ANN Vector switch_vec(const Env env) {
   const Switch sw = (Switch)vector_back((Vector)&env->swi);
-  return sw->vec; // new_vector(); // dyn only
+  return vector_copy(sw->vec); // new_vector(); // dyn only
 }
 
 ANN m_uint switch_idx(const Env env) {

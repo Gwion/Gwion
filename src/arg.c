@@ -1,27 +1,24 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <getopt.h>
 #include <string.h>
 #include "gwion_util.h"
-#include "gwion_ast.h"
-#include "map_private.h"
-#include "arg.h"
 #include "oo.h"
 #include "vm.h"
 #include "driver.h"
+#include "arg.h"
 
-ANN void arg_init(Arg* arg) {
+ANN static void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->rem);
   vector_init(&arg->lib);
+  vector_init(&arg->mod);
   vector_add(&arg->lib, (vtype)GWPLUG_DIR);
-  arg->ref = &arg->add;
 }
 
 ANN void arg_release(Arg* arg) {
   vector_release(&arg->add);
   vector_release(&arg->rem);
   vector_release(&arg->lib);
+  vector_release(&arg->mod);
 }
 
 static const struct option long_option[] = {
@@ -48,6 +45,7 @@ static const struct option long_option[] = {
   { "help",     0, NULL, '?' },
   { "version",  0, NULL, 'v' },
   { "config",   0, NULL, 'C' },
+  { "module",   0, NULL, 'm' },
   /*  { "status"  , 0, NULL, '%' },*/
   { NULL,       0, NULL, 0   }
 };
@@ -79,16 +77,17 @@ static const char usage[] =
 ;
 
 ANN static void arg_add(Arg* arg) {
+  Vector ref = &arg->add;
   while(optind < arg->argc) {
     m_str str = arg->argv[optind++];
     if(!strcmp(str, "-")) {
-      arg->ref = &arg->rem;
+      ref = &arg->rem;
       str = arg->argv[optind++];
     } else if(!strcmp(str, "+")) {
-      arg->ref = &arg->add;
+      ref = &arg->add;
       str = arg->argv[optind++];
     }
-    vector_add(arg->ref, (vtype)str);
+    vector_add(ref, (vtype)str);
   }
 }
 
@@ -134,9 +133,11 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
   }
 }
 
-ANN void parse_args(Arg* arg, DriverInfo* di) {
+ANN uint parse_args(Arg* arg, DriverInfo* di) {
+  uint quit = 0;
   int i, index;
-  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:P:C ",
+  arg_init(arg);
+  while((i = getopt_long(arg->argc, arg->argv, "?vqh:p:i:o:n:b:e:s:d:l:g:-:rc:f:m:P:C ",
       long_option, &index)) != -1) {
     switch(i) {
       case '?':
@@ -147,7 +148,7 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
         exit(1);
         break;
       case 'q':
-        arg->quit  = 1;
+        quit  = 1;
         break;
       case 'l':
         arg->loop = strtol(optarg, NULL, 10) > 0 ? 1 : -1;
@@ -155,9 +156,13 @@ ANN void parse_args(Arg* arg, DriverInfo* di) {
       case 'P':
         vector_add(&arg->lib, (vtype)optarg);
         break;
+      case 'm':
+        vector_add(&arg->mod, (vtype)optarg);
+        break;
       default:
         arg_drvr(di, i);
     }
   }
   arg_add(arg);
+  return quit;
 }

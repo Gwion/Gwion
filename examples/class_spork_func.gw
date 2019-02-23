@@ -5,7 +5,7 @@ class C
     samp => now;
     <<<"and now">>>;
   }
-  spork  test();
+  spork  this.test();
 }
 
 C c;

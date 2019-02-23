@@ -166,9 +166,8 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
 ANN static m_bool mk_xtor(const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
-  *code = new_vm_code(NULL, SZ_INT, 1, name);
+  *code = new_vm_code(NULL, SZ_INT, e | ae_flag_member | ae_flag_builtin, name);
   (*code)->native_func = (m_uint)d;
-  (*code)->flag = (e | ae_flag_member | ae_flag_builtin);
   type->flag |= e;
   return GW_OK;
 }
@@ -353,7 +352,7 @@ static Array_Sub make_dll_arg_list_array(Array_Sub array_sub,
   return array_sub;
 }
 
-ANN static Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
+ANN /*static */ Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
   Type_Decl* td = str2decl(env, s, depth);
   td->array = make_dll_arg_list_array(NULL, depth, 0);
   return new_type_list(td, NULL);
@@ -635,10 +634,5 @@ ANN m_int gwi_enum_end(const Gwi gwi) {
   }
   import_enum_end(gwi, &stmt->d.stmt_enum.values);
   free_stmt(stmt);
-  return GW_OK;
-}
-
-m_int gwi_add_value(Gwi gwi, const m_str name, Type type, const m_bool is_const, void* value) {
-  env_add_value(gwi->env, name, type, is_const, value);
   return GW_OK;
 }

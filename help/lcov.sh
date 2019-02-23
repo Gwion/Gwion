@@ -4,17 +4,6 @@ OUTFILE=lcov/lcov.info
 
 [ -d lcov ] || mkdir lcov
 
-#[ -z "$TRAVIS_BUILD_DIR" ] || {
-#  BASE_DIR=$PWD
-#  cd tests/test_plugin || return
-#  for file in *.c
-#  do
-#    sed 's/\.c//' <<< "$file"
-#    test_test_plugin "$(sed 's/\.c//' <<< "$file")"
-#  done
-#  cd "$BASE_DIR" || return
-#}
-
 lcov --no-external --capture --directory src --output-file "$OUTFILE"
 
 [ -z "$TRAVIS_BUILD_DIR" ] || {

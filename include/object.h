@@ -4,6 +4,8 @@ typedef struct M_Object_  * M_Object;
 struct M_Object_ {
   m_bit* data;
   Type type_ref;
+//  Nspc nspc;//
+  Vector vtable;
   struct pool* p;
   size_t ref;
 };

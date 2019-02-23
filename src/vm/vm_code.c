@@ -12,21 +12,8 @@
 #include "array.h"
 #include "memoize.h"
 
-VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
-    const m_bool need_this, const m_str name) {
-  VM_Code code           = mp_alloc(VM_Code);
-  code->instr            = instr ?  vector_copy(instr) : NULL;
-  code->name             = strdup(name);
-  code->stack_depth      = stack_depth;
-  code->native_func      = 0;
-  if(need_this)
-    SET_FLAG(code, member);
-  INIT_OO(code, e_code_obj)
-  return code;
-}
-
 ANN static void free_code_instr_gack(const Instr instr) {
-  const Vector v = *(Vector*)instr->ptr;
+  const Vector v = (Vector)instr->m_val2;
   for(m_uint i = vector_size(v) + 1; --i;)
     REM_REF(((Type)vector_at(v, i - 1)));
   free_vector(v);
@@ -41,20 +28,23 @@ ANN static void free_array_info(ArrayInfo* info) {
 ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
-    if(instr->execute == SporkExp)
-      REM_REF((VM_Code)instr->m_val2)
-    else if(instr->execute == SporkFunc)
-      REM_REF((VM_Code)instr->m_val2)
+    if(instr->opcode == (m_uint)SporkIni)
+      REM_REF((VM_Code)instr->m_val)
     else if(instr->execute == ArrayAlloc)
-      free_array_info(*(ArrayInfo**)instr->ptr);
-    else if(instr->execute == Gack)
+      free_array_info((ArrayInfo*)instr->m_val);
+    else if(instr->opcode == (m_uint)Gack)
       free_code_instr_gack(instr);
     else if(instr->execute == BranchSwitch)
       free_map((Map)instr->m_val2);
+    else if(instr->execute == DotTmpl) {
+      struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
+      free_type_list(dt->tl);
+      mp_free(dottmpl, dt);
+    }
     else if(instr->execute == SwitchIni) {
       free_vector((Vector)instr->m_val);
       free_map((Map)instr->m_val2);
-    } else if(instr->execute == InitLoopCounter)
+    } else if(instr->opcode == (m_uint)InitLoopCounter)
       free((m_int*)instr->m_val);
     else if(instr->execute == VarargIni) {
       if(instr->m_val2)
@@ -65,13 +55,25 @@ ANN static void free_code_instr(const Vector v) {
   free_vector(v);
 }
 
-void free_vm_code(VM_Code a) {
+ANN static void free_vm_code(VM_Code a) {
 #ifndef NOMEMOIZE
   if(a->memoize)
     memoize_end(a->memoize);
 #endif
-  if(a->instr)
+  if(!GET_FLAG(a, builtin))
     free_code_instr(a->instr);
   free(a->name);
   mp_free(VM_Code, a);
 }
+
+VM_Code new_vm_code(const Vector instr, const m_uint stack_depth,
+    const ae_flag flag, const m_str name) {
+  VM_Code code           = mp_alloc(VM_Code);
+  code->instr            = instr ?  vector_copy(instr) : NULL;
+  code->name             = strdup(name);
+  code->stack_depth      = stack_depth;
+  code->flag = flag;
+  INIT_OO(code, free_vm_code)
+  return code;
+}
+

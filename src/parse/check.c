@@ -103,6 +103,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       decl_member(env->curr, v);
     else if(GET_FLAG(decl->td, static))
       decl_static(env->curr, v);
+    else if(global || (env->func && GET_FLAG(env->func->def, global)))
+      SET_FLAG(v, abstract);
     if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
   SET_FLAG(v, checked | ae_flag_used);
@@ -148,6 +150,10 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
       ERR_O(primary->self->pos,
             "non-static member '%s' used from static function.", s_name(primary->d.var))
     return v;
+  } else if(env->func && GET_FLAG(env->func->def, global)) {
+    if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
+      ERR_O(primary->self->pos,
+            "non-global variable '%s' used from global function.", s_name(primary->d.var))
   }
   return value;
 }
@@ -358,6 +364,9 @@ ANN2(1, 2) static Func find_func_match(const Env env, const Func up, const Exp e
 }
 
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
+  ae_exp_t et = exp->func->exp_type;
+  if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
+    ERR_B(exp->func->pos, "invalid expression for function call.")
   CHECK_OB(check_exp(env, exp->func))
   return exp->args ? !!check_exp(env, exp->args) : -1;
 }
@@ -368,7 +377,7 @@ ANN static inline Value template_get_ready(const Value v, const m_str tmpl, cons
       nspc_lookup_value1(v->owner, sym);
 }
 
-ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   const Exp args = exp->args;
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func;
@@ -385,15 +394,25 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
         return env->func;
       }
       base = def = value->d.func_ref->def;
+if(!def->tmpl) {
+      if(!(value = template_get_ready(v, "template", i)))
+        continue;
+      base = value->d.func_ref->def;
+      def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
+}
     } else {
       if(!(value = template_get_ready(v, "template", i)))
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
+//      def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
+//create = 1;
+//assert(base->tmpl);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
+//assert(def->tmpl);
     if(traverse_func_template(env, def, types) > 0) {
       nspc_pop_type(env->curr);
       if(check_call(env, exp) > 0) {
@@ -402,21 +421,47 @@ ANN Func find_template_match(const Env env, const Value v, const Exp_Call* exp) 
         m_func = find_func_match(env, def->func, args);
         def->func->next = next;
         if(m_func) {
+if(!m_func->def->ret_type) {
+if(!m_func->def->td)exit(76);
+m_func->def->ret_type = type_decl_resolve(env, m_func->def->td);
+exit(77);
+}
           SET_FLAG(m_func, checked | ae_flag_template);
           goto end;
         }
       }
     }
     SET_FLAG(base, template);
-    free_func_def(def);
+//if(create)
+//    free_func_def(def);
   }
-  assert(exp->self);
-  err_msg(exp->self->pos, "arguments do not match for template call");
+//  assert(exp->self);
+//  err_msg(exp->self->pos, "arguments do not match for template call");
 end:
   free(tmpl_name);
   env_pop(env, scope);
   return m_func;
 }
+ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
+  Type t = value->owner_class;
+  const Func f = _find_template_match(env, value, exp);
+  if(f)
+    return f;
+  while(t) {
+   Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->name);
+   if(!v)
+     goto next;
+   const Func f = _find_template_match(env, v, exp);
+   if(f)
+     return f;
+   next:
+     t = t->parent;
+  }
+  assert(exp->self);
+  err_msg(exp->self->pos, "arguments do not match for template call");
+  return NULL;
+}
+
 
 ANN static void print_current_args(Exp e) {
   gw_err("and not\n\t");
@@ -590,7 +635,7 @@ ANN static Type check_exp_dur(const Env env, const Exp_Dur* exp) { GWDEBUG_EXE
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   if(exp->tmpl) {
-    CHECK_OO(check_exp(env, exp->func)) // → puts this up ?
+    CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
@@ -926,7 +971,8 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
-  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
+//  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
+  if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) { // wath me
     const m_str c_name  = f->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
     const m_str f_name = s_name(f->name);
@@ -936,7 +982,9 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, static) ? c_name : p_name, f_name)
   }
-  return isa(f->ret_type, parent->def->ret_type);
+  if(!f->tmpl) // ???
+    return isa(f->ret_type, parent->def->ret_type);
+  return GW_OK;
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
@@ -945,8 +993,10 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   do {
     if(compat_func(f, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(f, parent_func))
-      f->func->vt_index = parent_func->vt_index;
-      vector_set(&env->curr->vtable, f->func->vt_index, (vtype)func);
+      if(!f->tmpl) {
+        f->func->vt_index = parent_func->vt_index;
+        vector_set(&env->curr->vtable, f->func->vt_index, (vtype)f->func);
+      }
       return GW_OK;
     }
   } while((parent_func = parent_func->next));
@@ -964,12 +1014,12 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-  if(GET_FLAG(func, member)) {
-    if(!env->curr->vtable.ptr)
-      vector_init(&env->curr->vtable);
-    func->vt_index = vector_size(&env->curr->vtable);
-    vector_add(&env->curr->vtable, (vtype)func);
-  }
+//  if(GET_FLAG(func, member)) {
+  if(!env->curr->vtable.ptr)
+    vector_init(&env->curr->vtable);
+  func->vt_index = vector_size(&env->curr->vtable);
+  vector_add(&env->curr->vtable, (vtype)func);
+//  }
   return GW_OK;
 }
 
@@ -1039,12 +1089,14 @@ ANN static void operator_func(Func f) {
 
 ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func func = get_func(env, f);
-  m_bool ret = 1;
+  m_bool ret = GW_OK;
   if(tmpl_list_base(f->tmpl))
     return env->class_def ? check_parent_match(env, f) : 1;
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
+  else if(GET_FLAG(f, global))
+    env_push_global(env);
   const Func former = env->func;
   env->func = func;
   ++env->scope;
@@ -1063,6 +1115,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   nspc_pop_value(env->curr);
   --env->scope;
   env->func = former;
+  if(GET_FLAG(f, global))
+    env_push_global(env);
   return ret;
 }
 

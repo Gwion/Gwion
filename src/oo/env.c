@@ -23,8 +23,6 @@ Env new_env() {
   vector_init(&env->nspc_stack);
   vector_init(&env->known_ctx);
   env->type_xid = 0;
-//  scope_init(&env->swi);
-//  vector_pop((Vector)&env->swi);
   vector_init((Vector)&env->swi);
   map_init(&env->swi.map);
 
@@ -48,10 +46,10 @@ ANN void env_reset(const Env env) {
 
 ANN void free_env(const Env a) {
   const m_uint size = vector_size(&a->known_ctx);
-  for(m_uint i = 0; i < size; i++)
-    REM_REF((Context)vector_at(&a->known_ctx, i));
-  REM_REF(a->global_nspc);
+  for(m_uint i = size + 1; --i;)
+    REM_REF((Context)vector_at(&a->known_ctx, i - 1));
   vector_release(&a->known_ctx);
+  REM_REF(a->global_nspc);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
@@ -75,16 +73,6 @@ ANN void env_pop(const Env env, const m_uint scope) {
   env->class_def = (Type)vector_pop(&env->class_stack);
   env->curr = (Nspc)vector_pop(&env->nspc_stack);
   env->scope = scope;
-}
-
-ANN2(1,2) void env_add_value(const Env env, const m_str name, const Type type,
-      const m_bool is_const, void* data) {
-  const Value v = new_value(env->gwion, type, name);
-  ae_flag flag = ae_flag_checked | ae_flag_global | ae_flag_builtin | (is_const ? ae_flag_const : 0);
-  v->flag = flag;
-  v->d.ptr = data;
-  v->owner = env->global_nspc;
-  nspc_add_value(env->global_nspc, insert_symbol(name), v);
 }
 
 ANN void env_add_type(const Env env, const Type type) {

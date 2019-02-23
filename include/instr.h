@@ -20,108 +20,29 @@ enum Kind {
 typedef struct Instr_     * Instr;
 typedef void (*f_instr)(const VM_Shred, const Instr);
 struct Instr_ {
+  m_bit opcode;
+  union {
+    m_float f;
+    m_uint m_val;
+  };
+  m_uint m_val2;
   void (*execute)(const VM_Shred shred, const Instr instr);
-  m_uint m_val, m_val2;
-  m_bit ptr[SZ_MINVAL];
 };
 
 INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);
 
-INSTR(RegPushMe);
-INSTR(RegPushNow);
-INSTR(RegPushMaybe);
-
-/* staking */
-INSTR(RegPop);
-INSTR(RegPushImm0);
-INSTR(RegPushImm);
-INSTR(RegPushImm2);
-INSTR(RegPushImm3);
-INSTR(RegPushImm4);
-INSTR(RegPushMemAddr);
-INSTR(MemPushImm);
-INSTR(MemSetImm);
-INSTR(RegPushMem);
-INSTR(RegPushMem2);
-INSTR(RegPushMem3);
-INSTR(RegPushMem4);
-INSTR(RegPushBase);
-INSTR(RegPushBase2);
-INSTR(RegPushBase3);
-INSTR(RegPushBase4);
-INSTR(RegPushPtr);
-INSTR(RegDup);
-INSTR(RegAddRef);
-
 /* branching */
 INSTR(BranchSwitch);
 INSTR(SwitchIni);
 INSTR(SwitchEnd);
-INSTR(BranchEqInt);
-INSTR(BranchNeqInt);
-INSTR(BranchEqFloat);
-INSTR(BranchNeqFloat);
-INSTR(InitLoopCounter);
-INSTR(RegPushDeref);
-INSTR(RegPushDeref2);
-INSTR(RegPushDeref3);
-INSTR(DecIntAddr);
-INSTR(Goto);
-
-/* casting */
-INSTR(CastI2F);
-INSTR(CastF2I);
-
-/* debugging */
-INSTR(Gack);
-
-INSTR(RegPushStr);
-
-INSTR(IntNot);
-INSTR(FloatTimes);
 
 INSTR(ComplexReal);
 INSTR(ComplexImag);
 
-INSTR(AllocWord);
-INSTR(AllocWord2);
-INSTR(AllocWord3);
-INSTR(AllocWord4);
-
 /* function */
-INSTR(SporkExp);
-INSTR(SporkFunc);
-INSTR(FuncUsr);
-INSTR(DotFunc);
-INSTR(FuncStatic);
-INSTR(FuncMember);
-INSTR(FuncPtr);
-INSTR(FuncReturn);
 INSTR(DtorReturn);
-
-/* object */
-INSTR(PreCtor);
-INSTR(ObjectInstantiate);
-INSTR(ObjectAssign);
-INSTR(PushNull);
-INSTR(PushNull2);
-INSTR(PushNull3);
-INSTR(AllocMember4);
-INSTR(DotStatic);
-INSTR(DotStatic2);
-INSTR(DotStatic3);
-INSTR(DotStatic4);
-INSTR(DotImport);
-INSTR(DotImport2);
-INSTR(DotImport3);
-INSTR(DotImport4);
-INSTR(DotMember);
-INSTR(DotMember2);
-INSTR(DotMember3);
-INSTR(DotMember4);
-INSTR(ObjectRelease);
 
 /* array */
 INSTR(ArrayTop);
@@ -140,21 +61,25 @@ INSTR(VarargTop);
 INSTR(VarargEnd);
 INSTR(VarargMember);
 
-INSTR(MemberFunction);
+INSTR(VecCpy);
 INSTR(VecMember);
 INSTR(PopArrayClass);
 
-INSTR(GcIni);
-INSTR(GcEnd);
-INSTR(GcAdd);
-
 INSTR(AutoLoopStart);
 INSTR(AutoLoopEnd);
+INSTR(DotTmpl);
 
+struct dottmpl_ {
+  size_t len;
+  m_str name;
+  Func_Def base, def;
+  size_t overload; // => vtindex ?
+  Type_List tl;
+};
+ANN void free_dottmpl(struct dottmpl_*);
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
-INSTR(ConstPropSet);
-INSTR(ConstPropGet);
 #endif
+#include "opcode.h"
 #endif

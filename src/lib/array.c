@@ -28,9 +28,23 @@ ANN m_uint m_vector_size(const M_Vector v) {
 
 M_Vector new_m_vector(const m_uint size) {
   const M_Vector array = mp_alloc(M_Vector);
-  array->ptr   = (m_bit*)xcalloc(ARRAY_OFFSET + 2, size);
+const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
+  array->ptr   = (m_bit*)xcalloc(1, sz);
   ARRAY_CAP(array)   = 2;
   ARRAY_SIZE(array)  = size;
+  return array;
+}
+
+M_Vector new_m_vector2(const m_uint size, const m_uint len) {
+  const M_Vector array = mp_alloc(M_Vector);
+  const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
+  array->ptr   = (m_bit*)xcalloc(1, sz);
+  m_uint cap = 1;
+  while(cap < len)
+    cap *= 2;
+  ARRAY_CAP(array)   = cap;
+  ARRAY_SIZE(array)  = size;
+  ARRAY_LEN(array) = len;
   return array;
 }
 
@@ -52,14 +66,9 @@ static DTOR(array_dtor) {
 
 ANN M_Object new_array(const Type t, const m_uint length) {
   const M_Object a = new_object(NULL, t);
-  m_uint cap = 1;
-  while(cap < length)
-    cap *= 2;
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  const M_Vector array = ARRAY(a) = new_m_vector(size);
-  ARRAY_CAP(array)   = cap;
-  ARRAY_LEN(array) = length;
+  ARRAY(a) = new_m_vector2(size,length);
   ADD_REF(t);
   return a;
 }
@@ -244,11 +253,11 @@ INSTR(ArrayPost) { GWDEBUG_EXE
 }
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
-  const m_uint off = instr->m_val * instr->m_val2;
-  const Type t = *(Type*)instr->ptr;
+  const Type t = (Type)instr->m_val;
+  const m_uint sz = *(m_uint*)REG(0);
+  const m_uint off = instr->m_val2 * sz;
   POP_REG(shred, off - SZ_INT);
-  const M_Object obj = new_array(t, instr->m_val);
-  vector_add(&shred->gc, (vtype)obj);
+  const M_Object obj = new_array(t, sz);
   memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
 }
@@ -305,7 +314,7 @@ ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_u
 }
 
 INSTR(ArrayAlloc) { GWDEBUG_EXE
-  const ArrayInfo* info = *(ArrayInfo**)instr->ptr;
+  const ArrayInfo* info = (ArrayInfo*)instr->m_val;
   m_uint num_obj = 1;
   m_int idx = 0;
   const m_bool is_obj = info->is_obj && !info->is_ref;
@@ -315,7 +324,7 @@ INSTR(ArrayAlloc) { GWDEBUG_EXE
     aai.data = init_array(shred, info, &num_obj);
   const M_Object ref = do_alloc_array(shred, &aai);
   if(!ref) {
-    gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->xid, shred->name);
+    gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->tick->xid, shred->info->name);
     vm_shred_exit(shred);
     return; // TODO make exception vararg
   }
@@ -362,8 +371,8 @@ INSTR(ArrayAccess) { GWDEBUG_EXE
 #define DIM(a) gw_err("\t... at dim [%" INT_F "]\n", (a))
 
 INSTR(ArrayAccessMulti) { GWDEBUG_EXE
-  const m_uint depth = *(m_uint*)instr->ptr;
-  POP_REG(shred, SZ_INT * (depth + 1));
+  const m_uint depth = *(m_uint*)REG(0);
+  POP_REG(shred, SZ_INT * (depth + 1))
   const M_Object base = *(M_Object*)REG(0);
   M_Object obj = base;
   if(!obj)

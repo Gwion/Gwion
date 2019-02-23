@@ -17,10 +17,9 @@
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 
-static INSTR(assign_func) { GWDEBUG_EXE
-  const Func f = **(Func**)REG(-SZ_INT) = *(Func*)REG(-(SZ_INT*2+instr->m_val2));
-  POP_REG(shred, instr->m_val + instr->m_val2)
-  *(Func*)REG(-SZ_INT) = f; // do we need this ?
+static INSTR(FuncAssign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT)
+  **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
 }
 
 static OP_CHECK(opck_func_call) {
@@ -106,19 +105,6 @@ static OP_CHECK(opck_spork) {
     ERR_O(unary->self->pos, "only function calls can be sporked...")
   return NULL;
 }
-static OP_EMIT(opem_fptr_at) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, assign_func);
-  if(GET_FLAG(bin->rhs->type->d.func, global))
-    instr->m_val = SZ_INT;
-  else if(GET_FLAG(bin->rhs->type->d.func, member)) {
-    if(bin->rhs->exp_type != ae_exp_decl)
-      instr->m_val2 = SZ_INT;
-    instr->m_val = SZ_INT*2;
-  } else
-    instr->m_val = SZ_INT;
-  return GW_OK;
-}
 
 static OP_EMIT(opem_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
@@ -131,8 +117,7 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
-  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_at))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, NULL))
+  CHECK_BB(gwi_oper_end(gwi, op_ref, FuncAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))

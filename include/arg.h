@@ -6,11 +6,10 @@ typedef struct {
   struct Vector_ add;
   struct Vector_ rem;
   struct Vector_ lib;
-  Vector ref;
+  struct Vector_ mod;
   m_bool loop;
-  unsigned quit : 1;
 } Arg;
 
-ANN void arg_init(Arg* arg);
 ANN void arg_release(Arg* arg);
+ANN uint parse_args(Arg*, DriverInfo*);
 #endif

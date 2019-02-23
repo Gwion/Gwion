@@ -6,20 +6,18 @@
 #include "nspc.h"
 #include "context.h"
 
+ANN static void free_context(const Context a) {
+  REM_REF(a->nspc)
+  mp_free(Context, a);
+}
+
 ANN2(2) Context new_context(const Ast ast, const m_str str) {
   const Context context = mp_alloc(Context);
   context->nspc = new_nspc(str);
   context->tree = ast;
   context->name = str;
-  INIT_OO(context, e_context_obj);
+  INIT_OO(context, free_context);
   return context;
-}
-
-ANN void free_context(const Context a) {
-//if(a->nspc->obj.ref_count > 1)exit(2);
-//  REM_REF(a->nspc);
-  free_nspc(a->nspc);
-  mp_free(Context, a);
 }
 
 ANN void load_context(const Context context, const Env env) {

@@ -8,24 +8,22 @@
 #include "nspc.h"
 #include "func.h"
 
-ANN Func new_func(const m_str name, const Func_Def def) {
-  Func func = mp_alloc(Func);
-  func->name = name;
-  func->def = def;
-  INIT_OO(func, e_func_obj);
-  return func;
-}
-
-ANN void free_func(Func a) {
-  if(GET_FLAG(a, ref)) {
-    if(GET_FLAG(a, template)) {
-      free_tmpl_list(a->def->tmpl);
-      mp_free(Func_Def, a->def);
-    }
+ANN static void free_func(Func a) {
+  if(GET_FLAG(a, template)) {
+    free_tmpl_list(a->def->tmpl);
+    mp_free(Func_Def, a->def);
   }
   if(a->code)
     REM_REF(a->code);
   mp_free(Func, a);
+}
+
+ANN Func new_func(const m_str name, const Func_Def def) {
+  Func func = mp_alloc(Func);
+  func->name = name;
+  func->def = def;
+  INIT_OO(func, free_func);
+  return func;
 }
 
 #include <string.h>

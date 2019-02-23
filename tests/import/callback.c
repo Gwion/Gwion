@@ -12,20 +12,24 @@
 
 struct ret_info {
   Instr instr;
+  VM_Code code;
   m_uint offset;
   m_uint size;
+  size_t pc;
 };
 
 static INSTR(my_ret) { GWDEBUG_EXE
   struct ret_info* info = (struct ret_info*)instr->m_val;
   POP_MEM(shred, info->offset);
   vector_set(shred->code->instr, shred->pc, (vtype)info->instr);
-  shred->code = *(VM_Code*)instr->ptr;
+  shred->code = info->code;
+//*(VM_Code*)instr->ptr;
   POP_REG(shred, info->size)
-  if(shred->mem == shred->_reg + SIZEOF_REG)
+  if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     POP_REG(shred, SZ_INT)
   POP_REG(shred, shred->code->stack_depth);
-  shred->pc = instr->m_val2;
+//  shred->pc = instr->m_val2;
+  shred->pc = info->pc;
   free(info);
   *(m_int*)shred->reg = 2;
   PUSH_REG(shred, SZ_INT);
@@ -37,16 +41,18 @@ static SFUN(cb_func) {
   if(!f){
     Except(shred, "NullCallbackException");
   }
-  m_uint offset = shred->mem - (shred->_reg + SIZEOF_REG);
+  m_uint offset = shred->mem - ((m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG);
   PUSH_MEM(shred, offset);
   Instr instr = mp_alloc(Instr);
   struct ret_info* info = (struct ret_info*)xmalloc(sizeof(struct ret_info));
   info->offset = offset;
+  info->code = shred->code;
   info->size = f->def->ret_type->size;
+  info->pc = shred->pc;
   instr->execute = my_ret;
-  *(VM_Code*)instr->ptr = shred->code;
+//  *(VM_Code*)instr->ptr = shred->code;
   instr->m_val = (m_uint)info;
-  instr->m_val2 = shred->pc;
+//  instr->m_val2 = shred->pc;
   for(i = 0; i < vector_size(f->code->instr); i++) {
     Instr in = (Instr)vector_at(f->code->instr, i);
     if(in->execute == FuncReturn ||
