@@ -747,6 +747,11 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
   !f->value_ref->owner_class || GET_FLAG(f, template))
     push_func_code(emit, f);
+  else {
+    const Instr back = (Instr)vector_back(&emit->code->instr);
+    if((f_instr)back->opcode == DotFunc)
+      back->m_val = f->vt_index;
+  }
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   const Instr instr = emit_call(emit, f);
