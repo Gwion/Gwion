@@ -748,7 +748,7 @@ staticfloat:
 staticother:
 //  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)(instr->m_val + i);
+    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)instr->m_val + i);
   reg += instr->m_val2;
   DISPATCH()
 dotfunc:
