@@ -20,6 +20,8 @@ ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 static INSTR(FuncAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
+  if(GET_FLAG(*(Func*)REG(-SZ_INT), member))
+    POP_REG(shred, SZ_INT)
 }
 
 static OP_CHECK(opck_func_call) {

@@ -95,6 +95,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     CHECK_BB(scan2_args(env, &d))
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
+  def->stack_depth = d.stack_depth;
   ptr->func = new_func(s_name(ptr->xid), def);
   ptr->value->d.func_ref = ptr->func;
   ptr->func->value_ref = ptr->value;

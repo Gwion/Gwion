@@ -752,6 +752,16 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     if((f_instr)back->opcode == DotFunc)
       back->m_val = f->vt_index;
   }
+  if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+    const Instr back = (Instr)vector_back(&emit->code->instr);
+    m_bit exec = back->opcode;
+    m_uint val = back->m_val;
+    m_uint val2 = back->m_val2;
+    back->opcode = RegDup;
+    const Instr instr = emit_add_instr(emit, exec);
+    instr->m_val = val;
+    instr->m_val2 = val2;
+  }
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   const Instr instr = emit_call(emit, f);
