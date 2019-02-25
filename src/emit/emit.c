@@ -86,7 +86,7 @@ ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
-ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
+ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_alloc(Code);
@@ -690,10 +690,21 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
   return str2tl(env, c, &depth);
 }
 
+ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
+  const m_uint scope = env_push_type(emit->env, dt->owner);
+  m_bool ret = GW_ERROR;
+  if(traverse_func_template(emit->env, dt->def, dt->tl) > 0) {
+    ret = emit_func_def(emit, dt->def);
+    nspc_pop_type(emit->env->curr);
+  }
+  env_pop(emit->env, scope);
+  return ret;
+}
+
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
-  const Instr _instr = (Instr)vector_back(&emit->code->instr);
-assert(_instr->execute == DotTmpl);
+    const Instr _instr = (Instr)vector_back(&emit->code->instr);
+	  assert(_instr->execute == DotTmpl);
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
@@ -1588,7 +1599,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
   return GW_OK;
 }
 
-ANN /*static */m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
+ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
   const Func func = get_func(emit->env, func_def);
   if(func->code)return GW_OK;
   if(tmpl_list_base(func_def->tmpl)) { // don't check template definition

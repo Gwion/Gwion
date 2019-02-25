@@ -109,7 +109,7 @@ ANN static Func_Def from_base(const struct dottmpl_ *dt, const Type t) {
 }
 
 INSTR(DotTmpl) {
-  const struct dottmpl_ * dt = (struct dottmpl_*)instr->m_val;
+  struct dottmpl_ * dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   Type t = o->type_ref;
@@ -122,14 +122,9 @@ INSTR(DotTmpl) {
     const Func f = nspc_lookup_func1(t->nspc, insert_symbol(str));
     if(f) {
       if(!f->code) {
-        const m_uint scope = env_push_type(emit->env, t);
-        m_bool ret = GW_ERROR;
-        if(traverse_func_template(emit->env, f->def, dt->tl) > 0) {
-          ret = emit_func_def(emit, f->def);
-          nspc_pop_type(emit->env->curr);
-        }
-        env_pop(emit->env, scope);
-        if(ret < 0)
+        dt->def = f->def;//
+        dt->owner = t; //
+        if(traverse_dot_tmpl(emit, dt) < 0)
           continue;
       }
       *(VM_Code*)shred->reg = f->code;
@@ -139,14 +134,9 @@ INSTR(DotTmpl) {
       const Func_Def def = from_base(dt, t);
       if(!def)
         continue;
-      const m_uint scope = env_push_type(emit->env, t);
-      m_bool ret = GW_ERROR;
-      if(traverse_func_template(emit->env, def, dt->tl) > 0) {
-          ret = emit_func_def(emit, def);
-          nspc_pop_type(emit->env->curr);
-      }
-      env_pop(emit->env, scope);
-      if(ret > 0) {
+      dt->def = def; //
+      dt->owner = t; //
+      if(traverse_dot_tmpl(emit, dt) > 0) {
         *(VM_Code*)shred->reg = def->func->code;
         shred->reg += SZ_INT;
         return;

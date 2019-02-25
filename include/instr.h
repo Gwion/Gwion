@@ -73,10 +73,12 @@ struct dottmpl_ {
   size_t len;
   m_str name;
   Func_Def base, def;
+  Type owner;
   size_t overload; // => vtindex ?
   Type_List tl;
 };
 ANN void free_dottmpl(struct dottmpl_*);
+ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt);
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);
