@@ -401,25 +401,21 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         return env->func;
       }
       base = def = value->d.func_ref->def;
-if(!def->tmpl) {
-      if(!(value = template_get_ready(v, "template", i)))
-        continue;
-      base = value->d.func_ref->def;
-      def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
-}
+      if(!def->tmpl) {
+        if(!(value = template_get_ready(v, "template", i)))
+          continue;
+        base = value->d.func_ref->def;
+        def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
+      }
     } else {
       if(!(value = template_get_ready(v, "template", i)))
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
-//      def = new_func_def(base->td, insert_symbol(v->name),
                 base->arg_list, base->d.code, base->flag);
-//create = 1;
-//assert(base->tmpl);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
-//assert(def->tmpl);
     if(traverse_func_template(env, def, types) > 0) {
       nspc_pop_type(env->curr);
       if(check_call(env, exp) > 0) {
@@ -428,22 +424,13 @@ if(!def->tmpl) {
         m_func = find_func_match(env, def->func, args);
         def->func->next = next;
         if(m_func) {
-if(!m_func->def->ret_type) {
-if(!m_func->def->td)exit(76);
-m_func->def->ret_type = type_decl_resolve(env, m_func->def->td);
-exit(77);
-}
           SET_FLAG(m_func, checked | ae_flag_template);
           goto end;
         }
       }
     }
     SET_FLAG(base, template);
-//if(create)
-//    free_func_def(def);
   }
-//  assert(exp->self);
-//  err_msg(exp->self->pos, "arguments do not match for template call");
 end:
   free(tmpl_name);
   env_pop(env, scope);
