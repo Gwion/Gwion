@@ -200,7 +200,8 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->var_decl;
-    CHECK_BB(isres(var->xid))
+    if(var->xid)
+      CHECK_BB(isres(var->xid))
     if(list->td) // lambda
       CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));

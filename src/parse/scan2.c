@@ -51,7 +51,8 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
 ANN static Value arg_value(const Env env, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
-    const Value v = new_value(env->gwion, list->type, s_name(var->xid));
+    const Value v = new_value(env->gwion, list->type,
+      var->xid ? s_name(var->xid) : s_name(insert_symbol((m_str)var)));
     if(list->td) // lambda
       v->flag = list->td->flag | ae_flag_arg;
     return v;
