@@ -145,6 +145,7 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
   return !(unary->op == op_spork && unary->code) ? GW_OK : scan1_stmt(env, unary->code);
 }
 
+#define scan1_exp_lambda dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
 
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
@@ -195,12 +196,14 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   } while((list = list->next));
   return GW_OK;
 }
-
+#include "func.h"
 ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->var_decl;
-    CHECK_BB(isres(var->xid))
-    CHECK_OB((list->type = void_type(env, list->td, var->pos)))
+    if(var->xid)
+      CHECK_BB(isres(var->xid))
+    if(list->td) // lambda
+      CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));
   return GW_OK;
 }
@@ -277,7 +280,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   ++env->scope;
   if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  CHECK_OB((f->ret_type = known_type(env, f->td)))
+  if(f->td)//lambda
+    CHECK_OB((f->ret_type = known_type(env, f->td)))
   if(f->arg_list)
     CHECK_BB(scan1_args(env, f->arg_list))
   if(!GET_FLAG(f, builtin))

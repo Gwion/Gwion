@@ -25,6 +25,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(gwi_add_type(gwi, t_function))
   CHECK_OB((t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function)))
   CHECK_BB(gwi_add_type(gwi, t_fptr))
+  CHECK_OB((t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, t_function)))
+  CHECK_BB(gwi_add_type(gwi, t_fptr))
   CHECK_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
   CHECK_BB(gwi_add_type(gwi, t_gack))
   CHECK_OB((t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL)))

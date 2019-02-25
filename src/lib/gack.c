@@ -72,9 +72,13 @@ ANN2(1) static inline void print_object(const Type type, const M_Object obj) {
 }
 
 ANN static inline void print_func(const Type type, const m_bit* stack) {
-  const VM_Code code = isa(type, t_fptr) > 0 ?
-    *(VM_Code*)stack : type->d.func->code;
-  gw_out("%s %p", type->name, (void*)code);
+  if(type->d.func) {
+    const VM_Code code = isa(type, t_fptr) > 0 ?
+      *(VM_Code*)stack : type->d.func->code;
+    gw_out("%s %p", type->name, (void*)code ? code->name : NULL);
+  } else {
+    gw_out("%s %p", type->name, NULL);
+  }
 }
 
 ANN static void print_prim(const Type type, const m_bit* stack) {

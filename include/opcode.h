@@ -16,6 +16,7 @@ enum {
   RegPushBase3,
   RegPushBase4,
   RegDup,
+  RegDup2,
   MemSetImm,
   RegPop,
   RegPushMe,
@@ -171,6 +172,7 @@ enum {
 #define  RegPushBase3        (f_instr)RegPushBase3
 #define  RegPushBase4        (f_instr)RegPushBase4
 #define  RegDup              (f_instr)RegDup
+#define  RegDup2             (f_instr)RegDup2
 #define  MemSetImm           (f_instr)MemSetImm
 #define  RegPop              (f_instr)RegPop
 #define  RegPushMe           (f_instr)RegPushMe

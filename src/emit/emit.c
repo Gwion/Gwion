@@ -749,8 +749,19 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     push_func_code(emit, f);
   else {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    if((f_instr)back->opcode == DotFunc)
+    if((f_instr)(m_uint)back->opcode == DotFunc)
       back->m_val = f->vt_index;
+  }
+  if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+    const Instr back = (Instr)vector_back(&emit->code->instr);
+    m_bit exec = back->opcode;
+    m_uint val = back->m_val;
+    m_uint val2 = back->m_val2;
+    back->opcode = (m_bit)(m_uint)RegDup2;
+    back->m_val = f->def->stack_depth;
+    const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
+    instr->m_val = val;
+    instr->m_val2 = val2;
   }
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
@@ -877,6 +888,20 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBU
   const m_bool ret = emit_exp(emit, exp_if->else_exp, 0);
   op2->m_val = emit_code_size(emit);
   return ret;
+}
+
+ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) { GWDEBUG_EXE
+  if(lambda->def) {
+  const m_uint scope = !lambda->owner ?
+    emit->env->scope : emit_push_type(emit, lambda->owner);
+  CHECK_BB(emit_func_def(emit, lambda->def))
+  const Instr instr = emit_add_instr(emit, RegPushImm);
+  instr->m_val = (m_uint)lambda->def->func->code;
+  if(lambda->owner)
+    emit_pop(emit, scope);
+  } else
+    emit_add_instr(emit, RegPushImm);
+  return GW_OK;
 }
 
 DECL_EXP_FUNC(emit)
