@@ -65,21 +65,20 @@ ANN static Type fptr_type(Exp_Binary* bin) {
 }
 
 ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
-    Exp_Lambda *lambda, const Func_Def def) {
-  const m_uint scope = ((lambda->owner = owner)) ?
+    Exp_Lambda *l, const Func_Def def) {
+  const m_uint scope = ((l->owner = owner)) ?
     env_push_type(env, owner) : env->scope;
-  Arg_List base = def->arg_list, arg = lambda->arg;
+  Arg_List base = def->arg_list, arg = l->arg;
   while(base && arg) {
     arg->td = base->td;
     base = base->next;
     arg = arg->next;
   }
   if(base || arg)
-    ERR_B(lambda->self->pos, "argument number does not match for lambda")
-  lambda->def = new_func_def(def->td, insert_symbol("lambda"),
-    lambda->arg, lambda->code, def->flag);
-  const m_bool ret = traverse_func_def(env, lambda->def);
-  arg=lambda->arg;
+    ERR_B(l->self->pos, "argument number does not match for lambda")
+  l->def = new_func_def(def->td, l->name, l->arg, l->code, def->flag);
+  const m_bool ret = traverse_func_def(env, l->def);
+  arg = l->arg;
   while(arg) {
     arg->td = NULL;
     arg = arg->next;
@@ -93,16 +92,10 @@ static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
   bin->rhs->emit_var = 1;
   if(isa(bin->lhs->type, t_lambda) > 0) {
-    Exp_Lambda *lambda = &bin->lhs->d.exp_lambda;
-/*
-    lambda->def = new_func_def(bin->rhs->type->d.func->def->td,
-      insert_symbol("lambda"), bin->rhs->type->d.func->def->arg_list,
-      lambda->code, bin->rhs->type->d.func->def->flag);
-    CHECK_BO(traverse_func_def(env, lambda->def))
-*/
+    Exp_Lambda *l = &bin->lhs->d.exp_lambda;
     const Type owner = nspc_lookup_type1(bin->rhs->type->owner->parent,
        insert_symbol(bin->rhs->type->owner->name));
-    CHECK_BO(check_lambda(env, owner, lambda, bin->rhs->type->d.func->def))
+    CHECK_BO(check_lambda(env, owner, l, bin->rhs->type->d.func->def))
     return bin->rhs->type;
   }
   const Func l_func = bin->lhs->type->d.func;

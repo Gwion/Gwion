@@ -575,8 +575,8 @@ ANN static inline void set_call(const Exp e, const Func f) {
 ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
-  Exp_Lambda *lambda = &exp->func->d.exp_lambda;
-  Arg_List arg = lambda->arg;
+  Exp_Lambda *l = &exp->func->d.exp_lambda;
+  Arg_List arg = l->arg;
   Exp e = exp->args;
   while(arg && e) {
     arg->type = e->type;
@@ -585,11 +585,10 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp->self->pos, "argument number does not match for lambda")
-  lambda->def = new_func_def(NULL, insert_symbol("lambda"),
-    lambda->arg, lambda->code, 0);
-  CHECK_BO(traverse_func_def(env, lambda->def))
-  set_call(exp->self, lambda->def->func);
-  return lambda->def->ret_type ?: (lambda->def->ret_type = t_void);
+  l->def = new_func_def(NULL, l->name, l->arg, l->code, 0);
+  CHECK_BO(traverse_func_def(env, l->def))
+  set_call(exp->self, l->def->func);
+  return l->def->ret_type ?: (l->def->ret_type = t_void);
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
