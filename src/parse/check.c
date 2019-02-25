@@ -321,7 +321,14 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
   const m_bool match = (specific ? e->type == t : isa(e->type, t) > 0) &&
     e->type->array_depth == t->array_depth &&
     array_base(e->type) == array_base(t);
-  if(!match && implicit) {
+  if(!match) {
+    if(e->type == t_lambda && isa(t, t_fptr) > 0) {
+      const Type owner = nspc_lookup_type1(t->owner->parent,
+        insert_symbol(t->owner->name));
+      return check_lambda(env, owner, &e->d.exp_lambda, t->d.func->def);
+    }
+  }
+  if(implicit) {
     const struct Implicit imp = { e, t };
     struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp };
     return op_check(env, &opi) ? 1 : -1;
@@ -571,8 +578,37 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
   return GW_OK;
 }
 
+ANN static inline void set_call(const Exp e, const Func f) {
+  if(e->exp_type == ae_exp_call)
+    e->d.exp_call.m_func = f;
+  else // if(e->exp_type == ae_exp_binary)
+    e->d.exp_binary.func = f;
+}
+
+ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
+  if(exp->args)
+    CHECK_OO(check_exp(env, exp->args))
+  Exp_Lambda *lambda = &exp->func->d.exp_lambda;
+  Arg_List arg = lambda->arg;
+  Exp e = exp->args;
+  while(arg && e) {
+    arg->type = e->type;
+    arg = arg->next;
+    e = e->next;
+  }
+  if(arg || e)
+    ERR_O(exp->self->pos, "argument number does not match for lambda")
+  lambda->def = new_func_def(NULL, insert_symbol("lambda"),
+    lambda->arg, lambda->code, 0);
+  CHECK_BO(traverse_func_def(env, lambda->def))
+  set_call(exp->self, lambda->def->func);
+  return lambda->def->ret_type ?: (lambda->def->ret_type = t_void);
+}
+
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_BO(check_exp_call1_check(env, exp->func))
+  if(exp->func->type == t_lambda)
+    return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->d.func, ref)) {
     const Value value = exp->func->type->d.func->value_ref;
     CHECK_BO(traverse_template(env, value->owner_class->def))
@@ -584,10 +620,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
   if(!func)
     return function_alternative(exp->func->type, exp->args);
-  if(exp->self->exp_type == ae_exp_call)
-    exp->self->d.exp_call.m_func = func;
-  else // if(exp->self->exp_type == ae_exp_binary)
-    exp->self->d.exp_binary.func = func;
+  set_call(exp->self, func);
   return func->def->ret_type;
 }
 
@@ -721,12 +754,13 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
+ANN static Type check_exp_lambda(const Env env, const Exp_If* exp_if) { return t_lambda; }
 
 static const _type_func exp_func[] = {
   (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,
   (_type_func)check_exp_primary, (_type_func)check_exp_cast,   (_type_func)check_exp_post,
   (_type_func)check_exp_call,    (_type_func)check_exp_array,  (_type_func)check_exp_if,
-  (_type_func)check_exp_dot,     (_type_func)check_exp_dur
+  (_type_func)check_exp_dot,     (_type_func)check_exp_dur, (_type_func)check_exp_lambda
 };
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
@@ -865,6 +899,17 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
     ERR_B(stmt->self->pos, "'return' statement found outside function definition")
   const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
   CHECK_OB(ret_type)
+if(env->func->value_ref->type == t_lambda) {
+  if(env->func->def->ret_type) {
+    if(isa(ret_type, env->func->def->ret_type) < 0) {
+      if(isa(env->func->def->ret_type, ret_type) < 0) {
+        ERR_B(stmt->self->pos, "return types do not match for lambda expression")
+      }
+    }
+  }
+  env->func->value_ref->type = ret_type;
+  return GW_OK;
+}
   if(isa(ret_type, t_null) > 0 &&
      isa(env->func->def->ret_type, t_object) > 0)
     return GW_OK;
@@ -1101,17 +1146,18 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = func;
   ++env->scope;
   nspc_push_value(env->curr);
-  if(f->arg_list)
-    ret = check_func_args(env, f->arg_list);
+  if((f->arg_list && (ret = check_func_args(env, f->arg_list)) > 0) || !f->arg_list) {
   const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
   if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    ret = err_msg(f->td->xid->pos, "...in function '%s'", s_name(f->name));
+    ret = err_msg(f->td ? f->td->xid->pos : 0, "...in function '%s'", 
+       s_name(f->name));
   if(variadic)
     REM_REF(variadic)
   if(GET_FLAG(f, builtin))
     func->code->stack_depth = f->stack_depth;
   else if(GET_FLAG(f, op))
     operator_func(func);
+  }
   nspc_pop_value(env->curr);
   --env->scope;
   env->func = former;

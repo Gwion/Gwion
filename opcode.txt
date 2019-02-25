@@ -13,6 +13,7 @@ RegPushBase2
 RegPushBase3
 RegPushBase4
 RegDup
+RegDup2
 MemSetImm
 RegPop
 RegPushMe

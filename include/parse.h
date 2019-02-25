@@ -22,7 +22,7 @@ static const _exp_func exp_func[] = {                                           
   (_exp_func)prefix##_exp_decl,    (_exp_func)prefix##_exp_binary, (_exp_func)prefix##_exp_unary, \
   (_exp_func)prefix##_exp_primary, (_exp_func)prefix##_exp_cast,   (_exp_func)prefix##_exp_post,  \
   (_exp_func)prefix##_exp_call,    (_exp_func)prefix##_exp_array,  (_exp_func)prefix##_exp_if,    \
-  (_exp_func)prefix##_exp_dot,     (_exp_func)prefix##_exp_dur                                    \
+  (_exp_func)prefix##_exp_dot,     (_exp_func)prefix##_exp_dur,    (_exp_func)prefix##_exp_lambda \
 };
 
 #define DECL_SECTION_FUNC(prefix)                                                                 \

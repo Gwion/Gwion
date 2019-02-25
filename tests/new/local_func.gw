@@ -1,0 +1,4 @@
+fun void test() {
+  <<<test>>>;
+}
+test();

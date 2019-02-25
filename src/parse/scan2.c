@@ -52,7 +52,8 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
     const Value v = new_value(env->gwion, list->type, s_name(var->xid));
-    v->flag = list->td->flag | ae_flag_arg;
+    if(list->td) // lambda
+      v->flag = list->td->flag | ae_flag_arg;
     return v;
   }
   var->value->type = list->type;
@@ -214,6 +215,7 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
   return GW_OK;
 }
 
+#define scan2_exp_lambda dummy_func
 HANDLE_EXP_FUNC(scan2, m_bool, 1)
 
 #define scan2_stmt_func(name, type, prolog, exp) describe_stmt_func(scan2, name, type, prolog, exp)
@@ -504,7 +506,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);
-      return f->arg_list ? scan2_args(env, f) : GW_OK;
+      // check arg_list->type for lambdas
+      return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
     }
   }
   const Func base = get_func(env, f);

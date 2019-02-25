@@ -20,8 +20,16 @@ ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 static INSTR(FuncAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
-  if(GET_FLAG(*(Func*)REG(-SZ_INT), member))
+}
+
+static INSTR(LambdaAssign) { GWDEBUG_EXE
+  POP_REG(shred, SZ_INT)
+  **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
+//  if(GET_FLAG(*(Func*)REG(-SZ_INT), member))
+//  if(instr->m_val) {
     POP_REG(shred, SZ_INT)
+    *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
+//  }
 }
 
 static OP_CHECK(opck_func_call) {
@@ -30,6 +38,25 @@ static OP_CHECK(opck_func_call) {
   return check_exp_call1(env, &call);
 }
 
+static OP_EMIT(opem_func_assign) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  if(isa(bin->lhs->type, t_lambda) < 0 && GET_FLAG(bin->rhs->type->d.func, member)) 
+{
+//  if(GET_FLAG(bin->rhs->type->d.func, member)) {
+    const Instr instr = emit_add_instr(emit, LambdaAssign);
+instr->m_val = SZ_INT;
+    return GW_OK;
+  }
+  const Instr instr = emit_add_instr(emit, FuncAssign);
+  if(GET_FLAG(bin->rhs->type->d.func, member)) {
+//instr->m_val = 1;
+//emit_add_instr(emit, RegDup);
+//instr->m_val = -SZ_INT;
+//    const Instr emit_add_instr
+//    exit(2);
+  }
+  return GW_OK;
+}
 ANN static Type fptr_type(Exp_Binary* bin) {
   const Func l_func = bin->lhs->type->d.func;
   const Func r_func = bin->rhs->type->d.func;
@@ -48,15 +75,52 @@ ANN static Type fptr_type(Exp_Binary* bin) {
   return NULL;
 }
 
+ANN2(1,3,4) m_bool check_lambda(Env env, Type owner, Exp_Lambda *lambda, Func_Def def) {
+  const m_uint scope = ((lambda->owner = owner)) ?
+    env_push_type(env, owner) : env->scope;
+  Arg_List base = def->arg_list, arg = lambda->arg;
+  while(base && arg) {
+    arg->td = base->td;
+    base = base->next;
+    arg = arg->next;
+  }
+  if(base || arg)
+    ERR_B(lambda->self->pos, "argument number does not match for lambda")
+  lambda->def = new_func_def(def->td, insert_symbol("lambda"),
+    lambda->arg, lambda->code, def->flag);
+  const m_bool ret = traverse_func_def(env, lambda->def);
+  arg=lambda->arg;
+  while(arg) {
+    arg->td = NULL;
+    arg = arg->next;
+  }
+  if(owner)
+    env_pop(env, scope);
+  return ret;
+}
+
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  bin->rhs->emit_var = 1;
+  if(isa(bin->lhs->type, t_lambda) > 0) {
+    Exp_Lambda *lambda = &bin->lhs->d.exp_lambda;
+/*
+    lambda->def = new_func_def(bin->rhs->type->d.func->def->td,
+      insert_symbol("lambda"), bin->rhs->type->d.func->def->arg_list,
+      lambda->code, bin->rhs->type->d.func->def->flag);
+    CHECK_BO(traverse_func_def(env, lambda->def))
+*/
+    const Type owner = nspc_lookup_type1(bin->rhs->type->owner->parent,
+       insert_symbol(bin->rhs->type->owner->name));
+    CHECK_BO(check_lambda(env, owner, lambda, bin->rhs->type->d.func->def))
+    return bin->rhs->type;
+  }
   const Func l_func = bin->lhs->type->d.func;
   const Func_Def l_fdef = l_func->def;
   const Type l_type = l_func->value_ref->owner_class;
   const Func r_func = bin->rhs->type->d.func;
   const Func_Def r_fdef = r_func->def;
   const Type r_type = r_func->value_ref->owner_class;
-  bin->rhs->emit_var = 1;
   if(!r_type && l_type)
     ERR_N(bin->self->pos, "can't assign member function to non member function pointer")
   else if(r_type && !l_type) {
@@ -95,6 +159,18 @@ static OP_CHECK(opck_fptr_cast) {
   return t;
 }
 
+static OP_EMIT(opem_fptr_cast) {
+  CHECK_BB(opem_basic_cast(emit, data))
+  Exp_Cast* cast = (Exp_Cast*)data;
+  if(GET_FLAG(cast->exp->type->d.func, member)) {
+    const Instr instr = emit_add_instr(emit, RegPop);
+    instr->m_val = SZ_INT*2;
+    const Instr dup = emit_add_instr(emit, RegDup);
+    dup->m_val = -SZ_INT*2;
+  }
+  return GW_OK;
+}
+
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
@@ -119,9 +195,10 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, FuncAssign))
+  CHECK_BB(gwi_oper_emi(gwi, opem_func_assign))
+  CHECK_BB(gwi_oper_end(gwi, op_ref, NULL /*FuncAssign*/))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
+  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))

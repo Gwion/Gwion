@@ -226,7 +226,7 @@ ANN void vm_run(const VM* vm) {
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regdup,
+    &&regdup, &&regdup2,
     &&memsetimm,
     &&regpop, &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -359,6 +359,10 @@ baseaddr:
   DISPATCH();
 regdup:
   *(m_uint*)reg = *(m_uint*)(reg-SZ_INT);
+  reg += SZ_INT;
+  DISPATCH()
+regdup2:
+  *(m_uint*)(reg+SZ_INT) = *(m_uint*)(reg);
   reg += SZ_INT;
   DISPATCH()
 memsetimm:
@@ -562,10 +566,12 @@ funcusr:
   code = *(VM_Code*)reg;
   ip = code->instr->ptr + OFFSET;
   m_uint stack_depth = code->stack_depth;
+printf("stack_depth %lu\n", stack_depth);
   *(m_uint*)  mem = stack_depth; mem += SZ_INT;
   if(stack_depth) {
     register const m_uint f = GET_FLAG(code, member) ? SZ_INT : 0;
     if(f) {
+printf("%p\n", *(m_uint*)(reg - SZ_INT*3));
       *(m_uint*)mem = *(m_uint*)(reg - SZ_INT);
       stack_depth -= SZ_INT;
     }

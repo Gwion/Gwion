@@ -1,0 +1,8 @@
+int i;
+spork { <<<"test">>>; };
+me.yield();
+//samp => now;
+fun void t() { <<<__func__>>>; }
+spork t();
+me.yield();
+samp => now;
