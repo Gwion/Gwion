@@ -566,12 +566,10 @@ funcusr:
   code = *(VM_Code*)reg;
   ip = code->instr->ptr + OFFSET;
   m_uint stack_depth = code->stack_depth;
-printf("stack_depth %lu\n", stack_depth);
   *(m_uint*)  mem = stack_depth; mem += SZ_INT;
   if(stack_depth) {
     register const m_uint f = GET_FLAG(code, member) ? SZ_INT : 0;
     if(f) {
-printf("%p\n", *(m_uint*)(reg - SZ_INT*3));
       *(m_uint*)mem = *(m_uint*)(reg - SZ_INT);
       stack_depth -= SZ_INT;
     }

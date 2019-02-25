@@ -754,7 +754,8 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
 ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
-ANN static Type check_exp_lambda(const Env env, const Exp_If* exp_if) { return t_lambda; }
+ANN static Type check_exp_lambda(const Env env __attribute__((unused)),
+    const Exp_If* exp_if __attribute__((unused))) { return t_lambda; }
 
 static const _type_func exp_func[] = {
   (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,

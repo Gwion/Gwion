@@ -13,6 +13,7 @@
 #include "import.h"
 #include "nspc.h"
 #include "operator.h"
+#include "traverse.h"
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
@@ -25,11 +26,8 @@ static INSTR(FuncAssign) { GWDEBUG_EXE
 static INSTR(LambdaAssign) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT)
   **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
-//  if(GET_FLAG(*(Func*)REG(-SZ_INT), member))
-//  if(instr->m_val) {
-    POP_REG(shred, SZ_INT)
-    *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
-//  }
+  POP_REG(shred, SZ_INT)
+  *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
 }
 
 static OP_CHECK(opck_func_call) {
@@ -40,21 +38,12 @@ static OP_CHECK(opck_func_call) {
 
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(isa(bin->lhs->type, t_lambda) < 0 && GET_FLAG(bin->rhs->type->d.func, member)) 
-{
-//  if(GET_FLAG(bin->rhs->type->d.func, member)) {
+  if(bin->lhs->type !=t_lambda && GET_FLAG(bin->rhs->type->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
-instr->m_val = SZ_INT;
+    instr->m_val = SZ_INT;
     return GW_OK;
   }
-  const Instr instr = emit_add_instr(emit, FuncAssign);
-  if(GET_FLAG(bin->rhs->type->d.func, member)) {
-//instr->m_val = 1;
-//emit_add_instr(emit, RegDup);
-//instr->m_val = -SZ_INT;
-//    const Instr emit_add_instr
-//    exit(2);
-  }
+  emit_add_instr(emit, FuncAssign);
   return GW_OK;
 }
 ANN static Type fptr_type(Exp_Binary* bin) {
@@ -75,7 +64,8 @@ ANN static Type fptr_type(Exp_Binary* bin) {
   return NULL;
 }
 
-ANN2(1,3,4) m_bool check_lambda(Env env, Type owner, Exp_Lambda *lambda, Func_Def def) {
+ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
+    Exp_Lambda *lambda, const Func_Def def) {
   const m_uint scope = ((lambda->owner = owner)) ?
     env_push_type(env, owner) : env->scope;
   Arg_List base = def->arg_list, arg = lambda->arg;

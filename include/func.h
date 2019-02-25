@@ -14,4 +14,6 @@ struct Func_ {
 
 ANEW ANN Func new_func(const m_str name, const Func_Def def);
 ANN2(1,2) Symbol func_symbol(const m_str, const m_str, const m_str, const m_uint);
+
+ANN2(1,3,4) m_bool check_lambda(const Env, const Type, Exp_Lambda *lambda, const Func_Def);
 #endif

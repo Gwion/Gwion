@@ -185,8 +185,7 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
 }
 
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
-  const Instr dup = emit_add_instr(emit, RegDup);
-//  dup->m_val = SZ_INT;
+  emit_add_instr(emit, RegDup);
   const Instr push_f = emit_add_instr(emit, RegPushImm);
   push_f->m_val = (m_uint)code;
   const Instr offset = emit_add_instr(emit, RegSetImm);
@@ -750,7 +749,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     push_func_code(emit, f);
   else {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    if((f_instr)back->opcode == DotFunc)
+    if((f_instr)(m_uint)back->opcode == DotFunc)
       back->m_val = f->vt_index;
   }
   if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
@@ -758,10 +757,9 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
     m_uint val2 = back->m_val2;
-    back->opcode = RegDup2;
+    back->opcode = (m_bit)(m_uint)RegDup2;
     back->m_val = f->def->stack_depth;
-printf("exec %lu %p\n", exec, f->code);
-    const Instr instr = emit_add_instr(emit, exec);
+    const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
   }
@@ -898,7 +896,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
     emit->env->scope : emit_push_type(emit, lambda->owner);
   CHECK_BB(emit_func_def(emit, lambda->def))
   const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = lambda->def->func->code;
+  instr->m_val = (m_uint)lambda->def->func->code;
   if(lambda->owner)
     emit_pop(emit, scope);
   } else
