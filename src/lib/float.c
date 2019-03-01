@@ -110,6 +110,8 @@ GWION_IMPORT(float) {
   CHECK_OP(not, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
   CHECK_OP(not, unary_meta, not)
+
+
   CHECK_BB(gwi_oper_ini(gwi, "int", "float", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_and,           int_float_and))
   CHECK_BB(gwi_oper_end(gwi, op_or,            int_float_or))
@@ -132,6 +134,8 @@ GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_emi(gwi, opem_i2f))
   _CHECK_OP(cast, basic_cast, CastI2F)
   _CHECK_OP(impl, implicit_i2f, CastI2F)
+
+
   CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
   CHECK_BB(gwi_oper_end(gwi, op_add,         float_int_plus))
   CHECK_BB(gwi_oper_end(gwi, op_sub,        float_int_minus))
@@ -154,6 +158,8 @@ GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_emi(gwi, opem_f2i))
   _CHECK_OP(cast, basic_cast, CastF2I)
   _CHECK_OP(impl, implicit_f2i, CastF2I)
+
+
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
   CHECK_OP(chuck, rassign, r_assign)
   CHECK_BB(gwi_oper_end(gwi, op_add,         FloatPlus))
@@ -161,6 +167,7 @@ GWION_IMPORT(float) {
   CHECK_BB(gwi_oper_end(gwi, op_mul,        FloatTimes))
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "float"))
   CHECK_BB(gwi_oper_end(gwi, op_div,       FloatDivide))
+
 
   CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))

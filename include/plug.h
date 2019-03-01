@@ -9,7 +9,7 @@ enum plug_t {
 };
 
 typedef struct Vector_ PlugInfo[GWPLUG_LAST];
-void plug_ini(PlugInfo, Vector);
+void plug_discover(PlugInfo, Vector);
 void plug_end(const Gwion gwion);
 
 #define GWMODNAME_NAME "gwmodname"
@@ -25,5 +25,5 @@ void plug_end(const Gwion gwion);
 //typedef void* (*f_gwmodname)(void);
 typedef void* (*f_gwmodini)(const Gwion, const Vector);
 typedef void* (*f_gwmodend)(const Gwion, void*);
-void module_ini(const Gwion gwion, Vector);
+void plug_ini(const Gwion gwion, const Vector);
 #endif

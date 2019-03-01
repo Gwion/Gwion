@@ -31,7 +31,7 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
   gwion->driver = (Driver*)xcalloc(1, sizeof(Driver));
-  plug_ini(gwion->plug, args);
+  plug_discover(gwion->plug, args);
 }
 
 ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {

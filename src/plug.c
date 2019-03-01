@@ -24,7 +24,7 @@ struct Plug_ {
   void* self;
 };
 
-ANN static void handle_plug(PlugInfo v, const m_str c) {
+ANN static void plug_get(PlugInfo v, const m_str c) {
   void* handler = dlopen(c, RTLD_LAZY);
   if(handler) {
     vector_add(&v[GWPLUG_DL], (vtype)handler);
@@ -44,27 +44,27 @@ ANN static void handle_plug(PlugInfo v, const m_str c) {
     err_msg(0, "error in %s.", dlerror());
 }
 
-void plug_ini(PlugInfo v, Vector list) {
+void plug_discover(PlugInfo v, Vector list) {
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_init(&v[i]);
   for(m_uint i = 0; i < vector_size(list); i++) {
-   const m_str dirname = (m_str)vector_at(list, i);
-   struct dirent **namelist;
-   int n = scandir(dirname, &namelist, so_filter, alphasort);
+   const m_str dir = (m_str)vector_at(list, i);
+   struct dirent **file;
+   int n = scandir(dir, &file, so_filter, alphasort);
    if(n > 0) {
      while(n--) {
-       char c[strlen(dirname) + strlen(namelist[n]->d_name) + 2];
-       sprintf(c, "%s/%s", dirname, namelist[n]->d_name);
-       handle_plug(v, c);
-       free(namelist[n]);
+       char c[strlen(dir) + strlen(file[n]->d_name) + 2];
+       sprintf(c, "%s/%s", dir, file[n]->d_name);
+       plug_get(v, c);
+       free(file[n]);
       }
-     free(namelist);
+     free(file);
     }
   }
 }
 
 void plug_end(const Gwion gwion) {
-  struct Vector_ *v = gwion->plug;
+  struct Vector_ * const v = gwion->plug;
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_MODULE]); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
     if(plug->end)
@@ -97,8 +97,8 @@ ANN static Vector get_arg(const m_str name, const Vector v) {
   return NULL;
 }
 
-void module_ini(const Gwion gwion, Vector args) {
-  Vector v = &gwion->plug[GWPLUG_MODULE];
+void plug_ini(const Gwion gwion, const Vector args) {
+  const Vector v = &gwion->plug[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
     const Vector arg = get_arg(plug->name, args);
