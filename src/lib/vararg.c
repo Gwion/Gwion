@@ -42,11 +42,6 @@ INSTR(VarargIni) { GWDEBUG_EXE
   *(struct Vararg_**)REG(-SZ_INT) = arg;
 }
 
-INSTR(VarargEmpty) { GWDEBUG_EXE
-  *(struct Vararg_**)REG(0) = NULL;
-  PUSH_REG(shred, SZ_INT)
-}
-
 INSTR(VarargEnd) { GWDEBUG_EXE
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   PUSH_REG(shred, SZ_INT);

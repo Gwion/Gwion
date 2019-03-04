@@ -56,7 +56,6 @@ INSTR(ArrayAppend);
 
 /* vararg */
 INSTR(VarargIni);
-INSTR(VarargEmpty);
 INSTR(VarargTop);
 INSTR(VarargEnd);
 INSTR(VarargMember);

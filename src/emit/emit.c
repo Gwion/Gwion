@@ -590,7 +590,7 @@ ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_cal
   if((instr->m_val = vararg_size(exp_call, kinds)))
     instr->m_val2 = (m_uint)kinds;
   else {
-    instr->execute = VarargEmpty;
+    instr->opcode = (m_bit)(m_uint)RegPushImm;
     free_vector(kinds);
   }
 }
