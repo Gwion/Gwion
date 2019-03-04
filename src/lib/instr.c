@@ -66,10 +66,8 @@ INSTR(AutoLoopStart) { GWDEBUG_EXE
 }
 
 INSTR(AutoLoopEnd) { GWDEBUG_EXE
-  m_uint* idx = (m_uint*)MEM(instr->m_val);
-  ++*idx;
   const M_Object o =  *(M_Object*)REG(-SZ_INT);
-  if(*idx >= m_vector_size(ARRAY(o))) {
+  if(++*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
     shred->pc = instr->m_val2;
     POP_REG(shred, SZ_INT);
   }
@@ -78,7 +76,8 @@ INSTR(AutoLoopEnd) { GWDEBUG_EXE
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val)
-  memcpy(shred->mem, shred->reg, instr->m_val);
+  for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
+    *(m_uint*)(shred->mem + i) = *(m_uint*)(shred->reg + i);
 }
 #endif
 
