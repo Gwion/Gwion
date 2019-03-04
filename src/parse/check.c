@@ -95,7 +95,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     }
     const Var_Decl var = list->self;
     const Value v = var->value;
-    if(env->class_def && !env->scope && env->class_def->parent)
+    if(env->class_def && !env->scope->depth && env->class_def->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
@@ -784,16 +784,16 @@ ANN static m_bool check_flow(const Exp exp, const m_str orig) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
-  vector_add(&env->breaks, (vtype)a);
+  vector_add(&env->scope->breaks, (vtype)a);
   RET_NSPC(check_stmt(env, b))
-  vector_pop(&env->breaks);
+  vector_pop(&env->scope->breaks);
   return ret;
 }
 
 ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
-  vector_add(&env->conts, (vtype)a);
+  vector_add(&env->scope->conts, (vtype)a);
   CHECK_BB(check_breaks(env, a, b))
-  vector_pop(&env->conts);
+  vector_pop(&env->scope->conts);
   return GW_OK;
 }
 
@@ -908,7 +908,7 @@ if(env->func->value_ref->type == t_lambda) {
 
 #define describe_check_stmt_stack(stack, name)                                     \
 ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) { GWDEBUG_EXE \
-  if(!vector_size(&env->stack))                                                    \
+  if(!vector_size(&env->scope->stack))                                                    \
     ERR_B(stmt->pos, "'"#name"' found outside of for/while/until...")             \
   return GW_OK;                                                                        \
 }
@@ -1131,7 +1131,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     env_push_global(env);
   const Func former = env->func;
   env->func = func;
-  ++env->scope;
+  ++env->scope->depth;
   nspc_push_value(env->curr);
   if((f->arg_list && (ret = check_func_args(env, f->arg_list)) > 0) || !f->arg_list) {
   const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
@@ -1146,7 +1146,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     operator_func(func);
   }
   nspc_pop_value(env->curr);
-  --env->scope;
+  --env->scope->depth;
   env->func = former;
   if(GET_FLAG(f, global))
     env_push_global(env);

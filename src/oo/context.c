@@ -22,7 +22,7 @@ ANN2(2) Context new_context(const Ast ast, const m_str str) {
 
 ANN void load_context(const Context context, const Env env) {
   ADD_REF((env->context = context))
-  vector_add(&env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->scope->nspc_stack, (vtype)env->curr);
   context->nspc->parent = env->curr;
   env->curr = context->nspc;
 }
@@ -35,5 +35,5 @@ ANN void unload_context(const Context context, const Env env) {
     map_release(&context->lbls);
   }
   REM_REF(context);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
+  env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
 }

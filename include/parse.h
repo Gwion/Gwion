@@ -1,11 +1,11 @@
 #ifndef __PARSE
 #define __PARSE
 #define RET_NSPC(exp)       \
-++env->scope;               \
+++env->scope->depth;        \
 nspc_push_value(env->curr); \
 const m_bool ret = exp;     \
 nspc_pop_value(env->curr);  \
---env->scope;               \
+--env->scope->depth;        \
 return ret;
 
 #define SET_ACCESS(a,b)       \

@@ -19,14 +19,14 @@ ANN Nspc env_nspc(const Env env) {
 
 #define GET(a,b) ((a) & (b)) == (b)
 ANN m_bool env_access(const Env env, const ae_flag flag) {
-  if(env->scope) {
+  if(env->scope->depth) {
    if(GET(flag, ae_flag_global))
       ERR_B(0, "'global' can only be used at %s scope.",
           GET(flag, ae_flag_global) && !env->class_def ?
            "file" : "class")
   }
   if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
-      GET(flag, ae_flag_protect)) && (!env->class_def || env->scope))
+      GET(flag, ae_flag_protect)) && (!env->class_def || env->scope->depth))
       ERR_B(0, "static/private/protect can only be used at class scope.")
   return GW_OK;
 }

@@ -496,7 +496,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, ObjectAssign);
     assign->m_val = (m_uint)emit_var;
-    if(is_array && !emit->env->scope)
+    if(is_array && !emit->env->scope->depth)
       ADD_REF(type)
   }
   return GW_OK;
@@ -522,7 +522,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, ObjectAssign);
     assign->m_val = (m_uint)emit_var;
-    if(is_array && !emit->env->scope)
+    if(is_array && !emit->env->scope->depth)
       ADD_REF(type)
     const Instr instr = emit_add_instr(emit, RegAddRef);
     instr->m_val = emit_var;
@@ -816,7 +816,7 @@ static inline void stack_alloc_this(const Emitter emit) {
 }
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
-  ++emit->env->scope;
+  ++emit->env->scope->depth;
   emit_push_scope(emit);
   const m_bool pure = SAFE_FLAG(emit->env->func, pure);
   if(!pure)
@@ -825,7 +825,7 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   if(!pure)
     emit_add_instr(emit, GcEnd);
   emit_pop_scope(emit);
-  --emit->env->scope;
+  --emit->env->scope->depth;
   return GW_OK;
 }
 
@@ -904,7 +904,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBU
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) { GWDEBUG_EXE
   if(lambda->def) {
   const m_uint scope = !lambda->owner ?
-    emit->env->scope : emit_push_type(emit, lambda->owner);
+    emit->env->scope->depth : emit_push_type(emit, lambda->owner);
   CHECK_BB(emit_func_def(emit, lambda->def))
   const Instr instr = emit_add_instr(emit, RegPushImm);
   instr->m_val = (m_uint)lambda->def->func->code;
@@ -950,9 +950,9 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) { GWDEBUG
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) { GWDEBUG_EXE
-  ++emit->env->scope;
+  ++emit->env->scope->depth;
   const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
-  --emit->env->scope;
+  --emit->env->scope->depth;
   return ret;
 }
 
@@ -1272,7 +1272,7 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) { GWDEBUG_EXE
 
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
-  m_uint scope = emit->env->scope;
+  m_uint scope = emit->env->scope->depth;
   const m_bool global = GET_FLAG(stmt, global);
   if(stmt->xid) {
     if(stmt->value->type->nspc->class_data_size && !stmt->value->type->nspc->class_data)
@@ -1644,12 +1644,12 @@ ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) { GWDEBUG
 }
 
 ANN static inline void emit_class_push(const Emitter emit, const Type type) { GWDEBUG_EXE
-  vector_add(&emit->env->class_stack, (vtype)emit->env->class_def);
+  vector_add(&emit->env->scope->class_stack, (vtype)emit->env->class_def);
   emit->env->class_def = type;
 }
 
 ANN static inline void emit_class_pop(const Emitter emit) { GWDEBUG_EXE
-  emit->env->class_def = (Type)vector_pop(&emit->env->class_stack);
+  emit->env->class_def = (Type)vector_pop(&emit->env->scope->class_stack);
   emit_pop_code(emit);
 }
 

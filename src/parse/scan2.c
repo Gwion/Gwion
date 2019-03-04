@@ -487,7 +487,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   Value value    = NULL;
   f->stack_depth = 0;
-  m_uint scope = env->scope;
+  m_uint scope = env->scope->depth;
   if(GET_FLAG(f, global))
     scope = env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->name);

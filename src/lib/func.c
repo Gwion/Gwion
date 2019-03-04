@@ -67,7 +67,7 @@ ANN static Type fptr_type(Exp_Binary* bin) {
 ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     Exp_Lambda *l, const Func_Def def) {
   const m_uint scope = ((l->owner = owner)) ?
-    env_push_type(env, owner) : env->scope;
+    env_push_type(env, owner) : env->scope->depth;
   Arg_List base = def->arg_list, arg = l->arg;
   while(base && arg) {
     arg->td = base->td;

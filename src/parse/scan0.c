@@ -41,7 +41,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   CHECK_OB(base)
   CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
-    const Type t = new_type(++env->type_xid, s_name(stmt->xid), base);
+    const Type t = new_type(++env->scope->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
     const Nspc nspc = (!env->class_def && GET_FLAG(stmt->td, global)) ?
       env->global_nspc : env->curr;
@@ -147,7 +147,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
   CHECK_BB(env_access(env, class_def->flag))
   env_storage(env, &class_def->flag);
   if(GET_FLAG(class_def, global)) {
-    vector_add(&env->nspc_stack, (vtype)env->curr);
+    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
   CHECK_BB(already_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
@@ -156,7 +156,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  const Type t = new_type(++env->type_xid, s_name(class_def->name->xid), t_object);
+  const Type t = new_type(++env->scope->type_xid, s_name(class_def->name->xid), t_object);
   t->owner = env->curr;
   t->nspc = new_nspc(t->name);
   t->nspc->parent = GET_FLAG(class_def, global) ? env_nspc(env) : env->curr;
@@ -193,7 +193,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   }
   (void)mk_class(env, class_def->type);
   if(GET_FLAG(class_def, global))
-    env->curr = (Nspc)vector_pop(&env->nspc_stack);
+    env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   return GW_OK;
 }
 

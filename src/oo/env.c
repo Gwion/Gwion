@@ -13,66 +13,75 @@
 #include "mpool.h"
 #include "switch.h"
 
+ANN static struct Env_Scope_ *new_scope(void) {
+  struct Env_Scope_ *a = mp_alloc(Env_Scope);
+  vector_init(&a->breaks);
+  vector_init(&a->conts);
+  vector_init(&a->class_stack);
+  vector_init(&a->nspc_stack);
+  vector_init(&a->known_ctx);
+  vector_init((Vector)&a->swi);
+  map_init(&a->swi.map);
+  return a;
+}
+
 Env new_env() {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc("global_nspc");
   env->context = NULL;
-  vector_init(&env->breaks);
-  vector_init(&env->conts);
-  vector_init(&env->class_stack);
-  vector_init(&env->nspc_stack);
-  vector_init(&env->known_ctx);
-  env->type_xid = 0;
-  vector_init((Vector)&env->swi);
-  map_init(&env->swi.map);
-
+  env->scope = new_scope();
   env_reset(env);
   return env;
 }
 
 ANN void env_reset(const Env env) {
-  vector_clear(&env->breaks);
-  vector_clear(&env->conts);
-  vector_clear(&env->nspc_stack);
-  vector_add(&env->nspc_stack, (vtype)env->global_nspc);
-  vector_clear(&env->class_stack);
-  vector_add(&env->class_stack, (vtype)NULL);
+  vector_clear(&env->scope->breaks);
+  vector_clear(&env->scope->conts);
+  vector_clear(&env->scope->nspc_stack);
+  vector_add(&env->scope->nspc_stack, (vtype)env->global_nspc);
+  vector_clear(&env->scope->class_stack);
+  vector_add(&env->scope->class_stack, (vtype)NULL);
   env->curr = env->global_nspc;
   env->class_def = NULL;
   env->func = NULL;
-  env->scope = 0;
+  env->scope->depth = 0;
   switch_reset(env);
 }
 
-ANN void free_env(const Env a) {
+ANN static void free_env_scope(struct Env_Scope_  *a) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = size + 1; --i;)
     REM_REF((Context)vector_at(&a->known_ctx, i - 1));
   vector_release(&a->known_ctx);
-  REM_REF(a->global_nspc);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
-  switch_reset(a);
   switch_release(&a->swi);
+  mp_free(Env_Scope, a);
+}
+
+ANN void free_env(const Env a) {
+  switch_reset(a);
+  free_env_scope(a->scope);
+  REM_REF(a->global_nspc);
   free(a);
 }
 
 ANN2(1,3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {
-  const m_uint scope = env->scope;
-  vector_add(&env->class_stack, (vtype)env->class_def);
+  const m_uint scope = env->scope->depth;
+  vector_add(&env->scope->class_stack, (vtype)env->class_def);
   env->class_def = type;
-  vector_add(&env->nspc_stack, (vtype)env->curr);
+  vector_add(&env->scope->nspc_stack, (vtype)env->curr);
   env->curr = nspc;
-  env->scope = 0;
+  env->scope->depth = 0;
   return scope;
 }
 
 ANN void env_pop(const Env env, const m_uint scope) {
-  env->class_def = (Type)vector_pop(&env->class_stack);
-  env->curr = (Nspc)vector_pop(&env->nspc_stack);
-  env->scope = scope;
+  env->class_def = (Type)vector_pop(&env->scope->class_stack);
+  env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
+  env->scope->depth = scope;
 }
 
 ANN void env_add_type(const Env env, const Type type) {
@@ -84,7 +93,7 @@ ANN void env_add_type(const Env env, const Type type) {
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
-  type->xid = ++env->type_xid;
+  type->xid = ++env->scope->type_xid;
 }
 
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
@@ -94,7 +103,7 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) {
     nspc_commit(env->curr);
-    vector_add(&env->known_ctx, (vtype)ctx);
+    vector_add(&env->scope->known_ctx, (vtype)ctx);
   } else //nspc_rollback(env->global_nspc);
     REM_REF(ctx);
   unload_context(ctx, env);

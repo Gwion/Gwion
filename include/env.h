@@ -14,6 +14,17 @@ struct Switch_ {
   unsigned ok : 1;
 };
 
+struct Env_Scope_ {
+  struct Vector_    nspc_stack;
+  struct Vector_    class_stack;
+  struct Vector_    breaks;
+  struct Vector_    conts;
+  struct Vector_    known_ctx;
+  struct Scope_ swi;
+  size_t depth;
+  size_t type_xid;
+};
+
 typedef struct Env_       * Env;
 struct Env_ {
   m_str name;
@@ -23,14 +34,7 @@ struct Env_ {
   Type      class_def;
   Func      func;
   struct Gwion_ *gwion;
-  struct Vector_    nspc_stack;
-  struct Vector_    class_stack;
-  struct Vector_    breaks;
-  struct Vector_    conts;
-  struct Vector_    known_ctx;
-  struct Scope_ swi;
-  size_t scope;
-  size_t type_xid;
+  struct Env_Scope_* scope;
 };
 
 ANEW Env new_env();

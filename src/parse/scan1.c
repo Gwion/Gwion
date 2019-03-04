@@ -34,7 +34,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
   if(env->class_def) {
-    if(!env->scope) {
+    if(!env->scope->depth) {
       if(!env->func && !GET_FLAG(decl->td, static))
         SET_FLAG(decl->td, member);
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
@@ -79,11 +79,11 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
-    if(!env->func && !env->scope && !env->class_def)
+    if(!env->func && !env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
     v->owner = !env->func ? env->curr : NULL;
-    v->owner_class = env->scope ? NULL : env->class_def;
+    v->owner_class = env->scope->depth ? NULL : env->class_def;
   } while((list = list->next));
   decl->type = decl->list->self->value->type;
   if(global)
@@ -277,7 +277,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     return GW_OK;
   const Func former = env->func;
   env->func = FAKE_FUNC;
-  ++env->scope;
+  ++env->scope->depth;
   if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
   if(f->td)//lambda
@@ -289,7 +289,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(GET_FLAG(f, op) && env->class_def)
     SET_FLAG(f, static);
   env->func = former;
-  --env->scope;
+  --env->scope->depth;
   return GW_OK;
 }
 
