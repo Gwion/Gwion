@@ -17,8 +17,8 @@ static void sig(int unused __attribute__((unused))) {
 
 int main(int argc, char** argv) {
   Arg arg = { .argc = argc, .argv=argv, .loop=-1 };
-  DriverInfo di = { .in=2, .out=2, .chan=2, .sr=48000, .bufsize=256,
-    .bufnum=3, .card="default:CARD=CODEC", .func=D_FUNC, .run=vm_run };
+  DriverInfo di = { .in=2, .out=2, /* .chan=2, */ .sr=48000, /* .bufsize=256,
+    .bufnum=3, .card="default:CARD=CODEC",*/ .func=D_FUNC, .run=vm_run };
   if(parse_args(&arg, &di)) {
     arg_release(&arg);
     return 0;
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
   gwion_init(&gwion, &arg.lib);
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  if(gwion_audio(&gwion, &di) && gwion_engine(&gwion)) {
+  if(gwion_audio(&gwion, &di) > 0 && gwion_engine(&gwion)) {
     plug_ini(&gwion, &arg.mod);
     for(m_uint i = 0; i < vector_size(&arg.add); i++)
       compile_filename(&gwion, (m_str)vector_at(&arg.add, i));

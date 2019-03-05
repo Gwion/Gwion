@@ -52,8 +52,6 @@ ANN static void plug_get(PlugInfo* p, const m_str c) {
     const driver drv = DLFUNC(dl, driver, GWDRIVER_NAME);
     if(drv) {
       const modstr str = DLFUNC(dl, modstr, GWMODSTR_NAME);
-printf("%s %s\n", __func__, str());
-//      map_set(&p->drv, (vtype)str(), (vtype)drv);
       map_set(&p->drv, (vtype)str(), (vtype)drv);
     }
   } else
@@ -95,21 +93,25 @@ void plug_end(const Gwion gwion) {
   map_release(&gwion->plug->drv);
 }
 
+ANN Vector split_args(const m_str str) {
+  const m_str arg = strchr(str, '=');
+  m_str c, d = strdup(arg+1);
+  c = d;
+  const Vector args = new_vector();
+  while(d)
+    vector_add(args, (vtype)strdup(strsep(&d, ",")));
+  free(d);
+  free(c);
+  return args;
+}
+
 ANN static Vector get_arg(const m_str name, const Vector v) {
   const size_t len = strlen(name);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const m_str str = (m_str)vector_at(v, i - 1);
     if(!strncmp(name, str, len)) {
-      const m_str arg = strchr(str, '=');
-      m_str c, d = strdup(arg+1);
-      c = d;
-      const Vector args = new_vector();
-      while(d)
-        vector_add(args, (vtype)strdup(strsep(&d, ",")));
-      free(d);
-      free(c);
       vector_rem(v, i-1);
-      return args;
+      return split_args(str);
     }
   }
   return NULL;

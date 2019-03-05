@@ -38,8 +38,8 @@ static const struct option long_option[] = {
   { "alone",    1, NULL, 'a' },
   { "in",       1, NULL, 'i' },
   { "out",      1, NULL, 'o' },
-  { "bufsize",  1, NULL, 'b' },
-  { "bufnum",   1, NULL, 'n' },
+//  { "bufsize",  1, NULL, 'b' },
+//  { "bufnum",   1, NULL, 'n' },
   { "loop",     1, NULL, 'l' },
   { "format",   1, NULL, 'l' },
   { "help",     0, NULL, '?' },
@@ -93,14 +93,14 @@ ANN static void arg_add(Arg* arg) {
 
 ANN static void arg_drvr(DriverInfo* di, const int i) {
     switch(i) {
-      case 'c':
-        di->card     = optarg;
+//      case 'c':
+//        di->card     = optarg;
         break;
-      case 'g':
-        di->chan     = (m_uint)strtol(optarg, NULL, 10);
-        di->in       = (m_uint)strtol(optarg, NULL, 10);
-        di->out      = (m_uint)strtol(optarg, NULL, 10);
-        break;
+//      case 'g':
+//        di->chan     = (m_uint)strtol(optarg, NULL, 10);
+//        di->in       = (m_uint)strtol(optarg, NULL, 10);
+//        di->out      = (m_uint)strtol(optarg, NULL, 10);
+//        break;
       case 'i':
         di->in       = (m_uint)strtol(optarg, NULL, 10);
         break;
@@ -119,15 +119,15 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
       case 'e':
         select_backend(di, optarg);
         break;
-      case 'r':
-        di->raw = 1;
-        break;
-      case 'n':
-        di->bufnum    = (m_uint)strtol(optarg, NULL, 10);
-        break;
-      case 'b':
-        di->bufsize    = (m_uint)strtol(optarg, NULL, 10);
-        break;
+//      case 'r':
+//        di->raw = 1;
+//        break;
+//      case 'n':
+//        di->bufnum    = (m_uint)strtol(optarg, NULL, 10);
+//        break;
+//      case 'b':
+//        di->bufsize    = (m_uint)strtol(optarg, NULL, 10);
+//        break;
     default:
       gw_err("Unknown argument '%c'\n", i);
   }

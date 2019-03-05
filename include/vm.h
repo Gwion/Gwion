@@ -19,8 +19,8 @@ struct BBQ_ {
   m_float* in;
   m_float* out;
   uint32_t sr; // int 32
-  uint8_t nchan;
   uint8_t n_in;
+  uint8_t n_out;
 };
 
 typedef struct Shreduler_* Shreduler;

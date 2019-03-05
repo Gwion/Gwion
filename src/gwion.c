@@ -50,8 +50,9 @@ ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
   }
   di->func(gwion->driver);
   VM* vm = gwion->vm;
-  return gwion->driver->ini(vm, di) > 0 &&
-    (vm->bbq = new_bbq(di));
+  CHECK_BB(gwion->driver->ini(vm, di));
+  vm->bbq = new_bbq(di);
+  return GW_OK;
 }
 
 ANN m_bool gwion_engine(const Gwion gwion) {

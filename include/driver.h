@@ -2,19 +2,12 @@
 #define __DRIVER
 typedef struct driver_wrapper* Driver_;
 typedef struct containing_driver_info {
-  m_uint in, out;
-  m_uint chan;
-  uint   sr;
-  m_uint bufsize;
-  m_uint bufnum;
-  m_str card;
-  m_uint backend;
-  m_uint format;
+  uint8_t in, out;
+  uint32_t   sr;
   m_str arg;
   void (*func)(Driver_);
   void (*run)(const VM*);
   void* data;
-  unsigned raw : 1;
 } DriverInfo;
 
 

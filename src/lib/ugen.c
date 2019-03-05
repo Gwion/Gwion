@@ -312,7 +312,7 @@ static GWION_IMPORT(global_ugens) {
   const VM* vm = gwi_vm(gwi);
   struct ugen_importer hole = { vm, compute_mono, "blackhole", 1, NULL };
   add_ugen(gwi, &hole);
-  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->nchan, NULL };
+  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->n_out, NULL };
   add_ugen(gwi, &dac);
   struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->n_in, NULL };
   add_ugen(gwi, &adc);
