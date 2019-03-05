@@ -37,14 +37,13 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
 }
 
 ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
-  di->func = dummy_driver;
   // get driver from string.
   if(di->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
       const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
       const size_t len = strlen(name);
       if(!strncmp(name, di->arg, len)) {
-        di->func = (void (*)(struct driver_wrapper *))VVAL(&gwion->plug->drv, i);
+        di->func = (void (*)(struct _driver*))VVAL(&gwion->plug->drv, i);
         break;
       }
     }

@@ -22,7 +22,7 @@ typedef m_str  (*modstr)(void);
 typedef void*  (*modini)(const Gwion, const Vector);
 typedef void*  (*modend)(const Gwion, void*);
 typedef void*  (*modend)(const Gwion, void*);
-typedef void   (*driver)(struct driver_wrapper*);
+typedef void   (*driver)(struct _driver*);
 struct Plug_ {
   m_str name;
   modini ini;
