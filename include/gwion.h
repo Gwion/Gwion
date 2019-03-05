@@ -4,7 +4,7 @@ typedef struct Gwion_* Gwion;
 #include "plug.h"
 #include "driver.h"
 struct Gwion_ {
-  PlugInfo plug;
+  PlugInfo* plug;
   Driver* driver;
 // scanner
 // sym

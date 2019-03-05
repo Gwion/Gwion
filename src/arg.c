@@ -111,7 +111,7 @@ ANN static void arg_drvr(DriverInfo* di, const int i) {
         di->sr       = (uint)strtol(optarg, NULL, 10);
         break;
       case 'd':
-        select_driver(di, optarg);
+        di->arg = optarg;
         break;
       case 'f':
         select_format(di, optarg);

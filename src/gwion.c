@@ -1,3 +1,4 @@
+#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -31,10 +32,22 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
   gwion->driver = (Driver*)xcalloc(1, sizeof(Driver));
+  gwion->plug = (PlugInfo*)xmalloc(sizeof(PlugInfo));
   plug_discover(gwion->plug, args);
 }
 
 ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
+  // get driver from string.
+  if(di->arg) {
+    for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
+      const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
+      const size_t len = strlen(name);
+      if(!strncmp(name, di->arg, len)) {
+        di->func = (void (*)(struct driver_wrapper *))VVAL(&gwion->plug->drv, i);
+        break;
+      }
+    }
+  }
   di->func(gwion->driver);
   VM* vm = gwion->vm;
   return gwion->driver->ini(vm, di) > 0 &&
@@ -42,7 +55,7 @@ ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
 }
 
 ANN m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion->vm, &gwion->plug[GWPLUG_IMPORT]) > 0;
+  return type_engine_init(gwion->vm, &gwion->plug->vec[GWPLUG_IMPORT]) > 0;
 }
 
 ANN void gwion_run(const Gwion gwion, DriverInfo* di) {
@@ -61,5 +74,6 @@ ANN void gwion_release(const Gwion gwion, DriverInfo* di) {
   free_env(gwion->env);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
+  xfree(gwion->plug);
   free_symbols();
 }

@@ -10,6 +10,7 @@ typedef struct containing_driver_info {
   m_str card;
   m_uint backend;
   m_uint format;
+  m_str arg;
   void (*func)(Driver_);
   void (*run)(const VM*);
   void* data;
