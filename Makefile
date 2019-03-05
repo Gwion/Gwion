@@ -20,10 +20,6 @@ parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
-drvr_src := src/drvr/driver.c
-
-# add libraries
-drvr_src +=src/drvr/dummy.c
 
 # add boolean
 ifeq (${USE_GWCOV}, 1)
@@ -64,9 +60,8 @@ emit_obj := $(emit_src:.c=.o)
 oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
-drvr_obj := $(drvr_src:.c=.o)
 
-GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
+GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt
