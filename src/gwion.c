@@ -37,6 +37,7 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
 }
 
 ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
+  di->func = dummy_driver;
   // get driver from string.
   if(di->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {

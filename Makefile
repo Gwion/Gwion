@@ -23,56 +23,8 @@ opt_src := $(wildcard opt/*.c)
 drvr_src := src/drvr/driver.c
 
 # add libraries
-ifeq (${DUMMY_D}, 1)
-CFLAGS +=-DHAVE_DUMMY
 drvr_src +=src/drvr/dummy.c
-endif
-ifeq (${SPA_D}, 1)
-CFLAGS +=-DHAVE_SPA
-drvr_src +=src/drvr/spa.c
-endif
-ifeq (${ALSA_D}, 1)
-LDFLAGS += -lasound
-CFLAGS +=-DHAVE_ALSA
-drvr_src +=src/drvr/alsa.c
-endif
-ifeq (${JACK_D}, 1)
-LDFLAGS += -ljack
-CFLAGS +=-DHAVE_JACK
-drvr_src +=src/drvr/jack.c
-endif
-ifeq (${PORTAUDIO_D}, 1)
-LDFLAGS += -lportaudio
-CFLAGS +=-DHAVE_PORTAUDIO
-drvr_src +=src/drvr/portaudio.c
-endif
-ifeq (${SOUNDIO_D}, 1)
-LDFLAGS += -lsoundio
-CFLAGS +=-DHAVE_SOUNDIO
-drvr_src +=src/drvr/soundio.c
-endif
-ifeq (${PULSE_D}, 1)
-LDFLAGS += -lpulse-simple
-CFLAGS +=-DHAVE_PULSE
-drvr_src +=src/drvr/pulse.c
-endif
 
-ifeq (${SNDFILE_D}, 1)
-LDFLAGS += -lsndfile
-CFLAGS +=-DHAVE_SNDFILE
-drvr_src +=src/drvr/sndfile.c
-else
-CFLAGS +=-DNO_LIBSNDFILE
-endif
-ifeq (${PLOT_D}, 1)
-CFLAGS +=-DHAVE_PLOT
-drvr_src +=src/drvr/plot.c
-endif
-ifeq (${SLES_D}, 1)
-LDFLAGS += -lOpenSLES
-CFLAGS +=-DHAVE_SLES
-drvr_src +=src/drvr/sles.c
-endif
 # add boolean
 ifeq (${USE_GWCOV}, 1)
 CFLAGS += -DGWCOV
