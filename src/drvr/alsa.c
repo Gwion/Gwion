@@ -24,7 +24,7 @@ struct AlsaNi {
 struct AlsaInfo {
   snd_pcm_t* handle;
   snd_pcm_t *pcm_in,       *pcm_out;
-  SPFLOAT  **in_buf,  **out_buf;
+  m_float  **in_buf,  **out_buf;
   void     **_in_buf, **_out_buf;
   void *in_bufi, *out_bufi;
 };
