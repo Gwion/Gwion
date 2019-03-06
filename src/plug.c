@@ -22,7 +22,7 @@ typedef m_str  (*modstr)(void);
 typedef void*  (*modini)(const Gwion, const Vector);
 typedef void*  (*modend)(const Gwion, void*);
 typedef void*  (*modend)(const Gwion, void*);
-typedef void   (*driver)(struct _driver*);
+
 struct Plug_ {
   m_str name;
   modini ini;
@@ -49,7 +49,7 @@ ANN static void plug_get(PlugInfo* p, const m_str c) {
       plug->end  = DLFUNC(dl, modend, GWMODEND_NAME);
       vector_add(&p->vec[GWPLUG_MODULE], (vtype)plug);
     }
-    const driver drv = DLFUNC(dl, driver, GWDRIVER_NAME);
+    const f_drvset drv = DLFUNC(dl, f_drvset, GWDRIVER_NAME);
     if(drv) {
       const modstr str = DLFUNC(dl, modstr, GWMODSTR_NAME);
       map_set(&p->drv, (vtype)str(), (vtype)drv);
@@ -95,8 +95,7 @@ void plug_end(const Gwion gwion) {
 
 ANN Vector split_args(const m_str str) {
   const m_str arg = strchr(str, '=');
-  m_str c, d = strdup(arg+1);
-  c = d;
+  m_str d = strdup(arg+1), c = d;
   const Vector args = new_vector();
   while(d)
     vector_add(args, (vtype)strdup(strsep(&d, ",")));

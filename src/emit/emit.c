@@ -733,7 +733,7 @@ static m_bool emit_template_code(const Emitter emit, const Func f) {
     CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->def))
   const Value v = f->value_ref;
   size_t scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(emit_func_def(emit, f->def)) // orig
+  CHECK_BB(emit_func_def(emit, f->def))
   emit_pop(emit, scope);
   return push_func_code(emit, f);
 }
@@ -746,8 +746,7 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
        FuncMember : FuncStatic : FuncUsr;
     return emit_add_instr(emit, exec);
   }
-  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
-//  ex->m_val = -SZ_INT;
+  emit_add_instr(emit, GWOP_EXCEPT);
   return emit_add_instr(emit, FuncPtr);
 }
 
@@ -1282,7 +1281,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) { G
     if(!stmt->value->type->p)
       stmt->value->type->p = mp_ini((uint32_t)stmt->value->type->size);
     Type_Decl *type_decl = new_type_decl(new_id_list(stmt->xid, stmt->self->pos),
-        emit->env->class_def ? ae_flag_member : 0); // or zero ?
+        emit->env->class_def ? ae_flag_member : 0);
     type_decl->flag = stmt->flag;
     const Var_Decl var_decl = new_var_decl(stmt->xid, NULL, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
@@ -1356,7 +1355,7 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const uint emit_addr) { GWDEBUG_EXE
-  if(v->d.ptr && GET_FLAG(v, builtin)) { // from C
+  if(v->d.ptr && GET_FLAG(v, builtin)) {
     if(GET_FLAG(v, enum)) {
       const Instr func_i = emit_add_instr(emit, RegPushImm);
       func_i->m_val = (m_uint)v->d.ptr;
@@ -1378,7 +1377,7 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
   CHECK_BB(emit_exp(emit, base, 0))
   const m_bool is_complex = !strcmp((isa(base->type, t_complex) > 0  ? "re" : "phase") ,
         s_name(member->xid));
-  if(is_complex && member->self->emit_var) // skip
+  if(is_complex && member->self->emit_var)
     return GW_OK;
   const Instr instr = emit_add_instr(emit, is_complex ? ComplexReal : ComplexImag);
   instr->m_val = member->self->emit_var;
@@ -1398,7 +1397,7 @@ ANN static m_bool emit_VecMember(const Emitter emit, const Exp_Dot* member) {
     emit_vec_func(emit, v);
     return GW_OK;
   }
-  if(!v->offset && member->self->emit_var) // skip
+  if(!v->offset && member->self->emit_var)
     return GW_OK;
   const Instr instr = emit_add_instr(emit, VecMember);
   instr->m_val2 = v->offset;
@@ -1453,22 +1452,15 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
 }
 
 ANN static m_bool emit_dot_static_func(const Emitter emit, const Func func) { GWDEBUG_EXE
-//  if(func->code) {
-//    const Instr func_i = emit_add_instr(emit, RegPushImm);
-//    func_i->m_val = (m_uint)func->code;
-//  } else {
-    // TODO: improve me
-    const Instr func_i = emit_add_instr(emit, PushStaticCode);
-    func_i->m_val = (m_uint)func;
-//  }
+  const Instr func_i = emit_add_instr(emit, PushStaticCode);
+  func_i->m_val = (m_uint)func;
   return GW_OK;
 }
 
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
   if(emit_exp(emit, member->base, 0) < 0)
     ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
-  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
-  //ex->m_val = -SZ_INT;
+  emit_add_instr(emit, GWOP_EXCEPT);
   if(GET_FLAG(member->base->type, force)) {
     const Instr func_i = emit_add_instr(emit, RegPushImm);
     func_i->m_val = (m_uint)func->code;
@@ -1484,8 +1476,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
 }
 
 ANN static inline void emit_member(const Emitter emit, const Value v, const uint emit_addr) {
-  /*const Instr ex = */emit_add_instr(emit, GWOP_EXCEPT);
-  //ex->m_val = -SZ_INT;
+  emit_add_instr(emit, GWOP_EXCEPT);
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->offset;
@@ -1496,8 +1487,8 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
   const Type t_base = member->t_base;
   const Value value = find_value(t_base, member->xid);
   const uint emit_addr = member->self->emit_var;
-  if(isa(member->self->type, t_fptr) > 0) { // function pointer
-    if(GET_FLAG(value, member)) { // member
+  if(isa(member->self->type, t_fptr) > 0) {
+    if(GET_FLAG(value, member)) {
       if(emit_exp(emit, member->base, 0) < 0)
         ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
       emit_member(emit, value, emit_addr);
@@ -1506,12 +1497,12 @@ ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* membe
       return emit_dot_static_data(emit, value, emit_addr);
   } else if(isa(member->self->type, t_function) > 0)
     return emit_member_func(emit, member, value->d.func_ref);
-  else { // variable
-    if(GET_FLAG(value, member)) { // member
+  else {
+    if(GET_FLAG(value, member)) {
       CHECK_BB(emit_exp(emit, member->base, 0))
       emit_member(emit, value, emit_addr);
       return GW_OK;
-    } else // static
+    } else
       CHECK_BB(emit_dot_static_import_data(emit, value, emit_addr))
   }
   return GW_OK;
@@ -1601,8 +1592,9 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
   const Func func = get_func(emit->env, func_def);
-  if(func->code)return GW_OK;
-  if(tmpl_list_base(func_def->tmpl)) { // don't check template definition
+  if(func->code)
+    return GW_OK;
+  if(tmpl_list_base(func_def->tmpl)) {
     UNSET_FLAG(func_def, template);
     return GW_OK;
   }

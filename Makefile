@@ -45,9 +45,6 @@ CFLAGS += -DVMBENCH
 LDFLAGS += -lbsd
 endif
 
-# add definitions
-CFLAGS+= -DD_FUNC=${D_FUNC}
-
 # add directories
 CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 

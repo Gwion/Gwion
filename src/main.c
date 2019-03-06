@@ -17,12 +17,8 @@ static void sig(int unused __attribute__((unused))) {
 
 int main(int argc, char** argv) {
   Arg arg = { .argc = argc, .argv=argv, .loop=-1 };
-  DriverInfo di = { .in=2, .out=2, /* .chan=2, */ .sr=48000, /* .bufsize=256,
-    .bufnum=3, .card="default:CARD=CODEC",*/ .func=D_FUNC, .run=vm_run };
-  if(parse_args(&arg, &di)) {
-    arg_release(&arg);
-    return 0;
-  }
+  DriverInfo di = { .in=2, .out=2, .sr=48000, .func=dummy_driver, .run=vm_run };
+  arg_parse(&arg, &di);
   gwion_init(&gwion, &arg.lib);
   signal(SIGINT, sig);
   signal(SIGTERM, sig);

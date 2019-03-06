@@ -43,7 +43,7 @@ ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
       const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
       const size_t len = strlen(name);
       if(!strncmp(name, di->arg, len)) {
-        di->func = (void (*)(struct _driver*))VVAL(&gwion->plug->drv, i);
+        di->func = (f_drvset)VVAL(&gwion->plug->drv, i);
         break;
       }
     }

@@ -53,7 +53,7 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   if(!var->value) {
     const Value v = new_value(env->gwion, list->type,
       var->xid ? s_name(var->xid) : s_name(insert_symbol((m_str)var)));
-    if(list->td) // lambda
+    if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
     return v;
   }
@@ -475,7 +475,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   scan2_func_def_flag(f);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
-//  if(GET_FLAG(func, member) && !GET_FLAG(func->def, func))
   if(GET_FLAG(func, member))
     f->stack_depth += SZ_INT;
   if(GET_FLAG(func->def, variadic))
@@ -507,7 +506,6 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       f->ret_type = type_decl_resolve(env, f->td);
-      // check arg_list->type for lambdas
       return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
     }
   }

@@ -71,8 +71,7 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
       ERR_B(var->pos, "can't use static variables for member function.")
     if(!GET_FLAG(v, member))
       ERR_B(var->pos, "can't use member variables for static function.")
-  } //else if(GET_FLAG(v, member))
-    //ERR_B(var->pos, "can't use member variables for static function.")
+  }
   return GW_OK;
 }
 
@@ -172,7 +171,6 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, const) || !strcmp(s_name(primary->d.var), "maybe"))
     primary->self->meta = ae_meta_value;
-//  OPTIMIZE_PRIM_CONST(primary, v->d.ptr)
   return v->type;
 }
 
@@ -507,7 +505,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp
     tmpl->base = v->d.func_ref->def->tmpl->list;
     if(base->exp_type == ae_exp_call)
       base->d.exp_call.tmpl = tmpl;
-    else // if(base->exp_type == ae_exp_binary)
+    else /* if(base->exp_type == ae_exp_binary) */
       base->d.exp_binary.tmpl = tmpl;
     return f;
   }
@@ -552,7 +550,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Func func = get_template_func(env, &tmp_func, base, value);
   if(base->exp_type == ae_exp_call)
     base->d.exp_call.m_func = func;
-  else // if(base->exp_type == ae_exp_binary)
+  else /* if(base->exp_type == ae_exp_binary) */
     base->d.exp_binary.func = func;
   return func ? func->def->ret_type : NULL;
 }
@@ -568,7 +566,7 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
 ANN static inline void set_call(const Exp e, const Func f) {
   if(e->exp_type == ae_exp_call)
     e->d.exp_call.m_func = f;
-  else // if(e->exp_type == ae_exp_binary)
+  else /* if(e->exp_type == ae_exp_binary) */
     e->d.exp_binary.func = f;
 }
 
@@ -1003,8 +1001,7 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
-//  if(GET_FLAG(parent->def, static) || GET_FLAG(f, static)) {
-  if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) { // wath me
+  if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) {
     const m_str c_name  = f->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
     const m_str f_name = s_name(f->name);
@@ -1014,9 +1011,7 @@ ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { G
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, static) ? c_name : p_name, f_name)
   }
-  if(!f->tmpl) // ???
-    return isa(f->ret_type, parent->def->ret_type);
-  return GW_OK;
+  return !f->tmpl ? isa(f->ret_type, parent->def->ret_type) : GW_OK;
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
@@ -1046,12 +1041,10 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-//  if(GET_FLAG(func, member)) {
   if(!env->curr->vtable.ptr)
     vector_init(&env->curr->vtable);
   func->vt_index = vector_size(&env->curr->vtable);
   vector_add(&env->curr->vtable, (vtype)func);
-//  }
   return GW_OK;
 }
 
@@ -1070,7 +1063,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
 
 ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
   const Symbol sym = func_symbol(env->curr->name, s_name(def->name), NULL, i);
-  return nspc_lookup_func1(env->curr, sym); // was lookup2
+  return nspc_lookup_func1(env->curr, sym);
 }
 
 ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
