@@ -23,8 +23,8 @@ M_Object new_object(const VM_Shred shred, const Type t) {
   const M_Object a = mp_alloc(M_Object);
   a->ref = 1;
   a->type_ref = t;
-  a->vtable = &t->nspc->vtable;
-  if(t->nspc->offset) {
+  a->vtable = &t->nspc->info->vtable;
+  if(t->nspc->info->offset) {
     Type type = t;
     while(!type->p)
       type = type->parent;
@@ -71,7 +71,7 @@ __attribute__((hot))
 ANN void __release(const M_Object obj, const VM_Shred shred) {
   Type t = obj->type_ref;
   while(t->parent) {
-    struct scope_iter iter = { &t->nspc->value, 0, 0 };\
+    struct scope_iter iter = { &t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && isa(v->type, t_object) > 0)

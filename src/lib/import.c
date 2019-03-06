@@ -194,9 +194,9 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type type,
   if(dtor)
     mk_xtor(type, (m_uint)dtor, ae_flag_dtor);
   if(type->parent) {
-    type->nspc->offset = type->parent->nspc->offset;
-    if(type->parent->nspc->vtable.ptr)
-      vector_copy2(&type->parent->nspc->vtable, &type->nspc->vtable);
+    type->nspc->info->offset = type->parent->nspc->info->offset;
+    if(type->parent->nspc->info->vtable.ptr)
+      vector_copy2(&type->parent->nspc->info->vtable, &type->nspc->info->vtable);
   }
   type->owner = env->curr;
   SET_FLAG(type, checked);
@@ -234,9 +234,9 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     if(td->array)
       SET_FLAG(gwi->env->class_def, typedef);
     gwi->env->class_def->parent = t;
-    gwi->env->class_def->nspc->offset = t->nspc->offset;
-    if(t->nspc->vtable.ptr)
-      vector_copy2(&t->nspc->vtable, &gwi->env->class_def->nspc->vtable);
+    gwi->env->class_def->nspc->info->offset = t->nspc->info->offset;
+    if(t->nspc->info->vtable.ptr)
+      vector_copy2(&t->nspc->info->vtable, &gwi->env->class_def->nspc->info->vtable);
     CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
           gwi->env->class_def->name)))
     if(td->array)
@@ -256,8 +256,8 @@ ANN static m_int import_class_end(const Env env) {
   if(!env->class_def)
     ERR_B(0, "import: too many class_end called.")
   const Nspc nspc = env->class_def->nspc;
-  if(nspc->class_data_size && !nspc->class_data)
-    nspc->class_data = (m_bit*)xcalloc(1, nspc->class_data_size);
+  if(nspc->info->class_data_size && !nspc->info->class_data)
+    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
   env_pop(env, 0);
   return GW_OK;
 }
@@ -266,8 +266,8 @@ ANN static m_int import_class_end(const Env env) {
 ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->env->class_def)return GW_ERROR;
   const Type t = gwi->env->class_def;
-  if(t->nspc && t->nspc->offset)
-    t->p = mp_ini((uint32_t)t->nspc->offset);
+  if(t->nspc && t->nspc->info->offset)
+    t->p = mp_ini((uint32_t)t->nspc->info->offset);
   return import_class_end(gwi->env);
 }
 
@@ -582,7 +582,7 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), member))
-    gwi->env->class_def->nspc->offset =
+    gwi->env->class_def->nspc->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
   gwi->union_data.list = NULL;

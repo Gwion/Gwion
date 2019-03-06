@@ -49,8 +49,8 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
 #define describe_check_decl(a, b)                                 \
 ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
   SET_FLAG(v, a);                                                 \
-  v->offset = nspc->b;                                            \
-  nspc->b += v->type->size;                                       \
+  v->offset = nspc->info->b;                                      \
+  nspc->info->b += v->type->size;                                 \
 }
 describe_check_decl(member, offset)
 describe_check_decl(static, class_data_size)
@@ -960,7 +960,7 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
     }
   } else if(env->class_def)  {
     if(!GET_FLAG(stmt, static))
-      stmt->o = env->class_def->nspc->offset;
+      stmt->o = env->class_def->nspc->info->offset;
     else
       decl_static(env->curr, stmt->value);
   }
@@ -1022,7 +1022,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
       CHECK_BB(check_signature_match(f, parent_func))
       if(!f->tmpl) {
         f->func->vt_index = parent_func->vt_index;
-        vector_set(&env->curr->vtable, f->func->vt_index, (vtype)f->func);
+        vector_set(&env->curr->info->vtable, f->func->vt_index, (vtype)f->func);
       }
       return GW_OK;
     }
@@ -1041,10 +1041,10 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
         return match;
     }
   }
-  if(!env->curr->vtable.ptr)
-    vector_init(&env->curr->vtable);
-  func->vt_index = vector_size(&env->curr->vtable);
-  vector_add(&env->curr->vtable, (vtype)func);
+  if(!env->curr->info->vtable.ptr)
+    vector_init(&env->curr->info->vtable);
+  func->vt_index = vector_size(&env->curr->info->vtable);
+  vector_add(&env->curr->info->vtable, (vtype)func);
   return GW_OK;
 }
 
@@ -1183,9 +1183,9 @@ ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
 
 ANN static inline void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->parent->nspc;
-  nspc->offset = parent->offset;
-  if(parent->vtable.ptr)
-    vector_copy2(&parent->vtable, &nspc->vtable);
+  nspc->info->offset = parent->info->offset;
+  if(parent->info->vtable.ptr)
+    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
@@ -1199,8 +1199,8 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   inherit(the_class);
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))
-  if(!the_class->p && the_class->nspc->offset)
-    the_class->p = mp_ini((uint32_t)the_class->nspc->offset);
+  if(!the_class->p && the_class->nspc->info->offset)
+    the_class->p = mp_ini((uint32_t)the_class->nspc->info->offset);
   SET_FLAG(the_class, checked | ae_flag_check);
   return GW_OK;
 }
