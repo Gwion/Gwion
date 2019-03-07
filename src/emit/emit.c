@@ -584,10 +584,14 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   return size;
 }
 
+ANN static inline m_uint round2szint(const m_uint i) {
+  return ((i + (SZ_INT-1)) & ~(SZ_INT-1));
+}
+
 ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) { GWDEBUG_EXE
   const Instr instr = emit_add_instr(emit, VarargIni);
   const Vector kinds = new_vector();
-  if((instr->m_val = vararg_size(exp_call, kinds)))
+  if((instr->m_val = round2szint(vararg_size(exp_call, kinds))))
     instr->m_val2 = (m_uint)kinds;
   else {
     instr->opcode = (m_bit)(m_uint)RegPushImm;
