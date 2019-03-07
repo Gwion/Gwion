@@ -5,12 +5,11 @@ typedef struct Gwion_* Gwion;
 #include "driver.h"
 struct Gwion_ {
   PlugInfo* plug;
-  Driver* driver;
-// scanner
+  DriverInfo* di;
+// arg
+
 // sym
 // mem
-// rnd
-// dl
   Env      env;
   Emitter  emit;
   VM*      vm;

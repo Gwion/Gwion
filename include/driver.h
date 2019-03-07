@@ -2,15 +2,16 @@
 #define __DRIVER
 struct Driver_;
 
-typedef void (*f_drvset)(struct Driver_*);
-typedef void (*f_run)(const VM*);
+typedef void (*f_diset)(struct Driver_*);
+typedef void (*f_dirun)(const VM*);
 
 typedef struct DriverInfo_ {
   uint32_t   sr;
   m_str arg;
-  f_drvset func;
-  f_run run;
+  f_diset func;
+  f_dirun run;
   void* data;
+  struct Driver_* driver;
   uint8_t in, out;
 } DriverInfo;
 

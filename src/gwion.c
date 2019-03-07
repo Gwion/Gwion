@@ -24,6 +24,14 @@
 #define VMBENCH_END
 #endif
 
+ANN static DriverInfo* new_driverinfo(void) {
+  DriverInfo *di = (DriverInfo*)xcalloc(1, sizeof(DriverInfo));
+  di->sr = 48000;
+  di->in = di->out = 2;
+  di->driver = (Driver*)xcalloc(1, sizeof(Driver));
+  return di;
+}
+
 ANN void gwion_init(const Gwion gwion, const Vector args) {
   gwion->vm = new_vm();
   gwion->emit = new_emitter();
@@ -31,7 +39,9 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
   gwion->emit->env = gwion->env;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->driver = (Driver*)xcalloc(1, sizeof(Driver));
+  gwion->di = new_driverinfo();
+//  gwion->di = (Driver*)xcalloc(1, sizeof(DriverInfo));
+//  gwion->di->driver = (Driver*)xcalloc(1, sizeof(Driver));
   gwion->plug = (PlugInfo*)xmalloc(sizeof(PlugInfo));
   plug_discover(gwion->plug, args);
 }
@@ -43,14 +53,14 @@ ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
       const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
       const size_t len = strlen(name);
       if(!strncmp(name, di->arg, len)) {
-        di->func = (f_drvset)VVAL(&gwion->plug->drv, i);
+        di->func = (f_diset)VVAL(&gwion->plug->drv, i);
         break;
       }
     }
   }
-  di->func(gwion->driver);
+  di->func(gwion->di->driver);
   VM* vm = gwion->vm;
-  CHECK_BB(gwion->driver->ini(vm, di));
+  CHECK_BB(gwion->di->driver->ini(vm, di));
   vm->bbq = new_bbq(di);
   return GW_OK;
 }
@@ -63,14 +73,15 @@ ANN void gwion_run(const Gwion gwion, DriverInfo* di) {
   VM* vm = gwion->vm;
   vm->is_running = 1;
   VMBENCH_INI
-  gwion->driver->run(vm, di);
+  gwion->di->driver->run(vm, di);
   VMBENCH_END
 }
 
 ANN void gwion_release(const Gwion gwion, DriverInfo* di) {
-  if(gwion->driver->del)
-    gwion->driver->del(gwion->vm, di);
-  xfree(gwion->driver);
+  if(gwion->di->driver->del)
+    gwion->di->driver->del(gwion->vm, di);
+  xfree(gwion->di->driver);
+  xfree(gwion->di);
   plug_end(gwion);
   free_env(gwion->env);
   free_emitter(gwion->emit);

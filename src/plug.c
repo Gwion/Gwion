@@ -49,7 +49,7 @@ ANN static void plug_get(PlugInfo* p, const m_str c) {
       plug->end  = DLFUNC(dl, modend, GWMODEND_NAME);
       vector_add(&p->vec[GWPLUG_MODULE], (vtype)plug);
     }
-    const f_drvset drv = DLFUNC(dl, f_drvset, GWDRIVER_NAME);
+    const f_diset drv = DLFUNC(dl, f_diset, GWDRIVER_NAME);
     if(drv) {
       const modstr str = DLFUNC(dl, modstr, GWMODSTR_NAME);
       map_set(&p->drv, (vtype)str(), (vtype)drv);
