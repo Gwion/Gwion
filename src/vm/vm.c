@@ -221,7 +221,7 @@ __attribute__((hot))
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
-ANN void vm_run(const VM* vm) {
+ANN void vm_run(const VM* vm) { /* lgtm [cpp/use-of-goto] */
   static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,

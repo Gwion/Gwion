@@ -1176,8 +1176,8 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
       CHECK_BB(emit_exp(emit, e, 0))
     *instr = emit_add_instr(emit, SwitchIni);
   } else {
-    const Instr instr = emit_add_instr(emit, RegSetImm);
-    instr->m_val = (m_uint)switch_map(emit->env);
+    const Instr set = emit_add_instr(emit, RegSetImm);
+    set->m_val = (m_uint)switch_map(emit->env);
   }
   return GW_OK;
 }
