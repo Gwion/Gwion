@@ -8,17 +8,14 @@ typedef struct Gwion_* Gwion;
 struct Gwion_ {
   PlugInfo* plug;
   DriverInfo* di;
-//  struct Arg* arg;
-
+  struct Arg_* arg;
 // sym
 // mem
   Env      env;
   Emitter  emit;
   VM*      vm;
 };
-ANN void gwion_init(const Gwion, struct Arg_*);
-ANN m_bool gwion_audio(const Gwion gwion);
-ANN void gwion_run(const Gwion gwion);
-ANN m_bool gwion_engine(const Gwion gwion);
-ANN void gwion_release(const Gwion gwion);
+ANN m_bool gwion_ini(const Gwion, int, char**);
+ANN void   gwion_run(const Gwion gwion);
+ANN void   gwion_end(const Gwion gwion);
 #endif
