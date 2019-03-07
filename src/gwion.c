@@ -7,8 +7,9 @@
 #include "instr.h"
 #include "emit.h"
 #include "engine.h"
-#include "gwion.h"
+#include "driver.h"
 #include "arg.h"
+#include "gwion.h"
 
 
 #ifdef VMBENCH
@@ -28,11 +29,13 @@ ANN static DriverInfo* new_driverinfo(void) {
   DriverInfo *di = (DriverInfo*)xcalloc(1, sizeof(DriverInfo));
   di->sr = 48000;
   di->in = di->out = 2;
+  di->func = dummy_driver;
+  di->run = vm_run;
   di->driver = (Driver*)xcalloc(1, sizeof(Driver));
   return di;
 }
 
-ANN void gwion_init(const Gwion gwion, const Vector args) {
+ANN void gwion_init(const Gwion gwion, Arg* arg) {
   gwion->vm = new_vm();
   gwion->emit = new_emitter();
   gwion->env = new_env();
@@ -40,13 +43,14 @@ ANN void gwion_init(const Gwion gwion, const Vector args) {
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
   gwion->di = new_driverinfo();
-//  gwion->di = (Driver*)xcalloc(1, sizeof(DriverInfo));
-//  gwion->di->driver = (Driver*)xcalloc(1, sizeof(Driver));
   gwion->plug = (PlugInfo*)xmalloc(sizeof(PlugInfo));
-  plug_discover(gwion->plug, args);
+  arg_parse(arg, gwion->di);
+  plug_discover(gwion->plug, &arg->lib);
+  shreduler_set_loop(gwion->vm->shreduler, arg->loop);
 }
 
-ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
+ANN m_bool gwion_audio(const Gwion gwion) {
+  DriverInfo *di = gwion->di;
   // get driver from string.
   if(di->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
@@ -58,7 +62,7 @@ ANN m_bool gwion_audio(const Gwion gwion, DriverInfo* di) {
       }
     }
   }
-  di->func(gwion->di->driver);
+  di->func(di->driver);
   VM* vm = gwion->vm;
   CHECK_BB(gwion->di->driver->ini(vm, di));
   vm->bbq = new_bbq(di);
@@ -69,19 +73,22 @@ ANN m_bool gwion_engine(const Gwion gwion) {
   return type_engine_init(gwion->vm, &gwion->plug->vec[GWPLUG_IMPORT]) > 0;
 }
 
-ANN void gwion_run(const Gwion gwion, DriverInfo* di) {
+ANN void gwion_run(const Gwion gwion) {
   VM* vm = gwion->vm;
   vm->is_running = 1;
   VMBENCH_INI
-  gwion->di->driver->run(vm, di);
+  gwion->di->driver->run(vm, gwion->di);
   VMBENCH_END
 }
 
-ANN void gwion_release(const Gwion gwion, DriverInfo* di) {
-  if(gwion->di->driver->del)
-    gwion->di->driver->del(gwion->vm, di);
-  xfree(gwion->di->driver);
-  xfree(gwion->di);
+ANN static void free_driverinfo(DriverInfo* di, VM* vm) {
+  if(di->driver->del)
+    di->driver->del(vm, di);
+  xfree(di->driver);
+  xfree(di);
+}
+ANN void gwion_release(const Gwion gwion) {
+  free_driverinfo(gwion->di, gwion->vm);
   plug_end(gwion);
   free_env(gwion->env);
   free_emitter(gwion->emit);

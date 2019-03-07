@@ -1,6 +1,7 @@
 #ifndef __ARG
 #define __ARG
-typedef struct {
+
+typedef struct Arg_ {
   int argc;
   char** argv;
   struct Vector_ add;
