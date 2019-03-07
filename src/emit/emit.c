@@ -196,7 +196,7 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
 ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
   CHECK_OB(emit_array_extend_inner(emit, t, e))
   emit_add_instr(emit, PopArrayClass);
-  return 1;
+  return GW_OK;
 }
 
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,

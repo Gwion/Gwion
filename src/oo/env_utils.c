@@ -74,6 +74,6 @@ ANN Type find_type(const Env env, ID_List path) {
 ANN m_bool already_defined(const Env env, const Symbol s, const uint pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
   return v ? err_msg(pos,
-    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : 1;
+    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : GW_OK;
 }
 
