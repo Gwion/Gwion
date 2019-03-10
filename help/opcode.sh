@@ -8,7 +8,7 @@ echo "enum {"
 for a in ${list}
 do
   [ -z "$a" ] || {
-    echo "  $a,"
+    echo "  e$a,"
     COUNT=$((COUNT+1))
   }
 done
@@ -17,7 +17,7 @@ echo ""
 
 for a in ${list}
 do
-  [ -z "$a" ] || echo "#define  $a (f_instr)$a"
+  [ -z "$a" ] || echo "#define  $a (f_instr)e$a"
 done | column -t
 
 echo "#endif"

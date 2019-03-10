@@ -558,8 +558,8 @@ funcmember:
   reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
   mem += *(m_uint*)(reg + SZ_INT);
-  next = FuncMemberEnd;
-  goto *dispatch[(m_uint)RegPop];
+  next = eFuncMemberEnd;
+  goto *dispatch[eRegPop];
 funcusr:
 {
   reg -= SZ_INT;
@@ -570,8 +570,7 @@ funcusr:
   *(VM_Code*) mem = code; mem += SZ_INT;
   *(m_uint*)  mem = pc + instr->m_val2; mem += SZ_INT;
   *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
-  next = FuncUsrEnd;
-//  goto *dispatch[(m_uint)RegPop];
+  next = eFuncUsrEnd;
 }
 regpop:
   reg -= instr->m_val;
@@ -716,7 +715,7 @@ dotstaticfunc:
   DISPATCH()
 staticcode:
   instr->m_val = (m_uint)((*(VM_Code*)reg = ((Func)instr->m_val)->code));
-  instr->opcode = (m_bit)(m_uint)RegPushImm;
+  instr->opcode = eRegPushImm;
   reg += SZ_INT;
   DISPATCH()
 pushstr:
