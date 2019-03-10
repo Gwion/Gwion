@@ -846,8 +846,13 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_
   push_spork_code(emit, SPORK_FUNC_PREFIX, exp->self->pos);
   if(GET_FLAG(exp->m_func, member))
     SET_FLAG(emit->code, member);
-  const Instr p = emit_add_instr(emit, RegPushImm);
-  p->m_val = (m_uint)exp->m_func->code;
+  if(exp->m_func->code) {
+    const Instr p = emit_add_instr(emit, RegPushImm);
+    p->m_val = (m_uint)exp->m_func->code;
+  } else {
+    const Instr p = emit_add_instr(emit, PushStaticCode);
+    p->m_val = (m_uint)exp->m_func;
+  }
   CHECK_BB(emit_exp_call1(emit, exp->m_func))
   const VM_Code code = finalyze(emit);
   const m_uint size = exp->m_func->def->stack_depth - (GET_FLAG(exp->m_func,

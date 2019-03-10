@@ -766,7 +766,8 @@ dotstaticfunc:
   *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   DISPATCH()
 staticcode:
-  (*(VM_Code*)reg = ((Func)instr->m_val)->code);
+  instr->m_val = (m_uint)((*(VM_Code*)reg = ((Func)instr->m_val)->code));
+  instr->opcode = (m_bit)(m_uint)RegPushImm;
   reg += SZ_INT;
   DISPATCH()
 pushstr:
