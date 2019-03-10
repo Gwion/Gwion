@@ -906,13 +906,15 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) { GWDEBU
 
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) { GWDEBUG_EXE
   if(lambda->def) {
-  const m_uint scope = !lambda->owner ?
-    emit->env->scope->depth : emit_push_type(emit, lambda->owner);
-  CHECK_BB(emit_func_def(emit, lambda->def))
-  const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = (m_uint)lambda->def->func->code;
-  if(lambda->owner)
-    emit_pop(emit, scope);
+    const m_uint scope = !lambda->owner ?
+      emit->env->scope->depth : emit_push_type(emit, lambda->owner);
+    CHECK_BB(emit_func_def(emit, lambda->def))
+    if(GET_FLAG(lambda->def, member))
+      emit_add_instr(emit, RegPushMem);
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)lambda->def->func->code;
+    if(lambda->owner)
+      emit_pop(emit, scope);
   } else
     emit_add_instr(emit, RegPushImm);
   return GW_OK;
@@ -929,7 +931,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
-    if(emit->env->func && isa(exp->type, t_function) > 0 &&
+    if(emit->env->func && isa(exp->type, t_lambda) < 0 && isa(exp->type, t_function) > 0 &&
         !GET_FLAG(exp->type->d.func->value_ref->d.func_ref, pure))
       UNSET_FLAG(emit->env->func, pure);
   } while((exp = exp->next));

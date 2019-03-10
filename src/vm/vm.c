@@ -602,6 +602,7 @@ funcmember:
     Except(shred, "StackOverflow");
   shred->mem = m;
   shred->pc = pc;
+  shred->code = code;
   if(GET_FLAG(a.code, ctor)) {
     register const f_xtor f = (f_xtor)a.code->native_func;
     f(*(M_Object*)m, NULL, shred);// callnat
@@ -633,7 +634,7 @@ funcstatic:
   register const f_sfun f = (f_sfun)a.code->native_func;
   f(reg, shred);
 funcend:
-  reg += instr->m_val;
+  shred->reg = reg += instr->m_val;
 funcend2:
   shred->mem = mem;
   if(!s->curr)break;
@@ -650,7 +651,7 @@ sporkfunc:
   a.child->reg += instr->m_val;
   DISPATCH()
 sporkthis:
-  *(M_Object*)a.child->reg = *(M_Object*)(reg + instr->m_val);
+  *(M_Object*)a.child->reg = *(M_Object*)(reg -SZ_INT + instr->m_val);
   a.child->reg += SZ_INT;
   DISPATCH()
 sporkexp:

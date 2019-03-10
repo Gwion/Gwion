@@ -1,6 +1,6 @@
 class C {
   typedef void ptr_t(int i,int j);
-  `a b` { <<<this, " ", a, " ", b, " test">>>; } @=> ptr_t ptr;
+  \a b { <<<this, " ", a, " ", b, " test">>>; } @=> ptr_t ptr;
 //  `a,b` { <<<"test">>>; } @=> 
 //  ptr_t ptr;
 //  ptr(1,2);

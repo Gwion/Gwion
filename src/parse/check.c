@@ -319,17 +319,17 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
   const m_bool match = (specific ? e->type == t : isa(e->type, t) > 0) &&
     e->type->array_depth == t->array_depth &&
     array_base(e->type) == array_base(t);
-  if(!match) {
-    if(e->type == t_lambda && isa(t, t_fptr) > 0) {
-      const Type owner = nspc_lookup_type1(t->owner->parent,
-        insert_symbol(t->owner->name));
-      return check_lambda(env, owner, &e->d.exp_lambda, t->d.func->def);
+    if(!match) {
+      if(e->type == t_lambda && isa(t, t_fptr) > 0) {
+        const Type owner = nspc_lookup_type1(t->owner->parent,
+          insert_symbol(t->owner->name));
+        return check_lambda(env, owner, &e->d.exp_lambda, t->d.func->def);
+      }
+      if(implicit) {
+        const struct Implicit imp = { e, t };
+        struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp };
+      return op_check(env, &opi) ? 1 : -1;
     }
-  }
-  if(implicit) {
-    const struct Implicit imp = { e, t };
-    struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp };
-    return op_check(env, &opi) ? 1 : -1;
   }
   return match ? 1 : -1;
 }
@@ -585,6 +585,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
     ERR_O(exp->self->pos, "argument number does not match for lambda")
   l->def = new_func_def(NULL, l->name, l->arg, l->code, 0);
   CHECK_BO(traverse_func_def(env, l->def))
+  if(env->class_def)
+    SET_FLAG(l->def, member);
   set_call(exp->self, l->def->func);
   return l->def->ret_type ?: (l->def->ret_type = t_void);
 }
@@ -752,7 +754,8 @@ ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
   do {
     CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-    if(env->func && isa(curr->type, t_function) > 0 && !GET_FLAG(curr->type->d.func, pure))
+    if(env->func && isa(curr->type, t_lambda) < 0 && isa(curr->type, t_function) > 0 && 
+        !GET_FLAG(curr->type->d.func, pure))
       UNSET_FLAG(env->func, pure);
   } while((curr = curr->next));
   return exp->type;
