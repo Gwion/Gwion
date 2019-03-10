@@ -26,11 +26,6 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
   vm_shred_exit(shred);
 }
 
-INSTR(EOC2) { GWDEBUG_EXE
-  shred->pc = 0;
-  shreduler_remove(shred->info->vm->shreduler, shred, 0);
-}
-
 /* branching */
 INSTR(SwitchIni) {
   const Vector v = (Vector)instr->m_val;
