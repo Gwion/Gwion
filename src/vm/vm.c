@@ -729,9 +729,8 @@ gcadd:
   vector_add(&shred->gc, *(vtype*)(reg-SZ_INT));
   DISPATCH();
 gcend:
-  while((a.obj = (M_Object)vector_pop(&shred->gc))) {
+  while((a.obj = (M_Object)vector_pop(&shred->gc)))
     _release(a.obj, shred);
-  }
   DISPATCH()
 gack:
   gack(reg, instr);

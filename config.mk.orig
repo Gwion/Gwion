@@ -1,33 +1,15 @@
 # handle base options
 PRG ?=gwion
-CC ?=gcc
-YACC ?=yacc
-LEX ?=flex
 PREFIX ?=/usr/local
-SOUNDPIPE_LIB ?=-lsoundpipe
-SOUNDPIPE_INC ?=
-LDFLAGS += -lm -ldl -rdynamic -lpthread
-CFLAGS += -Iinclude -Iutil/include -Iast/include -std=c99 -D_GNU_SOURCE
-CFLAGS += -mtune=native
-#-O3 -mfpmath=sse -mtune=native -fstrict-aliasing 
-#CFLAGS += -Iinclude -std=c99 -m32 -fstrict-aliasing -D_GNU_SOURCE
-# compiler warnings
-#CFLAGS += -Wall -Wextra 
-#-pedantic
-#CFLAGS += -fPIC
+LDFLAGS += -lm -ldl
+CFLAGS += -Iinclude -Iutil/include -Iast/include -D_GNU_SOURCE
 
 # handle boolean options
-USE_DOUBLE     = 0
-USE_COVERAGE  ?= 0
 USE_OPTIMIZE  ?= 0
 USE_VMBENCH   ?= 0
 USE_NOMEMOIZE ?= 0
-# handle definitions
-D_FUNC       ?= dummy_driver
 
 # base plugin directories
 GWPLUG_DIR   ?= $(shell echo ~/.gwplug)
 
 DEBUG_STACK  ?= 0
-#COLOR        ?= 1
-#CFLAGS+= -DCOLOR

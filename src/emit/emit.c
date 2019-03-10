@@ -717,7 +717,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
-    strncpy(c, f->name, sz);
+    memcpy(c, f->name, sz);
     c[sz] = '\0';
     struct dottmpl_ *dt = mp_alloc(dottmpl);
     dt->name = s_name(insert_symbol(c));
