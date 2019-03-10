@@ -18,7 +18,6 @@ enum {
   RegDup,
   RegDup2,
   MemSetImm,
-  RegPop,
   RegPushMe,
   RegPushMaybe,
   FuncReturn,
@@ -119,15 +118,21 @@ enum {
   CastI2F,
   CastF2I,
   Time_Advance,
-  FuncUsr,
+  SetCode,
+  FuncPtr,
   FuncMember,
-  FuncStatic,
+  FuncUsr,
+  RegPop,
+  Reg2Mem,
+  Overflow,
+  Next,
+  FuncUsrEnd,
+  FuncMemberEnd,
   SporkIni,
   SporkFunc,
   SporkThis,
   SporkExp,
   SporkEnd,
-  FuncPtr,
   BranchEqInt,
   BranchNeqInt,
   BranchEqFloat,
@@ -175,7 +180,6 @@ enum {
 #define  RegDup              (f_instr)RegDup
 #define  RegDup2             (f_instr)RegDup2
 #define  MemSetImm           (f_instr)MemSetImm
-#define  RegPop              (f_instr)RegPop
 #define  RegPushMe           (f_instr)RegPushMe
 #define  RegPushMaybe        (f_instr)RegPushMaybe
 #define  FuncReturn          (f_instr)FuncReturn
@@ -276,15 +280,21 @@ enum {
 #define  CastI2F             (f_instr)CastI2F
 #define  CastF2I             (f_instr)CastF2I
 #define  Time_Advance        (f_instr)Time_Advance
-#define  FuncUsr             (f_instr)FuncUsr
+#define  SetCode             (f_instr)SetCode
+#define  FuncPtr             (f_instr)FuncPtr
 #define  FuncMember          (f_instr)FuncMember
-#define  FuncStatic          (f_instr)FuncStatic
+#define  FuncUsr             (f_instr)FuncUsr
+#define  RegPop              (f_instr)RegPop
+#define  Reg2Mem             (f_instr)Reg2Mem
+#define  Overflow            (f_instr)Overflow
+#define  Next                (f_instr)Next
+#define  FuncUsrEnd          (f_instr)FuncUsrEnd
+#define  FuncMemberEnd       (f_instr)FuncMemberEnd
 #define  SporkIni            (f_instr)SporkIni
 #define  SporkFunc           (f_instr)SporkFunc
 #define  SporkThis           (f_instr)SporkThis
 #define  SporkExp            (f_instr)SporkExp
 #define  SporkEnd            (f_instr)SporkEnd
-#define  FuncPtr             (f_instr)FuncPtr
 #define  BranchEqInt         (f_instr)BranchEqInt
 #define  BranchNeqInt        (f_instr)BranchNeqInt
 #define  BranchEqFloat       (f_instr)BranchEqFloat

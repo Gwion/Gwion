@@ -70,9 +70,10 @@ static inline void memoize_set(Memoize m, const m_bit* arg) {
 }
 
 m_bool memoize_get(VM_Shred shred) {
-//  const VM_Code code = *(VM_Code*)REG(-SZ_INT * 2);
   const VM_Code code = *(VM_Code*)REG(-SZ_INT);
   const Memoize m = code->memoize;
+  if(!m)
+    return GW_OK;
   const m_bit* arg = REG(-(SZ_INT + m->arg_sz + (m_uint)m->member));
   const m_uint size = vector_size(&m->v);
   for(m_uint i = 0; i < size; ++i) {
@@ -89,7 +90,7 @@ m_bool memoize_get(VM_Shred shred) {
 
 INSTR(MemoizeCall) {
   if(memoize_get(shred))
-    ++shred->pc;
+    shred->pc += instr->m_val;
 }
 
 INSTR(MemoizeStore) {

@@ -190,7 +190,12 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
   push_f->m_val = (m_uint)code;
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
-  emit_add_instr(emit, !GET_FLAG(code, builtin) ? FuncUsr : FuncMember);
+  const Instr prelude = emit_add_instr(emit, !GET_FLAG(code, builtin) ? FuncUsr : FuncMember);
+  prelude->m_val2 = 2;
+  prelude->m_val = SZ_INT;
+  emit_add_instr(emit, Reg2Mem);
+  const Instr next = emit_add_instr(emit, Overflow);
+  next->m_val2 = offset->m_val;
 }
 
 ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GWDEBUG_EXE
@@ -732,7 +737,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
   return GW_OK;
 }
 
-static m_bool emit_template_code(const Emitter emit, const Func f) {
+ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, ref))
     CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->def))
   const Value v = f->value_ref;
@@ -742,16 +747,41 @@ static m_bool emit_template_code(const Emitter emit, const Func f) {
   return push_func_code(emit, f);
 }
 
+ANN static Instr get_prelude(const Emitter emit, const Func f) {
+  Instr instr;
+  const Type t = actual_type(f->value_ref->type);
+  if(isa(t, t_fptr) < 0)
+    instr = emit_add_instr(emit, !GET_FLAG(f, builtin) ? FuncUsr : SetCode);
+  else {
+    emit_add_instr(emit, GWOP_EXCEPT);
+    instr = emit_add_instr(emit, FuncPtr);
+  }
+  instr->m_val2 = 1;
+  return instr;
+}
+
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   MEMOIZE_CALL
-  const Type t = actual_type(f->value_ref->type);
-  if(isa(t, t_fptr) < 0) {
-    const f_instr exec = GET_FLAG(f->def, builtin) ? GET_FLAG(f, member) ?
-       FuncMember : FuncStatic : FuncUsr;
-    return emit_add_instr(emit, exec);
-  }
-  emit_add_instr(emit, GWOP_EXCEPT);
-  return emit_add_instr(emit, FuncPtr);
+  f_instr exec;
+  const Instr prelude = get_prelude(emit, f);
+  if(f->def->stack_depth) {
+    const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
+    prelude->m_val = f->def->stack_depth;
+    if(member) {
+      const Instr instr = emit_add_instr(emit, Reg2Mem);
+      instr->m_val2 = f->def->stack_depth - SZ_INT;
+      ++prelude->m_val2;
+    }
+    for(m_uint i = 0; i < f->def->stack_depth - member; i += SZ_INT) {
+      const Instr instr = emit_add_instr(emit, Reg2Mem);
+      instr->m_val = (instr->m_val2 = i) + member;
+      ++prelude->m_val2;
+    }
+    exec = Overflow;
+  } else
+    exec = Next;
+  MEMOIZE_SET(prelude->m_val2);
+  return emit_add_instr(emit, exec);
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
@@ -780,8 +810,9 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   const Instr instr = emit_call(emit, f);
-  const m_uint size = instr->m_val = f->def->ret_type->size;
-  return (m_bool)(instr->m_val2 = kindof(size, !size));
+  instr->m_val = f->def->ret_type->size;
+  instr->m_val2 = offset->m_val;
+  return GW_OK;
 }
 
 ANN2(1,2) static m_bool emit_exp_spork_finish(const Emitter emit, const VM_Code code,

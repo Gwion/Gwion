@@ -36,10 +36,24 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
     out->tick->parent->child.ptr = NULL;
   }
 }
+#include "instr.h"
+ANN static void unwind(const VM_Shred shred) {
+  VM_Code code = shred->code;
+  while(1) {
+    const f_instr exec =
+      (f_instr)(m_uint)((Instr)vector_back(code->instr))->opcode;
+    if(exec == FuncReturn) {
+      code = *(VM_Code*)(shred->mem - SZ_INT*3);
+      REM_REF(code);
+      shred->mem -= *(m_uint*)(shred->mem - SZ_INT);
+    } else break;
+  }
+}
 
 ANN static void shreduler_child(const Shreduler s, const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
+    unwind(child);
     shreduler_remove(s, child, 1);
   }
 }

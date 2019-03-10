@@ -21,7 +21,7 @@ void plug_end(const Gwion gwion);
 #define GWMODEND_NAME  gwmodend
 #define GWDRIVER_NAME  gwmodend
 #define GWMODSTR(a) m_str GWMODSTR_NAME() { return #a; }
-#define GWMODINI(a)  ANN void* GWMODINI_NAME(const Gwion gwion, const Vector args)
+#define GWMODINI(a)  ANN2(1) void* GWMODINI_NAME(const Gwion gwion, const Vector args)
 #define GWMODEND(a)  ANN void  GWMODEND_NAME(const Gwion gwion, void* self)
 #define GWDRIVER(a)  ANN void  GWDRIVER_NAME(Driver* d)
 
