@@ -1,0 +1,3 @@
+fun int pure(int i) { return i; }
+2 => pure;
+2 => pure;
