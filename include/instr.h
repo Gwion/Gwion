@@ -45,7 +45,6 @@ INSTR(ComplexImag);
 INSTR(DtorReturn);
 
 /* array */
-INSTR(ArrayTop);
 INSTR(ArrayBottom);
 INSTR(ArrayPost);
 INSTR(ArrayInit);

@@ -49,7 +49,8 @@ M_Object new_string2(const VM_Shred shred, const m_str str) {
 }
 
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
-  const M_Object object = new_object(NULL, type);
+//  const M_Object object = new_object(NULL, type);
+  const M_Object object = new_object(shred, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred, SZ_INT);
 }

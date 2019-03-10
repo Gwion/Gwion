@@ -214,7 +214,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     info->is_ref = !!is_ref;
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
-    instr->m_val = (m_uint)type;
+    instr->m_val2 = (m_uint)type;
     emit_pre_ctor(emit, type);
   }
   return GW_OK;
@@ -720,13 +720,13 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
 }
 
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
-  const m_uint scope = env_push_type(emit->env, dt->owner);
+  const m_uint scope = emit_push_type(emit, dt->owner);
   m_bool ret = GW_ERROR;
   if(traverse_func_template(emit->env, dt->def, dt->tl) > 0) {
     ret = emit_func_def(emit, dt->def);
     nspc_pop_type(emit->env->curr);
   }
-  env_pop(emit->env, scope);
+  emit_pop(emit, scope);
   return ret;
 }
 

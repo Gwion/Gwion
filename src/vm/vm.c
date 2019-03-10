@@ -264,7 +264,7 @@ ANN void vm_run(const VM* vm) { /* lgtm [cpp/use-of-goto] */
     &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&decintaddr, &&initloop,
-    &&newobj,
+    &&arraytop, &&newobj,
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
@@ -646,8 +646,13 @@ initloop:
   reg -= SZ_INT;
   (*(m_uint*)instr->m_val) = labs(*(m_int*)reg);
   DISPATCH()
+arraytop:
+    if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
+      goto newobj;
+  else
+    goto _goto;
 newobj:
-  *(M_Object*)reg = new_object(shred, (Type)instr->m_val);
+  *(M_Object*)reg = new_object(shred, (Type)instr->m_val2);
   reg += SZ_INT;
   DISPATCH()
 addref:
