@@ -141,7 +141,9 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary * unary) {
-  return !(unary->op == op_spork && unary->code) ? GW_OK : scan1_stmt(env, unary->code);
+  if(unary->op == op_spork && unary->code)
+    return scan1_stmt(env, unary->code);
+  return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 
 #define scan1_exp_lambda dummy_func
