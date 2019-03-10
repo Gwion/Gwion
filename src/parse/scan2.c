@@ -110,6 +110,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     } else if(!GET_FLAG(ptr->td, static)) {
       SET_FLAG(ptr->value, member);
       SET_FLAG(ptr->func, member);
+      def->stack_depth += SZ_INT;
     } else {
       SET_FLAG(ptr->value, static);
       SET_FLAG(ptr->func, static);
@@ -505,6 +506,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       func_name = func_tmpl_name(env, f);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
+      if(GET_FLAG(func, member))
+        f->stack_depth += SZ_INT;
+      if(GET_FLAG(func->def, variadic))
+        f->stack_depth += SZ_INT;
       f->ret_type = type_decl_resolve(env, f->td);
       return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
     }
