@@ -1022,10 +1022,14 @@ ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   Exp arg = e->args;
   if(arg)
     CHECK_BB(emit_exp(emit, e->args, 0))
-  const Instr instr = emit_add_instr(emit, PutArgsInMem);
+  const Instr pop = emit_add_instr(emit, RegPop);
   while(arg) {
-    instr->m_val += arg->type->size;
+    pop->m_val += arg->type->size;
     arg = arg->next;
+  }
+  for(m_uint i = 0; i < pop->m_val; i += SZ_INT) {
+    const Instr cpy = emit_add_instr(emit, Reg2Mem);
+    cpy->m_val = cpy->m_val2 = i;
   }
   emit_add_instr(emit, Goto);
   return GW_OK;

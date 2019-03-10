@@ -77,9 +77,5 @@ struct dottmpl_ {
 };
 ANN void free_dottmpl(struct dottmpl_*);
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt);
-// optimizations
-#ifdef OPTIMIZE
-INSTR(PutArgsInMem);
-#endif
 #include "opcode.h"
 #endif
