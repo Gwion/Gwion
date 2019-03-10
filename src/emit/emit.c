@@ -241,16 +241,36 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
-ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
-  const Value v = prim->value;
-  const Exp exp = new_exp_prim_id(insert_symbol("this"), prim->self->pos);
+ANN static inline Exp this_exp(const Type t, const uint pos) {
+  const Exp exp = new_exp_prim_id(insert_symbol("this"), pos);
+  exp->type = t;
+  return exp;
+}
+
+ANN static inline Exp dot_this_exp(const Exp_Primary* prim, const Type t) {
+  const Exp exp = this_exp(t, prim->self->pos);
   const Exp dot = new_exp_dot(exp, prim->d.var);
-  exp->type = v->owner_class;
-  dot->d.exp_dot.t_base = v->owner_class;
+  dot->d.exp_dot.t_base = t;
+  return dot;
+}
+
+ANN static inline Exp dot_static_exp(const Exp_Primary* prim, const Type t) {
+  const Symbol s = insert_symbol(t->name);
+  const Exp    e = new_exp_prim_id(s, prim->self->pos);
+  const Value  val = nspc_lookup_value1(t->nspc->parent, s);
+  const Exp dot = new_exp_dot(e, prim->d.var);
+  dot->d.exp_dot.t_base = val->type;
+  return dot;
+}
+
+ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) {
+  const Value v = prim->value;
+  const Exp dot = !GET_FLAG(v, static) ?
+    dot_this_exp(prim, v->owner_class) : dot_static_exp(prim, v->owner_class);
   dot->type = v->type;
   dot->emit_var = prim->self->emit_var;
   const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);
-  free_exp(exp);
+  free_exp(dot);
   return ret;
 }
 
