@@ -268,7 +268,7 @@ ANN void vm_run(const VM* vm) { /* lgtm [cpp/use-of-goto] */
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc,&&staticcode, &&pushstr,
+    &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&other
   };
@@ -761,8 +761,9 @@ staticother:
   DISPATCH()
 dotfunc:
   assert(a.obj);
-  *(VM_Code*)(reg) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   reg += SZ_INT;
+dotstaticfunc:
+  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   DISPATCH()
 staticcode:
   (*(VM_Code*)reg = ((Func)instr->m_val)->code);

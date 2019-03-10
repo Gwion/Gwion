@@ -145,6 +145,7 @@ DotStatic
 DotStatic2
 DotStatic3
 DotFunc
+DotStaticFunc
 PushStaticCode
 RegPushStr
 GcIni

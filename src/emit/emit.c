@@ -763,7 +763,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     push_func_code(emit, f);
   else {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    if((f_instr)(m_uint)back->opcode == DotFunc)
+    if((f_instr)(m_uint)back->opcode == DotFunc || (f_instr)(m_uint)back->opcode == DotStaticFunc)
       back->m_val = f->vt_index;
   }
   if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
@@ -1475,7 +1475,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
     return GW_OK;
   }
   if(!func->def->tmpl) {
-    const Instr func_i = emit_add_instr(emit, DotFunc);
+    const Instr func_i = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
     func_i->m_val = func->vt_index;
     return GW_OK;
   }

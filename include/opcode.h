@@ -148,6 +148,7 @@ enum {
   DotStatic2,
   DotStatic3,
   DotFunc,
+  DotStaticFunc,
   PushStaticCode,
   RegPushStr,
   GcIni,
@@ -304,6 +305,7 @@ enum {
 #define  DotStatic2          (f_instr)DotStatic2
 #define  DotStatic3          (f_instr)DotStatic3
 #define  DotFunc             (f_instr)DotFunc
+#define  DotStaticFunc       (f_instr)DotStaticFunc
 #define  PushStaticCode      (f_instr)PushStaticCode
 #define  RegPushStr          (f_instr)RegPushStr
 #define  GcIni               (f_instr)GcIni
