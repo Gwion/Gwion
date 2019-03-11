@@ -1,13 +1,12 @@
-#!/bin/zsh
+#!/bin/sh
 #run benchmarks and make plots
 n=0
-function fib_test() {
-  echo $n $1 $(perf stat -r10 $1 fib_recurs.$2 2>&1 | grep "time elapsed" | cut -d s -f 1 | sed 's/+-//' | sed 's/,/./g')
+fib_test() {
+  echo $n "$1" "$(perf stat -r10 "$1" "fib_recurs.$2" 2>&1 | grep "time elapsed" | cut -d s -f 1 | sed 's/+-//' | sed 's/,/./g')"
   n=$((n+1))
 }
 
-GWION_DIR=$PWD
-cd ~/fib_recurs/
+cd ~/fib_recurs/ || exit 1
 
 fib_test gwion gw
 fib_test lua   lua
