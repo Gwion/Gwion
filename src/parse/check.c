@@ -1129,17 +1129,21 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->curr);
-  if((f->arg_list && (ret = check_func_args(env, f->arg_list)) > 0) || !f->arg_list) {
-  const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
-  if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-    ret = err_msg(f->td ? f->td->xid->pos : 0, "...in function '%s'", 
-       s_name(f->name));
-  if(variadic)
-    REM_REF(variadic)
-  if(GET_FLAG(f, builtin))
-    func->code->stack_depth = f->stack_depth;
-  else if(GET_FLAG(f, op))
-    operator_func(func);
+  if(!f->arg_list)
+    UNSET_FLAG(f->func, pure);
+  else
+    ret = check_func_args(env, f->arg_list);
+  if(ret > 0) {
+    const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
+    if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
+      ret = err_msg(f->td ? f->td->xid->pos : 0, "...in function '%s'", 
+         s_name(f->name));
+    if(variadic)
+      REM_REF(variadic)
+    if(GET_FLAG(f, builtin))
+      func->code->stack_depth = f->stack_depth;
+    else if(GET_FLAG(f, op))
+      operator_func(func);
   }
   nspc_pop_value(env->curr);
   --env->scope->depth;

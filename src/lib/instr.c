@@ -68,6 +68,14 @@ INSTR(AutoLoopEnd) { GWDEBUG_EXE
   }
 }
 
+#ifdef OPTIMIZE
+INSTR(PutArgsInMem) { GWDEBUG_EXE
+  POP_REG(shred, instr->m_val)
+  for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
+    *(m_uint*)(shred->mem + i) = *(m_uint*)(shred->reg + i);
+}
+#endif
+
 INSTR(PopArrayClass) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
