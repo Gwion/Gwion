@@ -77,11 +77,11 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
 }
 
 ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
-  Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
+  Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   M_Operator* mo;
   if(!v) {
     v = new_vector();
-    map_set(&nspc->op_map, (vtype)opi->op, (vtype)v);
+    map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
   }
   if((mo = operator_find(v, opi->lhs, opi->rhs)))
     CHECK_BB((err_msg(0, "operator '%s', for type '%s' and '%s' already imported",
@@ -139,11 +139,11 @@ static m_str type_name(const Type t) {
 ANN Type op_check(const Env env, struct Op_Import* opi) {
   Nspc nspc = env->curr;
   do {
-    if(nspc->op_map.ptr) {
+    if(nspc->info->op_map.ptr) {
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
-        Type ret = op_check_inner(env, &nspc->op_map, &opi2);
+        Type ret = op_check_inner(env, &nspc->info->op_map, &opi2);
         if(ret) {
           if(ret == t_null)
             break;
@@ -163,7 +163,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
 
 ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
-  const Vector v = (Vector)map_get(&nspc->op_map, opi->op);
+  const Vector v = (Vector)map_get(&nspc->info->op_map, opi->op);
   M_Operator* mo = operator_find(v, opi->lhs, opi->rhs);
   CHECK_OB(mo)
   mo->func = (Func)opi->data;
@@ -200,9 +200,9 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   do {
     Type r = opi->rhs;
     do {
-      if(!nspc->op_map.ptr)
+      if(!nspc->info->op_map.ptr)
         continue;
-      const Vector v = (Vector)map_get(&nspc->op_map, (vtype)opi->op);
+      const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
         if(mo->em)

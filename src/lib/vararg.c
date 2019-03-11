@@ -34,11 +34,13 @@ INSTR(VarargIni) { GWDEBUG_EXE
   struct Vararg_* arg = mp_alloc(Vararg);
   POP_REG(shred,  instr->m_val - SZ_INT)
   arg->d = (m_bit*)xmalloc(instr->m_val);
-  memcpy(arg->d, shred->reg - SZ_INT, instr->m_val);
+  for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
+    *(m_uint*)(arg->d + i) = *(m_uint*)(shred->reg - SZ_INT + i);
   const Vector kinds = (Vector)instr->m_val2;
   arg->s = vector_size(kinds);
   arg->k = (m_uint*)xmalloc(arg->s * SZ_INT);
-  memcpy(arg->k, kinds->ptr + OFFSET, arg->s * SZ_INT);
+  for(m_uint i = 0; i < arg->s; ++i)
+     *(m_uint*)(arg->k + i) = vector_at(kinds, i);
   *(struct Vararg_**)REG(-SZ_INT) = arg;
 }
 
@@ -55,7 +57,7 @@ INSTR(VarargEnd) { GWDEBUG_EXE
 INSTR(VarargMember) { GWDEBUG_EXE
   const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   for(m_uint i = 0; i < instr->m_val2; i += SZ_INT)
-    *(m_uint*)REG(0) = *(m_uint*)(arg->d + arg->o);
+    *(m_uint*)REG(i) = *(m_uint*)(arg->d + arg->o + i);
   PUSH_REG(shred, instr->m_val2);
 }
 

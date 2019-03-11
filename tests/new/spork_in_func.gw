@@ -1,0 +1,8 @@
+function void test() {
+//  <<<1>>>;
+//spork \{<<<2>>>;}();
+}
+test(); 
+test(); 
+<<<"end">>>;
+me.yield();

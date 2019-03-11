@@ -14,12 +14,12 @@ typedef struct ArrayInfo_ {
   unsigned is_obj : 1;
 } ArrayInfo;
 
-ANN m_uint     m_vector_size(const M_Vector v);
-ANN void       m_vector_set(const M_Vector v,  const m_uint i, const void* data);
-ANN void       m_vector_get(const M_Vector v,  const m_uint i, void* data);
-ANN void       m_vector_add(const M_Vector v,  const void* data);
-ANN m_bit*      m_vector_addr(const M_Vector v, const m_uint i);
-ANN void m_vector_rem(const M_Vector v, const m_uint index);
+ANN m_uint m_vector_size(const M_Vector);
+ANN void   m_vector_set(const M_Vector,  const m_uint, const void*);
+ANN void   m_vector_get(const M_Vector,  const m_uint, void*);
+ANN void   m_vector_add(const M_Vector,  const void*);
+ANN m_bit* m_vector_addr(const M_Vector, const m_uint);
+ANN void m_vector_rem(const M_Vector,  const m_uint);
 ANEW M_Vector new_m_vector(const m_uint);
-void free_m_vector(M_Vector);
+ANN void free_m_vector(M_Vector);
 #endif

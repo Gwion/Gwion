@@ -1,0 +1,6 @@
+fun void t(int i) {
+  if(i)
+    spork t(i-1);
+}
+t(3);
+me.yield();

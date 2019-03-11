@@ -5,13 +5,13 @@
 typedef void (*f_xtor)(const M_Object o, const m_bit*, const VM_Shred);
 //typedef void (*f_xtor)(const M_Object o, const VM_Shred);
 typedef void (*f_mfun)(const M_Object o, const m_bit* RETURN, const VM_Shred sh);
-typedef void (*f_sfun)(const m_bit* RETURN, const VM_Shred sh);
-//typedef void (*f_sfun)(const m_bit*, const m_bit* RETURN, const VM_Shred sh);
+//typedef void (*f_sfun)(const m_bit* RETURN, const VM_Shred sh);
+typedef void (*f_sfun)(const m_bit*, const m_bit* RETURN, const VM_Shred sh);
 typedef void (*f_xfun)();
 typedef struct Gwi_* Gwi;
 
 #define MFUN(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
-#define SFUN(a) ANN void a(const m_bit* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
+#define SFUN(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
 //#define SFUN(a) ANN void a(const m_bit* mem __attribute__((unused)), const m_bit* RETURN 
 //__attribute__((unused)), const VM_Shred shred __attribute__((unused)))
 #define CTOR(a) ANN void a(const M_Object o, const m_bit* _ __attribute__((unused)), const VM_Shred shred __attribute__((unused)))

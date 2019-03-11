@@ -53,7 +53,7 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   if(!var->value) {
     const Value v = new_value(env->gwion, list->type,
       var->xid ? s_name(var->xid) : s_name(insert_symbol((m_str)var)));
-    if(list->td) // lambda
+    if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
     return v;
   }
@@ -110,6 +110,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
     } else if(!GET_FLAG(ptr->td, static)) {
       SET_FLAG(ptr->value, member);
       SET_FLAG(ptr->func, member);
+      def->stack_depth += SZ_INT;
     } else {
       SET_FLAG(ptr->value, static);
       SET_FLAG(ptr->func, static);
@@ -475,7 +476,6 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   scan2_func_def_flag(f);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
-//  if(GET_FLAG(func, member) && !GET_FLAG(func->def, func))
   if(GET_FLAG(func, member))
     f->stack_depth += SZ_INT;
   if(GET_FLAG(func->def, variadic))
@@ -506,8 +506,11 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       func_name = func_tmpl_name(env, f);
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
+      if(GET_FLAG(func, member))
+        f->stack_depth += SZ_INT;
+      if(GET_FLAG(func->def, variadic))
+        f->stack_depth += SZ_INT;
       f->ret_type = type_decl_resolve(env, f->td);
-      // check arg_list->type for lambdas
       return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
     }
   }

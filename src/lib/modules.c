@@ -44,8 +44,7 @@ static GWION_IMPORT(gain) {
   gwi_func_ini(gwi, "float", "gain", gain_set_gain);
   gwi_func_arg(gwi, "float", "arg0");
   CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 static TICK(impulse_tick) {
@@ -75,8 +74,7 @@ static GWION_IMPORT(impulse) {
   gwi_func_ini(gwi, "float", "next", impulse_set_next);
   gwi_func_arg(gwi, "float", "arg0");
   CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 static TICK(fullrect_tick) {
@@ -92,8 +90,7 @@ static CTOR(fullrect_ctor) {
 static GWION_IMPORT(fullrect) {
   const Type t_fullrect = gwi_mk_type(gwi, "FullRect", SZ_INT, t_ugen);
   CHECK_BB(gwi_class_ini(gwi,  t_fullrect, fullrect_ctor, basic_dtor))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 static TICK(halfrect_tick) {
@@ -112,8 +109,7 @@ static CTOR(halfrect_ctor) {
 static GWION_IMPORT(halfrect) {
   const Type t_halfrect = gwi_mk_type(gwi, "HalfRect", SZ_INT, t_ugen);
   CHECK_BB(gwi_class_ini(gwi,  t_halfrect, halfrect_ctor, basic_dtor))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 static TICK(step_tick) {
@@ -142,8 +138,7 @@ static GWION_IMPORT(step) {
   gwi_func_ini(gwi, "float", "next", step_set_next);
   gwi_func_arg(gwi, "float", "arg0");
   CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 static TICK(zerox_tick) {
@@ -162,8 +157,7 @@ static CTOR(zerox_ctor) {
 static GWION_IMPORT(zerox) {
   const Type t_zerox = gwi_mk_type(gwi, "ZeroX", SZ_INT, t_ugen);
   CHECK_BB(gwi_class_ini(gwi, t_zerox, zerox_ctor, basic_dtor))
-  CHECK_BB(gwi_class_end(gwi))
-  return 1;
+  return gwi_class_end(gwi);
 }
 
 GWION_IMPORT(modules) {
@@ -172,6 +166,5 @@ GWION_IMPORT(modules) {
   CHECK_BB(import_fullrect(gwi))
   CHECK_BB(import_halfrect(gwi))
   CHECK_BB(import_step(gwi))
-  CHECK_BB(import_zerox(gwi))
-  return 1;
+  return import_zerox(gwi);
 }

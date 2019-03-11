@@ -33,6 +33,8 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     ERR_O(decl->self->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(decl->self->pos, "can't use protected type %s", t->name)
+  if(GET_FLAG(decl->td, global) && env->class_def)
+    ERR_O(decl->self->pos, "can't declare variable global inside class.")
   if(env->class_def) {
     if(!env->scope->depth) {
       if(!env->func && !GET_FLAG(decl->td, static))
@@ -40,10 +42,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
         ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
     }
-    if(GET_FLAG(decl->td, global) && env->class_def) // forbid this ?
-      UNSET_FLAG(decl->td, global);
   }
-  // for template
   decl->base = t->def;
   decl->type = t;
   return t;
@@ -142,7 +141,9 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary * unary) {
-  return !(unary->op == op_spork && unary->code) ? GW_OK : scan1_stmt(env, unary->code);
+  if(unary->op == op_spork && unary->code)
+    return scan1_stmt(env, unary->code);
+  return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 
 #define scan1_exp_lambda dummy_func
@@ -202,7 +203,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
     const Var_Decl var = list->var_decl;
     if(var->xid)
       CHECK_BB(isres(var->xid))
-    if(list->td) // lambda
+    if(list->td)
       CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));
   return GW_OK;
@@ -280,7 +281,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   ++env->scope->depth;
   if(GET_FLAG(f, dtor) && !env->class_def)
     ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  if(f->td)//lambda
+  if(f->td)
     CHECK_OB((f->ret_type = known_type(env, f->td)))
   if(f->arg_list)
     CHECK_BB(scan1_args(env, f->arg_list))

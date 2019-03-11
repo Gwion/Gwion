@@ -71,9 +71,11 @@ void vm_remove(const VM* vm, const m_uint index) {
 ANN void free_vm(VM* vm) {
   vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
-  xfree(vm->bbq->in);
-  xfree(vm->bbq->out);
-  xfree(vm->bbq);
+  if(vm->bbq) {
+    xfree(vm->bbq->in);
+    xfree(vm->bbq->out);
+    xfree(vm->bbq);
+  }
   xfree(vm->shreduler);
   free(vm);
 }
@@ -219,7 +221,7 @@ __attribute__((hot))
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
-ANN void vm_run(const VM* vm) {
+ANN void vm_run(const VM* vm) { /* lgtm [cpp/use-of-goto] */
   static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
@@ -228,7 +230,7 @@ ANN void vm_run(const VM* vm) {
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
     &&regdup, &&regdup2,
     &&memsetimm,
-    &&regpop, &&regpushme, &&regpushmaybe,
+    &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
     &&allocint, &&allocfloat, &&allocother, &&allocaddr,
@@ -257,33 +259,31 @@ ANN void vm_run(const VM* vm) {
     &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv,
     &&itof, &&ftoi,
     &&timeadv,
-    &&funcusr, &&funcmember, &&funcstatic,
+    &&setcode, &&funcptr, &&funcmember,
+    &&funcusr, &&regpop, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&sporkend,
-    &&funcptr,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&decintaddr, &&initloop,
-    &&newobj,
+    &&arraytop, &&newobj,
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc,&&staticcode, &&pushstr,
+    &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&other
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
-
+register m_bit next;
   while((shred = shreduler_get(s))) {
 register VM_Code code = shred->code;
-register
-m_uint* ip = code->instr->ptr + OFFSET;
+register m_uint* ip = code->instr->ptr + OFFSET;
 register
 size_t pc = shred->pc;
 register
 m_bit* reg = shred->reg;
 register
 m_bit* mem = shred->mem;
-
 register union {
 M_Object obj;
 VM_Code code;
@@ -368,9 +368,6 @@ regdup2:
 memsetimm:
   *(m_uint*)(mem+instr->m_val) = instr->m_val2;
   DISPATCH();
-regpop:
-  reg -= instr->m_val;
-  DISPATCH();
 regpushme:
   *(M_Object*)reg = shred->info->me;
   reg += SZ_INT;
@@ -435,7 +432,6 @@ intcmp: SELF(m_int, SZ_INT, ~)
 
 intrassign:
   reg -= SZ_INT;
-/*assert(*(m_int**)reg);*/
   **(m_int**)reg = *(m_int*)(reg-SZ_INT);
   DISPATCH()
 
@@ -553,91 +549,55 @@ shred->reg = reg;
 shred->mem = mem;
 shred->pc = pc;
   break;
-
+setcode:
+  a.code = *(VM_Code*)(reg-SZ_INT);
+funcptr:
+  if(!GET_FLAG((VM_Code)a.code, builtin))
+    goto funcusr;
+funcmember:
+  reg -= SZ_INT;
+  a.code = *(VM_Code*)reg;
+  mem += *(m_uint*)(reg + SZ_INT);
+  next = eFuncMemberEnd;
+  goto *dispatch[eRegPop];
 funcusr:
 {
   reg -= SZ_INT;
+  a.code = *(VM_Code*)reg;
   register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
   mem += push;
   *(m_uint*)  mem = push;mem += SZ_INT;
   *(VM_Code*) mem = code; mem += SZ_INT;
-  *(m_uint*)  mem = pc; mem += SZ_INT;
-  pc = 0;
-  code = *(VM_Code*)reg;
-  ip = code->instr->ptr + OFFSET;
-  m_uint stack_depth = code->stack_depth;
-  *(m_uint*)  mem = stack_depth; mem += SZ_INT;
-  if(stack_depth) {
-    register const m_uint f = GET_FLAG(code, member) ? SZ_INT : 0;
-    if(f) {
-      *(m_uint*)mem = *(m_uint*)(reg - SZ_INT);
-      stack_depth -= SZ_INT;
-    }
-    reg-=code->stack_depth;
-//    LOOP_OPTIM
-    for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
-      *(m_uint*)(mem+i+f) = *(m_uint*)(reg+i);
-  }
+  *(m_uint*)  mem = pc + instr->m_val2; mem += SZ_INT;
+  *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
+  next = eFuncUsrEnd;
+}
+regpop:
+  reg -= instr->m_val;
+  DISPATCH();
+regtomem:
+  *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
+  DISPATCH()
+overflow:
   if(overflow_(mem, shred))
     Except(shred, "StackOverflow");
-}
-DISPATCH();
-funcmember:
-{
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
-  register const m_uint local_depth =   *(m_uint*)(reg + SZ_INT);
-  register m_bit* m = mem + local_depth;
-//  assert(a.code);
-  register const m_uint stack_depth = a.code->stack_depth;
-  register const m_uint depth = stack_depth -SZ_INT;
-  reg -= stack_depth;
-  *(m_uint*)m = *(m_uint*)(reg + depth);
-//  LOOP_OPTIM
-  for(m_uint i = 0; i < depth; i+= SZ_INT)
-    *(m_uint*)(m+i+SZ_INT) = *(m_uint*)(reg+i);
-  if(overflow_(m, shred))
-    Except(shred, "StackOverflow");
-  shred->mem = m;
-  shred->pc = pc;
-  if(GET_FLAG(a.code, ctor)) {
-    register const f_xtor f = (f_xtor)a.code->native_func;
-    f(*(M_Object*)m, NULL, shred);// callnat
-    goto funcend2;//2
-  }
-  register const f_mfun f = (f_mfun)a.code->native_func;
-  f((*(M_Object*)m), reg, shred);//call native
-  goto funcend;
-}
-funcstatic:
-{
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
-  register const m_uint local_depth = *(m_uint*)(reg + SZ_INT);
-  register m_bit* m = mem + local_depth;
-  //assert(a.code);
-  register const m_uint stack_depth = a.code->stack_depth;
-  if(stack_depth) {
-    reg -= stack_depth;
-//    LOOP_OPTIM
-    for(m_uint i = 0; i < stack_depth; i+= SZ_INT)
-      *(m_uint*)(m+i) = *(m_uint*)(reg+i);
-  }
-  if(overflow_(m, shred))
-    Except(shred, "StackOverflow");
-//  shred->reg = reg;
-  shred->mem = m;
-  shred->pc = pc;
-  register const f_sfun f = (f_sfun)a.code->native_func;
-  f(reg, shred);
-funcend:
-  reg += instr->m_val;
-funcend2:
+next:
+  goto *dispatch[next];
+funcusrend:
+  ip = (code = a.code)->instr->ptr + OFFSET;
+  pc = 0;
+  DISPATCH();
+funcmemberend:
   shred->mem = mem;
+  shred->reg = reg;
+  shred->pc = pc;
+  shred->code = code;
+  ((f_mfun)a.code->native_func)((*(M_Object*)mem), reg, shred);
+  reg += instr->m_val;
+  shred->mem = (mem -= instr->m_val2);
   if(!s->curr)break;
   pc = shred->pc;
   DISPATCH()
-}
 sporkini:
   a.child = init_spork_shred(shred, (VM_Code)instr->m_val);
   DISPATCH()
@@ -648,7 +608,7 @@ sporkfunc:
   a.child->reg += instr->m_val;
   DISPATCH()
 sporkthis:
-  *(M_Object*)a.child->reg = *(M_Object*)(reg + instr->m_val);
+  *(M_Object*)a.child->reg = *(M_Object*)(reg -SZ_INT + instr->m_val);
   a.child->reg += SZ_INT;
   DISPATCH()
 sporkexp:
@@ -659,13 +619,6 @@ sporkexp:
 sporkend:
   *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
-funcptr:
-  if(!GET_FLAG((VM_Code)a.code, builtin))
-    goto funcusr;
-  else if(GET_FLAG((VM_Code)a.code, member))
-    goto funcmember;
-  else
-    goto funcstatic;
 brancheqint:
   reg -= SZ_INT;
   if(!*(m_uint*)reg)
@@ -693,12 +646,16 @@ initloop:
   reg -= SZ_INT;
   (*(m_uint*)instr->m_val) = labs(*(m_int*)reg);
   DISPATCH()
+arraytop:
+    if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
+      goto newobj;
+  else
+    goto _goto;
 newobj:
-  *(M_Object*)reg = new_object(shred, (Type)instr->m_val);
+  *(M_Object*)reg = new_object(shred, (Type)instr->m_val2);
   reg += SZ_INT;
   DISPATCH()
 addref:
-//  assert(instr->m_val ? *(m_bit**)(reg-SZ_INT) : reg); // scan-build
   if((a.obj = instr->m_val ? **(M_Object**)(reg-SZ_INT) :
     *(M_Object*)(reg-SZ_INT)))
     ++a.obj->ref;
@@ -706,7 +663,6 @@ addref:
 assign:
   reg -= SZ_INT;
   a.obj = *(M_Object*)(reg-SZ_INT);
-//  assert(*(M_Object**)reg); // scan-build
   const M_Object tgt = **(M_Object**)reg;
   if(tgt) {
     --tgt->ref;
@@ -758,11 +714,13 @@ staticother:
   DISPATCH()
 dotfunc:
   assert(a.obj);
-  *(VM_Code*)(reg) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   reg += SZ_INT;
+dotstaticfunc:
+  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
   DISPATCH()
 staticcode:
-  (*(VM_Code*)reg = ((Func)instr->m_val)->code);
+  instr->m_val = (m_uint)(a.code = (*(VM_Code*)reg = ((Func)instr->m_val)->code));
+  instr->opcode = eRegPushImm;
   reg += SZ_INT;
   DISPATCH()
 pushstr:
@@ -776,10 +734,8 @@ gcadd:
   vector_add(&shred->gc, *(vtype*)(reg-SZ_INT));
   DISPATCH();
 gcend:
-  while((a.obj = (M_Object)vector_pop(&shred->gc))) {
-    assert(a.obj);
+  while((a.obj = (M_Object)vector_pop(&shred->gc)))
     _release(a.obj, shred);
-  }
   DISPATCH()
 gack:
   gack(reg, instr);

@@ -1,4 +1,4 @@
-float f;
+<<<float f>>>;
 Coverage c;
 c.s_i;
 <<< Coverage.i() >>>;

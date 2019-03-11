@@ -236,7 +236,7 @@ static MFUN(vec4_magnitude) {
 
 static MFUN(vec4_normalize) {
   m_vec4* v =  *(m_vec4**)MEM(0);
-  m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
+  const m_float mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z + v->w * v->w);
   if(mag  > 0)
     vec_Div((m_bit*)v, 4, mag);
 }

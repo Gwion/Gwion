@@ -229,13 +229,6 @@ GWION_IMPORT(array) {
   return GW_OK;
 }
 
-INSTR(ArrayTop) { GWDEBUG_EXE
-  if(*(m_uint*)REG(-SZ_INT * 2) < *(m_uint*)REG(-SZ_INT))
-    instantiate_object(shred, (Type)instr->m_val2);
-  else
-    shred->pc = instr->m_val;
-}
-
 INSTR(ArrayBottom) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const M_Object obj = *(M_Object*)REG(0);

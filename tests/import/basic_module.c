@@ -5,7 +5,7 @@
 #include "env.h"
 #include "gwion.h"
 
-GWMODNAME("basic_module")
+GWMODSTR(basic_module)
 
 GWMODINI(basic_module) {
   puts("ini module");

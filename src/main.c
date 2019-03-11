@@ -4,10 +4,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
-#include "compile.h"
-#include "driver.h"
 #include "gwion.h"
-#include "arg.h"
 
 static struct Gwion_ gwion;
 
@@ -16,24 +13,10 @@ static void sig(int unused __attribute__((unused))) {
 }
 
 int main(int argc, char** argv) {
-  Arg arg = { .argc = argc, .argv=argv, .loop=-1 };
-  DriverInfo di = { .in=2, .out=2, .chan=2, .sr=48000, .bufsize=256,
-    .bufnum=3, .card="default:CARD=CODEC", .func=D_FUNC, .run=vm_run };
-  if(parse_args(&arg, &di)) {
-    arg_release(&arg);
-    return 0;
-  }
-  gwion_init(&gwion, &arg.lib);
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  if(gwion_audio(&gwion, &di) && gwion_engine(&gwion)) {
-    plug_ini(&gwion, &arg.mod);
-    for(m_uint i = 0; i < vector_size(&arg.add); i++)
-      compile_filename(&gwion, (m_str)vector_at(&arg.add, i));
-    shreduler_set_loop(gwion.vm->shreduler, arg.loop);
-    gwion_run(&gwion, &di);
-  }
-  gwion_release(&gwion, &di);
-  arg_release(&arg);
+  if(gwion_ini(&gwion, argc, argv) > 0)
+    gwion_run(&gwion);
+  gwion_end(&gwion);
   return 0;
 }

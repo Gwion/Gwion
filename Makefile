@@ -20,59 +20,7 @@ parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
-drvr_src := src/drvr/driver.c
 
-# add libraries
-ifeq (${DUMMY_D}, 1)
-CFLAGS +=-DHAVE_DUMMY
-drvr_src +=src/drvr/dummy.c
-endif
-ifeq (${SPA_D}, 1)
-CFLAGS +=-DHAVE_SPA
-drvr_src +=src/drvr/spa.c
-endif
-ifeq (${ALSA_D}, 1)
-LDFLAGS += -lasound
-CFLAGS +=-DHAVE_ALSA
-drvr_src +=src/drvr/alsa.c
-endif
-ifeq (${JACK_D}, 1)
-LDFLAGS += -ljack
-CFLAGS +=-DHAVE_JACK
-drvr_src +=src/drvr/jack.c
-endif
-ifeq (${PORTAUDIO_D}, 1)
-LDFLAGS += -lportaudio
-CFLAGS +=-DHAVE_PORTAUDIO
-drvr_src +=src/drvr/portaudio.c
-endif
-ifeq (${SOUNDIO_D}, 1)
-LDFLAGS += -lsoundio
-CFLAGS +=-DHAVE_SOUNDIO
-drvr_src +=src/drvr/soundio.c
-endif
-ifeq (${PULSE_D}, 1)
-LDFLAGS += -lpulse-simple
-CFLAGS +=-DHAVE_PULSE
-drvr_src +=src/drvr/pulse.c
-endif
-
-ifeq (${SNDFILE_D}, 1)
-LDFLAGS += -lsndfile
-CFLAGS +=-DHAVE_SNDFILE
-drvr_src +=src/drvr/sndfile.c
-else
-CFLAGS +=-DNO_LIBSNDFILE
-endif
-ifeq (${PLOT_D}, 1)
-CFLAGS +=-DHAVE_PLOT
-drvr_src +=src/drvr/plot.c
-endif
-ifeq (${SLES_D}, 1)
-LDFLAGS += -lOpenSLES
-CFLAGS +=-DHAVE_SLES
-drvr_src +=src/drvr/sles.c
-endif
 # add boolean
 ifeq (${USE_GWCOV}, 1)
 CFLAGS += -DGWCOV
@@ -97,9 +45,6 @@ CFLAGS += -DVMBENCH
 LDFLAGS += -lbsd
 endif
 
-# add definitions
-CFLAGS+= -DD_FUNC=${D_FUNC}
-
 # add directories
 CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
 
@@ -112,9 +57,8 @@ emit_obj := $(emit_src:.c=.o)
 oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
-drvr_obj := $(drvr_src:.c=.o)
 
-GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${drvr_obj} ${vm_obj} ${util_obj} ${lib_obj}
+GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
 ifeq ($(shell uname), Linux)
 LDFLAGS+=-lrt

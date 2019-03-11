@@ -112,7 +112,7 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
 
 ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   const Nspc nspc = env->curr;
-  if(!nspc->op_map.ptr)
-    map_init(&nspc->op_map);
+  if(!nspc->info->op_map.ptr)
+    map_init(&nspc->info->op_map);
   return add_op(nspc, opi);
 }
