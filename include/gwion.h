@@ -7,7 +7,6 @@ typedef struct Gwion_* Gwion;
 #include "driver.h"
 struct Gwion_ {
   PlugInfo* plug;
-//  DriverInfo* di;
   struct Arg_* arg;
 // sym
 // mem

@@ -26,11 +26,11 @@
 #define VMBENCH_END
 #endif
 
-ANN static DriverInfo* new_driverinfo(void) {
-  DriverInfo *di = (DriverInfo*)xcalloc(1, sizeof(DriverInfo));
+ANN static struct BBQ_ * new_driverinfo(void) {
+  struct BBQ_ * di = (struct BBQ*)xcalloc(1, sizeof(struct BBQ_));
   di->func = dummy_driver;
   di->run = vm_run;
-  di->driver = (Driver*)xcalloc(1, sizeof(Driver));
+  di->driver = (DriverData*)xcalloc(1, sizeof(DriverData));
   return di;
 }
 
@@ -43,7 +43,7 @@ ANN static Arg* new_arg(int argc, char** argv) {
 }
 
 ANN m_bool gwion_audio(const Gwion gwion) {
-  DriverInfo *di = gwion->vm->bbq;
+  struct BBQ_ *di = gwion->vm->bbq;
   // get driver from string.
   if(di->si->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
@@ -103,7 +103,7 @@ ANN void gwion_run(const Gwion gwion) {
   VMBENCH_END
 }
 
-ANN /* static */ void free_driverinfo(DriverInfo* di, VM* vm) {
+ANN /* static */ void free_driverinfo(struct BBQ_* di, VM* vm) {
   mp_free(SoundInfo, di->si);
   if(di->driver->del)
     di->driver->del(vm, di);
@@ -117,7 +117,6 @@ ANN void gwion_end(const Gwion gwion) {
   free_env(gwion->env);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
-//  free_driverinfo(gwion->vm->bbq, gwion->vm);
   xfree(gwion->plug);
   free_symbols();
 }

@@ -26,7 +26,7 @@ struct BBQ_ {
   struct SoundInfo_ *si;
   f_bbqset func;
   f_bbqrun run;
-  struct Driver_* driver;
+  struct DriverData_* driver;
 };
 
 typedef struct Shreduler_* Shreduler;
