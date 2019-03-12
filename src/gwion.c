@@ -85,7 +85,6 @@ ANN m_bool gwion_ini(const Gwion gwion, int argc, char** argv) {
   plug_discover(gwion->plug, &gwion->arg->lib);
   shreduler_set_loop(gwion->vm->shreduler, gwion->arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-    plug_ini(gwion, &gwion->arg->mod);
     gwion_compile(gwion);
     return GW_OK;
   }
@@ -95,6 +94,7 @@ ANN m_bool gwion_ini(const Gwion gwion, int argc, char** argv) {
 ANN void gwion_run(const Gwion gwion) {
   VM* vm = gwion->vm;
   vm->is_running = 1;
+  plug_ini(gwion, &gwion->arg->mod);
   VMBENCH_INI
   gwion->di->driver->run(vm, gwion->di);
   VMBENCH_END
