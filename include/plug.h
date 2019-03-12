@@ -8,12 +8,14 @@ enum plug_t {
   GWPLUG_LAST
 };
 
-typedef struct {
+typedef struct PlugInfo_ {
   struct Vector_ vec[GWPLUG_LAST];
   struct Map_ drv;
 } PlugInfo;
-void plug_discover(PlugInfo*, Vector);
-void plug_end(const Gwion gwion);
+
+ANN PlugInfo* new_plug(Vector);
+ANN void plug_run(const Gwion gwion, const Vector);
+ANN void free_plug(const Gwion gwion);
 
 #define GWIMPORT_NAME    import
 #define GWMODSTR_NAME  gwmodstr
@@ -25,6 +27,5 @@ void plug_end(const Gwion gwion);
 #define GWMODEND(a)  ANN void  GWMODEND_NAME(const Gwion gwion, void* self)
 #define GWDRIVER(a)  ANN void  GWDRIVER_NAME(DriverData* d)
 
-ANN void plug_ini(const Gwion gwion, const Vector);
 ANN Vector split_args(const m_str str);
 #endif

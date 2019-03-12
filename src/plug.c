@@ -20,7 +20,7 @@ static inline int so_filter(const struct dirent* dir) {
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
 typedef void*  (*modini)(const Gwion, const Vector);
-typedef void*  (*modend)(const Gwion, void*);
+typedef void*  (*modrun)(const Gwion, void*);
 typedef void*  (*modend)(const Gwion, void*);
 
 struct Plug_ {
@@ -58,7 +58,8 @@ ANN static void plug_get(PlugInfo* p, const m_str c) {
     err_msg(0, "error in %s.", dlerror());
 }
 
-void plug_discover(PlugInfo* p, Vector list) {
+ANN PlugInfo* new_plug(const Vector list) {
+  PlugInfo *p = (PlugInfo*)mp_alloc(PlugInfo);
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_init(&p->vec[i]);
   map_init(&p->drv);
@@ -76,10 +77,12 @@ void plug_discover(PlugInfo* p, Vector list) {
      free(file);
     }
   }
+  return p;
 }
 
-void plug_end(const Gwion gwion) {
-  struct Vector_ * const v = gwion->plug->vec;
+void free_plug(const Gwion gwion) {
+  PlugInfo *p = gwion->plug;
+  struct Vector_ * const v = p->vec;
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_MODULE]); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
     if(plug->end)
@@ -90,7 +93,8 @@ void plug_end(const Gwion gwion) {
     dlclose((void*)vector_at(&v[GWPLUG_DL], i));
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_release(&v[i]);
-  map_release(&gwion->plug->drv);
+  map_release(&p->drv);
+  mp_free(PlugInfo, p);
 }
 
 ANN Vector split_args(const m_str str) {
@@ -116,7 +120,7 @@ ANN static Vector get_arg(const m_str name, const Vector v) {
   return NULL;
 }
 
-void plug_ini(const Gwion gwion, const Vector args) {
+void plug_run(const Gwion gwion, const Vector args) {
   const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);

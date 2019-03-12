@@ -20,16 +20,16 @@ ANN void arg_release(Arg* arg) {
 }
 
 static const struct option long_option[] = {
-  { "pludir",   0, NULL, 'p' },
-  { "driver",   1, NULL, 'd' },
-  { "sr",       1, NULL, 's' },
-  { "in",       1, NULL, 'i' },
-  { "out",      1, NULL, 'o' },
-  { "loop",     1, NULL, 'l' },
-  { "help",     0, NULL, 'h' },
-  { "config",   0, NULL, 'c' },
-  { "module",   0, NULL, 'm' },
-  { NULL,       0, NULL, 0   }
+  { "plugdir", 0, NULL, 'p' },
+  { "driver",  1, NULL, 'd' },
+  { "sr",      1, NULL, 's' },
+  { "in",      1, NULL, 'i' },
+  { "out",     1, NULL, 'o' },
+  { "loop",    1, NULL, 'l' },
+  { "help",    0, NULL, 'h' },
+  { "config",  0, NULL, 'c' },
+  { "module",  0, NULL, 'm' },
+  { NULL,      0, NULL, 0   }
 };
 
 static const char usage[] =
