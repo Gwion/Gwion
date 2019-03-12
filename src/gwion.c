@@ -93,7 +93,7 @@ ANN m_bool gwion_ini(const Gwion gwion, int argc, char** argv) {
 
 ANN void gwion_run(const Gwion gwion) {
   VM* vm = gwion->vm;
-  vm->is_running = 1;
+  vm->bbq->is_running = 1;
   plug_ini(gwion, &gwion->arg->mod);
   VMBENCH_INI
   gwion->di->driver->run(vm, gwion->di);

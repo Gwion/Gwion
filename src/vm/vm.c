@@ -760,7 +760,7 @@ timespecsub(&exec_end, &exec_ini, &exec_ret);
 timespecadd(&exec_time, &exec_ret, &exec_time);
 #endif
   }
-  if(!vm->is_running) {
+  if(!vm->bbq->is_running) {
 #ifdef VMBENCH
     printf("[VM] exec time %lu.%09lu\n", exec_time.tv_sec, exec_time.tv_nsec);
     printf("[VM] exec time %09lu\n", exec_time.tv_nsec/1000);

@@ -15,7 +15,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   struct ShredTick_ *tk = s->list;
   if(!tk) {
     if(!vector_size(&s->shreds) && !s->loop)
-      vm->is_running = 0;
+      vm->bbq->is_running = 0;
     return NULL;
   }
   const m_float time = (m_float)vm->bbq->pos + (m_float).5;

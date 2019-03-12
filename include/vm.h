@@ -21,6 +21,7 @@ struct BBQ_ {
   uint32_t sr; // int 32
   uint8_t n_in;
   uint8_t n_out;
+  volatile uint is_running;// : 1; // => shreduler
 };
 
 typedef struct Shreduler_* Shreduler;
@@ -31,7 +32,6 @@ typedef struct VM_ {
   struct BBQ_* bbq;
   struct Gwion_* gwion;
   uint32_t rand[2];
-  volatile unsigned is_running : 1; // => shreduler
 } VM;
 
 typedef struct VM_Shred_* VM_Shred;

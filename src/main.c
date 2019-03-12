@@ -9,7 +9,7 @@
 static struct Gwion_ gwion;
 
 static void sig(int unused __attribute__((unused))) {
-  gwion.vm->is_running = 0;
+  gwion.vm->bbq->is_running = 0;
 }
 
 int main(int argc, char** argv) {

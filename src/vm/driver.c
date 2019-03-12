@@ -20,7 +20,7 @@ ANN struct BBQ_* new_bbq(DriverInfo* di) {
 }
 
 static void dummy_run(VM* vm, DriverInfo* di) {
-  while(vm->is_running) {
+  while(vm->bbq->is_running) {
     di->run(vm);
     ++vm->bbq->pos;
   }
