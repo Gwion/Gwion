@@ -67,16 +67,22 @@ void vm_remove(const VM* vm, const m_uint index) {
        Except(sh, "MsgRemove");
   }
 }
-
+#include "sound.h"
 ANN void free_vm(VM* vm) {
   vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
+struct BBQ_* bbq = vm->bbq;
   if(vm->bbq) {
+  mp_free(SoundInfo, bbq->si);
+  if(bbq->driver->del) 
+    bbq->driver->del(vm, bbq); 
+  mp_free(DriverData, bbq->driver);
     if(vm->bbq->in)
       xfree(vm->bbq->in);
     if(vm->bbq->out)
       xfree(vm->bbq->out);
-    free_driverinfo(vm->bbq, vm);
+  xfree(bbq);
+//    free_driverinfo(vm->bbq, vm);
   }
   xfree(vm->shreduler);
   free(vm);

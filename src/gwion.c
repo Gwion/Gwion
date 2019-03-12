@@ -30,7 +30,7 @@ ANN static struct BBQ_ * new_driverinfo(void) {
   struct BBQ_ * di = (struct BBQ_*)xcalloc(1, sizeof(struct BBQ_));
   di->func = dummy_driver;
   di->run = vm_run;
-  di->driver = (DriverData*)xcalloc(1, sizeof(DriverData));
+  di->driver = (DriverData*)mp_alloc(DriverData);
   return di;
 }
 
@@ -103,20 +103,20 @@ ANN void gwion_run(const Gwion gwion) {
   VMBENCH_END
 }
 
-ANN /* static */ void free_driverinfo(struct BBQ_* di, VM* vm) {
-  mp_free(SoundInfo, di->si);
-  if(di->driver->del)
-    di->driver->del(vm, di);
-  xfree(di->driver);
-  xfree(di);
+ANN /* static */ void free_driverinfo(struct BBQ_* bbq, VM* vm) {
+  mp_free(SoundInfo, bbq->si);
+  if(bbq->driver->del)
+    bbq->driver->del(vm, bbq);
+  mp_free(DriverData, bbq->driver);
+  xfree(bbq);
 }
 ANN void gwion_end(const Gwion gwion) {
-  plug_end(gwion);
   arg_release(gwion->arg);
   xfree(gwion->arg);
   free_env(gwion->env);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
+  plug_end(gwion);
   xfree(gwion->plug);
   free_symbols();
 }
