@@ -15,14 +15,14 @@ struct VM_Code_ {
 };
 
 struct VM_;
-struct Driver_;
-typedef void (*f_bbqset)(struct Driver_*);
+struct DriverData_;
+typedef void (*f_bbqset)(struct DriverData_*);
 typedef void (*f_bbqrun)(const struct VM_*);
 struct BBQ_ {
   uint64_t pos;
   m_float* in;
   m_float* out;
-  volatile uint is_running;// : 1; // => shreduler
+  volatile uint is_running;
   struct SoundInfo_ *si;
   f_bbqset func;
   f_bbqrun run;

@@ -27,7 +27,7 @@
 #endif
 
 ANN static struct BBQ_ * new_driverinfo(void) {
-  struct BBQ_ * di = (struct BBQ*)xcalloc(1, sizeof(struct BBQ_));
+  struct BBQ_ * di = (struct BBQ_*)xcalloc(1, sizeof(struct BBQ_));
   di->func = dummy_driver;
   di->run = vm_run;
   di->driver = (DriverData*)xcalloc(1, sizeof(DriverData));
