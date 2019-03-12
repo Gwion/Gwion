@@ -9,17 +9,19 @@
 #include "gwion.h"
 #include "plug.h"
 
-static void dummy_run(VM* vm, struct BBQ_* di) {
+static DRVRUN(dummy_run) {
   while(vm->bbq->is_running) {
     di->run(vm);
     ++vm->bbq->pos;
   }
 }
 
-static m_bool dummy_ini(VM* vm __attribute__((unused)), struct BBQ_* di __attribute__((unused))) {
+static DRVINI(dummy_ini) {
   return GW_OK;
 }
+
 GWMODSTR(dummy2);
+
 GWDRIVER(dummy2) {
   d->ini = dummy_ini;
   d->run = dummy_run;

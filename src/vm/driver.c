@@ -15,14 +15,14 @@ ANN void bbq_alloc(struct BBQ_ *bbq) {
   bbq->in  = (m_float*)xcalloc(bbq->si->in, SZ_FLOAT);
 }
 
-static void dummy_run(VM* vm, struct BBQ_* di) {
+static DRVRUN(dummy_run) {
   while(di->is_running) {
     di->run(vm);
     ++di->pos;
   }
 }
 
-static m_bool dummy_ini(VM* vm __attribute__((unused)), struct BBQ_* di __attribute__((unused))) {
+static DRVINI(dummy_ini) {
   return GW_OK;
 }
 
