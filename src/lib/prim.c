@@ -9,6 +9,7 @@
 #include "import.h"
 #include "emit.h"
 #include "operator.h"
+#include "sound.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
@@ -95,7 +96,7 @@ OP_CHECK(opck_unary_meta2) {
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
   ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->sr);
+  ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->si->sr);
   ALLOC_PTR(samp,   m_float, 1.0);
   ALLOC_PTR(ms,     m_float, (m_float)(*sr     / 1000.));
   ALLOC_PTR(second, m_float, (m_float)*sr);

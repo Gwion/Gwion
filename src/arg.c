@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "driver.h"
 #include "arg.h"
+#include "sound.h"
 
 ANN static void arg_init(Arg* arg) {
   vector_init(&arg->add);
@@ -42,29 +43,29 @@ static const char usage[] =
 "\t--sr         -s\t  <number>   : set samplerate\n"
 ;
 
-ANN static inline void arg_add(Arg* arg) {
+ANN static inline void arg_add(Arg *arg) {
   while(optind < arg->argc)
     vector_add(&arg->add, (vtype)arg->argv[optind++]);
 }
 
-ANN static void arg_drvr(DriverInfo* di, const int i) {
+ANN static void arg_drvr(struct SoundInfo_ *si, const int i) {
   switch(i) {
     case 'i':
-      di->in  = (m_uint)strtol(optarg, NULL, 10);
+      si->in  = (m_uint)strtol(optarg, NULL, 10);
       break;
     case 'o':
-      di->out = (m_uint)strtol(optarg, NULL, 10);
+      si->out = (m_uint)strtol(optarg, NULL, 10);
       break;
     case 's':
-      di->sr  = (uint)strtol(optarg, NULL, 10);
+      si->sr = (uint)strtol(optarg, NULL, 10);
       break;
     case 'd':
-      di->arg = optarg;
+      si->arg = optarg;
       break;
   }
 }
 
-ANN void arg_parse(Arg* arg, DriverInfo* di) {
+ANN void arg_parse(Arg* arg) {
   int i, idx;
   arg_init(arg);
   while((i = getopt_long(arg->argc, arg->argv, "hl:i:o:s:d:m:p:c",
@@ -86,7 +87,7 @@ ANN void arg_parse(Arg* arg, DriverInfo* di) {
         vector_add(&arg->mod, (vtype)optarg);
         break;
       default:
-        arg_drvr(di, i);
+        arg_drvr(arg->si, i);
     }
   }
   arg_add(arg);

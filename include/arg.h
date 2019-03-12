@@ -7,9 +7,10 @@ typedef struct Arg_ {
   struct Vector_ add;
   struct Vector_ lib;
   struct Vector_ mod;
+  struct SoundInfo_ *si;
   m_bool loop;
 } Arg;
 
 ANN void arg_release(Arg*);
-ANN void arg_parse(Arg*, DriverInfo*);
+ANN void arg_parse(Arg*);
 #endif

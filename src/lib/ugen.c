@@ -9,6 +9,7 @@
 #include "object.h"
 #include "import.h"
 #include "ugen.h"
+#include "sound.h"
 
 ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
 ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }
@@ -312,9 +313,9 @@ static GWION_IMPORT(global_ugens) {
   const VM* vm = gwi_vm(gwi);
   struct ugen_importer hole = { vm, compute_mono, "blackhole", 1, NULL };
   add_ugen(gwi, &hole);
-  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->n_out, NULL };
+  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->si->out, NULL };
   add_ugen(gwi, &dac);
-  struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->n_in, NULL };
+  struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->si->in, NULL };
   add_ugen(gwi, &adc);
   ugen_connect(dac.ugen, hole.ugen);
   SET_FLAG(t_ugen, abstract);

@@ -72,9 +72,11 @@ ANN void free_vm(VM* vm) {
   vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
   if(vm->bbq) {
-    xfree(vm->bbq->in);
-    xfree(vm->bbq->out);
-    xfree(vm->bbq);
+    if(vm->bbq->in)
+      xfree(vm->bbq->in);
+    if(vm->bbq->out)
+      xfree(vm->bbq->out);
+    free_driverinfo(vm->bbq, vm);
   }
   xfree(vm->shreduler);
   free(vm);

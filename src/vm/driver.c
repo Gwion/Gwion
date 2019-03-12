@@ -8,21 +8,18 @@
 #include "oo.h"
 #include "vm.h"
 #include "driver.h"
+#include "sound.h"
 
-ANN struct BBQ_* new_bbq(DriverInfo* di) {
-  struct BBQ_* bbq   = (struct BBQ_*)xcalloc(1, sizeof(struct BBQ_));
-  bbq->out = (m_float*)xcalloc(di->out, SZ_FLOAT);
-  bbq->in  = (m_float*)xcalloc(di->in, SZ_FLOAT);
-  bbq->n_in = (uint8_t)di->in;
-  bbq->sr = di->sr;
-  bbq->n_out = (uint8_t)di->out;
-  return bbq;
+ANN void bbq_alloc(DriverInfo* di) {
+  struct BBQ_* bbq   = (struct BBQ_*)di;
+  bbq->out = (m_float*)xcalloc(di->si->out, SZ_FLOAT);
+  bbq->in  = (m_float*)xcalloc(di->si->in, SZ_FLOAT);
 }
 
 static void dummy_run(VM* vm, DriverInfo* di) {
-  while(vm->bbq->is_running) {
+  while(di->is_running) {
     di->run(vm);
-    ++vm->bbq->pos;
+    ++di->pos;
   }
 }
 

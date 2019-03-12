@@ -11,6 +11,7 @@
 #include "arg.h"
 #include "gwion.h"
 #include "compile.h"
+#include "sound.h"
 
 #ifdef VMBENCH
 #include <time.h>
@@ -27,8 +28,6 @@
 
 ANN static DriverInfo* new_driverinfo(void) {
   DriverInfo *di = (DriverInfo*)xcalloc(1, sizeof(DriverInfo));
-  di->sr = 48000;
-  di->in = di->out = 2;
   di->func = dummy_driver;
   di->run = vm_run;
   di->driver = (Driver*)xcalloc(1, sizeof(Driver));
@@ -44,22 +43,22 @@ ANN static Arg* new_arg(int argc, char** argv) {
 }
 
 ANN m_bool gwion_audio(const Gwion gwion) {
-  DriverInfo *di = gwion->di;
+  DriverInfo *di = gwion->vm->bbq;
   // get driver from string.
-  if(di->arg) {
+  if(di->si->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
       const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
       const size_t len = strlen(name);
-      if(!strncmp(name, di->arg, len)) {
-        di->func = (f_diset)VVAL(&gwion->plug->drv, i);
+      if(!strncmp(name, di->si->arg, len)) {
+        di->func = (f_bbqset)VVAL(&gwion->plug->drv, i);
         break;
       }
     }
   }
   di->func(di->driver);
   VM* vm = gwion->vm;
-  CHECK_BB(gwion->di->driver->ini(vm, di));
-  vm->bbq = new_bbq(di);
+  CHECK_BB(di->driver->ini(vm, di));
+  bbq_alloc(di);
   return GW_OK;
 }
 
@@ -78,10 +77,14 @@ ANN m_bool gwion_ini(const Gwion gwion, int argc, char** argv) {
   gwion->emit->env = gwion->env;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->di = new_driverinfo();
+  gwion->vm->bbq = new_driverinfo();
   gwion->arg = new_arg(argc, argv);
+  gwion->arg->si = mp_alloc(SoundInfo);
+  gwion->arg->si->in = gwion->arg->si->out = 2;
+  gwion->arg->si->sr = 48000;
   gwion->plug = (PlugInfo*)xmalloc(sizeof(PlugInfo));
-  arg_parse(gwion->arg, gwion->di);
+  arg_parse(gwion->arg);
+  gwion->vm->bbq->si = gwion->arg->si;
   plug_discover(gwion->plug, &gwion->arg->lib);
   shreduler_set_loop(gwion->vm->shreduler, gwion->arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
@@ -96,24 +99,25 @@ ANN void gwion_run(const Gwion gwion) {
   vm->bbq->is_running = 1;
   plug_ini(gwion, &gwion->arg->mod);
   VMBENCH_INI
-  gwion->di->driver->run(vm, gwion->di);
+  vm->bbq->driver->run(vm, vm->bbq);
   VMBENCH_END
 }
 
-ANN static void free_driverinfo(DriverInfo* di, VM* vm) {
+ANN /* static */ void free_driverinfo(DriverInfo* di, VM* vm) {
+  mp_free(SoundInfo, di->si);
   if(di->driver->del)
     di->driver->del(vm, di);
   xfree(di->driver);
   xfree(di);
 }
 ANN void gwion_end(const Gwion gwion) {
-  free_driverinfo(gwion->di, gwion->vm);
   plug_end(gwion);
   arg_release(gwion->arg);
   xfree(gwion->arg);
   free_env(gwion->env);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
+//  free_driverinfo(gwion->vm->bbq, gwion->vm);
   xfree(gwion->plug);
   free_symbols();
 }
