@@ -35,8 +35,8 @@ struct UGen_ {
     UGen ref;
   } module;
   m_float in, out;
-  unsigned multi : 1;
-  unsigned done : 1;
+  uint multi;
+  uint done;
 };
 
 #define TICK(a) __attribute__((hot)) ANN inline void a(const UGen u)

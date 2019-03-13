@@ -11,7 +11,7 @@ struct Switch_ {
   Vector vec;
   vtype iter;
   size_t default_case_index;
-  unsigned ok : 1;
+  uint ok;
 };
 
 struct Env_Scope_ {

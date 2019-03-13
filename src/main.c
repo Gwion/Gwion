@@ -21,5 +21,5 @@ int main(int argc, char** argv) {
   if(ini > 0)
     gwion_run(&gwion);
   gwion_end(&gwion);
-  return 0;
+  return EXIT_SUCCESS;
 }
