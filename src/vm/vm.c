@@ -49,12 +49,12 @@ uint32_t gw_rand(uint32_t s[2]) {
 }
 
 VM* new_vm(void) {
-  VM* vm = (VM*)xcalloc(1, sizeof(VM));
-  vm->shreduler  = (Shreduler)xcalloc(1, sizeof(struct Shreduler_));
-  vm->shreduler->vm = vm;
-  vector_init(&vm->shreduler->shreds);
+  VM* vm = (VM*)mp_alloc(VM);
   vector_init(&vm->ugen);
   vm->bbq = new_driver();
+  vm->shreduler  = (Shreduler)mp_alloc(Shreduler);
+  vector_init(&vm->shreduler->shreds);
+  vm->shreduler->bbq = vm->bbq;
   gw_seed(vm->rand, (uint64_t)time(NULL));
   return vm;
 }
@@ -74,8 +74,8 @@ ANN void free_vm(VM* vm) {
   vector_release(&vm->ugen);
   if(vm->bbq)
     free_driver(vm->bbq, vm);
-  xfree(vm->shreduler);
-  free(vm);
+  mp_free(Shreduler, vm->shreduler);
+  mp_free(VM, vm);
 }
 
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
@@ -219,7 +219,7 @@ __attribute__((hot))
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
-ANN void vm_run(const VM* vm) { /* lgtm [cpp/use-of-goto] */
+ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,

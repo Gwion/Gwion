@@ -4,22 +4,23 @@
 #include "oo.h"
 #include "vm.h"
 #include "object.h"
-#include "shreduler_private.h"
 #include "driver.h"
+#include "shreduler_private.h"
+#include "instr.h" // unwind
 
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;
 }
 
 ANN VM_Shred shreduler_get(const Shreduler s) {
-  VM* vm = s->vm;
+  Driver *bbq = s->bbq;
   struct ShredTick_ *tk = s->list;
   if(!tk) {
     if(!vector_size(&s->shreds) && !s->loop)
-      vm->bbq->is_running = 0;
+      bbq->is_running = 0;
     return NULL;
   }
-  const m_float time = (m_float)vm->bbq->pos + (m_float).5;
+  const m_float time = (m_float)bbq->pos + (m_float).5;
   if(tk->wake_time <= time) {
     if((s->list = tk->next))
       s->list->prev = NULL;
@@ -37,7 +38,7 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
     out->tick->parent->child.ptr = NULL;
   }
 }
-#include "instr.h"
+
 ANN static void unwind(const VM_Shred shred) {
   VM_Code code = shred->code;
   while(1) {
@@ -85,7 +86,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool er
 }
 
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time) {
-  const m_float time = wake_time + (m_float)s->vm->bbq->pos;
+  const m_float time = wake_time + (m_float)s->bbq->pos;
   struct ShredTick_ *tk = shred->tick;
   tk->wake_time = time;
   if(s->list) {
