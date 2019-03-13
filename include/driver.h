@@ -5,10 +5,6 @@ typedef m_bool (*f_drvini)(struct VM_*, struct BBQ_*);
 typedef void   (*f_drvrun)(struct VM_*, struct BBQ_*);
 typedef void   (*f_drvdel)(struct VM_*, struct BBQ_*);
 
-#define DRVINI(a) ANN m_bool a(struct VM_ *vm __attribute__((unused)), struct BBQ_* di __attribute__((unused)))
-#define DRVRUN(a) ANN void   a(struct VM_ *vm __attribute__((unused)), struct BBQ_* di __attribute__((unused)))
-#define DRVDEL(a) ANN void   a(struct VM_ *vm __attribute__((unused)), struct BBQ_* di __attribute__((unused)))
-
 typedef struct DriverData_ {
   void* data;
   f_drvini ini;
@@ -16,6 +12,31 @@ typedef struct DriverData_ {
   f_drvdel del;
 } DriverData;
 
+struct SoundInfo_ {
+  uint32_t sr;
+  uint8_t in, out;
+  m_str arg;
+};
+
+typedef void (*f_bbqset)(struct DriverData_*);
+typedef void (*f_bbqrun)(const struct VM_*);
+typedef struct BBQ_ {
+  uint64_t pos;
+  m_float* in;
+  m_float* out;
+  volatile uint is_running;
+  struct SoundInfo_ *si;
+  f_bbqset func;
+  f_bbqrun run;
+  struct DriverData_* driver;
+} Driver;
+
+#define DRVINI(a) ANN m_bool a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
+#define DRVRUN(a) ANN void   a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
+#define DRVDEL(a) ANN void   a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
+
 ANN void dummy_driver(DriverData*);
-ANN void bbq_alloc(struct BBQ_*);
+ANN void driver_alloc(Driver*);
+ANN Driver* new_driver(void);
+ANN void free_driver(Driver*, struct VM_*);
 #endif

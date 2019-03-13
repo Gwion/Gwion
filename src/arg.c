@@ -4,7 +4,6 @@
 #include "vm.h"
 #include "driver.h"
 #include "arg.h"
-#include "sound.h"
 #define GWIONRC ".gwionrc"
 
 ANN static inline void config_end(const Vector config) {

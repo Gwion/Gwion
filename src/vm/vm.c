@@ -54,6 +54,7 @@ VM* new_vm(void) {
   vm->shreduler->vm = vm;
   vector_init(&vm->shreduler->shreds);
   vector_init(&vm->ugen);
+  vm->bbq = new_driver();
   gw_seed(vm->rand, (uint64_t)time(NULL));
   return vm;
 }
@@ -71,14 +72,8 @@ void vm_remove(const VM* vm, const m_uint index) {
 ANN void free_vm(VM* vm) {
   vector_release(&vm->shreduler->shreds);
   vector_release(&vm->ugen);
-  struct BBQ_* bbq = vm->bbq;
-  if(vm->bbq) {
-    if(vm->bbq->in)
-      xfree(vm->bbq->in);
-    if(vm->bbq->out)
-      xfree(vm->bbq->out);
-    free_driverinfo(vm->bbq, vm);
-  }
+  if(vm->bbq)
+    free_driver(vm->bbq, vm);
   xfree(vm->shreduler);
   free(vm);
 }

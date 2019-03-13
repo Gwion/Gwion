@@ -11,7 +11,6 @@
 #include "arg.h"
 #include "gwion.h"
 #include "compile.h"
-#include "sound.h"
 
 #ifdef VMBENCH
 #include <time.h>
@@ -26,18 +25,8 @@
 #define VMBENCH_END
 #endif
 
-ANN static struct BBQ_ * new_driverinfo(void) {
-  struct BBQ_ * di = (struct BBQ_*)mp_alloc(BBQ);
-  di->func = dummy_driver;
-  di->run = vm_run;
-  di->driver = (DriverData*)mp_alloc(DriverData);
-  di->is_running = 1;
-  return di;
-}
-
 ANN m_bool gwion_audio(const Gwion gwion) {
-  struct BBQ_ *di = gwion->vm->bbq;
-  // get driver from string.
+  Driver* di = gwion->vm->bbq;
   if(di->si->arg) {
     for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
       const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
@@ -49,9 +38,8 @@ ANN m_bool gwion_audio(const Gwion gwion) {
     }
   }
   di->func(di->driver);
-  VM* vm = gwion->vm;
-  CHECK_BB(di->driver->ini(vm, di));
-  bbq_alloc(di);
+  CHECK_BB(di->driver->ini(gwion->vm, di));
+  driver_alloc(di);
   return GW_OK;
 }
 
@@ -71,7 +59,6 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->emit->env = gwion->env;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->vm->bbq = new_driverinfo();
   gwion->vm->bbq->si = mp_alloc(SoundInfo);
   gwion->vm->bbq->si->in = gwion->vm->bbq->si->out = 2;
   gwion->vm->bbq->si->sr = 48000;
@@ -92,14 +79,6 @@ ANN void gwion_run(const Gwion gwion) {
   VMBENCH_INI
   vm->bbq->driver->run(vm, vm->bbq);
   VMBENCH_END
-}
-
-ANN /* static */ void free_driverinfo(struct BBQ_* bbq, VM* vm) {
-  mp_free(SoundInfo, bbq->si);
-  if(bbq->driver->del)
-    bbq->driver->del(vm, bbq);
-  mp_free(DriverData, bbq->driver);
-  mp_free(BBQ, bbq);
 }
 
 ANN void gwion_end(const Gwion gwion) {

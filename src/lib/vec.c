@@ -7,7 +7,7 @@
 #include "instr.h"
 #include "object.h"
 #include "import.h"
-#include "sound.h"
+#include "driver.h"
 
 INSTR(VecCpy) {
   POP_REG(shred, instr->m_val2);

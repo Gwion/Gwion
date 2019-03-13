@@ -9,7 +9,7 @@
 #include "import.h"
 #include "emit.h"
 #include "operator.h"
-#include "sound.h"
+#include "driver.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 

@@ -8,11 +8,31 @@
 #include "oo.h"
 #include "vm.h"
 #include "driver.h"
-#include "sound.h"
 
-ANN void bbq_alloc(struct BBQ_ *bbq) {
-  bbq->out = (m_float*)xcalloc(bbq->si->out, SZ_FLOAT);
-  bbq->in  = (m_float*)xcalloc(bbq->si->in, SZ_FLOAT);
+ANN Driver* new_driver(void) {
+  Driver* di = (Driver*)mp_alloc(BBQ);
+  di->func = dummy_driver;
+  di->run = vm_run;
+  di->driver = (DriverData*)mp_alloc(DriverData);
+  di->is_running = 1;
+  return di;
+}
+
+ANN void free_driver(Driver *d, VM *vm) {
+  if(d->in)
+    xfree(d->in);
+  if(d->out)
+    xfree(d->out);
+  mp_free(SoundInfo, d->si);
+  if(d->driver->del)
+    d->driver->del(vm, d);
+  mp_free(DriverData, d->driver);
+  mp_free(BBQ, d);
+}
+
+ANN void driver_alloc(Driver *d) {
+  d->out = (m_float*)xcalloc(d->si->out, SZ_FLOAT);
+  d->in  = (m_float*)xcalloc(d->si->in, SZ_FLOAT);
 }
 
 static DRVRUN(dummy_run) {
@@ -26,7 +46,7 @@ static DRVINI(dummy_ini) {
   return GW_OK;
 }
 
-void dummy_driver(DriverData* d) {
-  d->ini = dummy_ini;
-  d->run = dummy_run;
+void dummy_driver(DriverData* dd) {
+  dd->ini = dummy_ini;
+  dd->run = dummy_run;
 }

@@ -5,6 +5,7 @@
 #include "vm.h"
 #include "object.h"
 #include "shreduler_private.h"
+#include "driver.h"
 
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
   s->loop = loop < 0 ? 0 : 1;

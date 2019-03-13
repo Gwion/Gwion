@@ -14,21 +14,6 @@ struct VM_Code_ {
   HAS_OBJ
 };
 
-struct VM_;
-struct DriverData_;
-typedef void (*f_bbqset)(struct DriverData_*);
-typedef void (*f_bbqrun)(const struct VM_*);
-struct BBQ_ {
-  uint64_t pos;
-  m_float* in;
-  m_float* out;
-  volatile uint is_running;
-  struct SoundInfo_ *si;
-  f_bbqset func;
-  f_bbqrun run;
-  struct DriverData_* driver;
-};
-
 typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_ {

@@ -9,7 +9,7 @@
 #include "object.h"
 #include "import.h"
 #include "ugen.h"
-#include "sound.h"
+#include "driver.h"
 
 ANN static inline void ugop_add   (const UGen u, const m_float f) { u->in += f; }
 ANN static inline void ugop_sub  (const UGen u, const m_float f) { u->in -= f; }
