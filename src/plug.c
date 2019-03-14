@@ -1,7 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
+#ifdef BUILD_ON_WINDOWS
+#include <win_dirent.h>
+#else
 #include <dirent.h>
+#endif
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
