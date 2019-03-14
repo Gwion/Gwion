@@ -51,7 +51,7 @@ install:
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
       choco install make;
       export BUILD_ON_WINDOWS=1;
-      git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && make.exe;
+      git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && cmake . && make.exe;
     fi;
 
 before_script:
