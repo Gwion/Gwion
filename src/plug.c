@@ -63,16 +63,25 @@ ANN PlugInfo* new_plug(const Vector list) {
    char gname[strlen(dir) + 6];
    strcpy(gname, dir);
    strcpy(gname + strlen(dir), "/*.so");
+#ifndef BUILD_ON_WINDOWS
    glob_t results;
    if(glob(gname, 0, NULL, &results))
      continue;
    for(m_uint i = 0; i < results.gl_pathc; i++)
        plug_get(p, results.gl_pathv[i]);
     globfree(& results);
+#else
+  _finddata_t filedata;
+  intptr_t file = _findfirst(c,&filedata);
+  if(file != -1) {
+    do plug_get(p, filedata.name);
+    while (_findnext(file,&filedata) == 0);
+  }
+  _findclose(file);
+#endif
   }
   return p;
 }
-
 void free_plug(const Gwion gwion) {
   PlugInfo *p = gwion->plug;
   struct Vector_ * const v = p->vec;
