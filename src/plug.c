@@ -1,5 +1,10 @@
 #include <string.h>
 #include <dlfcn.h>
+#ifndef BUILD_ON_WINDOWS
+#include <glob.h>
+#else
+#include <windows.h>
+#endif
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -10,9 +15,6 @@
 #include "object.h"
 #include "import.h"
 #include "gwion.h"
-#ifndef BUILD_ON_WINDOWS
-#include "glob.h"
-#endif
 
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
