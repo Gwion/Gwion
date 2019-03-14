@@ -6,13 +6,13 @@ os:
   - windows
 
 addons:
-  coverity_scan:
-    project:
-      name: "fennecdjay/Gwion"
-      description: "<Your project description here>"
-    notification_email: astor.jeremie@wanadoo.fr
-    build_command: make
-    branch_pattern: coverity_scan
+#  coverity_scan:
+#    project:
+#      name: "fennecdjay/Gwion"
+#      description: "<Your project description here>"
+#    notification_email: astor.jeremie@wanadoo.fr
+#    build_command: make
+#    branch_pattern: coverity_scan
   apt:
     sources:
     - ubuntu-toolchain-r-test
@@ -73,10 +73,10 @@ script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
     else
-      choco install make
       export CFLAGS+=-DBUILD_ON_WINDOWS;
       make.exe && make.exe test;
     fi;
+#      choco install make
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
