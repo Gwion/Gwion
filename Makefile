@@ -36,6 +36,7 @@ endif
 ifeq (${USE_JIT}, 1)
 include jit/config.mk
 endif
+
 ifeq (${USE_NOMEMOIZE}, 1)
 CFLAGS += -DNOMEMOIZE
 endif
@@ -80,7 +81,7 @@ LDFLAGS += ast/libgwion_ast.a util/libgwion_util.a
 
 all: options util/libgwion_util.a ast/libgwion_ast.a ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
-	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG}
+	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG} ${LIBS}
 
 config.mk:
 	$(info generating config.mk)

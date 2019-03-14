@@ -53,6 +53,7 @@ install:
       ls dlfcn-win32;
       export CFLAGS="$CFLAGS -Idlfcn-win32";
       export LDFLAGS="$LDLAGS -Ldlfcn-win32 -lpsapi dlfcn-win32/libdl.a";
+      export LIBS="$LIBS -lpsapi"
     fi;
 
 before_script:
