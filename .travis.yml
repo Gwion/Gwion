@@ -52,6 +52,7 @@ install:
       git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && ./configure && make.exe && cd ..;
       export CFLAGS=-Idlfcn-win32;
       export LDFLAGS="-Ldlfcn-win32 -lpsapi";
+      export LDFLAGS="psapi.lib";
     fi;
 
 before_script:
