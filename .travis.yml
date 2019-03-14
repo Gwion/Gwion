@@ -37,37 +37,36 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-    - os: windows
-  allow_failures:
+   - compiler: clang
    - os: 
-     - osx
      - windows
-#   - compiler: clang
+   - os:
+     - osx
 
 compiler:
   - gcc
 #  - clang
 
 install:
-- if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
-- if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ]; then choco install make;
-
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
+  - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ]; then choco install make; fi;
 
 before_script:
+  - git submodule update --init util ast;
   - if [ $(uname) = "Linux" ]; then
       if [ $CC = gcc ]; then export CC=gcc-8;
       elif [ $CC = clang ]; then export CC=clang-7;
-      fi;
+     fi;
     elif [ $(uname) = "Darwin" ]; then brew update;
+    fi;
 #    else choco install make;
-    fi;
-  - git submodule update --init util ast
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-      export USE_COVERAGE=1;
-      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
-      chmod +x ./cc-test-reporter;
-    ./cc-test-reporter before-build;
-    fi;
+
+#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+#      export USE_COVERAGE=1;
+#      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
+#      chmod +x ./cc-test-reporter;
+#    ./cc-test-reporter before-build;
+#    fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
 
 script:
