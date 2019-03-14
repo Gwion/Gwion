@@ -47,6 +47,8 @@ endif
 
 ifeq (${BUILD_ON_WINDOWS}, 1)
 CFLAGS += -DBUILD_ON_WINDOWS -D_XOPEN_SOURCE=700
+else
+CFLAGS += -ldl
 endif
 
 # add directories

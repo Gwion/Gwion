@@ -37,13 +37,13 @@ env:
 
 matrix:
   allow_failures:
-   - os:
+   - os: windows
 #     - osx
-     - windows
 
 compiler:
   - gcc
 #  - clang
+
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
