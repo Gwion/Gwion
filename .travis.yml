@@ -46,10 +46,17 @@ matrix:
 compiler:
   - gcc
 #  - clang
-
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
-#  - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then choco install make; fi;
+  - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ];
+    then choco install make;
+    choco install make;
+    export BUILD_ON_WINDOWS=1;
+    git clone https://github.com/dlfcn-win32/dlfcn-win32;
+    cd dlfcn-win32;
+    make.exe;
+    cd ..;
+    fi;
 
 before_script:
   - git submodule update --init util ast;
@@ -72,10 +79,7 @@ before_script:
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
-    else
-      choco install make;
-      export BUILD_ON_WINDOWS=1;
-      make.exe && make.exe test;
+    else make.exe && make.exe test;
     fi;
 
 after_success:
