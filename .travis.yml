@@ -73,6 +73,7 @@ script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
     else
+      choco install make;
       export CFLAGS+=-DBUILD_ON_WINDOWS;
       make.exe && make.exe test;
     fi;
