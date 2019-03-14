@@ -50,6 +50,8 @@ compiler:
 
 install:
 - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi
+- if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ]; then choco install make;
+
 
 before_script:
   - if [ $(uname) = "Linux" ]; then
@@ -57,9 +59,7 @@ before_script:
       elif [ $CC = clang ]; then export CC=clang-7;
       fi;
     elif [ $(uname) = "Darwin" ]; then brew update;
-    else choco install make;
-      alias gcc=gcc.exe;
-      export CC="gcc.exe";
+#    else choco install make;
     fi;
   - git submodule update --init util ast
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
