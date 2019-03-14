@@ -37,7 +37,9 @@ env:
 matrix:
   fast_finish: true
   allow_failures:
-   - os: osx
+   - os: 
+     - osx
+     - windows
    - compiler: clang
 
 compiler:
@@ -61,12 +63,14 @@ before_script:
     ./cc-test-reporter before-build;
     fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
-  - if [ $(uname) = "Darwin" ]; then brew update; fi
-  - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ];
-    then choco install make;
-         alias gcc=gcc.exe;
-         export CC="gcc.exe";
-    fi
+  - if [ $(uname) = "Darwin" ];
+    then brew update; 
+    else if [ $(uname) != "Linux" ];
+        then choco install make;
+        alias gcc=gcc.exe;
+        export CC="gcc.exe";
+      fi;
+    fi;
 
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
@@ -74,13 +78,13 @@ script:
     else
       export CFLAGS+=-DBUILD_ON_WINDOWS;
       make.exe && make.exe test;
-    fi
+    fi;
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       bash help/lcov.sh;
       ./cc-test-reporter after-build -r $TRAVIS_TEST_RESULT;
-    fi
+    fi;
 
 
 git:
