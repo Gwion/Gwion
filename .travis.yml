@@ -62,7 +62,7 @@ before_script:
     fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
   - if [ $(uname) = "Darwin" ]; then brew update; fi
-  - if [ $(uname) != "Linux" ] || [ $(uname) != "Darwin" ];
+  - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ];
     then choco install make;
          alias gcc=gcc.exe;
          export CC="gcc.exe";
