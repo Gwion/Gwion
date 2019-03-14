@@ -76,9 +76,9 @@ ANN PlugInfo* new_plug(const Vector list) {
     globfree(& results);
 #else
   WIN32_FIND_DATA filedata;
-  intptr_t file = FindFirstFileA(gname,&filedata);
+  HANDLE file = FindFirstFileA(gname,&filedata);
   if(file != -1) {
-    do plug_get(p, filedata.name);
+    do plug_get(p, filedata.cFileName);
     while(FindNextFile(file,&filedata) == 0);
   }
   FindClose(file);
