@@ -58,7 +58,7 @@ before_script:
       elif [ $CC = clang ]; then export CC=clang-7;
      fi;
     elif [ $(uname) = "Darwin" ]; then brew update;
-    else choco install make;
+#    else choco install make;
     fi;
 
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
