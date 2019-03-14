@@ -76,12 +76,12 @@ ANN PlugInfo* new_plug(const Vector list) {
     globfree(& results);
 #else
   _finddata_t filedata;
-  intptr_t file = _findfirst(c,&filedata);
+  intptr_t file = FindFirstFileA(c,&filedata);
   if(file != -1) {
     do plug_get(p, filedata.name);
-    while (_findnext(file,&filedata) == 0);
+    while(FindNextFile(file,&filedata) == 0);
   }
-  _findclose(file);
+  FindClose(file);
 #endif
   }
   return p;
