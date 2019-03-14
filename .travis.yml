@@ -61,7 +61,7 @@ before_script:
     ./cc-test-reporter before-build;
     fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
-  - if [ $(uname) != Linux ]; then brew update; fi
+  - if [ $(uname) = "Darwin" ]; then brew update; fi
   - if [ $(uname) != "Linux" ] || [ $(uname) != "Darwin" ];
     then choco install make;
          alias gcc=gcc.exe;
