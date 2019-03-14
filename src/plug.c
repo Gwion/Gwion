@@ -16,10 +16,7 @@
 #include "object.h"
 #include "import.h"
 #include "gwion.h"
-
-static inline int so_filter(const struct dirent* dir) {
-  return strstr(dir->d_name, ".so") ? 1 : 0;
-}
+#include "glob.h"
 
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
@@ -69,17 +66,15 @@ ANN PlugInfo* new_plug(const Vector list) {
   map_init(&p->drv);
   for(m_uint i = 0; i < vector_size(list); i++) {
    const m_str dir = (m_str)vector_at(list, i);
-   struct dirent **file;
-   int n = scandir(dir, &file, so_filter, alphasort);
-   if(n > 0) {
-     while(n--) {
-       char c[strlen(dir) + strlen(file[n]->d_name) + 2];
-       sprintf(c, "%s/%s", dir, file[n]->d_name);
-       plug_get(p, c);
-       free(file[n]);
-      }
-     free(file);
-    }
+   char gname[strlen(dir) + 6];
+   strcpy(gname, dir);
+   strcpy(gname + strlen(dir), "/*.so");
+   glob_t results;
+   if(glob(gname, 0, NULL, &results))
+     continue;
+   for(int i = 0; i < results.gl_pathc; i++)
+       plug_get(p, results.gl_pathv[i]);
+    globfree(& results);
   }
   return p;
 }

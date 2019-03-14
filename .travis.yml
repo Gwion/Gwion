@@ -3,7 +3,7 @@ language: c
 os:
   - linux
 #  - osx
-#  - windows
+  - windows
 
 addons:
 #  coverity_scan:
@@ -35,11 +35,11 @@ env:
   - USE_DOUBLE=1
   - USE_DOUBLE=0
 
-#matrix:
-#  allow_failures:
-#   - os:
+matrix:
+  allow_failures:
+   - os:
 #     - osx
-#     - windows
+     - windows
 
 compiler:
   - gcc
