@@ -2,8 +2,8 @@ language: c
 #sudo: required
 os:
   - linux
-  - osx
-  - windows
+#  - osx
+#  - windows
 
 addons:
 #  coverity_scan:
@@ -34,14 +34,12 @@ env:
   matrix:
   - USE_DOUBLE=1
   - USE_DOUBLE=0
-matrix:
-  fast_finish: true
-  allow_failures:
-   - compiler: clang
-   - os: 
-     - windows
-   - os:
-     - osx
+
+#matrix:
+#  allow_failures:
+#   - os:
+#     - osx
+#     - windows
 
 compiler:
   - gcc
