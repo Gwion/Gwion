@@ -10,7 +10,9 @@
 #include "object.h"
 #include "import.h"
 #include "gwion.h"
+#ifndef BUILD_ON_WINDOWS
 #include "glob.h"
+#endif
 
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
