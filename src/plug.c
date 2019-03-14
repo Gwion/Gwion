@@ -1,11 +1,5 @@
-#include <stdlib.h>
 #include <string.h>
 #include <dlfcn.h>
-#ifdef BUILD_ON_WINDOWS
-#include <win_dirent.h>
-#else
-#include <dirent.h>
-#endif
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -72,7 +66,7 @@ ANN PlugInfo* new_plug(const Vector list) {
    glob_t results;
    if(glob(gname, 0, NULL, &results))
      continue;
-   for(int i = 0; i < results.gl_pathc; i++)
+   for(m_uint i = 0; i < results.gl_pathc; i++)
        plug_get(p, results.gl_pathv[i]);
     globfree(& results);
   }

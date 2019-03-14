@@ -61,7 +61,6 @@ before_script:
      fi;
     elif [ $(uname) = "Darwin" ]; then brew update;
     fi;
-#    else choco install make;
 
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
 #      export USE_COVERAGE=1;
