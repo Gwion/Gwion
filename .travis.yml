@@ -61,9 +61,19 @@ before_script:
     fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
   - if [ $(uname) != Linux ]; then brew update; fi
+  - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
+    then choco install make;
+         alias gcc=gcc.exe;
+         export CC="gcc.exe";
+    fi
 
 script:
-  - make && make test
+  - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
+    then make && make test;
+    else
+      export CFLAGS+=-DBUILD_ON_WINDOWS;
+      make.exe && make.exe test;
+    fi
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
