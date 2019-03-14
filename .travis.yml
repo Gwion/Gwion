@@ -66,7 +66,7 @@ before_script:
     then choco install make;
          alias gcc=gcc.exe;
          export CC="gcc.exe";
-    fi
+    fi;
 
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
@@ -74,13 +74,13 @@ script:
     else
       export CFLAGS+=-DBUILD_ON_WINDOWS;
       make.exe && make.exe test;
-    fi
+    fi;
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       bash help/lcov.sh;
       ./cc-test-reporter after-build -r $TRAVIS_TEST_RESULT;
-    fi
+    fi;
 
 
 git:
