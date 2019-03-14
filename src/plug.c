@@ -75,7 +75,7 @@ ANN PlugInfo* new_plug(const Vector list) {
        plug_get(p, results.gl_pathv[i]);
     globfree(& results);
 #else
-  finddata_t filedata;
+  WIN32_FIND_DATA filedata;
   intptr_t file = FindFirstFileA(gname,&filedata);
   if(file != -1) {
     do plug_get(p, filedata.name);
