@@ -77,10 +77,10 @@ ANN PlugInfo* new_plug(const Vector list) {
 #else
   WIN32_FIND_DATA filedata;
   HANDLE file = FindFirstFileA(gname,&filedata);
-  if(file) {
-    do plug_get(p, filedata.cFileName);
-    while(FindNextFile(file,&filedata) == 0);
-  }
+  if(file == INVALID_HANDLE_VALUE)
+    continue;
+  do plug_get(p, filedata.cFileName);
+  while(FindNextFile(file,&filedata) == 0);
   FindClose(file);
 #endif
   }
