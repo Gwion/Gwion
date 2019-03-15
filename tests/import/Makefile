@@ -13,7 +13,7 @@ else
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
 else
-LDFLAGS += -shared -lpsapi
+LDFLAGS += -shared -lpsapi -fPIC
 endif
 endif
 
