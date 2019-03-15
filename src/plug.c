@@ -30,27 +30,36 @@ struct Plug_ {
 };
 #define STR_EXPAND(tok) #tok
 #define STR(tok) STR_EXPAND(tok)
-#define DLFUNC(dl, t, a) (t)(intptr_t)dlsym(dl, STR(a));
-
+#ifndef BUILD_ON_WINDOWS
+#include <dlfcn.h>
+#define DLOPEN(dl, b) dlopen(dl, b)
+#define DLSYM(dl, t, a) (t)(intptr_t)dlsym(dl, STR(a));
+#define DLCLOSE(dl) dlclose(dl);
+#else
+#include "window.h"
+#define DLOPEN(dl, b) LoadLibrary(dl)
+#define DLSYM(dl, t, a) (t)(intptr_t)GetProcAddress(dl, STR(a));
+#define DLCLOSE(dl) Freelibrary(dl);
+#endif
 ANN static void plug_get(PlugInfo* p, const m_str c) {
-  void* dl = dlopen(c, RTLD_LAZY);
+  void* dl = DLOPEN(c, RTLD_LAZY);
   if(dl) {
     vector_add(&p->vec[GWPLUG_DL], (vtype)dl);
-    const import imp = DLFUNC(dl, import, GWIMPORT_NAME);
+    const import imp = DLSYM(dl, import, GWIMPORT_NAME);
     if(imp)
       vector_add(&p->vec[GWPLUG_IMPORT], (vtype)imp);
-    const modini ini = DLFUNC(dl, modini, GWMODINI_NAME);
+    const modini ini = DLSYM(dl, modini, GWMODINI_NAME);
     if(ini) {
       struct Plug_ *plug = mp_alloc(Plug);
       plug->ini  = ini;
-      const modstr str = DLFUNC(dl, modstr, GWMODSTR_NAME);
+      const modstr str = DLSYM(dl, modstr, GWMODSTR_NAME);
       plug->name = str();
-      plug->end  = DLFUNC(dl, modend, GWMODEND_NAME);
+      plug->end  = DLSYM(dl, modend, GWMODEND_NAME);
       vector_add(&p->vec[GWPLUG_MODULE], (vtype)plug);
     }
-    const f_bbqset drv = DLFUNC(dl, f_bbqset, GWDRIVER_NAME);
+    const f_bbqset drv = DLSYM(dl, f_bbqset, GWDRIVER_NAME);
     if(drv) {
-      const modstr str = DLFUNC(dl, modstr, GWMODSTR_NAME);
+      const modstr str = DLSYM(dl, modstr, GWMODSTR_NAME);
       map_set(&p->drv, (vtype)str(), (vtype)drv);
     }
   } else
@@ -96,7 +105,7 @@ void free_plug(const Gwion gwion) {
     mp_free(Plug, plug);
   }
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_DL]); ++i)
-    dlclose((void*)vector_at(&v[GWPLUG_DL], i));
+    DLCLOSE((void*)vector_at(&v[GWPLUG_DL], i));
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_release(&v[i]);
   map_release(&p->drv);
