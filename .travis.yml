@@ -47,11 +47,11 @@ compiler:
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
-      choco install make valgrind;
+      choco install make;
       export BUILD_ON_WINDOWS=1;
       git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && ./configure && make.exe && cd ..;
-      ls dlfcn-win32;
-      export VALGRIND=valgrind.exe;
+      which valgrind;
+      export VALGRIND;
       export CFLAGS="$CFLAGS -Idlfcn-win32";
       export LDFLAGS="$LDLAGS -Ldlfcn-win32 -lpsapi dlfcn-win32/libdl.a";
       export LIBS="$LIBS -lpsapi";
