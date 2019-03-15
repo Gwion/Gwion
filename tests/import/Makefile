@@ -10,7 +10,11 @@ LDFLAGS   = $(../../gwion -C 2>&1 | grep LDFLAGS)
 ifeq ($(shell uname), Darwin)
 LDFLAGS += -bundle -undefined dynamic_lookup
 else
+ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
+else
+LDFLAGS += -shared -lpsapi
+endif
 endif
 
 all: ${NAME}.so
