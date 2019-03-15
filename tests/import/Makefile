@@ -7,10 +7,10 @@ CFLAGS   = $(../../gwion -C 2>&1 | grep CFLAGS) ${INC}
 LDFLAGS   = $(../../gwion -C 2>&1 | grep LDFLAGS)
 
 # os specific
-ifeq ($(shell uname), Linux)
-LDFLAGS += -shared
-else
+ifeq ($(shell uname), Darwin)
 LDFLAGS += -bundle -undefined dynamic_lookup
+else
+LDFLAGS += -shared
 endif
 
 all: ${NAME}.so
