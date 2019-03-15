@@ -39,7 +39,7 @@ struct Plug_ {
 #include "windows.h"
 #define DLOPEN(dl, b) LoadLibrary(dl)
 #define DLSYM(dl, t, a) (t)(intptr_t)GetProcAddress(dl, STR(a));
-#define DLCLOSE(dl) Freelibrary(dl);
+#define DLCLOSE(dl) FreeLibrary(dl);
 #endif
 ANN static void plug_get(PlugInfo* p, const m_str c) {
   void* dl = DLOPEN(c, RTLD_LAZY);
