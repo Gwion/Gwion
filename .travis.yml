@@ -51,7 +51,7 @@ install:
       export BUILD_ON_WINDOWS=1;
       git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && ./configure && make.exe && cd ..;
       ls dlfcn-win32;
-      ecport VALGRIND=valgrind.exe;
+      export VALGRIND=valgrind.exe;
       export CFLAGS="$CFLAGS -Idlfcn-win32";
       export LDFLAGS="$LDLAGS -Ldlfcn-win32 -lpsapi dlfcn-win32/libdl.a";
       export LIBS="$LIBS -lpsapi";
