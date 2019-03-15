@@ -77,7 +77,7 @@ before_script:
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
-    else make.exe && make.exe test && ./gwion; ./gwion example/array.gw;
+    else make.exe && make.exe test && ls;
     fi;
 
 after_success:
