@@ -13,7 +13,7 @@ else
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
 else
-LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
+LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import -L ../../ -lgwion
 endif
 endif
 
