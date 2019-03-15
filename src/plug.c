@@ -79,8 +79,8 @@ ANN PlugInfo* new_plug(const Vector list) {
   HANDLE file = FindFirstFileA(gname,&filedata);
   if(file == INVALID_HANDLE_VALUE)
     continue;
-  do plug_get(p, filedata.cFileName);
-  while(FindNextFile(file,&filedata) == 0);
+//  do plug_get(p, filedata.cFileName);
+//  while(FindNextFile(file,&filedata) == 0);
   FindClose(file);
 #endif
   }

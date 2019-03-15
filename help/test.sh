@@ -177,7 +177,7 @@ test_gw(){
   elog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
-  if [ -z "$VALGRIND" ]
+  if [ "$VALGRIND" == "NO_VALGRIND" ]
   then ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
     "$VALGRIND" --log-file="$vlog" \
