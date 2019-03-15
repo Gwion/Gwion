@@ -52,6 +52,7 @@ install:
       printf "\033[31m%s033[0m\n" $(which valgrind);
       git clone https://github.com/dlfcn-win32/dlfcn-win32 && cd dlfcn-win32 && ./configure && make.exe && cd ..;
       export VALGRIND=;
+      export SEVERITY=3;
       export CFLAGS="$CFLAGS -Idlfcn-win32";
       export LDFLAGS="$LDLAGS -Ldlfcn-win32 -lpsapi dlfcn-win32/libdl.a";
       export LIBS="$LIBS -lpsapi";
