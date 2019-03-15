@@ -36,7 +36,7 @@ struct Plug_ {
 #define DLSYM(dl, t, a) (t)(intptr_t)dlsym(dl, STR(a));
 #define DLCLOSE(dl) dlclose(dl);
 #else
-#include "window.h"
+#include "windows.h"
 #define DLOPEN(dl, b) LoadLibrary(dl)
 #define DLSYM(dl, t, a) (t)(intptr_t)GetProcAddress(dl, STR(a));
 #define DLCLOSE(dl) Freelibrary(dl);
