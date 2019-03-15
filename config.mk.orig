@@ -1,7 +1,7 @@
 # handle base options
 PRG ?=gwion
 PREFIX ?=/usr/local
-LDFLAGS += -lm
+LDFLAGS += -lm -rdynamic
 CFLAGS += -Iinclude -Iutil/include -Iast/include -D_GNU_SOURCE
 
 # handle boolean options
