@@ -2,8 +2,8 @@ language: c
 #sudo: required
 os:
   - linux
-#  - osx
   - windows
+  - osx
 
 addons:
 #  coverity_scan:
@@ -37,8 +37,7 @@ env:
 
 matrix:
   allow_failures:
-   - os: windows
-#     - osx
+   - os: osx
 
 compiler:
   - gcc
