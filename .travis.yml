@@ -54,7 +54,7 @@ install:
       export SEVERITY=1;
       export CFLAGS="$CFLAGS -Idlfcn-win32";
       export LDFLAGS="$LDLAGS -Ldlfcn-win32 -lpsapi -shared -fPIC dlfcn-win32/libdl.a -Wl,--export-all -Wl,--enable-auto-import";
-      export LIBS="$LIBS -lpsapi -shared -fPIC -lshared";
+      export LIBS="$LIBS -lpsapi -shared -fPIC";
     fi;
 
 before_script:
