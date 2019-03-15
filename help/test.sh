@@ -177,8 +177,12 @@ test_gw(){
   elog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
-  "$VALGRIND" --log-file="$vlog" \
-  ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  if[ -z "$VALGRIND" ]
+  then ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  else
+    "$VALGRIND" --log-file="$vlog" \
+    ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  fi
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
