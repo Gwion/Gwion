@@ -31,47 +31,41 @@ typedef struct Gwi_* Gwi;
     CHECK_BB(gwi_oper_end(gwi, op_##op, func))
 #define ERR_N(a,...) { err_msg(a,__VA_ARGS__); return t_null; }
 
-#ifdef GWION_BUILTIN
-#define GWIMPORT __declspec(dllexport)
-#else
-#define GWIMPORT __declspec(dllimport)
-#endif
+ANN VM* gwi_vm(const Gwi);
+ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
+ANN m_int gwi_add_type(const Gwi gwi, Type type);
+ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor);
+ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
+ANN m_int gwi_class_end(const Gwi gwi);
 
+ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name);
+ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr);
 #define gwi_item_end(a, b, c) gwi_item_end(a, (const ae_flag)(b), (const m_uint*)c)
-GWION_IMPORT ANN VM* gwi_vm(const Gwi);
-GWION_IMPORT ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
-GWION_IMPORT ANN m_int gwi_add_type(const Gwi gwi, Type type);
-GWION_IMPORT ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor);
-GWION_IMPORT ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
-GWION_IMPORT ANN m_int gwi_class_end(const Gwi gwi);
-GWION_IMPORT 
-GWION_IMPORT ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name);
-GWION_IMPORT ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr);
-GWION_IMPORT 
-GWION_IMPORT ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
-GWION_IMPORT ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag);
-GWION_IMPORT 
-GWION_IMPORT ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
-GWION_IMPORT ANN m_int gwi_tmpl_end(const Gwi gwi);
-GWION_IMPORT 
-GWION_IMPORT ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name);
-GWION_IMPORT ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
-GWION_IMPORT ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag);
-GWION_IMPORT 
-GWION_IMPORT ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type);
-GWION_IMPORT ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint value);
-GWION_IMPORT ANN m_int gwi_enum_end(const Gwi gwi);
-GWION_IMPORT 
-GWION_IMPORT ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name, const f_xfun addr);
-GWION_IMPORT ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);
-GWION_IMPORT ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
-GWION_IMPORT 
-GWION_IMPORT ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
-GWION_IMPORT ANN m_int gwi_oper_add(const Gwi gwi, Type (*check)(Env, void*));
-GWION_IMPORT ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*check)(Emitter, void*));
-GWION_IMPORT ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
-GWION_IMPORT 
-GWION_IMPORT ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
+
+ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
+ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag);
+
+ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
+ANN m_int gwi_tmpl_end(const Gwi gwi);
+
+ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name);
+ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
+ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag);
+
+ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type);
+ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint value);
+ANN m_int gwi_enum_end(const Gwi gwi);
+
+ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name, const f_xfun addr);
+ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);
+ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
+
+ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
+ANN m_int gwi_oper_add(const Gwi gwi, Type (*check)(Env, void*));
+ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*check)(Emitter, void*));
+ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
+
+ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
