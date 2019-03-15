@@ -13,6 +13,12 @@ c.s_i;
 <<<Coverage.s_v >>>;
 <<<Coverage.s_w >>>;
 
+<<<Coverage.sc_i >>>;
+<<<Coverage.sc_f >>>;
+<<<Coverage.sc_c >>>;
+<<<Coverage.sc_v >>>;
+<<<Coverage.sc_w >>>;
+
 <<< 1 => Coverage.s_i >>>;
 <<< 1.2 => Coverage.s_f >>>;
 <<< #(1.2, 0.1) => Coverage.s_c >>>;

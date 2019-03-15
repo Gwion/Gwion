@@ -32,23 +32,23 @@ GWION_IMPORT(coverage) {
   m_uint* i = (m_uint*)xmalloc(sizeof(m_uint));
   *i = 5;
   CHECK_BB(gwi_item_ini(gwi,"int", "s_i"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, i))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static, i))
   m_float* f = (m_float*)xmalloc(sizeof(m_float));
   *f = 2.1;
   CHECK_BB(gwi_item_ini(gwi,"float", "s_f"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)f))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)f))
 
   m_complex* c = (m_complex*)xmalloc(sizeof(m_complex));
   *c = 2.1;
   CHECK_BB(gwi_item_ini(gwi,"complex", "s_c"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)c))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)c))
 
   m_vec3* v = (m_vec3*)xmalloc(sizeof(m_vec3));
   v->x = 2.1;
   v->y = 2.2;
   v->z = 2.3;
   CHECK_BB(gwi_item_ini(gwi,"Vec3", "s_v"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)v))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)v))
 
   m_vec4* w = (m_vec4*)xmalloc(sizeof(m_vec4));
   w->x = 2.1;
@@ -56,7 +56,36 @@ GWION_IMPORT(coverage) {
   w->z = 2.3;
   w->w = 2.4;
   CHECK_BB(gwi_item_ini(gwi,"Vec4", "s_w"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)w))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)w))
+
+  m_uint* ci = (m_uint*)xmalloc(sizeof(m_uint));
+  *ci = 5;
+  CHECK_BB(gwi_item_ini(gwi,"int", "sc_i"))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, ci))
+  m_float* cf = (m_float*)xmalloc(sizeof(m_float));
+  *cf = 2.1;
+  CHECK_BB(gwi_item_ini(gwi,"float", "sc_f"))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cf))
+
+  m_complex* cc = (m_complex*)xmalloc(sizeof(m_complex));
+  *cc = 2.1;
+  CHECK_BB(gwi_item_ini(gwi,"complex", "sc_c"))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cc))
+
+  m_vec3* cv = (m_vec3*)xmalloc(sizeof(m_vec3));
+  cv->x = 2.1;
+  cv->y = 2.2;
+  cv->z = 2.3;
+  CHECK_BB(gwi_item_ini(gwi,"Vec3", "sc_v"))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cv))
+
+  m_vec4* cw = (m_vec4*)xmalloc(sizeof(m_vec4));
+  cw->x = 2.1;
+  cw->y = 2.2;
+  cw->z = 2.3;
+  cw->w = 2.4;
+  CHECK_BB(gwi_item_ini(gwi,"Vec4", "sc_w"))
+  CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cw))
 
   CHECK_BB(gwi_class_end(gwi))
   return GW_OK;
