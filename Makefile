@@ -104,7 +104,7 @@ clean:
 
 src/arg.o:
 	$(info compile $(<:.c=) (with arguments defines))
-	@${CC} $(DEPFLAGS) ${CFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
+	@${CC} $(DEPFLAGS) ${CFLAGS} ${CICFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
 	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
