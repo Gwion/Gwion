@@ -62,7 +62,7 @@ before_script:
       if [ $CC = gcc ]; then export CC=gcc-8;
       elif [ $CC = clang ]; then export CC=clang-7;
      fi;
-    elif [ $(uname) = "Darwin" ]; then brew update; brew install valgrind;
+    elif [ $(uname) = "Darwin" ]; then brew update; export SEVERITY=1;
       export CFLAGS="$CFLAGS -march=x86-64";
     fi;
 
