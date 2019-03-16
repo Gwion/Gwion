@@ -63,6 +63,7 @@ before_script:
       elif [ $CC = clang ]; then export CC=clang-7;
      fi;
     elif [ $(uname) = "Darwin" ]; then brew update;
+      export CFLAGS="$CFLAGS -march=x86-64";
     fi;
 
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
