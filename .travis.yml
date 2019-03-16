@@ -54,9 +54,11 @@ install:
 
 before_script:
   - git submodule update --init util ast;
-    - if [ $(uname) = "Darwin" ]; then brew update; export SEVERITY=1;
-      export CFLAGS="$CFLAGS -march=x86-64";
-    fi;
+  - if [ $(uname) = "Darwin" ];
+    then brew update;
+    export SEVERITY=1;
+    export CFLAGS="$CFLAGS -march=x86-64";
+  fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
 
 script:
