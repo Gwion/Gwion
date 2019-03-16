@@ -14,14 +14,10 @@ addons:
 #    build_command: make
 #    branch_pattern: coverity_scan
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-trusty-7
     packages:
     - valgrind
-    - lcov
-    - gcc-8
-    - clang-7
+#    - lcov
+
 env:
   global:
   - CC_TEST_REPORTER_ID=1ef7168aff2b8902922b345c8b1b9be3fd2442fa4f2096634b42235bcbaa2c47
@@ -58,32 +54,15 @@ install:
 
 before_script:
   - git submodule update --init util ast;
-  - if [ $(uname) = "Linux" ]; then
-      if [ $CC = gcc ]; then export CC=gcc-8;
-      elif [ $CC = clang ]; then export CC=clang-7;
-     fi;
-    elif [ $(uname) = "Darwin" ]; then brew update; export SEVERITY=1;
+    - if [ $(uname) = "Darwin" ]; then brew update; export SEVERITY=1;
       export CFLAGS="$CFLAGS -march=x86-64";
     fi;
-
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-#      export USE_COVERAGE=1;
-#      curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter;
-#      chmod +x ./cc-test-reporter;
-#    ./cc-test-reporter before-build;
-#    fi;
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
 
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
     else make.exe && make.exe test;
-    fi;
-
-after_success:
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-      bash help/lcov.sh;
-      ./cc-test-reporter after-build -r $TRAVIS_TEST_RESULT;
     fi;
 
 git:
