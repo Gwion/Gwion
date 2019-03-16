@@ -110,7 +110,7 @@ src/arg.o:
 
 .c.o: $(DEPDIR)/%.d
 	$(info compile $(<:.c=))
-	@${CC} $(DEPFLAGS) ${CFLAGS} -c $< -o $(<:.c=.o)
+	@${CC} $(DEPFLAGS) ${CFLAGS} ${CICFLAGS} -c $< -o $(<:.c=.o)
 	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
