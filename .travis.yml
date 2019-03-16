@@ -21,7 +21,7 @@ addons:
 env:
   global:
   - CC_TEST_REPORTER_ID=1ef7168aff2b8902922b345c8b1b9be3fd2442fa4f2096634b42235bcbaa2c47
-  - CICFLAGS=-Wno-attributes
+  - export CICFLAGS=-Wno-attributes
   - GWION_ADD_DIR=$TRAVIS_BUILD_DIR/add
   - GWION_TEST_DIR=tmp_test
   - PREFIX=$TRAVIS_BUILD_DIR
