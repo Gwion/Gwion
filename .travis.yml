@@ -3,7 +3,7 @@ language: c
 os:
   - linux
   - windows
-#  - osx
+  - osx
 
 addons:
 #  coverity_scan:
@@ -37,7 +37,7 @@ env:
 
 matrix:
   allow_failures:
-   - os: windows
+   - os: osx
 
 compiler:
   - gcc
