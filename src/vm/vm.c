@@ -645,8 +645,8 @@ initloop:
   (*(m_uint*)instr->m_val) = labs(*(m_int*)reg);
   DISPATCH()
 arraytop:
-    if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
-      goto newobj;
+  if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
+    goto newobj;
   else
     goto _goto;
 newobj:
