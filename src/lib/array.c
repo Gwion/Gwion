@@ -242,7 +242,7 @@ INSTR(ArrayBottom) { GWDEBUG_EXE
 INSTR(ArrayPost) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT * 3);
   m_uint* array = *(m_uint**)REG(0);
-  free(array);
+  xfree(array);
 }
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
