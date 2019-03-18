@@ -42,7 +42,7 @@ struct Plug_ {
 #define DLCLOSE(dl) FreeLibrary(dl);
 #endif
 ANN static void plug_get(PlugInfo* p, const m_str c) {
-  void* dl = DLOPEN(c, RTLD_LAZY);
+  void* dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
   if(dl) {
     vector_add(&p->vec[GWPLUG_DL], (vtype)dl);
     const import imp = DLSYM(dl, import, GWIMPORT_NAME);
