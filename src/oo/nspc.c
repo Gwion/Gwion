@@ -19,7 +19,8 @@ ANN void nspc_commit(const Nspc nspc) {
 }
 
 ANN static void nspc_release_object(const Nspc a, Value value) {
-  if(value->d.ptr || (GET_FLAG(value, static) && a->info->class_data) ||
+//  if(value->d.ptr || (GET_FLAG(value, static) && a->info->class_data) ||
+  if((GET_FLAG(value, static) && a->info->class_data) ||
     (value->d.ptr && GET_FLAG(value, builtin))) {
     const VM_Code code = new_vm_code(NULL, 0, ae_flag_builtin, "in code dtor");
     const VM_Shred s = new_vm_shred(code);

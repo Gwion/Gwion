@@ -211,5 +211,6 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));
+// probably deserves err_msg here
   return GW_ERROR;
 }

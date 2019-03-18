@@ -928,7 +928,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) { GWDEBUG_EXE
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary };
-  if(unary->op != op_spork && unary->exp) {
+  if(unary->op != op_spork && unary->op != op_fork && unary->exp) {
     CHECK_BB(emit_exp(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }

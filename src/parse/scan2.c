@@ -210,7 +210,7 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) { GWD
 }
 
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
-  if(unary->op == op_spork && unary->code)
+  if((unary->op == op_spork || unary->op == op_fork) && unary->code)
     return scan2_stmt(env, unary->code);
   else if(unary->exp)
     return scan2_exp(env, unary->exp);

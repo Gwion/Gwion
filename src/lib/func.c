@@ -186,5 +186,8 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  return (m_bool)gwi_oper_end(gwi, op_spork, NULL);
+  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_spork))
+  CHECK_BB(gwi_oper_emi(gwi, opem_spork))
+  return (m_bool)gwi_oper_end(gwi, op_fork, NULL);
 }
