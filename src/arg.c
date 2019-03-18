@@ -1,9 +1,7 @@
 #include <string.h>
 #include "gwion_util.h"
-#include "oo.h"
-#include "vm.h"
-#include "driver.h"
 #include "arg.h"
+#include "soundinfo.h"
 #define GWIONRC ".gwionrc"
 
 ANN static inline void config_end(const Vector config) {

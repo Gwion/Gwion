@@ -1,6 +1,6 @@
 #ifndef __DRIVER
 #define __DRIVER
-
+#include "soundinfo.h"
 typedef m_bool (*f_drvini)(struct VM_*, struct BBQ_*);
 typedef void   (*f_drvrun)(struct VM_*, struct BBQ_*);
 typedef void   (*f_drvdel)(struct VM_*, struct BBQ_*);
@@ -12,12 +12,13 @@ typedef struct DriverData_ {
   f_drvdel del;
 } DriverData;
 
+/*
 struct SoundInfo_ {
   uint32_t sr;
   uint8_t in, out;
   m_str arg;
 };
-
+*/
 typedef void (*f_bbqset)(struct DriverData_*);
 typedef void (*f_bbqrun)(const struct VM_*);
 typedef struct BBQ_ {
