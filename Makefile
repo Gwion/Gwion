@@ -49,7 +49,7 @@ endif
 ifeq (${BUILD_ON_WINDOWS}, 1)
 CFLAGS += -DBUILD_ON_WINDOWS -D_XOPEN_SOURCE=700
 else
-LDFLAGS += -ldl
+LDFLAGS += -ldl -lpthread
 endif
 
 # add directories
@@ -81,7 +81,7 @@ LDFLAGS += ast/libgwion_ast.a util/libgwion_util.a
 
 all: options util/libgwion_util.a ast/libgwion_ast.a ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
-	@${CC} ${GW_OBJ} ${jit_obj} ${LDFLAGS} -o ${PRG} ${LIBS}
+	@${CC} ${GW_OBJ} ${jit_obj} -o ${PRG} ${LDFLAGS} ${LIBS}
 
 config.mk:
 	$(info generating config.mk)
