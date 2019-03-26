@@ -182,7 +182,7 @@ test_gw(){
   if [ "$VALGRIND" == "NO_VALGRIND" ]
   then ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
-    "$VALGRIND" --suppressions=supp --log-file="$vlog" \
+    "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
     ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?
