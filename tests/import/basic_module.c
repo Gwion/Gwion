@@ -14,6 +14,7 @@ GWMODINI(basic_module) {
     for(vtype i = 0; i < vector_size(args); ++i)
       puts((m_str)vector_at(args, i));
   }
+  return NULL;
 }
 
 GWMODEND(basic_module) {
