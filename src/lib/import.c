@@ -577,6 +577,8 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 }
 
 ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
+  if(!gwi->union_data.list)
+    ERR_B(0, "union is empty");
   const Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
   stmt->d.stmt_union.flag = flag;
   CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
