@@ -4,9 +4,6 @@
 #include "gwion_ast.h"
 #include "oo.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
-#include "instr.h"
 #include "object.h"
 
 struct Stack_ {
@@ -21,9 +18,8 @@ static inline struct ShredInfo_ *new_shredinfo(const m_str name) {
   return info;
 }
 
-static inline void free_shredinfo(struct ShredInfo_ *info, const VM_Shred shred) {
+static inline void free_shredinfo(struct ShredInfo_ *info) {
   free(info->name);
-  release(info->me, shred);
   if(info->args) {
     const Vector v = info->args;
     LOOP_OPTIM
@@ -52,6 +48,6 @@ void free_vm_shred(VM_Shred shred) {
   vector_release(&shred->gc);
   REM_REF(shred->code);
   mp_free(ShredTick, shred->tick);
-  free_shredinfo(shred->info, shred);
+  free_shredinfo(shred->info);
   mp_free(Stack, shred);
 }
