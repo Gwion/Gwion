@@ -25,7 +25,6 @@
   return op_ret;
 
 ANN static Type   check_exp(const Env env, Exp exp);
-ANN static m_bool check_stmt(const Env env, const Stmt stmt);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
@@ -670,15 +669,6 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   return check_exp_call1(env, exp);
 }
 
-ANN static inline m_bool check_exp_unary_spork1(const Env env, const Stmt code) {
-  RET_NSPC(check_stmt(env, code))
-}
-
-ANN Type check_exp_unary_spork(const Env env, const Stmt code) { GWDEBUG_EXE
-  CHECK_BO(check_exp_unary_spork1(env, code))
-  return t_shred;
-}
-
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
   struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
     .data=(uintptr_t)unary };
@@ -901,9 +891,11 @@ if(env->func->value_ref->type == t_lambda) {
   if(isa(ret_type, t_null) > 0 &&
      isa(env->func->def->ret_type, t_object) > 0)
     return GW_OK;
-  if(isa(ret_type, env->func->def->ret_type) < 0)
+  if(env->func->def->ret_type && isa(ret_type, env->func->def->ret_type) < 0)
     ERR_B(stmt->self->pos, "invalid return type '%s' -- expecting '%s'",
           ret_type->name, env->func->def->ret_type->name)
+  else //! set defulat return type for lambdas
+    env->func->def->ret_type = ret_type;
   return GW_OK;
 }
 
@@ -971,8 +963,13 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   Decl_List l = stmt->l;
   do {
     CHECK_OB(check_exp(env, l->self))
-    if(isa(l->self->type, t_object) > 0 && !GET_FLAG(l->self->d.exp_decl.td, ref))
+    if(isa(l->self->type, t_object) > 0) {
+        if(!GET_FLAG(l->self->d.exp_decl.td, ref))
       ERR_B(l->self->pos, "In union, Objects must be declared as reference (use '@')")
+      Var_Decl_List list = l->self->d.exp_decl.list;
+      do SET_FLAG(list->self->value, pure);
+      while((list = list->next));
+    }
     if(l->self->type->size > stmt->s)
       stmt->s = l->self->type->size;
   } while((l = l->next));
@@ -993,7 +990,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)dummy_func,       (_exp_func)check_stmt_type,     (_exp_func)check_stmt_union,
 };
 
-ANN static m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
+ANN m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
   return stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 

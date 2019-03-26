@@ -33,7 +33,7 @@ env:
 
 matrix:
   allow_failures:
-   - os: osx
+   - os: windows
 
 compiler:
   - gcc

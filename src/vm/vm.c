@@ -80,9 +80,19 @@ ANN void free_vm(VM* vm) {
 
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
   shred->info->vm = (VM*)vm;
-  shred->info->me = new_shred(shred);
+  shred->info->me = new_shred(shred, 1);
   shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
+  return shred->tick->xid;
+}
+#include "gwion.h"
+static int n;
+ANN m_uint vm_fork(const VM* src, const VM_Shred shred) {
+  VM* vm = shred->info->vm = gwion_cpy(src);
+  shred->info->me = new_shred(shred, 0);
+  shreduler_add(vm->shreduler, shred);
+  shredule(vm->shreduler, shred, .5);
+shred->tick->xid += (n += 100);
   return shred->tick->xid;
 }
 
@@ -125,7 +135,8 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
   return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
 }
 
-ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
+ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr instr) {
+  const VM_Code code = (VM_Code)instr->m_val;
   const VM_Shred sh = new_vm_shred(code);
   ADD_REF(code)
   sh->tick->parent = shred->tick;
@@ -133,7 +144,14 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
     vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
   sh->base = shred->base;
-  vm_add_shred(shred->info->vm, sh);
+  return sh;
+}
+
+ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr instr) {
+  const VM_Code code = (VM_Code)instr->m_val;
+  const VM_Shred sh = new_vm_shred(code);
+  ADD_REF(code)
+  sh->base = shred->base;
   return sh;
 }
 
@@ -259,7 +277,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
     &&funcusr, &&regpop, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
-    &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&sporkend,
+    &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&decintaddr, &&initloop,
     &&arraytop, &&newobj,
@@ -597,7 +615,11 @@ funcmemberend:
   pc = shred->pc;
   DISPATCH()
 sporkini:
-  a.child = init_spork_shred(shred, (VM_Code)instr->m_val);
+  a.child = (instr->m_val2 ? init_spork_shred : init_fork_shred)(shred, instr);
+  if(instr->m_val2)
+    vm_add_shred(vm, a.child);
+  else
+    vm_fork(vm, a.child);
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
@@ -614,6 +636,8 @@ sporkexp:
   for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
     *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
+forkend:
+  fork_launch(a.child->info->me, instr->m_val2);
 sporkend:
   *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()

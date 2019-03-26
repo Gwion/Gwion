@@ -126,9 +126,11 @@ Next
 FuncUsrEnd
 FuncMemberEnd
 SporkIni
+ForkIni
 SporkFunc
 SporkThis
 SporkExp
+ForkEnd
 SporkEnd
 BranchEqInt
 BranchNeqInt

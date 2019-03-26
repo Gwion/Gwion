@@ -14,6 +14,7 @@
 #include "nspc.h"
 #include "operator.h"
 #include "traverse.h"
+#include "parse.h"
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
@@ -159,10 +160,11 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return t_shred;
-  else if(unary->code)
-    return check_exp_unary_spork(env, unary->code);
-  else
+    return unary->op == op_spork ? t_shred : t_fork;
+  else if(unary->code) {
+    CHECK_BO(check_stmt(env, unary->code))
+    return unary->op == op_spork ? t_shred : t_fork;
+  } else
     ERR_O(unary->self->pos, "only function calls can be sporked...")
   return NULL;
 }

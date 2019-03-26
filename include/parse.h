@@ -48,4 +48,5 @@ ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG
 
 ANN m_uint union_push(const Env, const Stmt_Union);
 ANN void union_pop(const Env, const Stmt_Union, const m_uint);
+ANN m_bool check_stmt(const Env env, const Stmt stmt);
 #endif

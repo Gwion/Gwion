@@ -28,7 +28,7 @@ ANN static void free_array_info(ArrayInfo* info) {
 ANN static void free_code_instr(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
-    if(instr->opcode == (m_uint)SporkIni)
+    if(instr->opcode == eSporkIni || instr->opcode == eForkIni)
       REM_REF((VM_Code)instr->m_val)
     else if(instr->execute == ArrayAlloc)
       free_array_info((ArrayInfo*)instr->m_val);
@@ -44,7 +44,7 @@ ANN static void free_code_instr(const Vector v) {
     else if(instr->execute == SwitchIni) {
       free_vector((Vector)instr->m_val);
       free_map((Map)instr->m_val2);
-    } else if(instr->opcode == (m_uint)InitLoopCounter)
+    } else if(instr->opcode == eInitLoopCounter)
       free((m_int*)instr->m_val);
     else if(instr->execute == VarargIni) {
       if(instr->m_val2)

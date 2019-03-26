@@ -75,7 +75,8 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
     struct scope_iter iter = { &t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
-      if(!GET_FLAG(v, static) && isa(v->type, t_object) > 0)
+      if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
+          isa(v->type, t_object) > 0)
         release(*(M_Object*)(obj->data + v->offset), shred);
     }
     if(GET_FLAG(t, dtor)) {

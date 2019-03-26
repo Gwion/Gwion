@@ -52,6 +52,16 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
     compile_filename(gwion, (m_str)vector_at(v, i));
 }
 
+
+ANN VM* gwion_cpy(const VM* src) {
+  const Gwion gwion = mp_alloc(Gwion);
+  gwion->vm = new_vm();
+  gwion->vm->gwion = gwion;
+  gwion->vm->bbq->si = soundinfo_cpy(src->bbq->si);
+  gwion->emit = src->gwion->emit;
+  gwion->env = src->gwion->env;
+  return gwion->vm;
+}
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->vm = new_vm();
   gwion->emit = new_emitter();

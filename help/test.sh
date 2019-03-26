@@ -89,9 +89,11 @@ assert_fishy() {
 
 assert_leak() {
   grep "All heap blocks were freed -- no leaks are possible" "$2.valgrind.log" > /dev/null && return 0
-  [ "$suppressions" -eq 0 ] && echo "mem leak" > "$2.log" && return 1
+  #[ "$suppressions" -eq 0 ] && echo "mem leak" > "$2.log" && return 1
+  #[ -z "$suppressions" ] && echo "mem leak" > "$2.log" && return 1
   heap=$(grep "in use at exit:" "$2.valgrind.log" | cut -d ":" -f2)
   supp=$(grep "suppressed: .* bytes"     "$2.valgrind.log" | cut -d ":" -f2)
+  #[ -z "$supp" ] && echo "mem leak" > "$2.log" && return 1
   [ "$heap" = "$supp" ] && return 0
   echo "mem leak" > "$2.log"
   return 1
@@ -180,7 +182,7 @@ test_gw(){
   if [ "$VALGRIND" == "NO_VALGRIND" ]
   then ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
-    "$VALGRIND" --log-file="$vlog" \
+    "$VALGRIND" --suppressions=supp --log-file="$vlog" \
     ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?

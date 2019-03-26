@@ -5,4 +5,5 @@ struct SoundInfo_ {
   uint8_t in, out;
   m_str arg;
 };
+struct SoundInfo_ *soundinfo_cpy(const struct SoundInfo_ *src);
 #endif

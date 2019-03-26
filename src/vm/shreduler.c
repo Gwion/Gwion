@@ -51,11 +51,11 @@ ANN static void unwind(const VM_Shred shred) {
   }
 }
 
-ANN static void shreduler_child(const Shreduler s, const Vector v) {
+ANN static void shreduler_child(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
     unwind(child);
-    shreduler_remove(s, child, 1);
+    shreduler_remove(child->info->vm->shreduler, child, 1);
   }
 }
 
@@ -63,7 +63,7 @@ ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
   if(tk->parent)
     shreduler_parent(tk->self, &tk->parent->child);
   if(tk->child.ptr)
-    shreduler_child(s, &tk->child);
+    shreduler_child(&tk->child);
   vector_rem2(&s->shreds, (vtype)tk->self);
 }
 
@@ -81,7 +81,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool er
   tk->prev = tk->next = NULL;
   if(erase) {
     shreduler_erase(s, tk);
-    free_vm_shred(out);
+    _release(out->info->me, out);
   }
 }
 
