@@ -20,6 +20,7 @@
 
 #include "value.h"
 #include "gack.h"
+#include "array.h"
 
 
 static inline uint64_t splitmix64_stateless(uint64_t index) {
@@ -280,7 +281,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&decintaddr, &&initloop,
-    &&arraytop, &&newobj,
+    &&arrayappend, &&arraytop, &&newobj,
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
@@ -667,6 +668,10 @@ decintaddr:
 initloop:
   reg -= SZ_INT;
   (*(m_uint*)instr->m_val) = labs(*(m_int*)reg);
+  DISPATCH()
+arrayappend:
+  m_vector_add(ARRAY(a.obj), reg);
+  release(a.obj, shred);
   DISPATCH()
 arraytop:
   if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))

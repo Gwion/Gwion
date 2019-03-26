@@ -138,6 +138,7 @@ BranchEqFloat
 BranchNeqFloat
 DecIntAddr
 InitLoopCounter
+ArrayAppend
 ArrayTop
 ObjectInstantiate
 RegAddRef

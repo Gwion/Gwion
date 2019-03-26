@@ -51,7 +51,6 @@ INSTR(ArrayInit);
 INSTR(ArrayAlloc);
 INSTR(ArrayAccess);
 INSTR(ArrayAccessMulti);
-INSTR(ArrayAppend);
 
 /* vararg */
 INSTR(VarargIni);

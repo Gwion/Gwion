@@ -135,16 +135,6 @@ static MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY_CAP(ARRAY(o));
 }
 
-INSTR(ArrayAppend) { GWDEBUG_EXE
-  POP_REG(shred, instr->m_val);
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
-  if(!o)
-    Except(shred, "NullPtrException");
-  m_vector_add(ARRAY(o), REG(0));
-  release(o, shred);
-  *(M_Object*)REG(-SZ_INT) = o;
-}
-
 ANN static Type get_array_type(Type t) {
   while(t->d.base_type)
     t = t->d.base_type;
@@ -176,8 +166,10 @@ static OP_CHECK(opck_array_shift) {
 static OP_EMIT(opem_array_shift) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type type = bin->rhs->type;
-  Instr instr = emit_add_instr(emit, ArrayAppend);
-  instr->m_val = type->size;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = type->size;
+  emit_add_instr(emit, GWOP_EXCEPT);
+  emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }
 
@@ -221,7 +213,7 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
   CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
-  CHECK_BB(gwi_oper_end(gwi, op_shl, ArrayAppend))
+  CHECK_BB(gwi_oper_end(gwi, op_shl, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
