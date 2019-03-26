@@ -3,8 +3,8 @@ CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS   = $(../../gwion -C 2>&1 | grep CFLAGS) ${INC}
-LDFLAGS   = $(../../gwion -C 2>&1 | grep LDFLAGS)
+CFLAGS   = $(../../gwion -k 2>&1 | grep CFLAGS) ${INC}
+LDFLAGS   = $(../../gwion -k 2>&1 | grep LDFLAGS)
 
 # os specific
 ifeq ($(shell uname), Darwin)
