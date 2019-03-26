@@ -272,6 +272,10 @@ static GWION_IMPORT(float) {
   CHECK_FF(not, unary_meta, not)
   CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
   CHECK_FF(not, unary_meta, not)
+  CHECK_BB(gwi_oper_ini(gwi, "int", "dur", "dur"))
+  CHECK_BB(gwi_oper_end(gwi, op_coloncolon,         int_float_mul))
+  CHECK_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
+  CHECK_BB(gwi_oper_end(gwi, op_coloncolon,         FloatTimes))
   return GW_OK;
 }
 

@@ -635,22 +635,6 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG
   OP_RET(post, "postfix");
 }
 
-ANN static Type check_exp_dur(const Env env, const Exp_Dur* exp) { GWDEBUG_EXE
-  CHECK_OO(check_exp(env, exp->base))
-  CHECK_OO(check_exp(env, exp->unit))
-  if(isa(exp->base->type, t_float) < 0) {
-    if(isa(exp->base->type, t_int) > 0)
-      exp->base->cast_to = t_float;
-    else
-      ERR_O(exp->base->pos, "invalid type '%s' in prefix of dur expression...\n"
-          "    (must be of type 'int' or 'float')", exp->base->type->name)
-  }
-  if(isa(exp->unit->type, t_dur) < 0)
-    ERR_O(exp->unit->pos, "invalid type '%s' in postfix of dur expression...\n"
-          "    (must be of type 'dur')", exp->base->type->name)
-  return exp->unit->type;
-}
-
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
@@ -737,7 +721,7 @@ static const _type_func exp_func[] = {
   (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,
   (_type_func)check_exp_primary, (_type_func)check_exp_cast,   (_type_func)check_exp_post,
   (_type_func)check_exp_call,    (_type_func)check_exp_array,  (_type_func)check_exp_if,
-  (_type_func)check_exp_dot,     (_type_func)check_exp_dur, (_type_func)check_exp_lambda
+  (_type_func)check_exp_dot,     (_type_func)check_exp_lambda
 };
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE

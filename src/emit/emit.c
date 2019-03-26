@@ -694,13 +694,6 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { G
   return op_emit(emit, &opi);
 }
 
-ANN static m_bool emit_exp_dur(const Emitter emit, const Exp_Dur* dur) { GWDEBUG_EXE
-  CHECK_BB(emit_exp(emit, dur->base, 0))
-  CHECK_BB(emit_exp(emit, dur->unit, 0))
-  emit_add_instr(emit, FloatTimes);
-  return GW_OK;
-}
-
 ANN static m_bool is_special(const Type t) {
   if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0 ||
      isa(t, t_vec3)    > 0 || isa(t, t_vec4)  > 0  ||

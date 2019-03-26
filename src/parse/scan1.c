@@ -117,11 +117,6 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) { GWDEB
           " on non-mutable data-type...", op2str(post->op));
 }
 
-ANN static inline m_bool scan1_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
-  CHECK_BB(scan1_exp(env, dur->base))
-  return scan1_exp(env, dur->unit);
-}
-
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) { GWDEBUG_EXE
   if(exp_call->tmpl)
     return GW_OK;

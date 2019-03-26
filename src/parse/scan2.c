@@ -184,11 +184,6 @@ ANN static inline m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) 
   return scan2_exp(env, post->exp);
 }
 
-ANN static inline m_bool scan2_exp_dur(const Env env, const Exp_Dur* dur) { GWDEBUG_EXE
-  CHECK_BB(scan2_exp(env, dur->base))
-  return scan2_exp(env, dur->unit);
-}
-
 ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp func,
     const restrict Exp args) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, func))
