@@ -35,12 +35,15 @@ struct Plug_ {
 #define DLOPEN(dl, b) dlopen(dl, b)
 #define DLSYM(dl, t, a) (t)(intptr_t)dlsym(dl, STR(a));
 #define DLCLOSE(dl) dlclose(dl);
+#define DLERROR() dlerror()
 #else
 #include "windows.h"
 #define DLOPEN(dl, b) LoadLibrary(dl)
 #define DLSYM(dl, t, a) (t)(intptr_t)GetProcAddress(dl, STR(a));
 #define DLCLOSE(dl) FreeLibrary(dl);
+#define DLERROR() "plugin"
 #endif
+
 ANN static void plug_get(PlugInfo* p, const m_str c) {
   void* dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
   if(dl) {
@@ -63,7 +66,7 @@ ANN static void plug_get(PlugInfo* p, const m_str c) {
       map_set(&p->drv, (vtype)str(), (vtype)drv);
     }
   } else
-    err_msg(0, "error in %s.", dlerror());
+    err_msg(0, "error in %s.", DLERROR());
 }
 
 ANN PlugInfo* new_plug(const Vector list) {
