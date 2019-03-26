@@ -20,9 +20,15 @@ ANN static Value mk_class(const Env env, const Type base) {
   return v;
 }
 
+ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const uint pos) {
+  if(nspc_lookup_type1(env->curr, s))
+    ERR_B(pos, "type '%s' already defined", s_name(s));
+  return already_defined(env, s, pos);
+}
+
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->td->flag))
-  CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
+  CHECK_BB(scan0_defined(env, stmt->xid, stmt->td->xid->pos));
   const m_str name = s_name(stmt->xid);
   const Type t = new_type(t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->td, global)) ?
@@ -39,7 +45,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   CHECK_BB(env_access(env, stmt->td->flag))
   const Type base = known_type(env, stmt->td);
   CHECK_OB(base)
-  CHECK_BB(already_defined(env, stmt->xid, stmt->td->xid->pos)) // test for type ?
+  CHECK_BB(scan0_defined(env, stmt->xid, stmt->td->xid->pos))
   if(!stmt->td->types && (!stmt->td->array || !stmt->td->array->exp)) {
     const Type t = new_type(++env->scope->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
@@ -70,7 +76,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     if(v)
       ERR_B(stmt->self->pos, "'%s' already declared as variable of type '%s'.",
         s_name(stmt->xid),  v->type->name)
-    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
+    CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
   }
   const Type t = type_copy(t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
@@ -103,7 +109,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
   CHECK_BB(env_access(env, stmt->flag))
   env_storage(env, &stmt->flag);
   if(stmt->xid) {
-    CHECK_BB(already_defined(env, stmt->xid, stmt->self->pos))
+    CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
@@ -150,7 +156,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
-  CHECK_BB(already_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
+  CHECK_BB(scan0_defined(env, class_def->name->xid, class_def->name->pos)) // test for type ?
   CHECK_BB(isres(class_def->name->xid))
   return GW_OK;
 }

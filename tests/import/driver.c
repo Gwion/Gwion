@@ -10,9 +10,9 @@
 #include "plug.h"
 
 static DRVRUN(dummy_run) {
-  while(vm->bbq->is_running) {
+  while(di->is_running) {
     di->run(vm);
-    ++vm->bbq->pos;
+    ++di->pos;
   }
 }
 
