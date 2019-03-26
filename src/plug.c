@@ -1,7 +1,7 @@
 #include <string.h>
-#include <dlfcn.h>
 #ifndef BUILD_ON_WINDOWS
 #include <glob.h>
+#include <dlfcn.h>
 #else
 #include <windows.h>
 #endif
