@@ -62,8 +62,6 @@ INSTR(VecCpy);
 INSTR(VecMember);
 INSTR(PopArrayClass);
 
-INSTR(AutoLoopStart);
-INSTR(AutoLoopEnd);
 INSTR(DotTmpl);
 
 struct dottmpl_ {

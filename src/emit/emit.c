@@ -1149,25 +1149,35 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEB
 ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  const Instr s2 = emit_add_instr(emit, MemSetImm);
+  Instr cpy;
+  if(stmt->is_ptr) {
+    const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
+    new_obj->m_val2 = (m_uint)stmt->v->type;
+    const Instr pop = emit_add_instr(emit, RegPop);
+    pop->m_val = SZ_INT;
+    cpy = emit_add_instr(emit, Reg2Mem);
+  }
   const m_uint ini_pc  = emit_code_size(emit);
   emit_push_stack(emit);
-  const Instr loop = emit_add_instr(emit, AutoLoopStart);
+  emit_add_instr(emit, GWOP_EXCEPT);
+  const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
+  const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_uint offset = emit_local(emit, 2*SZ_INT, 0);
-  s2->m_val = stmt->v->offset = offset + SZ_INT;
+  stmt->v->offset = offset + SZ_INT;
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   const m_uint end_pc = emit_code_size(emit);
   if(stmt->is_ptr) {
+    loop->m_val2 = (m_uint)stmt->v->type;
+    cpy->m_val = offset + SZ_INT;
     const Instr release = emit_add_instr(emit, ObjectRelease);
     release->m_val = offset + SZ_INT;
   }
-  const Instr end = emit_add_instr(emit, AutoLoopEnd);
   const Instr tgt = emit_add_instr(emit, Goto);
-  end->m_val2 = emit_code_size(emit);
+  end->m_val = emit_code_size(emit);
   tgt->m_val = ini_pc;
-  s1->m_val = end->m_val = loop->m_val = offset;
-  if(stmt->is_ptr)
-    loop->m_val2 = (m_uint)stmt->v->type;
+  s1->m_val = loop->m_val = offset;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
   emit_pop_stack(emit, end_pc);
   return GW_OK;
 }

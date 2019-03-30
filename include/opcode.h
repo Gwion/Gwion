@@ -141,6 +141,9 @@ enum {
   eBranchEqFloat,
   eBranchNeqFloat,
   eArrayAppend,
+  eAutoLoop,
+  eAutoLoopPtr,
+  eAutoLoopCount,
   eArrayTop,
   eObjectInstantiate,
   eRegAddRef,
@@ -306,6 +309,9 @@ enum {
 #define  BranchEqFloat       (f_instr)eBranchEqFloat
 #define  BranchNeqFloat      (f_instr)eBranchNeqFloat
 #define  ArrayAppend         (f_instr)eArrayAppend
+#define  AutoLoop            (f_instr)eAutoLoop
+#define  AutoLoopPtr         (f_instr)eAutoLoopPtr
+#define  AutoLoopCount       (f_instr)eAutoLoopCount
 #define  ArrayTop            (f_instr)eArrayTop
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate
 #define  RegAddRef           (f_instr)eRegAddRef

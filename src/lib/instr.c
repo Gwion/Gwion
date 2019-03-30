@@ -43,31 +43,6 @@ INSTR(BranchSwitch) { GWDEBUG_EXE
   shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;
 }
 
-INSTR(AutoLoopStart) { GWDEBUG_EXE
-  const M_Object o =  *(M_Object*)REG(-SZ_INT);
-  if(!o)
-    Except(shred, "NullPtrException");
-  const m_uint idx = *(m_uint*)MEM(instr->m_val);
-  const Type t = (Type)instr->m_val2;
-  if(t) {
-    M_Object ptr = *(M_Object*)MEM(instr->m_val + SZ_INT);
-    if(!idx) {
-      ptr = new_object(shred, t);
-      *(M_Object*)MEM(instr->m_val + SZ_INT) = ptr;
-    }
-    *(m_bit**)ptr->data = m_vector_addr(ARRAY(o), idx);
-  } else
-    m_vector_get(ARRAY(o), idx, MEM(instr->m_val + SZ_INT));
-}
-
-INSTR(AutoLoopEnd) { GWDEBUG_EXE
-  const M_Object o =  *(M_Object*)REG(-SZ_INT);
-  if(++*(m_uint*)MEM(instr->m_val) >= m_vector_size(ARRAY(o))) {
-    shred->pc = instr->m_val2;
-    POP_REG(shred, SZ_INT);
-  }
-}
-
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem) { GWDEBUG_EXE
   POP_REG(shred, instr->m_val)

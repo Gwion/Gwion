@@ -280,7 +280,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&funcusr, &&regpop, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
-    &&arrayappend, &&arraytop, &&newobj,
+    &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&newobj,
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
@@ -668,6 +668,15 @@ branchnefloat:
 arrayappend:
   m_vector_add(ARRAY(a.obj), reg);
   release(a.obj, shred);
+  DISPATCH()
+autoloop:
+  m_vector_get(ARRAY(a.obj), *(m_uint*)(mem + instr->m_val), mem + instr->m_val + SZ_INT);
+  goto autoloopcount;
+autoloopptr:
+  *(m_bit**)(*(M_Object*)(mem + instr->m_val + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + instr->m_val));
+autoloopcount:
+  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - ++*(m_uint*)(mem + instr->m_val);
+  reg += SZ_INT;
   DISPATCH()
 arraytop:
   if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
