@@ -1634,6 +1634,7 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBU
   if(GET_FLAG(func->def, dtor)) {
     emit->env->class_def->nspc->dtor = func->code;
     Instr instr = (Instr)vector_back(func->code->instr);
+    instr->opcode = eOP_MAX;
     instr->execute = DTOR_EOC;
     ADD_REF(func->code)
   }

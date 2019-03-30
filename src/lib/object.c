@@ -59,10 +59,8 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   const Type t = object->type_ref;
   const VM_Shred sh = new_vm_shred(t->nspc->dtor);
   ADD_REF(t->nspc->dtor);
-  memcpy(sh->base, shred->base, SIZEOF_MEM);
+  sh->base = shred->base;
   memcpy(sh->reg, shred->reg, SIZEOF_REG);
-  *(M_Object*)sh->mem = object;
-  sh->mem += SZ_INT;
   *(M_Object*)sh->mem = object;
   vm_add_shred(shred->info->vm, sh);
   ++sh->info->me->ref;

@@ -22,8 +22,8 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
   o->type_ref = o->type_ref->parent;
   o->ref = 1;
   _release(o, shred);
-  _release(shred->info->me, shred);
   vm_shred_exit(shred);
+  _release(shred->info->me, shred);
 }
 
 /* branching */

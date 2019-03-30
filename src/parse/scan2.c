@@ -429,11 +429,13 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) { GWDEBUG
   return GW_OK;
 }
 
-ANN static void scan2_func_def_flag(const Func_Def f) { GWDEBUG_EXE
+ANN static void scan2_func_def_flag(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(!GET_FLAG(f, builtin))
     SET_FLAG(f->func, pure);
-  if(GET_FLAG(f, dtor))
+  if(GET_FLAG(f, dtor)) {
+    SET_FLAG(env->class_def, dtor);
     SET_FLAG(f->func, dtor);
+  }
 }
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
@@ -468,7 +470,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   const Func func = scan_new_func(env, f, func_name);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   const Value v = func_value(env, func, overload);
-  scan2_func_def_flag(f);
+  scan2_func_def_flag(env, f);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(func, func->name))
   if(GET_FLAG(func, member))
