@@ -619,7 +619,7 @@ ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_cal
   if((instr->m_val = round2szint(vararg_size(exp_call, kinds))))
     instr->m_val2 = (m_uint)kinds;
   else {
-    instr->opcode = (m_bit)(m_uint)RegPushImm;
+    instr->opcode = eRegPushImm;
     free_vector(kinds);
   }
 }
@@ -725,7 +725,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
 
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
-    const Instr _instr = (Instr)vector_back(&emit->code->instr);
+    const Instr instr = (Instr)vector_back(&emit->code->instr);
 	  assert(_instr->execute == DotTmpl);
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
@@ -737,16 +737,13 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     dt->overload = f->def->tmpl->base;
     dt->tl = tmpl_tl(emit->env, c);
     dt->base = f->def;
-   _instr->m_val = (m_uint)dt;
-    _instr->m_val2 = strlen(c);
+    instr->m_val = (m_uint)dt;
+    instr->m_val2 = strlen(c);
     return GW_OK;
   }
-  const Instr _instr = (Instr)vector_back(&emit->code->instr);
-  if(_instr->opcode == (m_bit)(m_uint)RegPushImm)
-    return !!(_instr->m_val = (m_uint)f->code);
-  assert(_instr->opcode == (m_bit)(m_uint)RegPushBase);
-  _instr->m_val = (m_uint)f->code;
-  _instr->opcode = (m_bit)(m_uint)RegPushImm;
+  const Instr instr = (Instr)vector_back(&emit->code->instr);
+  instr->opcode = eRegPushImm;
+  instr->m_val = (m_uint)f->code;
   return GW_OK;
 }
 
@@ -814,7 +811,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
     m_uint val2 = back->m_val2;
-    back->opcode = (m_bit)(m_uint)RegDup2;
+    back->opcode = eRegDup2;
     back->m_val = f->def->stack_depth;
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
