@@ -1175,20 +1175,16 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
 ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWDEBUG_EXE
   emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  m_int* counter = (m_int*)xcalloc(1, SZ_INT);
-  const Instr init = emit_add_instr(emit, InitLoopCounter);
-  init->m_val = (m_uint)counter;
   const m_uint index = emit_code_size(emit);
-  const Instr deref = emit_add_instr(emit, DotStatic);
-  deref->m_val = (m_uint)counter;
-  deref->m_val2 = SZ_INT;
+  emit_add_instr(emit, RegDup3);
+  emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
-  const Instr dec = emit_add_instr(emit, DecIntAddr);
-  dec->m_val = (m_uint)counter;
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val = index;
   op->m_val = emit_code_size(emit);
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
   emit_pop_stack(emit, index);
   return GW_OK;
 }

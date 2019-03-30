@@ -44,9 +44,7 @@ ANN static void free_code_instr(const Vector v) {
     else if(instr->execute == SwitchIni) {
       free_vector((Vector)instr->m_val);
       free_map((Map)instr->m_val2);
-    } else if(instr->opcode == eInitLoopCounter)
-      free((m_int*)instr->m_val);
-    else if(instr->execute == VarargIni) {
+    } else if(instr->execute == VarargIni) {
       if(instr->m_val2)
       free_vector((Vector)instr->m_val2);
     }

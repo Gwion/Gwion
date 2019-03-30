@@ -17,6 +17,7 @@ enum {
   eRegPushBase4,
   eRegDup,
   eRegDup2,
+  eRegDup3,
   eMemSetImm,
   eRegPushMe,
   eRegPushMaybe,
@@ -139,8 +140,6 @@ enum {
   eBranchNeqInt,
   eBranchEqFloat,
   eBranchNeqFloat,
-  eDecIntAddr,
-  eInitLoopCounter,
   eArrayAppend,
   eArrayTop,
   eObjectInstantiate,
@@ -183,6 +182,7 @@ enum {
 #define  RegPushBase4        (f_instr)eRegPushBase4
 #define  RegDup              (f_instr)eRegDup
 #define  RegDup2             (f_instr)eRegDup2
+#define  RegDup3             (f_instr)eRegDup3
 #define  MemSetImm           (f_instr)eMemSetImm
 #define  RegPushMe           (f_instr)eRegPushMe
 #define  RegPushMaybe        (f_instr)eRegPushMaybe
@@ -305,8 +305,6 @@ enum {
 #define  BranchNeqInt        (f_instr)eBranchNeqInt
 #define  BranchEqFloat       (f_instr)eBranchEqFloat
 #define  BranchNeqFloat      (f_instr)eBranchNeqFloat
-#define  DecIntAddr          (f_instr)eDecIntAddr
-#define  InitLoopCounter     (f_instr)eInitLoopCounter
 #define  ArrayAppend         (f_instr)eArrayAppend
 #define  ArrayTop            (f_instr)eArrayTop
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate

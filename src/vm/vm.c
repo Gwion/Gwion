@@ -245,7 +245,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regdup, &&regdup2,
+    &&regdup, &&regdup2, &&regdup3,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -280,7 +280,6 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&funcusr, &&regpop, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
-    &&decintaddr, &&initloop,
     &&arrayappend, &&arraytop, &&newobj,
     &&addref, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
@@ -380,6 +379,10 @@ regdup:
   DISPATCH()
 regdup2:
   *(m_uint*)(reg+SZ_INT) = *(m_uint*)(reg);
+  reg += SZ_INT;
+  DISPATCH()
+regdup3:
+  *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);
   reg += SZ_INT;
   DISPATCH()
 memsetimm:
@@ -662,13 +665,6 @@ branchnefloat:
   if(*(m_float*)reg)
     pc = instr->m_val;
   DISPATCH();
-decintaddr:
-  --(*((m_uint*)(instr->m_val)));
-  DISPATCH()
-initloop:
-  reg -= SZ_INT;
-  (*(m_uint*)instr->m_val) = labs(*(m_int*)reg);
-  DISPATCH()
 arrayappend:
   m_vector_add(ARRAY(a.obj), reg);
   release(a.obj, shred);

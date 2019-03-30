@@ -14,6 +14,7 @@ RegPushBase3
 RegPushBase4
 RegDup
 RegDup2
+RegDup3
 MemSetImm
 RegPushMe
 RegPushMaybe
@@ -136,8 +137,6 @@ BranchEqInt
 BranchNeqInt
 BranchEqFloat
 BranchNeqFloat
-DecIntAddr
-InitLoopCounter
 ArrayAppend
 ArrayTop
 ObjectInstantiate
