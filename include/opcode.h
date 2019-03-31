@@ -15,9 +15,8 @@ enum {
   eRegPushBase2,
   eRegPushBase3,
   eRegPushBase4,
-  eRegDup,
-  eRegDup2,
-  eRegDup3,
+  eReg2Reg,
+  eReg2RegAddr,
   eMemSetImm,
   eRegPushMe,
   eRegPushMaybe,
@@ -124,6 +123,7 @@ enum {
   eFuncMember,
   eFuncUsr,
   eRegPop,
+  eRegPush,
   eReg2Mem,
   eOverflow,
   eNext,
@@ -145,10 +145,15 @@ enum {
   eAutoLoopPtr,
   eAutoLoopCount,
   eArrayTop,
+  eArrayAccess,
+  eArrayGet,
+  eArrayAddr,
+  eArrayValid,
   eObjectInstantiate,
   eRegAddRef,
   eObjectAssign,
   eObjectRelease,
+  eGWOP_EXCEPTBASE,
   eGWOP_EXCEPT,
   eAllocMember4,
   eDotMember,
@@ -183,9 +188,8 @@ enum {
 #define  RegPushBase2        (f_instr)eRegPushBase2
 #define  RegPushBase3        (f_instr)eRegPushBase3
 #define  RegPushBase4        (f_instr)eRegPushBase4
-#define  RegDup              (f_instr)eRegDup
-#define  RegDup2             (f_instr)eRegDup2
-#define  RegDup3             (f_instr)eRegDup3
+#define  Reg2Reg             (f_instr)eReg2Reg
+#define  Reg2RegAddr         (f_instr)eReg2RegAddr
 #define  MemSetImm           (f_instr)eMemSetImm
 #define  RegPushMe           (f_instr)eRegPushMe
 #define  RegPushMaybe        (f_instr)eRegPushMaybe
@@ -292,6 +296,7 @@ enum {
 #define  FuncMember          (f_instr)eFuncMember
 #define  FuncUsr             (f_instr)eFuncUsr
 #define  RegPop              (f_instr)eRegPop
+#define  RegPush             (f_instr)eRegPush
 #define  Reg2Mem             (f_instr)eReg2Mem
 #define  Overflow            (f_instr)eOverflow
 #define  Next                (f_instr)eNext
@@ -313,10 +318,15 @@ enum {
 #define  AutoLoopPtr         (f_instr)eAutoLoopPtr
 #define  AutoLoopCount       (f_instr)eAutoLoopCount
 #define  ArrayTop            (f_instr)eArrayTop
+#define  ArrayAccess         (f_instr)eArrayAccess
+#define  ArrayGet            (f_instr)eArrayGet
+#define  ArrayAddr           (f_instr)eArrayAddr
+#define  ArrayValid          (f_instr)eArrayValid
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate
 #define  RegAddRef           (f_instr)eRegAddRef
 #define  ObjectAssign        (f_instr)eObjectAssign
 #define  ObjectRelease       (f_instr)eObjectRelease
+#define  GWOP_EXCEPTBASE     (f_instr)eGWOP_EXCEPTBASE
 #define  GWOP_EXCEPT         (f_instr)eGWOP_EXCEPT
 #define  AllocMember4        (f_instr)eAllocMember4
 #define  DotMember           (f_instr)eDotMember

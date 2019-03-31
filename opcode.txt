@@ -12,9 +12,8 @@ RegPushBase
 RegPushBase2
 RegPushBase3
 RegPushBase4
-RegDup
-RegDup2
-RegDup3
+Reg2Reg
+Reg2RegAddr
 MemSetImm
 RegPushMe
 RegPushMaybe
@@ -121,6 +120,7 @@ FuncPtr
 FuncMember
 FuncUsr
 RegPop
+RegPush
 Reg2Mem
 Overflow
 Next
@@ -142,10 +142,15 @@ AutoLoop
 AutoLoopPtr
 AutoLoopCount
 ArrayTop
+ArrayAccess
+ArrayGet
+ArrayAddr
+ArrayValid
 ObjectInstantiate
 RegAddRef
 ObjectAssign
 ObjectRelease
+GWOP_EXCEPTBASE
 GWOP_EXCEPT
 AllocMember4
 DotMember

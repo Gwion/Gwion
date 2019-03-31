@@ -466,7 +466,7 @@ ANN static void print_current_args(Exp e) {
 
 ANN static void print_arg(Arg_List e) {
   do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
-     s_name(e->var_decl->xid));
+     e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
   while((e = e->next) && gw_err(","));
 }
 

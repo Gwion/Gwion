@@ -19,14 +19,7 @@
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 
-static INSTR(FuncAssign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT)
-  **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
-}
-
 static INSTR(LambdaAssign) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT)
-  **(Func**)REG(0) = *(Func*)REG(-SZ_INT);
   POP_REG(shred, SZ_INT)
   *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
 }
@@ -39,12 +32,11 @@ static OP_CHECK(opck_func_call) {
 
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->lhs->type !=t_lambda && GET_FLAG(bin->rhs->type->d.func, member)) {
+  emit_add_instr(emit, int_r_assign);
+  if(bin->lhs->type != t_lambda && GET_FLAG(bin->rhs->type->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
-    return GW_OK;
   }
-  emit_add_instr(emit, FuncAssign);
   return GW_OK;
 }
 ANN static Type fptr_type(Exp_Binary* bin) {
@@ -149,8 +141,8 @@ static OP_EMIT(opem_fptr_cast) {
   if(GET_FLAG(cast->exp->type->d.func, member)) {
     const Instr instr = emit_add_instr(emit, RegPop);
     instr->m_val = SZ_INT*2;
-    const Instr dup = emit_add_instr(emit, RegDup);
-    dup->m_val = -SZ_INT*2;
+    const Instr dup = emit_add_instr(emit, Reg2Reg);
+    dup->m_val = -SZ_INT;
   }
   return GW_OK;
 }

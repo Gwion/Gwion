@@ -160,8 +160,14 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   top->m_val2 = (m_uint)type;
   emit_pre_ctor(emit, type);
   const Instr bottom = emit_add_instr(emit, ArrayBottom);
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  const Instr pc = emit_add_instr(emit, Goto);
+  pc->m_val = start_index;
   top->m_val = emit_code_size(emit);
   bottom->m_val = start_index;
+  const Instr postpop = emit_add_instr(emit, RegPop);
+  postpop->m_val = SZ_INT *3;
   emit_add_instr(emit, ArrayPost);
 }
 
@@ -185,7 +191,8 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
 }
 
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) { GWDEBUG_EXE
-  emit_add_instr(emit, RegDup);
+  const Instr cpy = emit_add_instr(emit, Reg2Reg);
+  cpy->m_val2 = -SZ_INT;
   const Instr push_f = emit_add_instr(emit, RegPushImm);
   push_f->m_val = (m_uint)code;
   const Instr offset = emit_add_instr(emit, RegSetImm);
@@ -360,18 +367,25 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) { G
   const m_uint depth = get_depth(array->base->type) - array->self->type->array_depth;
   CHECK_BB(emit_exp(emit, array->base, 0))
   CHECK_BB(emit_exp(emit, array->array->exp, 0))
-  if(depth == 1) {
-    const Instr instr = emit_add_instr(emit, ArrayAccess);
-    instr->m_val = is_var;
-    instr->m_val2 = is_var ? SZ_INT : array->self->type->size;
-  } else {
-    const Instr push = emit_add_instr(emit, RegSetImm);
-    push->m_val = depth;
-    const Instr instr = emit_add_instr(emit, ArrayAccessMulti);
-    instr->m_val = is_var || array->self->type->array_depth;
-    instr->m_val2 = (is_var || array->self->type->array_depth) ?
-      SZ_INT : array_base(array->base->type)->size;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = depth * SZ_INT;
+  emit_add_instr(emit, GWOP_EXCEPTBASE);
+  for(m_uint i = 0; i < depth - 1; ++i) {
+    const Instr access = emit_add_instr(emit, ArrayAccess);
+    access->m_val = i;
+    const Instr get = emit_add_instr(emit, ArrayGet);
+    get->m_val = i;
+    get->m_val2 = -SZ_INT;
+    emit_add_instr(emit, GWOP_EXCEPT);
   }
+  const Instr pop2 = emit_add_instr(emit, RegPop);
+  pop2->m_val = SZ_INT;
+  const Instr access = emit_add_instr(emit, ArrayAccess);
+  access->m_val = depth;
+  const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
+  get->m_val = depth;
+  const Instr push = emit_add_instr(emit, ArrayValid);
+  push->m_val = is_var ? SZ_INT : array->self->type->size;
   return GW_OK;
 }
 
@@ -726,7 +740,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
     const Instr instr = (Instr)vector_back(&emit->code->instr);
-	  assert(_instr->execute == DotTmpl);
+	  assert(instr->execute == DotTmpl);
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
@@ -811,8 +825,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
     m_uint val2 = back->m_val2;
-    back->opcode = eRegDup2;
-    back->m_val = f->def->stack_depth;
+    back->opcode = eReg2Reg;
+    back->m_val = SZ_INT;
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
@@ -1186,7 +1200,8 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) { GWD
   emit_push_stack(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
   const m_uint index = emit_code_size(emit);
-  emit_add_instr(emit, RegDup3);
+  const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
+  cpy->m_val2 = -SZ_INT;
   emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
@@ -1235,7 +1250,9 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
     Exp e;
     while((e = switch_expget(emit->env)))
       CHECK_BB(emit_exp(emit, e, 0))
-    *instr = emit_add_instr(emit, SwitchIni);
+    instr[0] = emit_add_instr(emit, RegPop);
+    instr[1] = emit_add_instr(emit, SwitchIni);
+    instr[2] = emit_add_instr(emit, RegSetImm);
   } else {
     const Instr set = emit_add_instr(emit, RegSetImm);
     set->m_val = (m_uint)switch_map(emit->env);
@@ -1243,26 +1260,27 @@ ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
   return GW_OK;
 }
 
-ANN static void emit_switch_map(const Instr instr, const Map map) {
+ANN static Map emit_switch_map(const Map map) {
   const Map m = new_map();
   for(m_uint i = map_size(map) + 1; --i;)
     map_set(m, VKEY(map, i-1), VVAL(map, i -1));
-  instr->m_val2 = (m_uint)m;
+  return m;
 }
 
 ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) { GWDEBUG_EXE
   switch_get(emit->env, stmt);
-  Instr push = NULL;
+  Instr push[3] = { NULL, NULL, NULL};
   CHECK_BB(emit_exp(emit, stmt->val, 0))
-  CHECK_BB(emit_switch_instr(emit, &push))
+  CHECK_BB(emit_switch_instr(emit, push))
   vector_add(&emit->code->stack_break, (vtype)NULL);
   const Instr instr = emit_add_instr(emit, BranchSwitch);
   instr->m_val2 = (m_uint)switch_map(emit->env);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
-  if(push) {
-    emit_switch_map(push, (Map)instr->m_val2);
-    (push)->m_val = (m_uint)switch_vec(emit->env);
+  if(push[0]) {
+    push[2]->m_val = push[1]->m_val2 = (m_uint) emit_switch_map((Map)instr->m_val2);
+    Vector v = (Vector)(push[1]->m_val = (m_uint)switch_vec(emit->env));
+    push[0]->m_val = vector_size(v) * SZ_INT;
   }
   switch_end(emit->env);
   pop_vector(&emit->code->stack_break, emit_code_size(emit));

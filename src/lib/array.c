@@ -222,19 +222,11 @@ GWION_IMPORT(array) {
 }
 
 INSTR(ArrayBottom) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT);
-  const M_Object obj = *(M_Object*)REG(0);
-  const m_uint *array = *(m_uint**)REG(-SZ_INT * 3);
-  const m_int i = *(m_int*)REG(-SZ_INT * 2);
-  *(m_uint*)array[i] = (m_uint)obj;
-  ++(*(m_int*)REG(-SZ_INT * 2));
-  shred->pc = instr->m_val;
+  *(M_Object*)(*(m_uint**)REG(-SZ_INT * 4))[(*(m_int*)REG(-SZ_INT * 3))++] = *(M_Object*)REG(-SZ_INT);
 }
 
 INSTR(ArrayPost) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 3);
-  m_uint* array = *(m_uint**)REG(0);
-  xfree(array);
+  xfree(*(m_uint**)REG(0));
 }
 
 INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
@@ -323,55 +315,4 @@ INSTR(ArrayAlloc) { GWDEBUG_EXE
     *(m_uint*) REG(-SZ_INT*2) = 0;
     *(m_uint*) REG(-SZ_INT) = num_obj;
   }
-}
-
-ANN static inline void array_push(const VM_Shred shred, const M_Vector a,
-    const m_uint i, const Instr instr) {
-  if(instr->m_val)
-    *(m_bit**)REG(0) = m_vector_addr(a, i);
-  else
-    m_vector_get(a, i, REG(0));
-  PUSH_REG(shred, instr->m_val2);
-}
-
-#define OOB(shred, obj, dim, idx, base)       \
-if(idx < 0 || (m_uint)idx >= ARRAY_LEN(ARRAY(obj))) { \
-  _release(base, shred);                \
-  exception(shred, "ArrayOutofBounds"); \
-  dim;                                  \
-  gw_err("\t... at index [%" INT_F "]\n", idx); \
-  return;                                     \
-}
-
-INSTR(ArrayAccess) { GWDEBUG_EXE
-  POP_REG(shred, SZ_INT * 2);
-  const M_Object obj = *(M_Object*)REG(0);
-  if(!obj)
-    Except(shred, "NullPtrException");
-  const m_int i = *(m_int*)REG(SZ_INT);
-  OOB(shred, obj,, i, obj);
-  array_push(shred, ARRAY(obj), (m_uint)i, instr);
-}
-
-#define DIM(a) gw_err("\t... at dim [%" INT_F "]\n", (a))
-
-INSTR(ArrayAccessMulti) { GWDEBUG_EXE
-  const m_uint depth = *(m_uint*)REG(0);
-  POP_REG(shred, SZ_INT * (depth + 1))
-  const M_Object base = *(M_Object*)REG(0);
-  M_Object obj = base;
-  if(!obj)
-    Except(shred, "NullPtrException");
-  for(m_uint i = 1; i < depth; ++i) {
-    const m_int idx = *(m_int*)REG(SZ_INT * i);
-    OOB(shred, obj, DIM(i), idx, base);
-    m_vector_get(ARRAY(obj), (m_uint)idx, &obj);
-    if(!obj) {
-      release(base, shred);
-      Except(shred, "NullPtrException");
-    }
-  }
-  const m_int idx = *(m_int*)REG(SZ_INT * depth);
-  OOB(shred, obj, DIM(depth), idx, base);
-  array_push(shred, ARRAY(obj), (m_uint)idx, instr);
 }

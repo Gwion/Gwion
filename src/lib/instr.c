@@ -30,11 +30,8 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
 INSTR(SwitchIni) {
   const Vector v = (Vector)instr->m_val;
   const m_uint size = vector_size(v);
-  const Map m = (Map)instr->m_val2;
-  POP_REG(shred, SZ_INT * (size));
   for(m_uint i = 0; i < size; ++i)
-    map_set(m, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
-  *(Map*)REG(0) = m;
+    map_set((Map)instr->m_val2, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
 }
 
 INSTR(BranchSwitch) { GWDEBUG_EXE

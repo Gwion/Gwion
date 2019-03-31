@@ -145,6 +145,7 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr in
     vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
   sh->base = shred->base;
+  vm_add_shred(shred->info->vm, sh);
   return sh;
 }
 
@@ -153,6 +154,7 @@ ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr ins
   const VM_Shred sh = new_vm_shred(code);
   ADD_REF(code)
   sh->base = shred->base;
+  vm_fork(shred->info->vm, sh);
   return sh;
 }
 
@@ -245,7 +247,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regdup, &&regdup2, &&regdup3,
+    &&regtoreg, &&regtoregaddr,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -277,12 +279,12 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&itof, &&ftoi,
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
-    &&funcusr, &&regpop, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
+    &&funcusr, &&regpop, &&regpush, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
-    &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&newobj,
-    &&addref, &&assign, &&remref,
-    &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+    &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
+    &&newobj, &&addref, &&assign, &&remref,
+    &&exceptbase, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
@@ -305,7 +307,7 @@ M_Object obj;
 VM_Code code;
 VM_Shred child;
 } a;
-
+register M_Object array_base = NULL;
 #ifdef VMBENCH
 struct timespec exec_ini, exec_end, exec_ret;
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
@@ -373,15 +375,11 @@ baseaddr:
   *(m_bit**)reg = (shred->base + instr->m_val);
   reg += SZ_INT;
   DISPATCH();
-regdup:
-  *(m_uint*)reg = *(m_uint*)(reg-SZ_INT);
+regtoreg:
+  *(m_uint*)(reg + (m_int)instr->m_val) = *(m_uint*)(reg + (m_int)instr->m_val2);
   reg += SZ_INT;
   DISPATCH()
-regdup2:
-  *(m_uint*)(reg+SZ_INT) = *(m_uint*)(reg);
-  reg += SZ_INT;
-  DISPATCH()
-regdup3:
+regtoregaddr:
   *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);
   reg += SZ_INT;
   DISPATCH()
@@ -595,6 +593,9 @@ funcusr:
 regpop:
   reg -= instr->m_val;
   DISPATCH();
+regpush:
+  reg += instr->m_val;
+  DISPATCH();
 regtomem:
   *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
   DISPATCH()
@@ -620,10 +621,6 @@ funcmemberend:
   DISPATCH()
 sporkini:
   a.child = (instr->m_val2 ? init_spork_shred : init_fork_shred)(shred, instr);
-  if(instr->m_val2)
-    vm_add_shred(vm, a.child);
-  else
-    vm_fork(vm, a.child);
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
@@ -683,6 +680,28 @@ arraytop:
     goto newobj;
   else
     goto _goto;
+arrayaccess:
+{
+  const m_int idx = *(m_int*)(reg + SZ_INT * instr->m_val);
+  if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
+// should we go to except ? so we can remove release array_base
+    _release(array_base, shred);
+    gw_err("\t... at index [%" INT_F "]\n", idx);
+    gw_err("\t... at dimension [%" INT_F "]\n", instr->m_val);
+    exception(shred, "ArrayOutofBounds");
+    continue;
+  }
+  DISPATCH()
+}
+arrayget:
+  m_vector_get(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * instr->m_val), (reg + (m_int)instr->m_val2));
+  DISPATCH()
+arrayaddr:
+  *(m_bit**)(reg + (m_int)instr->m_val2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * instr->m_val));
+  DISPATCH()
+arrayvalid:
+  array_base = NULL;
+  goto regpush;
 newobj:
   *(M_Object*)reg = new_object(shred, (Type)instr->m_val2);
   reg += SZ_INT;
@@ -705,9 +724,14 @@ assign:
 remref:
   release(*(M_Object*)(mem + instr->m_val), shred);
   DISPATCH()
+exceptbase:
+  array_base = *(M_Object*)(reg-SZ_INT);
 except:
-  if(!(a.obj  = *(M_Object*)(reg-SZ_INT)))
-    Except(shred, "NullPtrException");
+  if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
+    if(array_base) _release(array_base, shred);
+    exception(shred, "NullPtrException");
+    continue;
+  }
   DISPATCH();
 allocmemberaddr:
   a.obj = *(M_Object*)mem;
