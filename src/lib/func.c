@@ -52,10 +52,8 @@ ANN static Type fptr_type(Exp_Binary* bin) {
     const Symbol sym = func_symbol(nspc->name, c, NULL, i);
     const Func f = nspc_lookup_func1(nspc, sym); // was lookup2
     CHECK_OO(f)
-    if(compat_func(r_func->def, f->def) > 0) {
-      bin->func = f;
+    if(compat_func(r_func->def, f->def) > 0)
       return r_func->value_ref->type->d.base_type;
-    }
   }
   return NULL;
 }
