@@ -456,37 +456,27 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
 
 ANN static void print_current_args(Exp e) {
   gw_err("and not\n\t");
-  do {
-    gw_err(" \033[32m%s\033[0m", e->type->name);
-    if(e->type->array_depth)
-      REM_REF(e->type)
-  } while((e = e->next) && gw_err(","));
+  do gw_err(" \033[32m%s\033[0m", e->type->name);
+  while((e = e->next) && gw_err(","));
   gw_err("\n");
 }
 
 ANN static void print_arg(Arg_List e) {
   do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
-     e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
+       e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
   while((e = e->next) && gw_err(","));
 }
 
-ANN2(1) static void* function_alternative(const Type f, Exp args){
+ANN2(1) static void* function_alternative(const Type f, const Exp args){
   err_msg(args ? args->pos : 0, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {
     gw_err("(%s)\t", up->name);
     const Arg_List e = up->def->arg_list;
-    gw_err("\t");
-    if(e)
-      print_arg(e);
-    else
-      gw_err("\033[32mvoid\033[0m");
+    e ? print_arg(e) : (void)gw_err("\033[32mvoid\033[0m");
     gw_err("\n");
   } while((up = up->next));
-  if(args)
-    print_current_args(args);
-  else
-    gw_err("and not:\n\t\033[32mvoid\033[0m\n");
+  args ? print_current_args(args) : (void)gw_err("and not:\n\t\033[32mvoid\033[0m\n");
   return NULL;
 }
 
@@ -590,10 +580,8 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(GET_FLAG(exp->func->type, func))
     return check_exp_call_template(env, exp);
   const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
-  if(!func)
-    return function_alternative(exp->func->type, exp->args);
-  exp->self->d.exp_call.m_func = func;
-  return func->def->ret_type;
+  return (exp->self->d.exp_call.m_func = func) ?
+    func->def->ret_type : function_alternative(exp->func->type, exp->args);
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
@@ -601,7 +589,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
     .rhs=check_exp(env, bin->rhs), .data=(uintptr_t)bin };
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
-  return op_check(env, &opi);
+  OP_RET(bin, "binary")
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
@@ -711,7 +699,7 @@ ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   Exp curr = exp;
   do {
     CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-    if(env->func && isa(curr->type, t_lambda) < 0 && isa(curr->type, t_function) > 0 && 
+    if(env->func && isa(curr->type, t_lambda) < 0 && isa(curr->type, t_function) > 0 &&
         !GET_FLAG(curr->type->d.func, pure))
       UNSET_FLAG(env->func, pure);
   } while((curr = curr->next));
@@ -721,10 +709,8 @@ ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
 ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   if(env->class_def) {
     ID_List list = stmt->list;
-    do {
-      const Value v = nspc_lookup_value0(env->curr, list->xid);
-      decl_static(env->curr, v);
-    } while((list = list->next));
+    do decl_static(env->curr, nspc_lookup_value0(env->curr, list->xid));
+    while((list = list->next));
   }
   return GW_OK;
 }
@@ -844,24 +830,21 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
     ERR_B(stmt->self->pos, "'return' statement found outside function definition")
   const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
   CHECK_OB(ret_type)
-if(env->func->value_ref->type == t_lambda) {
-  if(env->func->def->ret_type) {
-    if(isa(ret_type, env->func->def->ret_type) < 0) {
-      if(isa(env->func->def->ret_type, ret_type) < 0) {
-        ERR_B(stmt->self->pos, "return types do not match for lambda expression")
-      }
-    }
+  if(env->func->value_ref->type == t_lambda) {
+    if(env->func->def->ret_type &&
+     isa(ret_type, env->func->def->ret_type) < 0 &&
+     isa(env->func->def->ret_type, ret_type) < 0)
+          ERR_B(stmt->self->pos, "return types do not match for lambda expression")
+    env->func->value_ref->type = ret_type;
+    return GW_OK;
   }
-  env->func->value_ref->type = ret_type;
-  return GW_OK;
-}
   if(isa(ret_type, t_null) > 0 &&
      isa(env->func->def->ret_type, t_object) > 0)
     return GW_OK;
   if(env->func->def->ret_type && isa(ret_type, env->func->def->ret_type) < 0)
     ERR_B(stmt->self->pos, "invalid return type '%s' -- expecting '%s'",
           ret_type->name, env->func->def->ret_type->name)
-  else //! set defulat return type for lambdas
+  else //! set default return type for lambdas
     env->func->def->ret_type = ret_type;
   return GW_OK;
 }
@@ -914,12 +897,8 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
 
 ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   if(stmt->xid) {
-    if(env->class_def) {
-      if(!GET_FLAG(stmt, static))
-        decl_member(env->curr, stmt->value);
-      else
-        decl_static(env->curr, stmt->value);
-    }
+    if(env->class_def)
+      (!GET_FLAG(stmt, static) ? decl_member : decl_static)(env->curr, stmt->value);
   } else if(env->class_def)  {
     if(!GET_FLAG(stmt, static))
       stmt->o = env->class_def->nspc->info->offset;
