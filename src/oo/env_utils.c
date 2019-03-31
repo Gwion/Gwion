@@ -50,7 +50,7 @@ ANN static Type find_typeof(const Env env, ID_List path) {
 
 ANN Type find_type(const Env env, ID_List path) {
   if(path->ref)
-    return find_typeof(env, path->ref);
+    return find_typeof(env, path);
   Type type = nspc_lookup_type1(env->curr, path->xid);
   CHECK_OO(type)
   Nspc nspc = type->nspc;
