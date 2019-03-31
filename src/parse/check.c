@@ -497,15 +497,12 @@ ANN static m_uint get_type_number(ID_List list) {
   return type_number;
 }
 
-ANN static Func get_template_func(const Env env, const Exp_Call* func, const Exp base, const Value v) {
+ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
     Tmpl_Call* tmpl = new_tmpl_call(func->tmpl->types);
     tmpl->base = v->d.func_ref->def->tmpl->list;
-    if(base->exp_type == ae_exp_call)
-      base->d.exp_call.tmpl = tmpl;
-    else /* if(base->exp_type == ae_exp_binary) */
-      base->d.exp_binary.tmpl = tmpl;
+    func->self->d.exp_call.tmpl = tmpl;
     return f;
   }
   assert(func->self);
@@ -546,11 +543,8 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
     ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { .types=tl[0] };
   const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl, .self=base };
-  const Func func = get_template_func(env, &tmp_func, base, value);
-  if(base->exp_type == ae_exp_call)
-    base->d.exp_call.m_func = func;
-  else /* if(base->exp_type == ae_exp_binary) */
-    base->d.exp_binary.func = func;
+  const Func func = get_template_func(env, &tmp_func, value);
+  base->d.exp_call.m_func = func;
   return func ? func->def->ret_type : NULL;
 }
 
@@ -560,13 +554,6 @@ ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
   if(isa(exp->type, t_function) < 0)
     ERR_B(exp->pos, "function call using a non-function value")
   return GW_OK;
-}
-
-ANN static inline void set_call(const Exp e, const Func f) {
-  if(e->exp_type == ae_exp_call)
-    e->d.exp_call.m_func = f;
-  else /* if(e->exp_type == ae_exp_binary) */
-    e->d.exp_binary.func = f;
 }
 
 ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
@@ -586,7 +573,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
-  set_call(exp->self, l->def->func);
+  exp->self->d.exp_call.m_func = l->def->func;
   return l->def->ret_type ?: (l->def->ret_type = t_void);
 }
 
@@ -605,7 +592,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
   if(!func)
     return function_alternative(exp->func->type, exp->args);
-  set_call(exp->self, func);
+  exp->self->d.exp_call.m_func = func;
   return func->def->ret_type;
 }
 
@@ -614,11 +601,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
     .rhs=check_exp(env, bin->rhs), .data=(uintptr_t)bin };
   CHECK_OO(opi.lhs)
   CHECK_OO(opi.rhs)
-  const Type op_ret = op_check(env, &opi);
-  if(!op_ret)
-    ERR_O(bin->self->pos, "in binary expression")
-  OPTIMIZE_CONST(bin)
-  return op_ret;
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE

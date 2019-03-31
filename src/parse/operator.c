@@ -21,6 +21,7 @@ typedef struct M_Operator_{
   Func func;
   Type (*ck)(Env, void*);
   m_bool (*em)(Emitter, void*);
+  m_bool mut;
 } M_Operator;
 
 ANN static void free_op(M_Operator* a) {
@@ -94,6 +95,7 @@ ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
   mo->instr     = (f_instr)opi->data;
   mo->ck     = opi->ck;
   mo->em     = opi->em;
+  mo->mut     = opi->mut;
   vector_add(v, (vtype)mo);
   if(opi->lhs && opi->lhs != OP_ANY_TYPE)
     ADD_REF(opi->lhs)
@@ -117,12 +119,13 @@ ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
     ((Exp_Unary*)opi->data)->nspc = nspc;
 }
 
-ANN static Type op_check_inner(const Env env, const Map map, const struct Op_Import* opi) {
+ANN static Type op_check_inner(const Env env, const Map map, struct Op_Import* opi) {
   Type t, r = opi->rhs;
   do {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(map, (vtype)opi->op);
     if(v && (mo = operator_find(v, opi->lhs, r))) {
+      opi->mut = mo->mut;
       if((mo->ck && (t = mo->ck(env, (void*)opi->data))))
         return t;
       else
@@ -147,7 +150,8 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
         if(ret) {
           if(ret == t_null)
             break;
-          set_nspc(opi, nspc);
+          if(!opi2.mut)
+            set_nspc(opi, nspc);
           return ret;
         }
       } while(l && (l = op_parent(env, l)));

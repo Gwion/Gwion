@@ -57,6 +57,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
 ANN m_int gwi_oper_add(const Gwi gwi, Type (*check)(Env, void*));
 ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*check)(Emitter, void*));
+ANN void gwi_oper_mut(const Gwi, const m_bool);
 ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
 
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);

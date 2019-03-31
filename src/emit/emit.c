@@ -679,17 +679,10 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) { 
   return emit_exp_call1(emit, exp_call->m_func);
 }
 
-ANN static m_bool emit_binary_func(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
-  const Exp_Call exp = { .func=bin->rhs, .args=bin->lhs, .m_func=bin->func, .tmpl=bin->tmpl, .self=bin->self };
-  return emit_exp_call(emit, &exp);
-}
-
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) { GWDEBUG_EXE
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type, .data = (uintptr_t)bin };
-  if(bin->op == op_chuck && isa(rhs->type, t_function) > 0)
-    return emit_binary_func(emit, bin);
   CHECK_BB(emit_exp(emit, lhs, 1))
   CHECK_BB(emit_exp(emit, rhs, 1))
   return op_emit(emit, &opi);

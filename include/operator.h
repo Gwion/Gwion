@@ -10,6 +10,7 @@ struct Op_Import {
   opck ck;
   opem em;
   uintptr_t data;
+  m_bool mut;
 };
 
 struct Implicit {

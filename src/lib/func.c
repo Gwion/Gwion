@@ -27,7 +27,10 @@ static INSTR(LambdaAssign) { GWDEBUG_EXE
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs, .self=bin->self };
-  return check_exp_call1(env, &call);
+  Exp e = bin->self;
+  e->exp_type = ae_exp_call;
+  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  return check_exp_call1(env, &e->d.exp_call);
 }
 
 static OP_EMIT(opem_func_assign) {
@@ -169,6 +172,7 @@ static OP_EMIT(opem_spork) {
 GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
+  gwi_oper_mut(gwi, 1);
   CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))

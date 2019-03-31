@@ -480,13 +480,14 @@ ANN2(1,2) static int import_op(const Env env, const DL_Oper* op,
   const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   const Type ret = get_type(env, op->ret);
   const struct Op_Import opi = { op->op, lhs, rhs, ret,
-    op->ck, op->em, (uintptr_t)f };
+    op->ck, op->em, (uintptr_t)f, op->mut };
   return env_add_op(env, &opi);
 }
 
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
     const restrict m_str r, const restrict m_str t) {
+  gwi->oper.mut = 0;
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
@@ -501,6 +502,10 @@ ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
 ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
   gwi->oper.em = em;
   return GW_OK;
+}
+
+ANN void gwi_oper_mut(const Gwi gwi, const m_bool mut) {
+  gwi->oper.mut = 1;
 }
 
 ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
