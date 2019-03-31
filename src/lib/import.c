@@ -505,7 +505,7 @@ ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
 }
 
 ANN void gwi_oper_mut(const Gwi gwi, const m_bool mut) {
-  gwi->oper.mut = 1;
+  gwi->oper.mut = mut;
 }
 
 ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
