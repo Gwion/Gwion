@@ -16,15 +16,17 @@ struct VM_Code_ {
 
 typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
+typedef struct VM_Shred_* VM_Shred;
+
 typedef struct VM_ {
   Shreduler shreduler;
   struct Vector_ ugen;
   struct BBQ_* bbq;
   struct Gwion_* gwion;
   uint32_t rand[2];
+  VM_Shred cleaner_shred;
 } VM;
 
-typedef struct VM_Shred_* VM_Shred;
 
 struct ShredInfo_ {
   VM* vm;

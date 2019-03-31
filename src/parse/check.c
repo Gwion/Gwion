@@ -785,7 +785,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
       check_class_def(env, ptr->def);
   }
   t = depth ? array_type(ptr, depth) : ptr;
-  stmt->v = new_value(env->gwion, t, s_name(stmt->sym));
+  stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_conts(env, stmt->self, stmt->body);
@@ -1042,7 +1042,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
 }
 
 ANN static Value set_variadic(const Env env) {
-  const Value variadic = new_value(env->gwion, t_vararg, "vararg");
+  const Value variadic = new_value(t_vararg, "vararg");
   SET_FLAG(variadic, checked);
   nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
   return variadic;
@@ -1082,7 +1082,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       ret = err_msg(f->td ? f->td->xid->pos : 0, "...in function '%s'", 
          s_name(f->name));
     if(variadic)
-      REM_REF(variadic)
+      REM_REF(variadic, env->gwion)
     if(GET_FLAG(f, builtin))
       func->code->stack_depth = f->stack_depth;
     else if(GET_FLAG(f, op))
@@ -1102,7 +1102,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->ext->array->exp))
     if(!GET_FLAG(class_def->type, check) && class_def->tmpl)
-      REM_REF(class_def->type->parent->nspc);
+      REM_REF(class_def->type->parent->nspc, env->gwion);
   }
   if(class_def->ext->types) {
     const Type t = class_def->type->parent->array_depth ?

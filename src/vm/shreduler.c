@@ -45,7 +45,7 @@ ANN static void unwind(const VM_Shred shred) {
     const m_bit exec = (m_bit)((Instr)vector_back(code->instr))->opcode;
     if(exec == eFuncReturn) {
       code = *(VM_Code*)(shred->mem - SZ_INT*3);
-      REM_REF(code);
+      REM_REF(code, shred->info->vm->gwion);
       shred->mem -= *(m_uint*)(shred->mem - SZ_INT);
     } else break;
   }

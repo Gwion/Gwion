@@ -18,62 +18,57 @@ ANN void nspc_commit(const Nspc nspc) {
   scope_commit(&nspc->info->type);
 }
 
-ANN static void nspc_release_object(const Nspc a, Value value) {
-//  if(value->d.ptr || (GET_FLAG(value, static) && a->info->class_data) ||
+ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
   if((GET_FLAG(value, static) && a->info->class_data) ||
     (value->d.ptr && GET_FLAG(value, builtin))) {
-    const VM_Code code = new_vm_code(NULL, 0, ae_flag_builtin, "in code dtor");
-    const VM_Shred s = new_vm_shred(code);
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->info->class_data + value->offset);
-    s->info->vm = value->gwion->vm;
-    release(obj, s);
-    free_vm_shred(s);
+    release(obj, gwion->vm->cleaner_shred);
   }
 }
 
-ANN static void free_nspc_value(const Nspc a) {
+ANN static void free_nspc_value(const Nspc a, void *gwion) {
   struct scope_iter iter = { &a->info->value, 0, 0 };
   Value v;
   while(scope_iter(&iter, &v) > 0) {
     if(isa(v->type, t_object) > 0  ||
         (isa(v->type, t_union) > 0 &&
         (GET_FLAG(v, static) || GET_FLAG(v, global)))) {
-      nspc_release_object(a, v);
+      nspc_release_object(a, v, gwion);
     }
-    REM_REF(v);
+    REM_REF(v, gwion);
   }
   scope_release(&a->info->value);
 }
 
 #define describe_nspc_free(A, b) \
-ANN static void nspc_free_##b(Nspc n) {\
+ANN static void nspc_free_##b(Nspc n, void *gwion) {\
   struct scope_iter iter = { &n->info->b, 0, 0 };\
   A a;\
   while(scope_iter(&iter, &a) > 0) \
-    REM_REF(a);\
+    REM_REF(a, gwion);\
   scope_release(&n->info->b);\
 }
 
 describe_nspc_free(Func, func)
 describe_nspc_free(Type, type)
 
-ANN static void free_nspc(Nspc a) {
-  nspc_free_func(a);
-  nspc_free_type(a);
-  free_nspc_value(a);
+ANN static void free_nspc(Nspc a, void *gwion) {
+  nspc_free_func(a, gwion);
+  nspc_free_type(a, gwion);
+  free_nspc_value(a, gwion);
 
   if(a->info->class_data)
     free(a->info->class_data);
   if(a->info->vtable.ptr)
     vector_release(&a->info->vtable);
   if(a->info->op_map.ptr)
-    free_op_map(&a->info->op_map);
+    free_op_map(&a->info->op_map, gwion);
   mp_free(NspcInfo, a->info);
   if(a->pre_ctor)
-    REM_REF(a->pre_ctor);
+    REM_REF(a->pre_ctor, gwion);
   if(a->dtor)
-    REM_REF(a->dtor);
+    REM_REF(a->dtor, gwion);
   mp_free(Nspc, a);
 }
 

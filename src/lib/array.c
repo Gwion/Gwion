@@ -61,7 +61,7 @@ static DTOR(array_dtor) {
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
   free_m_vector(a);
-  REM_REF(t)
+  REM_REF(t, shred->info->vm->gwion)
 }
 
 ANN M_Object new_array(const Type t, const m_uint length) {

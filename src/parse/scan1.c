@@ -73,7 +73,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(decl->type, var->array->depth);
     }
-    const Value v = var->value = former ? former : new_value(env->gwion, t, s_name(var->xid));
+    const Value v = var->value = former ? former : new_value(t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
@@ -179,7 +179,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   do {
     CHECK_BB(already_defined(env, list->xid, stmt->self->pos))
-    const Value v = new_value(env->gwion, stmt->t, s_name(list->xid));
+    const Value v = new_value(stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       v->owner = env->curr;

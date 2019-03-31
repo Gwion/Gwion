@@ -48,10 +48,10 @@ ANN void env_reset(const Env env) {
   switch_reset(env);
 }
 
-ANN static void free_env_scope(struct Env_Scope_  *a) {
+ANN static void free_env_scope(struct Env_Scope_  *a, void *gwion) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = size + 1; --i;)
-    REM_REF((Context)vector_at(&a->known_ctx, i - 1));
+    REM_REF((Context)vector_at(&a->known_ctx, i - 1), gwion);
   vector_release(&a->known_ctx);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
@@ -63,8 +63,8 @@ ANN static void free_env_scope(struct Env_Scope_  *a) {
 
 ANN void free_env(const Env a) {
   switch_reset(a);
-  free_env_scope(a->scope);
-  REM_REF(a->global_nspc);
+  free_env_scope(a->scope, a->gwion);
+  REM_REF(a->global_nspc, a->gwion);
   free(a);
 }
 
@@ -89,7 +89,7 @@ ANN void env_add_type(const Env env, const Type type) {
   v_type->d.base_type = type;
   SET_FLAG(type, builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
-  const Value v = new_value(env->gwion, v_type, type->name);
+  const Value v = new_value(v_type, type->name);
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
@@ -105,7 +105,7 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
     nspc_commit(env->curr);
     vector_add(&env->scope->known_ctx, (vtype)ctx);
   } else //nspc_rollback(env->global_nspc);
-    REM_REF(ctx);
+    REM_REF(ctx, env->gwion);
   unload_context(ctx, env);
   return ret;
 }

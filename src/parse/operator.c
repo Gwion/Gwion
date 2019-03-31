@@ -24,23 +24,23 @@ typedef struct M_Operator_{
   m_bool mut;
 } M_Operator;
 
-ANN static void free_op(M_Operator* a) {
+ANN static void free_op(M_Operator* a, void *gwion) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)
-    REM_REF(a->lhs)
+    REM_REF(a->lhs, gwion)
   if(a->rhs && a->rhs != OP_ANY_TYPE)
-    REM_REF(a->rhs)
+    REM_REF(a->rhs, gwion)
   if(a->ret)
-    REM_REF(a->ret)
+    REM_REF(a->ret, gwion)
   mp_free(M_Operator, a);
 }
 
-ANN void free_op_map(Map map) {
+ANN void free_op_map(Map map, void *gwion) {
   LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
     const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
-      free_op((M_Operator*)vector_at(v, j - 1));
+      free_op((M_Operator*)vector_at(v, j - 1), gwion);
     free_vector(v);
   }
   map_release(map);

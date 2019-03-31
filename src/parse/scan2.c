@@ -51,7 +51,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
 ANN static Value arg_value(const Env env, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
-    const Value v = new_value(env->gwion, list->type,
+    const Value v = new_value(list->type,
       var->xid ? s_name(var->xid) : s_name(insert_symbol((m_str)var)));
     if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
@@ -337,7 +337,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(env->gwion, t, t->name);
+  const Value v = new_value(t, t->name);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
@@ -412,11 +412,11 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
   CHECK_BB(env_add_op(env, &opi))
   if(env->class_def) {
     if(env->class_def == l)
-      REM_REF(l)
+      REM_REF(l, env->gwion)
     if(env->class_def == r)
-      REM_REF(r)
+      REM_REF(r, env->gwion)
     if(env->class_def == f->ret_type)
-      REM_REF(f->ret_type)
+      REM_REF(f->ret_type, env->gwion)
   }
   return GW_OK;
 }

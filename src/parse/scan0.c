@@ -12,7 +12,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 
 ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(t_class);
-  const Value v = new_value(env->gwion, t, base->name);
+  const Value v = new_value(t, base->name);
   t->d.base_type = base;
   v->owner = base->owner;
   SET_FLAG(v, const | ae_flag_checked);
@@ -114,7 +114,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
        !!stmt->type_xid);
-    stmt->value = new_value(env->gwion, t, s_name(stmt->xid));
+    stmt->value = new_value(t, s_name(stmt->xid));
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);

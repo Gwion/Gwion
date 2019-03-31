@@ -46,7 +46,7 @@ void free_vm_shred(VM_Shred shred) {
   for(m_uint i = vector_size(&shred->gc) + 1; --i;)
     release((M_Object)vector_at(&shred->gc, i - 1), shred);
   vector_release(&shred->gc);
-  REM_REF(shred->code);
+  REM_REF(shred->code, shred->info->vm->gwion);
   mp_free(ShredTick, shred->tick);
   free_shredinfo(shred->info);
   mp_free(Stack, shred);

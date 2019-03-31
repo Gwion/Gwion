@@ -92,7 +92,11 @@ ANN void gwion_run(const Gwion gwion) {
 }
 
 ANN void gwion_end(const Gwion gwion) {
+  const VM_Code code = new_vm_code(NULL, 0, ae_flag_builtin, "in code dtor");
+  gwion->vm->cleaner_shred = new_vm_shred(code);
+  gwion->vm->cleaner_shred->info->vm = gwion->vm;
   free_env(gwion->env);
+  free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
   free_plug(gwion);

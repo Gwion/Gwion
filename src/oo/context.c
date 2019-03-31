@@ -6,8 +6,8 @@
 #include "nspc.h"
 #include "context.h"
 
-ANN static void free_context(const Context a) {
-  REM_REF(a->nspc)
+ANN static void free_context(const Context a, void *gwion) {
+  REM_REF(a->nspc, gwion)
   mp_free(Context, a);
 }
 
@@ -34,6 +34,6 @@ ANN void unload_context(const Context context, const Env env) {
       free_map((Map)map_at(&context->lbls, i));
     map_release(&context->lbls);
   }
-  REM_REF(context);
+  REM_REF(context, env->gwion);
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
 }

@@ -6,11 +6,11 @@
 #include "type.h"
 #include "nspc.h"
 
-ANN static void free_type(Type a) {
+ANN static void free_type(Type a, void *gwion) {
   if(GET_FLAG(a, template))
     free_class_def(a->def);
   if(a->nspc)
-    REM_REF(a->nspc);
+    REM_REF(a->nspc, gwion);
   mp_free(Type, a);
 }
 

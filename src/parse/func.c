@@ -8,13 +8,13 @@
 #include "nspc.h"
 #include "func.h"
 
-ANN static void free_func(Func a) {
+ANN static void free_func(Func a, void *gwion) {
   if(GET_FLAG(a, template)) {
     free_tmpl_list(a->def->tmpl);
     mp_free(Func_Def, a->def);
   }
   if(a->code)
-    REM_REF(a->code);
+    REM_REF(a->code, gwion);
   mp_free(Func, a);
 }
 
