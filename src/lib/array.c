@@ -28,7 +28,7 @@ ANN m_uint m_vector_size(const M_Vector v) {
 
 M_Vector new_m_vector(const m_uint size) {
   const M_Vector array = mp_alloc(M_Vector);
-const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
+  const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
   ARRAY_CAP(array)   = 2;
   ARRAY_SIZE(array)  = size;
@@ -187,6 +187,13 @@ static OP_CHECK(opck_array_cast) {
   return t_null;
 }
 
+static FREEARG(freearg_array) {
+  ArrayInfo* info = (ArrayInfo*)instr->m_val;
+  REM_REF((Type)vector_back(&info->type), gwion);
+  vector_release(&info->type);
+  mp_free(ArrayInfo, info);
+}
+
 GWION_IMPORT(array) {
   t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object);
   SET_FLAG((t_array), abstract);
@@ -218,6 +225,7 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
+  register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }
 

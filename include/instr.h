@@ -34,7 +34,7 @@ INSTR(DTOR_EOC);
 INSTR(DtorReturn);
 
 /* branching */
-INSTR(BranchSwitch);
+INSTR(SwitchBranch);
 INSTR(SwitchIni);
 INSTR(SwitchEnd);
 

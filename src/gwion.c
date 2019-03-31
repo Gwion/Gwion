@@ -60,6 +60,7 @@ ANN VM* gwion_cpy(const VM* src) {
   gwion->vm->bbq->si = soundinfo_cpy(src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
+  gwion->freearg = src->gwion->freearg;
   return gwion->vm;
 }
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
@@ -75,6 +76,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   arg->si = gwion->vm->bbq->si;
   arg_parse(arg);
   gwion->plug = new_plug(&arg->lib);
+  map_init(&gwion->freearg);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
     gwion_compile(gwion, &arg->add);
@@ -100,5 +102,6 @@ ANN void gwion_end(const Gwion gwion) {
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
   free_plug(gwion);
+  map_release(&gwion->freearg);
   free_symbols();
 }

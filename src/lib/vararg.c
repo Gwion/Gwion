@@ -71,6 +71,10 @@ static INSTR(VarargAssign) { GWDEBUG_EXE
   *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
 }
 
+FREEARG(freearg_vararg) {
+  if(instr->m_val2)
+    free_vector((Vector)instr->m_val2);
+}
 GWION_IMPORT(vararg) {
   CHECK_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
@@ -101,5 +105,6 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
   CHECK_BB(gwi_oper_end(gwi, op_ref, VarargAssign))
+  register_freearg(gwi, VarargIni, freearg_vararg);
   return GW_OK;
 }

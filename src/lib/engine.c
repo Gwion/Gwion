@@ -15,6 +15,22 @@
 #include "engine.h"
 #include "gwion.h"
 
+static FREEARG(freearg_switchini) {
+  free_vector((Vector)instr->m_val);
+  free_map((Map)instr->m_val2);
+}
+
+static FREEARG(freearg_switchbranch) {
+  free_map((Map)instr->m_val2);
+}
+
+static FREEARG(freearg_gack) {
+  const Vector v = (Vector)instr->m_val2;
+  for(m_uint i = vector_size(v) + 1; --i;)
+    REM_REF(((Type)vector_at(v, i - 1)), gwion);
+  free_vector(v);
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
   CHECK_OB((t_void  = gwi_mk_type(gwi, "void", 0, NULL)))
@@ -63,6 +79,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(import_string(gwi))
   CHECK_BB(import_shred(gwi))
   CHECK_BB(import_modules(gwi))
+  register_freearg(gwi, SwitchIni, freearg_switchini);
+  register_freearg(gwi, SwitchBranch, freearg_switchbranch);
+  register_freearg(gwi, Gack, freearg_gack);
   return GW_OK;
 }
 
@@ -70,15 +89,13 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   vm->gwion->env->name = "[builtin]";
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
-  gwi.vm = vm;
-  gwi.emit = vm->gwion->emit;
-  gwi.env = vm->gwion->env;
+  gwi.gwion = vm->gwion;
   CHECK_BB(import_core_libs(&gwi))
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)
-      env_reset(gwi.env);
+      env_reset(gwi.gwion->env);
   }
   return GW_OK;
 }

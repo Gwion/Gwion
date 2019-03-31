@@ -1266,7 +1266,7 @@ ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
   CHECK_BB(emit_exp(emit, stmt->val, 0))
   CHECK_BB(emit_switch_instr(emit, push))
   vector_add(&emit->code->stack_break, (vtype)NULL);
-  const Instr instr = emit_add_instr(emit, BranchSwitch);
+  const Instr instr = emit_add_instr(emit, SwitchBranch);
   instr->m_val2 = (m_uint)switch_map(emit->env);
   CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
   instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);

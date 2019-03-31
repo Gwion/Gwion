@@ -12,7 +12,9 @@ struct Gwion_ {
   Env      env;
   Emitter  emit;
   VM*      vm;
+  struct Map_ freearg;
 };
+
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);
 ANN VM* gwion_cpy(const VM*);
 ANN void   gwion_run(const Gwion gwion);

@@ -34,7 +34,7 @@ INSTR(SwitchIni) {
     map_set((Map)instr->m_val2, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
 }
 
-INSTR(BranchSwitch) { GWDEBUG_EXE
+INSTR(SwitchBranch) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const Map map = *(Map*)REG(SZ_INT);
   shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;

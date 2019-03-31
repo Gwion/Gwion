@@ -167,6 +167,16 @@ static OP_EMIT(opem_spork) {
   return emit_exp_spork(emit, unary);
 }
 
+static FREEARG(freearg_xork) {
+  REM_REF((VM_Code)instr->m_val, gwion)
+}
+
+static FREEARG(freearg_dottmpl) {
+  struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
+  free_type_list(dt->tl);
+  mp_free(dottmpl, dt);
+}
+
 GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
@@ -185,5 +195,8 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  return (m_bool)gwi_oper_end(gwi, op_fork, NULL);
+  CHECK_BB(gwi_oper_end(gwi, op_fork, NULL))
+  register_freearg(gwi, SporkIni, freearg_xork);
+  register_freearg(gwi, ForkIni, freearg_xork);
+  return GW_OK;
 }

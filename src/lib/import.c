@@ -17,6 +17,7 @@
 #include "func.h"
 #include "nspc.h"
 #include "operator.h"
+#include "gwion.h"
 
 struct Path {
   m_str path, curr;
@@ -34,7 +35,7 @@ ANN static ID_List templater_def(const Templater* templater) {
 }
 
 ANN VM* gwi_vm(const Gwi gwi) {
-  return gwi->vm;
+  return gwi->gwion->vm;
 }
 
 ANN m_int gwi_tmpl_end(const Gwi gwi) {
@@ -181,7 +182,7 @@ ANN2(1,2) Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str na
 ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
     CHECK_BB(name_valid(type->name));
-  env_add_type(gwi->env, type);
+  env_add_type(gwi->gwion->env, type);
   return (m_int)type->xid;
 }
 
@@ -215,39 +216,39 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
   } else
     SET_FLAG(type, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi_add_type(gwi, type);
-  import_class_ini(gwi->env, type, pre_ctor, dtor);
+  import_class_ini(gwi->gwion->env, type, pre_ctor, dtor);
   return (m_int)type->xid;
 }
 
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
-  if(!gwi->env->class_def)
+  if(!gwi->gwion->env->class_def)
     ERR_B(0, "gwi_class_ext invoked before gwi_class_ini")
-  const VM_Code ctor = gwi->env->class_def->nspc->pre_ctor;
-  if(gwi->env->class_def->parent ||
-      (gwi->env->class_def->def && gwi->env->class_def->def->ext))
+  const VM_Code ctor = gwi->gwion->env->class_def->nspc->pre_ctor;
+  if(gwi->gwion->env->class_def->parent ||
+      (gwi->gwion->env->class_def->def && gwi->gwion->env->class_def->def->ext))
     ERR_B(0, "class extend already set")
   if(td->array && !td->array->exp)
     ERR_B(0, "class extend array can't be empty")
-  if(!gwi->env->class_def->def) {
-    const Type t = known_type(gwi->env, td);
+  if(!gwi->gwion->env->class_def->def) {
+    const Type t = known_type(gwi->gwion->env, td);
     CHECK_OB(t)
     if(td->array)
-      SET_FLAG(gwi->env->class_def, typedef);
-    gwi->env->class_def->parent = t;
-    gwi->env->class_def->nspc->info->offset = t->nspc->info->offset;
+      SET_FLAG(gwi->gwion->env->class_def, typedef);
+    gwi->gwion->env->class_def->parent = t;
+    gwi->gwion->env->class_def->nspc->info->offset = t->nspc->info->offset;
     if(t->nspc->info->vtable.ptr)
-      vector_copy2(&t->nspc->info->vtable, &gwi->env->class_def->nspc->info->vtable);
-    CHECK_OB((gwi->emit->code = emit_class_code(gwi->emit,
-          gwi->env->class_def->name)))
+      vector_copy2(&t->nspc->info->vtable, &gwi->gwion->env->class_def->nspc->info->vtable);
+    CHECK_OB((gwi->gwion->emit->code = emit_class_code(gwi->gwion->emit,
+          gwi->gwion->env->class_def->name)))
     if(td->array)
-      CHECK_BB(emit_array_extend(gwi->emit, t, td->array->exp))
+      CHECK_BB(emit_array_extend(gwi->gwion->emit, t, td->array->exp))
     if(ctor)
-      emit_ext_ctor(gwi->emit, ctor);
-    emit_class_finish(gwi->emit, gwi->env->class_def->nspc);
+      emit_ext_ctor(gwi->gwion->emit, ctor);
+    emit_class_finish(gwi->gwion->emit, gwi->gwion->env->class_def->nspc);
     free_type_decl(td);
   } else {
     SET_FLAG(td, typedef);
-    gwi->env->class_def->def->ext = td;
+    gwi->gwion->env->class_def->def->ext = td;
   }
   return GW_OK;
 }
@@ -264,11 +265,11 @@ ANN static m_int import_class_end(const Env env) {
 
 #include "mpool.h"
 ANN m_int gwi_class_end(const Gwi gwi) {
-  if(!gwi->env->class_def)return GW_ERROR;
-  const Type t = gwi->env->class_def;
+  if(!gwi->gwion->env->class_def)return GW_ERROR;
+  const Type t = gwi->gwion->env->class_def;
   if(t->nspc && t->nspc->info->offset)
     t->p = mp_ini((uint32_t)t->nspc->info->offset);
-  return import_class_end(gwi->env);
+  return import_class_end(gwi->gwion->env);
 }
 
 ANN static void dl_var_new_exp_array(DL_Var* v) {
@@ -302,7 +303,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(type, &v->array_depth)))
     ERR_B(0, "\t...\tduring var import '%s.%s'.",
-          gwi->env->class_def->name, name)
+          gwi->gwion->env->class_def->name, name)
   v->var.xid = insert_symbol(name);
   return GW_OK;
 }
@@ -310,8 +311,8 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
 #undef gwi_item_end
 
 static void gwi_body(const Gwi gwi, const Class_Body body) {
-  if(!gwi->env->class_def->def->body)
-    gwi->env->class_def->def->body = body;
+  if(!gwi->gwion->env->class_def->def->body)
+    gwi->gwion->env->class_def->def->body = body;
   else
     gwi->body->next = body;
   gwi->body = body;
@@ -321,7 +322,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   DL_Var* v = &gwi->var;
   dl_var_set(v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
-  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, template)) {
+  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
     Type_Decl *type_decl = new_type_decl(v->t.xid, flag);
     const Var_Decl var_decl = new_var_decl(v->var.xid, v->var.array, 0);
     const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
@@ -334,7 +335,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     gwi_body(gwi, body);
     return GW_OK;
   }
-  CHECK_BB(traverse_decl(gwi->env, &v->exp.d.exp_decl))
+  CHECK_BB(traverse_decl(gwi->gwion->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, builtin);
   dl_var_release(v);
   return (m_int)v->var.value->offset;
@@ -444,7 +445,7 @@ ANN static Func_Def import_fun(const Env env, DL_Func * mfun, const ae_flag flag
 }
 
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
-  Func_Def def = import_fun(gwi->env, &gwi->func, flag);
+  Func_Def def = import_fun(gwi->gwion->env, &gwi->func, flag);
   CHECK_OB(def)
   if(gwi->templater.n) {
     def = new_func_def(NULL, NULL, NULL, NULL, 0);
@@ -452,13 +453,13 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, template);
   }
-  if(gwi->env->class_def && GET_FLAG(gwi->env->class_def, template)) {
+  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
     Section* section = new_section_func_def(def);
     Class_Body body = new_class_body(section, NULL);
     gwi_body(gwi, body);
     return GW_OK;
   }
-  if(traverse_func_def(gwi->env, def) < 0) {
+  if(traverse_func_def(gwi->gwion->env, def) < 0) {
     free_func_def(def);
     return GW_ERROR;
   }
@@ -510,7 +511,7 @@ ANN void gwi_oper_mut(const Gwi gwi, const m_bool mut) {
 
 ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
   gwi->oper.op = op;
-  const m_bool ret = import_op(gwi->env, &gwi->oper, f);
+  const m_bool ret = import_op(gwi->gwion->env, &gwi->oper, f);
   gwi->oper.ck = NULL;
   gwi->oper.em = NULL;
   return ret;
@@ -535,10 +536,10 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  const Stmt stmt = import_fptr(gwi->env, &gwi->func, flag);
+  const Stmt stmt = import_fptr(gwi->gwion->env, &gwi->func, flag);
 
-  CHECK_BB(traverse_stmt_fptr(gwi->env, &stmt->d.stmt_fptr))
-  if(gwi->env->class_def)
+  CHECK_BB(traverse_stmt_fptr(gwi->gwion->env, &stmt->d.stmt_fptr))
+  if(gwi->gwion->env->class_def)
     SET_FLAG(stmt->d.stmt_fptr.func->def, builtin);
   else
     SET_FLAG(stmt->d.stmt_fptr.func, builtin);
@@ -572,7 +573,7 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   const Exp exp = make_exp(type, name);
   CHECK_OB(exp);
-  const Type t = type_decl_resolve(gwi->env, exp->d.exp_decl.td);
+  const Type t = type_decl_resolve(gwi->gwion->env, exp->d.exp_decl.td);
   if(!t)
     ERR_B(0, "type '%s' unknown in union declaration.", type)
   if(isa(t, t_object) > 0)
@@ -586,10 +587,10 @@ ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
     ERR_B(0, "union is empty");
   const Stmt stmt = new_stmt_union(gwi->union_data.list, 0);
   stmt->d.stmt_union.flag = flag;
-  CHECK_BB(traverse_stmt_union(gwi->env, &stmt->d.stmt_union))
+  CHECK_BB(traverse_stmt_union(gwi->gwion->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), member))
-    gwi->env->class_def->nspc->info->offset =
+    gwi->gwion->env->class_def->nspc->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
   free_stmt(stmt);
   gwi->union_data.list = NULL;
@@ -622,7 +623,7 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
     Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&d->addr, i);
     SET_FLAG(value, builtin);
-    if(!gwi->env->class_def)
+    if(!gwi->gwion->env->class_def)
       value->d.ptr = (m_uint*)(addr ? addr : i);
     else
       value->d.ptr = (m_uint*)(addr ? *(m_uint*)addr : i);
@@ -635,11 +636,15 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
   const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL);
-  if(traverse_stmt_enum(gwi->env, &stmt->d.stmt_enum) < 0) {
+  if(traverse_stmt_enum(gwi->gwion->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return GW_ERROR;
   }
   import_enum_end(gwi, &stmt->d.stmt_enum.values);
   free_stmt(stmt);
   return GW_OK;
+}
+
+ANN void register_freearg(const Gwi gwi, const f_instr _exec, void(*_free)(const Instr, void*)) {
+  map_set(&gwi->gwion->freearg, (vtype)_exec, (vtype)_free);
 }

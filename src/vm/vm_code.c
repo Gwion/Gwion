@@ -11,43 +11,16 @@
 #include "object.h"
 #include "array.h"
 #include "memoize.h"
+#include "gwion.h"
+#include "import.h"
 
-ANN static void free_code_instr_gack(const Instr instr, void *gwion) {
-  const Vector v = (Vector)instr->m_val2;
-  for(m_uint i = vector_size(v) + 1; --i;)
-    REM_REF(((Type)vector_at(v, i - 1)), gwion);
-  free_vector(v);
-}
-
-ANN static void free_array_info(ArrayInfo* info, void *gwion) {
-  REM_REF((Type)vector_back(&info->type), gwion);
-  vector_release(&info->type);
-  mp_free(ArrayInfo, info);
-}
-
-ANN static void free_code_instr(const Vector v, void *gwion) {
+ANN static void free_code_instr(const Vector v, const Gwion gwion) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
-    if(instr->opcode == eSporkIni || instr->opcode == eForkIni)
-      REM_REF((VM_Code)instr->m_val, gwion)
-    else if(instr->execute == ArrayAlloc)
-      free_array_info((ArrayInfo*)instr->m_val, gwion);
-    else if(instr->opcode == (m_uint)Gack)
-      free_code_instr_gack(instr, gwion);
-    else if(instr->execute == BranchSwitch)
-      free_map((Map)instr->m_val2);
-    else if(instr->execute == DotTmpl) {
-      struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
-      free_type_list(dt->tl);
-      mp_free(dottmpl, dt);
-    }
-    else if(instr->execute == SwitchIni) {
-      free_vector((Vector)instr->m_val);
-      free_map((Map)instr->m_val2);
-    } else if(instr->execute == VarargIni) {
-      if(instr->m_val2)
-      free_vector((Vector)instr->m_val2);
-    }
+    const f_freearg f = (f_freearg)(map_get(&gwion->freearg, instr->opcode) ?:
+       map_get(&gwion->freearg, (vtype)instr->execute));
+    if(f)
+      f(instr, gwion);
     mp_free(Instr, instr);
   }
   free_vector(v);
@@ -60,7 +33,7 @@ ANN static void free_vm_code(VM_Code a, void *gwion) {
 #endif
   if(!GET_FLAG(a, builtin))
     free_code_instr(a->instr, gwion);
-  free(a->name);
+  xfree(a->name);
   mp_free(VM_Code, a);
 }
 

@@ -45,10 +45,8 @@ typedef struct {
   Decl_List list;
 } DL_Union;
 
-struct Gwi_{
-  VM* vm;
-  Emitter emit;
-  Env env;
+struct Gwi_ {
+  struct Gwion_* gwion;
   Class_Body body;
   DL_Var var;
   DL_Func func;
