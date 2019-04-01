@@ -44,7 +44,7 @@ static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
 Memoize memoize_ini(const Func f, const enum Kind kind) {
   Memoize m = mp_alloc(Memoize);
   vector_init(&m->v);
-  m->ret_sz = f->def->ret_type->size;
+  m->ret_sz = f->def->base->ret_type->size;
   m->kind = kind;
   if(!GET_FLAG(f, member))
     m->arg_sz = f->def->stack_depth;
