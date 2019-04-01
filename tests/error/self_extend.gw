@@ -2,3 +2,5 @@
 class C extends C {
 
 }
+C c;
+<<<c>>>;

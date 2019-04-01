@@ -104,7 +104,7 @@ ANN m_bool type_ref(Type t) {
     if(GET_FLAG(t, empty))
       return GW_OK;
     if(GET_FLAG(t, typedef) && t->def)
-      if(t->def->ext && t->def->ext->array && !t->def->ext->array->exp)
+      if(t->def->base.ext && t->def->base.ext->array && !t->def->base.ext->array->exp)
         return GW_OK;
   } while((t = t->parent));
   return 0;

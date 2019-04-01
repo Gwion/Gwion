@@ -206,8 +206,8 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
 }
 
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  CHECK_OB((ptr->ret_type = known_type(env, ptr->td)))
-  return ptr->args ? scan1_args(env, ptr->args) : GW_OK;
+  CHECK_OB((ptr->base->ret_type = known_type(env, ptr->base->td)))
+  return ptr->base->args ? scan1_args(env, ptr->base->args) : GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
@@ -276,11 +276,11 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = FAKE_FUNC;
   ++env->scope->depth;
   if(GET_FLAG(f, dtor) && !env->class_def)
-    ERR_B(f->td->xid->pos, "dtor must be in class def!!")
-  if(f->td)
-    CHECK_OB((f->ret_type = known_type(env, f->td)))
-  if(f->args)
-    CHECK_BB(scan1_args(env, f->args))
+    ERR_B(f->base->td->xid->pos, "dtor must be in class def!!")
+  if(f->base->td)
+    CHECK_OB((f->base->ret_type = known_type(env, f->base->td)))
+  if(f->base->args)
+    CHECK_BB(scan1_args(env, f->base->args))
   if(!GET_FLAG(f, builtin))
     CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
   if(GET_FLAG(f, op) && env->class_def)
@@ -293,25 +293,25 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 DECL_SECTION_FUNC(scan1)
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-  if(class_def->ext->array)
-    CHECK_BB(scan1_exp(env, class_def->ext->array->exp))
-  const Type parent = class_def->type->parent = known_type(env, class_def->ext);
+  if(class_def->base.ext->array)
+    CHECK_BB(scan1_exp(env, class_def->base.ext->array->exp))
+  const Type parent = class_def->base.type->parent = known_type(env, class_def->base.ext);
   CHECK_OB(parent)
-  if(parent == class_def->type)
-    ERR_B(class_def->ext->xid->pos, "class '%s' cannot extend itself",
-      class_def->type->name);
-  if(isa(class_def->type->parent, t_object) < 0)
-    ERR_B(class_def->ext->xid->pos, "cannot extend primitive type '%s'",
-            class_def->type->parent->name)
+  if(parent == class_def->base.type)
+    ERR_B(class_def->base.ext->xid->pos, "class '%s' cannot extend itself",
+      class_def->base.type->name);
+  if(isa(class_def->base.type->parent, t_object) < 0)
+    ERR_B(class_def->base.ext->xid->pos, "cannot extend primitive type '%s'",
+            class_def->base.type->parent->name)
   if(!GET_FLAG(parent, scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
-    ERR_B(class_def->ext->xid->pos, "can't use ref type in class extend")
+    ERR_B(class_def->base.ext->xid->pos, "can't use ref type in class extend")
   return GW_OK;
 }
 
 ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push_type(env, class_def->type);
+  const m_uint scope = env_push_type(env, class_def->base.type);
   Class_Body body = class_def->body;
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));
@@ -322,11 +322,11 @@ ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
-  if(class_def->ext)
+  if(class_def->base.ext)
     CHECK_BB(scan1_class_parent(env, class_def))
   if(class_def->body)
     CHECK_BB(scan1_class_body(env, class_def))
-  SET_FLAG(class_def->type, scan1);
+  SET_FLAG(class_def->base.type, scan1);
   return GW_OK;
 }
 

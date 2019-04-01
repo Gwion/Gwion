@@ -46,7 +46,7 @@ ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
   const Func l_func = bin->lhs->type->d.func;
   const Func r_func = bin->rhs->type->d.func;
   const Nspc nspc = l_func->value_ref->owner;
-  const m_str c = s_name(l_func->def->name);
+  const m_str c = s_name(l_func->def->base->xid);
   const Value v = l_func->value_ref;
   for(m_uint i = 0; i <= v->offset; ++i) {
     const Symbol sym = func_symbol(env, nspc->name, c, NULL, i);
@@ -62,7 +62,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     Exp_Lambda *l, const Func_Def def) {
   const m_uint scope = ((l->owner = owner)) ?
     env_push_type(env, owner) : env->scope->depth;
-  Arg_List base = def->args, arg = l->arg;
+  Arg_List base = def->base->args, arg = l->args;
   while(base && arg) {
     arg->td = base->td;
     base = base->next;
@@ -70,9 +70,9 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(l->self->pos, "argument number does not match for lambda")
-  l->def = new_func_def(def->td, l->name, l->arg, l->code, def->flag);
+  l->def = new_func_def(new_func_base(def->base->td, l->name, l->args), l->code, def->flag);
   const m_bool ret = traverse_func_def(env, l->def);
-  arg = l->arg;
+  arg = l->args;
   while(arg) {
     arg->td = NULL;
     arg = arg->next;
@@ -111,12 +111,12 @@ static OP_CHECK(opck_fptr_at) {
       ERR_N(bin->self->pos, "can't assign static function to member function pointer")
   } else if(GET_FLAG(l_func, member))
       ERR_N(bin->self->pos, "can't assign member function to static function pointer")
-  if(isa(r_fdef->ret_type, l_fdef->ret_type) < 0)
+  if(isa(r_fdef->base->ret_type, l_fdef->base->ret_type) < 0)
     ERR_N(bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
-         r_fdef->ret_type->name, l_fdef->ret_type->name)
+         r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
   if(GET_FLAG(l_fdef, variadic) != GET_FLAG(r_fdef, variadic))
     ERR_N(bin->self->pos, "function must be of same argument kind.",
-         r_fdef->ret_type->name, l_fdef->ret_type->name)
+         r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
   if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
     return bin->rhs->type;
   return fptr_type(env, bin);

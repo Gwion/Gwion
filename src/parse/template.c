@@ -67,7 +67,7 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
 
 ANN static size_t template_size(const Env env, struct tmpl_info* info) {
   ID_List base = info->cdef->tmpl->list.list;
-  size_t size = tmpl_set(info, info->cdef->type);
+  size_t size = tmpl_set(info, info->cdef->base.type);
   do size += tmpl_set(info, type_decl_resolve(env, info->call->td));
   while((info->call = info->call->next) && (base = base->next) && ++size);
   return size + 16 + 3;
@@ -88,7 +88,7 @@ ANN static void template_name(const Env env, struct tmpl_info* info, m_str s) {
     str = tmpl_get(info, str);
     *str++ = (info->index < size - 1) ? ',' : '>';
    }
-  if(info->cdef->type->owner == env->global_nspc)
+  if(info->cdef->base.type->owner == env->global_nspc)
     sprintf(str, "%p", (void*)env->curr);
   else
     *str = '\0';
@@ -113,7 +113,7 @@ ANN m_bool template_match(ID_List base, Type_List call) {
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
   const Symbol name = template_id(env, def, call);
   const Type t = nspc_lookup_type1(env->curr, name);
-  return t ? t->def : new_class_def(def->flag, name, def->ext, def->body);
+  return t ? t->def : new_class_def(def->flag, name, def->base.ext, def->body, def->pos);
 }
 
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
@@ -148,24 +148,24 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     CHECK_BO(template_push_types(env, t->def->tmpl->list.list, type->types))
     const Class_Def a = template_class(env, t->def, type->types);
     SET_FLAG(a, ref);
-    if(a->type)
-      POP_RET(a->type);
+    if(a->base.type)
+      POP_RET(a->base.type);
     CHECK_BO(scan0_class_def(env, a))
-    SET_FLAG(a->type, template | ae_flag_ref);
-    a->type->owner = t->owner;
+    SET_FLAG(a->base.type, template | ae_flag_ref);
+    a->base.type->owner = t->owner;
     if(GET_FLAG(t, builtin))
-      SET_FLAG(a->type, builtin);
+      SET_FLAG(a->base.type, builtin);
     CHECK_BO(scan1_class_def(env, a))
     nspc_pop_type(env->curr);
     if(t->nspc->dtor) {
-      a->type->nspc->dtor = t->nspc->dtor;
-      SET_FLAG(a->type, dtor);
+      a->base.type->nspc->dtor = t->nspc->dtor;
+      SET_FLAG(a->base.type, dtor);
       ADD_REF(t->nspc->dtor)
     }
     a->tmpl = new_tmpl_class(get_total_type_list(env, t), 0);
     a->tmpl->base = type->types;
-    nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
-    return a->type;
+    nspc_add_type(t->owner, insert_symbol(a->base.type->name), a->base.type);
+    return a->base.type;
   } else if(type->types)
       ERR_O(type->xid->pos,
             "type '%s' is not template. You should not provide template types", t->name)

@@ -612,7 +612,7 @@ else
 
 ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   Exp e = exp_call->args;
-  Arg_List l = exp_call->m_func->def->args;
+  Arg_List l = exp_call->m_func->def->base->args;
   m_uint size = 0;
   while(e) {
     if(!l) {
@@ -829,7 +829,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   const Instr offset = emit_add_instr(emit, RegSetImm);
   offset->m_val = emit_code_offset(emit);
   const Instr instr = emit_call(emit, f);
-  instr->m_val = f->def->ret_type->size;
+  instr->m_val = f->def->base->ret_type->size;
   instr->m_val2 = offset->m_val;
   return GW_OK;
 }
@@ -923,7 +923,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     const m_uint size = f->def->stack_depth - (GET_FLAG(f, member) ? SZ_INT : 0);
     emit_exp_spork_finish(emit, code, size);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
-    end->m_val2 = unary->exp->d.exp_call.m_func->def->ret_type->size;
+    end->m_val2 = unary->exp->d.exp_call.m_func->def->base->ret_type->size;
   }
   return GW_OK;
 }
@@ -970,7 +970,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
     if(GET_FLAG(lambda->def, member))
       emit_add_instr(emit, RegPushMem);
     const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)lambda->def->func->code;
+    instr->m_val = (m_uint)lambda->def->base->func->code;
     if(lambda->owner)
       emit_pop(emit, scope);
   } else
@@ -1503,7 +1503,7 @@ ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWD
 
 ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   m_uint offset = emit->env->class_def ? SZ_INT : 0;
-  Arg_List l = emit->env->func->def->args;
+  Arg_List l = emit->env->func->def->base->args;
   const m_str str = s_name(member->xid);
   while(l) {
     offset += l->type->size;
@@ -1625,7 +1625,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) { GWDEBUG_EXE
 }
 
 ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
-  const m_uint size = func_def->ret_type->size;
+  const m_uint size = func_def->base->ret_type->size;
   if(size) {
     const Instr instr = emit_kind(emit, size, 0, regpushimm);
     instr->m_val2 = size;
@@ -1658,8 +1658,8 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBU
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
-  if(func_def->args)
-    emit_func_def_args(emit, func_def->args);
+  if(func_def->base->args)
+    emit_func_def_args(emit, func_def->base->args);
   if(GET_FLAG(func_def, variadic))
     stack_alloc(emit);
   if(func_def->d.code->d.stmt_code.stmt_list)
@@ -1686,7 +1686,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, variadic) && !emit->env->func->variadic)
-    ERR_B(func_def->td->xid->pos, "invalid variadic use")
+    ERR_B(func_def->base->td->xid->pos, "invalid variadic use")
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;
@@ -1724,13 +1724,13 @@ ANN static inline void emit_class_pop(const Emitter emit) { GWDEBUG_EXE
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) { GWDEBUG_EXE
-  const Type type = class_def->type;
+  const Type type = class_def->base.type;
   const Nspc nspc = type->nspc;
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
-  if(class_def->ext && ((/*!GET_FLAG(type->parent, emit) &&*/
-      GET_FLAG(class_def->ext, typedef)) || class_def->ext->types)) {
-    const Type base = class_def->ext->array ?
+  if(class_def->base.ext && ((/*!GET_FLAG(type->parent, emit) &&*/
+      GET_FLAG(class_def->base.ext, typedef)) || class_def->base.ext->types)) {
+    const Type base = class_def->base.ext->array ?
              array_base(type->parent) : type->parent;
     if(!base->nspc->pre_ctor)
       CHECK_BB(emit_class_def(emit, base->def))
@@ -1739,8 +1739,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
     nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
   emit_class_push(emit, type);
   emit_class_code(emit, type->name);
-  if(class_def->ext && class_def->ext->array)
-    CHECK_BB(emit_array_extend(emit, type->parent, class_def->ext->array->exp))
+  if(class_def->base.ext && class_def->base.ext->array)
+    CHECK_BB(emit_array_extend(emit, type->parent, class_def->base.ext->array->exp))
   if(class_def->body) {
     Class_Body body = class_def->body;
     do CHECK_BB(emit_section(emit, body->section))

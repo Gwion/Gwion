@@ -209,9 +209,9 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     ERR_B(0, "during import: class '%s' already imported.", type->name)
   if(gwi->templater.n) {
     const ID_List types = templater_def(gwi->gwion->st,&gwi->templater);
-    type->def = new_class_def(0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL);
+    type->def = new_class_def(0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, 0);
     type->def->tmpl = new_tmpl_class(types, -1);
-    type->def->type = type;
+    type->def->base.type = type;
     SET_FLAG(type, template);
   } else
     SET_FLAG(type, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
@@ -225,7 +225,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     ERR_B(0, "gwi_class_ext invoked before gwi_class_ini")
   const VM_Code ctor = gwi->gwion->env->class_def->nspc->pre_ctor;
   if(gwi->gwion->env->class_def->parent ||
-      (gwi->gwion->env->class_def->def && gwi->gwion->env->class_def->def->ext))
+      (gwi->gwion->env->class_def->def && gwi->gwion->env->class_def->def->base.ext))
     ERR_B(0, "class extend already set")
   if(td->array && !td->array->exp)
     ERR_B(0, "class extend array can't be empty")
@@ -248,7 +248,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     free_type_decl(td);
   } else {
     SET_FLAG(td, typedef);
-    gwi->gwion->env->class_def->def->ext = td;
+    gwi->gwion->env->class_def->def->base.ext = td;
   }
   return GW_OK;
 }
@@ -434,7 +434,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
-  func_def = new_func_def(type_decl, insert_symbol(env->gwion->st, name), arg_list, NULL, flag);
+  func_def = new_func_def(new_func_base(type_decl, insert_symbol(env->gwion->st, name), arg_list), NULL, flag);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -448,7 +448,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   Func_Def def = import_fun(gwi->gwion->env, &gwi->func, flag);
   CHECK_OB(def)
   if(gwi->templater.n) {
-    def = new_func_def(NULL, NULL, NULL, NULL, 0);
+    def = new_func_def(new_func_base(NULL, NULL, NULL), NULL, 0);
     const ID_List list = templater_def(gwi->gwion->st, &gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, template);
@@ -532,17 +532,17 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(type_path, 0)))
     ERR_O(0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
-  return new_stmt_fptr(insert_symbol(env->gwion->st, dl_fun->name), type_decl, args, flag);
+  struct Func_Base_ *base = new_func_base(type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
+  return new_stmt_fptr(base, flag);
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Stmt stmt = import_fptr(gwi->gwion->env, &gwi->func, flag);
-
   CHECK_BB(traverse_stmt_fptr(gwi->gwion->env, &stmt->d.stmt_fptr))
   if(gwi->gwion->env->class_def)
-    SET_FLAG(stmt->d.stmt_fptr.func->def, builtin);
+    SET_FLAG(stmt->d.stmt_fptr.base->func->def, builtin);
   else
-    SET_FLAG(stmt->d.stmt_fptr.func, builtin);
+    SET_FLAG(stmt->d.stmt_fptr.base->func, builtin);
   ADD_REF(stmt->d.stmt_fptr.type);
   free_stmt(stmt);
   return GW_OK;

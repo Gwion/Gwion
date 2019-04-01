@@ -47,7 +47,7 @@ static SFUN(cb_func) {
   struct ret_info* info = (struct ret_info*)xmalloc(sizeof(struct ret_info));
   info->offset = offset;
   info->code = shred->code;
-  info->size = f->def->ret_type->size;
+  info->size = f->def->base->ret_type->size;
   info->pc = shred->pc;
   instr->execute = my_ret;
 //  *(VM_Code*)instr->ptr = shred->code;

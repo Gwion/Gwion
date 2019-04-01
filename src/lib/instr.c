@@ -62,13 +62,13 @@ INSTR(PopArrayClass) { GWDEBUG_EXE
 #include "template.h"
 
 ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Type t) {
-  const Symbol sym = func_symbol(env, t->name, s_name(dt->base->name),
+  const Symbol sym = func_symbol(env, t->name, s_name(dt->base->base->xid),
     "template", dt->overload);
   const Value v = nspc_lookup_value1(t->nspc, sym);
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(base->td, insert_symbol(env->gwion->st, v->name),
-            base->args, base->d.code, base->flag);
+  const Func_Def def = new_func_def(new_func_base(base->base->td, insert_symbol(env->gwion->st, v->name),
+            base->base->args), base->d.code, base->flag);
   def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
   return def;
@@ -103,7 +103,7 @@ INSTR(DotTmpl) {
       dt->def = def; //
       dt->owner = t; //
       if(traverse_dot_tmpl(emit, dt) > 0) {
-        *(VM_Code*)shred->reg = def->func->code;
+        *(VM_Code*)shred->reg = def->base->func->code;
         shred->reg += SZ_INT;
         return;
       }

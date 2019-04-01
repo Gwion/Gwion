@@ -1,2 +1,4 @@
 // [contains] unknown type
 class C extends Undefined {}
+C c;
+<<<c>>>;

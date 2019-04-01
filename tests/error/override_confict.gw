@@ -8,3 +8,8 @@ class D extends C
 {
 	function void test() {}
 }
+
+C c;
+D d;
+<<<c>>>;
+<<<d>>>;
