@@ -8,6 +8,8 @@
 #include "type.h"
 #include "context.h"
 #include "nspc.h"
+#include "vm.h"
+#include "parse.h"
 
 ANN Map env_label(const Env env) {
   return &env->context->lbls;

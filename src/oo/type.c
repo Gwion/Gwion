@@ -5,6 +5,8 @@
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
+#include "vm.h"
+#include "parse.h"
 
 ANN static void free_type(Type a, void *gwion) {
   if(GET_FLAG(a, template))
@@ -65,7 +67,7 @@ ANN Type array_base(Type type) {
   return t->d.base_type;
 }
 
-ANN Type array_type(const Type base, const m_uint depth) {
+ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   m_uint i = depth + 1;
   size_t len = strlen(base->name);
   char name[len + 2* depth + 1];
@@ -92,8 +94,8 @@ ANN Type array_type(const Type base, const m_uint depth) {
 }
 
 __attribute__((returns_nonnull))
-ANN Type template_parent(const Type type) {
-  const m_str name = get_type_name(type->name, 0);
+ANN Type template_parent(const Env env, const Type type) {
+  const m_str name = get_type_name(env, type->name, 0);
   return nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
 }
 
@@ -108,7 +110,7 @@ ANN m_bool type_ref(Type t) {
   return 0;
 }
 
-ANN m_str get_type_name(const m_str s, const m_uint index) {
+ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
   m_str name = strstr(s, "<");
   m_uint i = 0;
   m_uint lvl = 0;

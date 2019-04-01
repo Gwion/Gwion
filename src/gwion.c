@@ -64,6 +64,7 @@ ANN VM* gwion_cpy(const VM* src) {
   return gwion->vm;
 }
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
+  gwion->st = new_symbol_table(65347);
   gwion->vm = new_vm();
   gwion->emit = new_emitter();
   gwion->env = new_env();
@@ -103,5 +104,5 @@ ANN void gwion_end(const Gwion gwion) {
   free_vm(gwion->vm);
   free_plug(gwion);
   map_release(&gwion->freearg);
-  free_symbols();
+  free_symbols(gwion->st);
 }

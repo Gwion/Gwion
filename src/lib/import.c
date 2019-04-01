@@ -24,11 +24,11 @@ struct Path {
   m_uint len;
 };
 
-ANN static ID_List templater_def(const Templater* templater) {
+ANN static ID_List templater_def(SymTable *st, const Templater* templater) {
   ID_List list[templater->n];
-  list[0] = new_id_list(insert_symbol(templater->list[0]), 0);
+  list[0] = new_id_list(insert_symbol(st, templater->list[0]), 0);
   for(m_uint i = 1; i < templater->n; i++) {
-    list[i] = new_id_list(insert_symbol(templater->list[i]), 0);
+    list[i] = new_id_list(insert_symbol(st, templater->list[i]), 0);
     list[i - 1]->next = list[i];
   }
   return list[0];
@@ -120,7 +120,7 @@ ANN static void path_valid_inner(const m_str curr) {
   }
 }
 
-ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
+ANN static m_bool path_valid(SymTable *st,ID_List* list, const struct Path* p) {
   char last = '\0';
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
@@ -130,7 +130,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
         path_valid_inner(p->curr);
-        *list = prepend_id_list(insert_symbol(p->curr), *list, 0);
+        *list = prepend_id_list(insert_symbol(st, p->curr), *list, 0);
         memset(p->curr, 0, p->len + 1);
       } else
         ERR_B(0, "path '%s' must not ini or end with '.'.", p->path)
@@ -140,7 +140,7 @@ ANN static m_bool path_valid(ID_List* list, const struct Path* p) {
   return GW_OK;
 }
 
-ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
+ANN static ID_List str2list(SymTable *st, const m_str path, m_uint* array_depth) {
   const m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;
@@ -153,14 +153,14 @@ ANN static ID_List str2list(const m_str path, m_uint* array_depth) {
     p.len -= 2;
   }
   *array_depth = depth;
-  if(path_valid(&list, &p) < 0) {
+  if(path_valid(st, &list, &p) < 0) {
     if(list)
       free_id_list(list);
     return NULL;
   }
   CHECK_OO(list)
   strncpy(curr, path, p.len);
-  list->xid = insert_symbol(curr);
+  list->xid = insert_symbol(st, curr);
   return list;
 }
 
@@ -208,8 +208,8 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
   if(type->nspc)
     ERR_B(0, "during import: class '%s' already imported.", type->name)
   if(gwi->templater.n) {
-    const ID_List types = templater_def(&gwi->templater);
-    type->def = new_class_def(0, insert_symbol(type->name), NULL, NULL);
+    const ID_List types = templater_def(gwi->gwion->st,&gwi->templater);
+    type->def = new_class_def(0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL);
     type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
     SET_FLAG(type, template);
@@ -301,10 +301,10 @@ ANN static void dl_var_release(const DL_Var* v) {
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
-  if(!(v->t.xid = str2list(type, &v->array_depth)))
+  if(!(v->t.xid = str2list(gwi->gwion->st, type, &v->array_depth)))
     ERR_B(0, "\t...\tduring var import '%s.%s'.",
           gwi->gwion->env->class_def->name, name)
-  v->var.xid = insert_symbol(name);
+    v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
 
@@ -361,9 +361,9 @@ ANN /*static */ Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
 
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   m_uint i = 0;
-  m_str type_name = get_type_name(s, i++);
+  m_str type_name = get_type_name(env, s, i++);
   CHECK_OO(type_name)
-  ID_List id = str2list(type_name, depth);
+  ID_List id = str2list(env->gwion->st, type_name, depth);
   CHECK_OO(id)
   Type_Decl* td = new_type_decl(id, 0);
   Type_List tmp = NULL;
@@ -371,7 +371,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
     free_id_list(id);
     return NULL;
   }
-  while((type_name = get_type_name(s, i++))) {
+  while((type_name = get_type_name(env, s, i++))) {
     m_uint d = 0;
     if(!tmp)
       td->types = tmp = str2tl(env, type_name, &d);
@@ -399,7 +399,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
         free_arg_list(arg_list);
       ERR_O(0, "\t...\tat argument '%i'", i + 1)
     }
-    if((type_path2 = str2list(arg->name, &array_depth2)))
+    if((type_path2 = str2list(env->gwion->st, arg->name, &array_depth2)))
       free_id_list(type_path2);
     if(array_depth && array_depth2) {
       free_type_decl(type_decl);
@@ -408,7 +408,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
       ERR_O(0, "array subscript specified incorrectly for built-in module")
     }
     array_sub = make_dll_arg_list_array(array_sub, &array_depth, array_depth2);
-    var_decl = new_var_decl(insert_symbol(arg->name), array_sub, 0);
+    var_decl = new_var_decl(insert_symbol(env->gwion->st, arg->name), array_sub, 0);
     arg_list = new_arg_list(type_decl, var_decl, arg_list);
   }
   return arg_list;
@@ -423,7 +423,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   m_uint i, array_depth = 0;
 
   flag |= ae_flag_builtin;
-  if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
+  if(!(type_path = str2list(env->gwion->st, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0)))
     ERR_O(0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
   if(array_depth) {
@@ -434,7 +434,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
-  func_def = new_func_def(type_decl, insert_symbol(name), arg_list, NULL, flag);
+  func_def = new_func_def(type_decl, insert_symbol(env->gwion->st, name), arg_list, NULL, flag);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -449,7 +449,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_OB(def)
   if(gwi->templater.n) {
     def = new_func_def(NULL, NULL, NULL, NULL, 0);
-    const ID_List list = templater_def(&gwi->templater);
+    const ID_List list = templater_def(gwi->gwion->st, &gwi->templater);
     def->tmpl = new_tmpl_list(list, -1);
     SET_FLAG(def, template);
   }
@@ -468,11 +468,11 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
 static Type get_type(const Env env, const m_str str) {
   m_uint depth = 0;
-  const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(str, &depth) : NULL;
+  const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(env->gwion->st, str, &depth) : NULL;
   const Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(list);
-  return t ? (depth ? array_type(t, depth) : t) : NULL;
+  return t ? (depth ? array_type(env, t, depth) : t) : NULL;
 }
 
 ANN2(1,2) static int import_op(const Env env, const DL_Oper* op,
@@ -528,11 +528,11 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   Type_Decl* type_decl = NULL;
   const Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
-  if(!(type_path = str2list(dl_fun->type, &array_depth)) ||
+  if(!(type_path = str2list(env->gwion->st, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(type_path, 0)))
     ERR_O(0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
-  return new_stmt_fptr(insert_symbol(dl_fun->name), type_decl, args, flag);
+  return new_stmt_fptr(insert_symbol(env->gwion->st, dl_fun->name), type_decl, args, flag);
 }
 
 ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
@@ -548,30 +548,30 @@ ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   return GW_OK;
 }
 
-ANN static Exp make_exp(const m_str type, const m_str name) {
+ANN static Exp make_exp(SymTable *st, const m_str type, const m_str name) {
   Type_Decl *type_decl;
   ID_List id_list;
   m_uint array_depth;
   Array_Sub array = NULL;
-  CHECK_OO((id_list = str2list(type, &array_depth)))
+  CHECK_OO((id_list = str2list(st, type, &array_depth)))
   if(array_depth) {
     array = new_array_sub(NULL);
     array->depth = array_depth;
   }
   type_decl = new_type_decl(id_list, 0);
-  const Var_Decl var_decl = new_var_decl(insert_symbol(name), array, 0);
+  const Var_Decl var_decl = new_var_decl(insert_symbol(st, name), array, 0);
   const Var_Decl_List var_decl_list = new_var_decl_list(var_decl, NULL);
   return new_exp_decl(type_decl, var_decl_list);
 }
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   if(name)
-    gwi->union_data.xid = insert_symbol(name);
+    gwi->union_data.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  const Exp exp = make_exp(type, name);
+  const Exp exp = make_exp(gwi->gwion->st, type, name);
   CHECK_OB(exp);
   const Type t = type_decl_resolve(gwi->gwion->env, exp->d.exp_decl.td);
   if(!t)
@@ -605,7 +605,7 @@ ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
 }
 
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
-  const ID_List list = new_id_list(insert_symbol(name), 0);
+  const ID_List list = new_id_list(insert_symbol(gwi->gwion->st, name), 0);
   DL_Enum* d = &gwi->enum_data;
   ALLOC_PTR(addr, m_int, i);
   vector_add(&gwi->enum_data.addr, (vtype)addr);
@@ -635,7 +635,7 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 
 ANN m_int gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
-  const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(d->t) : NULL);
+  const Stmt stmt = new_stmt_enum(d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL);
   if(traverse_stmt_enum(gwi->gwion->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(d->base);
     return GW_ERROR;

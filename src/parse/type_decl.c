@@ -5,12 +5,14 @@
 #include "oo.h"
 #include "env.h"
 #include "type.h"
+#include "vm.h"
+#include "parse.h"
 
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   Type t = find_type(env, td->xid);
   CHECK_OO(t)
   CHECK_OO((t = scan_type(env, t, td)))
-  return !td->array ? t : array_type(t, td->array->depth);
+  return !td->array ? t : array_type(env, t, td->array->depth);
 }
 
 struct td_info {
@@ -68,11 +70,13 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   return info.str;
 }
 
-ANN static inline void* type_unknown(const ID_List id) {
+#include "vm.h"
+#include "gwion.h"
+ANN static inline void* type_unknown(const Env env, const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
   err_msg(id->pos, "unknown type '%s'", path);
-  did_you_mean(s_name(id->xid));
+  did_you_mean(env->gwion->st, s_name(id->xid));
   return NULL;
 }
 
@@ -84,5 +88,5 @@ ANN static Type prim_ref(const Type t, const Type_Decl* td) {
 
 ANN Type known_type(const Env env, const Type_Decl* td) {
   const Type t = type_decl_resolve(env, td);
-  return t ? prim_ref(t, td) : type_unknown(td->xid);
+  return t ? prim_ref(t, td) : type_unknown(env, td->xid);
 }

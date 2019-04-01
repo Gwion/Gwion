@@ -61,13 +61,13 @@ INSTR(PopArrayClass) { GWDEBUG_EXE
 #include "value.h"
 #include "template.h"
 
-ANN static Func_Def from_base(const struct dottmpl_ *dt, const Type t) {
-  const Symbol sym = func_symbol(t->name, s_name(dt->base->name),
+ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Type t) {
+  const Symbol sym = func_symbol(env, t->name, s_name(dt->base->name),
     "template", dt->overload);
   const Value v = nspc_lookup_value1(t->nspc, sym);
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(base->td, insert_symbol(v->name),
+  const Func_Def def = new_func_def(base->td, insert_symbol(env->gwion->st, v->name),
             base->arg_list, base->d.code, base->flag);
   def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
@@ -85,7 +85,7 @@ INSTR(DotTmpl) {
     char str[instr->m_val2 + strlen(t->name) + 1];
     strcpy(str, name);
     strcpy(str + instr->m_val2, t->name);
-    const Func f = nspc_lookup_func1(t->nspc, insert_symbol(str));
+    const Func f = nspc_lookup_func1(t->nspc, insert_symbol(emit->env->gwion->st, str));
     if(f) {
       if(!f->code) {
         dt->def = f->def;//
@@ -97,7 +97,7 @@ INSTR(DotTmpl) {
       shred->reg += SZ_INT;
       return;
     } else {
-      const Func_Def def = from_base(dt, t);
+      const Func_Def def = from_base(emit->env, dt, t);
       if(!def)
         continue;
       dt->def = def; //

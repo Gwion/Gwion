@@ -12,12 +12,13 @@
 #include "import.h"
 #include "emit.h"
 #include "operator.h"
+#include "gwion.h"
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
 Type t = bin->lhs->type;
 do {
-  if(!strcmp(t->name, get_type_name(bin->rhs->type->name, 1))) {
+  if(!strcmp(t->name, get_type_name(env, bin->rhs->type->name, 1))) {
     if(bin->lhs->meta != ae_meta_var)
       ERR_N(0, "left side operand is constant")
     bin->lhs->emit_var = 1;
@@ -35,14 +36,14 @@ static INSTR(instr_ptr_assign) { GWDEBUG_EXE
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  unary->self->type = nspc_lookup_type1(unary->exp->type->owner, insert_symbol(get_type_name(unary->exp->type->name, 1)));
+  unary->self->type = nspc_lookup_type1(unary->exp->type->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
   return unary->self->type;
 }
 
 static OP_CHECK(opck_implicit_ptr) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = (Exp)imp->e;
-  if(!strcmp(get_type_name(imp->t->name, 1), e->type->name)) {
+  if(!strcmp(get_type_name(env, imp->t->name, 1), e->type->name)) {
     if(e->meta == ae_meta_value)
       ERR_N(0, "can't cast constant to Ptr");
     e->cast_to = imp->t;

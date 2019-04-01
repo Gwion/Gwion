@@ -1,5 +1,10 @@
 #ifndef __PARSE
 #define __PARSE
+
+#include "gwion.h"
+#define insert_symbol(a) insert_symbol(env->gwion->st, (a))
+
+
 #define RET_NSPC(exp)       \
 ++env->scope->depth;        \
 nspc_push_value(env->curr); \

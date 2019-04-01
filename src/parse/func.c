@@ -29,6 +29,8 @@ ANN Func new_func(const m_str name, const Func_Def def) {
 #include <string.h>
 #include "env.h"
 #include "type.h"
+#include "vm.h"
+#include "gwion.h"
 ANN Func get_func(const Env env, const Func_Def def) {
   Func f = def->func;
   CHECK_OO(f)
@@ -40,18 +42,18 @@ ANN Func get_func(const Env env, const Func_Def def) {
     char c[len + elen + 1];
     memcpy(c, f->name, len);
     strcpy(c + len, env->class_def->name);
-    return nspc_lookup_func1(env->class_def->nspc, insert_symbol(c));
+    return nspc_lookup_func1(env->class_def->nspc, insert_symbol(env->gwion->st, c));
   }
   return f;
 }
 
-ANN2(1,2) Symbol func_symbol(const m_str nspc, const m_str base,
+ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
     const m_str tmpl, const m_uint i) {
   char* name;
   CHECK_BO(asprintf(&name, "%s%s%s%s@%" UINT_F "@%s",
     base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
     i, nspc))
-  const Symbol sym = insert_symbol(name);
+  const Symbol sym = insert_symbol(env->gwion->st, name);
   free(name);
   return sym;
 }

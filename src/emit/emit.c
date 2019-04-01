@@ -22,6 +22,9 @@
 #include "import.h"
 #include "switch.h"
 
+#undef insert_symbol
+#define insert_symbol(a) insert_symbol(emit->env->gwion->st, (a))
+
 typedef struct Local_ {
   m_uint size;
   m_uint offset;
@@ -148,7 +151,7 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) { GWDEBUG_EXE
   if(type->nspc->pre_ctor)
     emit_ext_ctor(emit, type->nspc->pre_ctor);
   if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
-    const Type t = template_parent(type);
+    const Type t = template_parent(emit->env, type);
     if(t->nspc->pre_ctor)
       emit_ext_ctor(emit, t->nspc->pre_ctor);
   }
@@ -177,7 +180,7 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
   ArrayInfo* info = mp_alloc(ArrayInfo);
   vector_init(&info->type);
   for(m_uint i = 1; i < t->array_depth; ++i)
-    vector_add(&info->type, (vtype)array_type(base, i));
+    vector_add(&info->type, (vtype)array_type(emit->env, base, i));
   vector_add(&info->type, (vtype)t);
   info->depth = (m_int)t->array_depth;
   info->base = base;
@@ -248,20 +251,20 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
-ANN static inline Exp this_exp(const Type t, const uint pos) {
+ANN static inline Exp this_exp(const Emitter emit, const Type t, const uint pos) {
   const Exp exp = new_exp_prim_id(insert_symbol("this"), pos);
   exp->type = t;
   return exp;
 }
 
-ANN static inline Exp dot_this_exp(const Exp_Primary* prim, const Type t) {
-  const Exp exp = this_exp(t, prim->self->pos);
+ANN static inline Exp dot_this_exp(const Emitter emit, const Exp_Primary* prim, const Type t) {
+  const Exp exp = this_exp(emit, t, prim->self->pos);
   const Exp dot = new_exp_dot(exp, prim->d.var);
   dot->d.exp_dot.t_base = t;
   return dot;
 }
 
-ANN static inline Exp dot_static_exp(const Exp_Primary* prim, const Type t) {
+ANN static inline Exp dot_static_exp(const Emitter emit, const Exp_Primary* prim, const Type t) {
   const Symbol s = insert_symbol(t->name);
   const Exp    e = new_exp_prim_id(s, prim->self->pos);
   const Value  val = nspc_lookup_value1(t->nspc->parent, s);
@@ -272,8 +275,7 @@ ANN static inline Exp dot_static_exp(const Exp_Primary* prim, const Type t) {
 
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
-  const Exp dot = !GET_FLAG(v, static) ?
-    dot_this_exp(prim, v->owner_class) : dot_static_exp(prim, v->owner_class);
+  const Exp dot = (!GET_FLAG(v, static) ? dot_this_exp : dot_static_exp)(emit, prim, v->owner_class);
   dot->type = v->type;
   dot->emit_var = prim->self->emit_var;
   const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);

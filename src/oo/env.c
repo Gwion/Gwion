@@ -12,6 +12,8 @@
 #include "nspc.h"
 #include "mpool.h"
 #include "switch.h"
+#include "vm.h"
+#include "parse.h"
 
 ANN static struct Env_Scope_ *new_scope(void) {
   struct Env_Scope_ *a = mp_alloc(Env_Scope);

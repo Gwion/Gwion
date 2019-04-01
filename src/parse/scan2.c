@@ -60,12 +60,12 @@ ANN static Value arg_value(const Arg_List list) {
   return var->value;
 }
 
-ANN static m_bool scan2_args(const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool scan2_args(const Env env, const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
   do {
     const Var_Decl var = list->var_decl;
     if(var->array)
-      list->type = array_type(list->type, var->array->depth);
+      list->type = array_type(env, list->type, var->array->depth);
     var->value = arg_value(list);
     var->value->offset = f->stack_depth;
     f->stack_depth += list->type->size;
@@ -93,7 +93,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d = { .stack_depth=0 };
   d.arg_list = ptr->args;
   if(d.arg_list)
-    CHECK_BB(scan2_args(&d))
+    CHECK_BB(scan2_args(env, &d))
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   def->stack_depth = d.stack_depth;
@@ -305,8 +305,7 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, t_function) < 0)
-    ERR_B(f->td->xid->pos, "function name '%s' is already used by another value",
-          s_name(f->name))
+    ERR_B(f->td->xid->pos, "function name '%s' is already used by another value", overload->name)
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
     ERR_B(f->td->xid->pos, "must overload template function with template")
   return GW_OK;
@@ -368,7 +367,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
         }
         m_bool ret = compat_func(ff->def, f);
         if(ret > 0) {
-          const Symbol sym = func_symbol(env->curr->name, func_name,
+          const Symbol sym = func_symbol(env, env->curr->name, func_name,
             "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
           if(!overload) {
@@ -382,7 +381,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
    }
   } while(type && (type = type->parent) && (nspc = type->nspc));
   --i;
-  const Symbol sym = func_symbol(env->curr->name, func_name, "template", i);
+  const Symbol sym = func_symbol(env, env->curr->name, func_name, "template", i);
   nspc_add_value(env->curr, sym, value);
   if(!overload) {
     func->vt_index = i;
@@ -459,7 +458,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   }
   tmpl_name[tlen+1] = '\0';
   vector_release(&v);
-  const Symbol sym = func_symbol(env->curr->name, func_name, tmpl_name, (m_uint)f->tmpl->base);
+  const Symbol sym = func_symbol(env, env->curr->name, func_name, tmpl_name, (m_uint)f->tmpl->base);
   return s_name(sym);
 }
 
@@ -493,7 +492,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
   if(!f->tmpl) {
-    const Symbol sym  = func_symbol(env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
+    const Symbol sym  = func_symbol(env, env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
     func_name = s_name(sym);
   } else {
     if(f->func)
@@ -507,7 +506,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       if(GET_FLAG(func->def, variadic))
         f->stack_depth += SZ_INT;
       f->ret_type = type_decl_resolve(env, f->td);
-      return (f->arg_list && f->arg_list->type) ? scan2_args(f) : GW_OK;
+      return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
     }
   }
   const Func base = get_func(env, f);
@@ -517,7 +516,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     f->func = base;
 }
   if(f->arg_list)
-    CHECK_BB(scan2_args(f))
+    CHECK_BB(scan2_args(env, f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {

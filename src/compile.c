@@ -60,7 +60,7 @@ static m_bool compiler_open(struct Compiler* c) {
 
 static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
   CHECK_BB(compiler_open(c))
-  CHECK_OB((c->ast = parse(c->name, c->file)))
+  CHECK_OB((c->ast = parse(gwion->st, c->name, c->file)))
   gwion->env->name = c->name;
   return type_engine_check_prog(gwion->env, c->ast);
 }

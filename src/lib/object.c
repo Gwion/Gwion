@@ -12,6 +12,7 @@
 #include "object.h"
 #include "import.h"
 #include "operator.h"
+#include "gwion.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
@@ -38,7 +39,7 @@ M_Object new_object(const VM_Shred shred, const Type t) {
 
 M_Object new_string(const VM_Shred shred, const m_str str) {
   const M_Object o = new_object(shred, t_string);
-  STRING(o) = s_name(insert_symbol(str));
+  STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, str));
   return o;
 }
 

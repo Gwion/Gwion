@@ -13,6 +13,7 @@ struct Gwion_ {
   Emitter  emit;
   VM*      vm;
   struct Map_ freearg;
+  SymTable *st;
 };
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);

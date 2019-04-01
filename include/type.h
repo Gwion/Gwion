@@ -25,12 +25,12 @@ Type t_void, t_int, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t
 
 ANN2(2) ANEW Type new_type(const m_uint xid, const m_str name, const Type);
 ANEW ANN Type type_copy(const Type type);
-ANN m_str get_type_name(const m_str, const m_uint);
+ANN m_str get_type_name(const Env, const m_str, const m_uint);
 ANN Value find_value(const Type, const Symbol);
 ANN Func find_func(const Type, const Symbol);
 ANN m_bool isa(const Type, const Type) __attribute__((pure));
 ANN m_bool isres(const Symbol);
-ANN Type array_type(const Type, const m_uint);
+ANN Type array_type(const Env, const Type, const m_uint);
 ANN Type find_common_anc(const Type, const Type) __attribute__((pure));
 ANN m_uint id_list_len(ID_List);
 ANN void type_path(const m_str, const ID_List);
@@ -38,7 +38,7 @@ ANN Type typedef_base(Type) __attribute__((pure));
 ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
 __attribute__((returns_nonnull))
-ANN Type template_parent(const Type type);
+ANN Type template_parent(const Env, const Type type);
 static inline Type actual_type(const Type t) {
   return isa(t, t_class) > 0 ? t->d.base_type : t;
 }

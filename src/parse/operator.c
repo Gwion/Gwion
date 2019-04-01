@@ -12,6 +12,7 @@
 #include "func.h"
 #include "nspc.h"
 #include "operator.h"
+#include "gwion.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);
 
@@ -55,7 +56,7 @@ ANN static Type op_parent(const Env env, const Type t) {
     for(size_t i = 0; i < len; i++)
       c[i] = type->name[i];
     c[len] = 0;
-    return nspc_lookup_type1(env->curr, insert_symbol(c));
+    return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, c));
   }
   return t->parent;
 }

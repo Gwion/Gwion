@@ -6,6 +6,7 @@
 #include "nspc.h"
 #include "value.h"
 #include "optim.h"
+#include "vm.h"
 #include "parse.h"
 
 #define FAKE_FUNC ((Func)1)
@@ -71,7 +72,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     if(var->array) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
-      t = array_type(decl->type, var->array->depth);
+      t = array_type(env, decl->type, var->array->depth);
     }
     const Value v = var->value = former ? former : new_value(t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);

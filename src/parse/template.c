@@ -7,17 +7,19 @@
 #include "type.h"
 #include "nspc.h"
 #include "template.h"
+#include "vm.h"
+#include "parse.h"
 
-ANN static inline Type owner_type(const Type t) {
+ANN static inline Type owner_type(const Env env, const Type t) {
   const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
   return (nspc && nspc->parent) ? nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name)) : NULL;
 }
 
-ANEW ANN static Vector get_types(Type t) {
+ANEW ANN static Vector get_types(const Env env, Type t) {
   const Vector v = new_vector();
   do if(GET_FLAG(t, template))
     vector_add(v, (vtype)t->def->tmpl->list.list);
-  while((t = owner_type(t)));
+  while((t = owner_type(env, t)));
   return v;
 }
 
@@ -29,11 +31,11 @@ ANEW ANN static ID_List id_list_copy(ID_List src) {
   return list;
 }
 
-ANN static ID_List get_total_type_list(const Type t) {
-  const Type parent = owner_type(t);
+ANN static ID_List get_total_type_list(const Env env, const Type t) {
+  const Type parent = owner_type(env, t);
   if(!parent)
     return t->def->tmpl ? t->def->tmpl->list.list : NULL;
-  const Vector v = get_types(parent);
+  const Vector v = get_types(env, parent);
   const ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(v);
@@ -160,7 +162,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       SET_FLAG(a->type, dtor);
       ADD_REF(t->nspc->dtor)
     }
-    a->tmpl = new_tmpl_class(get_total_type_list(t), 0);
+    a->tmpl = new_tmpl_class(get_total_type_list(env, t), 0);
     a->tmpl->base = type->types;
     nspc_add_type(t->owner, insert_symbol(a->type->name), a->type);
     return a->type;

@@ -124,11 +124,11 @@ ANN static m_bool prim_array_inner(const Type t, Type type, const Exp e) {
   return err_msg(e->pos, "array init [...] contains incompatible types ...");
 }
 
-ANN static inline Type prim_array_match(Exp e) {
+ANN static inline Type prim_array_match(const Env env, Exp e) {
   const Type type = e->type;
   do CHECK_BO(prim_array_inner(e->type, type, e))
   while((e = e->next));
-  return array_type(type->array_depth ? array_base(type) : type, type->array_depth + 1);
+  return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
 ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
@@ -137,7 +137,7 @@ ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
   if(!e)
     ERR_O(primary->self->pos, "must provide values/expressions for array [...]")
   CHECK_OO(check_exp(env, e))
-  return (array->type = prim_array_match(e));
+  return (array->type = prim_array_match(env, e));
 }
 
 ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) {
@@ -161,7 +161,7 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, checked)) {
     err_msg(primary->self->pos,
           "variable %s not legit at this point.", s_name(primary->d.var));
-    did_you_mean(s_name(primary->d.var));
+    did_you_mean(env->gwion->st, s_name(primary->d.var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->owner)
@@ -291,7 +291,7 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
              array->array->depth, t_base->array_depth)
   }
   return depth == t_base->array_depth ? array_base(t_base) :
-    array_type(array_base(t_base), t_base->array_depth - depth);
+    array_type(env, array_base(t_base), t_base->array_depth - depth);
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {
@@ -375,8 +375,8 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   return exp->args ? !!check_exp(env, exp->args) : -1;
 }
 
-ANN static inline Value template_get_ready(const Value v, const m_str tmpl, const m_uint i) {
-  const Symbol sym = func_symbol(v->owner->name, v->name, tmpl, i);
+ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
+  const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl, i);
   return v->owner_class ? find_value(v->owner_class, sym) :
       nspc_lookup_value1(v->owner, sym);
 }
@@ -390,7 +390,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
     Func_Def base = NULL;
-    Value value = template_get_ready(v, tmpl_name, i);
+    Value value = template_get_ready(env, v, tmpl_name, i);
     if(value) {
       if(env->func == value->d.func_ref) {
         free(tmpl_name);
@@ -399,13 +399,13 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
       }
       base = def = value->d.func_ref->def;
       if(!def->tmpl) {
-        if(!(value = template_get_ready(v, "template", i)))
+        if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
         def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       }
     } else {
-      if(!(value = template_get_ready(v, "template", i)))
+      if(!(value = template_get_ready(env, v, "template", i)))
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
@@ -784,7 +784,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
     if(!GET_FLAG(ptr, checked))
       check_class_def(env, ptr->def);
   }
-  t = depth ? array_type(ptr, depth) : ptr;
+  t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
@@ -1008,7 +1008,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
 }
 
 ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
-  const Symbol sym = func_symbol(env->curr->name, s_name(def->name), NULL, i);
+  const Symbol sym = func_symbol(env, env->curr->name, s_name(def->name), NULL, i);
   return nspc_lookup_func1(env->curr, sym);
 }
 
@@ -1048,7 +1048,7 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
-ANN static void operator_func(Func f) {
+ANN static void operator_func(const Func f) {
   const Arg_List a = f->def->arg_list;
   const m_bool is_unary = GET_FLAG(f->def, unary);
   const Type l = is_unary ? NULL : a->type;
