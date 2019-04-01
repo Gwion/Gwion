@@ -209,7 +209,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     ERR_B(0, "during import: class '%s' already imported.", type->name)
   if(gwi->templater.n) {
     const ID_List types = templater_def(&gwi->templater);
-    type->def = new_class_def(0, new_id_list(insert_symbol(type->name), 0), NULL, NULL);
+    type->def = new_class_def(0, insert_symbol(type->name), NULL, NULL);
     type->def->tmpl = new_tmpl_class(types, -1);
     type->def->type = type;
     SET_FLAG(type, template);

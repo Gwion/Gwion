@@ -92,7 +92,7 @@ ANN static void template_name(const Env env, struct tmpl_info* info, m_str s) {
     *str = '\0';
 }
 
-ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type_List call) {
+ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_List call) {
   struct tmpl_info info = { .cdef=c, .call=call };
   vector_init(&info.type);
   vector_init(&info.size);
@@ -100,7 +100,7 @@ ANEW ANN static ID_List template_id(const Env env, const Class_Def c, const Type
   template_name(env, &info, name);
   vector_release(&info.type);
   vector_release(&info.size);
-  return new_id_list(insert_symbol(name), call->td->xid->pos);
+  return insert_symbol(name);
 }
 
 ANN m_bool template_match(ID_List base, Type_List call) {
@@ -109,13 +109,9 @@ ANN m_bool template_match(ID_List base, Type_List call) {
 }
 
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
-  const ID_List name = template_id(env, def, call);
-  const Type t = nspc_lookup_type1(env->curr, name->xid);
-  if(t) {
-    free_id_list(name);
-    return t->def;
-  }
-  return new_class_def(def->flag, name, def->ext, def->body);
+  const Symbol name = template_id(env, def, call);
+  const Type t = nspc_lookup_type1(env->curr, name);
+  return t ? t->def : new_class_def(def->flag, name, def->ext, def->body);
 }
 
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
