@@ -612,7 +612,7 @@ else
 
 ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   Exp e = exp_call->args;
-  Arg_List l = exp_call->m_func->def->arg_list;
+  Arg_List l = exp_call->m_func->def->args;
   m_uint size = 0;
   while(e) {
     if(!l) {
@@ -1503,7 +1503,7 @@ ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWD
 
 ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   m_uint offset = emit->env->class_def ? SZ_INT : 0;
-  Arg_List l = emit->env->func->def->arg_list;
+  Arg_List l = emit->env->func->def->args;
   const m_str str = s_name(member->xid);
   while(l) {
     offset += l->type->size;
@@ -1658,8 +1658,8 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBU
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
-  if(func_def->arg_list)
-    emit_func_def_args(emit, func_def->arg_list);
+  if(func_def->args)
+    emit_func_def_args(emit, func_def->args);
   if(GET_FLAG(func_def, variadic))
     stack_alloc(emit);
   if(func_def->d.code->d.stmt_code.stmt_list)

@@ -61,6 +61,7 @@ ANN VM* gwion_cpy(const VM* src) {
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
   gwion->freearg = src->gwion->freearg;
+  gwion->st = src->gwion->st;
   return gwion->vm;
 }
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {

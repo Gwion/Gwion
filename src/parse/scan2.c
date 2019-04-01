@@ -61,7 +61,7 @@ ANN static Value arg_value(const Arg_List list) {
 }
 
 ANN static m_bool scan2_args(const Env env, const Func_Def f) { GWDEBUG_EXE
-  Arg_List list = f->arg_list;
+  Arg_List list = f->args;
   do {
     const Var_Decl var = list->var_decl;
     if(var->array)
@@ -91,8 +91,8 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d = { .stack_depth=0 };
-  d.arg_list = ptr->args;
-  if(d.arg_list)
+  d.args = ptr->args;
+  if(d.args)
     CHECK_BB(scan2_args(env, &d))
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
@@ -400,12 +400,12 @@ ANN static m_bool scan2_func_def_builtin(const Func func, const m_str name) { GW
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_EXE
-  assert(f->arg_list);
+  assert(f->args);
   const Operator op = name2op(s_name(f->name));
   const Type l = GET_FLAG(f, unary) ? NULL :
-    f->arg_list->var_decl->value->type;
-  const Type r = GET_FLAG(f, unary) ? f->arg_list->var_decl->value->type :
-    f->arg_list->next ? f->arg_list->next->var_decl->value->type : NULL;
+    f->args->var_decl->value->type;
+  const Type r = GET_FLAG(f, unary) ? f->args->var_decl->value->type :
+    f->args->next ? f->args->next->var_decl->value->type : NULL;
   struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->ret_type };
   CHECK_BB(env_add_op(env, &opi))
   if(env->class_def) {
@@ -506,7 +506,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       if(GET_FLAG(func->def, variadic))
         f->stack_depth += SZ_INT;
       f->ret_type = type_decl_resolve(env, f->td);
-      return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
+      return (f->args && f->args->type) ? scan2_args(env, f) : GW_OK;
     }
   }
   const Func base = get_func(env, f);
@@ -515,7 +515,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   } else {
     f->func = base;
 }
-  if(f->arg_list)
+  if(f->args)
     CHECK_BB(scan2_args(env, f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan2_func_def_code(env, f))

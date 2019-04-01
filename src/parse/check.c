@@ -337,7 +337,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   const m_bool implicit, const m_bool specific) {
   do {
     Exp e = args;
-    Arg_List e1 = func->def->arg_list;
+    Arg_List e1 = func->def->args;
     while(e) {
       if(!e1) {
         if(GET_FLAG(func->def, variadic))
@@ -409,7 +409,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(base->td, insert_symbol(v->name),
-                base->arg_list, base->d.code, base->flag);
+                base->args, base->d.code, base->flag);
       def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
@@ -472,7 +472,7 @@ ANN2(1) static void* function_alternative(const Type f, const Exp args){
   Func up = f->d.func;
   do {
     gw_err("(%s)\t", up->name);
-    const Arg_List e = up->def->arg_list;
+    const Arg_List e = up->def->args;
     e ? print_arg(e) : (void)gw_err("\033[32mvoid\033[0m");
     gw_err("\n");
   } while((up = up->next));
@@ -512,7 +512,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   Type_List tl[type_number];
   ID_List list = value->d.func_ref->def->tmpl->list;
   while(list) {
-    Arg_List arg = value->d.func_ref->def->arg_list;
+    Arg_List arg = value->d.func_ref->def->args;
     Exp template_arg = args;
     while(arg && template_arg) {
       char path[id_list_len(arg->td->xid)];
@@ -1049,7 +1049,7 @@ ANN static Value set_variadic(const Env env) {
 }
 
 ANN static void operator_func(const Func f) {
-  const Arg_List a = f->def->arg_list;
+  const Arg_List a = f->def->args;
   const m_bool is_unary = GET_FLAG(f->def, unary);
   const Type l = is_unary ? NULL : a->type;
   const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
@@ -1072,10 +1072,10 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->curr);
-  if(!f->arg_list)
+  if(!f->args)
     UNSET_FLAG(f->func, pure);
   else
-    ret = check_func_args(env, f->arg_list);
+    ret = check_func_args(env, f->args);
   if(ret > 0) {
     const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
     if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)

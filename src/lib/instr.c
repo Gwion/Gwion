@@ -68,7 +68,7 @@ ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Ty
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
   const Func_Def def = new_func_def(base->td, insert_symbol(env->gwion->st, v->name),
-            base->arg_list, base->d.code, base->flag);
+            base->args, base->d.code, base->flag);
   def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
   return def;

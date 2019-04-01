@@ -7,7 +7,6 @@ typedef struct Gwion_* Gwion;
 struct Arg_;
 struct Gwion_ {
   PlugInfo* plug;
-// sym
 // mem
   Env      env;
   Emitter  emit;
