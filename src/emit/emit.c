@@ -1153,17 +1153,18 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) { GWDEB
   return GW_OK;
 }
 
+ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
+  const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
+  new_obj->m_val2 = (m_uint)type;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  return emit_add_instr(emit, Reg2Mem);
+}
+
 ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWDEBUG_EXE
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  Instr cpy;
-  if(stmt->is_ptr) {
-    const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
-    new_obj->m_val2 = (m_uint)stmt->v->type;
-    const Instr pop = emit_add_instr(emit, RegPop);
-    pop->m_val = SZ_INT;
-    cpy = emit_add_instr(emit, Reg2Mem);
-  }
+  Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
   const m_uint ini_pc  = emit_code_size(emit);
   emit_push_stack(emit);
   emit_add_instr(emit, GWOP_EXCEPT);
@@ -1175,9 +1176,9 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) { GWD
   const m_uint end_pc = emit_code_size(emit);
   if(stmt->is_ptr) {
     loop->m_val2 = (m_uint)stmt->v->type;
-    cpy->m_val = offset + SZ_INT;
+    cpy->m_val = stmt->v->offset;
     const Instr release = emit_add_instr(emit, ObjectRelease);
-    release->m_val = offset + SZ_INT;
+    release->m_val = stmt->v->offset;
   }
   const Instr tgt = emit_add_instr(emit, Goto);
   end->m_val = emit_code_size(emit);

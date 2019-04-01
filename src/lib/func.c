@@ -198,5 +198,6 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_end(gwi, op_fork, NULL))
   register_freearg(gwi, SporkIni, freearg_xork);
   register_freearg(gwi, ForkIni, freearg_xork);
+  register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;
 }

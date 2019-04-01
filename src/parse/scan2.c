@@ -48,11 +48,10 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static Value arg_value(const Env env, const Arg_List list) {
+ANN static Value arg_value(const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
-    const Value v = new_value(list->type,
-      var->xid ? s_name(var->xid) : s_name(insert_symbol((m_str)var)));
+    const Value v = new_value(list->type, s_name(var->xid));
     if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
     return v;
@@ -61,13 +60,13 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   return var->value;
 }
 
-ANN static m_bool scan2_args(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool scan2_args(const Func_Def f) { GWDEBUG_EXE
   Arg_List list = f->arg_list;
   do {
     const Var_Decl var = list->var_decl;
     if(var->array)
       list->type = array_type(list->type, var->array->depth);
-    var->value = arg_value(env, list);
+    var->value = arg_value(list);
     var->value->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
@@ -94,7 +93,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   struct Func_Def_ d = { .stack_depth=0 };
   d.arg_list = ptr->args;
   if(d.arg_list)
-    CHECK_BB(scan2_args(env, &d))
+    CHECK_BB(scan2_args(&d))
   const Func_Def def = new_func_def(ptr->td, ptr->xid, ptr->args, NULL, ptr->td->flag);
   def->ret_type = ptr->ret_type;
   def->stack_depth = d.stack_depth;
@@ -508,7 +507,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
       if(GET_FLAG(func->def, variadic))
         f->stack_depth += SZ_INT;
       f->ret_type = type_decl_resolve(env, f->td);
-      return (f->arg_list && f->arg_list->type) ? scan2_args(env, f) : GW_OK;
+      return (f->arg_list && f->arg_list->type) ? scan2_args(f) : GW_OK;
     }
   }
   const Func base = get_func(env, f);
@@ -518,7 +517,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     f->func = base;
 }
   if(f->arg_list)
-    CHECK_BB(scan2_args(env, f))
+    CHECK_BB(scan2_args(f))
   if(!GET_FLAG(f, builtin) && f->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {

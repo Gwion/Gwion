@@ -75,7 +75,7 @@ OP_EMIT(opem_new);
 
 ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth);
 
-#define FREEARG(a) ANN void a(Instr instr, void *gwion)
+#define FREEARG(a) ANN void a(Instr instr  __attribute__((unused)), void *gwion __attribute__((unused)))
 typedef void (*f_freearg)(Instr, void*);
 ANN void register_freearg(const Gwi, const f_instr, void(*)(const Instr,void*));
 #endif
