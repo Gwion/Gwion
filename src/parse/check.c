@@ -306,11 +306,11 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   }
   ID_List id = NULL;
   for(m_uint i = vector_size(&v) + 1; --i;)
-    id = prepend_id_list((Symbol)vector_at(&v, i - 1), id, 0);
+    id = prepend_id_list(env->gwion->p, (Symbol)vector_at(&v, i - 1), id, 0);
   vector_release(&v);
   assert(id);
-  Type_Decl* td = new_type_decl(id, 0);
-  return new_type_list(td, NULL);
+  Type_Decl* td = new_type_decl(env->gwion->p, id, 0);
+  return new_type_list(env->gwion->p, td, NULL);
 }
 
 ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
@@ -337,7 +337,6 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   const m_bool implicit, const m_bool specific) {
   do {
     Exp e = args;
-printf("base %s %p %p\n", func->name, func->def->base, func->def);
     Arg_List e1 = func->def->base->args;
     while(e) {
       if(!e1) {
@@ -403,19 +402,19 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
-        def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
+        def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
       }
     } else {
       if(!(value = template_get_ready(env, v, "template", i)))
         continue;
       base = value->d.func_ref->def;
-      def = new_func_def(new_func_base(base->base->td, insert_symbol(v->name),
+      def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(v->name),
                 base->base->args), base->d.code, base->flag);
-      def->tmpl = new_tmpl_list(base->tmpl->list, (m_int)i);
+      def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
     if(traverse_func_template(env, def, types) > 0) {
-      nspc_pop_type(env->curr);
+      nspc_pop_type(env->gwion->p, env->curr);
       if(check_call(env, exp) > 0) {
         const Func next = def->base->func->next;
         def->base->func->next = NULL;
@@ -491,7 +490,7 @@ ANN static m_uint get_type_number(ID_List list) {
 ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
-    Tmpl_Call* tmpl = new_tmpl_call(func->tmpl->types);
+    Tmpl_Call* tmpl = new_tmpl_call(env->gwion->p, func->tmpl->types);
     tmpl->base = v->d.func_ref->def->tmpl->list;
     func->self->d.exp_call.tmpl = tmpl;
     return f;
@@ -560,7 +559,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp->self->pos, "argument number does not match for lambda")
-  l->def = new_func_def(new_func_base(NULL, l->name, l->args), l->code, 0);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args), l->code, 0);
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
@@ -786,7 +785,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
       check_class_def(env, ptr->def);
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
-  stmt->v = new_value(t, s_name(stmt->sym));
+  stmt->v = new_value(env->gwion->p, t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_conts(env, stmt->self, stmt->body);
@@ -1043,7 +1042,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
 }
 
 ANN static Value set_variadic(const Env env) {
-  const Value variadic = new_value(t_vararg, "vararg");
+  const Value variadic = new_value(env->gwion->p, t_vararg, "vararg");
   SET_FLAG(variadic, checked);
   nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
   return variadic;
@@ -1072,7 +1071,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
-  nspc_push_value(env->curr);
+  nspc_push_value(env->gwion->p, env->curr);
   if(!f->base->args)
     UNSET_FLAG(f->base->func, pure);
   else
@@ -1089,7 +1088,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
     else if(GET_FLAG(f, op))
       operator_func(func);
   }
-  nspc_pop_value(env->curr);
+  nspc_pop_value(env->gwion->p, env->curr);
   --env->scope->depth;
   env->func = former;
   if(GET_FLAG(f, global))
@@ -1113,7 +1112,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
         CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
       CHECK_BB(traverse_template(env, t->def))
       if(class_def->tmpl)
-        nspc_pop_type(env->curr);
+        nspc_pop_type(env->gwion->p, env->curr);
     }
   }
   if(!GET_FLAG(class_def->base.type->parent, checked))
@@ -1151,7 +1150,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))
   if(!the_class->p && the_class->nspc->info->offset)
-    the_class->p = mp_ini((uint32_t)the_class->nspc->info->offset);
+    the_class->p = mp_ini(env->gwion->p, (uint32_t)the_class->nspc->info->offset);
   SET_FLAG(the_class, checked | ae_flag_check);
   return GW_OK;
 }

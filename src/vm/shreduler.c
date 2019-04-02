@@ -112,6 +112,8 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
 }
 
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
+// create shred->tick here ?
+  shred->tick->shreduler = s;
   shred->tick->xid = ++s->shred_ids;
   vector_add(&s->shreds, (vtype)shred);
 }

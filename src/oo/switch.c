@@ -5,28 +5,27 @@
 #include "env.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "operator.h"
 #include "value.h"
 #include "type.h"
 #include "context.h"
 #include "nspc.h"
 
-#include "mpool.h"
-
-static Switch new_switch() {
-  Switch sw = mp_alloc(Switch);
-  sw->cases = new_map(); // could be struct ?
+static Switch new_switch(MemPool p) {
+  Switch sw = mp_alloc(p, Switch);
+  sw->cases = new_map(p); // could be struct ?
   vector_init(&sw->exp);
-  sw->vec = new_vector();
+  sw->vec = new_vector(p);
   return sw;
 }
 
-ANN static void free_switch(const Switch sw) {
+ANN static void free_switch(MemPool p, const Switch sw) {
 //  if(!sw->ok)
 //    free_map(sw->cases);
-  free_vector(sw->vec); // only for dynamic
+  free_vector(p, sw->vec); // only for dynamic
   vector_release(&sw->exp);
-  mp_free(Switch, sw);
+  mp_free(p, Switch, sw);
 }
 
 struct SwInfo_ {
@@ -36,11 +35,11 @@ struct SwInfo_ {
 };
 
 ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
-  struct SwInfo_ *info = mp_alloc(SwInfo);
+  struct SwInfo_ *info = mp_alloc(env->gwion->p, SwInfo);
   info->s = stmt;
   info->t = env->class_def;
   info->f = env->func;
-  const Switch sw = new_switch();
+  const Switch sw = new_switch(env->gwion->p);
   map_set(&env->scope->swi.map, (vtype)info, (vtype)sw);
   return sw;
 }
@@ -74,10 +73,10 @@ ANN void switch_get(const Env env, const Stmt_Switch stmt) {
 void switch_reset(const Env env) {
   for(m_uint i = VLEN(&env->scope->swi.map) + 1; --i;) {
     struct SwInfo_ *info = (struct SwInfo_ *)VKEY(&env->scope->swi.map, i - 1);
-    mp_free(SwInfo, info);
+    mp_free(env->gwion->p, SwInfo, info);
     Switch sw = (Switch)VVAL(&env->scope->swi.map, i - 1);
-    free_map(sw->cases);
-    free_switch(sw);
+    free_map(env->gwion->p, sw->cases);
+    free_switch(env->gwion->p, sw);
   }
   vector_clear((Vector)&env->scope->swi);
   map_clear(&env->scope->swi.map);
@@ -141,7 +140,7 @@ ANN Map switch_map(const Env env) {
 
 ANN Vector switch_vec(const Env env) {
   const Switch sw = (Switch)vector_back((Vector)&env->scope->swi);
-  return vector_copy(sw->vec); // new_vector(); // dyn only
+  return vector_copy(env->gwion->p, sw->vec); // new_vector(); // dyn only
 }
 
 ANN m_uint switch_idx(const Env env) {
@@ -157,6 +156,6 @@ ANN void switch_end(const Env env) {
   const Switch sw = (Switch)vector_pop((Vector)&env->scope->swi);
   const vtype index = VKEY(&env->scope->swi.map, VLEN(&env->scope->swi.map) - 1);
   map_remove(&env->scope->swi.map, index);
-  free_switch(sw);
+  free_switch(env->gwion->p, sw);
 //  return sw->ok = 1;
 }

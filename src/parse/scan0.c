@@ -13,8 +13,8 @@
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 
 ANN static Value mk_class(const Env env, const Type base) {
-  const Type t = type_copy(t_class);
-  const Value v = new_value(t, base->name);
+  const Type t = type_copy(env->gwion->p, t_class);
+  const Value v = new_value(env->gwion->p, t, base->name);
   t->d.base_type = base;
   v->owner = base->owner;
   SET_FLAG(v, const | ae_flag_checked);
@@ -32,10 +32,10 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   CHECK_BB(env_access(env, stmt->base->td->flag))
   CHECK_BB(scan0_defined(env, stmt->base->xid, stmt->base->td->xid->pos));
   const m_str name = s_name(stmt->base->xid);
-  const Type t = new_type(t_fptr->xid, name, t_fptr);
+  const Type t = new_type(env->gwion->p, t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->base->td, global)) ?
     env->curr : env->global_nspc;
-  t->nspc = new_nspc(name);
+  t->nspc = new_nspc(env->gwion->p, name);
   t->flag = stmt->base->td->flag;
   stmt->type = t;
   nspc_add_type(t->owner, stmt->base->xid, t);
@@ -49,7 +49,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
   CHECK_OB(base)
   CHECK_BB(scan0_defined(env, stmt->xid, stmt->ext->xid->pos))
   if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp)) {
-    const Type t = new_type(++env->scope->type_xid, s_name(stmt->xid), base);
+    const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
     const Nspc nspc = (!env->class_def && GET_FLAG(stmt->ext, global)) ?
       env->global_nspc : env->curr;
@@ -61,7 +61,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
       SET_FLAG(t, empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
-    const Class_Def def = new_class_def(flag, stmt->xid, stmt->ext, NULL, stmt->ext->xid->pos);
+    const Class_Def def = new_class_def(env->gwion->p, flag, stmt->xid, stmt->ext, NULL, stmt->ext->xid->pos);
     CHECK_BB(scan0_class_def(env, def))
     stmt->type = def->base.type;
   }
@@ -79,7 +79,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
         s_name(stmt->xid),  v->type->name)
     CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
   }
-  const Type t = type_copy(t_int);
+  const Type t = type_copy(env->gwion->p, t_int);
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
   const Nspc nspc = GET_FLAG(stmt, global) ? env->global_nspc : env->curr;
@@ -94,9 +94,9 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 
 ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
-  const Type t = type_copy(t_union);
+  const Type t = type_copy(env->gwion->p, t_union);
   t->name = name;
-  t->nspc = new_nspc(name);
+  t->nspc = new_nspc(env->gwion->p, name);
   t->nspc->parent = nspc;
   t->owner = nspc;
   if(add) {
@@ -115,7 +115,7 @@ ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEB
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
        !!stmt->type_xid);
-    stmt->value = new_value(t, s_name(stmt->xid));
+    stmt->value = new_value(env->gwion->p, t, s_name(stmt->xid));
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
@@ -163,9 +163,9 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) 
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  const Type t = new_type(++env->scope->type_xid, s_name(class_def->base.xid), t_object);
+  const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(class_def->base.xid), t_object);
   t->owner = env->curr;
-  t->nspc = new_nspc(t->name);
+  t->nspc = new_nspc(env->gwion->p, t->name);
   t->nspc->parent = GET_FLAG(class_def, global) ? env_nspc(env) : env->curr;
   t->def = class_def;
   t->flag = class_def->flag;

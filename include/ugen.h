@@ -41,8 +41,8 @@ struct UGen_ {
 
 #define TICK(a) __attribute__((hot)) ANN inline void a(const UGen u)
 
-ANN void ugen_ini(const UGen, const uint, const uint);
-ANN void ugen_gen(const UGen, const f_tick, void*, const m_bool);
+ANN void ugen_ini(MemPool p, const UGen, const uint, const uint);
+ANN void ugen_gen(MemPool p, const UGen, const f_tick, void*, const m_bool);
 ANN void ugen_connect(const UGen lhs, const UGen rhs);
 ANN void ugen_disconnect(const UGen lhs, const UGen rhs);
 #endif

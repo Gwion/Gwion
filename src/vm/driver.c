@@ -7,13 +7,15 @@
 #include "gwion_ast.h"
 #include "oo.h"
 #include "vm.h"
+#include "env.h"
+#include "gwion.h"
 #include "driver.h"
 
-ANN Driver* new_driver(void) {
-  Driver* di = (Driver*)mp_alloc(BBQ);
+ANN Driver* new_driver(MemPool p) {
+  Driver* di = (Driver*)mp_alloc(p, BBQ);
   di->func = dummy_driver;
   di->run = vm_run;
-  di->driver = (DriverData*)mp_alloc(DriverData);
+  di->driver = (DriverData*)mp_alloc(p, DriverData);
   di->is_running = 1;
   return di;
 }
@@ -23,11 +25,11 @@ ANN void free_driver(Driver *d, VM *vm) {
     xfree(d->in);
   if(d->out)
     xfree(d->out);
-  mp_free(SoundInfo, d->si);
+  mp_free(vm->gwion->p, SoundInfo, d->si);
   if(d->driver->del)
     d->driver->del(vm, d);
-  mp_free(DriverData, d->driver);
-  mp_free(BBQ, d);
+  mp_free(vm->gwion->p, DriverData, d->driver);
+  mp_free(vm->gwion->p, BBQ, d);
 }
 
 ANN void driver_alloc(Driver *d) {

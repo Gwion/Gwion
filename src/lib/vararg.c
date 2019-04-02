@@ -10,11 +10,12 @@
 #include "object.h"
 #include "import.h"
 #include "vararg.h"
+#include "gwion.h"
 
-void free_vararg(struct Vararg_* arg) {
+void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);
   xfree(arg->k);
-  mp_free(Vararg, arg);
+  mp_free(p, Vararg, arg);
 }
 
 INSTR(VarargTop) { GWDEBUG_EXE
@@ -24,14 +25,14 @@ INSTR(VarargTop) { GWDEBUG_EXE
       PUSH_REG(shred, SZ_INT)
     else {
       shred->pc = instr->m_val2 + 1;
-      mp_free(Vararg, arg);
+      mp_free(shred->info->mp, Vararg, arg);
     }
   } else
     shred->pc = instr->m_val2 + 1;
 }
 
 INSTR(VarargIni) { GWDEBUG_EXE
-  struct Vararg_* arg = mp_alloc(Vararg);
+  struct Vararg_* arg = mp_alloc(shred->info->mp, Vararg);
   POP_REG(shred,  instr->m_val - SZ_INT)
   arg->d = (m_bit*)xmalloc(instr->m_val);
   for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
@@ -51,7 +52,7 @@ INSTR(VarargEnd) { GWDEBUG_EXE
   if(++arg->i < arg->s)
     shred->pc = instr->m_val2;
   else
-    free_vararg(arg);
+    free_vararg(shred->info->mp, arg);
 }
 
 INSTR(VarargMember) { GWDEBUG_EXE
@@ -73,7 +74,7 @@ static INSTR(VarargAssign) { GWDEBUG_EXE
 
 static FREEARG(freearg_vararg) {
   if(instr->m_val2)
-    free_vector((Vector)instr->m_val2);
+    free_vector(((Gwion)gwion)->p, (Vector)instr->m_val2);
 }
 
 GWION_IMPORT(vararg) {

@@ -38,6 +38,6 @@ typedef struct BBQ_ {
 
 ANN void dummy_driver(DriverData*);
 ANN void driver_alloc(Driver*);
-ANN Driver* new_driver(void);
+ANN Driver* new_driver(MemPool);
 ANN void free_driver(Driver*, struct VM_*);
 #endif

@@ -20,7 +20,7 @@ ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_st
 }
 
 ANN static void push_new_string(const VM_Shred shred, const m_str c) {
-  const M_Object obj = new_string(shred, c);
+  const M_Object obj = new_string(shred->info->mp, shred, c);
   *(M_Object*)REG(-SZ_INT) = (M_Object)obj;
 }
 

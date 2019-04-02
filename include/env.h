@@ -37,7 +37,7 @@ struct Env_ {
   struct Env_Scope_* scope;
 };
 
-ANEW Env new_env();
+ANEW Env new_env(MemPool);
 ANN void env_reset(const Env);
 ANN void free_env(Env);
 ANN2(1,3) m_uint env_push(const Env, const Type, const Nspc);

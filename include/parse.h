@@ -7,9 +7,9 @@
 
 #define RET_NSPC(exp)       \
 ++env->scope->depth;        \
-nspc_push_value(env->curr); \
+nspc_push_value(env->gwion->p, env->curr); \
 const m_bool ret = exp;     \
-nspc_pop_value(env->curr);  \
+nspc_pop_value(env->gwion->p, env->curr);  \
 --env->scope->depth;        \
 return ret;
 

@@ -8,13 +8,13 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
-#include "vm.h"
 #include "env.h"
+#include "vm.h"
+#include "gwion.h"
 #include "operator.h"
 #include "instr.h"
 #include "object.h"
 #include "import.h"
-#include "gwion.h"
 
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
@@ -44,36 +44,36 @@ struct Plug_ {
 #define DLERROR() "plugin"
 #endif
 
-ANN static void plug_get(PlugInfo* p, const m_str c) {
+ANN static void plug_get(MemPool p, PlugInfo* pi, const m_str c) {
   void* dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
   if(dl) {
-    vector_add(&p->vec[GWPLUG_DL], (vtype)dl);
+    vector_add(&pi->vec[GWPLUG_DL], (vtype)dl);
     const import imp = DLSYM(dl, import, GWIMPORT_NAME);
     if(imp)
-      vector_add(&p->vec[GWPLUG_IMPORT], (vtype)imp);
+      vector_add(&pi->vec[GWPLUG_IMPORT], (vtype)imp);
     const modini ini = DLSYM(dl, modini, GWMODINI_NAME);
     if(ini) {
-      struct Plug_ *plug = mp_alloc(Plug);
+      struct Plug_ *plug = mp_alloc(p, Plug);
       plug->ini  = ini;
       const modstr str = DLSYM(dl, modstr, GWMODSTR_NAME);
       plug->name = str();
       plug->end  = DLSYM(dl, modend, GWMODEND_NAME);
-      vector_add(&p->vec[GWPLUG_MODULE], (vtype)plug);
+      vector_add(&pi->vec[GWPLUG_MODULE], (vtype)plug);
     }
     const f_bbqset drv = DLSYM(dl, f_bbqset, GWDRIVER_NAME);
     if(drv) {
       const modstr str = DLSYM(dl, modstr, GWMODSTR_NAME);
-      map_set(&p->drv, (vtype)str(), (vtype)drv);
+      map_set(&pi->drv, (vtype)str(), (vtype)drv);
     }
   } else
     err_msg(0, "error in %s.", DLERROR());
 }
 
-ANN PlugInfo* new_plug(const Vector list) {
-  PlugInfo *p = (PlugInfo*)mp_alloc(PlugInfo);
+ANN PlugInfo* new_plug(MemPool p, const Vector list) {
+  PlugInfo *pi = (PlugInfo*)mp_alloc(p, PlugInfo);
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
-    vector_init(&p->vec[i]);
-  map_init(&p->drv);
+    vector_init(&pi->vec[i]);
+  map_init(&pi->drv);
   for(m_uint i = 0; i < vector_size(list); i++) {
    const m_str dir = (m_str)vector_at(list, i);
    char gname[strlen(dir) + 6];
@@ -84,20 +84,21 @@ ANN PlugInfo* new_plug(const Vector list) {
    if(glob(gname, 0, NULL, &results))
      continue;
    for(m_uint i = 0; i < results.gl_pathc; i++)
-       plug_get(p, results.gl_pathv[i]);
+       plug_get(p, pi, results.gl_pathv[i]);
     globfree(& results);
 #else
   WIN32_FIND_DATA filedata;
   HANDLE file = FindFirstFileA(gname,&filedata);
   if(file == INVALID_HANDLE_VALUE)
     continue;
-  do plug_get(p, filedata.cFileName);
+  do plug_get(p, pi, filedata.cFileName);
   while(FindNextFile(file,&filedata) == 0);
   FindClose(file);
 #endif
   }
-  return p;
+  return pi;
 }
+
 void free_plug(const Gwion gwion) {
   PlugInfo *p = gwion->plug;
   struct Vector_ * const v = p->vec;
@@ -105,20 +106,20 @@ void free_plug(const Gwion gwion) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
     if(plug->end)
       plug->end(gwion, plug->self);
-    mp_free(Plug, plug);
+    mp_free(gwion->p, Plug, plug);
   }
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_DL]); ++i)
     DLCLOSE((void*)vector_at(&v[GWPLUG_DL], i));
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_release(&v[i]);
   map_release(&p->drv);
-  mp_free(PlugInfo, p);
+  mp_free(gwion->p, PlugInfo, p);
 }
 
-ANN Vector split_args(const m_str str) {
+ANN Vector split_args(MemPool p, const m_str str) {
   const m_str arg = strchr(str, '=');
   m_str d = strdup(arg+1), c = d;
-  const Vector args = new_vector();
+  const Vector args = new_vector(p);
   while(d)
     vector_add(args, (vtype)strdup(strsep(&d, ",")));
   free(d);
@@ -126,13 +127,13 @@ ANN Vector split_args(const m_str str) {
   return args;
 }
 
-ANN static Vector get_arg(const m_str name, const Vector v) {
+ANN static Vector get_arg(MemPool p, const m_str name, const Vector v) {
   const size_t len = strlen(name);
   for(m_uint i = vector_size(v) + 1; --i;) {
     const m_str str = (m_str)vector_at(v, i - 1);
     if(!strncmp(name, str, len)) {
       vector_rem(v, i-1);
-      return split_args(str);
+      return split_args(p, str);
     }
   }
   return NULL;
@@ -142,12 +143,12 @@ void plug_run(const Gwion gwion, const Vector args) {
   const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
-    const Vector arg = get_arg(plug->name, args);
+    const Vector arg = get_arg(gwion->p, plug->name, args);
     plug->self = plug->ini(gwion, arg);
     if(arg) {
       for(m_uint i = 0; i < vector_size(arg); ++i)
         xfree((m_str)vector_at(arg, i));
-      free_vector(arg);
+      free_vector(gwion->p, arg);
     }
   }
 }

@@ -23,7 +23,7 @@ ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
   CHECK_BB(scan1_class_def(env, decl->type->def))
   CHECK_BB(scan2_class_def(env, decl->type->def))
-  nspc_pop_type(env->curr);
+  nspc_pop_type(env->gwion->p, env->curr);
   return GW_OK;
 }
 
@@ -48,10 +48,10 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static Value arg_value(const Arg_List list) {
+ANN static Value arg_value(MemPool p, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
-    const Value v = new_value(list->type, s_name(var->xid));
+    const Value v = new_value(p, list->type, s_name(var->xid));
     if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
     return v;
@@ -66,7 +66,7 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) { GWDEBUG_EXE
     const Var_Decl var = list->var_decl;
     if(var->array)
       list->type = array_type(env, list->type, var->array->depth);
-    var->value = arg_value(list);
+    var->value = arg_value(env->gwion->p, list);
     var->value->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
@@ -90,9 +90,9 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  const Func_Def def = new_func_def(new_func_base(ptr->base->td, ptr->base->xid, ptr->base->args), NULL, ptr->base->td->flag);
+  const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, ptr->base->td, ptr->base->xid, ptr->base->args), NULL, ptr->base->td->flag);
   def->base->ret_type = ptr->base->ret_type;
-  ptr->base->func = new_func(s_name(ptr->base->xid), def);
+  ptr->base->func = new_func(env->gwion->p, s_name(ptr->base->xid), def);
   ptr->value->d.func_ref = ptr->base->func;
   ptr->base->func->value_ref = ptr->value;
   ptr->type->d.func = ptr->base->func;
@@ -250,7 +250,7 @@ ANN static Map scan2_label_map(const Env env) { GWDEBUG_EXE
   if(!label->ptr)
     map_init(label);
   if(!(m = (Map)map_get(label, (vtype)key))) {
-    m = new_map();
+    m = new_map(env->gwion->p);
     map_set(label, (vtype)key, (vtype)m);
   }
   return m;
@@ -309,7 +309,7 @@ ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload
 }
 
 ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name) {
-  const Func func = new_func(name, f);
+  const Func func = new_func(env->gwion->p, name, f);
   if(env->class_def) {
     if(GET_FLAG(env->class_def, template))
       SET_FLAG(func, ref);
@@ -320,7 +320,7 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type t = type_copy(t_function);
+  const Type t = type_copy(env->gwion->p, t_function);
   t->name = func->name;
   t->owner = env->curr;
   if(GET_FLAG(func, member))
@@ -332,7 +332,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(t, t->name);
+  const Value v = new_value(env->gwion->p, t, t->name);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
@@ -389,9 +389,9 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
   return GW_OK;
 }
 
-ANN static m_bool scan2_func_def_builtin(const Func func, const m_str name) { GWDEBUG_EXE
+ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str name) { GWDEBUG_EXE
   SET_FLAG(func, builtin);
-  func->code = new_vm_code(NULL, func->def->stack_depth, func->flag, name);
+  func->code = new_vm_code(p, NULL, func->def->stack_depth, func->flag, name);
   func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   return GW_OK;
 }
@@ -467,7 +467,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   const Value v = func_value(env, func, overload);
   scan2_func_def_flag(env, f);
   if(GET_FLAG(f, builtin))
-    CHECK_BO(scan2_func_def_builtin(func, func->name))
+    CHECK_BO(scan2_func_def_builtin(env->gwion->p, func, func->name))
   if(GET_FLAG(func, member))
     f->stack_depth += SZ_INT;
   if(GET_FLAG(func->def, variadic))

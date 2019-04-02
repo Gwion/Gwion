@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
@@ -26,8 +27,8 @@ ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }
 
-M_Vector new_m_vector(const m_uint size) {
-  const M_Vector array = mp_alloc(M_Vector);
+M_Vector new_m_vector(MemPool p, const m_uint size) {
+  const M_Vector array = mp_alloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
   ARRAY_CAP(array)   = 2;
@@ -35,8 +36,8 @@ M_Vector new_m_vector(const m_uint size) {
   return array;
 }
 
-M_Vector new_m_vector2(const m_uint size, const m_uint len) {
-  const M_Vector array = mp_alloc(M_Vector);
+M_Vector new_m_vector2(MemPool p, const m_uint size, const m_uint len) {
+  const M_Vector array = mp_alloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
   m_uint cap = 1;
@@ -48,9 +49,9 @@ M_Vector new_m_vector2(const m_uint size, const m_uint len) {
   return array;
 }
 
-void free_m_vector(M_Vector a) {
+void free_m_vector(MemPool p, M_Vector a) {
   xfree(a->ptr);
-  mp_free(M_Vector, a);
+  mp_free(p, M_Vector, a);
 }
 
 static DTOR(array_dtor) {
@@ -60,15 +61,15 @@ static DTOR(array_dtor) {
   if(t->array_depth > 1 || isa(base, t_object) > 0)
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
-  free_m_vector(a);
+  free_m_vector(shred->info->mp, a);
   REM_REF(t, shred->info->vm->gwion)
 }
 
-ANN M_Object new_array(const Type t, const m_uint length) {
-  const M_Object a = new_object(NULL, t);
+ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
+  const M_Object a = new_object(p, NULL, t);
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  ARRAY(a) = new_m_vector2(size,length);
+  ARRAY(a) = new_m_vector2(p, size,length);
   ADD_REF(t);
   return a;
 }
@@ -191,7 +192,7 @@ static FREEARG(freearg_array) {
   ArrayInfo* info = (ArrayInfo*)instr->m_val;
   REM_REF((Type)vector_back(&info->type), gwion);
   vector_release(&info->type);
-  mp_free(ArrayInfo, info);
+  mp_free(((Gwion)gwion)->p, ArrayInfo, info);
 }
 
 GWION_IMPORT(array) {
@@ -242,17 +243,17 @@ INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
   const m_uint sz = *(m_uint*)REG(0);
   const m_uint off = instr->m_val2 * sz;
   POP_REG(shred, off - SZ_INT);
-  const M_Object obj = new_array(t, sz);
+  const M_Object obj = new_array(shred->info->mp, t, sz);
   memcpy(ARRAY(obj)->ptr + ARRAY_OFFSET, REG(-SZ_INT), off);
   *(M_Object*)REG(-SZ_INT) = obj;
 }
 
 #define TOP -1
 
-ANN static inline M_Object do_alloc_array_object(const ArrayInfo* info, const m_int cap) {
+ANN static inline M_Object do_alloc_array_object(MemPool p, const ArrayInfo* info, const m_int cap) {
   struct Vector_ v = info->type;
   const Type t = (Type)vector_at(&v, (vtype)(-info->depth - 1));
-  return new_array(t, (m_uint)cap);
+  return new_array(p, t, (m_uint)cap);
 }
 
 ANN static inline M_Object do_alloc_array_init(ArrayInfo* info, const m_uint cap,
@@ -284,7 +285,7 @@ ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo* info) {
     gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
-  const M_Object base = do_alloc_array_object(info, cap);
+  const M_Object base = do_alloc_array_object(shred->info->mp, info, cap);
   return info->depth < TOP ? do_alloc_array_loop(shred, info, (m_uint)cap, base) :
     info->data ? do_alloc_array_init(info, (m_uint)cap, base) : base;
 }

@@ -13,7 +13,7 @@ typedef struct PlugInfo_ {
   struct Map_ drv;
 } PlugInfo;
 
-ANN PlugInfo* new_plug(Vector);
+ANN PlugInfo* new_plug(MemPool, Vector);
 ANN void plug_run(const Gwion gwion, const Vector);
 ANN void free_plug(const Gwion gwion);
 
@@ -27,5 +27,5 @@ ANN void free_plug(const Gwion gwion);
 #define GWMODEND(a)  ANN void  GWMODEND_NAME(const Gwion gwion, void* self)
 #define GWDRIVER(a)  ANN void  GWDRIVER_NAME(DriverData* d)
 
-ANN Vector split_args(const m_str str);
+ANN Vector split_args(MemPool, const m_str str);
 #endif

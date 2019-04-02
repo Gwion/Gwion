@@ -49,11 +49,11 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
-VM* new_vm(void) {
-  VM* vm = (VM*)mp_alloc(VM);
+VM* new_vm(MemPool p) {
+  VM* vm = (VM*)mp_alloc(p, VM);
   vector_init(&vm->ugen);
-  vm->bbq = new_driver();
-  vm->shreduler  = (Shreduler)mp_alloc(Shreduler);
+  vm->bbq = new_driver(p);
+  vm->shreduler  = (Shreduler)mp_alloc(p, Shreduler);
   vector_init(&vm->shreduler->shreds);
   vm->shreduler->bbq = vm->bbq;
   gw_seed(vm->rand, (uint64_t)time(NULL));
@@ -75,8 +75,8 @@ ANN void free_vm(VM* vm) {
   vector_release(&vm->ugen);
   if(vm->bbq)
     free_driver(vm->bbq, vm);
-  mp_free(Shreduler, vm->shreduler);
-  mp_free(VM, vm);
+  mp_free(vm->gwion->p, Shreduler, vm->shreduler);
+  mp_free(vm->gwion->p, VM, vm);
 }
 
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
@@ -136,7 +136,7 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
 
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr instr) {
   const VM_Code code = (VM_Code)instr->m_val;
-  const VM_Shred sh = new_vm_shred(code);
+  const VM_Shred sh = new_vm_shred(shred->info->mp, code);
   ADD_REF(code)
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
@@ -149,7 +149,7 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr in
 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr instr) {
   const VM_Code code = (VM_Code)instr->m_val;
-  const VM_Shred sh = new_vm_shred(code);
+  const VM_Shred sh = new_vm_shred(shred->info->mp, code);
   ADD_REF(code)
   sh->base = shred->base;
   vm_fork(shred->info->vm, sh);
@@ -238,6 +238,7 @@ __attribute__((hot))
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
+__attribute__ ((optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
@@ -701,7 +702,7 @@ arrayvalid:
   array_base = NULL;
   goto regpush;
 newobj:
-  *(M_Object*)reg = new_object(shred, (Type)instr->m_val2);
+  *(M_Object*)reg = new_object(vm->gwion->p, shred, (Type)instr->m_val2);
   reg += SZ_INT;
   DISPATCH()
 addref:
@@ -778,7 +779,7 @@ staticcode:
   reg += SZ_INT;
   DISPATCH()
 pushstr:
-  *(M_Object*)reg = new_string2(shred, (m_str)instr->m_val);
+  *(M_Object*)reg = new_string2(vm->gwion->p, shred, (m_str)instr->m_val);
   reg += SZ_INT;
   DISPATCH();
 gcini:
@@ -823,3 +824,4 @@ timespecadd(&exec_time, &exec_ret, &exec_time);
 }
   vm_ugen_init(vm);
 }
+//#pragma GCC pop_options

@@ -33,7 +33,7 @@ static MFUN(m_variadic) {
     arg->i++;
     str++;
   }
-  free_vararg(arg);
+  free_vararg(shred->info->mp, arg);
 }
 
 GWION_IMPORT(variadic test) {

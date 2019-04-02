@@ -2,12 +2,14 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
-#include "vm.h"
 #include "env.h"
+#include "vm.h"
+#include "gwion.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
 #include "import.h"
+#include "gwi.h"
 #include "ugen.h"
 #include "driver.h"
 
@@ -73,55 +75,55 @@ describe_compute(multi,,)
 describe_compute(mono,  trig, {u->module.gen.trig->compute(u->module.gen.trig);})
 describe_compute(multi, trig, {u->module.gen.trig->compute(u->module.gen.trig);})
 
-ANEW static UGen new_UGen() {
-  const UGen u = mp_alloc(UGen);
+ANEW static UGen new_UGen(MemPool p) {
+  const UGen u = mp_alloc(p, UGen);
   u->op = ugop_add;
   u->compute = gen_compute_mono;
   return u;
 }
 
-ANEW /*static */M_Object new_M_UGen() {
-  const M_Object o = new_object(NULL, t_ugen);
-  UGEN(o) = new_UGen();
+ANEW M_Object new_M_UGen(MemPool p) {
+  const M_Object o = new_object(p, NULL, t_ugen);
+  UGEN(o) = new_UGen(p);
   return o;
 }
 
-ANN static void assign_channel(const UGen u) {
+ANN static void assign_channel(MemPool p, const UGen u) {
   u->multi = 1;
   u->compute = gen_compute_multi;
   u->connect.multi->channel = (M_Object*)xmalloc(u->connect.multi->n_chan * SZ_INT);
   for(uint i = u->connect.multi->n_chan + 1; --i;) {
     const uint j = i - 1;
-    const M_Object chan = new_M_UGen();
-    ugen_ini(UGEN(chan), u->connect.multi->n_in > j, u->connect.multi->n_out > j);
+    const M_Object chan = new_M_UGen(p);
+    ugen_ini(p, UGEN(chan), u->connect.multi->n_in > j, u->connect.multi->n_out > j);
     UGEN(chan)->module.ref = u;
     UGEN(chan)->compute = compute_chan;
     u->connect.multi->channel[j] =  chan;
   }
 }
 
-ANN void ugen_gen(const UGen u, const f_tick tick, void* data, const m_bool trig) {
+ANN void ugen_gen(MemPool p, const UGen u, const f_tick tick, void* data, const m_bool trig) {
   u->module.gen.tick = tick;
   u->module.gen.data = data;
   if(trig) {
-    u->module.gen.trig = new_UGen();
+    u->module.gen.trig = new_UGen(p);
     u->module.gen.trig->compute = compute_mono;
-    ugen_ini(u->module.gen.trig, 1, 1);
+    ugen_ini(p, u->module.gen.trig, 1, 1);
     u->compute = (u->compute == gen_compute_mono ? gen_compute_monotrig : gen_compute_multitrig);
   }
 }
 
-ANN void ugen_ini(const UGen u, const uint in, const uint out) {
+ANN void ugen_ini(MemPool p, const UGen u, const uint in, const uint out) {
   const uint chan = in > out ? in : out;
   if(chan == 1) {
     vector_init(&u->connect.net.from);
     vector_init(&u->connect.net.to);
   } else {
-    u->connect.multi = mp_alloc(ugen_multi);
+    u->connect.multi = mp_alloc(p, ugen_multi);
     u->connect.multi->n_in   = in;
     u->connect.multi->n_out  = out;
     u->connect.multi->n_chan = chan;
-    assign_channel(u);
+    assign_channel(p, u);
   }
 }
 
@@ -203,7 +205,7 @@ describe_connect_instr(Trig, Connect,    TRIG_EX)
 describe_connect_instr(Trig, Disconnect, TRIG_EX)
 
 static CTOR(ugen_ctor) {
-  UGEN(o) = new_UGen();
+  UGEN(o) = new_UGen(shred->info->mp);
   vector_add(&shred->info->vm->ugen, (vtype)UGEN(o));
 }
 
@@ -239,9 +241,9 @@ static DTOR(ugen_dtor) {
     release_multi(ug, shred);
   if(ug->module.gen.trig) {
     release_mono(ug->module.gen.trig);
-    mp_free(UGen, ug->module.gen.trig);
+    mp_free(shred->info->mp, UGen, ug->module.gen.trig);
   }
-  mp_free(UGen, ug);
+  mp_free(shred->info->mp, UGen, ug);
 }
 
 static MFUN(ugen_channel) {
@@ -300,10 +302,10 @@ struct ugen_importer {
 
 ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
   VM* vm = gwi_vm(gwi);
-  const M_Object o = new_M_UGen();
+  const M_Object o = new_M_UGen(gwi->gwion->p);
   const UGen u = imp->ugen = UGEN(o);
-  ugen_ini(u, imp->nchan, imp->nchan);
-  ugen_gen(u, imp->tick, (void*)imp->vm, 0);
+  ugen_ini(vm->gwion->p, u, imp->nchan, imp->nchan);
+  ugen_gen(vm->gwion->p, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
   CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   return gwi_item_end(gwi, ae_flag_const, o);

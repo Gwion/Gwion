@@ -20,7 +20,7 @@ struct Nspc_ {
   HAS_OBJ
 };
 
-extern ANEW ANN Nspc new_nspc(const m_str name);
+extern ANEW ANN Nspc new_nspc(MemPool p, const m_str name);
 
 extern ANN void nspc_commit(const Nspc);
 //extern ANN void nspc_rollback(const Nspc);
@@ -46,8 +46,8 @@ describe_lookup1(A, b)                                                         \
 static inline ANN void nspc_add_##b(const Nspc n, const Symbol s, const A a) { \
   scope_add(&n->info->b, (vtype)s, (vtype)a);                                  \
 }                                                                              \
-ANN static inline void nspc_push_##b(const Nspc n) { scope_push(&n->info->b); }\
-ANN inline static void nspc_pop_##b (const Nspc n) { scope_pop (&n->info->b); }\
+ANN static inline void nspc_push_##b(MemPool p, const Nspc n) { scope_push(p, &n->info->b); }\
+ANN inline static void nspc_pop_##b (MemPool p, const Nspc n) { scope_pop (p, &n->info->b); }\
 describe_lookups(A, b)
 
 describe_nspc_func(Value, value)

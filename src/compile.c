@@ -28,23 +28,23 @@ struct Compiler {
   enum compile_type type;
 };
 
-static void compiler_name(struct Compiler* c) {
+static void compiler_name(MemPool p, struct Compiler* c) {
   m_str d = strdup(c->base);
   c->name = strsep(&d, ":");
   if(d)
-    c->args = new_vector();
+    c->args = new_vector(p);
   while(d)
     vector_add(c->args, (vtype)strdup(strsep(&d, ":")));
   free(d);
 }
 
-static void compiler_clean(const struct Compiler* c) {
+static void compiler_clean(MemPool p, const struct Compiler* c) {
   if(c->name)
-    free(c->name);
+    xfree(c->name);
   if(c->file)
     fclose(c->file);
   if(c->ast)
-    free_ast(c->ast);
+    free_ast(p, c->ast);
 }
 
 static m_bool compiler_open(struct Compiler* c) {
@@ -69,16 +69,16 @@ static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
 static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   m_uint xid = 0;
   VM_Code code;
-  compiler_name(c);
+  compiler_name(gwion->p, c);
   if(check(gwion, c) < 0 ||
      !(code = emit_ast(gwion->emit, c->ast)))
      gw_err("while compiling file '%s'\n", c->base);
   else {
-    const VM_Shred shred = new_vm_shred(code);
+    const VM_Shred shred = new_vm_shred(gwion->p, code);
     shred->info->args = c->args;
     xid = vm_add_shred(gwion->vm, shred);
   }
-  compiler_clean(c);
+  compiler_clean(gwion->p, c);
   return xid;
 }
 /*

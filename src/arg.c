@@ -4,12 +4,15 @@
 #include "soundinfo.h"
 #define GWIONRC ".gwionrc"
 
+/* use before MemPool allocation */
+
 ANN static inline void config_end(const Vector config) {
   for(m_uint i = 0; i < vector_size(config); ++i) {
     const Vector v = (Vector)vector_at(config, i);
     for(m_uint i = 1; i < vector_size(v); ++i)
       xfree((m_str)vector_at(v, i));
-    free_vector(v);
+    vector_release(v);
+    xfree(v);
   }
 }
 
@@ -103,7 +106,9 @@ ANN static Vector get_config(const m_str name) {
   ssize_t nread;
   FILE *f = fopen(name, "r");
   CHECK_OO(f)
-  const Vector v = new_vector();
+//  const Vector v = new_vector();
+  const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
+  vector_init(v);
   vector_add(v, (vtype)name);
   while((nread = getline(&line, &len, f)) != -1) {
     if(line[0] != '#')

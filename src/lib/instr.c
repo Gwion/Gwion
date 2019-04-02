@@ -20,10 +20,10 @@ INSTR(EOC) { GWDEBUG_EXE
 INSTR(DTOR_EOC) { GWDEBUG_EXE
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->parent;
-  o->ref = 1;
   _release(o, shred);
+  if(shred->info->me->ref > 1) // ???
+    _release(shred->info->me, shred);
   vm_shred_exit(shred);
-  _release(shred->info->me, shred);
 }
 
 /* branching */
@@ -48,18 +48,19 @@ INSTR(PutArgsInMem) { GWDEBUG_EXE
 }
 #endif
 
+#include "gwion.h"
+#include "emit.h"
+#include "value.h"
+#include "template.h"
+
 INSTR(PopArrayClass) { GWDEBUG_EXE
   POP_REG(shred, SZ_INT);
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   const M_Object tmp = *(M_Object*)REG(0);
   ARRAY(obj) = ARRAY(tmp);
-  free_object(tmp);
+  free_object(shred->info->mp, tmp);
   ADD_REF(obj->type_ref) // add ref to typedef array type
 }
-#include "gwion.h"
-#include "emit.h"
-#include "value.h"
-#include "template.h"
 
 ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Type t) {
   const Symbol sym = func_symbol(env, t->name, s_name(dt->base->base->xid),
@@ -67,9 +68,9 @@ ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Ty
   const Value v = nspc_lookup_value1(t->nspc, sym);
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(new_func_base(base->base->td, insert_symbol(env->gwion->st, v->name),
+  const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(env->gwion->st, v->name),
             base->base->args), base->d.code, base->flag);
-  def->tmpl = new_tmpl_list(base->tmpl->list, dt->overload);
+  def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
   return def;
 }
