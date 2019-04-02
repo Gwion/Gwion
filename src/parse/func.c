@@ -4,22 +4,23 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "nspc.h"
 #include "func.h"
 
-ANN static void free_func(Func a, void *gwion) {
+ANN static void free_func(Func a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
-    free_tmpl_list(a->def->tmpl);
-    mp_free(Func_Def, a->def);
+    free_tmpl_list(gwion->p, a->def->tmpl);
+    mp_free(gwion->p, Func_Def, a->def);
   }
   if(a->code)
     REM_REF(a->code, gwion);
-  mp_free(Func, a);
+  mp_free(gwion->p, Func, a);
 }
 
-ANN Func new_func(const m_str name, const Func_Def def) {
-  Func func = mp_alloc(Func);
+ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
+  Func func = mp_alloc(p, Func);
   func->name = name;
   func->def = def;
   INIT_OO(func, free_func);

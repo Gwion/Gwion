@@ -18,6 +18,7 @@ typedef struct Code_ {
 struct Emitter_ {
   Env    env;
   Code*  code;
+  struct Gwion_ *gwion;
   struct Vector_  stack;
 };
 

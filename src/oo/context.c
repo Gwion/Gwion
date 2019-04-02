@@ -4,16 +4,18 @@
 #include "oo.h"
 #include "env.h"
 #include "nspc.h"
+#include "vm.h"
+#include "gwion.h"
 #include "context.h"
 
-ANN static void free_context(const Context a, void *gwion) {
+ANN static void free_context(const Context a, Gwion gwion) {
   REM_REF(a->nspc, gwion)
-  mp_free(Context, a);
+  mp_free(gwion->p, Context, a);
 }
 
-ANN2(2) Context new_context(const Ast ast, const m_str str) {
-  const Context context = mp_alloc(Context);
-  context->nspc = new_nspc(str);
+ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
+  const Context context = mp_alloc(p, Context);
+  context->nspc = new_nspc(p, str);
   context->tree = ast;
   context->name = str;
   INIT_OO(context, free_context);
@@ -31,7 +33,7 @@ ANN void unload_context(const Context context, const Env env) {
   if(context->lbls.ptr) {
     LOOP_OPTIM
     for(m_uint i = 0; i < map_size(&context->lbls); i++)
-      free_map((Map)map_at(&context->lbls, i));
+      free_map(env->gwion->p, (Map)map_at(&context->lbls, i));
     map_release(&context->lbls);
   }
   REM_REF(context, env->gwion);

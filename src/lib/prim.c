@@ -3,10 +3,12 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
 #include "import.h"
+#include "gwi.h"
 #include "emit.h"
 #include "operator.h"
 #include "driver.h"
@@ -95,15 +97,15 @@ OP_CHECK(opck_unary_meta2) {
 
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
-  ALLOC_PTR(d_zero, m_float, 0.0);
-  ALLOC_PTR(sr,     m_float, (m_float)vm->bbq->si->sr);
-  ALLOC_PTR(samp,   m_float, 1.0);
-  ALLOC_PTR(ms,     m_float, (m_float)(*sr     / 1000.));
-  ALLOC_PTR(second, m_float, (m_float)*sr);
-  ALLOC_PTR(minute, m_float, (m_float)(*sr     * 60.0));
-  ALLOC_PTR(hour,   m_float, (m_float)(*minute * 60.0));
-  ALLOC_PTR(t_zero, m_float, 0.0);
-  ALLOC_PTR(pi, m_float, (m_float)M_PI);
+  ALLOC_PTR(gwi->gwion->p, d_zero, m_float, 0.0);
+  ALLOC_PTR(gwi->gwion->p, sr,     m_float, (m_float)vm->bbq->si->sr);
+  ALLOC_PTR(gwi->gwion->p, samp,   m_float, 1.0);
+  ALLOC_PTR(gwi->gwion->p, ms,     m_float, (m_float)(*sr     / 1000.));
+  ALLOC_PTR(gwi->gwion->p, second, m_float, (m_float)*sr);
+  ALLOC_PTR(gwi->gwion->p, minute, m_float, (m_float)(*sr     * 60.0));
+  ALLOC_PTR(gwi->gwion->p, hour,   m_float, (m_float)(*minute * 60.0));
+  ALLOC_PTR(gwi->gwion->p, t_zero, m_float, 0.0);
+  ALLOC_PTR(gwi->gwion->p, pi, m_float, (m_float)M_PI);
   gwi_item_ini(gwi, "float", "samplerate");
   gwi_item_end(gwi, ae_flag_const, sr);
   gwi_item_ini(gwi, "float", "pi");

@@ -7,12 +7,12 @@ typedef struct Gwion_* Gwion;
 struct Arg_;
 struct Gwion_ {
   PlugInfo* plug;
-// mem
   Env      env;
   Emitter  emit;
   VM*      vm;
   struct Map_ freearg;
   SymTable *st;
+  MemPool p;
 };
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);

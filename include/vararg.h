@@ -5,5 +5,5 @@ struct Vararg_ {
   m_bit* d;  // d(ata)
   m_uint o, i, s; // o(ffset), i(ndex), s(ize)
 };
-void free_vararg(struct Vararg_* arg);
+void free_vararg(MemPool p, struct Vararg_* arg);
 #endif

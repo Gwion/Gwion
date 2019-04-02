@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "nspc.h"
 #include "value.h"
@@ -12,7 +13,6 @@
 #include "object.h"
 #include "import.h"
 #include "operator.h"
-#include "gwion.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
@@ -20,8 +20,8 @@ ANN void exception(const VM_Shred shred, const m_str c) {
   vm_shred_exit(shred);
 }
 
-M_Object new_object(const VM_Shred shred, const Type t) {
-  const M_Object a = mp_alloc(M_Object);
+M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
+  const M_Object a = mp_alloc(p, M_Object);
   a->ref = 1;
   a->type_ref = t;
   a->vtable = &t->nspc->info->vtable;
@@ -37,28 +37,28 @@ M_Object new_object(const VM_Shred shred, const Type t) {
   return a;
 }
 
-M_Object new_string(const VM_Shred shred, const m_str str) {
-  const M_Object o = new_object(shred, t_string);
+M_Object new_string(MemPool p, const VM_Shred shred, const m_str str) {
+  const M_Object o = new_object(p, shred, t_string);
   STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, str));
   return o;
 }
 
-M_Object new_string2(const VM_Shred shred, const m_str str) {
-  const M_Object o = new_object(shred, t_string);
+M_Object new_string2(MemPool p, const VM_Shred shred, const m_str str) {
+  const M_Object o = new_object(p, shred, t_string);
   STRING(o) = str;
   return o;
 }
 
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
 //  const M_Object object = new_object(NULL, type);
-  const M_Object object = new_object(shred, type);
+  const M_Object object = new_object(shred->info->mp, shred, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred, SZ_INT);
 }
 
 ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   const Type t = object->type_ref;
-  const VM_Shred sh = new_vm_shred(t->nspc->dtor);
+  const VM_Shred sh = new_vm_shred(shred->info->mp, t->nspc->dtor);
   ADD_REF(t->nspc->dtor);
   sh->base = shred->base;
   memcpy(sh->reg, shred->reg, SIZEOF_REG);
@@ -69,6 +69,9 @@ ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
 
 __attribute__((hot))
 ANN void __release(const M_Object obj, const VM_Shred shred) {
+  // TODO: find what's going on here
+  // we should be able to use shred->info->mp directly
+  MemPool p = shred->info->mp= shred->info->vm->gwion->p;
   Type t = obj->type_ref;
   while(t->parent) {
     struct scope_iter iter = { &t->nspc->info->value, 0, 0 };\
@@ -88,13 +91,13 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
     }
     t = t->parent;
   }
-  free_object(obj);
+  free_object(p, obj);
 }
 
-ANN void free_object(const M_Object o) {
+ANN void free_object(MemPool p, const M_Object o) {
   if(o->data)
     _mp_free2(o->p, o->data);
-  mp_free(M_Object, o);
+  mp_free(p, M_Object, o);
 }
 
 #define describe_logical(name, op)               \
@@ -130,7 +133,7 @@ static OP_CHECK(opck_object_cast) {
   const Type r = cast->self->type;
 //  return isa(l, r) > 0 ? r : t_null;
   if(isa(l, r) > 0) {
-    const Type t = type_copy(r);
+    const Type t = type_copy(env->gwion->p, r);
     SET_FLAG(t, force);
     env_add_type(env, t);
     return t;

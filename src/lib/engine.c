@@ -11,24 +11,26 @@
 #include "gwi.h"
 #include "lang_private.h"
 #include "emit.h"
+#include "env.h"
+#include "vm.h"
+#include "gwion.h"
 #include "operator.h"
 #include "engine.h"
-#include "gwion.h"
 
 static FREEARG(freearg_switchini) {
-  free_vector((Vector)instr->m_val);
-  free_map((Map)instr->m_val2);
+  free_vector(((Gwion)gwion)->p, (Vector)instr->m_val);
+  free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
 }
 
 static FREEARG(freearg_switchbranch) {
-  free_map((Map)instr->m_val2);
+  free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
 }
 
 static FREEARG(freearg_gack) {
   const Vector v = (Vector)instr->m_val2;
   for(m_uint i = vector_size(v) + 1; --i;)
     REM_REF(((Type)vector_at(v, i - 1)), gwion);
-  free_vector(v);
+  free_vector(((Gwion)gwion)->p, v);
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {

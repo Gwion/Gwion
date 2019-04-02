@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "nspc.h"
 #include "instr.h"
@@ -12,7 +13,6 @@
 #include "import.h"
 #include "emit.h"
 #include "operator.h"
-#include "gwion.h"
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
@@ -70,7 +70,7 @@ static OP_EMIT(opem_ptr_deref) {
 }
 
 static INSTR(Cast2Ptr) { GWDEBUG_EXE
-  const M_Object o = new_object(shred, t_ptr);
+  const M_Object o = new_object(shred->info->mp, shred, t_ptr);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
   *(M_Object*)REG(-SZ_INT) = o;
 }

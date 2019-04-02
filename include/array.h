@@ -20,6 +20,6 @@ ANN void   m_vector_get(const M_Vector,  const m_uint, void*);
 ANN void   m_vector_add(const M_Vector,  const void*);
 ANN m_bit* m_vector_addr(const M_Vector, const m_uint);
 ANN void m_vector_rem(const M_Vector,  const m_uint);
-ANEW M_Vector new_m_vector(const m_uint);
-ANN void free_m_vector(M_Vector);
+ANEW M_Vector new_m_vector(MemPool, const m_uint);
+ANN void free_m_vector(MemPool, M_Vector);
 #endif

@@ -41,8 +41,8 @@ static inline void memoize_return4(m_bit* tgt __attribute__((unused)),
 static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
   { memoize_return1, memoize_return2, memoize_return3, memoize_return4};
 
-Memoize memoize_ini(const Func f, const enum Kind kind) {
-  Memoize m = mp_alloc(Memoize);
+Memoize memoize_ini(MemPool p, const Func f, const enum Kind kind) {
+  Memoize m = mp_alloc(p, Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
   m->kind = kind;
@@ -56,11 +56,11 @@ Memoize memoize_ini(const Func f, const enum Kind kind) {
   return m;
 }
 
-void memoize_end(Memoize m) {
+void memoize_end(MemPool p, Memoize m) {
   vector_release(&m->v);
   mp_end(m->p);
-  free(m->p);
-  mp_free(Memoize, m);
+  xfree(m->p);
+  mp_free(p, Memoize, m);
 }
 
 static inline void memoize_set(Memoize m, const m_bit* arg) {

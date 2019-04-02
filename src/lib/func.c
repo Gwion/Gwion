@@ -4,6 +4,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "value.h"
 #include "func.h"
@@ -70,7 +71,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(l->self->pos, "argument number does not match for lambda")
-  l->def = new_func_def(new_func_base(def->base->td, l->name, l->args), l->code, def->flag);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag);
   const m_bool ret = traverse_func_def(env, l->def);
   arg = l->args;
   while(arg) {
@@ -173,8 +174,8 @@ static FREEARG(freearg_xork) {
 
 static FREEARG(freearg_dottmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
-  free_type_list(dt->tl);
-  mp_free(dottmpl, dt);
+  free_type_list(((Gwion)gwion)->p, dt->tl);
+  mp_free(((Gwion)gwion)->p, dottmpl, dt);
 }
 
 GWION_IMPORT(func) {

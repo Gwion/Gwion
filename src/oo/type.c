@@ -7,17 +7,18 @@
 #include "nspc.h"
 #include "vm.h"
 #include "parse.h"
+#include "gwion.h"
 
-ANN static void free_type(Type a, void *gwion) {
+ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template))
-    free_class_def(a->def);
+    free_class_def(gwion->p, a->def);
   if(a->nspc)
     REM_REF(a->nspc, gwion);
-  mp_free(Type, a);
+  mp_free(gwion->p, Type, a);
 }
 
-ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
-  const Type type = mp_alloc(Type);
+Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
+  const Type type = mp_alloc(p, Type);
   type->xid    = xid;
   type->name   = name;
   type->parent = parent;
@@ -27,8 +28,8 @@ ANN2(2) Type new_type(const m_uint xid, const m_str name, const Type parent) {
   return type;
 }
 
-ANN Type type_copy(const Type type) {
-  const Type a = new_type(type->xid, type->name, type->parent);
+ANN Type type_copy(MemPool p, const Type type) {
+  const Type a = new_type(p, type->xid, type->name, type->parent);
   a->nspc          = type->nspc;
   a->owner         = type->owner;
   a->size          = type->size;
@@ -80,7 +81,7 @@ ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   const Type type = nspc_lookup_type1(base->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(t_array->xid, base->name, t_array);
+  const Type t = new_type(env->gwion->p, t_array->xid, base->name, t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth;

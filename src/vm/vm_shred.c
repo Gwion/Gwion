@@ -3,8 +3,10 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
+#include "env.h"
 #include "vm.h"
 #include "object.h"
+#include "gwion.h"
 
 struct Stack_ {
   VM_Shred shred;
@@ -12,32 +14,33 @@ struct Stack_ {
   char d[SIZEOF_MEM];
 };
 
-static inline struct ShredInfo_ *new_shredinfo(const m_str name) {
-  struct ShredInfo_ *info = mp_alloc(ShredInfo);
+static inline struct ShredInfo_ *new_shredinfo(MemPool p, const m_str name) {
+  struct ShredInfo_ *info = mp_alloc(p, ShredInfo);
+  info->mp = p;
   info->name = strdup(name);
   return info;
 }
 
-static inline void free_shredinfo(struct ShredInfo_ *info) {
+static inline void free_shredinfo(MemPool mp, struct ShredInfo_ *info) {
   free(info->name);
   if(info->args) {
     const Vector v = info->args;
     LOOP_OPTIM
     for(m_uint i = vector_size(v) + 1; --i;)
       free((void*)vector_at(v, i - 1));
-    free_vector(v);
+    free_vector(mp, v);
   }
-  mp_free(ShredInfo, info);
+  mp_free(mp, ShredInfo, info); // ??? info->p
 }
 
-VM_Shred new_vm_shred(VM_Code c) {
-  const VM_Shred shred = mp_alloc(Stack);
+VM_Shred new_vm_shred(MemPool p, VM_Code c) {
+  const VM_Shred shred = mp_alloc(p, Stack);
   shred->code          = c;
   shred->reg           = (m_bit*)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
-  shred->tick = mp_alloc(ShredTick);
+  shred->tick = mp_alloc(p, ShredTick);
   shred->tick->self = shred;
-  shred->info = new_shredinfo(c->name);
+  shred->info = new_shredinfo(p, c->name);
   vector_init(&shred->gc);
   return shred;
 }
@@ -47,7 +50,8 @@ void free_vm_shred(VM_Shred shred) {
     release((M_Object)vector_at(&shred->gc, i - 1), shred);
   vector_release(&shred->gc);
   REM_REF(shred->code, shred->info->vm->gwion);
-  mp_free(ShredTick, shred->tick);
-  free_shredinfo(shred->info);
-  mp_free(Stack, shred);
+  MemPool mp = shred->info->mp;
+  mp_free(mp, ShredTick, shred->tick);
+  free_shredinfo(mp, shred->info);
+  mp_free(mp, Stack, shred);
 }

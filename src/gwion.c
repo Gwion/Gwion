@@ -54,30 +54,31 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 
 
 ANN VM* gwion_cpy(const VM* src) {
-  const Gwion gwion = mp_alloc(Gwion);
-  gwion->vm = new_vm();
+  const Gwion gwion = mp_alloc(src->gwion->p, Gwion);
+  gwion->vm = new_vm(src->gwion->p);
   gwion->vm->gwion = gwion;
-  gwion->vm->bbq->si = soundinfo_cpy(src->bbq->si);
+  gwion->vm->bbq->si = soundinfo_cpy(src->gwion->p, src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
   gwion->freearg = src->gwion->freearg;
   gwion->st = src->gwion->st;
+  gwion->p = src->gwion->p;
   return gwion->vm;
 }
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
-  gwion->st = new_symbol_table(65347);
-  gwion->vm = new_vm();
+  gwion->p = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
+  gwion->st = new_symbol_table(gwion->p, 65347);
+  gwion->vm = new_vm(gwion->p);
   gwion->emit = new_emitter();
-  gwion->env = new_env();
+  gwion->env = new_env(gwion->p);
   gwion->emit->env = gwion->env;
+  gwion->emit->gwion = gwion;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->vm->bbq->si = mp_alloc(SoundInfo);
-  gwion->vm->bbq->si->in = gwion->vm->bbq->si->out = 2;
-  gwion->vm->bbq->si->sr = 48000;
+  gwion->vm->bbq->si = new_soundinfo(gwion->p);
   arg->si = gwion->vm->bbq->si;
   arg_parse(arg);
-  gwion->plug = new_plug(&arg->lib);
+  gwion->plug = new_plug(gwion->p, &arg->lib);
   map_init(&gwion->freearg);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
@@ -96,8 +97,8 @@ ANN void gwion_run(const Gwion gwion) {
 }
 
 ANN void gwion_end(const Gwion gwion) {
-  const VM_Code code = new_vm_code(NULL, 0, ae_flag_builtin, "in code dtor");
-  gwion->vm->cleaner_shred = new_vm_shred(code);
+  const VM_Code code = new_vm_code(gwion->p, NULL, 0, ae_flag_builtin, "in code dtor");
+  gwion->vm->cleaner_shred = new_vm_shred(gwion->p, code);
   gwion->vm->cleaner_shred->info->vm = gwion->vm;
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);
@@ -106,4 +107,5 @@ ANN void gwion_end(const Gwion gwion) {
   free_plug(gwion);
   map_release(&gwion->freearg);
   free_symbols(gwion->st);
+  mempool_end(gwion->p);
 }

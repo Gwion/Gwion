@@ -19,7 +19,7 @@ static m_int o_fork_thread, o_fork_retsize, o_fork_retval;
 #define FORK_RETVAL(o) (o->data + o_fork_retval)
 
 M_Object new_shred(const VM_Shred shred, m_bool is_spork) {
-  const M_Object obj = new_object(NULL, is_spork ? t_shred : t_fork);
+  const M_Object obj = new_object(shred->info->mp, NULL, is_spork ? t_shred : t_fork);
   ME(obj) = shred;
   if(!is_spork) {
 //    *(M_Object*)(obj->data + o_fork_ev) = new_object(NULL, t_event);
@@ -49,13 +49,13 @@ static MFUN(vm_shred_is_done) {
 
 static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
-  const Shreduler sh = shred->info->vm->shreduler;
+  const Shreduler sh = shred->tick->shreduler;
   shredule(sh, s, .5);
 }
 
 static SFUN(vm_shred_from_id) {
   const m_int index =  *(m_int*)MEM(0);
-  const VM_Shred s = (VM_Shred)vector_at(&shred->info->vm->shreduler->shreds, (vtype)index);
+  const VM_Shred s = (VM_Shred)vector_at(&shred->tick->shreduler->shreds, (vtype)index);
   if(s) {
     *(M_Object*)RETURN = s->info->me;
 //    s->info->me->ref++;
@@ -74,7 +74,7 @@ static MFUN(shred_arg) {
   const m_int idx = *(m_int*)MEM(SZ_INT);
   if(s->info->args && idx >= 0) {
     const m_str str = (m_str)vector_at(s->info->args, *(m_uint*)MEM(SZ_INT));
-    *(M_Object*)RETURN = str ? new_string(shred, str) : NULL;
+    *(M_Object*)RETURN = str ? new_string(shred->info->mp, shred, str) : NULL;
   } else
     *(m_uint*)RETURN = 0;
 }
@@ -83,7 +83,7 @@ static MFUN(shred_arg) {
 static MFUN(shred##name##_path) { \
   const VM_Shred s = ME(o); \
   const m_str str = code_name((src), 1); \
-  *(m_uint*)RETURN = (m_uint)new_string(shred, str); \
+  *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, str); \
 } \
 static MFUN(shred##name##_dir) { \
   const VM_Shred  s = ME(o); \
@@ -91,7 +91,7 @@ static MFUN(shred##name##_dir) { \
   const size_t len = strlen(str); \
   char c[len + 1]; \
   strcpy(c, str); \
-  *(m_uint*)RETURN = (m_uint)new_string(shred, dirname(c)); \
+  *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, dirname(c)); \
 }
 describe_path_and_dir(, s->info->name)
 describe_path_and_dir(_code, s->code->name)
@@ -99,7 +99,7 @@ describe_path_and_dir(_code, s->code->name)
 static DTOR(shred_dtor) { free_vm_shred(*(VM_Shred*)o->data); }
 
 static DTOR(fork_dtor) {
-  mp_free(Gwion, ME(o)->info->vm->gwion);
+  mp_free(shred->info->mp, Gwion, ME(o)->info->vm->gwion);
   free_vm(ME(o)->info->vm);
 }
 

@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "env.h"
 #include "vm.h"
+#include "gwion.h"
 #include "type.h"
 #include "instr.h"
 #include "object.h"
@@ -21,8 +22,8 @@ static TICK(gain_tick) {
 }
 
 static CTOR(gain_ctor) {
-  ugen_ini(UGEN(o), 1, 1);
-  ugen_gen(UGEN(o), gain_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 1, 1);
+  ugen_gen(shred->info->mp, UGEN(o), gain_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   UGEN(o)->module.gen.tick = gain_tick;
   *(m_float*)UGEN(o)->module.gen.data = 1;
 }
@@ -53,8 +54,8 @@ static TICK(impulse_tick) {
 }
 
 static CTOR(impulse_ctor) {
-  ugen_ini(UGEN(o), 0, 1);
-  ugen_gen(UGEN(o), impulse_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 0, 1);
+  ugen_gen(shred->info->mp, UGEN(o), impulse_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   *(m_float*)UGEN(o)->module.gen.data = 0;
 }
 
@@ -82,8 +83,8 @@ static TICK(fullrect_tick) {
 }
 
 static CTOR(fullrect_ctor) {
-  ugen_ini(UGEN(o), 1, 1);
-  ugen_gen(UGEN(o), fullrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 1, 1);
+  ugen_gen(shred->info->mp, UGEN(o), fullrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
@@ -101,8 +102,8 @@ static TICK(halfrect_tick) {
 }
 
 static CTOR(halfrect_ctor) {
-  ugen_ini(UGEN(o), 1, 1);
-  ugen_gen(UGEN(o), halfrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 1, 1);
+  ugen_gen(shred->info->mp, UGEN(o), halfrect_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 
@@ -117,8 +118,8 @@ static TICK(step_tick) {
 }
 
 static CTOR(step_ctor) {
-  ugen_ini(UGEN(o), 0, 1);
-  ugen_gen(UGEN(o), step_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 0, 1);
+  ugen_gen(shred->info->mp, UGEN(o), step_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   *(m_float*)UGEN(o)->module.gen.data = 0;
 }
 
@@ -149,8 +150,8 @@ static TICK(zerox_tick) {
 }
 
 static CTOR(zerox_ctor) {
-  ugen_ini(UGEN(o), 1, 1);
-  ugen_gen(UGEN(o), zerox_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
+  ugen_ini(shred->info->mp, UGEN(o), 1, 1);
+  ugen_gen(shred->info->mp, UGEN(o), zerox_tick, (m_float*)xmalloc(SZ_FLOAT), 0);
   *(m_float*)UGEN(o)->module.gen.data = 1;
 }
 

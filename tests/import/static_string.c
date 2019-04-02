@@ -8,10 +8,12 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
+#include "gwion.h"
+#include "gwi.h"
 
 GWION_IMPORT(static_string_test) {
   CHECK_BB(gwi_item_ini(gwi, "string", "self"))
-  M_Object obj = new_string(NULL, "test static string");
+  M_Object obj = new_string(gwi->gwion->p, NULL, "test static string");
   CHECK_BB(gwi_item_end(gwi, ae_flag_global, obj))
   return GW_OK;
 }

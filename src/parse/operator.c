@@ -5,6 +5,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "type.h"
 #include "instr.h"
 #include "emit.h"
@@ -12,7 +13,6 @@
 #include "func.h"
 #include "nspc.h"
 #include "operator.h"
-#include "gwion.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);
 
@@ -25,24 +25,24 @@ typedef struct M_Operator_{
   m_bool mut;
 } M_Operator;
 
-ANN static void free_op(M_Operator* a, void *gwion) {
+ANN static void free_op(M_Operator* a, Gwion gwion) {
   if(a->lhs && a->lhs != OP_ANY_TYPE)
     REM_REF(a->lhs, gwion)
   if(a->rhs && a->rhs != OP_ANY_TYPE)
     REM_REF(a->rhs, gwion)
   if(a->ret)
     REM_REF(a->ret, gwion)
-  mp_free(M_Operator, a);
+  mp_free(gwion->p, M_Operator, a);
 }
 
-ANN void free_op_map(Map map, void *gwion) {
+ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
     const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
       free_op((M_Operator*)vector_at(v, j - 1), gwion);
-    free_vector(v);
+    free_vector(gwion->p, v);
   }
   map_release(map);
 }
@@ -78,18 +78,18 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
   return NULL;
 }
 
-ANN m_bool add_op(const Nspc nspc, const struct Op_Import* opi) {
+ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* opi) {
   Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   M_Operator* mo;
   if(!v) {
-    v = new_vector();
+    v = new_vector(gwion->p);
     map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
   }
   if((mo = operator_find(v, opi->lhs, opi->rhs)))
     CHECK_BB((err_msg(0, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
             opi->rhs ? opi->rhs->name : NULL)))
-  mo = mp_alloc(M_Operator);
+  mo = mp_alloc(gwion->p, M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;

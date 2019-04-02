@@ -4,6 +4,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "gwion.h"
 #include "operator.h"
 #include "value.h"
 #include "traverse.h"
@@ -15,8 +16,8 @@
 #include "vm.h"
 #include "parse.h"
 
-ANN static struct Env_Scope_ *new_scope(void) {
-  struct Env_Scope_ *a = mp_alloc(Env_Scope);
+ANN static struct Env_Scope_ *new_scope(MemPool p) {
+  struct Env_Scope_ *a = mp_alloc(p, Env_Scope);
   vector_init(&a->breaks);
   vector_init(&a->conts);
   vector_init(&a->class_stack);
@@ -27,11 +28,11 @@ ANN static struct Env_Scope_ *new_scope(void) {
   return a;
 }
 
-Env new_env() {
+Env new_env(MemPool p) {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
-  env->global_nspc = new_nspc("global_nspc");
+  env->global_nspc = new_nspc(p, "global_nspc");
   env->context = NULL;
-  env->scope = new_scope();
+  env->scope = new_scope(p);
   env_reset(env);
   return env;
 }
@@ -50,7 +51,7 @@ ANN void env_reset(const Env env) {
   switch_reset(env);
 }
 
-ANN static void free_env_scope(struct Env_Scope_  *a, void *gwion) {
+ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = size + 1; --i;)
     REM_REF((Context)vector_at(&a->known_ctx, i - 1), gwion);
@@ -60,7 +61,7 @@ ANN static void free_env_scope(struct Env_Scope_  *a, void *gwion) {
   vector_release(&a->breaks);
   vector_release(&a->conts);
   switch_release(&a->swi);
-  mp_free(Env_Scope, a);
+  mp_free(gwion->p, Env_Scope, a);
 }
 
 ANN void free_env(const Env a) {
@@ -87,11 +88,11 @@ ANN void env_pop(const Env env, const m_uint scope) {
 }
 
 ANN void env_add_type(const Env env, const Type type) {
-  const Type v_type = type_copy(t_class);
+  const Type v_type = type_copy(env->gwion->p, t_class);
   v_type->d.base_type = type;
   SET_FLAG(type, builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
-  const Value v = new_value(v_type, type->name);
+  const Value v = new_value(env->gwion->p, v_type, type->name);
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->owner = env->curr;
@@ -99,7 +100,7 @@ ANN void env_add_type(const Env env, const Type type) {
 }
 
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
-  const Context ctx = new_context(ast, env->name);
+  const Context ctx = new_context(env->gwion->p, ast, env->name);
   env_reset(env);
   load_context(ctx, env);
   const m_bool ret = traverse_ast(env, ast);
@@ -116,5 +117,5 @@ ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
   const Nspc nspc = env->curr;
   if(!nspc->info->op_map.ptr)
     map_init(&nspc->info->op_map);
-  return add_op(nspc, opi);
+  return add_op(env->gwion, nspc, opi);
 }
