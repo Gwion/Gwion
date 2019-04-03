@@ -23,7 +23,7 @@ ANN static struct Env_Scope_ *new_scope(MemPool p) {
   vector_init(&a->class_stack);
   vector_init(&a->nspc_stack);
   vector_init(&a->known_ctx);
-  vector_init((Vector)&a->swi);
+  _scope_init(&a->swi);
   map_init(&a->swi.map);
   return a;
 }

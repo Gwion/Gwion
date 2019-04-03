@@ -59,19 +59,14 @@ ANN void instantiate_object(const VM_Shred shred, const Type type) {
 ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
   const Type t = object->type_ref;
   const VM_Shred sh = new_vm_shred(shred->info->mp, t->nspc->dtor);
-  ADD_REF(t->nspc->dtor);
   sh->base = shred->base;
-  memcpy(sh->reg, shred->reg, SIZEOF_REG);
   *(M_Object*)sh->mem = object;
   vm_add_shred(shred->info->vm, sh);
-  ++sh->info->me->ref;
 }
 
 __attribute__((hot))
 ANN void __release(const M_Object obj, const VM_Shred shred) {
-  // TODO: find what's going on here
-  // we should be able to use shred->info->mp directly
-  MemPool p = shred->info->mp= shred->info->vm->gwion->p;
+  MemPool p = shred->info->mp;// = shred->info->vm->gwion->p;
   Type t = obj->type_ref;
   while(t->parent) {
     struct scope_iter iter = { &t->nspc->info->value, 0, 0 };\

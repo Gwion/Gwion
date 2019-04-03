@@ -53,10 +53,10 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
   CHECK_BB(env_access(env, decl->td->flag))
   env_storage(env, &decl->td->flag);
   Var_Decl_List list = decl->list;
-  m_uint scope;
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
+  m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   if(global)
     scope = env_push_global(env);

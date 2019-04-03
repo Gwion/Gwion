@@ -86,6 +86,7 @@ ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
   shredule(vm->shreduler, shred, .5);
   return shred->tick->xid;
 }
+
 #include "gwion.h"
 ANN m_uint vm_fork(const VM* src, const VM_Shred shred) {
   VM* vm = shred->info->vm = gwion_cpy(src);
@@ -232,8 +233,9 @@ __attribute__((hot))
     *(m_int*)(reg + SZ_FLOAT-SZ_INT)); \
   DISPATCH()
 
-#define FI_R(op) \
+#define FI_R(op, ...) \
   reg -= SZ_FLOAT; \
+  __VA_ARGS__ \
   *(m_int*)(reg-SZ_INT) = (**(m_int**)(reg+SZ_FLOAT -SZ_INT) op##= \
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
@@ -344,13 +346,25 @@ regpushmemfloat:
   DISPATCH();
 regpushmemother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((mem + instr->m_val) + i);
+  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT) {
+    m_uint* m0 = __builtin_assume_aligned((m_bit*)mem+i, SZ_INT);
+printf("%p\n", m0);
+//    m_uint* m = __builtin_assume_aligned((m_bit*)mem+instr->m_val+i, SZ_INT);
+    m_uint* r = __builtin_assume_aligned(reg+i, SZ_INT);
+//    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + instr->m_val) + i);
+//    *(m_uint*)(r) = *(m_uint*)(m);
+    *(m_uint*)(r) = *(m_uint*)(m0+instr->m_val);
+  }
   reg += instr->m_val2;
   DISPATCH();
-regpushmemaddr:
-  *(m_bit**)reg = (mem + instr->m_val);
+regpushmemaddr: {
+m_bit* r0 __attribute__((aligned(SZ_INT))) = __builtin_assume_aligned(reg, SZ_INT);
+m_bit* m0 __attribute__((aligned(SZ_INT))) = mem + instr->m_val;
+//  m_uint* r __attribute__((aligned(SZ_INT))) = r0;//__builtin_assume_aligned(reg, SZ_INT);
+//  *(m_bit**)reg = __builtin_assume_aligned(mem + instr->m_val, SZ_INT);
+  *(void**)r0 = m0;
   reg += SZ_INT;
+  }
   DISPATCH()
 pushnow:
   *(m_float*)reg = vm->bbq->pos;
@@ -543,7 +557,7 @@ firassign:
 firadd: FI_R(+)
 firsub: FI_R(-)
 firmul: FI_R(*)
-firdiv: FI_R(/)
+firdiv: FI_R(/, TEST0(m_int, -SZ_INT))
 
 itof:
   reg -= SZ_INT - SZ_FLOAT;

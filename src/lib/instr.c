@@ -12,17 +12,27 @@
 #include "func.h"
 #include "array.h"
 #include "nspc.h"
+#include "shreduler_private.h"
 
 INSTR(EOC) { GWDEBUG_EXE
   vm_shred_exit(shred);
 }
-
+#include "gwion.h"
 INSTR(DTOR_EOC) { GWDEBUG_EXE
+  // TODO: we should be able to use shred->info->mp directly
+  shred->info->mp = (MemPool)instr->m_val;
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->parent;
-  _release(o, shred);
-  if(shred->info->me->ref > 1) // ???
-    _release(shred->info->me, shred);
+printf("'obj %p %p %s\n", o, shred->info->me, shred->info->me->type_ref->name);
+//free_object(
+  __release(o, shred);
+//shreduler_remove(shred->tick->shreduler, shred, 0);
+//vector_rem2(&shred->tick->shreduler->shreds, shred);
+//++shred->info->me->ref;
+//REM_REF(shred->code, shred->info->vm->gwion);
+//  _release(shred->info->me, shred);
+//  _release(shred->info->me, shred);
+//free_vm_shred(shred);
   vm_shred_exit(shred);
 }
 

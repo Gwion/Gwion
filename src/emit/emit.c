@@ -317,7 +317,7 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) { GWD
   const Value v = prim->value;
   if(v->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(GET_FLAG(v, builtin) || GET_FLAG(v, union))
+  if(GET_FLAG(v, builtin) || GET_FLAG(v, union) || GET_FLAG(v, enum))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, prim->self->emit_var, !GET_FLAG(v, global) ? regpushmem : regpushbase);
@@ -451,9 +451,11 @@ ANN static m_bool prim_char(const Emitter emit, const Exp_Primary* prim) {
 }
 
 ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) { GWDEBUG_EXE
-  char c[strlen(prim->d.str)];
-  strcpy(c, prim->d.str);
-  CHECK_BB(escape_str(c, prim->self->pos));
+  char c[strlen(prim->d.str) + 1];
+  if(strlen(prim->d.str)) {
+    strcpy(c, prim->d.str);
+    CHECK_BB(escape_str(c, prim->self->pos));
+  } else c[0] = '\0';
   const Instr instr = emit_add_instr(emit, RegPushStr);
   instr->m_val = (m_uint)s_name(insert_symbol(c));
   return GW_OK;
@@ -1332,7 +1334,9 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
       v->offset = emit_local(emit, SZ_INT, 0);
       v->d.ptr = addr;
     } else
-      *(m_uint*)(emit->env->class_def->nspc->info->class_data + v->offset) = i;
+//      *(m_uint*)(emit->env->class_def->nspc->info->class_data + v->offset) = i;
+// alignement
+      *(m_bit*)(emit->env->class_def->nspc->info->class_data + v->offset) = i;
   }
   return GW_OK;
 }
@@ -1654,6 +1658,7 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) { GWDEBU
     Instr instr = (Instr)vector_back(func->code->instr);
     instr->opcode = eOP_MAX;
     instr->execute = DTOR_EOC;
+    instr->m_val = (m_uint)emit->gwion->p;
     ADD_REF(func->code)
   }
 }

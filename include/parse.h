@@ -34,8 +34,9 @@ static const _exp_func exp_func[] = {                                           
 static const _exp_func section_func[] = {                                                         \
   (_exp_func)prefix##_stmt_list, (_exp_func)prefix##_func_def, (_exp_func)prefix##_class_def      \
 };                                                                                                \
-ANN static inline m_bool prefix##_section(const void* a, const Section* section) { GWDEBUG_EXE    \
-  return section_func[section->section_type](a, *(void**)&section->d);                            \
+ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* section) { GWDEBUG_EXE    \
+  void* d = &section->d.stmt_list;                            \
+  return section_func[section->section_type](a, *(void**)d);                            \
 }
 
 #define HANDLE_EXP_FUNC(prefix, type, ret)                                                        \
