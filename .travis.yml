@@ -33,11 +33,11 @@ env:
 
 matrix:
   allow_failures:
-   - os: windows
+   - compiler: clang
 
 compiler:
   - gcc
-#  - clang
+  - clang
 
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
