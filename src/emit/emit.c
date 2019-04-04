@@ -539,7 +539,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, ObjectAssign);
-    assign->m_val = (m_uint)emit_var;
+    assign->m_val = emit_var;
     if(is_array && !emit->env->scope->depth)
       ADD_REF(type)
   }
@@ -557,15 +557,14 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
     emit_var : 1;
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
-  f_instr *exec = (f_instr*)dotstatic;
-  const Instr instr = emit_kind(emit, v->type->size, emit_addr, exec);
+  const Instr instr = emit_kind(emit, v->type->size, emit_addr, dotstatic);
   v->d.ptr = mp_alloc2(emit->gwion->p, v->type->size);
   SET_FLAG(v, union);
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, ObjectAssign);
-    assign->m_val = (m_uint)emit_var;
+    assign->m_val = emit_var;
     if(is_array && !emit->env->scope->depth)
       ADD_REF(type)
     const Instr instr = emit_add_instr(emit, RegAddRef);
