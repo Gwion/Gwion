@@ -590,7 +590,7 @@ funcmember:
   a.code = *(VM_Code*)reg;
   mem += *(m_uint*)(reg + SZ_INT);
   next = eFuncMemberEnd;
-  goto *dispatch[eRegPop];
+  goto regpop;
 funcusr:
 {
   reg -= SZ_INT;
