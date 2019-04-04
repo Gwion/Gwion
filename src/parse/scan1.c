@@ -50,8 +50,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
 }
 
 ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, decl->td->flag))
-  env_storage(env, &decl->td->flag);
+  CHECK_BB(env_storage(env, decl->td->flag))
   Var_Decl_List list = decl->list;
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
@@ -268,8 +267,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, f->flag))
-  env_storage(env, &f->flag);
+  CHECK_BB(env_storage(env, f->flag))
   if(tmpl_list_base(f->tmpl))
     return GW_OK;
   const Func former = env->func;

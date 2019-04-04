@@ -33,9 +33,9 @@ ANN m_bool env_access(const Env env, const ae_flag flag) {
   return GW_OK;
 }
 
-ANN void env_storage(const Env env, ae_flag* flag) {
-  if(env->class_def && GET(*flag, ae_flag_global))
-    *flag &= (uint)~ae_flag_global;
+ANN m_bool env_storage(const Env env, ae_flag flag) {
+  CHECK_BB(env_access(env, flag))
+  return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
 
 ANN static Type find_typeof(const Env env, ID_List path) {

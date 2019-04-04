@@ -70,8 +70,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 }
 
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, stmt->flag))
-  env_storage(env, &stmt->flag);
+  CHECK_BB(env_storage(env, stmt->flag))
   if(stmt->xid) {
     const Value v = nspc_lookup_value1(env->curr, stmt->xid);
     if(v)
@@ -107,8 +106,7 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
 }
 
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, stmt->flag))
-  env_storage(env, &stmt->flag);
+  CHECK_BB(env_storage(env, stmt->flag))
   if(stmt->xid) {
     CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
@@ -151,8 +149,7 @@ ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, class_def->flag))
-  env_storage(env, &class_def->flag);
+  CHECK_BB(env_storage(env, class_def->flag))
   if(GET_FLAG(class_def, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
