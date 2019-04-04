@@ -1533,77 +1533,36 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
   return emit_vararg(emit, member);
 }
 
-ANN static m_bool emit_dot_static_func(const Emitter emit, const Func func) { GWDEBUG_EXE
-  const Instr func_i = emit_add_instr(emit, PushStaticCode);
-  func_i->m_val = (m_uint)func;
-  return GW_OK;
-}
-
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) { GWDEBUG_EXE
-  if(emit_exp(emit, member->base, 0) < 0)
-    ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
-  emit_add_instr(emit, GWOP_EXCEPT);
-  if(GET_FLAG(member->base->type, force)) {
-    const Instr func_i = emit_add_instr(emit, RegPushImm);
-    func_i->m_val = (m_uint)func->code;
+  if(isa(member->t_base, t_class) > 0 || GET_FLAG(member->base->type, force)) {
+    const Instr func_i = emit_add_instr(emit, func->code ? RegPushImm : PushStaticCode);
+    func_i->m_val = (m_uint)(func->code ?: (VM_Code)func);
     return GW_OK;
   }
-  if(!func->def->tmpl) {
-    const Instr func_i = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
-    func_i->m_val = func->vt_index;
-    return GW_OK;
-  }
-  emit_add_instr(emit, DotTmpl);
+  const Instr instr = emit_add_instr(emit, !func->def->tmpl ? GET_FLAG(func, member) ? DotFunc : DotStaticFunc : DotTmpl);
+  instr->m_val = func->vt_index;
   return GW_OK;
 }
 
-ANN static inline void emit_member(const Emitter emit, const Value v, const uint emit_addr) {
-  emit_add_instr(emit, GWOP_EXCEPT);
+ANN static inline m_bool emit_member(const Emitter emit, const Value v, const uint emit_addr) {
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->offset;
   instr->m_val2 = size;
-}
-
-ANN static m_bool emit_exp_dot_instance(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
-  const Type t_base = member->t_base;
-  const Value value = find_value(t_base, member->xid);
-  const uint emit_addr = member->self->emit_var;
-  if(isa(member->self->type, t_fptr) > 0) {
-    if(GET_FLAG(value, member)) {
-      if(emit_exp(emit, member->base, 0) < 0)
-        ERR_B(member->self->pos, "... in member function") // LCOV_EXCL_LINE
-      emit_member(emit, value, emit_addr);
-      return GW_OK;
-    } else
-      return emit_dot_static_data(emit, value, emit_addr);
-  } else if(isa(member->self->type, t_function) > 0)
-    return emit_member_func(emit, member, value->d.func_ref);
-  else {
-    if(GET_FLAG(value, member)) {
-      CHECK_BB(emit_exp(emit, member->base, 0))
-      emit_member(emit, value, emit_addr);
-      return GW_OK;
-    } else
-      CHECK_BB(emit_dot_static_import_data(emit, value, emit_addr))
-  }
   return GW_OK;
-}
-
-ANN static m_bool emit_exp_dot_static(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
-  const Type t_base = member->t_base->d.base_type;
-  const Value value = find_value(t_base, member->xid);
-  if(isa(member->self->type, t_function) > 0 && isa(member->self->type, t_fptr) < 0)
-    return emit_dot_static_func(emit, value->d.func_ref);
-  return emit_dot_static_import_data(emit, value, member->self->emit_var);
 }
 
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
-  if(isa(member->t_base, t_class) > 0)
-    return emit_exp_dot_static(emit, member);
-  return emit_exp_dot_instance(emit, member);
+  if(isa(member->t_base, t_class) < 0) {
+    CHECK_BB(emit_exp(emit, member->base, 0))
+    emit_add_instr(emit, GWOP_EXCEPT);
+  }
+  const Value value = find_value(actual_type(member->t_base), member->xid);
+  if(isa(member->self->type, t_function) > 0 && isa(member->self->type, t_fptr) < 0)
+    return emit_member_func(emit, member, value->d.func_ref);
+  return (GET_FLAG(value, member) ? emit_member : emit_dot_static_import_data) (emit, value, member->self->emit_var);
 }
 
 ANN static inline void emit_func_def_global(const Emitter emit, const Value value) { GWDEBUG_EXE
