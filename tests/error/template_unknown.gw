@@ -1,5 +1,4 @@
 // [contains] unknown type
- template<~my_type~>
-function void my_function() { <<<"test">>>; }
+function<~A~> void my_function() { <<<"test">>>; }
 
 my_function<~unknown_type~>();

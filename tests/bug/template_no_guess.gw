@@ -1,6 +1,2 @@
-//template <~a~>
 function void test(){}
-//function void test(int i[]){<<<i>>>;}
-//function void test(Object o){}
-
 test([1], 2.3);

@@ -1,8 +1,6 @@
 // [contains] arguments do not match for template call
-template <~i~>
-function void test(){ <<<"func">>>;}
-template <~i~>
-function void test(int i){<<<"other func">>>;}
+function<~A~> void test(){ <<<"func">>>;}
+function<~A~> void test(int i){<<<"other func">>>;}
 
 test<~int, float, int~>();
 //test<~int~>();

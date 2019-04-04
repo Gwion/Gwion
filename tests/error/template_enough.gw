@@ -1,4 +1,3 @@
 // [contains] 
- template<~a, b~>
-function void test(){}
+function<~A,B~> void test(){}
 test();

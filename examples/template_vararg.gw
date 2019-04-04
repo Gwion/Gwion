@@ -1,5 +1,4 @@
-template <~a~>
-fun void test(...) {
+fun<~A~> void test(...) {
   vararg.start;
   <<<vararg.i>>>;
   vararg.end;

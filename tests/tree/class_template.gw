@@ -5,8 +5,7 @@ class C {
   fun A test() {
     <<<"lol">>>;
   }
-  template<~C~>
-  fun void test2(C c) {
+  fun<~C~> void test2(C c) {
     <<<c>>>;
   }
 }

@@ -1,6 +1,5 @@
 // [contains] you must provide template types
-template<~A~>
-class C {
+class<~A~> C {
   A a;
 }
 

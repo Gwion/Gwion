@@ -4,20 +4,15 @@ fun void test(C cc, int i) { <<<1>>>; <<<cc.test(i, i)>>>; }
 
 
 class C {
-  template<~A~>
-  fun int test(A a) { <<<" A ", a>>>; }
-  template<~A~>
-  fun int test(A a, int i) { <<<" ", a >>>; }
-  template<~A~>
-  fun int test(A a, int i, int j) { <<<a>>>; }
+  fun<~A~> int test(A a) { <<<" A ", a>>>; }
+  fun<~A~> int test(A a, int i) { <<<" ", a >>>; }
+  fun<~A~> int test(A a, int i, int j) { <<<a>>>; }
 }
 class D extends C {
-  template<~A~>
-  fun int test(A a, int i) { <<<this, " extent ", a, __func__>>>; }
+  fun int<~A~> test(A a, int i) { <<<this, " extent ", a, __func__>>>; }
 }
 class E extends D {
-  template<~A~>
-  fun int test(A a, int i) { <<<this, " Extent ", a, __func__>>>; }
+  fun int<~A~> test(A a, int i) { <<<this, " Extent ", a, __func__>>>; }
 }
 
 

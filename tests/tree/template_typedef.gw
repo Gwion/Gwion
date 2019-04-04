@@ -6,7 +6,7 @@ lol t;
 class C extends lol { int i;}
 C c;
 <<<c.i>>>;
-template <~A~> class D {
+class<~A~> D {
   <<<"lol">>>;
   int i;
 }
