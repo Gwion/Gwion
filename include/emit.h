@@ -20,6 +20,7 @@ struct Emitter_ {
   Code*  code;
   struct Gwion_ *gwion;
   struct Vector_  stack;
+  char *escape;
 };
 
 ANEW ANN Emitter new_emitter(void/*const Env*/);

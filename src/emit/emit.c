@@ -443,7 +443,7 @@ ANN static m_bool prim_float(const Emitter emit, const Exp_Primary* primary) {
 }
 
 ANN static m_bool prim_char(const Emitter emit, const Exp_Primary* prim) {
-  const m_int c = str2char(prim->d.chr, prim->self->pos);
+  const m_int c = str2char(emit, prim->d.chr, prim->self->pos);
   CHECK_BB(c);
   const Instr instr = emit_add_instr(emit, RegPushImm);
   instr->m_val = (m_uint)c;
@@ -454,7 +454,7 @@ ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) { GWDEBU
   char c[strlen(prim->d.str) + 1];
   if(strlen(prim->d.str)) {
     strcpy(c, prim->d.str);
-    CHECK_BB(escape_str(c, prim->self->pos));
+    CHECK_BB(escape_str(emit, c, prim->self->pos));
   } else c[0] = '\0';
   const Instr instr = emit_add_instr(emit, RegPushStr);
   instr->m_val = (m_uint)s_name(insert_symbol(c));

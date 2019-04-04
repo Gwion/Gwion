@@ -9,15 +9,18 @@
 #include "value.h"
 #include "instr.h"
 #include "emit.h"
+#include "escape.h"
 
 ANEW Emitter new_emitter(void) {
   Emitter emit = (Emitter)xcalloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
+  emit->escape = escape_table();
   return emit;
 }
 
 ANN void free_emitter(Emitter a) {
   vector_release(&a->stack);
+  xfree(a->escape);
   xfree(a);
 }
 

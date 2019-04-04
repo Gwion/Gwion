@@ -1,29 +1,33 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
+#include "oo.h"
+#include "env.h"
+#include "vm.h"
+#include "instr.h"
+#include "emit.h"
+#include "escape.h"
 
-static char g_escape[256];
-__attribute__((constructor(300)))
-void escape_table() {
-    g_escape['0'] = '0';
-    g_escape['\''] = '\'';
-    g_escape['"'] = '"';
-    g_escape['\\'] = '\\';
-    g_escape['a'] = (char)7; // audible bell
-    g_escape['b'] = (char)8; // back space
-    g_escape['f'] = (char)12; // form feed
-    g_escape['n'] = (char)10; // new line
-    g_escape['r'] = (char)13; // carriage return
-    g_escape['t'] = (char)9; // horizontal tab
-    g_escape['v'] = (char)11; // vertical tab
+char* escape_table(void) {
+  char *escape = (char*)xcalloc(256, sizeof(char));
+  escape['0'] = '0';
+  escape['\''] = '\'';
+  escape['"'] = '"';
+  escape['\\'] = '\\';
+  escape['a'] = (char)7; // audible bell
+  escape['b'] = (char)8; // back space
+  escape['f'] = (char)12; // form feed
+  escape['n'] = (char)10; // new line
+  escape['r'] = (char)13; // carriage return
+  escape['t'] = (char)9; // horizontal tab
+  escape['v'] = (char)11; // vertical tab
+  return escape;
 }
 
-static int get_escape(const char c, const uint pos) {
-  if(g_escape[(int)c])
-    return g_escape[(int)c];
-  return err_msg(pos, "unrecognized escape sequence '\\%c'", c);
+static int get_escape(const Emitter emit, const char c, const uint pos) {
+  return emit->escape[(int)c] ?: err_msg(pos, "unrecognized escape sequence '\\%c'", c);
 }
 
-m_bool escape_str(const m_str base, const uint pos) {
+m_bool escape_str(const Emitter emit, const m_str base, const uint pos) {
   unsigned char* str_lit = (unsigned char*)base;
   m_str str = base;
   while(*str_lit) {
@@ -54,7 +58,7 @@ m_bool escape_str(const m_str base, const uint pos) {
         } else
           ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c1, c3)
       } else
-        CHECK_BB((*str++ = (char)get_escape((char)c, pos)))
+        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, pos)))
     }
     else
         *str++ = (char)*str_lit;
@@ -64,9 +68,7 @@ m_bool escape_str(const m_str base, const uint pos) {
   return GW_OK;
 }
 
-ANN m_int str2char(const m_str c, const uint pos) {
-  if(c[0] != '\\')
-    return c[0];
-  return get_escape(c[1], pos);
- }
+ANN m_int str2char(const Emitter emit, const m_str c, const uint pos) {
+  return c[0] != '\\' ? c[0] : get_escape(emit, c[1], pos);
+}
 
