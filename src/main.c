@@ -10,7 +10,7 @@
 static jmp_buf jmp;
 static struct Gwion_ gwion;
 
-static void sig(int unused __attribute__((unused))) {
+static void sig(int unused NUSED) {
   gwion.vm->bbq->is_running = 0;
   longjmp(jmp, 1);
 }

@@ -8,12 +8,12 @@ typedef void (*f_sfun)(const m_bit*, const m_bit* RETURN, const VM_Shred sh);
 typedef void (*f_xfun)();
 typedef struct Gwi_* Gwi;
 
-#define MFUN(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
-#define SFUN(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* RETURN __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
-#define CTOR(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* _ __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
-#define DTOR(a) ANN void a(const M_Object o __attribute__((unused)), const m_bit* _ __attribute__((unused)), const VM_Shred shred __attribute__((unused)))
-#define OP_CHECK(a) ANN Type a(const Env env __attribute__((unused)), void* data __attribute__((unused)))
-#define OP_EMIT(a)  ANN m_bool a(const Emitter emit __attribute__((unused)), void* data __attribute__((unused)))
+#define MFUN(a) ANN void a(const M_Object o NUSED, const m_bit* RETURN NUSED, const VM_Shred shred NUSED)
+#define SFUN(a) ANN void a(const M_Object o NUSED, const m_bit* RETURN NUSED, const VM_Shred shred NUSED)
+#define CTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
+#define DTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
+#define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED)
+#define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
 #define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
 #else
@@ -75,7 +75,7 @@ OP_EMIT(opem_new);
 
 ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth);
 
-#define FREEARG(a) ANN void a(Instr instr  __attribute__((unused)), void *gwion __attribute__((unused)))
+#define FREEARG(a) ANN void a(Instr instr  NUSED, void *gwion NUSED)
 typedef void (*f_freearg)(Instr, void*);
 ANN void register_freearg(const Gwi, const f_instr, void(*)(const Instr,void*));
 #endif

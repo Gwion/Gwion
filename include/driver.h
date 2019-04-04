@@ -32,9 +32,9 @@ typedef struct BBQ_ {
   struct DriverData_* driver;
 } Driver;
 
-#define DRVINI(a) ANN m_bool a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
-#define DRVRUN(a) ANN void   a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
-#define DRVDEL(a) ANN void   a(struct VM_ *vm __attribute__((unused)), Driver* di __attribute__((unused)))
+#define DRVINI(a) ANN m_bool a(struct VM_ *vm NUSED, Driver* di NUSED)
+#define DRVRUN(a) ANN void   a(struct VM_ *vm NUSED, Driver* di NUSED)
+#define DRVDEL(a) ANN void   a(struct VM_ *vm NUSED, Driver* di NUSED)
 
 ANN void dummy_driver(DriverData*);
 ANN void driver_alloc(Driver*);

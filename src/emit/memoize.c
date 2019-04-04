@@ -20,12 +20,12 @@ struct Memoize_ {
 };
 
 static inline void memoize_return1(m_bit* tgt, const m_bit* src,
-  const m_uint size __attribute__((unused))) {
+  const m_uint size NUSED) {
   *(m_uint*)tgt = *(m_uint*)src;
 }
 
 static inline void memoize_return2(m_bit* tgt, const m_bit* src,
-  const m_uint size __attribute__((unused))) {
+  const m_uint size NUSED) {
   *(m_float*)tgt = *(m_float*)src;
 }
 
@@ -34,9 +34,9 @@ static inline void memoize_return3(m_bit* tgt, const m_bit* src,
   memcpy(tgt, src, size);
 }
 
-static inline void memoize_return4(m_bit* tgt __attribute__((unused)),
-  const m_bit* src __attribute__((unused)),
-  const m_uint size __attribute__((unused))) {}
+static inline void memoize_return4(m_bit* tgt NUSED,
+  const m_bit* src NUSED,
+  const m_uint size NUSED) {}
 
 static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
   { memoize_return1, memoize_return2, memoize_return3, memoize_return4};

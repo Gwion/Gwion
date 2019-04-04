@@ -173,7 +173,7 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
   return GW_OK;
 }
 
-ANN2(1,2) Type gwi_mk_type(const Gwi gwi __attribute__((unused)), const m_str name, const m_uint size, const Type parent) {
+ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint size, const Type parent) {
   const Type t = new_type(gwi->gwion->p, 0, name, parent);
   t->size = size;
   return t;

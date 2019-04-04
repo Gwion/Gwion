@@ -8,7 +8,7 @@
 #define MEM(a) (shred->mem + (a))
 #define REG(a) (shred->reg + (a))
 #define INSTR(a) __attribute__((hot))\
-ANN2(1) void a(const VM_Shred shred __attribute__((unused)), const Instr instr  __attribute__((unused)))
+ANN2(1) void a(const VM_Shred shred NUSED, const Instr instr  NUSED)
 
 enum Kind {
   KIND_INT,

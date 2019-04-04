@@ -20,8 +20,8 @@ else if(GET_FLAG(a, protect)) \
   SET_FLAG(b, protect);
 
 typedef m_bool (*_exp_func)(const void*, const void*);
-static inline m_bool dummy_func(const void*a __attribute__((unused)),
-  const void*b __attribute__((unused))) { return 1; }
+static inline m_bool dummy_func(const void*a NUSED,
+  const void*b NUSED) { return 1; }
 #define DECL_EXP_FUNC(prefix)                                                                     \
 static const _exp_func exp_func[] = {                                                             \
   (_exp_func)prefix##_exp_decl,    (_exp_func)prefix##_exp_binary, (_exp_func)prefix##_exp_unary, \

@@ -1053,12 +1053,12 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) { GW
   return GW_OK;
 }
 
-ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt stmt __attribute__((unused))) { GWDEBUG_EXE
+ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt stmt NUSED) { GWDEBUG_EXE
   vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
 }
 
-ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt stmt __attribute__((unused))) { GWDEBUG_EXE
+ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt stmt NUSED) { GWDEBUG_EXE
   vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
 }
