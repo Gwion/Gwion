@@ -68,7 +68,7 @@ util_obj := $(util_src:.c=.o)
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
 
 ifeq ($(shell uname), Linux)
-LDFLAGS+=-lrt
+LDFLAGS += -lrt -rdynamic
 endif
 
 CCFG="${CFLAGS}"
