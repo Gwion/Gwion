@@ -12,8 +12,9 @@
 #include "gwi.h"
 
 GWION_IMPORT(static_string_test) {
+  const M_Object obj = gwion_new_string(gwi->gwion, "test static string");
   CHECK_BB(gwi_item_ini(gwi, "string", "self"))
-  M_Object obj = new_string(gwi->gwion->p, NULL, "test static string");
-  CHECK_BB(gwi_item_end(gwi, ae_flag_global, obj))
+//  CHECK_BB(gwi_item_end(gwi, ae_flag_global, obj))
+  CHECK_BB(gwi_item_end(gwi, 0, obj))
   return GW_OK;
 }

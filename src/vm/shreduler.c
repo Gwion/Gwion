@@ -16,6 +16,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   Driver *bbq = s->bbq;
   struct ShredTick_ *tk = s->list;
   if(!tk) {
+//printf("here %p %lu\n", s, s->bbq->pos);
     if(!vector_size(&s->shreds) && !s->loop)
       bbq->is_running = 0;
     return NULL;

@@ -52,11 +52,12 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
     compile_filename(gwion, (m_str)vector_at(v, i));
 }
 
-
+#include "shreduler_private.h"
 ANN VM* gwion_cpy(const VM* src) {
   const Gwion gwion = mp_alloc(src->gwion->p, Gwion);
   gwion->vm = new_vm(src->gwion->p);
   gwion->vm->gwion = gwion;
+//gwion->vm->shreduler->bbq->is_running = 1;
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->p, src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
@@ -69,6 +70,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->p = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
   gwion->st = new_symbol_table(gwion->p, 65347);
   gwion->vm = new_vm(gwion->p);
+printf("non fork vm: %p\n", gwion->vm->shreduler);
   gwion->emit = new_emitter();
   gwion->env = new_env(gwion->p);
   gwion->emit->env = gwion->env;

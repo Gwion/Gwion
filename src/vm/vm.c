@@ -91,6 +91,8 @@ ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
 ANN m_uint vm_fork(const VM* src, const VM_Shred shred) {
   VM* vm = shred->info->vm = gwion_cpy(src);
   shred->info->me = new_shred(shred, 0);
+//  shreduler_add(vm->shreduler, shred);
+//  shredule(vm->shreduler, shred, .5);
   shreduler_add(vm->shreduler, shred);
   shredule(vm->shreduler, shred, .5);
   return shred->tick->xid;
@@ -242,7 +244,8 @@ __attribute__((hot))
 
 __attribute__ ((optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
-  static const void* dispatch[] = {
+//printf("here %p\n", vm->shreduler);
+static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
@@ -348,7 +351,7 @@ regpushmemother:
 //  LOOP_OPTIM
   for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT) {
     m_uint* m0 = __builtin_assume_aligned((m_bit*)mem+i, SZ_INT);
-printf("%p\n", m0);
+//printf("%p\n", m0);
 //    m_uint* m = __builtin_assume_aligned((m_bit*)mem+instr->m_val+i, SZ_INT);
     m_uint* r = __builtin_assume_aligned(reg+i, SZ_INT);
 //    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + instr->m_val) + i);
@@ -573,7 +576,9 @@ timeadv:
 {
   register const m_float f = *(m_float*)(reg-SZ_FLOAT);
   *(m_float*)(reg-SZ_FLOAT) = (shred->tick->wake_time += f);
+//printf("here adv %p %lu\n", s, s->bbq->is_running);
   shredule(s, shred, f);
+//printf("here adv %p %p %lu\n", shred->tick->shreduler, s, s->bbq->is_running);
 }
 shred->code = code;
 shred->reg = reg;
@@ -823,6 +828,7 @@ mem = shred->mem;
 pc = shred->pc;
 DISPATCH()
     } while(s->curr);
+//printf("no more curr %p\n", vm->shreduler);
 #ifdef VMBENCH
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
 timespecsub(&exec_end, &exec_ini, &exec_ret);
@@ -836,6 +842,7 @@ timespecadd(&exec_time, &exec_ret, &exec_time);
 #endif
     return;
 }
+if(vector_size(&vm->ugen))
   vm_ugen_init(vm);
 }
 //#pragma GCC pop_options

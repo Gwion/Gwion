@@ -49,8 +49,13 @@ M_Object new_string2(MemPool p, const VM_Shred shred, const m_str str) {
   return o;
 }
 
+M_Object gwion_new_string(const struct Gwion_ *gwion, const m_str str) {
+  const M_Object o = new_object(gwion->p, NULL, t_string);
+  STRING(o) = s_name(insert_symbol(gwion->st, str));
+  return o;
+}
+
 ANN void instantiate_object(const VM_Shred shred, const Type type) {
-//  const M_Object object = new_object(NULL, type);
   const M_Object object = new_object(shred->info->mp, shred, type);
   *(M_Object*)REG(0) =  object;
   PUSH_REG(shred, SZ_INT);
