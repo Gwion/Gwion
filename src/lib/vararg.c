@@ -99,7 +99,7 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_union_add(gwi, "Vec3",      "v3"))
   CHECK_BB(gwi_union_add(gwi, "Vec4",      "v4"))
   CHECK_BB(gwi_union_add(gwi, "VarObject", "o"))
-  CHECK_BB(gwi_union_end(gwi, ae_flag_const))
+  CHECK_OB(gwi_union_end(gwi, ae_flag_const))
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
   CHECK_BB(gwi_oper_add(gwi, at_varobj))

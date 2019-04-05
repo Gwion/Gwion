@@ -22,6 +22,10 @@ static void print_type(const Type type) {
   }
 }
 
+static inline void print_bool(const m_int i) {
+  gw_out("%s", i ? "true" : "false");
+}
+
 static inline void print_int(const m_int i) {
   gw_out("%" INT_F "", i);
 }
@@ -82,7 +86,9 @@ ANN static inline void print_func(const Type type, const m_bit* stack) {
 }
 
 ANN static void print_prim(const Type type, const m_bit* stack) {
-  if(isa(type, t_int) > 0)
+  if(isa(type, t_bool) > 0)
+    print_bool(*(m_int*)stack);
+  else if(isa(type, t_int) > 0)
     print_int(*(m_int*)stack);
   else if(isa(type, t_complex) > 0)
     print_complex(*(m_complex*)stack);

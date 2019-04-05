@@ -37,18 +37,18 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
 #define gwi_item_end(a, b, c) gwi_item_end(a, (const ae_flag)(b), (const m_uint*)c)
 
 ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
-ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag);
+ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag);
 
 ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
 ANN m_int gwi_tmpl_end(const Gwi gwi);
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name);
 ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
-ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag);
+ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag);
 
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type);
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint value);
-ANN m_int gwi_enum_end(const Gwi gwi);
+ANN Type gwi_enum_end(const Gwi gwi);
 
 ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name, const f_xfun addr);
 ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);

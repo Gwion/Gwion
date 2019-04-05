@@ -5,7 +5,6 @@
 #define GWIONRC ".gwionrc"
 
 /* use before MemPool allocation */
-
 ANN static inline void config_end(const Vector config) {
   for(m_uint i = 0; i < vector_size(config); ++i) {
     const Vector v = (Vector)vector_at(config, i);
@@ -35,53 +34,35 @@ ANN void arg_release(Arg* arg) {
 static const char usage[] =
 "usage: Gwion <options>\n"
 "\t-h\t             : this help\n"
-"\t-c\t             : load config\n"
 "\t-k\t             : show compilation flags\n"
+"\t-c\t  <file>     : load config\n"
 "\t-s\t  <number>   : set samplerate\n"
 "\t-i\t  <number>   : set input channel number\n"
 "\t-o\t  <number>   : set output channel number\n"
 "\t-d\t  <number>   : set driver (and arguments)\n"
 "\t-m\t  <number>   : load module (and arguments)\n"
-"\t-p\t <directory> : add a plugin directory\n"
-;
+"\t-p\t <directory> : add a plugin directory\n";
 
 ANN static void config_parse(Arg* arg, const m_str name);
+
+#define CASE(a,b) case a: (b) ; break;
 #define get_arg(a) (a[i][2] == '\0' ? arg->argv[++i] : a[i] + 2)
 #define ARG2INT(a) strtol(get_arg(a), NULL, 10)
+
 ANN void _arg_parse(Arg* arg) {
   for(int i = 1; i < arg->argc; ++i) {
     if(arg->argv[i][0] == '-') {
       switch(arg->argv[i][1]) {
-        case 'h':
-          gw_err(usage);
-          break;
-        case 'k':
-          gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
-          break;
-        case 'c':
-          config_parse(arg, get_arg(arg->argv));
-          break;
-        case 'p':
-          vector_add(&arg->lib, (vtype)get_arg(arg->argv));
-          break;
-        case 'm':
-          vector_add(&arg->mod, (vtype)get_arg(arg->argv));
-          break;
-        case 'l':
-          arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1;
-          break;
-        case 'i':
-          arg->si->in  = (uint8_t)ARG2INT(arg->argv);
-          break;
-        case 'o':
-          arg->si->out = (uint8_t)ARG2INT(arg->argv);
-          break;
-        case 's':
-          arg->si->sr = (uint32_t)ARG2INT(arg->argv);
-          break;
-        case 'd':
-          arg->si->arg = get_arg(arg->argv);
-          break;
+        CASE('h', gw_err(usage))
+        CASE('k', gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS))
+        CASE('c', config_parse(arg, get_arg(arg->argv)))
+        CASE('p', vector_add(&arg->lib, (vtype)get_arg(arg->argv)))
+        CASE('m', vector_add(&arg->mod, (vtype)get_arg(arg->argv)))
+        CASE('l', arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1)
+        CASE('i', arg->si->in  = (uint8_t)ARG2INT(arg->argv))
+        CASE('o', arg->si->out = (uint8_t)ARG2INT(arg->argv))
+        CASE('s', arg->si->sr = (uint32_t)ARG2INT(arg->argv))
+        CASE('d', arg->si->arg = get_arg(arg->argv))
       }
     } else
       vector_add(&arg->add, (vtype)arg->argv[i]);
@@ -106,7 +87,6 @@ ANN static Vector get_config(const m_str name) {
   ssize_t nread;
   FILE *f = fopen(name, "r");
   CHECK_OO(f)
-//  const Vector v = new_vector();
   const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
   vector_init(v);
   vector_add(v, (vtype)name);

@@ -20,7 +20,7 @@ GWION_IMPORT(enum_test) {
     CHECK_BB(gwi_enum_add(gwi, "ENUM7", 7))
     CHECK_BB(gwi_enum_add(gwi, "ENUM8", 8))
     CHECK_BB(gwi_enum_add(gwi, "ENUM9", 9))
-  CHECK_BB(gwi_enum_end(gwi))
+  CHECK_OB(gwi_enum_end(gwi))
 
   CHECK_BB(gwi_enum_ini(gwi, "test"))
     CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM0", 0))
@@ -33,7 +33,7 @@ GWION_IMPORT(enum_test) {
     CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM7", 7))
     CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM8", 8))
     CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
-  CHECK_BB(gwi_enum_end(gwi))
+  CHECK_OB(gwi_enum_end(gwi))
 
   Type t_enum;
   CHECK_OB((t_enum = gwi_mk_type(gwi, "Enum", 0, NULL)))
@@ -49,7 +49,7 @@ GWION_IMPORT(enum_test) {
       CHECK_BB(gwi_enum_add(gwi, "ENUM7", 7))
       CHECK_BB(gwi_enum_add(gwi, "ENUM8", 8))
       CHECK_BB(gwi_enum_add(gwi, "ENUM9", 9))
-    CHECK_BB(gwi_enum_end(gwi))
+    CHECK_OB(gwi_enum_end(gwi))
 
     CHECK_BB(gwi_enum_ini(gwi, "Enumtest"))
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM0", 0))
@@ -63,7 +63,7 @@ GWION_IMPORT(enum_test) {
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM8", 8))
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
     CHECK_BB(gwi_enum_end(gwi))
-  CHECK_BB(gwi_class_end(gwi))
+  CHECK_OB(gwi_class_end(gwi))
 
   return GW_OK;
 }

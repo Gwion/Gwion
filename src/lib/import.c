@@ -536,16 +536,17 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   return new_stmt_fptr(env->gwion->p, base, flag);
 }
 
-ANN m_int gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
+ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Stmt stmt = import_fptr(gwi->gwion->env, &gwi->func, flag);
-  CHECK_BB(traverse_stmt_fptr(gwi->gwion->env, &stmt->d.stmt_fptr))
+  CHECK_BO(traverse_stmt_fptr(gwi->gwion->env, &stmt->d.stmt_fptr))
   if(gwi->gwion->env->class_def)
     SET_FLAG(stmt->d.stmt_fptr.base->func->def, builtin);
   else
     SET_FLAG(stmt->d.stmt_fptr.base->func, builtin);
-  ADD_REF(stmt->d.stmt_fptr.type);
+  const Type t = stmt->d.stmt_fptr.type;
+  ADD_REF(t);
   free_stmt(gwi->gwion->p, stmt);
-  return GW_OK;
+  return t;
 }
 
 ANN static Exp make_exp(SymTable *st, const m_str type, const m_str name) {
@@ -582,20 +583,22 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
   return GW_OK;
 }
 
-ANN m_int gwi_union_end(const Gwi gwi, const ae_flag flag) {
+ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(!gwi->union_data.list)
-    ERR_B(0, "union is empty");
+    ERR_O(0, "union is empty");
   const Stmt stmt = new_stmt_union(gwi->gwion->p, gwi->union_data.list, 0);
   stmt->d.stmt_union.flag = flag;
-  CHECK_BB(traverse_stmt_union(gwi->gwion->env, &stmt->d.stmt_union))
+  CHECK_BO(traverse_stmt_union(gwi->gwion->env, &stmt->d.stmt_union))
   emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
   if(GET_FLAG((&stmt->d.stmt_union), member))
     gwi->gwion->env->class_def->nspc->info->offset =
       stmt->d.stmt_union.o + stmt->d.stmt_union.s;
+  const Type t = stmt->d.stmt_union.xid ? stmt->d.stmt_union.value->type :
+    stmt->d.stmt_union.type_xid ? stmt->d.stmt_union.type : t_int;
   free_stmt(gwi->gwion->p, stmt);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;
-  return GW_OK;
+  return t;
 }
 
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
@@ -634,16 +637,17 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
   vector_release(&d->addr);
 }
 
-ANN m_int gwi_enum_end(const Gwi gwi) {
+ANN Type gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
   const Stmt stmt = new_stmt_enum(gwi->gwion->p, d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL);
   if(traverse_stmt_enum(gwi->gwion->env, &stmt->d.stmt_enum) < 0) {
     free_id_list(gwi->gwion->p, d->base);
-    return GW_ERROR;
+    return NULL;
   }
   import_enum_end(gwi, &stmt->d.stmt_enum.values);
+  const Type t = stmt->d.stmt_enum.t;
   free_stmt(gwi->gwion->p, stmt);
-  return GW_OK;
+  return t;
 }
 
 ANN void register_freearg(const Gwi gwi, const f_instr _exec, void(*_free)(const Instr, void*)) {

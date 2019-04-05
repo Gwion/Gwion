@@ -68,7 +68,7 @@ static SFUN(cb_func) {
 
 GWION_IMPORT(callback) {
   CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
-  CHECK_BB(gwi_fptr_end(gwi, 0))
+  CHECK_OB(gwi_fptr_end(gwi, 0))
 
   const Type t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, t_object);
   CHECK_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))

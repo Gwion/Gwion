@@ -10,6 +10,6 @@
 
 GWION_IMPORT(empty_union_test) {
   CHECK_BB(gwi_union_ini(gwi, NULL))
-  CHECK_BB(gwi_union_end(gwi, 0))
+  CHECK_OB(gwi_union_end(gwi, 0))
   return GW_OK;
 }

@@ -192,7 +192,7 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_union_add(gwi, "Vec3", "v"))
   CHECK_BB(gwi_union_add(gwi, "Vec4", "w"))
   CHECK_BB(gwi_union_add(gwi, "VarObject", "o"))
-  CHECK_BB(gwi_union_end(gwi, ae_flag_const))
+  CHECK_OB(gwi_union_end(gwi, ae_flag_const))
   gwi_func_ini(gwi, "int", "join", fork_join);
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))

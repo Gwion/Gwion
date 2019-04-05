@@ -75,7 +75,7 @@ static GWION_IMPORT(int_values) {
   CHECK_BB(gwi_enum_ini(gwi, "bool"))
   CHECK_BB(gwi_enum_add(gwi, "false", 0))
   CHECK_BB(gwi_enum_add(gwi, "true", 1))
-  CHECK_BB(gwi_enum_end(gwi))
+  t_bool = gwi_enum_end(gwi);
   CHECK_BB(gwi_item_ini(gwi, "bool", "maybe"))
   return gwi_item_end(gwi, 0, NULL);
 }
