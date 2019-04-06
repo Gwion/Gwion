@@ -147,12 +147,12 @@ ANN static Type get_array_type(Type t) {
   const Type l = get_array_type(bin->lhs->type);          \
   const Type r = get_array_type(bin->rhs->type);          \
   if(isa(l, r) < 0)                                       \
-    ERR_N(bin->self->pos, "array types do not match.")
+    ERR_N(exp_self(bin)->pos, "array types do not match.")
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
-    ERR_N(bin->self->pos, "array depths do not match.")
+    ERR_N(exp_self(bin)->pos, "array depths do not match.")
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -178,7 +178,7 @@ static OP_EMIT(opem_array_shift) {
 static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
-  Type r = cast->self->type;
+  Type r = exp_self(cast)->type;
   while(!l->d.base_type)
     l = l->parent;
   while(!r->d.base_type)

@@ -16,7 +16,7 @@ static inline m_str access(ae_Exp_Meta meta) {
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  return cast->self->type;
+  return exp_self(cast)->type;
 }
 
 OP_EMIT(opem_basic_cast) {
@@ -26,7 +26,7 @@ OP_EMIT(opem_basic_cast) {
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var)
-    ERR_N(bin->self->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
+    ERR_N(exp_self(bin)->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
          "\t...\t(reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access(bin->rhs->meta))
@@ -49,7 +49,7 @@ OP_CHECK(opck_rassign) {
 
 OP_CHECK(opck_unary_meta) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  unary->self->meta = ae_meta_value;
+  exp_self(unary)->meta = ae_meta_value;
   return unary->exp->type;
 }
 
@@ -60,7 +60,7 @@ OP_CHECK(opck_unary) {
           "unary operator '%s' cannot be used on %s data-types.",
           op2str(unary->op), access(unary->exp->meta))
   unary->exp->emit_var = 1;
-  unary->self->meta = ae_meta_value;
+  exp_self(unary)->meta = ae_meta_value;
   return unary->exp->type;
 }
 
@@ -70,7 +70,7 @@ OP_CHECK(opck_post) {
     ERR_N(post->exp->pos, "post operator '%s' cannot be used on %s data-type.",
           op2str(post->op), access(post->exp->meta))
   post->exp->emit_var = 1;
-  post->self->meta = ae_meta_value;
+  exp_self(post)->meta = ae_meta_value;
   return post->exp->type;
 }
 
@@ -88,7 +88,7 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB(emit_instantiate_object(emit, unary->self->type,
+  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
   CHECK_OB(emit_add_instr(emit, GcAdd))
   return GW_OK;

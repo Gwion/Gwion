@@ -122,7 +122,7 @@ static OP_CHECK(at_object) {
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
   if(l != t_null && isa(l, r) < 0)
-    ERR_N(bin->self->pos, "'%s' @=> '%s': not allowed", l->name, r->name)
+    ERR_N(exp_self(bin)->pos, "'%s' @=> '%s': not allowed", l->name, r->name)
   bin->rhs->emit_var = 1;
   return r;
 }
@@ -130,7 +130,7 @@ static OP_CHECK(at_object) {
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->type;
-  const Type r = cast->self->type;
+  const Type r = exp_self(cast)->type;
 //  return isa(l, r) > 0 ? r : t_null;
   if(isa(l, r) > 0) {
     const Type t = type_copy(env->gwion->p, r);

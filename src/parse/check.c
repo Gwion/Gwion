@@ -21,7 +21,7 @@
 #define OP_RET(a, b)\
   const Type op_ret = op_check(env, &opi);\
   if(!op_ret)\
-    ERR_O(a->self->pos, "in %s expression", b)\
+    ERR_O(exp_self(a)->pos, "in %s expression", b)\
   return op_ret;
 
 ANN static Type   check_exp(const Env env, Exp exp);
@@ -135,7 +135,7 @@ ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
   const Array_Sub array = primary->d.array;
   const Exp e = array->exp;
   if(!e)
-    ERR_O(primary->self->pos, "must provide values/expressions for array [...]")
+    ERR_O(exp_self(primary)->pos, "must provide values/expressions for array [...]")
   CHECK_OO(check_exp(env, e))
   return (array->type = prim_array_match(env, e));
 }
@@ -145,12 +145,12 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
     if(v && SAFE_FLAG(env->func, static) && GET_FLAG(v, member))
-      ERR_O(primary->self->pos,
+      ERR_O(exp_self(primary)->pos,
             "non-static member '%s' used from static function.", s_name(primary->d.var))
     return v;
   } else if(env->func && GET_FLAG(env->func->def, global)) {
     if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
-      ERR_O(primary->self->pos,
+      ERR_O(exp_self(primary)->pos,
             "non-global variable '%s' used from global function.", s_name(primary->d.var))
   }
   return value;
@@ -159,7 +159,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, checked)) {
-    err_msg(primary->self->pos,
+    err_msg(exp_self(primary)->pos,
           "variable %s not legit at this point.", s_name(primary->d.var));
     did_you_mean(env->gwion->st, s_name(primary->d.var));
     return NULL;
@@ -169,16 +169,16 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   SET_FLAG(v, used);
   ((Exp_Primary*)primary)->value = v;
   if(GET_FLAG(v, const) || !strcmp(s_name(primary->d.var), "maybe"))
-    primary->self->meta = ae_meta_value;
+    exp_self(primary)->meta = ae_meta_value;
   return v->type;
 }
 
 ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   if(!env->class_def)
-    ERR_O(primary->self->pos, "keyword 'this' can be used only inside class definition...")
+    ERR_O(exp_self(primary)->pos, "keyword 'this' can be used only inside class definition...")
   if(env->func && !GET_FLAG(env->func, member))
-    ERR_O(primary->self->pos, "keyword 'this' cannot be used inside static functions...")
-  primary->self->meta = ae_meta_value;
+    ERR_O(exp_self(primary)->pos, "keyword 'this' cannot be used inside static functions...")
+  exp_self(primary)->meta = ae_meta_value;
   return env->class_def;
 }
 
@@ -264,7 +264,7 @@ static const _type_func prim_func[] = {
 };
 
 ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
-  return primary->self->type = prim_func[primary->primary_type](env, primary);
+  return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
 ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
@@ -279,14 +279,14 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
             depth, e->type->name)
   } while((e = e->next) && ++depth);
   if(depth != array->array->depth)
-    ERR_O(array->self->pos, "invalid array acces expression.")
+    ERR_O(exp_self(array)->pos, "invalid array acces expression.")
 
   while(t_base && array->array->depth > t_base->array_depth) {
      depth -= t_base->array_depth;
      if(t_base->parent)
        t_base = t_base->parent;
      else
-       ERR_O(array->self->pos,
+       ERR_O(exp_self(array)->pos,
              "array subscripts (%i) exceeds defined dimension (%i)",
              array->array->depth, t_base->array_depth)
   }
@@ -448,11 +448,10 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
    next:
      t = t->parent;
   }
-  assert(exp->self);
-  err_msg(exp->self->pos, "arguments do not match for template call");
+  assert(exp_self(exp));
+  err_msg(exp_self(exp)->pos, "arguments do not match for template call");
   return NULL;
 }
-
 
 ANN static void print_current_args(Exp e) {
   gw_err("and not\n\t");
@@ -492,11 +491,12 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   if(f) {
     Tmpl_Call* tmpl = new_tmpl_call(env->gwion->p, func->tmpl->types);
     tmpl->base = v->d.func_ref->def->tmpl->list;
-    func->self->d.exp_call.tmpl = tmpl;
-    return f;
+    ((Exp_Call*)func)->tmpl = tmpl;
+    return ((Exp_Call*)func)->m_func = f;
   }
-  assert(func->self);
-  ERR_O(func->self->pos,
+  ((Exp_Call*)func)->tmpl = NULL;
+  assert(exp_self(func));
+  ERR_O(exp_self(func)->pos,
         "function is template. automatic type guess not fully implemented yet.\n"
         "\tplease provide template types. eg: '<type1, type2, ...>'")
 }
@@ -504,7 +504,6 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
 ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
-  const Exp base = exp->self;
   m_uint args_number = 0;
   const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
@@ -532,9 +531,8 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   if(args_number < type_number)
     ERR_O(call->pos, "not able to guess types for template call.")
   Tmpl_Call tmpl = { .types=tl[0] };
-  const Exp_Call tmp_func = { .func=call, .args=args, .tmpl=&tmpl, .self=base };
-  const Func func = get_template_func(env, &tmp_func, value);
-  base->d.exp_call.m_func = func;
+  ((Exp_Call*)exp)->tmpl = &tmpl;
+  const Func func = get_template_func(env, exp, value);
   return func ? func->def->base->ret_type : NULL;
 }
 
@@ -558,12 +556,12 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
     e = e->next;
   }
   if(arg || e)
-    ERR_O(exp->self->pos, "argument number does not match for lambda")
+    ERR_O(exp_self(exp)->pos, "argument number does not match for lambda")
   l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args), l->code, 0);
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
-  exp->self->d.exp_call.m_func = l->def->base->func;
+  ((Exp_Call*)exp)->m_func = l->def->base->func;
   return l->def->base->ret_type ?: (l->def->base->ret_type = t_void);
 }
 
@@ -580,7 +578,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(GET_FLAG(exp->func->type, func))
     return check_exp_call_template(env, exp);
   const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
-  return (exp->self->d.exp_call.m_func = func) ?
+  return (exp_self(exp)->d.exp_call.m_func = func) ?
     func->def->base->ret_type : function_alternative(exp->func->type, exp->args);
 }
 
@@ -595,8 +593,8 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
-  CHECK_OO((cast->self->type = known_type(env, cast->td)))
-  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=cast->self->type, .data=(uintptr_t)cast };
+  CHECK_OO((exp_self(cast)->type = known_type(env, cast->td)))
+  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast };
   OP_RET(cast, "cast")
 }
 
@@ -612,11 +610,11 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
     if(!v)
-      ERR_O(exp->self->pos, " template call of non-existant function.")
+      ERR_O(exp_self(exp)->pos, " template call of non-existant function.")
     if(!GET_FLAG(v, func))
-      ERR_O(exp->self->pos, "template call of non-function value.")
+      ERR_O(exp_self(exp)->pos, "template call of non-function value.")
     if(!v->d.func_ref->def->tmpl)
-      ERR_O(exp->self->pos, "template call of non-template function.")
+      ERR_O(exp_self(exp)->pos, "template call of non-template function.")
     const Func ret = find_template_match(env, v, exp);
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
@@ -640,11 +638,11 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
   const Type else_exp = check_exp(env, exp_if->else_exp);
   CHECK_OO(else_exp)
   if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
-    ERR_O(exp_if->self->pos,
+    ERR_O(exp_self(exp_if)->pos,
           "Invalid type '%s' in if expression condition.", cond->name)
   const Type ret = find_common_anc(if_exp, else_exp);
   if(!ret)
-    ERR_O(exp_if->self->pos,
+    ERR_O(exp_self(exp_if)->pos,
           "incompatible types '%s' and '%s' in if expression...",
           if_exp->name, else_exp->name)
   return ret;
@@ -660,7 +658,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
           "type '%s' does not have members - invalid use in dot expression of %s",
           the_base->name, str)
   if(!strcmp(str, "this") && base_static)
-    ERR_O(member->self->pos,
+    ERR_O(exp_self(member)->pos,
           "keyword 'this' must be associated with object instance...")
   const Value value = find_value(the_base, member->xid);
   if(!value)
@@ -668,17 +666,17 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
           "class '%s' has no member '%s'", the_base->name, str)
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
     if(GET_FLAG(value, private))
-      ERR_O(member->self->pos,
+      ERR_O(exp_self(member)->pos,
           "can't access private '%s' outside of class...", value->name)
     else if(GET_FLAG(value, protect))
-      member->self->meta = ae_meta_protect;
+      exp_self(member)->meta = ae_meta_protect;
   }
   if(base_static && GET_FLAG(value, member))
-    ERR_O(member->self->pos,
+    ERR_O(exp_self(member)->pos,
           "cannot access member '%s.%s' without object instance...",
           the_base->name, str)
   if(GET_FLAG(value, const) || GET_FLAG(value, enum))
-    member->self->meta = ae_meta_value;
+    exp_self(member)->meta = ae_meta_value;
   return value->type;
 }
 
@@ -743,7 +741,7 @@ ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) { GWDEB
 
 ANN static inline m_bool for_empty(const Stmt_For stmt) {
   if(!stmt->c2 || !stmt->c2->d.stmt_exp.val)
-    ERR_B(stmt->self->pos, "empty for loop condition...",
+    ERR_B(stmt_self(stmt)->pos, "empty for loop condition...",
           "...(note: explicitly use 'true' if it's the intent)",
           "...(e.g., 'for(; true;){ /*...*/ }')")
   return GW_OK;
@@ -757,7 +755,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
   if(GET_FLAG(t, typedef))
     t = t->parent;
   if(!t || !ptr || isa(t, t_array) < 0)
-    ERR_B(stmt->self->pos, "type '%s' is not array.\n"
+    ERR_B(stmt_self(stmt)->pos, "type '%s' is not array.\n"
           " This is not allowed in auto loop", stmt->exp->type->name)
   if(stmt->is_ptr) {
     struct ID_List_   id0, id;
@@ -788,7 +786,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
   stmt->v = new_value(env->gwion->p, t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
-  return check_conts(env, stmt->self, stmt->body);
+  return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
 ANN static m_bool cond_type(const Exp e) {
@@ -808,33 +806,33 @@ stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(flow, Stmt_Flow,,
   !(!check_exp(env, stmt->cond) ||
-    check_flow(stmt->cond, stmt->self->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
-    check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
+    check_flow(stmt->cond, stmt_self(stmt)->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
+    check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For,, !(
   for_empty(stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
   check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
-  check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
+  check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(stmt->cond) < 0 ||
-  check_conts(env, stmt->self, stmt->body) < 0) ? 1 : -1)
+  check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
   cond_type(stmt->val) < 0 || !switch_add(env, stmt) ||
-  check_breaks(env, stmt->self, stmt->stmt) < 0 || !switch_pop(env)) ? 1 : -1)
+  check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || !switch_pop(env)) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
   if(!env->func)
-    ERR_B(stmt->self->pos, "'return' statement found outside function definition")
+    ERR_B(stmt_self(stmt)->pos, "'return' statement found outside function definition")
   const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
   CHECK_OB(ret_type)
   if(env->func->value_ref->type == t_lambda) {
     if(env->func->def->base->ret_type &&
      isa(ret_type, env->func->def->base->ret_type) < 0 &&
      isa(env->func->def->base->ret_type, ret_type) < 0)
-          ERR_B(stmt->self->pos, "return types do not match for lambda expression")
+          ERR_B(stmt_self(stmt)->pos, "return types do not match for lambda expression")
     env->func->value_ref->type = ret_type;
     return GW_OK;
   }
@@ -842,7 +840,7 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
      isa(env->func->def->base->ret_type, t_object) > 0)
     return GW_OK;
   if(env->func->def->base->ret_type && isa(ret_type, env->func->def->base->ret_type) < 0)
-    ERR_B(stmt->self->pos, "invalid return type '%s' -- expecting '%s'",
+    ERR_B(stmt_self(stmt)->pos, "invalid return type '%s' -- expecting '%s'",
           ret_type->name, env->func->def->base->ret_type->name)
   else //! set default return type for lambdas
     env->func->def->base->ret_type = ret_type;
@@ -863,7 +861,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
   const Type t = check_exp(env, stmt->val);
   CHECK_OB(t);
   if(isa(t, t_int) < 0)
-    ERR_B(stmt->self->pos, "invalid type '%s' case expression. should be 'int'", t->name)
+    ERR_B(stmt_self(stmt)->pos, "invalid type '%s' case expression. should be 'int'", t->name)
   const Value v = case_value(stmt->val);
   if(!v)
     return GW_OK;
@@ -882,14 +880,14 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
                 (m_uint*)env->class_def : (m_uint*)env->func;
   const Map m = label->ptr ? (Map)map_get(label, (vtype)key) : NULL;
   if(!m)
-    ERR_B(stmt->self->pos, "label '%s' used but not defined", s_name(stmt->name))
+    ERR_B(stmt_self(stmt)->pos, "label '%s' used but not defined", s_name(stmt->name))
   const Stmt_Jump ref = (Stmt_Jump)map_get(m, (vtype)stmt->name);
   if(!ref) {
     for(m_uint i = 0; i < map_size(m); ++i) {
       const Stmt_Jump s = (Stmt_Jump)map_at(m, i);
       vector_release(&s->data.v);
     }
-    ERR_B(stmt->self->pos, "label '%s' used but not defined", s_name(stmt->name))
+    ERR_B(stmt_self(stmt)->pos, "label '%s' used but not defined", s_name(stmt->name))
   }
   vector_add(&ref->data.v, (vtype)stmt);
   return GW_OK;

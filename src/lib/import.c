@@ -285,7 +285,6 @@ ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
   v->exp.exp_type = ae_exp_decl;
   v->exp.d.exp_decl.td   = &v->t;
   v->exp.d.exp_decl.list = &v->list;
-  v->exp.d.exp_decl.self = &v->exp;
   if(v->array_depth)
     dl_var_new_exp_array(p, v);
 }

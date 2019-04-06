@@ -91,7 +91,7 @@ static GWION_IMPORT(int) {
 
 OP_CHECK(opck_unary_meta2) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  unary->self->meta = ae_meta_value;
+  exp_self(unary)->meta = ae_meta_value;
   return t_int;
 }
 
@@ -131,7 +131,7 @@ static GWION_IMPORT(values) {
 
 static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  ERR_O(bin->self->pos, "can't assign 'now' to 'now'")
+  ERR_O(exp_self(bin)->pos, "can't assign 'now' to 'now'")
   return NULL;
 }
 

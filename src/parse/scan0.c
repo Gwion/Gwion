@@ -74,9 +74,9 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   if(stmt->xid) {
     const Value v = nspc_lookup_value1(env->curr, stmt->xid);
     if(v)
-      ERR_B(stmt->self->pos, "'%s' already declared as variable of type '%s'.",
+      ERR_B(stmt_self(stmt)->pos, "'%s' already declared as variable of type '%s'.",
         s_name(stmt->xid),  v->type->name)
-    CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
+    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos)) // test for type ?
   }
   const Type t = type_copy(env->gwion->p, t_int);
   t->xid = ++env->scope->type_xid;
@@ -109,7 +109,7 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
   CHECK_BB(env_storage(env, stmt->flag))
   if(stmt->xid) {
-    CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos))
+    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,

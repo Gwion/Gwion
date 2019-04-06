@@ -36,8 +36,8 @@ static INSTR(instr_ptr_assign) { GWDEBUG_EXE
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  unary->self->type = nspc_lookup_type1(unary->exp->type->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
-  return unary->self->type;
+  exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
+  return exp_self(unary)->type;
 }
 
 static OP_CHECK(opck_implicit_ptr) {
@@ -64,8 +64,8 @@ static INSTR(instr_ptr_deref) { GWDEBUG_EXE
 static OP_EMIT(opem_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
-  instr->m_val = unary->self->type->size;
-  instr->m_val2 = unary->self->emit_var;
+  instr->m_val = exp_self(unary)->type->size;
+  instr->m_val2 = exp_self(unary)->emit_var;
   return GW_OK;
 }
 

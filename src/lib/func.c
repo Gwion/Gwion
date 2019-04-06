@@ -27,8 +27,8 @@ static INSTR(LambdaAssign) { GWDEBUG_EXE
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  Exp_Call call = { .func=bin->rhs, .args=bin->lhs, .self=bin->self };
-  Exp e = bin->self;
+  Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
+  Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   return check_exp_call1(env, &e->d.exp_call);
@@ -70,7 +70,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     arg = arg->next;
   }
   if(base || arg)
-    ERR_B(l->self->pos, "argument number does not match for lambda")
+    ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
   l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag);
   const m_bool ret = traverse_func_def(env, l->def);
   arg = l->args;
@@ -100,23 +100,23 @@ static OP_CHECK(opck_fptr_at) {
   const Func_Def r_fdef = r_func->def;
   const Type r_type = r_func->value_ref->owner_class;
   if(!r_type && l_type)
-    ERR_N(bin->self->pos, "can't assign member function to non member function pointer")
+    ERR_N(exp_self(bin)->pos, "can't assign member function to non member function pointer")
   else if(r_type && !l_type) {
     if(!GET_FLAG(r_func, global))
-      ERR_N(bin->self->pos, "can't assign non member function to member function pointer")
+      ERR_N(exp_self(bin)->pos, "can't assign non member function to member function pointer")
   } else if(r_type && isa(r_type, l_type) < 0)
-      ERR_N(bin->self->pos, "can't assign member function to member function pointer"
+      ERR_N(exp_self(bin)->pos, "can't assign member function to member function pointer"
             " of an other class")
   if(GET_FLAG(r_func, member)) {
     if(!GET_FLAG(l_func, member))
-      ERR_N(bin->self->pos, "can't assign static function to member function pointer")
+      ERR_N(exp_self(bin)->pos, "can't assign static function to member function pointer")
   } else if(GET_FLAG(l_func, member))
-      ERR_N(bin->self->pos, "can't assign member function to static function pointer")
+      ERR_N(exp_self(bin)->pos, "can't assign member function to static function pointer")
   if(isa(r_fdef->base->ret_type, l_fdef->base->ret_type) < 0)
-    ERR_N(bin->self->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
+    ERR_N(exp_self(bin)->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
          r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
   if(GET_FLAG(l_fdef, variadic) != GET_FLAG(r_fdef, variadic))
-    ERR_N(bin->self->pos, "function must be of same argument kind.",
+    ERR_N(exp_self(bin)->pos, "function must be of same argument kind.",
          r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
   if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
     return bin->rhs->type;
@@ -125,7 +125,7 @@ static OP_CHECK(opck_fptr_at) {
 
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = cast->self->type;
+  const Type t = exp_self(cast)->type;
   const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
   CHECK_OO(v)
   const Func f = isa(v->type, t_fptr) > 0 ?
@@ -159,7 +159,7 @@ static OP_CHECK(opck_spork) {
     CHECK_BO(check_stmt(env, unary->code))
     return unary->op == op_spork ? t_shred : t_fork;
   } else
-    ERR_O(unary->self->pos, "only function calls can be sporked...")
+    ERR_O(exp_self(unary)->pos, "only function calls can be sporked...")
   return NULL;
 }
 

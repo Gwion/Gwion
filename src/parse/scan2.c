@@ -262,7 +262,7 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
     if(map_get(m, (vtype)stmt->name)) {
       const Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
       vector_release(&l->data.v);
-      ERR_B(stmt->self->pos, "label '%s' already defined", s_name(stmt->name))
+      ERR_B(stmt_self(stmt)->pos, "label '%s' already defined", s_name(stmt->name))
     }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);

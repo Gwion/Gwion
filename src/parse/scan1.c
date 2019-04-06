@@ -26,22 +26,22 @@ ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
-  const Type t = void_type(env, decl->td, decl->self->pos);
+  const Type t = void_type(env, decl->td, exp_self(decl)->pos);
   CHECK_OO(t);
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
-    ERR_O(decl->self->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
+    ERR_O(exp_self(decl)->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->owner != env->curr)
-    ERR_O(decl->self->pos, "can't use private type %s", t->name)
+    ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
-    ERR_O(decl->self->pos, "can't use protected type %s", t->name)
+    ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
   if(GET_FLAG(decl->td, global) && env->class_def)
-    ERR_O(decl->self->pos, "can't declare variable global inside class.")
+    ERR_O(exp_self(decl)->pos, "can't declare variable global inside class.")
   if(env->class_def) {
     if(!env->scope->depth) {
       if(!env->func && !GET_FLAG(decl->td, static))
         SET_FLAG(decl->td, member);
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
-        ERR_O(decl->self->pos, "...(note: object of type '%s' declared inside itself)", t->name)
+        ERR_O(exp_self(decl)->pos, "...(note: object of type '%s' declared inside itself)", t->name)
     }
   }
   decl->base = t->def;
@@ -178,7 +178,7 @@ ANN static inline m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) { G
 ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   ID_List list = stmt->list;
   do {
-    CHECK_BB(already_defined(env, list->xid, stmt->self->pos))
+    CHECK_BB(already_defined(env, list->xid, stmt_self(stmt)->pos))
     const Value v = new_value(env->gwion->p, stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
