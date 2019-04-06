@@ -1559,7 +1559,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) { GWDE
 
 ANN static inline void emit_func_def_global(const Emitter emit, const Value value) { GWDEBUG_EXE
   const Instr set_mem = emit_add_instr(emit, MemSetImm);
-  set_mem->m_val = value->offset = emit_local(emit, SZ_INT, 0);
+  set_mem->m_val = value->offset;
   set_mem->m_val2 = (m_uint)value->d.func_ref->code;
 }
 
@@ -1627,6 +1627,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { GWDEBUG_EXE
   const Func func = get_func(emit->env, func_def);
+  const Func former = emit->env->func;
   if(func->code)
     return GW_OK;
   if(tmpl_list_base(func_def->tmpl)) {
@@ -1635,11 +1636,12 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   }
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
+  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl && !emit->env->scope->depth)
+    func->value_ref->offset = emit_local(emit, SZ_INT, 0);
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
     stack_alloc_this(emit);
   emit_push_scope(emit);
-  const Func former = emit->env->func;
   emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, variadic) && !emit->env->func->variadic)
