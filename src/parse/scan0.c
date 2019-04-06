@@ -79,6 +79,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
     CHECK_BB(scan0_defined(env, stmt->xid, stmt->self->pos)) // test for type ?
   }
   const Type t = type_copy(env->gwion->p, t_int);
+  t->xid = ++env->scope->type_xid;
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
   const Nspc nspc = GET_FLAG(stmt, global) ? env->global_nspc : env->curr;
