@@ -37,7 +37,7 @@ static MFUN(event_signal) {
   const Vector v = EV_SHREDS(o);
   const VM_Shred sh = (VM_Shred)vector_front(v);
   if(sh) {
-    shredule(sh->tick->shreduler, sh, .5);
+    shredule(sh->tick->shreduler, sh, GWION_EPSILON);
     vector_rem(v, 0);
   }
 }
@@ -45,7 +45,7 @@ static MFUN(event_signal) {
 ANN void broadcast(const M_Object o) {
   for(m_uint i = 0; i < vector_size(EV_SHREDS(o)); i++) {
     const VM_Shred sh = (VM_Shred)vector_at(EV_SHREDS(o), i);
-    shredule(sh->tick->shreduler, sh, .5);
+    shredule(sh->tick->shreduler, sh, GWION_EPSILON);
   }
   vector_clear(EV_SHREDS(o));
 }

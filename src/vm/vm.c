@@ -83,7 +83,7 @@ ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
   shred->info->vm = (VM*)vm;
   shred->info->me = new_shred(shred, 1);
   shreduler_add(vm->shreduler, shred);
-  shredule(vm->shreduler, shred, .5);
+  shredule(vm->shreduler, shred, GWION_EPSILON);
   return shred->tick->xid;
 }
 
@@ -91,10 +91,8 @@ ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
 ANN m_uint vm_fork(const VM* src, const VM_Shred shred) {
   VM* vm = shred->info->vm = gwion_cpy(src);
   shred->info->me = new_shred(shred, 0);
-//  shreduler_add(vm->shreduler, shred);
-//  shredule(vm->shreduler, shred, .5);
   shreduler_add(vm->shreduler, shred);
-  shredule(vm->shreduler, shred, .5);
+  shredule(vm->shreduler, shred, GWION_EPSILON);
   return shred->tick->xid;
 }
 
@@ -573,17 +571,12 @@ ftoi:
 
 timeadv:
   reg -= SZ_FLOAT;
-{
-  register const m_float f = *(m_float*)(reg-SZ_FLOAT);
-  *(m_float*)(reg-SZ_FLOAT) = (shred->tick->wake_time += f);
-//printf("here adv %p %lu\n", s, s->bbq->is_running);
-  shredule(s, shred, f);
-//printf("here adv %p %p %lu\n", shred->tick->shreduler, s, s->bbq->is_running);
-}
-shred->code = code;
-shred->reg = reg;
-shred->mem = mem;
-shred->pc = pc;
+  shredule(s, shred, *(m_float*)(reg-SZ_FLOAT));
+  *(m_float*)(reg-SZ_FLOAT) += vm->bbq->pos;
+  shred->code = code;
+  shred->reg = reg;
+  shred->mem = mem;
+  shred->pc = pc;
   break;
 setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
