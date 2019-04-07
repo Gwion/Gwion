@@ -752,9 +752,11 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     instr->m_val2 = strlen(c);
     return GW_OK;
   }
+if(vector_size(&emit->code->instr)) {
   const Instr instr = (Instr)vector_back(&emit->code->instr);
   instr->opcode = eRegPushImm;
   instr->m_val = (m_uint)f->code;
+}
   return GW_OK;
 }
 
@@ -812,7 +814,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
   !f->value_ref->owner_class || GET_FLAG(f, template))
     push_func_code(emit, f);
-  else {
+  else if(vector_size(&emit->code->instr)){
     const Instr back = (Instr)vector_back(&emit->code->instr);
     if((f_instr)(m_uint)back->opcode == DotFunc || (f_instr)(m_uint)back->opcode == DotStaticFunc)
       back->m_val = f->vt_index;
@@ -838,17 +840,10 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
 
 ANN2(1,2) static void emit_exp_spork_finish(const Emitter emit, const VM_Code code,
     const m_uint depth) {
-  const m_uint member = GET_FLAG(code, member) ? SZ_INT : 0;
   const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = depth + member;// + emit->code->stack_depth;
-  if(depth) {
-    const Instr spork = emit_add_instr(emit, SporkFunc);
-    spork->m_val = depth;
-  }
-  if(member) {
-    const Instr m = emit_add_instr(emit, SporkThis);
-    m->m_val = depth;
-  }
+  pop->m_val = depth;
+  const Instr spork = emit_add_instr(emit, SporkFunc);
+  spork->m_val = depth + SZ_INT;
 }
 
 static inline void stack_alloc(const Emitter emit) {
@@ -889,7 +884,7 @@ static void push_spork_code(const Emitter emit, const m_str prefix, const int po
 ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) { GWDEBUG_EXE
   if(GET_FLAG(exp->m_func, member))
     SET_FLAG(emit->code, member);
-  return emit_exp_call(emit, exp);
+  return emit_exp_call1(emit, exp->m_func);
 }
 
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
@@ -914,10 +909,10 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     spork->m_val = emit->code->stack_depth;
   } else {
     const Func f = unary->exp->d.exp_call.m_func;
-    const m_uint size = f->def->stack_depth - (GET_FLAG(f, member) ? SZ_INT : 0);
+    const m_uint size = f->def->stack_depth - (GET_FLAG(f, member) && !GET_FLAG(code, member) ? SZ_INT : 0);
     emit_exp_spork_finish(emit, code, size);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
-    end->m_val2 = unary->exp->d.exp_call.m_func->def->base->ret_type->size;
+    end->m_val2 = f->def->base->ret_type->size;
   }
   return GW_OK;
 }

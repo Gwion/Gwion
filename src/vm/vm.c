@@ -282,7 +282,7 @@ static const void* dispatch[] = {
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
     &&funcusr, &&regpop, &&regpush, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
-    &&sporkini, &&sporkini, &&sporkfunc, &&sporkthis, &&sporkexp, &&forkend, &&sporkend,
+    &&sporkini, &&sporkini, &&sporkfunc, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&assign, &&remref,
@@ -638,10 +638,6 @@ sporkfunc:
   for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
     *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i - SZ_INT);
   a.child->reg += instr->m_val;
-  DISPATCH()
-sporkthis:
-  *(M_Object*)a.child->reg = *(M_Object*)(reg -SZ_INT + instr->m_val);
-  a.child->reg += SZ_INT;
   DISPATCH()
 sporkexp:
 //  LOOP_OPTIM
