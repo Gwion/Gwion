@@ -95,6 +95,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
 ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
   const Type t = type_copy(env->gwion->p, t_union);
+  t->xid = ++env->scope->type_xid;
   t->name = name;
   t->nspc = new_nspc(env->gwion->p, name);
   t->nspc->parent = nspc;
