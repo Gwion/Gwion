@@ -28,14 +28,14 @@ ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   const Type t = void_type(env, decl->td, exp_self(decl)->pos);
   CHECK_OO(t);
+  if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
+    return decl->type;
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
     ERR_O(exp_self(decl)->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->owner != env->curr)
     ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
-//  if(GET_FLAG(decl->td, global) && env->class_def)
-//    ERR_O(exp_self(decl)->pos, "can't declare variable global inside class.")
   if(env->class_def) {
     if(!env->scope->depth) {
       if(!env->func && !GET_FLAG(decl->td, static))
@@ -64,11 +64,12 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     const Var_Decl var = list->self;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
     CHECK_BB(isres(var->xid))
-    if(!decl->td->exp && former && (!env->class_def ||
+    if(!decl->td->exp && decl->td->xid->xid != insert_symbol("auto") &&
+        former && (!env->class_def || // cuold be better
         (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
-    if(var->array) {
+    if(var->array && decl->type != t_undefined) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);

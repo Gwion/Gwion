@@ -78,14 +78,21 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_BO(scan1_exp(env, td->exp))
   CHECK_BO(scan2_exp(env, td->exp))
   CHECK_OO(check_exp(env, td->exp))
-//assert(actual_type(td->exp->type));
-//printf("HERE %p %p %p\n", t_class, td->exp->type, td->exp->type->d.base_type);
-  if(!actual_type(td->exp->type) || (isa(td->exp->type, t_class) < 0 && actual_type(td->exp->type) == t_class))
+  const Type t = actual_type(td->exp->type);
+  if(!t || (isa(td->exp->type, t_class) < 0 && t == t_class))
     ERR_O(td->exp->pos, "Expression must be of type '%s', not '%s'\n"
       "maybe you meant typeof(Expression)", t_class->name, td->exp->type->name);
   m_uint depth;
-  td->xid = str2list(env->gwion->st, actual_type(td->exp->type)->name, &depth);
-  return actual_type(td->exp->type);
+  td->xid = str2list(env->gwion->st, t->name, &depth);
+
+  if(depth) {
+    Exp base = new_exp_prim_int(env->gwion->p, 0, 0), e = base;
+    for(m_uint i = 0; i < depth - 1; ++i) {
+      e = (e->next = new_exp_prim_int(env->gwion->p, 0, 0));
+    }
+    td->array = new_array_sub(env->gwion->p, base);
+  }
+  return t;
 }
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
@@ -95,6 +102,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     const Type t = check_td(env, decl->td);
     CHECK_OO(t)
     ((Exp_Decl*)decl)->type = NULL;
+    CHECK_BO(scan1_exp(env, exp_self(decl)))
+    CHECK_BO(scan2_exp(env, exp_self(decl)))
+  }
+  if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
   }
@@ -121,8 +132,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       SET_FLAG(v, abstract);
     if(isa(decl->type, t_fptr) > 0)
       CHECK_BO(check_fptr_decl(env, var))
-  SET_FLAG(v, checked | ae_flag_used);
-  nspc_add_value(env->curr, var->xid, v);
+    SET_FLAG(v, checked | ae_flag_used);
+    nspc_add_value(env->curr, var->xid, v);
   } while((list = list->next));
   if(global)
     env_pop(env, scope);
@@ -599,10 +610,12 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
-  struct Op_Import opi = { .op=bin->op, .lhs=check_exp(env, bin->lhs),
-    .rhs=check_exp(env, bin->rhs), .data=(uintptr_t)bin };
-  CHECK_OO(opi.lhs)
-  CHECK_OO(opi.rhs)
+  CHECK_OO(check_exp(env, bin->lhs))
+  if(bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == t_auto)
+    bin->rhs->type = bin->rhs->d.exp_decl.type = bin->lhs->type;
+  CHECK_OO(check_exp(env, bin->rhs))
+  struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
+    .rhs=bin->rhs->type, .data=(uintptr_t)bin };
   OP_RET(bin, "binary")
 }
 

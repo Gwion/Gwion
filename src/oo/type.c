@@ -84,7 +84,7 @@ ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   const Type t = new_type(env->gwion->p, t_array->xid, base->name, t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
-  t->array_depth = depth;
+  t->array_depth = depth + base->array_depth;
   t->d.base_type = base;
   t->nspc = t_array->nspc;
   ADD_REF(t->nspc);

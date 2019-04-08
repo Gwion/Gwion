@@ -244,7 +244,6 @@ __attribute__((hot))
 
 __attribute__ ((optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
-//printf("here %p\n", vm->shreduler);
 static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,

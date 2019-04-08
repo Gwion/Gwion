@@ -23,16 +23,7 @@ INSTR(DTOR_EOC) { GWDEBUG_EXE
   shred->info->mp = (MemPool)instr->m_val;
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->parent;
-printf("'obj %p %p %s\n", o, shred->info->me, shred->info->me->type_ref->name);
-//free_object(
   __release(o, shred);
-//shreduler_remove(shred->tick->shreduler, shred, 0);
-//vector_rem2(&shred->tick->shreduler->shreds, shred);
-//++shred->info->me->ref;
-//REM_REF(shred->code, shred->info->vm->gwion);
-//  _release(shred->info->me, shred);
-//  _release(shred->info->me, shred);
-//free_vm_shred(shred);
   vm_shred_exit(shred);
 }
 

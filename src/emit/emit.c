@@ -219,11 +219,17 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     const Array_Sub arr, const uint is_ref) {
   Array_Sub array = arr;
   if(type->array_depth) {
-    if(!array) { // from typeof xxx[]...
+    if(!array || array->depth < type->array_depth) { // from typeof xxx[]...
       Exp base = new_exp_prim_int(emit->gwion->p, 0, 0), e = base;
-      for(m_uint i = 0; i < type->array_depth; ++i)
+      for(m_uint i = (array ? array->depth : 0); i < type->array_depth; ++i)
         e = (e->next = new_exp_prim_int(emit->gwion->p, 0, 0));
-      array = new_array_sub(emit->gwion->p, base);
+      if(array) {
+        Exp array_base = array->exp;
+        while(array_base->next)
+          array_base = array_base->next;
+        array_base->next = base;
+      } else
+        array = new_array_sub(emit->gwion->p, base);
     }
     assert(array->exp);
     ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
@@ -479,7 +485,6 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
     offset += e->type->size;
     if(e->type != emit->env->class_def)
       ADD_REF(e->type);
-puts(e->type->name);
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(emit->gwion->p, v);
@@ -541,7 +546,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const m_bool is_obj = isa(type, t_object) > 0;
   const uint emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
     emit_var : 1;
-puts(v->type->name);
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
@@ -555,8 +559,15 @@ puts(v->type->name);
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, ObjectAssign);
     assign->m_val = emit_var;
-    if(is_array && !emit->env->scope->depth)
+    const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
+    if((is_array || missing_depth) && !emit->env->scope->depth)
       ADD_REF(type)
+    if(missing_depth) {
+      const Instr push = emit_add_instr(emit, Reg2Reg);
+      push->m_val = -(1 + missing_depth) * SZ_INT;
+      const Instr instr = emit_add_instr(emit, RegPop);
+      instr->m_val = (missing_depth + 1) * SZ_INT;
+    }
   }
   return GW_OK;
 }
@@ -606,7 +617,6 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   Var_Decl_List list = decl->list;
   const uint  ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
   const uint var = exp_self(decl)->emit_var;
-
   if(GET_FLAG(decl->type, template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   m_uint scope;
