@@ -7,6 +7,6 @@
 #include "optim.h"
 #include "constant.h"
 
-m_bool optimize_const(const Exp_Binary* bin) {
-  return constant_folding(bin);
+m_bool optimize_const(MemPool mp, const Exp_Binary* bin) {
+  return constant_folding(mp, bin);
 }

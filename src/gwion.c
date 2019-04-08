@@ -12,19 +12,6 @@
 #include "gwion.h"
 #include "compile.h"
 
-#ifdef VMBENCH
-#include <time.h>
-#include <bsd/sys/time.h>
-#define VMBENCH_INI struct timespec ini, end, ret; \
-  clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ini);
-#define VMBENCH_END clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end); \
-  timespecsub(&end, &ini, &ret);                                  \
-  printf("timespec %lu.%09lu\n", ret.tv_sec, ret.tv_nsec);
-#else
-#define VMBENCH_INI
-#define VMBENCH_END
-#endif
-
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
   if(di->si->arg) {
@@ -79,6 +66,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->vm->bbq->si = new_soundinfo(gwion->p);
   arg->si = gwion->vm->bbq->si;
   arg_parse(arg);
+  gwion->emit->memoize = arg->memoize;
   gwion->plug = new_plug(gwion->p, &arg->lib);
   map_init(&gwion->freearg);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
@@ -92,9 +80,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
 
 ANN void gwion_run(const Gwion gwion) {
   VM* vm = gwion->vm;
-  VMBENCH_INI
   vm->bbq->driver->run(vm, vm->bbq);
-  VMBENCH_END
 }
 
 ANN void gwion_end(const Gwion gwion) {

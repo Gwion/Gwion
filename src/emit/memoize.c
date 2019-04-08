@@ -1,4 +1,3 @@
-#ifndef NOMEMOIZE
 #include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -105,4 +104,3 @@ INSTR(MemoizeStore) {
     return;
   }
 }
-#endif

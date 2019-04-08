@@ -21,6 +21,7 @@ struct Emitter_ {
   struct Gwion_ *gwion;
   struct Vector_  stack;
   char *escape;
+  m_bool memoize;
 };
 
 ANEW ANN Emitter new_emitter(void/*const Env*/);

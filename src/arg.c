@@ -33,15 +33,16 @@ ANN void arg_release(Arg* arg) {
 
 static const char usage[] =
 "usage: Gwion <options>\n"
-"\t-h\t             : this help\n"
-"\t-k\t             : show compilation flags\n"
-"\t-c\t  <file>     : load config\n"
-"\t-s\t  <number>   : set samplerate\n"
-"\t-i\t  <number>   : set input channel number\n"
-"\t-o\t  <number>   : set output channel number\n"
-"\t-d\t  <number>   : set driver (and arguments)\n"
-"\t-m\t  <number>   : load module (and arguments)\n"
-"\t-p\t <directory> : add a plugin directory\n";
+"\t-h\t            : this help\n"
+"\t-k\t            : show compilation flags\n"
+"\t-c\t   <file>   : load config\n"
+"\t-p\t   <path>   : add a plugin directory\n"
+"\t-s\t  <number>  : set samplerate\n"
+"\t-i\t  <number>  : set input channel number\n"
+"\t-o\t  <number>  : set output channel number\n"
+"\t-d\t  <number>  : set driver (and arguments)\n"
+"\t-z\t  <number>  : set memoization limit\n"
+"\t-m\t <mod:args> : load module (and arguments)\n";
 
 ANN static void config_parse(Arg* arg, const m_str name);
 
@@ -59,6 +60,7 @@ ANN void _arg_parse(Arg* arg) {
         CASE('p', vector_add(&arg->lib, (vtype)get_arg(arg->argv)))
         CASE('m', vector_add(&arg->mod, (vtype)get_arg(arg->argv)))
         CASE('l', arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1)
+        CASE('z', arg->memoize = (uint32_t)ARG2INT(arg->argv))
         CASE('i', arg->si->in  = (uint8_t)ARG2INT(arg->argv))
         CASE('o', arg->si->out = (uint8_t)ARG2INT(arg->argv))
         CASE('s', arg->si->sr = (uint32_t)ARG2INT(arg->argv))

@@ -6,13 +6,12 @@
 #include "optim.h"
 #include "constant.h"
 
-ANN static void fold_exp(const Exp_Binary* bin) {
-  const Exp n = bin->self->next;
-  const Exp e = bin->self;
-  free_exp(bin->lhs);
-  free_exp(bin->rhs);
+ANN static void fold_exp(MemPool mp, const Exp_Binary* bin) {
+  const Exp n = exp_self(bin)->next;
+  const Exp e = exp_self(bin);
+  free_exp(mp, bin->lhs);
+  free_exp(mp, bin->rhs);
   e->exp_type = ae_exp_primary;
-  e->d.exp_primary.self = e;
   e->next = n;
 }
 
@@ -35,21 +34,21 @@ describe_xxx_exp(float, m_float, float, fnum)
     CASE(mul, l, /, r)                        \
     case op_div: DIV_BY_ZERO(l, / , r) break;
 
-#define describe_fold_xxx(name, type, _l, _r, etype, opt)       \
-ANN static m_bool fold_##name(const Exp_Binary* bin) {          \
-  const union exp_primary_data *l = &bin->lhs->d.exp_primary.d; \
-  const union exp_primary_data *r = &bin->rhs->d.exp_primary.d; \
-  type ret = 0;                                                 \
-  switch(bin->op) {                                             \
-    COMMON_CASE(l->_l, r->_r)                                   \
-    opt                                                         \
-    default:                                                    \
-      return GW_OK;                                             \
-  }                                                             \
-  const Exp e = bin->self;                                      \
-  fold_exp(bin);                                                \
-  etype##_exp(e, ret);                                          \
-  return GW_OK;                                                 \
+#define describe_fold_xxx(name, type, _l, _r, etype, opt)          \
+ANN static m_bool fold_##name(MemPool mp, const Exp_Binary* bin) { \
+  const union exp_primary_data *l = &bin->lhs->d.exp_primary.d;    \
+  const union exp_primary_data *r = &bin->rhs->d.exp_primary.d;    \
+  type ret = 0;                                                    \
+  switch(bin->op) {                                                \
+    COMMON_CASE(l->_l, r->_r)                                      \
+    opt                                                            \
+    default:                                                       \
+      return GW_OK;                                                \
+  }                                                                \
+  const Exp e = exp_self(bin);                                     \
+  fold_exp(mp, bin);                                               \
+  etype##_exp(e, ret);                                             \
+  return GW_OK;                                                    \
 }
 describe_fold_xxx(ii, m_int, num, num, int,
   case op_mod: DIV_BY_ZERO(l->num, % , r->num) break;
@@ -58,17 +57,17 @@ describe_fold_xxx(ff, m_float, fnum, fnum, float,)
 describe_fold_xxx(if, m_float,  num, fnum, float,)
 describe_fold_xxx(fi, m_float, fnum,  num, float,)
 
-m_bool constant_folding(const Exp_Binary* bin) {
+m_bool constant_folding(MemPool mp, const Exp_Binary* bin) {
   if(constant_int(bin->lhs)) {
     if(constant_int(bin->rhs))
-      CHECK_BB(fold_ii(bin))
+      CHECK_BB(fold_ii(mp, bin))
     else if(constant_float(bin->rhs))
-      CHECK_BB(fold_if(bin))
+      CHECK_BB(fold_if(mp, bin))
   } else if(constant_float(bin->lhs)) {
     if(constant_float(bin->rhs))
-      CHECK_BB(fold_ff(bin))
+      CHECK_BB(fold_ff(mp, bin))
     else if(constant_int(bin->rhs))
-      CHECK_BB(fold_fi(bin))
+      CHECK_BB(fold_fi(mp, bin))
   }
   return GW_OK;
 }

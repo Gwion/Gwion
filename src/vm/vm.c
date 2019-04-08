@@ -126,13 +126,6 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 #define VM_INFO
 #endif
 
-#ifdef VMBENCH
-#include <time.h>
-static struct timespec exec_time;
-#include <bsd/sys/time.h>
-#endif
-
-
 ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
   return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
 }
@@ -311,10 +304,6 @@ VM_Code code;
 VM_Shred child;
 } a;
 register M_Object array_base = NULL;
-#ifdef VMBENCH
-struct timespec exec_ini, exec_end, exec_ret;
-clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
-#endif
   MUTEX_LOCK(s->mutex);
   do {
     register Instr instr; DISPATCH();
@@ -807,19 +796,9 @@ pc = shred->pc;
 DISPATCH()
     } while(s->curr);
   MUTEX_UNLOCK(s->mutex);
-#ifdef VMBENCH
-clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
-timespecsub(&exec_end, &exec_ini, &exec_ret);
-timespecadd(&exec_time, &exec_ret, &exec_time);
-#endif
   }
-  if(!vm->bbq->is_running) {
-#ifdef VMBENCH
-    printf("[VM] exec time %lu.%09lu\n", exec_time.tv_sec, exec_time.tv_nsec);
-    printf("[VM] exec time %09lu\n", exec_time.tv_nsec/1000);
-#endif
+  if(!vm->bbq->is_running)
     return;
-}
-if(vector_size(&vm->ugen))
-  vm_ugen_init(vm);
+  if(vector_size(&vm->ugen))
+    vm_ugen_init(vm);
 }

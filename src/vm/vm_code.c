@@ -27,10 +27,8 @@ ANN static void free_code_instr(const Vector v, const Gwion gwion) {
 }
 
 ANN static void free_vm_code(VM_Code a, Gwion gwion) {
-#ifndef NOMEMOIZE
   if(a->memoize)
     memoize_end(gwion->p, a->memoize);
-#endif
   if(!GET_FLAG(a, builtin))
     free_code_instr(a->instr, gwion);
   xfree(a->name);

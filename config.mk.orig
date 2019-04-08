@@ -1,12 +1,10 @@
 # handle base options
 PRG ?=gwion
 PREFIX ?=/usr/local
-LDFLAGS += -lm
-CFLAGS += -Iinclude -Iutil/include -Iast/include -D_GNU_SOURCE
+CFLAGS += -Iutil/include -Iast/include -D_GNU_SOURCE
 
 # handle boolean options
 USE_OPTIMIZE  ?= 0
-USE_VMBENCH   ?= 0
 USE_NOMEMOIZE ?= 0
 
 # base plugin directories

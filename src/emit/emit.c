@@ -811,7 +811,7 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
 }
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
-  MEMOIZE_CALL
+  const Instr memoize = !(emit->memoize && GET_FLAG(f, pure)) ? NULL : emit_add_instr(emit, MemoizeCall);
   f_instr exec;
   const Instr prelude = get_prelude(emit, f);
   if(f->def->stack_depth) {
@@ -830,7 +830,8 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
     exec = Overflow;
   } else
     exec = Next;
-  MEMOIZE_SET(prelude->m_val2);
+  if(memoize)
+    memoize->m_val = prelude->m_val2 + 1;
   return emit_add_instr(emit, exec);
 }
 
@@ -1628,7 +1629,8 @@ ANN static void emit_func_def_return(const Emitter emit) { GWDEBUG_EXE
   }
   vector_clear(&emit->code->stack_return);
   emit_pop_scope(emit);
-  MEMOIZE_STORE
+  if(emit->memoize && GET_FLAG(emit->env->func, pure))
+    emit_add_instr(emit, MemoizeStore);
   emit_add_instr(emit, FuncReturn);
 }
 
@@ -1682,7 +1684,9 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit_pop_code(emit);
   if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl)
     emit_func_def_global(emit, func->value_ref);
-  MEMOIZE_INI
+  if(emit->memoize && GET_FLAG(func, pure))
+    func->code->memoize = memoize_ini(emit->gwion->p, func,
+      kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
   return GW_OK;
 }
 

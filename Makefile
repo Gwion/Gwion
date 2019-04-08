@@ -22,28 +22,13 @@ emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
 
 # add boolean
-ifeq (${USE_GWCOV}, 1)
-CFLAGS += -DGWCOV
-endif
-
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
+
 ifeq (${USE_OPTIMIZE}, 1)
 util_src += ${opt_src}
 CFLAGS+= -DOPTIMIZE
-endif
-ifeq (${USE_JIT}, 1)
-include jit/config.mk
-endif
-
-ifeq (${USE_NOMEMOIZE}, 1)
-CFLAGS += -DNOMEMOIZE
-endif
-
-ifeq (${USE_VMBENCH}, 1)
-CFLAGS += -DVMBENCH
-LDFLAGS += -lbsd
 endif
 
 ifeq (${BUILD_ON_WINDOWS}, 1)
@@ -66,6 +51,9 @@ vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
+
+CFLAGS  += -Iinclude
+LDFLAGS += -lm
 
 ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt -rdynamic
