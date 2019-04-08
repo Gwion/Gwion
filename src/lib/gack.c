@@ -114,6 +114,8 @@ ANN void gack(const m_bit* reg, const Instr instr) {
       print_object(type, *(M_Object*)(reg-offset));
     else if(isa(type, t_function) > 0)
       print_func(type, (reg-offset));
+    else if(type == t_class)
+      print_type(type);
     else if(isa(type, t_class) > 0)
       print_type(type->d.base_type);
     else if(isa(type, t_void) > 0)

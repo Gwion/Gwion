@@ -27,7 +27,7 @@ static const _exp_func exp_func[] = {                                           
   (_exp_func)prefix##_exp_decl,    (_exp_func)prefix##_exp_binary, (_exp_func)prefix##_exp_unary, \
   (_exp_func)prefix##_exp_primary, (_exp_func)prefix##_exp_cast,   (_exp_func)prefix##_exp_post,  \
   (_exp_func)prefix##_exp_call,    (_exp_func)prefix##_exp_array,  (_exp_func)prefix##_exp_if,    \
-  (_exp_func)prefix##_exp_dot,     (_exp_func)prefix##_exp_lambda                                 \
+  (_exp_func)prefix##_exp_dot,     (_exp_func)prefix##_exp_lambda, (_exp_func)prefix##_exp_typeof \
 };
 
 #define DECL_SECTION_FUNC(prefix)                                                                 \
@@ -41,11 +41,13 @@ ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* se
 
 #define HANDLE_EXP_FUNC(prefix, type, ret)                                                        \
 DECL_EXP_FUNC(prefix)                                                                             \
-ANN static inline type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE                         \
+ANN type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE                         \
   do CHECK_BB(exp_func[exp->exp_type](env, &exp->d))                                              \
   while((exp = exp->next));                                                                       \
   return ret;                                                                                     \
 }
+ANN m_bool scan1_exp(const Env, Exp);
+ANN m_bool scan2_exp(const Env, Exp);
 
 #define describe_stmt_func(prefix, name, type, prolog, exp) \
 ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \

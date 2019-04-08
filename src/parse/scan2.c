@@ -13,7 +13,7 @@
 #include "nspc.h"
 #include "operator.h"
 
-ANN static m_bool scan2_exp(const Env, const Exp);
+ANN /* static */ m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 extern ANN m_bool scan1_class_def(const Env, const Class_Def);
@@ -206,6 +206,10 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
   else if(unary->exp)
     return scan2_exp(env, unary->exp);
   return GW_OK;
+}
+
+ANN static inline m_bool scan2_exp_typeof(const restrict Env env, const Exp_Typeof *exp) {
+  return scan2_exp(env, exp->exp);
 }
 
 #define scan2_exp_lambda dummy_func
@@ -502,7 +506,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
         f->stack_depth += SZ_INT;
       if(GET_FLAG(func->def, variadic))
         f->stack_depth += SZ_INT;
-      f->base->ret_type = type_decl_resolve(env, f->base->td);
+      f->base->ret_type = known_type(env, f->base->td);
       return (f->base->args && f->base->args->type) ? scan2_args(env, f) : GW_OK;
     }
   }

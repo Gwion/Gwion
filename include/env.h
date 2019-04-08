@@ -58,4 +58,5 @@ ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
 ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types);
+ANN ID_List str2list(SymTable *st, const m_str path, m_uint* array_depth);
 #endif

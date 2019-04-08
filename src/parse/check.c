@@ -74,8 +74,30 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
+ANN Type check_td(const Env env, Type_Decl *td) {
+  CHECK_BO(scan1_exp(env, td->exp))
+  CHECK_BO(scan2_exp(env, td->exp))
+  CHECK_OO(check_exp(env, td->exp))
+//assert(actual_type(td->exp->type));
+//printf("HERE %p %p %p\n", t_class, td->exp->type, td->exp->type->d.base_type);
+  if(!actual_type(td->exp->type) || (isa(td->exp->type, t_class) < 0 && actual_type(td->exp->type) == t_class))
+    ERR_O(td->exp->pos, "Expression must be of type '%s', not '%s'\n"
+      "maybe you meant typeof(Expression)", t_class->name, td->exp->type->name);
+  m_uint depth;
+  td->xid = str2list(env->gwion->st, actual_type(td->exp->type)->name, &depth);
+  return actual_type(td->exp->type);
+}
+
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
+
+  if(!decl->td->xid) {
+    const Type t = check_td(env, decl->td);
+    CHECK_OO(t)
+    ((Exp_Decl*)decl)->type = NULL;
+    CHECK_BO(scan1_exp(env, exp_self(decl)))
+    CHECK_BO(scan2_exp(env, exp_self(decl)))
+  }
   if(GET_FLAG(decl->type , template)) {
     const Type t = typedef_base(decl->type);
     CHECK_BO(traverse_template(env, t->def))
@@ -85,12 +107,6 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(global)
     scope = env_push_global(env);
   do {
-    if(!env->class_def && !GET_FLAG(list->self->value, builtin) &&
-        !GET_FLAG(list->self->value, used)) {
-      err_msg(list->self->pos, "unused variable '%s'",
-          list->self->value->name);
-      continue;
-    }
     const Var_Decl var = list->self;
     const Value v = var->value;
     if(env->class_def && !env->scope->depth && env->class_def->parent)
@@ -593,7 +609,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
-  CHECK_OO((exp_self(cast)->type = known_type(env, cast->td)))
+  CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
   struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast };
   OP_RET(cast, "cast")
 }
@@ -686,11 +702,19 @@ ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 ANN static Type check_exp_lambda(const Env env NUSED,
     const Exp_If* exp_if NUSED) { return t_lambda; }
 
+ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
+  const Type t = check_exp(env, exp->exp);
+  CHECK_OO(t)
+  const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
+  CHECK_OO(v)
+  return v->type;
+}
+
 static const _type_func exp_func[] = {
   (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,
   (_type_func)check_exp_primary, (_type_func)check_exp_cast,   (_type_func)check_exp_post,
   (_type_func)check_exp_call,    (_type_func)check_exp_array,  (_type_func)check_exp_if,
-  (_type_func)check_exp_dot,     (_type_func)check_exp_lambda
+  (_type_func)check_exp_dot,     (_type_func)check_exp_lambda, (_type_func)check_exp_typeof
 };
 
 ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
@@ -996,6 +1020,8 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EX
   do {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
+    if(arg_list->td && !arg_list->td->xid)
+      arg_list->type = v->type = check_td(env, arg_list->td);
     if(isa(v->type, t_object) > 0 || isa(v->type, t_function) > 0)
       UNSET_FLAG(env->func, pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
@@ -1061,6 +1087,10 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   m_bool ret = GW_OK;
   if(tmpl_list_base(f->tmpl))
     return env->class_def ? check_parent_match(env, f) : 1;
+  if(f->base->td && !f->base->td->xid) {
+    f->base->ret_type = check_td(env, f->base->td);
+    return traverse_func_def(env, f);
+  }
   CHECK_BB(check_func_def_override(env, f))
   if(env->class_def)
     CHECK_BB(check_parent_match(env, f))
@@ -1139,6 +1169,10 @@ ANN static inline void inherit(const Type t) {
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
+  if(class_def->base.type->parent == t_undefined) {
+    class_def->base.type->parent = check_td(env, class_def->base.ext);
+    return traverse_class_def(env, class_def);
+  }
   const Type the_class = class_def->base.type;
   if(class_def->base.ext)
     CHECK_BB(check_class_parent(env, class_def))

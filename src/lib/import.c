@@ -140,7 +140,7 @@ ANN static m_bool path_valid(SymTable *st,ID_List* list, const struct Path* p) {
   return GW_OK;
 }
 
-ANN static ID_List str2list(SymTable *st, const m_str path, m_uint* array_depth) {
+ANN /* static */ ID_List str2list(SymTable *st, const m_str path, m_uint* array_depth) {
   const m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;

@@ -34,7 +34,10 @@ static FREEARG(freearg_gack) {
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
-  CHECK_OB((t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL)))
+  CHECK_OB((t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL))) // size = SZ_INT to enable declarations
+  CHECK_OB((t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL)))
+  CHECK_BB(gwi_add_type(gwi, t_class))
+  SET_FLAG(t_class, abstract);
   CHECK_OB((t_void  = gwi_mk_type(gwi, "void", 0, NULL)))
   CHECK_BB(gwi_add_type(gwi, t_void))
   CHECK_OB((t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL)))

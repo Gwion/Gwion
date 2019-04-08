@@ -12,7 +12,7 @@
 #define FAKE_FUNC ((Func)1)
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
-ANN static m_bool scan1_exp(const Env env, Exp exp);
+ANN /* static */ m_bool scan1_exp(const Env env, Exp exp);
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -64,7 +64,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     const Var_Decl var = list->self;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
     CHECK_BB(isres(var->xid))
-    if(former && (!env->class_def ||
+    if(!decl->td->exp && former && (!env->class_def ||
         (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
@@ -80,6 +80,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
       SET_FLAG(v, ref);
     if(!env->func && !env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
+    v->type = t;
     v->d.ptr = var->addr;
     v->owner = !env->func ? env->curr : NULL;
     v->owner_class = env->scope->depth ? NULL : env->class_def;
@@ -135,10 +136,14 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EX
   return scan1_exp(env, exp_if->else_exp);
 }
 
-ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary * unary) {
+ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
   if((unary->op == op_spork || unary->op == op_fork) && unary->code)
     return scan1_stmt(env, unary->code);
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
+}
+
+ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Typeof *exp) {
+  return scan1_exp(env, exp->exp);
 }
 
 #define scan1_exp_lambda dummy_func
@@ -291,20 +296,24 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 DECL_SECTION_FUNC(scan1)
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
+  const uint pos = class_def->base.ext->xid ? class_def->base.ext->xid->pos :
+    class_def->base.ext->exp->pos;
   if(class_def->base.ext->array)
     CHECK_BB(scan1_exp(env, class_def->base.ext->array->exp))
   const Type parent = class_def->base.type->parent = known_type(env, class_def->base.ext);
   CHECK_OB(parent)
+  if(parent == t_undefined)
+    return GW_OK;
   if(parent == class_def->base.type)
-    ERR_B(class_def->base.ext->xid->pos, "class '%s' cannot extend itself",
+    ERR_B(pos, "class '%s' cannot extend itself",
       class_def->base.type->name);
   if(isa(class_def->base.type->parent, t_object) < 0)
-    ERR_B(class_def->base.ext->xid->pos, "cannot extend primitive type '%s'",
+    ERR_B(pos, "cannot extend primitive type '%s'",
             class_def->base.type->parent->name)
   if(!GET_FLAG(parent, scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
-    ERR_B(class_def->base.ext->xid->pos, "can't use ref type in class extend")
+    ERR_B(pos, "can't use ref type in class extend")
   return GW_OK;
 }
 

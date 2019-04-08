@@ -479,6 +479,7 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
     offset += e->type->size;
     if(e->type != emit->env->class_def)
       ADD_REF(e->type);
+puts(e->type->name);
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(emit->gwion->p, v);
@@ -502,9 +503,14 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) { GWDEBUG_EXE
   const m_uint size = v->type->size;
-  const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
-  instr->m_val =  (m_uint)(v->owner_class->nspc->info->class_data + v->offset);
-  instr->m_val2 = size;
+  if(isa(v->type, t_class) < 0) {
+    const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
+    instr->m_val = (m_uint)(v->owner_class->nspc->info->class_data + v->offset);
+    instr->m_val2 = size;
+  } else {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)v->type;
+  }
   return GW_OK;
 }
 
@@ -535,6 +541,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const m_bool is_obj = isa(type, t_object) > 0;
   const uint emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
     emit_var : 1;
+puts(v->type->name);
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
@@ -977,6 +984,12 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
       emit_pop(emit, scope);
   } else
     emit_add_instr(emit, RegPushImm);
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
+  const Instr instr = emit_add_instr(emit, RegPushImm);
+  instr->m_val = (m_uint)exp->exp->type;
   return GW_OK;
 }
 

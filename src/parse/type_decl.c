@@ -81,12 +81,14 @@ ANN static inline void* type_unknown(const Env env, const ID_List id) {
 }
 
 ANN static Type prim_ref(const Type t, const Type_Decl* td) {
-  if(GET_FLAG(td, ref) && isa(t, t_object) < 0)
+  if(GET_FLAG(td, ref) && isa(t, t_object) < 0 && isa(t, t_class) < 0)
     ERR_O(td->xid->pos, "primitive types cannot be used as reference (@)...\n")
   return t;
 }
 
 ANN Type known_type(const Env env, const Type_Decl* td) {
+  if(!td->xid)
+    return t_undefined;
   const Type t = type_decl_resolve(env, td);
   return t ? prim_ref(t, td) : type_unknown(env, td->xid);
 }
