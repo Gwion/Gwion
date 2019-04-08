@@ -216,13 +216,21 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) { GW
 }
 
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
-    const Array_Sub array, const uint is_ref) {
+    const Array_Sub arr, const uint is_ref) {
+  Array_Sub array = arr;
   if(type->array_depth) {
-    assert(array);
+    if(!array) { // from typeof xxx[]...
+      Exp base = new_exp_prim_int(emit->gwion->p, 0, 0), e = base;
+      for(m_uint i = 0; i < type->array_depth; ++i)
+        e = (e->next = new_exp_prim_int(emit->gwion->p, 0, 0));
+      array = new_array_sub(emit->gwion->p, base);
+    }
     assert(array->exp);
     ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
     CHECK_OB(info)
     info->is_ref = !!is_ref;
+    if(array != arr)
+      free_array_sub(emit->gwion->p, array);
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
     instr->m_val2 = (m_uint)type;
@@ -567,8 +575,10 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
     assign->m_val = emit_var;
     if(is_array && !emit->env->scope->depth)
       ADD_REF(type)
-    const Instr instr = emit_add_instr(emit, RegAddRef);
-    instr->m_val = emit_var;
+    if(isa(type, t_fork) < 0) { // beware fork
+      const Instr instr = emit_add_instr(emit, RegAddRef);
+      instr->m_val = emit_var;
+    }
   }
   return GW_OK;
 }
@@ -838,8 +848,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN2(1,2) static void emit_exp_spork_finish(const Emitter emit, const VM_Code code,
-    const m_uint depth) {
+ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = depth;
   const Instr spork = emit_add_instr(emit, SporkFunc);
@@ -905,12 +914,16 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   ini->m_val = (m_uint)code;
   ini->m_val2 = is_spork;
   if(unary->code) {
+    if(!is_spork) {
+      const Instr push = emit_add_instr(emit, RegPush);
+      push->m_val = SZ_INT;
+    }
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
     spork->m_val = emit->code->stack_depth;
   } else {
     const Func f = unary->exp->d.exp_call.m_func;
     const m_uint size = f->def->stack_depth - (GET_FLAG(f, member) && !GET_FLAG(code, member) ? SZ_INT : 0);
-    emit_exp_spork_finish(emit, code, size);
+    emit_exp_spork_finish(emit, size);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
     end->m_val2 = f->def->base->ret_type->size;
   }
@@ -974,7 +987,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) { 
     CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp->type, exp->cast_to))
-    if(ref && isa(exp->type, t_object) > 0) {
+    if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_fork) < 0 ) { // beware fork
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
@@ -1033,7 +1046,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) { GW
   if(stmt->val) {
     OPTIMIZE_TCO
     CHECK_BB(emit_exp(emit, stmt->val, 0))
-    if(isa(stmt->val->type, t_object) > 0)
+    if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_fork) < 0) // beware fork
       emit_add_instr(emit, RegAddRef);
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));

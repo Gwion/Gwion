@@ -30,6 +30,7 @@ ANN void broadcast(const M_Object);
 #define ARRAY(o)     (*(M_Vector*) ((M_Object)o)->data)
 #define IO_FILE(o)   (*(FILE**)    (((M_Object)o)->data + SZ_INT))
 #define Except(s, c) { exception(s, c); return; }
+
 static inline void _release(const restrict M_Object obj, const restrict VM_Shred shred) {
   if(!--obj->ref)__release(obj, shred);
 }

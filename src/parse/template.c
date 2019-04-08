@@ -44,8 +44,10 @@ ANN static ID_List get_total_type_list(const Env env, const Type t) {
   }
   const ID_List types = id_list_copy(env->gwion->p, base);
   ID_List list, tmp = types;
-  while((list = (ID_List)vector_pop(v)))
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    list = (ID_List)vector_pop(v);
     tmp = (tmp->next = id_list_copy(env->gwion->p, list));
+  }
   tmp->next = t->def->tmpl->list.list;
   free_vector(env->gwion->p, v);
   return types;
@@ -121,7 +123,9 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
   Type_List call = tl;
   nspc_push_type(env->gwion->p, env->curr);
   do {
-    const Type t = call ? known_type(env, call->td) : NULL;
+    if(!call)
+      break;
+    const Type t = known_type(env, call->td);
     if(!t)
       POP_RET(-1);
     nspc_add_type(env->curr, base->xid, t);

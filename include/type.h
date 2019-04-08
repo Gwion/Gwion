@@ -15,8 +15,8 @@ struct Type_ {
   size_t xid;
   size_t size;
   size_t array_depth;
-  ae_flag flag;
   HAS_OBJ
+  ae_flag flag;
 };
 
 Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,

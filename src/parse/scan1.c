@@ -34,8 +34,8 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
-  if(GET_FLAG(decl->td, global) && env->class_def)
-    ERR_O(exp_self(decl)->pos, "can't declare variable global inside class.")
+//  if(GET_FLAG(decl->td, global) && env->class_def)
+//    ERR_O(exp_self(decl)->pos, "can't declare variable global inside class.")
   if(env->class_def) {
     if(!env->scope->depth) {
       if(!env->func && !GET_FLAG(decl->td, static))

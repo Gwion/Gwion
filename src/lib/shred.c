@@ -94,29 +94,51 @@ static MFUN(shred##name##_dir) { \
 describe_path_and_dir(, s->info->name)
 describe_path_and_dir(_code, s->code->name)
 
-static DTOR(shred_dtor) { free_vm_shred(*(VM_Shred*)o->data); }
+static DTOR(shred_dtor) {
+  VM *vm = ME(o)->info->vm;
+  free_vm_shred(*(VM_Shred*)o->data);
+  if(isa(o->type_ref, t_fork) > 0)
+    free_vm(vm);
+}
+
+static MFUN(shred_lock) {
+  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+}
+
+static MFUN(shred_unlock) {
+  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+}
 
 static DTOR(fork_dtor) {
-//  pthread_detach(FORK_THREAD(o));
   THREAD_JOIN(FORK_THREAD(o));
   mp_free(shred->info->mp, Gwion, ME(o)->info->vm->gwion);
-  free_vm(ME(o)->info->vm);
 }
 
 static MFUN(fork_join) {
-  if(*(m_int*)(o->data + o_fork_done))
+  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+  MUTEX_LOCK(shred->tick->shreduler->mutex);
+  if(*(m_int*)(o->data + o_fork_done)) {
+   MUTEX_UNLOCK(shred->tick->shreduler->mutex);
+   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
     return;
+  }
+  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+  MUTEX_UNLOCK(shred->tick->shreduler->mutex);
   shreduler_remove(shred->tick->shreduler, shred, 0);
   vector_add(EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)), (vtype)shred);
 }
 
-//static MFUN(shred_cancel) {
-//  ++*(m_int*)(o->data + o_shred_cancel);
-//}
+static MFUN(shred_cancel) {
+MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+  *(m_int*)(o->data + o_shred_cancel) = *(m_int*)MEM(SZ_INT);
+MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+}
 
 static MFUN(shred_test_cancel) {
+MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
   if(*(m_int*)(o->data + o_shred_cancel))
     vm_shred_exit(ME(o));
+MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
 void fork_retval(const M_Object o) {
@@ -132,9 +154,10 @@ static ANN void* fork_run(void* data) {
     ++vm->bbq->pos;
   } while(vm->bbq->is_running);
   fork_retval(me);
+  MUTEX_LOCK(vm->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
   broadcast(*(M_Object*)(me->data + o_fork_ev));
-  _release(me, ME(me));
+  MUTEX_UNLOCK(vm->shreduler->mutex);
   THREAD_RETURN(NULL);
 }
 
@@ -153,7 +176,7 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
 
   gwi_item_ini(gwi, "int", "cancel");
-  CHECK_BB((o_shred_cancel = gwi_item_end(gwi, 0, NULL)))
+  CHECK_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, NULL)))
 
   gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
   CHECK_BB(gwi_func_end(gwi, 0))
@@ -193,9 +216,14 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "string", "code_dir", shred_code_dir);
   CHECK_BB(gwi_func_end(gwi, 0))
 
-//  gwi_func_ini(gwi, "void", "cancel", shred_cancel);
-//  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "set_cancel", shred_cancel);
+  gwi_func_arg(gwi, "int", "n");
+  CHECK_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "void", "test_cancel", shred_test_cancel);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "lock", shred_lock);
+  CHECK_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "unlock", shred_unlock);
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
 

@@ -55,6 +55,7 @@ VM* new_vm(MemPool p) {
   vm->bbq = new_driver(p);
   vm->shreduler  = (Shreduler)mp_alloc(p, Shreduler);
   vector_init(&vm->shreduler->shreds);
+  MUTEX_SETUP(vm->shreduler->mutex);
   vm->shreduler->bbq = vm->bbq;
   gw_seed(vm->rand, (uint64_t)time(NULL));
   return vm;
@@ -76,6 +77,7 @@ ANN void free_vm(VM* vm) {
   if(vm->bbq)
     free_driver(vm->bbq, vm);
   mp_free(vm->gwion->p, Shreduler, vm->shreduler);
+  MUTEX_CLEANUP(vm->shreduler->mutex);
   mp_free(vm->gwion->p, VM, vm);
 }
 
@@ -314,6 +316,7 @@ register M_Object array_base = NULL;
 struct timespec exec_ini, exec_end, exec_ret;
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_ini);
 #endif
+  MUTEX_LOCK(s->mutex);
   do {
     register Instr instr; DISPATCH();
 regsetimm:
@@ -346,26 +349,13 @@ regpushmemfloat:
   reg += SZ_FLOAT;
   DISPATCH();
 regpushmemother:
-//  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT) {
-    m_uint* m0 = __builtin_assume_aligned((m_bit*)mem+i, SZ_INT);
-//printf("%p\n", m0);
-//    m_uint* m = __builtin_assume_aligned((m_bit*)mem+instr->m_val+i, SZ_INT);
-    m_uint* r = __builtin_assume_aligned(reg+i, SZ_INT);
-//    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + instr->m_val) + i);
-//    *(m_uint*)(r) = *(m_uint*)(m);
-    *(m_uint*)(r) = *(m_uint*)(m0+instr->m_val);
-  }
+  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
+    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + instr->m_val) + i);
   reg += instr->m_val2;
   DISPATCH();
-regpushmemaddr: {
-m_bit* r0 __attribute__((aligned(SZ_INT))) = __builtin_assume_aligned(reg, SZ_INT);
-m_bit* m0 __attribute__((aligned(SZ_INT))) = mem + instr->m_val;
-//  m_uint* r __attribute__((aligned(SZ_INT))) = r0;//__builtin_assume_aligned(reg, SZ_INT);
-//  *(m_bit**)reg = __builtin_assume_aligned(mem + instr->m_val, SZ_INT);
-  *(void**)r0 = m0;
+regpushmemaddr:
+  *(m_bit**)reg = mem + instr->m_val;
   reg += SZ_INT;
-  }
   DISPATCH()
 pushnow:
   *(m_float*)reg = vm->bbq->pos;
@@ -817,7 +807,7 @@ mem = shred->mem;
 pc = shred->pc;
 DISPATCH()
     } while(s->curr);
-//printf("no more curr %p\n", vm->shreduler);
+  MUTEX_UNLOCK(s->mutex);
 #ifdef VMBENCH
 clock_gettime(CLOCK_THREAD_CPUTIME_ID, &exec_end);
 timespecsub(&exec_end, &exec_ini, &exec_ret);
@@ -834,4 +824,3 @@ timespecadd(&exec_time, &exec_ret, &exec_time);
 if(vector_size(&vm->ugen))
   vm_ugen_init(vm);
 }
-//#pragma GCC pop_options
