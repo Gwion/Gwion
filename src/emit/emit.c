@@ -26,6 +26,11 @@
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->env->gwion->st, (a))
 
+#undef ERR_B
+#define ERR_B(a, b, ...) { gwion_err(emit->gwion, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
+#undef ERR_O
+#define ERR_O(a, b, ...) { gwion_err(emit->gwion, (a), (b), ## __VA_ARGS__); return NULL; }
+
 typedef struct Local_ {
   m_uint size;
   m_uint offset;
@@ -1511,22 +1516,17 @@ ANN static m_bool emit_VecMember(const Emitter emit, const Exp_Dot* member) {
 }
 
 ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) { GWDEBUG_EXE
-  if(emit->env->func->variadic)
-    ERR_B(0, "vararg.start already used. this is an error")
   emit->env->func->variadic = emit_add_instr(emit, VarargTop);
   emit->env->func->variadic->m_val = offset;
   emit->env->func->variadic->m_val2 = emit_code_size(emit);
   return GW_OK;
 }
 
-ANN static m_bool emit_vararg_end(const Emitter emit, const m_uint offset) { GWDEBUG_EXE
-  if(!emit->env->func->variadic)
-    ERR_B(0, "vararg.start not used before vararg.end. this is an error")
+ANN static void emit_vararg_end(const Emitter emit, const m_uint offset) { GWDEBUG_EXE
   const Instr instr = emit_add_instr(emit, VarargEnd);
   instr->m_val = offset;
   instr->m_val2 = emit->env->func->variadic->m_val2;
   emit->env->func->variadic->m_val2 = emit_code_size(emit);
-  return GW_OK;
 }
 
 ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) { GWDEBUG_EXE
@@ -1537,10 +1537,18 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) { GWDEB
     offset += l->type->size;
     l = l->next;
   }
-  if(!strcmp(str, "start"))
-    return emit_vararg_start(emit, offset);
-  if(!strcmp(str, "end"))
-    return emit_vararg_end(emit, offset);
+  if(!strcmp(str, "start")) {
+    if(emit->env->func->variadic)
+      ERR_B(exp_self(member)->pos, "vararg.start already used. this is an error")
+    emit_vararg_start(emit, offset);
+    return GW_OK;
+  }
+  if(!strcmp(str, "end")) {
+    if(!emit->env->func->variadic)
+      ERR_B(exp_self(member)->pos, "vararg.start not used before vararg.end. this is an error")
+    emit_vararg_end(emit, offset);
+    return GW_OK;
+  }
   const Instr instr = emit_add_instr(emit, VarargMember);
   instr->m_val = offset;
   instr->m_val2 = exp_self(member)->type->size;
@@ -1677,7 +1685,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, variadic) && !emit->env->func->variadic)
-    ERR_B(func_def->base->td->xid->pos, "invalid variadic use")
+    ERR_B(func_def->pos, "invalid variadic use")
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;

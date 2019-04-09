@@ -90,7 +90,8 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
-  const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, ptr->base->td, ptr->base->xid, ptr->base->args), NULL, ptr->base->td->flag);
+  const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, ptr->base->td, ptr->base->xid, ptr->base->args),
+    NULL,ptr->base->td->flag, stmt_self(ptr)->pos);
   def->base->ret_type = ptr->base->ret_type;
   ptr->base->func = new_func(env->gwion->p, s_name(ptr->base->xid), def);
   ptr->value->d.func_ref = ptr->base->func;
@@ -156,7 +157,7 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
 }
 
 
-ANN static m_bool multi_decl(const Exp e, const Operator op) {
+ANN static m_bool multi_decl(const Env env, const Exp e, const Operator op) {
   if(e->exp_type == ae_exp_decl) {
     if(e->d.exp_decl.list->next)
       ERR_B(e->pos, "cant '%s' from/to a multi-variable declaration.", op2str(op))
@@ -168,8 +169,8 @@ ANN static m_bool multi_decl(const Exp e, const Operator op) {
 ANN static inline m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
   CHECK_BB(scan2_exp(env, bin->lhs))
   CHECK_BB(scan2_exp(env, bin->rhs))
-  CHECK_BB(multi_decl(bin->lhs, bin->op))
-  return multi_decl(bin->rhs, bin->op);
+  CHECK_BB(multi_decl(env, bin->lhs, bin->op))
+  return multi_decl(env, bin->rhs, bin->op);
 }
 
 ANN static inline m_bool scan2_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
@@ -302,13 +303,13 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static m_bool scan2_func_def_overload(const Func_Def f, const Value overload) { GWDEBUG_EXE
+ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, t_function) < 0)
-    ERR_B(f->base->td->xid->pos, "function name '%s' is already used by another value", overload->name)
+    ERR_B(f->pos, "function name '%s' is already used by another value", overload->name)
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
-    ERR_B(f->base->td->xid->pos, "must overload template function with template")
+    ERR_B(f->pos, "must overload template function with template")
   return GW_OK;
 }
 
@@ -407,7 +408,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) { GWDEBUG_E
     f->base->args->var_decl->value->type;
   const Type r = GET_FLAG(f, unary) ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type };
+  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
   CHECK_BB(env_add_op(env, &opi))
   if(env->class_def) {
     if(env->class_def == l)
@@ -489,7 +490,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
   m_str func_name = s_name(f->base->xid);
   if(overload)
-    CHECK_BB(scan2_func_def_overload(f, overload))
+    CHECK_BB(scan2_func_def_overload(env, f, overload))
   if(tmpl_list_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
   if(!f->tmpl) {

@@ -18,12 +18,6 @@
 #include "operator.h"
 #include "switch.h"
 
-#define OP_RET(a, b)\
-  const Type op_ret = op_check(env, &opi);\
-  if(!op_ret)\
-    ERR_O(exp_self(a)->pos, "in %s expression", b)\
-  return op_ret;
-
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
@@ -140,7 +134,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   return decl->type;
 }
 
-ANN static m_bool prim_array_inner(const Type t, Type type, const Exp e) {
+ANN static m_bool prim_array_inner(const Env env, const Type t, Type type, const Exp e) {
   const Type common = find_common_anc(t, type);
   if(common)
     return GW_OK;
@@ -148,12 +142,12 @@ ANN static m_bool prim_array_inner(const Type t, Type type, const Exp e) {
       e->cast_to = type;
       return GW_OK;
   }
-  return err_msg(e->pos, "array init [...] contains incompatible types ...");
+  ERR_B(e->pos, "array init [...] contains incompatible types ...")
 }
 
 ANN static inline Type prim_array_match(const Env env, Exp e) {
   const Type type = e->type;
-  do CHECK_BO(prim_array_inner(e->type, type, e))
+  do CHECK_BO(prim_array_inner(env, e->type, type, e))
   while((e = e->next));
   return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
@@ -186,7 +180,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, checked)) {
-    err_msg(exp_self(primary)->pos,
+    gwion_err(env->gwion, exp_self(primary)->pos,
           "variable %s not legit at this point.", s_name(primary->d.var));
     did_you_mean(env->gwion->st, s_name(primary->d.var));
     return NULL;
@@ -353,7 +347,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
       }
       if(implicit) {
         const struct Implicit imp = { e, t };
-        struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp };
+        struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
       return op_check(env, &opi) ? 1 : -1;
     }
   }
@@ -436,7 +430,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(v->name),
-                base->base->args), base->d.code, base->flag);
+                base->base->args), base->d.code, base->flag, base->pos);
       def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
@@ -476,8 +470,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
      t = t->parent;
   }
   assert(exp_self(exp));
-  err_msg(exp_self(exp)->pos, "arguments do not match for template call");
-  return NULL;
+  ERR_O(exp_self(exp)->pos, "arguments do not match for template call")
 }
 
 ANN static void print_current_args(Exp e) {
@@ -493,8 +486,8 @@ ANN static void print_arg(Arg_List e) {
   while((e = e->next) && gw_err(","));
 }
 
-ANN2(1) static void* function_alternative(const Type f, const Exp args){
-  err_msg(args ? args->pos : 0, "argument type(s) do not match for function. should be :");
+ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const uint pos){
+  gwion_err(env->gwion, pos, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {
     gw_err("(%s)\t", up->name);
@@ -584,7 +577,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp_self(exp)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args), l->code, 0);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args), l->code, 0, exp_self(exp)->pos);
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
@@ -606,7 +599,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_exp_call_template(env, exp);
   const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
   return (exp_self(exp)->d.exp_call.m_func = func) ?
-    func->def->base->ret_type : function_alternative(exp->func->type, exp->args);
+    func->def->base->ret_type : function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
@@ -615,22 +608,22 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
     bin->rhs->type = bin->rhs->d.exp_decl.type = bin->lhs->type;
   CHECK_OO(check_exp(env, bin->rhs))
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
-    .rhs=bin->rhs->type, .data=(uintptr_t)bin };
-  OP_RET(bin, "binary")
+    .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
   CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
-  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast };
-  OP_RET(cast, "cast")
+  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
-  struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post };
+  struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post, .pos=exp_self(post)->pos };
   CHECK_OO(opi.lhs)
-  OP_RET(post, "postfix");
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
@@ -653,10 +646,10 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
   struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
-    .data=(uintptr_t)unary };
+    .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
   if(unary->exp && !opi.rhs)
     return NULL;
-  OP_RET(unary, "unary")
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
@@ -755,7 +748,7 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG
   return GW_OK;
 }
 
-ANN static m_bool check_flow(const Exp exp, const m_str orig) { GWDEBUG_EXE
+ANN static m_bool check_flow(const Env env, const Exp exp, const m_str orig) { GWDEBUG_EXE
   if(isa(exp->type, t_object) > 0 || isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
      isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
     return GW_OK;
@@ -776,7 +769,7 @@ ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) { GWDEB
   return GW_OK;
 }
 
-ANN static inline m_bool for_empty(const Stmt_For stmt) {
+ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   if(!stmt->c2 || !stmt->c2->d.stmt_exp.val)
     ERR_B(stmt_self(stmt)->pos, "empty for loop condition...",
           "...(note: explicitly use 'true' if it's the intent)",
@@ -826,7 +819,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EX
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
-ANN static m_bool cond_type(const Exp e) {
+ANN static m_bool cond_type(const Env env, const Exp e) {
   const Type t = e->type;
   if(isa(t, t_int) > 0)
     return GW_OK;
@@ -838,25 +831,25 @@ ANN static m_bool cond_type(const Exp e) {
 }
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
 stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
-  check_flow(stmt->cond, "if") < 0   ||
+  check_flow(env, stmt->cond, "if") < 0   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(flow, Stmt_Flow,,
   !(!check_exp(env, stmt->cond) ||
-    check_flow(stmt->cond, stmt_self(stmt)->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
+    check_flow(env, stmt->cond, stmt_self(stmt)->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
     check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For,, !(
-  for_empty(stmt) < 0 ||
+  for_empty(env, stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
-  check_flow(stmt->c2->d.stmt_exp.val, "for") < 0 ||
+  check_flow(env, stmt->c2->d.stmt_exp.val, "for") < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
-  cond_type(stmt->cond) < 0 ||
+  cond_type(env, stmt->cond) < 0 ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
-  cond_type(stmt->val) < 0 || !switch_add(env, stmt) ||
+  cond_type(env, stmt->val) < 0 || !switch_add(env, stmt) ||
   check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || !switch_pop(env)) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
@@ -981,12 +974,12 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static m_bool check_signature_match(const Func_Def f, const Func parent) { GWDEBUG_EXE
+ANN static m_bool check_signature_match(const Env env, const Func_Def f, const Func parent) { GWDEBUG_EXE
   if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) {
     const m_str c_name  = f->base->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
     const m_str f_name = s_name(f->base->xid);
-    ERR_B(f->base->td->xid->pos,
+    ERR_B(td_pos(f->base->td),
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
@@ -1000,7 +993,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   Func parent_func = func;
   do {
     if(compat_func(f, parent_func->def) > 0) {
-      CHECK_BB(check_signature_match(f, parent_func))
+      CHECK_BB(check_signature_match(env, f, parent_func))
       if(!f->tmpl) {
         f->base->func->vt_index = parent_func->vt_index;
         vector_set(&env->curr->info->vtable, f->base->func->vt_index, (vtype)f->base->func);
@@ -1056,7 +1049,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
     for(m_uint j = i + 1; f1 && j <= v->offset; ++j) {
       const Func f2 = get_overload(env, f, j);
       if(f2 && compat_func(f1->def, f2->def) > 0)
-        ERR_B(f2->def->base->td->xid->pos, "global function '%s' already defined"
+        ERR_B(td_pos(f2->def->base->td), "global function '%s' already defined"
           " for those arguments", s_name(f->base->xid))
     }
   }
@@ -1068,7 +1061,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWD
   if(env->class_def && env->class_def->parent) {
     const Value override = find_value(env->class_def->parent, f->base->xid);
     if(override && override->owner_class && isa(override->type, t_function) < 0)
-      ERR_B(f->base->td->xid->pos,
+      ERR_B(f->pos,
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
             s_name(f->base->xid), override->owner_class->name)
@@ -1091,7 +1084,7 @@ ANN static void operator_func(const Func f) {
   const Type l = is_unary ? NULL : a->type;
   const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
   const Operator op = name2op(s_name(f->def->base->xid));
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .data=(m_uint)f };
+  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
   operator_set_func(&opi);
 }
 
@@ -1120,8 +1113,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
   if(ret > 0) {
     const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
     if(!GET_FLAG(f, builtin) && check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
-      ret = err_msg(f->base->td ? f->base->td->xid->pos : 0, "...in function '%s'", 
-         s_name(f->base->xid));
+      ret = GW_ERROR;
     if(variadic)
       REM_REF(variadic, env->gwion)
     if(GET_FLAG(f, builtin))

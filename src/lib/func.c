@@ -31,7 +31,7 @@ static OP_CHECK(opck_func_call) {
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
-  return check_exp_call1(env, &e->d.exp_call);
+  return check_exp_call1(env, &e->d.exp_call) ?: t_null;
 }
 
 static OP_EMIT(opem_func_assign) {
@@ -71,7 +71,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag, def->pos);
   const m_bool ret = traverse_func_def(env, l->def);
   arg = l->args;
   while(arg) {

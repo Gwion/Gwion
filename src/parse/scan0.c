@@ -29,8 +29,8 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const uint
 }
 
 ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, stmt->base->td->flag))
-  CHECK_BB(scan0_defined(env, stmt->base->xid, stmt->base->td->xid->pos));
+  CHECK_BB(env_access(env, stmt->base->td->flag, stmt_self(stmt)->pos))
+  CHECK_BB(scan0_defined(env, stmt->base->xid, td_pos(stmt->base->td)));
   const m_str name = s_name(stmt->base->xid);
   const Type t = new_type(env->gwion->p, t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->base->td, global)) ?
@@ -44,7 +44,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
-  CHECK_BB(env_access(env, stmt->ext->flag))
+  CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
   const Type base = known_type(env, stmt->ext);
   CHECK_OB(base)
   CHECK_BB(scan0_defined(env, stmt->xid, stmt->ext->xid->pos))
@@ -70,7 +70,7 @@ ANN static m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG
 }
 
 ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, stmt->flag))
+  CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
   if(stmt->xid) {
     const Value v = nspc_lookup_value1(env->curr, stmt->xid);
     if(v)
@@ -108,7 +108,7 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
 }
 
 ANN static m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, stmt->flag))
+  CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
   if(stmt->xid) {
     CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
@@ -151,13 +151,13 @@ ANN static m_bool scan0_Stmt_List(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, class_def->flag))
+  CHECK_BB(env_storage(env, class_def->flag, class_def->pos))
   if(GET_FLAG(class_def, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
   CHECK_BB(scan0_defined(env, class_def->base.xid, class_def->pos)) // test for type ?
-  CHECK_BB(isres(class_def->base.xid))
+  CHECK_BB(isres(env, class_def->base.xid, class_def->pos))
   return GW_OK;
 }
 

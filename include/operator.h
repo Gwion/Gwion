@@ -9,6 +9,7 @@ struct Op_Import {
   opck ck;
   opem em;
   uintptr_t data;
+  uint pos;
   Operator op;
   m_bool mut;
 };

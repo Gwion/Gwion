@@ -79,16 +79,23 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
 }
 
 ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* opi) {
-  Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   M_Operator* mo;
+  Nspc n = nspc;
+  do {
+    if(!n->info->op_map.ptr)
+      continue;
+    const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
+    if(v && (mo = operator_find(v, opi->lhs, opi->rhs)))
+      ERR_B(opi->pos, "operator '%s', for type '%s' and '%s' already imported",
+            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
+            opi->rhs ? opi->rhs->name : NULL)
+  } while((n = n->parent));
+  Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   if(!v) {
     v = new_vector(gwion->p);
     map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
   }
-  if((mo = operator_find(v, opi->lhs, opi->rhs)))
-    CHECK_BB((err_msg(0, "operator '%s', for type '%s' and '%s' already imported",
-            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
-            opi->rhs ? opi->rhs->name : NULL)))
+// new mo
   mo = mp_alloc(gwion->p, M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
@@ -97,7 +104,9 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
   mo->ck     = opi->ck;
   mo->em     = opi->em;
   mo->mut     = opi->mut;
+// add
   vector_add(v, (vtype)mo);
+// mo_type_ref
   if(opi->lhs && opi->lhs != OP_ANY_TYPE)
     ADD_REF(opi->lhs)
   if(opi->rhs && opi->rhs != OP_ANY_TYPE)
@@ -141,13 +150,14 @@ static m_str type_name(const Type t) {
 }
 
 ANN Type op_check(const Env env, struct Op_Import* opi) {
+  Type ret = NULL;
   Nspc nspc = env->curr;
   do {
     if(nspc->info->op_map.ptr) {
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
-        Type ret = op_check_inner(env, &nspc->info->op_map, &opi2);
+        ret = op_check_inner(env, &nspc->info->op_map, &opi2);
         if(ret) {
           if(ret == t_null)
             break;
@@ -159,10 +169,9 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     }
     nspc = nspc->parent;
   } while(nspc);
-  if(opi->op != op_impl)
-  (void)err_msg(0, "%s %s %s: no match found for operator",
+  if(opi->op == op_cast || (ret != t_null && opi->op != op_impl))
+    err_msg(opi->pos, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
-
   return NULL;
 }
 

@@ -20,21 +20,21 @@ ANN Nspc env_nspc(const Env env) {
 }
 
 #define GET(a,b) ((a) & (b)) == (b)
-ANN m_bool env_access(const Env env, const ae_flag flag) {
+ANN m_bool env_access(const Env env, const ae_flag flag, const uint pos) {
   if(env->scope->depth) {
    if(GET(flag, ae_flag_global))
-      ERR_B(0, "'global' can only be used at %s scope.",
+      ERR_B(pos, "'global' can only be used at %s scope.",
           GET(flag, ae_flag_global) && !env->class_def ?
            "file" : "class")
   }
   if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
       GET(flag, ae_flag_protect)) && (!env->class_def || env->scope->depth))
-      ERR_B(0, "static/private/protect can only be used at class scope.")
+      ERR_B(pos, "static/private/protect can only be used at class scope.")
   return GW_OK;
 }
 
-ANN m_bool env_storage(const Env env, ae_flag flag) {
-  CHECK_BB(env_access(env, flag))
+ANN m_bool env_storage(const Env env, ae_flag flag, const uint pos) {
+  CHECK_BB(env_access(env, flag, pos))
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
 

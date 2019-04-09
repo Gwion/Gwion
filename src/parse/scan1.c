@@ -9,7 +9,7 @@
 #include "vm.h"
 #include "parse.h"
 
-#define FAKE_FUNC ((Func)1)
+//#define FAKE_FUNC ((Func)1)
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
 ANN /* static */ m_bool scan1_exp(const Env env, Exp exp);
@@ -50,7 +50,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
 }
 
 ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, decl->td->flag))
+  CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   Var_Decl_List list = decl->list;
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
@@ -63,7 +63,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
     Type t = decl->type;
     const Var_Decl var = list->self;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    CHECK_BB(isres(var->xid))
+    CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     if(!decl->td->exp && decl->td->xid->xid != insert_symbol("auto") &&
         former && (!env->class_def || // cuold be better
         (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
@@ -203,7 +203,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) { GWDEBUG_EXE
   do {
     const Var_Decl var = list->var_decl;
     if(var->xid)
-      CHECK_BB(isres(var->xid))
+      CHECK_BB(isres(env, var->xid, var->pos))
     if(list->td)
       CHECK_OB((list->type = void_type(env, list->td, var->pos)))
   } while((list = list->next));
@@ -273,14 +273,16 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, f->flag))
+  if(f->base->td)
+    CHECK_BB(env_storage(env, f->flag, td_pos(f->base->td)))
   if(tmpl_list_base(f->tmpl))
     return GW_OK;
   const Func former = env->func;
-  env->func = FAKE_FUNC;
+  struct Func_ fake = { .name=s_name(f->base->xid) };
+  env->func = &fake;
   ++env->scope->depth;
   if(GET_FLAG(f, dtor) && !env->class_def)
-    ERR_B(f->base->td->xid->pos, "dtor must be in class def!!")
+    ERR_B(td_pos(f->base->td), "dtor must be in class def!!")
   if(f->base->td)
     CHECK_OB((f->base->ret_type = known_type(env, f->base->td)))
   if(f->base->args)
@@ -297,8 +299,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 DECL_SECTION_FUNC(scan1)
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-  const uint pos = class_def->base.ext->xid ? class_def->base.ext->xid->pos :
-    class_def->base.ext->exp->pos;
+  const uint pos = td_pos(class_def->base.ext);
   if(class_def->base.ext->array)
     CHECK_BB(scan1_exp(env, class_def->base.ext->array->exp))
   const Type parent = class_def->base.type->parent = known_type(env, class_def->base.ext);

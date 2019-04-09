@@ -433,7 +433,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   }
   name = dl_fun->name;
   arg_list = make_dll_arg_list(env, dl_fun);
-  func_def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, type_decl, insert_symbol(env->gwion->st, name), arg_list), NULL, flag);
+  func_def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, type_decl, insert_symbol(env->gwion->st, name), arg_list), NULL, flag, 0);
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -447,7 +447,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   Func_Def def = import_fun(gwi->gwion->env, &gwi->func, flag);
   CHECK_OB(def)
   if(gwi->templater.n) {
-    def = new_func_def(gwi->gwion->p, new_func_base(gwi->gwion->p, NULL, NULL, NULL), NULL, 0);
+    def = new_func_def(gwi->gwion->p, new_func_base(gwi->gwion->p, NULL, NULL, NULL), NULL, 0, 0);
     const ID_List list = templater_def(gwi->gwion->st, &gwi->templater);
     def->tmpl = new_tmpl_list(gwi->gwion->p, list, -1);
     SET_FLAG(def, template);
@@ -480,7 +480,7 @@ ANN2(1,2) static int import_op(const Env env, const DL_Oper* op,
   const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   const Type ret = get_type(env, op->ret);
   const struct Op_Import opi = { lhs, rhs, ret,
-    op->ck, op->em, (uintptr_t)f, op->op, op->mut };
+    op->ck, op->em, (uintptr_t)f, 0, op->op, op->mut };
   return env_add_op(env, &opi);
 }
 

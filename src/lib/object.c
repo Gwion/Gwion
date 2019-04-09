@@ -15,7 +15,7 @@
 #include "operator.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
-  err_msg(0, "%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
+  gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
           c, shred->tick->xid, shred->info->name, shred->pc - 1);
   vm_shred_exit(shred);
 }

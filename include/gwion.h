@@ -17,6 +17,7 @@ struct Gwion_ {
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);
 ANN VM* gwion_cpy(const VM*);
-ANN void   gwion_run(const Gwion gwion);
-ANN void   gwion_end(const Gwion gwion);
+ANN void gwion_run(const Gwion gwion);
+ANN void gwion_end(const Gwion gwion);
+ANN void gwion_err(const Gwion gwion, const uint pos, const m_str fmt, ...);
 #endif

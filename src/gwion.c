@@ -4,6 +4,9 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "type.h"
+#include "func.h"
+#include "value.h"
 #include "instr.h"
 #include "emit.h"
 #include "engine.h"
@@ -95,4 +98,22 @@ ANN void gwion_end(const Gwion gwion) {
   map_release(&gwion->freearg);
   free_symbols(gwion->st);
   mempool_end(gwion->p);
+}
+
+ANN void gwion_err(const Gwion gwion, const uint pos, const m_str fmt, ...) {
+  const Env env = gwion->env;
+  gw_err("in file: '%s'\n", env->name);
+  if(env->class_def)
+    gw_err("in class: '%s'\n", env->class_def->name);
+  if(env->func) // problem with scan1 FAKE_FUNC
+    gw_err("in function: '%s'\n", env->func->name);
+  if(pos)
+    fprintf(stderr, "line: %u\t", pos);
+  else
+    fprintf(stderr, "\t");
+  va_list arg;
+  va_start(arg, fmt);
+  vfprintf(stderr, fmt, arg);
+  va_end(arg);
+  fprintf(stderr, "\n");
 }
