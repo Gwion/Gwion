@@ -4,8 +4,10 @@
 #include "oo.h"
 #include "env.h"
 #include "vm.h"
-#include "type.h"
 #include "instr.h"
+#include "emit.h"
+#include "gwion.h"
+#include "type.h"
 #include "func.h"
 #include "memoize.h"
 
@@ -14,6 +16,8 @@ struct Memoize_ {
   m_uint arg_sz;
   m_uint ret_sz;
   struct pool *p;
+  size_t limit;
+  size_t curr;
   m_bool member;
   enum Kind kind;
 };
@@ -40,8 +44,8 @@ static inline void memoize_return4(m_bit* tgt NUSED,
 static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
   { memoize_return1, memoize_return2, memoize_return3, memoize_return4};
 
-Memoize memoize_ini(MemPool p, const Func f, const enum Kind kind) {
-  Memoize m = mp_alloc(p, Memoize);
+Memoize memoize_ini(const Emitter emit, const Func f, const enum Kind kind) {
+  Memoize m = mp_alloc(emit->gwion->p, Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
   m->kind = kind;
@@ -51,6 +55,7 @@ Memoize memoize_ini(MemPool p, const Func f, const enum Kind kind) {
     m->member = SZ_INT;
     m->arg_sz = f->def->stack_depth - SZ_INT;
   }
+  m->limit = emit->memoize;
   m->p = new_pool((uint32_t)(m->arg_sz + m->ret_sz));
   return m;
 }
@@ -65,7 +70,10 @@ void memoize_end(MemPool p, Memoize m) {
 static inline void memoize_set(Memoize m, const m_bit* arg) {
   m_bit* data = _mp_alloc2(m->p);
   memcpy(data, arg, m->arg_sz);
-  vector_add(&m->v, (vtype)data);
+  if(vector_size(&m->v) < m->limit)
+    vector_add(&m->v, (vtype)data);
+  else
+    vector_set(&m->v, m->curr++ % m->limit, (vtype)data);
 }
 
 m_bool memoize_get(VM_Shred shred) {

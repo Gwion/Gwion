@@ -31,9 +31,9 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   struct scope_iter iter = { &a->info->value, 0, 0 };
   Value v;
   while(scope_iter(&iter, &v) > 0) {
-    if(isa(v->type, t_object) > 0  ||
+    if(v->type && (isa(v->type, t_object) > 0  ||
         (isa(v->type, t_union) > 0 &&
-        (GET_FLAG(v, static) || GET_FLAG(v, global)))) {
+        (GET_FLAG(v, static) || GET_FLAG(v, global))))) {
       nspc_release_object(a, v, gwion);
     }
     REM_REF(v, gwion);

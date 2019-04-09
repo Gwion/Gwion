@@ -174,7 +174,7 @@ GWION_IMPORT(object) {
   CHECK_BB(gwi_oper_end(gwi, op_eq, EqObject))
   CHECK_BB(gwi_oper_end(gwi, op_ne, NeqObject))
   CHECK_BB(gwi_oper_ini(gwi, NULL, "Object", "int"))
-  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta))
+  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta2))
   CHECK_BB(gwi_oper_end(gwi, op_not, IntNot))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);

@@ -284,7 +284,7 @@ static const void* dispatch[] = {
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
-    &&gack, &&other
+    &&gack, &&regpushimm, &&other
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -657,7 +657,7 @@ autoloop:
 autoloopptr:
   *(m_bit**)(*(M_Object*)(mem + instr->m_val + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + instr->m_val));
 autoloopcount:
-  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - ++*(m_uint*)(mem + instr->m_val);
+  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - (*(m_uint*)(mem + instr->m_val))++;
   reg += SZ_INT;
   DISPATCH()
 arraytop:

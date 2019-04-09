@@ -47,7 +47,7 @@ static inline ANN void nspc_add_##b(const Nspc n, const Symbol s, const A a) { \
   scope_add(&n->info->b, (vtype)s, (vtype)a);                                  \
 }                                                                              \
 ANN static inline void nspc_push_##b(MemPool p, const Nspc n) { scope_push(p, &n->info->b); }\
-ANN inline static void nspc_pop_##b (MemPool p, const Nspc n) { scope_pop (p, &n->info->b); }\
+ANN static inline void nspc_pop_##b (MemPool p, const Nspc n) { scope_pop (p, &n->info->b); }\
 describe_lookups(A, b)
 
 describe_nspc_func(Value, value)

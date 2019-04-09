@@ -59,7 +59,7 @@ static GWION_IMPORT(int_unary) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
   CHECK_BB(gwi_oper_end(gwi,  op_sub,       int_negate))
-  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
+  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta2))
   CHECK_BB(gwi_oper_end(gwi,  op_not, IntNot))
   CHECK_OP(inc, unary, pre_inc)
   CHECK_OP(dec, unary, pre_dec)
@@ -87,12 +87,6 @@ static GWION_IMPORT(int) {
   CHECK_BB(import_int_r(gwi))
   CHECK_BB(import_int_unary(gwi))
   return import_int_values(gwi);
-}
-
-OP_CHECK(opck_unary_meta2) {
-  const Exp_Unary* unary = (Exp_Unary*)data;
-  exp_self(unary)->meta = ae_meta_value;
-  return t_int;
 }
 
 static GWION_IMPORT(values) {

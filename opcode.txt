@@ -167,4 +167,5 @@ GcIni
 GcAdd
 GcEnd
 Gack
+DotTmplVal
 OP_MAX

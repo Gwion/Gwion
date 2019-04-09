@@ -515,7 +515,7 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   const m_uint size = v->type->size;
   if(isa(v->type, t_class) < 0) {
     const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
-    instr->m_val = (m_uint)(v->owner_class->nspc->info->class_data + v->offset);
+    instr->m_val = (m_uint)(v->owner->info->class_data + v->offset);
     instr->m_val2 = size;
   } else {
     const Instr instr = emit_add_instr(emit, RegPushImm);
@@ -769,7 +769,8 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
     const Instr instr = (Instr)vector_back(&emit->code->instr);
-	  assert(instr->execute == DotTmpl);
+//	  assert(instr->execute == DotTmplVal);
+	  assert(instr->opcode == DotTmplVal);
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
@@ -780,8 +781,10 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     dt->overload = f->def->tmpl->base;
     dt->tl = tmpl_tl(emit->env, c);
     dt->base = f->def;
+    instr->opcode = OP_MAX;
     instr->m_val = (m_uint)dt;
     instr->m_val2 = strlen(c);
+    instr->execute = DotTmpl;
     return GW_OK;
   }
 if(vector_size(&emit->code->instr)) {
@@ -970,9 +973,8 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 
 ANN static Instr emit_flow(const Emitter emit, const Type type,
     const f_instr f1, const f_instr f2) { GWDEBUG_EXE
-  if(isa(type, t_float) > 0) {
+  if(isa(type, t_float) > 0 || isa(type, t_dur) > 0 || isa(type, t_time) > 0)
     return emit_add_instr(emit, f2);
-  }
   return emit_add_instr(emit, f1);
 }
 
@@ -1570,8 +1572,17 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
     func_i->m_val = (m_uint)(func->code ?: (VM_Code)func);
     return GW_OK;
   }
-  const Instr instr = emit_add_instr(emit, !func->def->tmpl ? GET_FLAG(func, member) ? DotFunc : DotStaticFunc : DotTmpl);
-  instr->m_val = func->vt_index;
+  if(func->def->tmpl) {
+//const Instr push = emit_add_instr(emit, RegPushImm);
+//push->m_val = func;
+    const Instr instr = emit_add_instr(emit, DotTmplVal);
+//printf("func %p\n", func);
+//    instr->m_val = func;
+//    instr->m_val2 = SZ_INT;
+  } else {
+    const Instr instr = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
+    instr->m_val = func->vt_index;
+  }
   return GW_OK;
 }
 
@@ -1693,7 +1704,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) { G
   if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))
-    func->code->memoize = memoize_ini(emit->gwion->p, func,
+    func->code->memoize = memoize_ini(emit, func,
       kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
   return GW_OK;
 }

@@ -53,6 +53,12 @@ OP_CHECK(opck_unary_meta) {
   return unary->exp->type;
 }
 
+OP_CHECK(opck_unary_meta2) {
+  const Exp_Unary* unary = (Exp_Unary*)data;
+  exp_self(unary)->meta = ae_meta_value;
+  return t_int;
+}
+
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)

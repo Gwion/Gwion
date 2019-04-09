@@ -70,8 +70,12 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl* decl) { GWDEBUG_EXE
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
     if(var->array && decl->type != t_undefined) {
-      if(var->array->exp)
+      if(var->array->exp) {
+        if(GET_FLAG(decl->td, ref))
+          ERR_B(td_pos(decl->td), "ref array must not have array expression.\n"
+            "e.g: int @my_array[];\nnot: int my_array[2];")
         CHECK_BB(scan1_exp(env, var->array->exp))
+      }
       t = array_type(env, decl->type, var->array->depth);
     }
     const Value v = var->value = former ? former : new_value(env->gwion->p, t, s_name(var->xid));

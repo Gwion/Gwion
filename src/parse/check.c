@@ -77,7 +77,7 @@ ANN Type check_td(const Env env, Type_Decl *td) {
     ERR_O(td->exp->pos, "Expression must be of type '%s', not '%s'\n"
       "maybe you meant typeof(Expression)", t_class->name, td->exp->type->name);
   m_uint depth;
-  td->xid = str2list(env->gwion->st, t->name, &depth);
+  td->xid = str2list(env, t->name, &depth);
 
   if(depth) {
     Exp base = new_exp_prim_int(env->gwion->p, 0, 0), e = base;

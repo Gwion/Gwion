@@ -83,7 +83,7 @@ ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
   return GW_OK;
 }
 
-ANN static m_bool name_valid(const m_str a) {
+ANN static m_bool name_valid(Env env, const m_str a) {
   const m_uint len = strlen(a);
   m_uint lvl = 0;
   for(m_uint i = 0; i < len; i++) {
@@ -96,17 +96,22 @@ ANN static m_bool name_valid(const m_str a) {
       continue;
     }
     if(c == ',') {
-      if(!lvl)
-        ERR_B(0, "illegal use of ',' outside of templating in name '%s'.", a)
+      if(!lvl) {
+        gwion_err(env->gwion, 0, "illegal use of ',' outside of templating in name '%s'.", a);
+        return GW_ERROR;
+      }
       continue;
     }
     if(c == '>') {
-      if(!lvl)
-        ERR_B(0, "illegal templating in name '%s'.", a)
+      if(!lvl) {
+        gwion_err(env->gwion, 0, "illegal templating in name '%s'.", a);
+        return GW_ERROR;
+      }
       lvl--;
       continue;
     }
-    ERR_B(0, "illegal character '%c' in name '%s'.", c, a)
+    gwion_err(env->gwion, 0, "illegal character '%c' in name '%s'.", c, a);
+    return GW_ERROR;
   }
   return !lvl ? 1 : -1;
 }
@@ -120,27 +125,31 @@ ANN static void path_valid_inner(const m_str curr) {
   }
 }
 
-ANN static m_bool path_valid(SymTable *st,ID_List* list, const struct Path* p) {
+ANN static m_bool path_valid(const Env env,ID_List* list, const struct Path* p) {
   char last = '\0';
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
-    if(c != '.' && check_illegal(p->curr, c, i) < 0)
-      ERR_B(0, "illegal character '%c' in path '%s'.", c, p->path)
+    if(c != '.' && check_illegal(p->curr, c, i) < 0) {
+      gwion_err(env->gwion, 0, "illegal character '%c' in path '%s'.", c, p->path);
+      return GW_ERROR;
+    }
     if(c == '.' || i == 1) {
       if((i != 1 && last != '.' && last != '\0') ||
           (i ==  1 && c != '.')) {
         path_valid_inner(p->curr);
-        *list = prepend_id_list(st->p, insert_symbol(st, p->curr), *list, 0);
+        *list = prepend_id_list(env->gwion->st->p, insert_symbol(env->gwion->st, p->curr), *list, 0);
         memset(p->curr, 0, p->len + 1);
-      } else
-        ERR_B(0, "path '%s' must not ini or end with '.'.", p->path)
+      } else {
+        gwion_err(env->gwion, 0, "path '%s' must not ini or end with '.'.", p->path);
+        return GW_ERROR;
+      }
     }
     last = c;
   }
   return GW_OK;
 }
 
-ANN /* static */ ID_List str2list(SymTable *st, const m_str path, m_uint* array_depth) {
+ANN /* static */ ID_List str2list(const Env env, const m_str path, m_uint* array_depth) {
   const m_uint len = strlen(path);
   ID_List list = NULL;
   m_uint depth = 0;
@@ -153,14 +162,14 @@ ANN /* static */ ID_List str2list(SymTable *st, const m_str path, m_uint* array_
     p.len -= 2;
   }
   *array_depth = depth;
-  if(path_valid(st, &list, &p) < 0) {
+  if(path_valid(env, &list, &p) < 0) {
     if(list)
-      free_id_list(st->p, list);
+      free_id_list(env->gwion->p, list);
     return NULL;
   }
   CHECK_OO(list)
   strncpy(curr, path, p.len);
-  list->xid = insert_symbol(st, curr);
+  list->xid = insert_symbol(env->gwion->st, curr);
   return list;
 }
 
@@ -181,7 +190,7 @@ ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint s
 
 ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   if(type->name[0] != '@')
-    CHECK_BB(name_valid(type->name));
+    CHECK_BB(name_valid(gwi->gwion->env, type->name));
   env_add_type(gwi->gwion->env, type);
   return (m_int)type->xid;
 }
@@ -300,7 +309,7 @@ ANN static void dl_var_release(MemPool p, const DL_Var* v) {
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
-  if(!(v->t.xid = str2list(gwi->gwion->st, type, &v->array_depth)))
+  if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth)))
     ERR_B(0, "\t...\tduring var import '%s.%s'.",
           gwi->gwion->env->class_def->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
@@ -362,7 +371,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   m_uint i = 0;
   m_str type_name = get_type_name(env, s, i++);
   CHECK_OO(type_name)
-  ID_List id = str2list(env->gwion->st, type_name, depth);
+  ID_List id = str2list(env, type_name, depth);
   CHECK_OO(id)
   Type_Decl* td = new_type_decl(env->gwion->p, id, 0);
   Type_List tmp = NULL;
@@ -398,7 +407,7 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
         free_arg_list(env->gwion->p, arg_list);
       ERR_O(0, "\t...\tat argument '%i'", i + 1)
     }
-    if((type_path2 = str2list(env->gwion->st, arg->name, &array_depth2)))
+    if((type_path2 = str2list(env, arg->name, &array_depth2)))
       free_id_list(env->gwion->p, type_path2);
     if(array_depth && array_depth2) {
       free_type_decl(env->gwion->p, type_decl);
@@ -422,7 +431,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
   m_uint i, array_depth = 0;
 
   flag |= ae_flag_builtin;
-  if(!(type_path = str2list(env->gwion->st, dl_fun->type, &array_depth)) ||
+  if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->p, type_path, 0)))
     ERR_O(0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
   if(array_depth) {
@@ -439,7 +448,7 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
 }
 
 ANN static Func_Def import_fun(const Env env, DL_Func * mfun, const ae_flag flag) {
-  CHECK_BO(name_valid(mfun->name));
+  CHECK_BO(name_valid(env, mfun->name));
   return make_dll_as_fun(env, mfun, flag);
 }
 
@@ -467,7 +476,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
 
 static Type get_type(const Env env, const m_str str) {
   m_uint depth = 0;
-  const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(env->gwion->st, str, &depth) : NULL;
+  const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(env, str, &depth) : NULL;
   const Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
   if(list)
     free_id_list(env->gwion->p, list);
@@ -527,7 +536,7 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   Type_Decl* type_decl = NULL;
   const Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
-  if(!(type_path = str2list(env->gwion->st, dl_fun->type, &array_depth)) ||
+  if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->p, type_path, 0)))
     ERR_O(0, "\t...\tduring fptr import '%s' (type).",
           dl_fun->name)
@@ -548,20 +557,21 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   return t;
 }
 
-ANN static Exp make_exp(SymTable *st, const m_str type, const m_str name) {
+ANN static Exp make_exp(const Env env, const m_str type, const m_str name) {
   Type_Decl *type_decl;
   ID_List id_list;
   m_uint array_depth;
   Array_Sub array = NULL;
-  CHECK_OO((id_list = str2list(st, type, &array_depth)))
+  CHECK_OO((id_list = str2list(env, type, &array_depth)))
   if(array_depth) {
-    array = new_array_sub(st->p, NULL);
+    array = new_array_sub(env->gwion->p, NULL);
     array->depth = array_depth;
   }
-  type_decl = new_type_decl(st->p, id_list, 0);
-  const Var_Decl var_decl = new_var_decl(st->p, insert_symbol(st, name), array, 0);
-  const Var_Decl_List var_decl_list = new_var_decl_list(st->p, var_decl, NULL);
-  return new_exp_decl(st->p, type_decl, var_decl_list);
+  type_decl = new_type_decl(env->gwion->p, id_list, 0);
+  const Var_Decl var_decl = new_var_decl(env->gwion->p,
+      insert_symbol(env->gwion->st, name), array, 0);
+  const Var_Decl_List var_decl_list = new_var_decl_list(env->gwion->p, var_decl, NULL);
+  return new_exp_decl(env->gwion->p, type_decl, var_decl_list);
 }
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
@@ -571,7 +581,7 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  const Exp exp = make_exp(gwi->gwion->st, type, name);
+  const Exp exp = make_exp(gwi->gwion->env, type, name);
   CHECK_OB(exp);
   const Type t = type_decl_resolve(gwi->gwion->env, exp->d.exp_decl.td);
   if(!t)

@@ -170,6 +170,7 @@ enum {
   eGcAdd,
   eGcEnd,
   eGack,
+  eDotTmplVal,
   eOP_MAX,
 };
 
@@ -342,5 +343,6 @@ enum {
 #define  GcAdd               (f_instr)eGcAdd
 #define  GcEnd               (f_instr)eGcEnd
 #define  Gack                (f_instr)eGack
+#define  DotTmplVal          (f_instr)eDotTmplVal
 #define  OP_MAX              (f_instr)eOP_MAX
 #endif
