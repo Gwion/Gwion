@@ -18,6 +18,12 @@
 #include "nspc.h"
 #include "gwion.h"
 #include "operator.h"
+#include "mpool.h"
+
+#undef ERR_B
+#define ERR_B(a, b, ...) { env_err(gwi->gwion->env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
+#undef ERR_O
+#define ERR_O(a, b, ...) { env_err(gwi->gwion->env, (a), (b), ## __VA_ARGS__); return NULL; }
 
 struct Path {
   m_str path, curr;
@@ -262,23 +268,17 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   return GW_OK;
 }
 
-ANN static m_int import_class_end(const Env env) {
-  if(!env->class_def)
-    ERR_B(0, "import: too many class_end called.")
-  const Nspc nspc = env->class_def->nspc;
-  if(nspc->info->class_data_size && !nspc->info->class_data)
-    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
-  env_pop(env, 0);
-  return GW_OK;
-}
-
-#include "mpool.h"
 ANN m_int gwi_class_end(const Gwi gwi) {
-  if(!gwi->gwion->env->class_def)return GW_ERROR;
+  if(!gwi->gwion->env->class_def)
+    ERR_B(0, "import: too many class_end called.")
   const Type t = gwi->gwion->env->class_def;
   if(t->nspc && t->nspc->info->offset)
     t->p = mp_ini(gwi->gwion->p, (uint32_t)t->nspc->info->offset);
-  return import_class_end(gwi->gwion->env);
+  const Nspc nspc = gwi->gwion->env->class_def->nspc;
+  if(nspc->info->class_data_size && !nspc->info->class_data)
+    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
+  env_pop(gwi->gwion->env, 0);
+  return GW_OK;
 }
 
 ANN static void dl_var_new_exp_array(MemPool p, DL_Var* v) {
@@ -405,7 +405,8 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(env->gwion->p, arg_list);
-      ERR_O(0, "\t...\tat argument '%i'", i + 1)
+      env_err(env, 0, "\t...\tat argument '%i'", i + 1);
+      return NULL;
     }
     if((type_path2 = str2list(env, arg->name, &array_depth2)))
       free_id_list(env->gwion->p, type_path2);
@@ -413,7 +414,8 @@ ANN static Arg_List make_dll_arg_list(const Env env, DL_Func * dl_fun) {
       free_type_decl(env->gwion->p, type_decl);
       if(arg_list)
         free_arg_list(env->gwion->p, arg_list);
-      ERR_O(0, "array subscript specified incorrectly for built-in module")
+      env_err(env, 0, "array subscript specified incorrectly for built-in module");
+      return NULL;
     }
     array_sub = make_dll_arg_list_array(env->gwion->p, array_sub, &array_depth, array_depth2);
     var_decl = new_var_decl(env->gwion->p, insert_symbol(env->gwion->st, arg->name), array_sub, 0);
@@ -432,8 +434,10 @@ ANN static Func_Def make_dll_as_fun(const Env env, DL_Func * dl_fun, ae_flag fla
 
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(env->gwion->p, type_path, 0)))
-    ERR_O(0, "\t...\tduring @ function import '%s' (type).", dl_fun->name)
+      !(type_decl = new_type_decl(env->gwion->p, type_path, 0))) {
+    env_err(env, 0, "\t...\tduring @ function import '%s' (type).", dl_fun->name);
+    return NULL;
+  }
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(env->gwion->p, NULL);
     for(i = 1; i < array_depth; i++)
@@ -537,9 +541,11 @@ ANN static Stmt import_fptr(const Env env, DL_Func* dl_fun, ae_flag flag) {
   const Arg_List args = make_dll_arg_list(env, dl_fun);
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(env->gwion->p, type_path, 0)))
-    ERR_O(0, "\t...\tduring fptr import '%s' (type).",
-          dl_fun->name)
+      !(type_decl = new_type_decl(env->gwion->p, type_path, 0))) {
+    env_err(env, 0, "\t...\tduring fptr import '%s' (type).",
+          dl_fun->name);
+    return NULL;
+  }
   struct Func_Base_ *base = new_func_base(env->gwion->p, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_stmt_fptr(env->gwion->p, base, flag);
 }
