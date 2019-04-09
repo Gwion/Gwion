@@ -97,20 +97,20 @@ ANN static m_bool name_valid(Env env, const m_str a) {
     }
     if(c == ',') {
       if(!lvl) {
-        gwion_err(env->gwion, 0, "illegal use of ',' outside of templating in name '%s'.", a);
+        env_err(env, 0, "illegal use of ',' outside of templating in name '%s'.", a);
         return GW_ERROR;
       }
       continue;
     }
     if(c == '>') {
       if(!lvl) {
-        gwion_err(env->gwion, 0, "illegal templating in name '%s'.", a);
+        env_err(env, 0, "illegal templating in name '%s'.", a);
         return GW_ERROR;
       }
       lvl--;
       continue;
     }
-    gwion_err(env->gwion, 0, "illegal character '%c' in name '%s'.", c, a);
+    env_err(env, 0, "illegal character '%c' in name '%s'.", c, a);
     return GW_ERROR;
   }
   return !lvl ? 1 : -1;
@@ -130,7 +130,7 @@ ANN static m_bool path_valid(const Env env,ID_List* list, const struct Path* p) 
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0) {
-      gwion_err(env->gwion, 0, "illegal character '%c' in path '%s'.", c, p->path);
+      env_err(env, 0, "illegal character '%c' in path '%s'.", c, p->path);
       return GW_ERROR;
     }
     if(c == '.' || i == 1) {
@@ -140,7 +140,7 @@ ANN static m_bool path_valid(const Env env,ID_List* list, const struct Path* p) 
         *list = prepend_id_list(env->gwion->st->p, insert_symbol(env->gwion->st, p->curr), *list, 0);
         memset(p->curr, 0, p->len + 1);
       } else {
-        gwion_err(env->gwion, 0, "path '%s' must not ini or end with '.'.", p->path);
+        env_err(env, 0, "path '%s' must not ini or end with '.'.", p->path);
         return GW_ERROR;
       }
     }

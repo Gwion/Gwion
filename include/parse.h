@@ -5,9 +5,9 @@
 #define insert_symbol(a) insert_symbol(env->gwion->st, (a))
 
 #undef ERR_B
-#define ERR_B(a, b, ...) { gwion_err(env->gwion, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
+#define ERR_B(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
 #undef ERR_O
-#define ERR_O(a, b, ...) { gwion_err(env->gwion, (a), (b), ## __VA_ARGS__); return NULL; }
+#define ERR_O(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return NULL; }
 
 #define RET_NSPC(exp)       \
 ++env->scope->depth;        \

@@ -180,7 +180,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
   if(!v || !GET_FLAG(v, checked)) {
-    gwion_err(env->gwion, exp_self(primary)->pos,
+    env_err(env, exp_self(primary)->pos,
           "variable %s not legit at this point.", s_name(primary->d.var));
     did_you_mean(env->gwion->st, s_name(primary->d.var));
     return NULL;
@@ -487,7 +487,7 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const uint pos){
-  gwion_err(env->gwion, pos, "argument type(s) do not match for function. should be :");
+  env_err(env, pos, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {
     gw_err("(%s)\t", up->name);

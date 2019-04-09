@@ -7,6 +7,11 @@
 #include "gwion.h"
 #include "arg.h"
 
+#ifdef __linux__
+#include<libintl.h>
+#include<locale.h>
+#endif
+
 static jmp_buf jmp;
 static struct Gwion_ gwion;
 
@@ -16,6 +21,8 @@ static void sig(int unused NUSED) {
 }
 
 int main(int argc, char** argv) {
+//  setlocale(LC_ALL,"");
+//  bindtextdomain ("bison-runtime", "/usr/share/locale");
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);

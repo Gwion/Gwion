@@ -100,8 +100,7 @@ ANN void gwion_end(const Gwion gwion) {
   mempool_end(gwion->p);
 }
 
-ANN void gwion_err(const Gwion gwion, const uint pos, const m_str fmt, ...) {
-  const Env env = gwion->env;
+ANN void env_err(const Env env, const uint pos, const m_str fmt, ...) {
   gw_err("in file: '%s'\n", env->name);
   if(env->class_def)
     gw_err("in class: '%s'\n", env->class_def->name);

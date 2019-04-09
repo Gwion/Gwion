@@ -27,9 +27,9 @@
 #define insert_symbol(a) insert_symbol(emit->env->gwion->st, (a))
 
 #undef ERR_B
-#define ERR_B(a, b, ...) { gwion_err(emit->gwion, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
+#define ERR_B(a, b, ...) { env_err(emit->env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
 #undef ERR_O
-#define ERR_O(a, b, ...) { gwion_err(emit->gwion, (a), (b), ## __VA_ARGS__); return NULL; }
+#define ERR_O(a, b, ...) { env_err(emit->env, (a), (b), ## __VA_ARGS__); return NULL; }
 
 typedef struct Local_ {
   m_uint size;
