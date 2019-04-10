@@ -15,16 +15,28 @@ ANN static inline void config_end(const Vector config) {
   }
 }
 
+ANN static m_str plug_dir(void) {
+  const m_str home = getenv("HOME");
+  const size_t sz = strlen(home);
+  const m_str pdir = "/.gwplug";
+  m_str plug_dir = (m_str)xmalloc(sz + strlen(pdir) + 1);
+  strcpy(plug_dir, home);
+  strcpy(plug_dir + sz, pdir);
+  return plug_dir;
+}
+
 ANN static void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->mod);
   vector_init(&arg->config);
-  vector_add(&arg->lib, (vtype)GWPLUG_DIR);
+//  vector_add(&arg->lib, (vtype)GWPLUG_DIR);
+  vector_add(&arg->lib, (vtype)plug_dir());
 }
 
 ANN void arg_release(Arg* arg) {
   vector_release(&arg->add);
+  xfree((m_str)vector_front(&arg->lib));
   vector_release(&arg->lib);
   vector_release(&arg->mod);
   config_end(&arg->config);

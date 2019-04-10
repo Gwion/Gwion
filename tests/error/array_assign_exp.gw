@@ -1,0 +1,2 @@
+// [contains] do not provide array
+[1,2,3,4] @=> int loop[1];

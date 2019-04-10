@@ -12,12 +12,17 @@
 #include<locale.h>
 #endif
 
-static jmp_buf jmp;
-static struct Gwion_ gwion;
+//static jmp_buf jmp;
+//static struct Gwion_ gwion;
 
 static void sig(int unused NUSED) {
-  gwion.vm->bbq->is_running = 0;
-  longjmp(jmp, 1);
+//  gwion.vm->bbq->is_running = 0;
+//  longjmp(jmp, 1);
+#ifdef BUILD_ON_WINDOWS
+  exit(EXIT_FAILURE);
+#else
+  pthread_exit(NULL);
+#endif
 }
 
 int main(int argc, char** argv) {
@@ -26,10 +31,12 @@ int main(int argc, char** argv) {
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
+  struct Gwion_ gwion = {};
   const m_bool ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);
-  if(setjmp(jmp) == 0 && ini > 0)
+  if(/*setjmp(jmp) == 0 && */ini > 0)
     gwion_run(&gwion);
   gwion_end(&gwion);
+  THREAD_RETURN(EXIT_SUCCESS);
   return EXIT_SUCCESS;
 }
