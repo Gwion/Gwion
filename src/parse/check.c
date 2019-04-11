@@ -182,7 +182,10 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, checked)) {
     env_err(env, exp_self(primary)->pos,
           "variable %s not legit at this point.", s_name(primary->d.var));
-    did_you_mean(env->gwion->st, s_name(primary->d.var));
+    if(v && v->owner_class)
+      did_you_mean_type(v->owner_class, s_name(primary->d.var));
+    else
+      did_you_mean_nspc(v ? v->owner : env->curr, s_name(primary->d.var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->owner)
@@ -683,9 +686,12 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
     ERR_O(exp_self(member)->pos,
           "keyword 'this' must be associated with object instance...")
   const Value value = find_value(the_base, member->xid);
-  if(!value)
-    ERR_O(member->base->pos,
-          "class '%s' has no member '%s'", the_base->name, str)
+  if(!value) {
+    env_err(env, member->base->pos,
+          "class '%s' has no member '%s'", the_base->name, str);
+    did_you_mean_type(member->t_base, str);
+    return NULL;
+  }
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
     if(GET_FLAG(value, private))
       ERR_O(exp_self(member)->pos,

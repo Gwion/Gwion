@@ -54,4 +54,6 @@ describe_nspc_func(Value, value)
 describe_nspc_func(Type, type)
 describe_nspc_func(Func, func)
 /* howere there is no need for lookup_func0, push_func, pop_func */
+ANN void did_you_mean_nspc(const Nspc, const char*);
+ANN void did_you_mean_type(const Type, const char*);
 #endif

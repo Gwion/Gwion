@@ -4,6 +4,7 @@
 #include "gwion_ast.h"
 #include "oo.h"
 #include "env.h"
+#include "nspc.h"
 #include "type.h"
 #include "vm.h"
 #include "parse.h"
@@ -76,7 +77,7 @@ ANN static inline void* type_unknown(const Env env, const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
   err_msg(id->pos, "unknown type '%s'", path);
-  did_you_mean(env->gwion->st, s_name(id->xid));
+  did_you_mean_nspc(env->curr, s_name(id->xid));
   return NULL;
 }
 
