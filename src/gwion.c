@@ -104,7 +104,7 @@ ANN void env_err(const Env env, const uint pos, const m_str fmt, ...) {
   gw_err("in file: '%s'\n", env->name);
   if(env->class_def)
     gw_err("in class: '%s'\n", env->class_def->name);
-  if(env->func) // problem with scan1 FAKE_FUNC
+  if(env->func)
     gw_err("in function: '%s'\n", env->func->name);
   if(pos)
     fprintf(stderr, "line: %u\t", pos);

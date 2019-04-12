@@ -408,7 +408,7 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   const Exp args = exp->args;
   const Type_List types = exp->tmpl->types;
-  Func m_func = exp->m_func;
+  Func m_func = exp->m_func, former = env->func;
   const m_str tmpl_name = tl2str(env, types);
   const m_uint scope = env_push(env, v->owner_class, v->owner);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
@@ -455,6 +455,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
 end:
   free(tmpl_name);
   env_pop(env, scope);
+  env->func = former;
   return m_func;
 }
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
