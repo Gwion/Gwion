@@ -689,7 +689,8 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   if(!value) {
     env_err(env, member->base->pos,
           "class '%s' has no member '%s'", the_base->name, str);
-    did_you_mean_type(member->t_base, str);
+    if(member->t_base->nspc)
+      did_you_mean_type(member->t_base, str);
     return NULL;
   }
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {

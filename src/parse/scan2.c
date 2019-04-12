@@ -147,7 +147,8 @@ ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* pri
     const Value v = prim_value(env, prim->d.var);
     if(v)
       SET_FLAG(v, used);
-  }
+  } else if(prim->primary_type == ae_primary_array && prim->d.array->exp)
+    return scan2_exp(env, prim->d.array->exp);
   return GW_OK;
 }
 

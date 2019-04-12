@@ -367,12 +367,11 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   do ++count;
   while((e = e->next));
   const Type type = array->type;
-  const Type base = array_base(type);
   const Instr push = emit_add_instr(emit, RegSetImm);
   push->m_val = count;
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
-  instr->m_val2 = base->size;
+  instr->m_val2 = type->array_depth == 1 ? array_base(type)->size : SZ_INT;
   emit_add_instr(emit, GcAdd);
   return GW_OK;
 }

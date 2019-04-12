@@ -104,6 +104,8 @@ ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) 
 ANN static inline m_bool scan1_exp_primary(const Env env, const Exp_Primary* prim) { GWDEBUG_EXE
   if(prim->primary_type == ae_primary_hack)
     return scan1_exp(env, prim->d.exp);
+  if(prim->primary_type == ae_primary_array && prim->d.array->exp)
+    return scan1_exp(env, prim->d.array->exp);
   return GW_OK;
 }
 
