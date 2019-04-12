@@ -17,7 +17,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static Type void_type(const Env env, const Type_Decl* td, const uint pos) {
+ANN static Type void_type(const Env env, const Type_Decl* td, const loc_t pos) {
   const Type t = known_type(env, td);
   CHECK_OO(t)
   if(t->size)
@@ -305,7 +305,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 DECL_SECTION_FUNC(scan1)
 
 ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-  const uint pos = td_pos(class_def->base.ext);
+  const loc_t pos = td_pos(class_def->base.ext);
   if(class_def->base.ext->array)
     CHECK_BB(scan1_exp(env, class_def->base.ext->array->exp))
   const Type parent = class_def->base.type->parent = known_type(env, class_def->base.ext);

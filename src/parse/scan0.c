@@ -22,7 +22,7 @@ ANN static Value mk_class(const Env env, const Type base) {
   return v;
 }
 
-ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const uint pos) {
+ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_t pos) {
   if(nspc_lookup_type1(env->curr, s))
     ERR_B(pos, "type '%s' already defined", s_name(s));
   return already_defined(env, s, pos);

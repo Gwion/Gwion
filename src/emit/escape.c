@@ -23,11 +23,11 @@ char* escape_table(void) {
   return escape;
 }
 
-static int get_escape(const Emitter emit, const char c, const uint pos) {
+static int get_escape(const Emitter emit, const char c, const loc_t pos) {
   return emit->escape[(int)c] ?: err_msg(pos, "unrecognized escape sequence '\\%c'", c);
 }
 
-m_bool escape_str(const Emitter emit, const m_str base, const uint pos) {
+m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
   unsigned char* str_lit = (unsigned char*)base;
   m_str str = base;
   while(*str_lit) {
@@ -68,7 +68,7 @@ m_bool escape_str(const Emitter emit, const m_str base, const uint pos) {
   return GW_OK;
 }
 
-ANN m_int str2char(const Emitter emit, const m_str c, const uint pos) {
+ANN m_int str2char(const Emitter emit, const m_str c, const loc_t pos) {
   return c[0] != '\\' ? c[0] : get_escape(emit, c[1], pos);
 }
 

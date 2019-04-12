@@ -20,7 +20,7 @@ ANN Nspc env_nspc(const Env env) {
 }
 
 #define GET(a,b) ((a) & (b)) == (b)
-ANN m_bool env_access(const Env env, const ae_flag flag, const uint pos) {
+ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
   if(env->scope->depth) {
    if(GET(flag, ae_flag_global))
       ERR_B(pos, "'global' can only be used at %s scope.",
@@ -33,7 +33,7 @@ ANN m_bool env_access(const Env env, const ae_flag flag, const uint pos) {
   return GW_OK;
 }
 
-ANN m_bool env_storage(const Env env, ae_flag flag, const uint pos) {
+ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
   CHECK_BB(env_access(env, flag, pos))
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
@@ -73,7 +73,7 @@ ANN Type find_type(const Env env, ID_List path) {
   return type;
 }
 
-ANN m_bool already_defined(const Env env, const Symbol s, const uint pos) {
+ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
   return v ? err_msg(pos,
     "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : GW_OK;

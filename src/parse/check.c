@@ -490,7 +490,7 @@ ANN static void print_arg(Arg_List e) {
   while((e = e->next) && gw_err(","));
 }
 
-ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const uint pos){
+ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   env_err(env, pos, "argument type(s) do not match for function. should be :");
   Func up = f->d.func;
   do {

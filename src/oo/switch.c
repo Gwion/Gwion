@@ -103,12 +103,12 @@ ANN Exp switch_expget(const Env env) {
   return (Exp)vector_at(&sw->exp, sw->iter++);
 }
 
-ANN m_bool switch_inside(const Env env, const uint pos) {
+ANN m_bool switch_inside(const Env env, const loc_t pos) {
   if(!VLEN(&env->scope->swi))
     ERR_B(pos, "case found outside switch statement.")
   return GW_OK;
 }
-ANN m_bool switch_dup(const Env env, const m_int value, const uint pos) {
+ANN m_bool switch_dup(const Env env, const m_int value, const loc_t pos) {
   const Switch sw = (Switch)_scope_back(&env->scope->swi);
   if(map_get(sw->cases, (vtype)value))
     ERR_B(pos, "duplicated cases value %i", value)
@@ -130,7 +130,7 @@ ANN m_bool switch_dyn(const Env env) {
   return vector_size(&sw->exp);
 }
 
-ANN m_bool switch_default(const Env env, const m_uint pc, const uint pos) {
+ANN m_bool switch_default(const Env env, const m_uint pc, const loc_t pos) {
   const Switch sw = (Switch)_scope_back(&env->scope->swi);
   if(sw->default_case_index)
     ERR_B(pos, "default case already defined")

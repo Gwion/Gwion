@@ -271,7 +271,7 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, AllocWord4 };
 
-ANN static inline Exp this_exp(const Emitter emit, const Type t, const uint pos) {
+ANN static inline Exp this_exp(const Emitter emit, const Type t, const loc_t pos) {
   const Exp exp = new_exp_prim_id(emit->gwion->p, insert_symbol("this"), pos);
   exp->type = t;
   return exp;

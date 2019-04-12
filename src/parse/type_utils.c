@@ -9,7 +9,7 @@
 #include "vm.h"
 #include "parse.h"
 
-ANN m_bool isres(const Env env, const Symbol xid, const uint pos) {
+ANN m_bool isres(const Env env, const Symbol xid, const loc_t pos) {
   const m_str s = s_name(xid);
   if(!strcmp(s, "this") || !strcmp(s, "vararg") || !name2op(s))
     ERR_B(pos, "%s is reserved.", s_name(xid));
