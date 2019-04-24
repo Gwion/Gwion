@@ -74,7 +74,7 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
   MemPool p = shred->info->mp;// = shred->info->vm->gwion->p;
   Type t = obj->type_ref;
   while(t->parent) {
-    struct scope_iter iter = { &t->nspc->info->value, 0, 0 };\
+    struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&

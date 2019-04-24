@@ -16,15 +16,16 @@
 #include "vm.h"
 #include "parse.h"
 
-ANN static struct Env_Scope_ *new_scope(MemPool p) {
+ANN static struct Env_Scope_ *new_envscope(MemPool p) {
   struct Env_Scope_ *a = mp_alloc(p, Env_Scope);
   vector_init(&a->breaks);
   vector_init(&a->conts);
   vector_init(&a->class_stack);
   vector_init(&a->nspc_stack);
   vector_init(&a->known_ctx);
-  _scope_init(&a->swi);
-  map_init(&a->swi.map);
+  a->swi = mp_alloc(p, Scope);
+  _scope_init(a->swi);
+  map_init(&a->swi->map);
   return a;
 }
 
@@ -32,7 +33,7 @@ Env new_env(MemPool p) {
   const Env env = (Env)xmalloc(sizeof(struct Env_));
   env->global_nspc = new_nspc(p, "global_nspc");
   env->context = NULL;
-  env->scope = new_scope(p);
+  env->scope = new_envscope(p);
   env_reset(env);
   return env;
 }
@@ -60,7 +61,8 @@ ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
-  switch_release(&a->swi);
+  switch_release(a->swi);
+  mp_free(gwion->p, Scope, a->swi);
   mp_free(gwion->p, Env_Scope, a);
 }
 

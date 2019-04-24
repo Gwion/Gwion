@@ -39,7 +39,7 @@ static m_bool wagner_fisher(const char *s, const char* t) {
 }
 
 ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
-  struct scope_iter iter = { &nspc->info->value, 0, 0 };
+  struct scope_iter iter = { nspc->info->value, 0, 0 };
   Value value;
   while(scope_iter(&iter, &value) > 0) {
     if(!strcmp(name, value->name))

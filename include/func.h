@@ -8,8 +8,8 @@ struct Func_ {
   Func next;
   struct Instr_* variadic;
   size_t vt_index;
-  ae_flag flag;
   HAS_OBJ
+  ae_flag flag;
 };
 
 ANEW ANN Func new_func(MemPool, const m_str, const Func_Def);

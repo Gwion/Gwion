@@ -13,9 +13,9 @@
 #include "operator.h"
 
 ANN void nspc_commit(const Nspc nspc) {
-  scope_commit(&nspc->info->value);
-  scope_commit(&nspc->info->func);
-  scope_commit(&nspc->info->type);
+  scope_commit(nspc->info->value);
+  scope_commit(nspc->info->func);
+  scope_commit(nspc->info->type);
 }
 
 ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
@@ -28,7 +28,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
 }
 
 ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
-  struct scope_iter iter = { &a->info->value, 0, 0 };
+  struct scope_iter iter = { a->info->value, 0, 0 };
   Value v;
   while(scope_iter(&iter, &v) > 0) {
     if(v->type && (isa(v->type, t_object) > 0  ||
@@ -38,16 +38,16 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
     }
     REM_REF(v, gwion);
   }
-  scope_release(gwion->p, &a->info->value);
+  free_scope(gwion->p, a->info->value);
 }
 
 #define describe_nspc_free(A, b) \
 ANN static void nspc_free_##b(Nspc n, Gwion gwion) {\
-  struct scope_iter iter = { &n->info->b, 0, 0 };\
+  struct scope_iter iter = { n->info->b, 0, 0 };\
   A a;\
   while(scope_iter(&iter, &a) > 0) \
     REM_REF(a, gwion);\
-  scope_release(gwion->p, &n->info->b);\
+  free_scope(gwion->p, n->info->b);\
 }
 
 describe_nspc_free(Func, func)
@@ -76,9 +76,9 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   const Nspc a = mp_alloc(p, Nspc);
   a->name = name;
   a->info = mp_alloc(p, NspcInfo);
-  scope_init(p, &a->info->value);
-  scope_init(p, &a->info->type);
-  scope_init(p, &a->info->func);
+  a->info->value = new_scope(p);
+  a->info->type = new_scope(p);
+  a->info->func = new_scope(p);
   INIT_OO(a, free_nspc);
   return a;
 }

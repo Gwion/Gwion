@@ -7,8 +7,8 @@ typedef struct Value_     * Value;
 typedef struct Func_      * Func;
 
 struct VM_Object_ {
-  uint16_t ref_count; // could be an unsigned short
   void (*free)(void*,void*);
+  uint16_t ref_count; // could be an unsigned short
 };
 
 #define HAS_OBJ struct VM_Object_ obj;

@@ -8,10 +8,10 @@ struct VM_Code_ {
     m_uint native_func;
   };
   size_t stack_depth;
-  ae_flag flag;
   void* memoize;
   m_str name;
   HAS_OBJ
+  ae_flag flag;
 };
 
 typedef struct Shreduler_* Shreduler;

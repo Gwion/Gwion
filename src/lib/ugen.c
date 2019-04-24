@@ -295,9 +295,9 @@ static MFUN(ugen_get_last) {
 struct ugen_importer {
   const VM* vm;
   const f_tick tick;
+  UGen ugen;
   const m_str name;
   const uint nchan;
-  UGen ugen;
 };
 
 ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
@@ -313,11 +313,11 @@ ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
 
 static GWION_IMPORT(global_ugens) {
   const VM* vm = gwi_vm(gwi);
-  struct ugen_importer hole = { vm, compute_mono, "blackhole", 1, NULL };
+  struct ugen_importer hole = { vm, compute_mono, NULL, "blackhole", 1 };
   add_ugen(gwi, &hole);
-  struct ugen_importer dac = { vm, dac_tick, "dac", vm->bbq->si->out, NULL };
+  struct ugen_importer dac = { vm, dac_tick, NULL, "dac", vm->bbq->si->out };
   add_ugen(gwi, &dac);
-  struct ugen_importer adc = { vm, adc_tick, "adc", vm->bbq->si->in, NULL };
+  struct ugen_importer adc = { vm, adc_tick, NULL, "adc", vm->bbq->si->in };
   add_ugen(gwi, &adc);
   ugen_connect(dac.ugen, hole.ugen);
   SET_FLAG(t_ugen, abstract);

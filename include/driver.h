@@ -19,11 +19,11 @@ typedef struct BBQ_ {
   uint64_t pos;
   m_float* in;
   m_float* out;
-  volatile uint is_running;
   struct SoundInfo_ *si;
   f_bbqset func;
   f_bbqrun run;
   struct DriverData_* driver;
+  volatile uint is_running;
 } Driver;
 
 #define DRVINI(a) ANN m_bool a(struct VM_ *vm NUSED, Driver* di NUSED)

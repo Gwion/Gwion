@@ -21,7 +21,7 @@ struct Env_Scope_ {
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
-  struct Scope_ swi;
+  Scope swi;
   size_t depth;
   size_t type_xid;
 };

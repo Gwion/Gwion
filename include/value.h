@@ -10,8 +10,8 @@ struct Value_ {
     Func func_ref;
   } d;
   size_t offset;
-  ae_flag flag;
   HAS_OBJ
+  ae_flag flag;
 };
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
