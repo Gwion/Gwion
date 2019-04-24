@@ -49,18 +49,6 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
-VM* new_vm(MemPool p) {
-  VM* vm = (VM*)mp_alloc(p, VM);
-  vector_init(&vm->ugen);
-  vm->bbq = new_driver(p);
-  vm->shreduler  = (Shreduler)mp_alloc(p, Shreduler);
-  vector_init(&vm->shreduler->shreds);
-  MUTEX_SETUP(vm->shreduler->mutex);
-  vm->shreduler->bbq = vm->bbq;
-  gw_seed(vm->rand, (uint64_t)time(NULL));
-  return vm;
-}
-
 void vm_remove(const VM* vm, const m_uint index) {
   const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
@@ -76,8 +64,8 @@ ANN void free_vm(VM* vm) {
   vector_release(&vm->ugen);
   if(vm->bbq)
     free_driver(vm->bbq, vm);
-  mp_free(vm->gwion->p, Shreduler, vm->shreduler);
   MUTEX_CLEANUP(vm->shreduler->mutex);
+  mp_free(vm->gwion->p, Shreduler, vm->shreduler);
   mp_free(vm->gwion->p, VM, vm);
 }
 
@@ -165,7 +153,7 @@ ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr ins
   DISPATCH();
 
 #define INT_OP(op, ...) OP(m_int, SZ_INT, op, __VA_ARGS__)
-#define FLOAT_OP(op) OP(m_float, SZ_FLOAT, op)
+#define FLOAT_OP(op, ...) OP(m_float, SZ_FLOAT, op, __VA_ARGS__)
 
 #define LOGICAL(t, sz0, sz, op)\
 reg -= sz0;\
@@ -235,9 +223,28 @@ __attribute__((hot))
     (m_int)(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
+
+#define STRINGIFY_NX(a) #a
+#define STRINGIFY(a) STRINGIFY_NX(a)
+#define PPCAT_NX(A, B) A ## B
+#define PPCAT(A, B) PPCAT_NX(A, B)
+
+#if defined(__clang__)
+#define COMPILER clang
+#define UNINITIALIZED "-Wuninitialized")
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define COMPILER GCC
+#define UNINITIALIZED "-Wmaybe-uninitialized")
+#endif
+
+#define PRAGMA_PUSH() \
+_Pragma(STRINGIFY(COMPILER diagnostic push)) \
+_Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
+#define PRAGMA_POP() _Pragma(STRINGIFY(COMPILER diagnostic pop)) \
+
 __attribute__ ((optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
-static const void* dispatch[] = {
+  static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
@@ -291,6 +298,8 @@ static const void* dispatch[] = {
 register m_bit next;
   while((shred = shreduler_get(s))) {
 register VM_Code code = shred->code;
+//if(!code->instr)
+//  exit(2);
 register m_uint* ip = code->instr->ptr + OFFSET;
 register
 size_t pc = shred->pc;
@@ -448,8 +457,10 @@ intrassign:
 intradd: INT_R(+)
 intrsub: INT_R(-)
 intrmul: INT_R(*)
-intrdiv: INT_R(/, TEST0(m_int, -SZ_INT))
-intrmod: INT_R(%, TEST0(m_int, -SZ_INT))
+//intrdiv: INT_R(/, TEST0(m_int, -SZ_INT))
+//intrmod: INT_R(%, TEST0(m_int, -SZ_INT))
+intrdiv: INT_R(/, TEST0(m_int, SZ_INT))
+intrmod: INT_R(%, TEST0(m_int, SZ_INT))
 intrsl: INT_R(<<)
 intrsr: INT_R(>>)
 intrsand: INT_R(&)
@@ -536,7 +547,7 @@ firassign:
 firadd: FI_R(+)
 firsub: FI_R(-)
 firmul: FI_R(*)
-firdiv: FI_R(/, TEST0(m_int, -SZ_INT))
+firdiv: FI_R(/, TEST0(m_float, SZ_INT))
 
 itof:
   reg -= SZ_INT - SZ_FLOAT;
@@ -559,8 +570,10 @@ timeadv:
 setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
 funcptr:
+PRAGMA_PUSH()
   if(!GET_FLAG((VM_Code)a.code, builtin))
     goto funcusr;
+PRAGMA_POP()
 funcmember:
   reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
@@ -592,7 +605,9 @@ overflow:
   if(overflow_(mem, shred))
     Except(shred, "StackOverflow");
 next:
+PRAGMA_PUSH()
   goto *dispatch[next];
+PRAGMA_POP()
 funcusrend:
   ip = (code = a.code)->instr->ptr + OFFSET;
   pc = 0;
@@ -623,7 +638,7 @@ sporkexp:
     *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
 forkend:
-  fork_launch(a.child->info->me, instr->m_val2);
+  fork_launch(vm, a.child->info->me, instr->m_val2);
 sporkend:
   *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
@@ -749,15 +764,18 @@ staticfloat:
   DISPATCH()
 staticother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)instr->m_val + i);
+//  for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
+//    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)instr->m_val + i);
+  memcpy(reg, (m_bit*)instr->m_val, instr->m_val2);
   reg += instr->m_val2;
   DISPATCH()
 dotfunc:
   assert(a.obj);
   reg += SZ_INT;
 dotstaticfunc:
+PRAGMA_PUSH()
   *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
+PRAGMA_POP()
   DISPATCH()
 staticcode:
   instr->m_val = (m_uint)(a.code = (*(VM_Code*)reg = ((Func)instr->m_val)->code));
@@ -797,8 +815,22 @@ DISPATCH()
     } while(s->curr);
   MUTEX_UNLOCK(s->mutex);
   }
-  if(!vm->bbq->is_running)
-    return;
-  if(vector_size(&vm->ugen))
-    vm_ugen_init(vm);
+}
+
+static void vm_run_audio(const VM *vm) {
+  vm_run(vm);
+  vm_ugen_init(vm);
+}
+
+VM* new_vm(MemPool p, const m_bool audio) {
+  VM* vm = (VM*)mp_alloc(p, VM);
+  vector_init(&vm->ugen);
+  vm->bbq = new_driver(p);
+  vm->bbq->run = audio ? vm_run_audio : vm_run;
+  vm->shreduler  = (Shreduler)mp_alloc(p, Shreduler);
+  vector_init(&vm->shreduler->shreds);
+  MUTEX_SETUP(vm->shreduler->mutex);
+  vm->shreduler->bbq = vm->bbq;
+  gw_seed(vm->rand, (uint64_t)time(NULL));
+  return vm;
 }

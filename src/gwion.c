@@ -14,6 +14,7 @@
 #include "arg.h"
 #include "gwion.h"
 #include "compile.h"
+#include "object.h" // fork_clean
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
@@ -45,7 +46,7 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 #include "shreduler_private.h"
 ANN VM* gwion_cpy(const VM* src) {
   const Gwion gwion = mp_alloc(src->gwion->p, Gwion);
-  gwion->vm = new_vm(src->gwion->p);
+  gwion->vm = new_vm(src->gwion->p, 0);
   gwion->vm->gwion = gwion;
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->p, src->bbq->si);
   gwion->emit = src->gwion->emit;
@@ -59,7 +60,7 @@ ANN VM* gwion_cpy(const VM* src) {
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->p = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
   gwion->st = new_symbol_table(gwion->p, 65347);
-  gwion->vm = new_vm(gwion->p);
+  gwion->vm = new_vm(gwion->p, 1);
   gwion->emit = new_emitter();
   gwion->env = new_env(gwion->p);
   gwion->emit->env = gwion->env;
@@ -90,6 +91,10 @@ ANN void gwion_end(const Gwion gwion) {
   const VM_Code code = new_vm_code(gwion->p, NULL, 0, ae_flag_builtin, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->p, code);
   vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
+  MUTEX_LOCK(gwion->vm->shreduler->mutex);
+  if(gwion->child.ptr)
+    fork_clean(gwion->vm, &gwion->child);
+  MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->emit);
@@ -100,16 +105,12 @@ ANN void gwion_end(const Gwion gwion) {
   mempool_end(gwion->p);
 }
 
-ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
-  gw_err("in file: '%s'\n", env->name);
+ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
+  loc_err(pos, env->name);
   if(env->class_def)
     gw_err("in class: '%s'\n", env->class_def->name);
   if(env->func)
     gw_err("in function: '%s'\n", env->func->name);
-  if(pos)
-    fprintf(stderr, "line: %u\t", pos);
-  else
-    fprintf(stderr, "\t");
   va_list arg;
   va_start(arg, fmt);
   vfprintf(stderr, fmt, arg);

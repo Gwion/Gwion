@@ -11,6 +11,8 @@
 #include "type.h"
 #include "context.h"
 #include "nspc.h"
+#include "parse.h"
+#include "switch.h"
 
 static inline void _scope_add(Scope s, Switch sw) { vector_add((Vector)(void*)s, (vtype)sw); }
 static inline vtype _scope_pop(Scope s) { return vector_pop((Vector)(void*)s); }
@@ -26,8 +28,8 @@ static Switch new_switch(MemPool p) {
 }
 
 ANN static void free_switch(MemPool p, const Switch sw) {
-//  if(!sw->ok)
-//    free_map(sw->cases);
+  if(!sw->ok)
+    free_map(p, sw->cases);
   free_vector(p, sw->vec); // only for dynamic
   vector_release(&sw->exp);
   mp_free(p, Switch, sw);
@@ -46,6 +48,7 @@ ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
   info->f = env->func;
   const Switch sw = new_switch(env->gwion->p);
   map_set(&env->scope->swi.map, (vtype)info, (vtype)sw);
+  sw->depth = env->scope->depth + 2;
   return sw;
 }
 
@@ -69,6 +72,14 @@ ANN m_bool switch_add(const Env env, const Stmt_Switch stmt) {
   return GW_OK;
 }
 
+ANN m_bool switch_decl(const Env env, const loc_t pos) {
+  const Switch sw = (Switch)(VLEN(&env->scope->swi.map) ?
+    VVAL(&env->scope->swi.map, VLEN(&env->scope->swi.map) - 1): 0);
+  if(sw && sw->depth == env->scope->depth)
+    ERR_B(pos, "Declaration in switch is prohibited.")
+  return GW_OK;
+}
+
 ANN void switch_get(const Env env, const Stmt_Switch stmt) {
   const struct SwInfo_ info = { stmt, env->class_def, env->func };
   const Switch sw = swinfo_get(env, &info);
@@ -80,7 +91,8 @@ void switch_reset(const Env env) {
     struct SwInfo_ *info = (struct SwInfo_ *)VKEY(&env->scope->swi.map, i - 1);
     mp_free(env->gwion->p, SwInfo, info);
     Switch sw = (Switch)VVAL(&env->scope->swi.map, i - 1);
-    free_map(env->gwion->p, sw->cases);
+//if(sw->cases)
+//    free_map(env->gwion->p, sw->cases);
     free_switch(env->gwion->p, sw);
   }
   _scope_clear(&env->scope->swi);
@@ -112,6 +124,7 @@ ANN m_bool switch_dup(const Env env, const m_int value, const loc_t pos) {
   const Switch sw = (Switch)_scope_back(&env->scope->swi);
   if(map_get(sw->cases, (vtype)value))
     ERR_B(pos, "duplicated cases value %i", value)
+  sw->ok = 1;
   return GW_OK;
 }
 
@@ -153,14 +166,18 @@ ANN m_uint switch_idx(const Env env) {
   return sw->default_case_index;
 }
 
-ANN void switch_pop(const Env env) {
+ANN m_bool switch_pop(const Env env) {
   _scope_pop(&env->scope->swi);
+  return GW_OK;
 }
 
-ANN void switch_end(const Env env) {
+ANN m_bool switch_end(const Env env, const loc_t pos) {
   const Switch sw = (Switch)_scope_pop(&env->scope->swi);
   const vtype index = VKEY(&env->scope->swi.map, VLEN(&env->scope->swi.map) - 1);
+  sw->ok = 1;
+  if(!VLEN(sw->cases) && !VLEN(&sw->exp))
+    ERR_B(pos, "switch statement with no cases.")
   map_remove(&env->scope->swi.map, index);
   free_switch(env->gwion->p, sw);
-//  return sw->ok = 1;
+  return GW_OK;
 }

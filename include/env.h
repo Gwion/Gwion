@@ -11,6 +11,7 @@ struct Switch_ {
   Vector vec;
   vtype iter;
   size_t default_case_index;
+  size_t depth;
   uint ok;
 };
 
@@ -50,14 +51,14 @@ ANN Type type_decl_resolve(const Env, const Type_Decl*);
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
 ANN Type known_type(const Env env, const Type_Decl*);
-ANN m_bool env_access(const Env env, const ae_flag flag, const uint pos);
-ANN m_bool env_storage(const Env env, ae_flag flag, const uint pos);
+ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos);
+ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos);
 ANN void env_add_type(const Env, const Type);
 ANN Type find_type(const Env, ID_List);
-ANN m_bool already_defined(const Env env, const Symbol s, const uint pos);
+ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN Func get_func(const Env, const Func_Def);
 ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types);
 ANN ID_List str2list(const Env, const m_str path, m_uint* array_depth);
-ANN void env_err(const Env, const uint pos, const m_str fmt, ...);
+ANN2(1,3) void env_err(const Env, const struct YYLTYPE *pos, const m_str fmt, ...);
 #endif

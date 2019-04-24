@@ -55,5 +55,6 @@ struct Gwi_ {
   DL_Oper oper;
   void* addr;
   Templater templater;
+  loc_t loc;
 };
 #endif

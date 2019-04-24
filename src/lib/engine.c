@@ -16,6 +16,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "engine.h"
+#include "parser.h"
 
 static FREEARG(freearg_switchini) {
   free_vector(((Gwion)gwion)->p, (Vector)instr->m_val);
@@ -97,6 +98,7 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.gwion = vm->gwion;
+  gwi.loc = new_loc(vm->gwion->p, 0);
   CHECK_BB(import_core_libs(&gwi))
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
@@ -104,5 +106,6 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
     if(import && import(&gwi) < 0)
       env_reset(gwi.gwion->env);
   }
+  free_loc(vm->gwion->p, gwi.loc);
   return GW_OK;
 }

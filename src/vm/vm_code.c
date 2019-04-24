@@ -14,7 +14,7 @@
 #include "gwion.h"
 #include "import.h"
 
-ANN static void free_code_instr(const Vector v, const Gwion gwion) {
+ANN /*static*/ void free_code_instr(const Vector v, const Gwion gwion) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
     const f_freearg f = (f_freearg)(map_get(&gwion->freearg, instr->opcode) ?:
@@ -23,14 +23,18 @@ ANN static void free_code_instr(const Vector v, const Gwion gwion) {
       f(instr, gwion);
     mp_free(gwion->p, Instr, instr);
   }
-  free_vector(gwion->p, v);
+//  free_vector(gwion->p, v);
 }
 
+ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
+  free_code_instr(v, gwion);
+  free_vector(gwion->p, v);
+}
 ANN static void free_vm_code(VM_Code a, Gwion gwion) {
   if(a->memoize)
     memoize_end(gwion->p, a->memoize);
   if(!GET_FLAG(a, builtin))
-    free_code_instr(a->instr, gwion);
+    _free_code_instr(a->instr, gwion);
   xfree(a->name);
   mp_free(gwion->p , VM_Code, a);
 }

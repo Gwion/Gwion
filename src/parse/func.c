@@ -12,6 +12,8 @@
 ANN static void free_func(Func a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
     free_tmpl_list(gwion->p, a->def->tmpl);
+    free_func_base(gwion->p, a->def->base);
+    free_loc(gwion->p, a->def->pos);
     mp_free(gwion->p, Func_Def, a->def);
   }
   if(a->code)

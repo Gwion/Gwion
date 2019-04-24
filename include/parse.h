@@ -8,6 +8,8 @@
 #define ERR_B(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
 #undef ERR_O
 #define ERR_O(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return NULL; }
+#undef ERR_N
+#define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return t_null; }
 
 #define RET_NSPC(exp)       \
 ++env->scope->depth;        \

@@ -71,7 +71,7 @@ ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(sh
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
-ANEW VM* new_vm(MemPool);
+ANEW VM* new_vm(MemPool, const m_bool);
 ANN void free_vm(VM* vm);
 ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));

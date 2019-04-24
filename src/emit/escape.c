@@ -24,7 +24,10 @@ char* escape_table(void) {
 }
 
 static int get_escape(const Emitter emit, const char c, const loc_t pos) {
-  return emit->escape[(int)c] ?: err_msg(pos, "unrecognized escape sequence '\\%c'", c);
+  if(emit->escape[(int)c])
+    return emit->escape[(int)c];
+  env_err(emit->env, pos, "unrecognized escape sequence '\\%c'", c);
+  return GW_ERROR;
 }
 
 m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
@@ -33,8 +36,10 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
   while(*str_lit) {
     if(*str_lit == '\\')  {
       ++str_lit;
-      if(*str_lit == '\0')
-        ERR_B(pos, "invalid: string ends with escape charactor '\\'")
+      if(*str_lit == '\0') {
+        env_err(emit->env, pos, "invalid: string ends with escape charactor '\\'");
+        return GW_ERROR;
+      }
       const unsigned char c = *(str_lit);
       const unsigned char c2 = *(str_lit+1);
       if(c >= '0' && c <= '7') {
@@ -45,8 +50,10 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
           if(c2 >= '0' && c2 <= '7' && c3 >= '0' && c3 <= '7') {
             *str++ = (char)((c-'0') * 64 + (c2-'0') * 8 + (c3-'0'));
             str_lit += 2;
-          } else
-            ERR_B(pos, "malformed octal escape sequence '\\%c%c%c'", c, c2, c3)
+          } else {
+            env_err(emit->env, pos, "malformed octal escape sequence '\\%c%c%c'", c, c2, c3);
+            return GW_ERROR;
+          }
         }
       } else if(c == 'x') {
         ++str_lit;
@@ -55,8 +62,10 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
         if(c1 >= '0' && c1 <= 'F' && c3 >= '0' && c3 <= 'F') {
           *str++ = (char)((c1-'0') * 16 + (c3-'0'));
           ++str_lit;
-        } else
-          ERR_B(pos, "malformed hex escape sequence '\\%c%c'", c1, c3)
+        } else {
+          env_err(emit->env, pos, "malformed hex escape sequence '\\%c%c'", c1, c3);
+          return GW_ERROR;
+        }
       } else
         CHECK_BB((*str++ = (char)get_escape(emit, (char)c, pos)))
     }

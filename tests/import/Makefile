@@ -3,7 +3,7 @@ CC       ?= gcc
 
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS   = -std=c99 $(../../gwion -k 2>&1 | grep CFLAGS) ${INC} ${CICFLAGS}
+CFLAGS   = -std=c99 $(../../gwion -k 2>&1 | grep CFLAGS | sed 's/CFLAGS: //') ${INC} ${CICFLAGS} -Wall -Wextra
 LDFLAGS   = $(../../gwion -k 2>&1 | grep LDFLAGS)
 
 # os specific

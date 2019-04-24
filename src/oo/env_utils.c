@@ -59,14 +59,16 @@ ANN Type find_type(const Env env, ID_List path) {
   path = path->next;
   while(path) {
     const Symbol xid = path->xid;
-    Type t = nspc_lookup_type1(nspc, xid);
-    while(!t && type && type->parent) {
-      t = nspc_lookup_type1(type->parent->nspc, xid); // was lookup2
-      type = type->parent;
+    if(nspc) {
+      Type t = nspc_lookup_type1(nspc, xid);
+      while(!t && type && type->parent && type->parent) {
+        t = nspc_lookup_type1(type->parent->nspc, xid); // was lookup2
+        type = type->parent;
+      }
+      if(!t)
+        ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
+      type = t;
     }
-    if(!t)
-      ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
-    type = t;
     nspc = type->nspc;
     path = path->next;
   }
@@ -75,7 +77,10 @@ ANN Type find_type(const Env env, ID_List path) {
 
 ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
-  return v ? err_msg(pos,
-    "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name) : GW_OK;
+  if(!v)
+    return GW_OK;
+  env_err(env, pos,
+      "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name);
+  return GW_ERROR;
 }
 

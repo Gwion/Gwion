@@ -25,10 +25,10 @@ ANEW ANN static Vector get_types(const Env env, Type t) {
 }
 
 ANEW ANN static ID_List id_list_copy(MemPool p, ID_List src) {
-  const ID_List list = new_id_list(p, src->xid, src->pos);
+  const ID_List list = new_id_list(p, src->xid, loc_cpy(p, src->pos));
   ID_List tmp = list;
   while((src = src->next))
-    tmp = (tmp->next = new_id_list(p, src->xid, src->pos));
+    tmp = (tmp->next = new_id_list(p, src->xid, loc_cpy(p, src->pos)));
   return list;
 }
 
@@ -116,7 +116,8 @@ ANN m_bool template_match(ID_List base, Type_List call) {
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
   const Symbol name = template_id(env, def, call);
   const Type t = nspc_lookup_type1(env->curr, name);
-  return t ? t->def : new_class_def(env->gwion->p, def->flag, name, def->base.ext, def->body, def->pos);
+  return t ? t->def : new_class_def(env->gwion->p, def->flag, name, def->base.ext, def->body,
+    loc_cpy(env->gwion->p, def->pos));
 }
 
 ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {

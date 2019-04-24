@@ -8,7 +8,6 @@
 #include "instr.h"
 #include "import.h"
 
-static MFUN(test_mfun){}
 GWION_IMPORT(invalid_type2_test) {
   Type t_invalid_var_type ;
   CHECK_OB((t_invalid_var_type = gwi_mk_type(gwi, "invalid_var_type",

@@ -7,7 +7,7 @@ struct M_Object_ {
 //  Nspc nspc;//
   Vector vtable;
   struct pool* p;
-  size_t ref;
+  volatile size_t ref;
 };
 
 ANN void instantiate_object(const VM_Shred, const Type);
@@ -19,7 +19,8 @@ ANEW M_Object new_string(MemPool, const VM_Shred, const m_str);
 ANEW M_Object new_string2(MemPool, const VM_Shred, const m_str);
 ANEW M_Object gwion_new_string(const struct Gwion_*, const m_str);
 ANEW M_Object new_shred(const VM_Shred, const m_bool);
-ANN void fork_launch(const M_Object, const m_uint);
+ANN void fork_launch(const VM*, const M_Object, const m_uint);
+ANN void fork_clean(const VM *vm, const Vector v);
 ANN void __release(const M_Object, const VM_Shred);
 ANN void exception(const VM_Shred, const m_str);
 ANN void broadcast(const M_Object);

@@ -62,7 +62,7 @@ GWION_IMPORT(enum_test) {
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM7", 7))
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM8", 8))
       CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
-    CHECK_BB(gwi_enum_end(gwi))
+    CHECK_OB(gwi_enum_end(gwi))
   CHECK_OB(gwi_class_end(gwi))
 
   return GW_OK;

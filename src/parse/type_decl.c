@@ -76,7 +76,7 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
 ANN static inline void* type_unknown(const Env env, const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
-  err_msg(id->pos, "unknown type '%s'", path);
+  env_err(env, id->pos, "unknown type '%s'", path);
   did_you_mean_nspc(env->curr, s_name(id->xid));
   return NULL;
 }

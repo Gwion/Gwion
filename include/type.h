@@ -29,7 +29,7 @@ ANN m_str get_type_name(const Env, const m_str, const m_uint);
 ANN Value find_value(const Type, const Symbol);
 ANN Func find_func(const Type, const Symbol);
 ANN m_bool isa(const Type, const Type) __attribute__((pure));
-ANN m_bool isres(const Env, const Symbol, const uint pos);
+ANN m_bool isres(const Env, const Symbol, const loc_t pos);
 ANN Type array_type(const Env, const Type, const m_uint);
 ANN Type find_common_anc(const Type, const Type) __attribute__((pure));
 ANN m_uint id_list_len(ID_List);

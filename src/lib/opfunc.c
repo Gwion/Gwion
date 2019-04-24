@@ -9,6 +9,7 @@
 #include "object.h"
 #include "import.h"
 #include "emit.h"
+#include "parse.h"
 
 static inline m_str access(ae_Exp_Meta meta) {
   return meta == ae_meta_value ? "non-mutable" : "protected";

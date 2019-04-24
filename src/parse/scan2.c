@@ -32,10 +32,8 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   const Type type = decl->type;
   if(GET_FLAG(type, template) && !GET_FLAG(type, scan2))
     CHECK_BB(scan2_exp_decl_template(env, decl))
-  m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
-  if(global)
-   scope = env_push_global(env);
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
     const Var_Decl var = list->self;
     const Array_Sub array = var->array;
@@ -51,7 +49,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
 ANN static Value arg_value(MemPool p, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   if(!var->value) {
-    const Value v = new_value(p, list->type, s_name(var->xid));
+    const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
     if(list->td)
       v->flag = list->td->flag | ae_flag_arg;
     return v;
@@ -91,7 +89,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) { GWDEBUG_EXE
   const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, ptr->base->td, ptr->base->xid, ptr->base->args),
-    NULL,ptr->base->td->flag, stmt_self(ptr)->pos);
+    NULL,ptr->base->td->flag, loc_cpy(env->gwion->p, stmt_self(ptr)->pos));
   def->base->ret_type = ptr->base->ret_type;
   ptr->base->func = new_func(env->gwion->p, s_name(ptr->base->xid), def);
   ptr->value->d.func_ref = ptr->base->func;
@@ -265,11 +263,8 @@ ANN static Map scan2_label_map(const Env env) { GWDEBUG_EXE
 ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG_EXE
   if(stmt->is_label) {
     const Map m = scan2_label_map(env);
-    if(map_get(m, (vtype)stmt->name)) {
-      const Stmt_Jump l = (Stmt_Jump)map_get(m, (vtype)stmt->name);
-      vector_release(&l->data.v);
+    if(map_get(m, (vtype)stmt->name))
       ERR_B(stmt_self(stmt)->pos, "label '%s' already defined", s_name(stmt->name))
-    }
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);
   }
@@ -307,7 +302,7 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) { GWDEBUG_EXE
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) { GWDEBUG_EXE
   const m_bool base = tmpl_list_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
-  if(isa(overload->type, t_function) < 0)
+  if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0)
     ERR_B(f->pos, "function name '%s' is already used by another value", overload->name)
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
     ERR_B(f->pos, "must overload template function with template")
@@ -344,8 +339,12 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
     ADD_REF(v);
     nspc_add_value(env->curr, f->def->base->xid, v);
   } else /* if(!GET_FLAG(f->def, template)) */ {
+//    f->next = overload->d.func_ref->next;
+if(overload->d.func_ref) {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
+} else
+  overload->d.func_ref = f;
   }
   return v;
 }

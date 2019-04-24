@@ -7,6 +7,3 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
-
-
-static MFUN(test_mfun){}

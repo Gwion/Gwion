@@ -23,10 +23,6 @@ static CTOR(class_template_ctor) {
   /**(M_Object*)(o->data + SZ_INT) = new_array(t2->size, 0, t2->array_depth);*/
 }
 
-static MFUN(class_template_set) {
-
-}
-
 GWION_IMPORT(class_template) {
   Type t_class_template;
   const m_str list[2] = { "A", "B" };

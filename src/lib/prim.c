@@ -12,6 +12,7 @@
 #include "emit.h"
 #include "operator.h"
 #include "driver.h"
+#include "parse.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
@@ -233,6 +234,8 @@ static GWION_IMPORT(time) {
   _CHECK_OP(chuck, rassign, Time_Advance)
   CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
   _CHECK_OP(chuck, chuck_now, NULL)
+  CHECK_BB(gwi_oper_ini(gwi, NULL, "@now", NULL))
+  CHECK_BB(gwi_oper_end(gwi, op_not, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "time", "time", "int"))
   CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))
   CHECK_BB(gwi_oper_end(gwi, op_ge, 	      float_ge))

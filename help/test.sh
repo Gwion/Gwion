@@ -1,5 +1,6 @@
 #!/bin/bash
 
+: "${PRG:=gwion}"
 : "${VALGRIND:=valgrind}"
 : "${GWION_TEST_DIR:=/tmp}"
 : "${GWION_TEST_PREFIX:=gwt_}"
@@ -180,10 +181,10 @@ test_gw(){
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
   if [ "$VALGRIND" == "NO_VALGRIND" ]
-  then ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  then ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
     "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
-    ./gwion "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+    ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?
   #enable skip

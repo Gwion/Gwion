@@ -23,7 +23,8 @@ typedef struct Gwi_* Gwi;
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\
     CHECK_BB(gwi_oper_end(gwi, op_##op, func))
-#define ERR_N(a,...) { err_msg(a,__VA_ARGS__); return t_null; }
+#define GWI_LOC new_loc(gwi->gwion->p, __LINE__)
+
 
 ANN VM* gwi_vm(const Gwi);
 ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);

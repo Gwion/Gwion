@@ -47,7 +47,7 @@ static void compiler_clean(MemPool p, const struct Compiler* c) {
     free_ast(p, c->ast);
 }
 
-static m_bool compiler_open(struct Compiler* c) {
+static m_bool _compiler_open(struct Compiler* c) {
   if(c->type == COMPILE_NAME) {
     m_str name = c->name;
     c->name = realpath(name, NULL);
@@ -55,6 +55,16 @@ static m_bool compiler_open(struct Compiler* c) {
     return c->name ? !!(c->file = fopen(c->name, "r")) : -1;
   } else if(c->type == COMPILE_MSTR)
     return (c->file = fmemopen(c->data, strlen(c->data), "r")) ? 1 : - 1;
+  return GW_OK;
+}
+
+static inline m_bool compiler_open(struct Compiler* c) {
+  char name[strlen(c->name)];
+  strcpy(name, c->name);
+  if(_compiler_open(c) < 0) {
+    gw_err("'%s': no such file\n", name);
+    return GW_ERROR;
+  }
   return GW_OK;
 }
 

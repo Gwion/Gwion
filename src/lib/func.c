@@ -27,6 +27,8 @@ static INSTR(LambdaAssign) { GWDEBUG_EXE
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->exp_type == ae_exp_decl)
+    ERR_N(bin->rhs->pos, "calling fptr decl, this is forbidden.")
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
@@ -37,7 +39,9 @@ static OP_CHECK(opck_func_call) {
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   emit_add_instr(emit, int_r_assign);
-  if(bin->lhs->type != t_lambda && GET_FLAG(bin->rhs->type->d.func, member)) {
+  if(bin->lhs->type != t_lambda && GET_FLAG(bin->rhs->type->d.func, member)
+    && !emit->env->class_def
+) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
@@ -71,7 +75,8 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag, def->pos);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag,
+    loc_cpy(env->gwion->p, def->pos));
   const m_bool ret = traverse_func_def(env, l->def);
   arg = l->args;
   while(arg) {

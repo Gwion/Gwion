@@ -46,7 +46,12 @@ ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
   nspc->info->b += v->type->size;                                 \
 }
 describe_check_decl(member, offset)
-describe_check_decl(static, class_data_size)
+//describe_check_decl(static, class_data_size)
+ANN static inline void decl_static(const Nspc nspc, const Value v) { \
+  SET_FLAG(v, static);
+  v->offset = nspc->info->class_data_size;
+  nspc->info->class_data_size += v->type->size;
+}
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
@@ -80,9 +85,9 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   td->xid = str2list(env, t->name, &depth);
 
   if(depth) {
-    Exp base = new_exp_prim_int(env->gwion->p, 0, 0), e = base;
+    Exp base = new_exp_prim_int(env->gwion->p, 0, new_loc(env->gwion->p, __LINE__)), e = base;
     for(m_uint i = 0; i < depth - 1; ++i) {
-      e = (e->next = new_exp_prim_int(env->gwion->p, 0, 0));
+      e = (e->next = new_exp_prim_int(env->gwion->p, 0, new_loc(env->gwion->p, __LINE__)));
     }
     td->array = new_array_sub(env->gwion->p, base);
   }
@@ -91,7 +96,7 @@ ANN Type check_td(const Env env, Type_Decl *td) {
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   Var_Decl_List list = decl->list;
-
+  CHECK_BO(switch_decl(env, exp_self(decl)->pos))
   if(!decl->td->xid) {
     const Type t = check_td(env, decl->td);
     CHECK_OO(t)
@@ -102,15 +107,15 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
+    if(decl->type == t_auto)
+      ERR_O(td_pos(decl->td), "can't infer type.");
   }
   if(GET_FLAG(decl->type , template)) {
     const Type t = typedef_base(decl->type);
     CHECK_BO(traverse_template(env, t->def))
   }
-  m_uint scope;
   const m_bool global = GET_FLAG(decl->td, global);
-  if(global)
-    scope = env_push_global(env);
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
     const Var_Decl var = list->self;
     const Value v = var->value;
@@ -330,7 +335,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   }
   ID_List id = NULL;
   for(m_uint i = vector_size(&v) + 1; --i;)
-    id = prepend_id_list(env->gwion->p, (Symbol)vector_at(&v, i - 1), id, 0);
+    id = prepend_id_list(env->gwion->p, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->p, __LINE__));
   vector_release(&v);
   assert(id);
   Type_Decl* td = new_type_decl(env->gwion->p, id, 0);
@@ -433,7 +438,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         continue;
       base = value->d.func_ref->def;
       def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(v->name),
-                base->base->args), base->d.code, base->flag, base->pos);
+                base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->p, base->pos));
       def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
@@ -581,7 +586,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp_self(exp)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args), l->code, 0, exp_self(exp)->pos);
+  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args),
+    l->code, 0, loc_cpy(env->gwion->p, exp_self(exp)->pos));
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
@@ -858,7 +864,7 @@ stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
   cond_type(env, stmt->val) < 0 || !switch_add(env, stmt) ||
-  check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || !switch_pop(env)) ? 1 : -1)
+  check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || switch_pop(env) < 0) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
@@ -896,6 +902,7 @@ describe_check_stmt_stack(breaks, break)
 
 ANN Value case_value(const Exp exp);
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+  CHECK_BB(switch_inside(env, stmt_self(stmt)->pos));
   const Type t = check_exp(env, stmt->val);
   CHECK_OB(t);
   if(isa(t, t_int) < 0)
@@ -920,13 +927,8 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
   if(!m)
     ERR_B(stmt_self(stmt)->pos, "label '%s' used but not defined", s_name(stmt->name))
   const Stmt_Jump ref = (Stmt_Jump)map_get(m, (vtype)stmt->name);
-  if(!ref) {
-    for(m_uint i = 0; i < map_size(m); ++i) {
-      const Stmt_Jump s = (Stmt_Jump)map_at(m, i);
-      vector_release(&s->data.v);
-    }
+  if(!ref)
     ERR_B(stmt_self(stmt)->pos, "label '%s' used but not defined", s_name(stmt->name))
-  }
   vector_add(&ref->data.v, (vtype)stmt);
   return GW_OK;
 }

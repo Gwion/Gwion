@@ -19,8 +19,10 @@ static OP_CHECK(opck_ptr_assign) {
   Type t = bin->lhs->type;
   do {
     if(!strcmp(t->name, get_type_name(env, bin->rhs->type->name, 1))) {
-      if(bin->lhs->meta != ae_meta_var)
-        ERR_N(0, "left side operand is constant")
+      if(bin->lhs->meta != ae_meta_var) {
+        env_err(env, exp_self(bin)->pos, "left side operand is constant");
+        return t_null;
+      }
       bin->lhs->emit_var = 1;
       return bin->lhs->type;
     }
@@ -44,8 +46,10 @@ static OP_CHECK(opck_implicit_ptr) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = (Exp)imp->e;
   if(!strcmp(get_type_name(env, imp->t->name, 1), e->type->name)) {
-    if(e->meta == ae_meta_value)
-      ERR_N(0, "can't cast constant to Ptr");
+    if(e->meta == ae_meta_value) {
+      env_err(env, 0, "can't cast constant to Ptr");
+      return t_null;
+    }
     e->cast_to = imp->t;
     e->emit_var = 1;
     return imp->t;
@@ -57,8 +61,10 @@ static INSTR(instr_ptr_deref) { GWDEBUG_EXE
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(instr->m_val2)
     memcpy(REG(-SZ_INT), o->data, SZ_INT);
-  else
-    memcpy(REG(-SZ_INT), *(m_bit**)o->data, instr->m_val);
+  else {
+    shred->reg -= SZ_INT - instr->m_val;
+    memcpy(REG(-instr->m_val), *(m_bit**)o->data, instr->m_val);
+  }
 }
 
 static OP_EMIT(opem_ptr_deref) {

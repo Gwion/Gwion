@@ -85,10 +85,12 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
     if(!n->info->op_map.ptr)
       continue;
     const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
-    if(v && (mo = operator_find(v, opi->lhs, opi->rhs)))
-      ERR_B(opi->pos, "operator '%s', for type '%s' and '%s' already imported",
+    if(v && (mo = operator_find(v, opi->lhs, opi->rhs))) {
+      env_err(gwion->env, opi->pos, "operator '%s', for type '%s' and '%s' already imported",
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
-            opi->rhs ? opi->rhs->name : NULL)
+            opi->rhs ? opi->rhs->name : NULL);
+      return GW_ERROR;
+    }
   } while((n = n->parent));
   Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   if(!v) {
@@ -170,7 +172,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     nspc = nspc->parent;
   } while(nspc);
   if(opi->op == op_cast || (ret != t_null && opi->op != op_impl))
-    err_msg(opi->pos, "%s %s %s: no match found for operator",
+    env_err(env, opi->pos, "%s %s %s: no match found for operator",
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
   return NULL;
 }
@@ -186,8 +188,8 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
 
 ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)mo->func->code;
+    const Instr instr = emit_add_instr(emit, mo->func->code ? RegPushImm : PushStaticCode);
+    instr->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
     return emit_exp_call1(emit, mo->func);
   }
   emit_add_instr(emit, mo->instr);
