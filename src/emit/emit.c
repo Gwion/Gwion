@@ -632,7 +632,6 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) { GWDE
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
   do {
-puts(s_name(list->self->xid));
     const uint r = (uint)(GET_FLAG(list->self->value, ref) + ref);
 //    if(!GET_FLAG(list->self->value, used))
 //      continue;
@@ -1612,7 +1611,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) { GWDE
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(member->t_base), member->xid);
-  if(isa(member->t_base, t_class) < 0 && (GET_FLAG(value, member) || 
+  if(isa(member->t_base, t_class) < 0 && (GET_FLAG(value, member) ||
 (isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))

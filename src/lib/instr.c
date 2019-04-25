@@ -95,6 +95,8 @@ INSTR(DotTmpl) {
         if(traverse_dot_tmpl(emit, dt) < 0)
           continue;
       }
+      if(GET_FLAG(f->def, static))
+        shred->reg -= SZ_INT;
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;
       return;
@@ -105,6 +107,8 @@ INSTR(DotTmpl) {
       dt->def = def; //
       dt->owner = t; //
       if(traverse_dot_tmpl(emit, dt) > 0) {
+        if(GET_FLAG(f->def, static))
+          shred->reg -= SZ_INT;
         *(VM_Code*)shred->reg = def->base->func->code;
         shred->reg += SZ_INT;
         return;
