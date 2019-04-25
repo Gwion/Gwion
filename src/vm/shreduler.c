@@ -45,18 +45,17 @@ ANN static void unwind(const VM_Shred shred) {
     const m_bit exec = (m_bit)((Instr)vector_back(code->instr))->opcode;
     if(exec == eFuncReturn) {
       code = *(VM_Code*)(shred->mem - SZ_INT*3);
-if(!code)break;
+//      if(!code)break;
       REM_REF(code, shred->info->vm->gwion);
-      shred->mem -= *(m_uint*)(shred->mem - SZ_INT);
-//      shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4);
+      shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4) + SZ_INT*4;
+      if(shred->mem == (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))break;
     } else break;
   }
 }
 
-ANN static void shreduler_child(const Vector v) {
+ANN static inline void shreduler_child(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-//    unwind(child);
     shreduler_remove(child->info->vm->shreduler, child, 1);
   }
 }
@@ -85,7 +84,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool er
   tk->prev = tk->next = NULL;
   if(erase) {
     shreduler_erase(s, tk);
-    /*shred_*/release(out->info->me, out);
+    _release(out->info->me, out);
   }
   MUTEX_UNLOCK(s->mutex);
 }
