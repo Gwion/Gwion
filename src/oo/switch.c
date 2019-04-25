@@ -141,6 +141,8 @@ ANN m_bool switch_dyn(const Env env) {
 }
 
 ANN m_bool switch_default(const Env env, const m_uint pc, const loc_t pos) {
+  if(!VLEN(env->scope->swi))
+    ERR_B(pos, "'default'case found outside switch statement.")
   const Switch sw = (Switch)_scope_back(env->scope->swi);
   if(sw->default_case_index)
     ERR_B(pos, "default case already defined")
@@ -164,6 +166,8 @@ ANN m_uint switch_idx(const Env env) {
 }
 
 ANN m_bool switch_pop(const Env env) {
+  const Switch sw = (Switch)_scope_back(env->scope->swi);
+  sw->ok = 1;
   _scope_pop(env->scope->swi);
   return GW_OK;
 }
@@ -171,7 +175,7 @@ ANN m_bool switch_pop(const Env env) {
 ANN m_bool switch_end(const Env env, const loc_t pos) {
   const Switch sw = (Switch)_scope_pop(env->scope->swi);
   const vtype index = VKEY(&env->scope->swi->map, VLEN(&env->scope->swi->map) - 1);
-  sw->ok = 1;
+//  sw->ok = 1;
   if(!VLEN(sw->cases) && !VLEN(&sw->exp))
     ERR_B(pos, "switch statement with no cases.")
   map_remove(&env->scope->swi->map, index);

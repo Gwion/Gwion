@@ -1252,7 +1252,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(switch_inside(emit->env, stmt_self(stmt)->pos) && !strcmp(s_name(stmt->name), "default")) {
+    if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default")) {
 //      if(!strcmp(s_name(stmt->name), "default"))
 //        vector_release(&stmt->data.v);
       return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
