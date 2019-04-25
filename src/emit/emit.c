@@ -915,7 +915,7 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
 
 static void push_spork_code(const Emitter emit, const m_str prefix, const loc_t pos) {
   char c[strlen(SPORK_FUNC_PREFIX) + num_digit(pos->first_line) + 1];
-  sprintf(c, prefix, pos);
+  sprintf(c, prefix, pos->first_line);
   emit_push_code(emit, c);
 }
 

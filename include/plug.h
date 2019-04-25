@@ -9,8 +9,8 @@ enum plug_t {
 };
 
 typedef struct PlugInfo_ {
-  struct Vector_ vec[GWPLUG_LAST];
   struct Map_ drv;
+  struct Vector_ vec[GWPLUG_LAST];
 } PlugInfo;
 
 ANN PlugInfo* new_plug(MemPool, Vector);
