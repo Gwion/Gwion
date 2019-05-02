@@ -22,7 +22,7 @@ ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
+ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
   CHECK_OB(check_exp(env, exp))
   do if(isa(exp->type, t_int) < 0)
       ERR_B(exp->pos, "incompatible array subscript type '%s' ...", exp->type->name)
@@ -30,7 +30,7 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var) { GWDEBUG_EXE
+ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var) {
   const Value value = find_value(env->class_def->parent, var->xid);
   if(value)
     ERR_B(var->pos,
@@ -94,7 +94,7 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   return t;
 }
 
-ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
+ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   CHECK_BO(switch_decl(env, exp_self(decl)->pos))
   if(!decl->td->xid) {
@@ -294,11 +294,11 @@ static const _type_func prim_func[] = {
   (_type_func)prim_vec,   (_type_func)prim_num,  (_type_func)prim_nil,
 };
 
-ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) { GWDEBUG_EXE
+ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
   return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
-ANN Type check_exp_array(const Env env, const Exp_Array* array) { GWDEBUG_EXE
+ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   Type t_base = check_exp(env, array->base);
   CHECK_OO(t_base)
   Exp e = array->array->exp;
@@ -614,7 +614,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     func->def->base->ret_type : function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
 }
 
-ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG_EXE
+ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == op_fork &&
        bin->rhs->exp_type == ae_exp_decl)
      bin->lhs->d.exp_unary.fork_ok = 1;
@@ -627,7 +627,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) { GWDEBUG
   return op_check(env, &opi);
 }
 
-ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EXE
+ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   const Type t = check_exp(env, cast->exp);
   CHECK_OO(t)
   CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
@@ -635,13 +635,13 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) { GWDEBUG_EX
   return op_check(env, &opi);
 }
 
-ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) { GWDEBUG_EXE
+ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post, .pos=exp_self(post)->pos };
   CHECK_OO(opi.lhs)
   return op_check(env, &opi);
 }
 
-ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
+ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
@@ -659,7 +659,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) { GWDEBUG_EXE
   return check_exp_call1(env, exp);
 }
 
-ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG_EXE
+ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   struct Op_Import opi = { .op=unary->op, .rhs=unary->exp ? check_exp(env, unary->exp) : NULL,
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
   if(unary->exp && !opi.rhs)
@@ -667,7 +667,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) { GWDEBUG
   return op_check(env, &opi);
 }
 
-ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
+ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
   const Type cond     = check_exp(env, exp_if->cond);
   CHECK_OO(cond)
   const Type if_exp   = check_exp(env, exp_if->if_exp);
@@ -685,7 +685,7 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) { GWDEBUG_EXE
   return ret;
 }
 
-ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
+ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   const m_str str = s_name(member->xid);
   CHECK_OO((member->t_base = check_exp(env, member->base)))
   const m_bool base_static = isa(member->t_base, t_class) > 0;
@@ -721,7 +721,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) { GWDEBUG_EXE
   return value->type;
 }
 
-ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
 ANN static Type check_exp_lambda(const Env env NUSED,
@@ -742,7 +742,7 @@ static const _type_func exp_func[] = {
   (_type_func)check_exp_dot,     (_type_func)check_exp_lambda, (_type_func)check_exp_typeof
 };
 
-ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
+ANN static inline Type check_exp(const Env env, const Exp exp) {
   Exp curr = exp;
   do {
     CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
@@ -753,7 +753,7 @@ ANN static inline Type check_exp(const Env env, const Exp exp) { GWDEBUG_EXE
   return exp->type;
 }
 
-ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
+ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) {
   if(env->class_def) {
     ID_List list = stmt->list;
     do decl_static(env->curr, nspc_lookup_value0(env->curr, list->xid));
@@ -762,26 +762,26 @@ ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   if(stmt->stmt_list) { RET_NSPC(check_stmt_list(env, stmt->stmt_list)) }
   return GW_OK;
 }
 
-ANN static m_bool check_flow(const Env env, const Exp exp, const m_str orig) { GWDEBUG_EXE
+ANN static m_bool check_flow(const Env env, const Exp exp, const m_str orig) {
   if(isa(exp->type, t_object) > 0 || isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
      isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
     return GW_OK;
   ERR_B(exp->pos, "invalid type '%s' (in '%s' condition)", exp->type->name, orig)
 }
 
-ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
+ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) {
   vector_add(&env->scope->breaks, (vtype)a);
   RET_NSPC(check_stmt(env, b))
   vector_pop(&env->scope->breaks);
   return ret;
 }
 
-ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) { GWDEBUG_EXE
+ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) {
   vector_add(&env->scope->conts, (vtype)a);
   CHECK_BB(check_breaks(env, a, b))
   vector_pop(&env->scope->conts);
@@ -796,7 +796,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
-ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) { GWDEBUG_EXE
+ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   Type t = check_exp(env, stmt->exp);
   CHECK_OB(t)
   Type ptr = array_base(t);
@@ -872,7 +872,7 @@ stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
   check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || switch_pop(env) < 0) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
-ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
     ERR_B(stmt_self(stmt)->pos, "'return' statement found outside function definition")
   const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
@@ -897,7 +897,7 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) { GWDEBU
 }
 
 #define describe_check_stmt_stack(stack, name)                                     \
-ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) { GWDEBUG_EXE \
+ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) {\
   if(!vector_size(&env->scope->stack))                                                    \
     ERR_B(stmt->pos, "'"#name"' found outside of for/while/until...")             \
   return GW_OK;                                                                        \
@@ -906,7 +906,7 @@ describe_check_stmt_stack(conts,  continue)
 describe_check_stmt_stack(breaks, break)
 
 ANN Value case_value(const Exp exp);
-ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) {
   CHECK_BB(switch_inside(env, stmt_self(stmt)->pos));
   const Type t = check_exp(env, stmt->val);
   CHECK_OB(t);
@@ -922,7 +922,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) { GWDEBUG_
   return GW_OK;
 }
 
-ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG_EXE
+ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
   if(stmt->is_label)
     return GW_OK;
   const Map label = env_label(env);
@@ -938,7 +938,7 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) { GWDEBUG
   return GW_OK;
 }
 
-ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
+ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
   if(stmt->xid) {
     if(env->class_def)
       (!GET_FLAG(stmt, static) ? decl_member : decl_static)(env->curr, stmt->value);
@@ -979,17 +979,17 @@ static const _exp_func stmt_func[] = {
   (_exp_func)dummy_func,       (_exp_func)check_stmt_type,     (_exp_func)check_stmt_union,
 };
 
-ANN m_bool check_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
+ANN m_bool check_stmt(const Env env, const Stmt stmt) {
   return stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
-ANN static m_bool check_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
+ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
   do CHECK_BB(check_stmt(env, l->stmt))
   while((l = l->next));
   return GW_OK;
 }
 
-ANN static m_bool check_signature_match(const Env env, const Func_Def f, const Func parent) { GWDEBUG_EXE
+ANN static m_bool check_signature_match(const Env env, const Func_Def f, const Func parent) {
   if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) {
     const m_str c_name  = f->base->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
@@ -1019,7 +1019,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   return 0;
 }
 
-ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool check_parent_match(const Env env, const Func_Def f) {
   const Func func = f->base->func;
   const Type parent = env->class_def->parent;
   if(parent) {
@@ -1037,7 +1037,7 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) { GWDEBUG_
   return GW_OK;
 }
 
-ANN static m_bool check_func_args(const Env env, Arg_List arg_list) { GWDEBUG_EXE
+ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
   do {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
@@ -1071,7 +1071,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
   return GW_OK;
 }
 
-ANN static m_bool check_func_def_override(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN static m_bool check_func_def_override(const Env env, const Func_Def f) {
   const Func func = f->base->func;
   if(env->class_def && env->class_def->parent) {
     const Value override = find_value(env->class_def->parent, f->base->xid);
@@ -1103,7 +1103,7 @@ ANN static void operator_func(const Func f) {
   operator_set_func(&opi);
 }
 
-ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
+ANN m_bool check_func_def(const Env env, const Func_Def f) {
   const Func func = get_func(env, f);
   m_bool ret = GW_OK;
   if(tmpl_list_base(f->tmpl))
@@ -1146,7 +1146,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 
 DECL_SECTION_FUNC(check)
 
-ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) { GWDEBUG_EXE
+ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->base.ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->base.ext->array->exp))
     if(!GET_FLAG(class_def->base.type, check) && class_def->tmpl)
@@ -1186,7 +1186,7 @@ ANN static inline void inherit(const Type t) {
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
-ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
+ANN m_bool check_class_def(const Env env, const Class_Def class_def) {
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
   if(class_def->base.type->parent == t_undefined) {
@@ -1207,7 +1207,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) { GWDEBUG_E
   return GW_OK;
 }
 
-ANN m_bool check_ast(const Env env, Ast ast) { GWDEBUG_EXE
+ANN m_bool check_ast(const Env env, Ast ast) {
   do CHECK_BB(check_section(env, ast->section))
   while((ast = ast->next));
   return GW_OK;

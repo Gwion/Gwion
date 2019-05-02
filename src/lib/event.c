@@ -21,7 +21,7 @@ static OP_CHECK(opck_eventwait) {
   return t_int;
 }
 
-static INSTR(EventWait) { GWDEBUG_EXE
+static INSTR(EventWait) {
   POP_REG(shred, SZ_FLOAT);
   const M_Object event = *(M_Object*)REG(-SZ_INT);
   if(!event)

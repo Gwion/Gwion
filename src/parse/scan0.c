@@ -9,8 +9,7 @@
 #include "nspc.h"
 #include "vm.h"
 #include "parse.h"
-
-ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
+#include "traverse.h"
 
 ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(env->gwion->p, t_class);
@@ -28,7 +27,7 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
   return already_defined(env, s, pos);
 }
 
-ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
+ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   CHECK_BB(env_access(env, stmt->base->td->flag, stmt_self(stmt)->pos))
   CHECK_BB(scan0_defined(env, stmt->base->xid, td_pos(stmt->base->td)));
   const m_str name = s_name(stmt->base->xid);
@@ -43,7 +42,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN /*static */ m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GWDEBUG_EXE
+ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
   const Type base = known_type(env, stmt->ext);
   CHECK_OB(base)
@@ -61,23 +60,23 @@ ANN /*static */ m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) { GW
       SET_FLAG(t, empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
-    const Class_Def def = new_class_def(env->gwion->p, flag, stmt->xid, stmt->ext, NULL,
+    const Class_Def cdef = new_class_def(env->gwion->p, flag, stmt->xid, stmt->ext, NULL,
       loc_cpy(env->gwion->p, td_pos(stmt->ext)));
-    CHECK_BB(scan0_class_def(env, def))
-    stmt->type = def->base.type;
+    CHECK_BB(scan0_class_def(env, cdef))
+    stmt->type = cdef->base.type;
   }
   SET_FLAG(stmt->type, typedef);
   return GW_OK;
 }
 
-ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) { GWDEBUG_EXE
+ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
   CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
   if(stmt->xid) {
     const Value v = nspc_lookup_value1(env->curr, stmt->xid);
     if(v)
       ERR_B(stmt_self(stmt)->pos, "'%s' already declared as variable of type '%s'.",
         s_name(stmt->xid),  v->type->name)
-    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos)) // test for type ?
+    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
   }
   const Type t = type_copy(env->gwion->p, t_int);
   t->xid = ++env->scope->type_xid;
@@ -108,7 +107,7 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
   return t;
 }
 
-ANN /* static */m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { GWDEBUG_EXE
+ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
   CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
   if(stmt->xid) {
     CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
@@ -147,7 +146,7 @@ ANN /* static */m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) { 
 
 ANN static m_bool scan0_stmt_switch(const Env env, const Stmt_Switch stmt);
 ANN static m_bool scan0_stmt_code(const Env env, const Stmt_Code stmt);
-ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
+ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) {
   if(stmt->stmt_type == ae_stmt_fptr)
     return scan0_stmt_fptr(env, &stmt->d.stmt_fptr);
   if(stmt->stmt_type == ae_stmt_type)
@@ -165,53 +164,52 @@ ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) { GWDEBUG_EXE
 
 ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l);
 ANN static m_bool scan0_stmt_switch(const Env env, const Stmt_Switch stmt) {
-//  CHECK_BB(scan0_exp(env, stmt->val))
   return scan0_stmt(env, stmt->stmt);
 }
-ANN static m_bool scan0_stmt_code(const Env env, const Stmt_Code stmt) { GWDEBUG_EXE
+ANN static m_bool scan0_stmt_code(const Env env, const Stmt_Code stmt) {
   return stmt->stmt_list ? scan0_stmt_list(env, stmt->stmt_list) : GW_OK;
 }
 
-ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
+ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
   do CHECK_BB(scan0_stmt(env, l->stmt))
   while((l = l->next));
   return GW_OK;
 }
 
-ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  CHECK_BB(env_storage(env, class_def->flag, class_def->pos))
-  if(GET_FLAG(class_def, global)) {
+ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
+  CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
+  if(GET_FLAG(cdef, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
   }
-  CHECK_BB(scan0_defined(env, class_def->base.xid, class_def->pos)) // test for type ?
-  CHECK_BB(isres(env, class_def->base.xid, class_def->pos))
+  CHECK_BB(scan0_defined(env, cdef->base.xid, cdef->pos))
+  CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
   return GW_OK;
 }
 
-ANN static Type scan0_class_def_init(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(class_def->base.xid), t_object);
+ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
+  const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(cdef->base.xid), t_object);
   t->owner = env->curr;
   t->nspc = new_nspc(env->gwion->p, t->name);
-  t->nspc->parent = GET_FLAG(class_def, global) ? env_nspc(env) : env->curr;
-  t->def = class_def;
-  t->flag = class_def->flag;
+  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
+  t->def = cdef;
+  t->flag = cdef->flag;
   if(!strstr(t->name, "<"))
-    nspc_add_type(env->curr, class_def->base.xid, t);
-  if(class_def->tmpl) {
+    nspc_add_type(env->curr, cdef->base.xid, t);
+  if(cdef->tmpl) {
     SET_FLAG(t, template);
-    SET_FLAG(class_def, template);
+    SET_FLAG(cdef, template);
   }
-  if(class_def->base.ext && class_def->base.ext->array)
+  if(cdef->base.ext && cdef->base.ext->array)
     SET_FLAG(t, typedef);
   return t;
 }
 
-ANN static m_bool scan0_func_def(const Env env, const Func_Def def) {
-  return def->d.code ? scan0_stmt(env, def->d.code) : GW_OK;
+ANN static m_bool scan0_func_def(const Env env, const Func_Def fdef) {
+  return fdef->d.code ? scan0_stmt(env, fdef->d.code) : GW_OK;
 }
 
-ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG_EXE
+ANN static m_bool scan0_section(const Env env, const Section* section) {
   if(section->section_type == ae_section_stmt)
     return scan0_stmt_list(env, section->d.stmt_list);
   if(section->section_type == ae_section_class)
@@ -221,24 +219,24 @@ ANN static m_bool scan0_section(const Env env, const Section* section) { GWDEBUG
   return GW_OK;
 }
 
-ANN m_bool scan0_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  CHECK_BB(scan0_class_def_pre(env, class_def))
-  CHECK_OB((class_def->base.type = scan0_class_def_init(env, class_def)))
-  if(class_def->body) {
-    Class_Body body = class_def->body;
-    const m_uint scope = env_push_type(env, class_def->base.type);
+ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
+  CHECK_BB(scan0_class_def_pre(env, cdef))
+  CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
+  if(cdef->body) {
+    Class_Body body = cdef->body;
+    const m_uint scope = env_push_type(env, cdef->base.type);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
     env_pop(env, scope);
   }
-  (void)mk_class(env, class_def->base.type);
-  if(GET_FLAG(class_def, global))
+  (void)mk_class(env, cdef->base.type);
+  if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   return GW_OK;
 }
 
-ANN m_bool scan0_ast(const Env env, Ast prog) { GWDEBUG_EXE
-  do CHECK_BB(scan0_section(env, prog->section))
-  while((prog = prog->next));
+ANN m_bool scan0_ast(const Env env, Ast ast) {
+  do CHECK_BB(scan0_section(env, ast->section))
+  while((ast = ast->next));
   return GW_OK;
 }

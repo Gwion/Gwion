@@ -10,7 +10,7 @@
 #include "import.h"
 
 #define describe(name, op) \
-static INSTR(Complex##name) { GWDEBUG_EXE \
+static INSTR(Complex##name) {\
   POP_REG(shred, SZ_COMPLEX); \
   *(m_complex*)REG(-SZ_COMPLEX) op##= *(m_complex*)REG(0); \
 }
@@ -19,13 +19,13 @@ describe(Sub,  -)
 describe(Mul,  *)
 describe(Div, /)
 
-static INSTR(ComplexRAssign) { GWDEBUG_EXE
+static INSTR(ComplexRAssign) {
   POP_REG(shred, SZ_INT);
   **(m_complex**)REG(0) = *(m_complex*)REG(-SZ_COMPLEX);
 }
 
 #define describe_r(name, op) \
-static INSTR(ComplexR##name) { GWDEBUG_EXE \
+static INSTR(ComplexR##name) {\
   POP_REG(shred, SZ_INT); \
   *(m_complex*)REG(-SZ_COMPLEX) = (**(m_complex**)REG(0) op##= (*(m_complex*)REG(-SZ_COMPLEX))); \
 }
@@ -34,14 +34,14 @@ describe_r(Sub, -)
 describe_r(Mul, *)
 describe_r(Div, /)
 
-INSTR(ComplexReal) { GWDEBUG_EXE
+INSTR(ComplexReal) {
 //  if(!instr->m_val) { // other case skipped in emit.c
     *(m_float*)REG(-SZ_INT) = **(m_float**)REG(-SZ_INT);
     PUSH_REG(shred, SZ_FLOAT - SZ_INT);
 //  }
 }
 
-INSTR(ComplexImag) { GWDEBUG_EXE
+INSTR(ComplexImag) {
   if(instr->m_val) {
     const m_float* f = *(m_float**)REG(-SZ_INT);
     *(const m_float**)REG(-SZ_INT) = (f + 1);
@@ -53,7 +53,7 @@ INSTR(ComplexImag) { GWDEBUG_EXE
 }
 
 #define polar_def1(name, op)                                               \
-static INSTR(Polar##name) { GWDEBUG_EXE                                   \
+static INSTR(Polar##name) {\
   POP_REG(shred, SZ_COMPLEX);                                              \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
   const m_complex b = *(m_complex*)REG(0);                                 \
@@ -66,7 +66,7 @@ polar_def1(Add,  +)
 polar_def1(Sub, -)
 
 #define polar_def2(name, op1, op2)                   \
-static INSTR(Polar##name) { GWDEBUG_EXE             \
+static INSTR(Polar##name) {\
   POP_REG(shred, SZ_COMPLEX);                        \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX); \
   const m_complex b = *(m_complex*)REG(0);           \
@@ -78,7 +78,7 @@ polar_def2(Mul, *, +)
 polar_def2(Div, /, -)
 
 #define polar_def1_r(name, op)                                             \
-static INSTR(PolarR##name) { GWDEBUG_EXE                               \
+static INSTR(PolarR##name) {\
   POP_REG(shred, SZ_INT);                                                  \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
   const m_complex b = **(m_complex**)REG(0);                               \
@@ -91,7 +91,7 @@ polar_def1_r(Add, +)
 polar_def1_r(Sub, -)
 
 #define polar_def2_r(name, op1, op2)                      \
-static INSTR(PolarR##name) { GWDEBUG_EXE              \
+static INSTR(PolarR##name) {\
   POP_REG(shred, SZ_INT);                                 \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);      \
   const m_complex b = **(m_complex**)REG(0);              \

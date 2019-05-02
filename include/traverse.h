@@ -38,6 +38,8 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum def);
 ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum def);
 
 ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt);
+
+ANN m_bool scan0_class_def(const Env env, const Class_Def def);
 ANN m_bool scan1_class_def(const Env env, const Class_Def def);
 ANN m_bool scan2_class_def(const Env env, const Class_Def def);
 ANN m_bool check_class_def(const Env env, const Class_Def def);

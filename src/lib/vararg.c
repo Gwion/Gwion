@@ -18,7 +18,7 @@ void free_vararg(MemPool p, struct Vararg_* arg) {
   mp_free(p, Vararg, arg);
 }
 
-INSTR(VarargTop) { GWDEBUG_EXE
+INSTR(VarargTop) {
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(arg) {
     if(arg->d)
@@ -31,7 +31,7 @@ INSTR(VarargTop) { GWDEBUG_EXE
     shred->pc = instr->m_val2 + 1;
 }
 
-INSTR(VarargIni) { GWDEBUG_EXE
+INSTR(VarargIni) {
   struct Vararg_* arg = mp_alloc(shred->info->mp, Vararg);
   POP_REG(shred,  instr->m_val - SZ_INT)
   arg->d = (m_bit*)xmalloc(instr->m_val);
@@ -45,7 +45,7 @@ INSTR(VarargIni) { GWDEBUG_EXE
   *(struct Vararg_**)REG(-SZ_INT) = arg;
 }
 
-INSTR(VarargEnd) { GWDEBUG_EXE
+INSTR(VarargEnd) {
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   PUSH_REG(shred, SZ_INT);
   arg->o += arg->k[arg->i];
@@ -55,7 +55,7 @@ INSTR(VarargEnd) { GWDEBUG_EXE
     free_vararg(shred->info->mp, arg);
 }
 
-INSTR(VarargMember) { GWDEBUG_EXE
+INSTR(VarargMember) {
   const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   for(m_uint i = 0; i < instr->m_val2; i += SZ_INT)
     *(m_uint*)REG(i) = *(m_uint*)(arg->d + arg->o + i);
@@ -67,7 +67,7 @@ static OP_CHECK(at_varobj) {
   return bin->rhs->type;
 }
 
-static INSTR(VarargAssign) { GWDEBUG_EXE
+static INSTR(VarargAssign) {
   POP_REG(shred, SZ_INT);
   *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
 }

@@ -18,7 +18,7 @@ struct ret_info {
   size_t pc;
 };
 
-static INSTR(my_ret) { GWDEBUG_EXE
+static INSTR(my_ret) {
   struct ret_info* info = (struct ret_info*)instr->m_val;
   POP_MEM(shred, info->offset);
   vector_set(shred->code->instr, shred->pc, (vtype)info->instr);

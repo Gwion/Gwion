@@ -14,11 +14,11 @@
 #include "nspc.h"
 #include "shreduler_private.h"
 
-INSTR(EOC) { GWDEBUG_EXE
+INSTR(EOC) {
   vm_shred_exit(shred);
 }
 #include "gwion.h"
-INSTR(DTOR_EOC) { GWDEBUG_EXE
+INSTR(DTOR_EOC) {
   // TODO: we should be able to use shred->info->mp directly
   shred->info->mp = (MemPool)instr->m_val;
   const M_Object o = *(M_Object*)MEM(0);
@@ -36,14 +36,14 @@ INSTR(SwitchIni) {
     map_set((Map)instr->m_val2, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
 }
 
-INSTR(SwitchBranch) { GWDEBUG_EXE
+INSTR(SwitchBranch) {
   POP_REG(shred, SZ_INT);
   const Map map = *(Map*)REG(SZ_INT);
   shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;
 }
 
 #ifdef OPTIMIZE
-INSTR(PutArgsInMem) { GWDEBUG_EXE
+INSTR(PutArgsInMem) {
   POP_REG(shred, instr->m_val)
   for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
     *(m_uint*)(shred->mem + i) = *(m_uint*)(shred->reg + i);
@@ -55,7 +55,7 @@ INSTR(PutArgsInMem) { GWDEBUG_EXE
 #include "value.h"
 #include "template.h"
 
-INSTR(PopArrayClass) { GWDEBUG_EXE
+INSTR(PopArrayClass) {
   POP_REG(shred, SZ_INT);
   const M_Object obj = *(M_Object*)REG(-SZ_INT);
   const M_Object tmp = *(M_Object*)REG(0);

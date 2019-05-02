@@ -192,7 +192,7 @@ if(!UGEN(rhs)->module.gen.trig) {       \
   Except(shred, "NonTriggerException"); \
 }
 #define describe_connect_instr(name, func, opt) \
-static INSTR(name##func) { GWDEBUG_EXE       \
+static INSTR(name##func) {\
   M_Object lhs, rhs;                            \
   if(connect_init(shred, &lhs, &rhs) > 0) {     \
     opt                                         \

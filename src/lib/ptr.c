@@ -30,7 +30,7 @@ static OP_CHECK(opck_ptr_assign) {
   return t_null;
 }
 
-static INSTR(instr_ptr_assign) { GWDEBUG_EXE
+static INSTR(instr_ptr_assign) {
   POP_REG(shred, SZ_INT)
   const M_Object o = *(M_Object*)REG(0);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
@@ -57,7 +57,7 @@ static OP_CHECK(opck_implicit_ptr) {
   return NULL;
 }
 
-static INSTR(instr_ptr_deref) { GWDEBUG_EXE
+static INSTR(instr_ptr_deref) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(instr->m_val2)
     memcpy(REG(-SZ_INT), o->data, SZ_INT);
@@ -75,7 +75,7 @@ static OP_EMIT(opem_ptr_deref) {
   return GW_OK;
 }
 
-static INSTR(Cast2Ptr) { GWDEBUG_EXE
+static INSTR(Cast2Ptr) {
   const M_Object o = new_object(shred->info->mp, shred, t_ptr);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
   *(M_Object*)REG(-SZ_INT) = o;

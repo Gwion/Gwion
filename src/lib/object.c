@@ -102,7 +102,7 @@ ANN void free_object(MemPool p, const M_Object o) {
 }
 
 #define describe_logical(name, op)               \
-static INSTR(name##Object) { GWDEBUG_EXE        \
+static INSTR(name##Object) {\
   POP_REG(shred, SZ_INT);                        \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \

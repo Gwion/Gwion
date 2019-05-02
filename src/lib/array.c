@@ -237,15 +237,15 @@ GWION_IMPORT(array) {
   return GW_OK;
 }
 
-INSTR(ArrayBottom) { GWDEBUG_EXE
+INSTR(ArrayBottom) {
   *(M_Object*)(*(m_uint**)REG(-SZ_INT * 4))[(*(m_int*)REG(-SZ_INT * 3))++] = *(M_Object*)REG(-SZ_INT);
 }
 
-INSTR(ArrayPost) { GWDEBUG_EXE
+INSTR(ArrayPost) {
   xfree(*(m_uint**)REG(0));
 }
 
-INSTR(ArrayInit) { GWDEBUG_EXE // for litteral array
+INSTR(ArrayInit) {// for litteral array
   const Type t = (Type)instr->m_val;
   const m_uint sz = *(m_uint*)REG(0);
   const m_uint off = instr->m_val2 * sz;
@@ -306,7 +306,7 @@ ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_u
   return *num_obj > 0 ? (M_Object*)xcalloc(*num_obj, SZ_INT) : NULL;
 }
 
-INSTR(ArrayAlloc) { GWDEBUG_EXE
+INSTR(ArrayAlloc) {
   const ArrayInfo* info = (ArrayInfo*)instr->m_val;
   m_uint num_obj = 1;
   m_int idx = 0;

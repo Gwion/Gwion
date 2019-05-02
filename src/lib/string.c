@@ -25,7 +25,7 @@ ANN static void push_new_string(const VM_Shred shred, const m_str c) {
 }
 
 #define describe_string_logical(name, action)    \
-static INSTR(String_##name) { GWDEBUG_EXE        \
+static INSTR(String_##name) {\
   POP_REG(shred, SZ_INT);                        \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \
@@ -38,7 +38,7 @@ describe_string_logical(neq, (lhs && rhs && strcmp(STRING(lhs), STRING(rhs))) ||
     (lhs && !rhs) || (!lhs && rhs))
 
 #define describe_string_assign(name, type, offset, opt, len, format, ...) \
-static INSTR(name##String_Assign) { GWDEBUG_EXE                      \
+static INSTR(name##String_Assign) {\
   POP_REG(shred, offset);                                            \
   const type lhs = *(type*)REG(-SZ_INT);                             \
   const M_Object rhs = *(M_Object*)REG(offset - SZ_INT);             \
@@ -50,7 +50,7 @@ static INSTR(name##String_Assign) { GWDEBUG_EXE                      \
   push_string(shred, rhs, str);                                     \
 }
 
-static INSTR(String_Assign) { GWDEBUG_EXE
+static INSTR(String_Assign) {
   POP_REG(shred, SZ_INT);
   const M_Object lhs = *(M_Object*)REG(-SZ_INT);
   const M_Object rhs = *(M_Object*)REG(0);
@@ -82,7 +82,7 @@ describe_string_assign(Object_, M_Object, SZ_INT, release(lhs, shred),
   16,
   "%p", (void*)lhs)
 
-static INSTR(String_String) { GWDEBUG_EXE
+static INSTR(String_String) {
   POP_REG(shred, SZ_INT);
   const M_Object lhs = *(M_Object*)REG(-SZ_INT);
   const M_Object rhs = *(M_Object*)REG(0);
@@ -94,7 +94,7 @@ static INSTR(String_String) { GWDEBUG_EXE
 }
 
 #define describe_string(name, type, offset, len, opt, format, ...) \
-static INSTR(name##_String) { GWDEBUG_EXE \
+static INSTR(name##_String) {\
   POP_REG(shred, offset); \
   const type lhs = *(type*)REG(-SZ_INT);\
   const M_Object rhs = *(M_Object*)REG(offset-SZ_INT);\
@@ -130,7 +130,7 @@ describe_string(Object, M_Object, SZ_INT,
 
 
 #define describe_string_plus(name, offset, type, opt, len, format, ...) \
-static INSTR(name##String_Plus) { GWDEBUG_EXE       \
+static INSTR(name##String_Plus) {\
   POP_REG(shred, offset);                  \
   const type lhs = *(type*)REG(-SZ_INT);                  \
   const M_Object rhs = *(M_Object*)REG(offset - SZ_INT);     \

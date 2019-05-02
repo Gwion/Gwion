@@ -20,7 +20,7 @@
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 
-static INSTR(LambdaAssign) { GWDEBUG_EXE
+static INSTR(LambdaAssign) {
   POP_REG(shred, SZ_INT)
   *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
 }

@@ -16,7 +16,7 @@ INSTR(VecCpy) {
   *(m_bit**)(shred->mem + instr->m_val) = (shred->mem + instr->m_val - instr->m_val2);
 }
 
-INSTR(VecMember) { GWDEBUG_EXE
+INSTR(VecMember) {
   if(instr->m_val)
     *(m_float**)REG(-SZ_INT) = (m_float*)(*(m_bit**)REG(-SZ_INT) + instr->m_val2);
   else {
@@ -97,7 +97,7 @@ static MFUN(vec3_update_set_slew) {
 }
 
 #define describe_vec3(name, op)           \
-static INSTR(Vec3##name) { GWDEBUG_EXE   \
+static INSTR(Vec3##name) {\
   POP_REG(shred, SZ_VEC3);                \
   m_vec3 r, * t = (m_vec3*)REG(-SZ_VEC3); \
   r.x = t->x op (t + 1)->x;               \
@@ -112,7 +112,7 @@ describe_vec3(Div, /)
 
 
 #define describe_float_vec3(func)               \
-static INSTR(Float##func##Vec3) { GWDEBUG_EXE \
+static INSTR(Float##func##Vec3) {\
   POP_REG(shred, SZ_FLOAT);                     \
   const m_float f = *(m_float*)REG(-SZ_VEC3);   \
   const m_vec3 r = *(m_vec3*)REG(-SZ_COMPLEX);  \
@@ -125,7 +125,7 @@ describe_float_vec3(Mul)
 describe_float_vec3(Div)
 
 #define describe_vec3_float(func)               \
-static INSTR(Vec3##func##Float) { GWDEBUG_EXE \
+static INSTR(Vec3##func##Float) {\
   POP_REG(shred, SZ_FLOAT);                     \
   const m_vec3 r = *(m_vec3*)REG(-SZ_VEC3);     \
   const m_float f = *(m_float*)REG(0);          \
@@ -137,7 +137,7 @@ describe_vec3_float(Sub)
 describe_vec3_float(Mul)
 describe_vec3_float(Div)
 
-static INSTR(Vec3RAssign) { GWDEBUG_EXE
+static INSTR(Vec3RAssign) {
   POP_REG(shred, SZ_INT);
   m_vec3* r = *(m_vec3**)REG(0);
   r->x = *(m_float*)REG(-SZ_VEC3);
@@ -243,7 +243,7 @@ static MFUN(vec4_normalize) {
 }
 
 #define describe_vec4(name, op)           \
-static INSTR(Vec4##name) { GWDEBUG_EXE   \
+static INSTR(Vec4##name) {\
   POP_REG(shred, SZ_VEC4);                \
   m_vec4 r, * t = (m_vec4*)REG(-SZ_VEC4); \
   r.x = t->x op (t + 1)->x;               \
@@ -258,7 +258,7 @@ describe_vec4(Mul, *)
 describe_vec4(Div, /)
 
 #define describe_float_vec4(func)               \
-static INSTR(Float##func##Vec4) { GWDEBUG_EXE \
+static INSTR(Float##func##Vec4) {\
   POP_REG(shred, SZ_FLOAT);                     \
   m_float f = *(m_float*)REG(-SZ_VEC4);         \
   m_vec4 r = *(m_vec4*)REG(-SZ_VEC3);           \
@@ -271,7 +271,7 @@ describe_float_vec4(Mul)
 describe_float_vec4(Div)
 
 #define describe_vec4_float(func)               \
-static INSTR(Vec4##func##Float) { GWDEBUG_EXE \
+static INSTR(Vec4##func##Float) {\
   POP_REG(shred, SZ_FLOAT);                     \
   m_vec4 r = *(m_vec4*)REG(-SZ_VEC4);           \
   m_float f = *(m_float*)REG(0);                \
@@ -283,7 +283,7 @@ describe_vec4_float(Sub)
 describe_vec4_float(Mul)
 describe_vec4_float(Div)
 
-static INSTR(Vec4RAssign) { GWDEBUG_EXE
+static INSTR(Vec4RAssign) {
   POP_REG(shred, SZ_INT);
   m_vec4* r = *(m_vec4**)REG(0);
   r->x = *(m_float*)REG(-SZ_VEC4);
