@@ -295,24 +295,19 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
-register m_bit next;
+  register m_bit next;
   while((shred = shreduler_get(s))) {
-register VM_Code code = shred->code;
-//if(!code->instr)
-//  exit(2);
-register m_uint* ip = code->instr->ptr + OFFSET;
-register
-size_t pc = shred->pc;
-register
-m_bit* reg = shred->reg;
-register
-m_bit* mem = shred->mem;
-register union {
-M_Object obj;
-VM_Code code;
-VM_Shred child;
-} a;
-register M_Object array_base = NULL;
+    register VM_Code code = shred->code;
+    register m_uint* ip = code->instr->ptr + OFFSET;
+    register size_t pc = shred->pc;
+    register m_bit* reg = shred->reg;
+    register m_bit* mem = shred->mem;
+    register union {
+      M_Object obj;
+      VM_Code code;
+      VM_Shred child;
+    } a;
+    register M_Object array_base = NULL;
   MUTEX_LOCK(s->mutex);
   do {
     register Instr instr; DISPATCH();
