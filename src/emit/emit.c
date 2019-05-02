@@ -556,7 +556,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const m_bool is_obj = isa(type, t_object) > 0;
   const uint emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
     emit_var : 1;
-  if(is_obj && (is_array || !is_ref))
+  if(is_obj && (is_array || !is_ref) && !GET_FLAG(var_decl->value, ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
   if(!GET_FLAG(v, member)) {
@@ -570,8 +570,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
     const Instr assign = emit_add_instr(emit, ObjectAssign);
     assign->m_val = emit_var;
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
-    if((is_array || missing_depth) && !emit->env->scope->depth)
-      ADD_REF(type)
+//    if((is_array || missing_depth) && !emit->env->scope->depth)
+//      ADD_REF(type)
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(1 + missing_depth) * SZ_INT;
@@ -742,7 +742,7 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) { G
 
 ANN static m_bool is_special(const Type t) {
   if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0 ||
-     isa(t, t_vec3)    > 0 || isa(t, t_vec4)  > 0  ||
+     isa(t, t_vec3)    > 0 || isa(t, t_vec4)  > 0 ||
      isa(t, t_vararg)  > 0)
     return GW_OK;
   return GW_ERROR;
@@ -1251,28 +1251,20 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) { GWD
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default")) {
-//      if(!strcmp(s_name(stmt->name), "default"))
-//        vector_release(&stmt->data.v);
+    if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default"))
       return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
-    }
     if(!stmt->data.v.ptr)
       ERR_B(stmt_self(stmt)->pos, "illegal case")
     const m_uint size = vector_size(&stmt->data.v);
-    if(!size) {
-//      vector_release(&stmt->data.v);
+    if(!size)
       ERR_B(stmt_self(stmt)->pos, "label '%s' defined but not used.", s_name(stmt->name))
-    }
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
       const Stmt_Jump label = (Stmt_Jump)vector_at(&stmt->data.v, i - 1);
-      if(!label->data.instr) {
-//        vector_release(&stmt->data.v);
+      if(!label->data.instr)
         ERR_B(stmt_self(label)->pos, "you are trying to use a upper label.")
-      }
       label->data.instr->m_val = emit_code_size(emit);
     }
-//    vector_release(&stmt->data.v);
   }
   return GW_OK;
 }
@@ -1368,8 +1360,6 @@ ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) { GWD
       v->offset = emit_local(emit, SZ_INT, 0);
       v->d.ptr = addr;
     } else
-//      *(m_uint*)(emit->env->class_def->nspc->info->class_data + v->offset) = i;
-// alignement
       *(m_bit*)(emit->env->class_def->nspc->info->class_data + v->offset) = i;
   }
   return GW_OK;
@@ -1799,13 +1789,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
 }
 
 ANN static void emit_free_code(const Emitter emit, Code* code) {
-//  LOOP_OPTIM
-//  for(m_uint j = vector_size(&code->instr) + 1; --j;) {
-//    mp_free(p, Instr, (Instr)vector_at(&code->instr, j - 1));
-if(vector_size(&code->instr))
-      free_code_instr(&code->instr, emit->gwion);
-//vector_release(&code->instr);
-//  }
+  if(vector_size(&code->instr))
+    free_code_instr(&code->instr, emit->gwion);
   free_code(emit->gwion->p, code);
 }
 

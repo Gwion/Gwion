@@ -533,33 +533,33 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 
 DECL_SECTION_FUNC(scan2)
 
-ANN static m_bool scan2_class_parent(const Env env, const Class_Def class_def) {
-  const Type t = class_def->base.type->parent->array_depth ?
-    array_base(class_def->base.type->parent) : class_def->base.type->parent;
-  if(!GET_FLAG(t, scan2) && GET_FLAG(class_def->base.ext, typedef))
+ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
+  const Type t = cdef->base.type->parent->array_depth ?
+    array_base(cdef->base.type->parent) : cdef->base.type->parent;
+  if(!GET_FLAG(t, scan2) && GET_FLAG(cdef->base.ext, typedef))
     CHECK_BB(scan2_class_def(env, t->def))
-  if(class_def->base.ext->array)
-    CHECK_BB(scan2_exp(env, class_def->base.ext->array->exp))
+  if(cdef->base.ext->array)
+    CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;
 }
 
-ANN static m_bool scan2_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push_type(env, class_def->base.type);
-  Class_Body body = class_def->body;
+ANN static m_bool scan2_class_body(const Env env, const Class_Def cdef) {
+  const m_uint scope = env_push_type(env, cdef->base.type);
+  Class_Body body = cdef->body;
   do CHECK_BB(scan2_section(env, body->section))
   while((body = body->next));
   env_pop(env, scope);
   return GW_OK;
 }
 
-ANN m_bool scan2_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(tmpl_class_base(class_def->tmpl))
+ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) { GWDEBUG_EXE
+  if(tmpl_class_base(cdef->tmpl))
     return GW_OK;
-  if(class_def->base.ext)
-    CHECK_BB(scan2_class_parent(env, class_def))
-  if(class_def->body)
-    CHECK_BB(scan2_class_body(env, class_def))
-  SET_FLAG(class_def->base.type, scan2);
+  if(cdef->base.ext)
+    CHECK_BB(scan2_class_parent(env, cdef))
+  if(cdef->body)
+    CHECK_BB(scan2_class_body(env, cdef))
+  SET_FLAG(cdef->base.type, scan2);
   return GW_OK;
 }
 

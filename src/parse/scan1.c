@@ -10,10 +10,10 @@
 #include "parse.h"
 #include "traverse.h"
 
-ANN m_bool scan0_class_def(const Env env, const Class_Def class_def);
+ANN m_bool scan0_class_def(const Env, const Class_Def);
 ANN /* static */ m_bool scan1_exp(const Env env, Exp exp);
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
-ANN m_bool scan1_class_def(const Env env, const Class_Def class_def);
+ANN m_bool scan1_class_def(const Env, const Class_Def);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
@@ -75,10 +75,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       t = array_type(env, decl->type, var->array->depth);
     }
     const Value v = var->value = former ? former : new_value(env->gwion->p, t, s_name(var->xid));
-    if(var->array && !var->array->exp)
-      SET_FLAG(v, ref);
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
+    if(var->array && !var->array->exp)
+      SET_FLAG(v, ref);
     if(!env->func && !env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->type = t;
@@ -287,25 +287,24 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) { GWDEBUG_EXE
   return GW_OK;
 }
 
-ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
-  if(f->base->td)
-    CHECK_BB(env_storage(env, f->flag, td_pos(f->base->td)))
-  if(tmpl_list_base(f->tmpl))
+ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) { GWDEBUG_EXE
+  if(fdef->base->td)
+    CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
+  if(tmpl_list_base(fdef->tmpl))
     return GW_OK;
-  const Func former = env->func;
-  struct Func_ fake = { .name=s_name(f->base->xid) };
+  struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
-  if(GET_FLAG(f, dtor) && !env->class_def)
-    ERR_B(td_pos(f->base->td), "dtor must be in class def!!")
-  if(f->base->td)
-    CHECK_OB((f->base->ret_type = known_type(env, f->base->td)))
-  if(f->base->args)
-    CHECK_BB(scan1_args(env, f->base->args))
-  if(!GET_FLAG(f, builtin))
-    CHECK_BB(scan1_stmt_code(env, &f->d.code->d.stmt_code))
-  if(GET_FLAG(f, op) && env->class_def)
-    SET_FLAG(f, static);
+  if(GET_FLAG(fdef, dtor) && !env->class_def)
+    ERR_B(td_pos(fdef->base->td), "dtor must be in class def!!")
+  if(fdef->base->td)
+    CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  if(fdef->base->args)
+    CHECK_BB(scan1_args(env, fdef->base->args))
+  if(!GET_FLAG(fdef, builtin))
+    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  if(GET_FLAG(fdef, op) && env->class_def)
+    SET_FLAG(fdef, static);
   env->func = former;
   --env->scope->depth;
   return GW_OK;
@@ -313,20 +312,19 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def f) { GWDEBUG_EXE
 
 DECL_SECTION_FUNC(scan1)
 
-ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
-  const loc_t pos = td_pos(class_def->base.ext);
-  if(class_def->base.ext->array)
-    CHECK_BB(scan1_exp(env, class_def->base.ext->array->exp))
-  const Type parent = class_def->base.type->parent = known_type(env, class_def->base.ext);
+ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
+  const loc_t pos = td_pos(cdef->base.ext);
+  if(cdef->base.ext->array)
+    CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
+  const Type parent = cdef->base.type->parent = known_type(env, cdef->base.ext);
   CHECK_OB(parent)
   if(parent == t_undefined)
     return GW_OK;
-  if(parent == class_def->base.type)
-    ERR_B(pos, "class '%s' cannot extend itself",
-      class_def->base.type->name);
-  if(isa(class_def->base.type->parent, t_object) < 0)
+  if(parent == cdef->base.type)
+    ERR_B(pos, "class '%s' cannot extend itself", cdef->base.type->name);
+  if(isa(cdef->base.type->parent, t_object) < 0)
     ERR_B(pos, "cannot extend primitive type '%s'",
-            class_def->base.type->parent->name)
+            cdef->base.type->parent->name)
   if(!GET_FLAG(parent, scan1) && parent->def)
     CHECK_BB(scan1_class_def(env, parent->def))
   if(type_ref(parent))
@@ -334,25 +332,25 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def class_def) {
   return GW_OK;
 }
 
-ANN static m_bool scan1_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push_type(env, class_def->base.type);
-  Class_Body body = class_def->body;
+ANN static m_bool scan1_class_body(const Env env, const Class_Def cdef) {
+  const m_uint scope = env_push_type(env, cdef->base.type);
+  Class_Body body = cdef->body;
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));
   env_pop(env, scope);
   return GW_OK;
 }
 
-ANN m_bool scan1_class_def(const Env env, const Class_Def class_def) { GWDEBUG_EXE
-  if(!class_def->base.type)
-    CHECK_BB(scan0_class_def(env, class_def))
-  if(tmpl_class_base(class_def->tmpl))
+ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) { GWDEBUG_EXE
+  if(!cdef->base.type)
+    CHECK_BB(scan0_class_def(env, cdef))
+  if(tmpl_class_base(cdef->tmpl))
     return GW_OK;
-  if(class_def->base.ext)
-    CHECK_BB(scan1_class_parent(env, class_def))
-  if(class_def->body)
-    CHECK_BB(scan1_class_body(env, class_def))
-  SET_FLAG(class_def->base.type, scan1);
+  if(cdef->base.ext)
+    CHECK_BB(scan1_class_parent(env, cdef))
+  if(cdef->body)
+    CHECK_BB(scan1_class_body(env, cdef))
+  SET_FLAG(cdef->base.type, scan1);
   return GW_OK;
 }
 
