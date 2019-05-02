@@ -62,14 +62,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
     const Value former = nspc_lookup_value0(env->curr, var->xid);
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     if(former && !decl->td->exp &&
-/*!(decl->td->xid->xid == insert_symbol("auto") && former->type != t_auto) &&*/
-//(decl->td->xid->xid == insert_symbol("auto") && former->type != t_auto) &&
-//(!env->class_def ||
-//        (!GET_FLAG(env->class_def, template) || !GET_FLAG(env->class_def, scan1))))
         (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
               s_name(var->xid))
-    if(var->array && decl->type != t_undefined && decl->type != t_auto) {
+    if(var->array) {
       if(var->array->exp) {
         if(GET_FLAG(decl->td, ref))
           ERR_B(td_pos(decl->td), "ref array must not have array expression.\n"
@@ -79,10 +75,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) { GWDEBUG_EXE
       t = array_type(env, decl->type, var->array->depth);
     }
     const Value v = var->value = former ? former : new_value(env->gwion->p, t, s_name(var->xid));
-    nspc_add_value(nspc, var->xid, v);
-    v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
+    nspc_add_value(nspc, var->xid, v);
+    v->flag = decl->td->flag;
     if(!env->func && !env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->type = t;

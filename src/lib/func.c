@@ -158,6 +158,9 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
+  if(unary->op == op_fork && !unary->fork_ok)
+    ERR_O(exp_self(unary)->pos, "forks must be stored in a value:\n"
+        "fork xxx @=> Fork f")
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return unary->op == op_spork ? t_shred : t_fork;
   else if(unary->code) {

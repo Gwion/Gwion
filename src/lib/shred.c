@@ -15,6 +15,7 @@
 
 static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 
   o_fork_orig;
+
 #define FORK_THREAD(o) *(THREAD_TYPE*)(o->data + o_fork_thread)
 #define FORK_RETSIZE(o) *(m_int*)(o->data + o_fork_retsize)
 #define FORK_RETVAL(o) (o->data + o_fork_retval)
@@ -51,8 +52,11 @@ static MFUN(vm_shred_is_done) {
 
 static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
-  const Shreduler sh = shred->tick->shreduler;
-  shredule(sh, s, GWION_EPSILON);
+  const Shreduler sh = s->tick->shreduler;
+  if(vector_size(shred->code->instr) - shred->pc > 1)
+    shredule(sh, s, GWION_EPSILON);
+  else
+    vm_shred_exit(shred);
 }
 
 static SFUN(vm_shred_from_id) {

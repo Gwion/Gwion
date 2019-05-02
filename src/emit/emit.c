@@ -950,8 +950,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     spork->m_val = emit->code->stack_depth;
   } else {
     const Func f = unary->exp->d.exp_call.m_func;
-    const m_uint size = f->def->stack_depth - (GET_FLAG(f, member) && !GET_FLAG(code, member) ? SZ_INT : 0);
-    emit_exp_spork_finish(emit, size);
+    emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
     end->m_val2 = f->def->base->ret_type->size;
   }
