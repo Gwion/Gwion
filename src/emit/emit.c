@@ -857,7 +857,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
     if((f_instr)(m_uint)back->opcode == DotFunc || (f_instr)(m_uint)back->opcode == DotStaticFunc)
       back->m_val = f->vt_index;
   }
-  if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+  if(vector_size(&emit->code->instr) && GET_FLAG(f, member) &&
+        isa(actual_type(f->value_ref->type), t_fptr) > 0) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
