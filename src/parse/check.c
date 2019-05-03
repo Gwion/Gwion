@@ -839,6 +839,8 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 }
 
 ANN static m_bool cond_type(const Env env, const Exp e) {
+  if(e->next)
+    ERR_B(e->pos, "conditional must be a single expression")
   const Type t = e->type;
   if(isa(t, t_int) > 0)
     return GW_OK;

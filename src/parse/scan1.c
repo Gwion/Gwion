@@ -316,6 +316,12 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
   CHECK_OB(parent)
   if(parent == t_undefined)
     return GW_OK;
+  Type t = parent;
+  while(t) {
+    if(cdef->base.type == t)
+      ERR_B(pos, "recursive (%s <= %s) class declaration.", cdef->base.type->name, t->name);
+    t = t->parent;
+  }
   if(parent == cdef->base.type)
     ERR_B(pos, "class '%s' cannot extend itself", cdef->base.type->name);
   if(isa(cdef->base.type->parent, t_object) < 0)

@@ -1,0 +1,16 @@
+// [contains] recursive
+class C {}
+class D extends C {}
+class E extends F {}
+class F extends E {}
+class G extends C {}
+
+C c;
+D d;
+E e;
+F f;
+G g;
+<<<f $ D>>>;
+<<< [ f, g ] >>>;
+<<<maybe ? f : D>>>;
+<<<c, " ", d, " ", e, " ", g>>>;

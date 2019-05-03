@@ -1,6 +1,0 @@
-// [contains] cannot extend itself
-class C extends C {
-
-}
-C c;
-<<<c>>>;
