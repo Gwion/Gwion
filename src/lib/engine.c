@@ -19,8 +19,10 @@
 #include "parser.h"
 
 static FREEARG(freearg_switchini) {
-  free_vector(((Gwion)gwion)->p, (Vector)instr->m_val);
-  free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
+  if(instr->m_val)
+    free_vector(((Gwion)gwion)->p, (Vector)instr->m_val);
+  if(instr->m_val2)
+    free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
 }
 
 static FREEARG(freearg_switchbranch) {

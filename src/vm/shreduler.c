@@ -50,6 +50,7 @@ ANN static void unwind(const VM_Shred shred) {
       if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))break;
     } else break;
   }
+  shred->code = code;
 }
 
 ANN static inline void shreduler_child(const Vector v) {

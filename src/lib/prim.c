@@ -120,7 +120,7 @@ static GWION_IMPORT(values) {
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
   gwi_item_ini(gwi, "@now", "now");
-  gwi_item_end(gwi, 0, NULL);
+  gwi_item_end(gwi, ae_flag_const, NULL);
   return GW_OK;
 }
 
@@ -231,7 +231,7 @@ static GWION_IMPORT(time) {
   CHECK_FF(chuck, rassign, r_assign)
   CHECK_BB(gwi_oper_end(gwi, op_add,         FloatPlus))
   CHECK_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
-  _CHECK_OP(chuck, rassign, Time_Advance)
+  _CHECK_OP(chuck, rhs_emit_var, Time_Advance)
   CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
   _CHECK_OP(chuck, chuck_now, NULL)
   CHECK_BB(gwi_oper_ini(gwi, NULL, "@now", NULL))

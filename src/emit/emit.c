@@ -570,8 +570,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
     const Instr assign = emit_add_instr(emit, ObjectAssign);
     assign->m_val = emit_var;
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
-//    if((is_array || missing_depth) && !emit->env->scope->depth)
-//      ADD_REF(type)
+    if((is_array || missing_depth) && !emit->env->scope->depth)
+      ADD_REF(type)
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(1 + missing_depth) * SZ_INT;
