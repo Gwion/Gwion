@@ -130,18 +130,28 @@ static OP_CHECK(at_object) {
   return r;
 }
 
+#define STR_FORCE ":force"
+#define STRLEN_FORCE strlen(STR_FORCE)
+static Type get_force_type(const Env env, const Type t) {
+  const size_t len = strlen(t->name);
+  char name[len + STRLEN_FORCE];
+  strcpy(name, t->name);
+  strcpy(name + len, STR_FORCE);
+  const Symbol sym = insert_symbol(env->gwion->st, name);
+  const Type old = nspc_lookup_type0(t->owner, sym);
+  if(old)
+    return old;
+  const Type ret = type_copy(env->gwion->p, t);
+  SET_FLAG(ret, force);
+  nspc_add_type(t->owner, sym, ret);
+    return ret;  
+}
+
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->type;
   const Type r = exp_self(cast)->type;
-//  return isa(l, r) > 0 ? r : t_null;
-  if(isa(l, r) > 0) {
-    const Type t = type_copy(env->gwion->p, r);
-    SET_FLAG(t, force);
-    env_add_type(env, t);
-    return t;
-  }
-  return t_null;
+  return isa(l, r) > 0 ? get_force_type(env, r) : t_null;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
