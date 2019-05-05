@@ -1213,8 +1213,6 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def) {
   inherit(the_class);
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))
-  if(!the_class->p && the_class->nspc->info->offset)
-    the_class->p = mp_ini(env->gwion->p, (uint32_t)the_class->nspc->info->offset);
   SET_FLAG(the_class, checked | ae_flag_check);
   return GW_OK;
 }

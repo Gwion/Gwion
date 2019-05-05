@@ -26,11 +26,11 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
   a->type_ref = t;
   a->vtable = &t->nspc->info->vtable;
   if(t->nspc->info->offset) {
-    Type type = t;
-    while(!type->p)
-      type = type->parent;
-    a->p = type->p;
-    a->data = (m_bit*)_mp_alloc2(type->p);
+//    Type type = t;
+//    while(!type->p)
+//      type = type->parent;
+//    a->p = type->p;
+    a->data = (m_bit*)_mp_alloc(p, t->nspc->info->offset);
   }
   if(shred)
     vector_add(&shred->gc, (vtype)a);
@@ -96,8 +96,8 @@ ANN void __release(const M_Object obj, const VM_Shred shred) {
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-  if(o->data)
-    _mp_free2(o->p, o->data);
+  if(o->type_ref->nspc->info->offset)
+    mp_free2(p, o->type_ref->nspc->info->offset, o->data);
   mp_free(p, M_Object, o);
 }
 

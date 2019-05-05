@@ -1384,8 +1384,6 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
       stmt->value->type->nspc->info->class_data =
         (m_bit*)xcalloc(1, stmt->value->type->nspc->info->class_data_size);
     stmt->value->type->nspc->info->offset = stmt->s;
-    if(!stmt->value->type->p)
-      stmt->value->type->p = mp_ini(emit->gwion->p, (uint32_t)stmt->value->type->size);
     Type_Decl *type_decl = new_type_decl(emit->gwion->p,
         new_id_list(emit->gwion->p, stmt->xid, loc_cpy(emit->gwion->p, loc_cpy(emit->gwion->p, stmt_self(stmt)->pos))),
 //        emit->env->class_def ? ae_flag_member : 0);
@@ -1413,8 +1411,6 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
       stmt->type->nspc->info->class_data =
         (m_bit*)xcalloc(1, stmt->type->nspc->info->class_data_size);
     stmt->type->nspc->info->offset = stmt->s;
-    if(!stmt->type->p)
-      stmt->type->p = mp_ini(emit->gwion->p, (uint32_t)stmt->type->size);
     scope = emit_push_type(emit, stmt->type);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))

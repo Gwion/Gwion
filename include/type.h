@@ -11,7 +11,6 @@ struct Type_ {
     Func      func;
     Type      base_type;
   } d;
-  struct pool* p;
   size_t xid;
   size_t size;
   size_t array_depth;
