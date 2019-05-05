@@ -25,13 +25,8 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
   a->ref = 1;
   a->type_ref = t;
   a->vtable = &t->nspc->info->vtable;
-  if(t->nspc->info->offset) {
-//    Type type = t;
-//    while(!type->p)
-//      type = type->parent;
-//    a->p = type->p;
+  if(t->nspc->info->offset)
     a->data = (m_bit*)_mp_alloc(p, t->nspc->info->offset);
-  }
   if(shred)
     vector_add(&shred->gc, (vtype)a);
   return a;
@@ -49,50 +44,37 @@ M_Object new_string2(MemPool p, const VM_Shred shred, const m_str str) {
   return o;
 }
 
-M_Object gwion_new_string(const struct Gwion_ *gwion, const m_str str) {
-  const M_Object o = new_object(gwion->p, NULL, t_string);
-  STRING(o) = s_name(insert_symbol(gwion->st, str));
-  return o;
-}
-
-ANN void instantiate_object(const VM_Shred shred, const Type type) {
-  const M_Object object = new_object(shred->info->mp, shred, type);
-  *(M_Object*)REG(0) =  object;
-  PUSH_REG(shred, SZ_INT);
-}
-
-ANN static void handle_dtor(const M_Object object, const VM_Shred shred) {
-  const Type t = object->type_ref;
-  const VM_Shred sh = new_vm_shred(shred->info->mp, t->nspc->dtor);
+ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
+  const VM_Shred sh = new_vm_shred(shred->info->mp, o->type_ref->nspc->dtor);
   sh->base = shred->base;
-  *(M_Object*)sh->mem = object;
+  *(M_Object*)sh->mem = o;
   vm_add_shred(shred->info->vm, sh);
   ++sh->info->me->ref;
 }
 
 __attribute__((hot))
-ANN void __release(const M_Object obj, const VM_Shred shred) {
+ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;// = shred->info->vm->gwion->p;
-  Type t = obj->type_ref;
+  Type t = o->type_ref;
   while(t->parent) {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
           isa(v->type, t_object) > 0)
-        release(*(M_Object*)(obj->data + v->offset), shred);
+        release(*(M_Object*)(o->data + v->offset), shred);
     }
     if(GET_FLAG(t, dtor)) {
       if(GET_FLAG(t->nspc->dtor, builtin))
-        ((f_xtor)t->nspc->dtor->native_func)(obj, NULL, shred);
+        ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
       else {
-        handle_dtor(obj, shred);
+        handle_dtor(o, shred);
         return;
       }
     }
     t = t->parent;
   }
-  free_object(p, obj);
+  free_object(p, o);
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
@@ -132,19 +114,21 @@ static OP_CHECK(at_object) {
 
 #define STR_FORCE ":force"
 #define STRLEN_FORCE strlen(STR_FORCE)
+
+static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
+  const Type ret = type_copy(p, t);
+  SET_FLAG(ret, force);
+  nspc_add_type(t->owner, sym, ret);
+  return ret;
+}
+
 static Type get_force_type(const Env env, const Type t) {
   const size_t len = strlen(t->name);
-  char name[len + STRLEN_FORCE];
+  char name[len + STRLEN_FORCE + 1];
   strcpy(name, t->name);
   strcpy(name + len, STR_FORCE);
   const Symbol sym = insert_symbol(env->gwion->st, name);
-  const Type old = nspc_lookup_type0(t->owner, sym);
-  if(old)
-    return old;
-  const Type ret = type_copy(env->gwion->p, t);
-  SET_FLAG(ret, force);
-  nspc_add_type(t->owner, sym, ret);
-    return ret;  
+  return nspc_lookup_type0(t->owner, sym) ?: new_force_type(env->gwion->p, t, sym);
 }
 
 static OP_CHECK(opck_object_cast) {
