@@ -437,8 +437,8 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
     emit_add_instr(emit, RegPushMem);
   else if(prim->d.var == insert_symbol("me"))
     emit_add_instr(emit, RegPushMe);
-  else if(prim->d.var == insert_symbol("now") && exp_self(prim)->type == t_now)
-    emit_add_instr(emit, RegPushNow);// 'now' is not reserved for ... now ;-)
+  else if(prim->d.var == insert_symbol("now"))
+    emit_add_instr(emit, RegPushNow);
   else if(prim->d.var == insert_symbol("maybe"))
     emit_add_instr(emit, RegPushMaybe);
   else if(prim->d.var == insert_symbol("__func__")) {
