@@ -437,8 +437,8 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
     emit_add_instr(emit, RegPushMem);
   else if(prim->d.var == insert_symbol("me"))
     emit_add_instr(emit, RegPushMe);
-  else if(prim->d.var == insert_symbol("now"))
-    emit_add_instr(emit, RegPushNow);
+  else if(prim->d.var == insert_symbol("now") && exp_self(prim)->type == t_now)
+    emit_add_instr(emit, RegPushNow);// 'now' is not reserved for ... now ;-)
   else if(prim->d.var == insert_symbol("maybe"))
     emit_add_instr(emit, RegPushMaybe);
   else if(prim->d.var == insert_symbol("__func__")) {
@@ -1020,7 +1020,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
     CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp->type, exp->cast_to))
-    if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_fork) < 0 ) { // beware fork
+    if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_shred) < 0 ) { // beware fork
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
@@ -1079,7 +1079,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
   if(stmt->val) {
     OPTIMIZE_TCO
     CHECK_BB(emit_exp(emit, stmt->val, 0))
-    if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_fork) < 0) // beware fork
+    if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_shred) < 0) // beware shred
       emit_add_instr(emit, RegAddRef);
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
@@ -1726,6 +1726,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit_pop_code(emit);
+  if(GET_FLAG(func_def, op))
+    SET_FLAG(func->code, op);
   if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))

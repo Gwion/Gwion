@@ -201,9 +201,9 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code)
-    return scan2_stmt(env, unary->code);
-  else if(unary->exp)
+  if((unary->op == op_spork || unary->op == op_fork) && unary->code) {
+    RET_NSPC(scan2_stmt(env, unary->code))
+  } else if(unary->exp)
     return scan2_exp(env, unary->exp);
   return GW_OK;
 }
@@ -446,6 +446,10 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
+    if(!t) {
+      vector_release(&v);
+      return NULL;
+    }
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
@@ -488,7 +492,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   if(GET_FLAG(f, global))
     scope = env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
+  const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
   m_str func_name = s_name(f->base->xid);
+  if(res)
+    ERR_B(f->pos, "'%s' already declared as type", func_name)
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
   if(tmpl_list_base(f->tmpl))
@@ -500,7 +507,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
     if(f->base->func)
       func_name = f->base->func->name;
     else
-      func_name = func_tmpl_name(env, f);
+      CHECK_OB((func_name = func_tmpl_name(env, f)))
     const Func func = nspc_lookup_func1(env->curr, insert_symbol(func_name));
     if(func) {
       if(GET_FLAG(func, member))

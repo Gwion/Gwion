@@ -98,6 +98,8 @@ static INSTR(name##_String) {\
   POP_REG(shred, offset); \
   const type lhs = *(type*)REG(-SZ_INT);\
   const M_Object rhs = *(M_Object*)REG(offset-SZ_INT);\
+  if(!rhs)                                          \
+    Except(shred, "NullPtrException");              \
   char str[(len)];\
   sprintf(str, format, __VA_ARGS__);\
   push_new_string(shred, str);\

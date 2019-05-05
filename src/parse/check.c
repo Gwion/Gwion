@@ -417,6 +417,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func, former = env->func;
   const m_str tmpl_name = tl2str(env, types);
+  const m_uint sz = vector_size((Vector)env->curr->info->type);
   const m_uint scope = env_push(env, v->owner_class, v->owner);
   for(m_uint i = 0; i < v->offset + 1; ++i) {
     Func_Def def = NULL;
@@ -457,6 +458,9 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         }
       }
     }
+// check m_func => maybe assert
+    if(!m_func && sz != vector_size((Vector)env->curr->info->type))
+     nspc_pop_type(env->gwion->p, env->curr);
     SET_FLAG(base, template);
   }
 end:
@@ -638,7 +642,10 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp), .data=(uintptr_t)post, .pos=exp_self(post)->pos };
   CHECK_OO(opi.lhs)
-  return op_check(env, &opi);
+  const Type t = op_check(env, &opi);
+  if(t && isa(t, t_object) < 0)
+    exp_self(post)->meta = ae_meta_value;
+  return t;
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
@@ -664,7 +671,10 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
   if(unary->exp && !opi.rhs)
     return NULL;
-  return op_check(env, &opi);
+  const Type t = op_check(env, &opi);
+  if(t && isa(t, t_object) < 0)
+    exp_self(unary)->meta = ae_meta_value;
+  return t;
 }
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {

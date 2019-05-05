@@ -40,13 +40,13 @@ static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   emit_add_instr(emit, int_r_assign);
   if(bin->lhs->type != t_lambda && GET_FLAG(bin->rhs->type->d.func, member)
-    && !emit->env->class_def
-) {
+    && !emit->env->class_def) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
   return GW_OK;
 }
+
 ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
   const Func l_func = bin->lhs->type->d.func;
   const Func r_func = bin->rhs->type->d.func;
@@ -164,7 +164,12 @@ static OP_CHECK(opck_spork) {
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return unary->op == op_spork ? t_shred : t_fork;
   else if(unary->code) {
-    CHECK_BO(check_stmt(env, unary->code))
+    ++env->scope->depth;        \
+    nspc_push_value(env->gwion->p, env->curr); \
+    const m_bool ret = check_stmt(env, unary->code);
+    nspc_pop_value(env->gwion->p, env->curr);  \
+    --env->scope->depth;
+    CHECK_BO(ret)
     return unary->op == op_spork ? t_shred : t_fork;
   } else
     ERR_O(exp_self(unary)->pos, "only function calls can be sporked...")
