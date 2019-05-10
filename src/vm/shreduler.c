@@ -47,8 +47,11 @@ ANN static void unwind(const VM_Shred shred) {
       if(GET_FLAG(code, op))
         code = *(VM_Code*)(shred->mem - SZ_INT);
       else {
-        code = *(VM_Code*)(shred->mem - SZ_INT*3);
-        REM_REF(code, shred->info->vm->gwion);
+        if(GET_FLAG(code, ctor))
+          code = *(VM_Code*)(shred->mem - SZ_INT*2);
+        else
+          code = *(VM_Code*)(shred->mem - SZ_INT*3);
+        REM_REF(code, shred->info->vm->gwion)
       }
       shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4) + SZ_INT*4;
       if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))break;

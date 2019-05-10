@@ -46,7 +46,7 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
   const Type base = known_type(env, stmt->ext);
   CHECK_OB(base)
-  CHECK_BB(scan0_defined(env, stmt->xid, stmt->ext->xid->pos))
+  CHECK_BB(scan0_defined(env, stmt->xid, td_pos(stmt->ext)))
   if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp)) {
     const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(stmt->xid), base);
     t->size = base->size;

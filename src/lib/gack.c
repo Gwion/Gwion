@@ -79,10 +79,9 @@ ANN static inline void print_func(const Type type, const m_bit* stack) {
   if(type->d.func) {
     const VM_Code code = isa(type, t_fptr) > 0 ?
       *(VM_Code*)stack : type->d.func->code;
-    gw_out("%s %p", type->name, (void*)code ? code->name : NULL);
-  } else {
+    gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
+  } else
     gw_out("%s %p", type->name, NULL);
-  }
 }
 
 ANN static void print_prim(const Type type, const m_bit* stack) {

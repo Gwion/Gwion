@@ -517,7 +517,6 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   const m_uint size = v->type->size;
   if(isa(v->type, t_class) < 0) {
     if(isa(v->type, t_union) < 0) {
-printf("%s %lu %p·\n", v->name, v->offset, v->owner->info->class_data);
       const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
       instr->m_val = (m_uint)(v->owner->info->class_data + v->offset);
       instr->m_val2 = size;
@@ -882,6 +881,7 @@ ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
   pop->m_val = depth;
   const Instr spork = emit_add_instr(emit, SporkFunc);
   spork->m_val = depth + SZ_INT;
+  spork->m_val2 = -SZ_INT;
 }
 
 static inline void stack_alloc(const Emitter emit) {
@@ -927,7 +927,8 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
 
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   const m_bool is_spork = unary->op == op_spork;
-  if(unary->code) {
+  const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
+  if(!f) {
     emit_add_instr(emit, RegPushImm);
     push_spork_code(emit, is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, unary->code->pos);
     if(!SAFE_FLAG(emit->env->func, member))
@@ -942,7 +943,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   const Instr ini = emit_add_instr(emit, unary->op == op_spork ? SporkIni : ForkIni);
   ini->m_val = (m_uint)code;
   ini->m_val2 = is_spork;
-  if(unary->code) {
+  if(!f) {
     if(!is_spork) {
       const Instr push = emit_add_instr(emit, RegPush);
       push->m_val = SZ_INT;
@@ -950,8 +951,23 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
     spork->m_val = emit->code->stack_depth;
   } else {
-    const Func f = unary->exp->d.exp_call.m_func;
-    emit_exp_spork_finish(emit, f->def->stack_depth);
+    if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+      const m_uint depth = f->def->stack_depth;
+      const Instr pop = emit_add_instr(emit, RegPop);
+      pop->m_val = depth;
+      emit_add_instr(emit, RegPushMem);
+      const Instr arg = emit_add_instr(emit, SporkFunc);
+      arg->m_val = depth - SZ_INT;
+      const Instr cpy = emit_add_instr(emit, SporkFunc);
+      cpy->m_val = SZ_INT;
+      cpy->m_val2 = -SZ_INT;
+      const Instr cpy1 = emit_add_instr(emit, SporkFunc);
+      cpy1->m_val = SZ_INT;
+      cpy1->m_val2 = SZ_INT;
+      const Instr code = emit_add_instr(emit, DotMember);
+      code->m_val = f->value_ref->offset;
+    } else
+      emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
     end->m_val2 = f->def->base->ret_type->size;
   }
@@ -1426,16 +1442,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
     SET_FLAG(stmt->l->self->d.exp_decl.list->self->value, enum);
   }
   if(stmt->xid){
-//    if(!emit->env->class_def) {
       const Instr instr = emit_add_instr(emit, RegPop);
       instr->m_val = !GET_FLAG(stmt, static) ? SZ_INT : SZ_INT*2;
-/*
-    } else if(!GET_FLAG(stmt, static)) {
-      const Instr instr = emit_add_instr(emit, RegPop);
-      instr->m_val = SZ_INT;
-      printf("stmt->o %lu\n", stmt->o);
-    }
-*/
   }
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid || stmt->type_xid || global)
@@ -1696,27 +1704,11 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   emit_push_scope(emit);
   emit->env->func = func;
   CHECK_BB(emit_func_def_body(emit, func_def))
-//  if(GET_FLAG(func_def, variadic) && !emit->env->func->variadic)
   if(GET_FLAG(func_def, variadic)) {
     if(!emit->env->func->variadic)
       ERR_B(func_def->pos, "invalid variadic use")
     if(!GET_FLAG(func, empty))
       ERR_B(func_def->pos, "invalid variadic use")
-//printf("opcode %p %p %p\n", emit->env->func->variadic->execute, VarargTop, VarargEnd);
-
-/*
-    if(emit->env->func->variadic->execute == VarargIni ||
-      emit->env->func->variadic->execute == VarargTop
-) {
-//assert(emit->env->func->variadic->execute == VarargTop);
-//free_code(emit->gwion->p, emit->code);
-//  emit_func_def_code(emit, func);
-//  REM_REF(func->code, emit->gwion);
-//  emit->env->func = former;
-//  emit_pop_code(emit);
-      ERR_B(func_def->pos, "invalid variadic use")
-    }
-*/
   }
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
@@ -1782,6 +1774,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
     while((body = body->next));
   }
   emit_class_finish(emit, nspc);
+  SET_FLAG(class_def->base.type->nspc->pre_ctor, ctor);
   emit_class_pop(emit);
   SET_FLAG(type, emit);
   return GW_OK;

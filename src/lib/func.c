@@ -39,8 +39,7 @@ static OP_CHECK(opck_func_call) {
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   emit_add_instr(emit, int_r_assign);
-  if(bin->lhs->type != t_lambda && GET_FLAG(bin->rhs->type->d.func, member)
-    && !emit->env->class_def) {
+  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) && GET_FLAG(bin->rhs->type->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
@@ -149,7 +148,7 @@ static OP_EMIT(opem_fptr_cast) {
     const Instr instr = emit_add_instr(emit, RegPop);
     instr->m_val = SZ_INT*2;
     const Instr dup = emit_add_instr(emit, Reg2Reg);
-    dup->m_val = -SZ_INT;
+    dup->m_val2 = SZ_INT;
   }
   return GW_OK;
 }

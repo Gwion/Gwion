@@ -624,7 +624,7 @@ sporkini:
 sporkfunc:
 //  LOOP_OPTIM
   for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i - SZ_INT);
+    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)instr->m_val2);
   a.child->reg += instr->m_val;
   DISPATCH()
 sporkexp:

@@ -64,12 +64,8 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   }
   if(isa(type, env->class_def) < 0 && !GET_FLAG(func, global))
     ERR_B(var->pos, "can't use non global fptr of other class.")
-  if(GET_FLAG(func, member)) {
-    if(GET_FLAG(v, static))
+  if(GET_FLAG(func, member) && GET_FLAG(v, static))
       ERR_B(var->pos, "can't use static variables for member function.")
-    if(!GET_FLAG(v, member))
-      ERR_B(var->pos, "can't use member variables for static function.")
-  }
   return GW_OK;
 }
 
@@ -704,7 +700,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
     ERR_O(member->base->pos,
           "type '%s' does not have members - invalid use in dot expression of %s",
           the_base->name, str)
-  if(!strcmp(str, "this") && base_static)
+  if(member->xid ==  insert_symbol("this") && base_static)
     ERR_O(exp_self(member)->pos,
           "keyword 'this' must be associated with object instance...")
   const Value value = find_value(the_base, member->xid);
