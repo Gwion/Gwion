@@ -186,20 +186,12 @@ ANN void fork_clean(const VM *vm, const Vector v) {
 }
 
 void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
-  ++o->ref;
-  ++o->ref;
-//  Gwion gwion = ME(o)->info->vm->gwion;
-//  if(!gwion->child.ptr)
-//    vector_init(&gwion->child);
-//  vector_add(&gwion->child, (vtype)o);
-//  o->ref += 2;
-  if(!vm->gwion->child.ptr) {
+  o->ref += 2;
+  if(!vm->gwion->child.ptr)
     vector_init(&vm->gwion->child);
-  }
   vector_add(&vm->gwion->child, (vtype)o);
   FORK_ORIG(o) = (VM*)vm;
   FORK_RETSIZE(o) = sz;
-//printf("sz %lu\n", vector_size(&gwion->child));
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
 }
 
