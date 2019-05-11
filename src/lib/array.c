@@ -138,8 +138,8 @@ static MFUN(vm_vector_cap) {
 }
 
 ANN static Type get_array_type(Type t) {
-  while(t->d.base_type)
-    t = t->d.base_type;
+  while(t->e->d.base_type)
+    t = t->e->d.base_type;
   return t;
 }
 
@@ -186,11 +186,11 @@ static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->type;
   Type r = exp_self(cast)->type;
-  while(!l->d.base_type)
-    l = l->parent;
-  while(!r->d.base_type)
-    r = r->parent;
-  if(l->array_depth == r->array_depth || isa(l->d.base_type, r->d.base_type) > 0)
+  while(!l->e->d.base_type)
+    l = l->e->parent;
+  while(!r->e->d.base_type)
+    r = r->e->parent;
+  if(l->array_depth == r->array_depth || isa(l->e->d.base_type, r->e->d.base_type) > 0)
     return l;
   return t_null;
 }

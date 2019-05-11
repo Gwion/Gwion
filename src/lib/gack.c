@@ -18,7 +18,7 @@ static void print_type(const Type type) {
   free(name);
   if(GET_FLAG(type, typedef)) {
     gw_out(" aka ");
-    print_type(type->parent);
+    print_type(type->e->parent);
   }
 }
 
@@ -76,9 +76,9 @@ ANN2(1) static inline void print_object(const Type type, const M_Object obj) {
 }
 
 ANN static inline void print_func(const Type type, const m_bit* stack) {
-  if(type->d.func) {
+  if(type->e->d.func) {
     const VM_Code code = isa(type, t_fptr) > 0 ?
-      *(VM_Code*)stack : type->d.func->code;
+      *(VM_Code*)stack : type->e->d.func->code;
     gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
   } else
     gw_out("%s %p", type->name, NULL);
@@ -116,7 +116,7 @@ ANN void gack(const m_bit* reg, const Instr instr) {
     else if(type == t_class)
       print_type(type);
     else if(isa(type, t_class) > 0)
-      print_type(type->d.base_type);
+      print_type(type->e->d.base_type);
     else if(isa(type, t_void) > 0)
       print_string1("void");
     else

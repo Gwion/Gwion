@@ -1,16 +1,20 @@
 #ifndef __TYPE
 #define __TYPE
 
+  struct TypeInfo_ {
+    Type      parent;
+    Nspc      owner;
+    Class_Def def;
+    union type_data {
+      Func      func;
+      Type      base_type;
+    } d;
+  };
+
 struct Type_ {
   m_str     name;
   Nspc      nspc;
-  Type      parent;
-  Nspc      owner;
-  Class_Def def;
-  union type_data {
-    Func      func;
-    Type      base_type;
-  } d;
+  struct TypeInfo_ *e;
   size_t xid;
   size_t size;
   size_t array_depth;
@@ -39,7 +43,7 @@ ANN m_bool type_ref(Type) __attribute__((pure));
 __attribute__((returns_nonnull))
 ANN Type template_parent(const Env, const Type type);
 static inline Type actual_type(const Type t) {
-  return isa(t, t_class) > 0 ? t->d.base_type : t;
+  return isa(t, t_class) > 0 ? t->e->d.base_type : t;
 }
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
 #endif

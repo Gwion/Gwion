@@ -91,13 +91,13 @@ ANN void env_pop(const Env env, const m_uint scope) {
 
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(env->gwion->mp, t_class);
-  v_type->d.base_type = type;
+  v_type->e->d.base_type = type;
   SET_FLAG(type, builtin);
   nspc_add_type(env->curr, insert_symbol(type->name), type);
   const Value v = new_value(env->gwion->mp, v_type, type->name);
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
-  type->owner = env->curr;
+  type->e->owner = env->curr;
   type->xid = ++env->scope->type_xid;
 }
 

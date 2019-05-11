@@ -31,7 +31,7 @@ ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
 }
 
 ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var) {
-  const Value value = find_value(env->class_def->parent, var->xid);
+  const Value value = find_value(env->class_def->e->parent, var->xid);
   if(value)
     ERR_B(var->pos,
           "in class '%s': '%s' has already been defined in parent class '%s' ...",
@@ -55,7 +55,7 @@ ANN static inline void decl_static(const Nspc nspc, const Value v) { \
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
-  const Func  func = v->type->d.func;
+  const Func  func = v->type->e->d.func;
   const Type type = func->value_ref->owner_class;
   if(!env->class_def) {
     if(!type || GET_FLAG(func, global))
@@ -110,14 +110,14 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
       ERR_O(td_pos(decl->td), "can't infer type.");
   if(GET_FLAG(decl->type , template)) {
     const Type t = typedef_base(decl->type);
-    CHECK_BO(traverse_template(env, t->def))
+    CHECK_BO(traverse_template(env, t->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
     const Var_Decl var = list->self;
     const Value v = var->value;
-    if(env->class_def && !env->scope->depth && env->class_def->parent)
+    if(env->class_def && !env->scope->depth && env->class_def->e->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
@@ -310,8 +310,8 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) {
 
   while(t_base && array->array->depth > t_base->array_depth) {
      depth -= t_base->array_depth;
-     if(t_base->parent)
-       t_base = t_base->parent;
+     if(t_base->e->parent)
+       t_base = t_base->e->parent;
      else
        ERR_O(exp_self(array)->pos,
              "array subscripts (%i) exceeds defined dimension (%i)",
@@ -325,7 +325,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   struct Vector_ v;
   vector_init(&v);
   vector_add(&v, (vtype)insert_symbol(type->name));
-  Nspc nspc = type->owner;
+  Nspc nspc = type->e->owner;
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
     vector_add(&v, (vtype)insert_symbol(t->name));
@@ -347,9 +347,9 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->type) == array_base(t);
     if(!match) {
       if(e->type == t_lambda && isa(t, t_fptr) > 0) {
-        const Type owner = nspc_lookup_type1(t->owner->parent,
-          insert_symbol(t->owner->name));
-        return check_lambda(env, owner, &e->d.exp_lambda, t->d.func->def);
+        const Type owner = nspc_lookup_type1(t->e->owner->parent,
+          insert_symbol(t->e->owner->name));
+        return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
       if(implicit) {
         const struct Implicit imp = { e, t };
@@ -478,7 +478,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
    if(f)
      return f;
    next:
-     t = t->parent;
+     t = t->e->parent;
   }
   assert(exp_self(exp));
   ERR_O(exp_self(exp)->pos, "arguments do not match for template call")
@@ -499,7 +499,7 @@ ANN static void print_arg(Arg_List e) {
 
 ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   env_err(env, pos, "argument type(s) do not match for function. should be :");
-  Func up = f->d.func;
+  Func up = f->e->d.func;
   do {
     gw_err("(%s)\t", up->name);
     const Arg_List e = up->def->base->args;
@@ -536,7 +536,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   m_uint args_number = 0;
-  const Value value = nspc_lookup_value1(call->type->owner, insert_symbol(call->type->name));
+  const Value value = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
   const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
   Type_List tl[type_number];
@@ -601,15 +601,15 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_BO(check_exp_call1_check(env, exp->func))
   if(exp->func->type == t_lambda)
     return check_lambda_call(env, exp);
-  if(GET_FLAG(exp->func->type->d.func, ref)) {
-    const Value value = exp->func->type->d.func->value_ref;
-    CHECK_BO(traverse_template(env, value->owner_class->def))
+  if(GET_FLAG(exp->func->type->e->d.func, ref)) {
+    const Value value = exp->func->type->e->d.func->value_ref;
+    CHECK_BO(traverse_template(env, value->owner_class->e->def))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   if(GET_FLAG(exp->func->type, func))
     return check_exp_call_template(env, exp);
-  const Func func = find_func_match(env, exp->func->type->d.func, exp->args);
+  const Func func = find_func_match(env, exp->func->type->e->d.func, exp->args);
   return (exp_self(exp)->d.exp_call.m_func = func) ?
     func->def->base->ret_type : function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
 }
@@ -648,7 +648,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
-    const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
+    const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
     if(!v)
       ERR_O(exp_self(exp)->pos, " template call of non-existant function.")
     if(!GET_FLAG(v, func))
@@ -695,7 +695,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   const m_str str = s_name(member->xid);
   CHECK_OO((member->t_base = check_exp(env, member->base)))
   const m_bool base_static = isa(member->t_base, t_class) > 0;
-  const Type the_base = base_static ? member->t_base->d.base_type : member->t_base;
+  const Type the_base = base_static ? member->t_base->e->d.base_type : member->t_base;
   if(!the_base->nspc)
     ERR_O(member->base->pos,
           "type '%s' does not have members - invalid use in dot expression of %s",
@@ -728,7 +728,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
 }
 
 ANN m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
+  return stmt->type->e->def ? check_class_def(env, stmt->type->e->def) : 1;
 }
 ANN static Type check_exp_lambda(const Env env NUSED,
     const Exp_If* exp_if NUSED) { return t_lambda; }
@@ -736,7 +736,7 @@ ANN static Type check_exp_lambda(const Env env NUSED,
 ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
   const Type t = check_exp(env, exp->exp);
   CHECK_OO(t)
-  const Value v = nspc_lookup_value1(t->owner, insert_symbol(t->name));
+  const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
   CHECK_OO(v)
   return v->type;
 }
@@ -753,7 +753,7 @@ ANN static inline Type check_exp(const Env env, const Exp exp) {
   do {
     CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
     if(env->func && isa(curr->type, t_lambda) < 0 && isa(curr->type, t_function) > 0 &&
-        !GET_FLAG(curr->type->d.func, pure))
+        !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);
   } while((curr = curr->next));
   return exp->type;
@@ -808,7 +808,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
   if(GET_FLAG(t, typedef))
-    t = t->parent;
+    t = t->e->parent;
   if(!t || !ptr || isa(t, t_array) < 0)
     ERR_B(stmt_self(stmt)->pos, "type '%s' is not array.\n"
           " This is not allowed in auto loop", stmt->exp->type->name)
@@ -835,7 +835,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     }
     ptr = type_decl_resolve(env, &td);
     if(!GET_FLAG(ptr, checked))
-      check_class_def(env, ptr->def);
+      check_class_def(env, ptr->e->def);
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
@@ -1029,7 +1029,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
 
 ANN static m_bool check_parent_match(const Env env, const Func_Def f) {
   const Func func = f->base->func;
-  const Type parent = env->class_def->parent;
+  const Type parent = env->class_def->e->parent;
   if(parent) {
     const Value v = find_value(parent, f->base->xid);
     if(v && isa(v->type, t_function) > 0) {
@@ -1081,8 +1081,8 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
 
 ANN static m_bool check_func_def_override(const Env env, const Func_Def f) {
   const Func func = f->base->func;
-  if(env->class_def && env->class_def->parent) {
-    const Value override = find_value(env->class_def->parent, f->base->xid);
+  if(env->class_def && env->class_def->e->parent) {
+    const Value override = find_value(env->class_def->e->parent, f->base->xid);
     if(override && override->owner_class && isa(override->type, t_function) < 0)
       ERR_B(f->pos,
             "function name '%s' conflicts with previously defined value...\n"
@@ -1158,22 +1158,22 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
   if(class_def->base.ext->array) {
     CHECK_BB(check_exp_array_subscripts(env, class_def->base.ext->array->exp))
     if(!GET_FLAG(class_def->base.type, check) && class_def->tmpl)
-      REM_REF(class_def->base.type->parent->nspc, env->gwion);
+      REM_REF(class_def->base.type->e->parent->nspc, env->gwion);
   }
   if(class_def->base.ext->types) {
-    const Type t = class_def->base.type->parent->array_depth ?
-      array_base(class_def->base.type->parent) : class_def->base.type->parent;
+    const Type t = class_def->base.type->e->parent->array_depth ?
+      array_base(class_def->base.type->e->parent) : class_def->base.type->e->parent;
     if(!GET_FLAG(t, checked)) {
       if(class_def->tmpl)
         CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
-      CHECK_BB(traverse_template(env, t->def))
+      CHECK_BB(traverse_template(env, t->e->def))
       if(class_def->tmpl)
         nspc_pop_type(env->gwion->mp, env->curr);
     }
   }
-  if(!GET_FLAG(class_def->base.type->parent, checked))
-    CHECK_BB(check_class_def(env, class_def->base.type->parent->def))
-  if(GET_FLAG(class_def->base.type->parent, typedef))
+  if(!GET_FLAG(class_def->base.type->e->parent, checked))
+    CHECK_BB(check_class_def(env, class_def->base.type->e->parent->e->def))
+  if(GET_FLAG(class_def->base.type->e->parent, typedef))
     SET_FLAG(class_def->base.type, typedef);
   return GW_OK;
 }
@@ -1188,7 +1188,7 @@ ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
 }
 
 ANN static inline void inherit(const Type t) {
-  const Nspc nspc = t->nspc, parent = t->parent->nspc;
+  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
   nspc->info->offset = parent->info->offset;
   if(parent->info->vtable.ptr)
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);
@@ -1197,15 +1197,15 @@ ANN static inline void inherit(const Type t) {
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) {
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
-  if(class_def->base.type->parent == t_undefined) {
-    class_def->base.type->parent = check_td(env, class_def->base.ext);
+  if(class_def->base.type->e->parent == t_undefined) {
+    class_def->base.type->e->parent = check_td(env, class_def->base.ext);
     return traverse_class_def(env, class_def);
   }
   const Type the_class = class_def->base.type;
   if(class_def->base.ext)
     CHECK_BB(check_class_parent(env, class_def))
   else
-    the_class->parent = t_object;
+    the_class->e->parent = t_object;
   inherit(the_class);
   if(class_def->body)
     CHECK_BB(check_class_body(env, class_def))

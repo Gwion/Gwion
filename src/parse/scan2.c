@@ -21,8 +21,8 @@ ANN m_bool scan2_class_def(const Env, const Class_Def);
 
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
   CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
-  CHECK_BB(scan1_class_def(env, decl->type->def))
-  CHECK_BB(scan2_class_def(env, decl->type->def))
+  CHECK_BB(scan1_class_def(env, decl->type->e->def))
+  CHECK_BB(scan2_class_def(env, decl->type->e->def))
   nspc_pop_type(env->gwion->mp, env->curr);
   return GW_OK;
 }
@@ -94,7 +94,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   ptr->base->func = new_func(env->gwion->mp, s_name(ptr->base->xid), def);
   ptr->value->d.func_ref = ptr->base->func;
   ptr->base->func->value_ref = ptr->value;
-  ptr->type->d.func = ptr->base->func;
+  ptr->type->e->d.func = ptr->base->func;
   SET_FLAG(ptr->value, func | ae_flag_checked);
   if(ptr->base->args)
     CHECK_BB(scan2_args(env, def))
@@ -113,12 +113,12 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
     ptr->value->owner_class = env->class_def;
   }
   nspc_add_value(env->curr, ptr->base->xid, ptr->value);
-  nspc_add_func(ptr->type->owner, ptr->base->xid, ptr->base->func);
+  nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
   return GW_OK;
 }
 
 ANN m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->def ? scan2_class_def(env, stmt->type->def) : 1;
+  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : 1;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -323,10 +323,10 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 ANN static Type func_type(const Env env, const Func func) {
   const Type t = type_copy(env->gwion->mp, t_function);
   t->name = func->name;
-  t->owner = env->curr;
+  t->e->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
-  t->d.func = func;
+  t->e->d.func = func;
   return t;
 }
 
@@ -381,7 +381,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
         }
       } while((ff = ff->next) && ++i);
    }
-  } while(type && (type = type->parent) && (nspc = type->nspc));
+  } while(type && (type = type->e->parent) && (nspc = type->nspc));
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, func_name, "template", i);
   nspc_add_value(env->curr, sym, value);
@@ -541,10 +541,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
 DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
-  const Type t = cdef->base.type->parent->array_depth ?
-    array_base(cdef->base.type->parent) : cdef->base.type->parent;
+  const Type t = cdef->base.type->e->parent->array_depth ?
+    array_base(cdef->base.type->e->parent) : cdef->base.type->e->parent;
   if(!GET_FLAG(t, scan2) && GET_FLAG(cdef->base.ext, typedef))
-    CHECK_BB(scan2_class_def(env, t->def))
+    CHECK_BB(scan2_class_def(env, t->e->def))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;

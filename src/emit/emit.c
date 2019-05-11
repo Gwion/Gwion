@@ -153,8 +153,8 @@ ANN static inline m_uint emit_local(const Emitter emit, const m_uint size, const
 }
 
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
-  if(type->parent)
-    emit_pre_ctor(emit, type->parent);
+  if(type->e->parent)
+    emit_pre_ctor(emit, type->e->parent);
   if(type->nspc->pre_ctor)
     emit_ext_ctor(emit, type->nspc->pre_ctor);
   if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
@@ -382,7 +382,7 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
 ANN static m_uint get_depth(Type t) {
   m_uint depth = 0;
   do depth += t->array_depth;
-  while((t = t->parent));
+  while((t = t->e->parent));
   return depth;
 }
 
@@ -615,8 +615,8 @@ ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
   const Type t = typedef_base(decl->type);
   if(!GET_FLAG(t, emit)) {
-    CHECK_BB(template_push_types(emit->env, t->def->tmpl->list.list, t->def->tmpl->base))
-    CHECK_BB(emit_class_def(emit, t->def))
+    CHECK_BB(template_push_types(emit->env, t->e->def->tmpl->list.list, t->e->def->tmpl->base))
+    CHECK_BB(emit_class_def(emit, t->e->def))
     emit_pop_type(emit);
   }
   return GW_OK;
@@ -798,7 +798,7 @@ if(vector_size(&emit->code->instr)) {
 
 ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, ref))
-    CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->def))
+    CHECK_BB(traverse_template(emit->env, f->value_ref->owner_class->e->def))
   const Value v = f->value_ref;
   size_t scope = emit_push(emit, v->owner_class, v->owner);
   CHECK_BB(emit_func_def(emit, f->def))
@@ -1041,7 +1041,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
       instr->m_val = exp->emit_var;
     }
     if(emit->env->func && isa(exp->type, t_lambda) < 0 && isa(exp->type, t_function) > 0 &&
-        !GET_FLAG(exp->type->d.func->value_ref->d.func_ref, pure))
+        !GET_FLAG(exp->type->e->d.func->value_ref->d.func_ref, pure))
       UNSET_FLAG(emit->env->func, pure);
   } while((exp = exp->next));
   return GW_OK;
@@ -1365,7 +1365,7 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) {
 }
 
 ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Type stmt) {
-  return stmt->type->def ? emit_class_def(emit, stmt->type->def) : 1;
+  return stmt->type->e->def ? emit_class_def(emit, stmt->type->e->def) : 1;
 }
 
 ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) {
@@ -1755,19 +1755,19 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def class_def) 
   const Nspc nspc = type->nspc;
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
-  if(class_def->base.ext && ((/*!GET_FLAG(type->parent, emit) &&*/
+  if(class_def->base.ext && ((/*!GET_FLAG(type->e->parent, emit) &&*/
       GET_FLAG(class_def->base.ext, typedef)) || class_def->base.ext->types)) {
     const Type base = class_def->base.ext->array ?
-             array_base(type->parent) : type->parent;
+             array_base(type->e->parent) : type->e->parent;
     if(!base->nspc->pre_ctor)
-      CHECK_BB(emit_class_def(emit, base->def))
+      CHECK_BB(emit_class_def(emit, base->e->def))
   }
   if(nspc->info->class_data_size)
     nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
   emit_class_push(emit, type);
   emit_class_code(emit, type->name);
   if(class_def->base.ext && class_def->base.ext->array)
-    CHECK_BB(emit_array_extend(emit, type->parent, class_def->base.ext->array->exp))
+    CHECK_BB(emit_array_extend(emit, type->e->parent, class_def->base.ext->array->exp))
   if(class_def->body) {
     Class_Body body = class_def->body;
     do CHECK_BB(emit_section(emit, body->section))

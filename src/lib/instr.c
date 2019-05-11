@@ -20,7 +20,7 @@ INSTR(EOC) {
 */
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
-  o->type_ref = o->type_ref->parent;
+  o->type_ref = o->type_ref->e->parent;
   __release(o, shred);
   shred->info->me->ref = 1;
   vm_shred_exit(shred);
@@ -113,6 +113,6 @@ INSTR(DotTmpl) {
         return;
       }
     }
-  } while((t = t->parent));
+  } while((t = t->e->parent));
   Except(shred, "MissigTmplException[internal]"); //unreachable
 }

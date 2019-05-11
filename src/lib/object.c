@@ -57,7 +57,7 @@ __attribute__((hot))
 ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;// = shred->info->vm->gwion->mp;
   Type t = o->type_ref;
-  while(t->parent) {
+  while(t->e->parent) {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
@@ -73,7 +73,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
         return;
       }
     }
-    t = t->parent;
+    t = t->e->parent;
   }
   free_object(p, o);
 }
@@ -119,7 +119,7 @@ static OP_CHECK(at_object) {
 static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
   const Type ret = type_copy(p, t);
   SET_FLAG(ret, force);
-  nspc_add_type(t->owner, sym, ret);
+  nspc_add_type(t->e->owner, sym, ret);
   return ret;
 }
 
@@ -129,7 +129,7 @@ static Type get_force_type(const Env env, const Type t) {
   strcpy(name, t->name);
   strcpy(name + len, STR_FORCE);
   const Symbol sym = insert_symbol(env->gwion->st, name);
-  return nspc_lookup_type0(t->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
+  return nspc_lookup_type0(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
 }
 
 static OP_CHECK(opck_object_cast) {

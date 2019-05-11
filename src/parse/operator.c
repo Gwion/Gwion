@@ -58,7 +58,7 @@ ANN static Type op_parent(const Env env, const Type t) {
     c[len] = 0;
     return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, c));
   }
-  return t->parent;
+  return t->e->parent;
 }
 
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
@@ -198,7 +198,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {
   if(opi->op == op_impl)
-    return opi->rhs->owner;
+    return opi->rhs->e->owner;
   if(opi->op == op_cast)
     return ((Exp_Cast*)opi->data)->nspc;
   if(opi->lhs) {

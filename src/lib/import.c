@@ -205,12 +205,12 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type type,
     mk_xtor(env->gwion->mp, type, (m_uint)pre_ctor, ae_flag_ctor);
   if(dtor)
     mk_xtor(env->gwion->mp, type, (m_uint)dtor, ae_flag_dtor);
-  if(type->parent) {
-    type->nspc->info->offset = type->parent->nspc->info->offset;
-    if(type->parent->nspc->info->vtable.ptr)
-      vector_copy2(&type->parent->nspc->info->vtable, &type->nspc->info->vtable);
+  if(type->e->parent) {
+    type->nspc->info->offset = type->e->parent->nspc->info->offset;
+    if(type->e->parent->nspc->info->vtable.ptr)
+      vector_copy2(&type->e->parent->nspc->info->vtable, &type->nspc->info->vtable);
   }
-  type->owner = env->curr;
+  type->e->owner = env->curr;
   SET_FLAG(type, checked);
   env_push_type(env, type);
 }
@@ -220,9 +220,9 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
     GWI_ERR_B("during import: class '%s' already imported.", type->name)
   if(gwi->templater.n) {
     const ID_List types = templater_def(gwi->gwion->st, gwi);
-    type->def = new_class_def(gwi->gwion->mp, 0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, loc_cpy(gwi->gwion->mp, gwi->loc));
-    type->def->tmpl = new_tmpl_class(gwi->gwion->mp, types, -1);
-    type->def->base.type = type;
+    type->e->def = new_class_def(gwi->gwion->mp, 0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, loc_cpy(gwi->gwion->mp, gwi->loc));
+    type->e->def->tmpl = new_tmpl_class(gwi->gwion->mp, types, -1);
+    type->e->def->base.type = type;
     SET_FLAG(type, template);
   } else
     SET_FLAG(type, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
@@ -235,17 +235,17 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->gwion->env->class_def)
     GWI_ERR_B("gwi_class_ext invoked before gwi_class_ini")
   const VM_Code ctor = gwi->gwion->env->class_def->nspc->pre_ctor;
-  if(gwi->gwion->env->class_def->parent ||
-      (gwi->gwion->env->class_def->def && gwi->gwion->env->class_def->def->base.ext))
+  if(gwi->gwion->env->class_def->e->parent ||
+      (gwi->gwion->env->class_def->e->def && gwi->gwion->env->class_def->e->def->base.ext))
     GWI_ERR_B("class extend already set")
   if(td->array && !td->array->exp)
     GWI_ERR_B("class extend array can't be empty")
-  if(!gwi->gwion->env->class_def->def) {
+  if(!gwi->gwion->env->class_def->e->def) {
     const Type t = known_type(gwi->gwion->env, td);
     CHECK_OB(t)
     if(td->array)
       SET_FLAG(gwi->gwion->env->class_def, typedef);
-    gwi->gwion->env->class_def->parent = t;
+    gwi->gwion->env->class_def->e->parent = t;
     gwi->gwion->env->class_def->nspc->info->offset = t->nspc->info->offset;
     if(t->nspc->info->vtable.ptr)
       vector_copy2(&t->nspc->info->vtable, &gwi->gwion->env->class_def->nspc->info->vtable);
@@ -259,7 +259,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
     free_type_decl(gwi->gwion->mp, td);
   } else {
     SET_FLAG(td, typedef);
-    gwi->gwion->env->class_def->def->base.ext = td;
+    gwi->gwion->env->class_def->e->def->base.ext = td;
   }
   return GW_OK;
 }
@@ -311,8 +311,8 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
 #undef gwi_item_end
 
 static void gwi_body(const Gwi gwi, const Class_Body body) {
-  if(!gwi->gwion->env->class_def->def->body)
-    gwi->gwion->env->class_def->def->body = body;
+  if(!gwi->gwion->env->class_def->e->def->body)
+    gwi->gwion->env->class_def->e->def->body = body;
   else
     gwi->body->next = body;
   gwi->body = body;

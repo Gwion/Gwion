@@ -39,7 +39,7 @@ static OP_CHECK(opck_func_call) {
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   emit_add_instr(emit, int_r_assign);
-  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) && GET_FLAG(bin->rhs->type->d.func, member)) {
+  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) && GET_FLAG(bin->rhs->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
@@ -47,8 +47,8 @@ static OP_EMIT(opem_func_assign) {
 }
 
 ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
-  const Func l_func = bin->lhs->type->d.func;
-  const Func r_func = bin->rhs->type->d.func;
+  const Func l_func = bin->lhs->type->e->d.func;
+  const Func r_func = bin->rhs->type->e->d.func;
   const Nspc nspc = l_func->value_ref->owner;
   const m_str c = s_name(l_func->def->base->xid);
   const Value v = l_func->value_ref;
@@ -57,7 +57,7 @@ ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
     const Func f = nspc_lookup_func1(nspc, sym); // was lookup2
     CHECK_OO(f)
     if(compat_func(r_func->def, f->def) > 0)
-      return r_func->value_ref->type->d.base_type;
+      return r_func->value_ref->type->e->d.base_type;
   }
   return NULL;
 }
@@ -92,15 +92,15 @@ static OP_CHECK(opck_fptr_at) {
   bin->rhs->emit_var = 1;
   if(isa(bin->lhs->type, t_lambda) > 0) {
     Exp_Lambda *l = &bin->lhs->d.exp_lambda;
-    const Type owner = nspc_lookup_type1(bin->rhs->type->owner->parent,
-       insert_symbol(bin->rhs->type->owner->name));
-    CHECK_BO(check_lambda(env, owner, l, bin->rhs->type->d.func->def))
+    const Type owner = nspc_lookup_type1(bin->rhs->type->e->owner->parent,
+       insert_symbol(bin->rhs->type->e->owner->name));
+    CHECK_BO(check_lambda(env, owner, l, bin->rhs->type->e->d.func->def))
     return bin->rhs->type;
   }
-  const Func l_func = bin->lhs->type->d.func;
+  const Func l_func = bin->lhs->type->e->d.func;
   const Func_Def l_fdef = l_func->def;
   const Type l_type = l_func->value_ref->owner_class;
-  const Func r_func = bin->rhs->type->d.func;
+  const Func r_func = bin->rhs->type->e->d.func;
   const Func_Def r_fdef = r_func->def;
   const Type r_type = r_func->value_ref->owner_class;
   if(!r_type && l_type)
@@ -133,10 +133,10 @@ static OP_CHECK(opck_fptr_cast) {
   const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
   CHECK_OO(v)
   const Func f = isa(v->type, t_fptr) > 0 ?
-            v->type->d.func :
+            v->type->e->d.func :
             nspc_lookup_func1(env->curr, insert_symbol(v->name));
   CHECK_OO(f)
-  CHECK_BO(compat_func(t->d.func->def, f->def))
+  CHECK_BO(compat_func(t->e->d.func->def, f->def))
   cast->func = f;
   return t;
 }
@@ -144,7 +144,7 @@ static OP_CHECK(opck_fptr_cast) {
 static OP_EMIT(opem_fptr_cast) {
   CHECK_BB(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
-  if(GET_FLAG(cast->exp->type->d.func, member)) {
+  if(GET_FLAG(cast->exp->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, RegPop);
     instr->m_val = SZ_INT*2;
     const Instr dup = emit_add_instr(emit, Reg2Reg);

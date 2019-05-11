@@ -28,7 +28,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     return decl->type;
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
     ERR_O(exp_self(decl)->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
-  if(GET_FLAG(t, private) && t->owner != env->curr)
+  if(GET_FLAG(t, private) && t->e->owner != env->curr)
     ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
@@ -40,7 +40,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
         ERR_O(exp_self(decl)->pos, "...(note: object of type '%s' declared inside itself)", t->name)
     }
   }
-  decl->base = t->def;
+  decl->base = t->e->def;
   return decl->type = t;
 }
 
@@ -197,7 +197,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
       SET_ACCESS(stmt, v)
     }
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
-    nspc_add_value(stmt->t->owner, list->xid, v);
+    nspc_add_value(stmt->t->e->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
   } while((list = list->next));
   return GW_OK;
@@ -224,7 +224,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_type(env, stmt))
-  return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;
+  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : 1;
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
@@ -313,7 +313,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = td_pos(cdef->base.ext);
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
-  const Type parent = cdef->base.type->parent = known_type(env, cdef->base.ext);
+  const Type parent = cdef->base.type->e->parent = known_type(env, cdef->base.ext);
   CHECK_OB(parent)
   if(parent == t_undefined)
     return GW_OK;
@@ -321,15 +321,15 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
   while(t) {
     if(cdef->base.type == t)
       ERR_B(pos, "recursive (%s <= %s) class declaration.", cdef->base.type->name, t->name);
-    t = t->parent;
+    t = t->e->parent;
   }
   if(parent == cdef->base.type)
     ERR_B(pos, "class '%s' cannot extend itself", cdef->base.type->name);
-  if(isa(cdef->base.type->parent, t_object) < 0)
+  if(isa(cdef->base.type->e->parent, t_object) < 0)
     ERR_B(pos, "cannot extend primitive type '%s'",
-            cdef->base.type->parent->name)
-  if(!GET_FLAG(parent, scan1) && parent->def)
-    CHECK_BB(scan1_class_def(env, parent->def))
+            cdef->base.type->e->parent->name)
+  if(!GET_FLAG(parent, scan1) && parent->e->def)
+    CHECK_BB(scan1_class_def(env, parent->e->def))
   if(type_ref(parent))
     ERR_B(pos, "can't use ref type in class extend")
   return GW_OK;

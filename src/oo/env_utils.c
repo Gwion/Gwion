@@ -61,9 +61,9 @@ ANN Type find_type(const Env env, ID_List path) {
     const Symbol xid = path->xid;
     if(nspc) {
       Type t = nspc_lookup_type1(nspc, xid);
-      while(!t && type && type->parent && type->parent) {
-        t = nspc_lookup_type1(type->parent->nspc, xid); // was lookup2
-        type = type->parent;
+      while(!t && type && type->e->parent && type->e->parent) {
+        t = nspc_lookup_type1(type->e->parent->nspc, xid); // was lookup2
+        type = type->e->parent;
       }
       if(!t)
         ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
