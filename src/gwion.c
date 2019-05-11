@@ -45,33 +45,33 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 
 #include "shreduler_private.h"
 ANN VM* gwion_cpy(const VM* src) {
-  const Gwion gwion = mp_alloc(src->gwion->p, Gwion);
-  gwion->vm = new_vm(src->gwion->p, 0);
+  const Gwion gwion = mp_alloc(src->gwion->mp, Gwion);
+  gwion->vm = new_vm(src->gwion->mp, 0);
   gwion->vm->gwion = gwion;
-  gwion->vm->bbq->si = soundinfo_cpy(src->gwion->p, src->bbq->si);
+  gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
   gwion->freearg = src->gwion->freearg;
   gwion->st = src->gwion->st;
-  gwion->p = src->gwion->p;
+  gwion->mp = src->gwion->mp;
   return gwion->vm;
 }
 
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
-  gwion->p = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
-  gwion->st = new_symbol_table(gwion->p, 65347);
-  gwion->vm = new_vm(gwion->p, 1);
+  gwion->mp = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
+  gwion->st = new_symbol_table(gwion->mp, 65347);
+  gwion->vm = new_vm(gwion->mp, 1);
   gwion->emit = new_emitter();
-  gwion->env = new_env(gwion->p);
+  gwion->env = new_env(gwion->mp);
   gwion->emit->env = gwion->env;
   gwion->emit->gwion = gwion;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->vm->bbq->si = new_soundinfo(gwion->p);
+  gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   arg->si = gwion->vm->bbq->si;
   arg_parse(arg);
   gwion->emit->memoize = arg->memoize;
-  gwion->plug = new_plug(gwion->p, &arg->lib);
+  gwion->plug = new_plug(gwion->mp, &arg->lib);
   map_init(&gwion->freearg);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
@@ -88,8 +88,8 @@ ANN void gwion_run(const Gwion gwion) {
 }
 
 ANN void gwion_end(const Gwion gwion) {
-  const VM_Code code = new_vm_code(gwion->p, NULL, 0, ae_flag_builtin, "in code dtor");
-  gwion->vm->cleaner_shred = new_vm_shred(gwion->p, code);
+  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
+  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
   MUTEX_LOCK(gwion->vm->shreduler->mutex);
   if(gwion->child.ptr)
@@ -102,7 +102,7 @@ ANN void gwion_end(const Gwion gwion) {
   free_plug(gwion);
   map_release(&gwion->freearg);
   free_symbols(gwion->st);
-  mempool_end(gwion->p);
+  mempool_end(gwion->mp);
 }
 
 ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {

@@ -40,7 +40,7 @@ describe_xxx_exp(float, m_float, float, fnum)
 
 #define describe_fold_xxx(name, type, _l, _r, etype, opt)             \
 ANN static m_bool fold_##name(const Env env, const Exp_Binary* bin) { \
-  MemPool mp = env->gwion->p;                                         \
+  MemPool mp = env->gwion->mp;                                         \
   const union exp_primary_data *l = &bin->lhs->d.exp_primary.d;       \
   const union exp_primary_data *r = &bin->rhs->d.exp_primary.d;       \
   type ret = 0;                                                       \

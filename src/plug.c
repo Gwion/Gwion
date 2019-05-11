@@ -106,14 +106,14 @@ void free_plug(const Gwion gwion) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
     if(plug->end)
       plug->end(gwion, plug->self);
-    mp_free(gwion->p, Plug, plug);
+    mp_free(gwion->mp, Plug, plug);
   }
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_DL]); ++i)
     DLCLOSE((void*)vector_at(&v[GWPLUG_DL], i));
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_release(&v[i]);
   map_release(&p->drv);
-  mp_free(gwion->p, PlugInfo, p);
+  mp_free(gwion->mp, PlugInfo, p);
 }
 
 ANN Vector split_args(MemPool p, const m_str str) {
@@ -143,12 +143,12 @@ void plug_run(const Gwion gwion, const Vector args) {
   const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
-    const Vector arg = get_arg(gwion->p, plug->name, args);
+    const Vector arg = get_arg(gwion->mp, plug->name, args);
     plug->self = plug->ini(gwion, arg);
     if(arg) {
       for(m_uint i = 0; i < vector_size(arg); ++i)
         xfree((m_str)vector_at(arg, i));
-      free_vector(gwion->p, arg);
+      free_vector(gwion->mp, arg);
     }
   }
 }

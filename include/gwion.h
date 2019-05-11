@@ -12,7 +12,7 @@ struct Gwion_ {
   VM*      vm;
   struct Map_ freearg;
   SymTable *st;
-  MemPool p;
+  MemPool mp;
   struct Vector_ child;
 };
 

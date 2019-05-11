@@ -10,7 +10,7 @@
 
 ANN static void free_context(const Context a, Gwion gwion) {
   REM_REF(a->nspc, gwion)
-  mp_free(gwion->p, Context, a);
+  mp_free(gwion->mp, Context, a);
 }
 
 ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
@@ -33,7 +33,7 @@ ANN void unload_context(const Context context, const Env env) {
   if(context->lbls.ptr) {
     LOOP_OPTIM
     for(m_uint i = 0; i < map_size(&context->lbls); i++)
-      free_map(env->gwion->p, (Map)map_at(&context->lbls, i));
+      free_map(env->gwion->mp, (Map)map_at(&context->lbls, i));
     map_release(&context->lbls);
   }
   REM_REF(context, env->gwion);

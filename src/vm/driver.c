@@ -24,11 +24,11 @@ ANN void free_driver(Driver *d, VM *vm) {
     xfree(d->in);
   if(d->out)
     xfree(d->out);
-  mp_free(vm->gwion->p, SoundInfo, d->si);
+  mp_free(vm->gwion->mp, SoundInfo, d->si);
   if(d->driver->del)
     d->driver->del(vm, d);
-  mp_free(vm->gwion->p, DriverData, d->driver);
-  mp_free(vm->gwion->p, BBQ, d);
+  mp_free(vm->gwion->mp, DriverData, d->driver);
+  mp_free(vm->gwion->mp, BBQ, d);
 }
 
 ANN void driver_alloc(Driver *d) {

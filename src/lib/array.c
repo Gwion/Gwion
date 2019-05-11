@@ -199,7 +199,7 @@ static FREEARG(freearg_array) {
   ArrayInfo* info = (ArrayInfo*)instr->m_val;
   REM_REF((Type)vector_back(&info->type), gwion);
   vector_release(&info->type);
-  mp_free(((Gwion)gwion)->p, ArrayInfo, info);
+  mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
 }
 
 GWION_IMPORT(array) {

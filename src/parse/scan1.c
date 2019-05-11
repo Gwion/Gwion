@@ -71,7 +71,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       }
       t = array_type(env, decl->type, var->array->depth);
     }
-    const Value v = var->value = former ? former : new_value(env->gwion->p, t, s_name(var->xid));
+    const Value v = var->value = former ? former : new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
@@ -190,7 +190,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
   ID_List list = stmt->list;
   do {
     CHECK_BB(already_defined(env, list->xid, stmt_self(stmt)->pos))
-    const Value v = new_value(env->gwion->p, stmt->t, s_name(list->xid));
+    const Value v = new_value(env->gwion->mp, stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       v->owner = env->curr;
@@ -273,12 +273,12 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
            Stmt_List next = l->next;
            l->next = l->next->next;
            next->next = NULL;
-           free_stmt_list(env->gwion->p, next);
+           free_stmt_list(env->gwion->mp, next);
         }
       } else {
         Stmt_List tmp = l->next;
         l->next = NULL;
-        free_stmt_list(env->gwion->p, tmp);
+        free_stmt_list(env->gwion->mp, tmp);
       }
     }
   } while((l = l->next));

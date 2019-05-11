@@ -65,8 +65,8 @@ ANN void free_vm(VM* vm) {
   if(vm->bbq)
     free_driver(vm->bbq, vm);
   MUTEX_CLEANUP(vm->shreduler->mutex);
-  mp_free(vm->gwion->p, Shreduler, vm->shreduler);
-  mp_free(vm->gwion->p, VM, vm);
+  mp_free(vm->gwion->mp, Shreduler, vm->shreduler);
+  mp_free(vm->gwion->mp, VM, vm);
 }
 
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
@@ -694,7 +694,7 @@ arrayvalid:
   array_base = NULL;
   goto regpush;
 newobj:
-  *(M_Object*)reg = new_object(vm->gwion->p, shred, (Type)instr->m_val2);
+  *(M_Object*)reg = new_object(vm->gwion->mp, shred, (Type)instr->m_val2);
   reg += SZ_INT;
   DISPATCH()
 addref:
@@ -776,7 +776,7 @@ staticcode:
   reg += SZ_INT;
   DISPATCH()
 pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion->p, shred, (m_str)instr->m_val);
+  *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)instr->m_val);
   reg += SZ_INT;
   DISPATCH();
 gcini:

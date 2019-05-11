@@ -74,8 +74,8 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, def->base->td, l->name, l->args), l->code, def->flag,
-    loc_cpy(env->gwion->p, def->pos));
+  l->def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, def->base->td, l->name, l->args), l->code, def->flag,
+    loc_cpy(env->gwion->mp, def->pos));
   const m_bool ret = traverse_func_def(env, l->def);
   arg = l->args;
   while(arg) {
@@ -164,9 +164,9 @@ static OP_CHECK(opck_spork) {
     return unary->op == op_spork ? t_shred : t_fork;
   else if(unary->code) {
     ++env->scope->depth;        \
-    nspc_push_value(env->gwion->p, env->curr); \
+    nspc_push_value(env->gwion->mp, env->curr); \
     const m_bool ret = check_stmt(env, unary->code);
-    nspc_pop_value(env->gwion->p, env->curr);  \
+    nspc_pop_value(env->gwion->mp, env->curr);  \
     --env->scope->depth;
     CHECK_BO(ret)
     return unary->op == op_spork ? t_shred : t_fork;
@@ -186,8 +186,8 @@ static FREEARG(freearg_xork) {
 
 static FREEARG(freearg_dottmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
-  free_type_list(((Gwion)gwion)->p, dt->tl);
-  mp_free(((Gwion)gwion)->p, dottmpl, dt);
+  free_type_list(((Gwion)gwion)->mp, dt->tl);
+  mp_free(((Gwion)gwion)->mp, dottmpl, dt);
 }
 
 GWION_IMPORT(func) {

@@ -26,7 +26,7 @@ ANN void free_emitter(Emitter a) {
 
 __attribute__((returns_nonnull))
 ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
-  const Instr instr = mp_alloc(emit->gwion->p, Instr);
+  const Instr instr = mp_alloc(emit->gwion->mp, Instr);
   if((m_uint)f < 255)
     instr->opcode = (m_uint)f;
   else {

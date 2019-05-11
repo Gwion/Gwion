@@ -12,10 +12,10 @@ ANN static void free_value(Value a, Gwion gwion) {
   if(!GET_FLAG(a, func) && a->d.ptr && !GET_FLAG(a, union) &&
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
       && isa(a->type, t_object) < 0)
-   _mp_free(gwion->p, a->type->size, a->d.ptr);
+   _mp_free(gwion->mp, a->type->size, a->d.ptr);
   if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0 || GET_FLAG(a->type, op))
     REM_REF(a->type, gwion)
-  mp_free(gwion->p, Value, a);
+  mp_free(gwion->mp, Value, a);
 }
 
 ANN Value new_value(MemPool p, const Type type, const m_str name) {

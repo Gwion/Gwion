@@ -92,15 +92,15 @@ static GWION_IMPORT(int) {
 
 static GWION_IMPORT(values) {
   VM* vm = gwi_vm(gwi);
-  ALLOC_PTR(gwi->gwion->p, d_zero, m_float, 0.0);
-  ALLOC_PTR(gwi->gwion->p, sr,     m_float, (m_float)vm->bbq->si->sr);
-  ALLOC_PTR(gwi->gwion->p, samp,   m_float, 1.0);
-  ALLOC_PTR(gwi->gwion->p, ms,     m_float, (m_float)(*sr     / 1000.));
-  ALLOC_PTR(gwi->gwion->p, second, m_float, (m_float)*sr);
-  ALLOC_PTR(gwi->gwion->p, minute, m_float, (m_float)(*sr     * 60.0));
-  ALLOC_PTR(gwi->gwion->p, hour,   m_float, (m_float)(*minute * 60.0));
-  ALLOC_PTR(gwi->gwion->p, t_zero, m_float, 0.0);
-  ALLOC_PTR(gwi->gwion->p, pi, m_float, (m_float)M_PI);
+  ALLOC_PTR(gwi->gwion->mp, d_zero, m_float, 0.0);
+  ALLOC_PTR(gwi->gwion->mp, sr,     m_float, (m_float)vm->bbq->si->sr);
+  ALLOC_PTR(gwi->gwion->mp, samp,   m_float, 1.0);
+  ALLOC_PTR(gwi->gwion->mp, ms,     m_float, (m_float)(*sr     / 1000.));
+  ALLOC_PTR(gwi->gwion->mp, second, m_float, (m_float)*sr);
+  ALLOC_PTR(gwi->gwion->mp, minute, m_float, (m_float)(*sr     * 60.0));
+  ALLOC_PTR(gwi->gwion->mp, hour,   m_float, (m_float)(*minute * 60.0));
+  ALLOC_PTR(gwi->gwion->mp, t_zero, m_float, 0.0);
+  ALLOC_PTR(gwi->gwion->mp, pi, m_float, (m_float)M_PI);
   gwi_item_ini(gwi, "float", "samplerate");
   gwi_item_end(gwi, ae_flag_const, sr);
   gwi_item_ini(gwi, "float", "pi");

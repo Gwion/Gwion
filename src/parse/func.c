@@ -11,14 +11,14 @@
 
 ANN static void free_func(Func a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
-    free_tmpl_list(gwion->p, a->def->tmpl);
-    free_func_base(gwion->p, a->def->base);
-    free_loc(gwion->p, a->def->pos);
-    mp_free(gwion->p, Func_Def, a->def);
+    free_tmpl_list(gwion->mp, a->def->tmpl);
+    free_func_base(gwion->mp, a->def->base);
+    free_loc(gwion->mp, a->def->pos);
+    mp_free(gwion->mp, Func_Def, a->def);
   }
   if(a->code)
     REM_REF(a->code, gwion);
-  mp_free(gwion->p, Func, a);
+  mp_free(gwion->mp, Func, a);
 }
 
 ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {

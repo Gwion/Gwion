@@ -21,22 +21,22 @@ ANN /*static*/ void free_code_instr(const Vector v, const Gwion gwion) {
        map_get(&gwion->freearg, (vtype)instr->execute));
     if(f)
       f(instr, gwion);
-    mp_free(gwion->p, Instr, instr);
+    mp_free(gwion->mp, Instr, instr);
   }
-//  free_vector(gwion->p, v);
+//  free_vector(gwion->mp, v);
 }
 
 ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
   free_code_instr(v, gwion);
-  free_vector(gwion->p, v);
+  free_vector(gwion->mp, v);
 }
 ANN static void free_vm_code(VM_Code a, Gwion gwion) {
   if(a->memoize)
-    memoize_end(gwion->p, a->memoize);
+    memoize_end(gwion->mp, a->memoize);
   if(!GET_FLAG(a, builtin))
     _free_code_instr(a->instr, gwion);
   xfree(a->name);
-  mp_free(gwion->p , VM_Code, a);
+  mp_free(gwion->mp , VM_Code, a);
 }
 
 VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,

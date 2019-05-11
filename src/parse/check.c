@@ -81,11 +81,11 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   td->xid = str2list(env, t->name, &depth);
 
   if(depth) {
-    Exp base = new_exp_prim_int(env->gwion->p, 0, new_loc(env->gwion->p, __LINE__)), e = base;
+    Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
     for(m_uint i = 0; i < depth - 1; ++i) {
-      e = (e->next = new_exp_prim_int(env->gwion->p, 0, new_loc(env->gwion->p, __LINE__)));
+      e = (e->next = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)));
     }
-    td->array = new_array_sub(env->gwion->p, base);
+    td->array = new_array_sub(env->gwion->mp, base);
   }
   return t;
 }
@@ -333,11 +333,11 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   }
   ID_List id = NULL;
   for(m_uint i = vector_size(&v) + 1; --i;)
-    id = prepend_id_list(env->gwion->p, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->p, __LINE__));
+    id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->mp, __LINE__));
   vector_release(&v);
   assert(id);
-  Type_Decl* td = new_type_decl(env->gwion->p, id, 0);
-  return new_type_list(env->gwion->p, td, NULL);
+  Type_Decl* td = new_type_decl(env->gwion->mp, id, 0);
+  return new_type_list(env->gwion->mp, td, NULL);
 }
 
 ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
@@ -430,19 +430,19 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
-        def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
+        def->tmpl = new_tmpl_list(env->gwion->mp, base->tmpl->list, (m_int)i);
       }
     } else {
       if(!(value = template_get_ready(env, v, "template", i)))
         continue;
       base = value->d.func_ref->def;
-      def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(v->name),
-                base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->p, base->pos));
-      def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, (m_int)i);
+      def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(v->name),
+                base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
+      def->tmpl = new_tmpl_list(env->gwion->mp, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
     if(traverse_func_template(env, def, types) > 0) {
-      nspc_pop_type(env->gwion->p, env->curr);
+      nspc_pop_type(env->gwion->mp, env->curr);
       if(check_call(env, exp) > 0) {
         const Func next = def->base->func->next;
         def->base->func->next = NULL;
@@ -456,7 +456,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
     }
 // check m_func => maybe assert
     if(!m_func && sz != vector_size((Vector)env->curr->info->type))
-     nspc_pop_type(env->gwion->p, env->curr);
+     nspc_pop_type(env->gwion->mp, env->curr);
     SET_FLAG(base, template);
   }
 end:
@@ -520,7 +520,7 @@ ANN static m_uint get_type_number(ID_List list) {
 ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
-    Tmpl_Call* tmpl = new_tmpl_call(env->gwion->p, func->tmpl->types);
+    Tmpl_Call* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->types);
     tmpl->base = v->d.func_ref->def->tmpl->list;
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
@@ -588,8 +588,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp_self(exp)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, NULL, l->name, l->args),
-    l->code, 0, loc_cpy(env->gwion->p, exp_self(exp)->pos));
+  l->def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, NULL, l->name, l->args),
+    l->code, 0, loc_cpy(env->gwion->mp, exp_self(exp)->pos));
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
@@ -838,7 +838,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       check_class_def(env, ptr->def);
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
-  stmt->v = new_value(env->gwion->p, t, s_name(stmt->sym));
+  stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
   SET_FLAG(stmt->v, checked);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_conts(env, stmt_self(stmt), stmt->body);
@@ -1095,7 +1095,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) {
 }
 
 ANN static Value set_variadic(const Env env) {
-  const Value variadic = new_value(env->gwion->p, t_vararg, "vararg");
+  const Value variadic = new_value(env->gwion->mp, t_vararg, "vararg");
   SET_FLAG(variadic, checked);
   nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
   return variadic;
@@ -1128,7 +1128,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
-  nspc_push_value(env->gwion->p, env->curr);
+  nspc_push_value(env->gwion->mp, env->curr);
   if(!f->base->args)
     UNSET_FLAG(f->base->func, pure);
   else
@@ -1144,7 +1144,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     else if(GET_FLAG(f, op))
       operator_func(func);
   }
-  nspc_pop_value(env->gwion->p, env->curr);
+  nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
   if(GET_FLAG(f, global))
@@ -1168,7 +1168,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
         CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
       CHECK_BB(traverse_template(env, t->def))
       if(class_def->tmpl)
-        nspc_pop_type(env->gwion->p, env->curr);
+        nspc_pop_type(env->gwion->mp, env->curr);
     }
   }
   if(!GET_FLAG(class_def->base.type->parent, checked))

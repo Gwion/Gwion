@@ -12,8 +12,8 @@
 #include "traverse.h"
 
 ANN static Value mk_class(const Env env, const Type base) {
-  const Type t = type_copy(env->gwion->p, t_class);
-  const Value v = new_value(env->gwion->p, t, base->name);
+  const Type t = type_copy(env->gwion->mp, t_class);
+  const Value v = new_value(env->gwion->mp, t, base->name);
   t->d.base_type = base;
   v->owner = base->owner;
   SET_FLAG(v, const | ae_flag_checked);
@@ -31,10 +31,10 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   CHECK_BB(env_access(env, stmt->base->td->flag, stmt_self(stmt)->pos))
   CHECK_BB(scan0_defined(env, stmt->base->xid, td_pos(stmt->base->td)));
   const m_str name = s_name(stmt->base->xid);
-  const Type t = new_type(env->gwion->p, t_fptr->xid, name, t_fptr);
+  const Type t = new_type(env->gwion->mp, t_fptr->xid, name, t_fptr);
   t->owner = !(!env->class_def && GET_FLAG(stmt->base->td, global)) ?
     env->curr : env->global_nspc;
-  t->nspc = new_nspc(env->gwion->p, name);
+  t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = stmt->base->td->flag;
   stmt->type = t;
   nspc_add_type(t->owner, stmt->base->xid, t);
@@ -48,7 +48,7 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   CHECK_OB(base)
   CHECK_BB(scan0_defined(env, stmt->xid, td_pos(stmt->ext)))
   if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp)) {
-    const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(stmt->xid), base);
+    const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(stmt->xid), base);
     t->size = base->size;
     const Nspc nspc = (!env->class_def && GET_FLAG(stmt->ext, global)) ?
       env->global_nspc : env->curr;
@@ -60,8 +60,8 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
       SET_FLAG(t, empty);
   } else {
     const ae_flag flag = base->def ? base->def->flag : 0;
-    const Class_Def cdef = new_class_def(env->gwion->p, flag, stmt->xid, stmt->ext, NULL,
-      loc_cpy(env->gwion->p, td_pos(stmt->ext)));
+    const Class_Def cdef = new_class_def(env->gwion->mp, flag, stmt->xid, stmt->ext, NULL,
+      loc_cpy(env->gwion->mp, td_pos(stmt->ext)));
     CHECK_BB(scan0_class_def(env, cdef))
     stmt->type = cdef->base.type;
   }
@@ -78,7 +78,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
         s_name(stmt->xid),  v->type->name)
     CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
   }
-  const Type t = type_copy(env->gwion->p, t_int);
+  const Type t = type_copy(env->gwion->mp, t_int);
   t->xid = ++env->scope->type_xid;
   t->name = stmt->xid ? s_name(stmt->xid) : "int";
   t->parent = t_int;
@@ -94,10 +94,10 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
 
 ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
-  const Type t = type_copy(env->gwion->p, t_union);
+  const Type t = type_copy(env->gwion->mp, t_union);
   t->xid = ++env->scope->type_xid;
   t->name = name;
-  t->nspc = new_nspc(env->gwion->p, name);
+  t->nspc = new_nspc(env->gwion->mp, name);
   t->nspc->parent = nspc;
   t->owner = nspc;
   if(add) {
@@ -115,7 +115,7 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
        !!stmt->type_xid);
-    stmt->value = new_value(env->gwion->p, t, s_name(stmt->xid));
+    stmt->value = new_value(env->gwion->mp, t, s_name(stmt->xid));
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
@@ -134,7 +134,7 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     const Type t = union_type(env, nspc, insert_symbol("union"), 1);
-    stmt->value = new_value(env->gwion->p, t, "union");
+    stmt->value = new_value(env->gwion->mp, t, "union");
     stmt->value->owner_class = env->class_def;
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
@@ -188,9 +188,9 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
-  const Type t = new_type(env->gwion->p, ++env->scope->type_xid, s_name(cdef->base.xid), t_object);
+  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(cdef->base.xid), t_object);
   t->owner = env->curr;
-  t->nspc = new_nspc(env->gwion->p, t->name);
+  t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
   t->def = cdef;
   t->flag = cdef->flag;

@@ -302,10 +302,10 @@ struct ugen_importer {
 
 ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
   VM* vm = gwi_vm(gwi);
-  const M_Object o = new_M_UGen(gwi->gwion->p);
+  const M_Object o = new_M_UGen(gwi->gwion->mp);
   const UGen u = imp->ugen = UGEN(o);
-  ugen_ini(vm->gwion->p, u, imp->nchan, imp->nchan);
-  ugen_gen(vm->gwion->p, u, imp->tick, (void*)imp->vm, 0);
+  ugen_ini(vm->gwion->mp, u, imp->nchan, imp->nchan);
+  ugen_gen(vm->gwion->mp, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
   CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   return gwi_item_end(gwi, ae_flag_const, o);

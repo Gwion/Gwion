@@ -42,11 +42,11 @@ struct SwInfo_ {
 };
 
 ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
-  struct SwInfo_ *info = mp_alloc(env->gwion->p, SwInfo);
+  struct SwInfo_ *info = mp_alloc(env->gwion->mp, SwInfo);
   info->s = stmt;
   info->t = env->class_def;
   info->f = env->func;
-  const Switch sw = new_switch(env->gwion->p);
+  const Switch sw = new_switch(env->gwion->mp);
   map_set(&env->scope->swi->map, (vtype)info, (vtype)sw);
   sw->depth = env->scope->depth + 2;
   return sw;
@@ -89,9 +89,9 @@ ANN void switch_get(const Env env, const Stmt_Switch stmt) {
 void switch_reset(const Env env) {
   for(m_uint i = VLEN(&env->scope->swi->map) + 1; --i;) {
     struct SwInfo_ *info = (struct SwInfo_ *)VKEY(&env->scope->swi->map, i - 1);
-    mp_free(env->gwion->p, SwInfo, info);
+    mp_free(env->gwion->mp, SwInfo, info);
     Switch sw = (Switch)VVAL(&env->scope->swi->map, i - 1);
-    free_switch(env->gwion->p, sw);
+    free_switch(env->gwion->mp, sw);
   }
   _scope_clear(env->scope->swi);
   map_clear(&env->scope->swi->map);
@@ -157,7 +157,7 @@ ANN Map switch_map(const Env env) {
 
 ANN Vector switch_vec(const Env env) {
   const Switch sw = (Switch)_scope_back(env->scope->swi);
-  return vector_copy(env->gwion->p, sw->vec); // new_vector(); // dyn only
+  return vector_copy(env->gwion->mp, sw->vec); // new_vector(); // dyn only
 }
 
 ANN m_uint switch_idx(const Env env) {
@@ -179,6 +179,6 @@ ANN m_bool switch_end(const Env env, const loc_t pos) {
   if(!VLEN(sw->cases) && !VLEN(&sw->exp))
     ERR_B(pos, "switch statement with no cases.")
   map_remove(&env->scope->swi->map, index);
-  free_switch(env->gwion->p, sw);
+  free_switch(env->gwion->mp, sw);
   return GW_OK;
 }

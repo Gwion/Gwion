@@ -55,7 +55,7 @@ ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
 
 __attribute__((hot))
 ANN void __release(const M_Object o, const VM_Shred shred) {
-  MemPool p = shred->info->mp;// = shred->info->vm->gwion->p;
+  MemPool p = shred->info->mp;// = shred->info->vm->gwion->mp;
   Type t = o->type_ref;
   while(t->parent) {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
@@ -129,7 +129,7 @@ static Type get_force_type(const Env env, const Type t) {
   strcpy(name, t->name);
   strcpy(name + len, STR_FORCE);
   const Symbol sym = insert_symbol(env->gwion->st, name);
-  return nspc_lookup_type0(t->owner, sym) ?: new_force_type(env->gwion->p, t, sym);
+  return nspc_lookup_type0(t->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
 }
 
 static OP_CHECK(opck_object_cast) {

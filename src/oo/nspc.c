@@ -38,7 +38,7 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
     }
     REM_REF(v, gwion);
   }
-  free_scope(gwion->p, a->info->value);
+  free_scope(gwion->mp, a->info->value);
 }
 
 #define describe_nspc_free(A, b) \
@@ -47,7 +47,7 @@ ANN static void nspc_free_##b(Nspc n, Gwion gwion) {\
   A a;\
   while(scope_iter(&iter, &a) > 0) \
     REM_REF(a, gwion);\
-  free_scope(gwion->p, n->info->b);\
+  free_scope(gwion->mp, n->info->b);\
 }
 
 describe_nspc_free(Func, func)
@@ -64,12 +64,12 @@ ANN static void free_nspc(Nspc a, Gwion gwion) {
     vector_release(&a->info->vtable);
   if(a->info->op_map.ptr)
     free_op_map(&a->info->op_map, gwion);
-  mp_free(gwion->p, NspcInfo, a->info);
+  mp_free(gwion->mp, NspcInfo, a->info);
   if(a->pre_ctor)
     REM_REF(a->pre_ctor, gwion);
   if(a->dtor)
     REM_REF(a->dtor, gwion);
-  mp_free(gwion->p, Nspc, a);
+  mp_free(gwion->mp, Nspc, a);
 }
 
 ANN Nspc new_nspc(MemPool p, const m_str name) {

@@ -68,9 +68,9 @@ ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Ty
   const Value v = nspc_lookup_value1(t->nspc, sym);
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(env->gwion->p, new_func_base(env->gwion->p, base->base->td, insert_symbol(env->gwion->st, v->name),
-            base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->p, base->pos));
-  def->tmpl = new_tmpl_list(env->gwion->p, base->tmpl->list, dt->overload);
+  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(env->gwion->st, v->name),
+            base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
+  def->tmpl = new_tmpl_list(env->gwion->mp, base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
   return def;
 }

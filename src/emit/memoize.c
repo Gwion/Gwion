@@ -45,7 +45,7 @@ static void(*mreturn[])(m_bit*, const m_bit*, const m_uint) =
   { memoize_return1, memoize_return2, memoize_return3, memoize_return4};
 
 Memoize memoize_ini(const Emitter emit, const Func f, const enum Kind kind) {
-  Memoize m = mp_alloc(emit->gwion->p, Memoize);
+  Memoize m = mp_alloc(emit->gwion->mp, Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
   m->kind = kind;

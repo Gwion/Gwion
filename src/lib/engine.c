@@ -20,20 +20,20 @@
 
 static FREEARG(freearg_switchini) {
   if(instr->m_val)
-    free_vector(((Gwion)gwion)->p, (Vector)instr->m_val);
+    free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val);
   if(instr->m_val2)
-    free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
+    free_map(((Gwion)gwion)->mp, (Map)instr->m_val2);
 }
 
 static FREEARG(freearg_switchbranch) {
-  free_map(((Gwion)gwion)->p, (Map)instr->m_val2);
+  free_map(((Gwion)gwion)->mp, (Map)instr->m_val2);
 }
 
 static FREEARG(freearg_gack) {
   const Vector v = (Vector)instr->m_val2;
   for(m_uint i = vector_size(v) + 1; --i;)
     REM_REF(((Type)vector_at(v, i - 1)), gwion);
-  free_vector(((Gwion)gwion)->p, v);
+  free_vector(((Gwion)gwion)->mp, v);
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
@@ -100,7 +100,7 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   struct Gwi_ gwi;
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.gwion = vm->gwion;
-  gwi.loc = new_loc(vm->gwion->p, 0);
+  gwi.loc = new_loc(vm->gwion->mp, 0);
   CHECK_BB(import_core_libs(&gwi))
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
@@ -108,6 +108,6 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
     if(import && import(&gwi) < 0)
       env_reset(gwi.gwion->env);
   }
-  free_loc(vm->gwion->p, gwi.loc);
+  free_loc(vm->gwion->mp, gwi.loc);
   return GW_OK;
 }

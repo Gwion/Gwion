@@ -11,10 +11,10 @@
 
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template))
-    free_class_def(gwion->p, a->def);
+    free_class_def(gwion->mp, a->def);
   if(a->nspc)
     REM_REF(a->nspc, gwion);
-  mp_free(gwion->p, Type, a);
+  mp_free(gwion->mp, Type, a);
 }
 
 Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
@@ -83,7 +83,7 @@ ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   const Type type = nspc_lookup_type1(base->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->p, t_array->xid, base->name, t_array);
+  const Type t = new_type(env->gwion->mp, t_array->xid, base->name, t_array);
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth + base->array_depth;

@@ -74,7 +74,7 @@ static INSTR(VarargAssign) {
 
 static FREEARG(freearg_vararg) {
   if(instr->m_val2)
-    free_vector(((Gwion)gwion)->p, (Vector)instr->m_val2);
+    free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
 }
 
 GWION_IMPORT(vararg) {

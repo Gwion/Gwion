@@ -32,7 +32,7 @@ ANN static void free_op(M_Operator* a, Gwion gwion) {
     REM_REF(a->rhs, gwion)
   if(a->ret)
     REM_REF(a->ret, gwion)
-  mp_free(gwion->p, M_Operator, a);
+  mp_free(gwion->mp, M_Operator, a);
 }
 
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
@@ -42,7 +42,7 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
       free_op((M_Operator*)vector_at(v, j - 1), gwion);
-    free_vector(gwion->p, v);
+    free_vector(gwion->mp, v);
   }
   map_release(map);
 }
@@ -94,11 +94,11 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
   } while((n = n->parent));
   Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   if(!v) {
-    v = new_vector(gwion->p);
+    v = new_vector(gwion->mp);
     map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
   }
 // new mo
-  mo = mp_alloc(gwion->p, M_Operator);
+  mo = mp_alloc(gwion->mp, M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;

@@ -79,16 +79,16 @@ static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
 static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   VM_Shred shred = NULL;
   VM_Code code;
-  compiler_name(gwion->p, c);
+  compiler_name(gwion->mp, c);
   if(check(gwion, c) < 0 ||
      !(code = emit_ast(gwion->emit, c->ast)))
      gw_err("while compiling file '%s'\n", c->base);
   else {
-    const VM_Shred shred = new_vm_shred(gwion->p, code);
+    const VM_Shred shred = new_vm_shred(gwion->mp, code);
     shred->info->args = c->args;
     vm_add_shred(gwion->vm, shred);
   }
-  compiler_clean(gwion->p, c);
+  compiler_clean(gwion->mp, c);
   return shred ? shred->tick->xid : 0;
 }
 /*
