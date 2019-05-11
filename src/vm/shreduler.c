@@ -6,6 +6,8 @@
 #include "object.h"
 #include "driver.h"
 #include "shreduler_private.h"
+#include "env.h" // unwind
+#include "gwion.h" // unwind
 #include "instr.h" // unwind
 
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {

@@ -46,7 +46,7 @@ VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
   code->name             = strdup(name);
   code->stack_depth      = stack_depth;
   code->flag = flag;
-  INIT_OO(code, free_vm_code)
+  INIT_OO(p, code, free_vm_code)
   return code;
 }
 

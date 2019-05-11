@@ -24,7 +24,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->parent = parent;
   if(type->parent)
     type->size = parent->size;
-  INIT_OO(type, free_type);
+  INIT_OO(p, type, free_type);
   return type;
 }
 

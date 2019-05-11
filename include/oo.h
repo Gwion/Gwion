@@ -11,13 +11,14 @@ struct VM_Object_ {
   uint16_t ref_count; // could be an unsigned short
 };
 
-#define HAS_OBJ struct VM_Object_ obj;
-#define INIT_OO(a, b) { (a)->obj.ref_count = 1; (a)->obj.free= (void(*)(void*,void*))b; }
-ANN static inline void rem_ref(struct VM_Object_* a, void* ptr, void *gwion) {
+#define HAS_OBJ struct VM_Object_* obj;
+#define INIT_OO(mp, a, b) { (a)->obj = mp_alloc(mp, VM_Object); (a)->obj->ref_count = 1; (a)->obj->free= (void(*)(void*,void*))b; }
+ANN static inline void rem_ref(MemPool mp, struct VM_Object_* a, void* ptr, void *gwion) {
   if(--a->ref_count)
     return;
   a->free(ptr, gwion);
+  mp_free(mp, VM_Object, a);
 }
-#define ADD_REF(a)    { ++(a)->obj.ref_count; }
-#define REM_REF(a, b)    { rem_ref(&(a)->obj, (a), (b)); }
+#define ADD_REF(a)    { ++(a)->obj->ref_count; }
+#define REM_REF(a, b)    { rem_ref(((Gwion)(b))->mp, (a)->obj, (a), (b)); }
 #endif

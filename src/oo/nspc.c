@@ -79,6 +79,6 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->info->value = new_scope(p);
   a->info->type = new_scope(p);
   a->info->func = new_scope(p);
-  INIT_OO(a, free_nspc);
+  INIT_OO(p, a, free_nspc);
   return a;
 }
