@@ -592,7 +592,9 @@ regtomem:
   DISPATCH()
 overflow:
   if(overflow_((shred->mem = mem), shred)) {
-shred->code = a.code;
+PRAGMA_PUSH()
+    shred->code = a.code;
+PRAGMA_POP()
     Except(shred, "StackOverflow");
   }
 next:
