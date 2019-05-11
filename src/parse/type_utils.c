@@ -10,19 +10,8 @@
 #include "parse.h"
 
 ANN m_bool isres(const Env env, const Symbol xid, const loc_t pos) {
-//  const m_str s = s_name(xid);
   if(vector_find(&env->gwion->data->reserved, (vtype)xid) > -1)
     ERR_B(pos, "%s is reserved.", s_name(xid));
-/*
-  if(!strcmp(s, "this")     || //
-     !strcmp(s, "me")       || //
-     !strcmp(s, "now")      || //
-     !strcmp(s, "maybe")    || //
-     !strcmp(s, "vararg")   || //
-     !strcmp(s, "__func__") ||
-     !name2op(s))
-    ERR_B(pos, "%s is reserved.", s_name(xid));
-*/
   return GW_OK;
 }
 
