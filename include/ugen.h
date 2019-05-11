@@ -4,7 +4,7 @@ typedef struct UGen_      * UGen;
 typedef void (*f_tick)(const UGen ug) ANN;
 typedef void (*f_ugop)(const UGen, const m_float) ANN;
 
-struct ugen_net {
+struct ugen_net_ {
   struct Vector_ from;
   struct Vector_ to;
   uint size;
@@ -27,7 +27,7 @@ struct UGen_ {
   f_tick compute;
   f_ugop op;
   union {
-    struct ugen_net net;
+    struct ugen_net_ *net;
     struct ugen_multi_* multi;
   } connect;
   union {

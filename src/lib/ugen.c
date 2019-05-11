@@ -37,9 +37,9 @@ static TICK(adc_tick) {
 __attribute__((hot))
 ANN void compute_mono(const UGen u) {
   u->done = 1;
-  const uint size = u->connect.net.size;
+  const uint size = u->connect.net->size;
   if(size) {
-    const Vector vec = &u->connect.net.from;
+    const Vector vec = &u->connect.net->from;
     const UGen   v   = (UGen)vector_front(vec);
     COMPUTE(v)
     u->in = v->out;
@@ -116,8 +116,9 @@ ANN void ugen_gen(MemPool p, const UGen u, const f_tick tick, void* data, const 
 ANN void ugen_ini(MemPool p, const UGen u, const uint in, const uint out) {
   const uint chan = in > out ? in : out;
   if(chan == 1) {
-    vector_init(&u->connect.net.from);
-    vector_init(&u->connect.net.to);
+    u->connect.net = mp_alloc(p, ugen_net);
+    vector_init(&u->connect.net->from);
+    vector_init(&u->connect.net->to);
   } else {
     u->connect.multi = mp_alloc(p, ugen_multi);
     u->connect.multi->n_in   = in;
@@ -148,9 +149,9 @@ end:
 
 #define describe_connect(name, func)                                                    \
 ANN static inline void name##onnect(const restrict UGen lhs, const restrict UGen rhs) { \
-  func(&rhs->connect.net.from, (vtype)lhs);                                             \
-  func(&lhs->connect.net.to,   (vtype)rhs);                                             \
-  rhs->connect.net.size = (uint)vector_size(&rhs->connect.net.from);                    \
+  func(&rhs->connect.net->from, (vtype)lhs);                                             \
+  func(&lhs->connect.net->to,   (vtype)rhs);                                             \
+  rhs->connect.net->size = (uint)vector_size(&rhs->connect.net->from);                    \
 }
 describe_connect(C,vector_add)
 describe_connect(Disc,vector_rem2)
@@ -211,19 +212,20 @@ static CTOR(ugen_ctor) {
 
 #define describe_release_func(src, tgt, opt)                        \
 ANN static void release_##src(const UGen ug) {                      \
-  for(uint i = (uint)vector_size(&ug->connect.net.src) + 1; --i;) { \
-    const UGen u = (UGen)vector_at(&ug->connect.net.src, i - 1);    \
-    vector_rem2(&u->connect.net.tgt, (vtype)ug);                    \
+  for(uint i = (uint)vector_size(&ug->connect.net->src) + 1; --i;) { \
+    const UGen u = (UGen)vector_at(&ug->connect.net->src, i - 1);    \
+    vector_rem2(&u->connect.net->tgt, (vtype)ug);                    \
     opt                                                             \
   }                                                                 \
-  vector_release(&ug->connect.net.src);                             \
+  vector_release(&ug->connect.net->src);                             \
 }
 describe_release_func(from, to,)
-describe_release_func(to, from, --u->connect.net.size;)
+describe_release_func(to, from, --u->connect.net->size;)
 
-ANN static void release_mono(const UGen ug) {
+ANN static void release_mono(MemPool p, const UGen ug) {
   release_to(ug);
   release_from(ug);
+  mp_free(p, ugen_net, ug->connect.net);
 }
 
 ANN static void release_multi(const UGen ug, const VM_Shred shred) {
@@ -234,13 +236,14 @@ ANN static void release_multi(const UGen ug, const VM_Shred shred) {
 
 static DTOR(ugen_dtor) {
   const UGen ug = UGEN(o);
+  MemPool p = shred->info->vm->gwion->mp;
   vector_rem2(&shred->info->vm->ugen, (vtype)ug);
   if(!ug->multi)
-    release_mono(ug);
+    release_mono(p, ug);
   else
     release_multi(ug, shred);
   if(ug->module.gen.trig) {
-    release_mono(ug->module.gen.trig);
+    release_mono(p, ug->module.gen.trig);
     mp_free(shred->info->mp, UGen, ug->module.gen.trig);
   }
   mp_free(shred->info->mp, UGen, ug);
