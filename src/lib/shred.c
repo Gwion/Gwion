@@ -21,6 +21,13 @@ static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsi
 #define FORK_RETVAL(o) (o->data + o_fork_retval)
 #define FORK_ORIG(o) (*(VM**)((o)->data + o_fork_orig))
 
+VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
+  const VM_Shred sh = new_vm_shred(shred->info->mp, code);
+  ADD_REF(code)
+  sh->base = shred->base;
+  return sh;
+}
+
 M_Object new_shred(const VM_Shred shred, m_bool is_spork) {
   const M_Object obj = new_object(shred->info->mp, NULL, is_spork ? t_shred : t_fork);
   ME(obj) = shred;
@@ -33,6 +40,7 @@ M_Object new_shred(const VM_Shred shred, m_bool is_spork) {
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
+  s->mem -= SZ_INT;
   vm_shred_exit(s);
 }
 
@@ -204,7 +212,7 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
 
   gwi_item_ini(gwi, "int", "cancel");
-  CHECK_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, NULL)))
+  CHECK_BB((o_shred_cancel = gwi_item_end(gwi, 0, NULL)))
 
   gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
   CHECK_BB(gwi_func_end(gwi, 0))

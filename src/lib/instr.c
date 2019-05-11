@@ -17,10 +17,8 @@
 INSTR(EOC) {
   vm_shred_exit(shred);
 }
-#include "gwion.h"
+
 INSTR(DTOR_EOC) {
-  // TODO: we should be able to use shred->info->mp directly
-  shred->info->mp = (MemPool)instr->m_val;
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->parent;
   __release(o, shred);

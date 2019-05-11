@@ -38,8 +38,6 @@ VM_Shred new_vm_shred(MemPool p, VM_Code c) {
   shred->code          = c;
   shred->reg           = (m_bit*)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
-  shred->tick = mp_alloc(p, ShredTick);
-  shred->tick->self = shred;
   shred->info = new_shredinfo(p, c->name);
   vector_init(&shred->gc);
   return shred;

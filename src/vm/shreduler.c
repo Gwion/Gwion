@@ -9,18 +9,18 @@
 #include "instr.h" // unwind
 
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
-  s->loop = loop < 0 ? 0 : 1;
+  s->loop = loop > 0;
 }
 
 ANN VM_Shred shreduler_get(const Shreduler s) {
-  Driver *bbq = s->bbq;
-  struct ShredTick_ *tk = s->list;
+  Driver *const bbq = s->bbq;
+  struct ShredTick_ *const tk = s->list;
   if(!tk) {
     if(!vector_size(&s->shreds) && !s->loop)
       bbq->is_running = 0;
     return NULL;
   }
-  const m_float time = (m_float)bbq->pos + (m_float).5;
+  const m_float time = (m_float)bbq->pos + (m_float)GWION_EPSILON;
   if(tk->wake_time <= time) {
     if((s->list = tk->next))
       s->list->prev = NULL;
@@ -44,15 +44,9 @@ ANN static void unwind(const VM_Shred shred) {
   while(code) {
     const m_bit exec = (m_bit)((Instr)vector_back(code->instr))->opcode;
     if(exec == eFuncReturn) {
-      if(GET_FLAG(code, op))
-        code = *(VM_Code*)(shred->mem - SZ_INT);
-      else {
-        if(GET_FLAG(code, ctor))
-          code = *(VM_Code*)(shred->mem - SZ_INT*2);
-        else
-          code = *(VM_Code*)(shred->mem - SZ_INT*3);
+      code = *(VM_Code*)(shred->mem - SZ_INT*3);
+      if(!GET_FLAG(code, op))
         REM_REF(code, shred->info->vm->gwion)
-      }
       shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4) + SZ_INT*4;
       if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))break;
     } else break;
@@ -123,7 +117,8 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
 }
 
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
-// create shred->tick here ?
+  shred->tick = mp_alloc(shred->info->mp, ShredTick);
+  shred->tick->self = shred;
   shred->tick->shreduler = s;
   shred->tick->xid = ++s->shred_ids;
   vector_add(&s->shreds, (vtype)shred);

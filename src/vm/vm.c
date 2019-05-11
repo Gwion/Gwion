@@ -119,23 +119,17 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
 }
 
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr instr) {
-  const VM_Code code = (VM_Code)instr->m_val;
-  const VM_Shred sh = new_vm_shred(shred->info->mp, code);
-  ADD_REF(code)
+  const VM_Shred sh = new_shred_base(shred, (VM_Code)instr->m_val);
+  vm_add_shred(shred->info->vm, sh);
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
     vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
-  sh->base = shred->base;
-  vm_add_shred(shred->info->vm, sh);
   return sh;
 }
 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr instr) {
-  const VM_Code code = (VM_Code)instr->m_val;
-  const VM_Shred sh = new_vm_shred(shred->info->mp, code);
-  ADD_REF(code)
-  sh->base = shred->base;
+  const VM_Shred sh = new_shred_base(shred, (VM_Code)instr->m_val);
   vm_fork(shred->info->vm, sh);
   return sh;
 }
@@ -597,8 +591,10 @@ regtomem:
   *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
   DISPATCH()
 overflow:
-  if(overflow_(mem, shred))
+  if(overflow_((shred->mem = mem), shred)) {
+shred->code = a.code;
     Except(shred, "StackOverflow");
+  }
 next:
 PRAGMA_PUSH()
   goto *dispatch[next];
@@ -683,6 +679,8 @@ arrayaccess:
     _release(array_base, shred);
     gw_err("\t... at index [%" INT_F "]\n", idx);
     gw_err("\t... at dimension [%" INT_F "]\n", instr->m_val);
+    shred->code = code;
+    shred->mem = mem;
     exception(shred, "ArrayOutofBounds");
     continue;
   }
@@ -724,6 +722,8 @@ exceptbase:
 except:
   if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
     if(array_base) _release(array_base, shred);
+    shred->code = code;
+    shred->mem = mem;
     exception(shred, "NullPtrException");
     continue;
   }

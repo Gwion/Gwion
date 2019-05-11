@@ -46,6 +46,7 @@ M_Object new_string2(MemPool p, const VM_Shred shred, const m_str str) {
 
 ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, o->type_ref->nspc->dtor);
+  ADD_REF(o->type_ref->nspc->dtor);
   sh->base = shred->base;
   *(M_Object*)sh->mem = o;
   vm_add_shred(shred->info->vm, sh);
