@@ -427,32 +427,37 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
   return arg_list;
 }
 
-ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
+ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
   const Env env = gwi->gwion->env;
-  Func_Def func_def = NULL;
-  ID_List type_path = NULL;
-  Type_Decl* type_decl = NULL;
-  m_str name = NULL;
-  Arg_List arg_list = NULL;
-  m_uint i, array_depth = 0;
-
-  flag |= ae_flag_builtin;
-  if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(env->gwion->mp, type_path, 0))) {
-    if(type_path)free_id_list(env->gwion->mp, type_path);
-    env_err(env, gwi->loc, "\t...\tduring @ function import '%s' (type).", dl_fun->name);
+  m_uint array_depth;
+  const ID_List type_path = str2list(env, name, &array_depth);
+  CHECK_OO(type_path)
+  Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path, 0);
+  if(!type_decl) {
+    free_id_list(env->gwion->mp, type_path);
     return NULL;
   }
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(env->gwion->mp, NULL);
-    for(i = 1; i < array_depth; i++)
+    for(m_uint i = 1; i < array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
     type_decl = add_type_decl_array(type_decl, array_sub);
   }
-  name = dl_fun->name;
-  arg_list = make_dll_arg_list(gwi, dl_fun);
-  func_def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, name), arg_list),
-    NULL, flag, loc_cpy(gwi->gwion->mp, gwi->loc));
+  return type_decl;
+}
+
+ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
+  const MemPool mp = gwi->gwion->mp;
+  flag |= ae_flag_builtin;
+  Type_Decl* type_decl = import_td(gwi, dl_fun->type);
+  if(!type_decl) {
+    env_err(gwi->gwion->env, gwi->loc, "\t...\tduring @ function import '%s' (type).", dl_fun->name);
+    return NULL;
+  }
+  const m_str name = dl_fun->name;
+  const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
+  const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
+    NULL, flag, loc_cpy(mp, gwi->loc));
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -460,7 +465,6 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(name_valid(gwi, gwi->func.name));
   Func_Def def = make_dll_as_fun(gwi, &gwi->func, flag);
-//  Func_Def def = import_fun(gwi->gwion->env, &gwi->func, flag);
   CHECK_OB(def)
   if(gwi->templater.n) {
     def = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp, NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
@@ -470,7 +474,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   }
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
     Section* section = new_section_func_def(gwi->gwion->mp, def);
-    Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
+    const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
     gwi_body(gwi, body);
     return GW_OK;
   }
