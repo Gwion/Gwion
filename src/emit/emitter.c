@@ -14,12 +14,14 @@
 ANEW Emitter new_emitter(void) {
   Emitter emit = (Emitter)xcalloc(1, sizeof(struct Emitter_));
   vector_init(&emit->stack);
+  vector_init(&emit->variadic);
   emit->escape = escape_table();
   return emit;
 }
 
 ANN void free_emitter(Emitter a) {
   vector_release(&a->stack);
+  vector_release(&a->variadic);
   xfree(a->escape);
   xfree(a);
 }

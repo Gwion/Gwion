@@ -1529,17 +1529,22 @@ ANN static m_bool emit_VecMember(const Emitter emit, const Exp_Dot* member) {
 }
 
 ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) {
-  emit->env->func->variadic = emit_add_instr(emit, VarargTop);
-  emit->env->func->variadic->m_val = offset;
-  emit->env->func->variadic->m_val2 = emit_code_size(emit);
+  const Instr instr = emit_add_instr(emit, VarargTop);
+  instr->m_val = offset;
+  instr->m_val2 = emit_code_size(emit);
+  vector_set(&emit->variadic, vector_size(&emit->variadic) -1, (vtype)instr);
   return GW_OK;
+}
+ANN static inline Instr get_variadic(const Emitter emit) {
+  return (Instr)vector_back(&emit->variadic);
 }
 
 ANN static void emit_vararg_end(const Emitter emit, const m_uint offset) {
-  const Instr instr = emit_add_instr(emit, VarargEnd);
+  const Instr instr = emit_add_instr(emit, VarargEnd), 
+    variadic = get_variadic(emit);
   instr->m_val = offset;
-  instr->m_val2 = emit->env->func->variadic->m_val2;
-  emit->env->func->variadic->m_val2 = emit_code_size(emit);
+  instr->m_val2 = variadic->m_val2;
+  variadic->m_val2 = emit_code_size(emit);
   SET_FLAG(emit->env->func, empty);// mark vararg func as complete
 }
 
@@ -1552,13 +1557,13 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
     l = l->next;
   }
   if(!strcmp(str, "start")) {
-    if(emit->env->func->variadic)
+    if(get_variadic(emit))
       ERR_B(exp_self(member)->pos, "vararg.start already used. this is an error")
     emit_vararg_start(emit, offset);
     return GW_OK;
   }
   if(!strcmp(str, "end")) {
-    if(!emit->env->func->variadic)
+    if(!get_variadic(emit))
       ERR_B(exp_self(member)->pos, "vararg.start not used before vararg.end. this is an error")
     emit_vararg_end(emit, offset);
     return GW_OK;
@@ -1703,13 +1708,15 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
     stack_alloc_this(emit);
   emit_push_scope(emit);
   emit->env->func = func;
+  vector_add(&emit->variadic, 0);
   CHECK_BB(emit_func_def_body(emit, func_def))
   if(GET_FLAG(func_def, variadic)) {
-    if(!emit->env->func->variadic)
+    if(!get_variadic(emit))
       ERR_B(func_def->pos, "invalid variadic use")
     if(!GET_FLAG(func, empty))
       ERR_B(func_def->pos, "invalid variadic use")
   }
+  vector_pop(&emit->variadic);
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;

@@ -6,7 +6,6 @@ struct Func_ {
   struct VM_Code_* code;
   Value value_ref;
   Func next;
-  struct Instr_* variadic;
   size_t vt_index;
   HAS_OBJ
   ae_flag flag;

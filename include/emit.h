@@ -20,6 +20,7 @@ struct Emitter_ {
   Code*  code;
   struct Gwion_ *gwion;
   struct Vector_  stack;
+  struct Vector_  variadic;
   char *escape;
   m_bool memoize;
 };
