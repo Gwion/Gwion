@@ -122,4 +122,5 @@ ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
   shred->tick->shreduler = s;
   shred->tick->xid = ++s->shred_ids;
   vector_add(&s->shreds, (vtype)shred);
+  shredule(s, shred, GWION_EPSILON);
 }

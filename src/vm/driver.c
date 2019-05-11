@@ -14,7 +14,6 @@
 ANN Driver* new_driver(MemPool p) {
   Driver* di = (Driver*)mp_alloc(p, BBQ);
   di->func = dummy_driver;
-//  di->run = vm_run;
   di->driver = (DriverData*)mp_alloc(p, DriverData);
   di->is_running = 1;
   return di;

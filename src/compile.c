@@ -77,7 +77,7 @@ static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
 }
 
 static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
-  m_uint xid = 0;
+  VM_Shred shred = NULL;
   VM_Code code;
   compiler_name(gwion->p, c);
   if(check(gwion, c) < 0 ||
@@ -86,10 +86,10 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   else {
     const VM_Shred shred = new_vm_shred(gwion->p, code);
     shred->info->args = c->args;
-    xid = vm_add_shred(gwion->vm, shred);
+    vm_add_shred(gwion->vm, shred);
   }
   compiler_clean(gwion->p, c);
-  return xid;
+  return shred ? shred->tick->xid : 0;
 }
 /*
 m_bool check_filename(struct Gwion_* vm, const m_str filename) {

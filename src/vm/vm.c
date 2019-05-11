@@ -69,21 +69,17 @@ ANN void free_vm(VM* vm) {
   mp_free(vm->gwion->p, VM, vm);
 }
 
-ANN m_uint vm_add_shred(const VM* vm, const VM_Shred shred) {
+ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   shred->info->vm = (VM*)vm;
   shred->info->me = new_shred(shred, 1);
   shreduler_add(vm->shreduler, shred);
-  shredule(vm->shreduler, shred, GWION_EPSILON);
-  return shred->tick->xid;
 }
 
 #include "gwion.h"
-ANN m_uint vm_fork(const VM* src, const VM_Shred shred) {
+ANN void vm_fork(const VM* src, const VM_Shred shred) {
   VM* vm = shred->info->vm = gwion_cpy(src);
   shred->info->me = new_shred(shred, 0);
   shreduler_add(vm->shreduler, shred);
-  shredule(vm->shreduler, shred, GWION_EPSILON);
-  return shred->tick->xid;
 }
 
 __attribute__((hot))
