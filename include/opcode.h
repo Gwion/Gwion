@@ -172,6 +172,7 @@ enum {
   eGack,
   eDotTmplVal,
   eOP_MAX,
+  eEOC,
 };
 
 #define  RegSetImm           (f_instr)eRegSetImm
@@ -345,4 +346,5 @@ enum {
 #define  Gack                (f_instr)eGack
 #define  DotTmplVal          (f_instr)eDotTmplVal
 #define  OP_MAX              (f_instr)eOP_MAX
+#define  EOC                 (f_instr)eEOC
 #endif

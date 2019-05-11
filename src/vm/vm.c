@@ -281,7 +281,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
-    &&gack, &&regpushimm, &&other
+    &&gack, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -799,12 +799,16 @@ shred->mem = mem;
 shred->pc = pc;
       instr->execute(shred, instr);
 if(!s->curr)break;
-code = shred->code;
-ip = shred->code->instr->ptr + OFFSET;
-reg = shred->reg;
-mem = shred->mem;
-pc = shred->pc;
-DISPATCH()
+  code = shred->code;
+  ip = shred->code->instr->ptr + OFFSET;
+  reg = shred->reg;
+  mem = shred->mem;
+  pc = shred->pc;
+  DISPATCH()
+eoc:
+  shred->code = code;
+  shred->mem = mem;
+  vm_shred_exit(shred);
     } while(s->curr);
   MUTEX_UNLOCK(s->mutex);
   }

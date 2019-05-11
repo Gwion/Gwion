@@ -13,11 +13,11 @@
 #include "array.h"
 #include "nspc.h"
 #include "shreduler_private.h"
-
+/*
 INSTR(EOC) {
   vm_shred_exit(shred);
 }
-
+*/
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->parent;
