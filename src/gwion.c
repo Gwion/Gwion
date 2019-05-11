@@ -51,7 +51,7 @@ ANN VM* gwion_cpy(const VM* src) {
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
-  gwion->freearg = src->gwion->freearg;
+  gwion->data = src->gwion->data;
   gwion->st = src->gwion->st;
   gwion->mp = src->gwion->mp;
   return gwion->vm;
@@ -72,7 +72,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   arg_parse(arg);
   gwion->emit->memoize = arg->memoize;
   gwion->plug = new_plug(gwion->mp, &arg->lib);
-  map_init(&gwion->freearg);
+  gwion->data = new_gwiondata(gwion->mp);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
     gwion_compile(gwion, &arg->add);
@@ -92,15 +92,15 @@ ANN void gwion_end(const Gwion gwion) {
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
   MUTEX_LOCK(gwion->vm->shreduler->mutex);
-  if(gwion->child.ptr)
-    fork_clean(gwion->vm, &gwion->child);
+  if(gwion->data->child.ptr)
+    fork_clean(gwion->vm, &gwion->data->child);
   MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->emit);
   free_vm(gwion->vm);
   free_plug(gwion);
-  map_release(&gwion->freearg);
+  free_gwiondata(gwion->mp, gwion->data);
   free_symbols(gwion->st);
   mempool_end(gwion->mp);
 }

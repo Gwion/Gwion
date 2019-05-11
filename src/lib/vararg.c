@@ -108,5 +108,6 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_oper_add(gwi, at_varobj))
   CHECK_BB(gwi_oper_end(gwi, op_ref, VarargAssign))
   register_freearg(gwi, VarargIni, freearg_vararg);
+  gwi_reserve(gwi, "vararg");
   return GW_OK;
 }

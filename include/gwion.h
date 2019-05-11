@@ -4,16 +4,17 @@
 typedef struct Gwion_* Gwion;
 #include "plug.h"
 #include "driver.h"
+#include "gwiondata.h"
 struct Arg_;
+
 struct Gwion_ {
   PlugInfo* plug;
   Env      env;
   Emitter  emit;
   VM*      vm;
-  struct Map_ freearg;
+  struct GwionData_ *data;
   SymTable *st;
   MemPool mp;
-  struct Vector_ child;
 };
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);

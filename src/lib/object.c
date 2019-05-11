@@ -176,5 +176,6 @@ GWION_IMPORT(object) {
   CHECK_BB(gwi_oper_end(gwi, op_not, IntNot))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
+  gwi_reserve(gwi, "this");
   return GW_OK;
 }

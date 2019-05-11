@@ -212,5 +212,6 @@ GWION_IMPORT(func) {
   register_freearg(gwi, SporkIni, freearg_xork);
   register_freearg(gwi, ForkIni, freearg_xork);
   register_freearg(gwi, DotTmpl, freearg_dottmpl);
+  gwi_reserve(gwi, "__func__");
   return GW_OK;
 }

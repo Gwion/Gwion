@@ -672,5 +672,9 @@ ANN Type gwi_enum_end(const Gwi gwi) {
 }
 
 ANN void register_freearg(const Gwi gwi, const f_instr _exec, void(*_free)(const Instr, void*)) {
-  map_set(&gwi->gwion->freearg, (vtype)_exec, (vtype)_free);
+  map_set(&gwi->gwion->data->freearg, (vtype)_exec, (vtype)_free);
+}
+
+ANN void gwi_reserve(const Gwi gwi, const m_str str) {
+  vector_add(&gwi->gwion->data->reserved, (vtype)insert_symbol(gwi->gwion->st, str));
 }

@@ -80,4 +80,6 @@ ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth);
 #define FREEARG(a) ANN void a(Instr instr  NUSED, void *gwion NUSED)
 typedef void (*f_freearg)(Instr, void*);
 ANN void register_freearg(const Gwi, const f_instr, void(*)(const Instr,void*));
+ANN void gwi_reserve(const Gwi, const m_str);
+
 #endif

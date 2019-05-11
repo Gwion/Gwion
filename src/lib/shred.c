@@ -176,7 +176,7 @@ static ANN void* fork_run(void* data) {
   fork_retval(me);
   MUTEX_LOCK(vm->shreduler->mutex);
 //  MUTEX_LOCK(FORK_ORIG(me)->shreduler->mutex);
-  vector_rem2(&FORK_ORIG(me)->gwion->child, (vtype)me);
+  vector_rem2(&FORK_ORIG(me)->gwion->data->child, (vtype)me);
 //  MUTEX_UNLOCK(FORK_ORIG(me)->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
   broadcast(*(M_Object*)(me->data + o_fork_ev));
@@ -195,9 +195,9 @@ ANN void fork_clean(const VM *vm, const Vector v) {
 
 void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
   o->ref += 2;
-  if(!vm->gwion->child.ptr)
-    vector_init(&vm->gwion->child);
-  vector_add(&vm->gwion->child, (vtype)o);
+  if(!vm->gwion->data->child.ptr)
+    vector_init(&vm->gwion->data->child);
+  vector_add(&vm->gwion->data->child, (vtype)o);
   FORK_ORIG(o) = (VM*)vm;
   FORK_RETSIZE(o) = sz;
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
@@ -291,5 +291,6 @@ GWION_IMPORT(shred) {
   CHECK_BB(gwi_func_end(gwi, 0))
   CHECK_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
+  gwi_reserve(gwi, "me");
   return GW_OK;
 }

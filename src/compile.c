@@ -71,15 +71,19 @@ static inline m_bool compiler_open(struct Compiler* c) {
 static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
   CHECK_BB(compiler_open(c))
   struct ScannerArg_ arg = { c->name, c->file, gwion->st };
+  MUTEX_LOCK(gwion->data->mutex);
   CHECK_OB((c->ast = parse(&arg)))
   gwion->env->name = c->name;
-  return type_engine_check_prog(gwion->env, c->ast);
+  const m_bool ret = type_engine_check_prog(gwion->env, c->ast);
+  MUTEX_UNLOCK(gwion->data->mutex);
+  return ret;
 }
 
 static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   VM_Shred shred = NULL;
   VM_Code code;
   compiler_name(gwion->mp, c);
+  MUTEX_LOCK(gwion->data->mutex);
   if(check(gwion, c) < 0 ||
      !(code = emit_ast(gwion->emit, c->ast)))
      gw_err("while compiling file '%s'\n", c->base);
@@ -88,6 +92,7 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
     shred->info->args = c->args;
     vm_add_shred(gwion->vm, shred);
   }
+  MUTEX_UNLOCK(gwion->data->mutex);
   compiler_clean(gwion->mp, c);
   return shred ? shred->tick->xid : 0;
 }

@@ -78,7 +78,9 @@ static GWION_IMPORT(int_values) {
   CHECK_BB(gwi_enum_add(gwi, "true", 1))
   t_bool = gwi_enum_end(gwi);
   CHECK_BB(gwi_item_ini(gwi, "bool", "maybe"))
-  return gwi_item_end(gwi, 0, NULL);
+  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  gwi_reserve(gwi, "maybe");
+  return GW_OK;
 }
 
 static GWION_IMPORT(int) {
@@ -121,6 +123,7 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, t_zero);
   gwi_item_ini(gwi, "@now", "now");
   gwi_item_end(gwi, ae_flag_const, NULL);
+  gwi_reserve(gwi, "now");
   return GW_OK;
 }
 
