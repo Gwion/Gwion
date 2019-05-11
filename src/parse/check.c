@@ -727,7 +727,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   return value->type;
 }
 
-ANN static m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
+ANN m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
   return stmt->type->def ? check_class_def(env, stmt->type->def) : 1;
 }
 ANN static Type check_exp_lambda(const Env env NUSED,

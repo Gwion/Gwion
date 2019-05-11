@@ -48,6 +48,7 @@ typedef struct {
 struct Gwi_ {
   struct Gwion_* gwion;
   Class_Body body;
+  DL_Value val;
   DL_Var var;
   DL_Func func;
   DL_Enum enum_data;

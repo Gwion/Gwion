@@ -40,6 +40,9 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
 ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag);
 
+ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name);
+ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag);
+
 ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
 ANN m_int gwi_tmpl_end(const Gwi gwi);
 

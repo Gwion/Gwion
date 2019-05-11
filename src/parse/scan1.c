@@ -221,7 +221,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   return stmt->base->args ? scan1_args(env, stmt->base->args) : GW_OK;
 }
 
-ANN static inline m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
+ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_type(env, stmt))
   return stmt->type->def ? scan1_class_def(env, stmt->type->def) : 1;

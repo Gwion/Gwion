@@ -117,7 +117,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   return GW_OK;
 }
 
-ANN static inline m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
+ANN m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
   return stmt->type->def ? scan2_class_def(env, stmt->type->def) : 1;
 }
 

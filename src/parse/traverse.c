@@ -74,6 +74,13 @@ ANN m_bool traverse_stmt_fptr(const Env env, const Stmt_Fptr def) {
 // CHECK_BB(check_stmt_fptr(env, def))
 }
 
+ANN m_bool traverse_stmt_type(const Env env, const Stmt_Type def) {
+  CHECK_BB(scan0_stmt_type(env, def))
+  CHECK_BB(scan1_stmt_type(env, def))
+  CHECK_BB(scan2_stmt_type(env, def))
+  return check_stmt_type(env, def);
+}
+
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
   CHECK_BB(scan1_class_def(env, def))
   CHECK_BB(scan2_class_def(env, def))
