@@ -1607,6 +1607,10 @@ ANN static inline m_bool emit_member(const Emitter emit, const Value v, const ui
 }
 
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
+  if(member->xid == insert_symbol("vararg")) { // TODO prohibit this?
+    emit_add_instr(emit, RegPushImm);
+    return GW_OK;
+  }
   if(is_special(member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(member->t_base), member->xid);

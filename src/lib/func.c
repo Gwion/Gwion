@@ -76,7 +76,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
   l->def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, def->base->td, l->name, l->args), l->code, def->flag,
     loc_cpy(env->gwion->mp, def->pos));
-  const m_bool ret = traverse_func_def(env, l->def);
+  CHECK_BB(traverse_func_def(env, l->def))
   arg = l->args;
   while(arg) {
     arg->td = NULL;
@@ -84,7 +84,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(owner)
     env_pop(env, scope);
-  return ret;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_fptr_at) {
@@ -212,6 +212,5 @@ GWION_IMPORT(func) {
   register_freearg(gwi, SporkIni, freearg_xork);
   register_freearg(gwi, ForkIni, freearg_xork);
   register_freearg(gwi, DotTmpl, freearg_dottmpl);
-  gwi_reserve(gwi, "__func__");
   return GW_OK;
 }

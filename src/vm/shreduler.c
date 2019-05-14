@@ -44,13 +44,14 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
 ANN static void unwind(const VM_Shred shred) {
   VM_Code code = shred->code;
   while(code) {
+    if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))
+      break;
     const m_bit exec = (m_bit)((Instr)vector_back(code->instr))->opcode;
     if(exec == eFuncReturn) {
       code = *(VM_Code*)(shred->mem - SZ_INT*3);
       if(!GET_FLAG(code, op))
         REM_REF(code, shred->info->vm->gwion)
       shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4) + SZ_INT*4;
-      if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))break;
     } else break;
   }
   shred->code = code;

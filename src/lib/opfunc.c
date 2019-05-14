@@ -60,6 +60,14 @@ OP_CHECK(opck_unary_meta2) {
   return t_int;
 }
 
+OP_CHECK(opck_unary_meta2_uniq) {
+  const Exp_Unary* unary = (Exp_Unary*)data;
+  CHECK_OO(opck_unary_meta2(env, data))
+  if(unary->exp->next)
+    ERR_N(stmt_self(unary)->pos, "fuck!!")
+  return t_int;
+}
+
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)

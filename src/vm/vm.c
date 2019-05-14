@@ -589,7 +589,8 @@ regtomem:
 overflow:
   if(overflow_((shred->mem = mem), shred)) {
 PRAGMA_PUSH()
-    shred->code = a.code;
+//    shred->code = a.code;
+  shred->mem = mem;
 PRAGMA_POP()
     Except(shred, "StackOverflow");
   }
@@ -720,7 +721,7 @@ exceptbase:
 except:
   if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
     if(array_base) _release(array_base, shred);
-    shred->code = code;
+//    shred->code = code;
     shred->mem = mem;
     exception(shred, "NullPtrException");
     continue;

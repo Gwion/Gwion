@@ -299,12 +299,12 @@ ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO(t_base)
   Exp e = array->array->exp;
   CHECK_OO(check_exp(env, e))
-  m_uint depth = 1;
+  m_uint depth = 0;
   do {
     if(isa(e->type, t_int) < 0)
       ERR_O(e->pos, "array index %i must be of type 'int', not '%s'",
             depth, e->type->name)
-  } while((e = e->next) && ++depth);
+  } while(++depth && (e = e->next));
   if(depth != array->array->depth)
     ERR_O(exp_self(array)->pos, "invalid array acces expression.")
 
