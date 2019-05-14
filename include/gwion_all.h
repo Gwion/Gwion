@@ -1,6 +1,6 @@
 #ifndef __GWION_ALL
-#include "../ast/include/gwion_ast.h"
-#include "../util/include/gwion_util.h"
+#include "gwion_ast.h"
+#include "gwion_util.h"
 #include "arg.h"
 #include "array.h"
 #include "compile.h"
