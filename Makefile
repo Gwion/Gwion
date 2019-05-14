@@ -65,11 +65,12 @@ LDCFG="${LDFLAGS}"
 # hide this from gwion -v
 CFLAGS += -DGWION_BUILTIN
 
-LDFLAGS += ast/libgwion_ast.a util/libgwion_util.a
+GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
+LDFLAGS += ${GWLIBS}
 
-all: options util/libgwion_util.a ast/libgwion_ast.a ${GW_OBJ} ${jit_obj}
+all: options ${GWLIBS} src/main.o
 	$(info link ${PRG})
-	@${CC} ${GW_OBJ} -o ${PRG} ${LDFLAGS} ${LIBS}
+	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
 
 libgwion.a: ${gwlib_obj}
 	${AR} ${AR_OPT}
