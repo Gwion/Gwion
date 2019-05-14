@@ -66,11 +66,11 @@ LDCFG="${LDFLAGS}"
 CFLAGS += -DGWION_BUILTIN
 
 GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
-LDFLAGS += ${GWLIBS}
+_LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 	$(info link ${PRG})
-	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
+	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
 
 libgwion.a: ${gwlib_obj}
 	${AR} ${AR_OPT}

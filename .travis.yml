@@ -33,7 +33,8 @@ env:
 
 matrix:
   allow_failures:
-   - compiler: clang
+#   - compiler: clang
+   - os: windows
 
 compiler:
   - gcc
