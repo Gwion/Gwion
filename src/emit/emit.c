@@ -661,10 +661,6 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   return size;
 }
 
-ANN static inline m_uint round2szint(const m_uint i) {
-  return ((i + (SZ_INT-1)) & ~(SZ_INT-1));
-}
-
 ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) {
   const Instr instr = emit_add_instr(emit, VarargIni);
   const Vector kinds = new_vector(emit->gwion->mp);

@@ -10,9 +10,9 @@
 #include "parse.h"
 
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
-  Type t = find_type(env, td->xid);
-  CHECK_OO(t)
-  CHECK_OO((t = scan_type(env, t, td)))
+  const Type base = find_type(env, td->xid);
+  CHECK_OO(base)
+  const Type t = scan_type(env, base, td);
   return !td->array ? t : array_type(env, t, td->array->depth);
 }
 
@@ -50,7 +50,7 @@ ANN static void td_info_run(const Env env, struct td_info* info) {
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
-  size_t l = id_list_len(td->xid)  + depth * 2;
+  const size_t l = id_list_len(td->xid)  + depth * 2;
   struct td_info info = { td->types, (m_str)xmalloc(l), l, l };
   type_path(info.str, td->xid);
   while(depth--) { td_add(&info, '['); td_add(&info, ']'); }
@@ -71,8 +71,6 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   return info.str;
 }
 
-#include "vm.h"
-#include "gwion.h"
 ANN static inline void* type_unknown(const Env env, const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
