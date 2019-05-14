@@ -49,8 +49,8 @@ emit_obj := $(emit_src:.c=.o)
 oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
-
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
+gwlib_obj := $(filter-out src/main.o, ${GW_OBJ})
 
 CFLAGS  += -Iinclude
 LDFLAGS += -lm
@@ -69,7 +69,10 @@ LDFLAGS += ast/libgwion_ast.a util/libgwion_util.a
 
 all: options util/libgwion_util.a ast/libgwion_ast.a ${GW_OBJ} ${jit_obj}
 	$(info link ${PRG})
-	@${CC} ${GW_OBJ} ${jit_obj} -o ${PRG} ${LDFLAGS} ${LIBS}
+	@${CC} ${GW_OBJ} -o ${PRG} ${LDFLAGS} ${LIBS}
+
+libgwion.a: ${gwlib_obj}
+	${AR} ${AR_OPT}
 
 config.mk:
 	$(info generating config.mk)
