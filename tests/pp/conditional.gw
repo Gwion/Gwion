@@ -6,6 +6,7 @@
 #else
 <<<"'macro' undefined">>>;
 #endif
+#undef macro
 #ifdef macro
 <<<"'macro' defined (after undefining)">>>;
 #else
