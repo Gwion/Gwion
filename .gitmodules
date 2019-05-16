@@ -23,3 +23,6 @@
 	path = ast
 	url = https://github.com/fennecdjay/gwion-ast
   active = true
+[submodule "docs"]
+	path = docs
+	url = https://github.com/fennecdjay/gwion-docs
