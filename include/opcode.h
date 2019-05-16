@@ -152,7 +152,6 @@ enum {
   eRegAddRef,
   eObjectAssign,
   eObjectRelease,
-  eGWOP_EXCEPTBASE,
   eGWOP_EXCEPT,
   eAllocMember4,
   eDotMember,
@@ -326,7 +325,6 @@ enum {
 #define  RegAddRef           (f_instr)eRegAddRef
 #define  ObjectAssign        (f_instr)eObjectAssign
 #define  ObjectRelease       (f_instr)eObjectRelease
-#define  GWOP_EXCEPTBASE     (f_instr)eGWOP_EXCEPTBASE
 #define  GWOP_EXCEPT         (f_instr)eGWOP_EXCEPT
 #define  AllocMember4        (f_instr)eAllocMember4
 #define  DotMember           (f_instr)eDotMember

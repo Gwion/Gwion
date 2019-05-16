@@ -18,57 +18,41 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
 
 struct td_info {
   Type_List tl;
-  m_str str;
-  size_t len;
-  size_t cap;
+  GwText text;
 };
-
-ANN static inline m_bool td_add(struct td_info* info, const char c) {
-  return *(info->str + info->len++ - 1) = c;
-}
-
-ANN static inline void td_check(struct td_info* info, const size_t len) {
-  if(info->len + len >= info->cap) {
-    while(info->len + len >= info->cap)
-      info->cap <<= 1;
-    info->str = (m_str)xrealloc(info->str, info->cap);
-  }
-}
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td);
 ANN static void td_info_run(const Env env, struct td_info* info) {
   Type_List tl = info->tl;
   do {
     m_str name = td2str(env, tl->td);
-    const size_t nlen = strlen(name);
-    td_check(info, nlen + !!tl->next);
-    strcpy(info->str + info->len -1, name);
-    info->len += nlen;
+    text_add(&info->text, name);
     xfree(name);
-  } while((tl = tl->next) && td_add(info, ','));
+    if(tl->next)
+      text_add(&info->text, ",");
+  } while((tl = tl->next));
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
-  const size_t l = id_list_len(td->xid)  + depth * 2;
-  struct td_info info = { td->types, (m_str)xmalloc(l), l, l };
-  type_path(info.str, td->xid);
-  while(depth--) { td_add(&info, '['); td_add(&info, ']'); }
+  const size_t len = id_list_len(td->xid)  + depth * 2;
+  const size_t cap = round2szint(len);
+  struct td_info info = { td->types, { (m_str)xmalloc(cap), cap, len }};
+  type_path(info.text.str, td->xid);
+  while(depth--) { text_add(&info.text, "[]"); }
   Type_List tl = td->types;
   if(tl) {
-    td_check(&info, 2);
-    td_add(&info, '<');
+    text_add(&info.text, "<");
     td_info_run(env, &info);
-    td_add(&info, '>');
+    text_add(&info.text, ">");
   }
-  info.str[info.len - 1] = '\0';
-  return info.str;
+  return info.text.str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
-  struct td_info info = { tl, (m_str)xmalloc(32), 1, 32 };
+  struct td_info info = { .tl=tl };
   td_info_run(env, &info);
-  return info.str;
+  return info.text.str;
 }
 
 ANN static inline void* type_unknown(const Env env, const ID_List id) {
