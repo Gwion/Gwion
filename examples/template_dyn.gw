@@ -9,10 +9,10 @@ class C {
   fun<~A~> int test(A a, int i, int j) { <<<a>>>; }
 }
 class D extends C {
-  fun int<~A~> test(A a, int i) { <<<this, " extent ", a, __func__>>>; }
+  fun<~A~> int test(A a, int i) { <<<this, " extent ", a, __func__>>>; }
 }
 class E extends D {
-  fun int<~A~> test(A a, int i) { <<<this, " Extent ", a, __func__>>>; }
+  fun<~A~> int test(A a, int i) { <<<this, " Extent ", a, __func__>>>; }
 }
 
 

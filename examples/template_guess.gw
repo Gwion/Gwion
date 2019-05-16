@@ -1,4 +1,4 @@
-function void<~A,B~> test(A a, B b){<<<a, ", ", b>>>;}
+function <~A,B~> void test(A a, B b){<<<a, ", ", b>>>;}
 test(1, 2.1);
 test(1.1, 2.1);
 test(1.2, 2);
