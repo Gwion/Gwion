@@ -277,7 +277,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&assign, &&remref,
-    &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+    &&exceptbase, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
@@ -297,6 +297,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
       VM_Code code;
       VM_Shred child;
     } a;
+    register M_Object array_base = NULL;
   MUTEX_LOCK(s->mutex);
   do {
     register Instr instr; DISPATCH();
@@ -586,9 +587,12 @@ regtomem:
   *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
   DISPATCH()
 overflow:
-  if(overflow_(mem + SZ_INT*8, shred)) {
-    exception(shred, "StackOverflow");
-    continue;
+  if(overflow_((shred->mem = mem), shred)) {
+PRAGMA_PUSH()
+//    shred->code = a.code;
+  shred->mem = mem;
+PRAGMA_POP()
+    Except(shred, "StackOverflow");
   }
 next:
 PRAGMA_PUSH()
@@ -670,6 +674,8 @@ arrayaccess:
 {
   const m_int idx = *(m_int*)(reg + SZ_INT * instr->m_val);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
+// should we go to except ? so we can remove release array_base
+    _release(array_base, shred);
     gw_err("\t... at index [%" INT_F "]\n", idx);
     gw_err("\t... at dimension [%" INT_F "]\n", instr->m_val);
     shred->code = code;
@@ -686,7 +692,7 @@ arrayaddr:
   *(m_bit**)(reg + (m_int)instr->m_val2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * instr->m_val));
   DISPATCH()
 arrayvalid:
-  vector_pop(&shred->gc);
+  array_base = NULL;
   goto regpush;
 newobj:
   *(M_Object*)reg = new_object(vm->gwion->mp, shred, (Type)instr->m_val2);
@@ -710,8 +716,13 @@ assign:
 remref:
   release(*(M_Object*)(mem + instr->m_val), shred);
   DISPATCH()
+exceptbase:
+  array_base = *(M_Object*)(reg-SZ_INT);
 except:
   if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
+    if(array_base) _release(array_base, shred);
+//    shred->code = code;
+    shred->mem = mem;
     exception(shred, "NullPtrException");
     continue;
   }

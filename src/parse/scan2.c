@@ -543,9 +543,8 @@ DECL_SECTION_FUNC(scan2)
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type->e->parent->array_depth ?
     array_base(cdef->base.type->e->parent) : cdef->base.type->e->parent;
-  if(!GET_FLAG(t, scan2) && GET_FLAG(cdef->base.ext, typedef)) {
+  if(!GET_FLAG(t, scan2) && GET_FLAG(cdef->base.ext, typedef))
     CHECK_BB(scan2_class_def(env, t->e->def))
-  }
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;

@@ -6,6 +6,9 @@
 #include "object.h"
 #include "driver.h"
 #include "shreduler_private.h"
+#include "env.h" // unwind
+#include "gwion.h" // unwind
+#include "instr.h" // unwind
 
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
   s->loop = loop > 0;
@@ -38,6 +41,22 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
   }
 }
 
+ANN static void unwind(const VM_Shred shred) {
+  VM_Code code = shred->code;
+  while(code) {
+    if(shred->mem <= (((m_bit*)(shred) + sizeof(struct VM_Shred_) + SIZEOF_REG)))
+      break;
+    const m_bit exec = (m_bit)((Instr)vector_back(code->instr))->opcode;
+    if(exec == eFuncReturn) {
+      code = *(VM_Code*)(shred->mem - SZ_INT*3);
+      if(!GET_FLAG(code, op))
+        REM_REF(code, shred->info->vm->gwion)
+      shred->mem -= *(m_uint*)(shred->mem - SZ_INT*4) + SZ_INT*4;
+    } else break;
+  }
+  shred->code = code;
+}
+
 ANN static inline void shreduler_child(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
@@ -46,6 +65,7 @@ ANN static inline void shreduler_child(const Vector v) {
 }
 
 ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
+  unwind(tk->self);
   if(tk->parent)
     shreduler_parent(tk->self, &tk->parent->child);
   if(tk->child.ptr)

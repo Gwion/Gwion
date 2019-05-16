@@ -110,8 +110,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
       ERR_O(td_pos(decl->td), "can't infer type.");
   if(GET_FLAG(decl->type , template)) {
     const Type t = typedef_base(decl->type);
-    if(!GET_FLAG(t, check))
-      CHECK_BO(traverse_template(env, t->e->def))
+    CHECK_BO(traverse_template(env, t->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -413,7 +412,6 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const Exp args = exp->args;
   const Type_List types = exp->tmpl->types;
   Func m_func = exp->m_func, former = env->func;
-if(types->td->types)exit(12);
   const m_str tmpl_name = tl2str(env, types);
   const m_uint sz = vector_size((Vector)env->curr->info->type);
   const m_uint scope = env_push(env, v->owner_class, v->owner);
@@ -1166,11 +1164,11 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
     const Type t = class_def->base.type->e->parent->array_depth ?
       array_base(class_def->base.type->e->parent) : class_def->base.type->e->parent;
     if(!GET_FLAG(t, checked)) {
-//      if(class_def->tmpl)
-//        CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
+      if(class_def->tmpl)
+        CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
       CHECK_BB(traverse_template(env, t->e->def))
-//      if(class_def->tmpl)
-//        nspc_pop_type(env->gwion->mp, env->curr);
+      if(class_def->tmpl)
+        nspc_pop_type(env->gwion->mp, env->curr);
     }
   }
   if(!GET_FLAG(class_def->base.type->e->parent, checked))
@@ -1199,7 +1197,7 @@ ANN static inline void inherit(const Type t) {
 ANN m_bool check_class_def(const Env env, const Class_Def class_def) {
   if(tmpl_class_base(class_def->tmpl))
     return GW_OK;
-   if(class_def->base.type->e->parent == t_undefined) {
+  if(class_def->base.type->e->parent == t_undefined) {
     class_def->base.type->e->parent = check_td(env, class_def->base.ext);
     return traverse_class_def(env, class_def);
   }
