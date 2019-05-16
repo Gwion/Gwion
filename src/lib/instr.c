@@ -13,11 +13,7 @@
 #include "array.h"
 #include "nspc.h"
 #include "shreduler_private.h"
-/*
-INSTR(EOC) {
-  vm_shred_exit(shred);
-}
-*/
+
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->e->parent;
@@ -106,7 +102,7 @@ INSTR(DotTmpl) {
       dt->def = def; //
       dt->owner = t; //
       if(traverse_dot_tmpl(emit, dt) > 0) {
-        if(GET_FLAG(f->def, static))
+        if(GET_FLAG(def, static))
           shred->reg -= SZ_INT;
         *(VM_Code*)shred->reg = def->base->func->code;
         shred->reg += SZ_INT;
