@@ -15,7 +15,7 @@
 #include "operator.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
-  gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]",
+  gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           c, shred->tick->xid, shred->info->name, shred->pc - 1);
   vm_shred_exit(shred);
 }
@@ -55,7 +55,7 @@ ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
 
 __attribute__((hot))
 ANN void __release(const M_Object o, const VM_Shred shred) {
-  MemPool p = shred->info->mp;// = shred->info->vm->gwion->mp;
+  MemPool p = shred->info->mp;
   Type t = o->type_ref;
   while(t->e->parent) {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
