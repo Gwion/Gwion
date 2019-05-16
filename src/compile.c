@@ -38,6 +38,17 @@ static void compiler_name(MemPool p, struct Compiler* c) {
   free(d);
 }
 
+static inline void compiler_error(MemPool p, const struct Compiler* c) {
+  if(c->args) {
+    for(m_uint i = 0; i < vector_size(c->args); ++i) {
+      const m_str str = (m_str)vector_at(c->args, i);
+      if(str)
+        xfree((m_str)vector_at(c->args, i));
+    }
+    free_vector(p, c->args);
+  }
+}
+
 static void compiler_clean(MemPool p, const struct Compiler* c) {
   if(c->name)
     xfree(c->name);
@@ -58,10 +69,11 @@ static m_bool _compiler_open(struct Compiler* c) {
   return GW_OK;
 }
 
-static inline m_bool compiler_open(struct Compiler* c) {
+static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   char name[strlen(c->name)];
   strcpy(name, c->name);
   if(_compiler_open(c) < 0) {
+    compiler_error(p, c);
     gw_err("'%s': no such file\n", name);
     return GW_ERROR;
   }
@@ -69,7 +81,7 @@ static inline m_bool compiler_open(struct Compiler* c) {
 }
 
 static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
-  CHECK_BB(compiler_open(c))
+  CHECK_BB(compiler_open(gwion->mp, c))
   struct ScannerArg_ arg = { c->name, c->file, gwion->st };
   MUTEX_LOCK(gwion->data->mutex);
   CHECK_OB((c->ast = parse(&arg)))
@@ -84,9 +96,8 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   VM_Code code;
   compiler_name(gwion->mp, c);
   MUTEX_LOCK(gwion->data->mutex);
-  if(check(gwion, c) < 0 ||
-     !(code = emit_ast(gwion->emit, c->ast)))
-     gw_err("while compiling file '%s'\n", c->base);
+  if(check(gwion, c) < 0 || !(code = emit_ast(gwion->emit, c->ast)))
+    gw_err("while compiling file '%s'\n", c->base);
   else {
     const VM_Shred shred = new_vm_shred(gwion->mp, code);
     shred->info->args = c->args;
