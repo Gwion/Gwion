@@ -44,7 +44,6 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   decl->base = t->e->def;
   return decl->type = t;
 }
-//#include "loc.h"
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   Var_Decl_List list = decl->list;

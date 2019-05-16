@@ -111,7 +111,7 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 #endif
 
 ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
-  return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP));
+  return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP*16));
 }
 
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr instr) {
@@ -586,7 +586,7 @@ regtomem:
   *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
   DISPATCH()
 overflow:
-  if(overflow_(mem + SZ_INT*8, shred)) {
+  if(overflow_(mem, shred)) {
     exception(shred, "StackOverflow");
     continue;
   }

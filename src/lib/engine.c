@@ -5,6 +5,7 @@
 #include "vm.h"
 #include "env.h"
 #include "instr.h"
+#include "nspc.h"
 #include "type.h"
 #include "object.h"
 #include "import.h"
@@ -70,9 +71,10 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
   CHECK_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
   CHECK_BB(import_object(gwi))
-  CHECK_BB(import_array(gwi))
   CHECK_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
-  CHECK_BB(gwi_add_type(gwi, t_union))
+  CHECK_BB(gwi_class_ini(gwi, t_union, NULL, NULL))
+  CHECK_BB(gwi_class_end(gwi))
+  CHECK_BB(import_array(gwi))
   CHECK_BB(import_event(gwi))
   CHECK_BB(import_ugen(gwi))
   CHECK_BB(import_ptr(gwi))

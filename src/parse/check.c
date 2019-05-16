@@ -46,12 +46,7 @@ ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
   nspc->info->b += v->type->size;                                 \
 }
 describe_check_decl(member, offset)
-//describe_check_decl(static, class_data_size)
-ANN static inline void decl_static(const Nspc nspc, const Value v) { \
-  SET_FLAG(v, static);
-  v->offset = nspc->info->class_data_size;
-  nspc->info->class_data_size += v->type->size;
-}
+describe_check_decl(static, class_data_size)
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
@@ -456,8 +451,7 @@ if(types->td->types)exit(12);
         }
       }
     }
-// check m_func => maybe assert
-    if(!m_func && sz != vector_size((Vector)env->curr->info->type))
+    if(sz != vector_size((Vector)env->curr->info->type))
      nspc_pop_type(env->gwion->mp, env->curr);
     SET_FLAG(base, template);
   }
@@ -955,8 +949,10 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
   } else if(env->class_def)  {
     if(!GET_FLAG(stmt, static))
       stmt->o = env->class_def->nspc->info->offset;
-    else
-      decl_static(env->curr, stmt->value);
+    else {
+      stmt->o = stmt->type->nspc->info->class_data_size;
+      stmt->type->nspc->info->class_data_size += SZ_INT;
+    }
   }
   const m_uint scope = union_push(env, stmt);
   Decl_List l = stmt->l;
@@ -1156,33 +1152,29 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
 
 DECL_SECTION_FUNC(check)
 
-ANN static m_bool check_class_parent(const Env env, const Class_Def class_def) {
-  if(class_def->base.ext->array) {
-    CHECK_BB(check_exp_array_subscripts(env, class_def->base.ext->array->exp))
-    if(!GET_FLAG(class_def->base.type, check) && class_def->tmpl)
-      REM_REF(class_def->base.type->e->parent->nspc, env->gwion);
+ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
+  const Type parent = cdef->base.type->e->parent;
+  const Type_Decl *td = cdef->base.ext;
+  if(td->array) {
+    CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
+    if(!GET_FLAG(cdef->base.type, check) && cdef->tmpl)
+      REM_REF(parent->nspc, env->gwion);
   }
-  if(class_def->base.ext->types) {
-    const Type t = class_def->base.type->e->parent->array_depth ?
-      array_base(class_def->base.type->e->parent) : class_def->base.type->e->parent;
-    if(!GET_FLAG(t, checked)) {
-//      if(class_def->tmpl)
-//        CHECK_BB(template_push_types(env, class_def->tmpl->list.list, class_def->tmpl->base))
+  if(td->types) {
+    const Type t = parent->array_depth ? array_base(parent) : parent;
+    if(!GET_FLAG(t, checked))
       CHECK_BB(traverse_template(env, t->e->def))
-//      if(class_def->tmpl)
-//        nspc_pop_type(env->gwion->mp, env->curr);
-    }
   }
-  if(!GET_FLAG(class_def->base.type->e->parent, checked))
-    CHECK_BB(check_class_def(env, class_def->base.type->e->parent->e->def))
-  if(GET_FLAG(class_def->base.type->e->parent, typedef))
-    SET_FLAG(class_def->base.type, typedef);
+  if(!GET_FLAG(parent, checked))
+      CHECK_BB(check_class_def(env, parent->e->def))
+  if(GET_FLAG(parent, typedef))
+    SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
 }
 
-ANN static m_bool check_class_body(const Env env, const Class_Def class_def) {
-  const m_uint scope = env_push_type(env, class_def->base.type);
-  Class_Body body = class_def->body;
+ANN static m_bool check_class_body(const Env env, const Class_Def cdef) {
+  const m_uint scope = env_push_type(env, cdef->base.type);
+  Class_Body body = cdef->body;
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));
   env_pop(env, scope);
@@ -1196,22 +1188,22 @@ ANN static inline void inherit(const Type t) {
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
-ANN m_bool check_class_def(const Env env, const Class_Def class_def) {
-  if(tmpl_class_base(class_def->tmpl))
+ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
+  if(tmpl_class_base(cdef->tmpl))
     return GW_OK;
-   if(class_def->base.type->e->parent == t_undefined) {
-    class_def->base.type->e->parent = check_td(env, class_def->base.ext);
-    return traverse_class_def(env, class_def);
+  const Type type = cdef->base.type;
+   if(type->e->parent == t_undefined) {
+    type->e->parent = check_td(env, cdef->base.ext);
+    return traverse_class_def(env, cdef);
   }
-  const Type the_class = class_def->base.type;
-  if(class_def->base.ext)
-    CHECK_BB(check_class_parent(env, class_def))
-  else
-    the_class->e->parent = t_object;
-  inherit(the_class);
-  if(class_def->body)
-    CHECK_BB(check_class_body(env, class_def))
-  SET_FLAG(the_class, checked | ae_flag_check);
+  if(cdef->base.ext)
+    CHECK_BB(check_class_parent(env, cdef))
+  else if(!type->e->parent)
+    type->e->parent = t_object;
+  inherit(type);
+  if(cdef->body)
+    CHECK_BB(check_class_body(env, cdef))
+  SET_FLAG(type, checked | ae_flag_check);
   return GW_OK;
 }
 

@@ -62,14 +62,6 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
     const ae_flag flag = base->e->def ? base->e->def->flag : 0;
     const Class_Def cdef = new_class_def(env->gwion->mp, flag, stmt->xid, stmt->ext, NULL,
       loc_cpy(env->gwion->mp, td_pos(stmt->ext)));
-//const Type parent = known_type(env, stmt->ext);
-//if(!parent->array_depth && !GET_FLAG(parent, builtin) && !GET_FLAG(parent, scan0)) {
-//puts(parent->name);
-//exit(9);
-//}
-//printf("%p\n", stmt->ext->types);exit(6);
-//if(stmt->ext->types)
-//  cdef->tmpl = new_tmpl_class(, $2, -1);
     CHECK_BB(scan0_class_def(env, cdef))
     stmt->type = cdef->base.type;
   }
@@ -103,12 +95,13 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
 ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
   const Type t = type_copy(env->gwion->mp, t_union);
-//t->e->parent = t_union;
   t->xid = ++env->scope->type_xid;
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->nspc->parent = nspc;
+  t->nspc->ref = 1;
   t->e->owner = nspc;
+  t->e->parent = t_union;
   if(add) {
     nspc_add_type(nspc, s, t);
     mk_class(env, t);
@@ -139,6 +132,7 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     stmt->type = union_type(env, nspc, stmt->type_xid, 1);
+    SET_FLAG(stmt->type, checked);
   } else {
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;

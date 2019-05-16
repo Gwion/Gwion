@@ -5,7 +5,7 @@ struct M_Object_ {
   m_bit* data;
   Type type_ref;
   Vector vtable;
-  volatile size_t ref;
+  /* volatile */size_t ref;
 };
 
 ANN void instantiate_object(const VM_Shred, const Type);

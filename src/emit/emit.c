@@ -517,11 +517,9 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
   const m_uint size = v->type->size;
   if(isa(v->type, t_class) < 0) {
-    if(isa(v->type, t_union) < 0) {
-      const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
-      instr->m_val = (m_uint)(v->owner->info->class_data + v->offset);
-      instr->m_val2 = size;
-    } else exit(2);
+    const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
+    instr->m_val = (m_uint)(v->owner->info->class_data + v->offset);
+    instr->m_val2 = size;
   } else {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val = (m_uint)v->type;
@@ -1393,11 +1391,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
     stmt->value->type->nspc->info->offset = stmt->s;
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
         new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)),
-//        emit->env->class_def ? ae_flag_member : 0);
         stmt->flag);
-//if(emit->env->class_def && !GET_FLAG(stmt, static))
-//SET_FLAG(type_decl, member);
-//    type_decl->flag = stmt->flag;// ???
     const Var_Decl var_decl = new_var_decl(emit->gwion->mp, stmt->xid, NULL, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);

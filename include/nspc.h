@@ -17,6 +17,7 @@ struct Nspc_ {
   struct VM_Code_*   pre_ctor;
   struct VM_Code_*   dtor;
   struct NspcInfo_* info;
+  uint ref;
   HAS_OBJ
 };
 

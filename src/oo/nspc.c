@@ -23,20 +23,19 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
     (value->d.ptr && GET_FLAG(value, builtin))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->info->class_data + value->offset);
-    release(obj, gwion->vm->cleaner_shred);
+       release(obj, gwion->vm->cleaner_shred);
   }
 }
 
 ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   struct scope_iter iter = { a->info->value, 0, 0 };
   Value v;
-  while(scope_iter(&iter, &v) > 0) {
-    if(v->type && (isa(v->type, t_object) > 0  ||
-        (isa(v->type, t_union) > 0 &&
-        (GET_FLAG(v, static) || GET_FLAG(v, global))))) {
-      nspc_release_object(a, v, gwion);
+  if(!a->ref) {
+    while(scope_iter(&iter, &v) > 0) {
+      if(isa(v->type, t_object) > 0)
+        nspc_release_object(a, v, gwion);
+      REM_REF(v, gwion);
     }
-    REM_REF(v, gwion);
   }
   free_scope(gwion->mp, a->info->value);
 }
