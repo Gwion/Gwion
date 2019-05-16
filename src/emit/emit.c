@@ -390,10 +390,11 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   const m_uint is_var = exp_self(array)->emit_var;
   const m_uint depth = get_depth(array->base->type) - exp_self(array)->type->array_depth;
   CHECK_BB(emit_exp(emit, array->base, 0))
+  emit_add_instr(emit, GcAdd);
   CHECK_BB(emit_exp(emit, array->array->exp, 0))
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = depth * SZ_INT;
-  emit_add_instr(emit, GWOP_EXCEPTBASE);
+  emit_add_instr(emit, GWOP_EXCEPT);
   for(m_uint i = 0; i < depth - 1; ++i) {
     const Instr access = emit_add_instr(emit, ArrayAccess);
     access->m_val = i;
@@ -612,14 +613,9 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
 
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
-ANN static m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
+ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
   const Type t = typedef_base(decl->type);
-  if(!GET_FLAG(t, emit)) {
-    CHECK_BB(template_push_types(emit->env, t->e->def->tmpl->list.list, t->e->def->tmpl->base))
-    CHECK_BB(emit_class_def(emit, t->e->def))
-    emit_pop_type(emit);
-  }
-  return GW_OK;
+  return !GET_FLAG(t, emit) ? emit_class_def(emit, t->e->def) : GW_OK;
 }
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
@@ -832,9 +828,8 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
       instr->m_val = (instr->m_val2 = i) + member;
       ++prelude->m_val2;
     }
-    exec = Overflow;
-  } else
-    exec = Next;
+  }
+  exec = Overflow;
   if(memoize)
     memoize->m_val = prelude->m_val2 + 1;
   return emit_add_instr(emit, exec);
@@ -1397,7 +1392,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
         (m_bit*)xcalloc(1, stmt->value->type->nspc->info->class_data_size);
     stmt->value->type->nspc->info->offset = stmt->s;
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
-        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos))),
+        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)),
 //        emit->env->class_def ? ae_flag_member : 0);
         stmt->flag);
 //if(emit->env->class_def && !GET_FLAG(stmt, static))
@@ -1438,8 +1433,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
     SET_FLAG(stmt->l->self->d.exp_decl.list->self->value, enum);
   }
   if(stmt->xid){
-      const Instr instr = emit_add_instr(emit, RegPop);
-      instr->m_val = !GET_FLAG(stmt, static) ? SZ_INT : SZ_INT*2;
+    const Instr instr = emit_add_instr(emit, RegPop);
+    instr->m_val = !GET_FLAG(stmt, static) ? SZ_INT : SZ_INT*2;
   }
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid || stmt->type_xid || global)

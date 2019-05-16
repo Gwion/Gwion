@@ -149,7 +149,6 @@ ObjectInstantiate
 RegAddRef
 ObjectAssign
 ObjectRelease
-GWOP_EXCEPTBASE
 GWOP_EXCEPT
 AllocMember4
 DotMember

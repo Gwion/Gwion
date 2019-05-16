@@ -34,6 +34,7 @@ struct ShredInfo_ {
   m_str name;
   Vector args;
   MemPool mp;
+  VM_Code orig;
 };
 
 struct ShredTick_ {
