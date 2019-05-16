@@ -115,7 +115,7 @@ describe_path_and_dir(_code, s->code->name)
 
 static DTOR(shred_dtor) {
   VM *vm = ME(o)->info->vm;
-  free_vm_shred(*(VM_Shred*)o->data);
+  free_vm_shred(ME(o));
   if(isa(o->type_ref, t_fork) > 0)
     free_vm(vm);
 }
