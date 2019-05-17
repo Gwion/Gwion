@@ -146,9 +146,6 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref))
       return t;
-    if(!type->types)
-      ERR_O(type->xid->pos,
-        "you must provide template types for type '%s'", t->name)
     if(template_match(t->e->def->tmpl->list.list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
     const Class_Def a = template_class(env, t->e->def, type->types);
