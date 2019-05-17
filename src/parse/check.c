@@ -1172,19 +1172,6 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN static m_bool check_class_body(const Env env, const Class_Def cdef) {
-  const m_uint scope = env_push_type(env, cdef->base.type);
-  Class_Body body = cdef->body;
-  if(cdef->tmpl)
-    template_push_types(env, cdef->tmpl->list.list, cdef->tmpl->base);
-  do CHECK_BB(check_section(env, body->section))
-  while((body = body->next));
-  if(cdef->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
-  env_pop(env, scope);
-  return GW_OK;
-}
-
 ANN static inline void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
   nspc->info->offset = parent->info->offset;
@@ -1206,7 +1193,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     type->e->parent = t_object;
   inherit(type);
   if(cdef->body)
-    CHECK_BB(check_class_body(env, cdef))
+    CHECK_BB(env_body(env, cdef, check_section))
   SET_FLAG(type, checked | ae_flag_check);
   return GW_OK;
 }

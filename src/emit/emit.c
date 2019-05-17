@@ -1765,17 +1765,8 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   emit_class_code(emit, type->name);
   if(cdef->base.ext && cdef->base.ext->array)
     CHECK_BB(emit_array_extend(emit, type->e->parent, cdef->base.ext->array->exp))
-  if(cdef->body) {
-    const m_uint scope = env_push_type(emit->env, cdef->base.type);
-    if(cdef->tmpl)
-      template_push_types(emit->env, cdef->tmpl->list.list, cdef->tmpl->base);
-    Class_Body body = cdef->body;
-    do CHECK_BB(emit_section(emit, body->section))
-    while((body = body->next));
-    if(cdef->tmpl)
-      nspc_pop_type(emit->env->gwion->mp, emit->env->curr);
-    env_pop(emit->env, scope);
-  }
+  if(cdef->body)
+    CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
   emit_class_finish(emit, nspc);
   SET_FLAG(cdef->base.type->nspc->pre_ctor, ctor);
   emit_class_pop(emit);
