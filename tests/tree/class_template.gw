@@ -1,5 +1,4 @@
-template<~A, B~>
-class C {
+class<~A,B~> C {
   A a;
   B b; 
   fun A test() {

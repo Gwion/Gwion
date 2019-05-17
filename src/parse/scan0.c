@@ -10,6 +10,7 @@
 #include "vm.h"
 #include "parse.h"
 #include "traverse.h"
+#include "template.h"
 
 ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(env->gwion->mp, t_class);
@@ -228,8 +229,12 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   if(cdef->body) {
     Class_Body body = cdef->body;
     const m_uint scope = env_push_type(env, cdef->base.type);
+    if(cdef->tmpl)
+      template_push_types(env, cdef->tmpl->list.list, cdef->tmpl->base);
     do CHECK_BB(scan0_section(env, body->section))
     while((body = body->next));
+    if(cdef->tmpl)
+      nspc_pop_type(env->gwion->mp, env->curr);
     env_pop(env, scope);
   }
   (void)mk_class(env, cdef->base.type);

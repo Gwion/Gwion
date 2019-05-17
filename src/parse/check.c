@@ -106,7 +106,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(GET_FLAG(decl->type , template)) {
     const Type t = typedef_base(decl->type);
     if(!GET_FLAG(t, check))
-      CHECK_BO(traverse_template(env, t->e->def))
+      CHECK_BO(traverse_class_def(env, t->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -599,7 +599,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->e->d.func, ref)) {
     const Value value = exp->func->type->e->d.func->value_ref;
-    CHECK_BO(traverse_template(env, value->owner_class->e->def))
+    CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
@@ -1163,7 +1163,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   if(td->types) {
     const Type t = parent->array_depth ? array_base(parent) : parent;
     if(!GET_FLAG(t, checked))
-      CHECK_BB(traverse_template(env, t->e->def))
+      CHECK_BB(traverse_class_def(env, t->e->def))
   }
   if(!GET_FLAG(parent, checked))
       CHECK_BB(check_class_def(env, parent->e->def))
@@ -1175,8 +1175,12 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool check_class_body(const Env env, const Class_Def cdef) {
   const m_uint scope = env_push_type(env, cdef->base.type);
   Class_Body body = cdef->body;
+  if(cdef->tmpl)
+    template_push_types(env, cdef->tmpl->list.list, cdef->tmpl->base);
   do CHECK_BB(check_section(env, body->section))
   while((body = body->next));
+  if(cdef->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   return GW_OK;
 }

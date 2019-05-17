@@ -20,10 +20,8 @@ extern ANN m_bool scan1_class_def(const Env, const Class_Def);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
 
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
-  CHECK_BB(template_push_types(env, decl->base->tmpl->list.list, decl->td->types));
   CHECK_BB(scan1_class_def(env, decl->type->e->def))
   CHECK_BB(scan2_class_def(env, decl->type->e->def))
-  nspc_pop_type(env->gwion->mp, env->curr);
   return GW_OK;
 }
 
@@ -553,8 +551,12 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool scan2_class_body(const Env env, const Class_Def cdef) {
   const m_uint scope = env_push_type(env, cdef->base.type);
   Class_Body body = cdef->body;
+  if(cdef->tmpl)
+    template_push_types(env, cdef->tmpl->list.list, cdef->tmpl->base);
   do CHECK_BB(scan2_section(env, body->section))
   while((body = body->next));
+  if(cdef->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   return GW_OK;
 }

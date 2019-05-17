@@ -151,25 +151,24 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
         "you must provide template types for type '%s'", t->name)
     if(template_match(t->e->def->tmpl->list.list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
-    CHECK_BO(template_push_types(env, t->e->def->tmpl->list.list, type->types))
     const Class_Def a = template_class(env, t->e->def, type->types);
     SET_FLAG(a, ref);
     if(a->base.type)
-      POP_RET(a->base.type);
+      return a->base.type;
+    a->tmpl = new_tmpl_class(env->gwion->mp, get_total_type_list(env, t), 0);
+    a->tmpl->base = type->types;
+
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->base.type, template | ae_flag_ref);
     a->base.type->e->owner = t->e->owner;
     if(GET_FLAG(t, builtin))
       SET_FLAG(a->base.type, builtin);
     CHECK_BO(scan1_class_def(env, a))
-    nspc_pop_type(env->gwion->mp, env->curr);
     if(t->nspc->dtor) {
       a->base.type->nspc->dtor = t->nspc->dtor;
       SET_FLAG(a->base.type, dtor);
       ADD_REF(t->nspc->dtor)
     }
-    a->tmpl = new_tmpl_class(env->gwion->mp, get_total_type_list(env, t), 0);
-    a->tmpl->base = type->types;
     nspc_add_type(t->e->owner, insert_symbol(a->base.type->name), a->base.type);
     return a->base.type;
   } else if(type->types)

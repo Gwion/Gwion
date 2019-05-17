@@ -2,7 +2,6 @@
 #define __TRAVERSE
 ANN m_bool traverse_ast(const Env, const Ast);
 ANN m_bool traverse_class_def(const Env, const Class_Def);
-ANN m_bool traverse_template(const Env, const Class_Def);
 ANN m_bool traverse_func_def(const Env, const Func_Def);
 ANN m_bool traverse_stmt_union(const Env, const Stmt_Union);
 ANN m_bool traverse_stmt_enum(const Env, const Stmt_Enum);

@@ -338,8 +338,12 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool scan1_class_body(const Env env, const Class_Def cdef) {
   const m_uint scope = env_push_type(env, cdef->base.type);
   Class_Body body = cdef->body;
+  if(cdef->tmpl)
+    template_push_types(env, cdef->tmpl->list.list, cdef->tmpl->base);
   do CHECK_BB(scan1_section(env, body->section))
   while((body = body->next));
+  if(cdef->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   return GW_OK;
 }
