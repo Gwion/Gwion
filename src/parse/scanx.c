@@ -21,14 +21,19 @@ ANN static inline m_int _push(const Env env, const Class_Def c) {
     if(!c->tmpl->base)
       ERR_B(c->pos,
         "you must provide template types for type '%s'", s_name(c->base.xid))
-    CHECK_BB(template_push_types(env, c->tmpl->list.list, c->tmpl->base))
+    if(c->tmpl->base != 1)
+      CHECK_BB(template_push_types(env, c->tmpl->list.list, c->tmpl->base))
   }
   return scope;
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
-  if(c->tmpl)
-    nspc_pop_type(e->gwion->mp, e->curr);
+  if(c->tmpl) {
+    if(c->tmpl->base != 1)
+      nspc_pop_type(e->gwion->mp, e->curr);
+    else
+      c->tmpl->base = NULL;
+  }
   env_pop(e, s);
 }
 

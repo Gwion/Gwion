@@ -226,8 +226,13 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
 ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   CHECK_BB(scan0_class_def_pre(env, cdef))
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
-  if(cdef->body)
+  if(cdef->body) {
+int call = cdef->tmpl && !cdef->tmpl->base;
+if(call)cdef->tmpl->base = 1;
+//  assert(cdef->tmpl->base);
     CHECK_BB(env_body(env, cdef, scan0_section))
+if(call)cdef->tmpl->base = NULL;
+}
   (void)mk_class(env, cdef->base.type);
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
