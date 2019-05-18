@@ -22,7 +22,7 @@ ANN static inline m_int _push(const Env env, const Class_Def c) {
       ERR_B(c->pos,
         "you must provide template types for type '%s'", s_name(c->base.xid))
     if(c->tmpl->call != (Type_List)1)
-      CHECK_BB(template_push_types(env, c->tmpl->list.list, c->tmpl->call))
+      CHECK_BB(template_push_types(env, c->tmpl->list, c->tmpl->call))
   }
   return scope;
 }
