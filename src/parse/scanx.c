@@ -15,25 +15,25 @@ ANN static inline m_bool _body(const Env e, Class_Body b, const _exp_func f) {
   return GW_OK;
 }
 
+ANN static inline m_bool tmpl_push(const Env env, const Tmpl* tmpl) {
+  if(tmpl->call && tmpl->call != (Type_List)1) {
+    CHECK_BB(template_push_types(env, tmpl->list, tmpl->call))
+    return GW_OK;
+  }
+  return GW_ERROR;
+}
+
 ANN static inline m_int _push(const Env env, const Class_Def c) {
   const m_uint scope = env_push_type(env, c->base.type);
-  if(c->tmpl) {
-    if(!c->tmpl->call)
-      ERR_B(c->pos,
-        "you must provide template types for type '%s'", s_name(c->base.xid))
-    if(c->tmpl->call != (Type_List)1)
-      CHECK_BB(template_push_types(env, c->tmpl->list, c->tmpl->call))
-  }
+  if(c->tmpl && tmpl_push(env, c->tmpl) < 0)
+    ERR_B(c->pos, "you must provide template types for type '%s'",
+      s_name(c->base.xid))
   return scope;
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
-  if(c->tmpl) {
-    if(c->tmpl->call != (Type_List)1)
+  if(c->tmpl && c->tmpl->call != (Type_List)1)
       nspc_pop_type(e->gwion->mp, e->curr);
-    else
-      c->tmpl->call = NULL;
-  }
   env_pop(e, s);
 }
 
