@@ -691,7 +691,7 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
-  const m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->types);
+  const m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->call);
   CHECK_BB(scope);
   CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
@@ -1685,7 +1685,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   const Func former = emit->env->func;
   if(func->code)
     return GW_OK;
-  if(tmpl_list_base(func_def->tmpl)) {
+  if(tmpl_base(func_def->tmpl)) {
     UNSET_FLAG(func_def, template);
     return GW_OK;
   }
@@ -1750,7 +1750,7 @@ ANN static inline void emit_class_pop(const Emitter emit) {
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext && ((/*!GET_FLAG(type->e->parent, emit) &&*/
       GET_FLAG(cdef->base.ext, typedef)) || cdef->base.ext->types)) {

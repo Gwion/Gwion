@@ -19,7 +19,7 @@ ANN static inline Type owner_type(const Env env, const Type t) {
 ANEW ANN static Vector get_types(const Env env, Type t) {
   const Vector v = new_vector(env->gwion->mp);
   do if(GET_FLAG(t, template))
-    vector_add(v, (vtype)t->e->def->tmpl->list.list);
+    vector_add(v, (vtype)t->e->def->tmpl->list);
   while((t = owner_type(env, t)));
   return v;
 }
@@ -35,12 +35,12 @@ ANEW ANN static ID_List id_list_copy(MemPool p, ID_List src) {
 ANN static ID_List get_total_type_list(const Env env, const Type t) {
   const Type parent = owner_type(env, t);
   if(!parent)
-    return t->e->def->tmpl ? t->e->def->tmpl->list.list : NULL;
+    return t->e->def->tmpl ? t->e->def->tmpl->list : NULL;
   const Vector v = get_types(env, parent);
   const ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(env->gwion->mp, v);
-    return t->e->def->tmpl ? t->e->def->tmpl->list.list : NULL;
+    return t->e->def->tmpl ? t->e->def->tmpl->list : NULL;
   }
   const ID_List types = id_list_copy(env->gwion->mp, base);
   ID_List list, tmp = types;
@@ -48,7 +48,7 @@ ANN static ID_List get_total_type_list(const Env env, const Type t) {
     list = (ID_List)vector_pop(v);
     tmp = (tmp->next = id_list_copy(env->gwion->mp, list));
   }
-  tmp->next = t->e->def->tmpl->list.list;
+  tmp->next = t->e->def->tmpl->list;
   free_vector(env->gwion->mp, v);
   return types;
 }
@@ -69,7 +69,7 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
 }
 
 ANN static size_t template_size(const Env env, struct tmpl_info* info) {
-  ID_List base = info->cdef->tmpl->list.list;
+  ID_List base = info->cdef->tmpl->list;
   size_t size = tmpl_set(info, info->cdef->base.type);
   do size += tmpl_set(info, type_decl_resolve(env, info->call->td));
   while((info->call = info->call->next) && (base = base->next) && ++size);
@@ -147,16 +147,16 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     if(GET_FLAG(t, ref))
       return t;
     if(!type->types)
-      ERR_O(type->xid->pos,
+      ERR_O(t->e->def->pos,
         "you must provide template types for type '%s'", t->name)
-    if(template_match(t->e->def->tmpl->list.list, type->types) < 0)
+    if(template_match(t->e->def->tmpl->list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
     const Class_Def a = template_class(env, t->e->def, type->types);
     SET_FLAG(a, ref);
     if(a->base.type)
       return a->base.type;
-    a->tmpl = new_tmpl_class(env->gwion->mp, get_total_type_list(env, t), 0);
-    a->tmpl->base = type->types;
+    a->tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t), 0);
+    a->tmpl->call = type->types;
 
     CHECK_BO(scan0_class_def(env, a))
     SET_FLAG(a->base.type, template | ae_flag_ref);

@@ -287,7 +287,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
-  if(tmpl_list_base(fdef->tmpl))
+  if(tmpl_base(fdef->tmpl))
     return GW_OK;
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
@@ -338,7 +338,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(!cdef->base.type)
     CHECK_BB(scan0_class_def(env, cdef))
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext)
     CHECK_BB(scan1_class_parent(env, cdef))
