@@ -298,7 +298,7 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
 }
 
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) {
-  const m_bool base = tmpl_list_base(f->tmpl);
+  const m_bool base = tmpl_base(f->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0)
     ERR_B(f->pos, "function name '%s' is already used by another value", overload->name)
@@ -495,7 +495,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
     ERR_B(f->pos, "'%s' already declared as type", func_name)
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
-  if(tmpl_list_base(f->tmpl))
+  if(tmpl_base(f->tmpl))
     return scan2_func_def_template(env, f, overload);
   if(!f->tmpl) {
     const Symbol sym  = func_symbol(env, env->curr->name, func_name, NULL, overload ? ++overload->offset : 0);
@@ -549,7 +549,7 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_list_base(cdef->tmpl))
+  if(tmpl_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext)
     CHECK_BB(scan2_class_parent(env, cdef))

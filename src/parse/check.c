@@ -406,7 +406,7 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   const Exp args = exp->args;
-  const Type_List types = exp->tmpl->types;
+  const Type_List types = exp->tmpl->call;
   Func m_func = exp->m_func, former = env->func;
 if(types->td->types)exit(12);
   const m_str tmpl_name = tl2str(env, types);
@@ -427,7 +427,7 @@ if(types->td->types)exit(12);
         if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
-        def->tmpl = new_tmpl_list(env->gwion->mp, base->tmpl->list, (m_int)i);
+        def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, (m_int)i);
       }
     } else {
       if(!(value = template_get_ready(env, v, "template", i)))
@@ -435,7 +435,7 @@ if(types->td->types)exit(12);
       base = value->d.func_ref->def;
       def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(v->name),
                 base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
-      def->tmpl = new_tmpl_list(env->gwion->mp, base->tmpl->list, (m_int)i);
+      def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
     if(traverse_func_template(env, def, types) > 0) {
@@ -516,8 +516,8 @@ ANN static m_uint get_type_number(ID_List list) {
 ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
-    Tmpl_Call* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->types);
-    tmpl->base = v->d.func_ref->def->tmpl->list;
+    Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
+    tmpl->list = v->d.func_ref->def->tmpl->list;
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
   }
@@ -557,7 +557,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   }
   if(args_number < type_number)
     ERR_O(call->pos, "not able to guess types for template call.")
-  Tmpl_Call tmpl = { .types=tl[0] };
+  Tmpl tmpl = { .call=tl[0] };
   ((Exp_Call*)exp)->tmpl = &tmpl;
   const Func func = get_template_func(env, exp, value);
   return func ? func->def->base->ret_type : NULL;
@@ -1112,7 +1112,7 @@ ANN static void operator_func(const Func f) {
 ANN m_bool check_func_def(const Env env, const Func_Def f) {
   const Func func = get_func(env, f);
   m_bool ret = GW_OK;
-  if(tmpl_list_base(f->tmpl))
+  if(tmpl_base(f->tmpl))
     return env->class_def ? check_parent_match(env, f) : 1;
   if(f->base->td && !f->base->td->xid) {
     f->base->ret_type = check_td(env, f->base->td);
@@ -1180,7 +1180,7 @@ ANN static inline void inherit(const Type t) {
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_list_base(cdef->tmpl))
+  if(tmpl_base(cdef->tmpl))
     return GW_OK;
   const Type type = cdef->base.type;
    if(type->e->parent == t_undefined) {
