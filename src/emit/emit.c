@@ -680,18 +680,18 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
   return emit_exp(emit, exp_call->func, 0);
 }
 
-ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f,
-    const Type_List types) {
+ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
   const Value v = f->value_ref;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(traverse_func_template(emit->env, f->def, types))
+  CHECK_BB(traverse_func_template(emit->env, f->def))
   return (m_int)scope;
 }
 
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
-  const m_int scope = push_tmpl_func(emit, exp_call->m_func, exp_call->tmpl->call);
+  exp_call->m_func->def->tmpl->call = exp_call->tmpl->call;
+  const m_int scope = push_tmpl_func(emit, exp_call->m_func);
   CHECK_BB(scope);
   CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
@@ -751,7 +751,8 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
   const m_uint scope = emit_push_type(emit, dt->owner);
   m_bool ret = GW_ERROR;
-  if(traverse_func_template(emit->env, dt->def, dt->tl) > 0) {
+  dt->def->tmpl->call = dt->tl;// in INSTR
+  if(traverse_func_template(emit->env, dt->def) > 0) {
     ret = emit_func_def(emit, dt->def);
     nspc_pop_type(emit->gwion->mp, emit->env->curr);
   }

@@ -120,8 +120,9 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
     loc_cpy(env->gwion->mp, def->pos));
 }
 
-ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
-  Type_List call = tl;
+ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
+  ID_List list = tmpl->list;
+  Type_List call = tmpl->call;
   nspc_push_type(env->gwion->mp, env->curr);
   do {
     if(!call)
@@ -129,9 +130,9 @@ ANN m_bool template_push_types(const Env env, ID_List base, Type_List tl) {
     const Type t = known_type(env, call->td);
     if(!t)
       POP_RET(-1);
-    nspc_add_type(env->curr, base->xid, t);
+    nspc_add_type(env->curr, list->xid, t);
     call = call->next;
-  } while((base = base->next));
+  } while((list = list->next));
   if(!call)
     return GW_OK;
   POP_RET(-1);

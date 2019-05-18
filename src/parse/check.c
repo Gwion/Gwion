@@ -438,7 +438,8 @@ if(types->td->types)exit(12);
       def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
-    if(traverse_func_template(env, def, types) > 0) {
+    def->tmpl->call = types;
+    if(traverse_func_template(env, def) > 0) {
       nspc_pop_type(env->gwion->mp, env->curr);
       if(check_call(env, exp) > 0) {
         const Func next = def->base->func->next;
