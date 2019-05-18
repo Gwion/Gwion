@@ -338,7 +338,7 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(!cdef->base.type)
     CHECK_BB(scan0_class_def(env, cdef))
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_list_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext)
     CHECK_BB(scan1_class_parent(env, cdef))

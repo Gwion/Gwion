@@ -549,7 +549,7 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_list_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext)
     CHECK_BB(scan2_class_parent(env, cdef))

@@ -221,7 +221,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
   if(gwi->templater.n) {
     const ID_List types = templater_def(gwi->gwion->st, gwi);
     type->e->def = new_class_def(gwi->gwion->mp, 0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, loc_cpy(gwi->gwion->mp, gwi->loc));
-    type->e->def->tmpl = new_tmpl_class(gwi->gwion->mp, types, -1);
+    type->e->def->tmpl = new_tmpl_list(gwi->gwion->mp, types, -1);
     type->e->def->base.type = type;
     SET_FLAG(type, template);
   } else

@@ -1750,7 +1750,7 @@ ANN static inline void emit_class_pop(const Emitter emit) {
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_list_base(cdef->tmpl))
     return GW_OK;
   if(cdef->base.ext && ((/*!GET_FLAG(type->e->parent, emit) &&*/
       GET_FLAG(cdef->base.ext, typedef)) || cdef->base.ext->types)) {

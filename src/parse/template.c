@@ -155,7 +155,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     SET_FLAG(a, ref);
     if(a->base.type)
       return a->base.type;
-    a->tmpl = new_tmpl_class(env->gwion->mp, get_total_type_list(env, t), 0);
+    a->tmpl = new_tmpl_list(env->gwion->mp, get_total_type_list(env, t), 0);
     a->tmpl->call = type->types;
 
     CHECK_BO(scan0_class_def(env, a))

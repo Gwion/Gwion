@@ -1180,7 +1180,7 @@ ANN static inline void inherit(const Type t) {
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_class_base(cdef->tmpl))
+  if(tmpl_list_base(cdef->tmpl))
     return GW_OK;
   const Type type = cdef->base.type;
    if(type->e->parent == t_undefined) {
