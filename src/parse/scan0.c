@@ -227,11 +227,10 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   CHECK_BB(scan0_class_def_pre(env, cdef))
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
   if(cdef->body) {
-int call = cdef->tmpl && !cdef->tmpl->base;
-if(call)cdef->tmpl->base = 1;
-//  assert(cdef->tmpl->base);
+int call = cdef->tmpl && !cdef->tmpl->call;
+if(call)cdef->tmpl->call = (Type_List)1;
     CHECK_BB(env_body(env, cdef, scan0_section))
-if(call)cdef->tmpl->base = NULL;
+if(call)cdef->tmpl->call = NULL;
 }
   (void)mk_class(env, cdef->base.type);
   if(GET_FLAG(cdef, global))

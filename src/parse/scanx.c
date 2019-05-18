@@ -18,21 +18,21 @@ ANN static inline m_bool _body(const Env e, Class_Body b, const _exp_func f) {
 ANN static inline m_int _push(const Env env, const Class_Def c) {
   const m_uint scope = env_push_type(env, c->base.type);
   if(c->tmpl) {
-    if(!c->tmpl->base)
+    if(!c->tmpl->call)
       ERR_B(c->pos,
         "you must provide template types for type '%s'", s_name(c->base.xid))
-    if(c->tmpl->base != 1)
-      CHECK_BB(template_push_types(env, c->tmpl->list.list, c->tmpl->base))
+    if(c->tmpl->call != (Type_List)1)
+      CHECK_BB(template_push_types(env, c->tmpl->list.list, c->tmpl->call))
   }
   return scope;
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
   if(c->tmpl) {
-    if(c->tmpl->base != 1)
+    if(c->tmpl->call != (Type_List)1)
       nspc_pop_type(e->gwion->mp, e->curr);
     else
-      c->tmpl->base = NULL;
+      c->tmpl->call = NULL;
   }
   env_pop(e, s);
 }
