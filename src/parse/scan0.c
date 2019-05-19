@@ -100,7 +100,7 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->nspc->parent = nspc;
-  t->nspc->ref = 1;
+  t->nspc->is_union = 1;
   t->e->owner = nspc;
   t->e->parent = t_union;
   if(add) {

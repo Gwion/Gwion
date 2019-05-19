@@ -25,7 +25,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->e->parent = parent;
   if(type->e->parent)
     type->size = parent->size;
-  INIT_OO(p, type, free_type);
+  type->ref = new_refcount(p, free_type);
   return type;
 }
 

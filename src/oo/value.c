@@ -22,6 +22,6 @@ ANN Value new_value(MemPool p, const Type type, const m_str name) {
   const Value a = mp_alloc(p, Value);
   a->type       = type;
   a->name       = name;
-  INIT_OO(p, a, free_value);
+  a->ref = new_refcount(p, free_value);
   return a;
 }

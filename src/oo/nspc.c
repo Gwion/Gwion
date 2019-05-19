@@ -30,7 +30,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
 ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   struct scope_iter iter = { a->info->value, 0, 0 };
   Value v;
-  if(!a->ref) {
+  if(!a->is_union) {
     while(scope_iter(&iter, &v) > 0) {
       if(isa(v->type, t_object) > 0)
         nspc_release_object(a, v, gwion);
@@ -78,6 +78,6 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->info->value = new_scope(p);
   a->info->type = new_scope(p);
   a->info->func = new_scope(p);
-  INIT_OO(p, a, free_nspc);
+  a->ref = new_refcount(p, free_nspc);
   return a;
 }

@@ -25,7 +25,7 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
   Func func = mp_alloc(p, Func);
   func->name = name;
   func->def = def;
-  INIT_OO(p, func, free_func);
+  func->ref = new_refcount(p, free_func);
   return func;
 }
 

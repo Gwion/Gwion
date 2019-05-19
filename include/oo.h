@@ -6,19 +6,25 @@ typedef struct Nspc_      * Nspc;
 typedef struct Value_     * Value;
 typedef struct Func_      * Func;
 
-struct VM_Object_ {
+typedef struct RefCount_ {
   void (*free)(void*,void*);
-  uint16_t ref_count; // could be an unsigned short
-};
+  uint16_t count; // could be an unsigned short
+} RefCount;
 
-#define HAS_OBJ struct VM_Object_* obj;
-#define INIT_OO(mp, a, b) { (a)->obj = mp_alloc(mp, VM_Object); (a)->obj->ref_count = 1; (a)->obj->free= (void(*)(void*,void*))b; }
-ANN static inline void rem_ref(MemPool mp, struct VM_Object_* a, void* ptr, void *gwion) {
-  if(--a->ref_count)
+#define HAS_OBJ RefCount* ref;
+ANN static inline RefCount* new_refcount(MemPool mp, void(*free)(void*,void*)) {
+  RefCount *ref = mp_alloc(mp, RefCount);
+  ref->count = 1;
+  ref->free= free;
+  return ref;
+}
+#define new_refcount(a, b) new_refcount(a, (void(*)(void*,void*))b)
+ANN static inline void rem_ref(MemPool mp, RefCount* a, void* ptr, void *gwion) {
+  if(--a->count)
     return;
   a->free(ptr, gwion);
-  mp_free(mp, VM_Object, a);
+  mp_free(mp, RefCount, a);
 }
-#define ADD_REF(a)    { ++(a)->obj->ref_count; }
-#define REM_REF(a, b)    { rem_ref(((Gwion)(b))->mp, (a)->obj, (a), (b)); }
+#define ADD_REF(a)    { ++(a)->ref->count; }
+#define REM_REF(a, b)    { rem_ref(((Gwion)(b))->mp, (a)->ref, (a), (b)); }
 #endif

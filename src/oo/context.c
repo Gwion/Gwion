@@ -18,7 +18,7 @@ ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
   context->nspc = new_nspc(p, str);
   context->tree = ast;
   context->name = str;
-  INIT_OO(p, context, free_context);
+  context->ref = new_refcount(p, free_context);
   return context;
 }
 
