@@ -17,13 +17,13 @@
 #include "parse.h"
 
 ANN static struct Env_Scope_ *new_envscope(MemPool p) {
-  struct Env_Scope_ *a = mp_alloc(p, Env_Scope);
+  struct Env_Scope_ *a = mp_calloc(p, Env_Scope);
   vector_init(&a->breaks);
   vector_init(&a->conts);
   vector_init(&a->class_stack);
   vector_init(&a->nspc_stack);
   vector_init(&a->known_ctx);
-  a->swi = mp_alloc(p, Scope);
+  a->swi = mp_calloc(p, Scope);
   _scope_init(a->swi);
   map_init(&a->swi->map);
   return a;

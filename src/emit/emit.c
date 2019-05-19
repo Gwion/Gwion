@@ -51,7 +51,7 @@ static inline m_uint emit_push_global(const Emitter emit) {
 }
 
 ANEW static Frame* new_frame(MemPool p) {
-  Frame* frame = mp_alloc(p, Frame);
+  Frame* frame = mp_calloc(p, Frame);
   vector_init(&frame->stack);
   vector_add(&frame->stack, (vtype)NULL);
   return frame;
@@ -67,7 +67,7 @@ ANN static void free_frame(MemPool p, Frame* a) {
 }
 
 ANN static Local* new_local(MemPool p, const m_uint size, const m_bool is_obj) {
-  Local* local  = mp_alloc(p, Local);
+  Local* local  = mp_calloc(p, Local);
   local->size   = size;
   local->is_obj = is_obj;
   return local;
@@ -99,7 +99,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
-  Code* code = mp_alloc(emit->gwion->mp, Code);
+  Code* code = mp_calloc(emit->gwion->mp, Code);
   code->name = code_name_set(name, emit->env->name);
   vector_init(&code->instr);
   vector_init(&code->stack_break);
@@ -191,7 +191,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
 ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) {
   CHECK_BO(emit_exp(emit, e, 0))
   const Type base = array_base(t);
-  ArrayInfo* info = mp_alloc(emit->gwion->mp, ArrayInfo);
+  ArrayInfo* info = mp_calloc(emit->gwion->mp, ArrayInfo);
   vector_init(&info->type);
   for(m_uint i = 1; i < t->array_depth; ++i)
     vector_add(&info->type, (vtype)array_type(emit->env, base, i));
@@ -589,7 +589,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, dotstatic);
-  v->d.ptr = mp_alloc2(emit->gwion->mp, v->type->size);
+  v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
   SET_FLAG(v, union);
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
@@ -766,7 +766,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     char c[sz + 1];
     memcpy(c, f->name, sz);
     c[sz] = '\0';
-    struct dottmpl_ *dt = mp_alloc(emit->gwion->mp, dottmpl);
+    struct dottmpl_ *dt = mp_calloc(emit->gwion->mp, dottmpl);
     dt->name = s_name(insert_symbol(c));
     dt->overload = f->def->tmpl->base;
     dt->tl = tmpl_tl(emit->env, c);
@@ -1367,9 +1367,9 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) {
   } while((l = l->next));
 }
 
-ANN static inline void union_allocdata(const Stmt_Union stmt) {
+ANN static inline void union_allocdata(MemPool mp, const Stmt_Union stmt) {
   const Nspc nspc = (stmt->xid ? stmt->value->type : stmt->type)->nspc;
-  nspc_allocdata(nspc);
+  nspc_allocdata(mp, nspc);
   nspc->info->offset = stmt->s;
 }
 
@@ -1378,7 +1378,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
   m_uint scope = emit->env->scope->depth;
   const m_bool global = GET_FLAG(stmt, global);
   if(stmt->xid) {
-    union_allocdata(stmt);
+    union_allocdata(emit->gwion->mp, stmt);
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
         new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)),
         stmt->flag);
@@ -1397,7 +1397,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
     }
     scope = emit_push_type(emit, stmt->value->type);
   } else if(stmt->type_xid) {
-    union_allocdata(stmt);
+    union_allocdata(emit->gwion->mp, stmt);
     scope = emit_push_type(emit, stmt->type);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
@@ -1726,7 +1726,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     if(!base->nspc->pre_ctor)
       CHECK_BB(emit_class_def(emit, base->e->def))
   }
-  nspc_allocdata(nspc);
+  nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);
   if(cdef->base.ext && cdef->base.ext->array)
     CHECK_BB(emit_array_extend(emit, type->e->parent, cdef->base.ext->array->exp))

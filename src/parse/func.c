@@ -22,7 +22,7 @@ ANN static void free_func(Func a, Gwion gwion) {
 }
 
 ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
-  Func func = mp_alloc(p, Func);
+  Func func = mp_calloc(p, Func);
   func->name = name;
   func->def = def;
   func->ref = new_refcount(p, free_func);

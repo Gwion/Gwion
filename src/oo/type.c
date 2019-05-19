@@ -18,10 +18,10 @@ ANN static void free_type(Type a, Gwion gwion) {
 }
 
 Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
-  const Type type = mp_alloc(p, Type);
+  const Type type = mp_calloc(p, Type);
   type->xid    = xid;
   type->name   = name;
-  type->e = mp_alloc(p, TypeInfo);
+  type->e = mp_calloc(p, TypeInfo);
   type->e->parent = parent;
   if(type->e->parent)
     type->size = parent->size;

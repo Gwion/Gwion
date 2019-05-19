@@ -267,7 +267,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->gwion->env->class_def)
     GWI_ERR_B("import: too many class_end called.")
-  nspc_allocdata(gwi->gwion->env->class_def->nspc);
+  nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);
   env_pop(gwi->gwion->env, 0);
   return GW_OK;
 }

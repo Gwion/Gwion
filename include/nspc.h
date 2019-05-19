@@ -58,8 +58,9 @@ describe_nspc_func(Func, func)
 ANN void did_you_mean_nspc(const Nspc, const char*);
 ANN void did_you_mean_type(const Type, const char*);
 
-ANN static inline void nspc_allocdata(const Nspc nspc) {
+ANN static inline void nspc_allocdata(MemPool mp, const Nspc nspc) {
   if(nspc->info->class_data_size)
-    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
+//    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
+    nspc->info->class_data = (m_bit*)mp_calloc2(mp, nspc->info->class_data_size);
 }
 #endif

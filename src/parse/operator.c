@@ -98,7 +98,7 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
     map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
   }
 // new mo
-  mo = mp_alloc(gwion->mp, M_Operator);
+  mo = mp_calloc(gwion->mp, M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;

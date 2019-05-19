@@ -29,7 +29,7 @@ ANN m_uint m_vector_size(const M_Vector v) {
 }
 
 M_Vector new_m_vector(MemPool p, const m_uint size) {
-  const M_Vector array = mp_alloc(p, M_Vector);
+  const M_Vector array = mp_calloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
   ARRAY_CAP(array)   = 2;
@@ -38,7 +38,7 @@ M_Vector new_m_vector(MemPool p, const m_uint size) {
 }
 
 M_Vector new_m_vector2(MemPool p, const m_uint size, const m_uint len) {
-  const M_Vector array = mp_alloc(p, M_Vector);
+  const M_Vector array = mp_calloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
   m_uint cap = 1;

@@ -41,7 +41,7 @@ ANN static void free_vm_code(VM_Code a, Gwion gwion) {
 
 VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
     const ae_flag flag, const m_str name) {
-  VM_Code code           = mp_alloc(p, VM_Code);
+  VM_Code code           = mp_calloc(p, VM_Code);
   code->instr            = instr ?  vector_copy(p, instr) : NULL;
   code->name             = strdup(name);
   code->stack_depth      = stack_depth;
