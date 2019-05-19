@@ -57,4 +57,9 @@ describe_nspc_func(Func, func)
 /* howere there is no need for lookup_func0, push_func, pop_func */
 ANN void did_you_mean_nspc(const Nspc, const char*);
 ANN void did_you_mean_type(const Type, const char*);
+
+ANN static inline void nspc_allocdata(const Nspc nspc) {
+  if(nspc->info->class_data_size)
+    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
+}
 #endif
