@@ -27,7 +27,7 @@ static inline void free_shredinfo(MemPool mp, struct ShredInfo_ *info) {
     const Vector v = info->args;
     LOOP_OPTIM
     for(m_uint i = vector_size(v) + 1; --i;)
-      free((void*)vector_at(v, i - 1));
+      xfree((void*)vector_at(v, i - 1));
     free_vector(mp, v);
   }
   mp_free(mp, ShredInfo, info); // ??? info->p
