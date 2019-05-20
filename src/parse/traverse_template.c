@@ -9,6 +9,6 @@
 #include "gwion.h"
 
 ANN m_bool traverse_func_template(const Env env, const Func_Def def) {
-  CHECK_BB(template_push_types(env, def->tmpl))
+  CHECK_BB(template_push_types(env, def->base->tmpl))
   return traverse_func_def(env, def);
 }

@@ -69,4 +69,14 @@ static inline ANN m_bool env_body(const Env env, const Class_Def cdef, const _ex
   return scanx_body(env, cdef, f, env);
 }
 #define env_body(a,b,c) env_body(a,b,(_exp_func)c)
+
+ANN m_bool scanx_ext(const Env e, const Class_Def c, const _exp_func f, void* d);
+static inline ANN m_bool env_ext(const Env env, const Class_Def cdef, const _exp_func f) {
+  return scanx_ext(env, cdef, f, env);
+}
+#define env_ext(a,b,c) env_ext(a, b, (_exp_func)c)
+#define scanx_ext(a,b,c,d) scanx_ext(a, b, (_exp_func)c, d)
+
+ANN m_bool scanx_parent(const Type t, const _exp_func f, void *d);
+#define scanx_parent(a,b,c) scanx_parent(a, (_exp_func)b, c)
 #endif

@@ -298,7 +298,7 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
 }
 
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) {
-  const m_bool base = tmpl_base(f->tmpl);
+  const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0)
     ERR_B(f->pos, "function name '%s' is already used by another value", overload->name)
@@ -438,7 +438,7 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str name = s_name(f->base->xid);
   struct Vector_ v;
-  ID_List id = f->tmpl->list;
+  ID_List id = f->base->tmpl->list;
   m_uint tlen = 0;
   vector_init(&v);
   do {
@@ -461,7 +461,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   }
   tmpl_name[tlen+1] = '\0';
   vector_release(&v);
-  const Symbol sym = func_symbol(env, env->curr->name, name, tmpl_name, (m_uint)f->tmpl->base);
+  const Symbol sym = func_symbol(env, env->curr->name, name, tmpl_name, (m_uint)f->base->tmpl->base);
   return s_name(sym);
 }
 
@@ -500,7 +500,7 @@ ANN static m_str template_helper(const Env env, const Func_Def f) {
 }
 
 ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v) {
-  if(!f->tmpl) {
+  if(!f->base->tmpl) {
     const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->offset : 0);
     return s_name(sym);
   }
@@ -516,7 +516,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   f->stack_depth = 0;
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
-  if(tmpl_base(f->tmpl))
+  if(tmpl_base(f->base->tmpl))
     return scan2_func_def_template(env, f, overload);
   const m_str name = func_name(env, f, overload);
   if((m_int)name <= GW_OK)
@@ -547,20 +547,18 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
 DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
-  const Type t = cdef->base.type->e->parent->array_depth ?
-    array_base(cdef->base.type->e->parent) : cdef->base.type->e->parent;
-  if(!GET_FLAG(t, scan2) && GET_FLAG(cdef->base.ext, typedef))
-    CHECK_BB(scan2_class_def(env, t->e->def))
+  const Type parent = cdef->base.type->e->parent;
+  CHECK_BB(scanx_parent(parent, scan2_class_def, env))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;
 }
 
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_base(cdef->tmpl))
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   if(cdef->base.ext)
-    CHECK_BB(scan2_class_parent(env, cdef))
+    CHECK_BB(env_ext(env, cdef, scan2_class_parent))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan2_section))
   SET_FLAG(cdef->base.type, scan2);

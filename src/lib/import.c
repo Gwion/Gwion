@@ -221,7 +221,7 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
   if(gwi->templater.n) {
     const ID_List types = templater_def(gwi->gwion->st, gwi);
     type->e->def = new_class_def(gwi->gwion->mp, 0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, loc_cpy(gwi->gwion->mp, gwi->loc));
-    type->e->def->tmpl = new_tmpl(gwi->gwion->mp, types, -1);
+    type->e->def->base.tmpl = new_tmpl(gwi->gwion->mp, types, -1);
     type->e->def->base.type = type;
     SET_FLAG(type, template);
   } else
@@ -452,7 +452,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   if(gwi->templater.n) {
     def = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp, NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
     const ID_List list = templater_def(gwi->gwion->st, gwi);
-    def->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
+    def->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
     SET_FLAG(def, template);
   }
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {

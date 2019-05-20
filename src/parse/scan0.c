@@ -45,7 +45,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 
 ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
-  const Type base = known_type(env, stmt->ext);
+  const Type base = stmt->tmpl ? find_type(env, stmt->ext->xid) : known_type(env, stmt->ext);
   CHECK_OB(base)
   CHECK_BB(scan0_defined(env, stmt->xid, td_pos(stmt->ext)))
   if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp)) {
@@ -65,6 +65,7 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
       loc_cpy(env->gwion->mp, td_pos(stmt->ext)));
     CHECK_BB(scan0_class_def(env, cdef))
     stmt->type = cdef->base.type;
+    cdef->base.tmpl = stmt->tmpl;
   }
   SET_FLAG(stmt->type, typedef);
   return GW_OK;
@@ -200,7 +201,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->flag = cdef->flag;
   if(!strstr(t->name, "<"))
     nspc_add_type(env->curr, cdef->base.xid, t);
-  if(cdef->tmpl) {
+  if(cdef->base.tmpl) {
     SET_FLAG(t, template);
     SET_FLAG(cdef, template);
   }
@@ -227,10 +228,10 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   CHECK_BB(scan0_class_def_pre(env, cdef))
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
   if(cdef->body) {
-int call = cdef->tmpl && !cdef->tmpl->call;
-if(call)cdef->tmpl->call = (Type_List)1;
+int call = cdef->base.tmpl && !cdef->base.tmpl->call;
+if(call)cdef->base.tmpl->call = (Type_List)1;
     CHECK_BB(env_body(env, cdef, scan0_section))
-if(call)cdef->tmpl->call = NULL;
+if(call)cdef->base.tmpl->call = NULL;
 }
   (void)mk_class(env, cdef->base.type);
   if(GET_FLAG(cdef, global))

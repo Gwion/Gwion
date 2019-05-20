@@ -608,10 +608,14 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
 
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 
+ANN static m_bool emit_parent_inner(const Emitter emit, const Class_Def cdef) {
+  CHECK_BB(traverse_class_def(emit->env, cdef))
+  return emit_class_def(emit, cdef);
+}
+
 ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
-  const Type t = typedef_base(decl->type);
-  CHECK_BB(traverse_class_def(emit->env, t->e->def))
-  return !GET_FLAG(t, emit) ? emit_class_def(emit, t->e->def) : GW_OK;
+  const Type t = decl->type;
+  return !GET_FLAG(t, emit) ? emit_parent_inner(emit, t->e->def) : GW_OK;
 }
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
@@ -687,7 +691,7 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
 ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
-  exp_call->m_func->def->tmpl->call = exp_call->tmpl->call;
+  exp_call->m_func->def->base->tmpl->call = exp_call->tmpl->call;
   const m_int scope = push_tmpl_func(emit, exp_call->m_func);
   CHECK_BB(scope);
   CHECK_BB(prepare_call(emit, exp_call))
@@ -748,7 +752,7 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
   const m_uint scope = emit_push_type(emit, dt->owner);
   m_bool ret = GW_ERROR;
-  dt->def->tmpl->call = dt->tl;// in INSTR
+  dt->def->base->tmpl->call = dt->tl;// in INSTR
   if(traverse_func_template(emit->env, dt->def) > 0) {
     ret = emit_func_def(emit, dt->def);
     nspc_pop_type(emit->gwion->mp, emit->env->curr);
@@ -768,7 +772,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     c[sz] = '\0';
     struct dottmpl_ *dt = mp_calloc(emit->gwion->mp, dottmpl);
     dt->name = s_name(insert_symbol(c));
-    dt->overload = f->def->tmpl->base;
+    dt->overload = f->def->base->tmpl->base;
     dt->tl = tmpl_tl(emit->env, c);
     dt->base = f->def;
     instr->opcode = eOP_MAX;
@@ -1552,7 +1556,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
     func_i->m_val = (m_uint)(func->code ?: (VM_Code)func);
     return GW_OK;
   }
-  if(func->def->tmpl)
+  if(func->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else {
     const Instr instr = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
@@ -1662,13 +1666,13 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   const Func former = emit->env->func;
   if(func->code)
     return GW_OK;
-  if(tmpl_base(func_def->tmpl)) {
+  if(tmpl_base(func_def->base->tmpl)) {
     UNSET_FLAG(func_def, template);
     return GW_OK;
   }
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
-  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl && !emit->env->scope->depth)
+  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->base->tmpl && !emit->env->scope->depth)
     func->value_ref->offset = emit_local(emit, SZ_INT, 0);
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
@@ -1690,7 +1694,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   emit_pop_code(emit);
   if(GET_FLAG(func_def, op))
     SET_FLAG(func->code, op);
-  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->tmpl)
+  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))
     func->code->memoize = memoize_ini(emit, func,
@@ -1712,20 +1716,21 @@ ANN Code* emit_class_code(const Emitter emit, const m_str name) {
 ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) {
   emit_add_instr(emit, FuncReturn);
   nspc->pre_ctor = emit_code(emit);
+  SET_FLAG(nspc->pre_ctor, ctor);
+}
+
+ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
+  const Type parent = cdef->base.type->e->parent;
+  return scanx_parent(parent, emit_parent_inner, emit);
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
-  if(tmpl_base(cdef->tmpl))
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
-  if(cdef->base.ext && ((!GET_FLAG(type->e->parent, emit) &&
-      GET_FLAG(cdef->base.ext, typedef)) || cdef->base.ext->types)) {
-    const Type base = cdef->base.ext->array ?
-             array_base(type->e->parent) : type->e->parent;
-    if(!base->nspc->pre_ctor)
-      CHECK_BB(emit_class_def(emit, base->e->def))
-  }
+  if(cdef->base.ext && cdef->base.ext->types)
+    CHECK_BB(scanx_ext(emit->env, cdef, emit_parent, emit))
   nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);
   if(cdef->base.ext && cdef->base.ext->array)
@@ -1733,7 +1738,6 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if(cdef->body)
     CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
   emit_class_finish(emit, nspc);
-  SET_FLAG(cdef->base.type->nspc->pre_ctor, ctor);
   emit_pop_code(emit);
   SET_FLAG(type, emit);
   return GW_OK;
