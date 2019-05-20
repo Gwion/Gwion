@@ -257,7 +257,7 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
   struct VecInfo info = { .n=vec->dim };
   vec_info(t, &info);
   if(vec->dim > info.n)
-    ERR_O(vec->exp->pos, "extraneous component of %s value...", info.t->name)
+    ERR_O(vec->exp->pos, "extraneous component of %s value...", info.s)
   CHECK_BO(vec_value(env, vec->exp, info.s))
   return info.t;
 }
