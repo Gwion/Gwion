@@ -53,7 +53,7 @@ ANN static void plug_get(MemPool p, PlugInfo* pi, const m_str c) {
       vector_add(&pi->vec[GWPLUG_IMPORT], (vtype)imp);
     const modini ini = DLSYM(dl, modini, GWMODINI_NAME);
     if(ini) {
-      struct Plug_ *plug = mp_alloc(p, Plug);
+      struct Plug_ *plug = mp_calloc(p, Plug);
       plug->ini  = ini;
       const modstr str = DLSYM(dl, modstr, GWMODSTR_NAME);
       plug->name = str();
@@ -70,7 +70,7 @@ ANN static void plug_get(MemPool p, PlugInfo* pi, const m_str c) {
 }
 
 ANN PlugInfo* new_plug(MemPool p, const Vector list) {
-  PlugInfo *pi = (PlugInfo*)mp_alloc(p, PlugInfo);
+  PlugInfo *pi = (PlugInfo*)mp_calloc(p, PlugInfo);
   for(m_uint i = 0; i < GWPLUG_LAST; ++i)
     vector_init(&pi->vec[i]);
   map_init(&pi->drv);

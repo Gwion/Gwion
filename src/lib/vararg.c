@@ -32,7 +32,7 @@ INSTR(VarargTop) {
 }
 
 INSTR(VarargIni) {
-  struct Vararg_* arg = mp_alloc(shred->info->mp, Vararg);
+  struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
   POP_REG(shred,  instr->m_val - SZ_INT)
   arg->d = (m_bit*)xmalloc(instr->m_val);
   for(m_uint i = 0; i < instr->m_val; i += SZ_INT)

@@ -76,7 +76,7 @@ describe_compute(mono,  trig, {u->module.gen.trig->compute(u->module.gen.trig);}
 describe_compute(multi, trig, {u->module.gen.trig->compute(u->module.gen.trig);})
 
 ANEW static UGen new_UGen(MemPool p) {
-  const UGen u = mp_alloc(p, UGen);
+  const UGen u = mp_calloc(p, UGen);
   u->op = ugop_add;
   u->compute = gen_compute_mono;
   return u;
@@ -116,11 +116,11 @@ ANN void ugen_gen(MemPool p, const UGen u, const f_tick tick, void* data, const 
 ANN void ugen_ini(MemPool p, const UGen u, const uint in, const uint out) {
   const uint chan = in > out ? in : out;
   if(chan == 1) {
-    u->connect.net = mp_alloc(p, ugen_net);
+    u->connect.net = mp_calloc(p, ugen_net);
     vector_init(&u->connect.net->from);
     vector_init(&u->connect.net->to);
   } else {
-    u->connect.multi = mp_alloc(p, ugen_multi);
+    u->connect.multi = mp_calloc(p, ugen_multi);
     u->connect.multi->n_in   = in;
     u->connect.multi->n_out  = out;
     u->connect.multi->n_chan = chan;

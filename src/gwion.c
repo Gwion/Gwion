@@ -45,7 +45,7 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 
 #include "shreduler_private.h"
 ANN VM* gwion_cpy(const VM* src) {
-  const Gwion gwion = mp_alloc(src->gwion->mp, Gwion);
+  const Gwion gwion = mp_calloc(src->gwion->mp, Gwion);
   gwion->vm = new_vm(src->gwion->mp, 0);
   gwion->vm->gwion = gwion;
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);

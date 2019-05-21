@@ -20,7 +20,7 @@ static inline vtype _scope_back(Scope s) { return vector_back((Vector)(void*)s);
 static inline void _scope_clear(Scope s) { vector_clear((Vector)(void*)s); }
 
 static Switch new_switch(MemPool p) {
-  Switch sw = mp_alloc(p, Switch);
+  Switch sw = mp_calloc(p, Switch);
   sw->cases = new_map(p); // could be struct ?
   vector_init(&sw->exp);
   sw->vec = new_vector(p);
@@ -42,7 +42,7 @@ struct SwInfo_ {
 };
 
 ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
-  struct SwInfo_ *info = mp_alloc(env->gwion->mp, SwInfo);
+  struct SwInfo_ *info = mp_calloc(env->gwion->mp, SwInfo);
   info->s = stmt;
   info->t = env->class_def;
   info->f = env->func;

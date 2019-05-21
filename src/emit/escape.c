@@ -8,7 +8,7 @@
 #include "escape.h"
 
 char* escape_table(void) {
-  char *escape = (char*)xcalloc(256, sizeof(char));
+  char *escape = (char*)calloc(256, sizeof(char));
   escape['0'] = '0';
   escape['\''] = '\'';
   escape['"'] = '"';

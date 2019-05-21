@@ -104,9 +104,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->type) // TODO: remove when scan passes are complete
       ERR_O(td_pos(decl->td), "can't infer type.");
   if(GET_FLAG(decl->type , template)) {
-    const Type t = typedef_base(decl->type);
-    if(!GET_FLAG(t, check))
-      CHECK_BO(traverse_class_def(env, t->e->def))
+    if(!GET_FLAG(decl->type, check))
+      CHECK_BO(traverse_class_def(env, decl->type->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -423,11 +422,11 @@ if(types->td->types)exit(12);
         return env->func;
       }
       base = def = value->d.func_ref->def;
-      if(!def->tmpl) {
+      if(!def->base->tmpl) {
         if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
-        def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, (m_int)i);
+        def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
       }
     } else {
       if(!(value = template_get_ready(env, v, "template", i)))
@@ -435,10 +434,11 @@ if(types->td->types)exit(12);
       base = value->d.func_ref->def;
       def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(v->name),
                 base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
-      def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, (m_int)i);
+      def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
       SET_FLAG(def, template);
     }
-    if(traverse_func_template(env, def, types) > 0) {
+    def->base->tmpl->call = types;
+    if(traverse_func_template(env, def) > 0) {
       nspc_pop_type(env->gwion->mp, env->curr);
       if(check_call(env, exp) > 0) {
         const Func next = def->base->func->next;
@@ -517,7 +517,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   const Func f = find_template_match(env, v, func);
   if(f) {
     Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
-    tmpl->list = v->d.func_ref->def->tmpl->list;
+    tmpl->list = v->d.func_ref->def->base->tmpl->list;
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
   }
@@ -534,9 +534,9 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   m_uint args_number = 0;
   const Value value = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name));
   CHECK_OO(value)
-  const m_uint type_number = get_type_number(value->d.func_ref->def->tmpl->list);
+  const m_uint type_number = get_type_number(value->d.func_ref->def->base->tmpl->list);
   Type_List tl[type_number];
-  ID_List list = value->d.func_ref->def->tmpl->list;
+  ID_List list = value->d.func_ref->def->base->tmpl->list;
   while(list) {
     Arg_List arg = value->d.func_ref->def->base->args;
     Exp template_arg = args;
@@ -649,7 +649,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, " template call of non-existant function.")
     if(!GET_FLAG(v, func))
       ERR_O(exp_self(exp)->pos, "template call of non-function value.")
-    if(!v->d.func_ref->def->tmpl)
+    if(!v->d.func_ref->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, "template call of non-template function.")
     const Func ret = find_template_match(env, v, exp);
     CHECK_OO((exp->m_func = ret))
@@ -1006,7 +1006,7 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def f, const F
           c_name, f_name, p_name, c_name,
           GET_FLAG(f, static) ? c_name : p_name, f_name)
   }
-  return !f->tmpl ? isa(f->base->ret_type, parent->def->base->ret_type) : GW_OK;
+  return !f->base->tmpl ? isa(f->base->ret_type, parent->def->base->ret_type) : GW_OK;
 }
 
 ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
@@ -1015,7 +1015,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   do {
     if(compat_func(f, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(env, f, parent_func))
-      if(!f->tmpl) {
+      if(!f->base->tmpl) {
         f->base->func->vt_index = parent_func->vt_index;
         vector_set(&env->curr->info->vtable, f->base->func->vt_index, (vtype)f->base->func);
       }
@@ -1087,7 +1087,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def f) {
             "\tfrom super class '%s'...",
             s_name(f->base->xid), override->owner_class->name)
   }
-  if(func->value_ref->offset && (!f->tmpl || !f->tmpl->base))
+  if(func->value_ref->offset && (!f->base->tmpl || !f->base->tmpl->base))
     CHECK_BB(check_func_overload(env, f))
   return GW_OK;
 }
@@ -1112,7 +1112,7 @@ ANN static void operator_func(const Func f) {
 ANN m_bool check_func_def(const Env env, const Func_Def f) {
   const Func func = get_func(env, f);
   m_bool ret = GW_OK;
-  if(tmpl_base(f->tmpl))
+  if(tmpl_base(f->base->tmpl))
     return env->class_def ? check_parent_match(env, f) : 1;
   if(f->base->td && !f->base->td->xid) {
     f->base->ret_type = check_td(env, f->base->td);
@@ -1155,18 +1155,9 @@ DECL_SECTION_FUNC(check)
 ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type_Decl *td = cdef->base.ext;
-  if(td->array) {
+  if(td->array)
     CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
-    if(!GET_FLAG(cdef->base.type, check) && cdef->tmpl)
-      REM_REF(parent->nspc, env->gwion);
-  }
-  if(td->types) {
-    const Type t = parent->array_depth ? array_base(parent) : parent;
-    if(!GET_FLAG(t, checked))
-      CHECK_BB(traverse_class_def(env, t->e->def))
-  }
-  if(!GET_FLAG(parent, checked))
-      CHECK_BB(check_class_def(env, parent->e->def))
+  CHECK_BB(scanx_parent(parent, traverse_class_def, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
@@ -1180,15 +1171,15 @@ ANN static inline void inherit(const Type t) {
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_base(cdef->tmpl))
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   const Type type = cdef->base.type;
-   if(type->e->parent == t_undefined) {
+  if(type->e->parent == t_undefined) {
     type->e->parent = check_td(env, cdef->base.ext);
     return traverse_class_def(env, cdef);
   }
   if(cdef->base.ext)
-    CHECK_BB(check_class_parent(env, cdef))
+    CHECK_BB(env_ext(env, cdef, check_class_parent))
   else if(!type->e->parent)
     type->e->parent = t_object;
   inherit(type);

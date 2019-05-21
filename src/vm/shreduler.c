@@ -100,7 +100,7 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
 }
 
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
-  shred->tick = mp_alloc(shred->info->mp, ShredTick);
+  shred->tick = mp_calloc(shred->info->mp, ShredTick);
   shred->tick->self = shred;
   shred->tick->shreduler = s;
   shred->tick->xid = ++s->shred_ids;

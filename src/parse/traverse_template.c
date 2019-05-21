@@ -8,7 +8,7 @@
 #include "vm.h"
 #include "gwion.h"
 
-ANN m_bool traverse_func_template(const Env env, const Func_Def def, const Type_List types) {
-  CHECK_BB(template_push_types(env, def->tmpl->list, types))
+ANN m_bool traverse_func_template(const Env env, const Func_Def def) {
+  CHECK_BB(template_push_types(env, def->base->tmpl))
   return traverse_func_def(env, def);
 }

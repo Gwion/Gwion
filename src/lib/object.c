@@ -21,12 +21,12 @@ ANN void exception(const VM_Shred shred, const m_str c) {
 }
 
 M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
-  const M_Object a = mp_alloc(p, M_Object);
+  const M_Object a = mp_calloc(p, M_Object);
   a->ref = 1;
   a->type_ref = t;
   a->vtable = &t->nspc->info->vtable;
   if(t->nspc->info->offset)
-    a->data = (m_bit*)_mp_alloc(p, t->nspc->info->offset);
+    a->data = (m_bit*)_mp_calloc(p, t->nspc->info->offset);
   if(shred)
     vector_add(&shred->gc, (vtype)a);
   return a;

@@ -11,7 +11,7 @@
 
 ANN static void free_func(Func a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
-    free_tmpl(gwion->mp, a->def->tmpl);
+    free_tmpl(gwion->mp, a->def->base->tmpl);
     free_func_base(gwion->mp, a->def->base);
     free_loc(gwion->mp, a->def->pos);
     mp_free(gwion->mp, Func_Def, a->def);
@@ -22,10 +22,10 @@ ANN static void free_func(Func a, Gwion gwion) {
 }
 
 ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
-  Func func = mp_alloc(p, Func);
+  Func func = mp_calloc(p, Func);
   func->name = name;
   func->def = def;
-  INIT_OO(p, func, free_func);
+  func->ref = new_refcount(p, free_func);
   return func;
 }
 

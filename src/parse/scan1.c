@@ -287,7 +287,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
-  if(tmpl_base(fdef->tmpl))
+  if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
@@ -309,27 +309,21 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 
 DECL_SECTION_FUNC(scan1)
 
-ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
+ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = td_pos(cdef->base.ext);
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
   const Type parent = cdef->base.type->e->parent = known_type(env, cdef->base.ext);
   CHECK_OB(parent)
-  if(parent == t_undefined)
-    return GW_OK;
   Type t = parent;
   while(t) {
     if(cdef->base.type == t)
       ERR_B(pos, "recursive (%s <= %s) class declaration.", cdef->base.type->name, t->name);
     t = t->e->parent;
   }
-  if(parent == cdef->base.type)
-    ERR_B(pos, "class '%s' cannot extend itself", cdef->base.type->name);
-  if(isa(cdef->base.type->e->parent, t_object) < 0)
-    ERR_B(pos, "cannot extend primitive type '%s'",
-            cdef->base.type->e->parent->name)
-  if(!GET_FLAG(parent, scan1) && parent->e->def)
-    CHECK_BB(scan1_class_def(env, parent->e->def))
+  if(isa(parent, t_object) < 0)
+    ERR_B(pos, "cannot extend primitive type '%s'", parent->name)
+  CHECK_BB(scanx_parent(parent, scan1_class_def, env))
   if(type_ref(parent))
     ERR_B(pos, "can't use ref type in class extend")
   return GW_OK;
@@ -338,10 +332,10 @@ ANN static m_bool scan1_class_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(!cdef->base.type)
     CHECK_BB(scan0_class_def(env, cdef))
-  if(tmpl_base(cdef->tmpl))
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   if(cdef->base.ext)
-    CHECK_BB(scan1_class_parent(env, cdef))
+    CHECK_BB(env_ext(env, cdef, scan1_parent))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan1_section))
   SET_FLAG(cdef->base.type, scan1);

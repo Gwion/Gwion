@@ -12,9 +12,9 @@
 #include "driver.h"
 
 ANN Driver* new_driver(MemPool p) {
-  Driver* di = (Driver*)mp_alloc(p, BBQ);
+  Driver* di = (Driver*)mp_calloc(p, BBQ);
   di->func = dummy_driver;
-  di->driver = (DriverData*)mp_alloc(p, DriverData);
+  di->driver = (DriverData*)mp_calloc(p, DriverData);
   di->is_running = 1;
   return di;
 }

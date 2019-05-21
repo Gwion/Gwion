@@ -810,11 +810,11 @@ static void vm_run_audio(const VM *vm) {
 }
 
 VM* new_vm(MemPool p, const m_bool audio) {
-  VM* vm = (VM*)mp_alloc(p, VM);
+  VM* vm = (VM*)mp_calloc(p, VM);
   vector_init(&vm->ugen);
   vm->bbq = new_driver(p);
   vm->bbq->run = audio ? vm_run_audio : vm_run;
-  vm->shreduler  = (Shreduler)mp_alloc(p, Shreduler);
+  vm->shreduler  = (Shreduler)mp_calloc(p, Shreduler);
   vector_init(&vm->shreduler->shreds);
   MUTEX_SETUP(vm->shreduler->mutex);
   vm->shreduler->bbq = vm->bbq;

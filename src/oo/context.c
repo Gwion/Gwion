@@ -14,11 +14,11 @@ ANN static void free_context(const Context a, Gwion gwion) {
 }
 
 ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
-  const Context context = mp_alloc(p, Context);
+  const Context context = mp_calloc(p, Context);
   context->nspc = new_nspc(p, str);
   context->tree = ast;
   context->name = str;
-  INIT_OO(p, context, free_context);
+  context->ref = new_refcount(p, free_context);
   return context;
 }
 

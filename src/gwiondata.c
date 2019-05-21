@@ -2,7 +2,7 @@
 #include "gwiondata.h"
 
 ANN GwionData* new_gwiondata(MemPool mp) {
-  struct GwionData_ *data = mp_alloc(mp, GwionData);
+  struct GwionData_ *data = mp_calloc(mp, GwionData);
   map_init(&data->freearg);
   vector_init(&data->reserved);
   MUTEX_SETUP(data->mutex);

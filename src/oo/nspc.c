@@ -30,7 +30,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
 ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   struct scope_iter iter = { a->info->value, 0, 0 };
   Value v;
-  if(!a->ref) {
+  if(!a->is_union) {
     while(scope_iter(&iter, &v) > 0) {
       if(isa(v->type, t_object) > 0)
         nspc_release_object(a, v, gwion);
@@ -58,7 +58,7 @@ ANN static void free_nspc(Nspc a, Gwion gwion) {
   free_nspc_value(a, gwion);
 
   if(a->info->class_data)
-    free(a->info->class_data);
+    mp_free2(gwion->mp, a->info->class_data_size, a->info->class_data);
   if(a->info->vtable.ptr)
     vector_release(&a->info->vtable);
   if(a->info->op_map.ptr)
@@ -72,12 +72,12 @@ ANN static void free_nspc(Nspc a, Gwion gwion) {
 }
 
 ANN Nspc new_nspc(MemPool p, const m_str name) {
-  const Nspc a = mp_alloc(p, Nspc);
+  const Nspc a = mp_calloc(p, Nspc);
   a->name = name;
-  a->info = mp_alloc(p, NspcInfo);
+  a->info = mp_calloc(p, NspcInfo);
   a->info->value = new_scope(p);
   a->info->type = new_scope(p);
   a->info->func = new_scope(p);
-  INIT_OO(p, a, free_nspc);
+  a->ref = new_refcount(p, free_nspc);
   return a;
 }

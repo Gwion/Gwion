@@ -66,7 +66,7 @@ ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Ty
   const Func_Def base = v->d.func_ref->def;
   const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(env->gwion->st, v->name),
             base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
-  def->tmpl = new_tmpl(env->gwion->mp, base->tmpl->list, dt->overload);
+  def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, dt->overload);
   SET_FLAG(def, template);
   return def;
 }
