@@ -114,9 +114,8 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   CHECK_BB(scan1_exp(env, post->exp))
   if(post->exp->meta == ae_meta_var)
     return GW_OK;
-  env_err(env, post->exp->pos, "post operator '%s' cannot be used"
+  ERR_B(post->exp->pos, "post operator '%s' cannot be used"
       " on non-mutable data-type...", op2str(post->op));
-  return GW_ERROR;
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
