@@ -1242,8 +1242,8 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val = index;
   op->m_val = emit_code_size(emit);
-  regpop(emit, SZ_INT);
   emit_pop_stack(emit, index);
+  regpop(emit, SZ_INT);
   return GW_OK;
 }
 
