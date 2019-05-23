@@ -63,8 +63,8 @@ script:
       if [ "$CC" = "clang" ];
       then export CFLAGS+=" -DSSIZE_T=ssize_t -D_USE_MATH_DEFINES";
       if [ "$USE_DOUBLE" = 0 ];
-      then export CFLAGS+=" -Dm_uint='struct _C_float_complex'";
-      else export CFLAGS+=" -Dm_uint='struct _C_double_complex'";
+      then export CFLAGS+=" -Dm_complex='struct _C_float_complex'";
+      else export CFLAGS+=" -Dm_complex='struct _C_double_complex'";
       fi
       fi;
       make.exe && make.exe test;
