@@ -59,10 +59,11 @@ before_script:
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
-    else if[ $CC = clang]
-    then CFLAGS+="-Dssize_t=SSIZE_T"
+    else
+      if[ $CC = clang]
+      then CFLAGS+="-Dssize_t=SSIZE_T"
+      fi
     make.exe && make.exe test;
-    fi
     fi;
 
 git:
