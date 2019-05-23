@@ -62,6 +62,7 @@ script:
     else {
       if [ "$CC" = "clang" ];
       then export CFLAGS+=" -DSSIZE_T=ssize_t -D_USE_MATH_DEFINES";
+           export CFLAGS+=" -D"creal(a)=creal(*(struct _C_float_complex*)&a)"
       fi;
       make.exe && make.exe test;
     }
