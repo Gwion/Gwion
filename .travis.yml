@@ -61,7 +61,7 @@ script:
     then make && make test;
     else {
       if [ "$CC" = "clang" ];
-      then export CFLAGS+=" -D_USE_MATH_DEFINES";
+      then export CFLAGS+=" -D_USE_MATH_DEFINES -D_CRT_SECURE_NO_WARNINGS";
       fi;
       make.exe && make.exe test;
     }
