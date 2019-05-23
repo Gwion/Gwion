@@ -61,7 +61,7 @@ script:
     then make && make test;
     else {
       if [ "$CC" = "clang" ];
-      then CFLAGS+="-Dssize_t=SSIZE_T";
+      then CFLAGS+="-DSSIZE_T=ssize_t";
       fi;
       make.exe && make.exe test;
     }
