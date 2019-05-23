@@ -57,6 +57,12 @@ before_script:
   - mkdir -p "$GWION_ADD_DIR" "$GWION_TEST_DIR"
 
 script:
+# use this to try to debug clang/linux builds
+  - if [ $(uname) = "Linux" ] && [ $CC = "clang" ]
+    then
+      make && valgrid ./gwion tests/bug/case_outside_switch.gw;
+      return 1
+    fi
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
     else make.exe && make.exe test;
