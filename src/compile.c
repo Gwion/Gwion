@@ -70,7 +70,7 @@ static m_bool _compiler_open(struct Compiler* c) {
 }
 
 static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
-  char name[strlen(c->name)];
+  char name[strlen(c->name) + 1];
   strcpy(name, c->name);
   if(_compiler_open(c) < 0) {
     compiler_error(p, c);
