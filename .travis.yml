@@ -47,7 +47,7 @@ install:
       export BUILD_ON_WINDOWS=1;
       export VALGRIND="NO_VALGRIND";
       export SEVERITY=1;
-      export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import -Wl";
+      export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
       export LIBS="$LIBS -lpsapi -shared -fPIC";
     fi;
 
