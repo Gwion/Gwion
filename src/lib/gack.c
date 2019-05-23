@@ -53,7 +53,7 @@ static inline void print_polar(const m_complex c) {
 ANN static inline void print_vec(const m_bit* f, const m_uint size) {
   gw_out("@(");
   for(m_uint i = 0; i < size; i++) {
-    print_float(creal(*(m_float*)(f + i * SZ_FLOAT)));
+    print_float(*(m_float*)(f + i * SZ_FLOAT));
     if(i < size - 1)
       gw_out(", ");
   }
