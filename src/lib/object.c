@@ -125,7 +125,7 @@ static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
 
 static Type get_force_type(const Env env, const Type t) {
   const size_t len = strlen(t->name);
-  char name[len + STRLEN_FORCE + 1];
+  char name[len + STRLEN_FORCE + 2];
   strcpy(name, t->name);
   strcpy(name + len, STR_FORCE);
   const Symbol sym = insert_symbol(env->gwion->st, name);

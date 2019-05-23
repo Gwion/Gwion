@@ -127,7 +127,7 @@ describe_string(Vec4, m_vec4, SZ_VEC4,
   num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w),,
   "@(%f, %f, %f, %f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : "")
 describe_string(Object, M_Object, SZ_INT,
-  11 + (rhs ? strlen(STRING(rhs)) : 0), release(lhs, shred),
+  16 + (rhs ? strlen(STRING(rhs)) : 0), release(lhs, shred),
   "%p%s", (void*)lhs, rhs ? STRING(rhs) : "")
 
 

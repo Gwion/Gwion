@@ -9,6 +9,7 @@
 #include "object.h"
 #include "import.h"
 #include "emit.h"
+#include "traverse.h"
 #include "parse.h"
 
 static inline m_str access(ae_Exp_Meta meta) {
@@ -64,7 +65,7 @@ OP_CHECK(opck_unary_meta2_uniq) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_OO(opck_unary_meta2(env, data))
   if(unary->exp->next)
-    ERR_N(stmt_self(unary)->pos, "fuck!!")
+    ERR_N(exp_self(unary)->pos, "fuck!!")
   return t_int;
 }
 

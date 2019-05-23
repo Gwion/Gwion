@@ -13,6 +13,7 @@
 #include "emit.h"
 #include "import.h"
 #include "operator.h"
+#include "traverse.h"
 #include "parse.h"
 
 struct M_Vector_ {
