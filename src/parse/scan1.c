@@ -5,11 +5,11 @@
 #include "type.h"
 #include "nspc.h"
 #include "value.h"
-#include "optim.h"
+#include "func.h"
 #include "vm.h"
-#include "parse.h"
 #include "traverse.h"
 #include "template.h"
+#include "parse.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -35,15 +35,16 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
   if(env->class_def) {
     if(!env->scope->depth) {
-      if(!env->func && !GET_FLAG(decl->td, static))
-        SET_FLAG(decl->td, member);
       if(!GET_FLAG(decl->td, ref) && t == env->class_def)
         ERR_O(exp_self(decl)->pos, "...(note: object of type '%s' declared inside itself)", t->name)
+      if(!GET_FLAG(decl->td, static))
+        SET_FLAG(decl->td, member);
     }
   }
   decl->base = t->e->def;
   return decl->type = t;
 }
+
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   Var_Decl_List list = decl->list;
@@ -53,10 +54,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   do {
-    Type t = decl->type;
     const Var_Decl var = list->self;
-    const Value former = nspc_lookup_value0(env->curr, var->xid);
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
+    Type t = decl->type;
+    const Value former = nspc_lookup_value0(env->curr, var->xid);
     if(former && !decl->td->exp &&
         (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, "variable %s has already been defined in the same scope...",
@@ -65,17 +66,17 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       if(var->array->exp) {
         if(GET_FLAG(decl->td, ref))
           ERR_B(td_pos(decl->td), "ref array must not have array expression.\n"
-            "e.g: int @my_array[];\nnot: int my_array[2];")
+            "e.g: int @my_array[];\nnot: @int my_array[2];")
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
       t = array_type(env, decl->type, var->array->depth);
     }
-    const Value v = var->value = former ? former : new_value(env->gwion->mp, t, s_name(var->xid));
+    const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
-    if(!env->func && !env->scope->depth && !env->class_def)
+    if(!env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->type = t;
     v->d.ptr = var->addr;
@@ -137,9 +138,8 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code) {
-    RET_NSPC(scan1_stmt(env, unary->code))
-  }
+  if((unary->op == op_spork || unary->op == op_fork) && unary->code)
+    { RET_NSPC(scan1_stmt(env, unary->code)) }
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 
@@ -168,9 +168,8 @@ describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
     (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 
 ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) {
-  if(stmt->stmt_list) {
-    RET_NSPC(scan1_stmt_list(env, stmt->stmt_list))
-  }
+  if(stmt->stmt_list)
+    { RET_NSPC(scan1_stmt_list(env, stmt->stmt_list)) }
   return GW_OK;
 }
 
@@ -201,7 +200,7 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
   } while((list = list->next));
   return GW_OK;
 }
-#include "func.h"
+
 ANN static m_bool scan1_args(const Env env, Arg_List list) {
   do {
     const Var_Decl var = list->var_decl;
@@ -227,6 +226,8 @@ ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
+  if(stmt->tmpl)
+    return GW_OK;
   if(!stmt->value)
     CHECK_BB(scan0_stmt_union(env, stmt))
   Decl_List l = stmt->l;
@@ -288,19 +289,19 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
+  if(GET_FLAG(fdef, dtor) && !env->class_def)
+    ERR_B(td_pos(fdef->base->td), "dtor must be in class def!!")
+  if(GET_FLAG(fdef, op) && env->class_def)
+    SET_FLAG(fdef, static);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
-  if(GET_FLAG(fdef, dtor) && !env->class_def)
-    ERR_B(td_pos(fdef->base->td), "dtor must be in class def!!")
   if(fdef->base->td)
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
   if(fdef->base->args)
     CHECK_BB(scan1_args(env, fdef->base->args))
   if(!GET_FLAG(fdef, builtin))
     CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
-  if(GET_FLAG(fdef, op) && env->class_def)
-    SET_FLAG(fdef, static);
   env->func = former;
   --env->scope->depth;
   return GW_OK;
@@ -315,14 +316,14 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent = known_type(env, cdef->base.ext);
   CHECK_OB(parent)
   Type t = parent;
-  while(t) {
+  do {
     if(cdef->base.type == t)
       ERR_B(pos, "recursive (%s <= %s) class declaration.", cdef->base.type->name, t->name);
-    t = t->e->parent;
-  }
+  } while((t = t->e->parent));
   if(isa(parent, t_object) < 0)
     ERR_B(pos, "cannot extend primitive type '%s'", parent->name)
-  CHECK_BB(scanx_parent(parent, scan1_class_def, env))
+  if(parent->e->def)
+    CHECK_BB(scanx_parent(parent, scan1_class_def, env))
   if(type_ref(parent))
     ERR_B(pos, "can't use ref type in class extend")
   return GW_OK;

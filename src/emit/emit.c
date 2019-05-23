@@ -607,10 +607,11 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
 }
 
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
+ANN static m_bool emit_cdef(const Emitter, const Class_Def);
 
 ANN static m_bool emit_parent_inner(const Emitter emit, const Class_Def cdef) {
-  CHECK_BB(traverse_class_def(emit->env, cdef))
-  return emit_class_def(emit, cdef);
+  CHECK_BB(traverse_cdef(emit->env, cdef))
+  return emit_cdef(emit, cdef);
 }
 
 ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
@@ -1378,6 +1379,8 @@ ANN static inline void union_allocdata(MemPool mp, const Stmt_Union stmt) {
 }
 
 ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
+  if(stmt->tmpl)
+    return GW_OK;
   Decl_List l = stmt->l;
   m_uint scope = emit->env->scope->depth;
   const m_bool global = GET_FLAG(stmt, global);
@@ -1722,6 +1725,11 @@ ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) {
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   return scanx_parent(parent, emit_parent_inner, emit);
+}
+
+ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
+  return scanx_cdef(emit->env, emit, cdef,
+      (_exp_func)emit_class_def, (_exp_func)emit_stmt_union);
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {

@@ -8,20 +8,19 @@
 #include "value.h"
 #include "func.h"
 #include "template.h"
+#include "traverse.h"
 #include "optim.h"
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"
 
-ANN /* static */ m_bool scan2_exp(const Env, const Exp);
+//ANN /* static */ m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
-extern ANN m_bool scan1_class_def(const Env, const Class_Def);
-ANN m_bool scan2_class_def(const Env, const Class_Def);
 
 ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
-  CHECK_BB(scan1_class_def(env, decl->type->e->def))
-  CHECK_BB(scan2_class_def(env, decl->type->e->def))
+  CHECK_BB(scan1_cdef(env, decl->type->e->def))
+  CHECK_BB(scan2_cdef(env, decl->type->e->def))
   return GW_OK;
 }
 
@@ -270,6 +269,8 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
 }
 
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) {
+  if(stmt->tmpl)
+    return GW_OK;
   const m_uint scope = union_push(env, stmt);
   Decl_List l = stmt->l;
   do CHECK_BB(scan2_exp(env, l->self))
@@ -450,7 +451,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
-  char tmpl_name[tlen + 1];
+  char tmpl_name[tlen + 2];
   m_str str = tmpl_name;
   for(m_uint i = 0; i < vector_size(&v); ++i) {
     const m_str s = ((Type)vector_at(&v, i))->name;
@@ -548,7 +549,8 @@ DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  CHECK_BB(scanx_parent(parent, scan2_class_def, env))
+  if(parent->e->def)
+    CHECK_BB(scanx_parent(parent, scan2_cdef, env))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;

@@ -105,7 +105,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
       ERR_O(td_pos(decl->td), "can't infer type.");
   if(GET_FLAG(decl->type , template)) {
     if(!GET_FLAG(decl->type, check))
-      CHECK_BO(traverse_class_def(env, decl->type->e->def))
+      CHECK_BO(traverse_cdef(env, decl->type->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -943,6 +943,8 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
 }
 
 ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
+  if(stmt->tmpl)
+    return GW_OK;
   if(stmt->xid) {
     if(env->class_def)
       (!GET_FLAG(stmt, static) ? decl_member : decl_static)(env->curr, stmt->value);
@@ -959,8 +961,9 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0) {
-        if(!GET_FLAG(l->self->d.exp_decl.td, ref))
+        if(!GET_FLAG(l->self->d.exp_decl.td, ref) && !GET_FLAG(stmt->type, template))
       ERR_B(l->self->pos, "In union, Objects must be declared as reference (use '@')")
+      SET_FLAG(l->self->d.exp_decl.td, ref);
       Var_Decl_List list = l->self->d.exp_decl.list;
       do SET_FLAG(list->self->value, pure);
       while((list = list->next));
@@ -1157,7 +1160,8 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
     CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
-  CHECK_BB(scanx_parent(parent, traverse_class_def, env))
+  if(parent->e->def)
+    CHECK_BB(scanx_parent(parent, traverse_class_def, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
@@ -1176,7 +1180,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   const Type type = cdef->base.type;
   if(type->e->parent == t_undefined) {
     type->e->parent = check_td(env, cdef->base.ext);
-    return traverse_class_def(env, cdef);
+    return traverse_cdef(env, cdef);
   }
   if(cdef->base.ext)
     CHECK_BB(env_ext(env, cdef, check_class_parent))

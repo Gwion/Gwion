@@ -6,6 +6,7 @@
 #include "env.h"
 #include "type.h"
 #include "nspc.h"
+#include "traverse.h"
 #include "template.h"
 #include "vm.h"
 #include "parse.h"
@@ -70,9 +71,10 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
 
 ANN static size_t template_size(const Env env, struct tmpl_info* info) {
   ID_List base = info->cdef->base.tmpl->list;
+  Type_List call = info->call;
   size_t size = tmpl_set(info, info->cdef->base.type);
-  do size += tmpl_set(info, type_decl_resolve(env, info->call->td));
-  while((info->call = info->call->next) && (base = base->next) && ++size);
+  do size += tmpl_set(info, type_decl_resolve(env, call->td));
+  while((call = call->next) && (base = base->next) && ++size);
   return size + 16 + 3;
 }
 
@@ -82,7 +84,7 @@ ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
   return str += vector_at(&info->size, info->index);
 }
 
-ANN static void template_name(const Env env, struct tmpl_info* info, m_str s) {
+ANN static void template_name(struct tmpl_info* info, m_str s) {
   m_str str = s;
   str = tmpl_get(info, str);
   *str++ = '<';
@@ -91,10 +93,7 @@ ANN static void template_name(const Env env, struct tmpl_info* info, m_str s) {
     str = tmpl_get(info, str);
     *str++ = (info->index < size - 1) ? ',' : '>';
    }
-  if(info->cdef->base.type->e->owner == env->global_nspc)
-    sprintf(str, "%p", (void*)env->curr);
-  else
-    *str = '\0';
+   *str = '\0';
 }
 
 ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_List call) {
@@ -102,7 +101,7 @@ ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_
   vector_init(&info.type);
   vector_init(&info.size);
   char name[template_size(env, &info)];
-  template_name(env, &info, name);
+  template_name(&info, name);
   vector_release(&info.type);
   vector_release(&info.size);
   return insert_symbol(name);
@@ -158,13 +157,21 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       return a->base.type;
     a->base.tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t), 0);
     a->base.tmpl->call = type->types;
-
-    CHECK_BO(scan0_class_def(env, a))
+    if(isa(t, t_union) < 0)
+      CHECK_BO(scan0_class_def(env, a))
+    else {
+      a->stmt = new_stmt_union(env->gwion->mp, (Decl_List)a->body, t->e->def->pos);
+      a->stmt->d.stmt_union.type_xid = a->base.xid;
+      CHECK_BO(scan0_stmt_union(env, &a->stmt->d.stmt_union))
+      a->base.type = a->stmt->d.stmt_union.type;
+      a->base.type->e->def = a;
+      SET_FLAG(a, union);
+    }
     SET_FLAG(a->base.type, template | ae_flag_ref);
     a->base.type->e->owner = t->e->owner;
     if(GET_FLAG(t, builtin))
       SET_FLAG(a->base.type, builtin);
-    CHECK_BO(scan1_class_def(env, a))
+    CHECK_BO(scan1_cdef(env, a))
     if(t->nspc->dtor) {
       a->base.type->nspc->dtor = t->nspc->dtor;
       SET_FLAG(a->base.type, dtor);

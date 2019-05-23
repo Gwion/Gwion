@@ -6,12 +6,25 @@
 #include "type.h"
 #include "nspc.h"
 #include "vm.h"
+#include "traverse.h"
 #include "parse.h"
 #include "gwion.h"
 
 ANN static void free_type(Type a, Gwion gwion) {
-  if(GET_FLAG(a, template))
+  if(GET_FLAG(a, template)) {
+    if(GET_FLAG(a, union)) {
+      if(a->e->def->stmt) {
+      if(GET_FLAG(a, pure))
+        free_decl_list(gwion->mp, a->e->def->list);
+      else {
+          UNSET_FLAG(&a->e->def->stmt->d.stmt_union, global);
+          free_stmt(gwion->mp, a->e->def->stmt);
+        }
+      }
+      a->e->def->stmt = NULL;
+    }
     free_class_def(gwion->mp, a->e->def);
+  }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
   mp_free(gwion->mp, Type, a);

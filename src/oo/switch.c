@@ -11,6 +11,7 @@
 #include "type.h"
 #include "context.h"
 #include "nspc.h"
+#include "traverse.h"
 #include "parse.h"
 #include "switch.h"
 

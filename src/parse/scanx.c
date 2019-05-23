@@ -6,8 +6,9 @@
 #include "type.h"
 #include "nspc.h"
 #include "vm.h"
-#include "parse.h"
 #include "template.h"
+#include "traverse.h"
+#include "parse.h"
 
 ANN static inline m_bool _body(const Env e, Class_Body b, const _exp_func f) {
   do CHECK_BB(f(e, b->section))
@@ -24,10 +25,10 @@ ANN static inline m_bool tmpl_push(const Env env, const Tmpl* tmpl) {
 }
 
 ANN static inline m_int _push(const Env env, const Class_Def c) {
-  const m_uint scope = env_push_type(env, c->base.type);
-  if(c->base.tmpl && !tmpl_push(env, c->base.tmpl))
-    return GW_ERROR;
-  return scope;
+  const m_int scope = env_push_type(env, c->base.type);
+  CHECK_BB(scope)
+  return (!c->base.tmpl || tmpl_push(env, c->base.tmpl)) ?
+    scope : GW_ERROR;
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
@@ -36,6 +37,7 @@ ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
   env_pop(e, s);
 }
 
+// TODO: 'v' should be 2° argument
 ANN m_bool
 scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
   const m_int scope = _push(e, c);
@@ -67,27 +69,18 @@ static inline Class_Def get_type_def(const Type t) {
 
 ANN m_bool
 scanx_parent(const Type t, const _exp_func f, void* d) {
+  if(t->e->parent == t_union)
+    return GW_OK;
   const Class_Def def = get_type_def(t);
   return def ? f(d, def) : GW_OK;
 }
-/*
-struct Parent_ {
-  void* ptr;
-  const Type t;
-  m_bool (*f)(void*, void*);
-  const ae_flag flag;
-};
-ANN m_bool scanx_parent_actual(void* ptr, const Type t, m_bool (*f)(void*, void*), const ae_flag flag) {
-  if(t->e->def && (t->flag & flag) != flag)
-    return f(ptr, t->e->def);
-  return GW_OK;
-}
 
-ANN m_bool scanx_parent(void* ptr, const Type t, m_bool (*f)(void*, void*), const ae_flag flag) {
-  if(t->array_depth)
-     CHECK_BB(f(ptr, array_base(t)))
-  else
-     CHECK_BB(f(ptr, t))
-  return GW_OK;
+ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
+    const _exp_func f_cdef, const _exp_func f_union) {
+  if(cdef->base.type->e->parent !=  t_union)
+     return f_cdef(opt, cdef);
+  CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = f_union(opt, &cdef->stmt->d.stmt_union);
+  nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
 }
-*/

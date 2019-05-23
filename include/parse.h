@@ -79,4 +79,18 @@ static inline ANN m_bool env_ext(const Env env, const Class_Def cdef, const _exp
 
 ANN m_bool scanx_parent(const Type t, const _exp_func f, void *d);
 #define scanx_parent(a,b,c) scanx_parent(a, (_exp_func)b, c)
+
+
+ANN m_bool scanx_cdef(const Env, void *,const Class_Def,
+  const _exp_func f_cdef, const _exp_func f_union);
+
+#define xxx_cdef(prefix)                                                  \
+static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
+  return scanx_cdef(env, env, cdef,                                       \
+      (_exp_func)prefix##_class_def, (_exp_func)prefix##_stmt_union);     \
+}
+xxx_cdef(scan1)
+xxx_cdef(scan2)
+xxx_cdef(check)
+xxx_cdef(traverse)
 #endif

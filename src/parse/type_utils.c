@@ -7,6 +7,7 @@
 #include "value.h"
 #include "type.h"
 #include "vm.h"
+#include "traverse.h"
 #include "parse.h"
 
 ANN m_bool isres(const Env env, const Symbol xid, const loc_t pos) {

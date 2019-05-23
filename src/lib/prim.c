@@ -12,6 +12,7 @@
 #include "emit.h"
 #include "operator.h"
 #include "driver.h"
+#include "traverse.h"
 #include "parse.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
