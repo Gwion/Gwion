@@ -765,7 +765,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if(GET_FLAG(f, template) && f->value_ref->owner_class) {
     const Instr instr = (Instr)vector_back(&emit->code->instr);
-	  assert(instr->opcode == eDotTmplVal);
+    assert(instr->opcode == eDotTmplVal);
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
@@ -1510,7 +1510,7 @@ ANN static inline Instr get_variadic(const Emitter emit) {
 }
 
 ANN static void emit_vararg_end(const Emitter emit, const m_uint offset) {
-  const Instr instr = emit_add_instr(emit, VarargEnd), 
+  const Instr instr = emit_add_instr(emit, VarargEnd),
     variadic = get_variadic(emit);
   instr->m_val = offset;
   instr->m_val2 = variadic->m_val2;
