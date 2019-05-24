@@ -4,6 +4,6 @@ class C {
   Test test;
 }
 
-function void test(){}
+fun void test(){}
 C c;
 test @=> c.test;

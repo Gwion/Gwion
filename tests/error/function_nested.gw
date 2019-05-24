@@ -1,5 +1,5 @@
 // [contains] 
- function void test()
+ fun void test()
 {
-  function void nested(){}
+  fun void nested(){}
 }

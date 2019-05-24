@@ -1,6 +1,6 @@
 class C
 {
-  function C test() {
+  fun C test() {
     return this;
   }
 }

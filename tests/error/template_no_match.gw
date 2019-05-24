@@ -1,7 +1,7 @@
 // [contains] arguments do not match for template call
 class C {
-  function<~A~> void test(float f) {}
-  function<~A~> void test() {}
+  fun void test<~A~>(float f) {}
+  fun void test<~A~>() {}
 }
 C c;
 //c.test<~int~>();

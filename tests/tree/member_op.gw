@@ -2,7 +2,7 @@ class C
 {
 	operator => void(C c, int i){<<<c, " ", i>>>;}
 //	this => this;
-//function void test_op(C c){ this => c; }
+//fun void test_op(C c){ this => c; }
 	this => int i;
 }
 C c;

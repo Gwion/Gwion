@@ -1,2 +1,2 @@
-function void test(int i, int j){}
+fun void test(int i, int j){}
 spork  test(1,2);

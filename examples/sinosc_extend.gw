@@ -1,6 +1,6 @@
 class Sine extends SinOsc
 {
-  function float freq(float f) { (2 * f) => (this $ SinOsc).freq; }
+  fun float freq(float f) { (2 * f) => (this $ SinOsc).freq; }
 }
 
 Sine s => dac;

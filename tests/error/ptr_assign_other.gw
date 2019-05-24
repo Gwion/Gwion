@@ -5,7 +5,7 @@ class C {
 }
 
 class D {
-  function void test(){}
+  fun void test(){}
 }
 
 C c;

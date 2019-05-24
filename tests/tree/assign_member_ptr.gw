@@ -2,7 +2,7 @@ class C
 {
 	typedef void Test();
 	Test test;
-	function void func(){}
+	fun void func(){}
 }
 C c;
 c.func @=> c.test;

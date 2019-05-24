@@ -1,2 +1,2 @@
-function void test() { <<<"test">>>; return; <<<"this won't print. ever.">>>; }
+fun void test() { <<<"test">>>; return; <<<"this won't print. ever.">>>; }
 test();

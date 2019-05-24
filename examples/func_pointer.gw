@@ -1,7 +1,7 @@
 typedef void func_t();
 func_t func_p;
-function void test1() { <<<"test1">>>; }
-function void test2() { <<<"test2">>>; }
+fun void test1() { <<<"test1">>>; }
+fun void test2() { <<<"test2">>>; }
 test1 @=> func_p;
 func_p();
 func_p();

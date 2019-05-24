@@ -1,15 +1,15 @@
-// define a function pointer type
+// define a fun pointer type
 typedef void Test()
 
-// define a few functions
-function void test1(){ <<<"test">>>; };
-function void test2(){ <<<"another test">>>; };
-function void test3(){ <<<"yet another test">>>; };
+// define a few funs
+fun void test1(){ <<<"test">>>; };
+fun void test2(){ <<<"another test">>>; };
+fun void test3(){ <<<"yet another test">>>; };
 
-// create a function pointer instance
+// create a fun pointer instance
 Test test;
 
-// assign it a function
+// assign it a fun
 test1 @=> test;
 // test it
 test();

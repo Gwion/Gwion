@@ -1,4 +1,4 @@
-function<~A~> void test (A var){ <<< var>>>; }
-function<~A,B~> void test (A var, B var2){ <<< var>>>; }
+fun void test<~A~> (A var){ <<< var>>>; }
+fun void test<~A,B~> (A var, B var2){ <<< var>>>; }
 test<~int~>(1);
 test<~float, float~>(3, 1.4);

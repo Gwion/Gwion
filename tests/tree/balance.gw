@@ -1,13 +1,13 @@
-function float test() {}
-function float test(int i) {}
-function float test(float f) {}
-function float test(complex c) {}
-function float test(Vec3 v) {}
-function float test(Vec4 w) {}
+fun float test() {}
+fun float test(int i) {}
+fun float test(float f) {}
+fun float test(complex c) {}
+fun float test(Vec3 v) {}
+fun float test(Vec4 w) {}
 
-function complex ctest(){}
-function Vec3    vtest(){}
-function Vec4    wtest(){}
+fun complex ctest(){}
+fun Vec3    vtest(){}
+fun Vec4    wtest(){}
 ctest();
 vtest();
 wtest();
@@ -31,12 +31,12 @@ test(@(1.2, 2.3, 3.4, 4.5));
 
 class C
 {
-  function float test() {}
-  function float test(int i) {}
-  function float test(float f) {}
-  function float test(complex c) {}
-  function float test(Vec3 v) {}
-  function float test(Vec4 w) {}
+  fun float test() {}
+  fun float test(int i) {}
+  fun float test(float f) {}
+  fun float test(complex c) {}
+  fun float test(Vec3 v) {}
+  fun float test(Vec4 w) {}
 
   fun static float s_test() {}
   fun static float s_test(int i) {}

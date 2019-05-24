@@ -1,6 +1,6 @@
 int i;
 
-function void test(int i) {
+fun void test(int i) {
  switch(i) {
 	  case 1:
 		<<<"'i' is 1">>>;
