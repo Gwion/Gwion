@@ -1664,6 +1664,13 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def
   return GW_OK;
 }
 
+ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def func_def) {
+  CHECK_BB(template_push_types(emit->env, func_def->base->tmpl))
+  const m_bool ret = emit_parent_inner(emit, func_def->base->ret_type->e->def);
+  nspc_pop_type(emit->gwion->mp, emit->env->curr);
+  return ret;
+}
+
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   const Func func = get_func(emit->env, func_def);
   const Func former = emit->env->func;
@@ -1673,6 +1680,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
     UNSET_FLAG(func_def, template);
     return GW_OK;
   }
+  if(GET_FLAG(func_def->base->ret_type, template) && !GET_FLAG(func_def->base->ret_type, emit))
+    CHECK_BB(tmpl_rettype(emit, func_def))
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
   if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->base->tmpl && !emit->env->scope->depth)

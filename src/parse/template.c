@@ -177,7 +177,8 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       SET_FLAG(a->base.type, dtor);
       ADD_REF(t->nspc->dtor)
     }
-    nspc_add_type(t->e->owner, insert_symbol(a->base.type->name), a->base.type);
+//    nspc_add_type(t->e->owner, insert_symbol(a->base.type->name), a->base.type);
+    map_set(&t->e->owner->info->type->map, insert_symbol(a->base.type->name), a->base.type);
     return a->base.type;
   } else if(type->types)
       ERR_O(type->xid->pos,

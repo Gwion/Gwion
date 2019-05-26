@@ -15,6 +15,9 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
+// could be more precise
+  if(SAFE_FLAG(env->class_def, template) && td->types)
+    return t_undefined;
   const Type t = known_type(env, td);
   CHECK_OO(t)
   if(t->size)
