@@ -1047,29 +1047,29 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
   return GW_OK;
 }
 
-ANN static m_bool check_signature_match(const Env env, const Func_Def f, const Func parent) {
-  if(GET_FLAG(parent->def, static) != GET_FLAG(f, static)) {
-    const m_str c_name  = f->base->func->value_ref->owner_class->name;
+ANN static m_bool check_signature_match(const Env env, const Func_Def fdef, const Func parent) {
+  if(GET_FLAG(parent->def, static) != GET_FLAG(fdef, static)) {
+    const m_str c_name  = fdef->base->func->value_ref->owner_class->name;
     const m_str p_name = parent->value_ref->owner_class->name;
-    const m_str f_name = s_name(f->base->xid);
-    ERR_B(td_pos(f->base->td),
+    const m_str f_name = s_name(fdef->base->xid);
+    ERR_B(td_pos(fdef->base->td),
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "\t...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
-          GET_FLAG(f, static) ? c_name : p_name, f_name)
+          GET_FLAG(fdef, static) ? c_name : p_name, f_name)
   }
-  return !f->base->tmpl ? isa(f->base->ret_type, parent->def->base->ret_type) : GW_OK;
+  return !fdef->base->tmpl ? isa(fdef->base->ret_type, parent->def->base->ret_type) : GW_OK;
 }
 
-ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
+ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def fdef,
     const restrict Func func) {
   Func parent_func = func;
   do {
-    if(compat_func(f, parent_func->def) > 0) {
-      CHECK_BB(check_signature_match(env, f, parent_func))
-      if(!f->base->tmpl) {
-        f->base->func->vt_index = parent_func->vt_index;
-        vector_set(&env->curr->info->vtable, f->base->func->vt_index, (vtype)f->base->func);
+    if(compat_func(fdef, parent_func->def) > 0) {
+      CHECK_BB(check_signature_match(env, fdef, parent_func))
+      if(!fdef->base->tmpl) {
+        fdef->base->func->vt_index = parent_func->vt_index;
+        vector_set(&env->curr->info->vtable, fdef->base->func->vt_index, (vtype)fdef->base->func);
       }
       return GW_OK;
     }
@@ -1077,13 +1077,13 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def f,
   return 0;
 }
 
-ANN static m_bool check_parent_match(const Env env, const Func_Def f) {
-  const Func func = f->base->func;
+ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
+  const Func func = fdef->base->func;
   const Type parent = env->class_def->e->parent;
   if(parent) {
-    const Value v = find_value(parent, f->base->xid);
+    const Value v = find_value(parent, fdef->base->xid);
     if(v && isa(v->type, t_function) > 0) {
-      const m_bool match = parent_match_actual(env, f, v->d.func_ref);
+      const m_bool match = parent_match_actual(env, fdef, v->d.func_ref);
       if(match)
         return match;
     }
@@ -1095,37 +1095,37 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def f) {
   return GW_OK;
 }
 
-ANN static inline Func get_overload(const Env env, const Func_Def def, const m_uint i) {
-  const Symbol sym = func_symbol(env, env->curr->name, s_name(def->base->xid), NULL, i);
+ANN static inline Func get_overload(const Env env, const Func_Def fdef, const m_uint i) {
+  const Symbol sym = func_symbol(env, env->curr->name, s_name(fdef->base->xid), NULL, i);
   return nspc_lookup_func1(env->curr, sym);
 }
 
-ANN static m_bool check_func_overload(const Env env, const Func_Def f) {
-  const Value v = f->base->func->value_ref;
+ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
+  const Value v = fdef->base->func->value_ref;
   for(m_uint i = 0; i <= v->offset; ++i) {
-    const Func f1 = get_overload(env, f, i);
+    const Func f1 = get_overload(env, fdef, i);
     for(m_uint j = i + 1; f1 && j <= v->offset; ++j) {
-      const Func f2 = get_overload(env, f, j);
+      const Func f2 = get_overload(env, fdef, j);
       if(f2 && compat_func(f1->def, f2->def) > 0)
         ERR_B(td_pos(f2->def->base->td), "global function '%s' already defined"
-          " for those arguments", s_name(f->base->xid))
+          " for those arguments", s_name(fdef->base->xid))
     }
   }
   return GW_OK;
 }
 
-ANN static m_bool check_func_def_override(const Env env, const Func_Def f) {
-  const Func func = f->base->func;
+ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
+  const Func func = fdef->base->func;
   if(env->class_def && env->class_def->e->parent) {
-    const Value override = find_value(env->class_def->e->parent, f->base->xid);
+    const Value override = find_value(env->class_def->e->parent, fdef->base->xid);
     if(override && override->owner_class && isa(override->type, t_function) < 0)
-      ERR_B(f->pos,
+      ERR_B(fdef->pos,
             "function name '%s' conflicts with previously defined value...\n"
             "\tfrom super class '%s'...",
-            s_name(f->base->xid), override->owner_class->name)
+            s_name(fdef->base->xid), override->owner_class->name)
   }
-  if(func->value_ref->offset && (!f->base->tmpl || !f->base->tmpl->base))
-    CHECK_BB(check_func_overload(env, f))
+  if(func->value_ref->offset && (!fdef->base->tmpl || !fdef->base->tmpl->base))
+    CHECK_BB(check_func_overload(env, fdef))
   return GW_OK;
 }
 
@@ -1146,44 +1146,44 @@ ANN static void operator_func(const Func f) {
   operator_set_func(&opi);
 }
 
-ANN m_bool check_func_def(const Env env, const Func_Def f) {
-  const Func func = get_func(env, f);
+ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
+  const Func func = get_func(env, fdef);
   m_bool ret = GW_OK;
-  if(tmpl_base(f->base->tmpl))
-    return env->class_def ? check_parent_match(env, f) : 1;
-  if(f->base->td && !f->base->td->xid) {
-    f->base->ret_type = check_td(env, f->base->td);
-    return traverse_func_def(env, f);
+  if(tmpl_base(fdef->base->tmpl))
+    return env->class_def ? check_parent_match(env, fdef) : 1;
+  if(fdef->base->td && !fdef->base->td->xid) {
+    fdef->base->ret_type = check_td(env, fdef->base->td);
+    return traverse_func_def(env, fdef);
   }
-  CHECK_BB(check_func_def_override(env, f))
+  CHECK_BB(check_func_def_override(env, fdef))
   if(env->class_def)
-    CHECK_BB(check_parent_match(env, f))
-  else if(GET_FLAG(f, global))
+    CHECK_BB(check_parent_match(env, fdef))
+  else if(GET_FLAG(fdef, global))
     env_push_global(env);
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
-  if(!f->base->args)
-    UNSET_FLAG(f->base->func, pure);
+  if(!fdef->base->args)
+    UNSET_FLAG(fdef->base->func, pure);
   else
-    ret = check_func_args(env, f->base->args);
+    ret = check_func_args(env, fdef->base->args);
   if(ret > 0) {
-    const Value variadic = GET_FLAG(f, variadic) ? set_variadic(env) : NULL;
-    if(!GET_FLAG(f, builtin) && f->d.code &&
-        check_stmt_code(env, &f->d.code->d.stmt_code) < 0)
+    const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
+    if(!GET_FLAG(fdef, builtin) && fdef->d.code &&
+        check_stmt_code(env, &fdef->d.code->d.stmt_code) < 0)
       ret = GW_ERROR;
     if(variadic)
       REM_REF(variadic, env->gwion)
-    if(GET_FLAG(f, builtin))
-      func->code->stack_depth = f->stack_depth;
-    else if(GET_FLAG(f, op))
+    if(GET_FLAG(fdef, builtin))
+      func->code->stack_depth = fdef->stack_depth;
+    else if(GET_FLAG(fdef, op))
       operator_func(func);
   }
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
-  if(GET_FLAG(f, global))
+  if(GET_FLAG(fdef, global))
     env_push_global(env);
   return ret;
 }

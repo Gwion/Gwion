@@ -1643,8 +1643,8 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
   } while((a = a->next));
 }
 
-ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def func_def) {
-  const m_uint size = func_def->base->ret_type->size;
+ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def fdef) {
+  const m_uint size = fdef->base->ret_type->size;
   if(size) {
     const Instr instr = emit_kind(emit, size, 0, regpushimm);
     instr->m_val2 = size;
@@ -1680,38 +1680,38 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
   func->def->stack_depth = func->code->stack_depth;
 }
 
-ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def func_def) {
-  if(func_def->base->args)
-    emit_func_def_args(emit, func_def->base->args);
-  if(GET_FLAG(func_def, variadic))
+ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+  if(fdef->base->args)
+    emit_func_def_args(emit, fdef->base->args);
+  if(GET_FLAG(fdef, variadic))
     stack_alloc(emit);
-  if(func_def->d.code)
-    CHECK_BB(emit_stmt_code(emit, &func_def->d.code->d.stmt_code))
-  emit_func_def_ensure(emit, func_def);
+  if(fdef->d.code)
+    CHECK_BB(emit_stmt_code(emit, &fdef->d.code->d.stmt_code))
+  emit_func_def_ensure(emit, fdef);
   return GW_OK;
 }
 
-ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def func_def) {
-  CHECK_BB(template_push_types(emit->env, func_def->base->tmpl))
-  const m_bool ret = emit_parent_inner(emit, func_def->base->ret_type->e->def);
+ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
+  CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
+  const m_bool ret = emit_parent_inner(emit, fdef->base->ret_type->e->def);
   nspc_pop_type(emit->gwion->mp, emit->env->curr);
   return ret;
 }
 
-ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
-  const Func func = get_func(emit->env, func_def);
+ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
+  const Func func = get_func(emit->env, fdef);
   const Func former = emit->env->func;
   if(func->code)
     return GW_OK;
-  if(tmpl_base(func_def->base->tmpl)) {
-    UNSET_FLAG(func_def, template);
+  if(tmpl_base(fdef->base->tmpl)) {
+    UNSET_FLAG(fdef, template);
     return GW_OK;
   }
-  if(GET_FLAG(func_def->base->ret_type, template) && !GET_FLAG(func_def->base->ret_type, emit))
-    CHECK_BB(tmpl_rettype(emit, func_def))
+  if(GET_FLAG(fdef->base->ret_type, template) && !GET_FLAG(fdef->base->ret_type, emit))
+    CHECK_BB(tmpl_rettype(emit, fdef))
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
-  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->base->tmpl && !emit->env->scope->depth)
+  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl && !emit->env->scope->depth)
     func->value_ref->offset = emit_local(emit, SZ_INT, 0);
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
@@ -1719,21 +1719,21 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def) {
   emit_push_scope(emit);
   emit->env->func = func;
   vector_add(&emit->variadic, 0);
-  CHECK_BB(emit_func_def_body(emit, func_def))
-  if(GET_FLAG(func_def, variadic)) {
+  CHECK_BB(emit_func_def_body(emit, fdef))
+  if(GET_FLAG(fdef, variadic)) {
     if(!get_variadic(emit))
-      ERR_B(func_def->pos, "invalid variadic use")
+      ERR_B(fdef->pos, "invalid variadic use")
     if(!GET_FLAG(func, empty))
-      ERR_B(func_def->pos, "invalid variadic use")
+      ERR_B(fdef->pos, "invalid variadic use")
   }
   vector_pop(&emit->variadic);
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
   emit->env->func = former;
   emit_pop_code(emit);
-  if(GET_FLAG(func_def, op))
+  if(GET_FLAG(fdef, op))
     SET_FLAG(func->code, op);
-  if(!emit->env->class_def && !GET_FLAG(func_def, global) && !func_def->base->tmpl)
+  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))
     func->code->memoize = memoize_ini(emit, func,
