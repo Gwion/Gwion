@@ -465,7 +465,7 @@ clean() {
 [ -f test.log ] && rm test.log
 [ $# -ne 0 ] && do_test "${@}" | consummer
 
-if [ -f test.log ] && [ -z $NO_LOG ]
+if [ -f test.log ] && [ -z "$NO_LOG" ]
 then
   cat test.log
   exit 1
