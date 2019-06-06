@@ -362,7 +362,6 @@ baseaddr:
   DISPATCH();
 regtoreg:
   *(m_uint*)(reg + (m_int)instr->m_val) = *(m_uint*)(reg + (m_int)instr->m_val2);
-  reg += SZ_INT;
   DISPATCH()
 regtoregaddr:
   *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);

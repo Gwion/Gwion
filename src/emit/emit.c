@@ -165,9 +165,10 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
 }
 
 #define regxxx(name, instr) \
-ANN static inline void reg##name(const Emitter emit, const m_uint sz) { \
+ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
   const Instr instr = emit_add_instr(emit, Reg##instr); \
   instr->m_val = sz; \
+  return instr; \
 }
 regxxx(pop, Pop)
 regxxx(pushi, PushImm)
@@ -210,9 +211,13 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
 ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) {
   const Instr cpy = emit_add_instr(emit, Reg2Reg);
   cpy->m_val2 = -SZ_INT;
-  regpushi(emit, (m_uint)code);
+  const Instr set_code = regseti(emit, (m_uint)code);
+  set_code->m_val2 = SZ_INT;
   const m_uint offset = emit_code_offset(emit);
-  regseti(emit, offset);
+  const Instr regset = regseti(emit, offset);
+  regset->m_val2 = SZ_INT *2;
+  const Instr push = emit_add_instr(emit, RegPush);
+  push->m_val = SZ_INT *2;
   const Instr prelude = emit_add_instr(emit, !GET_FLAG(code, builtin) ? FuncUsr : FuncMember);
   prelude->m_val2 = 2;
   prelude->m_val = SZ_INT;
@@ -573,7 +578,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(1 + missing_depth) * SZ_INT;
-      regpop(emit, (missing_depth + 1) * SZ_INT);
+      regpop(emit, (missing_depth) * SZ_INT);
     }
   }
   return GW_OK;
@@ -881,6 +886,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
     m_uint val2 = back->m_val2;
     back->opcode = eReg2Reg;
     back->m_val = SZ_INT;
+    const Instr push = emit_add_instr(emit, RegPush);
+    push->m_val = SZ_INT;
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
