@@ -7,6 +7,7 @@
 #include "nspc.h"
 #include "type.h"
 #include "vm.h"
+#include "traverse.h"
 #include "parse.h"
 
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {

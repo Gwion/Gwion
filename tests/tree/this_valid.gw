@@ -1,6 +1,6 @@
 class C
 {
-  function void test() {
+  fun void test() {
     <<<this>>>;
   }
 }

@@ -7,19 +7,19 @@ class C
 	Vec4 w;
 	Object o;
 
-	function int     m_i() { return i; }
-	function float   m_f() { return f; }
-	function complex m_c() { return c; }
-	function Vec3    m_v() { return v; }
-	function Vec4    m_w() { return w; }
-	function Object  m_o() { return o; }
+	fun int     m_i() { return i; }
+	fun float   m_f() { return f; }
+	fun complex m_c() { return c; }
+	fun Vec3    m_v() { return v; }
+	fun Vec4    m_w() { return w; }
+	fun Object  m_o() { return o; }
 }
 
 C c;
 // read members
 <<< c.i, c.c, c.f, c.v, c.w, c.o >>>;
 
-// call function members
+// call fun members
 <<< c.m_i(), " ", c.m_f(), " ", c.m_c(), " ",
   c.m_v(), " ", c.m_w(), " ", c.m_o()>>>;
 

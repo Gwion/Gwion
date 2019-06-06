@@ -1,6 +1,6 @@
 // [contains] no match found
-function void test(int i){}
-function void test(float f){}
+fun void test(int i){}
+fun void test(float f){}
 
 typedef void Test();
 Test t;

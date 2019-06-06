@@ -3,8 +3,8 @@ class C
 {
 	//! has an int
 	int i;
-	//! a function
-	function void test() {}
+	//! a fun
+	fun void test() {}
 	//! operator
 	operator => void(C c, C d){
       <<<c, " ", d>>>;

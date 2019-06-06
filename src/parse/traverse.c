@@ -40,7 +40,7 @@ ANN m_bool traverse_stmt_enum(const Env env, const Stmt_Enum def) {
 }
 
 ANN m_bool traverse_stmt_fptr(const Env env, const Stmt_Fptr def) {
-  CHECK_BB(scan0_stmt_fptr(env, def))
+//  CHECK_BB(scan0_stmt_fptr(env, def))
   CHECK_BB(scan1_stmt_fptr(env, def))
   return scan2_stmt_fptr(env, def);
 // CHECK_BB(check_stmt_fptr(env, def))

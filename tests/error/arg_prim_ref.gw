@@ -1,2 +1,2 @@
 // [contains] primitive types cannot be used as reference
-function void test(int @i){}
+fun void test(int @i){}

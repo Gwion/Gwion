@@ -1,2 +1,2 @@
 // [contains] already declared
-function void test(int i, int i){}
+fun void test(int i, int i){}

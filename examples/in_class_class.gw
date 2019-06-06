@@ -1,5 +1,5 @@
 class C {
-	function<~a~> void test(a var){ <<<var>>>; }
+	fun void test<~a~>(a var){ <<<var>>>; }
 	class D { int i;}
 }
 

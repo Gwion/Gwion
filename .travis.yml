@@ -2,8 +2,8 @@ language: c
 #sudo: required
 os:
   - linux
-#  - windows
   - osx
+  - windows
 
 addons:
 #  coverity_scan:
@@ -33,8 +33,8 @@ env:
 
 matrix:
   allow_failures:
-   - compiler: clang
-#   - os: windows
+#   - compiler: clang
+   - os: windows
 
 compiler:
   - gcc
@@ -47,7 +47,7 @@ install:
       export BUILD_ON_WINDOWS=1;
       export VALGRIND="NO_VALGRIND";
       export SEVERITY=1;
-      export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import -Wl,--out-implib,libgwion.a";
+      export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
       export LIBS="$LIBS -lpsapi -shared -fPIC";
     fi;
 
@@ -59,7 +59,12 @@ before_script:
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ];
     then make && make test;
-    else make.exe && make.exe test;
+    else {
+      if [ "$CC" = "clang" ];
+      then export CFLAGS+=" -D_USE_MATH_DEFINES -D_CRT_SECURE_NO_WARNINGS -Dssize_t=SSIZE_T";
+      fi;
+      make.exe && make.exe test;
+    }
     fi;
 
 git:

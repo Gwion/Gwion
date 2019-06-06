@@ -8,9 +8,9 @@
 #include "func.h"
 #include "nspc.h"
 #include "vm.h"
-#include "parse.h"
 #include "traverse.h"
 #include "template.h"
+#include "parse.h"
 
 ANN static Value mk_class(const Env env, const Type base) {
   const Type t = type_copy(env->gwion->mp, t_class);
@@ -113,6 +113,8 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
 
 ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
   CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
+  const m_uint scope = !GET_FLAG(stmt, global) ? env->scope->depth :
+      env_push_global(env);
   if(stmt->xid) {
     CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
@@ -131,6 +133,7 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
     if(!stmt->type_xid)
       SET_FLAG(t, op);
   } else if(stmt->type_xid) {
+    CHECK_BB(scan0_defined(env, stmt->type_xid, stmt_self(stmt)->pos))
     const Nspc nspc = !GET_FLAG(stmt, global) ?
       env->curr : env->global_nspc;
     stmt->type = union_type(env, nspc, stmt->type_xid, 1);
@@ -144,8 +147,23 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
     stmt->value->owner = nspc;
     nspc_add_value(nspc, stmt->xid, stmt->value);
     SET_FLAG(stmt->value, checked | stmt->flag);
-
   }
+  if(stmt->tmpl) {
+    if(tmpl_base(stmt->tmpl)) {
+      const Class_Def cdef = new_class_def(env->gwion->mp, stmt->flag, stmt->type_xid,
+          NULL, (Class_Body)stmt->l, stmt_self(stmt)->pos);
+      stmt->type->e->def = cdef;
+      cdef->base.tmpl = stmt->tmpl;
+      cdef->base.type = stmt->type;
+      cdef->list = stmt->l;
+      SET_FLAG(stmt->type, pure);
+      SET_FLAG(stmt, template);
+      SET_FLAG(stmt->type, template);
+    }
+    SET_FLAG(stmt->type, union);
+  }
+  if(GET_FLAG(stmt, global))
+    env_pop(env, scope);
   return GW_OK;
 }
 

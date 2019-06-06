@@ -7,12 +7,12 @@ class C
 	static Vec4 w;
 	static Object o;
 
-	function int     m_i() { return i; }
-	function float   m_f() { return f; }
-	function complex m_c() { return c; }
-	function Vec3    m_v() { return v; }
-	function Vec4    m_w() { return w; }
-	function Object  m_o() { return o; }
+	fun int     m_i() { return i; }
+	fun float   m_f() { return f; }
+	fun complex m_c() { return c; }
+	fun Vec3    m_v() { return v; }
+	fun Vec4    m_w() { return w; }
+	fun Object  m_o() { return o; }
 
 	fun static int     _i() { return i; }
 	fun static float   _f() { return f; }
@@ -25,7 +25,7 @@ class C
 // read members
 <<< C.i, C.c, C.f, C.v, C.w, C.o >>>;
 
-// call function members
+// call fun members
 <<< C._i(), " ", C._f(), " ", C._c(), " ", C._v(), " ", C._w(), " ", C._o()>>>;
 
 // write members

@@ -1,2 +1,2 @@
 // [contains] unknown type
-function void test() { skfuv sd; }
+fun void test() { skfuv sd; }

@@ -1,4 +1,4 @@
-function void print_array(int a[]){
+fun void print_array(int a[]){
 	for(int i; i < a.size(); i++)
 		<<<a[i]>>>;
 }

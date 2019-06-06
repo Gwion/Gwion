@@ -1,2 +1,2 @@
 // [contains] primitive types cannot be used as reference
-function int@ test(){}
+fun int@ test(){}

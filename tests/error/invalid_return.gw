@@ -1,2 +1,2 @@
 // [contains] invalid return type
-function void test() { return 1; }
+fun void test() { return 1; }

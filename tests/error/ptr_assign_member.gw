@@ -2,7 +2,7 @@
 typedef void Test();
 Test test;
 class D {
-  function void test(){}
+  fun void test(){}
 }
 
 D d;

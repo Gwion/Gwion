@@ -1,9 +1,9 @@
 class C
 {
-  function float testf() {
+  fun float testf() {
     return 1.1;
   }
-  function float testf(float f) {
+  fun float testf(float f) {
     return f;
   }
 }

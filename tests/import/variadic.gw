@@ -1,4 +1,4 @@
-<<<"test builtin variadic function">>>;
+<<<"test builtin variadic fun">>>;
 Variadic v;
 "iiii" => string format;
 <<<v, " ", format $ Object>>>;

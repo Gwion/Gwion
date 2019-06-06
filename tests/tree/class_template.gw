@@ -4,7 +4,7 @@ class<~A,B~> C {
   fun A test() {
     <<<"lol">>>;
   }
-  fun<~C~> void test2(C c) {
+  fun void test2<~C~>(C c) {
     <<<c>>>;
   }
 }

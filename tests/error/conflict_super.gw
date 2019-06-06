@@ -3,5 +3,5 @@ class C { int test;
 }
 
 class D extends C {
-  function void test(){}
+  fun void test(){}
 }

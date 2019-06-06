@@ -1,7 +1,7 @@
 class Tester
 {
-	function<~A~> int assert_equal(string description, A a, A b){ if(a == b) return 0; return 1; }
-	function<~A~> int assert_not_equal(string description, A a, A b){ if(a != b) return 0; return 1; }
+	fun int assert<~A~>_equal(string description, A a, A b){ if(a == b) return 0; return 1; }
+	fun int assert<~A~>_not_equal(string description, A a, A b){ if(a != b) return 0; return 1; }
 }
 
 Tester t;

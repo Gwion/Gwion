@@ -1,2 +1,2 @@
 // [contains] cannot declare variables of size
- function void test(void v){}
+ fun void test(void v){}

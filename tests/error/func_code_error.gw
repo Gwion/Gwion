@@ -1,2 +1,2 @@
 // [contains] in function:
-function void test() { <<<b>>>; }
+fun void test() { <<<b>>>; }

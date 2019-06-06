@@ -1,4 +1,4 @@
 // [contains] invalid expression for function call
-function<~A~> void test(A a){}
+fun void test<~A~>(A a){}
 
 (maybe ? test : test)(1);

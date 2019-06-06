@@ -1,6 +1,6 @@
 class C
 {
-  function void test(int i) {
+  fun void test(int i) {
     <<<"here => ", i>>>;
     samp => now;
     <<<"and now">>>;

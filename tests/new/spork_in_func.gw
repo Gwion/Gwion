@@ -1,4 +1,4 @@
-function void test() {
+fun void test() {
 //  <<<1>>>;
 //spork \{<<<2>>>;}();
 }
