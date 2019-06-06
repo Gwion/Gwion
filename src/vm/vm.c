@@ -301,7 +301,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   do {
     register Instr instr; DISPATCH();
 regsetimm:
-  *(m_uint*)reg = instr->m_val;
+  *(m_uint*)(reg + (m_int)instr->m_val2) = instr->m_val;
   DISPATCH();
 regpushimm:
   *(m_uint*)reg = instr->m_val;

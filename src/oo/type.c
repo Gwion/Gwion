@@ -13,13 +13,9 @@
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
     if(GET_FLAG(a, union)) {
-      if(a->e->def->stmt) {
-      if(GET_FLAG(a, pure))
-        free_decl_list(gwion->mp, a->e->def->list);
-      else {
+      if(a->e->def->stmt && !GET_FLAG(a, pure))  { // <=> decl_list
           UNSET_FLAG(&a->e->def->stmt->d.stmt_union, global);
           free_stmt(gwion->mp, a->e->def->stmt);
-        }
       }
       a->e->def->stmt = NULL;
     }
@@ -27,6 +23,10 @@ ANN static void free_type(Type a, Gwion gwion) {
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
+  if(a->e->contains.ptr)
+    vector_release(&a->e->contains);
+// TODO: commenting this should not happen
+//  mp_free(gwion->mp, TypeInfo, a->e);
   mp_free(gwion->mp, Type, a);
 }
 

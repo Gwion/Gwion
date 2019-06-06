@@ -58,21 +58,58 @@ INSTR(PopArrayClass) {
   ADD_REF(obj->type_ref) // add ref to typedef array type
 }
 
-ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Type t) {
-  const Symbol sym = func_symbol(env, t->name, s_name(dt->base->base->xid),
-    "template", dt->overload);
-  const Value v = nspc_lookup_value1(t->nspc, sym);
+ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Nspc nspc) {
+  const Func_Def fdef = dt->def ?: dt->base;
+  const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
+    "template", dt->vt_index);
+  const Value v = nspc_lookup_value1(nspc, sym);
   CHECK_OO(v)
   const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(env->gwion->st, v->name),
-            base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
-  def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, dt->overload);
+  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fdef->base->td, insert_symbol(env->gwion->st, v->name),
+            fdef->base->args), fdef->d.code, fdef->flag, loc_cpy(env->gwion->mp, base->pos));
+  def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, dt->vt_index);
   SET_FLAG(def, template);
   return def;
 }
 
+INSTR(GTmpl) {
+  struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
+  const Func f = *(Func*)REG(-SZ_INT);
+  const m_str name = f->name;
+  const Emitter emit = shred->info->vm->gwion->emit;
+  emit->env->name = "runtime";
+  m_str tmpl_name = tl2str(emit->env, dt->tl);
+  for(m_uint i = 0 ; i <= f->value_ref->offset; ++i) {
+    const Symbol sym = func_symbol(emit->env, f->value_ref->owner->name,
+      name, tmpl_name, i);
+    const Func base = nspc_lookup_func1(f->value_ref->owner, sym);
+    if(base) {
+      xfree(tmpl_name);
+      assert(base->code);
+      if(GET_FLAG(base->def, static))
+        shred->reg -= SZ_INT;
+      *(VM_Code*)(shred->reg -SZ_INT) = base->code;
+      return;
+    }
+  }
+  xfree(tmpl_name);
+  dt->def = f->def;
+  const Func_Def def = from_base(emit->env, dt, f->value_ref->owner);
+  if(!def)
+    Except(shred, "MissigTmplPtrException[internal]");
+  dt->def = def;
+  dt->owner = f->value_ref->owner;
+  dt->owner_class = f->value_ref->owner_class;
+  if(traverse_dot_tmpl(emit, dt) > 0) {
+    if(GET_FLAG(def, static))
+      shred->reg -= SZ_INT;
+    *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
+    return;
+  }
+}
+
 INSTR(DotTmpl) {
-  struct dottmpl_ * dt = (struct dottmpl_*)instr->m_val;
+  struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   Type t = o->type_ref;
@@ -86,7 +123,7 @@ INSTR(DotTmpl) {
     if(f) {
       if(!f->code) {
         dt->def = f->def;//
-        dt->owner = t; //
+        dt->owner_class = t; //
         if(traverse_dot_tmpl(emit, dt) < 0)
           continue;
       }
@@ -96,11 +133,11 @@ INSTR(DotTmpl) {
       shred->reg += SZ_INT;
       return;
     } else {
-      const Func_Def def = from_base(emit->env, dt, t);
+      const Func_Def def = from_base(emit->env, dt, t->nspc);
       if(!def)
         continue;
       dt->def = def; //
-      dt->owner = t; //
+      dt->owner_class = t; //
       if(traverse_dot_tmpl(emit, dt) > 0) {
         if(GET_FLAG(def, static))
           shred->reg -= SZ_INT;

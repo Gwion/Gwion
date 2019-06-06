@@ -36,30 +36,113 @@ static OP_CHECK(opck_func_call) {
   return check_exp_call1(env, &e->d.exp_call) ?: t_null;
 }
 
+static inline void fptr_instr(const Emitter emit, const Func f, const m_uint i) {
+  const Instr set = emit_add_instr(emit, RegSetImm);
+  set->m_val = (m_uint)f;
+  set->m_val2 = -SZ_INT*i;
+}
+
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->type->e->d.func->def->base->tmpl)
+    fptr_instr(emit, bin->lhs->type->e->d.func, 2);
   emit_add_instr(emit, int_r_assign);
-  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) && GET_FLAG(bin->rhs->type->e->d.func, member)) {
+  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) &&
+      GET_FLAG(bin->rhs->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
   return GW_OK;
 }
 
-ANN static Type fptr_type(const Env env, Exp_Binary* bin) {
-  const Func l_func = bin->lhs->type->e->d.func;
-  const Func r_func = bin->rhs->type->e->d.func;
-  const Nspc nspc = l_func->value_ref->owner;
-  const m_str c = s_name(l_func->def->base->xid);
-  const Value v = l_func->value_ref;
-  for(m_uint i = 0; i <= v->offset; ++i) {
-    const Symbol sym = func_symbol(env, nspc->name, c, NULL, i);
-    const Func f = nspc_lookup_func1(nspc, sym); // was lookup2
-    CHECK_OO(f)
-    if(compat_func(r_func->def, f->def) > 0)
-      return r_func->value_ref->type->e->d.base_type;
+struct FptrInfo {
+        Func  lhs;
+  const Func  rhs;
+  const Exp   exp;
+  const loc_t pos;
+};
+
+ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
+  if(!info->rhs->def->base->tmpl)
+    return GW_OK;
+  ID_List t0 = info->lhs->def->base->tmpl->list,
+          t1 = info->rhs->def->base->tmpl->list;
+  nspc_push_type(env->gwion->mp, env->curr);
+  while(t0) {
+    CHECK_OB(t1)
+    nspc_add_type(env->curr, t0->xid, t_undefined);
+    nspc_add_type(env->curr, t1->xid, t_undefined);
+    t0 = t0->next;
+    t1 = t1->next;
   }
-  return NULL;
+  return GW_OK;
+}
+
+ANN static m_bool fptr_args(const Env env, struct Func_Base_ *base[2]) {
+  Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
+  while(arg0) {
+    CHECK_OB(arg1)
+    const Type t0 = known_type(env, base[0]->td);
+    CHECK_OB(t0)
+    const Type t1 = known_type(env, base[1]->td);
+    CHECK_OB(t1)
+    CHECK_BB(isa(t0, t1))
+    arg0 = arg0->next;
+    arg1 = arg1->next;
+  }
+  return !arg1 ? GW_OK : GW_ERROR;
+}
+
+ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
+  const Type l_type = info->lhs->value_ref->owner_class;
+  const Type r_type = info->rhs->value_ref->owner_class;
+  if(!r_type && l_type)
+    ERR_B(info->pos, "can't assign member function to non member function pointer")
+  else if(!l_type && r_type) {
+    if(!GET_FLAG(info->rhs, global))
+      ERR_B(info->pos, "can't assign non member function to member function pointer")
+  } else if(l_type && isa(r_type, l_type) < 0)
+      ERR_B(info->pos, "can't assign member function to a pointer of an other class")
+  if(GET_FLAG(info->rhs, member)) {
+    if(!GET_FLAG(info->lhs, member))
+      ERR_B(info->pos, "can't assign static function to member function pointer")
+  } else if(GET_FLAG(info->lhs, member))
+      ERR_B(info->pos, "can't assign member function to static function pointer")
+  return GW_OK;
+}
+
+ANN static m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
+  const Type t0 = known_type(env, info->lhs->def->base->td);
+  CHECK_OB(t0)
+  const Type t1 = known_type(env, info->rhs->def->base->td);
+  CHECK_OB(t1)
+  return isa(t0, t1);
+}
+
+ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
+  return GET_FLAG(info->lhs->def, variadic) ==
+         GET_FLAG(info->rhs->def, variadic);
+}
+
+ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
+  const Value v = info->lhs->value_ref;
+  const Nspc nspc = v->owner;
+  const m_str c = s_name(info->lhs->def->base->xid),
+    stmpl = !info->rhs->def->base->tmpl ? NULL : "template";
+  Type type = NULL;
+  for(m_uint i = 0; i <= v->offset && !type; ++i) {
+    const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
+        func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
+    info->lhs = nspc_lookup_func1(nspc, sym);
+    assert(info->lhs);
+    struct Func_Base_ *base[2] =  { info->lhs->def->base, info->rhs->def->base };
+    if(fptr_tmpl_push(env, info) > 0 && fptr_rettype(env, info) > 0 &&
+       fptr_arity(info) && fptr_args(env, base) > 0)
+      type = info->lhs->value_ref->type;
+    if(info->rhs->def->base->tmpl)
+      nspc_pop_type(env->gwion->mp, env->curr);
+  }
+  return type;
 }
 
 ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
@@ -74,8 +157,9 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
-  l->def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, def->base->td, l->name, l->args), l->code, def->flag,
-    loc_cpy(env->gwion->mp, def->pos));
+  l->def = new_func_def(env->gwion->mp,
+    new_func_base(env->gwion->mp, def->base->td, l->name, l->args),
+    l->code, def->flag, loc_cpy(env->gwion->mp, def->pos));
   CHECK_BB(traverse_func_def(env, l->def))
   arg = l->args;
   while(arg) {
@@ -87,69 +171,69 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   return GW_OK;
 }
 
+ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
+  Exp_Lambda *l = &info->exp->d.exp_lambda;
+  const Type owner = info->rhs->value_ref->owner_class;
+  return check_lambda(env, owner, l, info->rhs->def);
+}
+
+ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
+  if(isa(info->exp->type, t_lambda) < 0) {
+    CHECK_BB(fptr_check(env, info))
+    return (info->exp->type = fptr_type(env, info)) ? GW_OK : GW_ERROR;
+  }
+  return fptr_lambda(env, info);
+}
+
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->d.func,
+      bin->lhs, exp_self(bin)->pos };
+  CHECK_BO(fptr_do(env, &info))
   bin->rhs->emit_var = 1;
-  if(isa(bin->lhs->type, t_lambda) > 0) {
-    Exp_Lambda *l = &bin->lhs->d.exp_lambda;
-    const Type owner = nspc_lookup_type1(bin->rhs->type->e->owner->parent,
-       insert_symbol(bin->rhs->type->e->owner->name));
-    CHECK_BO(check_lambda(env, owner, l, bin->rhs->type->e->d.func->def))
-    return bin->rhs->type;
-  }
-  const Func l_func = bin->lhs->type->e->d.func;
-  const Func_Def l_fdef = l_func->def;
-  const Type l_type = l_func->value_ref->owner_class;
-  const Func r_func = bin->rhs->type->e->d.func;
-  const Func_Def r_fdef = r_func->def;
-  const Type r_type = r_func->value_ref->owner_class;
-  if(!r_type && l_type)
-    ERR_N(exp_self(bin)->pos, "can't assign member function to non member function pointer")
-  else if(r_type && !l_type) {
-    if(!GET_FLAG(r_func, global))
-      ERR_N(exp_self(bin)->pos, "can't assign non member function to member function pointer")
-  } else if(r_type && isa(r_type, l_type) < 0)
-      ERR_N(exp_self(bin)->pos, "can't assign member function to member function pointer"
-            " of an other class")
-  if(GET_FLAG(r_func, member)) {
-    if(!GET_FLAG(l_func, member))
-      ERR_N(exp_self(bin)->pos, "can't assign static function to member function pointer")
-  } else if(GET_FLAG(l_func, member))
-      ERR_N(exp_self(bin)->pos, "can't assign member function to static function pointer")
-  if(isa(r_fdef->base->ret_type, l_fdef->base->ret_type) < 0)
-    ERR_N(exp_self(bin)->pos, "return type '%s' does not match '%s'\n\t... in pointer assignement",
-         r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
-  if(GET_FLAG(l_fdef, variadic) != GET_FLAG(r_fdef, variadic))
-    ERR_N(exp_self(bin)->pos, "function must be of same argument kind.",
-         r_fdef->base->ret_type->name, l_fdef->base->ret_type->name)
-  if(isa(bin->lhs->type, t_fptr) > 0 && isa(bin->lhs->type, bin->rhs->type) > 0)
-    return bin->rhs->type;
-  return fptr_type(env, bin);
+  return bin->rhs->type;
 }
 
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   const Type t = exp_self(cast)->type;
-  const Value v = nspc_lookup_value1(env->curr, cast->exp->d.exp_primary.d.var);
-  CHECK_OO(v)
-  const Func f = isa(v->type, t_fptr) > 0 ?
-            v->type->e->d.func :
-            nspc_lookup_func1(env->curr, insert_symbol(v->name));
-  CHECK_OO(f)
-  CHECK_BO(compat_func(t->e->d.func->def, f->def))
-  cast->func = f;
+  struct FptrInfo info = { cast->exp->type->e->d.func, t->e->d.func,
+     cast->exp, exp_self(cast)->pos };
+  CHECK_BO(fptr_do(env, &info))
+  cast->func = cast->exp->type->e->d.func;
   return t;
 }
 
 static OP_EMIT(opem_fptr_cast) {
   CHECK_BB(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
+  if(exp_self(cast)->type->e->d.func->def->base->tmpl)
+    fptr_instr(emit, cast->exp->type->e->d.func, 1);
   if(GET_FLAG(cast->exp->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, RegPop);
     instr->m_val = SZ_INT*2;
     const Instr dup = emit_add_instr(emit, Reg2Reg);
     dup->m_val2 = SZ_INT;
   }
+  return GW_OK;
+}
+
+static OP_CHECK(opck_fptr_impl) {
+  struct Implicit *impl = (struct Implicit*)data;
+  struct FptrInfo info = { ((Exp)impl->e)->type->e->d.func, impl->t->e->d.func,
+      (Exp)impl->e, ((Exp)impl->e)->pos };
+  CHECK_BO(fptr_do(env, &info))
+  return ((Exp)impl->e)->cast_to = impl->t;
+}
+
+static OP_EMIT(opem_fptr_impl) {
+  struct Implicit *impl = (struct Implicit*)data;
+  if(GET_FLAG(impl->t->e->d.func, member)) {
+    const Instr pop = emit_add_instr(emit, RegPop);
+    pop->m_val = SZ_INT;
+  }
+  if(impl->t->e->d.func->def->base->tmpl)
+    fptr_instr(emit, ((Exp)impl->e)->type->e->d.func, 1);
   return GW_OK;
 }
 
@@ -163,10 +247,10 @@ static OP_CHECK(opck_spork) {
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return unary->op == op_spork ? t_shred : t_fork;
   else if(unary->code) {
-    ++env->scope->depth;        \
-    nspc_push_value(env->gwion->mp, env->curr); \
+    ++env->scope->depth;
+    nspc_push_value(env->gwion->mp, env->curr);
     const m_bool ret = check_stmt(env, unary->code);
-    nspc_pop_value(env->gwion->mp, env->curr);  \
+    nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
     CHECK_BO(ret)
     return unary->op == op_spork ? t_shred : t_fork;
@@ -202,6 +286,9 @@ GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_fptr_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
+  CHECK_BB(gwi_oper_add(gwi, opck_fptr_impl))
+  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_impl))
+  CHECK_BB(gwi_oper_end(gwi, op_impl, NULL))
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))

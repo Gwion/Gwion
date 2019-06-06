@@ -15,7 +15,7 @@ static void print_type(const Type type) {
   const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_fptr) < 0;
   const m_str name = is_func ? strdup("@function") : strdup(type->name);
   gw_out("(%s) ", name);
-  free(name);
+  xfree(name);
   if(GET_FLAG(type, typedef)) {
     gw_out(" aka ");
     print_type(type->e->parent);
@@ -76,12 +76,14 @@ ANN2(1) static inline void print_object(const Type type, const M_Object obj) {
 }
 
 ANN static inline void print_func(const Type type, const m_bit* stack) {
-  if(type->e->d.func) {
-    const VM_Code code = isa(type, t_fptr) > 0 ?
-      *(VM_Code*)stack : type->e->d.func->code;
-    gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
-  } else
-    gw_out("%s %p", type->name, NULL);
+  if(isa(type, t_fptr) > 0 && type->e->d.func->def->base->tmpl) {
+    const Func f = *(Func*)stack;
+    gw_out("%s", f ? f->name : "(nil)");
+    return;
+  }
+  const VM_Code code = isa(type, t_fptr) > 0 ?
+    *(VM_Code*)stack : type->e->d.func->code;
+  gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
 }
 
 ANN static void print_prim(const Type type, const m_bit* stack) {

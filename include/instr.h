@@ -61,13 +61,15 @@ INSTR(VecMember);
 INSTR(PopArrayClass);
 
 INSTR(DotTmpl);
+INSTR(GTmpl);
 
 struct dottmpl_ {
   size_t len;
   m_str name;
   Func_Def base, def;
-  Type owner;
-  size_t overload; // => vtindex ?
+  Type owner_class;
+  Nspc owner;
+  size_t vt_index;
   Type_List tl;
 };
 ANN void free_dottmpl(struct dottmpl_*);

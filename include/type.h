@@ -1,15 +1,16 @@
 #ifndef __TYPE
 #define __TYPE
 
-  struct TypeInfo_ {
-    Type      parent;
-    Nspc      owner;
-    Class_Def def;
-    union type_data {
-      Func      func;
-      Type      base_type;
-    } d;
-  };
+struct TypeInfo_ {
+  Type      parent;
+  Nspc      owner;
+  Class_Def def;
+  union type_data {
+    Func      func;
+    Type      base_type;
+  } d;
+  struct Vector_ contains;
+};
 
 struct Type_ {
   m_str     name;

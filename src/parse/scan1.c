@@ -15,9 +15,6 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
-// could be more precise
-  if(SAFE_FLAG(env->class_def, template) && td->types)
-    return t_undefined;
   const Type t = known_type(env, td);
   CHECK_OO(t)
   if(t->size)
@@ -25,25 +22,47 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   ERR_O(td_pos(td), "cannot declare variables of size '0' (i.e. 'void')...")
 }
 
+
+ANN static inline Type get_base_type(const Env env, const Type t) {
+  const m_str decl_name = get_type_name(env, t->name, 0);
+  return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
+}
+
+ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
+  const Type decl_base = get_base_type(env, t);
+  const Type base = get_base_type(env, env->class_def);
+  if(decl_base && base) {
+    if(!base->e->contains.ptr)
+      vector_init(&base->e->contains);
+    vector_add(&base->e->contains, (vtype)decl_base);
+    if(decl_base->e->contains.ptr) {
+      for(m_uint i = 0; i < vector_size(&decl_base->e->contains); ++i) {
+        if(base == (Type)vector_at(&decl_base->e->contains, i) && !GET_FLAG(decl->td, ref))
+          ERR_B(exp_self(decl)->pos, "%s declared inside %s\n. (make it a ref ?)",
+              decl_base->name, decl_base == base ? "itself" : base->name);
+      }
+    }
+  }
+   return GW_OK;
+}
+
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   const Type t = void_type(env, decl->td);
   CHECK_OO(t);
   if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
     return decl->type;
+  if(!env->scope->depth && env->class_def) {
+    if(isa(t, t_object) > 0)
+      CHECK_BO(type_recursive(env, decl, t))
+    if(!GET_FLAG(decl->td, static))
+      SET_FLAG(decl->td, member);
+  }
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
     ERR_O(exp_self(decl)->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
   if(GET_FLAG(t, private) && t->e->owner != env->curr)
     ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
-  if(env->class_def) {
-    if(!env->scope->depth) {
-      if(!GET_FLAG(decl->td, ref) && t == env->class_def)
-        ERR_O(exp_self(decl)->pos, "...(note: object of type '%s' declared inside itself)", t->name)
-      if(!GET_FLAG(decl->td, static))
-        SET_FLAG(decl->td, member);
-    }
-  }
   decl->base = t->e->def;
   return decl->type = t;
 }
@@ -303,7 +322,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
   if(fdef->base->args)
     CHECK_BB(scan1_args(env, fdef->base->args))
-  if(!GET_FLAG(fdef, builtin))
+  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
     CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
   env->func = former;
   --env->scope->depth;
