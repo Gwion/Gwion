@@ -211,9 +211,9 @@ static OP_EMIT(opem_fptr_cast) {
     fptr_instr(emit, cast->exp->type->e->d.func, 1);
   if(GET_FLAG(cast->exp->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, RegPop);
-    instr->m_val = SZ_INT*2;
+    instr->m_val = SZ_INT;
     const Instr dup = emit_add_instr(emit, Reg2Reg);
-    dup->m_val2 = SZ_INT;
+    dup->m_val = -SZ_INT;
   }
   return GW_OK;
 }
