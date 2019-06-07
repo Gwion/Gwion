@@ -1001,8 +1001,8 @@ ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
     if(!GET_FLAG(stmt, static))
       stmt->o = env->class_def->nspc->info->offset;
     else {
-      stmt->o = stmt->type->nspc->info->class_data_size;
-      stmt->type->nspc->info->class_data_size += SZ_INT;
+      stmt->o = env->class_def->nspc->info->class_data_size;
+      env->class_def->nspc->info->class_data_size += SZ_INT;
     }
   }
   const m_uint scope = union_push(env, stmt);
