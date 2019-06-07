@@ -78,15 +78,21 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
   return GW_OK;
 }
 
+
+static m_bool td_match(const Env env, const Type_Decl *id[2]) {
+  const Type t0 = known_type(env, id[0]);
+  CHECK_OB(t0)
+  const Type t1 = known_type(env, id[1]);
+  CHECK_OB(t1)
+  return isa(t0, t1);
+}
+
 ANN static m_bool fptr_args(const Env env, struct Func_Base_ *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
     CHECK_OB(arg1)
-    const Type t0 = known_type(env, arg0->td);
-    CHECK_OB(t0)
-    const Type t1 = known_type(env, arg1->td);
-    CHECK_OB(t1)
-    CHECK_BB(isa(t0, t1))
+    const Type_Decl* td[2] = { arg0->td, arg1->td };
+    CHECK_BB(td_match(env, td))
     arg0 = arg0->next;
     arg1 = arg1->next;
   }
@@ -111,12 +117,10 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   return GW_OK;
 }
 
-ANN static m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
-  const Type t0 = known_type(env, info->lhs->def->base->td);
-  CHECK_OB(t0)
-  const Type t1 = known_type(env, info->rhs->def->base->td);
-  CHECK_OB(t1)
-  return isa(t0, t1);
+ANN static inline m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
+  const Type_Decl* td[2] = { info->lhs->def->base->td,
+      info->rhs->def->base->td };
+  return td_match(env, td);
 }
 
 ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
