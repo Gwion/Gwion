@@ -245,7 +245,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
-    &&allocint, &&allocfloat, &&allocother, &&allocaddr,
+    &&allocint, &&allocfloat, &&allocother,
     &&intplus, &&intminus, && intmul, &&intdiv, &&intmod,
     // int relationnal
     &&inteq, &&intne, &&intand, &&intor,
@@ -401,10 +401,7 @@ allocother:
     *(m_uint*)(reg+i) = (*(m_uint*)(mem+instr->m_val+i) = 0);
   reg += instr->m_val2;
   DISPATCH()
-allocaddr:
-  *(m_bit**)reg = mem + instr->m_val;
-  reg += SZ_INT;
-  DISPATCH()
+
 intplus:  INT_OP(+)
 intminus: INT_OP(-)
 intmul:   INT_OP(*)
@@ -539,7 +536,6 @@ ftoi:
   reg -= SZ_FLOAT - SZ_INT;
   *(m_int*)(reg-SZ_INT) = (m_int)*(m_float*)(reg-SZ_INT);
   DISPATCH()
-
 timeadv:
   reg -= SZ_FLOAT;
   shredule(s, shred, *(m_float*)(reg-SZ_FLOAT));

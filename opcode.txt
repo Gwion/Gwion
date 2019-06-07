@@ -22,7 +22,6 @@ Goto
 AllocWord
 AllocWord2
 AllocWord3
-AllocWord4
 int_plus
 int_minus
 int_mul

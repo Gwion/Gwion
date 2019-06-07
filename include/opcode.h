@@ -25,7 +25,6 @@ enum {
   eAllocWord,
   eAllocWord2,
   eAllocWord3,
-  eAllocWord4,
   eint_plus,
   eint_minus,
   eint_mul,
@@ -199,7 +198,6 @@ enum {
 #define  AllocWord           (f_instr)eAllocWord
 #define  AllocWord2          (f_instr)eAllocWord2
 #define  AllocWord3          (f_instr)eAllocWord3
-#define  AllocWord4          (f_instr)eAllocWord4
 #define  int_plus            (f_instr)eint_plus
 #define  int_minus           (f_instr)eint_minus
 #define  int_mul             (f_instr)eint_mul
