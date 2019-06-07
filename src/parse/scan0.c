@@ -45,8 +45,7 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 
 ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
-  const Type base = stmt->tmpl ? find_type(env, stmt->ext->xid) : known_type(env, stmt->ext);
-  CHECK_OB(base)
+  DECL_OB(const Type, base, = stmt->tmpl ? find_type(env, stmt->ext->xid) : known_type(env, stmt->ext))
   CHECK_BB(scan0_defined(env, stmt->xid, td_pos(stmt->ext)))
   if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp)) {
     const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(stmt->xid), base);
@@ -246,11 +245,11 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   CHECK_BB(scan0_class_def_pre(env, cdef))
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
   if(cdef->body) {
-int call = cdef->base.tmpl && !cdef->base.tmpl->call;
-if(call)cdef->base.tmpl->call = (Type_List)1;
-    CHECK_BB(env_body(env, cdef, scan0_section))
-if(call)cdef->base.tmpl->call = NULL;
-}
+    int call = cdef->base.tmpl && !cdef->base.tmpl->call;
+    if(call)cdef->base.tmpl->call = (Type_List)1;
+      CHECK_BB(env_body(env, cdef, scan0_section))
+    if(call)cdef->base.tmpl->call = NULL;
+  }
   (void)mk_class(env, cdef->base.type);
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);

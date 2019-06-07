@@ -74,8 +74,7 @@ ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
   Type_List call = info->call;
   size_t size = tmpl_set(info, info->cdef->base.type);
   do {
-    const Type t = known_type(env, call->td);
-    CHECK_OB(t)
+    DECL_OB(const Type, t, = known_type(env, call->td))
     size += tmpl_set(info, t);
   } while((call = call->next) && (base = base->next) && ++size);
   return size + 16 + 3;
@@ -118,8 +117,7 @@ ANN m_bool template_match(ID_List base, Type_List call) {
 }
 
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
-  const Symbol name = template_id(env, def, call);
-  CHECK_OO(name)
+  DECL_OO(const Symbol, name, = template_id(env, def, call))
   if(env->class_def && name == insert_symbol(env->class_def->name))
      return env->class_def->e->def;
   const Type t = nspc_lookup_type1(env->curr, name);
@@ -159,8 +157,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
         "you must provide template types for type '%s'", t->name)
     if(template_match(t->e->def->base.tmpl->list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
-    const Class_Def a = template_class(env, t->e->def, type->types);
-    CHECK_OO(a)
+    DECL_OO(const Class_Def, a, = template_class(env, t->e->def, type->types))
     SET_FLAG(a, ref);
     if(a->base.type)
       return a->base.type;

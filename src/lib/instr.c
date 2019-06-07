@@ -62,8 +62,7 @@ ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Ns
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->vt_index);
-  const Value v = nspc_lookup_value1(nspc, sym);
-  CHECK_OO(v)
+  DECL_OO(const Value, v, = nspc_lookup_value1(nspc, sym))
   const Func_Def base = v->d.func_ref->def;
   const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fdef->base->td, insert_symbol(env->gwion->st, v->name),
             fdef->base->args), fdef->d.code, fdef->flag, loc_cpy(env->gwion->mp, base->pos));

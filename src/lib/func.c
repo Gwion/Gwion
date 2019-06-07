@@ -80,10 +80,8 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
 
 
 static m_bool td_match(const Env env, const Type_Decl *id[2]) {
-  const Type t0 = known_type(env, id[0]);
-  CHECK_OB(t0)
-  const Type t1 = known_type(env, id[1]);
-  CHECK_OB(t1)
+  DECL_OB(const Type, t0, = known_type(env, id[0]))
+  DECL_OB(const Type, t1, = known_type(env, id[1]))
   return isa(t0, t1);
 }
 

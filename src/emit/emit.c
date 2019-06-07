@@ -86,8 +86,7 @@ ANN static inline void frame_push(Frame* frame) {
 }
 
 ANN static m_int frame_pop(Frame* frame) {
-  const Local* l = (Local*)vector_pop(&frame->stack);
-  CHECK_OB(l)
+  DECL_OB(const Local*, l, = (Local*)vector_pop(&frame->stack))
   frame->curr_offset -= l->size;
   return l->is_obj ? (m_int)l->offset : frame_pop(frame);
 }
@@ -249,8 +248,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
         array = new_array_sub(emit->gwion->mp, base);
     }
     assert(array->exp);
-    ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
-    CHECK_OB(info)
+    DECL_OB(ArrayInfo*, info, = emit_array_extend_inner(emit, type, array->exp))
     info->is_ref = !!is_ref;
     if(array != arr)
       free_array_sub(emit->gwion->mp, array);
@@ -473,8 +471,7 @@ ANN static m_bool prim_float(const Emitter emit, const Exp_Primary* primary) {
 }
 
 ANN static m_bool prim_char(const Emitter emit, const Exp_Primary* prim) {
-  const m_int c = str2char(emit, prim->d.chr, exp_self(prim)->pos);
-  CHECK_BB(c);
+  DECL_BB(const m_int, c, = str2char(emit, prim->d.chr, exp_self(prim)->pos))
   regpushi(emit, c);
   return GW_OK;
 }
@@ -703,8 +700,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
   if(emit->env->func && emit->env->func == exp_call->m_func)
     return prepare_call(emit, exp_call);
   exp_call->m_func->def->base->tmpl->call = exp_call->tmpl->call;
-  const m_int scope = push_tmpl_func(emit, exp_call->m_func);
-  CHECK_BB(scope);
+  DECL_BB(const m_int,scope, = push_tmpl_func(emit, exp_call->m_func))
   CHECK_BB(prepare_call(emit, exp_call))
   emit_pop_type(emit);
   emit_pop(emit, (m_uint)scope);
@@ -1071,9 +1067,8 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
 ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
   emit_push_scope(emit);
   CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  const Instr op = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
-      t_int : stmt->cond->type, BranchEqInt, BranchEqFloat);
-  CHECK_OB(op)
+  DECL_OB(const Instr, op, = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
+      t_int : stmt->cond->type, BranchEqInt, BranchEqFloat))
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);

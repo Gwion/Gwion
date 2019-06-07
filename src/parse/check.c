@@ -89,8 +89,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   CHECK_BO(switch_decl(env, exp_self(decl)->pos))
   if(!decl->td->xid) {
-    const Type t = check_td(env, decl->td);
-    CHECK_OO(t)
+    DECL_OO(const Type, t, = check_td(env, decl->td))
     ((Exp_Decl*)decl)->type = NULL;
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
@@ -290,8 +289,7 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
 }
 
 ANN Type check_exp_array(const Env env, const Exp_Array* array) {
-  Type t_base = check_exp(env, array->base);
-  CHECK_OO(t_base)
+  DECL_OO(Type, t_base,  = check_exp(env, array->base))
   Exp e = array->array->exp;
   CHECK_OO(check_exp(env, e))
   m_uint depth = 0;
@@ -581,8 +579,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   m_uint args_number = 0;
-  const Value value = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name));
-  CHECK_OO(value)
+  DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
   const m_uint type_number = get_type_number(value->d.func_ref->def->base->tmpl->list);
   Type_List tl[type_number];
   ID_List list = value->d.func_ref->def->base->tmpl->list;
@@ -673,8 +670,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
-  const Type t = check_exp(env, cast->exp);
-  CHECK_OO(t)
+  DECL_OO(const Type, t, = check_exp(env, cast->exp))
   CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
   struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
   return op_check(env, &opi);
@@ -719,12 +715,9 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
 }
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
-  const Type cond     = check_exp(env, exp_if->cond);
-  CHECK_OO(cond)
-  const Type if_exp   = check_exp(env, exp_if->if_exp);
-  CHECK_OO(if_exp)
-  const Type else_exp = check_exp(env, exp_if->else_exp);
-  CHECK_OO(else_exp)
+  DECL_OO(const Type, cond, = check_exp(env, exp_if->cond))
+  DECL_OO(const Type, if_exp, = check_exp(env, exp_if->if_exp))
+  DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
   if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
     ERR_O(exp_self(exp_if)->pos,
           "Invalid type '%s' in if expression condition.", cond->name)
@@ -779,10 +772,8 @@ ANN static Type check_exp_lambda(const Env env NUSED,
     const Exp_If* exp_if NUSED) { return t_lambda; }
 
 ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
-  const Type t = check_exp(env, exp->exp);
-  CHECK_OO(t)
-  const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
-  CHECK_OO(v)
+  DECL_OO(const Type, t, = check_exp(env, exp->exp))
+  DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
   return v->type;
 }
 
@@ -848,8 +839,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
-  Type t = check_exp(env, stmt->exp);
-  CHECK_OB(t)
+  DECL_OB(Type, t, = check_exp(env, stmt->exp))
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
   if(GET_FLAG(t, typedef))
@@ -928,8 +918,7 @@ stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
     ERR_B(stmt_self(stmt)->pos, "'return' statement found outside function definition")
-  const Type ret_type = stmt->val ? check_exp(env, stmt->val) : t_void;
-  CHECK_OB(ret_type)
+  DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : t_void)
   if(env->func->value_ref->type == t_lambda) {
     if(env->func->def->base->ret_type &&
      isa(ret_type, env->func->def->base->ret_type) < 0 &&
@@ -961,8 +950,7 @@ describe_check_stmt_stack(breaks, break)
 ANN Value case_value(const Exp exp);
 ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) {
   CHECK_BB(switch_inside(env, stmt_self(stmt)->pos));
-  const Type t = check_exp(env, stmt->val);
-  CHECK_OB(t);
+  DECL_OB(const Type, t, = check_exp(env, stmt->val))
   if(isa(t, t_int) < 0)
     ERR_B(stmt_self(stmt)->pos, "invalid type '%s' case expression. should be 'int'", t->name)
   const Value v = case_value(stmt->val);

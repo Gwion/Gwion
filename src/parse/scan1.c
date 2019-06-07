@@ -15,8 +15,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
-  const Type t = known_type(env, td);
-  CHECK_OO(t)
+  DECL_OO(const Type, t, = known_type(env, td))
   if(t->size)
     return t;
   ERR_O(td_pos(td), "cannot declare variables of size '0' (i.e. 'void')...")
@@ -47,8 +46,7 @@ ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
-  const Type t = void_type(env, decl->td);
-  CHECK_OO(t);
+  DECL_OO(const Type ,t, = void_type(env, decl->td))
   if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
     return decl->type;
   if(!env->scope->depth && env->class_def) {
@@ -335,8 +333,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = td_pos(cdef->base.ext);
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
-  const Type parent = cdef->base.type->e->parent = known_type(env, cdef->base.ext);
-  CHECK_OB(parent)
+  DECL_OB(const Type , parent,  = cdef->base.type->e->parent = known_type(env, cdef->base.ext))
   Type t = parent;
   do {
     if(cdef->base.type == t)

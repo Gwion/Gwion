@@ -241,8 +241,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(td->array && !td->array->exp)
     GWI_ERR_B("class extend array can't be empty")
   if(!gwi->gwion->env->class_def->e->def) {
-    const Type t = known_type(gwi->gwion->env, td);
-    CHECK_OB(t)
+    DECL_OB(const Type, t, = known_type(gwi->gwion->env, td))
     if(td->array)
       SET_FLAG(gwi->gwion->env->class_def, typedef);
     gwi->gwion->env->class_def->e->parent = t;
@@ -360,10 +359,8 @@ ANN /*static */ Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
 
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   m_uint i = 0;
-  m_str type_name = get_type_name(env, s, i++);
-  CHECK_OO(type_name)
-  ID_List id = str2list(env, type_name, depth);
-  CHECK_OO(id)
+  DECL_OO(m_str, type_name, = get_type_name(env, s, i++))
+  DECL_OO(ID_List, id, = str2list(env, type_name, depth))
   Type_Decl* td = new_type_decl(env->gwion->mp, id, 0);
   Type_List tmp = NULL;
   if(!td) {
@@ -415,8 +412,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
 ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
-  const ID_List type_path = str2list(env, name, &array_depth);
-  CHECK_OO(type_path)
+  DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth))
   Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path, 0);
   if(!type_decl) {
     free_id_list(env->gwion->mp, type_path);
@@ -447,8 +443,7 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
 
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(name_valid(gwi, gwi->func.name));
-  Func_Def def = make_dll_as_fun(gwi, &gwi->func, flag);
-  CHECK_OB(def)
+  DECL_OB(Func_Def, def, = make_dll_as_fun(gwi, &gwi->func, flag))
   if(gwi->templater.n) {
     def = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp, NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
     const ID_List list = templater_def(gwi->gwion->st, gwi);
@@ -595,11 +590,8 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  const Exp exp = make_exp(gwi, type, name);
-  CHECK_OB(exp);
-  const Type t = type_decl_resolve(gwi->gwion->env, exp->d.exp_decl.td);
-  if(!t)
-    GWI_ERR_B("type '%s' unknown in union declaration.", type)
+  DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
+  DECL_OB(const Type, t, = known_type(gwi->gwion->env, exp->d.exp_decl.td))
   if(isa(t, t_object) > 0)
     SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
