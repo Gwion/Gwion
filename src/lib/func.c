@@ -82,7 +82,11 @@ ANN static m_bool fptr_args(const Env env, struct Func_Base_ *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
     CHECK_OB(arg1)
-    CHECK_BB(isa(arg0->type, arg1->type))
+    const Type t0 = known_type(env, arg0->td);
+    CHECK_OB(t0)
+    const Type t1 = known_type(env, arg1->td);
+    CHECK_OB(t1)
+    CHECK_BB(isa(t0, t1))
     arg0 = arg0->next;
     arg1 = arg1->next;
   }
