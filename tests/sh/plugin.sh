@@ -32,7 +32,7 @@ rm "empty.so"
 BASE_DIR="$PWD"
 cd tests/import || exit
 for test_file in *.c
-do test_plugin "${test_file:0:-2}"
+do test_plugin "$(basename $test_file .c)"
 done
 
 # clean
