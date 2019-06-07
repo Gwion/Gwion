@@ -82,11 +82,7 @@ ANN static m_bool fptr_args(const Env env, struct Func_Base_ *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
     CHECK_OB(arg1)
-    const Type t0 = known_type(env, base[0]->td);
-    CHECK_OB(t0)
-    const Type t1 = known_type(env, base[1]->td);
-    CHECK_OB(t1)
-    CHECK_BB(isa(t0, t1))
+    CHECK_BB(isa(arg0->type, arg1->type))
     arg0 = arg0->next;
     arg1 = arg1->next;
   }
@@ -133,8 +129,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   for(m_uint i = 0; i <= v->offset && !type; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
-    info->lhs = nspc_lookup_func1(nspc, sym);
-    assert(info->lhs);
+    CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
     struct Func_Base_ *base[2] =  { info->lhs->def->base, info->rhs->def->base };
     if(fptr_tmpl_push(env, info) > 0 && fptr_rettype(env, info) > 0 &&
        fptr_arity(info) && fptr_args(env, base) > 0)
@@ -204,17 +199,20 @@ static OP_CHECK(opck_fptr_cast) {
   return t;
 }
 
+static void member_fptr(const Emitter emit) {
+    const Instr instr = emit_add_instr(emit, RegPop);
+    instr->m_val = SZ_INT;
+    const Instr dup = emit_add_instr(emit, Reg2Reg);
+    dup->m_val = -SZ_INT;
+}
+
 static OP_EMIT(opem_fptr_cast) {
   CHECK_BB(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->type->e->d.func, 1);
-  if(GET_FLAG(cast->exp->type->e->d.func, member)) {
-    const Instr instr = emit_add_instr(emit, RegPop);
-    instr->m_val = SZ_INT;
-    const Instr dup = emit_add_instr(emit, Reg2Reg);
-    dup->m_val = -SZ_INT;
-  }
+  if(GET_FLAG(cast->exp->type->e->d.func, member))
+    member_fptr(emit);
   return GW_OK;
 }
 
@@ -228,10 +226,8 @@ static OP_CHECK(opck_fptr_impl) {
 
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  if(GET_FLAG(impl->t->e->d.func, member)) {
-    const Instr pop = emit_add_instr(emit, RegPop);
-    pop->m_val = SZ_INT;
-  }
+  if(GET_FLAG(impl->t->e->d.func, member))
+    member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->type->e->d.func, 1);
   return GW_OK;
