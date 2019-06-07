@@ -538,7 +538,7 @@ ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const
   emit->code = (Code*)vector_back(&emit->stack);
   CHECK_BB(emit_instantiate_object(emit, v->type, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, 1))
-  emit_add_instr(emit, ObjectAssign);
+  emit_add_instr(emit, Assign);
   emit->code = code;
   return GW_OK;
 }
@@ -570,7 +570,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   instr->m_val = v->offset;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
-    const Instr assign = emit_add_instr(emit, ObjectAssign);
+    const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
     if((is_array || missing_depth) && !emit->env->scope->depth)
@@ -601,7 +601,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
-    const Instr assign = emit_add_instr(emit, ObjectAssign);
+    const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
     if(is_array && !emit->env->scope->depth)
       ADD_REF(type)

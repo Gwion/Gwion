@@ -148,6 +148,7 @@ ArrayValid
 ObjectInstantiate
 RegAddRef
 ObjectAssign
+Assign
 ObjectRelease
 GWOP_EXCEPT
 AllocMember4
