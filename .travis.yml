@@ -68,7 +68,7 @@ script:
     fi;
   - if [ $(uname) = "Darwin" ];
     then cd tests/import;
-    brew install valgrind 
+    brew install valgrind;
     NAME=static_string make;
     valgrind ../../gwion -p. static_string.gw;
     fi;
