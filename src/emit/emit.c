@@ -665,7 +665,7 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
 ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_call) {
   const Instr instr = emit_add_instr(emit, VarargIni);
   const Vector kinds = new_vector(emit->gwion->mp);
-  if((instr->m_val = round2szint(vararg_size(exp_call, kinds))))
+  if((instr->m_val = vararg_size(exp_call, kinds)))
     instr->m_val2 = (m_uint)kinds;
   else {
     instr->opcode = eRegPushImm;
