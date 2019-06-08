@@ -52,14 +52,21 @@ INSTR(ComplexImag) {
   }
 }
 
+#if defined __clang__ && defined BUILD_ON_WINDOWS
+#define POLAR(a, b, c) m_complex a = { b, c };
+#else
+#define POLAR(a, b, c) m_complex a = b + c *I;
+#endif
+
 #define polar_def1(name, op)                                               \
-static INSTR(Polar##name) {\
+static INSTR(Polar##name) {                                                \
   POP_REG(shred, SZ_COMPLEX);                                              \
   const m_complex a = *(m_complex*)REG(-SZ_COMPLEX);                       \
   const m_complex b = *(m_complex*)REG(0);                                 \
   const m_float re = creal(a) * cos(cimag(a)) op creal(b) * cos(cimag(b)); \
   const m_float im = creal(a) * sin(cimag(a)) op creal(b) * sin(cimag(b)); \
-  *(m_complex*)REG(-SZ_COMPLEX) = hypot(re, im) + atan2(im, re) * I;       \
+  POLAR(c, hypot(re, im), atan2(im, re))                                   \
+  *(m_complex*)REG(-SZ_COMPLEX) = c;                                       \
 }
 
 polar_def1(Add,  +)
@@ -72,7 +79,8 @@ static INSTR(Polar##name) {\
   const m_complex b = *(m_complex*)REG(0);           \
   const m_float mag   = creal(a) op1 creal(b);       \
   const m_float phase = cimag(a) op2 cimag(b);       \
-  *(m_complex*)REG(-SZ_COMPLEX) = mag  + phase * I;  \
+  POLAR(c, mag, phase);                              \
+  *(m_complex*)REG(-SZ_COMPLEX) = c;                 \
 }
 polar_def2(Mul, *, +)
 polar_def2(Div, /, -)
