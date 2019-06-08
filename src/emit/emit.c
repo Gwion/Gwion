@@ -1570,6 +1570,10 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
     emit_vararg_end(emit, offset);
     return GW_OK;
   }
+  if(!get_variadic(emit))
+      ERR_B(exp_self(member)->pos, "vararg.%s used before vararg.start. this is an error", s_name(member->xid))
+  if(GET_FLAG(emit->env->func, empty))
+    ERR_B(exp_self(member)->pos, "vararg.%s used after vararg.end. this is an error", s_name(member->xid))
   const Instr instr = emit_add_instr(emit, VarargMember);
   instr->m_val = offset;
   instr->m_val2 = exp_self(member)->type->size;
