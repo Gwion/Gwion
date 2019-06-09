@@ -689,7 +689,7 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
 ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
   const Value v = f->value_ref;
   if(isa(v->type, t_class) > 0 &&
-      isa(actual_type(v->type), t_fptr) > 0)
+      is_fptr(v->type))
     return emit->env->scope->depth;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
   CHECK_BB(traverse_func_template(emit->env, f->def))
@@ -702,7 +702,8 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
   exp_call->m_func->def->base->tmpl->call = exp_call->tmpl->call;
   DECL_BB(const m_int,scope, = push_tmpl_func(emit, exp_call->m_func))
   CHECK_BB(prepare_call(emit, exp_call))
-  emit_pop_type(emit);
+  if(!is_fptr(exp_call->m_func->value_ref->type))
+    emit_pop_type(emit);
   emit_pop(emit, (m_uint)scope);
   UNSET_FLAG(exp_call->m_func, checked);
   return GW_OK;
@@ -863,7 +864,7 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
   if(!f->code || (GET_FLAG(f, ref) && !GET_FLAG(f, builtin))) {
-    if(GET_FLAG(f, template) && emit->env->func != f && isa(actual_type(f->value_ref->type), t_fptr) < 0)
+    if(GET_FLAG(f, template) && emit->env->func != f && !is_fptr(f->value_ref->type))
       CHECK_BB(emit_template_code(emit, f))
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
         !f->value_ref->owner_class || (GET_FLAG(f, template) &&
@@ -875,7 +876,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
       back->m_val = f->vt_index;
   }
   if(vector_size(&emit->code->instr) && GET_FLAG(f, member) &&
-        isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+        is_fptr(f->value_ref->type)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
@@ -970,7 +971,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
     spork->m_val = emit->code->stack_depth;
   } else {
-    if(GET_FLAG(f, member) && isa(actual_type(f->value_ref->type), t_fptr) > 0) {
+    if(GET_FLAG(f, member) && is_fptr(f->value_ref->type)) {
       const m_uint depth = f->def->stack_depth;
       regpop(emit, depth);
       emit_add_instr(emit, RegPushMem);

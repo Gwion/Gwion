@@ -442,7 +442,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   Func m_func = NULL, former = env->func;
   const m_str tmpl_name = tl2str(env, types);
   const m_uint scope = env_push(env, v->owner_class, v->owner);
-  if(isa(actual_type(v->type), t_fptr) > 0) {
+  if(is_fptr(v->type)) {
   const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
   const Value value = nspc_lookup_value1(v->owner, sym);
   Func_Def base = v->d.func_ref->def;
@@ -462,10 +462,9 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   const Func func = find_func_match(env, fbase->func, exp->args);
-  //  nspc_pop_type(env->gwion->mp, env->curr);
-  //  env_pop(env, scope);
   if(!value)
     map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(func->value_ref->type));
+  nspc_pop_type(env->gwion->mp, env->curr);
   xfree(tmpl_name);
   env->func = former;
   return func;

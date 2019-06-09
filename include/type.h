@@ -47,5 +47,9 @@ static inline Type actual_type(const Type t) {
   return isa(t, t_class) > 0 ? t->e->d.base_type : t;
 }
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
+ANN static inline m_bool is_fptr(const Type t) {
+  return isa(actual_type(t), t_fptr) > 0;
+}
+
 #endif
 

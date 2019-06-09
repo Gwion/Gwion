@@ -110,7 +110,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
     ptr->value->owner_class = env->class_def;
   }
   if(ptr->base->tmpl)
-    SET_FLAG(ptr->base->func, template);
+    SET_FLAG(ptr->type, func);
   nspc_add_value(env->curr, ptr->base->xid, ptr->value);
   nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
   return GW_OK;
