@@ -11,9 +11,8 @@
 #include "parse.h"
 
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
-  const Type base = find_type(env, td->xid);
-  CHECK_OO(base)
-  const Type t = scan_type(env, base, td);
+  DECL_OO(const Type, base, = find_type(env, td->xid))
+  DECL_OO(const Type, t, = scan_type(env, base, td))
   return !td->array ? t : array_type(env, t, td->array->depth);
 }
 

@@ -34,7 +34,7 @@ INSTR(VarargTop) {
 INSTR(VarargIni) {
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
   POP_REG(shred,  instr->m_val - SZ_INT)
-  arg->d = (m_bit*)xmalloc(instr->m_val);
+  arg->d = (m_bit*)xmalloc(round2szint(instr->m_val));
   for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
     *(m_uint*)(arg->d + i) = *(m_uint*)(shred->reg - SZ_INT + i);
   const Vector kinds = (Vector)instr->m_val2;
@@ -56,7 +56,11 @@ INSTR(VarargEnd) {
 }
 
 INSTR(VarargMember) {
-  const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
+  if(instr->m_val2 != arg->k[arg->i]) { // TODO: differnciate object and primitives
+    free_vararg(shred->info->mp, arg);
+    Except(shred, "InvalidVariadicAccess");
+  }
   for(m_uint i = 0; i < instr->m_val2; i += SZ_INT)
     *(m_uint*)REG(i) = *(m_uint*)(arg->d + arg->o + i);
   PUSH_REG(shred, instr->m_val2);

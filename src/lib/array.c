@@ -204,8 +204,7 @@ static FREEARG(freearg_array) {
 }
 
 GWION_IMPORT(array) {
-  t_array  = gwi_mk_type(gwi, "Array", SZ_INT, t_object);
-  SET_FLAG((t_array), abstract);
+  t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, t_object);
   CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
   CHECK_BB(gwi_item_ini(gwi, "int", "@array"))
@@ -224,13 +223,13 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_func_end(gwi, 0))
 
   CHECK_BB(gwi_class_end(gwi))
-  CHECK_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
+  CHECK_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_at))
   CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
   CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
   CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
   CHECK_BB(gwi_oper_end(gwi, op_shl, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
+  CHECK_BB(gwi_oper_ini(gwi, "@Array", "Array", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))

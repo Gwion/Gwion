@@ -8,9 +8,10 @@
 #include "type.h"
 #include "nspc.h"
 #include "func.h"
+#include "value.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
-  if(GET_FLAG(a, template)) {
+  if(GET_FLAG(a, template) && !is_fptr(a->value_ref->type)) {
     free_tmpl(gwion->mp, a->def->base->tmpl);
     free_func_base(gwion->mp, a->def->base);
     free_loc(gwion->mp, a->def->pos);
@@ -35,8 +36,7 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
 #include "vm.h"
 #include "gwion.h"
 ANN Func get_func(const Env env, const Func_Def def) {
-  Func f = def->base->func;
-  CHECK_OO(f)
+  DECL_OO(Func, f, = def->base->func)
   m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
   if(end && env->class_def && GET_FLAG(env->class_def, template)) {
     ++end;

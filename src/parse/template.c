@@ -69,13 +69,12 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
   return len;
 }
 
-ANN static size_t template_size(const Env env, struct tmpl_info* info) {
+ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
   ID_List base = info->cdef->base.tmpl->list;
   Type_List call = info->call;
   size_t size = tmpl_set(info, info->cdef->base.type);
   do {
-    const Type t = type_decl_resolve(env, call->td);
-    CHECK_OB(t)
+    DECL_OB(const Type, t, = known_type(env, call->td))
     size += tmpl_set(info, t);
   } while((call = call->next) && (base = base->next) && ++size);
   return size + 16 + 3;
@@ -103,11 +102,13 @@ ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_
   struct tmpl_info info = { .cdef=c, .call=call };
   vector_init(&info.type);
   vector_init(&info.size);
-  char name[template_size(env, &info)];
-  template_name(&info, name);
+  ssize_t sz = template_size(env, &info);
+  char name[sz];
+  if(sz > GW_ERROR)
+    template_name(&info, name);
   vector_release(&info.type);
   vector_release(&info.size);
-  return insert_symbol(name);
+  return sz > GW_ERROR ? insert_symbol(name) : NULL;
 }
 
 ANN m_bool template_match(ID_List base, Type_List call) {
@@ -116,7 +117,7 @@ ANN m_bool template_match(ID_List base, Type_List call) {
 }
 
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
-  const Symbol name = template_id(env, def, call);
+  DECL_OO(const Symbol, name, = template_id(env, def, call))
   if(env->class_def && name == insert_symbol(env->class_def->name))
      return env->class_def->e->def;
   const Type t = nspc_lookup_type1(env->curr, name);
@@ -156,7 +157,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
         "you must provide template types for type '%s'", t->name)
     if(template_match(t->e->def->base.tmpl->list, type->types) < 0)
       ERR_O(type->xid->pos, "invalid template types number")
-    const Class_Def a = template_class(env, t->e->def, type->types);
+    DECL_OO(const Class_Def, a, = template_class(env, t->e->def, type->types))
     SET_FLAG(a, ref);
     if(a->base.type)
       return a->base.type;

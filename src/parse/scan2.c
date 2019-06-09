@@ -109,6 +109,8 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
     }
     ptr->value->owner_class = env->class_def;
   }
+  if(ptr->base->tmpl)
+    SET_FLAG(ptr->type, func);
   nspc_add_value(env->curr, ptr->base->xid, ptr->value);
   nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
   return GW_OK;
@@ -478,10 +480,6 @@ ANN2(1,2,4) /*static */Value func_create(const Env env, const Func_Def f,
   scan2_func_def_flag(env, f);
   if(GET_FLAG(f, builtin))
     CHECK_BO(scan2_func_def_builtin(env->gwion->mp, func, func->name))
-  if(GET_FLAG(func, member))
-    f->stack_depth += SZ_INT;
-  if(GET_FLAG(func->def, variadic))
-    f->stack_depth += SZ_INT;
   nspc_add_value(env->curr, insert_symbol(func->name), v);
   return v;
 }
@@ -493,10 +491,6 @@ ANN static m_str template_helper(const Env env, const Func_Def f) {
     return(m_str)GW_ERROR;
   const Func func = nspc_lookup_func1(env->curr, insert_symbol(name));
   if(func) {
-    if(GET_FLAG(func, member))
-      f->stack_depth += SZ_INT;
-    if(GET_FLAG(func->def, variadic))
-      f->stack_depth += SZ_INT;
     f->base->ret_type = known_type(env, f->base->td);
     return (m_str)(m_uint)((f->base->args && f->base->args->type) ? scan2_args(env, f) : GW_OK);
   }
@@ -517,7 +511,9 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
   if(res)
     ERR_B(f->pos, "'%s' already declared as type", s_name(f->base->xid))
-  f->stack_depth = 0;
+  f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
+  if(GET_FLAG(f, variadic))
+    f->stack_depth += SZ_INT;
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
   if(tmpl_base(f->base->tmpl))

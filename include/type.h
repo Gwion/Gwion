@@ -23,7 +23,7 @@ struct Type_ {
   ae_flag flag;
 };
 
-Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
+extern Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
   t_null, t_object, t_shred, t_fork, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
   t_function, t_fptr, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto;
 
@@ -47,5 +47,9 @@ static inline Type actual_type(const Type t) {
   return isa(t, t_class) > 0 ? t->e->d.base_type : t;
 }
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
+ANN static inline m_bool is_fptr(const Type t) {
+  return isa(actual_type(t), t_fptr) > 0;
+}
+
 #endif
 

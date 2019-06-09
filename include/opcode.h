@@ -25,7 +25,6 @@ enum {
   eAllocWord,
   eAllocWord2,
   eAllocWord3,
-  eAllocWord4,
   eint_plus,
   eint_minus,
   eint_mul,
@@ -151,6 +150,7 @@ enum {
   eObjectInstantiate,
   eRegAddRef,
   eObjectAssign,
+  eAssign,
   eObjectRelease,
   eGWOP_EXCEPT,
   eAllocMember4,
@@ -198,7 +198,6 @@ enum {
 #define  AllocWord           (f_instr)eAllocWord
 #define  AllocWord2          (f_instr)eAllocWord2
 #define  AllocWord3          (f_instr)eAllocWord3
-#define  AllocWord4          (f_instr)eAllocWord4
 #define  int_plus            (f_instr)eint_plus
 #define  int_minus           (f_instr)eint_minus
 #define  int_mul             (f_instr)eint_mul
@@ -324,6 +323,7 @@ enum {
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate
 #define  RegAddRef           (f_instr)eRegAddRef
 #define  ObjectAssign        (f_instr)eObjectAssign
+#define  Assign              (f_instr)eAssign
 #define  ObjectRelease       (f_instr)eObjectRelease
 #define  GWOP_EXCEPT         (f_instr)eGWOP_EXCEPT
 #define  AllocMember4        (f_instr)eAllocMember4

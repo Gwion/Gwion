@@ -245,7 +245,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
-    &&allocint, &&allocfloat, &&allocother, &&allocaddr,
+    &&allocint, &&allocfloat, &&allocother,
     &&intplus, &&intminus, && intmul, &&intdiv, &&intmod,
     // int relationnal
     &&inteq, &&intne, &&intand, &&intor,
@@ -276,7 +276,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
-    &&newobj, &&addref, &&assign, &&remref,
+    &&newobj, &&addref, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&staticcode, &&pushstr,
@@ -401,11 +401,7 @@ allocother:
     *(m_uint*)(reg+i) = (*(m_uint*)(mem+instr->m_val+i) = 0);
   reg += instr->m_val2;
   DISPATCH()
-allocaddr:
-  *(m_uint*)(mem+instr->m_val) = 0; // just set object to null in
-  *(m_bit**)reg = mem + instr->m_val;
-  reg += SZ_INT;
-  DISPATCH()
+
 intplus:  INT_OP(+)
 intminus: INT_OP(-)
 intmul:   INT_OP(*)
@@ -540,7 +536,6 @@ ftoi:
   reg -= SZ_FLOAT - SZ_INT;
   *(m_int*)(reg-SZ_INT) = (m_int)*(m_float*)(reg-SZ_INT);
   DISPATCH()
-
 timeadv:
   reg -= SZ_FLOAT;
   shredule(s, shred, *(m_float*)(reg-SZ_FLOAT));
@@ -696,16 +691,19 @@ addref:
     *(M_Object*)(reg-SZ_INT)))
     ++a.obj->ref;
   DISPATCH()
-assign:
-  reg -= SZ_INT;
-  a.obj = *(M_Object*)(reg-SZ_INT);
-  const M_Object tgt = **(M_Object**)reg;
+objassign:
+{
+  const M_Object tgt = **(M_Object**)(reg -SZ_INT);
   if(tgt) {
     --tgt->ref;
     _release(tgt, shred);
-  }
+}
+assign:
+  reg -= SZ_INT;
+  a.obj = *(M_Object*)(reg-SZ_INT);
   **(M_Object**)reg = a.obj;
   DISPATCH()
+}
 remref:
   release(*(M_Object*)(mem + instr->m_val), shred);
   DISPATCH()
