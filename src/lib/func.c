@@ -140,8 +140,10 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
     if(fptr_tmpl_push(env, info) > 0 && fptr_rettype(env, info) > 0 &&
        fptr_arity(info) && fptr_args(env, base) > 0)
       type = info->lhs->value_ref->type;
-    if(info->rhs->def->base->tmpl)
+    if(info->rhs->def->base->tmpl) {
       nspc_pop_type(env->gwion->mp, env->curr);
+      nspc_pop_type(env->gwion->mp, env->curr);
+    }
   }
   return type;
 }

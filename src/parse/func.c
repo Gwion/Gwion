@@ -8,9 +8,10 @@
 #include "type.h"
 #include "nspc.h"
 #include "func.h"
+#include "value.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
-  if(GET_FLAG(a, template)) {
+  if(GET_FLAG(a, template) && isa(actual_type(a->value_ref->type), t_fptr) < 0) {
     free_tmpl(gwion->mp, a->def->base->tmpl);
     free_func_base(gwion->mp, a->def->base);
     free_loc(gwion->mp, a->def->pos);

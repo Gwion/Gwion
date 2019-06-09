@@ -863,7 +863,7 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
   if(!f->code || (GET_FLAG(f, ref) && !GET_FLAG(f, builtin))) {
-    if(GET_FLAG(f, template) && emit->env->func != f)
+    if(GET_FLAG(f, template) && emit->env->func != f && isa(actual_type(f->value_ref->type), t_fptr) < 0)
       CHECK_BB(emit_template_code(emit, f))
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
         !f->value_ref->owner_class || (GET_FLAG(f, template) &&
