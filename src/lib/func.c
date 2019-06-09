@@ -15,6 +15,7 @@
 #include "nspc.h"
 #include "operator.h"
 #include "traverse.h"
+#include "template.h"
 #include "parse.h"
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
@@ -67,14 +68,13 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
     return GW_OK;
   ID_List t0 = info->lhs->def->base->tmpl->list,
           t1 = info->rhs->def->base->tmpl->list;
-  nspc_push_type(env->gwion->mp, env->curr);
   while(t0) {
     CHECK_OB(t1)
-    nspc_add_type(env->curr, t0->xid, t_undefined);
-    nspc_add_type(env->curr, t1->xid, t_undefined);
     t0 = t0->next;
     t1 = t1->next;
   }
+  CHECK_BB(template_push_types(env, info->lhs->def->base->tmpl))
+  CHECK_BB(template_push_types(env, info->rhs->def->base->tmpl))
   return GW_OK;
 }
 

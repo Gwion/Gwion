@@ -56,7 +56,7 @@ INSTR(VarargEnd) {
 }
 
 INSTR(VarargMember) {
-  const struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
+  struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(instr->m_val2 != arg->k[arg->i]) { // TODO: differnciate object and primitives
     free_vararg(shred->info->mp, arg);
     Except(shred, "InvalidVariadicAccess");
