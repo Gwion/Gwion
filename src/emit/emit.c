@@ -1688,6 +1688,7 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
     ADD_REF(func->code)
   }
   // TODO: find why we need this
+  assert(func->def->stack_depth == func->code->stack_depth);
   func->def->stack_depth = func->code->stack_depth;
 }
 
