@@ -558,11 +558,11 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  SET_FLAG(cdef->base.type, scan2);
   if(cdef->base.ext)
     CHECK_BB(env_ext(env, cdef, scan2_class_parent))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan2_section))
-  SET_FLAG(cdef->base.type, scan2);
   return GW_OK;
 }
 

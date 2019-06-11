@@ -244,6 +244,7 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
 ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   CHECK_BB(scan0_class_def_pre(env, cdef))
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
+  SET_FLAG(cdef->base.type, scan0);
   if(cdef->body) {
     int call = cdef->base.tmpl && !cdef->base.tmpl->call;
     if(call)cdef->base.tmpl->call = (Type_List)1;
@@ -253,7 +254,6 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   (void)mk_class(env, cdef->base.type);
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
-  SET_FLAG(cdef->base.type, scan0);
   return GW_OK;
 }
 

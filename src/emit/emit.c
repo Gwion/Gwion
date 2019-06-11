@@ -1773,7 +1773,7 @@ ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) {
 
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  return scanx_parent(parent, emit_parent_inner, emit);
+  return !GET_FLAG(parent, emit) ? GW_OK : scanx_parent(parent, emit_parent_inner, emit);
 }
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
@@ -1782,10 +1782,11 @@ ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
-  const Type type = cdef->base.type;
-  const Nspc nspc = type->nspc;
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  const Type type = cdef->base.type;
+  SET_FLAG(type, emit);
+  const Nspc nspc = type->nspc;
   if(cdef->base.ext && cdef->base.ext->types)
     CHECK_BB(scanx_ext(emit->env, cdef, emit_parent, emit))
   nspc_allocdata(emit->gwion->mp, nspc);

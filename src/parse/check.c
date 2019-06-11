@@ -103,7 +103,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->type) // TODO: remove when scan passes are complete
       ERR_O(td_pos(decl->td), "can't infer type.");
   if(GET_FLAG(decl->type , template)) {
-    if(!GET_FLAG(decl->type, check))
+	  /*if(!GET_FLAG(decl->type, checked))*/
+    if(!GET_FLAG(decl->type, scan2))
       CHECK_BO(traverse_cdef(env, decl->type->e->def))
   }
   const m_bool global = GET_FLAG(decl->td, global);
@@ -1200,6 +1201,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   const Type type = cdef->base.type;
+  SET_FLAG(type, check);
   if(type->e->parent == t_undefined) {
     type->e->parent = check_td(env, cdef->base.ext);
     return traverse_cdef(env, cdef);
@@ -1211,7 +1213,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   inherit(type);
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, check_section))
-  SET_FLAG(type, checked | ae_flag_check);
+  SET_FLAG(type, checked);
   return GW_OK;
 }
 
