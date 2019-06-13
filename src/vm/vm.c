@@ -664,8 +664,8 @@ arrayaccess:
 {
   const m_int idx = *(m_int*)(reg + SZ_INT * instr->m_val);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
-    gw_err("\t... at index [%" INT_F "]\n", idx);
-    gw_err("\t... at dimension [%" INT_F "]\n", instr->m_val);
+    gw_err("  ... at index [%" INT_F "]\n", idx);
+    gw_err("  ... at dimension [%" INT_F "]\n", instr->m_val);
     shred->code = code;
     shred->mem = mem;
     exception(shred, "ArrayOutofBounds");

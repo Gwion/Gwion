@@ -528,7 +528,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
 }
 
 ANN static void print_current_args(Exp e) {
-  gw_err("and not\n\t");
+  gw_err("and not\n  ");
   do gw_err(" \033[32m%s\033[0m", e->type->name);
   while((e = e->next) && gw_err(","));
   gw_err("\n");
@@ -544,12 +544,12 @@ ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp
   env_err(env, pos, "argument type(s) do not match for function. should be :");
   Func up = f->e->d.func;
   do {
-    gw_err("(%s)\t", up->name);
+    gw_err("(%s)  ", up->name);
     const Arg_List e = up->def->base->args;
     e ? print_arg(e) : (void)gw_err("\033[32mvoid\033[0m");
     gw_err("\n");
   } while((up = up->next));
-  args ? print_current_args(args) : (void)gw_err("and not:\n\t\033[32mvoid\033[0m\n");
+  args ? print_current_args(args) : (void)gw_err("and not:\n  \033[32mvoid\033[0m\n");
   return NULL;
 }
 
@@ -572,7 +572,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   assert(exp_self(func));
   ERR_O(exp_self(func)->pos,
         "function is template. automatic type guess not fully implemented yet.\n"
-        "\tplease provide template types. eg: '<type1, type2, ...>'")
+        "  please provide template types. eg: '<type1, type2, ...>'")
 }
 
 ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
@@ -1042,7 +1042,7 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def fdef, cons
     const m_str f_name = s_name(fdef->base->xid);
     ERR_B(td_pos(fdef->base->td),
           "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
-          "\t...(reason: '%s.%s' is declared as 'static')",
+          "  ...(reason: '%s.%s' is declared as 'static')",
           c_name, f_name, p_name, c_name,
           GET_FLAG(fdef, static) ? c_name : p_name, f_name)
   }
@@ -1109,7 +1109,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
     if(override && override->owner_class && isa(override->type, t_function) < 0)
       ERR_B(fdef->pos,
             "function name '%s' conflicts with previously defined value...\n"
-            "\tfrom super class '%s'...",
+            "  from super class '%s'...",
             s_name(fdef->base->xid), override->owner_class->name)
   }
   if(func->value_ref->offset && (!fdef->base->tmpl || !fdef->base->tmpl->base))

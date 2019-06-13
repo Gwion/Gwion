@@ -55,7 +55,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   do ressembles(&v, nspc, name);
   while((nspc = nspc->parent));
   for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err("\t(did you mean '%s'?)\n", (m_str)vector_at(&v, i));
+    gw_err("  (did you mean '%s'?)\n", (m_str)vector_at(&v, i));
   vector_release(&v);
 }
 
@@ -66,7 +66,7 @@ ANN void did_you_mean_type(Type type, const char* name) {
   do ressembles(&v, t->nspc, name);
   while((t = t->e->parent) && t->nspc);
   for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err("\t(did you mean '%s'?)\n", (m_str)vector_at(&v, i));
+    gw_err("  (did you mean '%s'?)\n", (m_str)vector_at(&v, i));
   did_you_mean_nspc(type->nspc, name);
   vector_release(&v);
 }

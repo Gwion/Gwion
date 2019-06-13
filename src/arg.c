@@ -45,16 +45,16 @@ ANN void arg_release(Arg* arg) {
 
 static const char usage[] =
 "usage: Gwion <options>\n"
-"\t-h\t            : this help\n"
-"\t-k\t            : show compilation flags\n"
-"\t-c\t   <file>   : load config\n"
-"\t-p\t   <path>   : add a plugin directory\n"
-"\t-s\t  <number>  : set samplerate\n"
-"\t-i\t  <number>  : set input channel number\n"
-"\t-o\t  <number>  : set output channel number\n"
-"\t-d\t  <number>  : set driver (and arguments)\n"
-"\t-z\t  <number>  : set memoization limit\n"
-"\t-m\t <mod:args> : load module (and arguments)\n";
+"  -h              : this help\n"
+"  -k              : show compilation flags\n"
+"  -c     <file>   : load config\n"
+"  -p     <path>   : add a plugin directory\n"
+"  -s    <number>  : set samplerate\n"
+"  -i    <number>  : set input channel number\n"
+"  -o    <number>  : set output channel number\n"
+"  -d    <number>  : set driver (and arguments)\n"
+"  -z    <number>  : set memoization limit\n"
+"  -m   <mod:args> : load module (and arguments)\n";
 
 ANN static void config_parse(Arg* arg, const m_str name);
 

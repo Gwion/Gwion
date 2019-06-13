@@ -500,7 +500,7 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(emit->gwion->mp, v);
-    ERR_B(exp->pos, "\t... in 'gack' expression.")
+    ERR_B(exp->pos, "  ... in 'gack' expression.")
   }
   const Instr instr = emit_add_instr(emit, Gack);
   instr->m_val = offset;
