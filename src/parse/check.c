@@ -410,9 +410,7 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  CHECK_BO(template_push_types(env, fdef->base->tmpl))
   const m_bool ret = traverse_func_def(env, fdef);
-  nspc_pop_type(env->gwion->mp, env->curr);
   if(ret > 0) {
     const Func f = fdef->base->func;
     if(check_call(env, exp) > 0) {
@@ -1142,12 +1140,12 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   m_bool ret = GW_OK;
   if(tmpl_base(fdef->base->tmpl))
     return env->class_def ? check_parent_match(env, fdef) : 1;
-  if(fdef->base->td && !fdef->base->td->xid) {
+  if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
     fdef->base->ret_type = check_td(env, fdef->base->td);
     return traverse_func_def(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
-  if(env->class_def)
+  if(env->class_def) // tmpl ?
     CHECK_BB(check_parent_match(env, fdef))
   else if(GET_FLAG(fdef, global))
     env_push_global(env);
@@ -1155,6 +1153,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
   if(!fdef->base->args)
     UNSET_FLAG(fdef->base->func, pure);
   else
@@ -1171,6 +1171,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
     else if(GET_FLAG(fdef, op))
       operator_func(func);
   }
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;

@@ -686,7 +686,7 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
       is_fptr(v->type))
     return emit->env->scope->depth;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(traverse_func_template(emit->env, f->def))
+  CHECK_BB(traverse_func_def(emit->env, f->def))
   return (m_int)scope;
 }
 
@@ -696,10 +696,8 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
   exp_call->m_func->def->base->tmpl->call = exp_call->tmpl->call;
   DECL_BB(const m_int,scope, = push_tmpl_func(emit, exp_call->m_func))
   CHECK_BB(prepare_call(emit, exp_call))
-  if(!is_fptr(exp_call->m_func->value_ref->type)) {
-    emit_pop_type(emit);
+  if(!is_fptr(exp_call->m_func->value_ref->type))
     emit_pop(emit, (m_uint)scope);
-  }
   UNSET_FLAG(exp_call->m_func, checked);
   return GW_OK;
 }
@@ -757,10 +755,8 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
       emit_push_type(emit, dt->owner_class) : emit_push(emit, NULL, dt->owner);
   m_bool ret = GW_ERROR;
   dt->def->base->tmpl->call = dt->tl;// in INSTR
-  if(!dt->def->base->func && traverse_func_template(emit->env, dt->def) > 0) {
+  if(!dt->def->base->func && traverse_func_def(emit->env, dt->def) > 0)
     ret = emit_func_def(emit, dt->def);
-    emit_pop_type(emit);
-  }
   emit_pop(emit, scope);
   return ret;
 }
@@ -1688,7 +1684,7 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
   func->def->stack_depth = func->code->stack_depth;
 }
 
-ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->base->args)
     emit_func_def_args(emit, fdef->base->args);
   if(GET_FLAG(fdef, variadic))
@@ -1696,6 +1692,18 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->d.code)
     CHECK_BB(emit_stmt_code(emit, &fdef->d.code->d.stmt_code))
   emit_func_def_ensure(emit, fdef);
+  return GW_OK;
+}
+
+ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+  vector_add(&emit->variadic, 0);
+  CHECK_BB(_fdef_body(emit, fdef))
+  if(GET_FLAG(fdef, variadic)) {
+    if(!get_variadic(emit))
+      ERR_B(fdef->pos, "invalid variadic use")
+    if(!GET_FLAG(fdef->base->func, empty))
+      ERR_B(fdef->pos, "invalid variadic use")
+  }
   return GW_OK;
 }
 
@@ -1709,12 +1717,8 @@ ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   const Func func = get_func(emit->env, fdef);
   const Func former = emit->env->func;
-  if(func->code)
+  if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(tmpl_base(fdef->base->tmpl)) {
-    UNSET_FLAG(fdef, template);
-    return GW_OK;
-  }
   if(GET_FLAG(fdef->base->ret_type, template) && !GET_FLAG(fdef->base->ret_type, emit))
     CHECK_BB(tmpl_rettype(emit, fdef))
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
@@ -1724,23 +1728,17 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
     stack_alloc_this(emit);
-  emit_push_scope(emit);
   emit->env->func = func;
-  vector_add(&emit->variadic, 0);
+  emit_push_scope(emit);
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
   CHECK_BB(emit_func_def_body(emit, fdef))
-  if(GET_FLAG(fdef, variadic)) {
-    if(!get_variadic(emit))
-      ERR_B(fdef->pos, "invalid variadic use")
-    if(!GET_FLAG(func, empty))
-      ERR_B(fdef->pos, "invalid variadic use")
-  }
-  vector_pop(&emit->variadic);
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
-  emit->env->func = former;
+  if(fdef->base->tmpl)
+    emit_pop_type(emit);
   emit_pop_code(emit);
-  if(GET_FLAG(fdef, op))
-    SET_FLAG(func->code, op);
+  emit->env->func = former;
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))

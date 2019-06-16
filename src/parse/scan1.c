@@ -317,6 +317,16 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   return GW_OK;
 }
 
+ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
+  if(fdef->base->td)
+    CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  if(fdef->base->args)
+    CHECK_BB(scan1_args(env, fdef->base->args))
+  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
+    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  return GW_OK;
+}
+
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
@@ -329,15 +339,14 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
-  if(fdef->base->td)
-    CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
-  if(fdef->base->args)
-    CHECK_BB(scan1_args(env, fdef->base->args))
-  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
-    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = scan1_fdef(env, fdef);
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env->func = former;
   --env->scope->depth;
-  return GW_OK;
+  return ret;
 }
 
 DECL_SECTION_FUNC(scan1)

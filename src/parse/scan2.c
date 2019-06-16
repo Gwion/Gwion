@@ -497,6 +497,28 @@ ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v)
   return template_helper(env, f);
 }
 
+
+ANN m_bool scan2_fdef(const Env env, const Func_Def f, const Value overload) {
+  const m_str name = func_name(env, f, overload);
+  if((m_int)name <= GW_OK)
+    return (m_bool)(m_uint)name;
+  const Func base = get_func(env, f);
+  if(!base)
+    CHECK_OB(func_create(env, f, overload, name))
+  else
+    f->base->func = base;
+  if(f->base->args)
+    CHECK_BB(scan2_args(env, f))
+  if(!GET_FLAG(f, builtin) && f->d.code)
+    CHECK_BB(scan2_func_def_code(env, f))
+  if(!base) {
+    if(GET_FLAG(f, op))
+      CHECK_BB(scan2_func_def_op(env, f))
+    SET_FLAG(f->base->func->value_ref, checked);
+  }
+  return GW_OK;
+}
+
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
@@ -508,32 +530,14 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
     f->stack_depth += SZ_INT;
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
-  if(tmpl_base(f->base->tmpl))
-    return scan2_func_def_template(env, f, overload);
-  const m_str name = func_name(env, f, overload);
-  if((m_int)name <= GW_OK)
-    return (m_bool)(m_uint)name;
-// scan2 prelude
-  const Func base = get_func(env, f);
-  if(!base)
-    CHECK_OB(func_create(env, f, overload, name))
-  else
-    f->base->func = base;
-// body
-  if(f->base->args)
-    CHECK_BB(scan2_args(env, f))
-  if(!GET_FLAG(f, builtin) && f->d.code)
-    CHECK_BB(scan2_func_def_code(env, f))
-// gpop
+  if(f->base->tmpl)
+    CHECK_BB(template_push_types(env, f->base->tmpl))
+  const m_bool ret = (!tmpl_base(f->base->tmpl) ? scan2_fdef : scan2_func_def_template)(env, f, overload);
+  if(f->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
-
-  if(!base) {
-    if(GET_FLAG(f, op))
-      CHECK_BB(scan2_func_def_op(env, f))
-    SET_FLAG(f->base->func->value_ref, checked);
-  }
-  return GW_OK;
+  return ret;
 }
 
 DECL_SECTION_FUNC(scan2)
