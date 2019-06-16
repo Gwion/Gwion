@@ -64,7 +64,6 @@ static DTOR(array_dtor) {
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
   free_m_vector(shred->info->mp, a);
-  REM_REF(t, shred->info->vm->gwion)
 }
 
 ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
@@ -72,7 +71,6 @@ ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
   ARRAY(a) = new_m_vector2(p, size,length);
-  ADD_REF(t);
   return a;
 }
 
@@ -198,7 +196,6 @@ static OP_CHECK(opck_array_cast) {
 
 static FREEARG(freearg_array) {
   ArrayInfo* info = (ArrayInfo*)instr->m_val;
-  REM_REF((Type)vector_back(&info->type), gwion);
   vector_release(&info->type);
   mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
 }

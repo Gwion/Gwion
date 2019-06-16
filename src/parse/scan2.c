@@ -111,7 +111,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   }
   if(ptr->base->tmpl)
     SET_FLAG(ptr->type, func);
-  nspc_add_value(env->curr, ptr->base->xid, ptr->value);
+//  nspc_add_value(env->curr, ptr->base->xid, ptr->value);
   nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
   return GW_OK;
 }
@@ -413,14 +413,6 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
     f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
   struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
   CHECK_BB(env_add_op(env, &opi))
-  if(env->class_def) {
-    if(env->class_def == l)
-      REM_REF(l, env->gwion)
-    if(env->class_def == r)
-      REM_REF(r, env->gwion)
-    if(env->class_def == f->base->ret_type)
-      REM_REF(f->base->ret_type, env->gwion)
-  }
   return GW_OK;
 }
 

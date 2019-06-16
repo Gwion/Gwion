@@ -409,16 +409,21 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->owner, sym);
 }
 
-static Func ensure_tmpl(const Env env, const Func f, const Exp_Call *exp) {
+static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
+  CHECK_BO(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = traverse_func_def(env, fdef);
   nspc_pop_type(env->gwion->mp, env->curr);
-  if(check_call(env, exp) > 0) {
-    const Func next = f->next;
-    f->next = NULL;
-    const Func func = find_func_match(env, f, exp->args);
-    f->next = next;
-    if(func) {
-      SET_FLAG(func, checked | ae_flag_template);
-      return func;
+  if(ret > 0) {
+    const Func f = fdef->base->func;
+    if(check_call(env, exp) > 0) {
+      const Func next = f->next;
+      f->next = NULL;
+      const Func func = find_func_match(env, f, exp->args);
+      f->next = next;
+      if(func) {
+        SET_FLAG(func, checked | ae_flag_template);
+        return func;
+      }
     }
   }
   return NULL;
@@ -447,59 +452,57 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
   const Value value = nspc_lookup_value1(v->owner, sym);
   Func_Def base = v->d.func_ref->def;
-  struct Func_Base_ *fbase = /*value ? value->type->e->d.func->def :*/
-      new_func_base(env->gwion->mp, base->base->td, sym, base->base->args);
+  struct Func_Base_ *fbase = new_func_base(env->gwion->mp, base->base->td, sym, base->base->args);
   fbase->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, 0);
   fbase->tmpl->call = types;
-  CHECK_BO(template_push_types(env, fbase->tmpl))
-  const Stmt stmt = new_stmt_fptr(env->gwion->mp, fbase, base->flag);
-  if(value) {
-    stmt->d.stmt_fptr.type = actual_type(value->type);
-    stmt->d.stmt_fptr.value = value;
-  }
-  CHECK_BO(traverse_stmt_fptr(env, &stmt->d.stmt_fptr))
-  free_stmt(env->gwion->mp, stmt);
-  CHECK_OO((base->base->ret_type = known_type(env, base->base->td)))
-  if(exp->args)
-    CHECK_OO(check_exp(env, exp->args))
-  const Func func = find_func_match(env, fbase->func, exp->args);
-  if(!value)
-    map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(func->value_ref->type));
-  nspc_pop_type(env->gwion->mp, env->curr);
-  xfree(tmpl_name);
-  env->func = former;
-  return func;
-  }
-  for(m_uint i = 0; i < v->offset + 1; ++i) {
-    Func_Def fdef = NULL;
-    Func_Def base = NULL;
-    Value value = template_get_ready(env, v, tmpl_name, i);
+  if(template_push_types(env, fbase->tmpl) > 0) {
+    const Stmt stmt = new_stmt_fptr(env->gwion->mp, fbase, base->flag);
     if(value) {
-      if(env->func == value->d.func_ref) {
-        CHECK_BO(check_call(env, exp))
-        m_func = env->func;
-        break;
-      }
-      base = fdef = value->d.func_ref->def;
-      if(!fdef->base->tmpl) {
+      stmt->d.stmt_fptr.type = actual_type(value->type);
+      stmt->d.stmt_fptr.value = value;
+    }
+    if(traverse_stmt_fptr(env, &stmt->d.stmt_fptr) > 0 &&
+       (base->base->ret_type = known_type(env, base->base->td)) &&
+       (!exp->args || !!check_exp(env, exp->args))) {
+      m_func = find_func_match(env, fbase->func, exp->args);
+      nspc_pop_type(env->gwion->mp, env->curr);
+      if(!value)
+        map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+    }
+    free_stmt(env->gwion->mp, stmt);
+  }
+  } else {
+    for(m_uint i = 0; i < v->offset + 1; ++i) {
+      Func_Def fdef = NULL;
+      Func_Def base = NULL;
+      Value value = template_get_ready(env, v, tmpl_name, i);
+      if(value) {
+        if(env->func == value->d.func_ref) {
+          if(check_call(env, exp) < 0)
+            continue;
+          m_func = env->func;
+          break;
+        }
+        fdef = value->d.func_ref->def;
+        if(!fdef->base->tmpl) {
+          if(!(value = template_get_ready(env, v, "template", i)))
+            continue;
+          base = value->d.func_ref->def;
+          fdef->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
+        }
+      } else {
         if(!(value = template_get_ready(env, v, "template", i)))
           continue;
         base = value->d.func_ref->def;
-        fdef->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
-      }
-    } else {
-      if(!(value = template_get_ready(env, v, "template", i)))
-        continue;
-      base = value->d.func_ref->def;
-      fdef = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(v->name),
+        fdef = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, base->base->td, insert_symbol(v->name),
                 base->base->args), base->d.code, base->flag, loc_cpy(env->gwion->mp, base->pos));
-      fdef->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
-      SET_FLAG(fdef, template);
+        fdef->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, (m_int)i);
+        SET_FLAG(fdef, template);
+      }
+      fdef->base->tmpl->call = types;
+      if((m_func = ensure_tmpl(env, fdef, exp)))
+        break;
     }
-    fdef->base->tmpl->call = types;
-    if(traverse_func_template(env, fdef) > 0 &&
-        (m_func = ensure_tmpl(env, fdef->base->func, exp)))
-      break;
   }
   xfree(tmpl_name);
   env_pop(env, scope);
@@ -1190,7 +1193,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN static inline void inherit(const Type t) {
+ANN /*static inline */void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
   nspc->info->offset = parent->info->offset;
   if(parent->info->vtable.ptr)

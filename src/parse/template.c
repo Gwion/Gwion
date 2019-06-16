@@ -165,8 +165,8 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     a->base.tmpl->call = type->types;
     if(isa(t, t_union) < 0) {
       CHECK_BO(scan0_class_def(env, a))
-    map_set(&t->e->owner->info->type->map, (vtype)insert_symbol(a->base.type->name),
-      (vtype)a->base.type);
+      map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
+      map_set((Map)vector_front((Vector)&t->e->owner->info->type->ptr), (vtype)a->base.xid, (vtype)a->base.type);
     } else {
       a->stmt = new_stmt_union(env->gwion->mp, (Decl_List)a->body, t->e->def->pos);
       a->stmt->d.stmt_union.type_xid = a->base.xid;

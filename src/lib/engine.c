@@ -31,10 +31,7 @@ static FREEARG(freearg_switchbranch) {
 }
 
 static FREEARG(freearg_gack) {
-  const Vector v = (Vector)instr->m_val2;
-  for(m_uint i = vector_size(v) + 1; --i;)
-    REM_REF(((Type)vector_at(v, i - 1)), gwion);
-  free_vector(((Gwion)gwion)->mp, v);
+  free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {

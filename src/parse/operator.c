@@ -25,23 +25,13 @@ typedef struct M_Operator_{
   m_bool mut;
 } M_Operator;
 
-ANN static void free_op(M_Operator* a, Gwion gwion) {
-  if(a->lhs && a->lhs != OP_ANY_TYPE)
-    REM_REF(a->lhs, gwion)
-  if(a->rhs && a->rhs != OP_ANY_TYPE)
-    REM_REF(a->rhs, gwion)
-  if(a->ret)
-    REM_REF(a->ret, gwion)
-  mp_free(gwion->mp, M_Operator, a);
-}
-
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
     const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;)
-      free_op((M_Operator*)vector_at(v, j - 1), gwion);
+      mp_free(gwion->mp, M_Operator, (M_Operator*)vector_at(v, j - 1));
     free_vector(gwion->mp, v);
   }
   map_release(map);
@@ -106,15 +96,7 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
   mo->ck     = opi->ck;
   mo->em     = opi->em;
   mo->mut     = opi->mut;
-// add
   vector_add(v, (vtype)mo);
-// mo_type_ref
-  if(opi->lhs && opi->lhs != OP_ANY_TYPE)
-    ADD_REF(opi->lhs)
-  if(opi->rhs && opi->rhs != OP_ANY_TYPE)
-    ADD_REF(opi->rhs)
-  if(opi->ret)
-    ADD_REF(opi->ret)
   return GW_OK;
 }
 

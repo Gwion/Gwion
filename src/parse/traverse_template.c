@@ -10,8 +10,5 @@
 
 ANN m_bool traverse_func_template(const Env env, const Func_Def def) {
   CHECK_BB(template_push_types(env, def->base->tmpl))
-  if(traverse_func_def(env, def) > 0)
-    return GW_OK;
-  nspc_pop_type(env->gwion->mp, env->curr);
-  return GW_ERROR;
+  return traverse_func_def(env, def);
 }

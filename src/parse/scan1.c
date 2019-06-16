@@ -27,22 +27,35 @@ ANN static inline Type get_base_type(const Env env, const Type t) {
   return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
 }
 
+ANN static inline void contains(const Type base, const Type t) {
+  if(vector_find(&base->e->contains, (vtype)t) == GW_ERROR) {
+    vector_add(&base->e->contains, (vtype)t);
+    ADD_REF(t);
+  }
+}
+
+ANN static inline void type_contains(const Type base, const Type t) {
+    if(!base->e->contains.ptr)
+      vector_init(&base->e->contains);
+printf("%s =>  %s\n", t->name, base->name);
+    contains(base, t);
+}
+
 ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
   const Type decl_base = get_base_type(env, t);
   const Type base = get_base_type(env, env->class_def);
   if(decl_base && base) {
-    if(!base->e->contains.ptr)
-      vector_init(&base->e->contains);
-    vector_add(&base->e->contains, (vtype)decl_base);
+    type_contains(base, decl_base); // NEEDED
+    type_contains(env->class_def, t);
     if(decl_base->e->contains.ptr) {
-      for(m_uint i = 0; i < vector_size(&decl_base->e->contains); ++i) {
-        if(base == (Type)vector_at(&decl_base->e->contains, i) && !GET_FLAG(decl->td, ref))
+      for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
+        if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(decl->td, ref))
           ERR_B(exp_self(decl)->pos, "%s declared inside %s\n. (make it a ref ?)",
               decl_base->name, decl_base == base ? "itself" : base->name);
       }
     }
   }
-   return GW_OK;
+  return GW_OK;
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
@@ -210,10 +223,10 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
     const Value v = new_value(env->gwion->mp, stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
-      v->owner = env->curr;
       SET_FLAG(v, static);
       SET_ACCESS(stmt, v)
     }
+    v->owner = env->curr;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(stmt->t->e->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);

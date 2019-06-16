@@ -66,6 +66,7 @@ struct FptrInfo {
 ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
   if(!info->rhs->def->base->tmpl)
     return GW_OK;
+// some kind of template_match ?
   ID_List t0 = info->lhs->def->base->tmpl->list,
           t1 = info->rhs->def->base->tmpl->list;
   while(t0) {
@@ -74,8 +75,7 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
     t1 = t1->next;
   }
   CHECK_BB(template_push_types(env, info->lhs->def->base->tmpl))
-  CHECK_BB(template_push_types(env, info->rhs->def->base->tmpl))
-  return GW_OK;
+  return template_push_types(env, info->rhs->def->base->tmpl);
 }
 
 
@@ -137,12 +137,14 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
     CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
     struct Func_Base_ *base[2] =  { info->lhs->def->base, info->rhs->def->base };
-    if(fptr_tmpl_push(env, info) > 0 && fptr_rettype(env, info) > 0 &&
-       fptr_arity(info) && fptr_args(env, base) > 0)
+    if(fptr_tmpl_push(env, info) > 0) {
+      if(fptr_rettype(env, info) > 0 &&
+           fptr_arity(info) && fptr_args(env, base) > 0)
       type = info->lhs->value_ref->type;
-    if(info->rhs->def->base->tmpl) {
-      nspc_pop_type(env->gwion->mp, env->curr);
-      nspc_pop_type(env->gwion->mp, env->curr);
+      if(info->rhs->def->base->tmpl) {
+        nspc_pop_type(env->gwion->mp, env->curr);
+        nspc_pop_type(env->gwion->mp, env->curr);
+      }
     }
   }
   return type;

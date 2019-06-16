@@ -55,7 +55,6 @@ INSTR(PopArrayClass) {
   const M_Object tmp = *(M_Object*)REG(0);
   ARRAY(obj) = ARRAY(tmp);
   free_object(shred->info->mp, tmp);
-  ADD_REF(obj->type_ref) // add ref to typedef array type
 }
 
 ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Nspc nspc) {
