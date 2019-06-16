@@ -118,8 +118,11 @@ static OP_CHECK(at_object) {
 
 static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
   const Type ret = type_copy(p, t);
+//  ret->name = s_name(sym);
   SET_FLAG(ret, force);
-  nspc_add_type(t->e->owner, sym, ret);
+//  nspc_add_type(t->e->owner, sym, ret);
+//  map_set(&t->e->owner->info->type->map, sym, ret);
+  map_set(vector_front(&t->e->owner->info->type->ptr), sym, ret);
   return ret;
 }
 
@@ -129,7 +132,8 @@ static Type get_force_type(const Env env, const Type t) {
   strcpy(name, t->name);
   strcpy(name + len, STR_FORCE);
   const Symbol sym = insert_symbol(env->gwion->st, name);
-  return nspc_lookup_type0(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
+  return nspc_lookup_type1(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
+//  return nspc_lookup_type0(t->e->owner, sym) ?: new_force_type(env, t, sym);
 }
 
 static OP_CHECK(opck_object_cast) {

@@ -16,17 +16,13 @@
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->lhs->meta != ae_meta_var)
+    ERR_N(exp_self(bin)->pos, "left side operand is constant");
+  bin->lhs->emit_var = 1;
   Type t = bin->lhs->type;
-  do {
-    if(!strcmp(t->name, get_type_name(env, bin->rhs->type->name, 1))) {
-      if(bin->lhs->meta != ae_meta_var) {
-        env_err(env, exp_self(bin)->pos, "left side operand is constant");
-        return t_null;
-      }
-      bin->lhs->emit_var = 1;
-      return bin->lhs->type;
-    }
-  } while((t = t->e->parent));
+  do if(!strcmp(t->name, get_type_name(env, bin->rhs->type->name, 1)))
+    return bin->lhs->type;
+  while((t = t->e->parent));
   return t_null;
 }
 
@@ -46,10 +42,8 @@ static OP_CHECK(opck_implicit_ptr) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = (Exp)imp->e;
   if(!strcmp(get_type_name(env, imp->t->name, 1), e->type->name)) {
-    if(e->meta == ae_meta_value) {
-      env_err(env, 0, "can't cast constant to Ptr");
-      return t_null;
-    }
+    if(e->meta == ae_meta_value)
+      ERR_N(e->pos, "can't cast constant to Ptr");
     e->cast_to = imp->t;
     e->emit_var = 1;
     return imp->t;

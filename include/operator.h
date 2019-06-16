@@ -1,6 +1,9 @@
 #ifndef __OPERATOR
 #define __OPERATOR
 #define OP_ANY_TYPE (Type)1
+
+#define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return t_null; }
+
 typedef Type (*opck)(const Env, void*);
 typedef m_bool (*opem)(const Emitter, void*);
 

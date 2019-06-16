@@ -5,6 +5,8 @@ n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
+source tests/sh/test.sh
+#source help/test.sh
 
 : "${GWION_ADD_DIR=/usr/lib/Gwion/add}"
 
@@ -13,11 +15,14 @@ export GWION_ADD_DIR
 test_plugin() {
 	export NAME=$"$1"
 	make
-	../../gwion -p. "$NAME.gw" &> /dev/null
-    NAME="$1" make clean
+  if [ -f "$NAME.gw" ]
+  then GWOPT=-p. test_gw "$NAME.gw" "$n"
+  else  GWOPT=-p. test_gw "/dev/null" "$n"
+  fi
+  make clean
 	N=$(printf "% 4i" "$n")
 	echo "ok $N plugin test: '$NAME'"
-    n=$((n+1))
+  n=$((n+1))
 }
 
 # empty plug file

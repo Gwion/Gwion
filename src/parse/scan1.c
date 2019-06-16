@@ -27,22 +27,35 @@ ANN static inline Type get_base_type(const Env env, const Type t) {
   return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
 }
 
+ANN static inline void contains(const Type base, const Type t) {
+  if(vector_find(&base->e->contains, (vtype)t) == GW_ERROR) {
+    vector_add(&base->e->contains, (vtype)t);
+    ADD_REF(t);
+  }
+}
+
+ANN static inline void type_contains(const Type base, const Type t) {
+    if(!base->e->contains.ptr)
+      vector_init(&base->e->contains);
+printf("%s =>  %s\n", t->name, base->name);
+    contains(base, t);
+}
+
 ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
   const Type decl_base = get_base_type(env, t);
   const Type base = get_base_type(env, env->class_def);
   if(decl_base && base) {
-    if(!base->e->contains.ptr)
-      vector_init(&base->e->contains);
-    vector_add(&base->e->contains, (vtype)decl_base);
+    type_contains(base, decl_base); // NEEDED
+    type_contains(env->class_def, t);
     if(decl_base->e->contains.ptr) {
-      for(m_uint i = 0; i < vector_size(&decl_base->e->contains); ++i) {
-        if(base == (Type)vector_at(&decl_base->e->contains, i) && !GET_FLAG(decl->td, ref))
+      for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
+        if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(decl->td, ref))
           ERR_B(exp_self(decl)->pos, "%s declared inside %s\n. (make it a ref ?)",
               decl_base->name, decl_base == base ? "itself" : base->name);
       }
     }
   }
-   return GW_OK;
+  return GW_OK;
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
@@ -210,10 +223,10 @@ ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
     const Value v = new_value(env->gwion->mp, stmt->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
-      v->owner = env->curr;
       SET_FLAG(v, static);
       SET_ACCESS(stmt, v)
     }
+    v->owner = env->curr;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(stmt->t->e->owner, list->xid, v);
     vector_add(&stmt->values, (vtype)v);
@@ -304,6 +317,16 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   return GW_OK;
 }
 
+ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
+  if(fdef->base->td)
+    CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  if(fdef->base->args)
+    CHECK_BB(scan1_args(env, fdef->base->args))
+  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
+    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  return GW_OK;
+}
+
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
@@ -316,15 +339,14 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
-  if(fdef->base->td)
-    CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
-  if(fdef->base->args)
-    CHECK_BB(scan1_args(env, fdef->base->args))
-  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
-    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = scan1_fdef(env, fdef);
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env->func = former;
   --env->scope->depth;
-  return GW_OK;
+  return ret;
 }
 
 DECL_SECTION_FUNC(scan1)
@@ -353,11 +375,11 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
     CHECK_BB(scan0_class_def(env, cdef))
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  SET_FLAG(cdef->base.type, scan1);
   if(cdef->base.ext)
     CHECK_BB(env_ext(env, cdef, scan1_parent))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan1_section))
-  SET_FLAG(cdef->base.type, scan1);
   return GW_OK;
 }
 

@@ -1,3 +1,4 @@
+#include "complex.h"
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "oo.h"
@@ -7,6 +8,8 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
+#include "gwi.h"
+#include "gwion.h"
 
 SFUN(coverage_int)     { *(m_uint*)RETURN    = 0; }
 SFUN(coverage_float)   { *(m_float*)RETURN   = 0; }
@@ -29,61 +32,49 @@ GWION_IMPORT(coverage) {
   CHECK_BB(gwi_func_ini(gwi, "Vec4", "w", coverage_vec4))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))
 
-  m_uint* i = (m_uint*)xmalloc(sizeof(m_uint));
-  *i = 5;
+  ALLOC_PTR(gwi->gwion->mp, i, m_uint, 5);
   CHECK_BB(gwi_item_ini(gwi,"int", "s_i"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static, i))
-  m_float* f = (m_float*)xmalloc(sizeof(m_float));
-  *f = 2.1;
-  CHECK_BB(gwi_item_ini(gwi,"float", "s_f"))
+
+  ALLOC_PTR(gwi->gwion->mp, f, m_float, 2.1);
+  CHECK_BB(gwi_item_ini(gwi,"int", "s_f"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)f))
 
-  m_complex* c = (m_complex*)xmalloc(sizeof(m_complex));
-  *c = 2.1;
+  const m_complex _c = 2.1 + 2.2*I;
+  ALLOC_PTR(gwi->gwion->mp, c, m_complex, _c);
   CHECK_BB(gwi_item_ini(gwi,"complex", "s_c"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)c))
 
-  m_vec3* v = (m_vec3*)xmalloc(sizeof(m_vec3));
-  v->x = 2.1;
-  v->y = 2.2;
-  v->z = 2.3;
+  const m_vec3 _v = { 2.1, 2.2, 2.3 };
+  ALLOC_PTR(gwi->gwion->mp, v, m_vec3, _v);
   CHECK_BB(gwi_item_ini(gwi,"Vec3", "s_v"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)v))
 
-  m_vec4* w = (m_vec4*)xmalloc(sizeof(m_vec4));
-  w->x = 2.1;
-  w->y = 2.2;
-  w->z = 2.3;
-  w->w = 2.4;
+  const m_vec4 _w = { 2.1, 2.2, 2.3, 2.4 };
+  ALLOC_PTR(gwi->gwion->mp, w, m_vec4, _w);
   CHECK_BB(gwi_item_ini(gwi,"Vec4", "s_w"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static, (void*)w))
 
-  m_uint* ci = (m_uint*)xmalloc(sizeof(m_uint));
-  *ci = 5;
+  ALLOC_PTR(gwi->gwion->mp, ci, m_uint, 5);
   CHECK_BB(gwi_item_ini(gwi,"int", "sc_i"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, ci))
-  m_float* cf = (m_float*)xmalloc(sizeof(m_float));
-  *cf = 2.1;
+
+  ALLOC_PTR(gwi->gwion->mp, cf, m_float, 2.1);
   CHECK_BB(gwi_item_ini(gwi,"float", "sc_f"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cf))
 
-  m_complex* cc = (m_complex*)xmalloc(sizeof(m_complex));
-  *cc = 2.1;
+  const m_complex _cc = 2.1 + 2.2*I;
+  ALLOC_PTR(gwi->gwion->mp, cc, m_complex, _cc);
   CHECK_BB(gwi_item_ini(gwi,"complex", "sc_c"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cc))
 
-  m_vec3* cv = (m_vec3*)xmalloc(sizeof(m_vec3));
-  cv->x = 2.1;
-  cv->y = 2.2;
-  cv->z = 2.3;
+  const m_vec3 _cv = { 2.1, 2.2, 2.3 };
+  ALLOC_PTR(gwi->gwion->mp, cv, m_vec3, _cv);
   CHECK_BB(gwi_item_ini(gwi,"Vec3", "sc_v"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cv))
 
-  m_vec4* cw = (m_vec4*)xmalloc(sizeof(m_vec4));
-  cw->x = 2.1;
-  cw->y = 2.2;
-  cw->z = 2.3;
-  cw->w = 2.4;
+  const m_vec4 _cw = { 2.1, 2.2, 2.3, 2.4 };
+  ALLOC_PTR(gwi->gwion->mp, cw, m_vec4, _cw);
   CHECK_BB(gwi_item_ini(gwi,"Vec4", "sc_w"))
   CHECK_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cw))
 

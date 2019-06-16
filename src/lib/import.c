@@ -300,7 +300,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth)))
-    GWI_ERR_B("\t...\tduring var import '%s.%s'.", gwi->gwion->env->class_def->name, name)
+    GWI_ERR_B("  ...  during var import '%s.%s'.", gwi->gwion->env->class_def->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
@@ -392,7 +392,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(env->gwion->mp, arg_list);
-      GWI_ERR_O("\t...\tat argument '%i'", i + 1)
+      GWI_ERR_O("  ...  at argument '%i'", i + 1)
     }
     if((type_path2 = str2list(env, arg->name, &array_depth2)))
       free_id_list(env->gwion->mp, type_path2);
@@ -432,7 +432,7 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
   flag |= ae_flag_builtin;
   Type_Decl* type_decl = import_td(gwi, dl_fun->type);
   if(!type_decl)
-    GWI_ERR_O("\t...\tduring @ function import '%s' (type).", dl_fun->name)
+    GWI_ERR_O("  ...  during @ function import '%s' (type).", dl_fun->name)
   const m_str name = dl_fun->name;
   const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
   const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
@@ -529,7 +529,7 @@ ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->mp, type_path, 0)))
-    GWI_ERR_O("\t...\tduring fptr import '%s' (type).", dl_fun->name);
+    GWI_ERR_O("  ...  during fptr import '%s' (type).", dl_fun->name);
   struct Func_Base_ *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_stmt_fptr(env->gwion->mp, base, flag);
 }

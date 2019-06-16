@@ -18,15 +18,17 @@ ANN static void free_type(Type a, Gwion gwion) {
           free_stmt(gwion->mp, a->e->def->stmt);
       }
       a->e->def->stmt = NULL;
-    }
-    free_class_def(gwion->mp, a->e->def);
+    } else
+      free_class_def(gwion->mp, a->e->def);
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
-  if(a->e->contains.ptr)
+  if(a->e->contains.ptr) {
+    for(m_uint i = 0; i < vector_size(&a->e->contains); ++i)
+      REM_REF((Type)vector_at(&a->e->contains, i), gwion);
     vector_release(&a->e->contains);
-// TODO: commenting this should not happen
-//  mp_free(gwion->mp, TypeInfo, a->e);
+  }
+  mp_free(gwion->mp, TypeInfo, a->e);
   mp_free(gwion->mp, Type, a);
 }
 
@@ -86,6 +88,8 @@ ANN Type array_base(Type type) {
 
 ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   m_uint i = depth + 1;
+  if(depth > 1)
+    array_type(env, base, depth-1);
   size_t len = strlen(base->name);
   char name[len + 2* depth + 1];
   strcpy(name, base->name);

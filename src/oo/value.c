@@ -13,7 +13,7 @@ ANN static void free_value(Value a, Gwion gwion) {
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
       && isa(a->type, t_object) < 0)
    _mp_free(gwion->mp, a->type->size, a->d.ptr);
-  if(isa(a->type, t_class) > 0 || isa(a->type, t_function) > 0 || GET_FLAG(a->type, op))
+  if(isa(a->type, t_class) > 0/* || isa(a->type, t_function) > 0*/)
     REM_REF(a->type, gwion)
   mp_free(gwion->mp, Value, a);
 }

@@ -495,12 +495,10 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   do {
     vector_add(v, (vtype)e->type);
     offset += e->type->size;
-    if(e->type != emit->env->class_def)
-      ADD_REF(e->type);
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(emit->gwion->mp, v);
-    ERR_B(exp->pos, "\t... in 'gack' expression.")
+    ERR_B(exp->pos, "  ... in 'gack' expression.")
   }
   const Instr instr = emit_add_instr(emit, Gack);
   instr->m_val = offset;
@@ -570,8 +568,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
-    if((is_array || missing_depth) && !emit->env->scope->depth)
-      ADD_REF(type)
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(1 + missing_depth) * SZ_INT;
@@ -600,8 +596,6 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
-    if(is_array && !emit->env->scope->depth)
-      ADD_REF(type)
     if(isa(type, t_fork) < 0) { // beware fork
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = emit_var;
@@ -692,7 +686,7 @@ ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
       is_fptr(v->type))
     return emit->env->scope->depth;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(traverse_func_template(emit->env, f->def))
+  CHECK_BB(traverse_func_def(emit->env, f->def))
   return (m_int)scope;
 }
 
@@ -703,8 +697,7 @@ ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp
   DECL_BB(const m_int,scope, = push_tmpl_func(emit, exp_call->m_func))
   CHECK_BB(prepare_call(emit, exp_call))
   if(!is_fptr(exp_call->m_func->value_ref->type))
-    emit_pop_type(emit);
-  emit_pop(emit, (m_uint)scope);
+    emit_pop(emit, (m_uint)scope);
   UNSET_FLAG(exp_call->m_func, checked);
   return GW_OK;
 }
@@ -762,10 +755,8 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
       emit_push_type(emit, dt->owner_class) : emit_push(emit, NULL, dt->owner);
   m_bool ret = GW_ERROR;
   dt->def->base->tmpl->call = dt->tl;// in INSTR
-  if(!dt->def->base->func &&traverse_func_template(emit->env, dt->def) > 0) {
+  if(!dt->def->base->func && traverse_func_def(emit->env, dt->def) > 0)
     ret = emit_func_def(emit, dt->def);
-    nspc_pop_type(emit->gwion->mp, emit->env->curr);
-  }
   emit_pop(emit, scope);
   return ret;
 }
@@ -1693,7 +1684,7 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
   func->def->stack_depth = func->code->stack_depth;
 }
 
-ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->base->args)
     emit_func_def_args(emit, fdef->base->args);
   if(GET_FLAG(fdef, variadic))
@@ -1704,22 +1695,30 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
+ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+  vector_add(&emit->variadic, 0);
+  CHECK_BB(_fdef_body(emit, fdef))
+  if(GET_FLAG(fdef, variadic)) {
+    if(!get_variadic(emit))
+      ERR_B(fdef->pos, "invalid variadic use")
+    if(!GET_FLAG(fdef->base->func, empty))
+      ERR_B(fdef->pos, "invalid variadic use")
+  }
+  return GW_OK;
+}
+
 ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
   CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
   const m_bool ret = emit_parent_inner(emit, fdef->base->ret_type->e->def);
-  nspc_pop_type(emit->gwion->mp, emit->env->curr);
+  emit_pop_type(emit);
   return ret;
 }
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   const Func func = get_func(emit->env, fdef);
   const Func former = emit->env->func;
-  if(func->code)
+  if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(tmpl_base(fdef->base->tmpl)) {
-    UNSET_FLAG(fdef, template);
-    return GW_OK;
-  }
   if(GET_FLAG(fdef->base->ret_type, template) && !GET_FLAG(fdef->base->ret_type, emit))
     CHECK_BB(tmpl_rettype(emit, fdef))
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
@@ -1729,23 +1728,17 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
     stack_alloc_this(emit);
-  emit_push_scope(emit);
   emit->env->func = func;
-  vector_add(&emit->variadic, 0);
+  emit_push_scope(emit);
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
   CHECK_BB(emit_func_def_body(emit, fdef))
-  if(GET_FLAG(fdef, variadic)) {
-    if(!get_variadic(emit))
-      ERR_B(fdef->pos, "invalid variadic use")
-    if(!GET_FLAG(func, empty))
-      ERR_B(fdef->pos, "invalid variadic use")
-  }
-  vector_pop(&emit->variadic);
   emit_func_def_return(emit);
   emit_func_def_code(emit, func);
-  emit->env->func = former;
+  if(fdef->base->tmpl)
+    emit_pop_type(emit);
   emit_pop_code(emit);
-  if(GET_FLAG(fdef, op))
-    SET_FLAG(func->code, op);
+  emit->env->func = former;
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->memoize && GET_FLAG(func, pure))
@@ -1773,7 +1766,10 @@ ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) {
 
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  return scanx_parent(parent, emit_parent_inner, emit);
+  const Type base = parent->e->d.base_type;
+  if(base && !GET_FLAG(base, emit))
+    CHECK_BB(scanx_parent(base, emit_parent_inner, emit))
+  return !GET_FLAG(parent, emit) ? GW_OK : scanx_parent(parent, emit_parent_inner, emit);
 }
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
@@ -1782,12 +1778,13 @@ ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
-  const Type type = cdef->base.type;
-  const Nspc nspc = type->nspc;
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  const Type type = cdef->base.type;
+  const Nspc nspc = type->nspc;
   if(cdef->base.ext && cdef->base.ext->types)
     CHECK_BB(scanx_ext(emit->env, cdef, emit_parent, emit))
+  SET_FLAG(type, emit);
   nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);
   if(cdef->base.ext && cdef->base.ext->array)

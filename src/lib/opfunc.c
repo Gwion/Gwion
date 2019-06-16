@@ -11,6 +11,7 @@
 #include "emit.h"
 #include "traverse.h"
 #include "parse.h"
+#include "operator.h"
 
 static inline m_str access(ae_Exp_Meta meta) {
   return meta == ae_meta_value ? "non-mutable" : "protected";
@@ -29,7 +30,7 @@ OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var)
     ERR_N(exp_self(bin)->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
-         "\t...\t(reason: --- right-side operand is %s.)",
+         "  ...  (reason: --- right-side operand is %s.)",
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access(bin->rhs->meta))
   return bin->rhs->type;
