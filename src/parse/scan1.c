@@ -37,7 +37,6 @@ ANN static inline void contains(const Type base, const Type t) {
 ANN static inline void type_contains(const Type base, const Type t) {
     if(!base->e->contains.ptr)
       vector_init(&base->e->contains);
-printf("%s =>  %s\n", t->name, base->name);
     contains(base, t);
 }
 
