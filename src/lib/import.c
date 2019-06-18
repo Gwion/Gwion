@@ -77,7 +77,7 @@ ANN static void dl_func_func_arg(DL_Func* a, const restrict m_str t, const restr
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   if(gwi->func.narg == DLARG_MAX - 1)
-    GWI_ERR_B("too many arguments for function '%s'.", gwi->func.name)
+    GWI_ERR_B(_("too many arguments for function '%s'."), gwi->func.name)
   dl_func_func_arg(&gwi->func, t, n);
   return GW_OK;
 }
@@ -104,16 +104,16 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
     }
     if(c == ',') {
       if(!lvl)
-        GWI_ERR_B("illegal use of ',' outside of templating in name '%s'.", a)
+        GWI_ERR_B(_("illegal use of ',' outside of templating in name '%s'."), a)
       continue;
     }
     if(c == '>') {
       if(!lvl)
-        GWI_ERR_B("illegal templating in name '%s'.", a)
+        GWI_ERR_B(_("illegal templating in name '%s'."), a)
       lvl--;
       continue;
     }
-    GWI_ERR_B("illegal character '%c' in name '%s'.", c, a)
+    GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
   }
   return !lvl ? 1 : -1;
 }
@@ -132,7 +132,7 @@ ANN static m_bool path_valid(const Env env, ID_List* list, const struct Path* p)
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
     if(c != '.' && check_illegal(p->curr, c, i) < 0) {
-      env_err(env, &p->loc, "illegal character '%c' in path '%s'.", c, p->path);
+      env_err(env, &p->loc, _("illegal character '%c' in path '%s'."), c, p->path);
       return GW_ERROR;
     }
     if(c == '.' || i == 1) {
@@ -142,7 +142,7 @@ ANN static m_bool path_valid(const Env env, ID_List* list, const struct Path* p)
         *list = prepend_id_list(env->gwion->st->p, insert_symbol(env->gwion->st, p->curr), *list, loc_cpy(env->gwion->mp, &p->loc));
         memset(p->curr, 0, p->len + 1);
       } else {
-        env_err(env, &p->loc, "path '%s' must not ini or end with '.'.", p->path);
+        env_err(env, &p->loc, _("path '%s' must not ini or end with '.'."), p->path);
         return GW_ERROR;
       }
     }
@@ -217,7 +217,7 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type type,
 
 ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor) {
   if(type->nspc)
-    GWI_ERR_B("during import: class '%s' already imported.", type->name)
+    GWI_ERR_B(_("during import: class '%s' already imported."), type->name)
   if(gwi->templater.n) {
     const ID_List types = templater_def(gwi->gwion->st, gwi);
     type->e->def = new_class_def(gwi->gwion->mp, 0, insert_symbol(gwi->gwion->st, type->name), NULL, NULL, loc_cpy(gwi->gwion->mp, gwi->loc));
@@ -233,13 +233,13 @@ ANN2(1,2) m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_c
 
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
   if(!gwi->gwion->env->class_def)
-    GWI_ERR_B("gwi_class_ext invoked before gwi_class_ini")
+    GWI_ERR_B(_("gwi_class_ext invoked before gwi_class_ini"))
   const VM_Code ctor = gwi->gwion->env->class_def->nspc->pre_ctor;
   if(gwi->gwion->env->class_def->e->parent ||
       (gwi->gwion->env->class_def->e->def && gwi->gwion->env->class_def->e->def->base.ext))
-    GWI_ERR_B("class extend already set")
+    GWI_ERR_B(_("class extend already set"))
   if(td->array && !td->array->exp)
-    GWI_ERR_B("class extend array can't be empty")
+    GWI_ERR_B(_("class extend array can't be empty"))
   if(!gwi->gwion->env->class_def->e->def) {
     DECL_OB(const Type, t, = known_type(gwi->gwion->env, td))
     if(td->array)
@@ -265,7 +265,7 @@ ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td) {
 
 ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->gwion->env->class_def)
-    GWI_ERR_B("import: too many class_end called.")
+    GWI_ERR_B(_("import: too many class_end called."))
   nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);
   env_pop(gwi->gwion->env, 0);
   return GW_OK;
@@ -300,7 +300,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
   if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth)))
-    GWI_ERR_B("  ...  during var import '%s.%s'.", gwi->gwion->env->class_def->name, name)
+    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->class_def->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
@@ -335,6 +335,8 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   v->exp.pos = gwi->loc;
   CHECK_BB(traverse_decl(gwi->gwion->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, builtin);
+if(v->var.value->type->array_depth)
+ADD_REF(v->var.value->type);
   dl_var_release(gwi->gwion->mp, v);
   return (m_int)v->var.value->offset;
 }
@@ -392,7 +394,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(env->gwion->mp, arg_list);
-      GWI_ERR_O("  ...  at argument '%i'", i + 1)
+      GWI_ERR_O(_("  ...  at argument '%i'"), i + 1)
     }
     if((type_path2 = str2list(env, arg->name, &array_depth2)))
       free_id_list(env->gwion->mp, type_path2);
@@ -400,7 +402,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
       free_type_decl(env->gwion->mp, type_decl);
       if(arg_list)
         free_arg_list(env->gwion->mp, arg_list);
-      GWI_ERR_O("array subscript specified incorrectly for built-in module");
+      GWI_ERR_O(_("array subscript specified incorrectly for built-in module"));
     }
     const Array_Sub array_sub = make_dll_arg_list_array(env->gwion->mp, NULL, &array_depth, array_depth2);
     const Var_Decl var_decl = new_var_decl(env->gwion->mp, insert_symbol(env->gwion->st, arg->name), array_sub, loc_cpy(gwi->gwion->mp, gwi->loc));
@@ -432,7 +434,7 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
   flag |= ae_flag_builtin;
   Type_Decl* type_decl = import_td(gwi, dl_fun->type);
   if(!type_decl)
-    GWI_ERR_O("  ...  during @ function import '%s' (type).", dl_fun->name)
+    GWI_ERR_O(_("  ...  during @ function import '%s' (type)."), dl_fun->name)
   const m_str name = dl_fun->name;
   const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
   const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
@@ -529,7 +531,7 @@ ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->mp, type_path, 0)))
-    GWI_ERR_O("  ...  during fptr import '%s' (type).", dl_fun->name);
+    GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
   struct Func_Base_ *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_stmt_fptr(env->gwion->mp, base, flag);
 }
@@ -555,7 +557,7 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   Type_Decl* td = import_td(gwi, gwi->val.type);
   if(!td)
-    GWI_ERR_O("'%s' : invalid type");
+    GWI_ERR_O(_("'%s' : invalid type"));
   td->flag |= flag;
   const Symbol sym = insert_symbol(gwi->gwion->st, gwi->val.name);
   const Stmt stmt = new_stmt_type(gwi->gwion->mp, td, sym);
@@ -600,7 +602,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(!gwi->union_data.list)
-    GWI_ERR_O("union is empty");
+    GWI_ERR_O(_("union is empty"));
   const Stmt stmt = new_stmt_union(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
   stmt->d.stmt_union.flag = flag;
   CHECK_BO(traverse_stmt_union(gwi->gwion->env, &stmt->d.stmt_union))

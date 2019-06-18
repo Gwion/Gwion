@@ -76,7 +76,7 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
       continue;
     const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
     if(v && (mo = operator_find(v, opi->lhs, opi->rhs))) {
-      env_err(gwion->env, opi->pos, "operator '%s', for type '%s' and '%s' already imported",
+      env_err(gwion->env, opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
             op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
             opi->rhs ? opi->rhs->name : NULL);
       return GW_ERROR;
@@ -154,7 +154,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     nspc = nspc->parent;
   } while(nspc);
   if(opi->op == op_cast || (ret != t_null && opi->op != op_impl))
-    env_err(env, opi->pos, "%s %s %s: no match found for operator",
+    env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
     type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
   return NULL;
 }

@@ -498,7 +498,7 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   } while((e = e->next));
   if(emit_exp(emit, exp, 0) < 0) {
     free_vector(emit->gwion->mp, v);
-    ERR_B(exp->pos, "  ... in 'gack' expression.")
+    ERR_B(exp->pos, _("  ... in 'gack' expression."))
   }
   const Instr instr = emit_add_instr(emit, Gack);
   instr->m_val = offset;
@@ -1279,15 +1279,15 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
     if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default"))
       return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
     if(!stmt->data.v.ptr)
-      ERR_B(stmt_self(stmt)->pos, "illegal case")
+      ERR_B(stmt_self(stmt)->pos, _("illegal case"))
     const m_uint size = vector_size(&stmt->data.v);
     if(!size)
-      ERR_B(stmt_self(stmt)->pos, "label '%s' defined but not used.", s_name(stmt->name))
+      ERR_B(stmt_self(stmt)->pos, _("label '%s' defined but not used."), s_name(stmt->name))
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
       const Stmt_Jump label = (Stmt_Jump)vector_at(&stmt->data.v, i - 1);
       if(!label->data.instr)
-        ERR_B(stmt_self(label)->pos, "you are trying to use a upper label.")
+        ERR_B(stmt_self(label)->pos, _("you are trying to use a upper label."))
       label->data.instr->m_val = emit_code_size(emit);
     }
   }
@@ -1552,20 +1552,20 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
   }
   if(!strcmp(str, "start")) {
     if(get_variadic(emit))
-      ERR_B(exp_self(member)->pos, "vararg.start already used. this is an error")
+      ERR_B(exp_self(member)->pos, _("vararg.start already used. this is an error"))
     emit_vararg_start(emit, offset);
     return GW_OK;
   }
   if(!strcmp(str, "end")) {
     if(!get_variadic(emit))
-      ERR_B(exp_self(member)->pos, "vararg.start not used before vararg.end. this is an error")
+      ERR_B(exp_self(member)->pos, _("vararg.start not used before vararg.end. this is an error"))
     emit_vararg_end(emit, offset);
     return GW_OK;
   }
   if(!get_variadic(emit))
-      ERR_B(exp_self(member)->pos, "vararg.%s used before vararg.start. this is an error", s_name(member->xid))
+      ERR_B(exp_self(member)->pos, _("vararg.%s used before vararg.start. this is an error"), s_name(member->xid))
   if(GET_FLAG(emit->env->func, empty))
-    ERR_B(exp_self(member)->pos, "vararg.%s used after vararg.end. this is an error", s_name(member->xid))
+    ERR_B(exp_self(member)->pos, _("vararg.%s used after vararg.end. this is an error"), s_name(member->xid))
   const Instr instr = emit_add_instr(emit, VarargMember);
   instr->m_val = offset;
   instr->m_val2 = exp_self(member)->type->size;
@@ -1700,9 +1700,9 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   CHECK_BB(_fdef_body(emit, fdef))
   if(GET_FLAG(fdef, variadic)) {
     if(!get_variadic(emit))
-      ERR_B(fdef->pos, "invalid variadic use")
+      ERR_B(fdef->pos, _("invalid variadic use"))
     if(!GET_FLAG(fdef->base->func, empty))
-      ERR_B(fdef->pos, "invalid variadic use")
+      ERR_B(fdef->pos, _("invalid variadic use"))
   }
   return GW_OK;
 }

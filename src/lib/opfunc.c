@@ -29,8 +29,8 @@ OP_EMIT(opem_basic_cast) {
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->meta != ae_meta_var)
-    ERR_N(exp_self(bin)->pos, "cannot assign '%s' on types '%s' and '%s'.\n"
-         "  ...  (reason: --- right-side operand is %s.)",
+    ERR_N(exp_self(bin)->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
+         "  ...  (reason: --- right-side operand is %s.)"),
          op2str(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access(bin->rhs->meta))
   return bin->rhs->type;
@@ -67,7 +67,7 @@ OP_CHECK(opck_unary_meta2_uniq) {
   CHECK_OO(opck_unary_meta2(env, data))
   if(unary->exp->next)
     ERR_N(exp_self(unary)->pos,
-      "'%s' must be applied to a unique expression", op2str(unary->op))
+      _("'%s' must be applied to a unique expression"), op2str(unary->op))
   return t_int;
 }
 
@@ -75,7 +75,7 @@ OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)
     ERR_N(unary->exp->pos,
-          "unary operator '%s' cannot be used on %s data-types.",
+          _("unary operator '%s' cannot be used on %s data-types."),
           op2str(unary->op), access(unary->exp->meta))
   unary->exp->emit_var = 1;
   exp_self(unary)->meta = ae_meta_value;
@@ -85,7 +85,7 @@ OP_CHECK(opck_unary) {
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
   if(post->exp->meta != ae_meta_var)
-    ERR_N(post->exp->pos, "post operator '%s' cannot be used on %s data-type.",
+    ERR_N(post->exp->pos, _("post operator '%s' cannot be used on %s data-type."),
           op2str(post->op), access(post->exp->meta))
   post->exp->emit_var = 1;
   exp_self(post)->meta = ae_meta_value;

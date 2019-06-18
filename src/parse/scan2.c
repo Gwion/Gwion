@@ -158,7 +158,7 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
 ANN static m_bool multi_decl(const Env env, const Exp e, const Operator op) {
   if(e->exp_type == ae_exp_decl) {
     if(e->d.exp_decl.list->next)
-      ERR_B(e->pos, "cant '%s' from/to a multi-variable declaration.", op2str(op))
+      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."), op2str(op))
     SET_FLAG(e->d.exp_decl.list->self->value, used);
   }
   return GW_OK;
@@ -263,7 +263,7 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   if(stmt->is_label) {
     const Map m = scan2_label_map(env);
     if(map_get(m, (vtype)stmt->name))
-      ERR_B(stmt_self(stmt)->pos, "label '%s' already defined", s_name(stmt->name))
+      ERR_B(stmt_self(stmt)->pos, _("label '%s' already defined"), s_name(stmt->name))
     map_set(m, (vtype)stmt->name, (vtype)stmt);
     vector_init(&stmt->data.v);
   }
@@ -305,10 +305,10 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0) {
   if(isa(actual_type(overload->type), t_function) < 0)
-    ERR_B(f->pos, "function name '%s' is already used by another value", overload->name)
+    ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
 }
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
-    ERR_B(f->pos, "must overload template function with template")
+    ERR_B(f->pos, _("must overload template function with template"))
   return GW_OK;
 }
 
@@ -498,8 +498,8 @@ ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v)
 }
 
 
-ANN m_bool scan2_fdef(const Env env, const Func_Def f, const Value overload) {
-  const m_str name = func_name(env, f, overload);
+ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overload) {
+  const m_str name = func_name(env, f, overload ?: NULL);
   if((m_int)name <= GW_OK)
     return (m_bool)(m_uint)name;
   const Func base = get_func(env, f);
@@ -524,7 +524,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
   const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
   if(res)
-    ERR_B(f->pos, "'%s' already declared as type", s_name(f->base->xid))
+    ERR_B(f->pos, _("'%s' already declared as type"), s_name(f->base->xid))
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;

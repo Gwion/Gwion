@@ -1,3 +1,6 @@
+PACKAGE=gwion
+CFLAGS += -DPACKAGE='"{PACKAGE}"'
+
 ifeq (,$(wildcard util/config.mk))
 $(shell cp util/config.mk.orig util/config.mk)
 endif
@@ -6,10 +9,6 @@ $(shell cp config.mk.orig config.mk)
 endif
 include util/config.mk
 include config.mk
-
-DEPDIR := .d
-$(shell mkdir -p $(DEPDIR) >/dev/null)
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(@F:.o=.Td)
 
 # initialize source lists
 src_src := $(wildcard src/*.c)
@@ -75,20 +74,11 @@ all: options util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 libgwion.a: ${gwlib_obj}
 	${AR} ${AR_OPT}
 
-config.mk:
-	$(info generating config.mk)
-	@cp config.mk.orig config.mk
-
 util/libgwion_util.a:
 	@make -C util
 
 ast/libgwion_ast.a:
 	@make -C ast
-
-options:
-	$(info CC      : ${CC})
-	$(info CFLAGS  : ${CFLAGS})
-	$(info LDFLAGS : ${LDFLAGS})
 
 clean:
 	$(info cleaning ...)
@@ -97,12 +87,6 @@ clean:
 src/arg.o:
 	$(info compile $(<:.c=) (with arguments defines))
 	@${CC} $(DEPFLAGS) ${CFLAGS} ${CICFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
-	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
-	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
-
-.c.o: $(DEPDIR)/%.d
-	$(info compile $(<:.c=))
-	@${CC} $(DEPFLAGS) ${CFLAGS} ${CICFLAGS} -c $< -o $(<:.c=.o)
 	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
@@ -116,3 +100,5 @@ test:
 	@bash help/test.sh tests/* examples
 
 include $(wildcard .d/*.d)
+include util/target.mk
+include util/intl.mk

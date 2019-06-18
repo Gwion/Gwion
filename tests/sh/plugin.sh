@@ -14,13 +14,14 @@ export GWION_ADD_DIR
 
 test_plugin() {
 	export NAME=$"$1"
+	export PRG=$"../../gwion"
 	make
   if [ -f "$NAME.gw" ]
   then GWOPT=-p. test_gw "$NAME.gw" "$n"
   else  GWOPT=-p. test_gw "/dev/null" "$n"
   fi
   make clean
-	N=$(printf "% 4i" "$n")
+ 	N=$(printf "% 4i" "$n")
 	echo "ok $N plugin test: '$NAME'"
   n=$((n+1))
 }

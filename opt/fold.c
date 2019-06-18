@@ -30,7 +30,7 @@ describe_xxx_exp(float, m_float, float, fnum)
 #define CASE(op_op, l, op, r) case op_##op_op: ret = l op r; break;
 
 #define DIV_BY_ZERO(l, op, r) if(r) ret = l op r; else \
-         ERR_B(bin->rhs->pos, "ZeroDivideException")
+         ERR_B(bin->rhs->pos, _("Division by zero"))
 
 #define COMMON_CASE(l, r)                     \
     CASE(add, l, +, r)                        \

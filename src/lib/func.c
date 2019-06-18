@@ -29,7 +29,7 @@ static INSTR(LambdaAssign) {
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->exp_type == ae_exp_decl)
-    ERR_N(bin->rhs->pos, "calling fptr decl, this is forbidden.")
+    ERR_N(bin->rhs->pos, _("calling fptr decl, this is forbidden."))
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
@@ -101,17 +101,17 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   const Type l_type = info->lhs->value_ref->owner_class;
   const Type r_type = info->rhs->value_ref->owner_class;
   if(!r_type && l_type)
-    ERR_B(info->pos, "can't assign member function to non member function pointer")
+    ERR_B(info->pos, _("can't assign member function to non member function pointer"))
   else if(!l_type && r_type) {
     if(!GET_FLAG(info->rhs, global))
-      ERR_B(info->pos, "can't assign non member function to member function pointer")
+      ERR_B(info->pos, _("can't assign non member function to member function pointer"))
   } else if(l_type && isa(r_type, l_type) < 0)
-      ERR_B(info->pos, "can't assign member function to a pointer of an other class")
+      ERR_B(info->pos, _("can't assign member function to a pointer of an other class"))
   if(GET_FLAG(info->rhs, member)) {
     if(!GET_FLAG(info->lhs, member))
-      ERR_B(info->pos, "can't assign static function to member function pointer")
+      ERR_B(info->pos, _("can't assign static function to member function pointer"))
   } else if(GET_FLAG(info->lhs, member))
-      ERR_B(info->pos, "can't assign member function to static function pointer")
+      ERR_B(info->pos, _("can't assign member function to static function pointer"))
   return GW_OK;
 }
 
@@ -161,7 +161,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     arg = arg->next;
   }
   if(base || arg)
-    ERR_B(exp_self(l)->pos, "argument number does not match for lambda")
+    ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def = new_func_def(env->gwion->mp,
     new_func_base(env->gwion->mp, def->base->td, l->name, l->args),
     l->code, def->flag, loc_cpy(env->gwion->mp, def->pos));
@@ -248,8 +248,8 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->op == op_fork && !unary->fork_ok)
-    ERR_O(exp_self(unary)->pos, "forks must be stored in a value:\n"
-        "fork xxx @=> Fork f")
+    ERR_O(exp_self(unary)->pos, _("forks must be stored in a value:\n"
+        "fork xxx @=> Fork f"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return unary->op == op_spork ? t_shred : t_fork;
   else if(unary->code) {
@@ -261,7 +261,7 @@ static OP_CHECK(opck_spork) {
     CHECK_BO(ret)
     return unary->op == op_spork ? t_shred : t_fork;
   } else
-    ERR_O(exp_self(unary)->pos, "only function calls can be sporked...")
+    ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
   return NULL;
 }
 

@@ -107,9 +107,9 @@ ANN void gwion_end(const Gwion gwion) {
 
 ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
   if(env->class_def)
-    gw_err("in class: '%s'\n", env->class_def->name);
+    gw_err(_("in class: '%s'\n"), env->class_def->name);
   if(env->func)
-    gw_err("in function: '%s'\n", env->func->name);
+    gw_err(_("in function: '%s'\n"), env->func->name);
   loc_header(pos, env->name);
   va_list arg;
   va_start(arg, fmt);

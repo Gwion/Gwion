@@ -74,7 +74,7 @@ static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   strcpy(name, c->name);
   if(_compiler_open(c) < 0) {
     compiler_error(p, c);
-    gw_err("'%s': no such file\n", name);
+    gw_err(_("'%s': no such file\n"), name);
     return GW_ERROR;
   }
   return GW_OK;
@@ -97,7 +97,7 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   compiler_name(gwion->mp, c);
   MUTEX_LOCK(gwion->data->mutex);
   if(check(gwion, c) < 0 || !(code = emit_ast(gwion->emit, c->ast)))
-    gw_err("while compiling file '%s'\n", c->base);
+    gw_err(_("while compiling file '%s'\n"), c->base);
   else {
     const VM_Shred shred = new_vm_shred(gwion->mp, code);
     shred->info->args = c->args;
