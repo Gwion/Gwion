@@ -50,7 +50,7 @@ install:
       if [ $(CC) = "gcc" ];
       then export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
       else export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC";
-      fi
+      fi;
       export LIBS="$LIBS -lpsapi -shared -fPIC";
     fi;
 
