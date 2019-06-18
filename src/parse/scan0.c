@@ -29,7 +29,7 @@ ANN static Value mk_class(const Env env, const Type base) {
 
 ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_t pos) {
   if(nspc_lookup_type0(env->curr, s))
-    ERR_B(pos, "type '%s' already defined", s_name(s));
+    ERR_B(pos, _("type '%s' already defined"), s_name(s));
   return already_defined(env, s, pos);
 }
 
@@ -80,7 +80,7 @@ ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
   if(stmt->xid) {
     const Value v = nspc_lookup_value1(env->curr, stmt->xid);
     if(v)
-      ERR_B(stmt_self(stmt)->pos, "'%s' already declared as variable of type '%s'.",
+      ERR_B(stmt_self(stmt)->pos, _("'%s' already declared as variable of type '%s'."),
         s_name(stmt->xid),  v->type->name)
     CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
   }

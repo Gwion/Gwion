@@ -18,7 +18,7 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, t, = known_type(env, td))
   if(t->size)
     return t;
-  ERR_O(td_pos(td), "cannot declare variables of size '0' (i.e. 'void')...")
+  ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
 }
 
 
@@ -27,18 +27,14 @@ ANN static inline Type get_base_type(const Env env, const Type t) {
   return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
 }
 
-ANN static inline void contains(const Type base, const Type t) {
-  if(vector_find(&base->e->contains, (vtype)t) == GW_ERROR) {
-    vector_add(&base->e->contains, (vtype)t);
+ANN static inline void type_contains(const Type base, const Type t) {
+  const Vector v = &base->e->contains;
+  if(!v->ptr)
+    vector_init(v);
+  if(vector_find(v, (vtype)t) == GW_ERROR) {
+    vector_add(v, (vtype)t);
     ADD_REF(t);
   }
-}
-
-ANN static inline void type_contains(const Type base, const Type t) {
-    if(!base->e->contains.ptr)
-      vector_init(&base->e->contains);
-printf("%s =>  %s\n", t->name, base->name);
-    contains(base, t);
 }
 
 ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
@@ -50,7 +46,7 @@ ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
     if(decl_base->e->contains.ptr) {
       for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
         if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(decl->td, ref))
-          ERR_B(exp_self(decl)->pos, "%s declared inside %s\n. (make it a ref ?)",
+          ERR_B(exp_self(decl)->pos, _("%s declared inside %s\n. (make it a ref ?)"),
               decl_base->name, decl_base == base ? "itself" : base->name);
       }
     }
@@ -69,11 +65,11 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
       SET_FLAG(decl->td, member);
   }
   if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
-    ERR_O(exp_self(decl)->pos, "Type '%s' is abstract, declare as ref. (use @)", t->name)
+    ERR_O(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
   if(GET_FLAG(t, private) && t->e->owner != env->curr)
-    ERR_O(exp_self(decl)->pos, "can't use private type %s", t->name)
+    ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
-    ERR_O(exp_self(decl)->pos, "can't use protected type %s", t->name)
+    ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
   decl->base = t->e->def;
   return decl->type = t;
 }
@@ -93,13 +89,13 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     const Value former = nspc_lookup_value0(env->curr, var->xid);
     if(former && !decl->td->exp &&
         (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
-      ERR_B(var->pos, "variable %s has already been defined in the same scope...",
+      ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
       if(var->array->exp) {
         if(GET_FLAG(decl->td, ref))
-          ERR_B(td_pos(decl->td), "ref array must not have array expression.\n"
-            "e.g: int @my_array[];\nnot: @int my_array[2];")
+          ERR_B(td_pos(decl->td), _("ref array must not have array expression.\n"
+            "e.g: int @my_array[];\nnot: @int my_array[2];"))
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
       t = array_type(env, decl->type, var->array->depth);
@@ -148,8 +144,8 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   CHECK_BB(scan1_exp(env, post->exp))
   if(post->exp->meta == ae_meta_var)
     return GW_OK;
-  ERR_B(post->exp->pos, "post operator '%s' cannot be used"
-      " on non-mutable data-type...", op2str(post->op));
+  ERR_B(post->exp->pos, _("post operator '%s' cannot be used"
+      " on non-mutable data-type..."), op2str(post->op));
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
@@ -333,7 +329,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
   if(GET_FLAG(fdef, dtor) && !env->class_def)
-    ERR_B(td_pos(fdef->base->td), "dtor must be in class def!!")
+    ERR_B(td_pos(fdef->base->td), _("dtor must be in class def!!"))
   if(GET_FLAG(fdef, op) && env->class_def)
     SET_FLAG(fdef, static);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
@@ -359,14 +355,14 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   Type t = parent;
   do {
     if(cdef->base.type == t)
-      ERR_B(pos, "recursive (%s <= %s) class declaration.", cdef->base.type->name, t->name);
+      ERR_B(pos, _("recursive (%s <= %s) class declaration."), cdef->base.type->name, t->name);
   } while((t = t->e->parent));
   if(isa(parent, t_object) < 0)
-    ERR_B(pos, "cannot extend primitive type '%s'", parent->name)
+    ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def)
     CHECK_BB(scanx_parent(parent, scan1_class_def, env))
   if(type_ref(parent))
-    ERR_B(pos, "can't use ref type in class extend")
+    ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;
 }
 

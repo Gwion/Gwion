@@ -16,8 +16,6 @@
 //static struct Gwion_ gwion;
 
 static void sig(int unused NUSED) {
-//  gwion.vm->bbq->is_running = 0;
-//  longjmp(jmp, 1);
 #ifdef BUILD_ON_WINDOWS
   exit(EXIT_FAILURE);
 #else
@@ -26,8 +24,16 @@ static void sig(int unused NUSED) {
 }
 
 int main(int argc, char** argv) {
-//  setlocale(LC_ALL,"");
-//  bindtextdomain ("bison-runtime", "/usr/share/locale");
+//  setlocale(LC_ALL, NULL);
+//puts(
+// bindtextdomain ("bison-runtime", "/usr/share/locale")
+//);
+//  bindtextdomain ("bison-runtime", NULL);
+//puts(
+  bindtextdomain ("gwion_ast", "ast/po");
+  bindtextdomain ("gwion_util", "util/po");
+  bindtextdomain ("gwion", "po");
+//);
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);

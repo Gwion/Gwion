@@ -106,7 +106,7 @@ static OP_CHECK(at_object) {
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
   if(l != t_null && isa(l, r) < 0) {
-    env_err(env, exp_self(bin)->pos, "'%s' @=> '%s': not allowed", l->name, r->name);
+    env_err(env, exp_self(bin)->pos, _("'%s' @=> '%s': not allowed"), l->name, r->name);
     return t_null;
   }
   bin->rhs->emit_var = 1;

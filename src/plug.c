@@ -66,7 +66,7 @@ ANN static void plug_get(MemPool p, PlugInfo* pi, const m_str c) {
       map_set(&pi->drv, (vtype)str(), (vtype)drv);
     }
   } else
-    gw_err("error in %s.", DLERROR());
+    gw_err(_("error in %s."), DLERROR());
 }
 
 ANN PlugInfo* new_plug(MemPool p, const Vector list) {

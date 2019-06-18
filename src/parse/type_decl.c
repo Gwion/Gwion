@@ -58,14 +58,14 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
 ANN static inline void* type_unknown(const Env env, const ID_List id) {
   char path[id_list_len(id)];
   type_path(path, id);
-  env_err(env, id->pos, "unknown type '%s'", path);
+  env_err(env, id->pos, _("unknown type '%s'"), path);
   did_you_mean_nspc(env->curr, s_name(id->xid));
   return NULL;
 }
 
 ANN static inline Type prim_ref(const Env env, const Type t, const Type_Decl* td) {
   if(GET_FLAG(td, ref) && isa(t, t_object) < 0 && isa(t, t_class) < 0)
-    ERR_O(td->xid->pos, "primitive types cannot be used as reference (@)...\n")
+    ERR_O(td->xid->pos, _("primitive types cannot be used as reference (@)...\n"))
   return t;
 }
 

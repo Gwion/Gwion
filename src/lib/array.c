@@ -147,17 +147,17 @@ ANN static Type get_array_type(Type t) {
   const Type l = get_array_type(bin->lhs->type);          \
   const Type r = get_array_type(bin->rhs->type);          \
   if(isa(l, r) < 0)                                       \
-    ERR_N(exp_self(bin)->pos, "array types do not match.")
+    ERR_N(exp_self(bin)->pos, _("array types do not match."))
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
   if(opck_const_rhs(env, data) == t_null)
     return t_null;
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
-    ERR_N(exp_self(bin)->pos, "array depths do not match.")
+    ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
     if(bin->rhs->d.exp_decl.list->self->array)
-      ERR_N(exp_self(bin)->pos, "do not provide array for 'xxx @=> declaration'.")
+      ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
   bin->rhs->emit_var = 1;
   return bin->rhs->type;

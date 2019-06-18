@@ -32,9 +32,13 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   Value v;
   if(!a->is_union) {
     while(scope_iter(&iter, &v) > 0) {
+const Type  t = (GET_FLAG(v, builtin) && v->type->array_depth) ?
+  v->type : NULL;
       if(isa(v->type, t_object) > 0)
         nspc_release_object(a, v, gwion);
       REM_REF(v, gwion);
+if(t)
+    REM_REF(t, gwion);
     }
   }
   free_scope(gwion->mp, a->info->value);

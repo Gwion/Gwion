@@ -12,7 +12,7 @@
 
 ANN m_bool isres(const Env env, const Symbol xid, const loc_t pos) {
   if(vector_find(&env->gwion->data->reserved, (vtype)xid) > -1)
-    ERR_B(pos, "%s is reserved.", s_name(xid));
+    ERR_B(pos, _("%s is reserved."), s_name(xid));
   return GW_OK;
 }
 

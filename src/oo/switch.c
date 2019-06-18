@@ -77,7 +77,7 @@ ANN m_bool switch_decl(const Env env, const loc_t pos) {
   const Switch sw = (Switch)(VLEN(&env->scope->swi->map) ?
     VVAL(&env->scope->swi->map, VLEN(&env->scope->swi->map) - 1): 0);
   if(sw && sw->depth == env->scope->depth)
-    ERR_B(pos, "Declaration in switch is prohibited.")
+    ERR_B(pos, _("Declaration in switch is prohibited."))
   return GW_OK;
 }
 
@@ -115,13 +115,13 @@ ANN Exp switch_expget(const Env env) {
 
 ANN m_bool switch_inside(const Env env, const loc_t pos) {
   if(!VLEN(env->scope->swi))
-    ERR_B(pos, "case found outside switch statement.")
+    ERR_B(pos, _("case found outside switch statement."))
   return GW_OK;
 }
 ANN m_bool switch_dup(const Env env, const m_int value, const loc_t pos) {
   const Switch sw = (Switch)_scope_back(env->scope->swi);
   if(map_get(sw->cases, (vtype)value))
-    ERR_B(pos, "duplicated cases value %i", value)
+    ERR_B(pos, _("duplicated cases value %i"), value)
   sw->ok = 1;
   return GW_OK;
 }
@@ -143,10 +143,10 @@ ANN m_bool switch_dyn(const Env env) {
 
 ANN m_bool switch_default(const Env env, const m_uint pc, const loc_t pos) {
   if(!VLEN(env->scope->swi))
-    ERR_B(pos, "'default'case found outside switch statement.")
+    ERR_B(pos, _("'default'case found outside switch statement."))
   const Switch sw = (Switch)_scope_back(env->scope->swi);
   if(sw->default_case_index)
-    ERR_B(pos, "default case already defined")
+    ERR_B(pos, _("default case already defined"))
   sw->default_case_index = pc;
   return GW_OK;
 }
@@ -178,7 +178,7 @@ ANN m_bool switch_end(const Env env, const loc_t pos) {
   const vtype index = VKEY(&env->scope->swi->map, VLEN(&env->scope->swi->map) - 1);
 //  sw->ok = 1;
   if(!VLEN(sw->cases) && !VLEN(&sw->exp))
-    ERR_B(pos, "switch statement with no cases.")
+    ERR_B(pos, _("switch statement with no cases."))
   map_remove(&env->scope->swi->map, index);
   free_switch(env->gwion->mp, sw);
   return GW_OK;

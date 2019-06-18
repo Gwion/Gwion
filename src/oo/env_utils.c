@@ -23,13 +23,13 @@ ANN Nspc env_nspc(const Env env) {
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
   if(env->scope->depth) {
    if(GET(flag, ae_flag_global))
-      ERR_B(pos, "'global' can only be used at %s scope.",
+      ERR_B(pos, _("'global' can only be used at %s scope."),
           GET(flag, ae_flag_global) && !env->class_def ?
            "file" : "class")
   }
   if((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
       GET(flag, ae_flag_protect)) && (!env->class_def || env->scope->depth))
-      ERR_B(pos, "static/private/protect can only be used at class scope.")
+      ERR_B(pos, _("static/private/protect can only be used at class scope."))
   return GW_OK;
 }
 
@@ -66,7 +66,7 @@ ANN Type find_type(const Env env, ID_List path) {
         type = type->e->parent;
       }
       if(!t)
-        ERR_O(path->pos, "...(cannot find class '%s' in nspc '%s')", s_name(xid), nspc->name)
+        ERR_O(path->pos, _("...(cannot find class '%s' in nspc '%s')"), s_name(xid), nspc->name)
       type = t;
     }
     nspc = type->nspc;
@@ -80,7 +80,7 @@ ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   if(!v || isa(v->type, t_class) > 0)
     return GW_OK;
   env_err(env, pos,
-      "'%s' already declared as variable of type '%s'.", s_name(s), v->type->name);
+      _("'%s' already declared as variable of type '%s'."), s_name(s), v->type->name);
   return GW_ERROR;
 }
 

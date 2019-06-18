@@ -1,4 +1,5 @@
 #!/bin/bash
+# [test] #0
 
 : "${PRG:=gwion}"
 : "${VALGRIND:=valgrind}"
@@ -181,9 +182,9 @@ test_gw(){
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
   if [ "$VALGRIND" == "NO_VALGRIND" ]
-  then ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
-    "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
+    LANG=C "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
     ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?
