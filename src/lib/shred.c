@@ -1,5 +1,4 @@
 #include <string.h>
-#include <libgen.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_thread.h"
@@ -96,6 +95,12 @@ static MFUN(shred_arg) {
     *(m_uint*)RETURN = 0;
 }
 
+#ifndef BUILD_ON_WINDOWS
+#define PATH_CHR '/'
+#else
+#define PATH_CHR '\\'
+#endif
+
 #define describe_path_and_dir(name, src) \
 static MFUN(shred##name##_path) { \
   const VM_Shred s = ME(o); \
@@ -108,7 +113,15 @@ static MFUN(shred##name##_dir) { \
   const size_t len = strlen(str); \
   char c[len + 1]; \
   strcpy(c, str); \
-  *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, dirname(c)); \
+  size_t sz = len;\
+  while(sz) {\
+    if(c[sz] == PATH_CHR) {\
+      c[sz] = 0;\
+      break;\
+    }\
+    --sz;\
+  }\
+  *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, c); \
 }
 describe_path_and_dir(, s->info->name)
 describe_path_and_dir(_code, s->code->name)
