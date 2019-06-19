@@ -1,0 +1,33 @@
+# Declarations
+
+## Basics
+
+Declaring a primitive or an object is quite straight forward:
+@``` decl0.gw
+int i;
+Object o;
+<<<i, " ", o>>>;
+@```
+@exec gwion decl0.gw 2>&1
+
+## Declaring a reference
+However ...
+@``` decl1.gw
+Object @ref;
+<<<"Reference points to no object yet: ", ref>>>;
+//Object o @=> ref;
+new Object @=> ref;
+<<<"But now it does: ", ref>>>;
+@```
+@exec gwion decl1.gw 2>&1
+
+## Arrays
+
+### array as refs
+@``` decl2.gw
+int ref[];
+<<<ref>>>;
+new int[2] @=> ref;
+<<<ref>>>;
+@```
+@exec gwion decl2.gw 2>&1

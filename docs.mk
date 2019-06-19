@@ -59,3 +59,22 @@ _noterm_header=echo '<blockquote><p style=$(CSS)>'
 _noterm_test=$(call _test_check) && $(call _noterm_status)
 _noterm_footer=echo '</p></blockquote>'
 _noterm=($(call _noterm_header); $(call _noterm_log); $(call _noterm_test); $(call _noterm_footer))
+DOCTOOL ?= mkdocs
+
+# output box css
+BACKGROUND    = background-color:\#e3e3e3;
+BORDER        = border: 5px solid \#343131;
+PADDING       = padding: 10px;
+MARGIN        = margin-right: 20%; margin-left: 20%;
+BORDER_RADIUS = -moz-border-radius: 15px; -webkit-border-radius: 15px;
+CSS           = "$(BACKGROUND) $(BORDER) $(PADDING) $(MARGIN) $(BORDER_RADIUS)"
+
+VALGRIND     ?= valgrind
+VALGRIND_LOG ?= vlog
+VALGRIND_OPT += --leak-check=yes --log-file=${VALGRIND_LOG}
+
+INTERM_OK       = \033[32mOK\033[0m
+INTERM_NOT_OK   = \033[31mNOT OK\033[0m
+
+NOTERM_OK= &\#10004;
+NOTERM_NOT_OK= &\#10008;
