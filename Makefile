@@ -109,3 +109,5 @@ test:
 include $(wildcard .d/*.d)
 include util/target.mk
 include util/intl.mk
+include docs/config.mk
+include docs.mk
