@@ -2,5 +2,4 @@ gwion
 .d
 config.mk
 include/generated.h
-docs/WIP_*.md
 .desk
