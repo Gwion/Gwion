@@ -34,8 +34,7 @@ static INSTR(instr_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
-  return exp_self(unary)->type;
+  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
 }
 
 static OP_CHECK(opck_implicit_ptr) {

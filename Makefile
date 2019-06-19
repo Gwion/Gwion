@@ -52,7 +52,14 @@ GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util
 gwlib_obj := $(filter-out src/main.o, ${GW_OBJ})
 
 CFLAGS  += -Iinclude
+
+ifeq (${BUILD_ON_WINDOWS}, 1)
+ifeq (${CC}, gcc)
 LDFLAGS += -lm
+endif
+else
+LDFLAGS += -lm
+endif
 
 ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt -rdynamic

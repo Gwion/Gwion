@@ -709,10 +709,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
   if(unary->exp && !opi.rhs)
     return NULL;
-  const Type t = op_check(env, &opi);
-  if(t && isa(t, t_object) < 0)
-    exp_self(unary)->meta = ae_meta_value;
-  return t;
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
