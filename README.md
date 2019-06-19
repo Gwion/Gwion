@@ -22,8 +22,8 @@ to run this, do
 ```sh
 ./gwion hello_world.gw
 ```
-You want to know more? :smile: Look [here](https://fennecdjay.github.io/gwion-docs/)
-Still WIP but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion-docs/issues)
+You want to know more? :smile: Look [here](https://fennecdjay.github.io/gwion/)
+Still WIP but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
 
 #### build
 just
