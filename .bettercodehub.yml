@@ -20,6 +20,7 @@ languages:
        - fake_entry
     test:
       include:
+        - /docs/.*/.*\.mdr
         - /examples/.*/.*\.gw
         - /tests/.*/.*\.gw
 
