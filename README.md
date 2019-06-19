@@ -22,12 +22,8 @@ to run this, do
 ```sh
 ./gwion hello_world.gw
 ```
-
-:mag: learn more about options: :mag_right:
-
-```
-./gwion --help
-```
+You want to know more? :smile: Look [here](https://fennecdjay.github.io/gwion-docs/)
+Still WIP but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion-docs/issues)
 
 #### build
 just

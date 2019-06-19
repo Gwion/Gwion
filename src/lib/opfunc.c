@@ -28,7 +28,6 @@ OP_EMIT(opem_basic_cast) {
 
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-printf("rhs %p %i\n", bin->rhs, bin->rhs->meta);
   if(bin->rhs->meta != ae_meta_var)
     ERR_N(bin->rhs->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
          "  ...  (reason: --- right-side operand is %s.)"),
