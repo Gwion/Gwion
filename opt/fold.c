@@ -8,6 +8,7 @@
 #include "type.h"
 #include "optim.h"
 #include "constant.h"
+#include "traverse.h"
 #include "parse.h"
 
 ANN static void fold_exp(MemPool mp, const Exp_Binary* bin) {
