@@ -2,19 +2,21 @@ mdr_list = $(shell find -regextype posix-egrep -regex '.*.mdr$$')
 md_list  = $(mdr_list:.mdr=.md)
 
 _docserver_launch = $(DOCTOOL) -q serve & echo $$! > .server_pid
-_docserver_kill   = [ -f .server_pid ] && (kill $$(cat .server_pid); rm .server_pid) || true
+_docserver_kill   = kill $$(cat .server_pid); rm .server_pid || true
 
 _mdr_wait=$$(inotifywait -q -r docs --format "%w%f" | tail -n1)
 
 doc-run:
 	@bash -c "trap 'trap - SIGINT SIGTERM ERR; $(MAKE) -s doc-clean; exit 1' SIGINT SIGTERM ERR; $(MAKE) -s doc-watch"
 
-doc-watch: $(md_list)
+doc-watch: ${md_list}
+	@bash help/doc-config.sh > mkdocs.yml
 	@$(call _docserver_launch)
 	@while true; do file=$(call _mdr_wait); echo $$file | grep '\.mdr$$' && mdr $$file; done
 
-doc-serve:
-	@$(call _docserver_launch)
+doc-serve: $(md_list)
+	@bash help/doc-config.sh > mkdocs.yml
+	@$(DOCTOOL) -q serve
 
 doc-clean:
 	-@$(call _docserver_kill)
