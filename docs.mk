@@ -14,7 +14,7 @@ doc-watch: $(md_list)
 	@while true; do file=$(call _mdr_wait); echo $$file | grep '\.mdr$$' && mdr $$file; done
 
 doc-serve:
-	@(call _docserver_launch)
+	@$(call _docserver_launch)
 
 doc-clean:
 	-@$(call _docserver_kill)
