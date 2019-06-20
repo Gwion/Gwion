@@ -70,5 +70,12 @@ Other basic targets include: clean install uninstall test
 
 ## Acknowledgements.
 The whole [Chuck](http://chuck.cs.princeton.edu/) team, for inspiration.  
-[Paul Batchelor](https://github.com/PaulBatchelor) and the great [soundpipe](https://github.com/PaulBatchelor/Soundpipe) library, that got me started.  
-And of course all the [contributors](https://github.com/fennecdjay/Gwion/graphs/contributors), not to mention the OSS community.
+[Paul Batchelor](https://github.com/PaulBatchelor) and the great [soundpipe](https://github.com/PaulBatchelor/Soundpipe) library, that got me started.
+
+## Contributors
+
+Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
+
+This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
+
+>    NOTE: if you should be on the list of contributors but we forgot you, don't be shy and let us know!
