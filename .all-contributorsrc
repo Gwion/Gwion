@@ -1,0 +1,26 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "PaulBatchelor",
+      "name": "Paul Batchelor",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/8139389?v=4",
+      "profile": "http://paulbatchelor.github.io",
+      "contributions": [
+        "question",
+        "bug",
+        "code",
+        "ideas"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "Gwion",
+  "projectOwner": "fennecdjay",
+  "repoType": "github",
+  "repoHost": "https://github.com"
+}
