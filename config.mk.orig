@@ -3,10 +3,6 @@ PRG ?=gwion
 PREFIX ?=/usr/local
 CFLAGS += -Iutil/include -Iast/include -D_GNU_SOURCE
 
-# handle boolean options
-USE_OPTIMIZE  ?= 0
-USE_NOMEMOIZE ?= 0
-
 # base plugin directories
 GWPLUG_DIR   ?= $(shell echo ~/.gwplug)
 

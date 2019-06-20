@@ -1078,30 +1078,24 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
   return ret;
 }
 
-#ifdef OPTIMIZE
 ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   Exp arg = e->args;
   if(arg)
     CHECK_BB(emit_exp(emit, e->args, 0))
-  const Instr instr = emit_add_instr(emit, PutArgsInMem);
-  while(arg) {
-    instr->m_val += arg->type->size;
-    arg = arg->next;
+  regpop(emit, SZ_INT);
+  for(m_uint i = 0; i < e->m_func->def->stack_depth; i += SZ_INT) {
+    const Instr instr = emit_add_instr(emit, Reg2Mem);
+    instr->m_val = instr->m_val2 = i;
   }
   emit_add_instr(emit, Goto);
   return GW_OK;
 }
-#define OPTIMIZE_TCO\
-  if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)\
-    return optimize_taill_call(emit, &stmt->val->d.exp_call);
-#else
-#define OPTIMIZE_TCO
-#endif
 
 
 ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
   if(stmt->val) {
-    OPTIMIZE_TCO
+    if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
+      return optimize_taill_call(emit, &stmt->val->d.exp_call);
     CHECK_BB(emit_exp(emit, stmt->val, 0))
     if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_shred) < 0) // beware shred
       emit_add_instr(emit, RegAddRef);

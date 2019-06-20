@@ -36,14 +36,6 @@ INSTR(SwitchBranch) {
   shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;
 }
 
-#ifdef OPTIMIZE
-INSTR(PutArgsInMem) {
-  POP_REG(shred, instr->m_val)
-  for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
-    *(m_uint*)(shred->mem + i) = *(m_uint*)(shred->reg + i);
-}
-#endif
-
 #include "gwion.h"
 #include "emit.h"
 #include "value.h"
