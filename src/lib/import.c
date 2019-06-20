@@ -557,7 +557,7 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   Type_Decl* td = import_td(gwi, gwi->val.type);
   if(!td)
-    GWI_ERR_O(_("'%s' : invalid type"));
+    GWI_ERR_O(_("'%s' : invalid type"), gwi->val.type);
   td->flag |= flag;
   const Symbol sym = insert_symbol(gwi->gwion->st, gwi->val.name);
   const Stmt stmt = new_stmt_type(gwi->gwion->mp, td, sym);
