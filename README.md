@@ -1,5 +1,5 @@
 ![](https://img.shields.io/badge/language-C-green.svg)
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/fennecdjay/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
 [![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=master)](https://travis-ci.org/fennecdjay/Gwion)
@@ -77,7 +77,7 @@ The whole [Chuck](http://chuck.cs.princeton.edu/) team, for inspiration.
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore -->
-<table><tr><td align="center"><a href="http://paulbatchelor.github.io"><img src="https://avatars3.githubusercontent.com/u/8139389?v=4" width="100px;" alt="Paul Batchelor"/><br /><sub><b>Paul Batchelor</b></sub></a><br /><a href="#question-PaulBatchelor" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3APaulBatchelor" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=PaulBatchelor" title="Code">💻</a> <a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td></tr></table>
+<table><tr><td align="center"><a href="http://paulbatchelor.github.io"><img src="https://avatars3.githubusercontent.com/u/8139389?v=4" width="100px;" alt="Paul Batchelor"/><br /><sub><b>Paul Batchelor</b></sub></a><br /><a href="#question-PaulBatchelor" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3APaulBatchelor" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=PaulBatchelor" title="Code">💻</a> <a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td><td align="center"><a href="https://github.com/originalsouth"><img src="https://avatars1.githubusercontent.com/u/5300799?v=4" width="100px;" alt="Benny"/><br /><sub><b>Benny</b></sub></a><br /><a href="#question-originalsouth" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3Aoriginalsouth" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=originalsouth" title="Code">💻</a></td></tr></table>
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
