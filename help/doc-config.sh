@@ -16,6 +16,8 @@ list_dir() {
 echo "site_name: Gwion"
 echo "theme: windmill"
 echo "repo_url: https://github.com/fennecdjay/Gwion"
+echo "site_description: a strongly timed musical programming language"
+echo "site_author: Jérémie Astor"
 echo "nav:"
 echo "  - 'Welcome' : index.md"
 mv docs/index.md .

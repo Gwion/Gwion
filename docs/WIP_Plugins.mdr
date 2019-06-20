@@ -1,4 +1,7 @@
 # Writing a Gwion plugin
+
+> THIS IS OUTDATED. please look at the source code in src/lib/ instead
+
   * [getting started]
 
 ## Getting started

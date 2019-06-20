@@ -2,7 +2,7 @@ mdr_list = $(shell find -regextype posix-egrep -regex '.*.mdr$$')
 md_list  = $(mdr_list:.mdr=.md)
 
 _docserver_launch = $(DOCTOOL) -q serve & echo $$! > .server_pid
-_docserver_kill   = kill $$(cat .server_pid); rm .server_pid || true
+_docserver_kill   = [ -f .server_pid ] && (kill $$(cat .server_pid); rm .server_pid) || true
 
 _mdr_wait=$$(inotifywait -q -r docs --format "%w%f" | tail -n1)
 
@@ -57,15 +57,16 @@ _interm=(cat log; $(call _test_check) && $(call _interm_status))
 
 _noterm_log=sed 's/$$/\<br\/>/' log
 _noterm_status=echo -e "$(NOTERM_OK)" || echo -e "$(NOTERM_NOT_OK)"
-_noterm_header=echo '<blockquote><p style=$(CSS)>'
+#_noterm_header=echo '<blockquote><p style=$(CSS)>'
+_noterm_header=echo '<p style=$(CSS)>'
 _noterm_test=$(call _test_check) && $(call _noterm_status)
-_noterm_footer=echo '</p></blockquote>'
+_noterm_footer=echo '</p>'
 _noterm=($(call _noterm_header); $(call _noterm_log); $(call _noterm_test); $(call _noterm_footer))
 DOCTOOL ?= mkdocs
 
 # output box css
-BACKGROUND    = background-color:\#e3e3e3;
-BORDER        = border: 5px solid \#343131;
+BACKGROUND    = background-color:\#f2f2f2;
+BORDER        = border: 5px solid \#546e7a;
 PADDING       = padding: 10px;
 MARGIN        = margin-right: 20%; margin-left: 20%;
 BORDER_RADIUS = -moz-border-radius: 15px; -webkit-border-radius: 15px;
