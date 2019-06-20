@@ -18,6 +18,6 @@ echo "theme: windmill"
 echo "repo_url: https://github.com/fennecdjay/Gwion"
 echo "nav:"
 echo "  - 'Welcome' : index.md"
-cp docs/index.md .
+mv docs/index.md .
 list_dir docs "  "
 mv index.md docs
