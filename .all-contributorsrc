@@ -16,6 +16,17 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "originalsouth",
+      "name": "Benny",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/5300799?v=4",
+      "profile": "https://github.com/originalsouth",
+      "contributions": [
+        "question",
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
