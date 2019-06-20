@@ -1,22 +1,26 @@
+ifeq (,$(wildcard docs/config.mk))
+$(shell cp docs/config.mk.orig docs/config.mk)
+endif
+include docs/config.mk
+
 mdr_list = $(shell find -regextype posix-egrep -regex '.*.mdr$$')
 md_list  = $(mdr_list:.mdr=.md)
 
-_docserver_launch = $(DOCTOOL) -q serve & echo $$! > .server_pid
+_docserver_config       = bash help/doc-config.sh > mkdocs.yml
+_docserver_serve = $(call _docserver_config); $(DOCTOOL) -q serve
+_docserver_launch = $(call _docserver_serve)& echo $$! > .server_pid
 _docserver_kill   = [ -f .server_pid ] && (kill $$(cat .server_pid); rm .server_pid) || true
-
 _mdr_wait=$$(inotifywait -q -r docs --format "%w%f" | tail -n1)
 
 doc-run:
 	@bash -c "trap 'trap - SIGINT SIGTERM ERR; $(MAKE) -s doc-clean; exit 1' SIGINT SIGTERM ERR; $(MAKE) -s doc-watch"
 
 doc-watch: ${md_list}
-	@bash help/doc-config.sh > mkdocs.yml
 	@$(call _docserver_launch)
 	@while true; do file=$(call _mdr_wait); echo $$file | grep '\.mdr$$' && mdr $$file; done
 
 doc-serve: $(md_list)
-	@bash help/doc-config.sh > mkdocs.yml
-	@$(DOCTOOL) -q serve
+	@$(call _docserver_serve)
 
 doc-clean:
 	-@$(call _docserver_kill)
@@ -36,13 +40,6 @@ doc-deploy: $(md_list)
 	$(info compiling $<)
 	@mdr $< ||:
 
-ifeq ($(VALGRIND), NO_VALGRIND)
-VALGRIND     =
-VALGRIND_OPT =
-endif
-
-include config.mk
-
 .SUFFIXES: .gw .test
 .gw.test:
 	@${VALGRIND} ${VALGRIND_OPT} gwion $< &> log
@@ -57,27 +54,7 @@ _interm=(cat log; $(call _test_check) && $(call _interm_status))
 
 _noterm_log=sed 's/$$/\<br\/>/' log
 _noterm_status=echo -e "$(NOTERM_OK)" || echo -e "$(NOTERM_NOT_OK)"
-#_noterm_header=echo '<blockquote><p style=$(CSS)>'
-_noterm_header=echo '<p style=$(CSS)>'
 _noterm_test=$(call _test_check) && $(call _noterm_status)
+_noterm_header=echo '<p style=$(CSS)>'
 _noterm_footer=echo '</p>'
 _noterm=($(call _noterm_header); $(call _noterm_log); $(call _noterm_test); $(call _noterm_footer))
-DOCTOOL ?= mkdocs
-
-# output box css
-BACKGROUND    = background-color:\#f2f2f2;
-BORDER        = border: 5px solid \#546e7a;
-PADDING       = padding: 10px;
-MARGIN        = margin-right: 20%; margin-left: 20%;
-BORDER_RADIUS = -moz-border-radius: 15px; -webkit-border-radius: 15px;
-CSS           = "$(BACKGROUND) $(BORDER) $(PADDING) $(MARGIN) $(BORDER_RADIUS)"
-
-VALGRIND     ?= valgrind
-VALGRIND_LOG ?= vlog
-VALGRIND_OPT += --leak-check=yes --log-file=${VALGRIND_LOG}
-
-INTERM_OK       = \033[32mOK\033[0m
-INTERM_NOT_OK   = \033[31mNOT OK\033[0m
-
-NOTERM_OK= &\#10004;
-NOTERM_NOT_OK= &\#10008;
