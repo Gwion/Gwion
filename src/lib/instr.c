@@ -74,7 +74,7 @@ INSTR(GTmpl) {
       name, tmpl_name, i);
     const Func base = nspc_lookup_func1(f->value_ref->owner, sym);
     if(base) {
-      xfree(tmpl_name);
+      free_mstr(emit->gwion->mp, tmpl_name);
       assert(base->code);
       if(GET_FLAG(base->def, static))
         shred->reg -= SZ_INT;
