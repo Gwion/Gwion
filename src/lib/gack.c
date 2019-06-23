@@ -13,9 +13,7 @@
 
 static void print_type(const Type type) {
   const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_fptr) < 0;
-  const m_str name = is_func ? strdup("@function") : strdup(type->name);
-  gw_out("(%s) ", name);
-  xfree(name);
+  gw_out("(%s) ", is_func ? "@function" : type->name);
   if(GET_FLAG(type, typedef)) {
     gw_out(" aka ");
     print_type(type->e->parent);
