@@ -118,10 +118,10 @@ void free_plug(const Gwion gwion) {
 
 ANN Vector split_args(MemPool p, const m_str str) {
   const m_str arg = strchr(str, '=');
-  m_str d = strdup(arg+1), c = d;
+  m_str d = mstrdup(p, arg+1), c = d;
   const Vector args = new_vector(p);
   while(d)
-    vector_add(args, (vtype)strdup(strsep(&d, ",")));
+    vector_add(args, (vtype)mstrdup(p, strsep(&d, ",")));
   free(d);
   free(c);
   return args;
@@ -147,7 +147,7 @@ void plug_run(const Gwion gwion, const Vector args) {
     plug->self = plug->ini(gwion, arg);
     if(arg) {
       for(m_uint i = 0; i < vector_size(arg); ++i)
-        xfree((m_str)vector_at(arg, i));
+        free_mstr(gwion->mp, (m_str)vector_at(arg, i));
       free_vector(gwion->mp, arg);
     }
   }
