@@ -502,7 +502,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         break;
     }
   }
-  xfree(tmpl_name);
+  free_mstr(env->gwion->mp, tmpl_name);
   env_pop(env, scope);
   env->func = former;
   return m_func;

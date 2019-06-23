@@ -27,7 +27,7 @@ ANN static void td_info_run(const Env env, struct td_info* info) {
   do {
     m_str name = td2str(env, tl->td);
     text_add(&info->text, name);
-    xfree(name);// we can delete that after PoolizeStrings
+    free_mstr(env->gwion->mp, name);
     if(tl->next)
       text_add(&info->text, ",");
   } while((tl = tl->next));
@@ -48,15 +48,13 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
     td_info_run(env, &info);
     text_add(&info.text, ">");
   }
-  const m_str str = strdup(info.text.str);
-  text_release(&info.text);
-  return str;
+  return info.text.str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   struct td_info info = { .tl=tl, { .mp=env->gwion->mp} };
   td_info_run(env, &info);
-  return strdup(info.text.str);
+  return info.text.str;
 }
 
 ANN static inline void* type_unknown(const Env env, const ID_List id) {

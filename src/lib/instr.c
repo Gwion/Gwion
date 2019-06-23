@@ -82,7 +82,7 @@ INSTR(GTmpl) {
       return;
     }
   }
-  xfree(tmpl_name);
+  free_mstr(emit->gwion->mp, tmpl_name);
   dt->def = f->def;
   const Func_Def def = from_base(emit->env, dt, f->value_ref->owner);
   if(!def)
