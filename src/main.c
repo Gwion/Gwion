@@ -21,7 +21,6 @@ int main(int argc, char** argv) {
   signal(SIGTERM, sig);
   struct Gwion_ gwion = { .plug=NULL };
   const m_bool ini = gwion_ini(&gwion, &arg);
-  arg_release(&arg);
   if(ini > 0)
     gwion_run(&gwion);
   gwion_end(&gwion);

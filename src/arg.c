@@ -4,42 +4,38 @@
 #include "soundinfo.h"
 #define GWIONRC ".gwionrc"
 
-/* use before MemPool allocation */
-ANN static inline void config_end(const Vector config) {
+ANN static inline void config_end(MemPool p, const Vector config) {
   for(m_uint i = 0; i < vector_size(config); ++i) {
     const Vector v = (Vector)vector_at(config, i);
-    for(m_uint i = 1; i < vector_size(v); ++i)
-      xfree((m_str)vector_at(v, i));
-    vector_release(v);
-    xfree(v);
+    free_mstr(p, (m_str)vector_front(v));
+    free_vector(p, v);
   }
 }
 
-ANN static m_str plug_dir(void) {
+ANN static m_str plug_dir(MemPool p) {
   const m_str home = getenv("HOME");
   const size_t sz = strlen(home);
   const m_str pdir = "/.gwplug";
-  m_str plug_dir = (m_str)xmalloc(sz + strlen(pdir) + 1);
+  m_str plug_dir = (m_str)_mp_malloc(p, sz + strlen(pdir) + 1);
   strcpy(plug_dir, home);
   strcpy(plug_dir + sz, pdir);
   return plug_dir;
 }
 
-ANN static void arg_init(Arg* arg) {
+ANN static void arg_init(MemPool p, Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->mod);
   vector_init(&arg->config);
-//  vector_add(&arg->lib, (vtype)GWPLUG_DIR);
-  vector_add(&arg->lib, (vtype)plug_dir());
+  vector_add(&arg->lib, (vtype)plug_dir(p));
 }
 
-ANN void arg_release(Arg* arg) {
+ANN void arg_release(MemPool p, Arg* arg) {
   vector_release(&arg->add);
-  xfree((m_str)vector_front(&arg->lib));
+  free_mstr(p, (m_str)vector_front(&arg->lib));
   vector_release(&arg->lib);
   vector_release(&arg->mod);
-  config_end(&arg->config);
+  config_end(p, &arg->config);
   vector_release(&arg->config);
 }
 
@@ -56,19 +52,19 @@ static const char usage[] =
 "  -z    <number>  : set memoization limit\n"
 "  -m   <mod:args> : load module (and arguments)\n";
 
-ANN static void config_parse(Arg* arg, const m_str name);
+ANN static void config_parse(MemPool p, Arg* arg, const m_str name);
 
 #define CASE(a,b) case a: (b) ; break;
 #define get_arg(a) (a[i][2] == '\0' ? arg->argv[++i] : a[i] + 2)
 #define ARG2INT(a) strtol(get_arg(a), NULL, 10)
 
-ANN void _arg_parse(Arg* arg) {
+ANN void _arg_parse(MemPool p, Arg* arg) {
   for(int i = 1; i < arg->argc; ++i) {
     if(arg->argv[i][0] == '-') {
       switch(arg->argv[i][1]) {
         CASE('h', gw_err(usage))
         CASE('k', gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS))
-        CASE('c', config_parse(arg, get_arg(arg->argv)))
+        CASE('c', config_parse(p, arg, get_arg(arg->argv)))
         CASE('p', vector_add(&arg->lib, (vtype)get_arg(arg->argv)))
         CASE('m', vector_add(&arg->mod, (vtype)get_arg(arg->argv)))
         CASE('l', arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1)
@@ -83,59 +79,57 @@ ANN void _arg_parse(Arg* arg) {
   }
 }
 
-ANN static void split_line(const m_str line, const Vector v) {
-  m_str d = strdup(line), c = d;
+ANN static void split_line(MemPool p, const m_str line, const Vector v) {
+  m_str d = mstrdup(p, line);
   while(d) {
     const m_str str = strsep(&d, " ");
     const size_t sz = strlen(str);
-    const m_bool arg = (str[sz-1] == '\n');
-    vector_add(v, (vtype)strndup(str, arg ? sz - 1 : sz));
+    if(str[sz-1] == '\n')
+      str[sz-1] = '\0';
+    vector_add(v, (vtype)str);
   }
-  free(d);
-  free(c);
 }
 
-ANN static Vector get_config(const m_str name) {
+ANN static Vector get_config(MemPool p, const m_str name) {
   char *line = NULL;
   size_t len = 0;
   ssize_t nread;
   FILE *f = fopen(name, "r");
   CHECK_OO(f)
-  const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
-  vector_init(v);
+  const Vector v = new_vector(p);
   vector_add(v, (vtype)name);
   while((nread = getline(&line, &len, f)) != -1) {
     if(line[0] != '#')
-      split_line(line, v);
+      split_line(p, line, v);
   }
   free(line);
   fclose(f);
   return v;
 }
 
-ANN static void config_parse(Arg* arg, const m_str name) {
-  const Vector v = get_config(name);
+ANN static void config_parse(MemPool p, Arg* arg, const m_str name) {
+  const Vector v = get_config(p, name);
   if(v) {
     int argc = arg->argc;
     char** argv = arg->argv;
     arg->argc = vector_size(v);
     arg->argv =  (m_str*)(v->ptr + OFFSET);
-    _arg_parse(arg);
+    _arg_parse(p, arg);
     arg->argc = argc;
     arg->argv = argv;
     vector_add(&arg->config, (vtype)v);
   }
 }
 
-ANN static void config_default(Arg* arg) {
+ANN static void config_default(MemPool p, Arg* arg) {
   char* home = getenv("HOME");
   char c[strlen(home) + strlen(GWIONRC) + 2];
   sprintf(c, "%s/%s", home, GWIONRC);
-  config_parse(arg, c);
+  config_parse(p, arg, c);
 }
 
-ANN void arg_parse(Arg* a) {
-  arg_init(a);
-  config_default(a);
-  _arg_parse(a);
+ANN void arg_parse(MemPool p, Arg* a) {
+  arg_init(p, a);
+  config_default(p, a);
+  _arg_parse(p, a);
 }

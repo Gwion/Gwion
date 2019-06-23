@@ -57,6 +57,16 @@ ANN VM* gwion_cpy(const VM* src) {
   return gwion->vm;
 }
 
+
+ANN m_bool start(const Gwion gwion, Arg* arg) {
+  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
+    gwion_compile(gwion, &arg->add);
+    plug_run(gwion, &arg->mod);
+    return GW_OK;
+  }
+  return GW_ERROR;
+}
+
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->mp = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
   gwion->st = new_symbol_table(gwion->mp, 65347);
@@ -69,17 +79,14 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   arg->si = gwion->vm->bbq->si;
-  arg_parse(arg);
+  arg_parse(gwion->mp, arg);
   gwion->emit->memoize = arg->memoize;
   gwion->plug = new_plug(gwion->mp, &arg->lib);
   gwion->data = new_gwiondata(gwion->mp);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
-  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-    gwion_compile(gwion, &arg->add);
-    plug_run(gwion, &arg->mod);
-    return GW_OK;
-  }
-  return GW_ERROR;
+  const m_bool ret = start(gwion, arg);
+  arg_release(gwion->mp, arg);
+  return ret;
 }
 
 ANN void gwion_run(const Gwion gwion) {
