@@ -17,12 +17,12 @@ struct Stack_ {
 static inline struct ShredInfo_ *new_shredinfo(MemPool p, const m_str name) {
   struct ShredInfo_ *info = mp_calloc(p, ShredInfo);
   info->mp = p;
-  info->name = strdup(name);
+  info->name = mstrdup(p, name);
   return info;
 }
 
 static inline void free_shredinfo(MemPool mp, struct ShredInfo_ *info) {
-  free(info->name);
+  free_mstr(mp, info->name);
   if(info->args) {
     const Vector v = info->args;
     LOOP_OPTIM
