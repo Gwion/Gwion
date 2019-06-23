@@ -35,7 +35,7 @@ ANN static void free_vm_code(VM_Code a, Gwion gwion) {
     memoize_end(gwion->mp, a->memoize);
   if(!GET_FLAG(a, builtin))
     _free_code_instr(a->instr, gwion);
-  xfree(a->name);
+  free_mstr(gwion->mp, a->name);
   mp_free(gwion->mp , VM_Code, a);
 }
 
@@ -43,7 +43,7 @@ VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
     const ae_flag flag, const m_str name) {
   VM_Code code           = mp_calloc(p, VM_Code);
   code->instr            = instr ?  vector_copy(p, instr) : NULL;
-  code->name             = strdup(name);
+  code->name             = mstrdup(p, name);
   code->stack_depth      = stack_depth;
   code->flag = flag;
   code->ref = new_refcount(p, free_vm_code);
