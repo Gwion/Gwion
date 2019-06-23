@@ -25,7 +25,7 @@ to run this, do
 ./gwion hello_world.gw
 ```
 You want to know more? :smile: Look [here](https://fennecdjay.github.io/gwion/)
-Still WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
+Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
 
 ## Build
 ### Download the source
