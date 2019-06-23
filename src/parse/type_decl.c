@@ -27,7 +27,7 @@ ANN static void td_info_run(const Env env, struct td_info* info) {
   do {
     m_str name = td2str(env, tl->td);
     text_add(&info->text, name);
-    xfree(name);
+    xfree(name);// we can delete that after PoolizeStrings
     if(tl->next)
       text_add(&info->text, ",");
   } while((tl = tl->next));
@@ -37,7 +37,9 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
   const size_t len = id_list_len(td->xid)  + depth * 2;
   const size_t cap = round2szint(len);
-  struct td_info info = { td->types, { (m_str)xmalloc(cap), cap, len }};
+  struct td_info info = { td->types,
+    { (m_str)mp_malloc2(env->gwion->mp, cap), cap, len, env->gwion->mp }
+  };
   type_path(info.text.str, td->xid);
   while(depth--) { text_add(&info.text, "[]"); }
   Type_List tl = td->types;
@@ -46,13 +48,15 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
     td_info_run(env, &info);
     text_add(&info.text, ">");
   }
-  return info.text.str;
+  const m_str str = strdup(info.text.str);
+  text_release(&info.text);
+  return str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
-  struct td_info info = { .tl=tl };
+  struct td_info info = { .tl=tl, { .mp=env->gwion->mp} };
   td_info_run(env, &info);
-  return info.text.str;
+  return strdup(info.text.str);
 }
 
 ANN static inline void* type_unknown(const Env env, const ID_List id) {
