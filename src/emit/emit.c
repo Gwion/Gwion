@@ -99,7 +99,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_calloc(emit->gwion->mp, Code);
-  code->name = code_name_set(name, emit->env->name);
+  code->name = code_name_set(emit->gwion->mp, name, emit->env->name);
   vector_init(&code->instr);
   vector_init(&code->stack_break);
   vector_init(&code->stack_cont);
@@ -114,7 +114,7 @@ ANN static void free_code(MemPool p, Code* code) {
   vector_release(&code->stack_cont);
   vector_release(&code->stack_return);
   free_frame(p, code->frame);
-  xfree(code->name);
+  free_mstr(p, code->name);
   mp_free(p, Code, code);
 }
 
