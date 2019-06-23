@@ -34,7 +34,7 @@ static void compiler_name(MemPool p, struct Compiler* c) {
   if(d)
     c->args = new_vector(p);
   while(d)
-    vector_add(c->args, (vtype)strdup(strsep(&d, ":")));
+    vector_add(c->args, (vtype)mstrdup(p, strsep(&d, ":")));
   free(d);
 }
 
@@ -43,7 +43,7 @@ static inline void compiler_error(MemPool p, const struct Compiler* c) {
     for(m_uint i = 0; i < vector_size(c->args); ++i) {
       const m_str str = (m_str)vector_at(c->args, i);
       if(str)
-        xfree((m_str)vector_at(c->args, i));
+        free_mstr(p, (m_str)vector_at(c->args, i));
     }
     free_vector(p, c->args);
   }
