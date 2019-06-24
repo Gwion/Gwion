@@ -40,7 +40,8 @@ ANN static void free_vm_code(VM_Code a, Gwion gwion) {
   mp_free(gwion->mp , VM_Code, a);
 }
 
-ANN static m_bit* tobytecode(MemPool p, const VM_Code code, const Vector v) {
+ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
+  const Vector v = code->instr;
   const m_uint sz = vector_size(v);
   m_bit *ptr = _mp_malloc(p, sz * BYTECODE_SZ);
   for(m_uint i= 0; i < sz; ++i) {
@@ -66,7 +67,7 @@ VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
   VM_Code code           = mp_calloc(p, VM_Code);
   if(instr) {
     code->instr            = vector_copy(p, instr);
-    code->bytecode = tobytecode(p, code, instr);
+    code->bytecode = tobytecode(p, code);
   }
   code->name             = mstrdup(p, name);
   code->stack_depth      = stack_depth;
