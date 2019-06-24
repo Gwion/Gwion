@@ -33,7 +33,8 @@ ANN static inline void type_contains(const Type base, const Type t) {
     vector_init(v);
   if(vector_find(v, (vtype)t) == GW_ERROR) {
     vector_add(v, (vtype)t);
-    ADD_REF(t);
+    if(base != t)
+      ADD_REF(t);
   }
 }
 

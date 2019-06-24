@@ -560,13 +560,16 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   if(!GET_FLAG(v, member)) {
     v->offset = emit_local(emit, v->type->size, is_obj);
     exec = (f_instr*)(allocword);
+    if(GET_FLAG(var_decl->value, ref)) {
+      const Instr clean = emit_add_instr(emit, MemSetImm);
+      clean->m_val = v->offset;
+    }
   }
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, exec);
   instr->m_val = v->offset;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
-    const Instr assign = emit_add_instr(emit, Assign);
-    assign->m_val = emit_var;
+    emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);

@@ -339,7 +339,7 @@ regpushmemother:
   reg += VAL2;
   DISPATCH();
 regpushmemaddr:
-  *(m_bit**)reg = mem + VAL;
+  *(m_bit**)reg = &*(m_bit*)(mem + VAL);
   reg += SZ_INT;
   DISPATCH()
 pushnow:
