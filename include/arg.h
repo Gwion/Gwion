@@ -13,6 +13,6 @@ typedef struct Arg_ {
   m_bool memoize;
 } Arg;
 
-ANN void arg_release(MemPool p, Arg*);
-ANN void arg_parse(MemPool p, Arg*);
+ANN void arg_release(Arg*);
+ANN void arg_parse(Arg*);
 #endif
