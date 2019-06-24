@@ -1664,13 +1664,15 @@ ANN static void emit_func_def_return(const Emitter emit) {
 }
 
 ANN static void emit_func_def_code(const Emitter emit, const Func func) {
-  func->code = emit_code(emit);
   if(GET_FLAG(func->def, dtor)) {
-    emit->env->class_def->nspc->dtor = func->code;
-    Instr instr = (Instr)vector_back(func->code->instr);
+    Instr instr = (Instr)vector_back(&emit->code->instr);
     instr->opcode = eOP_MAX;
     instr->execute = DTOR_EOC;
     instr->m_val = (m_uint)emit->gwion->mp;
+  }
+  func->code = emit_code(emit);
+  if(GET_FLAG(func->def, dtor)) {
+    emit->env->class_def->nspc->dtor = func->code;
     ADD_REF(func->code)
   }
   // TODO: find why we need this

@@ -114,8 +114,8 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
   return mem >  (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP*16));
 }
 
-ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr instr) {
-  const VM_Shred sh = new_shred_base(shred, (VM_Code)instr->m_val);
+ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
+  const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
@@ -124,17 +124,17 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const Instr in
   return sh;
 }
 
-ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const Instr instr) {
-  const VM_Shred sh = new_shred_base(shred, (VM_Code)instr->m_val);
+ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
+  const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
   return sh;
 }
 
 #define TEST0(t, pos) if(!*(t*)(reg-pos)){ exception(shred, "ZeroDivideException"); break; }
 #define DISPATCH()\
-  instr =(Instr)(ip[pc++]);\
+	byte = bytecode + (pc++) * BYTECODE_SZ;\
   VM_INFO;\
-  goto *dispatch[instr->opcode];
+  goto *dispatch[*(m_bit*)byte];
 
 #define OP(t, sz, op, ...) \
   reg -= sz;\
@@ -232,6 +232,9 @@ _Pragma(STRINGIFY(COMPILER diagnostic push)) \
 _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define PRAGMA_POP() _Pragma(STRINGIFY(COMPILER diagnostic pop)) \
 
+#define VAL (*(m_uint*)(byte + SZ_INT))
+#define FVAL (*(m_float*)(byte + SZ_INT))
+#define VAL2 (*(m_uint*)(byte + SZ_INT*2))
 __attribute__ ((optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
@@ -288,8 +291,9 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   register m_bit next;
   while((shred = shreduler_get(s))) {
     register VM_Code code = shred->code;
-    register m_uint* ip = code->instr->ptr + OFFSET;
+    register m_bit* bytecode = code->bytecode;
     register size_t pc = shred->pc;
+    register m_bit* byte;
     register m_bit* reg = shred->reg;
     register m_bit* mem = shred->mem;
     register union {
@@ -299,43 +303,43 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     } a;
   MUTEX_LOCK(s->mutex);
   do {
-    register Instr instr; DISPATCH();
+    DISPATCH();
 regsetimm:
-  *(m_uint*)(reg + (m_int)instr->m_val2) = instr->m_val;
+  *(m_uint*)(reg + (m_int)VAL2) = VAL;
   DISPATCH();
 regpushimm:
-  *(m_uint*)reg = instr->m_val;
+  *(m_uint*)reg = VAL;
   reg += SZ_INT;
   DISPATCH();
 regpushfloat:
-  *(m_float*)reg = instr->f;
+  *(m_float*)reg = FVAL;
   reg += SZ_FLOAT;
   DISPATCH();
 regpushother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
-    *(m_bit**)(reg+i) = (m_bit*)(instr->m_val + i);
-  reg += instr->m_val2;
+  for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
+    *(m_bit**)(reg+i) = (m_bit*)(VAL + i);
+  reg += VAL2;
   DISPATCH();
 regpushaddr:
-  *(m_uint**)reg =  &instr->m_val;
+  *(m_uint**)reg =  &VAL;
   reg += SZ_INT;
   DISPATCH()
 regpushmem:
-  *(m_uint*)reg = *(m_uint*)(mem + instr->m_val);
+  *(m_uint*)reg = *(m_uint*)(mem + VAL);
   reg += SZ_INT;
   DISPATCH();
 regpushmemfloat:
-  *(m_float*)reg = *(m_float*)(mem + instr->m_val);
+  *(m_float*)reg = *(m_float*)(mem + VAL);
   reg += SZ_FLOAT;
   DISPATCH();
 regpushmemother:
-  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + instr->m_val) + i);
-  reg += instr->m_val2;
+  for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
+    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + VAL) + i);
+  reg += VAL2;
   DISPATCH();
 regpushmemaddr:
-  *(m_bit**)reg = mem + instr->m_val;
+  *(m_bit**)reg = mem + VAL;
   reg += SZ_INT;
   DISPATCH()
 pushnow:
@@ -343,32 +347,32 @@ pushnow:
   reg += SZ_FLOAT;
   DISPATCH();
 baseint:
-  *(m_uint*)reg = *(m_uint*)(shred->base + instr->m_val);
+  *(m_uint*)reg = *(m_uint*)(shred->base + VAL);
   reg += SZ_INT;
   DISPATCH();
 basefloat:
-  *(m_float*)reg = *(m_float*)(shred->base + instr->m_val);
+  *(m_float*)reg = *(m_float*)(shred->base + VAL);
   reg += SZ_FLOAT;
   DISPATCH();
 baseother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i+= SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((shred->base + instr->m_val) + i);
-  reg += instr->m_val2;
+  for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
+    *(m_uint*)(reg+i) = *(m_uint*)((shred->base + VAL) + i);
+  reg += VAL2;
   DISPATCH();
 baseaddr:
-  *(m_bit**)reg = (shred->base + instr->m_val);
+  *(m_bit**)reg = (shred->base + VAL);
   reg += SZ_INT;
   DISPATCH();
 regtoreg:
-  *(m_uint*)(reg + (m_int)instr->m_val) = *(m_uint*)(reg + (m_int)instr->m_val2);
+  *(m_uint*)(reg + (m_int)VAL) = *(m_uint*)(reg + (m_int)VAL2);
   DISPATCH()
 regtoregaddr:
   *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);
   reg += SZ_INT;
   DISPATCH()
 memsetimm:
-  *(m_uint*)(mem+instr->m_val) = instr->m_val2;
+  *(m_uint*)(mem+VAL) = VAL2;
   DISPATCH();
 regpushme:
   *(M_Object*)reg = shred->info->me;
@@ -382,24 +386,24 @@ funcreturn:
   pc = *(m_uint*)(mem-SZ_INT*2);
   code = *(VM_Code*)(mem-SZ_INT*3);
   mem -= (*(m_uint*)(mem-SZ_INT*4) + SZ_INT*4);
-  ip = code->instr->ptr + OFFSET;
+  bytecode = code->bytecode;
   DISPATCH();
 _goto:
-  pc = instr->m_val;
+  pc = VAL;
   DISPATCH();
 allocint:
-  *(m_uint*)reg = *(m_uint*)(mem+instr->m_val) = 0;
+  *(m_uint*)reg = *(m_uint*)(mem+VAL) = 0;
   reg += SZ_INT;
   DISPATCH()
 allocfloat:
-  *(m_float*)reg = *(m_float*)(mem+instr->m_val) = 0;
+  *(m_float*)reg = *(m_float*)(mem+VAL) = 0;
   reg += SZ_FLOAT;
   DISPATCH()
 allocother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val; i += SZ_INT)
-    *(m_uint*)(reg+i) = (*(m_uint*)(mem+instr->m_val+i) = 0);
-  reg += instr->m_val2;
+  for(m_uint i = 0; i <= VAL; i += SZ_INT)
+    *(m_uint*)(reg+i) = (*(m_uint*)(mem+VAL+i) = 0);
+  reg += VAL2;
   DISPATCH()
 
 intplus:  INT_OP(+)
@@ -566,18 +570,18 @@ funcusr:
   mem += push;
   *(m_uint*)  mem = push;mem += SZ_INT;
   *(VM_Code*) mem = code; mem += SZ_INT;
-  *(m_uint*)  mem = pc + instr->m_val2; mem += SZ_INT;
+  *(m_uint*)  mem = pc + VAL2; mem += SZ_INT;
   *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
   next = eFuncUsrEnd;
 }
 regpop:
-  reg -= instr->m_val;
+  reg -= VAL;
   DISPATCH();
 regpush:
-  reg += instr->m_val;
+  reg += VAL;
   DISPATCH();
 regtomem:
-  *(m_uint*)(mem+instr->m_val) = *(m_uint*)(reg+instr->m_val2);
+  *(m_uint*)(mem+VAL) = *(m_uint*)(reg+VAL2);
   DISPATCH()
 overflow:
   if(overflow_(mem, shred)) {
@@ -589,7 +593,7 @@ PRAGMA_PUSH()
   goto *dispatch[next];
 PRAGMA_POP()
 funcusrend:
-  ip = (code = a.code)->instr->ptr + OFFSET;
+  bytecode = (code = a.code)->bytecode;
   pc = 0;
   DISPATCH();
 funcmemberend:
@@ -597,62 +601,66 @@ funcmemberend:
   shred->reg = reg;
   shred->pc = pc;
   shred->code = code;
-  ((f_mfun)a.code->native_func)((*(M_Object*)mem), reg, shred);
-  reg += instr->m_val;
-  shred->mem = (mem -= instr->m_val2);
-  if(!s->curr)break;
+  {
+    const m_uint val = VAL;
+    const m_uint val2 = VAL2;
+    ((f_mfun)a.code->native_func)((*(M_Object*)mem), reg, shred);
+    reg += val;
+    shred->mem = (mem -= val2);
+    if(!s->curr)break;
+  }
   pc = shred->pc;
   DISPATCH()
 sporkini:
-  a.child = (instr->m_val2 ? init_spork_shred : init_fork_shred)(shred, instr);
+  a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL);
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)instr->m_val2);
-  a.child->reg += instr->m_val;
+  for(m_uint i = 0; i < VAL; i+= SZ_INT)
+    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
+  a.child->reg += VAL;
   DISPATCH()
 sporkexp:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i < instr->m_val; i+= SZ_INT)
+  for(m_uint i = 0; i < VAL; i+= SZ_INT)
     *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
 forkend:
-  fork_launch(vm, a.child->info->me, instr->m_val2);
+  fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
   *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
   if(!*(m_uint*)reg)
-    pc = instr->m_val;
+    pc = VAL;
   DISPATCH();
 branchneint:
   reg -= SZ_INT;
   if(*(m_uint*)reg)
-    pc = instr->m_val;
+    pc = VAL;
   DISPATCH();
 brancheqfloat:
   reg -= SZ_FLOAT;
   if(!*(m_float*)reg)
-    pc = instr->m_val;
+    pc = VAL;
   DISPATCH();
 branchnefloat:
   reg -= SZ_FLOAT;
   if(*(m_float*)reg)
-    pc = instr->m_val;
+    pc = VAL;
   DISPATCH();
 arrayappend:
   m_vector_add(ARRAY(a.obj), reg);
   release(a.obj, shred);
   DISPATCH()
 autoloop:
-  m_vector_get(ARRAY(a.obj), *(m_uint*)(mem + instr->m_val), mem + instr->m_val + SZ_INT);
+  m_vector_get(ARRAY(a.obj), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
   goto autoloopcount;
 autoloopptr:
-  *(m_bit**)(*(M_Object*)(mem + instr->m_val + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + instr->m_val));
+  *(m_bit**)(*(M_Object*)(mem + VAL + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + VAL));
 autoloopcount:
-  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - (*(m_uint*)(mem + instr->m_val))++;
+  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - (*(m_uint*)(mem + VAL))++;
   reg += SZ_INT;
   DISPATCH()
 arraytop:
@@ -662,10 +670,10 @@ arraytop:
     goto _goto;
 arrayaccess:
 {
-  const m_int idx = *(m_int*)(reg + SZ_INT * instr->m_val);
+  const m_int idx = *(m_int*)(reg + SZ_INT * VAL);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
-    gw_err(_("  ... at dimension [%" INT_F "]\n"), instr->m_val);
+    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
     shred->code = code;
     shred->mem = mem;
     exception(shred, "ArrayOutofBounds");
@@ -674,20 +682,20 @@ arrayaccess:
   DISPATCH()
 }
 arrayget:
-  m_vector_get(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * instr->m_val), (reg + (m_int)instr->m_val2));
+  m_vector_get(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * VAL), (reg + (m_int)VAL2));
   DISPATCH()
 arrayaddr:
-  *(m_bit**)(reg + (m_int)instr->m_val2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * instr->m_val));
+  *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * VAL));
   DISPATCH()
 arrayvalid:
   vector_pop(&shred->gc);
   goto regpush;
 newobj:
-  *(M_Object*)reg = new_object(vm->gwion->mp, shred, (Type)instr->m_val2);
+  *(M_Object*)reg = new_object(vm->gwion->mp, shred, (Type)VAL2);
   reg += SZ_INT;
   DISPATCH()
 addref:
-  if((a.obj = instr->m_val ? **(M_Object**)(reg-SZ_INT) :
+  if((a.obj = VAL ? **(M_Object**)(reg-SZ_INT) :
     *(M_Object*)(reg-SZ_INT)))
     ++a.obj->ref;
   DISPATCH()
@@ -705,7 +713,7 @@ assign:
   DISPATCH()
 }
 remref:
-  release(*(M_Object*)(mem + instr->m_val), shred);
+  release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
 except:
   if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
@@ -715,55 +723,52 @@ except:
   DISPATCH();
 allocmemberaddr:
   a.obj = *(M_Object*)mem;
-  *(m_bit**)reg = a.obj->data + instr->m_val;
+  *(m_bit**)reg = a.obj->data + VAL;
   reg += SZ_INT;
   DISPATCH()
 dotmember:
-  *(m_uint*)(reg-SZ_INT) = *(m_uint*)(a.obj->data + instr->m_val);
+  *(m_uint*)(reg-SZ_INT) = *(m_uint*)(a.obj->data + VAL);
   DISPATCH()
 dotfloat:
-  *(m_float*)(reg-SZ_INT) = *(m_float*)(a.obj->data + instr->m_val);
+  *(m_float*)(reg-SZ_INT) = *(m_float*)(a.obj->data + VAL);
   reg += SZ_FLOAT - SZ_INT;
   DISPATCH()
 dotother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
-    *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)((a.obj->data + instr->m_val) + i);
-  reg += instr->m_val2 - SZ_INT;
+  for(m_uint i = 0; i <= VAL2; i += SZ_INT)
+    *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)((a.obj->data + VAL) + i);
+  reg += VAL2 - SZ_INT;
   DISPATCH()
 dotaddr:
-  *(m_bit**)(reg-SZ_INT) = (a.obj->data + instr->m_val);
+  *(m_bit**)(reg-SZ_INT) = (a.obj->data + VAL);
   DISPATCH()
 staticint:
-  *(m_uint*)reg = *(m_uint*)instr->m_val;
+  *(m_uint*)reg = *(m_uint*)VAL;
   reg += SZ_INT;
   DISPATCH()
 staticfloat:
-  *(m_float*)reg = *(m_float*)instr->m_val;
+  *(m_float*)reg = *(m_float*)VAL;
   reg += SZ_FLOAT;
   DISPATCH()
 staticother:
 //  LOOP_OPTIM
-//  for(m_uint i = 0; i <= instr->m_val2; i += SZ_INT)
-//    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)instr->m_val + i);
-  memcpy(reg, (m_bit*)instr->m_val, instr->m_val2);
-  reg += instr->m_val2;
+//  for(m_uint i = 0; i <= VAL2; i += SZ_INT)
+//    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)VAL + i);
+  memcpy(reg, (m_bit*)VAL, VAL2);
+  reg += VAL2;
   DISPATCH()
 dotfunc:
   assert(a.obj);
   reg += SZ_INT;
 dotstaticfunc:
 PRAGMA_PUSH()
-  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, instr->m_val))->code;
+  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, VAL))->code;
 PRAGMA_POP()
   DISPATCH()
-staticcode:
-  instr->m_val = (m_uint)(a.code = (*(VM_Code*)reg = ((Func)instr->m_val)->code));
-  instr->opcode = eRegPushImm;
-  reg += SZ_INT;
-  DISPATCH()
+staticcode: // TODO: remove me
+exit(5);
 pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)instr->m_val);
+  *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)VAL);
   reg += SZ_INT;
   DISPATCH();
 gcini:
@@ -777,17 +782,17 @@ gcend:
     _release(a.obj, shred);
   DISPATCH()
 gack:
-  gack(reg, instr);
+  gack(reg, (Instr)VAL);
   DISPATCH()
 other:
 shred->code = code;
 shred->reg = reg;
 shred->mem = mem;
 shred->pc = pc;
-      instr->execute(shred, instr);
+      ((f_instr)VAL2)(shred, (Instr)VAL);
 if(!s->curr)break;
   code = shred->code;
-  ip = shred->code->instr->ptr + OFFSET;
+  bytecode = code->bytecode;
   reg = shred->reg;
   mem = shred->mem;
   pc = shred->pc;
