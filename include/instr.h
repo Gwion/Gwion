@@ -20,7 +20,7 @@ enum Kind {
 typedef struct Instr_     * Instr;
 typedef void (*f_instr)(const VM_Shred, const Instr);
 struct Instr_ {
-  m_bit opcode;
+  m_uint opcode;
   union {
     m_float f;
     m_uint m_val;
@@ -28,6 +28,7 @@ struct Instr_ {
   m_uint m_val2;
   void (*execute)(const VM_Shred shred, const Instr instr);
 };
+#define BYTECODE_SZ (sizeof(struct Instr_) - SZ_INT)
 
 INSTR(EOC);
 INSTR(DTOR_EOC);

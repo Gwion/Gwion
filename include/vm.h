@@ -3,6 +3,7 @@
 
 typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
+  m_bit *bytecode;
   union {
     Vector instr;
     m_uint native_func;
