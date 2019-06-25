@@ -131,10 +131,28 @@ ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code c
 }
 
 #define TEST0(t, pos) if(!*(t*)(reg-pos)){ exception(shred, "ZeroDivideException"); break; }
+
+#define ADVANCE() byte += BYTECODE_SZ;
+
+#define SDISPATCH() goto *dispatch[*(m_bit*)byte];
+#define IDISPATCH() { VM_INFO; SDISPATCH(); }
+
+#define SET_BYTE(pc)	(byte = bytecode + (pc) * BYTECODE_SZ)
+
+#define PC_DISPATCH(pc)\
+  SET_BYTE((pc));\
+  IDISPATCH();
+
 #define DISPATCH()\
-	byte = bytecode + (pc++) * BYTECODE_SZ;\
-  VM_INFO;\
-  goto *dispatch[*(m_bit*)byte];
+  ADVANCE();\
+  IDISPATCH();
+
+
+#define ADVANCE() byte += BYTECODE_SZ;
+
+#define ADISPATCH() { ADVANCE(); SDISPATCH(); }
+
+#define PC ((*(ushort*)(byte + 2)) + 1)
 
 #define OP(t, sz, op, ...) \
   reg -= sz;\
@@ -235,7 +253,13 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define VAL (*(m_uint*)(byte + SZ_INT))
 #define FVAL (*(m_float*)(byte + SZ_INT))
 #define VAL2 (*(m_uint*)(byte + SZ_INT*2))
-__attribute__ ((optimize("-O2")))
+
+#define BRANCH_DISPATCH(check) \
+  if(check) SET_BYTE(VAL);\
+  else ADVANCE(); \
+  IDISPATCH();
+
+__attribute__ ((hot, optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
@@ -292,8 +316,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   while((shred = shreduler_get(s))) {
     register VM_Code code = shred->code;
     register m_bit* bytecode = code->bytecode;
-    register size_t pc = shred->pc;
-    register m_bit* byte;
+    register m_bit* byte = bytecode + shred->pc * BYTECODE_SZ;
     register m_bit* reg = shred->reg;
     register m_bit* mem = shred->mem;
     register union {
@@ -303,7 +326,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     } a;
   MUTEX_LOCK(s->mutex);
   do {
-    DISPATCH();
+    SDISPATCH();
 regsetimm:
   *(m_uint*)(reg + (m_int)VAL2) = VAL;
   DISPATCH();
@@ -383,14 +406,14 @@ regpushmaybe:
   reg += SZ_INT;
   DISPATCH();
 funcreturn:
-  pc = *(m_uint*)(mem-SZ_INT*2);
-  code = *(VM_Code*)(mem-SZ_INT*3);
+{
+  register const m_uint pc = *(m_uint*)(mem-SZ_INT*2);
+  bytecode = (code = *(VM_Code*)(mem-SZ_INT*3))->bytecode;
   mem -= (*(m_uint*)(mem-SZ_INT*4) + SZ_INT*4);
-  bytecode = code->bytecode;
-  DISPATCH();
+  PC_DISPATCH(pc);
+}
 _goto:
-  pc = VAL;
-  DISPATCH();
+  PC_DISPATCH(VAL);
 allocint:
   *(m_uint*)reg = *(m_uint*)(mem+VAL) = 0;
   reg += SZ_INT;
@@ -547,7 +570,7 @@ timeadv:
   shred->code = code;
   shred->reg = reg;
   shred->mem = mem;
-  shred->pc = pc;
+  shred->pc = PC;
   break;
 setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
@@ -570,7 +593,7 @@ funcusr:
   mem += push;
   *(m_uint*)  mem = push;mem += SZ_INT;
   *(VM_Code*) mem = code; mem += SZ_INT;
-  *(m_uint*)  mem = pc + VAL2; mem += SZ_INT;
+  *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
   *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
   next = eFuncUsrEnd;
 }
@@ -593,24 +616,22 @@ PRAGMA_PUSH()
   goto *dispatch[next];
 PRAGMA_POP()
 funcusrend:
-  bytecode = (code = a.code)->bytecode;
-  pc = 0;
-  DISPATCH();
+  byte = bytecode = (code = a.code)->bytecode;
+  SDISPATCH();
 funcmemberend:
   shred->mem = mem;
   shred->reg = reg;
-  shred->pc = pc;
+  shred->pc = PC;
   shred->code = code;
   {
-    const m_uint val = VAL;
-    const m_uint val2 = VAL2;
+    register const m_uint val = VAL;
+    register const m_uint val2 = VAL2;
     ((f_mfun)a.code->native_func)((*(M_Object*)mem), reg, shred);
     reg += val;
     shred->mem = (mem -= val2);
     if(!s->curr)break;
   }
-  pc = shred->pc;
-  DISPATCH()
+  PC_DISPATCH(shred->pc)
 sporkini:
   a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL);
   DISPATCH()
@@ -632,24 +653,16 @@ sporkend:
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
-  if(!*(m_uint*)reg)
-    pc = VAL;
-  DISPATCH();
+  BRANCH_DISPATCH(!*(m_uint*)reg);
 branchneint:
   reg -= SZ_INT;
-  if(*(m_uint*)reg)
-    pc = VAL;
-  DISPATCH();
+  BRANCH_DISPATCH(*(m_uint*)reg);
 brancheqfloat:
   reg -= SZ_FLOAT;
-  if(!*(m_float*)reg)
-    pc = VAL;
-  DISPATCH();
+  BRANCH_DISPATCH(!*(m_float*)reg);
 branchnefloat:
   reg -= SZ_FLOAT;
-  if(*(m_float*)reg)
-    pc = VAL;
-  DISPATCH();
+  BRANCH_DISPATCH(*(m_float*)reg);
 arrayappend:
   m_vector_add(ARRAY(a.obj), reg);
   release(a.obj, shred);
@@ -670,7 +683,7 @@ arraytop:
     goto _goto;
 arrayaccess:
 {
-  const m_int idx = *(m_int*)(reg + SZ_INT * VAL);
+  register const m_int idx = *(m_int*)(reg + SZ_INT * VAL);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
@@ -701,7 +714,7 @@ addref:
   DISPATCH()
 objassign:
 {
-  const M_Object tgt = **(M_Object**)(reg -SZ_INT);
+  register const M_Object tgt = **(M_Object**)(reg -SZ_INT);
   if(tgt) {
     --tgt->ref;
     _release(tgt, shred);
@@ -788,15 +801,13 @@ other:
 shred->code = code;
 shred->reg = reg;
 shred->mem = mem;
-shred->pc = pc;
+shred->pc = PC;
       ((f_instr)VAL2)(shred, (Instr)VAL);
 if(!s->curr)break;
-  code = shred->code;
-  bytecode = code->bytecode;
+  bytecode = (code = shred->code)->bytecode;
   reg = shred->reg;
   mem = shred->mem;
-  pc = shred->pc;
-  DISPATCH()
+  PC_DISPATCH(shred->pc)
 eoc:
   shred->code = code;
   shred->mem = mem;
