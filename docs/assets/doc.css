@@ -1,0 +1,7 @@
+li + .lev2 {
+  display: none;
+}
+
+li:focus-within + .lev2 {
+  display: block;
+}

@@ -3,3 +3,5 @@ gwion
 config.mk
 include/generated.h
 .desk
+mkdocs.yml
+*.a

@@ -1,7 +1,8 @@
 # Functions
 
 ## a simple (commented example)
-@```function0.gw
+
+@``` function0.gw
 // declare function 'test_function'
 // with return type int
 // taking an int as argument
