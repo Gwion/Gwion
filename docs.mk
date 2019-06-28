@@ -42,18 +42,18 @@ doc-deploy: $(md_list)
 
 .SUFFIXES: .gw .test
 .gw.test:
-	@${VALGRIND} ${VALGRIND_OPT} gwion $< &> log
+	@${VALGRIND} ${VALGRIND_OPT} gwion $< 2>&1 > log
 	@[ -t 1 ] && $(call _interm) || $(call _noterm)
 
 define _test_check
 	for a in $(CONTAINS); do grep "$$a" log >/dev/null; done && valgrind_parse vlog
 endef
 
-_interm_status=echo -e "$(INTERM_OK)" || echo -e "$(INTERM_NOT_OK)"
+_interm_status=printf "$(INTERM_OK)\n" || printf "$(INTERM_NOT_OK)\n"
 _interm=(cat log; $(call _test_check) && $(call _interm_status))
 
 _noterm_log=sed 's/$$/\<br\/>/' log
-_noterm_status=echo -e "$(NOTERM_OK)" || echo -e "$(NOTERM_NOT_OK)"
+_noterm_status=printf "$(NOTERM_OK)\n" || printf "$(NOTERM_NOT_OK)\n"
 _noterm_test=$(call _test_check) && $(call _noterm_status)
 _noterm_header=echo '<p style=$(CSS)>'
 _noterm_footer=echo '</p>'

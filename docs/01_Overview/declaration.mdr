@@ -19,15 +19,16 @@ Object @ref;
 new Object @=> ref;
 <<<"But now it does: ", ref>>>;
 @```
-@exec gwion decl1.gw 2>&1
+@exec make decl1.test
 
 ## Arrays
 
 ### array as refs
+
 @``` decl2.gw
 int ref[];
 <<<ref>>>;
 new int[2] @=> ref;
 <<<ref>>>;
 @```
-@exec gwion decl2.gw 2>&1
+@exec make decl2.test
