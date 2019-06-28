@@ -11,7 +11,9 @@ Gwion is a programming language, aimed at making music
 **strongly** inspired by [chuck](http://chuck.stanford.edu/), but adding a bunch *high-level* features:  
 	  templating, first-class functions and more.  
 <!-- TODO: add benchmarks in doc and link to it -->
-It aims to be simple, small, fast, [extendable](https://github.com/fennecdjay/Gwion-plug) and embeddable.
+It aims to be simple, small,
+ [fast](https://fennecdjay.github.io/Benchmarks),
+ [extendable](https://github.com/fennecdjay/Gwion-plug) and embeddable.
 
 ### simple example code (hello_world.gw):
 
