@@ -5,7 +5,7 @@ We'll need a bash script
 <link rel=styleSheet href="../assets/doc.css" TYPE="text/css"><div id="org-categories"><ul class="lev1"><li><a href="#">Show the code</a></li><ul class="lev2"><a href="#">
 @``` benchmark.sh
 #!/bin/sh
-language=("gwion" "wren" "lua5.3")
+language=("gwion" "wren" "lua")
 extension=("gw" "wren" "lua")
 test_dir="tests/benchmark"
 plot_script="bench.plot"
@@ -13,7 +13,7 @@ plot_script="bench.plot"
 
 run() {
   perf stat -r"$repeats" "$1" "$test_dir/$3.$2" 2>&1 | grep "time elapsed" |
-    sed 's/ *\([0-9]*\),\([0-9]*\) seconds time elapsed *( +- *\([0-9]*\),\([0-9]*\)% )/\1.\2 \3.\4/'
+    sed 's/ *\([0-9]*\),\([0-9]*\) .* seconds time elapsed *( +- *\([0-9]*\),\([0-9]*\)% )/\1.\2 \3.\4/'
 }
 
 get_list() {
@@ -83,4 +83,4 @@ plot dat_name using 0:2:($3/100.):xtic(2) with boxerrorbar lc "blue" notitle, \
 
 ## Show the results
 Then just run it
-@exec bash benchmark.sh; rm bench.plot benchmark.sh
+@exec bash benchmark.sh; #rm bench.plot benchmark.sh
