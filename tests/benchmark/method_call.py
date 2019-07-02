@@ -2,9 +2,6 @@
 # http://www.bagley.org/~doug/shootout/
 from __future__ import print_function
 
-import sys
-import time
-
 # Map "range" to an efficient range in both Python 2 and 3.
 try:
     range = xrange
@@ -34,8 +31,6 @@ class NthToggle(Toggle):
 
 
 def main():
-    start = time.clock()
-
     NUM = 100000
 
     val = 1
@@ -73,8 +68,5 @@ def main():
         print("true")
     else:
         print("false")
-
-    print("elapsed: " + str(time.clock() - start))
-
 
 main()
