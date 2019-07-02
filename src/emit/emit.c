@@ -124,6 +124,7 @@ ANN static void emit_pop_scope(const Emitter emit) {
     Instr instr = emit_add_instr(emit, ObjectRelease);
     instr->m_val = (m_uint)offset;
   }
+  vector_pop(&emit->pure);
 }
 
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
@@ -137,6 +138,7 @@ ANN static inline void emit_pop_code(const Emitter emit)   {
 
 ANN static inline void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
+  vector_add(&emit->pure, 0);
 }
 
 ANN static inline m_uint emit_code_size(const Emitter emit) {
@@ -231,6 +233,10 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
   return GW_OK;
 }
 
+ANN static inline void emit_notpure(const Emitter emit) {
+  ++VPTR(&emit->pure, VLEN(&emit->pure));
+}
+
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     const Array_Sub arr, const uint is_ref) {
   Array_Sub array = arr;
@@ -257,6 +263,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     instr->m_val2 = (m_uint)type;
     emit_pre_ctor(emit, type);
   }
+  emit_notpure(emit);
   return GW_OK;
 }
 
@@ -385,6 +392,7 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   instr->m_val = (m_uint)type;
   instr->m_val2 = type->array_depth == 1 ? array_base(type)->size : SZ_INT;
   emit_add_instr(emit, GcAdd);
+  emit_notpure(emit);
   return GW_OK;
 }
 
@@ -832,28 +840,35 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
   return instr;
 }
 
+ANN static void emit_args(const Emitter emit, const Func f) {
+  const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
+  if((f->def->stack_depth - member) == SZ_INT) {
+    const Instr instr = emit_add_instr(emit, Reg2Mem);
+    instr->m_val = member;
+  } else {
+    const Instr instr = emit_add_instr(emit, Reg2Mem4);
+    instr->m_val = member;
+    instr->m_val2 = f->def->stack_depth - member;
+  }
+}
+
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   const Instr memoize = !(emit->memoize && GET_FLAG(f, pure)) ? NULL : emit_add_instr(emit, MemoizeCall);
-  f_instr exec;
   const Instr prelude = get_prelude(emit, f);
-  if(f->def->stack_depth) {
-    const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
-    prelude->m_val = f->def->stack_depth;
-    if(member) {
-      const Instr instr = emit_add_instr(emit, Reg2Mem);
-      instr->m_val2 = f->def->stack_depth - SZ_INT;
-      ++prelude->m_val2;
-    }
-    for(m_uint i = 0; i < f->def->stack_depth - member; i += SZ_INT) {
-      const Instr instr = emit_add_instr(emit, Reg2Mem);
-      instr->m_val = (instr->m_val2 = i) + member;
-      ++prelude->m_val2;
-    }
+  prelude->m_val = f->def->stack_depth;
+  const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
+  if(member) {
+    const Instr instr = emit_add_instr(emit, Reg2Mem);
+    instr->m_val2 = f->def->stack_depth - SZ_INT;
+    ++prelude->m_val2;
   }
-  exec = Overflow;
+  if(f->def->stack_depth - member) {
+    emit_args(emit, f);
+    ++prelude->m_val2;
+  }
   if(memoize)
     memoize->m_val = prelude->m_val2 + 1;
-  return emit_add_instr(emit, exec);
+  return emit_add_instr(emit, Overflow);
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
@@ -911,7 +926,7 @@ static inline void stack_alloc_this(const Emitter emit) {
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope->depth;
   emit_push_scope(emit);
-  const m_bool pure = SAFE_FLAG(emit->env->func, pure);
+  const m_bool pure = !vector_back(&emit->pure);
   if(!pure)
     emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
@@ -1082,13 +1097,10 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
 }
 
 ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
-  Exp arg = e->args;
-  if(arg)
+  if(e->args) {
     CHECK_BB(emit_exp(emit, e->args, 0))
-  regpop(emit, SZ_INT);
-  for(m_uint i = 0; i < e->m_func->def->stack_depth; i += SZ_INT) {
-    const Instr instr = emit_add_instr(emit, Reg2Mem);
-    instr->m_val = instr->m_val2 = i;
+    regpop(emit, SZ_INT);
+    emit_args(emit, e->m_func);
   }
   emit_add_instr(emit, Goto);
   return GW_OK;
@@ -1137,7 +1149,7 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
-  do if(GET_FLAG(a->self->value, used))
+  do //if(GET_FLAG(a->self->value, used))
     size += a->self->value->type->size;
   while((a = a->next));
   return size;
@@ -1678,9 +1690,6 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
     emit->env->class_def->nspc->dtor = func->code;
     ADD_REF(func->code)
   }
-  // TODO: find why we need this
-  assert(func->def->stack_depth == func->code->stack_depth);
-  func->def->stack_depth = func->code->stack_depth;
 }
 
 ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
@@ -1807,6 +1816,7 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
   for(m_uint i = vector_size(&emit->stack) + 1; --i;)
     emit_free_code(emit, (Code*)vector_at(&emit->stack, i - 1));
   vector_clear(&emit->stack);
+  vector_clear(&emit->pure);
   emit_free_code(emit, emit->code);
   return NULL;
 }

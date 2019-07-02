@@ -20,6 +20,8 @@ util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
 
+test_dir := $(filter-out tests/benchmark, $(wildcard tests/*))
+
 # add boolean
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
@@ -107,7 +109,7 @@ uninstall:
 	rm ${PREFIX}/${PRG}
 
 test:
-	@bash help/test.sh tests/* examples
+	@bash help/test.sh ${test_dir}
 
 include $(wildcard .d/*.d)
 include util/intl.mk

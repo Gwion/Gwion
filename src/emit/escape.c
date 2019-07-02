@@ -7,8 +7,8 @@
 #include "emit.h"
 #include "escape.h"
 
-char* escape_table(void) {
-  char *escape = (char*)calloc(256, sizeof(char));
+char* escape_table(MemPool p) {
+  char *escape = (char*)mp_calloc2(p, 256);
   escape['0'] = '0';
   escape['\''] = '\'';
   escape['"'] = '"';

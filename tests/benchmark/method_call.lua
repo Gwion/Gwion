@@ -53,7 +53,6 @@ end
 -----------------------------------------------------------
 
 function main ()
-  local start = os.clock()
   local N = 100000
 
   local val = 1
@@ -87,7 +86,6 @@ function main ()
     val = ntoggle:activate():value()
   end
   print(val and "true" or "false")
-  io.write(string.format("elapsed: %.8f\n", os.clock() - start))
 end
 
 main()

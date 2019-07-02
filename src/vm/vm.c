@@ -299,7 +299,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&itof, &&ftoi,
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
-    &&funcusr, &&regpop, &&regpush, &&regtomem, &&overflow, &&next, &&funcusrend, &&funcmemberend,
+    &&funcusr, &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&next, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkini, &&sporkfunc, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
@@ -605,6 +605,9 @@ regpush:
   DISPATCH();
 regtomem:
   *(m_uint*)(mem+VAL) = *(m_uint*)(reg+VAL2);
+  DISPATCH()
+regtomemother:
+  memcpy(mem+VAL, reg, VAL2);
   DISPATCH()
 overflow:
   if(overflow_(mem, shred)) {
