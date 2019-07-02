@@ -62,9 +62,9 @@ if (!exists("test_dir"))
 dat_name = sprintf("docs/assets/benchmark/%s.dat", bench)
 
 stats dat_name using 0:2 noout
-max = ceil(STATS_max_y+2)
+max = STATS_max_y+(0.1*STATS_max_y)
 
-#set title bench
+set title bench
 set output sprintf("docs/assets/benchmark/%s.png", bench)
 set xrange [-0.5:((ceil(STATS_max_x))+0.5)]
 set yrange [0:max]
@@ -76,8 +76,8 @@ set ytics nomirror
 set style fill transparent solid 0.25 # partial transparency
 set style fill noborder # no separate top/bottom lines
 
-plot dat_name using 0:2:($3/100.):xtic(2) with boxerrorbar lc "blue" notitle, \
-  '' using 0:(max-0.5):1 with labels
+plot dat_name using 0:2:($2*($3/100.0)):xtic(2) with boxerrorbar lc "blue" notitle, \
+  '' using 0:(max-(0.05*max)):1 with labels
 @```  
 </a></a></li></ul></ul></div>
 
