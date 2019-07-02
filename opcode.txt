@@ -121,6 +121,7 @@ FuncUsr
 RegPop
 RegPush
 Reg2Mem
+Reg2Mem4
 Overflow
 Next
 FuncUsrEnd

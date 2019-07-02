@@ -11,19 +11,21 @@
 #include "emit.h"
 #include "escape.h"
 
-ANEW Emitter new_emitter(void) {
-  Emitter emit = (Emitter)xcalloc(1, sizeof(struct Emitter_));
+ANEW Emitter new_emitter(MemPool p) {
+  Emitter emit = (Emitter)mp_calloc(p, Emitter);
   vector_init(&emit->stack);
+  vector_init(&emit->pure);
   vector_init(&emit->variadic);
-  emit->escape = escape_table();
+  emit->escape = escape_table(p);
   return emit;
 }
 
-ANN void free_emitter(Emitter a) {
+ANN void free_emitter(MemPool p, Emitter a) {
   vector_release(&a->stack);
+  vector_release(&a->pure);
   vector_release(&a->variadic);
-  xfree(a->escape);
-  xfree(a);
+  mp_free2(p, 256, a->escape);
+  mp_free(p, Emitter, a);
 }
 
 __attribute__((returns_nonnull))

@@ -5,7 +5,7 @@ We'll need a bash script
 <link rel=styleSheet href="../assets/doc.css" TYPE="text/css"><div id="org-categories"><ul class="lev1"><li><a href="#">Show the code</a></li><ul class="lev2"><a href="#">
 @``` benchmark.sh
 #!/bin/sh
-language=("gwion" "wren" "lua5.3")
+language=("gwion" "wren" "lua")
 extension=("gw" "wren" "lua")
 test_dir="tests/benchmark"
 plot_script="bench.plot"
@@ -13,7 +13,7 @@ plot_script="bench.plot"
 
 run() {
   perf stat -r"$repeats" "$1" "$test_dir/$3.$2" 2>&1 | grep "time elapsed" |
-    sed 's/ *\([0-9]*\),\([0-9]*\) seconds time elapsed *( +- *\([0-9]*\),\([0-9]*\)% )/\1.\2 \3.\4/'
+    sed 's/ *\([0-9]*\),\([0-9]*\) .* seconds time elapsed *( +- *\([0-9]*\),\([0-9]*\)% )/\1.\2 \3.\4/'
 }
 
 get_list() {
@@ -62,9 +62,9 @@ if (!exists("test_dir"))
 dat_name = sprintf("docs/assets/benchmark/%s.dat", bench)
 
 stats dat_name using 0:2 noout
-max = ceil(STATS_max_y+2)
+max = STATS_max_y+(0.1*STATS_max_y)
 
-#set title bench
+set title bench
 set output sprintf("docs/assets/benchmark/%s.png", bench)
 set xrange [-0.5:((ceil(STATS_max_x))+0.5)]
 set yrange [0:max]
@@ -76,11 +76,11 @@ set ytics nomirror
 set style fill transparent solid 0.25 # partial transparency
 set style fill noborder # no separate top/bottom lines
 
-plot dat_name using 0:2:($3/100.):xtic(2) with boxerrorbar lc "blue" notitle, \
-  '' using 0:(max-0.5):1 with labels
+plot dat_name using 0:2:($2*($3/100.0)):xtic(2) with boxerrorbar lc "blue" notitle, \
+  '' using 0:(max-(0.05*max)):1 with labels
 @```  
 </a></a></li></ul></ul></div>
 
 ## Show the results
 Then just run it
-@exec bash benchmark.sh; rm bench.plot benchmark.sh
+@exec bash benchmark.sh; #rm bench.plot benchmark.sh

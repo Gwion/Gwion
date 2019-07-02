@@ -156,7 +156,7 @@ static OP_CHECK(opck_array_at) {
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
-    if(bin->rhs->d.exp_decl.list->self->array)
+    if(bin->rhs->d.exp_decl.list->self->array->exp)
       ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
   bin->rhs->emit_var = 1;

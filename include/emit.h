@@ -20,13 +20,14 @@ struct Emitter_ {
   Code*  code;
   struct Gwion_ *gwion;
   struct Vector_  stack;
+  struct Vector_ pure;
   struct Vector_  variadic;
   char *escape;
   m_bool memoize;
 };
 
-ANEW ANN Emitter new_emitter(void/*const Env*/);
-ANN void free_emitter(Emitter);
+ANEW ANN Emitter new_emitter(MemPool);
+ANN void free_emitter(MemPool, Emitter);
 ANEW ANN VM_Code emit_code(const Emitter);
 ANN VM_Code emit_ast(const Emitter emit, Ast ast);
 ANN m_bool emit_exp_call1(const Emitter, const Func);

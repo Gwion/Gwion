@@ -61,7 +61,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->mp = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->vm = new_vm(gwion->mp, 1);
-  gwion->emit = new_emitter();
+  gwion->emit = new_emitter(gwion->mp);
   gwion->env = new_env(gwion->mp);
   gwion->emit->env = gwion->env;
   gwion->emit->gwion = gwion;
@@ -97,7 +97,7 @@ ANN void gwion_end(const Gwion gwion) {
   MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);
-  free_emitter(gwion->emit);
+  free_emitter(gwion->mp, gwion->emit);
   free_vm(gwion->vm);
   free_plug(gwion);
   free_gwiondata(gwion->mp, gwion->data);
