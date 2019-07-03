@@ -330,7 +330,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
     id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->mp, __LINE__));
   vector_release(&v);
   assert(id);
-  Type_Decl* td = new_type_decl(env->gwion->mp, id, 0);
+  Type_Decl* td = new_type_decl(env->gwion->mp, id);
   return new_type_list(env->gwion->mp, td, NULL);
 }
 

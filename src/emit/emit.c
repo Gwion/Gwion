@@ -1420,8 +1420,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
   if(stmt->xid) {
     union_allocdata(emit->gwion->mp, stmt);
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
-        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)),
-        stmt->flag);
+        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)));
+    type_decl->flag = stmt->flag;
     const Var_Decl var_decl = new_var_decl(emit->gwion->mp, stmt->xid, NULL, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);

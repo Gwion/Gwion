@@ -320,7 +320,8 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   dl_var_set(gwi->gwion->mp, v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->t.xid, flag);
+    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->t.xid);
+    type_decl->flag = flag;
     const Var_Decl var_decl = new_var_decl(gwi->gwion->mp, v->var.xid, v->var.array, loc_cpy(gwi->gwion->mp, gwi->loc));
     const Var_Decl_List var_decl_list = new_var_decl_list(gwi->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(gwi->gwion->mp, type_decl, var_decl_list);
@@ -363,7 +364,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
   m_uint i = 0;
   DECL_OO(m_str, type_name, = get_type_name(env, s, i++))
   DECL_OO(ID_List, id, = str2list(env, type_name, depth))
-  Type_Decl* td = new_type_decl(env->gwion->mp, id, 0);
+  Type_Decl* td = new_type_decl(env->gwion->mp, id);
   Type_List tmp = NULL;
   if(!td) {
     free_id_list(env->gwion->mp, id);
@@ -415,7 +416,7 @@ ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
   DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth))
-  Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path, 0);
+  Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path);
   if(!type_decl) {
     free_id_list(env->gwion->mp, type_path);
     return NULL;
@@ -530,7 +531,7 @@ ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Arg_List args = make_dll_arg_list(gwi, dl_fun);
   flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
-      !(type_decl = new_type_decl(env->gwion->mp, type_path, 0)))
+      !(type_decl = new_type_decl(env->gwion->mp, type_path)))
     GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
   struct Func_Base_ *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_stmt_fptr(env->gwion->mp, base, flag);
@@ -578,7 +579,7 @@ ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
     array = new_array_sub(env->gwion->mp, NULL);
     array->depth = array_depth;
   }
-  type_decl = new_type_decl(env->gwion->mp, id_list, 0);
+  type_decl = new_type_decl(env->gwion->mp, id_list);
   const Var_Decl var_decl = new_var_decl(env->gwion->mp,
       insert_symbol(env->gwion->st, name), array, loc_cpy(env->gwion->mp, gwi->loc));
   const Var_Decl_List var_decl_list = new_var_decl_list(env->gwion->mp, var_decl, NULL);
