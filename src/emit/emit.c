@@ -1285,7 +1285,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default"))
+    if(!strcmp(s_name(stmt->name), "default") && switch_inside(emit->env, stmt_self(stmt)->pos) > 0)
       return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
     if(!stmt->data.v.ptr)
       ERR_B(stmt_self(stmt)->pos, _("illegal case"))

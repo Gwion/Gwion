@@ -4,6 +4,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "context.h"
 #include "type.h"
 #include "func.h"
 #include "value.h"
@@ -106,6 +107,8 @@ ANN void gwion_end(const Gwion gwion) {
 }
 
 ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
+  if(env->context->error)
+    return;
   if(env->class_def)
     gw_err(_("in class: '%s'\n"), env->class_def->name);
   if(env->func)
@@ -117,4 +120,5 @@ ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...)
   va_end(arg);
   fprintf(stderr, "\n");
   loc_err(pos, env->name);
+  env->context->error = 1;
 }

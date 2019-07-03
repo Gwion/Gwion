@@ -611,8 +611,9 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
 }
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
-  if(!check_exp(env, exp))
-    ERR_B(exp->pos, _("function call using a non-existing function"))
+  CHECK_OB(check_exp(env, exp))
+//  if(!check_exp(env, exp))
+//    ERR_B(exp->pos, _("function call using a non-existing function"))
   if(isa(exp->type, t_function) < 0)
     ERR_B(exp->pos, _("function call using a non-function value"))
   return GW_OK;
