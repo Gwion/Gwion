@@ -23,7 +23,7 @@ git submodule update --init util ast
 ```
 
 > At this point, you might want to configure the build.
-  In this case, have a look at the [configuration page](01_Overview/00_First_Steps/Configure.md)
+  In this case, have a look at the [configuration page](Configure.md)
 
 
 ## Build the libraries and program
