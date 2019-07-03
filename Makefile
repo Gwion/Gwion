@@ -94,7 +94,7 @@ ast/libgwion_ast.a:
 
 clean:
 	$(info cleaning ...)
-	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion
+	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion libgwion.a
 
 src/arg.o:
 	$(info compile $(<:.c=) (with arguments defines))
