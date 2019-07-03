@@ -25,7 +25,7 @@
 #include "parser.h"
 
 #undef insert_symbol
-#define insert_symbol(a) insert_symbol(emit->env->gwion->st, (a))
+#define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
 
 #undef ERR_B
 #define ERR_B(a, b, ...) { env_err(emit->env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
