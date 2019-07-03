@@ -7,6 +7,7 @@ struct Context_ {
   Nspc        nspc;
   struct Map_ lbls;
   HAS_OBJ
+  m_bool error;
 };
 
 ANN2(2) ANEW Context new_context(MemPool p, const Ast, const m_str);

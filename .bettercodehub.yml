@@ -23,6 +23,7 @@ languages:
         - /docs/.*/.*\.mdr
         - /examples/.*/.*\.gw
         - /tests/.*/.*\.gw
+        - /tests/benchmark/.*\..*
 
   - name: script
     production:

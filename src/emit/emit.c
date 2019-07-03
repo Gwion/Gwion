@@ -25,7 +25,7 @@
 #include "parser.h"
 
 #undef insert_symbol
-#define insert_symbol(a) insert_symbol(emit->env->gwion->st, (a))
+#define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
 
 #undef ERR_B
 #define ERR_B(a, b, ...) { env_err(emit->env, (a), (b), ## __VA_ARGS__); return GW_ERROR; }
@@ -1285,7 +1285,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(switch_inside(emit->env, stmt_self(stmt)->pos) > 0 && !strcmp(s_name(stmt->name), "default"))
+    if(!strcmp(s_name(stmt->name), "default") && switch_inside(emit->env, stmt_self(stmt)->pos) > 0)
       return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
     if(!stmt->data.v.ptr)
       ERR_B(stmt_self(stmt)->pos, _("illegal case"))
@@ -1420,8 +1420,8 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
   if(stmt->xid) {
     union_allocdata(emit->gwion->mp, stmt);
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
-        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)),
-        stmt->flag);
+        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)));
+    type_decl->flag = stmt->flag;
     const Var_Decl var_decl = new_var_decl(emit->gwion->mp, stmt->xid, NULL, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);

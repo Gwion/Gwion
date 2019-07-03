@@ -30,6 +30,7 @@ doc-build: $(md_list)
 	$(DOCTOOL) build
 
 doc-deploy: $(md_list)
+	-@$(call _docserver_config)
 	@$(DOCTOOL) gh-deploy
 	@$(MAKE) -s doc-clean
 

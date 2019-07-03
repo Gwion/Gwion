@@ -13,7 +13,7 @@ Gwion is a programming language, aimed at making music
 <!-- TODO: add benchmarks in doc and link to it -->
 It aims to be simple, small,
  [fast](https://fennecdjay.github.io/Gwion/#Benchmarks/),
- [extendable](https://github.com/fennecdjay/Gwion-plug) and embeddable.
+ [extendable](https://github.com/fennecdjay/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
 
 ### simple example code (hello_world.gw):
 

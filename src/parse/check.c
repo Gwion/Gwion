@@ -330,7 +330,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
     id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->mp, __LINE__));
   vector_release(&v);
   assert(id);
-  Type_Decl* td = new_type_decl(env->gwion->mp, id, 0);
+  Type_Decl* td = new_type_decl(env->gwion->mp, id);
   return new_type_list(env->gwion->mp, td, NULL);
 }
 
@@ -611,8 +611,9 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
 }
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
-  if(!check_exp(env, exp))
-    ERR_B(exp->pos, _("function call using a non-existing function"))
+  CHECK_OB(check_exp(env, exp))
+//  if(!check_exp(env, exp))
+//    ERR_B(exp->pos, _("function call using a non-existing function"))
   if(isa(exp->type, t_function) < 0)
     ERR_B(exp->pos, _("function call using a non-function value"))
   return GW_OK;

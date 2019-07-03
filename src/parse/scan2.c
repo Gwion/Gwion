@@ -522,9 +522,9 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
-  const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
-  if(res)
-    ERR_B(f->pos, _("'%s' already declared as type"), s_name(f->base->xid))
+//  const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
+//  if(res)
+//    ERR_B(f->pos, _("'%s' already declared as type"), s_name(f->base->xid))
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;
