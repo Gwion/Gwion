@@ -13,7 +13,7 @@ typedef struct RefCount_ {
 
 #define HAS_OBJ RefCount* ref;
 ANN static inline RefCount* new_refcount(MemPool mp, void(*free)(void*,void*)) {
-  RefCount *ref = mp_calloc(mp, RefCount);
+  RefCount *ref = (RefCount*)mp_calloc(mp, RefCount);
   ref->count = 1;
   ref->free= free;
   return ref;
