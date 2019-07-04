@@ -42,6 +42,7 @@ compiler:
 
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+        pip install --user --upgrade pip
         pip install --user urllib3[secure];
         pip install --user cpp-coveralls;
         export COVERAGE=1;
