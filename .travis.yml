@@ -78,7 +78,7 @@ script:
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-      COVERALLS_REPO_TOKEN=OdYyiJMdUIolVNqWHX5pe3QERNcBv7t2p coveralls -i include -i src/ --gcov-options '\-lp' -b.;
+      COVERALLS_REPO_TOKEN=OdYyiJMdUIolVNqWHX5pe3QERNcBv7t2p coveralls -i include -i src/ --gcov-options '\-l' -b.;
     fi
 
 git:
