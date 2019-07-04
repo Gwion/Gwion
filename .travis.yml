@@ -67,7 +67,7 @@ before_script:
 script:
   - if [ $(uname) = "Linux" ] || [ $(uname) = "Darwin" ]; then
       if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ];
-      then USE_COVERAGE=1 make && make test;
+      then cd util && make && cd ../ast && make && cd .. && USE_COVERAGE=1 make && make test;
       else make && make test;
       fi
     else {
