@@ -76,7 +76,7 @@ script:
 
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-      overalls --exclude lib --exclude tests --gcov-options '\-lp;
+      overalls --exclude lib --exclude tests --gcov-options '\-lp';
     fi
 
 git:
