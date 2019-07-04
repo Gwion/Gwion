@@ -51,6 +51,7 @@ oo_obj := $(oo_src:.c=.o)
 vm_obj := $(vm_src:.c=.o)
 util_obj := $(util_src:.c=.o)
 GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
+src=${src_src} ${ast_src} ${parse_src} ${emit_src} ${oo_src} ${vm_src} ${util_src} ${lib_src}
 gwlib_obj := $(filter-out src/main.o, ${GW_OBJ})
 
 CFLAGS  += -Iinclude
