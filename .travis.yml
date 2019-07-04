@@ -45,7 +45,7 @@ install:
         pip install --user --upgrade pip;
         pip install --user urllib3[secure];
         pip install --user cpp-coveralls;
-        export COVERAGE=1;
+        export USE_COVERAGE=1;
         fi;
 #  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
