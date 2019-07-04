@@ -41,7 +41,11 @@ compiler:
   - clang
 
 install:
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+        pip install cpp-coveralls;
+        export COVERAGE=1;
+        fi;
+#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
       choco install make;
       export BUILD_ON_WINDOWS=1;
@@ -69,6 +73,11 @@ script:
       make.exe && make.exe test;
     }
     fi;
+
+after_success:
+  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
+      overalls --exclude lib --exclude tests --gcov-options '\-lp;
+    fi
 
 git:
   submodules: false
