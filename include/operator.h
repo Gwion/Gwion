@@ -20,7 +20,7 @@ struct Implicit {
   void* e;
   Type  t;
 };
-ANN m_bool add_op(const Gwion gwion, const Nspc , const struct Op_Import*);
+ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
 ANN m_bool op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);

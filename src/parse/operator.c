@@ -67,33 +67,58 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
   return NULL;
 }
 
-ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* opi) {
-  M_Operator* mo;
-  Nspc n = nspc;
-  do {
-    if(!n->info->op_map.ptr)
-      continue;
-    const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
-    if(v && (mo = operator_find(v, opi->lhs, opi->rhs))) {
-      env_err(gwion->env, opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
-            op2str(opi->op), opi->lhs ? opi->lhs->name : NULL,
-            opi->rhs ? opi->rhs->name : NULL);
-      return GW_ERROR;
-    }
-  } while((n = n->parent));
-  Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-  if(!v) {
-    v = new_vector(gwion->mp);
-    map_set(&nspc->info->op_map, (vtype)opi->op, (vtype)v);
-  }
-// new mo
-  mo = mp_calloc(gwion->mp, M_Operator);
+
+ANN static M_Operator* new_mo(MemPool p, const struct Op_Import* opi) {
+  M_Operator* mo = mp_calloc(p, M_Operator);
   mo->lhs       = opi->lhs;
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;
   mo->instr     = (f_instr)opi->data;
   mo->ck     = opi->ck;
   mo->em     = opi->em;
+  return mo;
+}
+
+struct OpChecker {
+  const Env env;
+  const Map map;
+  const struct Op_Import* opi;
+  m_bool mut;
+};
+
+__attribute__((returns_nonnull))
+ANN static Vector op_vector(MemPool p, const struct OpChecker *ock) {
+  const Vector exist = (Vector)map_get(ock->map, (vtype)ock->opi->op);
+  if(exist)
+    return exist;
+  const Vector create = new_vector(p);
+  map_set(ock->map, (vtype)ock->opi->op, (vtype)create);
+  return create;
+}
+
+ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {
+  const Vector v = (Vector)map_get(&n->info->op_map, (vtype)ock->opi->op);
+  if(!v || !operator_find(v, ock->opi->lhs, ock->opi->rhs))
+    return GW_OK;
+  env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
+        op2str(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
+        ock->opi->rhs ? ock->opi->rhs->name : NULL);
+  return GW_ERROR;
+}
+
+ANN static m_bool op_exist(const struct OpChecker* ock, const Nspc n) {
+  return n->info->op_map.ptr ? _op_exist(ock, n) : GW_OK;
+}
+
+ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
+  Nspc n = gwion->env->curr;
+  do {
+    struct OpChecker ock = { gwion->env, &n->info->op_map, opi, 0 };
+    CHECK_BB(op_exist(&ock, n))
+  } while((n = n->parent));
+  struct OpChecker ock = { gwion->env, &gwion->env->curr->info->op_map, opi, 0 };
+  const Vector v = op_vector(gwion->mp, &ock);
+  const M_Operator* mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
   return GW_OK;
 }
@@ -111,19 +136,18 @@ ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
     ((Exp_Unary*)opi->data)->nspc = nspc;
 }
 
-ANN static Type op_check_inner(const Env env, const Map map, struct Op_Import* opi, 
-  m_bool* mut) {
-  Type t, r = opi->rhs;
+ANN static Type op_check_inner(struct OpChecker* ock) {
+  Type t, r = ock->opi->rhs;
   do {
     const M_Operator* mo;
-    const Vector v = (Vector)map_get(map, (vtype)opi->op);
-    if(v && (mo = operator_find(v, opi->lhs, r))) {
-      if((mo->ck && (t = mo->ck(env, (void*)opi->data, mut))))
+    const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
+    if(v && (mo = operator_find(v, ock->opi->lhs, r))) {
+      if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data, &ock->mut))))
         return t;
       else
         return mo->ret;
     }
-  } while(r && (r = op_parent(env, r)));
+  } while(r && (r = op_parent(ock->env, r)));
   return NULL;
 }
 
@@ -138,13 +162,13 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     if(nspc->info->op_map.ptr) {
       Type l = opi->lhs;
       do {
-        m_bool mut = 0;
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
-        ret = op_check_inner(env, &nspc->info->op_map, &opi2, &mut);
+        struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
+        ret = op_check_inner(&ock);
         if(ret) {
           if(ret == t_null)
             break;
-          if(!mut)
+          if(!ock.mut)
             set_nspc(opi, nspc);
           return ret;
         }
