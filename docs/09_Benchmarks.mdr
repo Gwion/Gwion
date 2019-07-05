@@ -83,4 +83,4 @@ plot dat_name using 0:2:($2*($3/100.0)):xtic(2) with boxerrorbar lc "blue" notit
 
 ## Show the results
 Then just run it
-@exec bash benchmark.sh; #rm bench.plot benchmark.sh
+@exec bash benchmark.sh; rm bench.plot benchmark.sh
