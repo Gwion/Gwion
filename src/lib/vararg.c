@@ -8,9 +8,10 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "vararg.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);

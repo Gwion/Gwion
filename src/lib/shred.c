@@ -8,9 +8,10 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "shreduler_private.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 
 static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 
   o_fork_orig;

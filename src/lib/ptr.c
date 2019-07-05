@@ -10,9 +10,9 @@
 #include "nspc.h"
 #include "instr.h"
 #include "object.h"
+#include "operator.h"
 #include "import.h"
 #include "emit.h"
-#include "operator.h"
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;

@@ -11,11 +11,12 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "ugen.h"
 #include "shreduler_private.h"
 #include "emit.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 #include "map_private.h"
 
 #include "value.h"

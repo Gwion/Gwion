@@ -11,9 +11,9 @@
 #include "instr.h"
 #include "emit.h"
 #include "object.h"
-#include "import.h"
 #include "nspc.h"
 #include "operator.h"
+#include "import.h"
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
@@ -34,6 +34,7 @@ static OP_CHECK(opck_func_call) {
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  ++*mut;
   return check_exp_call1(env, &e->d.exp_call) ?: t_null;
 }
 
@@ -283,7 +284,6 @@ static FREEARG(freearg_dottmpl) {
 GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
-  gwi_oper_mut(gwi, 1);
   CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
   CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))

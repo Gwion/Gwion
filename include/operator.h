@@ -4,7 +4,7 @@
 
 #define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return t_null; }
 
-typedef Type (*opck)(const Env, void*);
+typedef Type (*opck)(const Env, void*, m_bool*);
 typedef m_bool (*opem)(const Emitter, void*);
 
 struct Op_Import {
@@ -14,7 +14,6 @@ struct Op_Import {
   uintptr_t data;
   loc_t pos;
   Operator op;
-  m_bool mut;
 };
 
 struct Implicit {

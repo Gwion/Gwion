@@ -7,11 +7,11 @@
 #include "value.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "emit.h"
 #include "traverse.h"
 #include "parse.h"
 #include "operator.h"
+#include "import.h"
 
 static inline m_str access(ae_Exp_Meta meta) {
   return meta == ae_meta_value ? "non-mutable" : "protected";
@@ -44,7 +44,7 @@ OP_CHECK(opck_rhs_emit_var) {
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data) == t_null)
+  if(opck_const_rhs(env, data, mut) == t_null)
     return t_null;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
@@ -64,7 +64,7 @@ OP_CHECK(opck_unary_meta2) {
 
 OP_CHECK(opck_unary_meta2_uniq) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_OO(opck_unary_meta2(env, data))
+  CHECK_OO(opck_unary_meta2(env, data, mut))
   if(unary->exp->next)
     ERR_N(exp_self(unary)->pos,
       _("'%s' must be applied to a unique expression"), op2str(unary->op))

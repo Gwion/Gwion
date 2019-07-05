@@ -9,13 +9,14 @@
 #include "func.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "traverse.h"
 #include "template.h"
 #include "optim.h"
+#include "gwion.h"
+#include "operator.h"
+#include "import.h"
 #include "parse.h"
 #include "nspc.h"
-#include "operator.h"
 #include "switch.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);

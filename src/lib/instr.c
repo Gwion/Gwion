@@ -8,11 +8,13 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "func.h"
 #include "array.h"
 #include "nspc.h"
 #include "shreduler_private.h"
+#include "gwion.h"
+#include "operator.h"
+#include "import.h"
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);

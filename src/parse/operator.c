@@ -20,9 +20,8 @@ typedef struct M_Operator_{
   Type lhs, rhs, ret;
   f_instr instr;
   Func func;
-  Type (*ck)(Env, void*);
-  m_bool (*em)(Emitter, void*);
-  m_bool mut;
+  opck ck;
+  opem em;
 } M_Operator;
 
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
@@ -95,7 +94,6 @@ ANN m_bool add_op(const Gwion gwion, const Nspc nspc, const struct Op_Import* op
   mo->instr     = (f_instr)opi->data;
   mo->ck     = opi->ck;
   mo->em     = opi->em;
-  mo->mut     = opi->mut;
   vector_add(v, (vtype)mo);
   return GW_OK;
 }
@@ -113,14 +111,14 @@ ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
     ((Exp_Unary*)opi->data)->nspc = nspc;
 }
 
-ANN static Type op_check_inner(const Env env, const Map map, struct Op_Import* opi) {
+ANN static Type op_check_inner(const Env env, const Map map, struct Op_Import* opi, 
+  m_bool* mut) {
   Type t, r = opi->rhs;
   do {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(map, (vtype)opi->op);
     if(v && (mo = operator_find(v, opi->lhs, r))) {
-      opi->mut = mo->mut;
-      if((mo->ck && (t = mo->ck(env, (void*)opi->data))))
+      if((mo->ck && (t = mo->ck(env, (void*)opi->data, mut))))
         return t;
       else
         return mo->ret;
@@ -140,12 +138,13 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     if(nspc->info->op_map.ptr) {
       Type l = opi->lhs;
       do {
+        m_bool mut = 0;
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
-        ret = op_check_inner(env, &nspc->info->op_map, &opi2);
+        ret = op_check_inner(env, &nspc->info->op_map, &opi2, &mut);
         if(ret) {
           if(ret == t_null)
             break;
-          if(!opi2.mut)
+          if(!mut)
             set_nspc(opi, nspc);
           return ret;
         }

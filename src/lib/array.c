@@ -11,8 +11,8 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
-#include "import.h"
 #include "operator.h"
+#include "import.h"
 #include "traverse.h"
 #include "parse.h"
 
@@ -151,7 +151,7 @@ ANN static Type get_array_type(Type t) {
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
-  if(opck_const_rhs(env, data) == t_null)
+  if(opck_const_rhs(env, data, mut) == t_null)
     return t_null;
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))

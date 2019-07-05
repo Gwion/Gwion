@@ -7,6 +7,8 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "gwion.h"
+#include "operator.h"
 #include "import.h"
 
 #define describe(name, op) \

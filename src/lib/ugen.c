@@ -8,6 +8,7 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "operator.h"
 #include "import.h"
 #include "gwi.h"
 #include "ugen.h"

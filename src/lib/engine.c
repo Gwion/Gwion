@@ -8,16 +8,16 @@
 #include "nspc.h"
 #include "type.h"
 #include "object.h"
-#include "import.h"
-#include "gwi.h"
-#include "lang_private.h"
 #include "emit.h"
 #include "env.h"
 #include "vm.h"
 #include "gwion.h"
 #include "operator.h"
+#include "import.h"
+#include "gwi.h"
 #include "engine.h"
 #include "parser.h"
+#include "lang_private.h"
 
 static FREEARG(freearg_switchini) {
   if(instr->m_val)

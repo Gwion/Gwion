@@ -10,8 +10,9 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 
 ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_str c) {
   STRING(obj) = s_name(insert_symbol(shred->info->vm->gwion->st, c));

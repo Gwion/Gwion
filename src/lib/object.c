@@ -11,8 +11,8 @@
 #include "value.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "operator.h"
+#include "import.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
@@ -101,7 +101,7 @@ static OP_CHECK(at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type l = bin->lhs->type;
   const Type r = bin->rhs->type;
-  if(opck_rassign(env, data) == t_null)
+  if(opck_rassign(env, data, mut) == t_null)
     return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
