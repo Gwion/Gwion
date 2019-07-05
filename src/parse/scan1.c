@@ -146,7 +146,7 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   if(post->exp->meta == ae_meta_var)
     return GW_OK;
   ERR_B(post->exp->pos, _("post operator '%s' cannot be used"
-      " on non-mutable data-type..."), op2str(post->op));
+      " on non-mutable data-type..."), s_name(post->op));
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
@@ -168,7 +168,7 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code)
+  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code)
     { RET_NSPC(scan1_stmt(env, unary->code)) }
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }

@@ -100,9 +100,10 @@ ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {
   const Vector v = (Vector)map_get(&n->info->op_map, (vtype)ock->opi->op);
   if(!v || !operator_find(v, ock->opi->lhs, ock->opi->rhs))
     return GW_OK;
-  env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
-        op2str(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
-        ock->opi->rhs ? ock->opi->rhs->name : NULL);
+// TODO: get me back
+//  env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
+//        s_name(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
+//        ock->opi->rhs ? ock->opi->rhs->name : NULL);
   return GW_ERROR;
 }
 
@@ -125,17 +126,17 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static void set_nspc(struct Op_Import* opi, const Nspc nspc) {
-  if(opi->op == op_impl)return;
-  if(opi->op == op_cast)
-    ((Exp_Cast*)opi->data)->nspc = nspc;
-  if(opi->lhs) {
-    if(opi->rhs)
-      ((Exp_Binary*)opi->data)->nspc = nspc;
+ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit"))return;
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "$"))
+    ((Exp_Cast*)ock->opi->data)->nspc = nspc;
+  if(ock->opi->lhs) {
+    if(ock->opi->rhs)
+      ((Exp_Binary*)ock->opi->data)->nspc = nspc;
     else
-      ((Exp_Postfix*)opi->data)->nspc = nspc;
+      ((Exp_Postfix*)ock->opi->data)->nspc = nspc;
   } else
-    ((Exp_Unary*)opi->data)->nspc = nspc;
+    ((Exp_Unary*)ock->opi->data)->nspc = nspc;
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {
@@ -171,22 +172,23 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
           if(ret == t_null)
             break;
           if(!ock.mut)
-            set_nspc(opi, nspc);
+            set_nspc(&ock, nspc);// TODO check me
           return ret;
         }
       } while(l && (l = op_parent(env, l)));
     }
     nspc = nspc->parent;
   } while(nspc);
-  if(opi->op == op_cast || (ret != t_null && opi->op != op_impl))
+  if(opi->op == insert_symbol(env->gwion->st, "$") ||
+        (ret != t_null && opi->op != insert_symbol(env->gwion->st, "@implicit")))
     env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
-    type_name(opi->lhs), op2str(opi->op), type_name(opi->rhs));
+    type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));
   return NULL;
 }
 
 ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->owner;
-  const Vector v = (Vector)map_get(&nspc->info->op_map, opi->op);
+  const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   DECL_OB(M_Operator*, mo, = operator_find(v, opi->lhs, opi->rhs))
   mo->func = (Func)opi->data;
   return GW_OK;
@@ -202,10 +204,10 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   return GW_OK;
 }
 
-ANN static Nspc get_nspc(const struct Op_Import* opi) {
-  if(opi->op == op_impl)
+ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
+  if(opi->op == insert_symbol(st, "@implicit"))
     return opi->rhs->e->owner;
-  if(opi->op == op_cast)
+  if(opi->op == insert_symbol(st, "$"))
     return ((Exp_Cast*)opi->data)->nspc;
   if(opi->lhs) {
     if(opi->rhs)
@@ -217,7 +219,7 @@ ANN static Nspc get_nspc(const struct Op_Import* opi) {
 }
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
-  Nspc nspc = get_nspc(opi);
+  Nspc nspc = get_nspc(emit->gwion->st, opi);
   do {
     Type l = opi->lhs;
     do {

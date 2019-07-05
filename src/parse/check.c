@@ -348,7 +348,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
       }
       if(implicit) {
         const struct Implicit imp = { e, t };
-        struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
+        struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
       return op_check(env, &opi) ? 1 : -1;
     }
   }
@@ -660,7 +660,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
-  if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == op_fork &&
+  if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol("fork") &&
        bin->rhs->exp_type == ae_exp_decl)
      bin->lhs->d.exp_unary.fork_ok = 1;
   CHECK_OO(check_exp(env, bin->lhs))
@@ -675,7 +675,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   DECL_OO(const Type, t, = check_exp(env, cast->exp))
   CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
-  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
   return op_check(env, &opi);
 }
 
@@ -1129,8 +1129,7 @@ ANN static void operator_func(const Func f) {
   const m_bool is_unary = GET_FLAG(f->def, unary);
   const Type l = is_unary ? NULL : a->type;
   const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
-  const Operator op = name2op(s_name(f->def->base->xid));
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
+  struct Op_Import opi = { .op=f->def->base->xid, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
   operator_set_func(&opi);
 }
 

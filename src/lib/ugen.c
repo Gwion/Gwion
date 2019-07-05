@@ -355,9 +355,9 @@ GWION_IMPORT(ugen) {
   CHECK_BB(gwi_class_end(gwi))
 
   CHECK_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
-  _CHECK_OP(chuck, chuck_ugen, UgenConnect)
-  _CHECK_OP(unchuck, chuck_ugen, UgenDisconnect)
-  _CHECK_OP(trig, chuck_ugen, TrigConnect)
-  _CHECK_OP(untrig, chuck_ugen, TrigDisconnect)
+  _CHECK_OP("=>", chuck_ugen, UgenConnect)
+  _CHECK_OP("=<", chuck_ugen, UgenDisconnect)
+  _CHECK_OP("]=>", chuck_ugen, TrigConnect)
+  _CHECK_OP("}=<", chuck_ugen, TrigDisconnect)
   return import_global_ugens(gwi);
 }

@@ -248,11 +248,11 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->op == op_fork && !unary->fork_ok)
+  if(unary->op == insert_symbol("fork") && !unary->fork_ok)
     ERR_O(exp_self(unary)->pos, _("forks must be stored in a value:\n"
         "fork xxx @=> Fork f"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return unary->op == op_spork ? t_shred : t_fork;
+    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
   else if(unary->code) {
     ++env->scope->depth;
     nspc_push_value(env->gwion->mp, env->curr);
@@ -260,7 +260,7 @@ static OP_CHECK(opck_spork) {
     nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
     CHECK_BO(ret)
-    return unary->op == op_spork ? t_shred : t_fork;
+    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
   } else
     ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
   return NULL;
@@ -284,24 +284,24 @@ static FREEARG(freearg_dottmpl) {
 GWION_IMPORT(func) {
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_func_call))
-  CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "=>", NULL))
   CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
   CHECK_BB(gwi_oper_emi(gwi, opem_func_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, NULL /*FuncAssign*/))
+  CHECK_BB(gwi_oper_end(gwi, "@=>", NULL /*FuncAssign*/))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_fptr_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "$", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_fptr_impl))
   CHECK_BB(gwi_oper_emi(gwi, opem_fptr_impl))
-  CHECK_BB(gwi_oper_end(gwi, op_impl, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "@implicit", NULL))
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "spork", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_spork))
   CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_fork, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "fork", NULL))
   register_freearg(gwi, SporkIni, freearg_xork);
   register_freearg(gwi, ForkIni, freearg_xork);
   register_freearg(gwi, DotTmpl, freearg_dottmpl);

@@ -85,12 +85,12 @@ GWION_IMPORT(ptr) {
   CHECK_BB(gwi_class_end(gwi))
   CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_ptr_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_trig, instr_ptr_assign))
+  CHECK_BB(gwi_oper_end(gwi, "]=>", instr_ptr_assign))
   CHECK_BB(gwi_oper_add(gwi, opck_implicit_ptr))
-  CHECK_BB(gwi_oper_end(gwi, op_impl, Cast2Ptr))
+  CHECK_BB(gwi_oper_end(gwi, "@implicit", Cast2Ptr))
   CHECK_BB(gwi_oper_ini(gwi, NULL, "Ptr", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_ptr_deref))
   CHECK_BB(gwi_oper_emi(gwi, opem_ptr_deref))
-  CHECK_BB(gwi_oper_end(gwi, op_mul, instr_ptr_deref))
+  CHECK_BB(gwi_oper_end(gwi, "*", instr_ptr_deref))
   return GW_OK;
 }

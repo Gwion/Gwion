@@ -22,11 +22,10 @@ typedef struct {
 } DL_Func;
 
 typedef struct {
-  Operator op;
+  Symbol op;
   m_str ret, lhs, rhs;
   Type   (*ck)(Env, void*, m_bool*);
   m_bool (*em)(Emitter, void*);
-  m_bool mut;
 } DL_Oper;
 
 typedef struct {

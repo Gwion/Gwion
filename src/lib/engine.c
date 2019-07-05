@@ -79,7 +79,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_new))
   CHECK_BB(gwi_oper_emi(gwi, opem_new))
-  CHECK_BB(gwi_oper_end(gwi, op_new, NULL))
+  CHECK_BB(gwi_oper_end(gwi, "new", NULL))
   CHECK_BB(import_prim(gwi))
   CHECK_BB(import_complex(gwi))
   CHECK_BB(import_vec3(gwi))

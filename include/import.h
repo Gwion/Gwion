@@ -22,7 +22,7 @@ typedef struct Gwi_* Gwi;
 #define ALLOC_PTR(p, a, b, c) b* a = (b*)_mp_calloc(p, sizeof(b)); *a = (b)c
 #define _CHECK_OP(op, check, func)\
     CHECK_BB(gwi_oper_add(gwi, opck_##check))\
-    CHECK_BB(gwi_oper_end(gwi, op_##op, func))
+    CHECK_BB(gwi_oper_end(gwi, op, func))
 #define GWI_LOC new_loc(gwi->gwion->mp, __LINE__)
 
 
@@ -61,7 +61,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
 ANN m_int gwi_oper_add(const Gwi gwi, opck);
 ANN m_int gwi_oper_emi(const Gwi gwi, opem);
-ANN2(1) m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f);
+ANN2(1) m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f);
 
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 

@@ -13,7 +13,7 @@ struct Op_Import {
   opem em;
   uintptr_t data;
   loc_t pos;
-  Operator op;
+  Symbol op;
 };
 
 struct Implicit {

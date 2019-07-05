@@ -731,7 +731,7 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
-  struct Op_Import opi = { .op=op_cast, .lhs=cast->exp->type, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast};
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=cast->exp->type, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast};
   CHECK_BB(emit_exp(emit, cast->exp, 0))
   (void)op_emit(emit, &opi);
   return GW_OK;
@@ -955,7 +955,7 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
 }
 
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
-  const m_bool is_spork = unary->op == op_spork;
+  const m_bool is_spork = unary->op == insert_symbol("spork");
   const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
   if(!f) {
     emit_add_instr(emit, RegPushImm);
@@ -969,7 +969,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     CHECK_BB(spork_func(emit, &unary->exp->d.exp_call))
   }
   const VM_Code code = finalyze(emit);
-  const Instr ini = emit_add_instr(emit, unary->op == op_spork ? SporkIni : ForkIni);
+  const Instr ini = emit_add_instr(emit, unary->op == insert_symbol("spork") ? SporkIni : ForkIni);
   ini->m_val = (m_uint)code;
   ini->m_val2 = is_spork;
   if(!f) {
@@ -1004,7 +1004,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary };
-  if(unary->op != op_spork && unary->op != op_fork && unary->exp) {
+  if(unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork") && unary->exp) {
     CHECK_BB(emit_exp(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }
@@ -1014,7 +1014,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
   const struct Implicit imp = { from, to };
-  struct Op_Import opi = { .op=op_impl, .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
+  struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
   return op_emit(emit, &opi);
 }
 

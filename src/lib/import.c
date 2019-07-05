@@ -489,7 +489,6 @@ ANN2(1,2) static int import_op(const Gwi gwi, const DL_Oper* op,
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
     const restrict m_str r, const restrict m_str t) {
-  gwi->oper.mut = 0;
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
@@ -506,8 +505,8 @@ ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
   return GW_OK;
 }
 
-ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
-  gwi->oper.op = op;
+ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
+  gwi->oper.op = insert_symbol(gwi->gwion->st, op);
   const m_bool ret = import_op(gwi, &gwi->oper, f);
   gwi->oper.ck = NULL;
   gwi->oper.em = NULL;

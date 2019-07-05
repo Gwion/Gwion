@@ -155,10 +155,10 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
 }
 
 
-ANN static m_bool multi_decl(const Env env, const Exp e, const Operator op) {
+ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if(e->exp_type == ae_exp_decl) {
     if(e->d.exp_decl.list->next)
-      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."), op2str(op))
+      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."), s_name(op))
     SET_FLAG(e->d.exp_decl.list->self->value, used);
   }
   return GW_OK;
@@ -200,7 +200,7 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code) {
+  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code) {
     RET_NSPC(scan2_stmt(env, unary->code))
   } else if(unary->exp)
     return scan2_exp(env, unary->exp);
@@ -406,12 +406,11 @@ ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   assert(f->base->args);
-  const Operator op = name2op(s_name(f->base->xid));
   const Type l = GET_FLAG(f, unary) ? NULL :
     f->base->args->var_decl->value->type;
   const Type r = GET_FLAG(f, unary) ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
+  struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
   CHECK_BB(add_op(env->gwion, &opi))
   return GW_OK;
 }
