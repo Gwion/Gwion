@@ -1,4 +1,4 @@
 // [contains] incompatible array subscript type
  Object o;
 int i[o];
-<<<i>>>;
+<<< i >>>;

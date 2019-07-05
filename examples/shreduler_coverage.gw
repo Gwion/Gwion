@@ -1,7 +1,7 @@
-fun void t() { 2::second => now; <<<"child ", me.id()>>>; };
+fun void t() { 2::second => now; <<< "child ", me.id() >>>; };
 spork t();
-spork \{ 2::second => now; <<<"child ", me.id()>>>; }();
-spork { 2::second => now; <<<"child ", me.id()>>>; };
-<<<"start">>>;
+spork \{ 2::second => now; <<< "child ", me.id() >>>; }();
+spork { 2::second => now; <<< "child ", me.id() >>>; };
+<<< "start" >>>;
 second => now;
-<<<me.id(), " end">>>;
+<<< me.id(), " end" >>>;

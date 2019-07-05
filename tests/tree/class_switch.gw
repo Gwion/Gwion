@@ -1,6 +1,6 @@
 class C {
 	int i;
-	<<<i>>>;
+	<<< i >>>;
 	switch(i) {
 	  2;
 	  case 1:

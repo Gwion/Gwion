@@ -10,4 +10,4 @@ class D {
 
 C c;
 D d;
-<<<d.test @=> c.test>>>;
+<<< d.test @=> c.test >>>;

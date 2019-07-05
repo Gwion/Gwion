@@ -2,13 +2,13 @@
 //[contains] 'macro' undefined (after undefining)"
 #define macro
 #ifdef macro
-<<<"'macro' defined">>>;
+<<< "'macro' defined" >>>;
 #else
-<<<"'macro' undefined">>>;
+<<< "'macro' undefined" >>>;
 #endif
 #undef macro
 #ifdef macro
-<<<"'macro' defined (after undefining)">>>;
+<<< "'macro' defined (after undefining)" >>>;
 #else
-<<<"'macro' undefined (after undefining)">>>;
+<<< "'macro' undefined (after undefining)" >>>;
 #endif

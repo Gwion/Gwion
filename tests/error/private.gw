@@ -2,4 +2,4 @@
 class C { private int i;  }
 
 C c;
-<<<c.i>>>;
+<<< c.i >>>;

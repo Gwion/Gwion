@@ -5,4 +5,4 @@ class Fib {
   }
 }
 repeat(5)
-  <<<Fib.get(28)>>>;
+  <<< Fib.get(28) >>>;

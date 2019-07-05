@@ -2,17 +2,17 @@ class C
 {
   12 => int i;
   Object o;
-<<<this>>>;
+<<< this >>>;
   spork  {
     "test";
     second => now;
     string s;
-    <<< this,  " test spork exp. " , s>>>;
+    <<<  this,  " test spork exp. " , s >>>;
 
   } @=> Shred @shred;
 }
 
 C c;
-<<<c>>>;
+<<< c >>>;
 me.yield();
 second => now;

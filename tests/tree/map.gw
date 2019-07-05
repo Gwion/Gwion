@@ -1,5 +1,5 @@
 <~int, int~>Map pp;
-<<<pp>>>;
-<<<pp.size()>>>;
-<<<pp.set(1, 2)>>>;
-<<<pp.get(1)>>>;
+<<< pp >>>;
+<<< pp.size() >>>;
+<<< pp.set(1, 2) >>>;
+<<< pp.get(1) >>>;

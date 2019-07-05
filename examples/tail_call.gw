@@ -1,7 +1,7 @@
 fun void test(int i) {
   if(i == 2)return;
 //  if(i == 0)return;
-<<<i>>>;
+<<< i >>>;
   return test(--i + 3 - 4);
 }
 

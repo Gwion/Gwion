@@ -1,9 +1,9 @@
 class C
 {
   fun void test(int i) {
-    <<<"here => ", i>>>;
+    <<< "here => ", i >>>;
     samp => now;
-    <<<"and now">>>;
+    <<< "and now" >>>;
   }
 }
 

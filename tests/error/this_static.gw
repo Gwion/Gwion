@@ -1,5 +1,5 @@
 // [contains] keyword 'this' cannot be used inside static functions
 class C
 {
-  fun static void test(){ <<<this>>>; }
+  fun static void test(){ <<< this >>>; }
 }

@@ -6,250 +6,250 @@ int a;
 {
 	int	variable1;
 	int	variable2;
-<<< variable1=variable2 >>>;
+<<<  variable1=variable2  >>>;
 }
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1+variable2 >>>;
-}
-
-//testing operator for int and int
-{
-	int	variable1;
-	int	variable2;
-<<< variable1-variable2 >>>;
+<<<  variable1+variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1*variable2 >>>;
+<<<  variable1-variable2  >>>;
+}
+
+//testing operator for int and int
+{
+	int	variable1;
+	int	variable2;
+<<<  variable1*variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	1 => int	variable2;
-<<< variable1/variable2 >>>;
+<<<  variable1/variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	1 => int	variable2;
-<<< variable1%variable2 >>>;
+<<<  variable1%variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1&&variable2 >>>;
+<<<  variable1&&variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1||variable2 >>>;
+<<<  variable1||variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1==variable2 >>>;
+<<<  variable1==variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1!=variable2 >>>;
+<<<  variable1!=variable2  >>>;
 }
 
 //testing operator for Object and 
 {
 	Object	@variable1;
-<<< variable1!= null>>>;
+<<<  variable1!= null >>>;
 }
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1>variable2 >>>;
-}
-
-//testing operator for int and int
-{
-	int	variable1;
-	int	variable2;
-<<< variable1>=variable2 >>>;
+<<<  variable1>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1<variable2 >>>;
+<<<  variable1>=variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1<=variable2 >>>;
+<<<  variable1<variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1>>variable2 >>>;
+<<<  variable1<=variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1<<variable2 >>>;
+<<<  variable1>>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1&variable2 >>>;
+<<<  variable1<<variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1|variable2 >>>;
+<<<  variable1&variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1^variable2 >>>;
+<<<  variable1|variable2  >>>;
+}
+
+//testing operator for int and int
+{
+	int	variable1;
+	int	variable2;
+<<<  variable1^variable2  >>>;
 }
 
 //testing operator for  and int
 {
 	int	variable2;
-<<< -variable2 >>>;
+<<<  -variable2  >>>;
 }
 
 //testing operator for  and int
 {
 	int	variable2;
-<<< !variable2 >>>;
+<<<  !variable2  >>>;
 }
 
 //testing operator for int and 
 {
 	int	variable1;
-<<< variable1++ >>>;
+<<<  variable1++  >>>;
 }
 
 //testing operator for  and int
 {
 	int	variable2;
-<<< ++variable2 >>>;
+<<<  ++variable2  >>>;
 }
 
 //testing operator for int and 
 {
 	int	variable1;
-<<< variable1-- >>>;
+<<<  variable1--  >>>;
 }
 
 //testing operator for  and int
 {
 	int	variable2;
-<<< --variable2 >>>;
+<<<  --variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1=>variable2 >>>;
+<<<  variable1=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1+=>variable2 >>>;
+<<<  variable1+=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1-=>variable2 >>>;
+<<<  variable1-=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1*=>variable2 >>>;
+<<<  variable1*=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	1 => int	variable1;
 	1 => int	variable2;
-<<< variable1/=>variable2 >>>;
+<<<  variable1/=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	1 => int	variable1;
 	int	variable2;
-<<< variable1%=>variable2 >>>;
+<<<  variable1%=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1<<=>variable2 >>>;
+<<<  variable1<<=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1>>=>variable2 >>>;
+<<<  variable1>>=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1&=>variable2 >>>;
+<<<  variable1&=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1|=>variable2 >>>;
+<<<  variable1|=>variable2  >>>;
 }
 
 //testing operator for int and int
 {
 	int	variable1;
 	int	variable2;
-<<< variable1^=>variable2 >>>;
+<<<  variable1^=>variable2  >>>;
 }
 // testing cmp
 ~1;

@@ -36,7 +36,7 @@ repeat(n) {
   toggle.activate().value() => val;
 }
 
-<<<toggle.value()>>>;
+<<< toggle.value() >>>;
 
 NthToggle ntoggle;
 true => val => ntoggle.state;
@@ -55,4 +55,4 @@ repeat(n) {
   ntoggle.activate().value() => val;
 }
 
-<<<ntoggle.value()>>>;
+<<< ntoggle.value() >>>;

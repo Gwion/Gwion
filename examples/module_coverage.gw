@@ -5,5 +5,5 @@ s => ZeroX z => blackhole;
 Impulse i => FullRect f => blackhole;
 Step step => blackhole;
 second => now;
-<<<"end">>>;
+<<< "end" >>>;
 step =< blackhole;

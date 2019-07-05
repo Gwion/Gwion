@@ -2,6 +2,6 @@
 class C {
   int i;
   fun static void test() {
-    <<<i>>>;
+    <<< i >>>;
   }
 }

@@ -3,5 +3,5 @@ class C { private int i;  }
 
 class D {
   C c;
-  <<<c.i>>>;
+  <<< c.i >>>;
 }

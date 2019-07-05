@@ -5,14 +5,14 @@ class C {
 
 int i;
 typeof(i) a;
-<<<a>>>;
+<<< a >>>;
 
  
 typeof(C.i) b;
-<<<b>>>;
+<<< b >>>;
 
 C c;
 typeof(c.f) d;
-<<<d>>>;
+<<< d >>>;
 
-<<<i," ", c>>>;
+<<< i," ", c >>>;

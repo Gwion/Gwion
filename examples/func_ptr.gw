@@ -2,9 +2,9 @@
 typedef void Test()
 
 // define a few funs
-fun void test1(){ <<<"test">>>; };
-fun void test2(){ <<<"another test">>>; };
-fun void test3(){ <<<"yet another test">>>; };
+fun void test1(){ <<< "test" >>>; };
+fun void test2(){ <<< "another test" >>>; };
+fun void test3(){ <<< "yet another test" >>>; };
 
 // create a fun pointer instance
 Test test;
@@ -21,4 +21,4 @@ test();
 test3 @=> test;
 test();
 
-<<< test3 $ Test>>>;
+<<<  test3 $ Test >>>;

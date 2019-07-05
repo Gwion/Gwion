@@ -1,4 +1,4 @@
-<<<"test" == "test">>>;
+<<< "test" == "test" >>>;
 string s;
-<<<s == s>>>;
-<<<"test" == s>>>;
+<<< s == s >>>;
+<<< "test" == s >>>;

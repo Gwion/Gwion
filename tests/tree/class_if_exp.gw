@@ -1,4 +1,4 @@
 class C {
-	<<<maybe ? "ok" : "not ok">>>;
+	<<< maybe ? "ok" : "not ok" >>>;
 }
 

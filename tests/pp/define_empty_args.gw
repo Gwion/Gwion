@@ -2,4 +2,4 @@
 #define macro(a,b)
 macro(1,2);
 
-<<<"end of test">>>;
+<<< "end of test" >>>;

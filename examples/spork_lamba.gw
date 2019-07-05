@@ -1,2 +1,2 @@
-spork \ a { <<<a>>>;}(1);
+spork \ a { <<< a >>>;}(1);
 me.yield();

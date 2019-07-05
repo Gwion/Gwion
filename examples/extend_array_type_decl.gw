@@ -1,8 +1,8 @@
 class C extends int[2] {
-  <<<"test">>>;
+  <<< "test" >>>;
   123 => int i;
 }
 
 C c;
-<<<c.size()>>>;
-<<<c.i>>>;
+<<< c.size() >>>;
+<<< c.i >>>;

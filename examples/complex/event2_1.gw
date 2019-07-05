@@ -3,7 +3,7 @@ class global TestEvent {
 }
 second => now;
 //second => now;
-<<<"base ", me>>>;
+<<< "base ", me >>>;
 //TestEvent.e => now;
-<<<"ok">>>;
+<<< "ok" >>>;
 second => now;

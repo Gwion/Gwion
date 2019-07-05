@@ -7,8 +7,8 @@ class C
   Vec3 v;
   Vec4 w;
 	Object o;
-	dtor { <<<"dtor">>>; }
+	dtor { <<< "dtor" >>>; }
 }
 
 C c;
-<<<c>>>;
+<<< c >>>;
