@@ -41,7 +41,7 @@ You can now get back to [step 2](#2-Edit).
 
 ## Add to VCS
 
-It's now time to add your changes to the package :smile:
+It's now time to add your changes to the package
 
 ``` sh
 make translation-commit TRANSLATION_TARGET=<xxx>
