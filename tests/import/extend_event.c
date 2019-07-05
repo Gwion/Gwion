@@ -7,9 +7,10 @@
 #include "instr.h"
 #include "object.h"
 #include "instr.h"
-#include "import.h"
 #include "vm.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 #include "gwi.h"
 
 static CTOR(ev_ctor) { printf(" %p this to test ctor\n", (void*)o); }

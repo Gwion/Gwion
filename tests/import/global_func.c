@@ -6,6 +6,8 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "gwion.h"
+#include "operator.h"
 #include "import.h"
 #include "instr.h"
 

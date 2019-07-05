@@ -7,8 +7,9 @@
 #include "type.h"
 #include "object.h"
 #include "instr.h"
-#include "import.h"
 #include "gwion.h"
+#include "operator.h"
+#include "import.h"
 #include "gwi.h"
 
 GWION_IMPORT(static_string_test) {
