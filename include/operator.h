@@ -25,5 +25,4 @@ ANN Type   op_check(const Env, struct Op_Import*);
 ANN m_bool op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map, struct Gwion_* gwion);
-ANN m_bool env_add_op(const Env, const struct Op_Import*);
 #endif

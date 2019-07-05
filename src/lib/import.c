@@ -483,7 +483,7 @@ ANN2(1,2) static int import_op(const Gwi gwi, const DL_Oper* op,
   const Type ret = get_type(env, op->ret);
   const struct Op_Import opi = { lhs, rhs, ret,
     op->ck, op->em, (uintptr_t)f, gwi->loc, op->op };
-  return env_add_op(env, &opi);
+  return add_op(gwi->gwion, &opi);
 }
 
 

@@ -412,7 +412,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const Type r = GET_FLAG(f, unary) ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
   struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
-  CHECK_BB(env_add_op(env, &opi))
+  CHECK_BB(add_op(env->gwion, &opi))
   return GW_OK;
 }
 
