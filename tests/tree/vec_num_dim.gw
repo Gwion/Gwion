@@ -1,2 +1,2 @@
-// a vec3 with only two expressions
+#! a vec3 with only two expressions
 [ @(0.0- 0.0, 0.0) ];

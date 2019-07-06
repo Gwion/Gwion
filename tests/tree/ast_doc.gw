@@ -1,3 +1,3 @@
 int i;
 <<< i >>>;
-//! document the AST
+#!! document the AST

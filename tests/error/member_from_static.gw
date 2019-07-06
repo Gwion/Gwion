@@ -1,4 +1,4 @@
-// [contains] 
+#! [contains] 
 class C {
   int i;
   fun static void test() {

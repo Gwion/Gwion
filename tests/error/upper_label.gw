@@ -1,3 +1,3 @@
-// [contains] you are trying to use a upper label
+#! [contains] you are trying to use a upper label
 end:
 goto end;

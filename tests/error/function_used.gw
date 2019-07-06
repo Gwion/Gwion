@@ -1,3 +1,3 @@
-// [contains] is already used by another value
+#! [contains] is already used by another value
  int i;
 fun void i(){}

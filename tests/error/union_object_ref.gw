@@ -1,4 +1,4 @@
-// [contains] In union, Objects must be declared as reference (use '@')
+#! [contains] In union, Objects must be declared as reference (use '@')
 union
 {
 	int i;

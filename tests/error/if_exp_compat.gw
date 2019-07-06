@@ -1,2 +1,2 @@
-// [contains] incompatible types
+#! [contains] incompatible types
 maybe ? null : 1;

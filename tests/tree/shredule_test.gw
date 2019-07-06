@@ -1,4 +1,4 @@
-// catch free gc
+#! catch free gc
 Event e;
 spork { e => now; };
 spork { samp => now; 4::samp => now;};

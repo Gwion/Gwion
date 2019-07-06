@@ -1,4 +1,4 @@
-// [contains] 
+#! [contains] 
  fun void test()
 {
   fun void nested(){}

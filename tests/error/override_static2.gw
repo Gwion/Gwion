@@ -1,4 +1,4 @@
-// [contains] but cannot override
+#! [contains] but cannot override
 class C
 {
 	fun void test() {}

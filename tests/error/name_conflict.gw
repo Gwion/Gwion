@@ -1,4 +1,4 @@
-// [contains] conflicts with previously defined value
+#! [contains] conflicts with previously defined value
 class C {
   int test;
 }

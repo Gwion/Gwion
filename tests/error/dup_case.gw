@@ -1,4 +1,4 @@
-// [contains] duplicated cases value
+#! [contains] duplicated cases value
 switch(maybe) {
 	case 1:
 	case 1:

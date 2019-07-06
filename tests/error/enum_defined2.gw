@@ -1,4 +1,4 @@
-// [contains] already been defined
+#! [contains] already been defined
 int i;
 enum
 {

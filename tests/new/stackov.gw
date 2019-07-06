@@ -10,7 +10,7 @@ fun void launch(int i) {
 }
 
 spork launch(2);
-//second => now;
+#!second => now;
 me.yield();
-//.1::samp => now;
+#!.1::samp => now;
 launch(12);

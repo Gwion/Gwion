@@ -1,4 +1,4 @@
-// [contains] already declared as variable
+#! [contains] already declared as variable
 enum
 {
 	first,

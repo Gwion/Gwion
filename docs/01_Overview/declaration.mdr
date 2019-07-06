@@ -15,7 +15,7 @@ However ...
 @``` decl1.gw
 Object @ref;
 <<< "Reference points to no object yet: ", ref >>>;
-//Object o @=> ref;
+#!Object o @=> ref;
 new Object @=> ref;
 <<< "But now it does: ", ref >>>;
 @```

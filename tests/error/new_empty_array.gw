@@ -1,2 +1,2 @@
-// [contains] instantiate with empty
+#! [contains] instantiate with empty
 new Object[];

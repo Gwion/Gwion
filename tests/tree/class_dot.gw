@@ -1,8 +1,8 @@
 class C {
 	int i[];
 	int j[2];
-//	Machine.shreds() @=> i;
-//	null @=> i;
+#!	Machine.shreds() @=> i;
+#!	null @=> i;
 }
 
 C c;

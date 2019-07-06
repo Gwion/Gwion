@@ -1,4 +1,4 @@
-// [contains] NullPtrException
+#! [contains] NullPtrException
 class C
 {
 	int i;

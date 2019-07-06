@@ -1,11 +1,11 @@
-//! doc for class 'C'
+#!! doc for class 'C'
 class C
 {
-	//! has an int
+	#!! has an int
 	int i;
-	//! a fun
+	#!! a fun
 	fun void test() {}
-	//! operator
+	#!! operator
 	operator => void(C c, C d){
       <<< c, " ", d >>>;
     }

@@ -1,2 +1,2 @@
-// [contains] in 'for' condition
+#! [contains] in 'for' condition
 for(;null;);

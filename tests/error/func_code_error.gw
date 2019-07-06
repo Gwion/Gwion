@@ -1,2 +1,2 @@
-// [contains] in function:
+#! [contains] in function:
 fun void test() { <<< b >>>; }

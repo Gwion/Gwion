@@ -1,4 +1,4 @@
-// [contains] can't access private
+#! [contains] can't access private
 class C { private int i;  }
 
 class D {

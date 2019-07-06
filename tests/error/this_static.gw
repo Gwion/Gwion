@@ -1,4 +1,4 @@
-// [contains] keyword 'this' cannot be used inside static functions
+#! [contains] keyword 'this' cannot be used inside static functions
 class C
 {
   fun static void test(){ <<< this >>>; }

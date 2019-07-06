@@ -1,4 +1,4 @@
-// Ported from the Wren version.
+#! Ported from the Wren version.
 
 class Tree {
   int item;
@@ -32,7 +32,7 @@ maxDepth + 1 => int stretchDepth;
 
 Tree.new_Tree(0, maxDepth) @=> Tree@ longLivedTree;
 
-// iterations = 2 ** maxDepth
+#! iterations = 2 ** maxDepth
 1 => int iterations;
 for (int d; d < maxDepth; ++d)
   2 *=> iterations;

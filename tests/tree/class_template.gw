@@ -9,13 +9,13 @@ class<~A,B~> C {
   }
 }
 
-//<<< C >>>;
+#!<<< C >>>;
 <~int, int~>C c;
 <~float, int~>C d;
 <~polar, int~>C e;
 <~Vec3, int~>C f;
 <~Object, int~>C g;
-//C c;
+#!C c;
 <<< c.a >>>;
 <<< d.a >>>;
 <<< e.a >>>;

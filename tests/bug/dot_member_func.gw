@@ -1,4 +1,4 @@
-// thanks to afl-fuzz
+#! thanks to afl-fuzz
 SinOsc@s, t;
 Gain g => dac;
 1 => t.freq;

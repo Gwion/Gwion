@@ -1,4 +1,4 @@
-// [contains] recursive
+#! [contains] recursive
 class C {}
 class D extends C {}
 class E extends F {}

@@ -1,2 +1,2 @@
-// [contains] this is reserved
+#! [contains] this is reserved
 fun void test(int this){}

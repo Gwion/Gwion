@@ -1,2 +1,2 @@
-// [contains] in 'while' condition
+#! [contains] in 'while' condition
 while(null);

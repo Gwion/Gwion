@@ -1,4 +1,4 @@
-// [contains] Unions should only contain declarations
+#! [contains] Unions should only contain declarations
  union
 {
   one; two;

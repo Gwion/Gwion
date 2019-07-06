@@ -4,10 +4,10 @@ fun void t(int i) {
     1/i;
   <<< "id: ", (spork t(i-1)).id() >>>;
   me.yield();
-//samp => now;
+#!samp => now;
 }
 10 => t;
-//me.yield();
+#!me.yield();
 second => now;
 me.yield();
 <<< "end" >>>;
