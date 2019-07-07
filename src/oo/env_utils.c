@@ -38,21 +38,7 @@ ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
 
-ANN static Type find_typeof(const Env env, ID_List path) {
-  Value v = nspc_lookup_value1(env->curr, path->xid); // was lookup2
-  Type t = actual_type(v->type);
-  path = path->next;
-  while(path) {
-    CHECK_OO((v = find_value(t, path->xid)))
-    t = v->type;
-    path = path->next;
-  }
-  return v->type;
-}
-
 ANN Type find_type(const Env env, ID_List path) {
-  if(path->ref)
-    return find_typeof(env, path);
   Type type = nspc_lookup_type1(env->curr, path->xid);
   CHECK_OO(type)
   Nspc nspc = type->nspc;
