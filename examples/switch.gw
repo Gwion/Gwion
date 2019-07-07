@@ -15,5 +15,5 @@ fun void test(int i) {
 }
 
 2 => i => test;
-//1 => i => test;
-//0 => i => test;
+#!1 => i => test;
+#!0 => i => test;

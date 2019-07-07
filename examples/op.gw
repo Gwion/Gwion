@@ -1,4 +1,4 @@
-//! test operator
+#!! test operator
 
 operator => void (Object o, int i) {
   <<< o, " ", i, " success" >>>;
@@ -8,17 +8,17 @@ class C {
 	Object @ref;
 }
 
-//! assign object to C.ref
+#!! assign object to C.ref
 operator => void (Object o, C c) {
   o @=> c.ref;
   <<< "success" >>>;
 }
 
-//operator int plusplus(null d, int i){}
+#!operator int plusplus(null d, int i){}
 int i;
 Object o;
 <<< o, " ", i >>>;
 12 => i;
-//o => i;
+#!o => i;
 C c;
 o => c;

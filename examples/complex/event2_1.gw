@@ -2,8 +2,8 @@ class global TestEvent {
 	static Event e;
 }
 second => now;
-//second => now;
+#!second => now;
 <<< "base ", me >>>;
-//TestEvent.e => now;
+#!TestEvent.e => now;
 <<< "ok" >>>;
 second => now;

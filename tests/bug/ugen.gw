@@ -1,5 +1,5 @@
 UGen @u;
-#!u.last(); // should fail => fails.
+#!u.last(); #! should fail => fails.
 SinOsc s => Gain g => dac;
 for(-1 => int i;i < 6; i++)
 	i => g.op;

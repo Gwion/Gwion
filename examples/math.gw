@@ -17,7 +17,7 @@
 <<<  Math.sgn(-1.0)            >>>;
 
 <<<  Math.hypot(4,5)           >>>;
-// sin
+#! sin
 <<<  Math.sin(1)               >>>;
 <<<  Math.sin(1.0)             >>>;
 <<<  Math.sinh(1)              >>>;
@@ -27,7 +27,7 @@
 <<<  Math.asinh(1)             >>>;
 <<<  Math.asinh(1.0)          >>>;
 
-// cos
+#! cos
 <<<  Math.cos(1)               >>>;
 <<<  Math.cos(1.0)             >>>;
 <<<  Math.cosh(1)              >>>;
@@ -37,7 +37,7 @@
 <<<  Math.acosh(1)             >>>;
 <<<  Math.acosh(1.0)           >>>;
 
-// tan
+#! tan
 <<<  Math.tan(1)               >>>;
 <<<  Math.tan(1.0)             >>>;
 <<<  Math.tanh(1)              >>>;

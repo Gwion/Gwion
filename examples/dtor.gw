@@ -5,6 +5,6 @@ class C
 
 C c;
 C d;
-//me.yield();
+#!me.yield();
 <<< "end of dtor test." >>>;
 <<< c," ", d >>>;
