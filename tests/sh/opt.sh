@@ -65,11 +65,11 @@ run "$n" "loop" "-l0" "file"
 
 # memoization
 n=$((n+1))
-run "$n" "memoize" "-z2 xamples/*.gw" "file"
+run "$n" "memoize" "-z2 tests/new/pure/.gw" "file"
 
 # (fake) module arg
 n=$((n+1))
-run "$n" "memoize" "-mfake:test" "file"
+run "$n" "module argument" "-mfake:test" "file"
 
 # get Kompile time Konfig
 n=$((n+1))
