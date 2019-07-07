@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #11
+# [test] #12
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -53,4 +53,12 @@ run "$n" "plugin directory" "-p non_existant_dir" "file"
 
 # config
 n=$((n+1))
-run "$n" "config" "-k" "file"
+cat << EOF >> tmp_gwionrc
+-p.
+-l0
+EOF
+run "$n" "config" "-c tmp_gwionrc" "file"
+
+# loop
+n=$((n+1))
+run "$n" "loop" "-l0" "file"
