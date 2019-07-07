@@ -1,0 +1,3 @@
+#! [contains] array types do not match
+int i[2];
+i << 2.3;

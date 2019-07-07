@@ -1,0 +1,7 @@
+class <~A~> C {
+  A a;
+}
+
+class D extends <~int~>C {}
+D d;
+<<<d.a>>>;

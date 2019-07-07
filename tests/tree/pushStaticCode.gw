@@ -1,0 +1,8 @@
+class C {
+  fun static void test(int i) {
+    if(i)
+      i - 1 => test;
+  }
+}
+
+C.test(3);
