@@ -45,7 +45,7 @@ run "$n" "samplerate (short)" "-s 44100" "file"
 
 # wrong file
 n=$((n+1))
-run "$n" "wrong file" "non_existant_file" "file"
+run "$n" "wrong file" "non_existant_file:with_args" "file"
 
 # plug_dir
 n=$((n+1))
@@ -53,19 +53,20 @@ run "$n" "plugin directory" "-p non_existant_dir" "file"
 
 # config
 n=$((n+1))
-cat << EOF >> tmp_gwionrc
+RC=tmp_gwionrc
+cat << EOF >> "$RC"
 -p.
 -l0
 EOF
-run "$n" "config" "-c tmp_gwionrc" "file"
-
+run "$n" "config" "-c $RC" "file"
+rm "$RC"
 # loop
 n=$((n+1))
 run "$n" "loop" "-l0" "file"
 
 # memoization
 n=$((n+1))
-run "$n" "memoize" "-z2 tests/new/pure/.gw" "file"
+run "$n" "memoize" "-z2 tests/new/pure.gw" "file"
 
 # (fake) module arg
 n=$((n+1))

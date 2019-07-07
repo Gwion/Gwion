@@ -1,0 +1,4 @@
+#! [contains] switch statement with no cases
+switch(1) {
+  <<<__func__>>>;
+}

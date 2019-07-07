@@ -1,12 +1,11 @@
 #!/bin/bash
-# [test] #28
+# [test] #29
 
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
 source tests/sh/test.sh
-#source help/test.sh
 
 : "${GWION_ADD_DIR=/usr/lib/Gwion/add}"
 
@@ -15,6 +14,7 @@ export GWION_ADD_DIR
 test_plugin() {
 	export NAME=$"$1"
 	export PRG=$"../../gwion"
+	export SUPP=$"../../help/supp"
 	make
   if [ -f "$NAME.gw" ]
   then GWOPT=-p. test_gw "$NAME.gw" "$n"

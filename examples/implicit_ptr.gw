@@ -1,0 +1,4 @@
+fun void test(<~int~>Ptr pi) {
+   <<< *pi >>>;
+}
+int i => test;

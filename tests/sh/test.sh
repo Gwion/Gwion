@@ -14,6 +14,7 @@
 : "${ANSI_BOLD:=\033[33;1m}"
 
 : "${DRIVER:=dummy}"
+: "${SUPP:=help/supp}"
 
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"
@@ -184,7 +185,7 @@ test_gw(){
   if [ "$VALGRIND" == "NO_VALGRIND" ]
   then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
-    LANG=C "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
+    LANG=C "$VALGRIND" --suppressions="$SUPP" --log-file="$vlog" \
     ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?
