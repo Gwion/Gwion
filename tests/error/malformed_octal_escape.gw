@@ -1,0 +1,2 @@
+#! [contains] malformed octal escape sequence
+<<<"\038[31mred\033[0m">>>;
