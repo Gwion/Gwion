@@ -1,0 +1,4 @@
+Impulse imp => dac;
+1 => imp.next;
+<<< imp.next() >>>;
+samp => now;

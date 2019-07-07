@@ -1,0 +1,9 @@
+Impulse imp => ZeroX fr => dac;
+samp => now;
+-1 => imp.next;
+samp => now;
+0 => imp.next;
+samp => now;
+1 => imp.next;
+samp => now;
+<<<imp.last()>>>;

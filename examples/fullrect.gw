@@ -1,0 +1,5 @@
+Impulse imp => FullRect fr => dac;
+samp => now;
+1 => imp.next;
+samp => now;
+<<<imp.last()>>>;

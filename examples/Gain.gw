@@ -1,10 +1,6 @@
-SinOsc s, t;
-Gain g => dac;
-1 => t.freq;
-s => g;
-t => g;
+adc => Gain g => dac;
 g.chan(0);
-spork  { while(true) { Math.rand2f(100, 800) => s.freq; .15::second => now; }};
+spork  { while(true) { g.gain() == (.2 ? .2 : .1) => g.gain; .15::second => now; }};
 for(int i; i < 5; i++) {
     <<< g.op() >>>;
 	i => g.op;
