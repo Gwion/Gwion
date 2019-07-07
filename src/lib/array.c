@@ -29,16 +29,7 @@ ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }
 
-M_Vector new_m_vector(MemPool p, const m_uint size) {
-  const M_Vector array = mp_calloc(p, M_Vector);
-  const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
-  array->ptr   = (m_bit*)xcalloc(1, sz);
-  ARRAY_CAP(array)   = 2;
-  ARRAY_SIZE(array)  = size;
-  return array;
-}
-
-M_Vector new_m_vector2(MemPool p, const m_uint size, const m_uint len) {
+M_Vector new_m_vector(MemPool p, const m_uint size, const m_uint len) {
   const M_Vector array = mp_calloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
@@ -70,7 +61,7 @@ ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, NULL, t);
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  ARRAY(a) = new_m_vector2(p, size,length);
+  ARRAY(a) = new_m_vector(p, size,length);
   return a;
 }
 
@@ -108,7 +99,7 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
 }
 
 static MFUN(vm_vector_rem) {
-  const m_int index = *(m_int*)(shred->reg + SZ_INT);
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
@@ -156,7 +147,8 @@ static OP_CHECK(opck_array_at) {
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
-    if(bin->rhs->d.exp_decl.list->self->array->exp)
+    if(bin->rhs->d.exp_decl.list->self->array &&
+          bin->rhs->d.exp_decl.list->self->array->exp)
       ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
   bin->rhs->emit_var = 1;
@@ -166,7 +158,7 @@ static OP_CHECK(opck_array_at) {
 static OP_CHECK(opck_array_shift) {
   ARRAY_OPCK
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
-    return t_null;
+    ERR_N(exp_self(bin)->pos, "array depths do not match for '<<'.");
   return bin->lhs->type;
 }
 

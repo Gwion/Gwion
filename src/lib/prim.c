@@ -127,13 +127,12 @@ static GWION_IMPORT(values) {
   gwi_reserve(gwi, "now");
   return GW_OK;
 }
-
+/*
 static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  ERR_O(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
-  return NULL;
+  ERR_N(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
 }
-
+*/
 static OP_CHECK(opck_implicit_f2i) {
   return t_null;
 }
@@ -236,10 +235,6 @@ static GWION_IMPORT(time) {
   CHECK_BB(gwi_oper_end(gwi, "+",         FloatPlus))
   CHECK_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
   _CHECK_OP("=>", rhs_emit_var, Time_Advance)
-  CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
-  _CHECK_OP("=>", chuck_now, NULL)
-  CHECK_BB(gwi_oper_ini(gwi, NULL, "@now", NULL))
-  CHECK_BB(gwi_oper_end(gwi, "!", NULL))
   CHECK_BB(gwi_oper_ini(gwi, "time", "time", "int"))
   CHECK_BB(gwi_oper_end(gwi, ">",           float_gt))
   CHECK_BB(gwi_oper_end(gwi, ">=", 	      float_ge))

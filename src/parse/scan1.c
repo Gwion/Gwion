@@ -88,7 +88,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former && !decl->td->exp &&
+    if(former && !(decl->td->exp || decl->td->xid)&&
         (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))

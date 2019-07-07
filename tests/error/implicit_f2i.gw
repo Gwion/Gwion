@@ -1,0 +1,2 @@
+fun void test(int i) {}
+2.3 => test;
