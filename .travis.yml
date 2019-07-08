@@ -86,7 +86,7 @@ after_success:
 after_failure:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.7  ]; then
       make clean; DEBUG_STACK=1 make;
-      ./gwion tests/tree/array_tests.gw;
+      ./gwion tests/tree/array_test.gw;
     fi
 
 git:
