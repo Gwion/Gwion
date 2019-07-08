@@ -4330,3 +4330,1560 @@ enum.gw ==15223== Memcheck, a memory error detector
 ==23354== 
 ==23354== For counts of detected and suppressed errors, rerun with: -v
 ==23354== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==13450== Memcheck, a memory error detector
+==13450== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==13450== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==13450== Command: ./../../gwion -p. -d dummy /dev/null
+==13450== Parent PID: 13424
+==13450== 
+==13450== 
+==13450== HEAP SUMMARY:
+==13450==     in use at exit: 928 bytes in 10 blocks
+==13450==   total heap usage: 997 allocs, 987 frees, 7,604,988 bytes allocated
+==13450== 
+==13450== LEAK SUMMARY:
+==13450==    definitely lost: 928 bytes in 10 blocks
+==13450==    indirectly lost: 0 bytes in 0 blocks
+==13450==      possibly lost: 0 bytes in 0 blocks
+==13450==    still reachable: 0 bytes in 0 blocks
+==13450==         suppressed: 0 bytes in 0 blocks
+==13450== Rerun with --leak-check=full to see details of leaked memory
+==13450== 
+==13450== For counts of detected and suppressed errors, rerun with: -v
+==13450== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+/dev/null ==13548== Memcheck, a memory error detector
+==13548== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==13548== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==13548== Command: ./../../gwion -p. -d dummy /dev/null
+==13548== Parent PID: 13424
+==13548== 
+==13548== Invalid read of size 4
+==13548==    at 0x130C08: env_err (gwion.c:110)
+==13548==    by 0x146395: gwi_class_ini (import.c:220)
+==13548==    by 0x48481A0: import (begin_class.c:18)
+==13548==    by 0x14F974: type_engine_init (engine.c:107)
+==13548==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13548==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13548==    by 0x12F85D: main (main.c:23)
+==13548==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==13548== 
+==13548== 
+==13548== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==13548==  Access not within mapped region at address 0x28
+==13548==    at 0x130C08: env_err (gwion.c:110)
+==13548==    by 0x146395: gwi_class_ini (import.c:220)
+==13548==    by 0x48481A0: import (begin_class.c:18)
+==13548==    by 0x14F974: type_engine_init (engine.c:107)
+==13548==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13548==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13548==    by 0x12F85D: main (main.c:23)
+==13548==  If you believe this happened as a result of a stack
+==13548==  overflow in your program's main thread (unlikely but
+==13548==  possible), you can try to increase the size of the
+==13548==  main thread stack using the --main-stacksize= flag.
+==13548==  The main thread stack size used in this run was 8388608.
+==13548== 
+==13548== HEAP SUMMARY:
+==13548==     in use at exit: 2,171,350 bytes in 383 blocks
+==13548==   total heap usage: 809 allocs, 426 frees, 2,265,539 bytes allocated
+==13548== 
+==13548== LEAK SUMMARY:
+==13548==    definitely lost: 0 bytes in 0 blocks
+==13548==    indirectly lost: 0 bytes in 0 blocks
+==13548==      possibly lost: 0 bytes in 0 blocks
+==13548==    still reachable: 2,171,350 bytes in 383 blocks
+==13548==         suppressed: 0 bytes in 0 blocks
+==13548== Rerun with --leak-check=full to see details of leaked memory
+==13548== 
+==13548== For counts of detected and suppressed errors, rerun with: -v
+==13548== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==13777== Memcheck, a memory error detector
+==13777== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==13777== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==13777== Command: ./../../gwion -p. -d dummy /dev/null
+==13777== Parent PID: 13424
+==13777== 
+==13777== Invalid read of size 4
+==13777==    at 0x130C08: env_err (gwion.c:110)
+==13777==    by 0x14806A: gwi_union_end (import.c:601)
+==13777==    by 0x4848152: import (empty_union.c:15)
+==13777==    by 0x14F974: type_engine_init (engine.c:107)
+==13777==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13777==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13777==    by 0x12F85D: main (main.c:23)
+==13777==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==13777== 
+==13777== 
+==13777== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==13777==  Access not within mapped region at address 0x28
+==13777==    at 0x130C08: env_err (gwion.c:110)
+==13777==    by 0x14806A: gwi_union_end (import.c:601)
+==13777==    by 0x4848152: import (empty_union.c:15)
+==13777==    by 0x14F974: type_engine_init (engine.c:107)
+==13777==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13777==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13777==    by 0x12F85D: main (main.c:23)
+==13777==  If you believe this happened as a result of a stack
+==13777==  overflow in your program's main thread (unlikely but
+==13777==  possible), you can try to increase the size of the
+==13777==  main thread stack using the --main-stacksize= flag.
+==13777==  The main thread stack size used in this run was 8388608.
+==13777== 
+==13777== HEAP SUMMARY:
+==13777==     in use at exit: 2,170,710 bytes in 374 blocks
+==13777==   total heap usage: 798 allocs, 424 frees, 2,264,835 bytes allocated
+==13777== 
+==13777== LEAK SUMMARY:
+==13777==    definitely lost: 0 bytes in 0 blocks
+==13777==    indirectly lost: 0 bytes in 0 blocks
+==13777==      possibly lost: 0 bytes in 0 blocks
+==13777==    still reachable: 2,170,710 bytes in 374 blocks
+==13777==         suppressed: 0 bytes in 0 blocks
+==13777== Rerun with --leak-check=full to see details of leaked memory
+==13777== 
+==13777== For counts of detected and suppressed errors, rerun with: -v
+==13777== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==13824== Memcheck, a memory error detector
+==13824== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==13824== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==13824== Command: ./../../gwion -p. -d dummy /dev/null
+==13824== Parent PID: 13424
+==13824== 
+==13824== Invalid read of size 4
+==13824==    at 0x130C08: env_err (gwion.c:110)
+==13824==    by 0x146914: gwi_class_end (import.c:268)
+==13824==    by 0x4848133: import (end_class.c:15)
+==13824==    by 0x14F974: type_engine_init (engine.c:107)
+==13824==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13824==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13824==    by 0x12F85D: main (main.c:23)
+==13824==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==13824== 
+==13824== 
+==13824== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==13824==  Access not within mapped region at address 0x28
+==13824==    at 0x130C08: env_err (gwion.c:110)
+==13824==    by 0x146914: gwi_class_end (import.c:268)
+==13824==    by 0x4848133: import (end_class.c:15)
+==13824==    by 0x14F974: type_engine_init (engine.c:107)
+==13824==    by 0x1308A5: gwion_engine (gwion.c:39)
+==13824==    by 0x1308A5: gwion_ini (gwion.c:78)
+==13824==    by 0x12F85D: main (main.c:23)
+==13824==  If you believe this happened as a result of a stack
+==13824==  overflow in your program's main thread (unlikely but
+==13824==  possible), you can try to increase the size of the
+==13824==  main thread stack using the --main-stacksize= flag.
+==13824==  The main thread stack size used in this run was 8388608.
+==13824== 
+==13824== HEAP SUMMARY:
+==13824==     in use at exit: 2,170,704 bytes in 374 blocks
+==13824==   total heap usage: 798 allocs, 424 frees, 2,264,821 bytes allocated
+==13824== 
+==13824== LEAK SUMMARY:
+==13824==    definitely lost: 0 bytes in 0 blocks
+==13824==    indirectly lost: 0 bytes in 0 blocks
+==13824==      possibly lost: 0 bytes in 0 blocks
+==13824==    still reachable: 2,170,704 bytes in 374 blocks
+==13824==         suppressed: 0 bytes in 0 blocks
+==13824== Rerun with --leak-check=full to see details of leaked memory
+==13824== 
+==13824== For counts of detected and suppressed errors, rerun with: -v
+==13824== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14145== Memcheck, a memory error detector
+==14145== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14145== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14145== Command: ./../../gwion -p. -d dummy /dev/null
+==14145== Parent PID: 13424
+==14145== 
+==14145== Invalid read of size 4
+==14145==    at 0x130C08: env_err (gwion.c:110)
+==14145==    by 0x1452DE: path_valid (import.c:145)
+==14145==    by 0x145C3D: str2list (import.c:167)
+==14145==    by 0x146D5B: str2decl (import.c:366)
+==14145==    by 0x147185: make_dll_arg_list (import.c:395)
+==14145==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14145==    by 0x147808: gwi_func_end (import.c:449)
+==14145==    by 0x4848225: import (invalid_arg.c:21)
+==14145==    by 0x14F974: type_engine_init (engine.c:107)
+==14145==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14145==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14145==    by 0x12F85D: main (main.c:23)
+==14145==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14145== 
+==14145== 
+==14145== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14145==  Access not within mapped region at address 0x28
+==14145==    at 0x130C08: env_err (gwion.c:110)
+==14145==    by 0x1452DE: path_valid (import.c:145)
+==14145==    by 0x145C3D: str2list (import.c:167)
+==14145==    by 0x146D5B: str2decl (import.c:366)
+==14145==    by 0x147185: make_dll_arg_list (import.c:395)
+==14145==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14145==    by 0x147808: gwi_func_end (import.c:449)
+==14145==    by 0x4848225: import (invalid_arg.c:21)
+==14145==    by 0x14F974: type_engine_init (engine.c:107)
+==14145==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14145==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14145==    by 0x12F85D: main (main.c:23)
+==14145==  If you believe this happened as a result of a stack
+==14145==  overflow in your program's main thread (unlikely but
+==14145==  possible), you can try to increase the size of the
+==14145==  main thread stack using the --main-stacksize= flag.
+==14145==  The main thread stack size used in this run was 8388608.
+==14145== 
+==14145== HEAP SUMMARY:
+==14145==     in use at exit: 2,171,862 bytes in 384 blocks
+==14145==   total heap usage: 810 allocs, 426 frees, 2,266,051 bytes allocated
+==14145== 
+==14145== LEAK SUMMARY:
+==14145==    definitely lost: 0 bytes in 0 blocks
+==14145==    indirectly lost: 0 bytes in 0 blocks
+==14145==      possibly lost: 0 bytes in 0 blocks
+==14145==    still reachable: 2,171,862 bytes in 384 blocks
+==14145==         suppressed: 0 bytes in 0 blocks
+==14145== Rerun with --leak-check=full to see details of leaked memory
+==14145== 
+==14145== For counts of detected and suppressed errors, rerun with: -v
+==14145== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14191== Memcheck, a memory error detector
+==14191== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14191== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14191== Command: ./../../gwion -p. -d dummy /dev/null
+==14191== Parent PID: 13424
+==14191== 
+==14191== Invalid read of size 4
+==14191==    at 0x130C08: env_err (gwion.c:110)
+==14191==    by 0x14725C: make_dll_arg_list (import.c:406)
+==14191==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14191==    by 0x147808: gwi_func_end (import.c:449)
+==14191==    by 0x48482A6: import (invalid_array.c:24)
+==14191==    by 0x14F974: type_engine_init (engine.c:107)
+==14191==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14191==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14191==    by 0x12F85D: main (main.c:23)
+==14191==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14191== 
+==14191== 
+==14191== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14191==  Access not within mapped region at address 0x28
+==14191==    at 0x130C08: env_err (gwion.c:110)
+==14191==    by 0x14725C: make_dll_arg_list (import.c:406)
+==14191==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14191==    by 0x147808: gwi_func_end (import.c:449)
+==14191==    by 0x48482A6: import (invalid_array.c:24)
+==14191==    by 0x14F974: type_engine_init (engine.c:107)
+==14191==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14191==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14191==    by 0x12F85D: main (main.c:23)
+==14191==  If you believe this happened as a result of a stack
+==14191==  overflow in your program's main thread (unlikely but
+==14191==  possible), you can try to increase the size of the
+==14191==  main thread stack using the --main-stacksize= flag.
+==14191==  The main thread stack size used in this run was 8388608.
+==14191== 
+==14191== HEAP SUMMARY:
+==14191==     in use at exit: 2,173,020 bytes in 385 blocks
+==14191==   total heap usage: 812 allocs, 427 frees, 2,267,345 bytes allocated
+==14191== 
+==14191== LEAK SUMMARY:
+==14191==    definitely lost: 0 bytes in 0 blocks
+==14191==    indirectly lost: 0 bytes in 0 blocks
+==14191==      possibly lost: 0 bytes in 0 blocks
+==14191==    still reachable: 2,173,020 bytes in 385 blocks
+==14191==         suppressed: 0 bytes in 0 blocks
+==14191== Rerun with --leak-check=full to see details of leaked memory
+==14191== 
+==14191== For counts of detected and suppressed errors, rerun with: -v
+==14191== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14238== Memcheck, a memory error detector
+==14238== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14238== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14238== Command: ./../../gwion -p. -d dummy /dev/null
+==14238== Parent PID: 13424
+==14238== 
+==14238== Invalid read of size 4
+==14238==    at 0x130C08: env_err (gwion.c:110)
+==14238==    by 0x1452DE: path_valid (import.c:145)
+==14238==    by 0x145C3D: str2list (import.c:167)
+==14238==    by 0x1474FC: import_td (import.c:418)
+==14238==    by 0x14768D: make_dll_as_fun (import.c:436)
+==14238==    by 0x147808: gwi_func_end (import.c:449)
+==14238==    by 0x48481EC: import (invalid_func.c:20)
+==14238==    by 0x14F974: type_engine_init (engine.c:107)
+==14238==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14238==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14238==    by 0x12F85D: main (main.c:23)
+==14238==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14238== 
+==14238== 
+==14238== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14238==  Access not within mapped region at address 0x28
+==14238==    at 0x130C08: env_err (gwion.c:110)
+==14238==    by 0x1452DE: path_valid (import.c:145)
+==14238==    by 0x145C3D: str2list (import.c:167)
+==14238==    by 0x1474FC: import_td (import.c:418)
+==14238==    by 0x14768D: make_dll_as_fun (import.c:436)
+==14238==    by 0x147808: gwi_func_end (import.c:449)
+==14238==    by 0x48481EC: import (invalid_func.c:20)
+==14238==    by 0x14F974: type_engine_init (engine.c:107)
+==14238==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14238==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14238==    by 0x12F85D: main (main.c:23)
+==14238==  If you believe this happened as a result of a stack
+==14238==  overflow in your program's main thread (unlikely but
+==14238==  possible), you can try to increase the size of the
+==14238==  main thread stack using the --main-stacksize= flag.
+==14238==  The main thread stack size used in this run was 8388608.
+==14238== 
+==14238== HEAP SUMMARY:
+==14238==     in use at exit: 2,171,353 bytes in 383 blocks
+==14238==   total heap usage: 809 allocs, 426 frees, 2,265,546 bytes allocated
+==14238== 
+==14238== LEAK SUMMARY:
+==14238==    definitely lost: 0 bytes in 0 blocks
+==14238==    indirectly lost: 0 bytes in 0 blocks
+==14238==      possibly lost: 0 bytes in 0 blocks
+==14238==    still reachable: 2,171,353 bytes in 383 blocks
+==14238==         suppressed: 0 bytes in 0 blocks
+==14238== Rerun with --leak-check=full to see details of leaked memory
+==14238== 
+==14238== For counts of detected and suppressed errors, rerun with: -v
+==14238== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14285== Memcheck, a memory error detector
+==14285== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14285== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14285== Command: ./../../gwion -p. -d dummy /dev/null
+==14285== Parent PID: 13424
+==14285== 
+==14285== Invalid read of size 4
+==14285==    at 0x130C08: env_err (gwion.c:110)
+==14285==    by 0x145164: path_valid (import.c:135)
+==14285==    by 0x145C3D: str2list (import.c:167)
+==14285==    by 0x1469A5: gwi_item_ini (import.c:302)
+==14285==    by 0x48481B5: import (invalid_type1.c:18)
+==14285==    by 0x14F974: type_engine_init (engine.c:107)
+==14285==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14285==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14285==    by 0x12F85D: main (main.c:23)
+==14285==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14285== 
+==14285== 
+==14285== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14285==  Access not within mapped region at address 0x28
+==14285==    at 0x130C08: env_err (gwion.c:110)
+==14285==    by 0x145164: path_valid (import.c:135)
+==14285==    by 0x145C3D: str2list (import.c:167)
+==14285==    by 0x1469A5: gwi_item_ini (import.c:302)
+==14285==    by 0x48481B5: import (invalid_type1.c:18)
+==14285==    by 0x14F974: type_engine_init (engine.c:107)
+==14285==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14285==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14285==    by 0x12F85D: main (main.c:23)
+==14285==  If you believe this happened as a result of a stack
+==14285==  overflow in your program's main thread (unlikely but
+==14285==  possible), you can try to increase the size of the
+==14285==  main thread stack using the --main-stacksize= flag.
+==14285==  The main thread stack size used in this run was 8388608.
+==14285== 
+==14285== HEAP SUMMARY:
+==14285==     in use at exit: 2,171,356 bytes in 383 blocks
+==14285==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==14285== 
+==14285== LEAK SUMMARY:
+==14285==    definitely lost: 0 bytes in 0 blocks
+==14285==    indirectly lost: 0 bytes in 0 blocks
+==14285==      possibly lost: 0 bytes in 0 blocks
+==14285==    still reachable: 2,171,356 bytes in 383 blocks
+==14285==         suppressed: 0 bytes in 0 blocks
+==14285== Rerun with --leak-check=full to see details of leaked memory
+==14285== 
+==14285== For counts of detected and suppressed errors, rerun with: -v
+==14285== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14331== Memcheck, a memory error detector
+==14331== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14331== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14331== Command: ./../../gwion -p. -d dummy /dev/null
+==14331== Parent PID: 13424
+==14331== 
+==14331== Invalid read of size 4
+==14331==    at 0x130C08: env_err (gwion.c:110)
+==14331==    by 0x1452DE: path_valid (import.c:145)
+==14331==    by 0x145C3D: str2list (import.c:167)
+==14331==    by 0x1469A5: gwi_item_ini (import.c:302)
+==14331==    by 0x48481B5: import (invalid_type2.c:18)
+==14331==    by 0x14F974: type_engine_init (engine.c:107)
+==14331==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14331==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14331==    by 0x12F85D: main (main.c:23)
+==14331==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14331== 
+==14331== 
+==14331== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14331==  Access not within mapped region at address 0x28
+==14331==    at 0x130C08: env_err (gwion.c:110)
+==14331==    by 0x1452DE: path_valid (import.c:145)
+==14331==    by 0x145C3D: str2list (import.c:167)
+==14331==    by 0x1469A5: gwi_item_ini (import.c:302)
+==14331==    by 0x48481B5: import (invalid_type2.c:18)
+==14331==    by 0x14F974: type_engine_init (engine.c:107)
+==14331==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14331==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14331==    by 0x12F85D: main (main.c:23)
+==14331==  If you believe this happened as a result of a stack
+==14331==  overflow in your program's main thread (unlikely but
+==14331==  possible), you can try to increase the size of the
+==14331==  main thread stack using the --main-stacksize= flag.
+==14331==  The main thread stack size used in this run was 8388608.
+==14331== 
+==14331== HEAP SUMMARY:
+==14331==     in use at exit: 2,171,356 bytes in 383 blocks
+==14331==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==14331== 
+==14331== LEAK SUMMARY:
+==14331==    definitely lost: 0 bytes in 0 blocks
+==14331==    indirectly lost: 0 bytes in 0 blocks
+==14331==      possibly lost: 0 bytes in 0 blocks
+==14331==    still reachable: 2,171,356 bytes in 383 blocks
+==14331==         suppressed: 0 bytes in 0 blocks
+==14331== Rerun with --leak-check=full to see details of leaked memory
+==14331== 
+==14331== For counts of detected and suppressed errors, rerun with: -v
+==14331== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14378== Memcheck, a memory error detector
+==14378== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14378== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14378== Command: ./../../gwion -p. -d dummy /dev/null
+==14378== Parent PID: 13424
+==14378== 
+==14378== Invalid read of size 4
+==14378==    at 0x130C08: env_err (gwion.c:110)
+==14378==    by 0x144FC9: name_valid (import.c:116)
+==14378==    by 0x14624E: gwi_add_type (import.c:195)
+==14378==    by 0x146314: gwi_class_ini (import.c:229)
+==14378==    by 0x484818F: import (invalid_type3.c:18)
+==14378==    by 0x14F974: type_engine_init (engine.c:107)
+==14378==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14378==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14378==    by 0x12F85D: main (main.c:23)
+==14378==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14378== 
+==14378== 
+==14378== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14378==  Access not within mapped region at address 0x28
+==14378==    at 0x130C08: env_err (gwion.c:110)
+==14378==    by 0x144FC9: name_valid (import.c:116)
+==14378==    by 0x14624E: gwi_add_type (import.c:195)
+==14378==    by 0x146314: gwi_class_ini (import.c:229)
+==14378==    by 0x484818F: import (invalid_type3.c:18)
+==14378==    by 0x14F974: type_engine_init (engine.c:107)
+==14378==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14378==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14378==    by 0x12F85D: main (main.c:23)
+==14378==  If you believe this happened as a result of a stack
+==14378==  overflow in your program's main thread (unlikely but
+==14378==  possible), you can try to increase the size of the
+==14378==  main thread stack using the --main-stacksize= flag.
+==14378==  The main thread stack size used in this run was 8388608.
+==14378== 
+==14378== HEAP SUMMARY:
+==14378==     in use at exit: 2,170,716 bytes in 374 blocks
+==14378==   total heap usage: 798 allocs, 424 frees, 2,264,849 bytes allocated
+==14378== 
+==14378== LEAK SUMMARY:
+==14378==    definitely lost: 0 bytes in 0 blocks
+==14378==    indirectly lost: 0 bytes in 0 blocks
+==14378==      possibly lost: 0 bytes in 0 blocks
+==14378==    still reachable: 2,170,716 bytes in 374 blocks
+==14378==         suppressed: 0 bytes in 0 blocks
+==14378== Rerun with --leak-check=full to see details of leaked memory
+==14378== 
+==14378== For counts of detected and suppressed errors, rerun with: -v
+==14378== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==14560== Memcheck, a memory error detector
+==14560== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==14560== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==14560== Command: ./../../gwion -p. -d dummy /dev/null
+==14560== Parent PID: 13424
+==14560== 
+==14560== Invalid read of size 4
+==14560==    at 0x130C08: env_err (gwion.c:110)
+==14560==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==14560==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14560==    by 0x147808: gwi_func_end (import.c:449)
+==14560==    by 0x4848225: import (template_arg.c:21)
+==14560==    by 0x14F974: type_engine_init (engine.c:107)
+==14560==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14560==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14560==    by 0x12F85D: main (main.c:23)
+==14560==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==14560== 
+==14560== 
+==14560== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==14560==  Access not within mapped region at address 0x28
+==14560==    at 0x130C08: env_err (gwion.c:110)
+==14560==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==14560==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==14560==    by 0x147808: gwi_func_end (import.c:449)
+==14560==    by 0x4848225: import (template_arg.c:21)
+==14560==    by 0x14F974: type_engine_init (engine.c:107)
+==14560==    by 0x1308A5: gwion_engine (gwion.c:39)
+==14560==    by 0x1308A5: gwion_ini (gwion.c:78)
+==14560==    by 0x12F85D: main (main.c:23)
+==14560==  If you believe this happened as a result of a stack
+==14560==  overflow in your program's main thread (unlikely but
+==14560==  possible), you can try to increase the size of the
+==14560==  main thread stack using the --main-stacksize= flag.
+==14560==  The main thread stack size used in this run was 8388608.
+==14560== 
+==14560== HEAP SUMMARY:
+==14560==     in use at exit: 2,177,657 bytes in 395 blocks
+==14560==   total heap usage: 829 allocs, 434 frees, 2,272,394 bytes allocated
+==14560== 
+==14560== LEAK SUMMARY:
+==14560==    definitely lost: 0 bytes in 0 blocks
+==14560==    indirectly lost: 0 bytes in 0 blocks
+==14560==      possibly lost: 0 bytes in 0 blocks
+==14560==    still reachable: 2,177,657 bytes in 395 blocks
+==14560==         suppressed: 0 bytes in 0 blocks
+==14560== Rerun with --leak-check=full to see details of leaked memory
+==14560== 
+==14560== For counts of detected and suppressed errors, rerun with: -v
+==14560== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32053== Memcheck, a memory error detector
+==32053== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32053== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32053== Command: ./../../gwion -p. -d dummy /dev/null
+==32053== Parent PID: 32027
+==32053== 
+==32053== 
+==32053== HEAP SUMMARY:
+==32053==     in use at exit: 928 bytes in 10 blocks
+==32053==   total heap usage: 997 allocs, 987 frees, 7,604,988 bytes allocated
+==32053== 
+==32053== LEAK SUMMARY:
+==32053==    definitely lost: 928 bytes in 10 blocks
+==32053==    indirectly lost: 0 bytes in 0 blocks
+==32053==      possibly lost: 0 bytes in 0 blocks
+==32053==    still reachable: 0 bytes in 0 blocks
+==32053==         suppressed: 0 bytes in 0 blocks
+==32053== Rerun with --leak-check=full to see details of leaked memory
+==32053== 
+==32053== For counts of detected and suppressed errors, rerun with: -v
+==32053== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+/dev/null ==32164== Memcheck, a memory error detector
+==32164== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32164== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32164== Command: ./../../gwion -p. -d dummy /dev/null
+==32164== Parent PID: 32027
+==32164== 
+==32164== Invalid read of size 4
+==32164==    at 0x130C08: env_err (gwion.c:110)
+==32164==    by 0x146395: gwi_class_ini (import.c:220)
+==32164==    by 0x48481A0: import (begin_class.c:18)
+==32164==    by 0x14F974: type_engine_init (engine.c:107)
+==32164==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32164==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32164==    by 0x12F85D: main (main.c:23)
+==32164==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32164== 
+==32164== 
+==32164== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32164==  Access not within mapped region at address 0x28
+==32164==    at 0x130C08: env_err (gwion.c:110)
+==32164==    by 0x146395: gwi_class_ini (import.c:220)
+==32164==    by 0x48481A0: import (begin_class.c:18)
+==32164==    by 0x14F974: type_engine_init (engine.c:107)
+==32164==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32164==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32164==    by 0x12F85D: main (main.c:23)
+==32164==  If you believe this happened as a result of a stack
+==32164==  overflow in your program's main thread (unlikely but
+==32164==  possible), you can try to increase the size of the
+==32164==  main thread stack using the --main-stacksize= flag.
+==32164==  The main thread stack size used in this run was 8388608.
+==32164== 
+==32164== HEAP SUMMARY:
+==32164==     in use at exit: 2,171,350 bytes in 383 blocks
+==32164==   total heap usage: 809 allocs, 426 frees, 2,265,539 bytes allocated
+==32164== 
+==32164== LEAK SUMMARY:
+==32164==    definitely lost: 0 bytes in 0 blocks
+==32164==    indirectly lost: 0 bytes in 0 blocks
+==32164==      possibly lost: 0 bytes in 0 blocks
+==32164==    still reachable: 2,171,350 bytes in 383 blocks
+==32164==         suppressed: 0 bytes in 0 blocks
+==32164== Rerun with --leak-check=full to see details of leaked memory
+==32164== 
+==32164== For counts of detected and suppressed errors, rerun with: -v
+==32164== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32401== Memcheck, a memory error detector
+==32401== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32401== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32401== Command: ./../../gwion -p. -d dummy /dev/null
+==32401== Parent PID: 32027
+==32401== 
+==32401== Invalid read of size 4
+==32401==    at 0x130C08: env_err (gwion.c:110)
+==32401==    by 0x14806A: gwi_union_end (import.c:601)
+==32401==    by 0x4848152: import (empty_union.c:15)
+==32401==    by 0x14F974: type_engine_init (engine.c:107)
+==32401==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32401==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32401==    by 0x12F85D: main (main.c:23)
+==32401==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32401== 
+==32401== 
+==32401== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32401==  Access not within mapped region at address 0x28
+==32401==    at 0x130C08: env_err (gwion.c:110)
+==32401==    by 0x14806A: gwi_union_end (import.c:601)
+==32401==    by 0x4848152: import (empty_union.c:15)
+==32401==    by 0x14F974: type_engine_init (engine.c:107)
+==32401==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32401==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32401==    by 0x12F85D: main (main.c:23)
+==32401==  If you believe this happened as a result of a stack
+==32401==  overflow in your program's main thread (unlikely but
+==32401==  possible), you can try to increase the size of the
+==32401==  main thread stack using the --main-stacksize= flag.
+==32401==  The main thread stack size used in this run was 8388608.
+==32401== 
+==32401== HEAP SUMMARY:
+==32401==     in use at exit: 2,170,710 bytes in 374 blocks
+==32401==   total heap usage: 798 allocs, 424 frees, 2,264,835 bytes allocated
+==32401== 
+==32401== LEAK SUMMARY:
+==32401==    definitely lost: 0 bytes in 0 blocks
+==32401==    indirectly lost: 0 bytes in 0 blocks
+==32401==      possibly lost: 0 bytes in 0 blocks
+==32401==    still reachable: 2,170,710 bytes in 374 blocks
+==32401==         suppressed: 0 bytes in 0 blocks
+==32401== Rerun with --leak-check=full to see details of leaked memory
+==32401== 
+==32401== For counts of detected and suppressed errors, rerun with: -v
+==32401== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32447== Memcheck, a memory error detector
+==32447== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32447== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32447== Command: ./../../gwion -p. -d dummy /dev/null
+==32447== Parent PID: 32027
+==32447== 
+==32447== Invalid read of size 4
+==32447==    at 0x130C08: env_err (gwion.c:110)
+==32447==    by 0x146914: gwi_class_end (import.c:268)
+==32447==    by 0x4848133: import (end_class.c:15)
+==32447==    by 0x14F974: type_engine_init (engine.c:107)
+==32447==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32447==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32447==    by 0x12F85D: main (main.c:23)
+==32447==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32447== 
+==32447== 
+==32447== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32447==  Access not within mapped region at address 0x28
+==32447==    at 0x130C08: env_err (gwion.c:110)
+==32447==    by 0x146914: gwi_class_end (import.c:268)
+==32447==    by 0x4848133: import (end_class.c:15)
+==32447==    by 0x14F974: type_engine_init (engine.c:107)
+==32447==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32447==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32447==    by 0x12F85D: main (main.c:23)
+==32447==  If you believe this happened as a result of a stack
+==32447==  overflow in your program's main thread (unlikely but
+==32447==  possible), you can try to increase the size of the
+==32447==  main thread stack using the --main-stacksize= flag.
+==32447==  The main thread stack size used in this run was 8388608.
+==32447== 
+==32447== HEAP SUMMARY:
+==32447==     in use at exit: 2,170,704 bytes in 374 blocks
+==32447==   total heap usage: 798 allocs, 424 frees, 2,264,821 bytes allocated
+==32447== 
+==32447== LEAK SUMMARY:
+==32447==    definitely lost: 0 bytes in 0 blocks
+==32447==    indirectly lost: 0 bytes in 0 blocks
+==32447==      possibly lost: 0 bytes in 0 blocks
+==32447==    still reachable: 2,170,704 bytes in 374 blocks
+==32447==         suppressed: 0 bytes in 0 blocks
+==32447== Rerun with --leak-check=full to see details of leaked memory
+==32447== 
+==32447== For counts of detected and suppressed errors, rerun with: -v
+==32447== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==689== Memcheck, a memory error detector
+==689== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==689== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==689== Command: ./../../gwion -p. -d dummy /dev/null
+==689== Parent PID: 32027
+==689== 
+==689== Invalid read of size 4
+==689==    at 0x130C08: env_err (gwion.c:110)
+==689==    by 0x1452DE: path_valid (import.c:145)
+==689==    by 0x145C3D: str2list (import.c:167)
+==689==    by 0x146D5B: str2decl (import.c:366)
+==689==    by 0x147185: make_dll_arg_list (import.c:395)
+==689==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==689==    by 0x147808: gwi_func_end (import.c:449)
+==689==    by 0x4848225: import (invalid_arg.c:21)
+==689==    by 0x14F974: type_engine_init (engine.c:107)
+==689==    by 0x1308A5: gwion_engine (gwion.c:39)
+==689==    by 0x1308A5: gwion_ini (gwion.c:78)
+==689==    by 0x12F85D: main (main.c:23)
+==689==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==689== 
+==689== 
+==689== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==689==  Access not within mapped region at address 0x28
+==689==    at 0x130C08: env_err (gwion.c:110)
+==689==    by 0x1452DE: path_valid (import.c:145)
+==689==    by 0x145C3D: str2list (import.c:167)
+==689==    by 0x146D5B: str2decl (import.c:366)
+==689==    by 0x147185: make_dll_arg_list (import.c:395)
+==689==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==689==    by 0x147808: gwi_func_end (import.c:449)
+==689==    by 0x4848225: import (invalid_arg.c:21)
+==689==    by 0x14F974: type_engine_init (engine.c:107)
+==689==    by 0x1308A5: gwion_engine (gwion.c:39)
+==689==    by 0x1308A5: gwion_ini (gwion.c:78)
+==689==    by 0x12F85D: main (main.c:23)
+==689==  If you believe this happened as a result of a stack
+==689==  overflow in your program's main thread (unlikely but
+==689==  possible), you can try to increase the size of the
+==689==  main thread stack using the --main-stacksize= flag.
+==689==  The main thread stack size used in this run was 8388608.
+==689== 
+==689== HEAP SUMMARY:
+==689==     in use at exit: 2,171,862 bytes in 384 blocks
+==689==   total heap usage: 810 allocs, 426 frees, 2,266,051 bytes allocated
+==689== 
+==689== LEAK SUMMARY:
+==689==    definitely lost: 0 bytes in 0 blocks
+==689==    indirectly lost: 0 bytes in 0 blocks
+==689==      possibly lost: 0 bytes in 0 blocks
+==689==    still reachable: 2,171,862 bytes in 384 blocks
+==689==         suppressed: 0 bytes in 0 blocks
+==689== Rerun with --leak-check=full to see details of leaked memory
+==689== 
+==689== For counts of detected and suppressed errors, rerun with: -v
+==689== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==746== Memcheck, a memory error detector
+==746== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==746== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==746== Command: ./../../gwion -p. -d dummy /dev/null
+==746== Parent PID: 32027
+==746== 
+==746== Invalid read of size 4
+==746==    at 0x130C08: env_err (gwion.c:110)
+==746==    by 0x14725C: make_dll_arg_list (import.c:406)
+==746==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==746==    by 0x147808: gwi_func_end (import.c:449)
+==746==    by 0x48482A6: import (invalid_array.c:24)
+==746==    by 0x14F974: type_engine_init (engine.c:107)
+==746==    by 0x1308A5: gwion_engine (gwion.c:39)
+==746==    by 0x1308A5: gwion_ini (gwion.c:78)
+==746==    by 0x12F85D: main (main.c:23)
+==746==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==746== 
+==746== 
+==746== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==746==  Access not within mapped region at address 0x28
+==746==    at 0x130C08: env_err (gwion.c:110)
+==746==    by 0x14725C: make_dll_arg_list (import.c:406)
+==746==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==746==    by 0x147808: gwi_func_end (import.c:449)
+==746==    by 0x48482A6: import (invalid_array.c:24)
+==746==    by 0x14F974: type_engine_init (engine.c:107)
+==746==    by 0x1308A5: gwion_engine (gwion.c:39)
+==746==    by 0x1308A5: gwion_ini (gwion.c:78)
+==746==    by 0x12F85D: main (main.c:23)
+==746==  If you believe this happened as a result of a stack
+==746==  overflow in your program's main thread (unlikely but
+==746==  possible), you can try to increase the size of the
+==746==  main thread stack using the --main-stacksize= flag.
+==746==  The main thread stack size used in this run was 8388608.
+==746== 
+==746== HEAP SUMMARY:
+==746==     in use at exit: 2,173,020 bytes in 385 blocks
+==746==   total heap usage: 812 allocs, 427 frees, 2,267,345 bytes allocated
+==746== 
+==746== LEAK SUMMARY:
+==746==    definitely lost: 0 bytes in 0 blocks
+==746==    indirectly lost: 0 bytes in 0 blocks
+==746==      possibly lost: 0 bytes in 0 blocks
+==746==    still reachable: 2,173,020 bytes in 385 blocks
+==746==         suppressed: 0 bytes in 0 blocks
+==746== Rerun with --leak-check=full to see details of leaked memory
+==746== 
+==746== For counts of detected and suppressed errors, rerun with: -v
+==746== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==814== Memcheck, a memory error detector
+==814== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==814== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==814== Command: ./../../gwion -p. -d dummy /dev/null
+==814== Parent PID: 32027
+==814== 
+==814== Invalid read of size 4
+==814==    at 0x130C08: env_err (gwion.c:110)
+==814==    by 0x1452DE: path_valid (import.c:145)
+==814==    by 0x145C3D: str2list (import.c:167)
+==814==    by 0x1474FC: import_td (import.c:418)
+==814==    by 0x14768D: make_dll_as_fun (import.c:436)
+==814==    by 0x147808: gwi_func_end (import.c:449)
+==814==    by 0x48481EC: import (invalid_func.c:20)
+==814==    by 0x14F974: type_engine_init (engine.c:107)
+==814==    by 0x1308A5: gwion_engine (gwion.c:39)
+==814==    by 0x1308A5: gwion_ini (gwion.c:78)
+==814==    by 0x12F85D: main (main.c:23)
+==814==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==814== 
+==814== 
+==814== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==814==  Access not within mapped region at address 0x28
+==814==    at 0x130C08: env_err (gwion.c:110)
+==814==    by 0x1452DE: path_valid (import.c:145)
+==814==    by 0x145C3D: str2list (import.c:167)
+==814==    by 0x1474FC: import_td (import.c:418)
+==814==    by 0x14768D: make_dll_as_fun (import.c:436)
+==814==    by 0x147808: gwi_func_end (import.c:449)
+==814==    by 0x48481EC: import (invalid_func.c:20)
+==814==    by 0x14F974: type_engine_init (engine.c:107)
+==814==    by 0x1308A5: gwion_engine (gwion.c:39)
+==814==    by 0x1308A5: gwion_ini (gwion.c:78)
+==814==    by 0x12F85D: main (main.c:23)
+==814==  If you believe this happened as a result of a stack
+==814==  overflow in your program's main thread (unlikely but
+==814==  possible), you can try to increase the size of the
+==814==  main thread stack using the --main-stacksize= flag.
+==814==  The main thread stack size used in this run was 8388608.
+==814== 
+==814== HEAP SUMMARY:
+==814==     in use at exit: 2,171,353 bytes in 383 blocks
+==814==   total heap usage: 809 allocs, 426 frees, 2,265,546 bytes allocated
+==814== 
+==814== LEAK SUMMARY:
+==814==    definitely lost: 0 bytes in 0 blocks
+==814==    indirectly lost: 0 bytes in 0 blocks
+==814==      possibly lost: 0 bytes in 0 blocks
+==814==    still reachable: 2,171,353 bytes in 383 blocks
+==814==         suppressed: 0 bytes in 0 blocks
+==814== Rerun with --leak-check=full to see details of leaked memory
+==814== 
+==814== For counts of detected and suppressed errors, rerun with: -v
+==814== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==865== Memcheck, a memory error detector
+==865== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==865== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==865== Command: ./../../gwion -p. -d dummy /dev/null
+==865== Parent PID: 32027
+==865== 
+==865== Invalid read of size 4
+==865==    at 0x130C08: env_err (gwion.c:110)
+==865==    by 0x145164: path_valid (import.c:135)
+==865==    by 0x145C3D: str2list (import.c:167)
+==865==    by 0x1469A5: gwi_item_ini (import.c:302)
+==865==    by 0x48481B5: import (invalid_type1.c:18)
+==865==    by 0x14F974: type_engine_init (engine.c:107)
+==865==    by 0x1308A5: gwion_engine (gwion.c:39)
+==865==    by 0x1308A5: gwion_ini (gwion.c:78)
+==865==    by 0x12F85D: main (main.c:23)
+==865==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==865== 
+==865== 
+==865== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==865==  Access not within mapped region at address 0x28
+==865==    at 0x130C08: env_err (gwion.c:110)
+==865==    by 0x145164: path_valid (import.c:135)
+==865==    by 0x145C3D: str2list (import.c:167)
+==865==    by 0x1469A5: gwi_item_ini (import.c:302)
+==865==    by 0x48481B5: import (invalid_type1.c:18)
+==865==    by 0x14F974: type_engine_init (engine.c:107)
+==865==    by 0x1308A5: gwion_engine (gwion.c:39)
+==865==    by 0x1308A5: gwion_ini (gwion.c:78)
+==865==    by 0x12F85D: main (main.c:23)
+==865==  If you believe this happened as a result of a stack
+==865==  overflow in your program's main thread (unlikely but
+==865==  possible), you can try to increase the size of the
+==865==  main thread stack using the --main-stacksize= flag.
+==865==  The main thread stack size used in this run was 8388608.
+==865== 
+==865== HEAP SUMMARY:
+==865==     in use at exit: 2,171,356 bytes in 383 blocks
+==865==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==865== 
+==865== LEAK SUMMARY:
+==865==    definitely lost: 0 bytes in 0 blocks
+==865==    indirectly lost: 0 bytes in 0 blocks
+==865==      possibly lost: 0 bytes in 0 blocks
+==865==    still reachable: 2,171,356 bytes in 383 blocks
+==865==         suppressed: 0 bytes in 0 blocks
+==865== Rerun with --leak-check=full to see details of leaked memory
+==865== 
+==865== For counts of detected and suppressed errors, rerun with: -v
+==865== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==911== Memcheck, a memory error detector
+==911== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==911== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==911== Command: ./../../gwion -p. -d dummy /dev/null
+==911== Parent PID: 32027
+==911== 
+==911== Invalid read of size 4
+==911==    at 0x130C08: env_err (gwion.c:110)
+==911==    by 0x1452DE: path_valid (import.c:145)
+==911==    by 0x145C3D: str2list (import.c:167)
+==911==    by 0x1469A5: gwi_item_ini (import.c:302)
+==911==    by 0x48481B5: import (invalid_type2.c:18)
+==911==    by 0x14F974: type_engine_init (engine.c:107)
+==911==    by 0x1308A5: gwion_engine (gwion.c:39)
+==911==    by 0x1308A5: gwion_ini (gwion.c:78)
+==911==    by 0x12F85D: main (main.c:23)
+==911==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==911== 
+==911== 
+==911== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==911==  Access not within mapped region at address 0x28
+==911==    at 0x130C08: env_err (gwion.c:110)
+==911==    by 0x1452DE: path_valid (import.c:145)
+==911==    by 0x145C3D: str2list (import.c:167)
+==911==    by 0x1469A5: gwi_item_ini (import.c:302)
+==911==    by 0x48481B5: import (invalid_type2.c:18)
+==911==    by 0x14F974: type_engine_init (engine.c:107)
+==911==    by 0x1308A5: gwion_engine (gwion.c:39)
+==911==    by 0x1308A5: gwion_ini (gwion.c:78)
+==911==    by 0x12F85D: main (main.c:23)
+==911==  If you believe this happened as a result of a stack
+==911==  overflow in your program's main thread (unlikely but
+==911==  possible), you can try to increase the size of the
+==911==  main thread stack using the --main-stacksize= flag.
+==911==  The main thread stack size used in this run was 8388608.
+==911== 
+==911== HEAP SUMMARY:
+==911==     in use at exit: 2,171,356 bytes in 383 blocks
+==911==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==911== 
+==911== LEAK SUMMARY:
+==911==    definitely lost: 0 bytes in 0 blocks
+==911==    indirectly lost: 0 bytes in 0 blocks
+==911==      possibly lost: 0 bytes in 0 blocks
+==911==    still reachable: 2,171,356 bytes in 383 blocks
+==911==         suppressed: 0 bytes in 0 blocks
+==911== Rerun with --leak-check=full to see details of leaked memory
+==911== 
+==911== For counts of detected and suppressed errors, rerun with: -v
+==911== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==957== Memcheck, a memory error detector
+==957== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==957== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==957== Command: ./../../gwion -p. -d dummy /dev/null
+==957== Parent PID: 32027
+==957== 
+==957== Invalid read of size 4
+==957==    at 0x130C08: env_err (gwion.c:110)
+==957==    by 0x144FC9: name_valid (import.c:116)
+==957==    by 0x14624E: gwi_add_type (import.c:195)
+==957==    by 0x146314: gwi_class_ini (import.c:229)
+==957==    by 0x484818F: import (invalid_type3.c:18)
+==957==    by 0x14F974: type_engine_init (engine.c:107)
+==957==    by 0x1308A5: gwion_engine (gwion.c:39)
+==957==    by 0x1308A5: gwion_ini (gwion.c:78)
+==957==    by 0x12F85D: main (main.c:23)
+==957==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==957== 
+==957== 
+==957== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==957==  Access not within mapped region at address 0x28
+==957==    at 0x130C08: env_err (gwion.c:110)
+==957==    by 0x144FC9: name_valid (import.c:116)
+==957==    by 0x14624E: gwi_add_type (import.c:195)
+==957==    by 0x146314: gwi_class_ini (import.c:229)
+==957==    by 0x484818F: import (invalid_type3.c:18)
+==957==    by 0x14F974: type_engine_init (engine.c:107)
+==957==    by 0x1308A5: gwion_engine (gwion.c:39)
+==957==    by 0x1308A5: gwion_ini (gwion.c:78)
+==957==    by 0x12F85D: main (main.c:23)
+==957==  If you believe this happened as a result of a stack
+==957==  overflow in your program's main thread (unlikely but
+==957==  possible), you can try to increase the size of the
+==957==  main thread stack using the --main-stacksize= flag.
+==957==  The main thread stack size used in this run was 8388608.
+==957== 
+==957== HEAP SUMMARY:
+==957==     in use at exit: 2,170,716 bytes in 374 blocks
+==957==   total heap usage: 798 allocs, 424 frees, 2,264,849 bytes allocated
+==957== 
+==957== LEAK SUMMARY:
+==957==    definitely lost: 0 bytes in 0 blocks
+==957==    indirectly lost: 0 bytes in 0 blocks
+==957==      possibly lost: 0 bytes in 0 blocks
+==957==    still reachable: 2,170,716 bytes in 374 blocks
+==957==         suppressed: 0 bytes in 0 blocks
+==957== Rerun with --leak-check=full to see details of leaked memory
+==957== 
+==957== For counts of detected and suppressed errors, rerun with: -v
+==957== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==1138== Memcheck, a memory error detector
+==1138== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==1138== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==1138== Command: ./../../gwion -p. -d dummy /dev/null
+==1138== Parent PID: 32027
+==1138== 
+==1138== Invalid read of size 4
+==1138==    at 0x130C08: env_err (gwion.c:110)
+==1138==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==1138==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==1138==    by 0x147808: gwi_func_end (import.c:449)
+==1138==    by 0x4848225: import (template_arg.c:21)
+==1138==    by 0x14F974: type_engine_init (engine.c:107)
+==1138==    by 0x1308A5: gwion_engine (gwion.c:39)
+==1138==    by 0x1308A5: gwion_ini (gwion.c:78)
+==1138==    by 0x12F85D: main (main.c:23)
+==1138==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==1138== 
+==1138== 
+==1138== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==1138==  Access not within mapped region at address 0x28
+==1138==    at 0x130C08: env_err (gwion.c:110)
+==1138==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==1138==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==1138==    by 0x147808: gwi_func_end (import.c:449)
+==1138==    by 0x4848225: import (template_arg.c:21)
+==1138==    by 0x14F974: type_engine_init (engine.c:107)
+==1138==    by 0x1308A5: gwion_engine (gwion.c:39)
+==1138==    by 0x1308A5: gwion_ini (gwion.c:78)
+==1138==    by 0x12F85D: main (main.c:23)
+==1138==  If you believe this happened as a result of a stack
+==1138==  overflow in your program's main thread (unlikely but
+==1138==  possible), you can try to increase the size of the
+==1138==  main thread stack using the --main-stacksize= flag.
+==1138==  The main thread stack size used in this run was 8388608.
+==1138== 
+==1138== HEAP SUMMARY:
+==1138==     in use at exit: 2,177,657 bytes in 395 blocks
+==1138==   total heap usage: 829 allocs, 434 frees, 2,272,394 bytes allocated
+==1138== 
+==1138== LEAK SUMMARY:
+==1138==    definitely lost: 0 bytes in 0 blocks
+==1138==    indirectly lost: 0 bytes in 0 blocks
+==1138==      possibly lost: 0 bytes in 0 blocks
+==1138==    still reachable: 2,177,657 bytes in 395 blocks
+==1138==         suppressed: 0 bytes in 0 blocks
+==1138== Rerun with --leak-check=full to see details of leaked memory
+==1138== 
+==1138== For counts of detected and suppressed errors, rerun with: -v
+==1138== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==31527== Memcheck, a memory error detector
+==31527== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==31527== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==31527== Command: ./../../gwion -p. -d dummy /dev/null
+==31527== Parent PID: 31474
+==31527== 
+==31527== 
+==31527== HEAP SUMMARY:
+==31527==     in use at exit: 928 bytes in 10 blocks
+==31527==   total heap usage: 997 allocs, 987 frees, 7,604,988 bytes allocated
+==31527== 
+==31527== LEAK SUMMARY:
+==31527==    definitely lost: 928 bytes in 10 blocks
+==31527==    indirectly lost: 0 bytes in 0 blocks
+==31527==      possibly lost: 0 bytes in 0 blocks
+==31527==    still reachable: 0 bytes in 0 blocks
+==31527==         suppressed: 0 bytes in 0 blocks
+==31527== Rerun with --leak-check=full to see details of leaked memory
+==31527== 
+==31527== For counts of detected and suppressed errors, rerun with: -v
+==31527== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+/dev/null ==31634== Memcheck, a memory error detector
+==31634== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==31634== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==31634== Command: ./../../gwion -p. -d dummy /dev/null
+==31634== Parent PID: 31474
+==31634== 
+==31634== Invalid read of size 4
+==31634==    at 0x130C08: env_err (gwion.c:110)
+==31634==    by 0x146395: gwi_class_ini (import.c:220)
+==31634==    by 0x48481A0: import (begin_class.c:18)
+==31634==    by 0x14F974: type_engine_init (engine.c:107)
+==31634==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31634==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31634==    by 0x12F85D: main (main.c:23)
+==31634==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==31634== 
+==31634== 
+==31634== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==31634==  Access not within mapped region at address 0x28
+==31634==    at 0x130C08: env_err (gwion.c:110)
+==31634==    by 0x146395: gwi_class_ini (import.c:220)
+==31634==    by 0x48481A0: import (begin_class.c:18)
+==31634==    by 0x14F974: type_engine_init (engine.c:107)
+==31634==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31634==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31634==    by 0x12F85D: main (main.c:23)
+==31634==  If you believe this happened as a result of a stack
+==31634==  overflow in your program's main thread (unlikely but
+==31634==  possible), you can try to increase the size of the
+==31634==  main thread stack using the --main-stacksize= flag.
+==31634==  The main thread stack size used in this run was 8388608.
+==31634== 
+==31634== HEAP SUMMARY:
+==31634==     in use at exit: 2,171,350 bytes in 383 blocks
+==31634==   total heap usage: 809 allocs, 426 frees, 2,265,539 bytes allocated
+==31634== 
+==31634== LEAK SUMMARY:
+==31634==    definitely lost: 0 bytes in 0 blocks
+==31634==    indirectly lost: 0 bytes in 0 blocks
+==31634==      possibly lost: 0 bytes in 0 blocks
+==31634==    still reachable: 2,171,350 bytes in 383 blocks
+==31634==         suppressed: 0 bytes in 0 blocks
+==31634== Rerun with --leak-check=full to see details of leaked memory
+==31634== 
+==31634== For counts of detected and suppressed errors, rerun with: -v
+==31634== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==31870== Memcheck, a memory error detector
+==31870== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==31870== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==31870== Command: ./../../gwion -p. -d dummy /dev/null
+==31870== Parent PID: 31474
+==31870== 
+==31870== Invalid read of size 4
+==31870==    at 0x130C08: env_err (gwion.c:110)
+==31870==    by 0x14806A: gwi_union_end (import.c:601)
+==31870==    by 0x4848152: import (empty_union.c:15)
+==31870==    by 0x14F974: type_engine_init (engine.c:107)
+==31870==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31870==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31870==    by 0x12F85D: main (main.c:23)
+==31870==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==31870== 
+==31870== 
+==31870== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==31870==  Access not within mapped region at address 0x28
+==31870==    at 0x130C08: env_err (gwion.c:110)
+==31870==    by 0x14806A: gwi_union_end (import.c:601)
+==31870==    by 0x4848152: import (empty_union.c:15)
+==31870==    by 0x14F974: type_engine_init (engine.c:107)
+==31870==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31870==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31870==    by 0x12F85D: main (main.c:23)
+==31870==  If you believe this happened as a result of a stack
+==31870==  overflow in your program's main thread (unlikely but
+==31870==  possible), you can try to increase the size of the
+==31870==  main thread stack using the --main-stacksize= flag.
+==31870==  The main thread stack size used in this run was 8388608.
+==31870== 
+==31870== HEAP SUMMARY:
+==31870==     in use at exit: 2,170,710 bytes in 374 blocks
+==31870==   total heap usage: 798 allocs, 424 frees, 2,264,835 bytes allocated
+==31870== 
+==31870== LEAK SUMMARY:
+==31870==    definitely lost: 0 bytes in 0 blocks
+==31870==    indirectly lost: 0 bytes in 0 blocks
+==31870==      possibly lost: 0 bytes in 0 blocks
+==31870==    still reachable: 2,170,710 bytes in 374 blocks
+==31870==         suppressed: 0 bytes in 0 blocks
+==31870== Rerun with --leak-check=full to see details of leaked memory
+==31870== 
+==31870== For counts of detected and suppressed errors, rerun with: -v
+==31870== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==31917== Memcheck, a memory error detector
+==31917== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==31917== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==31917== Command: ./../../gwion -p. -d dummy /dev/null
+==31917== Parent PID: 31474
+==31917== 
+==31917== Invalid read of size 4
+==31917==    at 0x130C08: env_err (gwion.c:110)
+==31917==    by 0x146914: gwi_class_end (import.c:268)
+==31917==    by 0x4848133: import (end_class.c:15)
+==31917==    by 0x14F974: type_engine_init (engine.c:107)
+==31917==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31917==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31917==    by 0x12F85D: main (main.c:23)
+==31917==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==31917== 
+==31917== 
+==31917== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==31917==  Access not within mapped region at address 0x28
+==31917==    at 0x130C08: env_err (gwion.c:110)
+==31917==    by 0x146914: gwi_class_end (import.c:268)
+==31917==    by 0x4848133: import (end_class.c:15)
+==31917==    by 0x14F974: type_engine_init (engine.c:107)
+==31917==    by 0x1308A5: gwion_engine (gwion.c:39)
+==31917==    by 0x1308A5: gwion_ini (gwion.c:78)
+==31917==    by 0x12F85D: main (main.c:23)
+==31917==  If you believe this happened as a result of a stack
+==31917==  overflow in your program's main thread (unlikely but
+==31917==  possible), you can try to increase the size of the
+==31917==  main thread stack using the --main-stacksize= flag.
+==31917==  The main thread stack size used in this run was 8388608.
+==31917== 
+==31917== HEAP SUMMARY:
+==31917==     in use at exit: 2,170,704 bytes in 374 blocks
+==31917==   total heap usage: 798 allocs, 424 frees, 2,264,821 bytes allocated
+==31917== 
+==31917== LEAK SUMMARY:
+==31917==    definitely lost: 0 bytes in 0 blocks
+==31917==    indirectly lost: 0 bytes in 0 blocks
+==31917==      possibly lost: 0 bytes in 0 blocks
+==31917==    still reachable: 2,170,704 bytes in 374 blocks
+==31917==         suppressed: 0 bytes in 0 blocks
+==31917== Rerun with --leak-check=full to see details of leaked memory
+==31917== 
+==31917== For counts of detected and suppressed errors, rerun with: -v
+==31917== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32262== Memcheck, a memory error detector
+==32262== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32262== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32262== Command: ./../../gwion -p. -d dummy /dev/null
+==32262== Parent PID: 31474
+==32262== 
+==32262== Invalid read of size 4
+==32262==    at 0x130C08: env_err (gwion.c:110)
+==32262==    by 0x1452DE: path_valid (import.c:145)
+==32262==    by 0x145C3D: str2list (import.c:167)
+==32262==    by 0x146D5B: str2decl (import.c:366)
+==32262==    by 0x147185: make_dll_arg_list (import.c:395)
+==32262==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32262==    by 0x147808: gwi_func_end (import.c:449)
+==32262==    by 0x4848225: import (invalid_arg.c:21)
+==32262==    by 0x14F974: type_engine_init (engine.c:107)
+==32262==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32262==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32262==    by 0x12F85D: main (main.c:23)
+==32262==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32262== 
+==32262== 
+==32262== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32262==  Access not within mapped region at address 0x28
+==32262==    at 0x130C08: env_err (gwion.c:110)
+==32262==    by 0x1452DE: path_valid (import.c:145)
+==32262==    by 0x145C3D: str2list (import.c:167)
+==32262==    by 0x146D5B: str2decl (import.c:366)
+==32262==    by 0x147185: make_dll_arg_list (import.c:395)
+==32262==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32262==    by 0x147808: gwi_func_end (import.c:449)
+==32262==    by 0x4848225: import (invalid_arg.c:21)
+==32262==    by 0x14F974: type_engine_init (engine.c:107)
+==32262==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32262==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32262==    by 0x12F85D: main (main.c:23)
+==32262==  If you believe this happened as a result of a stack
+==32262==  overflow in your program's main thread (unlikely but
+==32262==  possible), you can try to increase the size of the
+==32262==  main thread stack using the --main-stacksize= flag.
+==32262==  The main thread stack size used in this run was 8388608.
+==32262== 
+==32262== HEAP SUMMARY:
+==32262==     in use at exit: 2,171,862 bytes in 384 blocks
+==32262==   total heap usage: 810 allocs, 426 frees, 2,266,051 bytes allocated
+==32262== 
+==32262== LEAK SUMMARY:
+==32262==    definitely lost: 0 bytes in 0 blocks
+==32262==    indirectly lost: 0 bytes in 0 blocks
+==32262==      possibly lost: 0 bytes in 0 blocks
+==32262==    still reachable: 2,171,862 bytes in 384 blocks
+==32262==         suppressed: 0 bytes in 0 blocks
+==32262== Rerun with --leak-check=full to see details of leaked memory
+==32262== 
+==32262== For counts of detected and suppressed errors, rerun with: -v
+==32262== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32308== Memcheck, a memory error detector
+==32308== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32308== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32308== Command: ./../../gwion -p. -d dummy /dev/null
+==32308== Parent PID: 31474
+==32308== 
+==32308== Invalid read of size 4
+==32308==    at 0x130C08: env_err (gwion.c:110)
+==32308==    by 0x14725C: make_dll_arg_list (import.c:406)
+==32308==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32308==    by 0x147808: gwi_func_end (import.c:449)
+==32308==    by 0x48482A6: import (invalid_array.c:24)
+==32308==    by 0x14F974: type_engine_init (engine.c:107)
+==32308==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32308==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32308==    by 0x12F85D: main (main.c:23)
+==32308==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32308== 
+==32308== 
+==32308== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32308==  Access not within mapped region at address 0x28
+==32308==    at 0x130C08: env_err (gwion.c:110)
+==32308==    by 0x14725C: make_dll_arg_list (import.c:406)
+==32308==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32308==    by 0x147808: gwi_func_end (import.c:449)
+==32308==    by 0x48482A6: import (invalid_array.c:24)
+==32308==    by 0x14F974: type_engine_init (engine.c:107)
+==32308==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32308==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32308==    by 0x12F85D: main (main.c:23)
+==32308==  If you believe this happened as a result of a stack
+==32308==  overflow in your program's main thread (unlikely but
+==32308==  possible), you can try to increase the size of the
+==32308==  main thread stack using the --main-stacksize= flag.
+==32308==  The main thread stack size used in this run was 8388608.
+==32308== 
+==32308== HEAP SUMMARY:
+==32308==     in use at exit: 2,173,020 bytes in 385 blocks
+==32308==   total heap usage: 812 allocs, 427 frees, 2,267,345 bytes allocated
+==32308== 
+==32308== LEAK SUMMARY:
+==32308==    definitely lost: 0 bytes in 0 blocks
+==32308==    indirectly lost: 0 bytes in 0 blocks
+==32308==      possibly lost: 0 bytes in 0 blocks
+==32308==    still reachable: 2,173,020 bytes in 385 blocks
+==32308==         suppressed: 0 bytes in 0 blocks
+==32308== Rerun with --leak-check=full to see details of leaked memory
+==32308== 
+==32308== For counts of detected and suppressed errors, rerun with: -v
+==32308== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32354== Memcheck, a memory error detector
+==32354== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32354== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32354== Command: ./../../gwion -p. -d dummy /dev/null
+==32354== Parent PID: 31474
+==32354== 
+==32354== Invalid read of size 4
+==32354==    at 0x130C08: env_err (gwion.c:110)
+==32354==    by 0x1452DE: path_valid (import.c:145)
+==32354==    by 0x145C3D: str2list (import.c:167)
+==32354==    by 0x1474FC: import_td (import.c:418)
+==32354==    by 0x14768D: make_dll_as_fun (import.c:436)
+==32354==    by 0x147808: gwi_func_end (import.c:449)
+==32354==    by 0x48481EC: import (invalid_func.c:20)
+==32354==    by 0x14F974: type_engine_init (engine.c:107)
+==32354==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32354==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32354==    by 0x12F85D: main (main.c:23)
+==32354==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32354== 
+==32354== 
+==32354== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32354==  Access not within mapped region at address 0x28
+==32354==    at 0x130C08: env_err (gwion.c:110)
+==32354==    by 0x1452DE: path_valid (import.c:145)
+==32354==    by 0x145C3D: str2list (import.c:167)
+==32354==    by 0x1474FC: import_td (import.c:418)
+==32354==    by 0x14768D: make_dll_as_fun (import.c:436)
+==32354==    by 0x147808: gwi_func_end (import.c:449)
+==32354==    by 0x48481EC: import (invalid_func.c:20)
+==32354==    by 0x14F974: type_engine_init (engine.c:107)
+==32354==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32354==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32354==    by 0x12F85D: main (main.c:23)
+==32354==  If you believe this happened as a result of a stack
+==32354==  overflow in your program's main thread (unlikely but
+==32354==  possible), you can try to increase the size of the
+==32354==  main thread stack using the --main-stacksize= flag.
+==32354==  The main thread stack size used in this run was 8388608.
+==32354== 
+==32354== HEAP SUMMARY:
+==32354==     in use at exit: 2,171,353 bytes in 383 blocks
+==32354==   total heap usage: 809 allocs, 426 frees, 2,265,546 bytes allocated
+==32354== 
+==32354== LEAK SUMMARY:
+==32354==    definitely lost: 0 bytes in 0 blocks
+==32354==    indirectly lost: 0 bytes in 0 blocks
+==32354==      possibly lost: 0 bytes in 0 blocks
+==32354==    still reachable: 2,171,353 bytes in 383 blocks
+==32354==         suppressed: 0 bytes in 0 blocks
+==32354== Rerun with --leak-check=full to see details of leaked memory
+==32354== 
+==32354== For counts of detected and suppressed errors, rerun with: -v
+==32354== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32401== Memcheck, a memory error detector
+==32401== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32401== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32401== Command: ./../../gwion -p. -d dummy /dev/null
+==32401== Parent PID: 31474
+==32401== 
+==32401== Invalid read of size 4
+==32401==    at 0x130C08: env_err (gwion.c:110)
+==32401==    by 0x145164: path_valid (import.c:135)
+==32401==    by 0x145C3D: str2list (import.c:167)
+==32401==    by 0x1469A5: gwi_item_ini (import.c:302)
+==32401==    by 0x48481B5: import (invalid_type1.c:18)
+==32401==    by 0x14F974: type_engine_init (engine.c:107)
+==32401==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32401==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32401==    by 0x12F85D: main (main.c:23)
+==32401==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32401== 
+==32401== 
+==32401== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32401==  Access not within mapped region at address 0x28
+==32401==    at 0x130C08: env_err (gwion.c:110)
+==32401==    by 0x145164: path_valid (import.c:135)
+==32401==    by 0x145C3D: str2list (import.c:167)
+==32401==    by 0x1469A5: gwi_item_ini (import.c:302)
+==32401==    by 0x48481B5: import (invalid_type1.c:18)
+==32401==    by 0x14F974: type_engine_init (engine.c:107)
+==32401==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32401==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32401==    by 0x12F85D: main (main.c:23)
+==32401==  If you believe this happened as a result of a stack
+==32401==  overflow in your program's main thread (unlikely but
+==32401==  possible), you can try to increase the size of the
+==32401==  main thread stack using the --main-stacksize= flag.
+==32401==  The main thread stack size used in this run was 8388608.
+==32401== 
+==32401== HEAP SUMMARY:
+==32401==     in use at exit: 2,171,356 bytes in 383 blocks
+==32401==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==32401== 
+==32401== LEAK SUMMARY:
+==32401==    definitely lost: 0 bytes in 0 blocks
+==32401==    indirectly lost: 0 bytes in 0 blocks
+==32401==      possibly lost: 0 bytes in 0 blocks
+==32401==    still reachable: 2,171,356 bytes in 383 blocks
+==32401==         suppressed: 0 bytes in 0 blocks
+==32401== Rerun with --leak-check=full to see details of leaked memory
+==32401== 
+==32401== For counts of detected and suppressed errors, rerun with: -v
+==32401== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32447== Memcheck, a memory error detector
+==32447== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32447== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32447== Command: ./../../gwion -p. -d dummy /dev/null
+==32447== Parent PID: 31474
+==32447== 
+==32447== Invalid read of size 4
+==32447==    at 0x130C08: env_err (gwion.c:110)
+==32447==    by 0x1452DE: path_valid (import.c:145)
+==32447==    by 0x145C3D: str2list (import.c:167)
+==32447==    by 0x1469A5: gwi_item_ini (import.c:302)
+==32447==    by 0x48481B5: import (invalid_type2.c:18)
+==32447==    by 0x14F974: type_engine_init (engine.c:107)
+==32447==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32447==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32447==    by 0x12F85D: main (main.c:23)
+==32447==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32447== 
+==32447== 
+==32447== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32447==  Access not within mapped region at address 0x28
+==32447==    at 0x130C08: env_err (gwion.c:110)
+==32447==    by 0x1452DE: path_valid (import.c:145)
+==32447==    by 0x145C3D: str2list (import.c:167)
+==32447==    by 0x1469A5: gwi_item_ini (import.c:302)
+==32447==    by 0x48481B5: import (invalid_type2.c:18)
+==32447==    by 0x14F974: type_engine_init (engine.c:107)
+==32447==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32447==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32447==    by 0x12F85D: main (main.c:23)
+==32447==  If you believe this happened as a result of a stack
+==32447==  overflow in your program's main thread (unlikely but
+==32447==  possible), you can try to increase the size of the
+==32447==  main thread stack using the --main-stacksize= flag.
+==32447==  The main thread stack size used in this run was 8388608.
+==32447== 
+==32447== HEAP SUMMARY:
+==32447==     in use at exit: 2,171,356 bytes in 383 blocks
+==32447==   total heap usage: 809 allocs, 426 frees, 2,265,553 bytes allocated
+==32447== 
+==32447== LEAK SUMMARY:
+==32447==    definitely lost: 0 bytes in 0 blocks
+==32447==    indirectly lost: 0 bytes in 0 blocks
+==32447==      possibly lost: 0 bytes in 0 blocks
+==32447==    still reachable: 2,171,356 bytes in 383 blocks
+==32447==         suppressed: 0 bytes in 0 blocks
+==32447== Rerun with --leak-check=full to see details of leaked memory
+==32447== 
+==32447== For counts of detected and suppressed errors, rerun with: -v
+==32447== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32493== Memcheck, a memory error detector
+==32493== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32493== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32493== Command: ./../../gwion -p. -d dummy /dev/null
+==32493== Parent PID: 31474
+==32493== 
+==32493== Invalid read of size 4
+==32493==    at 0x130C08: env_err (gwion.c:110)
+==32493==    by 0x144FC9: name_valid (import.c:116)
+==32493==    by 0x14624E: gwi_add_type (import.c:195)
+==32493==    by 0x146314: gwi_class_ini (import.c:229)
+==32493==    by 0x484818F: import (invalid_type3.c:18)
+==32493==    by 0x14F974: type_engine_init (engine.c:107)
+==32493==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32493==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32493==    by 0x12F85D: main (main.c:23)
+==32493==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32493== 
+==32493== 
+==32493== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32493==  Access not within mapped region at address 0x28
+==32493==    at 0x130C08: env_err (gwion.c:110)
+==32493==    by 0x144FC9: name_valid (import.c:116)
+==32493==    by 0x14624E: gwi_add_type (import.c:195)
+==32493==    by 0x146314: gwi_class_ini (import.c:229)
+==32493==    by 0x484818F: import (invalid_type3.c:18)
+==32493==    by 0x14F974: type_engine_init (engine.c:107)
+==32493==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32493==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32493==    by 0x12F85D: main (main.c:23)
+==32493==  If you believe this happened as a result of a stack
+==32493==  overflow in your program's main thread (unlikely but
+==32493==  possible), you can try to increase the size of the
+==32493==  main thread stack using the --main-stacksize= flag.
+==32493==  The main thread stack size used in this run was 8388608.
+==32493== 
+==32493== HEAP SUMMARY:
+==32493==     in use at exit: 2,170,716 bytes in 374 blocks
+==32493==   total heap usage: 798 allocs, 424 frees, 2,264,849 bytes allocated
+==32493== 
+==32493== LEAK SUMMARY:
+==32493==    definitely lost: 0 bytes in 0 blocks
+==32493==    indirectly lost: 0 bytes in 0 blocks
+==32493==      possibly lost: 0 bytes in 0 blocks
+==32493==    still reachable: 2,170,716 bytes in 374 blocks
+==32493==         suppressed: 0 bytes in 0 blocks
+==32493== Rerun with --leak-check=full to see details of leaked memory
+==32493== 
+==32493== For counts of detected and suppressed errors, rerun with: -v
+==32493== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+/dev/null ==32674== Memcheck, a memory error detector
+==32674== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==32674== Using Valgrind-3.14.0 and LibVEX; rerun with -h for copyright info
+==32674== Command: ./../../gwion -p. -d dummy /dev/null
+==32674== Parent PID: 31474
+==32674== 
+==32674== Invalid read of size 4
+==32674==    at 0x130C08: env_err (gwion.c:110)
+==32674==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==32674==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32674==    by 0x147808: gwi_func_end (import.c:449)
+==32674==    by 0x4848225: import (template_arg.c:21)
+==32674==    by 0x14F974: type_engine_init (engine.c:107)
+==32674==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32674==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32674==    by 0x12F85D: main (main.c:23)
+==32674==  Address 0x28 is not stack'd, malloc'd or (recently) free'd
+==32674== 
+==32674== 
+==32674== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==32674==  Access not within mapped region at address 0x28
+==32674==    at 0x130C08: env_err (gwion.c:110)
+==32674==    by 0x146FDD: make_dll_arg_list (import.c:398)
+==32674==    by 0x1476B9: make_dll_as_fun (import.c:440)
+==32674==    by 0x147808: gwi_func_end (import.c:449)
+==32674==    by 0x4848225: import (template_arg.c:21)
+==32674==    by 0x14F974: type_engine_init (engine.c:107)
+==32674==    by 0x1308A5: gwion_engine (gwion.c:39)
+==32674==    by 0x1308A5: gwion_ini (gwion.c:78)
+==32674==    by 0x12F85D: main (main.c:23)
+==32674==  If you believe this happened as a result of a stack
+==32674==  overflow in your program's main thread (unlikely but
+==32674==  possible), you can try to increase the size of the
+==32674==  main thread stack using the --main-stacksize= flag.
+==32674==  The main thread stack size used in this run was 8388608.
+==32674== 
+==32674== HEAP SUMMARY:
+==32674==     in use at exit: 2,177,657 bytes in 395 blocks
+==32674==   total heap usage: 829 allocs, 434 frees, 2,272,394 bytes allocated
+==32674== 
+==32674== LEAK SUMMARY:
+==32674==    definitely lost: 0 bytes in 0 blocks
+==32674==    indirectly lost: 0 bytes in 0 blocks
+==32674==      possibly lost: 0 bytes in 0 blocks
+==32674==    still reachable: 2,177,657 bytes in 395 blocks
+==32674==         suppressed: 0 bytes in 0 blocks
+==32674== Rerun with --leak-check=full to see details of leaked memory
+==32674== 
+==32674== For counts of detected and suppressed errors, rerun with: -v
+==32674== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

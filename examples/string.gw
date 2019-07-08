@@ -1,37 +1,6 @@
 Object o;
 string s;
 "CamelCase" => s;
-s.size();
-s.upper();
-s.lower();
-s.find('o');
-s.find(1, 'i');
-s.find("su");
-s.find(1, "su");
-s.rfind('o');
-s.rfind(1, 'i');
-s.rfind("su");
-s.rfind(1, "su");
-s.erase(1, 2);
-
-
-<<< " su".ltrim() >>>;
-<<< " su ".rtrim() >>>;
-<<< " su ".trim() >>>;
-
-<<< " su ".charAt(1) >>>;
-<<< " su ".charAt(1, 'n') >>>;
-<<< " su ".charAt(-1) >>>;
-<<< " su ".charAt(-1, 'n') >>>;
-
-
-s.substring(2);
-" su ".substring(2);
-<<< " su ".substring(2, 1) >>>;
-<<< "su".insert(1, "test") >>>;
-<<< "su".replace(1, "t") >>>;
-<<< "su".replace(1, 2, "turlututu") >>>;
-<<< " su ".charAt(1, 'n') >>>;
 #!null @=> s;
 <<< 1 => s >>>;
 <<< 1.0 => s >>>;
@@ -48,8 +17,6 @@ s.substring(2);
 #! look at me!!!
 <<<  o => s >>>; #! hang . grrr ...
 <<< "test" + "another test"  >>>; #! mem leak
-<<< "1".toInt() >>>;
-<<< "1".toFloat() >>>;
 
 #!me.exit();
 
@@ -76,4 +43,3 @@ s.substring(2);
 <<<  "test" != "test"  >>>;
 <<<  "test" == "test1"  >>>;
 <<<  "test" != "test1"  >>>;
-<<< string.char('t') >>>;

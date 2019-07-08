@@ -75,3 +75,8 @@ run "$n" "module argument" "-mfake:test" "file"
 # get Kompile time Konfig
 n=$((n+1))
 run "$n" "Kompile time Konfig" "-k" "file"
+
+# test signal
+./gwion -l1 &
+PID=$!
+sleep .1 && kill $PID
