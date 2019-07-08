@@ -269,11 +269,16 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
     SET_FLAG(decl.td, checked | stmt->flag);
+    const m_bool global = GET_FLAG(stmt, global);
+    if(global)
+      UNSET_FLAG(decl.td, global);
     if(GET_FLAG(stmt, member))
       SET_FLAG(decl.td, member);
     else if(GET_FLAG(stmt, static))
       SET_FLAG(decl.td, static);
     CHECK_BB(scan1_exp(env, l->self))
+    if(global)
+      SET_FLAG(decl.td, global);
   } while((l = l->next));
   union_pop(env, stmt, scope);
   return GW_OK;
