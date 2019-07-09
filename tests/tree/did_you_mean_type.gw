@@ -1,4 +1,0 @@
-class C {
-  <<<this.aa>>>;
-  int a;
-}

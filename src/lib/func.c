@@ -67,20 +67,20 @@ struct FptrInfo {
 ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
   if(!info->rhs->def->base->tmpl)
     return GW_OK;
+// some kind of template_match ?
   ID_List t0 = info->lhs->def->base->tmpl->list,
           t1 = info->rhs->def->base->tmpl->list;
-  nspc_push_type(env->gwion->mp, env->curr);
+nspc_push_type(env->gwion->mp, env->curr);
   while(t0) {
-   if(!t1) {
-     nspc_pop_type(env->gwion->mp, env->curr);
-     return GW_ERROR;
-   }
-   nspc_add_type(env->curr, t0->xid, t_undefined);
-   nspc_add_type(env->curr, t1->xid, t_undefined);
+//    CHECK_OB(t1)
+nspc_add_type(env->curr, t0->xid, t_undefined);//
+nspc_add_type(env->curr, t1->xid, t_undefined);//
     t0 = t0->next;
     t1 = t1->next;
   }
-  return GW_OK;
+//  CHECK_BB(template_push_types(env, info->lhs->def->base->tmpl))
+//  return template_push_types(env, info->rhs->def->base->tmpl);
+return GW_OK;//
 }
 
 
@@ -146,8 +146,10 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
       if(fptr_rettype(env, info) > 0 &&
            fptr_arity(info) && fptr_args(env, base) > 0)
       type = info->lhs->value_ref->type;
-      if(info->rhs->def->base->tmpl)
+      if(info->rhs->def->base->tmpl) {
+//        nspc_pop_type(env->gwion->mp, env->curr);
         nspc_pop_type(env->gwion->mp, env->curr);
+      }
     }
   }
   return type;
