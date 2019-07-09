@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #30
+# [test] #31
 
 n=0
 [ "$1" ] && n="$1"
@@ -41,7 +41,9 @@ for test_file in *.c
 do test_plugin "$(basename $test_file .c)"
 done
 
-GWOPT+="-d driver_test:with:some:argument " test_plugin driver
+DRIVER="driver_test:arg" test_plugin driver
+GWOPT+="-mdummy_module=with,some,argument" test_plugin module
+
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
 cd "$BASE_DIR" || exit

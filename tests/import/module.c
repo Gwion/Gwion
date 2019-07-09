@@ -9,12 +9,12 @@
 #include "gwion.h"
 #include "plug.h"
 
-GWMODSTR(dummy2);
+GWMODSTR(dummy_module);
 
-GWMODINI(dummy2) {
+GWMODINI(dummy_module) {
   puts(__func__);
   return NULL;
 }
-GWMODEND(dummy2) {
+GWMODEND(dummy_module) {
   puts(__func__);
 }
