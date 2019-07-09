@@ -1,0 +1,2 @@
+typedef int[2] _int;
+new _int $ _int;

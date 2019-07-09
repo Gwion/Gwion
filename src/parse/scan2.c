@@ -93,8 +93,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   ptr->type->e->d.func = ptr->base->func;
   def->base->tmpl = ptr->base->tmpl;
   SET_FLAG(ptr->value, func | ae_flag_checked);
-if(!ptr->base->tmpl)//
-  if(ptr->base->args)
+  if(!ptr->base->tmpl && ptr->base->args)
     CHECK_BB(scan2_args(env, def))
   if(env->class_def) {
     if(GET_FLAG(ptr->base->td, global)) {
