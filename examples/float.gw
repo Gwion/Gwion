@@ -2,11 +2,6 @@
 
 float a;
 #!testing operator for float and float
-{
-	float	variable1;
-	float	variable2;
-	<<<  variable1=variable2  >>>;
-}
 
 #!testing operator for float and float
 {
@@ -143,13 +138,6 @@ float a;
 {
 	int	variable1;
 	float	variable2;
-	<<<  variable1=variable2  >>>;
-}
-
-#!testing operator for int and float
-{
-	int	variable1;
-	float	variable2;
 	<<<  variable1+variable2  >>>;
 }
 
@@ -266,13 +254,6 @@ float a;
 }
 
 
-#!testing operator for float and int
-{
-	float	variable1;
-	int	variable2;
-	<<<  variable1=variable2  >>>;
-}
-	
 #!testing operator for float and int
 {
 	float	variable1;

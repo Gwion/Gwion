@@ -164,7 +164,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   const Value value = nspc_lookup_value1(env->curr, primary->d.var);
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
-    if(v && SAFE_FLAG(env->func, static) && GET_FLAG(v, member))
+    if(v && env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
       ERR_O(exp_self(primary)->pos,
             _("non-static member '%s' used from static function."), s_name(primary->d.var))
     return v;
