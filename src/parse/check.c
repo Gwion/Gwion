@@ -368,8 +368,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
         return find_func_match_actual(env, func->next, args, implicit, specific);
       }
       if(e1->type == t_undefined ||
-(GET_FLAG(func, template) && isa(actual_type(func->value_ref->type), t_fptr) > 0)
-) {
+            (func->def->base->tmpl && is_fptr(func->value_ref->type) > 0)) {
         if(func->value_ref->owner_class)
           CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
         e1->type = known_type(env, e1->td);
@@ -381,7 +380,6 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
       e = e->next;
       e1 = e1->next;
     }
-printf("end %p %p\n", e1, func);
     if(!e1)
       return func;
   } while((func = func->next));
@@ -587,15 +585,11 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   m_uint args_number = 0;
-puts("here ==");
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
-puts("after here ==");
   const m_uint type_number = get_type_number(value->d.func_ref->def->base->tmpl->list);
-printf("%s func\n", __func__) ;
   Type_List tl[type_number];
   ID_List list = value->d.func_ref->def->base->tmpl->list;
   while(list) {
-printf("%s func\n", __func__) ;
     Arg_List arg = value->d.func_ref->def->base->args;
     Exp template_arg = args;
     while(arg && template_arg) {
@@ -715,11 +709,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
   }
-
-  const Type t = check_exp_call1(env, exp);
-printf("here exp_call %p\n", t);
-return t;
-//  return check_exp_call1(env, exp);
+  return check_exp_call1(env, exp);
 }
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
