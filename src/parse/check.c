@@ -367,7 +367,9 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
       }
-      if(e1->type == t_undefined) {
+      if(e1->type == t_undefined ||
+(GET_FLAG(func, template) && isa(actual_type(func->value_ref->type), t_fptr) > 0)
+) {
         if(func->value_ref->owner_class)
           CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
         e1->type = known_type(env, e1->td);
@@ -379,6 +381,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
       e = e->next;
       e1 = e1->next;
     }
+printf("end %p %p\n", e1, func);
     if(!e1)
       return func;
   } while((func = func->next));
@@ -465,8 +468,12 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
        (!exp->args || !!check_exp(env, exp->args))) {
       m_func = find_func_match(env, fbase->func, exp->args);
       nspc_pop_type(env->gwion->mp, env->curr);
-      if(!value)
+      if(!value && m_func) {
+printf("m_func %p\n", m_func);
+if(!m_func->def->base->ret_type)
+CHECK_BO(traverse_func_def(env, m_func->def))
         map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+}
     }
     free_stmt(env->gwion->mp, stmt);
   }
@@ -512,9 +519,8 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
   Type t = value->owner_class;
   const Func f = _find_template_match(env, value, exp);
-  if(f) {
+  if(f)
     return f;
-  }
   while(t) {
    Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->base->xid);
    if(!v)
@@ -581,11 +587,15 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   m_uint args_number = 0;
+puts("here ==");
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
+puts("after here ==");
   const m_uint type_number = get_type_number(value->d.func_ref->def->base->tmpl->list);
+printf("%s func\n", __func__) ;
   Type_List tl[type_number];
   ID_List list = value->d.func_ref->def->base->tmpl->list;
   while(list) {
+printf("%s func\n", __func__) ;
     Arg_List arg = value->d.func_ref->def->base->args;
     Exp template_arg = args;
     while(arg && template_arg) {
@@ -607,8 +617,10 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
     ERR_O(call->pos, _("not able to guess types for template call."))
   Tmpl tmpl = { .call=tl[0] };
   ((Exp_Call*)exp)->tmpl = &tmpl;
-  const Func func = get_template_func(env, exp, value);
-  return func ? func->def->base->ret_type : NULL;
+  DECL_OO(const Func,func, = get_template_func(env, exp, value))
+  if(!func->def->base->ret_type) // template fptr
+    CHECK_BO(traverse_func_def(env, func->def))
+    return func->def->base->ret_type;
 }
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
@@ -703,7 +715,11 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
   }
-  return check_exp_call1(env, exp);
+
+  const Type t = check_exp_call1(env, exp);
+printf("here exp_call %p\n", t);
+return t;
+//  return check_exp_call1(env, exp);
 }
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
@@ -743,7 +759,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
           _("keyword 'this' must be associated with object instance..."))
   const Value value = find_value(the_base, member->xid);
   if(!value) {
-    env_err(env, member->base->pos,
+    env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
     if(member->t_base->nspc)
       did_you_mean_type(member->t_base, str);

@@ -1,0 +1,4 @@
+#! [contains] can't use ref type in class extend
+typedef int[] Type;
+class C extends Type {
+}

@@ -245,6 +245,8 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_fptr(env, stmt))
+  if(stmt->base->tmpl)//
+    return GW_OK;//
   CHECK_OB((stmt->base->ret_type = known_type(env, stmt->base->td)))
   return stmt->base->args ? scan1_args(env, stmt->base->args) : GW_OK;
 }

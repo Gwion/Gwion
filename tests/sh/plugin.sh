@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #29
+# [test] #30
 
 n=0
 [ "$1" ] && n="$1"
@@ -17,8 +17,8 @@ test_plugin() {
 	export SUPP=$"../../help/supp"
 	make
   if [ -f "$NAME.gw" ]
-  then GWOPT=-p. test_gw "$NAME.gw" "$n"
-  else  GWOPT=-p. test_gw "/dev/null" "$n"
+  then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
+  else  GWOPT+=-p. test_gw "/dev/null" "$n"
   fi
   make clean
  	N=$(printf "% 4i" "$n")
@@ -41,6 +41,7 @@ for test_file in *.c
 do test_plugin "$(basename $test_file .c)"
 done
 
+GWOPT+="-d driver_test:with:some:argument " test_plugin driver
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
 cd "$BASE_DIR" || exit

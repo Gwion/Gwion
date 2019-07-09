@@ -218,7 +218,7 @@ GWION_IMPORT(array) {
   CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
   CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
   CHECK_BB(gwi_oper_end(gwi, "<<", NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "@Array", "Array", NULL))
+  CHECK_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
   CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
   CHECK_BB(gwi_oper_end(gwi, "$", NULL))
