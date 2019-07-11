@@ -93,11 +93,14 @@ INSTR(GTmpl) {
   dt->owner = f->value_ref->owner;
   dt->owner_class = f->value_ref->owner_class;
   if(traverse_dot_tmpl(emit, dt) > 0) {
+    if(GET_FLAG(f, member)) // TODO: CHECK ME
+        shred->reg += SZ_INT; else
     if(GET_FLAG(def, static))
       shred->reg -= SZ_INT;
     *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
     return;
-  }
+  } else
+    Except(shred, "TemplateException");
 }
 
 INSTR(DotTmpl) {

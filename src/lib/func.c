@@ -197,6 +197,14 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->type->e->d.func->def->base->tmpl &&
+     bin->rhs->type->e->d.func->def->base->tmpl->call) {
+  struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->parent->e->d.func,
+      bin->lhs, exp_self(bin)->pos };
+  CHECK_BO(fptr_do(env, &info))
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
   struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->d.func,
       bin->lhs, exp_self(bin)->pos };
   CHECK_BO(fptr_do(env, &info))

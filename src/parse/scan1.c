@@ -254,7 +254,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_type(env, stmt))
-  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : 1;
+  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {

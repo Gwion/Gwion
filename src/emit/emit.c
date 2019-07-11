@@ -693,8 +693,7 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
 
 ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
   const Value v = f->value_ref;
-  if(isa(v->type, t_class) > 0 &&
-      is_fptr(v->type))
+  if(isa(v->type, t_class) > 0 && is_fptr(v->type))
     return emit->env->scope->depth;
   const m_uint scope = emit_push(emit, v->owner_class, v->owner);
   CHECK_BB(traverse_func_def(emit->env, f->def))
@@ -820,7 +819,9 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
     if(f->def->base->tmpl) { // TODO: put in func
       struct dottmpl_ *dt = (struct dottmpl_*)mp_calloc(emit->gwion->mp, dottmpl);
       size_t len = strlen(f->name);
-      size_t sz = len - strlen(f->value_ref->owner->name);
+      size_t slen = strlen(f->value_ref->owner->name);
+      assert(len > slen);
+      size_t sz = len - slen;
       char c[sz + 1];
       memcpy(c, f->name, sz);
       c[sz] = '\0';

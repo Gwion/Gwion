@@ -14,7 +14,6 @@
 #include "nspc.h"
 #include "operator.h"
 
-//ANN /* static */ m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
@@ -84,18 +83,12 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, ptr->base->td, ptr->base->xid, ptr->base->args),
-    NULL,ptr->base->td->flag, loc_cpy(env->gwion->mp, stmt_self(ptr)->pos));
-  def->base->ret_type = ptr->base->ret_type;
-  ptr->base->func = new_func(env->gwion->mp, s_name(ptr->base->xid), def);
-  ptr->value->d.func_ref = ptr->base->func;
-  ptr->base->func->value_ref = ptr->value;
-  ptr->type->e->d.func = ptr->base->func;
-  def->base->tmpl = ptr->base->tmpl;
-  SET_FLAG(ptr->value, func | ae_flag_checked);
-if(!ptr->base->tmpl)//
-  if(ptr->base->args)
-    CHECK_BB(scan2_args(env, def))
+  const Func_Def def = ptr->type->e->d.func->def;
+  if(!ptr->base->tmpl) {
+    def->base->ret_type = ptr->base->ret_type;
+    if(ptr->base->args)
+      CHECK_BB(scan2_args(env, def))
+  }
   if(env->class_def) {
     if(GET_FLAG(ptr->base->td, global)) {
       SET_FLAG(ptr->value, global);
@@ -118,7 +111,7 @@ if(!ptr->base->tmpl)//
 }
 
 ANN m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : 1;
+  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {

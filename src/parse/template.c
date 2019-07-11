@@ -5,6 +5,8 @@
 #include "vm.h"
 #include "env.h"
 #include "type.h"
+#include "func.h"
+#include "value.h"
 #include "nspc.h"
 #include "traverse.h"
 #include "template.h"
@@ -33,15 +35,15 @@ ANEW ANN static ID_List id_list_copy(MemPool p, ID_List src) {
   return list;
 }
 
-ANN static ID_List get_total_type_list(const Env env, const Type t) {
+ANN2(1,2) static ID_List get_total_type_list(const Env env, const Type t, const Tmpl *tmpl) {
   const Type parent = owner_type(env, t);
   if(!parent)
-    return t->e->def->base.tmpl ? t->e->def->base.tmpl->list : NULL;
+    return tmpl ? tmpl->list : NULL;
   const Vector v = get_types(env, parent);
   const ID_List base = (ID_List)vector_pop(v);
   if(!base) {
     free_vector(env->gwion->mp, v);
-    return t->e->def->base.tmpl ? t->e->def->base.tmpl->list : NULL;
+    return tmpl ? tmpl->list : NULL;
   }
   const ID_List types = id_list_copy(env->gwion->mp, base);
   ID_List list, tmp = types;
@@ -49,7 +51,7 @@ ANN static ID_List get_total_type_list(const Env env, const Type t) {
     list = (ID_List)vector_pop(v);
     tmp = (tmp->next = id_list_copy(env->gwion->mp, list));
   }
-  tmp->next = t->e->def->base.tmpl->list;
+  tmp->next = tmpl->list;
   free_vector(env->gwion->mp, v);
   return types;
 }
@@ -148,6 +150,12 @@ extern ANN m_bool scan1_class_def(const Env, const Class_Def);
 extern ANN m_bool traverse_func_def(const Env, const Func_Def);
 extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
+ANN Tmpl* mk_tmpl(const Env env, const Type t, const Tmpl *tm, const Type_List types) {
+  Tmpl *tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t, tm), 0);
+  tmpl->call = types;
+  return tmpl;
+}
+
 ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref))
@@ -161,8 +169,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     SET_FLAG(a, ref);
     if(a->base.type)
       return a->base.type;
-    a->base.tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t), 0);
-    a->base.tmpl->call = type->types;
+    a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
     if(isa(t, t_union) < 0) {
       CHECK_BO(scan0_class_def(env, a))
       map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
@@ -186,8 +193,35 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       ADD_REF(t->nspc->dtor)
     }
     return a->base.type;
-  } else if(type->types)
-      ERR_O(type->xid->pos,
-            _("type '%s' is not template. You should not provide template types"), t->name)
+  } else if(type->types) { // TODO: clean me
+    if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {
+      const m_str tl_name = tl2str(env, type->types);
+      const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
+      free_mstr(env->gwion->mp, tl_name);
+      const Type base_type = nspc_lookup_type1(t->e->owner, sym);
+      if(base_type)
+        return base_type;
+      const Type ret = type_copy(env->gwion->mp, t);
+      ret->e->parent = t;
+      ret->name = s_name(sym);
+      SET_FLAG(ret, func);
+      nspc_add_type(env->curr, sym, ret);
+      const Func_Def def = new_func_def(env->gwion->mp,
+        new_func_base(env->gwion->mp, t->e->d.func->def->base->td, sym, t->e->d.func->def->base->args),
+        NULL, type->flag, loc_cpy(env->gwion->mp, td_pos(type)));
+      const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
+      const Value value = new_value(env->gwion->mp, ret, s_name(sym));
+      value->d.func_ref = func;
+      value->owner = t->e->owner;
+      value->owner_class = t->e->d.func->value_ref->owner_class;
+      func->value_ref = value;
+      func->def->base->tmpl = mk_tmpl(env, t, t->e->d.func->def->base->tmpl, type->types);
+      def->base->func = func;
+      nspc_add_value(env->curr, sym, value);
+      return ret;
+    }
+    ERR_O(type->xid->pos,
+        _("type '%s' is not template. You should not provide template types"), t->name)
+  }
   return t;
 }
