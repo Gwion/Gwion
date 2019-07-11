@@ -76,13 +76,14 @@ ANN static void typedef_simple(const Env env, const Stmt_Type stmt, const Type b
     SET_FLAG(t, empty);
 }
 
-ANN static void typedef_complex(const Env env, const Stmt_Type stmt, const Type base) {
+ANN static m_bool typedef_complex(const Env env, const Stmt_Type stmt, const Type base) {
   const ae_flag flag = base->e->def ? base->e->def->flag : 0;
   const Class_Def cdef = new_class_def(env->gwion->mp, flag, stmt->xid, stmt->ext, NULL,
     loc_cpy(env->gwion->mp, td_pos(stmt->ext)));
   CHECK_BB(scan0_class_def(env, cdef))
   stmt->type = cdef->base.type;
   cdef->base.tmpl = stmt->tmpl;
+  return GW_OK;
 }
 
 ANN static void typedef_fptr(const Env env, const Stmt_Type stmt, const Type base) {
@@ -103,7 +104,7 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
     if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp))
       typedef_simple(env, stmt, base);
     else
-      typedef_complex(env, stmt, base);
+      CHECK_BB(typedef_complex(env, stmt, base))
   } else
     typedef_fptr(env, stmt, base);
   SET_FLAG(stmt->type, typedef);
