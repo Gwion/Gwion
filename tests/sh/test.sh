@@ -14,6 +14,7 @@
 : "${ANSI_BOLD:=\033[33;1m}"
 
 : "${DRIVER:=dummy}"
+: "${MODULE:=dummy}"
 : "${SUPP:=help/supp}"
 
 : "${ASYNC:=4}"
@@ -183,10 +184,10 @@ test_gw(){
   vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
   if [ "$VALGRIND" == "NO_VALGRIND" ]
-  then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  then LANG=C ./"$PRG" "$GWOPT" -m "$MODULE" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
     LANG=C "$VALGRIND" --suppressions="$SUPP" --log-file="$vlog" \
-    ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+    ./"$PRG" "$GWOPT" -m "$MODULE"  -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?
   #enable skip

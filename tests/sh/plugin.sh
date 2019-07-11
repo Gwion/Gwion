@@ -42,7 +42,7 @@ do test_plugin "$(basename $test_file .c)"
 done
 
 DRIVER="driver_test:arg" test_plugin driver
-GWOPT+="-mdummy_module=with,some,argument" test_plugin module
+MODULE="dummy_module=with,some,argument" test_plugin module
 
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so
