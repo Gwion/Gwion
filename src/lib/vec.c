@@ -158,61 +158,61 @@ static void vecx_base(const Gwi gwi) {
 }
 
 GWION_IMPORT(vec3) {
-  CHECK_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
+  GWI_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
   vecx_base(gwi);
   gwi_func_ini(gwi, "void", "set", vec3_set);
   gwi_func_arg(gwi, "float", "x");
   gwi_func_arg(gwi, "float", "y");
   gwi_func_arg(gwi, "float", "z");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "setAll", vec3_setAll);
   gwi_func_arg(gwi, "float", "x");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "float", "magnitude", vec3_magnitude);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "normalize", vec3_normalize);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "float", "interp", vec3_interp);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "float", "interp", vec3_float);
   gwi_func_arg(gwi, "float", "delta");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "float", "interp", vec3_dur);
   gwi_func_arg(gwi, "dur", "delta");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "update", vec3_update);
   gwi_func_arg(gwi, "float", "goal");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "update", vec3_update_slew);
   gwi_func_arg(gwi, "float", "goal");
   gwi_func_arg(gwi, "float", "slew");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "supdate", vec3_update_set);
   gwi_func_arg(gwi, "float", "goalAndValue");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
     gwi_func_ini(gwi, "void", "supdate", vec3_update_set_slew);
   gwi_func_arg(gwi, "float", "goalAndValue");
   gwi_func_arg(gwi, "float", "slew");
-  CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_class_end(gwi))
 
-  CHECK_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, "+", Vec3Add))
-  CHECK_BB(gwi_oper_end(gwi, "-", Vec3Sub))
-  CHECK_BB(gwi_oper_end(gwi, "*", Vec3Mul))
-  CHECK_BB(gwi_oper_end(gwi, "/", Vec3Div))
-  CHECK_BB(gwi_oper_add(gwi, opck_rassign))
-  CHECK_BB(gwi_oper_end(gwi, "=>", Vec3RAssign))
-  CHECK_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, "+",  Vec3AddFloat))
-  CHECK_BB(gwi_oper_end(gwi, "-", Vec3SubFloat))
-  CHECK_BB(gwi_oper_end(gwi, "*",  Vec3MulFloat))
-  CHECK_BB(gwi_oper_end(gwi, "/", Vec3DivFloat))
-  CHECK_BB(gwi_oper_ini(gwi, "float", "Vec3", "Vec3"))
-  CHECK_BB(gwi_oper_end(gwi, "+",  FloatAddVec3))
-  CHECK_BB(gwi_oper_end(gwi, "-",  FloatSubVec3))
-  CHECK_BB(gwi_oper_end(gwi, "*",  FloatMulVec3))
-  CHECK_BB(gwi_oper_end(gwi, "/",  FloatDivVec3))
+  GWI_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "Vec3"))
+  GWI_BB(gwi_oper_end(gwi, "+", Vec3Add))
+  GWI_BB(gwi_oper_end(gwi, "-", Vec3Sub))
+  GWI_BB(gwi_oper_end(gwi, "*", Vec3Mul))
+  GWI_BB(gwi_oper_end(gwi, "/", Vec3Div))
+  GWI_BB(gwi_oper_add(gwi, opck_rassign))
+  GWI_BB(gwi_oper_end(gwi, "=>", Vec3RAssign))
+  GWI_BB(gwi_oper_ini(gwi, "Vec3", "float", "Vec3"))
+  GWI_BB(gwi_oper_end(gwi, "+",  Vec3AddFloat))
+  GWI_BB(gwi_oper_end(gwi, "-", Vec3SubFloat))
+  GWI_BB(gwi_oper_end(gwi, "*",  Vec3MulFloat))
+  GWI_BB(gwi_oper_end(gwi, "/", Vec3DivFloat))
+  GWI_BB(gwi_oper_ini(gwi, "float", "Vec3", "Vec3"))
+  GWI_BB(gwi_oper_end(gwi, "+",  FloatAddVec3))
+  GWI_BB(gwi_oper_end(gwi, "-",  FloatSubVec3))
+  GWI_BB(gwi_oper_end(gwi, "*",  FloatMulVec3))
+  GWI_BB(gwi_oper_end(gwi, "/",  FloatDivVec3))
   return GW_OK;
 }
 

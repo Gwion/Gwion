@@ -15,14 +15,18 @@ typedef struct Gwi_* Gwi;
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
 #define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
+#define GWI_BB(a) (void)(a);
+#define GWI_OB(a) (void)(a);
 #define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
 #else
+#define GWI_BB(a) CHECK_BB(a)
+#define GWI_OB(a) CHECK_OB(a)
 #define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
 #endif
 #define ALLOC_PTR(p, a, b, c) b* a = (b*)_mp_calloc(p, sizeof(b)); *a = (b)c
 #define _CHECK_OP(op, check, func)\
-    CHECK_BB(gwi_oper_add(gwi, opck_##check))\
-    CHECK_BB(gwi_oper_end(gwi, op, func))
+    GWI_BB(gwi_oper_add(gwi, opck_##check))\
+    GWI_BB(gwi_oper_end(gwi, op, func))
 #define GWI_LOC new_loc(gwi->gwion->mp, __LINE__)
 
 

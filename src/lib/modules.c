@@ -40,12 +40,12 @@ static MFUN(gain_set_gain) {
 
 static GWION_IMPORT(gain) {
   const Type t_gain = gwi_mk_type(gwi, "Gain", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi,  t_gain, gain_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_gain, gain_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "gain", gain_get_gain);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "gain", gain_set_gain);
   gwi_func_arg(gwi, "float", "arg0");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   return gwi_class_end(gwi);
 }
 
@@ -70,12 +70,12 @@ static MFUN(impulse_set_next) {
 
 static GWION_IMPORT(impulse) {
   const Type t_impulse = gwi_mk_type(gwi, "Impulse", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi,  t_impulse, impulse_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_impulse, impulse_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "next", impulse_get_next);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "next", impulse_set_next);
   gwi_func_arg(gwi, "float", "arg0");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   return gwi_class_end(gwi);
 }
 
@@ -91,7 +91,7 @@ static CTOR(fullrect_ctor) {
 
 static GWION_IMPORT(fullrect) {
   const Type t_fullrect = gwi_mk_type(gwi, "FullRect", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi,  t_fullrect, fullrect_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_fullrect, fullrect_ctor, basic_dtor))
   return gwi_class_end(gwi);
 }
 
@@ -110,7 +110,7 @@ static CTOR(halfrect_ctor) {
 
 static GWION_IMPORT(halfrect) {
   const Type t_halfrect = gwi_mk_type(gwi, "HalfRect", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi,  t_halfrect, halfrect_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_halfrect, halfrect_ctor, basic_dtor))
   return gwi_class_end(gwi);
 }
 
@@ -134,12 +134,12 @@ static MFUN(step_set_next) {
 
 static GWION_IMPORT(step) {
   const Type t_step = gwi_mk_type(gwi, "Step", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi,  t_step, step_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_step, step_ctor, basic_dtor))
   gwi_func_ini(gwi, "float", "next", step_get_next);
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   gwi_func_ini(gwi, "float", "next", step_set_next);
   gwi_func_arg(gwi, "float", "arg0");
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, 0))
   return gwi_class_end(gwi);
 }
 
@@ -158,15 +158,15 @@ static CTOR(zerox_ctor) {
 
 static GWION_IMPORT(zerox) {
   const Type t_zerox = gwi_mk_type(gwi, "ZeroX", SZ_INT, t_ugen);
-  CHECK_BB(gwi_class_ini(gwi, t_zerox, zerox_ctor, basic_dtor))
+  GWI_BB(gwi_class_ini(gwi, t_zerox, zerox_ctor, basic_dtor))
   return gwi_class_end(gwi);
 }
 
 GWION_IMPORT(modules) {
-  CHECK_BB(import_gain(gwi))
-  CHECK_BB(import_impulse(gwi))
-  CHECK_BB(import_fullrect(gwi))
-  CHECK_BB(import_halfrect(gwi))
-  CHECK_BB(import_step(gwi))
+  GWI_BB(import_gain(gwi))
+  GWI_BB(import_impulse(gwi))
+  GWI_BB(import_fullrect(gwi))
+  GWI_BB(import_halfrect(gwi))
+  GWI_BB(import_step(gwi))
   return import_zerox(gwi);
 }

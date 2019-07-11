@@ -57,15 +57,15 @@ static MFUN(event_broadcast) {
 
 GWION_IMPORT(event) {
   t_event = gwi_mk_type(gwi, "Event", SZ_INT, t_object );
-  CHECK_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
-  CHECK_BB(gwi_item_ini(gwi, "int", "@shreds"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_member, NULL))
-  CHECK_BB(gwi_func_ini(gwi, "void", "signal", event_signal))
-  CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_func_ini(gwi, "void", "broadcast", event_broadcast))
-  CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
-  CHECK_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
+  GWI_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
+  GWI_BB(gwi_item_ini(gwi, "int", "@shreds"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
+  GWI_BB(gwi_func_ini(gwi, "void", "signal", event_signal))
+  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "void", "broadcast", event_broadcast))
+  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
   _CHECK_OP("=>", eventwait, EventWait)
   return GW_OK;
 }
