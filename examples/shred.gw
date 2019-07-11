@@ -12,3 +12,10 @@ for (int i; i < me.args(); i++)
 #!me.exit();
 #! call to non existant arg
 <<< me.arg(-1) >>>;
+<<< me.dir()  >>>;
+<<< me.path() >>>;
+<<< me.name() >>>;
+
+<<< me.code_dir()  >>>;
+<<< me.code_path() >>>;
+<<< me.code_name() >>>;

@@ -1,0 +1,8 @@
+typedef void t_ptr();
+fun void test(t_ptr p) {
+   <<< p >>>;
+}
+fun void test() {
+}
+
+test => test;

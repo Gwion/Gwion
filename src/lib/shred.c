@@ -102,6 +102,15 @@ static MFUN(shred_arg) {
 #define PATH_CHR '\\'
 #endif
 
+#define describe_name(name, src) \
+static MFUN(shred##name##_name) { \
+  const VM_Shred s = ME(o); \
+  const m_str str = code_name((src), 0); \
+  *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, str); \
+}
+describe_name(, s->info->name)
+describe_name(_code, s->code->name)
+
 #define describe_path_and_dir(name, src) \
 static MFUN(shred##name##_path) { \
   const VM_Shred s = ME(o); \
@@ -254,10 +263,16 @@ GWION_IMPORT(shred) {
   gwi_func_arg(gwi, "int", "n");
   CHECK_BB(gwi_func_end(gwi, 0))
 
+  gwi_func_ini(gwi, "string", "name", shred_name);
+  CHECK_BB(gwi_func_end(gwi, 0))
+
   gwi_func_ini(gwi, "string", "path", shred_path);
   CHECK_BB(gwi_func_end(gwi, 0))
 
   gwi_func_ini(gwi, "string", "dir", shred_dir);
+  CHECK_BB(gwi_func_end(gwi, 0))
+
+  gwi_func_ini(gwi, "string", "code_name", shred_code_name);
   CHECK_BB(gwi_func_end(gwi, 0))
 
   gwi_func_ini(gwi, "string", "code_path", shred_code_path);
