@@ -1,0 +1,2 @@
+#! [contains] forks must be stored in a value
+fork { <<< 1 >>>; };
