@@ -131,7 +131,7 @@ ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code c
   return sh;
 }
 
-#define TEST0(t, pos) if(!*(t*)(reg-pos)){ exception(shred, "ZeroDivideException"); break; }
+#define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; exception(shred, "ZeroDivideException"); break; }
 
 #define ADVANCE() byte += BYTECODE_SZ;
 
@@ -612,6 +612,7 @@ regtomemother:
   DISPATCH()
 overflow:
   if(overflow_(mem, shred)) {
+    shred->pc = PC;
     exception(shred, "StackOverflow");
     continue;
   }
@@ -693,6 +694,7 @@ arrayaccess:
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
     shred->code = code;
     shred->mem = mem;
+    shred->pc = PC;
     exception(shred, "ArrayOutofBounds");
     continue;
   }
@@ -733,7 +735,13 @@ remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
 except:
-  if(!(a.obj  = *(M_Object*)(reg-SZ_INT))) {
+/* TODO: Refactor except instruction             *
+ * so that                                       *
+ *  VAL = offset (no default SZ_INT)             *
+ *  VAL2 = error message                         *
+ * grep for GWOP_EXCEPT and Except, exception... */
+  if(!(a.obj  = *(M_Object*)(reg-SZ_INT-VAL))) {
+    shred->pc = PC;
     exception(shred, "NullPtrException");
     continue;
   }

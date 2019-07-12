@@ -347,7 +347,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
       if(implicit) {
-        const struct Implicit imp = { e, t };
+        const struct Implicit imp = { e, t, e->pos };
         struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
       return op_check(env, &opi) ? 1 : -1;
     }

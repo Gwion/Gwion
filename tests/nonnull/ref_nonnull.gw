@@ -1,0 +1,3 @@
+#! [contains] NullPtrException
+Object @a @=> Object ! @ o;
+<<< o >>>;

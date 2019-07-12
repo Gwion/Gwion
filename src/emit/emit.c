@@ -646,6 +646,8 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, list->self, r, var))
+    if(GET_FLAG(list->self->value->type, nonnull))
+      emit_add_instr(emit, GWOP_EXCEPT);
   } while((list = list->next));
   if(global)
     emit_pop(emit, scope);
@@ -1014,7 +1016,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
-  const struct Implicit imp = { from, to };
+  const struct Implicit imp = { from, to, from->pos };
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
   return op_emit(emit, &opi);
 }

@@ -1,0 +1,5 @@
+#! [contains} NullPtrException
+fun void test(Object !o) {
+  <<< o >>>;
+}
+Object @ref => test;
