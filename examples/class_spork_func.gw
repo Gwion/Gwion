@@ -1,9 +1,9 @@
 class C
 {
   fun void test() {
-    <<<"here">>>;
+    <<< "here" >>>;
     samp => now;
-    <<<"and now">>>;
+    <<< "and now" >>>;
   }
   spork  this.test();
 }

@@ -4,6 +4,6 @@ class C {
 	  int one;
 	  string @ two;
 	};
-	<<<one, " ", two>>>;
+	<<< one, " ", two >>>;
 }
 

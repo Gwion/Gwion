@@ -2,4 +2,4 @@ class C {
   1 => float f;
 }
 C c;
-<<<c.f>>>;
+<<< c.f >>>;

@@ -1,2 +1,2 @@
-// [contains] cannot be used on non-mutable data-type
+#! [contains] cannot be used on non-mutable data-type
 true++;

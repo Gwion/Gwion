@@ -6,9 +6,10 @@
 #include "type.h"
 #include "object.h"
 #include "instr.h"
+#include "gwion.h"
+#include "operator.h"
 #include "import.h"
 #include "gwi.h"
-#include "gwion.h"
 
 
 GWION_IMPORT(global_var_test) {

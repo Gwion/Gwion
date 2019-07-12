@@ -8,11 +8,13 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "func.h"
 #include "array.h"
 #include "nspc.h"
 #include "shreduler_private.h"
+#include "gwion.h"
+#include "operator.h"
+#include "import.h"
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
@@ -91,11 +93,14 @@ INSTR(GTmpl) {
   dt->owner = f->value_ref->owner;
   dt->owner_class = f->value_ref->owner_class;
   if(traverse_dot_tmpl(emit, dt) > 0) {
+    if(GET_FLAG(f, member)) // TODO: CHECK ME
+        shred->reg += SZ_INT; else
     if(GET_FLAG(def, static))
       shred->reg -= SZ_INT;
     *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
     return;
-  }
+  } else
+    Except(shred, "TemplateException");
 }
 
 INSTR(DotTmpl) {

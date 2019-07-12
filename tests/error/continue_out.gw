@@ -1,2 +1,2 @@
-// [contains] 'continue' found outside of for/while/until
+#! [contains] 'continue' found outside of for/while/until
 continue;

@@ -10,10 +10,30 @@
 #include "traverse.h"
 #include "parse.h"
 
+#define STR_NONNULL ":nonnull"
+#define STRLEN_NONNULL strlen(STR_NONNULL)
+
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td->xid))
   DECL_OO(const Type, t, = scan_type(env, base, td))
-  return !td->array ? t : array_type(env, t, td->array->depth);
+  const Type ret = !td->array ? t : array_type(env, t, td->array->depth);
+  if(GET_FLAG(td, nonnull)) {
+    char c[strlen(t->name) + 9];
+    sprintf(c, "%s%s", ret->name, STR_NONNULL);
+    const Symbol sym = insert_symbol(c);
+    const Type exist = nspc_lookup_type1(t->e->owner, sym);
+    if(exist)
+      return exist;
+    const Type t = type_copy(env->gwion->mp, ret);
+assert(t->size == SZ_INT);
+    t->name = s_name(sym);
+    t->e->parent = ret;
+    SET_FLAG(t, nonnull);
+    ADD_REF(ret);
+    map_set(vector_front(&t->e->owner->info->type->ptr), sym, t);
+    return t;
+  }
+  return ret;
 }
 
 struct td_info {

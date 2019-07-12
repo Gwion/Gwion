@@ -1,4 +1,4 @@
-// [contains] no match found
+#! [contains] no match found
 fun void test(int i){}
 fun void test(float f){}
 

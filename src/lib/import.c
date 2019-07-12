@@ -11,13 +11,13 @@
 #include "traverse.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
-#include "gwi.h"
 #include "emit.h"
 #include "func.h"
 #include "nspc.h"
 #include "gwion.h"
 #include "operator.h"
+#include "import.h"
+#include "gwi.h"
 #include "mpool.h"
 
 #define GWI_ERR_B(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return GW_ERROR; }
@@ -482,21 +482,20 @@ ANN2(1,2) static int import_op(const Gwi gwi, const DL_Oper* op,
   const Type rhs = op->rhs ? get_type(env, op->rhs) : NULL;
   const Type ret = get_type(env, op->ret);
   const struct Op_Import opi = { lhs, rhs, ret,
-    op->ck, op->em, (uintptr_t)f, gwi->loc, op->op, op->mut };
-  return env_add_op(env, &opi);
+    op->ck, op->em, (uintptr_t)f, gwi->loc, op->op };
+  return add_op(gwi->gwion, &opi);
 }
 
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
     const restrict m_str r, const restrict m_str t) {
-  gwi->oper.mut = 0;
   gwi->oper.ret = t;
   gwi->oper.rhs = r;
   gwi->oper.lhs = l;
   return GW_OK;
 }
 
-ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
+ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*, m_bool*)) {
   gwi->oper.ck = ck;
   return GW_OK;
 }
@@ -506,12 +505,8 @@ ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
   return GW_OK;
 }
 
-ANN void gwi_oper_mut(const Gwi gwi, const m_bool mut) {
-  gwi->oper.mut = mut;
-}
-
-ANN m_int gwi_oper_end(const Gwi gwi, const Operator op, const f_instr f) {
-  gwi->oper.op = op;
+ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
+  gwi->oper.op = insert_symbol(gwi->gwion->st, op);
   const m_bool ret = import_op(gwi, &gwi->oper, f);
   gwi->oper.ck = NULL;
   gwi->oper.em = NULL;
@@ -668,7 +663,7 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   return t;
 }
 
-ANN void register_freearg(const Gwi gwi, const f_instr _exec, void(*_free)(const Instr, void*)) {
+ANN void register_freearg(const Gwi gwi, const f_instr _exec, const f_freearg _free) {
   map_set(&gwi->gwion->data->freearg, (vtype)_exec, (vtype)_free);
 }
 

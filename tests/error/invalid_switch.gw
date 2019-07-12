@@ -1,2 +1,2 @@
-// [contains] conditional must be of type
+#! [contains] conditional must be of type
 switch(null){}

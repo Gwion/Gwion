@@ -4,7 +4,7 @@
 
 #define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return t_null; }
 
-typedef Type (*opck)(const Env, void*);
+typedef Type (*opck)(const Env, void*, m_bool*);
 typedef m_bool (*opem)(const Emitter, void*);
 
 struct Op_Import {
@@ -13,18 +13,17 @@ struct Op_Import {
   opem em;
   uintptr_t data;
   loc_t pos;
-  Operator op;
-  m_bool mut;
+  Symbol op;
 };
 
 struct Implicit {
   void* e;
   Type  t;
+  loc_t pos;
 };
-ANN m_bool add_op(const Gwion gwion, const Nspc , const struct Op_Import*);
+ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
 ANN m_bool op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map, struct Gwion_* gwion);
-ANN m_bool env_add_op(const Env, const struct Op_Import*);
 #endif

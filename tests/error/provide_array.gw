@@ -1,2 +1,2 @@
-// [contains] must provide values/expressions for array
+#! [contains] must provide values/expressions for array
  [ ];

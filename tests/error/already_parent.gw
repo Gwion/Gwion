@@ -1,4 +1,4 @@
-// [contains] has already been defined in parent class
+#! [contains] has already been defined in parent class
 class C {
   int i;
 }

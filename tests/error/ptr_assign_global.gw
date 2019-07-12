@@ -1,4 +1,4 @@
-// [contains] can't assign non member function to member function pointer
+#! [contains] can't assign non member function to member function pointer
 class C {
   typedef void Test();
   Test test;

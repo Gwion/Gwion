@@ -1,9 +1,9 @@
 switch(maybe) {
-  case 1: <<<1>>>;break;
+  case 1: <<< 1 >>>;break;
   case 0:
    	switch(maybe) {
       case 1: break;
-      case 0:<<<0>>>; break;
+      case 0:<<< 0 >>>; break;
  	  }
     break;
 }

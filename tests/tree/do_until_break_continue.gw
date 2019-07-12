@@ -1,5 +1,5 @@
 do{
-  <<<"'do' loop">>>;
+  <<< "'do' loop" >>>;
   if(maybe)
     break;
   else continue;

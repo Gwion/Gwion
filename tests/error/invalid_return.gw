@@ -1,2 +1,2 @@
-// [contains] invalid return type
+#! [contains] invalid return type
 fun void test() { return 1; }

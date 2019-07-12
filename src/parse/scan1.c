@@ -88,7 +88,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former && !decl->td->exp &&
+    if(former && !(decl->td->exp || decl->td->xid)&&
         (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
@@ -146,7 +146,7 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   if(post->exp->meta == ae_meta_var)
     return GW_OK;
   ERR_B(post->exp->pos, _("post operator '%s' cannot be used"
-      " on non-mutable data-type..."), op2str(post->op));
+      " on non-mutable data-type..."), s_name(post->op));
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
@@ -168,7 +168,7 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code)
+  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code)
     { RET_NSPC(scan1_stmt(env, unary->code)) }
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
@@ -245,6 +245,8 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
 ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_fptr(env, stmt))
+  if(stmt->base->tmpl)//
+    return GW_OK;//
   CHECK_OB((stmt->base->ret_type = known_type(env, stmt->base->td)))
   return stmt->base->args ? scan1_args(env, stmt->base->args) : GW_OK;
 }
@@ -252,7 +254,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_type(env, stmt))
-  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : 1;
+  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
@@ -269,11 +271,16 @@ ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
     SET_FLAG(decl.td, checked | stmt->flag);
+    const m_bool global = GET_FLAG(stmt, global);
+    if(global)
+      UNSET_FLAG(decl.td, global);
     if(GET_FLAG(stmt, member))
       SET_FLAG(decl.td, member);
     else if(GET_FLAG(stmt, static))
       SET_FLAG(decl.td, static);
     CHECK_BB(scan1_exp(env, l->self))
+    if(global)
+      SET_FLAG(decl.td, global);
   } while((l = l->next));
   union_pop(env, stmt, scope);
   return GW_OK;

@@ -1,0 +1,10 @@
+class C {
+fun A pure<~A~>(A i) { return i; }
+<<< 2 => pure >>>;
+<<< 2 => pure >>>;
+<<< 3 => pure >>>;
+<<< 4 => pure >>>;
+<<< 2.2 => pure >>>;
+<<< @(2.3) => pure >>>;
+}
+C c;

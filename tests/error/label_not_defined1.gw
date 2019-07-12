@@ -1,2 +1,2 @@
-// [contains] used but not defined
+#! [contains] used but not defined
 goto test;

@@ -3,8 +3,8 @@ class C
 	typedef void Test();
 	fun void test1(){};
     Test test0;
-	<<<test1 @=> test0>>>;
+	<<< test1 @=> test0 >>>;
 }
 
 C c;
-<<<c>>>;
+<<< c >>>;

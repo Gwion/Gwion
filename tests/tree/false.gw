@@ -1,2 +1,2 @@
-// always return 0
-<<< false >>>;
+#! always return 0
+<<<  false  >>>;

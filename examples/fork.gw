@@ -1,8 +1,8 @@
 fork {
-  <<<"start">>>;
+  <<< "start" >>>;
   12::samp => now;
   me.test_cancel();
-  <<<"stop">>>;
+  <<< "stop" >>>;
 } @=> Fork @f;
 
 1 => f.cancel;

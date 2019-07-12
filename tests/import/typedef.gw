@@ -1,13 +1,4 @@
-fun void test(){ <<<"test">>>; }
-PtrType ptr;
-test();
-test @=> ptr;
-ptr();
-
-
-FuncTypedef.test_func();
-<<<FuncTypedef.test_func @=> FuncTypedef.ptr>>>;
-<FuncTypedef.PtrType> _ptr;
-<<<FuncTypedef.ptr>>>;
-FuncTypedef.ptr();
-
+Typedef t;
+#!fun int test(int i) { <<< i >>>; }
+#!test @=> t;
+<<< t >>>;

@@ -1,0 +1,4 @@
+#! [contains] can't implicitly cast
+fun void test(Object !o) { <<< o >>>; }
+
+null => test;

@@ -1,4 +1,4 @@
-// [contains] NullPtrException
+#! [contains] NullPtrException
 typedef void Test()
 Test test;
 test();

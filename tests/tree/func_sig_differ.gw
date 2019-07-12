@@ -1,4 +1,4 @@
 fun void test(int i){}
 fun int  test(){}
-<<<test(1)>>>;
-<<<test()>>>;
+<<< test(1) >>>;
+<<< test() >>>;

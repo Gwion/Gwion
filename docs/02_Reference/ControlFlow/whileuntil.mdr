@@ -4,7 +4,7 @@
 while(true) {
   if(maybe)
     break;
-  <<<"running...">>>;
+  <<< "running..." >>>;
 }
 @```  
 @exec make -s while0.test
@@ -13,11 +13,11 @@ well this may output nothing...
 lets try
 
 @``` while1.gw
-<<<maybe>>>;
+<<< maybe >>>;
 do{
   if(maybe)
     break;
-  <<<"running...">>>;
+  <<< "running..." >>>;
 } while(true);
 @```  
 @exec make -s while1.test

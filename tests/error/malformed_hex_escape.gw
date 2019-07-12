@@ -1,0 +1,2 @@
+#! [contains] malformed hex escape sequence
+<<<"\xG">>>;

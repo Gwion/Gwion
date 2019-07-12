@@ -1,3 +1,3 @@
-<<< dac.chan(-1) >>>;
-<<< dac.chan(12) >>>;
-<<< dac.chan(0)  >>>;
+<<<  dac.chan(-1)  >>>;
+<<<  dac.chan(12)  >>>;
+<<<  dac.chan(0)   >>>;

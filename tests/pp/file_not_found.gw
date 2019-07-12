@@ -1,2 +1,2 @@
-//[contains] file not found
+#![contains] file not found
 #include <non_existant_file>

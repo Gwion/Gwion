@@ -1,4 +1,4 @@
-// [contains] declared inside itself
+#! [contains] declared inside itself
 class c {
   c var;
 }

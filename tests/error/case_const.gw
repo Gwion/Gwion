@@ -1,5 +1,5 @@
-// [contains] is not constant
-// also coverage for 'case'
+#! [contains] is not constant
+#! also coverage for 'case'
 enum {zero, one, a , b, c };
 
 class C {

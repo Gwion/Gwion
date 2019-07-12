@@ -1,4 +1,4 @@
-// just to check uncalled fun to not push the stack
+#! just to check uncalled fun to not push the stack
 
 class C { fun void test(){} fun static void stest() {}}
 C c;
@@ -17,15 +17,15 @@ C.stest;
 e.signal;
 Shred.fromId;
 
-<<<c.test>>>;
-<<<C.stest>>>;
-<<<e.signal>>>;
-<<<Shred.fromId>>>;
-<<<c.test>>>;
-<<<C.stest>>>;
-<<<e.signal>>>;
-<<<Shred.fromId>>>;
-<<<c.test>>>;
-<<<C.stest>>>;
-<<<e.signal>>>;
-<<<Shred.fromId>>>;
+<<< c.test >>>;
+<<< C.stest >>>;
+<<< e.signal >>>;
+<<< Shred.fromId >>>;
+<<< c.test >>>;
+<<< C.stest >>>;
+<<< e.signal >>>;
+<<< Shred.fromId >>>;
+<<< c.test >>>;
+<<< C.stest >>>;
+<<< e.signal >>>;
+<<< Shred.fromId >>>;

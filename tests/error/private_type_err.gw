@@ -1,0 +1,7 @@
+#! [contains] can't use private type
+class C {
+  class private D {
+  }
+}
+
+C->D d;

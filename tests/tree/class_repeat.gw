@@ -2,7 +2,7 @@ class C {
 	int i;
 	repeat(3) {
 	  i++;
-	  <<<i>>>;
+	  <<< i >>>;
 	}
 }
 

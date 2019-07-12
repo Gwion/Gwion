@@ -1,4 +1,4 @@
-// [contains] you must provide template types
+#! [contains] you must provide template types
 class<~A~> C {
   A a;
 }

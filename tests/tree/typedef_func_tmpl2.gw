@@ -1,0 +1,24 @@
+typedef void t_ptr<~A~>();
+fun void test<~A~>() {
+  <<< __func__ >>>;
+}
+
+typedef <~int~>t_ptr B;
+B b;
+<<< b >>>;
+test @=> b;
+<<< b >>>;
+<<< b() >>>;
+<<< b() >>>;
+
+
+typedef <~float~>t_ptr C;
+C c;
+<<< c >>>;
+test @=> c;
+<<< c >>>;
+<<< c() >>>;
+<<< c() >>>;
+
+<<< b() >>>;
+<<< c() >>>;

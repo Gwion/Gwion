@@ -22,16 +22,16 @@ class C
 	fun static Object  _o() { return o; }
 }
 
-// read members
-<<< C.i, C.c, C.f, C.v, C.w, C.o >>>;
+#! read members
+<<<  C.i, C.c, C.f, C.v, C.w, C.o  >>>;
 
-// call fun members
-<<< C._i(), " ", C._f(), " ", C._c(), " ", C._v(), " ", C._w(), " ", C._o()>>>;
+#! call fun members
+<<<  C._i(), " ", C._f(), " ", C._c(), " ", C._v(), " ", C._w(), " ", C._o() >>>;
 
-// write members
-<<< 12  => C.i >>>;
-<<< 1.2 => C.f >>>;
-<<< #(0.1, 2.3) => C.c >>>;
-<<< @(0.1, 2.3, 3.4) => C.v >>>;
-<<< @(0.1, 2.3, 3.4, 5.4) => C.w >>>;
-<<< null @=> C.o >>>;
+#! write members
+<<<  12  => C.i  >>>;
+<<<  1.2 => C.f  >>>;
+<<<  #(0.1, 2.3) => C.c  >>>;
+<<<  @(0.1, 2.3, 3.4) => C.v  >>>;
+<<<  @(0.1, 2.3, 3.4, 5.4) => C.w  >>>;
+<<<  null @=> C.o  >>>;

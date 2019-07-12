@@ -1,0 +1,7 @@
+union <~A~> U{
+  int i;
+  A a;
+};
+
+<~float~>U u;
+<<< u.a >>>;

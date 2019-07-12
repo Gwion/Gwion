@@ -19,7 +19,7 @@ It aims to be simple, small,
 
 ```cpp
 // print hello world
-<<<"Hello World">>>;
+<<< "Hello World" >>>;
 ```
 to run this, do
 

@@ -3,10 +3,10 @@ i++;
 
 class C { int i; }
 operator ++ int (C c) {
-  <<<"here">>>;
-  <<<c.i++>>>;
+  <<< "here" >>>;
+  <<< c.i++ >>>;
 }
 C c;
 c++;
 c++;
-<<<c.i>>>;
+<<< c.i >>>;

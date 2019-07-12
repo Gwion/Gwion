@@ -11,8 +11,8 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
-#include "import.h"
 #include "operator.h"
+#include "import.h"
 #include "traverse.h"
 #include "parse.h"
 
@@ -29,16 +29,7 @@ ANN m_uint m_vector_size(const M_Vector v) {
   return ARRAY_LEN(v);
 }
 
-M_Vector new_m_vector(MemPool p, const m_uint size) {
-  const M_Vector array = mp_calloc(p, M_Vector);
-  const size_t sz = (ARRAY_OFFSET*SZ_INT) + (2*size);
-  array->ptr   = (m_bit*)xcalloc(1, sz);
-  ARRAY_CAP(array)   = 2;
-  ARRAY_SIZE(array)  = size;
-  return array;
-}
-
-M_Vector new_m_vector2(MemPool p, const m_uint size, const m_uint len) {
+M_Vector new_m_vector(MemPool p, const m_uint size, const m_uint len) {
   const M_Vector array = mp_calloc(p, M_Vector);
   const size_t sz = (ARRAY_OFFSET*SZ_INT) + (len*size);
   array->ptr   = (m_bit*)xcalloc(1, sz);
@@ -70,7 +61,7 @@ ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, NULL, t);
   const m_uint depth = t->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  ARRAY(a) = new_m_vector2(p, size,length);
+  ARRAY(a) = new_m_vector(p, size,length);
   return a;
 }
 
@@ -108,7 +99,7 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
 }
 
 static MFUN(vm_vector_rem) {
-  const m_int index = *(m_int*)(shred->reg + SZ_INT);
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
@@ -151,12 +142,13 @@ ANN static Type get_array_type(Type t) {
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
-  if(opck_const_rhs(env, data) == t_null)
+  if(opck_const_rhs(env, data, mut) == t_null)
     return t_null;
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
-    if(bin->rhs->d.exp_decl.list->self->array->exp)
+    if(bin->rhs->d.exp_decl.list->self->array &&
+          bin->rhs->d.exp_decl.list->self->array->exp)
       ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
   bin->rhs->emit_var = 1;
@@ -166,7 +158,7 @@ static OP_CHECK(opck_array_at) {
 static OP_CHECK(opck_array_shift) {
   ARRAY_OPCK
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
-    return t_null;
+    ERR_N(exp_self(bin)->pos, "array depths do not match for '<<'.");
   return bin->lhs->type;
 }
 
@@ -202,34 +194,34 @@ static FREEARG(freearg_array) {
 
 GWION_IMPORT(array) {
   t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, t_object);
-  CHECK_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
+  GWI_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
-  CHECK_BB(gwi_item_ini(gwi, "int", "@array"))
-  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@array"))
+  GWI_BB(gwi_item_end(gwi, 0, NULL))
 
-  CHECK_BB(gwi_func_ini(gwi, "int", "size", vm_vector_size))
-  CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_func_ini(gwi, "int", "depth", vm_vector_depth))
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "size", vm_vector_size))
+  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "depth", vm_vector_depth))
+  GWI_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(gwi_func_ini(gwi, "int", "cap", vm_vector_cap))
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "cap", vm_vector_cap))
+  GWI_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(gwi_func_ini(gwi, "int", "remove", vm_vector_rem))
-  CHECK_BB(gwi_func_arg(gwi, "int", "index"))
-  CHECK_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "remove", vm_vector_rem))
+  GWI_BB(gwi_func_arg(gwi, "int", "index"))
+  GWI_BB(gwi_func_end(gwi, 0))
 
-  CHECK_BB(gwi_class_end(gwi))
-  CHECK_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_array_at))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
-  CHECK_BB(gwi_oper_add(gwi, opck_array_shift))
-  CHECK_BB(gwi_oper_emi(gwi, opem_array_shift))
-  CHECK_BB(gwi_oper_end(gwi, op_shl, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "@Array", "Array", NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_array_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
+  GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_at))
+  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_add(gwi, opck_array_shift))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_shift))
+  GWI_BB(gwi_oper_end(gwi, "<<", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_basic_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }

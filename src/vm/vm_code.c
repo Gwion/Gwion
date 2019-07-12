@@ -12,6 +12,7 @@
 #include "array.h"
 #include "memoize.h"
 #include "gwion.h"
+#include "operator.h"
 #include "import.h"
 
 ANN /*static*/ void free_code_instr(const Vector v, const Gwion gwion) {

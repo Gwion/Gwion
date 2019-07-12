@@ -5,7 +5,7 @@ The easiest way to do an action repeatidly in Gwion is, ... the **repeat** keywo
 ## Very basic example
 @``` repeat.gw
 repeat(3)
-   <<<"Hello, world!">>>;
+   <<< "Hello, world!" >>>;
 @```  
 @exec make -s CONTAINS="Hello" repeat.test
 
@@ -15,7 +15,7 @@ of course this also works with a block code.
 @``` repeat2.gw
 repeat(3) {
    maybe ? "You" : "Me" => string s;
-   <<<"Hello, ", s, "!">>>;
+   <<< "Hello, ", s, "!" >>>;
 }
 @```  
 @exec make -s CONTAINS="Hello" repeat2.test

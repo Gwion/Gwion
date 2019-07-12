@@ -1,9 +1,9 @@
-// [contains] NullPtrException
+#! [contains] NullPtrException
 class C
 {
 	typedef void test();
 	test t;
 }
-<<<C c>>>;
-<<<c.t>>>;
+<<< C c >>>;
+<<< c.t >>>;
 c.t();

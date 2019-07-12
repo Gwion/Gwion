@@ -1,6 +1,6 @@
 int i;
 float f;
-do { <<<i++>>>; if(maybe) break; }
+do { <<< i++ >>>; if(maybe) break; }
 	until(i < 10);
-do { <<<1 +=> f>>>; if(maybe)continue; }
+do { <<< 1 +=> f >>>; if(maybe)continue; }
 	until(f);

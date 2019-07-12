@@ -1,15 +1,15 @@
-fun Vec4 test(int i) { <<<"test with arg ", i>>>; }
+fun Vec4 test(int i) { <<< "test with arg ", i >>>; }
 
-//typedef Vec4 PT();
-//test @=> 
+#!typedef Vec4 PT();
+#!test @=> 
 PtrTypeI p;
 test @=> p;
-//test @=> PT ti;
-<<<test>>>;
-//<<<ti>>>;
-<<<p>>>;
-//ti();
-<<<"test">>>;
+#!test @=> PT ti;
+<<< test >>>;
+#!<<< ti >>>;
+<<< p >>>;
+#!ti();
+<<< "test" >>>;
 p(2);
-<<<"end">>>;
+<<< "end" >>>;
 Callback.callback(p, 6);

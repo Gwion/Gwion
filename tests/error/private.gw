@@ -1,5 +1,5 @@
-// [contains] can't access private
+#! [contains] can't access private
 class C { private int i;  }
 
 C c;
-<<<c.i>>>;
+<<< c.i >>>;

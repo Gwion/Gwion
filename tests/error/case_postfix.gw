@@ -1,4 +1,4 @@
-// [contains] unhandled expression type
+#! [contains] unhandled expression type
 int i[1];
 switch(maybe) {
    case i[0]: break;

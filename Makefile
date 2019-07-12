@@ -21,7 +21,7 @@ emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
 
 test_dir := $(filter-out tests/benchmark, $(wildcard tests/*))
-
+test_dir += examples
 # add boolean
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
@@ -95,7 +95,7 @@ ast/libgwion_ast.a:
 
 clean:
 	$(info cleaning ...)
-	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion libgwion.a
+	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion libgwion.a src/*.gcno src/*.gcda
 
 src/arg.o:
 	$(info compile $(<:.c=) (with arguments defines))

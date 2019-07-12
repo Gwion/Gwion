@@ -1,2 +1,2 @@
-// [contains] is not template
+#! [contains] is not template
 <~int~>Object o;

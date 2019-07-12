@@ -1,14 +1,21 @@
-<<< "id ", me.id()             >>>;
-<<< "running ", me.running()   >>>;
-<<< "done ",    me.done()      >>>;
-<<< "from_Id ", Shred.fromId(0) >>>;
-<<< "from_Id ", Shred.fromId(1) >>>;
-<<< "me ", me                   >>>;
-<<< "args ",    me.args()      >>>;
+<<<  "id ", me.id()              >>>;
+<<<  "running ", me.running()    >>>;
+<<<  "done ",    me.done()       >>>;
+<<<  "from_Id ", Shred.fromId(0)  >>>;
+<<<  "from_Id ", Shred.fromId(1)  >>>;
+<<<  "me ", me                    >>>;
+<<<  "args ",    me.args()       >>>;
 for (int i; i < me.args(); i++)
-  <<< "arg ", i, me.arg(i)>>>;
-<<<me.dir(), " ", me.path()>>>;
-<<<me.code_dir(), " ", me.code_path()>>>;
-//me.exit();
-// call to non existant arg
-<<<me.arg(-1)>>>;
+  <<<  "arg ", i, me.arg(i) >>>;
+<<< me.dir(), " ", me.path() >>>;
+<<< me.code_dir(), " ", me.code_path() >>>;
+#!me.exit();
+#! call to non existant arg
+<<< me.arg(-1) >>>;
+<<< me.dir()  >>>;
+<<< me.path() >>>;
+<<< me.name() >>>;
+
+<<< me.code_dir()  >>>;
+<<< me.code_path() >>>;
+<<< me.code_name() >>>;

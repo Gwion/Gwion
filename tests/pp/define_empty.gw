@@ -1,5 +1,5 @@
-//[contains] end of text
+#![contains] end of text
 #define macro
 macro
 
-<<<"end of test">>>;
+<<< "end of test" >>>;

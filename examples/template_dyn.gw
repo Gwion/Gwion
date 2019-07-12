@@ -1,24 +1,24 @@
-fun void test(C cc) { <<< cc.test(2) >>>; }
+fun void test(C cc) { <<<  cc.test(2)  >>>; }
 
-fun void test(C cc, int i) { <<<1>>>; <<<cc.test(i, i)>>>; }
+fun void test(C cc, int i) { <<< 1 >>>; <<< cc.test(i, i) >>>; }
 
 
 class C {
-  fun int test<~A~>(A a) { <<<" A ", a>>>; }
-  fun int test<~A~>(A a, int i) { <<<" ", a >>>; }
-  fun int test<~A~>(A a, int i, int j) { <<<a>>>; }
+  fun int test<~A~>(A a) { <<< " A ", a >>>; }
+  fun int test<~A~>(A a, int i) { <<< " ", a  >>>; }
+  fun int test<~A~>(A a, int i, int j) { <<< a >>>; }
 }
 class D extends C {
-  fun int test<~A~>(A a, int i) { <<<this, " extent ", a, __func__>>>; }
+  fun int test<~A~>(A a, int i) { <<< this, " extent ", a, __func__ >>>; }
 }
 class E extends D {
-  fun int test<~A~>(A a, int i) { <<<this, " Extent ", a, __func__>>>; }
+  fun int test<~A~>(A a, int i) { <<< this, " Extent ", a, __func__ >>>; }
 }
 
 
-<<<C c>>>;
-<<<D d>>>;
-<<<E e>>>;
+<<< C c >>>;
+<<< D d >>>;
+<<< E e >>>;
 
 test(c);
 test(d);
@@ -26,7 +26,7 @@ test(e);
 test(c,1);
 test(d,2);
 test(e,3);
-<<<test>>>;
+<<< test >>>;
 
 
 c.test(1);
@@ -41,7 +41,7 @@ e.test(3);
 e.test(123,3);
 e.test(3, 2, 3);
 
-fun void _test() {<<<"test">>>; }
+fun void _test() {<<< "test" >>>; }
 fun void test() { _test(); }
 test();
 

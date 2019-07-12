@@ -14,7 +14,6 @@
 #include "nspc.h"
 #include "operator.h"
 
-//ANN /* static */ m_bool scan2_exp(const Env, const Exp);
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
@@ -84,17 +83,12 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, ptr->base->td, ptr->base->xid, ptr->base->args),
-    NULL,ptr->base->td->flag, loc_cpy(env->gwion->mp, stmt_self(ptr)->pos));
-  def->base->ret_type = ptr->base->ret_type;
-  ptr->base->func = new_func(env->gwion->mp, s_name(ptr->base->xid), def);
-  ptr->value->d.func_ref = ptr->base->func;
-  ptr->base->func->value_ref = ptr->value;
-  ptr->type->e->d.func = ptr->base->func;
-  def->base->tmpl = ptr->base->tmpl;
-  SET_FLAG(ptr->value, func | ae_flag_checked);
-  if(ptr->base->args)
-    CHECK_BB(scan2_args(env, def))
+  const Func_Def def = ptr->type->e->d.func->def;
+  if(!ptr->base->tmpl) {
+    def->base->ret_type = ptr->base->ret_type;
+    if(ptr->base->args)
+      CHECK_BB(scan2_args(env, def))
+  }
   if(env->class_def) {
     if(GET_FLAG(ptr->base->td, global)) {
       SET_FLAG(ptr->value, global);
@@ -117,7 +111,7 @@ ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
 }
 
 ANN m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : 1;
+  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -155,10 +149,10 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
 }
 
 
-ANN static m_bool multi_decl(const Env env, const Exp e, const Operator op) {
+ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if(e->exp_type == ae_exp_decl) {
     if(e->d.exp_decl.list->next)
-      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."), op2str(op))
+      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."), s_name(op))
     SET_FLAG(e->d.exp_decl.list->self->value, used);
   }
   return GW_OK;
@@ -200,7 +194,7 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
-  if((unary->op == op_spork || unary->op == op_fork) && unary->code) {
+  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code) {
     RET_NSPC(scan2_stmt(env, unary->code))
   } else if(unary->exp)
     return scan2_exp(env, unary->exp);
@@ -406,13 +400,12 @@ ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   assert(f->base->args);
-  const Operator op = name2op(s_name(f->base->xid));
   const Type l = GET_FLAG(f, unary) ? NULL :
     f->base->args->var_decl->value->type;
   const Type r = GET_FLAG(f, unary) ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
-  CHECK_BB(env_add_op(env, &opi))
+  struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
+  CHECK_BB(add_op(env->gwion, &opi))
   return GW_OK;
 }
 

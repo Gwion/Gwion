@@ -1,4 +1,4 @@
 <~int, int~>PairExt p;
-<<<p>>>;
-<<<p.key>>>;
-<<<p.val>>>;
+<<< p >>>;
+<<< p.key >>>;
+<<< p.val >>>;

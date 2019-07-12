@@ -116,10 +116,3 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   unload_context(ctx, env);
   return ret;
 }
-
-ANN m_bool env_add_op(const Env env, const struct Op_Import* opi) {
-  const Nspc nspc = env->curr;
-  if(!nspc->info->op_map.ptr)
-    map_init(&nspc->info->op_map);
-  return add_op(env->gwion, nspc, opi);
-}

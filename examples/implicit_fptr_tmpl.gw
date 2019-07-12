@@ -1,0 +1,8 @@
+typedef void t_ptr<~A~>();
+fun void test(t_ptr p) {
+   <<< p >>>;
+}
+fun void t<~A~>() {
+}
+
+t => test;

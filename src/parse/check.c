@@ -9,13 +9,14 @@
 #include "func.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "traverse.h"
 #include "template.h"
 #include "optim.h"
+#include "gwion.h"
+#include "operator.h"
+#include "import.h"
 #include "parse.h"
 #include "nspc.h"
-#include "operator.h"
 #include "switch.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
@@ -163,7 +164,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   const Value value = nspc_lookup_value1(env->curr, primary->d.var);
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
-    if(v && SAFE_FLAG(env->func, static) && GET_FLAG(v, member))
+    if(v && env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
       ERR_O(exp_self(primary)->pos,
             _("non-static member '%s' used from static function."), s_name(primary->d.var))
     return v;
@@ -346,8 +347,8 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
       if(implicit) {
-        const struct Implicit imp = { e, t };
-        struct Op_Import opi = { .op=op_impl, .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
+        const struct Implicit imp = { e, t, e->pos };
+        struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
       return op_check(env, &opi) ? 1 : -1;
     }
   }
@@ -366,7 +367,8 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
       }
-      if(e1->type == t_undefined) {
+      if(e1->type == t_undefined ||
+            (func->def->base->tmpl && is_fptr(func->value_ref->type) > 0)) {
         if(func->value_ref->owner_class)
           CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
         e1->type = known_type(env, e1->td);
@@ -449,7 +451,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   if(is_fptr(v->type)) {
   const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
   const Value value = nspc_lookup_value1(v->owner, sym);
-  Func_Def base = v->d.func_ref->def;
+  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
   struct Func_Base_ *fbase = new_func_base(env->gwion->mp, base->base->td, sym, base->base->args);
   fbase->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, 0);
   fbase->tmpl->call = types;
@@ -464,8 +466,11 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
        (!exp->args || !!check_exp(env, exp->args))) {
       m_func = find_func_match(env, fbase->func, exp->args);
       nspc_pop_type(env->gwion->mp, env->curr);
-      if(!value)
+      if(!value && m_func) {
+        if(!m_func->def->base->ret_type)
+          CHECK_BO(traverse_func_def(env, m_func->def))
         map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+      }
     }
     free_stmt(env->gwion->mp, stmt);
   }
@@ -511,9 +516,8 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
   Type t = value->owner_class;
   const Func f = _find_template_match(env, value, exp);
-  if(f) {
+  if(f)
     return f;
-  }
   while(t) {
    Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->base->xid);
    if(!v)
@@ -565,7 +569,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   const Func f = find_template_match(env, v, func);
   if(f) {
     Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
-    tmpl->list = v->d.func_ref->def->base->tmpl->list;
+    tmpl->list = v->d.func_ref ? v->d.func_ref->def->base->tmpl->list : func->func->type->e->d.func->def->base->tmpl->list;
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
   }
@@ -581,9 +585,29 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
   const Exp args = exp->args;
   m_uint args_number = 0;
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
-  const m_uint type_number = get_type_number(value->d.func_ref->def->base->tmpl->list);
+  Tmpl *tm = value->d.func_ref ? value->d.func_ref->def->base->tmpl : call->type->e->d.func->def->base->tmpl;
+  const m_uint type_number = get_type_number(tm->list);
   Type_List tl[type_number];
-  ID_List list = value->d.func_ref->def->base->tmpl->list;
+  ID_List list = tm->list;
+  if(tm->call) {
+    if(!value->d.func_ref) {
+      Tmpl tmpl = { .call=tm->call };
+      ((Exp_Call*)exp)->tmpl = &tmpl;
+      DECL_OO(const Func,func, = get_template_func(env, exp, value))
+      assert(func->def->base->ret_type);
+      value->d.func_ref = func;
+      return func->def->base->ret_type;
+    } else {
+      const Func func = value->d.func_ref;
+      if(!func->def->base->ret_type) { // template fptr
+        const m_uint scope = env_push(env, value->owner_class, value->owner);
+        CHECK_BO(traverse_func_def(env, func->def))
+        env_pop(env, scope);
+      }
+      ((Exp_Call*)exp)->m_func = func;
+      return func->def->base->ret_type;
+    }
+  }
   while(list) {
     Arg_List arg = value->d.func_ref->def->base->args;
     Exp template_arg = args;
@@ -606,8 +630,10 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
     ERR_O(call->pos, _("not able to guess types for template call."))
   Tmpl tmpl = { .call=tl[0] };
   ((Exp_Call*)exp)->tmpl = &tmpl;
-  const Func func = get_template_func(env, exp, value);
-  return func ? func->def->base->ret_type : NULL;
+  DECL_OO(const Func,func, = get_template_func(env, exp, value))
+  if(!func->def->base->ret_type) // template fptr
+    CHECK_BO(traverse_func_def(env, func->def))
+  return func->def->base->ret_type;
 }
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
@@ -659,7 +685,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
-  if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == op_fork &&
+  if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol("fork") &&
        bin->rhs->exp_type == ae_exp_decl)
      bin->lhs->d.exp_unary.fork_ok = 1;
   CHECK_OO(check_exp(env, bin->lhs))
@@ -674,7 +700,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   DECL_OO(const Type, t, = check_exp(env, cast->exp))
   CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
-  struct Op_Import opi = { .op=op_cast, .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->type, .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
   return op_check(env, &opi);
 }
 
@@ -687,17 +713,32 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   return t;
 }
 
+ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) {
+  const m_str str = tl2str(env, t->e->d.func->def->base->tmpl->call);
+  env_err(env, pos, _("Type '%s' has '%s' as pre-defined types."),
+      t->name, str);
+  free_mstr(env->gwion->mp, str);
+  if(GET_FLAG(t, typedef)) {
+    loc_header(t->e->d.func->def->pos, env->name);
+    gw_err(_("from definition:\n"));
+    loc_err(t->e->d.func->def->pos, env->name);
+  }
+  return GW_ERROR;
+}
+
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
     if(!v)
-      ERR_O(exp_self(exp)->pos, _(" template call of non-existant function."))
-    if(!GET_FLAG(v, func))
+      ERR_O(exp_self(exp)->pos, _("template call of non-existant function."))
+    if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->type, func))
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
     if(!v->d.func_ref->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
+    if(t->e->d.func->def->base->tmpl->call)
+      CHECK_BO(predefined_call(env, t, exp_self(exp)->pos))
     const Func ret = find_template_match(env, v, exp);
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
@@ -742,7 +783,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
           _("keyword 'this' must be associated with object instance..."))
   const Value value = find_value(the_base, member->xid);
   if(!value) {
-    env_err(env, member->base->pos,
+    env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
     if(member->t_base->nspc)
       did_you_mean_type(member->t_base, str);
@@ -765,7 +806,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
 }
 
 ANN m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->e->def ? check_class_def(env, stmt->type->e->def) : 1;
+  return stmt->type->e->def ? check_class_def(env, stmt->type->e->def) : GW_OK;
 }
 ANN static Type check_exp_lambda(const Env env NUSED,
     const Exp_If* exp_if NUSED) { return t_lambda; }
@@ -1128,8 +1169,7 @@ ANN static void operator_func(const Func f) {
   const m_bool is_unary = GET_FLAG(f->def, unary);
   const Type l = is_unary ? NULL : a->type;
   const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
-  const Operator op = name2op(s_name(f->def->base->xid));
-  struct Op_Import opi = { .op=op, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
+  struct Op_Import opi = { .op=f->def->base->xid, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
   operator_set_func(&opi);
 }
 

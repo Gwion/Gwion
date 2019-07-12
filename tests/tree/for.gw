@@ -2,9 +2,9 @@ for(int i; i < 4; i++)
 {
 	if(i == 2)
 		continue;
-	<<<i>>>;
+	<<< i >>>;
 }
 for(int i; i < 3;)
-	<<<i++>>>;
+	<<< i++ >>>;
 float f;
 for(1 => f; f; 1 -=>f);

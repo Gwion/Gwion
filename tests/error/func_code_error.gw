@@ -1,2 +1,2 @@
-// [contains] in function:
-fun void test() { <<<b>>>; }
+#! [contains] in function:
+fun void test() { <<< b >>>; }

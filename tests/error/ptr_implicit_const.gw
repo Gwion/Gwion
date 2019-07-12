@@ -1,0 +1,3 @@
+#! [contains] can't cast constant to Ptr
+fun void test(<~int~>Ptr i) { <<< *i>>>; }
+1 => test;

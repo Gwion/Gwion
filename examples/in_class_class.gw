@@ -1,5 +1,5 @@
 class C {
-	fun void test<~a~>(a var){ <<<var>>>; }
+	fun void test<~a~>(a var){ <<< var >>>; }
 	class D { int i;}
 }
 
@@ -7,4 +7,4 @@ C c;
 C->D d;
 C->D @d_ref;
 
-<<< c, " ", d, d_ref >>>;
+<<<  c, " ", d, d_ref  >>>;

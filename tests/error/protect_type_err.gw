@@ -1,0 +1,7 @@
+#! [contains] can't use protected type
+class C {
+  class protect D {
+  }
+}
+
+C->D d;

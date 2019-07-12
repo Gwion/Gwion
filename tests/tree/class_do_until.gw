@@ -1,6 +1,6 @@
 class C {
 	int i;
-	do { <<<i++>>>; }
+	do { <<< i++ >>>; }
 	while(i < 6);
 }
 

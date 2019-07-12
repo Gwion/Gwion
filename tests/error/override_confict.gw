@@ -1,4 +1,4 @@
-// [contains] conflicts with previously defined value
+#! [contains] conflicts with previously defined value
 class C
 {
 	int test;
@@ -11,5 +11,5 @@ class D extends C
 
 C c;
 D d;
-<<<c>>>;
-<<<d>>>;
+<<< c >>>;
+<<< d >>>;

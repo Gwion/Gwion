@@ -1,2 +1,2 @@
-// [contains] already declared
+#! [contains] already declared
 fun void test(int i, int i){}

@@ -7,10 +7,10 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
-#include "gwi.h"
 #include "emit.h"
 #include "operator.h"
+#include "import.h"
+#include "gwi.h"
 #include "driver.h"
 #include "traverse.h"
 #include "parse.h"
@@ -18,78 +18,78 @@
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
 GWION_IMPORT(int_op) {
-  CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_add, int_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub, int_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul, int_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_div, int_div))
-  return   gwi_oper_end(gwi, op_mod, int_modulo);
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  GWI_BB(gwi_oper_end(gwi, "+", int_plus))
+  GWI_BB(gwi_oper_end(gwi, "-", int_minus))
+  GWI_BB(gwi_oper_end(gwi, "*", int_mul))
+  GWI_BB(gwi_oper_end(gwi, "/", int_div))
+  return   gwi_oper_end(gwi, "%", int_modulo);
 }
 
 static GWION_IMPORT(int_logical) {
-  CHECK_BB(gwi_oper_end(gwi, op_and,  int_and))
-  CHECK_BB(gwi_oper_end(gwi, op_or,   int_or))
-  CHECK_BB(gwi_oper_end(gwi, op_eq,   int_eq))
-  CHECK_BB(gwi_oper_end(gwi, op_ne,   int_neq))
-  CHECK_BB(gwi_oper_end(gwi, op_gt,   int_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge,   int_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt,   int_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le,   int_le))
-  CHECK_BB(gwi_oper_end(gwi, op_shr,  int_sr))
-  CHECK_BB(gwi_oper_end(gwi, op_shl,  int_sl))
-  CHECK_BB(gwi_oper_end(gwi, op_sand, int_sand))
-  CHECK_BB(gwi_oper_end(gwi, op_sor,  int_sor))
-  return   gwi_oper_end(gwi, op_sxor, int_xor);
+  GWI_BB(gwi_oper_end(gwi, "&&",  int_and))
+  GWI_BB(gwi_oper_end(gwi, "||",   int_or))
+  GWI_BB(gwi_oper_end(gwi, "==",   int_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=",   int_neq))
+  GWI_BB(gwi_oper_end(gwi, ">",   int_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=",   int_ge))
+  GWI_BB(gwi_oper_end(gwi, "<",   int_lt))
+  GWI_BB(gwi_oper_end(gwi, "<=",   int_le))
+  GWI_BB(gwi_oper_end(gwi, ">>",  int_sr))
+  GWI_BB(gwi_oper_end(gwi, "<<",  int_sl))
+  GWI_BB(gwi_oper_end(gwi, "&", int_sand))
+  GWI_BB(gwi_oper_end(gwi, "|",  int_sor))
+  return   gwi_oper_end(gwi, "^", int_xor);
 }
 
 static GWION_IMPORT(int_r) {
-  CHECK_OP(chuck, rassign, r_assign)
-  CHECK_OP(radd,  rassign, r_plus)
-  CHECK_OP(rsub,  rassign, r_minus)
-  CHECK_OP(rmul,  rassign, r_mul)
-  CHECK_OP(rdiv,  rassign, r_div)
-  CHECK_OP(rmod,  rassign, r_modulo)
-  CHECK_OP(rsl,   rassign, r_sl)
-  CHECK_OP(rsr,   rassign, r_sr)
-  CHECK_OP(rsand, rassign, r_sand)
-  CHECK_OP(rsor,  rassign, r_sor)
-  CHECK_OP(rsxor, rassign, r_sxor)
+  CHECK_OP("=>", rassign, r_assign)
+  CHECK_OP("+=>",  rassign, r_plus)
+  CHECK_OP("-=>",  rassign, r_minus)
+  CHECK_OP("*=>",  rassign, r_mul)
+  CHECK_OP("/=>",  rassign, r_div)
+  CHECK_OP("%=>",  rassign, r_modulo)
+  CHECK_OP("<<=>",   rassign, r_sl)
+  CHECK_OP(">>=>",   rassign, r_sr)
+  CHECK_OP("&=>", rassign, r_sand)
+  CHECK_OP("|=>",  rassign, r_sor)
+  CHECK_OP("^=>", rassign, r_sxor)
   return GW_OK;
 }
 
 static GWION_IMPORT(int_unary) {
-  CHECK_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
-  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta))
-  CHECK_BB(gwi_oper_end(gwi,  op_sub,       int_negate))
-  CHECK_BB(gwi_oper_add(gwi,  opck_unary_meta2_uniq))
-  CHECK_BB(gwi_oper_end(gwi,  op_not, IntNot))
-  CHECK_OP(inc, unary, pre_inc)
-  CHECK_OP(dec, unary, pre_dec)
-  CHECK_BB(gwi_oper_end(gwi,  op_cmp, int_cmp))
-  CHECK_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
-  CHECK_OP(inc, post, post_inc)
-  CHECK_BB(gwi_oper_add(gwi, opck_post))
-  CHECK_BB(gwi_oper_end(gwi, op_dec, int_post_dec))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
+  GWI_BB(gwi_oper_add(gwi,  opck_unary_meta))
+  GWI_BB(gwi_oper_end(gwi,  "-",       int_negate))
+  GWI_BB(gwi_oper_add(gwi,  opck_unary_meta2_uniq))
+  GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
+  CHECK_OP("++", unary, pre_inc)
+  CHECK_OP("--", unary, pre_dec)
+  GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
+  GWI_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
+  CHECK_OP("++", post, post_inc)
+  GWI_BB(gwi_oper_add(gwi, opck_post))
+  GWI_BB(gwi_oper_end(gwi, "--", int_post_dec))
   return GW_OK;
 }
 
 static GWION_IMPORT(int_values) {
-  CHECK_BB(gwi_enum_ini(gwi, "bool"))
-  CHECK_BB(gwi_enum_add(gwi, "false", 0))
-  CHECK_BB(gwi_enum_add(gwi, "true", 1))
+  GWI_BB(gwi_enum_ini(gwi, "bool"))
+  GWI_BB(gwi_enum_add(gwi, "false", 0))
+  GWI_BB(gwi_enum_add(gwi, "true", 1))
   t_bool = gwi_enum_end(gwi);
-  CHECK_BB(gwi_item_ini(gwi, "bool", "maybe"))
-  CHECK_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
+  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
   return GW_OK;
 }
 
 static GWION_IMPORT(int) {
-  CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_BB(import_int_op(gwi))
-  CHECK_BB(import_int_logical(gwi))
-  CHECK_BB(import_int_r(gwi))
-  CHECK_BB(import_int_unary(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  GWI_BB(import_int_op(gwi))
+  GWI_BB(import_int_logical(gwi))
+  GWI_BB(import_int_r(gwi))
+  GWI_BB(import_int_unary(gwi))
   return import_int_values(gwi);
 }
 
@@ -127,13 +127,12 @@ static GWION_IMPORT(values) {
   gwi_reserve(gwi, "now");
   return GW_OK;
 }
-
+/*
 static OP_CHECK(opck_chuck_now) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  ERR_O(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
-  return NULL;
+  ERR_N(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
 }
-
+*/
 static OP_CHECK(opck_implicit_f2i) {
   return t_null;
 }
@@ -159,135 +158,131 @@ static OP_EMIT(opem_f2i) {
 #define CHECK_FI(op, check, func) _CHECK_OP(op, check, float_int_##func)
 
 static GWION_IMPORT(intfloat) {
-  CHECK_BB(gwi_oper_ini(gwi, "int", "float", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_and,           int_float_and))
-  CHECK_BB(gwi_oper_end(gwi, op_or,            int_float_or))
-  CHECK_BB(gwi_oper_end(gwi, op_eq, 			 int_float_eq))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, 			 int_float_neq))
-  CHECK_BB(gwi_oper_end(gwi, op_gt, 			 int_float_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 			 int_float_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 			 int_float_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le, 			 int_float_le))
-  CHECK_BB(gwi_oper_ini(gwi, "int", "float", "float"))
-  CHECK_BB(gwi_oper_end(gwi, op_add,          int_float_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,         int_float_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,         int_float_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_div,        int_float_div))
-  CHECK_IF(chuck, rassign, r_assign)
-  CHECK_IF(radd, rassign, r_plus)
-  CHECK_IF(rsub, rassign, r_minus)
-  CHECK_IF(rmul, rassign, r_mul)
-  CHECK_IF(rdiv, rassign, r_div)
-  CHECK_BB(gwi_oper_emi(gwi, opem_i2f))
-  _CHECK_OP(cast, basic_cast, CastI2F)
-  _CHECK_OP(impl, implicit_i2f, CastI2F)
+  GWI_BB(gwi_oper_ini(gwi, "int", "float", "int"))
+  GWI_BB(gwi_oper_end(gwi, "&&",           int_float_and))
+  GWI_BB(gwi_oper_end(gwi, "||",            int_float_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 			 int_float_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 			 int_float_neq))
+  GWI_BB(gwi_oper_end(gwi, ">", 			 int_float_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=", 			 int_float_ge))
+  GWI_BB(gwi_oper_end(gwi, "<", 			 int_float_lt))
+  GWI_BB(gwi_oper_end(gwi, "<=", 			 int_float_le))
+  GWI_BB(gwi_oper_ini(gwi, "int", "float", "float"))
+  GWI_BB(gwi_oper_end(gwi, "+",          int_float_plus))
+  GWI_BB(gwi_oper_end(gwi, "*",         int_float_mul))
+  GWI_BB(gwi_oper_end(gwi, "-",         int_float_minus))
+  GWI_BB(gwi_oper_end(gwi, "/",        int_float_div))
+  CHECK_IF("=>", rassign, r_assign)
+  CHECK_IF("+=>", rassign, r_plus)
+  CHECK_IF("-=>", rassign, r_minus)
+  CHECK_IF("*=>", rassign, r_mul)
+  CHECK_IF("/=>", rassign, r_div)
+  GWI_BB(gwi_oper_emi(gwi, opem_i2f))
+  _CHECK_OP("$", basic_cast, CastI2F)
+  _CHECK_OP("@implicit", implicit_i2f, CastI2F)
   return GW_OK;
 }
 
 static GWION_IMPORT(floatint) {
-  CHECK_BB(gwi_oper_ini(gwi, "float", "int", "float"))
-  CHECK_BB(gwi_oper_end(gwi, op_add,         float_int_plus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,        float_int_minus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,        float_int_mul))
-  CHECK_BB(gwi_oper_end(gwi, op_div,       float_int_div))
-  CHECK_BB(gwi_oper_ini(gwi, "float", "int", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_and,          float_int_and))
-  CHECK_BB(gwi_oper_end(gwi, op_or,           float_int_or))
-  CHECK_BB(gwi_oper_end(gwi, op_eq, 			float_int_eq))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, 			float_int_neq))
-  CHECK_BB(gwi_oper_end(gwi, op_gt, 			float_int_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 			float_int_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 			float_int_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le, 			float_int_le))
-  CHECK_FI(chuck, rassign, r_assign)
-  CHECK_FI(radd, rassign, r_plus)
-  CHECK_FI(rsub, rassign, r_minus)
-  CHECK_FI(rmul, rassign, r_mul)
-  CHECK_FI(rdiv, rassign, r_div)
-  CHECK_BB(gwi_oper_emi(gwi, opem_f2i))
-  _CHECK_OP(cast, basic_cast, CastF2I)
-  _CHECK_OP(impl, implicit_f2i, CastF2I)
+  GWI_BB(gwi_oper_ini(gwi, "float", "int", "float"))
+  GWI_BB(gwi_oper_end(gwi, "+",         float_int_plus))
+  GWI_BB(gwi_oper_end(gwi, "-",        float_int_minus))
+  GWI_BB(gwi_oper_end(gwi, "*",        float_int_mul))
+  GWI_BB(gwi_oper_end(gwi, "/",       float_int_div))
+  GWI_BB(gwi_oper_ini(gwi, "float", "int", "int"))
+  GWI_BB(gwi_oper_end(gwi, "&&",          float_int_and))
+  GWI_BB(gwi_oper_end(gwi, "||",           float_int_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 			float_int_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 			float_int_neq))
+  GWI_BB(gwi_oper_end(gwi, ">", 			float_int_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=", 			float_int_ge))
+  GWI_BB(gwi_oper_end(gwi, "<", 			float_int_lt))
+  GWI_BB(gwi_oper_end(gwi, "<=", 			float_int_le))
+  CHECK_FI("=>", rassign, r_assign)
+  CHECK_FI("+=>", rassign, r_plus)
+  CHECK_FI("-=>", rassign, r_minus)
+  CHECK_FI("*=>", rassign, r_mul)
+  CHECK_FI("/=>", rassign, r_div)
+  GWI_BB(gwi_oper_emi(gwi, opem_f2i))
+  _CHECK_OP("$", basic_cast, CastF2I)
+  _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   return GW_OK;
 }
 
 static GWION_IMPORT(dur) {
-  CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
-  CHECK_FF(chuck, rassign, r_assign)
-  CHECK_BB(gwi_oper_end(gwi, op_add,         FloatPlus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,        FloatMinus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,        FloatTimes))
-  CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "float"))
-  CHECK_BB(gwi_oper_end(gwi, op_div,       FloatDivide))
+  GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
+  CHECK_FF("=>", rassign, r_assign)
+  GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
+  GWI_BB(gwi_oper_end(gwi, "-",        FloatMinus))
+  GWI_BB(gwi_oper_end(gwi, "*",        FloatTimes))
+  GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "float"))
+  GWI_BB(gwi_oper_end(gwi, "/",       FloatDivide))
 
-  CHECK_BB(gwi_oper_ini(gwi, "dur", "dur", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge,           float_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt,           float_lt))
-  return gwi_oper_end(gwi, op_le,           float_le);
+  GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "int"))
+  GWI_BB(gwi_oper_end(gwi, ">",           float_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=",           float_ge))
+  GWI_BB(gwi_oper_end(gwi, "<",           float_lt))
+  return gwi_oper_end(gwi, "<=",           float_le);
 }
 
 static GWION_IMPORT(time) {
-  CHECK_BB(gwi_oper_ini(gwi, "time", "time", "time"))
-  CHECK_FF(chuck, rassign, r_assign)
-  CHECK_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
-  CHECK_BB(gwi_oper_end(gwi, op_add,         FloatPlus))
-  CHECK_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
-  CHECK_FF(chuck, rassign, r_assign)
-  CHECK_BB(gwi_oper_end(gwi, op_add,         FloatPlus))
-  CHECK_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
-  _CHECK_OP(chuck, rhs_emit_var, Time_Advance)
-  CHECK_BB(gwi_oper_ini(gwi,  "@now",  "@now", NULL))
-  _CHECK_OP(chuck, chuck_now, NULL)
-  CHECK_BB(gwi_oper_ini(gwi, NULL, "@now", NULL))
-  CHECK_BB(gwi_oper_end(gwi, op_not, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "time", "time", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_gt,           float_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 	      float_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 		  float_lt))
-  return gwi_oper_end(gwi, op_le,           float_le);
+  GWI_BB(gwi_oper_ini(gwi, "time", "time", "time"))
+  CHECK_FF("=>", rassign, r_assign)
+  GWI_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
+  GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
+  GWI_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
+  CHECK_FF("=>", rassign, r_assign)
+  GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
+  GWI_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
+  _CHECK_OP("=>", rhs_emit_var, Time_Advance)
+  GWI_BB(gwi_oper_ini(gwi, "time", "time", "int"))
+  GWI_BB(gwi_oper_end(gwi, ">",           float_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=", 	      float_ge))
+  GWI_BB(gwi_oper_end(gwi, "<", 		  float_lt))
+  return gwi_oper_end(gwi, "<=",           float_le);
 }
 
 static GWION_IMPORT(float) {
-  CHECK_BB(gwi_oper_ini(gwi, "float", "float", "float"))
-  CHECK_BB(gwi_oper_end(gwi, op_add,          FloatPlus))
-  CHECK_BB(gwi_oper_end(gwi, op_sub,         FloatMinus))
-  CHECK_BB(gwi_oper_end(gwi, op_mul,         FloatTimes))
-  CHECK_BB(gwi_oper_end(gwi, op_div,        FloatDivide))
-  CHECK_FF(chuck, rassign, r_assign)
-  CHECK_FF(radd, rassign, r_plus)
-  CHECK_FF(rsub, rassign, r_minus)
-  CHECK_FF(rmul, rassign, r_mul)
-  CHECK_FF(rdiv, rassign, r_div)
-  CHECK_BB(gwi_oper_ini(gwi, "float", "float", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_and,           float_and))
-  CHECK_BB(gwi_oper_end(gwi, op_or,            float_or))
-  CHECK_BB(gwi_oper_end(gwi, op_eq, 			 float_eq))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, 			 float_neq))
-  CHECK_BB(gwi_oper_end(gwi, op_gt, 			 float_gt))
-  CHECK_BB(gwi_oper_end(gwi, op_ge, 			 float_ge))
-  CHECK_BB(gwi_oper_end(gwi, op_lt, 			 float_lt))
-  CHECK_BB(gwi_oper_end(gwi, op_le, 			 float_le))
-  CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "float"))
-  CHECK_FF(sub, unary_meta, negate)
-  CHECK_BB(gwi_oper_ini(gwi, NULL,   "float", "int"))
-  CHECK_FF(not, unary_meta2_uniq, not)
-  CHECK_BB(gwi_oper_ini(gwi, NULL,   "time", "int"))
-  CHECK_FF(not, unary_meta2_uniq, not)
-  CHECK_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
-  CHECK_FF(not, unary_meta2_uniq, not)
-  CHECK_BB(gwi_oper_ini(gwi, "int", "dur", "dur"))
-  CHECK_BB(gwi_oper_end(gwi, op_coloncolon,         int_float_mul))
-  CHECK_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
-  CHECK_BB(gwi_oper_end(gwi, op_coloncolon,         FloatTimes))
+  GWI_BB(gwi_oper_ini(gwi, "float", "float", "float"))
+  GWI_BB(gwi_oper_end(gwi, "+",          FloatPlus))
+  GWI_BB(gwi_oper_end(gwi, "-",         FloatMinus))
+  GWI_BB(gwi_oper_end(gwi, "*",         FloatTimes))
+  GWI_BB(gwi_oper_end(gwi, "/",        FloatDivide))
+  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF("+=>", rassign, r_plus)
+  CHECK_FF("-=>", rassign, r_minus)
+  CHECK_FF("*=>", rassign, r_mul)
+  CHECK_FF("/=>", rassign, r_div)
+  GWI_BB(gwi_oper_ini(gwi, "float", "float", "int"))
+  GWI_BB(gwi_oper_end(gwi, "&&",           float_and))
+  GWI_BB(gwi_oper_end(gwi, "||",            float_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 			 float_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 			 float_neq))
+  GWI_BB(gwi_oper_end(gwi, ">", 			 float_gt))
+  GWI_BB(gwi_oper_end(gwi, ">=", 			 float_ge))
+  GWI_BB(gwi_oper_end(gwi, "<", 			 float_lt))
+  GWI_BB(gwi_oper_end(gwi, "<=", 			 float_le))
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "float"))
+  CHECK_FF("-", unary_meta, negate)
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "int"))
+  CHECK_FF("!", unary_meta2_uniq, not)
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "time", "int"))
+  CHECK_FF("!", unary_meta2_uniq, not)
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
+  CHECK_FF("!", unary_meta2_uniq, not)
+  GWI_BB(gwi_oper_ini(gwi, "int", "dur", "dur"))
+  GWI_BB(gwi_oper_end(gwi, "::",         int_float_mul))
+  GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
+  GWI_BB(gwi_oper_end(gwi, "::",         FloatTimes))
   return GW_OK;
 }
 
 GWION_IMPORT(prim) {
-  CHECK_BB(import_int(gwi))
-  CHECK_BB(import_float(gwi))
-  CHECK_BB(import_intfloat(gwi))
-  CHECK_BB(import_floatint(gwi))
-  CHECK_BB(import_dur(gwi))
-  CHECK_BB(import_time(gwi))
+  GWI_BB(import_int(gwi))
+  GWI_BB(import_float(gwi))
+  GWI_BB(import_intfloat(gwi))
+  GWI_BB(import_floatint(gwi))
+  GWI_BB(import_dur(gwi))
+  GWI_BB(import_time(gwi))
   return import_values(gwi);
 }

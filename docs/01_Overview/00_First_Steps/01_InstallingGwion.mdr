@@ -2,12 +2,12 @@
 
 ## Get the sources
 
-The source is accessible on [github](https://github.com).
+The source is accessible on [github](https:#!github.com).
 
 Provided you have git installed, you can get it with:
 
 ``` sh
-git clone https://github.com/fennecdjay/gwion
+git clone https:#!github.com/fennecdjay/gwion
 ```
 
 then change to the source directory

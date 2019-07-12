@@ -9,12 +9,13 @@
 #include "type.h"
 
 ANN static void free_value(Value a, Gwion gwion) {
+  const Type t = !GET_FLAG(a->type, nonnull) ? a->type : a->type->e->parent;
   if(!GET_FLAG(a, func) && a->d.ptr && !GET_FLAG(a, union) &&
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
-      && isa(a->type, t_object) < 0)
-   _mp_free(gwion->mp, a->type->size, a->d.ptr);
-  if(isa(a->type, t_class) > 0/* || isa(a->type, t_function) > 0*/)
-    REM_REF(a->type, gwion)
+      && isa(t, t_object) < 0)
+   _mp_free(gwion->mp, t->size, a->d.ptr);
+  if(isa(t, t_class) > 0/* || isa(a->type, t_function) > 0*/)
+    REM_REF(t, gwion)
   mp_free(gwion->mp, Value, a);
 }
 

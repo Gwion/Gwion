@@ -1,7 +1,7 @@
-// [contains] vararg.start not used before vararg.end. this is an error
+#! [contains] vararg.start not used before vararg.end. this is an error
 fun void test(int i, ...) {
 	vararg.end;
-//	vararg.start;
+#!	vararg.start;
 }
 
 test(1, 2.3, null);

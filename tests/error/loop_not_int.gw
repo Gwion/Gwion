@@ -1,4 +1,4 @@
-// [contains] conditional must be of type
+#! [contains] conditional must be of type
 complex c;
 repeat(c)
-	<<<"error">>>;
+	<<< "error" >>>;

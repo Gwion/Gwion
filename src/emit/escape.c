@@ -36,10 +36,6 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
   while(*str_lit) {
     if(*str_lit == '\\')  {
       ++str_lit;
-      if(*str_lit == '\0') {
-        env_err(emit->env, pos, _("invalid: string ends with escape charactor '\\'"));
-        return GW_ERROR;
-      }
       const unsigned char c = *(str_lit);
       const unsigned char c2 = *(str_lit+1);
       if(c >= '0' && c <= '7') {

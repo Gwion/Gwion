@@ -1,3 +1,3 @@
-// [contains] not allowed
+#! [contains] not allowed
 class C extends Event{}
 Event e @=> C o;

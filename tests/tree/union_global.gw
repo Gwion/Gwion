@@ -1,0 +1,5 @@
+union global GlobalUnion {
+  int gui;
+  float guf;
+};
+<<<"test">>>;

@@ -1,17 +1,17 @@
 class C
 {
   fun void test(int i){
-    <<<i>>>;
+    <<< i >>>;
     spork {
-      <<<"test2">>>;
+      <<< "test2" >>>;
     };
   }
-//	spork test(2);
-//	spork  { <<<"test", this>>>; };
+#!	spork test(2);
+#!	spork  { <<< "test", this >>>; };
 }
 C c;
-<<<c>>>;
-//spork 
+<<< c >>>;
+#!spork 
 c.test(1);
 c.test(2);
 samp => now;

@@ -11,9 +11,9 @@
 #include "instr.h"
 #include "emit.h"
 #include "object.h"
-#include "import.h"
 #include "nspc.h"
 #include "operator.h"
+#include "import.h"
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
@@ -34,6 +34,7 @@ static OP_CHECK(opck_func_call) {
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  ++*mut;
   return check_exp_call1(env, &e->d.exp_call) ?: t_null;
 }
 
@@ -69,13 +70,17 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
 // some kind of template_match ?
   ID_List t0 = info->lhs->def->base->tmpl->list,
           t1 = info->rhs->def->base->tmpl->list;
+nspc_push_type(env->gwion->mp, env->curr);
   while(t0) {
-    CHECK_OB(t1)
+//    CHECK_OB(t1)
+nspc_add_type(env->curr, t0->xid, t_undefined);//
+nspc_add_type(env->curr, t1->xid, t_undefined);//
     t0 = t0->next;
     t1 = t1->next;
   }
-  CHECK_BB(template_push_types(env, info->lhs->def->base->tmpl))
-  return template_push_types(env, info->rhs->def->base->tmpl);
+//  CHECK_BB(template_push_types(env, info->lhs->def->base->tmpl))
+//  return template_push_types(env, info->rhs->def->base->tmpl);
+return GW_OK;//
 }
 
 
@@ -142,7 +147,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
            fptr_arity(info) && fptr_args(env, base) > 0)
       type = info->lhs->value_ref->type;
       if(info->rhs->def->base->tmpl) {
-        nspc_pop_type(env->gwion->mp, env->curr);
+//        nspc_pop_type(env->gwion->mp, env->curr);
         nspc_pop_type(env->gwion->mp, env->curr);
       }
     }
@@ -192,6 +197,14 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->type->e->d.func->def->base->tmpl &&
+     bin->rhs->type->e->d.func->def->base->tmpl->call) {
+  struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->parent->e->d.func,
+      bin->lhs, exp_self(bin)->pos };
+  CHECK_BO(fptr_do(env, &info))
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
   struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->d.func,
       bin->lhs, exp_self(bin)->pos };
   CHECK_BO(fptr_do(env, &info))
@@ -247,11 +260,11 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->op == op_fork && !unary->fork_ok)
+  if(unary->op == insert_symbol("fork") && !unary->fork_ok)
     ERR_O(exp_self(unary)->pos, _("forks must be stored in a value:\n"
         "fork xxx @=> Fork f"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return unary->op == op_spork ? t_shred : t_fork;
+    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
   else if(unary->code) {
     ++env->scope->depth;
     nspc_push_value(env->gwion->mp, env->curr);
@@ -259,7 +272,7 @@ static OP_CHECK(opck_spork) {
     nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
     CHECK_BO(ret)
-    return unary->op == op_spork ? t_shred : t_fork;
+    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
   } else
     ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
   return NULL;
@@ -281,27 +294,26 @@ static FREEARG(freearg_dottmpl) {
 }
 
 GWION_IMPORT(func) {
-  CHECK_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_func_call))
-  gwi_oper_mut(gwi, 1);
-  CHECK_BB(gwi_oper_end(gwi, op_chuck, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_fptr_at))
-  CHECK_BB(gwi_oper_emi(gwi, opem_func_assign))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, NULL /*FuncAssign*/))
-  CHECK_BB(gwi_oper_add(gwi, opck_fptr_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_fptr_impl))
-  CHECK_BB(gwi_oper_emi(gwi, opem_fptr_impl))
-  CHECK_BB(gwi_oper_end(gwi, op_impl, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_spork))
-  CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_spork, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_spork))
-  CHECK_BB(gwi_oper_emi(gwi, opem_spork))
-  CHECK_BB(gwi_oper_end(gwi, op_fork, NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_func_call))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
+  GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL /*FuncAssign*/))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_fptr_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
+  GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_spork))
+  GWI_BB(gwi_oper_emi(gwi, opem_spork))
+  GWI_BB(gwi_oper_end(gwi, "spork", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_spork))
+  GWI_BB(gwi_oper_emi(gwi, opem_spork))
+  GWI_BB(gwi_oper_end(gwi, "fork", NULL))
   register_freearg(gwi, SporkIni, freearg_xork);
   register_freearg(gwi, ForkIni, freearg_xork);
   register_freearg(gwi, DotTmpl, freearg_dottmpl);

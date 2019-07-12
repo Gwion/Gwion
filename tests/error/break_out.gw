@@ -1,2 +1,2 @@
-// [contains] 'break' found outside of for/while/until
+#! [contains] 'break' found outside of for/while/until
 break;

@@ -1,11 +1,11 @@
 fun int test(...){
   vararg.start;
-  <<<"test">>>; 
-  <<<vararg.i>>>;
+  <<< "test" >>>; 
+  <<< vararg.i >>>;
   vararg.end;
   return 1;
 }
-<<< test() >>>;
-<<< test() >>>;
-<<<(1, 7) => test>>>;
-<<<() => test>>>;
+<<<  test()  >>>;
+<<<  test()  >>>;
+<<< (1, 7) => test >>>;
+<<< () => test >>>;

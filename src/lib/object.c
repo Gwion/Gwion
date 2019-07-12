@@ -11,8 +11,9 @@
 #include "value.h"
 #include "instr.h"
 #include "object.h"
-#include "import.h"
 #include "operator.h"
+#include "import.h"
+#include "emit.h"
 
 ANN void exception(const VM_Shred shred, const m_str c) {
   gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
@@ -97,20 +98,49 @@ static INSTR(name##Object) {\
 describe_logical(Eq,  ==)
 describe_logical(Neq, !=)
 
+static inline m_bool nonnull_check(const Type l, const Type r) {
+  return !GET_FLAG(l, nonnull) && GET_FLAG(r, nonnull);
+}
+
+static inline Type check_nonnull(const Env env, const Type l, const Type r,
+      const m_str action, const loc_t pos) {
+  if(GET_FLAG(r, nonnull)) {
+    if(isa(l, t_null) > 0)
+      ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
+    return r->e->parent;
+  }
+  if(nonnull_check(l, r))
+    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
+  return r;
+}
+
 static OP_CHECK(at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type l = bin->lhs->type;
   const Type r = bin->rhs->type;
-  if(opck_rassign(env, data) == t_null)
+  if(opck_rassign(env, data, mut) == t_null)
     return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
-  if(l != t_null && isa(l, r) < 0) {
-    env_err(env, exp_self(bin)->pos, _("'%s' @=> '%s': not allowed"), l->name, r->name);
+  const Type t = check_nonnull(env, l, r, "assign", exp_self(bin)->pos);
+  if(t == t_null)
     return t_null;
-  }
+  if(l != t_null && isa(l, t) < 0)
+    ERR_N(exp_self(bin)->pos, _("'%s' @=> '%s': not allowed"), l->name, r->name);
   bin->rhs->emit_var = 1;
   return r;
+}
+
+static OP_EMIT(opem_at_object) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Type l = bin->lhs->type;
+  const Type r = bin->rhs->type;
+  if(nonnull_check(l, r)) {
+    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    instr->m_val = SZ_INT;
+  }
+  emit_add_instr(emit, ObjectAssign);
+  return GW_OK;
 }
 
 #define STR_FORCE ":force"
@@ -118,13 +148,13 @@ static OP_CHECK(at_object) {
 
 static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
   const Type ret = type_copy(p, t);
-//  ret->name = s_name(sym);
-  SET_FLAG(ret, force);
+  ret->name = s_name(sym);
+  ret->flag = t->flag | ae_flag_force;
 //  nspc_add_type(t->e->owner, sym, ret);
 //  map_set(&t->e->owner->info->type->map, sym, ret);
   map_set(vector_front(&t->e->owner->info->type->ptr), sym, ret);
   return ret;
-}
+ }
 
 static Type get_force_type(const Env env, const Type t) {
   const size_t len = strlen(t->name);
@@ -140,44 +170,73 @@ static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->type;
   const Type r = exp_self(cast)->type;
+  if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == t_null)
+    return t_null;
   return isa(l, r) > 0 ? get_force_type(env, r) : t_null;
+}
+
+static OP_EMIT(opem_object_cast) {
+  const Exp_Cast* cast = (Exp_Cast*)data;
+  const Type l = cast->exp->type;
+  const Type r = exp_self(cast)->type;
+  if(nonnull_check(l, r))
+    emit_add_instr(emit, GWOP_EXCEPT);
+  return GW_OK;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
+  const Type l = ((Exp)imp->e)->type;
+  const Type r = imp->t;
+  if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == t_null)
+    return t_null;
+  ((Exp)imp->e)->cast_to = r;
   return imp->t;
 }
 
+static OP_EMIT(opem_implicit_null2obj) {
+  const struct Implicit* imp = (struct Implicit*)data;
+  const Type l = ((Exp)imp->e)->type;
+  const Type r = imp->t;
+  if(nonnull_check(l, r))
+    emit_add_instr(emit, GWOP_EXCEPT);
+  return GW_OK;
+}
+
 GWION_IMPORT(object) {
-  CHECK_OB((t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL)))
-  CHECK_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
-  CHECK_BB(gwi_class_end(gwi))
-  CHECK_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
-  CHECK_BB(gwi_oper_add(gwi, at_object))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
-  CHECK_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
-  CHECK_BB(gwi_oper_add(gwi, at_object))
-  CHECK_BB(gwi_oper_end(gwi, op_ref, ObjectAssign))
-  CHECK_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_eq,  EqObject))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, NeqObject))
-  CHECK_BB(gwi_oper_add(gwi, opck_object_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "@null", "Object", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_eq,  EqObject))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, NeqObject))
-  CHECK_BB(gwi_oper_add(gwi, opck_basic_cast))
-  CHECK_BB(gwi_oper_emi(gwi, opem_basic_cast))
-  CHECK_BB(gwi_oper_end(gwi, op_cast, NULL))
-  CHECK_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
-  CHECK_BB(gwi_oper_end(gwi, op_impl, NULL))
-  CHECK_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
-  CHECK_BB(gwi_oper_end(gwi, op_eq, EqObject))
-  CHECK_BB(gwi_oper_end(gwi, op_ne, NeqObject))
-  CHECK_BB(gwi_oper_ini(gwi, NULL, "Object", "int"))
-  CHECK_BB(gwi_oper_add(gwi, opck_unary_meta2))
-  CHECK_BB(gwi_oper_end(gwi, op_not, IntNot))
+  t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
+  GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
+  GWI_BB(gwi_oper_add(gwi, at_object))
+  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
+  GWI_BB(gwi_oper_add(gwi, at_object))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_object))
+  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
+  GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
+  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
+  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
+  GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "int"))
+  GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
+  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
+  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
+  GWI_BB(gwi_oper_end(gwi, "==", EqObject))
+  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "int"))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
+  GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
   gwi_reserve(gwi, "this");

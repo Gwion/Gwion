@@ -8,7 +8,7 @@ So, as it is mandatory, here is the piece of code you're waiting
 for:
 
 @``` helloworld.gw
-<<<"Hello, World!", "">>>;
+<<< "Hello, World!", "" >>>;
 @```  
 @exec make -s CONTAINS="Hello, World!" helloworld.test
 
