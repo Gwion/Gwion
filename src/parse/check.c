@@ -442,6 +442,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
   const m_str tmpl_name = tl2str(env, types);
@@ -737,7 +738,6 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call)
       CHECK_BO(predefined_call(env, t, exp_self(exp)->pos))
-CHECK_BO(check_call(env, exp))
     const Func ret = find_template_match(env, v, exp);
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
