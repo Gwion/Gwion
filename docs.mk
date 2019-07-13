@@ -3,7 +3,7 @@ $(shell cp docs/config.mk.orig docs/config.mk)
 endif
 include docs/config.mk
 
-mdr_list = $(shell find -regextype posix-egrep -regex '.*.mdr$$')
+mdr_list = $(shell find docs -type f -name "*.mdr")
 md_list  = $(mdr_list:.mdr=.md)
 
 _docserver_config       = bash help/doc-config.sh > mkdocs.yml
