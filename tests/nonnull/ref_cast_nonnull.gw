@@ -1,0 +1,2 @@
+#! [contains] NullPtrException
+(Object @ o) $ Object!;

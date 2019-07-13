@@ -8,16 +8,8 @@ source tests/sh/common.sh
 run "$n" "test arguments" "examples/shred.gw:12" "file"
 
 n=$((n+1))
-good="All heap blocks were freed -- no leaks are possible"
 N=$(printf "% 4i" "$n")
-valgrind ./gwion -d silent  &> "file"
-ok=0
-grep "$good" "file" > /dev/null && ok=1
-if [ $ok ]
-then echo "ok $N test driver"
-else echo "not ok $N test driver"
-fi
-rm "file"
+run "$n" "simple run" "" "file"
 
 # help
 n=$((n+1))
