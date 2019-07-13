@@ -415,15 +415,13 @@ static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp)
   const m_bool ret = traverse_func_def(env, fdef);
   if(ret > 0) {
     const Func f = fdef->base->func;
-    if(check_call(env, exp) > 0) {
-      const Func next = f->next;
-      f->next = NULL;
-      const Func func = find_func_match(env, f, exp->args);
-      f->next = next;
-      if(func) {
-        SET_FLAG(func, checked | ae_flag_template);
-        return func;
-      }
+    const Func next = f->next;
+    f->next = NULL;
+    const Func func = find_func_match(env, f, exp->args);
+    f->next = next;
+    if(func) {
+      SET_FLAG(func, checked | ae_flag_template);
+      return func;
     }
   }
   return NULL;
@@ -739,6 +737,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call)
       CHECK_BO(predefined_call(env, t, exp_self(exp)->pos))
+CHECK_BO(check_call(env, exp))
     const Func ret = find_template_match(env, v, exp);
     CHECK_OO((exp->m_func = ret))
     return ret->def->base->ret_type;
@@ -1226,7 +1225,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
     CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
-  if(parent->e->def)
+  if(parent->e->def && (!GET_FLAG(parent, check) || GET_FLAG(parent, template)))
     CHECK_BB(scanx_parent(parent, traverse_class_def, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);

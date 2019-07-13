@@ -537,7 +537,7 @@ DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  if(parent->e->def)
+  if(parent->e->def && (!GET_FLAG(parent, scan2) || GET_FLAG(parent, template)))
     CHECK_BB(scanx_parent(parent, scan2_cdef, env))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
