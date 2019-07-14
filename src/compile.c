@@ -81,7 +81,6 @@ static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
 }
 
 static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
-  CHECK_BB(compiler_open(gwion->mp, c))
   struct ScannerArg_ arg = { c->name, c->file, gwion->st };
   MUTEX_LOCK(gwion->data->mutex);
   CHECK_OB((c->ast = parse(&arg)))
@@ -96,6 +95,7 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   VM_Code code;
   compiler_name(gwion->mp, c);
   MUTEX_LOCK(gwion->data->mutex);
+  CHECK_BB(compiler_open(gwion->mp, c))
   if(check(gwion, c) < 0 || !(code = emit_ast(gwion->emit, c->ast)))
     gw_err(_("while compiling file '%s'\n"), c->base);
   else {
@@ -110,16 +110,19 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
 /*
 m_bool check_filename(struct Gwion_* vm, const m_str filename) {
   struct Compiler c = { .base=filename, .type=COMPILE_NAME };
+  CHECK_BB(compiler_open(gwion->mp, c))
   return check(&c, vm);
 }
 
 m_bool check_string(struct Gwion_* vm, const m_str filename, const m_str data) {
   struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .data=data };
+  CHECK_BB(compiler_open(gwion->mp, c))
   return check(&c, vm);
 }
 
 m_bool check_file(struct Gwion_* vm, const m_str filename, FILE* file) {
   struct Compiler c = { .base=filename, .type=COMPILE_FILE, .file = file};
+  CHECK_BB(compiler_open(gwion->mp, c))
   return check(&c, vm);
 }
 */
