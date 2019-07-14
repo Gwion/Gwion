@@ -58,7 +58,7 @@ run "$n" "loop" "-l0" "file"
 
 # memoization
 n=$((n+1))
-run "$n" "memoize" "-z2 tests/new/pure.gw" "file"
+run "$n" "memoize" "-z2 tests/new/pure*.gw" "file"
 
 # (fake) module arg
 n=$((n+1))

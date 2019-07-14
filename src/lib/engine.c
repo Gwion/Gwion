@@ -100,7 +100,7 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   memset(&gwi, 0, sizeof(struct Gwi_));
   gwi.gwion = vm->gwion;
   gwi.loc = new_loc(vm->gwion->mp, 0);
-  CHECK_BB(import_core_libs(&gwi))
+  GWI_BB(import_core_libs(&gwi))
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);

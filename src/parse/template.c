@@ -187,11 +187,6 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     if(GET_FLAG(t, builtin))
       SET_FLAG(a->base.type, builtin);
     CHECK_BO(scan1_cdef(env, a))
-    if(t->nspc->dtor) {
-      a->base.type->nspc->dtor = t->nspc->dtor;
-      SET_FLAG(a->base.type, dtor);
-      ADD_REF(t->nspc->dtor)
-    }
     return a->base.type;
   } else if(type->types) { // TODO: clean me
     if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {

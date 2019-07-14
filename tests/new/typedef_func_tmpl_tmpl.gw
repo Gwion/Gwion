@@ -1,0 +1,2 @@
+typedef void ptr_t<~A~>(myPtr ptr);
+<~ <~A~> Ptr~>ptr_t t;

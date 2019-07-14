@@ -1,0 +1,14 @@
+class B {
+
+}
+class <~A~> C extends B {
+
+}
+class <~A,B~> D extends <~A~>C {
+  class <~A~>Child {
+    A a;
+  }
+  <~A~>Child child;
+}
+
+<~int~>D d;
