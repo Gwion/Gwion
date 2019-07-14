@@ -457,12 +457,7 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
     emit_add_instr(emit, RegPushNow);
   else if(prim->d.var == insert_symbol("maybe"))
     emit_add_instr(emit, RegPushMaybe);
-  else if(prim->d.var == insert_symbol("__func__")) {
-    const Instr instr = emit_add_instr(emit, RegPushStr);
-    instr->m_val = (m_uint)s_name(insert_symbol(emit->env->func ?
-      emit->env->func->name : emit->env->class_def ?
-      emit->env->class_def->name : emit->env->name));
-  } else
+  else
     emit_symbol(emit, prim);
   return GW_OK;
 }
@@ -490,8 +485,12 @@ ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) {
     strcpy(c, prim->d.str);
     CHECK_BB(escape_str(emit, c, exp_self(prim)->pos));
   } else c[0] = '\0';
-  const Instr instr = emit_add_instr(emit, RegPushStr);
-  instr->m_val = (m_uint)s_name(insert_symbol(c));
+  const Value v = prim->value;
+  const Symbol sym = insert_symbol(c);
+  if(!v->d.ptr)
+    v->d.ptr = (m_uint*)new_string2(emit->gwion->mp, NULL, s_name(sym));
+  regpushi(emit, (m_uint)v->d.ptr);
+  emit_add_instr(emit, RegAddRef);
   return GW_OK;
 }
 

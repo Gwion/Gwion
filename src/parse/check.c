@@ -202,11 +202,28 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   return env->class_def;
 }
 
-ANN static Type prim_id(const Env env, const Exp_Primary* primary) {
+ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
+  if(!prim->value) {
+    const m_str str = prim->d.str;
+    const Value v = new_value(env->gwion->mp, t_string, str);
+    char c[strlen(str) + 8];
+    sprintf(c, "%s:string", str);
+    nspc_add_value(env_nspc(env), insert_symbol(c), v);
+    prim->value = v;
+  }
+  return t_string;
+}
+
+ANN static Type prim_id(const Env env, Exp_Primary* primary) {
   const m_str str = s_name(primary->d.var);
   if(!strcmp(str, "this"))
     return check_exp_prim_this(env, primary);
-  else
+  else if(!strcmp(str, "__func__")) {
+    primary->primary_type = ae_primary_str;
+    primary->d.str = env->func ? env->func->name : env->class_def ?
+      env->class_def->name : env->name;
+    return prim_str(env, primary);
+  } else
     return prim_id_non_res(env, primary);
 }
 
@@ -273,7 +290,6 @@ ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUS
 }
 describe_prim_xxx(num, t_int)
 describe_prim_xxx(float, t_float)
-describe_prim_xxx(str, t_string)
 describe_prim_xxx(nil, t_void)
 
 typedef Type (*_type_func)(const Env, const void*);
