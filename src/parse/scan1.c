@@ -163,7 +163,7 @@ ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) {
 
 ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
   CHECK_BB(scan1_exp(env, exp_if->cond))
-  CHECK_BB(scan1_exp(env, exp_if->if_exp))
+  CHECK_BB(scan1_exp(env, exp_if->if_exp ?: exp_if->cond))
   return scan1_exp(env, exp_if->else_exp);
 }
 

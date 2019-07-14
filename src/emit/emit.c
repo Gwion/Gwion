@@ -1030,7 +1030,7 @@ ANN static Instr emit_flow(const Emitter emit, const Type type,
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
   CHECK_BB(emit_exp(emit, exp_if->cond, 0))
   const Instr op = emit_flow(emit, exp_if->cond->type, BranchEqInt, BranchEqFloat);
-  CHECK_BB(emit_exp(emit, exp_if->if_exp, 0))
+  CHECK_BB(emit_exp(emit, exp_if->if_exp ?: exp_if->cond, 0))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
   const m_bool ret = emit_exp(emit, exp_if->else_exp, 0);

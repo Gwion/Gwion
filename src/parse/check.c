@@ -752,7 +752,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
   DECL_OO(const Type, cond, = check_exp(env, exp_if->cond))
-  DECL_OO(const Type, if_exp, = check_exp(env, exp_if->if_exp))
+  DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond))
   DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
   if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
     ERR_O(exp_self(exp_if)->pos,
