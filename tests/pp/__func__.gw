@@ -1,0 +1,13 @@
+<<< __func__ >>>;
+fun void test() {
+<<< __func__ >>>;
+}
+test();
+class C {
+  <<< __func__ >>>;
+  fun void test() {
+    <<< __func__ >>>;
+  }
+  test();
+}
+C c;
