@@ -58,7 +58,7 @@ __attribute__((hot))
 ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
-  while(t->e->parent) {
+  do {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
@@ -66,16 +66,16 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
           isa(v->type, t_object) > 0)
         release(*(M_Object*)(o->data + v->offset), shred);
     }
-    if(GET_FLAG(t, dtor)) {
+    if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))
         ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
       else {
+        o->type_ref = t;
         handle_dtor(o, shred);
         return;
       }
     }
-    t = t->e->parent;
-  }
+  } while((t = t->e->parent));
   free_object(p, o);
 }
 

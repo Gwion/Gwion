@@ -82,28 +82,35 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
   return f->value_ref = v;
 }
 
+
+ANN void fptr_assign(const Env env, const Stmt_Fptr ptr) {
+  const Func_Def def = ptr->type->e->d.func->def;
+  if(GET_FLAG(ptr->base->td, global)) {
+    SET_FLAG(ptr->value, global);
+    SET_FLAG(ptr->base->func, global);
+    SET_FLAG(def, global);
+  } else if(!GET_FLAG(ptr->base->td, static)) {
+    SET_FLAG(ptr->value, member);
+    SET_FLAG(ptr->base->func, member);
+    SET_FLAG(def, member);
+    def->stack_depth += SZ_INT;
+  } else {
+    SET_FLAG(ptr->value, static);
+    SET_FLAG(ptr->base->func, static);
+    SET_FLAG(def, static);
+  }
+  if(GET_FLAG(def, variadic))
+    def->stack_depth += SZ_INT;
+  ptr->value->owner_class = env->class_def;
+}
+
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   const Func_Def def = ptr->type->e->d.func->def;
   if(!ptr->base->tmpl) {
     def->base->ret_type = ptr->base->ret_type;
     if(ptr->base->args)
       CHECK_BB(scan2_args(env, def))
-  }
-  if(env->class_def) {
-    if(GET_FLAG(ptr->base->td, global)) {
-      SET_FLAG(ptr->value, global);
-      SET_FLAG(ptr->base->func, global);
-    } else if(!GET_FLAG(ptr->base->td, static)) {
-      SET_FLAG(ptr->value, member);
-      SET_FLAG(ptr->base->func, member);
-      def->stack_depth += SZ_INT;
-    } else {
-      SET_FLAG(ptr->value, static);
-      SET_FLAG(ptr->base->func, static);
-    }
-    ptr->value->owner_class = env->class_def;
-  }
-  if(ptr->base->tmpl)
+  } else
     SET_FLAG(ptr->type, func);
 //  nspc_add_value(env->curr, ptr->base->xid, ptr->value);
   nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);

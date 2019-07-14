@@ -254,7 +254,7 @@ ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
 ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   if(!stmt->type)
     CHECK_BB(scan0_stmt_type(env, stmt))
-  return stmt->type->e->def ? scan1_class_def(env, stmt->type->e->def) : GW_OK;
+  return stmt->type->e->def ? scan1_cdef(env, stmt->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
@@ -368,7 +368,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if(isa(parent, t_object) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && (!GET_FLAG(parent, scan1) || GET_FLAG(parent, template)))
-    CHECK_BB(scanx_parent(parent, scan1_class_def, env))
+    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;

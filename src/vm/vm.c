@@ -103,10 +103,9 @@ ANN static inline void vm_ugen_init(const VM* vm) {
 
 #ifdef DEBUG_STACK
 #define VM_INFO                                                              \
-  if(s->curr)                                                                \
-    gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", \
-    shred->tick->xid, \
-    mem - ((m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG), reg - ((m_bit*)shred + sizeof(struct VM_Shred_)));
+  gw_err("shred[%" UINT_F "] mem[%" INT_F"] reg[%" INT_F"]\n", \
+  shred->tick->xid, \
+  mem - ((m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG), reg - ((m_bit*)shred + sizeof(struct VM_Shred_)));
 #else
 #define VM_INFO
 #endif

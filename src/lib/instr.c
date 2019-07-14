@@ -19,7 +19,7 @@
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
   o->type_ref = o->type_ref->e->parent;
-  __release(o, shred);
+  _release(o, shred);
   shred->info->me->ref = 1;
   vm_shred_exit(shred);
 }
@@ -51,15 +51,19 @@ INSTR(PopArrayClass) {
   free_object(shred->info->mp, tmp);
 }
 
-ANN static Func_Def from_base(const Env env, const struct dottmpl_ *dt, const Nspc nspc) {
+ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Nspc nspc) {
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->vt_index);
-  DECL_OO(const Value, v, = nspc_lookup_value1(nspc, sym))
+  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym))
   const Func_Def base = v->d.func_ref->def;
   const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fdef->base->td, insert_symbol(env->gwion->st, v->name),
-            fdef->base->args), fdef->d.code, fdef->flag, loc_cpy(env->gwion->mp, base->pos));
+            fdef->base->args), base->d.code, fdef->flag, loc_cpy(env->gwion->mp, base->pos));
   def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, dt->vt_index);
+  def->base->tmpl->call = dt->tl;
+  dt->def = def;
+  dt->owner = v->owner;
+  dt->owner_class = v->owner_class;
   SET_FLAG(def, template);
   return def;
 }
@@ -78,8 +82,6 @@ INSTR(GTmpl) {
     if(base) {
       free_mstr(emit->gwion->mp, tmpl_name);
       assert(base->code);
-      if(GET_FLAG(base->def, static))
-        shred->reg -= SZ_INT;
       *(VM_Code*)(shred->reg -SZ_INT) = base->code;
       return;
     }
@@ -89,17 +91,9 @@ INSTR(GTmpl) {
   const Func_Def def = from_base(emit->env, dt, f->value_ref->owner);
   if(!def)
     Except(shred, "MissigTmplPtrException[internal]");
-  dt->def = def;
-  dt->owner = f->value_ref->owner;
-  dt->owner_class = f->value_ref->owner_class;
-  if(traverse_dot_tmpl(emit, dt) > 0) {
-    if(GET_FLAG(f, member)) // TODO: CHECK ME
-        shred->reg += SZ_INT; else
-    if(GET_FLAG(def, static))
-      shred->reg -= SZ_INT;
+  if(traverse_dot_tmpl(emit, dt) > 0)
     *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
-    return;
-  } else
+  else
     Except(shred, "TemplateException");
 }
 
@@ -116,14 +110,6 @@ INSTR(DotTmpl) {
     strcpy(str + instr->m_val2, t->name);
     const Func f = nspc_lookup_func1(t->nspc, insert_symbol(emit->env->gwion->st, str));
     if(f) {
-      if(!f->code) {
-        dt->def = f->def;//
-        dt->owner_class = t; //
-        if(traverse_dot_tmpl(emit, dt) < 0)
-          continue;
-      }
-      if(GET_FLAG(f->def, static))
-        shred->reg -= SZ_INT;
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;
       return;
@@ -131,11 +117,7 @@ INSTR(DotTmpl) {
       const Func_Def def = from_base(emit->env, dt, t->nspc);
       if(!def)
         continue;
-      dt->def = def; //
-      dt->owner_class = t; //
       if(traverse_dot_tmpl(emit, dt) > 0) {
-        if(GET_FLAG(def, static))
-          shred->reg -= SZ_INT;
         *(VM_Code*)shred->reg = def->base->func->code;
         shred->reg += SZ_INT;
         return;

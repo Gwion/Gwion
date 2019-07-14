@@ -1,0 +1,18 @@
+class C {
+  typedef static void t_ptr<~A~>();
+
+  <~int~>t_ptr iptr;
+
+  fun static void test<~A~>() {
+    <<< __func__ >>>;
+  }
+
+  test @=> iptr;
+#!  test<~int~>();
+  <<< iptr() >>>;
+ <<< iptr() >>>;
+}
+<<<C c>>>;
+#!  <<< c.iptr >>>;
+#!  <<< c.iptr() >>>;
+#!  <<< c.iptr() >>>;

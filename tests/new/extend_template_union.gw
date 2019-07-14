@@ -1,0 +1,26 @@
+union <~A~>U {
+  A a;
+  int i;
+};
+
+#!<~float~>U u;
+#!<<< u.i >>>;
+class <~A~>C extends <~A~>U {
+  fun void test() { <<< this >>>; }
+  dtor { <<< __func__ >>>; }
+}
+
+<~float~>C c;
+<<< c >>>;
+<<< c.test() >>>;
+<<< c.i >>>;
+
+class <~A,B~>D extends <~float~>C {
+
+}
+
+<~int,int~>D d;
+class <~A,B~>E extends <~float,B~>D {
+
+}
+<~int,int~>E e;

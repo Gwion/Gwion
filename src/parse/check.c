@@ -103,11 +103,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   }
   if(!decl->type) // TODO: remove when scan passes are complete
       ERR_O(td_pos(decl->td), _("can't infer type."));
-  if(GET_FLAG(decl->type , template)) {
-	  /*if(!GET_FLAG(decl->type, checked))*/
-    if(!GET_FLAG(decl->type, scan2))
-      CHECK_BO(traverse_cdef(env, decl->type->e->def))
-  }
+  if(GET_FLAG(decl->type , template) && !GET_FLAG(decl->type, check))
+    CHECK_BO(traverse_cdef(env, decl->type->e->def))
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
@@ -369,10 +366,10 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
       }
       if(e1->type == t_undefined ||
             (func->def->base->tmpl && is_fptr(func->value_ref->type) > 0)) {
-        if(func->value_ref->owner_class)
+        if(SAFE_FLAG(func->value_ref->owner_class, template))
           CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
         e1->type = known_type(env, e1->td);
-        if(func->value_ref->owner_class)
+        if(SAFE_FLAG(func->value_ref->owner_class, template))
           nspc_pop_type(env->gwion->mp, env->curr);
       }
       if(func_match_inner(env, e, e1->type, implicit, specific) < 0)
@@ -1019,8 +1016,6 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
 }
 
 ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
-  if(stmt->tmpl)
-    return GW_OK;
   if(stmt->xid) {
     if(env->class_def)
       (!GET_FLAG(stmt, static) ? decl_member : decl_static)(env->curr, stmt->value);
@@ -1226,7 +1221,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   if(td->array)
     CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
   if(parent->e->def && (!GET_FLAG(parent, check) || GET_FLAG(parent, template)))
-    CHECK_BB(scanx_parent(parent, traverse_class_def, env))
+    CHECK_BB(scanx_parent(parent, traverse_cdef, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;

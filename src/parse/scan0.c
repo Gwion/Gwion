@@ -58,6 +58,8 @@ ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
   stmt->value->owner = env->curr;
   stmt->value->owner_class = env->class_def;
   fptr_def(env, stmt);
+  if(env->class_def)
+    fptr_assign(env, stmt);
   SET_FLAG(stmt->value, func);
   add_type(env, t->e->owner, t);
   return GW_OK;

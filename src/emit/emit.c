@@ -762,21 +762,23 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
   return str2tl(env, c, &depth);
 }
 
+ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
+  CHECK_BB(traverse_func_def(emit->env, fdef))
+  return emit_func_def(emit, fdef);
+}
+
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
-  const m_uint scope = dt->owner_class ?
-      emit_push_type(emit, dt->owner_class) : emit_push(emit, NULL, dt->owner);
-  m_bool ret = GW_ERROR;
-  dt->def->base->tmpl->call = dt->tl;// in INSTR
-  if(!dt->def->base->func && traverse_func_def(emit->env, dt->def) > 0)
-    ret = emit_func_def(emit, dt->def);
+  const m_uint scope = emit_push(emit, dt->owner_class, dt->owner);
+  const m_bool ret = traverse_emit_func_def(emit, dt->def);
   emit_pop(emit, scope);
   return ret;
 }
 
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
+  if(!vector_size(&emit->code->instr))
+    return GW_OK;
   const Instr instr = (Instr)vector_back(&emit->code->instr);
-  if(GET_FLAG(f, template) && f->value_ref->owner_class) {
-//    assert(instr->opcode == eDotTmplVal);
+  if(instr->opcode == eDotTmplVal) {
     size_t len = strlen(f->name);
     size_t sz = len - strlen(f->value_ref->owner_class->name);
     char c[sz + 1];
@@ -793,11 +795,8 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     instr->execute = DotTmpl;
     return GW_OK;
   }
-  if(vector_size(&emit->code->instr)) {
-    const Instr instr = (Instr)vector_back(&emit->code->instr);
-    instr->opcode = eRegPushImm;
-    instr->m_val = (m_uint)f->code;
-  }
+  instr->opcode = eRegPushImm;
+  instr->m_val = (m_uint)f->code;
   return GW_OK;
 }
 
@@ -806,9 +805,9 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
     CHECK_BB(traverse_class_def(emit->env, f->value_ref->owner_class->e->def))
   const Value v = f->value_ref;
   size_t scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(emit_func_def(emit, f->def))
+  const m_bool ret = emit_func_def(emit, f->def);
   emit_pop(emit, scope);
-  return push_func_code(emit, f);
+  return ret > 0 ? push_func_code(emit, f) : GW_ERROR;
 }
 
 ANN static Instr get_prelude(const Emitter emit, const Func f) {
@@ -1460,6 +1459,7 @@ ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
   emit_union_offset(stmt->l, stmt->o);
   if(stmt->xid || stmt->type_xid || global)
     emit_pop(emit, scope);
+  SET_FLAG(stmt->xid ? stmt->value->type : stmt->type, emit);
   return GW_OK;
 }
 
@@ -1599,8 +1599,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, co
     func_i->m_val = (m_uint)(func->code ?: (VM_Code)func);
     return GW_OK;
   }
-//  if(func->def->base->tmpl)
-  if(GET_FLAG(func->def, template))
+  if(func->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else {
     const Instr instr = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
@@ -1780,9 +1779,8 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type base = parent->e->d.base_type;
   if(base && !GET_FLAG(base, emit))
-//  if(parent && (!GET_FLAG(parent, emit) || GET_FLAG(parent, template)))
-    CHECK_BB(scanx_parent(base, emit_parent_inner, emit))
-  return !GET_FLAG(parent, emit) ? GW_OK : scanx_parent(parent, emit_parent_inner, emit);
+    CHECK_BB(emit_parent_inner(emit, base->e->def))
+  return !GET_FLAG(parent, emit) ? emit_parent_inner(emit, parent->e->def) : GW_OK;
 }
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {

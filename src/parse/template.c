@@ -170,7 +170,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     if(a->base.type)
       return a->base.type;
     a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
-    if(isa(t, t_union) < 0) {
+    if(t->e->parent !=  t_union) {
       CHECK_BO(scan0_class_def(env, a))
       map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
       map_set((Map)vector_front((Vector)&t->e->owner->info->type->ptr), (vtype)a->base.xid, (vtype)a->base.type);
@@ -208,9 +208,10 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       nspc_add_type(env->curr, sym, ret);
       const Func_Def def = new_func_def(env->gwion->mp,
         new_func_base(env->gwion->mp, t->e->d.func->def->base->td, sym, t->e->d.func->def->base->args),
-        NULL, type->flag, loc_cpy(env->gwion->mp, td_pos(type)));
+        NULL, t->e->d.func->def->flag, loc_cpy(env->gwion->mp, td_pos(type)));
       const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
       const Value value = new_value(env->gwion->mp, ret, s_name(sym));
+      func->flag = def->flag;
       value->d.func_ref = func;
       value->owner = t->e->owner;
       value->owner_class = t->e->d.func->value_ref->owner_class;

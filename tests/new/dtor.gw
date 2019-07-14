@@ -1,0 +1,11 @@
+class <~A~>C {
+  dtor { <<< __func__ >>>; }
+}
+class <~A~>D extends <~A~>C {
+  dtor { <<< __func__ >>>; }
+}
+class E extends <~int~>D {
+  dtor { <<< __func__ >>>; }
+}
+
+E e;

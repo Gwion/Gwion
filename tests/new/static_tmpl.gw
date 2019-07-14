@@ -1,0 +1,14 @@
+class global C {
+  fun static void t<~A~>() { <<< __func__ >>>; }
+}
+class D extends C {
+
+}
+
+fun void test(C c) {
+  C.t<~int~>();
+}
+
+#!D d;
+#!d.t<~int~>();
+#!d => test;

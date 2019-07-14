@@ -1,0 +1,17 @@
+class C {
+  typedef void t_ptr();
+
+  t_ptr iptr;
+
+  fun void test() {
+    <<< this, " ", __func__ >>>;
+  }
+
+  test @=> iptr;
+  <<< iptr() >>>;
+  <<< iptr() >>>;
+}
+<<<C c>>>;
+  <<< c.iptr >>>;
+  <<< c.iptr() >>>;
+  <<< c.iptr() >>>;

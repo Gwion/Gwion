@@ -220,23 +220,20 @@ ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   Nspc nspc = get_nspc(emit->gwion->st, opi);
+  Type l = opi->lhs;
   do {
-    Type l = opi->lhs;
+    Type r = opi->rhs;
     do {
-      Type r = opi->rhs;
-      do {
-        if(!nspc->info->op_map.ptr)
-          continue;
-        const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-        const M_Operator* mo = operator_find(v, l, r);
-        if(mo) {
-          if(mo->em)
-            return mo->em(emit, (void*)opi->data);
-          return handle_instr(emit, mo);
-        }
-      } while(r && (r = op_parent(emit->env, r)));
-    } while(l && (l = op_parent(emit->env, l)));
-  } while((nspc = nspc->parent));
-// probably deserves err_msg here
+      if(!nspc->info->op_map.ptr)
+        continue;
+      const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
+      const M_Operator* mo = operator_find(v, l, r);
+      if(mo) {
+        if(mo->em)
+          return mo->em(emit, (void*)opi->data);
+        return handle_instr(emit, mo);
+      }
+    } while(r && (r = op_parent(emit->env, r)));
+  } while(l && (l = op_parent(emit->env, l)));
   return GW_ERROR;
 }

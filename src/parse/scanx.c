@@ -66,8 +66,6 @@ static inline Class_Def get_type_def(const Type t) {
 
 ANN m_bool
 scanx_parent(const Type t, const _exp_func f, void* d) {
-  if(t->e->parent == t_union)
-    return GW_OK;
   const Class_Def def = get_type_def(t);
   return def ? f(d, def) : GW_OK;
 }
