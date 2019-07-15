@@ -157,13 +157,27 @@ ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
   return (array->type = prim_array_match(env, e));
 }
 
+ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
+      const Value v, const loc_t pos) {
+  if(!v->owner_class || isa(t, v->owner_class) < 0) {
+    ERR_B(pos,
+        _("'%s' from owner namespace '%s' used in '%s'."),
+            v->name, v->owner->name, t->name)
+  }
+  return GW_OK;
+}
+
 ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) {
   const Value value = nspc_lookup_value1(env->curr, primary->d.var);
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
-    if(v && env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
-      ERR_O(exp_self(primary)->pos,
-            _("non-static member '%s' used from static function."), s_name(primary->d.var))
+    if(v) {
+      if(v->owner)
+        CHECK_BO(not_from_owner_class(env, env->class_def, v, exp_self(primary)->pos))
+      if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
+        ERR_O(exp_self(primary)->pos,
+              _("non-static member '%s' used from static function."), s_name(primary->d.var))
+    }
     return v;
   } else if(env->func && GET_FLAG(env->func->def, global)) {
     if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
@@ -801,6 +815,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
       did_you_mean_type(member->t_base, str);
     return NULL;
   }
+  CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
   if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
     if(GET_FLAG(value, private))
       ERR_O(exp_self(member)->pos,
@@ -1118,6 +1133,8 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def fde
 ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
   const Func func = fdef->base->func;
   const Type parent = env->class_def->e->parent;
+  if(!env->curr->info->vtable.ptr)
+    vector_init(&env->curr->info->vtable);
   if(parent) {
     const Value v = find_value(parent, fdef->base->xid);
     if(v && isa(v->type, t_function) > 0) {
@@ -1126,8 +1143,6 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
         return match;
     }
   }
-  if(!env->curr->info->vtable.ptr)
-    vector_init(&env->curr->info->vtable);
   func->vt_index = vector_size(&env->curr->info->vtable);
   vector_add(&env->curr->info->vtable, (vtype)func);
   return GW_OK;
