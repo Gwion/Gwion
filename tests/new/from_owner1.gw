@@ -1,0 +1,6 @@
+class C {
+  int i;
+  class D {
+    i;
+  }
+}
