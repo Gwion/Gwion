@@ -61,10 +61,7 @@ static MFUN(vm_shred_is_done) {
 static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
   const Shreduler sh = s->tick->shreduler;
-  if(vector_size(shred->code->instr) - shred->pc > 1)
-    shredule(sh, s, GWION_EPSILON);
-  else
-    vm_shred_exit(shred);
+  shredule(sh, s, GWION_EPSILON);
 }
 
 static SFUN(vm_shred_from_id) {
