@@ -73,6 +73,8 @@ ANN static void typedef_simple(const Env env, const Stmt_Type stmt, const Type b
   add_type(env, nspc, t);
   t->e->owner = nspc;
   stmt->type = t;
+  if(base->nspc)
+    ADD_REF((t->nspc = base->nspc));
   t->flag = stmt->ext->flag | ae_flag_checked;
   if(stmt->ext->array && !stmt->ext->array->exp)
     SET_FLAG(t, empty);
