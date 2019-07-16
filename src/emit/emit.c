@@ -237,26 +237,23 @@ ANN static inline void emit_notpure(const Emitter emit) {
   ++VPTR(&emit->pure, VLEN(&emit->pure));
 }
 
+ANN static Array_Sub instantiate_typedef(MemPool p, const m_uint depth) {
+  const Exp base = new_exp_prim_int(p, 0, new_loc(p, __LINE__));
+  Exp e = base;
+  for(m_uint i = 0; i < depth; ++i)
+     e = (e->next = new_exp_prim_int(p, 0, new_loc(p, __LINE__)));
+  return new_array_sub(p, base);
+}
+
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
-    const Array_Sub arr, const uint is_ref) {
-  Array_Sub array = arr;
+      const Array_Sub arr, const m_bool is_ref) {
   if(type->array_depth) {
-    if(!array || array->depth < type->array_depth) { // from typeof xxx[]...
-      Exp base = new_exp_prim_int(emit->gwion->mp, 0, new_loc(emit->gwion->mp, __LINE__)), e = base;
-      for(m_uint i = (array ? array->depth : 0); i < type->array_depth; ++i)
-        e = (e->next = new_exp_prim_int(emit->gwion->mp, 0, new_loc(emit->gwion->mp, __LINE__)));
-      if(array) {
-        Exp array_base = array->exp;
-        while(array_base->next)
-          array_base = array_base->next;
-        array_base->next = base;
-      } else
-        array = new_array_sub(emit->gwion->mp, base);
-    }
+    assert(!arr || arr->depth == type->array_depth);
+    const Array_Sub array = arr ?: instantiate_typedef(emit->gwion->mp, type->array_depth);
     assert(array->exp);
     DECL_OB(ArrayInfo*, info, = emit_array_extend_inner(emit, type, array->exp))
-    info->is_ref = !!is_ref;
-    if(array != arr)
+    info->is_ref = is_ref;
+    if(!arr)
       free_array_sub(emit->gwion->mp, array);
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
