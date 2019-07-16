@@ -317,30 +317,39 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
   return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
-ANN Type check_exp_array(const Env env, const Exp_Array* array) {
-  DECL_OO(Type, t_base,  = check_exp(env, array->base))
-  Exp e = array->array->exp;
-  CHECK_OO(check_exp(env, e))
-  m_uint depth = 0;
-  do {
-    if(isa(e->type, t_int) < 0)
-      ERR_O(e->pos, _("array index %i must be of type 'int', not '%s'"),
-            depth, e->type->name)
-  } while(++depth && (e = e->next));
-  if(depth != array->array->depth)
-    ERR_O(exp_self(array)->pos, _("invalid array acces expression."))
+ANN Type at_depth(const Env env, const Type t, const m_uint depth) {
+  if(GET_FLAG(t, typedef))
+    return !depth ? t : at_depth(env, t->e->parent, depth);
+  if(depth > t->array_depth)
+    return at_depth(env, t->e->d.base_type, depth - t->array_depth);
+  return !depth ? t : array_type(env, array_base(t), t->array_depth - depth);
+}
 
-  while(t_base && array->array->depth > t_base->array_depth) {
-     depth -= t_base->array_depth;
-     if(t_base->e->parent)
-       t_base = t_base->e->parent;
-     else
-       ERR_O(exp_self(array)->pos,
-             _("array subscripts (%i) exceeds defined dimension (%i)"),
-             array->array->depth, t_base->array_depth)
-  }
-  return depth == t_base->array_depth ? array_base(t_base) :
-    array_type(env, array_base(t_base), t_base->array_depth - depth);
+static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
+  do if(isa(e->type, t_int) < 0)
+    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
+        *depth, e->type->name)
+  while(++(*depth) && (e = e->next));
+  return GW_OK;
+}
+
+static m_bool array_access_valid(const Env env, const Exp_Array* array) {
+  m_uint depth = 0;
+  CHECK_BB(index_is_int(env, array->array->exp, &depth))
+  if(depth != array->array->depth)
+    ERR_B(exp_self(array)->pos, _("invalid array acces expression."))
+  DECL_OB(const Type, t_base,  = check_exp(env, array->base))
+  if(depth > get_depth(t_base))
+    ERR_B(exp_self(array)->pos,
+      _("array subscripts (%i) exceeds defined dimension (%i)"),
+      array->array->depth, depth)
+  return GW_OK;
+}
+
+static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
+  CHECK_OO(check_exp(env, array->array->exp))
+  CHECK_BO(array_access_valid(env, array))
+  return at_depth(env, array->base->type, array->array->depth);
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {

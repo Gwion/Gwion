@@ -396,16 +396,9 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   return GW_OK;
 }
 
-ANN static m_uint get_depth(Type t) {
-  m_uint depth = 0;
-  do depth += t->array_depth;
-  while((t = t->e->parent));
-  return depth;
-}
-
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   const m_uint is_var = exp_self(array)->emit_var;
-  const m_uint depth = get_depth(array->base->type) - exp_self(array)->type->array_depth;
+  const m_uint depth = get_depth(array->base->type) - get_depth(exp_self(array)->type);
   CHECK_BB(emit_exp(emit, array->base, 0))
   emit_add_instr(emit, GcAdd);
   CHECK_BB(emit_exp(emit, array->array->exp, 0))

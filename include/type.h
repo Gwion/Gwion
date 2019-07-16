@@ -50,6 +50,6 @@ ANN static inline m_uint env_push_type(const Env env, const Type type) { return 
 ANN static inline m_bool is_fptr(const Type t) {
   return isa(actual_type(t), t_fptr) > 0;
 }
-
+ANN m_uint get_depth(const Type type);
 #endif
 
