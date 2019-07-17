@@ -172,7 +172,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
     if(v) {
-      if(v->owner)
+      if(v->owner_class)
         CHECK_BO(not_from_owner_class(env, env->class_def, v, exp_self(primary)->pos))
       if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
         ERR_O(exp_self(primary)->pos,
@@ -462,6 +462,7 @@ static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp)
   }
   return NULL;
 }
+
 ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
   do {
     const Var_Decl decl = arg_list->var_decl;
