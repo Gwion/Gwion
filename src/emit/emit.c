@@ -973,18 +973,10 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   } else {
     if(GET_FLAG(f, member) && is_fptr(f->value_ref->type)) {
       const m_uint depth = f->def->stack_depth;
-      regpop(emit, depth);
-      emit_add_instr(emit, RegPushMem);
-      const Instr arg = emit_add_instr(emit, SporkFunc);
-      arg->m_val = depth - SZ_INT;
-      const Instr cpy = emit_add_instr(emit, SporkFunc);
-      cpy->m_val = SZ_INT;
-      cpy->m_val2 = -SZ_INT;
-      const Instr cpy1 = emit_add_instr(emit, SporkFunc);
-      cpy1->m_val = SZ_INT;
-      cpy1->m_val2 = SZ_INT;
-      const Instr code = emit_add_instr(emit, DotMember);
-      code->m_val = f->value_ref->offset;
+      regpop(emit, depth -SZ_INT);
+      const Instr spork = emit_add_instr(emit, SporkMemberFptr);
+      spork->m_val = depth + SZ_INT;
+      spork->m_val2 = -SZ_INT*2;
     } else
       emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);

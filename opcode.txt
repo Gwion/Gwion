@@ -129,6 +129,7 @@ FuncMemberEnd
 SporkIni
 ForkIni
 SporkFunc
+SporkMemberFptr
 SporkExp
 ForkEnd
 SporkEnd
