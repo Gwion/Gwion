@@ -42,30 +42,53 @@ struct td_info {
 };
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td);
-ANN static void td_info_run(const Env env, struct td_info* info) {
+ANN static m_bool td_info_run(const Env env, struct td_info* info) {
   Type_List tl = info->tl;
   do {
-    m_str name = td2str(env, tl->td);
+    DECL_OB(m_str, name, = td2str(env, tl->td))
     text_add(&info->text, name);
     free_mstr(env->gwion->mp, name);
     if(tl->next)
       text_add(&info->text, ",");
   } while((tl = tl->next));
+  return GW_OK;
+}
+
+ANN static ssize_t id_list_len2(const Nspc nspc, ID_List l) {
+  ssize_t len = 0;
+  do {
+    DECL_OB(const Type, t, = nspc_lookup_type1(nspc, l->xid))
+    len += strlen(t->name);
+  } while((l = l->next) && ++len);
+  return len + 1;
+}
+
+ANN static void type_path2(const Nspc nspc, const m_str str, ID_List l) {
+  m_str s = str;
+  do {
+    const Type t = nspc_lookup_type1(nspc, l->xid);
+    const m_str name = t->name;
+    strcpy(s, name);
+    s += strlen(name);
+    if(l->next)
+      strcpy(s++, ".");
+  }
+  while((l = l->next));
 }
 
 ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
   m_uint depth = td->array ? td->array->depth : 0;
-  const size_t len = id_list_len(td->xid)  + depth * 2;
+  DECL_BO(const ssize_t, len, = id_list_len2(env->curr, td->xid)  + depth * 2);
   const size_t cap = round2szint(len);
   struct td_info info = { td->types,
     { (m_str)mp_malloc2(env->gwion->mp, cap), cap, len, env->gwion->mp }
   };
-  type_path(info.text.str, td->xid);
+  type_path2(env->curr, info.text.str, td->xid);
   while(depth--) { text_add(&info.text, "[]"); }
   Type_List tl = td->types;
   if(tl) {
     text_add(&info.text, "<");
-    td_info_run(env, &info);
+    CHECK_BO(td_info_run(env, &info))
     text_add(&info.text, ">");
   }
   return info.text.str;
@@ -73,7 +96,7 @@ ANEW ANN static m_str td2str(const Env env, const Type_Decl* td) {
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   struct td_info info = { .tl=tl, { .mp=env->gwion->mp} };
-  td_info_run(env, &info);
+  CHECK_BO(td_info_run(env, &info))
   return info.text.str;
 }
 
