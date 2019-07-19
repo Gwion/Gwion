@@ -99,7 +99,7 @@ describe_logical(Eq,  ==)
 describe_logical(Neq, !=)
 
 static inline m_bool nonnull_check(const Type l, const Type r) {
-  return !GET_FLAG(l, nonnull) && GET_FLAG(r, nonnull);
+  return !GET_FLAG(r, nonnull) && GET_FLAG(l, nonnull);
 }
 
 static inline Type check_nonnull(const Env env, const Type l, const Type r,
@@ -214,9 +214,6 @@ GWION_IMPORT(object) {
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_emi(gwi, opem_at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, OP_ANY_TYPE, OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_basic_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
   GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
