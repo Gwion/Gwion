@@ -203,7 +203,7 @@ DISPATCH()
 
 #define IF_LOGICAL(op)\
   reg -= SZ_FLOAT; \
-  *(m_int*)(reg-SZ_INT) = (*(m_int*)(reg-SZ_INT) op (m_int)*(m_float*)reg); \
+  *(m_int*)(reg-SZ_INT) = (m_int)(*(m_int*)(reg-SZ_INT) op *(m_float*)reg); \
   DISPATCH()
 __attribute__((hot))
 
@@ -217,10 +217,10 @@ __attribute__((hot))
   reg -= SZ_INT; \
   *(m_float*)(reg-SZ_FLOAT) op##= (m_float)*(m_int*)reg; \
   DISPATCH()
-  
+
 #define FI_LOGICAL(op) \
   reg -= SZ_FLOAT; \
-  *(m_int*)(reg-SZ_INT) = ((m_int)*(m_float*)(reg-SZ_INT) op\
+  *(m_int*)(reg-SZ_INT) = (m_int)(*(m_float*)(reg-SZ_INT) op\
     *(m_int*)(reg + SZ_FLOAT-SZ_INT)); \
   DISPATCH()
 
@@ -228,7 +228,7 @@ __attribute__((hot))
   reg -= SZ_FLOAT; \
   __VA_ARGS__ \
   *(m_int*)(reg-SZ_INT) = (**(m_int**)(reg+SZ_FLOAT -SZ_INT) op##= \
-    (m_int)(*(m_float*)(reg-SZ_INT))); \
+    /*(m_int)*/(*(m_float*)(reg-SZ_INT))); \
   DISPATCH()
 
 
