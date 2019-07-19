@@ -190,7 +190,8 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     return a->base.type;
   } else if(type->types) { // TODO: clean me
     if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {
-      const m_str tl_name = tl2str(env, type->types);
+      DECL_OO(const m_str, tl_name, = tl2str(env, type->types))
+// err_msg here ?
       const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
       free_mstr(env->gwion->mp, tl_name);
       const Type base_type = nspc_lookup_type1(t->e->owner, sym);

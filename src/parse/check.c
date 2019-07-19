@@ -482,7 +482,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
 CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
-  const m_str tmpl_name = tl2str(env, types);
+  DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
   const m_uint scope = env_push(env, v->owner_class, v->owner);
   if(is_fptr(v->type)) {
   const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
