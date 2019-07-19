@@ -19,7 +19,8 @@ static inline m_str access(ae_Exp_Meta meta) {
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  return exp_self(cast)->type;
+  return isa(cast->exp->type, exp_self(cast)->type) > 0 ?
+     exp_self(cast)->type : t_null;
 }
 
 OP_EMIT(opem_basic_cast) {
