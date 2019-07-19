@@ -28,7 +28,7 @@ assert_returns() {
 
 assert_contain() {
   local contains
-  contains=$(grep '// \[contains\]' "$1" | cut -d "]" -f2)
+  contains=$(grep '#! \[contains\]' "$1" | cut -d "]" -f2)
   contains=${contains:1}
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null && return 0
