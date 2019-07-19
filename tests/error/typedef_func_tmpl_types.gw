@@ -4,7 +4,8 @@ typedef void t_ptr<~A~>();
 <~int~>t_ptr iptr;
 
 fun void test<~A~>() {
-  <<< __func__ >>>;
+  A a;
+  <<< __func__, " ", a>>>;
 }
 
 test @=> iptr;
