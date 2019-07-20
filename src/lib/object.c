@@ -99,7 +99,7 @@ describe_logical(Eq,  ==)
 describe_logical(Neq, !=)
 
 static inline m_bool nonnull_check(const Type l, const Type r) {
-  return !GET_FLAG(r, nonnull) && GET_FLAG(l, nonnull);
+  return !GET_FLAG(l, nonnull) && GET_FLAG(r, nonnull);
 }
 
 static inline Type check_nonnull(const Env env, const Type l, const Type r,
