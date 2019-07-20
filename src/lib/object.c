@@ -111,6 +111,8 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
   }
   if(nonnull_check(l, r))
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
+  if(l != t_null && isa(l, r) < 0)
+    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
   return r;
 }
 
@@ -122,11 +124,7 @@ static OP_CHECK(at_object) {
     return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
-  const Type t = check_nonnull(env, l, r, "assign", exp_self(bin)->pos);
-  if(t == t_null)
-    return t_null;
-  if(l != t_null && isa(l, t) < 0)
-    ERR_N(exp_self(bin)->pos, _("'%s' @=> '%s': not allowed"), l->name, r->name);
+  CHECK_OO(check_nonnull(env, l, r, "assign", exp_self(bin)->pos))
   bin->rhs->emit_var = 1;
   return r;
 }
@@ -172,7 +170,7 @@ static OP_CHECK(opck_object_cast) {
   const Type r = exp_self(cast)->type;
   if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == t_null)
     return t_null;
-  return isa(l, r) > 0 ? get_force_type(env, r) : t_null;
+  return get_force_type(env, r);
 }
 
 static OP_EMIT(opem_object_cast) {

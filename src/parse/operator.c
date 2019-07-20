@@ -100,10 +100,9 @@ ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {
   const Vector v = (Vector)map_get(&n->info->op_map, (vtype)ock->opi->op);
   if(!v || !operator_find(v, ock->opi->lhs, ock->opi->rhs))
     return GW_OK;
-// TODO: get me back
-//  env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
-//        s_name(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
-//        ock->opi->rhs ? ock->opi->rhs->name : NULL);
+  env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
+        s_name(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
+        ock->opi->rhs ? ock->opi->rhs->name : NULL);
   return GW_ERROR;
 }
 
@@ -159,7 +158,6 @@ static m_str type_name(const Type t) {
 }
 
 ANN Type op_check(const Env env, struct Op_Import* opi) {
-  Type ret = NULL;
   Nspc nspc = env->curr;
   do {
     if(nspc->info->op_map.ptr) {
@@ -167,20 +165,20 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
       do {
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
         struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
-        ret = op_check_inner(&ock);
+        const Type ret = op_check_inner(&ock);
         if(ret) {
           if(ret == t_null)
             break;
           if(!ock.mut)
-            set_nspc(&ock, nspc);// TODO check me
+            set_nspc(&ock, nspc);
           return ret;
         }
       } while(l && (l = op_parent(env, l)));
     }
-    nspc = nspc->parent;
-  } while(nspc);
-  if(opi->op == insert_symbol(env->gwion->st, "$") ||
-        (ret != t_null && opi->op != insert_symbol(env->gwion->st, "@implicit")))
+  } while((nspc = nspc->parent));
+  if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
+    return opi->rhs;
+  if(opi->op != insert_symbol(env->gwion->st, "@implicit"))
     env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
     type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));
   return NULL;
@@ -220,12 +218,12 @@ ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   Nspc nspc = get_nspc(emit->gwion->st, opi);
+  if(!nspc || !nspc->info->op_map.ptr)
+    return GW_OK;
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;
     do {
-      if(!nspc->info->op_map.ptr)
-        continue;
       const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
