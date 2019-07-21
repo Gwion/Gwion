@@ -32,6 +32,7 @@ assert_contain() {
   contains=${contains:1}
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null && return 0
+  grep "$contains" "$2.std.log" > /dev/null && return 0
   echo "does not contain $contains" > "$2.log"
   return 1
 }
