@@ -996,22 +996,18 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
     ERR_B(stmt_self(stmt)->pos, _("'return' statement found outside function definition"))
   DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : t_void)
-  if(env->func->value_ref->type == t_lambda) {
-    if(env->func->def->base->ret_type &&
-     isa(ret_type, env->func->def->base->ret_type) < 0 &&
-     isa(env->func->def->base->ret_type, ret_type) < 0)
-          ERR_B(stmt_self(stmt)->pos, _("return types do not match for lambda expression"))
-    env->func->value_ref->type = ret_type;
+  if(!env->func->def->base->ret_type) {
+    assert(isa(env->func->value_ref->type, t_lambda) > 0);
+    env->func->def->base->ret_type = ret_type;
     return GW_OK;
   }
-  if(isa(ret_type, t_null) > 0 &&
-     isa(env->func->def->base->ret_type, t_object) > 0)
-    return GW_OK;
-  if(env->func->def->base->ret_type && isa(ret_type, env->func->def->base->ret_type) < 0)
+  const struct Implicit imp = { stmt->val, env->func->def->base->ret_type, stmt_self(stmt)->pos };
+  struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=ret_type, .rhs=env->func->def->base->ret_type,
+                      .data=(m_uint)&imp, .pos=stmt_self(stmt)->pos };
+  const Type ret = op_check(env, &opi);
+  if(!ret)
     ERR_B(stmt_self(stmt)->pos, _("invalid return type '%s' -- expecting '%s'"),
           ret_type->name, env->func->def->base->ret_type->name)
-  else //! set default return type for lambdas
-    env->func->def->base->ret_type = ret_type;
   return GW_OK;
 }
 

@@ -325,7 +325,7 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type t = type_copy(env->gwion->mp, t_function);
+  const Type t = type_copy(env->gwion->mp, func->def->base->td ? t_function : t_lambda);
   t->name = func->name;
   t->e->owner = env->curr;
   if(GET_FLAG(func, member))
