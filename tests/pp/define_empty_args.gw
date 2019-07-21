@@ -1,4 +1,4 @@
-#![contains] end of test
+#! [contains] end of test
 #define macro(a,b)
 macro(1,2);
 

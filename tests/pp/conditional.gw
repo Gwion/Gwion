@@ -1,5 +1,4 @@
-#![contains] 'macro' defined"
-#![contains] 'macro' undefined (after undefining)"
+#! [contains] 'macro' defined
 #define macro
 #ifdef macro
 <<< "'macro' defined" >>>;

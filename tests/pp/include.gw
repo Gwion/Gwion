@@ -1,2 +1,2 @@
-#![contains] tests/pp/header.gw
+#! [contains] tests/pp/header.gw
 #include <tests/pp/header.gw>

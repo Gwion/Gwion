@@ -1,4 +1,4 @@
-#![contains] cant't assign
+#! [contains] can't assign
 class C {
   fun static void test(int i) { <<<  "int arg"  >>>; }
   typedef void PtrType(int i);
