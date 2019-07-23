@@ -33,6 +33,28 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
   return already_defined(env, s, pos);
 }
 
+
+ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
+  const Func_Def def = fptr->type->e->d.func->def;
+  if(GET_FLAG(fptr->base->td, global)) {
+    SET_FLAG(fptr->value, global);
+    SET_FLAG(fptr->base->func, global);
+    SET_FLAG(def, global);
+  } else if(!GET_FLAG(fptr->base->td, static)) {
+    SET_FLAG(fptr->value, member);
+    SET_FLAG(fptr->base->func, member);
+    SET_FLAG(def, member);
+    def->stack_depth += SZ_INT;
+  } else {
+    SET_FLAG(fptr->value, static);
+    SET_FLAG(fptr->base->func, static);
+    SET_FLAG(def, static);
+  }
+  if(GET_FLAG(def, variadic))
+    def->stack_depth += SZ_INT;
+  fptr->value->owner_class = env->class_def;
+}
+
 static void fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fptr->base->td, fptr->base->xid, fptr->base->args),
     NULL,fptr->base->td->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));

@@ -83,27 +83,6 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 
-ANN void fptr_assign(const Env env, const Fptr_Def fptr) {
-  const Func_Def def = fptr->type->e->d.func->def;
-  if(GET_FLAG(fptr->base->td, global)) {
-    SET_FLAG(fptr->value, global);
-    SET_FLAG(fptr->base->func, global);
-    SET_FLAG(def, global);
-  } else if(!GET_FLAG(fptr->base->td, static)) {
-    SET_FLAG(fptr->value, member);
-    SET_FLAG(fptr->base->func, member);
-    SET_FLAG(def, member);
-    def->stack_depth += SZ_INT;
-  } else {
-    SET_FLAG(fptr->value, static);
-    SET_FLAG(fptr->base->func, static);
-    SET_FLAG(def, static);
-  }
-  if(GET_FLAG(def, variadic))
-    def->stack_depth += SZ_INT;
-  fptr->value->owner_class = env->class_def;
-}
-
 ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
   if(!tmpl_base(fptr->base->tmpl)) {

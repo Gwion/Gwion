@@ -21,7 +21,6 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
 }
 
-
 ANN static inline Type get_base_type(const Env env, const Type t) {
   const m_str decl_name = get_type_name(env, t->name, 0);
   return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
@@ -366,8 +365,6 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
-  if(!cdef->base.type)
-    CHECK_BB(scan0_class_def(env, cdef))
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   SET_FLAG(cdef->base.type, scan1);

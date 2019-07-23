@@ -611,12 +611,12 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
 ANN static Func predefined_func(const Env env, const Value v,
     Exp_Call *exp, const Tmpl *tm) {
   Tmpl tmpl = { .call=tm->call };
-  ((Exp_Call*)exp)->tmpl = &tmpl;
+  exp->tmpl = &tmpl;
   DECL_OO(const Func, func, = get_template_func(env, exp, v))
   return v->d.func_ref = func;
 }
 
-ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
+ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
@@ -628,7 +628,7 @@ ANN static Type check_exp_call_template(const Env env, const Exp_Call *exp) {
       CHECK_BO(traverse_func_def(env, func->def))
       env_pop(env, scope);
     }
-    ((Exp_Call*)exp)->m_func = func;
+    exp->m_func = func;
     return func->def->base->ret_type;
   }
   m_uint args_number = 0;
@@ -701,7 +701,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   if(GET_FLAG(exp->func->type, func))
-    return check_exp_call_template(env, exp);
+    return check_exp_call_template(env, (Exp_Call*)exp);
   const Func func = find_func_match(env, exp->func->type->e->d.func, exp->args);
   return (exp_self(exp)->d.exp_call.m_func = func) ?
     func->def->base->ret_type : function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
