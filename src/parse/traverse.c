@@ -19,15 +19,17 @@ ANN m_bool traverse_decl(const Env env, const Exp_Decl* decl) {
 
 ANN m_bool traverse_func_def(const Env env, const Func_Def def) {
   const Func former = env->func;
-  if(scan1_func_def(env, def) > 0 && scan2_func_def(env, def) > 0 &&
-      check_func_def(env, def) > 0)
+  if(scan1_func_def(env, def) > 0 &&
+     scan2_func_def(env, def) > 0 &&
+     check_func_def(env, def) > 0)
     return GW_OK;
   env->func = former;
   return GW_ERROR;
 }
 
 ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
-  CHECK_BB(scan1_union_def(env, def))
+  if(!GET_FLAG(def, scan1))
+    CHECK_BB(scan1_union_def(env, def))
   CHECK_BB(scan2_union_def(env, def))
   return check_union_def(env, def);
 }
@@ -35,7 +37,7 @@ ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
 ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
   CHECK_BB(scan0_enum_def(env, def))
   CHECK_BB(scan1_enum_def(env, def))
-//  CHECK_BBscan2_enum_def(env, def))
+//  CHECK_BB(scan2_enum_def(env, def))
   return check_enum_def(env, def);
 }
 
@@ -54,7 +56,8 @@ ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
 }
 
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
-  CHECK_BB(scan1_class_def(env, def))
+  if(!GET_FLAG(def, scan1))
+    CHECK_BB(scan1_class_def(env, def))
   CHECK_BB(scan2_class_def(env, def))
   return check_class_def(env, def);
 }

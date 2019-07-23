@@ -17,17 +17,12 @@
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
-ANN static m_bool scan2_exp_decl_template(const Env env, const Exp_Decl* decl) {
-  CHECK_BB(scan1_cdef(env, decl->type->e->def))
-  return scan2_cdef(env, decl->type->e->def);
-}
-
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Type type = decl->type;
   if(GET_FLAG(type, template) && !GET_FLAG(type, scan2))
-    CHECK_BB(scan2_exp_decl_template(env, decl))
+    CHECK_BB(scan2_cdef(env, decl->type->e->def))
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
@@ -522,7 +517,7 @@ DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  if(parent->e->def && (!GET_FLAG(parent, scan2) || GET_FLAG(parent, template)))
+  if(parent->e->def && !GET_FLAG(parent, scan2))
     CHECK_BB(scanx_parent(parent, scan2_cdef, env))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))

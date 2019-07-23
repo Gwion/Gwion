@@ -105,7 +105,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->type)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   if(GET_FLAG(decl->type , template) && !GET_FLAG(decl->type, check))
-    CHECK_BO(traverse_cdef(env, decl->type->e->def))
+    CHECK_BO(check_cdef(env, decl->type->e->def))
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
@@ -1251,7 +1251,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
     CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
-  if(parent->e->def && (!GET_FLAG(parent, check) || GET_FLAG(parent, template)))
+  if(parent->e->def && !GET_FLAG(parent, check))
     CHECK_BB(scanx_parent(parent, traverse_cdef, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);

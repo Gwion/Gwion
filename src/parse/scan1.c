@@ -87,8 +87,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former /* && !(decl->td->exp || decl->td->xid) */&&
-        (!env->class_def || !(GET_FLAG(env->class_def, template) || GET_FLAG(env->class_def, scan1))))
+    if(former)
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
@@ -100,14 +99,14 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       }
       t = array_type(env, decl->type, var->array->depth);
     }
-    const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
+    assert(!var->value);
+    const Value v = var->value = new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
     if(!env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
-    v->type = t;
     v->d.ptr = var->addr;
     v->owner = !env->func ? env->curr : NULL;
     v->owner_class = env->scope->depth ? NULL : env->class_def;
@@ -274,6 +273,7 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
       SET_FLAG(decl.td, global);
   } while((l = l->next));
   union_pop(env, udef, scope);
+  SET_FLAG(udef, scan1);
   return GW_OK;
 }
 
@@ -357,7 +357,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   } while((t = t->e->parent));
   if(isa(parent, t_object) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
-  if(parent->e->def && (!GET_FLAG(parent, scan1) || GET_FLAG(parent, template)))
+  if(parent->e->def && !GET_FLAG(parent, scan1))
     CHECK_BB(scanx_parent(parent, scan1_cdef, env))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
@@ -372,6 +372,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
     CHECK_BB(env_ext(env, cdef, scan1_parent))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan1_section))
+  SET_FLAG(cdef, scan1);
   return GW_OK;
 }
 

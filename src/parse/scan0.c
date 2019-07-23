@@ -192,6 +192,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     udef->value->owner = nspc;
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
+    SET_FLAG(t, scan1);
     SET_FLAG(udef->value, checked | udef->flag);
     if(env->class_def && !GET_FLAG(udef, static)) {
       SET_FLAG(udef->value, member);
@@ -203,6 +204,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
       env->curr : env->global_nspc;
     udef->type = union_type(env, nspc, udef->type_xid, 1);
     SET_FLAG(udef->type, checked);
+    SET_FLAG(udef->type, scan1);
   } else {
     const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
@@ -216,6 +218,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     sprintf(c, "%p", udef);
     nspc_add_type(nspc, insert_symbol(c), t);
     SET_FLAG(udef->value, checked | udef->flag);
+    SET_FLAG(t, scan1);
   }
   if(udef->tmpl) {
     if(tmpl_base(udef->tmpl)) {
