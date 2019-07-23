@@ -641,10 +641,12 @@ sporkini:
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
+PRAGMA_PUSH()
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
     *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
   a.child->reg += VAL;
   DISPATCH()
+PRAGMA_POP()
 sporkmemberfptr:
   for(m_uint i = 0; i < VAL-SZ_INT; i+= SZ_INT)
     *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2+SZ_INT);
