@@ -11,13 +11,8 @@
 #include "value.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
-//  if(GET_FLAG(a, template) && !is_fptr(a->value_ref->type)) {
-  if(GET_FLAG(a, template) && !GET_FLAG(a, builtin) && a->def->d.code) {
-    free_tmpl(gwion->mp, a->def->base->tmpl);
-    free_func_base(gwion->mp, a->def->base);
-    free_loc(gwion->mp, a->def->pos);
-    mp_free(gwion->mp, Func_Def, a->def);
-  }
+  if(GET_FLAG(a, template) && !GET_FLAG(a, builtin)/* && a->def->d.code*/)
+    free_func_def(gwion->mp, a->def);
   if(a->code)
     REM_REF(a->code, gwion);
   mp_free(gwion->mp, Func, a);

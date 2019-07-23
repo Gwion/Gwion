@@ -528,7 +528,7 @@ ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->mp, type_path)))
     GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
-  struct Func_Base_ *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
+  Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_stmt_fptr(env->gwion->mp, base, flag);
 }
 

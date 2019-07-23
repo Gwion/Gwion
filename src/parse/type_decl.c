@@ -25,12 +25,11 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
     if(exist)
       return exist;
     const Type t = type_copy(env->gwion->mp, ret);
-assert(t->size == SZ_INT);
     t->name = s_name(sym);
     t->e->parent = ret;
     SET_FLAG(t, nonnull);
     ADD_REF(ret);
-    map_set(vector_front(&t->e->owner->info->type->ptr), sym, t);
+    map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)t);
     return t;
   }
   return ret;

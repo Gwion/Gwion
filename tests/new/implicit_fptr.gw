@@ -1,0 +1,8 @@
+class C {
+  typedef void T();
+  fun int f(T t) { <<< t >>>;  t();}
+  fun void test() { <<< __func__ >>>; }
+  test => f;
+  f(test);
+}
+C c;

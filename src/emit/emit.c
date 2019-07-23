@@ -607,14 +607,9 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
 ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_cdef(const Emitter, const Class_Def);
 
-ANN static m_bool emit_parent_inner(const Emitter emit, const Class_Def cdef) {
-  CHECK_BB(traverse_cdef(emit->env, cdef))
-  return emit_cdef(emit, cdef);
-}
-
 ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
   const Type t = decl->type;
-  return !GET_FLAG(t, emit) ? emit_parent_inner(emit, t->e->def) : GW_OK;
+  return !GET_FLAG(t, emit) ? emit_cdef(emit, t->e->def) : GW_OK;
 }
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
@@ -682,32 +677,8 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
   return emit_exp(emit, exp_call->func, 0);
 }
 
-ANN static inline m_int push_tmpl_func(const Emitter emit, const Func f) {
-  const Value v = f->value_ref;
-  if(isa(v->type, t_class) > 0 && is_fptr(v->type))
-    return emit->env->scope->depth;
-  const m_uint scope = emit_push(emit, v->owner_class, v->owner);
-  CHECK_BB(traverse_func_def(emit->env, f->def))
-  return (m_int)scope;
-}
-
-ANN static m_bool emit_exp_call_template(const Emitter emit, const Exp_Call* exp_call) {
-  if(emit->env->func && emit->env->func == exp_call->m_func)
-    return prepare_call(emit, exp_call);
-  exp_call->m_func->def->base->tmpl->call = exp_call->tmpl->call;
-  DECL_BB(const m_int,scope, = push_tmpl_func(emit, exp_call->m_func))
-  CHECK_BB(prepare_call(emit, exp_call))
-  if(!is_fptr(exp_call->m_func->value_ref->type))
-    emit_pop(emit, (m_uint)scope);
-  UNSET_FLAG(exp_call->m_func, checked);
-  return GW_OK;
-}
-
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
-  if(!exp_call->tmpl)
-    CHECK_BB(prepare_call(emit, exp_call))
-  else
-    CHECK_BB(emit_exp_call_template(emit, exp_call))
+  CHECK_BB(prepare_call(emit, exp_call))
   return emit_exp_call1(emit, exp_call->m_func);
 }
 
@@ -752,7 +723,8 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
 }
 
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
-  CHECK_BB(traverse_func_def(emit->env, fdef))
+  if(!fdef->base->ret_type)
+    CHECK_BB(traverse_func_def(emit->env, fdef))
   return emit_func_def(emit, fdef);
 }
 
@@ -790,8 +762,6 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
 }
 
 ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
-  if(GET_FLAG(f, ref))
-    CHECK_BB(traverse_class_def(emit->env, f->value_ref->owner_class->e->def))
   const Value v = f->value_ref;
   size_t scope = emit_push(emit, v->owner_class, v->owner);
   const m_bool ret = emit_func_def(emit, f->def);
@@ -1707,7 +1677,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
 
 ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
   CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
-  const m_bool ret = emit_parent_inner(emit, fdef->base->ret_type->e->def);
+  const m_bool ret = emit_cdef(emit, fdef->base->ret_type->e->def);
   emit_pop_type(emit);
   return ret;
 }
@@ -1766,8 +1736,8 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type base = parent->e->d.base_type;
   if(base && !GET_FLAG(base, emit))
-    CHECK_BB(emit_parent_inner(emit, base->e->def))
-  return !GET_FLAG(parent, emit) ? emit_parent_inner(emit, parent->e->def) : GW_OK;
+    CHECK_BB(emit_cdef(emit, base->e->def))
+  return !GET_FLAG(parent, emit) ? emit_cdef(emit, parent->e->def) : GW_OK;
 }
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {

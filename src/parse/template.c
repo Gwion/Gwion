@@ -13,6 +13,7 @@
 #include "vm.h"
 #include "parse.h"
 #include "gwion.h"
+#include "cpy_ast.h"
 
 ANN static inline Type owner_type(const Env env, const Type t) {
   const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
@@ -123,8 +124,12 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
   if(env->class_def && name == insert_symbol(env->class_def->name))
      return env->class_def->e->def;
   const Type t = nspc_lookup_type1(env->curr, name);
-  return t ? t->e->def : new_class_def(env->gwion->mp, def->flag, name, def->base.ext, def->body,
-    loc_cpy(env->gwion->mp, def->pos));
+  if(t)
+    return t->e->def;
+  const Class_Def c = cpy_class_def(env->gwion->mp, def);
+  c->base.xid = name;
+  return c;
+
 }
 
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
@@ -175,12 +180,12 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
       map_set((Map)vector_front((Vector)&t->e->owner->info->type->ptr), (vtype)a->base.xid, (vtype)a->base.type);
     } else {
-      a->stmt = new_stmt_union(env->gwion->mp, (Decl_List)a->body, t->e->def->pos);
+      a->stmt = new_stmt_union(env->gwion->mp, a->list, t->e->def->pos);
       a->stmt->d.stmt_union.type_xid = a->base.xid;
       CHECK_BO(scan0_stmt_union(env, &a->stmt->d.stmt_union))
       a->base.type = a->stmt->d.stmt_union.type;
       a->base.type->e->def = a;
-      SET_FLAG(a, union);
+      assert(GET_FLAG(a, union));
     }
     SET_FLAG(a->base.type, template | ae_flag_ref);
     a->base.type->e->owner = t->e->owner;
@@ -191,7 +196,6 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
   } else if(type->types) { // TODO: clean me
     if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {
       DECL_OO(const m_str, tl_name, = tl2str(env, type->types))
-// err_msg here ?
       const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
       free_mstr(env->gwion->mp, tl_name);
       const Type base_type = nspc_lookup_type1(t->e->owner, sym);
@@ -202,9 +206,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       ret->name = s_name(sym);
       SET_FLAG(ret, func);
       nspc_add_type(env->curr, sym, ret);
-      const Func_Def def = new_func_def(env->gwion->mp,
-        new_func_base(env->gwion->mp, t->e->d.func->def->base->td, sym, t->e->d.func->def->base->args),
-        NULL, t->e->d.func->def->flag, loc_cpy(env->gwion->mp, td_pos(type)));
+      const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
       const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
       const Value value = new_value(env->gwion->mp, ret, s_name(sym));
       func->flag = def->flag;

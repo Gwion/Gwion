@@ -14,7 +14,7 @@
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   map_set(&nspc->info->type->map, (m_uint)insert_symbol(t->name), (m_uint)t);
-  map_set(vector_front(&nspc->info->type->ptr), (m_uint)insert_symbol(t->name), (m_uint)t);
+//  map_set((Map)vector_front((Vector)&nspc->info->type->ptr), (m_uint)insert_symbol(t->name), (m_uint)t);
 }
 
 ANN static Value mk_class(const Env env, const Type base) {
@@ -197,11 +197,12 @@ ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
   if(stmt->tmpl) {
     if(tmpl_base(stmt->tmpl)) {
       const Class_Def cdef = new_class_def(env->gwion->mp, stmt->flag, stmt->type_xid,
-          NULL, (Class_Body)stmt->l, stmt_self(stmt)->pos);
+          NULL, (Class_Body)stmt->l, loc_cpy(env->gwion->mp, stmt_self(stmt)->pos));
       stmt->type->e->def = cdef;
       cdef->base.tmpl = stmt->tmpl;
       cdef->base.type = stmt->type;
       cdef->list = stmt->l;
+      SET_FLAG(cdef, union);
       SET_FLAG(stmt->type, pure);
       SET_FLAG(stmt, template);
       SET_FLAG(stmt->type, template);

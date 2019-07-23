@@ -106,13 +106,12 @@ ANN void fptr_assign(const Env env, const Stmt_Fptr ptr) {
 
 ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
   const Func_Def def = ptr->type->e->d.func->def;
-  if(!ptr->base->tmpl) {
+  if(!tmpl_base(ptr->base->tmpl)) {
     def->base->ret_type = ptr->base->ret_type;
     if(ptr->base->args)
       CHECK_BB(scan2_args(env, def))
   } else
     SET_FLAG(ptr->type, func);
-//  nspc_add_value(env->curr, ptr->base->xid, ptr->value);
   nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
   return GW_OK;
 }
@@ -272,7 +271,7 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
 }
 
 ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) {
-  if(stmt->tmpl)
+  if(tmpl_base(stmt->tmpl))
     return GW_OK;
   const m_uint scope = union_push(env, stmt);
   Decl_List l = stmt->l;

@@ -90,7 +90,7 @@ static m_bool td_match(const Env env, const Type_Decl *id[2]) {
   return isa(t0, t1);
 }
 
-ANN static m_bool fptr_args(const Env env, struct Func_Base_ *base[2]) {
+ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
     CHECK_OB(arg1)
@@ -141,7 +141,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
     CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
-    struct Func_Base_ *base[2] =  { info->lhs->def->base, info->rhs->def->base };
+    Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
     if(fptr_tmpl_push(env, info) > 0) {
       if(fptr_rettype(env, info) > 0 &&
            fptr_arity(info) && fptr_args(env, base) > 0)

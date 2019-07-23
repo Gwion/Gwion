@@ -15,6 +15,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "cpy_ast.h"
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
@@ -56,11 +57,9 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->vt_index);
   DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym))
-  const Func_Def base = v->d.func_ref->def;
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fdef->base->td, insert_symbol(env->gwion->st, v->name),
-            fdef->base->args), base->d.code, fdef->flag, loc_cpy(env->gwion->mp, base->pos));
-  def->base->tmpl = new_tmpl(env->gwion->mp, base->base->tmpl->list, dt->vt_index);
+  const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
   def->base->tmpl->call = dt->tl;
+  def->base->tmpl->base = dt->vt_index;
   dt->def = def;
   dt->owner = v->owner;
   dt->owner_class = v->owner_class;

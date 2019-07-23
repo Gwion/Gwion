@@ -1,0 +1,15 @@
+class C {
+typedef void t_fptr(int i);
+fun void test(int i) { <<< this , " ", __func__, " ", i >>>;}
+test @=> t_fptr ptr;
+}
+typedef void t_fptr(int i);
+fun void test(int i) { <<< __func__, " ", i >>>;}
+test @=> t_fptr ptr;
+<<< ptr >>>;
+spork ptr(2);
+me.yield();
+<<<C c>>>;
+<<< c.ptr >>>;
+spork c.ptr(3);
+me.yield();
