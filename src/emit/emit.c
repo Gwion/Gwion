@@ -1342,10 +1342,10 @@ ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Type stmt) {
   return stmt->type->e->def ? emit_class_def(emit, stmt->type->e->def) : 1;
 }
 
-ANN static m_bool emit_stmt_enum(const Emitter emit, const Stmt_Enum stmt) {
+ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
   LOOP_OPTIM
-  for(m_uint i = 0; i < vector_size(&stmt->values); ++i) {
-    const Value v = (Value)vector_at(&stmt->values, i);
+  for(m_uint i = 0; i < vector_size(&edef->values); ++i) {
+    const Value v = (Value)vector_at(&edef->values, i);
     if(!emit->env->class_def) {
       ALLOC_PTR(emit->gwion->mp, addr, m_uint, i);
       v->offset = emit_local(emit, SZ_INT, 0);
@@ -1429,7 +1429,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)emit_stmt_for,   (_exp_func)emit_stmt_auto,     (_exp_func)emit_stmt_loop,
   (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,     (_exp_func)emit_stmt_switch,
   (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
-  (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,     (_exp_func)emit_stmt_enum,
+  (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,
   (_exp_func)dummy_func,      (_exp_func)emit_stmt_type,     (_exp_func)emit_stmt_union,
 };
 

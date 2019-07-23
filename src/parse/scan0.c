@@ -115,23 +115,23 @@ ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
   return GW_OK;
 }
 
-ANN m_bool scan0_stmt_enum(const Env env, const Stmt_Enum stmt) {
-  CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
-  if(stmt->xid) {
-    const Value v = nspc_lookup_value1(env->curr, stmt->xid);
+ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
+  CHECK_BB(env_storage(env, edef->flag, edef->pos))
+  if(edef->xid) {
+    const Value v = nspc_lookup_value1(env->curr, edef->xid);
     if(v)
-      ERR_B(stmt_self(stmt)->pos, _("'%s' already declared as variable of type '%s'."),
-        s_name(stmt->xid),  v->type->name)
-    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
+      ERR_B(edef->pos, _("'%s' already declared as variable of type '%s'."),
+        s_name(edef->xid),  v->type->name)
+    CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
   }
   const Type t = type_copy(env->gwion->mp, t_int);
   t->xid = ++env->scope->type_xid;
-  t->name = stmt->xid ? s_name(stmt->xid) : "int";
+  t->name = edef->xid ? s_name(edef->xid) : "int";
   t->e->parent = t_int;
-  const Nspc nspc = GET_FLAG(stmt, global) ? env->global_nspc : env->curr;
+  const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
-  stmt->t = t;
-  if(stmt->xid) {
+  edef->t = t;
+  if(edef->xid) {
     add_type(env, nspc, t);
     mk_class(env, t);
   }
@@ -221,8 +221,6 @@ ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) {
     return scan0_stmt_fptr(env, &stmt->d.stmt_fptr);
   if(stmt->stmt_type == ae_stmt_type)
     return scan0_stmt_type(env, &stmt->d.stmt_type);
-  if(stmt->stmt_type == ae_stmt_enum)
-    return scan0_stmt_enum(env, &stmt->d.stmt_enum);
   if(stmt->stmt_type == ae_stmt_union)
     return scan0_stmt_union(env, &stmt->d.stmt_union);
   if(stmt->stmt_type == ae_stmt_code)
@@ -286,6 +284,8 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
     return scan0_class_def(env, section->d.class_def);
   if(section->section_type == ae_section_func)
     return scan0_func_def(env, section->d.func_def);
+  if(section->section_type == ae_section_enum)
+    return scan0_enum_def(env, section->d.enum_def);
   return GW_OK;
 }
 

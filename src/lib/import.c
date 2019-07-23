@@ -652,14 +652,15 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 
 ANN Type gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
-  const Stmt stmt = new_stmt_enum(gwi->gwion->mp, d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL);
-  if(traverse_stmt_enum(gwi->gwion->env, &stmt->d.stmt_enum) < 0) {
+  const Enum_Def edef  = new_enum_def(gwi->gwion->mp, d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL, 
+    loc_cpy(gwi->gwion->mp, gwi->loc));
+  if(traverse_enum_def(gwi->gwion->env, edef) < 0) {
     free_id_list(gwi->gwion->mp, d->base);
     return NULL;
   }
-  import_enum_end(gwi, &stmt->d.stmt_enum.values);
-  const Type t = stmt->d.stmt_enum.t;
-  free_stmt(gwi->gwion->mp, stmt);
+  import_enum_end(gwi, &edef->values);
+  const Type t =edef->t;
+  free_enum_def(gwi->gwion->mp, edef);
   return t;
 }
 

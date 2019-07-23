@@ -211,22 +211,20 @@ ANN static inline m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) {
   return scan1_exp(env, stmt->val);
 }
 
-ANN m_bool scan1_stmt_enum(const Env env, const Stmt_Enum stmt) {
-  if(!stmt->t)
-    CHECK_BB(scan0_stmt_enum(env, stmt))
-  ID_List list = stmt->list;
+ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
+  ID_List list = edef->list;
   do {
-    CHECK_BB(already_defined(env, list->xid, stmt_self(stmt)->pos))
-    const Value v = new_value(env->gwion->mp, stmt->t, s_name(list->xid));
+    CHECK_BB(already_defined(env, list->xid, edef->pos))
+    const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
     if(env->class_def) {
       v->owner_class = env->class_def;
       SET_FLAG(v, static);
-      SET_ACCESS(stmt, v)
+      SET_ACCESS(edef, v)
     }
     v->owner = env->curr;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
-    nspc_add_value(stmt->t->e->owner, list->xid, v);
-    vector_add(&stmt->values, (vtype)v);
+    nspc_add_value(edef->t->e->owner, list->xid, v);
+    vector_add(&edef->values, (vtype)v);
   } while((list = list->next));
   return GW_OK;
 }
@@ -291,7 +289,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan1_stmt_for,  (_exp_func)scan1_stmt_auto, (_exp_func)scan1_stmt_loop,
   (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code, (_exp_func)scan1_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan1_stmt_exp,
-  (_exp_func)scan1_stmt_case, (_exp_func)dummy_func,      (_exp_func)scan1_stmt_enum,
+  (_exp_func)scan1_stmt_case, (_exp_func)dummy_func,
   (_exp_func)scan1_stmt_fptr, (_exp_func)scan1_stmt_type, (_exp_func)scan1_stmt_union,
 };
 

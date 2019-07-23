@@ -32,11 +32,11 @@ ANN m_bool traverse_stmt_union(const Env env, const Stmt_Union def) {
   return check_stmt_union(env, def);
 }
 
-ANN m_bool traverse_stmt_enum(const Env env, const Stmt_Enum def) {
-  CHECK_BB(scan0_stmt_enum(env, def))
-  CHECK_BB(scan1_stmt_enum(env, def))
-//  CHECK_BBscan2_stmt_enum(env, def))
-  return check_stmt_enum(env, def);
+ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
+  CHECK_BB(scan0_enum_def(env, def))
+  CHECK_BB(scan1_enum_def(env, def))
+//  CHECK_BBscan2_enum_def(env, def))
+  return check_enum_def(env, def);
 }
 
 ANN m_bool traverse_stmt_fptr(const Env env, const Stmt_Fptr def) {

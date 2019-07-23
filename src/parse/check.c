@@ -865,9 +865,9 @@ ANN static inline Type check_exp(const Env env, const Exp exp) {
   return exp->type;
 }
 
-ANN m_bool check_stmt_enum(const Env env, const Stmt_Enum stmt) {
+ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
   if(env->class_def) {
-    ID_List list = stmt->list;
+    ID_List list = edef->list;
     do decl_static(env->curr, nspc_lookup_value0(env->curr, list->xid));
     while((list = list->next));
   }
@@ -1087,7 +1087,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)check_stmt_for,   (_exp_func)check_stmt_auto,     (_exp_func)check_stmt_loop,
   (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,     (_exp_func)check_stmt_switch,
   (_exp_func)check_stmt_break, (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return,
-  (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,     (_exp_func)check_stmt_enum,
+  (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,
   (_exp_func)dummy_func,       (_exp_func)check_stmt_type,     (_exp_func)check_stmt_union,
 };
 

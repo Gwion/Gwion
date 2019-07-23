@@ -286,7 +286,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan2_stmt_for,  (_exp_func)scan2_stmt_auto, (_exp_func)scan2_stmt_loop,
   (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)scan2_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,
-  (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump, (_exp_func)dummy_func,
+  (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump,
   (_exp_func)scan2_stmt_fptr, (_exp_func)scan2_stmt_type, (_exp_func)scan2_stmt_union,
 };
 
@@ -539,6 +539,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   return ret;
 }
 
+#define scan2_enum_def dummy_func
 DECL_SECTION_FUNC(scan2)
 
 ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {

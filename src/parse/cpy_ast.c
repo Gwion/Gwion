@@ -312,10 +312,12 @@ ANN static void cpy_stmt_switch(MemPool p, Stmt_Switch a, const Stmt_Switch src)
   a->stmt = cpy_stmt(p, src->stmt);
 }
 
-ANN static void cpy_stmt_enum(MemPool p, Stmt_Enum a, const Stmt_Enum src) {
+ANN static Enum_Def cpy_enum_def(MemPool p, const Enum_Def src) {
+  Enum_Def a = mp_calloc(p, Func_Base);
   a->list = cpy_id_list(p, src->list);
   a->xid = src->xid;
   a->flag = src->flag;
+  return a;
 }
 
 ANN Func_Base* cpy_func_base(MemPool p, const Func_Base* src) {
@@ -393,9 +395,6 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
     case ae_stmt_switch:
       cpy_stmt_switch(p, &a->d.stmt_switch, &src->d.stmt_switch);
       break;
-    case ae_stmt_enum:
-      cpy_stmt_enum(p, &a->d.stmt_enum, &src->d.stmt_enum);
-      break;
     case ae_stmt_fptr:
       cpy_stmt_fptr(p, &a->d.stmt_fptr, &src->d.stmt_fptr);
       break;
@@ -447,6 +446,9 @@ ANN static Section* cpy_section(MemPool p, const Section *src) {
     case ae_section_func:
       a->d.func_def = cpy_func_def(p, src->d.func_def);
       break;
+    case ae_section_enum:
+      a->d.enum_def = cpy_enum_def(p, src->d.enum_def);
+      break;
   }
   a->section_type = src->section_type;
   return a;
@@ -473,7 +475,7 @@ ANN Class_Def cpy_class_def(MemPool p, const Class_Def src) {
   a->pos = loc_cpy(p, src->pos);
   return a;
 }
-
+/*
 ANN static Ast cpy_ast(MemPool p, const Ast src) {
   Ast a = mp_calloc(p, Ast);
   a->section = cpy_section(p, src->section);
@@ -481,4 +483,4 @@ ANN static Ast cpy_ast(MemPool p, const Ast src) {
     a->next = cpy_ast(p, src->next);
   return a;
 }
-
+*/
