@@ -33,85 +33,85 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
   return already_defined(env, s, pos);
 }
 
-static void fptr_def(const Env env, const Stmt_Fptr stmt) {
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, stmt->base->td, stmt->base->xid, stmt->base->args),
-    NULL,stmt->base->td->flag, loc_cpy(env->gwion->mp, stmt_self(stmt)->pos));
-  stmt->base->func = new_func(env->gwion->mp, s_name(stmt->base->xid), def);
-  stmt->value->d.func_ref = stmt->base->func;
-  stmt->base->func->value_ref = stmt->value;
-  stmt->type->e->d.func = stmt->base->func;
-  def->base->tmpl = stmt->base->tmpl;
-  def->base->func = stmt->base->func;
+static void fptr_def(const Env env, const Fptr_Def fptr) {
+  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fptr->base->td, fptr->base->xid, fptr->base->args),
+    NULL,fptr->base->td->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
+  fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
+  fptr->value->d.func_ref = fptr->base->func;
+  fptr->base->func->value_ref = fptr->value;
+  fptr->type->e->d.func = fptr->base->func;
+  def->base->tmpl = fptr->base->tmpl;
+  def->base->func = fptr->base->func;
 }
 
-ANN m_bool scan0_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
-  CHECK_BB(env_access(env, stmt->base->td->flag, stmt_self(stmt)->pos))
-  CHECK_BB(scan0_defined(env, stmt->base->xid, td_pos(stmt->base->td)));
-  const m_str name = s_name(stmt->base->xid);
+ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
+  CHECK_BB(env_access(env, fptr->base->td->flag, td_pos(fptr->base->td)))
+  CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
+  const m_str name = s_name(fptr->base->xid);
   const Type t = new_type(env->gwion->mp, t_fptr->xid, name, t_fptr);
-  t->e->owner = !(!env->class_def && GET_FLAG(stmt->base->td, global)) ?
+  t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
   t->nspc = new_nspc(env->gwion->mp, name);
-  t->flag = stmt->base->td->flag;
-  stmt->type = t;
-  stmt->value = mk_class(env, t);
-  stmt->value->owner = env->curr;
-  stmt->value->owner_class = env->class_def;
-  fptr_def(env, stmt);
+  t->flag = fptr->base->td->flag;
+  fptr->type = t;
+  fptr->value = mk_class(env, t);
+  fptr->value->owner = env->curr;
+  fptr->value->owner_class = env->class_def;
+  fptr_def(env, fptr);
   if(env->class_def)
-    fptr_assign(env, stmt);
-  SET_FLAG(stmt->value, func);
+    fptr_assign(env, fptr);
+  SET_FLAG(fptr->value, func);
   add_type(env, t->e->owner, t);
   return GW_OK;
 }
 
-ANN static void typedef_simple(const Env env, const Stmt_Type stmt, const Type base) {
-  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(stmt->xid), base);
+ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
+  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(tdef->xid), base);
   t->size = base->size;
-  const Nspc nspc = (!env->class_def && GET_FLAG(stmt->ext, global)) ?
+  const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
   env->global_nspc : env->curr;
   add_type(env, nspc, t);
   t->e->owner = nspc;
-  stmt->type = t;
+  tdef->type = t;
   if(base->nspc)
     ADD_REF((t->nspc = base->nspc));
-  t->flag = stmt->ext->flag | ae_flag_checked;
-  if(stmt->ext->array && !stmt->ext->array->exp)
+  t->flag = tdef->ext->flag | ae_flag_checked;
+  if(tdef->ext->array && !tdef->ext->array->exp)
     SET_FLAG(t, empty);
 }
 
-ANN static m_bool typedef_complex(const Env env, const Stmt_Type stmt, const Type base) {
+ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type base) {
   const ae_flag flag = base->e->def ? base->e->def->flag : 0;
-  const Class_Def cdef = new_class_def(env->gwion->mp, flag, stmt->xid, stmt->ext, NULL,
-    loc_cpy(env->gwion->mp, td_pos(stmt->ext)));
+  const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->xid, tdef->ext, NULL,
+    loc_cpy(env->gwion->mp, td_pos(tdef->ext)));
   CHECK_BB(scan0_class_def(env, cdef))
-  stmt->type = cdef->base.type;
-  cdef->base.tmpl = stmt->tmpl;
+  tdef->type = cdef->base.type;
+  cdef->base.tmpl = tdef->tmpl;
   return GW_OK;
 }
 
-ANN static void typedef_fptr(const Env env, const Stmt_Type stmt, const Type base) {
-  stmt->type = type_copy(env->gwion->mp, base);
-  stmt->type->name = s_name(stmt->xid);
-  stmt->type->e->parent = base;
-  add_type(env, env->curr, stmt->type);
-  mk_class(env, stmt->type);
+ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base) {
+  tdef->type = type_copy(env->gwion->mp, base);
+  tdef->type->name = s_name(tdef->xid);
+  tdef->type->e->parent = base;
+  add_type(env, env->curr, tdef->type);
+  mk_class(env, tdef->type);
   if(base->e->d.func->def->base->tmpl)
-    SET_FLAG(stmt->type, func);
+    SET_FLAG(tdef->type, func);
 }
 
-ANN m_bool scan0_stmt_type(const Env env, const Stmt_Type stmt) {
-  CHECK_BB(env_access(env, stmt->ext->flag, stmt_self(stmt)->pos))
-  DECL_OB(const Type, base, = stmt->tmpl ? find_type(env, stmt->ext->xid) : known_type(env, stmt->ext))
-  CHECK_BB(scan0_defined(env, stmt->xid, td_pos(stmt->ext)))
+ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
+  CHECK_BB(env_access(env, tdef->ext->flag, td_pos(tdef->ext)))
+  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext->xid) : known_type(env, tdef->ext))
+  CHECK_BB(scan0_defined(env, tdef->xid, td_pos(tdef->ext)))
   if(isa(base, t_function) < 0) {
-    if(!stmt->ext->types && (!stmt->ext->array || !stmt->ext->array->exp))
-      typedef_simple(env, stmt, base);
+    if(!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
+      typedef_simple(env, tdef, base);
     else
-      CHECK_BB(typedef_complex(env, stmt, base))
+      CHECK_BB(typedef_complex(env, tdef, base))
   } else
-    typedef_fptr(env, stmt, base);
-  SET_FLAG(stmt->type, typedef);
+    typedef_fptr(env, tdef, base);
+  SET_FLAG(tdef->type, typedef);
   return GW_OK;
 }
 
@@ -215,33 +215,6 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   return GW_OK;
 }
 
-ANN static m_bool scan0_stmt_switch(const Env env, const Stmt_Switch stmt);
-ANN static m_bool scan0_stmt_code(const Env env, const Stmt_Code stmt);
-ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) {
-  if(stmt->stmt_type == ae_stmt_fptr)
-    return scan0_stmt_fptr(env, &stmt->d.stmt_fptr);
-  if(stmt->stmt_type == ae_stmt_type)
-    return scan0_stmt_type(env, &stmt->d.stmt_type);
-  if(stmt->stmt_type == ae_stmt_code)
-    return scan0_stmt_code(env, &stmt->d.stmt_code);
-  if(stmt->stmt_type == ae_stmt_switch)
-    return scan0_stmt_switch(env, &stmt->d.stmt_switch);
-  return GW_OK;
-}
-
-ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l);
-ANN static m_bool scan0_stmt_switch(const Env env, const Stmt_Switch stmt) {
-  return scan0_stmt(env, stmt->stmt);
-}
-ANN static m_bool scan0_stmt_code(const Env env, const Stmt_Code stmt) {
-  return stmt->stmt_list ? scan0_stmt_list(env, stmt->stmt_list) : GW_OK;
-}
-
-ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
-  do CHECK_BB(scan0_stmt(env, l->stmt))
-  while((l = l->next));
-  return GW_OK;
-}
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
@@ -272,21 +245,17 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   return t;
 }
 
-ANN static m_bool scan0_func_def(const Env env, const Func_Def fdef) {
-  return fdef->d.code ? scan0_stmt(env, fdef->d.code) : GW_OK;
-}
-
 ANN static m_bool scan0_section(const Env env, const Section* section) {
-  if(section->section_type == ae_section_stmt)
-    return scan0_stmt_list(env, section->d.stmt_list);
   if(section->section_type == ae_section_class)
     return scan0_class_def(env, section->d.class_def);
-  if(section->section_type == ae_section_func)
-    return scan0_func_def(env, section->d.func_def);
   if(section->section_type == ae_section_enum)
     return scan0_enum_def(env, section->d.enum_def);
   if(section->section_type == ae_section_union)
     return scan0_union_def(env, section->d.union_def);
+  if(section->section_type == ae_section_fptr)
+    return scan0_fptr_def(env, section->d.fptr_def);
+  if(section->section_type == ae_section_type)
+    return scan0_type_def(env, section->d.type_def);
   return GW_OK;
 }
 

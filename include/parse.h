@@ -38,7 +38,8 @@ static const _exp_func exp_func[] = {                                           
 #define DECL_SECTION_FUNC(prefix)                                                                 \
 static const _exp_func section_func[] = {                                                         \
   (_exp_func)prefix##_stmt_list, (_exp_func)prefix##_func_def, (_exp_func)prefix##_class_def,     \
-  (_exp_func)prefix##_enum_def,  (_exp_func)prefix##_union_def                                    \
+  (_exp_func)prefix##_enum_def,  (_exp_func)prefix##_union_def,                                   \
+  (_exp_func)prefix##_fptr_def, (_exp_func)prefix##_type_def                                      \
 };                                                                                                \
 ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* section) { GWDEBUG_EXE    \
   void* d = &section->d.stmt_list;                            \

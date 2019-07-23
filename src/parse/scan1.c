@@ -240,19 +240,15 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
   return GW_OK;
 }
 
-ANN m_bool scan1_stmt_fptr(const Env env, const Stmt_Fptr stmt) {
-  if(!stmt->type)
-    CHECK_BB(scan0_stmt_fptr(env, stmt))
-  if(tmpl_base(stmt->base->tmpl))
+ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
+  if(tmpl_base(fptr->base->tmpl))
     return GW_OK;
-  CHECK_OB((stmt->base->ret_type = known_type(env, stmt->base->td)))
-  return stmt->base->args ? scan1_args(env, stmt->base->args) : GW_OK;
+  CHECK_OB((fptr->base->ret_type = known_type(env, fptr->base->td)))
+  return fptr->base->args ? scan1_args(env, fptr->base->args) : GW_OK;
 }
 
-ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
-  if(!stmt->type)
-    CHECK_BB(scan0_stmt_type(env, stmt))
-  return stmt->type->e->def ? scan1_cdef(env, stmt->type->e->def) : GW_OK;
+ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
+  return tdef->type->e->def ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
@@ -287,8 +283,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan1_stmt_for,  (_exp_func)scan1_stmt_auto, (_exp_func)scan1_stmt_loop,
   (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code, (_exp_func)scan1_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan1_stmt_exp,
-  (_exp_func)scan1_stmt_case, (_exp_func)dummy_func,
-  (_exp_func)scan1_stmt_fptr, (_exp_func)scan1_stmt_type,
+  (_exp_func)scan1_stmt_case, (_exp_func)dummy_func
 };
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {

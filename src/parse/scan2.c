@@ -83,41 +83,41 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 
-ANN void fptr_assign(const Env env, const Stmt_Fptr ptr) {
-  const Func_Def def = ptr->type->e->d.func->def;
-  if(GET_FLAG(ptr->base->td, global)) {
-    SET_FLAG(ptr->value, global);
-    SET_FLAG(ptr->base->func, global);
+ANN void fptr_assign(const Env env, const Fptr_Def fptr) {
+  const Func_Def def = fptr->type->e->d.func->def;
+  if(GET_FLAG(fptr->base->td, global)) {
+    SET_FLAG(fptr->value, global);
+    SET_FLAG(fptr->base->func, global);
     SET_FLAG(def, global);
-  } else if(!GET_FLAG(ptr->base->td, static)) {
-    SET_FLAG(ptr->value, member);
-    SET_FLAG(ptr->base->func, member);
+  } else if(!GET_FLAG(fptr->base->td, static)) {
+    SET_FLAG(fptr->value, member);
+    SET_FLAG(fptr->base->func, member);
     SET_FLAG(def, member);
     def->stack_depth += SZ_INT;
   } else {
-    SET_FLAG(ptr->value, static);
-    SET_FLAG(ptr->base->func, static);
+    SET_FLAG(fptr->value, static);
+    SET_FLAG(fptr->base->func, static);
     SET_FLAG(def, static);
   }
   if(GET_FLAG(def, variadic))
     def->stack_depth += SZ_INT;
-  ptr->value->owner_class = env->class_def;
+  fptr->value->owner_class = env->class_def;
 }
 
-ANN m_bool scan2_stmt_fptr(const Env env, const Stmt_Fptr ptr) {
-  const Func_Def def = ptr->type->e->d.func->def;
-  if(!tmpl_base(ptr->base->tmpl)) {
-    def->base->ret_type = ptr->base->ret_type;
-    if(ptr->base->args)
+ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
+  const Func_Def def = fptr->type->e->d.func->def;
+  if(!tmpl_base(fptr->base->tmpl)) {
+    def->base->ret_type = fptr->base->ret_type;
+    if(fptr->base->args)
       CHECK_BB(scan2_args(env, def))
   } else
-    SET_FLAG(ptr->type, func);
-  nspc_add_func(ptr->type->e->owner, ptr->base->xid, ptr->base->func);
+    SET_FLAG(fptr->type, func);
+  nspc_add_func(fptr->type->e->owner, fptr->base->xid, fptr->base->func);
   return GW_OK;
 }
 
-ANN m_bool scan2_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->e->def ? scan2_class_def(env, stmt->type->e->def) : GW_OK;
+ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
+  return tdef->type->e->def ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -286,8 +286,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan2_stmt_for,  (_exp_func)scan2_stmt_auto, (_exp_func)scan2_stmt_loop,
   (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)scan2_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,
-  (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump,
-  (_exp_func)scan2_stmt_fptr, (_exp_func)scan2_stmt_type,
+  (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump
 };
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {

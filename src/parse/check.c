@@ -494,12 +494,12 @@ CHECK_BO(check_call(env, exp))
   fbase->tmpl->base = 0;
   fbase->tmpl->call = types;
   if(template_push_types(env, fbase->tmpl) > 0) {
-    const Stmt stmt = new_stmt_fptr(env->gwion->mp, fbase, base->flag);
+    const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
     if(value) {
-      stmt->d.stmt_fptr.type = actual_type(value->type);
-      stmt->d.stmt_fptr.value = value;
+      fptr->type = actual_type(value->type);
+      fptr->value = value;
     }
-    if(traverse_stmt_fptr(env, &stmt->d.stmt_fptr) > 0 &&
+    if(traverse_fptr_def(env, fptr) > 0 &&
        (base->base->ret_type = known_type(env, base->base->td)) &&
        (!exp->args || !!check_exp(env, exp->args))) {
       m_func = find_func_match(env, fbase->func, exp->args);
@@ -508,7 +508,7 @@ CHECK_BO(check_call(env, exp))
         map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
       }
     }
-    free_stmt(env->gwion->mp, stmt);
+    free_fptr_def(env->gwion->mp, fptr);
   }
   } else {
     for(m_uint i = 0; i < v->offset + 1; ++i) {
@@ -835,8 +835,8 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   return value->type;
 }
 
-ANN m_bool check_stmt_type(const Env env, const Stmt_Type stmt) {
-  return stmt->type->e->def ? check_class_def(env, stmt->type->e->def) : GW_OK;
+ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
+  return tdef->type->e->def ? check_class_def(env, tdef->type->e->def) : GW_OK;
 }
 ANN static Type check_exp_lambda(const Env env NUSED,
     const Exp_If* exp_if NUSED) { return t_lambda; }
@@ -1088,7 +1088,6 @@ static const _exp_func stmt_func[] = {
   (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,     (_exp_func)check_stmt_switch,
   (_exp_func)check_stmt_break, (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return,
   (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,
-  (_exp_func)dummy_func,       (_exp_func)check_stmt_type
 };
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {
@@ -1244,6 +1243,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
+#define check_fptr_def dummy_func
 DECL_SECTION_FUNC(check)
 
 ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {

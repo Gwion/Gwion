@@ -303,7 +303,7 @@ ANN static void cpy_stmt_if(MemPool p, Stmt_If a, const Stmt_If src) {
     a->else_body = cpy_stmt(p, src->else_body);
 }
 
-ANN static void cpy_stmt_jump(MemPool p, const Stmt_Jump a,const Stmt_Jump src) {
+ANN static void cpy_stmt_jump(MemPool p NUSED, const Stmt_Jump a,const Stmt_Jump src) {
   a->name = src->name;
 }
 
@@ -333,16 +333,24 @@ ANN Func_Base* cpy_func_base(MemPool p, const Func_Base* src) {
   return a;
 }
 
-ANN static void cpy_stmt_fptr(MemPool p, Stmt_Fptr a, const Stmt_Fptr src) {
+ANN static Fptr_Def cpy_fptr_def(MemPool p, const Fptr_Def src) {
+  Fptr_Def a = mp_calloc(p, Fptr_Def);
   a->base = cpy_func_base(p, src->base);
+  return a;
 }
 
-ANN static void cpy_stmt_type(MemPool p, Stmt_Type a, const Stmt_Type src) {
+ANN static void cpy_type_def2(MemPool p, Type_Def a, const Type_Def src) {
   if(src->ext)
     a->ext = cpy_type_decl(p, src->ext);
   a->xid = src->xid;
   if(src->tmpl)
     a->tmpl = cpy_tmpl(p, src->tmpl);
+}
+
+ANN static Type_Def cpy_type_def(MemPool p, const Type_Def src) {
+  Type_Def a = mp_calloc(p, Type_Def);
+  cpy_type_def2(p, a, src);
+  return a;
 }
 
 ANN static Union_Def cpy_union_def(MemPool p, const Union_Def src) {
@@ -363,14 +371,8 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
   switch(src->stmt_type) {
     case ae_stmt_case:
     case ae_stmt_exp:
-  if(src->d.stmt_exp.val)
-    a->d.stmt_exp.val = cpy_exp(p, src->d.stmt_exp.val);
-
-//      cpy_stmt_exp(p, &a->d.stmt_exp, &src->d.stmt_exp);
-      break;
     case ae_stmt_return:
-      if(&src->d.stmt_exp)
-        cpy_stmt_exp(p, &a->d.stmt_exp, &src->d.stmt_exp);
+      cpy_stmt_exp(p, &a->d.stmt_exp, &src->d.stmt_exp);
       break;
     case ae_stmt_code:
       cpy_stmt_code(p, &a->d.stmt_code, &src->d.stmt_code);
@@ -396,12 +398,6 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
       break;
     case ae_stmt_switch:
       cpy_stmt_switch(p, &a->d.stmt_switch, &src->d.stmt_switch);
-      break;
-    case ae_stmt_fptr:
-      cpy_stmt_fptr(p, &a->d.stmt_fptr, &src->d.stmt_fptr);
-      break;
-    case ae_stmt_type:
-      cpy_stmt_type(p, &a->d.stmt_type, &src->d.stmt_type);
       break;
       case ae_stmt_break:
       case ae_stmt_continue:
@@ -451,6 +447,12 @@ ANN static Section* cpy_section(MemPool p, const Section *src) {
     case ae_section_union:
       a->d.union_def = cpy_union_def(p, src->d.union_def);
       break;
+    case ae_section_fptr:
+      a->d.fptr_def = cpy_fptr_def(p, src->d.fptr_def);
+      break;
+    case ae_section_type:
+      a->d.type_def = cpy_type_def(p, src->d.type_def);
+      break;
   }
   a->section_type = src->section_type;
   return a;
@@ -466,7 +468,7 @@ ANN static Class_Body cpy_class_body(MemPool p, const Class_Body src) {
 
 ANN Class_Def cpy_class_def(MemPool p, const Class_Def src) {
   Class_Def a = mp_calloc(p, Class_Def);
-  cpy_stmt_type(p, &a->base, &src->base);
+  cpy_type_def2(p, &a->base, &src->base);
   if(src->body) {
     if(!GET_FLAG(src, union))
       a->body = cpy_class_body(p, src->body);

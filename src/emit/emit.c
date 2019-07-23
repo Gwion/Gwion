@@ -1338,8 +1338,8 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) {
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_type(const Emitter emit, const Stmt_Type stmt) {
-  return stmt->type->e->def ? emit_class_def(emit, stmt->type->e->def) : 1;
+ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
+  return tdef->type->e->def ? emit_class_def(emit, tdef->type->e->def) : 1;
 }
 
 ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
@@ -1430,7 +1430,6 @@ static const _exp_func stmt_func[] = {
   (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,     (_exp_func)emit_stmt_switch,
   (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
   (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,
-  (_exp_func)dummy_func,      (_exp_func)emit_stmt_type
 };
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
@@ -1715,6 +1714,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
+#define emit_fptr_def dummy_func
 DECL_SECTION_FUNC(emit)
 
 ANN Code* emit_class_code(const Emitter emit, const m_str name) {

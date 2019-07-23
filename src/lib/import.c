@@ -518,7 +518,7 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
   return GW_OK;
 }
 
-ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
+ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
   ID_List type_path;
@@ -529,18 +529,18 @@ ANN static Stmt import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
       !(type_decl = new_type_decl(env->gwion->mp, type_path)))
     GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
   Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
-  return new_stmt_fptr(env->gwion->mp, base, flag);
+  return new_fptr_def(env->gwion->mp, base, flag);
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  const Stmt stmt = import_fptr(gwi, &gwi->func, flag);
-  CHECK_BO(traverse_stmt_fptr(gwi->gwion->env, &stmt->d.stmt_fptr))
+  const Fptr_Def fptr = import_fptr(gwi, &gwi->func, flag);
+  CHECK_BO(traverse_fptr_def(gwi->gwion->env, fptr))
   if(gwi->gwion->env->class_def)
-    SET_FLAG(stmt->d.stmt_fptr.base->func->def, builtin);
+    SET_FLAG(fptr->base->func->def, builtin);
   else
-    SET_FLAG(stmt->d.stmt_fptr.base->func, builtin);
-  const Type t = stmt->d.stmt_fptr.type;
-  free_stmt(gwi->gwion->mp, stmt);
+    SET_FLAG(fptr->base->func, builtin);
+  const Type t = fptr->type;
+  free_fptr_def(gwi->gwion->mp, fptr);
   return t;
 }
 
@@ -556,10 +556,10 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
     GWI_ERR_O(_("'%s' : invalid type"), gwi->val.type);
   td->flag |= flag;
   const Symbol sym = insert_symbol(gwi->gwion->st, gwi->val.name);
-  const Stmt stmt = new_stmt_type(gwi->gwion->mp, td, sym);
-  traverse_stmt_type(gwi->gwion->env, &stmt->d.stmt_type);
-  const Type t = stmt->d.stmt_type.type;
-  free_stmt(gwi->gwion->mp, stmt);
+  const Type_Def tdef = new_type_def(gwi->gwion->mp, td, sym);
+  traverse_type_def(gwi->gwion->env, tdef);
+  const Type t = tdef->type;
+  free_type_def(gwi->gwion->mp, tdef);
   return t;
 }
 

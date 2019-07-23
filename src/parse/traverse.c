@@ -39,18 +39,18 @@ ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
   return check_enum_def(env, def);
 }
 
-ANN m_bool traverse_stmt_fptr(const Env env, const Stmt_Fptr def) {
-//  CHECK_BB(scan0_stmt_fptr(env, def))
-  CHECK_BB(scan1_stmt_fptr(env, def))
-  return scan2_stmt_fptr(env, def);
-// CHECK_BB(check_stmt_fptr(env, def))
+ANN m_bool traverse_fptr_def(const Env env, const Fptr_Def def) {
+  CHECK_BB(scan0_fptr_def(env, def))
+  CHECK_BB(scan1_fptr_def(env, def))
+  return scan2_fptr_def(env, def);
+// CHECK_BB(check_fptr_def(env, def))
 }
 
-ANN m_bool traverse_stmt_type(const Env env, const Stmt_Type def) {
-  CHECK_BB(scan0_stmt_type(env, def))
-  CHECK_BB(scan1_stmt_type(env, def))
-  CHECK_BB(scan2_stmt_type(env, def))
-  return check_stmt_type(env, def);
+ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
+  CHECK_BB(scan0_type_def(env, def))
+  CHECK_BB(scan1_type_def(env, def))
+  CHECK_BB(scan2_type_def(env, def))
+  return check_type_def(env, def);
 }
 
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
