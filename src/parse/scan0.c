@@ -155,61 +155,62 @@ ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const
   return t;
 }
 
-ANN m_bool scan0_stmt_union(const Env env, const Stmt_Union stmt) {
-  CHECK_BB(env_storage(env, stmt->flag, stmt_self(stmt)->pos))
-  const m_uint scope = !GET_FLAG(stmt, global) ? env->scope->depth :
+ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
+  CHECK_BB(env_storage(env, udef->flag, udef->pos))
+  const m_uint scope = !GET_FLAG(udef, global) ? env->scope->depth :
       env_push_global(env);
-  if(stmt->xid) {
-    CHECK_BB(scan0_defined(env, stmt->xid, stmt_self(stmt)->pos))
-    const Nspc nspc = !GET_FLAG(stmt, global) ?
+  if(udef->xid) {
+    CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
+    const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
-    const Type t = union_type(env, nspc, stmt->type_xid ?: stmt->xid,
-       !!stmt->type_xid);
-    stmt->value = new_value(env->gwion->mp, t, s_name(stmt->xid));
-    stmt->value->owner_class = env->class_def;
-    stmt->value->owner = nspc;
-    nspc_add_value(nspc, stmt->xid, stmt->value);
+    const Type t = union_type(env, nspc, udef->type_xid ?: udef->xid,
+       !!udef->type_xid);
+    udef->value = new_value(env->gwion->mp, t, s_name(udef->xid));
+    udef->value->owner_class = env->class_def;
+    udef->value->owner = nspc;
+    nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
-    SET_FLAG(stmt->value, checked | stmt->flag);
-    if(env->class_def && !GET_FLAG(stmt, static)) {
-      SET_FLAG(stmt->value, member);
-      SET_FLAG(stmt, member);
+    SET_FLAG(udef->value, checked | udef->flag);
+    if(env->class_def && !GET_FLAG(udef, static)) {
+      SET_FLAG(udef->value, member);
+      SET_FLAG(udef, member);
     }
-  } else if(stmt->type_xid) {
-    CHECK_BB(scan0_defined(env, stmt->type_xid, stmt_self(stmt)->pos))
-    const Nspc nspc = !GET_FLAG(stmt, global) ?
+  } else if(udef->type_xid) {
+    CHECK_BB(scan0_defined(env, udef->type_xid, udef->pos))
+    const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
-    stmt->type = union_type(env, nspc, stmt->type_xid, 1);
-    SET_FLAG(stmt->type, checked);
+    udef->type = union_type(env, nspc, udef->type_xid, 1);
+    SET_FLAG(udef->type, checked);
   } else {
-    const Nspc nspc = !GET_FLAG(stmt, global) ?
+    const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
+// TODO make unique names
     const Type t = union_type(env, nspc, insert_symbol("union"), 1);
-    stmt->value = new_value(env->gwion->mp, t, "union");
-    stmt->value->owner_class = env->class_def;
-    stmt->value->owner = nspc;
-    nspc_add_value(nspc, stmt->xid, stmt->value);
+    udef->value = new_value(env->gwion->mp, t, "union");
+    udef->value->owner_class = env->class_def;
+    udef->value->owner = nspc;
+    nspc_add_value(nspc, udef->xid, udef->value);
     char c[16];
-    sprintf(c, "%p", stmt);
+    sprintf(c, "%p", udef);
     nspc_add_type(nspc, insert_symbol(c), t);
-    SET_FLAG(stmt->value, checked | stmt->flag);
+    SET_FLAG(udef->value, checked | udef->flag);
   }
-  if(stmt->tmpl) {
-    if(tmpl_base(stmt->tmpl)) {
-      const Class_Def cdef = new_class_def(env->gwion->mp, stmt->flag, stmt->type_xid,
-          NULL, (Class_Body)stmt->l, loc_cpy(env->gwion->mp, stmt_self(stmt)->pos));
-      stmt->type->e->def = cdef;
-      cdef->base.tmpl = stmt->tmpl;
-      cdef->base.type = stmt->type;
-      cdef->list = stmt->l;
+  if(udef->tmpl) {
+    if(tmpl_base(udef->tmpl)) {
+      const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
+          NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
+      udef->type->e->def = cdef;
+      cdef->base.tmpl = udef->tmpl;
+      cdef->base.type = udef->type;
+      cdef->list = udef->l;
       SET_FLAG(cdef, union);
-      SET_FLAG(stmt->type, pure);
-      SET_FLAG(stmt, template);
-      SET_FLAG(stmt->type, template);
+      SET_FLAG(udef->type, pure);
+      SET_FLAG(udef, template);
+      SET_FLAG(udef->type, template);
     }
-    SET_FLAG(stmt->type, union);
+    SET_FLAG(udef->type, union);
   }
-  if(GET_FLAG(stmt, global))
+  if(GET_FLAG(udef, global))
     env_pop(env, scope);
   return GW_OK;
 }
@@ -221,8 +222,6 @@ ANN static m_bool scan0_stmt(const Env env, const Stmt stmt) {
     return scan0_stmt_fptr(env, &stmt->d.stmt_fptr);
   if(stmt->stmt_type == ae_stmt_type)
     return scan0_stmt_type(env, &stmt->d.stmt_type);
-  if(stmt->stmt_type == ae_stmt_union)
-    return scan0_stmt_union(env, &stmt->d.stmt_union);
   if(stmt->stmt_type == ae_stmt_code)
     return scan0_stmt_code(env, &stmt->d.stmt_code);
   if(stmt->stmt_type == ae_stmt_switch)
@@ -286,6 +285,8 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
     return scan0_func_def(env, section->d.func_def);
   if(section->section_type == ae_section_enum)
     return scan0_enum_def(env, section->d.enum_def);
+  if(section->section_type == ae_section_union)
+    return scan0_union_def(env, section->d.union_def);
   return GW_OK;
 }
 

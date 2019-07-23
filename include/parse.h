@@ -38,7 +38,7 @@ static const _exp_func exp_func[] = {                                           
 #define DECL_SECTION_FUNC(prefix)                                                                 \
 static const _exp_func section_func[] = {                                                         \
   (_exp_func)prefix##_stmt_list, (_exp_func)prefix##_func_def, (_exp_func)prefix##_class_def,     \
-  (_exp_func)prefix##_enum_def                                                                    \
+  (_exp_func)prefix##_enum_def,  (_exp_func)prefix##_union_def                                    \
 };                                                                                                \
 ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* section) { GWDEBUG_EXE    \
   void* d = &section->d.stmt_list;                            \
@@ -60,8 +60,8 @@ ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG
   RET_NSPC(exp) \
 }
 
-ANN m_uint union_push(const Env, const Stmt_Union);
-ANN void union_pop(const Env, const Stmt_Union, const m_uint);
+ANN m_uint union_push(const Env, const Union_Def);
+ANN void union_pop(const Env, const Union_Def, const m_uint);
 ANN m_bool check_stmt(const Env env, const Stmt stmt);
 
 ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f, void* data);
@@ -87,7 +87,7 @@ ANN m_bool scanx_cdef(const Env, void *,const Class_Def,
 #define xxx_cdef(prefix)                                                  \
 static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
   return scanx_cdef(env, env, cdef,                                       \
-      (_exp_func)prefix##_class_def, (_exp_func)prefix##_stmt_union);     \
+      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);     \
 }
 xxx_cdef(scan1)
 xxx_cdef(scan2)

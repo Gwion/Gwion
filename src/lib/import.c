@@ -599,16 +599,16 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(!gwi->union_data.list)
     GWI_ERR_O(_("union is empty"));
-  const Stmt stmt = new_stmt_union(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
-  stmt->d.stmt_union.flag = flag;
-  CHECK_BO(traverse_stmt_union(gwi->gwion->env, &stmt->d.stmt_union))
-  emit_union_offset(stmt->d.stmt_union.l, stmt->d.stmt_union.o);
-  if(GET_FLAG((&stmt->d.stmt_union), member))
+  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
+  udef->flag = flag;
+  CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
+  emit_union_offset(udef->l, udef->o);
+  if(GET_FLAG(udef, member))
     gwi->gwion->env->class_def->nspc->info->offset =
-      stmt->d.stmt_union.o + stmt->d.stmt_union.s;
-  const Type t = stmt->d.stmt_union.xid ? stmt->d.stmt_union.value->type :
-    stmt->d.stmt_union.type_xid ? stmt->d.stmt_union.type : t_int;
-  free_stmt(gwi->gwion->mp, stmt);
+      udef->o + udef->s;
+  const Type t = udef->xid ? udef->value->type :
+    udef->type_xid ? udef->type : t_int;
+  free_union_def(gwi->gwion->mp, udef);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;
   return t;

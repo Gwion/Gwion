@@ -75,7 +75,7 @@ ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
   if(cdef->base.type->e->parent !=  t_union)
      return f_cdef(opt, cdef);
   CHECK_BB(template_push_types(env, cdef->base.tmpl))
-  const m_bool ret = f_union(opt, &cdef->stmt->d.stmt_union);
+  const m_bool ret = f_union(opt, cdef->union_def);
   nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
 }

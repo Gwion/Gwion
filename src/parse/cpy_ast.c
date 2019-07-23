@@ -345,7 +345,8 @@ ANN static void cpy_stmt_type(MemPool p, Stmt_Type a, const Stmt_Type src) {
     a->tmpl = cpy_tmpl(p, src->tmpl);
 }
 
-ANN static void cpy_stmt_union(MemPool p, Stmt_Union a,const Stmt_Union src) {
+ANN static Union_Def cpy_union_def(MemPool p, const Union_Def src) {
+  Union_Def a = mp_calloc(p, Union_Def);
   a->l = cpy_decl_list(p, src->l); // 1 
   if(src->xid)
     a->xid = src->xid; // 1 
@@ -354,6 +355,7 @@ ANN static void cpy_stmt_union(MemPool p, Stmt_Union a,const Stmt_Union src) {
   if(src->tmpl)
     a->tmpl = cpy_tmpl(p, src->tmpl); // 1 
   a->flag = src->flag; // 1 
+  return a;
 }
 
 ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
@@ -401,9 +403,6 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
     case ae_stmt_type:
       cpy_stmt_type(p, &a->d.stmt_type, &src->d.stmt_type);
       break;
-    case ae_stmt_union:
-      cpy_stmt_union(p, &a->d.stmt_union, &src->d.stmt_union);
-      break;
       case ae_stmt_break:
       case ae_stmt_continue:
         break;
@@ -448,6 +447,9 @@ ANN static Section* cpy_section(MemPool p, const Section *src) {
       break;
     case ae_section_enum:
       a->d.enum_def = cpy_enum_def(p, src->d.enum_def);
+      break;
+    case ae_section_union:
+      a->d.union_def = cpy_union_def(p, src->d.union_def);
       break;
   }
   a->section_type = src->section_type;

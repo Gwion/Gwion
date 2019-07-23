@@ -255,32 +255,30 @@ ANN m_bool scan1_stmt_type(const Env env, const Stmt_Type stmt) {
   return stmt->type->e->def ? scan1_cdef(env, stmt->type->e->def) : GW_OK;
 }
 
-ANN m_bool scan1_stmt_union(const Env env, const Stmt_Union stmt) {
-  if(tmpl_base(stmt->tmpl))
+ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl))
     return GW_OK;
-  if(!stmt->value)
-    CHECK_BB(scan0_stmt_union(env, stmt))
-  Decl_List l = stmt->l;
-  const m_uint scope = union_push(env, stmt);
-  if(stmt->xid || stmt->type_xid) {
-    UNSET_FLAG(stmt, private);
-    UNSET_FLAG(stmt, protect);
+  Decl_List l = udef->l;
+  const m_uint scope = union_push(env, udef);
+  if(udef->xid || udef->type_xid) {
+    UNSET_FLAG(udef, private);
+    UNSET_FLAG(udef, protect);
   }
   do {
     const Exp_Decl decl = l->self->d.exp_decl;
-    SET_FLAG(decl.td, checked | stmt->flag);
-    const m_bool global = GET_FLAG(stmt, global);
+    SET_FLAG(decl.td, checked | udef->flag);
+    const m_bool global = GET_FLAG(udef, global);
     if(global)
       UNSET_FLAG(decl.td, global);
-    if(GET_FLAG(stmt, member))
+    if(GET_FLAG(udef, member))
       SET_FLAG(decl.td, member);
-    else if(GET_FLAG(stmt, static))
+    else if(GET_FLAG(udef, static))
       SET_FLAG(decl.td, static);
     CHECK_BB(scan1_exp(env, l->self))
     if(global)
       SET_FLAG(decl.td, global);
   } while((l = l->next));
-  union_pop(env, stmt, scope);
+  union_pop(env, udef, scope);
   return GW_OK;
 }
 
@@ -290,7 +288,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code, (_exp_func)scan1_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan1_stmt_exp,
   (_exp_func)scan1_stmt_case, (_exp_func)dummy_func,
-  (_exp_func)scan1_stmt_fptr, (_exp_func)scan1_stmt_type, (_exp_func)scan1_stmt_union,
+  (_exp_func)scan1_stmt_fptr, (_exp_func)scan1_stmt_type,
 };
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {

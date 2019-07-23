@@ -1364,59 +1364,59 @@ ANN void emit_union_offset(Decl_List l, const m_uint o) {
   } while((l = l->next));
 }
 
-ANN static inline void union_allocdata(MemPool mp, const Stmt_Union stmt) {
-  const Nspc nspc = (stmt->xid ? stmt->value->type : stmt->type)->nspc;
+ANN static inline void union_allocdata(MemPool mp, const Union_Def udef) {
+  const Nspc nspc = (udef->xid ? udef->value->type : udef->type)->nspc;
   nspc_allocdata(mp, nspc);
-  nspc->info->offset = stmt->s;
+  nspc->info->offset = udef->s;
 }
 
-ANN static m_bool emit_stmt_union(const Emitter emit, const Stmt_Union stmt) {
-  if(stmt->tmpl)
+ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl))
     return GW_OK;
-  Decl_List l = stmt->l;
+  Decl_List l = udef->l;
   m_uint scope = emit->env->scope->depth;
-  const m_bool global = GET_FLAG(stmt, global);
-  if(stmt->xid) {
-    union_allocdata(emit->gwion->mp, stmt);
+  const m_bool global = GET_FLAG(udef, global);
+  if(udef->xid) {
+    union_allocdata(emit->gwion->mp, udef);
     Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
-        new_id_list(emit->gwion->mp, stmt->xid, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos)));
-    type_decl->flag = stmt->flag;
-    const Var_Decl var_decl = new_var_decl(emit->gwion->mp, stmt->xid, NULL, loc_cpy(emit->gwion->mp, stmt_self(stmt)->pos));
+        new_id_list(emit->gwion->mp, udef->xid, udef->pos));
+    type_decl->flag = udef->flag;
+    const Var_Decl var_decl = new_var_decl(emit->gwion->mp, udef->xid, NULL, loc_cpy(emit->gwion->mp, udef->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
-    exp->d.exp_decl.type = stmt->value->type;
-    var_decl->value = stmt->value;
+    exp->d.exp_decl.type = udef->value->type;
+    var_decl->value = udef->value;
     CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
     free_exp(emit->gwion->mp, exp);
     if(global) {
-      const M_Object o = new_object(emit->gwion->mp, NULL, stmt->value->type);
-      stmt->value->d.ptr = (m_uint*)o;
-      SET_FLAG(stmt->value, builtin);
-      SET_FLAG(stmt->value, global);
+      const M_Object o = new_object(emit->gwion->mp, NULL, udef->value->type);
+      udef->value->d.ptr = (m_uint*)o;
+      SET_FLAG(udef->value, builtin);
+      SET_FLAG(udef->value, global);
     }
-    scope = emit_push_type(emit, stmt->value->type);
-  } else if(stmt->type_xid) {
-    union_allocdata(emit->gwion->mp, stmt);
-    scope = emit_push_type(emit, stmt->type);
+    scope = emit_push_type(emit, udef->value->type);
+  } else if(udef->type_xid) {
+    union_allocdata(emit->gwion->mp, udef);
+    scope = emit_push_type(emit, udef->type);
   } else if(emit->env->class_def) {
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
-      stmt->o = emit_local(emit, stmt->s, 0);
+      udef->o = emit_local(emit, udef->s, 0);
   } else if(global) {
-    void* ptr = (void*)xcalloc(1, stmt->s);
-    l = stmt->l;
+    void* ptr = (void*)xcalloc(1, udef->s);
+    l = udef->l;
     do {
       Var_Decl_List list = l->self->d.exp_decl.list;
       list->self->value->d.ptr = ptr;
       SET_FLAG(list->self->value, union);
     } while((l = l->next));
-    SET_FLAG(stmt->l->self->d.exp_decl.list->self->value, enum);
+    SET_FLAG(udef->l->self->d.exp_decl.list->self->value, enum);
   }
-  if(stmt->xid)
-    regpop(emit, !GET_FLAG(stmt, static) ? SZ_INT : SZ_INT*2);
-  emit_union_offset(stmt->l, stmt->o);
-  if(stmt->xid || stmt->type_xid || global)
+  if(udef->xid)
+    regpop(emit, !GET_FLAG(udef, static) ? SZ_INT : SZ_INT*2);
+  emit_union_offset(udef->l, udef->o);
+  if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);
-  SET_FLAG(stmt->xid ? stmt->value->type : stmt->type, emit);
+  SET_FLAG(udef->xid ? udef->value->type : udef->type, emit);
   return GW_OK;
 }
 
@@ -1430,7 +1430,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,     (_exp_func)emit_stmt_switch,
   (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
   (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,
-  (_exp_func)dummy_func,      (_exp_func)emit_stmt_type,     (_exp_func)emit_stmt_union,
+  (_exp_func)dummy_func,      (_exp_func)emit_stmt_type
 };
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
@@ -1742,7 +1742,7 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
   return scanx_cdef(emit->env, emit, cdef,
-      (_exp_func)emit_class_def, (_exp_func)emit_stmt_union);
+      (_exp_func)emit_class_def, (_exp_func)emit_union_def);
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {

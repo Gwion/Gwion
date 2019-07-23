@@ -270,14 +270,14 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN m_bool scan2_stmt_union(const Env env, const Stmt_Union stmt) {
-  if(tmpl_base(stmt->tmpl))
+ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl))
     return GW_OK;
-  const m_uint scope = union_push(env, stmt);
-  Decl_List l = stmt->l;
+  const m_uint scope = union_push(env, udef);
+  Decl_List l = udef->l;
   do CHECK_BB(scan2_exp(env, l->self))
   while((l = l->next));
-  union_pop(env, stmt, scope);
+  union_pop(env, udef, scope);
   return GW_OK;
 }
 
@@ -287,7 +287,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)scan2_stmt_switch,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,
   (_exp_func)scan2_stmt_case, (_exp_func)scan2_stmt_jump,
-  (_exp_func)scan2_stmt_fptr, (_exp_func)scan2_stmt_type, (_exp_func)scan2_stmt_union,
+  (_exp_func)scan2_stmt_fptr, (_exp_func)scan2_stmt_type,
 };
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {

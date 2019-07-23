@@ -1045,36 +1045,36 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN m_bool check_stmt_union(const Env env, const Stmt_Union stmt) {
-  if(stmt->tmpl && stmt->tmpl->base == -1) // there's a func for this
+ANN m_bool check_union_def(const Env env, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;
-  if(stmt->xid) {
+  if(udef->xid) {
     if(env->class_def)
-      (!GET_FLAG(stmt, static) ? decl_member : decl_static)(env->curr, stmt->value);
+      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env->curr, udef->value);
   } else if(env->class_def)  {
-    if(!GET_FLAG(stmt, static))
-      stmt->o = env->class_def->nspc->info->offset;
+    if(!GET_FLAG(udef, static))
+      udef->o = env->class_def->nspc->info->offset;
     else {
-      stmt->o = env->class_def->nspc->info->class_data_size;
+      udef->o = env->class_def->nspc->info->class_data_size;
       env->class_def->nspc->info->class_data_size += SZ_INT;
     }
   }
-  const m_uint scope = union_push(env, stmt);
-  Decl_List l = stmt->l;
+  const m_uint scope = union_push(env, udef);
+  Decl_List l = udef->l;
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0) {
-        if(!GET_FLAG(l->self->d.exp_decl.td, ref) && !GET_FLAG(stmt->type, template))
+        if(!GET_FLAG(l->self->d.exp_decl.td, ref) && !GET_FLAG(udef->type, template))
       ERR_B(l->self->pos, _("In union, Objects must be declared as reference (use '@')"))
 //      SET_FLAG(l->self->d.exp_decl.td, ref);
       Var_Decl_List list = l->self->d.exp_decl.list;
       do SET_FLAG(list->self->value, pure);
       while((list = list->next));
     }
-    if(l->self->type->size > stmt->s)
-      stmt->s = l->self->type->size;
+    if(l->self->type->size > udef->s)
+      udef->s = l->self->type->size;
   } while((l = l->next));
-  union_pop(env, stmt, scope);
+  union_pop(env, udef, scope);
   return GW_OK;
 }
 
@@ -1088,7 +1088,7 @@ static const _exp_func stmt_func[] = {
   (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,     (_exp_func)check_stmt_switch,
   (_exp_func)check_stmt_break, (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return,
   (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,
-  (_exp_func)dummy_func,       (_exp_func)check_stmt_type,     (_exp_func)check_stmt_union,
+  (_exp_func)dummy_func,       (_exp_func)check_stmt_type
 };
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

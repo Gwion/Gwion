@@ -5,14 +5,14 @@
 #include "value.h"
 #include "type.h"
 
-ANN m_uint union_push(const Env env, const Stmt_Union stmt) {
-  const Type type = stmt->xid ? stmt->value->type : stmt->type_xid ?
-    stmt->type : NULL;
-  return type ? env_push_type(env, type) : GET_FLAG(stmt, global) ?
+ANN m_uint union_push(const Env env, const Union_Def udef) {
+  const Type type = udef->xid ? udef->value->type : udef->type_xid ?
+    udef->type : NULL;
+  return type ? env_push_type(env, type) : GET_FLAG(udef, global) ?
     env_push_global(env) : env->scope->depth;
 }
 
-ANN void union_pop(const Env env, const Stmt_Union stmt, const m_uint scope) {
-  if(stmt->xid || stmt->type_xid || GET_FLAG(stmt, global))
+ANN void union_pop(const Env env, const Union_Def udef, const m_uint scope) {
+  if(udef->xid || udef->type_xid || GET_FLAG(udef, global))
     env_pop(env, scope);
 }

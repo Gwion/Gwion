@@ -13,11 +13,11 @@
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
     if(GET_FLAG(a, union)) {
-      if(a->e->def->stmt && !GET_FLAG(a, pure))  { // <=> decl_list
-          UNSET_FLAG(&a->e->def->stmt->d.stmt_union, global);
-          free_stmt(gwion->mp, a->e->def->stmt);
+      if(a->e->def->union_def && !GET_FLAG(a, pure))  { // <=> decl_list
+          UNSET_FLAG(a->e->def->union_def, global);
+          free_union_def(gwion->mp, a->e->def->union_def);
       }
-      a->e->def->stmt = NULL;
+      a->e->def->union_def = NULL;
     } else
       free_class_def(gwion->mp, a->e->def);
   }

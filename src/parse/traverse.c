@@ -26,10 +26,10 @@ ANN m_bool traverse_func_def(const Env env, const Func_Def def) {
   return GW_ERROR;
 }
 
-ANN m_bool traverse_stmt_union(const Env env, const Stmt_Union def) {
-  CHECK_BB(scan1_stmt_union(env, def))
-  CHECK_BB(scan2_stmt_union(env, def))
-  return check_stmt_union(env, def);
+ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
+  CHECK_BB(scan1_union_def(env, def))
+  CHECK_BB(scan2_union_def(env, def))
+  return check_union_def(env, def);
 }
 
 ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {

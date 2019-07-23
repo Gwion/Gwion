@@ -180,10 +180,10 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
       map_set((Map)vector_front((Vector)&t->e->owner->info->type->ptr), (vtype)a->base.xid, (vtype)a->base.type);
     } else {
-      a->stmt = new_stmt_union(env->gwion->mp, a->list, t->e->def->pos);
-      a->stmt->d.stmt_union.type_xid = a->base.xid;
-      CHECK_BO(scan0_stmt_union(env, &a->stmt->d.stmt_union))
-      a->base.type = a->stmt->d.stmt_union.type;
+      a->union_def = new_union_def(env->gwion->mp, a->list, t->e->def->pos);
+      a->union_def->type_xid = a->base.xid;
+      CHECK_BO(scan0_union_def(env, a->union_def))
+      a->base.type = a->union_def->type;
       a->base.type->e->def = a;
       assert(GET_FLAG(a, union));
     }
