@@ -24,7 +24,10 @@ get_list() {
 
 get_test() {
   for (( i=0; i<=$(( ${#language[@]} -1 )); i++ ))
-  do echo "${language[$i]} $(run "${language[$i]}" "${extension[$i]}" "$1")"
+  do
+    if [ -f "$test_dir/$1.${extension[$i]}" ]
+    then echo "${language[$i]} $(run "${language[$i]}" "${extension[$i]}" "$1")"
+    fi
   done > "docs/assets/benchmark/$1.dat"
 }
 
