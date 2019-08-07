@@ -146,6 +146,8 @@ static OP_EMIT(opem_at_object) {
 
 static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
   const Type ret = type_copy(p, t);
+  if(ret->nspc)
+    ADD_REF(ret->nspc)
   ret->name = s_name(sym);
   ret->flag = t->flag | ae_flag_force;
   map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)ret);

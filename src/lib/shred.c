@@ -139,8 +139,11 @@ describe_path_and_dir(_code, s->code->name)
 static DTOR(shred_dtor) {
   VM *vm = ME(o)->info->vm;
   free_vm_shred(ME(o));
-  if(isa(o->type_ref, t_fork) > 0)
+  if(isa(o->type_ref, t_fork) > 0) {
+//gwion_end(vm->gwion);
+//  mp_free(shred->info->mp, Gwion, vm->gwion);
     free_vm(vm);
+}
 }
 
 static MFUN(shred_lock) {
@@ -153,7 +156,7 @@ static MFUN(shred_unlock) {
 
 static DTOR(fork_dtor) {
   THREAD_JOIN(FORK_THREAD(o));
-  mp_free(shred->info->mp, Gwion, ME(o)->info->vm->gwion);
+//  mp_free(shred->info->mp, Gwion, ME(o)->info->vm->gwion);
 }
 
 static MFUN(fork_join) {

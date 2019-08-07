@@ -4,7 +4,7 @@
 ANN static Stmt cpy_stmt(MemPool p, const Stmt src);
 ANN static Exp cpy_exp(MemPool p, const Exp src);
 ANN static ID_List cpy_id_list(MemPool p, const ID_List src);
-ANN static Type_List cpy_type_list(MemPool p, const Type_List src);
+ANN Type_List cpy_type_list(MemPool p, const Type_List src);
 ANN static Arg_List cpy_arg_list(MemPool p, const Arg_List src);
 ANN Class_Def cpy_class_def(MemPool p, const Class_Def src);
 ANN static Stmt_List cpy_stmt_list(MemPool p, const Stmt_List src);
@@ -74,7 +74,7 @@ ANN static ID_List cpy_id_list(MemPool p, const ID_List src) {
   return a;
 }
 
-ANN static Type_List cpy_type_list(MemPool p, const Type_List src) {
+ANN Type_List cpy_type_list(MemPool p, const Type_List src) {
   Type_List a = mp_calloc(p, Type_List);
   if(src->td)
     a->td = cpy_type_decl(p, src->td); // 1 

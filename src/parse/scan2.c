@@ -86,7 +86,6 @@ ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
       CHECK_BB(scan2_args(env, def))
   } else
     SET_FLAG(fptr->type, func);
-  nspc_add_func(fptr->type->e->owner, fptr->base->xid, fptr->base->func);
   return GW_OK;
 }
 
@@ -309,7 +308,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(env->gwion->mp, t, t->name);
+  const Value v = new_value(env->gwion->mp, t, s_name(insert_symbol(t->name)));
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);

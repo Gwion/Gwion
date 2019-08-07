@@ -72,7 +72,7 @@ scanx_parent(const Type t, const _exp_func f, void* d) {
 
 ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
     const _exp_func f_cdef, const _exp_func f_union) {
-  if(cdef->base.type->e->parent !=  t_union)
+  if(cdef->base.type && cdef->base.type->e->parent !=  t_union)
      return f_cdef(opt, cdef);
   CHECK_BB(template_push_types(env, cdef->base.tmpl))
   const m_bool ret = f_union(opt, cdef->union_def);

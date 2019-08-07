@@ -123,7 +123,7 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
   DECL_OO(const Symbol, name, = template_id(env, def, call))
   if(env->class_def && name == insert_symbol(env->class_def->name))
      return env->class_def->e->def;
-  const Type t = nspc_lookup_type1(env->curr, name);
+  const Type t = nspc_lookup_type0(env->curr, name);
   if(t)
     return t->e->def;
   const Class_Def c = cpy_class_def(env->gwion->mp, def);
@@ -157,7 +157,7 @@ extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
 ANN Tmpl* mk_tmpl(const Env env, const Type t, const Tmpl *tm, const Type_List types) {
   Tmpl *tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t, tm), 0);
-  tmpl->call = types;
+  tmpl->call = cpy_type_list(env->gwion->mp, types);
   return tmpl;
 }
 
@@ -177,8 +177,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
     if(t->e->parent !=  t_union) {
       CHECK_BO(scan0_class_def(env, a))
-      map_set(&t->e->owner->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
-      map_set((Map)vector_front((Vector)&t->e->owner->info->type->ptr), (vtype)a->base.xid, (vtype)a->base.type);
+      map_set(&env->curr->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
     } else {
       a->union_def = new_union_def(env->gwion->mp, a->list, t->e->def->pos);
       a->union_def->type_xid = a->base.xid;
@@ -202,10 +201,11 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       if(base_type)
         return base_type;
       const Type ret = type_copy(env->gwion->mp, t);
+      ADD_REF(ret->nspc)
       ret->e->parent = t;
       ret->name = s_name(sym);
       SET_FLAG(ret, func);
-      nspc_add_type(env->curr, sym, ret);
+      map_set(&t->e->owner->info->type->map, sym, ret);
       const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
       const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
       const Value value = new_value(env->gwion->mp, ret, s_name(sym));
@@ -216,7 +216,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       func->value_ref = value;
       func->def->base->tmpl = mk_tmpl(env, t, t->e->d.func->def->base->tmpl, type->types);
       def->base->func = func;
-      nspc_add_value(env->curr, sym, value);
+      map_set(&t->e->owner->info->value->map, sym, value); // to base ?
       return ret;
     }
     ERR_O(type->xid->pos,

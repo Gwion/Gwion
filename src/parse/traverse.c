@@ -58,6 +58,7 @@ ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
   if(!GET_FLAG(def, scan1))
     CHECK_BB(scan1_class_def(env, def))
-  CHECK_BB(scan2_class_def(env, def))
+  if(!GET_FLAG(def, scan2))
+    CHECK_BB(scan2_class_def(env, def))
   return check_class_def(env, def);
 }

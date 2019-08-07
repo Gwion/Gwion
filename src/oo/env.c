@@ -93,10 +93,9 @@ ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(env->gwion->mp, t_class);
   v_type->e->d.base_type = type;
   SET_FLAG(type, builtin);
-  nspc_add_type(env->curr, insert_symbol(type->name), type);
-//  map_set(&env->curr->info->type->map, insert_symbol(type->name), type);
-//  map_set(vector_back(&env->curr->info->type->ptr), insert_symbol(type->name), type);
-  const Value v = new_value(env->gwion->mp, v_type, type->name);
+  const Symbol sym = insert_symbol(type->name);
+  map_set(&env->curr->info->type->map, (vtype)sym, (vtype)type);
+  const Value v = new_value(env->gwion->mp, v_type, s_name(sym));
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
   type->e->owner = env->curr;

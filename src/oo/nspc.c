@@ -58,7 +58,6 @@ ANN static void free_nspc(Nspc a, Gwion gwion) {
   if(a->info->op_map.ptr)
     free_op_map(&a->info->op_map, gwion);
   nspc_free_type(a, gwion);
-
   if(a->info->class_data)
     mp_free2(gwion->mp, a->info->class_data_size, a->info->class_data);
   if(a->info->vtable.ptr)

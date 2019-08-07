@@ -14,16 +14,16 @@
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   map_set(&nspc->info->type->map, (m_uint)insert_symbol(t->name), (m_uint)t);
-//  map_set((Map)vector_front((Vector)&nspc->info->type->ptr), (m_uint)insert_symbol(t->name), (m_uint)t);
 }
 
 ANN static Value mk_class(const Env env, const Type base) {
+  const Symbol sym = insert_symbol(base->name);
   const Type t = type_copy(env->gwion->mp, t_class);
-  const Value v = new_value(env->gwion->mp, t, base->name);
+  const Value v = new_value(env->gwion->mp, t, s_name(sym));
   t->e->d.base_type = base;
   v->owner = base->e->owner;
   SET_FLAG(v, const | ae_flag_checked);
-  nspc_add_value(base->e->owner, insert_symbol(base->name), v);
+  map_set(&base->e->owner->info->value->map, sym, v);
   return v;
 }
 
@@ -114,6 +114,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type
 
 ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base) {
   tdef->type = type_copy(env->gwion->mp, base);
+  ADD_REF(tdef->type->nspc)
   tdef->type->name = s_name(tdef->xid);
   tdef->type->e->parent = base;
   add_type(env, env->curr, tdef->type);
@@ -208,15 +209,15 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   } else {
     const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
-// TODO make unique names
-    const Type t = union_type(env, nspc, insert_symbol("union"), 1);
-    udef->value = new_value(env->gwion->mp, t, "union");
+    char name[7 + strlen(env->name) + 1]; // add pos
+    sprintf(name, "@union:%s", env->name);
+    const Symbol sym = insert_symbol(name);
+    const Type t = union_type(env, nspc, sym, 1);
+    udef->value = new_value(env->gwion->mp, t, s_name(sym));
     udef->value->owner_class = env->class_def;
     udef->value->owner = nspc;
     nspc_add_value(nspc, udef->xid, udef->value);
-    char c[16];
-    sprintf(c, "%p", udef);
-    nspc_add_type(nspc, insert_symbol(c), t);
+    add_type(env, nspc, t);
     SET_FLAG(udef->value, checked | udef->flag);
     SET_FLAG(t, scan1);
   }
@@ -256,7 +257,8 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(cdef->base.xid), t_object);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
-  t->nspc->parent = (GET_FLAG(cdef, global) ? env_nspc(env) : env->curr);
+//  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
+  t->nspc->parent = GET_FLAG(cdef, global) ? env->global_nspc : env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
   if(!strstr(t->name, "<"))

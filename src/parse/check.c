@@ -220,11 +220,17 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
 ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
-    const Value v = new_value(env->gwion->mp, t_string, str);
     char c[strlen(str) + 8];
     sprintf(c, "%s:string", str);
-    nspc_add_value(env_nspc(env), insert_symbol(c), v);
-    prim->value = v;
+    const Symbol sym = insert_symbol(c);
+    const Value exist = nspc_lookup_value0(env->global_nspc, sym);
+    if(exist)
+      prim->value = exist;
+    else {
+      const Value v = new_value(env->gwion->mp, t_string, s_name(sym));
+      nspc_add_value(env->global_nspc, sym, v);
+      prim->value = v;
+    }
   }
   return t_string;
 }
@@ -480,7 +486,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
-CHECK_BO(check_call(env, exp))
+  CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
@@ -492,7 +498,7 @@ CHECK_BO(check_call(env, exp))
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
   fbase->tmpl->base = 0;
-  fbase->tmpl->call = types;
+  fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
   if(template_push_types(env, fbase->tmpl) > 0) {
     const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
     if(value) {
@@ -528,7 +534,7 @@ CHECK_BO(check_call(env, exp))
           continue;
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
         SET_FLAG(fdef, template);
-        fdef->base->tmpl->call = types;
+        fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
         fdef->base->tmpl->base = i;
         if((m_func = ensure_tmpl(env, fdef, exp)))
           break;
@@ -598,6 +604,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   if(f) {
     Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
     tmpl->list = v->d.func_ref ? v->d.func_ref->def->base->tmpl->list : func->func->type->e->d.func->def->base->tmpl->list;
+//    tmpl->list = cpy_id_list(env->gwion->mp, tmpl->list);
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
   }
@@ -694,10 +701,6 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_BO(check_exp_call1_check(env, exp->func))
   if(exp->func->type == t_lambda)
     return check_lambda_call(env, exp);
-  if(GET_FLAG(exp->func->type->e->d.func, ref)) {
-    const Value value = exp->func->type->e->d.func->value_ref;
-    CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
-  }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   if(GET_FLAG(exp->func->type, func))
@@ -941,6 +944,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     ptr = type_decl_resolve(env, &td);
     if(!GET_FLAG(ptr, checked))
       check_class_def(env, ptr->e->def);
+//      CHECK_BB(traverse_class_def(env, ptr->e->def))
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
