@@ -1,0 +1,4 @@
+<~int,int~>Tuple @a;
+
+<<< a >>>;
+<<< a $ <~int~>Tuple >>>;

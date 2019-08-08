@@ -183,17 +183,17 @@ static OP_EMIT(opem_object_cast) {
 
 static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = ((Exp)imp->e)->type;
+  const Type l = imp->e->type;
   const Type r = imp->t;
   if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == t_null)
     return t_null;
-  ((Exp)imp->e)->cast_to = r;
+  imp->e->cast_to = r;
   return imp->t;
 }
 
 static OP_EMIT(opem_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = ((Exp)imp->e)->type;
+  const Type l = imp->e->type;
   const Type r = imp->t;
   if(nonnull_check(l, r))
     emit_add_instr(emit, GWOP_EXCEPT);

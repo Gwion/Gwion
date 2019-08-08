@@ -155,6 +155,22 @@ extern ANN m_bool scan1_class_def(const Env, const Class_Def);
 extern ANN m_bool traverse_func_def(const Env, const Func_Def);
 extern ANN m_bool traverse_class_def(const Env, const Class_Def);
 
+ANN Type scan_tuple(const Env env, const Type_Decl *td) {
+  struct Vector_ v;
+  vector_init(&v);
+  Type_List tl = td->types;
+  do {
+    const Type t = tl->td->xid->xid != insert_symbol("_") ?
+       known_type(env, tl->td) : 1;
+    if(!t)
+      break;
+    vector_add(&v, (m_uint)t);
+  } while((tl = tl->next));
+  const Type ret = tuple_type(env, &v, td_pos(td));
+  vector_release(&v);
+  return ret;
+}
+
 ANN Tmpl* mk_tmpl(const Env env, const Type t, const Tmpl *tm, const Type_List types) {
   Tmpl *tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t, tm), 0);
   tmpl->call = cpy_type_list(env->gwion->mp, types);
@@ -165,34 +181,40 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref))
       return t;
-    if(!type->types)
-      ERR_O(t->e->def->pos,
-        _("you must provide template types for type '%s'"), t->name)
-    if(template_match(t->e->def->base.tmpl->list, type->types) < 0)
-      ERR_O(type->xid->pos, _("invalid template types number"))
-    DECL_OO(const Class_Def, a, = template_class(env, t->e->def, type->types))
-    SET_FLAG(a, ref);
-    if(a->base.type)
-      return a->base.type;
-    a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
-    if(t->e->parent !=  t_union) {
-      CHECK_BO(scan0_class_def(env, a))
-      map_set(&env->curr->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
-    } else {
-      a->union_def = new_union_def(env->gwion->mp, a->list, t->e->def->pos);
-      a->union_def->type_xid = a->base.xid;
-      CHECK_BO(scan0_union_def(env, a->union_def))
-      a->base.type = a->union_def->type;
-      a->base.type->e->def = a;
-      assert(GET_FLAG(a, union));
-    }
-    SET_FLAG(a->base.type, template | ae_flag_ref);
-    a->base.type->e->owner = t->e->owner;
-    if(GET_FLAG(t, builtin))
+    if(!type->types) {
+      if(t != t_tuple)
+        ERR_O(t->e->def->pos,
+          _("you must provide template types for type '%s'"), t->name)
+      return t;
+   }
+   if(t->e->def) {// not tuple
+     if(template_match(t->e->def->base.tmpl->list, type->types) < 0)
+       ERR_O(type->xid->pos, _("invalid template types number"))
+      DECL_OO(const Class_Def, a, = template_class(env, t->e->def, type->types))
+      SET_FLAG(a, ref);
+      if(a->base.type)
+        return a->base.type;
+      a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
+      if(t->e->parent !=  t_union) {
+        CHECK_BO(scan0_class_def(env, a))
+        map_set(&env->curr->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
+      } else {
+        a->union_def = new_union_def(env->gwion->mp, a->list, t->e->def->pos);
+        a->union_def->type_xid = a->base.xid;
+        CHECK_BO(scan0_union_def(env, a->union_def))
+        a->base.type = a->union_def->type;
+        a->base.type->e->def = a;
+        assert(GET_FLAG(a, union));
+      }
+      SET_FLAG(a->base.type, template | ae_flag_ref);
+      a->base.type->e->owner = t->e->owner;
+      if(GET_FLAG(t, builtin))
       SET_FLAG(a->base.type, builtin);
-    CHECK_BO(scan1_cdef(env, a))
-    return a->base.type;
-  } else if(type->types) { // TODO: clean me
+      CHECK_BO(scan1_cdef(env, a))
+      return a->base.type;
+    } else
+      return scan_tuple(env, type);
+   } else if(type->types) { // TODO: clean me
     if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {
       DECL_OO(const m_str, tl_name, = tl2str(env, type->types))
       const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);

@@ -17,7 +17,7 @@ struct Op_Import {
 };
 
 struct Implicit {
-  void* e;
+  Exp e;
   Type  t;
   loc_t pos;
 };

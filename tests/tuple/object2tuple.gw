@@ -1,0 +1,8 @@
+class Person {
+  "Phil" @=> string @name;
+  45 => int age;
+}
+
+Person p @=> <~string,int~>Tuple @t;
+<<<t.e0>>>;
+<<<t.e1>>>;

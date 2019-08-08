@@ -21,7 +21,7 @@ ANN static void cpy_exp_lambda(MemPool p, Exp_Lambda *a, const Exp_Lambda *src) 
   a->name = src->name;
 }
 
-ANN static Array_Sub cpy_array_sub(MemPool p, const Array_Sub src) {
+ANN Array_Sub cpy_array_sub(MemPool p, const Array_Sub src) {
   Array_Sub a = mp_calloc(p, Array_Sub);
   if(src->exp)
     a->exp = cpy_exp(p, src->exp);
@@ -51,7 +51,7 @@ ANN static Var_Decl_List cpy_var_decl_list(MemPool p, const Var_Decl_List src) {
   return a;
 }
 
-ANN static Type_Decl* cpy_type_decl(MemPool p, const Type_Decl* src) {
+ANN Type_Decl* cpy_type_decl(MemPool p, const Type_Decl* src) {
   Type_Decl* a = mp_calloc(p, Type_Decl);
   if(src->xid)
     a->xid = cpy_id_list(p, src->xid); // 1 

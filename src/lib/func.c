@@ -241,8 +241,8 @@ static OP_EMIT(opem_fptr_cast) {
 
 static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  struct FptrInfo info = { ((Exp)impl->e)->type->e->d.func, impl->t->e->d.func,
-      (Exp)impl->e, ((Exp)impl->e)->pos };
+  struct FptrInfo info = { impl->e->type->e->d.func, impl->t->e->d.func,
+      impl->e, impl->e->pos };
   CHECK_BO(fptr_do(env, &info))
   return ((Exp)impl->e)->cast_to = impl->t;
 }

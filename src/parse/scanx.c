@@ -17,7 +17,7 @@ ANN static inline m_bool _body(const Env e, Class_Body b, const _exp_func f) {
 }
 
 ANN static inline int actual(const Tmpl *tmpl) {
-  return tmpl->call && tmpl->call != (Type_List)1;
+  return tmpl->call && tmpl->call != (Type_List)1 && tmpl->list;
 }
 
 ANN static inline m_bool tmpl_push(const Env env, const Tmpl* tmpl) {
@@ -31,7 +31,7 @@ ANN static inline m_int _push(const Env env, const Class_Def c) {
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
-  if(c->base.tmpl && actual(c->base.tmpl))
+  if(c->base.tmpl && actual(c->base.tmpl) && c->base.tmpl->list)
     nspc_pop_type(e->gwion->mp, e->curr);
   env_pop(e, s);
 }
@@ -72,7 +72,7 @@ scanx_parent(const Type t, const _exp_func f, void* d) {
 
 ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
     const _exp_func f_cdef, const _exp_func f_union) {
-  if(cdef->base.type && cdef->base.type->e->parent !=  t_union)
+  if(cdef->base.type->e->parent !=  t_union)
      return f_cdef(opt, cdef);
   CHECK_BB(template_push_types(env, cdef->base.tmpl))
   const m_bool ret = f_union(opt, cdef->union_def);

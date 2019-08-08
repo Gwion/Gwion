@@ -42,7 +42,8 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
 }
 
 #define describe_check_decl(a, b)                                 \
-ANN static inline void decl_##a(const Nspc nspc, const Value v) { \
+ANN static inline void decl_##a(const Env env, const Value v) { \
+  const Nspc nspc = env->curr;\
   SET_FLAG(v, a);                                                 \
   v->offset = nspc->info->b;                                      \
   nspc->info->b += v->type->size;                                 \
@@ -115,10 +116,13 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(GET_FLAG(decl->td, member))
-      decl_member(env->curr, v);
+    if(GET_FLAG(decl->td, member) && env->class_def) {
+      decl_member(env, v);
+      if(isa(env->class_def, t_object)  > 0)
+        tuple_info(env, decl->td, var);
+    }
     else if(GET_FLAG(decl->td, static))
-      decl_static(env->curr, v);
+      decl_static(env, v);
     else if(global || (env->func && GET_FLAG(env->func->def, global)))
       SET_FLAG(v, abstract);
     if(isa(decl->type, t_fptr) > 0)
@@ -220,17 +224,11 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
 ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
+    const Value v = new_value(env->gwion->mp, t_string, str);
     char c[strlen(str) + 8];
     sprintf(c, "%s:string", str);
-    const Symbol sym = insert_symbol(c);
-    const Value exist = nspc_lookup_value0(env->global_nspc, sym);
-    if(exist)
-      prim->value = exist;
-    else {
-      const Value v = new_value(env->gwion->mp, t_string, s_name(sym));
-      nspc_add_value(env->global_nspc, sym, v);
-      prim->value = v;
-    }
+    nspc_add_value(env_nspc(env), insert_symbol(c), v);
+    prim->value = v;
   }
   return t_string;
 }
@@ -305,6 +303,19 @@ ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
   return t_gack;
 }
 
+ANN static Type prim_tuple(const Env env, const Exp_Primary * primary) {
+  CHECK_OO(check_exp(env, primary->d.tuple.exp))
+  Exp e = primary->d.tuple.exp;
+  struct Vector_ v;
+  vector_init(&v);
+  do {
+    vector_add(&v, (m_uint)e->type);
+  } while((e = e->next));
+  const Type ret = tuple_type(env, &v, exp_self(primary)->pos);
+  vector_release(&v);
+  return ret;
+}
+
 #define describe_prim_xxx(name, type) \
 ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUSED) {\
   return type; \
@@ -312,12 +323,14 @@ ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUS
 describe_prim_xxx(num, t_int)
 describe_prim_xxx(float, t_float)
 describe_prim_xxx(nil, t_void)
+describe_prim_xxx(unpack, t_tuple)
 
 typedef Type (*_type_func)(const Env, const void*);
 static const _type_func prim_func[] = {
-  (_type_func)prim_id,    (_type_func)prim_num,  (_type_func)prim_float, (_type_func)prim_str,
-  (_type_func)prim_array, (_type_func)prim_gack, (_type_func)prim_vec,   (_type_func)prim_vec,
-  (_type_func)prim_vec,   (_type_func)prim_num,  (_type_func)prim_nil,
+  (_type_func)prim_id,    (_type_func)prim_num,   (_type_func)prim_float, (_type_func)prim_str,
+  (_type_func)prim_array, (_type_func)prim_gack,  (_type_func)prim_vec,   (_type_func)prim_vec,
+  (_type_func)prim_vec,   (_type_func)prim_tuple, (_type_func)prim_unpack,
+  (_type_func)prim_num,   (_type_func)prim_nil,
 };
 
 ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
@@ -325,11 +338,13 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
 }
 
 ANN Type at_depth(const Env env, const Type t, const m_uint depth) {
+  if(!depth)
+    return t;
   if(GET_FLAG(t, typedef))
-    return !depth ? t : at_depth(env, t->e->parent, depth);
+    return at_depth(env, t->e->parent, depth);
   if(depth > t->array_depth)
     return at_depth(env, t->e->d.base_type, depth - t->array_depth);
-  return !depth ? t : array_type(env, array_base(t), t->array_depth - depth);
+  return array_type(env, array_base(t), t->array_depth - depth);
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
@@ -346,16 +361,40 @@ static m_bool array_access_valid(const Env env, const Exp_Array* array) {
   if(depth != array->array->depth)
     ERR_B(exp_self(array)->pos, _("invalid array acces expression."))
   DECL_OB(const Type, t_base,  = check_exp(env, array->base))
-  if(depth > get_depth(t_base))
+  if(depth > get_depth(t_base)) {
+    const Type type = array_base(t_base) ?: t_base;
+    if(isa(type, t_tuple) > 0 && depth - get_depth(t_base) == 1) {
+      Exp e = array->array->exp;
+      while(e->next)
+        e = e->next;
+      if(e->exp_type != ae_exp_primary ||
+          e->d.exp_primary.primary_type != ae_primary_num)
+         ERR_B(exp_self(array)->pos, _("tuple subscripts must be litteral"))
+      if((Type)vector_at(&type->e->tuple_form, e->d.exp_primary.d.num) == t_undefined)
+         ERR_B(exp_self(array)->pos, _("tuple subscripts is undefined"))
+      return 0;
+    }
     ERR_B(exp_self(array)->pos,
       _("array subscripts (%i) exceeds defined dimension (%i)"),
-      array->array->depth, depth)
+          array->array->depth, get_depth(t_base))
+  }
   return GW_OK;
 }
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO(check_exp(env, array->array->exp))
-  CHECK_BO(array_access_valid(env, array))
+  const m_bool ret = array_access_valid(env, array);
+  CHECK_BO(ret);
+  if(!ret) {
+    Exp e = array->array->exp;
+    while(e->next)
+      e = e->next;
+    // if we implement tuple with no type, err_msg
+    const Type type = array_base(array->base->type) ?: array->base->type;
+    if(e->d.exp_primary.d.num >= vector_size(&type->e->tuple_form))
+      ERR_O(exp_self(array)->pos, "Invalid tuple subscript")
+    return (Type)vector_at(&type->e->tuple_form, e->d.exp_primary.d.num);
+  }
   return at_depth(env, array->base->type, array->array->depth);
 }
 
@@ -486,7 +525,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
-  CHECK_BO(check_call(env, exp))
+CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
@@ -498,7 +537,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
   fbase->tmpl->base = 0;
-  fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
+  fbase->tmpl->call = types;
   if(template_push_types(env, fbase->tmpl) > 0) {
     const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
     if(value) {
@@ -534,7 +573,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
           continue;
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
         SET_FLAG(fdef, template);
-        fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
+        fdef->base->tmpl->call = types;
         fdef->base->tmpl->base = i;
         if((m_func = ensure_tmpl(env, fdef, exp)))
           break;
@@ -604,7 +643,6 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   if(f) {
     Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
     tmpl->list = v->d.func_ref ? v->d.func_ref->def->base->tmpl->list : func->func->type->e->d.func->def->base->tmpl->list;
-//    tmpl->list = cpy_id_list(env->gwion->mp, tmpl->list);
     ((Exp_Call*)func)->tmpl = tmpl;
     return ((Exp_Call*)func)->m_func = f;
   }
@@ -701,6 +739,10 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_BO(check_exp_call1_check(env, exp->func))
   if(exp->func->type == t_lambda)
     return check_lambda_call(env, exp);
+  if(GET_FLAG(exp->func->type->e->d.func, ref)) {
+    const Value value = exp->func->type->e->d.func->value_ref;
+    CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
+  }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   if(GET_FLAG(exp->func->type, func))
@@ -871,7 +913,7 @@ ANN static inline Type check_exp(const Env env, const Exp exp) {
 ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
   if(env->class_def) {
     ID_List list = edef->list;
-    do decl_static(env->curr, nspc_lookup_value0(env->curr, list->xid));
+    do decl_static(env, nspc_lookup_value0(env->curr, list->xid));
     while((list = list->next));
   }
   return GW_OK;
@@ -917,7 +959,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   const m_uint depth = t->array_depth - 1;
   if(GET_FLAG(t, typedef))
     t = t->e->parent;
-  if(!t || !ptr || isa(t, t_array) < 0)
+  if(!ptr || isa(t, t_array) < 0)
     ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
           " This is not allowed in auto loop"), stmt->exp->type->name)
   if(stmt->is_ptr) {
@@ -941,10 +983,11 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       array.depth = depth;
       td.array = &array;
     }
-    ptr = type_decl_resolve(env, &td);
+//    ptr = type_decl_resolve(env, &td); exit(3);
+    ptr = known_type(env, &td);
     if(!GET_FLAG(ptr, checked))
       check_class_def(env, ptr->e->def);
-//      CHECK_BB(traverse_class_def(env, ptr->e->def))
+//      traverse_class_def(env, ptr->e->def);
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
@@ -1054,7 +1097,7 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
     return GW_OK;
   if(udef->xid) {
     if(env->class_def)
-      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env->curr, udef->value);
+      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env, udef->value);
   } else if(env->class_def)  {
     if(!GET_FLAG(udef, static))
       udef->o = env->class_def->nspc->info->offset;

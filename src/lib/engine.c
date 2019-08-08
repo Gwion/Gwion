@@ -35,9 +35,10 @@ static FREEARG(freearg_gack) {
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
-  GWI_OB((t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL))) // size = SZ_INT to enable declarations
   GWI_OB((t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL)))
   GWI_BB(gwi_add_type(gwi, t_class))
+  GWI_OB((t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL))) // size = SZ_INT to enable declarations
+  GWI_BB(gwi_add_type(gwi, t_undefined))
   GWI_OB((t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL))) // size = SZ_INT to enable declarations
   GWI_BB(gwi_add_type(gwi, t_auto))
   SET_FLAG(t_class, abstract);
@@ -50,7 +51,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_OB((t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function)))
   GWI_BB(gwi_add_type(gwi, t_fptr))
   GWI_OB((t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, t_function)))
-  GWI_BB(gwi_add_type(gwi, t_fptr))
+  GWI_BB(gwi_add_type(gwi, t_lambda))
   GWI_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
   GWI_BB(gwi_add_type(gwi, t_gack))
   GWI_OB((t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL)))
@@ -71,6 +72,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
   GWI_BB(gwi_class_ini(gwi, t_union, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
+  GWI_BB(import_tuple(gwi))
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))

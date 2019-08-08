@@ -16,6 +16,8 @@ ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, t, = known_type(env, td))
+  if(t->e->def && !GET_FLAG(t, scan1))
+    CHECK_BO(scan1_cdef(env, t->e->def))
   if(t->size)
     return t;
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
@@ -64,8 +66,8 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     if(!GET_FLAG(decl->td, static))
       SET_FLAG(decl->td, member);
   }
-  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
-    ERR_O(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
+//  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
+//    ERR_O(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
   if(GET_FLAG(t, private) && t->e->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
@@ -87,22 +89,26 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former)
+    if(former && t != t_auto)
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
       if(var->array->exp) {
-        if(GET_FLAG(decl->td, ref))
+//        if(GET_FLAG(decl->td, ref))
+        if(GET_FLAG(decl->td, ref) && isa(t, t_object) < 0)
           ERR_B(td_pos(decl->td), _("ref array must not have array expression.\n"
-            "e.g: int @my_array[];\nnot: @int my_array[2];"))
+            "e.g: int @my_array[];\nnot: int @my_array[2];"))
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
       t = array_type(env, decl->type, var->array->depth);
-    }
-    assert(!var->value);
-    const Value v = var->value = new_value(env->gwion->mp, t, s_name(var->xid));
+    } else  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
+      ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
+
+    //assert(!var->value);
+    const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;
+    v->type = t;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
     if(!env->scope->depth && !env->class_def)
@@ -127,6 +133,10 @@ ANN static inline m_bool scan1_exp_primary(const Env env, const Exp_Primary* pri
     return scan1_exp(env, prim->d.exp);
   if(prim->primary_type == ae_primary_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
+  if(prim->primary_type == ae_primary_tuple)
+    return scan1_exp(env, prim->d.tuple.exp);
+//  if(prim->primary_type == ae_primary_unpack)
+//    return scan1_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 
@@ -246,7 +256,9 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
-  return tdef->type->e->def ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
+  if(!tdef->type->e->def)return GW_OK;
+//  return tdef->type->e->def ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
+  return isa(tdef->type, t_fptr) < 0 ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
@@ -358,7 +370,8 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if(isa(parent, t_object) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
-    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
+//    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
+    CHECK_BB(scan1_cdef(env, parent->e->def))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;

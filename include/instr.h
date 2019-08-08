@@ -64,6 +64,9 @@ INSTR(PopArrayClass);
 INSTR(DotTmpl);
 INSTR(GTmpl);
 
+INSTR(TupleCtor);
+INSTR(TupleMember);
+
 struct dottmpl_ {
   size_t len;
   m_str name;

@@ -54,7 +54,7 @@ static OP_CHECK(opck_ptr_cast) {
 
 static OP_CHECK(opck_implicit_ptr) {
   const struct Implicit* imp = (struct Implicit*)data;
-  const Exp e = (Exp)imp->e;
+  const Exp e = imp->e;
   if(!strcmp(get_type_name(env, imp->t->name, 1), e->type->name)) {
     if(e->meta == ae_meta_value)
       ERR_N(e->pos, _("can't cast constant to Ptr"));

@@ -139,7 +139,7 @@ static OP_CHECK(opck_implicit_f2i) {
 
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
-  ((Exp)imp->e)->cast_to = t_float;
+  imp->e->cast_to = t_float;
   return t_float;
 }
 

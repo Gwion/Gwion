@@ -145,11 +145,11 @@ ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
 
-ANN static inline m_uint emit_code_offset(const Emitter emit) {
+ANN /*static inline */m_uint emit_code_offset(const Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
-ANN static inline m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj) {
+ANN /*static inline */m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj) {
   return frame_local(emit->gwion->mp, emit->code->frame, size, is_obj);
 }
 
@@ -202,7 +202,7 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
   info->base = base;
   const Instr alloc = emit_add_instr(emit, ArrayAlloc);
   alloc->m_val = (m_uint)info;
-  if(isa(base, t_object) > 0) {
+  if(isa(base, t_object) > 0 && !GET_FLAG(base, abstract)) {
     emit_pre_constructor_array(emit, base);
     info->is_obj = 1;
   }
@@ -395,8 +395,54 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
 
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   const m_uint is_var = exp_self(array)->emit_var;
-  const m_uint depth = get_depth(array->base->type) - get_depth(exp_self(array)->type);
   CHECK_BB(emit_exp(emit, array->base, 0))
+  const m_uint depth = get_depth(array->base->type) - get_depth(exp_self(array)->type);
+
+const Type t_base = array->base->type;
+Type type = array_base(t_base) ?: t_base;
+if(isa(type, t_tuple) > 0 && isa(exp_self(array)->type, t_tuple) < 0) {
+  Exp e = array->array->exp;
+  while(e->next && e->next->next)
+    e = e->next;
+  const Exp next = e->next;
+  if(!next) {
+      emit_add_instr(emit, GWOP_EXCEPT);
+      const Instr instr = emit_add_instr(emit, TupleMember);
+      instr->m_val = array->array->exp->d.exp_primary.d.num;
+      instr->m_val2 = is_var;
+      emit_add_instr(emit, DotMember); // just a place holder.
+      return GW_OK;
+    }
+    emit_add_instr(emit, GcAdd);
+    e->next = NULL;
+    CHECK_BB(emit_exp(emit, array->array->exp, 0))
+    e->next = next;
+    regpop(emit, (depth) * SZ_INT);
+    emit_add_instr(emit, GWOP_EXCEPT);
+assert(depth);
+    if(depth)
+    for(m_uint i = 0; i < depth-1; ++i) {
+      const Instr access = emit_add_instr(emit, ArrayAccess);
+      access->m_val = i;
+      const Instr get = emit_add_instr(emit, ArrayGet);
+      get->m_val = i;
+      get->m_val2 = -SZ_INT;
+      emit_add_instr(emit, GWOP_EXCEPT);
+    }
+    regpop(emit, SZ_INT);
+    const Instr access = emit_add_instr(emit, ArrayAccess);
+    access->m_val = depth;
+    const Instr get = emit_add_instr(emit, ArrayGet);
+    get->m_val = depth;
+    const Instr push = emit_add_instr(emit, ArrayValid);
+    push->m_val = SZ_INT;
+    emit_add_instr(emit, GWOP_EXCEPT);
+    const Instr instr = emit_add_instr(emit, TupleMember);
+    instr->m_val = next->d.exp_primary.d.num;
+    instr->m_val2 = is_var;
+    emit_add_instr(emit, DotMember); // just a place holder.
+    return GW_OK;
+  }
   emit_add_instr(emit, GcAdd);
   CHECK_BB(emit_exp(emit, array->array->exp, 0))
   regpop(emit, depth * SZ_INT);
@@ -452,6 +498,13 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
   return GW_OK;
 }
 
+ANN static m_bool prim_tuple(const Emitter emit, const Exp_Primary * primary) {
+  CHECK_BB(emit_exp(emit, primary->d.tuple.exp, 1))
+  const Instr instr = emit_add_instr(emit, TupleCtor);
+  instr->m_val = (m_uint)exp_self(primary)->type;
+  return GW_OK;
+}
+
 ANN static m_bool prim_num(const Emitter emit, const Exp_Primary * primary) {
   regpushi(emit, primary->d.num);
   return GW_OK;
@@ -503,10 +556,12 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   return GW_OK;
 }
 
+#define prim_unpack dummy_func
 static const _exp_func prim_func[] = {
   (_exp_func)prim_id, (_exp_func)prim_num, (_exp_func)prim_float, (_exp_func)prim_str,
   (_exp_func)prim_array, (_exp_func)prim_gack, (_exp_func)prim_vec, (_exp_func)prim_vec,
-  (_exp_func)prim_vec, (_exp_func)prim_char, (_exp_func)dummy_func,
+  (_exp_func)prim_vec, (_exp_func)prim_tuple, (_exp_func)prim_unpack,
+  (_exp_func)prim_char, (_exp_func)dummy_func,
 };
 
 ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) {
@@ -551,7 +606,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   const m_bool is_obj = isa(type, t_object) > 0;
   const uint emit_addr = ((is_ref && !array) || isa(type, t_object) < 0) ?
     emit_var : 1;
-  if(is_obj && (is_array || !is_ref) && !GET_FLAG(var_decl->value, ref))
+  if(is_obj && (is_array || !is_ref)/* && !GET_FLAG(var_decl->value, ref)*/)
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
   if(!GET_FLAG(v, member)) {
@@ -614,14 +669,14 @@ ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_De
 
 ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  const uint  ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
+  const uint ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
   const uint var = exp_self(decl)->emit_var;
   if(GET_FLAG(decl->type, template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
   do {
-    const uint r = (uint)(GET_FLAG(list->self->value, ref) + ref);
+    const uint r = (list->self->array && list->self->array->exp && ref) ? 0 : (uint)(GET_FLAG(list->self->value, ref) + ref);
 //    if(!GET_FLAG(list->self->value, used))
 //      continue;
     if(GET_FLAG(decl->td, static))
@@ -924,7 +979,7 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   const m_bool is_spork = unary->op == insert_symbol("spork");
   const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
-  if(!f) {
+  if(unary->code) {
     emit_add_instr(emit, RegPushImm);
     push_spork_code(emit, is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, unary->code->pos);
     if(!SAFE_FLAG(emit->env->func, member))
@@ -1386,8 +1441,9 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
     exp->d.exp_decl.type = udef->value->type;
     var_decl->value = udef->value;
-    CHECK_BB(emit_exp_decl(emit, &exp->d.exp_decl))
+    const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
     free_exp(emit->gwion->mp, exp);
+    CHECK_BB(ret)
     if(global) {
       const M_Object o = new_object(emit->gwion->mp, NULL, udef->value->type);
       udef->value->d.ptr = (m_uint*)o;

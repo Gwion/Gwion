@@ -18,11 +18,17 @@ ANN static void free_type(Type a, Gwion gwion) {
           free_union_def(gwion->mp, a->e->def->union_def);
       }
       a->e->def->union_def = NULL;
-    } else
+    } else if(a->e->def)
       free_class_def(gwion->mp, a->e->def);
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
+  if(a->e->tuple_form.ptr)
+    vector_release(&a->e->tuple_form);
+  if(a->e->tuple_offset.ptr)
+    vector_release(&a->e->tuple_offset);
+  if(a->e->tuple_tl)
+    free_type_list(gwion->mp, a->e->tuple_tl);
   if(a->e->contains.ptr) {
     for(m_uint i = 0; i < vector_size(&a->e->contains); ++i)
       REM_REF((Type)vector_at(&a->e->contains, i), gwion);
@@ -38,8 +44,12 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->name   = name;
   type->e = mp_calloc(p, TypeInfo);
   type->e->parent = parent;
-  if(type->e->parent)
+  if(type->e->parent) {
     type->size = parent->size;
+    vector_init(&type->e->tuple_form);
+    vector_init(&type->e->tuple_offset);
+    vector_add(&type->e->tuple_offset, 0);
+  }
   type->ref = new_refcount(p, free_type);
   return type;
 }
@@ -52,6 +62,12 @@ ANN Type type_copy(MemPool p, const Type type) {
   a->e->d.base_type   = type->e->d.base_type;
   a->array_depth   = type->array_depth;
   a->e->def           = type->e->def;
+  if(t_function && isa(type, t_function) > 0) {
+    vector_release(&a->e->tuple_form);
+    a->e->tuple_form.ptr = NULL;
+    vector_release(&a->e->tuple_offset);
+    a->e->tuple_offset.ptr = NULL;
+  }
   return a;
 }
 
@@ -138,8 +154,8 @@ ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
   m_uint n = 1;
   const size_t len = name ? strlen(name) : 0;
   const size_t slen = strlen(s);
-  const size_t tlen = slen -len + 1;
-  char c[slen];
+  const size_t tlen = slen - len + 1;
+  char c[slen + 1];
 
   if(!name)
     return index ? NULL : s_name(insert_symbol(s));
@@ -178,4 +194,4 @@ ANN m_uint get_depth(const Type type) {
 
 Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
   t_null, t_object, t_shred, t_fork, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
-  t_function, t_fptr, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto;
+  t_function, t_fptr, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto, t_tuple;

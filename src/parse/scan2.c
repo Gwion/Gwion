@@ -21,7 +21,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Type type = decl->type;
-  if(GET_FLAG(type, template) && !GET_FLAG(type, scan2))
+  if(type->e->def && /*GET_FLAG(type, template) &&*/ !GET_FLAG(type, scan2))
     CHECK_BB(scan2_cdef(env, decl->type->e->def))
   Var_Decl_List list = decl->list;
   do {
@@ -86,11 +86,14 @@ ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
       CHECK_BB(scan2_args(env, def))
   } else
     SET_FLAG(fptr->type, func);
+//  nspc_add_func(fptr->type->e->owner, fptr->base->xid, fptr->base->func);
   return GW_OK;
 }
 
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
-  return tdef->type->e->def ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
+//  return tdef->type->e->def ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
+  if(!tdef->type->e->def) return GW_OK;
+  return isa(tdef->type, t_fptr) < 0 ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -119,6 +122,10 @@ ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* pri
       SET_FLAG(v, used);
   } else if(prim->primary_type == ae_primary_array && prim->d.array->exp)
     return scan2_exp(env, prim->d.array->exp);
+  if(prim->primary_type == ae_primary_tuple)
+    return scan2_exp(env, prim->d.tuple.exp);
+//  if(prim->primary_type == ae_primary_unpack)
+//    return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 
@@ -308,7 +315,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(env->gwion->mp, t, s_name(insert_symbol(t->name)));
+  const Value v = new_value(env->gwion->mp, t, t->name);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
