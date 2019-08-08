@@ -182,25 +182,23 @@ static OP_EMIT(opem_at_tuple) {
 
 ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
   const Value v = var->value;
-  if(v->name[0] != '@') {
-    const m_uint offset = vector_back(&env->class_def->e->tuple_offset);
-    vector_add(&env->class_def->e->tuple_form, (vtype)v->type);
-    vector_add(&env->class_def->e->tuple_offset, offset + v->type->size);
-    Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
-    if(var->array) {
-      if(td->array)
-        td->array->depth += var->array->depth;
-      else
-        td->array = cpy_array_sub(env->gwion->mp, var->array);
-    }
-    if(env->class_def->e->tuple_tl) {
-      Type_List tl = env->class_def->e->tuple_tl;
-      while(tl->next)
-        tl = tl->next;
-      tl->next = new_type_list(env->gwion->mp, td, NULL);
-    } else
-    env->class_def->e->tuple_tl = new_type_list(env->gwion->mp, td, NULL);
+  const m_uint offset = vector_back(&env->class_def->e->tuple_offset);
+  vector_add(&env->class_def->e->tuple_form, (vtype)v->type);
+  vector_add(&env->class_def->e->tuple_offset, offset + v->type->size);
+  Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
+  if(var->array) {
+    if(td->array)
+      td->array->depth += var->array->depth;
+    else
+      td->array = cpy_array_sub(env->gwion->mp, var->array);
   }
+  if(env->class_def->e->tuple_tl) {
+    Type_List tl = env->class_def->e->tuple_tl;
+    while(tl->next)
+      tl = tl->next;
+    tl->next = new_type_list(env->gwion->mp, td, NULL);
+  } else
+  env->class_def->e->tuple_tl = new_type_list(env->gwion->mp, td, NULL);
 }
 
 INSTR(TupleCtor) {
