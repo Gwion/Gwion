@@ -1,6 +1,5 @@
 #! [contains] Tom
 fun void test(<~string~>Tuple t) {
-#!  <<< t.e0 >>>;
   <<< t[0] >>>;
 }
 

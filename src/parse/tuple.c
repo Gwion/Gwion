@@ -41,7 +41,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   Type_List tlbase = NULL, tl = NULL;
   for(m_uint i = 0; i < vector_size(v); ++i) {
     char name[num_digit(i) + 2];
-    sprintf(name, "e%lu", i);
+    sprintf(name, "@e%lu", i);
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);
     const Symbol tsym = insert_symbol(t != 1 ? t->name : "@Undefined");

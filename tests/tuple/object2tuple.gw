@@ -4,5 +4,5 @@ class Person {
 }
 
 Person p @=> <~string,int~>Tuple @t;
-<<<t.e0>>>;
-<<<t.e1>>>;
+<<<t[0]>>>;
+<<<t[1]>>>;
