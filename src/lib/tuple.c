@@ -45,8 +45,8 @@ INSTR(TupleMember) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   const Type base = o->type_ref;
   const m_bit* byte = shred->code->bytecode + shred->pc * BYTECODE_SZ;
-  const Type t = (Type)vector_at(&base->e->tuple_form, instr->m_val);
-  const m_uint offset = vector_at(&base->e->tuple_offset, instr->m_val);
+  const Type t = (Type)vector_at(&base->e->tuple->types, instr->m_val);
+  const m_uint offset = vector_at(&base->e->tuple->offset, instr->m_val);
   *(m_uint*)(byte + SZ_INT) = offset;
   if(!instr->m_val2) {
     if(t->size == SZ_INT)
@@ -110,8 +110,8 @@ ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
 }
 
 static m_bool tuple_match(const Env env, const Type type[2]) {
-  const Vector lv = &type[0]->e->tuple_form;
-  const Vector rv = &type[1]->e->tuple_form;
+  const Vector lv = &type[0]->e->tuple->types;
+  const Vector rv = &type[1]->e->tuple->types;
   for(m_uint i = 0; i < vector_size(rv); i++) {
     DECL_OB(const Type, l, = (Type)vector_at(lv, i))
     const Type r = (Type)vector_at(rv, i);
@@ -130,7 +130,7 @@ static OP_CHECK(opck_at_tuple) {
     do {
       if(e->exp_type == ae_exp_decl) {
         e->d.exp_decl.td->xid->xid = insert_symbol(//could be better
-             ((Type)VPTR(&bin->lhs->type->e->tuple_form, i))->name);
+             ((Type)VPTR(&bin->lhs->type->e->tuple->types, i))->name);
         CHECK_BO(traverse_decl(env, &e->d.exp_decl))
       }
       ++i;
@@ -173,7 +173,7 @@ static OP_EMIT(opem_at_tuple) {
     return GW_OK;
   }
   const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
-  const Vector v = &bin->lhs->type->e->tuple_form;
+  const Vector v = &bin->lhs->type->e->tuple->types;
   struct TupleEmit te = { .e=e, .v=v };
   emit_unpack_instr(emit, &te);
   return GW_OK;
@@ -181,9 +181,9 @@ static OP_EMIT(opem_at_tuple) {
 
 ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
   const Value v = var->value;
-  const m_uint offset = vector_back(&env->class_def->e->tuple_offset);
-  vector_add(&env->class_def->e->tuple_form, (vtype)v->type);
-  vector_add(&env->class_def->e->tuple_offset, offset + v->type->size);
+  const m_uint offset = vector_back(&env->class_def->e->tuple->offset);
+  vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
+  vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
   Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
   if(var->array) {
     if(td->array)
@@ -191,13 +191,13 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
     else
       td->array = cpy_array_sub(env->gwion->mp, var->array);
   }
-  if(env->class_def->e->tuple_tl) {
-    Type_List tl = env->class_def->e->tuple_tl;
+  if(env->class_def->e->tuple->list) {
+    Type_List tl = env->class_def->e->tuple->list;
     while(tl->next)
       tl = tl->next;
     tl->next = new_type_list(env->gwion->mp, td, NULL);
   } else
-  env->class_def->e->tuple_tl = new_type_list(env->gwion->mp, td, NULL);
+  env->class_def->e->tuple->list = new_type_list(env->gwion->mp, td, NULL);
 }
 
 INSTR(TupleCtor) {
@@ -288,10 +288,26 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   cdef->base.tmpl = tmpl;
   CHECK_BO(scan0_class_def(env, cdef))
   SET_FLAG(cdef->base.type, abstract);
-  cdef->base.type->e->tuple_tl = tlbase;
+  cdef->base.type->e->tuple->list = tlbase;
 //  CHECK_BO(scan1_cdef(env, cdef))
   CHECK_BO(traverse_cdef(env, cdef))
   nspc_add_type(env->curr, sym, cdef->base.type);
 //  map_set((Map)vector_front(&env->curr->info->type), sym, cdef->base.type);
   return cdef->base.type;
+}
+
+ANN TupleForm new_tupleform(MemPool p) {
+  TupleForm tuple = mp_calloc(p, TupleForm);
+  vector_init(&tuple->types);
+  vector_init(&tuple->offset);
+  vector_add(&tuple->offset, 0);
+  tuple->list = NULL;
+  return tuple;
+}
+
+ANN void free_tupleform(MemPool p, const TupleForm tuple) {
+  vector_release(&tuple->types);
+  vector_release(&tuple->offset);
+  if(tuple->list)
+    free_type_list(p, tuple->list);
 }

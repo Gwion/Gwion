@@ -23,12 +23,8 @@ ANN static void free_type(Type a, Gwion gwion) {
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
-  if(a->e->tuple_form.ptr)
-    vector_release(&a->e->tuple_form);
-  if(a->e->tuple_offset.ptr)
-    vector_release(&a->e->tuple_offset);
-  if(a->e->tuple_tl)
-    free_type_list(gwion->mp, a->e->tuple_tl);
+  if(a->e->tuple)
+    free_tupleform(gwion->mp, a->e->tuple);
   if(a->e->contains.ptr) {
     for(m_uint i = 0; i < vector_size(&a->e->contains); ++i)
       REM_REF((Type)vector_at(&a->e->contains, i), gwion);
@@ -46,9 +42,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->e->parent = parent;
   if(type->e->parent) {
     type->size = parent->size;
-    vector_init(&type->e->tuple_form);
-    vector_init(&type->e->tuple_offset);
-    vector_add(&type->e->tuple_offset, 0);
+    type->e->tuple = new_tupleform(p);
   }
   type->ref = new_refcount(p, free_type);
   return type;
@@ -63,10 +57,10 @@ ANN Type type_copy(MemPool p, const Type type) {
   a->array_depth   = type->array_depth;
   a->e->def           = type->e->def;
   if(t_function && isa(type, t_function) > 0) {
-    vector_release(&a->e->tuple_form);
-    a->e->tuple_form.ptr = NULL;
-    vector_release(&a->e->tuple_offset);
-    a->e->tuple_offset.ptr = NULL;
+    if(a->e->tuple) {
+      free_tupleform(p, a->e->tuple);
+      a->e->tuple = NULL;
+    }
   }
   return a;
 }

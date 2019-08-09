@@ -370,7 +370,7 @@ static m_bool array_access_valid(const Env env, const Exp_Array* array) {
       if(e->exp_type != ae_exp_primary ||
           e->d.exp_primary.primary_type != ae_primary_num)
          ERR_B(exp_self(array)->pos, _("tuple subscripts must be litteral"))
-      if((Type)vector_at(&type->e->tuple_form, e->d.exp_primary.d.num) == t_undefined)
+      if((Type)vector_at(&type->e->tuple->types, e->d.exp_primary.d.num) == t_undefined)
          ERR_B(exp_self(array)->pos, _("tuple subscripts is undefined"))
       return 0;
     }
@@ -391,9 +391,9 @@ static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
       e = e->next;
     // if we implement tuple with no type, err_msg
     const Type type = array_base(array->base->type) ?: array->base->type;
-    if(e->d.exp_primary.d.num >= vector_size(&type->e->tuple_form))
+    if(e->d.exp_primary.d.num >= vector_size(&type->e->tuple->types))
       ERR_O(exp_self(array)->pos, "Invalid tuple subscript")
-    return (Type)vector_at(&type->e->tuple_form, e->d.exp_primary.d.num);
+    return (Type)vector_at(&type->e->tuple->types, e->d.exp_primary.d.num);
   }
   return at_depth(env, array->base->type, array->array->depth);
 }
