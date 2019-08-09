@@ -23,6 +23,7 @@
 #include "import.h"
 #include "switch.h"
 #include "parser.h"
+#include "tuple.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))

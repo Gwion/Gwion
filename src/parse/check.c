@@ -19,6 +19,7 @@
 #include "nspc.h"
 #include "switch.h"
 #include "cpy_ast.h"
+#include "tuple.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);

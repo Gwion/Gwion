@@ -1,13 +1,6 @@
 #ifndef __TYPE
 #define __TYPE
 
-typedef struct TupleForm_* TupleForm;
-struct TupleForm_ {
-  struct Vector_ types;
-  struct Vector_ offset;
-  Type_List list;
-};
-
 struct TypeInfo_ {
   Type      parent;
   Nspc      owner;
@@ -59,11 +52,5 @@ ANN static inline m_bool is_fptr(const Type t) {
   return isa(actual_type(t), t_fptr) > 0;
 }
 ANN m_uint get_depth(const Type type);
-
-
-ANN Type tuple_type(const Env, const Vector, const loc_t);
-ANN void tuple_info(const Env, Type_Decl*, const Var_Decl);
-ANN TupleForm new_tupleform(MemPool p);
-ANN void free_tupleform(MemPool p, const TupleForm tuple);
 #endif
 

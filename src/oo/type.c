@@ -9,6 +9,7 @@
 #include "traverse.h"
 #include "parse.h"
 #include "gwion.h"
+#include "tuple.h"
 
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template)) {

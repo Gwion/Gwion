@@ -18,6 +18,7 @@
 #include "value.h"
 #include "parse.h"
 #include "cpy_ast.h"
+#include "tuple.h"
 
 struct TupleEmit {
   Exp e;
