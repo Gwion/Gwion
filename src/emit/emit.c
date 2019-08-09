@@ -394,58 +394,7 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   return GW_OK;
 }
 
-ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
-  const m_uint is_var = exp_self(array)->emit_var;
-  CHECK_BB(emit_exp(emit, array->base, 0))
-  const m_uint depth = get_depth(array->base->type) - get_depth(exp_self(array)->type);
-
-const Type t_base = array->base->type;
-Type type = array_base(t_base) ?: t_base;
-if(isa(type, t_tuple) > 0 && isa(exp_self(array)->type, t_tuple) < 0) {
-  Exp e = array->array->exp;
-  while(e->next && e->next->next)
-    e = e->next;
-  const Exp next = e->next;
-  if(!next) {
-      emit_add_instr(emit, GWOP_EXCEPT);
-      const Instr instr = emit_add_instr(emit, TupleMember);
-      instr->m_val = array->array->exp->d.exp_primary.d.num;
-      instr->m_val2 = is_var;
-      emit_add_instr(emit, DotMember); // just a place holder.
-      return GW_OK;
-    }
-    emit_add_instr(emit, GcAdd);
-    e->next = NULL;
-    CHECK_BB(emit_exp(emit, array->array->exp, 0))
-    e->next = next;
-    regpop(emit, (depth) * SZ_INT);
-    emit_add_instr(emit, GWOP_EXCEPT);
-assert(depth);
-    if(depth)
-    for(m_uint i = 0; i < depth-1; ++i) {
-      const Instr access = emit_add_instr(emit, ArrayAccess);
-      access->m_val = i;
-      const Instr get = emit_add_instr(emit, ArrayGet);
-      get->m_val = i;
-      get->m_val2 = -SZ_INT;
-      emit_add_instr(emit, GWOP_EXCEPT);
-    }
-    regpop(emit, SZ_INT);
-    const Instr access = emit_add_instr(emit, ArrayAccess);
-    access->m_val = depth;
-    const Instr get = emit_add_instr(emit, ArrayGet);
-    get->m_val = depth;
-    const Instr push = emit_add_instr(emit, ArrayValid);
-    push->m_val = SZ_INT;
-    emit_add_instr(emit, GWOP_EXCEPT);
-    const Instr instr = emit_add_instr(emit, TupleMember);
-    instr->m_val = next->d.exp_primary.d.num;
-    instr->m_val2 = is_var;
-    emit_add_instr(emit, DotMember); // just a place holder.
-    return GW_OK;
-  }
-  emit_add_instr(emit, GcAdd);
-  CHECK_BB(emit_exp(emit, array->array->exp, 0))
+ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);
   for(m_uint i = 0; i < depth - 1; ++i) {
@@ -459,10 +408,62 @@ assert(depth);
   regpop(emit, SZ_INT);
   const Instr access = emit_add_instr(emit, ArrayAccess);
   access->m_val = depth;
+}
+
+ANN static void array_finish(const Emitter emit, const m_uint depth,
+		const m_uint size, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
   get->m_val = depth;
   const Instr push = emit_add_instr(emit, ArrayValid);
-  push->m_val = is_var ? SZ_INT : exp_self(array)->type->size;
+  push->m_val = is_var ? SZ_INT : size;
+}
+
+ANN static inline void array_do(const  Emitter emit, const m_uint depth,
+		    const m_uint size, const m_bool is_var) {
+  array_loop(emit, depth);
+  array_finish(emit, depth, size, is_var);
+}
+
+ANN static inline void tuple_access(const  Emitter emit, const m_uint idx,
+        const m_bool is_var) {
+  emit_add_instr(emit, GWOP_EXCEPT);
+  const Instr instr = emit_add_instr(emit, TupleMember);
+  instr->m_val = idx;
+  instr->m_val2 = is_var;
+  emit_add_instr(emit, DotMember); // just a place holder.
+}
+
+ANN static inline Exp exp_antepenultimate(Exp e) {
+  while(e->next && e->next->next)
+    e = e->next;
+  return e;
+}
+
+ANN static m_bool emit_array_indexes(const Emitter emit, const Exp exp,
+      const m_bool is_tuple) {
+  const Exp e = exp_antepenultimate(exp), next = e->next;
+  emit_add_instr(emit, GcAdd);
+  if(is_tuple)
+    e->next = NULL;
+  CHECK_BB(emit_exp(emit, exp, 0))
+  if(is_tuple)
+    e->next = next;
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
+  CHECK_BB(emit_exp(emit, array->base, 0))
+  const Type array_type = exp_self(array)->type, t_base = array->base->type,
+      type = array_base(t_base) ?: t_base;
+  const m_uint depth = get_depth(t_base) - get_depth(array_type);
+  const m_bool is_tuple = isa(type, t_tuple) > 0 && isa(array_type, t_tuple) < 0;
+  const m_uint is_var = exp_self(array)->emit_var;
+  if(depth) {
+    CHECK_BB(emit_array_indexes(emit, array->array->exp, is_tuple))
+    array_do(emit, depth, array_type->size, is_var);
+  }
+  if(is_tuple)
+    tuple_access(emit, array->array->exp->d.exp_primary.d.num, is_var);
   return GW_OK;
 }
 
