@@ -16,6 +16,7 @@
 #include "gwi.h"
 #include "traverse.h"
 #include "value.h"
+#include "object.h"
 #include "parse.h"
 #include "cpy_ast.h"
 #include "tuple.h"
@@ -51,15 +52,15 @@ INSTR(TupleMember) {
   *(m_uint*)(byte + SZ_INT) = offset;
   if(!instr->m_val2) {
     if(t->size == SZ_INT)
-  *(m_uint*)(byte) = eDotMember;
+      *(m_uint*)(byte) = eDotMember;
     else if(t->size == SZ_FLOAT)
-  *(m_uint*)(byte) = eDotMember2;
+      *(m_uint*)(byte) = eDotMember2;
     else {
-  *(m_uint*)(byte) = eDotMember3;
-  *(m_uint*)(byte + SZ_INT*2) = t->size;
+      *(m_uint*)(byte) = eDotMember3;
+      *(m_uint*)(byte + SZ_INT*2) = t->size;
     }
   } else
-  *(m_uint*)(byte) = eDotMember4;
+    *(m_uint*)(byte) = eDotMember4;
 }
 
 static FREEARG(freearg_tuple_at) {
@@ -68,7 +69,7 @@ static FREEARG(freearg_tuple_at) {
 
 ANN static void emit_unpack_instr_inner(const Emitter emit, struct TupleEmit *te) {
   const Instr instr = emit_add_instr(emit, TupleUnpack);
-  struct UnpackInfo_ *info = mp_malloc2(emit->gwion->mp, sizeof(struct UnpackInfo_));
+  struct UnpackInfo_ *info = mp_malloc(emit->gwion->mp, UnpackInfo);
   info->obj_offset = te->tmp_offset;
   info->mem_offset = te->mem_offset;
   info->size = te->sz;
@@ -91,8 +92,8 @@ ANN static void unpack_instr_decl(const Emitter emit, struct TupleEmit *te) {
       const Value value = te->e->d.exp_decl.list->self->value;
       te->sz += value->type->size;
       value->offset = emit_local(emit, value->type->size, 0);
-    te->tmp_offset = te->obj_offset;
-    te->obj_offset += ((Type)vector_at(te->v, te->idx))->size;
+      te->tmp_offset = te->obj_offset;
+      te->obj_offset += ((Type)vector_at(te->v, te->idx))->size;
     } else {
       sz = ((Type)vector_at(te->v, te->idx))->size;
       break;
@@ -106,7 +107,7 @@ ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
   unpack_instr_decl(emit, te);
   if(te->sz)
     emit_unpack_instr_inner(emit, te);
-  if(te->e && (te->e = te->e->next))
+  if(te->e && (te->e = te->e->next)) // antepenultumiate ?
     emit_unpack_instr(emit, te);
 }
 
@@ -117,9 +118,20 @@ static m_bool tuple_match(const Env env, const Type type[2]) {
     DECL_OB(const Type, l, = (Type)vector_at(lv, i))
     const Type r = (Type)vector_at(rv, i);
     if(r != t_undefined)
-    CHECK_BB(isa(l, r))
+      CHECK_BB(isa(l, r))
   }
   return GW_OK;
+}
+
+static OP_CHECK(opck_at_object_tuple) {
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  if(opck_rassign(env, data, mut) == t_null)
+    return t_null;
+  const Type type[2] = { bin->lhs->type, bin->rhs->type };
+  if(tuple_match(env, type) < 0)
+    return t_null;
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
 }
 
 static OP_CHECK(opck_at_tuple) {
@@ -136,23 +148,61 @@ static OP_CHECK(opck_at_tuple) {
       }
       ++i;
     } while((e = e->next));
-  } else {
-    if(opck_rassign(env, data, mut) == t_null)
-      return t_null;
-    const Type type[2] = { bin->lhs->type, bin->rhs->type };
-    if(tuple_match(env, type) < 0)
-      return t_null;
-    bin->rhs->emit_var = 1;
+    return bin->lhs->type;
   }
-  return bin->lhs->type;
+  return opck_at_object_tuple(env, data, mut);
+}
+
+static OP_CHECK(opck_at_tuple_object) {
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  if(opck_rassign(env, data, mut) == t_null)
+    return t_null;
+  if(!bin->rhs->type->e->tuple)
+    return bin->rhs->type;
+  const Type type[2] = { bin->rhs->type, bin->lhs->type };
+  if(tuple_match(env, type) < 0)
+    return t_null;
+  bin->rhs->emit_var = 1;
+  return bin->rhs->type;
+}
+
+static INSTR(Tuple2Object) {
+  const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
+  const Type t = (Type)instr->m_val;
+  if(isa(o->type_ref, t) < 0)
+//    Except(shred, "can't cast %s to %s\n", o->type_ref->name, t->name);
+    Except(shred, "can't cast\n");
+}
+
+static OP_EMIT(opem_at_tuple_object) {
+  // TODO: do not emit Tuple2Object if full match
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  const Instr instr = emit_add_instr(emit, Tuple2Object);
+  instr->m_val = bin->rhs->type;
+  emit_add_instr(emit, ObjectAssign);
+  return 1;
+}
+
+static OP_EMIT(opem_cast_tuple_object) {
+  const Exp_Cast *cast = (Exp_Cast*)data;
+  const Instr instr = emit_add_instr(emit, Tuple2Object);
+  instr->m_val = exp_self(cast)->type;
+  emit_add_instr(emit, ObjectAssign);
+  return GW_OK;
+}
+
+static OP_EMIT(opem_impl_tuple_object) {
+  struct Implicit *imp = (struct Implicit*)data;
+  const Instr instr = emit_add_instr(emit, Tuple2Object);
+  instr->m_val = (m_uint)imp->t;
+  emit_add_instr(emit, ObjectAssign);
+  return GW_OK;
 }
 
 static OP_CHECK(opck_cast_tuple) {
-  Exp_Cast *cast = (Exp_Cast*)data;
-  if(exp_self(cast)->type->e->def && cast->exp->type->e->def) {
-    const Type type[2] = { exp_self(cast)->type, cast->exp->type };
-    CHECK_BO(tuple_match(env, type))
-  }
+  const Exp_Cast *cast = (Exp_Cast*)data;
+  const Type type[2] = { exp_self(cast)->type, cast->exp->type };
+  CHECK_BO(tuple_match(env, type))
   return exp_self(cast)->type;
 }
 
@@ -166,12 +216,9 @@ static OP_CHECK(opck_impl_tuple) {
 static OP_EMIT(opem_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(!(bin->rhs->exp_type == ae_exp_primary &&
-    bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
-    emit_add_instr(emit, ObjectAssign);
-//    emit_add_instr(emit, int_r_assign);
-//    const Instr instr = emit_add_instr(emit, RegAddRef);
-//instr->m_val = 1;
-    return GW_OK;
+      bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
+      emit_add_instr(emit, ObjectAssign);
+      return GW_OK;
   }
   const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
   const Vector v = &bin->lhs->type->e->tuple->types;
@@ -211,30 +258,13 @@ INSTR(TupleCtor) {
   *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
-GWION_IMPORT(tuple) {
-  GWI_OB((t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, t_object)))
-  GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
-  GWI_BB(gwi_class_end(gwi))
-  SET_FLAG(t_tuple, abstract | ae_flag_template);
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
-  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  register_freearg(gwi, TupleUnpack, freearg_tuple_at);
-  return GW_OK;
-}
-
 ANN static Symbol tuple_sym(const Env env, const Vector v) {
   GwText text = { .mp=env->gwion->mp };
   text_add(&text, t_tuple->name);
   text_add(&text, "<~");
   for(m_uint i = 0; i < vector_size(v); ++i) {
     const Type t = (Type)vector_at(v, i);
-    text_add(&text, t != 1 ? t->name : "_");
+    text_add(&text, t != (Type)1 ? t->name : "_");
     if(i+1 < vector_size(v))
       text_add(&text, ",");
   }
@@ -256,7 +286,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
     sprintf(name, "@e%lu", i);
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);
-    const Symbol tsym = insert_symbol(t != 1 ? t->name : "@Undefined");
+    const Symbol tsym = insert_symbol(t != (Type)1 ? t->name : "@Undefined");
 //    const Symbol tsym = t != 1 ? insert_symbol(t->name) : insert_symbol("@undefined");
     Exp decl = decl_from_id(env->gwion->mp, tsym, sym, loc_cpy(env->gwion->mp, pos));
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, decl);
@@ -290,15 +320,13 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   CHECK_BO(scan0_class_def(env, cdef))
   SET_FLAG(cdef->base.type, abstract);
   cdef->base.type->e->tuple->list = tlbase;
-//  CHECK_BO(scan1_cdef(env, cdef))
   CHECK_BO(traverse_cdef(env, cdef))
-  nspc_add_type(env->curr, sym, cdef->base.type);
-//  map_set((Map)vector_front(&env->curr->info->type), sym, cdef->base.type);
+  map_set(&env->curr->info->type->map, (vtype)sym, (vtype)cdef->base.type);
   return cdef->base.type;
 }
 
 ANN TupleForm new_tupleform(MemPool p) {
-  TupleForm tuple = mp_calloc(p, TupleForm);
+  TupleForm tuple = mp_malloc(p, TupleForm);
   vector_init(&tuple->types);
   vector_init(&tuple->offset);
   vector_add(&tuple->offset, 0);
@@ -311,4 +339,36 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
   vector_release(&tuple->offset);
   if(tuple->list)
     free_type_list(p, tuple->list);
+}
+
+GWION_IMPORT(tuple) {
+  GWI_OB((t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, t_object)))
+  GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
+  GWI_BB(gwi_class_end(gwi))
+  SET_FLAG(t_tuple, abstract | ae_flag_template);
+  GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_object_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Tuple", "Object", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_tuple_object))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple_object))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_emi(gwi, opem_cast_tuple_object))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_emi(gwi, opem_impl_tuple_object))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Tuple", "Tuple", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  register_freearg(gwi, TupleUnpack, freearg_tuple_at);
+  return GW_OK;
 }

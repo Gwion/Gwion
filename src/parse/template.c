@@ -14,6 +14,7 @@
 #include "parse.h"
 #include "gwion.h"
 #include "cpy_ast.h"
+#include "tuple.h"
 
 ANN static inline Type owner_type(const Env env, const Type t) {
   const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
@@ -161,7 +162,7 @@ ANN Type scan_tuple(const Env env, const Type_Decl *td) {
   Type_List tl = td->types;
   do {
     const Type t = tl->td->xid->xid != insert_symbol("_") ?
-       known_type(env, tl->td) : 1;
+       known_type(env, tl->td) : (Type)1;
     if(!t)
       break;
     vector_add(&v, (m_uint)t);
