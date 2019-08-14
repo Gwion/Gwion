@@ -588,6 +588,8 @@ ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const
   CHECK_BB(emit_instantiate_object(emit, v->type, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, 1))
   emit_add_instr(emit, Assign);
+  emit_add_instr(emit, RegAddRef);
+  regpop(emit, SZ_INT);
   emit->code = code;
   return GW_OK;
 }
@@ -1470,7 +1472,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     SET_FLAG(udef->l->self->d.exp_decl.list->self->value, enum);
   }
   if(udef->xid)
-    regpop(emit, !GET_FLAG(udef, static) ? SZ_INT : SZ_INT*2);
+    regpop(emit, SZ_INT);
   emit_union_offset(udef->l, udef->o);
   if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);

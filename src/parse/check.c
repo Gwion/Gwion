@@ -222,14 +222,22 @@ ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
   return env->class_def;
 }
 
+
+ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
+  const Value v = nspc_lookup_value0(env->global_nspc, sym);
+  if(v)
+    return v;
+  const Value value = new_value(env->gwion->mp, t_string, s_name(sym));
+  map_set(&env->global_nspc->info->value->map, (vtype)sym, (vtype)value);
+  return value;
+}
+
 ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
-    const Value v = new_value(env->gwion->mp, t_string, str);
     char c[strlen(str) + 8];
     sprintf(c, "%s:string", str);
-    nspc_add_value(env_nspc(env), insert_symbol(c), v);
-    prim->value = v;
+    prim->value = prim_str_value(env, insert_symbol(c));
   }
   return t_string;
 }
