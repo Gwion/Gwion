@@ -170,15 +170,17 @@ static INSTR(Tuple2Object) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
   const Type t = (Type)instr->m_val;
   if(isa(o->type_ref, t) < 0)
+  // TODO: pass position by m_val2
 //    Except(shred, "can't cast %s to %s\n", o->type_ref->name, t->name);
-    Except(shred, "can't cast\n");
+    Except(shred, _("can't cast\n"));
 }
 
 static OP_EMIT(opem_at_tuple_object) {
   // TODO: do not emit Tuple2Object if full match
+  // TODO: Use a macro as function factory
   const Exp_Binary *bin = (Exp_Binary*)data;
   const Instr instr = emit_add_instr(emit, Tuple2Object);
-  instr->m_val = bin->rhs->type;
+  instr->m_val = (m_uint)bin->rhs->type;
   emit_add_instr(emit, ObjectAssign);
   return 1;
 }
@@ -186,7 +188,7 @@ static OP_EMIT(opem_at_tuple_object) {
 static OP_EMIT(opem_cast_tuple_object) {
   const Exp_Cast *cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, Tuple2Object);
-  instr->m_val = exp_self(cast)->type;
+  instr->m_val = (m_uint)exp_self(cast)->type;
   emit_add_instr(emit, ObjectAssign);
   return GW_OK;
 }
@@ -276,18 +278,17 @@ ANN static Symbol tuple_sym(const Env env, const Vector v) {
 
 ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   const Symbol sym = tuple_sym(env, v);
-  const Type exists = nspc_lookup_type1(env->curr, sym);
+  const Type exists = nspc_lookup_type0(env->curr, sym);
   if(exists)
     return exists;
   Stmt_List base = NULL, curr = NULL;
   Type_List tlbase = NULL, tl = NULL;
   for(m_uint i = 0; i < vector_size(v); ++i) {
     char name[num_digit(i) + 2];
-    sprintf(name, "@e%lu", i);
+    sprintf(name, "@tuple member %lu", i);
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);
     const Symbol tsym = insert_symbol(t != (Type)1 ? t->name : "@Undefined");
-//    const Symbol tsym = t != 1 ? insert_symbol(t->name) : insert_symbol("@undefined");
     Exp decl = decl_from_id(env->gwion->mp, tsym, sym, loc_cpy(env->gwion->mp, pos));
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, decl);
     const Stmt_List slist = new_stmt_list(env->gwion->mp, stmt, NULL);

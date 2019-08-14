@@ -146,11 +146,11 @@ ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
 
-ANN /*static inline */m_uint emit_code_offset(const Emitter emit) {
+ANN m_uint emit_code_offset(const Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
-ANN /*static inline */m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj) {
+ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj) {
   return frame_local(emit->gwion->mp, emit->code->frame, size, is_obj);
 }
 
