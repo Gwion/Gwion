@@ -77,7 +77,7 @@ INSTR(GTmpl) {
   for(m_uint i = 0 ; i <= f->value_ref->offset; ++i) {
     const Symbol sym = func_symbol(emit->env, f->value_ref->owner->name,
       name, tmpl_name, i);
-    const Func base = nspc_lookup_func1(f->value_ref->owner, sym);
+    const Func base = nspc_lookup_func0(f->value_ref->owner, sym);
     if(base) {
       free_mstr(emit->gwion->mp, tmpl_name);
       assert(base->code);
@@ -107,7 +107,7 @@ INSTR(DotTmpl) {
     char str[instr->m_val2 + strlen(t->name) + 1];
     strcpy(str, name);
     strcpy(str + instr->m_val2, t->name);
-    const Func f = nspc_lookup_func1(t->nspc, insert_symbol(emit->env->gwion->st, str));
+    const Func f = nspc_lookup_func0(t->nspc, insert_symbol(emit->env->gwion->st, str));
     if(f) {
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;

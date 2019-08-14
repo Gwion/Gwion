@@ -459,7 +459,7 @@ ANN static m_str template_helper(const Env env, const Func_Def f) {
   const m_str name = f->base->func ?  f->base->func->name : func_tmpl_name(env, f);
   if(!name)
     return(m_str)GW_ERROR;
-  const Func func = nspc_lookup_func1(env->curr, insert_symbol(name));
+  const Func func = nspc_lookup_func0(env->curr, insert_symbol(name));
   if(func) {
     f->base->ret_type = known_type(env, f->base->td);
     return (m_str)(m_uint)((f->base->args && f->base->args->type) ? scan2_args(env, f) : GW_OK);

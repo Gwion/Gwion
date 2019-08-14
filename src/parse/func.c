@@ -41,7 +41,7 @@ ANN Func get_func(const Env env, const Func_Def def) {
     char c[len + elen + 1];
     memcpy(c, f->name, len);
     strcpy(c + len, env->class_def->name);
-    return nspc_lookup_func1(env->class_def->nspc, insert_symbol(env->gwion->st, c));
+    return nspc_lookup_func0(env->class_def->nspc, insert_symbol(env->gwion->st, c));
   }
   return f;
 }
