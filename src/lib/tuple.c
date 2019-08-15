@@ -107,13 +107,13 @@ ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
   unpack_instr_decl(emit, te);
   if(te->sz)
     emit_unpack_instr_inner(emit, te);
-  if(te->e && (te->e = te->e->next)) // antepenultumiate ?
+  if(te->e && (te->e = te->e->next)) // antepenultimate ?
     emit_unpack_instr(emit, te);
 }
 
-static m_bool tuple_match(const Env env, const Type type[2]) {
-  const Vector lv = &type[0]->e->tuple->types;
-  const Vector rv = &type[1]->e->tuple->types;
+static m_bool tuple_match(const Type lhs, const Type rhs) {
+  const Vector lv = &lhs->e->tuple->types;
+  const Vector rv = &rhs->e->tuple->types;
   for(m_uint i = 0; i < vector_size(rv); i++) {
     DECL_OB(const Type, l, = (Type)vector_at(lv, i))
     const Type r = (Type)vector_at(rv, i);
@@ -127,8 +127,7 @@ static OP_CHECK(opck_at_object_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(opck_rassign(env, data, mut) == t_null)
     return t_null;
-  const Type type[2] = { bin->lhs->type, bin->rhs->type };
-  if(tuple_match(env, type) < 0)
+  if(tuple_match(bin->lhs->type, bin->rhs->type) < 0)
     return t_null;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
@@ -159,8 +158,7 @@ static OP_CHECK(opck_at_tuple_object) {
     return t_null;
   if(!bin->rhs->type->e->tuple)
     return bin->rhs->type;
-  const Type type[2] = { bin->rhs->type, bin->lhs->type };
-  if(tuple_match(env, type) < 0)
+  if(tuple_match(bin->rhs->type, bin->lhs->type) < 0)
     return t_null;
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
@@ -203,15 +201,13 @@ static OP_EMIT(opem_impl_tuple_object) {
 
 static OP_CHECK(opck_cast_tuple) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  const Type type[2] = { exp_self(cast)->type, cast->exp->type };
-  CHECK_BO(tuple_match(env, type))
+  CHECK_BO(tuple_match(exp_self(cast)->type, cast->exp->type))
   return exp_self(cast)->type;
 }
 
 static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
-  const Type type[2] = { imp->e->type, imp->t };
-  CHECK_BO(tuple_match(env, type))
+  CHECK_BO(tuple_match(imp->e->type, imp->t))
   return imp->t;
 }
 
