@@ -23,7 +23,7 @@ ANN static Value mk_class(const Env env, const Type base) {
   t->e->d.base_type = base;
   v->owner = base->e->owner;
   SET_FLAG(v, const | ae_flag_checked);
-  map_set(&base->e->owner->info->value->map, sym, v);
+  map_set(&base->e->owner->info->value->map, (vtype)sym, (vtype)v);
   return v;
 }
 

@@ -38,4 +38,6 @@ ANN void emit_class_finish(const Emitter, const Nspc);
 ANN void emit_ext_ctor(const Emitter, const VM_Code);
 ANN void emit_union_offset(Decl_List, const m_uint);
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool);
+ANN m_uint emit_code_offset(const Emitter emit);
+ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj);
 #endif
