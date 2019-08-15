@@ -321,11 +321,9 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
     ADD_REF(v);
     nspc_add_value(env->curr, f->def->base->xid, v);
   } else {
-    if(overload->d.func_ref) {
-      f->next = overload->d.func_ref->next;
-      overload->d.func_ref->next = f;
-    } else
-      overload->d.func_ref = f;
+    assert(overload->d.func_ref);
+    f->next = overload->d.func_ref->next;
+    overload->d.func_ref->next = f;
   }
   return v;
 }
@@ -419,10 +417,6 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
-    if(!t) {
-      vector_release(&v);
-      return NULL;
-    }
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
