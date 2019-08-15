@@ -173,31 +173,18 @@ static INSTR(Tuple2Object) {
     Except(shred, _("can't cast\n"));
 }
 
-static OP_EMIT(opem_at_tuple_object) {
   // TODO: do not emit Tuple2Object if full match
-  // TODO: Use a macro as function factory
-  const Exp_Binary *bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, Tuple2Object);
-  instr->m_val = (m_uint)bin->rhs->type;
-  emit_add_instr(emit, ObjectAssign);
-  return 1;
+#define mk_opem_tuple2object(name, type, rhs)             \
+static OP_EMIT(opem_##name##_tuple_object) {              \
+  const type exp = (type)data;                            \
+  const Instr instr = emit_add_instr(emit, Tuple2Object); \
+  instr->m_val = (m_uint)rhs;                             \
+  emit_add_instr(emit, ObjectAssign);                     \
+  return 1;                                               \
 }
-
-static OP_EMIT(opem_cast_tuple_object) {
-  const Exp_Cast *cast = (Exp_Cast*)data;
-  const Instr instr = emit_add_instr(emit, Tuple2Object);
-  instr->m_val = (m_uint)exp_self(cast)->type;
-  emit_add_instr(emit, ObjectAssign);
-  return GW_OK;
-}
-
-static OP_EMIT(opem_impl_tuple_object) {
-  struct Implicit *imp = (struct Implicit*)data;
-  const Instr instr = emit_add_instr(emit, Tuple2Object);
-  instr->m_val = (m_uint)imp->t;
-  emit_add_instr(emit, ObjectAssign);
-  return GW_OK;
-}
+mk_opem_tuple2object(at, Exp_Binary *, exp->rhs->type)
+mk_opem_tuple2object(cast, Exp_Cast *, exp_self(exp)->type)
+mk_opem_tuple2object(impl, struct Implicit *, exp->t)
 
 static OP_CHECK(opck_cast_tuple) {
   const Exp_Cast *cast = (Exp_Cast*)data;
@@ -243,7 +230,7 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
       tl = tl->next;
     tl->next = new_type_list(env->gwion->mp, td, NULL);
   } else
-  env->class_def->e->tuple->list = new_type_list(env->gwion->mp, td, NULL);
+    env->class_def->e->tuple->list = new_type_list(env->gwion->mp, td, NULL);
 }
 
 INSTR(TupleCtor) {
