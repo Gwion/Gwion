@@ -34,6 +34,19 @@ static FREEARG(freearg_gack) {
   free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
 }
 
+
+#define mk_class_instr(op, arg0, arg1, ...)                          \
+static INSTR(instr_class_##op) {                                     \
+  POP_REG(shred, SZ_INT);                                            \
+  const Type l = *(Type*)(shred->reg - SZ_INT);                      \
+  const Type r = *(Type*)(shred->reg);                               \
+  *(m_uint*)(shred->reg - SZ_INT) = isa(arg0, arg1) > 0 __VA_ARGS__; \
+}
+mk_class_instr(ge, l, r)
+mk_class_instr(gt, l, r, && l != r)
+mk_class_instr(le, r, l)
+mk_class_instr(lt, r, l, && l != r)
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_OB((t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL)))
   GWI_BB(gwi_add_type(gwi, t_class))
@@ -90,6 +103,14 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_string(gwi))
   GWI_BB(import_shred(gwi))
   GWI_BB(import_modules(gwi))
+
+  GWI_BB(gwi_oper_ini(gwi, "Class", "Class", "int"))
+  GWI_BB(gwi_oper_end(gwi, "==", int_eq))
+  GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
+  GWI_BB(gwi_oper_end(gwi, ">",  instr_class_gt))
+  GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
+  GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
+
   register_freearg(gwi, SwitchIni, freearg_switchini);
   register_freearg(gwi, SwitchBranch, freearg_switchbranch);
   register_freearg(gwi, Gack, freearg_gack);

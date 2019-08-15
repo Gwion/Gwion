@@ -352,6 +352,10 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
   if(v->owner_class)
     return emit_symbol_owned(emit, prim);
+  if(isa(v->type, t_class) > 0) {
+    regpushi(emit, (m_uint)actual_type(v->type));
+    return GW_OK;
+  }
   if(GET_FLAG(v, builtin) || GET_FLAG(v, union) || GET_FLAG(v, enum))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
@@ -1070,7 +1074,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
 }
 
 ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
-  regpushi(emit, (m_uint)exp->exp->type);
+  regpushi(emit, (m_uint)actual_type(exp->exp->type));
   return GW_OK;
 }
 

@@ -89,15 +89,21 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   return t;
 }
 
+ANN static Type no_xid(const Env env, const Exp_Decl* decl) {
+  DECL_OO(const Type, t, = check_td(env, decl->td))
+  ((Exp_Decl*)decl)->type = NULL;
+  Var_Decl_List list = decl->list;
+  do nspc_add_value(env->curr, list->self->xid, NULL);
+  while((list = list->next));
+  CHECK_BO(traverse_decl(env, decl))
+  return decl->type;
+}
+
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   CHECK_BO(switch_decl(env, exp_self(decl)->pos))
-  if(!decl->td->xid) {
-    DECL_OO(const Type, t, = check_td(env, decl->td))
-    ((Exp_Decl*)decl)->type = NULL;
-    CHECK_BO(scan1_exp(env, exp_self(decl)))
-    CHECK_BO(scan2_exp(env, exp_self(decl)))
-  }
+  if(!decl->td->xid)
+    return no_xid(env, decl);
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
@@ -117,13 +123,14 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
       CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(GET_FLAG(decl->td, member) && env->class_def) {
-      decl_member(env, v);
-      if(isa(env->class_def, t_object)  > 0)
-        tuple_info(env, decl->td, var);
+    if(env->class_def)  {
+      if(GET_FLAG(decl->td, member)) {
+        decl_member(env, v);
+        if(isa(env->class_def, t_object)  > 0)
+          tuple_info(env, decl->td, var);
+      } else if(GET_FLAG(decl->td, static))
+        decl_static(env, v);
     }
-    else if(GET_FLAG(decl->td, static))
-      decl_static(env, v);
     else if(global || (env->func && GET_FLAG(env->func->def, global)))
       SET_FLAG(v, abstract);
     if(isa(decl->type, t_fptr) > 0)
