@@ -1,0 +1,3 @@
+class C {
+typedef global void global_fptr(int i);
+}
