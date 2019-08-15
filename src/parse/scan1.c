@@ -15,7 +15,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
-  DECL_OO(const Type, t, = known_type(env, td))
+  DECL_OO(const Type, t, = known_type_noref(env, td))
   if(t->e->def && !GET_FLAG(t, scan1))
     CHECK_BO(scan1_cdef(env, t->e->def))
   if(t->size)
@@ -66,8 +66,6 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     if(!GET_FLAG(decl->td, static))
       SET_FLAG(decl->td, member);
   }
-//  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
-//    ERR_O(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
   if(GET_FLAG(t, private) && t->e->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
@@ -94,8 +92,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
               s_name(var->xid))
     if(var->array) {
       if(var->array->exp) {
-//        if(GET_FLAG(decl->td, ref))
-        if(GET_FLAG(decl->td, ref) && isa(t, t_object) < 0)
+        if(GET_FLAG(decl->td, ref))
           ERR_B(td_pos(decl->td), _("ref array must not have array expression.\n"
             "e.g: int @my_array[];\nnot: int @my_array[2];"))
         CHECK_BB(scan1_exp(env, var->array->exp))
@@ -103,7 +100,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       t = array_type(env, decl->type, var->array->depth);
     } else  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
       ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
-
+    CHECK_OB(prim_ref(env, t, decl->td))
     //assert(!var->value);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
@@ -242,8 +239,10 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
     const Var_Decl var = list->var_decl;
     if(var->xid)
       CHECK_BB(isres(env, var->xid, var->pos))
-    if(list->td)
+    if(list->td) {
       CHECK_OB((list->type = void_type(env, list->td)))
+      CHECK_OB(prim_ref(env, list->type, list->td))
+    }
   } while((list = list->next));
   return GW_OK;
 }
