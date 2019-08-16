@@ -89,12 +89,16 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   return t;
 }
 
-ANN static Type no_xid(const Env env, const Exp_Decl* decl) {
+ANN static inline void clear_decl(const Env env, const Exp_Decl *decl) {
+  Var_Decl_List list = decl->list;
+  do scope_add(env->curr->info->value, (vtype)list->self->xid, (vtype)NULL);
+  while((list = list->next));
+}
+
+ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
   DECL_OO(const Type, t, = check_td(env, decl->td))
   ((Exp_Decl*)decl)->type = NULL;
-  Var_Decl_List list = decl->list;
-  do nspc_add_value(env->curr, list->self->xid, NULL);
-  while((list = list->next));
+  clear_decl(env, decl);
   CHECK_BO(traverse_decl(env, decl))
   return decl->type;
 }
@@ -105,6 +109,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
+    clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
     if(decl->type == t_auto)
