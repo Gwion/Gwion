@@ -106,6 +106,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   GWI_BB(gwi_oper_ini(gwi, "Class", "Class", "int"))
   GWI_BB(gwi_oper_end(gwi, "==", int_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
   GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
   GWI_BB(gwi_oper_end(gwi, ">",  instr_class_gt))
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))

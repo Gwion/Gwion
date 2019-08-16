@@ -1,0 +1,8 @@
+<<< typeof(1) == typeof(2) >>>;
+<<< typeof(1) != typeof(2) >>>;
+<<< typeof(1) > typeof(2) >>>;
+<<< typeof(1) >= typeof(2) >>>;
+<<< typeof(1) < typeof(2) >>>;
+<<< typeof(1) <= typeof(2) >>>;
+<<< typeof(1) == Object >>>;
+<<< typeof(1) > Object >>>;
