@@ -484,24 +484,26 @@ ANN static inline Exp emit_n_exp(const Emitter emit,  struct ArrayAccessInfo *co
   return ret > 0 ? next : NULL;
 }
 
-ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInfo *const info) {
-  if(GET_FLAG(info->array.type, typedef)) {
-    info->array.type = info->array.type->e->parent;
-    return _emit_indexes(emit, info);
-  }
-  if(!info->array.type->array_depth)
-    return tuple_index(emit, info);
-  if(info->array.type->array_depth >= info->array.depth) {
-    struct Array_Sub_ next = { info->array.exp, info->type, info->array.depth };
-    return array_do(emit, &next, info->is_var);
-  }
-  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.depth - info->array.type->array_depth };
+ANN static inline m_bool emit_partial_indexes(const Emitter emit, struct ArrayAccessInfo *const info) {
+  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.type->array_depth };
   struct Array_Sub_ next = { info->array.exp, array_base(info->array.type), info->array.depth - info->array.type->array_depth };
   info->array = partial;
   DECL_OB(const Exp, exp, = emit_n_exp(emit, info))
   next.exp = exp;
   info->array = next;
   return _emit_indexes(emit, info);
+}
+
+ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInfo *const info) {
+  if(GET_FLAG(info->array.type, typedef)) {
+    info->array.type = info->array.type->e->parent;
+    return _emit_indexes(emit, info);
+  }
+  if(info->array.type->array_depth >= info->array.depth) {
+    struct Array_Sub_ next = { info->array.exp, info->type, info->array.depth };
+    return array_do(emit, &next, info->is_var);
+  }
+  return (info->array.type->array_depth ? emit_partial_indexes : tuple_index)(emit, info);
 }
 
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {

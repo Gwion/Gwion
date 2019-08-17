@@ -364,37 +364,40 @@ static inline Exp take_exp(Exp e, m_uint n) {
   return e;
 }
 
+ANN static Type at_depth(const Env env, const Array_Sub array);
+ANN static Type tuple_depth(const Env env, const Array_Sub array) {
+  if(array->exp->exp_type != ae_exp_primary ||
+     array->exp->d.exp_primary.primary_type != ae_primary_num)
+     ERR_O(array->exp->pos, _("tuple subscripts must be litteral"))
+  const m_uint idx = array->exp->d.exp_primary.d.num;
+  const Type type = (Type)vector_at(&array->type->e->tuple->types, idx);
+  if(type == t_undefined)
+     ERR_O(array->exp->pos, _("tuple subscripts is undefined"))
+  if(!array->exp->next)
+    return type;
+  struct Array_Sub_ next = { array->exp->next, type, array->depth - 1 };
+  return at_depth(env, &next);
+}
+
+ANN static Type partial_depth(const Env env, const Array_Sub array) {
+  const Exp curr = take_exp(array->exp, array->type->array_depth);
+  if(!curr->next)
+    ERR_O(array->exp->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
+        array->depth, get_depth(array->type))
+  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
+  return at_depth(env, &next);
+}
+
 ANN static Type at_depth(const Env env, const Array_Sub array) {
   const Type t = array->type;
   const m_uint depth = array->depth;
-  const Exp e = array->exp;
-  if(!depth)
-    return t;
   if(GET_FLAG(t, typedef)) {
-    struct Array_Sub_ next = { e, t->e->parent, depth };
+    struct Array_Sub_ next = { array->exp, t->e->parent, depth };
     return at_depth(env, &next);
   }
-  if(depth > t->array_depth) {
-    const Exp curr = take_exp(e, t->array_depth);
-    const Type t_base = array_base(t) ?: t;
-    if(isa(t_base, t_tuple) > 0) {
-      if(curr->exp_type != ae_exp_primary ||
-          curr->d.exp_primary.primary_type != ae_primary_num)
-         ERR_O(e->pos, _("tuple subscripts must be litteral"))
-      const m_uint idx = curr->d.exp_primary.d.num;
-      const Type type = (Type)vector_at(&t_base->e->tuple->types, idx);
-      if(type == t_undefined)
-         ERR_O(e->pos, _("tuple subscripts is undefined"))
-      struct Array_Sub_ next = { curr->next, type, depth - t->array_depth - 1 };
-      return at_depth(env, &next);
-    }
-    if(!curr->next)
-      ERR_O(e->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
-          depth, get_depth(t))
-      struct Array_Sub_ next = { curr->next, t_base, depth - t->array_depth };
-      return at_depth(env, &next);
-  }
-  return array_type(env, array_base(t), t->array_depth - depth);
+  if(t->array_depth >= depth)
+    return array_type(env, array_base(array->type), t->array_depth - depth);
+  return (isa(t, t_tuple) < 0 ? partial_depth : tuple_depth)(env, array);
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
