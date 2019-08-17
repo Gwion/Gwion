@@ -358,13 +358,42 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
   return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
-ANN Type at_depth(const Env env, const Type t, const m_uint depth) {
+static inline Exp take_exp(Exp e, m_uint n) {
+  for(m_uint i = 1; i < n; ++i)
+    CHECK_OO((e = e->next))
+  return e;
+}
+
+ANN static Type at_depth(const Env env, const Array_Sub array) {
+  const Type t = array->type;
+  const m_uint depth = array->depth;
+  const Exp e = array->exp;
   if(!depth)
     return t;
-  if(GET_FLAG(t, typedef))
-    return at_depth(env, t->e->parent, depth);
-  if(depth > t->array_depth)
-    return at_depth(env, t->e->d.base_type, depth - t->array_depth);
+  if(GET_FLAG(t, typedef)) {
+    struct Array_Sub_ next = { e, t->e->parent, depth };
+    return at_depth(env, &next);
+  }
+  if(depth > t->array_depth) {
+    const Exp curr = take_exp(e, t->array_depth);
+    const Type t_base = array_base(t) ?: t;
+    if(isa(t_base, t_tuple) > 0) {
+      if(curr->exp_type != ae_exp_primary ||
+          curr->d.exp_primary.primary_type != ae_primary_num)
+         ERR_O(e->pos, _("tuple subscripts must be litteral"))
+      const m_uint idx = curr->d.exp_primary.d.num;
+      const Type type = (Type)vector_at(&t_base->e->tuple->types, idx);
+      if(type == t_undefined)
+         ERR_O(e->pos, _("tuple subscripts is undefined"))
+      struct Array_Sub_ next = { curr->next, type, depth - t->array_depth - 1 };
+      return at_depth(env, &next);
+    }
+    if(!curr->next)
+      ERR_O(e->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
+          depth, get_depth(t))
+      struct Array_Sub_ next = { curr->next, t_base, depth - t->array_depth };
+      return at_depth(env, &next);
+  }
   return array_type(env, array_base(t), t->array_depth - depth);
 }
 
@@ -381,42 +410,14 @@ static m_bool array_access_valid(const Env env, const Exp_Array* array) {
   CHECK_BB(index_is_int(env, array->array->exp, &depth))
   if(depth != array->array->depth)
     ERR_B(exp_self(array)->pos, _("invalid array acces expression."))
-  DECL_OB(const Type, t_base,  = check_exp(env, array->base))
-  if(depth > get_depth(t_base)) {
-    const Type type = array_base(t_base) ?: t_base;
-    if(isa(type, t_tuple) > 0 && depth - get_depth(t_base) == 1) {
-      Exp e = array->array->exp;
-      while(e->next)
-        e = e->next;
-      if(e->exp_type != ae_exp_primary ||
-          e->d.exp_primary.primary_type != ae_primary_num)
-         ERR_B(exp_self(array)->pos, _("tuple subscripts must be litteral"))
-      if((Type)vector_at(&type->e->tuple->types, e->d.exp_primary.d.num) == t_undefined)
-         ERR_B(exp_self(array)->pos, _("tuple subscripts is undefined"))
-      return 0;
-    }
-    ERR_B(exp_self(array)->pos,
-      _("array subscripts (%i) exceeds defined dimension (%i)"),
-          array->array->depth, get_depth(t_base))
-  }
   return GW_OK;
 }
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
+  CHECK_OO((array->array->type = check_exp(env, array->base)))
   CHECK_OO(check_exp(env, array->array->exp))
-  const m_bool ret = array_access_valid(env, array);
-  CHECK_BO(ret);
-  if(!ret) {
-    Exp e = array->array->exp;
-    while(e->next)
-      e = e->next;
-    // if we implement tuple with no type, err_msg
-    const Type type = array_base(array->base->type) ?: array->base->type;
-    if(e->d.exp_primary.d.num >= vector_size(&type->e->tuple->types))
-      ERR_O(exp_self(array)->pos, "Invalid tuple subscript")
-    return (Type)vector_at(&type->e->tuple->types, e->d.exp_primary.d.num);
-  }
-  return at_depth(env, array->base->type, array->array->depth);
+  CHECK_BO(array_access_valid(env, array))
+  return at_depth(env, array->array);
 }
 
 ANN static Type_List mk_type_list(const Env env, const Type type) {

@@ -398,6 +398,21 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   return GW_OK;
 }
 
+//! emit only one index at the time
+ANN static inline m_bool emit_index(const Emitter emit, const Exp e) {
+  const Exp next = e->next;
+  e->next = NULL;
+  const m_bool ret = emit_exp(emit, e, 0);
+  e->next = next;
+  return ret;
+}
+
+static inline Exp take_exp(Exp e, m_uint n) {
+  for(m_uint i = 1; i < n; ++i)
+    CHECK_OO((e = e->next))
+  return e;
+}
+
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);
@@ -422,10 +437,12 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
   push->m_val = is_var ? SZ_INT : size;
 }
 
-ANN static inline void array_do(const  Emitter emit, const m_uint depth,
-		    const m_uint size, const m_bool is_var) {
-  array_loop(emit, depth);
-  array_finish(emit, depth, size, is_var);
+ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
+  emit_add_instr(emit, GcAdd);
+  CHECK_BB(emit_exp(emit, array->exp, 0))
+  array_loop(emit, array->depth);
+  array_finish(emit, array->depth, array->type->size, is_var);
+  return GW_OK;
 }
 
 ANN static inline void tuple_access(const  Emitter emit, const m_uint idx,
@@ -437,38 +454,61 @@ ANN static inline void tuple_access(const  Emitter emit, const m_uint idx,
   emit_add_instr(emit, DotMember); // just a place holder.
 }
 
-ANN static inline Exp exp_antepenultimate(Exp e) {
-  while(e->next && e->next->next)
-    e = e->next;
-  return e;
+struct ArrayAccessInfo {
+  struct Array_Sub_ array;
+  const Type type;
+  const m_bool is_var;
+};
+
+ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInfo *const info);
+
+ANN static inline m_bool tuple_index(const Emitter emit, struct ArrayAccessInfo *const info) {
+  assert(isa(info->array.type, t_tuple) > 0);
+  const m_uint idx = info->array.exp->d.exp_primary.d.num;
+  tuple_access(emit, info->array.exp->d.exp_primary.d.num, info->array.depth ? 0 : info->is_var);
+  if(!info->array.exp->next)
+    return GW_OK;
+  const Type type = (Type)vector_at(&info->array.type->e->tuple->types, idx);
+  struct Array_Sub_ next = { info->array.exp->next, type, info->array.depth - 1 };
+  info->array = next;
+  return _emit_indexes(emit, info);
 }
 
-ANN static m_bool emit_array_indexes(const Emitter emit, const Exp exp,
-      const m_bool is_tuple) {
-  const Exp e = exp_antepenultimate(exp), next = e->next;
-  emit_add_instr(emit, GcAdd);
-  if(is_tuple)
-    e->next = NULL;
-  CHECK_BB(emit_exp(emit, exp, 0))
-  if(is_tuple)
-    e->next = next;
-  return GW_OK;
+ANN static inline Exp emit_n_exp(const Emitter emit,  struct ArrayAccessInfo *const info) {
+  const Exp e = take_exp(info->array.exp, info->array.depth);
+  const Exp next = e->next;
+  e->next = NULL;
+  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.depth };
+  const m_bool ret = array_do(emit, &partial, 0);
+  e->next = next;
+  return ret > 0 ? next : NULL;
+}
+
+ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInfo *const info) {
+  if(GET_FLAG(info->array.type, typedef)) {
+    info->array.type = info->array.type->e->parent;
+    return _emit_indexes(emit, info);
+  }
+  if(!info->array.type->array_depth)
+    return tuple_index(emit, info);
+  if(info->array.type->array_depth >= info->array.depth) {
+    struct Array_Sub_ next = { info->array.exp, info->type, info->array.depth };
+    return array_do(emit, &next, info->is_var);
+  }
+  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.depth - info->array.type->array_depth };
+  struct Array_Sub_ next = { info->array.exp, array_base(info->array.type), info->array.depth - info->array.type->array_depth };
+  info->array = partial;
+  DECL_OB(const Exp, exp, = emit_n_exp(emit, info))
+  next.exp = exp;
+  info->array = next;
+  return _emit_indexes(emit, info);
 }
 
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   CHECK_BB(emit_exp(emit, array->base, 0))
-  const Type array_type = exp_self(array)->type, t_base = array->base->type,
-      type = array_base(t_base) ?: t_base;
-  const m_uint depth = get_depth(t_base) - get_depth(array_type);
-  const m_bool is_tuple = isa(type, t_tuple) > 0 && isa(array_type, t_tuple) < 0;
-  const m_uint is_var = exp_self(array)->emit_var;
-  if(depth) {
-    CHECK_BB(emit_array_indexes(emit, array->array->exp, is_tuple))
-    array_do(emit, depth, array_type->size, is_var);
-  }
-  if(is_tuple)
-    tuple_access(emit, array->array->exp->d.exp_primary.d.num, is_var);
-  return GW_OK;
+  const Exp e = exp_self(array);
+  struct ArrayAccessInfo info = { *array->array, e->type, e->emit_var };
+  return _emit_indexes(emit, &info);
 }
 
 ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) {
