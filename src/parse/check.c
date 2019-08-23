@@ -358,12 +358,6 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
   return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
-static inline Exp take_exp(Exp e, m_uint n) {
-  for(m_uint i = 1; i < n; ++i)
-    CHECK_OO((e = e->next))
-  return e;
-}
-
 ANN static Type at_depth(const Env env, const Array_Sub array);
 ANN static Type tuple_depth(const Env env, const Array_Sub array) {
   if(array->exp->exp_type != ae_exp_primary ||
@@ -519,6 +513,8 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
+  if(fdef->base->func)
+    return fdef->base->func;
   const m_bool ret = traverse_func_def(env, fdef);
   if(ret > 0) {
     const Func f = fdef->base->func;
@@ -590,7 +586,7 @@ CHECK_BO(check_call(env, exp))
           m_func = env->func;
           break;
         }
-        if((m_func = ensure_tmpl(env, exists->d.func_ref->def, exp)))
+        if((m_func == exists->d.func_ref))
           break;
       } else {
         const Value value = template_get_ready(env, v, "template", i);

@@ -407,12 +407,6 @@ ANN static inline m_bool emit_index(const Emitter emit, const Exp e) {
   return ret;
 }
 
-static inline Exp take_exp(Exp e, m_uint n) {
-  for(m_uint i = 1; i < n; ++i)
-    CHECK_OO((e = e->next))
-  return e;
-}
-
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);
