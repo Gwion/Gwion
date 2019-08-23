@@ -62,7 +62,7 @@ static m_bool _compiler_open(struct Compiler* c) {
   if(c->type == COMPILE_NAME) {
     m_str name = c->name;
     c->name = realpath(name, NULL);
-    free(name);
+    xfree(name);
     return c->name ? !!(c->file = fopen(c->name, "r")) : -1;
   } else if(c->type == COMPILE_MSTR)
     return (c->file = fmemopen(c->data, strlen(c->data), "r")) ? 1 : - 1;
