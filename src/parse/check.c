@@ -588,7 +588,7 @@ CHECK_BO(check_call(env, exp))
           m_func = env->func;
           break;
         }
-        if((m_func == exists->d.func_ref))
+        if((m_func = exists->d.func_ref))
           break;
       } else {
         const Value value = template_get_ready(env, v, "template", i);
