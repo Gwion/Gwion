@@ -86,16 +86,13 @@ ANN void m_vector_set(const M_Vector v, const m_uint i, const void* data) {
 
 ANN void m_vector_rem(const M_Vector v, m_uint index) {
   const m_uint size = ARRAY_SIZE(v);
-  char c[--ARRAY_LEN(v) * size];
-  if(index)
-    memcpy(c, ARRAY_PTR(v), index * size);
-  ++index;
-  memcpy(c + (index - 1) * size, ARRAY_PTR(v) + index * size, (ARRAY_CAP(v) - index) * size);
+  memmove(ARRAY_PTR(v) + index * size, ARRAY_PTR(v) + (index + 1) * size,
+    (ARRAY_SIZE(v) - index - 1) *size);
+  --ARRAY_LEN(v);
   if(ARRAY_LEN(v) < ARRAY_CAP(v) / 2) {
     const m_uint cap = ARRAY_CAP(v) /= 2;
     v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
   }
-  memcpy(ARRAY_PTR(v), c, ARRAY_CAP(v) * size);
 }
 
 static MFUN(vm_vector_rem) {
