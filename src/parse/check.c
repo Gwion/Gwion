@@ -515,8 +515,6 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  if(fdef->base->func)
-    return fdef->base->func;
   const m_bool ret = traverse_func_def(env, fdef);
   if(ret > 0) {
     const Func f = fdef->base->func;
@@ -588,7 +586,7 @@ CHECK_BO(check_call(env, exp))
           m_func = env->func;
           break;
         }
-        if((m_func = exists->d.func_ref))
+        if((m_func = ensure_tmpl(env, exists->d.func_ref->def, exp)))
           break;
       } else {
         const Value value = template_get_ready(env, v, "template", i);
