@@ -38,7 +38,8 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
   if(value)
     ERR_B(var->pos,
           _("in class '%s': '%s' has already been defined in parent class '%s' ..."),
-          env->class_def->name, s_name(var->xid), value->owner_class->name)
+          env->class_def->name, s_name(var->xid),
+          value->owner_class ? value->owner_class->name : "?")
   return GW_OK;
 }
 
@@ -368,7 +369,8 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
      ERR_O(array->exp->pos, _("tuple subscripts too big"))
   const Type type = (Type)vector_at(&array->type->e->tuple->types, idx);
   if(type == t_undefined)
-     ERR_O(array->exp->pos, _("tuple subscripts is undefined"))
+     ERR_O(array->exp->pos, _("tuple subscripts is undefined at index %lu"),
+         idx)
   if(!array->exp->next)
     return type;
   struct Array_Sub_ next = { array->exp->next, type, array->depth - 1 };
