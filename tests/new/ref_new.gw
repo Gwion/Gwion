@@ -1,0 +1,3 @@
+#! [contains] can't use 'new' on ref type
+typedef int[] _int;
+new _int;
