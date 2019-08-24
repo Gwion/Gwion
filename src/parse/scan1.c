@@ -369,8 +369,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if(isa(parent, t_object) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
-//    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
-    CHECK_BB(scan1_cdef(env, parent->e->def))
+    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;

@@ -28,7 +28,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
     if(t->nspc)
       ADD_REF(t->nspc)
     t->name = s_name(sym);
-    t->e->parent = ret;
+    t->flag = ret->flag;
     SET_FLAG(t, nonnull);
     map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)t);
     return t;

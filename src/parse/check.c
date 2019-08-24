@@ -180,7 +180,7 @@ ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
   if(!v->owner_class || isa(t, v->owner_class) < 0) {
     ERR_B(pos,
         _("'%s' from owner namespace '%s' used in '%s'."),
-            v->name, v->owner->name, t->name)
+            v->name, v->owner ? v->owner->name : "?", t->name)
   }
   return GW_OK;
 }
@@ -364,6 +364,8 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
      array->exp->d.exp_primary.primary_type != ae_primary_num)
      ERR_O(array->exp->pos, _("tuple subscripts must be litteral"))
   const m_uint idx = array->exp->d.exp_primary.d.num;
+  if(idx >= vector_size(&array->type->e->tuple->types))
+     ERR_O(array->exp->pos, _("tuple subscripts too big"))
   const Type type = (Type)vector_at(&array->type->e->tuple->types, idx);
   if(type == t_undefined)
      ERR_O(array->exp->pos, _("tuple subscripts is undefined"))
@@ -375,7 +377,7 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
 
 ANN static Type partial_depth(const Env env, const Array_Sub array) {
   const Exp curr = take_exp(array->exp, array->type->array_depth);
-  if(!curr->next)
+  if(!curr->next || !array_base(array->type))
     ERR_O(array->exp->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
         array->depth, get_depth(array->type))
   struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };

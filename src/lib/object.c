@@ -122,9 +122,10 @@ static OP_CHECK(at_object) {
   const Type r = bin->rhs->type;
   if(opck_rassign(env, data, mut) == t_null)
     return t_null;
+  if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == t_null)
+    return t_null;
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
-  CHECK_OO(check_nonnull(env, l, r, "assign", exp_self(bin)->pos))
   bin->rhs->emit_var = 1;
   return r;
 }

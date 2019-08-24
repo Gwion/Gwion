@@ -1837,7 +1837,7 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type base = parent->e->d.base_type;
   if(base && !GET_FLAG(base, emit))
     CHECK_BB(emit_cdef(emit, base->e->def))
-  return !GET_FLAG(parent, emit) ? emit_cdef(emit, parent->e->def) : GW_OK;
+  return !GET_FLAG(parent, emit) ? scanx_parent(parent, emit_cdef, emit) : GW_OK;
 }
 
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {

@@ -163,9 +163,12 @@ ANN Type scan_tuple(const Env env, const Type_Decl *td) {
   do {
     const Type t = tl->td->xid->xid != insert_symbol("_") ?
        known_type(env, tl->td) : (Type)1;
-    if(!t)
-      break;
-    vector_add(&v, (m_uint)t);
+    if(t)
+      vector_add(&v, (m_uint)t);
+    else {
+      vector_release(&v);
+      return NULL;
+    }
   } while((tl = tl->next));
   const Type ret = tuple_type(env, &v, td_pos(td));
   vector_release(&v);

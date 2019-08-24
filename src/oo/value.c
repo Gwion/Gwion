@@ -9,7 +9,7 @@
 #include "type.h"
 
 ANN static void free_value(Value a, Gwion gwion) {
-  const Type t = !GET_FLAG(a->type, nonnull) ? a->type : a->type->e->parent;
+  const Type t = a->type;
   if(!GET_FLAG(a, func) && a->d.ptr && !GET_FLAG(a, union) &&
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
       && isa(t, t_object) < 0)
