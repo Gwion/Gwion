@@ -70,7 +70,8 @@ ANN static ID_List cpy_id_list(MemPool p, const ID_List src) {
   a->xid = src->xid; // 1 
   if(src->next)
     a->next = cpy_id_list(p, src->next); // 1 
-  a->pos = loc_cpy(p, src->pos); // 1 
+  if(src->pos)
+    a->pos = loc_cpy(p, src->pos); // 1 
   return a;
 }
 

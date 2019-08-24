@@ -320,8 +320,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   if(!overload) {
     ADD_REF(v);
     nspc_add_value(env->curr, f->def->base->xid, v);
-  } else {
-    assert(overload->d.func_ref);
+  } else if(overload->d.func_ref) {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
   }

@@ -98,7 +98,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
       t = array_type(env, decl->type, var->array->depth);
-    } else  if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
+    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
       ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
     CHECK_OB(prim_ref(env, t, decl->td))
     //assert(!var->value);
