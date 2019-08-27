@@ -1164,47 +1164,6 @@ ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   return GW_OK;
 }
 
-
-ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
-  if(stmt->val) {
-    if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
-      return optimize_taill_call(emit, &stmt->val->d.exp_call);
-    CHECK_BB(emit_exp(emit, stmt->val, 0))
-    if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_shred) < 0) // beware shred
-      emit_add_instr(emit, RegAddRef);
-  }
-  vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
-  return GW_OK;
-}
-
-ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt stmt NUSED) {
-  vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
-  return GW_OK;
-}
-
-ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt stmt NUSED) {
-  vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
-  return GW_OK;
-}
-
-ANN static inline void emit_push_stack(const Emitter emit) {
-  emit_push_scope(emit);
-  vector_add(&emit->code->stack_cont, (vtype)NULL);
-  vector_add(&emit->code->stack_break, (vtype)NULL);
-}
-
-ANN static void pop_vector(Vector v, const  m_uint pc) {
-  Instr instr;
-  while((instr = (Instr)vector_pop(v)))
-    instr->m_val = pc;
-}
-
-ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
-  pop_vector(&emit->code->stack_cont, index);
-  pop_vector(&emit->code->stack_break, emit_code_size(emit));
-  emit_pop_scope(emit);
-}
-
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
   do //if(GET_FLAG(a->self->value, used))
@@ -1238,6 +1197,46 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
   if(e->next)
     pop_exp(emit, e->next);
   return GW_OK;
+}
+
+ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
+  if(stmt->val) {
+    if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
+      return optimize_taill_call(emit, &stmt->val->d.exp_call);
+    CHECK_BB(emit_exp_pop_next(emit, stmt->val))
+    if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_shred) < 0) // beware shred
+      emit_add_instr(emit, RegAddRef);
+  }
+  vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
+  return GW_OK;
+}
+
+ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt stmt NUSED) {
+  vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
+  return GW_OK;
+}
+
+ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt stmt NUSED) {
+  vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
+  return GW_OK;
+}
+
+ANN static inline void emit_push_stack(const Emitter emit) {
+  emit_push_scope(emit);
+  vector_add(&emit->code->stack_cont, (vtype)NULL);
+  vector_add(&emit->code->stack_break, (vtype)NULL);
+}
+
+ANN static void pop_vector(Vector v, const  m_uint pc) {
+  Instr instr;
+  while((instr = (Instr)vector_pop(v)))
+    instr->m_val = pc;
+}
+
+ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
+  pop_vector(&emit->code->stack_cont, index);
+  pop_vector(&emit->code->stack_break, emit_code_size(emit));
+  emit_pop_scope(emit);
 }
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
