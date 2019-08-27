@@ -25,6 +25,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
     if(exist)
       return exist;
     const Type t = type_copy(env->gwion->mp, ret);
+    t->e->parent = ret->e->parent;
     if(t->nspc)
       ADD_REF(t->nspc)
     t->name = s_name(sym);
