@@ -25,7 +25,8 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
 
 ANN static inline Type get_base_type(const Env env, const Type t) {
   const m_str decl_name = get_type_name(env, t->name, 0);
-  return nspc_lookup_type1(env->curr, insert_symbol(decl_name));
+  const Type ret = nspc_lookup_type1(env->curr, insert_symbol(decl_name));
+  return !SAFE_FLAG(ret, nonnull) ? ret : ret->e->parent;
 }
 
 ANN static inline void type_contains(const Type base, const Type t) {
@@ -46,8 +47,8 @@ ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
     type_contains(base, decl_base); // NEEDED
     type_contains(env->class_def, t);
     if(decl_base->e->contains.ptr) {
-      for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
-        if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(decl->td, ref))
+      for(m_uint i = 0; i < vector_size(&decl_base->e->contains); ++i) {
+        if(env->class_def == (Type)vector_at(&decl_base->e->contains, i) && !GET_FLAG(decl->td, ref))
           ERR_B(exp_self(decl)->pos, _("%s declared inside %s\n. (make it a ref ?)"),
               decl_base->name, decl_base == base ? "itself" : base->name);
       }

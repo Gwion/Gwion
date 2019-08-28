@@ -1132,38 +1132,6 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
-  emit_push_scope(emit);
-  CHECK_BB(emit_exp(emit, stmt->cond, 0))
-  DECL_OB(const Instr, op, = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
-      t_int : stmt->cond->type, BranchEqInt, BranchEqFloat))
-  CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
-  const Instr op2 = emit_add_instr(emit, Goto);
-  op->m_val = emit_code_size(emit);
-  if(stmt->else_body)
-    CHECK_BB(scoped_stmt(emit, stmt->else_body, 1))
-  op2->m_val = emit_code_size(emit);
-  emit_pop_scope(emit);
-  return GW_OK;
-}
-
-ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
-  ++emit->env->scope->depth;
-  const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
-  --emit->env->scope->depth;
-  return ret;
-}
-
-ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
-  if(e->args) {
-    CHECK_BB(emit_exp(emit, e->args, 0))
-    regpop(emit, SZ_INT);
-    emit_args(emit, e->m_func);
-  }
-  emit_add_instr(emit, Goto);
-  return GW_OK;
-}
-
 ANN static m_uint get_decl_size(Var_Decl_List a) {
   m_uint size = 0;
   do //if(GET_FLAG(a->self->value, used))
@@ -1196,6 +1164,38 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
   CHECK_BB(emit_exp(emit, e, 0))
   if(e->next)
     pop_exp(emit, e->next);
+  return GW_OK;
+}
+
+ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
+  emit_push_scope(emit);
+  CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
+  DECL_OB(const Instr, op, = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
+      t_int : stmt->cond->type, BranchEqInt, BranchEqFloat))
+  CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
+  const Instr op2 = emit_add_instr(emit, Goto);
+  op->m_val = emit_code_size(emit);
+  if(stmt->else_body)
+    CHECK_BB(scoped_stmt(emit, stmt->else_body, 1))
+  op2->m_val = emit_code_size(emit);
+  emit_pop_scope(emit);
+  return GW_OK;
+}
+
+ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
+  ++emit->env->scope->depth;
+  const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
+  --emit->env->scope->depth;
+  return ret;
+}
+
+ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
+  if(e->args) {
+    CHECK_BB(emit_exp(emit, e->args, 0))
+    regpop(emit, SZ_INT);
+    emit_args(emit, e->m_func);
+  }
+  emit_add_instr(emit, Goto);
   return GW_OK;
 }
 

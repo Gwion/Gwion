@@ -124,8 +124,10 @@ static OP_CHECK(at_object) {
     return t_null;
   if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == t_null)
     return t_null;
-  if(bin->rhs->exp_type == ae_exp_decl)
+  if(bin->rhs->exp_type == ae_exp_decl) {
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
+    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, ref);
+  }
   bin->rhs->emit_var = 1;
   return r;
 }
