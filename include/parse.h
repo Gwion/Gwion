@@ -94,4 +94,7 @@ xxx_cdef(scan1)
 xxx_cdef(scan2)
 xxx_cdef(check)
 xxx_cdef(traverse)
+
+__attribute__((returns_nonnull))
+ANN Type get_type(const Type t);
 #endif

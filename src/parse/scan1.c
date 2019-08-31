@@ -15,11 +15,15 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
-  DECL_OO(const Type, t, = known_type_noref(env, td))
-  if(t->e->def && !GET_FLAG(t, scan1))
+  DECL_OO(const Type, type, = known_type_noref(env, td))
+//  if(t->e->def && !GET_FLAG(t, scan1))
+{
+  const Type t = get_type(type);
+  if(GET_FLAG(t, template) && !GET_FLAG(t, scan1))
     CHECK_BO(scan1_cdef(env, t->e->def))
-  if(t->size)
-    return t;
+}
+  if(type->size)
+    return type;
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
 }
 
@@ -261,32 +265,42 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   return isa(tdef->type, t_fptr) < 0 ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
+ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
+    const Decl_List l) {
+  const Exp_Decl decl = l->self->d.exp_decl;
+  SET_FLAG(decl.td, checked | udef->flag);
+  const m_bool global = GET_FLAG(udef, global);
+  if(global)
+    UNSET_FLAG(decl.td, global);
+  if(GET_FLAG(udef, member))
+    SET_FLAG(decl.td, member);
+  else if(GET_FLAG(udef, static))
+    SET_FLAG(decl.td, static);
+  CHECK_BB(scan1_exp(env, l->self))
+  if(global)
+    SET_FLAG(decl.td, global);
+  return GW_OK;
+}
+
+ANN m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
+  Decl_List l = udef->l;
+  do CHECK_BB(scan1_union_def_action(env, udef, l))
+  while((l = l->next));
+ return GW_OK;
+}
+
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
-  Decl_List l = udef->l;
   const m_uint scope = union_push(env, udef);
   if(udef->xid || udef->type_xid) {
     UNSET_FLAG(udef, private);
     UNSET_FLAG(udef, protect);
   }
-  do {
-    const Exp_Decl decl = l->self->d.exp_decl;
-    SET_FLAG(decl.td, checked | udef->flag);
-    const m_bool global = GET_FLAG(udef, global);
-    if(global)
-      UNSET_FLAG(decl.td, global);
-    if(GET_FLAG(udef, member))
-      SET_FLAG(decl.td, member);
-    else if(GET_FLAG(udef, static))
-      SET_FLAG(decl.td, static);
-    CHECK_BB(scan1_exp(env, l->self))
-    if(global)
-      SET_FLAG(decl.td, global);
-  } while((l = l->next));
+  const m_bool ret = scan1_union_def_inner(env, udef);
   union_pop(env, udef, scope);
   SET_FLAG(udef, scan1);
-  return GW_OK;
+  return ret;
 }
 
 static const _exp_func stmt_func[] = {

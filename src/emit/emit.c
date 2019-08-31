@@ -157,7 +157,7 @@ ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->e->parent)
     emit_pre_ctor(emit, type->e->parent);
-  if(type->nspc->pre_ctor)
+  if(type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
     emit_ext_ctor(emit, type->nspc->pre_ctor);
   if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
     const Type t = template_parent(emit->env, type);
@@ -707,7 +707,7 @@ ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_cdef(const Emitter, const Class_Def);
 
 ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_Decl* decl) {
-  const Type t = decl->type;
+  const Type t = get_type(decl->type);
   return !GET_FLAG(t, emit) ? emit_cdef(emit, t->e->def) : GW_OK;
 }
 

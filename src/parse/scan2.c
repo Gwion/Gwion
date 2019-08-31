@@ -21,8 +21,11 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Type type = decl->type;
-  if(type->e->def && /*GET_FLAG(type, template) &&*/ !GET_FLAG(type, scan2))
-    CHECK_BB(scan2_cdef(env, decl->type->e->def))
+{
+  const Type t = get_type(decl->type);
+  if(GET_FLAG(t, template) && !GET_FLAG(t, scan2))
+    CHECK_BB(scan2_cdef(env, t->e->def))
+}
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;

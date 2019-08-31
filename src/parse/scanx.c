@@ -54,16 +54,17 @@ scanx_ext(const Env e, const Class_Def c, const _exp_func f, void* d) {
   return ret;
 }
 #undef scanx_parent
+
 __attribute__((returns_nonnull))
-static inline Type get_type(const Type t) {
-//  return !t->array_depth ? t : array_base(t);
+ANN Type get_type(const Type t) {
   const Type type = !t->array_depth ? t : array_base(t);
   return !GET_FLAG(type, nonnull) ? type : type->e->parent;
 }
 
 __attribute__((returns_nonnull))
 static inline Class_Def get_type_def(const Type t) {
-  return get_type(t)->e->def;
+  const Type type = get_type(t);
+  return type->e->def;
 }
 
 ANN m_bool

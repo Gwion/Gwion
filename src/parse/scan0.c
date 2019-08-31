@@ -11,6 +11,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "cpy_ast.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   map_set(&nspc->info->type->map, (m_uint)insert_symbol(t->name), (m_uint)t);
@@ -193,7 +194,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     udef->value->owner = nspc;
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
-    SET_FLAG(t, scan1);
+    SET_FLAG(t, scan1 | ae_flag_union);
     SET_FLAG(udef->value, checked | udef->flag);
     if(env->class_def && !GET_FLAG(udef, static)) {
       SET_FLAG(udef->value, member);
@@ -205,7 +206,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
       env->curr : env->global_nspc;
     udef->type = union_type(env, nspc, udef->type_xid, 1);
     SET_FLAG(udef->type, checked);
-    SET_FLAG(udef->type, scan1);
+    SET_FLAG(udef->type, scan1 | ae_flag_union);
   } else {
     const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
@@ -219,7 +220,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(udef->value, checked | udef->flag);
-    SET_FLAG(t, scan1);
+    SET_FLAG(t, scan1 | ae_flag_union);
   }
   if(udef->tmpl) {
     if(tmpl_base(udef->tmpl)) {
@@ -228,7 +229,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
       udef->type->e->def = cdef;
       cdef->base.tmpl = udef->tmpl;
       cdef->base.type = udef->type;
-      cdef->list = udef->l;
+      cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
       SET_FLAG(cdef, union);
       SET_FLAG(udef->type, pure);
       SET_FLAG(udef, template);
@@ -286,8 +287,7 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
   return GW_OK;
 }
 
-ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
-  CHECK_BB(scan0_class_def_pre(env, cdef))
+ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
   SET_FLAG(cdef->base.type, scan0);
   if(cdef->body) {
@@ -297,9 +297,15 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
     if(call)cdef->base.tmpl->call = NULL;
   }
   (void)mk_class(env, cdef->base.type);
+  return GW_OK;
+}
+
+ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
+  CHECK_BB(scan0_class_def_pre(env, cdef))
+  const m_bool ret = scan0_class_def_inner(env, cdef);
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
-  return GW_OK;
+  return ret;
 }
 
 ANN m_bool scan0_ast(const Env env, Ast ast) {

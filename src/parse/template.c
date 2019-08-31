@@ -203,7 +203,8 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
         CHECK_BO(scan0_class_def(env, a))
         map_set(&env->curr->info->type->map, (vtype)a->base.xid, (vtype)a->base.type);
       } else {
-        a->union_def = new_union_def(env->gwion->mp, a->list, t->e->def->pos);
+        a->union_def = new_union_def(env->gwion->mp, a->list,
+          loc_cpy(env->gwion->mp, t->e->def->pos));
         a->union_def->type_xid = a->base.xid;
         CHECK_BO(scan0_union_def(env, a->union_def))
         a->base.type = a->union_def->type;

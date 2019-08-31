@@ -14,9 +14,12 @@
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template)) {
     if(GET_FLAG(a, union)) {
-      if(a->e->def->union_def && !GET_FLAG(a, pure))  { // <=> decl_list
+      if(a->e->def->union_def) {
+        if(!GET_FLAG(a, pure))  { // <=> decl_list
           UNSET_FLAG(a->e->def->union_def, global);
           free_union_def(gwion->mp, a->e->def->union_def);
+        } else
+        free_decl_list(gwion->mp, a->e->def->list);
       }
       a->e->def->union_def = NULL;
     } else if(a->e->def)

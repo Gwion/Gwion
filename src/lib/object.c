@@ -59,6 +59,8 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
   do {
+    if(GET_FLAG(t, nonnull))
+      t = t->e->parent;
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {

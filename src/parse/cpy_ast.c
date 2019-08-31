@@ -129,7 +129,8 @@ ANN static void cpy_exp_primary(MemPool p, Exp_Primary *a, const Exp_Primary *sr
       cpy_vec(p, &a->d.vec, &src->d.vec);
       break;
     default:
-      a->d.exp = cpy_exp(p, src->d.exp);
+      if(src->d.exp)
+        a->d.exp = cpy_exp(p, src->d.exp);
       break;
   }
   a->primary_type = src->primary_type;
@@ -240,7 +241,7 @@ ANN static Exp cpy_exp(MemPool p, const Exp src) {
   return a;
 }
 
-ANN static Decl_List cpy_decl_list(MemPool p, const Decl_List src) {
+ANN /*static */Decl_List cpy_decl_list(MemPool p, const Decl_List src) {
   Decl_List a = mp_calloc(p, Decl_List);
   a->self = cpy_exp(p, src->self);
   if(src->next)

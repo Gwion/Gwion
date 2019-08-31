@@ -118,8 +118,11 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   }
   if(!decl->type)
       ERR_O(td_pos(decl->td), _("can't infer type."));
-  if(GET_FLAG(decl->type , template) && !GET_FLAG(decl->type, check))
-    CHECK_BO(check_cdef(env, decl->type->e->def))
+{
+  const Type t = get_type(decl->type);
+  if(GET_FLAG(t, template) && !GET_FLAG(t, check))
+    CHECK_BO(check_cdef(env, t->e->def))
+}
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   do {
