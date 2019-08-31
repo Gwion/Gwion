@@ -398,15 +398,6 @@ ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
   return GW_OK;
 }
 
-//! emit only one index at the time
-ANN static inline m_bool emit_index(const Emitter emit, const Exp e) {
-  const Exp next = e->next;
-  e->next = NULL;
-  const m_bool ret = emit_exp(emit, e, 0);
-  e->next = next;
-  return ret;
-}
-
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);

@@ -20,7 +20,6 @@ ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-  const Type type = decl->type;
 {
   const Type t = get_type(decl->type);
   if(GET_FLAG(t, template) && !GET_FLAG(t, scan2))
