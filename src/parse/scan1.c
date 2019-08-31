@@ -14,25 +14,6 @@
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static Type void_type(const Env env, const Type_Decl* td) {
-  DECL_OO(const Type, type, = known_type_noref(env, td))
-//  if(t->e->def && !GET_FLAG(t, scan1))
-{
-  const Type t = get_type(type);
-  if(GET_FLAG(t, template) && !GET_FLAG(t, scan1))
-    CHECK_BO(scan1_cdef(env, t->e->def))
-}
-  if(type->size)
-    return type;
-  ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
-}
-
-ANN static inline Type get_base_type(const Env env, const Type t) {
-  const m_str decl_name = get_type_name(env, t->name, 0);
-  const Type ret = nspc_lookup_type1(env->curr, insert_symbol(decl_name));
-  return !SAFE_FLAG(ret, nonnull) ? ret : ret->e->parent;
-}
-
 ANN static inline void type_contains(const Type base, const Type t) {
   const Vector v = &base->e->contains;
   if(!v->ptr)
@@ -44,33 +25,40 @@ ANN static inline void type_contains(const Type base, const Type t) {
   }
 }
 
-ANN static m_bool type_recursive(const Env env, Exp_Decl* decl, const Type t) {
-  const Type decl_base = get_base_type(env, t);
-  const Type base = get_base_type(env, env->class_def);
-  if(decl_base && base) {
-    type_contains(base, decl_base); // NEEDED
+ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
+  if(env->class_def) {
     type_contains(env->class_def, t);
-    if(decl_base->e->contains.ptr) {
-      for(m_uint i = 0; i < vector_size(&decl_base->e->contains); ++i) {
-        if(env->class_def == (Type)vector_at(&decl_base->e->contains, i) && !GET_FLAG(decl->td, ref))
-          ERR_B(exp_self(decl)->pos, _("%s declared inside %s\n. (make it a ref ?)"),
-              decl_base->name, decl_base == base ? "itself" : base->name);
+    if(t->e->contains.ptr) {
+      for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
+        if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(td, ref))
+          ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
+              t, t == env->class_def ? "itself" : env->class_def->name);
       }
     }
   }
   return GW_OK;
 }
 
+ANN static Type void_type(const Env env, const Type_Decl* td) {
+  DECL_OO(const Type, type, = known_type_noref(env, td))
+{
+  const Type t = get_type(type);
+  if(GET_FLAG(t, template) && !GET_FLAG(t, scan1))
+    CHECK_BO(scan1_cdef(env, t->e->def))
+    if(isa(t, t_object) > 0)
+      CHECK_BO(type_recursive(env, td, t))
+}
+  if(type->size)
+    return type;
+  ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
+}
+
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   DECL_OO(const Type ,t, = void_type(env, decl->td))
   if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
     return decl->type;
-  if(!env->scope->depth && env->class_def) {
-    if(isa(t, t_object) > 0)
-      CHECK_BO(type_recursive(env, decl, t))
-    if(!GET_FLAG(decl->td, static))
-      SET_FLAG(decl->td, member);
-  }
+  if(!env->scope->depth && env->class_def && !GET_FLAG(decl->td, static))
+    SET_FLAG(decl->td, member);
   if(GET_FLAG(t, private) && t->e->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
