@@ -32,7 +32,7 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
       for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
         if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(td, ref))
           ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
-              t, t == env->class_def ? "itself" : env->class_def->name);
+              t->name, t == env->class_def ? "itself" : env->class_def->name);
       }
     }
   }
