@@ -12,6 +12,7 @@
 #include "template.h"
 #include "parse.h"
 #include "cpy_ast.h"
+#include "parser.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   map_set(&nspc->info->type->map, (m_uint)insert_symbol(t->name), (m_uint)t);
@@ -210,8 +211,10 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   } else {
     const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
-    char name[7 + strlen(env->name) + 1]; // add pos
-    sprintf(name, "@union:%s", env->name);
+    const size_t line_len = num_digit(udef->pos->first_line);
+    const size_t col_len = num_digit(udef->pos->first_column);
+    char name[strlen(env->name) + line_len + col_len + 10]; // add pos
+    sprintf(name, "@union:%s:%u:%u", env->name, udef->pos->first_line, udef->pos->first_column);
     const Symbol sym = insert_symbol(name);
     const Type t = union_type(env, nspc, sym, 1);
     udef->value = new_value(env->gwion->mp, t, s_name(sym));
