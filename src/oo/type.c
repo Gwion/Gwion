@@ -19,7 +19,7 @@ ANN static void free_type(Type a, Gwion gwion) {
           UNSET_FLAG(a->e->def->union_def, global);
           free_union_def(gwion->mp, a->e->def->union_def);
         } else
-        free_decl_list(gwion->mp, a->e->def->list);
+          free_decl_list(gwion->mp, a->e->def->list);
       }
       a->e->def->union_def = NULL;
     } else if(a->e->def)
