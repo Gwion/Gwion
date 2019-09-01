@@ -432,7 +432,6 @@ ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, co
 
 ANN static inline void tuple_access(const  Emitter emit, const m_uint idx,
         const m_bool is_var) {
-  emit_add_instr(emit, GWOP_EXCEPT);
   const Instr instr = emit_add_instr(emit, TupleMember);
   instr->m_val = idx;
   instr->m_val2 = is_var;
@@ -447,9 +446,15 @@ struct ArrayAccessInfo {
 
 ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInfo *const info);
 
+ANN void emit_except(const Emitter emit, const Type t) {
+  if(!GET_FLAG(t, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
+}
+
 ANN static inline m_bool tuple_index(const Emitter emit, struct ArrayAccessInfo *const info) {
   assert(isa(info->array.type, t_tuple) > 0);
   const m_uint idx = info->array.exp->d.exp_primary.d.num;
+  emit_except(emit, info->array.type);
   tuple_access(emit, info->array.exp->d.exp_primary.d.num, info->array.depth ? 0 : info->is_var);
   if(!info->array.exp->next)
     return GW_OK;
@@ -865,7 +870,7 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
   if(isa(t, t_fptr) < 0)
     instr = emit_add_instr(emit, !GET_FLAG(f, builtin) ? FuncUsr : SetCode);
   else {
-    emit_add_instr(emit, GWOP_EXCEPT);
+    emit_except(emit, t);
     if(f->def->base->tmpl) { // TODO: put in func
       struct dottmpl_ *dt = (struct dottmpl_*)mp_calloc(emit->gwion->mp, dottmpl);
       size_t len = strlen(f->name);
@@ -1292,7 +1297,7 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   emit_push_stack(emit);
   Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
   const m_uint ini_pc  = emit_code_size(emit);
-  emit_add_instr(emit, GWOP_EXCEPT);
+  emit_except(emit, stmt->exp->type);
   const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_uint offset = emit_local(emit, SZ_INT + stmt->v->type->size, 0);
@@ -1674,7 +1679,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
 (isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))
-    emit_add_instr(emit, GWOP_EXCEPT);
+    emit_except(emit, member->t_base);
   }
   if(isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0)
     return emit_member_func(emit, member, value->d.func_ref);
