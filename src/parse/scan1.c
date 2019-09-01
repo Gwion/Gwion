@@ -43,7 +43,6 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, type, = known_type_noref(env, td))
 {
   const Type t = get_type(type);
-  assert(GET_FLAG(t, scan1));
   if(isa(t, t_object) > 0)
     CHECK_BO(type_recursive(env, td, t))
 }
