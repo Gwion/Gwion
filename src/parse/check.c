@@ -825,8 +825,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
-    if(!v)
-      ERR_O(exp_self(exp)->pos, _("template call of non-existant function."))
+    assert(v);
     if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->type, func))
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
     if(!v->d.func_ref->def->base->tmpl)
