@@ -12,6 +12,7 @@ struct Switch_ {
   vtype iter;
   size_t default_case_index;
   size_t depth;
+  struct SwInfo_ *info;
   uint ok;
 };
 

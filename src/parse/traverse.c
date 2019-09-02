@@ -19,12 +19,11 @@ ANN m_bool traverse_decl(const Env env, const Exp_Decl* decl) {
 
 ANN m_bool traverse_func_def(const Env env, const Func_Def def) {
   const Func former = env->func;
-  if(scan1_func_def(env, def) > 0 &&
+  const m_bool ret = scan1_func_def(env, def) > 0 &&
      scan2_func_def(env, def) > 0 &&
-     check_func_def(env, def) > 0)
-    return GW_OK;
+     check_func_def(env, def) > 0;
   env->func = former;
-  return GW_ERROR;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 ANN m_bool traverse_union_def(const Env env, const Union_Def def) {

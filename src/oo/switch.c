@@ -28,19 +28,20 @@ static Switch new_switch(MemPool p) {
   return sw;
 }
 
-ANN static void free_switch(MemPool p, const Switch sw) {
-  if(!sw->ok)
-    free_map(p, sw->cases);
-  free_vector(p, sw->vec); // only for dynamic
-  vector_release(&sw->exp);
-  mp_free(p, Switch, sw);
-}
-
 struct SwInfo_ {
   Stmt_Switch s;
   Type t;
   Func f;
 };
+
+ANN static void free_switch(MemPool p, const Switch sw) {
+  if(!sw->ok)
+    free_map(p, sw->cases);
+  free_vector(p, sw->vec); // only for dynamic
+  vector_release(&sw->exp);
+  mp_free(p, SwInfo, sw->info);
+  mp_free(p, Switch, sw);
+}
 
 ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
   struct SwInfo_ *info = mp_calloc(env->gwion->mp, SwInfo);
@@ -50,6 +51,7 @@ ANN static Switch new_swinfo(const Env env, const Stmt_Switch stmt) {
   const Switch sw = new_switch(env->gwion->mp);
   map_set(&env->scope->swi->map, (vtype)info, (vtype)sw);
   sw->depth = env->scope->depth + 2;
+  sw->info = info;
   return sw;
 }
 
@@ -60,8 +62,9 @@ ANN static inline m_bool swinfo_cmp(const struct SwInfo_ *i1, const struct SwInf
 ANN Switch swinfo_get(const Env env, const struct SwInfo_ *info) {
   for(m_uint i = 0; i < VLEN(&env->scope->swi->map); ++i) {
     const struct SwInfo_ *key = (const struct SwInfo_*)VKEY(&env->scope->swi->map, i);
-    if(swinfo_cmp(key, info))
+    if(swinfo_cmp(key, info)) {
       return (Switch)VVAL(&env->scope->swi->map, i);
+    }
   }
   return NULL;
 }
@@ -89,9 +92,7 @@ ANN void switch_get(const Env env, const Stmt_Switch stmt) {
 
 void switch_reset(const Env env) {
   for(m_uint i = VLEN(&env->scope->swi->map) + 1; --i;) {
-    struct SwInfo_ *info = (struct SwInfo_ *)VKEY(&env->scope->swi->map, i - 1);
-    mp_free(env->gwion->mp, SwInfo, info);
-    Switch sw = (Switch)VVAL(&env->scope->swi->map, i - 1);
+    const Switch sw = (Switch)VVAL(&env->scope->swi->map, i - 1);
     free_switch(env->gwion->mp, sw);
   }
   _scope_clear(env->scope->swi);
@@ -118,6 +119,7 @@ ANN m_bool switch_inside(const Env env, const loc_t pos) {
     ERR_B(pos, _("case found outside switch statement."))
   return GW_OK;
 }
+
 ANN m_bool switch_dup(const Env env, const m_int value, const loc_t pos) {
   const Switch sw = (Switch)_scope_back(env->scope->swi);
   if(map_get(sw->cases, (vtype)value))
@@ -167,19 +169,17 @@ ANN m_uint switch_idx(const Env env) {
 }
 
 ANN m_bool switch_pop(const Env env) {
-  const Switch sw = (Switch)_scope_back(env->scope->swi);
+  const Switch sw = (Switch)_scope_pop(env->scope->swi);
   sw->ok = 1;
-  _scope_pop(env->scope->swi);
   return GW_OK;
 }
 
 ANN m_bool switch_end(const Env env, const loc_t pos) {
   const Switch sw = (Switch)_scope_pop(env->scope->swi);
-  const vtype index = VKEY(&env->scope->swi->map, VLEN(&env->scope->swi->map) - 1);
-//  sw->ok = 1;
-  if(!VLEN(sw->cases) && !VLEN(&sw->exp))
-    ERR_B(pos, _("switch statement with no cases."))
-  map_remove(&env->scope->swi->map, index);
+  map_remove(&env->scope->swi->map, sw->info);
+  const m_bool empty = !VLEN(sw->cases) && !VLEN(&sw->exp);
   free_switch(env->gwion->mp, sw);
+  if(empty)
+    ERR_B(pos, _("switch statement with no cases."))
   return GW_OK;
 }

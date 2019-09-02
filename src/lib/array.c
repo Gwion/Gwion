@@ -48,7 +48,8 @@ void free_m_vector(MemPool p, M_Vector a) {
 }
 
 static DTOR(array_dtor) {
-  const Type t = o->type_ref;
+  const Type t = !GET_FLAG(o->type_ref, nonnull) ?
+    o->type_ref : o->type_ref->e->parent;
   const Type base = array_base(t);
   struct M_Vector_* a = ARRAY(o);
   if(t->array_depth > 1 || isa(base, t_object) > 0)
@@ -164,7 +165,8 @@ static OP_EMIT(opem_array_shift) {
   const Type type = bin->rhs->type;
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = type->size;
-  emit_add_instr(emit, GWOP_EXCEPT);
+  if(!GET_FLAG(bin->lhs->type, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }

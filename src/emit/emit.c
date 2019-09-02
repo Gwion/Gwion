@@ -1425,7 +1425,7 @@ ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) {
   m_int value = 0;
   const Value v = case_value(stmt->val);
   if((!v && prim_value(stmt->val, &value)) || value_value(v, &value)) {
-    CHECK_BB(switch_dup(emit->env, value, stmt->val->pos))
+    CHECK_BB(switch_dup(emit->env, value, stmt_self(stmt)->pos))
     switch_dynpc(emit->env, value, emit_code_size(emit));
   } else
     switch_pc(emit->env, emit_code_size(emit));
@@ -1679,7 +1679,8 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
 (isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))
-    emit_except(emit, member->t_base);
+//    emit_except(emit, member->t_base);
+    emit_add_instr(emit, GWOP_EXCEPT);
   }
   if(isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0)
     return emit_member_func(emit, member, value->d.func_ref);

@@ -176,6 +176,12 @@ ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Type
 #define scan1_exp_lambda dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
 
+ANN static inline m_bool scan1_stmt_switch(const restrict Env env, const Stmt_Switch stmt) {
+  CHECK_BB(scan1_exp(env, stmt->val))
+  CHECK_BB(scan1_stmt(env, stmt->stmt))
+  return GW_OK;
+}
+
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
@@ -187,8 +193,8 @@ describe_ret_nspc(auto, Stmt_Auto,, !(scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(loop, Stmt_Loop,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(switch, Stmt_Switch,, !(scan1_exp(env, stmt->val) < 0 ||
-    scan1_stmt(env, stmt->stmt) < 0) ? 1 : -1)
+//describe_ret_nspc(switch, Stmt_Switch,, !(scan1_exp(env, stmt->val) < 0 ||
+//    scan1_stmt(env, stmt->stmt) < 0) ? 1 : -1)
 describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->if_body) < 0 ||
     (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
@@ -373,6 +379,8 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
     CHECK_BB(scanx_parent(parent, scan1_cdef, env))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
+  if(GET_FLAG(parent, nonnull))
+    ERR_B(pos, _("can't use nonnull type in class extend"))
   return GW_OK;
 }
 
