@@ -176,7 +176,7 @@ ANN m_bool switch_pop(const Env env) {
 
 ANN m_bool switch_end(const Env env, const loc_t pos) {
   const Switch sw = (Switch)_scope_pop(env->scope->swi);
-  map_remove(&env->scope->swi->map, sw->info);
+  map_remove(&env->scope->swi->map, (vtype)sw->info);
   const m_bool empty = !VLEN(sw->cases) && !VLEN(&sw->exp);
   free_switch(env->gwion->mp, sw);
   if(empty)
