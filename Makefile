@@ -1,6 +1,3 @@
-GWION_PACKAGE=gwion
-CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
-
 ifeq (,$(wildcard util/config.mk))
 $(shell cp util/config.mk.orig util/config.mk)
 endif
@@ -9,6 +6,9 @@ $(shell cp config.mk.orig config.mk)
 endif
 include util/config.mk
 include config.mk
+
+GWION_PACKAGE=gwion
+CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
 # initialize source lists
 src_src := $(wildcard src/*.c)
