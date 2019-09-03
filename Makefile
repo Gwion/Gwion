@@ -104,12 +104,10 @@ src/arg.o:
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
 install: ${PRG}
-#!	install ${PRG} ${PREFIX}/bin
-	install ${PRG} ${DESTDIR}/bin
+	install ${PRG} ${DESTDIR}/${PREFIX}/bin
 
 uninstall:
-#	rm ${PREFIX}/${PRG}
-	rm ${DESTDIR}/${PRG}
+	rm ${DESTDIR}/${PREFIX}/bin/${PRG}
 
 test:
 	@bash help/test.sh ${test_dir}
