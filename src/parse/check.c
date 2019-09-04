@@ -650,7 +650,7 @@ ANN static void print_arg(Arg_List e) {
   while((e = e->next) && gw_err(","));
 }
 
-ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
+ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   env_err(env, pos, _("argument type(s) do not match for function. should be :"));
   Func up = f->e->d.func;
   do {
@@ -660,7 +660,6 @@ ANN2(1) static void* function_alternative(const Env env, const Type f, const Exp
     gw_err("\n");
   } while((up = up->next));
   args ? print_current_args(args) : (void)gw_err(_("and not:\n  \033[32mvoid\033[0m\n"));
-  return NULL;
 }
 
 ANN static m_uint get_type_number(ID_List list) {
@@ -780,8 +779,12 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(GET_FLAG(exp->func->type, func))
     return check_exp_call_template(env, (Exp_Call*)exp);
   const Func func = find_func_match(env, exp->func->type->e->d.func, exp->args);
-  return (exp_self(exp)->d.exp_call.m_func = func) ?
-    func->def->base->ret_type : function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
+  if((exp_self(exp)->d.exp_call.m_func = func)) {
+    exp->func->type = func->value_ref->type;
+    return func->def->base->ret_type;
+  }
+  function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
+  return GW_ERROR;
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {

@@ -1644,17 +1644,18 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
   return emit_vararg(emit, member);
 }
 
-ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member, const Func func) {
+ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
+  const Func f = exp_self(member)->type->e->d.func;
   if(isa(member->t_base, t_class) > 0 || GET_FLAG(member->base->type, force)) {
-    const Instr func_i = emit_add_instr(emit, func->code ? RegPushImm : PushStaticCode);
-    func_i->m_val = (m_uint)(func->code ?: (VM_Code)func);
+    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
+    func_i->m_val = (m_uint)(f->code ?: (VM_Code)f);
     return GW_OK;
   }
-  if(func->def->base->tmpl)
+  if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else {
-    const Instr instr = emit_add_instr(emit, GET_FLAG(func, member) ? DotFunc : DotStaticFunc);
-    instr->m_val = exp_self(member)->type->e->d.func->vt_index;
+    const Instr instr = emit_add_instr(emit, GET_FLAG(f, member) ? DotFunc : DotStaticFunc);
+    instr->m_val = f->vt_index;
   }
   return GW_OK;
 }
@@ -1683,7 +1684,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
     emit_add_instr(emit, GWOP_EXCEPT);
   }
   if(isa(exp_self(member)->type, t_function) > 0 && isa(exp_self(member)->type, t_fptr) < 0)
-    return emit_member_func(emit, member, value->d.func_ref);
+    return emit_member_func(emit, member);
   return (GET_FLAG(value, member) ? emit_member : emit_dot_static_import_data) (emit, value, exp_self(member)->emit_var);
 }
 
