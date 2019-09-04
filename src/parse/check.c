@@ -784,7 +784,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return func->def->base->ret_type;
   }
   function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
-  return GW_ERROR;
+  return NULL;
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
