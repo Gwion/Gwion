@@ -113,6 +113,12 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
+    if(isa(decl->type, t_class) > 0) {
+      do {
+        list->self->value->type = t_auto;
+      } while((list = list->next));
+      ((Exp_Decl*)decl)->type = t_auto;
+    }
     if(decl->type == t_auto)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }

@@ -120,7 +120,7 @@ INSTR(DotTmpl) {
         *(VM_Code*)shred->reg = def->base->func->code;
         shred->reg += SZ_INT;
         return;
-      }
+      } else break;
     }
   } while((t = t->e->parent));
   Except(shred, "MissigTmplException[internal]"); //unreachable

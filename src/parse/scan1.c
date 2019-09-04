@@ -26,7 +26,7 @@ ANN static inline void type_contains(const Type base, const Type t) {
 }
 
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
-  if(env->class_def) {
+  if(env->class_def && !env->scope->depth) {
     type_contains(env->class_def, t);
     if(t->e->contains.ptr) {
       for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
@@ -92,7 +92,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
       ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
     CHECK_OB(prim_ref(env, t, decl->td))
-    //assert(!var->value);
+    if(env->class_def && isa(t, t_object) > 0)
+      type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
     v->flag = decl->td->flag;

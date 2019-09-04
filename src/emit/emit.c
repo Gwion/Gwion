@@ -777,12 +777,47 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   return emit_exp_call1(emit, exp_call->m_func);
 }
 
+ANN static m_uint get_decl_size(Var_Decl_List a) {
+  m_uint size = 0;
+  do //if(GET_FLAG(a->self->value, used))
+    size += a->self->value->type->size;
+  while((a = a->next));
+  return size;
+}
+
+ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
+  m_uint size = 0;
+  do {
+    if(e->exp_type == ae_exp_primary &&
+        e->d.exp_primary.primary_type == ae_primary_hack) {
+      size += pop_exp_size(emit, e->d.exp_primary.d.exp);
+      continue;
+    }
+    size += (e->exp_type == ae_exp_decl ?
+        get_decl_size(e->d.exp_decl.list) : e->type->size);
+  } while((e = e->next));
+  return size;
+}
+
+ANN static inline void pop_exp(const Emitter emit, Exp e) {
+  const m_uint size = pop_exp_size(emit, e);
+  if(size)
+   regpop(emit, size);
+}
+
+ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e, const m_bool addref) {
+  CHECK_BB(emit_exp(emit, e, addref))
+  if(e->next)
+    pop_exp(emit, e->next);
+  return GW_OK;
+}
+
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type, .pos=exp_self(bin)->pos, .data = (uintptr_t)bin };
-  CHECK_BB(emit_exp(emit, lhs, 1))
-  CHECK_BB(emit_exp(emit, rhs, 1))
+  CHECK_BB(emit_exp_pop_next(emit, lhs, 1))
+  CHECK_BB(emit_exp_pop_next(emit, rhs, 1))
   return op_emit(emit, &opi);
 }
 
@@ -1128,44 +1163,9 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   return GW_OK;
 }
 
-ANN static m_uint get_decl_size(Var_Decl_List a) {
-  m_uint size = 0;
-  do //if(GET_FLAG(a->self->value, used))
-    size += a->self->value->type->size;
-  while((a = a->next));
-  return size;
-}
-
-ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
-  m_uint size = 0;
-  do {
-    if(e->exp_type == ae_exp_primary &&
-        e->d.exp_primary.primary_type == ae_primary_hack) {
-      size += pop_exp_size(emit, e->d.exp_primary.d.exp);
-      continue;
-    }
-    size += (e->exp_type == ae_exp_decl ?
-        get_decl_size(e->d.exp_decl.list) : e->type->size);
-  } while((e = e->next));
-  return size;
-}
-
-ANN static inline void pop_exp(const Emitter emit, Exp e) {
-  const m_uint size = pop_exp_size(emit, e);
-  if(size)
-   regpop(emit, size);
-}
-
-ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
-  CHECK_BB(emit_exp(emit, e, 0))
-  if(e->next)
-    pop_exp(emit, e->next);
-  return GW_OK;
-}
-
 ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
   emit_push_scope(emit);
-  CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
+  CHECK_BB(emit_exp_pop_next(emit, stmt->cond, 0))
   DECL_OB(const Instr, op, = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
       t_int : stmt->cond->type, BranchEqInt, BranchEqFloat))
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
@@ -1199,7 +1199,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
   if(stmt->val) {
     if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
       return optimize_taill_call(emit, &stmt->val->d.exp_call);
-    CHECK_BB(emit_exp_pop_next(emit, stmt->val))
+    CHECK_BB(emit_exp_pop_next(emit, stmt->val, 0))
     if(isa(stmt->val->type, t_object) > 0 && isa(stmt->val->type , t_shred) < 0) // beware shred
       emit_add_instr(emit, RegAddRef);
   }
@@ -1236,7 +1236,7 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
 }
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
-  CHECK_BO(emit_exp_pop_next(emit, e))
+  CHECK_BO(emit_exp_pop_next(emit, e, 0))
   const f_instr instr_i = b ? BranchEqInt : BranchNeqInt;
   const f_instr instr_f = b ? BranchEqFloat : BranchNeqFloat;
   return emit_flow(emit, e->type, instr_i, instr_f);
@@ -1266,7 +1266,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
   const m_uint index = emit_code_size(emit);
   if(stmt->c2->stmt_type == ae_stmt_exp)
-    emit_exp_pop_next(emit, stmt->c2->d.stmt_exp.val);
+    emit_exp_pop_next(emit, stmt->c2->d.stmt_exp.val, 0);
   else
     CHECK_BB(emit_stmt(emit, stmt->c2, 0))
   const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val->type,
@@ -1319,7 +1319,7 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
 
 ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   emit_push_stack(emit);
-  CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
+  CHECK_BB(emit_exp_pop_next(emit, stmt->cond, 0))
   const m_uint index = emit_code_size(emit);
   const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
   cpy->m_val2 = -SZ_INT;

@@ -88,12 +88,10 @@ ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
       CHECK_BB(scan2_args(env, def))
   } else
     SET_FLAG(fptr->type, func);
-//  nspc_add_func(fptr->type->e->owner, fptr->base->xid, fptr->base->func);
   return GW_OK;
 }
 
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
-//  return tdef->type->e->def ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
   if(!tdef->type->e->def) return GW_OK;
   return isa(tdef->type, t_fptr) < 0 ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
 }
@@ -126,8 +124,6 @@ ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* pri
     return scan2_exp(env, prim->d.array->exp);
   if(prim->primary_type == ae_primary_tuple)
     return scan2_exp(env, prim->d.tuple.exp);
-//  if(prim->primary_type == ae_primary_unpack)
-//    return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 
@@ -495,9 +491,10 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
-//  const Value res = nspc_lookup_value1(env->global_nspc, f->base->xid);
-//  if(res)
-//    ERR_B(f->pos, _("'%s' already declared as type"), s_name(f->base->xid))
+  const Value res = nspc_lookup_value1(env->curr, f->base->xid);
+  if(res && res->owner == env->global_nspc)
+    ERR_B(f->pos, _("'%s' already declared as value of type '%s'."),
+      res->name, res->type->name)
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;
