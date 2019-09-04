@@ -1,2 +1,0 @@
-#! [contains] primitive types cannot be used as reference
-fun void test(int @i){}

@@ -40,7 +40,7 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
 }
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
-  DECL_OO(const Type, type, = known_type_noref(env, td))
+  DECL_OO(const Type, type, = known_type(env, td))
 {
   const Type t = get_type(type);
   if(isa(t, t_object) > 0)
@@ -91,7 +91,6 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       t = array_type(env, decl->type, var->array->depth);
     } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
       ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
-    CHECK_OB(prim_ref(env, t, decl->td))
     if(env->class_def && isa(t, t_object) > 0)
       type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
@@ -237,10 +236,8 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
     const Var_Decl var = list->var_decl;
     if(var->xid)
       CHECK_BB(isres(env, var->xid, var->pos))
-    if(list->td) {
+    if(list->td)
       CHECK_OB((list->type = void_type(env, list->td)))
-      CHECK_OB(prim_ref(env, list->type, list->td))
-    }
   } while((list = list->next));
   return GW_OK;
 }

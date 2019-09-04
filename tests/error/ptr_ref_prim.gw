@@ -1,2 +1,0 @@
-#! [contains] primitive types cannot be used as reference
-typedef void my_func(int @i){}

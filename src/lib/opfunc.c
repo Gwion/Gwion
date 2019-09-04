@@ -98,6 +98,8 @@ OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
   DECL_OO(const Type, t, = known_type(env, unary->td))
+  if(isa(t, t_object) < 0 && isa(t, t_function) < 0)
+    ERR_O(exp_self(unary)->pos, _("primitive types cannot be used as reference (@)...\n"))
   if(type_ref(t))
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
   UNSET_FLAG(unary->td, ref);
