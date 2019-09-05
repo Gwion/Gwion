@@ -33,6 +33,12 @@ static INSTR(instr_ptr_assign) {
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
 }
 
+static OP_EMIT(opem_ptr_assign) {
+  emit_add_instr(emit, GWOP_EXCEPT);
+  emit_add_instr(emit, instr_ptr_assign);
+  return GW_OK;
+}
+
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
@@ -108,6 +114,7 @@ GWION_IMPORT(ptr) {
   t_ptr->nspc->info->offset = SZ_INT;
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_assign))
+  GWI_BB(gwi_oper_emi(gwi, opem_ptr_assign))
   GWI_BB(gwi_oper_end(gwi, ":=>", instr_ptr_assign))
   GWI_BB(gwi_oper_add(gwi, opck_implicit_ptr))
   GWI_BB(gwi_oper_end(gwi, "@implicit", Cast2Ptr))

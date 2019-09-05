@@ -48,7 +48,8 @@ ANN Type find_type(const Env env, ID_List path) {
     if(nspc) {
       Type t = nspc_lookup_type1(nspc, xid);
       while(!t && type && type->e->parent) {
-        t = nspc_lookup_type1(type->e->parent->nspc, xid); // was lookup2
+        if(type->e->parent->nspc) // should we break sooner ?
+          t = nspc_lookup_type1(type->e->parent->nspc, xid); // was lookup2
         type = type->e->parent;
       }
       if(!t)

@@ -970,7 +970,11 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
       else {
         const Instr back = (Instr)vector_back(&emit->code->instr);
         back->opcode = ePushStaticCode;
+        back->m_val = 0;
       }
+    }else if(emit->env->func != f && !f->value_ref->owner_class && !f->code && !is_fptr(f->value_ref->type)) {
+      const Instr back = emit_add_instr(emit, PushStaticCode);
+      back->m_val = (m_uint)f;
     }
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
         !f->value_ref->owner_class || (GET_FLAG(f, template) &&
@@ -1648,7 +1652,8 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
   const Func f = exp_self(member)->type->e->d.func;
   if(isa(member->t_base, t_class) > 0 || GET_FLAG(member->base->type, force)) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
-    func_i->m_val = (m_uint)(f->code ?: (VM_Code)f);
+    if(f->code)
+      func_i->m_val = (m_uint)(f->code ?: (VM_Code)f);
     return GW_OK;
   }
   if(f->def->base->tmpl)

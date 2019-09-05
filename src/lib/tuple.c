@@ -112,8 +112,8 @@ ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
 }
 
 static m_bool tuple_match(const Type lhs, const Type rhs) {
-  const Vector lv = &lhs->e->tuple->types;
-  const Vector rv = &rhs->e->tuple->types;
+  DECL_OB(const Vector, lv, = &lhs->e->tuple->types)
+  DECL_OB(const Vector, rv, = &rhs->e->tuple->types)
   for(m_uint i = 0; i < vector_size(rv); i++) {
     DECL_OB(const Type, l, = (Type)vector_at(lv, i))
     const Type r = (Type)vector_at(rv, i);

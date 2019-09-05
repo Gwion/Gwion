@@ -48,8 +48,14 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
   for(m_uint i= 0; i < sz; ++i) {
     const Instr instr = (Instr)vector_at(v, i);
     if(instr->opcode == ePushStaticCode) {
-      instr->opcode = eRegPushImm;
-      instr->m_val = (m_uint)code;
+      if(!instr->m_val) {
+        instr->opcode = eRegPushImm;
+        instr->m_val = (m_uint)code;
+      } else {
+        instr->opcode = eRegSetImm;
+        instr->m_val = (m_uint)((Func)instr->m_val)->code;
+        instr->m_val2 = -SZ_INT;
+      }
     }
     if(instr->opcode < eGack)
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
