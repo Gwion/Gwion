@@ -150,7 +150,7 @@ ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
     return GW_OK;
   CHECK_BB(scan1_exp(env, exp_call->func))
   const Exp args = exp_call->args;
-  return args ? scan1_exp(env, args) : 1;
+  return args ? scan1_exp(env, args) : GW_OK;
 }
 
 ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) {

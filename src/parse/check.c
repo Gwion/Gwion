@@ -516,7 +516,9 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
     ERR_B(exp->func->pos, _("invalid expression for function call."))
   CHECK_OB(check_exp(env, exp->func))
-  return exp->args ? !!check_exp(env, exp->args) : GW_OK;
+  if(exp->args)
+    CHECK_OB(check_exp(env, exp->args))
+  return GW_OK;
 }
 
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
@@ -835,9 +837,9 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
     const Type t = actual_type(exp->func->type);
     const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
     assert(v);
-    if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->type, func))
+    if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->type, func) )
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
-    if(!v->d.func_ref->def->base->tmpl)
+    if(!v->d.func_ref || !v->d.func_ref->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call) {
       if(env->func == t->e->d.func) {

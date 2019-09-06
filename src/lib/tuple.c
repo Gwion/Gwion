@@ -141,8 +141,8 @@ static OP_CHECK(opck_at_tuple) {
     int i = 0;
     do {
       if(e->exp_type == ae_exp_decl) {
-        e->d.exp_decl.td->xid->xid = insert_symbol(//could be better
-             ((Type)VPTR(&bin->lhs->type->e->tuple->types, i))->name);
+        DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
+        e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
         CHECK_BO(traverse_decl(env, &e->d.exp_decl))
       }
       ++i;
