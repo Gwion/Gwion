@@ -91,7 +91,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       t = array_type(env, decl->type, var->array->depth);
     } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
       ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
-    if(env->class_def && isa(t, t_object) > 0)
+    if(env->class_def)
       type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(nspc, var->xid, v);
