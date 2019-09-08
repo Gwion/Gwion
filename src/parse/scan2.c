@@ -157,14 +157,12 @@ ANN static inline m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) 
   return scan2_exp(env, post->exp);
 }
 
-ANN2(1,2) static inline m_bool scan2_exp_call1(const Env env, const restrict Exp func,
-    const restrict Exp args) {
-  CHECK_BB(scan2_exp(env, func))
-  return args ? scan2_exp(env, args) : 1;
-}
-
 ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) {
-    return scan2_exp_call1(env, exp_call->func, exp_call->args);
+  if(exp_call->tmpl)
+    return GW_OK;
+  CHECK_BB(scan2_exp(env, exp_call->func))
+  const Exp args = exp_call->args;
+  return args ? scan2_exp(env, args) : GW_OK;
 }
 
 ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) {
