@@ -70,7 +70,7 @@ static FREEARG(freearg_tuple_at) {
 ANN static void emit_unpack_instr_inner(const Emitter emit, struct TupleEmit *te) {
   const Instr instr = emit_add_instr(emit, TupleUnpack);
   struct UnpackInfo_ *info = mp_malloc(emit->gwion->mp, UnpackInfo);
-  info->obj_offset = te->tmp_offset;
+  info->obj_offset = te->obj_offset;
   info->mem_offset = te->mem_offset;
   info->size = te->sz;
   instr->m_val = (m_uint)info;
@@ -87,19 +87,19 @@ ANN static int tuple_continue(struct TupleEmit *te) {
 ANN static void unpack_instr_decl(const Emitter emit, struct TupleEmit *te) {
   m_uint sz = 0;
   te->sz = 0;
+  te->obj_offset = te->tmp_offset;
   do {
     if(te->e->exp_type == ae_exp_decl) {
       const Value value = te->e->d.exp_decl.list->self->value;
       te->sz += value->type->size;
+      sz += value->type->size;
       value->offset = emit_local(emit, value->type->size, 0);
-      te->tmp_offset = te->obj_offset;
-      te->obj_offset += ((Type)vector_at(te->v, te->idx))->size;
     } else {
-      sz = ((Type)vector_at(te->v, te->idx))->size;
+      sz += ((Type)vector_at(te->v, te->idx))->size;
       break;
     }
   } while(tuple_continue(te));
-      te->obj_offset += sz;
+  te->tmp_offset += sz;
 }
 
 ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
