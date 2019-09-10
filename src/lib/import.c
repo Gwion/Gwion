@@ -355,7 +355,7 @@ static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,
 }
 
 ANN /*static */ Type_List str2tl(const Env env, const m_str s, m_uint *depth) {
-  Type_Decl* td = str2decl(env, s, depth);
+  DECL_OO(Type_Decl*, td, = str2decl(env, s, depth))
   td->array = make_dll_arg_list_array(env->gwion->mp, NULL, depth, 0);
   return new_type_list(env->gwion->mp, td, NULL);
 }
