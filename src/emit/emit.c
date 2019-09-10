@@ -1774,9 +1774,11 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
 }
 
 ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
-  CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
   const m_bool ret = emit_cdef(emit, fdef->base->ret_type->e->def);
-  emit_pop_type(emit);
+  if(fdef->base->tmpl)
+    emit_pop_type(emit);
   return ret;
 }
 
