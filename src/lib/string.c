@@ -145,7 +145,7 @@ static INSTR(name##String_Plus) {\
   push_string(shred, rhs, c);                       \
 }
 describe_string_plus(,SZ_INT, M_Object, release(lhs, shred),
-  strlen(STRING(rhs)), "%s", lhs ? STRING(lhs) : "")
+  lhs ? strlen(STRING(lhs)) : 0, "%s", lhs ? STRING(lhs) : "")
 describe_string_plus(Int_, SZ_INT, m_int,,
   num_digit((m_uint)lhs), "%"INT_F, lhs)
 describe_string_plus(Float_, SZ_FLOAT, m_float,,
