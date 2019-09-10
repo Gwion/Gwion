@@ -292,7 +292,8 @@ static FREEARG(freearg_xork) {
 
 static FREEARG(freearg_dottmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
-  free_type_list(((Gwion)gwion)->mp, dt->tl);
+  if(dt->tl)
+    free_type_list(((Gwion)gwion)->mp, dt->tl);
   mp_free(((Gwion)gwion)->mp, dottmpl, dt);
 }
 
