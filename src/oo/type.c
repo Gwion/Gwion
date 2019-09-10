@@ -144,7 +144,7 @@ ANN m_bool type_ref(Type t) {
           return GW_OK;
         else {
           const Type type = t->e->parent->e->d.base_type;
-          if(GET_FLAG(type, empty))
+          if(SAFE_FLAG(type, empty))
             return GW_OK;
         }
       }
