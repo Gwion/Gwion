@@ -306,7 +306,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc, &&dotstaticfunc, &&eoc, &&pushstr,
+    &&dotfunc, &&dotstaticfunc, &&pushstaticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&regpushimm, &&other, &&eoc
   };
@@ -800,6 +800,11 @@ dotstaticfunc:
 PRAGMA_PUSH()
   *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, VAL))->code;
 PRAGMA_POP()
+  DISPATCH()
+pushstaticcode:
+  *(m_bit*)byte = eRegPushImm;
+  VAL = (*(m_uint*)(reg) = (m_uint)((Func)VAL)->code);
+  reg += SZ_INT;
   DISPATCH()
 pushstr:
   *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)VAL);

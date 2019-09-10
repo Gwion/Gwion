@@ -62,7 +62,7 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
       return GW_OK;
     ERR_B(var->pos, _("can't use non public typedef at global scope."))
   }
-  if(isa(type, env->class_def) < 0 && !GET_FLAG(func, global))
+  if(type && isa(type, env->class_def) < 0 && !GET_FLAG(func, global))
     ERR_B(var->pos, _("can't use non global fptr of other class."))
   if(GET_FLAG(func, member) && GET_FLAG(v, static))
       ERR_B(var->pos, _("can't use static variables for member function."))
@@ -463,7 +463,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
       if(implicit) {
         const struct Implicit imp = { e, t, e->pos };
         struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
-      return op_check(env, &opi) ? 1 : -1;
+        return op_check(env, &opi) ? GW_OK : GW_ERROR;
     }
   }
   return match ? 1 : -1;
@@ -596,6 +596,7 @@ CHECK_BO(check_call(env, exp))
         if(env->func == exists->d.func_ref) {
           if(check_call(env, exp) < 0)
             continue;
+          CHECK_OO(find_func_match(env, env->func, exp->args))
           m_func = env->func;
           break;
         }
@@ -700,7 +701,7 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
   Tmpl *tm = value->d.func_ref ? value->d.func_ref->def->base->tmpl : call->type->e->d.func->def->base->tmpl;
   if(tm->call) {
-    const Func func = value->d.func_ref ?: predefined_func(env, value, exp, tm);
+    DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
     if(!func->def->base->ret_type) { // template fptr
       const m_uint scope = env_push(env, value->owner_class, value->owner);
       CHECK_BO(traverse_func_def(env, func->def))
@@ -774,7 +775,8 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->e->d.func, ref)) {
     const Value value = exp->func->type->e->d.func->value_ref;
-    CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
+    if(value->owner_class)
+      CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
@@ -834,9 +836,9 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
-    const Type t = actual_type(exp->func->type);
+    const Type t = actual_type(!GET_FLAG(exp->func->type, nonnull) ?
+       exp->func->type : exp->func->type->e->parent);
     const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
-    assert(v);
     if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->type, func) )
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
     if(!v->d.func_ref || !v->d.func_ref->def->base->tmpl)
@@ -936,13 +938,16 @@ static const _type_func exp_func[] = {
 };
 
 ANN static inline Type check_exp(const Env env, const Exp exp) {
-  Exp curr = exp;
+  Exp curr = exp, next = NULL, prev = NULL;
   do {
+    next = curr->next;
     CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
+    if(isa(curr->type, t_varloop) > 0 && (prev || next))
+      ERR_O(exp->pos, _("Varloop must be the only expression"))
     if(env->func && isa(curr->type, t_lambda) < 0 && isa(curr->type, t_function) > 0 &&
         !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);
-  } while((curr = curr->next));
+  } while((prev = curr) && (curr = next));
   return exp->type;
 }
 

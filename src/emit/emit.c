@@ -235,7 +235,7 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
 }
 
 ANN static inline void emit_notpure(const Emitter emit) {
-  ++VPTR(&emit->pure, VLEN(&emit->pure));
+  ++VPTR(&emit->pure, VLEN(&emit->pure) - 1);
 }
 
 ANN static Array_Sub instantiate_typedef(MemPool p, const m_uint depth) {
@@ -577,6 +577,7 @@ ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) {
 
 ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   const Exp exp = primary->d.exp;
+  CHECK_BB(emit_exp(emit, exp, 0))
   const Vector v = new_vector(emit->gwion->mp);
   m_uint offset = 0;
   Exp e = exp;
@@ -584,10 +585,6 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
     vector_add(v, (vtype)e->type);
     offset += e->type->size;
   } while((e = e->next));
-  if(emit_exp(emit, exp, 0) < 0) {
-    free_vector(emit->gwion->mp, v);
-    ERR_B(exp->pos, _("  ... in 'gack' expression."))
-  }
   const Instr instr = emit_add_instr(emit, Gack);
   instr->m_val = offset;
   instr->m_val2 = (m_uint)v;
@@ -972,15 +969,15 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
         back->opcode = ePushStaticCode;
         back->m_val = 0;
       }
-    }else if(emit->env->func != f && !f->value_ref->owner_class && !f->code && !is_fptr(f->value_ref->type)) {
-      const Instr back = emit_add_instr(emit, PushStaticCode);
+    } else if(emit->env->func != f && !f->value_ref->owner_class && !f->code && !is_fptr(f->value_ref->type)) {
+      const Instr back = !GET_FLAG(f->def, op) ? emit_add_instr(emit, PushStaticCode) : (Instr)vector_back(&emit->code->instr);
       back->m_val = (m_uint)f;
     }
   } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
         !f->value_ref->owner_class || (GET_FLAG(f, template) &&
         isa(f->value_ref->type, t_fptr) < 0))
     push_func_code(emit, f);
-  else if(vector_size(&emit->code->instr)){
+  else if(vector_size(&emit->code->instr)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
     if((f_instr)(m_uint)back->opcode == DotFunc || (f_instr)(m_uint)back->opcode == DotStaticFunc)
       back->m_val = f->vt_index;

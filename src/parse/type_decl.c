@@ -18,6 +18,8 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, t, = scan_type(env, base, td))
   const Type ret = !td->array ? t : array_type(env, t, td->array->depth);
   if(GET_FLAG(td, nonnull)) {
+    if(isa(ret, t_void) > 0)
+      ERR_O(td_pos(td), _("void types can't be nonnull."))
     if(isa(ret, t_object) < 0 && isa(ret, t_function) < 0)
       return ret;
     char c[strlen(t->name) + 9];

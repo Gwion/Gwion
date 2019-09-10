@@ -139,8 +139,15 @@ ANN m_bool type_ref(Type t) {
     if(GET_FLAG(t, empty))
       return GW_OK;
     if(GET_FLAG(t, typedef) && t->e->def)
-      if(t->e->def->base.ext && t->e->def->base.ext->array && !t->e->def->base.ext->array->exp)
-        return GW_OK;
+      if(t->e->def->base.ext && t->e->def->base.ext->array) {
+        if(!t->e->def->base.ext->array->exp)
+          return GW_OK;
+        else {
+          const Type type = t->e->parent->e->d.base_type;
+          if(GET_FLAG(type, empty))
+            return GW_OK;
+        }
+      }
   } while((t = t->e->parent));
   return 0;
 }
@@ -192,4 +199,4 @@ ANN m_uint get_depth(const Type type) {
 
 Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
   t_null, t_object, t_shred, t_fork, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
-  t_function, t_fptr, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto, t_tuple;
+  t_function, t_fptr, t_varloop, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto, t_tuple;

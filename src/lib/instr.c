@@ -100,7 +100,7 @@ INSTR(DotTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  Type t = o->type_ref;
+  Type t = !GET_FLAG(o->type_ref, nonnull) ? o->type_ref : o->type_ref->e->parent;
   do {
     const Emitter emit = shred->info->vm->gwion->emit;
     emit->env->name = "runtime";
@@ -109,6 +109,8 @@ INSTR(DotTmpl) {
     strcpy(str + instr->m_val2, t->name);
     const Func f = nspc_lookup_func0(t->nspc, insert_symbol(emit->env->gwion->st, str));
     if(f) {
+      if(!f->code)
+        break;
       *(VM_Code*)shred->reg = f->code;
       shred->reg += SZ_INT;
       return;

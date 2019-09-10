@@ -79,9 +79,12 @@ ANN static inline void print_func(const Type type, const m_bit* stack) {
     gw_out("%s", f ? f->name : "(nil)");
     return;
   }
-  const VM_Code code = isa(type, t_fptr) > 0 ?
-    *(VM_Code*)stack : type->e->d.func->code;
-  gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
+  if(type->e->d.func) {
+    const VM_Code code = isa(type, t_fptr) > 0 ?
+        *(VM_Code*)stack : type->e->d.func->code;
+    gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
+  } else // uncalled lambda
+    gw_out("%p", NULL);
 }
 
 ANN static void print_prim(const Type type, const m_bit* stack) {

@@ -70,7 +70,7 @@ static void fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(env_access(env, fptr->base->td->flag, td_pos(fptr->base->td)))
-  CHECK_OO(known_type(env, fptr->base->td))
+  CHECK_OB(known_type(env, fptr->base->td))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
   const Type t = new_type(env->gwion->mp, t_fptr->xid, name, t_fptr);

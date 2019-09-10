@@ -74,10 +74,10 @@ describe_string_assign(Polar_, m_complex, SZ_COMPLEX,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + 16,
   "#(%.4f, %.4f)", creal(lhs), cimag(lhs)/M_PI)
 describe_string_assign(Vec3_, m_vec3, SZ_VEC3,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 23,
+  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 25,
   "#(%.4f, %.4f, %.4f)", lhs.x, lhs.y, lhs.z)
 describe_string_assign(Vec4_, m_vec4, SZ_VEC4,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w) + 30,
+  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w) + 40,
   "#(%.4f, %.4f, %.4f, %.4f)", lhs.x, lhs.y, lhs.z, lhs.w)
 describe_string_assign(Object_, M_Object, SZ_INT, release(lhs, shred),
   16,
@@ -118,15 +118,15 @@ describe_string(Complex, m_complex, SZ_COMPLEX,
   "#(%.4f, %.4f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : "")
 describe_string(Polar, m_complex, SZ_COMPLEX,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + (rhs ? strlen(STRING(rhs)) : 0) +  12,,
-  "%%(%.4f, %4f*pi)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : "")
+  "%%(%.4f, %.4f*pi)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : "")
 describe_string(Vec3, m_vec3, SZ_VEC3,
   (rhs ? strlen(STRING(rhs)) : 0) + 23 + num_digit((m_uint)lhs.x) +
                                       num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z),,
   "@(%.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, rhs ? STRING(rhs) : "")
 describe_string(Vec4, m_vec4, SZ_VEC4,
-  (rhs ? strlen(STRING(rhs)) : 0) + 28 + num_digit((m_uint)lhs.x) +
+  (rhs ? strlen(STRING(rhs)) : 0) + 30 + num_digit((m_uint)lhs.x) +
   num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w),,
-  "@(%4f, %4f, %4f, %4f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : "")
+  "@(%.4f, %.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : "")
 describe_string(Object, M_Object, SZ_INT,
   16 + (rhs ? strlen(STRING(rhs)) : 0), release(lhs, shred),
   "%p%s", (void*)lhs, rhs ? STRING(rhs) : "")

@@ -52,9 +52,12 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
         instr->opcode = eRegPushImm;
         instr->m_val = (m_uint)code;
       } else {
-        instr->opcode = eRegSetImm;
-        instr->m_val = (m_uint)((Func)instr->m_val)->code;
-        instr->m_val2 = -SZ_INT;
+        const Func f = (Func)instr->m_val;
+        if(f->code) {
+          instr->opcode = eRegSetImm;
+          instr->m_val = (m_uint)((Func)instr->m_val)->code;
+          instr->m_val2 = -SZ_INT;
+        }
       }
     }
     if(instr->opcode < eGack)

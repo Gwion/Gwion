@@ -34,7 +34,7 @@ INSTR(VarargTop) {
 
 INSTR(VarargIni) {
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
-  POP_REG(shred,  instr->m_val - SZ_INT)
+  POP_REG(shred, instr->m_val - SZ_INT)
   arg->d = (m_bit*)xmalloc(round2szint(instr->m_val));
   for(m_uint i = 0; i < instr->m_val; i += SZ_INT)
     *(m_uint*)(arg->d + i) = *(m_uint*)(shred->reg - SZ_INT + i);
@@ -85,10 +85,8 @@ static FREEARG(freearg_vararg) {
 GWION_IMPORT(vararg) {
   GWI_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
-  GWI_OB(t_varobj)
   SET_FLAG(t_varobj, abstract);
-  const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
-  GWI_OB(t_varloop)
+  t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))
   GWI_BB(gwi_add_type(gwi,  t_varloop))
   GWI_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
