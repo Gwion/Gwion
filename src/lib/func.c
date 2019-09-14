@@ -49,8 +49,7 @@ static OP_EMIT(opem_func_assign) {
   if(bin->rhs->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->type->e->d.func, 2);
   emit_add_instr(emit, int_r_assign);
-  if((bin->lhs->type != t_lambda && isa(bin->lhs->type, t_fptr) < 0) &&
-      GET_FLAG(bin->rhs->type->e->d.func, member)) {
+  if(isa(bin->lhs->type, t_fptr) < 0 && GET_FLAG(bin->rhs->type->e->d.func, member)) {
     const Instr instr = emit_add_instr(emit, LambdaAssign);
     instr->m_val = SZ_INT;
   }
@@ -200,12 +199,12 @@ static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->type->e->d.func->def->base->tmpl &&
      bin->rhs->type->e->d.func->def->base->tmpl->call) {
-  struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->parent->e->d.func,
+    struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->parent->e->d.func,
       bin->lhs, exp_self(bin)->pos };
-  CHECK_BO(fptr_do(env, &info))
-  bin->rhs->emit_var = 1;
-  return bin->rhs->type;
-}
+    CHECK_BO(fptr_do(env, &info))
+    bin->rhs->emit_var = 1;
+    return bin->rhs->type;
+  }
   struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->d.func,
       bin->lhs, exp_self(bin)->pos };
   CHECK_BO(fptr_do(env, &info))
@@ -304,7 +303,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
   GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL /*FuncAssign*/))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))

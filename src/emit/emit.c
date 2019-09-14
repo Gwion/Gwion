@@ -591,7 +591,11 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   return GW_OK;
 }
 
-#define prim_unpack dummy_func
+ANN static m_bool prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
+// TODO err_msg
+  return primary->d.tuple.ok ? GW_OK : GW_ERROR;
+}
+
 static const _exp_func prim_func[] = {
   (_exp_func)prim_id, (_exp_func)prim_num, (_exp_func)prim_float, (_exp_func)prim_str,
   (_exp_func)prim_array, (_exp_func)prim_gack, (_exp_func)prim_vec, (_exp_func)prim_vec,
@@ -988,10 +992,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
     m_uint val2 = back->m_val2;
-    back->opcode = eReg2Reg;
-    back->m_val = SZ_INT;
-    const Instr push = emit_add_instr(emit, RegPush);
-    push->m_val = SZ_INT;
+    back->opcode = eRegPushMem;
+    back->m_val = back->m_val2 = 0;
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
@@ -1095,7 +1097,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary };
   if(unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork") && unary->exp) {
-    CHECK_BB(emit_exp(emit, unary->exp, 1))
+    CHECK_BB(emit_exp_pop_next(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }
   return op_emit(emit, &opi);
@@ -1189,7 +1191,7 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
 ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   if(e->args) {
     CHECK_BB(emit_exp(emit, e->args, 0))
-    regpop(emit, SZ_INT);
+    regpop(emit, e->m_func->def->stack_depth);
     emit_args(emit, e->m_func);
   }
   emit_add_instr(emit, Goto);
@@ -1852,7 +1854,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
   if(cdef->base.ext && cdef->base.ext->types)
-    CHECK_BB(scanx_ext(emit->env, cdef, emit_parent, emit))
+    CHECK_BB(scanx_parent(cdef->base.type, emit_parent, emit))
   SET_FLAG(type, emit);
   nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);

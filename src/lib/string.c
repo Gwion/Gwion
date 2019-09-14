@@ -149,7 +149,7 @@ describe_string_plus(,SZ_INT, M_Object, release(lhs, shred),
 describe_string_plus(Int_, SZ_INT, m_int,,
   num_digit((m_uint)lhs), "%"INT_F, lhs)
 describe_string_plus(Float_, SZ_FLOAT, m_float,,
-  num_digit((m_uint)lhs) + 6, "%s%.4f", STRING(rhs), lhs)
+  num_digit((m_uint)lhs) + 6, "%.4f", lhs)
 describe_string_plus(Complex_, SZ_COMPLEX, m_complex,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 18, "#(%.4f, %.4f)",
   creal(lhs), cimag(lhs))

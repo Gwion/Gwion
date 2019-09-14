@@ -45,14 +45,6 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
   return ret;
 }
 
-#undef scanx_ext
-ANN m_bool
-scanx_ext(const Env e, const Class_Def c, const _exp_func f, void* d) {
-  DECL_BB(const m_int, scope, = _push(e, c))
-  const m_bool ret =  f(d, c);
-  _pop(e, c, scope);
-  return ret;
-}
 #undef scanx_parent
 
 __attribute__((returns_nonnull))

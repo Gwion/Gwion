@@ -216,9 +216,16 @@ ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
   return ((Exp_Unary*)opi->data)->nspc;
 }
 
+ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
+  DECL_OO(Nspc, nspc, = get_nspc(st, opi))
+  while(!nspc->info->op_map.ptr)
+    nspc = nspc->parent;
+  return nspc;
+}
+
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
-  Nspc nspc = get_nspc(emit->gwion->st, opi);
-  if(!nspc || !nspc->info->op_map.ptr)
+  Nspc nspc = ensure_nspc(emit->gwion->st, opi);
+  if(!nspc)
     return GW_OK;
   Type l = opi->lhs;
   do {

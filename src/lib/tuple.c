@@ -147,6 +147,7 @@ static OP_CHECK(opck_at_tuple) {
       }
       ++i;
     } while((e = e->next));
+    bin->rhs->d.exp_primary.d.tuple.ok = 1;
     return bin->lhs->type;
   }
   return opck_at_object_tuple(env, data, mut);

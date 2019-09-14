@@ -527,7 +527,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
     return GW_OK;
   SET_FLAG(cdef->base.type, scan2);
   if(cdef->base.ext)
-    CHECK_BB(env_ext(env, cdef, scan2_class_parent))
+    CHECK_BB(scanx_parent(cdef->base.type, scan2_class_parent, env))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan2_section))
   return GW_OK;

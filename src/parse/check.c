@@ -761,7 +761,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   if(arg || e)
     ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
   l->def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, NULL, l->name, l->args),
-    l->code, 0, loc_cpy(env->gwion->mp, exp_self(exp)->pos));
+    l->code, 0, loc_cpy(env->gwion->mp, loc_cpy(env->gwion->mp, exp_self(exp)->pos)));
   CHECK_BO(traverse_func_def(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
@@ -1363,7 +1363,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     return traverse_cdef(env, cdef);
   }
   if(cdef->base.ext)
-    CHECK_BB(env_ext(env, cdef, check_class_parent))
+    CHECK_BB(scanx_parent(cdef->base.type, check_class_parent, env))
   else if(!type->e->parent)
     type->e->parent = t_object;
   inherit(type);

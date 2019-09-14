@@ -172,7 +172,8 @@ ANN static void cpy_exp_postfix(MemPool p, Exp_Postfix *a, const Exp_Postfix *sr
 
 ANN static void cpy_exp_if(MemPool p, Exp_If *a, const Exp_If *src) {
   a->cond = cpy_exp(p, src->cond);
-  a->if_exp = cpy_exp(p, src->if_exp);
+  if(src->if_exp)
+    a->if_exp = cpy_exp(p, src->if_exp);
   if(src->else_exp)
     a->else_exp = cpy_exp(p, src->else_exp);
 }
