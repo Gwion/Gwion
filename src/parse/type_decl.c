@@ -13,6 +13,26 @@
 #define STR_NONNULL ":nonnull"
 #define STRLEN_NONNULL strlen(STR_NONNULL)
 
+#include "func.h"
+
+ANN Type type_nonnull(const Env env, const Type base) {
+  char c[strlen(base->name) + 9];
+  sprintf(c, "%s%s", base->name, STR_NONNULL);
+  const Symbol sym = insert_symbol(c);
+  const Type exist = nspc_lookup_type1(base->e->owner, sym);
+  if(exist)
+    return exist;
+  const Type t = type_copy(env->gwion->mp, base);
+  t->e->parent = base;
+  if(t->nspc)
+    ADD_REF(t->nspc)
+  t->name = s_name(sym);
+  t->flag = base->flag;
+  SET_FLAG(t, nonnull);
+  map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)t);
+  return t;
+}
+
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td->xid))
   DECL_OO(const Type, t, = scan_type(env, base, td))
@@ -22,21 +42,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
       ERR_O(td_pos(td), _("void types can't be nonnull."))
     if(isa(ret, t_object) < 0 && isa(ret, t_function) < 0)
       return ret;
-    char c[strlen(t->name) + 9];
-    sprintf(c, "%s%s", ret->name, STR_NONNULL);
-    const Symbol sym = insert_symbol(c);
-    const Type exist = nspc_lookup_type1(t->e->owner, sym);
-    if(exist)
-      return exist;
-    const Type t = type_copy(env->gwion->mp, ret);
-    t->e->parent = ret;
-    if(t->nspc)
-      ADD_REF(t->nspc)
-    t->name = s_name(sym);
-    t->flag = ret->flag;
-    SET_FLAG(t, nonnull);
-    map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)t);
-    return t;
+    return type_nonnull(env, ret);
   }
   return ret;
 }

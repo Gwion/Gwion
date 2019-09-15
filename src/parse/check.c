@@ -485,9 +485,10 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
             (func->def->base->tmpl && is_fptr(func->value_ref->type) > 0)) {
         if(SAFE_FLAG(func->value_ref->owner_class, template))
           CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
-        e1->type = known_type(env, e1->td);
+          e1->type = known_type(env, e1->td);
         if(SAFE_FLAG(func->value_ref->owner_class, template))
           nspc_pop_type(env->gwion->mp, env->curr);
+        CHECK_OO(e1->type)
       }
       if(func_match_inner(env, e, e1->type, implicit, specific) < 0)
         break;
@@ -648,7 +649,7 @@ ANN static void print_current_args(Exp e) {
 }
 
 ANN static void print_arg(Arg_List e) {
-  do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type->name,
+  do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type ? e->type->name : NULL,
        e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
   while((e = e->next) && gw_err(","));
 }

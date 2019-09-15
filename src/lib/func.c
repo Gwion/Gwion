@@ -187,9 +187,10 @@ ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->type, t_lambda) < 0) {
+    m_bool nonnull = GET_FLAG(info->exp->type, nonnull);
     CHECK_BB(fptr_check(env, info))
     DECL_OB(const Type, t, = fptr_type(env, info))
-    info->exp->type = t;
+    info->exp->type = !nonnull ? t : type_nonnull(env, t);
     return GW_OK;
   }
   return fptr_lambda(env, info);
@@ -234,7 +235,8 @@ static OP_EMIT(opem_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->type->e->d.func, 1);
-  if(GET_FLAG(cast->exp->type->e->d.func, member))
+  if(GET_FLAG(cast->exp->type->e->d.func, member) &&
+    !(GET_FLAG(cast->exp->type, nonnull) || GET_FLAG(exp_self(cast)->type, nonnull)))
     member_fptr(emit);
   return GW_OK;
 }
@@ -249,7 +251,8 @@ static OP_CHECK(opck_fptr_impl) {
 
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  if(GET_FLAG(impl->t->e->d.func, member))
+  if(GET_FLAG(impl->t->e->d.func, member) &&
+    !(GET_FLAG(impl->e->type, nonnull) || GET_FLAG(impl->t, nonnull)))
     member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->type->e->d.func, 1);
