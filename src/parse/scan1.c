@@ -179,10 +179,29 @@ ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Type
 #define scan1_exp_lambda dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, 1)
 
-ANN static inline m_bool scan1_stmt_switch(const restrict Env env, const Stmt_Switch stmt) {
-  CHECK_BB(scan1_exp(env, stmt->val))
-  CHECK_BB(scan1_stmt(env, stmt->stmt))
+ANN static inline m_bool _scan1_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
+  CHECK_BB(scan1_exp(env, stmt->cond))
+  if(stmt->when)
+    CHECK_BB(scan1_exp(env, stmt->when))
+  return scan1_stmt_list(env, stmt->list);
+}
+
+ANN static inline m_bool scan1_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
+  RET_NSPC(_scan1_stmt_match_case(env, stmt))
+}
+
+ANN static inline m_bool _scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
+  if(stmt->where)
+    CHECK_BB(scan1_stmt(env, stmt->where))
+  Stmt_List list = stmt->list;
+  do CHECK_BB(scan1_stmt_match_case(env, &list->stmt->d.stmt_match))
+  while((list = list->next));
   return GW_OK;
+}
+
+ANN static inline m_bool scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
+  CHECK_BB(scan1_exp(env, stmt->cond))
+  RET_NSPC(_scan1_stmt_match(env, stmt))
 }
 
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
@@ -196,8 +215,6 @@ describe_ret_nspc(auto, Stmt_Auto,, !(scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(loop, Stmt_Loop,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-//describe_ret_nspc(switch, Stmt_Switch,, !(scan1_exp(env, stmt->val) < 0 ||
-//    scan1_stmt(env, stmt->stmt) < 0) ? 1 : -1)
 describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->if_body) < 0 ||
     (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
@@ -210,10 +227,6 @@ ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) {
 
 ANN static inline m_bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) {
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
-}
-
-ANN static inline m_bool scan1_stmt_case(const Env env, const Stmt_Exp stmt) {
-  return scan1_exp(env, stmt->val);
 }
 
 ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
@@ -299,9 +312,10 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 static const _exp_func stmt_func[] = {
   (_exp_func)scan1_stmt_exp,  (_exp_func)scan1_stmt_flow, (_exp_func)scan1_stmt_flow,
   (_exp_func)scan1_stmt_for,  (_exp_func)scan1_stmt_auto, (_exp_func)scan1_stmt_loop,
-  (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code, (_exp_func)scan1_stmt_switch,
+  (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code,
   (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan1_stmt_exp,
-  (_exp_func)scan1_stmt_case, (_exp_func)dummy_func
+  (_exp_func)scan1_stmt_match, (_exp_func)scan1_stmt_match_case,
+  (_exp_func)dummy_func
 };
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {

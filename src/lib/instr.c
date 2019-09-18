@@ -25,20 +25,6 @@ INSTR(DTOR_EOC) {
   vm_shred_exit(shred);
 }
 
-/* branching */
-INSTR(SwitchIni) {
-  const Vector v = (Vector)instr->m_val;
-  const m_uint size = vector_size(v);
-  for(m_uint i = 0; i < size; ++i)
-    map_set((Map)instr->m_val2, *(vtype*)REG((i) * SZ_INT), vector_at(v, i));
-}
-
-INSTR(SwitchBranch) {
-  POP_REG(shred, SZ_INT);
-  const Map map = *(Map*)REG(SZ_INT);
-  shred->pc = map_get(map, *(m_uint*)REG(0)) ?: instr->m_val;
-}
-
 #include "gwion.h"
 #include "emit.h"
 #include "value.h"

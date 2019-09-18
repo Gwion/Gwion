@@ -21,7 +21,7 @@
 #include "memoize.h"
 #include "operator.h"
 #include "import.h"
-#include "switch.h"
+#include "match.h"
 #include "parser.h"
 #include "tuple.h"
 
@@ -1341,8 +1341,6 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(!strcmp(s_name(stmt->name), "default") && switch_inside(emit->env, stmt_self(stmt)->pos) > 0)
-      return switch_default(emit->env, emit_code_size(emit), stmt_self(stmt)->pos);
     if(!stmt->data.v.ptr)
       ERR_B(stmt_self(stmt)->pos, _("illegal case"))
     const m_uint size = vector_size(&stmt->data.v);
@@ -1356,82 +1354,6 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
       label->data.instr->m_val = emit_code_size(emit);
     }
   }
-  return GW_OK;
-}
-
-ANN static m_bool emit_switch_instr(const Emitter emit, Instr *instr) {
-  const m_uint dyn = switch_dyn(emit->env);
-  if(dyn) {
-    Exp e;
-    while((e = switch_expget(emit->env)))
-      CHECK_BB(emit_exp(emit, e, 0))
-    instr[0] = emit_add_instr(emit, RegPop);
-    instr[1] = emit_add_instr(emit, SwitchIni);
-    instr[2] = emit_add_instr(emit, RegSetImm);
-  } else
-    regseti(emit, (m_uint)switch_map(emit->env));
-  return GW_OK;
-}
-
-ANN static Map emit_switch_map(MemPool p, const Map map) {
-  const Map m = new_map(p);
-  for(m_uint i = map_size(map) + 1; --i;)
-    map_set(m, VKEY(map, i-1), VVAL(map, i -1));
-  return m;
-}
-
-ANN static m_bool emit_stmt_switch(const Emitter emit, const Stmt_Switch stmt) {
-  switch_get(emit->env, stmt);
-  Instr push[3] = { NULL, NULL, NULL};
-  CHECK_BB(emit_exp(emit, stmt->val, 0))
-  CHECK_BB(emit_switch_instr(emit, push))
-  vector_add(&emit->code->stack_break, (vtype)NULL);
-  const Instr instr = emit_add_instr(emit, SwitchBranch);
-  instr->m_val2 = (m_uint)switch_map(emit->env);
-  CHECK_BB(emit_stmt(emit, stmt->stmt, 1))
-  instr->m_val = switch_idx(emit->env) ?: emit_code_size(emit);
-  if(push[0]) {
-    push[2]->m_val = push[1]->m_val2 = (m_uint) emit_switch_map(emit->gwion->mp, (Map)instr->m_val2);
-    Vector v = (Vector)(push[1]->m_val = (m_uint)switch_vec(emit->env));
-    push[0]->m_val = vector_size(v) * SZ_INT;
-  }
-  CHECK_BB(switch_end(emit->env, stmt->stmt->pos))
-  pop_vector(&emit->code->stack_break, emit_code_size(emit));
-  return GW_OK;
-}
-
-ANN m_bool value_value(const Value v, m_int *value) {
-  if((!GET_FLAG(v, builtin) && !GET_FLAG(v, enum)) || GET_FLAG(v, member))
-     return 0;
-  *value = v->d.ptr ? *(m_int*)v->d.ptr : v->owner->info->class_data[v->offset];
-  return GW_OK;
-}
-
-ANN Value case_value(const Exp exp) {
-  if(exp->exp_type == ae_exp_primary) {
-    const Exp_Primary* prim = &exp->d.exp_primary;
-    if(prim->primary_type == ae_primary_num)
-      return NULL;
-    return prim->value;
-  }
-  const Exp_Dot* dot = &exp->d.exp_dot;
-  return find_value(actual_type(dot->t_base), dot->xid);
-}
-
-ANN static m_bool prim_value(const Exp exp, m_int *value) {
-  *value = (m_int)exp->d.exp_primary.d.num;
-  return GW_OK;
-}
-
-ANN static m_bool emit_stmt_case(const Emitter emit, const Stmt_Exp stmt) {
-  CHECK_BB(switch_inside(emit->env, stmt_self(stmt)->pos))
-  m_int value = 0;
-  const Value v = case_value(stmt->val);
-  if((!v && prim_value(stmt->val, &value)) || value_value(v, &value)) {
-    CHECK_BB(switch_dup(emit->env, value, stmt_self(stmt)->pos))
-    switch_dynpc(emit->env, value, emit_code_size(emit));
-  } else
-    switch_pc(emit->env, emit_code_size(emit));
   return GW_OK;
 }
 
@@ -1522,12 +1444,121 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
   return exp->val ? emit_exp(emit, exp->val, 0) : 1;
 }
 
+ANN static Instr emit_when(const Emitter emit, const Exp when) {
+  CHECK_BO(emit_exp(emit, when, 1))
+  return emit_add_instr(emit, BranchEqInt);
+}
+
+ANN static m_bool emit_case_head(const Emitter emit, const Exp base, const Exp e, const Symbol op) {
+  CHECK_BB(emit_exp(emit, base, 1))
+  CHECK_BB(emit_exp(emit, e, 1))
+  Exp_Binary bin = { .lhs=base, .rhs=e, .op=op, .nspc=emit->env->curr };
+  struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&bin, .pos=e->pos };
+  CHECK_BB(op_emit(emit, &opi))
+  regpop(emit, base->type->size);
+  return GW_OK;
+}
+
+ANN static m_bool emit_case_body(const Emitter emit, const struct Stmt_Match_* stmt) {
+  const Instr when = stmt->when ? emit_when(emit, stmt->when) : NULL;
+  if(stmt->when)
+    CHECK_OB(when)
+  CHECK_BB(emit_stmt_list(emit, stmt->list))
+  const Instr instr = emit_add_instr(emit, Goto);
+  vector_add(&emit->env->scope->match->vec, (vtype)instr);
+  if(when)
+    when->m_val = emit_code_size(emit);
+  return GW_OK;
+}
+
+ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
+  const Value v = e->d.exp_primary.value;
+  v->offset = emit_local(emit, base->type->size, isa(base->type, t_object) > 0);
+  CHECK_BB(emit_exp(emit, base, 1))
+  regpop(emit, base->type->size);
+  const Instr instr = emit_add_instr(emit, Reg2Mem4);
+  instr->m_val = v->offset;
+  instr->m_val2 = base->type->size;
+  return GW_OK;
+}
+
+
+#define CASE_PASS (Symbol)1
+ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e) {
+  if(e->exp_type == ae_exp_primary) {
+    if(e->d.exp_primary.primary_type == ae_primary_unpack)
+      return insert_symbol("@=>");
+    if(e->d.exp_primary.primary_type == ae_primary_id) {
+      if(e->d.exp_primary.d.var == insert_symbol("_"))
+        return CASE_PASS;
+      if(!nspc_lookup_value1(emit->env->curr, e->d.exp_primary.d.var)) {
+        CHECK_BO(case_value(emit, base, e))
+        return CASE_PASS;
+      }
+    }
+  }
+  return insert_symbol("==");
+}
+
+ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt) {
+  Exp e = stmt->cond;
+  const Map map = &emit->env->scope->match->map;
+  for(m_uint i = 0; i < map_size(map); e = e->next, ++i) {
+    const Exp base = (Exp)VKEY(map, i);
+    const Symbol op = case_op(emit, base, e);
+    if(op != CASE_PASS)
+      CHECK_BB(emit_case_head(emit, base, e, op))
+  }
+  return emit_case_body(emit, stmt);
+}
+
+ANN static m_bool emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt) {
+  emit_push_scope(emit);
+  const m_bool ret = _emit_stmt_match_case(emit, stmt);
+  emit_pop_scope(emit);
+  return ret;
+}
+
+ANN static inline void match_unvec(struct Match_ *const match , const m_uint pc) {
+  const Vector vec = &match->vec;
+  for(m_uint i = 0; i < vector_size(vec); ++i) {
+    const Instr instr = (Instr)VPTR(vec, i);
+    instr->m_val = pc;
+  }
+  vector_release(vec);
+}
+
+ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list) {
+  do CHECK_BB(emit_stmt_match_case(emit, &list->stmt->d.stmt_match)) // beware push
+  while((list = list->next));
+  return GW_OK;
+}
+
+ANN static m_bool emit_match(const Emitter emit, const struct Stmt_Match_* stmt) {
+  if(stmt->where)
+    CHECK_BB(emit_stmt(emit, stmt->where, 1)) // beware, we have push scope
+  MATCH_INI(emit->env->scope)
+  vector_init(&m.vec);
+  const m_bool ret = emit_stmt_cases(emit, stmt->list);
+  match_unvec(&m, emit_code_size(emit));
+  MATCH_END(emit->env->scope)
+  return ret;
+}
+
+ANN static m_bool emit_stmt_match(const Emitter emit, const struct Stmt_Match_* stmt) {
+  emit_push_scope(emit);
+  const m_bool ret = emit_match(emit, stmt);
+  emit_pop_scope(emit);
+  return ret;
+}
+
 static const _exp_func stmt_func[] = {
   (_exp_func)emit_stmt_exp,   (_exp_func)emit_stmt_flow,     (_exp_func)emit_stmt_flow,
   (_exp_func)emit_stmt_for,   (_exp_func)emit_stmt_auto,     (_exp_func)emit_stmt_loop,
-  (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,     (_exp_func)emit_stmt_switch,
+  (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,
   (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
-  (_exp_func)emit_stmt_case,  (_exp_func)emit_stmt_jump,
+  (_exp_func)emit_stmt_match, (_exp_func)emit_stmt_match_case,
+  (_exp_func)emit_stmt_jump,
 };
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {

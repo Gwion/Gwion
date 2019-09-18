@@ -17,7 +17,7 @@
 #include "import.h"
 #include "parse.h"
 #include "nspc.h"
-#include "switch.h"
+#include "match.h"
 #include "cpy_ast.h"
 #include "tuple.h"
 
@@ -106,7 +106,6 @@ ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  CHECK_BO(switch_decl(env, exp_self(decl)->pos))
   if(!decl->td->xid)
     return no_xid(env, decl);
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
@@ -1069,9 +1068,6 @@ stmt_func_xxx(for, Stmt_For,, !(
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(env, stmt->cond) < 0 ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(switch, Stmt_Switch,, !(!check_exp(env, stmt->val) ||
-  cond_type(env, stmt->val) < 0 || !switch_add(env, stmt) ||
-  check_breaks(env, stmt_self(stmt), stmt->stmt) < 0 || switch_pop(env) < 0) ? 1 : -1)
 stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
@@ -1101,22 +1097,6 @@ ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) {\
 }
 describe_check_stmt_stack(conts,  continue)
 describe_check_stmt_stack(breaks, break)
-
-ANN Value case_value(const Exp exp);
-ANN static m_bool check_stmt_case(const Env env, const Stmt_Exp stmt) {
-  CHECK_BB(switch_inside(env, stmt_self(stmt)->pos));
-  DECL_OB(const Type, t, = check_exp(env, stmt->val))
-  if(isa(t, t_int) < 0)
-    ERR_B(stmt_self(stmt)->pos, _("invalid type '%s' case expression. should be 'int'"), t->name)
-  const Value v = case_value(stmt->val);
-  if(!v)
-    return GW_OK;
-  if(!GET_FLAG(v, const))
-    ERR_B(stmt->val->pos, _("'%s' is not constant."), v->name)
-  if(!GET_FLAG(v, builtin) && !GET_FLAG(v, enum))
-    switch_expset(env, stmt->val);
-  return GW_OK;
-}
 
 ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
   if(stmt->is_label)
@@ -1168,15 +1148,92 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
 }
 
 ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
- return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
+  return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
+}
+
+ANN static Value match_value(const Env env, const Exp_Primary* prim, const m_uint i) {
+  const Symbol sym = prim->d.var;
+  const Value v = new_value(env->gwion->mp,
+     ((Exp)VKEY(&env->scope->match->map, i))->type, s_name(sym));
+  SET_FLAG(v, checked);
+  nspc_add_value(env->curr, sym, v);
+  VVAL(&env->scope->match->map, i) = (vtype)v;
+  return v;
+}
+
+ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
+  if(e->exp_type == ae_exp_primary) {
+    if(e->d.exp_primary.primary_type == ae_primary_unpack)
+      return insert_symbol("@=>");
+    else if(e->d.exp_primary.primary_type == ae_primary_id) {
+      if(e->d.exp_primary.d.var == insert_symbol("_"))
+        return NULL;
+      if(!nspc_lookup_value1(env->curr, e->d.exp_primary.d.var)) {
+        e->d.exp_primary.value = match_value(env, &e->d.exp_primary, i);
+        return NULL;
+      }
+    }
+  }
+  return insert_symbol("==");
+}
+
+ANN static m_bool match_case_exp(const Env env, Exp e) {
+  for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
+    const Symbol op = case_op(env, e, i);
+    if(op) {
+      const Exp base = (Exp)VKEY(&env->scope->match->map, i);
+      CHECK_OB(check_exp(env, e))
+      Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
+      struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&bin, .pos=e->pos };
+      CHECK_OB(op_check(env, &opi))
+    }
+  }
+  return GW_OK;
+}
+
+ANN static m_bool _check_stmt_case(const Env env, const Stmt_Match stmt) {
+  CHECK_BB(match_case_exp(env, stmt->cond))
+  if(stmt->when)
+    CHECK_OB(check_exp(env, stmt->when))
+  return check_stmt_list(env, stmt->list);
+}
+
+ANN static m_bool check_stmt_case(const Env env, const Stmt_Match stmt) {
+  RET_NSPC(_check_stmt_case(env, stmt))
+}
+
+ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
+  Stmt_List list = stmt->list;
+  do CHECK_BB(check_stmt_case(env, &list->stmt->d.stmt_match))
+  while((list = list->next));
+  return GW_OK;
+}
+
+ANN static m_bool check_match(const Env env, const Stmt_Match stmt) {
+  CHECK_OB(check_exp(env, stmt->cond))
+  return case_loop(env, stmt);
+}
+
+ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
+  if(stmt->where)
+    CHECK_BB(check_stmt(env, stmt->where))
+  MATCH_INI(env->scope)
+  const m_bool ret = check_match(env, stmt);
+  MATCH_END(env->scope)
+  return ret;
+}
+
+ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
+  RET_NSPC(_check_stmt_match(env, stmt))
 }
 
 static const _exp_func stmt_func[] = {
   (_exp_func)check_stmt_exp,   (_exp_func)check_stmt_flow,     (_exp_func)check_stmt_flow,
   (_exp_func)check_stmt_for,   (_exp_func)check_stmt_auto,     (_exp_func)check_stmt_loop,
-  (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,     (_exp_func)check_stmt_switch,
+  (_exp_func)check_stmt_if,    (_exp_func)check_stmt_code,
   (_exp_func)check_stmt_break, (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return,
-  (_exp_func)check_stmt_case,  (_exp_func)check_stmt_jump,
+  (_exp_func)check_stmt_match, (_exp_func)check_stmt_case,
+  (_exp_func)check_stmt_jump,
 };
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

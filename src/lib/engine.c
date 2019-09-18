@@ -19,17 +19,6 @@
 #include "parser.h"
 #include "lang_private.h"
 
-static FREEARG(freearg_switchini) {
-  if(instr->m_val)
-    free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val);
-  if(instr->m_val2)
-    free_map(((Gwion)gwion)->mp, (Map)instr->m_val2);
-}
-
-static FREEARG(freearg_switchbranch) {
-  free_map(((Gwion)gwion)->mp, (Map)instr->m_val2);
-}
-
 static FREEARG(freearg_gack) {
   free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
 }
@@ -112,8 +101,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
   GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
 
-  register_freearg(gwi, SwitchIni, freearg_switchini);
-  register_freearg(gwi, SwitchBranch, freearg_switchbranch);
   register_freearg(gwi, Gack, freearg_gack);
   return GW_OK;
 }
