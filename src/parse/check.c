@@ -587,8 +587,8 @@ CHECK_BO(check_call(env, exp))
       if(!value && m_func) {
         map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
       }
-    }
-    free_fptr_def(env->gwion->mp, fptr);
+    } else if(!nspc_lookup_value1(v->owner, sym))
+      free_fptr_def(env->gwion->mp, fptr); // ???? related
   }
   } else {
     for(m_uint i = 0; i < v->offset + 1; ++i) {
