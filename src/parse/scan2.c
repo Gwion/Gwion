@@ -281,9 +281,8 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
 static const _exp_func stmt_func[] = {
   (_exp_func)scan2_stmt_exp,  (_exp_func)scan2_stmt_flow, (_exp_func)scan2_stmt_flow,
   (_exp_func)scan2_stmt_for,  (_exp_func)scan2_stmt_auto, (_exp_func)scan2_stmt_loop,
-  (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code,
-  (_exp_func)dummy_func,      (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,
-  (_exp_func)scan2_stmt_match, (_exp_func)scan2_stmt_match,
+  (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)dummy_func,
+  (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,  (_exp_func)scan2_stmt_match,
   (_exp_func)scan2_stmt_jump
 };
 

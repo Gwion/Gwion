@@ -1553,11 +1553,10 @@ ANN static m_bool emit_stmt_match(const Emitter emit, const struct Stmt_Match_* 
 }
 
 static const _exp_func stmt_func[] = {
-  (_exp_func)emit_stmt_exp,   (_exp_func)emit_stmt_flow,     (_exp_func)emit_stmt_flow,
-  (_exp_func)emit_stmt_for,   (_exp_func)emit_stmt_auto,     (_exp_func)emit_stmt_loop,
-  (_exp_func)emit_stmt_if,    (_exp_func)emit_stmt_code,
-  (_exp_func)emit_stmt_break, (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return,
-  (_exp_func)emit_stmt_match, (_exp_func)emit_stmt_match_case,
+  (_exp_func)emit_stmt_exp,      (_exp_func)emit_stmt_flow,   (_exp_func)emit_stmt_flow,
+  (_exp_func)emit_stmt_for,      (_exp_func)emit_stmt_auto,   (_exp_func)emit_stmt_loop,
+  (_exp_func)emit_stmt_if,       (_exp_func)emit_stmt_code,   (_exp_func)emit_stmt_break,
+  (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return, (_exp_func)emit_stmt_match,
   (_exp_func)emit_stmt_jump,
 };
 

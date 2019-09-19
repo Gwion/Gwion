@@ -310,9 +310,28 @@ ANN static void cpy_stmt_jump(MemPool p NUSED, const Stmt_Jump a,const Stmt_Jump
   a->name = src->name;
 }
 
+ANN static Stmt cpy_stmt_case(MemPool p, const Stmt_Match src) {
+  Stmt a = mp_calloc(p, Stmt);
+  a->d.stmt_match.cond = cpy_exp(p, src->cond);
+  a->d.stmt_match.list = cpy_stmt_list(p, src->list);
+  if(src->when)
+    a->d.stmt_match.when = cpy_exp(p, src->when);
+  return a;
+}
+
+ANN static Stmt_List cpy_stmt_cases(MemPool p, const Stmt_List src) {
+  Stmt_List a = mp_calloc(p, Stmt_List);
+  if(src->next)
+    a->next = cpy_stmt_cases(p, src->next);
+  a->stmt = cpy_stmt_case(p, &src->stmt->d.stmt_match);
+  return a;
+}
+
 ANN static void cpy_stmt_match(MemPool p, Stmt_Match a, const Stmt_Match src) {
   a->cond = cpy_exp(p, src->cond);
-  a->list = cpy_stmt_list(p, src->list);
+  a->list = cpy_stmt_cases(p, src->list);
+  if(src->where)
+    a->where = cpy_stmt(p, src->where);
 }
 
 ANN static Enum_Def cpy_enum_def(MemPool p, const Enum_Def src) {
@@ -398,7 +417,6 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
     case ae_stmt_jump:
       cpy_stmt_jump(p, &a->d.stmt_jump, &src->d.stmt_jump);
       break;
-    case ae_stmt_match_case:
     case ae_stmt_match:
       cpy_stmt_match(p, &a->d.stmt_match, &src->d.stmt_match);
       break;
