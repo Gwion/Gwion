@@ -1,0 +1,6 @@
+#! [contains] ok
+
+match 1 {
+  case 1 when 1 : <<< "ok" >>>;
+  case 1: <<< "ok" >>>;
+}
