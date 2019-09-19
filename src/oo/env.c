@@ -12,7 +12,6 @@
 #include "context.h"
 #include "nspc.h"
 #include "mpool.h"
-#include "switch.h"
 #include "vm.h"
 #include "parse.h"
 
@@ -23,9 +22,6 @@ ANN static struct Env_Scope_ *new_envscope(MemPool p) {
   vector_init(&a->class_stack);
   vector_init(&a->nspc_stack);
   vector_init(&a->known_ctx);
-  a->swi = mp_calloc(p, Scope);
-  _scope_init(a->swi);
-  map_init(&a->swi->map);
   return a;
 }
 
@@ -49,7 +45,6 @@ ANN void env_reset(const Env env) {
   env->class_def = NULL;
   env->func = NULL;
   env->scope->depth = 0;
-  switch_reset(env);
 }
 
 ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
@@ -61,13 +56,10 @@ ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
-  switch_release(a->swi);
-  mp_free(gwion->mp, Scope, a->swi);
   mp_free(gwion->mp, Env_Scope, a);
 }
 
 ANN void free_env(const Env a) {
-  switch_reset(a);
   free_env_scope(a->scope, a->gwion);
   REM_REF(a->global_nspc, a->gwion);
   free(a);

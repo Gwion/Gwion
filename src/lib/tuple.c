@@ -332,7 +332,8 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_tuple, abstract | ae_flag_template);
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_at_object_tuple))
+  GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
@@ -350,10 +351,6 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   register_freearg(gwi, TupleUnpack, freearg_tuple_at);
   return GW_OK;
 }

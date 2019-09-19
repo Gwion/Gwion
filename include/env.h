@@ -4,25 +4,13 @@
 #define SCOPE(a) { ++env->scope; a ;--env->scope; }
 #define NSPC(a) { nspc_push_value(env->curr); SCOPE(a); nspc_pop_value(env->curr); }
 
-typedef struct Switch_       * Switch;
-struct Switch_ {
-  struct Vector_ exp;
-  Map cases;
-  Vector vec;
-  vtype iter;
-  size_t default_case_index;
-  size_t depth;
-  struct SwInfo_ *info;
-  uint ok;
-};
-
 struct Env_Scope_ {
   struct Vector_    nspc_stack;
   struct Vector_    class_stack;
   struct Vector_    breaks;
   struct Vector_    conts;
   struct Vector_    known_ctx;
-  Scope swi;
+  struct Match_ *match;
   size_t depth;
   size_t type_xid;
 };

@@ -34,11 +34,6 @@ INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);
 
-/* branching */
-INSTR(SwitchBranch);
-INSTR(SwitchIni);
-INSTR(SwitchEnd);
-
 INSTR(ComplexReal);
 INSTR(ComplexImag);
 

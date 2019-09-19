@@ -1,5 +1,0 @@
-#! [contains] is not const
-int i;
-switch(maybe) {
-	case i:
-}

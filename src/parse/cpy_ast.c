@@ -310,9 +310,28 @@ ANN static void cpy_stmt_jump(MemPool p NUSED, const Stmt_Jump a,const Stmt_Jump
   a->name = src->name;
 }
 
-ANN static void cpy_stmt_switch(MemPool p, Stmt_Switch a, const Stmt_Switch src) {
-  a->val = cpy_exp(p, src->val);
-  a->stmt = cpy_stmt(p, src->stmt);
+ANN static Stmt cpy_stmt_case(MemPool p, const Stmt_Match src) {
+  Stmt a = mp_calloc(p, Stmt);
+  a->d.stmt_match.cond = cpy_exp(p, src->cond);
+  a->d.stmt_match.list = cpy_stmt_list(p, src->list);
+  if(src->when)
+    a->d.stmt_match.when = cpy_exp(p, src->when);
+  return a;
+}
+
+ANN static Stmt_List cpy_stmt_cases(MemPool p, const Stmt_List src) {
+  Stmt_List a = mp_calloc(p, Stmt_List);
+  if(src->next)
+    a->next = cpy_stmt_cases(p, src->next);
+  a->stmt = cpy_stmt_case(p, &src->stmt->d.stmt_match);
+  return a;
+}
+
+ANN static void cpy_stmt_match(MemPool p, Stmt_Match a, const Stmt_Match src) {
+  a->cond = cpy_exp(p, src->cond);
+  a->list = cpy_stmt_cases(p, src->list);
+  if(src->where)
+    a->where = cpy_stmt(p, src->where);
 }
 
 ANN static Enum_Def cpy_enum_def(MemPool p, const Enum_Def src) {
@@ -372,7 +391,6 @@ ANN static Union_Def cpy_union_def(MemPool p, const Union_Def src) {
 ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
   Stmt a = mp_calloc(p, Stmt);
   switch(src->stmt_type) {
-    case ae_stmt_case:
     case ae_stmt_exp:
     case ae_stmt_return:
       cpy_stmt_exp(p, &a->d.stmt_exp, &src->d.stmt_exp);
@@ -399,8 +417,8 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
     case ae_stmt_jump:
       cpy_stmt_jump(p, &a->d.stmt_jump, &src->d.stmt_jump);
       break;
-    case ae_stmt_switch:
-      cpy_stmt_switch(p, &a->d.stmt_switch, &src->d.stmt_switch);
+    case ae_stmt_match:
+      cpy_stmt_match(p, &a->d.stmt_match, &src->d.stmt_match);
       break;
       case ae_stmt_break:
       case ae_stmt_continue:
