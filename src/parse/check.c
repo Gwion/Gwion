@@ -1188,6 +1188,8 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       CHECK_OB(op_check(env, &opi))
     }
   }
+  if(e)
+    ERR_B(e->pos, _("too many expression to match"))
   return GW_OK;
 }
 
