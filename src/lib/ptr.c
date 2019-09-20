@@ -34,7 +34,9 @@ static INSTR(instr_ptr_assign) {
 }
 
 static OP_EMIT(opem_ptr_assign) {
-  emit_add_instr(emit, GWOP_EXCEPT);
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(!GET_FLAG(bin->rhs->type, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
   return emit_add_instr(emit, instr_ptr_assign);
 }
 

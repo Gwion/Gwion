@@ -1,7 +1,6 @@
 union
 {
 	int i;
-	Object @ o;
-
+	Object o;
 };
 <<< i, " ", o >>>;

@@ -1129,9 +1129,6 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   do {
     CHECK_OB(check_exp(env, l->self))
     if(isa(l->self->type, t_object) > 0) {
-        if(!GET_FLAG(l->self->d.exp_decl.td, ref) && !GET_FLAG(udef->type, template))
-      ERR_B(l->self->pos, _("In union, Objects must be declared as reference (use '@')"))
-//      SET_FLAG(l->self->d.exp_decl.td, ref);
       Var_Decl_List list = l->self->d.exp_decl.list;
       do SET_FLAG(list->self->value, pure);
       while((list = list->next));
