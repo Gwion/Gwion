@@ -23,6 +23,12 @@ OP_CHECK(opck_basic_cast) {
      exp_self(cast)->type : t_null;
 }
 
+OP_CHECK(opck_usr_implicit) {
+  struct Implicit* imp = (struct Implicit*)data;
+  imp->e->cast_to = imp->t;
+  return imp->t;
+}
+
 OP_EMIT(opem_basic_cast) {
   return (Instr)GW_OK;
 }

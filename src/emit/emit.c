@@ -1112,8 +1112,9 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 }
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
-  CHECK_BO(emit_exp_pop_next(emit, e, 0))
-  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"), .rhs=e->type, .pos=e->pos };
+  CHECK_BO(emit_exp_pop_next(emit, e, 1))
+  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
+                           .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e};
   return op_emit(emit, &opi);
 }
 #define emit_flow(emit,b) _flow(emit, b, 1)
@@ -1433,8 +1434,9 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base, const Exp e, const Symbol op) {
   CHECK_BB(emit_exp(emit, base, 1))
   CHECK_BB(emit_exp(emit, e, 1))
-  Exp_Binary bin = { .lhs=base, .rhs=e, .op=op, .nspc=emit->env->curr };
-  struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&bin, .pos=e->pos };
+  const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
+  struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=emit->env->curr};
+  struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
   CHECK_OB(op_emit(emit, &opi))
   regpop(emit, base->type->size);
   return GW_OK;

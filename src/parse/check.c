@@ -157,20 +157,25 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   return decl->type;
 }
 
-ANN static m_bool prim_array_inner(const Env env, const Type t, Type type, const Exp e) {
-  const Type common = find_common_anc(t, type);
+
+ANN static inline void set_cast(const Env env, Type type, const Exp e) {
+  e->cast_to = type;
+  e->nspc = env->curr;
+}
+
+ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
+  const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  else if(isa(t, t_int) > 0 && isa(type, t_float) > 0) {
-      e->cast_to = type;
-      return GW_OK;
-  }
-  ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
+  else if(!(isa(e->type, t_int) > 0 && isa(type, t_float) > 0))
+    ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
+  set_cast(env, type, e);
+  return GW_OK;
 }
 
 ANN static inline Type prim_array_match(const Env env, Exp e) {
   const Type type = e->type;
-  do CHECK_BO(prim_array_inner(env, e->type, type, e))
+  do CHECK_BO(prim_array_inner(env, type, e))
   while((e = e->next));
   return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
@@ -283,7 +288,7 @@ ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
     const Type t = e->type;
     if(isa(t, t_float) < 0) {
       if(isa(t, t_int) > 0)
-        e->cast_to = t_float;
+        set_cast(env, t_float, e);
       else
         ERR_B(e->pos, _("invalid type '%s' in %s value #%d...\n"
               "    (must be of type 'int' or 'float')"), t->name, s, count)
@@ -463,7 +468,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         const struct Implicit imp = { e, t, e->pos };
         struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
         return op_check(env, &opi) ? GW_OK : GW_ERROR;
-    }
+      }
   }
   return match ? 1 : -1;
 }
@@ -866,16 +871,18 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   return op_check(env, &opi);
 }
 
-ANN static m_bool check_flow(const Env env, const Exp exp) {
-  struct Op_Import opi = { .op=insert_symbol("@conditionnal"), .rhs=exp->type, .pos=exp->pos };
-  return op_check(env, &opi) ? GW_OK : GW_ERROR;
+ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
+  DECL_OO(const Type, type, = check_exp(env, e))
+  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
+    .rhs=type, .pos=e->pos, .data=(uintptr_t)e };
+  return op_check(env, &opi);
 }
+#define check_flow(emit,b) _flow(emit, b, 1)
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
-  DECL_OO(const Type, cond, = check_exp(env, exp_if->cond))
+  DECL_OO(const Type, cond, = check_flow(env, exp_if->cond))
   DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond))
   DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
-  CHECK_BO(check_flow(env, exp_if->cond))
   const Type ret = find_common_anc(if_exp, else_exp);
   if(!ret)
     ERR_O(exp_self(exp_if)->pos,
@@ -1020,7 +1027,6 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       array.depth = depth;
       td.array = &array;
     }
-//    ptr = type_decl_resolve(env, &td); exit(3);
     ptr = known_type(env, &td);
     if(!GET_FLAG(ptr, checked))
       check_class_def(env, ptr->e->def);
@@ -1041,24 +1047,25 @@ ANN static m_bool cond_type(const Env env, const Exp e) {
     return GW_OK;
   if(isa(t, t_float) > 0) {
     e->cast_to = t_int;
+    e->nspc = env->curr;
     return GW_OK;
   }
   ERR_B(e->pos, _("conditional must be of type 'int'..."))
 }
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
-stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
-  check_flow(env, stmt->cond) < 0   ||
+stmt_func_xxx(if, Stmt_If,, !(!check_flow(env, stmt->cond)   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(flow, Stmt_Flow,,
   !(!check_exp(env, stmt->cond) ||
-    check_flow(env, stmt->cond) < 0 ||
+    !_flow(env, stmt->cond, !stmt->is_do ?
+       stmt_self(stmt)->stmt_type == ae_stmt_while :
+       stmt_self(stmt)->stmt_type != ae_stmt_while) ||
     check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For,, !(
   for_empty(env, stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
-  check_stmt(env, stmt->c2) < 0 ||
-  check_flow(env, stmt->c2->d.stmt_exp.val) < 0 ||
+  !check_flow(env, stmt->c2->d.stmt_exp.val) ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
@@ -1189,7 +1196,7 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
 ANN static m_bool _check_stmt_case(const Env env, const Stmt_Match stmt) {
   CHECK_BB(match_case_exp(env, stmt->cond))
   if(stmt->when)
-    CHECK_OB(check_exp(env, stmt->when))
+    CHECK_OB(check_flow(env, stmt->when))
   return check_stmt_list(env, stmt->list);
 }
 
@@ -1329,15 +1336,6 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
-ANN static void operator_func(const Func f) {
-  const Arg_List a = f->def->base->args;
-  const m_bool is_unary = GET_FLAG(f->def, unary);
-  const Type l = is_unary ? NULL : a->type;
-  const Type r = is_unary ? a->type : a->next ? a->next->type : NULL;
-  struct Op_Import opi = { .op=f->def->base->xid, .lhs=l, .rhs=r, .data=(m_uint)f, .pos=f->def->pos };
-  operator_set_func(&opi);
-}
-
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   const Func func = get_func(env, fdef);
   m_bool ret = GW_OK;
@@ -1370,8 +1368,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
       REM_REF(variadic, env->gwion)
     if(GET_FLAG(fdef, builtin))
       func->code->stack_depth = fdef->stack_depth;
-    else if(GET_FLAG(fdef, op))
-      operator_func(func);
   }
   if(fdef->base->tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
@@ -1398,7 +1394,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN /*static inline */void inherit(const Type t) {
+ANN static inline void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
   nspc->info->offset = parent->info->offset;
   if(parent->info->vtable.ptr)
