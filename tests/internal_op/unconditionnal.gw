@@ -1,0 +1,11 @@
+#! [contains] 1
+class C { 10 => int i; }
+
+operator @unconditionnal int(C c) {
+  <<< __func__ >>>;
+  --c.i;
+  return !c.i;
+}
+
+C c;
+until(c) <<<c.i>>>;
