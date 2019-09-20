@@ -1153,12 +1153,12 @@ DECL_EXP_FUNC(emit)
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
     CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
-    if(exp->cast_to)
-      CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_shred) < 0 ) { // beware fork
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
+    if(exp->cast_to)
+      CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(emit->env->func && isa(exp->type, t_lambda) < 0 && isa(exp->type, t_function) > 0 &&
         !GET_FLAG(exp->type->e->d.func->value_ref->d.func_ref, pure))
       UNSET_FLAG(emit->env->func, pure);
