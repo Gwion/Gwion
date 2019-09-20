@@ -167,8 +167,7 @@ static OP_EMIT(opem_array_shift) {
   pop->m_val = type->size;
   if(!GET_FLAG(bin->lhs->type, nonnull))
     emit_add_instr(emit, GWOP_EXCEPT);
-  emit_add_instr(emit, ArrayAppend);
-  return GW_OK;
+  return emit_add_instr(emit, ArrayAppend);
 }
 
 // check me. use common ancestor maybe

@@ -866,13 +866,16 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   return op_check(env, &opi);
 }
 
+ANN static m_bool check_flow(const Env env, const Exp exp) {
+  struct Op_Import opi = { .op=insert_symbol("@conditionnal"), .rhs=exp->type, .pos=exp->pos };
+  return op_check(env, &opi) ? GW_OK : GW_ERROR;
+}
+
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
   DECL_OO(const Type, cond, = check_exp(env, exp_if->cond))
   DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond))
   DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
-  if(isa(cond, t_int) < 0 && isa(cond, t_float) < 0 && isa(cond, t_object) < 0)
-    ERR_O(exp_self(exp_if)->pos,
-          _("Invalid type '%s' in if expression condition."), cond->name)
+  CHECK_BO(check_flow(env, exp_if->cond))
   const Type ret = find_common_anc(if_exp, else_exp);
   if(!ret)
     ERR_O(exp_self(exp_if)->pos,
@@ -965,13 +968,6 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   return GW_OK;
 }
 
-ANN static m_bool check_flow(const Env env, const Exp exp, const m_str orig) {
-  if(isa(exp->type, t_object) > 0 || isa(exp->type, t_int) > 0 || isa(exp->type, t_float) > 0 ||
-     isa(exp->type, t_dur) > 0 || isa(exp->type, t_time)  > 0)
-    return GW_OK;
-  ERR_B(exp->pos, _("invalid type '%s' (in '%s' condition)"), exp->type->name, orig)
-}
-
 ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) {
   vector_add(&env->scope->breaks, (vtype)a);
   RET_NSPC(check_stmt(env, b))
@@ -1051,18 +1047,18 @@ ANN static m_bool cond_type(const Env env, const Exp e) {
 }
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
 stmt_func_xxx(if, Stmt_If,, !(!check_exp(env, stmt->cond) ||
-  check_flow(env, stmt->cond, "if") < 0   ||
+  check_flow(env, stmt->cond) < 0   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
 stmt_func_xxx(flow, Stmt_Flow,,
   !(!check_exp(env, stmt->cond) ||
-    check_flow(env, stmt->cond, stmt_self(stmt)->stmt_type == ae_stmt_while ? "while" : "until") < 0 ||
+    check_flow(env, stmt->cond) < 0 ||
     check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(for, Stmt_For,, !(
   for_empty(env, stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   check_stmt(env, stmt->c2) < 0 ||
-  check_flow(env, stmt->c2->d.stmt_exp.val, "for") < 0 ||
+  check_flow(env, stmt->c2->d.stmt_exp.val) < 0 ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||

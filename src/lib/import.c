@@ -500,7 +500,7 @@ ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*, m_bool*)) {
   return GW_OK;
 }
 
-ANN m_int gwi_oper_emi(const Gwi gwi, m_bool (*em)(Emitter, void*)) {
+ANN m_int gwi_oper_emi(const Gwi gwi, const opem em) {
   gwi->oper.em = em;
   return GW_OK;
 }
@@ -511,6 +511,14 @@ ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
   gwi->oper.ck = NULL;
   gwi->oper.em = NULL;
   return ret;
+}
+
+ANN m_int gwi_oper_cond(const Gwi gwi, const m_str type,
+  const f_instr f1, const f_instr f2) {
+  GWI_BB(gwi_oper_ini(gwi, NULL, type, "int"))
+  GWI_BB(gwi_oper_end(gwi, "@conditionnal", f1))
+  GWI_BB(gwi_oper_end(gwi, "@unconditionnal", f2))
+  return GW_OK;
 }
 
 ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {

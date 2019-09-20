@@ -1,2 +1,0 @@
-#! [contains] in 'until' condition
-until(null);

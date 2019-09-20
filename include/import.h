@@ -13,7 +13,7 @@ typedef struct Gwi_* Gwi;
 #define CTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define DTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
-#define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void* data NUSED)
+#define OP_EMIT(a)  ANN Instr a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
 #define GWI_BB(a) (void)(a);
 #define GWI_OB(a) (void)(a);
@@ -63,10 +63,10 @@ ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restri
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
-ANN m_int gwi_oper_add(const Gwi gwi, opck);
-ANN m_int gwi_oper_emi(const Gwi gwi, opem);
+ANN m_int gwi_oper_add(const Gwi gwi, const opck);
+ANN m_int gwi_oper_emi(const Gwi gwi, const opem);
 ANN2(1) m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f);
-
+ANN m_int gwi_oper_cond(const Gwi, const m_str,  const f_instr, const f_instr);
 ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
 
 OP_CHECK(opck_const_rhs);

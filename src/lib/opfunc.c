@@ -24,7 +24,7 @@ OP_CHECK(opck_basic_cast) {
 }
 
 OP_EMIT(opem_basic_cast) {
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 OP_CHECK(opck_const_rhs) {
@@ -110,8 +110,7 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
+  CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
-  CHECK_OB(emit_add_instr(emit, GcAdd))
-  return GW_OK;
+  return emit_add_instr(emit, GcAdd);
 }

@@ -127,6 +127,7 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
   if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit"))return;
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@conditionnal"))return;
   if(ock->opi->op == insert_symbol(ock->env->gwion->st, "$"))
     ((Exp_Cast*)ock->opi->data)->nspc = nspc;
   if(ock->opi->lhs) {
@@ -192,18 +193,19 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr instr = emit_add_instr(emit, mo->func->code ? RegPushImm : PushStaticCode);
     instr->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
     return emit_exp_call1(emit, mo->func);
   }
-  emit_add_instr(emit, mo->instr);
-  return GW_OK;
+  return emit_add_instr(emit, mo->instr);
 }
 
 ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
-  if(opi->op == insert_symbol(st, "@implicit"))
+  if(opi->op == insert_symbol(st, "@implicit")     ||
+    opi->op == insert_symbol(st, "@conditionnal")  ||
+    opi->op == insert_symbol(st, "@unconditionnal"))
     return opi->rhs->e->owner;
   if(opi->op == insert_symbol(st, "$"))
     return ((Exp_Cast*)opi->data)->nspc;
@@ -223,10 +225,8 @@ ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
   return nspc;
 }
 
-ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
-  Nspc nspc = ensure_nspc(emit->gwion->st, opi);
-  if(!nspc)
-    return GW_OK;
+ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
+  DECL_OO(Nspc, nspc, = ensure_nspc(emit->gwion->st, opi))
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;
@@ -240,5 +240,5 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));
-  return GW_ERROR;
+  return NULL;
 }
