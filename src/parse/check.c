@@ -1117,21 +1117,7 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN m_bool check_union_def(const Env env, const Union_Def udef) {
-  if(tmpl_base(udef->tmpl)) // there's a func for this
-    return GW_OK;
-  if(udef->xid) {
-    if(env->class_def)
-      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env, udef->value);
-  } else if(env->class_def)  {
-    if(!GET_FLAG(udef, static))
-      udef->o = env->class_def->nspc->info->offset;
-    else {
-      udef->o = env->class_def->nspc->info->class_data_size;
-      env->class_def->nspc->info->class_data_size += SZ_INT;
-    }
-  }
-  const m_uint scope = union_push(env, udef);
+ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
   Decl_List l = udef->l;
   do {
     CHECK_OB(check_exp(env, l->self))
@@ -1143,8 +1129,30 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
     if(l->self->type->size > udef->s)
       udef->s = l->self->type->size;
   } while((l = l->next));
-  union_pop(env, udef, scope);
   return GW_OK;
+}
+
+ANN void check_udef(const Env env, const Union_Def udef) {
+  if(udef->xid) {
+    if(env->class_def)
+      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env, udef->value);
+  } else if(env->class_def)  {
+    if(!GET_FLAG(udef, static))
+      udef->o = env->class_def->nspc->info->offset;
+    else {
+      udef->o = env->class_def->nspc->info->class_data_size;
+      env->class_def->nspc->info->class_data_size += SZ_INT;
+    }
+  }
+}
+ANN m_bool check_union_def(const Env env, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl)) // there's a func for this
+    return GW_OK;
+  check_udef(env, udef);
+  const m_uint scope = union_push(env, udef);
+  const m_bool ret = check_union_decl(env, udef);
+  union_pop(env, udef, scope);
+  return ret;
 }
 
 ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {

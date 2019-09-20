@@ -238,7 +238,7 @@ static OP_EMIT(opem_fptr_cast) {
   if(GET_FLAG(cast->exp->type->e->d.func, member) &&
     !(GET_FLAG(cast->exp->type, nonnull) || GET_FLAG(exp_self(cast)->type, nonnull)))
     member_fptr(emit);
-  return (Instr)GW_OK;// ???
+  return (Instr)GW_OK;
 }
 
 static OP_CHECK(opck_fptr_impl) {
