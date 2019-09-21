@@ -1054,7 +1054,6 @@ ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
   return emit_exp_call1(emit, exp->m_func) ? GW_OK : GW_ERROR;
 }
 
-// TODO header
 ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   const m_bool is_spork = unary->op == insert_symbol("spork");
   const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
