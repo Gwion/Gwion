@@ -180,8 +180,7 @@ static OP_EMIT(opem_##name##_tuple_object) {              \
   const type exp = (type)data;                            \
   const Instr instr = emit_add_instr(emit, Tuple2Object); \
   instr->m_val = (m_uint)rhs;                             \
-  emit_add_instr(emit, ObjectAssign);                     \
-  return 1;                                               \
+  return emit_add_instr(emit, ObjectAssign);              \
 }
 mk_opem_tuple2object(at, Exp_Binary *, exp->rhs->type)
 mk_opem_tuple2object(cast, Exp_Cast *, exp_self(exp)->type)
@@ -203,14 +202,13 @@ static OP_EMIT(opem_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(!(bin->rhs->exp_type == ae_exp_primary &&
       bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
-      emit_add_instr(emit, ObjectAssign);
-      return GW_OK;
+      return emit_add_instr(emit, ObjectAssign);
   }
   const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
   const Vector v = &bin->lhs->type->e->tuple->types;
   struct TupleEmit te = { .e=e, .v=v };
   emit_unpack_instr(emit, &te);
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {

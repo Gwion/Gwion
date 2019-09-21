@@ -13,6 +13,10 @@
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"
+#include "object.h"
+
+#include "instr.h"
+#include "import.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -398,13 +402,19 @@ ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
-  assert(f->base->args);
-  const Type l = GET_FLAG(f, unary) ? NULL :
+  const m_str str = s_name(f->base->xid);
+  const uint is_unary = GET_FLAG(f, unary) + (!strcmp(str, "@conditionnal") || !strcmp(str, "@unconditionnal"));
+  const Type l = is_unary ? NULL :
     f->base->args->var_decl->value->type;
-  const Type r = GET_FLAG(f, unary) ? f->base->args->var_decl->value->type :
-    f->base->args->next ? f->base->args->next->var_decl->value->type : NULL;
-  struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type, .pos=f->pos };
+  const Type r = is_unary ? f->base->args->var_decl->value->type :
+    f->base->args->next ? f->base->args->next->var_decl->value->type :
+    f->base->ret_type;
+  struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
+                           .pos=f->pos, .data=(uintptr_t)f->base->func };
+  if(!strcmp(str, "@implicit"))
+    opi.ck = opck_usr_implicit;
   CHECK_BB(add_op(env->gwion, &opi))
+  operator_set_func(&opi);
   return GW_OK;
 }
 
@@ -510,10 +520,6 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
-  const Value res = nspc_lookup_value1(env->curr, f->base->xid);
-  if(res && res->owner == env->global_nspc)
-    ERR_B(f->pos, _("'%s' already declared as value of type '%s'."),
-      res->name, res->type->name)
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;

@@ -144,8 +144,7 @@ static OP_EMIT(opem_at_object) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = SZ_INT;
   }
-  emit_add_instr(emit, ObjectAssign);
-  return GW_OK;
+  return emit_add_instr(emit, ObjectAssign);
 }
 
 #define STR_FORCE ":force"
@@ -185,7 +184,7 @@ static OP_EMIT(opem_object_cast) {
   const Type r = exp_self(cast)->type;
   if(nonnull_check(l, r))
     emit_add_instr(emit, GWOP_EXCEPT);
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
@@ -204,13 +203,14 @@ static OP_EMIT(opem_implicit_null2obj) {
   const Type r = imp->t;
   if(nonnull_check(l, r))
     emit_add_instr(emit, GWOP_EXCEPT);
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 GWION_IMPORT(object) {
   t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
   GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))

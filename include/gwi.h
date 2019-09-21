@@ -25,7 +25,7 @@ typedef struct {
   Symbol op;
   m_str ret, lhs, rhs;
   Type   (*ck)(Env, void*, m_bool*);
-  m_bool (*em)(Emitter, void*);
+  Instr  (*em)(Emitter, void*);
 } DL_Oper;
 
 typedef struct {

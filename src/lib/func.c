@@ -18,9 +18,6 @@
 #include "template.h"
 #include "parse.h"
 
-ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
-ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
-
 static INSTR(LambdaAssign) {
   POP_REG(shred, SZ_INT)
   *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
@@ -48,12 +45,12 @@ static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->type->e->d.func, 2);
-  emit_add_instr(emit, int_r_assign);
+  const Instr instr = emit_add_instr(emit, int_r_assign);
   if(isa(bin->lhs->type, t_fptr) < 0 && GET_FLAG(bin->rhs->type->e->d.func, member)) {
-    const Instr instr = emit_add_instr(emit, LambdaAssign);
-    instr->m_val = SZ_INT;
+    const Instr pop = emit_add_instr(emit, LambdaAssign);
+    pop->m_val = SZ_INT;
   }
-  return GW_OK;
+  return instr;
 }
 
 struct FptrInfo {
@@ -231,14 +228,14 @@ static void member_fptr(const Emitter emit) {
 }
 
 static OP_EMIT(opem_fptr_cast) {
-  CHECK_BB(opem_basic_cast(emit, data))
+  CHECK_OO(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->type->e->d.func, 1);
   if(GET_FLAG(cast->exp->type->e->d.func, member) &&
     !(GET_FLAG(cast->exp->type, nonnull) || GET_FLAG(exp_self(cast)->type, nonnull)))
     member_fptr(emit);
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 static OP_CHECK(opck_fptr_impl) {
@@ -256,7 +253,7 @@ static OP_EMIT(opem_fptr_impl) {
     member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->type->e->d.func, 1);
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
@@ -300,9 +297,12 @@ static FREEARG(freearg_dottmpl) {
 }
 
 GWION_IMPORT(func) {
+  GWI_BB(gwi_oper_cond(gwi, "@func_ptr", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "int"))
+  GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
   GWI_BB(gwi_oper_emi(gwi, opem_func_assign))

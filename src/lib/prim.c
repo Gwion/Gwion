@@ -85,6 +85,7 @@ static GWION_IMPORT(int_values) {
 }
 
 static GWION_IMPORT(int) {
+  GWI_BB(gwi_oper_cond(gwi, "int", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   GWI_BB(import_int_op(gwi))
   GWI_BB(import_int_logical(gwi))
@@ -143,14 +144,13 @@ static OP_CHECK(opck_implicit_i2f) {
   return t_float;
 }
 
+// can't it be just declared?
 static OP_EMIT(opem_i2f) {
-  emit_add_instr(emit, CastI2F);
-  return GW_OK;
+  return emit_add_instr(emit, CastI2F);
 }
 
 static OP_EMIT(opem_f2i) {
-  emit_add_instr(emit, CastF2I);
-  return GW_OK;
+  return emit_add_instr(emit, CastF2I);
 }
 
 #define CHECK_FF(op, check, func) _CHECK_OP(op, check, float_##func)
@@ -210,6 +210,7 @@ static GWION_IMPORT(floatint) {
 }
 
 static GWION_IMPORT(dur) {
+  GWI_BB(gwi_oper_cond(gwi, "dur", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
   CHECK_FF("=>", rassign, r_assign)
   GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
@@ -226,6 +227,7 @@ static GWION_IMPORT(dur) {
 }
 
 static GWION_IMPORT(time) {
+  GWI_BB(gwi_oper_cond(gwi, "time", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "time"))
   CHECK_FF("=>", rassign, r_assign)
   GWI_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
@@ -243,6 +245,7 @@ static GWION_IMPORT(time) {
 }
 
 static GWION_IMPORT(float) {
+  GWI_BB(gwi_oper_cond(gwi, "float", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "float", "float", "float"))
   GWI_BB(gwi_oper_end(gwi, "+",          FloatPlus))
   GWI_BB(gwi_oper_end(gwi, "-",         FloatMinus))

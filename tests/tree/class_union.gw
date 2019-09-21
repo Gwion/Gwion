@@ -2,7 +2,7 @@ class C {
 	union
 	{
 	  int one;
-	  string @ two;
+	  string two;
 	};
 	<<< one, " ", two >>>;
 }

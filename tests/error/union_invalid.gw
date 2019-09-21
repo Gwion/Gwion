@@ -1,5 +1,0 @@
-#! [contains] Unions should only contain declarations
- union
-{
-  one; two;
-};

@@ -126,16 +126,17 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit"))return;
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "$"))
-    ((Exp_Cast*)ock->opi->data)->nspc = nspc;
-  if(ock->opi->lhs) {
-    if(ock->opi->rhs)
-      ((Exp_Binary*)ock->opi->data)->nspc = nspc;
-    else
-      ((Exp_Postfix*)ock->opi->data)->nspc = nspc;
-  } else
-    ((Exp_Unary*)ock->opi->data)->nspc = nspc;
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit")) {
+    struct Implicit* imp = (struct Implicit*)ock->opi->data;
+    imp->e->nspc = nspc;
+    return;
+  }
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@conditionnal") ||
+     ock->opi->op == insert_symbol(ock->env->gwion->st, "@unconditionnal")) {
+    ((Exp)ock->opi->data)->nspc = nspc;
+    return;
+  }
+  exp_self((union exp_data*)ock->opi->data)->nspc = nspc;
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {
@@ -192,28 +193,29 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
-    const Instr instr = emit_add_instr(emit, mo->func->code ? RegPushImm : PushStaticCode);
-    instr->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
-    return emit_exp_call1(emit, mo->func);
+    const Instr push = emit_add_instr(emit, mo->func->code ? RegPushImm : PushStaticCode);
+    push->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
+    const Instr instr = emit_exp_call1(emit, mo->func);
+    if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@conditionnal"))
+      return emit_add_instr(emit, BranchEqInt);
+    if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditionnal"))
+      return emit_add_instr(emit, BranchNeqInt);
+    return instr;
   }
-  emit_add_instr(emit, mo->instr);
-  return GW_OK;
+  return emit_add_instr(emit, mo->instr);
 }
 
 ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
-  if(opi->op == insert_symbol(st, "@implicit"))
-    return opi->rhs->e->owner;
-  if(opi->op == insert_symbol(st, "$"))
-    return ((Exp_Cast*)opi->data)->nspc;
-  if(opi->lhs) {
-    if(opi->rhs)
-      return ((Exp_Binary*)opi->data)->nspc;
-    else
-      return ((Exp_Postfix*)opi->data)->nspc;
+  if(opi->op == insert_symbol(st, "@implicit")) {
+    struct Implicit* imp = (struct Implicit*)opi->data;
+    return imp->e->nspc;
   }
-  return ((Exp_Unary*)opi->data)->nspc;
+  if(opi->op == insert_symbol(st, "@conditionnal") ||
+     opi->op == insert_symbol(st, "@unconditionnal"))
+    return ((Exp)opi->data)->nspc;
+  return exp_self((union exp_data*)opi->data)->nspc;
 }
 
 ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
@@ -223,10 +225,8 @@ ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
   return nspc;
 }
 
-ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
-  Nspc nspc = ensure_nspc(emit->gwion->st, opi);
-  if(!nspc)
-    return GW_OK;
+ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
+  DECL_OO(Nspc, nspc, = ensure_nspc(emit->gwion->st, opi))
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;
@@ -240,5 +240,5 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));
-  return GW_ERROR;
+  return NULL;
 }

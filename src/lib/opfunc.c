@@ -23,8 +23,14 @@ OP_CHECK(opck_basic_cast) {
      exp_self(cast)->type : t_null;
 }
 
+OP_CHECK(opck_usr_implicit) {
+  struct Implicit* imp = (struct Implicit*)data;
+  imp->e->cast_to = imp->t;
+  return imp->t;
+}
+
 OP_EMIT(opem_basic_cast) {
-  return GW_OK;
+  return (Instr)GW_OK;
 }
 
 OP_CHECK(opck_const_rhs) {
@@ -110,8 +116,7 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
+  CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
-  CHECK_OB(emit_add_instr(emit, GcAdd))
-  return GW_OK;
+  return emit_add_instr(emit, GcAdd);
 }

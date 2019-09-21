@@ -775,7 +775,7 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   CHECK_BB(prepare_call(emit, exp_call))
-  return emit_exp_call1(emit, exp_call->m_func);
+  return emit_exp_call1(emit, exp_call->m_func) ? GW_OK : GW_ERROR;
 }
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {
@@ -819,7 +819,7 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type, .pos=exp_self(bin)->pos, .data = (uintptr_t)bin };
   CHECK_BB(emit_exp_pop_next(emit, lhs, 1))
   CHECK_BB(emit_exp_pop_next(emit, rhs, 1))
-  return op_emit(emit, &opi);
+  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
@@ -832,7 +832,7 @@ ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
 ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=post->exp->type, .data=(uintptr_t)post };
   CHECK_BB(emit_exp(emit, post->exp, 1))
-  return op_emit(emit, &opi);
+  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool is_special(const Type t) {
@@ -963,11 +963,11 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
   return emit_add_instr(emit, Overflow);
 }
 
-ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
+ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
   if(!f->code || (GET_FLAG(f, ref) && !GET_FLAG(f, builtin))) {
     if(GET_FLAG(f, template) && !is_fptr(f->value_ref->type)) {
       if(emit->env->func != f)
-        CHECK_BB(emit_template_code(emit, f))
+        CHECK_BO(emit_template_code(emit, f))
       else {
         const Instr back = (Instr)vector_back(&emit->code->instr);
         back->opcode = ePushStaticCode;
@@ -1003,7 +1003,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
   const Instr instr = emit_call(emit, f);
   instr->m_val = f->def->base->ret_type->size;
   instr->m_val2 = offset;
-  return GW_OK;
+  return instr;
 }
 
 ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
@@ -1051,10 +1051,11 @@ static void push_spork_code(const Emitter emit, const m_str prefix, const loc_t 
 ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
   if(GET_FLAG(exp->m_func, member))
     SET_FLAG(emit->code, member);
-  return emit_exp_call1(emit, exp->m_func);
+  return emit_exp_call1(emit, exp->m_func) ? GW_OK : GW_ERROR;
 }
 
-ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
+// TODO header
+ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   const m_bool is_spork = unary->op == insert_symbol("spork");
   const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
   if(unary->code) {
@@ -1062,11 +1063,11 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     push_spork_code(emit, is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, unary->code->pos);
     if(!SAFE_FLAG(emit->env->func, member))
       stack_alloc_this(emit);
-    CHECK_BB(scoped_stmt(emit, unary->code, 0))
+    CHECK_BO(scoped_stmt(emit, unary->code, 0))
   } else {
-    CHECK_BB(prepare_call(emit, &unary->exp->d.exp_call))
+    CHECK_BO(prepare_call(emit, &unary->exp->d.exp_call))
     push_spork_code(emit, is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, unary->exp->pos);
-    CHECK_BB(spork_func(emit, &unary->exp->d.exp_call))
+    CHECK_BO(spork_func(emit, &unary->exp->d.exp_call))
   }
   const VM_Code code = finalyze(emit);
   const Instr ini = emit_add_instr(emit, unary->op == insert_symbol("spork") ? SporkIni : ForkIni);
@@ -1091,7 +1092,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
     end->m_val2 = f->def->base->ret_type->size;
   }
-  return GW_OK;
+  return ini;
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
@@ -1100,26 +1101,26 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }
-  return op_emit(emit, &opi);
+  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
   const struct Implicit imp = { from, to, from->pos };
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
+  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
+}
+
+ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
+  CHECK_BO(emit_exp_pop_next(emit, e, 1))
+  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
+                           .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e};
   return op_emit(emit, &opi);
 }
-
-ANN static Instr emit_flow(const Emitter emit, const Type type,
-    const f_instr f1, const f_instr f2) {
-  if(isa(type, t_float) > 0 || isa(type, t_dur) > 0 || isa(type, t_time) > 0)
-    return emit_add_instr(emit, f2);
-  return emit_add_instr(emit, f1);
-}
+#define emit_flow(emit,b) _flow(emit, b, 1)
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
-  CHECK_BB(emit_exp(emit, exp_if->cond, 0))
-  const Instr op = emit_flow(emit, exp_if->cond->type, BranchEqInt, BranchEqFloat);
+  const Instr op = emit_flow(emit, exp_if->cond);
   CHECK_BB(emit_exp(emit, exp_if->if_exp ?: exp_if->cond, 0))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
@@ -1153,12 +1154,12 @@ DECL_EXP_FUNC(emit)
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
     CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
-    if(exp->cast_to)
-      CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(ref && isa(exp->type, t_object) > 0 && isa(exp->type, t_shred) < 0 ) { // beware fork
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
+    if(exp->cast_to)
+      CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(emit->env->func && isa(exp->type, t_lambda) < 0 && isa(exp->type, t_function) > 0 &&
         !GET_FLAG(exp->type->e->d.func->value_ref->d.func_ref, pure))
       UNSET_FLAG(emit->env->func, pure);
@@ -1168,9 +1169,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
 
 ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
   emit_push_scope(emit);
-  CHECK_BB(emit_exp_pop_next(emit, stmt->cond, 0))
-  DECL_OB(const Instr, op, = emit_flow(emit, isa(stmt->cond->type, t_object) > 0 ?
-      t_int : stmt->cond->type, BranchEqInt, BranchEqFloat))
+  DECL_OB(const Instr, op, = emit_flow(emit, stmt->cond))
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
@@ -1238,13 +1237,6 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
   emit_pop_scope(emit);
 }
 
-ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
-  CHECK_BO(emit_exp_pop_next(emit, e, 0))
-  const f_instr instr_i = b ? BranchEqInt : BranchNeqInt;
-  const f_instr instr_f = b ? BranchEqFloat : BranchNeqFloat;
-  return emit_flow(emit, e->type, instr_i, instr_f);
-}
-
 ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
   const m_uint index = emit_code_size(emit);
   Instr op = NULL;
@@ -1268,12 +1260,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
   const m_uint index = emit_code_size(emit);
-  if(stmt->c2->stmt_type == ae_stmt_exp)
-    emit_exp_pop_next(emit, stmt->c2->d.stmt_exp.val, 0);
-  else
-    CHECK_BB(emit_stmt(emit, stmt->c2, 0))
-  const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val->type,
-    BranchEqInt, BranchEqFloat);
+  const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const m_uint action_index = emit_code_size(emit);
   if(stmt->c3) {
@@ -1444,23 +1431,19 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
   return exp->val ? emit_exp(emit, exp->val, 0) : 1;
 }
 
-ANN static Instr emit_when(const Emitter emit, const Exp when) {
-  CHECK_BO(emit_exp(emit, when, 1))
-  return emit_add_instr(emit, BranchEqInt);
-}
-
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base, const Exp e, const Symbol op) {
   CHECK_BB(emit_exp(emit, base, 1))
   CHECK_BB(emit_exp(emit, e, 1))
-  Exp_Binary bin = { .lhs=base, .rhs=e, .op=op, .nspc=emit->env->curr };
-  struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&bin, .pos=e->pos };
-  CHECK_BB(op_emit(emit, &opi))
+  const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
+  struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=emit->env->curr};
+  struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
+  CHECK_OB(op_emit(emit, &opi))
   regpop(emit, base->type->size);
   return GW_OK;
 }
 
 ANN static m_bool emit_case_body(const Emitter emit, const struct Stmt_Match_* stmt) {
-  const Instr when = stmt->when ? emit_when(emit, stmt->when) : NULL;
+  const Instr when = stmt->when ? emit_flow(emit, stmt->when) : NULL;
   if(stmt->when)
     CHECK_OB(when)
   CHECK_BB(emit_stmt_list(emit, stmt->list))

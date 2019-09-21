@@ -34,9 +34,10 @@ static INSTR(instr_ptr_assign) {
 }
 
 static OP_EMIT(opem_ptr_assign) {
-  emit_add_instr(emit, GWOP_EXCEPT);
-  emit_add_instr(emit, instr_ptr_assign);
-  return GW_OK;
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(!GET_FLAG(bin->rhs->type, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
+  return emit_add_instr(emit, instr_ptr_assign);
 }
 
 static OP_CHECK(opck_ptr_deref) {
@@ -99,7 +100,7 @@ static OP_EMIT(opem_ptr_deref) {
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
   instr->m_val = exp_self(unary)->type->size;
   instr->m_val2 = exp_self(unary)->emit_var;
-  return GW_OK;
+  return instr;
 }
 
 GWION_IMPORT(ptr) {

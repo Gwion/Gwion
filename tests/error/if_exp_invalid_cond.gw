@@ -1,2 +1,0 @@
-#! [contains] Invalid type
-null ? <<< 1 >>> : <<< 2 >>>;
