@@ -46,4 +46,6 @@ ANN m_bool scan0_class_def(const Env, const Class_Def);
 ANN m_bool scan1_class_def(const Env, const Class_Def);
 ANN m_bool scan2_class_def(const Env, const Class_Def);
 ANN m_bool check_class_def(const Env, const Class_Def);
+
+ANN Type check_exp_call1(const Env env, const Exp_Call *exp);
 #endif

@@ -40,4 +40,5 @@ ANN void emit_union_offset(Decl_List, const m_uint);
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool);
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj);
+ANN Instr emit_exp_spork(const Emitter, const Exp_Unary*);
 #endif
