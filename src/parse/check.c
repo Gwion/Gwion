@@ -586,9 +586,8 @@ CHECK_BO(check_call(env, exp))
          (!exp->args || !!check_exp(env, exp->args))) {
         m_func = find_func_match(env, fbase->func, exp->args);
         nspc_pop_type(env->gwion->mp, env->curr);
-        if(!value && m_func) {
+        if(!value && m_func)
           map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
-        }
       }
       free_fptr_def(env->gwion->mp, fptr); // ???? related
     }
@@ -1189,7 +1188,8 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       const Exp base = (Exp)VKEY(&env->scope->match->map, i);
       CHECK_OB(check_exp(env, e))
       Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
-      struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&bin, .pos=e->pos };
+      struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=env->curr};
+      struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
       CHECK_OB(op_check(env, &opi))
     }
   }
