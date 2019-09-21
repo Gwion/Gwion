@@ -1,6 +1,7 @@
 INC      = -I../../include -I../../util/include -I../../ast/include
 CC       ?= gcc
 
+NAME := ${NAME}
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
 CFLAGS   = -std=c99 $(../../gwion -k 2>&1 | grep CFLAGS | sed 's/CFLAGS: //') ${INC} ${CICFLAGS} -Wall -Wextra

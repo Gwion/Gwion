@@ -79,12 +79,10 @@ ANN Type check_td(const Env env, Type_Decl *td) {
       "maybe you meant typeof(Expression)"), t_class->name, td->exp->type->name);
   m_uint depth;
   td->xid = str2list(env, t->name, &depth);
-
   if(depth) {
     Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
-    for(m_uint i = 0; i < depth - 1; ++i) {
+    for(m_uint i = 0; i < depth - 1; ++i)
       e = (e->next = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)));
-    }
     td->array = new_array_sub(env->gwion->mp, base);
   }
   return t;
@@ -340,12 +338,11 @@ ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
 
 ANN static Type prim_tuple(const Env env, const Exp_Primary * primary) {
   CHECK_OO(check_exp(env, primary->d.tuple.exp))
-  Exp e = primary->d.tuple.exp;
   struct Vector_ v;
   vector_init(&v);
-  do {
-    vector_add(&v, (m_uint)e->type);
-  } while((e = e->next));
+  Exp e = primary->d.tuple.exp;
+  do vector_add(&v, (m_uint)e->type);
+  while((e = e->next));
   const Type ret = tuple_type(env, &v, exp_self(primary)->pos);
   vector_release(&v);
   return ret;
@@ -374,19 +371,20 @@ ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
 
 ANN static Type at_depth(const Env env, const Array_Sub array);
 ANN static Type tuple_depth(const Env env, const Array_Sub array) {
-  if(array->exp->exp_type != ae_exp_primary ||
-     array->exp->d.exp_primary.primary_type != ae_primary_num)
-     ERR_O(array->exp->pos, _("tuple subscripts must be litteral"))
-  const m_uint idx = array->exp->d.exp_primary.d.num;
-  if(idx >= vector_size(&array->type->e->tuple->types))
-     ERR_O(array->exp->pos, _("tuple subscripts too big"))
-  const Type type = (Type)vector_at(&array->type->e->tuple->types, idx);
+  const Vector v = &array->type->e->tuple->types;
+  const Exp exp = array->exp;
+  if(exp->exp_type != ae_exp_primary ||
+     exp->d.exp_primary.primary_type != ae_primary_num)
+    ERR_O(exp->pos, _("tuple subscripts must be litteral"))
+  const m_uint idx = exp->d.exp_primary.d.num;
+  if(idx >= vector_size(v))
+    ERR_O(exp->pos, _("tuple subscripts too big"))
+  const Type type = (Type)vector_at(v, idx);
   if(type == t_undefined)
-     ERR_O(array->exp->pos, _("tuple subscripts is undefined at index %lu"),
-         idx)
-  if(!array->exp->next)
+    ERR_O(exp->pos, _("tuple subscripts is undefined at index %lu"), idx)
+  if(!exp->next)
     return type;
-  struct Array_Sub_ next = { array->exp->next, type, array->depth - 1 };
+  struct Array_Sub_ next = { exp->next, type, array->depth - 1 };
   return at_depth(env, &next);
 }
 
@@ -570,30 +568,30 @@ CHECK_BO(check_call(env, exp))
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
   const m_uint scope = env_push(env, v->owner_class, v->owner);
   if(is_fptr(v->type)) {
-  const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
-  const Value value = nspc_lookup_value1(v->owner, sym);
-  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
-  Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
-  fbase->xid = sym;
-  fbase->tmpl->base = 0;
-  fbase->tmpl->call = types;
-  if(template_push_types(env, fbase->tmpl) > 0) {
-    const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
-    if(value) {
-      fptr->type = actual_type(value->type);
-      fptr->value = value;
-    }
-    if(traverse_fptr_def(env, fptr) > 0 &&
-       (base->base->ret_type = known_type(env, base->base->td)) &&
-       (!exp->args || !!check_exp(env, exp->args))) {
-      m_func = find_func_match(env, fbase->func, exp->args);
-      nspc_pop_type(env->gwion->mp, env->curr);
-      if(!value && m_func) {
-        map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+    const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
+    const Value value = nspc_lookup_value1(v->owner, sym);
+    Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
+    Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
+    fbase->xid = sym;
+    fbase->tmpl->base = 0;
+    fbase->tmpl->call = types;
+    if(template_push_types(env, fbase->tmpl) > 0) {
+      const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
+      if(value) {
+        fptr->type = actual_type(value->type);
+        fptr->value = value;
       }
-    } else if(!nspc_lookup_value1(v->owner, sym))
+      if(traverse_fptr_def(env, fptr) > 0 &&
+         (base->base->ret_type = known_type(env, base->base->td)) &&
+         (!exp->args || !!check_exp(env, exp->args))) {
+        m_func = find_func_match(env, fbase->func, exp->args);
+        nspc_pop_type(env->gwion->mp, env->curr);
+        if(!value && m_func) {
+          map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+        }
+      }
       free_fptr_def(env->gwion->mp, fptr); // ???? related
-  }
+    }
   } else {
     for(m_uint i = 0; i < v->offset + 1; ++i) {
       const Value exists = template_get_ready(env, v, tmpl_name, i);
@@ -627,21 +625,20 @@ CHECK_BO(check_call(env, exp))
 }
 
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
-  Type t = value->owner_class;
   const Func f = _find_template_match(env, value, exp);
   if(f)
     return f;
+  Type t = value->owner_class;
   while(t) {
-   Value v = nspc_lookup_value1(t->nspc, value->d.func_ref->def->base->xid);
-   if(!v)
-     goto next;
-   const Func f = _find_template_match(env, v, exp);
-   if(f)
-     return f;
+    const Value v = nspc_lookup_value0(t->nspc, value->d.func_ref->def->base->xid);
+    if(!v)
+      goto next;
+     const Func f = _find_template_match(env, v, exp);
+     if(f)
+       return f;
    next:
      t = t->e->parent;
   }
-  assert(exp_self(exp));
   ERR_O(exp_self(exp)->pos, _("arguments do not match for template call"))
 }
 
@@ -1240,7 +1237,7 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 static const _exp_func stmt_func[] = {
   (_exp_func)check_stmt_exp,      (_exp_func)check_stmt_flow,   (_exp_func)check_stmt_flow,
   (_exp_func)check_stmt_for,      (_exp_func)check_stmt_auto,   (_exp_func)check_stmt_loop,
-  (_exp_func)check_stmt_if,       (_exp_func)check_stmt_code,   (_exp_func)check_stmt_break, 
+  (_exp_func)check_stmt_if,       (_exp_func)check_stmt_code,   (_exp_func)check_stmt_break,
   (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return, (_exp_func)check_stmt_match,
   (_exp_func)check_stmt_jump,
 };
@@ -1273,7 +1270,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def fde
     const restrict Func func) {
   Func parent_func = func;
   do {
-    if(compat_func(fdef, parent_func->def) > 0) {
+    if(parent_func->def->base && compat_func(fdef, parent_func->def) > 0) {
       CHECK_BB(check_signature_match(env, fdef, parent_func))
       if(!fdef->base->tmpl) {
         fdef->base->func->vt_index = parent_func->vt_index;
