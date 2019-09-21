@@ -2,7 +2,6 @@ class Toggle {
   int state;
   fun int value() { return state; }
   fun Toggle activate() {
-//<<<"supr">>>;
     !state => state;
     return this;
   }
@@ -21,29 +20,26 @@ class NthToggle extends Toggle {
 
 100000 => int n;
 
-1 => n;
-
-
 Toggle toggle;
 true => int val => toggle.state;
 
-//repeat(n) {
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//  toggle.activate().value() => val;
-//}
+repeat(n) {
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+  toggle.activate().value() => val;
+}
 
-<<<toggle.value()>>>;
+<<< toggle.value() >>>;
 
 NthToggle ntoggle;
-<<<true => val => ntoggle.state>>>;
+true => val => ntoggle.state;
 3 => ntoggle.countMax;
 
 repeat(n) {
@@ -59,14 +55,4 @@ repeat(n) {
   ntoggle.activate().value() => val;
 }
 
-<<<ntoggle.value()>>>;
-
-//
-//Toggle @t;
-//ntoggle @=> t;
-//<<<t.activate().value()>>>;
-//<<<t.activate().value()>>>;
-//toggle @=> t;
-//<<<t.activate().value()>>>;
-//<<<t.activate().value()>>>;
-<<<true>>>;
+<<< ntoggle.value() >>>;
