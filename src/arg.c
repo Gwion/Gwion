@@ -1,7 +1,13 @@
 #include <string.h>
 #include "gwion_util.h"
-#include "arg.h"
+#include "gwion_ast.h"
 #include "soundinfo.h"
+#include "oo.h"
+#include "vm.h"
+#include "gwion.h"
+#include "arg.h"
+#include "pass.h"
+
 #define GWIONRC ".gwionrc"
 
 /* use before MemPool allocation */
@@ -30,7 +36,6 @@ ANN static void arg_init(Arg* arg) {
   vector_init(&arg->lib);
   vector_init(&arg->mod);
   vector_init(&arg->config);
-//  vector_add(&arg->lib, (vtype)GWPLUG_DIR);
   vector_add(&arg->lib, (vtype)plug_dir());
 }
 
@@ -53,22 +58,34 @@ static const char usage[] =
 "  -i    <number>  : set input channel number\n"
 "  -o    <number>  : set output channel number\n"
 "  -d    <number>  : set driver (and arguments)\n"
+"  -l    <number>  : set loop mode\n"
 "  -z    <number>  : set memoization limit\n"
-"  -m   <mod:args> : load module (and arguments)\n";
+"  -m   <mod:args> : load module (and arguments)\n"
+"  -g   <mod:args> : set Gwion compiler passes order\n";
 
-ANN static void config_parse(Arg* arg, const m_str name);
+ANN static void config_parse(const Gwion, Arg*, const m_str);
 
 #define CASE(a,b) case a: (b) ; break;
 #define get_arg(a) (a[i][2] == '\0' ? arg->argv[++i] : a[i] + 2)
 #define ARG2INT(a) strtol(get_arg(a), NULL, 10)
 
-ANN void _arg_parse(Arg* arg) {
+ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
+  if(!str)
+    gw_err(_("needs arguments"));
+  const Vector v = split_args(gwion->mp, str);
+  pass_set(gwion, v);
+  for(m_uint i = 0; i < vector_size(v); ++i)
+    free_mstr(gwion->mp, (m_str)vector_at(v, i));
+  free_vector(gwion->mp, v);
+}
+
+ANN void _arg_parse(const Gwion gwion, Arg* arg) {
   for(int i = 1; i < arg->argc; ++i) {
     if(arg->argv[i][0] == '-') {
       switch(arg->argv[i][1]) {
         CASE('h', gw_err(usage))
         CASE('k', gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS))
-        CASE('c', config_parse(arg, get_arg(arg->argv)))
+        CASE('c', config_parse(gwion, arg, get_arg(arg->argv)))
         CASE('p', vector_add(&arg->lib, (vtype)get_arg(arg->argv)))
         CASE('m', vector_add(&arg->mod, (vtype)get_arg(arg->argv)))
         CASE('l', arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1)
@@ -77,6 +94,7 @@ ANN void _arg_parse(Arg* arg) {
         CASE('o', arg->si->out = (uint8_t)ARG2INT(arg->argv))
         CASE('s', arg->si->sr = (uint32_t)ARG2INT(arg->argv))
         CASE('d', arg->si->arg = get_arg(arg->argv))
+        CASE('g', arg_set_pass(gwion, get_arg(arg->argv)))
       }
     } else
       vector_add(&arg->add, (vtype)arg->argv[i]);
@@ -113,29 +131,29 @@ ANN static Vector get_config(const m_str name) {
   return v;
 }
 
-ANN static void config_parse(Arg* arg, const m_str name) {
+ANN static void config_parse(const Gwion gwion, Arg* arg, const m_str name) {
   const Vector v = get_config(name);
   if(v) {
     int argc = arg->argc;
     char** argv = arg->argv;
     arg->argc = vector_size(v);
     arg->argv =  (m_str*)(v->ptr + OFFSET);
-    _arg_parse(arg);
+    _arg_parse(gwion, arg);
     arg->argc = argc;
     arg->argv = argv;
     vector_add(&arg->config, (vtype)v);
   }
 }
 
-ANN static void config_default(Arg* arg) {
+ANN static void config_default(const Gwion gwion , Arg* arg) {
   char* home = getenv("HOME");
   char c[strlen(home) + strlen(GWIONRC) + 2];
   sprintf(c, "%s/%s", home, GWIONRC);
-  config_parse(arg, c);
+  config_parse(gwion, arg, c);
 }
 
-ANN void arg_parse(Arg* a) {
+ANN void arg_parse(const Gwion gwion, Arg* a) {
   arg_init(a);
-  config_default(a);
-  _arg_parse(a);
+  config_default(gwion, a);
+  _arg_parse(gwion, a);
 }

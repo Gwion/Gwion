@@ -84,19 +84,16 @@ static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
   struct ScannerArg_ arg = { c->name, c->file, gwion->st };
   CHECK_OB((c->ast = parse(&arg)))
   gwion->env->name = c->name;
-  return type_engine_check_prog(gwion->env, c->ast);
+  for(m_uint i = 0; i < vector_size(&gwion->data->pass); ++i) {
+    const compilation_pass pass = (compilation_pass)vector_at(&gwion->data->pass, i);
+    CHECK_BB(pass(gwion->env, c->ast))
+  }
+  return GW_OK;
 }
-/*
-static m_bool check(struct Gwion_* gwion, struct Compiler* c) {
-  MUTEX_LOCK(gwion->data->mutex);
-  const m_bool ret = _check(gwion, c);
-  MUTEX_UNLOCK(gwion->data->mutex);
-  return ret;
-}
-*/
+
 static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
   CHECK_BB(compiler_open(gwion->mp, c))
-  if(_check(gwion, c) < 0 || emit_ast(gwion->env, c->ast) < 0) {
+  if(_check(gwion, c) < 0) {
     gw_err(_("while compiling file '%s'\n"), c->base);
     return 0;
   }
@@ -116,26 +113,6 @@ static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   return ret;
 }
 
-/*
-m_bool check_filename(struct Gwion_* vm, const m_str filename) {
-  struct Compiler c = { .base=filename, .type=COMPILE_NAME };
-  CHECK_BB(compiler_open(gwion->mp, c))
-  return check(&c, vm);
-}
-
-m_bool check_string(struct Gwion_* vm, const m_str filename, const m_str data) {
-  struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .data=data };
-  CHECK_BB(compiler_open(gwion->mp, c))
-  return check(&c, vm);
-}
-
-m_bool check_file(struct Gwion_* vm, const m_str filename, FILE* file) {
-  struct Compiler c = { .base=filename, .type=COMPILE_FILE, .file = file};
-  CHECK_BB(compiler_open(gwion->mp, c))
-  return check(&c, vm);
-}
-*/
-//m_uint compile_filename(struct Gwion_* vm, const m_str filename) {
 m_uint compile_filename(struct Gwion_* gwion, const m_str filename) {
   struct Compiler c = { .base=filename, .type=COMPILE_NAME };
   return compile(gwion, &c);

@@ -14,5 +14,5 @@ typedef struct Arg_ {
 } Arg;
 
 ANN void arg_release(Arg*);
-ANN void arg_parse(Arg*);
+ANN void arg_parse(const Gwion, Arg*);
 #endif

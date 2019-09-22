@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #15
+# [test] #16
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -67,6 +67,10 @@ run "$n" "module argument" "-mfake:test" "file"
 # get Kompile time Konfig
 n=$((n+1))
 run "$n" "Kompile time Konfig" "-k" "file"
+
+# set compilation passes
+n=$((n+1))
+run "$n" "just check" "-g check" "file"
 
 # test signal
 ./gwion -l1 &

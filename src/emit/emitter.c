@@ -11,6 +11,13 @@
 #include "emit.h"
 #include "escape.h"
 
+static ANEW ANN VM_Code emit_code(const Emitter emit) {
+  Code* const c = emit->code;
+  const VM_Code code = new_vm_code(emit->gwion->mp, &c->instr, c->stack_depth,
+      c->flag, c->name);
+  return code;
+}
+
 ANEW Emitter new_emitter(MemPool p) {
   Emitter emit = (Emitter)mp_calloc(p, Emitter);
   vector_init(&emit->stack);
@@ -18,6 +25,7 @@ ANEW Emitter new_emitter(MemPool p) {
   vector_init(&emit->info->pure);
   vector_init(&emit->info->variadic);
   emit->info->escape = escape_table(p);
+  emit->info->emit_code = emit_code;
   emit->info->finalyzer = EOC;
   return emit;
 }

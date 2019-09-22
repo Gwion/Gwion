@@ -12,10 +12,11 @@
 #include "emit.h"
 #include "engine.h"
 #include "driver.h"
-#include "arg.h"
 #include "gwion.h"
+#include "arg.h"
 #include "compile.h"
 #include "object.h" // fork_clean
+#include "pass.h" // fork_clean
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
@@ -69,11 +70,16 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
+  gwion->data = new_gwiondata(gwion->mp);
+  pass_default(gwion);
   arg->si = gwion->vm->bbq->si;
-  arg_parse(arg);
+  arg_parse(gwion, arg);
   gwion->emit->info->memoize = arg->memoize;
   gwion->plug = new_plug(gwion->mp, &arg->lib);
-  gwion->data = new_gwiondata(gwion->mp);
+//  map_set(&gwion->data->pass_map, (vtype)"check", (vtype)type_engine_check_prog);
+//  map_set(&gwion->data->pass_map, (vtype)"emit", (vtype)emit_ast);
+//  vector_add(&gwion->data->pass, (vtype)type_engine_check_prog);
+//  vector_add(&gwion->data->pass, (vtype)emit_ast);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
     gwion_compile(gwion, &arg->add);

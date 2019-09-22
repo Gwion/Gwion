@@ -362,17 +362,10 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
   return GW_OK;
 }
 
-ANEW ANN VM_Code emit_code(const Emitter emit) {
-  Code* c = emit->code;
-  const VM_Code code = new_vm_code(emit->gwion->mp, &c->instr, c->stack_depth,
-      c->flag, c->name);
-  free_code(emit->gwion->mp, c);
-  return code;
-}
-
 ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
   emit_add_instr(emit, exec);
-  const VM_Code code = emit_code(emit);
+  const VM_Code code = emit->info->emit_code(emit);
+  free_code(emit->gwion->mp, emit->code);
   emit->code = (Code*)vector_pop(&emit->stack);
   return code;
 }
