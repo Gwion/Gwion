@@ -125,7 +125,7 @@ ANN static void emit_pop_scope(const Emitter emit) {
     Instr instr = emit_add_instr(emit, ObjectRelease);
     instr->m_val = (m_uint)offset;
   }
-  vector_pop(&emit->pure);
+  vector_pop(&emit->info->pure);
 }
 
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
@@ -133,13 +133,9 @@ ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
   emit->code = new_code(emit, name);
 }
 
-ANN static inline void emit_pop_code(const Emitter emit)   {
-  emit->code = (Code*)vector_pop(&emit->stack);
-}
-
 ANN static inline void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
-  vector_add(&emit->pure, 0);
+  vector_add(&emit->info->pure, 0);
 }
 
 ANN static inline m_uint emit_code_size(const Emitter emit) {
@@ -235,7 +231,7 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
 }
 
 ANN static inline void emit_notpure(const Emitter emit) {
-  ++VPTR(&emit->pure, VLEN(&emit->pure) - 1);
+  ++VPTR(&emit->info->pure, VLEN(&emit->info->pure) - 1);
 }
 
 ANN static Array_Sub instantiate_typedef(MemPool p, const m_uint depth) {
@@ -374,10 +370,10 @@ ANEW ANN VM_Code emit_code(const Emitter emit) {
   return code;
 }
 
-ANN static VM_Code finalyze(const Emitter emit) {
-  emit_add_instr(emit, EOC);
+ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
+  emit_add_instr(emit, exec);
   const VM_Code code = emit_code(emit);
-  emit_pop_code(emit);
+  emit->code = (Code*)vector_pop(&emit->stack);
   return code;
 }
 
@@ -945,7 +941,7 @@ ANN static void emit_args(const Emitter emit, const Func f) {
 }
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
-  const Instr memoize = !(emit->memoize && GET_FLAG(f, pure)) ? NULL : emit_add_instr(emit, MemoizeCall);
+  const Instr memoize = !(emit->info->memoize && GET_FLAG(f, pure)) ? NULL : emit_add_instr(emit, MemoizeCall);
   const Instr prelude = get_prelude(emit, f);
   prelude->m_val = f->def->stack_depth;
   const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
@@ -1026,7 +1022,7 @@ static inline void stack_alloc_this(const Emitter emit) {
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope->depth;
   emit_push_scope(emit);
-  const m_bool pure = !vector_back(&emit->pure);
+  const m_bool pure = !vector_back(&emit->info->pure);
   if(!pure)
     emit_add_instr(emit, GcIni);
   CHECK_BB(emit_stmt(emit, stmt, pop))
@@ -1068,7 +1064,7 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     push_spork_code(emit, is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, unary->exp->pos);
     CHECK_BO(spork_func(emit, &unary->exp->d.exp_call))
   }
-  const VM_Code code = finalyze(emit);
+  const VM_Code code = finalyze(emit, EOC);
   const Instr ini = emit_add_instr(emit, unary->op == insert_symbol("spork") ? SporkIni : ForkIni);
   ini->m_val = (m_uint)code;
   ini->m_val2 = is_spork;
@@ -1604,11 +1600,11 @@ ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) {
   const Instr instr = emit_add_instr(emit, VarargTop);
   instr->m_val = offset;
   instr->m_val2 = emit_code_size(emit);
-  vector_set(&emit->variadic, vector_size(&emit->variadic) -1, (vtype)instr);
+  vector_set(&emit->info->variadic, vector_size(&emit->info->variadic) -1, (vtype)instr);
   return GW_OK;
 }
 ANN static inline Instr get_variadic(const Emitter emit) {
-  return (Instr)vector_back(&emit->variadic);
+  return (Instr)vector_back(&emit->info->variadic);
 }
 
 ANN static void emit_vararg_end(const Emitter emit, const m_uint offset) {
@@ -1745,19 +1741,12 @@ ANN static void emit_func_def_return(const Emitter emit) {
   }
   vector_clear(&emit->code->stack_return);
   emit_pop_scope(emit);
-  if(emit->memoize && GET_FLAG(emit->env->func, pure))
+  if(emit->info->memoize && GET_FLAG(emit->env->func, pure))
     emit_add_instr(emit, MemoizeStore);
-  emit_add_instr(emit, FuncReturn);
 }
 
 ANN static void emit_func_def_code(const Emitter emit, const Func func) {
-  if(GET_FLAG(func->def, dtor)) {
-    Instr instr = (Instr)vector_back(&emit->code->instr);
-    instr->opcode = eOP_MAX;
-    instr->execute = DTOR_EOC;
-    instr->m_val = (m_uint)emit->gwion->mp;
-  }
-  func->code = emit_code(emit);
+  func->code = finalyze(emit, !GET_FLAG(func->def, dtor) ? FuncReturn : DTOR_EOC);
   if(GET_FLAG(func->def, dtor)) {
     emit->env->class_def->nspc->dtor = func->code;
     ADD_REF(func->code)
@@ -1776,7 +1765,7 @@ ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
-  vector_add(&emit->variadic, 0);
+  vector_add(&emit->info->variadic, 0);
   CHECK_BB(_fdef_body(emit, fdef))
   if(GET_FLAG(fdef, variadic)) {
     if(!get_variadic(emit))
@@ -1819,11 +1808,10 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   emit_func_def_code(emit, func);
   if(fdef->base->tmpl)
     emit_pop_type(emit);
-  emit_pop_code(emit);
   emit->env->func = former;
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
-  if(emit->memoize && GET_FLAG(func, pure))
+  if(emit->info->memoize && GET_FLAG(func, pure))
     func->code->memoize = memoize_ini(emit, func,
       kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
   return GW_OK;
@@ -1841,12 +1829,6 @@ ANN Code* emit_class_code(const Emitter emit, const m_str name) {
   return emit->code;
 }
 
-ANN inline void emit_class_finish(const Emitter emit, const Nspc nspc) {
-  emit_add_instr(emit, FuncReturn);
-  nspc->pre_ctor = emit_code(emit);
-  SET_FLAG(nspc->pre_ctor, ctor);
-}
-
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type base = parent->e->d.base_type;
@@ -1858,6 +1840,11 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
 ANN static inline m_bool emit_cdef(const Emitter emit, const Class_Def cdef) {
   return scanx_cdef(emit->env, emit, cdef,
       (_exp_func)emit_class_def, (_exp_func)emit_union_def);
+}
+
+ANN void emit_class_finish(const Emitter emit, const Nspc nspc) {
+  nspc->pre_ctor = finalyze(emit, FuncReturn);
+  SET_FLAG(nspc->pre_ctor, ctor);
 }
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
@@ -1874,13 +1861,12 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_BB(emit_array_extend(emit, type->e->parent, cdef->base.ext->array->exp))
   if(cdef->body)
     CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
-  emit_class_finish(emit, nspc);
-  emit_pop_code(emit);
+  emit_class_finish(emit, type->nspc);
   SET_FLAG(type, emit);
   return GW_OK;
 }
 
-ANN static void emit_free_code(const Emitter emit, Code* code) {
+ANN static inline void emit_free_code(const Emitter emit, Code* code) {
   if(vector_size(&code->instr))
     free_code_instr(&code->instr, emit->gwion);
   free_code(emit->gwion->mp, code);
@@ -1891,7 +1877,7 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
   for(m_uint i = vector_size(&emit->stack) + 1; --i;)
     emit_free_code(emit, (Code*)vector_at(&emit->stack, i - 1));
   vector_clear(&emit->stack);
-  vector_clear(&emit->pure);
+  vector_clear(&emit->info->pure);
   emit_free_code(emit, emit->code);
   return NULL;
 }
@@ -1902,10 +1888,15 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
   return GW_OK;
 }
 
-ANN VM_Code emit_ast(const Emitter emit, Ast ast) {
+ANN m_bool emit_ast(const Env env, Ast ast) {
+  const Emitter emit = env->gwion->emit;
   emit->code = new_code(emit, emit->env->name);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);
   emit_pop_scope(emit);
-  return ret > 0 ? finalyze(emit) : emit_free_stack(emit);
+  if(ret > 0)
+    emit->info->code = finalyze(emit, emit->info->finalyzer);
+  else
+    emit_free_stack(emit);
+  return ret;
 }

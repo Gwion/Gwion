@@ -53,6 +53,12 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   return def;
 }
 
+ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt, const Nspc nspc) {
+  DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc))
+  CHECK_BO(traverse_dot_tmpl(emit, dt))
+  return def;
+}
+
 INSTR(GTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const Func f = *(Func*)REG(-SZ_INT);
@@ -73,13 +79,10 @@ INSTR(GTmpl) {
   }
   free_mstr(emit->gwion->mp, tmpl_name);
   dt->def = f->def;
-  const Func_Def def = from_base(emit->env, dt, f->value_ref->owner);
+  const Func_Def def = traverse_tmpl(emit, dt, f->value_ref->owner);
   if(!def)
     Except(shred, "MissigTmplPtrException[internal]");
-  if(traverse_dot_tmpl(emit, dt) > 0)
-    *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
-  else
-    Except(shred, "TemplateException");
+  *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
 }
 
 INSTR(DotTmpl) {
@@ -101,14 +104,12 @@ INSTR(DotTmpl) {
       shred->reg += SZ_INT;
       return;
     } else {
-      const Func_Def def = from_base(emit->env, dt, t->nspc);
+      const Func_Def def = traverse_tmpl(emit, dt, t->nspc);
       if(!def)
         continue;
-      if(traverse_dot_tmpl(emit, dt) > 0) {
-        *(VM_Code*)shred->reg = def->base->func->code;
-        shred->reg += SZ_INT;
-        return;
-      } else break;
+      *(VM_Code*)shred->reg = def->base->func->code;
+      shred->reg += SZ_INT;
+      return;
     }
   } while((t = t->e->parent));
   Except(shred, "MissigTmplException[internal]"); //unreachable
