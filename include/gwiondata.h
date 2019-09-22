@@ -1,7 +1,5 @@
 #ifndef __GWIONDATA
 #define __GWIONDATA
-typedef struct Env_* Env;
-typedef m_bool (*compilation_pass)(Env, Ast);
 typedef struct GwionData_ {
   struct Map_ freearg;
   MUTEX_TYPE mutex;

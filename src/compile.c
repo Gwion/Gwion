@@ -11,6 +11,7 @@
 #include "emit.h"
 #include "compile.h"
 #include "gwion.h"
+#include "pass.h"
 
 enum compile_type {
   COMPILE_NAME,

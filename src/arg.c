@@ -3,6 +3,7 @@
 #include "gwion_ast.h"
 #include "soundinfo.h"
 #include "oo.h"
+#include "env.h"
 #include "vm.h"
 #include "gwion.h"
 #include "arg.h"
