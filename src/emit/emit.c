@@ -796,13 +796,18 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e, const m_bo
   return GW_OK;
 }
 
+ANN static inline m_bool op_emit_bool(const Emitter emit, const struct Op_Import* opi) {
+  DECL_OB(const Instr, instr, = op_emit(emit, opi))
+  return GW_OK;
+}
+
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type, .pos=exp_self(bin)->pos, .data = (uintptr_t)bin };
   CHECK_BB(emit_exp_pop_next(emit, lhs, 1))
   CHECK_BB(emit_exp_pop_next(emit, rhs, 1))
-  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
+  return op_emit_bool(emit, &opi);
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
@@ -815,7 +820,7 @@ ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
 ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=post->exp->type, .data=(uintptr_t)post };
   CHECK_BB(emit_exp(emit, post->exp, 1))
-  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
+  return op_emit_bool(emit, &opi);
 }
 
 ANN static m_bool is_special(const Type t) {
@@ -1083,21 +1088,23 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp, 1))
     opi.rhs = unary->exp->type;
   }
-  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
+  return op_emit_bool(emit, &opi);
 }
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
   const struct Implicit imp = { from, to, from->pos };
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
-  return op_emit(emit, &opi) ? GW_OK : GW_ERROR;
+  return op_emit_bool(emit, &opi);
 }
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e, 1))
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
                            .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e};
-  return op_emit(emit, &opi);
+  const Instr instr = op_emit(emit, &opi);
+  assert(instr != (Instr)GW_OK);
+  return instr;
 }
 #define emit_flow(emit,b) _flow(emit, b, 1)
 
@@ -1419,7 +1426,7 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base, const Exp e
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=emit->env->curr};
   struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
-  CHECK_OB(op_emit(emit, &opi))
+  CHECK_BB(op_emit_bool(emit, &opi))
   regpop(emit, base->type->size);
   return GW_OK;
 }
