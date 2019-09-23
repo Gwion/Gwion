@@ -1,5 +1,6 @@
 #!/bin/bash
-# [test] #16
+# [test] #17
+
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
@@ -71,6 +72,10 @@ run "$n" "Kompile time Konfig" "-k" "file"
 # set compilation passes
 n=$((n+1))
 run "$n" "just check" "-g check" "file"
+
+# set compilation passes
+n=$((n+1))
+run "$n" "just check" "-g nopass" "file"
 
 # test signal
 ./gwion -l1 &
