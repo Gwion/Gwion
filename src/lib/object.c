@@ -163,7 +163,7 @@ static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
     ADD_REF(ret->nspc)
   ret->name = s_name(sym);
   ret->flag = t->flag | ae_flag_force;
-  map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)ret);
+  nspc_add_type_front(t->e->owner, sym, ret);
   return ret;
  }
 

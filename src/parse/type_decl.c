@@ -29,7 +29,7 @@ ANN Type type_nonnull(const Env env, const Type base) {
   t->name = s_name(sym);
   t->flag = base->flag;
   SET_FLAG(t, nonnull);
-  map_set(&t->e->owner->info->type->map, (vtype)sym, (vtype)t);
+  nspc_add_type_front(t->e->owner, sym, t);
   return t;
 }
 

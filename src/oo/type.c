@@ -124,7 +124,7 @@ ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   ADD_REF(t->nspc);
   SET_FLAG(t, checked);
   t->e->owner = base->e->owner;
-  map_set(&base->e->owner->info->type->map, (vtype)sym, (vtype)t);
+  nspc_add_type_front(base->e->owner, sym, t);
   return t;
 }
 

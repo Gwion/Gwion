@@ -244,7 +244,7 @@ ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   if(v)
     return v;
   const Value value = new_value(env->gwion->mp, t_string, s_name(sym));
-  map_set(&env->global_nspc->info->value->map, (vtype)sym, (vtype)value);
+  nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }
 
@@ -573,7 +573,7 @@ CHECK_BO(check_call(env, exp))
         m_func = find_func_match(env, fbase->func, exp->args);
         nspc_pop_type(env->gwion->mp, env->curr);
         if(!value && m_func)
-          map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+          nspc_add_type_front(v->owner, sym, actual_type(m_func->value_ref->type));
       }
       free_fptr_def(env->gwion->mp, fptr); // ???? related
     }

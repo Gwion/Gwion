@@ -15,7 +15,7 @@
 #include "parser.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
-  map_set(&nspc->info->type->map, (m_uint)insert_symbol(t->name), (m_uint)t);
+  nspc_add_type_front(nspc, insert_symbol(t->name), t);
 }
 
 ANN static Value mk_class(const Env env, const Type base) {
@@ -25,7 +25,7 @@ ANN static Value mk_class(const Env env, const Type base) {
   t->e->d.base_type = base;
   v->owner = base->e->owner;
   SET_FLAG(v, const | ae_flag_checked);
-  map_set(&base->e->owner->info->value->map, (vtype)sym, (vtype)v);
+  nspc_add_value_front(base->e->owner, sym, v);
   return v;
 }
 
