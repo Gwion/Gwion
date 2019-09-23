@@ -14,7 +14,14 @@
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
+#include "traverse.h"
+#include "parse.h"
+#include "func.h"
+#include "specialid.h"
 
+#include "gwi.h"
+
+#undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
   gw_err("%s: shred[id=%" UINT_F ":%s], PC=[%" UINT_F "]\n",
           c, shred->tick->xid, shred->info->name, shred->pc - 1);
@@ -206,6 +213,14 @@ static OP_EMIT(opem_implicit_null2obj) {
   return (Instr)GW_OK;
 }
 
+static ID_CHECK(check_this) {
+  if(!env->class_def)
+    ERR_O(exp_self(prim)->pos, _("keyword 'this' can be used only inside class definition..."))
+  if(env->func && !GET_FLAG(env->func, member))
+    ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
+  return env->class_def;
+}
+
 GWION_IMPORT(object) {
   t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
   GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
@@ -244,5 +259,7 @@ GWION_IMPORT(object) {
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
   gwi_reserve(gwi, "this");
+  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+  gwi_specialid(gwi, "this", &spid);
   return GW_OK;
 }

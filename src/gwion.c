@@ -17,6 +17,7 @@
 #include "compile.h"
 #include "object.h" // fork_clean
 #include "pass.h" // fork_clean
+#include "specialid.h" // fork_clean
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
@@ -128,4 +129,13 @@ ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...)
   loc_err(pos, env->name);
   if(env->context)
     env->context->error = 1;
+}
+
+ANN struct SpecialId_* specialid_get(const Gwion gwion, const Symbol sym) {
+  const Map map = &gwion->data->id;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    if(sym == (Symbol)VKEY(map, i))
+      return (struct SpecialId_*)VVAL(map, i);
+  }
+  return NULL;
 }

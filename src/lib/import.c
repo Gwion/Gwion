@@ -19,6 +19,7 @@
 #include "import.h"
 #include "gwi.h"
 #include "mpool.h"
+#include "specialid.h"
 
 #define GWI_ERR_B(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return GW_ERROR; }
 #define GWI_ERR_O(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return NULL; }
@@ -678,4 +679,13 @@ ANN void register_freearg(const Gwi gwi, const f_instr _exec, const f_freearg _f
 
 ANN void gwi_reserve(const Gwi gwi, const m_str str) {
   vector_add(&gwi->gwion->data->reserved, (vtype)insert_symbol(gwi->gwion->st, str));
+}
+
+ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
+  struct SpecialId_ *a = mp_calloc(gwi->gwion->mp, SpecialId);
+  a->type = spid->type;
+  a->ck = spid->ck;
+  a->exec = spid->exec;
+  a->em = spid->em;
+  map_set(&gwi->gwion->data->id, (vtype)insert_symbol(gwi->gwion->st, id), (vtype)a);
 }

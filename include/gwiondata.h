@@ -2,6 +2,7 @@
 #define __GWIONDATA
 typedef struct GwionData_ {
   struct Map_ freearg;
+  struct Map_ id;
   MUTEX_TYPE mutex;
   struct Vector_ child;
   struct Vector_ reserved;

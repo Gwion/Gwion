@@ -24,6 +24,7 @@
 #include "match.h"
 #include "parser.h"
 #include "tuple.h"
+#include "specialid.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -512,14 +513,9 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) {
 }
 
 ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
-  if(prim->d.var == insert_symbol("this"))
-    emit_add_instr(emit, RegPushMem);
-  else if(prim->d.var == insert_symbol("me"))
-    emit_add_instr(emit, RegPushMe);
-  else if(prim->d.var == insert_symbol("now"))
-    emit_add_instr(emit, RegPushNow);
-  else if(prim->d.var == insert_symbol("maybe"))
-    emit_add_instr(emit, RegPushMaybe);
+  struct SpecialId_ * spid = specialid_get(emit->gwion, prim->d.var);
+  if(spid)
+    return specialid_instr(emit, spid, prim) ? GW_OK : GW_ERROR;
   else
     emit_symbol(emit, prim);
   return GW_OK;

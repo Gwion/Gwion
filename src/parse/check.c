@@ -20,6 +20,7 @@
 #include "match.h"
 #include "cpy_ast.h"
 #include "tuple.h"
+#include "specialid.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
@@ -237,16 +238,6 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   return v->type;
 }
 
-ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
-  if(!env->class_def)
-    ERR_O(exp_self(primary)->pos, _("keyword 'this' can be used only inside class definition..."))
-  if(env->func && !GET_FLAG(env->func, member))
-    ERR_O(exp_self(primary)->pos, _("keyword 'this' cannot be used inside static functions..."))
-  exp_self(primary)->meta = ae_meta_value;
-  return env->class_def;
-}
-
-
 ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   const Value v = nspc_lookup_value0(env->global_nspc, sym);
   if(v)
@@ -256,7 +247,7 @@ ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   return value;
 }
 
-ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
+ANN Type prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
     char c[strlen(str) + 8];
@@ -267,10 +258,11 @@ ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
 }
 
 ANN static Type prim_id(const Env env, Exp_Primary* primary) {
+  struct SpecialId_ * spid = specialid_get(env->gwion, primary->d.var);
+  if(spid)
+    return specialid_type(env, spid, primary);
   const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "this"))
-    return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "__func__")) {
+  if(!strcmp(str, "__func__")) {
     primary->primary_type = ae_primary_str;
     primary->d.str = env->func ? env->func->name : env->class_def ?
       env->class_def->name : env->name;
