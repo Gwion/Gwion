@@ -74,18 +74,16 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->data = new_gwiondata(gwion->mp);
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si;
-  arg_parse(gwion, arg);
-  gwion->emit->info->memoize = arg->memoize;
-  gwion->plug = new_plug(gwion->mp, &arg->lib);
-//  map_set(&gwion->data->pass_map, (vtype)"check", (vtype)type_engine_check_prog);
-//  map_set(&gwion->data->pass_map, (vtype)"emit", (vtype)emit_ast);
-//  vector_add(&gwion->data->pass, (vtype)type_engine_check_prog);
-//  vector_add(&gwion->data->pass, (vtype)emit_ast);
-  shreduler_set_loop(gwion->vm->shreduler, arg->loop);
-  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-    gwion_compile(gwion, &arg->add);
-    plug_run(gwion, &arg->mod);
-    return GW_OK;
+  const m_bool ret = arg_parse(gwion, arg);
+  if(ret) {
+    gwion->emit->info->memoize = arg->memoize;
+    gwion->plug = new_plug(gwion->mp, &arg->lib);
+    shreduler_set_loop(gwion->vm->shreduler, arg->loop);
+    if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
+      gwion_compile(gwion, &arg->add);
+      plug_run(gwion, &arg->mod);
+      return GW_OK;
+    }
   }
   return GW_ERROR;
 }

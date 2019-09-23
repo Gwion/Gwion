@@ -98,11 +98,14 @@ static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
     gw_err(_("while compiling file '%s'\n"), c->base);
     return 0;
   }
-  const VM_Shred shred = new_vm_shred(gwion->mp, gwion->emit->info->code);
-  shred->info->args = c->args;
-  vm_add_shred(gwion->vm, shred);
-  gwion->emit->info->code = NULL;
-  return shred->tick->xid;
+  if(gwion->emit->info->code) {
+    const VM_Shred shred = new_vm_shred(gwion->mp, gwion->emit->info->code);
+    shred->info->args = c->args;
+    vm_add_shred(gwion->vm, shred);
+    gwion->emit->info->code = NULL;
+    return shred->tick->xid;
+  }
+  return GW_OK;
 }
 
 static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {

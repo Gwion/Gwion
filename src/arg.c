@@ -66,13 +66,9 @@ static const char usage[] =
 
 ANN static void config_parse(const Gwion, Arg*, const m_str);
 
-#define CASE(a,b) case a: (b) ; break;
-#define get_arg(a) (a[i][2] == '\0' ? arg->argv[++i] : a[i] + 2)
-#define ARG2INT(a) strtol(get_arg(a), NULL, 10)
+#define ARG2INT(a) strtol(a, NULL, 10)
 
 ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
-  if(!str)
-    gw_err(_("needs arguments"));
   const Vector v = split_args(gwion->mp, str);
   pass_set(gwion, v);
   for(m_uint i = 0; i < vector_size(v); ++i)
@@ -80,26 +76,72 @@ ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
   free_vector(gwion->mp, v);
 }
 
-ANN void _arg_parse(const Gwion gwion, Arg* arg) {
+ANN static inline m_str _get_arg(Arg* arg, int *i) {
+  const char key = arg->argv[*i][1];
+  const m_str str = (arg->argv[*i][2] == '\0' ? arg->argv[++(*i)] : arg->argv[*i] + 2);
+  if(!str)
+    gw_err(_("option '-%c' needs arguments\n"), key);
+  return str;
+}
+ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
   for(int i = 1; i < arg->argc; ++i) {
     if(arg->argv[i][0] == '-') {
+      m_str tmp;
       switch(arg->argv[i][1]) {
-        CASE('h', gw_err(usage))
-        CASE('k', gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS))
-        CASE('c', config_parse(gwion, arg, get_arg(arg->argv)))
-        CASE('p', vector_add(&arg->lib, (vtype)get_arg(arg->argv)))
-        CASE('m', vector_add(&arg->mod, (vtype)get_arg(arg->argv)))
-        CASE('l', arg->loop = (m_bool)ARG2INT(arg->argv) > 0 ? 1 : -1)
-        CASE('z', arg->memoize = (uint32_t)ARG2INT(arg->argv))
-        CASE('i', arg->si->in  = (uint8_t)ARG2INT(arg->argv))
-        CASE('o', arg->si->out = (uint8_t)ARG2INT(arg->argv))
-        CASE('s', arg->si->sr = (uint32_t)ARG2INT(arg->argv))
-        CASE('d', arg->si->arg = get_arg(arg->argv))
-        CASE('g', arg_set_pass(gwion, get_arg(arg->argv)))
+        case 'h':
+          gw_err(usage);
+          break;
+        case 'k':
+          gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
+          break;
+        case 'c':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          config_parse(gwion, arg, tmp);
+          break;
+        case 'p':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          vector_add(&arg->lib, (vtype)tmp);
+          break;
+        case 'm':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          vector_add(&arg->mod, (vtype)tmp);
+          break;
+        case 'l':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->loop = (m_bool)ARG2INT(tmp) > 0 ? 1 : -1;
+          break;
+        case 'z':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->memoize = (uint32_t)ARG2INT(tmp);
+          break;
+        case 'i':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->si->in = (uint8_t)ARG2INT(tmp);
+          break;
+        case 'o':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->si->out = (uint8_t)ARG2INT(tmp);
+          break;
+        case 's':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->si->sr = (uint32_t)ARG2INT(tmp);
+          break;
+        case 'd':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg->si->arg = tmp;
+          break;
+        case 'g':
+          CHECK_OB((tmp = _get_arg(arg, &i)))
+          arg_set_pass(gwion, tmp);
+          break;
+        default:
+          gw_err(_("invalid arguments"));
+          return GW_ERROR;
       }
     } else
       vector_add(&arg->add, (vtype)arg->argv[i]);
   }
+  return GW_OK;
 }
 
 ANN static void split_line(const m_str line, const Vector v) {
@@ -153,8 +195,8 @@ ANN static void config_default(const Gwion gwion , Arg* arg) {
   config_parse(gwion, arg, c);
 }
 
-ANN void arg_parse(const Gwion gwion, Arg* a) {
+ANN m_bool arg_parse(const Gwion gwion, Arg* a) {
   arg_init(a);
   config_default(gwion, a);
-  _arg_parse(gwion, a);
+  return _arg_parse(gwion, a);
 }
