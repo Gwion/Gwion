@@ -6,6 +6,7 @@
 #include "vm.h"
 #include "instr.h"
 #include "gwion.h"
+#include "emit.h"
 #include "specialid.h"
 
 ANN GwionData* new_gwiondata(MemPool mp) {

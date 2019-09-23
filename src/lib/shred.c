@@ -12,6 +12,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "emit.h"
 #include "specialid.h"
 
 static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 

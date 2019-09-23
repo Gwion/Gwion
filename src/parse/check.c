@@ -20,6 +20,7 @@
 #include "match.h"
 #include "cpy_ast.h"
 #include "tuple.h"
+#include "emit.h"
 #include "specialid.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);

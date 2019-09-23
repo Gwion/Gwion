@@ -13,6 +13,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "emit.h"
 #include "specialid.h"
 #include "func.h"
 
@@ -173,10 +174,10 @@ static CTOR(string_ctor) {
 
 ANN Type prim_str(const Env, Exp_Primary *const);
 ID_CHECK(check_funcpp) {
-  prim->primary_type = ae_primary_str;
-  prim->d.str = env->func ? env->func->name : env->class_def ?
+  ((Exp_Primary*)prim)->primary_type = ae_primary_str;
+  ((Exp_Primary*)prim)->d.str = env->func ? env->func->name : env->class_def ?
     env->class_def->name : env->name;
-  return prim_str(env, prim);
+  return prim_str(env, (Exp_Primary * const)prim);
 }
 
 GWION_IMPORT(string) {
