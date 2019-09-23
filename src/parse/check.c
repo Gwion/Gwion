@@ -262,14 +262,7 @@ ANN static Type prim_id(const Env env, Exp_Primary* primary) {
   struct SpecialId_ * spid = specialid_get(env->gwion, primary->d.var);
   if(spid)
     return specialid_type(env, spid, primary);
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "__func__")) {
-    primary->primary_type = ae_primary_str;
-    primary->d.str = env->func ? env->func->name : env->class_def ?
-      env->class_def->name : env->name;
-    return prim_str(env, primary);
-  } else
-    return prim_id_non_res(env, primary);
+  return prim_id_non_res(env, primary);
 }
 
 ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {

@@ -516,9 +516,7 @@ ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
   struct SpecialId_ * spid = specialid_get(emit->gwion, prim->d.var);
   if(spid)
     return specialid_instr(emit, spid, prim) ? GW_OK : GW_ERROR;
-  else
-    emit_symbol(emit, prim);
-  return GW_OK;
+  return emit_symbol(emit, prim);
 }
 
 ANN static m_bool prim_tuple(const Emitter emit, const Exp_Primary * primary) {
