@@ -18,7 +18,7 @@ test_plugin() {
 	make
   if [ -f "$NAME.gw" ]
   then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
-  else  GWOPT+=-p. test_gw "/dev/null" "$n"
+  else  GWOPT+=-p. test_gw "no_file" "$n"
   fi
   make clean
  	N=$(printf "% 4i" "$n")
