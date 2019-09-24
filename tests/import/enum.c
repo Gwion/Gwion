@@ -37,7 +37,7 @@ GWION_IMPORT(enum_test) {
     CHECK_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
   CHECK_OB(gwi_enum_end(gwi))
 
-  Type t_myenum;
+  Type t_enum;
   CHECK_OB((t_myenum = gwi_mk_type(gwi, "Enum", 0, NULL)))
   CHECK_BB(gwi_class_ini(gwi, t_myenum, NULL, NULL))
     CHECK_BB(gwi_enum_ini(gwi, 0))
