@@ -301,7 +301,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "int"))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "bool"))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))

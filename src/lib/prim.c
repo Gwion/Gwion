@@ -62,7 +62,6 @@ static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   GWI_BB(gwi_oper_add(gwi,  opck_unary_meta))
   GWI_BB(gwi_oper_end(gwi,  "-",       int_negate))
-  GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
   CHECK_OP("++", unary, pre_inc)
   CHECK_OP("--", unary, pre_dec)
   GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
@@ -78,6 +77,8 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
   t_bool = gwi_enum_end(gwi);
+  GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
+  GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
 //  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
 //  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
