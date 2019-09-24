@@ -10,6 +10,8 @@
 #include "func.h"
 #include "object.h"
 #include "instr.h"
+#include "gwion.h"
+#include "gack.h"
 
 static void print_type(const Type type) {
   const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_fptr) < 0;
@@ -104,7 +106,7 @@ ANN static void print_prim(const Type type, const m_bit* stack) {
    print_float(*(m_float*)stack);
 }
 
-ANN void gack(const m_bit* reg, const Instr instr) {
+ANN void gack(const Gwion gwion, const m_bit* reg, const Instr instr) {
   m_uint offset = instr->m_val;
   const Vector v = (Vector)instr->m_val2;
   const m_uint size = vector_size(v);
@@ -120,7 +122,7 @@ ANN void gack(const m_bit* reg, const Instr instr) {
       print_type(type);
     else if(isa(type, t_class) > 0)
       print_type(type->e->d.base_type);
-    else if(isa(type, t_void) > 0)
+    else if(isa(type, gwion->type[et_void]) > 0)
       print_string1("void");
     else
       print_prim(type, (reg-offset));

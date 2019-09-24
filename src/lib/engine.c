@@ -44,7 +44,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_OB((t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL))) // size = SZ_INT to enable declarations
   GWI_BB(gwi_add_type(gwi, t_auto))
   SET_FLAG(t_class, abstract);
-  GWI_OB((t_void  = gwi_mk_type(gwi, "void", 0, NULL)))
+  const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
   GWI_OB((t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL)))
   GWI_BB(gwi_add_type(gwi, t_null))

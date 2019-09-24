@@ -340,7 +340,7 @@ ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUS
 }
 describe_prim_xxx(num, t_int)
 describe_prim_xxx(float, t_float)
-describe_prim_xxx(nil, t_void)
+describe_prim_xxx(nil, env->gwion->type[et_void])
 describe_prim_xxx(unpack, t_tuple)
 
 typedef Type (*_type_func)(const Env, const void*);
@@ -491,7 +491,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
 
 ANN2(1, 2) static Func find_func_match(const Env env, const Func up, const Exp exp) {
   Func func;
-  const Exp args = (exp && isa(exp->type, t_void) < 0) ? exp : NULL;
+  const Exp args = (exp && isa(exp->type, env->gwion->type[et_void]) < 0) ? exp : NULL;
   if((func = find_func_match_actual(env, up, args, 0, 1)) ||
      (func = find_func_match_actual(env, up, args, 1, 1)) ||
      (func = find_func_match_actual(env, up, args, 0, 0)) ||
@@ -769,7 +769,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   if(env->class_def)
     SET_FLAG(l->def, member);
   ((Exp_Call*)exp)->m_func = l->def->base->func;
-  return l->def->base->ret_type ?: (l->def->base->ret_type = t_void);
+  return l->def->base->ret_type ?: (l->def->base->ret_type = env->gwion->type[et_void]);
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
@@ -1074,7 +1074,7 @@ stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
     ERR_B(stmt_self(stmt)->pos, _("'return' statement found outside function definition"))
-  DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : t_void)
+  DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void])
   if(!env->func->def->base->ret_type) {
     assert(isa(env->func->value_ref->type, t_lambda) > 0);
     env->func->def->base->ret_type = ret_type;

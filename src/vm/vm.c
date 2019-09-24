@@ -821,7 +821,7 @@ gcend:
     _release(a.obj, shred);
   DISPATCH()
 gack:
-  gack(reg, (Instr)VAL);
+  gack(vm->gwion, reg, (Instr)VAL);
   DISPATCH()
 other:
 shred->code = code;
