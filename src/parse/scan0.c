@@ -10,9 +10,13 @@
 #include "vm.h"
 #include "traverse.h"
 #include "template.h"
+#include "parser.h"
 #include "parse.h"
 #include "cpy_ast.h"
-#include "parser.h"
+#include "object.h"
+#include "instr.h"
+#include "operator.h"
+#include "import.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
@@ -34,7 +38,6 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
     ERR_B(pos, _("type '%s' already defined"), s_name(s));
   return already_defined(env, s, pos);
 }
-
 
 ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
@@ -90,6 +93,16 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   return GW_OK;
 }
 
+static OP_CHECK(opck_implicit_similar) {
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  return bin->rhs->type;
+}
+
+ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
+  struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=lhs, .rhs=rhs, .ck=opck_implicit_similar };
+  add_op(env->gwion, &opi);
+}
+
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
   const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(tdef->xid), base);
   t->size = base->size;
@@ -101,6 +114,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   if(base->nspc)
     ADD_REF((t->nspc = base->nspc));
   t->flag = tdef->ext->flag | ae_flag_checked;
+  scan0_implicit_similar(env, t, base);
   if(tdef->ext->array && !tdef->ext->array->exp)
     SET_FLAG(t, empty);
 }
@@ -161,6 +175,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
     add_type(env, nspc, t);
     mk_class(env, t);
   }
+  scan0_implicit_similar(env, t_int, t);
   return GW_OK;
 }
 
