@@ -1014,12 +1014,13 @@ static inline void stack_alloc_this(const Emitter emit) {
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope->depth;
   emit_push_scope(emit);
-  const m_bool pure = !vector_back(&emit->info->pure);
-  if(!pure)
-    emit_add_instr(emit, GcIni);
+  const Instr gc = emit_add_instr(emit, NoOp);
   CHECK_BB(emit_stmt(emit, stmt, pop))
-  if(!pure)
+  const m_bool pure = !vector_back(&emit->info->pure);
+  if(!pure) {
+    gc->opcode = eGcIni;
     emit_add_instr(emit, GcEnd);
+  }
   emit_pop_scope(emit);
   --emit->env->scope->depth;
   return GW_OK;

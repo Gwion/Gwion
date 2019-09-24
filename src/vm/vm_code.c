@@ -15,7 +15,7 @@
 #include "operator.h"
 #include "import.h"
 
-ANN /*static*/ void free_code_instr(const Vector v, const Gwion gwion) {
+ANN void free_code_instr(const Vector v, const Gwion gwion) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const Instr instr = (Instr)vector_at(v, i - 1);
     const f_freearg f = (f_freearg)(map_get(&gwion->data->freearg, instr->opcode) ?:
@@ -30,6 +30,7 @@ ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
   free_code_instr(v, gwion);
   free_vector(gwion->mp, v);
 }
+
 ANN static void free_vm_code(VM_Code a, Gwion gwion) {
   if(a->memoize)
     memoize_end(gwion->mp, a->memoize);
@@ -63,6 +64,8 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
     if(instr->opcode < eGack)
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
     else {
+      if(instr->execute == NoOp)
+        continue;
       *(m_bit*)(ptr + (i*BYTECODE_SZ)) = instr->opcode;
       *(Instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT) = instr;
       *(f_instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT*2) = instr->execute;
