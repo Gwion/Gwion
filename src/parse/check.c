@@ -627,17 +627,27 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   ERR_O(exp_self(exp)->pos, _("arguments do not match for template call"))
 }
 
+#define next_arg(type) \
+ANN static inline type next_arg_##type(const type e) { \
+  const type next = e->next;                           \
+  if(next)                                             \
+    gw_err(",");                                       \
+  return next;                                         \
+}
+next_arg(Exp)
+next_arg(Arg_List)
+
 ANN static void print_current_args(Exp e) {
   gw_err(_("and not\n  "));
   do gw_err(" \033[32m%s\033[0m", e->type->name);
-  while((e = e->next) && gw_err(","));
+  while((e = next_arg_Exp(e)));
   gw_err("\n");
 }
 
 ANN static void print_arg(Arg_List e) {
   do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type ? e->type->name : NULL,
        e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
-  while((e = e->next) && gw_err(","));
+  while((e = next_arg_Arg_List(e)));
 }
 
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
@@ -646,10 +656,16 @@ ANN2(1) static void function_alternative(const Env env, const Type f, const Exp 
   do {
     gw_err("(%s)  ", up->name);
     const Arg_List e = up->def->base->args;
-    e ? print_arg(e) : (void)gw_err("\033[32mvoid\033[0m");
+    if(e)
+      print_arg(e);
+    else
+      gw_err("\033[32mvoid\033[0m");
     gw_err("\n");
   } while((up = up->next));
-  args ? print_current_args(args) : (void)gw_err(_("and not:\n  \033[32mvoid\033[0m\n"));
+  if(args)
+    print_current_args(args);
+  else
+    gw_err(_("and not:\n  \033[32mvoid\033[0m\n"));
 }
 
 ANN static m_uint get_type_number(ID_List list) {

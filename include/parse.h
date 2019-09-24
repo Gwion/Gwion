@@ -41,14 +41,14 @@ static const _exp_func section_func[] = {                                       
   (_exp_func)prefix##_enum_def,  (_exp_func)prefix##_union_def,                                   \
   (_exp_func)prefix##_fptr_def, (_exp_func)prefix##_type_def                                      \
 };                                                                                                \
-ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* section) { GWDEBUG_EXE    \
-  void* d = &section->d.stmt_list;                            \
+ANN static inline m_bool prefix##_section(const void* a, /* const */ Section* section) {                                                  \
+  void* d = &section->d.stmt_list;                           \
   return section_func[section->section_type](a, *(void**)d);                            \
 }
 
 #define HANDLE_EXP_FUNC(prefix, type, ret)                                                        \
 DECL_EXP_FUNC(prefix)                                                                             \
-ANN type prefix##_exp(const Env env, Exp exp) { GWDEBUG_EXE                         \
+ANN type prefix##_exp(const Env env, Exp exp) {                       \
   do CHECK_BB(exp_func[exp->exp_type](env, &exp->d))                                              \
   while((exp = exp->next));                                                                       \
   return ret;                                                                                     \
@@ -57,7 +57,7 @@ ANN m_bool scan1_exp(const Env, Exp);
 ANN m_bool scan2_exp(const Env, Exp);
 
 #define describe_stmt_func(prefix, name, type, prolog, exp) \
-ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { GWDEBUG_EXE \
+ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { \
   RET_NSPC(exp) \
 }
 
