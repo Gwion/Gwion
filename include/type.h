@@ -24,7 +24,7 @@ struct Type_ {
   ae_flag flag;
 };
 
-extern Type t_void, t_int, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
+extern Type t_void, t_int, t_enum, t_bool, t_float, t_dur, t_time, t_now, t_complex, t_polar, t_vec3, t_vec4,
   t_null, t_object, t_shred, t_fork, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
   t_function, t_fptr, t_varloop, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto, t_tuple;
 

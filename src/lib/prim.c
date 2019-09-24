@@ -58,6 +58,11 @@ static GWION_IMPORT(int_r) {
   return GW_OK;
 }
 
+static OP_CHECK(opck_i2enum) {
+  struct Implicit* imp = (struct Implicit*)data;
+  return imp->e->cast_to = imp->t;
+}
+
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   GWI_BB(gwi_oper_add(gwi,  opck_unary_meta))
@@ -74,13 +79,16 @@ static GWION_IMPORT(int_unary) {
   return GW_OK;
 }
 
-static GWION_IMPORT(int_values) {
+static GWION_IMPORT(bool) {
+  GWI_OB((t_enum = gwi_mk_type(gwi, "@enum", SZ_INT, t_int)))
+  GWI_BB(gwi_add_type(gwi, t_enum))
+  GWI_BB(gwi_oper_ini(gwi, "int", "@enum", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_i2enum))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_enum_ini(gwi, "bool"))
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
   t_bool = gwi_enum_end(gwi);
-//  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
-//  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
@@ -93,8 +101,7 @@ static GWION_IMPORT(int) {
   GWI_BB(import_int_op(gwi))
   GWI_BB(import_int_logical(gwi))
   GWI_BB(import_int_r(gwi))
-  GWI_BB(import_int_unary(gwi))
-  return import_int_values(gwi);
+  return import_int_unary(gwi);
 }
 
 static GWION_IMPORT(values) {
@@ -133,12 +140,7 @@ static GWION_IMPORT(values) {
   gwi_specialid(gwi, "now", &spid);
   return GW_OK;
 }
-/*
-static OP_CHECK(opck_chuck_now) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  ERR_N(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
-}
-*/
+
 static OP_CHECK(opck_implicit_f2i) {
   return t_null;
 }
@@ -292,5 +294,6 @@ GWION_IMPORT(prim) {
   GWI_BB(import_floatint(gwi))
   GWI_BB(import_dur(gwi))
   GWI_BB(import_time(gwi))
+  GWI_BB(import_bool(gwi))
   return import_values(gwi);
 }
