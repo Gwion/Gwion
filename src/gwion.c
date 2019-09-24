@@ -57,6 +57,7 @@ ANN VM* gwion_cpy(const VM* src) {
   gwion->data = src->gwion->data;
   gwion->st = src->gwion->st;
   gwion->mp = src->gwion->mp;
+  gwion->type = src->gwion->type;
   return gwion->vm;
 }
 
@@ -72,6 +73,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   gwion->data = new_gwiondata(gwion->mp);
+  gwion->type = xmalloc(MAX_TYPE * sizeof(struct Type_));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si;
   const m_bool ret = arg_parse(gwion, arg);
@@ -108,6 +110,7 @@ ANN void gwion_end(const Gwion gwion) {
   free_plug(gwion);
   free_gwiondata(gwion->mp, gwion->data);
   free_symbols(gwion->st);
+  xfree(gwion->type);
   mempool_end(gwion->mp);
 }
 

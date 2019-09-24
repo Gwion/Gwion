@@ -198,6 +198,12 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
   return (m_int)type->xid;
 }
 
+ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te) {
+  GWI_BB(gwi_add_type(gwi, type))
+  gwi->gwion->type[te] = type;
+  return GW_OK;
+}
+
 ANN2(1,2) static void import_class_ini(const Env env, const Type type,
     const f_xtor pre_ctor, const f_xtor dtor) {
   type->nspc = new_nspc(env->gwion->mp, type->name);

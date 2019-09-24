@@ -15,6 +15,7 @@ struct Gwion_ {
   struct GwionData_ *data;
   SymTable *st;
   MemPool mp;
+  Type *type;
 };
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);
