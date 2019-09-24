@@ -89,18 +89,18 @@ ANN static inline void print_func(const Type type, const m_bit* stack) {
     gw_out("%p", NULL);
 }
 
-ANN static void print_prim(const Type type, const m_bit* stack) {
-  if(isa(type, t_bool) > 0)
+ANN static void print_prim(const Gwion gwion, const Type type, const m_bit* stack) {
+  if(isa(type, gwion->type[et_bool]) > 0)
     print_bool(*(m_int*)stack);
-  else if(isa(type, t_int) > 0)
+  else if(isa(type, gwion->type[et_int]) > 0)
     print_int(*(m_int*)stack);
-  else if(isa(type, t_complex) > 0)
+  else if(isa(type, gwion->type[et_complex]) > 0)
     print_complex(*(m_complex*)stack);
-  else if(isa(type, t_polar) > 0)
+  else if(isa(type, gwion->type[et_polar]) > 0)
     print_polar(*(m_complex*)stack);
-  else if(isa(type, t_vec3) > 0)
+  else if(isa(type, gwion->type[et_vec3]) > 0)
     print_vec(stack, 3);
-  else if(isa(type, t_vec4) > 0)
+  else if(isa(type, gwion->type[et_vec4]) > 0)
     print_vec(stack, 4);
   else
    print_float(*(m_float*)stack);
@@ -125,7 +125,7 @@ ANN void gack(const Gwion gwion, const m_bit* reg, const Instr instr) {
     else if(isa(type, gwion->type[et_void]) > 0)
       print_string1("void");
     else
-      print_prim(type, (reg-offset));
+      print_prim(gwion, type, (reg-offset));
     offset -= type->size;
   }
   gw_out("\n");

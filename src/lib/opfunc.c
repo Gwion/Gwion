@@ -66,7 +66,7 @@ OP_CHECK(opck_unary_meta) {
 OP_CHECK(opck_unary_meta2) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   exp_self(unary)->meta = ae_meta_value;
-  return t_int;
+  return env->gwion->type[et_int];
 }
 
 OP_CHECK(opck_unary) {

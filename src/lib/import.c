@@ -622,7 +622,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
     gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
   const Type t = udef->xid ? udef->value->type :
-    udef->type_xid ? udef->type : t_int;
+    udef->type_xid ? udef->type : gwi->gwion->type[et_int];
   free_union_def(gwi->gwion->mp, udef);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;

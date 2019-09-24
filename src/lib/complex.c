@@ -11,6 +11,8 @@
 #include "operator.h"
 #include "import.h"
 
+#include "gwi.h"
+
 #define describe(name, op) \
 static INSTR(Complex##name) {\
   POP_REG(shred, SZ_COMPLEX); \
@@ -114,13 +116,13 @@ polar_def2_r(Mul, *, +)
 polar_def2_r(Div, /, -)
 
 GWION_IMPORT(complex) {
-  GWI_BB(gwi_class_ini(gwi,  t_complex, NULL, NULL))
+  GWI_BB(gwi_class_ini(gwi,  gwi->gwion->type[et_complex], NULL, NULL))
 	gwi_item_ini(gwi, "float", "re");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
 	gwi_item_ini(gwi, "float", "im");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_class_ini(gwi,  t_polar, NULL, NULL))
+  GWI_BB(gwi_class_ini(gwi,  gwi->gwion->type[et_polar], NULL, NULL))
   GWI_BB(gwi_item_ini(gwi, "float", "mod"))
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_item_ini(gwi, "float", "phase"))

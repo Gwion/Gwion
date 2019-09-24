@@ -29,7 +29,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
   CHECK_OB(check_exp(env, exp))
-  do if(isa(exp->type, t_int) < 0)
+  do if(isa(exp->type, env->gwion->type[et_int]) < 0)
       ERR_B(exp->pos, _("incompatible array subscript type '%s' ..."), exp->type->name)
   while((exp = exp->next));
   return GW_OK;
@@ -167,7 +167,7 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
   const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  else if(!(isa(e->type, t_int) > 0 && isa(type, t_float) > 0))
+  else if(!(isa(e->type, env->gwion->type[et_int]) > 0 && isa(type, env->gwion->type[et_float]) > 0))
     ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
   set_cast(env, type, e);
   return GW_OK;
@@ -270,9 +270,9 @@ ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
   CHECK_OB(check_exp(env, e))
   do {
     const Type t = e->type;
-    if(isa(t, t_float) < 0) {
-      if(isa(t, t_int) > 0)
-        set_cast(env, t_float, e);
+    if(isa(t, env->gwion->type[et_float]) < 0) {
+      if(isa(t, env->gwion->type[et_int]) > 0)
+        set_cast(env, env->gwion->type[et_float], e);
       else
         ERR_B(e->pos, _("invalid type '%s' in %s value #%d...\n"
               "    (must be of type 'int' or 'float')"), t->name, s, count)
@@ -288,18 +288,18 @@ struct VecInfo {
   m_uint n;
 };
 
-ANN static void vec_info(const ae_prim_t t, struct VecInfo* v) {
+ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
   if(t == ae_primary_complex) {
     v->s = "complex";
-    v->t = t_complex;
+    v->t = env->gwion->type[et_complex];
     v->n = 2;
   } else if(t == ae_primary_vec) {
-    v->t = v->n == 4 ? t_vec4 : t_vec3;
+    v->t = env->gwion->type[v->n == 4 ? et_vec4 : et_vec3];
     v->n = 4;
     v->s = "vector";
   } else {
     v->s = "polar";
-    v->t = t_polar;
+    v->t = env->gwion->type[et_polar];
     v->n = 2;
   }
 }
@@ -308,7 +308,7 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
   const Vec * vec = &primary->d.vec;
   const ae_prim_t t = primary->primary_type;
   struct VecInfo info = { .n=vec->dim };
-  vec_info(t, &info);
+  vec_info(env, t, &info);
   if(vec->dim > info.n)
     ERR_O(vec->exp->pos, _("extraneous component of %s value..."), info.s)
   CHECK_BO(vec_value(env, vec->exp, info.s))
@@ -338,8 +338,8 @@ ANN static Type prim_tuple(const Env env, const Exp_Primary * primary) {
 ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUSED) {\
   return type; \
 }
-describe_prim_xxx(num, t_int)
-describe_prim_xxx(float, t_float)
+describe_prim_xxx(num, env->gwion->type[et_int])
+describe_prim_xxx(float, env->gwion->type[et_float])
 describe_prim_xxx(nil, env->gwion->type[et_void])
 describe_prim_xxx(unpack, t_tuple)
 
@@ -396,7 +396,7 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-  do if(isa(e->type, t_int) < 0)
+  do if(isa(e->type, env->gwion->type[et_int]) < 0)
     ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
         *depth, e->type->name)
   while(++(*depth) && (e = e->next));
@@ -1041,10 +1041,10 @@ ANN static m_bool cond_type(const Env env, const Exp e) {
   if(e->next)
     ERR_B(e->pos, _("conditional must be a single expression"))
   const Type t = e->type;
-  if(isa(t, t_int) > 0)
+  if(isa(t, env->gwion->type[et_int]) > 0)
     return GW_OK;
-  if(isa(t, t_float) > 0) {
-    e->cast_to = t_int;
+  if(isa(t, env->gwion->type[et_float]) > 0) {
+    e->cast_to = env->gwion->type[et_int];
     e->nspc = env->curr;
     return GW_OK;
   }

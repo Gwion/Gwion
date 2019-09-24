@@ -18,6 +18,7 @@
 #include "engine.h"
 #include "parser.h"
 #include "lang_private.h"
+#include "specialid.h"
 
 static FREEARG(freearg_gack) {
   free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
@@ -56,20 +57,27 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_add_type(gwi, t_lambda))
   GWI_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
   GWI_BB(gwi_add_type(gwi, t_gack))
-  GWI_OB((t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL)))
-  GWI_BB(gwi_add_type(gwi, t_int))
-  GWI_OB((t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL)))
-  GWI_BB(gwi_add_type(gwi, t_float))
-  GWI_OB((t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL)))
+  const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_int, et_int))
+  const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_float, et_float))
+  const Type t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL);
   GWI_BB(gwi_add_type(gwi, t_dur))
-  GWI_OB((t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL)))
+  const Type t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL);
   GWI_BB(gwi_add_type(gwi, t_time))
-  GWI_OB((t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, t_time)))
+  const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, t_time);
   GWI_BB(gwi_add_type(gwi, t_now))
-  GWI_OB((t_complex = gwi_mk_type(gwi, "complex", SZ_COMPLEX , NULL)))
-  GWI_OB((t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL)))
-  GWI_OB((t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL)))
-  GWI_OB((t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL)))
+  struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
+  gwi_specialid(gwi, "now", &spid);
+  gwi_reserve(gwi, "now");
+  const Type t_complex = gwi_mk_type(gwi, "complex", SZ_COMPLEX , NULL);
+  gwi->gwion->type[et_complex] = t_complex;
+  const Type t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL);
+  gwi->gwion->type[et_polar] = t_polar;
+  const Type t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL);
+  gwi->gwion->type[et_vec3] = t_vec3;
+  const Type t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL);
+  gwi->gwion->type[et_vec4] = t_vec4;
   GWI_BB(import_object(gwi))
   GWI_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
   GWI_BB(gwi_class_ini(gwi, t_union, NULL, NULL))

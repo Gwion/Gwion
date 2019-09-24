@@ -76,11 +76,10 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_enum_ini(gwi, "bool"))
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
-  t_bool = gwi_enum_end(gwi);
+  const Type t_bool = gwi_enum_end(gwi);
+  gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
-//  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
-//  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
@@ -126,11 +125,8 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, hour);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
-  gwi_item_ini(gwi, "@now", "now");
-  gwi_item_end(gwi, ae_flag_const, NULL);
-  gwi_reserve(gwi, "now");
-  struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
-  gwi_specialid(gwi, "now", &spid);
+//  gwi_item_ini(gwi, "@now", "now");
+//  gwi_item_end(gwi, ae_flag_const, NULL);
   return GW_OK;
 }
 /*
@@ -145,8 +141,7 @@ static OP_CHECK(opck_implicit_f2i) {
 
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
-  imp->e->cast_to = t_float;
-  return t_float;
+  return imp->e->cast_to = env->gwion->type[et_float];
 }
 
 // can't it be just declared?

@@ -19,7 +19,7 @@ static DTOR(event_dtor) {
 }
 
 static OP_CHECK(opck_eventwait) {
-  return t_int;
+  return env->gwion->type[et_int];
 }
 
 static INSTR(EventWait) {

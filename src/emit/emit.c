@@ -823,9 +823,9 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   return op_emit_bool(emit, &opi);
 }
 
-ANN static m_bool is_special(const Type t) {
-  if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0 ||
-     isa(t, t_vec3)    > 0 || isa(t, t_vec4)  > 0 ||
+ANN static m_bool is_special(const Emitter emit, const Type t) {
+  if(isa(t, emit->gwion->type[et_complex]) > 0 || isa(t, emit->gwion->type[et_polar]) > 0 ||
+     isa(t, emit->gwion->type[et_vec3])    > 0 || isa(t, emit->gwion->type[et_vec4])  > 0 ||
      isa(t, t_vararg)  > 0)
     return GW_OK;
   return GW_ERROR;
@@ -965,7 +965,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
       const Instr back = !GET_FLAG(f->def, op) ? emit_add_instr(emit, PushStaticCode) : (Instr)vector_back(&emit->code->instr);
       back->m_val = (m_uint)f;
     }
-  } else if((f->value_ref->owner_class && is_special(f->value_ref->owner_class) > 0) ||
+  } else if((f->value_ref->owner_class && is_special(emit, f->value_ref->owner_class) > 0) ||
         !f->value_ref->owner_class || (GET_FLAG(f, template) &&
         isa(f->value_ref->type, t_fptr) < 0))
     push_func_code(emit, f);
@@ -1566,7 +1566,7 @@ ANN static m_bool emit_complex_member(const Emitter emit, const Exp_Dot* member)
   const Exp base = member->base;
   base->emit_var = 1;
   CHECK_BB(emit_exp(emit, base, 0))
-  const m_bool is_complex = !strcmp((isa(base->type, t_complex) > 0  ? "re" : "phase") ,
+  const m_bool is_complex = !strcmp((isa(base->type, emit->gwion->type[et_complex]) > 0  ? "re" : "phase") ,
         s_name(member->xid));
   if(is_complex && exp_self(member)->emit_var)
     return GW_OK;
@@ -1643,9 +1643,9 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
 
 ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member) {
   const Type t = member->t_base;
-  if(isa(t, t_complex) > 0 || isa(t, t_polar) > 0)
+  if(isa(t, emit->gwion->type[et_complex]) > 0 || isa(t, emit->gwion->type[et_polar]) > 0)
     return emit_complex_member(emit, member);
-  else if(isa(t, t_vec3) > 0 || isa(t, t_vec4) > 0)
+  else if(isa(t, emit->gwion->type[et_vec3]) > 0 || isa(t, emit->gwion->type[et_vec4]) > 0)
     return emit_VecMember(emit, member);
   return emit_vararg(emit, member);
 }
@@ -1680,7 +1680,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
     emit_add_instr(emit, RegPushImm);
     return GW_OK;
   }
-  if(is_special(member->t_base) > 0)
+  if(is_special(emit, member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(member->t_base), member->xid);
   if(isa(member->t_base, t_class) < 0 && (GET_FLAG(value, member) ||
