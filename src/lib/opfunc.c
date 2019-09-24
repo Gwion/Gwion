@@ -69,15 +69,6 @@ OP_CHECK(opck_unary_meta2) {
   return t_int;
 }
 
-OP_CHECK(opck_unary_meta2_uniq) {
-  const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_OO(opck_unary_meta2(env, data, mut))
-  if(unary->exp->next)
-    ERR_N(exp_self(unary)->pos,
-      _("'%s' must be applied to a unique expression"), s_name(unary->op))
-  return t_int;
-}
-
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp->meta != ae_meta_var)
