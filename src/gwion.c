@@ -12,10 +12,12 @@
 #include "emit.h"
 #include "engine.h"
 #include "driver.h"
-#include "arg.h"
 #include "gwion.h"
+#include "arg.h"
 #include "compile.h"
 #include "object.h" // fork_clean
+#include "pass.h" // fork_clean
+#include "specialid.h" // fork_clean
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
@@ -69,16 +71,19 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
-  arg->si = gwion->vm->bbq->si;
-  arg_parse(arg);
-  gwion->emit->memoize = arg->memoize;
-  gwion->plug = new_plug(gwion->mp, &arg->lib);
   gwion->data = new_gwiondata(gwion->mp);
-  shreduler_set_loop(gwion->vm->shreduler, arg->loop);
-  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-    gwion_compile(gwion, &arg->add);
-    plug_run(gwion, &arg->mod);
-    return GW_OK;
+  pass_default(gwion);
+  arg->si = gwion->vm->bbq->si;
+  const m_bool ret = arg_parse(gwion, arg);
+  if(ret) {
+    gwion->emit->info->memoize = arg->memoize;
+    gwion->plug = new_plug(gwion->mp, &arg->lib);
+    shreduler_set_loop(gwion->vm->shreduler, arg->loop);
+    if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
+      gwion_compile(gwion, &arg->add);
+      plug_run(gwion, &arg->mod);
+      return GW_OK;
+    }
   }
   return GW_ERROR;
 }
@@ -122,4 +127,13 @@ ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...)
   loc_err(pos, env->name);
   if(env->context)
     env->context->error = 1;
+}
+
+ANN struct SpecialId_* specialid_get(const Gwion gwion, const Symbol sym) {
+  const Map map = &gwion->data->id;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    if(sym == (Symbol)VKEY(map, i))
+      return (struct SpecialId_*)VVAL(map, i);
+  }
+  return NULL;
 }

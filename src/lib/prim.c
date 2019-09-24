@@ -14,6 +14,7 @@
 #include "driver.h"
 #include "traverse.h"
 #include "parse.h"
+#include "specialid.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
@@ -78,9 +79,11 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
   t_bool = gwi_enum_end(gwi);
-  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
-  GWI_BB(gwi_item_end(gwi, 0, NULL))
+//  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
+//  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
+  struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
+  gwi_specialid(gwi, "maybe", &spid);
   return GW_OK;
 }
 
@@ -126,6 +129,8 @@ static GWION_IMPORT(values) {
   gwi_item_ini(gwi, "@now", "now");
   gwi_item_end(gwi, ae_flag_const, NULL);
   gwi_reserve(gwi, "now");
+  struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
+  gwi_specialid(gwi, "now", &spid);
   return GW_OK;
 }
 /*

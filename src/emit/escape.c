@@ -24,8 +24,8 @@ char* escape_table(MemPool p) {
 }
 
 static int get_escape(const Emitter emit, const char c, const loc_t pos) {
-  if(emit->escape[(int)c])
-    return emit->escape[(int)c];
+  if(emit->info->escape[(int)c])
+    return emit->info->escape[(int)c];
   env_err(emit->env, pos, _("unrecognized escape sequence '\\%c'"), c);
   return GW_ERROR;
 }

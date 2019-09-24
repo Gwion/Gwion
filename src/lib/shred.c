@@ -12,6 +12,8 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "emit.h"
+#include "specialid.h"
 
 static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 
   o_fork_orig;
@@ -291,8 +293,10 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, 0))
   GWI_BB(gwi_class_end(gwi))
 
-  gwi_item_ini(gwi, "Shred", "me");
-  gwi_item_end(gwi, ae_flag_const, NULL);
+  gwi_reserve(gwi, "me");
+  struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
+  gwi_specialid(gwi, "me", &spid);
+
   SET_FLAG((t_shred), abstract);
 
   GWI_OB((t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, t_shred)))

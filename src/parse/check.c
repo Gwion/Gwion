@@ -20,6 +20,8 @@
 #include "match.h"
 #include "cpy_ast.h"
 #include "tuple.h"
+#include "emit.h"
+#include "specialid.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
@@ -237,26 +239,16 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   return v->type;
 }
 
-ANN static Type check_exp_prim_this(const Env env, const Exp_Primary* primary) {
-  if(!env->class_def)
-    ERR_O(exp_self(primary)->pos, _("keyword 'this' can be used only inside class definition..."))
-  if(env->func && !GET_FLAG(env->func, member))
-    ERR_O(exp_self(primary)->pos, _("keyword 'this' cannot be used inside static functions..."))
-  exp_self(primary)->meta = ae_meta_value;
-  return env->class_def;
-}
-
-
 ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   const Value v = nspc_lookup_value0(env->global_nspc, sym);
   if(v)
     return v;
   const Value value = new_value(env->gwion->mp, t_string, s_name(sym));
-  map_set(&env->global_nspc->info->value->map, (vtype)sym, (vtype)value);
+  nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }
 
-ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
+ANN Type prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
     char c[strlen(str) + 8];
@@ -267,16 +259,10 @@ ANN static Type prim_str(const Env env, Exp_Primary *const prim) {
 }
 
 ANN static Type prim_id(const Env env, Exp_Primary* primary) {
-  const m_str str = s_name(primary->d.var);
-  if(!strcmp(str, "this"))
-    return check_exp_prim_this(env, primary);
-  else if(!strcmp(str, "__func__")) {
-    primary->primary_type = ae_primary_str;
-    primary->d.str = env->func ? env->func->name : env->class_def ?
-      env->class_def->name : env->name;
-    return prim_str(env, primary);
-  } else
-    return prim_id_non_res(env, primary);
+  struct SpecialId_ * spid = specialid_get(env->gwion, primary->d.var);
+  if(spid)
+    return specialid_type(env, spid, primary);
+  return prim_id_non_res(env, primary);
 }
 
 ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
@@ -587,7 +573,7 @@ CHECK_BO(check_call(env, exp))
         m_func = find_func_match(env, fbase->func, exp->args);
         nspc_pop_type(env->gwion->mp, env->curr);
         if(!value && m_func)
-          map_set(&v->owner->info->type->map, (vtype)sym, (vtype)actual_type(m_func->value_ref->type));
+          nspc_add_type_front(v->owner, sym, actual_type(m_func->value_ref->type));
       }
       free_fptr_def(env->gwion->mp, fptr); // ???? related
     }

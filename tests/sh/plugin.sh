@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #32
+# [test] #33
 
 n=0
 [ "$1" ] && n="$1"
@@ -18,7 +18,7 @@ test_plugin() {
 	make
   if [ -f "$NAME.gw" ]
   then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
-  else  GWOPT+=-p. test_gw "/dev/null" "$n"
+  else  GWOPT+=-p. test_gw "no_file" "$n"
   fi
   make clean
  	N=$(printf "% 4i" "$n")

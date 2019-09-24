@@ -177,7 +177,10 @@ do_todo() {
 test_gw(){
   local n file log ret
   n=$2
-  file=$1
+  if [ "$1" = "no_file" ]
+  then file=""
+  else file=$1
+  fi
   log=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n")
   slog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
   elog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
@@ -191,16 +194,16 @@ test_gw(){
   fi
   ret=$?
   #enable skip
-  do_skip "$1" "$n" "$file" "$rlog" && return 0
+  [ -z "$file" ] || do_skip "$1" "$n" "$file" "$rlog" && return 0
   # enable todo
-  do_todo "$1" "$n" "$file" "$rlog" && return 0
+  [ -z "$file" ] || do_todo "$1" "$n" "$file" "$rlog" && return 0
 
   [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
   assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
+  [ -z "$file" ] || [ $severity -lt 2  ] && success "$n" "$file" "$rlog" "$vlog" && return 0
   assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
   [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ -f "$file" ] && assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
   [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
   assert_rw       "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
   [ $severity -lt 5  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0

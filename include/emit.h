@@ -15,21 +15,27 @@ typedef struct Code_ {
   ae_flag flag;
 } Code;
 
+struct EmitterInfo_ {
+  struct Vector_ pure;
+  struct Vector_ variadic;
+  char *escape;
+  f_instr finalyzer;
+  VM_Code (*emit_code)(const Emitter);
+  VM_Code code;
+  m_bool memoize;
+};
+
 struct Emitter_ {
   Env    env;
   Code*  code;
   struct Gwion_ *gwion;
-  struct Vector_  stack;
-  struct Vector_ pure;
-  struct Vector_  variadic;
-  char *escape;
-  m_bool memoize;
+  struct EmitterInfo_ *info;
+  struct Vector_ stack;
 };
 
 ANEW ANN Emitter new_emitter(MemPool);
 ANN void free_emitter(MemPool, Emitter);
-ANEW ANN VM_Code emit_code(const Emitter);
-ANN VM_Code emit_ast(const Emitter emit, Ast ast);
+ANN m_bool emit_ast(const Env env, Ast ast);
 ANN Instr emit_exp_call1(const Emitter, const Func);
 ANN2(1) Instr emit_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull));
 ANN Code* emit_class_code(const Emitter, const m_str);

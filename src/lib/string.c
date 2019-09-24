@@ -13,6 +13,9 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "emit.h"
+#include "specialid.h"
+#include "func.h"
 
 ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_str c) {
   STRING(obj) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
@@ -169,6 +172,14 @@ static CTOR(string_ctor) {
   STRING(o) = "";
 }
 
+ANN Type prim_str(const Env, Exp_Primary *const);
+ID_CHECK(check_funcpp) {
+  ((Exp_Primary*)prim)->primary_type = ae_primary_str;
+  ((Exp_Primary*)prim)->d.str = env->func ? env->func->name : env->class_def ?
+    env->class_def->name : env->name;
+  return prim_str(env, (Exp_Primary * const)prim);
+}
+
 GWION_IMPORT(string) {
   t_string = gwi_mk_type(gwi, "string", SZ_INT, t_object);
   GWI_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
@@ -244,8 +255,12 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "+=>", Object_String_Plus))
 
-  gwi_item_ini(gwi, "string", "__func__");
-  gwi_item_end(gwi, ae_flag_const, NULL);
+//  gwi_item_ini(gwi, "string", "__func__");
+//  gwi_item_end(gwi, ae_flag_const, NULL);
+//  gwi_reserve(gwi, "__func__");
+
   gwi_reserve(gwi, "__func__");
+  struct SpecialId_ spid = { .ck=check_funcpp, .exec=RegPushMe, .is_const=1 };
+  gwi_specialid(gwi, "__func__", &spid);
   return GW_OK;
 }
