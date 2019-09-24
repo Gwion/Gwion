@@ -150,10 +150,10 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
         s_name(edef->xid),  v->type->name)
     CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
   }
-  const Type t = type_copy(env->gwion->mp, t_enum);
+  const Type t = type_copy(env->gwion->mp, t_int);
   t->xid = ++env->scope->type_xid;
   t->name = edef->xid ? s_name(edef->xid) : "int";
-  t->e->parent = t_enum;
+  t->e->parent = t_int;
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
   edef->t = t;
