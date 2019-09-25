@@ -605,7 +605,7 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
   DECL_OB(const Type, t, = known_type(gwi->gwion->env, exp->d.exp_decl.td))
-  if(isa(t, t_object) > 0)
+  if(isa(t, gwi->gwion->type[et_object]) > 0)
     SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
   return GW_OK;

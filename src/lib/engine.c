@@ -38,25 +38,26 @@ mk_class_instr(le, r, l)
 mk_class_instr(lt, r, l, && l != r)
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
-  GWI_OB((t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL)))
+  const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
+  gwi->gwion->type[et_class] = t_class;
   GWI_BB(gwi_add_type(gwi, t_class))
-  GWI_OB((t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL))) // size = SZ_INT to enable declarations
-  GWI_BB(gwi_add_type(gwi, t_undefined))
-  GWI_OB((t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL))) // size = SZ_INT to enable declarations
-  GWI_BB(gwi_add_type(gwi, t_auto))
+  const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
+  const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
   SET_FLAG(t_class, abstract);
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
-  GWI_OB((t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL)))
-  GWI_BB(gwi_add_type(gwi, t_null))
-  GWI_OB((t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL)))
-  GWI_BB(gwi_add_type(gwi, t_function))
-  GWI_OB((t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function)))
-  GWI_BB(gwi_add_type(gwi, t_fptr))
-  GWI_OB((t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, t_function)))
-  GWI_BB(gwi_add_type(gwi, t_lambda))
-  GWI_OB((t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL)))
-  GWI_BB(gwi_add_type(gwi, t_gack))
+  const Type t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_null, et_null))
+  const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
+  const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function);
+  GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
+  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, t_function);
+  GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
+  const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_int, et_int))
   const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
@@ -79,7 +80,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL);
   gwi->gwion->type[et_vec4] = t_vec4;
   GWI_BB(import_object(gwi))
-  GWI_OB((t_union = gwi_mk_type(gwi, "@Union", SZ_INT, t_object)))
+  const Type t_union = gwi_mk_type(gwi, "@Union", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_union] = t_union;
   GWI_BB(gwi_class_ini(gwi, t_union, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(import_tuple(gwi))

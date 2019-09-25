@@ -12,9 +12,9 @@ ANN static void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
   if(!GET_FLAG(a, func) && a->d.ptr && !GET_FLAG(a, union) &&
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->owner_class)
-      && isa(t, t_object) < 0)
+      && isa(t, gwion->type[et_object]) < 0)
    _mp_free(gwion->mp, t->size, a->d.ptr);
-  if(isa(t, t_class) > 0/* || isa(a->type, t_function) > 0*/)
+  if(isa(t, gwion->type[et_class]) > 0/* || isa(a->type, t_function) > 0*/)
     REM_REF(t, gwion)
   mp_free(gwion->mp, Value, a);
 }

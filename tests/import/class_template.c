@@ -9,6 +9,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "gwi.h"
 
 static m_int o_map_key;
 static m_int o_map_value;
@@ -29,7 +30,7 @@ GWION_IMPORT(class_template) {
   Type t_class_template;
   const m_str list[2] = { "A", "B" };
   gwi_tmpl_ini(gwi, 2, list);
-  CHECK_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, t_object)))
+  CHECK_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, gwi->gwion->type[et_object])))
   CHECK_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
   gwi_tmpl_end(gwi);
   CHECK_BB(gwi_item_ini(gwi, "A[]", "key"))

@@ -186,7 +186,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     if(GET_FLAG(t, ref))
       return t;
     if(!type->types) {
-      if(t != t_tuple)
+      if(t != env->gwion->type[et_tuple])
         ERR_O(t->e->def->pos,
           _("you must provide template types for type '%s'"), t->name)
       return t;
@@ -199,7 +199,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       if(a->base.type)
         return a->base.type;
       a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
-      if(t->e->parent !=  t_union) {
+      if(t->e->parent !=  env->gwion->type[et_union]) {
         CHECK_BO(scan0_class_def(env, a))
         nspc_add_type_front(env->curr, a->base.xid, a->base.type);
       } else {
@@ -220,7 +220,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
     } else
       return scan_tuple(env, type);
    } else if(type->types) { // TODO: clean me
-    if(isa(t, t_function) > 0 && t->e->d.func->def->base->tmpl) {
+    if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl) {
       DECL_OO(const m_str, tl_name, = tl2str(env, type->types))
       const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
       free_mstr(env->gwion->mp, tl_name);

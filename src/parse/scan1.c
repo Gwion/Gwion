@@ -43,7 +43,7 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
 {
   const Type t = get_type(type);
-  if(isa(t, t_object) > 0)
+  if(isa(t, env->gwion->type[et_object]) > 0)
     CHECK_BO(type_recursive(env, td, t))
 }
   if(type->size)
@@ -78,7 +78,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former && t != t_auto)
+    if(former && t != env->gwion->type[et_auto])
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
@@ -267,8 +267,7 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type->e->def)return GW_OK;
-//  return tdef->type->e->def ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
-  return isa(tdef->type, t_fptr) < 0 ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
+  return !is_fptr(env->gwion, tdef->type) ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
@@ -387,7 +386,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
     if(cdef->base.type == t)
       ERR_B(pos, _("recursive (%s <= %s) class declaration."), cdef->base.type->name, t->name);
   } while((t = t->e->parent));
-  if(isa(parent, t_object) < 0)
+  if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
     CHECK_BB(scanx_parent(parent, scan1_cdef, env))

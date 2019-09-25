@@ -11,10 +11,10 @@ struct M_Object_ {
 ANN void instantiate_object(const VM_Shred, const Type);
 ANN void free_object(MemPool p, const M_Object);
 ANEW M_Object new_object(MemPool, const VM_Shred, const Type);
-ANEW M_Object new_M_UGen(MemPool);
+ANEW M_Object new_M_UGen(const struct Gwion_*);
 ANN ANEW M_Object new_array(MemPool, const Type t, const m_uint length);
 ANEW M_Object new_string(MemPool, const VM_Shred, const m_str);
-ANEW M_Object new_string2(MemPool, const VM_Shred, const m_str);
+ANEW M_Object new_string2(const struct Gwion_*, const VM_Shred, const m_str);
 ANEW M_Object gwion_new_string(const struct Gwion_*, const m_str);
 ANEW M_Object new_shred(const VM_Shred, const m_bool);
 ANN void fork_launch(const VM*, const M_Object, const m_uint);

@@ -40,7 +40,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   if(GET_FLAG(td, nonnull)) {
     if(isa(ret, env->gwion->type[et_void]) > 0)
       ERR_O(td_pos(td), _("void types can't be nonnull."))
-    if(isa(ret, t_object) < 0 && isa(ret, t_function) < 0)
+    if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_function]) < 0)
       return ret;
     return type_nonnull(env, ret);
   }
@@ -79,6 +79,6 @@ ANN static inline void* type_unknown(const Env env, const ID_List id) {
 
 ANN Type known_type(const Env env, const Type_Decl* td) {
   if(!td->xid)
-    return t_undefined;
+    return env->gwion->type[et_undefined];
   return type_decl_resolve(env, td) ?:type_unknown(env, td->xid);
 }

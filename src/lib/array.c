@@ -15,6 +15,7 @@
 #include "import.h"
 #include "traverse.h"
 #include "parse.h"
+#include "gwi.h"
 
 struct M_Vector_ {
   m_bit* ptr;
@@ -52,7 +53,7 @@ static DTOR(array_dtor) {
     o->type_ref : o->type_ref->e->parent;
   const Type base = array_base(t);
   struct M_Vector_* a = ARRAY(o);
-  if(t->array_depth > 1 || isa(base, t_object) > 0)
+  if(t->array_depth > 1 || isa(base, shred->info->vm->gwion->type[et_object]) > 0)
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
   free_m_vector(shred->info->mp, a);
@@ -101,7 +102,7 @@ static MFUN(vm_vector_rem) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
-  if(isa(o->type_ref, t_object) > 0) {
+  if(isa(o->type_ref, shred->info->vm->gwion->type[et_object]) > 0) {
     M_Object obj;
     m_vector_get(v, (vtype)index, &obj);
     release(obj,shred);
@@ -140,8 +141,8 @@ ANN static Type get_array_type(Type t) {
 
 static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
-  if(opck_const_rhs(env, data, mut) == t_null)
-    return t_null;
+  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
@@ -181,7 +182,7 @@ static OP_CHECK(opck_array_cast) {
     r = r->e->parent;
   if(l->array_depth == r->array_depth || isa(l->e->d.base_type, r->e->d.base_type) > 0)
     return l;
-  return t_null;
+  return env->gwion->type[et_null];
 }
 
 static FREEARG(freearg_array) {
@@ -191,7 +192,8 @@ static FREEARG(freearg_array) {
 }
 
 GWION_IMPORT(array) {
-  t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, t_object);
+  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_array] = t_array;
   GWI_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 
   GWI_BB(gwi_item_ini(gwi, "int", "@array"))

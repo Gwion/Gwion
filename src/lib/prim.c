@@ -136,7 +136,7 @@ static OP_CHECK(opck_chuck_now) {
 }
 */
 static OP_CHECK(opck_implicit_f2i) {
-  return t_null;
+  return env->gwion->type[et_null];
 }
 
 static OP_CHECK(opck_implicit_i2f) {

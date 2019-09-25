@@ -168,7 +168,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
         struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
         const Type ret = op_check_inner(&ock);
         if(ret) {
-          if(ret == t_null)
+          if(ret == env->gwion->type[et_null])
             break;
           if(!ock.mut)
             set_nspc(&ock, nspc);

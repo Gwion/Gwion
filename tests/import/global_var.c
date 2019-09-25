@@ -14,7 +14,7 @@
 
 GWION_IMPORT(global_var_test) {
 //  ALLOC_PTR(i, m_uint, 1);
-  const M_Object obj = new_object(gwi->gwion->mp, NULL, t_string);
+  const M_Object obj = new_object(gwi->gwion->mp, NULL, gwi->gwion->type[et_string]);
   STRING(obj) = s_name(insert_symbol(gwi->gwion->st, "test"));
   CHECK_BB(gwi_item_ini(gwi,"string", "i"))
   CHECK_BB(gwi_item_end(gwi, 0, obj))

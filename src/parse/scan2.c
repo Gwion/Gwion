@@ -17,6 +17,7 @@
 
 #include "instr.h"
 #include "import.h"
+#include "tuple.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -99,7 +100,7 @@ ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type->e->def) return GW_OK;
-  return isa(tdef->type, t_fptr) < 0 ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
+  return !is_fptr(env->gwion, tdef->type) ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -303,8 +304,8 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) {
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
-  if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0) {
-  if(isa(actual_type(overload->type), t_function) < 0)
+  if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
+  if(isa(actual_type(env->gwion, overload->type), env->gwion->type[et_function]) < 0)
     ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
 }
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
@@ -324,12 +325,15 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type t = type_copy(env->gwion->mp, func->def->base->td ? t_function : t_lambda);
+  const Type t = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->name = func->name;
   t->e->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
   t->e->d.func = func;
+  if(t->e->tuple)
+    free_tupleform(env->gwion->mp, t->e->tuple);
+  t->e->tuple = NULL;
   return t;
 }
 

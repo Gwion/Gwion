@@ -14,6 +14,7 @@
 #include "import.h"
 #include "emit.h"
 #include "specialid.h"
+#include "gwi.h"
 
 static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 
   o_fork_orig;
@@ -31,10 +32,11 @@ VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
 }
 
 M_Object new_shred(const VM_Shred shred, m_bool is_spork) {
-  const M_Object obj = new_object(shred->info->mp, NULL, is_spork ? t_shred : t_fork);
+  const M_Object obj = new_object(shred->info->mp, NULL,
+    shred->info->vm->gwion->type[is_spork ? et_shred :et_fork]);
   ME(obj) = shred;
   if(!is_spork) {
-    *(M_Object*)(obj->data + o_fork_ev) = new_object(shred->info->mp, NULL, t_event);
+    *(M_Object*)(obj->data + o_fork_ev) = new_object(shred->info->mp, NULL, shred->info->vm->gwion->type[et_event]);
     EV_SHREDS(*(M_Object*)(obj->data + o_fork_ev)) = new_vector(shred->info->mp);
   }
   return obj;
@@ -229,7 +231,8 @@ void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
 
 #include "nspc.h"
 GWION_IMPORT(shred) {
-  GWI_OB((t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, t_object)))
+  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_shred] = t_shred;
   GWI_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
   gwi_item_ini(gwi, "int", "@me");
@@ -299,7 +302,8 @@ GWION_IMPORT(shred) {
 
   SET_FLAG((t_shred), abstract);
 
-  GWI_OB((t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, t_shred)))
+  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, t_shred);
+  gwi->gwion->type[et_fork] = t_fork;
   GWI_BB(gwi_class_ini(gwi, t_fork, NULL, fork_dtor))
   gwi_item_ini(gwi, "int", "@thread");
   GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, NULL)))

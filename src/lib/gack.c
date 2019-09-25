@@ -13,12 +13,12 @@
 #include "gwion.h"
 #include "gack.h"
 
-static void print_type(const Type type) {
-  const m_bool is_func = isa(type, t_function) > 0 && isa(type, t_fptr) < 0;
+static void print_type(const Gwion gwion, const Type type) {
+  const m_bool is_func = isa(type, gwion->type[et_function]) > 0 && !is_fptr(gwion, type);
   gw_out("(%s) ", is_func ? "@function" : type->name);
   if(GET_FLAG(type, typedef)) {
     gw_out(" aka ");
-    print_type(type->e->parent);
+    print_type(gwion, type->e->parent);
   }
 }
 
@@ -68,21 +68,21 @@ static inline void print_string(const M_Object obj) {
   print_string1(obj ? STRING(obj) : "(null string)");
 }
 
-ANN2(1) static inline void print_object(const Type type, const M_Object obj) {
-  if(isa(type, t_string) > 0)
+ANN2(1) static inline void print_object(const Gwion gwion, const Type type, const M_Object obj) {
+  if(isa(type, gwion->type[et_string]) > 0)
     print_string(obj);
   else
     gw_out("%p", (void*)obj);
 }
 
-ANN static inline void print_func(const Type type, const m_bit* stack) {
-  if(isa(type, t_fptr) > 0 && type->e->d.func->def->base->tmpl) {
+ANN static inline void print_func(const Gwion gwion,const Type type, const m_bit* stack) {
+  if(is_fptr(gwion, type) > 0 && type->e->d.func->def->base->tmpl) {
     const Func f = *(Func*)stack;
     gw_out("%s", f ? f->name : "(nil)");
     return;
   }
   if(type->e->d.func) {
-    const VM_Code code = isa(type, t_fptr) > 0 ?
+    const VM_Code code = is_fptr(gwion, type) ?
         *(VM_Code*)stack : type->e->d.func->code;
     gw_out("%s %s %p", type->name, (void*)code ? code->name : NULL, code);
   } else // uncalled lambda
@@ -113,15 +113,15 @@ ANN void gack(const Gwion gwion, const m_bit* reg, const Instr instr) {
   for(m_uint i = size + 1; --i;) {
     const Type type = (Type)vector_at(v, size - i);
     if(size == 1)
-      print_type(type);
-    if(isa(type, t_object) > 0)
-      print_object(type, *(M_Object*)(reg-offset));
-    else if(isa(type, t_function) > 0)
-      print_func(type, (reg-offset));
-    else if(type == t_class)
-      print_type(type);
-    else if(isa(type, t_class) > 0)
-      print_type(type->e->d.base_type);
+      print_type(gwion, type);
+    if(isa(type, gwion->type[et_object]) > 0)
+      print_object(gwion, type, *(M_Object*)(reg-offset));
+    else if(isa(type, gwion->type[et_function]) > 0)
+      print_func(gwion, type, (reg-offset));
+    else if(type == gwion->type[et_class])
+      print_type(gwion, type);
+    else if(isa(type, gwion->type[et_class]) > 0)
+      print_type(gwion, type->e->d.base_type);
     else if(isa(type, gwion->type[et_void]) > 0)
       print_string1("void");
     else

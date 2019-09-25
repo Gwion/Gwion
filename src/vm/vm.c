@@ -807,7 +807,7 @@ pushstaticcode:
   reg += SZ_INT;
   DISPATCH()
 pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)VAL);
+  *(M_Object*)reg = new_string2(vm->gwion, shred, (m_str)VAL);
   reg += SZ_INT;
   DISPATCH();
 gcini:

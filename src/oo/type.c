@@ -60,12 +60,6 @@ ANN Type type_copy(MemPool p, const Type type) {
   a->e->d.base_type   = type->e->d.base_type;
   a->array_depth   = type->array_depth;
   a->e->def           = type->e->def;
-  if(t_function && isa(type, t_function) > 0) {
-    if(a->e->tuple) {
-      free_tupleform(p, a->e->tuple);
-      a->e->tuple = NULL;
-    }
-  }
   return a;
 }
 
@@ -115,12 +109,12 @@ ANN Type array_type(const Env env, const Type base, const m_uint depth) {
   const Type type = nspc_lookup_type1(base->e->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->mp, t_array->xid, base->name, t_array);
+  const Type t = new_type(env->gwion->mp, env->gwion->type[et_array]->xid, base->name, env->gwion->type[et_array]);
   t->name = s_name(sym);
   t->size = SZ_INT;
   t->array_depth = depth + base->array_depth;
   t->e->d.base_type = base;
-  t->nspc = t_array->nspc;
+  t->nspc = env->gwion->type[et_array]->nspc;
   ADD_REF(t->nspc);
   SET_FLAG(t, checked);
   t->e->owner = base->e->owner;
@@ -197,6 +191,10 @@ ANN m_uint get_depth(const Type type) {
   return depth;
 }
 
-Type
-  t_null, t_object, t_shred, t_fork, t_event, t_ugen, t_string, t_ptr, t_array, t_gack,
-  t_function, t_fptr, t_varloop, t_vararg, t_lambda, t_class, t_union, t_undefined, t_auto, t_tuple;
+ANN m_bool is_fptr(const struct Gwion_* gwion, const Type t) {
+  return isa(actual_type(gwion, t), gwion->type[et_fptr]) > 0;
+}
+
+ANN Type actual_type(const struct Gwion_* gwion, const Type t) {
+  return isa(t, gwion->type[et_class]) > 0 ? t->e->d.base_type : t;
+}
