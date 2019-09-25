@@ -101,6 +101,8 @@ static OP_CHECK(opck_implicit_similar) {
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=lhs, .rhs=rhs, .ck=opck_implicit_similar };
   add_op(env->gwion, &opi);
+  opi.op=insert_symbol("@cast");
+  add_op(env->gwion, &opi);
 }
 
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
