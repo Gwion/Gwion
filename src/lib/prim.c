@@ -71,12 +71,16 @@ static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_end(gwi, "--", int_post_dec))
   return GW_OK;
 }
+static GACK(gack_bool) {
+  printf("%s", *(m_uint*)VALUE ? "true" : "false");
+}
 
 static GWION_IMPORT(int_values) {
   GWI_BB(gwi_enum_ini(gwi, "bool"))
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
   const Type t_bool = gwi_enum_end(gwi);
+  GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
   gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))

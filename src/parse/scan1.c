@@ -357,8 +357,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(GET_FLAG(fdef, dtor) && !env->class_def)
-    ERR_B(td_pos(fdef->base->td), _("dtor must be in class def!!"))
+  if(!env->class_def && (GET_FLAG(fdef, dtor) || fdef->base->xid == insert_symbol("@gack")))
+    ERR_B(td_pos(fdef->base->td), _("'%s' must be in class def!!"), s_name(fdef->base->xid))
   if(GET_FLAG(fdef, op) && env->class_def)
     SET_FLAG(fdef, static);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;

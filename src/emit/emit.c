@@ -560,17 +560,17 @@ ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) {
 
 ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   const Exp exp = primary->d.exp;
-  CHECK_BB(emit_exp(emit, exp, 0))
-  const Vector v = new_vector(emit->gwion->mp);
-  m_uint offset = 0;
-  Exp e = exp;
+  Exp e = exp, next = NULL;
   do {
-    vector_add(v, (vtype)e->type);
-    offset += e->type->size;
-  } while((e = e->next));
-  const Instr instr = emit_add_instr(emit, Gack);
-  instr->m_val = offset;
-  instr->m_val2 = (m_uint)v;
+    next = e->next;
+    e->next = NULL;
+    CHECK_BB(emit_exp(emit, e, 0))
+    const Instr instr = emit_add_instr(emit, Gack);
+    instr->m_val = (m_uint)e->type;
+    instr->m_val2 = emit_code_offset(emit);
+  } while((e = e->next = next));
+  if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
+    emit_add_instr(emit, Gack3);
   return GW_OK;
 }
 
@@ -1746,6 +1746,9 @@ ANN static void emit_func_def_code(const Emitter emit, const Func func) {
   func->code = finalyze(emit, !GET_FLAG(func->def, dtor) ? FuncReturn : DTOR_EOC);
   if(GET_FLAG(func->def, dtor)) {
     emit->env->class_def->nspc->dtor = func->code;
+    ADD_REF(func->code)
+  } else if(func->def->base->xid == insert_symbol("@gack")) {
+    emit->env->class_def->e->gack = func->code;
     ADD_REF(func->code)
   }
 }

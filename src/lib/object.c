@@ -221,8 +221,13 @@ static ID_CHECK(check_this) {
   return env->class_def;
 }
 
+static GACK(gack_object) {
+  printf("%p", *(M_Object*)VALUE);
+}
+
 GWION_IMPORT(object) {
   const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  GWI_BB(gwi_gack(gwi, t_object, gack_object))
   gwi->gwion->type[et_object] = t_object;
   GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))

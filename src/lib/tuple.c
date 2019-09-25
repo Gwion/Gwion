@@ -94,6 +94,7 @@ ANN static void unpack_instr_decl(const Emitter emit, struct TupleEmit *te) {
       te->sz += value->type->size;
       sz += value->type->size;
       value->offset = emit_local(emit, value->type->size, 0);
+printf("value->offset %lu\n", value->offset);
     } else {
       sz += ((Type)vector_at(te->v, te->idx))->size;
       break;
@@ -202,7 +203,7 @@ static OP_EMIT(opem_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(!(bin->rhs->exp_type == ae_exp_primary &&
       bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
-      return emit_add_instr(emit, ObjectAssign);
+    return emit_add_instr(emit, ObjectAssign);
   }
   const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
   const Vector v = &bin->lhs->type->e->tuple->types;

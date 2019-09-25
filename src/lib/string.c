@@ -181,8 +181,13 @@ ID_CHECK(check_funcpp) {
   return prim_str(env, (Exp_Primary * const)prim);
 }
 
+static GACK(gack_string) {
+  const M_Object obj = *(M_Object*)VALUE;
+  printf("%s", obj ? STRING(obj) : "(null string)");
+}
 GWION_IMPORT(string) {
   const Type t_string = gwi_mk_type(gwi, "string", SZ_INT, gwi->gwion->type[et_object]);
+  GWI_BB(gwi_gack(gwi, t_string, gack_string))
   GWI_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
   gwi->gwion->type[et_string] = t_string;
   gwi_item_ini(gwi, "int", "@data");

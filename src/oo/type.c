@@ -60,6 +60,7 @@ ANN Type type_copy(MemPool p, const Type type) {
   a->e->d.base_type   = type->e->d.base_type;
   a->array_depth   = type->array_depth;
   a->e->def           = type->e->def;
+  a->e->gack           = type->e->gack;
   return a;
 }
 

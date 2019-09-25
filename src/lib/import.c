@@ -176,6 +176,17 @@ ANN /* static */ ID_List str2list(const Env env, const m_str path, m_uint* array
   return list;
 }
 
+ANN static m_bool mk_gack(MemPool p, const Type type, const f_gack d) {
+  const VM_Code code = new_vm_code(p, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@gack");
+  code->native_func = (m_uint)d;
+  type->e->gack = code;
+  return GW_OK;
+}
+
+ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d) {
+  return mk_gack(gwi->gwion->mp, type, d);
+}
+
 ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;

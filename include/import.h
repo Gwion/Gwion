@@ -2,9 +2,10 @@
 #define __IMPORT
 #define DLARG_MAX 6
 
-typedef void (*f_xtor)(const M_Object o, const m_bit*, const VM_Shred);
-typedef void (*f_mfun)(const M_Object o, const m_bit* RETURN, const VM_Shred sh);
-typedef void (*f_sfun)(const m_bit*, const m_bit* RETURN, const VM_Shred sh);
+typedef void (*f_xtor)(const M_Object, const m_bit*, const VM_Shred);
+typedef void (*f_mfun)(const M_Object, const m_bit*, const VM_Shred);
+typedef void (*f_sfun)(const m_bit*, const m_bit*, const VM_Shred);
+typedef void (*f_gack)(const Type, const m_bit*, const VM_Shred);
 typedef void (*f_xfun)();
 typedef struct Gwi_* Gwi;
 
@@ -12,6 +13,7 @@ typedef struct Gwi_* Gwi;
 #define SFUN(a) ANN void a(const M_Object o NUSED, const m_bit* RETURN NUSED, const VM_Shred shred NUSED)
 #define CTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define DTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
+#define GACK(a) ANN2(2) void a(const Type t NUSED, const m_bit* VALUE NUSED, const VM_Shred shred NUSED)
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
 #define OP_EMIT(a)  ANN Instr a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
@@ -34,6 +36,7 @@ ANN VM* gwi_vm(const Gwi);
 ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
 ANN m_int gwi_add_type(const Gwi gwi, Type type);
 ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te);
+ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d);
 ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor);
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
 ANN m_int gwi_class_end(const Gwi gwi);

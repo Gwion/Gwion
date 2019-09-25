@@ -259,6 +259,8 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
   else ADVANCE(); \
   IDISPATCH();
 
+#define VM_OUT shred->code = code; shred->reg = reg; shred->mem = mem; shred->pc = PC;
+
 __attribute__ ((hot, optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
@@ -308,7 +310,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
-    &&gack, &&regpushimm, &&other, &&eoc
+    &&gack, &&gack3, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -567,10 +569,7 @@ timeadv:
   reg -= SZ_FLOAT;
   shredule(s, shred, *(m_float*)(reg-SZ_FLOAT));
   *(m_float*)(reg-SZ_FLOAT) += vm->bbq->pos;
-  shred->code = code;
-  shred->reg = reg;
-  shred->mem = mem;
-  shred->pc = PC;
+  VM_OUT
   break;
 setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
@@ -623,10 +622,7 @@ funcusrend:
   byte = bytecode = (code = a.code)->bytecode;
   SDISPATCH();
 funcmemberend:
-  shred->mem = mem;
-  shred->reg = reg;
-  shred->pc = PC;
-  shred->code = code;
+  VM_OUT
   {
     register const m_uint val = VAL;
     register const m_uint val2 = VAL2;
@@ -702,11 +698,9 @@ arrayaccess:
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
-    shred->code = code;
-    shred->mem = mem;
-    shred->pc = PC;
+    VM_OUT
     exception(shred, "ArrayOutofBounds");
-    continue;
+    continue; // or break ?
   }
   DISPATCH()
 }
@@ -729,7 +723,7 @@ addref:
     ++a.obj->ref;
   DISPATCH()
 objassign:
-{
+{ // use a.obj ?
   register const M_Object tgt = **(M_Object**)(reg -SZ_INT);
   if(tgt) {
     --tgt->ref;
@@ -821,22 +815,24 @@ gcend:
     _release(a.obj, shred);
   DISPATCH()
 gack:
-  gack(vm->gwion, reg, (Instr)VAL);
-  DISPATCH()
+  VM_OUT
+  gack(shred, (Instr)VAL);
+  goto in;
+gack3:
+  gw_out("\n");
+  DISPATCH();
 other:
-shred->code = code;
-shred->reg = reg;
-shred->mem = mem;
-shred->pc = PC;
-      ((f_instr)VAL2)(shred, (Instr)VAL);
-if(!s->curr)break;
+  VM_OUT
+  ((f_instr)VAL2)(shred, (Instr)VAL);
+in:
+  if(!s->curr)
+    break;
   bytecode = (code = shred->code)->bytecode;
   reg = shred->reg;
   mem = shred->mem;
   PC_DISPATCH(shred->pc)
 eoc:
-  shred->code = code;
-  shred->mem = mem;
+  VM_OUT
   vm_shred_exit(shred);
     } while(s->curr);
   MUTEX_UNLOCK(s->mutex);
