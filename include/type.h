@@ -12,6 +12,7 @@ struct TypeInfo_ {
   struct Vector_ contains;
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
+  struct Context_ *ctx;
 };
 
 struct Type_ {

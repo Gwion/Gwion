@@ -93,8 +93,7 @@ ANN static void unpack_instr_decl(const Emitter emit, struct TupleEmit *te) {
       const Value value = te->e->d.exp_decl.list->self->value;
       te->sz += value->type->size;
       sz += value->type->size;
-      value->offset = emit_local(emit, value->type->size, 0);
-printf("value->offset %lu\n", value->offset);
+      value->from->offset = emit_local(emit, value->type->size, 0);
     } else {
       sz += ((Type)vector_at(te->v, te->idx))->size;
       break;

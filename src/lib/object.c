@@ -73,7 +73,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
-        release(*(M_Object*)(o->data + v->offset), shred);
+        release(*(M_Object*)(o->data + v->from->offset), shred);
     }
     if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))

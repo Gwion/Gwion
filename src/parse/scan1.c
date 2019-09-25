@@ -10,6 +10,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "context.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -71,6 +72,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
+  if(env->context)
+    env->context->global = 1;
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   do {
@@ -102,8 +105,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     if(!env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
-    v->owner = !env->func ? env->curr : NULL;
-    v->owner_class = env->scope->depth ? NULL : env->class_def;
+// set from ?
+    v->from->owner = !env->func ? env->curr : NULL;
+    v->from->owner_class = env->scope->depth ? NULL : env->class_def;
+    v->from->ctx = env->context;
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -235,11 +240,13 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
     CHECK_BB(already_defined(env, list->xid, edef->pos))
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
     if(env->class_def) {
-      v->owner_class = env->class_def;
+      v->from->owner_class = env->class_def;
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
     }
-    v->owner = env->curr;
+// set from ?
+    v->from->owner = env->curr;
+    v->from->ctx = env->context;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(edef->t->e->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);

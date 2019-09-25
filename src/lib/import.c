@@ -357,7 +357,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
 if(v->var.value->type->array_depth)
 ADD_REF(v->var.value->type);
   dl_var_release(gwi->gwion->mp, v);
-  return (m_int)v->var.value->offset;
+  return (m_int)v->var.value->from->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,

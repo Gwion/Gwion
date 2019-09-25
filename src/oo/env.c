@@ -90,8 +90,8 @@ ANN void env_add_type(const Env env, const Type type) {
   const Value v = new_value(env->gwion->mp, v_type, s_name(sym));
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
-  v->owner = type->e->owner = env->curr;
-  v->owner_class = env->class_def;
+  v->from->owner = type->e->owner = env->curr;
+  v->from->owner_class = env->class_def;
   type->xid = ++env->scope->type_xid;
 }
 
@@ -100,10 +100,11 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   env_reset(env);
   load_context(ctx, env);
   const m_bool ret = traverse_ast(env, ast);
-  if(ret > 0) {
+  if(ret > 0) //{
     nspc_commit(env->curr);
+  if(ret || env->context->global)
     vector_add(&env->scope->known_ctx, (vtype)ctx);
-  } else //nspc_rollback(env->global_nspc);
+  else //nspc_rollback(env->global_nspc);
     REM_REF(ctx, env->gwion);
   unload_context(ctx, env);
   return ret;

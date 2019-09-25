@@ -22,6 +22,7 @@
 #include "tuple.h"
 #include "emit.h"
 #include "specialid.h"
+#include "context.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
@@ -41,15 +42,15 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
     ERR_B(var->pos,
           _("in class '%s': '%s' has already been defined in parent class '%s' ..."),
           env->class_def->name, s_name(var->xid),
-          value->owner_class ? value->owner_class->name : "?")
+          value->from->owner_class ? value->from->owner_class->name : "?")
   return GW_OK;
 }
 
 #define describe_check_decl(a, b)                                 \
-ANN static inline void decl_##a(const Env env, const Value v) { \
+ANN static inline void decl_##a(const Env env, const Value v) {   \
   const Nspc nspc = env->curr;\
   SET_FLAG(v, a);                                                 \
-  v->offset = nspc->info->b;                                      \
+  v->from->offset = nspc->info->b;                                \
   nspc->info->b += v->type->size;                                 \
 }
 describe_check_decl(member, offset)
@@ -58,7 +59,7 @@ describe_check_decl(static, class_data_size)
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
   const Func  func = v->type->e->d.func;
-  const Type type = func->value_ref->owner_class;
+  const Type type = func->value_ref->from->owner_class;
   if(!env->class_def) {
     if(!type || GET_FLAG(func, global))
       return GW_OK;
@@ -191,10 +192,10 @@ ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
 
 ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
       const Value v, const loc_t pos) {
-  if(!v->owner_class || isa(t, v->owner_class) < 0) {
+  if(!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
     ERR_B(pos,
         _("'%s' from owner namespace '%s' used in '%s'."),
-            v->name, v->owner ? v->owner->name : "?", t->name)
+            v->name, v->from->owner ? v->from->owner->name : "?", t->name)
   }
   return GW_OK;
 }
@@ -204,7 +205,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
   if(env->class_def) {
     const Value v = value ? value : find_value(env->class_def, primary->d.var);
     if(v) {
-      if(v->owner_class)
+      if(v->from->owner_class)
         CHECK_BO(not_from_owner_class(env, env->class_def, v, exp_self(primary)->pos))
       if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
         ERR_O(exp_self(primary)->pos,
@@ -221,16 +222,16 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
 
 ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   const Value v = check_non_res_value(env, primary);
-  if(!v || !GET_FLAG(v, checked)) {
+  if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, exp_self(primary)->pos,
           _("variable %s not legit at this point."), s_name(primary->d.var));
-    if(v && v->owner_class)
-      did_you_mean_type(v->owner_class, s_name(primary->d.var));
+    if(v && v->from->owner_class)
+      did_you_mean_type(v->from->owner_class, s_name(primary->d.var));
     else
-      did_you_mean_nspc(v ? v->owner : env->curr, s_name(primary->d.var));
+      did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
     return NULL;
   }
-  if(env->func && !GET_FLAG(v, const) && v->owner)
+  if(env->func && !GET_FLAG(v, const) && v->from->owner)
     UNSET_FLAG(env->func, pure);
   SET_FLAG(v, used);
   ((Exp_Primary*)primary)->value = v;
@@ -471,10 +472,10 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
       }
       if(e1->type == env->gwion->type[et_undefined] ||
             (func->def->base->tmpl && is_fptr(env->gwion, func->value_ref->type) > 0)) {
-        if(SAFE_FLAG(func->value_ref->owner_class, template))
-          CHECK_BO(template_push_types(env, func->value_ref->owner_class->e->def->base.tmpl))
+        if(SAFE_FLAG(func->value_ref->from->owner_class, template))
+          CHECK_BO(template_push_types(env, func->value_ref->from->owner_class->e->def->base.tmpl))
           e1->type = known_type(env, e1->td);
-        if(SAFE_FLAG(func->value_ref->owner_class, template))
+        if(SAFE_FLAG(func->value_ref->from->owner_class, template))
           nspc_pop_type(env->gwion->mp, env->curr);
         CHECK_OO(e1->type)
       }
@@ -511,9 +512,9 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
 }
 
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
-  const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl, i);
-  return v->owner_class ? find_value(v->owner_class, sym) :
-      nspc_lookup_value1(v->owner, sym);
+  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl, i);
+  return v->from->owner_class ? find_value(v->from->owner_class, sym) :
+      nspc_lookup_value1(v->from->owner, sym);
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
@@ -552,10 +553,10 @@ CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
-  const m_uint scope = env_push(env, v->owner_class, v->owner);
+  const m_uint scope = env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type)) {
-    const Symbol sym = func_symbol(env, v->owner->name, v->name, tmpl_name, 0);
-    const Value value = nspc_lookup_value1(v->owner, sym);
+    const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
+    const Value value = nspc_lookup_value1(v->from->owner, sym);
     Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
     Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
     fbase->xid = sym;
@@ -573,12 +574,12 @@ CHECK_BO(check_call(env, exp))
         m_func = find_func_match(env, fbase->func, exp->args);
         nspc_pop_type(env->gwion->mp, env->curr);
         if(!value && m_func)
-          nspc_add_type_front(v->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
+          nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
       }
       free_fptr_def(env->gwion->mp, fptr); // ???? related
     }
   } else {
-    for(m_uint i = 0; i < v->offset + 1; ++i) {
+    for(m_uint i = 0; i < v->from->offset + 1; ++i) {
       const Value exists = template_get_ready(env, v, tmpl_name, i);
       if(exists) {
         if(env->func == exists->d.func_ref) {
@@ -613,7 +614,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   const Func f = _find_template_match(env, value, exp);
   if(f)
     return f;
-  Type t = value->owner_class;
+  Type t = value->from->owner_class;
   while(t) {
     const Value v = nspc_lookup_value0(t->nspc, value->d.func_ref->def->base->xid);
     if(!v)
@@ -706,7 +707,7 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   if(tm->call) {
     DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
     if(!func->def->base->ret_type) { // template fptr
-      const m_uint scope = env_push(env, value->owner_class, value->owner);
+      const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
       CHECK_BO(traverse_func_def(env, func->def))
       env_pop(env, scope);
     }
@@ -778,8 +779,8 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->e->d.func, ref)) {
     const Value value = exp->func->type->e->d.func->value_ref;
-    if(value->owner_class)
-      CHECK_BO(traverse_class_def(env, value->owner_class->e->def))
+    if(value->from->owner_class)
+      CHECK_BO(traverse_class_def(env, value->from->owner_class->e->def))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
@@ -910,7 +911,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
     return NULL;
   }
   CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
-  if(!env->class_def || isa(env->class_def, value->owner_class) < 0) {
+  if(!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if(GET_FLAG(value, private))
       ERR_O(exp_self(member)->pos,
           _("can't access private '%s' outside of class..."), value->name)
@@ -1256,8 +1257,8 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
 
 ANN static m_bool check_signature_match(const Env env, const Func_Def fdef, const Func parent) {
   if(GET_FLAG(parent->def, static) != GET_FLAG(fdef, static)) {
-    const m_str c_name  = fdef->base->func->value_ref->owner_class->name;
-    const m_str p_name = parent->value_ref->owner_class->name;
+    const m_str c_name  = fdef->base->func->value_ref->from->owner_class->name;
+    const m_str p_name = parent->value_ref->from->owner_class->name;
     const m_str f_name = s_name(fdef->base->xid);
     ERR_B(td_pos(fdef->base->td),
           _("function '%s.%s' ressembles '%s.%s' but cannot override...\n"
@@ -1309,9 +1310,9 @@ ANN static inline Func get_overload(const Env env, const Func_Def fdef, const m_
 
 ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
   const Value v = fdef->base->func->value_ref;
-  for(m_uint i = 0; i <= v->offset; ++i) {
+  for(m_uint i = 0; i <= v->from->offset; ++i) {
     const Func f1 = get_overload(env, fdef, i);
-    for(m_uint j = i + 1; f1 && j <= v->offset; ++j) {
+    for(m_uint j = i + 1; f1 && j <= v->from->offset; ++j) {
       const Func f2 = get_overload(env, fdef, j);
       if(f2 && compat_func(f1->def, f2->def) > 0)
         ERR_B(td_pos(f2->def->base->td), _("global function '%s' already defined"
@@ -1325,13 +1326,13 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
   const Func func = fdef->base->func;
   if(env->class_def && env->class_def->e->parent) {
     const Value override = find_value(env->class_def->e->parent, fdef->base->xid);
-    if(override && override->owner_class && isa(override->type, env->gwion->type[et_function]) < 0)
+    if(override && override->from->owner_class && isa(override->type, env->gwion->type[et_function]) < 0)
       ERR_B(fdef->pos,
             _("function name '%s' conflicts with previously defined value...\n"
             "  from super class '%s'..."),
-            s_name(fdef->base->xid), override->owner_class->name)
+            s_name(fdef->base->xid), override->from->owner_class->name)
   }
-  if(func->value_ref->offset && (!fdef->base->tmpl || !fdef->base->tmpl->base))
+  if(func->value_ref->from->offset && (!fdef->base->tmpl || !fdef->base->tmpl->base))
     CHECK_BB(check_func_overload(env, fdef))
   return GW_OK;
 }

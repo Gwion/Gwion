@@ -62,7 +62,7 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
     if(var->array)
       list->type = array_type(env, list->type, var->array->depth);
     var->value = arg_value(env->gwion->mp, list);
-    var->value->offset = f->stack_depth;
+    var->value->from->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
   return GW_OK;
@@ -70,9 +70,11 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
 
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
-  v->owner = env->curr;
+// set from ?
+  v->from->owner = env->curr;
+  v->from->ctx = env->context;
   SET_FLAG(v, func | ae_flag_const);
-  if(!(v->owner_class = env->class_def))
+  if(!(v->from->owner_class = env->class_def))
     SET_FLAG(v, global);
   else {
     if(GET_FLAG(f, member))
@@ -394,7 +396,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
     nspc_add_value(env->curr, f->base->xid, value);
     nspc_add_func(env->curr, f->base->xid, func);
   } else
-    func->vt_index = ++overload->offset;
+    func->vt_index = ++overload->from->offset;
   return GW_OK;
 }
 
@@ -493,7 +495,7 @@ ANN static m_str template_helper(const Env env, const Func_Def f) {
 
 ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v) {
   if(!f->base->tmpl) {
-    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->offset : 0);
+    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
   return template_helper(env, f);

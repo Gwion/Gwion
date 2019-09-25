@@ -95,8 +95,8 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 }
 
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
-  const Type l_type = info->lhs->value_ref->owner_class;
-  const Type r_type = info->rhs->value_ref->owner_class;
+  const Type l_type = info->lhs->value_ref->from->owner_class;
+  const Type r_type = info->rhs->value_ref->from->owner_class;
   if(!r_type && l_type)
     ERR_B(info->pos, _("can't assign member function to non member function pointer"))
   else if(!l_type && r_type) {
@@ -125,11 +125,11 @@ ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
 
 ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   const Value v = info->lhs->value_ref;
-  const Nspc nspc = v->owner;
+  const Nspc nspc = v->from->owner;
   const m_str c = s_name(info->lhs->def->base->xid),
     stmpl = !info->rhs->def->base->tmpl ? NULL : "template";
   Type type = NULL;
-  for(m_uint i = 0; i <= v->offset && !type; ++i) {
+  for(m_uint i = 0; i <= v->from->offset && !type; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
     if(isa(info->lhs->value_ref->type, env->gwion->type[et_class]) < 0)
@@ -178,7 +178,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
 
 ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
   Exp_Lambda *l = &info->exp->d.exp_lambda;
-  const Type owner = info->rhs->value_ref->owner_class;
+  const Type owner = info->rhs->value_ref->from->owner_class;
   return check_lambda(env, owner, l, info->rhs->def);
 }
 

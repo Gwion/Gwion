@@ -238,8 +238,8 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       const Value value = new_value(env->gwion->mp, ret, s_name(sym));
       func->flag = def->flag;
       value->d.func_ref = func;
-      value->owner = t->e->owner;
-      value->owner_class = t->e->d.func->value_ref->owner_class;
+      value->from->owner = t->e->owner;
+      value->from->owner_class = t->e->d.func->value_ref->from->owner_class;
       func->value_ref = value;
       func->def->base->tmpl = mk_tmpl(env, t, t->e->d.func->def->base->tmpl, type->types);
       def->base->func = func;

@@ -47,8 +47,8 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   def->base->tmpl->call = dt->tl;
   def->base->tmpl->base = dt->vt_index;
   dt->def = def;
-  dt->owner = v->owner;
-  dt->owner_class = v->owner_class;
+  dt->owner = v->from->owner;
+  dt->owner_class = v->from->owner_class;
   SET_FLAG(def, template);
   return def;
 }
@@ -66,10 +66,10 @@ INSTR(GTmpl) {
   const Emitter emit = shred->info->vm->gwion->emit;
   emit->env->name = "runtime";
   m_str tmpl_name = tl2str(emit->env, dt->tl);
-  for(m_uint i = 0 ; i <= f->value_ref->offset; ++i) {
-    const Symbol sym = func_symbol(emit->env, f->value_ref->owner->name,
+  for(m_uint i = 0 ; i <= f->value_ref->from->offset; ++i) {
+    const Symbol sym = func_symbol(emit->env, f->value_ref->from->owner->name,
       name, tmpl_name, i);
-    const Func base = nspc_lookup_func0(f->value_ref->owner, sym);
+    const Func base = nspc_lookup_func0(f->value_ref->from->owner, sym);
     if(base) {
       free_mstr(emit->gwion->mp, tmpl_name);
       assert(base->code);
@@ -79,7 +79,7 @@ INSTR(GTmpl) {
   }
   free_mstr(emit->gwion->mp, tmpl_name);
   dt->def = f->def;
-  const Func_Def def = traverse_tmpl(emit, dt, f->value_ref->owner);
+  const Func_Def def = traverse_tmpl(emit, dt, f->value_ref->from->owner);
   if(!def)
     Except(shred, "MissigTmplPtrException[internal]");
   *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;

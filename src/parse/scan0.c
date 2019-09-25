@@ -18,16 +18,27 @@
 #include "operator.h"
 #include "import.h"
 
+#include "context.h"
+
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
+}
+
+static inline Type scan0_type(const Env env, const m_uint xid,
+    const m_str name, const Type t) {
+  const Type type = new_type(env->gwion->mp, xid, name, t);
+  type->e->ctx = env->context;
+  return type;
 }
 
 ANN static Value mk_class(const Env env, const Type base) {
   const Symbol sym = insert_symbol(base->name);
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_class]);
+t->e->ctx = env->context;
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
   t->e->d.base_type = base;
-  v->owner = base->e->owner;
+// set from
+  v->from->owner = base->e->owner;
   SET_FLAG(v, const | ae_flag_checked);
   nspc_add_value_front(base->e->owner, sym, v);
   return v;
@@ -42,6 +53,7 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
 ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
   if(GET_FLAG(fptr->base->td, global)) {
+    env->context->global = 1;
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
     SET_FLAG(def, global);
@@ -57,7 +69,7 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   }
   if(GET_FLAG(def, variadic))
     def->stack_depth += SZ_INT;
-  fptr->value->owner_class = env->class_def;
+  fptr->value->from->owner_class = env->class_def;
 }
 
 static void fptr_def(const Env env, const Fptr_Def fptr) {
@@ -76,15 +88,18 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_OB(known_type(env, fptr->base->td))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
-  const Type t = new_type(env->gwion->mp, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
+  const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
+  if(GET_FLAG(fptr->base->td, global))
+    env->context->global = 1;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = fptr->base->td->flag;
   fptr->type = t;
   fptr->value = mk_class(env, t);
-  fptr->value->owner = env->curr;
-  fptr->value->owner_class = env->class_def;
+// set owner ?
+  fptr->value->from->owner = env->curr;
+  fptr->value->from->owner_class = env->class_def;
   fptr_def(env, fptr);
   if(env->class_def)
     fptr_assign(env, fptr);
@@ -106,10 +121,12 @@ ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type
 }
 
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
-  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(tdef->xid), base);
+  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(tdef->xid), base);
   t->size = base->size;
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
   env->global_nspc : env->curr;
+  if(GET_FLAG(tdef->ext, global))
+    env->context->global = 1;
   add_type(env, nspc, t);
   t->e->owner = nspc;
   tdef->type = t;
@@ -172,6 +189,8 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   t->e->parent = env->gwion->type[et_int];
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
+  if(GET_FLAG(edef, global))
+    env->context->global = 1;
   edef->t = t;
   if(edef->xid) {
     add_type(env, nspc, t);
@@ -202,6 +221,8 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   CHECK_BB(env_storage(env, udef->flag, udef->pos))
   const m_uint scope = !GET_FLAG(udef, global) ? env->scope->depth :
       env_push_global(env);
+  if(GET_FLAG(udef, global))
+    env->context->global = 1;
   if(udef->xid) {
     CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
     const Nspc nspc = !GET_FLAG(udef, global) ?
@@ -209,8 +230,10 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Type t = union_type(env, nspc, udef->type_xid ?: udef->xid,
        !!udef->type_xid);
     udef->value = new_value(env->gwion->mp, t, s_name(udef->xid));
-    udef->value->owner_class = env->class_def;
-    udef->value->owner = nspc;
+// set owner ?
+    udef->value->from->owner_class = env->class_def;
+    udef->value->from->owner = nspc;
+    udef->value->from->ctx = env->context;
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(t, scan1 | ae_flag_union);
@@ -236,8 +259,9 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Symbol sym = insert_symbol(name);
     const Type t = union_type(env, nspc, sym, 1);
     udef->value = new_value(env->gwion->mp, t, s_name(sym));
-    udef->value->owner_class = env->class_def;
-    udef->value->owner = nspc;
+    udef->value->from->owner_class = env->class_def;
+    udef->value->from->owner = nspc;
+    udef->value->from->ctx = env->context;
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(udef->value, checked | udef->flag);
@@ -269,6 +293,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
+    env->context->global = 1;
   }
   CHECK_BB(scan0_defined(env, cdef->base.xid, cdef->pos))
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
@@ -276,7 +301,7 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
-  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
+  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
 //  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;

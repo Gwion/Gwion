@@ -22,7 +22,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
   if((GET_FLAG(value, static) && a->info->class_data) ||
     (value->d.ptr && GET_FLAG(value, builtin))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
-        *(M_Object*)(a->info->class_data + value->offset);
+        *(M_Object*)(a->info->class_data + value->from->offset);
        release(obj, gwion->vm->cleaner_shred);
   }
 }

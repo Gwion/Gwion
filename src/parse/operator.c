@@ -186,7 +186,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
 }
 
 ANN m_bool operator_set_func(const struct Op_Import* opi) {
-  const Nspc nspc = ((Func)opi->data)->value_ref->owner;
+  const Nspc nspc = ((Func)opi->data)->value_ref->from->owner;
   const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
   DECL_OB(M_Operator*, mo, = operator_find(v, opi->lhs, opi->rhs))
   mo->func = (Func)opi->data;
