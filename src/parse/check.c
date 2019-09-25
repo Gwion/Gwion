@@ -212,7 +212,7 @@ ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) 
     }
     return v;
   } else if(env->func && GET_FLAG(env->func->def, global)) {
-    if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
+    if(!SAFE_FLAG(value, abstract) && value->owner)
       ERR_O(exp_self(primary)->pos,
             _("non-global variable '%s' used from global function."), s_name(primary->d.var))
   }

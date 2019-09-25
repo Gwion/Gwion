@@ -48,7 +48,7 @@ ANN static Value arg_value(MemPool p, const Arg_List list) {
   if(!var->value) {
     const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
     if(list->td)
-      v->flag = list->td->flag | ae_flag_arg;
+      v->flag = list->td->flag;
     return v;
   }
   var->value->type = list->type;
