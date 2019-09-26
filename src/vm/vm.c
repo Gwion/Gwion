@@ -117,7 +117,7 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
-  vector_add(&shred->gc, sh->info->me);
+  vector_add(&shred->gc, (vtype)sh->info->me);
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
     vector_init(&shred->tick->child);
@@ -129,7 +129,7 @@ ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code c
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
   assert(sh->info->me);
-  vector_add(&shred->gc, sh->info->me);
+  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
