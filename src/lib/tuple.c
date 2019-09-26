@@ -144,10 +144,10 @@ static OP_CHECK(opck_at_tuple) {
         DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
         e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
         CHECK_BO(traverse_decl(env, &e->d.exp_decl))
+        bin->rhs->meta = ae_meta_var;
       }
       ++i;
     } while((e = e->next));
-    bin->rhs->emit_var = 1;
     return bin->lhs->type;
   }
   return opck_at_object_tuple(env, data, mut);

@@ -575,8 +575,9 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
 }
 
 ANN static m_bool prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
-// TODO err_msg
-  return exp_self(primary)->emit_var ? GW_OK : GW_ERROR;
+  if(exp_self(primary)->meta == ae_meta_var)
+    return GW_OK;
+  ERR_B(exp_self(primary)->pos, _("unused Tuple unpack"))
 }
 
 static const _exp_func prim_func[] = {
