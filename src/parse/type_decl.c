@@ -44,7 +44,7 @@ ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   if(GET_FLAG(td, nonnull)) {
     if(isa(ret, env->gwion->type[et_void]) > 0)
       ERR_O(td_pos(td), _("void types can't be nonnull."))
-    if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_function]) < 0)
+    if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_fptr]) < 0)
       return ret;
     return type_nonnull(env, ret);
   }

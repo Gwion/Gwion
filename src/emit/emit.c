@@ -1693,8 +1693,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
 (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type)))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))
-//    emit_except(emit, member->t_base);
-    emit_add_instr(emit, GWOP_EXCEPT);
+    emit_except(emit, member->t_base);
   }
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
     return emit_member_func(emit, member);
