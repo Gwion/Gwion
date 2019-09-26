@@ -1,6 +1,6 @@
 class C
 {
-  dtor {<<< 1 >>>;}
+  operator @dtor void () {<<< 1 >>>;}
 }
 
 C c;

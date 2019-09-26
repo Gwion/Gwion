@@ -409,14 +409,15 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const m_str str = s_name(f->base->xid);
   const uint is_unary = GET_FLAG(f, unary) + (!strcmp(str, "@conditionnal") || !strcmp(str, "@unconditionnal"));
   const Type l = is_unary ? NULL :
-    f->base->args->var_decl->value->type;
-  const Type r = is_unary ? f->base->args->var_decl->value->type :
+    f->base->args ? f->base->args->var_decl->value->type : NULL;
+  const Type r = f->base->args ? is_unary ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type :
-    f->base->ret_type;
+    f->base->ret_type : NULL;
   struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
                            .pos=f->pos, .data=(uintptr_t)f->base->func };
-  if(!strcmp(str, "@implicit"))
+  if(!strcmp(str, "@implicit")) {
     opi.ck = opck_usr_implicit;
+  }
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;
@@ -433,10 +434,8 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
   if(!GET_FLAG(f, builtin))
     SET_FLAG(f->base->func, pure);
-  if(GET_FLAG(f, dtor)) {
+  if(f->base->xid == insert_symbol("@dtor"))
     SET_FLAG(env->class_def, dtor);
-    SET_FLAG(f->base->func, dtor);
-  }
 }
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {

@@ -7,7 +7,7 @@ union <~A~>U {
 #!<<< u.i >>>;
 class <~A~>C extends <~A~>U {
   fun void test() { <<< this >>>; }
-  dtor { <<< __func__ >>>; }
+  operator @dtor void () { <<< __func__ >>>; }
 }
 
 <~float~>C c;

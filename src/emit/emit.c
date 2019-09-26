@@ -576,7 +576,7 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
 
 ANN static m_bool prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
 // TODO err_msg
-  return primary->d.tuple.ok ? GW_OK : GW_ERROR;
+  return exp_self(primary)->emit_var ? GW_OK : GW_ERROR;
 }
 
 static const _exp_func prim_func[] = {
@@ -1070,7 +1070,8 @@ if(is_spork) {
 } else {
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
     spork->m_val = exp_self(unary)->emit_var;
-//    spork->m_val2 = f->def->base->ret_type->size;
+    if(!(spork->m_val = exp_self(unary)->emit_var))
+return NULL;// err_msg
 }
   } else {
     if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
@@ -1082,7 +1083,8 @@ if(is_spork) {
     } else
       emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
-    end->m_val = exp_self(unary)->emit_var;
+    if(!is_spork && !(end->m_val = exp_self(unary)->emit_var))
+      return NULL;// err_msg
     end->m_val2 = f->def->base->ret_type->size;
   }
   return ini;
@@ -1746,14 +1748,13 @@ ANN static void emit_func_def_return(const Emitter emit) {
 }
 
 ANN static void emit_func_def_code(const Emitter emit, const Func func) {
-  func->code = finalyze(emit, !GET_FLAG(func->def, dtor) ? FuncReturn : DTOR_EOC);
-  if(GET_FLAG(func->def, dtor)) {
+  const m_bool is_dtor = func->def->base->xid == insert_symbol("@dtor");// could be get flag
+  func->code = finalyze(emit, !is_dtor ? FuncReturn : DTOR_EOC);
+  if(is_dtor) {
     emit->env->class_def->nspc->dtor = func->code;
     ADD_REF(func->code)
-  } else if(func->def->base->xid == insert_symbol("@gack")) {
+  } else if(func->def->base->xid == insert_symbol("@gack"))
     emit->env->class_def->e->gack = func->code;
-    ADD_REF(func->code)
-  }
 }
 
 ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
