@@ -230,10 +230,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Type t = union_type(env, nspc, udef->type_xid ?: udef->xid,
        !!udef->type_xid);
     udef->value = new_value(env->gwion->mp, t, s_name(udef->xid));
-// set owner ?
-    udef->value->from->owner_class = env->class_def;
-    udef->value->from->owner = nspc;
-    udef->value->from->ctx = env->context;
+    valuefrom(env, udef->value->from);
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(t, scan1 | ae_flag_union);
@@ -259,9 +256,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Symbol sym = insert_symbol(name);
     const Type t = union_type(env, nspc, sym, 1);
     udef->value = new_value(env->gwion->mp, t, s_name(sym));
-    udef->value->from->owner_class = env->class_def;
-    udef->value->from->owner = nspc;
-    udef->value->from->ctx = env->context;
+    valuefrom(env, udef->value->from);
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(udef->value, checked | udef->flag);

@@ -70,11 +70,9 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
 
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
-// set from ?
-  v->from->owner = env->curr;
-  v->from->ctx = env->context;
+  valuefrom(env, v->from);
   SET_FLAG(v, func | ae_flag_const);
-  if(!(v->from->owner_class = env->class_def))
+  if(!env->class_def)
     SET_FLAG(v, global);
   else {
     if(GET_FLAG(f, member))

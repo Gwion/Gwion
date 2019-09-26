@@ -20,4 +20,5 @@ struct Value_ {
 };
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
+ANN void valuefrom(const Env, struct ValueFrom_*);
 #endif

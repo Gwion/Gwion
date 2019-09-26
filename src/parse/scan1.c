@@ -105,10 +105,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     if(!env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
-// set from ?
-    v->from->owner = !env->func ? env->curr : NULL;
-    v->from->owner_class = env->scope->depth ? NULL : env->class_def;
-    v->from->ctx = env->context;
+    if(!env->scope->depth)
+      valuefrom(env, v->from);
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -239,14 +237,11 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   do {
     CHECK_BB(already_defined(env, list->xid, edef->pos))
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
+    valuefrom(env, v->from);
     if(env->class_def) {
-      v->from->owner_class = env->class_def;
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
     }
-// set from ?
-    v->from->owner = env->curr;
-    v->from->ctx = env->context;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(edef->t->e->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
