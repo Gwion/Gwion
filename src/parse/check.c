@@ -28,11 +28,20 @@ ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
-  CHECK_OB(check_exp(env, exp))
-  do if(isa(exp->type, env->gwion->type[et_int]) < 0)
-      ERR_B(exp->pos, _("incompatible array subscript type '%s' ..."), exp->type->name)
-  while((exp = exp->next));
+ANN static m_bool check_implicit(const Env env, const m_str str,
+      const Exp e, const Type t) {
+  struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
+  struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
+        .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
+  CHECK_OB(op_check(env, &opi))
+  e->nspc = env->curr;
+  return GW_OK;
+}
+
+ANN m_bool check_exp_array_subscripts(Env env, Exp e) {
+  CHECK_OB(check_exp(env, e))
+  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
+  while((e = e->next));
   return GW_OK;
 }
 
@@ -169,9 +178,9 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
   const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  else if(!(isa(e->type, env->gwion->type[et_int]) > 0 && isa(type, env->gwion->type[et_float]) > 0))
+  if(check_implicit(env, "@implicit", e, type) < 0)
     ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
-  set_cast(env, type, e);
+  set_cast(env, type, e); // ???
   return GW_OK;
 }
 
@@ -267,18 +276,12 @@ ANN static Type prim_id(const Env env, Exp_Primary* primary) {
   return prim_id_non_res(env, primary);
 }
 
-ANN static m_bool vec_value(const Env env, Exp e, const m_str s) {
+ANN static m_bool vec_value(const Env env, Exp e) {
   int count = 1;
   CHECK_OB(check_exp(env, e))
   do {
-    const Type t = e->type;
-    if(isa(t, env->gwion->type[et_float]) < 0) {
-      if(isa(t, env->gwion->type[et_int]) > 0)
-        set_cast(env, env->gwion->type[et_float], e);
-      else
-        ERR_B(e->pos, _("invalid type '%s' in %s value #%d...\n"
-              "    (must be of type 'int' or 'float')"), t->name, s, count)
-    }
+    if(check_implicit(env, "@implicit", e, env->gwion->type[et_float]) < 0)
+      ERR_B(e->pos, _("invalid type '%s' in value #%d...\n"), e->type->name, count)
     ++count;
   } while((e = e->next));
   return GW_OK;
@@ -313,7 +316,7 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
   vec_info(env, t, &info);
   if(vec->dim > info.n)
     ERR_O(vec->exp->pos, _("extraneous component of %s value..."), info.s)
-  CHECK_BO(vec_value(env, vec->exp, info.s))
+  CHECK_BO(vec_value(env, vec->exp))
   return info.t;
 }
 
@@ -398,9 +401,7 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-  do if(isa(e->type, env->gwion->type[et_int]) < 0)
-    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
-        *depth, e->type->name)
+  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
   while(++(*depth) && (e = e->next));
   return GW_OK;
 }
@@ -450,11 +451,8 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
           insert_symbol(t->e->owner->name));
         return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
-      if(implicit) {
-        const struct Implicit imp = { e, t, e->pos };
-        struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=e->type, .rhs=t, .data=(m_uint)&imp, .pos=e->pos };
-        return op_check(env, &opi) ? GW_OK : GW_ERROR;
-      }
+      if(implicit)
+        return check_implicit(env, "@implicit", e, t);
   }
   return match ? 1 : -1;
 }
@@ -1036,19 +1034,10 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
-ANN static m_bool cond_type(const Env env, const Exp e) {
-  if(e->next)
-    ERR_B(e->pos, _("conditional must be a single expression"))
-  const Type t = e->type;
-  if(isa(t, env->gwion->type[et_int]) > 0)
-    return GW_OK;
-  if(isa(t, env->gwion->type[et_float]) > 0) {
-    e->cast_to = env->gwion->type[et_int];
-    e->nspc = env->curr;
-    return GW_OK;
-  }
-  ERR_B(e->pos, _("conditional must be of type 'int'..."))
+ANN static inline m_bool cond_type(const Env env, const Exp e) {
+  return check_implicit(env, "@repeat", e, env->gwion->type[et_int]);
 }
+
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
 stmt_func_xxx(if, Stmt_If,, !(!check_flow(env, stmt->cond)   ||
   check_stmt(env, stmt->if_body) < 0 ||
@@ -1079,14 +1068,9 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
     env->func->def->base->ret_type = ret_type;
     return GW_OK;
   }
-  const struct Implicit imp = { stmt->val, env->func->def->base->ret_type, stmt_self(stmt)->pos };
-  struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=ret_type, .rhs=env->func->def->base->ret_type,
-                      .data=(m_uint)&imp, .pos=stmt_self(stmt)->pos };
-  const Type ret = op_check(env, &opi);
-  if(!ret && isa(ret_type, env->func->def->base->ret_type) < 0)
-    ERR_B(stmt_self(stmt)->pos, _("invalid return type '%s' -- expecting '%s'"),
-          ret_type->name, env->func->def->base->ret_type->name)
-  return GW_OK;
+  if(isa(ret_type, env->func->def->base->ret_type) > 0)
+    return GW_OK;
+  return check_implicit(env, "@implicit", stmt->val, env->func->def->base->ret_type);
 }
 
 #define describe_check_stmt_stack(stack, name)                                     \
