@@ -45,6 +45,7 @@ ANN Type template_parent(const Env, const Type type);
 ANN Type actual_type(const struct Gwion_* gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
 ANN m_bool is_fptr(const struct Gwion_*, const Type t);
+ANN m_bool is_class(const struct Gwion_*, const Type t);
 ANN m_uint get_depth(const Type type);
 
 typedef enum {

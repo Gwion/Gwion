@@ -349,7 +349,7 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
   if(v->from->owner_class)
     return emit_symbol_owned(emit, prim);
-  if(isa(v->type, emit->gwion->type[et_class]) > 0) {
+  if(is_class(emit->gwion, v->type)) {
     regpushi(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
   }
@@ -592,7 +592,7 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
   const m_uint size = v->type->size;
-  if(isa(v->type, emit->gwion->type[et_class]) < 0) {
+  if(!is_class(emit->gwion, v->type)) {
     const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
     instr->m_val = (m_uint)(v->from->owner->info->class_data + v->from->offset);
     instr->m_val2 = size;
@@ -1658,7 +1658,7 @@ ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member
 
 ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
   const Func f = exp_self(member)->type->e->d.func;
-  if(isa(member->t_base, emit->gwion->type[et_class]) > 0 || GET_FLAG(member->base->type, force)) {
+  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->type, force)) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
     if(f->code)
       func_i->m_val = (m_uint)(f->code ?: (VM_Code)f);
@@ -1689,7 +1689,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
   if(is_special(emit, member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
-  if(isa(member->t_base, emit->gwion->type[et_class]) < 0 && (GET_FLAG(value, member) ||
+  if(!is_class(emit->gwion, member->t_base) && (GET_FLAG(value, member) ||
 (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type)))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))

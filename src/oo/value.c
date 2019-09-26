@@ -14,7 +14,7 @@ ANN static void free_value(Value a, Gwion gwion) {
       !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->from->owner_class)
       && isa(t, gwion->type[et_object]) < 0)
    _mp_free(gwion->mp, t->size, a->d.ptr);
-  if(isa(t, gwion->type[et_class]) > 0/* || isa(a->type, t_function) > 0*/)
+  if(is_class(gwion, t))
     REM_REF(t, gwion)
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);

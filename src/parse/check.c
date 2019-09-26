@@ -76,8 +76,9 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_BO(scan1_exp(env, td->exp))
   CHECK_BO(scan2_exp(env, td->exp))
   CHECK_OO(check_exp(env, td->exp))
+// TODO: check me
   const Type t = actual_type(env->gwion, td->exp->type);
-  if(!t || (isa(td->exp->type, env->gwion->type[et_class]) < 0 && t == env->gwion->type[et_class]))
+  if(!t || (is_class(env->gwion, td->exp->type) && t == env->gwion->type[et_class]))
     ERR_O(td->exp->pos, _("Expression must be of type '%s', not '%s'\n"
       "maybe you meant typeof(Expression)"), env->gwion->type[et_class]->name, td->exp->type->name);
   m_uint depth;
@@ -113,7 +114,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
-    if(isa(decl->type, env->gwion->type[et_class]) > 0) {
+    if(is_class(env->gwion, decl->type)) {
       do {
         list->self->value->type = env->gwion->type[et_auto];
       } while((list = list->next));
@@ -890,7 +891,7 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
 ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   const m_str str = s_name(member->xid);
   CHECK_OO((member->t_base = check_exp(env, member->base)))
-  const m_bool base_static = isa(member->t_base, env->gwion->type[et_class]) > 0;
+  const m_bool base_static = is_class(env->gwion, member->t_base);
   const Type the_base = base_static ? member->t_base->e->d.base_type : member->t_base;
   if(!the_base->nspc)
     ERR_O(member->base->pos,

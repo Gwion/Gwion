@@ -132,7 +132,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   for(m_uint i = 0; i <= v->from->offset && !type; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
-    if(isa(info->lhs->value_ref->type, env->gwion->type[et_class]) < 0)
+    if(!is_class(env->gwion, info->lhs->value_ref->type))
       CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
     else {
       DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid))

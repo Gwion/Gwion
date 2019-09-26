@@ -195,7 +195,10 @@ ANN m_uint get_depth(const Type type) {
 ANN m_bool is_fptr(const struct Gwion_* gwion, const Type t) {
   return isa(actual_type(gwion, t), gwion->type[et_fptr]) > 0;
 }
+ANN inline m_bool is_class(const struct Gwion_* gwion, const Type t) {
+  return isa(t, gwion->type[et_class]) > 0;
+}
 
 ANN Type actual_type(const struct Gwion_* gwion, const Type t) {
-  return isa(t, gwion->type[et_class]) > 0 ? t->e->d.base_type : t;
+  return is_class(gwion, t) ? t->e->d.base_type : t;
 }
