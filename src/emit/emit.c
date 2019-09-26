@@ -675,11 +675,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
-// TODO: (test type)watch me: am I needed ?
-    if(isa(type, emit->gwion->type[et_fork]) < 0) { // beware fork
-      const Instr instr = emit_add_instr(emit, RegAddRef);
-      instr->m_val = emit_var;
-    }
+    const Instr instr = emit_add_instr(emit, RegAddRef);
+    instr->m_val = emit_var;
   }
   return GW_OK;
 }
@@ -1067,8 +1064,14 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
       const Instr push = emit_add_instr(emit, RegPush);
       push->m_val = SZ_INT;
     }
+if(is_spork) {
+  const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
+  spork->m_val = emit->code->stack_depth;
+} else {
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
-    spork->m_val = emit->code->stack_depth;
+    spork->m_val = exp_self(unary)->emit_var;
+//    spork->m_val2 = f->def->base->ret_type->size;
+}
   } else {
     if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
       const m_uint depth = f->def->stack_depth;
@@ -1079,6 +1082,7 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     } else
       emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
+    end->m_val = exp_self(unary)->emit_var;
     end->m_val2 = f->def->base->ret_type->size;
   }
   return ini;
@@ -1145,7 +1149,7 @@ DECL_EXP_FUNC(emit)
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
     CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
-    if(ref && isa(exp->type, emit->gwion->type[et_object]) > 0 && isa(exp->type, emit->gwion->type[et_shred]) < 0 ) { // beware fork
+   if(ref && isa(exp->type, emit->gwion->type[et_object]) > 0) {
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
     }
@@ -1194,7 +1198,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
     if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
       return optimize_taill_call(emit, &stmt->val->d.exp_call);
     CHECK_BB(emit_exp_pop_next(emit, stmt->val, 0))
-    if(isa(stmt->val->type, emit->gwion->type[et_object]) > 0 && isa(stmt->val->type , emit->gwion->type[et_shred]) < 0) // beware shred
+    if(isa(stmt->val->type, emit->gwion->type[et_object]) > 0)
       emit_add_instr(emit, RegAddRef);
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));

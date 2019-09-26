@@ -117,6 +117,7 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
+  vector_add(&shred->gc, sh->info->me);
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
     vector_init(&shred->tick->child);
@@ -127,6 +128,8 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
+  assert(sh->info->me);
+  vector_add(&shred->gc, sh->info->me);
   return sh;
 }
 
@@ -650,8 +653,6 @@ sporkmemberfptr:
   *(m_uint*)(a.child->reg+VAL-SZ_INT*2) = *(m_uint*)(reg-SZ_INT*2);
   a.child->reg += VAL;
   DISPATCH()
-
-//exit(2);
 sporkexp:
 //  LOOP_OPTIM
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
@@ -660,7 +661,10 @@ sporkexp:
 forkend:
   fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
-  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  if(!VAL)
+    *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  else
+    *(M_Object**)(reg-SZ_INT) = &a.child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
