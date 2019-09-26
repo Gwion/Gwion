@@ -10,6 +10,7 @@
 #include "operator.h"
 #include "import.h"
 #include "driver.h"
+#include "gwi.h"
 
 INSTR(VecCpy) {
   POP_REG(shred, instr->m_val2);
@@ -158,7 +159,7 @@ static void vecx_base(const Gwi gwi) {
 }
 
 GWION_IMPORT(vec3) {
-  GWI_BB(gwi_class_ini(gwi, t_vec3, NULL, NULL))
+  GWI_BB(gwi_class_ini(gwi, gwi->gwion->type[et_vec3], NULL, NULL))
   vecx_base(gwi);
   gwi_func_ini(gwi, "void", "set", vec3_set);
   gwi_func_arg(gwi, "float", "x");
@@ -296,7 +297,7 @@ static INSTR(Vec4RAssign) {
 }
 
 GWION_IMPORT(vec4) {
-  CHECK_BB(gwi_class_ini(gwi,  t_vec4, NULL, NULL))
+  CHECK_BB(gwi_class_ini(gwi,  gwi->gwion->type[et_vec4], NULL, NULL))
   vecx_base(gwi);
 	gwi_item_ini(gwi, "float", "w");
   gwi_item_end(gwi, ae_flag_member, NULL);

@@ -22,7 +22,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
   if((GET_FLAG(value, static) && a->info->class_data) ||
     (value->d.ptr && GET_FLAG(value, builtin))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
-        *(M_Object*)(a->info->class_data + value->offset);
+        *(M_Object*)(a->info->class_data + value->from->offset);
        release(obj, gwion->vm->cleaner_shred);
   }
 }
@@ -33,7 +33,7 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   if(!a->is_union) {
     while(scope_iter(&iter, &v) > 0) {
       if(v) {
-        if(isa(v->type, t_object) > 0)
+        if(isa(v->type, gwion->type[et_object]) > 0)
           nspc_release_object(a, v, gwion);
         REM_REF(v, gwion);
       }

@@ -8,6 +8,7 @@ struct Context_ {
   struct Map_ lbls;
   HAS_OBJ
   m_bool error;
+  m_bool global;
 };
 
 ANN2(2) ANEW Context new_context(MemPool p, const Ast, const m_str);

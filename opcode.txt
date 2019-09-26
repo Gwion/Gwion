@@ -168,6 +168,7 @@ GcIni
 GcAdd
 GcEnd
 Gack
+Gack3
 DotTmplVal
 OP_MAX
 EOC

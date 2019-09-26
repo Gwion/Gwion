@@ -16,6 +16,7 @@
 #include "emit.h"
 #include "specialid.h"
 #include "func.h"
+#include "gwi.h"
 
 ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_str c) {
   STRING(obj) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
@@ -180,10 +181,15 @@ ID_CHECK(check_funcpp) {
   return prim_str(env, (Exp_Primary * const)prim);
 }
 
+static GACK(gack_string) {
+  const M_Object obj = *(M_Object*)VALUE;
+  printf("%s", obj ? STRING(obj) : "(null string)");
+}
 GWION_IMPORT(string) {
-  t_string = gwi_mk_type(gwi, "string", SZ_INT, t_object);
+  const Type t_string = gwi_mk_type(gwi, "string", SZ_INT, gwi->gwion->type[et_object]);
+  GWI_BB(gwi_gack(gwi, t_string, gack_string))
   GWI_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
-
+  gwi->gwion->type[et_string] = t_string;
   gwi_item_ini(gwi, "int", "@data");
   GWI_BB(gwi_item_end(gwi,   ae_flag_const, NULL))
   GWI_BB(gwi_class_end(gwi))

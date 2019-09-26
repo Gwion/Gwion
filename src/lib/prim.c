@@ -24,7 +24,9 @@ GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_end(gwi, "-", int_minus))
   GWI_BB(gwi_oper_end(gwi, "*", int_mul))
   GWI_BB(gwi_oper_end(gwi, "/", int_div))
-  return   gwi_oper_end(gwi, "%", int_modulo);
+  GWI_BB(gwi_oper_end(gwi, "%", int_modulo))
+  GWI_BB(gwi_oper_end(gwi, "@access", NULL))
+  return   gwi_oper_end(gwi, "@repeat", NULL);
 }
 
 static GWION_IMPORT(int_logical) {
@@ -71,16 +73,19 @@ static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_end(gwi, "--", int_post_dec))
   return GW_OK;
 }
+static GACK(gack_bool) {
+  printf("%s", *(m_uint*)VALUE ? "true" : "false");
+}
 
 static GWION_IMPORT(int_values) {
   GWI_BB(gwi_enum_ini(gwi, "bool"))
   GWI_BB(gwi_enum_add(gwi, "false", 0))
   GWI_BB(gwi_enum_add(gwi, "true", 1))
-  t_bool = gwi_enum_end(gwi);
+  const Type t_bool = gwi_enum_end(gwi);
+  GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
+  gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
-//  GWI_BB(gwi_item_ini(gwi, "bool", "maybe"))
-//  GWI_BB(gwi_item_end(gwi, 0, NULL))
   gwi_reserve(gwi, "maybe");
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
@@ -126,11 +131,8 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, hour);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
-  gwi_item_ini(gwi, "@now", "now");
-  gwi_item_end(gwi, ae_flag_const, NULL);
-  gwi_reserve(gwi, "now");
-  struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
-  gwi_specialid(gwi, "now", &spid);
+//  gwi_item_ini(gwi, "@now", "now");
+//  gwi_item_end(gwi, ae_flag_const, NULL);
   return GW_OK;
 }
 /*
@@ -140,13 +142,17 @@ static OP_CHECK(opck_chuck_now) {
 }
 */
 static OP_CHECK(opck_implicit_f2i) {
-  return t_null;
+  return env->gwion->type[et_null];
+}
+
+static OP_CHECK(opck_repeat_f2i) {
+  struct Implicit* imp = (struct Implicit*)data;
+  return imp->e->cast_to = env->gwion->type[et_int];
 }
 
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
-  imp->e->cast_to = t_float;
-  return t_float;
+  return imp->e->cast_to = env->gwion->type[et_float];
 }
 
 // can't it be just declared?
@@ -211,6 +217,7 @@ static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_emi(gwi, opem_f2i))
   _CHECK_OP("$", basic_cast, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
+  _CHECK_OP("@repeat", repeat_f2i, CastF2I)
   return GW_OK;
 }
 
@@ -256,6 +263,7 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_end(gwi, "-",         FloatMinus))
   GWI_BB(gwi_oper_end(gwi, "*",         FloatTimes))
   GWI_BB(gwi_oper_end(gwi, "/",        FloatDivide))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   CHECK_FF("=>", rassign, r_assign)
   CHECK_FF("+=>", rassign, r_plus)
   CHECK_FF("-=>", rassign, r_minus)

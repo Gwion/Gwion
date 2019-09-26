@@ -40,7 +40,7 @@ struct UnpackInfo_ {
 static INSTR(TupleUnpack) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   struct UnpackInfo_ *info = (struct UnpackInfo_*)instr->m_val;
-  memcpy(shred->mem + info->mem_offset, o->data + t_tuple->nspc->info->offset + info->obj_offset, info->size);
+  memcpy(shred->mem + info->mem_offset, o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset + info->obj_offset, info->size);
 }
 
 INSTR(TupleMember) {
@@ -93,7 +93,7 @@ ANN static void unpack_instr_decl(const Emitter emit, struct TupleEmit *te) {
       const Value value = te->e->d.exp_decl.list->self->value;
       te->sz += value->type->size;
       sz += value->type->size;
-      value->offset = emit_local(emit, value->type->size, 0);
+      value->from->offset = emit_local(emit, value->type->size, 0);
     } else {
       sz += ((Type)vector_at(te->v, te->idx))->size;
       break;
@@ -111,13 +111,13 @@ ANN void emit_unpack_instr(const Emitter emit, struct TupleEmit *te) {
     emit_unpack_instr(emit, te);
 }
 
-static m_bool tuple_match(const Type lhs, const Type rhs) {
+static m_bool tuple_match(const Env env, const Type lhs, const Type rhs) {
   DECL_OB(const Vector, lv, = &lhs->e->tuple->types)
   DECL_OB(const Vector, rv, = &rhs->e->tuple->types)
   for(m_uint i = 0; i < vector_size(rv); i++) {
     DECL_OB(const Type, l, = (Type)vector_at(lv, i))
     const Type r = (Type)vector_at(rv, i);
-    if(r != t_undefined)
+    if(r != env->gwion->type[et_undefined])
       CHECK_BB(isa(l, r))
   }
   return GW_OK;
@@ -125,10 +125,10 @@ static m_bool tuple_match(const Type lhs, const Type rhs) {
 
 static OP_CHECK(opck_at_object_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
-  if(opck_rassign(env, data, mut) == t_null)
-    return t_null;
-  if(tuple_match(bin->lhs->type, bin->rhs->type) < 0)
-    return t_null;
+  if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
+  if(tuple_match(env, bin->lhs->type, bin->rhs->type) < 0)
+    return env->gwion->type[et_null];
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -144,10 +144,10 @@ static OP_CHECK(opck_at_tuple) {
         DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
         e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
         CHECK_BO(traverse_decl(env, &e->d.exp_decl))
+        bin->rhs->meta = ae_meta_var;
       }
       ++i;
     } while((e = e->next));
-    bin->rhs->d.exp_primary.d.tuple.ok = 1;
     return bin->lhs->type;
   }
   return opck_at_object_tuple(env, data, mut);
@@ -155,12 +155,12 @@ static OP_CHECK(opck_at_tuple) {
 
 static OP_CHECK(opck_at_tuple_object) {
   const Exp_Binary *bin = (Exp_Binary*)data;
-  if(opck_rassign(env, data, mut) == t_null)
-    return t_null;
+  if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   if(!bin->rhs->type->e->tuple)
     return bin->rhs->type;
-  if(tuple_match(bin->rhs->type, bin->lhs->type) < 0)
-    return t_null;
+  if(tuple_match(env, bin->rhs->type, bin->lhs->type) < 0)
+    return env->gwion->type[et_null];
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -188,13 +188,13 @@ mk_opem_tuple2object(impl, struct Implicit *, exp->t)
 
 static OP_CHECK(opck_cast_tuple) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  CHECK_BO(tuple_match(exp_self(cast)->type, cast->exp->type))
+  CHECK_BO(tuple_match(env, exp_self(cast)->type, cast->exp->type))
   return exp_self(cast)->type;
 }
 
 static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
-  CHECK_BO(tuple_match(imp->e->type, imp->t))
+  CHECK_BO(tuple_match(env, imp->e->type, imp->t))
   return imp->t;
 }
 
@@ -202,7 +202,7 @@ static OP_EMIT(opem_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(!(bin->rhs->exp_type == ae_exp_primary &&
       bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
-      return emit_add_instr(emit, ObjectAssign);
+    return emit_add_instr(emit, ObjectAssign);
   }
   const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
   const Vector v = &bin->lhs->type->e->tuple->types;
@@ -235,8 +235,8 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
 INSTR(TupleCtor) {
   const Type t = (Type)instr->m_val;
   const M_Object o = new_object(shred->info->vm->gwion->mp, shred, t);
-  const size_t sz = t_tuple->nspc->info->offset;
-  memcpy(o->data + t_tuple->nspc->info->offset,
+  const size_t sz = shred->info->vm->gwion->type[et_tuple]->nspc->info->offset;
+  memcpy(o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset,
       shred->reg - (t->nspc->info->offset - sz), (t->nspc->info->offset - sz));
   shred->reg -= (t->nspc->info->offset - sz - SZ_INT);
   *(M_Object*)(shred->reg - SZ_INT) = o;
@@ -244,7 +244,7 @@ INSTR(TupleCtor) {
 
 ANN static Symbol tuple_sym(const Env env, const Vector v) {
   GwText text = { .mp=env->gwion->mp };
-  text_add(&text, t_tuple->name);
+  text_add(&text, env->gwion->type[et_tuple]->name);
   text_add(&text, "<~");
   for(m_uint i = 0; i < vector_size(v); ++i) {
     const Type t = (Type)vector_at(v, i);
@@ -293,7 +293,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   }
   Section * section = new_section_stmt_list(env->gwion->mp, base);
   Class_Body body = new_class_body(env->gwion->mp, section, NULL);
-  const ID_List ilist = new_id_list(env->gwion->mp, insert_symbol(t_tuple->name),
+  const ID_List ilist = new_id_list(env->gwion->mp, insert_symbol(env->gwion->type[et_tuple]->name),
       loc_cpy(env->gwion->mp, pos));
   Type_Decl *td = new_type_decl(env->gwion->mp, ilist);
   Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_template,
@@ -325,7 +325,8 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
 }
 
 GWION_IMPORT(tuple) {
-  GWI_OB((t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, t_object)))
+  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_tuple] = t_tuple;
   GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_tuple, abstract | ae_flag_template);

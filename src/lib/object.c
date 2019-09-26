@@ -41,13 +41,13 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
 }
 
 M_Object new_string(MemPool p, const VM_Shred shred, const m_str str) {
-  const M_Object o = new_object(p, shred, t_string);
+  const M_Object o = new_object(p, shred, shred->info->vm->gwion->type[et_string]);
   STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, str));
   return o;
 }
 
-M_Object new_string2(MemPool p, const VM_Shred shred, const m_str str) {
-  const M_Object o = new_object(p, shred, t_string);
+M_Object new_string2(const struct Gwion_ *gwion, const VM_Shred shred, const m_str str) {
+  const M_Object o = new_object(gwion->mp, shred, gwion->type[et_string]);
   STRING(o) = str;
   return o;
 }
@@ -72,8 +72,8 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
     Value v;
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
-          isa(v->type, t_object) > 0)
-        release(*(M_Object*)(o->data + v->offset), shred);
+          isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
+        release(*(M_Object*)(o->data + v->from->offset), shred);
     }
     if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))
@@ -114,7 +114,7 @@ static inline m_bool nonnull_check(const Type l, const Type r) {
 static inline Type check_nonnull(const Env env, const Type l, const Type r,
       const m_str action, const loc_t pos) {
   if(GET_FLAG(r, nonnull)) {
-    if(isa(l, t_null) > 0)
+    if(isa(l, env->gwion->type[et_null]) > 0)
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     if(isa(l, r) < 0)
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
@@ -122,7 +122,7 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
   }
   if(nonnull_check(l, r))
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-  if(l != t_null && isa(l, r) < 0)
+  if(l != env->gwion->type[et_null] && isa(l, r) < 0)
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
   return r;
 }
@@ -131,10 +131,10 @@ static OP_CHECK(at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type l = bin->lhs->type;
   const Type r = bin->rhs->type;
-  if(opck_rassign(env, data, mut) == t_null)
-    return t_null;
-  if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == t_null)
-    return t_null;
+  if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
+  if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   if(bin->rhs->exp_type == ae_exp_decl) {
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
     SET_FLAG(bin->rhs->d.exp_decl.list->self->value, ref);
@@ -180,8 +180,8 @@ static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->type;
   const Type r = exp_self(cast)->type;
-  if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == t_null)
-    return t_null;
+  if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   return get_force_type(env, r);
 }
 
@@ -198,8 +198,8 @@ static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Type l = imp->e->type;
   const Type r = imp->t;
-  if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == t_null)
-    return t_null;
+  if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   imp->e->cast_to = r;
   return imp->t;
 }
@@ -221,8 +221,14 @@ static ID_CHECK(check_this) {
   return env->class_def;
 }
 
+static GACK(gack_object) {
+  printf("%p", *(M_Object*)VALUE);
+}
+
 GWION_IMPORT(object) {
-  t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  GWI_BB(gwi_gack(gwi, t_object, gack_object))
+  gwi->gwion->type[et_object] = t_object;
   GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))

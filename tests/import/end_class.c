@@ -4,6 +4,7 @@
 #include "oo.h"
 #include "vm.h"
 #include "env.h"
+#include "type.h"
 #include "gwion.h"
 #include "operator.h"
 #include "object.h"

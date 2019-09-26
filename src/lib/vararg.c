@@ -12,6 +12,7 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
+#include "gwi.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);
@@ -83,13 +84,14 @@ static FREEARG(freearg_vararg) {
 }
 
 GWION_IMPORT(vararg) {
-  GWI_OB((t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, t_object)))
+  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, gwi->gwion->type[et_object]);
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
   SET_FLAG(t_varobj, abstract);
-  t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
+  const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))
-  GWI_BB(gwi_add_type(gwi,  t_varloop))
+  GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
   GWI_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
+  gwi->gwion->type[et_vararg] = t_vararg;
   GWI_BB(gwi_union_ini(gwi, NULL))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "start"))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))

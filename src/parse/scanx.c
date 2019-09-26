@@ -68,7 +68,7 @@ scanx_parent(const Type t, const _exp_func f, void* d) {
 ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
     const _exp_func f_cdef, const _exp_func f_union) {
   const Type t = get_type(cdef->base.type);
-  if(t->e->parent !=  t_union)
+  if(t->e->parent !=  env->gwion->type[et_union])
      return f_cdef(opt, t->e->def);
   CHECK_BB(template_push_types(env, t->e->def->base.tmpl))
   const m_bool ret = f_union(opt, t->e->def->union_def);

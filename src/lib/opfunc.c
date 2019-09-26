@@ -20,7 +20,7 @@ static inline m_str access(ae_Exp_Meta meta) {
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return isa(cast->exp->type, exp_self(cast)->type) > 0 ?
-     exp_self(cast)->type : t_null;
+     exp_self(cast)->type : env->gwion->type[et_null];
 }
 
 OP_CHECK(opck_usr_implicit) {
@@ -51,8 +51,8 @@ OP_CHECK(opck_rhs_emit_var) {
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == t_null)
-    return t_null;
+  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
+    return env->gwion->type[et_null];
   bin->rhs->emit_var = 1;
   return bin->rhs->type;
 }
@@ -66,7 +66,7 @@ OP_CHECK(opck_unary_meta) {
 OP_CHECK(opck_unary_meta2) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   exp_self(unary)->meta = ae_meta_value;
-  return t_int;
+  return env->gwion->type[et_int];
 }
 
 OP_CHECK(opck_unary) {
@@ -95,7 +95,7 @@ OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
   DECL_OO(const Type, t, = known_type(env, unary->td))
-  if(isa(t, t_object) < 0 && isa(t, t_function) < 0)
+  if(isa(t, env->gwion->type[et_object]) < 0 && isa(t, env->gwion->type[et_function]) < 0)
     ERR_O(exp_self(unary)->pos, _("primitive types cannot be used as reference (@)...\n"))
   if(type_ref(t))
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)

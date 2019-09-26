@@ -9,6 +9,7 @@
 #include "object.h"
 #include "operator.h"
 #include "import.h"
+#include "gwi.h"
 
 static CTOR(event_ctor) {
   EV_SHREDS(o) = new_vector(shred->info->mp);
@@ -19,7 +20,7 @@ static DTOR(event_dtor) {
 }
 
 static OP_CHECK(opck_eventwait) {
-  return t_int;
+  return env->gwion->type[et_int];
 }
 
 static INSTR(EventWait) {
@@ -56,7 +57,8 @@ static MFUN(event_broadcast) {
 }
 
 GWION_IMPORT(event) {
-  t_event = gwi_mk_type(gwi, "Event", SZ_INT, t_object );
+  const Type t_event = gwi_mk_type(gwi, "Event", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_event] = t_event;
   GWI_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
   GWI_BB(gwi_item_ini(gwi, "int", "@shreds"))
   GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))

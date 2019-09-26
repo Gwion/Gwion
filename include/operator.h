@@ -2,7 +2,7 @@
 #define __OPERATOR
 #define OP_ANY_TYPE (Type)1
 
-#define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return t_null; }
+#define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return env->gwion->type[et_null]; }
 
 typedef Type (*opck)(const Env, void*, m_bool*);
 typedef struct Instr_* (*opem)(const Emitter, void*);

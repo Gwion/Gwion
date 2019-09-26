@@ -10,6 +10,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "context.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -43,7 +44,7 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
 {
   const Type t = get_type(type);
-  if(isa(t, t_object) > 0)
+  if(isa(t, env->gwion->type[et_object]) > 0)
     CHECK_BO(type_recursive(env, td, t))
 }
   if(type->size)
@@ -71,6 +72,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
+  if(env->context)
+    env->context->global = 1;
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const Nspc nspc = !global ? env->curr : env->global_nspc;
   do {
@@ -78,7 +81,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former && t != t_auto)
+    if(former && t != env->gwion->type[et_auto])
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
@@ -102,8 +105,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     if(!env->scope->depth && !env->class_def)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
-    v->owner = !env->func ? env->curr : NULL;
-    v->owner_class = env->scope->depth ? NULL : env->class_def;
+    if(!env->scope->depth)
+      valuefrom(env, v->from);
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   if(global)
@@ -234,12 +237,11 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   do {
     CHECK_BB(already_defined(env, list->xid, edef->pos))
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
+    valuefrom(env, v->from);
     if(env->class_def) {
-      v->owner_class = env->class_def;
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
     }
-    v->owner = env->curr;
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(edef->t->e->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
@@ -267,8 +269,7 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type->e->def)return GW_OK;
-//  return tdef->type->e->def ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
-  return isa(tdef->type, t_fptr) < 0 ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
+  return !is_fptr(env->gwion, tdef->type) ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
@@ -358,9 +359,11 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(GET_FLAG(fdef, dtor) && !env->class_def)
-    ERR_B(td_pos(fdef->base->td), _("dtor must be in class def!!"))
-  if(GET_FLAG(fdef, op) && env->class_def)
+  if(fdef->base->xid == insert_symbol("@dtor") || fdef->base->xid == insert_symbol("@gack")) {
+    if(!env->class_def)
+      ERR_B(td_pos(fdef->base->td), _("'%s' must be in class def!!"), s_name(fdef->base->xid))
+    if(fdef->base->args)exit(3);
+  } else if(GET_FLAG(fdef, op) && env->class_def)
     SET_FLAG(fdef, static);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
@@ -387,7 +390,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
     if(cdef->base.type == t)
       ERR_B(pos, _("recursive (%s <= %s) class declaration."), cdef->base.type->name, t->name);
   } while((t = t->e->parent));
-  if(isa(parent, t_object) < 0)
+  if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
     CHECK_BB(scanx_parent(parent, scan1_cdef, env))

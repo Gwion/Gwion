@@ -117,6 +117,7 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
 ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
+  vector_add(&shred->gc, (vtype)sh->info->me);
   sh->tick->parent = shred->tick;
   if(!shred->tick->child.ptr)
     vector_init(&shred->tick->child);
@@ -127,6 +128,8 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
+  assert(sh->info->me);
+  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
@@ -259,6 +262,8 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
   else ADVANCE(); \
   IDISPATCH();
 
+#define VM_OUT shred->code = code; shred->reg = reg; shred->mem = mem; shred->pc = PC;
+
 __attribute__ ((hot, optimize("-O2")))
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
@@ -308,7 +313,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode, &&pushstr,
     &&gcini, &&gcadd, &&gcend,
-    &&gack, &&regpushimm, &&other, &&eoc
+    &&gack, &&gack3, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -567,10 +572,7 @@ timeadv:
   reg -= SZ_FLOAT;
   shredule(s, shred, *(m_float*)(reg-SZ_FLOAT));
   *(m_float*)(reg-SZ_FLOAT) += vm->bbq->pos;
-  shred->code = code;
-  shred->reg = reg;
-  shred->mem = mem;
-  shred->pc = PC;
+  VM_OUT
   break;
 setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
@@ -623,10 +625,7 @@ funcusrend:
   byte = bytecode = (code = a.code)->bytecode;
   SDISPATCH();
 funcmemberend:
-  shred->mem = mem;
-  shred->reg = reg;
-  shred->pc = PC;
-  shred->code = code;
+  VM_OUT
   {
     register const m_uint val = VAL;
     register const m_uint val2 = VAL2;
@@ -654,8 +653,6 @@ sporkmemberfptr:
   *(m_uint*)(a.child->reg+VAL-SZ_INT*2) = *(m_uint*)(reg-SZ_INT*2);
   a.child->reg += VAL;
   DISPATCH()
-
-//exit(2);
 sporkexp:
 //  LOOP_OPTIM
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
@@ -664,7 +661,10 @@ sporkexp:
 forkend:
   fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
-  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  if(!VAL)
+    *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  else
+    *(M_Object**)(reg-SZ_INT) = &a.child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
@@ -702,11 +702,9 @@ arrayaccess:
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
-    shred->code = code;
-    shred->mem = mem;
-    shred->pc = PC;
+    VM_OUT
     exception(shred, "ArrayOutofBounds");
-    continue;
+    continue; // or break ?
   }
   DISPATCH()
 }
@@ -729,7 +727,7 @@ addref:
     ++a.obj->ref;
   DISPATCH()
 objassign:
-{
+{ // use a.obj ?
   register const M_Object tgt = **(M_Object**)(reg -SZ_INT);
   if(tgt) {
     --tgt->ref;
@@ -807,7 +805,7 @@ pushstaticcode:
   reg += SZ_INT;
   DISPATCH()
 pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion->mp, shred, (m_str)VAL);
+  *(M_Object*)reg = new_string2(vm->gwion, shred, (m_str)VAL);
   reg += SZ_INT;
   DISPATCH();
 gcini:
@@ -821,22 +819,24 @@ gcend:
     _release(a.obj, shred);
   DISPATCH()
 gack:
-  gack(reg, (Instr)VAL);
-  DISPATCH()
+  VM_OUT
+  gack(shred, (Instr)VAL);
+  goto in;
+gack3:
+  gw_out("\n");
+  DISPATCH();
 other:
-shred->code = code;
-shred->reg = reg;
-shred->mem = mem;
-shred->pc = PC;
-      ((f_instr)VAL2)(shred, (Instr)VAL);
-if(!s->curr)break;
+  VM_OUT
+  ((f_instr)VAL2)(shred, (Instr)VAL);
+in:
+  if(!s->curr)
+    break;
   bytecode = (code = shred->code)->bytecode;
   reg = shred->reg;
   mem = shred->mem;
   PC_DISPATCH(shred->pc)
 eoc:
-  shred->code = code;
-  shred->mem = mem;
+  VM_OUT
   vm_shred_exit(shred);
     } while(s->curr);
   MUTEX_UNLOCK(s->mutex);

@@ -10,6 +10,8 @@
 #include "traverse.h"
 #include "parse.h"
 
+#include "context.h"
+
 #define STR_NONNULL ":nonnull"
 #define STRLEN_NONNULL strlen(STR_NONNULL)
 
@@ -35,12 +37,14 @@ ANN Type type_nonnull(const Env env, const Type base) {
 
 ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td->xid))
+  if(base->e->ctx && base->e->ctx->error)
+    ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, t, = scan_type(env, base, td))
   const Type ret = !td->array ? t : array_type(env, t, td->array->depth);
   if(GET_FLAG(td, nonnull)) {
-    if(isa(ret, t_void) > 0)
+    if(isa(ret, env->gwion->type[et_void]) > 0)
       ERR_O(td_pos(td), _("void types can't be nonnull."))
-    if(isa(ret, t_object) < 0 && isa(ret, t_function) < 0)
+    if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_fptr]) < 0)
       return ret;
     return type_nonnull(env, ret);
   }
@@ -79,6 +83,6 @@ ANN static inline void* type_unknown(const Env env, const ID_List id) {
 
 ANN Type known_type(const Env env, const Type_Decl* td) {
   if(!td->xid)
-    return t_undefined;
+    return env->gwion->type[et_undefined];
   return type_decl_resolve(env, td) ?:type_unknown(env, td->xid);
 }

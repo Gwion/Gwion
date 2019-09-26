@@ -11,6 +11,7 @@
 #include "import.h"
 #include "emit.h"
 #include "specialid.h"
+#include "gwi.h"
 
 
 static ID_EMIT(spidem) {
@@ -20,7 +21,7 @@ static ID_EMIT(spidem) {
 }
 
 GWION_IMPORT(spid_test) {
-  struct SpecialId_ spid = { .type=t_int, .em=spidem, .is_const = 1 };
+  struct SpecialId_ spid = { .type=gwi->gwion->type[et_int], .em=spidem, .is_const = 1 };
   gwi_specialid(gwi, "testid", &spid);
   return GW_OK;
 }

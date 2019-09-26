@@ -17,6 +17,7 @@
 
 #include "instr.h"
 #include "import.h"
+#include "tuple.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -61,7 +62,7 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
     if(var->array)
       list->type = array_type(env, list->type, var->array->depth);
     var->value = arg_value(env->gwion->mp, list);
-    var->value->offset = f->stack_depth;
+    var->value->from->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
   return GW_OK;
@@ -69,9 +70,9 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
 
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
-  v->owner = env->curr;
+  valuefrom(env, v->from);
   SET_FLAG(v, func | ae_flag_const);
-  if(!(v->owner_class = env->class_def))
+  if(!env->class_def)
     SET_FLAG(v, global);
   else {
     if(GET_FLAG(f, member))
@@ -99,7 +100,7 @@ ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type->e->def) return GW_OK;
-  return isa(tdef->type, t_fptr) < 0 ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
+  return !is_fptr(env->gwion, tdef->type) ? scan2_class_def(env, tdef->type->e->def) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -303,8 +304,8 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const Value overload) {
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
-  if(isa(overload->type, t_function) < 0 || isa(overload->type, t_fptr) > 0) {
-  if(isa(actual_type(overload->type), t_function) < 0)
+  if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
+  if(isa(actual_type(env->gwion, overload->type), env->gwion->type[et_function]) < 0)
     ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
 }
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
@@ -324,12 +325,15 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type t = type_copy(env->gwion->mp, func->def->base->td ? t_function : t_lambda);
+  const Type t = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->name = func->name;
   t->e->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
   t->e->d.func = func;
+  if(t->e->tuple)
+    free_tupleform(env->gwion->mp, t->e->tuple);
+  t->e->tuple = NULL;
   return t;
 }
 
@@ -390,7 +394,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
     nspc_add_value(env->curr, f->base->xid, value);
     nspc_add_func(env->curr, f->base->xid, func);
   } else
-    func->vt_index = ++overload->offset;
+    func->vt_index = ++overload->from->offset;
   return GW_OK;
 }
 
@@ -405,14 +409,15 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const m_str str = s_name(f->base->xid);
   const uint is_unary = GET_FLAG(f, unary) + (!strcmp(str, "@conditionnal") || !strcmp(str, "@unconditionnal"));
   const Type l = is_unary ? NULL :
-    f->base->args->var_decl->value->type;
-  const Type r = is_unary ? f->base->args->var_decl->value->type :
+    f->base->args ? f->base->args->var_decl->value->type : NULL;
+  const Type r = f->base->args ? is_unary ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type :
-    f->base->ret_type;
+    f->base->ret_type : NULL;
   struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
                            .pos=f->pos, .data=(uintptr_t)f->base->func };
-  if(!strcmp(str, "@implicit"))
+  if(!strcmp(str, "@implicit")) {
     opi.ck = opck_usr_implicit;
+  }
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;
@@ -429,10 +434,8 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
   if(!GET_FLAG(f, builtin))
     SET_FLAG(f->base->func, pure);
-  if(GET_FLAG(f, dtor)) {
+  if(f->base->xid == insert_symbol("@dtor"))
     SET_FLAG(env->class_def, dtor);
-    SET_FLAG(f->base->func, dtor);
-  }
 }
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
@@ -489,7 +492,7 @@ ANN static m_str template_helper(const Env env, const Func_Def f) {
 
 ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v) {
   if(!f->base->tmpl) {
-    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->offset : 0);
+    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
   return template_helper(env, f);

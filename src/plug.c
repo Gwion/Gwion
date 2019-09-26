@@ -14,6 +14,7 @@
 #include "operator.h"
 #include "instr.h"
 #include "object.h"
+#include "type.h"
 #include "import.h"
 
 typedef m_bool (*import)(Gwi);

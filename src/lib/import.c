@@ -176,6 +176,17 @@ ANN /* static */ ID_List str2list(const Env env, const m_str path, m_uint* array
   return list;
 }
 
+ANN static m_bool mk_gack(MemPool p, const Type type, const f_gack d) {
+  const VM_Code code = new_vm_code(p, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@gack");
+  code->native_func = (m_uint)d;
+  type->e->gack = code;
+  return GW_OK;
+}
+
+ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d) {
+  return mk_gack(gwi->gwion->mp, type, d);
+}
+
 ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
@@ -196,6 +207,12 @@ ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
     CHECK_BB(name_valid(gwi, type->name));
   env_add_type(gwi->gwion->env, type);
   return (m_int)type->xid;
+}
+
+ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te) {
+  GWI_BB(gwi_add_type(gwi, type))
+  gwi->gwion->type[te] = type;
+  return GW_OK;
 }
 
 ANN2(1,2) static void import_class_ini(const Env env, const Type type,
@@ -340,7 +357,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
 if(v->var.value->type->array_depth)
 ADD_REF(v->var.value->type);
   dl_var_release(gwi->gwion->mp, v);
-  return (m_int)v->var.value->offset;
+  return (m_int)v->var.value->from->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,
@@ -599,7 +616,7 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
   DECL_OB(const Type, t, = known_type(gwi->gwion->env, exp->d.exp_decl.td))
-  if(isa(t, t_object) > 0)
+  if(isa(t, gwi->gwion->type[et_object]) > 0)
     SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
   return GW_OK;
@@ -616,7 +633,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
     gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
   const Type t = udef->xid ? udef->value->type :
-    udef->type_xid ? udef->type : t_int;
+    udef->type_xid ? udef->type : gwi->gwion->type[et_int];
   free_union_def(gwi->gwion->mp, udef);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;

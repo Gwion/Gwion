@@ -14,6 +14,7 @@
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
+#include "gwi.h"
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
@@ -24,7 +25,7 @@ static OP_CHECK(opck_ptr_assign) {
   do if(!strcmp(t->name, get_type_name(env, bin->rhs->type->name, 1)))
     return bin->lhs->type;
   while((t = t->e->parent));
-  return t_null;
+  return env->gwion->type[et_null];
 }
 
 static INSTR(instr_ptr_assign) {
@@ -83,7 +84,7 @@ static INSTR(instr_ptr_deref) {
 }
 
 static INSTR(Cast2Ptr) {
-  const M_Object o = new_object(shred->info->mp, shred, t_ptr);
+  const M_Object o = new_object(shred->info->mp, shred, shred->info->vm->gwion->type[et_ptr]);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
   *(M_Object*)REG(-SZ_INT) = o;
 }
@@ -105,7 +106,8 @@ static OP_EMIT(opem_ptr_deref) {
 
 GWION_IMPORT(ptr) {
   const m_str list[] = { "A" };
-  t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, t_object);
+  const Type t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, gwi->gwion->type[et_object]);
+  gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_tmpl_ini(gwi, 1, list))
   GWI_BB(gwi_class_ini(gwi, t_ptr, NULL, NULL))
   GWI_BB(gwi_tmpl_end(gwi))

@@ -32,7 +32,7 @@ static OP_CHECK(opck_func_call) {
   e->exp_type = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   ++*mut;
-  return check_exp_call1(env, &e->d.exp_call) ?: t_null;
+  return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_null];
 }
 
 static inline void fptr_instr(const Emitter emit, const Func f, const m_uint i) {
@@ -46,7 +46,7 @@ static OP_EMIT(opem_func_assign) {
   if(bin->rhs->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->type->e->d.func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
-  if(isa(bin->lhs->type, t_fptr) < 0 && GET_FLAG(bin->rhs->type->e->d.func, member)) {
+  if(!is_fptr(emit->gwion, bin->lhs->type) && GET_FLAG(bin->rhs->type->e->d.func, member)) {
     const Instr pop = emit_add_instr(emit, LambdaAssign);
     pop->m_val = SZ_INT;
   }
@@ -67,8 +67,8 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
           t1 = info->rhs->def->base->tmpl->list;
   nspc_push_type(env->gwion->mp, env->curr);
   while(t0) {
-    nspc_add_type(env->curr, t0->xid, t_undefined);
-    nspc_add_type(env->curr, t1->xid, t_undefined);
+    nspc_add_type(env->curr, t0->xid, env->gwion->type[et_undefined]);
+    nspc_add_type(env->curr, t1->xid, env->gwion->type[et_undefined]);
     t0 = t0->next;
     t1 = t1->next;
   }
@@ -95,8 +95,8 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 }
 
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
-  const Type l_type = info->lhs->value_ref->owner_class;
-  const Type r_type = info->rhs->value_ref->owner_class;
+  const Type l_type = info->lhs->value_ref->from->owner_class;
+  const Type r_type = info->rhs->value_ref->from->owner_class;
   if(!r_type && l_type)
     ERR_B(info->pos, _("can't assign member function to non member function pointer"))
   else if(!l_type && r_type) {
@@ -125,24 +125,24 @@ ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
 
 ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   const Value v = info->lhs->value_ref;
-  const Nspc nspc = v->owner;
+  const Nspc nspc = v->from->owner;
   const m_str c = s_name(info->lhs->def->base->xid),
     stmpl = !info->rhs->def->base->tmpl ? NULL : "template";
   Type type = NULL;
-  for(m_uint i = 0; i <= v->offset && !type; ++i) {
+  for(m_uint i = 0; i <= v->from->offset && !type; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
-    if(isa(info->lhs->value_ref->type, t_class) < 0)
+    if(!is_class(env->gwion, info->lhs->value_ref->type))
       CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
     else {
       DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid))
-      info->lhs = actual_type(t)->e->d.func;
+      info->lhs = actual_type(env->gwion, t)->e->d.func;
     }
     Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
     if(fptr_tmpl_push(env, info) > 0) {
       if(fptr_rettype(env, info) > 0 &&
            fptr_arity(info) && fptr_args(env, base) > 0)
-      type = actual_type(info->lhs->value_ref->type) ?: info->lhs->value_ref->type;
+      type = actual_type(env->gwion, info->lhs->value_ref->type) ?: info->lhs->value_ref->type;
       if(info->rhs->def->base->tmpl)
         nspc_pop_type(env->gwion->mp, env->curr);
     }
@@ -178,12 +178,12 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
 
 ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
   Exp_Lambda *l = &info->exp->d.exp_lambda;
-  const Type owner = info->rhs->value_ref->owner_class;
+  const Type owner = info->rhs->value_ref->from->owner_class;
   return check_lambda(env, owner, l, info->rhs->def);
 }
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
-  if(isa(info->exp->type, t_lambda) < 0) {
+  if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
     m_bool nonnull = GET_FLAG(info->exp->type, nonnull);
     CHECK_BB(fptr_check(env, info))
     DECL_OB(const Type, t, = fptr_type(env, info))
@@ -262,11 +262,8 @@ static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(exp_self(unary)->next)
     ERR_O(exp_self(unary)->pos, _("spork/fork must not have next expression"))
-  if(unary->op == insert_symbol("fork") && !unary->fork_ok)
-    ERR_O(exp_self(unary)->pos, _("forks must be stored in a value:\n"
-        "fork xxx @=> Fork f"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
+    return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   else if(unary->code) {
     ++env->scope->depth;
     nspc_push_value(env->gwion->mp, env->curr);
@@ -274,7 +271,7 @@ static OP_CHECK(opck_spork) {
     nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
     CHECK_BO(ret)
-    return unary->op == insert_symbol("spork") ? t_shred : t_fork;
+    return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   } else
     ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
   return NULL;
