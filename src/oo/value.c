@@ -28,3 +28,9 @@ ANN Value new_value(MemPool p, const Type type, const m_str name) {
   a->ref = new_refcount(p, free_value);
   return a;
 }
+
+ANN void valuefrom(const Env env, struct ValueFrom_ *from) {
+  from->owner = env->curr;
+  from->owner_class = env->class_def;
+  from->ctx = env->context;
+}
