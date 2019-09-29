@@ -344,7 +344,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
-    nspc_add_value(env->curr, f->def->base->xid, v);
+    nspc_add_value_front(env->curr, f->def->base->xid, v);
   } else if(overload->d.func_ref) {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;

@@ -102,7 +102,7 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   const m_bool ret = traverse_ast(env, ast);
   if(ret > 0) //{
     nspc_commit(env->curr);
-  if(ret || env->context->global)
+  if(ret > 0 || env->context->global)
     vector_add(&env->scope->known_ctx, (vtype)ctx);
   else //nspc_rollback(env->global_nspc);
     REM_REF(ctx, env->gwion);

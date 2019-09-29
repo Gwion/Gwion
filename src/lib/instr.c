@@ -100,15 +100,18 @@ INSTR(DotTmpl) {
     if(f) {
       if(!f->code)
         break;
-      *(VM_Code*)shred->reg = f->code;
-      shred->reg += SZ_INT;
+      if(GET_FLAG(f, member))
+        shred->reg += SZ_INT;
+      *(VM_Code*)(shred->reg-SZ_INT) = f->code;
       return;
     } else {
       const Func_Def def = traverse_tmpl(emit, dt, t->nspc);
       if(!def)
         continue;
-      *(VM_Code*)shred->reg = def->base->func->code;
-      shred->reg += SZ_INT;
+      const Func f = def->base->func;
+      if(GET_FLAG(f, member))
+        shred->reg += SZ_INT;
+      *(VM_Code*)(shred->reg-SZ_INT) = f->code;
       return;
     }
   } while((t = t->e->parent));

@@ -518,8 +518,8 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = traverse_func_def(env, fdef);
-  if(ret > 0) {
+  const m_bool ret = GET_FLAG(fdef, checked) || traverse_func_def(env, fdef) > 0;
+  if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
     f->next = NULL;
@@ -1365,6 +1365,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
+  SET_FLAG(fdef, checked);
   if(GET_FLAG(fdef, global))
     env_pop(env,scope);
   return ret;

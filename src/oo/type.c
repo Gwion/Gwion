@@ -12,7 +12,7 @@
 #include "tuple.h"
 
 ANN static void free_type(Type a, Gwion gwion) {
-  if(GET_FLAG(a, template)) {
+  if(GET_FLAG(a, template) || GET_FLAG(a, global)) {
     if(GET_FLAG(a, union)) {
       if(a->e->def->union_def) {
         if(!GET_FLAG(a, pure))  { // <=> decl_list

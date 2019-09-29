@@ -1390,6 +1390,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
     exp->d.exp_decl.type = udef->value->type;
+    SET_FLAG(udef->value->type, emit);
     var_decl->value = udef->value;
     const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
     free_exp(emit->gwion->mp, exp);
@@ -1403,11 +1404,12 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     scope = emit_push_type(emit, udef->value->type);
   } else if(udef->type_xid) {
     union_allocdata(emit->gwion->mp, udef);
+    SET_FLAG(udef->type, emit);
     scope = emit_push_type(emit, udef->type);
-  } else if(emit->env->class_def) {
+  } else if(emit->env->class_def) {// miss flag ?
     if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
       udef->o = emit_local(emit, udef->s, 0);
-  } else if(global) {
+  } else if(global) {// miss flag?
     void* ptr = (void*)xcalloc(1, udef->s);
     l = udef->l;
     do {
@@ -1422,7 +1424,8 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
   emit_union_offset(udef->l, udef->o);
   if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);
-  SET_FLAG(udef->xid ? udef->value->type : udef->type, emit);
+puts(emit->env->name);
+//  SET_FLAG(udef->xid ? udef->value->type : udef->type, emit);
   return GW_OK;
 }
 

@@ -285,22 +285,17 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
 
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
-  if(GET_FLAG(cdef, global)) {
-    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
-    env->curr = env->global_nspc;
-    env->context->global = 1;
-  }
-  CHECK_BB(scan0_defined(env, cdef->base.xid, cdef->pos))
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
   return GW_OK;
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
+  CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos))
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
 //  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
-  t->nspc->parent = GET_FLAG(cdef, global) ? env->global_nspc : env->curr;
+  t->nspc->parent = env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
   if(!strstr(t->name, "<"))
@@ -342,8 +337,13 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
-  CHECK_BB(scan0_class_def_pre(env, cdef))
-  const m_bool ret = scan0_class_def_inner(env, cdef);
+  if(GET_FLAG(cdef, global)) {
+    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
+    env->curr = env->global_nspc;
+    env->context->global = 1;
+  }
+  const m_bool ret = scan0_class_def_pre(env, cdef) > 0 ?
+    scan0_class_def_inner(env, cdef) : GW_ERROR;
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   return ret;
