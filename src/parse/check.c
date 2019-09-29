@@ -38,9 +38,9 @@ ANN static m_bool check_implicit(const Env env, const m_str str,
   return GW_OK;
 }
 
-ANN m_bool check_exp_array_subscripts(Env env, Exp e) {
-  CHECK_OB(check_exp(env, e))
-assert(env->gwion->type[et_int]);
+ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp) {
+  CHECK_OB(check_exp(env, exp))
+  Exp e = exp;
   do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
   while((e = e->next));
   return GW_OK;
