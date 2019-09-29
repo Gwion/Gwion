@@ -40,7 +40,6 @@ ANN static m_bool check_implicit(const Env env, const m_str str,
 
 ANN m_bool check_exp_array_subscripts(Env env, Exp e) {
   CHECK_OB(check_exp(env, e))
-printf("\033[1mDEBUG \033[31m%p\033[0m\n", env->gwion->type[et_int]);
   do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
   while((e = e->next));
   return GW_OK;
