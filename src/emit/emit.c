@@ -834,8 +834,8 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name) {
   const m_str start = strchr(name, '<');
   const m_str end = strchr(name, '@');
   char c[strlen(name)];
-  strcpy(c, start + 1);
-  c[strlen(start) - strlen(end) - 2] = '\0';
+  strcpy(c, start + 2);
+  c[strlen(start) - strlen(end) - 4] = '\0';
   m_uint depth;
   return str2tl(env, c, &depth);
 }

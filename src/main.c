@@ -15,6 +15,7 @@ static void sig(int unused NUSED) {
 #endif
 }
 
+#include "type.h"
 int main(int argc, char** argv) {
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);

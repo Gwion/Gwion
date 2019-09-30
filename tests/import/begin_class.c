@@ -14,7 +14,7 @@
 MFUN(test_mfun){}
 GWION_IMPORT(begin_class) {
   Type t_invalid_var_name;
-  CHECK_OB((t_invalid_var_name = gwi_mk_type(gwi, "invalid_var_name", SZ_INT, gwi->gwion->type[et_object])))
+  CHECK_OB((t_invalid_var_name = gwi_mk_type(gwi, "invalid_var_name", SZ_INT, "Object")))
   CHECK_BB(gwi_class_ini(gwi, t_invalid_var_name, NULL, NULL))
   CHECK_BB(gwi_class_ini(gwi, t_invalid_var_name, NULL, NULL))
   return GW_OK;

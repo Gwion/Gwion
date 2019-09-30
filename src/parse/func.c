@@ -49,13 +49,13 @@ ANN Func get_func(const Env env, const Func_Def def) {
 ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
     const m_str tmpl, const m_uint i) {
   const size_t base_len = strlen(base);
-  const size_t tmpl_len = !tmpl ? 0 : strlen(tmpl) + 2;
+  const size_t tmpl_len = !tmpl ? 0 : strlen(tmpl) + 4;
   const size_t nspc_len = strlen(nspc);
   const size_t idx_len = num_digit(i);
   const size_t len = base_len + tmpl_len + nspc_len + idx_len + 2;
   char name[len + 1];
   CHECK_BO(sprintf(name, "%s%s%s%s@%" UINT_F "@%s",
-    base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
+    base, !tmpl ? "" : "<~", !tmpl ? "" : tmpl, !tmpl ? "" : "~>",
     i, nspc))
   return insert_symbol(env->gwion->st, name);
 }

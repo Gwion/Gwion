@@ -325,7 +325,7 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
 }
 
 GWION_IMPORT(tuple) {
-  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
   gwi->gwion->type[et_tuple] = t_tuple;
   GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))

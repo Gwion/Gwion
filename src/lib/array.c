@@ -192,7 +192,7 @@ static FREEARG(freearg_array) {
 }
 
 GWION_IMPORT(array) {
-  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, "Object");
   gwi->gwion->type[et_array] = t_array;
   GWI_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 

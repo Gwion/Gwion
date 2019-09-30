@@ -84,8 +84,8 @@ static FREEARG(freearg_vararg) {
 }
 
 GWION_IMPORT(vararg) {
-  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, gwi->gwion->type[et_object]);
-  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
+  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, "Object");
+  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, "Object");
   SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))

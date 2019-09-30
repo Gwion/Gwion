@@ -33,7 +33,7 @@ typedef struct Gwi_* Gwi;
 
 
 ANN VM* gwi_vm(const Gwi);
-ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const Type);
+ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const m_str);
 ANN m_int gwi_add_type(const Gwi gwi, Type type);
 ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te);
 ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d);

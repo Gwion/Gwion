@@ -335,7 +335,7 @@ static OP_CHECK(opck_chuck_ugen) {
 }
 
 GWION_IMPORT(ugen) {
-  const Type t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, "Object");
   gwi->gwion->type[et_ugen] = t_ugen;
   GWI_BB(gwi_class_ini(gwi,  t_ugen, ugen_ctor, ugen_dtor))
   GWI_BB(gwi_item_ini(gwi, "int", "@ugen"))

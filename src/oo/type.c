@@ -156,17 +156,18 @@ ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
   const size_t slen = strlen(s);
   const size_t tlen = slen - len + 1;
   char c[slen + 1];
-
   if(!name)
     return index ? NULL : s_name(insert_symbol(s));
   if(index == 0) {
     snprintf(c, tlen, "%s", s);
     return s_name(insert_symbol(c));
   }
+  ++name;
   while(*name++) {
-    if(*name == '<')
+    if(*name == '<') {
       lvl++;
-    else if(*name == '>' && !lvl--)
+      name++;
+    } else if(*name == '~' && !lvl--)
       break;
     if(*name == ',' && !lvl) {
       ++name;

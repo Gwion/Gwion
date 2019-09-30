@@ -20,7 +20,7 @@ SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
 GWION_IMPORT(coverage) {
   Type t_coverage;
-  CHECK_OB((t_coverage = gwi_mk_type(gwi, "Coverage", SZ_INT, gwi->gwion->type[et_object])))
+  CHECK_OB((t_coverage = gwi_mk_type(gwi, "Coverage", SZ_INT, "Object")))
   CHECK_BB(gwi_class_ini(gwi, t_coverage, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, "int", "i", coverage_int))
   CHECK_BB(gwi_func_end(gwi, ae_flag_static))

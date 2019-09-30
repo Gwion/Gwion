@@ -21,7 +21,7 @@
 #include "specialid.h"
 
 static GACK(gack_class) {
-  printf("class(%p)", (*(Type*)VALUE)->e->d.base_type);
+  printf("class(%s)", actual_type(shred->info->vm->gwion, t)->name);
 }
 
 static GACK(gack_function) {
@@ -93,10 +93,10 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_function, gack_function))
   GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
-  const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, t_function);
+  const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, "@function");
   GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
   GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
-  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, t_function);
+  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
   const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
@@ -112,7 +112,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL);
   CHECK_BB(gwi_gack(gwi, t_time, gack_float))
   GWI_BB(gwi_add_type(gwi, t_time))
-  const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, t_time);
+  const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, "time");
   GWI_BB(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
@@ -130,7 +130,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   gwi->gwion->type[et_vec4] = t_vec4;
   CHECK_BB(gwi_gack(gwi, t_vec4, gack_vec4))
   GWI_BB(import_object(gwi))
-  const Type t_union = gwi_mk_type(gwi, "@Union", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_union = gwi_mk_type(gwi, "@Union", SZ_INT, "Object");
   gwi->gwion->type[et_union] = t_union;
   GWI_BB(gwi_class_ini(gwi, t_union, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))

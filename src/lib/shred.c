@@ -231,7 +231,7 @@ void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
 
 #include "nspc.h"
 GWION_IMPORT(shred) {
-  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, "Object");
   gwi->gwion->type[et_shred] = t_shred;
   GWI_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
@@ -302,7 +302,7 @@ GWION_IMPORT(shred) {
 
   SET_FLAG((t_shred), abstract);
 
-  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, t_shred);
+  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, "Shred");
   gwi->gwion->type[et_fork] = t_fork;
   GWI_BB(gwi_class_ini(gwi, t_fork, NULL, fork_dtor))
   gwi_item_ini(gwi, "int", "@thread");

@@ -94,12 +94,18 @@ ANN static void template_name(struct tmpl_info* info, m_str s) {
   m_str str = s;
   str = tmpl_get(info, str);
   *str++ = '<';
+  *str++ = '~';
   const m_uint size = vector_size(&info->type);
   for(info->index = 1; info->index < size; ++info->index) {
     str = tmpl_get(info, str);
-    *str++ = (info->index < size - 1) ? ',' : '>';
-   }
-   *str = '\0';
+    if(info->index < size - 1)
+      *str++ = ',';
+    else {
+      *str++ = '~';
+      *str++ = '>';
+    }
+  }
+  *str = '\0';
 }
 
 ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_List call) {

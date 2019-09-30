@@ -40,7 +40,7 @@ static MFUN(m_variadic) {
 }
 
 GWION_IMPORT(variadic test) {
-  const Type t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, "Object");
   CHECK_BB(gwi_class_ini(gwi, t_variadic, NULL, NULL))
   CHECK_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
   CHECK_BB(gwi_func_arg(gwi, "string", "format"))

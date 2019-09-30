@@ -101,6 +101,7 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
       continue;
     if(c == '<') {
       lvl++;
+      ++i;
       continue;
     }
     if(c == ',') {
@@ -108,7 +109,7 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
         GWI_ERR_B(_("illegal use of ',' outside of templating in name '%s'."), a)
       continue;
     }
-    if(c == '>') {
+    if(c == '~') {
       if(!lvl)
         GWI_ERR_B(_("illegal templating in name '%s'."), a)
       lvl--;
@@ -132,7 +133,11 @@ ANN static m_bool path_valid(const Env env, ID_List* list, const struct Path* p)
   char last = '\0';
   for(m_uint i = p->len + 1; --i;) {
     const char c = p->path[i - 1];
-    if(c != '.' && check_illegal(p->curr, c, i) < 0) {
+
+// TODO: NOW!!! check templating
+//if(  c == '<' && p->path[i - 2] == '~');
+//else
+ if(c != '.' && check_illegal(p->curr, c, i) < 0) {
       env_err(env, &p->loc, _("illegal character '%c' in path '%s'."), c, p->path);
       return GW_ERROR;
     }
@@ -196,7 +201,10 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
   return GW_OK;
 }
 
-ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint size, const Type parent) {
+ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint size, const m_str parent_name) {
+  m_uint depth;
+  const Type_Decl* td = parent_name ? str2decl(gwi->gwion->env, parent_name, &depth) : NULL;
+  const Type parent = td ? known_type(gwi->gwion->env, td) : NULL;
   const Type t = new_type(gwi->gwion->mp, 0, name, parent);
   t->size = size;
   return t;

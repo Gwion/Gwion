@@ -106,7 +106,7 @@ static OP_EMIT(opem_ptr_deref) {
 
 GWION_IMPORT(ptr) {
   const m_str list[] = { "A" };
-  const Type t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, "Object");
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_tmpl_ini(gwi, 1, list))
   GWI_BB(gwi_class_ini(gwi, t_ptr, NULL, NULL))
