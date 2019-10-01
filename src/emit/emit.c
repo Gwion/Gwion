@@ -1102,7 +1102,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
-  const struct Implicit imp = { .e=from, .t=to };
+  const struct Implicit imp = { from, to, from->pos };
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
   return op_emit_bool(emit, &opi);
 }
@@ -1424,6 +1424,8 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
   emit_union_offset(udef->l, udef->o);
   if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);
+puts(emit->env->name);
+//  SET_FLAG(udef->xid ? udef->value->type : udef->type, emit);
   return GW_OK;
 }
 
