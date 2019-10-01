@@ -402,10 +402,22 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-  do if(isa(e->type, env->gwion->type[et_int]) < 0)
-    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
-        *depth, e->type->name)
+//  do if(isa(e->type, env->gwion->type[et_int]) < 0)
+//    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
+//        *depth, e->type->name)
+
+
 //  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
+
+  const m_str str = "@access";
+  const Type t = env->gwion->type[et_int];
+  do {
+    struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
+    struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
+        .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
+    CHECK_OB(op_check(env, &opi))
+    e->nspc = env->curr;
+  }
   while(++(*depth) && (e = e->next));
   return GW_OK;
 }
