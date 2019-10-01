@@ -38,12 +38,11 @@ ANN static m_bool check_implicit(const Env env, const m_str str,
   return GW_OK;
 }
 
-ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp) {
+ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
   CHECK_OB(check_exp(env, exp))
-  const Type t = env->gwion->type[et_int];
-  Exp e = exp;
-  do CHECK_BB(check_implicit(env, "@access", e, t))
-  while((e = e->next));
+  do if(isa(exp->type, env->gwion->type[et_int]) < 0)
+      ERR_B(exp->pos, _("incompatible array subscript type '%s' ..."), exp->type->name)
+  while((exp = exp->next));
   return GW_OK;
 }
 
