@@ -299,13 +299,10 @@ ANN static Type prim_id(const Env env, Exp_Primary* primary) {
 }
 
 ANN static m_bool vec_value(const Env env, Exp e) {
-  int count = 1;
   CHECK_OB(check_exp(env, e))
-  do {
-    if(check_implicit(env, e, env->gwion->type[et_float]) < 0)
-      ERR_B(e->pos, _("invalid type '%s' in value #%d...\n"), e->type->name, count)
-    ++count;
-  } while((e = e->next));
+  const Type t_float = env->gwion->type[et_float];
+  do CHECK_BB(check_implicit(env, e, t_float))
+  while((e = e->next));
   return GW_OK;
 }
 
