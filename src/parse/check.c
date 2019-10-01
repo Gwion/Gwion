@@ -28,6 +28,16 @@ ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
+ANN static m_bool _check_implicit(const Env env, const m_str str,
+      const Exp e, const Type t) {
+  struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
+  struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
+        .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
+  CHECK_OB(op_check(env, &opi))
+  e->nspc = env->curr;
+  return GW_OK;
+}
+
 ANN static m_bool check_internal(const Env env, const Symbol sym,
       const Exp e, const Type t) {
   struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
@@ -284,10 +294,13 @@ ANN static Type prim_id(const Env env, Exp_Primary* primary) {
 }
 
 ANN static m_bool vec_value(const Env env, Exp e) {
-  const Type t_float = env->gwion->type[et_float];
+  int count = 1;
   CHECK_OB(check_exp(env, e))
-  do CHECK_BB(check_implicit(env, e, t_float))
-  while((e = e->next));
+  do {
+    if(check_implicit(env, e, env->gwion->type[et_float]) < 0)
+      ERR_B(e->pos, _("invalid type '%s' in value #%d...\n"), e->type->name, count)
+    ++count;
+  } while((e = e->next));
   return GW_OK;
 }
 
@@ -1042,8 +1055,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 }
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
-  const Symbol sym = insert_symbol("@repeat");
-  return check_internal(env, sym, e, env->gwion->type[et_int]);
+  return _check_implicit(env, "@repeat", e, env->gwion->type[et_int]);
 }
 
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
