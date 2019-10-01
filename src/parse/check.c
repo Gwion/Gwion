@@ -30,7 +30,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN static m_bool check_implicit(const Env env, const m_str str,
       const Exp e, const Type t) {
-  struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
+  struct Implicit imp = { .e=e, .t=t };
   struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   CHECK_OB(op_check(env, &opi))

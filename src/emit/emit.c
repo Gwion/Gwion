@@ -1102,7 +1102,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_implicit_cast(const Emitter emit,
     const restrict Exp  from, const restrict Type to) {
-  const struct Implicit imp = { from, to, from->pos };
+  const struct Implicit imp = { .e=from, .t=to  };
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to, .data=(m_uint)&imp };
   return op_emit_bool(emit, &opi);
 }
