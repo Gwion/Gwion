@@ -404,40 +404,39 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
 //  do if(isa(e->type, env->gwion->type[et_int]) < 0)
 //    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
-//        *depth, e->type->name)
+//       *depth, e->type->name)
 
 
 //  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
 
   const m_str str = "@access";
   const Type t = env->gwion->type[et_int];
-//  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
-  do CHECK_BB(check_implicit(env, str, e, t))
-/*
+  const Symbol sym = insert_symbol(str);
+//  do CHECK_BB(check_implicit(env, str, e, t))
   do {
     struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
-    struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
+    struct Op_Import opi = { .op=sym, .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
     CHECK_OB(op_check(env, &opi))
     e->nspc = env->curr;
   }
-*/
+
   while(++(*depth) && (e = e->next));
   return GW_OK;
 }
 
-static m_bool array_access_valid(const Env env, const Exp_Array* array) {
+static m_bool array_access_valid(const Env env, const Array_Sub array) {
   m_uint depth = 0;
-  CHECK_BB(index_is_int(env, array->array->exp, &depth))
-  if(depth != array->array->depth)
-    ERR_B(exp_self(array)->pos, _("invalid array acces expression."))
+  CHECK_BB(index_is_int(env, array->exp, &depth))
+  if(depth != array->depth)
+    ERR_B(array->exp->pos, _("invalid array acces expression."))
   return GW_OK;
 }
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
   CHECK_OO(check_exp(env, array->array->exp))
-  CHECK_BO(array_access_valid(env, array))
+  CHECK_BO(array_access_valid(env, array->array))
   return at_depth(env, array->array);
 }
 
