@@ -180,7 +180,8 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
   const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  if(check_implicit(env, insert_symbol("@implicit"), e, type) < 0)
+  const Symbol sym = insert_symbol("@implicit");
+  if(check_implicit(env, sym, e, type) < 0)
     ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
   set_cast(env, type, e); // ???
   return GW_OK;
@@ -457,8 +458,10 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
           insert_symbol(t->e->owner->name));
         return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
-      if(implicit)
-        return check_implicit(env, insert_symbol("@implicit"), e, t);
+      if(implicit) {
+        const Symbol sym = insert_symbol("@implicit");
+        return check_implicit(env, sym, e, t);
+      }
   }
   return match ? 1 : -1;
 }
