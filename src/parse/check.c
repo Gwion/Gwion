@@ -402,7 +402,10 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 }
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
+  do if(isa(e->type, env->gwion->type[et_int]) < 0)
+    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
+        *depth, e->type->name)
+//  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
   while(++(*depth) && (e = e->next));
   return GW_OK;
 }
