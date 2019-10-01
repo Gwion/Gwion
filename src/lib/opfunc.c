@@ -90,7 +90,6 @@ OP_CHECK(opck_post) {
   return post->exp->type;
 }
 
-ANN m_bool check_exp_array_subscripts(const Env env, const Exp exp);
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
@@ -101,7 +100,7 @@ OP_CHECK(opck_new) {
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
   UNSET_FLAG(unary->td, ref);
   if(unary->td->array)
-    CHECK_BO(check_exp_array_subscripts(env, unary->td->array->exp))
+    CHECK_BO(check_subscripts(env, unary->td->array))
   return t;
 }
 

@@ -54,11 +54,12 @@ ANN static inline m_bool check_implicit(const Env env, const Exp e, const Type t
 }
 
 
-ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
-  CHECK_OB(check_exp(env, exp))
-  do if(isa(exp->type, env->gwion->type[et_int]) < 0)
-      ERR_B(exp->pos, _("incompatible array subscript type '%s' ..."), exp->type->name)
-  while((exp = exp->next));
+ANN m_bool check_subscripts(Env env, const Array_Sub array) {
+  CHECK_OB(check_exp(env, array->exp))
+  Exp e = array->exp;
+  do if(isa(e->type, env->gwion->type[et_int]) < 0)
+      ERR_B(e->pos, _("incompatible array subscript type '%s' ..."), e->type->name)
+  while((e = e->next));
   return GW_OK;
 }
 
@@ -164,7 +165,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     if(env->class_def && !env->scope->depth && env->class_def->e->parent)
       CHECK_BO(check_exp_decl_parent(env, var))
     if(var->array && var->array->exp)
-      CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
+      CHECK_BO(check_subscripts(env, var->array))
     if(env->class_def)  {
       if(GET_FLAG(decl->td, member)) {
         decl_member(env, v);
@@ -1397,7 +1398,7 @@ ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
-    CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
+    CHECK_BB(check_subscripts(env, td->array))
   if(parent->e->def && !GET_FLAG(parent, check))
     CHECK_BB(scanx_parent(parent, traverse_cdef, env))
   if(GET_FLAG(parent, typedef))

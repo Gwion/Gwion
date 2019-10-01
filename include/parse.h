@@ -90,4 +90,5 @@ xxx_cdef(traverse)
 
 __attribute__((returns_nonnull))
 ANN Type get_type(const Type t);
+ANN m_bool check_subscripts(const Env, const Array_Sub);
 #endif
