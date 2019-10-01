@@ -56,10 +56,14 @@ ANN static inline m_bool check_implicit(const Env env, const Exp e, const Type t
 
 ANN m_bool check_subscripts(Env env, const Array_Sub array) {
   CHECK_OB(check_exp(env, array->exp))
+  m_uint depth = 0;
   Exp e = array->exp;
   do if(isa(e->type, env->gwion->type[et_int]) < 0)
-      ERR_B(e->pos, _("incompatible array subscript type '%s' ..."), e->type->name)
-  while((e = e->next));
+    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
+       depth, e->type->name)
+  while(++(depth) && (e = e->next));
+  if(depth != array->depth)
+    ERR_B(array->exp->pos, _("invalid array acces expression."))
   return GW_OK;
 }
 
@@ -418,27 +422,9 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
   return (isa(t, env->gwion->type[et_tuple]) < 0 ? partial_depth : tuple_depth)(env, array);
 }
 
-static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-// TODO: use "@access"
-  do if(isa(e->type, env->gwion->type[et_int]) < 0)
-    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
-       *depth, e->type->name)
-  while(++(*depth) && (e = e->next));
-  return GW_OK;
-}
-
-static m_bool array_access_valid(const Env env, const Array_Sub array) {
-  m_uint depth = 0;
-  CHECK_BB(index_is_int(env, array->exp, &depth))
-  if(depth != array->depth)
-    ERR_B(array->exp->pos, _("invalid array acces expression."))
-  return GW_OK;
-}
-
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
-  CHECK_OO(check_exp(env, array->array->exp))
-  CHECK_BO(array_access_valid(env, array->array))
+  CHECK_OO(check_subscripts(env, array->array))
   return at_depth(env, array->array);
 }
 
