@@ -30,7 +30,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN static m_bool _check_implicit(const Env env, const m_str str,
       const Exp e, const Type t) {
-  struct Implicit imp = { .e=e, .t=t };
+  struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
   struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   CHECK_OB(op_check(env, &opi))
@@ -40,7 +40,7 @@ ANN static m_bool _check_implicit(const Env env, const m_str str,
 
 ANN static m_bool check_internal(const Env env, const Symbol sym,
       const Exp e, const Type t) {
-  struct Implicit imp = { .e=e, .t=t };
+  struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
   struct Op_Import opi = { .op=sym, .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   CHECK_OB(op_check(env, &opi))
@@ -56,8 +56,7 @@ ANN static inline m_bool check_implicit(const Env env, const Exp e, const Type t
 
 ANN m_bool check_exp_array_subscripts(Env env, Exp exp) {
   CHECK_OB(check_exp(env, exp))
-  const Type t_int = env->gwion->type[et_int];
-  do if(isa(exp->type, t_int) < 0)
+  do if(isa(exp->type, env->gwion->type[et_int]) < 0)
       ERR_B(exp->pos, _("incompatible array subscript type '%s' ..."), exp->type->name)
   while((exp = exp->next));
   return GW_OK;
@@ -420,8 +419,7 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 
 static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
 // TODO: use "@access"
-  const Type t_int = env->gwion->type[et_int];
-  do if(isa(e->type, t_int) < 0)
+  do if(isa(e->type, env->gwion->type[et_int]) < 0)
     ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
        *depth, e->type->name)
   while(++(*depth) && (e = e->next));
@@ -1057,8 +1055,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 }
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
-  const Type t_int = env->gwion->type[et_int];
-  return _check_implicit(env, "@repeat", e, t_int);
+  return _check_implicit(env, "@repeat", e, env->gwion->type[et_int]);
 }
 
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
