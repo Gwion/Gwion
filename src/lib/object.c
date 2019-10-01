@@ -198,7 +198,7 @@ static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Type l = imp->e->type;
   const Type r = imp->t;
-  if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == env->gwion->type[et_null])
+  if(check_nonnull(env, l, r, "implicitly cast", imp->e->pos) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
   imp->e->cast_to = r;
   return imp->t;
