@@ -58,11 +58,8 @@ ANN m_bool check_subscripts(Env env, const Array_Sub array) {
   CHECK_OB(check_exp(env, array->exp))
   m_uint depth = 0;
   Exp e = array->exp;
-  // TODO: use check_internal @access
   const Type t_int = env->gwion->type[et_int];
-  do if(isa(e->type, t_int) < 0)
-    ERR_B(e->pos, _("array index %i must be of type 'int', not '%s'"),
-       depth, e->type->name)
+  do CHECK_BB(_check_implicit(env, "@access", e, t_int))
   while(++(depth) && (e = e->next));
   if(depth != array->depth)
     ERR_B(array->exp->pos, _("invalid array acces expression."))
