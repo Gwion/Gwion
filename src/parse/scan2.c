@@ -467,7 +467,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
 }
 
 
-ANN2(1,2,4) /*static */Value func_create(const Env env, const Func_Def f,
+ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
      const Value overload, const m_str name) {
   const Func func = scan_new_func(env, f, name);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
