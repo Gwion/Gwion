@@ -75,6 +75,8 @@ static OP_CHECK(opck_implicit_ptr) {
 
 static INSTR(instr_ptr_deref) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
+  if(!*(m_bit**)o->data)
+    Except(shred, _("EmptyPointerExecption"));
   if(instr->m_val2)
     memcpy(REG(-SZ_INT), o->data, SZ_INT);
   else {
