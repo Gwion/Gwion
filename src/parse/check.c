@@ -1353,7 +1353,7 @@ ANN m_bool _check_func_def_tmpl(const Env env, const Func_Def fdef) {
 }
 
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
-  const Func func = get_func(env, fdef);
+  const Func func = fdef->base->func;
   assert(func == fdef->base->func);
   if(tmpl_base(fdef->base->tmpl))
     return env->class_def ? check_parent_match(env, fdef) : 1;

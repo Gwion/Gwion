@@ -505,7 +505,7 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
   const m_str name = func_name(env, f, overload ?: NULL);
   if((m_int)name <= GW_OK)
     return (m_bool)(m_uint)name;
-  const Func base = get_func(env, f);
+  const Func base = f->base->func;
   if(!base)
     CHECK_OB(func_create(env, f, overload, name))
   else

@@ -1804,7 +1804,7 @@ ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
 }
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
-  const Func func = get_func(emit->env, fdef);
+  const Func func = fdef->base->func;
   const Func former = emit->env->func;
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
