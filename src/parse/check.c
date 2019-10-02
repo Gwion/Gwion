@@ -518,6 +518,8 @@ static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp)
     const Func func = find_func_match(env, f, exp->args);
     f->next = next;
     if(func) {
+      if(func->value_ref->from->ctx->error)
+        ERR_O(exp_self(exp)->pos, _("function '%s' is errored"), func->name)
       SET_FLAG(func, checked | ae_flag_template);
       return func;
     }

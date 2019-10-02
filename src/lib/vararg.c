@@ -7,6 +7,7 @@
 #include "env.h"
 #include "type.h"
 #include "instr.h"
+#include "emit.h"
 #include "object.h"
 #include "vararg.h"
 #include "gwion.h"
