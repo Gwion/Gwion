@@ -88,6 +88,8 @@ xxx_cdef(scan2)
 xxx_cdef(check)
 xxx_cdef(traverse)
 
+ANN m_bool scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
+
 __attribute__((returns_nonnull))
 ANN Type get_type(const Type t);
 ANN m_bool check_subscripts(const Env, const Array_Sub);

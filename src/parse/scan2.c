@@ -352,7 +352,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   return v;
 }
 
-ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f, const Value overload) {
+ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const Value overload) {
   const m_str name = s_name(f->base->xid);
   const Func func = scan_new_func(env, f, name);
   const Value value = func_value(env, func, overload);
@@ -500,8 +500,7 @@ ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v)
   return template_helper(env, f);
 }
 
-
-ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overload) {
+ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
   const m_str name = func_name(env, f, overload ?: NULL);
   if((m_int)name <= GW_OK)
     return (m_bool)(m_uint)name;
@@ -522,16 +521,11 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
   return GW_OK;
 }
 
-ANN m_bool _scan2_func_def(const Env env, const Func_Def f) {
+ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
-  if(f->base->tmpl)
-    CHECK_BB(template_push_types(env, f->base->tmpl))
-  const m_bool ret = (!tmpl_base(f->base->tmpl) ? scan2_fdef : scan2_func_def_template)(env, f, overload);
-  if(f->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
-  return ret;
+  return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);
 }
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
@@ -539,7 +533,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;
-  const m_bool ret = _scan2_func_def(env, f);
+  const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
   return ret;

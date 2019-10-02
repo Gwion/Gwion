@@ -1749,7 +1749,6 @@ ANN static void emit_func_def_return(const Emitter emit) {
     instr->m_val = val;
   }
   vector_clear(&emit->code->stack_return);
-  emit_pop_scope(emit);
   if(emit->info->memoize && GET_FLAG(emit->env->func, pure))
     emit_add_instr(emit, MemoizeStore);
 }
@@ -1803,6 +1802,22 @@ ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
   return ret;
 }
 
+ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
+  CHECK_BB(emit_func_def_body(emit, fdef))
+  emit_func_def_return(emit);
+  return GW_OK;
+}
+
+ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
+  const Func func = fdef->base->func;
+  func->code = emit_func_def_code(emit, func);
+  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
+    emit_func_def_global(emit, func->value_ref);
+  if(emit->info->memoize && GET_FLAG(func, pure))
+    func->code->memoize = memoize_ini(emit, func,
+      kindof(fdef->base->ret_type->size, !fdef->base->ret_type->size));
+}
+
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   const Func func = fdef->base->func;
   const Func former = emit->env->func;
@@ -1819,22 +1834,11 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
     stack_alloc_this(emit);
   emit->env->func = func;
   emit_push_scope(emit);
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
-  const m_bool ret = emit_func_def_body(emit, fdef);
+  const m_bool ret = scanx_fdef(emit->env, emit, fdef, (_exp_func)emit_fdef);
+  emit_pop_scope(emit);
+  emit->env->func = former;
   if(ret > 0)
-    emit_func_def_return(emit);
-  if(fdef->base->tmpl)
-    emit_pop_type(emit);
-  if(ret > 0) {
-    func->code = emit_func_def_code(emit, func);
-    emit->env->func = former;
-    if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
-      emit_func_def_global(emit, func->value_ref);
-    if(emit->info->memoize && GET_FLAG(func, pure))
-      func->code->memoize = memoize_ini(emit, func,
-        kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
-  }
+    emit_fdef_finish(emit, fdef);
   return ret;
 }
 

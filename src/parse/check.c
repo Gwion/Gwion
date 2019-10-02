@@ -1327,7 +1327,7 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
-ANN m_bool _check_func_def(const Env env, const Func_Def fdef) {
+ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->args)
     CHECK_BB(check_func_args(env, fdef->base->args))
   else
@@ -1341,15 +1341,6 @@ ANN m_bool _check_func_def(const Env env, const Func_Def fdef) {
   if(variadic)
     REM_REF(variadic, env->gwion)
   return GW_OK;
-}
-
-ANN m_bool _check_func_def_tmpl(const Env env, const Func_Def fdef) {
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(env, fdef->base->tmpl))
-  const m_bool ret = _check_func_def(env, fdef);
-  if(fdef->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
-  return ret;
 }
 
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
@@ -1369,7 +1360,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
-  const m_bool ret = _check_func_def_tmpl(env, fdef);
+  const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;

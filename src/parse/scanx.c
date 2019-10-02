@@ -75,3 +75,13 @@ ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
   nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
 }
+
+ANN m_bool scanx_fdef(const Env env, void *data,
+    const Func_Def fdef, const _exp_func func) {
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = func(data, fdef);
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
