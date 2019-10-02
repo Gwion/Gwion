@@ -397,6 +397,15 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = scan1_fdef(env, fdef);
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
@@ -405,13 +414,9 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(env, fdef->base->tmpl))
-  const m_bool ret = scan1_fdef(env, fdef);
-  if(fdef->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
-  env->func = former;
+  const m_bool ret = _scan1_func_def(env, fdef);
   --env->scope->depth;
+  env->func = former;
   return ret;
 }
 

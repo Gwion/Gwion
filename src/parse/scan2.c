@@ -522,12 +522,8 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
   return GW_OK;
 }
 
-ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
-  const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
+ANN m_bool _scan2_func_def(const Env env, const Func_Def f) {
   const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
-  f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
-  if(GET_FLAG(f, variadic))
-    f->stack_depth += SZ_INT;
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
   if(f->base->tmpl)
@@ -535,6 +531,15 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_bool ret = (!tmpl_base(f->base->tmpl) ? scan2_fdef : scan2_func_def_template)(env, f, overload);
   if(f->base->tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
+ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
+  const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
+  f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
+  if(GET_FLAG(f, variadic))
+    f->stack_depth += SZ_INT;
+  const m_bool ret = _scan2_func_def(env, f);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
   return ret;

@@ -1327,9 +1327,34 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
+ANN m_bool _check_func_def(const Env env, const Func_Def fdef) {
+  if(fdef->base->args)
+    CHECK_BB(check_func_args(env, fdef->base->args))
+  else
+    UNSET_FLAG(fdef->base->func, pure);
+  const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
+  if(!GET_FLAG(fdef, builtin)) {
+    if(fdef->d.code)
+      CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code))
+  } else
+    fdef->base->func->code->stack_depth = fdef->stack_depth;
+  if(variadic)
+    REM_REF(variadic, env->gwion)
+  return GW_OK;
+}
+
+ANN m_bool _check_func_def_tmpl(const Env env, const Func_Def fdef) {
+  if(fdef->base->tmpl)
+    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const m_bool ret = _check_func_def(env, fdef);
+  if(fdef->base->tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   const Func func = get_func(env, fdef);
-  m_bool ret = GW_OK;
+  assert(func == fdef->base->func);
   if(tmpl_base(fdef->base->tmpl))
     return env->class_def ? check_parent_match(env, fdef) : 1;
   if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
@@ -1344,24 +1369,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(env, fdef->base->tmpl))
-  if(!fdef->base->args)
-    UNSET_FLAG(fdef->base->func, pure);
-  else
-    ret = check_func_args(env, fdef->base->args);
-  if(ret > 0) {
-    const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
-    if(!GET_FLAG(fdef, builtin) && fdef->d.code &&
-        check_stmt_code(env, &fdef->d.code->d.stmt_code) < 0)
-      ret = GW_ERROR;
-    if(variadic)
-      REM_REF(variadic, env->gwion)
-    if(GET_FLAG(fdef, builtin))
-      func->code->stack_depth = fdef->stack_depth;
-  }
-  if(fdef->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
+  const m_bool ret = _check_func_def_tmpl(env, fdef);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
