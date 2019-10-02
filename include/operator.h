@@ -19,7 +19,6 @@ struct Op_Import {
 struct Implicit {
   Exp e;
   Type  t;
-  loc_t pos;
 };
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
