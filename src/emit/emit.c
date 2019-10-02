@@ -1014,11 +1014,12 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   ++emit->env->scope->depth;
   emit_push_scope(emit);
   const Instr gc = emit_add_instr(emit, NoOp);
-  CHECK_BB(emit_stmt(emit, stmt, pop))
-  const m_bool pure = !vector_back(&emit->info->pure);
-  if(!pure) {
-    gc->opcode = eGcIni;
-    emit_add_instr(emit, GcEnd);
+  if(emit_stmt(emit, stmt, pop) > 0) {
+    const m_bool pure = !vector_back(&emit->info->pure);
+    if(!pure) {
+      gc->opcode = eGcIni;
+      emit_add_instr(emit, GcEnd);
+    }
   }
   emit_pop_scope(emit);
   --emit->env->scope->depth;
@@ -1699,7 +1700,9 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
 (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type)))
 ) {
     CHECK_BB(emit_exp(emit, member->base, 0))
-    emit_except(emit, member->t_base);
+    emit_add_instr(emit, GWOP_EXCEPT);
+
+//    emit_except(emit, member->t_base);
   }
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
     return emit_member_func(emit, member);
@@ -1811,18 +1814,21 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   emit_push_scope(emit);
   if(fdef->base->tmpl)
     CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
-  CHECK_BB(emit_func_def_body(emit, fdef))
-  emit_func_def_return(emit);
-  emit_func_def_code(emit, func);
+  const m_bool ret = emit_func_def_body(emit, fdef);
+  if(ret > 0)
+    emit_func_def_return(emit);
   if(fdef->base->tmpl)
     emit_pop_type(emit);
-  emit->env->func = former;
-  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
-    emit_func_def_global(emit, func->value_ref);
-  if(emit->info->memoize && GET_FLAG(func, pure))
-    func->code->memoize = memoize_ini(emit, func,
-      kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
-  return GW_OK;
+  if(ret > 0) {
+    emit_func_def_code(emit, func);
+    emit->env->func = former;
+    if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
+      emit_func_def_global(emit, func->value_ref);
+    if(emit->info->memoize && GET_FLAG(func, pure))
+      func->code->memoize = memoize_ini(emit, func,
+        kindof(func->def->base->ret_type->size, !func->def->base->ret_type->size));
+  }
+  return ret;
 }
 
 #define emit_fptr_def dummy_func

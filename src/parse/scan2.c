@@ -365,6 +365,7 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
     const Value v = nspc_lookup_value1(nspc, f->base->xid);
     if(v) {
       Func ff = v->d.func_ref;
+      if(!ff)continue;
       do {
         if(ff->def == f) {
           ++i;
@@ -446,6 +447,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
+    if(!t)continue;
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);

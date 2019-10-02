@@ -410,7 +410,7 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
-  CHECK_OO(check_subscripts(env, array->array))
+  CHECK_BO(check_subscripts(env, array->array))
   return at_depth(env, array->array);
 }
 
@@ -1065,7 +1065,11 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   }
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
-  return check_implicit(env, stmt->val, env->func->def->base->ret_type);
+  if(stmt->val)
+    return check_implicit(env, stmt->val, env->func->def->base->ret_type);
+  if(isa(env->func->def->base->ret_type, env->gwion->type[et_void]) > 0)
+    return GW_OK;
+  ERR_B(stmt_self(stmt)->pos, _("missing value for return statement"))
 }
 
 #define describe_check_stmt_stack(stack, name)                                     \

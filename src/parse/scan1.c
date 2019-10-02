@@ -72,6 +72,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
+  if(global && decl->type->e->owner != env->global_nspc)
+    ERR_B(exp_self(decl)->pos, _("type '%s' is not global\n"), decl->type->name)
   if(env->context)
     env->context->global = 1;
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);

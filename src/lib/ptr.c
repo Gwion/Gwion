@@ -14,6 +14,7 @@
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
+#include "parse.h"
 #include "gwi.h"
 
 static OP_CHECK(opck_ptr_assign) {
@@ -43,21 +44,20 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
+  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(get_type_name(env, unary->exp->type->name, 1)));
 }
-
+#include "tuple.h"
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = type_decl_resolve(env, cast->td);
+  DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
   if(!GET_FLAG(t, check)) {
     assert(t->e->def);
-    CHECK_BO(traverse_class_def(env, t->e->def))
+    CHECK_BN(traverse_class_def(env, t->e->def))
   }
-// TODO check types.
-//  const Type ptr = nspc_
-//  if(t && isa(cast->exp->type, get_type(env, t, 1)) > 0)
+  const Type to = (Type)vector_at(&t->e->tuple->types, 0);
+  if(isa(cast->exp->type, to) > 0)
     return t;
-//  ERR_N(exp_self(cast)->pos, "invalid pointer cast")
+  ERR_N(exp_self(cast)->pos, "invalid pointer cast")
 }
 
 static OP_CHECK(opck_implicit_ptr) {

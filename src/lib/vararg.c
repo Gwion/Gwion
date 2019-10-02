@@ -13,6 +13,7 @@
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
+#include "specialid.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);
@@ -113,6 +114,8 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_oper_add(gwi, at_varobj))
   GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
   register_freearg(gwi, VarargIni, freearg_vararg);
+struct SpecialId_ spid = { .type=t_vararg, .exec=RegPushImm, .is_const=1 };
+gwi_specialid(gwi, "vararg", &spid);
   gwi_reserve(gwi, "vararg");
   return GW_OK;
 }

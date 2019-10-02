@@ -294,7 +294,6 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
-//  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
   t->nspc->parent = env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
