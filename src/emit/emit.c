@@ -1754,14 +1754,21 @@ ANN static void emit_func_def_return(const Emitter emit) {
     emit_add_instr(emit, MemoizeStore);
 }
 
-ANN static void emit_func_def_code(const Emitter emit, const Func func) {
-  const m_bool is_dtor = func->def->base->xid == insert_symbol("@dtor");// could be get flag
-  func->code = finalyze(emit, !is_dtor ? FuncReturn : DTOR_EOC);
-  if(is_dtor) {
-    emit->env->class_def->nspc->dtor = func->code;
-    ADD_REF(func->code)
-  } else if(func->def->base->xid == insert_symbol("@gack"))
-    emit->env->class_def->e->gack = func->code;
+ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
+  if(f->def->base->xid == insert_symbol("@dtor")) {
+    emit->env->class_def->nspc->dtor = f->code = finalyze(emit, DTOR_EOC);
+    ADD_REF(f->code)
+    return f->code;
+  } else if(f->def->base->xid == insert_symbol("@gack"))
+    emit->env->class_def->e->gack = f->code;
+  return finalyze(emit, FuncReturn);
+}
+
+ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
+  if(GET_FLAG(func->def, typedef))
+    return emit_internal(emit, func);
+  else
+    return finalyze(emit, FuncReturn);
 }
 
 ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
@@ -1820,7 +1827,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   if(fdef->base->tmpl)
     emit_pop_type(emit);
   if(ret > 0) {
-    emit_func_def_code(emit, func);
+    func->code = emit_func_def_code(emit, func);
     emit->env->func = former;
     if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
       emit_func_def_global(emit, func->value_ref);

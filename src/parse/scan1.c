@@ -346,9 +346,50 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   return GW_OK;
 }
 
+ANN static m_bool class_internal(const Env env, const Func_Base *base) {
+  if(!env->class_def)
+    ERR_B(td_pos(base->td), _("'%s' must be in class def!!"), s_name(base->xid))
+  if(base->args)
+    ERR_B(td_pos(base->td), _("'%s' must not have args"), s_name(base->xid))
+  if(base->ret_type != env->gwion->type[et_void])
+    ERR_B(td_pos(base->td), _("'%s' must return 'void'"), s_name(base->xid))
+  return GW_OK;
+}
+
+ANN static inline m_bool scan_internal_arg(const Env env, const Func_Base *base) {
+  if(base->args && !base->args->next)
+    return GW_OK;
+  ERR_B(td_pos(base->td), _("'%s' must have one (and only one) argument"), base->xid)
+}
+
+ANN static inline m_bool scan_internal_int(const Env env, const Func_Base *base) {
+    CHECK_BB(scan_internal_arg(env, base))
+    if(isa(base->ret_type, env->gwion->type[et_int]) > 0)
+      return GW_OK;
+    ERR_B(td_pos(base->td), _("'%s' must must return 'int'"), base->xid)
+}
+
+ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
+  const Symbol op = base->xid;
+  if(op == insert_symbol("@dtor") || op == insert_symbol("@gack"))
+    return class_internal(env, base);
+  if(op == insert_symbol("@implicit"))
+    return scan_internal_arg(env, base);
+  if(op == insert_symbol("@access")       ||
+     op == insert_symbol("@repeat")       ||
+     op == insert_symbol("@conditionnal") ||
+     op == insert_symbol("@unconditionnal"))
+    return scan_internal_int(env, base);
+  return GW_ERROR;
+}
+
 ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  if(GET_FLAG(fdef, typedef))
+    CHECK_BB(scan_internal(env, fdef->base))
+  else if(GET_FLAG(fdef, op) && env->class_def)
+    SET_FLAG(fdef, static);
   if(fdef->base->args)
     CHECK_BB(scan1_args(env, fdef->base->args))
   if(!GET_FLAG(fdef, builtin) && fdef->d.code)
@@ -361,14 +402,6 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(GET_FLAG(fdef, op)) {
-    if(fdef->base->xid == insert_symbol("@dtor") || fdef->base->xid == insert_symbol("@gack")) {
-      if(!env->class_def)
-        ERR_B(td_pos(fdef->base->td), _("'%s' must be in class def!!"), s_name(fdef->base->xid))
-      if(fdef->base->args)exit(3);
-    } else if(env->class_def)
-      SET_FLAG(fdef, static);
-  }
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
