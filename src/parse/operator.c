@@ -126,7 +126,9 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit")) {
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit") ||
+     ock->opi->op == insert_symbol(ock->env->gwion->st, "@access") ||
+     ock->opi->op == insert_symbol(ock->env->gwion->st, "@repeat")) {
     struct Implicit* imp = (struct Implicit*)ock->opi->data;
     imp->e->nspc = nspc;
     return;
