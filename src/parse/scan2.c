@@ -9,12 +9,10 @@
 #include "func.h"
 #include "template.h"
 #include "traverse.h"
-#include "optim.h"
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"
 #include "object.h"
-
 #include "instr.h"
 #include "import.h"
 #include "tuple.h"
@@ -114,19 +112,9 @@ ANN static inline Value prim_value(const Env env, const Symbol s) {
 }
 
 ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) {
-  if(prim->primary_type == ae_primary_hack) {
+  if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
-    Exp e = prim->d.exp;
-    do {
-      if(e->exp_type == ae_exp_decl) {
-        Var_Decl_List l = e->d.exp_decl.list;
-        do {
-           const Value v = l->self->value;
-           SET_FLAG(v, used);
-        }while ((l = l->next));
-      }
-    } while((e = e->next));
-  } else if(prim->primary_type == ae_primary_id) {
+  else if(prim->primary_type == ae_primary_id) {
     const Value v = prim_value(env, prim->d.var);
     if(v)
       SET_FLAG(v, used);
@@ -141,7 +129,6 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
   CHECK_BB(scan2_exp(env, array->base))
   return scan2_exp(env, array->array->exp);
 }
-
 
 ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if(e->exp_type == ae_exp_decl) {
@@ -424,9 +411,8 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
     f->base->ret_type : NULL;
   struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
                            .pos=f->pos, .data=(uintptr_t)f->base->func };
-  if(!strcmp(str, "@implicit")) {
+  if(!strcmp(str, "@implicit"))
     opi.ck = opck_usr_implicit;
-  }
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;
@@ -455,7 +441,8 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
-    if(!t)continue;
+    if(!t)
+      continue;
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
@@ -487,25 +474,14 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   return v;
 }
 
-
-ANN static m_str template_helper(const Env env, const Func_Def f) {
-  const m_str name = f->base->func ?  f->base->func->name : func_tmpl_name(env, f);
-  if(!name)
-    return(m_str)GW_ERROR;
-  const Func func = nspc_lookup_func0(env->curr, insert_symbol(name));
-  if(func) {
-    f->base->ret_type = known_type(env, f->base->td);
-    return (m_str)(m_uint)((f->base->args && f->base->args->type) ? scan2_args(env, f) : GW_OK);
-  }
-  return name;
-}
-
 ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v) {
   if(!f->base->tmpl) {
-    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
+    const Symbol sym  = func_symbol(env, env->curr->name,
+        s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
-  return template_helper(env, f);
+  const m_str name = f->base->func ?  f->base->func->name : func_tmpl_name(env, f);
+  return name ?: (m_str)GW_ERROR;
 }
 
 ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {

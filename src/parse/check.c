@@ -11,7 +11,6 @@
 #include "object.h"
 #include "traverse.h"
 #include "template.h"
-#include "optim.h"
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"

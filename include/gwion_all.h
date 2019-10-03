@@ -25,7 +25,6 @@
 #include "oo.h"
 #include "opcode.h"
 #include "operator.h"
-#include "optim.h"
 #include "parse.h"
 #include "plug.h"
 #include "shreduler_private.h"

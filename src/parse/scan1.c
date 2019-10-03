@@ -42,11 +42,9 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
-{
   const Type t = get_type(type);
   if(isa(t, env->gwion->type[et_object]) > 0)
     CHECK_BO(type_recursive(env, td, t))
-}
   if(type->size)
     return type;
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
@@ -384,7 +382,7 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
      op == insert_symbol("@conditionnal") ||
      op == insert_symbol("@unconditionnal"))
     return scan_internal_int(env, base);
-  return GW_ERROR;
+  return GW_OK;
 }
 
 ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
@@ -417,16 +415,20 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 
 DECL_SECTION_FUNC(scan1)
 
+ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
+  DECL_OO(const Type , parent, = tdef->type->e->parent = known_type(env, tdef->ext))
+  Type t = parent;
+  do if(tdef->type == t)
+      ERR_O(td_pos(tdef->ext), _("recursive (%s <= %s) class declaration."), tdef->type->name, t->name)
+  while((t = t->e->parent));
+  return parent;
+}
+
 ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = td_pos(cdef->base.ext);
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
-  DECL_OB(const Type , parent,  = cdef->base.type->e->parent = known_type(env, cdef->base.ext))
-  Type t = parent;
-  do {
-    if(cdef->base.type == t)
-      ERR_B(pos, _("recursive (%s <= %s) class declaration."), cdef->base.type->name, t->name);
-  } while((t = t->e->parent));
+  DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base))
   if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
