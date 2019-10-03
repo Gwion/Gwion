@@ -690,18 +690,13 @@ ANN static inline m_bool emit_exp_decl_template(const Emitter emit, const Exp_De
   return !GET_FLAG(t, emit) ? emit_cdef(emit, t->e->def) : GW_OK;
 }
 
-ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
-  Var_Decl_List list = decl->list;
-  const uint ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
-  const uint var = exp_self(decl)->emit_var;
-  if(GET_FLAG(decl->type, template))
-    CHECK_BB(emit_exp_decl_template(emit, decl))
+ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
-  const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
+  const uint var = exp_self(decl)->emit_var;
+  const uint ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
+  Var_Decl_List list = decl->list;
   do {
     const uint r = (list->self->array && list->self->array->exp && ref) ? 0 : (uint)(GET_FLAG(list->self->value, ref) + ref);
-//    if(!GET_FLAG(list->self->value, used))
-//      continue;
     if(GET_FLAG(decl->td, static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r, var))
     else if(!global)
@@ -711,9 +706,18 @@ ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
     if(GET_FLAG(list->self->value->type, nonnull))
       emit_add_instr(emit, GWOP_EXCEPT);
   } while((list = list->next));
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
+  if(GET_FLAG(decl->type, template))
+    CHECK_BB(emit_exp_decl_template(emit, decl))
+  const m_bool global = GET_FLAG(decl->td, global);
+  const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
+  const m_bool ret = emit_decl(emit, decl);
   if(global)
     emit_pop(emit, scope);
-  return GW_OK;
+  return ret;
 }
 
 ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
@@ -1128,16 +1132,22 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
   return ret;
 }
 
+ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
+  CHECK_BB(emit_func_def(emit, lambda->def))
+  if(GET_FLAG(lambda->def, member))
+    emit_add_instr(emit, RegPushMem);
+  regpushi(emit, (m_uint)lambda->def->base->func->code);
+  return GW_OK;
+}
+
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
   if(lambda->def) {
     const m_uint scope = !lambda->owner ?
       emit->env->scope->depth : emit_push_type(emit, lambda->owner);
-    CHECK_BB(emit_func_def(emit, lambda->def))
-    if(GET_FLAG(lambda->def, member))
-      emit_add_instr(emit, RegPushMem);
-    regpushi(emit, (m_uint)lambda->def->base->func->code);
+    const m_bool ret = emit_lambda(emit, lambda);
     if(lambda->owner)
       emit_pop(emit, scope);
+    return ret;
   } else
     emit_add_instr(emit, RegPushImm);
   return GW_OK;
@@ -1167,8 +1177,7 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
-  emit_push_scope(emit);
+ANN static m_bool emit_if(const Emitter emit, const Stmt_If stmt) {
   DECL_OB(const Instr, op, = emit_flow(emit, stmt->cond))
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
   const Instr op2 = emit_add_instr(emit, Goto);
@@ -1176,8 +1185,14 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
   if(stmt->else_body)
     CHECK_BB(scoped_stmt(emit, stmt->else_body, 1))
   op2->m_val = emit_code_size(emit);
-  emit_pop_scope(emit);
   return GW_OK;
+}
+
+ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
+  emit_push_scope(emit);
+  const m_bool ret = emit_if(emit, stmt);
+  emit_pop_scope(emit);
+  return ret;
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
@@ -1425,8 +1440,6 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
   emit_union_offset(udef->l, udef->o);
   if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);
-puts(emit->env->name);
-//  SET_FLAG(udef->xid ? udef->value->type : udef->type, emit);
   return GW_OK;
 }
 

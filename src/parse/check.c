@@ -126,21 +126,57 @@ ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
   return decl->type;
 }
 
-ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
+ANN static m_bool check_var(const Env env, const Var_Decl var) {
+  if(env->class_def && !env->scope->depth && env->class_def->e->parent)
+    CHECK_BB(check_exp_decl_parent(env, var))
+  if(var->array && var->array->exp)
+    return check_subscripts(env, var->array);
+  return GW_OK;
+}
+
+ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *const td) {
+  const Value v = var->value;
+  if(env->class_def)  {
+    if(GET_FLAG(td, member)) {
+      decl_member(env, v);
+      if(isa(env->class_def, env->gwion->type[et_object])  > 0)
+        tuple_info(env, td, var);
+    } else if(GET_FLAG(td, static))
+      decl_static(env, v);
+  } else if(GET_FLAG(td, global) || (env->func && GET_FLAG(env->func->def, global)))
+    SET_FLAG(v, abstract);
+  return GW_OK;
+}
+
+ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
+  do {
+    const Var_Decl var = list->self;
+    CHECK_BB(check_var(env, var))
+    CHECK_BB(check_var_td(env, var, decl->td))
+    if(is_fptr(env->gwion, decl->type))
+      CHECK_BB(check_fptr_decl(env, var))
+    SET_FLAG(var->value, checked | ae_flag_used);
+    nspc_add_value(env->curr, var->xid, var->value);
+  } while((list = list->next));
+  return GW_OK;
+}
+
+ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
+    const Type t_auto = env->gwion->type[et_auto];
     if(is_class(env->gwion, decl->type)) {
-      do {
-        list->self->value->type = env->gwion->type[et_auto];
-      } while((list = list->next));
-      ((Exp_Decl*)decl)->type = env->gwion->type[et_auto];
+      Var_Decl_List list = decl->list;
+      do list->self->value->type = t_auto;
+      while((list = list->next));
+      ((Exp_Decl*)decl)->type = t_auto;
     }
-    if(decl->type == env->gwion->type[et_auto])
+    if(decl->type == t_auto)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }
   if(!decl->type)
@@ -152,31 +188,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
 }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-  do {
-    const Var_Decl var = list->self;
-    const Value v = var->value;
-    if(env->class_def && !env->scope->depth && env->class_def->e->parent)
-      CHECK_BO(check_exp_decl_parent(env, var))
-    if(var->array && var->array->exp)
-      CHECK_BO(check_subscripts(env, var->array))
-    if(env->class_def)  {
-      if(GET_FLAG(decl->td, member)) {
-        decl_member(env, v);
-        if(isa(env->class_def, env->gwion->type[et_object])  > 0)
-          tuple_info(env, decl->td, var);
-      } else if(GET_FLAG(decl->td, static))
-        decl_static(env, v);
-    }
-    else if(global || (env->func && GET_FLAG(env->func->def, global)))
-      SET_FLAG(v, abstract);
-    if(is_fptr(env->gwion, decl->type))
-      CHECK_BO(check_fptr_decl(env, var))
-    SET_FLAG(v, checked | ae_flag_used);
-    nspc_add_value(env->curr, var->xid, v);
-  } while((list = list->next));
+  const m_bool ret = check_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return decl->type;
+  return ret > 0 ? decl->type : NULL;
 }
 
 
@@ -577,9 +592,9 @@ CHECK_BO(check_call(env, exp))
       const Value exists = template_get_ready(env, v, tmpl_name, i);
       if(exists) {
         if(env->func == exists->d.func_ref) {
-          if(check_call(env, exp) < 0)
+          if(check_call(env, exp) < 0 ||
+             find_func_match(env, env->func, exp->args))
             continue;
-          CHECK_OO(find_func_match(env, env->func, exp->args))
           m_func = env->func;
           break;
         }
@@ -702,8 +717,9 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
     DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
     if(!func->def->base->ret_type) { // template fptr
       const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
-      CHECK_BO(traverse_func_def(env, func->def))
+      const m_bool ret = traverse_func_def(env, func->def);
       env_pop(env, scope);
+      CHECK_BO(ret)
     }
     exp->m_func = func;
     return func->def->base->ret_type;
@@ -1346,16 +1362,16 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   const Func func = fdef->base->func;
   assert(func == fdef->base->func);
+  if(env->class_def) // tmpl ?
+    CHECK_BB(check_parent_match(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
-    return env->class_def ? check_parent_match(env, fdef) : 1;
+    return GW_OK;
   if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
     fdef->base->ret_type = check_td(env, fdef->base->td);
     return traverse_func_def(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
   DECL_BB(const m_int, scope, = GET_FLAG(fdef, global) ? env_push_global(env) : env->scope->depth)
-  if(env->class_def) // tmpl ?
-    CHECK_BB(check_parent_match(env, fdef))
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;

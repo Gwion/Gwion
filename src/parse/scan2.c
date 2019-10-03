@@ -22,14 +22,10 @@
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
-ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
-  const m_bool global = GET_FLAG(decl->td, global);
-  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-{
+ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
   const Type t = get_type(decl->type);
   if(GET_FLAG(t, template) && !GET_FLAG(t, scan2))
     CHECK_BB(scan2_cdef(env, t->e->def))
-}
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
@@ -38,9 +34,16 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
       CHECK_BB(scan2_exp(env, array))
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
+  return GW_OK;
+}
+
+ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
+  const m_bool global = GET_FLAG(decl->td, global);
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
+  const m_bool ret = scan2_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return GW_OK;
+  return ret;
 }
 
 ANN static Value arg_value(MemPool p, const Arg_List list) {
@@ -272,15 +275,20 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
+ANN static m_bool scan2_union_decl(const Env env, const Decl_List list) {
+  Decl_List l = list;
+  do CHECK_BB(scan2_exp_decl(env, &l->self->d.exp_decl))
+  while((l = l->next));
+  return GW_OK;
+}
+
 ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
   const m_uint scope = union_push(env, udef);
-  Decl_List l = udef->l;
-  do CHECK_BB(scan2_exp(env, l->self))
-  while((l = l->next));
+  const m_bool ret = scan2_union_decl(env, udef->l);
   union_pop(env, udef, scope);
-  return GW_OK;
+  return ret;
 }
 
 static const _exp_func stmt_func[] = {

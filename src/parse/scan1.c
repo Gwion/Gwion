@@ -66,18 +66,8 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   return decl->type = t;
 }
 
-ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
-  CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
+ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
-  ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
-  CHECK_OB(decl->type)
-  const m_bool global = GET_FLAG(decl->td, global);
-  if(global && decl->type->e->owner != env->global_nspc)
-    ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
-  if(env->context)
-    env->context->global = 1;
-  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-  const Nspc nspc = !global ? env->curr : env->global_nspc;
   do {
     const Var_Decl var = list->self;
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
@@ -89,7 +79,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     if(var->array) {
       if(var->array->exp) {
         if(GET_FLAG(decl->td, ref))
-          ERR_B(td_pos(decl->td), _("ref array must not have array expression.\n"
+          ERR_B(var->array->exp->pos, _("ref array must not have array expression.\n"
             "e.g: int @my_array[];\nnot: int @my_array[2];"))
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
@@ -99,7 +89,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     if(env->class_def)
       type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
-    nspc_add_value(nspc, var->xid, v);
+    nspc_add_value(env->curr, var->xid, v);
     v->flag = decl->td->flag;
     v->type = t;
     if(var->array && !var->array->exp)
@@ -111,9 +101,23 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
       valuefrom(env, v->from);
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
+  return GW_OK;
+}
+
+ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
+  CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
+  ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
+  CHECK_OB(decl->type)
+  const m_bool global = GET_FLAG(decl->td, global);
+  if(global && decl->type->e->owner != env->global_nspc)
+    ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
+  if(env->context)
+    env->context->global = 1;
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
+  const m_bool ret = scan1_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return GW_OK;
+  return ret;
 }
 
 ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) {
