@@ -592,7 +592,7 @@ CHECK_BO(check_call(env, exp))
       if(exists) {
         if(env->func == exists->d.func_ref) {
           if(check_call(env, exp) < 0 ||
-             find_func_match(env, env->func, exp->args))
+             !find_func_match(env, env->func, exp->args))
             continue;
           m_func = env->func;
           break;
