@@ -38,7 +38,7 @@ rm "empty.so"
 BASE_DIR="$PWD"
 cd tests/import || exit
 for test_file in *.c
-do test_plugin "$(basename $test_file .c)"
+do test_plugin "$(basename "$test_file" .c)"
 done
 
 DRIVER="driver_test:arg" test_plugin driver

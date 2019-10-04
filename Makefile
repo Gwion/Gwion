@@ -110,7 +110,7 @@ uninstall:
 	rm ${DESTDIR}/${PREFIX}/bin/${PRG}
 
 test:
-	@bash help/test.sh ${test_dir}
+	@bash scripts/test.sh ${test_dir}
 
 include $(wildcard .d/*.d)
 include util/intl.mk
