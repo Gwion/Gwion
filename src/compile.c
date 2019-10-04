@@ -66,7 +66,7 @@ static m_bool _compiler_open(struct Compiler* c) {
     xfree(name);
     return c->name ? !!(c->file = fopen(c->name, "r")) : -1;
   } else if(c->type == COMPILE_MSTR)
-    return (c->file = fmemopen(c->data, strlen(c->data), "r")) ? 1 : - 1;
+    return (c->file = fmemopen(c->data, strlen(c->data) + 1, "r")) ? 1 : - 1;
   return GW_OK;
 }
 
