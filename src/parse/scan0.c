@@ -264,6 +264,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   }
   if(udef->tmpl) {
     if(tmpl_base(udef->tmpl)) {
+      assert(udef->type_xid);
       const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
           NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
       udef->type->e->def = cdef;
