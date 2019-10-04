@@ -421,7 +421,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
     if(!(type_decl = str2decl(env, arg->type, &array_depth))) {
       if(arg_list)
         free_arg_list(env->gwion->mp, arg_list);
-      GWI_ERR_O(_("  ...  at argument '%i'"), i + 1)
+      GWI_ERR_O(_("  ...  at argument '%"UINT_F"'"), i + 1)
     }
     if((type_path2 = str2list(env, arg->name, &array_depth2)))
       free_id_list(env->gwion->mp, type_path2);
