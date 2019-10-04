@@ -116,7 +116,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
-  gwi_reserve(gwi, "now");
   const Type t_complex = gwi_mk_type(gwi, "complex", SZ_COMPLEX , NULL);
   gwi->gwion->type[et_complex] = t_complex;
   CHECK_BB(gwi_gack(gwi, t_complex, gack_complex))

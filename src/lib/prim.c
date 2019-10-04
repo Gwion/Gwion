@@ -87,7 +87,6 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta)) // should return bool
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
-  gwi_reserve(gwi, "maybe");
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
   return GW_OK;

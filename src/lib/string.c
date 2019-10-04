@@ -265,7 +265,6 @@ GWION_IMPORT(string) {
 //  gwi_item_end(gwi, ae_flag_const, NULL);
 //  gwi_reserve(gwi, "__func__");
 
-  gwi_reserve(gwi, "__func__");
   struct SpecialId_ spid = { .ck=check_funcpp, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "__func__", &spid);
   return GW_OK;

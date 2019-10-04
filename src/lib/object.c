@@ -264,7 +264,6 @@ GWION_IMPORT(object) {
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
-  gwi_reserve(gwi, "this");
   struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;

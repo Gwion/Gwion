@@ -296,7 +296,6 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, 0))
   GWI_BB(gwi_class_end(gwi))
 
-  gwi_reserve(gwi, "me");
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);
 
