@@ -404,7 +404,7 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
 ANN static Type partial_depth(const Env env, const Array_Sub array) {
   const Exp curr = take_exp(array->exp, array->type->array_depth);
   if(!curr->next || !array_base(array->type))
-    ERR_O(array->exp->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
+    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
         array->depth, get_depth(array->type))
   struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
   return at_depth(env, &next);
