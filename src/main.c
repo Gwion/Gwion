@@ -27,6 +27,8 @@ int main(int argc, char** argv) {
     gwion_run(&gwion);
 #ifndef NDEBUG
   gwion_end(&gwion);
+#else
+  free_plug(&gwion);
 #endif
   THREAD_RETURN(EXIT_SUCCESS);
 }
