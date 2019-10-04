@@ -31,7 +31,7 @@ static GACK(gack_function) {
 static GACK(gack_fptr) {
   const VM_Code code = *(VM_Code*)VALUE;
   if(code)
-    printf("%s", code ? code->name : NULL);
+    printf("%s", code->name);
   else
     printf("%s", t->name);
 }
