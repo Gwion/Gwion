@@ -113,7 +113,7 @@ test:
 	@bash scripts/test.sh ${test_dir}
 
 coverity:
-	git branch | grep "*" | cut -d" " -f2 > .branch
+	$(shell git branch | grep "*" | cut -d" " -f2 > .branch)
 	[ -z "$(git ls-remote --heads $(git remote get-url origin) coverity_scan)" ] || git push origin :coverity_scan
 	git show-ref --verify --quiet refs/heads/master && git branch -D coverity_scan
 	git checkout -b coverity_scan
