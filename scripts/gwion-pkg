@@ -1,0 +1,71 @@
+: "${GWION_PLUG_PATH:=$PWD}"
+declare -A magic_variable=()
+
+read_manifest() {
+  name=$(basename $1 .manifest)
+  magic_variable[$name]=$((magic_variable[$name]))
+  [ -f $1 ] || return
+  while read LINE
+  do
+    [ "${LINE:0:1}" = "#" ] && continue
+    magic_variable[$LINE]=$((magic_variable[$LINE] + 1))
+    find_manifest $LINE.manifest
+  done < $1
+}
+
+find_manifest() {
+  for DIR in $GWION_PLUG_PATH
+  do
+    [ -f DIR/$1 ] || continue
+    read_manifest $1
+    return
+  done
+}
+
+install_plug() {
+  [ -d .gwion-pkg ] || mkdir .gwion-pkg
+  echo "installing $2 $3"
+  index=$(printf "%04i" $3)
+  [ -f .gwion-pkg/${index}_$(basename $1 .manifest).so ] && rm .gwion-pkg/${index}_$(basename $1 .manifest).so
+  ln $PLUG .gwion-pkg/${index}_$(basename $1 .manifest).so
+}
+
+install_manifest() {
+  for DIR in $GWION_PLUG_PATH
+  do
+    [ -d $DIR ] || continue
+    PLUG=$DIR/$(basename $1 .manifest).so
+    if [ -f $PLUG ]
+    then
+      install_plug "$1" "$PLUG" $2
+      return
+    fi
+  done
+}
+
+if [ "$1" = "list" ]
+then # clear
+  [ -d .gwion-pkg ] && ls .gwion-pkg | sort -u | cut -d_ -f 2
+elif [ "$1" = "run" ]
+then # run
+  shift
+  gwion -p .gwion-pkg $@
+elif [ "$1" = "clear" ]
+then rm -rf .gwion-pkg
+else
+for FILE in *.manifest
+do read_manifest $FILE
+done
+
+MAX=0
+for i in "${!magic_variable[@]}"
+do [ "${magic_variable[$i]}" -gt "$MAX" ] && MAX="${magic_variable[$i]}"
+done
+
+
+for i in "${!magic_variable[@]}"
+do
+  install_manifest "$i" $(( MAX - ${magic_variable[$i]}))
+done
+fi
+

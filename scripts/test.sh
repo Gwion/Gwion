@@ -184,7 +184,7 @@ test_gw(){
   if [ "$VALGRIND" == "NO_VALGRIND" ]
   then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
-    LANG=C "$VALGRIND" --suppressions=help/supp --log-file="$vlog" \
+    LANG=C "$VALGRIND" --suppressions=scripts/supp --log-file="$vlog" \
     ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   fi
   ret=$?

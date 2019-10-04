@@ -6,7 +6,7 @@ include docs/config.mk
 mdr_list = $(filter-out docs/09_Benchmarks.mdr, $(shell find docs -type f -name "*.mdr"))
 md_list  = $(mdr_list:.mdr=.md)
 
-_docserver_config       = bash help/doc-config.sh > mkdocs.yml
+_docserver_config       = bash scripts/doc-config.sh > mkdocs.yml
 _docserver_serve = $(call _docserver_config); $(DOCTOOL) -q serve
 _docserver_launch = $(call _docserver_serve)& echo $$! > .server_pid
 _docserver_kill   = [ -f .server_pid ] && (kill $$(cat .server_pid); rm .server_pid) || true

@@ -14,7 +14,7 @@ export GWION_ADD_DIR
 test_plugin() {
 	export NAME=$"$1"
 	export PRG=$"../../gwion"
-	export SUPP=$"../../help/supp"
+	export SUPP=$"../../scripts/supp"
 	make
   if [ -f "$NAME.gw" ]
   then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
