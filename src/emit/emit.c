@@ -564,7 +564,10 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   do {
     next = e->next;
     e->next = NULL;
-    CHECK_BB(emit_exp(emit, e, 0))
+    if(emit_exp(emit, e, 0) < 0) {
+      e->next = next;
+      return GW_ERROR;
+    }
     const Instr instr = emit_add_instr(emit, Gack);
     instr->m_val = (m_uint)e->type;
     instr->m_val2 = emit_code_offset(emit);
