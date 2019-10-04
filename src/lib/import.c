@@ -713,5 +713,5 @@ ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
   a->exec = spid->exec;
   a->em = spid->em;
   map_set(&gwi->gwion->data->id, (vtype)insert_symbol(gwi->gwion->st, id), (vtype)a);
-  gw_reserve(gwi, id);
+  gwi_reserve(gwi, id);
 }
