@@ -1346,8 +1346,8 @@ ANN static Value set_variadic(const Env env) {
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->args)
     CHECK_BB(check_func_args(env, fdef->base->args))
-  else
-    UNSET_FLAG(fdef->base->func, pure);
+//  else
+//    UNSET_FLAG(fdef->base->func, pure);
   const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
   if(!GET_FLAG(fdef, builtin)) {
     if(fdef->d.code)
