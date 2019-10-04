@@ -113,12 +113,12 @@ test:
 	@bash scripts/test.sh ${test_dir}
 
 coverity:
-  git branch | grep "*" | cut -d" " -f2 > .branch
+	git branch | grep "*" | cut -d" " -f2 > .branch
 	[ -z "$(git ls-remote --heads $(git remote get-url origin) coverity_scan)" ] || git push origin :coverity_scan
 	git show-ref --verify --quiet refs/heads/master && git branch -D coverity_scan
 	git checkout -b coverity_scan
 	git push --set-upstream origin coverity_scan
-  git checkout $(cat .branch)
+	git checkout $(cat .branch)
 	rm .branch
 
 include $(wildcard .d/*.d)
