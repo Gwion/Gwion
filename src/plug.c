@@ -152,3 +152,13 @@ void plug_run(const Gwion gwion, const Vector args) {
     }
   }
 }
+
+ANN void* get_module(const Gwion gwion, const m_str name) {
+  const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
+  for(m_uint i = 0; i < vector_size(v); ++i) {
+    struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
+    if(!strcmp(name, plug->name))
+      return plug->self;
+  }
+  return NULL;
+}

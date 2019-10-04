@@ -16,7 +16,7 @@ typedef struct PlugInfo_ {
 ANN PlugInfo* new_plug(MemPool, Vector);
 ANN void plug_run(const Gwion gwion, const Vector);
 ANN void free_plug(const Gwion gwion);
-
+ANN void* get_module(const Gwion, const m_str);
 #define GWIMPORT_NAME    import
 #define GWMODSTR_NAME  gwmodstr
 #define GWMODINI_NAME  gwmodini
