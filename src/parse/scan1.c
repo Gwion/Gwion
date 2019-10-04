@@ -361,7 +361,7 @@ ANN static m_bool class_internal(const Env env, const Func_Base *base) {
 ANN static inline m_bool scan_internal_arg(const Env env, const Func_Base *base) {
   if(base->args && !base->args->next)
     return GW_OK;
-  ERR_B(td_pos(base->td), _("'%s' must have one (and only one) argument"), base->xid)
+  ERR_B(td_pos(base->td), _("'%s' must have one (and only one) argument"), s_name(base->xid))
 }
 
 ANN static inline m_bool scan_internal_int(const Env env, const Func_Base *base) {
