@@ -1004,10 +1004,10 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   DECL_OB(Type, t, = check_exp(env, stmt->exp))
+  while(GET_FLAG(t, typedef))
+    t = t->e->parent;
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
-  if(GET_FLAG(t, typedef))
-    t = t->e->parent;
   if(!ptr || isa(t, env->gwion->type[et_array]) < 0)
     ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
           " This is not allowed in auto loop"), stmt->exp->type->name)
@@ -1033,8 +1033,9 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       td.array = &array;
     }
     ptr = known_type(env, &td);
+    assert(ptr);
     if(!GET_FLAG(ptr, checked))
-      check_class_def(env, ptr->e->def);
+      CHECK_BB(check_class_def(env, ptr->e->def))
 //      traverse_class_def(env, ptr->e->def);
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
