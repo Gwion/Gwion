@@ -980,9 +980,13 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   return GW_OK;
 }
 
+ANN static inline m_bool _check_breaks(const Env env, const Stmt b) {
+  RET_NSPC(check_stmt(env, b))
+}
+
 ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) {
   vector_add(&env->scope->breaks, (vtype)a);
-  RET_NSPC(check_stmt(env, b))
+  const m_bool ret = _check_breaks(env, b);
   vector_pop(&env->scope->breaks);
   return ret;
 }
