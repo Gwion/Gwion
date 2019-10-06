@@ -960,9 +960,8 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
       if(emit->env->func != f)
         CHECK_BO(emit_template_code(emit, f))
       else {
-//assert(vector_size(&emit->code->instr));
         const Instr back = (Instr) vector_size(&emit->code->instr) ?
-            vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
+            (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
         back->opcode = ePushStaticCode;
         back->m_val = 0;
       }
