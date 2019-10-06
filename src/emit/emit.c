@@ -347,12 +347,12 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
 
 ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
-  if(v->from->owner_class)
-    return emit_symbol_owned(emit, prim);
   if(is_class(emit->gwion, v->type)) {
     regpushi(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
   }
+  if(v->from->owner_class)
+    return emit_symbol_owned(emit, prim);
   if(GET_FLAG(v, builtin) || GET_FLAG(v, union) || GET_FLAG(v, enum))
     return emit_symbol_builtin(emit, prim);
   const m_uint size = v->type->size;
@@ -596,12 +596,9 @@ ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) 
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
   const m_uint size = v->type->size;
-  if(!is_class(emit->gwion, v->type)) {
-    const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
-    instr->m_val = (m_uint)(v->from->owner->info->class_data + v->from->offset);
-    instr->m_val2 = size;
-  } else
-    regpushi(emit, (m_uint)v->type);
+  const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
+  instr->m_val = (m_uint)(v->from->owner->info->class_data + v->from->offset);
+  instr->m_val2 = size;
   return GW_OK;
 }
 
@@ -1699,12 +1696,6 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
 }
 
 ANN static inline m_bool emit_member(const Emitter emit, const Value v, const uint emit_addr) {
-  if(is_class(emit->gwion, v->type)) {
-    const Instr instr= emit_add_instr(emit, RegSetImm);
-    instr->m_val = v->type;
-    return GW_OK;
-  }
-//assert(!is_class(emit->gwion, v->type));
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->from->offset;
