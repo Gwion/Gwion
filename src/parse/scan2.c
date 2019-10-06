@@ -357,7 +357,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
   Nspc nspc = env->curr;
   uint i = 0;
   do {
-    const Value v = nspc_lookup_value1(nspc, f->base->xid);
+    const Value v = nspc_lookup_value0(nspc, f->base->xid);
     if(v) {
       Func ff = v->d.func_ref;
       if(!ff)continue;

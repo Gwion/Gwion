@@ -435,6 +435,8 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   Nspc nspc = type->e->owner;
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
+    if(!t)
+      break;
     vector_add(&v, (vtype)insert_symbol(t->name));
     nspc = nspc->parent;
   }
