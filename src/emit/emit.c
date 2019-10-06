@@ -963,7 +963,9 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
       if(emit->env->func != f)
         CHECK_BO(emit_template_code(emit, f))
       else {
-        const Instr back = (Instr)vector_back(&emit->code->instr);
+//assert(vector_size(&emit->code->instr));
+        const Instr back = (Instr) vector_size(&emit->code->instr) ?
+            vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
         back->opcode = ePushStaticCode;
         back->m_val = 0;
       }
@@ -1697,6 +1699,12 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
 }
 
 ANN static inline m_bool emit_member(const Emitter emit, const Value v, const uint emit_addr) {
+  if(is_class(emit->gwion, v->type)) {
+    const Instr instr= emit_add_instr(emit, RegSetImm);
+    instr->m_val = v->type;
+    return GW_OK;
+  }
+//assert(!is_class(emit->gwion, v->type));
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->from->offset;

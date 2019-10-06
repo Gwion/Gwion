@@ -33,7 +33,7 @@ ANN static m_bool check_internal(const Env env, const Symbol sym,
   struct Op_Import opi = { .op=sym, .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   CHECK_OB(op_check(env, &opi))
-  e->nspc = env->curr;
+  assert(e->nspc);
   return GW_OK;
 }
 
@@ -855,7 +855,8 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call) {
       if(env->func == t->e->d.func) {
-        CHECK_OO(check_exp(env, exp->args))
+        if(exp->args)
+          CHECK_OO(check_exp(env, exp->args))
         exp->m_func = env->func;
         return env->func->def->base->ret_type;
       }  else
