@@ -89,7 +89,7 @@ static FREEARG(freearg_vararg) {
 }
 
 static ID_CHECK(idck_vararg) {
-  if(SAFE_FLAG(env->func, variadic))
+  if(env->func && GET_FLAG(env->func->def, variadic))
     return env->gwion->type[et_vararg];
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
