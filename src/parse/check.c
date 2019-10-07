@@ -709,30 +709,27 @@ ANN static Func predefined_func(const Env env, const Value v,
   return v->d.func_ref = func;
 }
 
-ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
-  const Exp call = exp->func;
-  const Exp args = exp->args;
-  DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
-  const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : call->type->e->d.func->def;
-  Tmpl *tm = fdef->base->tmpl;
-  if(tm->call) {
-    DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
-    if(!fdef->base->ret_type) { // template fptr
-      const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
-      const m_bool ret = traverse_func_def(env, func->def);
-      env_pop(env, scope);
-      CHECK_BO(ret)
-    }
-    exp->m_func = func;
-    return func->def->base->ret_type;
+ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value value, const Tmpl *tm, const Func_Def fdef) {
+  DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
+  if(!fdef->base->ret_type) { // template fptr
+    const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
+    const m_bool ret = traverse_func_def(env, func->def);
+    env_pop(env, scope);
+    CHECK_BO(ret)
   }
+  exp->m_func = func;
+  return func->def->base->ret_type;
+}
+
+ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmpl *tm, const Func_Def fdef) {
   m_uint args_number = 0;
   const m_uint type_number = get_type_number(tm->list);
   Type_List tl[type_number];
+  tl[0] = NULL;
   ID_List list = tm->list;
   while(list) {
     Arg_List arg = fdef->base->args;
-    Exp template_arg = args;
+    Exp template_arg = exp->args;
     while(arg && template_arg) {
       char path[id_list_len(arg->td->xid)];
       type_path(path, arg->td->xid);
@@ -748,9 +745,20 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
     }
     list = list->next;
   }
-  if(args_number < type_number)
-    ERR_O(call->pos, _("not able to guess types for template call."))
-  Tmpl tmpl = { .call=tl[0] };
+  if(args_number > type_number)
+    ERR_O(exp->func->pos, _("not able to guess types for template call."))
+  return tl[0];
+}
+
+ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
+  const Type t = exp->func->type;
+  DECL_OO(const Value, value, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
+  const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : t->e->d.func->def;
+  Tmpl *tm = fdef->base->tmpl;
+  if(tm->call)
+    return check_predefined(env, exp, value, tm, fdef);
+  DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));
+  Tmpl tmpl = { .call=tl };
   ((Exp_Call*)exp)->tmpl = &tmpl;
   DECL_OO(const Func,func, = get_template_func(env, exp, value))
   return func->def->base->ret_type;
