@@ -326,6 +326,5 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, 0))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
-  gwi_reserve(gwi, "me");
   return GW_OK;
 }
