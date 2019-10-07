@@ -24,6 +24,11 @@ static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
 }
 
+static inline void context_global(const Env env) {
+  if(env->context)
+    env->context->global = 1;
+}
+
 static inline Type scan0_type(const Env env, const m_uint xid,
     const m_str name, const Type t) {
   const Type type = new_type(env->gwion->mp, xid, name, t);
@@ -53,7 +58,7 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
 ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
   if(GET_FLAG(fptr->base->td, global)) {
-    env->context->global = 1;
+    context_global(env);
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
     SET_FLAG(def, global);
@@ -91,8 +96,8 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
-  if(GET_FLAG(fptr->base->td, global) && env->context)
-    env->context->global = 1;
+  if(GET_FLAG(fptr->base->td, global))
+    context_global(env);
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = fptr->base->td->flag;
   fptr->type = t;
@@ -132,7 +137,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
   env->global_nspc : env->curr;
   if(GET_FLAG(tdef->ext, global))
-    env->context->global = 1;
+    context_global(env);
   add_type(env, nspc, t);
   t->e->owner = nspc;
   tdef->type = t;
@@ -196,7 +201,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
   if(GET_FLAG(edef, global))
-    env->context->global = 1;
+    context_global(env);
   edef->t = t;
   if(edef->xid) {
     add_type(env, nspc, t);
@@ -228,7 +233,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   const m_uint scope = !GET_FLAG(udef, global) ? env->scope->depth :
       env_push_global(env);
   if(GET_FLAG(udef, global))
-    env->context->global = 1;
+    context_global(env);
   if(udef->xid) {
     CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
     const Nspc nspc = !GET_FLAG(udef, global) ?
@@ -346,7 +351,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
-    env->context->global = 1;
+    context_global(env);
   }
   const m_bool ret = scan0_class_def_pre(env, cdef) > 0 ?
     scan0_class_def_inner(env, cdef) : GW_ERROR;
