@@ -164,8 +164,8 @@ static MFUN(fork_join) {
   MUTEX_LOCK(shred->tick->shreduler->mutex);
   release(o, shred);
   if(*(m_int*)(o->data + o_fork_done)) {
-   MUTEX_UNLOCK(shred->tick->shreduler->mutex);
-   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+    MUTEX_UNLOCK(shred->tick->shreduler->mutex);
+    MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
     return;
   }
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
