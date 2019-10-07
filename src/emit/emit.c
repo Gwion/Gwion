@@ -1574,16 +1574,11 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
 }
 
 ANN static m_bool emit_dot_static_import_data(const Emitter emit, const Value v, const uint emit_addr) {
-  if(v->d.ptr && GET_FLAG(v, builtin)) {
-    if(GET_FLAG(v, enum))
-      regpushi(emit, (m_uint)v->d.ptr);
-    else {
-      const m_uint size = v->type->size;
-      const Instr instr = emit_kind(emit, size, emit_addr, regpushimm);
-      instr->m_val = (isa(v->type, emit->gwion->type[et_object]) > 0 ?
-        (m_uint)&v->d.ptr : (m_uint)v->d.ptr);
-      instr->m_val2 = size;
-    }
+  if(v->d.ptr && GET_FLAG(v, builtin) && GET_FLAG(v, const)) {
+    const m_uint size = v->type->size;
+    const Instr instr = emit_kind(emit, size, emit_addr, regpushimm);
+    instr->m_val = (m_uint)v->d.ptr;
+    instr->m_val2 = size;
     return GW_OK;
   }
   return emit_dot_static_data(emit, v, emit_addr);
