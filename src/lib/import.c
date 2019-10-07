@@ -486,6 +486,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
     return GW_OK;
   }
   if(traverse_func_def(gwi->gwion->env, def) < 0) {
+    def->d.dl_func_ptr = NULL;
     free_func_def(gwi->gwion->mp, def);
     return GW_ERROR;
   }
