@@ -21,7 +21,7 @@ ANN static inline Type specialid_type(const Env env,
     struct SpecialId_ *spid, const Exp_Primary* prim) {
   if(spid->is_const)
     exp_self(prim)->meta = ae_meta_value;
-  return spid->type ?: spid->ck(env, prim);
+  return spid->ck ? spid->ck(env, prim) : spid->type;
 }
 
 ANN static inline Instr specialid_instr(const Emitter emit,
