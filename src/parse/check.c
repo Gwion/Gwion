@@ -713,10 +713,11 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   const Exp call = exp->func;
   const Exp args = exp->args;
   DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
-  Tmpl *tm = value->d.func_ref ? value->d.func_ref->def->base->tmpl : call->type->e->d.func->def->base->tmpl;
+  const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : call->type->e->d.func->def;
+  Tmpl *tm = fdef->base->tmpl;
   if(tm->call) {
     DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
-    if(!func->def->base->ret_type) { // template fptr
+    if(!fdef->base->ret_type) { // template fptr
       const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
       const m_bool ret = traverse_func_def(env, func->def);
       env_pop(env, scope);
@@ -730,7 +731,7 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   Type_List tl[type_number];
   ID_List list = tm->list;
   while(list) {
-    Arg_List arg = value->d.func_ref->def->base->args;
+    Arg_List arg = fdef->base->args;
     Exp template_arg = args;
     while(arg && template_arg) {
       char path[id_list_len(arg->td->xid)];
