@@ -113,10 +113,16 @@ static OP_CHECK(opck_implicit_similar) {
   return bin->rhs->type;
 }
 
+static OP_CHECK(opck_cast_similar) {
+  const Exp_Cast *cast = (Exp_Cast*)data;
+  return exp_self(cast)->type;
+}
+
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=lhs, .rhs=rhs, .ck=opck_implicit_similar };
   add_op(env->gwion, &opi);
-  opi.op=insert_symbol("@cast");
+  opi.op=insert_symbol("$");
+  opi.ck = opck_cast_similar;
   add_op(env->gwion, &opi);
 }
 
@@ -196,7 +202,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
     add_type(env, nspc, t);
     mk_class(env, t);
   }
-  scan0_implicit_similar(env, env->gwion->type[et_int], t);
+  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
   return GW_OK;
 }
 
