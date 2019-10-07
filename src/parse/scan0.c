@@ -91,7 +91,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
-  if(GET_FLAG(fptr->base->td, global))
+  if(GET_FLAG(fptr->base->td, global) && env->context)
     env->context->global = 1;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = fptr->base->td->flag;
