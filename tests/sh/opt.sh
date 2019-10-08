@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #17
+# [test] #18
 
 n=0
 [ "$1" ] && n="$1"
@@ -76,6 +76,10 @@ run "$n" "just check" "-g check" "file"
 # set compilation passes
 n=$((n+1))
 run "$n" "just check" "-g nopass" "file"
+
+# option needs argument
+n=$((n+1))
+run "$n" "just check" "-p" "file"
 
 # test signal
 ./gwion -l1 &
