@@ -1893,7 +1893,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_BB(emit_array_extend(emit, type->e->parent, cdef->base.ext->array->exp))
   if(cdef->body)
     CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
-  emit_class_finish(emit, type->nspc);
+  emit_class_finish(emit, nspc);
   SET_FLAG(type, emit);
   return GW_OK;
 }

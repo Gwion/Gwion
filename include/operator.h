@@ -32,4 +32,11 @@ ANN Type   op_check(const Env, struct Op_Import*);
 ANN struct Instr_* op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map, struct Gwion_* gwion);
+
+ANN static inline void set_decl_ref(const Exp e) {
+  if(e->exp_type == ae_exp_decl) {
+    SET_FLAG(e->d.exp_decl.td, ref);
+    SET_FLAG(e->d.exp_decl.list->self->value, ref);
+  }
+}
 #endif

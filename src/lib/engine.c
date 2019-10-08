@@ -12,6 +12,7 @@
 #include "env.h"
 #include "vm.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"

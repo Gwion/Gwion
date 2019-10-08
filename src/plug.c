@@ -11,6 +11,7 @@
 #include "env.h"
 #include "vm.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "instr.h"
 #include "object.h"

@@ -8,6 +8,7 @@
 #include "instr.h"
 #include "object.h"
 #include "emit.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"

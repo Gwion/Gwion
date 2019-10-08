@@ -5,6 +5,7 @@
 #include "vm.h"
 #include "env.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "value.h"
 #include "traverse.h"

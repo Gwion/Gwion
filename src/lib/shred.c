@@ -10,6 +10,7 @@
 #include "object.h"
 #include "shreduler_private.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "emit.h"

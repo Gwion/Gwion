@@ -15,6 +15,7 @@
 #include "shreduler_private.h"
 #include "emit.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "map_private.h"

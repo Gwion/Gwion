@@ -9,6 +9,7 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "ugen.h"

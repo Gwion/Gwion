@@ -11,6 +11,7 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "traverse.h"
