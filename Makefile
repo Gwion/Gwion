@@ -86,11 +86,13 @@ CFLAGS += -DGWION_BUILTIN
 GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
-all: options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:start:compile ${GWION_PACKAGE}"; fi
+all: travis_start options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:end:compile ${GWION_PACKAGE}"; fi
+	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_end:start:compile ${GWION_PACKAGE}"; fi
+
+travis_start:
+	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:start:compile ${GWION_PACKAGE}"; fi
 
 options-show:
 	@$(call _options)
