@@ -368,7 +368,7 @@ ANN static inline m_bool scan_internal_int(const Env env, const Func_Base *base)
     CHECK_BB(scan_internal_arg(env, base))
     if(isa(base->ret_type, env->gwion->type[et_int]) > 0)
       return GW_OK;
-    ERR_B(td_pos(base->td), _("'%s' must must return 'int'"), s_name(base->xid))
+    ERR_B(td_pos(base->td), _("'%s' must return 'int'"), s_name(base->xid))
 }
 
 ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
