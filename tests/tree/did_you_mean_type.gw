@@ -1,4 +1,4 @@
 class C {
-  <<<this.aa>>>;
-  int a;
+  int iiii;
+  <<< this.iii >>>;
 }

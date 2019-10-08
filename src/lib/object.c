@@ -120,8 +120,8 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     return r->e->parent;
   }
-  if(nonnull_check(l, r))
-    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
+/*  if(nonnull_check(l, r))
+    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name); */
   if(l != env->gwion->type[et_null] && isa(l, r) < 0)
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
   return r;

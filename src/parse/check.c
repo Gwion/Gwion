@@ -925,7 +925,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
     if(member->t_base->nspc)
-      did_you_mean_type(member->t_base, str);
+      did_you_mean_type(the_base, str);
     return NULL;
   }
   CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
