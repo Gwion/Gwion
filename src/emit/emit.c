@@ -1077,8 +1077,6 @@ if(is_spork) {
 } else {
     const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
     spork->m_val = exp_self(unary)->emit_var;
-    if(!(spork->m_val = exp_self(unary)->emit_var))
-return NULL;// err_msg
 }
   } else {
     if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
@@ -1090,8 +1088,6 @@ return NULL;// err_msg
     } else
       emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
-    if(!is_spork && !(end->m_val = exp_self(unary)->emit_var))
-      return NULL;// err_msg
     end->m_val2 = f->def->base->ret_type->size;
   }
   return ini;

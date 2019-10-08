@@ -78,9 +78,10 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
 
 #include "gwion.h"
 ANN void vm_fork(const VM* src, const VM_Shred shred) {
-  VM* vm = shred->info->vm = gwion_cpy(src);
+  VM* vm = (shred->info->vm = gwion_cpy(src));
   shred->info->me = new_shred(shred, 0);
   shreduler_add(vm->shreduler, shred);
+  vm->gwion->data->base = src->gwion;
 }
 
 __attribute__((hot))
@@ -128,8 +129,6 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
-  assert(sh->info->me);
-  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 

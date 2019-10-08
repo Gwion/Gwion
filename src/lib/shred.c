@@ -153,6 +153,8 @@ static MFUN(shred_unlock) {
 }
 
 static DTOR(fork_dtor) {
+  if(*(m_int*)(o->data + o_fork_done))
+    vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
   THREAD_JOIN(FORK_THREAD(o));
   VM *vm = ME(o)->info->vm;
   free_vm(vm);
@@ -201,9 +203,6 @@ static ANN void* fork_run(void* data) {
   } while(vm->bbq->is_running);
   fork_retval(me);
   MUTEX_LOCK(vm->shreduler->mutex);
-//  MUTEX_LOCK(FORK_ORIG(me)->shreduler->mutex);
-  vector_rem2(&FORK_ORIG(me)->gwion->data->child, (vtype)me);
-//  MUTEX_UNLOCK(FORK_ORIG(me)->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
   broadcast(*(M_Object*)(me->data + o_fork_ev));
   MUTEX_UNLOCK(vm->shreduler->mutex);
@@ -220,7 +219,7 @@ ANN void fork_clean(const VM *vm, const Vector v) {
 }
 
 void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
-  o->ref += 2;
+  o->ref += 1;
   if(!vm->gwion->data->child.ptr)
     vector_init(&vm->gwion->data->child);
   vector_add(&vm->gwion->data->child, (vtype)o);
