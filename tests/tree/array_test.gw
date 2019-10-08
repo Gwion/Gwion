@@ -3,7 +3,7 @@ fun void print_array(int a[]){
 		<<< a[i] >>>;
 }
 
-int i[3][3];
+int i[5][3];
 1 => i[2][0];
 
 <<< i.size() >>>;
@@ -16,3 +16,4 @@ i.remove(1);
 <<< i.depth() >>>;
 <<< i.cap() >>>;
 print_array(i[1]);
+i.remove(0);

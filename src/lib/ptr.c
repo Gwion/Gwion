@@ -46,7 +46,7 @@ static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(get_type_name(env, unary->exp->type->name, 1)));
 }
-#include "tuple.h"
+
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
@@ -54,7 +54,7 @@ static OP_CHECK(opck_ptr_cast) {
     assert(t->e->def);
     CHECK_BN(traverse_class_def(env, t->e->def))
   }
-  const Type to = (Type)vector_at(&t->e->tuple->types, 0);
+  const Type to = known_type(env, cast->td->types->td);
   if(isa(cast->exp->type, to) > 0)
     return t;
   ERR_N(exp_self(cast)->pos, "invalid pointer cast")

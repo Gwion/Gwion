@@ -138,7 +138,7 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
   if(env->class_def)  {
     if(GET_FLAG(td, member)) {
       decl_member(env, v);
-      if(isa(env->class_def, env->gwion->type[et_object])  > 0)
+      if(isa(env->class_def, env->gwion->type[et_object]) > 0)
         tuple_info(env, td, var);
     } else if(GET_FLAG(td, static))
       decl_static(env, v);

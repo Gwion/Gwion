@@ -180,7 +180,7 @@ static OP_CHECK(opck_array_cast) {
     l = l->e->parent;
   while(!r->e->d.base_type)
     r = r->e->parent;
-  if(l->array_depth == r->array_depth || isa(l->e->d.base_type, r->e->d.base_type) > 0)
+  if(get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) && isa(l->e->d.base_type, r->e->d.base_type) > 0)
     return l;
   return env->gwion->type[et_null];
 }

@@ -1,0 +1,2 @@
+#! [contains] NegativeArraySize
+int i[2][-1];
