@@ -745,7 +745,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
     }
     list = list->next;
   }
-  if(args_number > type_number)
+  if(args_number < type_number)
     ERR_O(exp->func->pos, _("not able to guess types for template call."))
   return tl[0];
 }
