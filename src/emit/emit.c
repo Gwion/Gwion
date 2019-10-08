@@ -1767,8 +1767,10 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     emit->env->class_def->nspc->dtor = f->code = finalyze(emit, DTOR_EOC);
     ADD_REF(f->code)
     return f->code;
-  } else if(f->def->base->xid == insert_symbol("@gack"))
-    emit->env->class_def->e->gack = f->code;
+  } else if(f->def->base->xid == insert_symbol("@gack")) {
+    f->code = finalyze(emit, FuncReturn);
+    return emit->env->class_def->e->gack = f->code;
+  }
   return finalyze(emit, FuncReturn);
 }
 
