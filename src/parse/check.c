@@ -1435,8 +1435,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   }
   if(cdef->base.ext)
     CHECK_BB(scanx_parent(cdef->base.type, check_class_parent, env))
-  else if(!type->e->parent)
-    type->e->parent = env->gwion->type[et_object];
+  assert(type->e->parent);
   inherit(type);
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, check_section))
