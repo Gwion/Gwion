@@ -83,7 +83,7 @@ run "$n" "option needs argument" "-p" "file"
 
 # invalid global type
 n=$((n+1))
-run "$n" "invalid global type" "tests/complex/invalid_type0.gw tests/complex/invalid_type1.gw" "file"
+run "$n" "invalid global type" "examples/complex/invalid_type0.gw examples/complex/invalid_type1.gw" "file"
 
 # test signal
 ./gwion -l1 &
