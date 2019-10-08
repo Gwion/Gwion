@@ -1,0 +1,3 @@
+typedef int INT;
+INT i;
+<<< i $ int >>>;

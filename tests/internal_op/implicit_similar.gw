@@ -1,0 +1,3 @@
+typedef int INT;
+fun void test(INT i) { <<< i >>>; }
+1 => test;
