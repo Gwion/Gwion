@@ -306,13 +306,13 @@ struct ugen_importer {
 };
 
 ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
+  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   VM* vm = gwi_vm(gwi);
   const M_Object o = new_M_UGen(gwi->gwion);
   const UGen u = imp->ugen = UGEN(o);
   ugen_ini(vm->gwion, u, imp->nchan, imp->nchan);
   ugen_gen(vm->gwion, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
-  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   return gwi_item_end(gwi, ae_flag_const, o);
 }
 
