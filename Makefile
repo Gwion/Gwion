@@ -20,10 +20,11 @@ util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
 
-test_dir := $(filter-out tests/benchmark, $(wildcard tests/*))
-test_dir := $(filter-out tests/import, $(wildcard tests/*))
+test_dir_all := $(wildcard tests/*)
+test_ignore = tests/benchmark tests/import
+test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
-# add boolean
+
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
