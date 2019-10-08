@@ -21,6 +21,7 @@ emit_src := $(wildcard src/emit/*.c)
 opt_src := $(wildcard opt/*.c)
 
 test_dir := $(filter-out tests/benchmark, $(wildcard tests/*))
+test_dir := $(filter-out tests/import, $(wildcard tests/*))
 test_dir += examples
 # add boolean
 ifeq (${DEBUG_STACK}, 1)
