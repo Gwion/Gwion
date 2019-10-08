@@ -169,12 +169,12 @@ static OP_CHECK(opck_cast_tuple_object) {
   const Exp_Cast *cast = (Exp_Cast*)data;
   if(tuple_match(env, exp_self(cast)->type, cast->exp->type) < 0)
     return env->gwion->type[et_null];
-  exp_self(cast)->emit_var = 1;
   return exp_self(cast)->type;
 }
 
 static INSTR(Tuple2Object) {
-  const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
+//  const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
+  const M_Object o = *(M_Object*)(shred->reg - instr->m_val2);
   const Type t = (Type)instr->m_val;
   if(isa(o->type_ref, t) < 0)
   // TODO: pass position by m_val2
@@ -188,9 +188,16 @@ static OP_EMIT(opem_##name##_tuple_object) {              \
   const type exp = (type)data;                            \
   const Instr instr = emit_add_instr(emit, Tuple2Object); \
   instr->m_val = (m_uint)rhs;                             \
+  instr->m_val2 = SZ_INT;                                 \
+  return instr;                                           \
+}
+static OP_EMIT(opem_at_tuple_object) {                    \
+  const Exp_Binary *bin = (Exp_Binary*)data;              \
+  const Instr instr = emit_add_instr(emit, Tuple2Object); \
+  instr->m_val = (m_uint)bin->rhs->type;                  \
+  instr->m_val2 = SZ_INT*2;                               \
   return emit_add_instr(emit, ObjectAssign);              \
 }
-mk_opem_tuple2object(at, Exp_Binary *, exp->rhs->type)
 mk_opem_tuple2object(cast, Exp_Cast *, exp_self(exp)->type)
 mk_opem_tuple2object(impl, struct Implicit *, exp->t)
 
@@ -203,6 +210,7 @@ static OP_CHECK(opck_cast_tuple) {
 static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
   CHECK_BN(tuple_match(env, imp->e->type, imp->t))
+//  CHECK_BN(tuple_match(env, imp->t, imp->e->type))
   return imp->t;
 }
 
@@ -353,6 +361,7 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_add(gwi, opck_cast_tuple_object))
   GWI_BB(gwi_oper_emi(gwi, opem_cast_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
   GWI_BB(gwi_oper_emi(gwi, opem_impl_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Tuple", NULL))
