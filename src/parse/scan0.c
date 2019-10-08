@@ -129,6 +129,12 @@ ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type
   opi.op=insert_symbol("$");
   opi.ck = opck_cast_similar;
   add_op(env->gwion, &opi);
+  opi.lhs=rhs;
+  opi.rhs=lhs;
+  add_op(env->gwion, &opi);
+  opi.ck = opck_usr_implicit;
+  opi.op=insert_symbol("@implicit");
+  add_op(env->gwion, &opi);
 }
 
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {

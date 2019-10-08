@@ -46,14 +46,10 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
 
 ANN static Value arg_value(MemPool p, const Arg_List list) {
   const Var_Decl var = list->var_decl;
-  if(!var->value) {
-    const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
-    if(list->td)
-      v->flag = list->td->flag | ae_flag_arg;
-    return v;
-  }
-  var->value->type = list->type;
-  return var->value;
+  const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
+  if(list->td)
+    v->flag = list->td->flag | ae_flag_arg;
+  return v;
 }
 
 ANN static m_bool scan2_args(const Env env, const Func_Def f) {
@@ -480,14 +476,11 @@ ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v)
         s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
-  const m_str name = f->base->func ?  f->base->func->name : func_tmpl_name(env, f);
-  return name ?: (m_str)GW_ERROR;
+  return f->base->func ? f->base->func->name : func_tmpl_name(env, f);
 }
 
 ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
   const m_str name = func_name(env, f, overload ?: NULL);
-  if((m_int)name <= GW_OK)
-    return (m_bool)(m_uint)name;
   const Func base = f->base->func;
   if(!base)
     CHECK_OB(func_create(env, f, overload, name))
