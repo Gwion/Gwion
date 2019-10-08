@@ -336,8 +336,10 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
 static void gwi_body(const Gwi gwi, const Class_Body body) {
   if(!gwi->gwion->env->class_def->e->def->body)
     gwi->gwion->env->class_def->e->def->body = body;
-  else
+  else {
+    assert(gwi->body);
     gwi->body->next = body;
+  }
   gwi->body = body;
 }
 
@@ -405,8 +407,10 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth) {
       tmp = tmp->next;
     }
   }
-  if(td->types)
-    CHECK_OO(type_decl_resolve(env, td))
+  if(td->types && !type_decl_resolve(env, td)) {
+    free_type_decl(env->gwion->mp, td);
+    return NULL;
+  }
   return td;
 }
 
@@ -558,18 +562,22 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   m_uint array_depth;
   ID_List type_path;
   Type_Decl* type_decl = NULL;
-  const Arg_List args = make_dll_arg_list(gwi, dl_fun);
-  flag |= ae_flag_builtin;
   if(!(type_path = str2list(env, dl_fun->type, &array_depth)) ||
       !(type_decl = new_type_decl(env->gwion->mp, type_path)))
     GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
+  const Arg_List args = make_dll_arg_list(gwi, dl_fun);
+  flag |= ae_flag_builtin;
   Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
   return new_fptr_def(env->gwion->mp, base, flag);
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Fptr_Def fptr = import_fptr(gwi, &gwi->func, flag);
-  CHECK_BO(traverse_fptr_def(gwi->gwion->env, fptr))
+  if(traverse_fptr_def(gwi->gwion->env, fptr) < 0) {
+    if(!fptr->type)
+      free_fptr_def(gwi->gwion->mp, fptr);
+    return NULL;
+  }
   if(gwi->gwion->env->class_def)
     SET_FLAG(fptr->base->func->def, builtin);
   else
@@ -690,7 +698,8 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   const Enum_Def edef  = new_enum_def(gwi->gwion->mp, d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL, 
     loc_cpy(gwi->gwion->mp, gwi->loc));
   if(traverse_enum_def(gwi->gwion->env, edef) < 0) {
-    free_id_list(gwi->gwion->mp, d->base);
+    if(!edef->t)
+      free_enum_def(gwi->gwion->mp, edef);
     return NULL;
   }
   import_enum_end(gwi, &edef->values);
