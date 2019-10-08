@@ -199,7 +199,6 @@ static OP_EMIT(opem_at_tuple_object) {                    \
   return emit_add_instr(emit, ObjectAssign);              \
 }
 mk_opem_tuple2object(cast, Exp_Cast *, exp_self(exp)->type)
-mk_opem_tuple2object(impl, struct Implicit *, exp->t)
 
 static OP_CHECK(opck_cast_tuple) {
   const Exp_Cast *cast = (Exp_Cast*)data;
@@ -351,7 +350,7 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_end(gwi, "$", NoOp))
   GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Object", NULL))
@@ -362,7 +361,6 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_emi(gwi, opem_cast_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
-  GWI_BB(gwi_oper_emi(gwi, opem_impl_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
