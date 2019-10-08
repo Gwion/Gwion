@@ -1,0 +1,2 @@
+#! [contains] void types can't be nonnull
+void! i;
