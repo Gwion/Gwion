@@ -445,7 +445,7 @@ ANN static inline m_bool tuple_index(const Emitter emit, struct ArrayAccessInfo 
   assert(isa(info->array.type, emit->gwion->type[et_tuple]) > 0);
   const m_uint idx = info->array.exp->d.exp_primary.d.num;
   emit_except(emit, info->array.type);
-  tuple_access(emit, info->array.exp->d.exp_primary.d.num, info->array.depth ? 0 : info->is_var);
+  tuple_access(emit, info->array.exp->d.exp_primary.d.num, (info->array.depth -1)? 0 : info->is_var);
   if(!info->array.exp->next)
     return GW_OK;
   const Type type = (Type)vector_at(&info->array.type->e->tuple->types, idx);
