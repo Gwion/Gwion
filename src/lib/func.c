@@ -25,8 +25,6 @@ static INSTR(LambdaAssign) {
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->exp_type == ae_exp_decl)
-    ERR_N(bin->rhs->pos, _("calling fptr decl, this is forbidden."))
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
