@@ -27,7 +27,8 @@ GWMODEND(dummy_module) {
 }
 
 GWION_IMPORT(dummy_module) {
-  GWI_OB(get_module(gwi->gwion, "dummy"))
+  GWI_OB(get_module(gwi->gwion, "dummy_module"))
+  puts("test passed!");
   get_module(gwi->gwion, "non_existant_module");
   return GW_OK;
 }
