@@ -82,7 +82,7 @@ ANN t find_##name(const Type type, const Symbol xid) {               \
   return type->e->parent ? find_##name(type->e->parent, xid) : NULL; \
 }
 describe_find(value, Value)
-describe_find(func,  Func)
+//describe_find(func,  Func)
 
 ANN Type typedef_base(Type t) {
   while(GET_FLAG(t, typedef))
