@@ -311,7 +311,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc, &&dotstaticfunc, &&pushstaticcode
+    &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&gack3, &&regpushimm, &&other, &&eoc
   };
@@ -661,7 +661,7 @@ sporkexp:
 forkend:
   fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
-  assert(!val); // spork are not mutable
+  assert(!VAL); // spork are not mutable
   *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
 brancheqint:
