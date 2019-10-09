@@ -16,11 +16,6 @@
 #include "cpy_ast.h"
 #include "tuple.h"
 
-ANN static inline Type owner_type(const Env env, const Type t) {
-  const Nspc nspc = t->nspc ? t->nspc->parent : NULL;
-  return (nspc && nspc->parent) ? nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name)) : NULL;
-}
-
 struct tmpl_info {
   const  Class_Def cdef;
   Type_List        call;

@@ -1361,9 +1361,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
 }
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
-  if(SAFE_FLAG(tdef->type->e->def, emit))
-    return GW_OK;
-  return tdef->type->e->def ? emit_class_def(emit, tdef->type->e->def) : 1;
+  return tdef->type->e->def ? emit_class_def(emit, tdef->type->e->def) : GW_OK;
 }
 
 ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
