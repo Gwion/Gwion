@@ -1,0 +1,8 @@
+class <~A~>Parent {
+  class <~B~>C {
+    12 => A a;
+    13 => B B;
+  }
+}
+<~int, int~>Parent->C c;
+<<< c.a >>>;
