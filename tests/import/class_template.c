@@ -31,17 +31,17 @@ GWION_IMPORT(class_template) {
   Type t_class_template;
   const m_str list[2] = { "A", "B" };
   gwi_tmpl_ini(gwi, 2, list);
-  CHECK_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, "Object")))
-  CHECK_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
+  GWI_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, "Object")))
+  GWI_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
   gwi_tmpl_end(gwi);
-  CHECK_BB(gwi_item_ini(gwi, "A[]", "key"))
-    CHECK_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
-    CHECK_BB(gwi_item_ini(gwi, "B[]", "value"))
-    CHECK_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
+  GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
+    GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
+    GWI_BB(gwi_item_ini(gwi, "B[]", "value"))
+    GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
 
 
     /*gwi_func_ini(gwi, "B", "set", class_template_set);*/
     /*gwi_func_end(gwi, ae_flag_member);*/
-  CHECK_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

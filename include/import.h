@@ -17,12 +17,12 @@ typedef struct Gwi_* Gwi;
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
 #define OP_EMIT(a)  ANN Instr a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
-#define GWI_BB(a) (void)(a);
-#define GWI_OB(a) (void)(a);
+#define GWI_BB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); (void)(a); }
+#define GWI_OB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); (void)(a); }
 #define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
 #else
-#define GWI_BB(a) CHECK_BB(a)
-#define GWI_OB(a) CHECK_OB(a)
+#define GWI_BB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); CHECK_BB(a) }
+#define GWI_OB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); CHECK_OB(a) }
 #define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
 #endif
 #define ALLOC_PTR(p, a, b, c) b* a = (b*)_mp_calloc(p, sizeof(b)); *a = (b)c
@@ -71,7 +71,7 @@ ANN m_int gwi_oper_add(const Gwi gwi, const opck);
 ANN m_int gwi_oper_emi(const Gwi gwi, const opem);
 ANN2(1) m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f);
 ANN m_int gwi_oper_cond(const Gwi, const m_str,  const f_instr, const f_instr);
-ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth);
+ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth, const loc_t);
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
@@ -86,7 +86,7 @@ OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
 
-ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth);
+ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth, const loc_t);
 
 #define FREEARG(a) ANN void a(Instr instr  NUSED, void *gwion NUSED)
 typedef void (*f_freearg)(Instr, void*);
@@ -94,4 +94,5 @@ ANN void register_freearg(const Gwi, const f_instr, const f_freearg);
 ANN void gwi_reserve(const Gwi, const m_str);
 typedef struct SpecialId_* SpecialId;
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId);
+ANN void gwi_set_loc(const Gwi, const m_str, const uint);
 #endif

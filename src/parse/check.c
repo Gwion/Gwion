@@ -101,7 +101,7 @@ ANN Type check_td(const Env env, Type_Decl *td) {
     ERR_O(td->exp->pos, _("Expression must be of type '%s', not '%s'\n"
       "maybe you meant typeof(Expression)"), env->gwion->type[et_class]->name, td->exp->type->name);
   m_uint depth;
-  td->xid = str2list(env, t->name, &depth);
+  td->xid = str2list(env, t->name, &depth, td->exp->pos);
   if(depth) {
     Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
     for(m_uint i = 0; i < depth - 1; ++i)

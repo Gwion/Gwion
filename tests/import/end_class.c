@@ -14,6 +14,6 @@
 
 MFUN(test_mfun){}
 GWION_IMPORT(end_class) {
-  CHECK_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

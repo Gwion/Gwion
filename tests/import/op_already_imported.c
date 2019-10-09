@@ -16,7 +16,7 @@
 
 
 GWION_IMPORT(op_already_imported) {
-  CHECK_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_BB(gwi_oper_end(gwi, "=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   return GW_OK;
 }

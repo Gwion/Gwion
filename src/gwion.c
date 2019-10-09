@@ -116,7 +116,7 @@ ANN void gwion_end(const Gwion gwion) {
 
 ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
   if(env->context && env->context->error)
-    return;
+      return;
   if(env->class_def)
     gw_err(_("in class: '%s'\n"), env->class_def->name);
   if(env->func)

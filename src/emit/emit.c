@@ -834,14 +834,14 @@ ANN static m_bool is_special(const Emitter emit, const Type t) {
   return GW_ERROR;
 }
 
-ANN static Type_List tmpl_tl(const Env env, const m_str name) {
+ANN static Type_List tmpl_tl(const Env env, const m_str name, const loc_t pos) {
   const m_str start = strchr(name, '<');
   const m_str end = strchr(name, '@');
   char c[strlen(name)];
   strcpy(c, start + 2);
   c[strlen(start) - strlen(end) - 4] = '\0';
   m_uint depth;
-  return str2tl(env, c, &depth);
+  return str2tl(env, c, &depth, pos);
 }
 
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
@@ -870,7 +870,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     struct dottmpl_ *dt = mp_calloc(emit->gwion->mp, dottmpl);
     dt->name = s_name(insert_symbol(c));
     dt->vt_index = f->def->base->tmpl->base;
-    dt->tl = tmpl_tl(emit->env, c);
+    dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
     dt->base = f->def;
     instr->opcode = eOP_MAX;
     instr->m_val = (m_uint)dt;
@@ -907,7 +907,7 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
       char c[sz + 1];
       memcpy(c, f->name, sz);
       c[sz] = '\0';
-      dt->tl = tmpl_tl(emit->env, c);
+      dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
       dt->name = s_name(insert_symbol(c));
       dt->vt_index = f->def->base->tmpl->base;
       dt->base = f->def;

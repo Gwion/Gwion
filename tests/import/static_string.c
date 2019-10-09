@@ -16,7 +16,7 @@
 GWION_IMPORT(static_string_test) {
   const M_Object obj = new_object(gwi->gwion->mp, NULL, gwi->gwion->type[et_string]);
   STRING(obj) = s_name(insert_symbol(gwi->gwion->st, "test static string"));
-  CHECK_BB(gwi_item_ini(gwi, "string", "self"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_global, obj))
+  GWI_BB(gwi_item_ini(gwi, "string", "self"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_global, obj))
   return GW_OK;
 }
