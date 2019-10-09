@@ -1,0 +1,7 @@
+class <~A~>C {
+  class D {
+
+  }
+}
+
+<~int~>C->D d;
