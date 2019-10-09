@@ -53,7 +53,8 @@ static inline void compiler_error(MemPool p, const struct Compiler* c) {
 static void compiler_clean(MemPool p, const struct Compiler* c) {
   if(c->name)
     xfree(c->name);
-  if(c->type == COMPILE_MSTR && c->file)
+  /* test c->type because COMPILE_FILE does not own file */
+  if(c->type != COMPILE_FILE && c->file)
     fclose(c->file);
   if(c->ast)
     free_ast(p, c->ast);
