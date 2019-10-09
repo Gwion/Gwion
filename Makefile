@@ -64,12 +64,6 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt -rdynamic
 endif
 
-ifeq (${TRAVIS}, true)
-IN_TRAVIS = 1
-else
-IN_TRAVIS = 0
-endif
-
 INSTALLED_INCLUDE = -I${PREFIX}/include/gwion -I${PREFIX}/include/gwion/util -I${PREFIX}/include/gwion/ast
 CCFG="${INSTALLED_INCLUDE} ${CFLAGS}"
 LDCFG="${LDFLAGS}"
@@ -80,13 +74,9 @@ CFLAGS += -DGWION_BUILTIN
 GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
-all: travis_start options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
+all: options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_end:start:compilation"; fi
-
-travis_start:
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:start:compilation"; fi
 
 options-show:
 	@$(call _options)
