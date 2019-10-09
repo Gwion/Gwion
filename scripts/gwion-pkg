@@ -35,37 +35,42 @@ install_manifest() {
   do
     [ -d $DIR ] || continue
     PLUG=$DIR/$(basename $1 .manifest).so
-    if [ -f $PLUG ]
-    then
-      install_plug "$1" "$PLUG" $2
-      return
-    fi
+    [ -f $PLUG ] || make
+    install_plug "$1" "$PLUG" $2
   done
 }
 
+read_all_manifests() {
+  for FILE in *.manifest
+  do read_manifest $FILE
+  done
+}
+
+get_max() {
+  MAX=0
+  for i in "${!magic_variable[@]}"
+  do [ "${magic_variable[$i]}" -gt "$MAX" ] && MAX="${magic_variable[$i]}"
+  done
+}
+
+install_all_manifests() {
+  for i in "${!magic_variable[@]}"
+  do install_manifest "$i" $(( MAX - ${magic_variable[$i]}))
+  done
+  fi
+}
+
 if [ "$1" = "list" ]
-then # clear
+then
   [ -d .gwion-pkg ] && ls .gwion-pkg | sort -u | cut -d_ -f 2
 elif [ "$1" = "run" ]
 then # run
   shift
-  gwion -p .gwion-pkg $@
+  gwion -c .gwion-pkg/gwion.cfg -p .gwion-pkg $@
 elif [ "$1" = "clear" ]
 then rm -rf .gwion-pkg
-else
-for FILE in *.manifest
-do read_manifest $FILE
-done
-
-MAX=0
-for i in "${!magic_variable[@]}"
-do [ "${magic_variable[$i]}" -gt "$MAX" ] && MAX="${magic_variable[$i]}"
-done
-
-
-for i in "${!magic_variable[@]}"
-do
-  install_manifest "$i" $(( MAX - ${magic_variable[$i]}))
-done
 fi
 
+read_all_manifests
+get_max
+install_all_manifests
