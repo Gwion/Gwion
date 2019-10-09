@@ -18,7 +18,6 @@ vm_src := $(wildcard src/vm/*.c)
 parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
-opt_src := $(wildcard opt/*.c)
 
 test_dir_all := $(wildcard tests/*)
 test_ignore = tests/benchmark tests/import
@@ -27,11 +26,6 @@ test_dir += examples
 
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
-endif
-
-ifeq (${USE_OPTIMIZE}, 1)
-util_src += ${opt_src}
-CFLAGS+= -DOPTIMIZE
 endif
 
 ifeq (${BUILD_ON_WINDOWS}, 1)
@@ -89,10 +83,10 @@ _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 all: travis_start options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_end:start:compile ${GWION_PACKAGE}"; fi
+	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_end:start:compilation"; fi
 
 travis_start:
-	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:start:compile ${GWION_PACKAGE}"; fi
+	@ if [ ${IN_TRAVIS} = 1 ]; then echo "travis_fold:start:compilation"; fi
 
 options-show:
 	@$(call _options)
