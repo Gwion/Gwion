@@ -311,7 +311,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc, &&dotstaticfunc, &&pushstaticcode, &&pushstr,
+    &&dotfunc, &&dotstaticfunc, &&pushstaticcode
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&gack3, &&regpushimm, &&other, &&eoc
   };
@@ -804,10 +804,6 @@ pushstaticcode:
   VAL = (*(m_uint*)(reg) = (m_uint)((Func)VAL)->code);
   reg += SZ_INT;
   DISPATCH()
-pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion, shred, (m_str)VAL);
-  reg += SZ_INT;
-  DISPATCH();
 gcini:
   vector_add(&shred->gc, 0);
   DISPATCH();
