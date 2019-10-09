@@ -101,17 +101,19 @@ src/arg.o:
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
 install: ${PRG}
-	$(info installing ${PACKAGE} in ${PREFIX})
+	$(info installing ${GWION_PACKAGE} in ${PREFIX})
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
 	@sed "s#PREFIX#${PREFIX}#g" scripts/gwion-config > gwion-config
 	@install gwion-config ${DESTDIR}/${PREFIX}/bin/gwion-config
+	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm gwion-config
 	@mkdir -p ${DESTDIR}/${PREFIX}/include/gwion
 	@cp include/*.h ${DESTDIR}/${PREFIX}/include/gwion
 
 uninstall:
-	$(info uninstalling ${PACKAGE} from ${PREFIX})
-	rm ${DESTDIR}/${PREFIX}/bin/${PRG}
+	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
+	@rm -rf ${DESTDIR}/${PREFIX}/bin/${PRG}
+	@rm -rf ${DESTDIR}/${PREFIX}/include/gwion
 
 test:
 	@bash scripts/test.sh ${test_dir}
