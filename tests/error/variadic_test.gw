@@ -1,4 +1,4 @@
-#! [contains] vararg.start not used before vararg.end. this is an error
+#! [contains] vararg.start not used before vararg.end
 fun void test(int i, ...) {
 	vararg.end;
 #!	vararg.start;

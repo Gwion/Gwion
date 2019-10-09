@@ -1341,7 +1341,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    assert(!stmt->data.v.ptr);
+    assert(stmt->data.v.ptr);
     const m_uint size = vector_size(&stmt->data.v);
     if(!size)
       ERR_B(stmt_self(stmt)->pos, _("label '%s' defined but not used."), s_name(stmt->name))
