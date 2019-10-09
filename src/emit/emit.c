@@ -1249,6 +1249,7 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
   emit_pop_scope(emit);
 }
 
+// scope push problem
 ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
   const m_uint index = emit_code_size(emit);
   Instr op = NULL;
@@ -1268,6 +1269,7 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
   return GW_OK;
 }
 
+// scope push problem
 ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   emit_push_stack(emit);
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
@@ -1293,6 +1295,7 @@ ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
   return emit_add_instr(emit, Reg2Mem);
 }
 
+// scope push problem
 ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   CHECK_BB(emit_exp(emit, stmt->exp, 0))
   const Instr s1 = emit_add_instr(emit, MemSetImm);
@@ -1319,6 +1322,7 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   return GW_OK;
 }
 
+// scope push problem
 ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   emit_push_stack(emit);
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond, 0))
@@ -1357,6 +1361,8 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
 }
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
+  if(SAFE_FLAG(tdef->type->e->def, emit))
+    return GW_OK;
   return tdef->type->e->def ? emit_class_def(emit, tdef->type->e->def) : 1;
 }
 
@@ -1864,7 +1870,7 @@ ANN Code* emit_class_code(const Emitter emit, const m_str name) {
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type base = parent->e->d.base_type;
-  if(base && !GET_FLAG(base, emit))
+  if(base && base->e->def && !GET_FLAG(base, emit))
     CHECK_BB(emit_cdef(emit, base->e->def))
   return !GET_FLAG(parent, emit) ? scanx_parent(parent, emit_cdef, emit) : GW_OK;
 }
@@ -1879,13 +1885,23 @@ ANN void emit_class_finish(const Emitter emit, const Nspc nspc) {
   SET_FLAG(nspc->pre_ctor, ctor);
 }
 
+ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(emit->env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, emit_parent, emit);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(emit->gwion->mp, emit->env->curr);
+  return ret;
+}
+
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+if(GET_FLAG(cdef->base.type, emit))return GW_OK;
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
-  if(cdef->base.ext && cdef->base.ext->types)
-    CHECK_BB(scanx_parent(cdef->base.type, emit_parent, emit))
+  if(cdef->base.ext && !GET_FLAG(cdef->base.type->e->parent, emit))
+    CHECK_BB(cdef_parent(emit, cdef))
   SET_FLAG(type, emit);
   nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);

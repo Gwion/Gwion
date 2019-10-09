@@ -1405,7 +1405,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
 #define check_fptr_def dummy_func
 DECL_SECTION_FUNC(check)
 
-ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
+ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
@@ -1424,9 +1424,19 @@ ANN static inline void inherit(const Type t) {
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
+ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, check_parent, env);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+if(GET_FLAG(cdef->base.type, checked))return GW_OK;
   const Type type = cdef->base.type;
   SET_FLAG(type, check);
   if(type->e->parent == env->gwion->type[et_undefined]) {
@@ -1434,7 +1444,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     return traverse_cdef(env, cdef);
   }
   if(cdef->base.ext)
-    CHECK_BB(scanx_parent(cdef->base.type, check_class_parent, env))
+    CHECK_BB(cdef_parent(env, cdef))
   assert(type->e->parent);
   inherit(type);
   if(cdef->body)

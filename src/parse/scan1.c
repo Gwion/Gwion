@@ -416,7 +416,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 DECL_SECTION_FUNC(scan1)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
-  DECL_OO(const Type , parent, = tdef->type->e->parent = known_type(env, tdef->ext))
+  const Type parent = known_type(env, tdef->ext);
+  CHECK_OO((tdef->type->e->parent = parent));
   Type t = parent;
   do if(tdef->type == t)
       ERR_O(td_pos(tdef->ext), _("recursive (%s <= %s) class declaration."), tdef->type->name, t->name)
@@ -440,12 +441,22 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, scan1_parent, env);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  if(GET_FLAG(cdef->base.type, scan1))return GW_OK;
   SET_FLAG(cdef->base.type, scan1);
   if(cdef->base.ext)
-    CHECK_BB(scanx_parent(cdef->base.type, scan1_parent, env))
+    CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan1_section))
   SET_FLAG(cdef, scan1);

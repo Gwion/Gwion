@@ -519,7 +519,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
 #define scan2_enum_def dummy_func
 DECL_SECTION_FUNC(scan2)
 
-ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
+ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   if(parent->e->def && !GET_FLAG(parent, scan2))
     CHECK_BB(scanx_parent(parent, scan2_cdef, env))
@@ -528,12 +528,22 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, scan2_parent, env);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  if(GET_FLAG(cdef->base.type, scan2))return GW_OK;
   SET_FLAG(cdef->base.type, scan2);
   if(cdef->base.ext)
-    CHECK_BB(scanx_parent(cdef->base.type, scan2_class_parent, env))
+    CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan2_section))
   return GW_OK;

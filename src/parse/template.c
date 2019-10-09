@@ -130,7 +130,7 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
   DECL_OO(const Symbol, name, = template_id(env, def, call))
   if(env->class_def && name == insert_symbol(env->class_def->name))
      return env->class_def->e->def;
-  const Type t = nspc_lookup_type0(env->curr, name);
+  const Type t = nspc_lookup_type1(env->curr, name);
   if(t)
     return t->e->def;
   const Class_Def c = cpy_class_def(env->gwion->mp, def);
