@@ -6,6 +6,7 @@
 #include "env.h"
 #include "type.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "object.h"
 #include "instr.h"

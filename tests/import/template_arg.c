@@ -7,11 +7,11 @@
 #include "object.h"
 #include "instr.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 
 static MFUN(template_arg_fun) {}
-
 GWION_IMPORT(template_arg_test) {
   Type t_template_arg;
   CHECK_OB((t_template_arg = gwi_mk_type(gwi, "TemplateArg", SZ_INT , NULL)))
