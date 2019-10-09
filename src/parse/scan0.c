@@ -300,11 +300,25 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   return GW_OK;
 }
 
-
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
   return GW_OK;
+}
+
+ANN static void set_template(const Type t, const Class_Def cdef) {
+  SET_FLAG(t, template);
+  SET_FLAG(cdef, template);
+}
+
+
+ANN static void inherit_tmpl(const Env env, const Class_Def cdef) {
+  const ID_List list = env->class_def->e->def->base.tmpl->list;
+  const ID_List prev_list = cpy_id_list(env->gwion->mp, list);
+  ID_List il = prev_list;
+  while(il->next && (il = il->next));
+  il->next = cdef->base.tmpl->list;
+  cdef->base.tmpl->list = prev_list;
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
@@ -315,11 +329,14 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->nspc->parent = env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
-  if(!strstr(t->name, "<"))
-    add_type(env, t->e->owner, t);
+  add_type(env, t->e->owner, t);
   if(cdef->base.tmpl) {
-    SET_FLAG(t, template);
-    SET_FLAG(cdef, template);
+    if(SAFE_FLAG(env->class_def, template) && env->class_def->e->def->base.tmpl->call == (Type_List)1)
+      inherit_tmpl(env, cdef);
+    set_template(t, cdef);
+  } else if(SAFE_FLAG(env->class_def, template)) {
+    cdef->base.tmpl = new_tmpl(env->gwion->mp, env->class_def->e->def->base.tmpl->list, -1);
+    set_template(t, cdef);
   }
   if(cdef->base.ext && cdef->base.ext->array)
     SET_FLAG(t, typedef);

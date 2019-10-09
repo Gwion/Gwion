@@ -21,43 +21,6 @@ ANN static inline Type owner_type(const Env env, const Type t) {
   return (nspc && nspc->parent) ? nspc_lookup_type1(nspc->parent, insert_symbol(nspc->name)) : NULL;
 }
 
-ANEW ANN static Vector get_types(const Env env, Type t) {
-  const Vector v = new_vector(env->gwion->mp);
-  do if(GET_FLAG(t, template))
-    vector_add(v, (vtype)t->e->def->base.tmpl->list);
-  while((t = owner_type(env, t)));
-  return v;
-}
-
-ANEW ANN static ID_List id_list_copy(MemPool p, ID_List src) {
-  const ID_List list = new_id_list(p, src->xid, loc_cpy(p, src->pos));
-  ID_List tmp = list;
-  while((src = src->next))
-    tmp = (tmp->next = new_id_list(p, src->xid, loc_cpy(p, src->pos)));
-  return list;
-}
-
-ANN2(1,2) static ID_List get_total_type_list(const Env env, const Type t, const Tmpl *tmpl) {
-  const Type parent = owner_type(env, t);
-  if(!parent)
-    return tmpl ? tmpl->list : NULL;
-  const Vector v = get_types(env, parent);
-  const ID_List base = (ID_List)vector_pop(v);
-  if(!base) {
-    free_vector(env->gwion->mp, v);
-    return tmpl ? tmpl->list : NULL;
-  }
-  const ID_List types = id_list_copy(env->gwion->mp, base);
-  ID_List list, tmp = types;
-  for(m_uint i = vector_size(v) + 1; --i;) {
-    list = (ID_List)vector_pop(v);
-    tmp = (tmp->next = id_list_copy(env->gwion->mp, list));
-  }
-  tmp->next = tmpl->list;
-  free_vector(env->gwion->mp, v);
-  return types;
-}
-
 struct tmpl_info {
   const  Class_Def cdef;
   Type_List        call;
@@ -123,7 +86,7 @@ ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_
 
 ANN m_bool template_match(ID_List base, Type_List call) {
   while((call = call->next) && (base = base->next));
-  return !call ? 1 : -1;
+  return !call ? GW_OK : GW_ERROR;
 }
 
 ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
@@ -181,8 +144,8 @@ ANN Type scan_tuple(const Env env, const Type_Decl *td) {
   return ret;
 }
 
-ANN Tmpl* mk_tmpl(const Env env, const Type t, const Tmpl *tm, const Type_List types) {
-  Tmpl *tmpl = new_tmpl(env->gwion->mp, get_total_type_list(env, t, tm), 0);
+ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
+  Tmpl *tmpl = new_tmpl(env->gwion->mp, tm->list, 0);
   tmpl->call = cpy_type_list(env->gwion->mp, types);
   return tmpl;
 }
@@ -204,11 +167,10 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       SET_FLAG(a, ref);
       if(a->base.type)
         return a->base.type;
-      a->base.tmpl = mk_tmpl(env, t, t->e->def->base.tmpl, type->types);
-      if(t->e->parent !=  env->gwion->type[et_union]) {
+      a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, type->types);
+      if(t->e->parent !=  env->gwion->type[et_union])
         CHECK_BO(scan0_class_def(env, a))
-        nspc_add_type_front(env->curr, a->base.xid, a->base.type);
-      } else {
+      else {
         a->union_def = new_union_def(env->gwion->mp, a->list,
           loc_cpy(env->gwion->mp, t->e->def->pos));
         a->union_def->type_xid = a->base.xid;
@@ -220,7 +182,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       SET_FLAG(a->base.type, template | ae_flag_ref);
       a->base.type->e->owner = t->e->owner;
       if(GET_FLAG(t, builtin))
-      SET_FLAG(a->base.type, builtin);
+        SET_FLAG(a->base.type, builtin);
       CHECK_BO(scan1_cdef(env, a))
       return a->base.type;
     } else
@@ -247,7 +209,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
       value->from->owner = t->e->owner;
       value->from->owner_class = t->e->d.func->value_ref->from->owner_class;
       func->value_ref = value;
-      func->def->base->tmpl = mk_tmpl(env, t, t->e->d.func->def->base->tmpl, type->types);
+      func->def->base->tmpl = mk_tmpl(env, t->e->d.func->def->base->tmpl, type->types);
       def->base->func = func;
       nspc_add_value_front(t->e->owner, sym, value);
       return ret;

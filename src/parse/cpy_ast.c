@@ -1,9 +1,9 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
+#include "cpy_ast.h"
 
 ANN static Stmt cpy_stmt(MemPool p, const Stmt src);
 ANN static Exp cpy_exp(MemPool p, const Exp src);
-ANN static ID_List cpy_id_list(MemPool p, const ID_List src);
 ANN Type_List cpy_type_list(MemPool p, const Type_List src);
 ANN static Arg_List cpy_arg_list(MemPool p, const Arg_List src);
 ANN Class_Def cpy_class_def(MemPool p, const Class_Def src);
@@ -65,7 +65,7 @@ ANN Type_Decl* cpy_type_decl(MemPool p, const Type_Decl* src) {
   return a;
 }
 
-ANN static ID_List cpy_id_list(MemPool p, const ID_List src) {
+ANN ID_List cpy_id_list(MemPool p, const ID_List src) {
   ID_List a = mp_calloc(p, ID_List);
   a->xid = src->xid; // 1 
   if(src->next)
@@ -136,7 +136,7 @@ ANN static void cpy_exp_primary(MemPool p, Exp_Primary *a, const Exp_Primary *sr
   a->primary_type = src->primary_type;
 }
 
-ANN static Tmpl* cpy_tmpl(MemPool p, const Tmpl *src) {
+ANN Tmpl* cpy_tmpl(MemPool p, const Tmpl *src) {
   Tmpl *a = mp_calloc(p, Tmpl);
   if(src->list)
     a->list = cpy_id_list(p, src->list);
