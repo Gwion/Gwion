@@ -270,6 +270,9 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_end(gwi, "::",         int_float_mul))
   GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
   GWI_BB(gwi_oper_end(gwi, "::",         FloatTimes))
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2)) // should return bool
+  GWI_BB(gwi_oper_end(gwi,  "!", float_not))
   return GW_OK;
 }
 
