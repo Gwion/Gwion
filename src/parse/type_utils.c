@@ -29,5 +29,5 @@ ANN void type_path(const m_str str, ID_List l) {
     s += strlen(name);
     if(l->next)
       strcpy(s++, ".");
-  } while((l = l->next) && strcpy(s++, "."));
+  } while((l = l->next));
 }
