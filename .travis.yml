@@ -57,7 +57,7 @@ install:
       export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
       export LIBS="$LIBS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
 #      export LIBS="$LIBS -lpsapi -shared -fPIC";
-    fi;
+#    fi;
 
 before_script:
   - git submodule update --init util ast;
