@@ -258,10 +258,7 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, exp_self(primary)->pos,
           _("variable %s not legit at this point."), s_name(primary->d.var));
-    if(v && v->from->owner_class)
-      did_you_mean_type(v->from->owner_class, s_name(primary->d.var));
-    else
-      did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
+    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
