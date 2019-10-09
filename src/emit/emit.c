@@ -1138,16 +1138,13 @@ ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
 }
 
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
-  if(lambda->def) {
-    const m_uint scope = !lambda->owner ?
-      emit->env->scope->depth : emit_push_type(emit, lambda->owner);
-    const m_bool ret = emit_lambda(emit, lambda);
-    if(lambda->owner)
-      emit_pop(emit, scope);
-    return ret;
-  } else
-    emit_add_instr(emit, RegPushImm);
-  return GW_OK;
+  assert(lambda->def);
+  const m_uint scope = !lambda->owner ?
+    emit->env->scope->depth : emit_push_type(emit, lambda->owner);
+  const m_bool ret = emit_lambda(emit, lambda);
+  if(lambda->owner)
+    emit_pop(emit, scope);
+  return ret;
 }
 
 ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
@@ -1344,8 +1341,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
   if(!stmt->is_label)
     stmt->data.instr = emit_add_instr(emit, Goto);
   else {
-    if(!stmt->data.v.ptr)
-      ERR_B(stmt_self(stmt)->pos, _("illegal case"))
+    assert(!stmt->data.v.ptr);
     const m_uint size = vector_size(&stmt->data.v);
     if(!size)
       ERR_B(stmt_self(stmt)->pos, _("label '%s' defined but not used."), s_name(stmt->name))
@@ -1643,20 +1639,20 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
   }
   if(!strcmp(str, "start")) {
     if(get_variadic(emit))
-      ERR_B(exp_self(member)->pos, _("vararg.start already used. this is an error"))
+      ERR_B(exp_self(member)->pos, _("vararg.start already used"))
     emit_vararg_start(emit, offset);
     return GW_OK;
   }
   if(!strcmp(str, "end")) {
     if(!get_variadic(emit))
-      ERR_B(exp_self(member)->pos, _("vararg.start not used before vararg.end. this is an error"))
+      ERR_B(exp_self(member)->pos, _("vararg.start not used before vararg.end"))
     emit_vararg_end(emit, offset);
     return GW_OK;
   }
   if(!get_variadic(emit))
-      ERR_B(exp_self(member)->pos, _("vararg.%s used before vararg.start. this is an error"), s_name(member->xid))
+      ERR_B(exp_self(member)->pos, _("vararg.%s used before vararg.start"), s_name(member->xid))
   if(GET_FLAG(emit->env->func, empty))
-    ERR_B(exp_self(member)->pos, _("vararg.%s used after vararg.end. this is an error"), s_name(member->xid))
+    ERR_B(exp_self(member)->pos, _("vararg.%s used after vararg.end"), s_name(member->xid))
   const Instr instr = emit_add_instr(emit, VarargMember);
   instr->m_val = offset;
   instr->m_val2 = exp_self(member)->type->size;
@@ -1698,10 +1694,6 @@ ANN static inline m_bool emit_member(const Emitter emit, const Value v, const ui
 }
 
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
-  if(member->xid == insert_symbol("vararg")) { // TODO prohibit this?
-    emit_add_instr(emit, RegPushImm);
-    return GW_OK;
-  }
   if(is_special(emit, member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
@@ -1867,9 +1859,6 @@ ANN Code* emit_class_code(const Emitter emit, const m_str name) {
 
 ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  const Type base = parent->e->d.base_type;
-  if(base && base->e->def && !GET_FLAG(base, emit))
-    CHECK_BB(emit_cdef(emit, base->e->def))
   return !GET_FLAG(parent, emit) ? scanx_parent(parent, emit_cdef, emit) : GW_OK;
 }
 
