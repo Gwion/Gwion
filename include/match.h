@@ -7,11 +7,13 @@ struct Match_ {
 
 ANN static inline void match_map(struct Match_ * const match, Exp e) {
   const Map map = &match->map;
+  Exp next = NULL;
   map_init(map);
   do {
+    next = e->next;
     e->next = NULL;
     map_set(map, (vtype)e, 0);
-  } while((e = e->next));
+  } while((e = next));
 }
 
 ANN static inline void match_unmap(struct Match_ * const match) {
