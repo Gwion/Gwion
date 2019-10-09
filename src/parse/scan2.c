@@ -437,8 +437,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
-    if(!t)
-      continue;
+    assert(t);
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
