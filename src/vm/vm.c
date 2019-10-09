@@ -661,10 +661,8 @@ sporkexp:
 forkend:
   fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
-  if(!VAL)
-    *(M_Object*)(reg-SZ_INT) = a.child->info->me;
-  else
-    *(M_Object**)(reg-SZ_INT) = &a.child->info->me;
+  assert(!val); // spork are not mutable
+  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
