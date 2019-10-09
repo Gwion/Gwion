@@ -1,5 +1,5 @@
 language: c
-#sudo: required
+
 os:
   - linux
   - osx
@@ -16,7 +16,6 @@ addons:
   apt:
     packages:
     - valgrind
-#    - lcov
 
 env:
   global:
@@ -33,8 +32,7 @@ env:
 
 matrix:
   allow_failures:
-   - compiler: clang
-#   - os: windows
+    - os: windows
 
 compiler:
   - gcc
@@ -76,12 +74,6 @@ script:
 after_success:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       COVERALLS_REPO_TOKEN=OdYyiJMdUIolVNqWHX5pe3QERNcBv7t2p coveralls -i include -i src/ --gcov-options '\-lp' -b.;
-    fi
-
-after_failure:
-  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.7  ]; then
-      make clean; DEBUG_STACK=1 make;
-      ./gwion tests/tree/array_test.gw;
     fi
 
 git:
