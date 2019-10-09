@@ -1898,7 +1898,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
 if(GET_FLAG(cdef->base.type, emit))return GW_OK;
   const Type type = cdef->base.type;
   const Nspc nspc = type->nspc;
-  if(cdef->base.ext && !GET_FLAG(cdef->base.type->e->parent, emit))
+  if(cdef->base.ext && cdef->base.type->e->parent->e->def && !GET_FLAG(cdef->base.type->e->parent, emit))
     CHECK_BB(cdef_parent(emit, cdef))
   SET_FLAG(type, emit);
   nspc_allocdata(emit->gwion->mp, nspc);
