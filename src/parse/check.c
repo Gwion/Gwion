@@ -97,9 +97,7 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_OO(check_exp(env, td->exp))
 // TODO: check me
   const Type t = actual_type(env->gwion, td->exp->type);
-  if(!t || (is_class(env->gwion, td->exp->type) && t == env->gwion->type[et_class]))
-    ERR_O(td->exp->pos, _("Expression must be of type '%s', not '%s'\n"
-      "maybe you meant typeof(Expression)"), env->gwion->type[et_class]->name, td->exp->type->name);
+  assert(t);
   m_uint depth;
   td->xid = str2list(env, t->name, &depth, td->exp->pos);
   if(depth) {
