@@ -11,6 +11,7 @@
 #include "env.h"
 #include "vm.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
@@ -162,13 +163,21 @@ static OP_CHECK(opck_at_tuple_object) {
   if(tuple_match(env, bin->rhs->type, bin->lhs->type) < 0)
     return env->gwion->type[et_null];
   bin->rhs->emit_var = 1;
+  set_decl_ref(bin->rhs);
   return bin->rhs->type;
 }
 
+static OP_CHECK(opck_cast_tuple_object) {
+  const Exp_Cast *cast = (Exp_Cast*)data;
+  if(tuple_match(env, exp_self(cast)->type, cast->exp->type) < 0)
+    return env->gwion->type[et_null];
+  return exp_self(cast)->type;
+}
+
 static INSTR(Tuple2Object) {
-  const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
+  const M_Object o = *(M_Object*)(shred->reg - instr->m_val2);
   const Type t = (Type)instr->m_val;
-  if(isa(o->type_ref, t) < 0)
+  if(o && isa(o->type_ref, t) < 0)
   // TODO: pass position by m_val2
 //    Except(shred, "can't cast %s to %s\n", o->type_ref->name, t->name);
     Except(shred, _("can't cast\n"));
@@ -180,21 +189,31 @@ static OP_EMIT(opem_##name##_tuple_object) {              \
   const type exp = (type)data;                            \
   const Instr instr = emit_add_instr(emit, Tuple2Object); \
   instr->m_val = (m_uint)rhs;                             \
-  return emit_add_instr(emit, ObjectAssign);              \
+  instr->m_val2 = SZ_INT;                                 \
+  return instr;                                           \
 }
-mk_opem_tuple2object(at, Exp_Binary *, exp->rhs->type)
+static OP_EMIT(opem_at_tuple_object) {                     \
+  const Exp_Binary *bin = (Exp_Binary*)data;               \
+  const Instr instr = emit_add_instr(emit, Tuple2Object);  \
+  instr->m_val = (m_uint)bin->rhs->type;                   \
+  instr->m_val2 = SZ_INT*2;                                \
+
+  const Instr assign = emit_add_instr(emit, ObjectAssign); \
+
+return assign;
+}
 mk_opem_tuple2object(cast, Exp_Cast *, exp_self(exp)->type)
-mk_opem_tuple2object(impl, struct Implicit *, exp->t)
 
 static OP_CHECK(opck_cast_tuple) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  CHECK_BO(tuple_match(env, exp_self(cast)->type, cast->exp->type))
+  CHECK_BN(tuple_match(env, exp_self(cast)->type, cast->exp->type))
   return exp_self(cast)->type;
 }
 
 static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
-  CHECK_BO(tuple_match(env, imp->e->type, imp->t))
+  CHECK_BN(tuple_match(env, imp->e->type, imp->t))
+//  CHECK_BN(tuple_match(env, imp->t, imp->e->type))
   return imp->t;
 }
 
@@ -325,7 +344,7 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
 }
 
 GWION_IMPORT(tuple) {
-  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
   gwi->gwion->type[et_tuple] = t_tuple;
   GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
@@ -335,16 +354,17 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_end(gwi, "$", NoOp))
   GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple_object))
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_cast_tuple_object))
   GWI_BB(gwi_oper_emi(gwi, opem_cast_tuple_object))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_emi(gwi, opem_impl_tuple_object))
+  GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))

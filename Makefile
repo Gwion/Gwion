@@ -18,18 +18,14 @@ vm_src := $(wildcard src/vm/*.c)
 parse_src := $(wildcard src/parse/*.c)
 util_src := $(wildcard src/util/*.c)
 emit_src := $(wildcard src/emit/*.c)
-opt_src := $(wildcard opt/*.c)
 
-test_dir := $(filter-out tests/benchmark, $(wildcard tests/*))
+test_dir_all := $(wildcard tests/*)
+test_ignore = tests/benchmark tests/import
+test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
-# add boolean
+
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
-endif
-
-ifeq (${USE_OPTIMIZE}, 1)
-util_src += ${opt_src}
-CFLAGS+= -DOPTIMIZE
 endif
 
 ifeq (${BUILD_ON_WINDOWS}, 1)
@@ -68,7 +64,8 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt -rdynamic
 endif
 
-CCFG="${CFLAGS}"
+INSTALLED_INCLUDE = -I${PREFIX}/include/gwion -I${PREFIX}/include/gwion/util -I${PREFIX}/include/gwion/ast
+CCFG="${INSTALLED_INCLUDE} ${CFLAGS}"
 LDCFG="${LDFLAGS}"
 
 # hide this from gwion -v
@@ -104,13 +101,31 @@ src/arg.o:
 	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
 
 install: ${PRG}
-	install ${PRG} ${DESTDIR}/${PREFIX}/bin
+	$(info installing ${GWION_PACKAGE} in ${PREFIX})
+	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
+	@sed "s#PREFIX#${PREFIX}#g" scripts/gwion-config > gwion-config
+	@install gwion-config ${DESTDIR}/${PREFIX}/bin/gwion-config
+	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
+	@rm gwion-config
+	@mkdir -p ${DESTDIR}/${PREFIX}/include/gwion
+	@cp include/*.h ${DESTDIR}/${PREFIX}/include/gwion
 
 uninstall:
-	rm ${DESTDIR}/${PREFIX}/bin/${PRG}
+	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
+	@rm -rf ${DESTDIR}/${PREFIX}/bin/${PRG}
+	@rm -rf ${DESTDIR}/${PREFIX}/include/gwion
 
 test:
-	@bash help/test.sh ${test_dir}
+	@bash scripts/test.sh ${test_dir}
+
+coverity:
+	$(shell git branch | grep "*" | cut -d" " -f2 > .branch)
+	[ -z "$(git ls-remote --heads $(git remote get-url origin) coverity_scan)" ] || git push origin :coverity_scan
+	git show-ref --verify --quiet refs/heads/master && git branch -D coverity_scan
+	git checkout -b coverity_scan
+	git push --set-upstream origin coverity_scan
+	git checkout $(cat .branch)
+	rm .branch
 
 include $(wildcard .d/*.d)
 include util/intl.mk

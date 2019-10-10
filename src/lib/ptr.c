@@ -10,10 +10,12 @@
 #include "nspc.h"
 #include "instr.h"
 #include "object.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
+#include "parse.h"
 #include "gwi.h"
 
 static OP_CHECK(opck_ptr_assign) {
@@ -43,21 +45,20 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(env->gwion->st, get_type_name(env, unary->exp->type->name, 1)));
+  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(get_type_name(env, unary->exp->type->name, 1)));
 }
 
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = type_decl_resolve(env, cast->td);
+  DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
   if(!GET_FLAG(t, check)) {
     assert(t->e->def);
-    CHECK_BO(traverse_class_def(env, t->e->def))
+    CHECK_BN(traverse_class_def(env, t->e->def))
   }
-// TODO check types.
-//  const Type ptr = nspc_
-//  if(t && isa(cast->exp->type, get_type(env, t, 1)) > 0)
+  const Type to = known_type(env, cast->td->types->td);
+  if(isa(cast->exp->type, to) > 0)
     return t;
-//  ERR_N(exp_self(cast)->pos, "invalid pointer cast")
+  ERR_N(exp_self(cast)->pos, "invalid pointer cast")
 }
 
 static OP_CHECK(opck_implicit_ptr) {
@@ -75,6 +76,8 @@ static OP_CHECK(opck_implicit_ptr) {
 
 static INSTR(instr_ptr_deref) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
+  if(!*(m_bit**)o->data)
+    Except(shred, _("EmptyPointerException"));
   if(instr->m_val2)
     memcpy(REG(-SZ_INT), o->data, SZ_INT);
   else {
@@ -106,7 +109,7 @@ static OP_EMIT(opem_ptr_deref) {
 
 GWION_IMPORT(ptr) {
   const m_str list[] = { "A" };
-  const Type t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_ptr = gwi_mk_type(gwi, "Ptr", SZ_INT, "Object");
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_tmpl_ini(gwi, 1, list))
   GWI_BB(gwi_class_ini(gwi, t_ptr, NULL, NULL))

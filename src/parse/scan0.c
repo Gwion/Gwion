@@ -24,6 +24,11 @@ static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
 }
 
+static inline void context_global(const Env env) {
+  if(env->context)
+    env->context->global = 1;
+}
+
 static inline Type scan0_type(const Env env, const m_uint xid,
     const m_str name, const Type t) {
   const Type type = new_type(env->gwion->mp, xid, name, t);
@@ -53,7 +58,7 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
 ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
   if(GET_FLAG(fptr->base->td, global)) {
-    env->context->global = 1;
+    context_global(env);
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
     SET_FLAG(def, global);
@@ -92,7 +97,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
   if(GET_FLAG(fptr->base->td, global))
-    env->context->global = 1;
+    context_global(env);
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = fptr->base->td->flag;
   fptr->type = t;
@@ -113,10 +118,22 @@ static OP_CHECK(opck_implicit_similar) {
   return bin->rhs->type;
 }
 
+static OP_CHECK(opck_cast_similar) {
+  const Exp_Cast *cast = (Exp_Cast*)data;
+  return exp_self(cast)->type;
+}
+
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=lhs, .rhs=rhs, .ck=opck_implicit_similar };
   add_op(env->gwion, &opi);
-  opi.op=insert_symbol("@cast");
+  opi.op=insert_symbol("$");
+  opi.ck = opck_cast_similar;
+  add_op(env->gwion, &opi);
+  opi.lhs=rhs;
+  opi.rhs=lhs;
+  add_op(env->gwion, &opi);
+  opi.ck = opck_usr_implicit;
+  opi.op=insert_symbol("@implicit");
   add_op(env->gwion, &opi);
 }
 
@@ -126,7 +143,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
   env->global_nspc : env->curr;
   if(GET_FLAG(tdef->ext, global))
-    env->context->global = 1;
+    context_global(env);
   add_type(env, nspc, t);
   t->e->owner = nspc;
   tdef->type = t;
@@ -190,13 +207,13 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
   if(GET_FLAG(edef, global))
-    env->context->global = 1;
+    context_global(env);
   edef->t = t;
   if(edef->xid) {
     add_type(env, nspc, t);
     mk_class(env, t);
   }
-  scan0_implicit_similar(env, env->gwion->type[et_int], t);
+  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
   return GW_OK;
 }
 
@@ -222,7 +239,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   const m_uint scope = !GET_FLAG(udef, global) ? env->scope->depth :
       env_push_global(env);
   if(GET_FLAG(udef, global))
-    env->context->global = 1;
+    context_global(env);
   if(udef->xid) {
     CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
     const Nspc nspc = !GET_FLAG(udef, global) ?
@@ -257,13 +274,14 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Type t = union_type(env, nspc, sym, 1);
     udef->value = new_value(env->gwion->mp, t, s_name(sym));
     valuefrom(env, udef->value->from);
-    nspc_add_value(nspc, udef->xid, udef->value);
+    nspc_add_value(nspc, sym, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(udef->value, checked | udef->flag);
     SET_FLAG(t, scan1 | ae_flag_union);
   }
   if(udef->tmpl) {
     if(tmpl_base(udef->tmpl)) {
+      assert(udef->type_xid);
       const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
           NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
       udef->type->e->def = cdef;
@@ -282,32 +300,43 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   return GW_OK;
 }
 
-
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
-  if(GET_FLAG(cdef, global)) {
-    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
-    env->curr = env->global_nspc;
-    env->context->global = 1;
-  }
-  CHECK_BB(scan0_defined(env, cdef->base.xid, cdef->pos))
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
   return GW_OK;
 }
 
+ANN static void set_template(const Type t, const Class_Def cdef) {
+  SET_FLAG(t, template);
+  SET_FLAG(cdef, template);
+}
+
+
+ANN static void inherit_tmpl(const Env env, const Class_Def cdef) {
+  const ID_List list = env->class_def->e->def->base.tmpl->list;
+  const ID_List prev_list = cpy_id_list(env->gwion->mp, list);
+  ID_List il = prev_list;
+  while(il->next && (il = il->next));
+  il->next = cdef->base.tmpl->list;
+  cdef->base.tmpl->list = prev_list;
+}
+
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
+  CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos))
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
-//  t->nspc->parent = GET_FLAG(cdef, global) ? env_nspc(env) : env->curr;
-  t->nspc->parent = GET_FLAG(cdef, global) ? env->global_nspc : env->curr;
+  t->nspc->parent = env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
-  if(!strstr(t->name, "<"))
-    add_type(env, t->e->owner, t);
+  add_type(env, t->e->owner, t);
   if(cdef->base.tmpl) {
-    SET_FLAG(t, template);
-    SET_FLAG(cdef, template);
+    if(SAFE_FLAG(env->class_def, template) && env->class_def->e->def->base.tmpl->call == (Type_List)1)
+      inherit_tmpl(env, cdef);
+    set_template(t, cdef);
+  } else if(SAFE_FLAG(env->class_def, template)) {
+    cdef->base.tmpl = new_tmpl(env->gwion->mp, env->class_def->e->def->base.tmpl->list, -1);
+    set_template(t, cdef);
   }
   if(cdef->base.ext && cdef->base.ext->array)
     SET_FLAG(t, typedef);
@@ -342,8 +371,13 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
-  CHECK_BB(scan0_class_def_pre(env, cdef))
-  const m_bool ret = scan0_class_def_inner(env, cdef);
+  if(GET_FLAG(cdef, global)) {
+    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
+    env->curr = env->global_nspc;
+    context_global(env);
+  }
+  const m_bool ret = scan0_class_def_pre(env, cdef) > 0 ?
+    scan0_class_def_inner(env, cdef) : GW_ERROR;
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   return ret;

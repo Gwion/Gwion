@@ -7,11 +7,12 @@
 #include "object.h"
 #include "instr.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 
 GWION_IMPORT(empty_union_test) {
-  CHECK_BB(gwi_union_ini(gwi, NULL))
-  CHECK_OB(gwi_union_end(gwi, 0))
+  GWI_BB(gwi_union_ini(gwi, NULL))
+  GWI_OB(gwi_union_end(gwi, 0))
   return GW_OK;
 }

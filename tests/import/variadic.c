@@ -7,6 +7,7 @@
 #include "instr.h"
 #include "object.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "vararg.h"
@@ -40,13 +41,13 @@ static MFUN(m_variadic) {
 }
 
 GWION_IMPORT(variadic test) {
-  const Type t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, gwi->gwion->type[et_object]);
-  CHECK_BB(gwi_class_ini(gwi, t_variadic, NULL, NULL))
-  CHECK_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
-  CHECK_BB(gwi_func_arg(gwi, "string", "format"))
-  CHECK_BB(gwi_func_end(gwi, ae_flag_variadic))
-  CHECK_BB(gwi_func_ini(gwi, "void", "test", m_test))
-  CHECK_BB(gwi_func_end(gwi, 0))
-  CHECK_BB(gwi_class_end(gwi))
+  const Type t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, "Object");
+  GWI_BB(gwi_class_ini(gwi, t_variadic, NULL, NULL))
+  GWI_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
+  GWI_BB(gwi_func_arg(gwi, "string", "format"))
+  GWI_BB(gwi_func_end(gwi, ae_flag_variadic))
+  GWI_BB(gwi_func_ini(gwi, "void", "test", m_test))
+  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

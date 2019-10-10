@@ -73,7 +73,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   gwion->data = new_gwiondata(gwion->mp);
-  gwion->type = (Type*)xmalloc(MAX_TYPE * sizeof(struct Type_));
+  gwion->type = (Type*)xmalloc(MAX_TYPE * sizeof(struct Type_*));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si;
   const m_bool ret = arg_parse(gwion, arg);
@@ -116,7 +116,7 @@ ANN void gwion_end(const Gwion gwion) {
 
 ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
   if(env->context && env->context->error)
-    return;
+      return;
   if(env->class_def)
     gw_err(_("in class: '%s'\n"), env->class_def->name);
   if(env->func)

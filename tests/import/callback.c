@@ -8,6 +8,7 @@
 #include "object.h"
 #include "instr.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "func.h"
@@ -70,14 +71,14 @@ static SFUN(cb_func) {
 }
 
 GWION_IMPORT(callback) {
-  CHECK_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
-  CHECK_OB(gwi_fptr_end(gwi, 0))
+  GWI_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
+  GWI_OB(gwi_fptr_end(gwi, 0))
 
-  const Type t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, gwi->gwion->type[et_object]);
-  CHECK_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))
-    CHECK_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
-      CHECK_BB(gwi_func_arg(gwi, "PtrType", "func"))
-    CHECK_BB(gwi_func_end(gwi, ae_flag_static))
-  CHECK_BB(gwi_class_end(gwi))
+  const Type t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, "Object");
+  GWI_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))
+    GWI_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
+      GWI_BB(gwi_func_arg(gwi, "PtrType", "func"))
+    GWI_BB(gwi_func_end(gwi, ae_flag_static))
+  GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

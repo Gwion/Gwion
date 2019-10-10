@@ -1,0 +1,4 @@
+class <~A, B~> C{}
+class <~A~> D {}
+<~ <~int~>D, <~int~>D ~>C c;
+<<< c >>>;

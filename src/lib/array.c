@@ -11,6 +11,7 @@
 #include "object.h"
 #include "array.h"
 #include "emit.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "traverse.h"
@@ -180,7 +181,7 @@ static OP_CHECK(opck_array_cast) {
     l = l->e->parent;
   while(!r->e->d.base_type)
     r = r->e->parent;
-  if(l->array_depth == r->array_depth || isa(l->e->d.base_type, r->e->d.base_type) > 0)
+  if(get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) && isa(l->e->d.base_type, r->e->d.base_type) > 0)
     return l;
   return env->gwion->type[et_null];
 }
@@ -192,7 +193,7 @@ static FREEARG(freearg_array) {
 }
 
 GWION_IMPORT(array) {
-  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, "Object");
   gwi->gwion->type[et_array] = t_array;
   GWI_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
 

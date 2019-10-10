@@ -1,0 +1,4 @@
+#! [contains] must return
+class C {
+  operator @dtor int() {}
+}

@@ -30,13 +30,13 @@ static inline void free_shredinfo(MemPool mp, struct ShredInfo_ *info) {
       xfree((void*)vector_at(v, i - 1));
     free_vector(mp, v);
   }
-  mp_free(mp, ShredInfo, info); // ??? info->p
+  mp_free(mp, ShredInfo, info);
 }
 
 VM_Shred new_vm_shred(MemPool p, VM_Code c) {
   const VM_Shred shred = mp_calloc(p, Stack);
-  shred->code          = c;
-  shred->reg           = (m_bit*)shred + sizeof(struct VM_Shred_);
+  shred->code = c;
+  shred->reg  = (m_bit*)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
   shred->info = new_shredinfo(p, c->name);
   shred->info->orig = c;
@@ -49,7 +49,7 @@ void free_vm_shred(VM_Shred shred) {
     release((M_Object)vector_at(&shred->gc, i - 1), shred);
   vector_release(&shred->gc);
   REM_REF(shred->info->orig, shred->info->vm->gwion);
-  MemPool mp = shred->info->mp;
+  const MemPool mp = shred->info->mp;
   mp_free(mp, ShredTick, shred->tick);
   free_shredinfo(mp, shred->info);
   mp_free(mp, Stack, shred);

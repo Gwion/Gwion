@@ -1,0 +1,5 @@
+fun void test<~A~>(int i) {
+  test<~A~>(2.3);
+}
+
+test<~int~>(3);

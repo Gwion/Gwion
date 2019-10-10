@@ -1,0 +1,2 @@
+#! [contains] missing value for return
+fun int test() { return; }

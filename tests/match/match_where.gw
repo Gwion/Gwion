@@ -1,0 +1,4 @@
+int i;
+match (i) {
+  case _ : <<< "success" >>>;
+} where int a;

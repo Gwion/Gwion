@@ -25,8 +25,6 @@ static INSTR(LambdaAssign) {
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->exp_type == ae_exp_decl)
-    ERR_N(bin->rhs->pos, _("calling fptr decl, this is forbidden."))
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
   Exp e = exp_self(bin);
   e->exp_type = ae_exp_call;
@@ -150,10 +148,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   return type;
 }
 
-ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
-    Exp_Lambda *l, const Func_Def def) {
-  const m_uint scope = ((l->owner = owner)) ?
-    env_push_type(env, owner) : env->scope->depth;
+ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def) {
   Arg_List base = def->base->args, arg = l->args;
   while(base && arg) {
     arg->td = base->td;
@@ -171,9 +166,16 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     arg->td = NULL;
     arg = arg->next;
   }
+  return GW_OK;
+}
+ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
+    Exp_Lambda *l, const Func_Def def) {
+  const m_uint scope = ((l->owner = owner)) ?
+    env_push_type(env, owner) : env->scope->depth;
+  const m_bool ret = _check_lambda(env, l, def);
   if(owner)
     env_pop(env, scope);
-  return GW_OK;
+  return ret;
 }
 
 ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
@@ -221,10 +223,10 @@ static OP_CHECK(opck_fptr_cast) {
 }
 
 static void member_fptr(const Emitter emit) {
-    const Instr instr = emit_add_instr(emit, RegPop);
-    instr->m_val = SZ_INT;
-    const Instr dup = emit_add_instr(emit, Reg2Reg);
-    dup->m_val = -SZ_INT;
+  const Instr instr = emit_add_instr(emit, RegPop);
+  instr->m_val = SZ_INT;
+  const Instr dup = emit_add_instr(emit, Reg2Reg);
+  dup->m_val = -SZ_INT;
 }
 
 static OP_EMIT(opem_fptr_cast) {
@@ -260,11 +262,9 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(exp_self(unary)->next)
-    ERR_O(exp_self(unary)->pos, _("spork/fork must not have next expression"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
-  else if(unary->code) {
+  if(unary->code) {
     ++env->scope->depth;
     nspc_push_value(env->gwion->mp, env->curr);
     const m_bool ret = check_stmt(env, unary->code);
@@ -272,9 +272,8 @@ static OP_CHECK(opck_spork) {
     --env->scope->depth;
     CHECK_BO(ret)
     return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
-  } else
-    ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
-  return NULL;
+  }
+  ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
 }
 
 static OP_EMIT(opem_spork) {

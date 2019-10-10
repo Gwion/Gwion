@@ -120,8 +120,8 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     return r->e->parent;
   }
-  if(nonnull_check(l, r))
-    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
+/*  if(nonnull_check(l, r))
+    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name); */
   if(l != env->gwion->type[et_null] && isa(l, r) < 0)
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
   return r;
@@ -198,7 +198,7 @@ static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Type l = imp->e->type;
   const Type r = imp->t;
-  if(check_nonnull(env, l, r, "implicitly cast", imp->pos) == env->gwion->type[et_null])
+  if(check_nonnull(env, l, r, "implicitly cast", imp->e->pos) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
   imp->e->cast_to = r;
   return imp->t;
@@ -264,7 +264,6 @@ GWION_IMPORT(object) {
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
-  gwi_reserve(gwi, "this");
   struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;

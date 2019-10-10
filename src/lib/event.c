@@ -7,6 +7,7 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
@@ -57,7 +58,7 @@ static MFUN(event_broadcast) {
 }
 
 GWION_IMPORT(event) {
-  const Type t_event = gwi_mk_type(gwi, "Event", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_event = gwi_mk_type(gwi, "Event", SZ_INT, "Object");
   gwi->gwion->type[et_event] = t_event;
   GWI_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
   GWI_BB(gwi_item_ini(gwi, "int", "@shreds"))

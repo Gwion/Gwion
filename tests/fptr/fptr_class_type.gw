@@ -1,0 +1,2 @@
+typedef void ptr_t();
+ptr_t t @=> ptr_t t2;

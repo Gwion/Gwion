@@ -1,0 +1,33 @@
+#!/bin/bash
+
+usage() {
+  echo "Usage:
+  gwion-config --version   - show installed script and Guile version
+  gwion-config --help      - show usage info (this message)
+  gwion-config link        - print libraries to link with
+  gwion-config compile     - print C compiler flags to compile with"
+}
+
+version() {
+  echo "N.A."
+}
+
+link() {
+  echo "-std=c99 -fPIC -Wall -Wextra -O2"
+}
+
+compile() {
+  echo "-fPIC -I PREFIX/gwion/util -I PREFIX/gwion/ast -I PREFIX/gwion"
+}
+
+if [ $# = 0 ]
+then usage
+elif [ "$1" = "--version" ]
+then version
+elif [ "$1" = "--help" ]
+then version
+elif [ "$1" = "link" ]
+then link
+elif [ "$1" = "compile" ]
+then compile
+fi

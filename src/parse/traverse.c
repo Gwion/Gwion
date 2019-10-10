@@ -59,5 +59,7 @@ ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
     CHECK_BB(scan1_class_def(env, def))
   if(!GET_FLAG(def, scan2))
     CHECK_BB(scan2_class_def(env, def))
-  return check_class_def(env, def);
+  if(!GET_FLAG(def, checked))
+    return check_class_def(env, def);
+  return GW_OK;
 }

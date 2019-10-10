@@ -163,7 +163,6 @@ DotStatic3
 DotFunc
 DotStaticFunc
 PushStaticCode
-RegPushStr
 GcIni
 GcAdd
 GcEnd

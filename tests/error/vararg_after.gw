@@ -1,0 +1,6 @@
+#! [contains] used after
+fun void test(...) {
+  vararg.start;
+  vararg.end;
+  vararg.i;
+}

@@ -166,7 +166,6 @@ enum {
   eDotFunc,
   eDotStaticFunc,
   ePushStaticCode,
-  eRegPushStr,
   eGcIni,
   eGcAdd,
   eGcEnd,
@@ -342,7 +341,6 @@ enum {
 #define  DotFunc             (f_instr)eDotFunc
 #define  DotStaticFunc       (f_instr)eDotStaticFunc
 #define  PushStaticCode      (f_instr)ePushStaticCode
-#define  RegPushStr          (f_instr)eRegPushStr
 #define  GcIni               (f_instr)eGcIni
 #define  GcAdd               (f_instr)eGcAdd
 #define  GcEnd               (f_instr)eGcEnd

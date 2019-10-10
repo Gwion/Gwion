@@ -11,6 +11,7 @@
 #include "instr.h"
 #include "object.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
@@ -186,7 +187,7 @@ static GACK(gack_string) {
   printf("%s", obj ? STRING(obj) : "(null string)");
 }
 GWION_IMPORT(string) {
-  const Type t_string = gwi_mk_type(gwi, "string", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_string = gwi_mk_type(gwi, "string", SZ_INT, "Object");
   GWI_BB(gwi_gack(gwi, t_string, gack_string))
   GWI_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
   gwi->gwion->type[et_string] = t_string;
@@ -265,7 +266,6 @@ GWION_IMPORT(string) {
 //  gwi_item_end(gwi, ae_flag_const, NULL);
 //  gwi_reserve(gwi, "__func__");
 
-  gwi_reserve(gwi, "__func__");
   struct SpecialId_ spid = { .ck=check_funcpp, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "__func__", &spid);
   return GW_OK;

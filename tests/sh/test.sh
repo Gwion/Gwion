@@ -15,7 +15,7 @@
 
 : "${DRIVER:=dummy}"
 : "${MODULE:=dummy}"
-: "${SUPP:=help/supp}"
+: "${SUPP:=scripts/supp}"
 
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"

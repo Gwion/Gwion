@@ -3,18 +3,6 @@
 	path = plug
 	url = https://github.com/fennecdjay/Gwion-plug
   active = false
-[submodule "jit"]
-	path = jit
-	url = https://github.com/fennecdjay/gwion-jit.git
-  active = false
-[submodule "tools"]
-	path = tools
-	url = https://github.com/fennecdjay/gwion-tools.git
-  active = false
-[submodule "mod"]
-	path = mod
-	url = https://github.com/fennecdjay/gwion-mod.git
-  active = false
 [submodule "util"]
 	path = util
 	url = https://github.com/fennecdjay/gwion-util

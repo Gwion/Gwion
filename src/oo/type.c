@@ -12,7 +12,7 @@
 #include "tuple.h"
 
 ANN static void free_type(Type a, Gwion gwion) {
-  if(GET_FLAG(a, template)) {
+  if(GET_FLAG(a, template) || GET_FLAG(a, global)) {
     if(GET_FLAG(a, union)) {
       if(a->e->def->union_def) {
         if(!GET_FLAG(a, pure))  { // <=> decl_list
@@ -44,7 +44,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->name   = name;
   type->e = mp_calloc(p, TypeInfo);
   type->e->parent = parent;
-  if(type->e->parent) {
+  if(parent) {
     type->size = parent->size;
     type->e->tuple = new_tupleform(p);
   }
@@ -75,14 +75,14 @@ ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
 #define describe_find(name, t)                                       \
 ANN t find_##name(const Type type, const Symbol xid) {               \
   if(type->nspc) {                                                   \
-  const t val = nspc_lookup_##name##1(type->nspc, xid);              \
+  const t val = nspc_lookup_##name##0(type->nspc, xid);              \
   if(val)                                                            \
     return val;                                                      \
   }                                                                  \
   return type->e->parent ? find_##name(type->e->parent, xid) : NULL; \
 }
 describe_find(value, Value)
-describe_find(func,  Func)
+//describe_find(func,  Func)
 
 ANN Type typedef_base(Type t) {
   while(GET_FLAG(t, typedef))
@@ -156,17 +156,18 @@ ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
   const size_t slen = strlen(s);
   const size_t tlen = slen - len + 1;
   char c[slen + 1];
-
   if(!name)
     return index ? NULL : s_name(insert_symbol(s));
   if(index == 0) {
     snprintf(c, tlen, "%s", s);
     return s_name(insert_symbol(c));
   }
+  ++name;
   while(*name++) {
-    if(*name == '<')
+    if(*name == '<') {
       lvl++;
-    else if(*name == '>' && !lvl--)
+      name++;
+    } else if(*name == '~' && !lvl--)
       break;
     if(*name == ',' && !lvl) {
       ++name;

@@ -53,7 +53,8 @@ static inline void compiler_error(MemPool p, const struct Compiler* c) {
 static void compiler_clean(MemPool p, const struct Compiler* c) {
   if(c->name)
     xfree(c->name);
-  if(c->file)
+  /* test c->type because COMPILE_FILE does not own file */
+  if(c->type != COMPILE_FILE && c->file)
     fclose(c->file);
   if(c->ast)
     free_ast(p, c->ast);
@@ -64,9 +65,11 @@ static m_bool _compiler_open(struct Compiler* c) {
     m_str name = c->name;
     c->name = realpath(name, NULL);
     xfree(name);
-    return c->name ? !!(c->file = fopen(c->name, "r")) : -1;
-  } else if(c->type == COMPILE_MSTR)
-    return (c->file = fmemopen(c->data, strlen(c->data), "r")) ? 1 : - 1;
+    return c->name ? !!(c->file = fopen(c->name, "r")) : GW_ERROR;
+  } else if(c->type == COMPILE_MSTR) {
+    c->file = fmemopen(c->data, strlen(c->data), "r");
+    return c->file ? GW_OK : GW_ERROR;
+  }
   return GW_OK;
 }
 
@@ -127,9 +130,7 @@ m_uint compile_string(struct Gwion_* vm, const m_str filename, const m_str data)
   return compile(vm, &c);
 }
 
-/*
 m_uint compile_file(struct Gwion_* vm, const m_str filename, FILE* file) {
-  struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .file=file };
+  struct Compiler c = { .base=filename, .type=COMPILE_FILE, .file=file };
   return compile(vm, &c);
 }
-*/

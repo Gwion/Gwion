@@ -31,31 +31,17 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
 #include "type.h"
 #include "vm.h"
 #include "gwion.h"
-ANN Func get_func(const Env env, const Func_Def def) {
-  DECL_OO(Func, f, = def->base->func)
-  m_str end = strrchr(f->name, '@'); // test end cause some template func do not have @x@env->curr->name
-  if(end && env->class_def && GET_FLAG(env->class_def, template)) {
-    ++end;
-    const size_t len = strlen(f->name) - strlen(end);
-    const size_t elen = strlen(env->class_def->name);
-    char c[len + elen + 1];
-    memcpy(c, f->name, len);
-    strcpy(c + len, env->class_def->name);
-    return nspc_lookup_func0(env->class_def->nspc, insert_symbol(env->gwion->st, c));
-  }
-  return f;
-}
 
 ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
     const m_str tmpl, const m_uint i) {
   const size_t base_len = strlen(base);
-  const size_t tmpl_len = !tmpl ? 0 : strlen(tmpl) + 2;
+  const size_t tmpl_len = !tmpl ? 0 : strlen(tmpl) + 4;
   const size_t nspc_len = strlen(nspc);
   const size_t idx_len = num_digit(i);
   const size_t len = base_len + tmpl_len + nspc_len + idx_len + 2;
   char name[len + 1];
   CHECK_BO(sprintf(name, "%s%s%s%s@%" UINT_F "@%s",
-    base, !tmpl ? "" : "<", !tmpl ? "" : tmpl, !tmpl ? "" : ">",
+    base, !tmpl ? "" : "<~", !tmpl ? "" : tmpl, !tmpl ? "" : "~>",
     i, nspc))
   return insert_symbol(env->gwion->st, name);
 }

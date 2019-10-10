@@ -5,3 +5,5 @@ include/generated.h
 .desk
 mkdocs.yml
 *.a
+*.o
+*.so

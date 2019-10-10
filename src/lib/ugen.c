@@ -8,6 +8,7 @@
 #include "type.h"
 #include "instr.h"
 #include "object.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
@@ -306,13 +307,13 @@ struct ugen_importer {
 };
 
 ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
+  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   VM* vm = gwi_vm(gwi);
   const M_Object o = new_M_UGen(gwi->gwion);
   const UGen u = imp->ugen = UGEN(o);
   ugen_ini(vm->gwion, u, imp->nchan, imp->nchan);
   ugen_gen(vm->gwion, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
-  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
   return gwi_item_end(gwi, ae_flag_const, o);
 }
 
@@ -335,7 +336,7 @@ static OP_CHECK(opck_chuck_ugen) {
 }
 
 GWION_IMPORT(ugen) {
-  const Type t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, "Object");
   gwi->gwion->type[et_ugen] = t_ugen;
   GWI_BB(gwi_class_ini(gwi,  t_ugen, ugen_ctor, ugen_dtor))
   GWI_BB(gwi_item_ini(gwi, "int", "@ugen"))

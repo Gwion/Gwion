@@ -1,0 +1,2 @@
+#! [contains] must have one
+operator @access int(Vec3 v, int i) {}

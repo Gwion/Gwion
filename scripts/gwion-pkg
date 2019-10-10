@@ -1,0 +1,108 @@
+#!/bin/bash
+
+: "${GWION_PLUG_PATH:=$PWD}"
+
+help() {
+prg=$(basename $0)
+echo "Usage:
+
+  $prg install  - install dependancies
+  $prg clear    - clear dependancies
+  $prg run      - run package
+  $prg help     - this help
+
+---
+requires GWION_PLUG_PATH environment variable"
+}
+
+declare -A magic_variable=()
+
+read_manifest() {
+  name=$(basename $1 .manifest)
+  magic_variable[$name]=$((magic_variable[$name]))
+  [ -f $1 ] || return
+  while read LINE
+  do
+    [ "${LINE:0:1}" = "#" ] && continue
+    magic_variable[$LINE]=$((magic_variable[$LINE] + 1))
+    find_manifest $LINE.manifest
+  done < $1
+}
+
+find_manifest() {
+  for DIR in $GWION_PLUG_PATH
+  do
+    [ -f DIR/$1 ] || continue
+    read_manifest $1
+    return
+  done
+}
+
+install_plug() {
+  [ -d .gwion-pkg ] || mkdir .gwion-pkg
+  echo "installing $2 $3"
+  index=$(printf "%04i" $3)
+  [ -f .gwion-pkg/${index}_$(basename $1 .manifest).so ] && rm .gwion-pkg/${index}_$(basename $1 .manifest).so
+  ln $PLUG .gwion-pkg/${index}_$(basename $1 .manifest).so
+}
+
+install_manifest() {
+  for DIR in $GWION_PLUG_PATH
+  do
+    [ -d $DIR ] || continue
+    PLUG=$DIR/$(basename $1 .manifest).so
+    [ -f $PLUG ] || make
+    install_plug "$1" "$PLUG" $2
+  done
+}
+
+read_all_manifests() {
+  for FILE in *.manifest
+  do read_manifest $FILE
+  done
+}
+
+get_max() {
+  MAX=0
+  for i in "${!magic_variable[@]}"
+  do [ "${magic_variable[$i]}" -gt "$MAX" ] && MAX="${magic_variable[$i]}"
+  done
+}
+
+install_all_manifests() {
+  for i in "${!magic_variable[@]}"
+  do install_manifest "$i" $(( MAX - ${magic_variable[$i]}))
+  done
+}
+
+list_package() {
+  [ -d .gwion-pkg ] && ls .gwion-pkg | sort -u | cut -d_ -f 2
+}
+
+
+run_package() {
+  shift
+  gwion -c .gwion-pkg/gwion.cfg -p .gwion-pkg $@
+}
+
+clear_package() {
+  rm -rf .gwion-pkg
+}
+
+install_package() {
+  read_all_manifests
+  get_max
+  install_all_manifests
+}
+
+if [ "$1" = "list" ]
+then list_package
+elif [ "$1" = "run" ]
+then run_package $@
+elif [ "$1" = "clear" ]
+then clear_package
+elif [ "$1" = "install" ]
+then install_package
+else help
+fi
+

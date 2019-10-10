@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #33
+# [test] #38
 
 n=0
 [ "$1" ] && n="$1"
@@ -14,7 +14,7 @@ export GWION_ADD_DIR
 test_plugin() {
 	export NAME=$"$1"
 	export PRG=$"../../gwion"
-	export SUPP=$"../../help/supp"
+	export SUPP=$"../../scripts/supp"
 	make
   if [ -f "$NAME.gw" ]
   then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
@@ -38,7 +38,7 @@ rm "empty.so"
 BASE_DIR="$PWD"
 cd tests/import || exit
 for test_file in *.c
-do test_plugin "$(basename $test_file .c)"
+do test_plugin "$(basename "$test_file" .c)"
 done
 
 DRIVER="driver_test:arg" test_plugin driver

@@ -10,6 +10,7 @@
 #include "object.h"
 #include "shreduler_private.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
@@ -153,6 +154,8 @@ static MFUN(shred_unlock) {
 }
 
 static DTOR(fork_dtor) {
+  if(*(m_int*)(o->data + o_fork_done))
+    vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
   THREAD_JOIN(FORK_THREAD(o));
   VM *vm = ME(o)->info->vm;
   free_vm(vm);
@@ -164,8 +167,8 @@ static MFUN(fork_join) {
   MUTEX_LOCK(shred->tick->shreduler->mutex);
   release(o, shred);
   if(*(m_int*)(o->data + o_fork_done)) {
-   MUTEX_UNLOCK(shred->tick->shreduler->mutex);
-   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+    MUTEX_UNLOCK(shred->tick->shreduler->mutex);
+    MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
     return;
   }
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
@@ -201,9 +204,6 @@ static ANN void* fork_run(void* data) {
   } while(vm->bbq->is_running);
   fork_retval(me);
   MUTEX_LOCK(vm->shreduler->mutex);
-//  MUTEX_LOCK(FORK_ORIG(me)->shreduler->mutex);
-  vector_rem2(&FORK_ORIG(me)->gwion->data->child, (vtype)me);
-//  MUTEX_UNLOCK(FORK_ORIG(me)->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
   broadcast(*(M_Object*)(me->data + o_fork_ev));
   MUTEX_UNLOCK(vm->shreduler->mutex);
@@ -220,7 +220,7 @@ ANN void fork_clean(const VM *vm, const Vector v) {
 }
 
 void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
-  o->ref += 2;
+  o->ref += 1;
   if(!vm->gwion->data->child.ptr)
     vector_init(&vm->gwion->data->child);
   vector_add(&vm->gwion->data->child, (vtype)o);
@@ -231,7 +231,7 @@ void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
 
 #include "nspc.h"
 GWION_IMPORT(shred) {
-  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, gwi->gwion->type[et_object]);
+  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, "Object");
   gwi->gwion->type[et_shred] = t_shred;
   GWI_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
@@ -296,13 +296,12 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, 0))
   GWI_BB(gwi_class_end(gwi))
 
-  gwi_reserve(gwi, "me");
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);
 
   SET_FLAG((t_shred), abstract);
 
-  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, t_shred);
+  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, "Shred");
   gwi->gwion->type[et_fork] = t_fork;
   GWI_BB(gwi_class_ini(gwi, t_fork, NULL, fork_dtor))
   gwi_item_ini(gwi, "int", "@thread");
@@ -327,6 +326,5 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, 0))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
-  gwi_reserve(gwi, "me");
   return GW_OK;
 }

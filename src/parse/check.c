@@ -11,7 +11,6 @@
 #include "object.h"
 #include "traverse.h"
 #include "template.h"
-#include "optim.h"
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
@@ -28,20 +27,31 @@ ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN static m_bool check_implicit(const Env env, const m_str str,
+ANN static m_bool check_internal(const Env env, const Symbol sym,
       const Exp e, const Type t) {
   struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
-  struct Op_Import opi = { .op=insert_symbol(str), .lhs=e->type,
+  struct Op_Import opi = { .op=sym, .lhs=e->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   CHECK_OB(op_check(env, &opi))
-  e->nspc = env->curr;
+  assert(e->nspc);
   return GW_OK;
 }
 
-ANN m_bool check_exp_array_subscripts(Env env, Exp e) {
-  CHECK_OB(check_exp(env, e))
-  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
-  while((e = e->next));
+ANN static inline m_bool check_implicit(const Env env, const Exp e, const Type t) {
+  const Symbol sym = insert_symbol("@implicit");
+  return check_internal(env, sym, e, t);
+}
+
+
+ANN m_bool check_subscripts(Env env, const Array_Sub array) {
+  CHECK_OB(check_exp(env, array->exp))
+  m_uint depth = 0;
+  Exp e = array->exp;
+  const Symbol sym = insert_symbol("@access");
+  do CHECK_BB(check_internal(env, sym, e, env->gwion->type[et_int]))
+  while(++(depth) && (e = e->next));
+  if(depth != array->depth)
+    ERR_B(array->exp->pos, _("invalid array acces expression."))
   return GW_OK;
 }
 
@@ -87,11 +97,9 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_OO(check_exp(env, td->exp))
 // TODO: check me
   const Type t = actual_type(env->gwion, td->exp->type);
-  if(!t || (is_class(env->gwion, td->exp->type) && t == env->gwion->type[et_class]))
-    ERR_O(td->exp->pos, _("Expression must be of type '%s', not '%s'\n"
-      "maybe you meant typeof(Expression)"), env->gwion->type[et_class]->name, td->exp->type->name);
+  assert(t);
   m_uint depth;
-  td->xid = str2list(env, t->name, &depth);
+  td->xid = str2list(env, t->name, &depth, td->exp->pos);
   if(depth) {
     Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
     for(m_uint i = 0; i < depth - 1; ++i)
@@ -115,25 +123,54 @@ ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
   return decl->type;
 }
 
-ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
+ANN static m_bool check_var(const Env env, const Var_Decl var) {
+  if(env->class_def && !env->scope->depth && env->class_def->e->parent)
+    CHECK_BB(check_exp_decl_parent(env, var))
+  if(var->array && var->array->exp)
+    return check_subscripts(env, var->array);
+  return GW_OK;
+}
+
+ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *const td) {
+  const Value v = var->value;
+  if(env->class_def)  {
+    if(GET_FLAG(td, member)) {
+      decl_member(env, v);
+      if(isa(env->class_def, env->gwion->type[et_object]) > 0)
+        tuple_info(env, td, var);
+    } else if(GET_FLAG(td, static))
+      decl_static(env, v);
+  } else if(GET_FLAG(td, global) || (env->func && GET_FLAG(env->func->def, global)))
+    SET_FLAG(v, abstract);
+  return GW_OK;
+}
+
+ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
+  do {
+    const Var_Decl var = list->self;
+    CHECK_BB(check_var(env, var))
+    CHECK_BB(check_var_td(env, var, decl->td))
+    if(is_fptr(env->gwion, decl->type))
+      CHECK_BB(check_fptr_decl(env, var))
+    SET_FLAG(var->value, checked | ae_flag_used);
+    nspc_add_value(env->curr, var->xid, var->value);
+  } while((list = list->next));
+  return GW_OK;
+}
+
+ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
   if(decl->td->xid->xid == insert_symbol("auto")) { // should be better
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
-    if(is_class(env->gwion, decl->type)) {
-      do {
-        list->self->value->type = env->gwion->type[et_auto];
-      } while((list = list->next));
-      ((Exp_Decl*)decl)->type = env->gwion->type[et_auto];
-    }
-    if(decl->type == env->gwion->type[et_auto])
+    const Type t_auto = env->gwion->type[et_auto];
+    if(decl->type == t_auto)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }
-  if(!decl->type)
-      ERR_O(td_pos(decl->td), _("can't infer type."));
+  assert(decl->type); // was ERR_O(td_pos(decl->td), _("can't infer type."));
 {
   const Type t = get_type(decl->type);
   if(GET_FLAG(t, template) && !GET_FLAG(t, check))
@@ -141,31 +178,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
 }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-  do {
-    const Var_Decl var = list->self;
-    const Value v = var->value;
-    if(env->class_def && !env->scope->depth && env->class_def->e->parent)
-      CHECK_BO(check_exp_decl_parent(env, var))
-    if(var->array && var->array->exp)
-      CHECK_BO(check_exp_array_subscripts(env, var->array->exp))
-    if(env->class_def)  {
-      if(GET_FLAG(decl->td, member)) {
-        decl_member(env, v);
-        if(isa(env->class_def, env->gwion->type[et_object])  > 0)
-          tuple_info(env, decl->td, var);
-      } else if(GET_FLAG(decl->td, static))
-        decl_static(env, v);
-    }
-    else if(global || (env->func && GET_FLAG(env->func->def, global)))
-      SET_FLAG(v, abstract);
-    if(is_fptr(env->gwion, decl->type))
-      CHECK_BO(check_fptr_decl(env, var))
-    SET_FLAG(v, checked | ae_flag_used);
-    nspc_add_value(env->curr, var->xid, v);
-  } while((list = list->next));
+  const m_bool ret = check_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return decl->type;
+  return ret > 0 ? decl->type : NULL;
 }
 
 
@@ -178,7 +194,7 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
   const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  if(check_implicit(env, "@implicit", e, type) < 0)
+  if(check_implicit(env, e, type) < 0)
     ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
   set_cast(env, type, e); // ???
   return GW_OK;
@@ -235,10 +251,7 @@ ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
   if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, exp_self(primary)->pos,
           _("variable %s not legit at this point."), s_name(primary->d.var));
-    if(v && v->from->owner_class)
-      did_you_mean_type(v->from->owner_class, s_name(primary->d.var));
-    else
-      did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
+    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
@@ -277,13 +290,10 @@ ANN static Type prim_id(const Env env, Exp_Primary* primary) {
 }
 
 ANN static m_bool vec_value(const Env env, Exp e) {
-  int count = 1;
   CHECK_OB(check_exp(env, e))
-  do {
-    if(check_implicit(env, "@implicit", e, env->gwion->type[et_float]) < 0)
-      ERR_B(e->pos, _("invalid type '%s' in value #%d...\n"), e->type->name, count)
-    ++count;
-  } while((e = e->next));
+  const Type t_float = env->gwion->type[et_float];
+  do CHECK_BB(check_implicit(env, e, t_float))
+  while((e = e->next));
   return GW_OK;
 }
 
@@ -382,7 +392,7 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
 ANN static Type partial_depth(const Env env, const Array_Sub array) {
   const Exp curr = take_exp(array->exp, array->type->array_depth);
   if(!curr->next || !array_base(array->type))
-    ERR_O(array->exp->pos, _("array subscripts (%i) exceeds defined dimension (%i)"),
+    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
         array->depth, get_depth(array->type))
   struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
   return at_depth(env, &next);
@@ -400,24 +410,9 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
   return (isa(t, env->gwion->type[et_tuple]) < 0 ? partial_depth : tuple_depth)(env, array);
 }
 
-static inline m_bool index_is_int(const Env env, Exp e, m_uint *depth) {
-  do CHECK_BB(check_implicit(env, "@access", e, env->gwion->type[et_int]))
-  while(++(*depth) && (e = e->next));
-  return GW_OK;
-}
-
-static m_bool array_access_valid(const Env env, const Exp_Array* array) {
-  m_uint depth = 0;
-  CHECK_BB(index_is_int(env, array->array->exp, &depth))
-  if(depth != array->array->depth)
-    ERR_B(exp_self(array)->pos, _("invalid array acces expression."))
-  return GW_OK;
-}
-
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
-  CHECK_OO(check_exp(env, array->array->exp))
-  CHECK_BO(array_access_valid(env, array))
+  CHECK_BO(check_subscripts(env, array->array))
   return at_depth(env, array->array);
 }
 
@@ -428,6 +423,8 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   Nspc nspc = type->e->owner;
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
+    if(!t)
+      break;
     vector_add(&v, (vtype)insert_symbol(t->name));
     nspc = nspc->parent;
   }
@@ -452,11 +449,11 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
       }
       if(implicit)
-        return check_implicit(env, "@implicit", e, t);
+        return check_implicit(env, e, t);
   }
   return match ? 1 : -1;
 }
-
+#include "context.h"
 ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
   do {
@@ -517,14 +514,16 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = traverse_func_def(env, fdef);
-  if(ret > 0) {
+  const m_bool ret = GET_FLAG(fdef, checked) || traverse_func_def(env, fdef) > 0;
+  if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
     f->next = NULL;
     const Func func = find_func_match(env, f, exp->args);
     f->next = next;
     if(func) {
+      if(func->value_ref->from->ctx->error)
+        ERR_O(exp_self(exp)->pos, _("function '%s' is errored"), func->name)
       SET_FLAG(func, checked | ae_flag_template);
       return func;
     }
@@ -562,11 +561,8 @@ CHECK_BO(check_call(env, exp))
     fbase->tmpl->base = 0;
     fbase->tmpl->call = types;
     if(template_push_types(env, fbase->tmpl) > 0) {
+      assert(!value);
       const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
-      if(value) {
-        fptr->type = actual_type(env->gwion, value->type);
-        fptr->value = value;
-      }
       if(traverse_fptr_def(env, fptr) > 0 &&
          (base->base->ret_type = known_type(env, base->base->td)) &&
          (!exp->args || !!check_exp(env, exp->args))) {
@@ -582,9 +578,9 @@ CHECK_BO(check_call(env, exp))
       const Value exists = template_get_ready(env, v, tmpl_name, i);
       if(exists) {
         if(env->func == exists->d.func_ref) {
-          if(check_call(env, exp) < 0)
+          if(check_call(env, exp) < 0 ||
+             !find_func_match(env, env->func, exp->args))
             continue;
-          CHECK_OO(find_func_match(env, env->func, exp->args))
           m_func = env->func;
           break;
         }
@@ -698,28 +694,27 @@ ANN static Func predefined_func(const Env env, const Value v,
   return v->d.func_ref = func;
 }
 
-ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
-  const Exp call = exp->func;
-  const Exp args = exp->args;
-  DECL_OO(const Value, value, = nspc_lookup_value1(call->type->e->owner, insert_symbol(call->type->name)))
-  Tmpl *tm = value->d.func_ref ? value->d.func_ref->def->base->tmpl : call->type->e->d.func->def->base->tmpl;
-  if(tm->call) {
-    DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
-    if(!func->def->base->ret_type) { // template fptr
-      const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
-      CHECK_BO(traverse_func_def(env, func->def))
-      env_pop(env, scope);
-    }
-    exp->m_func = func;
-    return func->def->base->ret_type;
+ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value value, const Tmpl *tm, const Func_Def fdef) {
+  DECL_OO(const Func, func, = value->d.func_ref ?: predefined_func(env, value, exp, tm))
+  if(!fdef->base->ret_type) { // template fptr
+    const m_uint scope = env_push(env, value->from->owner_class, value->from->owner);
+    const m_bool ret = traverse_func_def(env, func->def);
+    env_pop(env, scope);
+    CHECK_BO(ret)
   }
+  exp->m_func = func;
+  return func->def->base->ret_type;
+}
+
+ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmpl *tm, const Func_Def fdef) {
   m_uint args_number = 0;
   const m_uint type_number = get_type_number(tm->list);
   Type_List tl[type_number];
+  tl[0] = NULL;
   ID_List list = tm->list;
   while(list) {
-    Arg_List arg = value->d.func_ref->def->base->args;
-    Exp template_arg = args;
+    Arg_List arg = fdef->base->args;
+    Exp template_arg = exp->args;
     while(arg && template_arg) {
       char path[id_list_len(arg->td->xid)];
       type_path(path, arg->td->xid);
@@ -736,8 +731,19 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
     list = list->next;
   }
   if(args_number < type_number)
-    ERR_O(call->pos, _("not able to guess types for template call."))
-  Tmpl tmpl = { .call=tl[0] };
+    ERR_O(exp->func->pos, _("not able to guess types for template call."))
+  return tl[0];
+}
+
+ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
+  const Type t = exp->func->type;
+  DECL_OO(const Value, value, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
+  const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : t->e->d.func->def;
+  Tmpl *tm = fdef->base->tmpl;
+  if(tm->call)
+    return check_predefined(env, exp, value, tm, fdef);
+  DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));
+  Tmpl tmpl = { .call=tl };
   ((Exp_Call*)exp)->tmpl = &tmpl;
   DECL_OO(const Func,func, = get_template_func(env, exp, value))
   return func->def->base->ret_type;
@@ -845,7 +851,8 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call) {
       if(env->func == t->e->d.func) {
-        CHECK_OO(check_exp(env, exp->args))
+        if(exp->args)
+          CHECK_OO(check_exp(env, exp->args))
         exp->m_func = env->func;
         return env->func->def->base->ret_type;
       }  else
@@ -903,7 +910,7 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
     if(member->t_base->nspc)
-      did_you_mean_type(member->t_base, str);
+      did_you_mean_type(the_base, str);
     return NULL;
   }
   CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
@@ -970,9 +977,13 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   return GW_OK;
 }
 
+ANN static inline m_bool _check_breaks(const Env env, const Stmt b) {
+  RET_NSPC(check_stmt(env, b))
+}
+
 ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) {
   vector_add(&env->scope->breaks, (vtype)a);
-  RET_NSPC(check_stmt(env, b))
+  const m_bool ret = _check_breaks(env, b);
   vector_pop(&env->scope->breaks);
   return ret;
 }
@@ -994,10 +1005,10 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   DECL_OB(Type, t, = check_exp(env, stmt->exp))
+  while(GET_FLAG(t, typedef))
+    t = t->e->parent;
   Type ptr = array_base(t);
   const m_uint depth = t->array_depth - 1;
-  if(GET_FLAG(t, typedef))
-    t = t->e->parent;
   if(!ptr || isa(t, env->gwion->type[et_array]) < 0)
     ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
           " This is not allowed in auto loop"), stmt->exp->type->name)
@@ -1023,9 +1034,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       td.array = &array;
     }
     ptr = known_type(env, &td);
-    if(!GET_FLAG(ptr, checked))
-      check_class_def(env, ptr->e->def);
-//      traverse_class_def(env, ptr->e->def);
+    assert(GET_FLAG(ptr, checked));
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
@@ -1035,7 +1044,9 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 }
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
-  return check_implicit(env, "@repeat", e, env->gwion->type[et_int]);
+  const Symbol sym = insert_symbol("@repeat");
+  const Type t_int = env->gwion->type[et_int];
+  return check_internal(env, sym, e, t_int);
 }
 
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
@@ -1070,7 +1081,11 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   }
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
-  return check_implicit(env, "@implicit", stmt->val, env->func->def->base->ret_type);
+  if(stmt->val)
+    return check_implicit(env, stmt->val, env->func->def->base->ret_type);
+  if(isa(env->func->def->base->ret_type, env->gwion->type[et_void]) > 0)
+    return GW_OK;
+  ERR_B(stmt_self(stmt)->pos, _("missing value for return statement"))
 }
 
 #define describe_check_stmt_stack(stack, name)                                     \
@@ -1102,11 +1117,9 @@ ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
   Decl_List l = udef->l;
   do {
     CHECK_OB(check_exp(env, l->self))
-    if(isa(l->self->type, env->gwion->type[et_object]) > 0) {
-      Var_Decl_List list = l->self->d.exp_decl.list;
-      do SET_FLAG(list->self->value, pure);
-      while((list = list->next));
-    }
+    Var_Decl_List list = l->self->d.exp_decl.list;
+    do SET_FLAG(list->self->value, pure);
+    while((list = list->next));
     if(l->self->type->size > udef->s)
       udef->s = l->self->type->size;
   } while((l = l->next));
@@ -1167,7 +1180,7 @@ ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
-  for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
+  for(m_uint i = 0; i < map_size(&env->scope->match->map) && e; e = e->next, ++i) {
     const Symbol op = case_op(env, e, i);
     if(op) {
       const Exp base = (Exp)VKEY(&env->scope->match->map, i);
@@ -1201,16 +1214,12 @@ ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   return GW_OK;
 }
 
-ANN static m_bool check_match(const Env env, const Stmt_Match stmt) {
-  CHECK_OB(check_exp(env, stmt->cond))
-  return case_loop(env, stmt);
-}
-
 ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
   if(stmt->where)
     CHECK_BB(check_stmt(env, stmt->where))
+  CHECK_OB(check_exp(env, stmt->cond))
   MATCH_INI(env->scope)
-  const m_bool ret = check_match(env, stmt);
+  const m_bool ret = case_loop(env, stmt);
   MATCH_END(env->scope)
   return ret;
 }
@@ -1326,44 +1335,44 @@ ANN static Value set_variadic(const Env env) {
   return variadic;
 }
 
+ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
+  if(fdef->base->args)
+    CHECK_BB(check_func_args(env, fdef->base->args))
+//  else
+//    UNSET_FLAG(fdef->base->func, pure);
+  const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
+  if(!GET_FLAG(fdef, builtin)) {
+    if(fdef->d.code)
+      CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code))
+  } else
+    fdef->base->func->code->stack_depth = fdef->stack_depth;
+  if(variadic)
+    REM_REF(variadic, env->gwion)
+  return GW_OK;
+}
+
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
-  const Func func = get_func(env, fdef);
-  m_bool ret = GW_OK;
+  const Func func = fdef->base->func;
+  assert(func == fdef->base->func);
+  if(env->class_def) // tmpl ?
+    CHECK_BB(check_parent_match(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
-    return env->class_def ? check_parent_match(env, fdef) : 1;
+    return GW_OK;
   if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
     fdef->base->ret_type = check_td(env, fdef->base->td);
     return traverse_func_def(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
   DECL_BB(const m_int, scope, = GET_FLAG(fdef, global) ? env_push_global(env) : env->scope->depth)
-  if(env->class_def) // tmpl ?
-    CHECK_BB(check_parent_match(env, fdef))
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(env, fdef->base->tmpl))
-  if(!fdef->base->args)
-    UNSET_FLAG(fdef->base->func, pure);
-  else
-    ret = check_func_args(env, fdef->base->args);
-  if(ret > 0) {
-    const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
-    if(!GET_FLAG(fdef, builtin) && fdef->d.code &&
-        check_stmt_code(env, &fdef->d.code->d.stmt_code) < 0)
-      ret = GW_ERROR;
-    if(variadic)
-      REM_REF(variadic, env->gwion)
-    if(GET_FLAG(fdef, builtin))
-      func->code->stack_depth = fdef->stack_depth;
-  }
-  if(fdef->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
+  const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
+  SET_FLAG(fdef, checked);
   if(GET_FLAG(fdef, global))
     env_pop(env,scope);
   return ret;
@@ -1372,11 +1381,11 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
 #define check_fptr_def dummy_func
 DECL_SECTION_FUNC(check)
 
-ANN static m_bool check_class_parent(const Env env, const Class_Def cdef) {
+ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
-    CHECK_BB(check_exp_array_subscripts(env, td->array->exp))
+    CHECK_BB(check_subscripts(env, td->array))
   if(parent->e->def && !GET_FLAG(parent, check))
     CHECK_BB(scanx_parent(parent, traverse_cdef, env))
   if(GET_FLAG(parent, typedef))
@@ -1391,19 +1400,24 @@ ANN static inline void inherit(const Type t) {
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
+ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, check_parent, env);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+if(GET_FLAG(cdef->base.type, checked))return GW_OK;
   const Type type = cdef->base.type;
   SET_FLAG(type, check);
-  if(type->e->parent == env->gwion->type[et_undefined]) {
-    type->e->parent = check_td(env, cdef->base.ext);
-    return traverse_cdef(env, cdef);
-  }
   if(cdef->base.ext)
-    CHECK_BB(scanx_parent(cdef->base.type, check_class_parent, env))
-  else if(!type->e->parent)
-    type->e->parent = env->gwion->type[et_object];
+    CHECK_BB(cdef_parent(env, cdef))
+  assert(type->e->parent);
   inherit(type);
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, check_section))

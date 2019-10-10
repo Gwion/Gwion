@@ -9,12 +9,10 @@
 #include "func.h"
 #include "template.h"
 #include "traverse.h"
-#include "optim.h"
 #include "parse.h"
 #include "nspc.h"
 #include "operator.h"
 #include "object.h"
-
 #include "instr.h"
 #include "import.h"
 #include "tuple.h"
@@ -22,14 +20,10 @@
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
-ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
-  const m_bool global = GET_FLAG(decl->td, global);
-  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
-{
+ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
   const Type t = get_type(decl->type);
   if(GET_FLAG(t, template) && !GET_FLAG(t, scan2))
     CHECK_BB(scan2_cdef(env, t->e->def))
-}
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
@@ -38,21 +32,24 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
       CHECK_BB(scan2_exp(env, array))
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
+  return GW_OK;
+}
+
+ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
+  const m_bool global = GET_FLAG(decl->td, global);
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
+  const m_bool ret = scan2_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return GW_OK;
+  return ret;
 }
 
 ANN static Value arg_value(MemPool p, const Arg_List list) {
   const Var_Decl var = list->var_decl;
-  if(!var->value) {
-    const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
-    if(list->td)
-      v->flag = list->td->flag | ae_flag_arg;
-    return v;
-  }
-  var->value->type = list->type;
-  return var->value;
+  const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
+  if(list->td)
+    v->flag = list->td->flag | ae_flag_arg;
+  return v;
 }
 
 ANN static m_bool scan2_args(const Env env, const Func_Def f) {
@@ -111,19 +108,9 @@ ANN static inline Value prim_value(const Env env, const Symbol s) {
 }
 
 ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) {
-  if(prim->primary_type == ae_primary_hack) {
+  if(prim->primary_type == ae_primary_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
-    Exp e = prim->d.exp;
-    do {
-      if(e->exp_type == ae_exp_decl) {
-        Var_Decl_List l = e->d.exp_decl.list;
-        do {
-           const Value v = l->self->value;
-           SET_FLAG(v, used);
-        }while ((l = l->next));
-      }
-    } while((e = e->next));
-  } else if(prim->primary_type == ae_primary_id) {
+  else if(prim->primary_type == ae_primary_id) {
     const Value v = prim_value(env, prim->d.var);
     if(v)
       SET_FLAG(v, used);
@@ -138,7 +125,6 @@ ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) 
   CHECK_BB(scan2_exp(env, array->base))
   return scan2_exp(env, array->array->exp);
 }
-
 
 ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if(e->exp_type == ae_exp_decl) {
@@ -272,15 +258,20 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
+ANN static m_bool scan2_union_decl(const Env env, const Decl_List list) {
+  Decl_List l = list;
+  do CHECK_BB(scan2_exp_decl(env, &l->self->d.exp_decl))
+  while((l = l->next));
+  return GW_OK;
+}
+
 ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
   const m_uint scope = union_push(env, udef);
-  Decl_List l = udef->l;
-  do CHECK_BB(scan2_exp(env, l->self))
-  while((l = l->next));
+  const m_bool ret = scan2_union_decl(env, udef->l);
   union_pop(env, udef, scope);
-  return GW_OK;
+  return ret;
 }
 
 static const _exp_func stmt_func[] = {
@@ -344,7 +335,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
-    nspc_add_value(env->curr, f->def->base->xid, v);
+    nspc_add_value_front(env->curr, f->def->base->xid, v);
   } else if(overload->d.func_ref) {
     f->next = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
@@ -352,7 +343,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   return v;
 }
 
-ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f, const Value overload) {
+ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const Value overload) {
   const m_str name = s_name(f->base->xid);
   const Func func = scan_new_func(env, f, name);
   const Value value = func_value(env, func, overload);
@@ -362,9 +353,10 @@ ANN2(1, 2) static m_bool scan2_func_def_template(const Env env, const Func_Def f
   Nspc nspc = env->curr;
   uint i = 0;
   do {
-    const Value v = nspc_lookup_value1(nspc, f->base->xid);
+    const Value v = nspc_lookup_value0(nspc, f->base->xid);
     if(v) {
       Func ff = v->d.func_ref;
+      if(!ff)continue;
       do {
         if(ff->def == f) {
           ++i;
@@ -415,9 +407,8 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
     f->base->ret_type : NULL;
   struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
                            .pos=f->pos, .data=(uintptr_t)f->base->func };
-  if(!strcmp(str, "@implicit")) {
+  if(!strcmp(str, "@implicit"))
     opi.ck = opck_usr_implicit;
-  }
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;
@@ -446,6 +437,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
+    assert(t);
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
@@ -465,7 +457,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
 }
 
 
-ANN2(1,2,4) /*static */Value func_create(const Env env, const Func_Def f,
+ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
      const Value overload, const m_str name) {
   const Func func = scan_new_func(env, f, name);
   nspc_add_func(env->curr, insert_symbol(func->name), func);
@@ -477,33 +469,18 @@ ANN2(1,2,4) /*static */Value func_create(const Env env, const Func_Def f,
   return v;
 }
 
-
-ANN static m_str template_helper(const Env env, const Func_Def f) {
-  const m_str name = f->base->func ?  f->base->func->name : func_tmpl_name(env, f);
-  if(!name)
-    return(m_str)GW_ERROR;
-  const Func func = nspc_lookup_func0(env->curr, insert_symbol(name));
-  if(func) {
-    f->base->ret_type = known_type(env, f->base->td);
-    return (m_str)(m_uint)((f->base->args && f->base->args->type) ? scan2_args(env, f) : GW_OK);
-  }
-  return name;
-}
-
 ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v) {
   if(!f->base->tmpl) {
-    const Symbol sym  = func_symbol(env, env->curr->name, s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
+    const Symbol sym  = func_symbol(env, env->curr->name,
+        s_name(f->base->xid), NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
-  return template_helper(env, f);
+  return f->base->func ? f->base->func->name : func_tmpl_name(env, f);
 }
 
-
-ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overload) {
+ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
   const m_str name = func_name(env, f, overload ?: NULL);
-  if((m_int)name <= GW_OK)
-    return (m_bool)(m_uint)name;
-  const Func base = get_func(env, f);
+  const Func base = f->base->func;
   if(!base)
     CHECK_OB(func_create(env, f, overload, name))
   else
@@ -520,19 +497,19 @@ ANN2(1,2) m_bool scan2_fdef(const Env env, const Func_Def f, const Value overloa
   return GW_OK;
 }
 
+ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
+  const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
+  if(overload)
+    CHECK_BB(scan2_func_def_overload(env, f, overload))
+  return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);
+}
+
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
-  const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
     f->stack_depth += SZ_INT;
-  if(overload)
-    CHECK_BB(scan2_func_def_overload(env, f, overload))
-  if(f->base->tmpl)
-    CHECK_BB(template_push_types(env, f->base->tmpl))
-  const m_bool ret = (!tmpl_base(f->base->tmpl) ? scan2_fdef : scan2_func_def_template)(env, f, overload);
-  if(f->base->tmpl)
-    nspc_pop_type(env->gwion->mp, env->curr);
+  const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
   return ret;
@@ -541,7 +518,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
 #define scan2_enum_def dummy_func
 DECL_SECTION_FUNC(scan2)
 
-ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
+ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   if(parent->e->def && !GET_FLAG(parent, scan2))
     CHECK_BB(scanx_parent(parent, scan2_cdef, env))
@@ -550,12 +527,22 @@ ANN static m_bool scan2_class_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+  const m_bool ret = scanx_parent(cdef->base.type, scan2_parent, env);
+  if(cdef->base.tmpl && cdef->base.tmpl->list)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
+  if(GET_FLAG(cdef->base.type, scan2))return GW_OK;
   SET_FLAG(cdef->base.type, scan2);
   if(cdef->base.ext)
-    CHECK_BB(scanx_parent(cdef->base.type, scan2_class_parent, env))
+    CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan2_section))
   return GW_OK;

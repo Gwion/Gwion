@@ -15,10 +15,6 @@ ANN Map env_label(const Env env) {
   return &env->context->lbls;
 }
 
-ANN Nspc env_nspc(const Env env) {
-  return env->context->nspc;
-}
-
 #define GET(a,b) ((a) & (b)) == (b)
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
   if(env->scope->depth) {

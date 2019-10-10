@@ -15,6 +15,7 @@
 #include "shreduler_private.h"
 #include "emit.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "map_private.h"
@@ -53,9 +54,9 @@ uint32_t gw_rand(uint32_t s[2]) {
 void vm_remove(const VM* vm, const m_uint index) {
   const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
-  for(m_uint i = vector_size(v) + 1; i--;) {
+  for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
-    if(sh->tick->xid == index)
+    if(sh && sh->tick->xid == index)
        Except(sh, "MsgRemove");
   }
 }
@@ -78,9 +79,10 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
 
 #include "gwion.h"
 ANN void vm_fork(const VM* src, const VM_Shred shred) {
-  VM* vm = shred->info->vm = gwion_cpy(src);
+  VM* vm = (shred->info->vm = gwion_cpy(src));
   shred->info->me = new_shred(shred, 0);
   shreduler_add(vm->shreduler, shred);
+  vm->gwion->data->base = src->gwion;
 }
 
 __attribute__((hot))
@@ -128,8 +130,6 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
 ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
-  assert(sh->info->me);
-  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
@@ -311,7 +311,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc, &&dotstaticfunc, &&pushstaticcode, &&pushstr,
+    &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
     &&gack, &&gack3, &&regpushimm, &&other, &&eoc
   };
@@ -661,10 +661,8 @@ sporkexp:
 forkend:
   fork_launch(vm, a.child->info->me, VAL2);
 sporkend:
-  if(!VAL)
-    *(M_Object*)(reg-SZ_INT) = a.child->info->me;
-  else
-    *(M_Object**)(reg-SZ_INT) = &a.child->info->me;
+  assert(!VAL); // spork are not mutable
+  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
@@ -800,14 +798,10 @@ PRAGMA_PUSH()
 PRAGMA_POP()
   DISPATCH()
 pushstaticcode:
-  *(m_bit*)byte = eRegPushImm;
-  VAL = (*(m_uint*)(reg) = (m_uint)((Func)VAL)->code);
-  reg += SZ_INT;
+  *(m_bit*)byte = eRegSetImm;
+  VAL = (*(m_uint*)(reg-SZ_INT) = (m_uint)((Func)VAL)->code);
+  VAL2 = -SZ_INT;
   DISPATCH()
-pushstr:
-  *(M_Object*)reg = new_string2(vm->gwion, shred, (m_str)VAL);
-  reg += SZ_INT;
-  DISPATCH();
 gcini:
   vector_add(&shred->gc, 0);
   DISPATCH();

@@ -7,12 +7,18 @@
 #include "env.h"
 #include "type.h"
 #include "instr.h"
+#include "emit.h"
 #include "object.h"
 #include "vararg.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
+#include "specialid.h"
+#include "traverse.h"
+#include "parse.h"
+#include "func.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);
@@ -83,9 +89,15 @@ static FREEARG(freearg_vararg) {
     free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
 }
 
+static ID_CHECK(idck_vararg) {
+  if(env->func && GET_FLAG(env->func->def, variadic))
+    return env->gwion->type[et_vararg];
+  ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
+}
+
 GWION_IMPORT(vararg) {
-  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, gwi->gwion->type[et_object]);
-  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, t_vararg);
+  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, "Object");
+  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, "Object");
   SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))
@@ -113,6 +125,7 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_oper_add(gwi, at_varobj))
   GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
   register_freearg(gwi, VarargIni, freearg_vararg);
-  gwi_reserve(gwi, "vararg");
+  struct SpecialId_ spid = { .type=t_vararg, .exec=RegPushImm, .is_const=1, .ck=idck_vararg};
+  gwi_specialid(gwi, "vararg", &spid);
   return GW_OK;
 }

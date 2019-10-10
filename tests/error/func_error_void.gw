@@ -1,0 +1,3 @@
+#! [contains] and not:
+fun void test(int i) {}
+test();

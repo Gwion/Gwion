@@ -25,7 +25,7 @@ ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
     const Symbol sym = insert_symbol(gwion->st, name);
     const compilation_pass pass = (compilation_pass)map_get(&gwion->data->pass_map, (vtype)sym);
     if(!pass) {
-      gw_err("Failed to set compilation passes, back to default");
+      gw_err("Failed to set compilation passes, back to default\n");
       pass_default(gwion);
       return GW_ERROR;
     }

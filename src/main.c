@@ -15,6 +15,7 @@ static void sig(int unused NUSED) {
 #endif
 }
 
+#include "type.h"
 int main(int argc, char** argv) {
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);
@@ -26,6 +27,8 @@ int main(int argc, char** argv) {
     gwion_run(&gwion);
 #ifndef NDEBUG
   gwion_end(&gwion);
+#else
+  free_plug(&gwion);
 #endif
   THREAD_RETURN(EXIT_SUCCESS);
 }

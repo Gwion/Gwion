@@ -1,5 +1,5 @@
 language: c
-#sudo: required
+
 os:
   - linux
   - osx
@@ -16,7 +16,6 @@ addons:
   apt:
     packages:
     - valgrind
-#    - lcov
 
 env:
   global:
@@ -33,8 +32,7 @@ env:
 
 matrix:
   allow_failures:
-   - compiler: clang
-#   - os: windows
+   - os: windows
 
 compiler:
   - gcc
@@ -42,11 +40,10 @@ compiler:
 
 install:
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
-        pip install --user --upgrade pip;
-        pip install --user urllib3[secure];
-        pip install --user cpp-coveralls;
-        fi;
-#  - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then gem install coveralls-lcov; fi;
+      pip install --user --upgrade pip;
+      pip install --user urllib3[secure];
+      pip install --user cpp-coveralls;
+    fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
       choco install make;
       export BUILD_ON_WINDOWS=1;

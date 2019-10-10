@@ -8,6 +8,7 @@
 #include "instr.h"
 #include "object.h"
 #include "emit.h"
+#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
@@ -85,8 +86,8 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
   gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta)) // should return bool
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
-  gwi_reserve(gwi, "maybe");
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
   return GW_OK;
@@ -131,16 +132,9 @@ static GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, hour);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, t_zero);
-//  gwi_item_ini(gwi, "@now", "now");
-//  gwi_item_end(gwi, ae_flag_const, NULL);
   return GW_OK;
 }
-/*
-static OP_CHECK(opck_chuck_now) {
-  Exp_Binary* bin = (Exp_Binary*)data;
-  ERR_N(exp_self(bin)->pos, _("can't assign 'now' to 'now'"))
-}
-*/
+
 static OP_CHECK(opck_implicit_f2i) {
   return env->gwion->type[et_null];
 }
@@ -153,15 +147,6 @@ static OP_CHECK(opck_repeat_f2i) {
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
   return imp->e->cast_to = env->gwion->type[et_float];
-}
-
-// can't it be just declared?
-static OP_EMIT(opem_i2f) {
-  return emit_add_instr(emit, CastI2F);
-}
-
-static OP_EMIT(opem_f2i) {
-  return emit_add_instr(emit, CastF2I);
 }
 
 #define CHECK_FF(op, check, func) _CHECK_OP(op, check, float_##func)
@@ -188,7 +173,6 @@ static GWION_IMPORT(intfloat) {
   CHECK_IF("-=>", rassign, r_minus)
   CHECK_IF("*=>", rassign, r_mul)
   CHECK_IF("/=>", rassign, r_div)
-  GWI_BB(gwi_oper_emi(gwi, opem_i2f))
   _CHECK_OP("$", basic_cast, CastI2F)
   _CHECK_OP("@implicit", implicit_i2f, CastI2F)
   return GW_OK;
@@ -214,7 +198,6 @@ static GWION_IMPORT(floatint) {
   CHECK_FI("-=>", rassign, r_minus)
   CHECK_FI("*=>", rassign, r_mul)
   CHECK_FI("/=>", rassign, r_div)
-  GWI_BB(gwi_oper_emi(gwi, opem_f2i))
   _CHECK_OP("$", basic_cast, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   _CHECK_OP("@repeat", repeat_f2i, CastF2I)
@@ -287,6 +270,9 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_end(gwi, "::",         int_float_mul))
   GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
   GWI_BB(gwi_oper_end(gwi, "::",         FloatTimes))
+  GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2)) // should return bool
+  GWI_BB(gwi_oper_end(gwi,  "!", float_not))
   return GW_OK;
 }
 

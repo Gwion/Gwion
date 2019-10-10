@@ -1,0 +1,3 @@
+class global InvalidGlobalClass {
+  inkrt i;
+}

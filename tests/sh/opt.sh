@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #17
+# [test] #19
 
 n=0
 [ "$1" ] && n="$1"
@@ -75,7 +75,15 @@ run "$n" "just check" "-g check" "file"
 
 # set compilation passes
 n=$((n+1))
-run "$n" "just check" "-g nopass" "file"
+run "$n" "no pass" "-g nopass" "file"
+
+# option needs argument
+n=$((n+1))
+run "$n" "option needs argument" "-p" "file"
+
+# invalid global type
+n=$((n+1))
+run "$n" "invalid global type" "examples/complex/invalid_type0.gw examples/complex/invalid_type1.gw" "file"
 
 # test signal
 ./gwion -l1 &

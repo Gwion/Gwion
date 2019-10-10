@@ -1,16 +1,17 @@
+#!/bin/bash
 title() {
-  TMP=$(head -n 1 $1)
+  TMP=$(head -n 1 "$1")
   sed "s/'/\'/" <<< "${TMP:2}"
 }
 
 list_dir() {
   [[ "$1" == */"assets" ]] && return
-  for a in $1/*
+  for a in "$1"/*
   do
     if [ -d "$a" ]
     then [[ "$a" == */"assets" ]] ||
-         echo "$2- '$(basename $a | sed 's/[0-9][0-9]_//' | sed 's/_/ /g' | sed 's/-/ /g')':"; list_dir "$a" "$2  "
-    else echo "$a" | grep "\.md$" >/dev/null  && echo "$2- '$(title $a)': ${a:5}"
+         echo "$2- '$(basename "$a" | sed 's/[0-9][0-9]_//' | sed 's/_/ /g' | sed 's/-/ /g')':"; list_dir "$a" "$2"
+    else echo "$a" | grep "\.md$" >/dev/null  && echo "$2- '$(title "$a")': ${a:5}"
     fi
   done
 }

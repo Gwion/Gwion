@@ -1,0 +1,6 @@
+#! [contains] is not global
+class C {
+
+}
+
+global C c;

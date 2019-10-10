@@ -11,6 +11,7 @@
 #include "env.h"
 #include "vm.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "instr.h"
 #include "object.h"
@@ -151,4 +152,14 @@ void plug_run(const Gwion gwion, const Vector args) {
       free_vector(gwion->mp, arg);
     }
   }
+}
+
+ANN void* get_module(const Gwion gwion, const m_str name) {
+  const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
+  for(m_uint i = 0; i < vector_size(v); ++i) {
+    struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
+    if(!strcmp(name, plug->name))
+      return plug->self;
+  }
+  return NULL;
 }

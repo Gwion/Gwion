@@ -6,6 +6,7 @@
 #include "env.h"
 #include "type.h"
 #include "gwion.h"
+#include "value.h"
 #include "operator.h"
 #include "object.h"
 #include "instr.h"
@@ -13,6 +14,6 @@
 
 MFUN(test_mfun){}
 GWION_IMPORT(end_class) {
-  CHECK_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }
