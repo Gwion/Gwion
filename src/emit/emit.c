@@ -1420,10 +1420,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     union_allocdata(emit->gwion->mp, udef);
     SET_FLAG(udef->type, emit);
     scope = emit_push_type(emit, udef->type);
-  } else if(emit->env->class_def) {// miss flag ?
-    if(!GET_FLAG(l->self->d.exp_decl.list->self->value, member))
-      udef->o = emit_local(emit, udef->s, 0);
-  } else if(global) {// miss flag?
+  } else if(global) {
     void* ptr = (void*)xcalloc(1, udef->s);
     l = udef->l;
     do {

@@ -1145,6 +1145,8 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   check_udef(env, udef);
   const m_uint scope = union_push(env, udef);
   const m_bool ret = check_union_decl(env, udef);
+  if(!udef->xid && !udef->type_xid && env->class_def && !GET_FLAG(udef, static))
+    env->class_def->nspc->info->offset = udef->o + udef->s;
   union_pop(env, udef, scope);
   return ret;
 }

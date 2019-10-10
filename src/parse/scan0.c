@@ -276,7 +276,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     valuefrom(env, udef->value->from);
     nspc_add_value(nspc, sym, udef->value);
     add_type(env, nspc, t);
-    SET_FLAG(udef->value, checked | udef->flag);
+    SET_FLAG(udef->value, checked | ae_flag_pure | udef->flag);
     SET_FLAG(t, scan1 | ae_flag_union);
   }
   if(udef->tmpl) {

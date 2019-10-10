@@ -19,8 +19,8 @@ ANN void nspc_commit(const Nspc nspc) {
 }
 
 ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
-  if((GET_FLAG(value, static) && a->info->class_data) ||
-    (value->d.ptr && GET_FLAG(value, builtin))) {
+  if(!GET_FLAG(value, pure) && ((GET_FLAG(value, static) && a->info->class_data) ||
+    (value->d.ptr && GET_FLAG(value, builtin)))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->info->class_data + value->from->offset);
        release(obj, gwion->vm->cleaner_shred);
