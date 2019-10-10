@@ -459,7 +459,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
   }
   return match ? 1 : -1;
 }
-
+#include "context.h"
 ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
   do {
@@ -567,11 +567,8 @@ CHECK_BO(check_call(env, exp))
     fbase->tmpl->base = 0;
     fbase->tmpl->call = types;
     if(template_push_types(env, fbase->tmpl) > 0) {
+      assert(!value);
       const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
-      if(value) {
-        fptr->type = actual_type(env->gwion, value->type);
-        fptr->value = value;
-      }
       if(traverse_fptr_def(env, fptr) > 0 &&
          (base->base->ret_type = known_type(env, base->base->td)) &&
          (!exp->args || !!check_exp(env, exp->args))) {
