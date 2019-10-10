@@ -319,10 +319,7 @@ ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim)
 
 ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) {
   const Value v = prim->value;
-  if(GET_FLAG(v, func)) {
-    regpushi(emit, (m_uint)v->d.func_ref);
-    return GW_OK;
-  }
+  assert(!GET_FLAG(v, func));// regpushi(emit, (m_uint)v->d.func_ref);
   if(GET_FLAG(v, union)) {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, exp_self(prim)->emit_var, dotstatic);
@@ -336,10 +333,10 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
         instr->m_val = (m_uint)v->d.ptr;
       } else if(v->d.ptr)
         instr->m_val = *(m_uint*)v->d.ptr;
-    } else if(v->d.ptr)
+    } else {
+      assert(v->d.ptr); // instr->m_val = v->d.ptr;
       memcpy(&instr->m_val, v->d.ptr, v->type->size);
-    else
-      instr->m_val = (m_uint)v->d.ptr;
+    }
     instr->m_val2 = size;
   }
   return GW_OK;
