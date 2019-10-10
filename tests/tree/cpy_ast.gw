@@ -19,5 +19,7 @@ class <~A~>C {
   match i { case _:; }
   enum { zero };
   typedef int Int;
+  goto end;
+  end:
 }
 <~int~>C c;

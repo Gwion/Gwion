@@ -257,10 +257,10 @@ ANN static void cpy_stmt_exp(MemPool p, const Stmt_Exp a, const Stmt_Exp src) {
 
 ANN static void cpy_stmt_flow(MemPool p, Stmt_Flow a,const Stmt_Flow src) {
   if(src->cond)
-    a->cond = cpy_exp(p, src->cond); 
+    a->cond = cpy_exp(p, src->cond);
   if(src->body)
-    a->body = cpy_stmt(p, src->body); 
-  a->is_do = src->is_do; 
+    a->body = cpy_stmt(p, src->body);
+  a->is_do = src->is_do;
 }
 
 ANN static void cpy_stmt_code(MemPool p, Stmt_Code a, const Stmt_Code src) {
@@ -308,6 +308,7 @@ ANN static void cpy_stmt_if(MemPool p, Stmt_If a, const Stmt_If src) {
 
 ANN static void cpy_stmt_jump(MemPool p NUSED, const Stmt_Jump a,const Stmt_Jump src) {
   a->name = src->name;
+  a->is_label = src->is_label;
 }
 
 ANN static Stmt cpy_stmt_case(MemPool p, const Stmt_Match src) {
