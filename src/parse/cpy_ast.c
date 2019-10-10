@@ -335,10 +335,11 @@ ANN static void cpy_stmt_match(MemPool p, Stmt_Match a, const Stmt_Match src) {
 }
 
 ANN static Enum_Def cpy_enum_def(MemPool p, const Enum_Def src) {
-  Enum_Def a = mp_calloc(p, Func_Base);
+  Enum_Def a = mp_calloc(p, Enum_Def);
   a->list = cpy_id_list(p, src->list);
   a->xid = src->xid;
   a->flag = src->flag;
+  vector_init(&a->values);
   return a;
 }
 

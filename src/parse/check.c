@@ -1189,6 +1189,8 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=env->curr};
       struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
       CHECK_OB(op_check(env, &opi))
+      e->nspc= ebin.nspc;
+      return GW_OK;
     }
   }
   if(e)

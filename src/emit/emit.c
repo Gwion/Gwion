@@ -1135,7 +1135,10 @@ ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
 }
 
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
-  assert(lambda->def);
+  if(!lambda->def) {
+    regpushi(emit, SZ_INT);
+    return GW_OK;
+  }
   const m_uint scope = !lambda->owner ?
     emit->env->scope->depth : emit_push_type(emit, lambda->owner);
   const m_bool ret = emit_lambda(emit, lambda);
@@ -1452,7 +1455,7 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
   e->next = next;
   CHECK_BB(ret)
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
-  struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=emit->env->curr};
+  struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=e->nspc};
   struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
   CHECK_BB(op_emit_bool(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
