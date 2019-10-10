@@ -1427,10 +1427,6 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
 if(GET_FLAG(cdef->base.type, checked))return GW_OK;
   const Type type = cdef->base.type;
   SET_FLAG(type, check);
-  if(type->e->parent == env->gwion->type[et_undefined]) {
-    type->e->parent = check_td(env, cdef->base.ext);
-    return traverse_cdef(env, cdef);
-  }
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))
   assert(type->e->parent);
