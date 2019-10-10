@@ -10,6 +10,7 @@
 #include "parse.h"
 #include "gwion.h"
 #include "tuple.h"
+#include "context.h"
 
 ANN static void free_type(Type a, Gwion gwion) {
   if(GET_FLAG(a, template) || GET_FLAG(a, global)) {
@@ -22,8 +23,17 @@ ANN static void free_type(Type a, Gwion gwion) {
           free_decl_list(gwion->mp, a->e->def->list);
       }
       a->e->def->union_def = NULL;
-    } else if(a->e->def)
+    } else if(a->e->def) {
+// looks like errored template get be freed for some reason
+// fix that
+      UNSET_FLAG(a->e->def, template);
+      if(a->e->ctx && a->e->ctx->error)//exit(12);
+        SET_FLAG(a->e->def, ref);
+      else
+        UNSET_FLAG(a->e->def, ref);
+      UNSET_FLAG(a->e->def, global);
       free_class_def(gwion->mp, a->e->def);
+    }
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);

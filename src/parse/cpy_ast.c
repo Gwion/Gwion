@@ -338,6 +338,7 @@ ANN static Enum_Def cpy_enum_def(MemPool p, const Enum_Def src) {
   Enum_Def a = mp_calloc(p, Enum_Def);
   a->list = cpy_id_list(p, src->list);
   a->xid = src->xid;
+  a->pos = loc_cpy(p, src->pos);
   a->flag = src->flag;
   vector_init(&a->values);
   return a;
@@ -385,6 +386,7 @@ ANN static Union_Def cpy_union_def(MemPool p, const Union_Def src) {
     a->type_xid = src->type_xid; // 1 
   if(src->tmpl)
     a->tmpl = cpy_tmpl(p, src->tmpl); // 1 
+  a->pos = loc_cpy(p, src->pos);
   a->flag = src->flag; // 1 
   return a;
 }

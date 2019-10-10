@@ -299,7 +299,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
       base = slist;
 {// build Type_List
   const ID_List ilist = new_id_list(env->gwion->mp, tsym,
-      loc_cpy(env->gwion->mp, pos));
+      loc_cpy(env->gwion->mp, pos)));
   Type_Decl *td = new_type_decl(env->gwion->mp, ilist);
   Type_List tmp_tl = new_type_list(env->gwion->mp, td, NULL);
     if(tl)
@@ -313,7 +313,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   Section * section = new_section_stmt_list(env->gwion->mp, base);
   Class_Body body = new_class_body(env->gwion->mp, section, NULL);
   const ID_List ilist = new_id_list(env->gwion->mp, insert_symbol(env->gwion->type[et_tuple]->name),
-      loc_cpy(env->gwion->mp, pos));
+      loc_cpy(env->gwion->mp, loc_cpy(env->gwion->mp, pos)));
   Type_Decl *td = new_type_decl(env->gwion->mp, ilist);
   Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_template,
         sym, td, body, loc_cpy(env->gwion->mp, pos));

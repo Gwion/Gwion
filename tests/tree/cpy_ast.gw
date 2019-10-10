@@ -1,4 +1,4 @@
-class C {
+class <~A~>C {
   \a{};
   [ 1 ];
   int i,j;
@@ -16,9 +16,8 @@ class C {
   int array[2];
   for(auto a : array);
   repeat(1);
-#! gotos ...
   match i { case _:; }
   enum { zero };
   typedef int Int;
 }
-C c;
+<~int~>C c;
