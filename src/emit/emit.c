@@ -1445,14 +1445,20 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
   return exp->val ? emit_exp(emit, exp->val, 0) : 1;
 }
 
-ANN static m_bool emit_case_head(const Emitter emit, const Exp base, const Exp e, const Symbol op) {
+ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
+    const Exp e, const Symbol op, const Vector v) {
   CHECK_BB(emit_exp(emit, base, 1))
-  CHECK_BB(emit_exp(emit, e, 1))
+  const Exp next = e->next;
+  e->next = NULL;
+  const m_bool ret = emit_exp(emit, e, 1);
+  e->next = next;
+  CHECK_BB(ret)
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct Exp_ ebin = { .d={.exp_binary=bin}, .nspc=emit->env->curr};
   struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type, .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
   CHECK_BB(op_emit_bool(emit, &opi))
-  regpop(emit, base->type->size);
+  const Instr instr = emit_add_instr(emit, BranchEqInt);
+  vector_add(v, (vtype)instr);
   return GW_OK;
 }
 
@@ -1497,22 +1503,31 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e) {
   return insert_symbol("==");
 }
 
-ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt) {
+ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt,
+    const Vector v) {
   Exp e = stmt->cond;
   const Map map = &emit->env->scope->match->map;
-  for(m_uint i = 0; i < map_size(map); e = e->next, ++i) {
+  for(m_uint i = 0; i < map_size(map) && e; e = e->next, ++i) {
     const Exp base = (Exp)VKEY(map, i);
     const Symbol op = case_op(emit, base, e);
     if(op != CASE_PASS)
-      CHECK_BB(emit_case_head(emit, base, e, op))
+      CHECK_BB(emit_case_head(emit, base, e, op, v))
   }
-  return emit_case_body(emit, stmt);
+  CHECK_BB(emit_case_body(emit, stmt))
+  return GW_OK;
 }
 
 ANN static m_bool emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt) {
   emit_push_scope(emit);
-  const m_bool ret = _emit_stmt_match_case(emit, stmt);
+  struct Vector_ v;
+  vector_init(&v);
+  const m_bool ret = _emit_stmt_match_case(emit, stmt, &v);
   emit_pop_scope(emit);
+  for(m_uint i = 0; i < vector_size(&v); ++i) {
+    const Instr instr = (Instr)vector_at(&v, i);
+    instr->m_val = emit_code_size(emit);
+  }
+  vector_release(&v);
   return ret;
 }
 
