@@ -1192,7 +1192,7 @@ ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
-  for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
+  for(m_uint i = 0; i < map_size(&env->scope->match->map) && e; e = e->next, ++i) {
     const Symbol op = case_op(env, e, i);
     if(op) {
       const Exp base = (Exp)VKEY(&env->scope->match->map, i);
@@ -1226,16 +1226,12 @@ ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   return GW_OK;
 }
 
-ANN static m_bool check_match(const Env env, const Stmt_Match stmt) {
-  CHECK_OB(check_exp(env, stmt->cond))
-  return case_loop(env, stmt);
-}
-
 ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
   if(stmt->where)
     CHECK_BB(check_stmt(env, stmt->where))
+  CHECK_OB(check_exp(env, stmt->cond))
   MATCH_INI(env->scope)
-  const m_bool ret = check_match(env, stmt);
+  const m_bool ret = case_loop(env, stmt);
   MATCH_END(env->scope)
   return ret;
 }
