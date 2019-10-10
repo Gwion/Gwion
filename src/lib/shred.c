@@ -178,16 +178,22 @@ static MFUN(fork_join) {
 }
 
 static MFUN(shred_cancel) {
-MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
   *(m_int*)(o->data + o_shred_cancel) = *(m_int*)MEM(SZ_INT);
-MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
 static MFUN(shred_test_cancel) {
-MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
-  if(*(m_int*)(o->data + o_shred_cancel))
+  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+  if(*(m_int*)(o->data + o_shred_cancel)) {
+    const m_bool is_me = ME(o) == shred;
+    if(is_me)
+      MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
     vm_shred_exit(ME(o));
-MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+    if(is_me)
+      return;
+  }
+  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
 void fork_retval(const M_Object o) {
@@ -236,10 +242,10 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
   gwi_item_ini(gwi, "int", "@me");
-  GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_const, NULL))
 
   gwi_item_ini(gwi, "int", "cancel");
-  GWI_BB((o_shred_cancel = gwi_item_end(gwi, 0, NULL)))
+  GWI_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, NULL)))
 
   gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
   GWI_BB(gwi_func_end(gwi, 0))

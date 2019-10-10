@@ -1,0 +1,5 @@
+me.set_cancel(0);
+me.test_cancel();
+me.set_cancel(1);
+me.test_cancel();
+<<< "wont reach" >>>;
