@@ -191,34 +191,35 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   return GW_OK;
 }
 
-ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
-  CHECK_BB(env_storage(env, edef->flag, edef->pos))
-  if(edef->xid) {
-    const Value v = nspc_lookup_value1(env->curr, edef->xid);
-    if(v)
-      ERR_B(edef->pos, _("'%s' already declared as variable of type '%s'."),
-        s_name(edef->xid),  v->type->name)
-    CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
-  }
-// TODO: make a func
+ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
+  const size_t line_len = num_digit(pos->first_line);
+  const size_t col_len = num_digit(pos->first_column);
+  char c[strlen(env->curr->name) + line_len + col_len + strlen(name) + 5];
+  sprintf(c, "@%s:%s:%u:%u", name, env->curr->name,
+      pos->first_line, pos->first_column);
+  return insert_symbol(c);
+}
+
+ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_int]);
   t->xid = ++env->scope->type_xid;
-  const size_t line_len = num_digit(edef->pos->first_line);
-  const size_t col_len = num_digit(edef->pos->first_column);
-// TODO: make a func also for name, used in union too
-  char name[strlen(env->curr->name) + line_len + col_len + 10]; // add pos
-  sprintf(name, "@enum:%s:%u:%u", env->curr->name, edef->pos->first_line, edef->pos->first_column);
-  const Symbol sym = insert_symbol(name);
+  const Symbol sym = scan0_sym(env, "enum", edef->pos);
   t->name = edef->xid ? s_name(edef->xid) : s_name(sym);
   t->e->parent = env->gwion->type[et_int];
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
-  if(GET_FLAG(edef, global))
-    context_global(env);
-  edef->t = t;
   add_type(env, nspc, t);
   mk_class(env, t);
   scan0_implicit_similar(env, t, env->gwion->type[et_int]);
+  return t;
+}
+
+ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
+  CHECK_BB(env_storage(env, edef->flag, edef->pos))
+  CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
+  edef->t = enum_type(env, edef);
+  if(GET_FLAG(edef, global))
+    context_global(env);
   return GW_OK;
 }
 
@@ -271,11 +272,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   } else {
     const Nspc nspc = !GET_FLAG(udef, global) ?
       env->curr : env->global_nspc;
-    const size_t line_len = num_digit(udef->pos->first_line);
-    const size_t col_len = num_digit(udef->pos->first_column);
-    char name[strlen(env->curr->name) + line_len + col_len + 10]; // add pos
-    sprintf(name, "@union:%s:%u:%u", env->curr->name, udef->pos->first_line, udef->pos->first_column);
-    const Symbol sym = insert_symbol(name);
+    const Symbol sym = scan0_sym(env, "union", udef->pos);
     const Type t = union_type(env, nspc, sym, 1);
     udef->value = new_value(env->gwion->mp, t, s_name(sym));
     valuefrom(env, udef->value->from);
@@ -368,8 +365,9 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   if(cdef->body) {
     int call = cdef->base.tmpl && !cdef->base.tmpl->call;
     if(call)cdef->base.tmpl->call = (Type_List)1;
-      CHECK_BB(env_body(env, cdef, scan0_section))
+    const m_bool ret = env_body(env, cdef, scan0_section);
     if(call)cdef->base.tmpl->call = NULL;
+    CHECK_BB(ret);
   }
   (void)mk_class(env, cdef->base.type);
   return GW_OK;

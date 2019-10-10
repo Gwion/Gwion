@@ -24,15 +24,11 @@ ANN static void free_type(Type a, Gwion gwion) {
       }
       a->e->def->union_def = NULL;
     } else if(a->e->def) {
-// looks like errored template get be freed for some reason
-// fix that
-      UNSET_FLAG(a->e->def, template);
-      if(a->e->ctx && a->e->ctx->error)//exit(12);
-        SET_FLAG(a->e->def, ref);
-      else
-        UNSET_FLAG(a->e->def, ref);
-      UNSET_FLAG(a->e->def, global);
-      free_class_def(gwion->mp, a->e->def);
+      if(!(a->e->ctx && a->e->ctx->error)) {
+        UNSET_FLAG(a->e->def, template);
+        UNSET_FLAG(a->e->def, global);
+        free_class_def(gwion->mp, a->e->def);
+      }
     }
   }
   if(a->nspc)

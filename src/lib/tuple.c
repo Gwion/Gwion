@@ -299,7 +299,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
       base = slist;
 {// build Type_List
   const ID_List ilist = new_id_list(env->gwion->mp, tsym,
-      loc_cpy(env->gwion->mp, pos)));
+      loc_cpy(env->gwion->mp, pos));
   Type_Decl *td = new_type_decl(env->gwion->mp, ilist);
   Type_List tmp_tl = new_type_list(env->gwion->mp, td, NULL);
     if(tl)
