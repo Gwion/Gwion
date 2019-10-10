@@ -1288,6 +1288,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
 ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
   const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
   new_obj->m_val2 = (m_uint)type;
+  emit_add_instr(emit, RegAddRef);
   regpop(emit, SZ_INT);
   return emit_add_instr(emit, Reg2Mem);
 }
