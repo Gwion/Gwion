@@ -54,9 +54,9 @@ uint32_t gw_rand(uint32_t s[2]) {
 void vm_remove(const VM* vm, const m_uint index) {
   const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
-  for(m_uint i = vector_size(v) + 1; i--;) {
+  for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
-    if(sh->tick->xid == index)
+    if(sh && sh->tick->xid == index)
        Except(sh, "MsgRemove");
   }
 }

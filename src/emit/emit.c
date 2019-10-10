@@ -1688,8 +1688,7 @@ ANN static m_bool emit_member_func(const Emitter emit, const Exp_Dot* member) {
   const Func f = exp_self(member)->type->e->d.func;
   if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->type, force)) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
-    if(f->code)
-      func_i->m_val = (m_uint)(f->code ?: (VM_Code)f);
+    func_i->m_val = (m_uint)f->code;
     return GW_OK;
   }
   if(f->def->base->tmpl)
