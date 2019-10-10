@@ -1,6 +1,0 @@
-#! [contains] already declared as variable
-enum
-{
-	first,
-	first
-};
