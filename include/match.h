@@ -22,9 +22,6 @@ ANN static inline void match_unmap(struct Match_ * const match) {
   for(m_uint i = 0; i < sz; ++i) {
     const Exp e = (Exp)VKEY(map, i),
       next = (i < (sz-2)) ? (Exp)VKEY(map, i + 1) : NULL;
-    if(!e)
-      continue;
-    VKEY(map, i) = VKEY(map, i+1) = 0;//
     e->next = next;
   }
   map_release(map);
