@@ -262,8 +262,6 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(exp_self(unary)->next)
-    ERR_O(exp_self(unary)->pos, _("spork/fork must not have next expression"))
   if(unary->exp && unary->exp->exp_type == ae_exp_call)
     return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   if(unary->code) {
