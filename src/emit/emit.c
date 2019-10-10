@@ -1811,15 +1811,6 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN static m_bool tmpl_rettype(const Emitter emit, const Func_Def fdef) {
-  if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(emit->env, fdef->base->tmpl))
-  const m_bool ret = emit_cdef(emit, fdef->base->ret_type->e->def);
-  if(fdef->base->tmpl)
-    emit_pop_type(emit);
-  return ret;
-}
-
 ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
   CHECK_BB(emit_func_def_body(emit, fdef))
   emit_func_def_return(emit);
@@ -1841,8 +1832,6 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   const Func former = emit->env->func;
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(GET_FLAG(fdef->base->ret_type, template) && !GET_FLAG(fdef->base->ret_type, emit))
-    CHECK_BB(tmpl_rettype(emit, fdef))
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl && !emit->env->scope->depth)
