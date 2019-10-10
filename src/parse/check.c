@@ -1127,11 +1127,9 @@ ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
   Decl_List l = udef->l;
   do {
     CHECK_OB(check_exp(env, l->self))
-    if(isa(l->self->type, env->gwion->type[et_object]) > 0) {
-      Var_Decl_List list = l->self->d.exp_decl.list;
-      do SET_FLAG(list->self->value, pure);
-      while((list = list->next));
-    }
+    Var_Decl_List list = l->self->d.exp_decl.list;
+    do SET_FLAG(list->self->value, pure);
+    while((list = list->next));
     if(l->self->type->size > udef->s)
       udef->s = l->self->type->size;
   } while((l = l->next));

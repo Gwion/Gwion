@@ -1413,7 +1413,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
       const M_Object o = new_object(emit->gwion->mp, NULL, udef->value->type);
       udef->value->d.ptr = (m_uint*)o;
       SET_FLAG(udef->value, builtin);
-      SET_FLAG(udef->value, global);
+      UNSET_FLAG(udef->value, union);
     }
     scope = emit_push_type(emit, udef->value->type);
   } else if(udef->type_xid) {
@@ -1432,6 +1432,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
       SET_FLAG(list->self->value, union);
     } while((l = l->next));
     SET_FLAG(udef->l->self->d.exp_decl.list->self->value, enum);
+    SET_FLAG(udef->l->self->d.exp_decl.list->self->value, dtor);
   }
   if(udef->xid)
     regpop(emit, SZ_INT);
