@@ -167,12 +167,6 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
     const Type t_auto = env->gwion->type[et_auto];
-    if(is_class(env->gwion, decl->type)) {
-      Var_Decl_List list = decl->list;
-      do list->self->value->type = t_auto;
-      while((list = list->next));
-      ((Exp_Decl*)decl)->type = t_auto;
-    }
     if(decl->type == t_auto)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }
