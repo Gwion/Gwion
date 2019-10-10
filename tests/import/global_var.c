@@ -19,5 +19,8 @@ GWION_IMPORT(global_var_test) {
   STRING(obj) = s_name(insert_symbol(gwi->gwion->st, "test"));
   GWI_BB(gwi_item_ini(gwi,"string", "i"))
   GWI_BB(gwi_item_end(gwi, 0, obj))
+  ALLOC_PTR(gwi->gwion->mp, cf, m_float, 2.1);
+  GWI_BB(gwi_item_ini(gwi,"float", "f"))
+  GWI_BB(gwi_item_end(gwi, 0, cf))
   return GW_OK;
 }
