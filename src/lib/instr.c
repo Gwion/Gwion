@@ -116,5 +116,5 @@ INSTR(DotTmpl) {
       return;
     }
   } while((t = t->e->parent));
-  Except(shred, "MissigTmplException[internal]"); //unreachable
+  Except(shred, "MissigTmplException[internal]");
 }
