@@ -798,9 +798,9 @@ PRAGMA_PUSH()
 PRAGMA_POP()
   DISPATCH()
 pushstaticcode:
-  *(m_bit*)byte = eRegPushImm;
-  VAL = (*(m_uint*)(reg) = (m_uint)((Func)VAL)->code);
-  reg += SZ_INT;
+  *(m_bit*)byte = eRegSetImm;
+  VAL = (*(m_uint*)(reg-SZ_INT) = (m_uint)((Func)VAL)->code);
+  VAL2 = -SZ_INT;
   DISPATCH()
 gcini:
   vector_add(&shred->gc, 0);
