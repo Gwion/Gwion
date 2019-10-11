@@ -1,0 +1,3 @@
+Trig trig => dac;
+adc :=> trig;
+adc :=<trig;
