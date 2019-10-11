@@ -393,10 +393,6 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t
   DECL_OO(ID_List, id, = str2list(env, type_name, depth, pos))
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
   Type_List tmp = NULL;
-  if(!td) {
-    free_id_list(env->gwion->mp, id);
-    return NULL;
-  }
   while((type_name = get_type_name(env, s, i++))) {
     m_uint d = 0;
     if(!tmp)
