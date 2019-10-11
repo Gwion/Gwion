@@ -453,14 +453,11 @@ ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
 
 ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
   const MemPool mp = gwi->gwion->mp;
-  flag |= ae_flag_builtin;
-  Type_Decl* type_decl = import_td(gwi, dl_fun->type);
-  if(!type_decl)
-    GWI_ERR_O(_("  ...  during @ function import '%s' (type)."), dl_fun->name)
+  DECL_OO(Type_Decl*, type_decl, = import_td(gwi, dl_fun->type))
   const m_str name = dl_fun->name;
   const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
   const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
-    NULL, flag, loc_cpy(mp, gwi->loc));
+    NULL, flag | ae_flag_builtin, loc_cpy(mp, gwi->loc));
   func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
   return func_def;
 }
@@ -488,7 +485,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   return GW_OK;
 }
 
-ANN2(1,3) static Type get_type(const Env env, const m_str str, const loc_t pos) {
+ANN2(1,3) static Type _get_type(const Env env, const m_str str, const loc_t pos) {
   m_uint depth = 0;
   const ID_List list = (str && str != (m_str)OP_ANY_TYPE) ? str2list(env, str, &depth, pos) : NULL;
   const Type  t = (str == (m_str) OP_ANY_TYPE) ? OP_ANY_TYPE : list ? find_type(env, list) : NULL;
@@ -497,12 +494,16 @@ ANN2(1,3) static Type get_type(const Env env, const m_str str, const loc_t pos) 
   return t ? (depth ? array_type(env, t, depth) : t) : NULL;
 }
 
+ANN2(1,3) static inline Type get_type(const Env env, const m_str str, const loc_t pos) {
+  return str ? _get_type(env, str, pos) : NULL;
+}
+
 ANN2(1,2) static int import_op(const Gwi gwi, const DL_Oper* op,
     const f_instr f) {
   const Env env = gwi->gwion->env;
-  const Type lhs = op->lhs ? get_type(env, op->lhs, gwi->loc) : NULL;
-  const Type rhs = op->rhs ? get_type(env, op->rhs, gwi->loc) : NULL;
-  const Type ret = get_type(env, op->ret, gwi->loc);
+  const Type lhs = get_type(env, op->lhs, gwi->loc),
+             rhs = get_type(env, op->rhs, gwi->loc),
+             ret = _get_type(env, op->ret, gwi->loc);
   const struct Op_Import opi = { lhs, rhs, ret,
     op->ck, op->em, (uintptr_t)f, gwi->loc, op->op };
   return add_op(gwi->gwion, &opi);
@@ -551,15 +552,11 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
 ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
-  ID_List type_path;
-  Type_Decl* type_decl = NULL;
-  if(!(type_path = str2list(env, dl_fun->type, &array_depth, gwi->loc)) ||
-      !(type_decl = new_type_decl(env->gwion->mp, type_path)))
-    GWI_ERR_O(_("  ...  during fptr import '%s' (type)."), dl_fun->name);
+  DECL_OO(ID_List, type_path, = str2list(env, dl_fun->type, &array_depth, gwi->loc))
+  Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
   const Arg_List args = make_dll_arg_list(gwi, dl_fun);
-  flag |= ae_flag_builtin;
   Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
-  return new_fptr_def(env->gwion->mp, base, flag);
+  return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
@@ -569,10 +566,7 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
       free_fptr_def(gwi->gwion->mp, fptr);
     return NULL;
   }
-  if(gwi->gwion->env->class_def)
-    SET_FLAG(fptr->base->func->def, builtin);
-  else
-    SET_FLAG(fptr->base->func, builtin);
+  SET_FLAG(fptr->base->func, builtin);
   const Type t = fptr->type;
   free_fptr_def(gwi->gwion->mp, fptr);
   return t;
@@ -585,9 +579,7 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
 }
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
-  Type_Decl* td = import_td(gwi, gwi->val.type);
-  if(!td)
-    GWI_ERR_O(_("'%s' : invalid type"), gwi->val.type);
+  DECL_OO(Type_Decl*, td, = import_td(gwi, gwi->val.type))
   td->flag |= flag;
   const Symbol sym = insert_symbol(gwi->gwion->st, gwi->val.name);
   const Type_Def tdef = new_type_def(gwi->gwion->mp, td, sym);
@@ -599,16 +591,14 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
 
 ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   const Env env = gwi->gwion->env;
-  Type_Decl *type_decl;
-  ID_List id_list;
   m_uint array_depth;
   Array_Sub array = NULL;
-  CHECK_OO((id_list = str2list(env, type, &array_depth, gwi->loc)))
+  DECL_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
   if(array_depth) {
     array = new_array_sub(env->gwion->mp, NULL);
     array->depth = array_depth;
   }
-  type_decl = new_type_decl(env->gwion->mp, id_list);
+  Type_Decl *type_decl = new_type_decl(env->gwion->mp, id_list);
   const Var_Decl var_decl = new_var_decl(env->gwion->mp,
       insert_symbol(env->gwion->st, name), array, loc_cpy(env->gwion->mp, gwi->loc));
   const Var_Decl_List var_decl_list = new_var_decl_list(env->gwion->mp, var_decl, NULL);
