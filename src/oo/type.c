@@ -171,7 +171,6 @@ ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
   ++name;
   while(*name++) {
     if(*name == '<') {
-      c[i++] = *name;
       lvl++;
       name++;
     } else if(*name == '~' && !lvl--)
