@@ -4,5 +4,6 @@ spork  { while(true) { g.gain() == (.2 ? .2 : .1) => g.gain; .15::second => now;
 for(int i; i < 5; i++) {
     <<< g.op() >>>;
 	i => g.op;
+    <<< g.op() >>>;
 	2::second => now;
 }
