@@ -1,5 +1,3 @@
-fork { <<< __func__ >>>; hour => now; };#! @=> Fork @f;
-#!fork me.id() @=> Fork @f;
-#!spork { <<< __func__ >>>; } @=> Shred @s;
-#!second => now;
-#!f.join();
+fork { <<< __func__ >>>; } @=> Fork @f;
+second => now;
+f.join();
