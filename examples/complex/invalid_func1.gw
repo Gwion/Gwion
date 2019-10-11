@@ -1,3 +1,2 @@
 #! [contains] is errored
-#!global_func_err();
-global_func_err<~int~>();
+global_func_err();
