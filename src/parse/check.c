@@ -421,6 +421,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
   vector_init(&v);
   vector_add(&v, (vtype)insert_symbol(type->name));
   Nspc nspc = type->e->owner;
+// TODO: simplify this
   while(nspc && nspc != env->curr && nspc != env->global_nspc) {
     const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
     if(!t)
@@ -429,8 +430,8 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
     nspc = nspc->parent;
   }
   ID_List id = NULL;
-  for(m_uint i = vector_size(&v) + 1; --i;)
-    id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i - 1), id, new_loc(env->gwion->mp, __LINE__));
+  for(m_uint i = 0 ; i < vector_size(&v); ++i)
+    id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i), id, new_loc(env->gwion->mp, __LINE__));
   vector_release(&v);
   assert(id);
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
