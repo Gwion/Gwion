@@ -561,13 +561,10 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const Fptr_Def fptr = import_fptr(gwi, &gwi->func, flag);
-  if(traverse_fptr_def(gwi->gwion->env, fptr) < 0) {
-    if(!fptr->type)
-      free_fptr_def(gwi->gwion->mp, fptr);
-    return NULL;
-  }
-  SET_FLAG(fptr->base->func, builtin);
-  const Type t = fptr->type;
+  const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
+  if(ret > 0)
+    SET_FLAG(fptr->base->func, builtin);
+  const Type t = ret > 0 ? fptr->type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
   return t;
 }
@@ -627,7 +624,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   udef->flag = flag;
   CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
   emit_union_offset(udef->l, udef->o);
-  if(GET_FLAG(udef, member))
+  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
     gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
   const Type t = udef->xid ? udef->value->type :
