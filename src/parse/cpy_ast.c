@@ -286,8 +286,7 @@ ANN static void cpy_stmt_auto(MemPool p, Stmt_Auto a, const Stmt_Auto src) {
     a->exp = cpy_exp(p, src->exp);
   if(src->body)
     a->body = cpy_stmt(p, src->body);
-  if(src->is_ptr)
-    a->is_ptr = src->is_ptr; 
+  a->is_ptr = src->is_ptr;
 }
 
 ANN static void cpy_stmt_loop(MemPool p, Stmt_Loop a, const Stmt_Loop src) {
