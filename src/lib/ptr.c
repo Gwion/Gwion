@@ -45,7 +45,7 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  return exp_self(unary)->type = nspc_lookup_type1(unary->exp->type->e->owner, insert_symbol(get_type_name(env, unary->exp->type->name, 1)));
+  return exp_self(unary)->type = nspc_lookup_type1(env->curr, insert_symbol(get_type_name(env, unary->exp->type->name, 1)));
 }
 
 static OP_CHECK(opck_ptr_cast) {
