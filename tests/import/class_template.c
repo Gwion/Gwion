@@ -38,10 +38,6 @@ GWION_IMPORT(class_template) {
     GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
     GWI_BB(gwi_item_ini(gwi, "B[]", "value"))
     GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
-
-
-    /*gwi_func_ini(gwi, "B", "set", class_template_set);*/
-    /*gwi_func_end(gwi, ae_flag_member);*/
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }
