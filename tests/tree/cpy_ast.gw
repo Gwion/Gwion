@@ -14,12 +14,19 @@ class <~A~>C {
   if(i) i; else i;
   for(int; i < 1; ++i);
   int array[2];
+  array[0];
   for(auto a : array);
   repeat(1);
-  match i { case _:; }
+  match i,2 {
+    case 12 when 0:;
+    case _,2 when 0:;
+  } where int i;
   enum { zero };
   typedef int Int;
   goto end;
+  new Object;
+  spork { <<< __func__ >>>; };
   end:
+  while(0){ <<< __func__ >>>; }
 }
 <~int~>C c;
