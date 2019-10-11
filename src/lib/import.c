@@ -100,22 +100,20 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
         || (c == '_') || (c >= '0' && c <= '9'))
       continue;
     if(c == '<') {
+      if(a[++i] != '~')
+        GWI_ERR_B(_("illegal templating in name '%s'."), a)
       lvl++;
       ++i;
       continue;
-    }
-    if(c == ',') {
+    } else if(c == ',') {
       if(!lvl)
         GWI_ERR_B(_("illegal use of ',' outside of templating in name '%s'."), a)
-      continue;
-    }
-    if(c == '~') {
-      if(!lvl)
+    } else if(c == '~') {
+      if(!lvl || a[++i] != '>')
         GWI_ERR_B(_("illegal templating in name '%s'."), a)
       lvl--;
-      continue;
-    }
-    GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
+    } else
+      GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
   }
   return !lvl ? 1 : -1;
 }
