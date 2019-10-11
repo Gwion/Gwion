@@ -678,13 +678,9 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   DL_Enum* d = &gwi->enum_data;
   const Enum_Def edef  = new_enum_def(gwi->gwion->mp, d->base, d->t ? insert_symbol(gwi->gwion->st, d->t) : NULL, 
     loc_cpy(gwi->gwion->mp, gwi->loc));
-  if(traverse_enum_def(gwi->gwion->env, edef) < 0) {
-    if(!edef->t)
-      free_enum_def(gwi->gwion->mp, edef);
-    return NULL;
-  }
+  const m_bool ret = traverse_enum_def(gwi->gwion->env, edef);
   import_enum_end(gwi, &edef->values);
-  const Type t =edef->t;
+  const Type t = ret > 0 ? edef->t : NULL;
   free_enum_def(gwi->gwion->mp, edef);
   return t;
 }
