@@ -14,6 +14,7 @@
 
 GWION_IMPORT(too_many_args) {
   GWI_BB(gwi_func_ini(gwi, "int", "test", (f_xfun)1))
+  GWI_BB(gwi_func_arg(gwi, "int", "i[][]"))
   GWI_BB(gwi_func_arg(gwi, "Int", "i"))
   GWI_BB(gwi_func_end(gwi, 0))
   return GW_OK;
