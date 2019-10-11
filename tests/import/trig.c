@@ -25,9 +25,18 @@ static CTOR(trig_ctor) {
   ugen_gen(shred->info->vm->gwion, UGEN(o), trig_tick, (void*)1, 1);
 }
 
+static CTOR(trig2_ctor) {
+  ugen_ini(shred->info->vm->gwion, UGEN(o), 2, 2);
+  ugen_gen(shred->info->vm->gwion, UGEN(o), trig_tick, (void*)1, 1);
+}
+
 
 GWION_IMPORT(trig) {
-  const Type t_gain = gwi_mk_type(gwi, "Trig", SZ_INT, "UGen");
-  GWI_BB(gwi_class_ini(gwi, t_gain, trig_ctor, NULL))
+  const Type t_trig = gwi_mk_type(gwi, "Trig", SZ_INT, "UGen");
+  GWI_BB(gwi_class_ini(gwi, t_trig, trig_ctor, NULL))
+  gwi_class_end(gwi);
+
+  const Type t_trig2 = gwi_mk_type(gwi, "Trig2", SZ_INT, "UGen");
+  GWI_BB(gwi_class_ini(gwi, t_trig2, trig2_ctor, NULL))
   return gwi_class_end(gwi);
 }

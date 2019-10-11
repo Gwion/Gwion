@@ -1,3 +1,9 @@
 Trig trig => dac;
 adc :=> trig;
-adc :=<trig;
+adc :=< trig;
+
+Trig2 trig2 => dac;
+adc :=> trig2;
+adc :=< trig2;
+
+samp => now;
