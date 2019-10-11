@@ -273,6 +273,7 @@ static MFUN(ugen_get_op) {
   else if(f == ugop_div)
     *(m_uint*)RETURN = 4;
 }
+
 ANN static void set_op(const UGen u, const f_ugop f) {
   if(u->multi) {
     for(uint i = u->connect.multi->n_chan + 1; --i;)
