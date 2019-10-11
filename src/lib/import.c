@@ -442,10 +442,6 @@ ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
   m_uint array_depth;
   DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth, gwi->loc))
   Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path);
-  if(!type_decl) {
-    free_id_list(env->gwion->mp, type_path);
-    return NULL;
-  }
   if(array_depth) {
     Array_Sub array_sub = new_array_sub(env->gwion->mp, NULL);
     for(m_uint i = 1; i < array_depth; i++)
