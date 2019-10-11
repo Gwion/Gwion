@@ -435,11 +435,9 @@ ANN static Stmt cpy_stmt(MemPool p, const Stmt src) {
 ANN Func_Def cpy_func_def(MemPool p, const Func_Def src) {
   Func_Def a = mp_calloc(p, Func_Def);
   a->base = cpy_func_base(p, src->base);
-  if(!GET_FLAG(a, builtin)) {
-    if(src->d.code)
-      a->d.code = cpy_stmt(p, src->d.code);
-  } else
-    a->d.dl_func_ptr = src->d.dl_func_ptr;
+  assert(!GET_FLAG(a, builtin));
+  if(src->d.code)
+    a->d.code = cpy_stmt(p, src->d.code);
   a->pos = loc_cpy(p, src->pos);
   a->flag = src->flag;
   return a;

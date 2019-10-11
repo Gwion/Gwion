@@ -9,7 +9,8 @@ class <~A~>C {
   i++;
   i ? i : !i;
   ++i;
-  union { int ui; };
+  union { int ui; } u;
+  union <~A~>U{ int ui; };
   typeof(i);
   if(i) i; else i;
   for(int; i < 1; ++i);
