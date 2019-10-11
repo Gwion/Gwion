@@ -794,8 +794,6 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_exp_call_template(env, (Exp_Call*)exp);
   const Func func = find_func_match(env, exp->func->type->e->d.func, exp->args);
   if((exp_self(exp)->d.exp_call.m_func = func)) {
-    if(func->value_ref->from->ctx && func->value_ref->from->ctx->error)
-      ERR_O(exp_self(exp)->pos, _("function '%s' is errored"), func->name)
     exp->func->type = func->value_ref->type;
     return func->def->base->ret_type;
   }
