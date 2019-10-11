@@ -29,12 +29,8 @@ void free_vararg(MemPool p, struct Vararg_* arg) {
 INSTR(VarargTop) {
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
   if(arg) {
-    if(arg->d)
-      PUSH_REG(shred, SZ_INT)
-    else {
-      shred->pc = instr->m_val2 + 1;
-      mp_free(shred->info->mp, Vararg, arg);
-    }
+    assert(arg->d);
+    PUSH_REG(shred, SZ_INT)
   } else
     shred->pc = instr->m_val2 + 1;
 }
