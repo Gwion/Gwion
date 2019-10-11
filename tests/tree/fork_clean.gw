@@ -1,0 +1,1 @@
+fork { <<< __func__ >>>; second => now; };
