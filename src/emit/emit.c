@@ -1064,17 +1064,13 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   ini->m_val = (m_uint)code;
   ini->m_val2 = is_spork;
   if(!f) {
-    if(!is_spork) {
-      const Instr push = emit_add_instr(emit, RegPush);
-      push->m_val = SZ_INT;
+    if(is_spork) {
+      const Instr spork = emit_add_instr(emit, SporkExp);
+      spork->m_val = emit->code->stack_depth;
+    } else {
+      const Instr spork = emit_add_instr(emit, ForkEnd);
+      spork->m_val = exp_self(unary)->emit_var;
     }
-if(is_spork) {
-  const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
-  spork->m_val = emit->code->stack_depth;
-} else {
-    const Instr spork = emit_add_instr(emit, is_spork ? SporkExp : ForkEnd);
-    spork->m_val = exp_self(unary)->emit_var;
-}
   } else {
     if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
       const m_uint depth = f->def->stack_depth;
