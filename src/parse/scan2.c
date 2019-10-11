@@ -16,6 +16,7 @@
 #include "instr.h"
 #include "import.h"
 #include "tuple.h"
+#include "context.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -327,11 +328,11 @@ ANN static Type func_type(const Env env, const Func func) {
   t->e->tuple = NULL;
   return t;
 }
-
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
   const Value v = new_value(env->gwion->mp, t, t->name);
+  valuefrom(env, v->from);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     ADD_REF(v);
@@ -505,6 +506,8 @@ ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
 }
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
+  if(GET_FLAG(f, global))
+    env->context->global = 1;
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))

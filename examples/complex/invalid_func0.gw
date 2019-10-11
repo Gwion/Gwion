@@ -1,0 +1,2 @@
+#!fun global void global_func_err() { <<< _func__ >>>; }
+fun global void global_func_err<~A~>() { <<< _func__ >>>; }

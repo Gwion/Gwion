@@ -1124,7 +1124,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
 
 ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
   CHECK_BB(emit_func_def(emit, lambda->def))
-  if(GET_FLAG(lambda->def, member))
+  if(GET_FLAG(lambda->def, member) && !exp_self(lambda)->emit_var)
     emit_add_instr(emit, RegPushMem);
   regpushi(emit, (m_uint)lambda->def->base->func->code);
   return GW_OK;

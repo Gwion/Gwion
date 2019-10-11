@@ -38,6 +38,6 @@ ANN void unload_context(const Context context, const Env env) {
       free_map(env->gwion->mp, (Map)map_at(&context->lbls, i));
     map_release(&context->lbls);
   }
-  REM_REF(context, env->gwion);
+  REM_REF(context, env->gwion)
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
 }

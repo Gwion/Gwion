@@ -447,7 +447,9 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
       if(e->type == env->gwion->type[et_lambda] && is_fptr(env->gwion, t)) {
         const Type owner = nspc_lookup_type1(t->e->owner->parent,
           insert_symbol(t->e->owner->name));
-        return check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
+        const m_bool ret = check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
+        e->emit_var = 1;
+        return ret;
       }
       if(implicit)
         return check_implicit(env, e, t);
@@ -523,8 +525,6 @@ static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp)
     const Func func = find_func_match(env, f, exp->args);
     f->next = next;
     if(func) {
-      if(func->value_ref->from->ctx->error)
-        ERR_O(exp_self(exp)->pos, _("function '%s' is errored"), func->name)
       SET_FLAG(func, checked | ae_flag_template);
       return func;
     }
@@ -794,6 +794,8 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_exp_call_template(env, (Exp_Call*)exp);
   const Func func = find_func_match(env, exp->func->type->e->d.func, exp->args);
   if((exp_self(exp)->d.exp_call.m_func = func)) {
+    if(func->value_ref->from->ctx && func->value_ref->from->ctx->error)
+      ERR_O(exp_self(exp)->pos, _("function '%s' is errored"), func->name)
     exp->func->type = func->value_ref->type;
     return func->def->base->ret_type;
   }

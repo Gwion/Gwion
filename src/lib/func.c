@@ -175,7 +175,10 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   const m_bool ret = _check_lambda(env, l, def);
   if(owner)
     env_pop(env, scope);
-  return ret;
+  if(ret < 0)
+    return GW_ERROR;
+  exp_self(l)->type = l->def->base->func->value_ref->type;
+  return GW_OK;
 }
 
 ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
