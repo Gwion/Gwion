@@ -1,0 +1,2 @@
+fork { <<< __func__ >>>; second => now; } @=> Fork @f;
+f.join();
