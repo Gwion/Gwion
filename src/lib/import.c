@@ -392,11 +392,11 @@ tl_xxx(close, '>', --)
 ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
   struct GetTl gtl = { .str=s, .sz = strlen(s) };
   for(m_uint i = 0; i < gtl.sz; ++i) {
-    if(s[i] == '<' && !gtl.lvl)
+    if(s[i] == '<')
       CHECK_BO(tl_open(&gtl, ++i))
-    if(s[i] == '~' && !gtl.lvl)
+    else if(s[i] == '~')
       CHECK_BO(tl_close(&gtl, ++i))
-    if(s[i] == ',' && !gtl.lvl)
+    else if(s[i] == ',' && !gtl.lvl)
       return tlnext(env, s, i, pos);
   }
   return _str2tl(env, s, pos);
@@ -408,7 +408,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
   const m_str tl_name = get_type_name(env, s, 1);
   if(tl_name) {
-    if(!(td->types = str2tl(env, type_name, pos)) || !type_decl_resolve(env, td)) {
+    if(!(td->types = str2tl(env, tl_name, pos)) || !type_decl_resolve(env, td)) {
       free_type_decl(env->gwion->mp, td);
       return NULL;
     }
