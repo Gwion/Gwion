@@ -23,6 +23,8 @@
 
 #define GWI_ERR_B(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return GW_ERROR; }
 #define GWI_ERR_O(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return NULL; }
+#define ENV_ERR_B(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return GW_ERROR; }
+#define ENV_ERR_O(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return NULL; }
 
 #include "parser.h"
 struct Path {
@@ -83,14 +85,6 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
   return GW_OK;
 }
 
-ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
-  if(isalnum(c) || c == '_' || (i == 1 && c== '@'))
-    curr[i - 1] = c;
-  else
-    return GW_ERROR;
-  return GW_OK;
-}
-
 ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
   const m_uint len = strlen(a);
   m_uint lvl = 0;
@@ -118,66 +112,46 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
   return !lvl ? 1 : -1;
 }
 
-ANN static void path_valid_inner(const m_str curr) {
-  const size_t size = strlen(curr);
-  for(m_uint j = (size / 2) + 1; --j;) {
-    const char s = curr[j];
-    curr[j] = curr[size - j - 1];
-    curr[size - j - 1] = s;
-  }
+ANN static m_bool check_illegal(const char c, const m_uint i) {
+  return isalnum(c) || c == '_' || (!i && c == '@');
 }
 
-ANN static m_bool path_valid(const Env env, ID_List* list, const struct Path* p) {
-  char last = '\0';
-  for(m_uint i = p->len + 1; --i;) {
-    const char c = p->path[i - 1];
-
-// TODO: NOW!!! check templating
-//if(  c == '<' && p->path[i - 2] == '~');
-//else
- if(c != '.' && check_illegal(p->curr, c, i) < 0) {
-      env_err(env, &p->loc, _("illegal character '%c' in path '%s'."), c, p->path);
-      return GW_ERROR;
-    }
-    if(c == '.' || i == 1) {
-      if((i != 1 && last != '.' && last != '\0') ||
-          (i ==  1 && c != '.')) {
-        path_valid_inner(p->curr);
-        *list = prepend_id_list(env->gwion->st->p, insert_symbol(env->gwion->st, p->curr), *list, loc_cpy(env->gwion->mp, &p->loc));
-        memset(p->curr, 0, p->len + 1);
-      } else {
-        env_err(env, &p->loc, _("path '%s' must not ini or end with '.'."), p->path);
-        return GW_ERROR;
-      }
-    }
-    last = c;
+ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) {
+  const size_t sz = strlen(path);
+  if(path[0] == '.' || path[sz] == '.')
+    ENV_ERR_O(pos, _("path '%s' must not ini or end with '.'."), path)
+  char curr[sz + 1];
+  m_uint i;
+  for(i = 0; i < sz; ++i) {
+    const char c = path[i];
+    if(c != '.') {
+      if(!check_illegal(c, i))
+        ENV_ERR_O(pos, _("illegal character '%c' in path '%s'."), c, path)
+      curr[i] = c;
+    } else
+      break;
   }
-  return GW_OK;
+  curr[i++] = '\0';
+  const ID_List list = new_id_list(env->gwion->mp,
+      insert_symbol(env->gwion->st, curr), loc_cpy(env->gwion->mp, pos));
+  if(i < sz)
+    list->next = path_valid(env, path + i, pos);
+  return list;
 }
 
 ANN ID_List str2list(const Env env, const m_str path,
       m_uint* array_depth, const loc_t pos) {
-  const m_uint len = strlen(path);
-  ID_List list = NULL;
-  m_uint depth = 0;
-  char curr[len + 1];
-  struct Path p = { path, curr, len, { pos->first_line, pos->first_column, pos->last_line, pos->last_column } };
-  memset(curr, 0, len + 1);
-
-  while(p.len > 2 && path[p.len - 1] == ']' && path[p.len - 2] == '[') {
+  const m_uint sz = strlen(path);
+  m_uint len = sz, depth = 0;
+  while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
     depth++;
-    p.len -= 2;
+    len -= 2;
   }
   *array_depth = depth;
-  if(path_valid(env, &list, &p) < 0) {
-    if(list)
-      free_id_list(env->gwion->mp, list);
-    return NULL;
-  }
-  CHECK_OO(list)
-  strncpy(curr, path, p.len);
-  list->xid = insert_symbol(env->gwion->st, curr);
-  return list;
+  char curr[sz + 1];
+  strncpy(curr, path, len);
+  curr[len] = '\0';
+  return path_valid(env, curr, pos);
 }
 
 ANN static m_bool mk_gack(MemPool p, const Type type, const f_gack d) {
@@ -297,17 +271,17 @@ ANN m_int gwi_class_end(const Gwi gwi) {
 }
 
 ANN static void dl_var_new_exp_array(MemPool p, DL_Var* v) {
-  v->t.array = new_array_sub(p, NULL);
-  v->t.array->depth = v->array_depth;
+  v->td->array = new_array_sub(p, NULL);
+  v->td->array->depth = v->array_depth;
   v->var.array = new_array_sub(p, NULL);
   v->var.array->depth = v->array_depth;
 }
 
 ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
   v->list.self = &v->var;
-  v->t.flag = flag;
+  v->td->flag = flag;
   v->exp.exp_type = ae_exp_decl;
-  v->exp.d.exp_decl.td   = &v->t;
+  v->exp.d.exp_decl.td   = v->td;
   v->exp.d.exp_decl.list = &v->list;
   if(v->array_depth)
     dl_var_new_exp_array(p, v);
@@ -315,17 +289,17 @@ ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
 
 ANN static void dl_var_release(MemPool p, const DL_Var* v) {
   if(v->array_depth) {
-    free_array_sub(p, v->t.array);
+    free_array_sub(p, v->td->array);
     free_array_sub(p, v->var.array);
   }
-  free_id_list(p, v->t.xid);
+  free_type_decl(p, v->td);
 }
 
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
-  if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
-    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->class_def->name, name)
+  if(!(v->td = str2decl(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
+    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
@@ -347,7 +321,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   dl_var_set(gwi->gwion->mp, v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->t.xid);
+    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->td->xid);
     type_decl->flag = flag;
     const Var_Decl var_decl = new_var_decl(gwi->gwion->mp, v->var.xid, v->var.array, loc_cpy(gwi->gwion->mp, gwi->loc));
     const Var_Decl_List var_decl_list = new_var_decl_list(gwi->gwion->mp, var_decl, NULL);
@@ -356,7 +330,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     const Stmt_List list = new_stmt_list(gwi->gwion->mp, stmt, NULL);
     Section* section = new_section_stmt_list(gwi->gwion->mp, list);
     const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
-    type_decl->array = v->t.array;
+    type_decl->array = v->td->array;
     gwi_body(gwi, body);
     return GW_OK;
   }
@@ -381,30 +355,63 @@ static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,
   return array_sub;
 }
 
-ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
-  DECL_OO(Type_Decl*, td, = str2decl(env, s, depth, pos))
-  td->array = make_dll_arg_list_array(env->gwion->mp, NULL, depth, 0);
+ANN Type_List _str2tl(const Env env, const m_str s, const loc_t pos) {
+  m_uint depth;
+  DECL_OO(Type_Decl*, td, = str2decl(env, s, &depth, pos))
+  if(depth)
+    td->array = make_dll_arg_list_array(env->gwion->mp, NULL, &depth, 0);
   return new_type_list(env->gwion->mp, td, NULL);
 }
 
+ANN Type_List tlnext(const Env env, const m_str s, size_t split, const loc_t pos) {
+  char curr[split+1];
+  strncpy(curr, s, split);
+  curr[split] = '\0';
+  const Type_List tl = _str2tl(env, curr, pos);
+  tl->next = str2tl(env, s + split + 1, pos);
+  return tl;
+}
+
+struct GetTl {
+  const m_str str;
+  m_uint i;
+  m_uint lvl;
+  const size_t sz;
+};
+
+#define tl_xxx(name, tgt, op)                             \
+ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
+  if(!(i < gtl->sz && gtl->str[i] == tgt))                \
+    return GW_ERROR;                                      \
+  op gtl->lvl;                                            \
+  return GW_OK;                                           \
+}
+tl_xxx(open,  '~', ++)
+tl_xxx(close, '>', --)
+
+ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
+  struct GetTl gtl = { .str=s, .sz = strlen(s) };
+  for(m_uint i = 0; i < gtl.sz; ++i) {
+    if(s[i] == '<')
+      CHECK_BO(tl_open(&gtl, ++i))
+    else if(s[i] == '~')
+      CHECK_BO(tl_close(&gtl, ++i))
+    else if(s[i] == ',' && !gtl.lvl)
+      return tlnext(env, s, i, pos);
+  }
+  return _str2tl(env, s, pos);
+}
+
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
-  m_uint i = 0;
-  DECL_OO(m_str, type_name, = get_type_name(env, s, i++))
+  DECL_OO(const m_str, type_name, = get_type_name(env, s, 0))
   DECL_OO(ID_List, id, = str2list(env, type_name, depth, pos))
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
-  Type_List tmp = NULL;
-  while((type_name = get_type_name(env, s, i++))) {
-    m_uint d = 0;
-    if(!tmp)
-      td->types = tmp = str2tl(env, type_name, &d, pos);
-    else {
-      tmp->next = str2tl(env, type_name, &d, pos);
-      tmp = tmp->next;
+  const m_str tl_name = get_type_name(env, s, 1);
+  if(tl_name) {
+    if(!(td->types = str2tl(env, tl_name, pos)) || !type_decl_resolve(env, td)) {
+      free_type_decl(env->gwion->mp, td);
+      return NULL;
     }
-  }
-  if(td->types && !type_decl_resolve(env, td)) {
-    free_type_decl(env->gwion->mp, td);
-    return NULL;
   }
   return td;
 }
@@ -462,26 +469,36 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
   return func_def;
 }
 
+ANN static Func_Def template_fdef(const Gwi gwi) {
+  const Func_Def fdef = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp,
+      NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
+  const ID_List list = templater_def(gwi->gwion->st, gwi);
+  fdef->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
+  SET_FLAG(fdef, template);
+  return fdef;
+}
+
+ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
+  Section* section = new_section_func_def(gwi->gwion->mp, fdef);
+  const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
+  gwi_body(gwi, body);
+  return GW_OK;
+}
+
+ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
+  fdef->d.dl_func_ptr = NULL;
+  free_func_def(gwi->gwion->mp, fdef);
+  return GW_ERROR;
+}
+
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(name_valid(gwi, gwi->func.name));
-  DECL_OB(Func_Def, def, = make_dll_as_fun(gwi, &gwi->func, flag))
-  if(gwi->templater.n) {
-    def = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp, NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
-    const ID_List list = templater_def(gwi->gwion->st, gwi);
-    def->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
-    SET_FLAG(def, template);
-  }
-  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Section* section = new_section_func_def(gwi->gwion->mp, def);
-    const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
-    gwi_body(gwi, body);
-    return GW_OK;
-  }
-  if(traverse_func_def(gwi->gwion->env, def) < 0) {
-    def->d.dl_func_ptr = NULL;
-    free_func_def(gwi->gwion->mp, def);
-    return GW_ERROR;
-  }
+  DECL_OB(Func_Def, fdef, = !gwi->templater.n ?
+     make_dll_as_fun(gwi, &gwi->func, flag) : template_fdef(gwi))
+  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template))
+    return section_fdef(gwi, fdef);
+  if(traverse_func_def(gwi->gwion->env, fdef) < 0)
+    return error_fdef(gwi, fdef);
   return GW_OK;
 }
 
@@ -692,11 +709,7 @@ ANN void gwi_reserve(const Gwi gwi, const m_str str) {
 
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
   struct SpecialId_ *a = mp_calloc(gwi->gwion->mp, SpecialId);
-  a->type = spid->type;
-  a->ck = spid->ck;
-  a->exec = spid->exec;
-  a->em = spid->em;
-  a->is_const = spid->is_const;
+  memcpy(a, spid, sizeof(struct SpecialId_));
   map_set(&gwi->gwion->data->id, (vtype)insert_symbol(gwi->gwion->st, id), (vtype)a);
   gwi_reserve(gwi, id);
 }

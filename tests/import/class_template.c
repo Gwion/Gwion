@@ -34,10 +34,13 @@ GWION_IMPORT(class_template) {
   GWI_OB((t_class_template = gwi_mk_type(gwi, "ClassTemplate", SZ_INT, "Object")))
   GWI_BB(gwi_class_ini(gwi, t_class_template, class_template_ctor, NULL))
   gwi_tmpl_end(gwi);
-  GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
+    GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
     GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
     GWI_BB(gwi_item_ini(gwi, "B[]", "value"))
     GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
   GWI_BB(gwi_class_end(gwi))
+
+  GWI_BB(gwi_item_ini(gwi, "ClassTemplate<~Ptr<~int~>,int[]~>", "testObject"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   return GW_OK;
 }

@@ -416,19 +416,22 @@ static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   return at_depth(env, array->array);
 }
 
+ANN static void fill_tl_vector(const Env env, Nspc nspc, const Vector v) {
+  while(nspc->parent) {
+    const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
+    if(!t)
+      break;
+    vector_add(v, (vtype)insert_symbol(t->name));
+    nspc = nspc->parent;
+  }
+}
+
 ANN static Type_List mk_type_list(const Env env, const Type type) {
   struct Vector_ v;
   vector_init(&v);
   vector_add(&v, (vtype)insert_symbol(type->name));
-  Nspc nspc = type->e->owner;
-// TODO: simplify this
-  while(nspc && nspc != env->curr && nspc != env->global_nspc) {
-    const Type t = nspc_lookup_type0(nspc->parent, insert_symbol(nspc->name));
-    if(!t)
-      break;
-    vector_add(&v, (vtype)insert_symbol(t->name));
-    nspc = nspc->parent;
-  }
+  if(type->e->owner)
+    fill_tl_vector(env, type->e->owner, &v);
   ID_List id = NULL;
   for(m_uint i = 0 ; i < vector_size(&v); ++i)
     id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i), id, new_loc(env->gwion->mp, __LINE__));
@@ -456,7 +459,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
   }
   return match ? 1 : -1;
 }
-#include "context.h"
+
 ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
   do {

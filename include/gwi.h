@@ -1,7 +1,7 @@
 #ifndef __GWI
 #define __GWI
 typedef struct {
-  Type_Decl t;
+  Type_Decl *td;
   struct Var_Decl_List_ list;
   struct Var_Decl_ var;
   struct Exp_ exp;

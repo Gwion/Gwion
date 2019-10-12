@@ -86,7 +86,7 @@ OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
 
-ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth, const loc_t);
+ANN Type_List str2tl(const Env env, const m_str s, const loc_t);
 
 #define FREEARG(a) ANN void a(Instr instr  NUSED, void *gwion NUSED)
 typedef void (*f_freearg)(Instr, void*);
