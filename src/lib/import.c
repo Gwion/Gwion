@@ -113,7 +113,7 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
 }
 
 ANN static m_bool check_illegal(const char c, const m_uint i) {
-  return isalnum(c) || c == '_' || (i == 1 && c == '@');
+  return isalnum(c) || c == '_' || (!i && c == '@');
 }
 
 ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) {
@@ -125,7 +125,7 @@ ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) 
   for(i = 0; i < sz; ++i) {
     const char c = path[i];
     if(c != '.') {
-      if(check_illegal(c, i) < 0)
+      if(!check_illegal(c, i))
         ENV_ERR_O(pos, _("illegal character '%c' in path '%s'."), c, path)
       curr[i] = c;
     } else
@@ -436,26 +436,36 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
   return func_def;
 }
 
+ANN static Func_Def template_fdef(const Gwi gwi) {
+  const Func_Def fdef = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp,
+      NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
+  const ID_List list = templater_def(gwi->gwion->st, gwi);
+  fdef->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
+  SET_FLAG(fdef, template);
+  return fdef;
+}
+
+ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
+  Section* section = new_section_func_def(gwi->gwion->mp, fdef);
+  const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
+  gwi_body(gwi, body);
+  return GW_OK;
+}
+
+ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
+  fdef->d.dl_func_ptr = NULL;
+  free_func_def(gwi->gwion->mp, fdef);
+  return GW_ERROR;
+}
+
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(name_valid(gwi, gwi->func.name));
-  DECL_OB(Func_Def, def, = make_dll_as_fun(gwi, &gwi->func, flag))
-  if(gwi->templater.n) {
-    def = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp, NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
-    const ID_List list = templater_def(gwi->gwion->st, gwi);
-    def->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
-    SET_FLAG(def, template);
-  }
-  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Section* section = new_section_func_def(gwi->gwion->mp, def);
-    const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
-    gwi_body(gwi, body);
-    return GW_OK;
-  }
-  if(traverse_func_def(gwi->gwion->env, def) < 0) {
-    def->d.dl_func_ptr = NULL;
-    free_func_def(gwi->gwion->mp, def);
-    return GW_ERROR;
-  }
+  DECL_OB(Func_Def, fdef, = !gwi->templater.n ?
+     make_dll_as_fun(gwi, &gwi->func, flag) : template_fdef(gwi))
+  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template))
+    return section_fdef(gwi, fdef);
+  if(traverse_func_def(gwi->gwion->env, fdef) < 0)
+    return error_fdef(gwi, fdef);
   return GW_OK;
 }
 
