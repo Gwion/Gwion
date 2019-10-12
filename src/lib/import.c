@@ -23,6 +23,8 @@
 
 #define GWI_ERR_B(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return GW_ERROR; }
 #define GWI_ERR_O(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return NULL; }
+#define ENV_ERR_B(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return GW_ERROR; }
+#define ENV_ERR_O(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return NULL; }
 
 #include "parser.h"
 struct Path {
@@ -83,14 +85,6 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
   return GW_OK;
 }
 
-ANN static m_bool check_illegal(char* curr, const char c, const m_uint i) {
-  if(isalnum(c) || c == '_' || (i == 1 && c== '@'))
-    curr[i - 1] = c;
-  else
-    return GW_ERROR;
-  return GW_OK;
-}
-
 ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
   const m_uint len = strlen(a);
   m_uint lvl = 0;
@@ -118,66 +112,46 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
   return !lvl ? 1 : -1;
 }
 
-ANN static void path_valid_inner(const m_str curr) {
-  const size_t size = strlen(curr);
-  for(m_uint j = (size / 2) + 1; --j;) {
-    const char s = curr[j];
-    curr[j] = curr[size - j - 1];
-    curr[size - j - 1] = s;
-  }
+ANN static m_bool check_illegal(const char c, const m_uint i) {
+  return isalnum(c) || c == '_' || (i == 1 && c == '@');
 }
 
-ANN static m_bool path_valid(const Env env, ID_List* list, const struct Path* p) {
-  char last = '\0';
-  for(m_uint i = p->len + 1; --i;) {
-    const char c = p->path[i - 1];
-
-// TODO: NOW!!! check templating
-//if(  c == '<' && p->path[i - 2] == '~');
-//else
- if(c != '.' && check_illegal(p->curr, c, i) < 0) {
-      env_err(env, &p->loc, _("illegal character '%c' in path '%s'."), c, p->path);
-      return GW_ERROR;
-    }
-    if(c == '.' || i == 1) {
-      if((i != 1 && last != '.' && last != '\0') ||
-          (i ==  1 && c != '.')) {
-        path_valid_inner(p->curr);
-        *list = prepend_id_list(env->gwion->st->p, insert_symbol(env->gwion->st, p->curr), *list, loc_cpy(env->gwion->mp, &p->loc));
-        memset(p->curr, 0, p->len + 1);
-      } else {
-        env_err(env, &p->loc, _("path '%s' must not ini or end with '.'."), p->path);
-        return GW_ERROR;
-      }
-    }
-    last = c;
+ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) {
+  const size_t sz = strlen(path);
+  if(path[0] == '.' || path[sz] == '.')
+    ENV_ERR_O(pos, _("path '%s' must not ini or end with '.'."), path)
+  char curr[sz + 1];
+  m_uint i;
+  for(i = 0; i < sz; ++i) {
+    const char c = path[i];
+    if(c != '.') {
+      if(check_illegal(c, i) < 0)
+        ENV_ERR_O(pos, _("illegal character '%c' in path '%s'."), c, path)
+      curr[i] = c;
+    } else
+      break;
   }
-  return GW_OK;
+  curr[i] = '\0';
+  const ID_List list = new_id_list(env->gwion->mp,
+      insert_symbol(env->gwion->st, curr), loc_cpy(env->gwion->mp, pos));
+  if(i < sz)
+    list->next = path_valid(env, path + 1 + i, pos);
+  return list;
 }
 
 ANN ID_List str2list(const Env env, const m_str path,
       m_uint* array_depth, const loc_t pos) {
-  const m_uint len = strlen(path);
-  ID_List list = NULL;
-  m_uint depth = 0;
-  char curr[len + 1];
-  struct Path p = { path, curr, len, { pos->first_line, pos->first_column, pos->last_line, pos->last_column } };
-  memset(curr, 0, len + 1);
-
-  while(p.len > 2 && path[p.len - 1] == ']' && path[p.len - 2] == '[') {
+  const m_uint sz = strlen(path);
+  m_uint len = sz, depth = 0;
+  while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
     depth++;
-    p.len -= 2;
+    len -= 2;
   }
   *array_depth = depth;
-  if(path_valid(env, &list, &p) < 0) {
-    if(list)
-      free_id_list(env->gwion->mp, list);
-    return NULL;
-  }
-  CHECK_OO(list)
-  strncpy(curr, path, p.len);
-  list->xid = insert_symbol(env->gwion->st, curr);
-  return list;
+  char curr[sz + 1];
+  strncpy(curr, path, len);
+  curr[len] = '\0';
+  return path_valid(env, curr, pos);
 }
 
 ANN static m_bool mk_gack(MemPool p, const Type type, const f_gack d) {
