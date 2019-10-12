@@ -837,8 +837,7 @@ ANN static Type_List tmpl_tl(const Env env, const m_str name, const loc_t pos) {
   char c[strlen(name)];
   strcpy(c, start + 2);
   c[strlen(start) - strlen(end) - 4] = '\0';
-  m_uint depth;
-  return str2tl(env, c, &depth, pos);
+  return str2tl(env, c, pos);
 }
 
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {

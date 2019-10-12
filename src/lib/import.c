@@ -271,17 +271,17 @@ ANN m_int gwi_class_end(const Gwi gwi) {
 }
 
 ANN static void dl_var_new_exp_array(MemPool p, DL_Var* v) {
-  v->t.array = new_array_sub(p, NULL);
-  v->t.array->depth = v->array_depth;
+  v->td->array = new_array_sub(p, NULL);
+  v->td->array->depth = v->array_depth;
   v->var.array = new_array_sub(p, NULL);
   v->var.array->depth = v->array_depth;
 }
 
 ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
   v->list.self = &v->var;
-  v->t.flag = flag;
+  v->td->flag = flag;
   v->exp.exp_type = ae_exp_decl;
-  v->exp.d.exp_decl.td   = &v->t;
+  v->exp.d.exp_decl.td   = v->td;
   v->exp.d.exp_decl.list = &v->list;
   if(v->array_depth)
     dl_var_new_exp_array(p, v);
@@ -289,16 +289,17 @@ ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
 
 ANN static void dl_var_release(MemPool p, const DL_Var* v) {
   if(v->array_depth) {
-    free_array_sub(p, v->t.array);
+    free_array_sub(p, v->td->array);
     free_array_sub(p, v->var.array);
   }
-  free_id_list(p, v->t.xid);
+  free_type_decl(p, v->td);
 }
 
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
-  if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
+//  if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
+  if(!(v->td = str2decl(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
     GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->class_def->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
@@ -321,7 +322,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   dl_var_set(gwi->gwion->mp, v, flag | ae_flag_builtin);
   v->var.addr = (void*)addr;
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->t.xid);
+    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->td->xid);
     type_decl->flag = flag;
     const Var_Decl var_decl = new_var_decl(gwi->gwion->mp, v->var.xid, v->var.array, loc_cpy(gwi->gwion->mp, gwi->loc));
     const Var_Decl_List var_decl_list = new_var_decl_list(gwi->gwion->mp, var_decl, NULL);
@@ -330,7 +331,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
     const Stmt_List list = new_stmt_list(gwi->gwion->mp, stmt, NULL);
     Section* section = new_section_stmt_list(gwi->gwion->mp, list);
     const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
-    type_decl->array = v->t.array;
+    type_decl->array = v->td->array;
     gwi_body(gwi, body);
     return GW_OK;
   }
@@ -355,10 +356,51 @@ static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,
   return array_sub;
 }
 
-ANN Type_List str2tl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
-  DECL_OO(Type_Decl*, td, = str2decl(env, s, depth, pos))
-  td->array = make_dll_arg_list_array(env->gwion->mp, NULL, depth, 0);
+ANN Type_List _str2tl(const Env env, const m_str s, const loc_t pos) {
+  m_uint depth;
+  DECL_OO(Type_Decl*, td, = str2decl(env, s, &depth, pos))
+  if(depth)
+    td->array = make_dll_arg_list_array(env->gwion->mp, NULL, &depth, 0);
   return new_type_list(env->gwion->mp, td, NULL);
+}
+
+ANN Type_List tlnext(const Env env, const m_str s, size_t split, const loc_t pos) {
+  char curr[split+1];
+  strncpy(curr, s, split);
+  curr[split] = '\0';
+  const Type_List tl = _str2tl(env, curr, pos);
+  tl->next = str2tl(env, s + split + 1, pos);
+  return tl;
+}
+
+struct GetTl {
+  const m_str str;
+  m_uint i;
+  m_uint lvl;
+  const size_t sz;
+};
+
+#define tl_xxx(name, tgt, op)                             \
+ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
+  if(!(i + 1 < gtl->sz && gtl->str[i] == tgt))            \
+    return GW_ERROR;                                      \
+  op gtl->lvl;                                            \
+  return GW_OK;                                           \
+}
+tl_xxx(open,  '~', ++)
+tl_xxx(close, '>', --)
+
+ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
+  struct GetTl gtl = { .str=s, .sz = strlen(s) };
+  for(m_uint i = 0; i < gtl.sz; ++i) {
+    if(s[i] == '<')
+      CHECK_BO(tl_open(&gtl, i))
+    else if(s[i] == '~')
+      CHECK_BO(tl_close(&gtl, i))
+    else if(s[i] == ',' && !gtl.lvl)
+       return tlnext(env, s, i, pos);
+  }
+  return _str2tl(env, s, pos);
 }
 
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
@@ -368,11 +410,11 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
   Type_List tmp = NULL;
   while((type_name = get_type_name(env, s, i++))) {
-    m_uint d = 0;
     if(!tmp)
-      td->types = tmp = str2tl(env, type_name, &d, pos);
+      td->types = tmp = str2tl(env, type_name, pos);
     else {
-      tmp->next = str2tl(env, type_name, &d, pos);
+//exit(3); // here here the last thing to catch
+      tmp->next = str2tl(env, type_name, pos);
       tmp = tmp->next;
     }
   }
