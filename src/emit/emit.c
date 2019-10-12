@@ -887,6 +887,26 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   return ret > 0 ? push_func_code(emit, f) : GW_ERROR;
 }
 
+ANN static void tmpl_prelude(const Emitter emit, const Func f) {
+  struct dottmpl_ *dt = (struct dottmpl_*)mp_calloc(emit->gwion->mp, dottmpl);
+  size_t len = strlen(f->name);
+  size_t slen = strlen(f->value_ref->from->owner->name);
+  assert(len > slen);
+  size_t sz = len - slen;
+  char c[sz + 1];
+  memcpy(c, f->name, sz);
+  c[sz] = '\0';
+  dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
+  dt->name = s_name(insert_symbol(c));
+  dt->vt_index = f->def->base->tmpl->base;
+  dt->base = f->def;
+  dt->owner = f->value_ref->from->owner;
+  dt->owner_class = f->value_ref->from->owner_class;
+  const Instr gtmpl = emit_add_instr(emit, GTmpl);
+  gtmpl->m_val = (m_uint)dt;
+  gtmpl->m_val2 = strlen(c);
+}
+
 ANN static Instr get_prelude(const Emitter emit, const Func f) {
   Instr instr;
   const Type t = actual_type(emit->gwion, f->value_ref->type);
@@ -894,25 +914,8 @@ ANN static Instr get_prelude(const Emitter emit, const Func f) {
     instr = emit_add_instr(emit, !GET_FLAG(f, builtin) ? FuncUsr : SetCode);
   else {
     emit_except(emit, t);
-    if(f->def->base->tmpl) { // TODO: put in func
-      struct dottmpl_ *dt = (struct dottmpl_*)mp_calloc(emit->gwion->mp, dottmpl);
-      size_t len = strlen(f->name);
-      size_t slen = strlen(f->value_ref->from->owner->name);
-      assert(len > slen);
-      size_t sz = len - slen;
-      char c[sz + 1];
-      memcpy(c, f->name, sz);
-      c[sz] = '\0';
-      dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
-      dt->name = s_name(insert_symbol(c));
-      dt->vt_index = f->def->base->tmpl->base;
-      dt->base = f->def;
-      dt->owner = f->value_ref->from->owner;
-      dt->owner_class = f->value_ref->from->owner_class;
-      const Instr gtmpl = emit_add_instr(emit, GTmpl);
-      gtmpl->m_val = (m_uint)dt;
-      gtmpl->m_val2 = strlen(c);
-    }
+    if(f->def->base->tmpl)
+      tmpl_prelude(emit, f);
     instr = emit_add_instr(emit, FuncPtr);
   }
   instr->m_val2 = 1;
