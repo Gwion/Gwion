@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #0
+# [test] #53
 
 set -m
 : "${GWOPT:=}"
