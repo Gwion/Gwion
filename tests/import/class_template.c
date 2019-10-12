@@ -40,6 +40,7 @@ GWION_IMPORT(class_template) {
     GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_item_ini(gwi, "ClassTemplate<~int,int~>", "testObject"))
+  GWI_BB(gwi_item_ini(gwi, "ClassTemplate<~Ptr<~int~>,int~>", "testObject"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   return GW_OK;
 }

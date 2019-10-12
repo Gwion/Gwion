@@ -131,11 +131,11 @@ ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) 
     } else
       break;
   }
-  curr[i] = '\0';
+  curr[i++] = '\0';
   const ID_List list = new_id_list(env->gwion->mp,
       insert_symbol(env->gwion->st, curr), loc_cpy(env->gwion->mp, pos));
   if(i < sz)
-    list->next = path_valid(env, path + 1 + i, pos);
+    list->next = path_valid(env, path + i, pos);
   return list;
 }
 
@@ -298,9 +298,8 @@ ANN static void dl_var_release(MemPool p, const DL_Var* v) {
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DL_Var* v = &gwi->var;
   memset(v, 0, sizeof(DL_Var));
-//  if(!(v->t.xid = str2list(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
   if(!(v->td = str2decl(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
-    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->class_def->name, name)
+    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
     v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
@@ -382,7 +381,7 @@ struct GetTl {
 
 #define tl_xxx(name, tgt, op)                             \
 ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
-  if(!(i + 1 < gtl->sz && gtl->str[i] == tgt))            \
+  if(!(i < gtl->sz && gtl->str[i] == tgt))                \
     return GW_ERROR;                                      \
   op gtl->lvl;                                            \
   return GW_OK;                                           \
@@ -393,34 +392,26 @@ tl_xxx(close, '>', --)
 ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
   struct GetTl gtl = { .str=s, .sz = strlen(s) };
   for(m_uint i = 0; i < gtl.sz; ++i) {
-    if(s[i] == '<')
-      CHECK_BO(tl_open(&gtl, i))
-    else if(s[i] == '~')
-      CHECK_BO(tl_close(&gtl, i))
-    else if(s[i] == ',' && !gtl.lvl)
-       return tlnext(env, s, i, pos);
+    if(s[i] == '<' && !gtl.lvl)
+      CHECK_BO(tl_open(&gtl, ++i))
+    if(s[i] == '~' && !gtl.lvl)
+      CHECK_BO(tl_close(&gtl, ++i))
+    if(s[i] == ',' && !gtl.lvl)
+      return tlnext(env, s, i, pos);
   }
   return _str2tl(env, s, pos);
 }
 
 ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
-  m_uint i = 0;
-  DECL_OO(m_str, type_name, = get_type_name(env, s, i++))
+  DECL_OO(const m_str, type_name, = get_type_name(env, s, 0))
   DECL_OO(ID_List, id, = str2list(env, type_name, depth, pos))
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
-  Type_List tmp = NULL;
-  while((type_name = get_type_name(env, s, i++))) {
-    if(!tmp)
-      td->types = tmp = str2tl(env, type_name, pos);
-    else {
-//exit(3); // here here the last thing to catch
-      tmp->next = str2tl(env, type_name, pos);
-      tmp = tmp->next;
+  const m_str tl_name = get_type_name(env, s, 1);
+  if(tl_name) {
+    if(!(td->types = str2tl(env, type_name, pos)) || !type_decl_resolve(env, td)) {
+      free_type_decl(env->gwion->mp, td);
+      return NULL;
     }
-  }
-  if(td->types && !type_decl_resolve(env, td)) {
-    free_type_decl(env->gwion->mp, td);
-    return NULL;
   }
   return td;
 }
