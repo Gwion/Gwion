@@ -302,31 +302,31 @@ static MFUN(ugen_get_last) {
 struct ugen_importer {
   const VM* vm;
   const f_tick tick;
-  UGen ugen;
   const m_str name;
   const uint nchan;
 };
 
-ANN static m_int add_ugen(const Gwi gwi, struct ugen_importer* imp) {
-  CHECK_BB(gwi_item_ini(gwi, "UGen", imp->name))
+ANN static UGen add_ugen(const Gwi gwi, struct ugen_importer* imp) {
   VM* vm = gwi_vm(gwi);
   const M_Object o = new_M_UGen(gwi->gwion);
-  const UGen u = imp->ugen = UGEN(o);
+  const UGen u = UGEN(o);
   ugen_ini(vm->gwion, u, imp->nchan, imp->nchan);
   ugen_gen(vm->gwion, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
-  return gwi_item_end(gwi, ae_flag_const, o);
+  gwi_item_ini(gwi, "UGen", imp->name);
+  gwi_item_end(gwi, ae_flag_const, o);
+  return u;
 }
 
 static GWION_IMPORT(global_ugens) {
   const VM* vm = gwi_vm(gwi);
-  struct ugen_importer hole = { vm, compute_mono, NULL, "blackhole", 1 };
-  add_ugen(gwi, &hole);
-  struct ugen_importer dac = { vm, dac_tick, NULL, "dac", vm->bbq->si->out };
-  add_ugen(gwi, &dac);
-  struct ugen_importer adc = { vm, adc_tick, NULL, "adc", vm->bbq->si->in };
-  add_ugen(gwi, &adc);
-  ugen_connect(dac.ugen, hole.ugen);
+  struct ugen_importer imp_hole = { vm, compute_mono, "blackhole", 1 };
+  const UGen hole = add_ugen(gwi, &imp_hole);
+  struct ugen_importer imp_dac = { vm, dac_tick, "dac", vm->bbq->si->out };
+  const UGen dac = add_ugen(gwi, &imp_dac);
+  struct ugen_importer imp_adc = { vm, adc_tick, "adc", vm->bbq->si->in };
+  (void)add_ugen(gwi, &imp_adc);
+  ugen_connect(dac, hole);
   SET_FLAG(gwi->gwion->type[et_ugen], abstract);
   return GW_OK;
 }
