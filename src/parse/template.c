@@ -212,7 +212,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* td) {
        return scan_class(env, t, td);
      else
        return scan_tuple(env, td);
-   } else if(td->types) { // TODO: clean me
+   } else if(td->types) {
      if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl)
        return scan_func(env, t, td);
      ERR_O(td->xid->pos,
