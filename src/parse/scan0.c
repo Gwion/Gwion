@@ -124,15 +124,12 @@ static OP_CHECK(opck_cast_similar) {
 }
 
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
-  struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=lhs, .rhs=rhs, .ck=opck_implicit_similar };
-  add_op(env->gwion, &opi);
-  opi.op=insert_symbol("$");
-  opi.ck = opck_cast_similar;
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .ck=opck_cast_similar };
   add_op(env->gwion, &opi);
   opi.lhs=rhs;
   opi.rhs=lhs;
   add_op(env->gwion, &opi);
-  opi.ck = opck_usr_implicit;
+  opi.ck = opck_implicit_similar;
   opi.op=insert_symbol("@implicit");
   add_op(env->gwion, &opi);
 }
