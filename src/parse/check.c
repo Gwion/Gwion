@@ -963,7 +963,8 @@ ANN static inline Type check_exp(const Env env, const Exp exp) {
     if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
         !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);
-  } while((prev = curr) && (curr = next));
+    prev = curr;
+  } while((curr = next));
   return exp->type;
 }
 
