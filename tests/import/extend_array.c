@@ -21,7 +21,7 @@ GWION_IMPORT(extend_array_test) {
   Type_Decl* td = new_type_decl(gwi->gwion->st->p, new_id_list(gwi->gwion->st->p, insert_symbol(gwi->gwion->st, "float"), GWI_LOC));
   Exp e = new_exp_prim_int(gwi->gwion->st->p, 1, GWI_LOC);
   Array_Sub array = new_array_sub(gwi->gwion->st->p, e);
-  add_type_decl_array(td, array);
+  td->array = array;
   GWI_BB(gwi_class_ext(gwi, td))
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;

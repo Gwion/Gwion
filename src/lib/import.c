@@ -450,10 +450,10 @@ ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
   DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth, gwi->loc))
   Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path);
   if(array_depth) {
-    Array_Sub array_sub = new_array_sub(env->gwion->mp, NULL);
+    Array_Sub array = new_array_sub(env->gwion->mp, NULL);
     for(m_uint i = 1; i < array_depth; i++)
-      array_sub = prepend_array_sub(array_sub, NULL);
-    type_decl = add_type_decl_array(type_decl, array_sub);
+      array = prepend_array_sub(array, NULL);
+    type_decl->array = array;
   }
   return type_decl;
 }
