@@ -607,7 +607,7 @@ ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
   Array_Sub array = NULL;
-  CHECK_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
+  DECL_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
   if(array_depth) {
     array = new_array_sub(env->gwion->mp, NULL);
     array->depth = array_depth;
