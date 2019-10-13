@@ -10,6 +10,8 @@ include config.mk
 GWION_PACKAGE=gwion
 CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
+GIT_BRANCH=$(shell git branch | grep "*" | cut -d" " -f2)
+
 # initialize source lists
 src_src := $(wildcard src/*.c)
 lib_src := $(wildcard src/lib/*.c)
@@ -119,13 +121,11 @@ test:
 	@bash scripts/test.sh ${test_dir}
 
 coverity:
-	$(shell git branch | grep "*" | cut -d" " -f2 > .branch)
 	[ -z "$(git ls-remote --heads $(git remote get-url origin) coverity_scan)" ] || git push origin :coverity_scan
 	git show-ref --verify --quiet refs/heads/master && git branch -D coverity_scan || echo ""
 	git checkout -b coverity_scan
 	git push --set-upstream origin coverity_scan
-	git checkout $(cat .branch)
-	rm .branch
+	git checkout ${GIT_BRANCH}
 
 include $(wildcard .d/*.d)
 include util/intl.mk
