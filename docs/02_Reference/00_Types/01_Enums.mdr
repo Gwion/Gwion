@@ -1,0 +1,21 @@
+# Enums
+
+For those who don't know about enumerated types,
+you can read about those
+[here](https://www.geeksforgeeks.org/enumeration-enum-c) and
+[here](https://en.wikipedia.org/wiki/Enumerated_type)
+
+## Enums in gwion
+You simply use an enum like this
+``` enum0.gw
+enum Optionnal_name {
+  zero, one, two
+};
+<<< zero, one, two >>>;
+```
+
+When inside a class,
+Enums are automatically declared **static**,
+but they accept **private** or **protect** specifiers.
+
+When not in a class, they can be made `global`

@@ -5,6 +5,7 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coveralls branch](https://img.shields.io/coveralls/fennecdjay/Gwion/master.svg)](https://coveralls.io/github/fennecdjay/Gwion?branch=master)
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg)](#contributors)
+[![BCH compliance](https://bettercodehub.com/edge/badge/fennecdjay/Gwion?branch=master)](https://bettercodehub.com/)
 
 Gwion is a programming language, aimed at making music
 
