@@ -607,7 +607,7 @@ ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
   Array_Sub array = NULL;
-  DECL_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
+  CHECK_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
   if(array_depth) {
     array = new_array_sub(env->gwion->mp, NULL);
     array->depth = array_depth;
@@ -627,11 +627,25 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
-  DECL_OB(const Type, t, = known_type(gwi->gwion->env, exp->d.exp_decl.td))
+  const Type t = known_type(gwi->gwion->env, exp->d.exp_decl.td);
+  if(!t) {
+    free_exp(gwi->gwion->mp, exp);
+    return GW_ERROR;
+  }
   if(isa(t, gwi->gwion->type[et_object]) > 0)
     SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
   return GW_OK;
+}
+
+ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
+  CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
+  emit_union_offset(udef->l, udef->o);
+  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
+      gwi->gwion->env->class_def->nspc->info->offset =
+      udef->o + udef->s;
+  return udef->xid ? udef->value->type :
+    udef->type_xid ? udef->type : gwi->gwion->type[et_int];
 }
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
@@ -639,13 +653,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
     GWI_ERR_O(_("union is empty"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
   udef->flag = flag;
-  CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
-  emit_union_offset(udef->l, udef->o);
-  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
-    gwi->gwion->env->class_def->nspc->info->offset =
-      udef->o + udef->s;
-  const Type t = udef->xid ? udef->value->type :
-    udef->type_xid ? udef->type : gwi->gwion->type[et_int];
+  const Type t = union_type(gwi, udef);
   free_union_def(gwi->gwion->mp, udef);
   gwi->union_data.list = NULL;
   gwi->union_data.xid  = NULL;
