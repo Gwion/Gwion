@@ -290,7 +290,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);
     const Symbol tsym = insert_symbol(t != (Type)1 ? t->name : "@Undefined");
-    Exp decl = decl_from_id(env->gwion->mp, tsym, sym, loc_cpy(env->gwion->mp, pos));
+    Exp decl = decl_from_id(env->gwion->mp, tsym, sym, pos);
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, decl);
     const Stmt_List slist = new_stmt_list(env->gwion->mp, stmt, NULL);
     if(curr)
