@@ -144,71 +144,78 @@ ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
   return tmpl;
 }
 
-ANN Type scan_type(const Env env, const Type t, const Type_Decl* type) {
+ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
+  if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
+   ERR_O(td->xid->pos, _("invalid template types number"))
+  DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
+  SET_FLAG(a, ref);
+  if(a->base.type)
+    return a->base.type;
+  a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
+  if(t->e->parent !=  env->gwion->type[et_union])
+    CHECK_BO(scan0_class_def(env, a))
+  else {
+    a->union_def = new_union_def(env->gwion->mp, a->list,
+      loc_cpy(env->gwion->mp, t->e->def->pos));
+    a->union_def->type_xid = a->base.xid;
+    CHECK_BO(scan0_union_def(env, a->union_def))
+    a->base.type = a->union_def->type;
+    a->base.type->e->def = a;
+    assert(GET_FLAG(a, union));
+  }
+  SET_FLAG(a->base.type, template | ae_flag_ref);
+  a->base.type->e->owner = t->e->owner;
+  if(GET_FLAG(t, builtin))
+    SET_FLAG(a->base.type, builtin);
+  CHECK_BO(scan1_cdef(env, a))
+  return a->base.type;
+}
+
+ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
+  DECL_OO(const m_str, tl_name, = tl2str(env, td->types))
+  const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
+  free_mstr(env->gwion->mp, tl_name);
+  const Type base_type = nspc_lookup_type1(t->e->owner, sym);
+  if(base_type)
+    return base_type;
+  const Type ret = type_copy(env->gwion->mp, t);
+  ADD_REF(ret->nspc)
+  ret->e->parent = t;
+  ret->name = s_name(sym);
+  SET_FLAG(ret, func);
+  nspc_add_type_front(t->e->owner, sym, ret);
+  const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
+  const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
+  const Value value = new_value(env->gwion->mp, ret, s_name(sym));
+  func->flag = def->flag;
+  value->d.func_ref = func;
+  value->from->owner = t->e->owner;
+  value->from->owner_class = t->e->d.func->value_ref->from->owner_class;
+  func->value_ref = value;
+  func->def->base->tmpl = mk_tmpl(env, t->e->d.func->def->base->tmpl, td->types);
+  def->base->func = func;
+  nspc_add_value_front(t->e->owner, sym, value);
+  return ret;
+}
+
+ANN Type scan_type(const Env env, const Type t, const Type_Decl* td) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref))
       return t;
-    if(!type->types) {
+    if(!td->types) {
       if(t != env->gwion->type[et_tuple])
         ERR_O(t->e->def->pos,
           _("you must provide template types for type '%s'"), t->name)
       return t;
-   }
-   if(t->e->def) {// not tuple
-     if(template_match(t->e->def->base.tmpl->list, type->types) < 0)
-       ERR_O(type->xid->pos, _("invalid template types number"))
-      DECL_OO(const Class_Def, a, = template_class(env, t->e->def, type->types))
-      SET_FLAG(a, ref);
-      if(a->base.type)
-        return a->base.type;
-      a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, type->types);
-      if(t->e->parent !=  env->gwion->type[et_union])
-        CHECK_BO(scan0_class_def(env, a))
-      else {
-        a->union_def = new_union_def(env->gwion->mp, a->list,
-          loc_cpy(env->gwion->mp, t->e->def->pos));
-        a->union_def->type_xid = a->base.xid;
-        CHECK_BO(scan0_union_def(env, a->union_def))
-        a->base.type = a->union_def->type;
-        a->base.type->e->def = a;
-        assert(GET_FLAG(a, union));
-      }
-      SET_FLAG(a->base.type, template | ae_flag_ref);
-      a->base.type->e->owner = t->e->owner;
-      if(GET_FLAG(t, builtin))
-        SET_FLAG(a->base.type, builtin);
-      CHECK_BO(scan1_cdef(env, a))
-      return a->base.type;
-    } else
-      return scan_tuple(env, type);
-   } else if(type->types) { // TODO: clean me
-    if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl) {
-      DECL_OO(const m_str, tl_name, = tl2str(env, type->types))
-      const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
-      free_mstr(env->gwion->mp, tl_name);
-      const Type base_type = nspc_lookup_type1(t->e->owner, sym);
-      if(base_type)
-        return base_type;
-      const Type ret = type_copy(env->gwion->mp, t);
-      ADD_REF(ret->nspc)
-      ret->e->parent = t;
-      ret->name = s_name(sym);
-      SET_FLAG(ret, func);
-      nspc_add_type_front(t->e->owner, sym, ret);
-      const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
-      const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
-      const Value value = new_value(env->gwion->mp, ret, s_name(sym));
-      func->flag = def->flag;
-      value->d.func_ref = func;
-      value->from->owner = t->e->owner;
-      value->from->owner_class = t->e->d.func->value_ref->from->owner_class;
-      func->value_ref = value;
-      func->def->base->tmpl = mk_tmpl(env, t->e->d.func->def->base->tmpl, type->types);
-      def->base->func = func;
-      nspc_add_value_front(t->e->owner, sym, value);
-      return ret;
-    }
-    ERR_O(type->xid->pos,
+     }
+     if(t->e->def)
+       return scan_class(env, t, td);
+     else
+       return scan_tuple(env, td);
+   } else if(td->types) { // TODO: clean me
+     if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl)
+       return scan_func(env, t, td);
+     ERR_O(td->xid->pos,
         _("type '%s' is not template. You should not provide template types"), t->name)
   }
   return t;
