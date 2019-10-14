@@ -149,7 +149,7 @@ ANN ID_List str2list(const Env env, const m_str path,
   }
   *array_depth = depth;
   char curr[sz + 1];
-  strncpy(curr, path, len);
+  memcpy(curr, path, len);
   curr[len] = '\0';
   return path_valid(env, curr, pos);
 }
