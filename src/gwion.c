@@ -62,7 +62,7 @@ ANN VM* gwion_cpy(const VM* src) {
 }
 
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
-  gwion->mp = mempool_ini((sizeof(VM_Shred) + SIZEOF_REG + SIZEOF_MEM) / SZ_INT);
+  gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->vm = new_vm(gwion->mp, 1);
   gwion->emit = new_emitter(gwion->mp);
@@ -95,13 +95,25 @@ ANN void gwion_run(const Gwion gwion) {
   vm->bbq->driver->run(vm, vm->bbq);
 }
 
+ANN static void fork_clean2(const Vector v) {
+  for(m_uint i = 0; i < vector_size(v); ++i) {
+    VM* vm = (VM*)vector_at(v, i);
+    const Gwion gwion = vm->gwion;
+    free_vm(vm);
+    mp_free(gwion->mp, Gwion, gwion);
+  }
+  vector_release(v);
+}
+
 ANN void gwion_end(const Gwion gwion) {
   const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
   MUTEX_LOCK(gwion->vm->shreduler->mutex);
   if(gwion->data->child.ptr)
-    fork_clean(gwion->vm, &gwion->data->child);
+    fork_clean(gwion->vm->cleaner_shred, &gwion->data->child);
+  if(gwion->data->child2.ptr)
+    fork_clean2(&gwion->data->child2);
   MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);

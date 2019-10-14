@@ -25,10 +25,6 @@ int main(int argc, char** argv) {
   arg_release(&arg);
   if(ini > 0)
     gwion_run(&gwion);
-#ifndef NDEBUG
   gwion_end(&gwion);
-#else
-  free_plug(&gwion);
-#endif
   THREAD_RETURN(EXIT_SUCCESS);
 }

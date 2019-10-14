@@ -154,12 +154,11 @@ static MFUN(shred_unlock) {
 }
 
 static DTOR(fork_dtor) {
-  if(*(m_int*)(o->data + o_fork_done))
-    vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
   THREAD_JOIN(FORK_THREAD(o));
-  VM *vm = ME(o)->info->vm;
-  free_vm(vm);
-  mp_free(shred->info->mp, Gwion, vm->gwion);
+  if(*(m_int*)(o->data + o_fork_done)) {
+    vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
+    vector_add(&FORK_ORIG(o)->gwion->data->child2, (vtype)ME(o)->info->vm);
+  } else exit(6);
 }
 
 static MFUN(fork_join) {
@@ -216,25 +215,27 @@ static ANN void* fork_run(void* data) {
   THREAD_RETURN(NULL);
 }
 
-ANN void fork_clean(const VM *vm, const Vector v) {
-  for(m_uint i = 0; i < vector_size(v); ++i) {
-    const M_Object o = (M_Object)vector_at(v, i);
-    THREAD_JOIN(FORK_THREAD(o));
-    release(o, vm->cleaner_shred);
-  }
-  vector_release(v);
-}
-
-void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
+ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
   o->ref += 1;
-  if(!vm->gwion->data->child.ptr)
+  if(!vm->gwion->data->child.ptr) {
     vector_init(&vm->gwion->data->child);
+    vector_init(&vm->gwion->data->child2);
+  }
   vector_add(&vm->gwion->data->child, (vtype)o);
   FORK_ORIG(o) = (VM*)vm;
   FORK_RETSIZE(o) = sz;
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
 }
 
+
+ANN void fork_clean(const VM_Shred shred, const Vector v) {
+  for(m_uint i = 0; i < vector_size(v); ++i) {
+    const M_Object o = (M_Object)vector_at(v, i);
+    THREAD_JOIN(FORK_THREAD(o));
+    release(o, shred);
+  }
+  vector_release(v);
+}
 #include "nspc.h"
 GWION_IMPORT(shred) {
   const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, "Object");
