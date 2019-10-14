@@ -8,7 +8,6 @@ typedef struct GwionData_ {
   struct Vector_ reserved;
   struct Map_ pass_map;
   struct Vector_ pass;
-  struct Gwion_ *base;
 } GwionData;
 
 ANN GwionData* new_gwiondata(MemPool);

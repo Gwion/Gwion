@@ -254,7 +254,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     nspc_add_value(nspc, udef->xid, udef->value);
     add_type(env, nspc, t);
     SET_FLAG(t, scan1 | ae_flag_union);
-    SET_FLAG(udef->value, checked | udef->flag);
+    SET_FLAG(udef->value, checked | udef->flag | ae_flag_pure);
     if(env->class_def && !GET_FLAG(udef, static)) {
       SET_FLAG(udef->value, member);
       SET_FLAG(udef, member);

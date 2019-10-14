@@ -82,7 +82,6 @@ ANN void vm_fork(const VM* src, const VM_Shred shred) {
   VM* vm = (shred->info->vm = gwion_cpy(src));
   shred->info->me = new_shred(shred, 0);
   shreduler_add(vm->shreduler, shred);
-  vm->gwion->data->base = src->gwion;
 }
 
 __attribute__((hot))
