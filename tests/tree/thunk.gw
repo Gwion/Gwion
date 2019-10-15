@@ -1,0 +1,5 @@
+fun int thunk() {
+  return 11;
+}
+thunk();
+thunk();
