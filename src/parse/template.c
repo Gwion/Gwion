@@ -93,6 +93,7 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
     return t->e->def;
   const Class_Def c = cpy_class_def(env->gwion->mp, def);
   c->base.xid = name;
+  SET_FLAG(c, template | ae_flag_ref);
   return c;
 
 }
@@ -105,7 +106,7 @@ ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
     if(!call)
       break;
     const Type t = known_type(env, call->td);
-    assert(t); // was if(!t)POP_RET(-1);
+    assert(t);
     nspc_add_type(env->curr, list->xid, t);
     call = call->next;
   } while((list = list->next));
@@ -144,27 +145,28 @@ ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
   return tmpl;
 }
 
+ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
+  a->union_def = new_union_def(env->gwion->mp, a->list,
+    loc_cpy(env->gwion->mp, t->e->def->pos));
+  a->union_def->type_xid = a->base.xid;
+  CHECK_BB(scan0_union_def(env, a->union_def))
+  a->base.type = a->union_def->type;
+  a->base.type->e->def = a;
+  return GW_OK;
+}
+
 ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
    ERR_O(td->xid->pos, _("invalid template types number"))
   DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
-  SET_FLAG(a, ref);
   if(a->base.type)
     return a->base.type;
   a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
   if(t->e->parent !=  env->gwion->type[et_union])
     CHECK_BO(scan0_class_def(env, a))
-  else {
-    a->union_def = new_union_def(env->gwion->mp, a->list,
-      loc_cpy(env->gwion->mp, t->e->def->pos));
-    a->union_def->type_xid = a->base.xid;
-    CHECK_BO(scan0_union_def(env, a->union_def))
-    a->base.type = a->union_def->type;
-    a->base.type->e->def = a;
-    assert(GET_FLAG(a, union));
-  }
-  SET_FLAG(a->base.type, template | ae_flag_ref);
-  a->base.type->e->owner = t->e->owner;
+  else
+    CHECK_BO(class2udef(env, a, t))
+  SET_FLAG(a->base.type, template);
   if(GET_FLAG(t, builtin))
     SET_FLAG(a->base.type, builtin);
   CHECK_BO(scan1_cdef(env, a))
@@ -198,25 +200,31 @@ ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   return ret;
 }
 
+ANN Type no_types(const Env env, const Type t) {
+  if(t != env->gwion->type[et_tuple])
+    ERR_O(t->e->def->pos,
+        _("you must provide template types for type '%s'"), t->name)
+  return t;
+}
+
+ANN Type maybe_func(const Env env, const Type t, const Type_Decl* td) {
+  if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl)
+     return scan_func(env, t, td);
+   ERR_O(td->xid->pos,
+      _("type '%s' is not template. You should not provide template types"), t->name)
+}
+
 ANN Type scan_type(const Env env, const Type t, const Type_Decl* td) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref))
       return t;
-    if(!td->types) {
-      if(t != env->gwion->type[et_tuple])
-        ERR_O(t->e->def->pos,
-          _("you must provide template types for type '%s'"), t->name)
-      return t;
-     }
+    if(!td->types)
+      return no_types(env, t);
      if(t->e->def)
        return scan_class(env, t, td);
      else
        return scan_tuple(env, td);
-   } else if(td->types) {
-     if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl)
-       return scan_func(env, t, td);
-     ERR_O(td->xid->pos,
-        _("type '%s' is not template. You should not provide template types"), t->name)
-  }
+   } else if(td->types)
+     return maybe_func(env, t, td);
   return t;
 }
