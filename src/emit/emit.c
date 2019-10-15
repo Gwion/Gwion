@@ -249,10 +249,12 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     assert(!arr || arr->depth == type->array_depth);
     const Array_Sub array = arr ?: instantiate_typedef(emit->gwion->mp, type->array_depth);
     assert(array->exp);
-    DECL_OB(ArrayInfo*, info, = emit_array_extend_inner(emit, type, array->exp))
-    info->is_ref = is_ref;
+    ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
+    if(info)
+      info->is_ref = is_ref;
     if(!arr)
       free_array_sub(emit->gwion->mp, array);
+    return info ? GW_OK : GW_ERROR;
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
     instr->m_val2 = (m_uint)type;
