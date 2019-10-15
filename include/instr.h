@@ -58,7 +58,6 @@ INSTR(PopArrayClass);
 
 INSTR(DotTmpl);
 INSTR(GTmpl);
-#define NoOp (f_instr)256
 
 struct dottmpl_ {
   size_t len;

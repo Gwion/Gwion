@@ -56,7 +56,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
     if(instr->opcode < eGack)
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
     else {
-      if(instr->execute == NoOp) {
+      if(instr->execute == NoOp) { // RegSetImm
         memset(ptr + i*BYTECODE_SZ, 0, BYTECODE_SZ);
         continue;
       }
