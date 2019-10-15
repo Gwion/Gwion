@@ -1,0 +1,3 @@
+#! [contains] a
+'a' => char c;
+<<< c >>>;

@@ -45,6 +45,10 @@ static GACK(gack_int) {
   printf("%li", *(m_uint*)VALUE);
 }
 
+static GACK(gack_char) {
+  printf("%c", *(char*)VALUE);
+}
+
 static GACK(gack_float) {
   printf("%.4f", *(m_float*)VALUE);
 }
@@ -104,6 +108,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_int, gack_int))
   GWI_BB(gwi_set_global_type(gwi, t_int, et_int))
+  const Type t_char = gwi_mk_type(gwi, "char", SZ_INT, "int");
+  GWI_BB(gwi_gack(gwi, t_char, gack_char))
+  GWI_BB(gwi_set_global_type(gwi, t_char, et_char))
   const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_float, gack_float))
   GWI_BB(gwi_set_global_type(gwi, t_float, et_float))
