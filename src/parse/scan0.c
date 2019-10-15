@@ -220,21 +220,46 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
-ANN static Type union_type(const Env env, const Nspc nspc, const Symbol s, const m_bool add) {
+ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_union]);
   t->xid = ++env->scope->type_xid;
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
-  t->nspc->parent = nspc;
+  t->e->owner = t->nspc->parent = env->curr;
   t->nspc->is_union = 1;
-  t->e->owner = nspc;
   t->e->parent = env->gwion->type[et_union];
+  add_type(env, env->curr, t);
   if(add) {
-    add_type(env, nspc, t);
     mk_class(env, t);
   }
+  SET_FLAG(t, union);
   return t;
+}
+
+ANN static void union_tmpl(const Env env, const Union_Def udef) {
+  if(tmpl_base(udef->tmpl)) {
+    assert(udef->type_xid);
+    const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
+        NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
+    udef->type->e->def = cdef;
+    cdef->base.tmpl = udef->tmpl;
+    cdef->base.type = udef->type;
+    cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
+    SET_FLAG(cdef, union);
+    SET_FLAG(udef->type, pure);
+    SET_FLAG(udef, template);
+    SET_FLAG(udef->type, template);
+  }
+  SET_FLAG(udef->type, union);
+}
+
+ANN static Value union_value(const Env env, const Type t, const Symbol sym) {
+  const Value v = new_value(env->gwion->mp, t, s_name(sym));
+  valuefrom(env, v->from);
+  nspc_add_value(env->curr, sym, v);
+  SET_FLAG(v, checked | ae_flag_pure);
+  return v;
 }
 
 ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
@@ -245,55 +270,26 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     context_global(env);
   if(udef->xid) {
     CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
-    const Nspc nspc = !GET_FLAG(udef, global) ?
-      env->curr : env->global_nspc;
-    const Type t = union_type(env, nspc, udef->type_xid ?: udef->xid,
-       !!udef->type_xid);
-    udef->value = new_value(env->gwion->mp, t, s_name(udef->xid));
-    valuefrom(env, udef->value->from);
-    nspc_add_value(nspc, udef->xid, udef->value);
-    add_type(env, nspc, t);
-    SET_FLAG(t, scan1 | ae_flag_union);
-    SET_FLAG(udef->value, checked | udef->flag | ae_flag_pure);
+    const Symbol sym = udef->type_xid ?: scan0_sym(env, "union", udef->pos);
+    const Type t = union_type(env, sym, !!udef->type_xid);
+    udef->value = union_value(env, t, udef->xid);
+    udef->value->flag |= udef->flag;
     if(env->class_def && !GET_FLAG(udef, static)) {
       SET_FLAG(udef->value, member);
       SET_FLAG(udef, member);
     }
   } else if(udef->type_xid) {
     CHECK_BB(scan0_defined(env, udef->type_xid, udef->pos))
-    const Nspc nspc = !GET_FLAG(udef, global) ?
-      env->curr : env->global_nspc;
-    udef->type = union_type(env, nspc, udef->type_xid, 1);
+    udef->type = union_type(env, udef->type_xid, 1);
     SET_FLAG(udef->type, checked);
-    SET_FLAG(udef->type, scan1 | ae_flag_union);
   } else {
-    const Nspc nspc = !GET_FLAG(udef, global) ?
-      env->curr : env->global_nspc;
     const Symbol sym = scan0_sym(env, "union", udef->pos);
-    const Type t = union_type(env, nspc, sym, 1);
-    udef->value = new_value(env->gwion->mp, t, s_name(sym));
-    valuefrom(env, udef->value->from);
-    nspc_add_value(nspc, sym, udef->value);
-    add_type(env, nspc, t);
-    SET_FLAG(udef->value, checked | ae_flag_pure | udef->flag);
-    SET_FLAG(t, scan1 | ae_flag_union);
+    const Type t = union_type(env, sym, 1);
+    udef->value = union_value(env, t, sym);
+    udef->value->flag |= udef->flag;
   }
-  if(udef->tmpl) {
-    if(tmpl_base(udef->tmpl)) {
-      assert(udef->type_xid);
-      const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
-          NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
-      udef->type->e->def = cdef;
-      cdef->base.tmpl = udef->tmpl;
-      cdef->base.type = udef->type;
-      cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
-      SET_FLAG(cdef, union);
-      SET_FLAG(udef->type, pure);
-      SET_FLAG(udef, template);
-      SET_FLAG(udef->type, template);
-    }
-    SET_FLAG(udef->type, union);
-  }
+  if(udef->tmpl)
+    union_tmpl(env, udef);
   if(GET_FLAG(udef, global))
     env_pop(env, scope);
   return GW_OK;
