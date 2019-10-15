@@ -52,7 +52,6 @@ ANN void arg_release(Arg* arg) {
 static const char usage[] =
 "usage: Gwion <options>\n"
 "  -h              : this help\n"
-"  -k              : show compilation flags\n"
 "  -c     <file>   : load config\n"
 "  -p     <path>   : add a plugin directory\n"
 "  -s    <number>  : set samplerate\n"
@@ -90,9 +89,6 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
       switch(arg->argv[i][1]) {
         case 'h':
           gw_err(usage);
-          break;
-        case 'k':
-          gw_err("CFLAGS: %s\nLDFLAGS: %s\n", CFLAGS, LDFLAGS);
           break;
         case 'c':
           CHECK_OB((tmp = _get_arg(arg, &i)))

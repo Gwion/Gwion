@@ -12,14 +12,8 @@ CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
 GIT_BRANCH=$(shell git branch | grep "*" | cut -d" " -f2)
 
-# initialize source lists
-src_src := $(wildcard src/*.c)
-lib_src := $(wildcard src/lib/*.c)
-oo_src := $(wildcard src/oo/*.c)
-vm_src := $(wildcard src/vm/*.c)
-parse_src := $(wildcard src/parse/*.c)
-util_src := $(wildcard src/util/*.c)
-emit_src := $(wildcard src/emit/*.c)
+src := $(wildcard src/*.c)
+src += $(wildcard src/*/*.c)
 
 test_dir_all := $(wildcard tests/*)
 test_ignore = tests/benchmark tests/import
@@ -36,21 +30,8 @@ else
 LDFLAGS += -ldl -lpthread
 endif
 
-# add directories
-CFLAGS+=-DGWPLUG_DIR=\"${GWPLUG_DIR}\"
-
-# initialize object lists
-src_obj := $(src_src:.c=.o)
-lib_obj := $(lib_src:.c=.o)
-ast_obj := $(ast_src:.c=.o)
-parse_obj := $(parse_src:.c=.o)
-emit_obj := $(emit_src:.c=.o)
-oo_obj := $(oo_src:.c=.o)
-vm_obj := $(vm_src:.c=.o)
-util_obj := $(util_src:.c=.o)
-GW_OBJ=${src_obj} ${ast_obj} ${parse_obj} ${emit_obj} ${oo_obj} ${vm_obj} ${util_obj} ${lib_obj}
-src=${src_src} ${ast_src} ${parse_src} ${emit_src} ${oo_src} ${vm_src} ${util_src} ${lib_src}
-gwlib_obj := $(filter-out src/main.o, ${GW_OBJ})
+src_obj := $(src:.c=.o)
+lib_obj := $(filter-out src/main.o, ${src_obj})
 
 CFLAGS  += -Iinclude
 
@@ -66,11 +47,6 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt -rdynamic
 endif
 
-INSTALLED_INCLUDE = -I${PREFIX}/include/gwion -I${PREFIX}/include/gwion/util -I${PREFIX}/include/gwion/ast
-CCFG="${INSTALLED_INCLUDE} ${CFLAGS}"
-LDCFG="${LDFLAGS}"
-
-# hide this from gwion -v
 CFLAGS += -DGWION_BUILTIN
 
 GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
@@ -83,29 +59,29 @@ all: options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
 options-show:
 	@$(call _options)
 
-libgwion.a: ${gwlib_obj}
+libgwion.a: ${lib_obj}
 	${AR} ${AR_OPT}
 
 util/libgwion_util.a:
 	@make -C util
 
+util: util/libgwion_util.a
+	@(info build util)
+
 ast/libgwion_ast.a:
 	@make -C ast
+
+ast: ast/libgwion_ast.a
+	@(info build ast)
 
 clean:
 	$(info cleaning ...)
 	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion libgwion.a src/*.gcno src/*.gcda
 
-src/arg.o:
-	$(info compile $(<:.c=) (with arguments defines))
-	@${CC} $(DEPFLAGS) ${CFLAGS} ${CICFLAGS} -c src/arg.c -o src/arg.o -DLDFLAGS='${LDCFG}' -DCFLAGS='${CCFG}'
-	@mv -f $(DEPDIR)/$(@F:.o=.Td) $(DEPDIR)/$(@F:.o=.d) && touch $@
-	@echo $@: config.mk >> $(DEPDIR)/$(@F:.o=.d)
-
 install: ${PRG}
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
-	@sed "s#PREFIX#${PREFIX}#g" scripts/gwion-config > gwion-config
+	@sed "s/PREFIX/${PREFIX}/g" scripts/gwion-config > gwion-config
 	@install gwion-config ${DESTDIR}/${PREFIX}/bin/gwion-config
 	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm gwion-config

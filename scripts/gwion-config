@@ -22,9 +22,8 @@ compile() {
 
 if [ $# = 0 ]
 then usage
-elif [ "$1" = "--version" ]
-then version
-elif [ "$1" = "--help" ]
+elif [ "$1" = "--version" ] ||
+     [ "$1" = "--help" ]
 then version
 elif [ "$1" = "link" ]
 then link

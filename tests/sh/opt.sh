@@ -65,10 +65,6 @@ run "$n" "memoize" "-z2 tests/new/pure*.gw" "file"
 n=$((n+1))
 run "$n" "module argument" "-mfake:test" "file"
 
-# get Kompile time Konfig
-n=$((n+1))
-run "$n" "Kompile time Konfig" "-k" "file"
-
 # set compilation passes
 n=$((n+1))
 run "$n" "just check" "-g check" "file"
