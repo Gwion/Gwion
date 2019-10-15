@@ -245,6 +245,7 @@ ANN static Array_Sub instantiate_typedef(MemPool p, const m_uint depth) {
 
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
       const Array_Sub arr, const m_bool is_ref) {
+  emit_notpure(emit);
   if(type->array_depth) {
     assert(!arr || arr->depth == type->array_depth);
     const Array_Sub array = arr ?: instantiate_typedef(emit->gwion->mp, type->array_depth);
@@ -260,7 +261,6 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     instr->m_val2 = (m_uint)type;
     emit_pre_ctor(emit, type);
   }
-  emit_notpure(emit);
   return GW_OK;
 }
 
