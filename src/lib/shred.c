@@ -158,7 +158,7 @@ static DTOR(fork_dtor) {
   if(*(m_int*)(o->data + o_fork_done)) {
     vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
     vector_add(&FORK_ORIG(o)->gwion->data->child2, (vtype)ME(o)->info->vm);
-  } else exit(6);
+  }
 }
 
 static MFUN(fork_join) {
