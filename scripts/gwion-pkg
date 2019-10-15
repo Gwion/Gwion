@@ -43,7 +43,9 @@ install_plug() {
   echo "installing $2 $3"
   index=$(printf "%04i" $3)
   [ -f .gwion-pkg/${index}_$(basename $1 .manifest).so ] && rm .gwion-pkg/${index}_$(basename $1 .manifest).so
-  ln $PLUG .gwion-pkg/${index}_$(basename $1 .manifest).so
+  [ -f $PLUG ] || return 1
+  ln -s $PLUG .gwion-pkg/${index}_$(basename $1 .manifest).so
+  return 0
 }
 
 install_manifest() {
@@ -51,8 +53,16 @@ install_manifest() {
   do
     [ -d $DIR ] || continue
     PLUG=$DIR/$(basename $1 .manifest).so
-    [ -f $PLUG ] || make
-    install_plug "$1" "$PLUG" $2
+    [ -f $PLUG ] || {
+      [ -f $DIR/Makefile ] || continue;
+      NAME=$(grep "NAME=" $DIR/Makefile | cut -d= -f2)
+      BASENAME=$(basename $1 .manifest)
+      [ $NAME != $BASENAME ] && continue
+      pushd $DIR
+      make
+      popd
+    }
+    install_plug "$1" "$PLUG" $2 && break
   done
 }
 
