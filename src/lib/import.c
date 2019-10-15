@@ -96,7 +96,7 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
     if(c == '<') {
       if(a[++i] != '~')
         GWI_ERR_B(_("illegal templating in name '%s'."), a)
-      lvl++;
+      ++lvl;
       ++i;
       continue;
     } else if(c == ',') {
@@ -105,7 +105,7 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
     } else if(c == '~') {
       if(!lvl || a[++i] != '>')
         GWI_ERR_B(_("illegal templating in name '%s'."), a)
-      lvl--;
+      --lvl;
     } else
       GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
   }
