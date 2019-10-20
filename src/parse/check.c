@@ -1086,8 +1086,13 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   }
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
-  if(stmt->val)
-    return check_implicit(env, stmt->val, env->func->def->base->ret_type);
+  if(stmt->val) {
+    const m_bool ret = check_implicit(env, stmt->val, env->func->def->base->ret_type);
+    if(ret > 0)
+      return ret;
+    ERR_B(stmt_self(stmt)->pos, _("invalid return type: got '%s', expected '%s'"),
+        ret_type->name, env->func->def->base->ret_type->name)
+  }
   if(isa(env->func->def->base->ret_type, env->gwion->type[et_void]) > 0)
     return GW_OK;
   ERR_B(stmt_self(stmt)->pos, _("missing value for return statement"))

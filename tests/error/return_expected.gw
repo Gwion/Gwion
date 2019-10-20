@@ -1,0 +1,2 @@
+#! [contains] invalid return type
+fun int test() { return me; }
