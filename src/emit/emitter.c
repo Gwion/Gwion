@@ -45,7 +45,7 @@ ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
   if((m_uint)f < 255)
     instr->opcode = (m_uint)f;
   else {
-    instr->opcode = (m_uint)OP_MAX;
+    instr->opcode = eOP_MAX;
     instr->execute = f;
   }
   vector_add(&emit->code->instr, (vtype)instr);
