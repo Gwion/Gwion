@@ -82,8 +82,8 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
     gwion->plug = new_plug(gwion->mp, &arg->lib);
     shreduler_set_loop(gwion->vm->shreduler, arg->loop);
     if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-      gwion_compile(gwion, &arg->add);
       plug_run(gwion, &arg->mod);
+      gwion_compile(gwion, &arg->add);
       return GW_OK;
     }
   }
