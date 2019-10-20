@@ -82,8 +82,12 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
         CHECK_BB(scan1_exp(env, var->array->exp))
       }
       t = array_type(env, decl->type, var->array->depth);
-    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref))
-      ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
+    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref)) {
+      if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto"))
+        SET_FLAG(decl->td, ref);
+      else
+        ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
+    }
     if(env->class_def)
       type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
