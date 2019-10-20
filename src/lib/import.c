@@ -139,6 +139,61 @@ ANN static ID_List path_valid(const Env env, const m_str path, const loc_t pos) 
   return list;
 }
 
+struct tmpl_checker {
+  const m_str str;
+  ID_List list;
+  const loc_t pos;
+};
+
+ANN static m_bool _tmpl_valid(const Gwion gwion, struct tmpl_checker *ck) {
+  m_str s = ck->str;
+  const size_t sz = strlen(s);
+  char c[sz + 1];
+  for(m_uint i = 0; i < sz; ++i) {
+    if(isalnum(s[i]) || s[i] == '_') {
+      c[i] = s[i];
+      continue;
+    }
+    if(s[i] == '~') {
+      if(!i || s[i+1] != '>')
+        break;
+      c[i] = '\0';
+      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c), ck->pos);
+      return GW_OK;
+    }
+    if(s[i] == ',') {
+      if(!i)break;
+      c[i] = '\0';
+      struct tmpl_checker _ck = { .str=ck->str + i + 1, .pos=ck->pos };
+      CHECK_BB(_tmpl_valid(gwion, &_ck))
+      ck->list->next = _ck.list;
+      return GW_OK;
+    }
+    break;
+  }
+  return GW_ERROR;
+}
+
+ANN static m_bool tmpl_check(const m_str str) {
+  if(str[0] != '<')
+    return 0; // TODO: make it GW_PASS
+  if(str[1] != '~')
+    return GW_ERROR;
+  return GW_OK;
+}
+
+ANN static ID_List tmpl_valid(const Gwi gwi, const m_str str) {
+  const m_bool ret = tmpl_check(str);
+  if(ret == GW_ERROR)
+    return (ID_List)GW_ERROR;
+  if(!ret)
+    return NULL;
+  struct tmpl_checker ck = { .str=str+2, .pos=gwi->loc };
+  if(_tmpl_valid(gwi->gwion, &ck) == GW_ERROR)
+    return (ID_List)GW_ERROR;
+  return ck.list;
+}
+
 ANN ID_List str2list(const Env env, const m_str path,
       m_uint* array_depth, const loc_t pos) {
   const m_uint sz = strlen(path);
@@ -469,12 +524,15 @@ ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag fla
   return func_def;
 }
 
-ANN static Func_Def template_fdef(const Gwi gwi) {
+ANN2(1) static Func_Def template_fdef(const Gwi gwi, const m_str name, const ID_List list) {
+  const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
+  m_uint depth;
+  Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
   const Func_Def fdef = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp,
-      NULL, NULL, NULL), NULL, 0, loc_cpy(gwi->gwion->mp, gwi->loc));
-  const ID_List list = templater_def(gwi->gwion->st, gwi);
+      td, insert_symbol(gwi->gwion->st, name), arg_list), NULL, ae_flag_builtin, loc_cpy(gwi->gwion->mp, gwi->loc));
   fdef->base->tmpl = new_tmpl(gwi->gwion->mp, list, -1);
-  SET_FLAG(fdef, template);
+  fdef->d.dl_func_ptr = (void*)(m_uint)gwi->func.addr;
+  SET_FLAG(fdef, template | ae_flag_builtin);
   return fdef;
 }
 
@@ -492,9 +550,13 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 }
 
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_BB(name_valid(gwi, gwi->func.name));
-  DECL_OB(Func_Def, fdef, = !gwi->templater.n ?
-     make_dll_as_fun(gwi, &gwi->func, flag) : template_fdef(gwi))
+  const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
+  if(tmpl == (ID_List)GW_ERROR)
+    exit(16);
+  const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
+  CHECK_BB(name_valid(gwi, name));
+  DECL_OB(Func_Def, fdef, = !tmpl ?
+     make_dll_as_fun(gwi, &gwi->func, flag) : template_fdef(gwi, name, tmpl))
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template))
     return section_fdef(gwi, fdef);
   if(traverse_func_def(gwi->gwion->env, fdef) < 0)
@@ -572,7 +634,13 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   DECL_OO(ID_List, type_path, = str2list(env, dl_fun->type, &array_depth, gwi->loc))
   Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
   const Arg_List args = make_dll_arg_list(gwi, dl_fun);
-  Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, dl_fun->name), args);
+  const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
+  if(tmpl == (ID_List)GW_ERROR)
+    exit(16);
+  const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
+  Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, name), args);
+  if(tmpl)
+    base->tmpl = new_tmpl(gwi->gwion->mp, tmpl, -1);
   return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
 }
 

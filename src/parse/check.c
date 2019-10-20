@@ -594,6 +594,10 @@ CHECK_BO(check_call(env, exp))
         const Value value = template_get_ready(env, v, "template", i);
         if(!value)
           continue;
+        if(GET_FLAG(v, builtin)) {
+          SET_FLAG(value, builtin);
+          SET_FLAG(value->d.func_ref, builtin);
+        }
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
         SET_FLAG(fdef, template);
         fdef->base->tmpl->call = types;
