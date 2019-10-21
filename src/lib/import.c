@@ -145,7 +145,7 @@ struct tmpl_checker {
   const loc_t pos;
 };
 
-ANN static m_bool _tmpl_valid(const Gwion gwion, struct tmpl_checker *ck) {
+ANN static m_bool tmpl_list(const Gwion gwion, struct tmpl_checker *ck) {
   m_str s = ck->str;
   const size_t sz = strlen(s);
   char c[sz + 1];
@@ -166,7 +166,7 @@ ANN static m_bool _tmpl_valid(const Gwion gwion, struct tmpl_checker *ck) {
       c[i] = '\0';
       ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c), ck->pos);
       struct tmpl_checker _ck = { .str=ck->str + i + 1, .pos=ck->pos };
-      CHECK_BB(_tmpl_valid(gwion, &_ck))
+      CHECK_BB(tmpl_list(gwion, &_ck))
       ck->list->next = _ck.list;
       return GW_OK;
     }
@@ -183,16 +183,23 @@ ANN static m_bool tmpl_check(const m_str str) {
   return GW_OK;
 }
 
-ANN static ID_List tmpl_valid(const Gwi gwi, const m_str str) {
+ANN static ID_List _tmpl_valid(const Gwi gwi, const m_str str) {
   const m_bool ret = tmpl_check(str);
   if(ret == GW_ERROR)
     return (ID_List)GW_ERROR;
   if(!ret)
     return NULL;
   struct tmpl_checker ck = { .str=str+2, .pos=gwi->loc };
-  if(_tmpl_valid(gwi->gwion, &ck) == GW_ERROR)
+  if(tmpl_list(gwi->gwion, &ck) == GW_ERROR)
     return (ID_List)GW_ERROR;
   return ck.list;
+}
+
+ANN static ID_List tmpl_valid(const Gwi gwi, const m_str str) {
+  const ID_List ret = _tmpl_valid(gwi, str);
+  if(ret == (ID_List)GW_ERROR)
+    env_err(gwi->gwion->env, gwi->loc, _("invalid templating definition"));
+  return ret;
 }
 
 ANN ID_List str2list(const Env env, const m_str path,
@@ -553,7 +560,7 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
   if(tmpl == (ID_List)GW_ERROR)
-    exit(16);
+    return GW_ERROR;
   const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
   CHECK_BB(name_valid(gwi, name));
   DECL_OB(Func_Def, fdef, = !tmpl ?
@@ -637,7 +644,7 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Arg_List args = make_dll_arg_list(gwi, dl_fun);
   const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
   if(tmpl == (ID_List)GW_ERROR)
-    exit(16);
+    return NULL;
   const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
   Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, name), args);
   if(tmpl)
