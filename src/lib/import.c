@@ -545,11 +545,21 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
   return GW_ERROR;
 }
 
-struct func_checker {
+struct func_checker { // name_checker ?
   m_str name;
-  const ID_List tmpl;
+  ID_List tmpl;
   const ae_flag flag;
 };
+
+ANN static m_bool check_typename_def(const Gwi gwi, struct func_checker *ck) {
+  const m_str base = ck->name;
+  const m_str c = strchr(ck->name, '>');
+  ck->name = !c ? ck->name : c + 1;
+  CHECK_BB(name_valid(gwi, ck->name))
+  if((ck->tmpl = tmpl_valid(gwi, base)) == (ID_List)GW_ERROR)
+    return GW_ERROR;
+  return GW_OK;
+}
 
 ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *ck) {
   const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
@@ -564,8 +574,7 @@ ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *
 }
 
 ANN m_int gwi_func_valid(const Gwi gwi, const struct func_checker *ck) {
-  const m_str name = !ck->tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
-  CHECK_BB(name_valid(gwi, name))
+  gwi->func.name = ck->name;
   DECL_OB(Func_Def, fdef, = !ck->tmpl ?
     make_dll_as_fun(gwi, &gwi->func, ck->flag) : template_fdef(gwi, ck))
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template))
@@ -576,13 +585,12 @@ ANN m_int gwi_func_valid(const Gwi gwi, const struct func_checker *ck) {
 }
 
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
-  const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
-  if(tmpl == (ID_List)GW_ERROR)
-    return GW_ERROR;
-  struct func_checker ck = { .tmpl=tmpl, .flag=flag };
+  struct func_checker ck = { .name=gwi->func.name, .flag=flag };
+  CHECK_BB(check_typename_def(gwi, &ck))
   if(gwi_func_valid(gwi, &ck) > 0)
     return GW_OK;
-  free_id_list(gwi->gwion->mp, tmpl);
+  if(ck.tmpl)
+    free_id_list(gwi->gwion->mp, ck.tmpl);
   return GW_ERROR;
 }
 
@@ -652,18 +660,21 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
 
 ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Env env = gwi->gwion->env;
+  struct func_checker ck = { .name=gwi->func.name, .flag=flag };
+  CHECK_BO(check_typename_def(gwi, &ck))
   m_uint array_depth;
-  const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
-  if(tmpl == (ID_List)GW_ERROR)
-    return NULL;
-  DECL_OO(ID_List, type_path, = str2list(env, dl_fun->type, &array_depth, gwi->loc))
-  Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
-  const Arg_List args = make_dll_arg_list(gwi, dl_fun);
-  const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
-  Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, name), args);
-  if(tmpl)
-    base->tmpl = new_tmpl(gwi->gwion->mp, tmpl, -1);
-  return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
+  const ID_List type_path = str2list(env, dl_fun->type, &array_depth, gwi->loc);
+  if(type_path) {
+    Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
+    const Arg_List args = make_dll_arg_list(gwi, dl_fun);
+    Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, ck.name), args);
+    if(ck.tmpl)
+      base->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
+    return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
+  }
+  if(ck.tmpl)
+    free_id_list(gwi->gwion->mp, ck.tmpl);
+  return NULL;
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
@@ -682,15 +693,25 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
   return GW_OK;
 }
 
+
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
-  DECL_OO(Type_Decl*, td, = import_td(gwi, gwi->val.type))
-  td->flag |= flag;
-  const Symbol sym = insert_symbol(gwi->gwion->st, gwi->val.name);
-  const Type_Def tdef = new_type_def(gwi->gwion->mp, td, sym);
-  traverse_type_def(gwi->gwion->env, tdef);
-  const Type t = tdef->type;
-  free_type_def(gwi->gwion->mp, tdef);
-  return t;
+  struct func_checker ck = { .name=gwi->func.name, .flag=flag };
+  CHECK_BO(check_typename_def(gwi, &ck))
+  Type_Decl* td = import_td(gwi, gwi->val.type);
+  if(td) {
+    td->flag |= flag;
+    const Symbol sym = insert_symbol(gwi->gwion->st, ck.name);
+    const Type_Def tdef = new_type_def(gwi->gwion->mp, td, sym);
+    if(ck.tmpl)
+      tdef->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
+    traverse_type_def(gwi->gwion->env, tdef);
+    const Type t = tdef->type;
+    free_type_def(gwi->gwion->mp, tdef);
+    return t;
+  }
+  if(ck.tmpl)
+    free_id_list(gwi->gwion->mp, ck.tmpl);
+  return NULL;
 }
 
 ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
