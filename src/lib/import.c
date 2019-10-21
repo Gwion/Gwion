@@ -551,6 +551,11 @@ struct func_checker { // name_checker ?
   const ae_flag flag;
 };
 
+ANN static inline void func_checker_clean(const Gwi gwi, struct func_checker *ck) {
+  if(ck->tmpl)
+    free_id_list(gwi->gwion->mp, ck->tmpl);
+}
+
 ANN static m_bool check_typename_def(const Gwi gwi, struct func_checker *ck) {
   const m_str base = ck->name;
   const m_str c = strchr(ck->name, '>');
@@ -589,8 +594,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BB(check_typename_def(gwi, &ck))
   if(gwi_func_valid(gwi, &ck) > 0)
     return GW_OK;
-  if(ck.tmpl)
-    free_id_list(gwi->gwion->mp, ck.tmpl);
+  func_checker_clean(gwi, &ck);
   return GW_ERROR;
 }
 
@@ -672,8 +676,7 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
       base->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
     return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
   }
-  if(ck.tmpl)
-    free_id_list(gwi->gwion->mp, ck.tmpl);
+  func_checker_clean(gwi, &ck);
   return NULL;
 }
 
@@ -709,8 +712,7 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
     free_type_def(gwi->gwion->mp, tdef);
     return t;
   }
-  if(ck.tmpl)
-    free_id_list(gwi->gwion->mp, ck.tmpl);
+  func_checker_clean(gwi, &ck);
   return NULL;
 }
 
