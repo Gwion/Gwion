@@ -387,7 +387,6 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
   } while(type && (type = type->e->parent) && (nspc = type->nspc));
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
-puts(s_name(sym));
   nspc_add_value(env->curr, sym, value);
   if(!overload) {
 //    func->vt_index = i; // ?????
