@@ -164,6 +164,7 @@ ANN static m_bool _tmpl_valid(const Gwion gwion, struct tmpl_checker *ck) {
     if(s[i] == ',') {
       if(!i)break;
       c[i] = '\0';
+      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c), ck->pos);
       struct tmpl_checker _ck = { .str=ck->str + i + 1, .pos=ck->pos };
       CHECK_BB(_tmpl_valid(gwion, &_ck))
       ck->list->next = _ck.list;
