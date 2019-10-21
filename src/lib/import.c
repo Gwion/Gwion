@@ -653,12 +653,12 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
 ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
-  DECL_OO(ID_List, type_path, = str2list(env, dl_fun->type, &array_depth, gwi->loc))
-  Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
-  const Arg_List args = make_dll_arg_list(gwi, dl_fun);
   const ID_List tmpl = tmpl_valid(gwi, gwi->func.name);
   if(tmpl == (ID_List)GW_ERROR)
     return NULL;
+  DECL_OO(ID_List, type_path, = str2list(env, dl_fun->type, &array_depth, gwi->loc))
+  Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
+  const Arg_List args = make_dll_arg_list(gwi, dl_fun);
   const m_str name = !tmpl ? gwi->func.name : strchr(gwi->func.name, '>') + 1;
   Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, name), args);
   if(tmpl)
