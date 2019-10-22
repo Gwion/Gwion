@@ -700,7 +700,7 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
 
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
-  struct func_checker ck = { .name=gwi->func.name, .flag=flag };
+  struct func_checker ck = { .name=gwi->val.name, .flag=flag };
   CHECK_BO(check_typename_def(gwi, &ck))
   Type_Decl* td = import_td(gwi, gwi->val.type);
   if(td) {
@@ -754,13 +754,14 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 }
 
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
+  CHECK_BO(scan0_union_def(gwi->gwion->env, udef))
   CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
   emit_union_offset(udef->l, udef->o);
   if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
       gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
   return udef->xid ? udef->value->type :
-    udef->type_xid ? udef->type : gwi->gwion->type[et_int];
+    udef->type_xid ? udef->type : udef->value->type;
 }
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
