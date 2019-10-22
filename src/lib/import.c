@@ -742,13 +742,15 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
+/*
   const Type t = known_type(gwi->gwion->env, exp->d.exp_decl.td);
   if(!t) {
     free_exp(gwi->gwion->mp, exp);
     return GW_ERROR;
   }
   if(isa(t, gwi->gwion->type[et_object]) > 0)
-    SET_FLAG(exp->d.exp_decl.td, ref);
+*/
+  SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
   return GW_OK;
 }
@@ -756,7 +758,8 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   CHECK_BO(scan0_union_def(gwi->gwion->env, udef))
   CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
-  emit_union_offset(udef->l, udef->o);
+  if(!udef->tmpl)
+    emit_union_offset(udef->l, udef->o);
   if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
       gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
@@ -778,12 +781,16 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(gwi->union_data.type_name)
     CHECK_BO(check_typename_def(gwi, &ck))
   const Symbol xid = gwi->union_data.name ? insert_symbol(gwi->gwion->st, gwi->union_data.name) : NULL;
-  const Symbol type_xid = gwi->union_data.type_name ? insert_symbol(gwi->gwion->st, gwi->union_data.type_name) : NULL;
+  const Symbol type_xid = gwi->union_data.type_name ? insert_symbol(gwi->gwion->st, ck.name) : NULL;
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
   udef->flag = flag;
   udef->xid = xid;
   udef->type_xid = type_xid;
-  udef->tmpl = ck.tmpl ? new_tmpl(gwi->gwion->mp, ck.tmpl, -1) : NULL;
+  if(ck.tmpl) {
+    if(udef->xid)
+      GWI_ERR_O(_("Template union type can't declare union"));
+    udef->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
+  }
   const Type t = union_type(gwi, udef);
   if(!SAFE_FLAG(t, template))
     free_union_def(gwi->gwion->mp, udef);
