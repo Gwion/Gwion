@@ -100,7 +100,7 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
   GWI_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
   gwi->gwion->type[et_vararg] = t_vararg;
-  GWI_BB(gwi_union_ini(gwi, NULL))
+  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "start"))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))
   GWI_BB(gwi_union_add(gwi, "int",       "i"))

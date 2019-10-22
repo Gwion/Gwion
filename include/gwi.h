@@ -40,7 +40,8 @@ typedef struct {
 } DL_Enum;
 
 typedef struct {
-  Symbol xid;
+  m_str type_name;
+  m_str name;
   Decl_List list;
 } DL_Union;
 

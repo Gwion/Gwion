@@ -14,7 +14,7 @@
 GWION_IMPORT(union_member) {
   const Type t_unionmember = gwi_mk_type(gwi, "UnionMember", SZ_INT, "Object");
   GWI_BB(gwi_class_ini(gwi, t_unionmember, NULL, NULL))
-    GWI_BB(gwi_union_ini(gwi, "U"))
+    GWI_BB(gwi_union_ini(gwi, "U", NULL))
     GWI_BB(gwi_union_add(gwi,"float", "f"))
     GWI_BB(gwi_union_add(gwi,"int[]", "i"))
     GWI_OB(gwi_union_end(gwi, ae_flag_none))

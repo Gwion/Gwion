@@ -11,10 +11,8 @@
 #include "operator.h"
 #include "import.h"
 
-GWION_IMPORT(union_test) {
-  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
-  GWI_BB(gwi_union_add(gwi,"Float", "f"))
-  GWI_BB(gwi_union_add(gwi,"int", "i"))
-  GWI_OB(gwi_union_end(gwi, 0))
+GWION_IMPORT(typedef_test) {
+  GWI_OB(gwi_typedef_ini(gwi, "int", "<~A~>Typedef"))
+  GWI_OB(gwi_typedef_end(gwi, ae_flag_none))
   return GW_OK;
 }

@@ -734,9 +734,9 @@ ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   return new_exp_decl(env->gwion->mp, type_decl, var_decl_list);
 }
 
-ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str name) {
-  if(name)
-    gwi->union_data.xid = insert_symbol(gwi->gwion->st, name);
+ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
+  gwi->union_data.type_name = type;
+  gwi->union_data.name = name;
   return GW_OK;
 }
 
@@ -766,12 +766,24 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(!gwi->union_data.list)
     GWI_ERR_O(_("union is empty"));
+  if(gwi->union_data.name)
+    CHECK_BO(name_valid(gwi, gwi->union_data.name))
+  struct func_checker ck = { .name=gwi->union_data.type_name, .flag=flag };
+  if(gwi->union_data.type_name)
+    CHECK_BO(check_typename_def(gwi, &ck))
+  const Symbol xid = gwi->union_data.name ? insert_symbol(gwi->gwion->st, gwi->union_data.name) : NULL;
+  const Symbol type_xid = gwi->union_data.type_name ? insert_symbol(gwi->gwion->st, gwi->union_data.type_name) : NULL;
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
   udef->flag = flag;
+  udef->xid = xid;
+  udef->type_xid = type_xid;
+  udef->tmpl = ck.tmpl ? new_tmpl(gwi->gwion->mp, ck.tmpl, -1) : NULL;
   const Type t = union_type(gwi, udef);
-  free_union_def(gwi->gwion->mp, udef);
+  if(!SAFE_FLAG(t, template))
+    free_union_def(gwi->gwion->mp, udef);
   gwi->union_data.list = NULL;
-  gwi->union_data.xid  = NULL;
+  gwi->union_data.name  = NULL;
+  gwi->union_data.type_name  = NULL;
   return t;
 }
 

@@ -322,7 +322,7 @@ GWION_IMPORT(shred) {
   gwi_item_ini(gwi, "int", "@orig");
   GWI_BB((o_fork_orig = gwi_item_end(gwi, ae_flag_const, NULL)))
   o_fork_retval = t_fork->nspc->info->offset;
-  GWI_BB(gwi_union_ini(gwi, NULL))
+  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "int", "i"))
   GWI_BB(gwi_union_add(gwi, "float", "f"))
   GWI_BB(gwi_union_add(gwi, "Vec3", "v"))
