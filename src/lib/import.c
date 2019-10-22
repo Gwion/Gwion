@@ -240,8 +240,12 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
 }
 
 ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint size, const m_str parent_name) {
-  m_uint depth;
-  const Type_Decl* td = parent_name ? str2decl(gwi->gwion->env, parent_name, &depth, gwi->loc) : NULL;
+  m_uint depth = 0;
+  Type_Decl* td = parent_name ? str2decl(gwi->gwion->env, parent_name, &depth, gwi->loc) : NULL;
+  if(depth) {
+    free_type_decl(gwi->gwion->mp, td);
+    GWI_ERR_O(_("can't create a type with explicit array parent. use typedef for that"))
+  }
   const Type parent = td ? known_type(gwi->gwion->env, td) : NULL;
   const Type t = new_type(gwi->gwion->mp, 0, name, parent);
   t->size = size;
@@ -509,7 +513,7 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
   return arg_list;
 }
 
-ANN Type_Decl* import_td(const Gwi gwi, const m_str name) {
+ANN static Type_Decl* import_td(const Gwi gwi, const m_str name) {
   const Env env = gwi->gwion->env;
   m_uint array_depth;
   DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth, gwi->loc))
