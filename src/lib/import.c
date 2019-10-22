@@ -576,6 +576,8 @@ ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *
   const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
   m_uint depth;
   Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
+  if(depth)
+    td->array = make_dll_arg_list_array(gwi->gwion->mp, NULL, &depth, 0);
   const Func_Def fdef = new_func_def(gwi->gwion->mp, new_func_base(gwi->gwion->mp,
       td, insert_symbol(gwi->gwion->st, ck->name), arg_list), NULL, ae_flag_builtin, loc_cpy(gwi->gwion->mp, gwi->loc));
   fdef->base->tmpl = new_tmpl(gwi->gwion->mp, ck->tmpl, -1);
