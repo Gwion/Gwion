@@ -760,8 +760,13 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
       gwi->gwion->env->class_def->nspc->info->offset =
       udef->o + udef->s;
-  return udef->xid ? udef->value->type :
-    udef->type_xid ? udef->type : udef->value->type;
+  if(udef->xid || !udef->type_xid) {
+    SET_FLAG(udef->value, builtin);
+    const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
+    udef->value->d.ptr = (m_uint*)o;
+   return udef->value->type;
+  }
+  return udef->type;
 }
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
