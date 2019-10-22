@@ -158,13 +158,15 @@ ANN static m_bool tmpl_list(const Gwion gwion, struct tmpl_checker *ck) {
       if(!i || s[i+1] != '>')
         break;
       c[i] = '\0';
-      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c), ck->pos);
+      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c),
+          loc_cpy(gwion->mp, ck->pos));
       return GW_OK;
     }
     if(s[i] == ',') {
       if(!i)break;
       c[i] = '\0';
-      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c), ck->pos);
+      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c),
+          loc_cpy(gwion->mp, ck->pos));
       struct tmpl_checker _ck = { .str=ck->str + i + 1, .pos=ck->pos };
       CHECK_BB(tmpl_list(gwion, &_ck))
       ck->list->next = _ck.list;
@@ -681,7 +683,7 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  const Fptr_Def fptr = import_fptr(gwi, &gwi->func, flag);
+  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi, &gwi->func, flag))
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if(ret > 0)
     SET_FLAG(fptr->base->func, builtin);

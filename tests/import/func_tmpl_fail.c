@@ -4,15 +4,20 @@
 #include "vm.h"
 #include "env.h"
 #include "type.h"
-#include "object.h"
 #include "instr.h"
+#include "object.h"
 #include "gwion.h"
 #include "value.h"
 #include "operator.h"
 #include "import.h"
+#include "instr.h"
 
-GWION_IMPORT(typedef_test) {
-  GWI_BB(gwi_fptr_ini(gwi, "int~", "<~A~>test"))
-  GWI_OB(gwi_fptr_end(gwi, 0))
+static SFUN(func_tmpl_xfun) {
+  
+}
+
+GWION_IMPORT(func_tmpl) {
+  GWI_BB(gwi_func_ini(gwi, "voit", "<~A~>test", func_tmpl_xfun))
+  GWI_BB(gwi_func_end(gwi, 0))
   return GW_OK;
 }
