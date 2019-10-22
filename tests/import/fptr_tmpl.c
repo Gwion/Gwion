@@ -11,7 +11,6 @@
 #include "operator.h"
 #include "import.h"
 
-static MFUN(test_func) { puts("test"); }
 GWION_IMPORT(typedef_test) {
   Type t_func_typedef;
   GWI_OB((t_func_typedef = gwi_mk_type(gwi, "FuncTypedef", SZ_INT , NULL)))
