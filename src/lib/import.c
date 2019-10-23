@@ -416,7 +416,7 @@ static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,
   m_uint* array_depth, const m_uint array_depth2) {
   if(array_depth2)
     *array_depth = array_depth2;
-  if(*array_depth) {
+  if(*array_depth) { // TODO: clean me
     array_sub = new_array_sub(p, NULL);
     for(m_uint i = 1; i < *array_depth; i++)
       array_sub = prepend_array_sub(array_sub, NULL);
@@ -513,23 +513,85 @@ ANN static Arg_List make_dll_arg_list(const Gwi gwi, DL_Func * dl_fun) {
   return arg_list;
 }
 
-ANN static Type_Decl* import_td(const Gwi gwi, const m_str name) {
-  const Env env = gwi->gwion->env;
-  m_uint array_depth;
-  DECL_OO(const ID_List, type_path, = str2list(env, name, &array_depth, gwi->loc))
-  Type_Decl* type_decl = new_type_decl(env->gwion->mp, type_path);
-  if(array_depth) {
-    Array_Sub array = new_array_sub(env->gwion->mp, NULL);
-    for(m_uint i = 1; i < array_depth; i++)
-      array = prepend_array_sub(array, NULL);
-    type_decl->array = array;
+struct array_checker {
+  m_str str;
+  Exp base, exp;
+  m_uint depth;
+  loc_t pos;
+  m_bool is_exp;
+};
+
+
+ANN static void array_add_exp(struct array_checker *ck, const Exp exp) {
+  if(ck->exp)
+    ck->exp = (ck->exp->next = exp);
+  else
+    ck->base = ck->exp = exp;
+  ++ck->depth;
+  ++ck->is_exp;
+}
+
+ANN static m_bool array_check(const Env env, struct array_checker *ck) {
+  const size_t sz = strlen(ck->str);
+  char tmp[sz + 1];
+  for(m_uint i = 0; i < sz; ++i) {
+    const char c = ck->str[i];
+    if(c == ']') {
+      const m_bool is_end = ck->str[i + 1] == '\0';
+      if(!is_end && ck->str[i + 1] != '[')
+        break;
+      if(i) {
+        if(ck->is_exp == GW_ERROR)
+          ENV_ERR_B(ck->pos, _("subscript must be empty"))
+        if(!ck->is_exp && ck->depth)
+          break;
+        tmp[i] = '\0';
+        const m_uint num = strtol(tmp, NULL, 10);// migth use &endptr and check errno
+        const Exp exp = new_exp_prim_int(env->gwion->mp, num, loc_cpy(env->gwion->mp, ck->pos));
+        array_add_exp(ck, exp);
+        ck->str += i + 2;
+        return is_end ? GW_OK : array_check(env, ck);
+      } else {
+        if(ck->is_exp)
+          break;
+        ++ck->depth;
+        return array_check(env, ck);
+      }
+    }
+    if(isdigit(c))
+      tmp[i] = c;
+    else
+      ENV_ERR_B(ck->pos, _("invalid subscript '%c' in '%s'"), c, ck->str)
   }
-  return type_decl;
+  ENV_ERR_B(ck->pos, _("incoherent subscript '%s'"), ck->str)
+}
+
+
+ANN static Array_Sub import_array_sub(const Gwi gwi, const m_str str, const m_bool is_exp) {
+  struct array_checker ck = { .str=str + 1, .pos=gwi->loc, .is_exp=is_exp };
+  CHECK_BO(array_check(gwi->gwion->env, &ck))
+  return new_array_sub(gwi->gwion->mp, ck.exp);
+}
+
+ANN static Type_Decl* import_td(const Gwi gwi, const m_str name, const m_bool is_exp) {
+  const m_str subscript = strchr(name, '[');
+  const size_t sz = strlen(name), sub_sz = subscript ? strlen(subscript) : 0,
+    tmp_sz = sz - sub_sz;
+  char str[tmp_sz + 1];
+  strncpy(str, name, tmp_sz);
+  str[tmp_sz] = '\0';
+  DECL_OO(const ID_List, type_path, = path_valid(gwi->gwion->env, str, gwi->loc))
+  Type_Decl* td = new_type_decl(gwi->gwion->mp, type_path);
+  if(subscript && (td->array = import_array_sub(gwi, subscript, is_exp))) {
+    free_type_decl(gwi->gwion->mp, td);
+    return NULL;
+  }
+  return td;
 }
 
 ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
   const MemPool mp = gwi->gwion->mp;
-  DECL_OO(Type_Decl*, type_decl, = import_td(gwi, dl_fun->type))
+  DECL_OO(Type_Decl*, type_decl, = import_td(gwi, dl_fun->type, GW_ERROR))
   const m_str name = dl_fun->name;
   const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
   const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
@@ -575,6 +637,7 @@ ANN static m_bool check_typename_def(const Gwi gwi, struct func_checker *ck) {
 ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *ck) {
   const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
   m_uint depth;
+//  Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
   Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
   if(depth)
     td->array = make_dll_arg_list_array(gwi->gwion->mp, NULL, &depth, 0);
@@ -674,12 +737,13 @@ ANN static Fptr_Def import_fptr(const Gwi gwi, DL_Func* dl_fun, ae_flag flag) {
   const Env env = gwi->gwion->env;
   struct func_checker ck = { .name=gwi->func.name, .flag=flag };
   CHECK_BO(check_typename_def(gwi, &ck))
-  m_uint array_depth;
-  const ID_List type_path = str2list(env, dl_fun->type, &array_depth, gwi->loc);
+  m_uint depth;
+  const ID_List type_path = str2list(env, dl_fun->type, &depth, gwi->loc);
   if(type_path) {
-    Type_Decl *type_decl = new_type_decl(env->gwion->mp, type_path);
+    Type_Decl *td = new_type_decl(env->gwion->mp, type_path);
+    td->array = make_dll_arg_list_array(env->gwion->mp, NULL, &depth, 0);
     const Arg_List args = make_dll_arg_list(gwi, dl_fun);
-    Func_Base *base = new_func_base(env->gwion->mp, type_decl, insert_symbol(env->gwion->st, ck.name), args);
+    Func_Base *base = new_func_base(env->gwion->mp, td, insert_symbol(env->gwion->st, ck.name), args);
     if(ck.tmpl)
       base->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
     return new_fptr_def(env->gwion->mp, base, flag | ae_flag_builtin);
@@ -704,11 +768,12 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
   return GW_OK;
 }
 
-
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   struct func_checker ck = { .name=gwi->val.name, .flag=flag };
   CHECK_BO(check_typename_def(gwi, &ck))
-  Type_Decl* td = import_td(gwi, gwi->val.type);
+// we need to be able to parse e.g int[2][3] here.
+// as well as other_type[][]
+  Type_Decl* td = import_td(gwi, gwi->val.type, 0); // TODO: make it GW_PASS
   if(td) {
     td->flag |= flag;
     const Symbol sym = insert_symbol(gwi->gwion->st, ck.name);
@@ -748,14 +813,6 @@ ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
-/*
-  const Type t = known_type(gwi->gwion->env, exp->d.exp_decl.td);
-  if(!t) {
-    free_exp(gwi->gwion->mp, exp);
-    return GW_ERROR;
-  }
-  if(isa(t, gwi->gwion->type[et_object]) > 0)
-*/
   SET_FLAG(exp->d.exp_decl.td, ref);
   gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
   return GW_OK;
