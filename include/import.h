@@ -42,9 +42,7 @@ ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ct
 ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
 ANN m_int gwi_class_end(const Gwi gwi);
 
-ANN m_int gwi_item_ini(const Gwi gwi, const m_str type, const m_str name);
-ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr);
-#define gwi_item_end(a, b, c) gwi_item_end(a, (const ae_flag)(b), (const m_uint*)c)
+#include "import/item.h"
 
 ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag);
