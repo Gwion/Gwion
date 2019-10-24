@@ -85,37 +85,6 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
   return GW_OK;
 }
 
-ANN static m_bool _name_valid(const Gwi gwi, const m_str a) {
-  const m_uint len = strlen(a);
-  m_uint lvl = 0;
-  for(m_uint i = 0; i < len; i++) {
-    char c = a[i];
-    if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
-        || (c == '_') || (c >= '0' && c <= '9'))
-      continue;
-    if(c == '<') {
-      if(a[++i] != '~')
-        GWI_ERR_B(_("illegal templating in name '%s'."), a)
-      ++lvl;
-      ++i;
-      continue;
-    } else if(c == ',') {
-      if(!lvl)
-        GWI_ERR_B(_("illegal use of ',' outside of templating in name '%s'."), a)
-    } else if(c == '~') {
-      if(!lvl || a[++i] != '>')
-        GWI_ERR_B(_("illegal templating in name '%s'."), a)
-      --lvl;
-    } else
-      GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
-  }
-  return !lvl ? 1 : -1;
-}
-
-ANN static inline m_bool name_valid(const Gwi gwi, const m_str a) {
-  return _name_valid(gwi, a[0] != '@' ? a : a + 1);
-}
-
 ANN static m_bool check_illegal(const char c, const m_uint i) {
   return isalnum(c) || c == '_' || (!i && c == '@');
 }
@@ -341,76 +310,6 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);
   env_pop(gwi->gwion->env, 0);
   return GW_OK;
-}
-
-ANN static void dl_var_new_exp_array(MemPool p, DL_Var* v) {
-  v->td->array = new_array_sub(p, NULL);
-  v->td->array->depth = v->array_depth;
-  v->var.array = new_array_sub(p, NULL);
-  v->var.array->depth = v->array_depth;
-}
-
-ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
-  v->list.self = &v->var;
-  v->td->flag = flag;
-  v->exp.exp_type = ae_exp_decl;
-  v->exp.d.exp_decl.td   = v->td;
-  v->exp.d.exp_decl.list = &v->list;
-  if(v->array_depth)
-    dl_var_new_exp_array(p, v);
-}
-
-ANN static void dl_var_release(MemPool p, const DL_Var* v) {
-  if(v->array_depth)
-    free_array_sub(p, v->var.array);
-  free_type_decl(p, v->td);
-}
-
-ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  DL_Var* v = &gwi->var;
-  memset(v, 0, sizeof(DL_Var));
-  if(!(v->td = str2decl(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
-    GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
-  CHECK_BB(name_valid(gwi, name))
-  v->var.xid = insert_symbol(gwi->gwion->st, name);
-  return GW_OK;
-}
-
-#undef gwi_item_end
-
-static void gwi_body(const Gwi gwi, const Class_Body body) {
-  if(!gwi->gwion->env->class_def->e->def->body)
-    gwi->gwion->env->class_def->e->def->body = body;
-  else {
-    assert(gwi->body);
-    gwi->body->next = body;
-  }
-  gwi->body = body;
-}
-
-ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
-  DL_Var* v = &gwi->var;
-  dl_var_set(gwi->gwion->mp, v, flag | ae_flag_builtin);
-  v->var.addr = (void*)addr;
-  if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template)) {
-    Type_Decl *type_decl = new_type_decl(gwi->gwion->mp, v->td->xid);
-    type_decl->flag = flag;
-    const Var_Decl var_decl = new_var_decl(gwi->gwion->mp, v->var.xid, v->var.array, loc_cpy(gwi->gwion->mp, gwi->loc));
-    const Var_Decl_List var_decl_list = new_var_decl_list(gwi->gwion->mp, var_decl, NULL);
-    const Exp exp = new_exp_decl(gwi->gwion->mp, type_decl, var_decl_list);
-    const Stmt stmt = new_stmt_exp(gwi->gwion->mp, ae_stmt_exp, exp);
-    const Stmt_List list = new_stmt_list(gwi->gwion->mp, stmt, NULL);
-    Section* section = new_section_stmt_list(gwi->gwion->mp, list);
-    const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
-    type_decl->array = v->td->array;
-    gwi_body(gwi, body);
-    return GW_OK;
-  }
-  v->exp.pos = gwi->loc;
-  CHECK_BB(traverse_decl(gwi->gwion->env, &v->exp.d.exp_decl))
-  SET_FLAG(v->var.value, builtin);
-  dl_var_release(gwi->gwion->mp, v);
-  return (m_int)v->var.value->from->offset;
 }
 
 static Array_Sub make_dll_arg_list_array(MemPool p, Array_Sub array_sub,

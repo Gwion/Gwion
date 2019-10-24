@@ -1,5 +1,6 @@
 #ifndef __IMPORT
 #define __IMPORT
+
 #define DLARG_MAX 6
 
 typedef void (*f_xtor)(const M_Object, const m_bit*, const VM_Shred);

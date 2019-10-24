@@ -58,4 +58,7 @@ struct Gwi_ {
   Templater templater;
   loc_t loc;
 };
+
+#include "import/internals.h"
+
 #endif

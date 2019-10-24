@@ -80,6 +80,9 @@ GWION_IMPORT(coverage) {
   GWI_BB(gwi_item_ini(gwi,"Vec4", "sc_w"))
   GWI_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cw))
 
+  GWI_BB(gwi_item_ini(gwi,"int[][]", "test_array"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }
