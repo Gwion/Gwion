@@ -63,12 +63,8 @@ ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __res
 ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);
 ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 
-ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const m_str l, const m_str r, const m_str t);
-ANN m_int gwi_oper_add(const Gwi gwi, const opck);
-ANN m_int gwi_oper_emi(const Gwi gwi, const opem);
-ANN2(1) m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f);
-ANN m_int gwi_oper_cond(const Gwi, const m_str,  const f_instr, const f_instr);
-ANN Type_Decl* str2decl(const Env, const m_str, m_uint* depth, const loc_t);
+#include "import/oper.h"
+#include "import/special.h"
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
@@ -85,11 +81,4 @@ OP_EMIT(opem_new);
 
 ANN Type_List str2tl(const Env env, const m_str s, const loc_t);
 
-#define FREEARG(a) ANN void a(Instr instr  NUSED, void *gwion NUSED)
-typedef void (*f_freearg)(Instr, void*);
-ANN void register_freearg(const Gwi, const f_instr, const f_freearg);
-ANN void gwi_reserve(const Gwi, const m_str);
-typedef struct SpecialId_* SpecialId;
-ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId);
-ANN void gwi_set_loc(const Gwi, const m_str, const uint);
 #endif
