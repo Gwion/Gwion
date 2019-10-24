@@ -85,7 +85,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
   return GW_OK;
 }
 
-ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
+ANN static m_bool _name_valid(const Gwi gwi, const m_str a) {
   const m_uint len = strlen(a);
   m_uint lvl = 0;
   for(m_uint i = 0; i < len; i++) {
@@ -110,6 +110,10 @@ ANN static m_bool name_valid(const Gwi gwi, const m_str a) {
       GWI_ERR_B(_("illegal character '%c' in name '%s'."), c, a)
   }
   return !lvl ? 1 : -1;
+}
+
+ANN static inline m_bool name_valid(const Gwi gwi, const m_str a) {
+  return _name_valid(gwi, a[0] != '@' ? a : a + 1);
 }
 
 ANN static m_bool check_illegal(const char c, const m_uint i) {
@@ -357,10 +361,8 @@ ANN static void dl_var_set(MemPool p, DL_Var* v, const ae_flag flag) {
 }
 
 ANN static void dl_var_release(MemPool p, const DL_Var* v) {
-  if(v->array_depth) {
-    free_array_sub(p, v->td->array);
+  if(v->array_depth)
     free_array_sub(p, v->var.array);
-  }
   free_type_decl(p, v->td);
 }
 
@@ -369,7 +371,8 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
   memset(v, 0, sizeof(DL_Var));
   if(!(v->td = str2decl(gwi->gwion->env, type, &v->array_depth, gwi->loc)))
     GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
-    v->var.xid = insert_symbol(gwi->gwion->st, name);
+  CHECK_BB(name_valid(gwi, name))
+  v->var.xid = insert_symbol(gwi->gwion->st, name);
   return GW_OK;
 }
 
@@ -406,8 +409,6 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   v->exp.pos = gwi->loc;
   CHECK_BB(traverse_decl(gwi->gwion->env, &v->exp.d.exp_decl))
   SET_FLAG(v->var.value, builtin);
-if(v->var.value->type->array_depth)
-ADD_REF(v->var.value->type);
   dl_var_release(gwi->gwion->mp, v);
   return (m_int)v->var.value->from->offset;
 }
@@ -588,15 +589,22 @@ ANN static Type_Decl* import_td(const Gwi gwi, const m_str name, const m_bool is
   }
   return td;
 }
+struct func_checker { // name_checker ?
+  m_str name;
+  ID_List tmpl;
+  const ae_flag flag;
+};
 
-ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
+//ANN static Func_Def make_dll_as_fun(const Gwi gwi, DL_Func * dl_fun, ae_flag flag) {
+ANN static Func_Def make_dll_as_fun(const Gwi gwi, const struct func_checker *ck) {
+//DL_Func * dl_fun, ae_flag flag) {
   const MemPool mp = gwi->gwion->mp;
-  DECL_OO(Type_Decl*, type_decl, = import_td(gwi, dl_fun->type, GW_ERROR))
-  const m_str name = dl_fun->name;
-  const Arg_List arg_list = make_dll_arg_list(gwi, dl_fun);
+  DECL_OO(Type_Decl*, type_decl, = import_td(gwi, gwi->func.type, GW_ERROR))
+  const m_str name = gwi->func.name;
+  const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
   const Func_Def func_def = new_func_def(mp, new_func_base(mp, type_decl, insert_symbol(gwi->gwion->st, name), arg_list),
-    NULL, flag | ae_flag_builtin, loc_cpy(mp, gwi->loc));
-  func_def->d.dl_func_ptr = (void*)(m_uint)dl_fun->addr;
+    NULL, ck->flag | ae_flag_builtin, loc_cpy(mp, gwi->loc));
+  func_def->d.dl_func_ptr = (void*)(m_uint)gwi->func.addr;
   return func_def;
 }
 
@@ -612,12 +620,6 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
   free_func_def(gwi->gwion->mp, fdef);
   return GW_ERROR;
 }
-
-struct func_checker { // name_checker ?
-  m_str name;
-  ID_List tmpl;
-  const ae_flag flag;
-};
 
 ANN static inline void func_checker_clean(const Gwi gwi, struct func_checker *ck) {
   if(ck->tmpl)
@@ -637,7 +639,6 @@ ANN static m_bool check_typename_def(const Gwi gwi, struct func_checker *ck) {
 ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *ck) {
   const Arg_List arg_list = make_dll_arg_list(gwi, &gwi->func);
   m_uint depth;
-//  Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
   Type_Decl *td = str2decl(gwi->gwion->env, gwi->func.type, &depth, gwi->loc);
   if(depth)
     td->array = make_dll_arg_list_array(gwi->gwion->mp, NULL, &depth, 0);
@@ -651,8 +652,7 @@ ANN2(1) static Func_Def template_fdef(const Gwi gwi, const struct func_checker *
 
 ANN m_int gwi_func_valid(const Gwi gwi, const struct func_checker *ck) {
   gwi->func.name = ck->name;
-  DECL_OB(Func_Def, fdef, = !ck->tmpl ?
-    make_dll_as_fun(gwi, &gwi->func, ck->flag) : template_fdef(gwi, ck))
+  DECL_OB(Func_Def, fdef, = (!ck->tmpl ? make_dll_as_fun : template_fdef)(gwi, ck))
   if(gwi->gwion->env->class_def && GET_FLAG(gwi->gwion->env->class_def, template))
     return section_fdef(gwi, fdef);
   if(traverse_func_def(gwi->gwion->env, fdef) < 0)
@@ -870,6 +870,7 @@ ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
 }
 
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
+  CHECK_BB(name_valid(gwi, name))
   const ID_List list = new_id_list(gwi->gwion->mp, insert_symbol(gwi->gwion->st, name), loc_cpy(gwi->gwion->mp, gwi->loc));
   DL_Enum* d = &gwi->enum_data;
   ALLOC_PTR(gwi->gwion->mp, addr, m_int, i);
