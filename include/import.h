@@ -47,8 +47,7 @@ ANN m_int gwi_class_end(const Gwi gwi);
 ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag);
 
-ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name);
-ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag);
+#include "import/typedef.h"
 
 ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
 ANN m_int gwi_tmpl_end(const Gwi gwi);
@@ -65,6 +64,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
 
 #include "import/oper.h"
 #include "import/special.h"
+#include "import/checker.h"
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
