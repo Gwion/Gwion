@@ -236,12 +236,8 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
   vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
   vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
   Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
-  if(var->array) {
-    if(td->array)
-      td->array->depth += var->array->depth;
-    else
-      td->array = cpy_array_sub(env->gwion->mp, var->array);
-  }
+  if(var->array)
+    td->array = cpy_array_sub(env->gwion->mp, var->array);
   if(env->class_def->e->tuple->list) {
     Type_List tl = env->class_def->e->tuple->list;
     while(tl->next)
