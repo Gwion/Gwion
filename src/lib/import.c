@@ -119,8 +119,7 @@ ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint s
 }
 
 ANN m_int gwi_add_type(const Gwi gwi, const Type type) {
-  if(type->name[0] != '@')
-    CHECK_BB(name_valid(gwi, type->name));
+  CHECK_BB(name_valid(gwi, type->name));
   env_add_type(gwi->gwion->env, type);
   return (m_int)type->xid;
 }
