@@ -188,8 +188,20 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   emit_add_instr(emit, ArrayPost);
 }
 
-ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) {
-  CHECK_BO(emit_exp(emit, e, 0))
+ANN2(1) static m_bool extend_indices(const Emitter emit, Exp e, const m_uint depth) {
+  if(e)
+    CHECK_BB(emit_exp(emit, e, 0))
+  m_uint count = 0;
+  while(e) {
+    ++count;
+    e = e->next;
+  }
+  for(m_uint i = count; i < depth; ++i)
+    regpushi(emit, 0);
+  return GW_OK;
+}
+
+ANEW ANN static ArrayInfo* new_arrayinfo(const Emitter emit, const Type t) {
   const Type base = array_base(t);
   ArrayInfo* info = mp_calloc(emit->gwion->mp, ArrayInfo);
   vector_init(&info->type);
@@ -198,12 +210,23 @@ ANN ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const E
   vector_add(&info->type, (vtype)t);
   info->depth = (m_int)t->array_depth;
   info->base = base;
-  const Instr alloc = emit_add_instr(emit, ArrayAlloc);
-  alloc->m_val = (m_uint)info;
+  return info;
+}
+
+ANN static inline void arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
+  const Type base = info->base;
   if(isa(base, emit->gwion->type[et_object]) > 0 && !GET_FLAG(base, abstract)) {
     emit_pre_constructor_array(emit, base);
     info->is_obj = 1;
   }
+}
+
+ANN2(1,2) static ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e) {
+  CHECK_BO(extend_indices(emit, e, t->array_depth))
+  ArrayInfo* info = new_arrayinfo(emit, t);
+  const Instr alloc = emit_add_instr(emit, ArrayAlloc);
+  alloc->m_val = (m_uint)info;
+  arrayinfo_ctor(emit, info);
   return info;
 }
 
@@ -235,26 +258,13 @@ ANN static inline void emit_notpure(const Emitter emit) {
   ++VPTR(&emit->info->pure, VLEN(&emit->info->pure) - 1);
 }
 
-ANN static Array_Sub instantiate_typedef(MemPool p, const m_uint depth) {
-  const Exp base = new_exp_prim_int(p, 0, new_loc(p, __LINE__));
-  Exp e = base;
-  for(m_uint i = 0; i < depth; ++i)
-     e = (e->next = new_exp_prim_int(p, 0, new_loc(p, __LINE__)));
-  return new_array_sub(p, base);
-}
-
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
-      const Array_Sub arr, const m_bool is_ref) {
+      const Array_Sub array, const m_bool is_ref) {
   emit_notpure(emit);
   if(type->array_depth) {
-    assert(!arr || arr->depth == type->array_depth);
-    const Array_Sub array = arr ?: instantiate_typedef(emit->gwion->mp, type->array_depth);
-    assert(array->exp);
-    ArrayInfo* info = emit_array_extend_inner(emit, type, array->exp);
+    ArrayInfo* info = emit_array_extend_inner(emit, type, array ? array->exp : NULL);
     if(info)
       info->is_ref = is_ref;
-    if(!arr)
-      free_array_sub(emit->gwion->mp, array);
     return info ? GW_OK : GW_ERROR;
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
@@ -622,16 +632,16 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
   return emit_dot_static_data(emit, value, emit_addr);
 }
 
-ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl var_decl,
+ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *decl, const Var_Decl var_decl,
   const uint is_ref, const uint emit_var) {
   const Value v = var_decl->value;
   const Type type = v->type;
   const Array_Sub array = var_decl->array;
-  const m_bool is_array = array && array->exp;
+  const m_bool is_array = (array && array->exp) || GET_FLAG(decl->td, force);
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = ((is_ref && !array) || isa(type, emit->gwion->type[et_object]) < 0) ?
     emit_var : 1;
-  if(is_obj && (is_array || !is_ref)/* && !GET_FLAG(var_decl->value, ref)*/)
+  if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
   if(!GET_FLAG(v, member)) {
@@ -648,10 +658,9 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Var_Decl va
   if(is_obj && (is_array || !is_ref)) {
     emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
-    if(missing_depth) {
+    if(missing_depth && !GET_FLAG(decl->td, force)) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
-      push->m_val = -(1 + missing_depth) * SZ_INT;
-      regpop(emit, (missing_depth) * SZ_INT);
+      push->m_val = -(missing_depth) * SZ_INT;
     }
   }
   return GW_OK;
@@ -700,7 +709,7 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
     if(GET_FLAG(decl->td, static))
       CHECK_BB(emit_exp_decl_static(emit, list->self, r, var))
     else if(!global)
-      CHECK_BB(emit_exp_decl_non_static(emit, list->self, r, var))
+      CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, r, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, list->self, r, var))
     if(GET_FLAG(list->self->value->type, nonnull))

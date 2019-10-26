@@ -95,17 +95,12 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_BO(scan1_exp(env, td->exp))
   CHECK_BO(scan2_exp(env, td->exp))
   CHECK_OO(check_exp(env, td->exp))
-// TODO: check me
   const Type t = actual_type(env->gwion, td->exp->type);
   assert(t);
-  m_uint depth;
-  td->xid = str2list(env, t->name, &depth, td->exp->pos);
-  if(depth) {
-    Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
-    for(m_uint i = 0; i < depth - 1; ++i)
-      e = (e->next = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)));
-    td->array = new_array_sub(env->gwion->mp, base);
-  }
+  td->xid = new_id_list(env->gwion->mp, insert_symbol("@resolved"),
+      loc_cpy(env->gwion->mp, td->exp->pos));
+  if(t->array_depth)
+    SET_FLAG(td, force);
   return t;
 }
 
@@ -116,8 +111,7 @@ ANN static inline void clear_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
-  DECL_OO(const Type, t, = check_td(env, decl->td))
-  ((Exp_Decl*)decl)->type = NULL;
+  CHECK_OO((((Exp_Decl*)decl)->type = check_td(env, decl->td)))
   clear_decl(env, decl);
   CHECK_BO(traverse_decl(env, decl))
   return decl->type;
