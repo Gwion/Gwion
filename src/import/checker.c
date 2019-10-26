@@ -180,7 +180,7 @@ ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
   const m_str tl_name = get_type_name(env, s, 1);
   if(tl_name) {
-    if(!(td->types = str2tl(env, tl_name, pos)) || !type_decl_resolve(env, td)) {
+    if(!(td->types = str2tl(env, tl_name, pos))) {
       free_type_decl(env->gwion->mp, td);
       return NULL;
     }
@@ -193,7 +193,6 @@ ANN static void array_add_exp(struct array_checker *ck, const Exp exp) {
     ck->exp = (ck->exp->next = exp);
   else
     ck->base = ck->exp = exp;
-  ++ck->depth;
   ++ck->is_exp;
 }
 
@@ -206,6 +205,8 @@ ANN m_bool array_check(const Env env, struct array_checker *ck) {
       const m_bool is_end = ck->str[i + 1] == '\0';
       if(!is_end && ck->str[i + 1] != '[')
         break;
+      ck->str += i + 1;
+      ++ck->depth;
       if(i) {
         if(ck->is_exp == GW_ERROR)
           ENV_ERR_B(ck->pos, _("subscript must be empty"))
@@ -215,14 +216,11 @@ ANN m_bool array_check(const Env env, struct array_checker *ck) {
         const m_uint num = strtol(tmp, NULL, 10);// migth use &endptr and check errno
         const Exp exp = new_exp_prim_int(env->gwion->mp, num, loc_cpy(env->gwion->mp, ck->pos));
         array_add_exp(ck, exp);
-        ck->str += i + 2;
-        return is_end ? GW_OK : array_check(env, ck);
       } else {
-        if(ck->is_exp)
+        if(ck->is_exp > 0)
           break;
-        ++ck->depth;
-        return array_check(env, ck);
       }
+      return is_end ? GW_OK : array_check(env, ck);
     }
     if(isdigit(c))
       tmp[i] = c;
@@ -263,7 +261,7 @@ ANN Type_Decl* import_td(const Gwi gwi, const m_str name, const m_bool is_exp) {
   str[tmp_sz] = '\0';
   DECL_OO(const ID_List, type_path, = path_valid(gwi->gwion->env, str, gwi->loc))
   Type_Decl* td = new_type_decl(gwi->gwion->mp, type_path);
-  if(subscript && (td->array = import_array_sub(gwi, subscript, is_exp))) {
+  if(subscript && !(td->array = import_array_sub(gwi, subscript, is_exp))) {
     free_type_decl(gwi->gwion->mp, td);
     return NULL;
   }
