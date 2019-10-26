@@ -335,3 +335,28 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   free_fptr_def(gwi->gwion->mp, fptr);
   return t;
 }
+
+ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
+  gwi->val.type = type;
+  gwi->val.name = name;
+  return GW_OK;
+}
+
+ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
+  struct func_checker ck = { .name=gwi->val.name, .flag=flag };
+  CHECK_BO(check_typename_def(gwi, &ck))
+  Type_Decl* td = import_td(gwi, gwi->val.type, 0); // TODO: make it GW_PASS
+  if(td) {
+    td->flag |= flag;
+    const Symbol sym = insert_symbol(gwi->gwion->st, ck.name);
+    const Type_Def tdef = new_type_def(gwi->gwion->mp, td, sym);
+    if(ck.tmpl)
+      tdef->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
+    traverse_type_def(gwi->gwion->env, tdef);
+    const Type t = tdef->type;
+    free_type_def(gwi->gwion->mp, tdef);
+    return t;
+  }
+  func_checker_clean(gwi, &ck);
+  return NULL;
+}
