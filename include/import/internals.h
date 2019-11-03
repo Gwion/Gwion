@@ -11,4 +11,6 @@ ANN void gwi_body(const Gwi, const Class_Body);
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name);
 
 ANN void gwi_reset(const Gwi gwi);
+ANN VM* gwi_vm(const Gwi);
+ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d);
 #endif

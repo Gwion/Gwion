@@ -70,6 +70,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(!gwi->ck->list)
     GWI_ERR_O(_("union is empty"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, loc(gwi));
+  gwi->ck->list = NULL;
   udef->flag = flag;
   udef->xid = gwi->ck->xid;
   udef->type_xid = gwi->ck->sym;
@@ -77,6 +78,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
     if(udef->xid)
       GWI_ERR_O(_("Template union type can't declare instance at declaration"));
     udef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
+    gwi->ck->tmpl = NULL;
   }
   const Type t = union_type(gwi, udef);
   if(!SAFE_FLAG(t, template))

@@ -1,8 +1,6 @@
 #ifndef __IMPORT
 #define __IMPORT
 
-#define DLARG_MAX 6
-
 typedef void (*f_xtor)(const M_Object, const m_bit*, const VM_Shred);
 typedef void (*f_mfun)(const M_Object, const m_bit*, const VM_Shred);
 typedef void (*f_sfun)(const m_bit*, const m_bit*, const VM_Shred);
@@ -30,31 +28,18 @@ typedef struct Gwi_* Gwi;
 #define _CHECK_OP(op, check, func)\
     GWI_BB(gwi_oper_add(gwi, opck_##check))\
     GWI_BB(gwi_oper_end(gwi, op, func))
-#define GWI_LOC new_loc(gwi->gwion->mp, __LINE__)
-
-
-ANN VM* gwi_vm(const Gwi);
-ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const m_str);
-ANN m_int gwi_add_type(const Gwi gwi, Type type);
-ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te);
-ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d);
 
 #include "import/checker.h"
-
-#include "import/class.h"
+#include "import/type.h"
+#include "import/cdef.h"
 #include "import/item.h"
-
-#include "import/typedef.h"
-
-ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name);
-ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
-ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag);
-ANN void ck_clean_udef(MemPool, ImportCK*);
-#include "import/enum.h"
-#include "import/func.h"
-
+#include "import/tdef.h"
+#include "import/udef.h"
+#include "import/edef.h"
+#include "import/fdef.h"
 #include "import/oper.h"
 #include "import/special.h"
+#include "import/internals.h"
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);

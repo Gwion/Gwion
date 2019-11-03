@@ -23,9 +23,10 @@ void gwi_body(const Gwi gwi, const Class_Body body) {
 }
 
 ANN void gwi_reset(const Gwi gwi) {
-  if(gwi->ck)
+  if(gwi->ck) {
     ck_clean(gwi);
-  mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
-  gwi->ck = NULL;
+    mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
+    gwi->ck = NULL;
+  }
   env_reset(gwi->gwion->env);
 }

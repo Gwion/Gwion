@@ -1,0 +1,6 @@
+class C {
+  int i;
+}
+
+C c;
+c $ C;
