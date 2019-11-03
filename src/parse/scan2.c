@@ -346,6 +346,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
 
 ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str name) {
   SET_FLAG(func, builtin);
+  SET_FLAG(func->value_ref, builtin);
   func->code = new_vm_code(p, NULL, func->def->stack_depth, func->flag, name);
   func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
   return GW_OK;
