@@ -12,7 +12,7 @@
 #include "import.h"
 
 GWION_IMPORT(union_test) {
-  GWI_BB(gwi_union_ini(gwi, "<~A~>U", "My"))
+  GWI_BB(gwi_union_ini(gwi, "U<~A~>", "My"))
   GWI_BB(gwi_union_add(gwi,"float", "f"))
   GWI_BB(gwi_union_add(gwi,"int", "i"))
   GWI_BB(gwi_union_add(gwi,"A", "a"))
