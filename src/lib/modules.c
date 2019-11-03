@@ -41,7 +41,7 @@ static MFUN(gain_set_gain) {
 }
 
 static GWION_IMPORT(gain) {
-  GWI_OB(gwi_class_ini(gwi,  "Gain", NULL))
+  GWI_OB(gwi_class_ini(gwi,  "Gain", "UGen"))
   gwi_class_xtor(gwi, gain_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "gain");
   GWI_BB(gwi_func_end(gwi, gain_get_gain, ae_flag_none))
