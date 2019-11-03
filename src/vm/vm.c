@@ -757,7 +757,6 @@ allocmemberaddr:
   reg += SZ_INT;
   DISPATCH()
 dotmember:
-//printf("VAL %lu %p\n", VAL, );
   *(m_uint*)(reg-SZ_INT) = *(m_uint*)(a.obj->data + VAL);
   DISPATCH()
 dotfloat:
