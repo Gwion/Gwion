@@ -88,11 +88,13 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   const Gwion gwion = gwi->gwion;
   const Enum_Def edef  = new_enum_def(gwion->mp, gwi->ck->tmpl,
       gwi->ck->xid, loc(gwi));
+  gwi->ck->tmpl = NULL;
   const m_bool ret = traverse_enum_def(gwion->env, edef);
   import_enum_end(gwi, &edef->values);
   const Type t = ret > 0 ? edef->t : NULL;
   free_enum_def(gwion->mp, edef);
   vector_release(&gwi->ck->v);
+  gwi->ck->v.ptr = NULL;
   ck_end(gwi);
   return t;
 }

@@ -56,5 +56,7 @@ ANN m_bool name_valid(const Gwi gwi, const m_str a) {
 ANN void gwi_reset(const Gwi gwi) {
   if(gwi->ck)
     ck_clean(gwi);
+  mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
+  gwi->ck = NULL;
   env_reset(gwi->gwion->env);
 }
