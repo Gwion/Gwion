@@ -122,7 +122,7 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi, flag))
   // what happens if it is in a template class ?
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
-  if(fptr->base->func)
+  if(fptr->base->func) // is it needed ?
     SET_FLAG(fptr->base->func, builtin);
   const Type t = ret > 0 ? fptr->type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);

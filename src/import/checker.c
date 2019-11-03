@@ -250,6 +250,7 @@ ANN static void array_add_exp(struct array_checker *ck, const Exp exp) {
 }
 
 ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
+  const m_str base = ck->str;
   const size_t sz = strlen(ck->str);
   char tmp[sz + 1];
   for(m_uint i = 0; i < sz; ++i) {
@@ -277,9 +278,9 @@ ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
     if(isdigit(c))
       tmp[i] = c;
     else
-      GWI_ERR_B(_("invalid subscript '%c' in '%s'"), c, ck->str)
+      GWI_ERR_B(_("invalid subscript '%c' in '%s'"), c, base)
   }
-  GWI_ERR_B(_("incoherent subscript '%s'"), ck->str)
+  GWI_ERR_B(_("incoherent subscript '%s'"), base)
 }
 
 ANN m_bool array_check(const Gwi gwi, struct array_checker *ck) {
