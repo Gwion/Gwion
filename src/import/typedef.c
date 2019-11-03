@@ -34,8 +34,10 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   Type_Decl *td = gwi->ck->td;
   td->flag |= flag;
   const Type_Def tdef = new_type_def(gwi->gwion->mp, td, gwi->ck->sym);
+  gwi->ck->td = NULL;
   if(td->types)
     tdef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
+  tdef->tmpl = NULL;
   const m_bool ret = traverse_type_def(gwi->gwion->env, tdef);
   const Type t = tdef->type;
   free_type_def(gwi->gwion->mp, tdef);
