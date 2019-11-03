@@ -154,8 +154,18 @@ ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->e->parent)
     emit_pre_ctor(emit, type->e->parent);
-  if(type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
+  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
     emit_ext_ctor(emit, type->nspc->pre_ctor);
+/*
+  if(type->nspc && !GET_FLAG(type, nonnull)) {
+    if(type->nspc->pre_ctor)
+      emit_ext_ctor(emit, type->nspc->pre_ctor);
+    if(type->nspc->ctor)
+      emit_ext_ctor(emit, type->nspc->ctor);
+  } 
+*/
+  if(GET_FLAG(type, typedef) && type->e->parent->array_depth)
+    emit_array_extend(emit, type->e->parent, type->e->def->base.ext->array->exp);
   if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
     const Type t = template_parent(emit->env, type);
     if(t->nspc->pre_ctor)
@@ -718,7 +728,7 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
   return GW_OK;
 }
 
-ANN static m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
+ANN /*static */m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
   if(GET_FLAG(decl->type, template))
     CHECK_BB(emit_exp_decl_template(emit, decl))
   const m_bool global = GET_FLAG(decl->td, global);
@@ -843,15 +853,6 @@ ANN static m_bool is_special(const Emitter emit, const Type t) {
   return GW_ERROR;
 }
 
-ANN static Type_List tmpl_tl(const Env env, const m_str name, const loc_t pos) {
-  const m_str start = strchr(name, '<');
-  const m_str end = strchr(name, '@');
-  char c[strlen(name)];
-  strcpy(c, start + 2);
-  c[strlen(start) - strlen(end) - 4] = '\0';
-  return str2tl(env, c, pos);
-}
-
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
   if(!fdef->base->ret_type)
     CHECK_BB(traverse_func_def(emit->env, fdef))
@@ -878,7 +879,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     struct dottmpl_ *dt = mp_calloc(emit->gwion->mp, dottmpl);
     dt->name = s_name(insert_symbol(c));
     dt->vt_index = f->def->base->tmpl->base;
-    dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
+    dt->tl = cpy_type_list(emit->gwion->mp, f->def->base->tmpl->call);
     dt->base = f->def;
     instr->opcode = eOP_MAX;
     instr->m_val = (m_uint)dt;
@@ -908,7 +909,7 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
   char c[sz + 1];
   memcpy(c, f->name, sz);
   c[sz] = '\0';
-  dt->tl = tmpl_tl(emit->env, c, td_pos(f->def->base->td));
+  dt->tl = cpy_type_list(emit->gwion->mp, f->def->base->tmpl->call);
   dt->name = s_name(insert_symbol(c));
   dt->vt_index = f->def->base->tmpl->base;
   dt->base = f->def;
@@ -1158,7 +1159,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
 }
 
 ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
-  regpushi(emit, (m_uint)actual_type(emit->gwion, exp->exp->type));
+  regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->type)));
   return GW_OK;
 }
 
@@ -1904,8 +1905,6 @@ if(GET_FLAG(cdef->base.type, emit))return GW_OK;
   SET_FLAG(type, emit);
   nspc_allocdata(emit->gwion->mp, nspc);
   emit_class_code(emit, type->name);
-  if(cdef->base.ext && cdef->base.ext->array)
-    CHECK_BB(emit_array_extend(emit, type->e->parent, cdef->base.ext->array->exp))
   if(cdef->body)
     CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
   emit_class_finish(emit, nspc);

@@ -32,11 +32,11 @@ static CTOR(trig2_ctor) {
 
 
 GWION_IMPORT(trig) {
-  const Type t_trig = gwi_mk_type(gwi, "Trig", SZ_INT, "UGen");
-  GWI_BB(gwi_class_ini(gwi, t_trig, trig_ctor, NULL))
+  GWI_OB(gwi_class_ini(gwi, "Trig", "UGen"))
+  gwi_class_xtor(gwi, trig_ctor, NULL);
   gwi_class_end(gwi);
 
-  const Type t_trig2 = gwi_mk_type(gwi, "Trig2", SZ_INT, "UGen");
-  GWI_BB(gwi_class_ini(gwi, t_trig2, trig2_ctor, NULL))
+  GWI_OB(gwi_class_ini(gwi, "Trig2", "UGen"))
+  gwi_class_xtor(gwi, trig2_ctor, NULL);
   return gwi_class_end(gwi);
 }

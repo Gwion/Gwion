@@ -12,7 +12,6 @@
 #include "template.h"
 #include "parser.h"
 #include "parse.h"
-#include "cpy_ast.h"
 #include "object.h"
 #include "instr.h"
 #include "operator.h"
@@ -39,7 +38,8 @@ static inline Type scan0_type(const Env env, const m_uint xid,
 ANN static Value mk_class(const Env env, const Type base) {
   const Symbol sym = insert_symbol(base->name);
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_class]);
-t->e->ctx = env->context;
+//t->e->ctx = env->context;
+t->e->ctx = base->e->ctx;
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
   t->e->d.base_type = base;
 // set from

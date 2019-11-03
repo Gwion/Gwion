@@ -18,8 +18,8 @@ SFUN(coverage_int) {
 }
 
 GWION_IMPORT(global_func_test) {
-  GWI_BB(gwi_func_ini(gwi, "int", "test", coverage_int))
+  GWI_BB(gwi_func_ini(gwi, "int", "test"))
   GWI_BB(gwi_func_arg(gwi, "int", "i"))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, coverage_int, ae_flag_none))
   return GW_OK;
 }

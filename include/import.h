@@ -38,33 +38,23 @@ ANN2(1,2) ANEW Type gwi_mk_type(const Gwi, const m_str, const m_uint, const m_st
 ANN m_int gwi_add_type(const Gwi gwi, Type type);
 ANN m_int gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te);
 ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d);
-ANN2(1,2)m_int gwi_class_ini(const Gwi gwi, const Type type, const f_xtor pre_ctor, const f_xtor dtor);
-ANN m_int gwi_class_ext(const Gwi gwi, Type_Decl* td);
-ANN m_int gwi_class_end(const Gwi gwi);
 
+#include "import/checker.h"
+
+#include "import/class.h"
 #include "import/item.h"
 
-ANN m_int gwi_fptr_ini(const Gwi gwi, const m_str __restrict__ type, const __restrict__ m_str name);
-ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag);
-
 #include "import/typedef.h"
-
-ANN m_int gwi_tmpl_ini(const Gwi gwi, const m_uint n, const m_str *name);
-ANN m_int gwi_tmpl_end(const Gwi gwi);
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name);
 ANN m_int gwi_union_add(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name);
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag);
-
+ANN void ck_clean_udef(MemPool, ImportCK*);
 #include "import/enum.h"
-
-ANN m_int gwi_func_ini(const Gwi gwi, const __restrict__ m_str type, const __restrict__ m_str name, const f_xfun addr);
-ANN m_int gwi_func_arg(const Gwi gwi, const __restrict__ m_str t, const __restrict__ m_str n);
-ANN m_int gwi_func_end(const Gwi gwi, const ae_flag flag);
+#include "import/func.h"
 
 #include "import/oper.h"
 #include "import/special.h"
-#include "import/checker.h"
 
 OP_CHECK(opck_const_rhs);
 OP_CHECK(opck_unary_meta);
@@ -78,7 +68,5 @@ OP_CHECK(opck_usr_implicit);
 OP_CHECK(opck_new);
 OP_EMIT(opem_basic_cast);
 OP_EMIT(opem_new);
-
-ANN Type_List str2tl(const Env env, const m_str s, const loc_t);
 
 #endif

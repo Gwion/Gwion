@@ -101,31 +101,31 @@ ANN Type array_base(Type type) {
   return t->e->d.base_type;
 }
 
-ANN Type array_type(const Env env, const Type base, const m_uint depth) {
+ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   m_uint i = depth + 1;
   if(depth > 1)
-    array_type(env, base, depth-1);
-  size_t len = strlen(base->name);
+    array_type(env, src, depth-1);
+  size_t len = strlen(src->name);
   char name[len + 2* depth + 1];
-  strcpy(name, base->name);
+  strcpy(name, src->name);
   while(--i) {
     strcpy(name+len, "[]");
     len += 2;
   }
   const Symbol sym = insert_symbol(name);
-  const Type type = nspc_lookup_type1(base->e->owner, sym);
+  const Type type = nspc_lookup_type1(src->e->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->mp, env->gwion->type[et_array]->xid, base->name, env->gwion->type[et_array]);
+  const Type t = new_type(env->gwion->mp, env->gwion->type[et_array]->xid, src->name, env->gwion->type[et_array]);
   t->name = s_name(sym);
   t->size = SZ_INT;
-  t->array_depth = depth + base->array_depth;
-  t->e->d.base_type = base;
+  t->array_depth = depth + src->array_depth;
+  t->e->d.base_type = array_base(src) ?: src;
   t->nspc = env->gwion->type[et_array]->nspc;
   ADD_REF(t->nspc);
   SET_FLAG(t, checked);
-  t->e->owner = base->e->owner;
-  nspc_add_type_front(base->e->owner, sym, t);
+  t->e->owner = src->e->owner;
+  nspc_add_type_front(src->e->owner, sym, t);
   return t;
 }
 

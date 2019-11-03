@@ -17,7 +17,7 @@ static SFUN(func_tmpl_xfun) {
 }
 
 GWION_IMPORT(func_tmpl) {
-  GWI_BB(gwi_func_ini(gwi, "voit", "<~A~>test", func_tmpl_xfun))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "voit", "<~A~>test"))
+  GWI_BB(gwi_func_end(gwi, func_tmpl_xfun, ae_flag_none))
   return GW_OK;
 }

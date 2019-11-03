@@ -337,25 +337,26 @@ static OP_CHECK(opck_chuck_ugen) {
 }
 
 GWION_IMPORT(ugen) {
-  const Type t_ugen = gwi_mk_type(gwi, "UGen", SZ_INT, "Object");
-  gwi->gwion->type[et_ugen] = t_ugen;
-  GWI_BB(gwi_class_ini(gwi,  t_ugen, ugen_ctor, ugen_dtor))
-  GWI_BB(gwi_item_ini(gwi, "int", "@ugen"))
+  const Type t_ugen = gwi_class_ini(gwi, "UGen", NULL);
+  gwi_class_xtor(gwi, ugen_ctor, ugen_dtor);
+  gwi->gwion->type[et_ugen] = t_ugen; // use func
+
+  GWI_BB(gwi_item_ini(gwi, "@internal", "@ugen"))
   GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
 
-  GWI_BB(gwi_func_ini(gwi, "UGen", "chan", ugen_channel))
+  GWI_BB(gwi_func_ini(gwi, "UGen", "chan"))
   GWI_BB(gwi_func_arg(gwi, "int", "arg0"))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, ugen_channel, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "op", ugen_get_op))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "op"))
+  GWI_BB(gwi_func_end(gwi, ugen_get_op, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "op", ugen_set_op))
+  GWI_BB(gwi_func_ini(gwi, "int", "op"))
   GWI_BB(gwi_func_arg(gwi, "int", "arg0"))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, ugen_set_op, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "float", "last", ugen_get_last))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "float", "last"))
+  GWI_BB(gwi_func_end(gwi, ugen_get_last, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))

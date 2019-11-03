@@ -38,9 +38,7 @@ GWION_IMPORT(enum_test) {
     GWI_BB(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
   GWI_OB(gwi_enum_end(gwi))
 
-  Type t_enum;
-  GWI_OB((t_enum = gwi_mk_type(gwi, "Enum", 0, NULL)))
-  GWI_BB(gwi_class_ini(gwi, t_enum, NULL, NULL))
+  GWI_OB(gwi_class_ini(gwi, "Enum", NULL))
     GWI_BB(gwi_enum_ini(gwi, 0))
       GWI_BB(gwi_enum_add(gwi, "ENUM0", 0))
       GWI_BB(gwi_enum_add(gwi, "ENUM1", 1))

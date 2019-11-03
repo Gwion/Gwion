@@ -52,3 +52,9 @@ ANN m_bool _name_valid(const Gwi gwi, const m_str a) {
 ANN m_bool name_valid(const Gwi gwi, const m_str a) {
   return _name_valid(gwi, a[0] != '@' ? a : a + 1);
 }
+
+ANN void gwi_reset(const Gwi gwi) {
+  if(gwi->ck)
+    ck_clean(gwi);
+  env_reset(gwi->gwion->env);
+}

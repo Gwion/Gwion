@@ -17,7 +17,6 @@
 #include "parse.h"
 #include "nspc.h"
 #include "match.h"
-#include "cpy_ast.h"
 #include "tuple.h"
 #include "emit.h"
 #include "specialid.h"
@@ -612,7 +611,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   if(f)
     return f;
   Type t = value->from->owner_class;
-  while(t) {
+  while(t && t->nspc) {
     const Value v = nspc_lookup_value0(t->nspc, value->d.func_ref->def->base->xid);
     if(!v)
       goto next;
@@ -1407,6 +1406,8 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
 
 ANN static inline void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  if(!parent)
+    return;
   nspc->info->offset = parent->info->offset;
   if(parent->info->vtable.ptr)
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);

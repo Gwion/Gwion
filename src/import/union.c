@@ -19,32 +19,32 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN static Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
-  const Env env = gwi->gwion->env;
-  m_uint array_depth;
-  Array_Sub array = NULL;
-  DECL_OO(const ID_List, id_list, = str2list(env, type, &array_depth, gwi->loc))
-  if(array_depth) {
-    array = new_array_sub(env->gwion->mp, NULL);
-    array->depth = array_depth;
-  }
-  Type_Decl *type_decl = new_type_decl(env->gwion->mp, id_list);
-  const Var_Decl var_decl = new_var_decl(env->gwion->mp,
-      insert_symbol(env->gwion->st, name), array, loc_cpy(env->gwion->mp, gwi->loc));
-  const Var_Decl_List var_decl_list = new_var_decl_list(env->gwion->mp, var_decl, NULL);
-  return new_exp_decl(env->gwion->mp, type_decl, var_decl_list);
+// move me
+ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
+  DECL_OO(Type_Decl*, td, = str2decl(gwi, type))
+  const Var_Decl_List vlist = str2varlist(gwi, name);
+  if(vlist)
+    return new_exp_decl(gwi->gwion->mp, td, vlist);
+  free_type_decl(gwi->gwion->mp, td);
+  return NULL;
 }
 
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
-  gwi->union_data.type_name = type;
-  gwi->union_data.name = name;
+  CHECK_BB(ck_ini(gwi, ck_udef))
+  if(name)
+    CHECK_OB((gwi->ck->sym = str2sym(gwi, name)))
+//  gwi->ck->name = name;
+  gwi->ck->name = type;
+  if(type)
+    CHECK_BB(check_typename_def(gwi, gwi->ck))
   return GW_OK;
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
+  CHECK_BB(ck_ok(gwi, ck_udef))
   DECL_OB(const Exp, exp, = make_exp(gwi, type, name))
-  SET_FLAG(exp->d.exp_decl.td, ref);
-  gwi->union_data.list = new_decl_list(gwi->gwion->mp, exp, gwi->union_data.list);
+  SET_FLAG(exp->d.exp_decl.td, ref); // might not be needed
+  gwi->ck->list = new_decl_list(gwi->gwion->mp, exp, gwi->ck->list);
   return GW_OK;
 }
 
@@ -55,7 +55,7 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
     emit_union_offset(udef->l, udef->o);
   if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
       gwi->gwion->env->class_def->nspc->info->offset =
-      udef->o + udef->s;
+       udef->o + udef->s;
   if(udef->xid || !udef->type_xid) {
     SET_FLAG(udef->value, builtin);
     const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
@@ -66,29 +66,30 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 }
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
-  if(!gwi->union_data.list)
+  CHECK_BO(ck_ok(gwi, ck_udef))
+  if(!gwi->ck->list)
     GWI_ERR_O(_("union is empty"));
-  if(gwi->union_data.name)
-    CHECK_BO(name_valid(gwi, gwi->union_data.name))
-  struct func_checker ck = { .name=gwi->union_data.type_name, .flag=flag };
-  if(gwi->union_data.type_name)
-    CHECK_BO(check_typename_def(gwi, &ck))
-  const Symbol xid = gwi->union_data.name ? insert_symbol(gwi->gwion->st, gwi->union_data.name) : NULL;
-  const Symbol type_xid = gwi->union_data.type_name ? insert_symbol(gwi->gwion->st, ck.name) : NULL;
-  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->union_data.list, loc_cpy(gwi->gwion->mp, gwi->loc));
+  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, loc(gwi));
   udef->flag = flag;
-  udef->xid = xid;
-  udef->type_xid = type_xid;
-  if(ck.tmpl) {
+  udef->xid = gwi->ck->xid;
+  udef->type_xid = gwi->ck->sym;
+  if(gwi->ck->tmpl) {
     if(udef->xid)
-      GWI_ERR_O(_("Template union type can't declare union"));
-    udef->tmpl = new_tmpl(gwi->gwion->mp, ck.tmpl, -1);
+      GWI_ERR_O(_("Template union type can't declare instance at declaration"));
+    udef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
   }
   const Type t = union_type(gwi, udef);
   if(!SAFE_FLAG(t, template))
     free_union_def(gwi->gwion->mp, udef);
-  gwi->union_data.list = NULL;
-  gwi->union_data.name  = NULL;
-  gwi->union_data.type_name  = NULL;
+  ck_end(gwi);
   return t;
+}
+
+ANN void ck_clean_udef(MemPool mp, ImportCK* ck) {
+  if(ck->list)
+    free_decl_list(mp, ck->list);
+  if(ck->tmpl)
+    free_id_list(mp, ck->tmpl);
+  if(ck->td)
+    free_type_decl(mp, ck->td);
 }

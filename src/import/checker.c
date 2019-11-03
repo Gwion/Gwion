@@ -1,3 +1,6 @@
+/** @file: checker.c                                   *
+ *  \brief: functions to check names in import module  *
+ *                                                     */
 #include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -17,40 +20,91 @@
 #include "import.h"
 #include "gwi.h"
 
+ANN m_bool array_check(const Gwi gwi, struct array_checker *ck);
+
+__attribute__((returns_nonnull))
+ANN static Symbol gwisym(const Gwi gwi, const m_str str) {
+  return insert_symbol(gwi->gwion->st, str);
+}
+
+//! check that there is no illegal character in the string
+// TODO: get rid of second argument, make it useless
 ANN static m_bool check_illegal(const char c, const m_uint i) {
    return isalnum(c) || c == '_' || (!i && c == '@');
 }
 
-ANN ID_List path_valid(const Env env, const m_str path, const loc_t pos) {
+/** convert a string to a symbol, with error checking **/
+//ANN Symbol str2sym(const Env env, const m_str path, const loc_t pos) {
+ANN Symbol str2sym(const Gwi gwi, const m_str path) {
   const size_t sz = strlen(path);
-  if(path[0] == '.' || path[sz] == '.')
-    ENV_ERR_O(pos, _("path '%s' must not ini or end with '.'."), path)
-  char curr[sz + 1];
   m_uint i;
+  char curr[sz + 1];
   for(i = 0; i < sz; ++i) {
     const char c = path[i];
     if(c != '.') {
       if(!check_illegal(c, i))
-        ENV_ERR_O(pos, _("illegal character '%c' in path '%s'."), c, path)
+        GWI_ERR_O(_("illegal character '%c' in path '%s'."), c, path)
       curr[i] = c;
     } else
       break;
   }
   curr[i++] = '\0';
-  const ID_List list = new_id_list(env->gwion->mp,
-      insert_symbol(env->gwion->st, curr), loc_cpy(env->gwion->mp, pos));
-  if(i < sz)
-    list->next = path_valid(env, path + i, pos);
+  return gwisym(gwi, curr);
+}
+
+ANN ID_List str2symlist(const Gwi gwi, const m_str path) {
+  DECL_OO(const Symbol, sym, = str2sym(gwi, path))
+  return new_id_list(gwi->gwion->mp, sym, loc(gwi));
+}
+
+ANN ID_List path_valid(const Gwi gwi, const m_str path) {
+  const size_t sz = strlen(path);
+  if(path[0] == '.' || path[sz] == '.')
+    GWI_ERR_O(_("path '%s' must not ini or end with '.'."), path)
+//  DECL_OO(const Symbol, sym, = str2sym(gwi, path))
+//  const ID_List list = new_id_list(gwi->gwion->mp, sym, loc(gwi));
+  const ID_List list = str2symlist(gwi, path);
+  if(strlen(s_name(list->xid)) < sz)
+    list->next = path_valid(gwi, path + strlen(s_name(list->xid)));
   return list;
+}
+
+
+//
+// similar to import array_sub ?
+ANN Array_Sub ck_array(MemPool mp, const m_uint depth) {
+  if(!depth)
+    return NULL;
+  const Array_Sub array = new_array_sub(mp, NULL);
+  array->depth = depth;
+  return array;
+}
+
+ANN Var_Decl str2var(const Gwi gwi, const m_str path) {
+  struct array_checker ck = { .str=path };
+  CHECK_BO(array_check(gwi, &ck))
+  const m_uint sz = strlen(path);
+  const m_uint len = sz - ck.sz;
+  char curr[len + 1];
+  memcpy(curr, path, len);
+  curr[len] = '\0';
+  DECL_OO(const Symbol, sym, = str2sym(gwi, curr))
+  const Array_Sub array = ck_array(gwi->gwion->mp, ck.depth);
+  return new_var_decl(gwi->gwion->mp, sym, array, loc(gwi));
+}
+
+ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
+  const Var_Decl var = str2var(gwi, path);
+  return new_var_decl_list(gwi->gwion->mp, var, NULL);
 }
 
 struct tmpl_checker {
   const m_str str;
   ID_List list;
-  const loc_t pos;
+//  const loc_t pos;
 };
 
-ANN static m_bool tmpl_list(const Gwion gwion, struct tmpl_checker *ck) {
+ANN static m_bool tmpl_list(const Gwi gwi, struct tmpl_checker *ck) {
   m_str s = ck->str;
   const size_t sz = strlen(s);
   char c[sz + 1];
@@ -63,17 +117,15 @@ ANN static m_bool tmpl_list(const Gwion gwion, struct tmpl_checker *ck) {
       if(!i || s[i+1] != '>')
         break;
       c[i] = '\0';
-      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c),
-          loc_cpy(gwion->mp, ck->pos));
+      ck->list = new_id_list(gwi->gwion->mp, gwisym(gwi, c), loc(gwi));
       return GW_OK;
     }
     if(s[i] == ',') {
       if(!i)break;
       c[i] = '\0';
-      ck->list = new_id_list(gwion->mp, insert_symbol(gwion->st, c),
-          loc_cpy(gwion->mp, ck->pos));
-      struct tmpl_checker _ck = { .str=ck->str + i + 1, .pos=ck->pos };
-      CHECK_BB(tmpl_list(gwion, &_ck))
+      ck->list = new_id_list(gwi->gwion->mp, gwisym(gwi, c), loc(gwi));
+      struct tmpl_checker _ck = { .str=ck->str + i + 1 };
+      CHECK_BB(tmpl_list(gwi, &_ck))
       ck->list->next = _ck.list;
       return GW_OK;
     }
@@ -96,8 +148,8 @@ ANN static ID_List _tmpl_valid(const Gwi gwi, const m_str str) {
     return (ID_List)GW_ERROR;
   if(!ret)
     return NULL;
-  struct tmpl_checker ck = { .str=str+2, .pos=gwi->loc };
-  if(tmpl_list(gwi->gwion, &ck) == GW_ERROR)
+  struct tmpl_checker ck = { .str=str+2 };
+  if(tmpl_list(gwi, &ck) == GW_ERROR)
     return (ID_List)GW_ERROR;
   return ck.list;
 }
@@ -109,38 +161,29 @@ ANN ID_List tmpl_valid(const Gwi gwi, const m_str str) {
   return ret;
 }
 
-ANN ID_List str2list(const Env env, const m_str path,
-      m_uint* array_depth, const loc_t pos) {
-  const m_uint sz = strlen(path);
-  m_uint len = sz, depth = 0;
-  while(len > 2 && path[len - 1] == ']' && path[len - 2] == '[') {
-    depth++;
-    len -= 2;
-  }
-  *array_depth = depth;
-  char curr[sz + 1];
-  memcpy(curr, path, len);
+ANN ID_List ck2list(const Gwi gwi, struct array_checker *ck) {
+  const m_str base = ck->str;
+  CHECK_BO(array_check(gwi, ck))
+  const m_uint sz = strlen(base);
+  const m_uint len = sz - ck->sz;
+  char curr[len + 1];
+  memcpy(curr, base, len);
   curr[len] = '\0';
-  return path_valid(env, curr, pos);
+  return path_valid(gwi, curr);
 }
 
-ANN Type_List _str2tl(const Env env, const m_str s, const loc_t pos) {
-  m_uint depth;
-  DECL_OO(Type_Decl*, td, = str2decl(env, s, &depth, pos))
-  if(depth) {
-    td->array = new_array_sub(env->gwion->mp, NULL);
-    td->array->depth = depth;
-  }
-//    td->array = import_array(env->gwion->mp, NULL, &depth, 0);
-  return new_type_list(env->gwion->mp, td, NULL);
+ANN static Type_List str2tl(const Gwi gwi, const m_str s);
+ANN static Type_List _str2tl(const Gwi gwi, const m_str s) {
+  DECL_OO(Type_Decl*, td, = str2decl(gwi, s))
+  return new_type_list(gwi->gwion->mp, td, NULL);
 }
 
-ANN Type_List tlnext(const Env env, const m_str s, size_t split, const loc_t pos) {
+ANN Type_List tlnext(const Gwi gwi, const m_str s, size_t split) {
   char curr[split+1];
   strncpy(curr, s, split);
   curr[split] = '\0';
-  const Type_List tl = _str2tl(env, curr, pos);
-  tl->next = str2tl(env, s + split + 1, pos);
+  const Type_List tl = _str2tl(gwi, curr);
+  tl->next = str2tl(gwi, s + split + 1);
   return tl;
 }
 
@@ -151,6 +194,7 @@ struct GetTl {
   const size_t sz;
 };
 
+//! a funtion factory to open/close the template
 #define tl_xxx(name, tgt, op)                             \
 ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
   if(!(i < gtl->sz && gtl->str[i] == tgt))                \
@@ -161,7 +205,7 @@ ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
 tl_xxx(open,  '~', ++)
 tl_xxx(close, '>', --)
 
-ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
+ANN static Type_List str2tl(const Gwi gwi, const m_str s) {
   struct GetTl gtl = { .str=s, .sz = strlen(s) };
   for(m_uint i = 0; i < gtl.sz; ++i) {
     if(s[i] == '<')
@@ -169,21 +213,30 @@ ANN Type_List str2tl(const Env env, const m_str s, const loc_t pos) {
     else if(s[i] == '~')
       CHECK_BO(tl_close(&gtl, ++i))
     else if(s[i] == ',' && !gtl.lvl)
-      return tlnext(env, s, i, pos);
+      return tlnext(gwi, s, i);
   }
-  return _str2tl(env, s, pos);
+  return _str2tl(gwi, s);
 }
 
-ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t pos) {
-  DECL_OO(const m_str, type_name, = get_type_name(env, s, 0))
-  DECL_OO(ID_List, id, = str2list(env, type_name, depth, pos))
-  Type_Decl* td = new_type_decl(env->gwion->mp, id);
-  const m_str tl_name = get_type_name(env, s, 1);
+//! convert a string to a Type_Decl
+ANN Type_Decl* str2decl(const Gwi gwi, const m_str s) {
+// we can do better
+  DECL_OO(const m_str, type_name, = get_type_name(gwi->gwion->env, s, 0))
+  struct array_checker ck = { .str=type_name };
+  const ID_List id = ck2list(gwi, &ck);
+  if(id == (ID_List)GW_ERROR)
+    return NULL;
+  Type_Decl* td = new_type_decl(gwi->gwion->mp, id);
+  const m_str tl_name = get_type_name(gwi->gwion->env, s, 1);
   if(tl_name) {
-    if(!(td->types = str2tl(env, tl_name, pos))) {
-      free_type_decl(env->gwion->mp, td);
+    if(!(td->types = str2tl(gwi, tl_name))) {
+      free_type_decl(gwi->gwion->mp, td);
       return NULL;
     }
+  }
+  if(ck.depth) {
+    td->array = new_array_sub(gwi->gwion->mp, ck.exp);
+    td->array->depth = ck.depth;
   }
   return td;
 }
@@ -196,7 +249,7 @@ ANN static void array_add_exp(struct array_checker *ck, const Exp exp) {
   ++ck->is_exp;
 }
 
-ANN m_bool array_check(const Env env, struct array_checker *ck) {
+ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
   const size_t sz = strlen(ck->str);
   char tmp[sz + 1];
   for(m_uint i = 0; i < sz; ++i) {
@@ -205,65 +258,86 @@ ANN m_bool array_check(const Env env, struct array_checker *ck) {
       const m_bool is_end = ck->str[i + 1] == '\0';
       if(!is_end && ck->str[i + 1] != '[')
         break;
-      ck->str += i + 1;
-      ++ck->depth;
+      ck->str += i + 2;
+      ck->sz += i + 2;
       if(i) {
-        if(ck->is_exp == GW_ERROR)
-          ENV_ERR_B(ck->pos, _("subscript must be empty"))
         if(!ck->is_exp && ck->depth)
           break;
         tmp[i] = '\0';
         const m_uint num = strtol(tmp, NULL, 10);// migth use &endptr and check errno
-        const Exp exp = new_exp_prim_int(env->gwion->mp, num, loc_cpy(env->gwion->mp, ck->pos));
+        const Exp exp = new_exp_prim_int(gwi->gwion->mp, num, loc(gwi));
         array_add_exp(ck, exp);
       } else {
         if(ck->is_exp > 0)
           break;
       }
-      return is_end ? GW_OK : array_check(env, ck);
+      ++ck->depth;
+      return is_end ? GW_OK : array_check(gwi, ck);
     }
     if(isdigit(c))
       tmp[i] = c;
     else
-      ENV_ERR_B(ck->pos, _("invalid subscript '%c' in '%s'"), c, ck->str)
+      GWI_ERR_B(_("invalid subscript '%c' in '%s'"), c, ck->str)
   }
-  ENV_ERR_B(ck->pos, _("incoherent subscript '%s'"), ck->str)
+  GWI_ERR_B(_("incoherent subscript '%s'"), ck->str)
 }
 
-ANN void func_checker_clean(const Gwi gwi, struct func_checker *ck) {
-  if(ck->tmpl)
-    free_id_list(gwi->gwion->mp, ck->tmpl);
+ANN m_bool array_check(const Gwi gwi, struct array_checker *ck) {
+  ck->str = ck->str ? strchr(ck->str, '[') : NULL;
+  if(!ck->str)
+    return GW_OK;
+  ++ck->str;
+  return _array_check(gwi, ck);
 }
 
-ANN m_bool check_typename_def(const Gwi gwi, struct func_checker *ck) {
+ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   const m_str base = ck->name;
-  const m_str c = strchr(ck->name, '>');
-  ck->name = !c ? ck->name : c + 1;
-  CHECK_BB(name_valid(gwi, ck->name))
-  if((ck->tmpl = tmpl_valid(gwi, base)) == (ID_List)GW_ERROR)
+  char str[strlen(base) + 1];
+  const m_str c = strchr(ck->name, '<');
+  strncpy(str, base, strlen(base) - (c ? strlen(c) : 0));
+  str[strlen(base) - (c ? strlen(c) : 0)] = '\0';
+  ck->name = str;
+  CHECK_OB((ck->sym = str2sym(gwi, str)))
+  if(c && (ck->tmpl = tmpl_valid(gwi, c)) == (ID_List)GW_ERROR)
     return GW_ERROR;
+  ck->name = base;
   return GW_OK;
 }
 
-
-ANN Array_Sub import_array_sub(const Gwi gwi, const m_str str, const m_bool is_exp) {
-  struct array_checker ck = { .str=str + 1, .pos=gwi->loc, .is_exp=is_exp };
-  CHECK_BO(array_check(gwi->gwion->env, &ck))
-  return new_array_sub(gwi->gwion->mp, ck.exp);
+ANN m_bool ck_ini(const Gwi gwi, const enum importck_type t) {
+  if(gwi->ck) // TODO: improve error message
+    GWI_ERR_B(_("already importing"))
+  gwi->ck = mp_calloc2(gwi->gwion->mp, sizeof(ImportCK));
+  gwi->ck->type = t;
+  return GW_OK;
 }
 
-ANN Type_Decl* import_td(const Gwi gwi, const m_str name, const m_bool is_exp) {
-  const m_str subscript = strchr(name, '[');
-  const size_t sz = strlen(name), sub_sz = subscript ? strlen(subscript) : 0,
-    tmp_sz = sz - sub_sz;
-  char str[tmp_sz + 1];
-  strncpy(str, name, tmp_sz);
-  str[tmp_sz] = '\0';
-  DECL_OO(const ID_List, type_path, = path_valid(gwi->gwion->env, str, gwi->loc))
-  Type_Decl* td = new_type_decl(gwi->gwion->mp, type_path);
-  if(subscript && !(td->array = import_array_sub(gwi, subscript, is_exp))) {
-    free_type_decl(gwi->gwion->mp, td);
-    return NULL;
-  }
-  return td;
+ANN m_bool ck_ok(const Gwi gwi, const enum importck_type t) {
+  if(!gwi->ck)
+    GWI_ERR_B(_("import not started"))
+  if(gwi->ck->type == t)
+    return GW_OK;
+  // TODO: improve error message
+  GWI_ERR_B(_("already importing"))
 }
+
+ANN void ck_end(const Gwi gwi) {
+  mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
+  gwi->ck = NULL;
+}
+
+typedef void (*cleaner) (MemPool, ImportCK*);
+static cleaner cleaners[] =
+{
+  ck_clean_edef,
+  ck_clean_udef,
+  ck_clean_tdef,
+NULL,//  ck_clean_oper,
+  ck_clean_item,
+  ck_clean_fdef
+};
+
+ANN void ck_clean(const Gwi gwi) {
+  cleaners[gwi->ck->type](gwi->gwion->mp, gwi->ck);
+}
+

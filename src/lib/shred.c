@@ -238,9 +238,9 @@ ANN void fork_clean(const VM_Shred shred, const Vector v) {
 }
 #include "nspc.h"
 GWION_IMPORT(shred) {
-  const Type t_shred = gwi_mk_type(gwi, "Shred", SZ_INT, "Object");
+  const Type t_shred = gwi_class_ini(gwi,  "Shred", NULL);
+  gwi_class_xtor(gwi, NULL, shred_dtor);
   gwi->gwion->type[et_shred] = t_shred;
-  GWI_BB(gwi_class_ini(gwi,  t_shred, NULL, shred_dtor))
 
   gwi_item_ini(gwi, "int", "@me");
   GWI_BB(gwi_item_end(gwi, ae_flag_const, NULL))
@@ -248,59 +248,59 @@ GWION_IMPORT(shred) {
   gwi_item_ini(gwi, "int", "cancel");
   GWI_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, NULL)))
 
-  gwi_func_ini(gwi, "void", "exit", gw_shred_exit);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "exit");
+  GWI_BB(gwi_func_end(gwi, gw_shred_exit, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "running", vm_shred_is_running);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "running");
+  GWI_BB(gwi_func_end(gwi, vm_shred_is_running, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "done", vm_shred_is_done);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "done");
+  GWI_BB(gwi_func_end(gwi, vm_shred_is_done, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "id", vm_shred_id);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "id");
+  GWI_BB(gwi_func_end(gwi, vm_shred_id, ae_flag_none))
 
-  gwi_func_ini(gwi, "Shred", "fromId", vm_shred_from_id);
+  gwi_func_ini(gwi, "Shred", "fromId");
   gwi_func_arg(gwi, "int", "id");
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
+  GWI_BB(gwi_func_end(gwi, vm_shred_from_id, ae_flag_static))
 
-  gwi_func_ini(gwi, "void", "yield", shred_yield);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "void", "yield");
+  GWI_BB(gwi_func_end(gwi, shred_yield, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "args", shred_args);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "args");
+  GWI_BB(gwi_func_end(gwi, shred_args, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "arg", shred_arg);
+  gwi_func_ini(gwi, "string", "arg");
   gwi_func_arg(gwi, "int", "n");
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, shred_arg, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "name", shred_name);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "name");
+  GWI_BB(gwi_func_end(gwi, shred_name, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "path", shred_path);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "path");
+  GWI_BB(gwi_func_end(gwi, shred_path, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "dir", shred_dir);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "dir");
+  GWI_BB(gwi_func_end(gwi, shred_dir, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "code_name", shred_code_name);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "code_name");
+  GWI_BB(gwi_func_end(gwi, shred_code_name, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "code_path", shred_code_path);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "code_path");
+  GWI_BB(gwi_func_end(gwi, shred_code_path, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "code_dir", shred_code_dir);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "string", "code_dir");
+  GWI_BB(gwi_func_end(gwi, shred_code_dir, ae_flag_none))
 
-  gwi_func_ini(gwi, "void", "set_cancel", shred_cancel);
+  gwi_func_ini(gwi, "void", "set_cancel");
   gwi_func_arg(gwi, "int", "n");
-  GWI_BB(gwi_func_end(gwi, 0))
-  gwi_func_ini(gwi, "void", "test_cancel", shred_test_cancel);
-  GWI_BB(gwi_func_end(gwi, 0))
-  gwi_func_ini(gwi, "void", "lock", shred_lock);
-  GWI_BB(gwi_func_end(gwi, 0))
-  gwi_func_ini(gwi, "void", "unlock", shred_unlock);
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, shred_cancel, ae_flag_none))
+  gwi_func_ini(gwi, "void", "test_cancel");
+  GWI_BB(gwi_func_end(gwi, shred_test_cancel, ae_flag_none))
+  gwi_func_ini(gwi, "void", "lock");
+  GWI_BB(gwi_func_end(gwi, shred_lock, ae_flag_none))
+  gwi_func_ini(gwi, "void", "unlock");
+  GWI_BB(gwi_func_end(gwi, shred_unlock, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
@@ -308,9 +308,10 @@ GWION_IMPORT(shred) {
 
   SET_FLAG((t_shred), abstract);
 
-  const Type t_fork = gwi_mk_type(gwi, "Fork", SZ_INT, "Shred");
+  const Type t_fork= gwi_class_ini(gwi,  "Fork", "Shred");
+  gwi_class_xtor(gwi, NULL, fork_dtor);
   gwi->gwion->type[et_fork] = t_fork;
-  GWI_BB(gwi_class_ini(gwi, t_fork, NULL, fork_dtor))
+
   gwi_item_ini(gwi, "int", "@thread");
   GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "is_done");
@@ -329,8 +330,8 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_union_add(gwi, "Vec4", "w"))
   GWI_BB(gwi_union_add(gwi, "VarObject", "o"))
   GWI_OB(gwi_union_end(gwi, ae_flag_const))
-  gwi_func_ini(gwi, "int", "join", fork_join);
-  GWI_BB(gwi_func_end(gwi, 0))
+  gwi_func_ini(gwi, "int", "join");
+  GWI_BB(gwi_func_end(gwi, fork_join, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
   return GW_OK;

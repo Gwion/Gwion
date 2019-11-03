@@ -9,6 +9,9 @@ typedef struct SpecialId_* SpecialId;
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId);
 ANN void gwi_set_loc(const Gwi, const m_str, const uint);
 
-ANN Type_Decl* str2decl(const Env env, const m_str s, m_uint *depth, const loc_t pos);
+// TODO: move me
+ANN Type_Decl*    str2decl(const Gwi, const m_str);
+ANN Var_Decl      str2var(const Gwi, const m_str);
+ANN Var_Decl_List str2varlist(const Gwi, const m_str);
 
 #endif

@@ -193,24 +193,24 @@ static FREEARG(freearg_array) {
 }
 
 GWION_IMPORT(array) {
-  const Type t_array  = gwi_mk_type(gwi, "@Array", SZ_INT, "Object");
+  const Type t_array  = gwi_class_ini(gwi, "@Array", NULL);
   gwi->gwion->type[et_array] = t_array;
-  GWI_BB(gwi_class_ini(gwi,  t_array, NULL, array_dtor))
+  gwi_class_xtor(gwi, NULL, array_dtor);
 
-  GWI_BB(gwi_item_ini(gwi, "int", "@array"))
+  GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "size", vm_vector_size))
-  GWI_BB(gwi_func_end(gwi, 0))
-  GWI_BB(gwi_func_ini(gwi, "int", "depth", vm_vector_depth))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "size"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_size, ae_flag_none))
+  GWI_BB(gwi_func_ini(gwi, "int", "depth"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_depth, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "cap", vm_vector_cap))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "int", "cap"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_cap, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "remove", vm_vector_rem))
+  GWI_BB(gwi_func_ini(gwi, "int", "remove"))
   GWI_BB(gwi_func_arg(gwi, "int", "index"))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))

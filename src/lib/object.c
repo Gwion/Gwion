@@ -32,9 +32,11 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
   const M_Object a = mp_calloc(p, M_Object);
   a->ref = 1;
   a->type_ref = t;
-  a->vtable = &t->nspc->info->vtable;
-  if(t->nspc->info->offset)
-    a->data = (m_bit*)_mp_calloc(p, t->nspc->info->offset);
+  if(t->nspc) {
+    a->vtable = &t->nspc->info->vtable;
+    if(t->nspc->info->offset)
+      a->data = (m_bit*)_mp_calloc(p, t->nspc->info->offset);
+  }
   if(shred)
     vector_add(&shred->gc, (vtype)a);
   return a;
@@ -68,6 +70,8 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   do {
     if(GET_FLAG(t, nonnull))
       t = t->e->parent;
+    if(!t->nspc)
+      continue; // return ?
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
@@ -89,7 +93,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-  if(o->type_ref->nspc->info->offset)
+  if(o->type_ref->nspc && o->type_ref->nspc->info->offset)
     mp_free2(p, o->type_ref->nspc->info->offset, o->data);
   mp_free(p, M_Object, o);
 }
@@ -226,11 +230,13 @@ static GACK(gack_object) {
 }
 
 GWION_IMPORT(object) {
-  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+gwi_add_type(gwi, t_object);
   GWI_BB(gwi_gack(gwi, t_object, gack_object))
+//assert(GET_FLAG(t_object, checked));
+  SET_FLAG(t_object, checked); // should be set by gwi_add_type
   gwi->gwion->type[et_object] = t_object;
-  GWI_BB(gwi_class_ini(gwi, t_object, NULL, NULL))
-  GWI_BB(gwi_class_end(gwi))
+
   GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
   GWI_BB(gwi_oper_add(gwi, at_object))
