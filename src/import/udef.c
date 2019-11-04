@@ -92,6 +92,4 @@ ANN void ck_clean_udef(MemPool mp, ImportCK* ck) {
     free_decl_list(mp, ck->list);
   if(ck->tmpl)
     free_id_list(mp, ck->tmpl);
-  if(ck->td)
-    free_type_decl(mp, ck->td);
 }
