@@ -32,8 +32,7 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef))
   if(name)
-    CHECK_OB((gwi->ck->sym = str2sym(gwi, name)))
-//  gwi->ck->name = name;
+    CHECK_OB((gwi->ck->xid = str2sym(gwi, name)))
   gwi->ck->name = type;
   if(type)
     CHECK_BB(check_typename_def(gwi, gwi->ck))
@@ -74,7 +73,12 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   udef->flag = flag;
   udef->xid = gwi->ck->xid;
   udef->type_xid = gwi->ck->sym;
+//  udef->xid = gwi->ck->sym;
+//  udef->type_xid = gwi->ck->xid;
+printf("%p\n", gwi->ck->xid);
   if(gwi->ck->tmpl) {
+if(udef->xid)
+printf("xid %s\n", s_name(udef->xid));
     if(udef->xid)
       GWI_ERR_O(_("Template union type can't declare instance at declaration"));
     udef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
@@ -92,4 +96,5 @@ ANN void ck_clean_udef(MemPool mp, ImportCK* ck) {
     free_decl_list(mp, ck->list);
   if(ck->tmpl)
     free_id_list(mp, ck->tmpl);
+// do we miss ck->td ?
 }
