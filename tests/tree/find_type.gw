@@ -1,0 +1,10 @@
+class C {
+  class D{
+  }
+}
+
+class E extends C {
+  D d;
+}
+E e;
+<<< e.d >>>;

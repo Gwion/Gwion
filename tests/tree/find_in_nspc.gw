@@ -1,4 +1,3 @@
-#! [contains] cannot find class
 class C {
   class D {
     int i;
@@ -10,7 +9,5 @@ class E extends C {
 }
 
 class F {
-  F->D d;
+  E->D d;
 }
-
-F f;
