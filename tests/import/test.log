@@ -1,0 +1,157 @@
+coverage.gw ==219564== Memcheck, a memory error detector
+==219564== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==219564== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==219564== Command: ./../../gwion -p. -m dummy -d dummy coverage.gw
+==219564== Parent PID: 219275
+==219564== 
+==219564== Invalid read of size 8
+==219564==    at 0x145464: path_valid (checker.c:67)
+==219564==    by 0x145774: ck2list (checker.c:172)
+==219564==    by 0x145813: str2decl (checker.c:226)
+==219564==    by 0x12CC24: make_exp (union.c:24)
+==219564==    by 0x12C78F: gwi_item_ini (item.c:18)
+==219564==    by 0x4848958: import (coverage.c:81)
+==219564==    by 0x11DB4E: type_engine_init (engine.c:162)
+==219564==    by 0x117059: gwion_engine (gwion.c:41)
+==219564==    by 0x117059: gwion_ini (gwion.c:84)
+==219564==    by 0x116502: main (main.c:23)
+==219564==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+==219564== 
+==219564== 
+==219564== Process terminating with default action of signal 11 (SIGSEGV): dumping core
+==219564==  Access not within mapped region at address 0x0
+==219564==    at 0x145464: path_valid (checker.c:67)
+==219564==    by 0x145774: ck2list (checker.c:172)
+==219564==    by 0x145813: str2decl (checker.c:226)
+==219564==    by 0x12CC24: make_exp (union.c:24)
+==219564==    by 0x12C78F: gwi_item_ini (item.c:18)
+==219564==    by 0x4848958: import (coverage.c:81)
+==219564==    by 0x11DB4E: type_engine_init (engine.c:162)
+==219564==    by 0x117059: gwion_engine (gwion.c:41)
+==219564==    by 0x117059: gwion_ini (gwion.c:84)
+==219564==    by 0x116502: main (main.c:23)
+==219564==  If you believe this happened as a result of a stack
+==219564==  overflow in your program's main thread (unlikely but
+==219564==  possible), you can try to increase the size of the
+==219564==  main thread stack using the --main-stacksize= flag.
+==219564==  The main thread stack size used in this run was 8388608.
+==219564== 
+==219564== HEAP SUMMARY:
+==219564==     in use at exit: 9,096,690 bytes in 460 blocks
+==219564==   total heap usage: 893 allocs, 433 frees, 9,197,246 bytes allocated
+==219564== 
+==219564== LEAK SUMMARY:
+==219564==    definitely lost: 0 bytes in 0 blocks
+==219564==    indirectly lost: 0 bytes in 0 blocks
+==219564==      possibly lost: 0 bytes in 0 blocks
+==219564==    still reachable: 9,096,690 bytes in 460 blocks
+==219564==         suppressed: 0 bytes in 0 blocks
+==219564== Rerun with --leak-check=full to see details of leaked memory
+==219564== 
+==219564== For lists of detected and suppressed errors, rerun with: -s
+==219564== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+class_template.gw ==347445== Memcheck, a memory error detector
+==347445== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==347445== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==347445== Command: ./../../gwion -p. -m dummy -d dummy class_template.gw
+==347445== Parent PID: 347195
+==347445== 
+==347445== 
+==347445== HEAP SUMMARY:
+==347445==     in use at exit: 9,102,463 bytes in 496 blocks
+==347445==   total heap usage: 1,005 allocs, 509 frees, 9,211,355 bytes allocated
+==347445== 
+==347445== LEAK SUMMARY:
+==347445==    definitely lost: 0 bytes in 0 blocks
+==347445==    indirectly lost: 0 bytes in 0 blocks
+==347445==      possibly lost: 0 bytes in 0 blocks
+==347445==    still reachable: 9,102,463 bytes in 496 blocks
+==347445==         suppressed: 0 bytes in 0 blocks
+==347445== Rerun with --leak-check=full to see details of leaked memory
+==347445== 
+==347445== For lists of detected and suppressed errors, rerun with: -s
+==347445== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+coverage.gw ==347621== Memcheck, a memory error detector
+==347621== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==347621== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==347621== Command: ./../../gwion -p. -m dummy -d dummy coverage.gw
+==347621== Parent PID: 347195
+==347621== 
+==347621== 
+==347621== HEAP SUMMARY:
+==347621==     in use at exit: 9,098,349 bytes in 468 blocks
+==347621==   total heap usage: 916 allocs, 448 frees, 9,204,177 bytes allocated
+==347621== 
+==347621== LEAK SUMMARY:
+==347621==    definitely lost: 0 bytes in 0 blocks
+==347621==    indirectly lost: 0 bytes in 0 blocks
+==347621==      possibly lost: 0 bytes in 0 blocks
+==347621==    still reachable: 9,098,349 bytes in 468 blocks
+==347621==         suppressed: 0 bytes in 0 blocks
+==347621== Rerun with --leak-check=full to see details of leaked memory
+==347621== 
+==347621== For lists of detected and suppressed errors, rerun with: -s
+==347621== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+enum.gw ==347758== Memcheck, a memory error detector
+==347758== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==347758== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==347758== Command: ./../../gwion -p. -m dummy -d dummy enum.gw
+==347758== Parent PID: 347195
+==347758== 
+==347758== 
+==347758== HEAP SUMMARY:
+==347758==     in use at exit: 9,101,889 bytes in 467 blocks
+==347758==   total heap usage: 920 allocs, 453 frees, 9,211,349 bytes allocated
+==347758== 
+==347758== LEAK SUMMARY:
+==347758==    definitely lost: 0 bytes in 0 blocks
+==347758==    indirectly lost: 0 bytes in 0 blocks
+==347758==      possibly lost: 0 bytes in 0 blocks
+==347758==    still reachable: 9,101,889 bytes in 467 blocks
+==347758==         suppressed: 0 bytes in 0 blocks
+==347758== Rerun with --leak-check=full to see details of leaked memory
+==347758== 
+==347758== For lists of detected and suppressed errors, rerun with: -s
+==347758== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+extend_array.gw ==347895== Memcheck, a memory error detector
+==347895== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==347895== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==347895== Command: ./../../gwion -p. -m dummy -d dummy extend_array.gw
+==347895== Parent PID: 347195
+==347895== 
+==347895== 
+==347895== HEAP SUMMARY:
+==347895==     in use at exit: 9,092,505 bytes in 463 blocks
+==347895==   total heap usage: 886 allocs, 423 frees, 9,196,621 bytes allocated
+==347895== 
+==347895== LEAK SUMMARY:
+==347895==    definitely lost: 0 bytes in 0 blocks
+==347895==    indirectly lost: 0 bytes in 0 blocks
+==347895==      possibly lost: 0 bytes in 0 blocks
+==347895==    still reachable: 9,092,505 bytes in 463 blocks
+==347895==         suppressed: 0 bytes in 0 blocks
+==347895== Rerun with --leak-check=full to see details of leaked memory
+==347895== 
+==347895== For lists of detected and suppressed errors, rerun with: -s
+==347895== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+fptr.gw ==348011== Memcheck, a memory error detector
+==348011== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==348011== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==348011== Command: ./../../gwion -p. -m dummy -d dummy fptr.gw
+==348011== Parent PID: 347195
+==348011== 
+==348011== 
+==348011== HEAP SUMMARY:
+==348011==     in use at exit: 9,097,889 bytes in 485 blocks
+==348011==   total heap usage: 914 allocs, 429 frees, 9,202,357 bytes allocated
+==348011== 
+==348011== LEAK SUMMARY:
+==348011==    definitely lost: 0 bytes in 0 blocks
+==348011==    indirectly lost: 0 bytes in 0 blocks
+==348011==      possibly lost: 0 bytes in 0 blocks
+==348011==    still reachable: 9,097,889 bytes in 485 blocks
+==348011==         suppressed: 0 bytes in 0 blocks
+==348011== Rerun with --leak-check=full to see details of leaked memory
+==348011== 
+==348011== For lists of detected and suppressed errors, rerun with: -s
+==348011== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

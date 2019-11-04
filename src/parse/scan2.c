@@ -344,6 +344,14 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   return v;
 }
 
+ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str name) {
+  SET_FLAG(func, builtin);
+  SET_FLAG(func->value_ref, builtin);
+  func->code = new_vm_code(p, NULL, func->def->stack_depth, func->flag, name);
+  func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
+  return GW_OK;
+}
+
 ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const Value overload) {
   const m_str name = s_name(f->base->xid);
   const Func func = scan_new_func(env, f, name);
@@ -382,19 +390,17 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
   if(!overload) {
-    func->vt_index = i;
+//    func->vt_index = i; // ?????
     ADD_REF(value)
     nspc_add_value(env->curr, f->base->xid, value);
     nspc_add_func(env->curr, f->base->xid, func);
   } else
     func->vt_index = ++overload->from->offset;
-  return GW_OK;
-}
-
-ANN static m_bool scan2_func_def_builtin(MemPool p, const Func func, const m_str name) {
-  SET_FLAG(func, builtin);
-  func->code = new_vm_code(p, NULL, func->def->stack_depth, func->flag, name);
-  func->code->native_func = (m_uint)func->def->d.dl_func_ptr;
+  if(GET_FLAG(f, builtin)) {
+    CHECK_BB(scan2_func_def_builtin(env->gwion->mp, func, func->name))
+    SET_FLAG(func, builtin);
+    SET_FLAG(value, builtin);
+  }
   return GW_OK;
 }
 

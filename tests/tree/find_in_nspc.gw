@@ -1,0 +1,13 @@
+class C {
+  class D {
+    int i;
+  }
+}
+
+class E extends C {
+  C->D d;
+}
+
+class F {
+  E->D d;
+}

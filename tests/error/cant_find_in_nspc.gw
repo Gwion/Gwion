@@ -12,3 +12,5 @@ class E extends C {
 class F {
   F->D d;
 }
+
+F f;

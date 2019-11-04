@@ -16,7 +16,6 @@
 #include "value.h"
 #include "operator.h"
 #include "import.h"
-#include "cpy_ast.h"
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);

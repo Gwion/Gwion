@@ -17,7 +17,6 @@
 #include "parse.h"
 #include "nspc.h"
 #include "match.h"
-#include "cpy_ast.h"
 #include "tuple.h"
 #include "emit.h"
 #include "specialid.h"
@@ -95,17 +94,12 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_BO(scan1_exp(env, td->exp))
   CHECK_BO(scan2_exp(env, td->exp))
   CHECK_OO(check_exp(env, td->exp))
-// TODO: check me
   const Type t = actual_type(env->gwion, td->exp->type);
   assert(t);
-  m_uint depth;
-  td->xid = str2list(env, t->name, &depth, td->exp->pos);
-  if(depth) {
-    Exp base = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)), e = base;
-    for(m_uint i = 0; i < depth - 1; ++i)
-      e = (e->next = new_exp_prim_int(env->gwion->mp, 0, new_loc(env->gwion->mp, __LINE__)));
-    td->array = new_array_sub(env->gwion->mp, base);
-  }
+  td->xid = new_id_list(env->gwion->mp, insert_symbol("@resolved"),
+      loc_cpy(env->gwion->mp, td->exp->pos));
+  if(t->array_depth)
+    SET_FLAG(td, force);
   return t;
 }
 
@@ -116,8 +110,7 @@ ANN static inline void clear_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
-  DECL_OO(const Type, t, = check_td(env, decl->td))
-  ((Exp_Decl*)decl)->type = NULL;
+  CHECK_OO((((Exp_Decl*)decl)->type = check_td(env, decl->td)))
   clear_decl(env, decl);
   CHECK_BO(traverse_decl(env, decl))
   return decl->type;
@@ -594,6 +587,10 @@ CHECK_BO(check_call(env, exp))
         const Value value = template_get_ready(env, v, "template", i);
         if(!value)
           continue;
+        if(GET_FLAG(v, builtin)) {
+          SET_FLAG(value, builtin);
+          SET_FLAG(value->d.func_ref, builtin);
+        }
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
         SET_FLAG(fdef, template);
         fdef->base->tmpl->call = types;
@@ -614,7 +611,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   if(f)
     return f;
   Type t = value->from->owner_class;
-  while(t) {
+  while(t && t->nspc) {
     const Value v = nspc_lookup_value0(t->nspc, value->d.func_ref->def->base->xid);
     if(!v)
       goto next;
@@ -1409,6 +1406,8 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
 
 ANN static inline void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  if(!parent)
+    return;
   nspc->info->offset = parent->info->offset;
   if(parent->info->vtable.ptr)
     vector_copy2(&parent->info->vtable, &nspc->info->vtable);

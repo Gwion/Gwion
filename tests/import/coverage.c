@@ -20,19 +20,17 @@ SFUN(coverage_vec3)    { m_vec3 v = {0,0,0};   *(m_vec3*)RETURN = v; }
 SFUN(coverage_vec4)    { m_vec4 v = {0,0,0,0}; *(m_vec4*)RETURN = v; }
 
 GWION_IMPORT(coverage) {
-  Type t_coverage;
-  GWI_OB((t_coverage = gwi_mk_type(gwi, "Coverage", SZ_INT, "Object")))
-  GWI_BB(gwi_class_ini(gwi, t_coverage, NULL, NULL))
-  GWI_BB(gwi_func_ini(gwi, "int", "i", coverage_int))
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
-  GWI_BB(gwi_func_ini(gwi, "float", "f", coverage_float))
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
-  GWI_BB(gwi_func_ini(gwi, "complex", "c", coverage_complex))
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
-  GWI_BB(gwi_func_ini(gwi, "Vec3", "v", coverage_vec3))
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
-  GWI_BB(gwi_func_ini(gwi, "Vec4", "w", coverage_vec4))
-  GWI_BB(gwi_func_end(gwi, ae_flag_static))
+  GWI_OB(gwi_class_ini(gwi, "Coverage", NULL))
+  GWI_BB(gwi_func_ini(gwi, "int", "i"))
+  GWI_BB(gwi_func_end(gwi, coverage_int, ae_flag_static))
+  GWI_BB(gwi_func_ini(gwi, "float", "f"))
+  GWI_BB(gwi_func_end(gwi, coverage_float, ae_flag_static))
+  GWI_BB(gwi_func_ini(gwi, "complex", "c"))
+  GWI_BB(gwi_func_end(gwi, coverage_complex, ae_flag_static))
+  GWI_BB(gwi_func_ini(gwi, "Vec3", "v"))
+  GWI_BB(gwi_func_end(gwi, coverage_vec3, ae_flag_static))
+  GWI_BB(gwi_func_ini(gwi, "Vec4", "w"))
+  GWI_BB(gwi_func_end(gwi, coverage_vec4, ae_flag_static))
 
   ALLOC_PTR(gwi->gwion->mp, i, m_uint, 5);
   GWI_BB(gwi_item_ini(gwi,"int", "s_i"))
@@ -79,6 +77,9 @@ GWION_IMPORT(coverage) {
   ALLOC_PTR(gwi->gwion->mp, cw, m_vec4, _cw);
   GWI_BB(gwi_item_ini(gwi,"Vec4", "sc_w"))
   GWI_BB(gwi_item_end(gwi, ae_flag_static | ae_flag_const, (void*)cw))
+
+  GWI_BB(gwi_item_ini(gwi,"int[][]", "test_array"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
 
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;

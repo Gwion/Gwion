@@ -49,6 +49,5 @@ ANN Type find_type(const Env, ID_List);
 ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN m_bool traverse_func_template(const Env, const Func_Def);
-ANN ID_List str2list(const Env, const m_str path, m_uint* array_depth, const loc_t);
 ANN2(1,3) void env_err(const Env, const struct YYLTYPE *pos, const m_str fmt, ...);
 #endif

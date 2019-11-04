@@ -116,14 +116,30 @@ static INSTR(PolarR##name) {                                 \
 polar_def2_r(Mul, *, +)
 polar_def2_r(Div, /, -)
 
+static GACK(gack_complex) {
+  printf("#(%.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT));
+}
+
+static GACK(gack_polar) {
+  printf("%%(%.4f, %.4f*pi)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT) / M_PI);
+}
+
 GWION_IMPORT(complex) {
-  GWI_BB(gwi_class_ini(gwi,  gwi->gwion->type[et_complex], NULL, NULL))
+// should be special
+  const Type t_complex = gwi_class_ini(gwi, "complex", NULL);
+  t_complex->e->parent = NULL;
+  GWI_BB(gwi_gack(gwi, t_complex, gack_complex))
+  gwi->gwion->type[et_complex] = t_complex; // use func
 	gwi_item_ini(gwi, "float", "re");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
 	gwi_item_ini(gwi, "float", "im");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_class_ini(gwi,  gwi->gwion->type[et_polar], NULL, NULL))
+// should be special
+  const Type t_polar   = gwi_class_ini(gwi,  "polar", NULL);
+  t_polar->e->parent = NULL;
+  gwi->gwion->type[et_polar] = t_polar;
+  GWI_BB(gwi_gack(gwi, t_polar, gack_polar))
   GWI_BB(gwi_item_ini(gwi, "float", "mod"))
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_item_ini(gwi, "float", "phase"))

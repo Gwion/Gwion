@@ -74,11 +74,10 @@ GWION_IMPORT(callback) {
   GWI_BB(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
   GWI_OB(gwi_fptr_end(gwi, 0))
 
-  const Type t_callback = gwi_mk_type(gwi, "Callback", SZ_INT, "Object");
-  GWI_BB(gwi_class_ini(gwi, t_callback, NULL, NULL))
-    GWI_BB(gwi_func_ini(gwi, "int", "callback", cb_func))
+  GWI_OB(gwi_class_ini(gwi, "Callback", NULL))
+    GWI_BB(gwi_func_ini(gwi, "int", "callback"))
       GWI_BB(gwi_func_arg(gwi, "PtrType", "func"))
-    GWI_BB(gwi_func_end(gwi, ae_flag_static))
+    GWI_BB(gwi_func_end(gwi, cb_func, ae_flag_static))
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

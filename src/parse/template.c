@@ -13,7 +13,6 @@
 #include "vm.h"
 #include "parse.h"
 #include "gwion.h"
-#include "cpy_ast.h"
 #include "tuple.h"
 
 struct tmpl_info {

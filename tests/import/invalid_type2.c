@@ -12,10 +12,7 @@
 #include "import.h"
 
 GWION_IMPORT(invalid_type2_test) {
-  Type t_invalid_var_type ;
-  GWI_OB((t_invalid_var_type = gwi_mk_type(gwi, "invalid_var_type",
-          SZ_INT , NULL)))
-  GWI_BB(gwi_class_ini(gwi, t_invalid_var_type, NULL, NULL))
+  GWI_OB(gwi_class_ini(gwi, "invalid_var_type", NULL))
   GWI_BB(gwi_item_ini(gwi,".int", "test"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
   GWI_BB(gwi_class_end(gwi))

@@ -53,20 +53,6 @@ static GACK(gack_float) {
   printf("%.4f", *(m_float*)VALUE);
 }
 
-// we where using m_complex
-static GACK(gack_complex) {
-  printf("#(%.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT));
-}
-static GACK(gack_polar) {
-  printf("%%(%.4f, %.4f*pi)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT) / M_PI);
-}
-static GACK(gack_vec3) {
-  printf("%%(%.4f, %.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT), *(m_float*)(VALUE + SZ_FLOAT*2));
-}
-static GACK(gack_vec4) {
-  printf("%%(%.4f, %.4f, %.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT), *(m_float*)(VALUE + SZ_FLOAT*2), *(m_float*)(VALUE + SZ_FLOAT*3));
-}
-
 #define mk_class_instr(op, arg0, arg1, ...)                          \
 static INSTR(instr_class_##op) {                                     \
   POP_REG(shred, SZ_INT);                                            \
@@ -124,23 +110,17 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
-  const Type t_complex = gwi_mk_type(gwi, "complex", SZ_COMPLEX , NULL);
-  gwi->gwion->type[et_complex] = t_complex;
-  GWI_BB(gwi_gack(gwi, t_complex, gack_complex))
-  const Type t_polar   = gwi_mk_type(gwi, "polar", SZ_COMPLEX , NULL);
-  gwi->gwion->type[et_polar] = t_polar;
-  GWI_BB(gwi_gack(gwi, t_polar, gack_polar))
-  const Type t_vec3 = gwi_mk_type(gwi, "Vec3", SZ_VEC3, NULL);
-  gwi->gwion->type[et_vec3] = t_vec3;
-  GWI_BB(gwi_gack(gwi, t_vec3, gack_vec3))
-  const Type t_vec4 = gwi_mk_type(gwi, "Vec4", SZ_VEC4, NULL);
-  gwi->gwion->type[et_vec4] = t_vec4;
-  GWI_BB(gwi_gack(gwi, t_vec4, gack_vec4))
+
+  GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
+  GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
+
   GWI_BB(import_object(gwi))
-  const Type t_union = gwi_mk_type(gwi, "@Union", SZ_INT, "Object");
+
+// TODO: check me
+  const Type t_union = gwi_class_ini(gwi, "@Union", NULL);
   gwi->gwion->type[et_union] = t_union;
-  GWI_BB(gwi_class_ini(gwi, t_union, NULL, NULL))
   GWI_BB(gwi_class_end(gwi))
+
   GWI_BB(import_tuple(gwi))
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
@@ -173,13 +153,14 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   vm->gwion->env->name = "[builtin]";
   struct YYLTYPE loc = {};
-  struct Gwi_ gwi = { .gwion=vm->gwion, .loc=&loc };
+  OperCK oper = {};
+  struct Gwi_ gwi = { .gwion=vm->gwion, .loc=&loc, .oper=&oper };
   CHECK_BB(import_core_libs(&gwi))
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)
-      env_reset(gwi.gwion->env);
+      gwi_reset(&gwi);
   }
   return GW_OK;
 }

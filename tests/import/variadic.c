@@ -41,13 +41,12 @@ static MFUN(m_variadic) {
 }
 
 GWION_IMPORT(variadic test) {
-  const Type t_variadic = gwi_mk_type(gwi, "Variadic", SZ_INT, "Object");
-  GWI_BB(gwi_class_ini(gwi, t_variadic, NULL, NULL))
-  GWI_BB(gwi_func_ini(gwi, "void", "member", m_variadic))
+  GWI_OB(gwi_class_ini(gwi, "Variadic", NULL))
+  GWI_BB(gwi_func_ini(gwi, "void", "member"))
   GWI_BB(gwi_func_arg(gwi, "string", "format"))
-  GWI_BB(gwi_func_end(gwi, ae_flag_variadic))
-  GWI_BB(gwi_func_ini(gwi, "void", "test", m_test))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_end(gwi, m_variadic, ae_flag_variadic))
+  GWI_BB(gwi_func_ini(gwi, "void", "test"))
+  GWI_BB(gwi_func_end(gwi, m_test, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;
 }

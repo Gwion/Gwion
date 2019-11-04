@@ -19,7 +19,6 @@
 #include "value.h"
 #include "object.h"
 #include "parse.h"
-#include "cpy_ast.h"
 #include "tuple.h"
 
 struct TupleEmit {
@@ -41,7 +40,8 @@ struct UnpackInfo_ {
 static INSTR(TupleUnpack) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   struct UnpackInfo_ *info = (struct UnpackInfo_*)instr->m_val;
-  memcpy(shred->mem + info->mem_offset, o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset + info->obj_offset, info->size);
+//  memcpy(shred->mem + info->mem_offset, o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset + info->obj_offset, info->size);
+  memcpy(shred->mem + info->mem_offset, o->data + info->obj_offset, info->size);
 }
 
 INSTR(TupleMember) {
@@ -236,12 +236,8 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
   vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
   vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
   Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
-  if(var->array) {
-    if(td->array)
-      td->array->depth += var->array->depth;
-    else
-      td->array = cpy_array_sub(env->gwion->mp, var->array);
-  }
+  if(var->array)
+    td->array = cpy_array_sub(env->gwion->mp, var->array);
   if(env->class_def->e->tuple->list) {
     Type_List tl = env->class_def->e->tuple->list;
     while(tl->next)
@@ -254,10 +250,9 @@ ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
 INSTR(TupleCtor) {
   const Type t = (Type)instr->m_val;
   const M_Object o = new_object(shred->info->vm->gwion->mp, shred, t);
-  const size_t sz = shred->info->vm->gwion->type[et_tuple]->nspc->info->offset;
-  memcpy(o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset,
-      shred->reg - (t->nspc->info->offset - sz), (t->nspc->info->offset - sz));
-  shred->reg -= (t->nspc->info->offset - sz - SZ_INT);
+  const m_uint sz = t->nspc->info->offset;
+  memcpy(o->data, shred->reg - sz, sz);
+  shred->reg -= (sz - SZ_INT);
   *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
@@ -345,9 +340,16 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
 
 GWION_IMPORT(tuple) {
   const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
+//  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, NULL);
+gwi_add_type(gwi, t_tuple);
+SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+//assert(!t_tuple->e->def);
+//  const Type t_tuple = gwi_class_ini(gwi, "Tuple", NULL);
+// this is a sign we should make the class_def optionnal
+// free def
+//t_tuple->e->def = NULL;
   gwi->gwion->type[et_tuple] = t_tuple;
-  GWI_BB(gwi_class_ini(gwi, t_tuple, NULL, NULL))
-  GWI_BB(gwi_class_end(gwi))
+//  GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_tuple, abstract | ae_flag_template);
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))

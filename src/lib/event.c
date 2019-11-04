@@ -58,15 +58,16 @@ static MFUN(event_broadcast) {
 }
 
 GWION_IMPORT(event) {
-  const Type t_event = gwi_mk_type(gwi, "Event", SZ_INT, "Object");
-  gwi->gwion->type[et_event] = t_event;
-  GWI_BB(gwi_class_ini(gwi,  t_event, event_ctor, event_dtor))
-  GWI_BB(gwi_item_ini(gwi, "int", "@shreds"))
+  const Type t_event = gwi_class_ini(gwi, "Event", "Object");
+  gwi_class_xtor(gwi, event_ctor, event_dtor);
+  gwi->gwion->type[et_event] = t_event; // use func
+
+  GWI_BB(gwi_item_ini(gwi, "@internal", "@shreds"))
   GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
-  GWI_BB(gwi_func_ini(gwi, "void", "signal", event_signal))
-  GWI_BB(gwi_func_end(gwi, 0))
-  GWI_BB(gwi_func_ini(gwi, "void", "broadcast", event_broadcast))
-  GWI_BB(gwi_func_end(gwi, 0))
+  GWI_BB(gwi_func_ini(gwi, "void", "signal"))
+  GWI_BB(gwi_func_end(gwi, event_signal, ae_flag_none))
+  GWI_BB(gwi_func_ini(gwi, "void", "broadcast"))
+  GWI_BB(gwi_func_end(gwi, event_broadcast, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
   _CHECK_OP("=>", eventwait, EventWait)

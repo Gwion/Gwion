@@ -92,15 +92,14 @@ static ID_CHECK(idck_vararg) {
 }
 
 GWION_IMPORT(vararg) {
-  const Type t_vararg  = gwi_mk_type(gwi, "@Vararg", SZ_INT, "Object");
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, "Object");
   SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))
   GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
-  GWI_BB(gwi_class_ini(gwi, t_vararg, NULL, NULL))
-  gwi->gwion->type[et_vararg] = t_vararg;
-  GWI_BB(gwi_union_ini(gwi, NULL))
+  const Type t_vararg  = gwi_class_ini(gwi, "@Vararg", NULL);
+  gwi->gwion->type[et_vararg] = t_vararg; // use func
+  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "start"))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))
   GWI_BB(gwi_union_add(gwi, "int",       "i"))

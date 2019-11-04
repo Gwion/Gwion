@@ -51,6 +51,8 @@ ANN static Type void_type(const Env env, const Type_Decl* td) {
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
+  if(decl->type)
+    return decl->type;
   DECL_OO(const Type ,t, = void_type(env, decl->td))
   if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
     return decl->type;

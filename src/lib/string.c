@@ -187,11 +187,12 @@ static GACK(gack_string) {
   printf("%s", obj ? STRING(obj) : "(null string)");
 }
 GWION_IMPORT(string) {
-  const Type t_string = gwi_mk_type(gwi, "string", SZ_INT, "Object");
+  const Type t_string = gwi_class_ini(gwi, "string", NULL);
+  gwi_class_xtor(gwi, string_ctor, NULL);
   GWI_BB(gwi_gack(gwi, t_string, gack_string))
-  GWI_BB(gwi_class_ini(gwi,  t_string, string_ctor, NULL))
-  gwi->gwion->type[et_string] = t_string;
-  gwi_item_ini(gwi, "int", "@data");
+  gwi->gwion->type[et_string] = t_string; // use func
+
+  gwi_item_ini(gwi, "@internal", "@data");
   GWI_BB(gwi_item_end(gwi,   ae_flag_const, NULL))
   GWI_BB(gwi_class_end(gwi))
 
