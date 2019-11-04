@@ -53,12 +53,12 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
   return base;
 }
 
-ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
+ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   Func_Base* base = gwi_func_base(gwi, ck);
   const Func_Def fdef = new_func_def(gwi->gwion->mp, base,
     NULL, ck->flag | ae_flag_builtin, loc(gwi));
   fdef->d.dl_func_ptr = (void*)(m_uint)ck->addr;
-  if(ck->tmpl)
+  if(base->tmpl)
     SET_FLAG(fdef, template);
   return fdef;
 }
@@ -77,7 +77,7 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 }
 
 ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
-  DECL_OB(Func_Def, fdef, = import_fdef(gwi, ck))
+  const Func_Def fdef = import_fdef(gwi, ck);
   if(SAFE_FLAG(gwi->gwion->env->class_def, template))
     /*return*/ section_fdef(gwi, fdef);
   if(traverse_func_def(gwi->gwion->env, fdef) < 0)
