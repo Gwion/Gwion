@@ -10,9 +10,8 @@
 #include "value.h"
 #include "operator.h"
 #include "import.h"
-#include "gwi.h"
 
-GWION_IMPORT(checker) {
-  gwi_item_ini(gwi, "int", "array[2][3]");
+GWION_IMPORT(enum_test) {
+  GWI_BB(gwi_enum_add(gwi, "adc", 0))
   return GW_OK;
 }

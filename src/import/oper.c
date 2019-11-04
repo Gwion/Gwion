@@ -40,7 +40,7 @@ ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
     const f_instr f) {
   const Type lhs = get_type(gwi, op->lhs),
              rhs = get_type(gwi, op->rhs),
-             ret = get_type(gwi, op->name);
+             ret = get_type(gwi, op->ret);
   const struct Op_Import opi = { lhs, rhs, ret,
     op->ck, op->em, (uintptr_t)f, gwi->loc, op->sym };
   return add_op(gwi->gwion, &opi);
@@ -49,7 +49,7 @@ ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
 
 ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
     const restrict m_str r, const restrict m_str t) {
-  gwi->oper->name = t;
+  gwi->oper->ret = t;
   gwi->oper->rhs = r;
   gwi->oper->lhs = l;
   return GW_OK;

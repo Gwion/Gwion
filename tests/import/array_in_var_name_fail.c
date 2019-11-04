@@ -13,6 +13,7 @@
 #include "gwi.h"
 
 GWION_IMPORT(checker) {
-  gwi_item_ini(gwi, "int", "array[2][3]");
+  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
+  GWI_BB(gwi_union_add(gwi, "int", "|array[2][3]"))
   return GW_OK;
 }

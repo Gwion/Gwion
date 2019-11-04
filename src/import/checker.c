@@ -94,7 +94,7 @@ ANN Var_Decl str2var(const Gwi gwi, const m_str path) {
 }
 
 ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
-  const Var_Decl var = str2var(gwi, path);
+  DECL_OO(const Var_Decl, var, = str2var(gwi, path))
   return new_var_decl_list(gwi->gwion->mp, var, NULL);
 }
 
@@ -273,7 +273,7 @@ ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
           break;
       }
       ++ck->depth;
-      return is_end ? GW_OK : array_check(gwi, ck);
+      return is_end ? GW_OK : _array_check(gwi, ck);
     }
     if(isdigit(c))
       tmp[i] = c;

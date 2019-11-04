@@ -15,47 +15,32 @@ typedef struct ImportCK { // name_checker ?
   Symbol sym;
   union {
     ID_List tmpl;
-    Type   (*ck)(Env, void*, m_bool*); // oper
     Exp exp;
   };
   union {
     Symbol xid;// union name
-    Instr  (*em)(Emitter, void*); // oper
     f_xfun addr;
   };
   union {
     Decl_List list;// union
     struct Vector_ v;
 //    ID_List curr;// enum
-    m_str lhs;// oper
   };
   union {
     Type_Decl *td; // typedef
     ID_List curr;// enum
-    m_str rhs;// oper
   };
   ae_flag flag; // ????
   enum importck_type type;
 } ImportCK;
 
 typedef struct OperCK { // name_checker ?
-  m_str name;
+  m_str ret;
   Symbol sym;
   Type   (*ck)(Env, void*, m_bool*); // oper
   Instr  (*em)(Emitter, void*); // oper
-  union {
-    Decl_List list;// union
-    struct Vector_ v;
-//    ID_List curr;// enum
-    m_str lhs;// oper
-  };
-  union {
-    Type_Decl *td; // typedef
-    ID_List curr;// enum
-    m_str rhs;// oper
-  };
-  ae_flag flag; // ????
-  enum importck_type type;
+  m_str lhs;// oper
+  m_str rhs;// oper
 } OperCK;
 
 struct array_checker {

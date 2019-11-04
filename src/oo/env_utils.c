@@ -36,6 +36,14 @@ ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
 
 ANN Type find_type(const Env env, ID_List path) {
   Type type = nspc_lookup_type1(env->curr, path->xid);
+if(!type && env->class_def) {
+  Type base = env->class_def->e->parent;
+  while(base && base->nspc) {
+    if((type = nspc_lookup_type1(base->nspc, path->xid)))
+     break;
+  }
+}
+
   CHECK_OO(type)
   Nspc nspc = type->nspc;
   path = path->next;
