@@ -78,7 +78,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   if(gwi->ck->tmpl) {
     if(udef->xid)
       GWI_ERR_O(_("Template union type can't declare instance at declaration"));
-    udef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
+    udef->tmpl = gwi_tmpl(gwi);
     gwi->ck->tmpl = NULL;
   }
   const Type t = union_type(gwi, udef);

@@ -47,7 +47,7 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
   Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list);
   ck->td = NULL;
   if(ck->tmpl) {
-    base->tmpl = new_tmpl(gwi->gwion->mp, ck->tmpl, -1);
+    base->tmpl = gwi_tmpl(gwi);
     ck->tmpl = NULL;
   }
   return base;

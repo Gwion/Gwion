@@ -17,11 +17,11 @@
 #include "gack.h"
 
 ANN void gack(const VM_Shred shred, const Instr instr) {
-  Type t = (Type)instr->m_val;
+  Type base = (Type)instr->m_val, t = base;
   do {
     if(t->e->gack) {
       if(GET_FLAG(t->e->gack, builtin))
-        ((f_gack)t->e->gack->native_func)(t, (shred->reg - t->size), shred);
+        ((f_gack)t->e->gack->native_func)(base, (shred->reg - t->size), shred);
       else {
         shred->mem += instr->m_val2;
         *(m_uint*)(shred->mem+ SZ_INT) = instr->m_val2 + SZ_INT;
