@@ -330,7 +330,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
       inherit_tmpl(env, cdef);
     set_template(t, cdef);
   } else if(SAFE_FLAG(env->class_def, template)) {
-    cdef->base.tmpl = new_tmpl(env->gwion->mp, env->class_def->e->def->base.tmpl->list, -1);
+    cdef->base.tmpl = new_tmpl_base(env->gwion->mp, env->class_def->e->def->base.tmpl->list);
     set_template(t, cdef);
   }
   if(cdef->base.ext && cdef->base.ext->array)
