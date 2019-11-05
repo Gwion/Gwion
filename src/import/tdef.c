@@ -35,7 +35,7 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   td->flag |= flag;
   const Type_Def tdef = new_type_def(gwi->gwion->mp, td, gwi->ck->sym);
   if(gwi->ck->tmpl)
-    tdef->tmpl = new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
+    tdef->tmpl = gwi_tmpl(gwi);
   gwi->ck->td = NULL;
   gwi->ck->tmpl = NULL;
   const m_bool ret = traverse_type_def(gwi->gwion->env, tdef);

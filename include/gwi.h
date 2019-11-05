@@ -12,5 +12,7 @@ struct Gwi_ {
 };
 
 #include "import/internals.h"
-
+static inline Tmpl* gwi_tmpl(const Gwi gwi) {
+  return new_tmpl(gwi->gwion->mp, gwi->ck->tmpl, -1);
+}
 #endif
