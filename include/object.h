@@ -16,7 +16,6 @@ ANN void fork_clean(const VM_Shred, const Vector);
 ANN ANEW M_Object new_array(MemPool, const Type t, const m_uint length);
 ANEW M_Object new_string(MemPool, const VM_Shred, const m_str);
 ANEW M_Object new_string2(const struct Gwion_*, const VM_Shred, const m_str);
-ANEW M_Object gwion_new_string(const struct Gwion_*, const m_str);
 ANEW M_Object new_shred(const VM_Shred, const m_bool);
 ANN void fork_launch(const VM*, const M_Object, const m_uint);
 ANN void __release(const M_Object, const VM_Shred);
