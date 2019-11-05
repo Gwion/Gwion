@@ -52,8 +52,11 @@ ANN2(1) void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor)
     mk_xtor(gwi->gwion->mp, t, (m_uint)dtor, ae_flag_dtor);
 }
 
-ANN static Type type_finish(const Gwi gwi, const Type t) {
+ANN static inline void gwi_type_flag(const Type t) {
   SET_FLAG(t, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+}
+
+ANN static Type type_finish(const Gwi gwi, const Type t) {
   gwi_add_type(gwi, t);
   import_class_ini(gwi->gwion->env, t);
   return t;
@@ -78,6 +81,8 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
     SET_FLAG(t, typedef);
   if(ck.tmpl)
     SET_FLAG(t, template);
+  else
+    gwi_type_flag(t);
   return type_finish(gwi, t);
 }
 
@@ -85,6 +90,7 @@ ANN Type gwi_class_spe(const Gwi gwi, const m_str name, const m_uint size) {
   CHECK_OO(str2sym(gwi, name))
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
   t->size = size;
+  gwi_type_flag(t);
   return type_finish(gwi, t);
 }
 

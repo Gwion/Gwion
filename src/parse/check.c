@@ -1039,7 +1039,8 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       td.array = &array;
     }
     ptr = known_type(env, &td);
-    assert(GET_FLAG(ptr, checked));
+    if(!GET_FLAG(ptr, checked) && ptr->e->def)
+      CHECK_BB(traverse_cdef(env, ptr->e->def))
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));

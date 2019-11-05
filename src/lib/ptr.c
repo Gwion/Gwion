@@ -113,7 +113,7 @@ GWION_IMPORT(ptr) {
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
   GWI_BB(gwi_class_end(gwi))
-  t_ptr->nspc->info->offset = SZ_INT; // TODO: should be an assert
+  t_ptr->nspc->info->offset = SZ_INT;
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_assign))
   GWI_BB(gwi_oper_emi(gwi, opem_ptr_assign))
