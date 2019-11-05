@@ -192,11 +192,15 @@ static FREEARG(freearg_array) {
   mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
 }
 
+static GACK(gack_array) {
+  printf("%s", t->name);
+}
+
 GWION_IMPORT(array) {
   const Type t_array  = gwi_class_ini(gwi, "@Array", NULL);
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
-
+  GWI_BB(gwi_gack(gwi, t_array, gack_array))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
 

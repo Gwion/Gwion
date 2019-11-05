@@ -1,0 +1,3 @@
+int i[2];
+<<< typeof(i) >>>;
+<<< typeof(1) >>>;

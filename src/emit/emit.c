@@ -1163,7 +1163,10 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
 }
 
 ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
-  regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->type)));
+  if(!exp->exp->type->array_depth)
+    regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->type)));
+  else
+    regpushi(emit, (m_uint)exp->exp->type);
   return GW_OK;
 }
 
