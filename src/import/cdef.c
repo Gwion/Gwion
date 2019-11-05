@@ -44,13 +44,19 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   env_push_type(env, t);
 }
 
-
 ANN2(1) void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor) {
   const Type t = gwi->gwion->env->class_def;
   if(ctor)
     mk_xtor(gwi->gwion->mp, t, (m_uint)ctor, ae_flag_ctor);
   if(dtor)
     mk_xtor(gwi->gwion->mp, t, (m_uint)dtor, ae_flag_dtor);
+}
+
+ANN static Type type_finish(const Gwi gwi, const Type t) {
+  SET_FLAG(t, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+  gwi_add_type(gwi, t);
+  import_class_ini(gwi->gwion->env, t);
+  return t;
 }
 
 ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
@@ -63,7 +69,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   const Type p = known_type(gwi->gwion->env, td); // check
   if(tmpl)
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
-  const Type t = new_type(gwi->gwion->mp, gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
+  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
   t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
   t->e->def->base.tmpl = tmpl;
   t->e->def->base.type = t;
@@ -72,11 +78,14 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
     SET_FLAG(t, typedef);
   if(ck.tmpl)
     SET_FLAG(t, template);
-  else
-    SET_FLAG(t, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
-  gwi_add_type(gwi, t);
-  import_class_ini(gwi->gwion->env, t);
-  return t;
+  return type_finish(gwi, t);
+}
+
+ANN Type gwi_class_spe(const Gwi gwi, const m_str name, const m_uint size) {
+  CHECK_OO(str2sym(gwi, name))
+  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
+  t->size = size;
+  return type_finish(gwi, t);
 }
 
 ANN m_int gwi_class_end(const Gwi gwi) {

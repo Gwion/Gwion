@@ -164,9 +164,7 @@ static GACK(gack_vec3) {
 }
 
 GWION_IMPORT(vec3) {
-  const Type t_vec3 = gwi_class_ini(gwi, "Vec3", NULL);
-t_vec3->size = SZ_VEC3;
-t_vec3->e->parent = NULL;
+  const Type t_vec3 = gwi_class_spe(gwi, "Vec3", SZ_VEC3);
   gwi->gwion->type[et_vec3] = t_vec3;
   GWI_BB(gwi_gack(gwi, t_vec3, gack_vec3))
   vecx_base(gwi);
@@ -314,10 +312,7 @@ static GACK(gack_vec4) {
 }
 
 GWION_IMPORT(vec4) {
-// should be special (gwi, "Vec4", SZ_VEC4)
-  const Type t_vec4 = gwi_class_ini(gwi, "Vec4", NULL);
-t_vec4->size = SZ_VEC4;
-t_vec4->e->parent = NULL;
+  const Type t_vec4 = gwi_class_spe(gwi, "Vec4", SZ_VEC4);
   gwi->gwion->type[et_vec4] = t_vec4;
   GWI_BB(gwi_gack(gwi, t_vec4, gack_vec4))
   vecx_base(gwi);

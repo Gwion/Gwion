@@ -126,8 +126,7 @@ static GACK(gack_polar) {
 
 GWION_IMPORT(complex) {
 // should be special
-  const Type t_complex = gwi_class_ini(gwi, "complex", NULL);
-  t_complex->e->parent = NULL;
+  const Type t_complex = gwi_class_spe(gwi, "complex", SZ_COMPLEX);
   GWI_BB(gwi_gack(gwi, t_complex, gack_complex))
   gwi->gwion->type[et_complex] = t_complex; // use func
 	gwi_item_ini(gwi, "float", "re");
@@ -136,8 +135,7 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
 // should be special
-  const Type t_polar   = gwi_class_ini(gwi,  "polar", NULL);
-  t_polar->e->parent = NULL;
+  const Type t_polar   = gwi_class_spe(gwi, "polar", SZ_COMPLEX);
   gwi->gwion->type[et_polar] = t_polar;
   GWI_BB(gwi_gack(gwi, t_polar, gack_polar))
   GWI_BB(gwi_item_ini(gwi, "float", "mod"))
