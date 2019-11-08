@@ -1,13 +1,6 @@
-//#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "nspc.h"
-#include "value.h"
-#include "env.h"
-#include "type.h"
+#include "gwion_env.h"
 
 #ifdef min
 #undef min

@@ -1,13 +1,8 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "nspc.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "gwion.h"
-#include "context.h"
 
 ANN static void free_context(const Context a, Gwion gwion) {
   REM_REF(a->nspc, gwion)

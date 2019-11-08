@@ -2,20 +2,17 @@
 #include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
 #include "instr.h"
 #include "object.h"
-#include "func.h"
 #include "array.h"
-#include "nspc.h"
 #include "shreduler_private.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "import.h"
+#include "emit.h"
+#include "template.h"
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
@@ -24,11 +21,6 @@ INSTR(DTOR_EOC) {
   shred->info->me->ref = 1;
   vm_shred_exit(shred);
 }
-
-#include "gwion.h"
-#include "emit.h"
-#include "value.h"
-#include "template.h"
 
 INSTR(PopArrayClass) {
   POP_REG(shred, SZ_INT);

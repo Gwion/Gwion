@@ -1,21 +1,12 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "nspc.h"
-#include "type.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "traverse.h"
 #include "parse.h"
 
-#include "context.h"
-
 #define STR_NONNULL ":nonnull"
 #define STRLEN_NONNULL strlen(STR_NONNULL)
-
-#include "func.h"
 
 ANN Type type_nonnull(const Env env, const Type base) {
   char c[strlen(base->name) + 9];

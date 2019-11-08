@@ -1,16 +1,12 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
+#include "gwion_env.h"
 #include "gwion_thread.h"
-#include "oo.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
 #include "instr.h"
 #include "object.h"
 #include "shreduler_private.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
@@ -236,7 +232,7 @@ ANN void fork_clean(const VM_Shred shred, const Vector v) {
   }
   vector_release(v);
 }
-#include "nspc.h"
+
 GWION_IMPORT(shred) {
   const Type t_shred = gwi_class_ini(gwi,  "Shred", NULL);
   gwi_class_xtor(gwi, NULL, shred_dtor);

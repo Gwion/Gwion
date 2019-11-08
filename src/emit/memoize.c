@@ -1,14 +1,10 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
 #include "emit.h"
 #include "gwion.h"
-#include "type.h"
-#include "func.h"
 #include "memoize.h"
 
 struct Memoize_ {

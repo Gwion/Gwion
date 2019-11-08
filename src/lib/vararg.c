@@ -1,24 +1,18 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
 #include "instr.h"
 #include "emit.h"
 #include "object.h"
 #include "vararg.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
 #include "specialid.h"
 #include "traverse.h"
 #include "parse.h"
-#include "func.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);

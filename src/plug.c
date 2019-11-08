@@ -1,4 +1,3 @@
-#include <string.h>
 #ifndef BUILD_ON_WINDOWS
 #include <glob.h>
 #include <dlfcn.h>
@@ -7,15 +6,12 @@
 #endif
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "instr.h"
 #include "object.h"
-#include "type.h"
 #include "import.h"
 
 typedef m_bool (*import)(Gwi);

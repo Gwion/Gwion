@@ -2,16 +2,11 @@
 #include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
 #include "gwion.h"
-#include "type.h"
 #include "instr.h"
 #include "emit.h"
-#include "value.h"
-#include "func.h"
-#include "nspc.h"
 #include "operator.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);

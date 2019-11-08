@@ -1,9 +1,6 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "value.h"
-#include "type.h"
+#include "gwion_env.h"
 
 ANN m_uint union_push(const Env env, const Union_Def udef) {
   const Type type = udef->xid ? udef->value->type : udef->type_xid ?

@@ -1,12 +1,7 @@
 #include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "type.h"
-#include "value.h"
-#include "func.h"
-#include "nspc.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "traverse.h"
 #include "template.h"
@@ -16,8 +11,6 @@
 #include "instr.h"
 #include "operator.h"
 #include "import.h"
-
-#include "context.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);

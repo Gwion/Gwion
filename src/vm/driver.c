@@ -1,13 +1,8 @@
-#include <stdlib.h>
-#include <string.h>
-#include <string.h>
 #include <time.h>
-#include <stdio.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
 #include "gwion.h"
 #include "driver.h"
 

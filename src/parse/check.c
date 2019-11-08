@@ -1,12 +1,7 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
-#include "value.h"
-#include "func.h"
 #include "instr.h"
 #include "object.h"
 #include "traverse.h"
@@ -15,12 +10,10 @@
 #include "operator.h"
 #include "import.h"
 #include "parse.h"
-#include "nspc.h"
 #include "match.h"
 #include "tuple.h"
 #include "emit.h"
 #include "specialid.h"
-#include "context.h"
 
 ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);

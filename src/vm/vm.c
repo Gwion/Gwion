@@ -1,26 +1,17 @@
-#include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
-#include "nspc.h"//dot func
-#include "func.h"//dot func
-#include "type.h"
 #include "instr.h"
 #include "object.h"
 #include "ugen.h"
 #include "shreduler_private.h"
 #include "emit.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "import.h"
 #include "map_private.h"
-
-#include "value.h"
 #include "gack.h"
 #include "array.h"
 

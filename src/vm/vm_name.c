@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 

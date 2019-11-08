@@ -1,14 +1,8 @@
-#include <stdlib.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
 #include "gwion.h"
-#include "type.h"
-#include "nspc.h"
-#include "func.h"
-#include "value.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
   if(GET_FLAG(a, template) && !GET_FLAG(a, builtin)/* && a->def->d.code*/)
@@ -25,12 +19,6 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
   func->ref = new_refcount(p, free_func);
   return func;
 }
-
-#include <string.h>
-#include "env.h"
-#include "type.h"
-#include "vm.h"
-#include "gwion.h"
 
 ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
     const m_str tmpl, const m_uint i) {

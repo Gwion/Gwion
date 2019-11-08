@@ -2,13 +2,9 @@
 #include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
 #include "gwion.h"
-#include "type.h"
-#include "nspc.h"
-#include "value.h"
 #include "instr.h"
 #include "object.h"
 #include "operator.h"
@@ -16,7 +12,6 @@
 #include "emit.h"
 #include "traverse.h"
 #include "parse.h"
-#include "func.h"
 #include "specialid.h"
 
 #include "gwi.h"

@@ -1,12 +1,8 @@
-#include <stdlib.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "gwion.h"
-#include "value.h"
-#include "type.h"
 
 ANN static void free_value(Value a, Gwion gwion) {
   const Type t = a->type;

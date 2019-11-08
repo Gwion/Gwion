@@ -1,18 +1,12 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
+#include "gwion_env.h"
 #include "vm.h"
-#include "env.h"
-#include "type.h"
-#include "func.h"
 #include "instr.h"
 #include "object.h"
 #include "array.h"
 #include "memoize.h"
 #include "gwion.h"
-#include "value.h"
 #include "operator.h"
 #include "import.h"
 

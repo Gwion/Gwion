@@ -1,16 +1,10 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
-#include "oo.h"
-#include "env.h"
-#include "type.h"
-#include "nspc.h"
-#include "value.h"
-#include "func.h"
+#include "gwion_env.h"
 #include "vm.h"
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
-#include "context.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
