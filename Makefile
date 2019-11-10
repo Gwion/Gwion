@@ -7,7 +7,7 @@ build: ensure
 book: build
 
 deploy: book
-	@git branch gh-pages && git pull && git checkout mdbook
+	@git checkout gh-pages && git pull && git checkout mdbook
 	@git add -f book
 	@git commit -m "add book"
 	@echo lol
