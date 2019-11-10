@@ -7,7 +7,7 @@ build: ensure
 book: build
 
 deploy: book
-	@$(shell git push origin :gh-pages || true)
+	@git branch | grep gh-pages && git push origin :gh-pages || true
 	@git add -f book
 	@git commit -m "add book"
 	@git subtree push --prefix book origin gh-pages
