@@ -9,3 +9,4 @@ libgwion.a
 log
 plug/
 util/
+*.gw
