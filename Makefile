@@ -7,7 +7,6 @@ build: ensure
 book: build
 
 deploy: book
-	echo lol
 	@git branch -r | grep gh-pages && git push origin :gh-pages || true
 	@git add -f book
 	@git commit -m "add book"
