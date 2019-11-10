@@ -1,0 +1,31 @@
+# Keywords
+
+ * fun/function
+ * operator
+ * return
+ * goto
+ * switch/case/default
+ * if/else
+ * break/continue
+ * until/do/while/for/repeat
+
+
+
+
+ * global/static
+ * private/protect
+ * const
+
+ * new
+ * spork
+ * fork
+ * typeof
+
+ * typedef
+ * class
+   * dtor
+   * extends
+ * enum
+ * union
+
+ * auto

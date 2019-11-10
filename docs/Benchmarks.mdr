@@ -1,0 +1,89 @@
+# Benchmarks
+
+We'll need a bash script
+
+<link rel=styleSheet href="../assets/doc.css" TYPE="text/css"><div id="org-categories"><ul class="lev1"><li><a href="#">Show the code</a></li><ul class="lev2"><a href="#">
+@``` benchmark.sh
+#!/bin/sh
+language=("gwion" "wren" "lua")
+extension=("gw" "wren" "lua")
+test_dir="tests/benchmark"
+plot_script="bench.plot"
+: "${repeats:=10}"
+
+run() {
+  perf stat -r"$repeats" "$1" "$test_dir/$3.$2" 2>&1 | grep "time elapsed" |
+    sed 's/ *\([0-9]*\),\([0-9]*\) .* seconds time elapsed *( +- *\([0-9]*\),\([0-9]*\)% )/\1.\2 \3.\4/'
+}
+
+get_list() {
+  for file in $test_dir/*.gw
+  do basename "$file" .gw
+  done
+}
+
+get_test() {
+  for (( i=0; i<=$(( ${#language[@]} -1 )); i++ ))
+  do
+    if [ -f "$test_dir/$1.${extension[$i]}" ]
+    then echo "${language[$i]} $(run "${language[$i]}" "${extension[$i]}" "$1")"
+    fi
+  done > "docs/assets/benchmark/$1.dat"
+}
+
+plot() {
+  gnuplot -e "bench='$1'" "$plot_script"
+}
+
+for bench in $(get_list)
+do
+echo $bench
+  get_test "$bench"
+  plot "$bench"
+  echo "### $bench"
+  echo '<link rel=styleSheet href="../assets/doc.css" TYPE="text/css"><div id="org-categories"><ul class="lev1"><li><a href="#">Show the code</a></li><ul class="lev2"><a href="#">'
+  echo "\`\`\`"
+  cat "$test_dir/$bench.gw"
+  echo "\`\`\`"
+  echo '</a></a></li></ul></ul></div>'
+  echo "![](assets/benchmark/$bench.png)"
+done
+@```  
+</a></a></li></ul></ul></div>
+
+### and a gnuplot script
+
+<link rel=styleSheet href="../assets/doc.css" TYPE="text/css"><div id="org-categories"><ul class="lev1"><li><a href="#">Show the code</a></li><ul class="lev2"><a href="#">
+@``` bench.plot
+set terminal png truecolor
+
+#if (!exists("bench"))
+#  bench = 'bench'
+if (!exists("test_dir"))
+  test_dir = 'tests/benchmark'
+
+dat_name = sprintf("docs/assets/benchmark/%s.dat", bench)
+
+stats dat_name using 0:2 noout
+max = STATS_max_y+(0.1*STATS_max_y)
+
+set title bench
+set output sprintf("docs/assets/benchmark/%s.png", bench)
+set xrange [-0.5:((ceil(STATS_max_x))+0.5)]
+set yrange [0:max]
+set boxwidth 0.50
+set nokey
+set xtics nomirror
+set ytics nomirror
+
+set style fill transparent solid 0.25 # partial transparency
+set style fill noborder # no separate top/bottom lines
+
+plot dat_name using 0:2:($2*($3/100.0)):xtic(2) with boxerrorbar lc "blue" notitle, \
+  '' using 0:(max-(0.05*max)):1 with labels
+@```  
+</a></a></li></ul></ul></div>
+
+## Show the results
+Then just run it
+@exec bash benchmark.sh; rm bench.plot benchmark.sh

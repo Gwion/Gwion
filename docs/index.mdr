@@ -1,0 +1,23 @@
+# Welcome to Gwion
+
+gwion is a easy yet powerful, strongly-timed programming language, 
+
+## And now for the hello world
+
+So, as it is mandatory, here is the piece of code you're waiting 
+for:
+
+@``` helloworld.gw
+<<< "Hello, World!" >>>;
+@```  
+@exec make -s CONTAINS="Hello, World!" helloworld.test
+
+## (Bag of) Features
+  * [single inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)#Design_constraints)
+  * typedef (function pointers and type aliases)
+  * enums and unions
+  * templates (both class and functions)
+  * easy concurrency/async
+  * [lambdas](Reference/Functions/Lambdas.html)
+  * memoization
+  * [variadic](Reference/Functions/Variadic.html) functions

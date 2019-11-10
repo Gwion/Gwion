@@ -1,0 +1,37 @@
+# Lambda
+
+## Overview
+
+Simply put, *lambda*s are anonymous functions.  
+
+The syntax to create them is simple:
+```
+\ variable0 variable1 ... {  your code here }
+```
+You can even use it to
+### Call a function just once
+@``` lambda_call0.gw
+\ i { <<< "passed '", i, "'" >>>; }(3);
+@```  
+@exec make -s CONTAINS="passed '3'" lambda_call0.test
+
+
+## Use case
+
+### Passing to a function pointer
+@``` lambda_fptr0.gw
+typedef void fptr_t(int);
+\ i { <<< "passed '", i, "'" >>>; } @=> fptr_t fptr;
+fptr(4);
+@```  
+@exec make -s CONTAINS="passed '4'" lambda_fptr0.test
+
+### As Argument to Functions
+@``` lambda_args0.gw
+typedef void fptr_t(int);
+fun void test(fptr_t fptr) {
+   fptr(5);
+}
+test(\ i { <<< "passed '", i, "'" >>>; });
+@```  
+@exec make -s CONTAINS="passed '5'" lambda_args0.test

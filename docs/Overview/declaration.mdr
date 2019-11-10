@@ -1,0 +1,34 @@
+# Declarations
+
+## Basics
+
+Declaring a primitive or an object is quite straight forward:
+@``` decl0.gw
+int i;
+Object o;
+<<< i, " ", o >>>;
+@```
+@exec make decl0.test
+
+## Declaring a reference
+However ...
+@``` decl1.gw
+Object @ref;
+<<< "Reference points to no object yet: ", ref >>>;
+#!Object o @=> ref;
+new Object @=> ref;
+<<< "But now it does: ", ref >>>;
+@```
+@exec make decl1.test
+
+## Arrays
+
+### array as refs
+
+@``` decl2.gw
+int ref[];
+<<< ref >>>;
+new int[2] @=> ref;
+<<< ref >>>;
+@```
+@exec make decl2.test
