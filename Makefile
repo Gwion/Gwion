@@ -12,6 +12,7 @@ deploy: book
 	@git commit -m "add book"
 	@git subtree push --prefix book origin gh-pages
 	@git rm -rf book
+	@rm -rf book
 	@git add book
 	@git commit -m "remove book"
 
