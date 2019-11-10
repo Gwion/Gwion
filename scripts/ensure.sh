@@ -28,6 +28,7 @@ cat <<EOF > custom.css
 }
 
 footer {
+  padding: 10px;
   text-align: center;
   font-size: small;
   font-style: italic;
