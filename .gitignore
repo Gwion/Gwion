@@ -2,3 +2,10 @@ book
 src
 book.toml
 custom.css
+.d/
+ast/
+config.mk
+libgwion.a
+log
+plug/
+util/
