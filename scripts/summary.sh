@@ -14,7 +14,7 @@ sign() {
 # add an entry to symmary
 entry() {
   title=$(head -n1 ${1}/${2}r)
-  if [ "$2" = "index.md" ] && [ $3 -gt 0 ]
+  if [ "$2" = "README.md" ] && [ $3 -gt 0 ]
   then idx=$(($4-1))
   else idx=$4
   fi
