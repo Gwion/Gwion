@@ -43,4 +43,4 @@ EOF
 
 [ -f src/SUMMARY.md ] || sh scripts/summary.sh > src/SUMMARY.md
 
-[ -d src/assets ] || cp -r assets src
+[ -d src/assets ] || cp -r benchmark/results src/assets
