@@ -17,7 +17,7 @@ interm() {
 
 noterm() {
   echo '<p class="mdr">'
-  cat log
+  sed 's/$/<\/br>/' log
   echo "</br>"
   check $@ && printf "${NOTERM_OK}\n" || printf "${NOTERM_NOT_OK}\n"
   echo '</p>'

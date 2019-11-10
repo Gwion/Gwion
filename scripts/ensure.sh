@@ -34,10 +34,13 @@ footer {
 }
 EOF
 }
-[ -d src ] || sh scripts/mdr2mdbook.sh
-
-[ -f src/SUMMARY.md ] || sh scripts/summary.sh > src/SUMMARY.md
 
 [ -f book.toml ] || toml
 
 [ -f custom.css ] || css
+
+[ -d src ] || sh scripts/mdr2mdbook.sh
+
+[ -f src/SUMMARY.md ] || sh scripts/summary.sh > src/SUMMARY.md
+
+[ -d src/assets ] || cp -r assets src
