@@ -4,7 +4,7 @@ cat <<EOF > book.toml
 [book]
 authors = ["Jérémie Astor"]
 title = "Gwion"
-
+theme = "rust"
 [output.html]
 additional-css = ["custom.css"]
 
@@ -15,7 +15,7 @@ EOF
 }
 
 css() {
-cat <<EOF > src/custom.css
+cat <<EOF > custom.css
 .mdr {
   color:var(--sidebar-active);
   background-color:var(--sidebar-bg);
@@ -40,4 +40,4 @@ EOF
 
 [ -f book.toml ] || toml
 
-[ -f src/custom.css ] || css
+[ -f custom.css ] || css

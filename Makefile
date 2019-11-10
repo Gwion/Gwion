@@ -7,19 +7,23 @@ build: ensure
 book: build
 
 deploy: book
+	@git add -f book
+	@git commit -m "add book"
 	@git subtree push --prefix book origin gh-pages
+	@git rm -rf book
+	@git commit -m "remove book"
 
 ensure:
 	@sh scripts/ensure.sh
 
 clean:
-	@[ -d src ] && mdbook clean
+	@[ -d src ] && mdbook clean || true
 
 clean-tests:
 	@rm -rf *.gw log vlog
 
 clean-all: clean clean-tests
-	@rm -rf src
+	@rm -rf src book.toml custom.css
 
 .SUFFIXES: .gw .test
 .gw.test:
