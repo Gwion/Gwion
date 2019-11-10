@@ -7,11 +7,10 @@ build: ensure
 book: build
 
 deploy: book
-	@git checkout gh-pages && git pull && git checkout mdbook
+#	@git checkout gh-pages && git pull && git checkout mdbook
 	@git add -f book
 	@git commit -m "add book"
-	@echo lol
-	@git subtree push --prefix book origin gh-pages
+	@git subtree push -f --prefix book origin gh-pages
 	@git rm -rf book
 	@rm -rf book
 	@git commit -m "remove book"
