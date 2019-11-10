@@ -16,7 +16,7 @@ src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
 test_dir_all := $(wildcard tests/*)
-test_ignore = tests/benchmark tests/import
+test_ignore = tests/import
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
 
@@ -106,4 +106,3 @@ coverity:
 
 include $(wildcard .d/*.d)
 include util/intl.mk
-include docs.mk
