@@ -1,12 +1,19 @@
+sedi () {
+  sed --version >/dev/null 2>&1 && sed -i -- "$@" || sed -i "" "$@"
+}
+
 run() {
 	mdbook serve&
+  sedi 's/^src/#src/' .gitignore
 	while true
   do sh scripts/watch.sh
   done
 }
 
 clean() {
-  trap - SIGINT SIGTERM ERR; killall mdbook
+  trap - SIGINT SIGTERM ERR
+  killall mdbook
+  sedi 's/#src/src/' .gitignore
   exit 1
 }
 

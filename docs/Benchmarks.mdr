@@ -1,3 +1,6 @@
 # Benchmarks
 
-@exec for a in $(find benchmark/results -type f -name "*.png"); do echo "![$(basename $a)]($(sed 's/benchmark\/results/assets/' <<< $a) \"${a:-4}\")"; done
+## test
+<table><tr><td align="center">
+@exec for a in $(find benchmark/results -type f -name "*.png"); do echo "<a href=:gwion:><img class=\"zoom\" src=\"./$(sed 's/benchmark\/results/assets/' <<< $a)\" width=\"352px\"></a>"; done
+</td></tr></table>
