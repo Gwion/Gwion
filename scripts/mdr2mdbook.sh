@@ -38,8 +38,10 @@ runall() {
   done
 }
 
-if [ $1 ]
-#then [[ $1 == *".mdr" ]] && doc2src $1
-then [ -f $1 ] && doc2src $1
+if [[ "$1" == *".mdr" ]]
+  then doc2src $1
+  if [ "$(git status -s | grep docs)" ]
+  then sh scripts/summary.sh > src/SUMMARY.md
+  fi
 else runall
 fi
