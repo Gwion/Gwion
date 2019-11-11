@@ -1,7 +1,5 @@
 src
 book
-book.toml
-custom.css
 .d/
 ast/
 config.mk
