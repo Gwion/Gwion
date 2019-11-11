@@ -18,6 +18,9 @@ deploy: book
 ensure:
 	@sh scripts/ensure.sh
 
+lint:
+	vale docs
+
 clean:
 	@[ -d src ] && mdbook clean || true
 

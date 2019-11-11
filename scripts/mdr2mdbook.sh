@@ -10,7 +10,10 @@ EOF
 }
 
 mk_target() {
-  sed 's/```\(.*\)gw/```\1cpp/' $1
+  sed 's/```\(.*\)gw/```\1cpp/' $1 |
+    sed 's/:tada:/\&#128540;/g'    |
+    sed 's/:champagne:/\&#127870;/g'    |
+    sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
   footer
 }
 
@@ -19,6 +22,7 @@ ensure_dir() {
 }
 
 doc2src() {
+echo $1
   mdr $1 || return
   mdfile=${1::-1}
   target=$(sed 's/docs/src/' <<< $mdfile)
@@ -37,6 +41,5 @@ runall() {
 if [ $1 ]
 #then [[ $1 == *".mdr" ]] && doc2src $1
 then [ -f $1 ] && doc2src $1
-echo $1
 else runall
 fi

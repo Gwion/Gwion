@@ -8,7 +8,7 @@ for(int i; i < 3; ++i)
 @```  
 @exec make -s forloop0.test
 
-Of course, it also works with a block of code.
+It also works with a block of code.
 
 @``` forloop2.gw
 for(int i; i < 3; ++i) {
@@ -45,8 +45,7 @@ for(auto a: array) {
 @exec make -s forloop4.test
 
 ### Auto Pointer loop
-With the simple auto loop, you only get the value in the array.  
-If you want to change it, you need a pointer 
+If you want to change it the value in the array, you need a pointer 
 
 @``` forloop5.gw
 int array[2][3];

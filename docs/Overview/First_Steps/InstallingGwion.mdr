@@ -22,7 +22,7 @@ You'll need the sources for all base module
 git submodule update --init util ast
 ```
 
-> At this point, you might want to configure the build.
+> At this point, you may want to configure the build.
   In this case, have a look at the [configuration page](Configure.md)
 
 
@@ -36,4 +36,5 @@ make
 ``` sh
 make install
 ```
+
 > You may need root privilege to do this.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simply put, *lambda*s are anonymous functions.  
+*lambda*s are anonymous functions.  
 
 The syntax to create them is simple:
 ```

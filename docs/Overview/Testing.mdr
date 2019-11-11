@@ -23,6 +23,3 @@ n=0
 [ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
 ```
-
-## TODO
-  [ ] `bailout` system for early exit on failure

@@ -2,14 +2,17 @@
 let start simple ;-)  
 The easiest way to do an action repeatidly in Gwion is, ... the **repeat** keyword!
 
-## Very basic example
+## Basic example
+
 @``` repeat.gw
 repeat(3)
    <<< "Hello, world!" >>>;
 @```  
 @exec make -s CONTAINS="Hello" repeat.test
 
+
 ## Block example
+
 of course this also works with a block code.
 
 @``` repeat2.gw

@@ -11,7 +11,7 @@ Object o;
 @exec make -s decl0.test
 
 ## Declaring a reference
-However ...
+
 @``` decl1.gw
 Object @ref;
 <<< "Reference points to no object yet: ", ref >>>;

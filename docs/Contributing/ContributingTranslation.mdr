@@ -4,12 +4,15 @@ First off, thank you for considering translating gwion.
 
 Thanks to the build system, you're gonna get on tracks fast.
 
+<details>
+<summary>
+Make your live easier
+</summary>
+use <code>export TRANSLATION_TARGET=xxx</code>  
+so you don't have to repeat it on the command line
+</details>
 
-> You might want to export TRANSLATION_TARGET,
-so you don't have to set it on the command line for commands requiring it  
-`export TRANSLATION_TARGET="xxx"`
-
-## 1) Init the translation language
+## Step 1: *Init the translation language*
 
 You have to make sure there is a directory for your target language (e.g.: fr, en, es_ES ...).
 
@@ -20,7 +23,7 @@ make translation-init TRANSLATION_TARGET=<xxx>
 Where `<xxx>` is your language of choice.
 It will fail if your language already exists, but this is not a problem.
 
-## 2) Edit
+## Step 2: *Edit*
 
 Next, you should adjust the translations.
 What about using your favorite editor?
@@ -29,18 +32,18 @@ What about using your favorite editor?
 make translation-edit TRANSLATION_TARGET=<xxx>
 ```
 
-## 3) Update
+## Step 3: *Update*
 
-Maybe the sources changed, and there is more message to translate?
+Maybe the sources changed, and there is more messages to translate?
 
 ``` sh
 make translation-update
 ```
 
-This will update all languages.
-You can now get back to [step 2](#2-Edit).
+This will update all languages.  
+You can now get back to [step 2](#step-2-Edit).
 
-## Add to VCS
+## Step 4: *Add to [VCS](https://en.wikipedia.org/wiki/Version_control)*
 
 It's now time to add your changes to the package
 
@@ -48,4 +51,8 @@ It's now time to add your changes to the package
 make translation-commit TRANSLATION_TARGET=<xxx>
 ```
 
-Now please submit a pull request.
+> In [Gwion](:gwion:/Gwion)'s case,
+the `vcs` is the well known [git](https://git-scm.com/),  
+but the `make` recipe makes things simple
+
+Now please submit a [pull request](:gwion:/Gwion/pulls).
