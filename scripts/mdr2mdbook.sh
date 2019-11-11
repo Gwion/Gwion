@@ -35,6 +35,8 @@ runall() {
 }
 
 if [ $1 ]
-then doc2src $1
+#then [[ $1 == *".mdr" ]] && doc2src $1
+then [ -f $1 ] && doc2src $1
+echo $1
 else runall
 fi

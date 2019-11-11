@@ -5,6 +5,7 @@ wait() {
 }
 
 while true
-do [[ $1 == *".mdr" ]] &&
-  sh scripts/mdr2mdbook.sh $(wait);
+do
+  file=$(wait)
+  sh scripts/mdr2mdbook.sh $file;
 done

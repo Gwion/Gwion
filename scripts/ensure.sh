@@ -4,8 +4,9 @@ cat <<EOF > book.toml
 [book]
 authors = ["Jérémie Astor"]
 title = "Gwion"
-theme = "rust"
+
 [output.html]
+default-theme = "rust"
 additional-css = ["custom.css"]
 
 [output.html.fold]

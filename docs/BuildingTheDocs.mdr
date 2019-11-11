@@ -1,7 +1,12 @@
 # How this doc is build
 
-## mdr
+## This is basically markdown
+All documentation files are in docs.
+They are [mdr](https://github.com/fennecdjay/mdr) files.
+Along with them is a `list` file, helping to build the summary.
 
 ## makefile
 
-## mkdocs
+## sciprt
+
+## Mdbook

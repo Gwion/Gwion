@@ -30,8 +30,8 @@ entry() {
 handle() {
   while read -r line
   do
-  if [ -z "$line" ]
-  then echo ""
+  if [ -z "$line" ] || [[ "$line" == "-----"* ]] 
+  then echo "$line"
        continue
   fi
   if [ -f "$1/${line}r" ]
