@@ -1,0 +1,9 @@
+class C {
+
+}
+
+C i[2];
+
+for(auto @a : i)
+     <<< a >>>;
+
