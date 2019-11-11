@@ -10,7 +10,7 @@
 #include "import.h"
 #include "gwi.h"
 
-void gwi_body(const Gwi gwi, const Class_Body body) {
+void gwi_body(const Gwi gwi, const Ast body) {
   const Class_Def cdef = gwi->gwion->env->class_def->e->def;
   if(!cdef->body)
     cdef->body = body;

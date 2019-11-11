@@ -5,7 +5,7 @@
 
 struct Gwi_ {
   struct Gwion_* gwion;
-  Class_Body body;
+  Ast body;
   struct ImportCK *ck;
   struct OperCK *oper; // _misc
   loc_t loc;

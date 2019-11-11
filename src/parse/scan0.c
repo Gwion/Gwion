@@ -234,7 +234,7 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) {
     assert(udef->type_xid);
     const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
-        NULL, (Class_Body)udef->l, loc_cpy(env->gwion->mp, udef->pos));
+        NULL, (Ast)udef->l, loc_cpy(env->gwion->mp, udef->pos));
     udef->type->e->def = cdef;
     cdef->base.tmpl = udef->tmpl;
     cdef->base.type = udef->type;

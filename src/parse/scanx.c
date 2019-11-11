@@ -6,7 +6,7 @@
 #include "traverse.h"
 #include "parse.h"
 
-ANN static inline m_bool _body(const Env e, Class_Body b, const _exp_func f) {
+ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
   do CHECK_BB(f(e, b->section))
   while((b = b->next));
   return GW_OK;

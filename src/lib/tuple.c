@@ -300,7 +300,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
     curr = slist;
   }
   Section * section = new_section_stmt_list(env->gwion->mp, base);
-  Class_Body body = new_class_body(env->gwion->mp, section, NULL);
+  Ast body = new_ast(env->gwion->mp, section, NULL);
   const ID_List ilist = new_id_list(env->gwion->mp, insert_symbol(env->gwion->type[et_tuple]->name),
       loc_cpy(env->gwion->mp, pos));
   Type_Decl *td = new_type_decl(env->gwion->mp, ilist);

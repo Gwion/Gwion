@@ -238,7 +238,7 @@ GWION_IMPORT(shred) {
   gwi_class_xtor(gwi, NULL, shred_dtor);
   gwi->gwion->type[et_shred] = t_shred;
 
-  gwi_item_ini(gwi, "int", "@me");
+  gwi_item_ini(gwi, "@internal", "@me");
   GWI_BB(gwi_item_end(gwi, ae_flag_const, NULL))
 
   gwi_item_ini(gwi, "int", "cancel");
@@ -308,7 +308,7 @@ GWION_IMPORT(shred) {
   gwi_class_xtor(gwi, NULL, fork_dtor);
   gwi->gwion->type[et_fork] = t_fork;
 
-  gwi_item_ini(gwi, "int", "@thread");
+  gwi_item_ini(gwi, "@internal", "@thread");
   GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "is_done");
   GWI_BB((o_fork_done = gwi_item_end(gwi, ae_flag_const, NULL)))
@@ -316,7 +316,7 @@ GWION_IMPORT(shred) {
   GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "retsize");
   GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, NULL)))
-  gwi_item_ini(gwi, "int", "@orig");
+  gwi_item_ini(gwi, "@internal", "@orig");
   GWI_BB((o_fork_orig = gwi_item_end(gwi, ae_flag_const, NULL)))
   o_fork_retval = t_fork->nspc->info->offset;
   GWI_BB(gwi_union_ini(gwi, NULL, NULL))

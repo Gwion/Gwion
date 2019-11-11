@@ -6,7 +6,7 @@
 #define ENV_ERR_B(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return GW_ERROR; }
 #define ENV_ERR_O(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return NULL; }
 
-ANN void gwi_body(const Gwi, const Class_Body);
+ANN void gwi_body(const Gwi, const Ast);
 
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name);
 

@@ -60,7 +60,7 @@ ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
 
 ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
   Section* section = new_section_func_def(gwi->gwion->mp, fdef);
-  const Class_Body body = new_class_body(gwi->gwion->mp, section, NULL);
+  const Ast body = new_ast(gwi->gwion->mp, section, NULL);
   gwi_body(gwi, body);
   return GW_OK;
 }

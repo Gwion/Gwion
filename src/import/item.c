@@ -22,7 +22,7 @@ ANN static m_int gwi_item_tmpl(const Gwi gwi) {
   const Stmt stmt = new_stmt_exp(mp, ae_stmt_exp, gwi->ck->exp);
   const Stmt_List slist = new_stmt_list(mp, stmt, NULL);
   Section* section = new_section_stmt_list(mp, slist);
-  const Class_Body body = new_class_body(mp, section, NULL);
+  const Ast body = new_ast(mp, section, NULL);
   gwi_body(gwi, body);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;
