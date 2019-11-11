@@ -22,7 +22,6 @@ ensure_dir() {
 }
 
 doc2src() {
-echo $1
   mdr $1 || return
   mdfile=${1::-1}
   target=$(sed 's/docs/src/' <<< $mdfile)
@@ -38,10 +37,10 @@ runall() {
   done
 }
 
-if [[ "$1" == *".mdr" ]]
+  if [[ "$1" == *".mdr" ]]
   then doc2src $1
   if [ "$(git status -s | grep docs)" ]
   then sh scripts/summary.sh > src/SUMMARY.md
   fi
-else runall
-fi
+  else runall
+  fi

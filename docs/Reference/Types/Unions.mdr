@@ -1,1 +1,13 @@
 # Union types
+
+Union store their component in the same memory space.
+For more infomations, see [here](https://en.wikipedia.org/wiki/Union_type).
+
+@``` base_union
+union {
+  int a;
+  float f;
+  Object o;
+};
+@```
+

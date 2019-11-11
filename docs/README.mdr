@@ -15,7 +15,7 @@ Here is the piece of code you're waiting for :tada::
 ## (Bag of) Features
   * [single inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)#Design_constraints)
   * typedef (function pointers and type aliases)
-  * enums and unions
+  * [enums](Reference/Types/Enums.html) and [unions](Reference/Types/Unions.html) 
   * templates (both class and functions)
   * easy concurrency/async
   * [lambdas](Reference/Functions/Lambdas.html)
