@@ -144,7 +144,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 }
 
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def) {
-  Arg_List base = def->base->args, arg = l->args;
+  Arg_List base = def->base->args, arg = l->def->base->args;
   while(base && arg) {
     arg->td = base->td;
     base = base->next;
@@ -152,11 +152,13 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
-  l->def = new_func_def(env->gwion->mp,
-    new_func_base(env->gwion->mp, def->base->td, l->name, l->args),
-    l->code, def->flag, loc_cpy(env->gwion->mp, def->pos));
+  l->def->flag = def->flag;
+  l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
+//  l->def = new_func_def(env->gwion->mp,
+//    new_func_base(env->gwion->mp, def->base->td, l->name, l->args),
+//    l->code, def->flag, loc_cpy(env->gwion->mp, def->pos));
   CHECK_BB(traverse_func_def(env, l->def))
-  arg = l->args;
+  arg = l->def->base->args;
   while(arg) {
     arg->td = NULL;
     arg = arg->next;

@@ -1141,7 +1141,7 @@ ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
 }
 
 ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
-  if(!lambda->def) {
+  if(!lambda->def->base->func) {
     regpushi(emit, SZ_INT);
     return GW_OK;
   }
