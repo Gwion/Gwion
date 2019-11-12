@@ -73,3 +73,22 @@ ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   return GW_ERROR;
 }
 
+
+ANN static Type class_type(const Env env, const Type base) {
+  const Type t = type_copy(env->gwion->mp, env->gwion->type[et_class]);
+  t->e->ctx = base->e->ctx;
+  t->e->d.base_type = base;
+  return t;
+}
+
+ANN Value mk_class(const Env env, const Type base) {
+  const Type t = class_type(env, base);
+  const Symbol sym = insert_symbol(base->name);
+  const Value v = new_value(env->gwion->mp, t, s_name(sym));
+  // set from
+  v->from->owner = base->e->owner;
+  SET_FLAG(v, const | ae_flag_checked);
+  // should we add t to front, too?
+  nspc_add_value_front(base->e->owner, sym, v);
+  return v;
+}

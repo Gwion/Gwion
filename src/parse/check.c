@@ -932,11 +932,8 @@ ANN static Type check_exp_lambda(const Env env,
 
 ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
   DECL_OO(const Type, t, = check_exp(env, exp->exp))
-  if(!t->array_depth) {
-    DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
-    return v->type;
-  }
-  return t;
+  DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
+  return v->type;
 }
 
 static const _type_func exp_func[] = {

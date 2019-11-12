@@ -28,20 +28,6 @@ static inline Type scan0_type(const Env env, const m_uint xid,
   return type;
 }
 
-ANN static Value mk_class(const Env env, const Type base) {
-  const Symbol sym = insert_symbol(base->name);
-  const Type t = type_copy(env->gwion->mp, env->gwion->type[et_class]);
-//t->e->ctx = env->context;
-t->e->ctx = base->e->ctx;
-  const Value v = new_value(env->gwion->mp, t, s_name(sym));
-  t->e->d.base_type = base;
-// set from
-  v->from->owner = base->e->owner;
-  SET_FLAG(v, const | ae_flag_checked);
-  nspc_add_value_front(base->e->owner, sym, v);
-  return v;
-}
-
 ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_t pos) {
   if(nspc_lookup_type0(env->curr, s))
     ERR_B(pos, _("type '%s' already defined"), s_name(s));
