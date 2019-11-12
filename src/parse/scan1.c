@@ -56,7 +56,6 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
-  decl->base = t->e->def;
   return decl->type = t;
 }
 
