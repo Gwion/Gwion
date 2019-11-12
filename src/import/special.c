@@ -16,9 +16,14 @@
 #include "gwi.h"
 #include "parser.h"
 #include "specialid.h"
+#include "pass.h"
 
-ANN void register_freearg(const Gwi gwi, const f_instr _exec, const f_freearg _free) {
+ANN void gwi_register_freearg(const Gwi gwi, const f_instr _exec, const f_freearg _free) {
   map_set(&gwi->gwion->data->freearg, (vtype)_exec, (vtype)_free);
+}
+
+ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pass pass) {
+  pass_register(gwi->gwion, name, pass);
 }
 
 ANN void gwi_reserve(const Gwi gwi, const m_str str) {

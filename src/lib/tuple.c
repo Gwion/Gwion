@@ -366,6 +366,6 @@ SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  register_freearg(gwi, TupleUnpack, freearg_tuple_at);
+  gwi_register_freearg(gwi, TupleUnpack, freearg_tuple_at);
   return GW_OK;
 }

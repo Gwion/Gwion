@@ -219,7 +219,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_basic_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  register_freearg(gwi, ArrayAlloc, freearg_array);
+  gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }
 

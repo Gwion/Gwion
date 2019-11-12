@@ -113,7 +113,7 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
   GWI_BB(gwi_oper_add(gwi, at_varobj))
   GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
-  register_freearg(gwi, VarargIni, freearg_vararg);
+  gwi_register_freearg(gwi, VarargIni, freearg_vararg);
   struct SpecialId_ spid = { .type=t_vararg, .exec=RegPushImm, .is_const=1, .ck=idck_vararg};
   gwi_specialid(gwi, "vararg", &spid);
   return GW_OK;

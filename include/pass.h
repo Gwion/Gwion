@@ -1,5 +1,7 @@
 #ifndef __GWIONPASS
 #define __GWIONPASS
+
+// change this to gwion ?
 typedef m_bool (*compilation_pass)(Env, Ast);
 
 ANN void pass_register(const Gwion, const m_str, const compilation_pass);
