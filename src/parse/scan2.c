@@ -200,7 +200,7 @@ ANN static inline m_bool scan2_stmt_match(const restrict Env env, const Stmt_Mat
 }
 
 #define scan2_exp_lambda dummy_func
-HANDLE_EXP_FUNC(scan2, m_bool, 1)
+HANDLE_EXP_FUNC(scan2, m_bool, Env)
 
 #define scan2_stmt_func(name, type, prolog, exp) describe_stmt_func(scan2, name, type, prolog, exp)
 scan2_stmt_func(flow, Stmt_Flow,, !(scan2_exp(env, stmt->cond) < 0 ||
@@ -268,13 +268,14 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   return ret;
 }
 
-static const _exp_func stmt_func[] = {
-  (_exp_func)scan2_stmt_exp,  (_exp_func)scan2_stmt_flow, (_exp_func)scan2_stmt_flow,
-  (_exp_func)scan2_stmt_for,  (_exp_func)scan2_stmt_auto, (_exp_func)scan2_stmt_loop,
-  (_exp_func)scan2_stmt_if,   (_exp_func)scan2_stmt_code, (_exp_func)dummy_func,
-  (_exp_func)dummy_func,      (_exp_func)scan2_stmt_exp,  (_exp_func)scan2_stmt_match,
-  (_exp_func)scan2_stmt_jump
-};
+
+#define scan2_stmt_while    scan2_stmt_flow
+#define scan2_stmt_until    scan2_stmt_flow
+#define scan2_stmt_continue (void*)dummy_func
+#define scan2_stmt_break    (void*)dummy_func
+#define scan2_stmt_return   scan2_stmt_exp
+
+DECL_STMT_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {
   return stmt_func[stmt->stmt_type](env, &stmt->d);
@@ -518,7 +519,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
 }
 
 #define scan2_enum_def dummy_func
-DECL_SECTION_FUNC(scan2)
+HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;

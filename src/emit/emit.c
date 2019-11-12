@@ -388,7 +388,7 @@ ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
   return code;
 }
 
-ANN static m_bool prim_array(const Emitter emit, const Exp_Primary * primary) {
+ANN static m_bool emit_prim_array(const Emitter emit, const Exp_Primary * primary) {
   const Array_Sub array = primary->d.array;
   Exp e = array->exp;
   CHECK_BB(emit_exp(emit, e, 0))
@@ -510,7 +510,7 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   return _emit_indexes(emit, &info);
 }
 
-ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) {
+ANN static m_bool emit_prim_vec(const Emitter emit, const Exp_Primary * primary) {
   const Vec * vec = &primary->d.vec;
   const ae_prim_t t = primary->primary_type;
   CHECK_BB(emit_exp(emit, vec->exp, 0));
@@ -529,38 +529,38 @@ ANN static m_bool prim_vec(const Emitter emit, const Exp_Primary * primary) {
   return GW_OK;
 }
 
-ANN static m_bool prim_id(const Emitter emit, const Exp_Primary* prim) {
+ANN static m_bool emit_prim_id(const Emitter emit, const Exp_Primary* prim) {
   struct SpecialId_ * spid = specialid_get(emit->gwion, prim->d.var);
   if(spid)
     return specialid_instr(emit, spid, prim) ? GW_OK : GW_ERROR;
   return emit_symbol(emit, prim);
 }
 
-ANN static m_bool prim_tuple(const Emitter emit, const Exp_Primary * primary) {
+ANN static m_bool emit_prim_tuple(const Emitter emit, const Exp_Primary * primary) {
   CHECK_BB(emit_exp(emit, primary->d.tuple.exp, 1))
   const Instr instr = emit_add_instr(emit, TupleCtor);
   instr->m_val = (m_uint)exp_self(primary)->type;
   return GW_OK;
 }
 
-ANN static m_bool prim_num(const Emitter emit, const Exp_Primary * primary) {
+ANN static m_bool emit_prim_num(const Emitter emit, const Exp_Primary * primary) {
   regpushi(emit, primary->d.num);
   return GW_OK;
 }
 
-ANN static m_bool prim_float(const Emitter emit, const Exp_Primary* primary) {
+ANN static m_bool emit_prim_float(const Emitter emit, const Exp_Primary* primary) {
   const Instr instr = emit_add_instr(emit, RegPushImm2);
   instr->f = primary->d.fnum;
   return GW_OK;
 }
 
-ANN static m_bool prim_char(const Emitter emit, const Exp_Primary* prim) {
+ANN static m_bool emit_prim_char(const Emitter emit, const Exp_Primary* prim) {
   DECL_BB(const m_int, c, = str2char(emit, prim->d.chr, exp_self(prim)->pos))
   regpushi(emit, c);
   return GW_OK;
 }
 
-ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) {
+ANN static m_bool emit_prim_str(const Emitter emit, const Exp_Primary* prim) {
   char c[strlen(prim->d.str) + 1];
   if(strlen(prim->d.str)) {
     strcpy(c, prim->d.str);
@@ -575,7 +575,7 @@ ANN static m_bool prim_str(const Emitter emit, const Exp_Primary* prim) {
   return GW_OK;
 }
 
-ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
+ANN static m_bool emit_prim_hack(const Emitter emit, const Exp_Primary* primary) {
   const Exp exp = primary->d.exp;
   Exp e = exp, next = NULL;
   do {
@@ -594,20 +594,18 @@ ANN static m_bool prim_gack(const Emitter emit, const Exp_Primary* primary) {
   return GW_OK;
 }
 
-ANN static m_bool prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
+ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
   if(exp_self(primary)->meta == ae_meta_var)
     return GW_OK;
   ERR_B(exp_self(primary)->pos, _("unused Tuple unpack"))
 }
 
-static const _exp_func prim_func[] = {
-  (_exp_func)prim_id, (_exp_func)prim_num, (_exp_func)prim_float, (_exp_func)prim_str,
-  (_exp_func)prim_array, (_exp_func)prim_gack, (_exp_func)prim_vec, (_exp_func)prim_vec,
-  (_exp_func)prim_vec, (_exp_func)prim_tuple, (_exp_func)prim_unpack,
-  (_exp_func)prim_char, (_exp_func)dummy_func,
-};
+#define emit_prim_complex emit_prim_vec
+#define emit_prim_polar   emit_prim_vec
+#define emit_prim_nil     (void*)dummy_func
 
-ANN static m_bool emit_exp_primary(const Emitter emit, const Exp_Primary* prim) {
+DECL_PRIM_FUNC(emit, m_bool , Emitter);
+ANN static m_bool emit_exp_primary(const Emitter emit, Exp_Primary *const prim) {
   return prim_func[prim->primary_type](emit, prim);
 }
 
@@ -1163,7 +1161,7 @@ ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
   return GW_OK;
 }
 
-DECL_EXP_FUNC(emit)
+DECL_EXP_FUNC(emit, m_bool, Emitter)
 
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
@@ -1573,13 +1571,9 @@ ANN static m_bool emit_stmt_match(const Emitter emit, const struct Stmt_Match_* 
   return ret;
 }
 
-static const _exp_func stmt_func[] = {
-  (_exp_func)emit_stmt_exp,      (_exp_func)emit_stmt_flow,   (_exp_func)emit_stmt_flow,
-  (_exp_func)emit_stmt_for,      (_exp_func)emit_stmt_auto,   (_exp_func)emit_stmt_loop,
-  (_exp_func)emit_stmt_if,       (_exp_func)emit_stmt_code,   (_exp_func)emit_stmt_break,
-  (_exp_func)emit_stmt_continue, (_exp_func)emit_stmt_return, (_exp_func)emit_stmt_match,
-  (_exp_func)emit_stmt_jump,
-};
+#define emit_stmt_while emit_stmt_flow
+#define emit_stmt_until emit_stmt_flow
+DECL_STMT_FUNC(emit, m_bool , Emitter)
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   CHECK_BB(stmt_func[stmt->stmt_type](emit, &stmt->d))
@@ -1859,7 +1853,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
 }
 
 #define emit_fptr_def dummy_func
-DECL_SECTION_FUNC(emit)
+HANDLE_SECTION_FUNC(emit, m_bool, Emitter)
 
 ANN Code* emit_class_code(const Emitter emit, const m_str name) {
   const m_uint len = strlen(name) + 7;

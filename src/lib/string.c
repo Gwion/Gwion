@@ -170,12 +170,12 @@ static CTOR(string_ctor) {
   STRING(o) = "";
 }
 
-ANN Type prim_str(const Env, Exp_Primary *const);
+ANN Type check_prim_str(const Env, Exp_Primary *const);
 ID_CHECK(check_funcpp) {
   ((Exp_Primary*)prim)->primary_type = ae_primary_str;
   ((Exp_Primary*)prim)->d.str = env->func ? env->func->name : env->class_def ?
     env->class_def->name : env->name;
-  return prim_str(env, (Exp_Primary * const)prim);
+  return check_prim_str(env, (Exp_Primary * const)prim);
 }
 
 static GACK(gack_string) {

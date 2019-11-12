@@ -184,7 +184,7 @@ ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Type
 }
 
 #define scan1_exp_lambda dummy_func
-HANDLE_EXP_FUNC(scan1, m_bool, 1)
+HANDLE_EXP_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool _scan1_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
   CHECK_BB(scan1_exp(env, stmt->cond))
@@ -314,13 +314,13 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   return ret;
 }
 
-static const _exp_func stmt_func[] = {
-  (_exp_func)scan1_stmt_exp,  (_exp_func)scan1_stmt_flow, (_exp_func)scan1_stmt_flow,
-  (_exp_func)scan1_stmt_for,  (_exp_func)scan1_stmt_auto, (_exp_func)scan1_stmt_loop,
-  (_exp_func)scan1_stmt_if,   (_exp_func)scan1_stmt_code, (_exp_func)dummy_func,
-  (_exp_func)dummy_func,      (_exp_func)scan1_stmt_exp,  (_exp_func)scan1_stmt_match,
-  (_exp_func)dummy_func
-};
+#define scan1_stmt_while    scan1_stmt_flow
+#define scan1_stmt_until    scan1_stmt_flow
+#define scan1_stmt_continue (void*)dummy_func
+#define scan1_stmt_break    (void*)dummy_func
+#define scan1_stmt_jump     (void*)dummy_func
+#define scan1_stmt_return   scan1_stmt_exp
+DECL_STMT_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
   return stmt_func[stmt->stmt_type](env, &stmt->d);
@@ -413,7 +413,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
-DECL_SECTION_FUNC(scan1)
+HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   const Type parent = known_type(env, tdef->ext);

@@ -193,7 +193,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
-ANN static Type prim_array(const Env env, const Exp_Primary* primary) {
+ANN static Type check_prim_array(const Env env, const Exp_Primary* primary) {
   const Array_Sub array = primary->d.array;
   const Exp e = array->exp;
   if(!e)
@@ -258,7 +258,7 @@ ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   return value;
 }
 
-ANN Type prim_str(const Env env, Exp_Primary *const prim) {
+ANN Type check_prim_str(const Env env, Exp_Primary *const prim) {
   if(!prim->value) {
     const m_str str = prim->d.str;
     char c[strlen(str) + 8];
@@ -268,7 +268,7 @@ ANN Type prim_str(const Env env, Exp_Primary *const prim) {
   return env->gwion->type[et_string];// prim->value
 }
 
-ANN static Type prim_id(const Env env, Exp_Primary* primary) {
+ANN static Type check_prim_id(const Env env, Exp_Primary* primary) {
   struct SpecialId_ * spid = specialid_get(env->gwion, primary->d.var);
   if(spid)
     return specialid_type(env, spid, primary);
@@ -305,7 +305,7 @@ ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
   }
 }
 
-ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
+ANN static Type check_prim_vec(const Env env, const Exp_Primary* primary) {
   const Vec * vec = &primary->d.vec;
   const ae_prim_t t = primary->primary_type;
   struct VecInfo info = { .n=vec->dim };
@@ -316,14 +316,14 @@ ANN static Type prim_vec(const Env env, const Exp_Primary* primary) {
   return info.t;
 }
 
-ANN static Type prim_gack(const Env env, const Exp_Primary * primary) {
+ANN static Type check_prim_hack(const Env env, const Exp_Primary * primary) {
   if(env->func)
     UNSET_FLAG(env->func, pure);
   CHECK_OO((check_exp(env, primary->d.exp)))
   return env->gwion->type[et_gack];
 }
 
-ANN static Type prim_tuple(const Env env, const Exp_Primary * primary) {
+ANN static Type check_prim_tuple(const Env env, const Exp_Primary * primary) {
   CHECK_OO(check_exp(env, primary->d.tuple.exp))
   struct Vector_ v;
   vector_init(&v);
@@ -336,7 +336,7 @@ ANN static Type prim_tuple(const Env env, const Exp_Primary * primary) {
 }
 
 #define describe_prim_xxx(name, type) \
-ANN static Type prim_##name(const Env env NUSED, const Exp_Primary * primary NUSED) {\
+ANN static Type check##_prim_##name(const Env env NUSED, const Exp_Primary * primary NUSED) {\
   return type; \
 }
 describe_prim_xxx(num, env->gwion->type[et_int])
@@ -344,15 +344,12 @@ describe_prim_xxx(float, env->gwion->type[et_float])
 describe_prim_xxx(nil, env->gwion->type[et_void])
 describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 
-typedef Type (*_type_func)(const Env, const void*);
-static const _type_func prim_func[] = {
-  (_type_func)prim_id,    (_type_func)prim_num,   (_type_func)prim_float, (_type_func)prim_str,
-  (_type_func)prim_array, (_type_func)prim_gack,  (_type_func)prim_vec,   (_type_func)prim_vec,
-  (_type_func)prim_vec,   (_type_func)prim_tuple, (_type_func)prim_unpack,
-  (_type_func)prim_num,   (_type_func)prim_nil,
-};
+#define check_prim_complex check_prim_vec
+#define check_prim_polar check_prim_vec
+#define check_prim_char check_prim_num
+DECL_PRIM_FUNC(check, Type, Env);
 
-ANN static Type check_exp_primary(const Env env, const Exp_Primary* primary) {
+ANN static Type check_exp_primary(const Env env, Exp_Primary *primary) {
   return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
 }
 
@@ -936,12 +933,7 @@ ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
   return v->type;
 }
 
-static const _type_func exp_func[] = {
-  (_type_func)check_exp_decl,    (_type_func)check_exp_binary, (_type_func)check_exp_unary,
-  (_type_func)check_exp_primary, (_type_func)check_exp_cast,   (_type_func)check_exp_post,
-  (_type_func)check_exp_call,    (_type_func)check_exp_array,  (_type_func)check_exp_if,
-  (_type_func)check_exp_dot,     (_type_func)check_exp_lambda, (_type_func)check_exp_typeof
-};
+DECL_EXP_FUNC(check, Type, Env)
 
 ANN static inline Type check_exp(const Env env, const Exp exp) {
   Exp curr = exp, next = NULL, prev = NULL;
@@ -1233,13 +1225,9 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
   RET_NSPC(_check_stmt_match(env, stmt))
 }
 
-static const _exp_func stmt_func[] = {
-  (_exp_func)check_stmt_exp,      (_exp_func)check_stmt_flow,   (_exp_func)check_stmt_flow,
-  (_exp_func)check_stmt_for,      (_exp_func)check_stmt_auto,   (_exp_func)check_stmt_loop,
-  (_exp_func)check_stmt_if,       (_exp_func)check_stmt_code,   (_exp_func)check_stmt_break,
-  (_exp_func)check_stmt_continue, (_exp_func)check_stmt_return, (_exp_func)check_stmt_match,
-  (_exp_func)check_stmt_jump,
-};
+#define check_stmt_while check_stmt_flow
+#define check_stmt_until check_stmt_flow
+DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {
   return stmt_func[stmt->stmt_type](env, &stmt->d);
@@ -1384,7 +1372,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
 }
 
 #define check_fptr_def dummy_func
-DECL_SECTION_FUNC(check)
+HANDLE_SECTION_FUNC(check, m_bool, Env)
 
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
