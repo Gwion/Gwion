@@ -101,16 +101,16 @@ ANN static inline Value prim_value(const Env env, const Symbol s) {
   return value;
 }
 
-ANN static inline m_bool scan2_exp_primary(const Env env, const Exp_Primary* prim) {
-  if(prim->primary_type == ae_primary_hack)
+ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
+  if(prim->prim_type == ae_prim_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
-  else if(prim->primary_type == ae_primary_id) {
+  else if(prim->prim_type == ae_prim_id) {
     const Value v = prim_value(env, prim->d.var);
     if(v)
       SET_FLAG(v, used);
-  } else if(prim->primary_type == ae_primary_array && prim->d.array->exp)
+  } else if(prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan2_exp(env, prim->d.array->exp);
-  if(prim->primary_type == ae_primary_tuple)
+  if(prim->prim_type == ae_prim_tuple)
     return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }

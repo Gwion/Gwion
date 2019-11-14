@@ -292,11 +292,11 @@ struct VecInfo {
 };
 
 ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
-  if(t == ae_primary_complex) {
+  if(t == ae_prim_complex) {
     v->s = "complex";
     v->t = env->gwion->type[et_complex];
     v->n = 2;
-  } else if(t == ae_primary_vec) {
+  } else if(t == ae_prim_vec) {
     v->t = env->gwion->type[v->n == 4 ? et_vec4 : et_vec3];
     v->n = 4;
     v->s = "vector";
@@ -308,7 +308,7 @@ ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
 }
 
 ANN static Type check_prim_vec(const Env env, const Vec *vec) {
-  const ae_prim_t t = prim_self(vec)->primary_type;
+  const ae_prim_t t = prim_self(vec)->prim_type;
   struct VecInfo info = { .n=vec->dim };
   vec_info(env, t, &info);
   if(vec->dim > info.n)
@@ -337,7 +337,7 @@ ANN static Type check_prim_tuple(const Env env, const Tuple *tuple) {
 }
 
 #define describe_prim_xxx(name, type) \
-ANN static Type check##_prim_##name(const Env env NUSED, const union exp_primary_data* data NUSED) {\
+ANN static Type check##_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
   return type; \
 }
 describe_prim_xxx(num, env->gwion->type[et_int])
@@ -350,8 +350,8 @@ describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 #define check_prim_char check_prim_num
 DECL_PRIM_FUNC(check, Type, Env);
 
-ANN static Type check_exp_primary(const Env env, Exp_Primary *primary) {
-  return exp_self(primary)->type = prim_func[primary->primary_type](env, &primary->d);
+ANN static Type check_prim(const Env env, Exp_Primary *prim) {
+  return exp_self(prim)->type = prim_func[prim->prim_type](env, &prim->d);
 }
 
 ANN static Type at_depth(const Env env, const Array_Sub array);
@@ -359,9 +359,9 @@ ANN static Type tuple_depth(const Env env, const Array_Sub array) {
   const Vector v = &array->type->e->tuple->types;
   const Exp exp = array->exp;
   if(exp->exp_type != ae_exp_primary ||
-     exp->d.exp_primary.primary_type != ae_primary_num)
+     exp->d.prim.prim_type != ae_prim_num)
     ERR_O(exp->pos, _("tuple subscripts must be litteral"))
-  const m_uint idx = exp->d.exp_primary.d.num;
+  const m_uint idx = exp->d.prim.d.num;
   if(idx >= vector_size(v))
     ERR_O(exp->pos, _("tuple subscripts too big"))
   const Type type = (Type)vector_at(v, idx);
@@ -1159,13 +1159,13 @@ ANN static Value match_value(const Env env, const Exp_Primary* prim, const m_uin
 
 ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
   if(e->exp_type == ae_exp_primary) {
-    if(e->d.exp_primary.primary_type == ae_primary_unpack)
+    if(e->d.prim.prim_type == ae_prim_unpack)
       return insert_symbol("@=>");
-    else if(e->d.exp_primary.primary_type == ae_primary_id) {
-      if(e->d.exp_primary.d.var == insert_symbol("_"))
+    else if(e->d.prim.prim_type == ae_prim_id) {
+      if(e->d.prim.d.var == insert_symbol("_"))
         return NULL;
-      if(!nspc_lookup_value1(env->curr, e->d.exp_primary.d.var)) {
-        e->d.exp_primary.value = match_value(env, &e->d.exp_primary, i);
+      if(!nspc_lookup_value1(env->curr, e->d.prim.d.var)) {
+        e->d.prim.value = match_value(env, &e->d.prim, i);
         return NULL;
       }
     }

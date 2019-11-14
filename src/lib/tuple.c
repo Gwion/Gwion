@@ -131,8 +131,8 @@ static OP_CHECK(opck_at_object_tuple) {
 static OP_CHECK(opck_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(bin->rhs->exp_type == ae_exp_primary &&
-    bin->rhs->d.exp_primary.primary_type == ae_primary_unpack) {
-    Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
+    bin->rhs->d.prim.prim_type == ae_prim_unpack) {
+    Exp e = bin->rhs->d.prim.d.tuple.exp;
     int i = 0;
     do {
       if(e->exp_type == ae_exp_decl) {
@@ -214,10 +214,10 @@ static OP_CHECK(opck_impl_tuple) {
 static OP_EMIT(opem_at_tuple) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(!(bin->rhs->exp_type == ae_exp_primary &&
-      bin->rhs->d.exp_primary.primary_type == ae_primary_unpack)) {
+      bin->rhs->d.prim.prim_type == ae_prim_unpack)) {
     return emit_add_instr(emit, ObjectAssign);
   }
-  const Exp e = bin->rhs->d.exp_primary.d.tuple.exp;
+  const Exp e = bin->rhs->d.prim.d.tuple.exp;
   const Vector v = &bin->lhs->type->e->tuple->types;
   struct TupleEmit te = { .e=e, .v=v };
   emit_unpack_instr(emit, &te);

@@ -299,7 +299,7 @@ static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, Al
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, RegPushMem4 };
 
 ANN static inline Exp this_exp(const Emitter emit, const Type t, const loc_t pos) {
-  const Exp exp = new_exp_prim_id(emit->gwion->mp, insert_symbol("this"),
+  const Exp exp = new_prim_id(emit->gwion->mp, insert_symbol("this"),
     loc_cpy(emit->gwion->mp, pos));
   exp->type = t;
   return exp;
@@ -314,7 +314,7 @@ ANN static inline Exp dot_this_exp(const Emitter emit, const Symbol *data, const
 
 ANN static inline Exp dot_static_exp(const Emitter emit, const Symbol *data, const Type t) {
   const Symbol s = insert_symbol(t->name);
-  const Exp    e = new_exp_prim_id(emit->gwion->mp, s,
+  const Exp    e = new_prim_id(emit->gwion->mp, s,
     loc_cpy(emit->gwion->mp, prim_pos(data)));
   const Value  val = nspc_lookup_value1(t->nspc->parent, s);
   const Exp dot = new_exp_dot(emit->gwion->mp, e, *data);
@@ -456,9 +456,9 @@ ANN void emit_except(const Emitter emit, const Type t) {
 
 ANN static inline m_bool tuple_index(const Emitter emit, struct ArrayAccessInfo *const info) {
   assert(isa(info->array.type, emit->gwion->type[et_tuple]) > 0);
-  const m_uint idx = info->array.exp->d.exp_primary.d.num;
+  const m_uint idx = info->array.exp->d.prim.d.num;
   emit_except(emit, info->array.type);
-  tuple_access(emit, info->array.exp->d.exp_primary.d.num, (info->array.depth -1)? 0 : info->is_var);
+  tuple_access(emit, info->array.exp->d.prim.d.num, (info->array.depth -1)? 0 : info->is_var);
   if(!info->array.exp->next)
     return GW_OK;
   const Type type = (Type)vector_at(&info->array.type->e->tuple->types, idx);
@@ -507,9 +507,9 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
 }
 
 ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {
-  const ae_prim_t t = prim_self(vec)->primary_type;
+  const ae_prim_t t = prim_self(vec)->prim_type;
   CHECK_BB(emit_exp(emit, vec->exp, 0));
-  m_int n = (m_int)((t == ae_primary_vec ? 3 : 2) - vec->dim + 1);
+  m_int n = (m_int)((t == ae_prim_vec ? 3 : 2) - vec->dim + 1);
   while(--n > 0)
     emit_add_instr(emit, RegPushImm2);
   if(prim_exp(vec)->emit_var) {
@@ -599,8 +599,8 @@ ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple)
 #define emit_prim_nil     (void*)dummy_func
 
 DECL_PRIM_FUNC(emit, m_bool , Emitter);
-ANN static m_bool emit_exp_primary(const Emitter emit, Exp_Primary *const prim) {
-  return prim_func[prim->primary_type](emit, &prim->d);
+ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
+  return prim_func[prim->prim_type](emit, &prim->d);
 }
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
@@ -784,8 +784,8 @@ ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
   m_uint size = 0;
   do {
     if(e->exp_type == ae_exp_primary &&
-        e->d.exp_primary.primary_type == ae_primary_hack) {
-      size += pop_exp_size(emit, e->d.exp_primary.d.exp);
+        e->d.prim.prim_type == ae_prim_hack) {
+      size += pop_exp_size(emit, e->d.prim.d.exp);
       continue;
     }
     size += (e->exp_type == ae_exp_decl ?
@@ -1476,7 +1476,7 @@ ANN static m_bool emit_case_body(const Emitter emit, const struct Stmt_Match_* s
 }
 
 ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
-  const Value v = e->d.exp_primary.value;
+  const Value v = e->d.prim.value;
   v->from->offset = emit_local(emit, base->type->size, isa(base->type, emit->gwion->type[et_object]) > 0);
   CHECK_BB(emit_exp(emit, base, 1))
   regpop(emit, base->type->size);
@@ -1490,12 +1490,12 @@ ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
 #define CASE_PASS (Symbol)1
 ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e) {
   if(e->exp_type == ae_exp_primary) {
-    if(e->d.exp_primary.primary_type == ae_primary_unpack)
+    if(e->d.prim.prim_type == ae_prim_unpack)
       return insert_symbol("@=>");
-    if(e->d.exp_primary.primary_type == ae_primary_id) {
-      if(e->d.exp_primary.d.var == insert_symbol("_"))
+    if(e->d.prim.prim_type == ae_prim_id) {
+      if(e->d.prim.d.var == insert_symbol("_"))
         return CASE_PASS;
-      if(!nspc_lookup_value1(emit->env->curr, e->d.exp_primary.d.var)) {
+      if(!nspc_lookup_value1(emit->env->curr, e->d.prim.d.var)) {
         CHECK_BO(case_value(emit, base, e))
         return CASE_PASS;
       }
