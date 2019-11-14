@@ -261,7 +261,7 @@ ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
           break;
         tmp[i] = '\0';
         const m_uint num = strtol(tmp, NULL, 10);// migth use &endptr and check errno
-        const Exp exp = new_exp_prim_int(gwi->gwion->mp, num, loc(gwi));
+        const Exp exp = new_prim_int(gwi->gwion->mp, num, loc(gwi));
         array_add_exp(ck, exp);
       } else {
         if(ck->is_exp > 0)
