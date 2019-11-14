@@ -193,11 +193,11 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
 }
 
-ANN static Type check_prim_array(const Env env, const Exp_Primary* primary) {
-  const Array_Sub array = primary->d.array;
+ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
+  const Array_Sub array = *data;
   const Exp e = array->exp;
   if(!e)
-    ERR_O(exp_self(primary)->pos, _("must provide values/expressions for array [...]"))
+    ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
   return (array->type = prim_array_match(env, e));
 }
@@ -212,40 +212,42 @@ ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
   return GW_OK;
 }
 
-ANN static Value check_non_res_value(const Env env, const Exp_Primary* primary) {
-  const Value value = nspc_lookup_value1(env->curr, primary->d.var);
+ANN static Value check_non_res_value(const Env env, const Symbol *data) {
+  const Symbol var = *data;
+  const Value value = nspc_lookup_value1(env->curr, var);
   if(env->class_def) {
-    const Value v = value ? value : find_value(env->class_def, primary->d.var);
+    const Value v = value ? value : find_value(env->class_def, var);
     if(v) {
       if(v->from->owner_class)
-        CHECK_BO(not_from_owner_class(env, env->class_def, v, exp_self(primary)->pos))
+        CHECK_BO(not_from_owner_class(env, env->class_def, v, prim_pos(data)))
       if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
-        ERR_O(exp_self(primary)->pos,
-              _("non-static member '%s' used from static function."), s_name(primary->d.var))
+        ERR_O(prim_pos(data),
+              _("non-static member '%s' used from static function."), s_name(var))
     }
     return v;
   } else if(env->func && GET_FLAG(env->func->def, global)) {
     if(!SAFE_FLAG(value, abstract) && !SAFE_FLAG(value, arg))
-      ERR_O(exp_self(primary)->pos,
-            _("non-global variable '%s' used from global function."), s_name(primary->d.var))
+      ERR_O(prim_pos(data),
+            _("non-global variable '%s' used from global function."), s_name(var))
   }
   return value;
 }
 
-ANN static Type prim_id_non_res(const Env env, const Exp_Primary* primary) {
-  const Value v = check_non_res_value(env, primary);
+ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
+  const Symbol var = *data;
+  const Value v = check_non_res_value(env, data);
   if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
-    env_err(env, exp_self(primary)->pos,
-          _("variable %s not legit at this point."), s_name(primary->d.var));
-    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(primary->d.var));
+    env_err(env, prim_pos(data),
+          _("variable %s not legit at this point."), s_name(var));
+    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
     UNSET_FLAG(env->func, pure);
   SET_FLAG(v, used);
-  ((Exp_Primary*)primary)->value = v;
-  if(GET_FLAG(v, const) || !strcmp(s_name(primary->d.var), "maybe"))
-    exp_self(primary)->meta = ae_meta_value;
+  prim_self(data)->value = v;
+  if(GET_FLAG(v, const) || !strcmp(s_name(var), "maybe"))
+    prim_exp(data)->meta = ae_meta_value;
   return v->type;
 }
 
@@ -258,21 +260,21 @@ ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
   return value;
 }
 
-ANN Type check_prim_str(const Env env, Exp_Primary *const prim) {
-  if(!prim->value) {
-    const m_str str = prim->d.str;
+ANN Type check_prim_str(const Env env, const m_str *data) {
+  if(!prim_self(data)->value) {
+    const m_str str = *data;
     char c[strlen(str) + 8];
     sprintf(c, "%s:string", str);
-    prim->value = prim_str_value(env, insert_symbol(c));
+    prim_self(data)->value = prim_str_value(env, insert_symbol(c));
   }
   return env->gwion->type[et_string];// prim->value
 }
 
-ANN static Type check_prim_id(const Env env, Exp_Primary* primary) {
-  struct SpecialId_ * spid = specialid_get(env->gwion, primary->d.var);
+ANN static Type check_prim_id(const Env env, const Symbol *data) {
+  struct SpecialId_ * spid = specialid_get(env->gwion, *data);
   if(spid)
-    return specialid_type(env, spid, primary);
-  return prim_id_non_res(env, primary);
+    return specialid_type(env, spid, prim_self(data));
+  return prim_id_non_res(env, data);
 }
 
 ANN static m_bool vec_value(const Env env, Exp e) {
@@ -305,9 +307,8 @@ ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
   }
 }
 
-ANN static Type check_prim_vec(const Env env, const Exp_Primary* primary) {
-  const Vec * vec = &primary->d.vec;
-  const ae_prim_t t = primary->primary_type;
+ANN static Type check_prim_vec(const Env env, const Vec *vec) {
+  const ae_prim_t t = prim_self(vec)->primary_type;
   struct VecInfo info = { .n=vec->dim };
   vec_info(env, t, &info);
   if(vec->dim > info.n)
@@ -316,27 +317,27 @@ ANN static Type check_prim_vec(const Env env, const Exp_Primary* primary) {
   return info.t;
 }
 
-ANN static Type check_prim_hack(const Env env, const Exp_Primary * primary) {
+ANN static Type check_prim_hack(const Env env, const Exp *data) {
   if(env->func)
     UNSET_FLAG(env->func, pure);
-  CHECK_OO((check_exp(env, primary->d.exp)))
+  CHECK_OO((check_exp(env, *data)))
   return env->gwion->type[et_gack];
 }
 
-ANN static Type check_prim_tuple(const Env env, const Exp_Primary * primary) {
-  CHECK_OO(check_exp(env, primary->d.tuple.exp))
+ANN static Type check_prim_tuple(const Env env, const Tuple *tuple) {
+  CHECK_OO(check_exp(env, tuple->exp))
   struct Vector_ v;
   vector_init(&v);
-  Exp e = primary->d.tuple.exp;
+  Exp e = tuple->exp;
   do vector_add(&v, (m_uint)e->type);
   while((e = e->next));
-  const Type ret = tuple_type(env, &v, exp_self(primary)->pos);
+  const Type ret = tuple_type(env, &v, prim_pos(tuple));
   vector_release(&v);
   return ret;
 }
 
 #define describe_prim_xxx(name, type) \
-ANN static Type check##_prim_##name(const Env env NUSED, const Exp_Primary * primary NUSED) {\
+ANN static Type check##_prim_##name(const Env env NUSED, const union exp_primary_data* data NUSED) {\
   return type; \
 }
 describe_prim_xxx(num, env->gwion->type[et_int])
@@ -350,7 +351,7 @@ describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 DECL_PRIM_FUNC(check, Type, Env);
 
 ANN static Type check_exp_primary(const Env env, Exp_Primary *primary) {
-  return exp_self(primary)->type = prim_func[primary->primary_type](env, primary);
+  return exp_self(primary)->type = prim_func[primary->primary_type](env, &primary->d);
 }
 
 ANN static Type at_depth(const Env env, const Array_Sub array);

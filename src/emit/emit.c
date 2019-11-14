@@ -305,49 +305,43 @@ ANN static inline Exp this_exp(const Emitter emit, const Type t, const loc_t pos
   return exp;
 }
 
-ANN static inline Exp dot_this_exp(const Emitter emit, const Exp_Primary* prim, const Type t) {
-  const Exp exp = this_exp(emit, t, exp_self(prim)->pos);
-  const Exp dot = new_exp_dot(emit->gwion->mp, exp, prim->d.var);
+ANN static inline Exp dot_this_exp(const Emitter emit, const Symbol *data, const Type t) {
+  const Exp exp = this_exp(emit, t, prim_pos(data));
+  const Exp dot = new_exp_dot(emit->gwion->mp, exp, *data);
   dot->d.exp_dot.t_base = t;
   return dot;
 }
 
-ANN static inline Exp dot_static_exp(const Emitter emit, const Exp_Primary* prim, const Type t) {
+ANN static inline Exp dot_static_exp(const Emitter emit, const Symbol *data, const Type t) {
   const Symbol s = insert_symbol(t->name);
   const Exp    e = new_exp_prim_id(emit->gwion->mp, s,
-    loc_cpy(emit->gwion->mp, exp_self(prim)->pos));
+    loc_cpy(emit->gwion->mp, prim_pos(data)));
   const Value  val = nspc_lookup_value1(t->nspc->parent, s);
-  const Exp dot = new_exp_dot(emit->gwion->mp, e, prim->d.var);
+  const Exp dot = new_exp_dot(emit->gwion->mp, e, *data);
   dot->d.exp_dot.t_base = val->type;
   return dot;
 }
 
-ANN static m_bool emit_symbol_owned(const Emitter emit, const Exp_Primary* prim) {
-  const Value v = prim->value;
-  const Exp dot = (!GET_FLAG(v, static) ? dot_this_exp : dot_static_exp)(emit, prim, v->from->owner_class);
-  dot->type = exp_self(prim)->type;
-  dot->emit_var = exp_self(prim)->emit_var;
+ANN static m_bool emit_symbol_owned(const Emitter emit, const Symbol *data) {
+  const Value v = prim_self(data)->value;
+  const Exp dot = (!GET_FLAG(v, static) ? dot_this_exp : dot_static_exp)(emit, data, v->from->owner_class);
+  dot->type = prim_exp(data)->type;
+  dot->emit_var = prim_exp(data)->emit_var;
   const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);
   free_exp(emit->gwion->mp, dot);
   return ret;
 }
 
-ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* prim) {
-  const Value v = prim->value;
-/*
-  if(GET_FLAG(v, func)) {
-    regpushi(emit, (m_uint)v->d.func_ref->def->d.dl_func_ptr);
-    return GW_OK;
-  }
-*/
+ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
+  const Value v = prim_self(data)->value;
   if(GET_FLAG(v, union)) {
     const m_uint size = v->type->size;
-    const Instr instr = emit_kind(emit, size, exp_self(prim)->emit_var, dotstatic);
+    const Instr instr = emit_kind(emit, size, prim_exp(data)->emit_var, dotstatic);
     instr->m_val = (m_uint)v->d.ptr;
   } else {
     const m_uint size = v->type->size;
-    const Instr instr = emit_kind(emit, size, exp_self(prim)->emit_var, regpushimm);
-    if(!exp_self(prim)->emit_var && size == SZ_INT) {
+    const Instr instr = emit_kind(emit, size, prim_exp(data)->emit_var, regpushimm);
+    if(!exp_self(data)->emit_var && size == SZ_INT) {
       if(isa(v->type, emit->gwion->type[et_object]) > 0) {
         instr->opcode = eRegPushImm;
         instr->m_val = (m_uint)v->d.ptr;
@@ -362,22 +356,25 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Exp_Primary* pri
   return GW_OK;
 }
 
-ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
-  const Value v = prim->value;
+ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
+  const Value v = prim_self(data)->value;
   if(is_class(emit->gwion, v->type)) {
     regpushi(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
   }
   if(v->from->owner_class)
-    return emit_symbol_owned(emit, prim);
+    return emit_symbol_owned(emit, data);
   if(GET_FLAG(v, builtin) || GET_FLAG(v, union) || GET_FLAG(v, enum))
-    return emit_symbol_builtin(emit, prim);
+    return emit_symbol_builtin(emit, data);
   const m_uint size = v->type->size;
-  const Instr instr = emit_kind(emit, size, exp_self(prim)->emit_var, !GET_FLAG(v, global) ? regpushmem : regpushbase);
+  const Instr instr = emit_kind(emit, size, prim_exp(data)->emit_var, !GET_FLAG(v, global) ? regpushmem : regpushbase);
   instr->m_val  = v->from->offset;
   if(isa(v->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, v->type))
-    instr->m_val = exp_self(prim)->type->e->d.func->value_ref->from->offset;
+    instr->m_val = prim_exp(data)->type->e->d.func->value_ref->from->offset;
   return GW_OK;
+}
+ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary* prim) {
+  return _emit_symbol(emit, &prim->d.var);
 }
 
 ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
@@ -388,14 +385,13 @@ ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
   return code;
 }
 
-ANN static m_bool emit_prim_array(const Emitter emit, const Exp_Primary * primary) {
-  const Array_Sub array = primary->d.array;
-  Exp e = array->exp;
+ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
+  Exp e = (*data)->exp;
   CHECK_BB(emit_exp(emit, e, 0))
   m_uint count = 0;
   do ++count;
   while((e = e->next));
-  const Type type = array->type;
+  const Type type = (*data)->type;
   regseti(emit, count);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
@@ -510,63 +506,62 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   return _emit_indexes(emit, &info);
 }
 
-ANN static m_bool emit_prim_vec(const Emitter emit, const Exp_Primary * primary) {
-  const Vec * vec = &primary->d.vec;
-  const ae_prim_t t = primary->primary_type;
+ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {
+  const ae_prim_t t = prim_self(vec)->primary_type;
   CHECK_BB(emit_exp(emit, vec->exp, 0));
   m_int n = (m_int)((t == ae_primary_vec ? 3 : 2) - vec->dim + 1);
   while(--n > 0)
     emit_add_instr(emit, RegPushImm2);
-  if(exp_self(primary)->emit_var) {
-    emit_local(emit, exp_self(primary)->type->size, 0);
+  if(prim_exp(vec)->emit_var) {
+    emit_local(emit, prim_exp(vec)->type->size, 0);
     const m_uint offset = emit_local(emit, SZ_INT, 0);
     const Instr cpy = emit_add_instr(emit, VecCpy);
     cpy->m_val = offset;
-    cpy->m_val2 = exp_self(primary)->type->size;
+    cpy->m_val2 = prim_exp(vec)->type->size;
     const Instr instr = emit_add_instr(emit, RegPushMem);
     instr->m_val = offset;
   }
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_id(const Emitter emit, const Exp_Primary* prim) {
-  struct SpecialId_ * spid = specialid_get(emit->gwion, prim->d.var);
+ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
+  struct SpecialId_ * spid = specialid_get(emit->gwion, *data);
   if(spid)
-    return specialid_instr(emit, spid, prim) ? GW_OK : GW_ERROR;
-  return emit_symbol(emit, prim);
+    return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
+  return emit_symbol(emit, prim_self(data));
 }
 
-ANN static m_bool emit_prim_tuple(const Emitter emit, const Exp_Primary * primary) {
-  CHECK_BB(emit_exp(emit, primary->d.tuple.exp, 1))
+ANN static m_bool emit_prim_tuple(const Emitter emit, const Tuple *tuple) {
+  CHECK_BB(emit_exp(emit, tuple->exp, 1))
   const Instr instr = emit_add_instr(emit, TupleCtor);
-  instr->m_val = (m_uint)exp_self(primary)->type;
+  instr->m_val = (m_uint)prim_exp(tuple)->type;
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_num(const Emitter emit, const Exp_Primary * primary) {
-  regpushi(emit, primary->d.num);
+ANN static m_bool emit_prim_num(const Emitter emit, const m_uint *num) {
+  regpushi(emit, *num);
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_float(const Emitter emit, const Exp_Primary* primary) {
+ANN static m_bool emit_prim_float(const Emitter emit, const m_float *fnum) {
   const Instr instr = emit_add_instr(emit, RegPushImm2);
-  instr->f = primary->d.fnum;
+  instr->f = *fnum;
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_char(const Emitter emit, const Exp_Primary* prim) {
-  DECL_BB(const m_int, c, = str2char(emit, prim->d.chr, exp_self(prim)->pos))
+ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
+  DECL_BB(const m_int, c, = str2char(emit, *str, prim_pos(str)))
   regpushi(emit, c);
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_str(const Emitter emit, const Exp_Primary* prim) {
-  char c[strlen(prim->d.str) + 1];
-  if(strlen(prim->d.str)) {
-    strcpy(c, prim->d.str);
-    CHECK_BB(escape_str(emit, c, exp_self(prim)->pos));
+ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
+  char c[strlen(*str) + 1];
+  if(strlen(*str)) {
+    strcpy(c, *str);
+    CHECK_BB(escape_str(emit, c, prim_pos(str)));
   } else c[0] = '\0';
-  const Value v = prim->value;
+  const Value v = prim_self(str)->value;
   const Symbol sym = insert_symbol(c);
   if(!v->d.ptr)
     v->d.ptr = (m_uint*)new_string2(emit->gwion, NULL, s_name(sym));
@@ -575,9 +570,8 @@ ANN static m_bool emit_prim_str(const Emitter emit, const Exp_Primary* prim) {
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_hack(const Emitter emit, const Exp_Primary* primary) {
-  const Exp exp = primary->d.exp;
-  Exp e = exp, next = NULL;
+ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
+  Exp e = *exp, next = NULL;
   do {
     next = e->next;
     e->next = NULL;
@@ -594,10 +588,10 @@ ANN static m_bool emit_prim_hack(const Emitter emit, const Exp_Primary* primary)
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Exp_Primary* primary) {
-  if(exp_self(primary)->meta == ae_meta_var)
+ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
+  if(prim_exp(tuple)->meta == ae_meta_var)
     return GW_OK;
-  ERR_B(exp_self(primary)->pos, _("unused Tuple unpack"))
+  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
 }
 
 #define emit_prim_complex emit_prim_vec
@@ -606,7 +600,7 @@ ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Exp_Primary* 
 
 DECL_PRIM_FUNC(emit, m_bool , Emitter);
 ANN static m_bool emit_exp_primary(const Emitter emit, Exp_Primary *const prim) {
-  return prim_func[prim->primary_type](emit, prim);
+  return prim_func[prim->primary_type](emit, &prim->d);
 }
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
