@@ -54,7 +54,7 @@ CFLAGS += -DGWION_BUILTIN
 GWLIBS = libgwion.a ast/libgwion_grammar.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
-all: options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
+all: options-show util/libgwion_util.a ast/libgwion_ast.a ast/libgwion_grammar.a libgwion.a src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
 
