@@ -13,16 +13,16 @@ static const compilation_pass default_passes[] = { type_engine_check_prog, emit_
 
 ANN void pass_register(const Gwion gwion, const m_str name, const compilation_pass pass) {
   const Symbol sym = insert_symbol(gwion->st, name);
-  map_set(&gwion->data->pass_map, (vtype)sym, (vtype)pass);
+  map_set(&gwion->data->passes->map, (vtype)sym, (vtype)pass);
 }
 
 ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
-  const Vector v = &gwion->data->pass;
+  const Vector v = &gwion->data->passes->vec;
   vector_clear(v);
   for(m_uint i = 0; i < vector_size(passes); ++i) {
     const m_str name = (m_str)vector_at(passes, i);
     const Symbol sym = insert_symbol(gwion->st, name);
-    const compilation_pass pass = (compilation_pass)map_get(&gwion->data->pass_map, (vtype)sym);
+    const compilation_pass pass = (compilation_pass)map_get(&gwion->data->passes->map, (vtype)sym);
     if(!pass) {
       gw_err("Failed to set compilation passes, back to default\n");
       pass_default(gwion);
@@ -42,4 +42,17 @@ ANN void pass_default(const Gwion gwion) {
   }
   pass_set(gwion, &v);
   vector_release(&v);
+}
+
+
+ANEW ANN struct Passes_* new_passes(MemPool mp) {
+  struct Passes_ *a = mp_calloc(mp, Passes);
+  map_init(&a->map);
+  vector_init(&a->vec);
+  return a;
+}
+
+ANN void free_passes(struct Passes_ *a) {
+  map_release(&a->map);
+  vector_release(&a->vec);
 }

@@ -7,10 +7,10 @@ typedef struct GwionData_ {
   struct Vector_ child;
   struct Vector_ child2;
   struct Vector_ reserved;
-  struct Map_ pass_map;
-  struct Vector_ pass;
+  struct Passes_  *passes;
+  PlugInfo* plug;
 } GwionData;
 
 ANN GwionData* new_gwiondata(MemPool);
-ANN void free_gwiondata(MemPool, GwionData*);
+ANN void free_gwiondata(const struct Gwion_*);
 #endif

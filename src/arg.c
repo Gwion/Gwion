@@ -80,6 +80,7 @@ ANN static inline m_str _get_arg(Arg* arg, int *i) {
     gw_err(_("option '-%c' needs arguments\n"), key);
   return str;
 }
+
 ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
   for(int i = 1; i < arg->argc; ++i) {
     if(arg->argv[i][0] == '-') {

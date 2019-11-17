@@ -16,9 +16,9 @@
 
 typedef m_bool (*import)(Gwi);
 typedef m_str  (*modstr)(void);
-typedef void*  (*modini)(const Gwion, const Vector);
-typedef void*  (*modrun)(const Gwion, void*);
-typedef void*  (*modend)(const Gwion, void*);
+typedef void*  (*modini)(const struct Gwion_*, const Vector);
+typedef void*  (*modrun)(const struct Gwion_*, void*);
+typedef void*  (*modend)(const struct Gwion_*, void*);
 
 struct Plug_ {
   m_str name;
@@ -97,8 +97,8 @@ ANN PlugInfo* new_plug(MemPool p, const Vector list) {
   return pi;
 }
 
-void free_plug(const Gwion gwion) {
-  PlugInfo *p = gwion->plug;
+void free_plug(const struct Gwion_ *gwion) {
+  PlugInfo *p = gwion->data->plug;
   struct Vector_ * const v = p->vec;
   for(m_uint i = 0; i < vector_size(&v[GWPLUG_MODULE]); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(&v[GWPLUG_MODULE], i);
@@ -136,8 +136,8 @@ ANN static Vector get_arg(MemPool p, const m_str name, const Vector v) {
   return NULL;
 }
 
-void plug_run(const Gwion gwion, const Vector args) {
-  const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
+void plug_run(const struct Gwion_ *gwion, const Vector args) {
+  const Vector v = &gwion->data->plug->vec[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
     const Vector arg = get_arg(gwion->mp, plug->name, args);
@@ -150,8 +150,8 @@ void plug_run(const Gwion gwion, const Vector args) {
   }
 }
 
-ANN void* get_module(const Gwion gwion, const m_str name) {
-  const Vector v = &gwion->plug->vec[GWPLUG_MODULE];
+ANN void* get_module(const struct Gwion_ *gwion, const m_str name) {
+  const Vector v = &gwion->data->plug->vec[GWPLUG_MODULE];
   for(m_uint i = 0; i < vector_size(v); ++i) {
     struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
     if(!strcmp(name, plug->name))

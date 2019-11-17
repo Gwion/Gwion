@@ -16,11 +16,11 @@
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver* di = gwion->vm->bbq;
   if(di->si->arg) {
-    for(m_uint i = 0; i < map_size(&gwion->plug->drv); ++i) {
-      const m_str name = (m_str)VKEY(&gwion->plug->drv, i);
+    for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
+      const m_str name = (m_str)VKEY(&gwion->data->plug->drv, i);
       const size_t len = strlen(name);
       if(!strncmp(name, di->si->arg, len)) {
-        di->func = (f_bbqset)VVAL(&gwion->plug->drv, i);
+        di->func = (f_bbqset)VVAL(&gwion->data->plug->drv, i);
         break;
       }
     }
@@ -32,7 +32,7 @@ ANN m_bool gwion_audio(const Gwion gwion) {
 }
 
 ANN static inline m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion->vm, &gwion->plug->vec[GWPLUG_IMPORT]) > 0;
+  return type_engine_init(gwion->vm, &gwion->data->plug->vec[GWPLUG_IMPORT]) > 0;
 }
 
 ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
@@ -59,6 +59,8 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->vm = new_vm(gwion->mp, 1);
+  gwion->ppa = mp_calloc(gwion->mp, PPArg);
+  pparg_ini(gwion->mp, gwion->ppa);
   gwion->emit = new_emitter(gwion->mp);
   gwion->env = new_env(gwion->mp);
   gwion->emit->env = gwion->env;
@@ -72,8 +74,8 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   arg->si = gwion->vm->bbq->si;
   const m_bool ret = arg_parse(gwion, arg);
   if(ret) {
+    gwion->data->plug = new_plug(gwion->mp, &arg->lib);
     gwion->emit->info->memoize = arg->memoize;
-    gwion->plug = new_plug(gwion->mp, &arg->lib);
     shreduler_set_loop(gwion->vm->shreduler, arg->loop);
     if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
       plug_run(gwion, &arg->mod);
@@ -113,8 +115,9 @@ ANN void gwion_end(const Gwion gwion) {
   free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->mp, gwion->emit);
   free_vm(gwion->vm);
-  free_plug(gwion);
-  free_gwiondata(gwion->mp, gwion->data);
+  pparg_end(gwion->ppa);
+  mp_free(gwion->mp, PPArg, gwion->ppa);
+  free_gwiondata(gwion);
   free_symbols(gwion->st);
   xfree(gwion->type);
   mempool_end(gwion->mp);

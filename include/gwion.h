@@ -8,13 +8,13 @@ typedef struct Gwion_* Gwion;
 struct Arg_;
 
 struct Gwion_ {
-  PlugInfo* plug;
   Env      env;
   Emitter  emit;
   VM*      vm;
   struct GwionData_ *data;
   SymTable *st;
   MemPool mp;
+  struct PPArg_ *ppa;
   Type *type;
 };
 

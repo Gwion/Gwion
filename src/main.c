@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  struct Gwion_ gwion = { .plug=NULL };
+  struct Gwion_ gwion = {};
   const m_bool ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);
   if(ini > 0)

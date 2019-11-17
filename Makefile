@@ -50,7 +50,8 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
+#GWLIBS = libgwion.a ast/libgwion_ast.a ast/libgwion_grammar.a util/libgwion_util.a
+GWLIBS = libgwion.a ast/libgwion_grammar.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options-show util/libgwion_util.a ast/libgwion_ast.a libgwion.a src/main.o
@@ -70,7 +71,10 @@ util: util/libgwion_util.a
 	@(info build util)
 
 ast/libgwion_ast.a:
-	@make -C ast
+	@make -C ast libgwion_ast.a
+
+ast/libgwion_grammar.a:
+	@make -C ast libgwion_grammar.a
 
 ast: ast/libgwion_ast.a
 	@(info build ast)
