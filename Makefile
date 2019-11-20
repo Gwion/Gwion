@@ -41,11 +41,12 @@ ifeq (${CC}, gcc)
 LDFLAGS += -lm
 endif
 else
-LDFLAGS += -lrt -rdynamic
+LDFLAGS += -rdynamic
 LDFLAGS += -lm
 endif
 
 ifeq ($(shell uname), Linux)
+LDFLAGS += -lrt
 endif
 
 CFLAGS += -DGWION_BUILTIN
