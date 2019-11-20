@@ -39,9 +39,9 @@ CFLAGS  += -Iinclude
 ifeq (${BUILD_ON_WINDOWS}, 1)
 ifeq (${CC}, gcc)
 LDFLAGS += -lm
-LDFLAGS += -lrt -rdynamic
 endif
 else
+LDFLAGS += -lrt -rdynamic
 LDFLAGS += -lm
 endif
 
