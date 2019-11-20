@@ -9,6 +9,7 @@ include config.mk
 
 GWION_PACKAGE=gwion
 CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
+CFLAGS += -DGWION_NOLINT
 
 GIT_BRANCH=$(shell git branch | grep "*" | cut -d" " -f2)
 
@@ -45,13 +46,12 @@ LDFLAGS += -lm
 endif
 
 ifeq ($(shell uname), Linux)
-LDFLAGS += -lrt -rdynamic
 endif
 
 CFLAGS += -DGWION_BUILTIN
 
 #GWLIBS = libgwion.a ast/libgwion_ast.a ast/libgwion_grammar.a util/libgwion_util.a
-GWLIBS = libgwion.a ast/libgwion_grammar.a ast/libgwion_ast.a util/libgwion_util.a
+GWLIBS = libgwion.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options-show util/libgwion_util.a astlib libgwion.a src/main.o

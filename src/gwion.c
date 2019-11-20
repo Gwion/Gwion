@@ -74,7 +74,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   arg->si = gwion->vm->bbq->si;
   const m_bool ret = arg_parse(gwion, arg);
   if(ret) {
-    gwion->data->plug = new_plug(gwion->mp, &arg->lib);
+    gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
     gwion->emit->info->memoize = arg->memoize;
     shreduler_set_loop(gwion->vm->shreduler, arg->loop);
     if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
