@@ -44,7 +44,6 @@ Memoize memoize_ini(const Emitter emit, const Func f, const enum Kind kind) {
   Memoize m = mp_calloc(emit->gwion->mp, Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
-// a void pure function is suspicious at least. check that
   m->kind = kind;
   if(!GET_FLAG(f, member))
     m->arg_sz = f->def->stack_depth;

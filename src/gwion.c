@@ -123,7 +123,7 @@ ANN void gwion_end(const Gwion gwion) {
   mempool_end(gwion->mp);
 }
 
-ANN void env_err(const Env env, const struct YYLTYPE* pos, const m_str fmt, ...) {
+ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
   if(env->context && env->context->error)
       return;
   if(env->class_def)

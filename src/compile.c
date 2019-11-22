@@ -80,7 +80,7 @@ static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
 }
 
 static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
-  struct ScannerArg_ arg = { c->name, c->file, gwion->st, .ppa=gwion->ppa };
+  struct AstGetter_ arg = { c->name, c->file, gwion->st, .ppa=gwion->ppa };
   CHECK_OB((c->ast = parse(&arg)))
   gwion->env->name = c->name;
   for(m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {

@@ -168,11 +168,11 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
 }
 
 ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
-  const size_t line_len = num_digit(pos->first_line);
-  const size_t col_len = num_digit(pos->first_column);
+  const size_t line_len = num_digit(pos->first.line);
+  const size_t col_len = num_digit(pos->first.column);
   char c[strlen(env->curr->name) + strlen(env->name) + line_len + col_len + strlen(name) + 6];
   sprintf(c, "@%s:%s:%s:%u:%u", name, env->name, env->curr->name,
-      pos->first_line, pos->first_column);
+      pos->first.line, pos->first.column);
   return insert_symbol(c);
 }
 
