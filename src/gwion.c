@@ -69,7 +69,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->env->gwion = gwion;
   gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   gwion->data = new_gwiondata(gwion->mp);
-  gwion->type = (Type*)xmalloc(MAX_TYPE * sizeof(struct Type_*));
+  gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si;
   const m_bool ret = arg_parse(gwion, arg);

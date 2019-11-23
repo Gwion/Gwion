@@ -938,8 +938,8 @@ ANN Type check_exp(const Env env, const Exp exp) {
   do {
     next = curr->next;
     CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)))
-//    if(isa(curr->type, env->gwion->type[et_varloop]) > 0 && (prev || next))
-//      ERR_O(exp->pos, _("Varloop must be the only expression"))
+    if(env->gwion->type[et_varloop] && isa(curr->type, env->gwion->type[et_varloop]) > 0 && (prev || next))
+      ERR_O(exp->pos, _("Varloop must be the only expression"))
     if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
         !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);

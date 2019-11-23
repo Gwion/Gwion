@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #19
+# [test] #20
 
 n=0
 [ "$1" ] && n="$1"
@@ -84,6 +84,10 @@ run "$n" "invalid global type" "examples/complex/invalid_type0.gw examples/compl
 # invalid global func
 n=$((n+1))
 run "$n" "invalid global func" "examples/complex/invalid_func0.gw examples/complex/invalid_func1.gw" "file"
+
+# comma in module argument
+n=$((n+1))
+run "$n" "comma in module argument" "-mpp=-Dtest='\"dqs\,qs\"',-Dtsdl" "file"
 
 # test signal
 ./gwion -l1 &
