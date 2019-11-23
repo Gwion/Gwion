@@ -600,7 +600,7 @@ ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple)
 
 DECL_PRIM_FUNC(emit, m_bool , Emitter);
 ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
-  return prim_func[prim->prim_type](emit, &prim->d);
+  return emit_prim_func[prim->prim_type](emit, &prim->d);
 }
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
@@ -1159,7 +1159,7 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
-    CHECK_BB(exp_func[exp->exp_type](emit, &exp->d))
+    CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
    if(ref && isa(exp->type, emit->gwion->type[et_object]) > 0) {
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;
@@ -1570,7 +1570,7 @@ ANN static m_bool emit_stmt_match(const Emitter emit, const struct Stmt_Match_* 
 DECL_STMT_FUNC(emit, m_bool , Emitter)
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
-  CHECK_BB(stmt_func[stmt->stmt_type](emit, &stmt->d))
+  CHECK_BB(emit_stmt_func[stmt->stmt_type](emit, &stmt->d))
   if(pop && stmt->stmt_type == ae_stmt_exp && stmt->d.stmt_exp.val)
     pop_exp(emit, stmt->d.stmt_exp.val);
   return GW_OK;

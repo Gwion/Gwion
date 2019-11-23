@@ -278,7 +278,7 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
 DECL_STMT_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {
-  return stmt_func[stmt->stmt_type](env, &stmt->d);
+  return scan2_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {

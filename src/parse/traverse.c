@@ -10,10 +10,10 @@ ANN m_bool traverse_ast(const Env env, const Ast ast) {
   return check_ast(env, ast);
 }
 
-ANN m_bool traverse_decl(const Env env, const Exp_Decl* decl) {
- CHECK_BB(scan1_exp_decl(env, decl))
- CHECK_BB(scan2_exp_decl(env, decl))
- return check_exp_decl(env, decl) ? 1 : -1;
+ANN m_bool traverse_exp(const Env env, const Exp exp) {
+ CHECK_BB(scan1_exp(env, exp))
+ CHECK_BB(scan2_exp(env, exp))
+ return check_exp(env, exp) ? 1 : -1;
 }
 
 ANN m_bool traverse_func_def(const Env env, const Func_Def def) {

@@ -15,7 +15,6 @@
 #include "emit.h"
 #include "specialid.h"
 
-ANN static Type   check_exp(const Env env, Exp exp);
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
@@ -105,7 +104,7 @@ ANN static inline void clear_decl(const Env env, const Exp_Decl *decl) {
 ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
   CHECK_OO((((Exp_Decl*)decl)->type = check_td(env, decl->td)))
   clear_decl(env, decl);
-  CHECK_BO(traverse_decl(env, decl))
+  CHECK_BO(traverse_exp(env, exp_self(decl)))
   return decl->type;
 }
 
@@ -351,7 +350,7 @@ describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 DECL_PRIM_FUNC(check, Type, Env);
 
 ANN static Type check_prim(const Env env, Exp_Primary *prim) {
-  return exp_self(prim)->type = prim_func[prim->prim_type](env, &prim->d);
+  return exp_self(prim)->type = check_prim_func[prim->prim_type](env, &prim->d);
 }
 
 ANN static Type at_depth(const Env env, const Array_Sub array);
@@ -934,13 +933,13 @@ ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
 
 DECL_EXP_FUNC(check, Type, Env)
 
-ANN static inline Type check_exp(const Env env, const Exp exp) {
+ANN Type check_exp(const Env env, const Exp exp) {
   Exp curr = exp, next = NULL, prev = NULL;
   do {
     next = curr->next;
-    CHECK_OO((curr->type = exp_func[curr->exp_type](env, &curr->d)))
-    if(isa(curr->type, env->gwion->type[et_varloop]) > 0 && (prev || next))
-      ERR_O(exp->pos, _("Varloop must be the only expression"))
+    CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)))
+//    if(isa(curr->type, env->gwion->type[et_varloop]) > 0 && (prev || next))
+//      ERR_O(exp->pos, _("Varloop must be the only expression"))
     if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
         !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);
@@ -1229,7 +1228,7 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {
-  return stmt_func[stmt->stmt_type](env, &stmt->d);
+  return check_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
 ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {

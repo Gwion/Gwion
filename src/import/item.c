@@ -37,7 +37,7 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr
   gwi->ck->exp->d.exp_decl.td->flag = flag;
   if(env->class_def && GET_FLAG(env->class_def, template))
     return gwi_item_tmpl(gwi);
-  CHECK_BB(traverse_decl(env, &gwi->ck->exp->d.exp_decl))
+  CHECK_BB(traverse_exp(env, gwi->ck->exp))
   const Value value = gwi->ck->exp->d.exp_decl.list->self->value;
   SET_FLAG(value, builtin);
   const m_uint offset = value->from->offset;
