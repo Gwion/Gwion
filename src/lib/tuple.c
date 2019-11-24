@@ -138,7 +138,10 @@ static OP_CHECK(opck_at_tuple) {
       if(e->exp_type == ae_exp_decl) {
         DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
         e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
+        const Exp next = e->next;
+        e->next = NULL;
         CHECK_BO(traverse_exp(env, e))
+        e->next = next;
         bin->rhs->meta = ae_meta_var;
       }
       ++i;
