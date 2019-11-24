@@ -1225,6 +1225,7 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 
 #define check_stmt_while check_stmt_flow
 #define check_stmt_until check_stmt_flow
+#define check_stmt_pp    dummy_func
 DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

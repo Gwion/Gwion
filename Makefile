@@ -9,7 +9,6 @@ include config.mk
 
 GWION_PACKAGE=gwion
 CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
-CFLAGS += -DGWION_NOLINT
 
 GIT_BRANCH=$(shell git branch | grep "*" | cut -d" " -f2)
 

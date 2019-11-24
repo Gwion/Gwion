@@ -274,6 +274,7 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
 #define scan2_stmt_continue (void*)dummy_func
 #define scan2_stmt_break    (void*)dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
+#define scan2_stmt_pp       dummy_func
 
 DECL_STMT_FUNC(scan2, m_bool, Env)
 

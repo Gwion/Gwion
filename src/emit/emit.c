@@ -936,8 +936,45 @@ ANN static void emit_args(const Emitter emit, const Func f) {
   }
 }
 
+typedef struct {
+  const Emitter  emit;
+  const Func_Def fdef;
+  struct Vector_   branch;
+  const m_uint   offset;
+  m_uint         arg_offset;
+} MemoizeEmitter;
+
+ANN static Instr me_push(const MemoizeEmitter *me, const m_uint sz) {
+  const Instr instr = emit_kind(me->emit, sz, 0, regpushmem);
+  instr->m_val  = me->arg_offset;
+  return instr;
+}
+
+static m_bool me_cmp(MemoizeEmitter *me, const Arg_List arg) {
+  const Emitter emit = me->emit;
+  const Symbol sym = insert_symbol("==");
+  struct Exp_ exp = { .nspc=me->fdef->base->func->value_ref->from->owner };
+  struct Op_Import opi = { .op=sym, .lhs=arg->type, .rhs=arg->type, .pos=me->fdef->pos, .data=(uintptr_t)&exp.d };
+  CHECK_BB(op_emit_bool(emit, &opi))
+  const Instr instr = emit_add_instr(emit, BranchEqInt);
+  vector_add(&me->branch, (vtype)instr);
+  return GW_OK;
+}
+
+ANN static m_bool me_arg(MemoizeEmitter *me) {
+  Arg_List arg = me->fdef->base->args;
+  do {
+    const m_uint sz = arg->type->size;
+    (void)me_push(me, sz);
+    const Instr instr = me_push(me, sz);
+    instr->m_val  += me->offset + SZ_INT *2;
+    CHECK_BB(me_cmp(me, arg))
+    me->arg_offset += arg->type->size;
+  } while((arg = arg->next));
+  return GW_OK;
+}
+
 ANN static Instr emit_call(const Emitter emit, const Func f) {
-  const Instr memoize = !(emit->info->memoize && GET_FLAG(f, pure)) ? NULL : emit_add_instr(emit, MemoizeCall);
   const Instr prelude = get_prelude(emit, f);
   prelude->m_val = f->def->stack_depth;
   const m_uint member = GET_FLAG(f, member) ? SZ_INT : 0;
@@ -950,8 +987,6 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
     emit_args(emit, f);
     ++prelude->m_val2;
   }
-  if(memoize)
-    memoize->m_val = prelude->m_val2 + 1;
   return emit_add_instr(emit, Overflow);
 }
 
@@ -1565,6 +1600,14 @@ ANN static m_bool emit_stmt_match(const Emitter emit, const struct Stmt_Match_* 
   return ret;
 }
 
+ANN static m_bool emit_stmt_pp(const Emitter emit, const struct Stmt_PP_* stmt) {
+  if(stmt->pp_type == ae_pp_pragma) {
+    if(!strncmp(stmt->data, "memoize", strlen("memoize")))
+      emit->info->memoize = strtol(stmt->data + 7, NULL, 10);
+  }
+  return GW_OK;
+}
+
 #define emit_stmt_while emit_stmt_flow
 #define emit_stmt_until emit_stmt_flow
 DECL_STMT_FUNC(emit, m_bool , Emitter)
@@ -1762,8 +1805,10 @@ ANN static void emit_func_def_return(const Emitter emit) {
     instr->m_val = val;
   }
   vector_clear(&emit->code->stack_return);
-  if(emit->info->memoize && GET_FLAG(emit->env->func, pure))
-    emit_add_instr(emit, MemoizeStore);
+  if(emit->info->memoize && GET_FLAG(emit->env->func, pure)) {
+    const Instr instr = emit_add_instr(emit, MemoizeStore);
+    instr->m_val = emit->env->func->def->stack_depth;
+  }
 }
 
 ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
@@ -1808,7 +1853,64 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
+ANN static Instr me_top(MemoizeEmitter *me) {
+  const Instr idx = emit_add_instr(me->emit, MemSetImm);
+  idx->m_val = me->offset;
+  const Instr pc = emit_add_instr(me->emit, MemSetImm);
+  pc->m_val = me->offset + SZ_INT;
+  return pc;
+}
+
+ANN static void me_ini(MemoizeEmitter *me) {
+  const Instr ini = emit_add_instr(me->emit, MemoizeIni);
+  ini->m_val = me->offset;
+  ini->m_val2 = me->fdef->stack_depth + me->fdef->base->ret_type->size;
+}
+
+ANN static void me_end(MemoizeEmitter *me, const m_uint pc) {
+  for(m_uint i = 0; i < vector_size(&me->branch); ++i)
+	  ((Instr)vector_at(&me->branch, i))->m_val = pc;
+}
+
+ANN static void me_bottom(MemoizeEmitter *me, const m_uint pc) {
+  const Instr idx = emit_add_instr(me->emit, RegPushMem4);
+  idx->m_val = me->offset;
+  emit_add_instr(me->emit, int_pre_inc);
+  regpop(me->emit, SZ_INT);
+  const Instr loop = emit_add_instr(me->emit, Goto);
+  loop->m_val = pc;
+}
+
+ANN static void me_ret(MemoizeEmitter *me) {
+  const Instr instr = emit_kind(me->emit, me->fdef->base->ret_type->size, 0, regpushmem);
+  instr->m_val = (me->offset + SZ_INT)*2;
+  emit_add_instr(me->emit, FuncReturn);
+}
+
+ANN static m_bool me_run(MemoizeEmitter *me, const m_uint pc) {
+  me_ini(me);
+  if(me->fdef->base->args)
+    CHECK_BB(me_arg(me))
+  me_ret(me);
+  me_end(me, emit_code_size(me->emit));
+  me_bottom(me, pc);
+  return GW_OK;
+}
+
+ANN static m_bool emit_memoize(const Emitter emit, const Func_Def fdef) {
+  MemoizeEmitter me = { .emit=emit, .fdef=fdef, .offset=fdef->stack_depth };
+  const Instr pc = me_top(&me);
+  const m_uint top = emit_code_size(emit);
+  vector_init(&me.branch);
+  const m_bool ret = me_run(&me, top);
+  vector_release(&me.branch);
+  pc->m_val2 = emit_code_size(emit);
+  return ret;
+}
+
 ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
+  if(emit->info->memoize && GET_FLAG(fdef->base->func, pure))
+    CHECK_BB(emit_memoize(emit, fdef))
   CHECK_BB(emit_func_def_body(emit, fdef))
   emit_func_def_return(emit);
   return GW_OK;
@@ -1820,8 +1922,7 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
     emit_func_def_global(emit, func->value_ref);
   if(emit->info->memoize && GET_FLAG(func, pure))
-    func->code->memoize = memoize_ini(emit, func,
-      kindof(fdef->base->ret_type->size, !fdef->base->ret_type->size));
+    func->code->memoize = memoize_ini(emit, func);
 }
 
 ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {

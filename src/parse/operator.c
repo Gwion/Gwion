@@ -229,6 +229,8 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
     Type r = opi->rhs;
     do {
       const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
+if(!v)continue;
+assert(v);
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
         if(mo->em)
