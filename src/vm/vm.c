@@ -170,6 +170,7 @@ DISPATCH()
   *(t*)(reg - sz) = op*(t*)(reg - sz);\
   DISPATCH();
 
+// check me
 #define R(t, sz, op, ...) \
 reg -= SZ_INT;\
 __VA_ARGS__\
@@ -612,7 +613,9 @@ PRAGMA_PUSH()
   goto *dispatch[next];
 PRAGMA_POP()
 funcusrend:
+PRAGMA_PUSH()
   byte = bytecode = (code = a.code)->bytecode;
+PRAGMA_POP()
   SDISPATCH();
 funcmemberend:
   VM_OUT
@@ -703,6 +706,8 @@ arrayaddr:
   *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * VAL));
   DISPATCH()
 arrayvalid:
+// are we sure it is the array ?
+// rather increase ref
   vector_pop(&shred->gc);
   goto regpush;
 newobj:
@@ -715,18 +720,16 @@ addref:
     ++a.obj->ref;
   DISPATCH()
 objassign:
-{ // use a.obj ?
-  register const M_Object tgt = **(M_Object**)(reg -SZ_INT);
-  if(tgt) {
-    --tgt->ref;
-    _release(tgt, shred);
-}
+  a.obj = **(M_Object**)(reg -SZ_INT);
+  if(a.obj) {
+    --a.obj->ref;
+    _release(a.obj, shred);
+  }
 assign:
   reg -= SZ_INT;
   a.obj = *(M_Object*)(reg-SZ_INT);
   **(M_Object**)reg = a.obj;
   DISPATCH()
-}
 remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
