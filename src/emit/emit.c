@@ -1201,10 +1201,6 @@ ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
     }
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
-    if(emit->env->func && isa(exp->type, emit->gwion->type[et_lambda]) < 0 &&
-        isa(exp->type, emit->gwion->type[et_function]) > 0 &&
-        !GET_FLAG(exp->type->e->d.func->value_ref->d.func_ref, pure))
-      UNSET_FLAG(emit->env->func, pure);
   } while((exp = exp->next));
   return GW_OK;
 }

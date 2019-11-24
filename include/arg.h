@@ -10,7 +10,6 @@ typedef struct Arg_ {
   struct SoundInfo_ *si;
   int argc;
   m_bool loop;
-  m_bool memoize;
 } Arg;
 
 ANN void arg_release(Arg*);

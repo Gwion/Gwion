@@ -57,7 +57,6 @@ static const char usage[] =
 "  -o    <number>  : set output channel number\n"
 "  -d    <number>  : set driver (and arguments)\n"
 "  -l    <number>  : set loop mode\n"
-"  -z    <number>  : set memoization limit\n"
 "  -m   <mod:args> : load module (and arguments)\n"
 "  -g   <mod:args> : set Gwion compiler passes order\n";
 
@@ -104,10 +103,6 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
         case 'l':
           CHECK_OB((tmp = _get_arg(arg, &i)))
           arg->loop = (m_bool)ARG2INT(tmp) > 0 ? 1 : -1;
-          break;
-        case 'z':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
-          arg->memoize = (uint32_t)ARG2INT(tmp);
           break;
         case 'i':
           CHECK_OB((tmp = _get_arg(arg, &i)))

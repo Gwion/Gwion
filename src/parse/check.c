@@ -409,7 +409,7 @@ ANN static void fill_tl_vector(const Env env, Nspc nspc, const Vector v) {
   }
 }
 
-ANN static Type_List mk_type_list(const Env env, const Type type) {
+ANN static Type_List mk_type_list(const Env env, const Type type, const loc_t pos) {
   struct Vector_ v;
   vector_init(&v);
   vector_add(&v, (vtype)insert_symbol(type->name));
@@ -417,7 +417,7 @@ ANN static Type_List mk_type_list(const Env env, const Type type) {
     fill_tl_vector(env, type->e->owner, &v);
   ID_List id = NULL;
   for(m_uint i = 0 ; i < vector_size(&v); ++i)
-    id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i), id, new_loc(env->gwion->mp, __LINE__));
+    id = prepend_id_list(env->gwion->mp, (Symbol)vector_at(&v, i), id, loc_cpy(env->gwion->mp, pos));
   vector_release(&v);
   assert(id);
   Type_Decl* td = new_type_decl(env->gwion->mp, id);
@@ -710,7 +710,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
       char path[id_list_len(arg->td->xid)];
       type_path(path, arg->td->xid);
       if(!strcmp(s_name(list->xid), path)) {
-        tl[args_number] = mk_type_list(env, template_arg->type);
+        tl[args_number] = mk_type_list(env, template_arg->type, fdef->pos);
         if(args_number)
           tl[args_number - 1]->next = tl[args_number];
         ++args_number;
