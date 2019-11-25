@@ -2021,6 +2021,7 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
 
 ANN m_bool emit_ast(const Env env, Ast ast) {
   const Emitter emit = env->gwion->emit;
+  emit->info->memoize = 0;
   emit->code = new_code(emit, emit->env->name);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);
