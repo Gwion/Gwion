@@ -108,7 +108,7 @@ ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {
   HANDLE file = FindFirstFileA(name,&filedata);
   if(file == INVALID_HANDLE_VALUE)
     return;
-  do plug_get(&h, filedata.cFileName);
+  do plug_get(h, filedata.cFileName);
   while(FindNextFile(file,&filedata) == 0);
   FindClose(file);
 #endif

@@ -13,18 +13,21 @@
 #include "pass.h" // fork_clean
 #include "specialid.h" // fork_clean
 
-ANN m_bool gwion_audio(const Gwion gwion) {
-  Driver* di = gwion->vm->bbq;
-  if(di->si->arg) {
-    for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
-      const m_str name = (m_str)VKEY(&gwion->data->plug->drv, i);
-      const size_t len = strlen(name);
-      if(!strncmp(name, di->si->arg, len)) {
-        di->func = (f_bbqset)VVAL(&gwion->data->plug->drv, i);
-        break;
-      }
+ANN static void driver_arg(const Gwion gwion, Driver *di) {
+  for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
+    const m_str name = (m_str)VKEY(&gwion->data->plug->drv, i);
+    const size_t len = strlen(name);
+    if(!strncmp(name, di->si->arg, len)) {
+      di->func = (f_bbqset)VVAL(&gwion->data->plug->drv, i);
+      break;
     }
   }
+}
+
+ANN m_bool gwion_audio(const Gwion gwion) {
+  Driver* di = gwion->vm->bbq;
+  if(di->si->arg)
+    driver_arg(gwion, di);
   di->func(di->driver);
   CHECK_BB(di->driver->ini(gwion->vm, di));
   driver_alloc(di);
@@ -67,11 +70,10 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->emit->gwion = gwion;
   gwion->vm->gwion = gwion;
   gwion->env->gwion = gwion;
-  gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   gwion->data = new_gwiondata(gwion->mp);
   gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
   pass_default(gwion);
-  arg->si = gwion->vm->bbq->si;
+  arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   const m_bool ret = arg_parse(gwion, arg);
   if(ret) {
     gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
@@ -100,16 +102,24 @@ ANN static void fork_clean2(const Vector v) {
   vector_release(v);
 }
 
-ANN void gwion_end(const Gwion gwion) {
-  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
-  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
-  vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
+ANN static void gwion_end_child(const Gwion gwion) {
   MUTEX_LOCK(gwion->vm->shreduler->mutex);
   if(gwion->data->child.ptr)
     fork_clean(gwion->vm->cleaner_shred, &gwion->data->child);
   if(gwion->data->child2.ptr)
     fork_clean2(&gwion->data->child2);
   MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
+}
+
+ANN static void gwion_cleaner(const Gwion gwion) {
+  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
+  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
+  vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
+}
+
+ANN void gwion_end(const Gwion gwion) {
+  gwion_cleaner(gwion);
+  gwion_end_child(gwion);
   free_env(gwion->env);
   free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->mp, gwion->emit);
@@ -122,13 +132,17 @@ ANN void gwion_end(const Gwion gwion) {
   mempool_end(gwion->mp);
 }
 
-ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
-  if(env->context && env->context->error)
-      return;
+ANN static void env_header(const Env env) {
   if(env->class_def)
     gw_err(_("in class: '%s'\n"), env->class_def->name);
   if(env->func)
     gw_err(_("in function: '%s'\n"), env->func->name);
+}
+
+ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
+  if(env->context && env->context->error)
+      return;
+  env_header(env);
   loc_header(pos, env->name);
   va_list arg;
   va_start(arg, fmt);

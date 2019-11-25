@@ -33,7 +33,6 @@ typedef struct Local_ {
   m_bool is_obj;
 } Local;
 
-static inline void emit_pop_type(const Emitter emit) { nspc_pop_type(emit->gwion->mp, emit->env->curr); }
 static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(emit->env, scope); }
 static inline m_uint emit_push(const Emitter emit, const Type type, const Nspc nspc) {
   return env_push(emit->env, type, nspc);

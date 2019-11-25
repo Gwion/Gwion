@@ -37,7 +37,7 @@ static GACK(gack_void) {
 }
 
 static GACK(gack_int) {
-  printf("%li", *(m_uint*)VALUE);
+  printf("%"INT_F, *(m_uint*)VALUE);
 }
 
 static GACK(gack_char) {
