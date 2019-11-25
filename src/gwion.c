@@ -12,6 +12,7 @@
 #include "object.h" // fork_clean
 #include "pass.h" // fork_clean
 #include "specialid.h" // fork_clean
+#include "shreduler_private.h"
 
 ANN static void driver_arg(const Gwion gwion, Driver *di) {
   for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
@@ -25,7 +26,7 @@ ANN static void driver_arg(const Gwion gwion, Driver *di) {
 }
 
 ANN m_bool gwion_audio(const Gwion gwion) {
-  Driver* di = gwion->vm->bbq;
+  Driver *const di = gwion->vm->bbq;
   if(di->si->arg)
     driver_arg(gwion, di);
   di->func(di->driver);
@@ -43,7 +44,6 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
     compile_filename(gwion, (m_str)vector_at(v, i));
 }
 
-#include "shreduler_private.h"
 ANN VM* gwion_cpy(const VM* src) {
   const Gwion gwion = mp_calloc(src->gwion->mp, Gwion);
   gwion->vm = new_vm(src->gwion->mp, 0);
@@ -58,33 +58,36 @@ ANN VM* gwion_cpy(const VM* src) {
   return gwion->vm;
 }
 
-ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
-  gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
-  gwion->st = new_symbol_table(gwion->mp, 65347);
+ANN static void gwion_core(const Gwion gwion) {
   gwion->vm = new_vm(gwion->mp, 1);
-  gwion->ppa = mp_calloc(gwion->mp, PPArg);
-  pparg_ini(gwion->mp, gwion->ppa);
   gwion->emit = new_emitter(gwion->mp);
   gwion->env = new_env(gwion->mp);
   gwion->emit->env = gwion->env;
-  gwion->emit->gwion = gwion;
-  gwion->vm->gwion = gwion;
-  gwion->env->gwion = gwion;
+  gwion->vm->gwion = gwion->emit->gwion = gwion->env->gwion = gwion;
+}
+
+ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
+  gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
+  shreduler_set_loop(gwion->vm->shreduler, arg->loop);
+  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
+    plug_run(gwion, &arg->mod);
+    gwion_compile(gwion, &arg->add);
+    return GW_OK;
+  }
+  return GW_ERROR;
+}
+
+ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
+  gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
+  gwion->st = new_symbol_table(gwion->mp, 65347);
+  gwion->ppa = mp_calloc(gwion->mp, PPArg);
+  pparg_ini(gwion->mp, gwion->ppa);
+  gwion_core(gwion);
   gwion->data = new_gwiondata(gwion->mp);
   gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
-  const m_bool ret = arg_parse(gwion, arg);
-  if(ret) {
-    gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
-    shreduler_set_loop(gwion->vm->shreduler, arg->loop);
-    if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-      plug_run(gwion, &arg->mod);
-      gwion_compile(gwion, &arg->add);
-      return GW_OK;
-    }
-  }
-  return GW_ERROR;
+  return arg_parse(gwion, arg) > 0 ? gwion_ok(gwion, arg) : GW_ERROR;
 }
 
 ANN void gwion_run(const Gwion gwion) {
