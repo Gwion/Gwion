@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #20
+# [test] #19
 
 n=0
 [ "$1" ] && n="$1"
@@ -56,10 +56,6 @@ rm "$RC"
 # loop
 n=$((n+1))
 run "$n" "loop" "-l0" "file"
-
-# memoization
-n=$((n+1))
-run "$n" "memoize" "-z2 tests/new/pure*.gw" "file"
 
 # (fake) module arg
 n=$((n+1))
