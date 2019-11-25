@@ -115,6 +115,8 @@ ANN static void gwion_end_child(const Gwion gwion) {
 }
 
 ANN static void gwion_cleaner(const Gwion gwion) {
+  if(!gwion->type[et_shred])
+    return;
   const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
@@ -124,7 +126,8 @@ ANN void gwion_end(const Gwion gwion) {
   gwion_cleaner(gwion);
   gwion_end_child(gwion);
   free_env(gwion->env);
-  free_vm_shred(gwion->vm->cleaner_shred);
+  if(gwion->vm->cleaner_shred)
+    free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->mp, gwion->emit);
   free_vm(gwion->vm);
   pparg_end(gwion->ppa);

@@ -27,5 +27,4 @@ ANN void* get_module(const struct Gwion_*, const m_str);
 #define GWMODEND(a)  ANN void  GWMODEND_NAME(const struct Gwion_ *gwion NUSED, void* self NUSED)
 #define GWDRIVER(a)  ANN void  GWDRIVER_NAME(DriverData* d)
 
-ANN Vector split_args(MemPool, const m_str str);
 #endif

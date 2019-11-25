@@ -2,13 +2,12 @@
 #define __ARG
 
 typedef struct Arg_ {
-  char** argv;
+  struct CArg    arg;
   struct Vector_ add;
   struct Vector_ lib;
   struct Vector_ mod;
   struct Vector_ config;
   struct SoundInfo_ *si;
-  int argc;
   m_bool loop;
 } Arg;
 

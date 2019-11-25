@@ -72,56 +72,49 @@ ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
   free_vector(gwion->mp, v);
 }
 
-ANN static inline m_str _get_arg(Arg* arg, int *i) {
-  const char key = arg->argv[*i][1];
-  const m_str str = (arg->argv[*i][2] == '\0' ? arg->argv[++(*i)] : arg->argv[*i] + 2);
-  if(!str)
-    gw_err(_("option '-%c' needs arguments\n"), key);
-  return str;
-}
-
 ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
-  for(int i = 1; i < arg->argc; ++i) {
-    if(arg->argv[i][0] == '-') {
+  struct CArg *ca = &arg->arg;
+  for(ca->idx = 1; ca->idx < ca->argc; ++ca->idx) {
+    if(ca->argv[ca->idx][0] == '-') {
       m_str tmp;
-      switch(arg->argv[i][1]) {
+      switch(ca->argv[ca->idx][1]) {
         case 'h':
           gw_err(usage);
           break;
         case 'c':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           config_parse(gwion, arg, tmp);
           break;
         case 'p':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           vector_add(&arg->lib, (vtype)tmp);
           break;
         case 'm':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           vector_add(&arg->mod, (vtype)tmp);
           break;
         case 'l':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg->loop = (m_bool)ARG2INT(tmp) > 0 ? 1 : -1;
           break;
         case 'i':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg->si->in = (uint8_t)ARG2INT(tmp);
           break;
         case 'o':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg->si->out = (uint8_t)ARG2INT(tmp);
           break;
         case 's':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg->si->sr = (uint32_t)ARG2INT(tmp);
           break;
         case 'd':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg->si->arg = tmp;
           break;
         case 'g':
-          CHECK_OB((tmp = _get_arg(arg, &i)))
+          CHECK_OB((tmp = option_argument(ca)))
           arg_set_pass(gwion, tmp);
           break;
         default:
@@ -129,7 +122,7 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
           return GW_ERROR;
       }
     } else
-      vector_add(&arg->add, (vtype)arg->argv[i]);
+      vector_add(&arg->add, (vtype)ca->argv[ca->idx]);
   }
   return GW_OK;
 }
@@ -142,8 +135,8 @@ ANN static void split_line(const m_str line, const Vector v) {
     const m_bool arg = (str[sz-1] == '\n');
     vector_add(v, (vtype)strndup(str, arg ? sz - 1 : sz));
   }
-  free(d);
-  free(c);
+  xfree(d);
+  xfree(c);
 }
 
 ANN static Vector get_config(const m_str name) {
@@ -167,13 +160,11 @@ ANN static Vector get_config(const m_str name) {
 ANN static void config_parse(const Gwion gwion, Arg* arg, const m_str name) {
   const Vector v = get_config(name);
   if(v) {
-    int argc = arg->argc;
-    char** argv = arg->argv;
-    arg->argc = vector_size(v);
-    arg->argv =  (m_str*)(v->ptr + OFFSET);
+    struct CArg ca = arg->arg;
+    arg->arg.argc = vector_size(v);
+    arg->arg.argv =  (m_str*)(v->ptr + OFFSET);
     _arg_parse(gwion, arg);
-    arg->argc = argc;
-    arg->argv = argv;
+    arg->arg = ca;
     vector_add(&arg->config, (vtype)v);
   }
 }

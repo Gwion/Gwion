@@ -15,7 +15,7 @@ static void sig(int unused NUSED) {
 }
 
 int main(int argc, char** argv) {
-  Arg arg = { .argc=argc, .argv=argv, .loop=-1 };
+  Arg arg = { .arg={.argc=argc, .argv=argv}, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   struct Gwion_ gwion = {};
