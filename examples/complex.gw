@@ -2,6 +2,8 @@ complex a, b;
 a;
 a.re;
 a.im;
+a == b;
+a != b;
 a + b;
 
 <<< a - b >>>;

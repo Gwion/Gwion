@@ -3,6 +3,8 @@ polar a;
 a.mod;
 a.phase;
 a;
+a == b;
+a != b;
 a + b;
 a - b;
 a * b;

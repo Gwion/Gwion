@@ -160,6 +160,8 @@ static GACK(gack_vec3) {
   printf("%%(%.4f, %.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT), *(m_float*)(VALUE + SZ_FLOAT*2));
 }
 
+EQUALITY_OPER(vec3, SZ_VEC3);
+
 GWION_IMPORT(vec3) {
   const Type t_vec3 = gwi_class_spe(gwi, "Vec3", SZ_VEC3);
   gwi->gwion->type[et_vec3] = t_vec3;
@@ -201,6 +203,9 @@ GWION_IMPORT(vec3) {
   GWI_BB(gwi_func_end(gwi, vec3_update_set_slew, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
 
+  GWI_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "==",          vec3_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=",          vec3_ne))
   GWI_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "Vec3"))
   GWI_BB(gwi_oper_end(gwi, "+", Vec3Add))
   GWI_BB(gwi_oper_end(gwi, "-", Vec3Sub))
@@ -308,6 +313,8 @@ static GACK(gack_vec4) {
       *(m_float*)(VALUE + SZ_FLOAT*3));
 }
 
+EQUALITY_OPER(vec4, SZ_VEC4);
+
 GWION_IMPORT(vec4) {
   const Type t_vec4 = gwi_class_spe(gwi, "Vec4", SZ_VEC4);
   gwi->gwion->type[et_vec4] = t_vec4;
@@ -329,6 +336,9 @@ GWION_IMPORT(vec4) {
     gwi_func_ini(gwi, "void", "normalize");
   CHECK_BB(gwi_func_end(gwi, vec4_normalize, ae_flag_none))
   CHECK_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "==",          vec4_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=",          vec4_ne))
   CHECK_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "Vec4"))
   CHECK_BB(gwi_oper_end(gwi, "+",  Vec4Add))
   CHECK_BB(gwi_oper_end(gwi, "-", Vec4Sub))

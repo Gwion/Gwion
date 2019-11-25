@@ -121,6 +121,8 @@ static GACK(gack_polar) {
   printf("%%(%.4f, %.4f*pi)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT) / M_PI);
 }
 
+EQUALITY_OPER(complex, SZ_COMPLEX)
+
 GWION_IMPORT(complex) {
 // should be special
   const Type t_complex = gwi_class_spe(gwi, "complex", SZ_COMPLEX);
@@ -140,6 +142,9 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_item_ini(gwi, "float", "phase"))
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "complex", "complex", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "==",          complex_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=",          complex_ne))
   GWI_BB(gwi_oper_ini(gwi, "complex", "complex", "complex"))
   GWI_BB(gwi_oper_end(gwi, "+",          ComplexAdd))
   GWI_BB(gwi_oper_end(gwi, "-",         ComplexSub))
@@ -155,6 +160,9 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_oper_end(gwi, "*=>",   ComplexRMul))
   GWI_BB(gwi_oper_add(gwi, opck_rassign))
   GWI_BB(gwi_oper_end(gwi, "/=>",  ComplexRDiv))
+  GWI_BB(gwi_oper_ini(gwi, "polar", "polar", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "==",          complex_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=",          complex_ne))
   GWI_BB(gwi_oper_ini(gwi, "polar", "polar", "polar"))
   GWI_BB(gwi_oper_add(gwi, opck_rassign))
   GWI_BB(gwi_oper_end(gwi, "=>",         ComplexRAssign))
