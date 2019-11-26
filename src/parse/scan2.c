@@ -101,6 +101,14 @@ ANN static inline Value prim_value(const Env env, const Symbol s) {
   return value;
 }
 
+ANN static m_bool scan2_range(const Env env, Range *range) {
+  if(range->start)
+    CHECK_BB(scan2_exp(env, range->start))
+  if(range->end)
+    CHECK_BB(scan2_exp(env, range->end))
+  return GW_OK;
+}
+
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
   if(prim->prim_type == ae_prim_hack)
     CHECK_BB(scan2_exp(env, prim->d.exp))
@@ -110,6 +118,8 @@ ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
       SET_FLAG(v, used);
   } else if(prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan2_exp(env, prim->d.array->exp);
+  else if(prim->prim_type == ae_prim_range)
+    return scan2_range(env, prim->d.range);
   if(prim->prim_type == ae_prim_tuple)
     return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
@@ -118,6 +128,11 @@ ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
 ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) {
   CHECK_BB(scan2_exp(env, array->base))
   return scan2_exp(env, array->array->exp);
+}
+
+ANN static inline m_bool scan2_exp_slice(const Env env, const Exp_Slice* exp) {
+  CHECK_BB(scan2_exp(env, exp->base))
+  return scan2_range(env, exp->range);
 }
 
 ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {

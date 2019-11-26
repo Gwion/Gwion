@@ -183,6 +183,45 @@ static OP_CHECK(opck_array_cast) {
   return env->gwion->type[et_null];
 }
 
+static OP_CHECK(opck_array_slice) {
+  const Exp e = (Exp)data;
+  return e->d.exp_slice.base->type;
+}
+
+static inline m_bool bounds(const M_Vector v, const m_int i) {
+  CHECK_BB(i)
+  return (m_uint)i < ARRAY_LEN(v) ? GW_OK : GW_ERROR;
+}
+
+static INSTR(ArraySlice) {
+  shred->reg -= SZ_INT *3;
+  const M_Object array = *(M_Object*)REG(0);
+  const M_Vector v = ARRAY(array);
+  const m_int start = *(m_uint*)REG(SZ_INT);
+  m_int end   = *(m_uint*)REG(SZ_INT*2);
+  if(end < 0)
+    end = ARRAY_LEN(v) + end;
+  const m_int op    = start < end ? 1 : -1;
+  const m_uint sz    = op > 0 ? end - start : start - end;
+  if(bounds(v, start) < 0 || bounds(v, end) < 0)
+    Except(shred, "OutOfBoundsArraySliceException");
+  for(m_int i = start, j = 0; i != end; i += op, ++j)
+    m_vector_get(v, i, REG(j * SZ_INT));
+  *(m_uint*)REG(sz * SZ_INT) = sz;
+  PUSH_REG(shred, sz * SZ_INT);
+}
+
+static OP_EMIT(opem_array_slice) {
+  const Exp exp = (Exp)data;
+  Exp_Slice *range = &exp->d.exp_slice;
+  emit_add_instr(emit, ArraySlice);
+  const Instr instr = emit_add_instr(emit, ArrayInit);
+  instr->m_val = (m_uint)range->base->type;
+  instr->m_val2 = range->base->type->size;
+  emit_add_instr(emit, GcAdd);
+  return instr;
+}
+
 static FREEARG(freearg_array) {
   ArrayInfo* info = (ArrayInfo*)instr->m_val;
   vector_release(&info->type);
@@ -219,6 +258,10 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_basic_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", "int", "int"))
+  GWI_BB(gwi_oper_add(gwi, opck_array_slice))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
+  GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }

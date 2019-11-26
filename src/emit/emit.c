@@ -400,6 +400,32 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   return GW_OK;
 }
 
+ANN static m_bool emit_range(const Emitter emit, Range *range) {
+  if(range->start)
+    CHECK_OB(emit_exp(emit, range->start, 0))
+  else
+    regpushi(emit, 0);
+  if(range->end)
+    CHECK_OB(emit_exp(emit, range->end, 0))
+  else
+    regpushi(emit, -1);
+  return GW_OK;
+}
+
+ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
+  Range *range = *data;
+  CHECK_BB(emit_range(emit, range))
+  const Exp e = range->start ?: range->end;
+  const Symbol sym = insert_symbol("@range");
+  struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
+  CHECK_OB(op_emit(emit, &opi))
+  const Instr instr = emit_add_instr(emit, ArrayInit);
+  instr->m_val = (m_uint)prim_exp(data)->type;
+  instr->m_val2 = prim_exp(data)->type->size;
+  emit_add_instr(emit, GcAdd);
+  return GW_OK;
+}
+
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);
@@ -503,6 +529,16 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   const Exp e = exp_self(array);
   struct ArrayAccessInfo info = { *array->array, e->type, e->emit_var };
   return _emit_indexes(emit, &info);
+}
+
+ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
+  CHECK_BB(emit_exp(emit, range->base, 0))
+  CHECK_BB(emit_range(emit, range->range))
+  const Symbol sym = insert_symbol("@slice");
+  const Exp e = range->range->start ?: range->range->end;
+  struct Op_Import opi = { .op=sym, .lhs=range->base->type, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)exp_self(range) };
+  CHECK_OB(op_emit(emit, &opi))
+  return GW_OK;
 }
 
 ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {

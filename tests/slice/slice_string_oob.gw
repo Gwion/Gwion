@@ -1,0 +1,2 @@
+#! [contains] OutOfBoundsStringSlice
+"test"[-1:];
