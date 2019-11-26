@@ -1150,8 +1150,7 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
       const m_uint depth = f->def->stack_depth;
       regpop(emit, depth -SZ_INT);
       const Instr spork = emit_add_instr(emit, SporkMemberFptr);
-      spork->m_val = depth + SZ_INT;
-      spork->m_val2 = -SZ_INT*2;
+      spork->m_val = depth;
     } else
       emit_exp_spork_finish(emit, f->def->stack_depth);
     const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
