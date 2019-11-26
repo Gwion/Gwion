@@ -83,7 +83,7 @@ clean:
 install: ${PRG}
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
-	@sed "s/PREFIX/${PREFIX}/g" scripts/gwion-config > gwion-config
+	@sed 's/PREFIX/$\{PREFIX\}/g' scripts/gwion-config > gwion-config
 	@install gwion-config ${DESTDIR}/${PREFIX}/bin/gwion-config
 	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm gwion-config
