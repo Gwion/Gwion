@@ -75,7 +75,6 @@ static OP_CHECK(opck_int_range) {
   const Exp exp = (Exp)data;
   const Range *range = exp->d.prim.d.range;
   const Exp e = range->start ?: range->end;
-puts(e->type->name);
   return array_type(env, e->type, 1);
 }
 
