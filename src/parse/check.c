@@ -201,6 +201,24 @@ ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
   return (array->type = prim_array_match(env, e));
 }
 
+ANN static m_bool check_range(const Env env, Range *range) {
+  if(range->start)
+    CHECK_OB(check_exp(env, range->start))
+  if(range->end)
+    CHECK_OB(check_exp(env, range->end))
+// check types match
+  return GW_OK;
+}
+
+ANN static Type check_prim_range(const Env env, Range **data) {
+  Range *range = *data;
+  CHECK_BO(check_range(env, range))
+  const Exp e = range->start ?: range->end;
+  const Symbol sym = insert_symbol("@range");
+  struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
+  return op_check(env, &opi);
+}
+
 ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
       const Value v, const loc_t pos) {
   if(!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
@@ -250,22 +268,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   return v->type;
 }
 
-ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
-  const Value v = nspc_lookup_value0(env->global_nspc, sym);
-  if(v)
-    return v;
-  const Value value = new_value(env->gwion->mp, env->gwion->type[et_string], s_name(sym));
-  nspc_add_value_front(env->global_nspc, sym, value);
-  return value;
-}
-
 ANN Type check_prim_str(const Env env, const m_str *data) {
-  if(!prim_self(data)->value) {
-    const m_str str = *data;
-    char c[strlen(str) + 8];
-    sprintf(c, "%s:string", str);
-    prim_self(data)->value = prim_str_value(env, insert_symbol(c));
-  }
+  if(!prim_self(data)->value)
+    prim_self(data)->value = global_string(env, *data);
   return env->gwion->type[et_string];// prim->value
 }
 
@@ -340,13 +345,14 @@ ANN static Type check##_prim_##name(const Env env NUSED, const union prim_data* 
   return type; \
 }
 describe_prim_xxx(num, env->gwion->type[et_int])
+describe_prim_xxx(char, env->gwion->type[et_char])
 describe_prim_xxx(float, env->gwion->type[et_float])
 describe_prim_xxx(nil, env->gwion->type[et_void])
 describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 
 #define check_prim_complex check_prim_vec
 #define check_prim_polar check_prim_vec
-#define check_prim_char check_prim_num
+#define check_prim_char check_prim_char
 DECL_PRIM_FUNC(check, Type, Env);
 
 ANN static Type check_prim(const Env env, Exp_Primary *prim) {
@@ -397,6 +403,15 @@ static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
   CHECK_BO(check_subscripts(env, array->array))
   return at_depth(env, array->array);
+}
+
+static ANN Type check_exp_slice(const Env env, const Exp_Slice* range) {
+  CHECK_OO(check_exp(env, range->base))
+  CHECK_BO(check_range(env, range->range))
+  const Symbol sym = insert_symbol("@slice");
+  const Exp e = range->range->start ?: range->range->end;
+  struct Op_Import opi = { .op=sym, .lhs=range->base->type, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)exp_self(range) };
+  return op_check(env, &opi);
 }
 
 ANN static void fill_tl_vector(const Env env, Nspc nspc, const Vector v) {

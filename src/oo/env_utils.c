@@ -92,3 +92,15 @@ ANN Value mk_class(const Env env, const Type base) {
   nspc_add_value_front(base->e->owner, sym, v);
   return v;
 }
+
+ANN Value global_string(const Env env, const m_str str) {
+  char c[strlen(str) + 8];
+  sprintf(c, "%s:string", str);
+  const Symbol sym = insert_symbol(c);
+  const Value v = nspc_lookup_value0(env->global_nspc, sym);
+  if(v)
+    return v;
+  const Value value = new_value(env->gwion->mp, env->gwion->type[et_string], s_name(sym));
+  nspc_add_value_front(env->global_nspc, sym, value);
+  return value;
+}

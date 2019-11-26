@@ -5,7 +5,6 @@ fun int recursive_fib(int n) {
     else
         return recursive_fib(n - 2) + recursive_fib(n - 1);
 }
-<<< 1 => recursive_fib >>>;
-<<< 1 => recursive_fib >>>;
-#!<<< 12 => recursive_fib >>>;
-<<< 40 => recursive_fib >>>;
+<<< 6 => recursive_fib >>>;
+<<< 6 => recursive_fib >>>;
+<<< 12 => recursive_fib >>>;

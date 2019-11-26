@@ -62,16 +62,16 @@ options-show:
 	@$(call _options)
 
 libgwion.a: ${lib_obj}
-	${AR} ${AR_OPT}
+	@${AR} ${AR_OPT}
 
 util/libgwion_util.a:
-	@make -C util
+	@+make -C util
 
 util: util/libgwion_util.a
 	@(info build util)
 
 astlib:
-	@make -s -C ast
+	@+make -s -C ast
 
 ast: ast/libgwion_ast.a
 	@(info build ast)

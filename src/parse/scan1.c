@@ -122,11 +122,21 @@ ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) 
   return scan1_exp(env, bin->rhs);
 }
 
+ANN static m_bool scan1_range(const Env env, Range *range) {
+  if(range->start)
+    CHECK_BB(scan1_exp(env, range->start))
+  if(range->end)
+    CHECK_BB(scan1_exp(env, range->end))
+  return GW_OK;
+}
+
 ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary* prim) {
   if(prim->prim_type == ae_prim_hack)
     return scan1_exp(env, prim->d.exp);
   if(prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
+  if(prim->prim_type == ae_prim_range)
+    return scan1_range(env, prim->d.range);
   if(prim->prim_type == ae_prim_tuple)
     return scan1_exp(env, prim->d.tuple.exp);
 //  if(prim->prim_type == ae_prim_unpack)
@@ -137,6 +147,11 @@ ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary* prim) {
 ANN static inline m_bool scan1_exp_array(const Env env, const Exp_Array* array) {
   CHECK_BB(scan1_exp(env, array->base))
   return scan1_exp(env, array->array->exp);
+}
+
+ANN static inline m_bool scan1_exp_slice(const Env env, const Exp_Slice* range) {
+  CHECK_BB(scan1_exp(env, range->base))
+  return scan1_range(env, range->range);
 }
 
 ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) {

@@ -170,18 +170,44 @@ static CTOR(string_ctor) {
   STRING(o) = "";
 }
 
-ANN Type check_prim_str(const Env, const m_str *);
 ID_CHECK(check_funcpp) {
   ((Exp_Primary*)prim)->prim_type = ae_prim_str;
   ((Exp_Primary*)prim)->d.str = env->func ? env->func->name : env->class_def ?
     env->class_def->name : env->name;
-  return check_prim_str(env, &prim->d.str);
+  ((Exp_Primary*)prim)->value = global_string(env, prim->d.str);
+  return prim->value->type;
 }
 
 static GACK(gack_string) {
   const M_Object obj = *(M_Object*)VALUE;
   printf("%s", obj ? STRING(obj) : "(null string)");
 }
+
+static inline m_bool bounds(const m_str str, const m_int i) {
+  CHECK_BB(i)
+  return (m_uint)i < strlen(str) ? GW_OK : GW_ERROR;
+}
+
+static INSTR(StringSlice) {
+  shred->reg -= SZ_INT *2;
+  const M_Object obj = *(M_Object*)REG(-SZ_INT);
+  m_str str = STRING(obj);
+  const m_int start = *(m_uint*)REG(0);
+  const size_t strsz = strlen(str);
+  m_int end   = *(m_uint*)REG(SZ_INT);
+  if(end < 0)
+    end = strsz + end;
+  if(bounds(str, start) < 0 || bounds(str, end) < 0)
+    Except(shred, "OutOfBoundsStringSlice");
+  const m_int op    = start < end ? 1 : -1;
+  const m_uint sz    = op > 0 ? end - start : start - end;
+  char c[sz + 1];
+  for(m_int i = start, j = 0; i != end; i += op, ++j)
+    c[j] = str[i];
+  c[sz] = '\0';
+  *(M_Object*)REG(-SZ_INT) = new_string(shred->info->vm->gwion->mp, shred, c);
+}
+
 GWION_IMPORT(string) {
   const Type t_string = gwi_class_ini(gwi, "string", NULL);
   gwi_class_xtor(gwi, string_ctor, NULL);
@@ -258,6 +284,9 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_end(gwi, "+",       Object_String))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "+=>", Object_String_Plus))
+
+  GWI_BB(gwi_oper_ini(gwi, "string", "int", "string"))
+  GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
 
 //  gwi_item_ini(gwi, "string", "__func__");
 //  gwi_item_end(gwi, ae_flag_const, NULL);

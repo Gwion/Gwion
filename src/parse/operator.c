@@ -128,7 +128,9 @@ ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
     imp->e->nspc = nspc;
     return;
   }
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@conditionnal") ||
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@slice")        ||
+     ock->opi->op == insert_symbol(ock->env->gwion->st, "@range")   ||
+     ock->opi->op == insert_symbol(ock->env->gwion->st, "@conditionnal") ||
      ock->opi->op == insert_symbol(ock->env->gwion->st, "@unconditionnal")) {
     ((Exp)ock->opi->data)->nspc = nspc;
     return;
@@ -209,7 +211,9 @@ ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
     struct Implicit* imp = (struct Implicit*)opi->data;
     return imp->e->nspc;
   }
-  if(opi->op == insert_symbol(st, "@conditionnal") ||
+  if(opi->op == insert_symbol(st, "@range")   ||
+     opi->op == insert_symbol(st, "@slice")        ||
+     opi->op == insert_symbol(st, "@conditionnal") ||
      opi->op == insert_symbol(st, "@unconditionnal"))
     return ((Exp)opi->data)->nspc;
   return exp_self((union exp_data*)opi->data)->nspc;

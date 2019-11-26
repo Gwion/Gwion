@@ -400,6 +400,32 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   return GW_OK;
 }
 
+ANN static m_bool emit_range(const Emitter emit, Range *range) {
+  if(range->start)
+    CHECK_OB(emit_exp(emit, range->start, 0))
+  else
+    regpushi(emit, 0);
+  if(range->end)
+    CHECK_OB(emit_exp(emit, range->end, 0))
+  else
+    regpushi(emit, -1);
+  return GW_OK;
+}
+
+ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
+  Range *range = *data;
+  CHECK_BB(emit_range(emit, range))
+  const Exp e = range->start ?: range->end;
+  const Symbol sym = insert_symbol("@range");
+  struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
+  CHECK_OB(op_emit(emit, &opi))
+  const Instr instr = emit_add_instr(emit, ArrayInit);
+  instr->m_val = (m_uint)prim_exp(data)->type;
+  instr->m_val2 = prim_exp(data)->type->size;
+  emit_add_instr(emit, GcAdd);
+  return GW_OK;
+}
+
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   regpop(emit, depth * SZ_INT);
   emit_add_instr(emit, GWOP_EXCEPT);
@@ -503,6 +529,16 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array* array) {
   const Exp e = exp_self(array);
   struct ArrayAccessInfo info = { *array->array, e->type, e->emit_var };
   return _emit_indexes(emit, &info);
+}
+
+ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
+  CHECK_BB(emit_exp(emit, range->base, 0))
+  CHECK_BB(emit_range(emit, range->range))
+  const Symbol sym = insert_symbol("@slice");
+  const Exp e = range->range->start ?: range->range->end;
+  struct Op_Import opi = { .op=sym, .lhs=range->base->type, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)exp_self(range) };
+  CHECK_OB(op_emit(emit, &opi))
+  return GW_OK;
 }
 
 ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {
@@ -1077,50 +1113,75 @@ static void push_spork_code(const Emitter emit, const m_str prefix, const loc_t 
   emit_push_code(emit, c);
 }
 
-ANN static m_bool spork_func(const Emitter emit, const Exp_Call* exp) {
+ANN static m_bool call_spork_func(const Emitter emit, const Exp_Call *exp) {
   if(GET_FLAG(exp->m_func, member))
     SET_FLAG(emit->code, member);
   return emit_exp_call1(emit, exp->m_func) ? GW_OK : GW_ERROR;
 }
 
-ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
-  const m_bool is_spork = unary->op == insert_symbol("spork");
-  const Func f = !unary->code ? unary->exp->d.exp_call.m_func : NULL;
-  if(unary->code) {
+struct Sporker {
+  const m_bool is_spork;
+  const Stmt code;
+  const Exp  exp;
+  VM_Code vm_code;
+  const m_bool emit_var;
+};
+
+ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
+  if(sp->code) {
     emit_add_instr(emit, RegPushImm);
-    push_spork_code(emit, is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, unary->code->pos);
+    push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, sp->code->pos);
     if(!SAFE_FLAG(emit->env->func, member))
       stack_alloc_this(emit);
-    CHECK_BO(scoped_stmt(emit, unary->code, 0))
+    CHECK_BO(scoped_stmt(emit, sp->code, 0))
   } else {
-    CHECK_BO(prepare_call(emit, &unary->exp->d.exp_call))
-    push_spork_code(emit, is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, unary->exp->pos);
-    CHECK_BO(spork_func(emit, &unary->exp->d.exp_call))
+    CHECK_BO(prepare_call(emit, &sp->exp->d.exp_call))
+    push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
+    CHECK_BO(call_spork_func(emit, &sp->exp->d.exp_call))
   }
-  const VM_Code code = finalyze(emit, EOC);
-  const Instr ini = emit_add_instr(emit, unary->op == insert_symbol("spork") ? SporkIni : ForkIni);
-  ini->m_val = (m_uint)code;
-  ini->m_val2 = is_spork;
-  if(!f) {
-    if(is_spork) {
-      const Instr spork = emit_add_instr(emit, SporkExp);
-      spork->m_val = emit->code->stack_depth;
-    } else {
-      const Instr spork = emit_add_instr(emit, ForkEnd);
-      spork->m_val = exp_self(unary)->emit_var;
-    }
+  return finalyze(emit, EOC);
+}
+
+ANN void spork_code(const Emitter emit, const struct Sporker *sp) {
+  if(sp->is_spork) {
+    const Instr instr = emit_add_instr(emit, SporkExp);
+    instr->m_val = emit->code->stack_depth;
   } else {
-    if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
-      const m_uint depth = f->def->stack_depth;
-      regpop(emit, depth -SZ_INT);
-      const Instr spork = emit_add_instr(emit, SporkMemberFptr);
-      spork->m_val = depth + SZ_INT;
-      spork->m_val2 = -SZ_INT*2;
-    } else
-      emit_exp_spork_finish(emit, f->def->stack_depth);
-    const Instr end = emit_add_instr(emit, is_spork ? SporkEnd : ForkEnd);
-    end->m_val2 = f->def->base->ret_type->size;
+    const Instr instr = emit_add_instr(emit, ForkEnd);
+    instr->m_val = sp->emit_var;
   }
+}
+
+ANN void spork_func(const Emitter emit, const struct Sporker *sp) {
+  const Func f = sp->exp->d.exp_call.m_func;
+  if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
+    const m_uint depth = f->def->stack_depth;
+    regpop(emit, depth -SZ_INT);
+    const Instr spork = emit_add_instr(emit, SporkMemberFptr);
+    spork->m_val = depth;
+  } else
+    emit_exp_spork_finish(emit, f->def->stack_depth);
+  const Instr end = emit_add_instr(emit, sp->is_spork ? SporkEnd : ForkEnd);
+  end->m_val2 = f->def->base->ret_type->size;
+}
+
+ANN static Instr spork_ini(const Emitter emit, const struct Sporker *sp) {
+  const Instr instr = emit_add_instr(emit, SporkIni);
+  instr->m_val = (m_uint)sp->vm_code;
+  instr->m_val2 = sp->is_spork;
+  return instr;
+}
+
+ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
+  struct Sporker sporker = {
+    .is_spork=(unary->op == insert_symbol("spork")),
+    .exp=unary->exp,
+    .code=unary->code,
+    .emit_var=exp_self(unary)->emit_var
+  };
+  CHECK_OO((sporker.vm_code = spork_prepare(emit, &sporker)))
+  const Instr ini = spork_ini(emit, &sporker);
+  (unary->code ? spork_code : spork_func)(emit, &sporker);
   return ini;
 }
 

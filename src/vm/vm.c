@@ -296,7 +296,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
     &&funcusr, &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&next, &&funcusrend, &&funcmemberend,
-    &&sporkini, &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
+    &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
@@ -640,11 +640,11 @@ PRAGMA_PUSH()
   DISPATCH()
 PRAGMA_POP()
 sporkmemberfptr:
-  for(m_uint i = 0; i < VAL-SZ_INT; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2+SZ_INT);
-  *(m_uint*)(a.child->reg+VAL-SZ_INT) = *(m_uint*)(reg+SZ_INT);
-  *(m_uint*)(a.child->reg+VAL-SZ_INT*2) = *(m_uint*)(reg-SZ_INT*2);
-  a.child->reg += VAL;
+  for(m_uint i = 0; i < VAL; i+= SZ_INT)
+    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg - VAL + i);
+  *(m_uint*)(a.child->reg + VAL) = *(m_uint*)(reg - SZ_INT*2);
+  *(m_uint*)(a.child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
+  a.child->reg += VAL + SZ_INT*2;
   DISPATCH()
 sporkexp:
 //  LOOP_OPTIM

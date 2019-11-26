@@ -76,7 +76,7 @@ ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
 #define describe_find(name, t)                                       \
 ANN t find_##name(const Type type, const Symbol xid) {               \
   if(type->nspc) {                                                   \
-  const t val = nspc_lookup_##name##0(type->nspc, xid);              \
+  const t val = nspc_lookup_##name##2(type->nspc, xid);              \
   if(val)                                                            \
     return val;                                                      \
   }                                                                  \

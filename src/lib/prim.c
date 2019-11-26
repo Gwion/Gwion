@@ -13,6 +13,7 @@
 #include "traverse.h"
 #include "parse.h"
 #include "specialid.h"
+#include "array.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
@@ -58,6 +59,25 @@ static GWION_IMPORT(int_r) {
   return GW_OK;
 }
 
+static INSTR(IntRange) {
+  shred->reg -= SZ_INT *2;
+  const m_int start = *(m_uint*)REG(0);
+  const m_int end   = *(m_uint*)REG(SZ_INT);
+  const m_int op    = start < end ? 1 : -1;
+  const m_uint sz    = op > 0 ? end - start : start - end;
+  for(m_int i = start, j = 0; i != end; i += op, ++j)
+    *(m_uint*)REG(j * SZ_INT) = i;
+  *(m_uint*)REG(sz * SZ_INT) = sz;
+  PUSH_REG(shred, sz * SZ_INT);
+}
+
+static OP_CHECK(opck_int_range) {
+  const Exp exp = (Exp)data;
+  const Range *range = exp->d.prim.d.range;
+  const Exp e = range->start ?: range->end;
+  return array_type(env, e->type, 1);
+}
+
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   GWI_BB(gwi_oper_add(gwi,  opck_unary_meta))
@@ -65,6 +85,9 @@ static GWION_IMPORT(int_unary) {
   CHECK_OP("++", unary, pre_inc)
   CHECK_OP("--", unary, pre_dec)
   GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "int", NULL))
+  GWI_BB(gwi_oper_add(gwi,  opck_int_range))
+  GWI_BB(gwi_oper_end(gwi,  "@range", IntRange))
   GWI_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP("++", post, post_inc)
   GWI_BB(gwi_oper_add(gwi, opck_post))
