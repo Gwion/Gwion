@@ -317,7 +317,6 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_emi(gwi, opem_spork))
   GWI_BB(gwi_oper_end(gwi, "fork", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
-  gwi_register_freearg(gwi, ForkIni, freearg_xork);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;
 }

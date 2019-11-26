@@ -130,7 +130,6 @@ enum {
   eFuncUsrEnd,
   eFuncMemberEnd,
   eSporkIni,
-  eForkIni,
   eSporkFunc,
   eSporkMemberFptr,
   eSporkExp,
@@ -306,7 +305,6 @@ enum {
 #define  FuncUsrEnd          (f_instr)eFuncUsrEnd
 #define  FuncMemberEnd       (f_instr)eFuncMemberEnd
 #define  SporkIni            (f_instr)eSporkIni
-#define  ForkIni             (f_instr)eForkIni
 #define  SporkFunc           (f_instr)eSporkFunc
 #define  SporkMemberFptr     (f_instr)eSporkMemberFptr
 #define  SporkExp            (f_instr)eSporkExp

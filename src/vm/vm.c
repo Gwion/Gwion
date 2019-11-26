@@ -296,7 +296,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&timeadv,
     &&setcode, &&funcptr, &&funcmember,
     &&funcusr, &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&next, &&funcusrend, &&funcmemberend,
-    &&sporkini, &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
+    &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
