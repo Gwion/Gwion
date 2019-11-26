@@ -1,6 +1,6 @@
 #!/bin/sh
-[ -d src ] || sh scripts/mdr2mdbook.sh
+[ -d md ] || sh scripts/mdr2mdbook.sh
 
-[ -f src/SUMMARY.md ] || sh scripts/summary.sh > src/SUMMARY.md
+[ -f md/SUMMARY.md ] || sh scripts/summary.sh > md/SUMMARY.md
 
-[ -d src/assets ] || cp -r benchmark/results src/assets
+[ -d md/assets ] || cp -r benchmark/results md/assets

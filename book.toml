@@ -1,6 +1,7 @@
 [book]
 authors = ["Jérémie Astor"]
 title = "Gwion"
+src = "md"
 
 [output.html]
 default-theme = "rust"
