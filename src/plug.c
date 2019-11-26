@@ -84,9 +84,9 @@ ANN static inline m_str plug_name(struct PlugHandle *h) {
 }
 
 ANN static void plug_get(struct PlugHandle *h, const m_str c) {
-  void* dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
-  if(dl) {
-    vector_add(&h->pi->vec[GWPLUG_DL], (vtype)dl);
+  h->dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
+  if(h->dl) {
+    vector_add(&h->pi->vec[GWPLUG_DL], (vtype)h->dl);
     h->name = plug_name(h);
     plug_import(h);
     plug_module(h);

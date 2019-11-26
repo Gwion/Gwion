@@ -140,8 +140,9 @@ static OP_CHECK(opck_at_tuple) {
         e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
         const Exp next = e->next;
         e->next = NULL;
-        CHECK_BO(traverse_exp(env, e))
+        const m_bool ret = traverse_exp(env, e);
         e->next = next;
+        CHECK_BO(ret)
         bin->rhs->meta = ae_meta_var;
       }
       ++i;

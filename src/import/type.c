@@ -14,17 +14,24 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN2(1,2) Type gwi_mk_type(const Gwi gwi NUSED, const m_str name, const m_uint size, const m_str parent_name) {
-  CHECK_OO(str2sym(gwi, name))
+ANN2(1) static Type get_parent(const Gwi gwi, const m_str parent_name) {
   Type_Decl* td = parent_name ? str2decl(gwi, parent_name) : NULL;
   if(td) {
     if(td->array || td->types) {
+      const m_str str = td->array ? "array" : "template";
       free_type_decl(gwi->gwion->mp, td);
-      GWI_ERR_O(_("can't use gwi_mk_type to extend %s types"),
-        td->array ? "array" : "template")
+      GWI_ERR_O(_("can't use gwi_mk_type to extend %s types"), str)
     }
   }
   const Type parent = td ? known_type(gwi->gwion->env, td) : NULL;
+  if(td)
+    free_type_decl(gwi->gwion->mp, td);
+  return parent;
+}
+
+ANN2(1,2) Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, const m_str parent_name) {
+  CHECK_OO(str2sym(gwi, name))
+  const Type parent = get_parent(gwi, parent_name);
   const Type t = new_type(gwi->gwion->mp, 0, name, parent);
   t->size = size;
   return t;

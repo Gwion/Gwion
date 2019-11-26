@@ -63,16 +63,14 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_udef))
   if(!gwi->ck->list)
     GWI_ERR_O(_("union is empty"));
+  if(gwi->ck->tmpl && gwi->ck->xid)
+    GWI_ERR_O(_("Template union type can't declare instance at declaration"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, loc(gwi));
   gwi->ck->list = NULL;
   udef->flag = flag;
   udef->xid = gwi->ck->xid;
   udef->type_xid = gwi->ck->sym;
-//  udef->xid = gwi->ck->sym;
-//  udef->type_xid = gwi->ck->xid;
   if(gwi->ck->tmpl) {
-    if(udef->xid)
-      GWI_ERR_O(_("Template union type can't declare instance at declaration"));
     udef->tmpl = gwi_tmpl(gwi);
     gwi->ck->tmpl = NULL;
   }
@@ -88,5 +86,4 @@ ANN void ck_clean_udef(MemPool mp, ImportCK* ck) {
     free_decl_list(mp, ck->list);
   if(ck->tmpl)
     free_id_list(mp, ck->tmpl);
-// do we miss ck->td ?
 }

@@ -20,7 +20,7 @@ ANN static Type _get_type(const Gwi gwi, const m_str str) {
   if(str == (m_str)OP_ANY_TYPE)
     return OP_ANY_TYPE;
   struct array_checker ck = { .str=str };
-  const ID_List list = ck2list(gwi, &ck);
+  DECL_OO(const ID_List, list, = ck2list(gwi, &ck))
   const Type t = find_type(gwi->gwion->env, list);
   if(list)
     free_id_list(gwi->gwion->mp, list);

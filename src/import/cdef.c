@@ -60,7 +60,7 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
 ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   struct ImportCK ck = { .name=name };
   CHECK_BO(check_typename_def(gwi, &ck))
-  Type_Decl *td = str2decl(gwi, parent ?: "Object"); // check
+  DECL_OO(Type_Decl *,td, = str2decl(gwi, parent ?: "Object"))
   Tmpl* tmpl = ck.tmpl ? new_tmpl_base(gwi->gwion->mp, ck.tmpl) : NULL;
   if(tmpl)
     template_push_types(gwi->gwion->env, tmpl);
