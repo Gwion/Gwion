@@ -1,0 +1,12 @@
+[book]
+authors = ["Jérémie Astor"]
+title = "Gwion"
+src = "md"
+
+[output.html]
+default-theme = "rust"
+additional-css = ["custom.css"]
+
+[output.html.fold]
+enable = true
+level = 0

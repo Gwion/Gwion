@@ -1,0 +1,25 @@
+.mdr {
+  color:var(--sidebar-active);
+  background-color:var(--sidebar-bg);
+  border: 5px solid var(--sidebar-fg);
+  padding: 10px;
+  margin-right: 20%;
+  margin-left: 20%;
+  moz-border-radius: 15px;
+  -webkit-border-radius: 15px;
+}
+
+footer {
+  padding: 10px;
+  text-align: center;
+  font-size: small;
+  font-style: italic;
+}
+
+.zoom {
+  transition: transform .2s; /* Animation */
+}
+
+.zoom:hover {
+  transform: scale(1.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+}
