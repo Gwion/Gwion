@@ -4,9 +4,7 @@ serve: ensure
 build: ensure
 	@mdbook build
 
-book: build
-
-deploy: book
+deploy: build
 	@sh scripts/deploy.sh
 
 ensure:
