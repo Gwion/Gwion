@@ -250,22 +250,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   return v->type;
 }
 
-ANN static inline Value prim_str_value(const Env env, const Symbol sym) {
-  const Value v = nspc_lookup_value0(env->global_nspc, sym);
-  if(v)
-    return v;
-  const Value value = new_value(env->gwion->mp, env->gwion->type[et_string], s_name(sym));
-  nspc_add_value_front(env->global_nspc, sym, value);
-  return value;
-}
-
 ANN Type check_prim_str(const Env env, const m_str *data) {
-  if(!prim_self(data)->value) {
-    const m_str str = *data;
-    char c[strlen(str) + 8];
-    sprintf(c, "%s:string", str);
-    prim_self(data)->value = prim_str_value(env, insert_symbol(c));
-  }
+  if(!prim_self(data)->value)
+    prim_self(data)->value = global_string(env, *data);
   return env->gwion->type[et_string];// prim->value
 }
 
