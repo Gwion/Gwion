@@ -61,10 +61,12 @@ static GWION_IMPORT(int_r) {
 
 static INSTR(IntRange) {
   shred->reg -= SZ_INT *2;
-  const m_int start = *(m_uint*)REG(0);
-  const m_int end   = *(m_uint*)REG(SZ_INT);
+  const m_int start = *(m_int*)REG(0);
+  const m_int end   = *(m_int*)REG(SZ_INT);
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
+  if((sz - (shred->reg - (m_bit*)(shred + sizeof(struct VM_Shred_)))) > SIZEOF_REG)
+    Except(shred, _("Range too big"))
   for(m_int i = start, j = 0; i != end; i += op, ++j)
     *(m_uint*)REG(j * SZ_INT) = i;
   *(m_uint*)REG(sz * SZ_INT) = sz;
@@ -95,7 +97,7 @@ static GWION_IMPORT(int_unary) {
   return GW_OK;
 }
 static GACK(gack_bool) {
-  printf("%s", *(m_uint*)VALUE ? "true" : "false");
+  gw_out("%s", *(m_uint*)VALUE ? "true" : "false");
 }
 
 static GWION_IMPORT(int_values) {

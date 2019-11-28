@@ -214,6 +214,8 @@ static INSTR(ArraySlice) {
 static OP_EMIT(opem_array_slice) {
   const Exp exp = (Exp)data;
   Exp_Slice *range = &exp->d.exp_slice;
+  if(!GET_FLAG(exp->type, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
   emit_add_instr(emit, ArraySlice);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)range->base->type;

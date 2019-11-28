@@ -687,8 +687,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
     }
   }
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, exec);
-  instr->m_val = v->from->offset;
-  instr->m_val2 = v->type->size;
+  if(emit_addr || !GET_FLAG(v, member))
+    instr->m_val = v->from->offset;
   if(is_obj && (is_array || !is_ref)) {
     emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);

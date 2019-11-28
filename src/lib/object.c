@@ -221,7 +221,7 @@ static ID_CHECK(check_this) {
 }
 
 static GACK(gack_object) {
-  printf("%p", *(M_Object*)VALUE);
+  gw_out("%p", *(M_Object*)VALUE);
 }
 
 GWION_IMPORT(object) {

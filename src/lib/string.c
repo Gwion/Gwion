@@ -180,7 +180,7 @@ ID_CHECK(check_funcpp) {
 
 static GACK(gack_string) {
   const M_Object obj = *(M_Object*)VALUE;
-  printf("%s", obj ? STRING(obj) : "(null string)");
+  gw_out("%s", obj ? STRING(obj) : "(null string)");
 }
 
 static inline m_bool bounds(const m_str str, const m_int i) {

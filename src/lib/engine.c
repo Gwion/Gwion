@@ -17,35 +17,35 @@
 #include "specialid.h"
 
 static GACK(gack_class) {
-  printf("class(%s)", actual_type(shred->info->vm->gwion, t)->name);
+  gw_out("class(%s)", actual_type(shred->info->vm->gwion, t)->name);
 }
 
 static GACK(gack_function) {
-  printf("%s", t->name);
+  gw_out("%s", t->name);
 }
 
 static GACK(gack_fptr) {
   const VM_Code code = *(VM_Code*)VALUE;
   if(code)
-    printf("%s", code->name);
+    gw_out("%s", code->name);
   else
-    printf("%s", t->name);
+    gw_out("%s", t->name);
 }
 
 static GACK(gack_void) {
-  printf("(void)");
+  gw_out("(void)");
 }
 
 static GACK(gack_int) {
-  printf("%"INT_F, *(m_uint*)VALUE);
+  gw_out("%"INT_F, *(m_uint*)VALUE);
 }
 
 static GACK(gack_char) {
-  printf("%c", *(char*)VALUE);
+  gw_out("%c", *(char*)VALUE);
 }
 
 static GACK(gack_float) {
-  printf("%.4f", *(m_float*)VALUE);
+  gw_out("%.4f", *(m_float*)VALUE);
 }
 
 #define mk_class_instr(op, arg0, arg1, ...)                          \

@@ -538,7 +538,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
     if(arg_list->td && !arg_list->td->xid)
-      arg_list->type = v->type = check_td(env, arg_list->td);
+      CHECK_OB((arg_list->type = v->type = check_td(env, arg_list->td)))
     if(isa(v->type, env->gwion->type[et_object]) > 0 || isa(v->type, env->gwion->type[et_function]) > 0)
       UNSET_FLAG(env->func, pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
@@ -1366,7 +1366,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
   if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
-    fdef->base->ret_type = check_td(env, fdef->base->td);
+    CHECK_OB((fdef->base->ret_type = check_td(env, fdef->base->td)))
     return traverse_func_def(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
@@ -1379,7 +1379,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
-  SET_FLAG(fdef, checked);
+  if(ret > 0)
+    SET_FLAG(fdef, checked);
   if(GET_FLAG(fdef, global))
     env_pop(env,scope);
   return ret;
