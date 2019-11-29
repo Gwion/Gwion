@@ -806,12 +806,16 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   CHECK_OO(check_exp(env, bin->lhs))
-  if(bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto])
-    bin->rhs->type = bin->rhs->d.exp_decl.type = bin->lhs->type;
   CHECK_OO(check_exp(env, bin->rhs))
+  const Type rhs =
+    !(bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto]) ?
+      bin->rhs->type : bin->lhs->type;
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
-    .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
-  return op_check(env, &opi);
+    .rhs=rhs, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
+  const Type ret = op_check(env, &opi);
+  if(ret && bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto])
+    bin->rhs->type = bin->rhs->d.exp_decl.type = rhs;
+  return ret;
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
