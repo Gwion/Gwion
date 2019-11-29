@@ -150,6 +150,7 @@ RegAddRef
 ObjectAssign
 Assign
 ObjectRelease
+SetObj
 GWOP_EXCEPT
 AllocMember4
 DotMember

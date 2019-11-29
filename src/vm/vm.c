@@ -300,7 +300,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&objassign, &&assign, &&remref,
-    &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+    &&setobj, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
@@ -733,6 +733,9 @@ assign:
 remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
+setobj:
+  a.obj  = *(M_Object*)(reg-SZ_INT-VAL);
+  DISPATCH();
 except:
 /* TODO: Refactor except instruction             *
  * so that                                       *

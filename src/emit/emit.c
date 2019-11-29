@@ -477,6 +477,8 @@ ANN static inline m_bool _emit_indexes(const Emitter emit, struct ArrayAccessInf
 ANN void emit_except(const Emitter emit, const Type t) {
   if(!GET_FLAG(t, nonnull))
     emit_add_instr(emit, GWOP_EXCEPT);
+  else
+    emit_add_instr(emit, SetObj);
 }
 
 ANN static inline m_bool tuple_index(const Emitter emit, struct ArrayAccessInfo *const info) {
