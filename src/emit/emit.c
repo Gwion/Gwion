@@ -159,8 +159,6 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   maybe_ctor(emit, type);
   if(GET_FLAG(type, typedef) && type->e->parent->array_depth)
     emit_array_extend(emit, type->e->parent, type->e->def->base.ext->array->exp);
-  if(GET_FLAG(type, template) && GET_FLAG(type, builtin))
-    tmpl_ctor(emit, type);
 }
 
 #define regxxx(name, instr) \

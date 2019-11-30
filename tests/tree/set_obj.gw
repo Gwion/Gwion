@@ -1,0 +1,5 @@
+typedef int[2]Type;
+Type!type;
+<<<type>>>;
+for(auto@a:type);
+#!for(auto a:type);

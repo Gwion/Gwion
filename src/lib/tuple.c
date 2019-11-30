@@ -167,7 +167,7 @@ static OP_CHECK(opck_at_tuple_object) {
 
 static OP_CHECK(opck_cast_tuple_object) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  if(tuple_match(env, exp_self(cast)->type, cast->exp->type) < 0)
+  if(tuple_match(env, cast->exp->type, exp_self(cast)->type) < 0)
     return env->gwion->type[et_null];
   return exp_self(cast)->type;
 }
