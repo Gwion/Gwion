@@ -206,7 +206,10 @@ ANN static m_bool check_range(const Env env, Range *range) {
     CHECK_OB(check_exp(env, range->start))
   if(range->end)
     CHECK_OB(check_exp(env, range->end))
-// check types match
+  if(range->start && range->end) {
+    if(isa(range->end->type, range->start->type) < 0)
+      ERR_B(range->start->pos, _("range types do not match"))
+  }
   return GW_OK;
 }
 
@@ -359,35 +362,7 @@ ANN static Type check_prim(const Env env, Exp_Primary *prim) {
   return exp_self(prim)->type = check_prim_func[prim->prim_type](env, &prim->d);
 }
 
-ANN static Type at_depth(const Env env, const Array_Sub array);
-ANN static Type tuple_depth(const Env env, const Array_Sub array) {
-  const Vector v = &array->type->e->tuple->types;
-  const Exp exp = array->exp;
-  if(exp->exp_type != ae_exp_primary ||
-     exp->d.prim.prim_type != ae_prim_num)
-    ERR_O(exp->pos, _("tuple subscripts must be litteral"))
-  const m_uint idx = exp->d.prim.d.num;
-  if(idx >= vector_size(v))
-    ERR_O(exp->pos, _("tuple subscripts too big"))
-  const Type type = (Type)vector_at(v, idx);
-  if(type == env->gwion->type[et_undefined])
-    ERR_O(exp->pos, _("tuple subscripts is undefined at index %lu"), idx)
-  if(!exp->next)
-    return type;
-  struct Array_Sub_ next = { exp->next, type, array->depth - 1 };
-  return at_depth(env, &next);
-}
-
-ANN static Type partial_depth(const Env env, const Array_Sub array) {
-  const Exp curr = take_exp(array->exp, array->type->array_depth);
-  if(!curr->next || !array_base(array->type))
-    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
-        array->depth, get_depth(array->type))
-  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
-  return at_depth(env, &next);
-}
-
-ANN static Type at_depth(const Env env, const Array_Sub array) {
+ANN Type at_depth(const Env env, const Array_Sub array) {
   const Type t = array->type;
   const m_uint depth = array->depth;
   if(GET_FLAG(t, typedef)) {
@@ -396,7 +371,10 @@ ANN static Type at_depth(const Env env, const Array_Sub array) {
   }
   if(t->array_depth >= depth)
     return array_type(env, array_base(array->type), t->array_depth - depth);
-  return (isa(t, env->gwion->type[et_tuple]) < 0 ? partial_depth : tuple_depth)(env, array);
+  const Symbol sym = insert_symbol("@array");
+  struct Op_Import opi = { .op=sym, .lhs=array->exp->type, .rhs=array->type, .pos=array->exp->pos, .data=(uintptr_t)array };
+  const Type ret = op_check(env, &opi);
+  return ret;
 }
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
@@ -806,15 +784,15 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   CHECK_OO(check_exp(env, bin->lhs))
+  const is_auto = bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
+  if(is_auto)
+     bin->rhs->type = bin->rhs->d.exp_decl.type = bin->lhs->type;
   CHECK_OO(check_exp(env, bin->rhs))
-  const Type rhs =
-    !(bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto]) ?
-      bin->rhs->type : bin->lhs->type;
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
-    .rhs=rhs, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
+    .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
   const Type ret = op_check(env, &opi);
-  if(ret && bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto])
-    bin->rhs->type = bin->rhs->d.exp_decl.type = rhs;
+  if(!ret && is_auto)
+    bin->rhs->d.exp_decl.list->self->value->type = env->gwion->type[et_auto];
   return ret;
 }
 
@@ -1087,6 +1065,8 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
   if(stmt->val) {
+    if(env->func->def->base->xid == insert_symbol("@implicit") && ret_type == env->func->def->base->args->type)
+      ERR_B(stmt_self(stmt)->pos, _("can't use implicit casting while defining it"))
     const m_bool ret = check_implicit(env, stmt->val, env->func->def->base->ret_type);
     if(ret > 0)
       return ret;

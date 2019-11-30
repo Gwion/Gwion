@@ -116,8 +116,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   gwi->gwion->type[et_union] = t_union;
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(import_tuple(gwi))
   GWI_BB(import_array(gwi))
+  GWI_BB(import_tuple(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))
   GWI_BB(import_ptr(gwi))

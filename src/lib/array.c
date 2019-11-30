@@ -194,40 +194,56 @@ static inline m_bool bounds(const M_Vector v, const m_int i) {
 }
 
 static INSTR(ArraySlice) {
-  shred->reg -= SZ_INT *3;
-  const M_Object array = *(M_Object*)REG(0);
-  const M_Vector v = ARRAY(array);
-  const m_int start = *(m_uint*)REG(SZ_INT);
-  m_int end   = *(m_uint*)REG(SZ_INT*2);
+  shred->reg -= SZ_INT *2;
+  const M_Object array = *(M_Object*)REG(-SZ_INT);
+  const M_Vector in = ARRAY(array);
+  const m_int start = *(m_uint*)REG(0);
+  m_int end   = *(m_uint*)REG(SZ_INT);
   if(end < 0)
-    end = ARRAY_LEN(v) + end;
+    end = ARRAY_LEN(in) + end;
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
-  if(bounds(v, start) < 0 || bounds(v, end) < 0)
+  if(bounds(in, start) < 0 || bounds(in, end) < 0)
     Except(shred, "OutOfBoundsArraySliceException");
-  for(m_int i = start, j = 0; i != end; i += op, ++j)
-    m_vector_get(v, i, REG(j * SZ_INT));
-  *(m_uint*)REG(sz * SZ_INT) = sz;
-  PUSH_REG(shred, sz * SZ_INT);
+  const M_Object out = new_array(shred->info->vm->gwion->mp, array->type_ref, sz);
+  for(m_int i = start, j = 0; i != end; i += op, ++j) {
+    m_bit buf[ARRAY_SIZE(in)];
+    m_vector_get(in, i, &buf);
+    m_vector_set(ARRAY(out), i, buf);
+  }
+  *(M_Object*)REG(-SZ_INT) = out;
 }
 
 static OP_EMIT(opem_array_slice) {
   const Exp exp = (Exp)data;
-  Exp_Slice *range = &exp->d.exp_slice;
   if(!GET_FLAG(exp->type, nonnull))
     emit_add_instr(emit, GWOP_EXCEPT);
   emit_add_instr(emit, ArraySlice);
-  const Instr instr = emit_add_instr(emit, ArrayInit);
-  instr->m_val = (m_uint)range->base->type;
-  instr->m_val2 = range->base->type->size;
-  emit_add_instr(emit, GcAdd);
-  return instr;
+  return emit_add_instr(emit, GcAdd);
 }
 
 static FREEARG(freearg_array) {
   ArrayInfo* info = (ArrayInfo*)instr->m_val;
   vector_release(&info->type);
   mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
+}
+
+ANN Type at_depth(const Env env, const Array_Sub array);
+ANN static Type partial_depth(const Env env, const Array_Sub array) {
+  const Exp curr = take_exp(array->exp, array->type->array_depth);
+  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
+  return at_depth(env, &next);
+}
+
+static OP_CHECK(opck_not_array) {
+  const Array_Sub array = (Array_Sub)data;
+    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
+        array->depth, get_depth(array->type))
+}
+
+static OP_CHECK(opck_array) {
+  const Array_Sub array = (Array_Sub)data;
+  return partial_depth(env, array);
 }
 
 GWION_IMPORT(array) {
@@ -264,6 +280,13 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_slice))
+  GWI_BB(gwi_oper_ini(gwi, "int", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_not_array))
+  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array))
+  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }
