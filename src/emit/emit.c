@@ -143,26 +143,24 @@ ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj
   return frame_local(emit->gwion->mp, emit->code->frame, size, is_obj);
 }
 
+ANN static inline void maybe_ctor(const Emitter emit, const Type type) {
+  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
+    emit_ext_ctor(emit, type->nspc->pre_ctor);
+}
+
+ANN static inline void tmpl_ctor(const Emitter emit, const Type type) {
+  const Type t = template_parent(emit->env, type);
+  maybe_ctor(emit, t);
+}
+
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->e->parent)
     emit_pre_ctor(emit, type->e->parent);
-  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
-    emit_ext_ctor(emit, type->nspc->pre_ctor);
-/*
-  if(type->nspc && !GET_FLAG(type, nonnull)) {
-    if(type->nspc->pre_ctor)
-      emit_ext_ctor(emit, type->nspc->pre_ctor);
-    if(type->nspc->ctor)
-      emit_ext_ctor(emit, type->nspc->ctor);
-  } 
-*/
+  maybe_ctor(emit, type);
   if(GET_FLAG(type, typedef) && type->e->parent->array_depth)
     emit_array_extend(emit, type->e->parent, type->e->def->base.ext->array->exp);
-  if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
-    const Type t = template_parent(emit->env, type);
-    if(t->nspc->pre_ctor)
-      emit_ext_ctor(emit, t->nspc->pre_ctor);
-  }
+  if(GET_FLAG(type, template) && GET_FLAG(type, builtin))
+    tmpl_ctor(emit, type);
 }
 
 #define regxxx(name, instr) \
