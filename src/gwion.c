@@ -11,7 +11,6 @@
 #include "compile.h"
 #include "object.h" // fork_clean
 #include "pass.h" // fork_clean
-#include "specialid.h" // fork_clean
 #include "shreduler_private.h"
 
 ANN static void driver_arg(const Gwion gwion, Driver *di) {
@@ -44,6 +43,14 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
     compile_filename(gwion, (m_str)vector_at(v, i));
 }
 
+ANN static void gwion_cleaner(const Gwion gwion) {
+  if(!gwion->type[et_shred])
+    return;
+  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
+  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
+  vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
+}
+
 ANN VM* gwion_cpy(const VM* src) {
   const Gwion gwion = mp_calloc(src->gwion->mp, Gwion);
   gwion->vm = new_vm(src->gwion->mp, 0);
@@ -51,7 +58,7 @@ ANN VM* gwion_cpy(const VM* src) {
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);
   gwion->emit = src->gwion->emit;
   gwion->env = src->gwion->env;
-  gwion->data = src->gwion->data;
+  gwion->data = cpy_gwiondata(src->gwion->mp, src->gwion->data);
   gwion->st = src->gwion->st;
   gwion->mp = src->gwion->mp;
   gwion->type = src->gwion->type;
@@ -95,36 +102,35 @@ ANN void gwion_run(const Gwion gwion) {
   vm->bbq->driver->run(vm, vm->bbq);
 }
 
-ANN static void fork_clean2(const Vector v) {
+ANN static void gwion_end_child(const VM_Shred shred, const Gwion gwion);
+
+ANN static inline void free_gwion_cpy(const Gwion gwion, const VM_Shred shred) {
+  gwion_end_child(shred, gwion);
+  free_vm(gwion->vm);
+  free_gwiondata_cpy(gwion->mp, gwion->data);
+  mp_free(gwion->mp, Gwion, gwion);
+}
+
+ANN static void fork_clean2(const VM_Shred shred, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); ++i) {
     VM* vm = (VM*)vector_at(v, i);
-    const Gwion gwion = vm->gwion;
-    free_vm(vm);
-    mp_free(gwion->mp, Gwion, gwion);
+    free_gwion_cpy(vm->gwion, shred);
   }
   vector_release(v);
 }
 
-ANN static void gwion_end_child(const Gwion gwion) {
+ANN static void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
   MUTEX_LOCK(gwion->vm->shreduler->mutex);
   if(gwion->data->child.ptr)
-    fork_clean(gwion->vm->cleaner_shred, &gwion->data->child);
+    fork_clean(shred, &gwion->data->child);
   if(gwion->data->child2.ptr)
-    fork_clean2(&gwion->data->child2);
+    fork_clean2(shred, &gwion->data->child2);
   MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
-}
-
-ANN static void gwion_cleaner(const Gwion gwion) {
-  if(!gwion->type[et_shred])
-    return;
-  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
-  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
-  vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
 }
 
 ANN void gwion_end(const Gwion gwion) {
   gwion_cleaner(gwion);
-  gwion_end_child(gwion);
+  gwion_end_child(gwion->vm->cleaner_shred, gwion);
   free_env(gwion->env);
   if(gwion->vm->cleaner_shred)
     free_vm_shred(gwion->vm->cleaner_shred);

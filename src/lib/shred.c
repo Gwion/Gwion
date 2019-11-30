@@ -135,7 +135,8 @@ describe_path_and_dir(, s->info->name)
 describe_path_and_dir(_code, s->code->name)
 
 static DTOR(shred_dtor) {
-  free_vm_shred(ME(o));
+  if(ME(o))
+    free_vm_shred(ME(o));
 }
 
 static MFUN(shred_lock) {
@@ -148,9 +149,12 @@ static MFUN(shred_unlock) {
 
 static DTOR(fork_dtor) {
   THREAD_JOIN(FORK_THREAD(o));
+  const VM *vm = FORK_ORIG(o);
   if(*(m_int*)(o->data + o_fork_done)) {
-    vector_rem2(&FORK_ORIG(o)->gwion->data->child, (vtype)o);
-    vector_add(&FORK_ORIG(o)->gwion->data->child2, (vtype)ME(o)->info->vm);
+    vector_rem2(&vm->gwion->data->child, (vtype)o);
+    if(!vm->gwion->data->child2.ptr)
+      vector_init(&vm->gwion->data->child2);
+    vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm);
   }
 }
 
@@ -210,16 +214,13 @@ static ANN void* fork_run(void* data) {
 
 ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
   o->ref += 1;
-  if(!vm->gwion->data->child.ptr) {
+  if(!vm->gwion->data->child.ptr)
     vector_init(&vm->gwion->data->child);
-    vector_init(&vm->gwion->data->child2);
-  }
   vector_add(&vm->gwion->data->child, (vtype)o);
   FORK_ORIG(o) = (VM*)vm;
   FORK_RETSIZE(o) = sz;
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
 }
-
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); ++i) {
