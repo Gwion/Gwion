@@ -25,7 +25,7 @@ GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_end(gwi, "/", int_div))
   GWI_BB(gwi_oper_end(gwi, "%", int_modulo))
   GWI_BB(gwi_oper_end(gwi, "@access", NULL))
-  return   gwi_oper_end(gwi, "@repeat", NULL);
+  return gwi_oper_end(gwi, "@repeat", NULL);
 }
 
 static GWION_IMPORT(int_logical) {
@@ -65,12 +65,11 @@ static INSTR(IntRange) {
   const m_int end   = *(m_int*)REG(SZ_INT);
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
-  if((sz - (shred->reg - (m_bit*)(shred + sizeof(struct VM_Shred_)))) > SIZEOF_REG)
-    Except(shred, _("Range too big"))
+  const M_Object array = new_array(shred->info->vm->gwion->mp, (Type)instr->m_val, sz);
   for(m_int i = start, j = 0; i != end; i += op, ++j)
-    *(m_uint*)REG(j * SZ_INT) = i;
-  *(m_uint*)REG(sz * SZ_INT) = sz;
-  PUSH_REG(shred, sz * SZ_INT);
+    m_vector_set(ARRAY(array), j, &i);
+  *(M_Object*)REG(0) = array;
+  PUSH_REG(shred, SZ_INT);
 }
 
 static OP_CHECK(opck_int_range) {
@@ -78,6 +77,13 @@ static OP_CHECK(opck_int_range) {
   const Range *range = exp->d.prim.d.range;
   const Exp e = range->start ?: range->end;
   return array_type(env, e->type, 1);
+}
+
+static OP_EMIT(opem_int_range) {
+  const Exp exp = (Exp)data;
+  const Instr instr = emit_add_instr(emit, IntRange);
+  instr->m_val = (m_uint)exp->type;
+  return instr;
 }
 
 static GWION_IMPORT(int_unary) {
@@ -89,7 +95,8 @@ static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", NULL))
   GWI_BB(gwi_oper_add(gwi,  opck_int_range))
-  GWI_BB(gwi_oper_end(gwi,  "@range", IntRange))
+  GWI_BB(gwi_oper_emi(gwi,  opem_int_range))
+  GWI_BB(gwi_oper_end(gwi,  "@range", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP("++", post, post_inc)
   GWI_BB(gwi_oper_add(gwi, opck_post))

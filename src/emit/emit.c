@@ -417,9 +417,6 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   const Symbol sym = insert_symbol("@range");
   struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
   CHECK_OB(op_emit(emit, &opi))
-  const Instr instr = emit_add_instr(emit, ArrayInit);
-  instr->m_val = (m_uint)prim_exp(data)->type;
-  instr->m_val2 = prim_exp(data)->type->size;
   emit_add_instr(emit, GcAdd);
   return GW_OK;
 }
