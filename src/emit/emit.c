@@ -396,13 +396,15 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   return GW_OK;
 }
 
+ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e, const m_bool addref);
+
 ANN static m_bool emit_range(const Emitter emit, Range *range) {
   if(range->start)
-    CHECK_OB(emit_exp(emit, range->start, 0))
+    CHECK_OB(emit_exp_pop_next(emit, range->start, 0))
   else
     regpushi(emit, 0);
   if(range->end)
-    CHECK_OB(emit_exp(emit, range->end, 0))
+    CHECK_OB(emit_exp_pop_next(emit, range->end, 0))
   else
     regpushi(emit, -1);
   return GW_OK;
