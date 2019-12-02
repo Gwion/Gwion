@@ -69,8 +69,9 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
 }
 
 #include "gwion.h"
-ANN void vm_fork(const VM* src, const VM_Shred shred) {
+ANN static void vm_fork(VM* src, const VM_Shred shred) {
   VM* vm = (shred->info->vm = gwion_cpy(src));
+  vm->parent = src;
   shred->info->me = new_shred(shred, 0);
   shreduler_add(vm->shreduler, shred);
 }

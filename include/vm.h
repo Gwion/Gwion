@@ -25,6 +25,7 @@ typedef struct VM_ {
   struct BBQ_* bbq;
   struct Gwion_* gwion;
   VM_Shred cleaner_shred;
+  struct VM_ *parent;
   uint32_t rand[2];
 } VM;
 

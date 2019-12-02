@@ -13,13 +13,11 @@
 #include "specialid.h"
 #include "gwi.h"
 
-static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval, 
-  o_fork_orig;
+static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval;
 
 #define FORK_THREAD(o) *(THREAD_TYPE*)(o->data + o_fork_thread)
 #define FORK_RETSIZE(o) *(m_int*)(o->data + o_fork_retsize)
 #define FORK_RETVAL(o) (o->data + o_fork_retval)
-#define FORK_ORIG(o) (*(VM**)((o)->data + o_fork_orig))
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
@@ -149,7 +147,7 @@ static MFUN(shred_unlock) {
 
 static DTOR(fork_dtor) {
   THREAD_JOIN(FORK_THREAD(o));
-  const VM *vm = FORK_ORIG(o);
+  const VM *vm = ME(o)->info->vm->parent;
   if(*(m_int*)(o->data + o_fork_done)) {
     vector_rem2(&vm->gwion->data->child, (vtype)o);
     if(!vm->gwion->data->child2.ptr)
@@ -217,7 +215,6 @@ ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
   if(!vm->gwion->data->child.ptr)
     vector_init(&vm->gwion->data->child);
   vector_add(&vm->gwion->data->child, (vtype)o);
-  FORK_ORIG(o) = (VM*)vm;
   FORK_RETSIZE(o) = sz;
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
 }
@@ -314,8 +311,6 @@ GWION_IMPORT(shred) {
   GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "retsize");
   GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, NULL)))
-  gwi_item_ini(gwi, "@internal", "@orig");
-  GWI_BB((o_fork_orig = gwi_item_end(gwi, ae_flag_const, NULL)))
   o_fork_retval = t_fork->nspc->info->offset;
   GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "int", "i"))
