@@ -113,8 +113,8 @@ ANN static inline void free_gwion_cpy(const Gwion gwion, const VM_Shred shred) {
 
 ANN static void fork_clean2(const VM_Shred shred, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); ++i) {
-    VM* vm = (VM*)vector_at(v, i);
-    free_gwion_cpy(vm->gwion, shred);
+    const Gwion gwion = (Gwion)vector_at(v, i);
+    free_gwion_cpy(gwion, shred);
   }
   vector_release(v);
 }

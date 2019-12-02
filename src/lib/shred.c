@@ -154,7 +154,7 @@ static DTOR(fork_dtor) {
     vector_rem2(&vm->gwion->data->child, (vtype)o);
     if(!vm->gwion->data->child2.ptr)
       vector_init(&vm->gwion->data->child2);
-    vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm);
+    vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
   }
 }
 
