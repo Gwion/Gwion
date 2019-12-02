@@ -120,12 +120,10 @@ ANN static void fork_clean2(const VM_Shred shred, const Vector v) {
 }
 
 ANN static void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
-  MUTEX_LOCK(gwion->vm->shreduler->mutex);
   if(gwion->data->child.ptr)
     fork_clean(shred, &gwion->data->child);
   if(gwion->data->child2.ptr)
     fork_clean2(shred, &gwion->data->child2);
-  MUTEX_UNLOCK(gwion->vm->shreduler->mutex);
 }
 
 ANN void gwion_end(const Gwion gwion) {

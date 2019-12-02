@@ -68,12 +68,35 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   shreduler_add(vm->shreduler, shred);
 }
 
-#include "gwion.h"
+ANN void vm_lock(VM *vm) {
+  do MUTEX_LOCK(vm->shreduler->mutex);
+  while((vm = vm->parent));
+}
+
+ANN void vm_unlock(VM *vm) {
+  do MUTEX_UNLOCK(vm->shreduler->mutex);
+  while((vm = vm->parent));
+}
+
+ANN m_bool vm_running(VM *vm) {
+  do if(!vm->shreduler->bbq->is_running) return 0;
+  while((vm = vm->parent));
+  return 1;
+}
+
 ANN static void vm_fork(VM* src, const VM_Shred shred) {
-  VM* vm = (shred->info->vm = gwion_cpy(src));
-  vm->parent = src;
-  shred->info->me = new_shred(shred, 0);
-  shreduler_add(vm->shreduler, shred);
+  vm_lock(src);
+  if(vm_running(src)) {
+    VM* vm = (shred->info->vm = gwion_cpy(src));
+    vm->parent = src;
+    const M_Object o = shred->info->me = new_shred(shred, 0);
+    ++shred->info->me->ref;
+    if(!src->gwion->data->child.ptr)
+      vector_init(&src->gwion->data->child);
+    vector_add(&src->gwion->data->child, (vtype)o);
+    shreduler_add(vm->shreduler, shred);
+  }
+  vm_unlock(src);
 }
 
 __attribute__((hot))

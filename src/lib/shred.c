@@ -212,10 +212,6 @@ static ANN void* fork_run(void* data) {
 }
 
 ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
-  o->ref += 1;
-  if(!vm->gwion->data->child.ptr)
-    vector_init(&vm->gwion->data->child);
-  vector_add(&vm->gwion->data->child, (vtype)o);
   FORK_RETSIZE(o) = sz;
   THREAD_CREATE(FORK_THREAD(o), fork_run, o);
 }
