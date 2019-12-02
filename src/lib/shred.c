@@ -149,7 +149,8 @@ static DTOR(fork_dtor) {
   THREAD_JOIN(FORK_THREAD(o));
   const VM *vm = ME(o)->info->vm->parent;
   if(*(m_int*)(o->data + o_fork_done)) {
-    vector_rem2(&vm->gwion->data->child, (vtype)o);
+    const m_int idx = vector_find(&vm->gwion->data->child, (vtype)o);
+    VPTR(&vm->gwion->data->child, idx) = 0;
     if(!vm->gwion->data->child2.ptr)
       vector_init(&vm->gwion->data->child2);
     vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
@@ -222,6 +223,8 @@ ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); ++i) {
     const M_Object o = (M_Object)vector_at(v, i);
+    if(!o)
+      continue;
     THREAD_JOIN(FORK_THREAD(o));
     release(o, shred);
   }
