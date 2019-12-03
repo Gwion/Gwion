@@ -79,9 +79,11 @@ ANN void vm_unlock(VM *vm) {
 }
 
 ANN m_bool vm_running(VM *vm) {
-  do if(!vm->shreduler->bbq->is_running) return 0;
-  while((vm = vm->parent));
-  return 1;
+  if(!vm->shreduler->bbq->is_running)
+    return 0;
+  if(!vm->parent)
+    return 1;
+  return vm->shreduler->bbq->is_running = vm_running(vm->parent);
 }
 
 ANN static void vm_fork(VM* src, const VM_Shred shred) {
