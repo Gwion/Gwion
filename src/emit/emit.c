@@ -148,11 +148,6 @@ ANN static inline void maybe_ctor(const Emitter emit, const Type type) {
     emit_ext_ctor(emit, type->nspc->pre_ctor);
 }
 
-ANN static inline void tmpl_ctor(const Emitter emit, const Type type) {
-  const Type t = template_parent(emit->env, type);
-  maybe_ctor(emit, t);
-}
-
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->e->parent)
     emit_pre_ctor(emit, type->e->parent);

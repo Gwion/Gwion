@@ -125,12 +125,6 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   return t;
 }
 
-__attribute__((returns_nonnull))
-ANN Type template_parent(const Env env, const Type type) {
-  const m_str name = get_type_name(env, type->name, 0);
-  return nspc_lookup_type1(type->nspc->parent, insert_symbol(name));
-}
-
 ANN m_bool type_ref(Type t) {
   do {
     if(GET_FLAG(t, empty))
