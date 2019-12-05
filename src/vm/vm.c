@@ -87,18 +87,14 @@ ANN m_bool vm_running(VM *vm) {
 }
 
 ANN static void vm_fork(VM* src, const VM_Shred shred) {
-  vm_lock(src);
-  if(vm_running(src)) {
-    VM* vm = (shred->info->vm = gwion_cpy(src));
-    vm->parent = src;
-    const M_Object o = shred->info->me = new_shred(shred, 0);
-    ++shred->info->me->ref;
-    if(!src->gwion->data->child.ptr)
-      vector_init(&src->gwion->data->child);
-    vector_add(&src->gwion->data->child, (vtype)o);
-    shreduler_add(vm->shreduler, shred);
-  }
-  vm_unlock(src);
+  VM* vm = (shred->info->vm = gwion_cpy(src));
+  vm->parent = src;
+  const M_Object o = shred->info->me = new_shred(shred, 0);
+  ++shred->info->me->ref;
+  if(!src->gwion->data->child.ptr)
+    vector_init(&src->gwion->data->child);
+  vector_add(&src->gwion->data->child, (vtype)o);
+  shreduler_add(vm->shreduler, shred);
 }
 
 __attribute__((hot))
@@ -143,9 +139,17 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
   return sh;
 }
 
-ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
+ANN static inline VM_Shred fork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_fork(shred->info->vm, sh);
+  return sh;
+}
+
+ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
+  VM *vm = shred->info->vm;
+  vm_lock(vm);
+  const VM_Shred sh = vm_running(vm) ? fork_shred(shred, code) : NULL;
+  vm_unlock(vm);
   return sh;
 }
 
@@ -655,7 +659,8 @@ funcmemberend:
   }
   PC_DISPATCH(shred->pc)
 sporkini:
-  a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL);
+  if(!(a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL)))
+    goto eoc;
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
