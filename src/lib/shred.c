@@ -157,7 +157,6 @@ static void join(const M_Object o) {
   MUTEX_LOCK(vm->shreduler->mutex);
   THREAD_JOIN(FORK_THREAD(o));
   MUTEX_UNLOCK(vm->shreduler->mutex);
-  pthread_yield();
 }
 
 static DTOR(fork_dtor) {
