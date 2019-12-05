@@ -1,0 +1,2 @@
+#! [contains] while defining
+class C{0=>int i;}operator@implicit int(C c){return c;i;}fun void test(int i){<<<i>>>;}C c;c=>test;
