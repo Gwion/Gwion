@@ -48,7 +48,10 @@ ANN static Type op_parent(const Env env, const Type t) {
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
-  if((t && mo && mo->xid == t->xid) || (!t && !mo))
+  Type type = t;
+  while(SAFE_FLAG(type, template) && type->e->def && type->e->def->base.tmpl && type->e->def->base.tmpl->call) type = type->e->parent;
+//  if((t && mo && mo->xid == t->xid) || (!t && !mo))
+  if((type && mo && mo->xid == type->xid) || (!type && !mo))
     return GW_OK;
   return 0;
 }
@@ -57,6 +60,23 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))
+      return mo;
+  }
+  return NULL;
+}
+
+static m_bool op_match2(const restrict Type t, const restrict Type mo) {
+//  if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
+//    return GW_OK;
+  if((t && mo && (t != OP_ANY_TYPE && mo != OP_ANY_TYPE && mo->xid == t->xid)) || (!t && !mo))
+    return GW_OK;
+  return 0;
+}
+
+ANN2(1) static M_Operator* operator_find2(const Vector v, const restrict Type lhs, const restrict Type rhs) {
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
+    if(op_match2(lhs, mo->lhs) && op_match2(rhs, mo->rhs))
       return mo;
   }
   return NULL;
@@ -91,13 +111,16 @@ ANN static Vector op_vector(MemPool p, const struct OpChecker *ock) {
   return create;
 }
 
+static m_str type_name(const Type t) {
+  return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
+}
+
 ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {
   const Vector v = (Vector)map_get(&n->info->op_map, (vtype)ock->opi->op);
-  if(!v || !operator_find(v, ock->opi->lhs, ock->opi->rhs))
+  if(!v || !operator_find2(v, ock->opi->lhs, ock->opi->rhs))
     return GW_OK;
   env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
-        s_name(ock->opi->op), ock->opi->lhs ? ock->opi->lhs->name : NULL,
-        ock->opi->rhs ? ock->opi->rhs->name : NULL);
+        s_name(ock->opi->op), type_name(ock->opi->lhs), type_name(ock->opi->rhs));
   return GW_ERROR;
 }
 
@@ -121,6 +144,12 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@array")) {
+    Array_Sub array = (Array_Sub)ock->opi->data;
+    array->exp->nspc = nspc;
+    return;
+
+  }
   if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit") ||
      ock->opi->op == insert_symbol(ock->env->gwion->st, "@access") ||
      ock->opi->op == insert_symbol(ock->env->gwion->st, "@repeat")) {
@@ -151,10 +180,6 @@ ANN static Type op_check_inner(struct OpChecker* ock) {
     }
   } while(r && (r = op_parent(ock->env, r)));
   return NULL;
-}
-
-static m_str type_name(const Type t) {
-  return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
 }
 
 ANN Type op_check(const Env env, struct Op_Import* opi) {

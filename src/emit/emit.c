@@ -143,26 +143,17 @@ ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj
   return frame_local(emit->gwion->mp, emit->code->frame, size, is_obj);
 }
 
+ANN static inline void maybe_ctor(const Emitter emit, const Type type) {
+  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
+    emit_ext_ctor(emit, type->nspc->pre_ctor);
+}
+
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->e->parent)
     emit_pre_ctor(emit, type->e->parent);
-  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
-    emit_ext_ctor(emit, type->nspc->pre_ctor);
-/*
-  if(type->nspc && !GET_FLAG(type, nonnull)) {
-    if(type->nspc->pre_ctor)
-      emit_ext_ctor(emit, type->nspc->pre_ctor);
-    if(type->nspc->ctor)
-      emit_ext_ctor(emit, type->nspc->ctor);
-  } 
-*/
+  maybe_ctor(emit, type);
   if(GET_FLAG(type, typedef) && type->e->parent->array_depth)
     emit_array_extend(emit, type->e->parent, type->e->def->base.ext->array->exp);
-  if(GET_FLAG(type, template) && GET_FLAG(type, builtin)) {
-    const Type t = template_parent(emit->env, type);
-    if(t->nspc->pre_ctor)
-      emit_ext_ctor(emit, t->nspc->pre_ctor);
-  }
 }
 
 #define regxxx(name, instr) \
@@ -400,13 +391,15 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   return GW_OK;
 }
 
+ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e, const m_bool addref);
+
 ANN static m_bool emit_range(const Emitter emit, Range *range) {
   if(range->start)
-    CHECK_OB(emit_exp(emit, range->start, 0))
+    CHECK_OB(emit_exp_pop_next(emit, range->start, 0))
   else
     regpushi(emit, 0);
   if(range->end)
-    CHECK_OB(emit_exp(emit, range->end, 0))
+    CHECK_OB(emit_exp_pop_next(emit, range->end, 0))
   else
     regpushi(emit, -1);
   return GW_OK;
@@ -419,9 +412,6 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   const Symbol sym = insert_symbol("@range");
   struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
   CHECK_OB(op_emit(emit, &opi))
-  const Instr instr = emit_add_instr(emit, ArrayInit);
-  instr->m_val = (m_uint)prim_exp(data)->type;
-  instr->m_val2 = prim_exp(data)->type->size;
   emit_add_instr(emit, GcAdd);
   return GW_OK;
 }

@@ -25,6 +25,7 @@ typedef struct VM_ {
   struct BBQ_* bbq;
   struct Gwion_* gwion;
   VM_Shred cleaner_shred;
+  struct VM_ *parent;
   uint32_t rand[2];
 } VM;
 
@@ -75,6 +76,9 @@ void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
 ANEW VM* new_vm(MemPool, const m_bool);
+ANN void vm_lock(VM const*);
+ANN void vm_unlock(VM const*);
+ANN m_bool vm_running(VM const*);
 ANN void free_vm(VM* vm);
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));

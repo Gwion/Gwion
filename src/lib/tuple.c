@@ -167,7 +167,7 @@ static OP_CHECK(opck_at_tuple_object) {
 
 static OP_CHECK(opck_cast_tuple_object) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  if(tuple_match(env, exp_self(cast)->type, cast->exp->type) < 0)
+  if(tuple_match(env, cast->exp->type, exp_self(cast)->type) < 0)
     return env->gwion->type[et_null];
   return exp_self(cast)->type;
 }
@@ -211,7 +211,6 @@ static OP_CHECK(opck_cast_tuple) {
 static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
   CHECK_BN(tuple_match(env, imp->e->type, imp->t))
-//  CHECK_BN(tuple_match(env, imp->t, imp->e->type))
   return imp->t;
 }
 
@@ -336,18 +335,31 @@ ANN void free_tupleform(MemPool p, const TupleForm tuple) {
     free_type_list(p, tuple->list);
 }
 
+ANN /*static*/ Type at_depth(const Env env, const Array_Sub array);
+static OP_CHECK(opck_tuple) {
+  const Array_Sub array = (Array_Sub)data;
+  const Vector v = &array->type->e->tuple->types;
+  const Exp exp = array->exp;
+  if(exp->exp_type != ae_exp_primary ||
+     exp->d.prim.prim_type != ae_prim_num)
+    ERR_O(exp->pos, _("tuple subscripts must be litteral"))
+  const m_uint idx = exp->d.prim.d.num;
+  if(idx >= vector_size(v))
+    ERR_O(exp->pos, _("tuple subscripts too big"))
+  const Type type = (Type)vector_at(v, idx);
+  if(type == env->gwion->type[et_undefined])
+    ERR_O(exp->pos, _("tuple subscripts is undefined at index %lu"), idx)
+  if(!exp->next)
+    return type;
+  struct Array_Sub_ next = { exp->next, type, array->depth - 1 };
+  return at_depth(env, &next);
+}
+
 GWION_IMPORT(tuple) {
   const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
-//  const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, NULL);
-gwi_add_type(gwi, t_tuple);
-SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
-//assert(!t_tuple->e->def);
-//  const Type t_tuple = gwi_class_ini(gwi, "Tuple", NULL);
-// this is a sign we should make the class_def optionnal
-// free def
-//t_tuple->e->def = NULL;
+  gwi_add_type(gwi, t_tuple);
+  SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi->gwion->type[et_tuple] = t_tuple;
-//  GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_tuple, abstract | ae_flag_template);
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
@@ -370,6 +382,10 @@ SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "Tuple", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_tuple))
+//  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   gwi_register_freearg(gwi, TupleUnpack, freearg_tuple_at);
   return GW_OK;
 }

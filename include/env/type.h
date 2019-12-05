@@ -40,8 +40,6 @@ ANN void type_path(const m_str, const ID_List);
 ANN Type typedef_base(Type) __attribute__((pure));
 ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
-__attribute__((returns_nonnull))
-ANN Type template_parent(const Env, const Type type);
 ANN Type actual_type(const struct Gwion_* gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
 ANN m_bool is_fptr(const struct Gwion_*, const Type t);

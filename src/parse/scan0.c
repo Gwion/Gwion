@@ -67,11 +67,27 @@ static void fptr_def(const Env env, const Fptr_Def fptr) {
   def->base->func = fptr->base->func;
 }
 
+ANN static m_bool check_tmpl_args(const Env env, const Func_Base *base) {
+  ID_List id = base->tmpl->list;
+  do nspc_add_type(env->curr, id->xid, env->gwion->type[et_undefined]);
+  while((id = id->next));
+  Arg_List arg = base->args;
+  do CHECK_OB(known_type(env, arg->td))
+  while((arg = arg->next));
+  return GW_OK;
+}
+
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(env_access(env, fptr->base->td->flag, td_pos(fptr->base->td)))
   CHECK_OB(known_type(env, fptr->base->td))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
+if(fptr->base->tmpl && fptr->base->args) {
+  nspc_push_type(env->gwion->mp, env->curr);
+  const m_bool ret = check_tmpl_args(env, fptr->base);
+  nspc_pop_type(env->gwion->mp, env->curr);
+  CHECK_BB(ret);
+}
   const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
