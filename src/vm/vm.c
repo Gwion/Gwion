@@ -68,17 +68,17 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   shreduler_add(vm->shreduler, shred);
 }
 
-ANN void vm_lock(VM *vm) {
+ANN void vm_lock(VM const *vm) {
   do MUTEX_LOCK(vm->shreduler->mutex);
   while((vm = vm->parent));
 }
 
-ANN void vm_unlock(VM *vm) {
+ANN void vm_unlock(VM const *vm) {
   do MUTEX_UNLOCK(vm->shreduler->mutex);
   while((vm = vm->parent));
 }
 
-ANN m_bool vm_running(VM *vm) {
+ANN m_bool vm_running(VM const *vm) {
   if(!vm->shreduler->bbq->is_running)
     return 0;
   if(!vm->parent)

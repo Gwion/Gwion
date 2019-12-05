@@ -145,9 +145,24 @@ static MFUN(shred_unlock) {
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
-static DTOR(fork_dtor) {
+static void stop(const M_Object o) {
+  VM *vm = ME(o)->info->vm->parent;
+  MUTEX_LOCK(vm->shreduler->mutex);
+  vm->shreduler->bbq->is_running = 0;
+  MUTEX_UNLOCK(vm->shreduler->mutex);
+}
+
+static void join(const M_Object o) {
+  VM *vm = ME(o)->info->vm->parent;
+  MUTEX_LOCK(vm->shreduler->mutex);
   THREAD_JOIN(FORK_THREAD(o));
-  const VM *vm = ME(o)->info->vm->parent;
+  MUTEX_UNLOCK(vm->shreduler->mutex);
+  pthread_yield();
+}
+
+static DTOR(fork_dtor) {
+  stop(o);
+  VM *vm = ME(o)->info->vm->parent;
   if(*(m_int*)(o->data + o_fork_done)) {
     const m_int idx = vector_find(&vm->gwion->data->child, (vtype)o);
     VPTR(&vm->gwion->data->child, idx) = 0;
@@ -155,6 +170,8 @@ static DTOR(fork_dtor) {
       vector_init(&vm->gwion->data->child2);
     vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
   }
+  gwion_end_child(ME(o)->info->vm->gwion, shred);
+  join(o);
 }
 
 static MFUN(fork_join) {
@@ -197,12 +214,13 @@ void fork_retval(const M_Object o) {
 }
 
 static ANN void* fork_run(void* data) {
-  const M_Object me = (M_Object)data;
-  VM *vm = ME(me)->info->vm;
-  do {
+  VM *vm = (VM*)data;
+  const M_Object me = vm->shreduler->list->self->info->me;
+  while(vm->bbq->is_running) {
+//  while(vm_running(vm)) {
     vm_run(vm);
     ++vm->bbq->pos;
-  } while(vm->bbq->is_running);
+  }
   fork_retval(me);
   MUTEX_LOCK(vm->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
@@ -211,9 +229,13 @@ static ANN void* fork_run(void* data) {
   THREAD_RETURN(NULL);
 }
 
-ANN void fork_launch(const VM* vm, const M_Object o, const m_uint sz) {
-  FORK_RETSIZE(o) = sz;
-  THREAD_CREATE(FORK_THREAD(o), fork_run, o);
+ANN void fork_launch(VM const* vm, const M_Object o, const m_uint sz) {
+  vm_lock(vm);
+  if(vm_running(vm)) {
+    FORK_RETSIZE(o) = sz;
+    THREAD_CREATE(FORK_THREAD(o), fork_run, ME(o)->info->vm);
+  }
+  vm_unlock(vm);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
@@ -221,10 +243,12 @@ ANN void fork_clean(const VM_Shred shred, const Vector v) {
     const M_Object o = (M_Object)vector_at(v, i);
     if(!o)
       continue;
+    stop(o);
     THREAD_JOIN(FORK_THREAD(o));
-    release(o, shred);
+    _release(o, shred);
   }
   vector_release(v);
+  v->ptr = NULL;
 }
 
 GWION_IMPORT(shred) {

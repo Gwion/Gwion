@@ -102,7 +102,7 @@ ANN void gwion_run(const Gwion gwion) {
   vm->bbq->driver->run(vm, vm->bbq);
 }
 
-ANN static void gwion_end_child(const VM_Shred shred, const Gwion gwion);
+ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion);
 
 ANN static inline void free_gwion_cpy(const Gwion gwion, const VM_Shred shred) {
   gwion_end_child(shred, gwion);
@@ -117,9 +117,10 @@ ANN static void fork_clean2(const VM_Shred shred, const Vector v) {
     free_gwion_cpy(gwion, shred);
   }
   vector_release(v);
+  v->ptr = NULL;
 }
 
-ANN static void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
+ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
   if(gwion->data->child.ptr)
     fork_clean(shred, &gwion->data->child);
   if(gwion->data->child2.ptr)
