@@ -146,9 +146,11 @@ static MFUN(shred_unlock) {
 }
 
 static void stop(const M_Object o) {
-  VM *vm = ME(o)->info->vm->parent;
+  VM *vm = ME(o)->info->vm;
   MUTEX_LOCK(vm->shreduler->mutex);
+  MUTEX_LOCK(vm->parent->shreduler->mutex);
   vm->shreduler->bbq->is_running = 0;
+  MUTEX_UNLOCK(vm->parent->shreduler->mutex);
   MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
@@ -162,13 +164,11 @@ static void join(const M_Object o) {
 static DTOR(fork_dtor) {
   stop(o);
   VM *vm = ME(o)->info->vm->parent;
-  if(*(m_int*)(o->data + o_fork_done)) {
-    const m_int idx = vector_find(&vm->gwion->data->child, (vtype)o);
-    VPTR(&vm->gwion->data->child, idx) = 0;
-    if(!vm->gwion->data->child2.ptr)
-      vector_init(&vm->gwion->data->child2);
-    vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
-  }
+  const m_int idx = vector_find(&vm->gwion->data->child, (vtype)o);
+  VPTR(&vm->gwion->data->child, idx) = 0;
+  if(!vm->gwion->data->child2.ptr)
+    vector_init(&vm->gwion->data->child2);
+  vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
   gwion_end_child(shred, ME(o)->info->vm->gwion);
   join(o);
 }
@@ -216,15 +216,17 @@ static ANN void* fork_run(void* data) {
   VM *vm = (VM*)data;
   const M_Object me = vm->shreduler->list->self->info->me;
   while(vm->bbq->is_running) {
-//  while(vm_running(vm)) {
     vm_run(vm);
     ++vm->bbq->pos;
   }
-  fork_retval(me);
-  MUTEX_LOCK(vm->shreduler->mutex);
-  *(m_int*)(me->data + o_fork_done) = 1;
-  broadcast(*(M_Object*)(me->data + o_fork_ev));
-  MUTEX_UNLOCK(vm->shreduler->mutex);
+  vm_lock(vm->parent);
+  if(vm_running(vm->parent)) {
+    fork_retval(me);
+    *(m_int*)(me->data + o_fork_done) = 1;
+    broadcast(*(M_Object*)(me->data + o_fork_ev));
+  } else
+    release(me, ME(me));
+  vm_unlock(vm->parent);
   THREAD_RETURN(NULL);
 }
 
