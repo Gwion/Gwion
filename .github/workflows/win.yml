@@ -14,13 +14,15 @@ jobs:
     - uses: actions/checkout@v1
     - name: submodules
       run: git submodule update --init util ast
+    - name: deps
+      run: choco install make
     - name: make
       env:
          USE_DOUBLE: ${{ matrix.double }}
          CFLAGS: -fsanitize=address -fno-omit-frame-pointer
          LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-      run: make USE_DOUBLE=${{ matrix.double }}
-    - name: make test ${{ runner.temp }}
+      run: make.exe USE_DOUBLE=${{ matrix.double }}
+    - name: make.exe test ${{ runner.temp }}
       env:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
