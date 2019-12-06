@@ -23,7 +23,7 @@ jobs:
          USE_DOUBLE: ${{ matrix.double }}
          CFLAGS: -fsanitize=address -fno-omit-frame-pointer
          LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-      run: make.exe USE_DOUBLE=${{ matrix.double }}
+      run: make.exe CC=x86_64-w64-mingw32 USE_DOUBLE=${{ matrix.double }}
     - name: make.exe test ${{ runner.temp }}
       env:
         VALGRIND: NO_VALGRIND
