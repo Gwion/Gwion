@@ -66,6 +66,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time)__attribute__((hot));
 ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
+ANN void shreduler_ini(const Shreduler s, const VM_Shred shred);
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred);
 
 ANEW ANN VM_Shred new_vm_shred(MemPool, const VM_Code code) __attribute__((hot));

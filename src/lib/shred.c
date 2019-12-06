@@ -169,7 +169,7 @@ static DTOR(fork_dtor) {
       vector_init(&vm->gwion->data->child2);
     vector_add(&vm->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
   }
-  gwion_end_child(ME(o)->info->vm->gwion, shred);
+  gwion_end_child(shred, ME(o)->info->vm->gwion);
   join(o);
 }
 

@@ -102,8 +102,6 @@ ANN void gwion_run(const Gwion gwion) {
   vm->bbq->driver->run(vm, vm->bbq);
 }
 
-ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion);
-
 ANN static inline void free_gwion_cpy(const Gwion gwion, const VM_Shred shred) {
   gwion_end_child(shred, gwion);
   free_vm(gwion->vm);

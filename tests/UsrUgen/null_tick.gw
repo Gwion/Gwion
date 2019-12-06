@@ -1,0 +1,3 @@
+#! [contains] NullTickException
+typedef float ptr_t(float);
+ptr_t ptr ~= UsrUGen u;

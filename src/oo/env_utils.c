@@ -35,6 +35,7 @@ ANN Type _find_type(const Env env, const Symbol xid) {
     while(base && base->nspc) {
       if((type = nspc_lookup_type1(base->nspc, xid)))
        break;
+      base = base->e->parent;
     }
   }
   return type;
