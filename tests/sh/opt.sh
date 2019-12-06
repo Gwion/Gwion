@@ -86,6 +86,7 @@ n=$((n+1))
 run "$n" "comma in module argument" "-mpp=-Dtest='\"dqs\,qs\"',-Dtsdl" "file"
 
 # test signal
-./gwion -l1 &
+# mask asan output for now
+./gwion -l1 &>/dev/null &
 PID=$!
 sleep .1 && kill $PID
