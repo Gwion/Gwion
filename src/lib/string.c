@@ -66,7 +66,7 @@ describe_string_assign(Int_, m_int, SZ_INT,,
   num_digit((m_uint)labs(lhs)) + 1,
   "%" INT_F "", lhs)
 describe_string_assign(Float_, m_float, SZ_FLOAT,,
-  num_digit((m_uint)lhs) + 5,
+  num_digit((m_uint)lhs) + 6,
   "%.4f", lhs)
 describe_string_assign(Complex_, m_complex, SZ_COMPLEX,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 16,
@@ -115,10 +115,10 @@ describe_string(Float, m_float, SZ_FLOAT,
   (num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)) : 0) + 1),,
   "%.4f%s", lhs, rhs ? STRING(rhs) : "")
 describe_string(Complex, m_complex, SZ_COMPLEX,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  12,,
+  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  16,,
   "#(%.4f, %.4f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : "")
 describe_string(Polar, m_complex, SZ_COMPLEX,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + (rhs ? strlen(STRING(rhs)) : 0) +  12,,
+  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + (rhs ? strlen(STRING(rhs)) : 0) +  20,,
   "%%(%.4f, %.4f*pi)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : "")
 describe_string(Vec3, m_vec3, SZ_VEC3,
   (rhs ? strlen(STRING(rhs)) : 0) + 23 + num_digit((m_uint)lhs.x) +
@@ -158,13 +158,13 @@ describe_string_plus(Polar_, SZ_COMPLEX, m_complex,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 18, "%%(%.4f, %.4f)",
   creal(lhs), cimag(lhs) / M_PI)
 describe_string_plus(Vec3_, SZ_VEC3, m_vec3,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 20, "@(%.4f, %.4f, %.4f)",
+  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 22, "@(%.4f, %.4f, %.4f)",
   lhs.x, lhs.y, lhs.z)
 describe_string_plus(Vec4_, SZ_VEC4, m_vec4,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.z) + 28, "@(%.4f, %.4f, %.4f, %.4f)",
+  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.z) + 30, "@(%.4f, %.4f, %.4f, %.4f)",
   lhs.x, lhs.y, lhs.z, lhs.w)
 describe_string_plus(Object_, SZ_INT, M_Object, release(lhs, shred),
-  11, "%p", (void*)lhs)
+  16, "%p", (void*)lhs)
 
 static CTOR(string_ctor) {
   STRING(o) = "";
