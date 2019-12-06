@@ -247,13 +247,16 @@ static INSTR(UsrUGenTick) {
   if(uu->shred)
     free_vm_shred(uu->shred);
   UGEN(o)->module.gen.tick = usrugen_tick;
+  const VM_Code code = *(VM_Code*)(shred->reg-offset);
+  release(o, shred);
+  if(!code)
+    Except(shred, "[NullTickException]");
   uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));
   ADD_REF(*(VM_Code*)(shred->reg - offset));
   uu->shred->info->vm = shred->info->vm;
   code_prepare(uu->shred->code);
   shreduler_ini(uu->shred->info->vm->shreduler, uu->shred);
   uu->prep = instr->m_val ? member_prep : global_prep;
-  release(o, shred);
   *(M_Object*)(shred->reg - SZ_INT) = o;
 }
 
