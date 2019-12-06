@@ -26,5 +26,5 @@ samp => now;
 <<< u.last() >>>;
 
 u.default_tick();
-samp => now;
+2::samp => now;
 <<< u.last() >>>;

@@ -246,7 +246,7 @@ static MFUN(default_tick) {
     uu->shred = NULL;
   }
   UGEN(o)->module.gen.tick = id_tick;
-  release(o, shred);
+//  release(o, shred);
 }
 
 static INSTR(UsrUGenTick) {
@@ -280,7 +280,7 @@ static OP_EMIT(opem_usrugen) {
 static GWION_IMPORT(usrugen) {
   GWI_OB(gwi_class_ini(gwi, "UsrUGen", "UGen"))
   gwi_class_xtor(gwi, usrugen_ctor, usrugen_dtor);
-  GWI_BB(gwi_func_ini(gwi, "void", "default_tick"))
+  GWI_BB(gwi_func_ini(gwi, "int", "default_tick"))
   GWI_BB(gwi_func_end(gwi, default_tick, 0))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@function", "UsrUGen", "UsrUGen"))
