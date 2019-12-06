@@ -277,7 +277,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   Stmt_List base = NULL, curr = NULL;
   Type_List tlbase = NULL, tl = NULL;
   for(m_uint i = 0; i < vector_size(v); ++i) {
-    char name[num_digit(i) + 2];
+    char name[num_digit(i) + 16];
     sprintf(name, "@tuple member %lu", i);
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);

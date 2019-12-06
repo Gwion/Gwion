@@ -10,6 +10,7 @@ static void sig(int unused NUSED) {
 #ifdef BUILD_ON_WINDOWS
   exit(EXIT_FAILURE);
 #else
+  pthread_kill(pthread_self(), SIGTERM);
   pthread_exit(NULL);
 #endif
 }
