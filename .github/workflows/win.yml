@@ -11,6 +11,8 @@ jobs:
         double: [0, 1]
 
     steps:
+    - name: compiler
+      run: gcc -v
     - uses: actions/checkout@v1
     - name: submodules
       run: git submodule update --init util ast
