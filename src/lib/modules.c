@@ -12,10 +12,9 @@
 #include "ugen.h"
 #include "gwi.h"
 #include "emit.h"
-#include "shreduler_private.h"
 
 static DTOR(basic_dtor) {
-  free(UGEN(o)->module.gen.data);
+  xfree(UGEN(o)->module.gen.data);
 }
 
 static TICK(gain_tick) {
@@ -187,10 +186,7 @@ static TICK(usrugen_tick) {
   uu->prep(uu, u->in);
   uu->shred->pc = 0;
   shredule(uu->shred->tick->shreduler, uu->shred, 0);
-  const m_bool ret = uu->shred->info->vm->shreduler->bbq->is_running;
-  uu->shred->info->vm->shreduler->bbq->is_running = 1;
   vm_run(uu->shred->info->vm);
-  uu->shred->info->vm->shreduler->bbq->is_running = ret;
   uu->shred->reg -= SZ_FLOAT;
   u->out = *(m_float*)(uu->shred->reg);
 }
@@ -226,7 +222,6 @@ static OP_CHECK(opck_usrugen) {
 
 static INSTR(UURet) {
   shreduler_remove(shred->tick->shreduler, shred, 0);
-  shred->tick->shreduler->bbq->is_running = 0;
 }
 
 ANN static void code_prepare(const VM_Code code) {
