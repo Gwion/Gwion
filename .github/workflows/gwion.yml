@@ -23,7 +23,7 @@ jobs:
          CFLAGS: -fsanitize=address -fno-omit-frame-pointer
          LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
       run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
-    - name: make test
+    - name: make test ${{ runner.temp }}
       env:
         GWION_TEST_DIR: /home/runner/work/Gwion/Gwion/tmp_test
         VALGRIND: NO_VALGRIND
