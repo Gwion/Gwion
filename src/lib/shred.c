@@ -215,6 +215,7 @@ void fork_retval(const M_Object o) {
 static ANN void* fork_run(void* data) {
   VM *vm = (VM*)data;
   const M_Object me = vm->shreduler->list->self->info->me;
+//++me->ref;
   while(vm->bbq->is_running) {
     vm_run(vm);
     ++vm->bbq->pos;
@@ -224,7 +225,7 @@ static ANN void* fork_run(void* data) {
     fork_retval(me);
     *(m_int*)(me->data + o_fork_done) = 1;
     broadcast(*(M_Object*)(me->data + o_fork_ev));
-  } else
+  } else if(me->ref > 1)
     release(me, ME(me));
   vm_unlock(vm->parent);
   THREAD_RETURN(NULL);
@@ -235,7 +236,7 @@ ANN void fork_launch(VM const* vm, const M_Object o, const m_uint sz) {
   if(vm_running(vm)) {
     FORK_RETSIZE(o) = sz;
     THREAD_CREATE(FORK_THREAD(o), fork_run, ME(o)->info->vm);
-  }
+  } else release(o, ME(o));
   vm_unlock(vm);
 }
 
