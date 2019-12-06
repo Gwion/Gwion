@@ -24,3 +24,7 @@ samp => now;
 <<<t ~= u>>>;
 samp => now;
 <<< u.last() >>>;
+
+u.default_tick();
+samp => now;
+<<< u.last() >>>;

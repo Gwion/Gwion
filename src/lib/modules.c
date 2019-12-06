@@ -239,6 +239,16 @@ ANN static void code_prepare(const VM_Code code) {
   }
 }
 
+static MFUN(default_tick) {
+  struct UUGen_ *uu = UGEN(o)->module.gen.data;
+  if(uu->shred) {
+    free_vm_shred(uu->shred);
+    uu->shred = NULL;
+  }
+  UGEN(o)->module.gen.tick = id_tick;
+  release(o, shred);
+}
+
 static INSTR(UsrUGenTick) {
   const m_uint offset = !instr->m_val ? SZ_INT : 0;
   shred->reg -= SZ_INT*2 - offset;
@@ -270,6 +280,8 @@ static OP_EMIT(opem_usrugen) {
 static GWION_IMPORT(usrugen) {
   GWI_OB(gwi_class_ini(gwi, "UsrUGen", "UGen"))
   gwi_class_xtor(gwi, usrugen_ctor, usrugen_dtor);
+  GWI_BB(gwi_func_ini(gwi, "void", "default_tick"))
+  GWI_BB(gwi_func_end(gwi, default_tick, 0))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@function", "UsrUGen", "UsrUGen"))
   GWI_BB(gwi_oper_add(gwi, opck_usrugen))
