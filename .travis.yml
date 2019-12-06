@@ -13,9 +13,6 @@ addons:
     notification_email: astor.jeremie@wanadoo.fr
     build_command: make
     branch_pattern: coverity_scan
-  apt:
-    packages:
-    - valgrind
 
 env:
   global:
@@ -39,16 +36,16 @@ compiler:
   - clang
 
 install:
+  - export VALGRIND="NO_VALGRIND";
+    export SEVERITY=3;
   - if [ $TRAVIS_JOB_NUMBER = ${TRAVIS_BUILD_NUMBER}.1  ]; then
       pip install --user --upgrade pip;
       pip install --user urllib3[secure];
       pip install --user cpp-coveralls;
     fi;
   - if [ $(uname) != "Linux" ] && [ $(uname) != "Darwin" ]; then 
-      choco install make;
       export BUILD_ON_WINDOWS=1;
-      export VALGRIND="NO_VALGRIND";
-      export SEVERITY=1;
+      choco install make;
       if [ $(CC) = "gcc" ];
       then export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC -Wl,--export-all -Wl,--enable-auto-import";
       else export LDFLAGS="$LDLAGS -lpsapi -shared -fPIC";
