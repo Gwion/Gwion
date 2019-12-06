@@ -1,0 +1,20 @@
+fun float t(float f) {
+  return 2.3;
+}
+
+class C extends UsrUGen {
+  fun float test(float f) {
+    <<< this , " ", f>>>;
+    return 0.2;
+  }
+  <<<test ~= this, " ", this>>>;
+}
+
+C u => dac;
+<<< u >>>;
+samp => now;
+<<< u.last() >>>;
+
+<<<t ~= u>>>;
+samp => now;
+<<< u.last() >>>;

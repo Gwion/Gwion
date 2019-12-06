@@ -99,10 +99,14 @@ ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_ti
     s->curr = NULL;
 }
 
-ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
+ANN void shreduler_ini(const Shreduler s, const VM_Shred shred) {
   shred->tick = mp_calloc(shred->info->mp, ShredTick);
   shred->tick->self = shred;
   shred->tick->shreduler = s;
+}
+
+ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
+  shreduler_ini(s, shred);
   shred->tick->xid = ++s->shred_ids;
   vector_add(&s->shreds, (vtype)shred);
   shredule(s, shred, GWION_EPSILON);

@@ -11,6 +11,8 @@
 #include "import.h"
 #include "ugen.h"
 #include "gwi.h"
+#include "emit.h"
+#include "shreduler_private.h"
 
 static DTOR(basic_dtor) {
   free(UGEN(o)->module.gen.data);
@@ -160,11 +162,125 @@ static GWION_IMPORT(zerox) {
   return gwi_class_end(gwi);
 }
 
+struct UUGen_ {
+  M_Object  self;
+  VM_Code   code;
+  VM_Shred shred;
+  void (*prep)(struct UUGen_*, const m_float);
+};
+
+ANN static void global_prep(struct UUGen_ *uu, const m_float in) {
+  *(m_float*)uu->shred->mem = in;
+}
+
+ANN static void member_prep(struct UUGen_ *uu, const m_float in) {
+  *(M_Object*)uu->shred->mem = uu->self;
+  *(m_float*)(uu->shred->mem + SZ_INT) = in;
+}
+
+static TICK(id_tick) {
+  u->out = u->in;
+}
+
+static TICK(usrugen_tick) {
+  struct UUGen_ *uu = u->module.gen.data;
+  uu->prep(uu, u->in);
+  uu->shred->pc = 0;
+  shredule(uu->shred->tick->shreduler, uu->shred, 0);
+  const m_bool ret = uu->shred->info->vm->shreduler->bbq->is_running;
+  uu->shred->info->vm->shreduler->bbq->is_running = 1;
+  vm_run(uu->shred->info->vm);
+  uu->shred->info->vm->shreduler->bbq->is_running = ret;
+  uu->shred->reg -= SZ_FLOAT;
+  u->out = *(m_float*)(uu->shred->reg);
+}
+
+static CTOR(usrugen_ctor) {
+  struct UUGen_* uu = mp_calloc(shred->info->vm->gwion->mp, UUGen);
+  uu->self = o;
+  ugen_ini(shred->info->vm->gwion, UGEN(o), 1, 1);
+  ugen_gen(shred->info->vm->gwion, UGEN(o), id_tick, uu, 0);
+}
+
+static DTOR(usrugen_dtor) {
+  struct UUGen_ *uu = UGEN(o)->module.gen.data;
+  if(uu->shred)
+    free_vm_shred(uu->shred);
+  mp_free(shred->info->vm->gwion->mp, UUGen, UGEN(o)->module.gen.data);
+}
+
+static OP_CHECK(opck_usrugen) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Arg_List arg = bin->lhs->type->e->d.func->def->base->args;
+  if(!arg || arg->next)
+    ERR_N(exp_self(bin)->pos, _("Tick function take one and only one argument"))
+  if(isa(arg->type, env->gwion->type[et_float]) < 0)
+    ERR_N(exp_self(bin)->pos, _("Tick functions argument must be of type float"))
+  if(isa(bin->lhs->type->e->d.func->def->base->ret_type, env->gwion->type[et_float]) < 0)
+    ERR_N(exp_self(bin)->pos, _("Tick function must return float"))
+  if(bin->lhs->type->e->d.func->value_ref->from->owner_class)
+    CHECK_BN(isa(bin->lhs->type->e->d.func->value_ref->from->owner_class,
+      bin->rhs->type))
+  return bin->rhs->type;
+}
+
+static INSTR(UURet) {
+  shreduler_remove(shred->tick->shreduler, shred, 0);
+  shred->tick->shreduler->bbq->is_running = 0;
+}
+
+ANN static void code_prepare(const VM_Code code) {
+  m_bit *byte = code->bytecode;
+  for(m_uint i = 0; i < vector_size(code->instr); ++i) {
+    if(*(m_bit*)(byte + i *BYTECODE_SZ) == eFuncReturn) {
+      *(m_bit*)(byte + i * BYTECODE_SZ)= eOP_MAX;
+      *(f_instr*)(byte + (i*BYTECODE_SZ) + SZ_INT*2) = UURet;
+    }
+  }
+}
+
+static INSTR(UsrUGenTick) {
+  const m_uint offset = !instr->m_val ? SZ_INT : 0;
+  shred->reg -= SZ_INT*2 - offset;
+  const M_Object o = *(M_Object*)(shred->reg + SZ_INT - offset);
+  struct UUGen_ *uu = UGEN(o)->module.gen.data;
+  if(uu->shred)
+    free_vm_shred(uu->shred);
+  UGEN(o)->module.gen.tick = usrugen_tick;
+  uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));
+  ADD_REF(*(VM_Code*)(shred->reg - offset));
+  uu->shred->info->vm = shred->info->vm;
+  code_prepare(uu->shred->code);
+  shreduler_ini(uu->shred->info->vm->shreduler, uu->shred);
+  uu->prep = instr->m_val ? member_prep : global_prep;
+  release(o, shred);
+  *(M_Object*)(shred->reg - SZ_INT) = o;
+}
+
+static OP_EMIT(opem_usrugen) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Instr instr = emit_add_instr(emit, UsrUGenTick);
+  instr->m_val = !!bin->lhs->type->e->d.func->value_ref->from->owner_class;
+  return instr;
+}
+
+static GWION_IMPORT(usrugen) {
+  GWI_OB(gwi_class_ini(gwi, "UsrUGen", "UGen"))
+  gwi_class_xtor(gwi, usrugen_ctor, usrugen_dtor);
+  GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_oper_ini(gwi, "@function", "UsrUGen", "UsrUGen"))
+  GWI_BB(gwi_oper_add(gwi, opck_usrugen))
+  GWI_BB(gwi_oper_emi(gwi, opem_usrugen))
+  GWI_BB(gwi_oper_end(gwi, "~=", NULL))
+  return GW_OK;
+}
+
 GWION_IMPORT(modules) {
   GWI_BB(import_gain(gwi))
   GWI_BB(import_impulse(gwi))
   GWI_BB(import_fullrect(gwi))
   GWI_BB(import_halfrect(gwi))
   GWI_BB(import_step(gwi))
-  return import_zerox(gwi);
+  GWI_BB(import_zerox(gwi))
+  return import_usrugen(gwi);
 }
