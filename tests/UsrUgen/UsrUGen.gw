@@ -12,6 +12,12 @@ class C extends UsrUGen {
 
 C u => dac;
 <<< u >>>;
+
+#! use default tick
+samp => now;
+<<< u.last() >>>;
+
+
 samp => now;
 <<< u.last() >>>;
 

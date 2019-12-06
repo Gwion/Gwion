@@ -1,0 +1,4 @@
+#! [contains] unknown type
+class C extends UGen {
+  D d;
+}
