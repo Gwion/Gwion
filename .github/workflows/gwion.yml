@@ -5,7 +5,7 @@ on: [push]
 
 jobs:
   build:
-
+   name ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,8 +25,7 @@ jobs:
       run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
     - name: make test ${{ runner.temp }}
       env:
-        GWION_TEST_DIR: /home/runner/work/Gwion/Gwion/tmp_test
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: mkdir tmp_test && echo $PWD ${{ runner.tmp }} && make test
+      run: export GWION_TEST_DIR=${{ runner.tmp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
