@@ -29,4 +29,4 @@ jobs:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: mkdir tmp_test && echo $PWD && make test
+      run: mkdir tmp_test && echo $PWD ${{ runner.tmp }} && make test
