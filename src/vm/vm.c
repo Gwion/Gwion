@@ -339,6 +339,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
   register m_bit next;
+
   while((shred = shreduler_get(s))) {
     register VM_Code code = shred->code;
     register m_bit* bytecode = code->bytecode;
@@ -659,8 +660,10 @@ funcmemberend:
   }
   PC_DISPATCH(shred->pc)
 sporkini:
-  if(!(a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL)))
-    goto eoc;
+  if(!(a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
+    exception(shred, "[SporkAbortedException]");
+    continue;
+  }
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
