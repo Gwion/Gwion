@@ -1,0 +1,32 @@
+
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        cc: [gcc, clang]
+        double: [0, 1]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: submodules
+      run: git submodule update --init util ast
+    - name: make
+      env:
+         USE_DOUBLE: ${{ matrix.double }}
+         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
+      run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
+    - name: make test
+      env:
+        GWION_TEST_DIR: /home/runner/work/Gwion/Gwion/tmp_test
+        VALGRIND: NO_VALGRIND
+        USE_MEMCHECK: 0
+        SEVERITY: 3
+      run: mkdir tmp_test && echo $PWD && make test
