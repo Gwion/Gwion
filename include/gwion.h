@@ -23,4 +23,5 @@ ANN VM* gwion_cpy(const VM*);
 ANN void gwion_run(const Gwion gwion);
 ANN void gwion_end(const Gwion gwion);
 void free_code_instr(const Vector v, const Gwion gwion);
+ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion);
 #endif
