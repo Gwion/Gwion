@@ -215,7 +215,6 @@ void fork_retval(const M_Object o) {
 static ANN void* fork_run(void* data) {
   VM *vm = (VM*)data;
   const M_Object me = vm->shreduler->list->self->info->me;
-//++me->ref;
   while(vm->bbq->is_running) {
     vm_run(vm);
     ++vm->bbq->pos;
