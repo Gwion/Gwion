@@ -5,7 +5,7 @@ on: [push]
 
 jobs:
   build:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }} ${{ matrix.cc }} ${{ !matrix.double && 'double' }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
