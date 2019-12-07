@@ -30,6 +30,5 @@ jobs:
         setx VALGRIND NO_VALGRIND
         setx SEVERITY 3
         setx GWION_TEST_DIR ${{ runner.temp }}/tmp/test
-        export GWION_TEST_DIR
-        echo $GWION_TEST_FIR
+        echo $GWION_TEST_DIR
         make test
