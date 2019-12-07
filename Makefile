@@ -7,6 +7,9 @@ endif
 include util/config.mk
 include config.mk
 
+SEVERITY ?= 10
+GWION_TEST_DIR ?= /tmp
+
 GWION_PACKAGE=gwion
 CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
