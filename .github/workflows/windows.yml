@@ -23,8 +23,6 @@ jobs:
     - name: Export Script Parameter
       run: |
            echo "::set-env name=test_dir::${{ runner.temp }}"
-           mkdir ${{ runner.temp }}
-           ls ${{ env.test_dir }}
     - name: test
       run: |
-        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} CC=$(which gcc) test
+        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ runner.temp }} CC=$(which gcc) test
