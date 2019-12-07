@@ -29,7 +29,7 @@ jobs:
         SEVERITY: 3
       run: |
         echo ${{ runner.temp }}
-        mkdir ${{ runner.temp }}/tmp/test
+        mkdir ${{ env.test_dir }}
         set VALGRIND=NO_VALGRIND
         set SEVERITY=3
         echo $GWION_TEST_DIR
