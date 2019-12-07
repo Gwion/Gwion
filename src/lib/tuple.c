@@ -278,7 +278,7 @@ ANN Type tuple_type(const Env env, const Vector v, const loc_t pos) {
   Type_List tlbase = NULL, tl = NULL;
   for(m_uint i = 0; i < vector_size(v); ++i) {
     char name[num_digit(i) + 16];
-    sprintf(name, "@tuple member %lu", i);
+    sprintf(name, "@tuple member %"UINT_F, i);
     const Symbol sym = insert_symbol(name);
     const Type t = (Type)vector_at(v, i);
     const Symbol tsym = insert_symbol(t != (Type)1 ? t->name : "@Undefined");
@@ -348,7 +348,7 @@ static OP_CHECK(opck_tuple) {
     ERR_O(exp->pos, _("tuple subscripts too big"))
   const Type type = (Type)vector_at(v, idx);
   if(type == env->gwion->type[et_undefined])
-    ERR_O(exp->pos, _("tuple subscripts is undefined at index %lu"), idx)
+    ERR_O(exp->pos, _("tuple subscripts is undefined at index %"UINT_F), idx)
   if(!exp->next)
     return type;
   struct Array_Sub_ next = { exp->next, type, array->depth - 1 };
