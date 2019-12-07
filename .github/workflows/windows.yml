@@ -28,4 +28,4 @@ jobs:
     - name: test
       run: |
         mkdir ${{ env.test_dir }}
-        make SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} test
+        make VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} test
