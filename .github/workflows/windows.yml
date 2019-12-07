@@ -24,10 +24,10 @@ jobs:
       env:
         VALGRIND: NO_VALGRIND
         SEVERITY: 3
-        test_dir: ${{ runner.temp }}/tmp/test
       run: |
         echo ${{ runner.temp }}
         mkdir ${{ runner.temp }}/tmp/test
         setx VALGRIND NO_VALGRIND
         setx SEVERITY 3
-        GWION_TEST_DIR=$ENV:test_dir make test
+        GWION_TEST_DIR=${{ runner.temp }}/tmp/test; export GWION_TEST_DIR
+        dir make test
