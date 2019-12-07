@@ -27,5 +27,5 @@ jobs:
         SEVERITY: 3
         GWION_TEST_DIR: ${{ runner.temp }}/tmp/test
       run: |
-        mkdir ${{ runner.tmp }}/tmp/test
+        mkdir ${{ runner.temp }}/tmp/test
         make test
