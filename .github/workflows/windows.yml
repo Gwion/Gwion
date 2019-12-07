@@ -19,7 +19,7 @@ jobs:
          USE_DOUBLE: ${{ matrix.double }}
          CFLAGS: -fsanitize=address -fno-omit-frame-pointer
          LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-      run: make CC=$(which gcc= USE_DOUBLE=${{ matrix.double }}
+      run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
     - name: make test ${{ runner.temp }}
       env:
         VALGRIND: NO_VALGRIND
