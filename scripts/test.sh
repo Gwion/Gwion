@@ -20,6 +20,10 @@
 : "${SEVERITY:=11}"
 : "${severity:=$SEVERITY}"
 
+
+: "${separator:=/}"
+
+
 assert_returns() {
   [ "$1" -eq 0   ] && return 0
   [ "$1" -eq 139 ] && echo "segfault" > "$2"
@@ -176,11 +180,11 @@ test_gw(){
   local n file log ret
   n=$2
   file=$1
-  log=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n")
-  slog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
-  elog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
-  vlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
-  rlog=${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
+  log=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n")
+  slog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
+  elog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
+  vlog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
+  rlog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
   if [ "$VALGRIND" == "NO_VALGRIND" ]
   then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   else
@@ -277,7 +281,7 @@ test_dir() {
         wait
         for i in $(seq "$offset" "$n")
         do
-          read_test "${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
+          read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
         done
         offset=$((offset + async));
       fi
@@ -289,7 +293,7 @@ test_dir() {
   wait
   local rest=$(( $((n-base-1)) %async))
   for i in $(seq $((n-rest))  $((n-1)))
-  do read_test "${GWION_TEST_DIR}/${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
+  do read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
   done
 }
   fi
@@ -462,7 +466,7 @@ consummer() {
 }
 
 clean() {
-  rm -f ${GWION_TEST_DIR}/{${GWION_TEST_PREFIX}{*.log,bailout},In.gw}
+  rm -f ${GWION_TEST_DIR}${separator}{${GWION_TEST_PREFIX}{*.log,bailout},In.gw}
 }
 
 [ -f test.log ] && rm test.log
