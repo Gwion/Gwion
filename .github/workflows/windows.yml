@@ -27,8 +27,8 @@ jobs:
       run: |
         echo ${{ runner.temp }}
         mkdir ${{ runner.temp }}/tmp/test
-        setx VALGRIND NO_VALGRIND
-        setx SEVERITY 3
-        setx GWION_TEST_DIR ${{ runner.temp }}/tmp/test
+        set VALGRIND=NO_VALGRIND
+        set SEVERITY=3
+        set GWION_TEST_DIR=${{ runner.temp }}/tmp/test
         echo $GWION_TEST_DIR
         make test
