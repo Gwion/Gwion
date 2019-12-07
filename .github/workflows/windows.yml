@@ -28,4 +28,5 @@ jobs:
         GWION_TEST_DIR: ${{ runner.tmp }}/tmp/test
       run: |
         mkdir ${{ runner.tmp }}/tmp/test
+        GWION_TEST_DIR=${{ runner.tmp }}/tmp/test
         make test
