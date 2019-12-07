@@ -23,7 +23,7 @@ jobs:
     - name: Export Script Parameter
       run: |
            echo "::set-env name=test_dir::${{ runner.temp }}"
-           mkdir ${{ env.test_dir }}
+           mkdir ${{ runner.temp }}
            ls ${{ env.test_dir }}
     - name: test
       run: |
