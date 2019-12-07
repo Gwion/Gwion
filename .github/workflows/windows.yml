@@ -29,5 +29,7 @@ jobs:
         mkdir ${{ runner.temp }}/tmp/test
         setx VALGRIND NO_VALGRIND
         setx SEVERITY 3
-        GWION_TEST_DIR=${{ runner.temp }}/tmp/test; export GWION_TEST_DIR
-        dir make test
+        setx GWION_TEST_DIR ${{ runner.temp }}/tmp/test
+        export GWION_TEST_DIR
+        echo $GWION_TEST_FIR
+        make test
