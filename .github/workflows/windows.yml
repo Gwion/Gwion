@@ -21,7 +21,7 @@ jobs:
          USE_DOUBLE: ${{ matrix.double }}
       run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
     - name: prepare
-      run: set GWION_TEST_DIR=${{ runner.temp }}/tmp/test
+      run: setx GWION_TEST_DIR ${{ runner.temp }}/tmp/test
     - name: test
       env:
         VALGRIND: NO_VALGRIND
