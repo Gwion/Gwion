@@ -20,8 +20,9 @@ jobs:
          BUILD_ON_WINDOWS: 1
          USE_DOUBLE: ${{ matrix.double }}
       run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
-    - name: prepare
-      run: setx GWION_TEST_DIR ${{ runner.temp }}/tmp/test
+    - name: Export Script Parameter
+      run: |
+           echo "::set-env name=test_dir::${{ runner.temp }}/test"
     - name: test
       env:
         VALGRIND: NO_VALGRIND
@@ -32,4 +33,4 @@ jobs:
         set VALGRIND=NO_VALGRIND
         set SEVERITY=3
         echo $GWION_TEST_DIR
-        make test
+        make SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} test
