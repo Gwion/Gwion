@@ -12,13 +12,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: submodules
+    - name: deps
       run: git submodule update --init util ast
-    - name: make
+    - name: build
       env:
+         CFLAGS: -DBUILD_ON_WINDOWS
          USE_DOUBLE: ${{ matrix.double }}
       run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
-    - name: make test ${{ runner.temp }}
+    - name: test
       env:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
