@@ -65,13 +65,13 @@ libgwion.a: ${lib_obj}
 	@${AR} ${AR_OPT}
 
 util/libgwion_util.a:
-	@+make -C util
+	@+GWION_PACKAGE= make -s -C util
 
 util: util/libgwion_util.a
 	@(info build util)
 
 astlib:
-	@+make -s -C ast
+	@+GWION_PACKAGE= make -s -C ast
 
 ast: ast/libgwion_ast.a
 	@(info build ast)
