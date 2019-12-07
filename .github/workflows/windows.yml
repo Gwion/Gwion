@@ -23,14 +23,9 @@ jobs:
     - name: Export Script Parameter
       run: |
            echo "::set-env name=test_dir::${{ runner.temp }}/test"
+           echo "::set-env name=VALGRIND::NO_VALGRIND"
+           echo "::set-env name=SEVERITY::3"
     - name: test
-      env:
-        VALGRIND: NO_VALGRIND
-        SEVERITY: 3
       run: |
-        echo ${{ runner.temp }}
         mkdir ${{ env.test_dir }}
-        set VALGRIND=NO_VALGRIND
-        set SEVERITY=3
-        echo $GWION_TEST_DIR
         make SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} test
