@@ -22,7 +22,7 @@ jobs:
       run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
     - name: Export Script Parameter
       run: |
-           echo "::set-env name=test_dir::${{ runner.temp }}/test"
+           echo "::set-env name=test_dir::${{ runner.temp }}\test"
            echo "::set-env name=VALGRIND::NO_VALGRIND"
            echo "::set-env name=SEVERITY::3"
     - name: test
