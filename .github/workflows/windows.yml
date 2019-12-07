@@ -28,4 +28,4 @@ jobs:
       run: |
         mkdir ${{ runner.temp }}/tmp/test
         set  GWION_TEST_DIR ${{ runner.temp }}/tmp/test
-        test make test
+        make test
