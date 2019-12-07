@@ -32,4 +32,5 @@ jobs:
         echo "::set-env name=SEVERITY::3"
         echo "::set-env name=separator::\"
         mkdir ${{ env.test_dir }}
+        ls ${{ env.test_dir }}
         make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ env.test_dir }} CC=$(which gcc) test
