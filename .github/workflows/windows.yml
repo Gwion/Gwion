@@ -25,7 +25,7 @@ jobs:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: |
         GWION_TEST_DIR=${{ runner.tmp }}/tmp/test
+      run: |
         mkdir $GWION_TEST_DIR
         make test
