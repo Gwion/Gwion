@@ -25,4 +25,5 @@ jobs:
            echo "::set-env name=test_dir::${{ runner.temp }}"
     - name: test
       run: |
-        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ runner.temp }} CC=$(which gcc) test
+           ls ${{ runner.temp }}
+#        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ runner.temp }} CC=$(which gcc) test
