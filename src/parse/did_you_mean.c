@@ -43,6 +43,7 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
   }
 }
 
+#undef did_you_mean_nspc
 ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   struct Vector_ v;
   vector_init(&v);
@@ -53,6 +54,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   vector_release(&v);
 }
 
+#undef did_you_mean_type
 ANN void did_you_mean_type(Type type, const char* name) {
   Type t = type;
   struct Vector_ v;
