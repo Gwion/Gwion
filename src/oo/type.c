@@ -9,11 +9,11 @@
 
 ANN static inline m_bool freeable(const Type a) {
   return !GET_FLAG(a, nonnull) &&
-    GET_FLAG(a, template) || GET_FLAG(a, global);
+    (GET_FLAG(a, template) || GET_FLAG(a, global));
 }
 
 ANN static void free_type(Type a, Gwion gwion) {
-  if(freeable(a))
+  if(freeable(a)) {
     if(GET_FLAG(a, union)) {
       if(a->e->def->union_def) {
         if(!GET_FLAG(a, pure))  { // <=> decl_list
