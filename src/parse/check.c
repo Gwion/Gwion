@@ -155,7 +155,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     if(decl->type == t_auto)
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }
-  assert(decl->type); // was ERR_O(td_pos(decl->td), _("can't infer type."));
+  if(!decl->type)
+    ERR_O(td_pos(decl->td), _("can't find type"));
 {
   const Type t = get_type(decl->type);
   if(GET_FLAG(t, template) && !GET_FLAG(t, check))
