@@ -23,12 +23,13 @@ jobs:
     - name: Export Script Parameter
       run: |
            echo "::set-env name=test_dir::${{ runner.temp }}"
+           echo "::set-env VALGRIND=NO_VALGRIND::${{ runner.temp }}"
            echo "export GWION_TEST_DIR=${{ runner.temp }}" > ~/.bashrc
     - name: test
       run: |
            ls ${{ runner.temp }}
            echo $SHELL
            echo $GWION_TEST_DIR
-           VALGRIND=NO_VALGRIND bash scripts/test.sh tests/match
+           bash scripts/test.sh tests/match
 #        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ runner.temp }} CC=$(which gcc) test
 
