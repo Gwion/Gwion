@@ -91,7 +91,7 @@ install: ${PRG}
 	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm gwion-config
 	@mkdir -p ${DESTDIR}/${PREFIX}/include/gwion
-	@cp include/*.h ${DESTDIR}/${PREFIX}/include/gwion
+	@cp -r include/* ${DESTDIR}/${PREFIX}/include/gwion
 
 uninstall:
 	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
