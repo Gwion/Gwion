@@ -7,7 +7,7 @@
 #include "gwion.h"
 #include "tuple.h"
 
-ANN static inline m_bool freeable(const Type t) {
+ANN static inline m_bool freeable(const Type a) {
   return !GET_FLAG(a, nonnull) &&
     GET_FLAG(a, template) || GET_FLAG(a, global);
 }
