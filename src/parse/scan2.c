@@ -457,7 +457,8 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   vector_init(&v);
   do {
     const Type t = nspc_lookup_type0(env->curr, id->xid);
-    assert(t);
+    if(!t)return NULL;
+//    assert(t);
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
   } while((id = id->next) && ++tlen);
@@ -500,6 +501,7 @@ ANN2(1,2) static m_str func_name(const Env env, const Func_Def f, const Value v)
 
 ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
   const m_str name = func_name(env, f, overload ?: NULL);
+  if(!name)return GW_ERROR;
   const Func base = f->base->func;
   if(!base)
     CHECK_OB(func_create(env, f, overload, name))
