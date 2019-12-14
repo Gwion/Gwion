@@ -99,7 +99,8 @@ ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
     if(!call)
       break;
     const Type t = known_type(env, call->td);
-    assert(t);
+    if(!t)
+      return GW_ERROR;
     nspc_add_type(env->curr, list->xid, t);
     call = call->next;
   } while((list = list->next));
