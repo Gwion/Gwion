@@ -1,1 +1,1 @@
-fun void test(`1` i) {}
+fun void test(typeof(1) i) {}

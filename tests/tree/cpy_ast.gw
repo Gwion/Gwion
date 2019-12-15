@@ -2,7 +2,7 @@ class <~A~>C {
   \a{};
   [ 1 ];
   int i,j;
-  `i` k;
+  typeof(i) k;
   @(0);
   'a';
   true $ int;

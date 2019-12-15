@@ -1,7 +1,7 @@
 class C {
   typedef void ptr_t(int i,int j);
   \a b { <<< this, " ", a, " ", b, " test" >>>; } @=> ptr_t ptr;
-#!  `a,b` { <<< "test" >>>; } @=> 
+#!  typeof(a,b) { <<< "test" >>>; } @=> 
 #!  ptr_t ptr;
 #!  ptr(1,2);
   fun void test(int i, int j) { <<< this, " ", i, " ", j >>>; }
@@ -9,7 +9,7 @@ class C {
 #!<<< t >>>;
 #!    t(2,i);
 #!  }
-#!  test(`a,b` { <<< this, " lambda argument" >>>; }, 2);
+#!  test(typeof(a,b) { <<< this, " lambda argument" >>>; }, 2);
 }
 #!<<< C c >>>;
 C c;
@@ -26,7 +26,7 @@ c.ptr(1, 2);
 #!c.ptr(1, 2);
 #!c.ptr(1, 2);
 #!(1,2) => c.ptr;
-#!c.test(`a,b` { <<< this, "lambda argument" >>>; }, 2);
+#!c.test(typeof(a,b) { <<< this, "lambda argument" >>>; }, 2);
 #!c.test(c.ptr, 2);
 #!<<< c.ptr >>>;
 #!c.ptr;

@@ -1,2 +1,2 @@
-fun `1` test() {}
+fun typeof(1) test() {}
 

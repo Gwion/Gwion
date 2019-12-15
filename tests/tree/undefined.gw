@@ -1,2 +1,2 @@
 
-`typeof(1)` i;
+typeof(typeof(1)) i;
