@@ -68,7 +68,12 @@ describe_check_decl(static, class_data_size)
 
 ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   const Value v    = var->value;
-  const Func  func = v->type->e->d.func;
+  Type t = v->type;
+  while(GET_FLAG(t, typedef))
+    t = t->e->parent;
+  if(!t->e->d.func)
+    return GW_ERROR;
+  const Func  func = t->e->d.func;
   const Type type = func->value_ref->from->owner_class;
   if(!env->class_def) {
     if(!type || GET_FLAG(func, global))
