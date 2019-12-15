@@ -4,9 +4,9 @@
 #include "vm.h"
 #include "instr.h"
 #include "emit.h"
-#include "engine.h"
 #include "driver.h"
 #include "gwion.h"
+#include "engine.h"
 #include "arg.h"
 #include "compile.h"
 #include "object.h" // fork_clean
@@ -35,7 +35,7 @@ ANN m_bool gwion_audio(const Gwion gwion) {
 }
 
 ANN static inline m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion->vm, &gwion->data->plug->vec[GWPLUG_IMPORT]) > 0;
+  return type_engine_init(gwion, &gwion->data->plug->vec[GWPLUG_IMPORT]) > 0;
 }
 
 ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {

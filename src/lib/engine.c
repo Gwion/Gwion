@@ -146,19 +146,19 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   return GW_OK;
 }
 
-ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
-  vm->gwion->env->name = "[builtin]";
+ANN m_bool type_engine_init(const Gwion gwion, const Vector plug_dirs) {
+  gwion->env->name = "[builtin]";
   struct loc_t loc = {};
   OperCK oper = {};
-  struct Gwi_ gwi = { .gwion=vm->gwion, .loc=&loc, .oper=&oper };
+  struct Gwi_ gwi = { .gwion=gwion, .loc=&loc, .oper=&oper };
   CHECK_BB(import_core_libs(&gwi))
-  push_global(vm->gwion, "[plugins]");
-  vm->gwion->env->name = "[imported]";
+  push_global(gwion, "[plugins]");
+  gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)
       gwi_reset(&gwi);
   }
-  push_global(vm->gwion, "[user]");
+  push_global(gwion, "[user]");
   return GW_OK;
 }

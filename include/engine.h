@@ -1,4 +1,4 @@
 #ifndef __ENGINE
 #define __ENGINE
-ANN m_bool type_engine_init(VM*, const Vector);
+ANN m_bool type_engine_init(const Gwion gwion, const Vector);
 #endif
