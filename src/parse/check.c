@@ -88,6 +88,8 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_OO(check_exp(env, td->exp))
   const Type t = actual_type(env->gwion, td->exp->type);
   assert(t);
+  if(GET_FLAG(t, template) && !GET_FLAG(t, ref))
+    ERR_O(td_pos(td), _("type '%s' needs template types"), t->name)
   td->xid = new_id_list(env->gwion->mp, insert_symbol("@resolved"),
       loc_cpy(env->gwion->mp, td->exp->pos));
   if(t->array_depth)
