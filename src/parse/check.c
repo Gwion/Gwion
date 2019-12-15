@@ -767,7 +767,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->e->d.func, ref)) {
     const Value value = exp->func->type->e->d.func->value_ref;
-    if(value->from->owner_class)
+    if(value->from->owner_class && !GET_FLAG(value->from->owner_class, check))
       CHECK_BO(traverse_class_def(env, value->from->owner_class->e->def))
   }
   if(exp->args)
