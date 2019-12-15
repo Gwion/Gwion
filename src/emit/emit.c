@@ -1796,7 +1796,15 @@ ANN static inline m_bool emit_member(const Emitter emit, const Value v, const ui
   return GW_OK;
 }
 
+ANN static m_bool ensure_emit(const Emitter emit, const Type type) {
+  const Type t = actual_type(emit->gwion, type) ?: type;
+  if(!GET_FLAG(t, emit) && t->e->def)
+    CHECK_BB(emit_class_def(emit, t->e->def))
+  return GW_OK;
+}
+
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
+  CHECK_BB(ensure_emit(emit, member->t_base))
   if(is_special(emit, member->t_base) > 0)
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
