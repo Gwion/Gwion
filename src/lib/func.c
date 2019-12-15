@@ -88,6 +88,8 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 }
 
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
+  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
+    return GW_ERROR;
   const Type l_type = info->lhs->value_ref->from->owner_class;
   const Type r_type = info->rhs->value_ref->from->owner_class;
   if(!r_type && l_type)
