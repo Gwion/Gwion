@@ -68,6 +68,12 @@ ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   shreduler_add(vm->shreduler, shred);
 }
 
+ANN void vm_ini_shred(const VM* vm, const VM_Shred shred) {
+  shred->info->vm = (VM*)vm;
+  shred->info->me = new_shred(shred, 1);
+  shreduler_ini(vm->shreduler, shred);
+}
+
 ANN void vm_lock(VM const *vm) {
   do MUTEX_LOCK(vm->shreduler->mutex);
   while((vm = vm->parent));
