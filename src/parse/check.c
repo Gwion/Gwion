@@ -535,31 +535,34 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
-CHECK_BO(check_call(env, exp))
+  CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   Func m_func = NULL, former = env->func;
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
   const m_uint scope = env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type)) {
     const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
-    const Value value = nspc_lookup_value1(v->from->owner, sym);
-    Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
-    Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
-    fbase->xid = sym;
-    fbase->tmpl->base = 0;
-    fbase->tmpl->call = types;
-    if(template_push_types(env, fbase->tmpl) > 0) {
-      assert(!value);
-      const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
-      if(traverse_fptr_def(env, fptr) > 0 &&
-         (base->base->ret_type = known_type(env, base->base->td)) &&
-         (!exp->args || !!check_exp(env, exp->args))) {
-        m_func = find_func_match(env, fbase->func, exp->args);
-        nspc_pop_type(env->gwion->mp, env->curr);
-        if(!value && m_func)
-          nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
+    const Type exists = nspc_lookup_type0(v->from->owner, sym);
+    if(exists)
+      m_func = exists->e->d.func;
+    else {
+      Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->type->e->d.func->def;
+      Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
+      fbase->xid = sym;
+      fbase->tmpl->base = 0;
+      fbase->tmpl->call = types;
+      if(template_push_types(env, fbase->tmpl) > 0) {
+        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
+        if(traverse_fptr_def(env, fptr) > 0 &&
+            (base->base->ret_type = known_type(env, base->base->td)) &&
+            (!exp->args || !!check_exp(env, exp->args))) {
+          m_func = find_func_match(env, fbase->func, exp->args);
+          nspc_pop_type(env->gwion->mp, env->curr);
+          if(m_func)
+            nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
+        }
+        free_fptr_def(env->gwion->mp, fptr); // ???? related
       }
-      free_fptr_def(env->gwion->mp, fptr); // ???? related
     }
   } else {
     for(m_uint i = 0; i < v->from->offset + 1; ++i) {
