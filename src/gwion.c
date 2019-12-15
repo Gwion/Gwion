@@ -170,3 +170,15 @@ ANN struct SpecialId_* specialid_get(const Gwion gwion, const Symbol sym) {
   }
   return NULL;
 }
+
+ANN void push_global(struct Gwion_ *gwion, const m_str name) {
+  const Nspc nspc = new_nspc(gwion->mp, name);
+  nspc->parent = gwion->env->global_nspc;
+  gwion->env->global_nspc = nspc;
+}
+
+ANN Nspc pop_global(struct Gwion_ *gwion) {
+  const Nspc nspc = gwion->env->global_nspc->parent;
+  REM_REF(gwion->env->global_nspc, gwion)
+  return gwion->env->global_nspc = nspc;
+}

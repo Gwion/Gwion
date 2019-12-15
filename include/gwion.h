@@ -24,4 +24,6 @@ ANN void gwion_run(const Gwion gwion);
 ANN void gwion_end(const Gwion gwion);
 void free_code_instr(const Vector v, const Gwion gwion);
 ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion);
+ANN void push_global(const Gwion gwion, const m_str name);
+ANN Nspc pop_global(const Gwion gwion);
 #endif

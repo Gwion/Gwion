@@ -40,10 +40,14 @@ ANN void env_reset(const Env env) {
   env->scope->depth = 0;
 }
 
-ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
+ANN void release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = size + 1; --i;)
     REM_REF((Context)vector_at(&a->known_ctx, i - 1), gwion);
+}
+
+ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
+  release_ctx(a, gwion);
   vector_release(&a->known_ctx);
   vector_release(&a->nspc_stack);
   vector_release(&a->class_stack);
@@ -54,8 +58,8 @@ ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
 
 ANN void free_env(const Env a) {
   free_env_scope(a->scope, a->gwion);
-  REM_REF(a->global_nspc, a->gwion);
-  free(a);
+  while(pop_global(a->gwion));
+  xfree(a);
 }
 
 ANN2(1,3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {

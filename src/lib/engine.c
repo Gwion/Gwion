@@ -17,7 +17,8 @@
 #include "specialid.h"
 
 static GACK(gack_class) {
-  gw_out("class(%s)", actual_type(shred->info->vm->gwion, t)->name);
+  const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
+  gw_out("class(%s)", type->name);
 }
 
 static GACK(gack_function) {
@@ -151,11 +152,13 @@ ANN m_bool type_engine_init(VM* vm, const Vector plug_dirs) {
   OperCK oper = {};
   struct Gwi_ gwi = { .gwion=vm->gwion, .loc=&loc, .oper=&oper };
   CHECK_BB(import_core_libs(&gwi))
+  push_global(vm->gwion, "[plugins]");
   vm->gwion->env->name = "[imported]";
   for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
     m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
     if(import && import(&gwi) < 0)
       gwi_reset(&gwi);
   }
+  push_global(vm->gwion, "[user]");
   return GW_OK;
 }
