@@ -94,7 +94,8 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
-  return arg_parse(gwion, arg) > 0 ? gwion_ok(gwion, arg) : GW_ERROR;
+  CHECK_BB(arg_parse(gwion, arg))
+  return gwion_ok(gwion, arg);
 }
 
 ANN void gwion_run(const Gwion gwion) {
