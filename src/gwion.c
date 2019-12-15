@@ -44,11 +44,9 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 }
 
 ANN static void gwion_cleaner(const Gwion gwion) {
-  if(!gwion->type[et_shred])
-    return;
   const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
-  vm_add_shred(gwion->vm, gwion->vm->cleaner_shred);
+  vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
 }
 
 ANN VM* gwion_cpy(const VM* src) {
@@ -77,6 +75,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
   gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
+    gwion_cleaner(gwion);
     plug_run(gwion, &arg->mod);
     gwion_compile(gwion, &arg->add);
     return GW_OK;
@@ -127,7 +126,6 @@ ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
 }
 
 ANN void gwion_end(const Gwion gwion) {
-  gwion_cleaner(gwion);
   gwion_end_child(gwion->vm->cleaner_shred, gwion);
   free_env(gwion->env);
   if(gwion->vm->cleaner_shred)
