@@ -32,9 +32,5 @@ jobs:
            echo "export SEVERITY=3" >> ~/.bashenv
     - name: test
       run: |
-           ls ${{ runner.temp }}
-           echo $SHELL
-           echo $GWION_TEST_DIR
-           bash scripts/test.sh tests/match
-#        make separator='\' VALGRIND=NO_VALGRIND SEVERITY=3 GWION_TEST_DIR=${{ runner.temp }} CC=$(which gcc) test
-
+           source ~/.bashenv
+           make test
