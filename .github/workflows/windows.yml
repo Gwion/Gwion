@@ -33,4 +33,6 @@ jobs:
     - name: test
       run: |
            $env:GWION_TEST_DIR="${{ runner.temp }}"
+           $env:VALGRIND="NO_VALGRIND"
+           $env:SEVERITY="3"
            make test
