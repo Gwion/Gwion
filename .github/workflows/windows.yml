@@ -36,4 +36,5 @@ jobs:
            $env:VALGRIND="NO_VALGRIND"
            $env:USE_MEMCHECK="0"
            $env:SEVERITY="3"
+           $env:separator="\"
            make test
