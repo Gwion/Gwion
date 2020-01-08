@@ -37,4 +37,4 @@ jobs:
            $env:USE_MEMCHECK="0"
            $env:SEVERITY="3"
            $env:separator="\"
-           make test
+           bash -c "SEVERITY=3 make test"
