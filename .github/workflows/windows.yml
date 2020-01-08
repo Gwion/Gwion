@@ -30,12 +30,10 @@ jobs:
            echo "export SEVERITY=3" >> ~/.bashrc
            echo "export SEVERITY=3" >> ~/.bashenv
     - name: test
-      env:
-        VALGRIND: NO_VALGRIND
-        USE_MEMCHECK: 0
-        SEVERITY: 3
-        separator: \
       run: |
            mkdir tmp
            $env:GWION_TEST_DIR="tmp"
+           $env:VALGRIND="NO_VALGRIND"
+           $env:USE_MEMCHECK="0"
+           $env:SEVERITY="3"
            make test
