@@ -33,8 +33,4 @@ jobs:
       run: |
            mkdir tmp
            $env:GWION_TEST_DIR="tmp"
-           $env:VALGRIND="NO_VALGRIND"
-           $env:USE_MEMCHECK="0"
-           $env:SEVERITY="3"
-           $env:separator="\"
            bash -c "export VALGRIND=NO_VALGRIND; export SEVERITY=3; make test"
