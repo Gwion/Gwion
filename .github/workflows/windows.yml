@@ -21,6 +21,9 @@ jobs:
          BUILD_ON_WINDOWS: 1
          USE_DOUBLE: ${{ matrix.double }}
       run: make CC=$(which gcc) USE_DOUBLE=${{ matrix.double }}
+    - name: List dir after make
+      run: |
+        ls
     - name: Export Script Parameter
       run: |
            echo "::set-env name=test_dir::${{ runner.temp }}"
