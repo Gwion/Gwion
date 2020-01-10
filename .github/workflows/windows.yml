@@ -37,4 +37,6 @@ jobs:
       run: |
            mkdir tmp
            $env:GWION_TEST_DIR="."
-           bash -c "export VALGRIND=NO_VALGRIND; export SEVERITY=3; export PRG=./gwion.exe; make test"
+           ./gwion.exe
+           ./gwion.exe examples/array_lit.gw
+#           bash -c "export VALGRIND=NO_VALGRIND; export SEVERITY=3; export PRG=./gwion.exe; make test"
