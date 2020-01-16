@@ -1,10 +1,4 @@
 md
 book
-.d/
-ast/
-config.mk
-libgwion.a
 log
-plug/
-util/
 *.gw
