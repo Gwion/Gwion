@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Mdr
       run: |
-        git checkout https://github.com/fennecdjay/mdr
+        git clone https://github.com/fennecdjay/mdr
         cd mdr
         cabal update
         cabal install --only-dependencies
