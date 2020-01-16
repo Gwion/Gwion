@@ -26,6 +26,10 @@ jobs:
         git submodule update --init util ast
         make
 
+    - name: Benchmark
+      run: |
+        bash scripts/benchmark.sh
+
     - name: MdBook
       uses: peaceiris/actions-mdbook@v1
       with:
