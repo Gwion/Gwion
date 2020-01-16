@@ -43,4 +43,4 @@ jobs:
         git config --local user.name "GitHub Action"
         git add -f book
         git commit -m "add book"
-        git push https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git HEAD:gh_pages
+        git push https://${{ GITHUB_ACTOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/Gwion.git HEAD:gh_pages
