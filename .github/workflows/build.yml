@@ -43,5 +43,5 @@ jobs:
         git config --local user.name "GitHub Action"
         git add -f book
         git commit -m "add book"
-        git remote set-url origin https://oauth2:${{ secrets.GITHUB_TOKEN }}@github.com/fennecdjay/Gwion.git
+        git remote set-url origin https://fennecdjay:${{ secrets.GITHUB_TOKEN }}@github.com/fennecdjay/Gwion.git
         git push origin HEAD:gh_pages
