@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 language=("gwion" "wren" "lua")
 extension=("gw" "wren" "lua")
 test_dir="benchmark"
@@ -26,6 +27,7 @@ get_test() {
 }
 
 plot() {
+  echo "$1"
   gnuplot -e "bench='$1'" "$plot_script"
 }
 
