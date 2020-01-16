@@ -38,8 +38,8 @@ jobs:
         export PATH=~/.cabal/bin:$PATH
         export PATH=./Gwion:$PATH
         make build
-#        git branch -r | grep gh-pages && git push origin :gh-pages || true
-#        git config --local user.email "action@github.com"
-#        git config --local user.name "GitHub Action"
-#        git add -f book
-#        git commit -m "add book"
+        git branch -r | grep gh-pages && git push origin :gh-pages || true
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -f book
+        git commit -m "add book"
