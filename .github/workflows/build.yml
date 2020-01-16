@@ -44,4 +44,4 @@ jobs:
         git add -f book
         git commit -m "add book"
         git remote set-url origin https://${{ secrets.GITHUB_ACTOR }}:${{ secrets.GITHUB_TOKEN }}@github.com/fennecdjay/Gwion.git
-        git push HEAD:gh_pages
+        git push HEAD:mdbook HEAD:gh_pages
