@@ -28,6 +28,7 @@ get_test() {
 
 plot() {
   echo "$1"
+  cat "benchmark/results/$1.dat"
   gnuplot -e "bench='$1'" "$plot_script"
 }
 
