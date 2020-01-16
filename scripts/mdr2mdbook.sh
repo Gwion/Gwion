@@ -39,9 +39,8 @@ runall() {
   done
 }
 
-ensure_dir "$(dirname $1)"
 if [[ "$1" == *".mdr" ]]
-then doc2src $1
+then doc2src "$1"
 if [ "$(git status -s | grep docs)" ]
 then sh scripts/summary.sh > md/SUMMARY.md
 fi
