@@ -9,6 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/setup-haskell@v1
     - name: Mdr
       run: |
         git clone https://github.com/fennecdjay/mdr
