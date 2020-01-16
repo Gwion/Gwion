@@ -23,6 +23,7 @@ ensure_dir() {
 }
 
 doc2src() {
+  echo $1
   mdr $1 || return
   mdfile=${1::-1}
 #  target=$(sed 's/docs/md/' <<< $mdfile)
