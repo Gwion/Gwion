@@ -25,6 +25,12 @@ jobs:
         cd Gwion
         git submodule update --init util ast
         make
+
+    - name: MdBook
+      uses: peaceiris/actions-mdbook@v1
+      with:
+        mdbook-version: 'latest'
+
     - name: try mdr
       run: |
         echo Add other actions to build,
