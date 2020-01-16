@@ -43,5 +43,5 @@ jobs:
         git config --local user.name "GitHub Action"
         git add -f book
         git commit -m "add book"
-        git remote add Gwion htps://github.com/fennecdjay/Gwion
+        git remote add Gwion https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git"
         git push Gwion HEAD:gh_pages
