@@ -1,3 +1,4 @@
+#!/bin/sh
 footer() {
   cat << EOF
 
@@ -37,10 +38,11 @@ runall() {
   done
 }
 
-  if [[ "$1" == *".mdr" ]]
-  then doc2src $1
-  if [ "$(git status -s | grep docs)" ]
-  then sh scripts/summary.sh > md/SUMMARY.md
-  fi
-  else runall
-  fi
+ensure_dir "$(dirname $1)"
+if [[ "$1" == *".mdr" ]]
+then doc2src $1
+if [ "$(git status -s | grep docs)" ]
+then sh scripts/summary.sh > md/SUMMARY.md
+fi
+else runall
+fi
