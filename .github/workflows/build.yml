@@ -19,11 +19,17 @@ jobs:
         cabal configure --enable-tests
         cabal build
         cabal install
+    - name: Gwion
+      run: |
+        git clone https://github.com/fennecdjay/Gwion
+        cd Gwion
+        make
     - name: try mdr
       run: |
         echo Add other actions to build,
         echo test, and deploy your project.
         export PATH=~/.cabal/bin:$PATH
+        export PATH=./Gwion:$PATH
         make build
 #        git branch -r | grep gh-pages && git push origin :gh-pages || true
 #        git config --local user.email "action@github.com"
