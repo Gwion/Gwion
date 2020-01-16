@@ -23,6 +23,7 @@ jobs:
       run: |
         git clone https://github.com/fennecdjay/Gwion
         cd Gwion
+        git submodule update --init util ast
         make
     - name: try mdr
       run: |
