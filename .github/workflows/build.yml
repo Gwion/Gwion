@@ -28,6 +28,7 @@ jobs:
 
     - name: Benchmark
       run: |
+        sudo apt-get install gnuplot
         bash scripts/benchmark.sh
 
     - name: MdBook
