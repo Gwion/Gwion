@@ -19,9 +19,9 @@ jobs:
         cabal configure --enable-tests
         cabal build
         cabal install
-        export PATH=~/.cabal/bin:$PATH
     - name: try mdr
       run: |
         echo Add other actions to build,
         echo test, and deploy your project.
+        export PATH=~/.cabal/bin:$PATH
         mdr README.mdr
