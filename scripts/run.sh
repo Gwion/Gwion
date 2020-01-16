@@ -6,7 +6,7 @@ run() {
 	mdbook serve&
   sedi 's/^md/#md/' .gitignore
 	while true
-  do sh scripts/watch.sh
+  do bash scripts/watch.sh
   done
 }
 

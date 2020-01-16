@@ -43,7 +43,7 @@ runall() {
 if [[ "$1" == *".mdr" ]]
 then doc2src "$1"
 if [ "$(git status -s | grep docs)" ]
-then sh scripts/summary.sh > md/SUMMARY.md
+then bash scripts/summary.sh > md/SUMMARY.md
 fi
 else runall
 fi

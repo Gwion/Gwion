@@ -7,5 +7,5 @@ wait() {
 while true
 do
   file=$(wait)
-  sh scripts/mdr2mdbook.sh $file;
+  bash scripts/mdr2mdbook.sh $file;
 done
