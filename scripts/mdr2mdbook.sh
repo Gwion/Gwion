@@ -25,7 +25,8 @@ ensure_dir() {
 doc2src() {
   mdr $1 || return
   mdfile=${1::-1}
-  target=$(sed 's/docs/md/' <<< $mdfile)
+#  target=$(sed 's/docs/md/' <<< $mdfile)
+  target=$(echo "$mdfile" | sed 's/docs/md/')
   ensure_dir $target
   mk_target $mdfile > $target
   rm $mdfile
