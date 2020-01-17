@@ -32,7 +32,10 @@ jobs:
       if: steps.mdr-bin.outputs.cache-hit == 'true'
       run: |
         if [ $(git rev-parse HEAD) = $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
-        then exit 0
+        then
+          cd mdr
+          cabal install
+          exit 0
         fi
         cd mdr
         git pull
