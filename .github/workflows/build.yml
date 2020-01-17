@@ -12,16 +12,30 @@ jobs:
     - uses: actions/setup-haskell@v1
 
     - uses: actions/cache@v1
-      id: mdr-cache
+      id: mdr-bin
       with:
         path: mdr
         key: ${{ runner.os }}-mdr
 
     - name: Mdr
-      if: steps.mdr-cache.outputs.cache-hit != 'true'
+      if: steps.mdr-bin.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/fennecdjay/mdr
         cd mdr
+        cabal update
+        cabal install --only-dependencies
+        cabal configure --enable-tests
+        cabal build
+        cabal install
+
+    - name: Mdr
+      if: steps.mdr-bin.outputs.cache-hit == 'true'
+      run: |
+        if [ $(git rev-parse HEAD) = $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
+        then exit 0
+        fi
+        cd mdr
+        git pull
         cabal update
         cabal install --only-dependencies
         cabal configure --enable-tests
