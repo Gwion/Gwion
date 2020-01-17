@@ -10,7 +10,16 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-haskell@v1
+
+    - name: Mdr [cache]
+    - uses: actions/cache@v1
+      id: mdr-cache
+      with:
+        path: mdr
+        key: ${{ runner.os }}-mdr
+
     - name: Mdr
+      if: steps.mdr-cache.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/fennecdjay/mdr
         cd mdr
@@ -19,6 +28,7 @@ jobs:
         cabal configure --enable-tests
         cabal build
         cabal install
+
     - name: Gwion
       run: |
         git clone https://github.com/fennecdjay/Gwion
