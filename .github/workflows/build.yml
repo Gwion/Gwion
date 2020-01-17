@@ -25,6 +25,7 @@ jobs:
         cd Gwion
         git submodule update --init util ast
         make
+        sudo make install
 
     - name: Benchmark
       run: |
@@ -41,7 +42,6 @@ jobs:
         echo Add other actions to build,
         echo test, and deploy your project.
         export PATH=~/.cabal/bin:$PATH
-        export PATH=./Gwion:$PATH
         make build
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
