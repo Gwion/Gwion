@@ -33,7 +33,7 @@ jobs:
         cd wren
         make
         cd ..
-        sudo apt-get install gnuplot lua
+        sudo apt-get install gnuplot lua5.3
         bash scripts/benchmark.sh
 
     - name: MdBook
