@@ -29,6 +29,7 @@ jobs:
 
     - name: Benchmark
       run: |
+        echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         git clone https://github.com/wren-lang/wren
         cd wren
         make
