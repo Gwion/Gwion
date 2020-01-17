@@ -36,6 +36,8 @@ jobs:
         cd ..
         sudo apt-get install gnuplot lua5.3
         ln -s $(which lua5.3) lua
+        export PATH=./wren:$PATH
+        export PATH=.:$PATH
         bash scripts/benchmark.sh
 
     - name: MdBook
@@ -48,8 +50,6 @@ jobs:
         echo Add other actions to build,
         echo test, and deploy your project.
         export PATH=~/.cabal/bin:$PATH
-        export PATH=./wren:$PATH
-        export PATH=.:$PATH
         make build
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
