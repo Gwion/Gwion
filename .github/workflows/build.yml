@@ -29,7 +29,11 @@ jobs:
 
     - name: Benchmark
       run: |
-        sudo apt-get install gnuplot
+        git clone https://github.com/wren-lang/wren
+        cd wren
+        make
+        cd ..
+        sudo apt-get install gnuplot lua
         bash scripts/benchmark.sh
 
     - name: MdBook
