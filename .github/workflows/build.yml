@@ -31,18 +31,15 @@ jobs:
     - name: Mdr
       if: steps.mdr-bin.outputs.cache-hit == 'true'
       run: |
-        if [ $(git rev-parse HEAD) = $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
-        then
-          cd mdr
-          cabal install
-          exit 0
-        fi
         cd mdr
-        git pull
-        cabal update
-        cabal install --only-dependencies
-        cabal configure
-        cabal build
+        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
+        then
+          git pull
+          cabal update
+          cabal install --only-dependencies
+          cabal configure
+          cabal build
+        fi
         cabal install
 
     - uses: actions/cache@v1
@@ -64,10 +61,10 @@ jobs:
       if: steps.gwion-bin.outputs.cache-hit == 'true'
       run: |
         cd Gwion
-        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
+        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/Gwion.git HEAD | cut -f1) ]
         then
           git pull
-          git submodule update --init util ast
+          git submodule update util ast
           make
         fi
         cp gwion ..
