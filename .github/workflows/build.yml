@@ -32,11 +32,11 @@ jobs:
       if: steps.mdr-bin.outputs.cache-hit == 'true'
       run: |
         cd mdr
+        cabal update
+        cabal install --only-dependencies
         if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
         then
           git pull
-          cabal update
-          cabal install --only-dependencies
           cabal configure
           cabal build
         fi
