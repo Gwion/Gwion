@@ -41,17 +41,36 @@ jobs:
         git pull
         cabal update
         cabal install --only-dependencies
-        cabal configure --enable-tests
+        cabal configure
         cabal build
         cabal install
 
+    - uses: actions/cache@v1
+      id: gwion-bin
+      with:
+        path: Gwion
+        key: ${{ runner.os }}-gwion
+
     - name: Gwion
+      if: steps.gwion-bin.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/fennecdjay/Gwion
         cd Gwion
         git submodule update --init util ast
         make
-        sudo make install
+        cp gwion ..
+
+    - name: Gwion
+      if: steps.gwion-bin.outputs.cache-hit == 'true'
+      run: |
+        cd Gwion
+        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
+        then
+          git pull
+          git submodule update --init util ast
+          make
+        fi
+        cp gwion ..
 
     - name: Benchmark
       run: |
