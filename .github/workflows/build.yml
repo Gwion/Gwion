@@ -121,6 +121,11 @@ jobs:
         export PATH=.:$PATH
         bash scripts/benchmark.sh
 
+    - uses: fennecdjay/emojify-docker-action@v1
+      name: Emojify
+      with:
+         directory: 'docs'
+
     - name: MdBook
       uses: peaceiris/actions-mdbook@v1
       with:
@@ -131,11 +136,6 @@ jobs:
         export PATH=~/.cabal/bin:$PATH
         export PATH=.:$PATH
         make build
-
-    - uses: fennecdjay/emojify-docker-action@v1
-      name: Emojify
-      with:
-         directory: 'md'
 
     - name: GIT things
       run: |
