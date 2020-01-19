@@ -1,8 +1,5 @@
 from __future__ import print_function
 
-import time
-start = time.clock()
-
 count = 0
 for i in range(0, 1000000):
   if "abc" == "abc":
@@ -32,4 +29,3 @@ for i in range(0, 1000000):
       count = count + 1
 
 print(count)
-print("elapsed: " + str(time.clock() - start))
