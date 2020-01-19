@@ -33,6 +33,7 @@ plot() {
   gnuplot -e "bench='$1'" "$plot_script"
 }
 
+[ -d benchmark/results ] || mkdir benchmark/results
 for bench in $(get_list)
 do
   get_test "$bench"

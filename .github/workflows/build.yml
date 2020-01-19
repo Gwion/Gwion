@@ -19,6 +19,12 @@ jobs:
         path: mdr
         key: ${{ runner.os }}-mdr
 
+    - uses: actions/cache@v1
+      id: results
+      with:
+        path: benchmark/results
+        key: ${{ runner.os }}-results
+
     - name: Mdr
       if: steps.mdr-bin.outputs.cache-hit != 'true'
       run: |
@@ -96,6 +102,7 @@ jobs:
 
     - name: Benchmark
       run: |
+        git log -1 --pretty="%B" | grep "\[benchmark\]" || exit 0
         echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
         sudo apt-get install gnuplot lua5.3
