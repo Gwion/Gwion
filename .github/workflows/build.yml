@@ -42,7 +42,6 @@ jobs:
         fi
         cabal install
 
-    - name: Gwion [ cache ]
     - uses: actions/cache@v1
       id: gwion-bin
       with:
@@ -70,7 +69,6 @@ jobs:
         fi
         cp gwion ..
 
-    - name: wren [ cache ]
     - uses: actions/cache@v1
       id: wren
       with:
