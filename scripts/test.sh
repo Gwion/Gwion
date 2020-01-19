@@ -24,6 +24,6 @@ noterm() {
 
 }
 
-${VALGRIND} ${VALGRIND_OPT} gwion "$1" &> log
+${VALGRIND} ${VALGRIND_OPT} gwion "$1" 2>&1 > log
 shift
 [ -t 1 ] && interm $@ || noterm $@
