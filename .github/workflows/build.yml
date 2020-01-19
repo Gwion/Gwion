@@ -10,6 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-haskell@v1
+    - uses: actions/setup-python@v1
+    - uses: actions/setup-ruby@v1
 
     - uses: actions/cache@v1
       id: mdr-bin
