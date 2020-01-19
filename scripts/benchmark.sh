@@ -1,7 +1,7 @@
 #!/bin/bash
 
-language=("gwion" "wren" "lua" "python" "chuck" "ruby" "perl")
-extension=("gw" "wren" "lua" "py" "ck" "rb" "pl")
+language=("gwion" "wren" "lua" "python" "chuck" "ruby")
+extension=("gw" "wren" "lua" "py" "ck" "rb")
 test_dir="benchmark"
 plot_script="scripts/bench.plot"
 : "${repeats:=10}"
