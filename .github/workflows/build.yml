@@ -130,8 +130,8 @@ jobs:
         export PATH=.:$PATH
         make build
 
-     - name: Emojify
-       uses: fennecdjay/emojify-docker-action@v1
+     - uses: fennecdjay/emojify-docker-action@v1
+       name: Emojify
        with:
          directory: 'md'
 
