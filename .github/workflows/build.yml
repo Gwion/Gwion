@@ -24,7 +24,7 @@ jobs:
         cd mdr
         cabal update
         cabal install --only-dependencies
-        cabal configure --enable-tests
+        cabal configure
         cabal build
         cabal install
 
@@ -42,13 +42,14 @@ jobs:
         fi
         cabal install
 
+    - name: Gwion [ cache ]
     - uses: actions/cache@v1
       id: gwion-bin
       with:
         path: Gwion
         key: ${{ runner.os }}-gwion
 
-    - name: Gwion
+    - name: Gwion [ init ]
       if: steps.gwion-bin.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/fennecdjay/Gwion
@@ -57,7 +58,7 @@ jobs:
         make
         cp gwion ..
 
-    - name: Gwion
+    - name: Gwion [ update ]
       if: steps.gwion-bin.outputs.cache-hit == 'true'
       run: |
         cd Gwion
@@ -69,13 +70,33 @@ jobs:
         fi
         cp gwion ..
 
-    - name: Benchmark
+    - name: wren [ cache ]
+    - uses: actions/cache@v1
+      id: wren
+      with:
+        path: wren
+        key: ${{ runner.os }}-wren
+
+    - name: wren [ init ]
+      if: steps.wren.outputs.cache-hit != 'true'
       run: |
-        echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         git clone https://github.com/wren-lang/wren
         cd wren
         make
-        cd ..
+
+    - name: wren [ update ]
+      if: steps.wren.outputs.cache-hit == 'true'
+      run: |
+        cd wren
+        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/wren-lang/wren.git HEAD | cut -f1) ]
+        then
+          git pull
+          make
+        fi
+
+    - name: Benchmark
+      run: |
+        echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
         sudo apt-get install gnuplot lua5.3
         ln -s $(which lua5.3) lua
@@ -90,8 +111,6 @@ jobs:
 
     - name: try mdr
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
         export PATH=~/.cabal/bin:$PATH
         make build
         git config --local user.email "action@github.com"
