@@ -9,17 +9,23 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+      name: Checkout
     - uses: actions/setup-haskell@v1
+      name: Setup Haskell
     - uses: actions/setup-python@v1
+      name: Setup Python
     - uses: actions/setup-ruby@v1
+      name: Setup Ruby
 
     - uses: actions/cache@v1
+      name: Mdr [ cache ]
       id: mdr-bin
       with:
         path: mdr
         key: ${{ runner.os }}-mdr
 
     - uses: actions/cache@v1
+      name: Results [ cache ]
       id: results
       with:
         path: benchmark/results
@@ -51,6 +57,7 @@ jobs:
         cabal install
 
     - uses: actions/cache@v1
+      name: Gwion [ cache ]
       id: gwion-bin
       with:
         path: Gwion
@@ -78,6 +85,7 @@ jobs:
         cp gwion ..
 
     - uses: actions/cache@v1
+      name: Wren [ cache ]
       id: wren
       with:
         path: wren
