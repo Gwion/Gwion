@@ -108,13 +108,15 @@ jobs:
           make
         fi
 
+#        git log -1 --pretty="%B" | grep "\[benchmark\]" || exit 0
     - name: Benchmark
       run: |
-        git log -1 --pretty="%B" | grep "\[benchmark\]" || exit 0
         echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
         sudo apt-get install gnuplot lua5.3 chuck
         ln -s $(which lua5.3) lua
+        echo "chuck --silent $@" > ../chuck
+        chmod +x ../chuck
         export PATH=./wren:$PATH
         export PATH=.:$PATH
         bash scripts/benchmark.sh
