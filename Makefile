@@ -24,4 +24,4 @@ clean-all: clean clean-tests
 
 .SUFFIXES: .gw .test
 .gw.test:
-	@sh scripts/test.sh $< "${CONTAINS}"
+	@bash scripts/test.sh $< "${CONTAINS}"

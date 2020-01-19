@@ -110,6 +110,7 @@ jobs:
     - name: try mdr
       run: |
         export PATH=~/.cabal/bin:$PATH
+        export PATH=.:$PATH
         make build
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
