@@ -109,11 +109,19 @@ jobs:
       with:
         mdbook-version: 'latest'
 
-    - name: try mdr
+    - name: Build book
       run: |
         export PATH=~/.cabal/bin:$PATH
         export PATH=.:$PATH
         make build
+
+     - name: Emojify
+       uses: fennecdjay/emojify-docker-action@v1
+       with:
+         directory: 'md'
+
+    - name: GIT things
+      run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add -f book

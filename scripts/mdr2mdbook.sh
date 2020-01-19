@@ -12,8 +12,6 @@ EOF
 
 mk_target() {
   sed 's/```\(.*\)gw/```\1cpp/' $1 |
-    sed 's/:tada:/\&#128540;/g'    |
-    sed 's/:champagne:/\&#127870;/g'    |
     sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
   footer
 }
