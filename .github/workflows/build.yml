@@ -121,7 +121,7 @@ jobs:
         export PATH=.:$PATH
         bash scripts/benchmark.sh
 
-    - uses: fennecdjay/emojify-docker-action@v1
+    - uses: fennecdjay/emojify-docker-action@v2
       name: Emojify
       with:
          directory: 'docs'
