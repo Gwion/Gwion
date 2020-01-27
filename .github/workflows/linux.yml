@@ -4,6 +4,7 @@ name: Linux
 on:
   push:
     branches:    
+    - '**'
     - '!gh-pages'
 
 jobs:
