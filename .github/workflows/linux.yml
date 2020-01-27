@@ -1,7 +1,10 @@
 
 name: Linux
 
-on: [push]
+on:
+  push:
+    branches:    
+    - '!gh-pages'
 
 jobs:
   build:
