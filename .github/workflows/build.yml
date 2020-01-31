@@ -122,6 +122,7 @@ jobs:
         cd lua
         sudo apt-get install libreadline-dev
         make
+        cp lua ..
 
     - name: Lua [ update ]
       if: steps.lua.outputs.cache-hit == 'true'
