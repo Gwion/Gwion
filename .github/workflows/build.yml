@@ -115,8 +115,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install gnuplot lua5.3 chuck
         ln -s $(which lua5.3) lua
-        echo "chuck --silent \$@" > ../chuck
-        chmod +x ../chuck
+        echo "chuck --silent \$@" > ./chuck
+        chmod +x ./chuck
         export PATH=./wren:$PATH
         export PATH=.:$PATH
         bash scripts/benchmark.sh
