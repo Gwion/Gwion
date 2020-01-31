@@ -122,7 +122,6 @@ jobs:
         cd lua
         sudo apt-get install libreadline-dev
         make
-        cp lua ..
 
     - name: Lua [ update ]
       if: steps.lua.outputs.cache-hit == 'true'
@@ -134,7 +133,6 @@ jobs:
           sudo apt-get install libreadline-dev
           make
         fi
-        cp lua ..
 
     - name: Benchmark
       run: |
@@ -145,6 +143,7 @@ jobs:
         chmod +x ./chuck
         ./chuck benchmark/string-equals.ck
         export PATH=./wren:$PATH
+        export PATH=./lua:$PATH
         export PATH=.:$PATH
         bash scripts/benchmark.sh
 
