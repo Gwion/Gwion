@@ -120,6 +120,7 @@ jobs:
       run: |
         git clone https://github.com/lua/lua
         cd lua
+        sudo apt-get install libreadline-dev
         make
 
     - name: Lua [ update ]
@@ -129,6 +130,7 @@ jobs:
         if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/lua/lua.git HEAD | cut -f1) ]
         then
           git pull
+          sudo apt-get install libreadline-dev
           make
         fi
         cp lua ..
