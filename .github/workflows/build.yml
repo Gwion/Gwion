@@ -108,13 +108,36 @@ jobs:
           make
         fi
 
-#        git log -1 --pretty="%B" | grep "\[benchmark\]" || exit 0
+    - uses: actions/cache@v1
+      name: Lua [ cache ]
+      id: lua
+      with:
+        path: lua
+        key: ${{ runner.os }}-lua
+
+    - name: Lua [ init ]
+      if: steps.lua.outputs.cache-hit != 'true'
+      run: |
+        git clone https://github.com/lua/lua
+        cd lua
+        make
+
+    - name: Lua [ update ]
+      if: steps.lua.outputs.cache-hit == 'true'
+      run: |
+        cd lua
+        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/lua/lua.git HEAD | cut -f1) ]
+        then
+          git pull
+          make
+        fi
+        cp lua ..
+
     - name: Benchmark
       run: |
         echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
-        sudo apt-get install gnuplot lua5.3 chuck
-        ln -s $(which lua5.3) lua
+        sudo apt-get install gnuplot chuck
         echo 'chuck --silent $@' > ./chuck
         chmod +x ./chuck
         ./chuck benchmark/string-equals.ck
