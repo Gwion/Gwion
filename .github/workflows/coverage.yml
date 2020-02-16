@@ -49,7 +49,9 @@ jobs:
         then COLOR=yellow
         else COLOR=red
         fi
-        wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O badge.svg
+        while true
+        do wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O badge.svg && break
+        done
 
     - name: Push Report
       run: |
