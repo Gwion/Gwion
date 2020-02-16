@@ -62,6 +62,7 @@ jobs:
 
     - name: Push Report
       run: |
+        echo ${{ GITHUB_REF }}
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"

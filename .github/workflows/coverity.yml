@@ -32,7 +32,6 @@ jobs:
 
     - name: Submit
       run: |
-        echo ${{ GITHUB_REF }}
         tar czvf gwion.tgz cov-int
         curl \
           --form project=dennecdjay/Gwion \
