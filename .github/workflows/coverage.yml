@@ -59,6 +59,8 @@ jobs:
         cp ../*.html .
         cp ../badge.svg .
         mv cov.html index.html
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git add . 
         git commit -m "Update coverage"
         git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
