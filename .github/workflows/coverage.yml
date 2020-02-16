@@ -42,9 +42,10 @@ jobs:
       run: |
         COV_TXT=$(gcovr -s --html-details cov.html --filter '.*\.c$' src | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
+        echo $COV_NUM
         if [ $COV_NUM -ge 90 ]
         then COLOR=green
-        elif [ $COV_NUM -ge 90 ]
+        elif [ $COV_NUM -ge 75 ]
         then COLOR=yellow
         else COLOR=red
         fi
