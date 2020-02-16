@@ -32,6 +32,7 @@ jobs:
 
     - name: Submit
       run: |
+        echo ${{ GITHUB_REF }}
         tar czvf gwion.tgz cov-int
         curl \
           --form project=dennecdjay/Gwion \
@@ -39,5 +40,5 @@ jobs:
           --form email=astor.jeremie@wanadoo.fr \
           --form file=@gwion.tgz \
           --form version=trunk \
-          --form description="`./ruby -v`" \
+          --form description="strongly timed programming language" \
           https://scan.coverity.com/builds?project=fennecdjay/Gwion
