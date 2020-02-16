@@ -101,12 +101,5 @@ uninstall:
 test:
 	@bash scripts/test.sh ${test_dir}
 
-coverity:
-	[ -z "$(git ls-remote --heads $(git remote get-url origin) coverity_scan)" ] || git push origin :coverity_scan
-	git show-ref --verify --quiet refs/heads/master && git branch -D coverity_scan || echo ""
-	git checkout -b coverity_scan
-	git push --set-upstream origin coverity_scan
-	git checkout ${GIT_BRANCH}
-
 include $(wildcard .d/*.d)
 include util/intl.mk
