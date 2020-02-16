@@ -8,9 +8,9 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.double && 'double' || ''}}
+    name: Coverity
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[coverity]')"
+    if: "contains(github.event.head_commit.message, '[coverity]')"
 
     steps:
     - uses: actions/checkout@v1
