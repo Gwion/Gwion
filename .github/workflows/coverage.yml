@@ -32,8 +32,10 @@ jobs:
 
     - name: Install gcovr
       run: |
-        sudo apt-get update
-        sudo apt-get install gcovr
+         pip install git+https://github.com/gcovr/gcovr.git
+#      run: |
+#        sudo apt-get update
+#        sudo apt-get install gcovr
 
     - name: Generate Report
       run: |
