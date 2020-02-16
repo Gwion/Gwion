@@ -47,8 +47,8 @@ jobs:
       run: |
         printf '# Gwion coverage\n```\n' > gwion-coverage-report/README.md
         gcovr -s --filter '.*\.c$' src >> gwion-coverage-report/README.md
-        printf '```\n' > gwion-coverage-report/README.md
-        COV_TXT=$(gcovr -s --html-details gwion-coverage-report/index.html --filter '.*\.c$' src | grep lines | cut -d" " -f2)
+        printf '```\n' >> gwion-coverage-report/README.md
+        COV_TXT=$(gcovr -s --html-details gwion-coverage-report/index.html --html-title "Gwion coverage report" --filter '.*\.c$' src | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
         if [ $(python -c "print( $COV_NUM >= 90 )") = True ]
