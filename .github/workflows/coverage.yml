@@ -57,9 +57,9 @@ jobs:
       run: |
         git clone https://github.com/fennecdjay/gwion-coverage-report
         cd gwion-coverage-report
-        rm -f *.html
+        rm -f *.html *.svg
         cp ../*.html .
-        convert ../badge.svg badge.png
+        convert -size 1024x1024 ../badge.svg badge.png
         mv cov.html index.html
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
