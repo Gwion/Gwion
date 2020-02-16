@@ -35,8 +35,17 @@ jobs:
         sudo apt-get update
         sudo apt-get install gcovr
 
-    - name: Report
+    - name: Generate Report
       run: |
         COV_TXT=$(gcovr --html-details cov.html -s | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM
+
+    - name: Push Report
+      run: |
+        git clone https://github.com/fennecdjay/gwion-coverage-report
+        cd gwion-coverage-report
+        rm *.html
+        cp ../*.html .
+        mv cov.html index.html
+        ls
