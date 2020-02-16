@@ -62,7 +62,7 @@ jobs:
 
     - name: Push Report
       run: |
-        echo ${{ GITHUB_REF }}
+        [ $(git rev-parse --abbrev-ref HEAD) = "master" ] || return 0
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
