@@ -60,6 +60,7 @@ jobs:
         rm -f *.html *.svg
         cp ../*.html .
         convert -size 1024x1024 ../badge.svg badge.png
+        cp ../badge.svg badge.svg
         mv cov.html index.html
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
