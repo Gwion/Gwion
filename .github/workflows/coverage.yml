@@ -30,13 +30,13 @@ jobs:
         SEVERITY: 3
       run: export GWION_TEST_DIR=${{ runner.tmp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
 
-   - name: Install gcovr
-     run: |
-       sudo apt-get update
-       sudo apt-get install gcovr
+    - name: Install gcovr
+      run: |
+        sudo apt-get update
+        sudo apt-get install gcovr
 
-   - name: Report
-     run: |
-       COV_TXT=$(gcovr --html-details cov.html -s | grep lines | cut -d" " -f2)
-       COV_NUM=${COV_TXT: : -1}
-       echo $COV_NUM
+    - name: Report
+      run: |
+        COV_TXT=$(gcovr --html-details cov.html -s | grep lines | cut -d" " -f2)
+        COV_NUM=${COV_TXT: : -1}
+        echo $COV_NUM
