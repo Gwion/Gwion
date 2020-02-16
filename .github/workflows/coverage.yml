@@ -64,4 +64,4 @@ jobs:
         git add . 
         git commit -m "Update coverage"
         git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
-        git push
+        git push origin
