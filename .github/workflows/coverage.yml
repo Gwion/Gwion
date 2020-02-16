@@ -37,16 +37,19 @@ jobs:
     - name: Install gcovr
       run: |
          pip install git+https://github.com/gcovr/gcovr.git
-#      run: |
-#        sudo apt-get update
-#        sudo apt-get install gcovr
 
     - name: Generate Report
       run: |
-        gcovr -h
         COV_TXT=$(gcovr -s --html-details cov.html | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
-        echo $COV_NUM
+        if [ $COV_NUM -ge 90 ]
+        then COLOR=green
+        elif [ $COV_NUM -ge 90 ]
+        then COLOR=yellow
+        else COLOR=red
+        fi
+        wget https://badgen.net/badge/coverage/$COV_TXT/$COLOR -O badge.svg
+        echo $COV_NUM $COLOR
         ls
 
     - name: Push Report
@@ -55,6 +58,7 @@ jobs:
         cd gwion-coverage-report
         rm -f *.html
         cp ../*.html .
+        cp ../badge.svg .
         mv cov.html index.html
         ls
         cat index.html
