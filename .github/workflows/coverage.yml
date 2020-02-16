@@ -30,10 +30,10 @@ jobs:
         SEVERITY: 3
       run: export GWION_TEST_DIR=${{ runner.tmp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
 
-    - name: Install gcovr
-      run: |
-        sudo apt-get update
-        sudo apt-get install gcovr
+  - name: Install gcovr
+    run: |
+      sudo apt-get update
+      sudo apt-get install gcovr
 
    - name: Report
       run: |
