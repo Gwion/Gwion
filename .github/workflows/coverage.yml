@@ -22,9 +22,9 @@ jobs:
       run: git submodule update --init util ast
 
     - name: make
-      env:
-        USE_COVERAGE=1
       run: make 
+      env:
+        USE_COVERAGE: 1
 
     - name: Tests
       env:
