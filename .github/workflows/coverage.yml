@@ -25,7 +25,7 @@ jobs:
       env:
          CFLAGS: -ftest-coverage -fprofile-arcs
          LDFLAGS: -ftest-coverage -fprofile-arcs
-      run: make CFLAGS="$CFLAGS -g -O0"
+      run: make CFLAGS="${CFLAGS} -g -O0"
 
     - name: Tests
       env:
