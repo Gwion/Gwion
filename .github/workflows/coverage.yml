@@ -37,6 +37,7 @@ jobs:
 
     - name: Generate Report
       run: |
+        gcovr -h
         COV_TXT=$(gcovr -s --html-details cov.html | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM
