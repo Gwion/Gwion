@@ -1,0 +1,22 @@
+name: Coverity
+
+on:
+  push:
+    branches:    
+    - '**'
+    - '!gh-pages'
+
+jobs:
+  build:
+    name: ${{ matrix.double && 'double' || ''}}
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[coverity]')"
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: submodules
+      run: git submodule update --init util ast
+    - name: download coverity tool
+      run: curl https://scan.coverity.com/download/cxx/linux64
+    - name: make
+      run: cov-build --dir cov-int make 
