@@ -62,7 +62,7 @@ jobs:
 
     - name: Push Report
       run: |
-        git rev-parse --abbrev-ref HEAD) = "master" ]
+        git rev-parse --abbrev-ref HEAD
         [ $(git rev-parse --abbrev-ref HEAD) = "master" ] && echo lol
         [ $(git rev-parse --abbrev-ref HEAD) = "master" ] || exit 0
         cd gwion-coverage-report
