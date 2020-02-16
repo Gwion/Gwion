@@ -49,9 +49,7 @@ jobs:
         then COLOR=yellow
         else COLOR=red
         fi
-        wget https://badgen.net/badge/coverage/$COV_TXT/$COLOR -O badge.svg
-        echo $COV_NUM $COLOR
-        ls
+        wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O badge.svg
 
     - name: Push Report
       run: |
@@ -61,5 +59,7 @@ jobs:
         cp ../*.html .
         cp ../badge.svg .
         mv cov.html index.html
-        ls
-        cat index.html
+        git add . 
+        git commit -m "Update coverage"
+        git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
+        git push
