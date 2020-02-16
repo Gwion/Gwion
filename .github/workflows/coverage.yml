@@ -40,7 +40,7 @@ jobs:
 
     - name: Generate Report
       run: |
-        COV_TXT=$(gcovr -s --html-details cov.html | grep lines | cut -d" " -f2)
+        COV_TXT=$(gcovr -e *.h -s --html-details cov.html | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         if [ $COV_NUM -ge 90 ]
         then COLOR=green
