@@ -59,7 +59,7 @@ jobs:
         cd gwion-coverage-report
         rm -f *.html
         cp ../*.html .
-        cp ../badge.svg .
+        convert ../badge.svg badge.png
         mv cov.html index.html
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
