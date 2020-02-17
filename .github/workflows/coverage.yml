@@ -72,7 +72,7 @@ jobs:
         git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
         git add README.md coverage_num.txt
         git commit -m "Update coverage"
-        git push
+        git push || true
         git add -f html
         git commit -m "Update html report"
         git push origin :gh-pages || true
