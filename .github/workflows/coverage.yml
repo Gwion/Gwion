@@ -70,7 +70,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
-        git add README.md coverage_num.txt
+        git add README.md coverage_num.txt *.html
         git commit -m "Update coverage" || true
         git push || true
         git add -f html
