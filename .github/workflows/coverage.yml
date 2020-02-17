@@ -66,10 +66,6 @@ jobs:
 
     - name: Push Report
       run: |
-        echo ${{ github.GITHUB_REF }}
-        git rev-parse --abbrev-ref HEAD
-        [ $(git rev-parse --abbrev-ref HEAD) = "master" ] && echo lol
-        [ $(git rev-parse --abbrev-ref HEAD) = "master" ] || exit 0
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
