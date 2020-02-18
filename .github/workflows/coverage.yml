@@ -66,7 +66,7 @@ jobs:
         done
 
     - name: Push Report
-      if: github.event_name == 'push'
+      if: github.event_name == 'push' && github.event.ref = 'refs/head/master'
       run: |
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
@@ -82,3 +82,15 @@ jobs:
         git push origin :gh-pages || true
         git subtree push --prefix html origin gh-pages
         echo $GITHUB_EVENT_NAME $GITHUB_REF
+
+    - name: Send mail
+      uses: dawidd6/action-send-mail@master
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{secrets.MAIL_USERNAME}}
+        password: ${{secrets.MAIL_PASSWORD}}
+        subject: Github Actions job result
+        body: file://README.md
+        to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
+        from: Gwion Coverage action
