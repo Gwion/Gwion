@@ -46,6 +46,7 @@ jobs:
         rm -f gwion-coverage-report/*.html
 
     - name: Generate Report
+      if: github.event_name == 'push'
       run: |
         printf '# Gwion coverage\n```\n' > gwion-coverage-report/README.md
         gcovr -s --filter '.*\.c$' src >> gwion-coverage-report/README.md
@@ -65,6 +66,7 @@ jobs:
         done
 
     - name: Push Report
+      if: github.event_name == 'push'
       run: |
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
@@ -79,4 +81,4 @@ jobs:
         git commit -m "Update html report"
         git push origin :gh-pages || true
         git subtree push --prefix html origin gh-pages
-        echo $GITHUB_EVENT_NAME
+        echo $GITHUB_EVENT_NAME $GITHUB_REF
