@@ -66,7 +66,7 @@ jobs:
         done
 
     - name: Push Report
-      if: github.event_name == 'push' && github.event.ref == 'refs/head/master'
+      if: github.event_name == 'push' && github.event.ref == 'master'
       run: |
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
