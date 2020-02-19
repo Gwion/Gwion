@@ -83,6 +83,12 @@ jobs:
         git subtree push --prefix html origin gh-pages
         echo $GITHUB_EVENT_NAME $GITHUB_REF
 
+
+    - name: Make html mail
+    - uses: docker://pandoc/core:2.9
+      with:
+        args: "-from gfm -to html gwion-coverage-report/README.md -o mail.html"
+
     - name: Send mail
       uses: dawidd6/action-send-mail@master
       with:
@@ -91,6 +97,7 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: Github Actions job result
-        body: file://README.md
+        body: file://mail.html
         to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
         from: Gwion Coverage action
+        content_type: text/html
