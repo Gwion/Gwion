@@ -85,7 +85,7 @@ jobs:
 
 
     - name: Make html mail
-    - uses: docker://pandoc/core:2.9
+      uses: docker://pandoc/core:2.9
       with:
         args: "-from gfm -to html gwion-coverage-report/README.md -o mail.html"
 
