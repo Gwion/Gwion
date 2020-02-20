@@ -67,6 +67,9 @@ jobs:
         branch=$(basename ${{ github.event.ref }})
         mkdir -p gwion-coverage-report/html/$branch
         mv *.html gwion-coverage-report/html/$branch
+        for a in ls */
+        do echo "  * [$a]($a)"
+        done > gwion-coverage-report/html/README.md
 
     - name: Push Report
       if: github.event_name == 'push'
