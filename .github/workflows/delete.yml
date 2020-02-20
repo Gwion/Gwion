@@ -3,7 +3,6 @@ name: Coverage Report
 on: [ delete ]
 
 jobs:
-  name: Delete obsolete branch
   build:
     runs-on: ubuntu-latest
     if: "startsWith(github.event.ref, 'refs/heads/')"
