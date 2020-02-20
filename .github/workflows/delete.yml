@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "startsWith(github.event.ref, 'refs/heads/')"
 
+    steps:
     - name: Clone report repo
       run: |
         git clone https://github.com/fennecdjay/gwion-coverage-report
