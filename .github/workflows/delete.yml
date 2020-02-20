@@ -5,16 +5,14 @@ on: [ delete ]
 jobs:
   build:
     runs-on: ubuntu-latest
-#    if: "startsWith(github.event.ref, 'refs/heads/')"
+    if: "startsWith(github.event.ref_type, 'branch')"
 
     steps:
     - name: Clone report repo
       run: |
-        echo ${{ github.event.ref_type }}
-        echo ${{ github.event.ref }}
         git clone https://github.com/fennecdjay/gwion-coverage-report
         cd gwion-coverage-report
-        branch=$(basename ${{ github.event.ref }})
+        branch=${{ github.event.ref }}
         if [ -d html/$branch ]
         then
           rm -r html/$branch
