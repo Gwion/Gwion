@@ -67,7 +67,7 @@ jobs:
         done > README.md
 
     - name: Make badge
-      if: github.event_name == 'push' && github.event.ref == "refs/heads/master"
+      if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
       run: | 
         cd gwion-coverage-report
         bash badge.sh
