@@ -48,7 +48,6 @@ jobs:
         rm -f gwion-coverage-report/*.html
 
     - name: Generate Report
-#      if: github.event_name == 'push'
       run: |
         printf '# Gwion coverage\n```\n' > gwion-coverage-report/README.md
         gcovr -s --filter '.*\.c$' src >> gwion-coverage-report/README.md
@@ -56,15 +55,6 @@ jobs:
         COV_TXT=$(gcovr -s --html-details index.html --html-title "Gwion coverage report" --filter '.*\.c$' src | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
-        if [ $(python -c "print( $COV_NUM >= 90 )") = True ]
-        then COLOR=green
-        elif [ $(python -c "print( $COV_NUM >= 75 )") = True ]
-        then COLOR=yellow
-        else COLOR=red
-        fi
-        while true
-        do wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O gwion-coverage-report/badge.svg && break
-        done
         sed -i 's/<html>/<script type="text\/javascript" src="focus.js"><\/script><html>/' index.src_*.html
         branch=$(basename ${{ github.event.ref }})
         mkdir -p gwion-coverage-report/html/$branch
@@ -75,6 +65,12 @@ jobs:
         for a in */
         do echo "  * [$(basename $a)](https://fennecdjay.github.com/gwion-coverage-report/$(basename $a))"
         done > README.md
+
+    - name: Make badge
+      if: github.event_name == 'push' && github.event.ref == "refs/heads/master"
+      run: | 
+        cd gwion-coverage-report
+        bash badge.sh
 
     - name: Push Report
       if: github.event_name == 'push'
