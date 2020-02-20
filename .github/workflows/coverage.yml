@@ -64,7 +64,7 @@ jobs:
         while true
         do wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O gwion-coverage-report/badge.svg && break
         done
-        mkdir gwion-coverage-report/html-test
+        mkdir gwion-coverage-report/html/test
         cp gwion-coverage-report/html/*.html gwion-coverage-report/html/test
 
     - name: Push Report
