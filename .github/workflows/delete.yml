@@ -16,6 +16,7 @@ jobs:
         cd gwion-coverage-report
         branch=$(basename ${{ github.event.ref }})
         if [ -d html/$branch ]
+        then
           rm -r html/$branch
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
