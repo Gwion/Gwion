@@ -67,7 +67,7 @@ jobs:
         branch=$(basename ${{ github.event.ref }})
         mkdir -p gwion-coverage-report/html/$branch
         mv *.html gwion-coverage-report/html/$branch
-        for a in ls */
+        for a in ls gwion-coverage-report/html/*/
         do echo "  * [$a]($a)"
         done > gwion-coverage-report/html/README.md
 
