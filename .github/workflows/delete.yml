@@ -1,4 +1,4 @@
-name: Coverage Report
+name: Delete Obsolete Coverage Report
 
 on: [ delete ]
 
@@ -10,12 +10,17 @@ jobs:
     steps:
     - name: Clone report repo
       run: |
+        echo ${{ github.event.ref_type }}
         echo ${{ github.event.ref }}
         git clone https://github.com/fennecdjay/gwion-coverage-report
         cd gwion-coverage-report
         branch=$(basename ${{ github.event.ref }})
-        rm -r html/$branch
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
-        git add html && git commit -m "Delete obsolete branch" && git subtree push --prefix html origin gh-pages || true
+        if [ -d html/$branch ]
+          rm -r html/$branch
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
+          git add html
+          git commit -m "Delete obsolete branch"
+          git subtree push --prefix html origin gh-pages
+        fi
