@@ -4,10 +4,12 @@ name: Coverage Report
 on:
   push:
     branches:    
-    - 'master'
+    - '**'
+    - '!gh-pages'
   pull_request:
     branches:    
-    - 'master'
+    - '**'
+    - '!gh-pages'
 
 jobs:
   build:
