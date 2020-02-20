@@ -68,7 +68,7 @@ jobs:
         mkdir -p gwion-coverage-report/html/$branch
         mv *.html gwion-coverage-report/html/$branch
         for a in ls gwion-coverage-report/html/*/
-        do echo "  * [$basename $a)](htts://fennecdjay.github.com/gwion-coverage-report/$(basename $a))"
+        do echo "  * [$(basename $a)](https://fennecdjay.github.com/gwion-coverage-report/$(basename $a))"
         done > gwion-coverage-report/html/README.md
 
     - name: Push Report
