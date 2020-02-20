@@ -52,8 +52,6 @@ jobs:
         gcovr -s --filter '.*\.c$' src >> gwion-coverage-report/README.md
         printf '```\n' >> gwion-coverage-report/README.md
         mkdir gwion-coverage-report/html || true
-        mkdir gwion-coverage-report/html-test
-        cp gwion-coverage-report/html/*.html gwion-coverage-report/html/test
         COV_TXT=$(gcovr -s --html-details gwion-coverage-report/html/index.html --html-title "Gwion coverage report" --filter '.*\.c$' src | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
@@ -66,6 +64,8 @@ jobs:
         while true
         do wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O gwion-coverage-report/badge.svg && break
         done
+        mkdir gwion-coverage-report/html-test
+        cp gwion-coverage-report/html/*.html gwion-coverage-report/html/test
 
     - name: Push Report
       if: github.event_name == 'push'
