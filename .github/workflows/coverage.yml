@@ -84,6 +84,7 @@ jobs:
         git add README.md coverage_num.txt
         git commit -m "Update coverage" || true
         git push || true
+        git push :gh-pages || true
         cp focus.js html
         git add -f html
         git commit -m "Update html report"
