@@ -64,9 +64,9 @@ jobs:
         while true
         do wget https://badgen.net/badge/coverage/$COV_NUM/$COLOR -O gwion-coverage-report/badge.svg && break
         done
-        echo ref:${{ github.event.ref }}
-        mkdir gwion-coverage-report/html/test
-        cp gwion-coverage-report/html/*.html gwion-coverage-report/html/test
+        branch=$(basename ${{ github.event.ref }}
+        mkdir gwion-coverage-report/html/$branch
+        cp gwion-coverage-report/html/*.html gwion-coverage-report/html/$branch
 
     - name: Push Report
       if: github.event_name == 'push'
