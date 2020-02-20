@@ -57,14 +57,13 @@ jobs:
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
         sed -i 's/<html>/<script type="text\/javascript" src="focus.js"><\/script><html>/' index.src_*.html
         branch=$(basename ${{ github.event.ref }})
-        mkdir -p gwion-coverage-report/html/$branch
+        cd gwion-coverage-report/
+        bash old.sh $branch
+        bash summary.sh
+        cd ..
         gcovr --filter '.*\.c$' src > gwion-coverage-report/html/$branch/lines.txt
         gcovr --filter '.*\.c$' --branches src > gwion-coverage-report/html/$branch/branches.txt
         mv *.html gwion-coverage-report/html/$branch
-        cd gwion-coverage-report/html/
-        for a in */
-        do echo "  * [$(basename $a)](https://fennecdjay.github.com/gwion-coverage-report/$(basename $a))"
-        done > README.md
 
     - name: Make badge
       if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
