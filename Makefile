@@ -39,6 +39,9 @@ CFLAGS  += -Iinclude
 ifeq (${BUILD_ON_WINDOWS}, 1)
 ifeq (${CC}, gcc)
 CFLAGS += -export-dynamic
+LDFLAGS += -export-dynamic
+CFLAGS += -Wl,export-dynamic
+LDFLAGS += -Wl,export-dynamic
 LDFLAGS += -lm
 endif
 else
