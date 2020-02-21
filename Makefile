@@ -27,9 +27,7 @@ ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
 
-ifeq (${BUILD_ON_WINDOWS}, 1)
-CFLAGS += -DBUILD_ON_WINDOWS -D_XOPEN_SOURCE=700
-else
+ifneq (${BUILD_ON_WINDOWS}, 1)
 LDFLAGS += -ldl -lpthread
 endif
 
