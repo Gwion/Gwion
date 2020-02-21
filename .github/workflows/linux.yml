@@ -18,10 +18,10 @@ jobs:
 
     steps:
     - name: Build Gwion
-      uses: fennecdjay/gwion-action@v4
+      uses: fennecdjay/gwion-action@v5
       with:
-        USE: ${{ matrix.double }}
-        RUN: true
+        use: ${{ matrix.double }}
+        run: true
       env:
         CC: ${{ matrix.cc }}
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer

@@ -17,7 +17,8 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-    - uses: fennecdjay/gwion-action@v5
+    - name: Build Gwion
+      uses: fennecdjay/gwion-action@v5
       with:
         dir: .
         ref: ${{ github.ref }}

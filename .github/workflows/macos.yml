@@ -1,11 +1,14 @@
+name: Linux
 
-name: MacOS
-
-on: [push]
+on:
+  push:
+    branches:    
+    - '**'
+    - '!gh-pages'
 
 jobs:
   build:
-    name: ${{ matrix.cc }} ${{ matrix.double && 'double' || ''}}
+    name: ${{ matrix.cc }} ${{ matrix.double && 'double' || 'float'}}
     runs-on: macos-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
@@ -14,18 +17,15 @@ jobs:
         double: [0, 1]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: submodules
-      run: git submodule update --init util ast
-    - name: make
+    - name: Build Gwion
+      uses: fennecdjay/gwion-action@v5
+      with:
+        use: ${{ matrix.double }}
+        run: true
       env:
-         USE_DOUBLE: ${{ matrix.double }}
-         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
-         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-      run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
-    - name: make test 
-      env:
+        CC: ${{ matrix.cc }}
+        CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+        LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: make test
