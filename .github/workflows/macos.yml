@@ -23,9 +23,9 @@ jobs:
          CFLAGS: -fsanitize=address -fno-omit-frame-pointer
          LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
       run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
-    - name: make test ${{ runner.temp }}
+    - name: make test 
       env:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: export GWION_TEST_DIR=${{ runner.temp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
+      run: make test
