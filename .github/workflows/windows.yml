@@ -23,8 +23,8 @@ jobs:
         run: true
       env:
         CC: gcc
-        CFLAGS: -fsanitize=address -fno-omit-frame-pointer
-        LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
+#        CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+#        LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
