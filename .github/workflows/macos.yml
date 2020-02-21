@@ -20,12 +20,10 @@ jobs:
     - name: Build Gwion
       uses: fennecdjay/gwion-action@v5
       with:
+        use: ${{ github.ref }}
         use: ${{ matrix.double }}
         run: true
       env:
         CC: ${{ matrix.cc }}
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-        VALGRIND: NO_VALGRIND
-        USE_MEMCHECK: 0
-        SEVERITY: 3
