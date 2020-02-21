@@ -1,4 +1,4 @@
-name: Linux
+name: Coverage
 
 on:
   push:
