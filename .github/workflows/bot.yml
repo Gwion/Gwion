@@ -17,6 +17,7 @@ jobs:
       run: |
         git clone https://github.com/fennecdjay/gwion-cinch-bot
         cd gwion-cinch-bot
+        [ -z "$(git diff "HEAD^" src)" ] && exit 0
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git commit --allow-empty -m "update gwion"
