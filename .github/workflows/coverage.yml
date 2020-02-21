@@ -18,7 +18,7 @@ jobs:
 
     steps:
     - name: Build Gwion
-      uses: fennecdjay/gwion-action@v5
+      uses: fennecdjay/gwion-action@v6
       with:
         dir: .
         ref: ${{ github.ref }}

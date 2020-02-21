@@ -17,11 +17,11 @@ jobs:
 
     steps:
     - name: Build Gwion
-      uses: fennecdjay/gwion-action@v5
+      uses: fennecdjay/gwion-action@v6
       with:
         ref: ${{ github.ref }}
-        use: ${{ matrix.double }}
         run: true
       env:
         CC: gcc
+        USE_DOUBLE: ${{ matrix.double }}
         BUILD_ON_WINDOWS: 1
