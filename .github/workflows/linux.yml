@@ -21,7 +21,7 @@ jobs:
     - name: Create testing directory
       run: mkdir ${{ runner.temp }}/test
 
-    - uses: fennecdjay/gwion-action@v2
+    - uses: fennecdjay/gwion-action@v3
       env:
         CC: ${{ matrix.cc }}
         USE_DOUBLE: ${{ matrix.double }}
