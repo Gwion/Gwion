@@ -1,7 +1,6 @@
 #!/bin/bash
 
 : "${PRG:=gwion}"
-: "${VALGRIND:=valgrind}"
 : "${GWION_TEST_DIR:=/tmp}"
 : "${GWION_TEST_PREFIX:=gwt_}"
 
@@ -48,60 +47,6 @@ assert_exclude() {
   [ -z "$contains" ] && return 0
   grep "$contains" "$2.err.log" > /dev/null || return 0
   echo "does contain $contains" > "$2.log"
-  return 1
-}
-
-assert_rw() {
-  grep 'Invalid \(read\|write\) of size' "$2.valgrind.log" > /dev/null || return 0
-  echo "invalid read/write" > "$2.log"
-  return 1
-}
-
-assert_free() {
-  grep 'Invalid free()' "$2.valgrind.log" > /dev/null || return 0
-  echo "invalid free" > "$2.log"
-  return 1
-}
-
-assert_initial() {
-  grep 'Conditional jump or move depends on uninitialised value(s)' "$2.valgrind.log" > /dev/null || return 0
-  echo "uninitialed value" > "$2.log"
-  return 1
-}
-
-assert_syscall() {
-  grep 'Syscall param .* uninitialised byte(s)' "$2.valgrind.log" > /dev/null || return 0
-  echo "uninitialed value in syscall" > "$2.log"
-  return 1
-}
-
-assert_mismatch() {
-  grep 'Mismatched free() / delete / delete \[\]' "$2.valgrind.log" > /dev/null || return 0
-  echo "mismatched free" > "$2.log"
-  return 1
-}
-
-assert_overlap() {
-  grep 'Source and destination overlap' "$2.valgrind.log" > /dev/null || return 0
-  echo "mem overlap" > "$2.log"
-  return 1
-}
-
-assert_fishy() {
-  grep "Argument 'size' of .* has a fishy (possibly negative) value:" "$2.valgrind.log" > /dev/null || return 0
-  echo "fishy alloc" > "$2.log"
-  return 1
-}
-
-assert_leak() {
-  grep "All heap blocks were freed -- no leaks are possible" "$2.valgrind.log" > /dev/null && return 0
-  #[ "$suppressions" -eq 0 ] && echo "mem leak" > "$2.log" && return 1
-  #[ -z "$suppressions" ] && echo "mem leak" > "$2.log" && return 1
-  heap=$(grep "in use at exit:" "$2.valgrind.log" | cut -d ":" -f2)
-  supp=$(grep "suppressed: .* bytes"     "$2.valgrind.log" | cut -d ":" -f2)
-  #[ -z "$supp" ] && echo "mem leak" > "$2.log" && return 1
-  [ "$heap" = "$supp" ] && return 0
-  echo "mem leak" > "$2.log"
   return 1
 }
 
@@ -183,42 +128,21 @@ test_gw(){
   log=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n")
   slog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
   elog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
-  vlog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").valgrind.log
   rlog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
-  if [ "$VALGRIND" == "NO_VALGRIND" ]
-  then LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
-  else
-    LANG=C "$VALGRIND" --suppressions=scripts/supp --log-file="$vlog" \
-    ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
-  fi
+  LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
   # enable todo
   do_todo "$1" "$n" "$file" "$rlog" && return 0
 
-  [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_rw       "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 5  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_initial  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 6  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_syscall  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 7  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_free     "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 8  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_mismatch "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 9  ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_overlap  "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 10 ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_fishy    "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
-  [ $severity -lt 11 ]           && success "$n" "$file" "$rlog" "$vlog" && return 0
-  assert_leak     "$file" "$log" || fail    "$n" "$file" "$rlog" "$vlog" || return 1
+  [ $severity -lt 1  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_returns  "$ret"  "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 2  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_contain  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 3  ]           && success "$n" "$file" "$rlog" && return 0
+  assert_exclude  "$file" "$log" || fail    "$n" "$file" "$rlog" || return 1
+  [ $severity -lt 4  ]           && success "$n" "$file" "$rlog" && return 0
   success "$n" "$file" "$rlog" && return 0
 }
 
