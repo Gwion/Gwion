@@ -20,7 +20,7 @@ jobs:
     - uses: fennecdjay/gwion-action@v5
       with:
         dir: .
-        ref: ${{ github.head }}
+        ref: ${{ github.ref }}
       env:
         USE_COVERAGE: 1
 
