@@ -13,7 +13,6 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
       matrix:
-        cc: [gcc, clang]
         double: [0, 1]
 
     steps:
@@ -23,7 +22,6 @@ jobs:
         use: ${{ matrix.double }}
         run: true
       env:
-        CC: ${{ matrix.cc }}
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
