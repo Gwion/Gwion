@@ -1,0 +1,13 @@
+name: CI
+
+on:
+  issues:
+    types: [opened, edited, milestoned]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: jeffrafter/example-github-action-typescript/.github/actions/thanks-action
