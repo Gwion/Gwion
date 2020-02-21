@@ -24,6 +24,7 @@ jobs:
     - uses: fennecdjay/gwion-action@v4
       with:
         USE: ${{ matrix.double }}
+        RUN: true
       env:
         CC: ${{ matrix.cc }}
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
