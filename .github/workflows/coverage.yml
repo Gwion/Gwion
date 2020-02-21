@@ -1,111 +1,32 @@
-
-name: Coverage Report
+name: Linux
 
 on:
   push:
     branches:    
     - '**'
     - '!gh-pages'
-  pull_request:
-    branches:    
-    - '**'
-    - '!gh-pages'
 
 jobs:
   build:
+    name: ${{ matrix.cc }} ${{ matrix.double && 'double' || 'float'}}
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+        double: [0, 1]
 
     steps:
-    - uses: actions/checkout@v1
-
-    - uses: actions/setup-python@v1
+    - name: Build Gwion
+      uses: fennecdjay/gwion-action@v4
       with:
-        python-version: '3.x'
-
-    - name: submodules
-      run: git submodule update --init util ast
-
-    - name: make
-      run: make 
+        USE: ${{ matrix.double }}
+        RUN: true
       env:
+        CC: ${{ matrix.cc }}
         USE_COVERAGE: 1
-
-    - name: Tests
-      env:
+        CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+        LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: export GWION_TEST_DIR=${{ runner.tmp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
-
-    - name: Install gcovr
-      run: |
-         pip install git+https://github.com/gcovr/gcovr.git
-
-    - name: Clone report repo
-      run: |
-        git clone https://github.com/fennecdjay/gwion-coverage-report
-        rm -f gwion-coverage-report/*.html
-
-    - name: Generate Report
-      run: |
-        printf '# Gwion coverage\n```\n' > gwion-coverage-report/README.md
-        gcovr -s --filter '.*\.c$' src >> gwion-coverage-report/README.md
-        printf '```\n' >> gwion-coverage-report/README.md
-        COV_TXT=$(gcovr -s --html-details index.html --html-title "Gwion coverage report" --filter '.*\.c$' src | grep lines | cut -d" " -f2)
-        COV_NUM=${COV_TXT: : -1}
-        echo $COV_NUM > gwion-coverage-report/coverage_num.txt
-        sed -i 's/<html>/<script type="text\/javascript" src="focus.js"><\/script><html>/' index.src_*.html
-        branch=$(basename ${{ github.event.ref }})
-        cd gwion-coverage-report/
-        bash old.sh $branch
-        bash summary.sh
-        cd ..
-        gcovr --filter '.*\.c$' src > gwion-coverage-report/html/$branch/lines.txt
-        gcovr --filter '.*\.c$' --branches src > gwion-coverage-report/html/$branch/branches.txt
-        mv *.html gwion-coverage-report/html/$branch
-
-    - name: Make badge
-      if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
-      run: | 
-        cd gwion-coverage-report
-        bash badge.sh
-
-    - name: Push Report
-      if: github.event_name == 'push'
-      run: |
-        cd gwion-coverage-report
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
-        git add README.md coverage_num.txt
-        git commit -m "Update coverage" || true
-        git push || true
-        git push origin :gh-pages || true
-        cp focus.js html
-        git add -f html
-        git commit -m "Update html report"
-        git subtree push --prefix html origin gh-pages
-
-
-    - name: Make html mail
-      uses: docker://pandoc/core:2.9
-      with:
-        args: "--from gfm --to html -o mail.html gwion-coverage-report/README.md -o mail.html"
-
-    - name: Verify
-      run: ls
-
-    - name: Send mail
-      uses: dawidd6/action-send-mail@master
-      with:
-        server_address: smtp.gmail.com
-        server_port: 465
-        username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}
-        subject: Github Actions job result
-        body: file://README.md
-        to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
-        from: Gwion Coverage action
-
-#        content_type: text/html
