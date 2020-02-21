@@ -22,6 +22,7 @@ jobs:
         use: ${{ matrix.double }}
         run: true
       env:
+        CC: gcc
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
