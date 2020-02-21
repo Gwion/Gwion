@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Create testing directory
-      run: mkdir GWION_TEST_DIR=${{ runner.temp }}/test
+      run: mkdir ${{ runner.temp }}/test
 
     - uses: fennecdjay/gwion-action@v1
       env:
