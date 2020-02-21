@@ -21,10 +21,11 @@ jobs:
     - name: Create testing directory
       run: mkdir ${{ runner.temp }}/test
 
-    - uses: fennecdjay/gwion-action@v3
+    - uses: fennecdjay/gwion-action@v4
+      with:
+        USE: ${{ matrix.double }}
       env:
         CC: ${{ matrix.cc }}
-        USE_DOUBLE: ${{ matrix.double }}
         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
