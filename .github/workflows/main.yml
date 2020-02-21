@@ -1,4 +1,4 @@
-name: CI
+name: Issue Test
 
 on:
   issues:
@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: jeffrafter/example-github-action-typescript/.github/actions/thanks-action
+    - uses: jeffrafter/example-github-action-typescript/.github/actions/thanks-action@v2
