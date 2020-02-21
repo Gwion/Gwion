@@ -18,18 +18,31 @@ jobs:
         double: [0, 1]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: submodules
-      run: git submodule update --init util ast
-    - name: make
+    - name: Create testing directory
+      run: mkdir GWION_TEST_DIR=${{ runner.temp }}/test
+
+    - uses: fennecdjay/gwion-action
       env:
-         USE_DOUBLE: ${{ matrix.double }}
-         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
-         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
-      run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
-    - name: make test ${{ runner.temp }}
-      env:
+        CC: ${{ matrix.cc }}
+        USE_DOUBLE: ${{ matrix.double }}
+        CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+        LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-      run: export GWION_TEST_DIR=${{ runner.temp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
+        GWION_TEST_DIR: ${{ runner.temp }}/test
+#    - uses: actions/checkout@v1
+#    - name: submodules
+#      run: git submodule update --init util ast
+#    - name: make
+#      env:
+#         USE_DOUBLE: ${{ matrix.double }}
+#         CFLAGS: -fsanitize=address -fno-omit-frame-pointer
+#         LDFLAGS: -fsanitize=address -fno-omit-frame-pointer
+#      run: make CC=${{ matrix.cc }} USE_DOUBLE=${{ matrix.double }}
+#    - name: make test ${{ runner.temp }}
+#      env:
+#        VALGRIND: NO_VALGRIND
+#        USE_MEMCHECK: 0
+#        SEVERITY: 3
+#      run: export GWION_TEST_DIR=${{ runner.temp }}/tmp/test; mkdir $GWION_TEST_DIR && make test
