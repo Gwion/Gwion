@@ -21,7 +21,7 @@ jobs:
     - name: Create testing directory
       run: mkdir ${{ runner.temp }}/test
 
-    - uses: fennecdjay/gwion-action@v1
+    - uses: fennecdjay/gwion-action@v2
       env:
         CC: ${{ matrix.cc }}
         USE_DOUBLE: ${{ matrix.double }}
@@ -30,7 +30,7 @@ jobs:
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
-        GWION_TEST_DIR: ${{ runner.temp }}/test
+#        GWION_TEST_DIR: ${{ runner.temp }}/test
 #    - uses: actions/checkout@v1
 #    - name: submodules
 #      run: git submodule update --init util ast
