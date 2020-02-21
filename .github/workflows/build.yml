@@ -63,14 +63,9 @@ jobs:
         path: Gwion
         key: ${{ runner.os }}-gwion
 
-    - name: Gwion [ init ]
+    - name: Gwion
       if: steps.gwion-bin.outputs.cache-hit != 'true'
-      run: |
-        git clone https://github.com/fennecdjay/Gwion
-        cd Gwion
-        git submodule update --init util ast
-        make
-        cp gwion ..
+      uses: fennecdjay/gwion-action@v1
 
     - name: Gwion [ update ]
       if: steps.gwion-bin.outputs.cache-hit == 'true'
@@ -144,6 +139,7 @@ jobs:
         ./chuck benchmark/string-equals.ck
         export PATH=./wren:$PATH
         export PATH=./lua:$PATH
+        export PATH=./Gwion:$PATH
         export PATH=.:$PATH
         bash scripts/benchmark.sh
 
