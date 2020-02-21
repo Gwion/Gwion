@@ -23,6 +23,7 @@ jobs:
         run: true
       env:
         CC: gcc
+        CFLAGS: -DBUILD_ON_WINDOWS
         VALGRIND: NO_VALGRIND
         USE_MEMCHECK: 0
         SEVERITY: 3
