@@ -340,7 +340,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
-    &&gack, &&gack3, &&noop, &&regpushimm, &&other, &&eoc
+    &&gack, &&gackend, &&noop, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -853,8 +853,12 @@ gack:
   VM_OUT
   gack(shred, (Instr)VAL);
   goto in;
-gack3:
-  gw_out("\n");
+gackend:
+{
+  m_str str = *(m_str*)(reg - SZ_INT);
+  gw_out("%s\n", str);
+  mp_free2(vm->gwion->mp, strlen(str), str);
+}
 noop:
   DISPATCH();
 other:

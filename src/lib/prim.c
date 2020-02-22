@@ -14,6 +14,7 @@
 #include "parse.h"
 #include "specialid.h"
 #include "array.h"
+#include "gack.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
@@ -104,7 +105,8 @@ static GWION_IMPORT(int_unary) {
   return GW_OK;
 }
 static GACK(gack_bool) {
-  gw_out("%s", *(m_uint*)VALUE ? "true" : "false");
+//  gw_out("%s", *(m_uint*)VALUE ? "true" : "false");
+  INTERP_PRINTF("%s", *(m_uint*)VALUE ? "true" : "false");
 }
 
 static GWION_IMPORT(int_values) {

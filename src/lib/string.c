@@ -14,6 +14,7 @@
 #include "emit.h"
 #include "specialid.h"
 #include "gwi.h"
+#include "gack.h"
 
 ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_str c) {
   STRING(obj) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
@@ -180,7 +181,7 @@ ID_CHECK(check_funcpp) {
 
 static GACK(gack_string) {
   const M_Object obj = *(M_Object*)VALUE;
-  gw_out("%s", obj ? STRING(obj) : "(null string)");
+  INTERP_PRINTF("%s", obj ? STRING(obj) : "(null string)");
 }
 
 static inline m_bool bounds(const m_str str, const m_int i) {

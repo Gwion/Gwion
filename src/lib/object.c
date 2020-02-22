@@ -15,6 +15,7 @@
 #include "specialid.h"
 
 #include "gwi.h"
+#include "gack.h"
 
 #undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
@@ -221,7 +222,7 @@ static ID_CHECK(check_this) {
 }
 
 static GACK(gack_object) {
-  gw_out("%p", *(M_Object*)VALUE);
+  INTERP_PRINTF("%p", *(M_Object*)VALUE);
 }
 
 GWION_IMPORT(object) {

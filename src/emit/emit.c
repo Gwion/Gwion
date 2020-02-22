@@ -163,6 +163,7 @@ ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
   return instr; \
 }
 regxxx(pop, Pop)
+regxxx(push, Push)
 regxxx(pushi, PushImm)
 regxxx(seti, SetImm)
 
@@ -598,6 +599,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
 }
 
 ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
+  regpushi(emit, 0);
   Exp e = *exp, next = NULL;
   do {
     next = e->next;
@@ -611,7 +613,7 @@ ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
     instr->m_val2 = emit_code_offset(emit);
   } while((e = e->next = next));
   if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
-    emit_add_instr(emit, Gack3);
+    emit_add_instr(emit, GackEnd);
   return GW_OK;
 }
 
@@ -807,14 +809,9 @@ ANN static m_uint get_decl_size(Var_Decl_List a) {
   return size;
 }
 
-ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
+ANN static m_uint pop_exp_size(Exp e) {
   m_uint size = 0;
   do {
-    if(e->exp_type == ae_exp_primary &&
-        e->d.prim.prim_type == ae_prim_hack) {
-      size += pop_exp_size(emit, e->d.prim.d.exp);
-      continue;
-    }
     size += (e->exp_type == ae_exp_decl ?
         get_decl_size(e->d.exp_decl.list) : e->type->size);
   } while((e = e->next));
@@ -822,7 +819,7 @@ ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
 }
 
 ANN static inline void pop_exp(const Emitter emit, Exp e) {
-  const m_uint size = pop_exp_size(emit, e);
+  const m_uint size = pop_exp_size(e);
   if(size)
    regpop(emit, size);
 }
@@ -1873,6 +1870,7 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     ADD_REF(f->code)
     return f->code;
   } else if(f->def->base->xid == insert_symbol("@gack")) {
+    regpush(emit, SZ_INT);
     f->code = finalyze(emit, FuncReturn);
     return emit->env->class_def->e->gack = f->code;
   }
