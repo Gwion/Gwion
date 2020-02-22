@@ -55,6 +55,8 @@ jobs:
         mv *.html gwion-coverage-report/html/$branch
         cd gwion-coverage-report/
         bash diff.sh $branch
+        cat diff.md
+        cp diff.md html/$branch
 
     - name: Make badge
       if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
