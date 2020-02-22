@@ -49,10 +49,13 @@ jobs:
         cd gwion-coverage-report/
         bash old.sh $branch
         bash summary.sh
+        bash diff.sh
         cd ..
         gcovr --filter '.*\.c$' src > gwion-coverage-report/html/$branch/lines.txt
         gcovr --filter '.*\.c$' --branches src > gwion-coverage-report/html/$branch/branches.txt
         mv *.html gwion-coverage-report/html/$branch
+        cd gwion-coverage-report/
+        bash diff.sh
 
     - name: Make badge
       if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
@@ -80,7 +83,7 @@ jobs:
     - name: Make html mail
       uses: docker://pandoc/core:2.9
       with:
-        args: "--from gfm --to html -o mail.html gwion-coverage-report/README.md -o mail.html"
+        args: "--from gfm --to html -o mail.html gwion-coverage-report/diff.md -o mail.html"
 
     - name: Send mail
       uses: dawidd6/action-send-mail@master
@@ -90,8 +93,7 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: Github Actions job result
-        body: file://README.md
+        body: file://mail.html
         to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
         from: Gwion Coverage action
-
-#        content_type: text/html
+        content_type: text/html
