@@ -22,6 +22,7 @@ jobs:
       with:
         dir: .
         ref: ${{ github.ref }}
+        run: 'true'
       env:
         USE_COVERAGE: 1
 
