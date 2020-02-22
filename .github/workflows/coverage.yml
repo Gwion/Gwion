@@ -96,7 +96,7 @@ jobs:
         username: ${{ secrets.MAIL_USERNAME }}
         password: ${{ secrets.MAIL_PASSWORD }}
         subject: Github Actions job result
-        body: file://diff.html
+        body: file://gwion-coverage-report/diff.html
         to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
         from: Gwion Coverage action
         content_type: text/html
