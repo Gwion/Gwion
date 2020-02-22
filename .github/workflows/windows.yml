@@ -19,7 +19,7 @@ jobs:
     - name: Build Gwion
       uses: fennecdjay/gwion-action@v1
       with:
-        ref: ${{ github.ref }}
+        ref: ${{ github.event.ref }}
         run: true
       env:
         CC: gcc

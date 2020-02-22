@@ -21,7 +21,7 @@ jobs:
       uses: fennecdjay/gwion-action@v1
       with:
         dir: .
-        ref: ${{ github.ref }}
+        ref: ${{ github.event.ref }}
         run: 'true'
       env:
         USE_COVERAGE: 1
