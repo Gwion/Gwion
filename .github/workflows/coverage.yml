@@ -56,7 +56,6 @@ jobs:
         cd gwion-coverage-report/
         bash diff.sh $branch
         cat diff.md
-        cp diff.md html/$branch
 
     - name: Make badge
       if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
@@ -64,9 +63,16 @@ jobs:
         cd gwion-coverage-report
         bash badge.sh
 
+    - name: Make html mail
+      uses: docker://pandoc/core:2.9
+      with:
+        args: "--from gfm --to html -o mail.html gwion-coverage-report/diff.md -o mail.html"
+
     - name: Push Report
       if: github.event_name == 'push'
       run: |
+        branch=$(basename ${{ github.event.ref }})
+        cp mail.html gwion-coverage-report/html/$branch
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -80,11 +86,6 @@ jobs:
         git commit -m "Update html report"
         git subtree push --prefix html origin gh-pages
 
-
-    - name: Make html mail
-      uses: docker://pandoc/core:2.9
-      with:
-        args: "--from gfm --to html -o mail.html gwion-coverage-report/diff.md -o mail.html"
 
     - name: Send mail
       uses: dawidd6/action-send-mail@master
