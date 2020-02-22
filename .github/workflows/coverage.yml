@@ -46,7 +46,7 @@ jobs:
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
         sed -i 's/<html>/<script type="text\/javascript" src="focus.js"><\/script><html>/' index.src_*.html
-        branch=$(basename ${{ github.sha }})
+        branch=$(basename ${{ github.event.ref }})
         cd gwion-coverage-report/
         bash old.sh $branch
         bash summary.sh
@@ -59,7 +59,7 @@ jobs:
         cat diff.md
 
     - name: Make badge
-      if: github.event_name == 'push' && github.sha == 'refs/heads/master'
+      if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
       run: | 
         cd gwion-coverage-report
         bash badge.sh
@@ -72,7 +72,7 @@ jobs:
     - name: Push Report
       if: github.event_name == 'push'
       run: |
-        branch=$(basename ${{ github.sha }})
+        branch=$(basename ${{ github.event.ref }})
         cp diff.html gwion-coverage-report/html/$branch
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
