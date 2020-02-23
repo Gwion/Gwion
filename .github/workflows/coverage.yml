@@ -38,7 +38,7 @@ jobs:
       run: | 
         git clone https://github.com/fennecdjay/gwion-coverage-report
         cd gwion-coverage-report
-        gut branch
+        git branch
         git pull
         git checkout gh-pages -- html
 
