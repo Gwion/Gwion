@@ -35,7 +35,9 @@ jobs:
          pip install git+https://github.com/gcovr/gcovr.git
 
     - name: Clone report repo
-      run: git clone https://github.com/fennecdjay/gwion-coverage-report
+      run: | 
+        git clone https://github.com/fennecdjay/gwion-coverage-report
+        git checkout gh-pages html
 
     - name: Generate Report
       run: |
