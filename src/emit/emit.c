@@ -163,6 +163,7 @@ ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
   return instr; \
 }
 regxxx(pop, Pop)
+regxxx(push, Push)
 regxxx(pushi, PushImm)
 regxxx(seti, SetImm)
 
@@ -597,8 +598,19 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
-  Exp e = *exp, next = NULL;
+ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
+  if(prim_exp(tuple)->meta == ae_meta_var)
+    return GW_OK;
+  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
+}
+
+#define emit_prim_complex emit_prim_vec
+#define emit_prim_polar   emit_prim_vec
+#define emit_prim_nil     (void*)dummy_func
+
+ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
+  regpushi(emit, 0);
+  Exp e = exp, next = NULL;
   do {
     next = e->next;
     e->next = NULL;
@@ -610,20 +622,15 @@ ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
     instr->m_val = (m_uint)e->type;
     instr->m_val2 = emit_code_offset(emit);
   } while((e = e->next = next));
-  if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
-    emit_add_instr(emit, Gack3);
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
-  if(prim_exp(tuple)->meta == ae_meta_var)
-    return GW_OK;
-  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
+ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
+  CHECK_BB(emit_interp(emit, *exp))
+  if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
+    emit_add_instr(emit, GackEnd);
+  return GW_OK;
 }
-
-#define emit_prim_complex emit_prim_vec
-#define emit_prim_polar   emit_prim_vec
-#define emit_prim_nil     (void*)dummy_func
 
 DECL_PRIM_FUNC(emit, m_bool , Emitter);
 ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
@@ -807,14 +814,9 @@ ANN static m_uint get_decl_size(Var_Decl_List a) {
   return size;
 }
 
-ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
+ANN static m_uint pop_exp_size(Exp e) {
   m_uint size = 0;
   do {
-    if(e->exp_type == ae_exp_primary &&
-        e->d.prim.prim_type == ae_prim_hack) {
-      size += pop_exp_size(emit, e->d.prim.d.exp);
-      continue;
-    }
     size += (e->exp_type == ae_exp_decl ?
         get_decl_size(e->d.exp_decl.list) : e->type->size);
   } while((e = e->next));
@@ -822,7 +824,7 @@ ANN static m_uint pop_exp_size(const Emitter emit, Exp e) {
 }
 
 ANN static inline void pop_exp(const Emitter emit, Exp e) {
-  const m_uint size = pop_exp_size(emit, e);
+  const m_uint size = pop_exp_size(e);
   if(size)
    regpop(emit, size);
 }
@@ -1239,6 +1241,13 @@ ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
     regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->type)));
   else
     regpushi(emit, (m_uint)exp->exp->type);
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_interp(const Emitter emit, const Exp_Interp *exp) {
+  CHECK_BB(emit_interp(emit, exp->exp))
+  const Instr instr = emit_add_instr(emit, GackEnd);
+  instr->m_val = 1;
   return GW_OK;
 }
 
@@ -1873,6 +1882,7 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     ADD_REF(f->code)
     return f->code;
   } else if(f->def->base->xid == insert_symbol("@gack")) {
+    regpush(emit, SZ_INT);
     f->code = finalyze(emit, FuncReturn);
     return emit->env->class_def->e->gack = f->code;
   }

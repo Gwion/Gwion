@@ -9,6 +9,7 @@
 #include "import.h"
 #include "driver.h"
 #include "gwi.h"
+#include "gack.h"
 
 INSTR(VecCpy) {
   POP_REG(shred, instr->m_val2);
@@ -157,7 +158,7 @@ static void vecx_base(const Gwi gwi) {
 }
 
 static GACK(gack_vec3) {
-  gw_out("%%(%.4f, %.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT), *(m_float*)(VALUE + SZ_FLOAT*2));
+  INTERP_PRINTF("%%(%.4f, %.4f, %.4f)", *(m_float*)VALUE, *(m_float*)(VALUE + SZ_FLOAT), *(m_float*)(VALUE + SZ_FLOAT*2));
 }
 
 EQUALITY_OPER(vec3, SZ_VEC3);
@@ -306,7 +307,7 @@ static INSTR(Vec4RAssign) {
 }
 
 static GACK(gack_vec4) {
-  gw_out("%%(%.4f, %.4f, %.4f, %.4f)",
+  INTERP_PRINTF("%%(%.4f, %.4f, %.4f, %.4f)",
       *(m_float*)VALUE,
       *(m_float*)(VALUE + SZ_FLOAT),
       *(m_float*)(VALUE + SZ_FLOAT*2),

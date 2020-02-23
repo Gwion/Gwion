@@ -15,38 +15,39 @@
 #include "parser.h"
 #include "lang_private.h"
 #include "specialid.h"
+#include "gack.h"
 
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
-  gw_out("class(%s)", type->name);
+  INTERP_PRINTF("class(%s)", type->name)
 }
 
 static GACK(gack_function) {
-  gw_out("%s", t->name);
+  INTERP_PRINTF("%s", t->name)
 }
 
 static GACK(gack_fptr) {
   const VM_Code code = *(VM_Code*)VALUE;
   if(code)
-    gw_out("%s", code->name);
+    INTERP_PRINTF("%s", code->name)
   else
-    gw_out("%s", t->name);
+    INTERP_PRINTF("%s", t->name)
 }
 
 static GACK(gack_void) {
-  gw_out("(void)");
+ INTERP_PRINTF("void");
 }
 
 static GACK(gack_int) {
-  gw_out("%"INT_F, *(m_uint*)VALUE);
+  INTERP_PRINTF("%"INT_F, *(m_uint*)VALUE);
 }
 
 static GACK(gack_char) {
-  gw_out("%c", *(char*)VALUE);
+  INTERP_PRINTF("%c", *(char*)VALUE);
 }
 
 static GACK(gack_float) {
-  gw_out("%.4f", *(m_float*)VALUE);
+  INTERP_PRINTF("%.4f", *(m_float*)VALUE);
 }
 
 #define mk_class_instr(op, arg0, arg1, ...)                          \
