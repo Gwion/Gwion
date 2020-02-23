@@ -84,12 +84,12 @@ jobs:
         git add README.md coverage_num.txt
         git commit -m "Update coverage" || true
         git push || true
-        git push origin :gh-pages || true
         cp focus.js html
         cd html
         git add .
         git commit -m "Update html report"
-        git push origin --set-upstream origin gh-pages
+        git push
+#        git push origin --set-upstream origin gh-pages
 #        git add -f html
 #        git commit -m "Update html report"
 #        git subtree push --prefix html origin gh-pages
