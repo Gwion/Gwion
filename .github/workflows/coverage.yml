@@ -89,7 +89,7 @@ jobs:
         cd html
         git add .
         git commit -m "Update html report"
-        git push origin gh-pages
+        git push origin --set-upstream oirgin gh-pages
 #        git add -f html
 #        git commit -m "Update html report"
 #        git subtree push --prefix html origin gh-pages
