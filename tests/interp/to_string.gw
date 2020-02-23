@@ -1,0 +1,4 @@
+#! [contains] Hello, interpolation! 1
+1 => int my;
+`Hello, interpolation! ${ my }` => string s;
+<<< s >>>;
