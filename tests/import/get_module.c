@@ -17,15 +17,15 @@ GWMODSTR(dummy_module);
 
 GWMODINI(dummy_module) {
   puts(__func__);
-  return NULL;
+  return (void*)2; // we need to return something
 }
 GWMODEND(dummy_module) {
   puts(__func__);
 }
 
 GWION_IMPORT(dummy_module) {
-  GWI_OB(get_module(gwi->gwion, "dummy_module"))
-  puts("test passed!");
+  CHECK_OB(get_module(gwi->gwion, "dummy_module"))
+  puts("test passed");
   get_module(gwi->gwion, "non_existant_module");
   return GW_OK;
 }

@@ -74,11 +74,13 @@ ANN static void gwion_core(const Gwion gwion) {
 ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
   gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
-  if(gwion_audio(gwion) > 0 && gwion_engine(gwion)) {
-    gwion_cleaner(gwion);
+  if(gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);
-    gwion_compile(gwion, &arg->add);
-    return GW_OK;
+    if(gwion_engine(gwion)) {
+      gwion_cleaner(gwion);
+      gwion_compile(gwion, &arg->add);
+      return GW_OK;
+    }
   }
   return GW_ERROR;
 }
