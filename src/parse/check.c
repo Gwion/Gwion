@@ -939,6 +939,11 @@ ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
   return v->type;
 }
 
+ANN static Type check_exp_interp(const Env env, const Exp_Interp* exp) {
+  CHECK_OO(check_exp(env, exp->exp))
+  return env->gwion->type[et_string];
+}
+
 DECL_EXP_FUNC(check, Type, Env)
 
 ANN Type check_exp(const Env env, const Exp exp) {

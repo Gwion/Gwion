@@ -189,6 +189,10 @@ ANN static inline m_bool scan2_exp_typeof(const restrict Env env, const Exp_Type
   return scan2_exp(env, exp->exp);
 }
 
+ANN static inline m_bool scan2_exp_interp(const restrict Env env, const Exp_Interp *exp) {
+  return scan2_exp(env, exp->exp);
+}
+
 ANN static inline m_bool _scan2_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
   CHECK_BB(scan2_exp(env, stmt->cond))
   if(stmt->when)

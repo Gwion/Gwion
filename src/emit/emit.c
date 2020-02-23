@@ -598,9 +598,19 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
+ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
+  if(prim_exp(tuple)->meta == ae_meta_var)
+    return GW_OK;
+  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
+}
+
+#define emit_prim_complex emit_prim_vec
+#define emit_prim_polar   emit_prim_vec
+#define emit_prim_nil     (void*)dummy_func
+
+ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
   regpushi(emit, 0);
-  Exp e = *exp, next = NULL;
+  Exp e = exp, next = NULL;
   do {
     next = e->next;
     e->next = NULL;
@@ -612,20 +622,15 @@ ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
     instr->m_val = (m_uint)e->type;
     instr->m_val2 = emit_code_offset(emit);
   } while((e = e->next = next));
+  return GW_OK;
+}
+
+ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
+  CHECK_BB(emit_interp(emit, *exp))
   if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
     emit_add_instr(emit, GackEnd);
   return GW_OK;
 }
-
-ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
-  if(prim_exp(tuple)->meta == ae_meta_var)
-    return GW_OK;
-  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
-}
-
-#define emit_prim_complex emit_prim_vec
-#define emit_prim_polar   emit_prim_vec
-#define emit_prim_nil     (void*)dummy_func
 
 DECL_PRIM_FUNC(emit, m_bool , Emitter);
 ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
@@ -1236,6 +1241,13 @@ ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
     regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->type)));
   else
     regpushi(emit, (m_uint)exp->exp->type);
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_interp(const Emitter emit, const Exp_Interp *exp) {
+  CHECK_BB(emit_interp(emit, exp->exp))
+  const Instr instr = emit_add_instr(emit, GackEnd);
+  instr->m_val = 1;
   return GW_OK;
 }
 

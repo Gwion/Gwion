@@ -197,6 +197,10 @@ ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Type
   return scan1_exp(env, exp->exp);
 }
 
+ANN static inline m_bool scan1_exp_interp(const restrict Env env, const Exp_Interp *exp) {
+  return scan1_exp(env, exp->exp);
+}
+
 #define scan1_exp_lambda dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, Env)
 
