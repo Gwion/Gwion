@@ -70,6 +70,7 @@ ANN void gack(const VM_Shred shred, const Instr instr) {
   } else {
     prepare_call(shred, instr->m_val2);
     shred->code = code;
+    POP_REG(shred, SZ_INT*2);
   }
   return;
 }
