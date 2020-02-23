@@ -166,8 +166,8 @@ PushStaticCode
 GcIni
 GcAdd
 GcEnd
-Gack
 GackEnd
+Gack
 NoOp
 DotTmplVal
 OP_MAX
