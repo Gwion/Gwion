@@ -88,7 +88,7 @@ jobs:
         cp focus.js html
         cd html
         git commit -m "Update html report"
-        git push
+        git push origin gh-pages
 #        git add -f html
 #        git commit -m "Update html report"
 #        git subtree push --prefix html origin gh-pages
