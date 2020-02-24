@@ -355,8 +355,8 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     register union {
       M_Object obj;
       VM_Code code;
-      VM_Shred child;
     } a;
+    register VM_Shred child;
   MUTEX_LOCK(s->mutex);
   do {
     SDISPATCH();
@@ -666,7 +666,7 @@ funcmemberend:
   }
   PC_DISPATCH(shred->pc)
 sporkini:
-  if(!(a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
+  if(!(child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
     exception(shred, "[SporkAbortedException]");
     continue;
   }
@@ -675,27 +675,27 @@ sporkfunc:
 //  LOOP_OPTIM
 PRAGMA_PUSH()
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
-  a.child->reg += VAL;
+    *(m_uint*)(child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
+  child->reg += VAL;
   DISPATCH()
 PRAGMA_POP()
 sporkmemberfptr:
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg - VAL + i);
-  *(m_uint*)(a.child->reg + VAL) = *(m_uint*)(reg - SZ_INT*2);
-  *(m_uint*)(a.child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
-  a.child->reg += VAL + SZ_INT*2;
+    *(m_uint*)(child->reg + i) = *(m_uint*)(reg - VAL + i);
+  *(m_uint*)(child->reg + VAL) = a.obj;
+  *(m_uint*)(child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
+  child->reg += VAL + SZ_INT*2;
   DISPATCH()
 sporkexp:
 //  LOOP_OPTIM
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
+    *(m_uint*)(child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
 forkend:
-  fork_launch(vm, a.child->info->me, VAL2);
+  fork_launch(vm, child->info->me, VAL2);
 sporkend:
   assert(!VAL); // spork are not mutable
-  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  *(M_Object*)(reg-SZ_INT) = child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
