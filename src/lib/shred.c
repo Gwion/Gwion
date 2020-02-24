@@ -73,8 +73,8 @@ static SFUN(vm_shred_from_id) {
         return;
       }
     }
-  } else
-      *(m_uint*)RETURN = 0;
+  }
+  *(m_uint*)RETURN = 0;
 }
 
 static MFUN(shred_args) {
