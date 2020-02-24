@@ -104,4 +104,4 @@ test:
 	@bash scripts/test.sh ${test_dir}
 
 include $(wildcard .d/*.d)
-include util/intl.mk
+include util/locale.mk
