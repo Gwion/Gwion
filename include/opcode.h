@@ -169,6 +169,7 @@ enum {
   eGcIni,
   eGcAdd,
   eGcEnd,
+  eGackType,
   eGackEnd,
   eGack,
   eNoOp,
@@ -345,6 +346,7 @@ enum {
 #define  GcIni               (f_instr)eGcIni
 #define  GcAdd               (f_instr)eGcAdd
 #define  GcEnd               (f_instr)eGcEnd
+#define  GackType            (f_instr)eGackType
 #define  GackEnd             (f_instr)eGackEnd
 #define  Gack                (f_instr)eGack
 #define  NoOp                (f_instr)eNoOp

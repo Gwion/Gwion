@@ -340,7 +340,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
-    &&gackend, &&gack, &&noop, &&regpushimm, &&other, &&eoc
+    &&gacktype, &&gackend, &&gack, &&noop, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -849,6 +849,13 @@ gcend:
   while((a.obj = (M_Object)vector_pop(&shred->gc)))
     _release(a.obj, shred);
   DISPATCH()
+gacktype:
+{
+  const M_Object o = *(M_Object*)(reg - SZ_INT);
+  if(o)
+    *(Type*)reg = o->type_ref;
+  DISPATCH()
+}
 gackend:
 {
   m_str str = *(m_str*)(reg - SZ_INT);

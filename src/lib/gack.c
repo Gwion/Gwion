@@ -62,12 +62,7 @@ ANN static void prepare_call(const VM_Shred shred, m_uint offset) {
 }
 
 ANN void gack(const VM_Shred shred, const Instr instr) {
-  Type t = (Type)instr->m_val;
-  if(isa(t, shred->info->vm->gwion->type[et_object]) > 0 && !GET_FLAG(t, force)) {
-    const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
-    if(o)
-      t = o->type_ref;
-  }
+  const Type t = *(Type*)shred->reg;
   const VM_Code code = get_gack(t);
   if(GET_FLAG(code, builtin)) {
     ((f_gack)code->native_func)(t, (shred->reg - t->size), shred);

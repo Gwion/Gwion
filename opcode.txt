@@ -166,6 +166,7 @@ PushStaticCode
 GcIni
 GcAdd
 GcEnd
+GackType
 GackEnd
 Gack
 NoOp
