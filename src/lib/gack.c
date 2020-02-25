@@ -68,7 +68,9 @@ ANN void gack(const VM_Shred shred, const Instr instr) {
     ((f_gack)code->native_func)(t, (shred->reg - t->size), shred);
     POP_REG(shred, t->size);
   } else {
-    prepare_call(shred, instr->m_val2);
+    const m_uint offset = ((m_uint)shred->mem - SIZEOF_REG) != ((m_uint)shred + sizeof(struct VM_Shred_)) ?
+      instr->m_val2 : 0;
+    prepare_call(shred, offset);
     shred->code = code;
     POP_REG(shred, SZ_INT*2);
   }

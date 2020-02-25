@@ -682,7 +682,7 @@ PRAGMA_POP()
 sporkmemberfptr:
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
     *(m_uint*)(child->reg + i) = *(m_uint*)(reg - VAL + i);
-  *(m_uint*)(child->reg + VAL) = a.obj;
+  *(M_Object*)(child->reg + VAL) = a.obj;
   *(m_uint*)(child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
   child->reg += VAL + SZ_INT*2;
   DISPATCH()
