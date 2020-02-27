@@ -10,8 +10,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       name: Checkout
-    - uses: actions/setup-haskell@v1
-      name: Setup Haskell
     - uses: actions/setup-python@v1
       name: Setup Python
     - uses: actions/setup-ruby@v1
@@ -36,25 +34,15 @@ jobs:
       run: |
         git clone https://github.com/fennecdjay/mdr
         cd mdr
-        cabal update
-        cabal install --only-dependencies
-        cabal configure
-        cabal build
-        cabal install
+        make
 
     - name: Mdr
       if: steps.mdr-bin.outputs.cache-hit == 'true'
       run: |
         cd mdr
-        cabal update
-        cabal install --only-dependencies
-        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/mdr.git HEAD | cut -f1) ]
-        then
-          git pull
-          cabal configure
-          cabal build
-        fi
-        cabal install
+        git pull
+        git checkout master
+        make
 
     - uses: actions/cache@v1
       name: Gwion [ cache ]
@@ -139,6 +127,7 @@ jobs:
         ./chuck benchmark/string-equals.ck
         export PATH=./wren:$PATH
         export PATH=./lua:$PATH
+        export PATH=./mdr:$PATH
         export PATH=./Gwion:$PATH
         export PATH=.:$PATH
         bash scripts/benchmark.sh
