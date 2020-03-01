@@ -330,8 +330,8 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv,
     &&itof, &&ftoi,
     &&timeadv,
-    &&setcode, &&funcptr, &&funcmember,
-    &&funcusr, &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&next, &&funcusrend, &&funcmemberend,
+    &&setcode,
+    &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
@@ -603,28 +603,22 @@ timeadv:
   VM_OUT
   break;
 setcode:
-  a.code = *(VM_Code*)(reg-SZ_INT);
-funcptr:
 PRAGMA_PUSH()
   reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
-  if(!GET_FLAG((VM_Code)a.code, builtin))
-    goto funcusr;
+  if(!GET_FLAG((VM_Code)a.code, builtin)) {
+    register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
+    mem += push;
+    *(m_uint*)  mem = push;mem += SZ_INT;
+    *(VM_Code*) mem = code; mem += SZ_INT;
+    *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
+    *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
+    next = eFuncUsrEnd;
+  } else {
+    mem += *(m_uint*)(reg + SZ_INT);
+    next = eFuncMemberEnd;
+  }
 PRAGMA_POP()
-funcmember:
-  mem += *(m_uint*)(reg + SZ_INT);
-  next = eFuncMemberEnd;
-  goto regpop;
-funcusr:
-{
-  register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
-  mem += push;
-  *(m_uint*)  mem = push;mem += SZ_INT;
-  *(VM_Code*) mem = code; mem += SZ_INT;
-  *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
-  *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
-  next = eFuncUsrEnd;
-}
 regpop:
   reg -= VAL;
   DISPATCH();
@@ -643,7 +637,6 @@ overflow:
     exception(shred, "StackOverflow");
     continue;
   }
-next:
 PRAGMA_PUSH()
   goto *dispatch[next];
 PRAGMA_POP()

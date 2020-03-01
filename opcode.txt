@@ -115,15 +115,11 @@ CastI2F
 CastF2I
 Time_Advance
 SetCode
-FuncPtr
-FuncMember
-FuncUsr
 RegPop
 RegPush
 Reg2Mem
 Reg2Mem4
 Overflow
-Next
 FuncUsrEnd
 FuncMemberEnd
 SporkIni
