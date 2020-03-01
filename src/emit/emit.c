@@ -234,7 +234,7 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) {
   regset->m_val2 = SZ_INT *2;
   const Instr push = emit_add_instr(emit, RegPush);
   push->m_val = SZ_INT *2;
-  const Instr prelude = emit_add_instr(emit, !GET_FLAG(code, builtin) ? FuncUsr : FuncMember);
+  const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
   prelude->m_val = SZ_INT;
   emit_add_instr(emit, Reg2Mem);
@@ -944,16 +944,14 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
 }
 
 ANN static Instr get_prelude(const Emitter emit, const Func f) {
-  Instr instr;
   const Type t = actual_type(emit->gwion, f->value_ref->type);
-  if(!is_fptr(emit->gwion, t))
-    instr = emit_add_instr(emit, !GET_FLAG(f, builtin) ? FuncUsr : SetCode);
-  else {
+  if(is_fptr(emit->gwion, t)) {
     emit_except(emit, t);
     if(f->def->base->tmpl)
       tmpl_prelude(emit, f);
-    instr = emit_add_instr(emit, FuncPtr);
+
   }
+  const Instr instr = emit_add_instr(emit, SetCode);
   instr->m_val2 = 1;
   return instr;
 }

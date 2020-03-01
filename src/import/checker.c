@@ -175,7 +175,7 @@ ANN static Type_List _str2tl(const Gwi gwi, const m_str s) {
 
 ANN Type_List tlnext(const Gwi gwi, const m_str s, size_t split) {
   char curr[split+1];
-  strncpy(curr, s, split);
+  memcpy(curr, s, split);
   curr[split] = '\0';
   const Type_List tl = _str2tl(gwi, curr);
   tl->next = str2tl(gwi, s + split + 1);
@@ -290,7 +290,7 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   const m_str base = ck->name;
   char str[strlen(base) + 1];
   const m_str c = strchr(ck->name, '<');
-  strncpy(str, base, strlen(base) - (c ? strlen(c) : 0));
+  memcpy(str, base, strlen(base) - (c ? strlen(c) : 0));
   str[strlen(base) - (c ? strlen(c) : 0)] = '\0';
   ck->name = str;
   CHECK_OB((ck->sym = str2sym(gwi, str)))

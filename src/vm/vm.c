@@ -606,19 +606,17 @@ setcode:
   a.code = *(VM_Code*)(reg-SZ_INT);
 funcptr:
 PRAGMA_PUSH()
+  reg -= SZ_INT;
+  a.code = *(VM_Code*)reg;
   if(!GET_FLAG((VM_Code)a.code, builtin))
     goto funcusr;
 PRAGMA_POP()
 funcmember:
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
   mem += *(m_uint*)(reg + SZ_INT);
   next = eFuncMemberEnd;
   goto regpop;
 funcusr:
 {
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
   register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
   mem += push;
   *(m_uint*)  mem = push;mem += SZ_INT;
