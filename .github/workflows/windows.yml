@@ -26,4 +26,6 @@ jobs:
         USE_DOUBLE: ${{ matrix.double }}
         BUILD_ON_WINDOWS: 1
     - run: echo ./Gwion/gwion.exe -h
-    - run: ./Gwion/gwion.exe -h
+    - run: ./Gwion/gwion.exe -h || true
+    - run: gwion -h || true
+    - run: gwion.exe -h || true
