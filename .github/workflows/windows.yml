@@ -25,6 +25,6 @@ jobs:
         CC: gcc
         USE_DOUBLE: ${{ matrix.double }}
         BUILD_ON_WINDOWS: 1
-    - run: which gwion; ls Gwion; ls -al Gwion/gwion.exe
+    - run: which gwion; ls Gwion; ls -l Gwion/gwion.exe
     - run: echo ./Gwion/gwion.exe -h
     - run: ./Gwion/gwion.exe -h
