@@ -619,12 +619,9 @@ ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
       return GW_ERROR;
     }
     regseti(emit, (m_uint)e->type);
-    if(isa(e->type, emit->gwion->type[et_object]) > 0 && !GET_FLAG(e->type, force)) {
-      emit_add_instr(emit, GackType);
-    }
-    const Instr instr = emit_add_instr(emit, Gack);
     if(isa(e->type, emit->gwion->type[et_object]) > 0 && !GET_FLAG(e->type, force))
       emit_add_instr(emit, GackType);
+    const Instr instr = emit_add_instr(emit, Gack);
     instr->m_val = emit_code_offset(emit);
   } while((e = e->next = next));
   return GW_OK;
