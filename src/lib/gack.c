@@ -27,7 +27,11 @@ ANN2(2) static int gw_vasprintf(MemPool mp, char **str, const char *fmt, va_list
   char *ret = mp_malloc2(mp, base_len + size + 1);
   if(base)
     strcpy(ret, base);
-  DECL_BB(const int, final_len, = vsprintf(ret + base_len, fmt, args))
+  const int final_len = vsprintf(ret + base_len, fmt, args);
+  if(final_len < 0) {
+    mp_free2(mp, base_len + size + 1, ret);
+    return -1;
+  }
   if(base)
     mp_free2(mp, strlen(base), base);
   *str = ret;
