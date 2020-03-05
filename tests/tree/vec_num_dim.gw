@@ -1,2 +1,2 @@
 #! a vec3 with only two expressions
-[ @(0.0- 0.0, 0.0) ];
+[ Vec3(0.0- 0.0, 0.0) ];

@@ -534,21 +534,24 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
   return GW_OK;
 }
 
+ANN static void emit_vec_addr(const Emitter emit, const m_uint sz) {
+  emit_local(emit, sz, 0);
+  const m_uint offset = emit_local(emit, SZ_INT, 0);
+  const Instr cpy = emit_add_instr(emit, VecCpy);
+  cpy->m_val = offset;
+  cpy->m_val2 = sz;
+  const Instr instr = emit_add_instr(emit, RegPushMem);
+  instr->m_val = offset;
+}
+
 ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {
   const ae_prim_t t = prim_self(vec)->prim_type;
   CHECK_BB(emit_exp(emit, vec->exp, 0));
   m_int n = (m_int)((t == ae_prim_vec ? 3 : 2) - vec->dim + 1);
   while(--n > 0)
     emit_add_instr(emit, RegPushImm2);
-  if(prim_exp(vec)->emit_var) {
-    emit_local(emit, prim_exp(vec)->type->size, 0);
-    const m_uint offset = emit_local(emit, SZ_INT, 0);
-    const Instr cpy = emit_add_instr(emit, VecCpy);
-    cpy->m_val = offset;
-    cpy->m_val2 = prim_exp(vec)->type->size;
-    const Instr instr = emit_add_instr(emit, RegPushMem);
-    instr->m_val = offset;
-  }
+  if(prim_exp(vec)->emit_var)
+    emit_vec_addr(emit, prim_exp(vec)->type->size);
   return GW_OK;
 }
 
@@ -804,8 +807,16 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
 }
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
-  CHECK_BB(prepare_call(emit, exp_call))
-  return emit_exp_call1(emit, exp_call->m_func) ? GW_OK : GW_ERROR;
+  if(exp_call->m_func) {
+    CHECK_BB(prepare_call(emit, exp_call))
+    return emit_exp_call1(emit, exp_call->m_func) ? GW_OK : GW_ERROR;
+  }
+  if(exp_call->args)
+    CHECK_BB(emit_exp(emit, exp_call->args, 1))
+  const Exp e = exp_self(exp_call);
+  if(e->emit_var)
+    emit_vec_addr(emit, e->type->size);
+  return GW_OK;
 }
 
 ANN static m_uint get_decl_size(Var_Decl_List a) {

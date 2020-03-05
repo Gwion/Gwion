@@ -1,2 +1,2 @@
 #! [contains] extraneous component of
- @(0,0,0,0,0);
+ Vec4(0,0,0,0,0);

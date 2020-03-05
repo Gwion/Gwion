@@ -123,7 +123,7 @@ static GACK(gack_polar) {
 }
 
 EQUALITY_OPER(complex, SZ_COMPLEX)
-
+OP_CHECK(vecx_ck);
 GWION_IMPORT(complex) {
 // should be special
   const Type t_complex = gwi_class_spe(gwi, "complex", SZ_COMPLEX);
@@ -143,6 +143,13 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_item_ini(gwi, "float", "phase"))
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
+
+  GWI_BB(gwi_oper_ini(gwi, "complex", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_end(gwi, "@ctor",   NULL))
+  GWI_BB(gwi_oper_ini(gwi, "polar", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_end(gwi, "@ctor",   NULL))
   GWI_BB(gwi_oper_ini(gwi, "complex", "complex", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          complex_eq))
   GWI_BB(gwi_oper_end(gwi, "!=",          complex_ne))

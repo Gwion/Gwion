@@ -163,6 +163,35 @@ static GACK(gack_vec3) {
 
 EQUALITY_OPER(vec3, SZ_VEC3);
 
+OP_CHECK(vecx_ck) {
+  Exp_Call *call = (Exp_Call*)data;
+  Exp e = call->args, last = NULL;
+  int i = 0;
+  const Type t_float = env->gwion->type[et_float];
+  while(e) {
+    CHECK_BO(check_implicit(env, e, t_float))
+    i += SZ_FLOAT;
+    last = e;
+    e = e->next;
+  }
+  const Type t = call->func->type->e->d.base_type;
+  while(i > t->size) {
+    env_err(env, last->pos, "extraneous component of %s value", t->name);
+    return NULL;
+  }
+  if(!call->args) {
+    call->args = last = new_prim_float(env->gwion->mp, 0.0, loc_cpy(env->gwion->mp, call->func->pos));
+    last->type = t_float;
+    i += SZ_FLOAT;
+  }
+  while(i < t->size) {
+    last = (last->next = new_prim_float(env->gwion->mp, 0.0, loc_cpy(env->gwion->mp, last->pos)));
+    last->type = t_float;
+    i += SZ_FLOAT;
+  }
+  return t;
+}
+
 GWION_IMPORT(vec3) {
   const Type t_vec3 = gwi_class_spe(gwi, "Vec3", SZ_VEC3);
   gwi->gwion->type[et_vec3] = t_vec3;
@@ -203,6 +232,10 @@ GWION_IMPORT(vec3) {
   gwi_func_arg(gwi, "float", "slew");
   GWI_BB(gwi_func_end(gwi, vec3_update_set_slew, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
+
+  GWI_BB(gwi_oper_ini(gwi, "Vec3", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          vec3_eq))
@@ -337,6 +370,11 @@ GWION_IMPORT(vec4) {
     gwi_func_ini(gwi, "void", "normalize");
   CHECK_BB(gwi_func_end(gwi, vec4_normalize, ae_flag_none))
   CHECK_BB(gwi_class_end(gwi))
+
+  GWI_BB(gwi_oper_ini(gwi, "Vec4", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
   GWI_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          vec4_eq))
   GWI_BB(gwi_oper_end(gwi, "!=",          vec4_ne))

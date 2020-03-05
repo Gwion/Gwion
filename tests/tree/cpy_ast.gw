@@ -3,7 +3,7 @@ class <~A~>C {
   [ 1 ];
   int i,j;
   typeof(i) k;
-  @(0);
+  Vec3(0);
   'a';
   true $ int;
   i++;

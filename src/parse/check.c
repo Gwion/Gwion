@@ -28,7 +28,7 @@ ANN static m_bool check_internal(const Env env, const Symbol sym,
   return GW_OK;
 }
 
-ANN static inline m_bool check_implicit(const Env env, const Exp e, const Type t) {
+ANN /*static inline */m_bool check_implicit(const Env env, const Exp e, const Type t) {
   const Symbol sym = insert_symbol("@implicit");
   return check_internal(env, sym, e, t);
 }
@@ -446,6 +446,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
 
 ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
+printf("func %p %s\n", func, func->name);
   do {
     Exp e = args;
     Arg_List e1 = func->def->base->args;
@@ -746,8 +747,15 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
 
 ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
   CHECK_OB(check_exp(env, exp))
-  if(isa(exp->type, env->gwion->type[et_function]) < 0)
+  if(isa(exp->type, env->gwion->type[et_function]) < 0) {
+    if(isa(exp->type, env->gwion->type[et_class]) > 0) {
+puts("here:!:");
+//const Type t = exp->type->e->d.base_type;
+//const Func func = nspc_lookup_func0(t->e->owner, insert_symbol(t->name));
+//exp->type = func->value_ref->type;
+    } else
     ERR_B(exp->pos, _("function call using a non-function value"))
+  }
   return GW_OK;
 }
 
@@ -773,6 +781,12 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_BO(check_exp_call1_check(env, exp->func))
+  if(isa(exp->func->type, env->gwion->type[et_function]) < 0) {
+    if(exp->args)
+      CHECK_OO(check_exp(env, exp->args))
+    struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp->func->type->e->d.base_type, .data=(uintptr_t)exp, .pos=exp_self(exp)->pos };
+    return op_check(env, &opi);
+  }
   if(exp->func->type == env->gwion->type[et_lambda])
     return check_lambda_call(env, exp);
   if(GET_FLAG(exp->func->type->e->d.func, ref)) {
