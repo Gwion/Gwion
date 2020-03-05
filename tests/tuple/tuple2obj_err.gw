@@ -1,2 +1,2 @@
 #! [contains] can't cast
-<(1) @=> <~int~>Ptr ptr;
+Tuple(1) @=> <~int~>Ptr ptr;

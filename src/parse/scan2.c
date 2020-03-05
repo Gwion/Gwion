@@ -120,8 +120,6 @@ ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
     return scan2_exp(env, prim->d.array->exp);
   else if(prim->prim_type == ae_prim_range)
     return scan2_range(env, prim->d.range);
-  if(prim->prim_type == ae_prim_tuple)
-    return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 

@@ -544,29 +544,11 @@ ANN static void emit_vec_addr(const Emitter emit, const m_uint sz) {
   instr->m_val = offset;
 }
 
-ANN static m_bool emit_prim_vec(const Emitter emit, const Vec *vec) {
-  const ae_prim_t t = prim_self(vec)->prim_type;
-  CHECK_BB(emit_exp(emit, vec->exp, 0));
-  m_int n = (m_int)((t == ae_prim_vec ? 3 : 2) - vec->dim + 1);
-  while(--n > 0)
-    emit_add_instr(emit, RegPushImm2);
-  if(prim_exp(vec)->emit_var)
-    emit_vec_addr(emit, prim_exp(vec)->type->size);
-  return GW_OK;
-}
-
 ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ * spid = specialid_get(emit->gwion, *data);
   if(spid)
     return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
   return emit_symbol(emit, prim_self(data));
-}
-
-ANN static m_bool emit_prim_tuple(const Emitter emit, const Tuple *tuple) {
-  CHECK_BB(emit_exp(emit, tuple->exp, 1))
-  const Instr instr = emit_add_instr(emit, TupleCtor);
-  instr->m_val = (m_uint)prim_exp(tuple)->type;
-  return GW_OK;
 }
 
 ANN static m_bool emit_prim_num(const Emitter emit, const m_uint *num) {
@@ -813,9 +795,11 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   }
   if(exp_call->args)
     CHECK_BB(emit_exp(emit, exp_call->args, 1))
-  const Exp e = exp_self(exp_call);
-  if(e->emit_var)
-    emit_vec_addr(emit, e->type->size);
+    struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp_call->func->type->e->d.base_type, .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos };
+    CHECK_OB(op_emit(emit, &opi))
+    const Exp e = exp_self(exp_call);
+    if(e->emit_var)
+      emit_vec_addr(emit, e->type->size);
   return GW_OK;
 }
 

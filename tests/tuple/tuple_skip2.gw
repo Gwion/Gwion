@@ -1,6 +1,6 @@
-<("Tom", 2, "Taxi driver") @=> <~string,_, string~>Tuple @t;
+Tuple("Tom", 2, "Taxi driver") @=> <~string,_, string~>Tuple @t;
 <<< t>>>;
 <<< t[0]>>>;
-<("Tom", 2.3, "Cook") @=> t;
+Tuple("Tom", 2.3, "Cook") @=> t;
 #!<<< t[1]>>>;
 <<< t[2]>>>;

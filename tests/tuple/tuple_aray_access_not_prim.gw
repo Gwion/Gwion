@@ -1,2 +1,2 @@
 int i;
-<("Tom", 12)[i];
+Tuple("Tom", 12)[i];

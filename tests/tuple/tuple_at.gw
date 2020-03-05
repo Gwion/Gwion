@@ -1,4 +1,4 @@
-<<< <("Tom", 6) @=> 
+<<< Tuple("Tom", 6) @=> 
 <~string, int~>Tuple @tup >>>;
 <<< typeof(tup) >>>;
 <<< tup >>>;

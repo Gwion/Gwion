@@ -1,2 +1,2 @@
 #! [contains] cannot assign
-<("Tom", 6) @=> <("Pat", 22);
+Tuple("Tom", 6) @=> Tuple("Pat", 22);

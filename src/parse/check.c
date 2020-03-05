@@ -292,63 +292,11 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
   return prim_id_non_res(env, data);
 }
 
-ANN static m_bool vec_value(const Env env, Exp e) {
-  CHECK_OB(check_exp(env, e))
-  const Type t_float = env->gwion->type[et_float];
-  do CHECK_BB(check_implicit(env, e, t_float))
-  while((e = e->next));
-  return GW_OK;
-}
-
-struct VecInfo {
-  Type   t;
-  m_str  s;
-  m_uint n;
-};
-
-ANN static void vec_info(const Env env, const ae_prim_t t, struct VecInfo* v) {
-  if(t == ae_prim_complex) {
-    v->s = "complex";
-    v->t = env->gwion->type[et_complex];
-    v->n = 2;
-  } else if(t == ae_prim_vec) {
-    v->t = env->gwion->type[v->n == 4 ? et_vec4 : et_vec3];
-    v->n = 4;
-    v->s = "vector";
-  } else {
-    v->s = "polar";
-    v->t = env->gwion->type[et_polar];
-    v->n = 2;
-  }
-}
-
-ANN static Type check_prim_vec(const Env env, const Vec *vec) {
-  const ae_prim_t t = prim_self(vec)->prim_type;
-  struct VecInfo info = { .n=vec->dim };
-  vec_info(env, t, &info);
-  if(vec->dim > info.n)
-    ERR_O(vec->exp->pos, _("extraneous component of %s value..."), info.s)
-  CHECK_BO(vec_value(env, vec->exp))
-  return info.t;
-}
-
 ANN static Type check_prim_hack(const Env env, const Exp *data) {
   if(env->func)
     UNSET_FLAG(env->func, pure);
   CHECK_OO((check_exp(env, *data)))
   return env->gwion->type[et_gack];
-}
-
-ANN static Type check_prim_tuple(const Env env, const Tuple *tuple) {
-  CHECK_OO(check_exp(env, tuple->exp))
-  struct Vector_ v;
-  vector_init(&v);
-  Exp e = tuple->exp;
-  do vector_add(&v, (m_uint)e->type);
-  while((e = e->next));
-  const Type ret = tuple_type(env, &v, prim_pos(tuple));
-  vector_release(&v);
-  return ret;
 }
 
 #define describe_prim_xxx(name, type) \
@@ -446,7 +394,6 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
 
 ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp args,
   const m_bool implicit, const m_bool specific) {
-printf("func %p %s\n", func, func->name);
   do {
     Exp e = args;
     Arg_List e1 = func->def->base->args;
@@ -745,20 +692,6 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   return func->def->base->ret_type;
 }
 
-ANN static m_bool check_exp_call1_check(const Env env, const Exp exp) {
-  CHECK_OB(check_exp(env, exp))
-  if(isa(exp->type, env->gwion->type[et_function]) < 0) {
-    if(isa(exp->type, env->gwion->type[et_class]) > 0) {
-puts("here:!:");
-//const Type t = exp->type->e->d.base_type;
-//const Func func = nspc_lookup_func0(t->e->owner, insert_symbol(t->name));
-//exp->type = func->value_ref->type;
-    } else
-    ERR_B(exp->pos, _("function call using a non-function value"))
-  }
-  return GW_OK;
-}
-
 ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
@@ -780,12 +713,16 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
-  CHECK_BO(check_exp_call1_check(env, exp->func))
+  CHECK_OO(check_exp(env, exp->func))
   if(isa(exp->func->type, env->gwion->type[et_function]) < 0) {
+    if(isa(exp->func->type, env->gwion->type[et_class]) < 0)
+      ERR_O(exp->func->pos, _("function call using a non-function value"))
     if(exp->args)
       CHECK_OO(check_exp(env, exp->args))
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp->func->type->e->d.base_type, .data=(uintptr_t)exp, .pos=exp_self(exp)->pos };
-    return op_check(env, &opi);
+    const Type t = op_check(env, &opi);
+    exp_self(exp)->nspc = t ? t->e->owner : NULL;
+    return t;
   }
   if(exp->func->type == env->gwion->type[et_lambda])
     return check_lambda_call(env, exp);

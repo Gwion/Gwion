@@ -355,12 +355,37 @@ static OP_CHECK(opck_tuple) {
   return at_depth(env, &next);
 }
 
+static OP_CHECK(tuple_ck) {
+  const Exp_Call *call = (Exp_Call*)data;
+  const Exp exp = call->args;
+  CHECK_OO(check_exp(env, exp))
+  struct Vector_ v;
+  vector_init(&v);
+  Exp e = exp;
+  do vector_add(&v, (m_uint)e->type);
+  while((e = e->next));
+  const Type ret = tuple_type(env, &v, exp_self(call)->pos);
+  vector_release(&v);
+  return ret;
+}
+
+static OP_EMIT(tuple_em) {
+  const Exp_Call *call = (Exp_Call*)data;
+  const Instr instr = emit_add_instr(emit, TupleCtor);
+  instr->m_val = (m_uint)exp_self(call)->type;
+  return instr;
+}
+
 GWION_IMPORT(tuple) {
   const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
   gwi_add_type(gwi, t_tuple);
   SET_FLAG(t_tuple, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
   gwi->gwion->type[et_tuple] = t_tuple;
   SET_FLAG(t_tuple, abstract | ae_flag_template);
+  GWI_BB(gwi_oper_ini(gwi, "Tuple", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, tuple_ck))
+  GWI_BB(gwi_oper_emi(gwi, tuple_em))
+  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
   GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))

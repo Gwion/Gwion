@@ -166,7 +166,7 @@ EQUALITY_OPER(vec3, SZ_VEC3);
 OP_CHECK(vecx_ck) {
   Exp_Call *call = (Exp_Call*)data;
   Exp e = call->args, last = NULL;
-  int i = 0;
+  size_t i = 0;
   const Type t_float = env->gwion->type[et_float];
   while(e) {
     CHECK_BO(check_implicit(env, e, t_float))

@@ -3,5 +3,5 @@ fun void test(<~string~>Tuple t) {
   <<< t[0] >>>;
 }
 
-<( "Tom", 21) => test;
-#!<("Tom") => test;
+Tuple( "Tom", 21) => test;
+#!Tuple("Tom") => test;

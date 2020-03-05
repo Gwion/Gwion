@@ -2,4 +2,4 @@ class C { int i; }
 fun void test(C c) {
 
 }
-<(1) => test;
+Tuple(1) => test;
