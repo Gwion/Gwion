@@ -7,7 +7,7 @@ class C
     second => now;
     string s;
     <<<   "test spork exp."  >>>;
-  } @=> Shred @shred;
+  } @=> Shred ref shred;
 }
 
 C c;

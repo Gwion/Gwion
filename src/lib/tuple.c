@@ -127,30 +127,6 @@ static OP_CHECK(opck_at_object_tuple) {
   return bin->rhs->type;
 }
 
-static OP_CHECK(opck_at_tuple) {
-  const Exp_Binary *bin = (Exp_Binary*)data;
-  if(bin->rhs->exp_type == ae_exp_primary &&
-    bin->rhs->d.prim.prim_type == ae_prim_unpack) {
-    Exp e = bin->rhs->d.prim.d.tuple.exp;
-    int i = 0;
-    do {
-      if(e->exp_type == ae_exp_decl) {
-        DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
-        e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
-        const Exp next = e->next;
-        e->next = NULL;
-        const m_bool ret = traverse_exp(env, e);
-        e->next = next;
-        CHECK_BO(ret)
-        bin->rhs->meta = ae_meta_var;
-      }
-      ++i;
-    } while((e = e->next));
-    return bin->lhs->type;
-  }
-  return opck_at_object_tuple(env, data, mut);
-}
-
 static OP_CHECK(opck_at_tuple_object) {
   const Exp_Binary *bin = (Exp_Binary*)data;
   if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
@@ -211,19 +187,6 @@ static OP_CHECK(opck_impl_tuple) {
   struct Implicit *imp = (struct Implicit*)data;
   CHECK_BN(tuple_match(env, imp->e->type, imp->t))
   return imp->t;
-}
-
-static OP_EMIT(opem_at_tuple) {
-  const Exp_Binary *bin = (Exp_Binary*)data;
-  if(!(bin->rhs->exp_type == ae_exp_primary &&
-      bin->rhs->d.prim.prim_type == ae_prim_unpack)) {
-    return emit_add_instr(emit, ObjectAssign);
-  }
-  const Exp e = bin->rhs->d.prim.d.tuple.exp;
-  const Vector v = &bin->lhs->type->e->tuple->types;
-  struct TupleEmit te = { .e=e, .v=v };
-  emit_unpack_instr(emit, &te);
-  return (Instr)GW_OK;
 }
 
 ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
@@ -381,20 +344,20 @@ static OP_CHECK(unpack_ck) {
   const Symbol decl = insert_symbol("auto");
   const Symbol skip = insert_symbol("_");
   Exp e = call->args;
-const Value v = nspc_lookup_value1(env->global_nspc, insert_symbol("false"));
+  const Value v = nspc_lookup_value1(env->global_nspc, insert_symbol("false"));
   while(e) {
     if(e->exp_type != ae_exp_primary || e->d.prim.prim_type != ae_prim_id)
       ERR_O(e->pos, _("invalid expression for unpack"))
     if(e->d.prim.d.var != skip) {
       const Symbol var = e->d.prim.d.var;
       memset(&e->d, 0, sizeof(union exp_data));
-e->type = env->gwion->type[et_auto];
-e->d.exp_decl.type = env->gwion->type[et_auto];
+      e->type = env->gwion->type[et_auto];
+      e->d.exp_decl.type = env->gwion->type[et_auto];
       e->exp_type = ae_exp_decl;
       e->d.exp_decl.td = new_type_decl(env->gwion->mp, new_id_list(env->gwion->mp, decl, loc_cpy(env->gwion->mp, e->pos)));
       e->d.exp_decl.list = new_var_decl_list(env->gwion->mp,
         new_var_decl(env->gwion->mp, var, NULL, loc_cpy(env->gwion->mp, e->pos)), NULL);
-e->d.exp_decl.list->self->value = v;
+      e->d.exp_decl.list->self->value = v;
     } else {
       e->d.prim.prim_type = ae_prim_nil;
       e->type = env->gwion->type[et_null];
@@ -464,8 +427,7 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_emi(gwi, tuple_em))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
-  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
+  GWI_BB(gwi_oper_add(gwi, opck_at_object_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_add(gwi, opck_cast_tuple))
   GWI_BB(gwi_oper_end(gwi, "$", NoOp))
@@ -481,19 +443,18 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_add(gwi, opck_impl_tuple))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Tuple", "Tuple", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_at_tuple))
-  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_object_tuple))
+  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_ini(gwi, "int", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_tuple))
 //  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   gwi_register_freearg(gwi, TupleUnpack, freearg_tuple_at);
 
-  const Type t_unpack = gwi_mk_type(gwi, "Unpack", SZ_INT, "Tuple");
+  const Type t_unpack = gwi_mk_type(gwi, "Unpack", 0, NULL);
   gwi_add_type(gwi, t_unpack);
   SET_FLAG(t_unpack, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
-  SET_FLAG(t_unpack, abstract | ae_flag_template);
+//  SET_FLAG(t_unpack, abstract | ae_flag_template);
   GWI_BB(gwi_oper_ini(gwi, "Unpack", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, unpack_ck))
   GWI_BB(gwi_oper_emi(gwi, unpack_em))

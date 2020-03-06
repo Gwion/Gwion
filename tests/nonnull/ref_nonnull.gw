@@ -1,3 +1,3 @@
 #! [contains] NullPtrException
-Object @a @=> Object !o;
+Object ref a @=> Object nonnull o;
 <<< o >>>;

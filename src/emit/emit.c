@@ -583,12 +583,6 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_unpack(const Emitter emit NUSED, const Tuple *tuple) {
-  if(prim_exp(tuple)->meta == ae_meta_var)
-    return GW_OK;
-  ERR_B(prim_pos(tuple), _("unused Tuple unpack"))
-}
-
 #define emit_prim_complex emit_prim_vec
 #define emit_prim_polar   emit_prim_vec
 #define emit_prim_nil     (void*)dummy_func
@@ -1577,8 +1571,6 @@ ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
 #define CASE_PASS (Symbol)1
 ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e) {
   if(e->exp_type == ae_exp_primary) {
-    if(e->d.prim.prim_type == ae_prim_unpack)
-      return insert_symbol("@=>");
     if(e->d.prim.prim_type == ae_prim_id) {
       if(e->d.prim.d.var == insert_symbol("_"))
         return CASE_PASS;

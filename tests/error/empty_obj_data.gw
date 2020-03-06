@@ -4,5 +4,5 @@ class C
 	int i;
 }
 
-C @c;
+C ref c;
 c.i;

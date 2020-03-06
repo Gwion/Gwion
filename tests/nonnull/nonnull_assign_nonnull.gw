@@ -1,2 +1,2 @@
-Object ! o, p;
+Object nonnull o, p;
 o @=> p;

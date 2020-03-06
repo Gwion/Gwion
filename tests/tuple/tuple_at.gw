@@ -1,5 +1,5 @@
 <<< Tuple("Tom", 6) @=> 
-<~string, int~>Tuple @tup >>>;
+<~string, int~>Tuple ref tup >>>;
 <<< typeof(tup) >>>;
 <<< tup >>>;
 <<< tup[0] >>>;

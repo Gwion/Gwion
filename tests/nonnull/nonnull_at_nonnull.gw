@@ -1,1 +1,1 @@
-new Object! @=> Object !o;
+new Object nonnull @=> Object nonnull o;

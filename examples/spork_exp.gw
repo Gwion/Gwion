@@ -9,7 +9,7 @@ class C
     string s;
     <<<  this,  " test spork exp. " , s >>>;
 
-  } @=> Shred @shred;
+  } @=> Shred ref shred;
 }
 
 C c;

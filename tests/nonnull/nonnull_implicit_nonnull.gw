@@ -1,2 +1,2 @@
-fun void test(Object !o) { <<< o >>>; }
-Object! o => test;
+fun void test(Object nonnull o) { <<< o >>>; }
+Object nonnull o => test;

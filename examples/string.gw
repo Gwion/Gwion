@@ -20,13 +20,13 @@ string s;
 
 #!me.exit();
 
-{ (1 + s)      @=> string @str; }
-{ (2.0 +s)      @=> string  @str; }
-{ (complex(2,1) + s) @=> string @str; }
-{ (polar(2,1) + s) @=> string @str; }
-{ (Vec3(2,1, 0) + s) @=> string @str; }
-{ (Vec4(2,1, 0, -1) + s) @=> string @str; }
-#!{ ("test" + s) @=> string @str; } // leak
+{ (1 + s)      @=> string ref str; }
+{ (2.0 +s)      @=> string  ref str; }
+{ (complex(2,1) + s) @=> string ref str; }
+{ (polar(2,1) + s) @=> string ref str; }
+{ (Vec3(2,1, 0) + s) @=> string ref str; }
+{ (Vec4(2,1, 0, -1) + s) @=> string ref str; }
+#!{ ("test" + s) @=> string ref str; } // leak
 
 
 <<<  11 +=> s >>>;

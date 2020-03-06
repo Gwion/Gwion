@@ -1,4 +1,4 @@
-Tuple([1,2], "Tom") @=> <~int[], string~>Tuple @tup;
+Tuple([1,2], "Tom") @=> <~int[], string~>Tuple ref tup;
 
 #!<<<tup[1]>>>;
 #!<<<tup[0][1]>>>;

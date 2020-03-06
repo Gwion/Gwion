@@ -5,6 +5,6 @@ class C {
 
 C c;
 C->D d;
-C->D @d_ref;
+C->D ref d_ref;
 
 <<<  c, " ", d, d_ref  >>>;

@@ -307,7 +307,6 @@ describe_prim_xxx(num, env->gwion->type[et_int])
 describe_prim_xxx(char, env->gwion->type[et_char])
 describe_prim_xxx(float, env->gwion->type[et_float])
 describe_prim_xxx(nil, env->gwion->type[et_void])
-describe_prim_xxx(unpack, env->gwion->type[et_tuple])
 
 #define check_prim_complex check_prim_vec
 #define check_prim_polar check_prim_vec
@@ -1125,9 +1124,7 @@ ANN static Value match_value(const Env env, const Exp_Primary* prim, const m_uin
 
 ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
   if(e->exp_type == ae_exp_primary) {
-    if(e->d.prim.prim_type == ae_prim_unpack)
-      return insert_symbol("@=>");
-    else if(e->d.prim.prim_type == ae_prim_id) {
+    if(e->d.prim.prim_type == ae_prim_id) {
       if(e->d.prim.d.var == insert_symbol("_"))
         return NULL;
       if(!nspc_lookup_value1(env->curr, e->d.prim.d.var)) {

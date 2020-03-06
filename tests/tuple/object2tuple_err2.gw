@@ -3,6 +3,6 @@ class Person {
   45 => int age;
 }
 
-Person p @=> <~string,int,float~>Tuple @t;
+Person p @=> <~string,int,float~>Tuple ref t;
 <<<t[0]>>>;
 <<<t[1]>>>;

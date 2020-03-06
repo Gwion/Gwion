@@ -1,3 +1,3 @@
 class C { int i; }
-C c @=> <~int~>Tuple @t;
-t @=> C @d;
+C c @=> <~int~>Tuple ref t;
+t @=> C ref d;

@@ -1,1 +1,1 @@
-Object ! o @=> Object @p;
+Object nonnull o @=> Object ref p;

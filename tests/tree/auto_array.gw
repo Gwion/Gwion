@@ -1,4 +1,4 @@
 int i[2][2];
-for(auto @a : i)
+for(auto ref a : i)
    <<< a >>>;
 <<< i >>>;

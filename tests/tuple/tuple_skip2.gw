@@ -1,4 +1,4 @@
-Tuple("Tom", 2, "Taxi driver") @=> <~string,_, string~>Tuple @t;
+Tuple("Tom", 2, "Taxi driver") @=> <~string,_, string~>Tuple ref t;
 <<< t>>>;
 <<< t[0]>>>;
 Tuple("Tom", 2.3, "Cook") @=> t;
