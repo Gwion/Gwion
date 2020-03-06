@@ -144,6 +144,7 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
+printf("here %s\n", nspc->name);
   if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@array")) {
     Array_Sub array = (Array_Sub)ock->opi->data;
     array->exp->nspc = nspc;
@@ -164,7 +165,9 @@ ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
     ((Exp)ock->opi->data)->nspc = nspc;
     return;
   }
-  exp_self((union exp_data*)ock->opi->data)->nspc = nspc;
+// use .mut
+  if(ock->opi->op != insert_symbol(ock->env->gwion->st, "@scan"))
+    exp_self((union exp_data*)ock->opi->data)->nspc = nspc;
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {

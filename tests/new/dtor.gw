@@ -1,11 +1,11 @@
 class <~A~>C {
-  operator @dtor void { <<< __func__ >>>; }
+  operator @dtor void () { <<< __func__ >>>; }
 }
 class <~A~>D extends <~A~>C {
-  operator @dtor { <<< __func__ >>>; }
+  operator @dtor void () { <<< __func__ >>>; }
 }
 class E extends <~int~>D {
-  operator @dtor { <<< __func__ >>>; }
+  operator @dtor void () { <<< __func__ >>>; }
 }
 
 E e;

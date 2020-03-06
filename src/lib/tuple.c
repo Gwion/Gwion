@@ -416,6 +416,12 @@ static OP_EMIT(opem_at_unpack) {
   return (Instr)GW_OK;
 }
 
+ANN static Type scan_tuple(const Env env, const Type_Decl *td);
+static OP_CHECK(opck_tuple_scan) {
+  struct TemplateScan *ts = (struct TemplateScan*)data;
+  return ts->td->types ? scan_tuple(env, ts->td) : ts->t;
+}
+
 GWION_IMPORT(tuple) {
   const Type t_tuple = gwi_mk_type(gwi, "Tuple", SZ_INT, "Object");
   gwi_add_type(gwi, t_tuple);
@@ -426,6 +432,8 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_add(gwi, tuple_ck))
   GWI_BB(gwi_oper_emi(gwi, tuple_em))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_tuple_scan))
+  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Tuple", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_at_object_tuple))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
@@ -474,4 +482,23 @@ GWION_IMPORT(tuple) {
   GWI_BB(gwi_oper_emi(gwi, opem_at_unpack))
   GWI_BB(gwi_oper_end(gwi, "==", NULL))
   return GW_OK;
+}
+
+static ANN Type scan_tuple(const Env env, const Type_Decl *td) {
+  struct Vector_ v;
+  vector_init(&v);
+  Type_List tl = td->types;
+  do {
+    const Type t = tl->td->xid->xid != insert_symbol("_") ?
+       known_type(env, tl->td) : (Type)1;
+    if(t)
+      vector_add(&v, (m_uint)t);
+    else {
+      vector_release(&v);
+      return env->gwion->type[et_null];
+    }
+  } while((tl = tl->next));
+  const Type ret = tuple_type(env, &v, td_pos(td));
+  vector_release(&v);
+  return ret;
 }

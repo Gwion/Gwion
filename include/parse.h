@@ -67,11 +67,18 @@ ANN m_bool scanx_cdef(const Env, void *,const Class_Def,
 #define xxx_cdef(prefix)                                                  \
 static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
   return scanx_cdef(env, env, cdef,                                       \
-      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);     \
+      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);      \
 }
-xxx_cdef(scan1)
-xxx_cdef(scan2)
-xxx_cdef(check)
+
+#define xxx_cdef_flag(prefix)                                             \
+static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
+  SET_FLAG(cdef, prefix);                                                 \
+  return scanx_cdef(env, env, cdef,                                       \
+      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);      \
+}
+xxx_cdef_flag(scan1)
+xxx_cdef_flag(scan2)
+xxx_cdef_flag(check)
 xxx_cdef(traverse)
 
 ANN m_bool scanx_fdef(const Env, void *, const Func_Def, const _exp_func);

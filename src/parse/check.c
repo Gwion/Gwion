@@ -978,6 +978,8 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     td.xid   = &id;
     tl.td    = &td0;
     td.types = &tl;
+    td0.xid->pos = stmt->exp->pos;
+    td.xid->pos = stmt->exp->pos;
     if(depth) {
       array.depth = depth;
       td.array = &array;

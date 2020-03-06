@@ -27,6 +27,12 @@ struct Implicit {
   Type  t;
   loc_t pos;
 };
+
+struct TemplateScan {
+  const Type  t;
+  const Type_Decl  *td;
+};
+
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
 ANN struct Instr_* op_emit(const Emitter, const struct Op_Import*);

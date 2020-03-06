@@ -11,6 +11,7 @@
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
+#include "template.h"
 #include "parse.h"
 #include "specialid.h"
 
@@ -225,6 +226,15 @@ static GACK(gack_object) {
   INTERP_PRINTF("%p", *(M_Object*)VALUE);
 }
 
+ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td);
+
+static OP_CHECK(opck_object_scan) {
+  struct TemplateScan *ts = (struct TemplateScan*)data;
+  if(ts->td->types)
+    return scan_class(env, ts->t, ts->td);
+  ERR_O(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
+}
+
 GWION_IMPORT(object) {
 const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
 gwi_add_type(gwi, t_object);
@@ -264,9 +274,127 @@ gwi_add_type(gwi, t_object);
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
+  GWI_BB(gwi_oper_ini(gwi, "Object", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_scan))
+  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
   struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;
+}
+struct tmpl_info {
+  const  Class_Def cdef;
+  Type_List        call;
+  struct Vector_   type;
+  struct Vector_   size;
+  uint8_t index;
+};
+
+ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
+  vector_add(&info->type, (vtype)t);
+  const size_t len = strlen(t->name);
+  vector_add(&info->size, len);
+  return len;
+}
+
+ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
+  ID_List base = info->cdef->base.tmpl->list;
+  Type_List call = info->call;
+  size_t size = tmpl_set(info, info->cdef->base.type);
+  do {
+    DECL_OB(const Type, t, = known_type(env, call->td))
+    size += tmpl_set(info, t);
+  } while((call = call->next) && (base = base->next) && ++size);
+  return size + 16 + 3;
+}
+
+ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
+  const Type t = (Type)vector_at(&info->type, info->index);
+  strcpy(str, t->name);
+  return str += vector_at(&info->size, info->index);
+}
+
+ANN static void template_name(struct tmpl_info* info, m_str s) {
+  m_str str = s;
+  str = tmpl_get(info, str);
+  *str++ = '<';
+  *str++ = '~';
+  const m_uint size = vector_size(&info->type);
+  for(info->index = 1; info->index < size; ++info->index) {
+    str = tmpl_get(info, str);
+    if(info->index < size - 1)
+      *str++ = ',';
+    else {
+      *str++ = '~';
+      *str++ = '>';
+    }
+  }
+  *str = '\0';
+}
+
+ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_List call) {
+  struct tmpl_info info = { .cdef=c, .call=call };
+  vector_init(&info.type);
+  vector_init(&info.size);
+  ssize_t sz = template_size(env, &info);
+  char name[sz];
+  if(sz > GW_ERROR)
+    template_name(&info, name);
+  vector_release(&info.type);
+  vector_release(&info.size);
+  return sz > GW_ERROR ? insert_symbol(env->gwion->st, name) : NULL;
+}
+
+ANN m_bool template_match(ID_List base, Type_List call) {
+  while((call = call->next) && (base = base->next));
+  return !call ? GW_OK : GW_ERROR;
+}
+
+ANN static Class_Def template_class(const Env env, const Class_Def def, const Type_List call) {
+  DECL_OO(const Symbol, name, = template_id(env, def, call))
+  if(env->class_def && name == insert_symbol(env->gwion->st, env->class_def->name))
+     return env->class_def->e->def;
+  const Type t = nspc_lookup_type1(env->curr, name);
+  if(t)
+    return t->e->def;
+  const Class_Def c = cpy_class_def(env->gwion->mp, def);
+  c->base.xid = name;
+  SET_FLAG(c, template | ae_flag_ref);
+  return c;
+
+}
+
+extern ANN m_bool scan0_class_def(const Env, const Class_Def);
+extern ANN m_bool scan1_class_def(const Env, const Class_Def);
+extern ANN m_bool traverse_func_def(const Env, const Func_Def);
+extern ANN m_bool traverse_class_def(const Env, const Class_Def);
+
+ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
+  a->union_def = new_union_def(env->gwion->mp, a->list,
+    loc_cpy(env->gwion->mp, t->e->def->pos));
+  a->union_def->type_xid = a->base.xid;
+  CHECK_BB(scan0_union_def(env, a->union_def))
+  SET_FLAG(a, scan0);
+  a->base.type = a->union_def->type;
+  a->base.type->e->def = a;
+  return GW_OK;
+}
+
+ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
+  if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
+   ERR_O(td->xid->pos, _("invalid template types number"))
+  DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
+  if(a->base.type)
+    return a->base.type;
+  a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
+  if(t->e->parent !=  env->gwion->type[et_union])
+    CHECK_BO(scan0_class_def(env, a))
+  else
+    CHECK_BO(class2udef(env, a, t))
+  SET_FLAG(a->base.type, template);
+  if(GET_FLAG(t, builtin))
+    SET_FLAG(a->base.type, builtin);
+  CHECK_BO(scan1_cdef(env, a))
+  return a->base.type;
 }

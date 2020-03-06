@@ -292,6 +292,8 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
 
 ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     const Decl_List l) {
+  if(GET_FLAG(udef, scan1))
+    return GW_OK;
   const Exp_Decl decl = l->self->d.exp_decl;
   SET_FLAG(decl.td, checked | udef->flag);
   const m_bool global = GET_FLAG(udef, global);
