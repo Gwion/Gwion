@@ -795,11 +795,11 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   }
   if(exp_call->args)
     CHECK_BB(emit_exp(emit, exp_call->args, 1))
-    struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp_call->func->type->e->d.base_type, .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos };
-    CHECK_OB(op_emit(emit, &opi))
-    const Exp e = exp_self(exp_call);
-    if(e->emit_var)
-      emit_vec_addr(emit, e->type->size);
+  struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp_call->func->type->e->d.base_type, .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos };
+  CHECK_OB(op_emit(emit, &opi))
+  const Exp e = exp_self(exp_call);
+  if(e->emit_var)
+    emit_vec_addr(emit, e->type->size);
   return GW_OK;
 }
 
@@ -1250,7 +1250,7 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 
 ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
-    CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
+   CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
    if(ref && isa(exp->type, emit->gwion->type[et_object]) > 0) {
       const Instr instr = emit_add_instr(emit, RegAddRef);
       instr->m_val = exp->emit_var;

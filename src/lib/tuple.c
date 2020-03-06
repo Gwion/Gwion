@@ -34,7 +34,6 @@ struct UnpackInfo_ {
 static INSTR(TupleUnpack) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   struct UnpackInfo_ *info = (struct UnpackInfo_*)instr->m_val;
-//  memcpy(shred->mem + info->mem_offset, o->data + shred->info->vm->gwion->type[et_tuple]->nspc->info->offset + info->obj_offset, info->size);
   memcpy(shred->mem + info->mem_offset, o->data + info->obj_offset, info->size);
 }
 
@@ -358,7 +357,8 @@ static OP_CHECK(opck_tuple) {
 static OP_CHECK(tuple_ck) {
   const Exp_Call *call = (Exp_Call*)data;
   const Exp exp = call->args;
-  CHECK_OO(check_exp(env, exp))
+  if(exp)
+    CHECK_OO(check_exp(env, exp))
   struct Vector_ v;
   vector_init(&v);
   Exp e = exp;
@@ -374,6 +374,83 @@ static OP_EMIT(tuple_em) {
   const Instr instr = emit_add_instr(emit, TupleCtor);
   instr->m_val = (m_uint)exp_self(call)->type;
   return instr;
+}
+
+static OP_CHECK(unpack_ck) {
+  const Exp_Call *call = (Exp_Call*)data;
+  const Symbol decl = insert_symbol("auto");
+  const Symbol skip = insert_symbol("_");
+  Exp e = call->args;
+const Value v = nspc_lookup_value1(env->global_nspc, insert_symbol("false"));
+  while(e) {
+    if(e->exp_type != ae_exp_primary || e->d.prim.prim_type != ae_prim_id)
+      ERR_O(e->pos, _("invalid expression for unpack"))
+    if(e->d.prim.d.var != skip) {
+      const Symbol var = e->d.prim.d.var;
+      memset(&e->d, 0, sizeof(union exp_data));
+e->type = env->gwion->type[et_auto];
+e->d.exp_decl.type = env->gwion->type[et_auto];
+      e->exp_type = ae_exp_decl;
+      e->d.exp_decl.td = new_type_decl(env->gwion->mp, new_id_list(env->gwion->mp, decl, loc_cpy(env->gwion->mp, e->pos)));
+      e->d.exp_decl.list = new_var_decl_list(env->gwion->mp,
+        new_var_decl(env->gwion->mp, var, NULL, loc_cpy(env->gwion->mp, e->pos)), NULL);
+e->d.exp_decl.list->self->value = v;
+    } else {
+      e->d.prim.prim_type = ae_prim_nil;
+      e->type = env->gwion->type[et_null];
+    }
+    e = e->next;
+  }
+  exp_self(call)->meta = ae_meta_var;
+  return call->func->type->e->d.base_type;
+}
+
+static OP_EMIT(unpack_em) {
+  const Exp_Call *call = (Exp_Call*)data;
+  if(exp_self(call)->meta == ae_meta_value)
+    return (Instr)GW_OK;
+  env_err(emit->env, exp_self(call)->pos, _("unused Tuple unpack"));
+  return NULL;
+}
+
+static OP_CHECK(opck_at_unpack) {
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  Exp e = bin->rhs->d.exp_call.args;
+  int i = 0;
+  while(e) {
+    if(e->exp_type == ae_exp_decl) {
+      DECL_OO(const Type, t, = (Type)VPTR(&bin->lhs->type->e->tuple->types, i))
+      e->d.exp_decl.td->xid->xid = insert_symbol(t->name);
+      const Exp next = e->next;
+      e->d.exp_decl.type = NULL;
+      e->next = NULL;
+      const m_bool ret = traverse_exp(env, e);
+      e->next = next;
+      CHECK_BO(ret)
+      bin->rhs->meta = ae_meta_value;
+    }
+    ++i;
+    e = e->next;
+  }
+  return bin->lhs->type;
+}
+
+static OP_EMIT(opem_at_unpack) {
+  const Exp_Binary *bin = (Exp_Binary*)data;
+  if(bin->rhs->d.exp_call.args) {
+    const Type t_null = emit->gwion->type[et_null];
+    Exp e = bin->rhs->d.exp_call.args;
+    m_uint sz = 0;
+    do if(e->type != t_null)
+      sz += e->type->size;
+    while((e = e->next));
+    const Instr pop = emit_add_instr(emit, RegPop);
+    pop->m_val = sz;
+    const Vector v = &bin->lhs->type->e->tuple->types;
+    struct TupleEmit te = { .e=bin->rhs->d.exp_call.args, .v=v };
+    emit_unpack_instr(emit, &te);
+  }
+  return (Instr)GW_OK;
 }
 
 GWION_IMPORT(tuple) {
@@ -412,5 +489,28 @@ GWION_IMPORT(tuple) {
 //  GWI_BB(gwi_oper_emi(gwi, opem_at_tuple))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   gwi_register_freearg(gwi, TupleUnpack, freearg_tuple_at);
+
+  const Type t_unpack = gwi_mk_type(gwi, "Unpack", SZ_INT, "Tuple");
+  gwi_add_type(gwi, t_unpack);
+  SET_FLAG(t_unpack, checked | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+  SET_FLAG(t_unpack, abstract | ae_flag_template);
+  GWI_BB(gwi_oper_ini(gwi, "Unpack", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, unpack_ck))
+  GWI_BB(gwi_oper_emi(gwi, unpack_em))
+  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Object", "Unpack", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_unpack))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_unpack))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_unpack))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_unpack))
+  GWI_BB(gwi_oper_end(gwi, "==", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Tuple", "Unpack", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_unpack))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_unpack))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_at_unpack))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_unpack))
+  GWI_BB(gwi_oper_end(gwi, "==", NULL))
   return GW_OK;
 }

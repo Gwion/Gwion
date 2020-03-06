@@ -715,10 +715,11 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   CHECK_OO(check_exp(env, exp->func))
   if(isa(exp->func->type, env->gwion->type[et_function]) < 0) {
+    // use func flag?
     if(isa(exp->func->type, env->gwion->type[et_class]) < 0)
       ERR_O(exp->func->pos, _("function call using a non-function value"))
-    if(exp->args)
-      CHECK_OO(check_exp(env, exp->args))
+//    if(exp->args)
+//      CHECK_OO(check_exp(env, exp->args))
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp->func->type->e->d.base_type, .data=(uintptr_t)exp, .pos=exp_self(exp)->pos };
     const Type t = op_check(env, &opi);
     exp_self(exp)->nspc = t ? t->e->owner : NULL;

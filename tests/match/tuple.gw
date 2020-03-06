@@ -8,5 +8,5 @@ C charles;
 21 => charles.age;
 
 match charles {
-  case >(name, age): <<< name , " is ", age, " years old." >>>;
+  case Unpack(name, age): <<< name , " is ", age, " years old." >>>;
 }

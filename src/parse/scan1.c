@@ -137,8 +137,6 @@ ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary* prim) {
     return scan1_exp(env, prim->d.array->exp);
   if(prim->prim_type == ae_prim_range)
     return scan1_range(env, prim->d.range);
-//  if(prim->prim_type == ae_prim_unpack)
-//    return scan1_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 

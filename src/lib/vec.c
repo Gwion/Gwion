@@ -6,6 +6,8 @@
 #include "object.h"
 #include "gwion.h"
 #include "operator.h"
+#include "traverse.h"
+#include "parse.h"
 #include "import.h"
 #include "driver.h"
 #include "gwi.h"
@@ -166,6 +168,8 @@ EQUALITY_OPER(vec3, SZ_VEC3);
 OP_CHECK(vecx_ck) {
   Exp_Call *call = (Exp_Call*)data;
   Exp e = call->args, last = NULL;
+  if(call->args)
+    CHECK_ON(check_exp(env, call->args))
   size_t i = 0;
   const Type t_float = env->gwion->type[et_float];
   while(e) {
