@@ -76,8 +76,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
-  const Type t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL);
-  GWI_BB(gwi_set_global_type(gwi, t_null, et_null))
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_function, gack_function))
   GWI_BB(gwi_set_global_type(gwi, t_function, et_function))

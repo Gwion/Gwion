@@ -50,7 +50,6 @@ INSTR(ArrayAlloc);
 INSTR(VarargIni);
 INSTR(VarargTop);
 INSTR(VarargEnd);
-INSTR(VarargMember);
 
 INSTR(VecCpy);
 INSTR(VecMember);

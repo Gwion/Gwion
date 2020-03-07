@@ -1,4 +1,4 @@
 #! [contains] used before
 fun void test(...) {
-  vararg.i;
+  vararg $ int;
 }

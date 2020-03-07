@@ -13,10 +13,12 @@
 #include "specialid.h"
 #include "traverse.h"
 #include "parse.h"
+#include "gack.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
   xfree(arg->d);
   xfree(arg->k);
+  xfree(arg->t);
   mp_free(p, Vararg, arg);
 }
 
@@ -38,8 +40,12 @@ INSTR(VarargIni) {
   const Vector kinds = (Vector)instr->m_val2;
   arg->s = vector_size(kinds);
   arg->k = (m_uint*)xmalloc(arg->s * SZ_INT);
-  for(m_uint i = 0; i < arg->s; ++i)
-     *(m_uint*)(arg->k + i) = vector_at(kinds, i);
+  arg->t = (Type*)xmalloc(arg->s * SZ_INT);
+  for(m_uint i = 0; i < arg->s; ++i) {
+    const Type t = (Type)vector_at(kinds, i);
+    *(Type*)(arg->t + i) = t;
+    *(m_uint*)(arg->k + i) = t->size;
+  }
   *(struct Vararg_**)REG(-SZ_INT) = arg;
 }
 
@@ -53,15 +59,48 @@ INSTR(VarargEnd) {
     free_vararg(shred->info->mp, arg);
 }
 
-INSTR(VarargMember) {
+static OP_CHECK(opck_vararg_cast) {
+  const Exp_Cast* cast = (Exp_Cast*)data;
+  const Type t = known_type(env, cast->td);
+//puts(t->name);
+  return t;
+}
+
+static INSTR(VarargCast) {
   struct Vararg_* arg = *(struct Vararg_**)MEM(instr->m_val);
-  if(instr->m_val2 != arg->k[arg->i]) { // TODO: differnciate object and primitives
-    free_vararg(shred->info->mp, arg);
-    Except(shred, "InvalidVariadicAccess");
+  const Type t = (Type)instr->m_val2;
+  if(isa(arg->t[arg->i], t) < 0){
+	  free_vararg(shred->info->mp, arg);
+	  Except(shred, "InvalidVariadicAccess");
   }
-  for(m_uint i = 0; i < instr->m_val2; i += SZ_INT)
-    *(m_uint*)REG(i) = *(m_uint*)(arg->d + arg->o + i);
-  PUSH_REG(shred, instr->m_val2);
+//  POP_REG(shred, SZ_INT);
+  for(m_uint i = 0; i < t->size; i += SZ_INT)
+    *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
+  PUSH_REG(shred, t->size - SZ_INT);
+}
+
+ANN static inline Instr get_variadic(const Emitter emit) {
+  return (Instr)vector_back(&emit->info->variadic);
+}
+
+ANN m_bool variadic_check(const Emitter emit, const loc_t pos) {
+  const Env env = emit->env;
+  if(!get_variadic(emit))
+      ERR_B(pos, _("vararg.xxx used before vararg.start"))
+  if(GET_FLAG(emit->env->func, empty))
+    ERR_B(pos, _("vararg.xxx used after vararg.end"))
+  return GW_OK;
+}
+
+static OP_EMIT(opem_vararg_cast) {
+  const Exp_Cast* cast = (Exp_Cast*)data;
+  CHECK_BO(variadic_check(emit, cast->exp->pos))
+  const Instr instr = emit_add_instr(emit, VarargCast);
+  const Instr variadic = (Instr)vector_back(&emit->info->variadic);
+  instr->m_val = variadic->m_val;
+  const Type t = known_type(emit->env, cast->td);
+  instr->m_val2 = (m_uint)t;
+  return instr;
 }
 
 static OP_CHECK(at_varobj) {
@@ -85,26 +124,22 @@ static ID_CHECK(idck_vararg) {
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
 
+static GACK(gack_vararg) {
+  INTERP_PRINTF("%p\n", *(M_Object*)VALUE);
+}
+
 GWION_IMPORT(vararg) {
   const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, "Object");
   SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
   GWI_BB(gwi_add_type(gwi,  t_varobj))
   GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
-  const Type t_vararg  = gwi_class_ini(gwi, "@Vararg", NULL);
+  const Type t_vararg  = gwi_class_spe(gwi, "@Vararg", 0);
+  gwi_gack(gwi, t_vararg, gack_vararg);
   gwi->gwion->type[et_vararg] = t_vararg; // use func
   GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "start"))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))
-  GWI_BB(gwi_union_add(gwi, "int",       "i"))
-  GWI_BB(gwi_union_add(gwi, "float",     "f"))
-  GWI_BB(gwi_union_add(gwi, "time",      "t"))
-  GWI_BB(gwi_union_add(gwi, "dur",       "d"))
-  GWI_BB(gwi_union_add(gwi, "complex",   "c"))
-  GWI_BB(gwi_union_add(gwi, "polar",     "p"))
-  GWI_BB(gwi_union_add(gwi, "Vec3",      "v3"))
-  GWI_BB(gwi_union_add(gwi, "Vec4",      "v4"))
-  GWI_BB(gwi_union_add(gwi, "VarObject", "o"))
   GWI_OB(gwi_union_end(gwi, ae_flag_const))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
@@ -113,6 +148,10 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
   GWI_BB(gwi_oper_add(gwi, at_varobj))
   GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
+  GWI_BB(gwi_oper_ini(gwi, "@Vararg", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", VarargCast))
   gwi_register_freearg(gwi, VarargIni, freearg_vararg);
   struct SpecialId_ spid = { .type=t_vararg, .exec=RegPushImm, .is_const=1, .ck=idck_vararg};
   gwi_specialid(gwi, "vararg", &spid);

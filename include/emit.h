@@ -47,4 +47,9 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const m_uint size, const m_bool is_obj);
 ANN Instr emit_exp_spork(const Emitter, const Exp_Unary*);
+ANN m_bool emit_exp(const Emitter, const Exp, const m_bool add_ref);
+ANN static inline void emit_except(const Emitter emit, const Type t) {
+  emit_add_instr(emit, !GET_FLAG(t, nonnull) ? GWOP_EXCEPT : SetObj);
+}
+
 #endif

@@ -236,13 +236,15 @@ static OP_CHECK(opck_object_scan) {
 }
 
 GWION_IMPORT(object) {
-const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
-gwi_add_type(gwi, t_object);
+  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  gwi_add_type(gwi, t_object);
   GWI_BB(gwi_gack(gwi, t_object, gack_object))
-//assert(GET_FLAG(t_object, checked));
   SET_FLAG(t_object, checked); // should be set by gwi_add_type
   gwi->gwion->type[et_object] = t_object;
 
+  const Type t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, "Object");
+  gwi->gwion->type[et_null] = t_null;
+  GWI_BB(gwi_set_global_type(gwi, t_null, et_null))
   GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
   GWI_BB(gwi_oper_add(gwi, at_object))
@@ -269,6 +271,9 @@ gwi_add_type(gwi, t_object);
   GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
+//  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
+//  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
+//  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_end(gwi, "==", EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))

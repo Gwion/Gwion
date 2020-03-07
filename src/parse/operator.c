@@ -8,6 +8,8 @@
 #include "instr.h"
 #include "emit.h"
 #include "operator.h"
+#include "object.h"
+#include "array.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);
 

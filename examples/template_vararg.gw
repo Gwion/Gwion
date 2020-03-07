@@ -1,6 +1,6 @@
 fun void test<~A~>(...) {
   vararg.start;
-  <<< vararg.i >>>;
+  <<< vararg $ int >>>;
   vararg.end;
 }
 test<~int~>(1, 2);

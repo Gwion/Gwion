@@ -14,6 +14,7 @@
 #include "traverse.h"
 #include "parse.h"
 #include "gwi.h"
+#include "emit.h"
 
 struct M_Vector_ {
   m_bit* ptr;

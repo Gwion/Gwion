@@ -2,5 +2,5 @@
 fun void test(...) {
   vararg.start;
   vararg.end;
-  vararg.i;
+  vararg $ int;
 }

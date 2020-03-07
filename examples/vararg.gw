@@ -3,19 +3,19 @@ fun void test(...) {
   vararg.start;
 
 	if(i == 0)
-		<<< vararg.i >>>;
+		<<< vararg $ int >>>;
 	else if(i == 1)
-		<<< vararg.f >>>;
+		<<< vararg $ float >>>;
 	else if(i == 2)
-		<<< vararg.c >>>;
+		<<< vararg $ complex >>>;
 	else if(i == 3)
-		<<< vararg.p >>>;
+		<<< vararg $ polar >>>;
 	else if(i == 4)
-		<<< vararg.v3 >>>;
+		<<< vararg $ Vec3 >>>;
 	else if(i == 5)
-		<<< vararg.v4 >>>;
+		<<< vararg $ Vec4 >>>;
 	else if(i == 6)
-		<<< vararg.o >>>;
+		<<< vararg $ Object >>>;
   	i++;
   vararg.end;
 }

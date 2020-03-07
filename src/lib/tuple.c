@@ -14,6 +14,7 @@
 #include "object.h"
 #include "parse.h"
 #include "tuple.h"
+#include "array.h"
 
 struct TupleEmit {
   Exp e;

@@ -85,7 +85,7 @@ ANN static m_int frame_pop(Frame* frame) {
   return l->is_obj ? (m_int)l->offset : frame_pop(frame);
 }
 
-ANN static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
+ANN /*static */m_bool emit_exp(const Emitter emit, Exp exp, const m_bool add_ref);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
@@ -750,7 +750,7 @@ ANN static m_uint vararg_size(const Exp_Call* exp_call, const Vector kinds) {
   while(e) {
     if(!l) {
       size += e->type->size;
-      vector_add(kinds, e->type->size);
+      vector_add(kinds, (vtype)e->type); // ->size
     } else
       l = l->next;
     e = e->next;
@@ -854,12 +854,10 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   return op_emit_bool(emit, &opi);
 }
 
-ANN static m_bool is_special(const Emitter emit, const Type t) {
-  if(isa(t, emit->gwion->type[et_complex]) > 0 || isa(t, emit->gwion->type[et_polar]) > 0 ||
-     isa(t, emit->gwion->type[et_vec3])    > 0 || isa(t, emit->gwion->type[et_vec4])  > 0 ||
-     isa(t, emit->gwion->type[et_vararg])  > 0)
-    return GW_OK;
-  return GW_ERROR;
+ANN static inline m_bool is_special(const Emitter emit, const Type t) {
+  return isa(t, emit->gwion->type[et_object]) < 0 &&
+         isa(t, emit->gwion->type[et_class]) < 0  ?
+    GW_OK : GW_ERROR;
 }
 
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
@@ -1242,7 +1240,7 @@ ANN static m_bool emit_exp_interp(const Emitter emit, const Exp_Interp *exp) {
 
 DECL_EXP_FUNC(emit, m_bool, Emitter)
 
-ANN2(1) static m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
+ANN2(1) /*static */m_bool emit_exp(const Emitter emit, Exp exp, const m_bool ref) {
   do {
    CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
    if(ref && isa(exp->type, emit->gwion->type[et_object]) > 0) {
@@ -1716,6 +1714,7 @@ ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) {
   vector_set(&emit->info->variadic, vector_size(&emit->info->variadic) -1, (vtype)instr);
   return GW_OK;
 }
+
 ANN static inline Instr get_variadic(const Emitter emit) {
   return (Instr)vector_back(&emit->info->variadic);
 }
@@ -1749,14 +1748,8 @@ ANN static m_bool emit_vararg(const Emitter emit, const Exp_Dot* member) {
     emit_vararg_end(emit, offset);
     return GW_OK;
   }
-  if(!get_variadic(emit))
-      ERR_B(exp_self(member)->pos, _("vararg.%s used before vararg.start"), s_name(member->xid))
-  if(GET_FLAG(emit->env->func, empty))
-    ERR_B(exp_self(member)->pos, _("vararg.%s used after vararg.end"), s_name(member->xid))
-  const Instr instr = emit_add_instr(emit, VarargMember);
-  instr->m_val = offset;
-  instr->m_val2 = exp_self(member)->type->size;
-  return GW_OK;
+// should not be reached now
+  return GW_ERROR;
 }
 
 ANN static m_bool emit_exp_dot_special(const Emitter emit, const Exp_Dot* member) {
@@ -1805,12 +1798,10 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
     return emit_exp_dot_special(emit, member);
   const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
   if(!is_class(emit->gwion, member->t_base) && (GET_FLAG(value, member) ||
-(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type)))
-) {
+       (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
+       !is_fptr(emit->gwion, exp_self(member)->type)))) {
     CHECK_BB(emit_exp(emit, member->base, 0))
-    emit_add_instr(emit, GWOP_EXCEPT);
-
-//    emit_except(emit, member->t_base);
+    emit_except(emit, member->t_base);
   }
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
     return emit_member_func(emit, member);

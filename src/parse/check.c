@@ -33,7 +33,6 @@ ANN /*static inline */m_bool check_implicit(const Env env, const Exp e, const Ty
   return check_internal(env, sym, e, t);
 }
 
-
 ANN m_bool check_subscripts(Env env, const Array_Sub array) {
   CHECK_OB(check_exp(env, array->exp))
   m_uint depth = 0;
