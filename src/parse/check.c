@@ -28,18 +28,20 @@ ANN static m_bool check_internal(const Env env, const Symbol sym,
   return GW_OK;
 }
 
-ANN /*static inline */m_bool check_implicit(const Env env, const Exp e, const Type t) {
+ANN m_bool check_implicit(const Env env, const Exp e, const Type t) {
+  if(e->type == t)
+    return GW_OK;
   const Symbol sym = insert_symbol("@implicit");
   return check_internal(env, sym, e, t);
 }
 
-ANN m_bool check_subscripts(Env env, const Array_Sub array) {
+ANN m_bool check_subscripts(Env env, const Array_Sub array, const m_bool is_decl) {
   CHECK_OB(check_exp(env, array->exp))
   m_uint depth = 0;
   Exp e = array->exp;
-  const Symbol sym = insert_symbol("@access");
-  do CHECK_BB(check_internal(env, sym, e, env->gwion->type[et_int]))
-  while(++(depth) && (e = e->next));
+  do if(is_decl)
+    CHECK_BB(check_implicit(env, e, env->gwion->type[et_int]))
+  while(++depth && (e = e->next));
   if(depth != array->depth)
     ERR_B(array->exp->pos, _("invalid array acces expression."))
   return GW_OK;
@@ -77,7 +79,8 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   if(!env->class_def) {
     if(!type || GET_FLAG(func, global))
       return GW_OK;
-    ERR_B(var->pos, _("can't use non public typedef at global scope."))
+return GW_OK;
+//    ERR_B(var->pos, _("can't use non public typedef at global scope."))
   }
   if(type && isa(type, env->class_def) < 0 && !GET_FLAG(func, global))
     ERR_B(var->pos, _("can't use non global fptr of other class."))
@@ -118,7 +121,7 @@ ANN static m_bool check_var(const Env env, const Var_Decl var) {
   if(env->class_def && !env->scope->depth && env->class_def->e->parent)
     CHECK_BB(check_exp_decl_parent(env, var))
   if(var->array && var->array->exp)
-    return check_subscripts(env, var->array);
+    return check_subscripts(env, var->array, 1);
   return GW_OK;
 }
 
@@ -260,6 +263,14 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   return value;
 }
 
+ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
+
+ANN static Type check_dot(const Env env, const Value v, const Exp_Dot *member) {
+  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base,
+	  .rhs=v->type, .data=(uintptr_t)member, .pos=exp_self(member)->pos };
+  return op_check(env, &opi);
+}
+
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol var = *data;
   const Value v = check_non_res_value(env, data);
@@ -273,8 +284,15 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     UNSET_FLAG(env->func, pure);
   SET_FLAG(v, used);
   prim_self(data)->value = v;
-  if(GET_FLAG(v, const) || !strcmp(s_name(var), "maybe"))
+  if(GET_FLAG(v, const))
     prim_exp(data)->meta = ae_meta_value;
+  if(v->from->owner_class) {
+    const Exp exp  = symbol_owned_exp(env->gwion, data);
+    const Type ret = check_dot(env, v, &exp->d.exp_dot);
+    prim_exp(data)->nspc = exp->nspc;
+    free_exp(env->gwion->mp, exp);
+    CHECK_OO(ret);
+  }
   return v->type;
 }
 
@@ -316,25 +334,16 @@ ANN static Type check_prim(const Env env, Exp_Primary *prim) {
   return exp_self(prim)->type = check_prim_func[prim->prim_type](env, &prim->d);
 }
 
-ANN Type at_depth(const Env env, const Array_Sub array) {
-  const Type t = array->type;
-  const m_uint depth = array->depth;
-  if(GET_FLAG(t, typedef)) {
-    struct Array_Sub_ next = { array->exp, t->e->parent, depth };
-    return at_depth(env, &next);
-  }
-  if(t->array_depth >= depth)
-    return array_type(env, array_base(array->type), t->array_depth - depth);
+ANN Type check_array_access(const Env env, const Array_Sub array) {
   const Symbol sym = insert_symbol("@array");
   struct Op_Import opi = { .op=sym, .lhs=array->exp->type, .rhs=array->type, .pos=array->exp->pos, .data=(uintptr_t)array };
-  const Type ret = op_check(env, &opi);
-  return ret;
+  return op_check(env, &opi);
 }
 
 static ANN Type check_exp_array(const Env env, const Exp_Array* array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)))
-  CHECK_BO(check_subscripts(env, array->array))
-  return at_depth(env, array->array);
+  CHECK_BO(check_subscripts(env, array->array, 0))
+  return check_array_access(env, array->array);
 }
 
 static ANN Type check_exp_slice(const Env env, const Exp_Slice* range) {
@@ -874,6 +883,8 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
           the_base->name, str)
   if(GET_FLAG(value, const) || GET_FLAG(value, enum))
     exp_self(member)->meta = ae_meta_value;
+//  prim_self(member)->value = value;
+  CHECK_OO(check_dot(env, value, member))
   return value->type;
 }
 
@@ -995,9 +1006,8 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 }
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
-  const Symbol sym = insert_symbol("@repeat");
   const Type t_int = env->gwion->type[et_int];
-  return check_internal(env, sym, e, t_int);
+  return check_implicit(env, e, t_int);
 }
 
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)
@@ -1343,7 +1353,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
   const Type_Decl *td = cdef->base.ext;
   if(td->array)
-    CHECK_BB(check_subscripts(env, td->array))
+    CHECK_BB(check_subscripts(env, td->array, 1))
   if(parent->e->def && !GET_FLAG(parent, check))
     CHECK_BB(scanx_parent(parent, traverse_cdef, env))
   if(GET_FLAG(parent, typedef))

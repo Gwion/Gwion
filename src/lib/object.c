@@ -68,7 +68,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
     if(GET_FLAG(t, nonnull))
       t = t->e->parent;
     if(!t->nspc)
-      continue; // return ?
+      continue;
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
@@ -121,8 +121,6 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     return r->e->parent;
   }
-/*  if(nonnull_check(l, r))
-    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name); */
   if(l != env->gwion->type[et_null] && isa(l, r) < 0)
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
   return r;
@@ -235,6 +233,71 @@ static OP_CHECK(opck_object_scan) {
   ERR_O(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
 }
 
+static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
+ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]);
+ANN static void emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
+  const m_uint size = v->type->size;
+  const Instr instr = emit_kind(emit, size, emit_var, dotstatic);
+  instr->m_val = (m_uint)(v->from->owner->info->class_data + v->from->offset);
+  instr->m_val2 = size;
+}
+
+static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
+ANN static void emit_dot_static_import_data(const Emitter emit, const Value v, const uint emit_addr) {
+  if(v->d.ptr && GET_FLAG(v, builtin) && GET_FLAG(v, const)) {
+    const m_uint size = v->type->size;
+    const Instr instr = emit_kind(emit, size, emit_addr, regpushimm);
+    instr->m_val = (m_uint)v->d.ptr;
+    instr->m_val2 = size;
+  } else
+    emit_dot_static_data(emit, v, emit_addr);
+}
+static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
+
+ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
+  const Func f = exp_self(member)->type->e->d.func;
+  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->type, force)) {
+    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
+    func_i->m_val = (m_uint)f->code;
+    return;
+  }
+  if(f->def->base->tmpl)
+    emit_add_instr(emit, DotTmplVal);
+  else {
+    const Instr instr = emit_add_instr(emit, GET_FLAG(f, member) ? DotFunc : DotStaticFunc);
+    instr->m_val = f->vt_index;
+  }
+  return;
+}
+
+ANN static inline void emit_member(const Emitter emit, const Value v, const uint emit_addr) {
+  const m_uint size = v->type->size;
+  const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
+  instr->m_val = v->from->offset;
+  instr->m_val2 = size;
+}
+
+OP_CHECK(opck_object_dot) {
+  const Exp_Dot *member = (Exp_Dot*)data;
+  const Value value = find_value(actual_type(env->gwion, member->t_base), member->xid);
+  return value->type;
+}
+
+OP_EMIT(opem_object_dot) {
+  const Exp_Dot *member = (Exp_Dot*)data;
+  const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
+  if(!is_class(emit->gwion, member->t_base) && (GET_FLAG(value, member) ||
+       (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
+       !is_fptr(emit->gwion, exp_self(member)->type)))) {
+    CHECK_BO(emit_exp(emit, member->base, 0))
+    emit_except(emit, member->t_base);
+  }
+  if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
+	  emit_member_func(emit, member);
+  else (GET_FLAG(value, member) ? emit_member : emit_dot_static_import_data)(emit, value, exp_self(member)->emit_var);
+  return (Instr)GW_OK;
+}
+
 GWION_IMPORT(object) {
   const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
   gwi_add_type(gwi, t_object);
@@ -246,9 +309,6 @@ GWION_IMPORT(object) {
   gwi->gwion->type[et_null] = t_null;
   GWI_BB(gwi_set_global_type(gwi, t_null, et_null))
   GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
-  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
-  GWI_BB(gwi_oper_add(gwi, at_object))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_emi(gwi, opem_at_object))
@@ -263,19 +323,8 @@ GWION_IMPORT(object) {
   GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "int"))
-  GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
-  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
-//  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
-//  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
-//  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_end(gwi, "==", EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
@@ -402,4 +451,27 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
     SET_FLAG(a->base.type, builtin);
   CHECK_BO(scan1_cdef(env, a))
   return a->base.type;
+}
+
+ANN static inline Symbol dot_symbol(SymTable *st, const Value v) {
+  const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
+  return insert_symbol(st, name);
+}
+
+ANN static inline Type dot_type(SymTable *st, const Value v) {
+  const Type t = v->from->owner_class;
+  if(!GET_FLAG(v, static))
+    return t;
+  const Value  val = nspc_lookup_value1(t->nspc->parent, insert_symbol(st, t->name));
+  return val->type;
+}
+
+ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
+  const Value v = prim_self(data)->value;
+  const Exp base = new_prim_id(gwion->mp, dot_symbol(gwion->st, v), loc_cpy(gwion->mp, prim_pos(data)));
+  const Exp dot = new_exp_dot(gwion->mp, base, *data);
+  dot->d.exp_dot.t_base = dot->d.exp_dot.base->type = dot_type(gwion->st, v);
+  dot->type = prim_exp(data)->type;
+  dot->emit_var = prim_exp(data)->emit_var;
+  return dot;
 }

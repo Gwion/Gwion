@@ -1,5 +1,6 @@
-#! [contains] can't use non public typedef at global scope
+#! [contains] NullPtrException
 class C {
   typedef void t_ptr();
 }
 C->t_ptr ptr;
+ptr();

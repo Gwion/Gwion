@@ -229,22 +229,83 @@ static FREEARG(freearg_array) {
   mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
 }
 
-ANN Type at_depth(const Env env, const Array_Sub array);
-ANN static Type partial_depth(const Env env, const Array_Sub array) {
-  const Exp curr = take_exp(array->exp, array->type->array_depth);
-  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
-  return at_depth(env, &next);
-}
-
 static OP_CHECK(opck_not_array) {
   const Array_Sub array = (Array_Sub)data;
     ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
         array->depth, get_depth(array->type))
 }
 
+ANN Type check_array_access(const Env env, const Array_Sub array);
+
 static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
-  return partial_depth(env, array);
+  const Type t_int = env->gwion->type[et_int];
+  Exp e = array->exp;
+  do CHECK_BO(check_implicit(env, e, t_int))
+  while((e = e->next));
+  const Type t = array->type;
+  if(t->array_depth >= array->depth)
+    return array_type(env, array_base(t), t->array_depth - array->depth);
+  const Exp curr = take_exp(array->exp, array->type->array_depth);
+  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
+  return check_array_access(env, &next);
+}
+
+ANN static void array_loop(const Emitter emit, const m_uint depth) {
+  const Instr pre_pop = emit_add_instr(emit, RegPop);
+  pre_pop->m_val = depth * SZ_INT;
+  emit_add_instr(emit, GWOP_EXCEPT);
+  for(m_uint i = 0; i < depth - 1; ++i) {
+    const Instr access = emit_add_instr(emit, ArrayAccess);
+    access->m_val = i;
+    const Instr get = emit_add_instr(emit, ArrayGet);
+    get->m_val = i;
+    get->m_val2 = -SZ_INT;
+    emit_add_instr(emit, GWOP_EXCEPT);
+  }
+  const Instr post_pop = emit_add_instr(emit, RegPop);
+  post_pop->m_val = SZ_INT;
+  const Instr access = emit_add_instr(emit, ArrayAccess);
+  access->m_val = depth;
+}
+
+ANN static void array_finish(const Emitter emit, const m_uint depth,
+		const m_uint size, const m_bool is_var) {
+  const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
+  get->m_val = depth;
+  const Instr push = emit_add_instr(emit, ArrayValid);
+  push->m_val = is_var ? SZ_INT : size;
+}
+
+ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
+  emit_add_instr(emit, GcAdd);
+  CHECK_BB(emit_exp(emit, array->exp, 0))
+  array_loop(emit, array->depth);
+  array_finish(emit, array->depth, array->type->size, is_var);
+  return GW_OK;
+}
+ANN static inline Exp emit_n_exp(const Emitter emit,  struct ArrayAccessInfo *const info) {
+  const Exp e = take_exp(info->array.exp, info->array.depth);
+  const Exp next = e->next;
+  e->next = NULL;
+  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.depth };
+  const m_bool ret = array_do(emit, &partial, 0);
+  e->next = next;
+  return ret > 0 ? next : NULL;
+}
+static OP_EMIT(opem_array_access) {
+  struct ArrayAccessInfo *const info = (struct ArrayAccessInfo*)data;
+  if(info->array.type->array_depth >= info->array.depth) {
+    struct Array_Sub_ next = { .exp=info->array.exp, .type=info->type, .depth=info->array.depth };
+    return (Instr)(m_uint)array_do(emit, &next, info->is_var);
+  }
+  struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.type->array_depth };
+  struct Array_Sub_ next = { info->array.exp, array_base(info->array.type), info->array.depth - info->array.type->array_depth };
+  info->array = partial;
+  const Exp exp = emit_n_exp(emit, info);
+  next.exp = exp;
+  info->array = next;
+  return (Instr)(m_uint)(exp ? emit_array_access(emit, info) : GW_ERROR);
 }
 
 GWION_IMPORT(array) {
@@ -287,6 +348,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;

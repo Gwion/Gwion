@@ -24,9 +24,7 @@ GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_end(gwi, "-", int_minus))
   GWI_BB(gwi_oper_end(gwi, "*", int_mul))
   GWI_BB(gwi_oper_end(gwi, "/", int_div))
-  GWI_BB(gwi_oper_end(gwi, "%", int_modulo))
-  GWI_BB(gwi_oper_end(gwi, "@access", NULL))
-  return gwi_oper_end(gwi, "@repeat", NULL);
+  return gwi_oper_end(gwi, "%", int_modulo);
 }
 
 static GWION_IMPORT(int_logical) {
@@ -170,11 +168,6 @@ static OP_CHECK(opck_implicit_f2i) {
   return env->gwion->type[et_null];
 }
 
-static OP_CHECK(opck_repeat_f2i) {
-  struct Implicit* imp = (struct Implicit*)data;
-  return imp->e->cast_to = env->gwion->type[et_int];
-}
-
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
   return imp->e->cast_to = env->gwion->type[et_float];
@@ -231,7 +224,6 @@ static GWION_IMPORT(floatint) {
   CHECK_FI("/=>", rassign, r_div)
   _CHECK_OP("$", basic_cast, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
-  _CHECK_OP("@repeat", repeat_f2i, CastF2I)
   return GW_OK;
 }
 

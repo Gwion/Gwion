@@ -146,16 +146,13 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
 }
 
 ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
-printf("here %s\n", nspc->name);
   if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@array")) {
     Array_Sub array = (Array_Sub)ock->opi->data;
     array->exp->nspc = nspc;
     return;
 
   }
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit") ||
-     ock->opi->op == insert_symbol(ock->env->gwion->st, "@access") ||
-     ock->opi->op == insert_symbol(ock->env->gwion->st, "@repeat")) {
+  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit")) {
     struct Implicit* imp = (struct Implicit*)ock->opi->data;
     imp->e->nspc = nspc;
     return;
@@ -237,6 +234,10 @@ ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
 }
 
 ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
+  if(opi->op == insert_symbol(st, "@array")) {
+    struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)opi->data;
+    return info->array.exp->nspc;
+  }
   if(opi->op == insert_symbol(st, "@implicit")) {
     struct Implicit* imp = (struct Implicit*)opi->data;
     return imp->e->nspc;
@@ -263,8 +264,7 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
     Type r = opi->rhs;
     do {
       const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-if(!v)continue;
-assert(v);
+      if(!v)continue;
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
         if(mo->em)

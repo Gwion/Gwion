@@ -51,5 +51,4 @@ ANN m_bool emit_exp(const Emitter, const Exp, const m_bool add_ref);
 ANN static inline void emit_except(const Emitter emit, const Type t) {
   emit_add_instr(emit, !GET_FLAG(t, nonnull) ? GWOP_EXCEPT : SetObj);
 }
-
 #endif

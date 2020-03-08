@@ -62,10 +62,16 @@ mk_class_instr(gt, l, r, && l != r)
 mk_class_instr(le, r, l)
 mk_class_instr(lt, r, l, && l != r)
 
+OP_CHECK(opck_object_dot);
+OP_EMIT(opem_object_dot);
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   gwi->gwion->type[et_class] = t_class;
   GWI_BB(gwi_add_type(gwi, t_class))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
   GWI_BB(gwi_gack(gwi, gwi->gwion->type[et_class], gack_class)) // not working yet
   gwi->gwion->type[et_class] = t_class;
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);

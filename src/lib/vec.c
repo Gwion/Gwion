@@ -12,6 +12,7 @@
 #include "driver.h"
 #include "gwi.h"
 #include "gack.h"
+#include "emit.h"
 
 INSTR(VecCpy) {
   POP_REG(shred, instr->m_val2);
@@ -165,7 +166,7 @@ static GACK(gack_vec3) {
 
 EQUALITY_OPER(vec3, SZ_VEC3);
 
-OP_CHECK(vecx_ck) {
+OP_CHECK(opck_vecx_ctor) {
   Exp_Call *call = (Exp_Call*)data;
   Exp e = call->args, last = NULL;
   if(call->args)
@@ -195,10 +196,29 @@ OP_CHECK(vecx_ck) {
   }
   return t;
 }
+OP_CHECK(opck_object_dot);
+
+static OP_EMIT(opem_vec_dot) {
+  Exp_Dot *member = (Exp_Dot*)data;
+  member->base->emit_var = 1;
+  CHECK_BO(emit_exp(emit, member->base, 0))
+  const Value v = find_value(member->base->type, member->xid);
+  if(GET_FLAG(v, func)) {
+	  /*regpushi(emit, (m_uint)v->d.func_ref->code);*/
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)v->d.func_ref->code;
+    return instr;
+  }
+  if(!v->from->offset && exp_self(member)->emit_var)
+    return (Instr)GW_OK;
+  const Instr instr = emit_add_instr(emit, VecMember);
+  instr->m_val2 = v->from->offset;
+  instr->m_val = exp_self(member)->emit_var;
+  return instr;
+}
 
 GWION_IMPORT(vec3) {
   const Type t_vec3 = gwi_class_spe(gwi, "Vec3", SZ_VEC3);
-  gwi->gwion->type[et_vec3] = t_vec3;
   GWI_BB(gwi_gack(gwi, t_vec3, gack_vec3))
   vecx_base(gwi);
   gwi_func_ini(gwi, "void", "set");
@@ -238,8 +258,13 @@ GWION_IMPORT(vec3) {
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "Vec3", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_add(gwi, opck_vecx_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Vec3", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_vec_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "Vec3", "Vec3", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          vec3_eq))
@@ -355,7 +380,6 @@ EQUALITY_OPER(vec4, SZ_VEC4);
 
 GWION_IMPORT(vec4) {
   const Type t_vec4 = gwi_class_spe(gwi, "Vec4", SZ_VEC4);
-  gwi->gwion->type[et_vec4] = t_vec4;
   GWI_BB(gwi_gack(gwi, t_vec4, gack_vec4))
   vecx_base(gwi);
 	gwi_item_ini(gwi, "float", "w");
@@ -376,8 +400,13 @@ GWION_IMPORT(vec4) {
   CHECK_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "Vec4", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_add(gwi, opck_vecx_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Vec4", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_vec_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "Vec4", "Vec4", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          vec4_eq))

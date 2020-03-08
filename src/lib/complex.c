@@ -11,6 +11,7 @@
 
 #include "gwi.h"
 #include "gack.h"
+#include "emit.h"
 
 #define describe(name, op) \
 static INSTR(Complex##name) {\
@@ -123,20 +124,33 @@ static GACK(gack_polar) {
 }
 
 EQUALITY_OPER(complex, SZ_COMPLEX)
-OP_CHECK(vecx_ck);
+OP_CHECK(opck_vecx_ctor);
+
+#define opem(type, first_name) static OP_EMIT(opem_##type##_dot) {               \
+  const Exp_Dot *dot = (Exp_Dot*)data;                                           \
+  const Exp base = dot->base;                                                    \
+  base->emit_var = 1;                                                            \
+  if(emit_exp(emit, base, 0) < 0) return (Instr)GW_OK;                           \
+  const m_bool is_first = !strcmp(#first_name, s_name(dot->xid));                \
+  if(is_first && exp_self(dot)->emit_var)                                        \
+    return (Instr)GW_OK;                                                         \
+  const Instr instr = emit_add_instr(emit, is_first ? ComplexReal : ComplexImag);\
+  instr->m_val = exp_self(dot)->emit_var;                                        \
+  return (Instr)GW_OK;                                                           \
+}
+opem(complex, re)
+opem(polar, mod)
+
+OP_CHECK(opck_object_dot);
 GWION_IMPORT(complex) {
-// should be special
   const Type t_complex = gwi_class_spe(gwi, "complex", SZ_COMPLEX);
   GWI_BB(gwi_gack(gwi, t_complex, gack_complex))
-  gwi->gwion->type[et_complex] = t_complex; // use func
 	gwi_item_ini(gwi, "float", "re");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
 	gwi_item_ini(gwi, "float", "im");
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
   GWI_BB(gwi_class_end(gwi))
-// should be special
   const Type t_polar   = gwi_class_spe(gwi, "polar", SZ_COMPLEX);
-  gwi->gwion->type[et_polar] = t_polar;
   GWI_BB(gwi_gack(gwi, t_polar, gack_polar))
   GWI_BB(gwi_item_ini(gwi, "float", "mod"))
   GWI_BB(gwi_item_end(gwi,   ae_flag_member, NULL))
@@ -145,10 +159,10 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "complex", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_add(gwi, opck_vecx_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor",   NULL))
   GWI_BB(gwi_oper_ini(gwi, "polar", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, vecx_ck))
+  GWI_BB(gwi_oper_add(gwi, opck_vecx_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor",   NULL))
   GWI_BB(gwi_oper_ini(gwi, "complex", "complex", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",          complex_eq))
@@ -186,5 +200,13 @@ GWION_IMPORT(complex) {
   GWI_BB(gwi_oper_end(gwi, "*=>",   PolarRMul))
   GWI_BB(gwi_oper_add(gwi, opck_rassign))
   GWI_BB(gwi_oper_end(gwi, "/=>",  PolarRDiv))
+  GWI_BB(gwi_oper_ini(gwi, "complex", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_complex_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "polar", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_polar_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
   return GW_OK;
 }

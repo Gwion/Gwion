@@ -61,9 +61,7 @@ INSTR(VarargEnd) {
 
 static OP_CHECK(opck_vararg_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = known_type(env, cast->td);
-//puts(t->name);
-  return t;
+  return known_type(env, cast->td);
 }
 
 static INSTR(VarargCast) {
@@ -73,7 +71,6 @@ static INSTR(VarargCast) {
 	  free_vararg(shred->info->mp, arg);
 	  Except(shred, "InvalidVariadicAccess");
   }
-//  POP_REG(shred, SZ_INT);
   for(m_uint i = 0; i < t->size; i += SZ_INT)
     *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
   PUSH_REG(shred, t->size - SZ_INT);
@@ -96,21 +93,9 @@ static OP_EMIT(opem_vararg_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   CHECK_BO(variadic_check(emit, cast->exp->pos))
   const Instr instr = emit_add_instr(emit, VarargCast);
-  const Instr variadic = (Instr)vector_back(&emit->info->variadic);
-  instr->m_val = variadic->m_val;
-  const Type t = known_type(emit->env, cast->td);
-  instr->m_val2 = (m_uint)t;
+  instr->m_val = get_variadic(emit)->m_val;
+  instr->m_val2 = (m_uint)exp_self(cast)->type;
   return instr;
-}
-
-static OP_CHECK(at_varobj) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  return bin->rhs->type;
-}
-
-static INSTR(VarargAssign) {
-  POP_REG(shred, SZ_INT);
-  *(M_Object**)REG(0) = &*(M_Object*)REG(-SZ_INT);
 }
 
 static FREEARG(freearg_vararg) {
@@ -128,11 +113,52 @@ static GACK(gack_vararg) {
   INTERP_PRINTF("%p\n", *(M_Object*)VALUE);
 }
 
+ANN static inline m_uint emit_code_size(const Emitter emit) {
+  return vector_size(&emit->code->instr);
+}
+ANN static m_bool emit_vararg_start(const Emitter emit, const m_uint offset) {
+  const Instr instr = emit_add_instr(emit, VarargTop);
+  instr->m_val = offset;
+  instr->m_val2 = emit_code_size(emit);
+  vector_set(&emit->info->variadic, vector_size(&emit->info->variadic) -1, (vtype)instr);
+  return GW_OK;
+}
+
+ANN static void emit_vararg_end(const Emitter emit, const m_uint offset) {
+  const Instr instr = emit_add_instr(emit, VarargEnd),
+    variadic = get_variadic(emit);
+  instr->m_val = offset;
+  instr->m_val2 = variadic->m_val2;
+  variadic->m_val2 = emit_code_size(emit);
+  SET_FLAG(emit->env->func, empty);// mark vararg func as complete
+}
+
+static OP_EMIT(opem_vararg_dot) {
+  const Env env = emit->env;
+  const Exp_Dot *member = (Exp_Dot*)data;
+  m_uint offset = emit->env->class_def ? SZ_INT : 0;
+  Arg_List l = emit->env->func->def->base->args;
+  const m_str str = s_name(member->xid);
+  while(l) {
+    offset += l->type->size;
+    l = l->next;
+  }
+  if(!strcmp(str, "start")) {
+    if(get_variadic(emit))
+      ERR_O(exp_self(member)->pos, _("vararg.start already used"))
+    emit_vararg_start(emit, offset);
+    return (Instr)GW_OK;
+  }
+  assert(!strcmp(str, "end"));
+  if(!get_variadic(emit))
+    ERR_O(exp_self(member)->pos, _("vararg.start not used before vararg.end"))
+  emit_vararg_end(emit, offset);
+  return (Instr)GW_OK;
+}
+OP_CHECK(opck_object_dot);
+
 GWION_IMPORT(vararg) {
-  const Type t_varobj  = gwi_mk_type(gwi, "VarObject", SZ_INT, "Object");
-  SET_FLAG(t_varobj, abstract);
   const Type t_varloop = gwi_mk_type(gwi, "@VarLoop",  SZ_INT, NULL);
-  GWI_BB(gwi_add_type(gwi,  t_varobj))
   GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
   const Type t_vararg  = gwi_class_spe(gwi, "@Vararg", 0);
   gwi_gack(gwi, t_vararg, gack_vararg);
@@ -142,12 +168,10 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))
   GWI_OB(gwi_union_end(gwi, ae_flag_const))
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_oper_ini(gwi, "VarObject", "Object", NULL))
-  GWI_BB(gwi_oper_add(gwi, at_varobj))
-  GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "VarObject", NULL))
-  GWI_BB(gwi_oper_add(gwi, at_varobj))
-  GWI_BB(gwi_oper_end(gwi, "@=>", VarargAssign))
+  GWI_BB(gwi_oper_ini(gwi, "@Vararg", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_vararg_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Vararg", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))
