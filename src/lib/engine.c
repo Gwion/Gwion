@@ -123,7 +123,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(import_array(gwi))
-  GWI_BB(import_tuple(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))
   GWI_BB(import_ptr(gwi))

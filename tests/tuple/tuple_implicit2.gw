@@ -1,5 +1,0 @@
-class C { int i; }
-fun void test(C c) {
-
-}
-Tuple(1) => test;

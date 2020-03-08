@@ -1,2 +1,0 @@
-int i;
-Tuple("Tom", 12)[i];
