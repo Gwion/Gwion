@@ -1286,7 +1286,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   const m_uint index = emit_code_size(emit);
   const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
   cpy->m_val2 = -SZ_INT;
-  regpushi(emit, SZ_INT);
+  regpush(emit, SZ_INT);
   emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
