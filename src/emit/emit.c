@@ -1649,6 +1649,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
     if(!GET_FLAG(fdef->base->func, empty))
       ERR_B(fdef->pos, _("invalid variadic use"))
   }
+  vector_pop(&emit->info->variadic);
   return GW_OK;
 }
 

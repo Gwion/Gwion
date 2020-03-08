@@ -277,9 +277,41 @@ ANN static inline void emit_member(const Emitter emit, const Value v, const uint
   instr->m_val2 = size;
 }
 
+ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, const loc_t pos);
 OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Value value = find_value(actual_type(env->gwion, member->t_base), member->xid);
+  const m_str str = s_name(member->xid);
+  const m_bool base_static = is_class(env->gwion, member->t_base);
+  const Type the_base = base_static ? member->t_base->e->d.base_type : member->t_base;
+  if(!the_base->nspc)
+    ERR_O(member->base->pos,
+          _("type '%s' does not have members - invalid use in dot expression of %s"),
+          the_base->name, str)
+  if(member->xid ==  insert_symbol(env->gwion->st, "this") && base_static)
+    ERR_O(exp_self(member)->pos,
+          _("keyword 'this' must be associated with object instance..."))
+  const Value value = find_value(the_base, member->xid);
+  if(!value) {
+    env_err(env, exp_self(member)->pos,
+          _("class '%s' has no member '%s'"), the_base->name, str);
+    if(member->t_base->nspc)
+      did_you_mean_type(the_base, str);
+    return NULL;
+  }
+  CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
+  if(!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
+    if(GET_FLAG(value, private))
+      ERR_O(exp_self(member)->pos,
+          _("can't access private '%s' outside of class..."), value->name)
+    else if(GET_FLAG(value, protect))
+      exp_self(member)->meta = ae_meta_protect;
+  }
+  if(base_static && GET_FLAG(value, member))
+    ERR_O(exp_self(member)->pos,
+          _("cannot access member '%s.%s' without object instance..."),
+          the_base->name, str)
+  if(GET_FLAG(value, const) || GET_FLAG(value, enum))
+    exp_self(member)->meta = ae_meta_value;
   return value->type;
 }
 

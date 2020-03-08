@@ -232,7 +232,7 @@ ANN static Type check_prim_range(const Env env, Range **data) {
   return op_check(env, &opi);
 }
 
-ANN static inline m_bool not_from_owner_class(const Env env, const Type t,
+ANN m_bool not_from_owner_class(const Env env, const Type t,
       const Value v, const loc_t pos) {
   if(!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
     ERR_B(pos,
@@ -265,9 +265,8 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
 
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
 
-ANN static Type check_dot(const Env env, const Value v, const Exp_Dot *member) {
-  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base,
-	  .rhs=v->type, .data=(uintptr_t)member, .pos=exp_self(member)->pos };
+ANN static Type check_dot(const Env env, const Exp_Dot *member) {
+  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base, .data=(uintptr_t)member, .pos=exp_self(member)->pos };
   return op_check(env, &opi);
 }
 
@@ -288,7 +287,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     prim_exp(data)->meta = ae_meta_value;
   if(v->from->owner_class) {
     const Exp exp  = symbol_owned_exp(env->gwion, data);
-    const Type ret = check_dot(env, v, &exp->d.exp_dot);
+    const Type ret = check_dot(env, &exp->d.exp_dot);
     prim_exp(data)->nspc = exp->nspc;
     free_exp(env->gwion->mp, exp);
     CHECK_OO(ret);
@@ -850,42 +849,8 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
-  const m_str str = s_name(member->xid);
   CHECK_OO((member->t_base = check_exp(env, member->base)))
-  const m_bool base_static = is_class(env->gwion, member->t_base);
-  const Type the_base = base_static ? member->t_base->e->d.base_type : member->t_base;
-  if(!the_base->nspc)
-    ERR_O(member->base->pos,
-          _("type '%s' does not have members - invalid use in dot expression of %s"),
-          the_base->name, str)
-  if(member->xid ==  insert_symbol("this") && base_static)
-    ERR_O(exp_self(member)->pos,
-          _("keyword 'this' must be associated with object instance..."))
-  const Value value = find_value(the_base, member->xid);
-  if(!value) {
-    env_err(env, exp_self(member)->pos,
-          _("class '%s' has no member '%s'"), the_base->name, str);
-    if(member->t_base->nspc)
-      did_you_mean_type(the_base, str);
-    return NULL;
-  }
-  CHECK_BO(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
-  if(!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
-    if(GET_FLAG(value, private))
-      ERR_O(exp_self(member)->pos,
-          _("can't access private '%s' outside of class..."), value->name)
-    else if(GET_FLAG(value, protect))
-      exp_self(member)->meta = ae_meta_protect;
-  }
-  if(base_static && GET_FLAG(value, member))
-    ERR_O(exp_self(member)->pos,
-          _("cannot access member '%s.%s' without object instance..."),
-          the_base->name, str)
-  if(GET_FLAG(value, const) || GET_FLAG(value, enum))
-    exp_self(member)->meta = ae_meta_value;
-//  prim_self(member)->value = value;
-  CHECK_OO(check_dot(env, value, member))
-  return value->type;
+  return check_dot(env, member);
 }
 
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {

@@ -382,20 +382,20 @@ regpushaddr:
   reg += SZ_INT;
   DISPATCH()
 regpushmem:
-  *(m_uint*)reg = *(m_uint*)(mem + VAL);
+  *(m_uint*)reg = *(m_uint*)(mem + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH();
 regpushmemfloat:
-  *(m_float*)reg = *(m_float*)(mem + VAL);
+  *(m_float*)reg = *(m_float*)(mem + (m_int)VAL);
   reg += SZ_FLOAT;
   DISPATCH();
 regpushmemother:
   for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + VAL) + i);
+    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + (m_int)VAL) + i);
   reg += VAL2;
   DISPATCH();
 regpushmemaddr:
-  *(m_bit**)reg = &*(m_bit*)(mem + VAL);
+  *(m_bit**)reg = &*(m_bit*)(mem + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH()
 pushnow:
