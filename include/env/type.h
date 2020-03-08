@@ -49,7 +49,7 @@ ANN m_uint get_depth(const Type type);
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_null, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
-  et_function, et_fptr, et_varloop, et_vararg, et_lambda, et_class, et_union, et_undefined, et_auto,
+  et_function, et_fptr, et_varloop, et_lambda, et_class, et_union, et_undefined, et_auto,
   MAX_TYPE
 } type_enum;
 #endif

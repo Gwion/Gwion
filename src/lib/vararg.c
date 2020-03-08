@@ -105,7 +105,7 @@ static FREEARG(freearg_vararg) {
 
 static ID_CHECK(idck_vararg) {
   if(env->func && GET_FLAG(env->func->def, variadic))
-    return env->gwion->type[et_vararg];
+    return exp_self(prim)->type;
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
 
@@ -162,7 +162,6 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_set_global_type(gwi, t_varloop, et_varloop))
   const Type t_vararg  = gwi_class_spe(gwi, "@Vararg", 0);
   gwi_gack(gwi, t_vararg, gack_vararg);
-  gwi->gwion->type[et_vararg] = t_vararg; // use func
   GWI_BB(gwi_union_ini(gwi, NULL, NULL))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "start"))
   GWI_BB(gwi_union_add(gwi, "@VarLoop",  "end"))
