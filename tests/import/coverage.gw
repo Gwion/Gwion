@@ -3,18 +3,14 @@ Coverage c;
 c.s_i;
 <<<  Coverage.i()  >>>;
 <<<  Coverage.f()  >>>;
-<<<  Coverage.c()  >>>;
 
 <<< Coverage.s_i  >>>;
 <<< Coverage.s_f  >>>;
-<<< Coverage.s_c  >>>;
 
 <<< Coverage.sc_i  >>>;
 <<< Coverage.sc_f  >>>;
-<<< Coverage.sc_c  >>>;
 
 <<<  1 => Coverage.s_i  >>>;
 <<<  1.2 => Coverage.s_f  >>>;
-<<<  complex(1.2, 0.1) => Coverage.s_c  >>>;
 
 <<< c.test_array[0][0] >>>;

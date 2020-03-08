@@ -1,7 +1,6 @@
 #ifndef __LANG_PRIVATE
 #define __LANG_PRIVATE
 ANN m_bool import_prim(const Gwi gwi);
-ANN m_bool import_complex(const Gwi gwi);
 ANN m_bool import_object(const Gwi gwi);
 ANN m_bool import_vararg(const Gwi gwi);
 ANN m_bool import_string(const Gwi gwi);

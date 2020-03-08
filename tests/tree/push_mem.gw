@@ -1,2 +1,0 @@
-fun void test() { complex c; c; }
-test();

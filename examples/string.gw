@@ -4,8 +4,6 @@ string s;
 #!null @=> s;
 <<< 1 => s >>>;
 <<< 1.0 => s >>>;
-<<<  complex(2,1) => s  >>>;
-<<<  polar(2,1) => s  >>>;
 <<< "test" => s >>>; #! new
 <<< "test" => s >>>; #! new
 <<< s >>>;
@@ -20,15 +18,9 @@ string s;
 
 { (1 + s)      @=> string ref str; }
 { (2.0 +s)      @=> string  ref str; }
-{ (complex(2,1) + s) @=> string ref str; }
-{ (polar(2,1) + s) @=> string ref str; }
-#!{ ("test" + s) @=> string ref str; } // leak
-
 
 <<<  11 +=> s >>>;
 <<<  11.0 +=> s >>>;
-<<<  complex(21,11) +=> s  >>>;
-<<<  polar(22,12) +=> s  >>>;
 <<<  o +=> s >>>;
 <<< "test" + s  >>>; #! also leak
 <<<  null +=> s  >>>; #! also hang 

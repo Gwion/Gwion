@@ -2,10 +2,8 @@ class C
 {
 	static int     i;
 	static float   f;
-	static complex c;
 	static Object  o;
 }
 <<< C.i >>>;
 <<< C.f >>>;
-<<< C.c >>>;
 <<< C.o >>>;

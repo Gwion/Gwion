@@ -2,8 +2,6 @@ class C
 {
 	int i;
 	float f;
-	complex c;
-	polar p;
 	Object o;
 	operator @dtor void () { <<< "dtor" >>>; }
 }

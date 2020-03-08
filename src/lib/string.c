@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <complex.h>
 #include <math.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -69,12 +68,6 @@ describe_string_assign(Int_, m_int, SZ_INT,,
 describe_string_assign(Float_, m_float, SZ_FLOAT,,
   num_digit((m_uint)lhs) + 6,
   "%.4f", lhs)
-describe_string_assign(Complex_, m_complex, SZ_COMPLEX,,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 16,
-  "#(%.4f, %.4f)", creal(lhs), cimag(lhs))
-describe_string_assign(Polar_, m_complex, SZ_COMPLEX,,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + 16,
-  "#(%.4f, %.4f)", creal(lhs), cimag(lhs)/M_PI)
 describe_string_assign(Object_, M_Object, SZ_INT, release(lhs, shred),
   16,
   "%p", (void*)lhs)
@@ -109,12 +102,6 @@ describe_string(Int, m_int, SZ_INT,
 describe_string(Float, m_float, SZ_FLOAT,
   (num_digit((m_uint)lhs) + 5 + (rhs ? strlen(STRING(rhs)) : 0) + 1),,
   "%.4f%s", lhs, rhs ? STRING(rhs) : "")
-describe_string(Complex, m_complex, SZ_COMPLEX,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + (rhs ? strlen(STRING(rhs)) : 0) +  16,,
-  "#(%.4f, %.4f)%s", creal(lhs), cimag(lhs), rhs ? STRING(rhs) : "")
-describe_string(Polar, m_complex, SZ_COMPLEX,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + (rhs ? strlen(STRING(rhs)) : 0) +  20,,
-  "%%(%.4f, %.4f*pi)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : "")
 describe_string(Object, M_Object, SZ_INT,
   17 + (rhs ? strlen(STRING(rhs)) : 0), /*release(lhs, shred)*/,
   "%p%s", (void*)lhs, rhs ? STRING(rhs) : "")
@@ -138,12 +125,6 @@ describe_string_plus(Int_, SZ_INT, m_int,,
   num_digit((m_uint)lhs), "%"INT_F, lhs)
 describe_string_plus(Float_, SZ_FLOAT, m_float,,
   num_digit((m_uint)lhs) + 6, "%.4f", lhs)
-describe_string_plus(Complex_, SZ_COMPLEX, m_complex,,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 18, "#(%.4f, %.4f)",
-  creal(lhs), cimag(lhs))
-describe_string_plus(Polar_, SZ_COMPLEX, m_complex,,
-  num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 18, "%%(%.4f, %.4f)",
-  creal(lhs), cimag(lhs) / M_PI)
 describe_string_plus(Object_, SZ_INT, M_Object, release(lhs, shred),
   16, "%p", (void*)lhs)
 
@@ -223,20 +204,6 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_end(gwi, "+",       Float_String))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "+=>", Float_String_Plus))
-
-  GWI_BB(gwi_oper_ini(gwi, "complex", "string", "string"))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "=>",      Complex_String_Assign))
-  GWI_BB(gwi_oper_end(gwi, "+",       Complex_String))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "+=>", Complex_String_Plus))
-
-  GWI_BB(gwi_oper_ini(gwi, "polar",   "string", "string"))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "=>",      Polar_String_Assign))
-  GWI_BB(gwi_oper_end(gwi, "+",       Polar_String))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "+=>", Polar_String_Plus))
 
   GWI_BB(gwi_oper_ini(gwi, "Object",  "string", "string"))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))

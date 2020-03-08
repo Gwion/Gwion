@@ -2,24 +2,21 @@ class C
 {
 	int i;
 	float f;
-	complex c;
 	Object o;
 
 	fun int     m_i() { return i; }
 	fun float   m_f() { return f; }
-	fun complex m_c() { return c; }
 	fun Object  m_o() { return o; }
 }
 
 C c;
 #! read members
-<<<  c.i, c.c, c.f, c.o  >>>;
+<<<  c.i, c.f, c.o  >>>;
 
 #! call fun members
-<<<  c.m_i(), " ", c.m_f(), " ", c.m_c(), " ", c.m_o() >>>;
+<<<  c.m_i(), " ", c.m_f(), " ", c.m_o() >>>;
 
 #! write members
 <<<  12  => c.i  >>>;
 <<<  1.2 => c.f  >>>;
-<<<  complex(0.1, 2.3) => c.c  >>>;
 <<<  null @=> c.o  >>>;

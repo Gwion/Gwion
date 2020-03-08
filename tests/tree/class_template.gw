@@ -12,7 +12,6 @@ class<~A,B~> C {
 #!<<< C >>>;
 <~int, int~>C c;
 <~float, int~>C d;
-<~polar, int~>C e;
 <~Object, int~>C g;
 #!C c;
 <<< c.a >>>;

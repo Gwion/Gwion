@@ -1,10 +1,7 @@
 fun float test() {}
 fun float test(int i) {}
 fun float test(float f) {}
-fun float test(complex c) {}
 
-fun complex ctest(){}
-ctest();
 test();
 () => test;
 
@@ -14,20 +11,15 @@ test(1);
 test(1.2);
 1.2 => test;
 
-test(complex(2.3, 4.5));
-complex(2.3, 4.5) => test;
-
 class C
 {
   fun float test() {}
   fun float test(int i) {}
   fun float test(float f) {}
-  fun float test(complex c) {}
 
   fun static float s_test() {}
   fun static float s_test(int i) {}
   fun static float s_test(float f) {}
-  fun static float s_test(complex c) {}
 }
 
 C c;
@@ -40,9 +32,6 @@ c.test(1);
 c.test(1.2);
 1.2 => c.test;
 
-c.test(complex(2.3, 4.5));
-complex(2.3, 4.5) => c.test;
-
 c.s_test();
 () => c.s_test;
 
@@ -52,9 +41,6 @@ c.s_test(1);
 c.s_test(1.2);
 1.2 => c.s_test;
 
-c.s_test(complex(2.3, 4.5));
-complex(2.3, 4.5) => c.s_test;
-
 C.s_test();
 () => C.s_test;
 
@@ -63,6 +49,3 @@ C.s_test(1);
 
 C.s_test(1.2);
 1.2 => C.s_test;
-
-C.s_test(complex(2.3, 4.5));
-complex(2.3, 4.5) => C.s_test;
