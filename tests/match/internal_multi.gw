@@ -1,2 +1,2 @@
 #! [contains] must have one
-operator @implicit int(Vec3 v, int i) {}
+operator @implicit int(int i, int i) {}

@@ -424,8 +424,7 @@ regtoreg:
   *(m_uint*)(reg + (m_int)VAL) = *(m_uint*)(reg + (m_int)VAL2);
   DISPATCH()
 regtoregaddr:
-  *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);
-  reg += SZ_INT;
+  *(m_uint**)(reg + (m_int)VAL) = &*(m_uint*)(reg + (m_int)VAL2);
   DISPATCH()
 memsetimm:
   *(m_uint*)(mem+VAL) = VAL2;

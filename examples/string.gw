@@ -6,8 +6,6 @@ string s;
 <<< 1.0 => s >>>;
 <<<  complex(2,1) => s  >>>;
 <<<  polar(2,1) => s  >>>;
-<<<  Vec3(2,1,0) => s  >>>;
-<<<  Vec4(2,1,0,-1) => s  >>>;
 <<< "test" => s >>>; #! new
 <<< "test" => s >>>; #! new
 <<< s >>>;
@@ -24,8 +22,6 @@ string s;
 { (2.0 +s)      @=> string  ref str; }
 { (complex(2,1) + s) @=> string ref str; }
 { (polar(2,1) + s) @=> string ref str; }
-{ (Vec3(2,1, 0) + s) @=> string ref str; }
-{ (Vec4(2,1, 0, -1) + s) @=> string ref str; }
 #!{ ("test" + s) @=> string ref str; } // leak
 
 
@@ -33,8 +29,6 @@ string s;
 <<<  11.0 +=> s >>>;
 <<<  complex(21,11) +=> s  >>>;
 <<<  polar(22,12) +=> s  >>>;
-<<<  Vec3(22,11,11) +=> s  >>>;
-<<<  Vec4(22,11,11,-11) +=> s  >>>;
 <<<  o +=> s >>>;
 <<< "test" + s  >>>; #! also leak
 <<<  null +=> s  >>>; #! also hang 

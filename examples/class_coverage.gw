@@ -4,8 +4,6 @@ class C
 	float f;
 	complex c;
 	polar p;
-  Vec3 v;
-  Vec4 w;
 	Object o;
 	operator @dtor void () { <<< "dtor" >>>; }
 }

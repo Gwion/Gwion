@@ -5,6 +5,5 @@ fun A pure<~A~>(A i) { return i; }
 <<< 3 => pure >>>;
 <<< 4 => pure >>>;
 <<< 2.2 => pure >>>;
-<<< Vec3(2.3) => pure >>>;
 }
 C c;

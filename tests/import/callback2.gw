@@ -1,14 +1,9 @@
-fun Vec4 test(int i) { <<< "test with arg ", i >>>; }
+fun int test(int i) { <<< "test with arg ", i >>>; }
 
-#!typedef Vec4 PT();
-#!test @=> 
 PtrTypeI p;
 test @=> p;
-#!test @=> PT ti;
 <<< test >>>;
-#!<<< ti >>>;
 <<< p >>>;
-#!ti();
 <<< "test" >>>;
 p(2);
 <<< "end" >>>;

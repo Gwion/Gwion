@@ -134,8 +134,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, "new", NULL))
   GWI_BB(import_prim(gwi))
   GWI_BB(import_complex(gwi))
-  GWI_BB(import_vec3(gwi))
-  GWI_BB(import_vec4(gwi))
   GWI_BB(import_vararg(gwi))
   GWI_BB(import_string(gwi))
   GWI_BB(import_shred(gwi))

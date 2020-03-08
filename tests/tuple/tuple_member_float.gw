@@ -1,4 +1,4 @@
-Tuple(.2, Vec3(1), 3) @=> <~float, Vec3, int~>Tuple ref t;
+Tuple(.2, null, 3) @=> <~float, Object, int~>Tuple ref t;
 t[0];
 t[1];
 3 => t[2];

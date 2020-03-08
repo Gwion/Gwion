@@ -2,15 +2,9 @@ fun float test() {}
 fun float test(int i) {}
 fun float test(float f) {}
 fun float test(complex c) {}
-fun float test(Vec3 v) {}
-fun float test(Vec4 w) {}
 
 fun complex ctest(){}
-fun Vec3    vtest(){}
-fun Vec4    wtest(){}
 ctest();
-vtest();
-wtest();
 test();
 () => test;
 
@@ -23,27 +17,17 @@ test(1.2);
 test(complex(2.3, 4.5));
 complex(2.3, 4.5) => test;
 
-test(Vec3(1.2, 2.3, 3.4));
-Vec3(1.2, 2.3, 3.4) => test;
-
-test(Vec4(1.2, 2.3, 3.4, 4.5));
-Vec4(1.2, 2.3, 3.4, 4.5) => test;
-
 class C
 {
   fun float test() {}
   fun float test(int i) {}
   fun float test(float f) {}
   fun float test(complex c) {}
-  fun float test(Vec3 v) {}
-  fun float test(Vec4 w) {}
 
   fun static float s_test() {}
   fun static float s_test(int i) {}
   fun static float s_test(float f) {}
   fun static float s_test(complex c) {}
-  fun static float s_test(Vec3 v) {}
-  fun static float s_test(Vec4 w) {}
 }
 
 C c;
@@ -59,12 +43,6 @@ c.test(1.2);
 c.test(complex(2.3, 4.5));
 complex(2.3, 4.5) => c.test;
 
-c.test(Vec3(1.2, 2.3, 3.4));
-Vec3(1.2, 2.3, 3.4) => c.test;
-
-c.test(Vec4(1.2, 2.3, 3.4, 4.5));
-Vec4(1.2, 2.3, 3.4, 4.5) => c.test;
-
 c.s_test();
 () => c.s_test;
 
@@ -77,12 +55,6 @@ c.s_test(1.2);
 c.s_test(complex(2.3, 4.5));
 complex(2.3, 4.5) => c.s_test;
 
-c.s_test(Vec3(1.2, 2.3, 3.4));
-Vec3(1.2, 2.3, 3.4) => c.s_test;
-
-c.s_test(Vec4(1.2, 2.3, 3.4, 4.5));
-Vec4(1.2, 2.3, 3.4, 4.5) => c.s_test;
-
 C.s_test();
 () => C.s_test;
 
@@ -94,10 +66,3 @@ C.s_test(1.2);
 
 C.s_test(complex(2.3, 4.5));
 complex(2.3, 4.5) => C.s_test;
-
-C.s_test(Vec3(1.2, 2.3, 3.4));
-Vec3(1.2, 2.3, 3.4) => C.s_test;
-
-C.s_test(Vec4(1.2, 2.3, 3.4, 4.5));
-Vec4(1.2, 2.3, 3.4, 4.5) => C.s_test;
-

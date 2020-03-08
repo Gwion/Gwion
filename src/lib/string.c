@@ -75,12 +75,6 @@ describe_string_assign(Complex_, m_complex, SZ_COMPLEX,,
 describe_string_assign(Polar_, m_complex, SZ_COMPLEX,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + 16,
   "#(%.4f, %.4f)", creal(lhs), cimag(lhs)/M_PI)
-describe_string_assign(Vec3_, m_vec3, SZ_VEC3,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 25,
-  "#(%.4f, %.4f, %.4f)", lhs.x, lhs.y, lhs.z)
-describe_string_assign(Vec4_, m_vec4, SZ_VEC4,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w) + 40,
-  "#(%.4f, %.4f, %.4f, %.4f)", lhs.x, lhs.y, lhs.z, lhs.w)
 describe_string_assign(Object_, M_Object, SZ_INT, release(lhs, shred),
   16,
   "%p", (void*)lhs)
@@ -121,14 +115,6 @@ describe_string(Complex, m_complex, SZ_COMPLEX,
 describe_string(Polar, m_complex, SZ_COMPLEX,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs) / M_PI) + (rhs ? strlen(STRING(rhs)) : 0) +  20,,
   "%%(%.4f, %.4f*pi)%s", creal(lhs), cimag(lhs) / M_PI, rhs ? STRING(rhs) : "")
-describe_string(Vec3, m_vec3, SZ_VEC3,
-  (rhs ? strlen(STRING(rhs)) : 0) + 23 + num_digit((m_uint)lhs.x) +
-                                      num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z),,
-  "@(%.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, rhs ? STRING(rhs) : "")
-describe_string(Vec4, m_vec4, SZ_VEC4,
-  (rhs ? strlen(STRING(rhs)) : 0) + 30 + num_digit((m_uint)lhs.x) +
-  num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.w),,
-  "@(%.4f, %.4f, %.4f, %.4f)%s", lhs.x, lhs.y, lhs.z, lhs.w, rhs ? STRING(rhs) : "")
 describe_string(Object, M_Object, SZ_INT,
   17 + (rhs ? strlen(STRING(rhs)) : 0), /*release(lhs, shred)*/,
   "%p%s", (void*)lhs, rhs ? STRING(rhs) : "")
@@ -158,12 +144,6 @@ describe_string_plus(Complex_, SZ_COMPLEX, m_complex,,
 describe_string_plus(Polar_, SZ_COMPLEX, m_complex,,
   num_digit((m_uint)creal(lhs)) + num_digit((m_uint)cimag(lhs)) + 18, "%%(%.4f, %.4f)",
   creal(lhs), cimag(lhs) / M_PI)
-describe_string_plus(Vec3_, SZ_VEC3, m_vec3,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + 22, "@(%.4f, %.4f, %.4f)",
-  lhs.x, lhs.y, lhs.z)
-describe_string_plus(Vec4_, SZ_VEC4, m_vec4,,
-  num_digit((m_uint)lhs.x) + num_digit((m_uint)lhs.y) + num_digit((m_uint)lhs.z) + num_digit((m_uint)lhs.z) + 30, "@(%.4f, %.4f, %.4f, %.4f)",
-  lhs.x, lhs.y, lhs.z, lhs.w)
 describe_string_plus(Object_, SZ_INT, M_Object, release(lhs, shred),
   16, "%p", (void*)lhs)
 
@@ -257,20 +237,6 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_end(gwi, "+",       Polar_String))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "+=>", Polar_String_Plus))
-
-  GWI_BB(gwi_oper_ini(gwi,"Vec3",     "string", "string"))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "=>",      Vec3_String_Assign))
-  GWI_BB(gwi_oper_end(gwi, "+",       Vec3_String))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "+=>", Vec3_String_Plus))
-
-  GWI_BB(gwi_oper_ini(gwi, "Vec4",    "string", "string"))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "=>",      Vec4_String_Assign))
-  GWI_BB(gwi_oper_end(gwi, "+",       Vec4_String))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "+=>", Vec4_String_Plus))
 
   GWI_BB(gwi_oper_ini(gwi, "Object",  "string", "string"))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))

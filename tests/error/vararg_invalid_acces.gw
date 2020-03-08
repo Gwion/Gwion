@@ -4,4 +4,4 @@ fun void test(...) {
   <<<vararg $ int >>>;
   vararg.end;
 }
-Vec3(1.3) => test;
+new Object => test;

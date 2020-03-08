@@ -418,13 +418,9 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
 }
 
 ANN static void emit_vec_addr(const Emitter emit, const m_uint sz) {
-  emit_local(emit, sz, 0);
-  const m_uint offset = emit_local(emit, SZ_INT, 0);
-  const Instr cpy = emit_add_instr(emit, VecCpy);
-  cpy->m_val = offset;
-  cpy->m_val2 = sz;
-  const Instr instr = emit_add_instr(emit, RegPushMem);
-  instr->m_val = offset;
+  regpop(emit, sz - SZ_INT);
+  const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
+  cpy->m_val = -SZ_INT;
 }
 
 ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
@@ -1290,6 +1286,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   const m_uint index = emit_code_size(emit);
   const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
   cpy->m_val2 = -SZ_INT;
+  regpushi(emit, SZ_INT);
   emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))

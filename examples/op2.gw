@@ -8,18 +8,12 @@ operator => int     (int     i, C d){ <<< "int   => C: ", i => d.f >>>; return 2
 operator => float   (float   f, C d){ <<< "float   => C: ", f     => d.f >>>; return 2.0;}
 operator => complex (complex c, C d){ <<< "complex => C: ", c.re  => d.f >>>; return complex(1.2, 6.1);}
 operator => polar   (polar   c, C d){ <<< "complex => C: ", c.mod => d.f >>>; return polar(2.3, 4.1);}
-operator => Vec3    (Vec3    c, C d){ <<< c.z   => d.f >>>; return Vec3(1.2, 6.1, 2.3);}
-operator => Vec4    (Vec4    c, C d){ <<< "Vec4    => C: ", c.w   => d.f >>>; return Vec4(1.2, 6.1, 2.3, 9.3);}
 
 operator => float   (C d, int     c){ <<< "int   => C: ", c => d.f >>>; return 2.0;}
 operator => float   (C d,  float   f){ <<< "C   => float: ", f     => d.f >>>; return 2.0;}
 
-operator => float   (Vec3 v, float   f){ <<< "vec3 => C: ", f, " ", v.x => f >>>; return 2.0;}
-
 operator => complex (C d, complex c){ <<< "complex => C: ", c.re  => d.f >>>; return complex(1.2, 6.1);}
 operator => polar   (C d, polar   c){ <<< "complex => C: ", c.mod => d.f >>>; return polar(2.3, 4.1);}
-operator => Vec3    (C d, Vec3    c){ <<< c.z   => d.f >>>; return Vec3(1.2, 6.1, 2.3);}
-operator => Vec4    (C d, Vec4    c){ <<< "Vec4    => C: ", c.w   => d.f >>>; return Vec4(1.2, 6.1, 2.3, 9.3);}
 C c, d;
 
 12.3 => c.f;
@@ -28,21 +22,13 @@ C c, d;
 <<<  2.3                   => d  >>>;
 <<<  complex(7.2, 1.4)           => d  >>>;
 <<<  polar(7.2, 1.4)           => d  >>>;
-<<<  Vec3(7.2, 1.4, 8.3) >>>;
-<<<  Vec3(7.2, 1.4, 8.3)      => d  >>>;
-<<<  Vec4(7.2, 1.4, 8.3, 2.3) => d  >>>;
 
 int i;
 2 => float f;
 complex cmp;
-Vec3 v;
 <<< f >>>;
-v => f;
-Vec4 w;
 c => i;
 <<< c.f >>>;
 <<< f >>>;
 c => f;
 c => cmp;
-c => v;
-c => w;
