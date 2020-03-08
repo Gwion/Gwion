@@ -1295,26 +1295,14 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN static Value set_variadic(const Env env) {
-  const Value variadic = new_value(env->gwion->mp, env->gwion->type[et_vararg], "vararg");
-  SET_FLAG(variadic, checked);
-  nspc_add_value(env->curr, insert_symbol("vararg"), variadic);
-  return variadic;
-}
-
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->args)
     CHECK_BB(check_func_args(env, fdef->base->args))
-//  else
-//    UNSET_FLAG(fdef->base->func, pure);
-  const Value variadic = GET_FLAG(fdef, variadic) ? set_variadic(env) : NULL;
   if(!GET_FLAG(fdef, builtin)) {
     if(fdef->d.code)
       CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code))
   } else
     fdef->base->func->code->stack_depth = fdef->stack_depth;
-  if(variadic)
-    REM_REF(variadic, env->gwion)
   return GW_OK;
 }
 
