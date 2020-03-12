@@ -34,8 +34,8 @@ static DTOR(vararg_dtor) {
   free_vararg(shred->info->vm->gwion->mp, arg);
 }
 
-ANN static M_Object vararg_cpy(VM_Shred shred, struct Vararg_* src) {
-  const M_Object o = new_object(shred->info->mp, shred, shred->info->vm->gwion->type[et_vararg]);
+static MFUN(mfun_vararg_cpy) {
+  struct Vararg_ *src =  *(struct Vararg_**)o->data;
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
   vector_copy2(&src->t, &arg->t);
   arg->l = src->l;
@@ -51,12 +51,9 @@ ANN static M_Object vararg_cpy(VM_Shred shred, struct Vararg_* src) {
   arg->s = vector_size(&arg->t);
   arg->i = src->i;
   arg->o = src->o;
-  *(struct Vararg_**)o->data = arg;
-  return o;
-}
-
-static MFUN(mfun_vararg_cpy) {
-  *(M_Object*)RETURN = vararg_cpy(shred, *(struct Vararg_**)o->data);
+  const M_Object obj = new_object(shred->info->mp, shred, o->type_ref);
+  *(struct Vararg_**)obj->data = arg;
+  *(M_Object*)RETURN = obj;
 }
 
 INSTR(VarargIni) {
@@ -93,10 +90,6 @@ static INSTR(VarargEnd) {
 static OP_CHECK(opck_vararg_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return known_type(env, cast->td);
-}
-
-static OP_CHECK(opck_vararg_at) {
-  return env->gwion->type[et_null];
 }
 
 static INSTR(VarargCast) {
@@ -159,15 +152,12 @@ GWION_IMPORT(vararg) {
   CHECK_BB(gwi_func_ini(gwi, "Vararg", "cpy"))
   CHECK_BB(gwi_func_end(gwi, mfun_vararg_cpy, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG(t_vararg, abstract | ae_flag_const);
+  SET_FLAG(t_vararg, abstract);
   CHECK_BB(gwi_set_global_type(gwi, t_vararg, et_vararg))
   GWI_BB(gwi_oper_ini(gwi, "nonnull Vararg", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Vararg", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_vararg_at))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   gwi_register_freearg(gwi, VarargIni, freearg_vararg);
   struct SpecialId_ spid = { .type=t_vararg, .is_const=1, .ck=idck_vararg, .em=idem_vararg};
   gwi_specialid(gwi, "vararg", &spid);

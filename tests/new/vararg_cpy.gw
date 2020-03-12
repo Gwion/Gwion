@@ -1,0 +1,5 @@
+fun void test(...) {
+  <<< vararg >>>;
+  <<< vararg.cpy() @=> Vararg ref new_arg >>>;
+}
+test(1);

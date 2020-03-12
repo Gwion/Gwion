@@ -766,7 +766,7 @@ remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
 setobj:
-  a.obj  = *(M_Object*)(reg-SZ_INT-VAL);
+  a.obj  = *(M_Object*)(reg-SZ_INT-(m_int)VAL);
   DISPATCH();
 except:
 /* TODO: Refactor except instruction             *
