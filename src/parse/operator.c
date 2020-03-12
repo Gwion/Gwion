@@ -260,7 +260,7 @@ ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
   return nspc;
 }
 
-ANN void op_emit_nonnull(const Emitter emit, const Type mo, const Type opi, const m_uint offset) {
+ANN2(1) void op_emit_nonnull(const Emitter emit, const Type mo, const Type opi, const m_uint offset) {
   if(!mo || mo == OP_ANY_TYPE)
     return;
   if(GET_FLAG(mo, nonnull) && !GET_FLAG(opi, nonnull)) {
