@@ -356,7 +356,9 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
       M_Object obj;
       VM_Code code;
     } a;
+PRAGMA_PUSH()
     register VM_Shred child;
+PRAGMA_POP()
   MUTEX_LOCK(s->mutex);
   do {
     SDISPATCH();

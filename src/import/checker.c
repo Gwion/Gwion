@@ -214,7 +214,9 @@ ANN static Type_List str2tl(const Gwi gwi, const m_str s) {
 }
 
 //! convert a string to a Type_Decl
-ANN Type_Decl* str2decl(const Gwi gwi, const m_str s) {
+ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
+  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
+  const m_str s = strncmp(str, "nonnull ", 8) ? str : str + 8;
 // we can do better
   DECL_OO(const m_str, type_name, = get_type_name(gwi->gwion->env, s, 0))
   struct array_checker ck = { .str=type_name };
@@ -233,6 +235,7 @@ ANN Type_Decl* str2decl(const Gwi gwi, const m_str s) {
     td->array = new_array_sub(gwi->gwion->mp, ck.exp);
     td->array->depth = ck.depth;
   }
+  td->flag |= flag;
   return td;
 }
 

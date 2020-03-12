@@ -26,14 +26,29 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
   return GW_OK;
 }
 
+ANN2(1,2) static inline m_bool class_parent(const Env env, const Type t) {
+  Type parent = t->e->parent;
+  while(parent && !GET_FLAG(parent, checked)) {
+    if(t->e->def)
+      CHECK_BB(traverse_class_def(env, t->e->def))
+    parent = parent->e->parent;
+  }
+  return GW_OK;
+}
+
+ANN void inherit(const Type t) {
+  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  if(!nspc || !parent)
+    return;
+  nspc->info->offset = parent->info->offset;
+  if(parent->info->vtable.ptr)
+    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
+}
+
 ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
-  if(t->e->parent && t->e->parent->nspc) {
-    t->nspc->info->offset = t->e->parent->nspc->info->offset;
-    if(t->e->parent->nspc->info->vtable.ptr)
-      vector_copy2(&t->e->parent->nspc->info->vtable, &t->nspc->info->vtable);
-  }
+  inherit(t);
   t->e->owner = env->curr;
   SET_FLAG(t, checked);
   env_push_type(env, t);
@@ -53,6 +68,7 @@ ANN static inline void gwi_type_flag(const Type t) {
 
 ANN static Type type_finish(const Gwi gwi, const Type t) {
   gwi_add_type(gwi, t);
+  CHECK_BO(class_parent(gwi->gwion->env, t))
   import_class_ini(gwi->gwion->env, t);
   return t;
 }

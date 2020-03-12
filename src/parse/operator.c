@@ -19,6 +19,7 @@ typedef struct M_Operator_{
   Func func;
   opck ck;
   opem em;
+  m_uint emit_var;
 } M_Operator;
 
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
@@ -52,7 +53,6 @@ static m_bool op_match(const restrict Type t, const restrict Type mo) {
     return GW_OK;
   Type type = t;
   while(SAFE_FLAG(type, template) && type->e->def && type->e->def->base.tmpl && type->e->def->base.tmpl->call) type = type->e->parent;
-//  if((t && mo && mo->xid == t->xid) || (!t && !mo))
   if((type && mo && mo->xid == type->xid) || (!type && !mo))
     return GW_OK;
   return 0;
@@ -91,8 +91,11 @@ ANN static M_Operator* new_mo(MemPool p, const struct Op_Import* opi) {
   mo->rhs       = opi->rhs;
   mo->ret       = opi->ret;
   mo->instr     = (f_instr)opi->data;
-  mo->ck     = opi->ck;
-  mo->em     = opi->em;
+  if(opi->func) {
+    mo->ck     = opi->func->ck;
+    mo->em     = opi->func->em;
+  }
+  mo->emit_var = opi->emit_var;
   return mo;
 }
 
@@ -257,6 +260,15 @@ ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
   return nspc;
 }
 
+ANN void op_emit_nonnull(const Emitter emit, const Type mo, const Type opi, const m_uint offset) {
+  if(!mo || mo == OP_ANY_TYPE)
+    return;
+  if(GET_FLAG(mo, nonnull) && !GET_FLAG(opi, nonnull)) {
+    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    instr->m_val = offset;
+   }
+}
+
 ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
   DECL_OO(Nspc, nspc, = ensure_nspc(emit->gwion->st, opi))
   Type l = opi->lhs;
@@ -267,6 +279,9 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
       if(!v)continue;
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
+        const m_uint sz = opi->rhs ? opi->rhs->size : 0;
+        op_emit_nonnull(emit, mo->lhs, opi->lhs, mo->emit_var ?: sz);
+        op_emit_nonnull(emit, mo->rhs, opi->rhs, 0);
         if(mo->em)
           return mo->em(emit, (void*)opi->data);
         return handle_instr(emit, mo);

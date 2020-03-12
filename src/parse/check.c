@@ -389,7 +389,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         const Type owner = nspc_lookup_type1(t->e->owner->parent,
           insert_symbol(t->e->owner->name));
         const m_bool ret = check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
-        e->emit_var = 1;
+//        e->emit_var = 1;
         return ret;
       }
       if(implicit)
@@ -873,17 +873,13 @@ ANN static Type check_exp_interp(const Env env, const Exp_Interp* exp) {
 DECL_EXP_FUNC(check, Type, Env)
 
 ANN Type check_exp(const Env env, const Exp exp) {
-  Exp curr = exp, next = NULL, prev = NULL;
+  Exp curr = exp;
   do {
-    next = curr->next;
     CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)))
-    if(env->gwion->type[et_varloop] && isa(curr->type, env->gwion->type[et_varloop]) > 0 && (prev || next))
-      ERR_O(exp->pos, _("Varloop must be the only expression"))
     if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
         !GET_FLAG(curr->type->e->d.func, pure))
       UNSET_FLAG(env->func, pure);
-    prev = curr;
-  } while((curr = next));
+  } while((curr = curr->next));
   return exp->type;
 }
 
@@ -899,6 +895,14 @@ ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
 ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   if(stmt->stmt_list) { RET_NSPC(check_stmt_list(env, stmt->stmt_list)) }
   return GW_OK;
+}
+
+ANN static m_bool check_stmt_varloop(const Env env, const Stmt_VarLoop stmt) {
+  CHECK_OB(check_exp(env, stmt->exp))
+  if(isa(stmt->exp->type, env->gwion->type[et_vararg]) < 0)
+    ERR_B(stmt->exp->pos, "varloop expression type must be '%s', not '%s'",
+      env->gwion->type[et_vararg]->name, stmt->exp->type->name)
+  return check_stmt(env, stmt->body);
 }
 
 ANN static inline m_bool _check_breaks(const Env env, const Stmt b) {
@@ -1312,15 +1316,6 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
-}
-
-ANN static inline void inherit(const Type t) {
-  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
-  if(!parent)
-    return;
-  nspc->info->offset = parent->info->offset;
-  if(parent->info->vtable.ptr)
-    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
 }
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {

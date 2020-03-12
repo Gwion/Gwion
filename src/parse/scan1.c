@@ -105,6 +105,9 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
+  if(GET_FLAG(decl->type, const))
+    exp_self(decl)->meta = ae_meta_value;
+//    SET_FLAG(decl->td, const);
   const m_bool global = GET_FLAG(decl->td, global);
   if(global && decl->type->e->owner != env->global_nspc)
     ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
@@ -228,6 +231,8 @@ ANN static inline m_bool scan1_stmt_match(const restrict Env env, const Stmt_Mat
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
+describe_ret_nspc(varloop, Stmt_VarLoop,, !(scan1_exp(env, stmt->exp) < 0 ||
+    scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->c2) < 0 ||
     (stmt->c3 && scan1_exp(env, stmt->c3) < 0) ||
@@ -267,6 +272,13 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
+ANN static Value arg_value(MemPool p, const Arg_List list) {
+  const Var_Decl var = list->var_decl;
+  const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
+  if(list->td)
+    v->flag = list->td->flag | ae_flag_arg;
+  return v;
+}
 ANN static m_bool scan1_args(const Env env, Arg_List list) {
   do {
     const Var_Decl var = list->var_decl;
@@ -274,6 +286,8 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
       CHECK_BB(isres(env, var->xid, var->pos))
     if(list->td)
       CHECK_OB((list->type = void_type(env, list->td)))
+    var->value = arg_value(env->gwion->mp, list);
+    nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
   return GW_OK;
 }
@@ -304,6 +318,12 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
   else if(GET_FLAG(udef, static))
     SET_FLAG(decl.td, static);
   CHECK_BB(scan1_exp(env, l->self))
+
+Var_Decl_List list = decl.list;
+do ADD_REF(list->self->value)
+while((list = list->next));
+
+
   if(global)
     SET_FLAG(decl.td, global);
   return GW_OK;
@@ -400,6 +420,14 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   return GW_OK;
 }
 
+ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
+  if(fdef->base->args)
+    CHECK_BB(scan1_args(env, fdef->base->args))
+  if(!GET_FLAG(fdef, builtin) && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
+    CHECK_BB(scan1_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list))
+  return GW_OK;
+}
+
 ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
@@ -407,10 +435,7 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
     CHECK_BB(scan_internal(env, fdef->base))
   else if(GET_FLAG(fdef, op) && env->class_def)
     SET_FLAG(fdef, static);
-  if(fdef->base->args)
-    CHECK_BB(scan1_args(env, fdef->base->args))
-  if(!GET_FLAG(fdef, builtin) && fdef->d.code)
-    CHECK_BB(scan1_stmt_code(env, &fdef->d.code->d.stmt_code))
+  RET_NSPC(scan1_fbody(env, fdef))
   return GW_OK;
 }
 

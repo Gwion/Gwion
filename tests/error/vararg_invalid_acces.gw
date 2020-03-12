@@ -1,7 +1,7 @@
 #! [contains] InvalidVariadicAccess
 fun void test(...) {
-  vararg.start;
-  <<<vararg $ int >>>;
-  vararg.end;
+  varloop vararg {
+    <<<vararg $ int >>>;
+  }
 }
 new Object => test;

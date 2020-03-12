@@ -127,23 +127,10 @@ ANN void ugen_ini(const struct Gwion_ *gwion, const UGen u, const uint in, const
   }
 }
 
-ANN static m_bool connect_init(const VM_Shred shred, restrict M_Object* lhs, restrict M_Object* rhs) {
+ANN void connect_init(const VM_Shred shred, restrict M_Object* lhs, restrict M_Object* rhs) {
   POP_REG(shred, SZ_INT * 2);
   *rhs = *(M_Object*)REG(SZ_INT);
   *lhs = *(M_Object*)REG(0);
-  if(!*lhs) {
-    if(*rhs)
-      _release(*rhs, shred);
-    goto end;
-  }
-  if(!*rhs) {
-    _release(*lhs, shred);
-    goto end;
-  }
-  return GW_OK;
-end:
-  exception(shred, "UgenConnectException");
-  return GW_ERROR;
 }
 
 #define describe_connect(name, func)                                                    \
@@ -192,12 +179,12 @@ if(!UGEN(rhs)->module.gen.trig) {       \
   Except(shred, "NonTriggerException"); \
 }
 #define describe_connect_instr(name, func, opt) \
-static INSTR(name##func) {\
+static INSTR(name##func) {                      \
   M_Object lhs, rhs;                            \
-  if(connect_init(shred, &lhs, &rhs) > 0) {     \
-    opt                                         \
-    _do_(func, UGEN(lhs), UGEN(rhs)); /*}*/         \
-  release_connect(shred);      }                 \
+  connect_init(shred, &lhs, &rhs);              \
+  opt                                           \
+  _do_(func, UGEN(lhs), UGEN(rhs));             \
+  release_connect(shred);                       \
 }
 describe_connect_instr(Ugen, Connect,)
 describe_connect_instr(Ugen, Disconnect,)
@@ -355,7 +342,7 @@ GWION_IMPORT(ugen) {
   GWI_BB(gwi_func_end(gwi, ugen_get_last, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
+  GWI_BB(gwi_oper_ini(gwi, "nonnull UGen", "nonnull UGen", "nonnull UGen"))
   _CHECK_OP("=>", chuck_ugen, UgenConnect)
   _CHECK_OP("=<", chuck_ugen, UgenDisconnect)
   _CHECK_OP(":=>", chuck_ugen, TrigConnect)

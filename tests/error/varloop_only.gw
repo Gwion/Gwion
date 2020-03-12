@@ -1,5 +1,0 @@
-#! [contains] Varloop must be the only expression
-fun void test(...) {
-  <<<"test">>>, vararg.start;
-  vararg.end;
-}

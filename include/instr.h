@@ -48,11 +48,7 @@ INSTR(ArrayAlloc);
 
 /* vararg */
 INSTR(VarargIni);
-INSTR(VarargTop);
-INSTR(VarargEnd);
 
-INSTR(VecCpy);
-INSTR(VecMember);
 INSTR(PopArrayClass);
 
 INSTR(DotTmpl);

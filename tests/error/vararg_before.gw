@@ -1,4 +1,0 @@
-#! [contains] used before
-fun void test(...) {
-  vararg $ int;
-}

@@ -1,7 +1,0 @@
-#! [contains] vararg.start not used before vararg.end
-fun void test(int i, ...) {
-	vararg.end;
-#!	vararg.start;
-}
-
-test(1, 2.3, null);

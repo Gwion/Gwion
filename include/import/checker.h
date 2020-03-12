@@ -41,6 +41,7 @@ typedef struct OperCK { // name_checker ?
   Instr  (*em)(Emitter, void*); // oper
   m_str lhs;// oper
   m_str rhs;// oper
+  m_uint emit_var;
 } OperCK;
 
 struct array_checker {

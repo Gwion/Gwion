@@ -19,7 +19,6 @@ ANEW Emitter new_emitter(MemPool p) {
   vector_init(&emit->stack);
   emit->info = (struct EmitterInfo_*)mp_calloc(p, EmitterInfo);
   vector_init(&emit->info->pure);
-  vector_init(&emit->info->variadic);
   emit->info->escape = escape_table(p);
   emit->info->emit_code = emit_code;
   emit->info->finalyzer = EOC;
@@ -29,7 +28,6 @@ ANEW Emitter new_emitter(MemPool p) {
 ANN void free_emitter(MemPool p, Emitter a) {
   vector_release(&a->stack);
   vector_release(&a->info->pure);
-  vector_release(&a->info->variadic);
   mp_free2(p, 256, a->info->escape);
   mp_free(p, EmitterInfo, a->info);
   mp_free(p, Emitter, a);

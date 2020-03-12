@@ -123,44 +123,13 @@ static GWION_IMPORT(int_values) {
 }
 
 static GWION_IMPORT(int) {
+  GWI_BB(import_int_values(gwi))
   GWI_BB(gwi_oper_cond(gwi, "int", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   GWI_BB(import_int_op(gwi))
   GWI_BB(import_int_logical(gwi))
   GWI_BB(import_int_r(gwi))
   GWI_BB(import_int_unary(gwi))
-  return import_int_values(gwi);
-}
-
-static GWION_IMPORT(values) {
-  VM* vm = gwi_vm(gwi);
-  ALLOC_PTR(gwi->gwion->mp, d_zero, m_float, 0.0);
-  ALLOC_PTR(gwi->gwion->mp, sr,     m_float, (m_float)vm->bbq->si->sr);
-  ALLOC_PTR(gwi->gwion->mp, samp,   m_float, 1.0);
-  ALLOC_PTR(gwi->gwion->mp, ms,     m_float, (m_float)(*sr     / 1000.));
-  ALLOC_PTR(gwi->gwion->mp, second, m_float, (m_float)*sr);
-  ALLOC_PTR(gwi->gwion->mp, minute, m_float, (m_float)(*sr     * 60.0));
-  ALLOC_PTR(gwi->gwion->mp, hour,   m_float, (m_float)(*minute * 60.0));
-  ALLOC_PTR(gwi->gwion->mp, t_zero, m_float, 0.0);
-  ALLOC_PTR(gwi->gwion->mp, pi, m_float, (m_float)M_PI);
-  gwi_item_ini(gwi, "float", "samplerate");
-  gwi_item_end(gwi, ae_flag_const, sr);
-  gwi_item_ini(gwi, "float", "pi");
-  gwi_item_end(gwi, ae_flag_const, pi);
-  gwi_item_ini(gwi, "dur", "d_zero");
-  gwi_item_end(gwi, ae_flag_const, d_zero);
-  gwi_item_ini(gwi, "dur", "samp");
-  gwi_item_end(gwi, ae_flag_const, samp);
-  gwi_item_ini(gwi, "dur", "ms");
-  gwi_item_end(gwi, ae_flag_const, ms);
-  gwi_item_ini(gwi, "dur", "second");
-  gwi_item_end(gwi, ae_flag_const, second);
-  gwi_item_ini(gwi, "dur", "minute");
-  gwi_item_end(gwi, ae_flag_const, minute);
-  gwi_item_ini(gwi, "dur", "hour");
-  gwi_item_end(gwi, ae_flag_const, hour);
-  gwi_item_ini(gwi, "time", "t_zero");
-  gwi_item_end(gwi, ae_flag_const, t_zero);
   return GW_OK;
 }
 
@@ -305,6 +274,5 @@ GWION_IMPORT(prim) {
   GWI_BB(import_intfloat(gwi))
   GWI_BB(import_floatint(gwi))
   GWI_BB(import_dur(gwi))
-  GWI_BB(import_time(gwi))
-  return import_values(gwi);
+  return import_time(gwi);
 }

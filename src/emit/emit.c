@@ -18,6 +18,7 @@
 #include "parser.h"
 #include "tuple.h"
 #include "specialid.h"
+#include "vararg.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -1225,6 +1226,30 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
   return GW_OK;
 }
 
+ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, const m_uint status) {
+  regpushi(emit, status);
+  CHECK_BB(emit_exp(emit, stmt->exp, 0))
+  emit_add_instr(emit, SetObj);
+  const Instr member = emit_add_instr(emit, DotMember4);
+  member->m_val = SZ_INT;
+  emit_add_instr(emit, int_r_assign);
+  regpop(emit, SZ_INT);
+  return GW_OK;
+}
+
+ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt) {
+  CHECK_BB(variadic_state(emit, stmt, 1))
+  CHECK_BB(emit_exp(emit, stmt->exp, 0))
+  const Instr instr = emit_add_instr(emit, BranchEqInt);
+  const m_uint pc = emit_code_size(emit);
+  emit_stmt(emit, stmt->body, 1);
+  CHECK_BB(emit_exp(emit, stmt->exp, 0))
+  emit_vararg_end(emit, pc);
+  instr->m_val = emit_code_size(emit);
+  CHECK_BB(variadic_state(emit, stmt, 0))
+  return GW_OK;
+}
+
 // scope push problem
 ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   emit_push_stack(emit);
@@ -1545,10 +1570,6 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
   return GW_OK;
 }
 
-ANN static inline Instr get_variadic(const Emitter emit) {
-  return (Instr)vector_back(&emit->info->variadic);
-}
-
 ANN static inline m_bool ensure_emit(const Emitter emit, const Type type) {
   const Type t = actual_type(emit->gwion, type) ?: type;
   if(!GET_FLAG(t, emit) && t->e->def)
@@ -1629,7 +1650,7 @@ ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
     return finalyze(emit, FuncReturn);
 }
 
-ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
+ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->base->args)
     emit_func_def_args(emit, fdef->base->args);
   if(GET_FLAG(fdef, variadic))
@@ -1637,19 +1658,6 @@ ANN static m_bool _fdef_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->d.code)
     CHECK_BB(emit_stmt_code(emit, &fdef->d.code->d.stmt_code))
   emit_func_def_ensure(emit, fdef);
-  return GW_OK;
-}
-
-ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
-  vector_add(&emit->info->variadic, 0);
-  CHECK_BB(_fdef_body(emit, fdef))
-  if(GET_FLAG(fdef, variadic)) {
-    if(!get_variadic(emit))
-      ERR_B(fdef->pos, _("invalid variadic use"))
-    if(!GET_FLAG(fdef->base->func, empty))
-      ERR_B(fdef->pos, _("invalid variadic use"))
-  }
-  vector_pop(&emit->info->variadic);
   return GW_OK;
 }
 

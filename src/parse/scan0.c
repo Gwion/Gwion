@@ -119,12 +119,13 @@ static OP_CHECK(opck_cast_similar) {
 }
 
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
-  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .ck=opck_cast_similar };
+  struct Op_Func opfunc = { .ck=opck_cast_similar };
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .func=&opfunc };
   add_op(env->gwion, &opi);
   opi.lhs=rhs;
   opi.rhs=lhs;
   add_op(env->gwion, &opi);
-  opi.ck = opck_implicit_similar;
+  opfunc.ck = opck_implicit_similar;
   opi.op=insert_symbol("@implicit");
   add_op(env->gwion, &opi);
 }
@@ -222,7 +223,6 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->e->owner = t->nspc->parent = env->curr;
-  t->nspc->is_union = 1;
   t->e->parent = env->gwion->type[et_union];
   add_type(env, env->curr, t);
   if(add) {

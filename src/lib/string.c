@@ -107,17 +107,17 @@ describe_string(Object, M_Object, SZ_INT,
   "%p%s", (void*)lhs, rhs ? STRING(rhs) : "")
 
 
-#define describe_string_plus(name, offset, type, opt, len, format, ...) \
-static INSTR(name##String_Plus) {\
-  POP_REG(shred, offset);                  \
-  const type lhs = *(type*)REG(-SZ_INT);                  \
-  const M_Object rhs = *(M_Object*)REG(offset - SZ_INT);     \
-  opt;                                              \
-  if(!rhs)                                          \
-    Except(shred, "NullPtrException");              \
-  char c[strlen(STRING(rhs)) + (len) + 1];          \
-  sprintf(c, "%s"format, STRING(rhs), __VA_ARGS__); \
-  push_string(shred, rhs, c);                       \
+#define describe_string_plus(_name, offset, type, opt, len, format, ...) \
+static INSTR(_name##String_Plus) {                       \
+  POP_REG(shred, offset);                                \
+  const type lhs = *(type*)REG(-SZ_INT);                 \
+  const M_Object rhs = *(M_Object*)REG(offset - SZ_INT); \
+  opt;                                                   \
+  if(!rhs)                                               \
+    Except(shred, "NullPtrException");                   \
+  char c[strlen(STRING(rhs)) + (len) + 1];               \
+  sprintf(c, "%s"format, STRING(rhs), __VA_ARGS__);      \
+  push_string(shred, rhs, c);                            \
 }
 describe_string_plus(,SZ_INT, M_Object, release(lhs, shred),
   lhs ? strlen(STRING(lhs)) : 0, "%s", lhs ? STRING(lhs) : "")

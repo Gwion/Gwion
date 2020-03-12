@@ -165,8 +165,6 @@ static OP_EMIT(opem_array_shift) {
   const Type type = bin->rhs->type;
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = type->size;
-  if(!GET_FLAG(bin->lhs->type, nonnull))
-    emit_add_instr(emit, GWOP_EXCEPT);
   return emit_add_instr(emit, ArrayAppend);
 }
 
@@ -216,9 +214,6 @@ static INSTR(ArraySlice) {
 }
 
 static OP_EMIT(opem_array_slice) {
-  const Exp exp = (Exp)data;
-  if(!GET_FLAG(exp->type, nonnull))
-    emit_add_instr(emit, GWOP_EXCEPT);
   emit_add_instr(emit, ArraySlice);
   return emit_add_instr(emit, GcAdd);
 }
@@ -331,6 +326,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_shift))
   GWI_BB(gwi_oper_emi(gwi, opem_array_shift))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
@@ -338,11 +334,11 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_basic_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", "int", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", "int", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
+  GWI_BB(gwi_oper_var(gwi, SZ_INT*2))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_ini(gwi, "int", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_not_array))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))

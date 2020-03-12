@@ -13,13 +13,18 @@
 typedef Type (*opck)(const Env, void*, m_bool*);
 typedef struct Instr_* (*opem)(const Emitter, void*);
 
-struct Op_Import {
-  Type lhs, rhs, ret;
+struct Op_Func {
   opck ck;
   opem em;
+};
+
+struct Op_Import {
+  Type lhs, rhs, ret;
+  const struct Op_Func *func;
   uintptr_t data;
   loc_t pos;
   Symbol op;
+  m_uint emit_var;
 };
 
 struct Implicit {

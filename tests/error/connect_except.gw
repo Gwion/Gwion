@@ -1,3 +1,3 @@
-#! [contains] UgenConnectException
+#! [contains] NullPtrException
 UGen ref u;
 adc => u;

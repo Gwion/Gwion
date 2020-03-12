@@ -1,2 +1,0 @@
-#! [contains] vararg.start already used
-fun void test(...) { vararg.start; vararg.start;}

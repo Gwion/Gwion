@@ -17,6 +17,7 @@
 #include "specialid.h"
 #include "gack.h"
 
+#undef insert_symbol
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
   INTERP_PRINTF("class(%s)", type->name)
@@ -73,7 +74,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
   GWI_BB(gwi_gack(gwi, gwi->gwion->type[et_class], gack_class)) // not working yet
-  gwi->gwion->type[et_class] = t_class;
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
@@ -82,14 +82,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
-  const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_function, gack_function))
-  GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
-  const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, "@function");
-  GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
-  GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
-  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
-  GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
   const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
@@ -112,10 +104,22 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
 
+  GWI_BB(import_object(gwi))
+  GWI_BB(import_prim(gwi))
+  const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
+  GWI_BB(gwi_gack(gwi, t_function, gack_function))
+  GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
+  const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, "@function");
+  GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
+  GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
+  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
+  GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
   GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
 
-  GWI_BB(import_object(gwi))
+
+  GWI_BB(import_object_op(gwi))
+  GWI_BB(import_values(gwi))
 
 // TODO: check me
   const Type t_union = gwi_class_ini(gwi, "@Union", NULL);
@@ -131,7 +135,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_add(gwi, opck_new))
   GWI_BB(gwi_oper_emi(gwi, opem_new))
   GWI_BB(gwi_oper_end(gwi, "new", NULL))
-  GWI_BB(import_prim(gwi))
+//  GWI_BB(import_prim(gwi))
   GWI_BB(import_vararg(gwi))
   GWI_BB(import_string(gwi))
   GWI_BB(import_shred(gwi))

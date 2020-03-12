@@ -18,7 +18,6 @@ struct Nspc_ {
   struct VM_Code_*   dtor;
   struct NspcInfo_* info;
   HAS_OBJ
-  uint is_union;
 };
 
 extern ANEW ANN Nspc new_nspc(MemPool p, const m_str name);
