@@ -4,8 +4,6 @@ class Test_Array
   float   f[4];
   i[0];
   f[0];
-  v[0];
-  w[0];
 
   2                      => i[0];
   5.7                    => f[0];
