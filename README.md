@@ -1,11 +1,14 @@
 # Gwion
 
-[![Build Status](https://travis-ci.org/fennecdjay/Gwion.svg?branch=master)](https://travis-ci.org/fennecdjay/Gwion)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/fennecdjay/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg)](#contributors)
-[![BCH compliance](https://bettercodehub.com/edge/badge/fennecdjay/Gwion?branch=master)](https://bettercodehub.com/)
+[![BCH compliance](https://bettercodehub.com/edge/badge/fennecdjay/Gwion?branch=master)](https://bettercodehub.com/)  
+
+![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
+![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
+![Windows](https://github.com/fennecdjay/Gwion/workflows/Windows/badge.svg)
 
 Gwion is a programming language, aimed at making music
 
