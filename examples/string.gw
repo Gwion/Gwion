@@ -1,31 +1,4 @@
-Object o;
 string s;
 "CamelCase" => s;
-#!null @=> s;
-<<< 1 => s >>>;
-<<< 1.0 => s >>>;
-<<< "test" => s >>>; #! new
-<<< "test" => s >>>; #! new
-<<< s >>>;
-<<<  null => s  >>>; #!test me
-<<<  o => s  >>>;
-<<< o >>>;
-#! look at me!!!
-<<<  o => s >>>; #! hang . grrr ...
-<<< "test" + "another test"  >>>; #! mem leak
-
-#!me.exit();
-
-{ (1 + s)      @=> string ref str; }
-{ (2.0 +s)      @=> string  ref str; }
-
-<<<  11 +=> s >>>;
-<<<  11.0 +=> s >>>;
-<<<  o +=> s >>>;
-<<< "test" + s  >>>; #! also leak
-<<<  null +=> s  >>>; #! also hang 
-<<<  "test" +=> s >>>; #! test me
-<<<  "test" == "test"  >>>;
-<<<  "test" != "test"  >>>;
-<<<  "test" == "test1"  >>>;
-<<<  "test" != "test1"  >>>;
+<<< "test" => s >>>;
+<<<  null @=> s  >>>; #!test me
