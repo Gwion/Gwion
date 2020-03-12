@@ -272,13 +272,16 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
-ANN static Value arg_value(MemPool p, const Arg_List list) {
+ANN static Value arg_value(const Env env, const Arg_List list) {
   const Var_Decl var = list->var_decl;
-  const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
+  const Value v = new_value(env->gwion->mp, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
+  if(var->array)
+      v->type = /*list->type = */array_type(env, list->type, var->array->depth);
   if(list->td)
     v->flag = list->td->flag | ae_flag_arg;
   return v;
 }
+
 ANN static m_bool scan1_args(const Env env, Arg_List list) {
   do {
     const Var_Decl var = list->var_decl;
@@ -286,7 +289,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
       CHECK_BB(isres(env, var->xid, var->pos))
     if(list->td)
       CHECK_OB((list->type = void_type(env, list->td)))
-    var->value = arg_value(env->gwion->mp, list);
+    var->value = arg_value(env, list);
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
   return GW_OK;

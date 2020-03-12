@@ -42,8 +42,9 @@ ANN static m_bool scan2_args(const Env env, const Func_Def f) {
   Arg_List list = f->base->args;
   do {
     const Var_Decl var = list->var_decl;
-    if(var->array)
-      list->type = array_type(env, list->type, var->array->depth);
+    if(var->array) {
+      var->value->type = list->type = array_type(env, list->type, var->array->depth);
+    }
     var->value->from->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
