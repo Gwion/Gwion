@@ -19,6 +19,7 @@ jobs:
     - name: Build Gwion
       uses: fennecdjay/gwion-action@v1
       with:
+        dir: .
         ref: ${{ github.sha }}
 #        run: true
       env:
