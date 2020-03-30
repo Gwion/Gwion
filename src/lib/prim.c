@@ -166,7 +166,7 @@ static GWION_IMPORT(intfloat) {
   CHECK_IF("-=>", rassign, r_minus)
   CHECK_IF("*=>", rassign, r_mul)
   CHECK_IF("/=>", rassign, r_div)
-  _CHECK_OP("$", basic_cast, CastI2F)
+  _CHECK_OP("$", simple_cast, CastI2F)
   _CHECK_OP("@implicit", implicit_i2f, CastI2F)
   return GW_OK;
 }
@@ -191,7 +191,7 @@ static GWION_IMPORT(floatint) {
   CHECK_FI("-=>", rassign, r_minus)
   CHECK_FI("*=>", rassign, r_mul)
   CHECK_FI("/=>", rassign, r_div)
-  _CHECK_OP("$", basic_cast, CastF2I)
+  _CHECK_OP("$", simple_cast, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   return GW_OK;
 }

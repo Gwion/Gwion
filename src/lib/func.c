@@ -230,7 +230,6 @@ static void member_fptr(const Emitter emit) {
 }
 
 static OP_EMIT(opem_fptr_cast) {
-  CHECK_OO(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->info->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->info->type->e->d.func, 1);
