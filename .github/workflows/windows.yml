@@ -25,4 +25,4 @@ jobs:
         CC: gcc
         USE_DOUBLE: ${{ matrix.double }}
         BUILD_ON_WINDOWS: 1
-    - run: cd Gwion; ls; ./gwion.exe
+    - run: cd Gwion; make test
