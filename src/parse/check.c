@@ -24,7 +24,7 @@ ANN static m_bool check_internal(const Env env, const Symbol sym,
   struct Op_Import opi = { .op=sym, .lhs=e->info->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos, .op_type=op_implicit };
   CHECK_OB(op_check(env, &opi))
-  assert(e->nspc);
+  assert(e->info->nspc);
   return GW_OK;
 }
 
