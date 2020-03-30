@@ -206,7 +206,7 @@ static MFUN(shred_test_cancel) {
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
-static ANN void* fork_run(void* data) {
+static ANN THREAD_FUNC(fork_run) {
   VM *vm = (VM*)data;
   const M_Object me = vm->shreduler->list->self->info->me;
   while(vm->bbq->is_running) {
