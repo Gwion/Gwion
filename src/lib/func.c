@@ -36,10 +36,11 @@ static inline void fptr_instr(const Emitter emit, const Func f, const m_uint i) 
 
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->type->e->d.func->def->base->tmpl)
-    fptr_instr(emit, bin->lhs->type->e->d.func, 2);
+  if(bin->rhs->info->type->e->d.func->def->base->tmpl)
+    fptr_instr(emit, bin->lhs->info->type->e->d.func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
-  if(!is_fptr(emit->gwion, bin->lhs->type) && GET_FLAG(bin->rhs->type->e->d.func, member)) {
+  if(!is_fptr(emit->gwion, bin->lhs->info->type) && GET_FLAG(bin->rhs->info->type->e->d.func, member)) {
+//exit(3);
     const Instr pop = emit_add_instr(emit, LambdaAssign);
     pop->m_val = SZ_INT;
   }
@@ -173,7 +174,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     env_pop(env, scope);
   if(ret < 0)
     return GW_ERROR;
-  exp_self(l)->type = l->def->base->func->value_ref->type;
+  exp_self(l)->info->type = l->def->base->func->value_ref->type;
   return GW_OK;
 }
 
@@ -184,11 +185,11 @@ ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
 }
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
-  if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
-    m_bool nonnull = GET_FLAG(info->exp->type, nonnull);
+  if(isa(info->exp->info->type, env->gwion->type[et_lambda]) < 0) {
+    m_bool nonnull = GET_FLAG(info->exp->info->type, nonnull);
     CHECK_BB(fptr_check(env, info))
     DECL_OB(const Type, t, = fptr_type(env, info))
-    info->exp->type = !nonnull ? t : type_nonnull(env, t);
+    info->exp->info->type = !nonnull ? t : type_nonnull(env, t);
     return GW_OK;
   }
   return fptr_lambda(env, info);
@@ -196,28 +197,28 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->type->e->d.func->def->base->tmpl &&
-     bin->rhs->type->e->d.func->def->base->tmpl->call) {
-    struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->parent->e->d.func,
+  if(bin->rhs->info->type->e->d.func->def->base->tmpl &&
+     bin->rhs->info->type->e->d.func->def->base->tmpl->call) {
+    struct FptrInfo info = { bin->lhs->info->type->e->d.func, bin->rhs->info->type->e->parent->e->d.func,
       bin->lhs, exp_self(bin)->pos };
     CHECK_BO(fptr_do(env, &info))
-    bin->rhs->emit_var = 1;
-    return bin->rhs->type;
+    exp_setvar(bin->rhs, 1);
+    return bin->rhs->info->type;
   }
-  struct FptrInfo info = { bin->lhs->type->e->d.func, bin->rhs->type->e->d.func,
+  struct FptrInfo info = { bin->lhs->info->type->e->d.func, bin->rhs->info->type->e->d.func,
       bin->lhs, exp_self(bin)->pos };
   CHECK_BO(fptr_do(env, &info))
-  bin->rhs->emit_var = 1;
-  return bin->rhs->type;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
 }
 
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
-  const Type t = exp_self(cast)->type;
-  struct FptrInfo info = { cast->exp->type->e->d.func, t->e->d.func,
+  const Type t = exp_self(cast)->info->type;
+  struct FptrInfo info = { cast->exp->info->type->e->d.func, t->e->d.func,
      cast->exp, exp_self(cast)->pos };
   CHECK_BO(fptr_do(env, &info))
-  cast->func = cast->exp->type->e->d.func;
+  cast->func = cast->exp->info->type->e->d.func;
   return t;
 }
 
@@ -231,29 +232,29 @@ static void member_fptr(const Emitter emit) {
 static OP_EMIT(opem_fptr_cast) {
   CHECK_OO(opem_basic_cast(emit, data))
   Exp_Cast* cast = (Exp_Cast*)data;
-  if(exp_self(cast)->type->e->d.func->def->base->tmpl)
-    fptr_instr(emit, cast->exp->type->e->d.func, 1);
-  if(GET_FLAG(cast->exp->type->e->d.func, member) &&
-    !(GET_FLAG(cast->exp->type, nonnull) || GET_FLAG(exp_self(cast)->type, nonnull)))
+  if(exp_self(cast)->info->type->e->d.func->def->base->tmpl)
+    fptr_instr(emit, cast->exp->info->type->e->d.func, 1);
+  if(GET_FLAG(cast->exp->info->type->e->d.func, member) &&
+    !(GET_FLAG(cast->exp->info->type, nonnull) || GET_FLAG(exp_self(cast)->info->type, nonnull)))
     member_fptr(emit);
   return (Instr)GW_OK;
 }
 
 static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  struct FptrInfo info = { impl->e->type->e->d.func, impl->t->e->d.func,
+  struct FptrInfo info = { impl->e->info->type->e->d.func, impl->t->e->d.func,
       impl->e, impl->e->pos };
   CHECK_BO(fptr_do(env, &info))
-  return ((Exp)impl->e)->cast_to = impl->t;
+  return ((Exp)impl->e)->info->cast_to = impl->t;
 }
 
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   if(GET_FLAG(impl->t->e->d.func, member) &&
-    !(GET_FLAG(impl->e->type, nonnull) || GET_FLAG(impl->t, nonnull)))
+    !(GET_FLAG(impl->e->info->type, nonnull) || GET_FLAG(impl->t, nonnull)))
     member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
-    fptr_instr(emit, ((Exp)impl->e)->type->e->d.func, 1);
+    fptr_instr(emit, ((Exp)impl->e)->info->type->e->d.func, 1);
   return (Instr)GW_OK;
 }
 

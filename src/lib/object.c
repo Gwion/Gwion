@@ -17,6 +17,7 @@
 
 #include "gwi.h"
 #include "gack.h"
+#include "tuple.h"
 
 #undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
@@ -75,6 +76,18 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
+else if(GET_FLAG(v->type, struct) &&
+       !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
+const TupleForm tf = v->type->e->tuple;
+for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
+  const Type t = (Type)vector_at(&tf->types, i);
+  if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
+    release(*(M_Object*)(o->data + v->from->offset + vector_at(&tf->offset, i)), shred);
+}
+
+//exit(77);
+
+}
     }
     if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))
@@ -95,12 +108,24 @@ ANN void free_object(MemPool p, const M_Object o) {
   mp_free(p, M_Object, o);
 }
 
-static ID_CHECK(check_this) {
+static ID_CHECK(opck_this) {
   if(!env->class_def)
     ERR_O(exp_self(prim)->pos, _("keyword 'this' can be used only inside class definition..."))
   if(env->func && !GET_FLAG(env->func, member))
-    ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
+      ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
+  if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack") &&
+GET_FLAG(env->class_def, struct))
+  ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
   return env->class_def;
+}
+
+static ID_EMIT(opem_this) {
+  if(!exp_getvar(exp_self(prim)) && GET_FLAG(exp_self(prim)->info->type, struct)) {
+    const Instr instr = emit_add_instr(emit, RegPushMemDeref);
+    instr->m_val2 = emit->env->class_def->size;
+    return (Instr)GW_OK;
+  }
+  return emit_add_instr(emit, RegPushMem);
 }
 
 static GACK(gack_object) {
@@ -113,7 +138,8 @@ GWION_IMPORT(object) {
   GWI_BB(gwi_gack(gwi, t_object, gack_object))
   SET_FLAG(t_object, checked); // should be set by gwi_add_type
   gwi->gwion->type[et_object] = t_object;
-  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+//  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+  struct SpecialId_ spid = { .ck=opck_this, .em=opem_this, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;
 }

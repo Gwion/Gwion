@@ -10,6 +10,7 @@ enum {
   eRegPushMem2,
   eRegPushMem3,
   eRegPushMem4,
+  eRegPushMemDeref,
   eRegPushNow,
   eRegPushBase,
   eRegPushBase2,
@@ -17,6 +18,9 @@ enum {
   eRegPushBase4,
   eReg2Reg,
   eReg2RegAddr,
+  eReg2RegDeref,
+  eStructMember,
+  eStructMemberAddr,
   eMemSetImm,
   eRegPushMe,
   eRegPushMaybe,
@@ -146,6 +150,7 @@ enum {
   eArrayValid,
   eObjectInstantiate,
   eRegAddRef,
+  eRegAddRefAddr,
   eObjectAssign,
   eAssign,
   eObjectRelease,
@@ -183,6 +188,7 @@ enum {
 #define  RegPushMem2         (f_instr)eRegPushMem2
 #define  RegPushMem3         (f_instr)eRegPushMem3
 #define  RegPushMem4         (f_instr)eRegPushMem4
+#define  RegPushMemDeref     (f_instr)eRegPushMemDeref
 #define  RegPushNow          (f_instr)eRegPushNow
 #define  RegPushBase         (f_instr)eRegPushBase
 #define  RegPushBase2        (f_instr)eRegPushBase2
@@ -190,6 +196,9 @@ enum {
 #define  RegPushBase4        (f_instr)eRegPushBase4
 #define  Reg2Reg             (f_instr)eReg2Reg
 #define  Reg2RegAddr         (f_instr)eReg2RegAddr
+#define  Reg2RegDeref        (f_instr)eReg2RegDeref
+#define  StructMember        (f_instr)eStructMember
+#define  StructMemberAddr    (f_instr)eStructMemberAddr
 #define  MemSetImm           (f_instr)eMemSetImm
 #define  RegPushMe           (f_instr)eRegPushMe
 #define  RegPushMaybe        (f_instr)eRegPushMaybe
@@ -319,6 +328,7 @@ enum {
 #define  ArrayValid          (f_instr)eArrayValid
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate
 #define  RegAddRef           (f_instr)eRegAddRef
+#define  RegAddRefAddr       (f_instr)eRegAddRefAddr
 #define  ObjectAssign        (f_instr)eObjectAssign
 #define  Assign              (f_instr)eAssign
 #define  ObjectRelease       (f_instr)eObjectRelease

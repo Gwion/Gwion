@@ -95,7 +95,6 @@ ANN static M_Operator* new_mo(MemPool p, const struct Op_Import* opi) {
     mo->ck     = opi->func->ck;
     mo->em     = opi->func->em;
   }
-  mo->emit_var = opi->emit_var;
   return mo;
 }
 
@@ -148,28 +147,84 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static void set_nspc(struct OpChecker* ock, const Nspc nspc) {
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@array")) {
-    Array_Sub array = (Array_Sub)ock->opi->data;
-    array->exp->nspc = nspc;
+ANN static void set_nspc(struct Op_Import *opi, const Nspc nspc) {
+  if(opi->op_type == op_implicit) {
+    struct Implicit* imp = (struct Implicit*)opi->data;
+    imp->e->info->nspc = nspc;
     return;
+  }
+  if(opi->op_type == op_array) {
+    Array_Sub array = (Array_Sub)opi->data;
+    array->exp->info->nspc = nspc;
+    return;
+  }
+  if(opi->op_type == op_exp) {
+    ((Exp)opi->data)->info->nspc = nspc;
+    return;
+  }
+  if(opi->op_type != op_scan)
+    exp_self((union exp_data*)opi->data)->info->nspc = nspc;
+}
 
+ANN static void set_nonnull(const Type t, const Exp exp) {
+  if(t != OP_ANY_TYPE && GET_FLAG(t, nonnull))
+    exp_setnonnull(exp, 1);
+}
+
+ANN static void opi_nonnull(const M_Operator *mo, const struct Op_Import *opi) {
+  switch(opi->op_type) {
+    case op_implicit:
+    {
+      const struct Implicit *a = (struct Implicit*)opi->data;
+      set_nonnull(mo->lhs, a->e);
+      break;
+    }
+    case op_exp:
+    {
+      const Exp a = (Exp)opi->data;
+      set_nonnull(mo->rhs, a); // rhs ???
+      break;
+    }
+    case op_dot:
+    {
+      const Exp_Dot *a = (Exp_Dot*)opi->data;
+      set_nonnull(mo->lhs, a->base);
+      break;
+    }
+    case op_array:
+    {
+      const Array_Sub a = (Array_Sub)opi->data;
+      set_nonnull(mo->lhs, a->exp);
+      break;
+    }
+    case op_binary:
+    {
+      const Exp_Binary *a = (Exp_Binary*)opi->data;
+      set_nonnull(mo->lhs, a->lhs);
+      set_nonnull(mo->rhs, a->rhs);
+      break;
+    }
+    case op_cast:
+    {
+      const Exp_Cast *a = (Exp_Cast*)opi->data;
+      set_nonnull(mo->lhs, a->exp);
+      break;
+    }
+    case op_postfix:
+    {
+      const Exp_Postfix *a = (Exp_Postfix*)opi->data;
+      set_nonnull(mo->lhs, a->exp);
+      break;
+    }
+    case op_unary:
+    {
+      const Exp_Unary *a = (Exp_Unary*)opi->data;
+      set_nonnull(mo->rhs, a->exp);
+      break;
+    }
+    case op_scan:
+      break;
   }
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@implicit")) {
-    struct Implicit* imp = (struct Implicit*)ock->opi->data;
-    imp->e->nspc = nspc;
-    return;
-  }
-  if(ock->opi->op == insert_symbol(ock->env->gwion->st, "@slice")        ||
-     ock->opi->op == insert_symbol(ock->env->gwion->st, "@range")   ||
-     ock->opi->op == insert_symbol(ock->env->gwion->st, "@conditionnal") ||
-     ock->opi->op == insert_symbol(ock->env->gwion->st, "@unconditionnal")) {
-    ((Exp)ock->opi->data)->nspc = nspc;
-    return;
-  }
-// use .mut
-  if(ock->opi->op != insert_symbol(ock->env->gwion->st, "@scan"))
-    exp_self((union exp_data*)ock->opi->data)->nspc = nspc;
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {
@@ -178,6 +233,7 @@ ANN static Type op_check_inner(struct OpChecker* ock) {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
     if(v && (mo = operator_find(v, ock->opi->lhs, r))) {
+      opi_nonnull(mo, ock->opi);
       if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data, &ock->mut))))
         return t;
       else
@@ -193,14 +249,14 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
     if(nspc->info->op_map.ptr) {
       Type l = opi->lhs;
       do {
-        struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
+        struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data, .op_type=opi->op_type };
         struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
         const Type ret = op_check_inner(&ock);
         if(ret) {
           if(ret == env->gwion->type[et_null])
             break;
           if(!ock.mut)
-            set_nspc(&ock, nspc);
+            set_nspc(&opi2, nspc);
           return ret;
         }
       } while(l && (l = op_parent(env, l)));
@@ -236,52 +292,38 @@ ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
   return emit_add_instr(emit, mo->instr);
 }
 
-ANN static Nspc get_nspc(SymTable *st, const struct Op_Import* opi) {
-  if(opi->op == insert_symbol(st, "@array")) {
-    struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)opi->data;
-    return info->array.exp->nspc;
-  }
-  if(opi->op == insert_symbol(st, "@implicit")) {
+ANN static Nspc get_nspc(const struct Op_Import* opi) {
+  if(opi->op_type == op_implicit) {
     struct Implicit* imp = (struct Implicit*)opi->data;
-    return imp->e->nspc;
+    return imp->e->info->nspc;
   }
-  if(opi->op == insert_symbol(st, "@range")   ||
-     opi->op == insert_symbol(st, "@slice")        ||
-     opi->op == insert_symbol(st, "@conditionnal") ||
-     opi->op == insert_symbol(st, "@unconditionnal"))
-    return ((Exp)opi->data)->nspc;
-  return exp_self((union exp_data*)opi->data)->nspc;
+  if(opi->op_type == op_array) {
+    struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)opi->data;
+    return info->array.exp->info->nspc;
+  }
+  if(opi->op_type == op_exp)
+    return ((Exp)opi->data)->info->nspc;
+  return exp_self((union exp_data*)opi->data)->info->nspc;
 }
 
-ANN static inline Nspc ensure_nspc(SymTable *st, const struct Op_Import* opi) {
-  DECL_OO(Nspc, nspc, = get_nspc(st, opi))
+ANN static inline Nspc ensure_nspc(const struct Op_Import* opi) {
+  DECL_OO(Nspc, nspc, = get_nspc(opi))
   while(!nspc->info->op_map.ptr)
     nspc = nspc->parent;
   return nspc;
 }
 
-ANN2(1) void op_emit_nonnull(const Emitter emit, const Type mo, const Type opi, const m_uint offset) {
-  if(!mo || mo == OP_ANY_TYPE)
-    return;
-  if(GET_FLAG(mo, nonnull) && !GET_FLAG(opi, nonnull)) {
-    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    instr->m_val = offset;
-   }
-}
-
 ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
-  DECL_OO(Nspc, nspc, = ensure_nspc(emit->gwion->st, opi))
+  DECL_OO(Nspc, nspc, = ensure_nspc(opi))
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;
     do {
       const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-      if(!v)continue;
+      if(!v)
+        continue;
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
-        const m_uint sz = opi->rhs ? opi->rhs->size : 0;
-        op_emit_nonnull(emit, mo->lhs, opi->lhs, mo->emit_var ?: sz);
-        op_emit_nonnull(emit, mo->rhs, opi->rhs, 0);
         if(mo->em)
           return mo->em(emit, (void*)opi->data);
         return handle_instr(emit, mo);

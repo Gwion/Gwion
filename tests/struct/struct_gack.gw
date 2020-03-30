@@ -1,0 +1,7 @@
+struct S {
+  13 => int i;
+  operator @gack void() { <<< "test", i >>>; }
+  <<< this >>>;
+}
+S s;
+<<< s >>>;

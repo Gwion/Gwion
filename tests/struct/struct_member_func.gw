@@ -1,0 +1,8 @@
+struct S {
+  4 => int i;
+  12 => int j;
+  fun int test() { <<< "test", i >>>; }
+  test();
+}
+S s;
+s.test();

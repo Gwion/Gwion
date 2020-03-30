@@ -37,7 +37,7 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
 ANN static Type void_type(const Env env, const Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  if(isa(t, env->gwion->type[et_object]) > 0)
+  if(isa(t, env->gwion->type[et_object]) > 0 || GET_FLAG(t, struct))
     CHECK_BO(type_recursive(env, td, t))
   if(type->size)
     return type;
@@ -86,6 +86,10 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     if(env->class_def)
       type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
+    if(SAFE_FLAG(env->class_def, struct) && !GET_FLAG(decl->td, static)) {
+      v->from->offset = env->class_def->size;
+      env->class_def->size += t->size;
+    }
     nspc_add_value(env->curr, var->xid, v);
     v->flag = decl->td->flag;
     v->type = t;
@@ -106,7 +110,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
   if(GET_FLAG(decl->type, const))
-    exp_self(decl)->meta = ae_meta_value;
+    exp_setmeta(exp_self(decl), 1);
 //    SET_FLAG(decl->td, const);
   const m_bool global = GET_FLAG(decl->td, global);
   if(global && decl->type->e->owner != env->global_nspc)
@@ -159,10 +163,11 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) {
 
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   CHECK_BB(scan1_exp(env, post->exp))
-  if(post->exp->meta == ae_meta_var)
+  const m_str access = exp_access(post->exp);
+  if(access)
     return GW_OK;
   ERR_B(post->exp->pos, _("post operator '%s' cannot be used"
-      " on non-mutable data-type..."), s_name(post->op));
+      " on %S data-type..."), s_name(post->op), access);
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {

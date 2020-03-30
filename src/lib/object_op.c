@@ -20,7 +20,7 @@
 #undef insert_symbol
 
 #define describe_logical(name, op)               \
-static INSTR(name##Object) {\
+static INSTR(name##Object) {                     \
   POP_REG(shred, SZ_INT);                        \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \
@@ -51,8 +51,8 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
 
 static OP_CHECK(at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type l = bin->lhs->type;
-  const Type r = bin->rhs->type;
+  const Type l = bin->lhs->info->type;
+  const Type r = bin->rhs->info->type;
   if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
   if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == env->gwion->type[et_null])
@@ -61,14 +61,14 @@ static OP_CHECK(at_object) {
     SET_FLAG(bin->rhs->d.exp_decl.td, ref);
     SET_FLAG(bin->rhs->d.exp_decl.list->self->value, ref);
   }
-  bin->rhs->emit_var = 1;
+  exp_setvar(bin->rhs, 1);
   return r;
 }
 
 static OP_EMIT(opem_at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type l = bin->lhs->type;
-  const Type r = bin->rhs->type;
+  const Type l = bin->lhs->info->type;
+  const Type r = bin->rhs->info->type;
   if(nonnull_check(l, r)) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = SZ_INT;
@@ -100,8 +100,8 @@ static Type get_force_type(const Env env, const Type t) {
 
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type l = cast->exp->type;
-  const Type r = exp_self(cast)->type;
+  const Type l = cast->exp->info->type;
+  const Type r = exp_self(cast)->info->type;
   if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
   return get_force_type(env, r);
@@ -109,8 +109,8 @@ static OP_CHECK(opck_object_cast) {
 
 static OP_EMIT(opem_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type l = cast->exp->type;
-  const Type r = exp_self(cast)->type;
+  const Type l = cast->exp->info->type;
+  const Type r = exp_self(cast)->info->type;
   if(nonnull_check(l, r))
     emit_add_instr(emit, GWOP_EXCEPT);
   return (Instr)GW_OK;
@@ -118,17 +118,17 @@ static OP_EMIT(opem_object_cast) {
 
 static OP_CHECK(opck_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = imp->e->type;
+  const Type l = imp->e->info->type;
   const Type r = imp->t;
   if(check_nonnull(env, l, r, "implicitly cast", imp->e->pos) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
-  imp->e->cast_to = r;
+  imp->e->info->cast_to = r;
   return imp->t;
 }
 
 static OP_EMIT(opem_implicit_null2obj) {
   const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = imp->e->type;
+  const Type l = imp->e->info->type;
   const Type r = imp->t;
   if(nonnull_check(l, r))
     emit_add_instr(emit, GWOP_EXCEPT);
@@ -168,8 +168,8 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v, c
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
-  const Func f = exp_self(member)->type->e->d.func;
-  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->type, force)) {
+  const Func f = exp_self(member)->info->type->e->d.func;
+  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->info->type, force)) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
     func_i->m_val = (m_uint)f->code;
     return;
@@ -177,6 +177,15 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else {
+    if(GET_FLAG(member->t_base, struct)) {
+      if(!GET_FLAG(f->def, static)) {
+        exp_setvar(member->base, 1);
+        emit_exp(emit, member->base);
+      }
+      const Instr instr = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
+      instr->m_val = (m_uint)f->code;
+      return;
+    }
     const Instr instr = emit_add_instr(emit, GET_FLAG(f, member) ? DotFunc : DotStaticFunc);
     instr->m_val = f->vt_index;
   }
@@ -188,6 +197,33 @@ ANN static inline void emit_member(const Emitter emit, const Value v, const uint
   const Instr instr = emit_kind(emit, size, emit_addr, dotmember);
   instr->m_val = v->from->offset;
   instr->m_val2 = size;
+}
+
+ANN static inline void emit_struct_addr(const Emitter emit, const Value v) {
+  const Instr set = emit_add_instr(emit, StructMemberAddr);
+  set->m_val = v->from->owner_class->size - v->type->size;
+  set->m_val2 = v->from->offset;
+}
+
+ANN static inline void emit_struct_var(const Emitter emit, const Value v) {
+  for(m_uint i = 0; i < v->type->size; i += SZ_INT) {
+    const Instr set = emit_add_instr(emit, Reg2Reg);
+    set->m_val = -v->type->size + i;
+    set->m_val2 = -v->type->size + v->from->offset + i;
+  }
+}
+
+ANN static inline void emit_struct_data(const Emitter emit, const Value v, const uint emit_addr) {
+  if(emit_addr) {
+    emit_struct_addr(emit, v);
+    return;
+  }
+  const Instr push = emit_add_instr(emit, RegPush);
+  push->m_val = v->type->size - v->from->owner_class->size;
+  if(v->from->offset)
+    emit_struct_var(emit, v);
+//  const Instr push = emit_add_instr(emit, RegPush);
+//  push->m_val = v->type->size - SZ_INT;
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, const loc_t pos);
@@ -217,29 +253,42 @@ OP_CHECK(opck_object_dot) {
       ERR_O(exp_self(member)->pos,
           _("can't access private '%s' outside of class..."), value->name)
     else if(GET_FLAG(value, protect))
-      exp_self(member)->meta = ae_meta_protect;
+      exp_setprot(exp_self(member), 1);
   }
   if(base_static && GET_FLAG(value, member))
     ERR_O(exp_self(member)->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str)
   if(GET_FLAG(value, const) || GET_FLAG(value, enum))
-    exp_self(member)->meta = ae_meta_value;
+    exp_setmeta(exp_self(member), 1);
   return value->type;
 }
 
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Value value = find_value(actual_type(emit->gwion, member->t_base), member->xid);
+  const Type t_base = actual_type(emit->gwion, member->t_base);
+  const Value value = find_value(t_base, member->xid);
   if(!is_class(emit->gwion, member->t_base) && (GET_FLAG(value, member) ||
-       (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
-       !is_fptr(emit->gwion, exp_self(member)->type)))) {
-    CHECK_BO(emit_exp(emit, member->base, 0))
-    emit_except(emit, member->t_base);
+       (isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 &&
+       !is_fptr(emit->gwion, exp_self(member)->info->type)))) {
+  if(!GET_FLAG(t_base, struct))
+    CHECK_BO(emit_exp(emit, member->base))
+    if(isa(member->t_base, emit->env->gwion->type[et_object]) > 0)
+      emit_except(emit, member->t_base);
   }
-  if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
+  if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->info->type))
 	  emit_member_func(emit, member);
-  else (GET_FLAG(value, member) ? emit_member : emit_dot_static_import_data)(emit, value, exp_self(member)->emit_var);
+  else if(GET_FLAG(value, member)) {
+    if(!GET_FLAG(t_base, struct))
+      emit_member(emit, value, exp_getvar(exp_self(member)));
+    else {
+      exp_setvar(member->base, exp_getvar(exp_self(member)));
+      CHECK_BO(emit_exp(emit, member->base))
+      emit_struct_data(emit, value, exp_getvar(exp_self(member)));
+    }
+  }
+  else if(GET_FLAG(value, static))
+    emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
   return (Instr)GW_OK;
 }
 
@@ -376,9 +425,9 @@ ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
   const Value v = prim_self(data)->value;
   const Exp base = new_prim_id(gwion->mp, dot_symbol(gwion->st, v), loc_cpy(gwion->mp, prim_pos(data)));
   const Exp dot = new_exp_dot(gwion->mp, base, *data);
-  dot->d.exp_dot.t_base = dot->d.exp_dot.base->type = dot_type(gwion->st, v);
-  dot->type = prim_exp(data)->type;
-  dot->emit_var = prim_exp(data)->emit_var;
+  dot->d.exp_dot.t_base = dot->d.exp_dot.base->info->type = dot_type(gwion->st, v);
+  dot->info->type = prim_exp(data)->info->type;
+  exp_setvar(dot, exp_getvar(prim_exp(data)));
   return dot;
 }
 

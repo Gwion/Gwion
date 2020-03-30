@@ -65,7 +65,6 @@ GWION_IMPORT(event) {
   GWI_BB(gwi_func_end(gwi, event_broadcast, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "nonnull Event", "@now", "int"))
-  GWI_BB(gwi_oper_var(gwi, -SZ_FLOAT))
   _CHECK_OP("=>", eventwait, EventWait)
   return GW_OK;
 }

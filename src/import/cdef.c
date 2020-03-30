@@ -16,6 +16,7 @@
 #include "mpool.h"
 #include "specialid.h"
 #include "template.h"
+#include "tuple.h"
 
 ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
@@ -48,6 +49,7 @@ ANN void inherit(const Type t) {
 ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
+  if(isa(t, env->gwion->type[et_object]) > 0)
   inherit(t);
   t->e->owner = env->curr;
   SET_FLAG(t, checked);
@@ -87,6 +89,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
   t->e->def->base.tmpl = tmpl;
   t->e->def->base.type = t;
+  t->e->tuple = new_tupleform(gwi->gwion->mp);
   t->e->parent = p;
   if(td->array)
     SET_FLAG(t, typedef);
@@ -97,11 +100,12 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   return type_finish(gwi, t);
 }
 
-ANN Type gwi_class_spe(const Gwi gwi, const m_str name, const m_uint size) {
+ANN Type gwi_struct_ini(const Gwi gwi, const m_str name, const m_uint size) {
   CHECK_OO(str2sym(gwi, name))
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
   t->size = size;
   gwi_type_flag(t);
+  SET_FLAG(t, struct);
   return type_finish(gwi, t);
 }
 

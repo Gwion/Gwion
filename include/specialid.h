@@ -18,9 +18,9 @@ struct SpecialId_ {
 
 ANN static inline Type specialid_type(const Env env,
     struct SpecialId_ *spid, const Exp_Primary* prim) {
-  exp_self(prim)->type = spid->type;
+  exp_self(prim)->info->type = spid->type;
   if(spid->is_const)
-    exp_self(prim)->meta = ae_meta_value;
+    exp_getmeta(exp_self(prim));
   return spid->ck ? spid->ck(env, prim) : spid->type;
 }
 

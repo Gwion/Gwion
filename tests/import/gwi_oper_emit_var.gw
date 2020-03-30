@@ -1,5 +1,0 @@
-1234.5 => float f;
-PtrExt ref ptr;
-<<< ptr >>>;
-ptr <=: f;
-<<< f >>>;

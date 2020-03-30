@@ -18,12 +18,12 @@ static void sig(int unused NUSED) {
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 
 ANN static void gwion_reset(const Gwion gwion) {
-  release_ctx(gwion->env->scope, gwion);
   pop_global(gwion);
   push_global(gwion, "[user]");
 }
 
-#define BUFSIZE 1024
+//#define BUFSIZE 1024
+#define BUFSIZE 256
 
 static void afl_run(const Gwion gwion) {
   char buf[BUFSIZE];

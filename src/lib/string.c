@@ -22,7 +22,7 @@ ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_st
 }
 
 #define describe_string_logical(name, action)    \
-static INSTR(String_##name) {\
+static INSTR(String_##name) {                    \
   POP_REG(shred, SZ_INT);                        \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \

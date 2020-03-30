@@ -10,19 +10,21 @@
 #include "operator.h"
 #include "import.h"
 
-static inline m_str access(ae_Exp_Meta meta) {
-  return meta == ae_meta_value ? "non-mutable" : "protected";
+static inline m_str get_access(const Exp e) {
+  if(exp_getmeta(e))
+    return "non-mutable";
+  return !exp_getprot(e) ? NULL : "protected";
 }
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  return isa(cast->exp->type, exp_self(cast)->type) > 0 ?
-     exp_self(cast)->type : env->gwion->type[et_null];
+  return isa(cast->exp->info->type, exp_self(cast)->info->type) > 0 ?
+     exp_self(cast)->info->type : env->gwion->type[et_null];
 }
 
 OP_CHECK(opck_usr_implicit) {
   struct Implicit* imp = (struct Implicit*)data;
-  imp->e->cast_to = imp->t;
+  imp->e->info->cast_to = imp->t;
   return imp->t;
 }
 
@@ -32,59 +34,60 @@ OP_EMIT(opem_basic_cast) {
 
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->meta != ae_meta_var)
+  const m_str access = get_access(bin->rhs);
+  if(access)
     ERR_N(bin->rhs->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
          "  ...  (reason: --- right-side operand is %s.)"),
-         s_name(bin->op), bin->lhs->type->name, bin->rhs->type->name,
-         access(bin->rhs->meta))
-  return bin->rhs->type;
+         s_name(bin->op), bin->lhs->info->type->name, bin->rhs->info->type->name,
+         access)
+  return bin->rhs->info->type;
 }
 
 OP_CHECK(opck_rhs_emit_var) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  bin->rhs->emit_var = 1;
-  return bin->rhs->type;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
 }
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
-  bin->rhs->emit_var = 1;
-  return bin->rhs->type;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
 }
 
 OP_CHECK(opck_unary_meta) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  exp_self(unary)->meta = ae_meta_value;
-  return unary->exp->type;
+  exp_setmeta(exp_self(unary), 1);
+  return unary->exp->info->type;
 }
 
 OP_CHECK(opck_unary_meta2) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  exp_self(unary)->meta = ae_meta_value;
+  exp_setmeta(exp_self(unary), 1);
   return env->gwion->type[et_bool];
 }
 
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->exp->meta != ae_meta_var)
+  const m_str access = get_access(unary->exp);
+  if(access)
     ERR_N(unary->exp->pos,
           _("unary operator '%s' cannot be used on %s data-types."),
-          s_name(unary->op), access(unary->exp->meta))
-  unary->exp->emit_var = 1;
-  exp_self(unary)->meta = ae_meta_value;
-  return unary->exp->type;
+          s_name(unary->op), access);
+  exp_setvar(unary->exp, 1);
+  return unary->exp->info->type;
 }
 
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
-  if(post->exp->meta != ae_meta_var)
+  const m_str access = get_access(post->exp);
+  if(access)
     ERR_N(post->exp->pos, _("post operator '%s' cannot be used on %s data-type."),
-          s_name(post->op), access(post->exp->meta))
-  post->exp->emit_var = 1;
-  exp_self(post)->meta = ae_meta_value;
-  return post->exp->type;
+          s_name(post->op), access)
+  exp_setvar(post->exp, 1);
+  return post->exp->info->type;
 }
 
 OP_CHECK(opck_new) {
@@ -105,7 +108,7 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->type,
+  CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->info->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
   return emit_add_instr(emit, GcAdd);
 }

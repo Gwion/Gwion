@@ -296,10 +296,11 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
-    &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
+    &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr, &&regpushmemderef,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regtoreg, &&regtoregaddr,
+    &&regtoreg, &&regtoregaddr, &&regtoregderef,
+    &&structmember, &&structmemberaddr,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -335,7 +336,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
-    &&newobj, &&addref, &&objassign, &&assign, &&remref,
+    &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&setobj, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
@@ -400,6 +401,10 @@ regpushmemaddr:
   *(m_bit**)reg = &*(m_bit*)(mem + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH()
+regpushmemderef:
+  memcpy(reg, *(m_uint**)(mem+(m_int)VAL), VAL2);
+  reg += VAL2;
+  DISPATCH()
 pushnow:
   *(m_float*)reg = vm->bbq->pos;
   reg += SZ_FLOAT;
@@ -419,7 +424,7 @@ baseother:
   reg += VAL2;
   DISPATCH();
 baseaddr:
-  *(m_bit**)reg = (shred->base + VAL);
+  *(m_uint**)reg = &*(m_uint*)(shred->base + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH();
 regtoreg:
@@ -427,6 +432,15 @@ regtoreg:
   DISPATCH()
 regtoregaddr:
   *(m_uint**)(reg + (m_int)VAL) = &*(m_uint*)(reg + (m_int)VAL2);
+  DISPATCH()
+regtoregderef:
+  memcpy(*(m_bit**)(reg - SZ_INT), *(m_bit**)(reg + (m_int)VAL), VAL2);
+  DISPATCH()
+structmember:
+  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
+  DISPATCH()
+structmemberaddr:
+  *(m_bit**)(reg-SZ_INT) =  &*(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
   DISPATCH()
 memsetimm:
   *(m_uint*)(mem+VAL) = VAL2;
@@ -627,7 +641,7 @@ regpush:
   reg += VAL;
   DISPATCH();
 regtomem:
-  *(m_uint*)(mem+VAL) = *(m_uint*)(reg+VAL2);
+  *(m_uint*)(mem+VAL) = *(m_uint*)(reg+(m_int)VAL2);
   DISPATCH()
 regtomemother:
   memcpy(mem+VAL, reg, VAL2);
@@ -747,8 +761,12 @@ newobj:
   reg += SZ_INT;
   DISPATCH()
 addref:
-  if((a.obj = VAL ? **(M_Object**)(reg-SZ_INT) :
-    *(M_Object*)(reg-SZ_INT)))
+  a.obj = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
+  goto addrefcommon;
+addrefaddr:
+  a.obj = *(*(M_Object**)(reg+(m_int)VAL) + (m_int)VAL2);
+addrefcommon:
+  if(a.obj)
     ++a.obj->ref;
   DISPATCH()
 objassign:
@@ -759,8 +777,10 @@ objassign:
   }
 assign:
   reg -= SZ_INT;
-  a.obj = *(M_Object*)(reg-SZ_INT);
-  **(M_Object**)reg = a.obj;
+//  a.obj = *(M_Object*)(reg-SZ_INT);
+//  **(M_Object**)reg = a.obj;
+//  a.obj = 
+  **(M_Object**)reg = *(M_Object*)(reg-SZ_INT);
   DISPATCH()
 remref:
   release(*(M_Object*)(mem + VAL), shred);

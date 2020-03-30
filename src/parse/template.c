@@ -80,7 +80,7 @@ ANN Type scan_type(const Env env, const Type t, const Type_Decl* td) {
     if(GET_FLAG(t, ref))
       return t;
     struct TemplateScan ts = { .t=t, .td=td };
-    struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td_pos(td) };
+    struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td_pos(td), .op_type=op_scan };
     return op_check(env, &opi);
   } else if(td->types)
     return maybe_func(env, t, td);

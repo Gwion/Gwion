@@ -133,8 +133,8 @@ ANN static Type get_array_type(Type t) {
 
 #define ARRAY_OPCK                                        \
   const Exp_Binary* bin = (Exp_Binary*)data;              \
-  const Type l = get_array_type(bin->lhs->type);          \
-  const Type r = get_array_type(bin->rhs->type);          \
+  const Type l = get_array_type(bin->lhs->info->type);    \
+  const Type r = get_array_type(bin->rhs->info->type);    \
   if(isa(l, r) < 0)                                       \
     ERR_N(exp_self(bin)->pos, _("array types do not match."))
 
@@ -142,27 +142,27 @@ static OP_CHECK(opck_array_at) {
   ARRAY_OPCK
   if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
-  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
+  if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
     ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   if(bin->rhs->exp_type == ae_exp_decl) {
     if(bin->rhs->d.exp_decl.list->self->array &&
           bin->rhs->d.exp_decl.list->self->array->exp)
       ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
-  bin->rhs->emit_var = 1;
-  return bin->rhs->type;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
 }
 
 static OP_CHECK(opck_array_shift) {
   ARRAY_OPCK
-  if(bin->lhs->type->array_depth != bin->rhs->type->array_depth + 1)
+  if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth + 1)
     ERR_N(exp_self(bin)->pos, "array depths do not match for '<<'.");
-  return bin->lhs->type;
+  return bin->lhs->info->type;
 }
 
 static OP_EMIT(opem_array_shift) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type type = bin->rhs->type;
+  const Type type = bin->rhs->info->type;
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = type->size;
   return emit_add_instr(emit, ArrayAppend);
@@ -171,20 +171,20 @@ static OP_EMIT(opem_array_shift) {
 // check me. use common ancestor maybe
 static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  Type l = cast->exp->type;
-  Type r = exp_self(cast)->type;
+  Type l = cast->exp->info->type;
+  Type r = exp_self(cast)->info->type;
   while(!l->e->d.base_type)
     l = l->e->parent;
   while(!r->e->d.base_type)
     r = r->e->parent;
-  if(get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) && isa(l->e->d.base_type, r->e->d.base_type) > 0)
+  if(get_depth(cast->exp->info->type) == get_depth(exp_self(cast)->info->type) && isa(l->e->d.base_type, r->e->d.base_type) > 0)
     return l;
   return env->gwion->type[et_null];
 }
 
 static OP_CHECK(opck_array_slice) {
   const Exp e = (Exp)data;
-  return e->d.exp_slice.base->type;
+  return e->d.exp_slice.base->info->type;
 }
 
 static inline m_bool bounds(const M_Vector v, const m_int i) {
@@ -274,7 +274,7 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
 
 ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
   emit_add_instr(emit, GcAdd);
-  CHECK_BB(emit_exp(emit, array->exp, 0))
+  CHECK_BB(emit_exp(emit, array->exp))
   array_loop(emit, array->depth);
   array_finish(emit, array->depth, array->type->size, is_var);
   return GW_OK;
@@ -335,9 +335,9 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_emi(gwi, opem_basic_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", "int", "int"))
+//  GWI_BB(gwi_oper_ini(gwi, "@Array", "int", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
-  GWI_BB(gwi_oper_var(gwi, SZ_INT*2))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_not_array))

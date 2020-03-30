@@ -9,7 +9,6 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
-#include "tuple.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -325,16 +324,13 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 ANN static Type func_type(const Env env, const Func func) {
   const Type t = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->xid = ++env->scope->type_xid;
-// = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->e->parent = env->gwion->type[func->def->base->td ? et_function : et_lambda];
   t->name = func->name;
   t->e->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
   t->e->d.func = func;
-  if(t->e->tuple)
-    free_tupleform(env->gwion->mp, t->e->tuple);
-  t->e->tuple = NULL;
+//  t->e->tuple = NULL;
   return t;
 }
 ANN2(1,2) static Value func_value(const Env env, const Func f,

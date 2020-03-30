@@ -16,16 +16,17 @@
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->lhs->meta != ae_meta_var)
-    ERR_N(exp_self(bin)->pos, _("left side operand is constant"));
-  bin->lhs->emit_var = 1;
-  Type t = bin->lhs->type;
+  const m_str access = exp_access(exp_self(bin));
+  if(access)
+    ERR_N(exp_self(bin)->pos, _("left side operand is %s"), access);
+  exp_setvar(bin->lhs, 1);
+  Type t = bin->lhs->info->type;
   do {
-    Type u = bin->rhs->type;
+    Type u = bin->rhs->info->type;
     do {
       const m_str str = get_type_name(env, u->name, 1);
       if(str && !strcmp(t->name, str))
-        return bin->lhs->type;
+        return bin->lhs->info->type;
     } while((u = u->e->parent));
   } while((t = t->e->parent));
   return env->gwion->type[et_null];
@@ -39,8 +40,8 @@ static INSTR(instr_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->type->name, 1))
-  return exp_self(unary)->type = nspc_lookup_type1(env->curr, insert_symbol(str));
+  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->info->type->name, 1))
+  return exp_self(unary)->info->type = nspc_lookup_type1(env->curr, insert_symbol(str));
 }
 
 static OP_CHECK(opck_ptr_cast) {
@@ -49,7 +50,7 @@ static OP_CHECK(opck_ptr_cast) {
   if(!GET_FLAG(t, check))
     CHECK_BN(traverse_class_def(env, t->e->def))
   const Type to = known_type(env, cast->td->types->td);
-  if(isa(cast->exp->type, to) > 0)
+  if(isa(cast->exp->info->type, to) > 0)
     return t;
   ERR_N(exp_self(cast)->pos, "invalid pointer cast")
 }
@@ -57,11 +58,12 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
-  if(!strcmp(get_type_name(env, imp->t->name, 1), e->type->name)) {
-    if(e->meta == ae_meta_value)
-      ERR_N(e->pos, _("can't cast constant to Ptr"));
-    e->cast_to = imp->t;
-    e->emit_var = 1;
+  if(!strcmp(get_type_name(env, imp->t->name, 1), e->info->type->name)) {
+    const m_str access = exp_access(e);
+    if(access)
+      ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
+    e->info->cast_to = imp->t;
+    exp_setvar(e, 1);
     if(!GET_FLAG(imp->t, check))
       CHECK_BN(traverse_class_def(env, imp->t->e->def))
     return imp->t;
@@ -90,7 +92,7 @@ static INSTR(Cast2Ptr) {
 static OP_EMIT(opem_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
-  instr->m_val = (m_uint)exp_self(cast)->type;
+  instr->m_val = (m_uint)exp_self(cast)->info->type;
   return instr;
 }
 
@@ -104,8 +106,8 @@ static OP_EMIT(opem_ptr_implicit) {
 static OP_EMIT(opem_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
-  instr->m_val = exp_self(unary)->type->size;
-  instr->m_val2 = exp_self(unary)->emit_var;
+  instr->m_val = exp_self(unary)->info->type->size;
+  instr->m_val2 = exp_getvar(exp_self(unary));
   return instr;
 }
 

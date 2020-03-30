@@ -75,27 +75,27 @@ static OP_CHECK(opck_int_range) {
   const Exp exp = (Exp)data;
   const Range *range = exp->d.prim.d.range;
   const Exp e = range->start ?: range->end;
-  return array_type(env, e->type, 1);
+  return array_type(env, e->info->type, 1);
 }
 
 static OP_EMIT(opem_int_range) {
   const Exp exp = (Exp)data;
   const Instr instr = emit_add_instr(emit, IntRange);
-  instr->m_val = (m_uint)exp->type;
+  instr->m_val = (m_uint)exp->info->type;
   return instr;
 }
 
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
-  GWI_BB(gwi_oper_add(gwi,  opck_unary_meta))
-  GWI_BB(gwi_oper_end(gwi,  "-",       int_negate))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
+  GWI_BB(gwi_oper_end(gwi, "-", int_negate))
   CHECK_OP("++", unary, pre_inc)
   CHECK_OP("--", unary, pre_dec)
   GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", NULL))
-  GWI_BB(gwi_oper_add(gwi,  opck_int_range))
-  GWI_BB(gwi_oper_emi(gwi,  opem_int_range))
-  GWI_BB(gwi_oper_end(gwi,  "@range", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_int_range))
+  GWI_BB(gwi_oper_emi(gwi, opem_int_range))
+  GWI_BB(gwi_oper_end(gwi, "@range", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", NULL, "int"))
   CHECK_OP("++", post, post_inc)
   GWI_BB(gwi_oper_add(gwi, opck_post))
@@ -139,7 +139,7 @@ static OP_CHECK(opck_implicit_f2i) {
 
 static OP_CHECK(opck_implicit_i2f) {
   struct Implicit* imp = (struct Implicit*)data;
-  return imp->e->cast_to = env->gwion->type[et_float];
+  return imp->e->info->cast_to = env->gwion->type[et_float];
 }
 
 #define CHECK_FF(op, check, func) _CHECK_OP(op, check, float_##func)

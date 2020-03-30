@@ -54,12 +54,12 @@ ANN static inline VM_Code get_gack(Type t) {
   return NULL; // unreachable
 }
 
-ANN static void prepare_call(const VM_Shred shred, m_uint offset) {
+ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
   shred->mem += offset;
-  *(m_uint*)(shred->mem+ SZ_INT) = offset + SZ_INT;
-  *(VM_Code*)(shred->mem+ SZ_INT*2) = shred->code;
-  *(m_uint*)(shred->mem+ SZ_INT*3) = shred->pc;
-  *(m_uint*)(shred->mem+ SZ_INT*4) = SZ_INT;
+  *(m_uint*)(shred->mem  + SZ_INT) = offset + SZ_INT;
+  *(VM_Code*)(shred->mem + SZ_INT*2) = shred->code;
+  *(m_uint*)(shred->mem  + SZ_INT*3) = shred->pc;
+  *(m_uint*)(shred->mem  + SZ_INT*4) = SZ_INT;
   shred->mem += SZ_INT*5;
   *(M_Object*)(shred->mem)= *(M_Object*)(shred->reg - SZ_INT);
   shred->pc = 0;
@@ -80,3 +80,4 @@ ANN void gack(const VM_Shred shred, const Instr instr) {
   }
   return;
 }
+

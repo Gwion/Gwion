@@ -1,0 +1,8 @@
+struct S {
+  float f;
+  fun void test() { <<< __func__, f >>>; }
+}
+
+S s;
+12.3 => s.f;
+s.test();

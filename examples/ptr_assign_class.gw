@@ -1,8 +1,7 @@
-class C
-{
+class C {
 	typedef void Test();
 	fun void test1(){};
-    Test test0;
+  Test test0;
 	<<< test1 @=> test0 >>>;
 }
 
