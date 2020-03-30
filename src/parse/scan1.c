@@ -164,10 +164,10 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) {
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
   CHECK_BB(scan1_exp(env, post->exp))
   const m_str access = exp_access(post->exp);
-  if(access)
+  if(!access)
     return GW_OK;
   ERR_B(post->exp->pos, _("post operator '%s' cannot be used"
-      " on %S data-type..."), s_name(post->op), access);
+      " on %s data-type..."), s_name(post->op), access);
 }
 
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {

@@ -10,12 +10,6 @@
 #include "operator.h"
 #include "import.h"
 
-static inline m_str get_access(const Exp e) {
-  if(exp_getmeta(e))
-    return "non-mutable";
-  return !exp_getprot(e) ? NULL : "protected";
-}
-
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return isa(cast->exp->info->type, exp_self(cast)->info->type) > 0 ?
@@ -34,7 +28,7 @@ OP_EMIT(opem_basic_cast) {
 
 OP_CHECK(opck_const_rhs) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const m_str access = get_access(bin->rhs);
+  const m_str access = exp_access(bin->rhs);
   if(access)
     ERR_N(bin->rhs->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
          "  ...  (reason: --- right-side operand is %s.)"),
@@ -71,7 +65,7 @@ OP_CHECK(opck_unary_meta2) {
 
 OP_CHECK(opck_unary) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  const m_str access = get_access(unary->exp);
+  const m_str access = exp_access(unary->exp);
   if(access)
     ERR_N(unary->exp->pos,
           _("unary operator '%s' cannot be used on %s data-types."),
@@ -82,7 +76,7 @@ OP_CHECK(opck_unary) {
 
 OP_CHECK(opck_post) {
   const Exp_Postfix* post = (Exp_Postfix*)data;
-  const m_str access = get_access(post->exp);
+  const m_str access = exp_access(post->exp);
   if(access)
     ERR_N(post->exp->pos, _("post operator '%s' cannot be used on %s data-type."),
           s_name(post->op), access)
