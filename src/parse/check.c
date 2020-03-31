@@ -982,7 +982,9 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
   const Type t_int = env->gwion->type[et_int];
-  return check_implicit(env, e, t_int);
+  if(check_implicit(env, e, t_int))
+    ERR_B(e->pos, _("invalid condition type"))
+  return GW_OK;
 }
 
 #define stmt_func_xxx(name, type, prolog, exp) describe_stmt_func(check, name, type, prolog, exp)

@@ -1,7 +1,6 @@
 class C {
 typedef void ptr_t(int i);
-\a { <<< this, " ", a >>>; } @=> 
-ptr_t ptr;
+\a { <<< this, " ", a >>>; } @=> ptr_t ptr;
 #!ptr(3);
 fun void t1(int i) { <<< this, " t1 ", i >>>; }
 fun void test(ptr_t ptr) {

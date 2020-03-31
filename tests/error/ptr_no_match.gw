@@ -4,4 +4,4 @@ fun void test(float f){}
 
 typedef void Test();
 Test t;
-test @=> t; 
+test @=> t;

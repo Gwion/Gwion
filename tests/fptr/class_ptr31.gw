@@ -2,8 +2,7 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
   typedef static void PtrType(int i);
-  test @=>
-  static PtrType p;
+  test @=> static PtrType p;
   p(1);
   test @=> p;
   p(1);
