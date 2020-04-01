@@ -44,6 +44,10 @@ run "$n" "wrong file" "non_existant_file:with_args" "file"
 n=$((n+1))
 run "$n" "plugin directory" "-p non_existant_dir" "file"
 
+# plug_dir
+n=$((n+1))
+run "$n" "arg is a directory" "-p src" "file"
+
 # config
 n=$((n+1))
 RC=tmp_gwionrc
