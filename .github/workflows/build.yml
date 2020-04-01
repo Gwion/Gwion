@@ -144,7 +144,6 @@ jobs:
 
     - name: Build book
       run: |
-        export PATH=~/.cabal/bin:$PATH
         export PATH=.:$PATH
         make build
 
