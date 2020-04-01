@@ -16,9 +16,9 @@
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const m_str access = exp_access(exp_self(bin));
+  const m_str access = exp_access(exp_self(bin->rhs));
   if(access)
-    ERR_N(exp_self(bin)->pos, _("left side operand is %s"), access);
+    ERR_N(exp_self(bin)->pos, _("right side operand is %s"), access);
   exp_setvar(bin->lhs, 1);
   Type t = bin->lhs->info->type;
   do {
