@@ -1560,14 +1560,10 @@ ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp)
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
     const Exp e, const Symbol op, const Vector v) {
   CHECK_BB(emit_exp(emit, base))
-  const Exp next = e->next;
-//  e->next = NULL;
-  const m_bool ret = emit_exp_pop_next(emit, e);
+  CHECK_BB(emit_exp_pop_next(emit, e))
   const m_int size = -exp_size(e);
   emit_exp_addref(emit, base, -exp_totalsize(base) - size);
   emit_exp_addref(emit, e, -size);
-//  e->next = next;
-  CHECK_BB(ret)
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct ExpInfo_ info = { .nspc=e->info->nspc };
   struct Exp_ ebin = { .d={.exp_binary=bin}, .info=&info };
