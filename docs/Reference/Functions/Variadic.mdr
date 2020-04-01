@@ -8,9 +8,9 @@ Well, a function that takes a fixed number of arguments, and additionnal ones.
 @``` variadic.gw
 fun void variadic_test(int i, ...) {
   <<<  "first argument is ", i  >>>;
-  vararg.start;
-  <<<  "\tadditionnal argument", vararg.i  >>>;
-  vararg.end;
+  varloop vararg {
+    <<<  "\tadditionnal argument", vararg.i  >>>;
+  }
 }
 variadic_test(1);
 variadic_test(1, 2);
