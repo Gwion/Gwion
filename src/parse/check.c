@@ -982,7 +982,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
   const Type t_int = env->gwion->type[et_int];
-  if(check_implicit(env, e, t_int))
+  if(check_implicit(env, e, t_int) < 0)
     ERR_B(e->pos, _("invalid condition type"))
   return GW_OK;
 }
