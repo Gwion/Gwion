@@ -144,7 +144,7 @@ jobs:
 
     - name: Build book
       run: |
-        export PATH=.:$PATH
+        export PATH=mdr:$PATH
         make build
 
     - name: GIT things
