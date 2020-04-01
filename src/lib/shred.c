@@ -208,7 +208,12 @@ static MFUN(shred_test_cancel) {
 
 static ANN THREAD_FUNC(fork_run) {
   VM *vm = (VM*)data;
-  const M_Object me = vm->shreduler->list->self->info->me;
+  vm_lock(vm->parent);
+  const M_Object me = vm->bbq->is_running ?
+    vm->shreduler->list->self->info->me : NULL;
+  vm_unlock(vm->parent);
+  if(!me)
+    THREAD_RETURN(0);
   while(vm->bbq->is_running) {
     vm_run(vm);
     ++vm->bbq->pos;
@@ -220,16 +225,14 @@ static ANN THREAD_FUNC(fork_run) {
   } else if(me->ref > 1)
     release(me, ME(me));
   vm_unlock(vm->parent);
-  THREAD_RETURN(NULL);
+  THREAD_RETURN(0);
 }
 
 ANN void fork_launch(VM const* vm, const M_Object o, const m_uint sz) {
-  vm_lock(vm);
   if(vm_running(vm)) {
     FORK_RETSIZE(o) = sz;
     THREAD_CREATE(FORK_THREAD(o), fork_run, ME(o)->info->vm);
   } else release(o, ME(o));
-  vm_unlock(vm);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
