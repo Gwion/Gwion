@@ -1,5 +1,3 @@
-var start = System.clock
-
 var count = 0
 for (i in 1..1000000) {
   if ("abc" == "abc") count = count + 1
@@ -21,4 +19,3 @@ for (i in 1..1000000) {
 }
 
 System.print(count)
-System.print("elapsed: %(System.clock - start)")
