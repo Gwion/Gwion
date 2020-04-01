@@ -20,7 +20,7 @@ clean-tests:
 	@rm -rf *.gw log vlog
 
 clean-all: clean clean-tests
-	@rm -rf src book.toml custom.css
+	@rm -rf src
 
 .SUFFIXES: .gw .test
 .gw.test:
