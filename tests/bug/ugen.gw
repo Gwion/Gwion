@@ -1,4 +1,4 @@
-UGen @u;
+UGen ref u;
 #!u.last(); #! should fail => fails.
 SinOsc s => Gain g => dac;
 for(-1 => int i;i < 6; i++)

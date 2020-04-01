@@ -1,1 +1,1 @@
-new Object @=> VarObject @o;
+new Object @=> VarObject ref o;

@@ -8,18 +8,35 @@
 #define DECL_NN(decl, f, exp) decl f exp; { if(f == env->gwion->type[et_null) return env->gwion->type[et_null]; }
 #define CHECK_ON(f) { if(!f)    return env->gwion->type[et_null]; }
 #define CHECK_BN(f) { if(f < 0) return env->gwion->type[et_null]; }
-#define CHECK_NN(f) { if(f == env->gwion->type[et_null] return env->gwion->type[et_null]; }
+#define CHECK_NN(f) { if(f == env->gwion->type[et_null]) return env->gwion->type[et_null]; }
 
 typedef Type (*opck)(const Env, void*, m_bool*);
 typedef struct Instr_* (*opem)(const Emitter, void*);
 
-struct Op_Import {
-  Type lhs, rhs, ret;
+struct Op_Func {
   opck ck;
   opem em;
+};
+
+enum op_type {
+  op_implicit,
+  op_exp,
+  op_dot,
+  op_array,
+  op_binary,
+  op_cast,
+  op_postfix,
+  op_unary,
+  op_scan
+};
+
+struct Op_Import {
+  Type lhs, rhs, ret;
+  const struct Op_Func *func;
   uintptr_t data;
   loc_t pos;
   Symbol op;
+  enum op_type op_type;
 };
 
 struct Implicit {
@@ -27,6 +44,12 @@ struct Implicit {
   Type  t;
   loc_t pos;
 };
+
+struct TemplateScan {
+  const Type  t;
+  const Type_Decl  *td;
+};
+
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
 ANN struct Instr_* op_emit(const Emitter, const struct Op_Import*);

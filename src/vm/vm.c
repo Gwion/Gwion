@@ -296,10 +296,11 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
     &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
-    &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
+    &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr, &&regpushmemderef,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regtoreg, &&regtoregaddr,
+    &&regtoreg, &&regtoregaddr, &&regtoregderef,
+    &&structmember, &&structmemberaddr,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -330,17 +331,17 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv,
     &&itof, &&ftoi,
     &&timeadv,
-    &&setcode, &&funcptr, &&funcmember,
-    &&funcusr, &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&next, &&funcusrend, &&funcmemberend,
+    &&setcode,
+    &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
-    &&newobj, &&addref, &&objassign, &&assign, &&remref,
+    &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&setobj, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
-    &&gackend, &&gack, &&noop, &&regpushimm, &&other, &&eoc
+    &&gacktype, &&gackend, &&gack, &&noop, &&regpushimm, &&other, &&eoc
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -355,8 +356,10 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     register union {
       M_Object obj;
       VM_Code code;
-      VM_Shred child;
     } a;
+PRAGMA_PUSH()
+    register VM_Shred child;
+PRAGMA_POP()
   MUTEX_LOCK(s->mutex);
   do {
     SDISPATCH();
@@ -382,21 +385,25 @@ regpushaddr:
   reg += SZ_INT;
   DISPATCH()
 regpushmem:
-  *(m_uint*)reg = *(m_uint*)(mem + VAL);
+  *(m_uint*)reg = *(m_uint*)(mem + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH();
 regpushmemfloat:
-  *(m_float*)reg = *(m_float*)(mem + VAL);
+  *(m_float*)reg = *(m_float*)(mem + (m_int)VAL);
   reg += SZ_FLOAT;
   DISPATCH();
 regpushmemother:
   for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
-    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + VAL) + i);
+    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)(mem + (m_int)VAL) + i);
   reg += VAL2;
   DISPATCH();
 regpushmemaddr:
-  *(m_bit**)reg = &*(m_bit*)(mem + VAL);
+  *(m_bit**)reg = &*(m_bit*)(mem + (m_int)VAL);
   reg += SZ_INT;
+  DISPATCH()
+regpushmemderef:
+  memcpy(reg, *(m_uint**)(mem+(m_int)VAL), VAL2);
+  reg += VAL2;
   DISPATCH()
 pushnow:
   *(m_float*)reg = vm->bbq->pos;
@@ -417,15 +424,23 @@ baseother:
   reg += VAL2;
   DISPATCH();
 baseaddr:
-  *(m_bit**)reg = (shred->base + VAL);
+  *(m_uint**)reg = &*(m_uint*)(shred->base + (m_int)VAL);
   reg += SZ_INT;
   DISPATCH();
 regtoreg:
   *(m_uint*)(reg + (m_int)VAL) = *(m_uint*)(reg + (m_int)VAL2);
   DISPATCH()
 regtoregaddr:
-  *(m_uint**)reg = &*(m_uint*)(reg-SZ_INT);
-  reg += SZ_INT;
+  *(m_uint**)(reg + (m_int)VAL) = &*(m_uint*)(reg + (m_int)VAL2);
+  DISPATCH()
+regtoregderef:
+  memcpy(*(m_bit**)(reg - SZ_INT), *(m_bit**)(reg + (m_int)VAL), VAL2);
+  DISPATCH()
+structmember:
+  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
+  DISPATCH()
+structmemberaddr:
+  *(m_bit**)(reg-SZ_INT) =  &*(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
   DISPATCH()
 memsetimm:
   *(m_uint*)(mem+VAL) = VAL2;
@@ -603,30 +618,22 @@ timeadv:
   VM_OUT
   break;
 setcode:
-  a.code = *(VM_Code*)(reg-SZ_INT);
-funcptr:
 PRAGMA_PUSH()
-  if(!GET_FLAG((VM_Code)a.code, builtin))
-    goto funcusr;
+  reg -= SZ_INT;
+  a.code = *(VM_Code*)reg;
+  if(!GET_FLAG((VM_Code)a.code, builtin)) {
+    register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
+    mem += push;
+    *(m_uint*)  mem = push;mem += SZ_INT;
+    *(VM_Code*) mem = code; mem += SZ_INT;
+    *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
+    *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
+    next = eFuncUsrEnd;
+  } else {
+    mem += *(m_uint*)(reg + SZ_INT);
+    next = eFuncMemberEnd;
+  }
 PRAGMA_POP()
-funcmember:
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
-  mem += *(m_uint*)(reg + SZ_INT);
-  next = eFuncMemberEnd;
-  goto regpop;
-funcusr:
-{
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
-  register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
-  mem += push;
-  *(m_uint*)  mem = push;mem += SZ_INT;
-  *(VM_Code*) mem = code; mem += SZ_INT;
-  *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
-  *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
-  next = eFuncUsrEnd;
-}
 regpop:
   reg -= VAL;
   DISPATCH();
@@ -634,7 +641,7 @@ regpush:
   reg += VAL;
   DISPATCH();
 regtomem:
-  *(m_uint*)(mem+VAL) = *(m_uint*)(reg+VAL2);
+  *(m_uint*)(mem+VAL) = *(m_uint*)(reg+(m_int)VAL2);
   DISPATCH()
 regtomemother:
   memcpy(mem+VAL, reg, VAL2);
@@ -645,7 +652,6 @@ overflow:
     exception(shred, "StackOverflow");
     continue;
   }
-next:
 PRAGMA_PUSH()
   goto *dispatch[next];
 PRAGMA_POP()
@@ -666,7 +672,7 @@ funcmemberend:
   }
   PC_DISPATCH(shred->pc)
 sporkini:
-  if(!(a.child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
+  if(!(child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
     exception(shred, "[SporkAbortedException]");
     continue;
   }
@@ -675,27 +681,27 @@ sporkfunc:
 //  LOOP_OPTIM
 PRAGMA_PUSH()
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
-  a.child->reg += VAL;
+    *(m_uint*)(child->reg + i) = *(m_uint*)(reg + i + (m_int)VAL2);
+  child->reg += VAL;
   DISPATCH()
 PRAGMA_POP()
 sporkmemberfptr:
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->reg + i) = *(m_uint*)(reg - VAL + i);
-  *(m_uint*)(a.child->reg + VAL) = *(m_uint*)(reg - SZ_INT*2);
-  *(m_uint*)(a.child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
-  a.child->reg += VAL + SZ_INT*2;
+    *(m_uint*)(child->reg + i) = *(m_uint*)(reg - VAL + i);
+  *(M_Object*)(child->reg + VAL) = a.obj;
+  *(m_uint*)(child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
+  child->reg += VAL + SZ_INT*2;
   DISPATCH()
 sporkexp:
 //  LOOP_OPTIM
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
-    *(m_uint*)(a.child->mem + i) = *(m_uint*)(mem+i);
+    *(m_uint*)(child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
 forkend:
-  fork_launch(vm, a.child->info->me, VAL2);
+  fork_launch(vm, child->info->me, VAL2);
 sporkend:
   assert(!VAL); // spork are not mutable
-  *(M_Object*)(reg-SZ_INT) = a.child->info->me;
+  *(M_Object*)(reg-SZ_INT) = child->info->me;
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
@@ -755,8 +761,12 @@ newobj:
   reg += SZ_INT;
   DISPATCH()
 addref:
-  if((a.obj = VAL ? **(M_Object**)(reg-SZ_INT) :
-    *(M_Object*)(reg-SZ_INT)))
+  a.obj = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
+  goto addrefcommon;
+addrefaddr:
+  a.obj = *(*(M_Object**)(reg+(m_int)VAL) + (m_int)VAL2);
+addrefcommon:
+  if(a.obj)
     ++a.obj->ref;
   DISPATCH()
 objassign:
@@ -767,14 +777,16 @@ objassign:
   }
 assign:
   reg -= SZ_INT;
-  a.obj = *(M_Object*)(reg-SZ_INT);
-  **(M_Object**)reg = a.obj;
+//  a.obj = *(M_Object*)(reg-SZ_INT);
+//  **(M_Object**)reg = a.obj;
+//  a.obj = 
+  **(M_Object**)reg = *(M_Object*)(reg-SZ_INT);
   DISPATCH()
 remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
 setobj:
-  a.obj  = *(M_Object*)(reg-SZ_INT-VAL);
+  a.obj  = *(M_Object*)(reg-SZ_INT-(m_int)VAL);
   DISPATCH();
 except:
 /* TODO: Refactor except instruction             *
@@ -849,6 +861,13 @@ gcend:
   while((a.obj = (M_Object)vector_pop(&shred->gc)))
     _release(a.obj, shred);
   DISPATCH()
+gacktype:
+{
+  const M_Object o = *(M_Object*)(reg - SZ_INT);
+  if(o)
+    *(Type*)reg = o->type_ref;
+  DISPATCH()
+}
 gackend:
 {
   m_str str = *(m_str*)(reg - SZ_INT);

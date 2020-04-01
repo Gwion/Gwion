@@ -1,5 +1,12 @@
 #ifndef __ARRAY
 #define __ARRAY
+
+struct ArrayAccessInfo {
+  struct Array_Sub_ array;
+  const Type type;
+  const m_bool is_var;
+};
+
 typedef struct M_Vector_  * M_Vector;
 typedef struct ArrayInfo_ {
   m_int depth;
@@ -22,4 +29,6 @@ ANN m_bit* m_vector_addr(const M_Vector, const m_uint);
 ANN void m_vector_rem(const M_Vector,  const m_uint);
 ANEW M_Vector new_m_vector(MemPool, const m_uint size, const m_uint len);
 ANN void free_m_vector(MemPool, M_Vector);
+ANN Type check_array_access(const Env env, const Array_Sub array);
+ANN m_bool emit_array_access(const Emitter emit, struct ArrayAccessInfo *const info);
 #endif

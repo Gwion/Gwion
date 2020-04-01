@@ -1,23 +1,14 @@
 fun void test(...) {
   int i;
-  vararg.start;
-
-	if(i == 0)
-		<<< vararg.i >>>;
-	else if(i == 1)
-		<<< vararg.f >>>;
-	else if(i == 2)
-		<<< vararg.c >>>;
-	else if(i == 3)
-		<<< vararg.p >>>;
-	else if(i == 4)
-		<<< vararg.v3 >>>;
-	else if(i == 5)
-		<<< vararg.v4 >>>;
-	else if(i == 6)
-		<<< vararg.o >>>;
-  	i++;
-  vararg.end;
+  varloop vararg {
+  	if(i == 0)
+	  	<<< vararg $ int >>>;
+  	else if(i == 1)
+	  	<<< vararg $ float >>>;
+  	else if(i == 2)
+	  	<<< vararg $ Object >>>;
+  	  i++;
+  }
 }
 test(1);
-test(1, 2.3, #(3, 2), %(3, 2.1), @(1,2,3), @(1,2,3,4), null);
+test(1, 2.3, null);

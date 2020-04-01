@@ -1,6 +1,0 @@
-<<< <("Tom", 6) @=> 
-<~string, int~>Tuple @tup >>>;
-<<< typeof(tup) >>>;
-<<< tup >>>;
-<<< tup[0] >>>;
-<<< tup[1] >>>;

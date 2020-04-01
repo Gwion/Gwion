@@ -67,7 +67,7 @@ int a;
 
 #!testing operator for Object and 
 {
-	Object	@variable1;
+	Object	ref variable1;
 <<<  variable1!= null >>>;
 }
 #!testing operator for int and int

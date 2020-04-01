@@ -9,7 +9,6 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
-#include "tuple.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -38,21 +37,13 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
   return ret;
 }
 
-ANN static Value arg_value(MemPool p, const Arg_List list) {
-  const Var_Decl var = list->var_decl;
-  const Value v = new_value(p, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
-  if(list->td)
-    v->flag = list->td->flag | ae_flag_arg;
-  return v;
-}
-
 ANN static m_bool scan2_args(const Env env, const Func_Def f) {
   Arg_List list = f->base->args;
   do {
     const Var_Decl var = list->var_decl;
-    if(var->array)
-      list->type = array_type(env, list->type, var->array->depth);
-    var->value = arg_value(env->gwion->mp, list);
+    if(var->array) {
+      var->value->type = list->type = array_type(env, list->type, var->array->depth);
+    }
     var->value->from->offset = f->stack_depth;
     f->stack_depth += list->type->size;
   } while((list = list->next));
@@ -120,8 +111,6 @@ ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
     return scan2_exp(env, prim->d.array->exp);
   else if(prim->prim_type == ae_prim_range)
     return scan2_range(env, prim->d.range);
-  if(prim->prim_type == ae_prim_tuple)
-    return scan2_exp(env, prim->d.tuple.exp);
   return GW_OK;
 }
 
@@ -223,6 +212,8 @@ HANDLE_EXP_FUNC(scan2, m_bool, Env)
 
 #define scan2_stmt_func(name, type, prolog, exp) describe_stmt_func(scan2, name, type, prolog, exp)
 scan2_stmt_func(flow, Stmt_Flow,, !(scan2_exp(env, stmt->cond) < 0 ||
+    scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
+scan2_stmt_func(varloop, Stmt_VarLoop,, !(scan2_exp(env, stmt->exp) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
 scan2_stmt_func(for, Stmt_For,, !(scan2_stmt(env, stmt->c1) < 0 ||
     scan2_stmt(env, stmt->c2) < 0 ||
@@ -333,16 +324,13 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
 ANN static Type func_type(const Env env, const Func func) {
   const Type t = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->xid = ++env->scope->type_xid;
-// = type_copy(env->gwion->mp, env->gwion->type[func->def->base->td ? et_function : et_lambda]);
   t->e->parent = env->gwion->type[func->def->base->td ? et_function : et_lambda];
   t->name = func->name;
   t->e->owner = env->curr;
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
   t->e->d.func = func;
-  if(t->e->tuple)
-    free_tupleform(env->gwion->mp, t->e->tuple);
-  t->e->tuple = NULL;
+//  t->e->tuple = NULL;
   return t;
 }
 ANN2(1,2) static Value func_value(const Env env, const Func f,
@@ -429,10 +417,9 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const Type r = f->base->args ? is_unary ? f->base->args->var_decl->value->type :
     f->base->args->next ? f->base->args->next->var_decl->value->type :
     f->base->ret_type : NULL;
+  struct Op_Func opfunc = { .ck=strcmp(str, "@implicit") ? 0 : opck_usr_implicit };
   struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
-                           .pos=f->pos, .data=(uintptr_t)f->base->func };
-  if(!strcmp(str, "@implicit"))
-    opi.ck = opck_usr_implicit;
+                           .pos=f->pos, .data=(uintptr_t)f->base->func, .func=&opfunc };
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;

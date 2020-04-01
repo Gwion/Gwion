@@ -1,5 +1,5 @@
 #! thanks to afl-fuzz
-SinOsc@s, t;
+SinOsc ref s, t;
 Gain g => dac;
 1 => t.freq;
 s => g;

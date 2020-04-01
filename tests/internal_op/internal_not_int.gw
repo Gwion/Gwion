@@ -1,2 +1,2 @@
 #! [contains] must return
-operator @access Object (int i) {}
+operator @conditionnal Object (int i) {}

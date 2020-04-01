@@ -7,6 +7,7 @@ RegPushMem
 RegPushMem2
 RegPushMem3
 RegPushMem4
+RegPushMemDeref
 RegPushNow
 RegPushBase
 RegPushBase2
@@ -14,6 +15,9 @@ RegPushBase3
 RegPushBase4
 Reg2Reg
 Reg2RegAddr
+Reg2RegDeref
+StructMember
+StructMemberAddr
 MemSetImm
 RegPushMe
 RegPushMaybe
@@ -115,15 +119,11 @@ CastI2F
 CastF2I
 Time_Advance
 SetCode
-FuncPtr
-FuncMember
-FuncUsr
 RegPop
 RegPush
 Reg2Mem
 Reg2Mem4
 Overflow
-Next
 FuncUsrEnd
 FuncMemberEnd
 SporkIni
@@ -147,6 +147,7 @@ ArrayAddr
 ArrayValid
 ObjectInstantiate
 RegAddRef
+RegAddRefAddr
 ObjectAssign
 Assign
 ObjectRelease
@@ -166,6 +167,7 @@ PushStaticCode
 GcIni
 GcAdd
 GcEnd
+GackType
 GackEnd
 Gack
 NoOp

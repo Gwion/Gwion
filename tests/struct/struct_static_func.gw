@@ -1,0 +1,9 @@
+struct S {
+  int i;
+  int j;
+  12 => static int si;
+  fun static void test() { <<< __func__, si >>>; }
+  test();
+}
+S s;
+s.test();

@@ -1,2 +1,2 @@
-Object @o;
-o $ Event!;
+Object ref o;
+o $ Event nonnull;

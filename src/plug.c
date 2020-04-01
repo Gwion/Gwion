@@ -105,11 +105,15 @@ ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {
   globfree(&results);
 #else
   WIN32_FIND_DATA filedata;
-  HANDLE file = FindFirstFileA(name,&filedata);
+  HANDLE file = FindFirstFile(name, &filedata);
   if(file == INVALID_HANDLE_VALUE)
     return;
-  do plug_get(h, filedata.cFileName);
-  while(FindNextFile(file,&filedata) == 0);
+  do {
+    char c[PATH_MAX];
+    strcpy(c, name);
+    strcpy(c + strlen(name) - 4, filedata.cFileName);
+    plug_get(h, c);
+  } while(FindNextFile(file,&filedata));
   FindClose(file);
 #endif
 }

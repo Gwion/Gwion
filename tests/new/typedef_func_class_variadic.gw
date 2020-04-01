@@ -6,7 +6,7 @@ class C {
   fun void test(...) {
     <<< this, " ", __func__ >>>;
     vararg.start;
-    <<< vararg.i >>>;
+    <<< vararg $ int >>>;
     vararg.end;
   }
 

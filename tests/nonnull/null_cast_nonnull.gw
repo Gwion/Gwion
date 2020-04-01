@@ -1,2 +1,2 @@
 #! [contains] can't cast
-null $ Object!;
+null $ Object nonnull;

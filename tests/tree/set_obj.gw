@@ -1,5 +1,4 @@
 typedef int[2]Type;
-Type!type;
+Type nonnull type;
 <<<type>>>;
-for(auto@a:type);
-#!for(auto a:type);
+for(auto ref a : type);

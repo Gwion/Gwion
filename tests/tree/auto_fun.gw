@@ -4,6 +4,6 @@ class C {
 
 C i[2];
 
-for(auto @a : i)
+for(auto ref a : i)
      <<< a >>>;
 

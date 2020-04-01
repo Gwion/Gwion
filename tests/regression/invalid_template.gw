@@ -1,0 +1,12 @@
+class B {}
+
+class<~A~>C extends B{}
+
+class<~A,B~>D extends<~A~>C{
+  class<~A~>int{}
+  class G extends ld
+  {A0I:}
+  <~A~>d d;
+}
+
+<~int~>D d;

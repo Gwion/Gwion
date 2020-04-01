@@ -6,7 +6,7 @@ class Tester
 
 Tester t;
 Object o;
-Object @ref;
+Object ref ref;
 "test" => string s;
 #!<<< t.assert_equal("test", 1, 1) >>>;
 #!<<< t.assert_equal("test", 2, 1) >>>;

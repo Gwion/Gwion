@@ -10,6 +10,7 @@ enum {
   eRegPushMem2,
   eRegPushMem3,
   eRegPushMem4,
+  eRegPushMemDeref,
   eRegPushNow,
   eRegPushBase,
   eRegPushBase2,
@@ -17,6 +18,9 @@ enum {
   eRegPushBase4,
   eReg2Reg,
   eReg2RegAddr,
+  eReg2RegDeref,
+  eStructMember,
+  eStructMemberAddr,
   eMemSetImm,
   eRegPushMe,
   eRegPushMaybe,
@@ -118,15 +122,11 @@ enum {
   eCastF2I,
   eTime_Advance,
   eSetCode,
-  eFuncPtr,
-  eFuncMember,
-  eFuncUsr,
   eRegPop,
   eRegPush,
   eReg2Mem,
   eReg2Mem4,
   eOverflow,
-  eNext,
   eFuncUsrEnd,
   eFuncMemberEnd,
   eSporkIni,
@@ -150,6 +150,7 @@ enum {
   eArrayValid,
   eObjectInstantiate,
   eRegAddRef,
+  eRegAddRefAddr,
   eObjectAssign,
   eAssign,
   eObjectRelease,
@@ -169,6 +170,7 @@ enum {
   eGcIni,
   eGcAdd,
   eGcEnd,
+  eGackType,
   eGackEnd,
   eGack,
   eNoOp,
@@ -186,6 +188,7 @@ enum {
 #define  RegPushMem2         (f_instr)eRegPushMem2
 #define  RegPushMem3         (f_instr)eRegPushMem3
 #define  RegPushMem4         (f_instr)eRegPushMem4
+#define  RegPushMemDeref     (f_instr)eRegPushMemDeref
 #define  RegPushNow          (f_instr)eRegPushNow
 #define  RegPushBase         (f_instr)eRegPushBase
 #define  RegPushBase2        (f_instr)eRegPushBase2
@@ -193,6 +196,9 @@ enum {
 #define  RegPushBase4        (f_instr)eRegPushBase4
 #define  Reg2Reg             (f_instr)eReg2Reg
 #define  Reg2RegAddr         (f_instr)eReg2RegAddr
+#define  Reg2RegDeref        (f_instr)eReg2RegDeref
+#define  StructMember        (f_instr)eStructMember
+#define  StructMemberAddr    (f_instr)eStructMemberAddr
 #define  MemSetImm           (f_instr)eMemSetImm
 #define  RegPushMe           (f_instr)eRegPushMe
 #define  RegPushMaybe        (f_instr)eRegPushMaybe
@@ -294,15 +300,11 @@ enum {
 #define  CastF2I             (f_instr)eCastF2I
 #define  Time_Advance        (f_instr)eTime_Advance
 #define  SetCode             (f_instr)eSetCode
-#define  FuncPtr             (f_instr)eFuncPtr
-#define  FuncMember          (f_instr)eFuncMember
-#define  FuncUsr             (f_instr)eFuncUsr
 #define  RegPop              (f_instr)eRegPop
 #define  RegPush             (f_instr)eRegPush
 #define  Reg2Mem             (f_instr)eReg2Mem
 #define  Reg2Mem4            (f_instr)eReg2Mem4
 #define  Overflow            (f_instr)eOverflow
-#define  Next                (f_instr)eNext
 #define  FuncUsrEnd          (f_instr)eFuncUsrEnd
 #define  FuncMemberEnd       (f_instr)eFuncMemberEnd
 #define  SporkIni            (f_instr)eSporkIni
@@ -326,6 +328,7 @@ enum {
 #define  ArrayValid          (f_instr)eArrayValid
 #define  ObjectInstantiate   (f_instr)eObjectInstantiate
 #define  RegAddRef           (f_instr)eRegAddRef
+#define  RegAddRefAddr       (f_instr)eRegAddRefAddr
 #define  ObjectAssign        (f_instr)eObjectAssign
 #define  Assign              (f_instr)eAssign
 #define  ObjectRelease       (f_instr)eObjectRelease
@@ -345,6 +348,7 @@ enum {
 #define  GcIni               (f_instr)eGcIni
 #define  GcAdd               (f_instr)eGcAdd
 #define  GcEnd               (f_instr)eGcEnd
+#define  GackType            (f_instr)eGackType
 #define  GackEnd             (f_instr)eGackEnd
 #define  Gack                (f_instr)eGack
 #define  NoOp                (f_instr)eNoOp

@@ -1,8 +1,0 @@
-class Person {
-  "Phil" @=> string @name;
-  45 => int age;
-}
-
-Person p @=> <~string,int,float~>Tuple @t;
-<<<t[0]>>>;
-<<<t[1]>>>;

@@ -11,6 +11,7 @@
 #include "instr.h"
 #include "operator.h"
 #include "import.h"
+#include "tuple.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
@@ -109,22 +110,23 @@ if(fptr->base->tmpl && fptr->base->args) {
 }
 
 static OP_CHECK(opck_implicit_similar) {
-  const Exp_Binary *bin = (Exp_Binary*)data;
-  return bin->rhs->type;
+  const struct Implicit *imp = (struct Implicit*)data;
+  return imp->e->info->type;
 }
 
 static OP_CHECK(opck_cast_similar) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  return exp_self(cast)->type;
+  return exp_self(cast)->info->type;
 }
 
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
-  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .ck=opck_cast_similar };
+  struct Op_Func opfunc = { .ck=opck_cast_similar };
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .func=&opfunc };
   add_op(env->gwion, &opi);
   opi.lhs=rhs;
   opi.rhs=lhs;
   add_op(env->gwion, &opi);
-  opi.ck = opck_implicit_similar;
+  opfunc.ck = opck_implicit_similar;
   opi.op=insert_symbol("@implicit");
   add_op(env->gwion, &opi);
 }
@@ -222,7 +224,6 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->e->owner = t->nspc->parent = env->curr;
-  t->nspc->is_union = 1;
   t->e->parent = env->gwion->type[et_union];
   add_type(env, env->curr, t);
   if(add) {
@@ -313,7 +314,13 @@ ANN static void inherit_tmpl(const Env env, const Class_Def cdef) {
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos))
-  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), env->gwion->type[et_object]);
+  const Type parent = !GET_FLAG(cdef, struct) ? env->gwion->type[et_object] : NULL;
+  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), parent);
+  if(GET_FLAG(cdef, struct)) {
+    SET_FLAG(t, struct);
+    t->e->gack = env->gwion->type[et_object]->e->gack;
+  }
+  t->e->tuple = new_tupleform(env->gwion->mp);
   t->e->owner = env->curr;
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;

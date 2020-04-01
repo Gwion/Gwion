@@ -18,9 +18,11 @@ static MFUN(m_variadic) {
   M_Object str_obj = *(M_Object*)MEM(SZ_INT);
   if(!str_obj)return;
   m_str str = STRING(str_obj);
-  struct Vararg_* arg = *(struct Vararg_**)MEM(SZ_INT*2);
+  const M_Object vararg_obj = *(M_Object*)MEM(SZ_INT*2);
+  struct Vararg_* arg = *(struct Vararg_**)vararg_obj->data;
 
-  while(arg->i < arg->s) {
+  m_uint i = 0;
+  while(i < arg->s) {
     if(*str == 'i') {
       printf("%" INT_F "\n", *(m_int*)(arg->d + arg->o));
       arg->o += SZ_INT;
@@ -31,10 +33,9 @@ static MFUN(m_variadic) {
       printf("%p\n", (void*)*(M_Object*)(arg->d + arg->o));
       arg->o += SZ_INT;
     }
-    arg->i++;
+    ++i;
     str++;
   }
-  free_vararg(shred->info->mp, arg);
 }
 
 GWION_IMPORT(variadic test) {

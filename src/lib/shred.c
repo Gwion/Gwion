@@ -13,11 +13,10 @@
 #include "specialid.h"
 #include "gwi.h"
 
-static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_retval;
+static m_int o_fork_thread, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize;
 
 #define FORK_THREAD(o) *(THREAD_TYPE*)(o->data + o_fork_thread)
 #define FORK_RETSIZE(o) *(m_int*)(o->data + o_fork_retsize)
-#define FORK_RETVAL(o) (o->data + o_fork_retval)
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
@@ -73,8 +72,8 @@ static SFUN(vm_shred_from_id) {
         return;
       }
     }
-  } else
-      *(m_uint*)RETURN = 0;
+  }
+  *(m_uint*)RETURN = 0;
 }
 
 static MFUN(shred_args) {
@@ -207,36 +206,33 @@ static MFUN(shred_test_cancel) {
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
-void fork_retval(const M_Object o) {
-  const m_uint sz = FORK_RETSIZE(o);
-  memcpy(FORK_RETVAL(o), ME(o)->reg - sz, sz);
-}
-
-static ANN void* fork_run(void* data) {
+static ANN THREAD_FUNC(fork_run) {
   VM *vm = (VM*)data;
-  const M_Object me = vm->shreduler->list->self->info->me;
+  vm_lock(vm->parent);
+  const M_Object me = vm->bbq->is_running ?
+    vm->shreduler->list->self->info->me : NULL;
+  vm_unlock(vm->parent);
+  if(!me)
+    THREAD_RETURN(0);
   while(vm->bbq->is_running) {
     vm_run(vm);
     ++vm->bbq->pos;
   }
   vm_lock(vm->parent);
   if(vm_running(vm->parent)) {
-    fork_retval(me);
     *(m_int*)(me->data + o_fork_done) = 1;
     broadcast(*(M_Object*)(me->data + o_fork_ev));
   } else if(me->ref > 1)
     release(me, ME(me));
   vm_unlock(vm->parent);
-  THREAD_RETURN(NULL);
+  THREAD_RETURN(0);
 }
 
 ANN void fork_launch(VM const* vm, const M_Object o, const m_uint sz) {
-  vm_lock(vm);
   if(vm_running(vm)) {
     FORK_RETSIZE(o) = sz;
     THREAD_CREATE(FORK_THREAD(o), fork_run, ME(o)->info->vm);
   } else release(o, ME(o));
-  vm_unlock(vm);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
@@ -335,14 +331,6 @@ GWION_IMPORT(shred) {
   GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "retsize");
   GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, NULL)))
-  o_fork_retval = t_fork->nspc->info->offset;
-  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
-  GWI_BB(gwi_union_add(gwi, "int", "i"))
-  GWI_BB(gwi_union_add(gwi, "float", "f"))
-  GWI_BB(gwi_union_add(gwi, "Vec3", "v"))
-  GWI_BB(gwi_union_add(gwi, "Vec4", "w"))
-  GWI_BB(gwi_union_add(gwi, "VarObject", "o"))
-  GWI_OB(gwi_union_end(gwi, ae_flag_const))
   gwi_func_ini(gwi, "void", "join");
   GWI_BB(gwi_func_end(gwi, fork_join, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))

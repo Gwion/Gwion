@@ -1,0 +1,10 @@
+class C {
+  struct S {
+    12 => int i;
+    "testing::" => string s;
+    13 => float f;
+    <<< __func__ >>>;
+  }
+  static S s;
+}
+C c;

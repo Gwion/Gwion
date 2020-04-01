@@ -5,12 +5,12 @@ operator => void (Object o, int i) {
 }
 
 class C {
-	Object @ref;
+	Object ref ref_object;
 }
 
 #!! assign object to C.ref
 operator => void (Object o, C c) {
-  o @=> c.ref;
+  o @=> c.ref_object;
   <<< "success" >>>;
 }
 

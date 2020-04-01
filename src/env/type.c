@@ -50,10 +50,8 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->name   = name;
   type->e = mp_calloc(p, TypeInfo);
   type->e->parent = parent;
-  if(parent) {
+  if(parent)
     type->size = parent->size;
-    type->e->tuple = new_tupleform(p);
-  }
   type->ref = new_refcount(p, free_type);
   return type;
 }

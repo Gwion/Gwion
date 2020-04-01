@@ -23,6 +23,7 @@ ANN Type type_nonnull(const Env env, const Type base) {
   t->flag = base->flag;
   SET_FLAG(t, nonnull);
   nspc_add_type_front(t->e->owner, sym, t);
+  mk_class(env, t);
   return t;
 }
 

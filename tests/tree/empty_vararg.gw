@@ -1,7 +1,7 @@
 fun int test(...){
   vararg.start;
-  <<< "test" >>>; 
-  <<< vararg.i >>>;
+  <<< "test" >>>;
+  <<< vararg $ int >>>;
   vararg.end;
   return 1;
 }

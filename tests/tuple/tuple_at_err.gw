@@ -1,4 +1,0 @@
-<("Tom", 6) @=> 
-<~float, int~>Tuple @tup;
-<<< typeof(tup) >>>;
-<<< tup >>>;

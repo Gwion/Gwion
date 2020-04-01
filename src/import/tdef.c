@@ -19,9 +19,11 @@
 ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   CHECK_BB(ck_ini(gwi, ck_tdef))
   gwi->ck->name = name;
-  if(check_typename_def(gwi, gwi->ck) > 0)
-    return (gwi->ck->td = str2decl(gwi, type)) ? GW_OK : GW_ERROR;
-  return GW_ERROR;
+  CHECK_BB(check_typename_def(gwi, gwi->ck))
+  return (gwi->ck->td = str2decl(gwi, type)) ? GW_OK : GW_ERROR;
+//  if(check_typename_def(gwi, gwi->ck) > 0)
+//    return (gwi->ck->td = str2decl(gwi, type)) ? GW_OK : GW_ERROR;
+//  return GW_ERROR;
 }
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {

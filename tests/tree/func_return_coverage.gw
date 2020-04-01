@@ -1,6 +1,0 @@
-fun complex testc()  {};
-fun Vec3    testv3() {};
-fun Vec4    testv4() {};
-testc();
-testv3();
-testv4();

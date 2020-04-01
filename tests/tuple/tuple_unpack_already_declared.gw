@@ -1,3 +1,0 @@
-#! [contains] already been defined in the same scope
-int i;
-<(12) @=> >(i);

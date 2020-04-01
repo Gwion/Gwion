@@ -3,26 +3,14 @@ Coverage c;
 c.s_i;
 <<<  Coverage.i()  >>>;
 <<<  Coverage.f()  >>>;
-<<<  Coverage.c()  >>>;
-<<<  Coverage.v()  >>>;
-<<<  Coverage.w()  >>>;
 
 <<< Coverage.s_i  >>>;
 <<< Coverage.s_f  >>>;
-<<< Coverage.s_c  >>>;
-<<< Coverage.s_v  >>>;
-<<< Coverage.s_w  >>>;
 
 <<< Coverage.sc_i  >>>;
 <<< Coverage.sc_f  >>>;
-<<< Coverage.sc_c  >>>;
-<<< Coverage.sc_v  >>>;
-<<< Coverage.sc_w  >>>;
 
 <<<  1 => Coverage.s_i  >>>;
 <<<  1.2 => Coverage.s_f  >>>;
-<<<  #(1.2, 0.1) => Coverage.s_c  >>>;
-<<<  @(1.2, 0.1, 2.6) => Coverage.s_v  >>>;
-<<<  @(1.2, 0.1, 2.6, 4.6) => Coverage.s_w  >>>;
 
 <<< c.test_array[0][0] >>>;

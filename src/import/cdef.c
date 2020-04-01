@@ -16,6 +16,7 @@
 #include "mpool.h"
 #include "specialid.h"
 #include "template.h"
+#include "tuple.h"
 
 ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
@@ -26,14 +27,30 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
   return GW_OK;
 }
 
+ANN2(1,2) static inline m_bool class_parent(const Env env, const Type t) {
+  Type parent = t->e->parent;
+  while(parent && !GET_FLAG(parent, checked)) {
+    if(t->e->def)
+      CHECK_BB(traverse_class_def(env, t->e->def))
+    parent = parent->e->parent;
+  }
+  return GW_OK;
+}
+
+ANN void inherit(const Type t) {
+  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  if(!nspc || !parent)
+    return;
+  nspc->info->offset = parent->info->offset;
+  if(parent->info->vtable.ptr)
+    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
+}
+
 ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
-  if(t->e->parent && t->e->parent->nspc) {
-    t->nspc->info->offset = t->e->parent->nspc->info->offset;
-    if(t->e->parent->nspc->info->vtable.ptr)
-      vector_copy2(&t->e->parent->nspc->info->vtable, &t->nspc->info->vtable);
-  }
+  if(isa(t, env->gwion->type[et_object]) > 0)
+  inherit(t);
   t->e->owner = env->curr;
   SET_FLAG(t, checked);
   env_push_type(env, t);
@@ -53,6 +70,7 @@ ANN static inline void gwi_type_flag(const Type t) {
 
 ANN static Type type_finish(const Gwi gwi, const Type t) {
   gwi_add_type(gwi, t);
+  CHECK_BO(class_parent(gwi->gwion->env, t))
   import_class_ini(gwi->gwion->env, t);
   return t;
 }
@@ -71,6 +89,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
   t->e->def->base.tmpl = tmpl;
   t->e->def->base.type = t;
+  t->e->tuple = new_tupleform(gwi->gwion->mp);
   t->e->parent = p;
   if(td->array)
     SET_FLAG(t, typedef);
@@ -81,11 +100,12 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   return type_finish(gwi, t);
 }
 
-ANN Type gwi_class_spe(const Gwi gwi, const m_str name, const m_uint size) {
+ANN Type gwi_struct_ini(const Gwi gwi, const m_str name, const m_uint size) {
   CHECK_OO(str2sym(gwi, name))
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
   t->size = size;
   gwi_type_flag(t);
+  SET_FLAG(t, struct);
   return type_finish(gwi, t);
 }
 

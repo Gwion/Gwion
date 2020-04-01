@@ -27,7 +27,11 @@ ANN2(2) static int gw_vasprintf(MemPool mp, char **str, const char *fmt, va_list
   char *ret = mp_malloc2(mp, base_len + size + 1);
   if(base)
     strcpy(ret, base);
-  DECL_BB(const int, final_len, = vsprintf(ret + base_len, fmt, args))
+  const int final_len = vsprintf(ret + base_len, fmt, args);
+  if(final_len < 0) {
+    mp_free2(mp, base_len + size + 1, ret);
+    return -1;
+  }
   if(base)
     mp_free2(mp, strlen(base), base);
   *str = ret;
@@ -50,27 +54,30 @@ ANN static inline VM_Code get_gack(Type t) {
   return NULL; // unreachable
 }
 
-ANN static void prepare_call(const VM_Shred shred, m_uint offset) {
+ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
   shred->mem += offset;
-  *(m_uint*)(shred->mem+ SZ_INT) = offset + SZ_INT;
-  *(VM_Code*)(shred->mem+ SZ_INT*2) = shred->code;
-  *(m_uint*)(shred->mem+ SZ_INT*3) = shred->pc;
-  *(m_uint*)(shred->mem+ SZ_INT*4) = SZ_INT;
+  *(m_uint*)(shred->mem  + SZ_INT) = offset + SZ_INT;
+  *(VM_Code*)(shred->mem + SZ_INT*2) = shred->code;
+  *(m_uint*)(shred->mem  + SZ_INT*3) = shred->pc;
+  *(m_uint*)(shred->mem  + SZ_INT*4) = SZ_INT;
   shred->mem += SZ_INT*5;
   *(M_Object*)(shred->mem)= *(M_Object*)(shred->reg - SZ_INT);
   shred->pc = 0;
 }
 
 ANN void gack(const VM_Shred shred, const Instr instr) {
-  Type t = (Type)instr->m_val;
+  const Type t = *(Type*)shred->reg;
   const VM_Code code = get_gack(t);
   if(GET_FLAG(code, builtin)) {
     ((f_gack)code->native_func)(t, (shred->reg - t->size), shred);
     POP_REG(shred, t->size);
   } else {
-    prepare_call(shred, instr->m_val2);
+    const m_uint offset = ((m_uint)shred->mem - SIZEOF_REG) != ((m_uint)shred + sizeof(struct VM_Shred_)) ?
+      instr->m_val2 : 0;
+    prepare_call(shred, offset);
     shred->code = code;
     POP_REG(shred, SZ_INT*2);
   }
   return;
 }
+

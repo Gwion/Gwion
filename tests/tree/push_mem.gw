@@ -1,2 +1,0 @@
-fun void test() { complex c; c; Vec3 v; v; Vec4 w; w; }
-test();

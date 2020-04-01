@@ -1,0 +1,11 @@
+class C {
+  fun int test(int i) {
+   13 => int j;
+   return j;
+  }
+}
+C c;
+12 => c.test => int ret;
+
+<<< 1394 >>>;
+<<<ret>>>;

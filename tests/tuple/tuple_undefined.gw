@@ -1,3 +1,0 @@
-#! [contains] tuple subscripts is undefined
-<~string, _~>Tuple @t;
-t[1];

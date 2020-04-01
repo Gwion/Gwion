@@ -2,31 +2,21 @@ class C
 {
 	int i;
 	float f;
-	complex c;
-	Vec3 v;
-	Vec4 w;
 	Object o;
 
 	fun int     m_i() { return i; }
 	fun float   m_f() { return f; }
-	fun complex m_c() { return c; }
-	fun Vec3    m_v() { return v; }
-	fun Vec4    m_w() { return w; }
 	fun Object  m_o() { return o; }
 }
 
 C c;
 #! read members
-<<<  c.i, c.c, c.f, c.v, c.w, c.o  >>>;
+<<<  c.i, c.f, c.o  >>>;
 
 #! call fun members
-<<<  c.m_i(), " ", c.m_f(), " ", c.m_c(), " ",
-  c.m_v(), " ", c.m_w(), " ", c.m_o() >>>;
+<<<  c.m_i(), " ", c.m_f(), " ", c.m_o() >>>;
 
 #! write members
 <<<  12  => c.i  >>>;
 <<<  1.2 => c.f  >>>;
-<<<  #(0.1, 2.3) => c.c  >>>;
-<<<  @(0.1, 2.3, 3.4) => c.v  >>>;
-<<<  @(0.1, 2.3, 3.4, 5.4) => c.w  >>>;
 <<<  null @=> c.o  >>>;

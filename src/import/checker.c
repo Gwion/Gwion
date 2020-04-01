@@ -29,7 +29,6 @@ ANN static m_bool check_illegal(const char c, const m_uint i) {
 }
 
 /** convert a string to a symbol, with error checking **/
-//ANN Symbol str2sym(const Env env, const m_str path, const loc_t pos) {
 ANN Symbol str2sym(const Gwi gwi, const m_str path) {
   const size_t sz = strlen(path);
   m_uint i;
@@ -56,16 +55,12 @@ ANN ID_List path_valid(const Gwi gwi, const m_str path) {
   const size_t sz = strlen(path);
   if(path[0] == '.' || path[sz] == '.')
     GWI_ERR_O(_("path '%s' must not ini or end with '.'."), path)
-//  DECL_OO(const Symbol, sym, = str2sym(gwi, path))
-//  const ID_List list = new_id_list(gwi->gwion->mp, sym, loc(gwi));
-  const ID_List list = str2symlist(gwi, path);
+  DECL_OO(const ID_List, list, = str2symlist(gwi, path))
   if(strlen(s_name(list->xid)) < sz)
     list->next = path_valid(gwi, path + strlen(s_name(list->xid)));
   return list;
 }
 
-
-//
 // similar to import array_sub ?
 ANN Array_Sub ck_array(MemPool mp, const m_uint depth) {
   if(!depth)
@@ -96,7 +91,6 @@ ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
 struct tmpl_checker {
   const m_str str;
   ID_List list;
-//  const loc_t pos;
 };
 
 ANN static m_bool tmpl_list(const Gwi gwi, struct tmpl_checker *ck) {
@@ -175,7 +169,7 @@ ANN static Type_List _str2tl(const Gwi gwi, const m_str s) {
 
 ANN Type_List tlnext(const Gwi gwi, const m_str s, size_t split) {
   char curr[split+1];
-  strncpy(curr, s, split);
+  memcpy(curr, s, split);
   curr[split] = '\0';
   const Type_List tl = _str2tl(gwi, curr);
   tl->next = str2tl(gwi, s + split + 1);
@@ -214,13 +208,13 @@ ANN static Type_List str2tl(const Gwi gwi, const m_str s) {
 }
 
 //! convert a string to a Type_Decl
-ANN Type_Decl* str2decl(const Gwi gwi, const m_str s) {
+ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
+  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
+  const m_str s = strncmp(str, "nonnull ", 8) ? str : str + 8;
 // we can do better
   DECL_OO(const m_str, type_name, = get_type_name(gwi->gwion->env, s, 0))
   struct array_checker ck = { .str=type_name };
-  const ID_List id = ck2list(gwi, &ck);
-  if(id == (ID_List)GW_ERROR)
-    return NULL;
+  DECL_OO(const ID_List, id, = ck2list(gwi, &ck))
   Type_Decl* td = new_type_decl(gwi->gwion->mp, id);
   const m_str tl_name = get_type_name(gwi->gwion->env, s, 1);
   if(tl_name) {
@@ -233,6 +227,7 @@ ANN Type_Decl* str2decl(const Gwi gwi, const m_str s) {
     td->array = new_array_sub(gwi->gwion->mp, ck.exp);
     td->array->depth = ck.depth;
   }
+  td->flag |= flag;
   return td;
 }
 
@@ -290,12 +285,14 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   const m_str base = ck->name;
   char str[strlen(base) + 1];
   const m_str c = strchr(ck->name, '<');
-  strncpy(str, base, strlen(base) - (c ? strlen(c) : 0));
+  memcpy(str, base, strlen(base) - (c ? strlen(c) : 0));
   str[strlen(base) - (c ? strlen(c) : 0)] = '\0';
   ck->name = str;
   CHECK_OB((ck->sym = str2sym(gwi, str)))
-  if(c && (ck->tmpl = tmpl_valid(gwi, c)) == (ID_List)GW_ERROR)
+  ID_List tmpl = NULL;
+  if(c && (tmpl = tmpl_valid(gwi, c)) == (ID_List)GW_ERROR)
     return GW_ERROR;
+  ck->tmpl = tmpl;
   ck->name = base;
   return GW_OK;
 }
@@ -335,5 +332,6 @@ NULL,//  ck_clean_oper,
 
 ANN void ck_clean(const Gwi gwi) {
   cleaners[gwi->ck->type](gwi->gwion->mp, gwi->ck);
+  memset(gwi->ck, 0, sizeof(ImportCK));
 }
 

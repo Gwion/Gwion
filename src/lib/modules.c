@@ -207,17 +207,17 @@ static DTOR(usrugen_dtor) {
 
 static OP_CHECK(opck_usrugen) {
   Exp_Binary *bin = (Exp_Binary*)data;
-  const Arg_List arg = bin->lhs->type->e->d.func->def->base->args;
+  const Arg_List arg = bin->lhs->info->type->e->d.func->def->base->args;
   if(!arg || arg->next)
     ERR_N(exp_self(bin)->pos, _("Tick function take one and only one argument"))
   if(isa(arg->type, env->gwion->type[et_float]) < 0)
     ERR_N(exp_self(bin)->pos, _("Tick functions argument must be of type float"))
-  if(isa(bin->lhs->type->e->d.func->def->base->ret_type, env->gwion->type[et_float]) < 0)
+  if(isa(bin->lhs->info->type->e->d.func->def->base->ret_type, env->gwion->type[et_float]) < 0)
     ERR_N(exp_self(bin)->pos, _("Tick function must return float"))
-  if(bin->lhs->type->e->d.func->value_ref->from->owner_class)
-    CHECK_BN(isa(bin->lhs->type->e->d.func->value_ref->from->owner_class,
-      bin->rhs->type))
-  return bin->rhs->type;
+  if(bin->lhs->info->type->e->d.func->value_ref->from->owner_class)
+    CHECK_BN(isa(bin->lhs->info->type->e->d.func->value_ref->from->owner_class,
+      bin->rhs->info->type))
+  return bin->rhs->info->type;
 }
 
 static INSTR(UURet) {
@@ -270,7 +270,7 @@ static INSTR(UsrUGenTick) {
 static OP_EMIT(opem_usrugen) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Instr instr = emit_add_instr(emit, UsrUGenTick);
-  instr->m_val = !!bin->lhs->type->e->d.func->value_ref->from->owner_class;
+  instr->m_val = !!bin->lhs->info->type->e->d.func->value_ref->from->owner_class;
   return instr;
 }
 

@@ -1,0 +1,14 @@
+struct S {
+  int i;
+  float f;
+}
+
+fun S test() {
+  S s;
+  12 => s.i;
+  12 => s.f;
+  return s;
+}
+
+<<< test().i >>>;
+<<< test().f >>>;

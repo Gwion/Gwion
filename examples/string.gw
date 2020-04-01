@@ -1,45 +1,4 @@
-Object o;
 string s;
 "CamelCase" => s;
-#!null @=> s;
-<<< 1 => s >>>;
-<<< 1.0 => s >>>;
-<<<  #(2,1) => s  >>>;
-<<<  %(2,1) => s  >>>;
-<<<  @(2,1,0) => s  >>>;
-<<<  @(2,1,0,-1) => s  >>>;
-<<< "test" => s >>>; #! new
-<<< "test" => s >>>; #! new
-<<< s >>>;
-<<<  null => s  >>>; #!test me
-<<<  o => s  >>>;
-<<< o >>>;
-#! look at me!!!
-<<<  o => s >>>; #! hang . grrr ...
-<<< "test" + "another test"  >>>; #! mem leak
-
-#!me.exit();
-
-{ (1 + s)      @=> string @str; }
-{ (2.0 +s)      @=> string  @str; }
-{ (#(2,1) + s) @=> string @str; }
-{ (%(2,1) + s) @=> string @str; }
-{ (@(2,1, 0) + s) @=> string @str; }
-{ (@(2,1, 0, -1) + s) @=> string @str; }
-#!{ ("test" + s) @=> string @str; } // leak
-
-
-<<<  11 +=> s >>>;
-<<<  11.0 +=> s >>>;
-<<<  #(21,11) +=> s  >>>;
-<<<  %(22,12) +=> s  >>>;
-<<<  @(22,11,11) +=> s  >>>;
-<<<  @(22,11,11,-11) +=> s  >>>;
-<<<  o +=> s >>>;
-<<< "test" + s  >>>; #! also leak
-<<<  null +=> s  >>>; #! also hang 
-<<<  "test" +=> s >>>; #! test me
-<<<  "test" == "test"  >>>;
-<<<  "test" != "test"  >>>;
-<<<  "test" == "test1"  >>>;
-<<<  "test" != "test1"  >>>;
+<<< "test" => s >>>;
+<<<  null @=> s  >>>; #!test me

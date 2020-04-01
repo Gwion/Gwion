@@ -1,3 +1,3 @@
 typedef void test_t<~A~>();
-test_t !t;
+test_t nonnull t;
 t<~int~>();

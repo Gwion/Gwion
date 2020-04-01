@@ -11,11 +11,13 @@
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
+#include "template.h"
 #include "parse.h"
 #include "specialid.h"
 
 #include "gwi.h"
 #include "gack.h"
+#include "tuple.h"
 
 #undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
@@ -67,13 +69,25 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
     if(GET_FLAG(t, nonnull))
       t = t->e->parent;
     if(!t->nspc)
-      continue; // return ?
+      continue;
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
+else if(GET_FLAG(v->type, struct) &&
+       !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
+const TupleForm tf = v->type->e->tuple;
+for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
+  const Type t = (Type)vector_at(&tf->types, i);
+  if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
+    release(*(M_Object*)(o->data + v->from->offset + vector_at(&tf->offset, i)), shred);
+}
+
+//exit(77);
+
+}
     }
     if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))
@@ -94,131 +108,24 @@ ANN void free_object(MemPool p, const M_Object o) {
   mp_free(p, M_Object, o);
 }
 
-#define describe_logical(name, op)               \
-static INSTR(name##Object) {\
-  POP_REG(shred, SZ_INT);                        \
-  const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
-  const M_Object rhs = *(M_Object*)REG(0);       \
-  *(m_uint*)REG(-SZ_INT) = (lhs op rhs);         \
-  release(lhs, shred);                           \
-  release(rhs, shred);                           \
-}
-
-describe_logical(Eq,  ==)
-describe_logical(Neq, !=)
-
-static inline m_bool nonnull_check(const Type l, const Type r) {
-  return !GET_FLAG(l, nonnull) && GET_FLAG(r, nonnull);
-}
-
-static inline Type check_nonnull(const Env env, const Type l, const Type r,
-      const m_str action, const loc_t pos) {
-  if(GET_FLAG(r, nonnull)) {
-    if(isa(l, env->gwion->type[et_null]) > 0)
-      ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-    if(isa(l, r) < 0)
-      ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-    return r->e->parent;
-  }
-/*  if(nonnull_check(l, r))
-    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name); */
-  if(l != env->gwion->type[et_null] && isa(l, r) < 0)
-    ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-  return r;
-}
-
-static OP_CHECK(at_object) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type l = bin->lhs->type;
-  const Type r = bin->rhs->type;
-  if(opck_rassign(env, data, mut) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
-  if(check_nonnull(env, l, r, "assign", exp_self(bin)->pos) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
-  if(bin->rhs->exp_type == ae_exp_decl) {
-    SET_FLAG(bin->rhs->d.exp_decl.td, ref);
-    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, ref);
-  }
-  bin->rhs->emit_var = 1;
-  return r;
-}
-
-static OP_EMIT(opem_at_object) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type l = bin->lhs->type;
-  const Type r = bin->rhs->type;
-  if(nonnull_check(l, r)) {
-    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    instr->m_val = SZ_INT;
-  }
-  return emit_add_instr(emit, ObjectAssign);
-}
-
-#define STR_FORCE ":force"
-#define STRLEN_FORCE strlen(STR_FORCE)
-
-static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
-  const Type ret = type_copy(p, t);
-  if(ret->nspc)
-    ADD_REF(ret->nspc)
-  ret->name = s_name(sym);
-  ret->flag = t->flag | ae_flag_force;
-  nspc_add_type_front(t->e->owner, sym, ret);
-  return ret;
- }
-
-static Type get_force_type(const Env env, const Type t) {
-  const size_t len = strlen(t->name);
-  char name[len + STRLEN_FORCE + 2];
-  strcpy(name, t->name);
-  strcpy(name + len, STR_FORCE);
-  const Symbol sym = insert_symbol(env->gwion->st, name);
-  return nspc_lookup_type1(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
-}
-
-static OP_CHECK(opck_object_cast) {
-  const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type l = cast->exp->type;
-  const Type r = exp_self(cast)->type;
-  if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
-  return get_force_type(env, r);
-}
-
-static OP_EMIT(opem_object_cast) {
-  const Exp_Cast* cast = (Exp_Cast*)data;
-  const Type l = cast->exp->type;
-  const Type r = exp_self(cast)->type;
-  if(nonnull_check(l, r))
-    emit_add_instr(emit, GWOP_EXCEPT);
-  return (Instr)GW_OK;
-}
-
-static OP_CHECK(opck_implicit_null2obj) {
-  const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = imp->e->type;
-  const Type r = imp->t;
-  if(check_nonnull(env, l, r, "implicitly cast", imp->e->pos) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
-  imp->e->cast_to = r;
-  return imp->t;
-}
-
-static OP_EMIT(opem_implicit_null2obj) {
-  const struct Implicit* imp = (struct Implicit*)data;
-  const Type l = imp->e->type;
-  const Type r = imp->t;
-  if(nonnull_check(l, r))
-    emit_add_instr(emit, GWOP_EXCEPT);
-  return (Instr)GW_OK;
-}
-
-static ID_CHECK(check_this) {
+static ID_CHECK(opck_this) {
   if(!env->class_def)
     ERR_O(exp_self(prim)->pos, _("keyword 'this' can be used only inside class definition..."))
   if(env->func && !GET_FLAG(env->func, member))
-    ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
+      ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
+  if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack") &&
+GET_FLAG(env->class_def, struct))
+  ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
   return env->class_def;
+}
+
+static ID_EMIT(opem_this) {
+  if(!exp_getvar(exp_self(prim)) && GET_FLAG(exp_self(prim)->info->type, struct)) {
+    const Instr instr = emit_add_instr(emit, RegPushMemDeref);
+    instr->m_val2 = emit->env->class_def->size;
+    return (Instr)GW_OK;
+  }
+  return emit_add_instr(emit, RegPushMem);
 }
 
 static GACK(gack_object) {
@@ -226,47 +133,13 @@ static GACK(gack_object) {
 }
 
 GWION_IMPORT(object) {
-const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
-gwi_add_type(gwi, t_object);
+  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
+  gwi_add_type(gwi, t_object);
   GWI_BB(gwi_gack(gwi, t_object, gack_object))
-//assert(GET_FLAG(t_object, checked));
   SET_FLAG(t_object, checked); // should be set by gwi_add_type
   gwi->gwion->type[et_object] = t_object;
-
-  GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
-  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "Object"))
-  GWI_BB(gwi_oper_add(gwi, at_object))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
-  GWI_BB(gwi_oper_add(gwi, at_object))
-  GWI_BB(gwi_oper_emi(gwi, opem_at_object))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
-  GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
-  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
-  GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "int"))
-  GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
-  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "@null", "int"))
-  GWI_BB(gwi_oper_end(gwi, "==", EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
-  GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
-  GWI_BB(gwi_oper_end(gwi, "!", IntNot))
-  gwi_item_ini(gwi, "@null", "null");
-  gwi_item_end(gwi, 0, NULL);
-  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+//  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+  struct SpecialId_ spid = { .ck=opck_this, .em=opem_this, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;
 }

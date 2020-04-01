@@ -1,2 +1,2 @@
 #! [contains] ZeroDivideException
-[ #(0.0, 0/0) ];
+[ 0/0 ];
