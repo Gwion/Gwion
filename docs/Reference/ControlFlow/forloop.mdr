@@ -51,11 +51,11 @@ If you want to change it the value in the array, you need a pointer
 int array[2][3];
 int i;
 for(auto a: array) {
-  for(auto @b: a)
+  for(auto ref b: a)
     <<< ++i => *b >>>;
 }
 for(auto a: array) {
-  for(auto @b: a)
+  for(auto ref b: a)
     <<< *b >>>;
 }
 @```  

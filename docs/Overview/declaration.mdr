@@ -13,7 +13,7 @@ Object o;
 ## Declaring a reference
 
 @``` decl1.gw
-Object @ref;
+Object ref ref;
 <<< "Reference points to no object yet: ", ref >>>;
 #!Object o @=> ref;
 new Object @=> ref;
