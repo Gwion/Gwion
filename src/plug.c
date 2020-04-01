@@ -115,6 +115,7 @@ ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {
     plug_get(h, c);
   } while(FindNextFile(file,&filedata));
   FindClose(file);
+#endif
 }
 
 ANN2(1) static void* pp_ini(const struct Gwion_ *gwion, const Vector v) {
