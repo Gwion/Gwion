@@ -77,7 +77,7 @@ ANN static int is_reg(const m_str path) {
 }
 #else
 ANN static m_bool is_reg(const m_str path) {
-  cionst DWORD dw = GetFileAttributes(path);
+  const DWORD dw = GetFileAttributes(path);
   return !(dw == INVALID_FILE_ATTRIBUTES ||
            dw & FILE_ATTRIBUTE_DIRECTORY);
 }
