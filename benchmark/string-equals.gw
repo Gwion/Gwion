@@ -9,7 +9,7 @@ for (int i; i < 1000000; ++i) {
   if ("" == "abc") ++count;
   if ("abc" == "abcd") ++count;
   if ("changed one character" == "changed !ne character") ++count;
-#!  if ("123" == 123) ++count
+  if (`${123}` == "123") ++count;
   if ("a slightly longer string" ==
       "a slightly longer string!") ++count;
   if ("a slightly longer string" ==

@@ -2,7 +2,7 @@
 
 class Tree {
   int item;
-  Tree @left, right;
+  Tree ref left, right;
 
   fun static Tree new_Tree(int it, int depth) {
     Tree t;
@@ -30,7 +30,7 @@ maxDepth + 1 => int stretchDepth;
 <<< "stretch tree of depth ", stretchDepth, " check: ",
   Tree.new_Tree(0, stretchDepth).check() >>>;
 
-Tree.new_Tree(0, maxDepth) @=> Tree@ longLivedTree;
+Tree.new_Tree(0, maxDepth) @=> Tree ref longLivedTree;
 
 #! iterations = 2 ** maxDepth
 1 => int iterations;
