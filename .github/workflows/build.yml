@@ -145,7 +145,7 @@ jobs:
     - name: Build book
       run: |
         export PATH=mdr:$PATH
-        export PATH=gwion:$PATH
+        export PATH=Gwion:$PATH
         make build
 
     - name: GIT things
