@@ -4,7 +4,7 @@ title = "Gwion"
 
 [output.html]
 default-theme = "rust"
-additional-css = ["custom.css"]
+additional-css = ["custom.css", "ansi2html.css"]
 git-repository-url ="https://github.com/fennecdjay/Gwion"
 
 [output.html.fold]

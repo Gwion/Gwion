@@ -17,7 +17,7 @@ interm() {
 
 noterm() {
   echo '<p class="mdr">'
-  sed 's/$/<\/br>/' log
+  cat log | bash ansi2html.sh --body-only | sed 's/$/<\/br>/'
   echo "</br>"
   check $@ && printf "${NOTERM_OK}\n" || printf "${NOTERM_NOT_OK}\n"
   echo '</p>'
