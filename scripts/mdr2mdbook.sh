@@ -11,7 +11,7 @@ EOF
 }
 
 mk_target() {
-  sed 's/```\(.*\)gw/```\1cpp/' $1 |
+  sed 's/```\(.*\)gw/```cpp/' $1 |
     sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
   footer
 }
@@ -21,11 +21,9 @@ ensure_dir() {
 }
 
 doc2src() {
-  echo $1
   mdr $1 || return
   mdfile=${1::-1}
-#  target=$(sed 's/docs/md/' <<< $mdfile)
-  target=$(echo "$mdfile" | sed 's/docs/src/')
+  target=$(sed 's/docs/src/' <<< $mdfile)
   ensure_dir $target
   mk_target $mdfile > $target
   rm $mdfile
