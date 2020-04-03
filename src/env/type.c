@@ -33,7 +33,7 @@ ANN static void free_type(Type a, Gwion gwion) {
   if(a->nspc)
     REM_REF(a->nspc, gwion);
   if(a->e->tuple)
-    free_tupleform(gwion->mp, a->e->tuple);
+    free_tupleform(a->e->tuple);
   if(a->e->contains.ptr) {
     for(m_uint i = 0; i < vector_size(&a->e->contains); ++i)
       REM_REF((Type)vector_at(&a->e->contains, i), gwion);
