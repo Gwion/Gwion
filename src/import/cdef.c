@@ -16,7 +16,6 @@
 #include "mpool.h"
 #include "specialid.h"
 #include "template.h"
-#include "tuple.h"
 
 ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
   VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
@@ -89,7 +88,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
   t->e->def->base.tmpl = tmpl;
   t->e->def->base.type = t;
-  t->e->tuple = new_tupleform(gwi->gwion->mp);
+  t->e->tuple = new_tupleform(gwi->gwion->mp, p);
   t->e->parent = p;
   if(td->array)
     SET_FLAG(t, typedef);

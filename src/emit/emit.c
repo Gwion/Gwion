@@ -16,7 +16,6 @@
 #include "import.h"
 #include "match.h"
 #include "parser.h"
-#include "tuple.h"
 #include "specialid.h"
 #include "vararg.h"
 
@@ -721,7 +720,7 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
     CHECK_BB(emit_exp(emit, exp_call->args))
     emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
   }
-  if(GET_FLAG(exp_call->m_func->def, variadic))
+  if(exp_call->m_func && GET_FLAG(exp_call->m_func->def, variadic))
     emit_func_arg_vararg(emit, exp_call);
   return GW_OK;
 }
@@ -736,7 +735,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   if(exp_call->m_func)
     CHECK_OB(emit_exp_call1(emit, exp_call->m_func))
   else {
-    struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp_call->func->info->type->e->d.base_type,
+    struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=exp_call->func->info->type->e->d.base_type,
       .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos, .op_type=op_exp };
     CHECK_OB(op_emit(emit, &opi))
   }

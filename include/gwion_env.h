@@ -9,4 +9,5 @@
 #include "env/type.h"
 #include "env/func.h"
 #include "env/context.h"
+#include "env/tuple.h"
 #endif

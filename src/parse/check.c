@@ -11,7 +11,6 @@
 #include "import.h"
 #include "parse.h"
 #include "match.h"
-#include "tuple.h"
 #include "emit.h"
 #include "specialid.h"
 
@@ -727,9 +726,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     // use func flag?
     if(isa(exp->func->info->type, env->gwion->type[et_class]) < 0)
       ERR_O(exp->func->pos, _("function call using a non-function value"))
-//    if(exp->args)
-//      CHECK_OO(check_exp(env, exp->args))
-    struct Op_Import opi = { .op=insert_symbol("@ctor"), .lhs=exp->func->info->type->e->d.base_type,
+    struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=exp->func->info->type->e->d.base_type,
       .data=(uintptr_t)exp, .pos=exp_self(exp)->pos, .op_type=op_exp };
     const Type t = op_check(env, &opi);
     exp_self(exp)->info->nspc = t ? t->e->owner : NULL;

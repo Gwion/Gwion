@@ -5,7 +5,6 @@
 #include "object.h"
 #include "gwion.h"
 #include "operator.h"
-#include "tuple.h"
 
 ANN void nspc_commit(const Nspc nspc) {
   scope_commit(nspc->info->value);

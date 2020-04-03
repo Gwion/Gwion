@@ -330,7 +330,6 @@ ANN static Type func_type(const Env env, const Func func) {
   if(GET_FLAG(func, member))
     t->size += SZ_INT;
   t->e->d.func = func;
-//  t->e->tuple = NULL;
   return t;
 }
 ANN2(1,2) static Value func_value(const Env env, const Func f,

@@ -17,7 +17,6 @@
 
 #include "gwi.h"
 #include "gack.h"
-#include "tuple.h"
 
 #undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
