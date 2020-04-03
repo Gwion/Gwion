@@ -51,7 +51,7 @@ ANN static inline VM_Code get_gack(Type t) {
   do if(t->e->gack)
     return t->e->gack;
   while((t = t->e->parent));
-  return NULL; // unreachable
+  return t->e->gack; // unreachable
 }
 
 ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
