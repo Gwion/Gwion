@@ -11,7 +11,7 @@ EOF
 }
 
 mk_target() {
-  sed 's/```\(.*\)gw/```cpp/' $1 |
+  sed 's/```.*gw/```cpp/' $1 |
     sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
   footer
 }
