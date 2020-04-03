@@ -1409,14 +1409,13 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   emit_push_stack(emit);
   Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
+  emit_local(emit, emit->gwion->type[et_int]);
+  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
+  stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
   emit_except(emit, stmt->exp->info->type);
   const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
-//  (void)emit_addref(emit, 0);
-  emit_local(emit, stmt->exp->info->type);
-  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  stmt->v->from->offset = offset + SZ_INT;
   CHECK_BB(emit_stmt(emit, stmt->body, 1))
   const m_uint end_pc = emit_code_size(emit);
   if(stmt->is_ptr) {
@@ -1427,6 +1426,8 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   end->m_val = emit_code_size(emit);
   tgt->m_val = ini_pc;
   s1->m_val = loop->m_val = offset;
+  if(stmt->is_ptr)
+    emit_add_instr(emit, ObjectRelease);
   regpop(emit, SZ_INT);
   emit_pop_stack(emit, end_pc);
   return GW_OK;
