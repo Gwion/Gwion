@@ -47,7 +47,7 @@ ANN2(1) TupleForm new_tupleform(MemPool p, const Type parent_type) {
   return tuple;
 }
 
-ANN void free_tupleform(MemPool p, const TupleForm tuple) {
+ANN void free_tupleform(const TupleForm tuple) {
   vector_release(&tuple->types);
   vector_release(&tuple->offset);
 }

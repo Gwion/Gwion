@@ -1122,7 +1122,9 @@ ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
-  for(m_uint i = 0; i < map_size(&env->scope->match->map) && e; e = e->next, ++i) {
+  for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
+    if(!e)
+    ERR_B(e->pos, _("no enough to match"))
     const Symbol op = case_op(env, e, i);
     if(op) {
       const Exp base = (Exp)VKEY(&env->scope->match->map, i);
