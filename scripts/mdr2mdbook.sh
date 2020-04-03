@@ -25,7 +25,7 @@ doc2src() {
   mdr $1 || return
   mdfile=${1::-1}
 #  target=$(sed 's/docs/md/' <<< $mdfile)
-  target=$(echo "$mdfile" | sed 's/docs/md/')
+  target=$(echo "$mdfile" | sed 's/docs/src/')
   ensure_dir $target
   mk_target $mdfile > $target
   rm $mdfile
@@ -41,7 +41,7 @@ runall() {
 if [[ "$1" == *".mdr" ]]
 then doc2src "$1"
 if [ "$(git status -s | grep docs)" ]
-then bash scripts/summary.sh > md/SUMMARY.md
+then bash scripts/summary.sh > src/SUMMARY.md
 fi
 else runall
 fi

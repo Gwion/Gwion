@@ -4,7 +4,7 @@ sedi () {
 
 run() {
 	mdbook serve&
-  sedi 's/^md/#md/' .gitignore
+  sedi 's/^src/#src/' .gitignore
 	while true
   do bash scripts/watch.sh
   done
@@ -13,7 +13,7 @@ run() {
 clean() {
   trap - SIGINT SIGTERM ERR
   killall mdbook
-  sedi 's/#md/md/' .gitignore
+  sedi 's/#src/src/' .gitignore
   exit 1
 }
 
