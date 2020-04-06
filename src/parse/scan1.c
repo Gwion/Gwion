@@ -303,8 +303,9 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
   if(tmpl_base(fptr->base->tmpl))
     return GW_OK;
-  CHECK_OB((fptr->base->ret_type = known_type(env, fptr->base->td)))
-  return fptr->base->args ? scan1_args(env, fptr->base->args) : GW_OK;
+  const Func_Def fdef = fptr->base->func->def;
+  CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  return fdef->base->args ? scan1_args(env, fdef->base->args) : GW_OK;
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {

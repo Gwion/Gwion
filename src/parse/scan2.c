@@ -70,13 +70,10 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_fptr_def(const Env env, const Fptr_Def fptr) {
   if(!tmpl_base(fptr->base->tmpl)) {
     const Func_Def def = fptr->type->e->d.func->def;
-    def->base->ret_type = fptr->base->ret_type;
-    if(fptr->base->args)
+    if(def->base->args)
       CHECK_BB(scan2_args(env, def))
-  } else {
-    CHECK_OB(fptr->type) // should happen before
+  } else
     SET_FLAG(fptr->type, func);
-  }
   return GW_OK;
 }
 
@@ -332,6 +329,7 @@ ANN static Type func_type(const Env env, const Func func) {
   t->e->d.func = func;
   return t;
 }
+
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
@@ -526,6 +524,10 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
+  if(GET_FLAG(f, global) || (f->base->tmpl && !f->base->tmpl->call)) {
+    f->base->func->def = cpy_func_def(env->gwion->mp, f);
+    f->base->func->def->base->func = f->base->func;
+  }
   return ret;
 }
 

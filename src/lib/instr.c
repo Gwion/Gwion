@@ -36,7 +36,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
     "template", dt->vt_index);
   DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym))
   const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
-  def->base->tmpl->call = dt->tl;
+  def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
   def->base->tmpl->base = dt->vt_index;
   dt->def = def;
   dt->owner = v->from->owner;

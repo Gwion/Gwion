@@ -57,13 +57,13 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
 }
 
 static void fptr_def(const Env env, const Fptr_Def fptr) {
-  const Func_Def def = new_func_def(env->gwion->mp, new_func_base(env->gwion->mp, fptr->base->td, fptr->base->xid, fptr->base->args),
-    NULL,fptr->base->td->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
+  const Func_Def def = new_func_def(env->gwion->mp,
+      cpy_func_base(env->gwion->mp, fptr->base),
+    NULL, fptr->base->td->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
   fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
   fptr->value->d.func_ref = fptr->base->func;
   fptr->base->func->value_ref = fptr->value;
   fptr->type->e->d.func = fptr->base->func;
-  def->base->tmpl = fptr->base->tmpl;
   def->base->func = fptr->base->func;
 }
 

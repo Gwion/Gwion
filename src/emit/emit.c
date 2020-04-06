@@ -1860,8 +1860,9 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
     func->code->memoize = memoize_ini(emit, func);
 }
 
-ANN static m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
-  const Func func = fdef->base->func;
+ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
+  const Func func = f->base->func;
+  const Func_Def fdef = func->def;
   const Func former = emit->env->func;
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;

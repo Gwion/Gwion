@@ -506,7 +506,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
       Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
       fbase->xid = sym;
       fbase->tmpl->base = 0;
-      fbase->tmpl->call = types;
+      fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
       if(template_push_types(env, fbase->tmpl) > 0) {
         const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
         if(traverse_fptr_def(env, fptr) > 0 &&
@@ -543,7 +543,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
         }
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
         SET_FLAG(fdef, template);
-        fdef->base->tmpl->call = types;
+        fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
         fdef->base->tmpl->base = i;
         if((m_func = ensure_tmpl(env, fdef, exp)))
           break;
@@ -1284,8 +1284,9 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
-  const Func func = fdef->base->func;
+ANN m_bool check_func_def(const Env env, const Func_Def f) {
+  const Func func = f->base->func;
+  const Func_Def fdef = func->def;
   assert(func == fdef->base->func);
   if(env->class_def) // tmpl ?
     CHECK_BB(check_parent_match(env, fdef))
