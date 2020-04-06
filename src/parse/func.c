@@ -5,7 +5,8 @@
 #include "gwion.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
-  if(GET_FLAG(a, template) && !GET_FLAG(a, builtin)/* && a->def->d.code*/)
+//  if(GET_FLAG(a, template) && !GET_FLAG(a, builtin)/* && a->def->d.code*/)
+  if(GET_FLAG(a, template))
     free_func_def(gwion->mp, a->def);
   if(a->code)
     REM_REF(a->code, gwion);
