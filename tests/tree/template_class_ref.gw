@@ -1,4 +1,4 @@
 class<~A~> C {}
 
-<~int~>C ref;
-<<< ref >>>;
+<~int~>C c;
+<<< c >>>;
