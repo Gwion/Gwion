@@ -105,6 +105,13 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   return GW_OK;
 }
 
+ANN int is_global(const Nspc nspc, Nspc global) {
+  do if(nspc == global)
+    return 1;
+  while((global = global->parent));
+  return 0;
+}
+
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
@@ -113,7 +120,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
     exp_setmeta(exp_self(decl), 1);
 //    SET_FLAG(decl->td, const);
   const m_bool global = GET_FLAG(decl->td, global);
-  if(global && decl->type->e->owner != env->global_nspc)
+  if(global && !is_global(decl->type->e->owner, env->global_nspc))
     ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
   if(env->context)
     env->context->global = 1;
@@ -326,15 +333,21 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     SET_FLAG(decl.td, member);
   else if(GET_FLAG(udef, static))
     SET_FLAG(decl.td, static);
-  CHECK_BB(scan1_exp(env, l->self))
 
-Var_Decl_List list = decl.list;
-do ADD_REF(list->self->value)
-while((list = list->next));
+  if(udef->tmpl && udef->tmpl->call)
+    CHECK_BB(template_push_types(env, udef->tmpl))
+  const m_bool ret = scan1_exp(env, l->self);
+  if(udef->tmpl && udef->tmpl->call)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  CHECK_BB(ret)
 
+  Var_Decl_List list = decl.list;
+  do ADD_REF(list->self->value)
+  while((list = list->next));
 
   if(global)
     SET_FLAG(decl.td, global);
+  union_flag(udef, ae_flag_scan1);
   return GW_OK;
 }
 
@@ -342,7 +355,7 @@ ANN m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
   Decl_List l = udef->l;
   do CHECK_BB(scan1_union_def_action(env, udef, l))
   while((l = l->next));
- return GW_OK;
+  return GW_OK;
 }
 
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
@@ -355,7 +368,8 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   }
   const m_bool ret = scan1_union_def_inner(env, udef);
   union_pop(env, udef, scope);
-  SET_FLAG(udef, scan1);
+  const Type type = udef->xid || udef->type_xid ? udef->value->type : udef->type;
+  SET_FLAG(type, scan1);
   return ret;
 }
 
@@ -499,9 +513,10 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_base(cdef->base.tmpl))
+ANN m_bool scan1_class_def(const Env env, const Class_Def c) {
+  if(tmpl_base(c->base.tmpl))
     return GW_OK;
+  const Class_Def cdef = c->base.type->e->def;
   if(GET_FLAG(cdef->base.type, scan1))return GW_OK;
   SET_FLAG(cdef->base.type, scan1);
   if(cdef->base.ext)

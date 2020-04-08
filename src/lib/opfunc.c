@@ -16,11 +16,6 @@ OP_CHECK(opck_basic_cast) {
      exp_self(cast)->info->type : env->gwion->type[et_null];
 }
 
-OP_CHECK(opck_simple_cast) {
-  const Exp_Cast* cast = (Exp_Cast*)data;
-  return cast->exp->info->cast_to =  exp_self(cast)->info->type;
-}
-
 OP_CHECK(opck_usr_implicit) {
   struct Implicit* imp = (struct Implicit*)data;
   imp->e->info->cast_to = imp->t;

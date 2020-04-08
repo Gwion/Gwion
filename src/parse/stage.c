@@ -13,3 +13,9 @@ ANN void union_pop(const Env env, const Union_Def udef, const m_uint scope) {
   if(udef->xid || udef->type_xid || GET_FLAG(udef, global))
     env_pop(env, scope);
 }
+
+ANN void union_flag(const Union_Def udef, const ae_flag flag) {
+  const Type type = udef->xid || !udef->type_xid ?
+    udef->value->type : udef->type;
+  type->flag |= flag;
+}

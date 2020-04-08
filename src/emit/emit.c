@@ -1946,9 +1946,10 @@ ANN static m_bool emit_struct_body2(const Emitter emit, Section *const section) 
     emit_section(emit, section) : GW_OK;
 }
 
-ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
-  if(tmpl_base(cdef->base.tmpl))
+ANN static m_bool emit_class_def(const Emitter emit, const Class_Def c) {
+  if(tmpl_base(c->base.tmpl))
     return GW_OK;
+  const Class_Def cdef = c->base.type->e->def;
   if(GET_FLAG(cdef->base.type, emit))
     return GW_OK;
   const Type type = cdef->base.type;

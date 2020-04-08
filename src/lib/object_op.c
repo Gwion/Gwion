@@ -141,7 +141,7 @@ OP_CHECK(opck_object_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
   if(ts->td->types)
     return scan_class(env, ts->t, ts->td);
-  if(GET_FLAG(ts->t, unary))
+  if(!GET_FLAG(ts->t, template) || GET_FLAG(ts->t, unary))
     return ts->t;
   ERR_O(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
 }
@@ -383,10 +383,13 @@ ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
   a->union_def = new_union_def(env->gwion->mp, a->list,
     loc_cpy(env->gwion->mp, t->e->def->pos));
   a->union_def->type_xid = a->base.xid;
+  if(GET_FLAG(t, global))
+    SET_FLAG(a->union_def, global);
   CHECK_BB(scan0_union_def(env, a->union_def))
   SET_FLAG(a, scan0);
   a->base.type = a->union_def->type;
   a->base.type->e->def = a;
+  a->union_def->tmpl = cpy_tmpl(env->gwion->mp, a->base.tmpl);
   return GW_OK;
 }
 

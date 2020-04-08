@@ -7,28 +7,22 @@
 #include "gwion.h"
 
 ANN static inline m_bool freeable(const Type a) {
-  return !GET_FLAG(a, nonnull) &&
-    (GET_FLAG(a, template) || GET_FLAG(a, global));
+  return !GET_FLAG(a, nonnull) && GET_FLAG(a, template);
 }
 
 ANN static void free_type(Type a, Gwion gwion) {
   if(freeable(a)) {
     if(GET_FLAG(a, union)) {
       if(a->e->def->union_def) {
-        if(!GET_FLAG(a, pure))  { // <=> decl_list
-          UNSET_FLAG(a->e->def->union_def, global);
+        if(!GET_FLAG(a, pure))
           free_union_def(gwion->mp, a->e->def->union_def);
-        } else
+        else
           free_decl_list(gwion->mp, a->e->def->list);
       }
       a->e->def->union_def = NULL;
-    } else if(a->e->def) {
-      if(!(a->e->ctx && a->e->ctx->error)) {
-        UNSET_FLAG(a->e->def, template);
-        UNSET_FLAG(a->e->def, global);
-        free_class_def(gwion->mp, a->e->def);
-      }
     }
+    if(a->e->def)
+      free_class_def(gwion->mp, a->e->def);
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);

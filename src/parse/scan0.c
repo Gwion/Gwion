@@ -154,7 +154,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type
     loc_cpy(env->gwion->mp, td_pos(tdef->ext)));
   CHECK_BB(scan0_class_def(env, cdef))
   tdef->type = cdef->base.type;
-  cdef->base.tmpl = tdef->tmpl;
+  cdef->base.tmpl = tdef->tmpl;// check cpy
   return GW_OK;
 }
 
@@ -238,7 +238,7 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
     const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
         NULL, (Ast)udef->l, loc_cpy(env->gwion->mp, udef->pos));
     udef->type->e->def = cdef;
-    cdef->base.tmpl = udef->tmpl;
+    cdef->base.tmpl = cpy_tmpl(env->gwion->mp, udef->tmpl);
     cdef->base.type = udef->type;
     cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
     SET_FLAG(cdef, union);
@@ -246,6 +246,8 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
     SET_FLAG(udef, template);
     SET_FLAG(udef->type, template);
   }
+  if(GET_FLAG(udef, global))
+    SET_FLAG(udef->type, global);
   SET_FLAG(udef->type, union);
 }
 
@@ -331,7 +333,8 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
       inherit_tmpl(env, cdef);
     set_template(t, cdef);
   } else if(SAFE_FLAG(env->class_def, template)) {
-    cdef->base.tmpl = new_tmpl_base(env->gwion->mp, env->class_def->e->def->base.tmpl->list);
+    cdef->base.tmpl = new_tmpl_base(env->gwion->mp, cpy_id_list(env->gwion->mp, env->class_def->e->def->base.tmpl->list));
+//    cdef->base.tmpl = cpy_tmpl(env->gwion->mp, env->class_def->e->def->base.tmpl);
     set_template(t, cdef);
   }
   if(cdef->base.ext && cdef->base.ext->array)
@@ -377,7 +380,13 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
     scan0_class_def_inner(env, cdef) : GW_ERROR;
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
-  return ret;
+  CHECK_BB(ret)
+  if(cdef->base.tmpl && !cdef->base.tmpl->call) {
+    const Class_Def c = cpy_class_def(env->gwion->mp, cdef);
+    c->base.type = cdef->base.type;
+    c->base.type->e->def = c;
+  }
+  return GW_OK;
 }
 
 ANN m_bool scan0_ast(const Env env, Ast ast) {

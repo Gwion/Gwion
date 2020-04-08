@@ -272,6 +272,8 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   const m_uint scope = union_push(env, udef);
   const m_bool ret = scan2_union_decl(env, udef->l);
   union_pop(env, udef, scope);
+  SET_FLAG(udef, scan2);
+  union_flag(udef, ae_flag_scan2);
   return ret;
 }
 
@@ -552,9 +554,10 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_base(cdef->base.tmpl))
+ANN m_bool scan2_class_def(const Env env, const Class_Def c) {
+  if(tmpl_base(c->base.tmpl))
     return GW_OK;
+  const Class_Def cdef = c->base.type->e->def;
   if(GET_FLAG(cdef->base.type, scan2))return GW_OK;
   SET_FLAG(cdef->base.type, scan2);
   if(cdef->base.ext)

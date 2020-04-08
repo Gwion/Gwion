@@ -48,6 +48,7 @@ ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { \
 
 ANN m_uint union_push(const Env, const Union_Def);
 ANN void union_pop(const Env, const Union_Def, const m_uint);
+ANN void union_flag(const Union_Def, const ae_flag);
 ANN m_bool check_stmt(const Env env, const Stmt stmt);
 
 typedef m_bool (*_exp_func)(const void*, const void*);

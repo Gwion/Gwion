@@ -625,6 +625,7 @@ ANN static m_uint get_type_number(ID_List list) {
 ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
+// copy that tmpl->call?
     Tmpl* tmpl = new_tmpl_call(env->gwion->mp, func->tmpl->call);
     tmpl->list = v->d.func_ref ? v->d.func_ref->def->base->tmpl->list : func->func->info->type->e->d.func->def->base->tmpl->list;
     ((Exp_Call*)func)->tmpl = tmpl;
@@ -771,7 +772,10 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   CHECK_OO((exp_self(cast)->info->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->info->type,
     .data=(uintptr_t)cast, .pos=exp_self(cast)->pos, .op_type=op_cast };
-  return op_check(env, &opi);
+//  return op_check(env, &opi);
+  const Type ret = op_check(env, &opi);
+printf("[%s] %p\n", __func__, t);
+  return ret;
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
@@ -1090,6 +1094,8 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   if(!udef->xid && !udef->type_xid && env->class_def && !GET_FLAG(udef, static))
     env->class_def->nspc->info->offset = udef->o + udef->s;
   union_pop(env, udef, scope);
+  union_flag(udef, ae_flag_check);
+  union_flag(udef, ae_flag_checked);
   return ret;
 }
 
@@ -1337,10 +1343,11 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
-  if(tmpl_base(cdef->base.tmpl))
+ANN m_bool check_class_def(const Env env, const Class_Def c) {
+  if(tmpl_base(c->base.tmpl))
     return GW_OK;
-if(GET_FLAG(cdef->base.type, checked))return GW_OK;
+  const Class_Def cdef = c->base.type->e->def;
+  if(GET_FLAG(cdef->base.type, checked))return GW_OK;
   const Type type = cdef->base.type;
   SET_FLAG(type, check);
   if(cdef->base.ext)
