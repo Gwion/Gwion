@@ -395,7 +395,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
         const Type owner = nspc_lookup_type1(t->e->owner->parent,
           insert_symbol(t->e->owner->name));
         const m_bool ret = check_lambda(env, owner, &e->d.exp_lambda, t->e->d.func->def);
-//        exp_setvar(e, 1);
+        exp_setvar(e, 1);
         return ret;
       }
       if(implicit)
