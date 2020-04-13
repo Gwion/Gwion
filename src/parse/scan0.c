@@ -281,6 +281,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     SET_FLAG(udef->type, checked);
   } else {
     const Symbol sym = scan0_sym(env, "union", udef->pos);
+    CHECK_BB(scan0_defined(env, sym, udef->pos))
     const Type t = union_type(env, sym, 1);
     udef->value = union_value(env, t, sym);
     udef->value->flag |= udef->flag;
