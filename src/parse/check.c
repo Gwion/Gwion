@@ -853,6 +853,10 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
     ERR_O(exp_self(exp_if)->pos,
           _("incompatible types '%s' and '%s' in if expression..."),
           if_exp->name, else_exp->name)
+  if(!exp_if->if_exp && isa(exp_if->cond->info->type, else_exp) < 0)
+    ERR_O(exp_self(exp_if)->pos,
+        _("condition type '%s' does not match '%s'"),
+         cond->name, ret->name)
   return ret;
 }
 
