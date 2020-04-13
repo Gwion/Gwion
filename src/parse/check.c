@@ -270,13 +270,17 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   return op_check(env, &opi);
 }
 
+static inline Nspc value_owner(const Value v) {
+  return v ? v->from->owner : NULL;
+}
+
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol var = *data;
   const Value v = check_non_res_value(env, data);
   if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, prim_pos(data),
           _("variable %s not legit at this point."), s_name(var));
-    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(var));
+    did_you_mean_nspc(value_owner(v) ?: env->curr, s_name(var));
     return NULL;
   }
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
