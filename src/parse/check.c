@@ -245,10 +245,10 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   const Symbol var = *data;
   const Value value = nspc_lookup_value1(env->curr, var);
   if(env->class_def) {
-    const Value v = value ? value : find_value(env->class_def, var);
+    if(value && value->from->owner_class)
+      CHECK_BO(not_from_owner_class(env, env->class_def, value, prim_pos(data)))
+    const Value v = value ?: find_value(env->class_def, var);
     if(v) {
-      if(v->from->owner_class)
-        CHECK_BO(not_from_owner_class(env, env->class_def, v, prim_pos(data)))
       if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
         ERR_O(prim_pos(data),
               _("non-static member '%s' used from static function."), s_name(var))
