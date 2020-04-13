@@ -382,7 +382,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   CHECK_BB(ret)
-  if(cdef->base.tmpl && !cdef->base.tmpl->call) {
+  if(GET_FLAG(cdef, global) || (cdef->base.tmpl && !cdef->base.tmpl->call)) {
     const Class_Def c = cpy_class_def(env->gwion->mp, cdef);
     c->base.type = cdef->base.type;
     c->base.type->e->def = c;
