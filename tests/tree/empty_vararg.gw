@@ -1,8 +1,8 @@
 fun int test(...){
-  vararg.start;
-  <<< "test" >>>;
-  <<< vararg $ int >>>;
-  vararg.end;
+  varloop vararg {
+    <<< "test" >>>;
+    <<< vararg $ int >>>;
+  }
   return 1;
 }
 <<<  test()  >>>;

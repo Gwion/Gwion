@@ -25,8 +25,7 @@ static DTOR(vararg_dtor) {
   struct Vararg_ *arg = *(struct Vararg_**)o->data;
   m_uint offset = 0;
   for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
-    const Type t = (Type)vector_at(&arg->t, arg->i);
-    *(m_uint*)(arg->d + offset) = *(m_uint*)(shred->reg - SZ_INT + offset);
+    const Type t = (Type)vector_at(&arg->t, i);
     if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
       release(*(M_Object*)(arg->d + offset), shred);
     offset += t->size;
