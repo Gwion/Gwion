@@ -40,7 +40,7 @@ static inline ANN A nspc_lookup_##b##1(const Nspc n, const Symbol s) {         \
 
 #define describe_lookup2(A, b)                                                 \
 static inline ANN A nspc_lookup_##b##2(const Nspc n, const Symbol s) {         \
-  return (A)scope_lookup1(n->info->b, (vtype)s);                               \
+  return (A)scope_lookup2(n->info->b, (vtype)s);                               \
 }
 
 #define describe_lookups(A, b)                                                 \
