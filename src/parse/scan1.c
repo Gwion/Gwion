@@ -290,7 +290,7 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   if(var->array)
     v->type = list->type = array_type(env, list->type, var->array->depth);
   if(list->td)
-    v->flag = list->td->flag | ae_flag_arg;
+    v->flag = list->td->flag | ae_flag_abstract;
   return v;
 }
 
