@@ -229,12 +229,18 @@ static void member_fptr(const Emitter emit) {
   dup->m_val = -SZ_INT;
 }
 
+static int is_member(const Type from, const Type to) {
+  return GET_FLAG(from->e->d.func, member) &&
+    !(GET_FLAG(from, nonnull) || GET_FLAG(to, nonnull));
+}
+
 static OP_EMIT(opem_fptr_cast) {
-  Exp_Cast* cast = (Exp_Cast*)data;
+  const Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->info->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->info->type->e->d.func, 1);
-  if(GET_FLAG(cast->exp->info->type->e->d.func, member) &&
-    !(GET_FLAG(cast->exp->info->type, nonnull) || GET_FLAG(exp_self(cast)->info->type, nonnull)))
+//  if(GET_FLAG(cast->exp->info->type->e->d.func, member) &&
+//    !(GET_FLAG(cast->exp->info->type, nonnull) || GET_FLAG(exp_self(cast)->info->type, nonnull)))
+  if(is_member(cast->exp->info->type, exp_self(cast)->info->type))
     member_fptr(emit);
   return (Instr)GW_OK;
 }
@@ -249,8 +255,9 @@ static OP_CHECK(opck_fptr_impl) {
 
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  if(GET_FLAG(impl->t->e->d.func, member) &&
-    !(GET_FLAG(impl->e->info->type, nonnull) || GET_FLAG(impl->t, nonnull)))
+  if(is_member(impl->e->info->type, impl->t))
+//  if(GET_FLAG(impl->e->info->type->e->d.func, member) &&
+//      !(GET_FLAG(impl->e->info->type, nonnull) || GET_FLAG(impl->t, nonnull)))
     member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->info->type->e->d.func, 1);
