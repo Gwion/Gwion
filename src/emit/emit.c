@@ -1788,7 +1788,7 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if(GET_FLAG(fdef, variadic))
     stack_alloc(emit);
   if(fdef->d.code)
-    CHECK_BB(emit_stmt_code(emit, &fdef->d.code->d.stmt_code))
+    CHECK_BB(scoped_stmt(emit, fdef->d.code, 1))
   emit_func_def_ensure(emit, fdef);
   return GW_OK;
 }
