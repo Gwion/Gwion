@@ -62,7 +62,7 @@ ANN static m_bool _compiler_open(struct Compiler* c) {
     xfree(name);
     return c->name ? !!(c->file = fopen(c->name, "r")) : GW_ERROR;
   } else if(c->type == COMPILE_MSTR) {
-    c->file = fmemopen(c->data, strlen(c->data), "r");
+    c->file = c->data ? fmemopen(c->data, strlen(c->data), "r") : NULL;
     return c->file ? GW_OK : GW_ERROR;
   }
   return GW_OK;
