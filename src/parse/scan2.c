@@ -40,12 +40,9 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
 ANN static m_bool scan2_args(const Env env, const Func_Def f) {
   Arg_List list = f->base->args;
   do {
-    const Var_Decl var = list->var_decl;
-    if(var->array) {
-      var->value->type = list->type = array_type(env, list->type, var->array->depth);
-    }
-    var->value->from->offset = f->stack_depth;
-    f->stack_depth += list->type->size;
+    const Value v = list->var_decl->value;
+    v->from->offset = f->stack_depth;
+    f->stack_depth += v->type->size;
   } while((list = list->next));
   return GW_OK;
 }
@@ -516,9 +513,30 @@ ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
   return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);
 }
 
-ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
-  if(GET_FLAG(f, global))
+__attribute__((returns_nonnull))
+static ANN Func_Def scan2_cpy_fdef(const Env env, const Func_Def fdef) {
+  const Func_Def f = cpy_func_def(env->gwion->mp, fdef);
+  f->base->ret_type = fdef->base->ret_type;
+  Arg_List a = f->base->args, b = fdef->base->args;
+  while(a) {
+    a->var_decl->value = b->var_decl->value;
+    a->type = b->type;
+    a = a->next;
+    b = b->next;
+  }
+  return f;
+}
+
+static inline int is_cpy(const Func_Def fdef) {
+  return  GET_FLAG(fdef, global) ||
+    (fdef->base->tmpl && !fdef->base->tmpl->call);
+}
+
+ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
+  if(GET_FLAG(fdef, global))
     env->context->global = 1;
+  const Func_Def f = !is_cpy(fdef) ?
+    fdef : scan2_cpy_fdef(env, fdef);
   const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
   f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
   if(GET_FLAG(f, variadic))
@@ -527,10 +545,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   if(GET_FLAG(f, global))
     env_pop(env, scope);
   CHECK_BB(ret)
-  if(GET_FLAG(f, global) || (f->base->tmpl && !f->base->tmpl->call)) {
-    f->base->func->def = cpy_func_def(env->gwion->mp, f);
-    f->base->func->def->base->func = f->base->func;
-  }
+  fdef->base->func = f->base->func; // only needed if 'is_cpy()'
   return GW_OK;
 }
 

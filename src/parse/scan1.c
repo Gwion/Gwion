@@ -288,7 +288,7 @@ ANN static Value arg_value(const Env env, const Arg_List list) {
   const Var_Decl var = list->var_decl;
   const Value v = new_value(env->gwion->mp, list->type, var->xid ? s_name(var->xid) : (m_str)__func__);
   if(var->array)
-      v->type = /*list->type = */array_type(env, list->type, var->array->depth);
+    v->type = list->type = array_type(env, list->type, var->array->depth);
   if(list->td)
     v->flag = list->td->flag | ae_flag_arg;
   return v;
