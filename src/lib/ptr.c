@@ -14,11 +14,17 @@
 #include "parse.h"
 #include "gwi.h"
 
+static m_bool ptr_access(const Env env, const Exp e) {
+  const m_str access = exp_access(e);
+  if(!access)
+    return GW_OK;
+  ERR_B(e->pos, _("operand is %s"), access);
+}
+
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const m_str access = exp_access(exp_self(bin->rhs));
-  if(access)
-    ERR_N(exp_self(bin)->pos, _("right side operand is %s"), access);
+  CHECK_BO(ptr_access(env, bin->lhs))
+  CHECK_BO(ptr_access(env, bin->rhs))
   exp_setvar(bin->lhs, 1);
   Type t = bin->lhs->info->type;
   do {
