@@ -772,10 +772,7 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   CHECK_OO((exp_self(cast)->info->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->info->type,
     .data=(uintptr_t)cast, .pos=exp_self(cast)->pos, .op_type=op_cast };
-//  return op_check(env, &opi);
-  const Type ret = op_check(env, &opi);
-printf("[%s] %p\n", __func__, t);
-  return ret;
+  return op_check(env, &opi);
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
