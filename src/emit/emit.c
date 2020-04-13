@@ -1297,8 +1297,6 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
     if(stmt->val->exp_type == ae_exp_call && emit->env->func == stmt->val->d.exp_call.m_func)
       return optimize_taill_call(emit, &stmt->val->d.exp_call);
     CHECK_BB(emit_exp_pop_next(emit, stmt->val))
-    if(isa(stmt->val->info->type, emit->gwion->type[et_object]) > 0)
-        (void)emit_addref(emit, 0);
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
