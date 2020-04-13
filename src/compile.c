@@ -86,7 +86,7 @@ ANN static m_bool is_reg(const m_str path) {
 ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   char name[strlen(c->name) + 1];
   strcpy(name, c->name);
-  if(!is_reg(name)) {
+  if(c->type == COMPILE_FILE && !is_reg(name)) {
     gw_err(_("'%s': is a not a regular file\n"), name);
     return GW_ERROR;
   }
@@ -110,7 +110,9 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
 }
 
 ANN static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
-  CHECK_BB(compiler_open(gwion->mp, c))
+//  CHECK_BB(compiler_open(gwion->mp, c))
+  if(compiler_open(gwion->mp, c) < 0)
+    return 0;
   if(_check(gwion, c) < 0) {
     gw_err(_("while compiling file '%s'\n"), c->base);
     return 0;
