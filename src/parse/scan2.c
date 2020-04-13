@@ -526,11 +526,12 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def f) {
   const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
   if(GET_FLAG(f, global))
     env_pop(env, scope);
+  CHECK_BB(ret)
   if(GET_FLAG(f, global) || (f->base->tmpl && !f->base->tmpl->call)) {
     f->base->func->def = cpy_func_def(env->gwion->mp, f);
     f->base->func->def->base->func = f->base->func;
   }
-  return ret;
+  return GW_OK;
 }
 
 #define scan2_enum_def dummy_func
