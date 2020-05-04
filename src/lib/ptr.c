@@ -30,7 +30,7 @@ static OP_CHECK(opck_ptr_assign) {
   do {
     Type u = bin->rhs->info->type;
     do {
-      const m_str str = get_type_name(env, u->name, 1);
+      const m_str str = get_type_name(env, u, 1);
       if(str && !strcmp(t->name, str))
         return bin->lhs->info->type;
     } while((u = u->e->parent));
@@ -46,7 +46,7 @@ static INSTR(instr_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->info->type->name, 1))
+  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->info->type, 1))
   return exp_self(unary)->info->type = nspc_lookup_type1(env->curr, insert_symbol(str));
 }
 
@@ -66,8 +66,8 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
-  DECL_OO(const m_str, name, = get_type_name(env, imp->t->name, 1))
-  if(!strcmp(get_type_name(env, imp->t->name, 1), e->info->type->name)) {
+  DECL_OO(const m_str, name, = get_type_name(env, imp->t, 1))
+  if(!strcmp(get_type_name(env, imp->t, 1), e->info->type->name)) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);

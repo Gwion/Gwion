@@ -136,7 +136,8 @@ ANN m_bool type_ref(Type t) {
   return 0;
 }
 
-ANN m_str get_type_name(const Env env, const m_str s, const m_uint index) {
+ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
+  const m_str s = t->name;
   m_str name = strstr(s, "<");
   m_uint i = 0;
   m_uint lvl = 0;

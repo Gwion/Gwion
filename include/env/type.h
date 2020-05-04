@@ -28,9 +28,8 @@ struct Type_ {
 
 ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);
 ANEW ANN Type type_copy(MemPool, const Type type);
-ANN m_str get_type_name(const Env, const m_str, const m_uint);
+ANN m_str get_type_name(const Env, const Type t, const m_uint);
 ANN Value find_value(const Type, const Symbol);
-//ANN Func find_func(const Type, const Symbol);
 ANN m_bool isa(const Type, const Type) __attribute__((pure));
 ANN m_bool isres(const Env, const Symbol, const loc_t pos);
 ANN Type array_type(const Env, const Type, const m_uint);
