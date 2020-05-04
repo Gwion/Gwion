@@ -494,7 +494,7 @@ ANN static inline void struct_interp(const Emitter emit, const Exp e) {
 ANN static void interp_multi(const Emitter emit, Var_Decl_List list) {
   m_uint offset = 0;
   while(list->next) {
-    offset += SZ_INT;
+    offset += list->self->value->type->size;
     list = list->next;
   }
   if(offset)
@@ -512,10 +512,10 @@ ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
       e->next = next;
       return GW_ERROR;
     }
-    const m_bool isobj = isa(e->info->type, emit->gwion->type[et_object]) > 0;
-    if(isobj && e->exp_type == ae_exp_decl) // why only objects?
+    if(e->exp_type == ae_exp_decl) // why only objects?
       interp_multi(emit, e->d.exp_decl.list);
     regseti(emit, (m_uint)e->info->type);
+    const m_bool isobj = isa(e->info->type, emit->gwion->type[et_object]) > 0;
     if(isobj && !GET_FLAG(e->info->type, force))
       emit_add_instr(emit, GackType);
     const Instr instr = emit_add_instr(emit, Gack);
