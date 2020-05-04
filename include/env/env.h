@@ -34,19 +34,20 @@ ANN2(1,3) m_uint env_push(const Env, const Type, const Nspc);
 ANN static inline m_uint env_push_global(const Env env) { return env_push(env, NULL, env->global_nspc); }
 ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
-ANN Type scan_type(const Env, const Type, const Type_Decl*);
-ANN Type type_decl_resolve(const Env, const Type_Decl*);
+ANN Type scan_type(const Env, const Type, Type_Decl*);
+//ANN Type type_decl_resolve(const Env, const Type_Decl*);
+ANN Type type_decl_resolve(const Env, Type_Decl*);
 ANN Value mk_class(const Env env, const Type base);
 // tl2str returns a mp_alloced string
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
-ANN Type known_type(const Env env, const Type_Decl*);
+ANN Type known_type(const Env env, Type_Decl*);
 ANN Type type_nonnull(const Env env, const Type base);
 ANN Type prim_ref(const Env env, const Type t, const Type_Decl* td);
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos);
 ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos);
 ANN void env_add_type(const Env, const Type);
-ANN Type find_type(const Env, ID_List);
+ANN Type find_type(const Env, Type_Decl*);
 ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
 ANN m_bool traverse_func_template(const Env, const Func_Def);

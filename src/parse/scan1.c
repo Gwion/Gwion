@@ -9,32 +9,17 @@
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
-ANN static inline void type_contains(const Type base, const Type t) {
-  const Vector v = &base->e->contains;
-  if(!v->ptr)
-    vector_init(v);
-  if(vector_find(v, (vtype)t) == GW_ERROR) {
-    vector_add(v, (vtype)t);
-    if(base != t)
-      ADD_REF(t);
-  }
-}
-
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
   if(env->class_def && !env->scope->depth) {
-    type_contains(env->class_def, t);
-    if(t->e->contains.ptr) {
-      for(m_uint i = 0; i < vector_size(&t->e->contains); ++i) {
-        if(env->class_def == (Type)vector_at(&t->e->contains, i) && !GET_FLAG(td, ref))
-          ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
-              t->name, t == env->class_def ? "itself" : env->class_def->name);
-      }
-    }
+    const m_int idx = vector_find(&env->scope->class_stack, (vtype)t);
+    if(idx > -1 || t == env->class_def)
+      ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
+            t->name, t == env->class_def ? "itself" : env->class_def->name);
   }
   return GW_OK;
 }
 
-ANN static Type void_type(const Env env, const Type_Decl* td) {
+ANN static Type void_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
   if(isa(t, env->gwion->type[et_object]) > 0 || GET_FLAG(t, struct))
@@ -48,7 +33,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   if(decl->type)
     return decl->type;
   DECL_OO(const Type ,t, = void_type(env, decl->td))
-  if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto") && decl->type)
+  if(decl->td->xid == insert_symbol("auto") && decl->type)
     return decl->type;
   if(!env->scope->depth && env->class_def && !GET_FLAG(decl->td, static))
     SET_FLAG(decl->td, member);
@@ -78,13 +63,11 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       }
       t = array_type(env, decl->type, var->array->depth);
     } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref)) {
-      if(decl->td->xid && decl->td->xid->xid == insert_symbol("auto"))
+      if(decl->td->xid == insert_symbol("auto"))
         SET_FLAG(decl->td, ref);
       else
         ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
     }
-    if(env->class_def)
-      type_contains(env->class_def, t);
     const Value v = var->value = former ?: new_value(env->gwion->mp, t, s_name(var->xid));
     if(SAFE_FLAG(env->class_def, struct) && !GET_FLAG(decl->td, static)) {
       v->from->offset = env->class_def->size;
@@ -310,12 +293,18 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
   if(tmpl_base(fptr->base->tmpl))
     return GW_OK;
+  if(!fptr->base->func) {
+    fptr->base->func = nspc_lookup_value0(env->curr, fptr->base->xid)->d.func_ref;
+    fptr->type = nspc_lookup_type0(env->curr, fptr->base->xid);
+  }
   const Func_Def fdef = fptr->base->func->def;
   CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
   return fdef->base->args ? scan1_args(env, fdef->base->args) : GW_OK;
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
+  if(!tdef->type)
+    tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if(!tdef->type->e->def)return GW_OK;
   return !is_fptr(env->gwion, tdef->type) ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
@@ -368,7 +357,7 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   }
   const m_bool ret = scan1_union_def_inner(env, udef);
   union_pop(env, udef, scope);
-  const Type type = udef->xid || udef->type_xid ? udef->value->type : udef->type;
+  const Type type = udef->xid || !udef->type_xid ? udef->value->type : udef->type;
   SET_FLAG(type, scan1);
   return ret;
 }
@@ -516,8 +505,11 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def c) {
   if(tmpl_base(c->base.tmpl))
     return GW_OK;
-  const Class_Def cdef = c->base.type->e->def;
-  if(GET_FLAG(cdef->base.type, scan1))return GW_OK;
+  const Type t = c->base.type;
+  const Class_Def cdef = t->e->def;
+  if(GET_FLAG(t, scan1))return GW_OK;
+  if(t->e->owner_class && !GET_FLAG(t->e->owner_class, scan1))
+    CHECK_BB(scan1_class_def(env, t->e->owner_class->e->def))
   SET_FLAG(cdef->base.type, scan1);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))

@@ -222,8 +222,6 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v, const
   push->m_val = v->type->size - v->from->owner_class->size;
   if(v->from->offset)
     emit_struct_var(emit, v);
-//  const Instr push = emit_add_instr(emit, RegPush);
-//  push->m_val = v->type->size - SZ_INT;
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, const loc_t pos);
@@ -271,8 +269,8 @@ OP_EMIT(opem_object_dot) {
   if(!is_class(emit->gwion, member->t_base) && (GET_FLAG(value, member) ||
        (isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 &&
        !is_fptr(emit->gwion, exp_self(member)->info->type)))) {
-  if(!GET_FLAG(t_base, struct))
-    CHECK_BO(emit_exp(emit, member->base))
+    if(!GET_FLAG(t_base, struct))
+      CHECK_BO(emit_exp(emit, member->base))
     if(isa(member->t_base, emit->env->gwion->type[et_object]) > 0)
       emit_except(emit, member->t_base);
   }
@@ -374,13 +372,9 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
 
 }
 
-extern ANN m_bool scan0_class_def(const Env, const Class_Def);
-extern ANN m_bool scan1_class_def(const Env, const Class_Def);
-extern ANN m_bool traverse_func_def(const Env, const Func_Def);
-extern ANN m_bool traverse_class_def(const Env, const Class_Def);
-
 ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
-  a->union_def = new_union_def(env->gwion->mp, a->list,
+puts("\033[35mhere\033[0m");
+  a->union_def = new_union_def(env->gwion->mp, cpy_decl_list(env->gwion->mp, a->list),
     loc_cpy(env->gwion->mp, t->e->def->pos));
   a->union_def->type_xid = a->base.xid;
   if(GET_FLAG(t, global))
@@ -395,7 +389,7 @@ ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
 
 ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
-   ERR_O(td->xid->pos, _("invalid template types number"))
+   ERR_O(td->pos, _("invalid template types number"))
   DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
   if(a->base.type)
     return a->base.type;

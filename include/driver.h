@@ -16,7 +16,7 @@ typedef void (*f_bbqset)(struct DriverData_*);
 typedef void (*f_bbqrun)(const struct VM_*);
 
 typedef struct BBQ_ {
-  uint64_t pos;
+  volatile uint64_t pos;
   m_float* in;
   m_float* out;
   struct SoundInfo_ *si;
@@ -27,7 +27,7 @@ typedef struct BBQ_ {
 } Driver;
 
 #define DRVINI(a) ANN m_bool a(struct VM_ *vm NUSED, Driver* di NUSED)
-#define DRVRUN(a) ANN void   a(struct VM_ *vm NUSED, Driver* di NUSED)
+#define DRVRUN(a) ANN void   a(struct VM_ *vm NUSED, Driver *di NUSED)
 #define DRVDEL(a) ANN void   a(struct VM_ *vm NUSED, Driver* di NUSED)
 
 ANN void dummy_driver(DriverData*);

@@ -41,9 +41,8 @@ ANN Type _find_type(const Env env, const Symbol xid) {
   return type;
 }
 
-ANN Type find_type(const Env env, ID_List path) {
-  Type type = _find_type(env, path->xid);
-  CHECK_OO(type)
+ANN Type find_type(const Env env, Type_Decl *path) {
+  DECL_OO(Type, type, = _find_type(env, path->xid))
   Nspc nspc = type->nspc;
   path = path->next;
   while(path) {
@@ -86,10 +85,8 @@ ANN Value mk_class(const Env env, const Type base) {
   const Type t = class_type(env, base);
   const Symbol sym = insert_symbol(base->name);
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
-  // set from
-  v->from->owner = base->e->owner;
+  valuefrom(env, v->from);
   SET_FLAG(v, const | ae_flag_checked);
-  // should we add t to front, too?
   nspc_add_value_front(base->e->owner, sym, v);
   return v;
 }

@@ -1,8 +1,0 @@
-fork {
-  fork {
-    <<< __func__ >>>;
-    second => now;
-  };
-  <<< __func__ >>>;
-  second => now;
-};

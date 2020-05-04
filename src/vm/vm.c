@@ -75,8 +75,9 @@ ANN void vm_ini_shred(const VM* vm, const VM_Shred shred) {
 }
 
 ANN void vm_lock(VM const *vm) {
-  do MUTEX_LOCK(vm->shreduler->mutex);
-  while((vm = vm->parent));
+  if(vm->parent)
+    vm_lock(vm->parent);
+  MUTEX_LOCK(vm->shreduler->mutex);
 }
 
 ANN void vm_unlock(VM const *vm) {
@@ -90,17 +91,6 @@ ANN m_bool vm_running(VM const *vm) {
   if(!vm->parent)
     return 1;
   return vm->shreduler->bbq->is_running = vm_running(vm->parent);
-}
-
-ANN static void vm_fork(VM* src, const VM_Shred shred) {
-  VM* vm = (shred->info->vm = gwion_cpy(src));
-  vm->parent = src;
-  const M_Object o = shred->info->me = new_shred(shred, 0);
-  ++shred->info->me->ref;
-  if(!src->gwion->data->child.ptr)
-    vector_init(&src->gwion->data->child);
-  vector_add(&src->gwion->data->child, (vtype)o);
-  shreduler_add(vm->shreduler, shred);
 }
 
 __attribute__((hot))
@@ -145,17 +135,18 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
   return sh;
 }
 
-ANN static inline VM_Shred fork_shred(const VM_Shred shred, const VM_Code code) {
+ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, const m_uint retsz) {
+  VM* parent = shred->info->vm;
   const VM_Shred sh = new_shred_base(shred, code);
-  vm_fork(shred->info->vm, sh);
-  return sh;
-}
-
-ANN static inline VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code) {
-  VM *vm = shred->info->vm;
-  vm_lock(vm);
-  const VM_Shred sh = vm_running(vm) ? fork_shred(shred, code) : NULL;
-  vm_unlock(vm);
+  VM* vm = (sh->info->vm = gwion_cpy(parent));
+  vm->parent = parent;
+  const M_Object o = sh->info->me = new_shred(sh, 0);
+  ++sh->info->me->ref;
+  if(!parent->gwion->data->child.ptr)
+    vector_init(&parent->gwion->data->child);
+  vector_add(&parent->gwion->data->child, (vtype)o);
+  shreduler_add(vm->shreduler, sh);
+  fork_launch(parent, sh->info->me, retsz);
   return sh;
 }
 
@@ -333,7 +324,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&timeadv,
     &&setcode,
     &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
-    &&sporkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&forkend, &&sporkend,
+    &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
@@ -672,10 +663,10 @@ funcmemberend:
   }
   PC_DISPATCH(shred->pc)
 sporkini:
-  if(!(child = (VAL2 ? init_spork_shred : init_fork_shred)(shred, (VM_Code)VAL))) {
-    exception(shred, "[SporkAbortedException]");
-    continue;
-  }
+  child = init_spork_shred(shred, (VM_Code)VAL);
+  DISPATCH()
+forkini:
+  child = init_fork_shred(shred, (VM_Code)VAL, VAL2),
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM
@@ -697,8 +688,6 @@ sporkexp:
   for(m_uint i = 0; i < VAL; i+= SZ_INT)
     *(m_uint*)(child->mem + i) = *(m_uint*)(mem+i);
   DISPATCH()
-forkend:
-  fork_launch(vm, child->info->me, VAL2);
 sporkend:
   assert(!VAL); // spork are not mutable
   *(M_Object*)(reg-SZ_INT) = child->info->me;
@@ -916,6 +905,10 @@ VM* new_vm(MemPool p, const m_bool audio) {
   vector_init(&vm->shreduler->shreds);
   MUTEX_SETUP(vm->shreduler->mutex);
   vm->shreduler->bbq = vm->bbq;
+#ifndef __AFL_COMPILER
   gw_seed(vm->rand, (uint64_t)time(NULL));
+#else
+  gw_seed(vm->rand, 0);
+#endif
   return vm;
 }

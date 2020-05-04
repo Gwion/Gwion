@@ -54,9 +54,8 @@ ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
-  struct ShredTick_ *tk = out->tick;
-  assert(tk);
   MUTEX_LOCK(s->mutex);
+  struct ShredTick_ *tk = out->tick;
   if(tk == s->curr)
     s->curr = NULL;
   else if(tk == s->list)

@@ -40,7 +40,6 @@ static OP_EMIT(opem_func_assign) {
     fptr_instr(emit, bin->lhs->info->type->e->d.func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
   if(!is_fptr(emit->gwion, bin->lhs->info->type) && GET_FLAG(bin->rhs->info->type->e->d.func, member)) {
-//exit(3);
     const Instr pop = emit_add_instr(emit, LambdaAssign);
     pop->m_val = SZ_INT;
   }
@@ -70,7 +69,7 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
 }
 
 
-static m_bool td_match(const Env env, const Type_Decl *id[2]) {
+static m_bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_OB(const Type, t0, = known_type(env, id[0]))
   DECL_OB(const Type, t1, = known_type(env, id[1]))
   return isa(t0, t1);
@@ -80,7 +79,7 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
     CHECK_OB(arg1)
-    const Type_Decl* td[2] = { arg0->td, arg1->td };
+    Type_Decl* td[2] = { arg0->td, arg1->td };
     CHECK_BB(td_match(env, td))
     arg0 = arg0->next;
     arg1 = arg1->next;
@@ -109,7 +108,7 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
 }
 
 ANN static inline m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
-  const Type_Decl* td[2] = { info->lhs->def->base->td,
+  Type_Decl* td[2] = { info->lhs->def->base->td,
       info->rhs->def->base->td };
   return td_match(env, td);
 }
@@ -165,13 +164,16 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   }
   return GW_OK;
 }
+
 ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
     Exp_Lambda *l, const Func_Def def) {
-  const m_uint scope = ((l->owner = owner)) ?
-    env_push_type(env, owner) : env->scope->depth;
+  struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
+    .scope=env->scope->depth, .flag=ae_flag_check };
+  if((l->owner = owner))
+    envset_push(&es, owner);
   const m_bool ret = _check_lambda(env, l, def);
-  if(owner)
-    env_pop(env, scope);
+  if(owner && es.run)
+    envset_pop(&es, owner);
   if(ret < 0)
     return GW_ERROR;
   exp_self(l)->info->type = l->def->base->func->value_ref->type;
@@ -238,8 +240,6 @@ static OP_EMIT(opem_fptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   if(exp_self(cast)->info->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, cast->exp->info->type->e->d.func, 1);
-//  if(GET_FLAG(cast->exp->info->type->e->d.func, member) &&
-//    !(GET_FLAG(cast->exp->info->type, nonnull) || GET_FLAG(exp_self(cast)->info->type, nonnull)))
   if(is_member(cast->exp->info->type, exp_self(cast)->info->type))
     member_fptr(emit);
   return (Instr)GW_OK;
@@ -256,8 +256,6 @@ static OP_CHECK(opck_fptr_impl) {
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   if(is_member(impl->e->info->type, impl->t))
-//  if(GET_FLAG(impl->e->info->type->e->d.func, member) &&
-//      !(GET_FLAG(impl->e->info->type, nonnull) || GET_FLAG(impl->t, nonnull)))
     member_fptr(emit);
   if(impl->t->e->d.func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->info->type->e->d.func, 1);
@@ -284,7 +282,11 @@ static OP_CHECK(opck_spork) {
 
 static OP_EMIT(opem_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  return emit_exp_spork(emit, unary);
+  const Env env = emit->env;
+  const Instr ret = emit_exp_spork(emit, unary);
+  if(unary->op == insert_symbol("fork"))
+    emit_add_instr(emit, GcAdd);
+  return ret;
 }
 
 static FREEARG(freearg_xork) {

@@ -47,12 +47,16 @@ void free_m_vector(MemPool p, M_Vector a) {
   mp_free(p, M_Vector, a);
 }
 
+ANN static inline int is_array(const Type *types, const Type type) {
+  const Type base = array_base(type);
+  return isa(base, types[et_object]) > 0;
+}
+
 static DTOR(array_dtor) {
   const Type t = !GET_FLAG(o->type_ref, nonnull) ?
     o->type_ref : o->type_ref->e->parent;
-  const Type base = array_base(t);
   struct M_Vector_* a = ARRAY(o);
-  if(t->array_depth > 1 || isa(base, shred->info->vm->gwion->type[et_object]) > 0)
+  if(t->array_depth > 1 || is_array(shred->info->vm->gwion->type, t))
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
   free_m_vector(shred->info->mp, a);

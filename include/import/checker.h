@@ -43,20 +43,11 @@ typedef struct OperCK { // name_checker ?
   m_str rhs;// oper
 } OperCK;
 
-struct array_checker {
-  m_str str;
-  Exp base, exp;
-  m_uint depth;
-  m_uint sz;
-  m_bool is_exp;
-};
-
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 ANN ID_List tmpl_valid(const Gwi gwi, const m_str str);
 ANN Symbol str2sym(const Gwi gwi, const m_str path);
 ANN ID_List str2symlist(const Gwi gwi, const m_str path);
-ANN ID_List ck2list(const Gwi gwi, struct array_checker *ck);
 
 ANN m_bool ck_ini(const Gwi, const enum importck_type);
 ANN m_bool ck_ok(const Gwi, const enum importck_type);

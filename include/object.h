@@ -5,7 +5,7 @@ struct M_Object_ {
   m_bit* data;
   Type type_ref;
   Vector vtable;
-  /* volatile */size_t ref;
+  volatile size_t ref;
 };
 
 ANN void instantiate_object(const VM_Shred, const Type);
@@ -21,6 +21,7 @@ ANN void fork_launch(VM const*, const M_Object, const m_uint);
 ANN void __release(const M_Object, const VM_Shred);
 ANN void exception(const VM_Shred, const m_str);
 ANN void broadcast(const M_Object);
+
 #define STRING(o)    (*(m_str*)    ((M_Object)o)->data)
 #define ME(o)        (*(VM_Shred*) ((M_Object)o)->data)
 #define EV_SHREDS(o) (*(Vector*)   ((M_Object)o)->data)

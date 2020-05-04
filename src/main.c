@@ -22,19 +22,24 @@ ANN static void gwion_reset(const Gwion gwion) {
   push_global(gwion, "[user]");
 }
 
-//#define BUFSIZE 1024
-#define BUFSIZE 256
+#define BUFSIZE 64
 
 static void afl_run(const Gwion gwion) {
   char buf[BUFSIZE];
-  __AFL_INIT();
-  while (__AFL_LOOP(1000)) {
+  struct GwText_ text = { .mp=gwion->mp };
+  while (__AFL_LOOP(5)) {
+    ssize_t sz;
     memset(buf, 0, BUFSIZE);
-    read(0, buf, BUFSIZE);
-    if(compile_string(gwion, "afl", buf))
+    while((sz = read(0, buf, BUFSIZE)) > 0) {
+      buf[sz] = '\0';
+      text_add(&text, buf);
+    }
+    if(compile_string(gwion, "afl", text.str))
       gwion_run(gwion);
+    text_reset(&text);
     gwion_reset(gwion);
   }
+    text_release(&text);
 }
 #define gwion_run(a) afl_run(a)
 #endif

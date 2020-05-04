@@ -77,29 +77,31 @@ ANN static m_bool check_tmpl_args(const Env env, const Func_Base *base) {
   return GW_OK;
 }
 
+ANN static m_bool scan0_fptr_args(const Env env, const Fptr_Def fptr) {
+  nspc_push_type(env->gwion->mp, env->curr);
+  const m_bool ret = check_tmpl_args(env, fptr->base);
+  nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(env_access(env, fptr->base->td->flag, td_pos(fptr->base->td)))
   CHECK_OB(known_type(env, fptr->base->td))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
-if(fptr->base->tmpl && fptr->base->args) {
-  nspc_push_type(env->gwion->mp, env->curr);
-  const m_bool ret = check_tmpl_args(env, fptr->base);
-  nspc_pop_type(env->gwion->mp, env->curr);
-  CHECK_BB(ret);
-}
+  if(fptr->base->tmpl && fptr->base->args)
+    CHECK_BB(scan0_fptr_args(env, fptr))
   const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
   t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
     env->curr : env->global_nspc;
+  t->e->owner_class = env->class_def;
   if(GET_FLAG(fptr->base->td, global))
     context_global(env);
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag = fptr->base->td->flag;
   fptr->type = t;
   fptr->value = mk_class(env, t);
-// set owner ?
-  fptr->value->from->owner = env->curr;
-  fptr->value->from->owner_class = env->class_def;
+  valuefrom(env, fptr->value->from);
   fptr_def(env, fptr);
   if(env->class_def)
     fptr_assign(env, fptr);
@@ -139,6 +141,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
     context_global(env);
   add_type(env, nspc, t);
   t->e->owner = nspc;
+  t->e->owner_class = env->class_def;
   tdef->type = t;
   if(base->nspc)
     ADD_REF((t->nspc = base->nspc));
@@ -171,7 +174,7 @@ ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_BB(env_access(env, tdef->ext->flag, td_pos(tdef->ext)))
-  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext->xid) : known_type(env, tdef->ext))
+  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext) : known_type(env, tdef->ext))
   CHECK_BB(scan0_defined(env, tdef->xid, td_pos(tdef->ext)))
   if(isa(base, env->gwion->type[et_function]) < 0) {
     if(!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
@@ -201,6 +204,7 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   t->e->parent = env->gwion->type[et_int];
   const Nspc nspc = GET_FLAG(edef, global) ? env->global_nspc : env->curr;
   t->e->owner = nspc;
+  t->e->owner_class = env->class_def;
   add_type(env, nspc, t);
   mk_class(env, t);
   scan0_implicit_similar(env, t, env->gwion->type[et_int]);
@@ -223,6 +227,7 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->e->owner = t->nspc->parent = env->curr;
+  t->e->owner_class = env->class_def;
   t->e->parent = env->gwion->type[et_union];
   add_type(env, env->curr, t);
   if(add) {
@@ -236,11 +241,11 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) {
     assert(udef->type_xid);
     const Class_Def cdef = new_class_def(env->gwion->mp, udef->flag, udef->type_xid,
-        NULL, (Ast)udef->l, loc_cpy(env->gwion->mp, udef->pos));
+        NULL, (Ast)cpy_decl_list(env->gwion->mp, udef->l), loc_cpy(env->gwion->mp, udef->pos));
     udef->type->e->def = cdef;
     cdef->base.tmpl = cpy_tmpl(env->gwion->mp, udef->tmpl);
     cdef->base.type = udef->type;
-    cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
+//    cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
     SET_FLAG(cdef, union);
     SET_FLAG(udef->type, pure);
     SET_FLAG(udef, template);
@@ -299,19 +304,13 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN static void set_template(const Type t, const Class_Def cdef) {
-  SET_FLAG(t, template);
-  SET_FLAG(cdef, template);
-}
-
-
-ANN static void inherit_tmpl(const Env env, const Class_Def cdef) {
-  const ID_List list = env->class_def->e->def->base.tmpl->list;
-  const ID_List prev_list = cpy_id_list(env->gwion->mp, list);
-  ID_List il = prev_list;
-  while(il->next && (il = il->next));
-  il->next = cdef->base.tmpl->list;
-  cdef->base.tmpl->list = prev_list;
+ANN static void cdef_flag(const Class_Def cdef, const Type t) {
+  if(cdef->base.tmpl) {
+    SET_FLAG(t, template);
+    SET_FLAG(cdef, template);
+  }
+  if(cdef->base.ext && cdef->base.ext->array)
+    SET_FLAG(t, typedef);
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
@@ -324,20 +323,13 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   }
   t->e->tuple = new_tupleform(env->gwion->mp, parent);
   t->e->owner = env->curr;
+  t->e->owner_class = env->class_def;
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
   t->e->def = cdef;
   t->flag = cdef->flag;
   add_type(env, t->e->owner, t);
-  if(cdef->base.tmpl) {
-    if(SAFE_FLAG(env->class_def, template) && env->class_def->e->def->base.tmpl->call == (Type_List)1)
-      inherit_tmpl(env, cdef);
-    set_template(t, cdef);
-  } else if(SAFE_FLAG(env->class_def, template)) {
-    cdef->base.tmpl = new_tmpl_base(env->gwion->mp, cpy_id_list(env->gwion->mp, env->class_def->e->def->base.tmpl->list));
-//    cdef->base.tmpl = cpy_tmpl(env->gwion->mp, env->class_def->e->def->base.tmpl);
-    set_template(t, cdef);
-  }
+  cdef_flag(cdef, t);
   if(cdef->base.ext && cdef->base.ext->array)
     SET_FLAG(t, typedef);
   return t;
@@ -360,18 +352,15 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
   SET_FLAG(cdef->base.type, scan0);
-  if(cdef->body) {
-    int call = cdef->base.tmpl && !cdef->base.tmpl->call;
-    if(call)cdef->base.tmpl->call = (Type_List)1;
-    const m_bool ret = env_body(env, cdef, scan0_section);
-    if(call)cdef->base.tmpl->call = NULL;
-    CHECK_BB(ret);
-  }
+  if(cdef->body)
+    CHECK_BB(env_body(env, cdef, scan0_section))
   (void)mk_class(env, cdef->base.type);
   return GW_OK;
 }
 
-ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
+ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
+  const Class_Def cdef = !(GET_FLAG(c, global) || (c->base.tmpl && !c->base.tmpl->call)) ?
+    c : cpy_class_def(env->gwion->mp, c);
   if(GET_FLAG(cdef, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);
     env->curr = env->global_nspc;
@@ -382,11 +371,8 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   CHECK_BB(ret)
-  if(GET_FLAG(cdef, global) || (cdef->base.tmpl && !cdef->base.tmpl->call)) {
-    const Class_Def c = cpy_class_def(env->gwion->mp, cdef);
+  if(GET_FLAG(cdef, global) || (cdef->base.tmpl && !cdef->base.tmpl->call))
     c->base.type = cdef->base.type;
-    c->base.type->e->def = c;
-  }
   return GW_OK;
 }
 

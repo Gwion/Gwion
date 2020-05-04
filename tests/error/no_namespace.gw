@@ -1,0 +1,5 @@
+#! [contains] has no namespace
+class C{
+  class private D{}
+}
+int->D d;

@@ -1,8 +1,9 @@
 #ifndef __IMPORT_INTERNALS
 #define __IMPORT_INTERNALS
 
-#define GWI_ERR_B(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return GW_ERROR; }
-#define GWI_ERR_O(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); return NULL; }
+#define GWI_ERR(a,...) { env_err(gwi->gwion->env, gwi->loc, (a), ## __VA_ARGS__); }
+#define GWI_ERR_B(a,...) { GWI_ERR((a), ## __VA_ARGS__); return GW_ERROR; }
+#define GWI_ERR_O(a,...) { GWI_ERR((a), ## __VA_ARGS__); return NULL; }
 #define ENV_ERR_B(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return GW_ERROR; }
 #define ENV_ERR_O(pos, a,...) { env_err(env, pos, (a), ## __VA_ARGS__); return NULL; }
 

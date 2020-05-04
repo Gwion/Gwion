@@ -113,8 +113,8 @@ static ID_CHECK(opck_this) {
   if(env->func && !GET_FLAG(env->func, member))
       ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack") &&
-GET_FLAG(env->class_def, struct))
-  ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
+       GET_FLAG(env->class_def, struct))
+    ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
   return env->class_def;
 }
 

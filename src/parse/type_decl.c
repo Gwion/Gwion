@@ -27,8 +27,8 @@ ANN Type type_nonnull(const Env env, const Type base) {
   return t;
 }
 
-ANN Type type_decl_resolve(const Env env, const Type_Decl* td) {
-  DECL_OO(const Type, base, = find_type(env, td->xid))
+ANN Type type_decl_resolve(const Env env, Type_Decl* td) {
+  DECL_OO(const Type, base, = find_type(env, td))
   if(base->e->ctx && base->e->ctx->error)
     ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, t, = scan_type(env, base, td))
@@ -65,16 +65,13 @@ ANEW ANN m_str tl2str(const Env env, Type_List tl) {
   return info.text.str;
 }
 
-ANN static inline void* type_unknown(const Env env, const ID_List id) {
-  char path[id_list_len(id)];
-  type_path(path, id);
-  env_err(env, id->pos, _("unknown type '%s'"), path);
-  did_you_mean_nspc(env->curr, s_name(id->xid));
+ANN static inline void* type_unknown(const Env env, const Type_Decl* td) {
+  env_err(env, td->pos, _("unknown type '%s'"), s_name(td->xid));
   return NULL;
 }
 
-ANN Type known_type(const Env env, const Type_Decl* td) {
+ANN Type known_type(const Env env, Type_Decl* td) {
   if(!td->xid)
     return env->gwion->type[et_undefined];
-  return type_decl_resolve(env, td) ?:type_unknown(env, td->xid);
+  return type_decl_resolve(env, td) ?:type_unknown(env, td);
 }

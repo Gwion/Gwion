@@ -29,11 +29,6 @@ ANN static void free_type(Type a, Gwion gwion) {
     REM_REF(a->nspc, gwion);
   if(a->e->tuple)
     free_tupleform(a->e->tuple);
-  if(a->e->contains.ptr) {
-    for(m_uint i = 0; i < vector_size(&a->e->contains); ++i)
-      REM_REF((Type)vector_at(&a->e->contains, i), gwion);
-    vector_release(&a->e->contains);
-  }
   mp_free(gwion->mp, TypeInfo, a->e);
   mp_free(gwion->mp, Type, a);
 }
@@ -53,7 +48,8 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
 ANN Type type_copy(MemPool p, const Type type) {
   const Type a = new_type(p, type->xid, type->name, type->e->parent);
   a->nspc          = type->nspc;
-  a->e->owner         = type->e->owner;
+  a->e->owner       = type->e->owner;
+  a->e->owner_class = type->e->owner_class;
   a->size          = type->size;
   a->e->d.base_type   = type->e->d.base_type;
   a->array_depth   = type->array_depth;
@@ -117,7 +113,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   t->e->owner = src->e->owner;
   ADD_REF((t->nspc = env->gwion->type[et_array]->nspc))
   SET_FLAG(t, checked);
-  mk_class(env, t); // maybe add_type_front could go in mk_class ?
+  mk_class(env, t);
   nspc_add_type_front(src->e->owner, sym, t);
   return t;
 }

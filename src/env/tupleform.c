@@ -15,14 +15,10 @@
 #include "parse.h"
 #include "array.h"
 
-ANN void tuple_info(const Env env, Type_Decl *base, const Var_Decl var) {
-  const Value v = var->value;
+ANN void tuple_info(const Env env, const Value v) {
   const m_uint offset = vector_back(&env->class_def->e->tuple->offset);
   vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
   vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
-  Type_Decl *td = cpy_type_decl(env->gwion->mp, base);
-  if(var->array)
-    td->array = cpy_array_sub(env->gwion->mp, var->array);
 }
 
 ANN2(1) TupleForm new_tupleform(MemPool p, const Type parent_type) {

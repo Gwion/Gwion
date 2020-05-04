@@ -153,7 +153,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
 ANN m_bool type_engine_init(const Gwion gwion, const Vector plug_dirs) {
   gwion->env->name = "[builtin]";
-  struct loc_t loc = {};
+  struct loc_t_ loc = {};
   OperCK oper = {};
   struct Gwi_ gwi = { .gwion=gwion, .loc=&loc, .oper=&oper };
   CHECK_BB(import_core_libs(&gwi))

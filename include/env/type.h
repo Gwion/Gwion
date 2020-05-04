@@ -2,14 +2,14 @@
 #define __TYPE
 
 struct TypeInfo_ {
-  Type      parent;
-  Nspc      owner;
+  Type parent;
+  Nspc owner;
+  Type owner_class;
   Class_Def def;
   union type_data {
     Func      func;
     Type      base_type;
   } d;
-  struct Vector_ contains;
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
   struct Context_ *ctx;

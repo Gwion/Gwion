@@ -52,6 +52,8 @@ static OP_CHECK(opck_ptr_deref) {
 
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
+  if(!cast->td->types->td)
+    ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
   DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
   if(!GET_FLAG(t, check))
     CHECK_BN(traverse_class_def(env, t->e->def))
@@ -64,6 +66,7 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
+  DECL_OO(const m_str, name, = get_type_name(env, imp->t->name, 1))
   if(!strcmp(get_type_name(env, imp->t->name, 1), e->info->type->name)) {
     const m_str access = exp_access(e);
     if(access)
@@ -118,7 +121,7 @@ static OP_EMIT(opem_ptr_deref) {
 }
 
 GWION_IMPORT(ptr) {
-  const Type t_ptr = gwi_class_ini(gwi, "Ptr<~A~>", NULL);
+  const Type t_ptr = gwi_class_ini(gwi, "<~A~>Ptr", NULL);
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))

@@ -15,286 +15,128 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN m_bool array_check(const Gwi gwi, struct array_checker *ck);
-
 __attribute__((returns_nonnull))
 ANN static Symbol gwisym(const Gwi gwi, const m_str str) {
   return insert_symbol(gwi->gwion->st, str);
 }
 
-//! check that there is no illegal character in the string
-// TODO: get rid of second argument, make it useless
-ANN static m_bool check_illegal(const char c, const m_uint i) {
-   return isalnum(c) || c == '_' || (!i && c == '@');
+struct td_checker {
+  m_str str;
+};
+
+struct AC {
+  m_str str;
+  Exp base;
+  Exp exp;
+  m_uint depth;
+};
+
+ANN static m_bool ac_run(const Gwi gwi, struct AC *ac);
+ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
+  const Array_Sub array = new_array_sub(mp, ac->base);
+  array->depth = ac->depth;
+  return array;
+}
+
+
+ANN static Symbol __str2sym(const Gwi gwi, struct td_checker *tdc) {
+  char buf[strlen(tdc->str) + 1];
+  m_str tmp = buf;
+  if(*tdc->str == '@')
+    *tmp++ = *tdc->str++;
+  while(*tdc->str) {
+    const char c = *tdc->str;
+    if(!isalnum(c) && c != '_')
+      break;
+    *tmp++ = *tdc->str++;
+  }
+  if(tmp == buf)
+    GWI_ERR_O("empty symbol");
+  *tmp = '\0';
+  return gwisym(gwi, buf);
+}
+
+ANN static inline Symbol _str2sym(const Gwi gwi, struct td_checker *tdc, const m_str path) {
+  const Symbol sym = __str2sym(gwi, tdc);
+  if(*tdc->str)
+    GWI_ERR_O(_("illegal character '%c' in path '%s'."), *tdc->str, path)
+  return sym;
 }
 
 /** convert a string to a symbol, with error checking **/
 ANN Symbol str2sym(const Gwi gwi, const m_str path) {
-  const size_t sz = strlen(path);
-  m_uint i;
-  char curr[sz + 1];
-  for(i = 0; i < sz; ++i) {
-    const char c = path[i];
-    if(c != '.') {
-      if(!check_illegal(c, i))
-        GWI_ERR_O(_("illegal character '%c' in path '%s'."), c, path)
-      curr[i] = c;
-    } else
-      break;
-  }
-  curr[i++] = '\0';
-  return gwisym(gwi, curr);
+  struct td_checker tdc = { .str=path };
+  return _str2sym(gwi, &tdc, path);
 }
 
+// only in enum.c
 ANN ID_List str2symlist(const Gwi gwi, const m_str path) {
   DECL_OO(const Symbol, sym, = str2sym(gwi, path))
   return new_id_list(gwi->gwion->mp, sym, loc(gwi));
 }
 
-ANN ID_List path_valid(const Gwi gwi, const m_str path) {
-  const size_t sz = strlen(path);
-  if(path[0] == '.' || path[sz] == '.')
-    GWI_ERR_O(_("path '%s' must not ini or end with '.'."), path)
-  DECL_OO(const ID_List, list, = str2symlist(gwi, path))
-  if(strlen(s_name(list->xid)) < sz)
-    list->next = path_valid(gwi, path + strlen(s_name(list->xid)));
-  return list;
-}
-
-// similar to import array_sub ?
-ANN Array_Sub ck_array(MemPool mp, const m_uint depth) {
-  if(!depth)
-    return NULL;
-  const Array_Sub array = new_array_sub(mp, NULL);
-  array->depth = depth;
-  return array;
-}
-
 ANN Var_Decl str2var(const Gwi gwi, const m_str path) {
-  struct array_checker ck = { .str=path };
-  CHECK_BO(array_check(gwi, &ck))
-  const m_uint sz = strlen(path);
-  const m_uint len = sz - ck.sz;
-  char curr[len + 1];
-  memcpy(curr, path, len);
-  curr[len] = '\0';
-  DECL_OO(const Symbol, sym, = str2sym(gwi, curr))
-  const Array_Sub array = ck_array(gwi->gwion->mp, ck.depth);
+  struct td_checker tdc = { .str=path };
+  DECL_OO(const Symbol, sym, = __str2sym(gwi, &tdc))
+  struct AC ac = { .str = tdc.str };
+  CHECK_BO(ac_run(gwi, &ac))
+  const Array_Sub array = ac.depth ?
+    mk_array(gwi->gwion->mp, &ac) : NULL;
   return new_var_decl(gwi->gwion->mp, sym, array, loc(gwi));
 }
 
+// only in udef.c
 ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
   DECL_OO(const Var_Decl, var, = str2var(gwi, path))
   return new_var_decl_list(gwi->gwion->mp, var, NULL);
 }
 
-struct tmpl_checker {
-  const m_str str;
-  ID_List list;
-};
-
-ANN static m_bool tmpl_list(const Gwi gwi, struct tmpl_checker *ck) {
-  m_str s = ck->str;
-  const size_t sz = strlen(s);
-  char c[sz + 1];
-  for(m_uint i = 0; i < sz; ++i) {
-    if(isalnum(s[i]) || s[i] == '_') {
-      c[i] = s[i];
-      continue;
-    }
-    if(s[i] == '~') {
-      if(!i || s[i+1] != '>')
-        break;
-      c[i] = '\0';
-      ck->list = new_id_list(gwi->gwion->mp, gwisym(gwi, c), loc(gwi));
-      return GW_OK;
-    }
-    if(s[i] == ',') {
-      if(!i)break;
-      c[i] = '\0';
-      ck->list = new_id_list(gwi->gwion->mp, gwisym(gwi, c), loc(gwi));
-      struct tmpl_checker _ck = { .str=ck->str + i + 1 };
-      CHECK_BB(tmpl_list(gwi, &_ck))
-      ck->list->next = _ck.list;
-      return GW_OK;
-    }
-    break;
+ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {
+  DECL_OO(const Symbol, sym, = __str2sym(gwi, tdc))
+  ID_List next = NULL;
+  if(*tdc->str == ',') {
+    ++tdc->str;
+    if(!(next = _tmpl_list(gwi, tdc)) || next == (ID_List)GW_ERROR)
+      return (ID_List)GW_ERROR;
   }
-  return GW_ERROR;
+  const ID_List list = new_id_list(gwi->gwion->mp, sym, loc(gwi));
+  list->next = next;
+  return list;
 }
 
-ANN static m_bool tmpl_check(const m_str str) {
-  if(str[0] != '<')
-    return 0; // TODO: make it GW_PASS
-  if(str[1] != '~')
-    return GW_ERROR;
-  return GW_OK;
-}
-
-ANN static ID_List _tmpl_valid(const Gwi gwi, const m_str str) {
-  const m_bool ret = tmpl_check(str);
-  if(ret == GW_ERROR)
-    return (ID_List)GW_ERROR;
-  if(!ret)
+ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
+  if(tdc->str[0] != '<')
     return NULL;
-  struct tmpl_checker ck = { .str=str+2 };
-  if(tmpl_list(gwi, &ck) == GW_ERROR)
+  if(tdc->str[1] != '~')
     return (ID_List)GW_ERROR;
-  return ck.list;
-}
-
-ANN ID_List tmpl_valid(const Gwi gwi, const m_str str) {
-  const ID_List ret = _tmpl_valid(gwi, str);
-  if(ret == (ID_List)GW_ERROR)
-    env_err(gwi->gwion->env, gwi->loc, _("invalid templating definition"));
-  return ret;
-}
-
-ANN ID_List ck2list(const Gwi gwi, struct array_checker *ck) {
-  const m_str base = ck->str;
-  CHECK_BO(array_check(gwi, ck))
-  const m_uint sz = strlen(base);
-  const m_uint len = sz - ck->sz;
-  char curr[len + 1];
-  memcpy(curr, base, len);
-  curr[len] = '\0';
-  return path_valid(gwi, curr);
-}
-
-ANN static Type_List str2tl(const Gwi gwi, const m_str s);
-ANN static Type_List _str2tl(const Gwi gwi, const m_str s) {
-  DECL_OO(Type_Decl*, td, = str2decl(gwi, s))
-  return new_type_list(gwi->gwion->mp, td, NULL);
-}
-
-ANN Type_List tlnext(const Gwi gwi, const m_str s, size_t split) {
-  char curr[split+1];
-  memcpy(curr, s, split);
-  curr[split] = '\0';
-  const Type_List tl = _str2tl(gwi, curr);
-  tl->next = str2tl(gwi, s + split + 1);
-  return tl;
-}
-
-struct GetTl {
-  const m_str str;
-  m_uint i;
-  m_uint lvl;
-  const size_t sz;
-};
-
-//! a funtion factory to open/close the template
-#define tl_xxx(name, tgt, op)                             \
-ANN m_bool tl_##name(struct GetTl *gtl, const m_uint i) { \
-  if(!(i < gtl->sz && gtl->str[i] == tgt))                \
-    return GW_ERROR;                                      \
-  op gtl->lvl;                                            \
-  return GW_OK;                                           \
-}
-tl_xxx(open,  '~', ++)
-tl_xxx(close, '>', --)
-
-ANN static Type_List str2tl(const Gwi gwi, const m_str s) {
-  struct GetTl gtl = { .str=s, .sz = strlen(s) };
-  for(m_uint i = 0; i < gtl.sz; ++i) {
-    if(s[i] == '<')
-      CHECK_BO(tl_open(&gtl, ++i))
-    else if(s[i] == '~')
-      CHECK_BO(tl_close(&gtl, ++i))
-    else if(s[i] == ',' && !gtl.lvl)
-      return tlnext(gwi, s, i);
+  tdc->str += 2;
+  const ID_List list =  _tmpl_list(gwi, tdc);
+  if(list == (ID_List)GW_ERROR)
+    return (ID_List)GW_ERROR;
+  if(tdc->str[0] != '~' || tdc->str[1] != '>') {
+// unfinished template
+    if(list)
+      free_id_list(gwi->gwion->mp, list);
+    return (ID_List)GW_ERROR;
   }
-  return _str2tl(gwi, s);
-}
-
-//! convert a string to a Type_Decl
-ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
-  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
-  const m_str s = strncmp(str, "nonnull ", 8) ? str : str + 8;
-// we can do better
-  DECL_OO(const m_str, type_name, = get_type_name(gwi->gwion->env, s, 0))
-  struct array_checker ck = { .str=type_name };
-  DECL_OO(const ID_List, id, = ck2list(gwi, &ck))
-  Type_Decl* td = new_type_decl(gwi->gwion->mp, id);
-  const m_str tl_name = get_type_name(gwi->gwion->env, s, 1);
-  if(tl_name) {
-    if(!(td->types = str2tl(gwi, tl_name))) {
-      free_type_decl(gwi->gwion->mp, td);
-      return NULL;
-    }
-  }
-  if(ck.depth) {
-    td->array = new_array_sub(gwi->gwion->mp, ck.exp);
-    td->array->depth = ck.depth;
-  }
-  td->flag |= flag;
-  return td;
-}
-
-ANN static void array_add_exp(struct array_checker *ck, const Exp exp) {
-  if(ck->exp)
-    ck->exp = (ck->exp->next = exp);
-  else
-    ck->base = ck->exp = exp;
-  ++ck->is_exp;
-}
-
-ANN m_bool _array_check(const Gwi gwi, struct array_checker *ck) {
-  const m_str base = ck->str;
-  const size_t sz = strlen(ck->str);
-  char tmp[sz + 1];
-  for(m_uint i = 0; i < sz; ++i) {
-    const char c = ck->str[i];
-    if(c == ']') {
-      const m_bool is_end = ck->str[i + 1] == '\0';
-      if(!is_end && ck->str[i + 1] != '[')
-        break;
-      ck->str += i + 2;
-      ck->sz += i + 2;
-      if(i) {
-        if(!ck->is_exp && ck->depth)
-          break;
-        tmp[i] = '\0';
-        const m_uint num = strtol(tmp, NULL, 10);// migth use &endptr and check errno
-        const Exp exp = new_prim_int(gwi->gwion->mp, num, loc(gwi));
-        array_add_exp(ck, exp);
-      } else {
-        if(ck->is_exp > 0)
-          break;
-      }
-      ++ck->depth;
-      return is_end ? GW_OK : _array_check(gwi, ck);
-    }
-    if(isdigit(c))
-      tmp[i] = c;
-    else
-      GWI_ERR_B(_("invalid subscript '%c' in '%s'"), c, base)
-  }
-  GWI_ERR_B(_("incoherent subscript '%s'"), base)
-}
-
-ANN m_bool array_check(const Gwi gwi, struct array_checker *ck) {
-  ck->str = ck->str ? strchr(ck->str, '[') : NULL;
-  if(!ck->str)
-    return GW_OK;
-  ++ck->str;
-  return _array_check(gwi, ck);
+  tdc->str += 2;
+  return list;
 }
 
 ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
-  const m_str base = ck->name;
-  char str[strlen(base) + 1];
-  const m_str c = strchr(ck->name, '<');
-  memcpy(str, base, strlen(base) - (c ? strlen(c) : 0));
-  str[strlen(base) - (c ? strlen(c) : 0)] = '\0';
-  ck->name = str;
-  CHECK_OB((ck->sym = str2sym(gwi, str)))
-  ID_List tmpl = NULL;
-  if(c && (tmpl = tmpl_valid(gwi, c)) == (ID_List)GW_ERROR)
+  struct td_checker tdc = { .str= ck->name };
+  ID_List il = __tmpl_list(gwi, &tdc);
+  if(il == (ID_List)GW_ERROR)
     return GW_ERROR;
-  ck->tmpl = tmpl;
-  ck->name = base;
+  if(!(ck->sym = _str2sym(gwi, &tdc, tdc.str))) {
+    if(il)
+      free_id_list(gwi->gwion->mp, il);
+    return GW_ERROR;
+  }
+  ck->tmpl = il;
+  ck->name = s_name(ck->sym);
   return GW_OK;
+
 }
 
 ANN m_bool ck_ini(const Gwi gwi, const enum importck_type t) {
@@ -335,3 +177,145 @@ ANN void ck_clean(const Gwi gwi) {
   memset(gwi->ck, 0, sizeof(ImportCK));
 }
 
+ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc);
+ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
+  Type_Decl *td = _str2decl(gwi, tdc);
+  if(!td)
+    GWI_ERR_O("invalid types");
+  Type_List next = NULL;
+  if(*tdc->str == ',') {
+    ++tdc->str;
+    if(!(next = __str2tl(gwi, tdc))) {
+      free_type_decl(gwi->gwion->mp, td);
+      return NULL;
+    }
+  }
+  return new_type_list(gwi->gwion->mp, td, next);
+}
+
+ANN Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
+  if(*tdc->str != '<')
+    return NULL; // GW_PASS
+  ++tdc->str;
+  if(*tdc->str != '~') {
+    GWI_ERR("invalid character");
+    return (Type_List)GW_ERROR;
+  }
+  ++tdc->str;
+  Type_List tl = __str2tl(gwi, tdc);
+  if(!tl)
+    return (Type_List)GW_ERROR;
+  if(tdc->str[0] != '~' || tdc->str[1] != '>') {
+    free_type_list(gwi->gwion->mp, tl);
+    GWI_ERR("unfinished template");
+    return (Type_List)GW_ERROR;
+  }
+  tdc->str += 2;
+  return tl;
+}
+
+ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
+  if(ac->exp)
+    ac->exp = (ac->exp->next = exp);
+  else
+    ac->base = ac->exp = exp;
+}
+
+
+ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
+  Type_List tl = td_tmpl(gwi, tdc);
+  if(tl == (Type_List)GW_ERROR)
+    return NULL;
+  Type_Decl *next = NULL;
+  const Symbol sym = __str2sym(gwi, tdc);
+  if(!sym) {
+    if(tl)
+      free_type_list(gwi->gwion->mp, tl);
+    return NULL;
+  }
+  struct AC ac = { .str = tdc->str };
+  if(ac_run(gwi, &ac) < 0) {
+    if(tl)free_type_list(gwi->gwion->mp, tl);
+    return NULL;
+  }
+  tdc->str = ac.str;
+  if(*tdc->str == '.') {
+    ++tdc->str;
+    if(!(next =  _str2decl(gwi, tdc))) {
+      if(tl)
+        free_type_list(gwi->gwion->mp, tl);
+      if(ac.base)
+        free_exp(gwi->gwion->mp, ac.base);
+      return NULL;
+    }
+  }
+  Type_Decl *td = new_type_decl(gwi->gwion->mp, sym, loc(gwi));
+  td->next = next;
+  if(ac.depth)
+    td->array = mk_array(gwi->gwion->mp, &ac);
+  return td;
+}
+
+ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
+  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
+  struct td_checker tdc = { .str=str };
+  if(flag == ae_flag_nonnull)
+    tdc.str += 8;
+  DECL_OO(Type_Decl *, td, = _str2decl(gwi, &tdc))
+  if(*tdc.str) {
+    free_type_decl(gwi->gwion->mp, td);
+    GWI_ERR_O("excedental character '%c'", *tdc.str);
+  }
+  td->flag |= flag;
+  return td;
+}
+
+ANN static inline m_bool ac_finish(const Gwi gwi, struct AC *ac) {
+  if(*ac->str == ']')
+    return GW_OK;
+  GWI_ERR_B("unfinished array");
+}
+
+ANN static inline m_bool ac_num(const Gwi gwi, const m_int num) {
+  if(num >= 0)
+    return GW_OK;
+  GWI_ERR_B("negative array dimension")
+}
+
+ANN static inline m_bool ac_exp(const Gwi gwi, struct AC *ac) {
+  if(!ac->depth || ac->base)
+    return GW_OK;
+  GWI_ERR_B("malformed array [][...]")
+}
+
+ANN static inline m_bool ac_noexp(const Gwi gwi, struct AC *ac) {
+  if(!ac->exp)
+    return GW_OK;
+  GWI_ERR_B("malformed array [...][]")
+}
+
+ANN static m_bool _ac_run(const Gwi gwi, struct AC *ac) {
+  const m_str str = ac->str;
+  const m_int num = strtol(str, &ac->str, 10);
+  CHECK_BB(ac_finish(gwi, ac))
+  if(str != ac->str) {
+    CHECK_BB(ac_num(gwi, num))
+    CHECK_BB(ac_exp(gwi, ac))
+    const Exp exp = new_prim_int(gwi->gwion->mp, num, loc(gwi));
+    ac_add_exp(ac, exp);
+  } else
+    CHECK_BB(ac_noexp(gwi, ac))
+  ++ac->str;
+  return GW_OK;
+}
+
+ANN static m_bool ac_run(const Gwi gwi, struct AC *ac) {
+  while(*ac->str) {
+    if(*ac->str != '[')
+      break;
+    ++ac->str;
+    CHECK_BB(_ac_run(gwi, ac))
+    ++ac->depth;
+  }
+  return GW_OK;
+}

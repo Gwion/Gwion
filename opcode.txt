@@ -127,10 +127,10 @@ Overflow
 FuncUsrEnd
 FuncMemberEnd
 SporkIni
+ForkIni
 SporkFunc
 SporkMemberFptr
 SporkExp
-ForkEnd
 SporkEnd
 BranchEqInt
 BranchNeqInt

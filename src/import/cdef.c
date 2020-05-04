@@ -49,8 +49,9 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
   if(isa(t, env->gwion->type[et_object]) > 0)
-  inherit(t);
+    inherit(t);
   t->e->owner = env->curr;
+  t->e->owner_class = env->class_def;
   SET_FLAG(t, checked);
   env_push_type(env, t);
 }
@@ -80,8 +81,12 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   DECL_OO(Type_Decl *,td, = str2decl(gwi, parent ?: "Object"))
   Tmpl* tmpl = ck.tmpl ? new_tmpl_base(gwi->gwion->mp, ck.tmpl) : NULL;
   if(tmpl)
-    template_push_types(gwi->gwion->env, tmpl);
+    CHECK_BO(template_push_types(gwi->gwion->env, tmpl))
   const Type p = known_type(gwi->gwion->env, td); // check
+  if(!p) {
+    env_pop(gwi->gwion->env, 0);
+    return NULL;
+  }
   if(tmpl)
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
