@@ -1,0 +1,4 @@
+<<< int i >>>;
+fun global void this_global_func_will_fail_to_compile() {
+  <<< i >>>;
+}
