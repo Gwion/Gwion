@@ -35,6 +35,7 @@ ANN static m_bool ac_run(const Gwi gwi, struct AC *ac);
 ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
   const Array_Sub array = new_array_sub(mp, ac->base);
   array->depth = ac->depth;
+  array->exp = ac->base;
   return array;
 }
 

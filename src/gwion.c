@@ -178,7 +178,7 @@ ANN struct SpecialId_* specialid_get(const Gwion gwion, const Symbol sym) {
 ANN void push_global(struct Gwion_ *gwion, const m_str name) {
   const Nspc nspc = new_nspc(gwion->mp, name);
   nspc->parent = gwion->env->global_nspc;
-  gwion->env->global_nspc = nspc;
+  gwion->env->curr = gwion->env->global_nspc = nspc;
 }
 
 ANN Nspc pop_global(struct Gwion_ *gwion) {
