@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Mac ${{ matrix.cc }} ${{ matrix.double && 'double' || 'float'}}
+    name: [  Mac  ] ${{ matrix.double && 'double' || 'float '}} (${{ matrix.cc }})
     runs-on: macos-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
