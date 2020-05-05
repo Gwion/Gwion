@@ -104,10 +104,10 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   return type_finish(gwi, t);
 }
 
-ANN Type gwi_struct_ini(const Gwi gwi, const m_str name, const m_uint size) {
+ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   CHECK_OO(str2sym(gwi, name))
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
-  t->size = size;
+  t->e->tuple = new_tupleform(gwi->gwion->mp, NULL);
   gwi_type_flag(t);
   SET_FLAG(t, struct);
   return type_finish(gwi, t);
