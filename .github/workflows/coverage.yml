@@ -13,6 +13,7 @@ on:
 
 jobs:
   build:
+    name: Coverage
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
