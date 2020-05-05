@@ -485,7 +485,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
 #define emit_prim_nil     (void*)dummy_func
 
 ANN static inline void struct_interp(const Emitter emit, const Exp e) {
-  if(GET_FLAG(e->info->type, struct)) {
+  if(GET_FLAG(e->info->type, struct) && !GET_FLAG(e->info->type, builtin)) {
     exp_setvar(e, 1);
     regpush(emit, e->info->type->size - SZ_INT);
   }
@@ -757,7 +757,8 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val = -SZ_INT;
     instr->m_val2 = -SZ_INT;
-  }
+  } else if(!exp_call->m_func && GET_FLAG(e->info->type, struct))
+    regpop(emit, SZ_INT);
   return GW_OK;
 }
 

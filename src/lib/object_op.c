@@ -139,7 +139,7 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
 OP_CHECK(opck_object_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
-  if(ts->td->types)
+  if(ts->td->types && GET_FLAG(ts->t, template) && ts->t->e->def)
     return scan_class(env, ts->t, ts->td);
   if(!GET_FLAG(ts->t, template) || GET_FLAG(ts->t, unary))
     return ts->t;
