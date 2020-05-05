@@ -98,7 +98,7 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "=>",      String_Assign))
 
-  GWI_BB(gwi_oper_ini(gwi, "string",  "string", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "string",  "string", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",       String_eq))
   GWI_BB(gwi_oper_end(gwi, "!=",       String_neq))
 
