@@ -52,7 +52,7 @@ static OP_CHECK(opck_ptr_deref) {
 
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  if(!cast->td->types->td)
+  if(!cast->td->types || !cast->td->types->td)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
   DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
   if(!GET_FLAG(t, check))
