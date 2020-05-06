@@ -94,7 +94,7 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_item_end(gwi,   ae_flag_const, NULL))
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "string",  "nonnull string", "string"))
+  GWI_BB(gwi_oper_ini(gwi, "string",  "nonnull string", "nonnull string"))
   GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
   GWI_BB(gwi_oper_end(gwi, "=>",      String_Assign))
 
@@ -102,7 +102,7 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_end(gwi, "==",       String_eq))
   GWI_BB(gwi_oper_end(gwi, "!=",       String_neq))
 
-  GWI_BB(gwi_oper_ini(gwi, "nonnull string", "int", "string"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "nonnull string", "nonnull string"))
   GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
 
   struct SpecialId_ spid = { .ck=check_funcpp, .exec=RegPushMe, .is_const=1 };

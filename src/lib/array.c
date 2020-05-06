@@ -190,7 +190,7 @@ static OP_CHECK(opck_array_cast) {
 
 static OP_CHECK(opck_array_slice) {
   const Exp e = (Exp)data;
-  return e->d.exp_slice.base->info->type;
+  return e->info->type;
 }
 
 static inline m_bool bounds(const M_Vector v, const m_int i) {
@@ -339,7 +339,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", "int", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "nonnull @Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
