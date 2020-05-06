@@ -61,6 +61,8 @@ static MFUN(vm_shred_is_done) {
 static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
   const Shreduler sh = s->tick->shreduler;
+  if(s != shred)
+    shreduler_remove(sh, s, 0);
   shredule(sh, s, GWION_EPSILON);
 }
 
