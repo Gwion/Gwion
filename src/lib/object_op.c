@@ -369,11 +369,9 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
   c->base.xid = name;
   SET_FLAG(c, template | ae_flag_ref);
   return c;
-
 }
 
 ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
-puts("\033[35mhere\033[0m");
   a->union_def = new_union_def(env->gwion->mp, cpy_decl_list(env->gwion->mp, a->list),
     loc_cpy(env->gwion->mp, t->e->def->pos));
   a->union_def->type_xid = a->base.xid;
