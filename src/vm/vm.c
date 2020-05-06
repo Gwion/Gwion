@@ -864,7 +864,8 @@ gackend:
     gw_out("%s\n", str);
   else
     *(M_Object*)(reg - SZ_INT)= new_string(vm->gwion->mp, shred, str);
-  mp_free2(vm->gwion->mp, strlen(str), str);
+  if(str)
+    mp_free2(vm->gwion->mp, strlen(str), str);
   DISPATCH();
 }
 gack:
