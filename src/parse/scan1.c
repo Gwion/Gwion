@@ -78,7 +78,10 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     v->type = t;
     if(var->array && !var->array->exp)
       SET_FLAG(v, ref);
-    if(!env->scope->depth && !env->class_def)
+    if(env->class_def) {
+      if(env->class_def->e->tuple)
+        tuple_contains(env, v);
+    } else if(!env->scope->depth)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
     if(!env->scope->depth)
