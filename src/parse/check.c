@@ -167,6 +167,14 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     ERR_O(td_pos(decl->td), _("can't find type"));
   {
     const Type t = get_type(decl->type);
+    if(env->class_def && !env->scope->depth){
+      Type parent = t;
+      while(parent) {
+        if(parent == env->class_def && !GET_FLAG(decl->td, ref))
+          ERR_O(decl->td->pos, "declaration cycle detected. (declare as ref?)")
+        parent = parent->e->parent;
+      }
+    }
     if(!GET_FLAG(t, check) && t->e->def)
       CHECK_BO(ensure_check(env, t))
   }
