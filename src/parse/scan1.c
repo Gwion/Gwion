@@ -511,6 +511,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def c) {
   const Type t = c->base.type;
   const Class_Def cdef = t->e->def;
   if(GET_FLAG(t, scan1))return GW_OK;
+  SET_FLAG(cdef, scan1);
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, scan1))
     CHECK_BB(scan1_class_def(env, t->e->owner_class->e->def))
   SET_FLAG(cdef->base.type, scan1);
@@ -518,7 +519,6 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def c) {
     CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan1_section))
-  SET_FLAG(cdef, scan1);
   return GW_OK;
 }
 

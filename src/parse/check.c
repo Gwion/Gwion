@@ -1361,7 +1361,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def c) {
   const Class_Def cdef = t->e->def;
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, check))
     CHECK_BB(check_class_def(env, t->e->owner_class->e->def))
-  if(GET_FLAG(t, checked))return GW_OK;
+  if(GET_FLAG(t, check))return GW_OK;
   SET_FLAG(t, check);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))
