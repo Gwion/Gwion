@@ -22,9 +22,9 @@ ANN void tuple_info(const Env env, const Value v) {
 }
 
 ANN void tuple_contains(const Env env, const Value value) {
-  if(!env->class_def->e->tuple)
-    return;
   const Type t = value->type;
+  if(!env->class_def->e->tuple || env->class_def == value->type)
+    return;
   const Vector v = &env->class_def->e->tuple->contains;
   const m_int idx = vector_size(v) ? vector_find(v, (vtype)t) : -1;
   if(idx == -1) {
