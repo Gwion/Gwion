@@ -67,8 +67,11 @@ INSTR(VarargIni) {
   for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
     const Type t = (Type)vector_at(&arg->t, arg->i);
     *(m_uint*)(arg->d + offset) = *(m_uint*)(shred->reg - SZ_INT + offset);
-    if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-      ++(*(M_Object*)(arg->d + offset))->ref;
+    if(isa(t, shred->info->vm->gwion->type[et_object]) > 0) {
+      const M_Object obj = *(M_Object*)(arg->d + offset);
+      if(obj)
+        ++obj->ref;
+    }
     offset += t->size;
   }
   arg->s = vector_size(kinds);
