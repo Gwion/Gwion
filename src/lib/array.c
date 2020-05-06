@@ -56,6 +56,8 @@ static DTOR(array_dtor) {
   const Type t = !GET_FLAG(o->type_ref, nonnull) ?
     o->type_ref : o->type_ref->e->parent;
   struct M_Vector_* a = ARRAY(o);
+  if(!a)
+    return;
   if(t->array_depth > 1 || is_array(shred->info->vm->gwion->type, t))
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
       release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
