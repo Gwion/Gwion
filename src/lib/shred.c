@@ -161,7 +161,6 @@ static void stop(const M_Object o) {
 }
 
 static void join(const M_Object o) {
-  VM *vm = ME(o)->info->vm;
   if(FORK_THREAD(o)) {
     THREAD_JOIN(FORK_THREAD(o));
     FORK_THREAD(o) = 0;
