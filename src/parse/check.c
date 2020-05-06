@@ -128,8 +128,7 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
         tuple_info(env, v);
     } else if(GET_FLAG(td, static))
         decl_static(env, v);
-  } else if(GET_FLAG(td, global) || (env->func && GET_FLAG(env->func->def, global)))
-    SET_FLAG(v, abstract);
+  }
   return GW_OK;
 }
 
