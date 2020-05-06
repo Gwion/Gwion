@@ -28,7 +28,7 @@ ANN static void free_type(Type a, Gwion gwion) {
   if(a->nspc)
     REM_REF(a->nspc, gwion);
   if(a->e->tuple)
-    free_tupleform(a->e->tuple);
+    free_tupleform(a->e->tuple, gwion);
   mp_free(gwion->mp, TypeInfo, a->e);
   mp_free(gwion->mp, Type, a);
 }
@@ -86,7 +86,7 @@ ANN Type typedef_base(Type t) {
 
 ANN Type array_base(Type type) {
   const Type t = typedef_base(type);
-  return t->e->d.base_type;
+  return t->array_depth ? t->e->d.base_type : t;
 }
 
 ANN static Symbol array_sym(const Env env, const Type src, const m_uint depth) {

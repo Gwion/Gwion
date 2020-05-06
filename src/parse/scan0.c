@@ -153,8 +153,9 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
 
 ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type base) {
   const ae_flag flag = base->e->def ? base->e->def->flag : 0;
-  const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->xid, tdef->ext, NULL,
-    loc_cpy(env->gwion->mp, td_pos(tdef->ext)));
+  const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->xid,
+       cpy_type_decl(env->gwion->mp, tdef->ext), NULL,
+       loc_cpy(env->gwion->mp, td_pos(tdef->ext)));
   CHECK_BB(scan0_class_def(env, cdef))
   tdef->type = cdef->base.type;
   cdef->base.tmpl = tdef->tmpl;// check cpy

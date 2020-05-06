@@ -17,6 +17,7 @@
 
 ANN void tuple_info(const Env env, const Value v) {
   const m_uint offset = vector_back(&env->class_def->e->tuple->offset);
+  ADD_REF(v->type);
   vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
   vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
 }
@@ -43,7 +44,9 @@ ANN2(1) TupleForm new_tupleform(MemPool p, const Type parent_type) {
   return tuple;
 }
 
-ANN void free_tupleform(const TupleForm tuple) {
+ANN void free_tupleform(const TupleForm tuple, const struct Gwion_ *gwion) {
+  for(m_uint i = 0; i < vector_size(&tuple->types); ++i)
+    REM_REF((Type)vector_at(&tuple->types, i), (void*)gwion);
   vector_release(&tuple->types);
   vector_release(&tuple->offset);
 }
