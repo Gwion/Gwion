@@ -230,9 +230,9 @@ struct ThreadLauncher *tl = data;
   MUTEX_TYPE mutex = tl->mutex;
   const M_Object me = vm->shreduler->list->self->info->me;
   ++me->ref;
-  MUTEX_LOCK(mutex);
+  MUTEX_COND_LOCK(mutex);
   THREAD_COND_SIGNAL(FORK_COND(me));
-  MUTEX_UNLOCK(mutex);
+  MUTEX_COND_UNLOCK(mutex);
   while(fork_running(vm, me)) {
     vm_run(vm);
     ++vm->bbq->pos;
@@ -253,10 +253,10 @@ ANN void fork_launch(const M_Object o, const m_uint sz) {
   MUTEX_SETUP(FORK_MUTEX(o));
   THREAD_COND_SETUP(FORK_COND(o));
   struct ThreadLauncher tl = { .mutex=FORK_MUTEX(o), .cond=FORK_COND(o), .vm=ME(o)->info->vm };
-  MUTEX_LOCK(tl.mutex);
+  MUTEX_COND_LOCK(tl.mutex);
   THREAD_CREATE(FORK_THREAD(o), fork_run, &tl);
   THREAD_COND_WAIT(FORK_COND(o), tl.mutex);
-  MUTEX_UNLOCK(tl.mutex);
+  MUTEX_COND_UNLOCK(tl.mutex);
   THREAD_COND_CLEANUP(FORK_COND(o));
   MUTEX_CLEANUP(FORK_MUTEX(o));
 }
