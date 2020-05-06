@@ -146,7 +146,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, co
     vector_init(&parent->gwion->data->child);
   vector_add(&parent->gwion->data->child, (vtype)o);
   shreduler_add(vm->shreduler, sh);
-  fork_launch(parent, sh->info->me, retsz);
+  fork_launch(sh->info->me, retsz);
   return sh;
 }
 

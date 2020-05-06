@@ -248,7 +248,7 @@ struct ThreadLauncher *tl = data;
   THREAD_RETURN(0);
 }
 
-ANN void fork_launch(VM const* vm, const M_Object o, const m_uint sz) {
+ANN void fork_launch(const M_Object o, const m_uint sz) {
   FORK_RETSIZE(o) = sz;
   MUTEX_SETUP(FORK_MUTEX(o));
   THREAD_COND_SETUP(FORK_COND(o));

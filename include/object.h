@@ -17,7 +17,7 @@ ANN ANEW M_Object new_array(MemPool, const Type t, const m_uint length);
 ANEW M_Object new_string(MemPool, const VM_Shred, const m_str);
 ANEW M_Object new_string2(const struct Gwion_*, const VM_Shred, const m_str);
 ANEW M_Object new_shred(const VM_Shred, const m_bool);
-ANN void fork_launch(VM const*, const M_Object, const m_uint);
+ANN void fork_launch(const M_Object, const m_uint);
 ANN void __release(const M_Object, const VM_Shred);
 ANN void exception(const VM_Shred, const m_str);
 ANN void broadcast(const M_Object);
