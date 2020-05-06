@@ -166,7 +166,7 @@ ANN static void set_nspc(struct Op_Import *opi, const Nspc nspc) {
     exp_self((union exp_data*)opi->data)->info->nspc = nspc;
 }
 
-ANN static void set_nonnull(const Type t, const Exp exp) {
+ANN static inline void set_nonnull(const Type t, const Exp exp) {
   if(t != OP_ANY_TYPE && GET_FLAG(t, nonnull))
     exp_setnonnull(exp, 1);
 }
