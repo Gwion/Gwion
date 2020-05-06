@@ -1585,8 +1585,12 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     SET_FLAG(udef->type, emit);
     scope = emit_push_type(emit, udef->type);
   } else if(global) {
+    // TODO: use mpool allocation
     void* ptr = (void*)xcalloc(1, udef->s);
     l = udef->l;
+    udef->value->d.ptr = ptr;
+    SET_FLAG(udef->value, enum);
+    SET_FLAG(udef->value, dtor);
     do {
       Var_Decl_List list = l->self->d.exp_decl.list;
       list->self->value->d.ptr = ptr;
@@ -1995,18 +1999,17 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def c) {
     return GW_OK;
   const Type t = c->base.type;
   const Class_Def cdef = t->e->def;
-  if(GET_FLAG(cdef->base.type, emit))
+  if(GET_FLAG(t, emit))
     return GW_OK;
   if(cdef->base.ext && t->e->parent->e->def && !GET_FLAG(t->e->parent, emit))
     CHECK_BB(cdef_parent(emit, cdef))
-  const Nspc nspc = t->nspc;
   SET_FLAG(t, emit);
-  nspc_allocdata(emit->gwion->mp, nspc);
+  nspc_allocdata(emit->gwion->mp, t->nspc);
   if(cdef->body) {
     if(!no_ctor(emit, cdef)) {
       emit_class_code(emit, t->name);
       CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
-      emit_class_finish(emit, nspc);
+      emit_class_finish(emit, t->nspc);
     } else
       CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_struct_body2, emit))
   }
