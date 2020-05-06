@@ -12,7 +12,7 @@ ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
   if(env->class_def && !env->scope->depth) {
     const m_int idx = vector_find(&env->scope->class_stack, (vtype)t);
-    if(idx > -1 || t == env->class_def)
+    if(!GET_FLAG(td, ref) && (idx > -1 || t == env->class_def))
       ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
             t->name, t == env->class_def ? "itself" : env->class_def->name);
   }
