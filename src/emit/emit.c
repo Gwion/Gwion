@@ -1431,7 +1431,7 @@ ANN static m_bool _emit_stmt_for(const Emitter emit, const Stmt_For stmt, m_uint
 
 ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   emit_push_stack(emit);
-  m_uint action_index;
+  m_uint action_index = 0;
   const m_bool ret = _emit_stmt_for(emit, stmt, &action_index);
   emit_pop_stack(emit, action_index);
   return ret;
@@ -1472,7 +1472,7 @@ ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_ui
 ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   CHECK_BB(emit_exp(emit, stmt->exp))
   emit_push_stack(emit);
-  m_uint end_pc;
+  m_uint end_pc = 0;
   const m_bool ret = _emit_stmt_auto(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
   return ret;
@@ -1496,7 +1496,7 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_ui
 
 ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   emit_push_stack(emit);
-  m_uint index;
+  m_uint index = 0;
   const m_bool ret = _emit_stmt_loop(emit, stmt, &index);
   emit_pop_stack(emit, index);
   return ret;
