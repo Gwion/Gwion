@@ -1,0 +1,11 @@
+fork {
+  <<< "start" >>>;
+  12::samp => now;
+  me.test_cancel();
+  <<< "stop" >>>;
+} @=> Fork ref f;
+
+1 => f.set_cancel;
+2::samp => now;
+0 => f.set_cancel;
+f.join();
