@@ -378,7 +378,6 @@ ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
   if(GET_FLAG(t, global))
     SET_FLAG(a->union_def, global);
   CHECK_BB(scan0_union_def(env, a->union_def))
-  SET_FLAG(a, scan0);
   a->base.type = a->union_def->type;
   a->base.type->e->def = a;
   a->union_def->tmpl = cpy_tmpl(env->gwion->mp, a->base.tmpl);

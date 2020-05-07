@@ -231,10 +231,9 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   t->e->owner_class = env->class_def;
   t->e->parent = env->gwion->type[et_union];
   add_type(env, env->curr, t);
-  if(add) {
+  if(add)
     mk_class(env, t);
-  }
-  SET_FLAG(t, union | ae_flag_scan0);
+  SET_FLAG(t, union);
   return t;
 }
 
@@ -246,7 +245,6 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
     udef->type->e->def = cdef;
     cdef->base.tmpl = cpy_tmpl(env->gwion->mp, udef->tmpl);
     cdef->base.type = udef->type;
-//    cdef->list = cpy_decl_list(env->gwion->mp, udef->l);
     SET_FLAG(cdef, union);
     SET_FLAG(udef->type, pure);
     SET_FLAG(udef, template);
@@ -296,6 +294,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     union_tmpl(env, udef);
   if(GET_FLAG(udef, global))
     env_pop(env, scope);
+  union_flag(udef, ae_flag_scan0);
   return GW_OK;
 }
 
@@ -314,9 +313,26 @@ ANN static void cdef_flag(const Class_Def cdef, const Type t) {
     SET_FLAG(t, typedef);
 }
 
+ANN static Type get_parent(const Env env, const Class_Def cdef) {
+  if(GET_FLAG(cdef, struct))
+    return NULL;
+  if(!cdef->base.ext)
+    return env->gwion->type[et_object];
+  if(tmpl_base(cdef->base.tmpl))
+    return nspc_lookup_type1(env->curr, cdef->base.ext->xid);
+  if(cdef->base.tmpl)
+    template_push_types(env, cdef->base.tmpl);
+  const Type t = known_type(env, cdef->base.ext);
+  if(cdef->base.tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return t ?: (Type)GW_ERROR;
+}
+
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos))
-  const Type parent = !GET_FLAG(cdef, struct) ? env->gwion->type[et_object] : NULL;
+  const Type parent = get_parent(env, cdef);
+  if(parent == (Type)GW_ERROR)
+    return NULL;
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), parent);
   if(GET_FLAG(cdef, struct)) {
     SET_FLAG(t, struct);
@@ -360,7 +376,7 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
-  const Class_Def cdef = !(GET_FLAG(c, global) || (c->base.tmpl && !c->base.tmpl->call)) ?
+  const Class_Def cdef = !tmpl_base(c->base.tmpl) ?
     c : cpy_class_def(env->gwion->mp, c);
   if(GET_FLAG(cdef, global)) {
     vector_add(&env->scope->nspc_stack, (vtype)env->curr);

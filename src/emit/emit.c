@@ -1568,7 +1568,6 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
     const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
     exp->d.exp_decl.type = udef->value->type;
-    SET_FLAG(udef->value->type, emit);
     var_decl->value = udef->value;
     const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
     free_exp(emit->gwion->mp, exp);
@@ -1582,7 +1581,6 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     scope = emit_push_type(emit, udef->value->type);
   } else if(udef->type_xid) {
     union_allocdata(emit->gwion->mp, udef);
-    SET_FLAG(udef->type, emit);
     scope = emit_push_type(emit, udef->type);
   } else if(global) {
     // TODO: use mpool allocation
@@ -1604,6 +1602,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
   emit_union_offset(udef->l, udef->o);
   if(udef->xid || udef->type_xid || global)
     emit_pop(emit, scope);
+  union_flag(udef, ae_flag_emit);
   return GW_OK;
 }
 
@@ -1994,11 +1993,10 @@ ANN static m_bool emit_struct_body2(const Emitter emit, Section *const section) 
     emit_section(emit, section) : GW_OK;
 }
 
-ANN static m_bool emit_class_def(const Emitter emit, const Class_Def c) {
-  if(tmpl_base(c->base.tmpl))
+ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
-  const Type t = c->base.type;
-  const Class_Def cdef = t->e->def;
+  const Type t = cdef->base.type;
   if(GET_FLAG(t, emit))
     return GW_OK;
   if(cdef->base.ext && t->e->parent->e->def && !GET_FLAG(t->e->parent, emit))
@@ -2013,7 +2011,6 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def c) {
     } else
       CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_struct_body2, emit))
   }
-  SET_FLAG(t, emit);
   return GW_OK;
 }
 

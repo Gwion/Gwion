@@ -26,11 +26,11 @@ ANN m_bool traverse_func_def(const Env env, const Func_Def def) {
 }
 
 ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
-  if(!GET_FLAG(def, scan1))
+//  if(!GET_FLAG(def, scan1))
     CHECK_BB(scan1_union_def(env, def))
-  if(!GET_FLAG(def, scan2))
+//  if(!GET_FLAG(def, scan2))
   CHECK_BB(scan2_union_def(env, def))
-  if(!GET_FLAG(def, check))
+//  if(!GET_FLAG(def, check))
     CHECK_BB(check_union_def(env, def))
   return check_union_def(env, def);
 }
@@ -57,11 +57,12 @@ ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
 }
 
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
-  if(!GET_FLAG(def, scan1))
+  const Type t = def->base.type;
+  if(!GET_FLAG(t, scan1))
     CHECK_BB(scan1_class_def(env, def))
-  if(!GET_FLAG(def, scan2))
+  if(!GET_FLAG(t, scan2))
     CHECK_BB(scan2_class_def(env, def))
-  if(!GET_FLAG(def, checked))
+  if(!GET_FLAG(t, checked))
     return check_class_def(env, def);
   return GW_OK;
 }

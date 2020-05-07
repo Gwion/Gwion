@@ -87,10 +87,6 @@ ANN void env_add_type(const Env env, const Type type) {
   const Value v = new_value(env->gwion->mp, v_type, s_name(sym));
   SET_FLAG(v, checked | ae_flag_const | ae_flag_global | ae_flag_builtin);
   nspc_add_value(env->curr, insert_symbol(type->name), v);
-//  valuefrom(env, v->from);
-//  typefrom(env, type->e->from);
-//  v->from->owner = type->e->from->owner = env->curr;
-//  type->e->owner = env->curr;
   v->from->owner = type->e->owner = env->curr;
   v->from->owner_class = type->e->owner_class = env->class_def; // t owner_class ?
   type->xid = ++env->scope->type_xid;

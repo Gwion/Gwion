@@ -167,14 +167,6 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     ERR_O(td_pos(decl->td), _("can't find type"));
   {
     const Type t = get_type(decl->type);
-    if(env->class_def && !env->scope->depth){
-      Type parent = t;
-      while(parent) {
-        if(parent == env->class_def && !GET_FLAG(decl->td, ref))
-          ERR_O(decl->td->pos, "declaration cycle detected. (declare as ref?)")
-        parent = parent->e->parent;
-      }
-    }
     if(!GET_FLAG(t, check) && t->e->def)
       CHECK_BO(ensure_check(env, t))
   }
@@ -1363,11 +1355,10 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool check_class_def(const Env env, const Class_Def c) {
-  if(tmpl_base(c->base.tmpl))
+ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
-  const Type t = c->base.type;
-  const Class_Def cdef = t->e->def;
+  const Type t = cdef->base.type;
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, check))
     CHECK_BB(check_class_def(env, t->e->owner_class->e->def))
   if(GET_FLAG(t, check))return GW_OK;

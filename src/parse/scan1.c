@@ -9,6 +9,22 @@
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
+ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Decl *td) {
+  Type parent = t->e->parent;
+  while(parent) {
+    if(parent == env->class_def)
+      ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"), t->name, t == env->class_def ? "itself" : env->class_def->name);
+    parent = parent->e->parent;
+  }
+  return GW_OK;
+}
+
+ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
+  struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan1_cdef,
+    .scope=env->scope->depth, .flag=ae_flag_scan1 };
+  return envset_run(&es, t);
+}
+
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
   if(env->class_def && !env->scope->depth) {
     const m_int idx = vector_find(&env->scope->class_stack, (vtype)t);
@@ -19,11 +35,19 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
   return GW_OK;
 }
 
-ANN static Type void_type(const Env env, Type_Decl* td) {
+ANN static Type scan1_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  if(isa(t, env->gwion->type[et_object]) > 0 || GET_FLAG(t, struct))
-    CHECK_BO(type_recursive(env, td, t))
+  CHECK_BO(type_cyclic(env, t, td))
+  if(!GET_FLAG(t, scan1) && t->e->def)
+    CHECK_BO(ensure_scan1(env, t))
+  return type;
+}
+
+ANN static Type void_type(const Env env, Type_Decl* td) {
+  DECL_OO(const Type, type, = scan1_type(env, td))
+  if(isa(type, env->gwion->type[et_object]) > 0 || GET_FLAG(type, struct))
+    CHECK_BO(type_recursive(env, td, type))
   if(type->size)
     return type;
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
@@ -301,7 +325,7 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
     fptr->type = nspc_lookup_type0(env->curr, fptr->base->xid);
   }
   const Func_Def fdef = fptr->base->func->def;
-  CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
+  CHECK_OB((fdef->base->ret_type = scan1_type(env, fdef->base->td)))
   return fdef->base->args ? scan1_args(env, fdef->base->args) : GW_OK;
 }
 
@@ -314,8 +338,6 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
 
 ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     const Decl_List l) {
-  if(GET_FLAG(udef, scan1))
-    return GW_OK;
   const Exp_Decl decl = l->self->d.exp_decl;
   SET_FLAG(decl.td, checked | udef->flag);
   const m_bool global = GET_FLAG(udef, global);
@@ -327,7 +349,6 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     SET_FLAG(decl.td, static);
   if(udef->tmpl && udef->tmpl->call)
     CHECK_BB(template_push_types(env, udef->tmpl))
-  SET_FLAG(decl.td, ref);
   const m_bool ret = scan1_exp(env, l->self);
   if(udef->tmpl && udef->tmpl->call)
     nspc_pop_type(env->gwion->mp, env->curr);
@@ -339,7 +360,6 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
 
   if(global)
     SET_FLAG(decl.td, global);
-  union_flag(udef, ae_flag_scan1);
   return GW_OK;
 }
 
@@ -360,8 +380,7 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   }
   const m_bool ret = scan1_union_def_inner(env, udef);
   union_pop(env, udef, scope);
-  const Type type = udef->xid || !udef->type_xid ? udef->value->type : udef->type;
-  SET_FLAG(type, scan1);
+  union_flag(udef, ae_flag_scan1);
   return ret;
 }
 
@@ -505,15 +524,15 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool scan1_class_def(const Env env, const Class_Def c) {
-  if(tmpl_base(c->base.tmpl))
+ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
-  const Type t = c->base.type;
-  const Class_Def cdef = t->e->def;
-  if(GET_FLAG(t, scan1))return GW_OK;
-  SET_FLAG(cdef, scan1);
+  const Type t = cdef->base.type;
+  if(GET_FLAG(t, scan1))
+    return GW_OK;
+  SET_FLAG(t, scan1);
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, scan1))
-    CHECK_BB(scan1_class_def(env, t->e->owner_class->e->def))
+    CHECK_BB(ensure_scan1(env, t->e->owner_class))
   SET_FLAG(cdef->base.type, scan1);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))

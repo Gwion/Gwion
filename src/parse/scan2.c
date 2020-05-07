@@ -21,7 +21,7 @@ ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
 
 ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
   const Type t = get_type(decl->type);
-  if(!GET_FLAG(t, scan2) && t->e->def)
+  if(t->e->def && !GET_FLAG(t, scan2))
     CHECK_BB(ensure_scan2(env, t))
   Var_Decl_List list = decl->list;
   do {
@@ -276,7 +276,6 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   const m_uint scope = union_push(env, udef);
   const m_bool ret = scan2_union_decl(env, udef->l);
   union_pop(env, udef, scope);
-  SET_FLAG(udef, scan2);
   union_flag(udef, ae_flag_scan2);
   return ret;
 }
@@ -560,7 +559,8 @@ HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-  if(parent->e->def && !GET_FLAG(parent, scan2))
+//  if(parent->e->def && !GET_FLAG(parent, scan2))
+  if(!GET_FLAG(parent, scan2))
     CHECK_BB(scanx_parent(parent, scan2_cdef, env))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
@@ -576,11 +576,10 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN m_bool scan2_class_def(const Env env, const Class_Def c) {
-  if(tmpl_base(c->base.tmpl))
+ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
+  if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
-  const Type t = c->base.type;
-  const Class_Def cdef = t->e->def;
+  const Type t = cdef->base.type;
   if(GET_FLAG(t, scan2))return GW_OK;
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, scan2))
     CHECK_BB(scan2_class_def(env, t->e->owner_class->e->def))

@@ -7,8 +7,7 @@
 #include "gwion.h"
 
 ANN static inline m_bool freeable(const Type a) {
-  return !GET_FLAG(a, nonnull) &&
-      (GET_FLAG(a, template) || GET_FLAG(a, global));
+  return !GET_FLAG(a, nonnull) && GET_FLAG(a, template);
 }
 
 ANN static void free_type(Type a, Gwion gwion) {
