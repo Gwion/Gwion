@@ -353,7 +353,7 @@ ANEW ANN static Symbol template_id(const Env env, const Class_Def c, const Type_
   return sz > GW_ERROR ? insert_symbol(env->gwion->st, name) : NULL;
 }
 
-ANN m_bool template_match(ID_List base, Type_List call) {
+ANN static m_bool template_match(ID_List base, Type_List call) {
   while((call = call->next) && (base = base->next));
   return !call ? GW_OK : GW_ERROR;
 }
@@ -384,6 +384,17 @@ ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
   return GW_OK;
 }
 
+ANN static m_bool scan0_cdef(const Env env, const Type t, const Class_Def a) {
+  if(t->e->parent !=  env->gwion->type[et_union])
+    CHECK_BB(scan0_class_def(env, a))
+  else
+    CHECK_BB(class2udef(env, a, t))
+  SET_FLAG(a->base.type, template);
+  if(GET_FLAG(t, builtin))
+    SET_FLAG(a->base.type, builtin);
+  return GW_OK;
+}
+
 ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
    ERR_O(td->pos, _("invalid template types number"))
@@ -391,11 +402,10 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   if(a->base.type)
     return a->base.type;
   a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
-  if(t->e->parent !=  env->gwion->type[et_union])
-    CHECK_BO(scan0_class_def(env, a))
-  else
-    CHECK_BO(class2udef(env, a, t))
-  SET_FLAG(a->base.type, template);
+  if(scan0_cdef(env, t, a) < 0) {
+    free_tmpl(env->gwion->mp, a->base.tmpl);
+    return NULL;
+  }
   if(GET_FLAG(t, builtin))
     SET_FLAG(a->base.type, builtin);
   return a->base.type;
