@@ -882,7 +882,7 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
 
 ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   const Value v = f->value_ref;
-  size_t scope = emit->env->scope->depth;
+  const size_t scope = emit->env->scope->depth;
   struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
     .scope=scope, .flag=ae_flag_emit };
   if(v->from->owner_class)
