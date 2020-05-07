@@ -399,7 +399,6 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   SET_FLAG(a->base.type, template);
   if(GET_FLAG(t, builtin))
     SET_FLAG(a->base.type, builtin);
-  CHECK_BO(scan1_cdef(env, a))
   return a->base.type;
 }
 

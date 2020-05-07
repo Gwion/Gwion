@@ -325,9 +325,9 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     SET_FLAG(decl.td, member);
   else if(GET_FLAG(udef, static))
     SET_FLAG(decl.td, static);
-
   if(udef->tmpl && udef->tmpl->call)
     CHECK_BB(template_push_types(env, udef->tmpl))
+  SET_FLAG(decl.td, ref);
   const m_bool ret = scan1_exp(env, l->self);
   if(udef->tmpl && udef->tmpl->call)
     nspc_pop_type(env->gwion->mp, env->curr);

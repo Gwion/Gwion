@@ -1094,15 +1094,17 @@ ANN void check_udef(const Env env, const Union_Def udef) {
   if(udef->xid) {
     if(env->class_def)
       (!GET_FLAG(udef, static) ? decl_member : decl_static)(env, udef->value);
-  } else if(env->class_def)  {
-    if(!GET_FLAG(udef, static))
-      udef->o = env->class_def->nspc->info->offset;
-    else {
-      udef->o = env->class_def->nspc->info->class_data_size;
-      env->class_def->nspc->info->class_data_size += SZ_INT;
+    else if(env->class_def) {
+      if(!GET_FLAG(udef, static))
+        udef->o = env->class_def->nspc->info->offset;
+      else {
+        udef->o = env->class_def->nspc->info->class_data_size;
+        env->class_def->nspc->info->class_data_size += SZ_INT;
+      }
     }
   }
 }
+
 ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;

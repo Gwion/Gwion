@@ -17,7 +17,7 @@ ANN static void check(struct EnvSet *es, const Type t) {
   }
 }
 
-ANN m_bool push(struct EnvSet *es, const Type t) {
+ANN static m_bool push(struct EnvSet *es, const Type t) {
   if(t->e->owner_class)
     CHECK_BB(push(es, t->e->owner_class))
   if(!(t->flag & es->flag))

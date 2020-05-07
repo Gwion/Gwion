@@ -234,7 +234,7 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   if(add) {
     mk_class(env, t);
   }
-  SET_FLAG(t, union);
+  SET_FLAG(t, union | ae_flag_scan0);
   return t;
 }
 
@@ -374,6 +374,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   CHECK_BB(ret)
   if(GET_FLAG(cdef, global) || (cdef->base.tmpl && !cdef->base.tmpl->call))
     c->base.type = cdef->base.type;
+  SET_FLAG(cdef->base.type, scan0);
   return GW_OK;
 }
 
