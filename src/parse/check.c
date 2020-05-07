@@ -556,7 +556,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
     }
   }
   free_mstr(env->gwion->mp, tmpl_name);
-  if(v->from->owner_class && v->from->owner_class->e->owner_class && es.run)
+  if(es.run)
     envset_pop(&es, v->from->owner_class->e->owner_class);
   env_pop(env, scope);
   env->func = former;
@@ -663,8 +663,8 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
       envset_push(&es, v->from->owner_class);
     (void)env_push(env, v->from->owner_class, v->from->owner);
     const m_bool ret = traverse_func_def(env, func->def);
-    if(v->from->owner_class && v->from->owner_class->e->owner_class && es.run)
-      envset_push(&es, v->from->owner_class);
+    if(es.run)
+      envset_pop(&es, v->from->owner_class);
     env_pop(env, scope);
     CHECK_BO(ret)
   }

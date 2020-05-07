@@ -848,7 +848,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
     envset_push(&es, dt->owner_class);
   (void)emit_push(emit, dt->owner_class, dt->owner);
   const m_bool ret = traverse_emit_func_def(emit, dt->def);
-  if(dt->owner_class && dt->owner_class->e->owner_class)
+  if(es.run)
     envset_pop(&es, dt->owner_class->e->owner_class);
   emit_pop(emit, scope);
   return ret;
@@ -889,7 +889,7 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
     envset_push(&es, v->from->owner_class);
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const m_bool ret = emit_func_def(emit, f->def);
-  if(v->from->owner_class && v->from->owner_class->e->owner_class)
+  if(es.run)
     envset_pop(&es, v->from->owner_class->e->owner_class);
   emit_pop(emit, scope);
   return ret > 0 ? push_func_code(emit, f) : GW_ERROR;
@@ -1218,8 +1218,8 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
   if(lambda->owner)
     envset_push(&es, lambda->owner);
   const m_bool ret = emit_lambda(emit, lambda);
-  if(lambda->owner)
-    envset_push(&es, lambda->owner);
+  if(es.run)
+    envset_pop(&es, lambda->owner);
   return ret;
 }
 

@@ -172,7 +172,7 @@ ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
   if((l->owner = owner))
     envset_push(&es, owner);
   const m_bool ret = _check_lambda(env, l, def);
-  if(owner && es.run)
+  if(es.run)
     envset_pop(&es, owner);
   if(ret < 0)
     return GW_ERROR;
