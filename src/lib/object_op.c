@@ -384,7 +384,7 @@ ANN static m_bool class2udef(const Env env, const Class_Def a, const Type t) {
   return GW_OK;
 }
 
-ANN static m_bool scan0_cdef(const Env env, const Type t, const Class_Def a) {
+ANN static m_bool _scan_class(const Env env, const Type t, const Class_Def a) {
   if(t->e->parent !=  env->gwion->type[et_union])
     CHECK_BB(scan0_class_def(env, a))
   else
@@ -401,14 +401,18 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
   if(a->base.type)
     return a->base.type;
+  struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
+    .scope=env->scope->depth, .flag=ae_flag_scan0 };
+  if(t->e->owner_class)
+    CHECK_BO(envset_push(&es, t->e->owner_class))
   a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
-  if(scan0_cdef(env, t, a) < 0) {
-    free_tmpl(env->gwion->mp, a->base.tmpl);
-    return NULL;
-  }
-  if(GET_FLAG(t, builtin))
-    SET_FLAG(a->base.type, builtin);
-  return a->base.type;
+  const m_bool ret = _scan_class(env, t, a);
+  if(es.run)
+    envset_pop(&es, t->e->owner_class);
+  if(ret > 0)
+    return a->base.type;
+  free_class_def(env->gwion->mp, a);
+  return NULL;
 }
 
 ANN static inline Symbol dot_symbol(SymTable *st, const Value v) {
