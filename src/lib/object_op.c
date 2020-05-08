@@ -137,13 +137,16 @@ static OP_EMIT(opem_implicit_null2obj) {
 
 ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
-OP_CHECK(opck_object_scan) {
+static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
+  if(ts->td->types)
+    return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_null];
+  ERR_N(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
+}
+
+static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
-  if(ts->td->types && GET_FLAG(ts->t, template) && ts->t->e->def)
-    return scan_class(env, ts->t, ts->td);
-  if(!GET_FLAG(ts->t, template) || GET_FLAG(ts->t, unary))
-    return ts->t;
-  ERR_O(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
+  return (isa(ts->t , env->gwion->type[et_object]) > 0 || GET_FLAG(ts->t, struct)) ?
+    opck_object_scan(env, ts) : env->gwion->type[et_null];
 }
 
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
@@ -462,8 +465,8 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
-  GWI_BB(gwi_oper_ini(gwi, "Object", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_scan))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_item_ini(gwi, "@null", "null");
   gwi_item_end(gwi, 0, NULL);
