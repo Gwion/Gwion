@@ -39,7 +39,7 @@ static void afl_run(const Gwion gwion) {
   }
   text_release(&text);
 }
-#define gwion_run(a) { afl_run(a); return; }
+#define gwion_run(a) { afl_run(a); return 0; }
 #endif
 
 int main(int argc, char** argv) {
