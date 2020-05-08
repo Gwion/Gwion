@@ -871,7 +871,7 @@ gackend:
 }
 gack:
   VM_OUT
-  gack(shred, (Instr)VAL);
+  gack(shred, VAL);
   goto in;
 noop:
   DISPATCH();

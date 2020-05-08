@@ -1,6 +1,6 @@
 #ifndef __GACK
 #define __GACK
-ANN void gack(const VM_Shred, const Instr);
+ANN void gack(const VM_Shred, const m_uint);
 
 #define INTERP_PRINTF(fmt, ...) { \
   m_str ret = *(m_str*)(VALUE - SZ_INT);\

@@ -47,7 +47,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
       instr->opcode = eRegPushImm;
       instr->m_val = (m_uint)code;
     }
-    if(instr->opcode < eGack)
+    if(instr->opcode < eOP_MAX)
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
     else {
       *(m_bit*)(ptr + (i*BYTECODE_SZ)) = instr->opcode;
