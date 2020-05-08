@@ -11,7 +11,7 @@ struct EnvSet {
   m_bool run;
 };
 
-ANN m_bool envset_run(struct EnvSet *es, const Type t);
-ANN m_bool envset_push(struct EnvSet *es, const Type t);
-ANN void   envset_pop(struct EnvSet *es, const Type t);
+ANN m_bool envset_run(struct EnvSet*, const Type);
+ANN2(1,3) m_bool envset_push(struct EnvSet*, const Type, const Nspc);
+ANN2(1) void   envset_pop(struct EnvSet*, const Type);
 #endif

@@ -498,8 +498,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const m_uint scope = env->scope->depth;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=ae_flag_check };
-  if(v->from->owner_class)
-    envset_push(&es, v->from->owner_class);
+  CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type)) {
     const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
@@ -659,8 +658,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
     const m_uint scope = env->scope->depth;
     struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
       .scope=scope, .flag=ae_flag_check };
-    if(v->from->owner_class)
-      envset_push(&es, v->from->owner_class);
+    CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
     (void)env_push(env, v->from->owner_class, v->from->owner);
     const m_bool ret = traverse_func_def(env, func->def);
     if(es.run)

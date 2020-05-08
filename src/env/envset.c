@@ -28,19 +28,26 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
   return GW_OK;
 }
 
-ANN m_bool envset_push(struct EnvSet *es, const Type t) {
-  check(es, t);
-  if(es->run)
-    CHECK_BB(envset_push(es, t->e->owner_class))
+ANN2(1,3) m_bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
+  if(t) {
+    check(es, t);
+    return es->run ? push(es, t) : GW_OK;
+  }
+  if(nspc != es->env->curr) {
+    env_push(es->env, NULL, nspc);
+    es->run = 1;
+  }
   return GW_OK;
 }
 
-ANN void envset_pop(struct EnvSet *es, const Type t) {
+ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
   env_pop(es->env, es->scope);
+  if(!t)
+    return;
   if(GET_FLAG(t, template))
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
   if(t->e->owner_class)
-    envset_pop(es, t->e->owner_class);
+    envset_pop(es, t);
 }
 
 ANN m_bool envset_run(struct EnvSet *es, const Type t) {

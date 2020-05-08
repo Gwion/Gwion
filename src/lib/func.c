@@ -169,8 +169,8 @@ ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->e->d.func->def;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=env->scope->depth, .flag=ae_flag_check };
-  if((l->owner = t->e->owner_class))
-    envset_push(&es, l->owner);
+  l->owner = t->e->owner_class;
+  CHECK_BB(envset_push(&es, l->owner, t->e->owner))
   const m_bool ret = _check_lambda(env, l, fdef);
   if(es.run)
     envset_pop(&es, l->owner);
