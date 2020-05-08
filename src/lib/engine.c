@@ -67,7 +67,7 @@ OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
-  gwi->gwion->type[et_class] = t_class;
+  GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_add_type(gwi, t_class))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
@@ -77,8 +77,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
+  SET_FLAG(t_auto, infer);
   GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
-  SET_FLAG(t_class, abstract);
+  SET_FLAG(t_class, infer);
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
@@ -113,10 +114,11 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
   GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
+  SET_FLAG(t_lambda, infer);
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
+
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
   GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
-
 
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))

@@ -705,16 +705,19 @@ branchnefloat:
   reg -= SZ_FLOAT;
   BRANCH_DISPATCH(*(m_float*)reg);
 arrayappend:
-  m_vector_add(ARRAY(a.obj), reg);
-  release(a.obj, shred);
+  m_vector_add(ARRAY(*(M_Object*)(reg-SZ_INT)), reg);
+  release(*(M_Object*)(reg-SZ_INT), shred);
   DISPATCH()
 autoloop:
-  m_vector_get(ARRAY(a.obj), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
+//  m_vector_get(ARRAY(a.obj), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
+  m_vector_get(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
   goto autoloopcount;
 autoloopptr:
-  *(m_bit**)(*(M_Object*)(mem + VAL + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + VAL));
+  *(m_bit**)(*(M_Object*)(mem + VAL + SZ_INT))->data = m_vector_addr(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL));
+//  *(m_bit**)(*(M_Object*)(mem + VAL + SZ_INT))->data = m_vector_addr(ARRAY(a.obj), *(m_uint*)(mem + VAL));
 autoloopcount:
-  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - (*(m_uint*)(mem + VAL))++;
+  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(reg-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
+//  *(m_uint*)reg = m_vector_size(ARRAY(a.obj)) - (*(m_uint*)(mem + VAL))++;
   reg += SZ_INT;
   DISPATCH()
 arraytop:
@@ -726,6 +729,7 @@ arrayaccess:
 {
   register const m_int idx = *(m_int*)(reg + SZ_INT * VAL);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
+//  if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(*(M_Object*)(reg-SZ_INT)))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
     VM_OUT
@@ -766,9 +770,6 @@ objassign:
   }
 assign:
   reg -= SZ_INT;
-//  a.obj = *(M_Object*)(reg-SZ_INT);
-//  **(M_Object**)reg = a.obj;
-//  a.obj = 
   **(M_Object**)reg = *(M_Object*)(reg-SZ_INT);
   DISPATCH()
 remref:

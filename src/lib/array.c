@@ -138,18 +138,20 @@ ANN static Type get_array_type(Type t) {
 }
 
 #define ARRAY_OPCK                                        \
-  const Exp_Binary* bin = (Exp_Binary*)data;              \
   const Type l = get_array_type(bin->lhs->info->type);    \
   const Type r = get_array_type(bin->rhs->info->type);    \
   if(isa(l, r) < 0)                                       \
     ERR_N(exp_self(bin)->pos, _("array types do not match."))
 
 static OP_CHECK(opck_array_at) {
-  ARRAY_OPCK
+  const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
-  if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
-    ERR_N(exp_self(bin)->pos, _("array depths do not match."))
+  if(bin->lhs->info->type != env->gwion->type[et_null]) {
+    ARRAY_OPCK
+    if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
+      ERR_N(exp_self(bin)->pos, _("array depths do not match."))
+  }
   if(bin->rhs->exp_type == ae_exp_decl) {
     if(bin->rhs->d.exp_decl.list->self->array &&
           bin->rhs->d.exp_decl.list->self->array->exp)
@@ -160,6 +162,10 @@ static OP_CHECK(opck_array_at) {
 }
 
 static OP_CHECK(opck_array_shift) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->info->type == env->gwion->type[et_null] &&
+      bin->lhs->info->type->array_depth > 1)
+    return bin->lhs->info->type;
   ARRAY_OPCK
   if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth + 1)
     ERR_N(exp_self(bin)->pos, "array depths do not match for '<<'.");
@@ -294,6 +300,7 @@ ANN static inline Exp emit_n_exp(const Emitter emit,  struct ArrayAccessInfo *co
   e->next = next;
   return ret > 0 ? next : NULL;
 }
+
 static OP_EMIT(opem_array_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo*)data;
   if(info->array.type->array_depth >= info->array.depth) {
@@ -329,7 +336,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", (m_str)OP_ANY_TYPE, NULL))

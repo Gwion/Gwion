@@ -159,8 +159,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
-    const Type t_auto = env->gwion->type[et_auto];
-    if(decl->type == t_auto)
+    if(GET_FLAG(decl->type, infer))
       ERR_O(td_pos(decl->td), _("can't infer type."));
   }
   if(!decl->type)
@@ -175,7 +174,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   const m_bool ret = check_decl(env, decl);
   if(global)
     env_pop(env, scope);
-  return ret > 0 ? decl->type : NULL;
+  return ret > 0 ? decl->list->self->value->type : NULL;
 }
 
 
@@ -980,8 +979,11 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       td.array = &array;
     }
     ptr = known_type(env, &td);
-    if(!GET_FLAG(ptr, checked) && ptr->e->def)
-      CHECK_BB(ensure_check(env, ptr))
+    if(!GET_FLAG(ptr, checked) && ptr->e->def) {
+      struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
+        .scope=env->scope->depth, .flag=ae_flag_check };
+      CHECK_BB(envset_run(&es, get_type(ptr)))
+    }
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
@@ -1138,9 +1140,11 @@ ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
+  Exp last = e;
   for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
     if(!e)
-    ERR_B(e->pos, _("no enough to match"))
+      ERR_B(last->pos, _("no enough to match"))
+    last = e;
     const Symbol op = case_op(env, e, i);
     if(op) {
       const Exp base = (Exp)VKEY(&env->scope->match->map, i);

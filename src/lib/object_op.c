@@ -406,7 +406,7 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
     return a->base.type;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=ae_flag_scan0 };
-  CHECK_BO(envset_push(&es, t->e->owner_class, t->e->owner))
+  CHECK_BO(envset_push(&es, t->e->owner_class, env->context->nspc))
   a->base.tmpl = mk_tmpl(env, t->e->def->base.tmpl, td->types);
   const m_bool ret = _scan_class(env, t, a);
   if(es.run)

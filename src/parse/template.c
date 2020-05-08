@@ -113,15 +113,14 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     CHECK_OO(owner)
     if(!owner->nspc)
       ERR_O(td_pos(td), "type '%s' has no namespace", owner->name)
-    const Tmpl *tmpl = GET_FLAG(owner, template) ?
-      owner->e->def->base.tmpl : NULL;
-    if(tmpl)
-      CHECK_BO(template_push_types(env, tmpl))
-    const m_uint scope = env_push(env, owner, owner->nspc);
+    struct EnvSet es = { .env=env, .data=env,
+      .scope=env->scope->depth, .flag=ae_flag_none };
+    envset_push(&es, owner, owner->nspc);
+    (void)env_push(env, owner, owner->nspc);
     const Type ret = scan_type(env, t, td->next);
-    env_pop(env, scope);
-    if(tmpl)
-      nspc_pop_type(env->gwion->mp, env->curr);
+    env_pop(env, es.scope);
+    if(es.run)
+      envset_pop(&es, owner);
     return ret;
   }
   return _scan_type(env, t, td);

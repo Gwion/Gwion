@@ -8,7 +8,7 @@
 ANN static void check(struct EnvSet *es, const Type t) {
   const Vector v = &es->env->scope->class_stack;
   Type owner = t->e->owner_class;
-  for(vtype i = vector_size(v); owner && --i;) {
+  for(vtype i = vector_size(v) + 1; owner && --i;) {
     if(owner != (Type)vector_at(v, i - 1)) {
       es->run = 1;
       return;
@@ -54,7 +54,8 @@ ANN m_bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
   if(es->run)
     CHECK_BB(push(es, t->e->owner_class))
-  const m_bool ret = es->func(es->data, t->e->def);
+  const m_bool ret = !(t->flag & es->flag) ?
+    es->func(es->data, t->e->def) : GW_OK;
   if(es->run)
     envset_pop(es, t->e->owner_class);
   return ret;
