@@ -77,6 +77,7 @@ static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
   return scanx_cdef(env, env, cdef,                                       \
       (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);      \
 }
+xxx_cdef_flag(scan0)
 xxx_cdef_flag(scan1)
 xxx_cdef_flag(scan2)
 xxx_cdef_flag(check)

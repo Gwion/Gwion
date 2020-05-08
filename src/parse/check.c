@@ -389,7 +389,7 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
     array_base(e->info->type) == array_base(t);
     if(!match) {
       if(e->info->type == env->gwion->type[et_lambda] && is_fptr(env->gwion, t)) {
-        const m_bool ret = check_lambda(env, t->e->owner_class, &e->d.exp_lambda, t->e->d.func->def);
+        const m_bool ret = check_lambda(env, t, &e->d.exp_lambda);
         exp_setvar(e, 1);
         return ret;
       }

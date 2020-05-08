@@ -165,25 +165,19 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   return GW_OK;
 }
 
-ANN2(1,3,4) m_bool check_lambda(const Env env, const Type owner,
-    Exp_Lambda *l, const Func_Def def) {
+ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
+  const Func_Def fdef = t->e->d.func->def;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=env->scope->depth, .flag=ae_flag_check };
-  if((l->owner = owner))
-    envset_push(&es, owner);
-  const m_bool ret = _check_lambda(env, l, def);
+  if((l->owner = t->e->owner_class))
+    envset_push(&es, l->owner);
+  const m_bool ret = _check_lambda(env, l, fdef);
   if(es.run)
-    envset_pop(&es, owner);
+    envset_pop(&es, l->owner);
   if(ret < 0)
     return GW_ERROR;
   exp_self(l)->info->type = l->def->base->func->value_ref->type;
   return GW_OK;
-}
-
-ANN static m_bool fptr_lambda(const Env env, struct FptrInfo *info) {
-  Exp_Lambda *l = &info->exp->d.exp_lambda;
-  const Type owner = info->rhs->value_ref->from->owner_class;
-  return check_lambda(env, owner, l, info->rhs->def);
 }
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
@@ -194,7 +188,8 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
     info->exp->info->type = !nonnull ? t : type_nonnull(env, t);
     return GW_OK;
   }
-  return fptr_lambda(env, info);
+  Exp_Lambda *l = &info->exp->d.exp_lambda;
+  return check_lambda(env, actual_type(env->gwion, info->rhs->value_ref->type), l);
 }
 
 static OP_CHECK(opck_fptr_at) {
