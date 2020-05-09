@@ -28,7 +28,7 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
 
 ANN2(1,2) static inline m_bool class_parent(const Env env, const Type t) {
   Type parent = t->e->parent;
-  while(parent && !GET_FLAG(parent, checked)) {
+  while(parent && !GET_FLAG(parent, valid)) {
     if(t->e->def)
       CHECK_BB(traverse_class_def(env, t->e->def))
     parent = parent->e->parent;
@@ -52,7 +52,7 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
     inherit(t);
   t->e->owner = env->curr;
   t->e->owner_class = env->class_def;
-  SET_FLAG(t, checked);
+  SET_FLAG(t, valid);
   env_push_type(env, t);
 }
 

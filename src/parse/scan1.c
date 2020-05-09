@@ -281,7 +281,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       SET_ACCESS(edef, v)
       SET_ACCESS(edef, edef->t)
     }
-    SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
+    SET_FLAG(v, const | ae_flag_enum | ae_flag_valid);
     nspc_add_value(edef->t->e->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
   } while((list = list->next));
@@ -333,7 +333,7 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
 ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     const Decl_List l) {
   const Exp_Decl decl = l->self->d.exp_decl;
-  SET_FLAG(decl.td, checked | udef->flag);
+  SET_FLAG(decl.td, valid | udef->flag);
   const m_bool global = GET_FLAG(udef, global);
   if(global)
     UNSET_FLAG(decl.td, global);

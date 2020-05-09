@@ -112,7 +112,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   t->e->d.base_type = array_base(src) ?: src;
   t->e->owner = src->e->owner;
   ADD_REF((t->nspc = env->gwion->type[et_array]->nspc))
-  SET_FLAG(t, checked);
+  SET_FLAG(t, valid);
   mk_class(env, t);
   nspc_add_type_front(src->e->owner, sym, t);
   return t;

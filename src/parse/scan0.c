@@ -145,7 +145,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   tdef->type = t;
   if(base->nspc)
     ADD_REF((t->nspc = base->nspc));
-  t->flag = tdef->ext->flag | ae_flag_checked;
+  t->flag = tdef->ext->flag | ae_flag_valid;
   scan0_implicit_similar(env, t, base);
   if(tdef->ext->array && !tdef->ext->array->exp)
     SET_FLAG(t, empty);
@@ -259,7 +259,7 @@ ANN static Value union_value(const Env env, const Type t, const Symbol sym) {
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
   valuefrom(env, v->from);
   nspc_add_value(env->curr, sym, v);
-  SET_FLAG(v, checked | ae_flag_pure);
+  SET_FLAG(v, valid | ae_flag_pure);
   return v;
 }
 
@@ -284,7 +284,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     CHECK_BB(scan0_defined(env, udef->type_xid, udef->pos))
     udef->type = union_type(env, udef->type_xid, 1);
     SET_ACCESS(udef, udef->type);
-    SET_FLAG(udef->type, checked);
+    SET_FLAG(udef->type, valid);
   } else {
     const Symbol sym = scan0_sym(env, "union", udef->pos);
     CHECK_BB(scan0_defined(env, sym, udef->pos))

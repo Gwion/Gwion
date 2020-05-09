@@ -88,7 +88,7 @@ ANN Value mk_class(const Env env, const Type base) {
   const Symbol sym = insert_symbol(base->name);
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
   valuefrom(env, v->from);
-  SET_FLAG(v, const | ae_flag_checked);
+  SET_FLAG(v, const | ae_flag_valid);
   nspc_add_value_front(base->e->owner, sym, v);
   return v;
 }

@@ -135,7 +135,7 @@ GWION_IMPORT(object) {
   const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
   gwi_add_type(gwi, t_object);
   GWI_BB(gwi_gack(gwi, t_object, gack_object))
-  SET_FLAG(t_object, checked); // should be set by gwi_add_type
+  SET_FLAG(t_object, valid); // should be set by gwi_add_type
   gwi->gwion->type[et_object] = t_object;
 //  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
   struct SpecialId_ spid = { .ck=opck_this, .em=opem_this, .is_const=1 };

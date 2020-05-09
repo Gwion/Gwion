@@ -140,7 +140,7 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
     CHECK_BB(check_var_td(env, var, decl->td))
     if(is_fptr(env->gwion, decl->type))
       CHECK_BB(check_fptr_decl(env, var))
-    SET_FLAG(var->value, checked | ae_flag_used);
+    SET_FLAG(var->value, valid | ae_flag_used);
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
   return GW_OK;
@@ -276,7 +276,7 @@ static inline Nspc value_owner(const Value v) {
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol var = *data;
   const Value v = check_non_res_value(env, data);
-  if(!v || !GET_FLAG(v, checked) || (v->from->ctx && v->from->ctx->error)) {
+  if(!v || !GET_FLAG(v, valid) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, prim_pos(data),
           _("variable %s not legit at this point."), s_name(var));
     did_you_mean_nspc(value_owner(v) ?: env->curr, s_name(var));
@@ -473,7 +473,7 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = GET_FLAG(fdef, checked) || traverse_func_def(env, fdef) > 0;
+  const m_bool ret = GET_FLAG(fdef, valid) || traverse_func_def(env, fdef) > 0;
   if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
@@ -481,7 +481,7 @@ static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp)
     const Func func = find_func_match(env, f, exp->args);
     f->next = next;
     if(func) {
-      SET_FLAG(func, checked | ae_flag_template);
+      SET_FLAG(func, valid | ae_flag_template);
       return func;
     }
   }
@@ -497,7 +497,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
     if(isa(v->type, env->gwion->type[et_object]) > 0 || isa(v->type, env->gwion->type[et_function]) > 0)
       UNSET_FLAG(env->func, pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
-    SET_FLAG(v, checked);
+    SET_FLAG(v, valid);
     nspc_add_value(env->curr, decl->xid, v);
   } while((arg_list = arg_list->next));
   return GW_OK;
@@ -996,7 +996,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   }
   t = depth ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
-  SET_FLAG(stmt->v, checked);
+  SET_FLAG(stmt->v, valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
@@ -1116,7 +1116,7 @@ ANN m_bool check_union_def(const Env env, const Union_Def udef) {
     env->class_def->nspc->info->offset = udef->o + udef->s;
   union_pop(env, udef, scope);
   union_flag(udef, ae_flag_check);
-  union_flag(udef, ae_flag_checked);
+  union_flag(udef, ae_flag_valid);
   return ret;
 }
 
@@ -1128,7 +1128,7 @@ ANN static Value match_value(const Env env, const Exp_Primary* prim, const m_uin
   const Symbol sym = prim->d.var;
   const Value v = new_value(env->gwion->mp,
      ((Exp)VKEY(&env->scope->match->map, i))->info->type, s_name(sym));
-  SET_FLAG(v, checked);
+  SET_FLAG(v, valid);
   nspc_add_value(env->curr, sym, v);
   VVAL(&env->scope->match->map, i) = (vtype)v;
   return v;
@@ -1336,7 +1336,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   --env->scope->depth;
   env->func = former;
   if(ret > 0)
-    SET_FLAG(fdef, checked);
+    SET_FLAG(fdef, valid);
   if(GET_FLAG(fdef, global))
     env_pop(env,scope);
   return ret;
@@ -1380,7 +1380,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     inherit(t);
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, check_section))
-  SET_FLAG(t, checked);
+  SET_FLAG(t, valid);
   return GW_OK;
 }
 

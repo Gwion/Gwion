@@ -357,7 +357,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
   const m_str name = s_name(f->base->xid);
   const Func func = scan_new_func(env, f, name);
   const Value value = func_value(env, func, overload);
-  SET_FLAG(value, checked | ae_flag_template);
+  SET_FLAG(value, valid | ae_flag_template);
   SET_FLAG(value->type, func); // the only types with func flag, name could be better
   Type type = env->class_def;
   Nspc nspc = env->curr;
@@ -499,7 +499,7 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
   if(!base) {
     if(GET_FLAG(f, op))
       CHECK_BB(scan2_func_def_op(env, f))
-    SET_FLAG(f->base->func->value_ref, checked);
+    SET_FLAG(f->base->func->value_ref, valid);
   }
   return GW_OK;
 }
