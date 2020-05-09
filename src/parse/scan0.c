@@ -313,13 +313,24 @@ ANN static void cdef_flag(const Class_Def cdef, const Type t) {
     SET_FLAG(t, typedef);
 }
 
+ANN static Type get_parent_base(const Env env, Type_Decl *td) {
+  DECL_OO(const Type, t, = find_type(env, td))
+  Type owner = env->class_def;
+  while(owner) {
+    if(t == owner)
+      ERR_O(td_pos(td), _("'%s' as parent inside itself\n."), owner->name);
+    owner = owner->e->owner_class;
+  }
+  return t;
+}
+
 ANN static Type get_parent(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, struct))
     return NULL;
   if(!cdef->base.ext)
     return env->gwion->type[et_object];
   if(tmpl_base(cdef->base.tmpl))
-    return nspc_lookup_type1(env->curr, cdef->base.ext->xid);
+    return get_parent_base(env, cdef->base.ext);
   if(cdef->base.tmpl)
     template_push_types(env, cdef->base.tmpl);
   const Type t = known_type(env, cdef->base.ext);
