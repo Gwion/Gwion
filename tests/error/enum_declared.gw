@@ -1,6 +1,6 @@
 #! [contains] already been defined
 int i;
-enum
+enum i
 {
   test
-} i;
+}
