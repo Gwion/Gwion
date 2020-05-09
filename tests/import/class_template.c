@@ -35,7 +35,7 @@ GWION_IMPORT(class_template) {
    GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_item_ini(gwi, "<~Ptr<~int~>,int[]~>ClassTemplate", "testObject"))
+  GWI_BB(gwi_item_ini(gwi, "<~<~int~>Ptr,int[]~>ClassTemplate", "testObject"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   return GW_OK;
 }
