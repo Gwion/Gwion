@@ -1,0 +1,10 @@
+struct <~A~> S{
+  A a0;
+  A a1;
+}
+
+<~int~>S si;
+<~float~>S sf;
+
+<<< si.a0 >>>;
+<<< sf.a0 >>>;
