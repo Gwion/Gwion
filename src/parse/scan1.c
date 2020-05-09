@@ -13,7 +13,7 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Dec
   Type parent = t->e->parent;
   while(parent) {
     if(parent == env->class_def)
-      ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"), t->name, t == env->class_def ? "itself" : env->class_def->name);
+      ERR_B(td_pos(td), _("%s declared inside %s\n."), t->name, t == env->class_def ? "itself" : env->class_def->name);
     parent = parent->e->parent;
   }
   return GW_OK;
