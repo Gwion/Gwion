@@ -598,6 +598,7 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
 
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v, const m_bool emit_addr) {
   emit_add_instr(emit, RegPushMem);
+//regpushi(emit, 0);
   const Instr instr = emit_add_instr(emit, !emit_addr ? StructMember : StructMemberAddr);
   instr->m_val2 = v->from->offset;
   if(!emit_addr)
@@ -619,9 +620,15 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   if(!GET_FLAG(v, member)) {
     v->from->offset = emit_local(emit, type);
     exec = (f_instr*)(allocword);
-    if(GET_FLAG(var_decl->value, ref)) { // ref or emit_var ?
+    if(GET_FLAG(v, ref)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
       clean->m_val = v->from->offset;
+    }
+    if(!emit_addr && GET_FLAG(type, struct)) {
+      for(m_uint i = 0; i <= type->size; ++i) {
+        const Instr clean = emit_add_instr(emit, MemSetImm);
+        clean->m_val = v->from->offset + i;
+      }
     }
   }
   const Instr instr = !(SAFE_FLAG(emit->env->class_def, struct) && !emit->env->scope->depth) ?
