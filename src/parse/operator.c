@@ -128,12 +128,14 @@ ANN static m_bool op_exist(const struct OpChecker* ock, const Nspc n) {
 }
 
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
-  const Nspc nspc = gwion->env->curr;
+  Nspc n = gwion->env->curr;
+  do {
+    struct OpChecker ock = { gwion->env, &n->info->op_map, opi, 0 };
+    CHECK_BB(op_exist(&ock, n))
+  } while((n = n->parent));
+  if(!gwion->env->curr->info->op_map.ptr)
+    map_init(&gwion->env->curr->info->op_map);
   struct OpChecker ock = { gwion->env, &gwion->env->curr->info->op_map, opi, 0 };
-  if(!nspc->info->op_map.ptr)
-    map_init(&nspc->info->op_map);
-  else
-    CHECK_BB(op_exist(&ock, nspc))
   const Vector v = op_vector(gwion->mp, &ock);
   const M_Operator* mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
