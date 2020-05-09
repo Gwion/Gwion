@@ -13,6 +13,7 @@
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
+#include "clean.h"
 
 ANN2(1,2,3) static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
     const restrict m_str n) {
@@ -66,8 +67,7 @@ ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
 }
 
 ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
-  fdef->d.dl_func_ptr = NULL;
-  free_func_def(gwi->gwion->mp, fdef);
+  func_def_cleaner(gwi->gwion, fdef);
   return GW_ERROR;
 }
 
