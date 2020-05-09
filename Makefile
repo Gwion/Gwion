@@ -83,7 +83,7 @@ ast: ast/libgwion_ast.a
 
 clean:
 	$(info cleaning ...)
-	@rm -f */*.o */*/*.o */*.gw.* */*/*.gw.* */*/*.gcda */*/*.gcno gwion libgwion.a src/*.gcno src/*.gcda
+	@rm -f src/*.o src/*/*.o gwion libgwion.a src/*.gcno src/*.gcda
 
 install: ${PRG}
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
