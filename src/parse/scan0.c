@@ -275,6 +275,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     const Type t = union_type(env, sym, !!udef->type_xid);
     udef->value = union_value(env, t, udef->xid);
     udef->value->flag |= udef->flag;
+    SET_ACCESS(udef, t);
     if(env->class_def && !GET_FLAG(udef, static)) {
       SET_FLAG(udef->value, member);
       SET_FLAG(udef, member);
@@ -282,11 +283,13 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   } else if(udef->type_xid) {
     CHECK_BB(scan0_defined(env, udef->type_xid, udef->pos))
     udef->type = union_type(env, udef->type_xid, 1);
+    SET_ACCESS(udef, udef->type);
     SET_FLAG(udef->type, checked);
   } else {
     const Symbol sym = scan0_sym(env, "union", udef->pos);
     CHECK_BB(scan0_defined(env, sym, udef->pos))
     const Type t = union_type(env, sym, 1);
+    SET_ACCESS(udef, t);
     udef->value = union_value(env, t, sym);
     udef->value->flag |= udef->flag;
   }

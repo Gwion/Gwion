@@ -279,6 +279,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
     if(env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
+      SET_ACCESS(edef, edef->t)
     }
     SET_FLAG(v, const | ae_flag_enum | ae_flag_checked);
     nspc_add_value(edef->t->e->owner, list->xid, v);
