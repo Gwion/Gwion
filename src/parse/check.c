@@ -951,6 +951,21 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
+// the two next function do not account for arrays. (they are only stmt_auto() helpers
+ANN static Type_Decl* _type2td(const Env env, const Type t, Type_Decl *next) {
+  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol(t->name),
+      loc_cpy(env->gwion->mp, td_pos(next)));
+  td->next = next;
+  return !t->e->owner_class ? td : _type2td(env, t->e->owner_class, td);
+
+}
+
+ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc) {
+  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol(t->name),
+      loc_cpy(env->gwion->mp, loc));
+  return !t->e->owner_class ? td : _type2td(env, t->e->owner_class, td);
+}
+
 ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
   DECL_OB(Type, t, = check_exp(env, stmt->exp))
   while(GET_FLAG(t, typedef))
@@ -961,28 +976,19 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
           " This is not allowed in auto loop"), stmt->exp->info->type->name)
   if(stmt->is_ptr) {
-    struct ID_List_   id0, id;
-    struct Type_List_ tl;
-    struct Array_Sub_ array;
-    Type_Decl td0, td;
-    memset(&id0, 0, sizeof(struct ID_List_));
-    memset(&id, 0, sizeof(struct ID_List_));
-    memset(&tl, 0, sizeof(struct Type_List_));
-    memset(&array, 0, sizeof(struct Array_Sub_));
-    memset(&td0, 0, sizeof(Type_Decl));
-    memset(&td, 0, sizeof(Type_Decl));
-    td.xid   = insert_symbol("Ptr");
-    td0.xid  = insert_symbol(ptr->name);
-    tl.td    = &td0;
-    td.types = &tl;
-    td0.pos = stmt->exp->pos;
-    td.pos = stmt->exp->pos;
+    struct Type_List_ tl = {};
+    struct Array_Sub_ array = {};
+    Type_Decl *td0 = type2td(env, ptr, stmt->exp->pos),
+      td = { .xid=insert_symbol("Ptr"), .types=&tl, .pos=stmt->exp->pos };
+    tl.td    = td0;
     if(depth) {
       array.depth = depth;
       td.array = &array;
     }
     ptr = known_type(env, &td);
-    if(!GET_FLAG(ptr, checked) && ptr->e->def) {
+    td0->array = NULL;
+    free_type_decl(env->gwion->mp, td0);
+    if(!GET_FLAG(ptr, check) && ptr->e->def) {
       struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
         .scope=env->scope->depth, .flag=ae_flag_check };
       CHECK_BB(envset_run(&es, get_type(ptr)))
