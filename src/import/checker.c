@@ -252,6 +252,7 @@ ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
   }
   Type_Decl *td = new_type_decl(gwi->gwion->mp, sym, loc(gwi));
   td->next = next;
+  td->types = tl;
   if(ac.depth)
     td->array = mk_array(gwi->gwion->mp, &ac);
   return td;
