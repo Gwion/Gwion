@@ -37,13 +37,8 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
 ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, template) && GET_FLAG(t, ref)) {
     const Type type = typedef_base(t);
-    const m_str post = strstr(type->name, "<");
-    size_t len = strlen(type->name) - strlen(post);
-    char c[len + 1];
-    for(size_t i = 0; i < len; i++)
-      c[i] = type->name[i];
-    c[len] = 0;
-    return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, c));
+    const m_str post = strrchr(type->name, '>') + 1;
+    return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, post));
   }
   return t->e->parent;
 }

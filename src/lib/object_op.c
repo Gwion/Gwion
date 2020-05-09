@@ -311,11 +311,12 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
 ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
   ID_List base = info->cdef->base.tmpl->list;
   Type_List call = info->call;
-  size_t size = tmpl_set(info, info->cdef->base.type);
+  size_t size = 0;
   do {
     DECL_OB(const Type, t, = known_type(env, call->td))
     size += tmpl_set(info, t);
   } while((call = call->next) && (base = base->next) && ++size);
+  size += tmpl_set(info, info->cdef->base.type);
   return size + 16 + 3;
 }
 
@@ -327,11 +328,10 @@ ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
 
 ANN static void template_name(struct tmpl_info* info, m_str s) {
   m_str str = s;
-  str = tmpl_get(info, str);
   *str++ = '<';
   *str++ = '~';
-  const m_uint size = vector_size(&info->type);
-  for(info->index = 1; info->index < size; ++info->index) {
+  const m_uint size = vector_size(&info->type) -1;
+  for(info->index = 0; info->index < size; ++info->index) {
     str = tmpl_get(info, str);
     if(info->index < size - 1)
       *str++ = ',';
@@ -340,6 +340,7 @@ ANN static void template_name(struct tmpl_info* info, m_str s) {
       *str++ = '>';
     }
   }
+  str = tmpl_get(info, str);
   *str = '\0';
 }
 

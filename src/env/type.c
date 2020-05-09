@@ -136,35 +136,34 @@ ANN m_bool type_ref(Type t) {
 }
 
 ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
-  const m_str s = t->name;
-  m_str name = strstr(s, "<");
-  m_uint i = 0;
+  if(!index || t->name[0] != '<')
+    return NULL;
+  m_str name = t->name + 2;
   m_uint lvl = 0;
   m_uint n = 1;
-  const size_t len = name ? strlen(name) : 0;
-  const size_t slen = strlen(s);
-  const size_t tlen = slen - len + 1;
-  char c[slen + 1];
-  if(!name)
-    return index ? NULL : s_name(insert_symbol(s));
-  if(index == 0) {
-    snprintf(c, tlen, "%s", s);
-    return s_name(insert_symbol(c));
-  }
-  ++name;
-  while(*name++) {
-    if(*name == '<') {
-      if(n == index)
-        c[i++] = *name;
-      lvl++;
-      name++;
-    } else if(*name == '~' && !lvl--)
-      break;
+  const size_t slen = strlen(name);
+  char c, buf[slen + 1], *tmp = buf;
+  while((c = *name)) {
+    if(c == '<')
+      ++lvl;
+    else if(c == '>') {
+      if(!lvl-- && n == index) {
+        --tmp;
+        break;
+      }
+    } else if(c == ',') {
+      if(!lvl && n++ == index)
+        break;
+      if(!lvl)
+        ++name;
+    }
     if(n == index)
-      c[i++] = *name;
+      *tmp++ = *name;
+    ++name;
+
   }
-  c[i] = '\0';
-  return strlen(c) ? s_name(insert_symbol(c)) : NULL;
+  *tmp = '\0';
+  return strlen(buf) ? s_name(insert_symbol(buf)) : NULL;
 }
 
 ANN m_uint get_depth(const Type type) {
