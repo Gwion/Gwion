@@ -170,6 +170,8 @@ ANN static void clean_stmt_auto(Clean *a, Stmt_Auto b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
+  if(b->v)
+    REM_REF(b->v, a->gwion)
   --a->scope;
 }
 
