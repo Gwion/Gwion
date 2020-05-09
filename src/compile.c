@@ -7,6 +7,7 @@
 #include "compile.h"
 #include "gwion.h"
 #include "pass.h"
+#include "clean.h"
 
 enum compile_type {
   COMPILE_NAME,
@@ -45,14 +46,14 @@ ANN static inline void compiler_error(MemPool p, const struct Compiler* c) {
   }
 }
 
-ANN static void compiler_clean(MemPool p, const struct Compiler* c) {
+ANN static void compiler_clean(const Gwion gwion, const struct Compiler* c) {
   if(c->name)
     xfree(c->name);
   /* test c->type because COMPILE_FILE does not own file */
   if(c->type != COMPILE_FILE && c->file)
     fclose(c->file);
   if(c->ast)
-    free_ast(p, c->ast);
+    ast_cleaner(gwion, c->ast);
 }
 
 ANN static m_bool _compiler_open(struct Compiler* c) {
@@ -86,6 +87,9 @@ ANN static m_bool is_reg(const m_str path) {
 ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   char name[strlen(c->name) + 1];
   strcpy(name, c->name);
+#ifdef __AFL_HAVE_MANUAL_CONTROL
+  if(strcmp(name, "afl"))
+#endif
   if(c->type == COMPILE_FILE && !is_reg(name)) {
     gw_err(_("'%s': is a not a regular file\n"), name);
     return GW_ERROR;
@@ -132,7 +136,7 @@ ANN static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   MUTEX_LOCK(gwion->data->mutex);
   const m_uint ret = _compile(gwion, c);
   MUTEX_UNLOCK(gwion->data->mutex);
-  compiler_clean(gwion->mp, c);
+  compiler_clean(gwion, c);
   return ret;
 }
 

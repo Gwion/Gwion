@@ -75,7 +75,9 @@ ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
 
 
 ANN static Type class_type(const Env env, const Type base) {
-  const Type t = type_copy(env->gwion->mp, env->gwion->type[et_class]);
+  const Type t_class = env->gwion->type[et_class];
+  const Type t = type_copy(env->gwion->mp, t_class);
+  t->e->parent = t_class;
   t->e->ctx = base->e->ctx;
   t->e->d.base_type = base;
   return t;

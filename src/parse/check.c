@@ -318,6 +318,20 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   return env->gwion->type[et_gack];
 }
 
+ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
+  const Exp e = *exp;
+  DECL_OO(const Type, t, = check_exp(env, e))
+  DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
+  return v->type;
+}
+
+ANN static Type check_prim_interp(const Env env, const Exp* exp) {
+  CHECK_OO(check_exp(env, *exp))
+  return env->gwion->type[et_string];
+}
+
+
+
 #define describe_prim_xxx(name, type) \
 ANN static Type check##_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
   return type; \
@@ -875,17 +889,6 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
 }
 ANN static Type check_exp_lambda(const Env env,
     const Exp_If* exp_if NUSED) { return env->gwion->type[et_lambda]; }
-
-ANN static Type check_exp_typeof(const Env env, const Exp_Typeof *exp) {
-  DECL_OO(const Type, t, = check_exp(env, exp->exp))
-  DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
-  return v->type;
-}
-
-ANN static Type check_exp_interp(const Env env, const Exp_Interp* exp) {
-  CHECK_OO(check_exp(env, exp->exp))
-  return env->gwion->type[et_string];
-}
 
 DECL_EXP_FUNC(check, Type, Env)
 

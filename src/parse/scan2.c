@@ -101,7 +101,8 @@ ANN static m_bool scan2_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
-  if(prim->prim_type == ae_prim_hack)
+  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_typeof ||
+        prim->prim_type == ae_prim_interp)
     CHECK_BB(scan2_exp(env, prim->d.exp))
   else if(prim->prim_type == ae_prim_id) {
     const Value v = prim_value(env, prim->d.var);
@@ -172,14 +173,6 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
   } else if(unary->exp)
     return scan2_exp(env, unary->exp);
   return GW_OK;
-}
-
-ANN static inline m_bool scan2_exp_typeof(const restrict Env env, const Exp_Typeof *exp) {
-  return scan2_exp(env, exp->exp);
-}
-
-ANN static inline m_bool scan2_exp_interp(const restrict Env env, const Exp_Interp *exp) {
-  return scan2_exp(env, exp->exp);
 }
 
 ANN static inline m_bool _scan2_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {

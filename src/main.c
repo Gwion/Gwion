@@ -17,27 +17,17 @@ static void sig(int unused NUSED) {
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 
-#define BUFSIZE 4
-
 static void afl_run(const Gwion gwion) {
   __AFL_INIT();
-  char buf[BUFSIZE];
-  struct GwText_ text = { .mp=gwion->mp };
   while (__AFL_LOOP(256)) {
-    ssize_t sz;
-    while((sz = read(0, buf, BUFSIZE-1)) > 0) {
-buf[sz] = '\0';
-      text_add(&text, buf);
-    }
-    if(compile_string(gwion, "afl", text.str)) {
-      push_global(gwion, "[afl]");
+    FILE* f = fdopen(0, "r");
+    push_global(gwion, "[afl]");
+    if(compile_file(gwion, "afl", f))
       gwion_run(gwion);
-      pop_global(gwion);
-   }
-    text_reset(&text);
+    pop_global(gwion);
   }
-  text_release(&text);
 }
+
 #define gwion_run(a) { afl_run(a); return 0; }
 #endif
 

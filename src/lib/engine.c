@@ -68,12 +68,12 @@ OP_EMIT(opem_object_dot);
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
+  GWI_BB(gwi_gack(gwi, t_class, gack_class)) // not working yet
   GWI_BB(gwi_add_type(gwi, t_class))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
-  GWI_BB(gwi_gack(gwi, gwi->gwion->type[et_class], gack_class)) // not working yet
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);

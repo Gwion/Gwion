@@ -155,7 +155,8 @@ ANN static m_bool scan1_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary* prim) {
-  if(prim->prim_type == ae_prim_hack)
+  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_typeof ||
+        prim->prim_type == ae_prim_interp)
     return scan1_exp(env, prim->d.exp);
   if(prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
@@ -212,14 +213,6 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
   if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code)
     { RET_NSPC(scan1_stmt(env, unary->code)) }
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
-}
-
-ANN static inline m_bool scan1_exp_typeof(const restrict Env env, const Exp_Typeof *exp) {
-  return scan1_exp(env, exp->exp);
-}
-
-ANN static inline m_bool scan1_exp_interp(const restrict Env env, const Exp_Interp *exp) {
-  return scan1_exp(env, exp->exp);
 }
 
 #define scan1_exp_lambda dummy_func

@@ -484,6 +484,15 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
 
 #define emit_prim_nil     (void*)dummy_func
 
+ANN static m_bool emit_prim_typeof(const Emitter emit, const Exp *exp) {
+  const Exp e = *exp;
+  if(!e->info->type->array_depth)
+    regpushi(emit, (m_uint)(actual_type(emit->gwion, e->info->type)));
+  else
+    regpushi(emit, (m_uint)e->info->type);
+  return GW_OK;
+}
+
 ANN static inline void struct_interp(const Emitter emit, const Exp e) {
   if(GET_FLAG(e->info->type, struct) && !GET_FLAG(e->info->type, builtin)) {
     exp_setvar(e, 1);
@@ -528,6 +537,14 @@ ANN static m_bool emit_prim_hack(const Emitter emit, const Exp *exp) {
   CHECK_BB(emit_interp(emit, *exp))
   if(!(emit->env->func && emit->env->func->def->base->xid == insert_symbol("@gack")))
     emit_add_instr(emit, GackEnd);
+  return GW_OK;
+}
+
+ANN static m_bool emit_prim_interp(const Emitter emit, const Exp *exp) {
+  const Exp e = *exp;
+  CHECK_BB(emit_interp(emit, e))
+  const Instr instr = emit_add_instr(emit, GackEnd);
+  instr->m_val = 1;
   return GW_OK;
 }
 
@@ -1218,21 +1235,6 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
   if(es.run)
     envset_pop(&es, lambda->owner);
   return ret;
-}
-
-ANN static m_bool emit_exp_typeof(const Emitter emit, const Exp_Typeof *exp) {
-  if(!exp->exp->info->type->array_depth)
-    regpushi(emit, (m_uint)(actual_type(emit->gwion, exp->exp->info->type)));
-  else
-    regpushi(emit, (m_uint)exp->exp->info->type);
-  return GW_OK;
-}
-
-ANN static m_bool emit_exp_interp(const Emitter emit, const Exp_Interp *exp) {
-  CHECK_BB(emit_interp(emit, exp->exp))
-  const Instr instr = emit_add_instr(emit, GackEnd);
-  instr->m_val = 1;
-  return GW_OK;
 }
 
 DECL_EXP_FUNC(emit, m_bool, Emitter)
