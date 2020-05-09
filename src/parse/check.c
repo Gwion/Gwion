@@ -569,7 +569,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   }
   free_mstr(env->gwion->mp, tmpl_name);
   if(es.run)
-    envset_pop(&es, v->from->owner_class->e->owner_class);
+    envset_pop(&es, v->from->owner_class);
   env_pop(env, scope);
   env->func = former;
   return m_func;
