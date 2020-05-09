@@ -2,6 +2,7 @@
 #define __CLEAN
 
 void ast_cleaner(const Gwion, Ast);
+void class_def_cleaner(const Gwion, Class_Def);
 void func_def_cleaner(const Gwion, Func_Def);
 #ifdef __CLEAN_IMPL
 typedef struct {

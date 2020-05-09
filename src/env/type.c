@@ -5,6 +5,7 @@
 #include "traverse.h"
 #include "parse.h"
 #include "gwion.h"
+#include "clean.h"
 
 ANN static inline m_bool freeable(const Type a) {
   return !GET_FLAG(a, nonnull) && GET_FLAG(a, template);
@@ -22,7 +23,7 @@ ANN static void free_type(Type a, Gwion gwion) {
       a->e->def->union_def = NULL;
     }
     if(a->e->def)
-      free_class_def(gwion->mp, a->e->def);
+      class_def_cleaner(gwion, a->e->def);
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
