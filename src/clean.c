@@ -276,8 +276,8 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
 }
 
 ANN static void clean_func_def(Clean *a, Func_Def b) {
-  ++a->scope;
   clean_func_base(a, b->base);
+  ++a->scope;
   if(b->d.code && !GET_FLAG(b, builtin))
     clean_stmt(a, b->d.code);
   --a->scope;
