@@ -348,8 +348,6 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), !GET_FLAG(v, global) ? regpushmem : regpushbase);
   instr->m_val  = v->from->offset;
-  if(isa(v->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, v->type))
-    instr->m_val = prim_exp(data)->info->type->e->d.func->value_ref->from->offset;
   return GW_OK;
 }
 
