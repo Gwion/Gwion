@@ -115,6 +115,8 @@ static ID_CHECK(opck_this) {
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack") &&
        GET_FLAG(env->class_def, struct))
     ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
+  if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack"))
+    return force_type(env, env->class_def->e->parent);
   return env->class_def;
 }
 

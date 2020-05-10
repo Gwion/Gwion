@@ -56,10 +56,19 @@ ANN struct Instr_* op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map, struct Gwion_* gwion);
 
+
+ANN void operator_suspend(const Nspc, struct Op_Import*);
+ANN static inline void operator_resume(struct Op_Import *opi) {
+  *(uintptr_t*)opi->ret = opi->data;
+}
+
 ANN static inline void set_decl_ref(const Exp e) {
   if(e->exp_type == ae_exp_decl) {
     SET_FLAG(e->d.exp_decl.td, ref);
     SET_FLAG(e->d.exp_decl.list->self->value, ref);
   }
 }
+
+
+ANN void func_operator(const Func_Def fdef, struct Op_Import *opi);
 #endif

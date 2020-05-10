@@ -56,6 +56,8 @@ static m_bool op_match(const restrict Type t, const restrict Type mo) {
 ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs, const restrict Type rhs) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
+    if(!mo)
+      continue;
     if(op_match(lhs, mo->lhs) && op_match(rhs, mo->rhs))
       return mo;
   }
@@ -79,6 +81,18 @@ ANN2(1) static M_Operator* operator_find2(const Vector v, const restrict Type lh
   return NULL;
 }
 
+ANN void operator_suspend(const Nspc n, struct Op_Import *opi) {
+  const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
+    if(op_match2(opi->lhs, mo->lhs) && op_match2(opi->rhs, mo->rhs)) {
+      opi->data = (uintptr_t)mo;
+      opi->ret = (Type)&VPTR(v, i-1);
+      VPTR(v, i-1) = 0;
+      break;
+    }
+  }
+}
 
 ANN static M_Operator* new_mo(MemPool p, const struct Op_Import* opi) {
   M_Operator* mo = mp_calloc(p, M_Operator);

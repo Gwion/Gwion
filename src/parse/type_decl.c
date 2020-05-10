@@ -20,11 +20,31 @@ ANN Type type_nonnull(const Env env, const Type base) {
   if(t->nspc)
     ADD_REF(t->nspc)
   t->name = s_name(sym);
-  t->flag = base->flag;
-  SET_FLAG(t, nonnull);
+  t->flag = base->flag | ae_flag_nonnull;
   nspc_add_type_front(t->e->owner, sym, t);
-  mk_class(env, t);
   return t;
+}
+
+#define STR_FORCE ":force"
+#define STRLEN_FORCE strlen(STR_FORCE)
+
+ANN static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
+  const Type ret = type_copy(p, t);
+  if(ret->nspc)
+    ADD_REF(ret->nspc)
+  ret->name = s_name(sym);
+  ret->flag = t->flag | ae_flag_force;
+  nspc_add_type_front(t->e->owner, sym, ret);
+  return ret;
+ }
+
+ANN Type force_type(const Env env, const Type t) {
+  const size_t len = strlen(t->name);
+  char name[len + STRLEN_FORCE + 2];
+  strcpy(name, t->name);
+  strcpy(name + len, STR_FORCE);
+  const Symbol sym = insert_symbol(name);
+  return nspc_lookup_type1(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
 }
 
 ANN Type type_decl_resolve(const Env env, Type_Decl* td) {

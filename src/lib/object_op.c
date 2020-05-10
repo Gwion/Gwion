@@ -76,35 +76,13 @@ static OP_EMIT(opem_at_object) {
   return emit_add_instr(emit, ObjectAssign);
 }
 
-#define STR_FORCE ":force"
-#define STRLEN_FORCE strlen(STR_FORCE)
-
-static inline Type new_force_type(MemPool p, const Type t, const Symbol sym) {
-  const Type ret = type_copy(p, t);
-  if(ret->nspc)
-    ADD_REF(ret->nspc)
-  ret->name = s_name(sym);
-  ret->flag = t->flag | ae_flag_force;
-  nspc_add_type_front(t->e->owner, sym, ret);
-  return ret;
- }
-
-static Type get_force_type(const Env env, const Type t) {
-  const size_t len = strlen(t->name);
-  char name[len + STRLEN_FORCE + 2];
-  strcpy(name, t->name);
-  strcpy(name + len, STR_FORCE);
-  const Symbol sym = insert_symbol(env->gwion->st, name);
-  return nspc_lookup_type1(t->e->owner, sym) ?: new_force_type(env->gwion->mp, t, sym);
-}
-
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type l = cast->exp->info->type;
   const Type r = exp_self(cast)->info->type;
   if(check_nonnull(env, l, r, "cast", exp_self(cast)->pos) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
-  return get_force_type(env, r);
+  return force_type(env, r);
 }
 
 static OP_EMIT(opem_object_cast) {

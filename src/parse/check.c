@@ -1331,7 +1331,14 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
+  struct Op_Import opi = { };
+  if(GET_FLAG(fdef, op)) {
+    func_operator(f, &opi);
+    operator_suspend(env->curr, &opi);
+  }
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
+  if(GET_FLAG(fdef, op))
+    operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;

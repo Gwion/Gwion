@@ -406,15 +406,10 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const m_str str = s_name(f->base->xid);
-  const uint is_unary = GET_FLAG(f, unary) + (!strcmp(str, "@conditionnal") || !strcmp(str, "@unconditionnal"));
-  const Type l = is_unary ? NULL :
-    f->base->args ? f->base->args->var_decl->value->type : NULL;
-  const Type r = f->base->args ? is_unary ? f->base->args->var_decl->value->type :
-    f->base->args->next ? f->base->args->next->var_decl->value->type :
-    f->base->ret_type : NULL;
   struct Op_Func opfunc = { .ck=strcmp(str, "@implicit") ? 0 : opck_usr_implicit };
-  struct Op_Import opi = { .op=f->base->xid, .lhs=l, .rhs=r, .ret=f->base->ret_type,
-                           .pos=f->pos, .data=(uintptr_t)f->base->func, .func=&opfunc };
+  struct Op_Import opi = { .ret=f->base->ret_type, .pos=f->pos,
+      .data=(uintptr_t)f->base->func, .func=&opfunc };
+  func_operator(f, &opi);
   CHECK_BB(add_op(env->gwion, &opi))
   operator_set_func(&opi);
   return GW_OK;
