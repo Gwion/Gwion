@@ -159,13 +159,13 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     clear_decl(env, decl);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
-    if(GET_FLAG(decl->type, infer))
-      ERR_O(td_pos(decl->td), _("can't infer type."));
   }
   if(!decl->type)
     ERR_O(td_pos(decl->td), _("can't find type"));
   {
     const Type t = get_type(decl->type);
+    if(GET_FLAG(t, infer))
+      ERR_O(td_pos(decl->td), _("can't infer type."));
     if(!GET_FLAG(t, check) && t->e->def)
       CHECK_BO(ensure_check(env, t))
   }
