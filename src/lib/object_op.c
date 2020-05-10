@@ -414,7 +414,8 @@ ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
     envset_pop(&es, t->e->owner_class);
   if(ret > 0)
     return a->base.type;
-  free_class_def(env->gwion->mp, a);
+  if(!a->base.type)
+    free_class_def(env->gwion->mp, a);
   return NULL;
 }
 
