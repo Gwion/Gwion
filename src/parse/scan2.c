@@ -522,6 +522,7 @@ static ANN Func_Def scan2_cpy_fdef(const Env env, const Func_Def fdef) {
     a = a->next;
     b = b->next;
   }
+  scan1_func_def(env, f);
   return f;
 }
 
