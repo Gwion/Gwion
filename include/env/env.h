@@ -42,7 +42,7 @@ ANN Value mk_class(const Env env, const Type base);
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
 ANN Type known_type(const Env env, Type_Decl*);
-ANN Type type_nonnull(const Env env, const Type base);
+ANN Type nonnul_type(const Env env, const Type base);
 ANN Type force_type(const Env env, const Type t);
 ANN Type prim_ref(const Env env, const Type t, const Type_Decl* td);
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos);
