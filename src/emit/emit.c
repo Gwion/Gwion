@@ -453,7 +453,7 @@ ANN static m_bool emit_prim_float(const Emitter emit, const m_float *fnum) {
 }
 
 ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
-  DECL_BB(const m_int, c, = str2char(emit, *str, prim_pos(str)))
+  const char c = str2char(emit, *str, prim_pos(str));
   regpushi(emit, c);
   return GW_OK;
 }

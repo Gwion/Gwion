@@ -72,6 +72,6 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
   return GW_OK;
 }
 
-ANN m_int str2char(const Emitter emit, const m_str c, const loc_t pos) {
+ANN char str2char(const Emitter emit, const m_str c, const loc_t pos) {
   return c[0] != '\\' ? c[0] : get_escape(emit, c[1], pos);
 }
