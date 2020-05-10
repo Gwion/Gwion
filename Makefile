@@ -81,12 +81,19 @@ ast/libgwion_ast.a:
 ast: ast/libgwion_ast.a
 	@(info build ast)
 
-afl:
-	touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
-	PRG=gwion-fuzz CC=afl-clang-fast make
-	touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
+afl: gwion-fuzz
 
-clean:
+gwion-fuzz:
+	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
+	@+PRG=gwion-fuzz CC=afl-clang-fast make
+	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c afl
+
+clean_core:
+	@rm -f core.* *vgcore.*
+
+.PHONY: .afl
+
+clean: clean_core
 	$(info cleaning ...)
 	@rm -f src/*.o src/*/*.o gwion libgwion.a src/*.gcno src/*.gcda
 
