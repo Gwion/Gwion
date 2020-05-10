@@ -1450,16 +1450,18 @@ ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
 }
 
 ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_uint *end_pc) {
+  emit_push_scope(emit);
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
-  emit_local(emit, emit->gwion->type[et_int]); // is ptr released?
+  emit_local(emit, emit->gwion->type[et_int]);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
+  emit_local(emit, emit->gwion->type[et_int]);
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
   emit_except(emit, stmt->exp->info->type);
   const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
-  CHECK_BB(emit_stmt(emit, stmt->body, 1))
+  const m_bool ret = scoped_stmt(emit, stmt->body, 1);
   *end_pc = emit_code_size(emit);
   if(stmt->is_ptr) {
     loop->m_val2 = (m_uint)stmt->v->type;
@@ -1470,7 +1472,8 @@ ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_ui
   tgt->m_val = ini_pc;
   s1->m_val = loop->m_val = offset;
   regpop(emit, SZ_INT);
-  return GW_OK;
+  emit_pop_scope(emit);
+  return ret;
 }
 
 ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
