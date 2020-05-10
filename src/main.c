@@ -18,6 +18,7 @@ static void sig(int unused NUSED) {
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 
 static void afl_run(const Gwion gwion) {
+  gw_seed(gwion->vm->rand, 0);
   __AFL_INIT();
   while (__AFL_LOOP(100)) {
     FILE* f = fdopen(0, "r");
