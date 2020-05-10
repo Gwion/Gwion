@@ -87,9 +87,6 @@ ANN static m_bool is_reg(const m_str path) {
 ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   char name[strlen(c->name) + 1];
   strcpy(name, c->name);
-#ifdef __AFL_HAVE_MANUAL_CONTROL
-  if(strcmp(name, "afl"))
-#endif
   if(c->type == COMPILE_FILE && !is_reg(name)) {
     gw_err(_("'%s': is a not a regular file\n"), name);
     return GW_ERROR;
