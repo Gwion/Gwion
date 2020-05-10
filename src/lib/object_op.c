@@ -372,6 +372,8 @@ ANN static Class_Def template_class(const Env env, const Class_Def def, const Ty
   const Class_Def c = cpy_class_def(env->gwion->mp, def);
   c->base.xid = name;
   SET_FLAG(c, template | ae_flag_ref);
+  UNSET_FLAG(c, scan0 | ae_flag_scan1 | ae_flag_scan2 |
+    ae_flag_check | ae_flag_emit | ae_flag_valid);
   return c;
 }
 
