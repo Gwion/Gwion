@@ -122,7 +122,7 @@ static FREEARG(freearg_vararg) {
 
 static ID_CHECK(idck_vararg) {
   if(env->func && GET_FLAG(env->func->def, variadic))
-    return type_nonnull(env, exp_self(prim)->info->type);
+    return nonnul_type(env, exp_self(prim)->info->type);
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
 

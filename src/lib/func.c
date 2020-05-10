@@ -185,7 +185,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
     m_bool nonnull = GET_FLAG(info->exp->info->type, nonnull);
     CHECK_BB(fptr_check(env, info))
     DECL_OB(const Type, t, = fptr_type(env, info))
-    info->exp->info->type = !nonnull ? t : type_nonnull(env, t);
+    info->exp->info->type = !nonnull ? t : nonnul_type(env, t);
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;

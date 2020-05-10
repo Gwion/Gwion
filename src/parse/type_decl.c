@@ -8,7 +8,7 @@
 #define STR_NONNULL ":nonnull"
 #define STRLEN_NONNULL strlen(STR_NONNULL)
 
-ANN Type type_nonnull(const Env env, const Type base) {
+ANN Type nonnul_type(const Env env, const Type base) {
   char c[strlen(base->name) + 9];
   sprintf(c, "%s%s", base->name, STR_NONNULL);
   const Symbol sym = insert_symbol(c);
@@ -58,7 +58,7 @@ ANN Type type_decl_resolve(const Env env, Type_Decl* td) {
       ERR_O(td_pos(td), _("void types can't be nonnull."))
     if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_fptr]) < 0)
       return ret;
-    return type_nonnull(env, ret);
+    return nonnul_type(env, ret);
   }
   return ret;
 }
