@@ -75,18 +75,15 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
       if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
-else if(GET_FLAG(v->type, struct) &&
-       !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
-const TupleForm tf = v->type->e->tuple;
-for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
-  const Type t = (Type)vector_at(&tf->types, i);
-  if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-    release(*(M_Object*)(o->data + v->from->offset + vector_at(&tf->offset, i)), shred);
-}
-
-//exit(77);
-
-}
+      else if(GET_FLAG(v->type, struct) &&
+            !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
+        const TupleForm tf = v->type->e->tuple;
+        for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
+          const Type t = (Type)vector_at(&tf->types, i);
+          if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
+            release(*(M_Object*)(o->data + v->from->offset + vector_at(&tf->offset, i)), shred);
+        }
+      }
     }
     if(GET_FLAG(t, dtor) && t->nspc->dtor) {
       if(GET_FLAG(t->nspc->dtor, builtin))
