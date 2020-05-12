@@ -311,9 +311,29 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
   return GW_OK;
 }
 
+ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
+  ID_List id = base->tmpl->list;
+  do nspc_add_type(env->curr, id->xid, env->gwion->type[et_undefined]);
+  while((id = id->next));
+  CHECK_OB((base->ret_type = known_type(env, base->td)))
+  if(base->args) {
+    Arg_List arg = base->args;
+    do CHECK_OB(known_type(env, arg->td))
+    while((arg = arg->next));
+  }
+  return GW_OK;
+}
+
+ANN static m_bool scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
+  nspc_push_type(env->gwion->mp, env->curr);
+  const m_bool ret = _scan1_fdef_base_tmpl(env, base);
+  nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
+}
+
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
   if(tmpl_base(fptr->base->tmpl))
-    return GW_OK;
+    return scan1_fdef_base_tmpl(env, fptr->base);
   if(!fptr->base->func) {
     fptr->base->func = nspc_lookup_value0(env->curr, fptr->base->xid)->d.func_ref;
     fptr->type = nspc_lookup_type0(env->curr, fptr->base->xid);
@@ -473,7 +493,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
   if(tmpl_base(fdef->base->tmpl))
-    return GW_OK;
+    return scan1_fdef_base_tmpl(env, fdef->base);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
   env->func = &fake;
   ++env->scope->depth;
