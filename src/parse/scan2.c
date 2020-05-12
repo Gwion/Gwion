@@ -73,8 +73,12 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   if(!tmpl_base(fptr->base->tmpl)) {
     const Func_Def def = fptr->type->e->d.func->def;
-    if(def->base->args)
-      CHECK_BB(scan2_args(def))
+    if(def->base->args) {
+      ++env->scope->depth;
+      const m_bool ret = scan2_args(def);
+      --env->scope->depth;
+      return ret;
+    }
   } else
     SET_FLAG(fptr->type, func);
   return GW_OK;
