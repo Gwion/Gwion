@@ -322,10 +322,7 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_OB((fdef->base->ret_type = scan1_type(env, fdef->base->td)))
   if(!fdef->base->args)
     return GW_OK;
-  ++env->scope->depth;
-  const m_bool ret = scan1_args(env, fdef->base->args);
-  --env->scope->depth;
-  return ret;
+  RET_NSPC(scan1_args(env, fdef->base->args))
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
