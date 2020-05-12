@@ -62,6 +62,7 @@ static MFUN(mfun_vararg_cpy) {
 INSTR(VarargIni) {
   const M_Object o = new_object(shred->info->mp, shred, shred->info->vm->gwion->type[et_vararg]);
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
+  *(struct Vararg_**)o->data = arg;
   POP_REG(shred, instr->m_val - SZ_INT)
   if((arg->l = instr->m_val)) {
     arg->d = (m_bit*)xmalloc(round2szint(arg->l));
@@ -79,9 +80,9 @@ INSTR(VarargIni) {
       offset += t->size;
     }
     arg->s = vector_size(kinds);
-  }
-  *(struct Vararg_**)o->data = arg;
-  *(M_Object*)REG(-SZ_INT) = o;
+    *(M_Object*)REG(-SZ_INT) = o;
+  } else
+    *(M_Object*)REG(-SZ_INT) = NULL;
 }
 
 static INSTR(VarargEnd) {
