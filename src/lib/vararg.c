@@ -76,7 +76,7 @@ INSTR(VarargIni) {
   }
   arg->s = vector_size(kinds);
   *(struct Vararg_**)o->data = arg;
-  *(M_Object*)REG(-SZ_INT) = o;
+  *(M_Object*)MEM(shred->code->stack_depth) = *(M_Object*)REG(-SZ_INT) = o;
 }
 
 static INSTR(VarargEnd) {
