@@ -581,7 +581,8 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
     return f;
   Type t = value->from->owner_class;
   while(t && t->nspc) {
-    const Value v = nspc_lookup_value0(t->nspc, value->d.func_ref->def->base->xid);
+    Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->e->d.func->def;
+    const Value v = nspc_lookup_value0(t->nspc, fdef->base->xid);
     if(!v)
       goto next;
      const Func f = _find_template_match(env, v, exp);
