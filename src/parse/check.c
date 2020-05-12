@@ -373,7 +373,7 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice* range) {
   return op_check(env, &opi);
 }
 
-ANN static Type_Decl* prepend_type_decl(MemPool mp, const Symbol xid, Type_Decl* td, const loc_t pos) {
+ANN2(1,2,4) static Type_Decl* prepend_type_decl(MemPool mp, const Symbol xid, Type_Decl* td, const loc_t pos) {
   Type_Decl *a = new_type_decl(mp, xid, loc_cpy(mp, pos));
   a->next = td;
   return a;
