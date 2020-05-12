@@ -429,7 +429,7 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
   const Symbol sym = insert_symbol("@slice");
   const Exp e = range->range->start ?: range->range->end;
   struct Op_Import opi = { .op=sym, .lhs=e->info->type, .rhs=range->base->info->type,
-    .pos=e->pos, .data=(uintptr_t)range->base, .op_type=op_exp };
+    .pos=e->pos, .data=(uintptr_t)exp_self(range), .op_type=op_exp };
   CHECK_OB(op_emit(emit, &opi))
   return GW_OK;
 }
