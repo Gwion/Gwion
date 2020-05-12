@@ -736,10 +736,8 @@ ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_cal
   const Vector kinds = new_vector(emit->gwion->mp);
   if((instr->m_val = vararg_size(exp_call, kinds)))
     instr->m_val2 = (m_uint)kinds;
-  else {
-    instr->opcode = eRegPushImm;
+  else
     free_vector(emit->gwion->mp, kinds);
-  }
 }
 
 ANN static inline m_uint exp_size(Exp e);

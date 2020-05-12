@@ -16,19 +16,23 @@
 #include "gack.h"
 
 void free_vararg(MemPool p, struct Vararg_* arg) {
-  xfree(arg->d);
-  vector_release(&arg->t);
+  if(arg->l) {
+    xfree(arg->d);
+    vector_release(&arg->t);
+  }
   mp_free(p, Vararg, arg);
 }
 
 static DTOR(vararg_dtor) {
   struct Vararg_ *arg = *(struct Vararg_**)o->data;
-  m_uint offset = 0;
-  for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
-    const Type t = (Type)vector_at(&arg->t, i);
-    if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-      release(*(M_Object*)(arg->d + offset), shred);
-    offset += t->size;
+  if(arg->l) {
+    m_uint offset = 0;
+    for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
+      const Type t = (Type)vector_at(&arg->t, i);
+      if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
+        release(*(M_Object*)(arg->d + offset), shred);
+      offset += t->size;
+    }
   }
   free_vararg(shred->info->vm->gwion->mp, arg);
 }
@@ -59,24 +63,25 @@ INSTR(VarargIni) {
   const M_Object o = new_object(shred->info->mp, shred, shred->info->vm->gwion->type[et_vararg]);
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
   POP_REG(shred, instr->m_val - SZ_INT)
-  arg->l = instr->m_val;
-  arg->d = (m_bit*)xmalloc(round2szint(arg->l));
-  const Vector kinds = (Vector)instr->m_val2;
-  vector_copy2(kinds, &arg->t);
-  m_uint offset = 0;
-  for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
-    const Type t = (Type)vector_at(&arg->t, arg->i);
-    *(m_uint*)(arg->d + offset) = *(m_uint*)(shred->reg - SZ_INT + offset);
-    if(isa(t, shred->info->vm->gwion->type[et_object]) > 0) {
-      const M_Object obj = *(M_Object*)(arg->d + offset);
-      if(obj)
-        ++obj->ref;
+  if((arg->l = instr->m_val)) {
+    arg->d = (m_bit*)xmalloc(round2szint(arg->l));
+    const Vector kinds = (Vector)instr->m_val2;
+    vector_copy2(kinds, &arg->t);
+    m_uint offset = 0;
+    for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
+      const Type t = (Type)vector_at(&arg->t, arg->i);
+      *(m_uint*)(arg->d + offset) = *(m_uint*)(shred->reg - SZ_INT + offset);
+      if(isa(t, shred->info->vm->gwion->type[et_object]) > 0) {
+        const M_Object obj = *(M_Object*)(arg->d + offset);
+        if(obj)
+          ++obj->ref;
+      }
+      offset += t->size;
     }
-    offset += t->size;
+    arg->s = vector_size(kinds);
   }
-  arg->s = vector_size(kinds);
   *(struct Vararg_**)o->data = arg;
-  *(M_Object*)MEM(shred->code->stack_depth) = *(M_Object*)REG(-SZ_INT) = o;
+  *(M_Object*)REG(-SZ_INT) = o;
 }
 
 static INSTR(VarargEnd) {
