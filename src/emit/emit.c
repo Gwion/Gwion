@@ -1316,7 +1316,7 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
 
 ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
   if(e->args) {
-    CHECK_BB(emit_exp(emit, e->args))
+    emit_func_args(emit, e);
     regpop(emit, e->m_func->def->stack_depth);
     emit_args(emit, e->m_func);
   }
