@@ -20,6 +20,8 @@ ANN static void check(struct EnvSet *es, const Type t) {
 ANN static m_bool push(struct EnvSet *es, const Type t) {
   if(t->e->owner_class)
     CHECK_BB(push(es, t->e->owner_class))
+  else
+    env_push(es->env, NULL, es->env->context->nspc);
   if(!(t->flag & es->flag))
     CHECK_BB(es->func((void*)es->data, t->e->def))
   if(GET_FLAG(t, template))
@@ -48,6 +50,8 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
   if(t->e->owner_class)
     envset_pop(es, t);
+  else
+    env_pop(es->env, es->scope);
 }
 
 ANN m_bool envset_run(struct EnvSet *es, const Type t) {
