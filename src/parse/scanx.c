@@ -44,9 +44,15 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
 #undef scanx_parent
 
 __attribute__((returns_nonnull))
+ANN Type unflag_type(const Type t) {
+  const Type type = !GET_FLAG(t, nonnull) ? t : t->e->parent;
+  return !GET_FLAG(type, force) ? type : type->e->parent;
+}
+
+__attribute__((returns_nonnull))
 ANN Type get_type(const Type t) {
   const Type type = !t->array_depth ? t : array_base(t);
-  return !GET_FLAG(type, nonnull) ? type : type->e->parent;
+  return unflag_type(type);
 }
 
 __attribute__((returns_nonnull))

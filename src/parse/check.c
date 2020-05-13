@@ -321,8 +321,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
 ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
   const Exp e = *exp;
   DECL_OO(const Type, t, = check_exp(env, e))
-  DECL_OO(Value, v, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
-  return v->type;
+  return type_class(env->gwion, t);
 }
 
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
@@ -713,7 +712,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
 
 ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   const Type t = exp->func->info->type;
-  DECL_OO(const Value, value, = nspc_lookup_value1(t->e->owner, insert_symbol(t->name)))
+  DECL_OO(const Value, value, = type_value(env->gwion, t))
   const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : t->e->d.func->def;
   Tmpl *tm = fdef->base->tmpl;
   if(tm->call)
@@ -825,9 +824,8 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
-    const Type t = actual_type(env->gwion, !GET_FLAG(exp->func->info->type, nonnull) ?
-       exp->func->info->type : exp->func->info->type->e->parent);
-    const Value v = nspc_lookup_value1(t->e->owner, insert_symbol(t->name));
+    const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
+    const Value v = type_value(env->gwion, t);
     if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->info->type, func) )
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
     if(!v->d.func_ref || !v->d.func_ref->def->base->tmpl)

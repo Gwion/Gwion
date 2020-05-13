@@ -1,6 +1,8 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
+#include "vm.h"
+#include "gwion.h"
 
 static m_str const special_name[] = { ":nonnull", ":force" };
 #define SPECIAL_LEN strlen(special_name[0]) + strlen(special_name[1])
@@ -14,14 +16,15 @@ typedef struct {
 } SpecialType;
 
 
-ANN static Type specialtype_create(MemPool p, const SpecialType *s) {
-  const Type t = type_copy(p, s->type);
+ANN static Type specialtype_create(const Env env, const SpecialType *s) {
+  const Type t = type_copy(env->gwion->mp, s->type);
   if(t->nspc)
     ADD_REF(t->nspc)
   t->name = s_name(s->name);
   t->flag = s->type->flag | s->flag;
   t->e->parent = s->type;
   nspc_add_type_front(s->type->e->owner, s->name, t);
+  mk_class(env, t);
   return t;
 }
 
@@ -50,10 +53,10 @@ ANN static void specialtype_init(SymTable *st, SpecialType *s) {
   s->name = insert_symbol(st, c);
 }
 
-ANN Type special_type(SymTable *st, const Type t, const uint st_type) {
+ANN Type special_type(const Env env, const Type t, const uint st_type) {
   SpecialType s = { .type=t, .st_type=st_type };
-  specialtype_init(st, &s);
+  specialtype_init(env->gwion->st, &s);
   return nspc_lookup_type1(t->e->owner, s.name) ?:
-    specialtype_create(st->p, &s);
+    specialtype_create(env, &s);
 }
 

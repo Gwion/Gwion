@@ -44,7 +44,6 @@ ANN static inline m_uint env_push_type(const Env env, const Type type) { return 
 ANN m_bool is_fptr(const struct Gwion_*, const Type t);
 ANN m_bool is_class(const struct Gwion_*, const Type t);
 ANN m_uint get_depth(const Type type);
-
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_null, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,

@@ -404,19 +404,13 @@ ANN static inline Symbol dot_symbol(SymTable *st, const Value v) {
   return insert_symbol(st, name);
 }
 
-ANN static inline Type dot_type(SymTable *st, const Value v) {
-  const Type t = v->from->owner_class;
-  if(!GET_FLAG(v, static))
-    return t;
-  const Value  val = nspc_lookup_value1(t->nspc->parent, insert_symbol(st, t->name));
-  return val->type;
-}
-
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
   const Value v = prim_self(data)->value;
   const Exp base = new_prim_id(gwion->mp, dot_symbol(gwion->st, v), loc_cpy(gwion->mp, prim_pos(data)));
   const Exp dot = new_exp_dot(gwion->mp, base, *data);
-  dot->d.exp_dot.t_base = dot->d.exp_dot.base->info->type = dot_type(gwion->st, v);
+  const Type owner = v->from->owner_class;
+  dot->d.exp_dot.t_base = dot->d.exp_dot.base->info->type = !GET_FLAG(v, static) ?
+    owner : type_class(gwion, owner);
   dot->info->type = prim_exp(data)->info->type;
   exp_setvar(dot, exp_getvar(prim_exp(data)));
   return dot;
