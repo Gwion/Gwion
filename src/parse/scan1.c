@@ -26,11 +26,10 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 }
 
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
-  if(env->class_def && !env->scope->depth) {
-    const m_int idx = vector_find(&env->scope->class_stack, (vtype)t);
-    if(!GET_FLAG(td, ref) && (idx > -1 || t == env->class_def))
-      ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
-            t->name, t == env->class_def ? "itself" : env->class_def->name);
+  if(!GET_FLAG(td, ref) && env->class_def && !env->scope->depth &&
+          t == env->class_def) {
+    ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
+       t->name, t == env->class_def ? "itself" : env->class_def->name);
   }
   return GW_OK;
 }
@@ -46,7 +45,7 @@ ANN static Type scan1_type(const Env env, Type_Decl* td) {
 
 ANN static Type void_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = scan1_type(env, td))
-  if(isa(type, env->gwion->type[et_object]) > 0 || GET_FLAG(type, struct))
+  if(isa(type, env->gwion->type[et_compound]) > 0)
     CHECK_BO(type_recursive(env, td, type))
   if(type->size)
     return type;

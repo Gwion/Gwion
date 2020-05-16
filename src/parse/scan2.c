@@ -298,9 +298,9 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
-  if(isa(actual_type(env->gwion, overload->type), env->gwion->type[et_function]) < 0)
-    ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
-}
+    if(isa(actual_type(env->gwion, overload->type), env->gwion->type[et_function]) < 0)
+      ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
+  }
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
     ERR_B(f->pos, _("must overload template function with template"))
   return GW_OK;
@@ -501,7 +501,7 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
 }
 
 ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
-  const Value overload = nspc_lookup_value0(env->curr, f->base->xid);
+  const Value overload = nspc_lookup_value2(env->curr, f->base->xid);
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
   return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);

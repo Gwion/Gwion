@@ -46,14 +46,6 @@ ANN2(2) int gw_asprintf(MemPool mp, char **str, const char *fmt, ...) {
   return ret;
 }
 
-__attribute__((returns_nonnull))
-ANN static inline VM_Code get_gack(Type t) {
-  do if(t->e->gack)
-    return t->e->gack;
-  while((t = t->e->parent));
-  return t->e->gack; // unreachable
-}
-
 ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
   shred->mem += offset;
   *(m_uint*)(shred->mem  + SZ_INT) = offset + SZ_INT;
@@ -61,20 +53,20 @@ ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
   *(m_uint*)(shred->mem  + SZ_INT*3) = shred->pc;
   *(m_uint*)(shred->mem  + SZ_INT*4) = SZ_INT;
   shred->mem += SZ_INT*5;
-  *(M_Object*)(shred->mem)= *(M_Object*)(shred->reg - SZ_INT);
+  *(M_Object*)(shred->mem) = *(M_Object*)(shred->reg - SZ_INT);
   shred->pc = 0;
 }
 
 ANN void gack(const VM_Shred shred, const m_uint offset) {
   const Type t = *(Type*)shred->reg;
-  const VM_Code code = get_gack(t);
+  const VM_Code code = get_gack(t)->e->gack;
   if(GET_FLAG(code, builtin)) {
-    ((f_gack)code->native_func)(t, (shred->reg - t->size), shred);
-    POP_REG(shred, t->size);
+    const m_uint sz = *(m_uint*)(shred->reg + SZ_INT);
+    ((f_gack)code->native_func)(t, (shred->reg - sz), shred);
+    POP_REG(shred, sz);
   } else {
     prepare_call(shred, offset);
     shred->code = code;
-    POP_REG(shred, SZ_INT*2);
   }
   return;
 }

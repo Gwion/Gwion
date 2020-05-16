@@ -45,6 +45,7 @@ ANN void gwi_set_loc(const Gwi gwi, const m_str file, const uint line) {
 ANN static m_bool mk_gack(MemPool p, const Type type, const f_gack d) {
   const VM_Code code = new_vm_code(p, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@gack");
   code->native_func = (m_uint)d;
+  SET_FLAG(code, builtin);
   type->e->gack = code;
   return GW_OK;
 }

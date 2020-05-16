@@ -311,13 +311,6 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
   return prim_id_non_res(env, data);
 }
 
-ANN static Type check_prim_hack(const Env env, const Exp *data) {
-  if(env->func)
-    UNSET_FLAG(env->func, pure);
-  CHECK_OO((check_exp(env, *data)))
-  return env->gwion->type[et_gack];
-}
-
 ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
   const Exp e = *exp;
   DECL_OO(const Type, t, = check_exp(env, e))
@@ -326,10 +319,19 @@ ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
 
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
   CHECK_OO(check_exp(env, *exp))
+  Exp e = *exp;
+  do if(GET_FLAG(e->info->type, struct))
+    exp_setvar(e, 1);
+  while((e = e->next));
   return env->gwion->type[et_string];
 }
 
-
+ANN static Type check_prim_hack(const Env env, const Exp *data) {
+  if(env->func)
+    UNSET_FLAG(env->func, pure);
+  CHECK_OO(check_prim_interp(env, data))
+  return env->gwion->type[et_gack];
+}
 
 #define describe_prim_xxx(name, type) \
 ANN static Type check##_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
@@ -785,7 +787,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->info->type,
     .rhs=bin->rhs->info->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos, .op_type=op_binary };
   const Type ret = op_check(env, &opi);
-  if(!ret && is_auto)
+  if(!ret && is_auto && exp_self(bin)->exp_type == ae_exp_binary)
     bin->rhs->d.exp_decl.list->self->value->type = env->gwion->type[et_auto];
   return ret;
 }
@@ -825,7 +827,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
-    const Value v = type_value(env->gwion, t);
+    const Value v = type_value(env->gwion, t) ?: t->e->d.func->value_ref;
     if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->info->type, func) )
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
     if(!v->d.func_ref || !v->d.func_ref->def->base->tmpl)

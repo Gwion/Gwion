@@ -51,6 +51,9 @@ static GACK(gack_float) {
   INTERP_PRINTF("%.4f", *(m_float*)VALUE);
 }
 
+static GACK(gack_compound) {
+  INTERP_PRINTF("%p", *(void**)VALUE);
+}
 #define mk_class_instr(op, arg0, arg1, ...)                          \
 static INSTR(instr_class_##op) {                                     \
   POP_REG(shred, SZ_INT);                                            \
@@ -105,6 +108,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
 
+  const Type t_compound = gwi_mk_type(gwi, "@Compound", 0, NULL);
+  GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
+  GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
   GWI_BB(import_object(gwi))
   GWI_BB(import_prim(gwi))
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);

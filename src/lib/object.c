@@ -79,9 +79,10 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
             !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
         const TupleForm tf = v->type->e->tuple;
         for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
+          const m_bit *data = o->data + v->from->offset;
           const Type t = (Type)vector_at(&tf->types, i);
           if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-            release(*(M_Object*)(o->data + v->from->offset + vector_at(&tf->offset, i)), shred);
+            release(*(M_Object*)(data + vector_at(&tf->offset, i)), shred);
         }
       }
     }
@@ -109,11 +110,8 @@ static ID_CHECK(opck_this) {
     ERR_O(exp_self(prim)->pos, _("keyword 'this' can be used only inside class definition..."))
   if(env->func && !GET_FLAG(env->func, member))
       ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
-  if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack") &&
-       GET_FLAG(env->class_def, struct))
-    ERR_O(exp_self(prim)->pos, _("can't use 'this' in struct @gack"))
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack"))
-    return force_type(env, env->class_def->e->parent);
+    return force_type(env, get_gack(env->class_def->e->parent)); // get_gack ?
   return env->class_def;
 }
 
@@ -126,17 +124,9 @@ static ID_EMIT(opem_this) {
   return emit_add_instr(emit, RegPushMem);
 }
 
-static GACK(gack_object) {
-  INTERP_PRINTF("%p", *(M_Object*)VALUE);
-}
-
 GWION_IMPORT(object) {
-  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, NULL);
-  gwi_add_type(gwi, t_object);
-  GWI_BB(gwi_gack(gwi, t_object, gack_object))
-  SET_FLAG(t_object, valid); // should be set by gwi_add_type
-  gwi->gwion->type[et_object] = t_object;
-//  struct SpecialId_ spid = { .ck=check_this, .exec=RegPushMem, .is_const=1 };
+  const Type t_object  = gwi_mk_type(gwi, "Object", SZ_INT, "@Compound");
+  gwi_set_global_type(gwi, t_object, et_object);
   struct SpecialId_ spid = { .ck=opck_this, .em=opem_this, .is_const=1 };
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;

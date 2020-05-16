@@ -310,7 +310,7 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
 
 ANN static Type get_parent(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, struct))
-    return NULL;
+    return env->gwion->type[et_compound];
   if(!cdef->base.ext)
     return env->gwion->type[et_object];
   if(tmpl_base(cdef->base.tmpl))
@@ -329,10 +329,8 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   if(parent == (Type)GW_ERROR)
     return NULL;
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), parent);
-  if(GET_FLAG(cdef, struct)) {
+  if(GET_FLAG(cdef, struct))
     SET_FLAG(t, struct);
-    t->e->gack = env->gwion->type[et_object]->e->gack;
-  }
   t->e->tuple = new_tupleform(env->gwion->mp, parent);
   t->e->owner = env->curr;
   t->e->owner_class = env->class_def;

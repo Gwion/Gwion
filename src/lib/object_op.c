@@ -123,8 +123,7 @@ static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
 
 static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
-  return (isa(ts->t , env->gwion->type[et_object]) > 0 || GET_FLAG(ts->t, struct)) ?
-    opck_object_scan(env, ts) : env->gwion->type[et_null];
+  return opck_object_scan(env, ts);
 }
 
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
@@ -238,7 +237,7 @@ OP_CHECK(opck_object_dot) {
     ERR_O(exp_self(member)->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str)
-  if(GET_FLAG(value, const) || GET_FLAG(value, enum))
+  if(GET_FLAG(value, const))
     exp_setmeta(exp_self(member), 1);
   return value->type;
 }
@@ -440,7 +439,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, NULL, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_item_ini(gwi, "@null", "null");

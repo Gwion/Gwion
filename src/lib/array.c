@@ -197,6 +197,7 @@ static OP_CHECK(opck_array_cast) {
 static OP_CHECK(opck_array_slice) {
   const Exp e = (Exp)data;
   exp_setmeta(exp_self(e), 1);
+  exp_setnonnull(e->d.exp_slice.base, 1);
   return e->d.exp_slice.base->info->type;
 }
 
