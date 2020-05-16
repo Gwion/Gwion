@@ -20,7 +20,7 @@ static void sig(int unused NUSED) {
 static void afl_run(const Gwion gwion) {
   gw_seed(gwion->vm->rand, 0);
   __AFL_INIT();
-  while (__AFL_LOOP(100)) {
+  while (__AFL_LOOP(256)) {
     FILE* f = fdopen(0, "r");
     push_global(gwion, "[afl]");
     if(compile_file(gwion, "afl", f))
