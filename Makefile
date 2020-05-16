@@ -85,7 +85,7 @@ afl: gwion-fuzz
 
 gwion-fuzz:
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
-	@+PRG=gwion-fuzz CC=afl-clang-fast make
+	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ make
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c afl
 
 clean_core:
