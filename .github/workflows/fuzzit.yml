@@ -1,0 +1,35 @@
+
+name: Fuzzing
+
+on:
+  push:
+    branches:    
+    - 'master'
+
+jobs:
+  build:
+    name: Fuzzing
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - name: Build Gwion
+      uses: fennecdjay/gwion-action@v1
+      with:
+        dir: .
+        ref: ${{ github.sha }}
+      env:
+        CC: clang
+        CFLAGS: -fsanitize-coverage=trace-pc-guard 
+
+     - name: Build fuzzer
+       run: ${CC} -fsanitize=fuzzer -Iutil/include -Iast/include -Iinclude -fsanitize=fuzzer scripts/fuzzer.c libgwion.a util/libgwion_util.a ast/libgwion_ast.a -o fuzzer
+       env:
+         CC: clang
+
+     - name: Setup fuzzit tool
+       run: |
+         wget -q -O fuzzit https://github.com/fuzzitdev/fuzzit/releases/latest/download/fuzzit_Linux_x86_64
+         chmod a+x fuzzit
+         ./fuzzit auth ${{ secrets.FUZZIT }}
+         ./fuzzit ./fuzzit create job --type fuzzing gwion fuzzer
