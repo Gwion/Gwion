@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Fuzzing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
