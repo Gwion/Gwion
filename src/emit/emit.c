@@ -636,8 +636,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   }
   const Instr instr = !(SAFE_FLAG(emit->env->class_def, struct) && !emit->env->scope->depth) ?
     emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, exec) : emit_struct_decl(emit, v, emit_addr);
-  if(!GET_FLAG(v, member))
-    instr->m_val = v->from->offset;
+  instr->m_val = v->from->offset;
   if(is_obj && (is_array || !is_ref)) {
     emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
