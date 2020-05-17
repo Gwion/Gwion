@@ -151,8 +151,8 @@ ANN static void env_header(const Env env) {
 
 ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
   if(env->context && env->context->error)
-      return;
-#ifndef __AFL_HAVE_MANUAL_CONTROL
+    return;
+#ifndef __FUZZING__
   env_header(env);
   loc_header(pos, env->name);
   va_list arg;

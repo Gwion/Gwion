@@ -21,10 +21,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   push_global(&gwion, "[afl]");
   m_str str = mp_calloc2(gwion.mp, Size + 1);
   memcpy(str, Data, Size);
-  str[Size] = '\0';
   if(compile_string(&gwion, "libfuzzer", str))
     gwion_run(&gwion);
-  pop_global(&gwion);
   mp_free2(gwion.mp, Size + 1, str);
+  pop_global(&gwion);
   return 0;
 }
