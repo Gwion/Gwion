@@ -13,16 +13,16 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
+    - uses: actions/checkout@v2
+
     - name: Build Gwion
-      uses: fennecdjay/gwion-action@v1
-      with:
-        dir: .
-        ref: ${{ github.sha }}
+      run: |
+         git submodule update --init ast util
+         make util/libgwion_util.a ast/libgwion_ast.a libgwion.a
       env:
         CC: clang
-        CFLAGS: -fsanitize-coverage=trace-pc-guard 
-        LDFLAGS: -fsanitize-coverage=trace-pc-guard 
-        AR: llvm-ar
+        CFLAGS: -fsanitize=fuzzer
+        LDFLAGS: -fsanitize=fuzzer
 
     - name: Build fuzzer
       run: ${CC} -fsanitize=fuzzer -Iutil/include -Iast/include -Iinclude -fsanitize=fuzzer scripts/fuzzer.c libgwion.a util/libgwion_util.a ast/libgwion_ast.a -o fuzzer
