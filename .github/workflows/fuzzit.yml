@@ -32,6 +32,6 @@ jobs:
       run: |
          wget -q -O fuzzit https://github.com/fuzzitdev/fuzzit/releases/latest/download/fuzzit_Linux_x86_64
          chmod a+x fuzzit
-         ./fuzzit ./fuzzit create job --type fuzzing gwion fuzzer
+         ./fuzzit create job --type fuzzing gwion fuzzer
       env:
         FUZZIT_API_KEY: ${{ secrets.FUZZIT }}
