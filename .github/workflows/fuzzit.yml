@@ -18,6 +18,7 @@ jobs:
     - name: Build Gwion
       run: |
          git submodule update --init ast util
+         cd util; CFLAGS="" make make include/generated.h; cd ..
          make util/libgwion_util.a ast/libgwion_ast.a libgwion.a
       env:
         CC: clang
