@@ -27,6 +27,10 @@ static GACK(gack_function) {
   INTERP_PRINTF("%s", t->name)
 }
 
+static GACK(gack_gack) {
+  INTERP_PRINTF("%s", *(m_str*)VALUE)
+}
+
 static GACK(gack_fptr) {
   const VM_Code code = *(VM_Code*)VALUE;
   if(code)
@@ -87,6 +91,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
   const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
+  GWI_BB(gwi_gack(gwi, t_gack, gack_gack))
   GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_int, gack_int))
