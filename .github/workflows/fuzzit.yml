@@ -21,8 +21,8 @@ jobs:
          make util/libgwion_util.a ast/libgwion_ast.a libgwion.a
       env:
         CC: clang
-        CFLAGS: -fsanitize=fuzzer -DDUMMY_MAIN
-        LDFLAGS: -fsanitize=fuzzer
+        CFLAGS: -D__FUZZING__ -DDUMMY_MAIN -fsanitize=fuzzer
+        LDFLAGS: -DDUMMY_MAIN -fsanitize=fuzzer 
 
     - name: Build fuzzer
       run: ${CC} -fsanitize=fuzzer -Iutil/include -Iast/include -Iinclude -fsanitize=fuzzer scripts/fuzzer.c libgwion.a util/libgwion_util.a ast/libgwion_ast.a -o fuzzer
