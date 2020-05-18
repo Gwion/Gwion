@@ -1,5 +1,7 @@
 TODO*
 gwion
+gwion-fuzz
+afl
 .d
 config.mk
 include/generated.h
