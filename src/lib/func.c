@@ -205,6 +205,13 @@ static OP_CHECK(opck_fptr_at) {
   return bin->rhs->info->type;
 }
 
+static OP_CHECK(opck_null_fptr_at) {
+  Exp_Binary* bin = (Exp_Binary*)data;
+  CHECK_NN(opck_const_rhs(env, bin, mut))
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
+}
+
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   const Type t = exp_self(cast)->info->type;
@@ -300,6 +307,10 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
+  GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "@func_ptr", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_null_fptr_at))
   GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))

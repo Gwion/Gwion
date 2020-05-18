@@ -17,6 +17,8 @@ Reg2Reg
 Reg2RegAddr
 Reg2RegDeref
 StructMember
+StructMemberFloat
+StructMemberOther
 StructMemberAddr
 MemSetImm
 RegPushMe
