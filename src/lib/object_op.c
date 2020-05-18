@@ -127,6 +127,8 @@ static OP_CHECK(opck_struct_scan) {
 }
 
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
+static const f_instr structmember[]  = { StructMember, StructMemberFloat, StructMemberOther, StructMemberAddr };
+
 ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]);
 ANN static void emit_dot_static_data(const Emitter emit, const Value v, const uint emit_var) {
   const m_uint size = v->type->size;
@@ -181,27 +183,24 @@ ANN static inline void emit_member(const Emitter emit, const Value v, const uint
 
 ANN static inline void emit_struct_addr(const Emitter emit, const Value v) {
   const Instr set = emit_add_instr(emit, StructMemberAddr);
-  set->m_val = v->from->owner_class->size - v->type->size;
-  set->m_val2 = v->from->offset;
+  set->m_val = v->from->offset;
 }
 
 ANN static inline void emit_struct_var(const Emitter emit, const Value v) {
   for(m_uint i = 0; i < v->type->size; i += SZ_INT) {
     const Instr set = emit_add_instr(emit, Reg2Reg);
-    set->m_val = -v->type->size + i;
-    set->m_val2 = -v->type->size + v->from->offset + i;
+    set->m_val2 = -v->type->size + i;
+    set->m_val = -v->type->size + v->from->offset + i;
   }
 }
 
 ANN static inline void emit_struct_data(const Emitter emit, const Value v, const uint emit_addr) {
-  if(emit_addr) {
-    emit_struct_addr(emit, v);
-    return;
+  const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
+  instr->m_val = v->from->offset;
+  if(!emit_addr) {
+    const Instr instr = emit_add_instr(emit, RegPush);
+    instr->m_val = v->type->size -SZ_INT;
   }
-  const Instr push = emit_add_instr(emit, RegPush);
-  push->m_val = v->type->size - v->from->owner_class->size;
-  if(v->from->offset)
-    emit_struct_var(emit, v);
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, const loc_t pos);
@@ -260,7 +259,8 @@ OP_EMIT(opem_object_dot) {
     if(!GET_FLAG(t_base, struct))
       emit_member(emit, value, exp_getvar(exp_self(member)));
     else {
-      exp_setvar(member->base, exp_getvar(exp_self(member)));
+//      exp_setvar(member->base, exp_getvar(exp_self(member)));
+      exp_setvar(member->base, 1);
       CHECK_BO(emit_exp(emit, member->base))
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
     }

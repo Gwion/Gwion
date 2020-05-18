@@ -291,7 +291,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
     &&regtoreg, &&regtoregaddr, &&regtoregderef,
-    &&structmember, &&structmemberaddr,
+    &&structmember, &&structmemberfloat, &&structmemberother, &&structmemberaddr,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
@@ -332,7 +332,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
     &&gcini, &&gcadd, &&gcend,
-    &&gacktype, &&gackend, &&gack, &&noop, &&regpushimm, &&other, &&eoc
+    &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&other, &&regpushimm
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -428,10 +428,16 @@ regtoregderef:
   memcpy(*(m_bit**)(reg - SZ_INT), *(m_bit**)(reg + (m_int)VAL), VAL2);
   DISPATCH()
 structmember:
-  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
+  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
+  DISPATCH()
+structmemberfloat:
+  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
+  DISPATCH()
+structmemberother:
+  *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
   DISPATCH()
 structmemberaddr:
-  *(m_bit**)(reg-SZ_INT) =  &*(*(m_bit**)(reg-SZ_INT) + (m_int)VAL2);
+  *(m_bit**)(reg-SZ_INT) =  &*(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
   DISPATCH()
 memsetimm:
   *(m_uint*)(mem+VAL) = VAL2;

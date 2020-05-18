@@ -51,6 +51,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
     else {
       *(m_bit*)(ptr + (i*BYTECODE_SZ)) = instr->opcode;
+//      *(m_bit*)(ptr + (i*BYTECODE_SZ)) = eOP_MAX;
       *(Instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT) = instr;
       *(f_instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT*2) = instr->execute;
     }

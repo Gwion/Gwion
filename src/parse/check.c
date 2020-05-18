@@ -747,6 +747,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
+  if(exp->func->exp_type == ae_exp_decl)
+    ERR_O(exp_self(exp)->pos, _("It makes no sense to call a function pointer at declaration"))
   CHECK_OO(check_exp(env, exp->func))
   if(isa(exp->func->info->type, env->gwion->type[et_function]) < 0) {
     // use func flag?

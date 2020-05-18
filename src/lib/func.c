@@ -13,11 +13,6 @@
 #include "template.h"
 #include "parse.h"
 
-static INSTR(LambdaAssign) {
-  POP_REG(shred, SZ_INT)
-  *(Func*)REG(-SZ_INT) = *(Func*)REG(0);
-}
-
 static OP_CHECK(opck_func_call) {
   Exp_Binary* bin = (Exp_Binary*)data;
   Exp_Call call = { .func=bin->rhs, .args=bin->lhs };
@@ -40,8 +35,10 @@ static OP_EMIT(opem_func_assign) {
     fptr_instr(emit, bin->lhs->info->type->e->d.func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
   if(!is_fptr(emit->gwion, bin->lhs->info->type) && GET_FLAG(bin->rhs->info->type->e->d.func, member)) {
-    const Instr pop = emit_add_instr(emit, LambdaAssign);
+    const Instr pop = emit_add_instr(emit, RegPop);
     pop->m_val = SZ_INT;
+    const Instr cpy = emit_add_instr(emit, Reg2Reg);
+    cpy->m_val = -SZ_INT;
   }
   return instr;
 }
@@ -67,7 +64,6 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
   }
   return GW_OK;
 }
-
 
 static m_bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_OB(const Type, t0, = known_type(env, id[0]))

@@ -34,7 +34,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->vt_index);
-  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym))
+  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid))
   const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
   def->base->tmpl->base = dt->vt_index;

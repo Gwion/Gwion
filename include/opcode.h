@@ -20,6 +20,8 @@ enum {
   eReg2RegAddr,
   eReg2RegDeref,
   eStructMember,
+  eStructMemberFloat,
+  eStructMemberOther,
   eStructMemberAddr,
   eMemSetImm,
   eRegPushMe,
@@ -174,9 +176,9 @@ enum {
   eGackEnd,
   eGack,
   eNoOp,
-  eDotTmplVal,
-  eOP_MAX,
   eEOC,
+  eOP_MAX,
+  eDotTmplVal,
 };
 
 #define  RegSetImm           (f_instr)eRegSetImm
@@ -198,6 +200,8 @@ enum {
 #define  Reg2RegAddr         (f_instr)eReg2RegAddr
 #define  Reg2RegDeref        (f_instr)eReg2RegDeref
 #define  StructMember        (f_instr)eStructMember
+#define  StructMemberFloat   (f_instr)eStructMemberFloat
+#define  StructMemberOther   (f_instr)eStructMemberOther
 #define  StructMemberAddr    (f_instr)eStructMemberAddr
 #define  MemSetImm           (f_instr)eMemSetImm
 #define  RegPushMe           (f_instr)eRegPushMe
@@ -352,7 +356,7 @@ enum {
 #define  GackEnd             (f_instr)eGackEnd
 #define  Gack                (f_instr)eGack
 #define  NoOp                (f_instr)eNoOp
-#define  DotTmplVal          (f_instr)eDotTmplVal
-#define  OP_MAX              (f_instr)eOP_MAX
 #define  EOC                 (f_instr)eEOC
+#define  OP_MAX              (f_instr)eOP_MAX
+#define  DotTmplVal          (f_instr)eDotTmplVal
 #endif

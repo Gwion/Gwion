@@ -501,7 +501,7 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
 }
 
 ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
-  const Value overload = nspc_lookup_value2(env->curr, f->base->xid);
+  const Value overload = nspc_lookup_value2(env->curr, f->base->xid); // try0
   if(overload)
     CHECK_BB(scan2_func_def_overload(env, f, overload))
   return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);

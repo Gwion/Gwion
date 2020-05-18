@@ -301,6 +301,7 @@ static const f_instr regpushbase[] = { RegPushBase, RegPushBase2, RegPushBase3, 
 static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
 static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, RegPushMem4 };
+static const f_instr structmember[]  = { StructMember, StructMemberFloat, StructMemberOther, StructMemberAddr };
 
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Symbol *data) {
@@ -608,11 +609,10 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
 
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v, const m_bool emit_addr) {
   emit_add_instr(emit, RegPushMem);
-  const Instr instr = emit_add_instr(emit, !emit_addr ? StructMember : StructMemberAddr);
-  instr->m_val2 = v->from->offset;
+  const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
   if(!emit_addr)
     regpush(emit, v->type->size - SZ_INT);
-  return instr; // m_val set after but ignored
+  return instr;
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *decl, const Var_Decl var_decl,
@@ -635,7 +635,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
     }
   }
   const Instr instr = !(SAFE_FLAG(emit->env->class_def, struct) && !emit->env->scope->depth) ?
-    emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, exec) : emit_struct_decl(emit, v, emit_addr);
+    emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, exec) : emit_struct_decl(emit, v, !struct_ctor(v) ? emit_addr : 1);
   instr->m_val = v->from->offset;
   if(is_obj && (is_array || !is_ref)) {
     emit_add_instr(emit, Assign);
@@ -645,14 +645,10 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
       push->m_val = -(missing_depth) * SZ_INT;
     }
   } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */) {
-    if(GET_FLAG(v, member)) {
-      const Instr instr = emit_add_instr(emit, DotMember4);
-      instr->m_val = v->from->offset;
-    }
     emit_ext_ctor(emit, v->type->nspc->pre_ctor);
     if(!emit_addr)
       emit_struct_decl_finish(emit, v);
-  }
+    }
   return GW_OK;
 }
 

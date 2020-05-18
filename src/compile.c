@@ -87,10 +87,10 @@ ANN static m_bool is_reg(const m_str path) {
 ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   char name[strlen(c->name) + 1];
   strcpy(name, c->name);
-  if(c->type == COMPILE_FILE && !is_reg(name)) {
-    gw_err(_("'%s': is a not a regular file\n"), name);
-    return GW_ERROR;
-  }
+//  if(c->type == COMPILE_FILE && !is_reg(name)) {
+//    gw_err(_("'%s': is a not a regular file\n"), name);
+//    return GW_ERROR;
+//  }
   if(_compiler_open(c) < 0) {
     compiler_error(p, c);
     gw_err(_("can't open '%s'\n"), name);
