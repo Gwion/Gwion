@@ -8,7 +8,6 @@
 #include "compile.h"
 
 static struct Gwion_ gwion;
-
 static void initialize() {
   Arg arg = { .loop=-1 };
   const m_bool ini = gwion_ini(&gwion, &arg);
@@ -21,8 +20,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
   push_global(&gwion, "[afl]");
   m_str str = mp_calloc2(gwion.mp, Size + 1);
   memcpy(str, Data, Size);
-  if(compile_string(&gwion, "libfuzzer", str))
+  if(compile_string(&gwion, "libfuzzer", str)) {
     gwion_run(&gwion);
+    if(vector_size(&gwion.env->scope->known_ctx)) {
+      Context ctx = (Context)vector_pop(&gwion.env->scope->known_ctx);
+      if(!ctx->global)
+        REM_REF(ctx, &gwion);
+    }
+  }
   mp_free2(gwion.mp, Size + 1, str);
   pop_global(&gwion);
   return 0;
