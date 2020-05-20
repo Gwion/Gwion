@@ -322,10 +322,9 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), regpushimm);
     if(!exp_getvar(prim_exp(data)) && size == SZ_INT) {
-      if(isa(v->type, emit->gwion->type[et_object]) > 0) {
-        instr->opcode = eRegPushImm;
+      if(isa(v->type, emit->gwion->type[et_object]) > 0)
         instr->m_val = (m_uint)v->d.ptr;
-      } else if(v->d.ptr)
+      else if(v->d.ptr)
         instr->m_val = *(m_uint*)v->d.ptr;
     } else {
       assert(v->d.ptr); // instr->m_val = v->d.ptr;
@@ -817,6 +816,13 @@ ANN static inline void pop_exp(const Emitter emit, Exp e) {
 
 ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
   CHECK_BB(emit_exp(emit, e))
+  if(e->exp_type == ae_exp_decl) {
+    Var_Decl_List list = e->d.exp_decl.list->next;
+    while(list) {
+      regpop(emit, !exp_getvar(e) ? list->self->value->type->size : SZ_INT);
+      list = list->next;
+    }
+  }
   if(e->next)
     pop_exp(emit, e->next);
   return GW_OK;
