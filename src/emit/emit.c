@@ -1501,17 +1501,20 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
 
 ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_uint *index) {
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
+  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
+  const Instr tomem = emit_add_instr(emit, Reg2Mem);
+  tomem->m_val = offset;
+  tomem->m_val2 = -SZ_INT;
+  regpop(emit, SZ_INT);
   *index = emit_code_size(emit);
-  const Instr cpy = emit_add_instr(emit, Reg2RegAddr);
-  cpy->m_val2 = -SZ_INT;
-  regpush(emit, SZ_INT);
+  const Instr cpy = emit_add_instr(emit, RegPushMem4);
+  cpy->m_val = offset;
   emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val = *index;
   op->m_val = emit_code_size(emit);
-  regpop(emit, SZ_INT);
   return GW_OK;
 }
 
