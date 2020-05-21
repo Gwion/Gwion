@@ -315,7 +315,8 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
   const Exp e = *exp;
   DECL_OO(const Type, t, = check_exp(env, e))
-  return type_class(env->gwion, t);
+  const Type force = force_type(env, t);
+  return type_class(env->gwion, force);
 }
 
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {

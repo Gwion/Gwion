@@ -524,7 +524,6 @@ ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
       interp_multi(emit, e);
     regseti(emit, (m_uint)e->info->type);
     interp_size(emit, e->info->type);
-//    regseti(emit, (m_uint)isa(e->info->type, emit->gwion->type[et_object]) > 0);
     const m_bool isobj = isa(e->info->type, emit->gwion->type[et_object]) > 0;
     if(isobj) {
       if(!GET_FLAG(e->info->type, force))

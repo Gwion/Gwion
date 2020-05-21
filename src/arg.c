@@ -178,6 +178,9 @@ ANN static void config_default(const Gwion gwion , Arg* arg) {
 
 ANN m_bool arg_parse(const Gwion gwion, Arg* a) {
   arg_init(a);
+#ifdef __FUZZING
+  return;
+#endif
   config_default(gwion, a);
   return _arg_parse(gwion, a);
 }
