@@ -10,12 +10,15 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
 
 ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Decl *td) {
-  Type parent = t->e->parent;
-  while(parent) {
-    if(parent == env->class_def)
-      ERR_B(td_pos(td), _("%s declared inside %s\n."), t->name, t == env->class_def ? "itself" : env->class_def->name);
-    parent = parent->e->parent;
-  }
+  Type owner = env->class_def;
+  do {
+    Type parent = t;
+    while(parent) {
+      if(parent == owner)
+        ERR_B(td_pos(td), _("%s declared inside %s"), t->name, owner->name);
+      parent = parent->e->parent;
+    }
+  } while((owner = owner->e->owner_class));
   return GW_OK;
 }
 
@@ -37,7 +40,8 @@ ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type 
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  CHECK_BO(type_cyclic(env, t, td))
+  if(!env->func && env->class_def)
+    CHECK_BO(type_cyclic(env, t, td))
   if(!GET_FLAG(t, scan1) && t->e->def)
     CHECK_BO(ensure_scan1(env, t))
   return type;
