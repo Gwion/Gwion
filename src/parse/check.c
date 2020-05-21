@@ -157,6 +157,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     return no_xid(env, decl);
   if(decl->td->xid == insert_symbol("auto")) { // should be better
     clear_decl(env, decl);
+    SET_FLAG(decl->td, ref);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
   }

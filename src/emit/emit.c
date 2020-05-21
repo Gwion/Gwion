@@ -622,7 +622,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   const m_bool is_array = (array && array->exp) || GET_FLAG(decl->td, force);
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
-  if(is_obj && (is_array || !is_ref))
+  if(is_obj && (is_array || !is_ref) && !GET_FLAG(v, ref))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
   if(!GET_FLAG(v, member)) {
@@ -636,7 +636,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   const Instr instr = !(SAFE_FLAG(emit->env->class_def, struct) && !emit->env->scope->depth) ?
     emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, exec) : emit_struct_decl(emit, v, !struct_ctor(v) ? emit_addr : 1);
   instr->m_val = v->from->offset;
-  if(is_obj && (is_array || !is_ref)) {
+  if(is_obj && (is_array || !is_ref) && !GET_FLAG(v, ref)) {
     emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
     if(missing_depth && !GET_FLAG(decl->td, force)) {
@@ -659,14 +659,14 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
   const m_bool is_array = array && array->exp;
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
-  if(is_obj && (is_array || !is_ref))
+  if(is_obj && (is_array || !is_ref && !GET_FLAG(v, ref)))
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, dotstatic);
   v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
   SET_FLAG(v, union);
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
-  if(is_obj && (is_array || !is_ref)) {
+  if(is_obj && (is_array || !is_ref && !GET_FLAG(v, ref))) {
     const Instr assign = emit_add_instr(emit, Assign);
     const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
     if(missing_depth && !GET_FLAG(decl->td, force)) {

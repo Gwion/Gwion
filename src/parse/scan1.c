@@ -74,7 +74,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     const Value former = nspc_lookup_value0(env->curr, var->xid);
-    if(former && t != env->gwion->type[et_auto])
+    if(former)
       ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
     if(var->array) {
