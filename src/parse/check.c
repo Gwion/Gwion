@@ -127,7 +127,7 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
       if(env->class_def->e->tuple)
         tuple_info(env, v);
     } else if(GET_FLAG(td, static))
-        decl_static(env, v);
+      decl_static(env, v);
   }
   return GW_OK;
 }
@@ -152,6 +152,7 @@ ANN static inline m_bool ensure_check(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
+ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc);
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
@@ -786,7 +787,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   CHECK_OO(check_exp(env, bin->lhs))
   const m_bool is_auto = bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if(is_auto)
-     bin->rhs->info->type = bin->rhs->d.exp_decl.type = bin->lhs->info->type;
+    bin->rhs->info->type = bin->rhs->d.exp_decl.type = bin->lhs->info->type;
   CHECK_OO(check_exp(env, bin->rhs))
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->info->type,
     .rhs=bin->rhs->info->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos, .op_type=op_binary };
