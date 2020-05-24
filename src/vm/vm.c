@@ -643,7 +643,7 @@ regtomemother:
   memcpy(mem+VAL, reg, VAL2);
   DISPATCH()
 overflow:
-  if(overflow_(mem, shred)) {
+  if(overflow_(mem + VAL2, shred)) {
     shred->pc = PC;
     exception(shred, "StackOverflow");
     continue;
