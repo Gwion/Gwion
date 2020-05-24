@@ -1,2 +1,2 @@
-#! [contains] primitive types cannot be used as reference
+#! [contains] can't use 'new' on non-object types...
 new int;

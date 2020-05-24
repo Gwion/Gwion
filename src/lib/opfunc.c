@@ -84,8 +84,8 @@ OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
   DECL_ON(const Type, t, = known_type(env, unary->td))
-  if(isa(t, env->gwion->type[et_object]) < 0 && isa(t, env->gwion->type[et_function]) < 0)
-    ERR_N(exp_self(unary)->pos, _("primitive types cannot be used as reference (@)...\n"))
+  if(isa(t, env->gwion->type[et_object]) < 0)
+    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
   if(type_ref(t))
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
   if(GET_FLAG(t, abstract))
