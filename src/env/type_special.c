@@ -36,7 +36,7 @@ static inline int get_flag(const Type t, const ae_flag flag) {
 ANN static void specialtype_flag(SpecialType *s, m_str c, const uint i) {
   const ae_flag flag = special_flag[i];
   if(i == s->st_type || get_flag(s->type, flag)) {
-    strcat(c, special_name[0]);
+    strcat(c, special_name[i]);
     s->flag |= flag;
   }
 }
