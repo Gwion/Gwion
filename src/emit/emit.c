@@ -585,11 +585,19 @@ ANN static inline int struct_ctor(const Value v) {
   return GET_FLAG(v->type, struct);
 }
 
-ANN static void emit_struct_decl_finish(const Emitter emit, const Value v) {
+ANN static void decl_expand(const Emitter emit, const Type t) {
   const Instr instr = emit_add_instr(emit, Reg2RegDeref);
   instr->m_val = -SZ_INT;
-  instr->m_val2 = v->type->size;
-  regpush(emit, v->type->size - SZ_INT);
+  instr->m_val2 = t->size;
+  regpush(emit, t->size - SZ_INT);
+}
+
+ANN static void emit_struct_decl_finish(const Emitter emit, const Type t, const uint emit_addr) {
+    emit->code->frame->curr_offset += t->size;
+    emit_ext_ctor(emit, t->nspc->pre_ctor);
+    if(!emit_addr)
+      decl_expand(emit, t);
+    emit->code->frame->curr_offset -= t->size;
 }
 
 ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref, const uint emit_addr) {
@@ -597,11 +605,8 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_de
   if(isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref)
     CHECK_BB(decl_static(emit, var_decl, 0))
   CHECK_BB(emit_dot_static_data(emit, v, !struct_ctor(v) ? emit_addr : 1))
-  if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */) {
-    emit_ext_ctor(emit, v->type->nspc->pre_ctor);
-    if(!emit_addr)
-      emit_struct_decl_finish(emit, v);
-  }
+  if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */)
+    emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
 }
 
@@ -618,7 +623,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   const Value v = var_decl->value;
   const Type type = v->type;
   const Array_Sub array = var_decl->array;
-  const m_bool is_array = (array && array->exp) || GET_FLAG(decl->td, force);
+  const m_bool is_array = (array && array->exp) /*|| GET_FLAG(decl->td, force)*/;
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
   if(is_obj && (is_array || !is_ref) && !GET_FLAG(v, ref))
@@ -642,11 +647,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(missing_depth) * SZ_INT;
     }
-  } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */) {
-    emit_ext_ctor(emit, v->type->nspc->pre_ctor);
-    if(!emit_addr)
-      emit_struct_decl_finish(emit, v);
-    }
+  } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */)
+    emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
 }
 
@@ -674,11 +676,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     }
     assign->m_val = emit_var;
     (void)emit_addref(emit, emit_var);
-  } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */) {
-    emit_ext_ctor(emit, v->type->nspc->pre_ctor);
-    if(!emit_addr)
-      emit_struct_decl_finish(emit, v);
-  }
+  } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */)
+    emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
 }
 
@@ -790,19 +789,20 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   return GW_OK;
 }
 
-ANN static m_uint get_decl_size(Var_Decl_List a) {
+ANN static m_uint get_decl_size(Var_Decl_List a, uint emit_addr) {
   m_uint size = 0;
   do //if(GET_FLAG(a->self->value, used))
-    size += a->self->value->type->size;
+    size += !emit_addr ? a->self->value->type->size : SZ_INT;
   while((a = a->next));
   return size;
 }
 
 ANN static m_uint pop_exp_size(Exp e) {
+  const uint emit_addr = exp_getvar(e);
   m_uint size = 0;
   do { // account for emit_var ?
     size += (e->exp_type == ae_exp_decl ?
-        get_decl_size(e->d.exp_decl.list) : e->info->type->size);
+        get_decl_size(e->d.exp_decl.list, emit_addr) : e->info->type->size);
   } while((e = e->next));
   return size;
 }
