@@ -298,7 +298,7 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
-    if(isa(overload->type, env->gwion->type[et_class]) < 0)
+    if(!GET_FLAG(f, typedef))
       ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
   }
   if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))

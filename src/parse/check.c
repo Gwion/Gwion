@@ -678,6 +678,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
       .scope=scope, .flag=ae_flag_check };
     CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
     (void)env_push(env, v->from->owner_class, v->from->owner);
+    SET_FLAG(func->def, typedef);
     const m_bool ret = traverse_func_def(env, func->def);
     if(es.run)
       envset_pop(&es, v->from->owner_class);
