@@ -264,8 +264,17 @@ ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  if(unary->exp && unary->exp->exp_type == ae_exp_call)
-    return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
+  if(unary->exp && unary->exp->exp_type == ae_exp_call) {
+    const m_bool is_spork = unary->op == insert_symbol("spork");
+    if(!is_spork) {
+      const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp);
+      const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
+      const Stmt code = new_stmt_code(env->gwion->mp, list);
+      ((Exp_Unary*)unary)->exp = NULL;
+      ((Exp_Unary*)unary)->code = code;
+    }
+    return is_spork ? et_shred : et_fork];
+  }
   if(unary->code) {
     ++env->scope->depth;
     nspc_push_value(env->gwion->mp, env->curr);
