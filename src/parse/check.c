@@ -985,10 +985,10 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     struct Array_Sub_ array = {};
     Type_Decl *td0 = type2td(env, ptr, stmt->exp->pos),
       td = { .xid=insert_symbol("Ptr"), .types=&tl, .pos=stmt->exp->pos };
-    tl.td    = td0;
+    tl.td = td0;
     if(depth) {
       array.depth = depth;
-      td.array = &array;
+      td0->array = &array;
     }
     ptr = known_type(env, &td);
     td0->array = NULL;
@@ -999,7 +999,7 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
       CHECK_BB(envset_run(&es, get_type(ptr)))
     }
   }
-  t = depth ? array_type(env, ptr, depth) : ptr;
+  t = (!stmt->is_ptr && depth) ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
   SET_FLAG(stmt->v, valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
