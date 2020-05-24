@@ -273,7 +273,7 @@ static OP_CHECK(opck_spork) {
       ((Exp_Unary*)unary)->exp = NULL;
       ((Exp_Unary*)unary)->code = code;
     }
-    return is_spork ? et_shred : et_fork];
+    return env->gwion->type[is_spork ? et_shred : et_fork];
   }
   if(unary->code) {
     ++env->scope->depth;
