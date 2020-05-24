@@ -373,8 +373,9 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
           ++i;
           continue;
         }
-        m_bool ret = compat_func(ff->def, f);
-        if(ret > 0) {
+        if(compat_func(ff->def, f) > 0) {
+          if(ff->value_ref->from->owner == env->curr)
+            ERR_B(f->pos, "template function '%s' already defined with those arguments in this namespace", name)
           const Symbol sym = func_symbol(env, env->curr->name, name,
             "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
