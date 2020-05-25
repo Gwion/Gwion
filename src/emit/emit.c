@@ -752,6 +752,7 @@ ANN static inline m_uint exp_totalsize(Exp e) {
   while((e = e->next));
   return size;
 }
+ANN static /*inline */void emit_exp_addref1(const Emitter emit, Exp, const m_int size);
 ANN static /*inline */void emit_exp_addref(const Emitter emit, Exp, const m_int size);
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
@@ -839,9 +840,9 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
     .pos=exp_self(bin)->pos, .data=(uintptr_t)bin, .op_type=op_binary };
   CHECK_BB(emit_exp_pop_next(emit, lhs))
   CHECK_BB(emit_exp_pop_next(emit, rhs))
-  const m_int size = exp_totalsize(rhs);
-  emit_exp_addref(emit, lhs, -exp_totalsize(lhs) - size);
-  emit_exp_addref(emit, rhs, -size);
+  const m_int size = exp_size(rhs);
+  emit_exp_addref1(emit, lhs, -exp_size(lhs) - size);
+  emit_exp_addref1(emit, rhs, -size);
   return op_emit_bool(emit, &opi);
 }
 
@@ -1197,7 +1198,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary, .op_type=op_unary };
   if(unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork") && unary->exp) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp))
-    emit_exp_addref(emit, unary->exp, -exp_size(unary->exp));
+    emit_exp_addref1(emit, unary->exp, -exp_size(unary->exp));
     opi.rhs = unary->exp->info->type;
   }
   return op_emit_bool(emit, &opi);
@@ -1214,7 +1215,7 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e))
-  emit_exp_addref(emit, e, -exp_size(e));
+  emit_exp_addref1(emit, e, -exp_size(e));
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
                            .rhs=e->info->type, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
   const Instr instr = op_emit(emit, &opi);
@@ -1278,14 +1279,18 @@ ANN static inline m_uint exp_size(const Exp e) {
   return type->size;
 }
 
+ANN2(1) static void emit_exp_addref1(const Emitter emit, /* const */Exp exp, m_int size) {
+  if(isa(exp->info->type, emit->gwion->type[et_object]) > 0 &&
+    (exp->info->cast_to ? isa(exp->info->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
+    const Instr instr = emit_addref(emit, exp_getvar(exp));
+    instr->m_val = size;
+  } else if(GET_FLAG(exp->info->type, struct)) // check cast_to ?
+    struct_addref(emit, exp->info->type, size, 0, exp_getvar(exp));
+}
+
 ANN2(1) static void emit_exp_addref(const Emitter emit, /* const */Exp exp, m_int size) {
   do {
-    if(isa(exp->info->type, emit->gwion->type[et_object]) > 0 &&
-      (exp->info->cast_to ? isa(exp->info->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
-      const Instr instr = emit_addref(emit, exp_getvar(exp));
-      instr->m_val = size;
-    } else if(GET_FLAG(exp->info->type, struct)) // check cast_to ?
-      struct_addref(emit, exp->info->type, size, 0, exp_getvar(exp));
+    emit_exp_addref1(emit, exp, size);
     size += exp_size(exp);
   } while((exp = exp->next));
 }
@@ -1639,7 +1644,7 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
   CHECK_BB(emit_exp_pop_next(emit, e))
   const m_int size = -exp_size(e);
   emit_exp_addref(emit, base, -exp_totalsize(base) - size);
-  emit_exp_addref(emit, e, -size);
+  emit_exp_addref1(emit, e, -size);
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct ExpInfo_ info = { .nspc=e->info->nspc };
   struct Exp_ ebin = { .d={.exp_binary=bin}, .info=&info };
