@@ -211,6 +211,7 @@ ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   t->e->owner = t->nspc->parent = env->curr;
   t->e->owner_class = env->class_def;
   t->e->parent = env->gwion->type[et_union];
+  t->e->tuple = new_tupleform(env->gwion->mp, NULL);
   add_type(env, env->curr, t);
   if(add)
     mk_class(env, t);
