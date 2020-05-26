@@ -1101,7 +1101,8 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   ++emit->env->scope->depth;
   emit_push_scope(emit);
   const Instr gc = emit_add_instr(emit, NoOp);
-  if(emit_stmt(emit, stmt, pop) > 0) {
+  const m_bool ret = emit_stmt(emit, stmt, pop);
+  if(ret > 0) {
     const m_bool pure = !vector_back(&emit->info->pure);
     if(!pure) {
       gc->opcode = eGcIni;
@@ -1110,7 +1111,7 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
   }
   emit_pop_scope(emit);
   --emit->env->scope->depth;
-  return GW_OK;
+  return ret;
 }
 
 #define SPORK_FUNC_PREFIX "spork~func:%i"
@@ -1968,7 +1969,6 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   const m_bool ret = scanx_fdef(emit->env, emit, fdef, (_exp_func)emit_fdef);
   emit_pop_scope(emit);
   emit->env->func = former;
-
   if(ret > 0)
     emit_fdef_finish(emit, fdef);
   return ret;
