@@ -1152,12 +1152,13 @@ ANN static m_bool spork_prepare_code(const Emitter emit, const struct Sporker *s
 }
 
 ANN static m_bool spork_prepare_func(const Emitter emit, const struct Sporker *sp) {
-  CHECK_BB(prepare_call(emit, &sp->exp->d.exp_call))
   push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
   return call_spork_func(emit, &sp->exp->d.exp_call);
 }
 
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
+  if(!sp->code)
+    CHECK_BO(prepare_call(emit, &sp->exp->d.exp_call))
   if((sp->code ? spork_prepare_code : spork_prepare_func)(emit, sp) > 0)
     return finalyze(emit, EOC);
   emit_pop_code(emit);
