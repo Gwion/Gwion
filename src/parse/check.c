@@ -883,6 +883,8 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
     ERR_O(exp_self(exp_if)->pos,
         _("condition type '%s' does not match '%s'"),
          cond->name, ret->name)
+  if(exp_getmeta(exp_if->if_exp ?: exp_if->cond) || exp_getmeta(exp_if->else_exp))
+    exp_setmeta(exp_self(exp_if), 1);
   return ret;
 }
 
