@@ -1,8 +1,8 @@
 #! [contains] can't use non global fptr of other class
 class C {
-  typedef void t_ptr() {}
+  typedef void t_ptr();
 }
 class D {
-  typedef void t_ptr() {}
+  typedef void t_ptr();
   C->t_ptr ptr;
 }
