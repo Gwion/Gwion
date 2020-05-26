@@ -1980,6 +1980,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   emit->env->func = former;
   if(ret > 0)
     emit_fdef_finish(emit, fdef);
+  else
+    emit_pop_code(emit);
   return ret;
 }
 
