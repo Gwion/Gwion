@@ -2033,8 +2033,10 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     emit_class_code(emit, t->name);
     if(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit) > 0)
       emit_class_finish(emit, t->nspc);
-    else
+    else {
       emit_pop_code(emit);
+      return GW_ERROR;
+    }
   }
   return GW_OK;
 }
