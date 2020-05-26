@@ -1244,10 +1244,10 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
   const Instr op = emit_flow(emit, exp_if->cond);
-  CHECK_BB(emit_exp(emit, exp_if->if_exp ?: exp_if->cond))
+  CHECK_BB(emit_exp_pop_next(emit, exp_if->if_exp ?: exp_if->cond))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
-  const m_bool ret = emit_exp(emit, exp_if->else_exp);
+  const m_bool ret = emit_exp_pop_next(emit, exp_if->else_exp);
   op2->m_val = emit_code_size(emit);
   return ret;
 }
