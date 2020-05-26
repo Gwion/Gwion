@@ -140,6 +140,10 @@ ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
   emit->code = new_code(emit, name);
 }
 
+ANN static inline void emit_pop_code(const Emitter emit) {
+  emit->code = (Code*)vector_pop(&emit->stack);
+}
+
 ANN static inline void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
   vector_add(&emit->info->pure, 0);
@@ -1139,20 +1143,25 @@ struct Sporker {
   const m_bool is_spork;
 };
 
+ANN static m_bool spork_prepare_code(const Emitter emit, const struct Sporker *sp) {
+  emit_add_instr(emit, RegPushImm);
+  push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, sp->code->pos);
+  if(!SAFE_FLAG(emit->env->func, member))
+    stack_alloc_this(emit);
+  return scoped_stmt(emit, sp->code, 0);
+}
+
+ANN static m_bool spork_prepare_func(const Emitter emit, const struct Sporker *sp) {
+  CHECK_BB(prepare_call(emit, &sp->exp->d.exp_call))
+  push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
+  return call_spork_func(emit, &sp->exp->d.exp_call);
+}
+
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
-  if(sp->code) {
-    emit_add_instr(emit, RegPushImm);
-    push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, sp->code->pos);
-    if(!SAFE_FLAG(emit->env->func, member))
-      stack_alloc_this(emit);
-    CHECK_BO(scoped_stmt(emit, sp->code, 0))
-  } else {
-    CHECK_BO(prepare_call(emit, &sp->exp->d.exp_call))
-//    emit_exp_addref(emit, &sp->exp->d.exp_call, -exp_totalsize(&sp->exp->d.exp_call);
-    push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
-    CHECK_BO(call_spork_func(emit, &sp->exp->d.exp_call))
-  }
-  return finalyze(emit, EOC);
+  if((sp->code ? spork_prepare_code : spork_prepare_func)(emit, sp) > 0)
+    return finalyze(emit, EOC);
+  emit_pop_code(emit);
+  return NULL;
 }
 
 ANN void spork_code(const Emitter emit, const struct Sporker *sp) {
@@ -2022,8 +2031,10 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   nspc_allocdata(emit->gwion->mp, t->nspc);
   if(cdef->body) {
     emit_class_code(emit, t->name);
-    CHECK_BB(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit))
-    emit_class_finish(emit, t->nspc);
+    if(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit) > 0)
+      emit_class_finish(emit, t->nspc);
+    else
+      emit_pop_code(emit);
   }
   return GW_OK;
 }
