@@ -152,6 +152,12 @@ ANN static inline m_bool ensure_check(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
+ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos) {
+  if(!GET_FLAG(t, infer))
+    return GW_OK;
+  ERR_B(pos, _("can't infer type."))
+}
+
 ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc);
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
@@ -166,8 +172,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
     ERR_O(td_pos(decl->td), _("can't find type"));
   {
     const Type t = get_type(decl->type);
-    if(GET_FLAG(t, infer))
-      ERR_O(td_pos(decl->td), _("can't infer type."));
+    CHECK_BO(inferable(env, t, td_pos(decl->td)))
     if(!GET_FLAG(t, check) && t->e->def)
       CHECK_BO(ensure_check(env, t))
   }
@@ -316,6 +321,7 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
   const Exp e = *exp;
   DECL_OO(const Type, t, = check_exp(env, e))
+  CHECK_BO(inferable(env, t, (*exp)->pos))
   const Type force = force_type(env, t);
   return type_class(env->gwion, force);
 }

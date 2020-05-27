@@ -80,6 +80,7 @@ ANN static Type class_type(const Env env, const Type base) {
   t->e->parent = t_class;
   t->e->ctx = base->e->ctx;
   t->e->d.base_type = base;
+  SET_FLAG(t, infer);
   return t;
 }
 
