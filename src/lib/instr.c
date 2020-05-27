@@ -35,6 +35,8 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->vt_index);
   DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid))
+  if(isa(v->type, env->gwion->type[et_class]) > 0)
+    return NULL;
   const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
   def->base->tmpl->base = dt->vt_index;
@@ -44,6 +46,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   SET_FLAG(def, template);
   return def;
 }
+
 ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt, const Nspc nspc) {
   DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc))
   CHECK_BO(traverse_dot_tmpl(emit, dt))
