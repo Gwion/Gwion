@@ -178,6 +178,9 @@ ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
   return insert_symbol(c);
 }
 
+#define scan0_nspc(env, a) \
+  GET_FLAG(a, global) ? !env->class_def ? env->global_nspc : NULL : env->curr
+
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_int]);
   t->xid = ++env->scope->type_xid;
@@ -193,9 +196,16 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   return t;
 }
 
+ANN static inline m_bool scan0_global(const Env env, const ae_flag flag, const loc_t pos) {
+  if(!env->class_def || !((flag & ae_flag_global) == ae_flag_global))
+    return GW_OK;
+  ERR_B(pos, _("can't declare as global in class def"))
+}
+
 ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   CHECK_BB(env_storage(env, edef->flag, edef->pos))
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
+  CHECK_BB(scan0_global(env, edef->flag, edef->pos))
   edef->t = enum_type(env, edef);
   if(GET_FLAG(edef, global))
     context_global(env);
@@ -247,6 +257,7 @@ ANN static Value union_value(const Env env, const Type t, const Symbol sym) {
 
 ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   CHECK_BB(env_storage(env, udef->flag, udef->pos))
+  CHECK_BB(scan0_global(env, udef->flag, udef->pos))
   const m_uint scope = !GET_FLAG(udef, global) ? env->scope->depth :
       env_push_global(env);
   if(GET_FLAG(udef, global))
@@ -286,6 +297,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos))
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos))
+  CHECK_BB(scan0_global(env, cdef->flag, cdef->pos))
   return GW_OK;
 }
 
