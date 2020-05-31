@@ -1422,11 +1422,6 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
   return ret;
 }
 
-ANN static Instr variadic_state0(const Emitter emit, const Stmt_VarLoop stmt) {
-  CHECK_BO(emit_exp(emit, stmt->exp))
-  return emit_add_instr(emit, BranchEqInt);
-}
-
 ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, const m_uint status) {
   regpushi(emit, status);
   CHECK_BB(emit_exp(emit, stmt->exp))
@@ -1439,9 +1434,10 @@ ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, co
 }
 
 ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt) {
-  DECL_OB(const Instr,state, = variadic_state0(emit, stmt))
   CHECK_BB(variadic_state(emit, stmt, 1))
   CHECK_BB(emit_exp(emit, stmt->exp))
+  const Instr member = emit_add_instr(emit, DotMember4);
+  member->m_val = SZ_INT*2;
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   const m_uint pc = emit_code_size(emit);
   emit_stmt(emit, stmt->body, 1);
@@ -1449,7 +1445,7 @@ ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt)
   emit_vararg_end(emit, pc);
   instr->m_val = emit_code_size(emit);
   CHECK_BB(variadic_state(emit, stmt, 0))
-  state->m_val = instr->m_val = emit_code_size(emit);
+  instr->m_val = emit_code_size(emit);
   return GW_OK;
 }
 
