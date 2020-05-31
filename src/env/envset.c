@@ -49,7 +49,7 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
   if(GET_FLAG(t, template))
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
   if(t->e->owner_class)
-    envset_pop(es, t);
+    envset_pop(es, t->e->owner_class);
   else
     env_pop(es->env, es->scope);
 }
