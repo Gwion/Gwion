@@ -152,6 +152,12 @@ ANN static inline m_bool ensure_check(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
+ANN static inline m_bool ensure_traverse(const Env env, const Type t) {
+  struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
+    .scope=env->scope->depth, .flag=ae_flag_check };
+  return envset_run(&es, t);
+}
+
 ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos) {
   if(!GET_FLAG(t, infer))
     return GW_OK;
@@ -865,7 +871,11 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos, .op_type=op_unary };
   if(unary->exp && !opi.rhs)
     return NULL;
-  return op_check(env, &opi);
+  DECL_OO(const Type, ret, = op_check(env, &opi))
+  const Type t = get_type(actual_type(env->gwion, ret));
+  if(t->e->def && !GET_FLAG(t, check))
+    CHECK_BO(ensure_traverse(env, t))
+  return ret;
 }
 
 ANN static Type _flow(const Env env, const Exp e, const m_bool b) {

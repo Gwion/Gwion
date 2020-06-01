@@ -47,14 +47,13 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
 
 ANN Type type_copy(MemPool p, const Type type) {
   const Type a = new_type(p, type->xid, type->name, type->e->parent);
-  a->nspc          = type->nspc;
+  a->nspc           = type->nspc;
   a->e->owner       = type->e->owner;
   a->e->owner_class = type->e->owner_class;
-  a->size          = type->size;
-  a->e->d.base_type   = type->e->d.base_type;
-  a->array_depth   = type->array_depth;
-  a->e->def           = type->e->def;
-  a->e->gack           = type->e->gack;
+  a->size           = type->size;
+  a->e->d.base_type = type->e->d.base_type;
+  a->array_depth    = type->array_depth;
+  a->e->gack        = type->e->gack;
   return a;
 }
 
