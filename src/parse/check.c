@@ -1013,11 +1013,9 @@ ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
     ptr = known_type(env, &td);
     td0->array = NULL;
     free_type_decl(env->gwion->mp, td0);
-    if(!GET_FLAG(ptr, check) && ptr->e->def) {
-      struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
-        .scope=env->scope->depth, .flag=ae_flag_check };
-      CHECK_BB(envset_run(&es, get_type(ptr)))
-    }
+    const Type base = get_type(ptr);
+    if(!GET_FLAG(base, check))
+      CHECK_BB(ensure_traverse(env, base))
   }
   t = (!stmt->is_ptr && depth) ? array_type(env, ptr, depth) : ptr;
   stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));

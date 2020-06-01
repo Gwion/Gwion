@@ -22,7 +22,7 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
     CHECK_BB(push(es, t->e->owner_class))
   else
     env_push(es->env, NULL, es->env->context->nspc);
-  if(!(t->flag & es->flag))
+  if(es->func && !(t->flag & es->flag))
     CHECK_BB(es->func((void*)es->data, t->e->def))
   if(GET_FLAG(t, template))
     CHECK_BB(template_push_types(es->env, t->e->def->base.tmpl))

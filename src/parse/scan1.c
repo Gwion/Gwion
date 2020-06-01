@@ -29,8 +29,9 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 }
 
 ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
+  const Type base = get_type(t);
   if(!GET_FLAG(td, ref) && env->class_def && !env->scope->depth &&
-          t == env->class_def) {
+          base == env->class_def) {
     ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
        t->name, t == env->class_def ? "itself" : env->class_def->name);
   }
