@@ -223,7 +223,7 @@ static INSTR(ArraySlice) {
   for(m_int i = start, j = 0; i != end; i += op, ++j) {
     m_bit buf[ARRAY_SIZE(in)];
     m_vector_get(in, i, &buf);
-    m_vector_set(ARRAY(out), i, buf);
+    m_vector_set(ARRAY(out), j, buf);
   }
   *(M_Object*)REG(-SZ_INT) = out;
 }
