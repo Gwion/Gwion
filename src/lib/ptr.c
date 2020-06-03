@@ -54,9 +54,10 @@ static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   if(!cast->td->types || !cast->td->types->td)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
-  DECL_ON(const Type, t, = type_decl_resolve(env, cast->td))
-  if(!GET_FLAG(t, check))
-    CHECK_BN(traverse_class_def(env, t->e->def))
+  DECL_ON(const Type, t, = known_type(env, cast->td)) // was type_decl_resolve
+  const Type _t = get_type(t);
+  if(_t->e->def && !GET_FLAG(_t, check))
+    CHECK_BN(traverse_class_def(env, _t->e->def))
   const Type to = known_type(env, cast->td->types->td);
   if(isa(cast->exp->info->type, to) > 0)
     return t;
@@ -73,8 +74,9 @@ static OP_CHECK(opck_ptr_implicit) {
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
     e->info->cast_to = imp->t;
     exp_setvar(e, 1);
-    if(!GET_FLAG(imp->t, check))
-      CHECK_BN(traverse_class_def(env, imp->t->e->def))
+    const Type t = get_type(imp->t);
+    if(!GET_FLAG(t, check))
+      CHECK_BN(traverse_class_def(env, t->e->def))
     return imp->t;
   }
   return NULL;
