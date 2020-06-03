@@ -227,6 +227,7 @@ ANEW ANN static ArrayInfo* new_arrayinfo(const Emitter emit, const Type t) {
 
 ANN static inline void arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
   const Type base = info->base;
+// TODO: needed for coumpund?
   if(isa(base, emit->gwion->type[et_object]) > 0 && !GET_FLAG(base, abstract)) {
     emit_pre_constructor_array(emit, base);
     info->is_obj = 1;
@@ -597,11 +598,11 @@ ANN static void decl_expand(const Emitter emit, const Type t) {
 }
 
 ANN static void emit_struct_decl_finish(const Emitter emit, const Type t, const uint emit_addr) {
-    emit->code->frame->curr_offset += t->size;
-    emit_ext_ctor(emit, t->nspc->pre_ctor);
-    if(!emit_addr)
-      decl_expand(emit, t);
-    emit->code->frame->curr_offset -= t->size;
+  emit->code->frame->curr_offset += t->size + SZ_INT;
+  emit_ext_ctor(emit, t->nspc->pre_ctor);
+  if(!emit_addr)
+    decl_expand(emit, t);
+  emit->code->frame->curr_offset -= t->size + SZ_INT;
 }
 
 ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref, const uint emit_addr) {
@@ -1068,14 +1069,17 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
-  } else if(f->value_ref->from->owner_class && f != emit->env->func && !f->code&& ! is_fptr(emit->gwion, f->value_ref->type)){
+  } else if(f != emit->env->func && !f->code&& ! is_fptr(emit->gwion, f->value_ref->type)){
     /* not yet emitted static func */
-    const Instr instr = vector_size(&emit->code->instr) ?
-      (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, PushStaticCode);
-    assert(instr->opcode == ePushStaticCode);
-    instr->opcode = eRegPushImm;
-    const Instr pushcode = emit_add_instr(emit, PushStaticCode);
-    pushcode->m_val = (m_uint)f;
+    if(f->value_ref->from->owner_class) {
+      const Instr instr = vector_size(&emit->code->instr) ?
+        (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, PushStaticCode);
+      assert(instr->opcode == ePushStaticCode);
+      instr->opcode = eRegPushImm;
+    } else {
+      const Instr pushcode = emit_add_instr(emit, PushStaticCode);
+      pushcode->m_val = (m_uint)f;
+    }
   }
   const m_uint offset = emit_code_offset(emit);
   regseti(emit, offset);
@@ -1963,12 +1967,12 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     return GW_OK;
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
+  // TODO: we might not need lambdas here
   if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl && !emit->env->scope->depth)
     func->value_ref->from->offset = emit_local(emit, emit->gwion->type[et_int]);
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
     stack_alloc_this(emit);
-
   emit->env->func = func;
   emit_push_scope(emit);
   if(!strcmp(s_name(fdef->base->xid), "@gack")) {

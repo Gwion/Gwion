@@ -510,6 +510,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
     const Value v = decl->value;
     if(arg_list->td && !arg_list->td->xid)
       CHECK_OB((arg_list->type = v->type = check_td(env, arg_list->td)))
+// TODO: use coumpound instead of object?
     if(isa(v->type, env->gwion->type[et_object]) > 0 || isa(v->type, env->gwion->type[et_function]) > 0)
       UNSET_FLAG(env->func, pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
