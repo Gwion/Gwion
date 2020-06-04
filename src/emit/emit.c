@@ -1046,8 +1046,16 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
         back->m_val = 0;
       }
     } else if(emit->env->func != f && !f->value_ref->from->owner_class && !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
-      const Instr back = !GET_FLAG(f->def, op) ? emit_add_instr(emit, PushStaticCode) : (Instr)vector_back(&emit->code->instr);
-      back->m_val = (m_uint)f;
+      if(GET_FLAG(f->def, op)) {
+        const Instr back = (Instr)vector_back(&emit->code->instr);
+        back->m_val = (m_uint)f;
+      } else {
+// ensure env?	
+        CHECK_BO(emit_func_def(emit, f->def))
+        const Instr instr = emit_add_instr(emit, RegSetImm);
+        instr->m_val = (m_uint)f->code;
+        instr->m_val2 = -SZ_INT;
+      }
     }
   } else if((f->value_ref->from->owner_class && is_special(emit, f->value_ref->from->owner_class) > 0) ||
         !f->value_ref->from->owner_class || (GET_FLAG(f, template) &&
