@@ -43,8 +43,12 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
   }
 }
 
+#define MAX_NAME_LEN 16
+#define CHECK_LEN(name) if(strlen(name) > MAX_NAME_LEN) return;
+
 #undef did_you_mean_nspc
 ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
+  CHECK_LEN(name)
   struct Vector_ v;
   vector_init(&v);
   do ressembles(&v, nspc, name);
@@ -56,6 +60,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
 
 #undef did_you_mean_type
 ANN void did_you_mean_type(Type type, const char* name) {
+  CHECK_LEN(name)
   Type t = type;
   struct Vector_ v;
   vector_init(&v);
