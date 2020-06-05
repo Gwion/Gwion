@@ -264,6 +264,7 @@ ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) {
 ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
   CHECK_OB(emit_array_extend_inner(emit, t, e))
   emit_add_instr(emit, PopArrayClass);
+  emit_add_instr(emit, RegAddRef);
   return GW_OK;
 }
 
@@ -1567,6 +1568,7 @@ ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
     assert(stmt->data.v.ptr);
     const m_uint size = vector_size(&stmt->data.v);
     if(!size)
+//return GW_OK;
       ERR_B(stmt_self(stmt)->pos, _("label '%s' defined but not used."), s_name(stmt->name))
     LOOP_OPTIM
     for(m_uint i = size + 1; --i;) {
@@ -1971,7 +1973,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   const Func func = f->base->func;
   const Func_Def fdef = func->def;
   const Func former = emit->env->func;
-  if(tmpl_base(fdef->base->tmpl))
+  if(func->code || tmpl_base(fdef->base->tmpl))
     return GW_OK;
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
@@ -2049,6 +2051,7 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     if(scanx_body(emit->env, cdef, (_exp_func)emit_section, emit) > 0)
       emit_class_finish(emit, t->nspc);
     else {
+      free_code(emit->gwion->mp, emit->code);
       emit_pop_code(emit);
       return GW_ERROR;
     }

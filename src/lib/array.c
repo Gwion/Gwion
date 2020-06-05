@@ -55,6 +55,8 @@ ANN static inline int is_array(const Type *types, const Type type) {
 static DTOR(array_dtor) {
   const Type t = !GET_FLAG(o->type_ref, nonnull) ?
     o->type_ref : o->type_ref->e->parent;
+  if(*(void**)(o->data + SZ_INT))
+    xfree(*(void**)(o->data + SZ_INT));
   struct M_Vector_* a = ARRAY(o);
   if(!a)
     return;
@@ -325,6 +327,8 @@ GWION_IMPORT(array) {
   gwi_class_xtor(gwi, NULL, array_dtor);
   GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
+  GWI_BB(gwi_item_end(gwi, 0, NULL))
 
   GWI_BB(gwi_func_ini(gwi, "int", "size"))
   GWI_BB(gwi_func_end(gwi, vm_vector_size, ae_flag_none))
@@ -373,6 +377,8 @@ INSTR(ArrayBottom) {
 
 INSTR(ArrayPost) {
   xfree(*(m_uint**)REG(0));
+  const M_Object o = *(M_Object*)(REG(-SZ_INT));
+  *(m_uint*)(o->data + SZ_INT) = 0;
 }
 
 INSTR(ArrayInit) {// for litteral array
@@ -451,6 +457,8 @@ INSTR(ArrayAlloc) {
     vm_shred_exit(shred);
     return; // TODO make exception vararg
   }
+  *(void**)(ref->data + SZ_INT) = aai.data;
+  vector_add(&shred->gc, ref);
   if(!is_obj) {
     POP_REG(shred, SZ_INT * (info->depth - 1));
     *(M_Object*)REG(-SZ_INT) = ref;
