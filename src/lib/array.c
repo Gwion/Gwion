@@ -458,7 +458,7 @@ INSTR(ArrayAlloc) {
     return; // TODO make exception vararg
   }
   *(void**)(ref->data + SZ_INT) = aai.data;
-  vector_add(&shred->gc, ref);
+  vector_add(&shred->gc, (m_uint)ref);
   if(!is_obj) {
     POP_REG(shred, SZ_INT * (info->depth - 1));
     *(M_Object*)REG(-SZ_INT) = ref;
