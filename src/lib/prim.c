@@ -221,6 +221,21 @@ static GWION_IMPORT(dur) {
   return gwi_oper_end(gwi, "<=",           float_le);
 }
 
+
+static inline int is_now(const Env env, const Exp exp) {
+  return exp->exp_type == ae_exp_primary &&
+    exp->d.prim.prim_type == ae_prim_id &&
+    exp->d.prim.d.var == insert_symbol("now");
+}
+
+static OP_CHECK(opck_now) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(!is_now(env, bin->rhs))
+    CHECK_NN(opck_const_rhs(env, data, mut))
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
+}
+
 static GWION_IMPORT(time) {
   GWI_BB(gwi_oper_cond(gwi, "time", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "time"))
@@ -231,7 +246,7 @@ static GWION_IMPORT(time) {
   CHECK_FF("=>", rassign, r_assign)
   GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
   GWI_BB(gwi_oper_ini(gwi,  "dur",  "@now", "time"))
-  _CHECK_OP("=>", rhs_emit_var, Time_Advance)
+  _CHECK_OP("=>", now, Time_Advance)
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "int"))
   GWI_BB(gwi_oper_end(gwi, ">",           float_gt))
   GWI_BB(gwi_oper_end(gwi, ">=", 	      float_ge))

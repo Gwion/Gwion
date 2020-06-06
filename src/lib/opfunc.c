@@ -33,12 +33,6 @@ OP_CHECK(opck_const_rhs) {
   return bin->rhs->info->type;
 }
 
-OP_CHECK(opck_rhs_emit_var) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
-}
-
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
