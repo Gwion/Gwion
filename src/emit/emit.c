@@ -1164,7 +1164,7 @@ struct Sporker {
 ANN static m_bool spork_prepare_code(const Emitter emit, const struct Sporker *sp) {
   emit_add_instr(emit, RegPushImm);
   push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX, sp->code->pos);
-  if(!SAFE_FLAG(emit->env->func, member))
+  if(SAFE_FLAG(emit->env->func, member))
     stack_alloc_this(emit);
   return scoped_stmt(emit, sp->code, 0);
 }
