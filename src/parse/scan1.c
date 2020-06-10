@@ -28,20 +28,10 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
-ANN static m_bool type_recursive(const Env env, const Type_Decl *td, const Type t) {
-  const Type base = get_type(t);
-  if(!GET_FLAG(td, ref) && env->class_def && !env->scope->depth &&
-          base == env->class_def) {
-    ERR_B(td_pos(td), _("%s declared inside %s\n. (make it a ref ?)"),
-       t->name, t == env->class_def ? "itself" : env->class_def->name);
-  }
-  return GW_OK;
-}
-
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  if(!env->func && env->class_def)
+  if(!env->func && env->class_def && !GET_FLAG(td, ref))
     CHECK_BO(type_cyclic(env, t, td))
   if(!GET_FLAG(t, scan1) && t->e->def)
     CHECK_BO(ensure_scan1(env, t))
@@ -50,8 +40,6 @@ ANN static Type scan1_type(const Env env, Type_Decl* td) {
 
 ANN static Type void_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = scan1_type(env, td))
-  if(isa(type, env->gwion->type[et_compound]) > 0)
-    CHECK_BO(type_recursive(env, td, type))
   if(type->size)
     return type;
   ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))

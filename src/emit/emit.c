@@ -18,6 +18,7 @@
 #include "parser.h"
 #include "specialid.h"
 #include "vararg.h"
+#include "modify_instr.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -161,9 +162,11 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
   return frame_local(emit->gwion->mp, emit->code->frame, t);
 }
 
-ANN static inline void maybe_ctor(const Emitter emit, const Type type) {
-  if(type->nspc && type->nspc->pre_ctor && !GET_FLAG(type, nonnull))
-    emit_ext_ctor(emit, type->nspc->pre_ctor);
+ANN void emit_ext_ctor(const Emitter emit, const Type t);
+
+ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
+  if(!GET_FLAG(t, nonnull) && GET_FLAG(t, ctor))
+    emit_ext_ctor(emit, t);
 }
 
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
@@ -243,11 +246,14 @@ ANN2(1,2) static ArrayInfo* emit_array_extend_inner(const Emitter emit, const Ty
   return info;
 }
 
-ANN void emit_ext_ctor(const Emitter emit, const VM_Code code) {
+ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   const Instr cpy = emit_add_instr(emit, Reg2Reg);
   cpy->m_val2 = -SZ_INT;
-  const Instr set_code = regseti(emit, (m_uint)code);
-  set_code->m_val2 = SZ_INT;
+  if(t->nspc->pre_ctor) {
+    const Instr set_code = regseti(emit, (m_uint)t->nspc->pre_ctor);
+    set_code->m_val2 = SZ_INT;
+  } else
+    emit_mod_ctor(emit, t);
   const m_uint offset = emit_code_offset(emit);
   const Instr regset = regseti(emit, offset);
   regset->m_val2 = SZ_INT *2;
@@ -600,7 +606,7 @@ ANN static void decl_expand(const Emitter emit, const Type t) {
 
 ANN static void emit_struct_decl_finish(const Emitter emit, const Type t, const uint emit_addr) {
   emit->code->frame->curr_offset += t->size + SZ_INT;
-  emit_ext_ctor(emit, t->nspc->pre_ctor);
+  emit_ext_ctor(emit, t);
   if(!emit_addr)
     decl_expand(emit, t);
   emit->code->frame->curr_offset -= t->size + SZ_INT;
@@ -1040,7 +1046,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     if(GET_FLAG(f, template) && !is_fptr(emit->gwion, f->value_ref->type)) {
       if(emit->env->func != f)
         CHECK_BO(emit_template_code(emit, f))
-      else {
+      else { // recursive function. (maybe should be used only for global funcs)
         const Instr back = (Instr) vector_size(&emit->code->instr) ?
             (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
         back->opcode = ePushStaticCode;
@@ -1078,17 +1084,15 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
-  } else if(f != emit->env->func && !f->code&& ! is_fptr(emit->gwion, f->value_ref->type)){
+  } else if(f != emit->env->func && !f->code && !is_fptr(emit->gwion, f->value_ref->type)){
     /* not yet emitted static func */
     if(f->value_ref->from->owner_class) {
       const Instr instr = vector_size(&emit->code->instr) ?
         (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, PushStaticCode);
       assert(instr->opcode == ePushStaticCode);
       instr->opcode = eRegPushImm;
-    } else {
-      const Instr pushcode = emit_add_instr(emit, PushStaticCode);
-      pushcode->m_val = (m_uint)f;
-    }
+    } else
+      emit_mod_func(emit, f);
   }
   const m_uint offset = emit_code_offset(emit);
   regseti(emit, offset);
@@ -2042,9 +2046,9 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(GET_FLAG(t, emit))
     return GW_OK;
+  SET_FLAG(t, emit);
   if(cdef->base.ext && t->e->parent->e->def && !GET_FLAG(t->e->parent, emit))
     CHECK_BB(cdef_parent(emit, cdef))
-  SET_FLAG(t, emit);
   nspc_allocdata(emit->gwion->mp, t->nspc);
   if(cdef->body) {
     emit_class_code(emit, t->name);

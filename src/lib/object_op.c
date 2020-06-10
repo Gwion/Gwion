@@ -264,9 +264,12 @@ OP_EMIT(opem_object_dot) {
       CHECK_BO(emit_exp(emit, member->base))
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
     }
-  }
-  else if(GET_FLAG(value, static))
+  } else if(GET_FLAG(value, static))
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
+  else { // member type
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)value->type;
+  }
   return (Instr)GW_OK;
 }
 

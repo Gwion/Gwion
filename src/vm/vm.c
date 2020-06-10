@@ -14,7 +14,7 @@
 #include "map_private.h"
 #include "gack.h"
 #include "array.h"
-
+#include "modify_instr.h"
 
 static inline uint64_t splitmix64_stateless(uint64_t index) {
   uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
@@ -837,10 +837,8 @@ PRAGMA_PUSH()
   *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, VAL))->code;
 PRAGMA_POP()
   DISPATCH()
-pushstaticcode:
-  *(m_bit*)byte = eRegSetImm;
-  VAL = (*(m_uint*)(reg-SZ_INT) = (m_uint)((Func)VAL)->code);
-  VAL2 = -SZ_INT;
+pushstaticcode: // TODO: use external instr
+  ((instr_modifier)VAL2)(byte, reg);
   DISPATCH()
 gcini:
   vector_add(&shred->gc, 0);

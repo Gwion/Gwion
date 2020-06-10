@@ -1406,8 +1406,10 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     CHECK_BB(cdef_parent(env, cdef))
   if(!GET_FLAG(cdef, struct))
     inherit(t);
-  if(cdef->body)
+  if(cdef->body) {
     CHECK_BB(env_body(env, cdef, check_section))
+    SET_FLAG(t, ctor);
+  }
   SET_FLAG(t, valid);
   return GW_OK;
 }
