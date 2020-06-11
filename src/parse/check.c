@@ -686,16 +686,13 @@ ANN static Func predefined_func(const Env env, const Value v,
 ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, const Tmpl *tm, const Func_Def fdef) {
   DECL_OO(const Func, func, = v->d.func_ref ?: predefined_func(env, v, exp, tm))
   if(!fdef->base->ret_type) { // template fptr
-    const m_uint scope = env->scope->depth;
     struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
-      .scope=scope, .flag=ae_flag_check };
+      .scope=env->scope->depth, .flag=ae_flag_check };
     CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
-    (void)env_push(env, v->from->owner_class, v->from->owner);
     SET_FLAG(func->def, typedef);
     const m_bool ret = traverse_func_def(env, func->def);
     if(es.run)
       envset_pop(&es, v->from->owner_class);
-    env_pop(env, scope);
     CHECK_BO(ret)
   }
   exp->m_func = func;
@@ -782,7 +779,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(GET_FLAG(exp->func->info->type->e->d.func, ref)) {
     const Value value = exp->func->info->type->e->d.func->value_ref;
     if(value->from->owner_class && !GET_FLAG(value->from->owner_class, check))
-      CHECK_BO(traverse_class_def(env, value->from->owner_class->e->def))
+      CHECK_BO(ensure_traverse(env, value->from->owner_class))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
@@ -1379,7 +1376,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   if(td->array)
     CHECK_BB(check_subscripts(env, td->array, 1))
   if(parent->e->def && !GET_FLAG(parent, check))
-    CHECK_BB(scanx_parent(parent, traverse_cdef, env))
+    CHECK_BB(scanx_parent(parent, check_cdef, env))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
