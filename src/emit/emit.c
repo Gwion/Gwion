@@ -1264,7 +1264,7 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
 #define emit_flow(emit,b) _flow(emit, b, 1)
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
-  const Instr op = emit_flow(emit, exp_if->cond);
+  DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond))
   CHECK_BB(emit_exp_pop_next(emit, exp_if->if_exp ?: exp_if->cond))
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
@@ -1473,7 +1473,7 @@ ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt)
 ANN static m_bool _emit_stmt_for(const Emitter emit, const Stmt_For stmt, m_uint *action_index) {
   CHECK_BB(emit_stmt(emit, stmt->c1, 1))
   const m_uint index = emit_code_size(emit);
-  const Instr op = emit_flow(emit, stmt->c2->d.stmt_exp.val);
+  DECL_OB(const Instr, op, = emit_flow(emit, stmt->c2->d.stmt_exp.val))
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   *action_index = emit_code_size(emit);
   if(stmt->c3) {
