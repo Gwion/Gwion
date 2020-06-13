@@ -111,3 +111,31 @@ INSTR(DotTmpl) {
   } while((t = t->e->parent));
   Except(shred, "MissigTmplException[internal]");
 }
+
+#define VAL (*(m_uint*)(byte + SZ_INT))
+#define FVAL (*(m_float*)(byte + SZ_INT))
+#define VAL2 (*(m_uint*)(byte + SZ_INT*2))
+
+INSTR(SetFunc) {
+  const Func f = (Func)instr->m_val;
+  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
+  *(m_bit*)byte = eRegPushImm;
+  VAL = *(m_uint*)(shred->reg) = (m_uint)f->code;
+  shred->reg += SZ_INT;
+}
+
+INSTR(SetRecurs) {
+  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
+  *(m_bit*)byte = eRegPushImm;
+  VAL = *(m_uint*)(shred->reg) = (m_uint)shred->code;
+  shred->reg += SZ_INT;
+}
+
+INSTR(SetCtor) {
+  const Type t = (Type)instr->m_val;
+  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
+  *(m_bit*)byte = eRegSetImm;
+  VAL = *(m_uint*)(shred->reg + SZ_INT) = (m_uint)t->nspc->pre_ctor;
+  VAL2 = SZ_INT;
+}
+

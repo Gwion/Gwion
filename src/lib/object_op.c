@@ -151,21 +151,24 @@ static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMemb
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
   const Func f = exp_self(member)->info->type->e->d.func;
-  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->info->type, force)) {
-    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
-    func_i->m_val = (m_uint)f->code;
-    return;
-  }
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
+else
+  if(is_class(emit->gwion, member->t_base) || GET_FLAG(member->base->info->type, force)) {
+    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
+    func_i->m_val = (m_uint)f->code ?: (m_uint)f;
+    return;
+  }
+//  if(f->def->base->tmpl)
+//    emit_add_instr(emit, DotTmplVal);
   else {
     if(GET_FLAG(member->t_base, struct)) {
       if(!GET_FLAG(f->def, static)) {
         exp_setvar(member->base, 1);
         emit_exp(emit, member->base);
       }
-      const Instr instr = emit_add_instr(emit, f->code ? RegPushImm : PushStaticCode);
-      instr->m_val = (m_uint)f->code;
+    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
+    func_i->m_val = (m_uint)f->code ?: (m_uint)f;
       return;
     }
     const Instr instr = emit_add_instr(emit, GET_FLAG(f, member) ? DotFunc : DotStaticFunc);

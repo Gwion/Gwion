@@ -14,7 +14,6 @@
 #include "map_private.h"
 #include "gack.h"
 #include "array.h"
-#include "modify_instr.h"
 
 static inline uint64_t splitmix64_stateless(uint64_t index) {
   uint64_t z = (index + UINT64_C(0x9E3779B97F4A7C15));
@@ -329,7 +328,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&setobj, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
-    &&dotfunc, &&dotstaticfunc, &&pushstaticcode,
+    &&dotfunc, &&dotstaticfunc,
     &&gcini, &&gcadd, &&gcend,
     &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&other, &&regpushimm
   };
@@ -836,9 +835,6 @@ dotstaticfunc:
 PRAGMA_PUSH()
   *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, VAL))->code;
 PRAGMA_POP()
-  DISPATCH()
-pushstaticcode: // TODO: use external instr
-  ((instr_modifier)VAL2)(byte, reg);
   DISPATCH()
 gcini:
   vector_add(&shred->gc, 0);

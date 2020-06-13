@@ -18,7 +18,6 @@
 #include "parser.h"
 #include "specialid.h"
 #include "vararg.h"
-#include "modify_instr.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -252,8 +251,10 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   if(t->nspc->pre_ctor) {
     const Instr set_code = regseti(emit, (m_uint)t->nspc->pre_ctor);
     set_code->m_val2 = SZ_INT;
-  } else
-    emit_mod_ctor(emit, t);
+  } else {
+    const Instr instr = emit_add_instr(emit, SetCtor);
+    instr->m_val = (m_uint)t;
+  }
   const m_uint offset = emit_code_offset(emit);
   const Instr regset = regseti(emit, offset);
   regset->m_val2 = SZ_INT *2;
@@ -1049,7 +1050,8 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
       else { // recursive function. (maybe should be used only for global funcs)
         const Instr back = (Instr) vector_size(&emit->code->instr) ?
             (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
-        back->opcode = ePushStaticCode;
+        back->opcode = eOP_MAX;
+        back->execute = SetRecurs;
         back->m_val = 0;
       }
     } else if(emit->env->func != f && !f->value_ref->from->owner_class && !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
@@ -1085,14 +1087,17 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     instr->m_val = val;
     instr->m_val2 = val2;
   } else if(f != emit->env->func && !f->code && !is_fptr(emit->gwion, f->value_ref->type)){
-    /* not yet emitted static func */
+    // not yet emitted static func
+/*
     if(f->value_ref->from->owner_class) {
       const Instr instr = vector_size(&emit->code->instr) ?
         (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, PushStaticCode);
       assert(instr->opcode == ePushStaticCode);
       instr->opcode = eRegPushImm;
-    } else
-      emit_mod_func(emit, f);
+    } else*/
+    const Instr instr = emit_add_instr(emit, SetFunc);
+    instr->m_val = (m_uint)f;
+//      emit_mod_func(emit, f);
   }
   const m_uint offset = emit_code_offset(emit);
   regseti(emit, offset);

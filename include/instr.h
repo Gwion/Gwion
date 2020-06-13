@@ -65,6 +65,10 @@ struct dottmpl_ {
 };
 ANN void free_dottmpl(struct dottmpl_*);
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt);
+
+INSTR(SetFunc);
+INSTR(SetRecurs);
+INSTR(SetCtor);
 // optimizations
 #ifdef OPTIMIZE
 INSTR(PutArgsInMem);

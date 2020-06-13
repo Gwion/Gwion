@@ -43,10 +43,6 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
   m_bit *ptr = _mp_malloc(p, sz * BYTECODE_SZ);
   for(m_uint i= 0; i < sz; ++i) {
     const Instr instr = (Instr)vector_at(v, i);
-    if(instr->opcode == ePushStaticCode && !instr->m_val) {
-      instr->opcode = eRegPushImm;
-      instr->m_val = (m_uint)code;
-    }
     if(instr->opcode < eOP_MAX)
       memcpy(ptr + i*BYTECODE_SZ, instr, BYTECODE_SZ);
     else {
