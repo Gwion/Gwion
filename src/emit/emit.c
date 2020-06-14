@@ -1674,7 +1674,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
 }
 
 ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp) {
-  return exp->val ? emit_exp(emit, exp->val) : 1;
+  return exp->val ? emit_exp(emit, exp->val) : GW_OK;
 }
 
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
