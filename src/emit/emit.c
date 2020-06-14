@@ -508,10 +508,8 @@ ANN static void interp_multi(const Emitter emit, const Exp e) {
   Var_Decl_List list = e->d.exp_decl.list;
   const int emit_var = exp_getvar(e);
   m_uint offset = 0;
-  while(list->next) {
+  while((list = list->next))
     offset += !emit_var ? list->self->value->type->size : SZ_INT;
-    list = list->next;
-  }
   if(offset)
     regpop(emit, offset);
 }
