@@ -1,5 +1,6 @@
 class C
 {
+  testf();
   fun float testf() {
     return 1.1;
   }

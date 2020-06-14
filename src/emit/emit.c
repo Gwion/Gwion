@@ -1088,16 +1088,16 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     instr->m_val2 = val2;
   } else if(f != emit->env->func && !f->code && !is_fptr(emit->gwion, f->value_ref->type)){
     // not yet emitted static func
-/*
     if(f->value_ref->from->owner_class) {
       const Instr instr = vector_size(&emit->code->instr) ?
-        (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, PushStaticCode);
-      assert(instr->opcode == ePushStaticCode);
-      instr->opcode = eRegPushImm;
-    } else*/
-    const Instr instr = emit_add_instr(emit, SetFunc);
-    instr->m_val = (m_uint)f;
-//      emit_mod_func(emit, f);
+        (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, SetFunc);
+      instr->opcode = eOP_MAX;
+      instr->execute = SetFunc;
+      instr->m_val = (m_uint)f;
+    } else {
+      const Instr instr = emit_add_instr(emit, SetFunc);
+      instr->m_val = (m_uint)f;
+    }
   }
   const m_uint offset = emit_code_offset(emit);
   regseti(emit, offset);

@@ -1,4 +1,5 @@
 class C {
+  1 => test;
   fun int test(int i) {
    13 => int j;
    return j;
