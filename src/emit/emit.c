@@ -1506,7 +1506,6 @@ ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
 }
 
 ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_uint *end_pc) {
-  emit_push_scope(emit);
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
   emit_local(emit, emit->gwion->type[et_int]);
@@ -1527,8 +1526,6 @@ ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_ui
   end->m_val = emit_code_size(emit);
   tgt->m_val = ini_pc;
   s1->m_val = loop->m_val = offset;
-  regpop(emit, SZ_INT);
-  emit_pop_scope(emit);
   return ret;
 }
 
@@ -1538,6 +1535,7 @@ ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
   m_uint end_pc = 0;
   const m_bool ret = _emit_stmt_auto(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
+  regpop(emit, SZ_INT);
   return ret;
 }
 
