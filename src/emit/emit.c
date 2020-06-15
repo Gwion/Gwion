@@ -1965,10 +1965,16 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
+static ANN int fdef_is_file_global(const Emitter emit, const Func_Def fdef) {
+  return isa(fdef->base->func->value_ref->type, emit->gwion->type[et_lambda]) < 0 &&
+    !emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl &&
+    !emit->env->scope->depth;
+}
+
 ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
   const Func func = fdef->base->func;
   func->code = emit_func_def_code(emit, func);
-  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl)
+  if(fdef_is_file_global(emit, fdef))
     emit_func_def_global(emit, func->value_ref);
   if(emit->info->memoize && GET_FLAG(func, pure))
     func->code->memoize = memoize_ini(emit, func);
@@ -1982,8 +1988,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     return GW_OK;
   if(SAFE_FLAG(emit->env->class_def, builtin) && GET_FLAG(emit->env->class_def, template))
     return GW_OK;
-  // TODO: we might not need lambdas here
-  if(!emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl && !emit->env->scope->depth)
+  if(fdef_is_file_global(emit, fdef))
     func->value_ref->from->offset = emit_local(emit, emit->gwion->type[et_int]);
   emit_func_def_init(emit, func);
   if(GET_FLAG(func, member))
