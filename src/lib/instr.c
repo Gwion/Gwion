@@ -115,26 +115,24 @@ INSTR(DotTmpl) {
 #define VAL (*(m_uint*)(byte + SZ_INT))
 #define FVAL (*(m_float*)(byte + SZ_INT))
 #define VAL2 (*(m_uint*)(byte + SZ_INT*2))
+#define BYTE(a)  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3; *(m_bit*)byte = a;
 
 INSTR(SetFunc) {
+  BYTE(eRegPushImm)
   const Func f = (Func)instr->m_val;
-  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
-  *(m_bit*)byte = eRegPushImm;
   VAL = *(m_uint*)(shred->reg) = (m_uint)f->code;
   shred->reg += SZ_INT;
 }
 
 INSTR(SetRecurs) {
-  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
-  *(m_bit*)byte = eRegPushImm;
+  BYTE(eRegPushImm)
   VAL = *(m_uint*)(shred->reg) = (m_uint)shred->code;
   shred->reg += SZ_INT;
 }
 
 INSTR(SetCtor) {
+  BYTE(eRegSetImm)
   const Type t = (Type)instr->m_val;
-  m_bit *byte = shred->code->bytecode + (shred->pc -1)* SZ_INT*3;
-  *(m_bit*)byte = eRegSetImm;
   VAL = *(m_uint*)(shred->reg + SZ_INT) = (m_uint)t->nspc->pre_ctor;
   VAL2 = SZ_INT;
 }
