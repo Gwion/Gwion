@@ -80,6 +80,7 @@ ANN void env_pop(const Env env, const m_uint scope) {
 
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(env->gwion->mp, env->gwion->type[et_class]);
+  ADD_REF(v_type);
   v_type->e->d.base_type = type;
   SET_FLAG(type, builtin);
   const Symbol sym = insert_symbol(type->name);
