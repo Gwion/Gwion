@@ -210,7 +210,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   const Type type = e->info->type;
   do CHECK_BO(prim_array_inner(env, type, e))
   while((e = e->next));
-  return array_type(env, type->array_depth ? array_base(type) : type, type->array_depth + 1);
+  return array_type(env, array_base(type), type->array_depth + 1);
 }
 
 ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
