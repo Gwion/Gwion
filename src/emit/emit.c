@@ -1233,10 +1233,11 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
-// no pos ?
   const Type t = exp_self(unary)->info->type;
-  if(t->e->def && !GET_FLAG(t, emit))
-    CHECK_BB(ensure_emit(emit, t))
+  const Type base = get_type(actual_type(emit->gwion, t));
+  if(base->e->def && !GET_FLAG(base, emit))
+    CHECK_BB(ensure_emit(emit, base))
+  // no pos ?
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary, .op_type=op_unary };
   if(unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork") && unary->exp) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp))
