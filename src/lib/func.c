@@ -152,7 +152,11 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->flag = def->flag;
   l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
-  CHECK_BB(traverse_func_def(env, l->def))
+  SET_FLAG(l->def, abstract); // mark as non immediate lambda
+  map_set(&env->curr->info->value->map, (m_uint)l->def->base, env->scope->depth);
+  const m_bool ret = traverse_func_def(env, l->def);
+  map_remove(&env->curr->info->value->map, (m_uint)l->def->base);
+  CHECK_BB(ret)
   arg = l->def->base->args;
   while(arg) {
     arg->td = NULL;

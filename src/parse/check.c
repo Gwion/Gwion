@@ -286,19 +286,37 @@ static inline Nspc value_owner(const Value v) {
   return v ? v->from->owner : NULL;
 }
 
+ANN static inline m_bool lambda_valid(const Env env, const Exp_Primary* exp) {
+  const Value val = exp->value;
+  const Symbol sym = insert_symbol(val->name);
+  const vtype xid = (vtype)sym;
+  const Vector vec = (Vector)&env->curr->info->value->ptr;
+  const m_uint scope = map_get(&env->curr->info->value->map, (m_uint)env->func->def->base) + 1;
+  if((val != (Value)map_get((Map)vector_back(vec), xid) && !nspc_lookup_value1(env->global_nspc, sym) &&
+    val != (Value)map_get((Map)vector_at(vec, vector_size(vec) - scope), xid)) &&
+    val->from->owner_class != env->class_def)
+      ERR_B(exp_self(exp)->pos, _("variable '%s' is not in lambda scope"), val->name)
+  return GW_OK;
+}
+
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
-  const Symbol var = *data;
+  const Symbol sym = *data;
   const Value v = check_non_res_value(env, data);
   if(!v || !GET_FLAG(v, valid) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, prim_pos(data),
-          _("variable %s not legit at this point."), s_name(var));
-    did_you_mean_nspc(value_owner(v) ?: env->curr, s_name(var));
+          _("variable %s not legit at this point."), s_name(sym));
+    if(v)
+      did_you_mean_nspc(value_owner(v) ?: env->curr, s_name(sym));
     return NULL;
   }
+  prim_self(data)->value = v;
+  if(env->func) {
+    if(GET_FLAG(env->func->def, abstract))
+      CHECK_BO(lambda_valid(env, prim_self(data)))
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
     UNSET_FLAG(env->func, pure);
+  }
   SET_FLAG(v, used);
-  prim_self(data)->value = v;
   if(GET_FLAG(v, const))
     exp_setmeta(prim_exp(data), 1);
   if(v->from->owner_class) {
