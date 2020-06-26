@@ -106,7 +106,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
 
 ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   CHECK_OO(str2sym(gwi, name))
-  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, NULL);
+  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, gwi->gwion->type[et_compound]);
   t->e->tuple = new_tupleform(gwi->gwion->mp, NULL);
   gwi_type_flag(t);
   SET_FLAG(t, struct);

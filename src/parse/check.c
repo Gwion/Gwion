@@ -353,7 +353,7 @@ ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
   CHECK_OO(check_exp(env, *exp))
   Exp e = *exp;
-  do if(GET_FLAG(e->info->type, struct))
+  do if(GET_FLAG(e->info->type, struct) && !GET_FLAG(e->info->type, builtin))
     exp_setvar(e, 1);
   while((e = e->next));
   return env->gwion->type[et_string];

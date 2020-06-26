@@ -467,7 +467,7 @@ allocfloat:
   DISPATCH()
 allocother:
 //  LOOP_OPTIM
-  for(m_uint i = 0; i <= VAL; i += SZ_INT)
+  for(m_uint i = 0; i <= VAL2; i += SZ_INT)
     *(m_uint*)(reg+i) = (*(m_uint*)(mem+VAL+i) = 0);
   reg += VAL2;
   DISPATCH()

@@ -515,7 +515,8 @@ ANN static void interp_multi(const Emitter emit, const Exp e) {
 }
 
 ANN static void interp_size(const Emitter emit, const Type t) {
-  const m_uint sz = isa(t, emit->gwion->type[et_compound]) < 0 ?
+  const m_uint sz = (isa(t, emit->gwion->type[et_object]) < 0 ||
+    (!GET_FLAG(t, builtin) && isa(t, emit->gwion->type[et_compound]) > 0))?
       t->size : SZ_INT;
   const Instr instr = regseti(emit, sz);
   instr->m_val2 = SZ_INT;
@@ -593,7 +594,7 @@ ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const
 }
 
 ANN static inline int struct_ctor(const Value v) {
-  return GET_FLAG(v->type, struct);
+  return GET_FLAG(v->type, struct) && !GET_FLAG(v->type, builtin);
 }
 
 ANN static void decl_expand(const Emitter emit, const Type t) {
