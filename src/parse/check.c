@@ -506,8 +506,27 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->from->owner, sym);
 }
 
-static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = GET_FLAG(fdef, valid) || traverse_func_def(env, fdef) > 0;
+ANN static m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
+  struct Vector_ v = {};
+  if(env->func) {
+    m_uint scope = vector_size((Vector)&env->curr->info->value->ptr) > 1 ? (m_uint)nspc_lookup_value1(env->curr, (Symbol)env->func->def->base) + 1: 0;
+    if(scope) {
+      vector_init(&v);
+      for(m_uint i = 0; i < scope; ++i)
+        vector_add(&v, vector_pop((Vector)&env->curr->info->value->ptr));
+    }
+  }
+  const m_bool ret = traverse_func_def(env, fdef);
+  if(v.ptr) {
+    for(m_uint i = vector_size(&v) + 1; --i;)
+      vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i-1));
+    vector_release(&v);
+  }
+  return ret;
+}
+
+ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
+  const m_bool ret = GET_FLAG(fdef, valid) || check_traverse_fdef(env, fdef) > 0;
   if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
@@ -708,7 +727,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
       .scope=env->scope->depth, .flag=ae_flag_check };
     CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
     SET_FLAG(func->def, typedef);
-    const m_bool ret = traverse_func_def(env, func->def);
+    const m_bool ret = check_traverse_fdef(env, func->def);
     if(es.run)
       envset_pop(&es, v->from->owner_class);
     CHECK_BO(ret)
@@ -771,7 +790,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-  CHECK_BO(traverse_func_def(env, l->def))
+  CHECK_BO(check_traverse_fdef(env, l->def))
   if(env->class_def)
     SET_FLAG(l->def, member);
   ((Exp_Call*)exp)->m_func = l->def->base->func;
@@ -1358,13 +1377,14 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     return GW_OK;
   if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
     CHECK_OB((fdef->base->ret_type = check_td(env, fdef->base->td)))
-    return traverse_func_def(env, fdef);
+    return check_traverse_fdef(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
   DECL_BB(const m_int, scope, = GET_FLAG(fdef, global) ? env_push_global(env) : env->scope->depth)
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
+  map_set(&env->curr->info->value->map, (m_uint)fdef->base, env->scope->depth);
   nspc_push_value(env->gwion->mp, env->curr);
   struct Op_Import opi = { };
   if(GET_FLAG(fdef, op)) {
@@ -1376,6 +1396,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
+  map_remove(&env->curr->info->value->map, (m_uint)fdef->base);
   env->func = former;
   if(ret > 0)
     SET_FLAG(fdef, valid);
