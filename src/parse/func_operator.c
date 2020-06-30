@@ -15,7 +15,9 @@ ANN void func_operator(const Func_Def fdef, struct Op_Import *opi) {
   const Arg_List args = fdef->base->args;
   opi->lhs = is_unary ? NULL :
     args ? args->var_decl->value->type : NULL;
-  opi->rhs = args ? is_unary ? args->var_decl->value->type :
-    args->next ? args->next->var_decl->value->type :
-    fdef->base->ret_type : NULL;
+  if(strcmp(str, "@implicit"))
+    opi->rhs = args ? is_unary ? args->var_decl->value->type :
+      (args->next ? args->next->var_decl->value->type : NULL) : NULL;
+  else
+    opi->rhs = fdef->base->ret_type;
 }
