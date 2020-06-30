@@ -29,7 +29,7 @@ static inline Type scan0_type(const Env env, const m_uint xid,
 }
 
 ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_t pos) {
-  if(nspc_lookup_type0(env->curr, s))
+  if(nspc_lookup_type1(env->curr, s))
     ERR_B(pos, _("type '%s' already defined"), s_name(s));
   return already_defined(env, s, pos);
 }
