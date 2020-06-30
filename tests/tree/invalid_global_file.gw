@@ -1,4 +1,0 @@
-#! [contains] 'global' can only be used at file scope
-{
-global int i;
-}
