@@ -20,7 +20,7 @@ class <~A~>C {
   match i,2 {
     case 12 when 0:;
     case _,2 when 0:;
-  } where int i;
+  } where int b;
   enum { zero };
   typedef int Int;
   goto end;

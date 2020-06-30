@@ -1,1 +1,1 @@
-<<< global int g_i >>>;
+<<< global int global_var_i >>>;

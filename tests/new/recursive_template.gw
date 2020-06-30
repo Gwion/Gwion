@@ -3,7 +3,6 @@ fun void test<~A~>(int i, A a) {
   <<< __func__, " ", a >>>;
   <<< i, " ", a >>>;
   if(i)
-    test<~int~>((i-2, b));
-#!    test((i-2.0));
+    test<~int~>((i-2, b$int));
 }
 test<~float~>(2, 2);

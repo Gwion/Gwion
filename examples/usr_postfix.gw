@@ -1,6 +1,3 @@
-int i;
-i++;
-
 class C { int i; }
 operator ++ int (C c) {
   <<< "here" >>>;

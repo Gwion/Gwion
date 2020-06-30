@@ -1,12 +1,12 @@
-class global C {
+class global StaticTmpl {
   fun static void t<~A~>() { <<< __func__ >>>; }
 }
-class D extends C {
+class D extends StaticTmpl {
 
 }
 
-fun void test(C c) {
-  C.t<~int~>();
+fun void test(StaticTmpl c) {
+  StaticTmpl.t<~int~>();
 }
 
 #!D d;

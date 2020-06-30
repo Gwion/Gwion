@@ -1,5 +1,5 @@
 class C {
-  12 => int i;
+  12 => int _i;
   union {
     int i;
     float f;
@@ -26,5 +26,5 @@ C c;
 1.23 => c.U.f;
 <<< c.U.f >>>;
 <<< c.U.i >>>;
-<<< c.i >>>;
+<<< c._i >>>;
 

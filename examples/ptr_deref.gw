@@ -1,3 +1,3 @@
 int i;
-i :=> <~int~>Ptr pi;
-<<<12 => *pi, " ", *pi>>>;
+i :=> <~int~>Ptr pti;
+<<<12 => *pti, " ", *pti>>>;

@@ -1,8 +1,8 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
-  typedef void Ptr(int i);
+  typedef void ptr_t(int i);
   test @=>
-  Ptr p;
+  ptr_t p;
   p(1);
   test @=> p;
   p(1);
