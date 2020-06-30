@@ -294,7 +294,7 @@ ANN static inline m_bool lambda_valid(const Env env, const Exp_Primary* exp) {
   const m_uint scope = map_get(&env->curr->info->value->map, (m_uint)env->func->def->base) + 1;
   if((val != (Value)map_get((Map)vector_back(vec), xid) && !nspc_lookup_value1(env->global_nspc, sym) &&
     val != (Value)map_get((Map)vector_at(vec, vector_size(vec) - scope), xid)) &&
-    val->from->owner_class != env->class_def)
+    (val->from->owner_class && val->from->owner_class != env->class_def))
       ERR_B(exp_self(exp)->pos, _("variable '%s' is not in lambda scope"), val->name)
   return GW_OK;
 }
@@ -875,9 +875,8 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       }  else
       CHECK_BO(predefined_call(env, t, exp_self(exp)->pos))
     }
-    const Func ret = find_template_match(env, v, exp);
-    CHECK_OO((exp->m_func = ret))
-    return ret->def->base->ret_type;
+    CHECK_OO((exp->m_func = find_template_match(env, v, exp)))
+    return exp->m_func->def->base->ret_type;
   }
   return check_exp_call1(env, exp);
 }
