@@ -101,6 +101,8 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     } else if(!env->scope->depth)
       SET_FLAG(v, global);
     v->d.ptr = var->addr;
+    if(GET_FLAG(decl->td, global))
+      SET_FLAG(v, abstract);
     if(!env->scope->depth)
       valuefrom(env, v->from);
   } while((list = list->next));
