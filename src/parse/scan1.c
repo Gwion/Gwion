@@ -60,15 +60,20 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   return decl->type = t;
 }
 
+static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
+  if(((!env->class_def || env->scope->depth) ? nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
+    ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
+              s_name(var->xid))
+  return GW_OK;
+}
+
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
-    if((!env->class_def || env->scope->depth) ? (nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
-      ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
-              s_name(var->xid))
+    CHECK_BB(scan1_defined(env, var))
     if(var->array) {
       if(var->array->exp) {
         if(GET_FLAG(decl->td, ref))
