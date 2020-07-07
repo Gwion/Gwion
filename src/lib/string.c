@@ -504,7 +504,7 @@ GWION_IMPORT(string) {
 
   gwi_func_ini(gwi, "int", "charAt");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "int", "char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_setCharAt, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "insert");
@@ -524,12 +524,12 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_replaceN, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "int", "char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_find, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "int", "char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
@@ -542,12 +542,12 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "int", "char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_rfind, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "int", "char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");

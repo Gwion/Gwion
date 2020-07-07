@@ -310,7 +310,7 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, vm_shred_id, ae_flag_none))
 
   gwi_func_ini(gwi, "Shred", "fromId");
-  gwi_func_arg(gwi, "int", "id");
+  gwi_func_arg(gwi, "int", "xid");
   GWI_BB(gwi_func_end(gwi, vm_shred_from_id, ae_flag_static))
 
   gwi_func_ini(gwi, "void", "yield");
