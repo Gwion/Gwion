@@ -266,10 +266,10 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
               _("non-static member '%s' used from static function."), s_name(var))
     }
     return v;
-  } else if(env->func && GET_FLAG(env->func->def, global)) {
+  } else if(SAFE_FLAG(env->class_def, global) || (env->func && GET_FLAG(env->func->def, global))) {
     if(!SAFE_FLAG(value, abstract))
       ERR_O(prim_pos(data),
-            _("non-global variable '%s' used from global function."), s_name(var))
+            _("non-global variable '%s' used from global function/class."), s_name(var))
   }
   return value;
 }
