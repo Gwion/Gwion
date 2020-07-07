@@ -431,17 +431,14 @@ ANN static Type_List mk_type_list(const Env env, const Type type, const loc_t po
 
 ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
   const m_bool implicit, const m_bool specific) {
-  const m_bool match = (specific ? e->info->type == t : isa(e->info->type, t) > 0) &&
-    e->info->type->array_depth == t->array_depth &&
-    array_base(e->info->type) == array_base(t);
-    if(!match) {
-      if(e->info->type == env->gwion->type[et_lambda] && is_fptr(env->gwion, t)) {
-        const m_bool ret = check_lambda(env, t, &e->d.exp_lambda);
-        exp_setvar(e, 1);
-        return ret;
-      }
-      if(implicit)
-        return check_implicit(env, e, t);
+  const m_bool match = (specific ? e->info->type == t : isa(e->info->type, t) > 0);
+  if(!match) {
+    if(e->info->type == env->gwion->type[et_lambda] && is_fptr(env->gwion, t)) {
+      exp_setvar(e, 1);
+      return check_lambda(env, t, &e->d.exp_lambda);
+    }
+    if(implicit)
+      return check_implicit(env, e, t);
   }
   return match ? 1 : -1;
 }
