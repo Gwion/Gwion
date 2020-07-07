@@ -469,9 +469,23 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   return GW_OK;
 }
 
+ANN static m_bool scan1_fdef_args(const Env env, Arg_List list) {
+  do {
+    Nspc nspc = env->curr;
+    do if(nspc_lookup_value0(nspc, list->var_decl->xid))
+       ERR_B(list->var_decl->pos, _("argument '%s' shadows a previuosly defined variable"),
+            s_name(list->var_decl->xid))
+    while((nspc = nspc->parent));
+  } while((list = list->next));
+  return GW_OK;
+}
+
 ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
-  if(fdef->base->args)
+  if(fdef->base->args) {
+    if(!GET_FLAG(fdef, builtin))
+      CHECK_BB(scan1_fdef_args(env, fdef->base->args))
     CHECK_BB(scan1_args(env, fdef->base->args))
+  }
   if(!GET_FLAG(fdef, builtin) && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan1_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list))
   return GW_OK;
