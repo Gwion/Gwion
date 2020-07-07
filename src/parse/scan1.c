@@ -126,12 +126,13 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_OB(decl->type)
   if(GET_FLAG(decl->type, const))
     exp_setmeta(exp_self(decl), 1);
-//    SET_FLAG(decl->td, const);
   const m_bool global = GET_FLAG(decl->td, global);
-  if(global && !is_global(decl->type->e->owner, env->global_nspc))
-    ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
-  if(env->context)
-    env->context->global = 1;
+  if(global) {
+    if(env->context)
+      env->context->global = 1;
+    if(!is_global(decl->type->e->owner, env->global_nspc))
+      ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
+  }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret = scan1_decl(env, decl);
   if(global)
