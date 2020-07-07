@@ -1,5 +1,5 @@
 class C {
-int i;
+int m_i;
   typedef void t_fptr0();
   typedef void t_fptr1(int i);
   fun void test() { <<< this , " ", __func__ >>>;}

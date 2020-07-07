@@ -1,7 +1,7 @@
 #! [contains] argument number does not match for lambda
 typedef void ptr_t(int i);
 \a b { <<< a, " ", b >>>; } @=> ptr_t ptr;
-fun void test(ptr_t ptr) {
-  ptr(2);
+fun void test(ptr_t p) {
+  p(2);
 }
 test(ptr);

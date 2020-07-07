@@ -1,5 +1,5 @@
 <<< "test" >>>;
 <<<  2.3 $ int  >>>;
 1 => float f;
-fun void test(float f){}
+fun void test(float _f){}
 1 => test;

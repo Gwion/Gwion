@@ -4,8 +4,8 @@ class<~A,B~> C {
   fun A test() {
     <<< "lol" >>>;
   }
-  fun void test2<~C~>(C c) {
-    <<< c >>>;
+  fun void test2<~C~>(C o) {
+    <<< o >>>;
   }
 }
 
