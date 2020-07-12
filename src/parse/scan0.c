@@ -88,6 +88,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   SET_FLAG(fptr->value, func);
   add_type(env, t->e->owner, t);
   mk_class(env, t);
+  ADD_REF(t);
   return GW_OK;
 }
 

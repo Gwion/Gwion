@@ -586,6 +586,8 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
             nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
         }
         free_fptr_def(env->gwion->mp, fptr);
+        if(fptr->type)
+          REM_REF(fptr->type, env->gwion)
       }
     }
   } else {

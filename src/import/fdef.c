@@ -121,6 +121,8 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     SET_FLAG(fptr->base->func, builtin);
   const Type t = ret > 0 ? fptr->type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
+  if(fptr->type)
+    REM_REF(fptr->type, gwi->gwion)
   ck_end(gwi);
   return t;
 }

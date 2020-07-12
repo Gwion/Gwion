@@ -315,6 +315,8 @@ ANN static void clean_union_def(Clean *a, Union_Def b) {
 
 ANN static void clean_fptr_def(Clean *a, Fptr_Def b) {
   clean_func_base(a, b->base);
+  if(b->type)
+    REM_REF(b->type, a->gwion)
 }
 
 ANN static void clean_type_def(Clean *a, Type_Def b) {
