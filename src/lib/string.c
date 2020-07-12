@@ -570,8 +570,8 @@ GWION_IMPORT(string) {
   gwi_func_ini(gwi, "float", "toFloat");
   GWI_BB(gwi_func_end(gwi, string_toFloat, ae_flag_none))
 
-  gwi_func_ini(gwi, "string", "char");
-  gwi_func_arg(gwi, "int", "c");
+  gwi_func_ini(gwi, "string", "from_char");
+  gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, char_toString, ae_flag_static))
   GWI_BB(gwi_class_end(gwi))
 
