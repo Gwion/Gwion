@@ -286,17 +286,22 @@ static inline Nspc value_owner(const Value v) {
   return v ? v->from->owner : NULL;
 }
 
-ANN static inline m_bool lambda_valid(const Env env, const Exp_Primary* exp) {
+ANN static m_bool lambda_valid(const Env env, const Exp_Primary* exp) {
   const Value val = exp->value;
   const Symbol sym = insert_symbol(val->name);
-  const vtype xid = (vtype)sym;
   const Vector vec = (Vector)&env->curr->info->value->ptr;
-  const m_uint scope = map_get(&env->curr->info->value->map, (m_uint)env->func->def->base) + 1;
-  if((val != (Value)map_get((Map)vector_back(vec), xid) && !nspc_lookup_value1(env->global_nspc, sym) &&
-    val != (Value)map_get((Map)vector_at(vec, vector_size(vec) - scope), xid)) &&
-    (val->from->owner_class && val->from->owner_class != env->class_def))
-      ERR_B(exp_self(exp)->pos, _("variable '%s' is not in lambda scope"), val->name)
-  return GW_OK;
+  const m_uint scope = map_get(&env->curr->info->func->map, (m_uint)env->func->def->base);
+  if(GET_FLAG(val, abstract))
+    return GW_OK;
+  if(val->from->owner_class && isa(val->from->owner_class, env->class_def) > 0)
+    return GW_OK;
+  const m_uint sz = vector_size(vec);
+  for(m_uint i = scope; i < sz; ++i) {
+    const Map map = (Map)vector_at(vec, i);
+    if(map_get(map, (m_uint)sym))
+      return GW_OK;
+  }
+  ERR_B(exp_self(exp)->pos, _("variable '%s' is not in lambda scope"), val->name)
 }
 
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
@@ -503,22 +508,18 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->from->owner, sym);
 }
 
-ANN static m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
+ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   struct Vector_ v = {};
-  if(env->func) {
-    m_uint scope = vector_size((Vector)&env->curr->info->value->ptr) > 1 ? (m_uint)nspc_lookup_value1(env->curr, (Symbol)env->func->def->base) + 1: 0;
-    if(scope) {
-      vector_init(&v);
-      for(m_uint i = 0; i < scope; ++i)
-        vector_add(&v, vector_pop((Vector)&env->curr->info->value->ptr));
-    }
-  }
+  const m_uint scope = env->scope->depth;
+  env->scope->depth = 1;
+  vector_init(&v);
+  while(vector_size((Vector)&env->curr->info->value->ptr) > 1)
+    vector_add(&v, vector_pop((Vector)&env->curr->info->value->ptr));
   const m_bool ret = traverse_func_def(env, fdef);
-  if(v.ptr) {
-    for(m_uint i = vector_size(&v) + 1; --i;)
-      vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i-1));
-    vector_release(&v);
-  }
+  for(m_uint i = vector_size(&v) + 1; --i;)
+    vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i-1));
+  vector_release(&v);
+  env->scope->depth = scope;
   return ret;
 }
 
@@ -1383,7 +1384,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
-  map_set(&env->curr->info->value->map, (m_uint)fdef->base, env->scope->depth);
   nspc_push_value(env->gwion->mp, env->curr);
   struct Op_Import opi = { };
   if(GET_FLAG(fdef, op)) {
@@ -1395,7 +1395,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
-  map_remove(&env->curr->info->value->map, (m_uint)fdef->base);
   env->func = former;
   if(ret > 0)
     SET_FLAG(fdef, valid);
