@@ -57,7 +57,7 @@ static OP_CHECK(opck_ptr_cast) {
   DECL_ON(const Type, t, = known_type(env, cast->td)) // was type_decl_resolve
   const Type _t = get_type(t);
   if(_t->e->def && !GET_FLAG(_t, check))
-    CHECK_BN(traverse_class_def(env, _t->e->def))
+    CHECK_BN(ensure_traverse(env, _t))
   const Type to = known_type(env, cast->td->types->td);
   if(isa(cast->exp->info->type, to) > 0)
     return t;

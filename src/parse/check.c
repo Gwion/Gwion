@@ -152,7 +152,7 @@ ANN static inline m_bool ensure_check(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
-ANN static inline m_bool ensure_traverse(const Env env, const Type t) {
+ANN m_bool ensure_traverse(const Env env, const Type t) {
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
     .scope=env->scope->depth, .flag=ae_flag_check };
   return envset_run(&es, t);

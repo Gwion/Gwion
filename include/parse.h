@@ -91,4 +91,6 @@ __attribute__((returns_nonnull))
 ANN Type get_type(const Type t);
 ANN m_bool check_subscripts(const Env, const Array_Sub, const m_bool is_decl);
 ANN m_bool check_implicit(const Env env, const Exp e, const Type t);
+ANN m_bool ensure_traverse(const Env env, const Type t);
+ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef);
 #endif
