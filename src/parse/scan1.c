@@ -502,9 +502,20 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) {
+  const Value v = nspc_lookup_value1(env->curr, fdef->base->xid);
+  if(!v)
+    return GW_OK;
+  if(isa(actual_type(env->gwion, v->type), env->gwion->type[et_function]) > 0)
+    return GW_OK;
+  ERR_B(fdef->pos, _("function '%s' has already been defined in the same scope..."),
+       s_name(fdef->base->xid))
+}
+
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
+  CHECK_BB(scan1_fdef_defined(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
     return scan1_fdef_base_tmpl(env, fdef->base);
   struct Func_ fake = { .name=s_name(fdef->base->xid) }, *const former = env->func;
