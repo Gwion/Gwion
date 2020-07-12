@@ -144,12 +144,12 @@ ANN m_uint compile_filename(struct Gwion_* gwion, const m_str filename) {
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_string(struct Gwion_* vm, const m_str filename, const m_str data) {
+ANN m_uint compile_string(struct Gwion_* gwion, const m_str filename, const m_str data) {
   struct Compiler c = { .base=filename, .type=COMPILE_MSTR, .data=data };
-  return compile(vm, &c);
+  return compile(gwion, &c);
 }
 
-ANN m_uint compile_file(struct Gwion_* vm, const m_str filename, FILE* file) {
+ANN m_uint compile_file(struct Gwion_* gwion, const m_str filename, FILE* file) {
   struct Compiler c = { .base=filename, .type=COMPILE_FILE, .file=file };
-  return compile(vm, &c);
+  return compile(gwion, &c);
 }
