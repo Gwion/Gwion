@@ -465,12 +465,6 @@ static MFUN(string_toFloat) {
   *(m_float*)RETURN = atof(STRING(o));
 }
 
-static SFUN(char_toString) {
-  char c[2];
-  sprintf(c, "%c", *(char*)MEM(0));
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
-}
-
 GWION_IMPORT(string) {
   const Type t_string = gwi_class_ini(gwi, "string", NULL);
   gwi_class_xtor(gwi, string_ctor, NULL);
