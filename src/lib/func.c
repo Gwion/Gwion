@@ -192,6 +192,26 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   return check_lambda(env, actual_type(env->gwion, info->rhs->value_ref->type), l);
 }
 
+static OP_CHECK(opck_auto_fptr) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  // we'll only deal with auto fptr declaration
+  if(bin->rhs->exp_type != ae_exp_decl && bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
+    return env->gwion->type[et_null];
+  // create a matching signature
+  // TODO: we could check first if there a matching existing one
+  Func_Base *const fbase = cpy_func_base(env->gwion->mp, bin->lhs->info->type->e->d.func->def->base);
+  const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase, bin->lhs->info->type->e->d.func->def->flag);
+  m_str name = NULL;
+  asprintf(&name, "generated@%u:%u", bin->rhs->pos->first.line, bin->rhs->pos->first.column);
+  fptr_def->base->xid = insert_symbol(name);
+  free(name);
+  const m_bool ret = traverse_fptr_def(env, fptr_def);
+  const Type t = fptr_def->type;
+  free_fptr_def(env->gwion->mp, fptr_def);
+  REM_REF(t, env->gwion)
+  return ret > 0 ? t : env->gwion->type[et_null];
+}
+
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->info->type->e->d.func->def->base->tmpl &&
@@ -345,6 +365,9 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_spork))
   GWI_BB(gwi_oper_emi(gwi, opem_spork))
   GWI_BB(gwi_oper_end(gwi, "fork", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@function", "@function", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;

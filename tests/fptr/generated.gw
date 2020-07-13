@@ -1,0 +1,4 @@
+#! [contains] Hello, generated function pointer!
+fun void test() {  <<< "Hello, generated function pointer!" >>>; }
+test @=> auto p;
+p();
