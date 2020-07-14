@@ -1,0 +1,3 @@
+samp => now;
+fork { <<< me.get_now() >>>; };
+samp => now;

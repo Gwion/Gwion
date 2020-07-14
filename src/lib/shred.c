@@ -213,6 +213,13 @@ static MFUN(fork_test_cancel) {
   }
 }
 
+static MFUN(shred_now) {
+  VM *vm = shred->info->vm;
+  while(vm->parent)
+    vm = vm->parent;
+  *(m_float*)RETURN = vm->bbq->pos;
+}
+
 struct ThreadLauncher {
   MUTEX_TYPE mutex;
   THREAD_COND_TYPE cond;
@@ -350,6 +357,8 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, shred_lock, ae_flag_none))
   gwi_func_ini(gwi, "void", "unlock");
   GWI_BB(gwi_func_end(gwi, shred_unlock, ae_flag_none))
+  gwi_func_ini(gwi, "float", "get_now");
+  GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
