@@ -1246,8 +1246,6 @@ ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
 }
 
 ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
-  if(stmt->where)
-    CHECK_BB(check_stmt(env, stmt->where))
   CHECK_OB(check_exp(env, stmt->cond))
   MATCH_INI(env->scope)
   const m_bool ret = case_loop(env, stmt);
@@ -1255,8 +1253,14 @@ ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
   return ret;
 }
 
-ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
+ANN static inline m_bool handle_where(const Env env, const Stmt_Match stmt) {
+  if(stmt->where)
+    CHECK_BB(check_stmt(env, stmt->where))
   RET_NSPC(_check_stmt_match(env, stmt))
+}
+
+ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
+  RET_NSPC(handle_where(env, stmt))
 }
 
 #define check_stmt_while check_stmt_flow
