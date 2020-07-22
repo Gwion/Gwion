@@ -1,0 +1,5 @@
+"test test" => string s;
+
+s.erase(-1, 0);
+s.erase(0, -1);
+s.erase(1, 1);

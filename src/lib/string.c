@@ -457,14 +457,6 @@ static MFUN(string_erase) {
   STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
 }
 
-static MFUN(string_toInt) {
-  *(m_uint*)RETURN = strtol(STRING(o), NULL, 10);
-}
-
-static MFUN(string_toFloat) {
-  *(m_float*)RETURN = atof(STRING(o));
-}
-
 GWION_IMPORT(string) {
   const Type t_string = gwi_class_ini(gwi, "string", NULL);
   gwi_class_xtor(gwi, string_ctor, NULL);
@@ -557,12 +549,6 @@ GWION_IMPORT(string) {
   gwi_func_arg(gwi, "int", "start");
   gwi_func_arg(gwi, "int", "length");
   GWI_BB(gwi_func_end(gwi, string_erase, ae_flag_none))
-
-  gwi_func_ini(gwi, "int", "toInt");
-  GWI_BB(gwi_func_end(gwi, string_toInt, ae_flag_none))
-
-  gwi_func_ini(gwi, "float", "toFloat");
-  GWI_BB(gwi_func_end(gwi, string_toFloat, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
 
