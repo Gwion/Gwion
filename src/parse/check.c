@@ -357,10 +357,6 @@ ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
 
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
   CHECK_OO(check_exp(env, *exp))
-  Exp e = *exp;
-  do if(GET_FLAG(e->info->type, struct) && !GET_FLAG(e->info->type, builtin))
-    exp_setvar(e, 1);
-  while((e = e->next));
   return env->gwion->type[et_string];
 }
 
@@ -1416,7 +1412,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   if(td->array)
     CHECK_BB(check_subscripts(env, td->array, 1))
   if(parent->e->def && !GET_FLAG(parent, check))
-    CHECK_BB(scanx_parent(parent, check_cdef, env))
+    CHECK_BB(ensure_check(env, parent))
   if(GET_FLAG(parent, typedef))
     SET_FLAG(cdef->base.type, typedef);
   return GW_OK;
@@ -1425,7 +1421,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     CHECK_BB(template_push_types(env, cdef->base.tmpl))
-  const m_bool ret = scanx_parent(cdef->base.type, check_parent, env);
+  const m_bool ret = check_parent(env, cdef);
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -1436,7 +1432,7 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     return GW_OK;
   const Type t = cdef->base.type;
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, check))
-    CHECK_BB(check_class_def(env, t->e->owner_class->e->def))
+    CHECK_BB(ensure_check(env, t->e->owner_class))
   if(GET_FLAG(t, check))return GW_OK;
   SET_FLAG(t, check);
   if(cdef->base.ext)

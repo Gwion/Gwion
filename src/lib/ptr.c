@@ -28,11 +28,13 @@ static OP_CHECK(opck_ptr_assign) {
   exp_setvar(bin->lhs, 1);
   Type t = bin->lhs->info->type;
   do {
+//    t = unflag_type(t);
     Type u = bin->rhs->info->type;
     do {
+//      u = unflag_type(u);
       const m_str str = get_type_name(env, u, 1);
       if(str && !strcmp(t->name, str))
-        return bin->lhs->info->type;
+        return bin->lhs->info->type; // use rhs?
     } while((u = u->e->parent));
   } while((t = t->e->parent));
   return env->gwion->type[et_null];
@@ -42,6 +44,7 @@ static INSTR(instr_ptr_assign) {
   POP_REG(shred, SZ_INT)
   const M_Object o = *(M_Object*)REG(0);
   *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
+  _release(o, shred);
 }
 
 static OP_CHECK(opck_ptr_deref) {
@@ -122,8 +125,41 @@ static OP_EMIT(opem_ptr_deref) {
   return instr;
 }
 
+ANN Type scan_class(const Env env, const Type t, const Type_Decl* td);
+
+static DTOR(ptr_object_dtor) {
+  release(*(M_Object*)o->data, shred);
+}
+
+static DTOR(ptr_struct_dtor) {
+  const Type t = (Type)vector_front(&o->type_ref->e->tuple->types);
+  struct_release(shred, t, *(m_bit**)o->data);
+}
+
+static OP_CHECK(opck_ptr_scan) {
+  struct TemplateScan *ts = (struct TemplateScan*)data;
+  const Type t = (Type)scan_class(env, ts->t, ts->td);
+  const Type base = known_type(env, t->e->def->base.tmpl->call->td);
+  if(isa(base, env->gwion->type[et_compound]) > 0 && !t->nspc->dtor) {
+    t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@PtrDtor");
+    if(!GET_FLAG(t, struct))
+      t->nspc->dtor->native_func = (m_uint)ptr_object_dtor;
+    else
+      t->nspc->dtor->native_func = (m_uint)ptr_struct_dtor;
+    SET_FLAG(t, dtor);
+  }
+  return t;
+}
+
 GWION_IMPORT(ptr) {
-  const Type t_ptr = gwi_class_ini(gwi, "<~A~>Ptr", NULL);
+  const Type _t_ptr = gwi_class_ini(gwi, "@Ptr", NULL);
+  GWI_BB(gwi_class_end(gwi))
+  SET_FLAG(_t_ptr, unary);
+  GWI_BB(gwi_oper_ini(gwi, "@Ptr", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
+  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  const Type t_ptr = gwi_class_ini(gwi, "<~A~>Ptr", "@Ptr");
+//  const Type t_ptr = gwi_class_ini(gwi, "<~A~>Ptr", NULL);
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))

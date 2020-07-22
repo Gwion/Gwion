@@ -429,6 +429,7 @@ structmember:
   *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
   DISPATCH()
 structmemberfloat:
+printf("struct: %p\n", *(m_bit**)(reg-SZ_INT));
   *(m_bit**)(reg-SZ_INT) =  *(m_bit**)(*(m_bit**)(reg-SZ_INT) + (m_int)VAL);
   DISPATCH()
 structmemberother:
@@ -466,6 +467,7 @@ allocfloat:
   reg += SZ_FLOAT;
   DISPATCH()
 allocother:
+puts("here!!!");
 //  LOOP_OPTIM
   for(m_uint i = 0; i <= VAL2; i += SZ_INT)
     *(m_uint*)(reg+i) = (*(m_uint*)(mem+VAL+i) = 0);

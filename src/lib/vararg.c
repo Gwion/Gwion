@@ -31,6 +31,8 @@ static DTOR(vararg_dtor) {
       const Type t = (Type)vector_at(&arg->t, i);
       if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(arg->d + offset), shred);
+      else if(GET_FLAG(t, struct))
+        struct_release(shred, t, *(m_bit**)(arg->d + offset));
       offset += t->size;
     }
   }

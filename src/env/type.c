@@ -6,6 +6,7 @@
 #include "parse.h"
 #include "gwion.h"
 #include "clean.h"
+#include "object.h"
 
 ANN static inline m_bool freeable(const Type a) {
   return !GET_FLAG(a, nonnull) && GET_FLAG(a, template);
@@ -110,6 +111,14 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   t->array_depth = depth + src->array_depth;
   t->e->d.base_type = array_base(src) ?: src;
   t->e->owner = src->e->owner;
+  if(depth > 1 || isa(src, env->gwion->type[et_compound]) > 0) {
+    t->nspc = new_nspc(env->gwion->mp, s_name(sym));
+    inherit(t);
+    t->nspc->info->class_data_size = SZ_INT;
+    nspc_allocdata(env->gwion->mp, t->nspc);
+    *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !GET_FLAG(src, struct)) ?
+      object_release : struct_release;
+  } else
   ADD_REF((t->nspc = env->gwion->type[et_array]->nspc))
   SET_FLAG(t, valid);
   mk_class(env, t);

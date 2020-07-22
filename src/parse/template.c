@@ -116,7 +116,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     struct EnvSet es = { .env=env, .data=env,
       .scope=env->scope->depth, .flag=ae_flag_none };
     envset_push(&es, owner, owner->nspc);
-    (void)env_push(env, owner, owner->nspc);
+    (void)env_push(env, owner, owner->nspc);// TODO: is this needed?
     const Type ret = scan_type(env, t, td->next);
     env_pop(env, es.scope);
     if(es.run)

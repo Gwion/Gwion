@@ -550,9 +550,8 @@ HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->e->parent;
-//  if(parent->e->def && !GET_FLAG(parent, scan2))
   if(parent->e->def && !GET_FLAG(parent, scan2))
-    CHECK_BB(scanx_parent(parent, scan2_cdef, env))
+    CHECK_BB(ensure_scan2(env, parent))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;
@@ -561,7 +560,8 @@ ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     CHECK_BB(template_push_types(env, cdef->base.tmpl))
-  const m_bool ret = scanx_parent(cdef->base.type, scan2_parent, env);
+//  const m_bool ret = scanx_parent(cdef->base.type, scan2_parent, env);
+  const m_bool ret = scan2_parent(env, cdef);
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -573,7 +573,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(GET_FLAG(t, scan2))return GW_OK;
   if(t->e->owner_class && !GET_FLAG(t->e->owner_class, scan2))
-    CHECK_BB(scan2_class_def(env, t->e->owner_class->e->def))
+    CHECK_BB(ensure_scan2(env, t->e->owner_class))
   SET_FLAG(t, scan2);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))

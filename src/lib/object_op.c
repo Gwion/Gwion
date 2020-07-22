@@ -113,7 +113,7 @@ static OP_EMIT(opem_implicit_null2obj) {
   return (Instr)GW_OK;
 }
 
-ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td);
+ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
   if(ts->td->types)
@@ -384,7 +384,7 @@ ANN static m_bool _scan_class(const Env env, const Type t, const Class_Def a) {
   return GW_OK;
 }
 
-ANN static Type scan_class(const Env env, const Type t, const Type_Decl* td) {
+ANN Type scan_class(const Env env, const Type t, const Type_Decl* td) {
   if(template_match(t->e->def->base.tmpl->list, td->types) < 0)
    ERR_O(td->pos, _("invalid template types number"))
   DECL_OO(const Class_Def, a, = template_class(env, t->e->def, td->types))
@@ -420,6 +420,21 @@ ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
   dot->info->type = prim_exp(data)->info->type;
   exp_setvar(dot, exp_getvar(prim_exp(data)));
   return dot;
+}
+
+ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr) {
+  const Vector types   = &base->e->tuple->types;
+  const Vector offsets = &base->e->tuple->offset;
+  for(m_uint i = 0; i < vector_size(types); ++i) {
+    const Type t = (Type)vector_at(types, i);
+    if(isa(t, shred->info->vm->gwion->type[et_compound]) < 0)
+      continue;
+    const m_uint offset = vector_at(offsets, i);
+    if(!GET_FLAG(t, struct))
+      release(*(M_Object*)(ptr + offset), shred);
+    else
+      struct_release(shred, t, *(m_bit**)(ptr + offset));
+  }
 }
 
 GWION_IMPORT(object_op) {

@@ -26,12 +26,11 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
   return GW_OK;
 }
 
-ANN2(1,2) static inline m_bool class_parent(const Env env, const Type t) {
-  Type parent = t->e->parent;
-  while(parent && !GET_FLAG(parent, valid)) {
+ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
+  while(t && !GET_FLAG(t, valid)) {
     if(t->e->def)
       CHECK_BB(traverse_class_def(env, t->e->def))
-    parent = parent->e->parent;
+    t = t->e->parent;
   }
   return GW_OK;
 }
@@ -70,9 +69,14 @@ ANN static inline void gwi_type_flag(const Type t) {
 
 ANN static Type type_finish(const Gwi gwi, const Type t) {
   gwi_add_type(gwi, t);
-  CHECK_BO(class_parent(gwi->gwion->env, t))
   import_class_ini(gwi->gwion->env, t);
   return t;
+}
+
+ANN2(1,2) Type handle_class(const Gwi gwi, Type_Decl *td) {
+  DECL_OO(const Type, p, = known_type(gwi->gwion->env, td))
+  CHECK_BO(class_parent(gwi->gwion->env, p))
+  return p;
 }
 
 ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
@@ -82,13 +86,15 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   Tmpl* tmpl = ck.tmpl ? new_tmpl_base(gwi->gwion->mp, ck.tmpl) : NULL;
   if(tmpl)
     CHECK_BO(template_push_types(gwi->gwion->env, tmpl))
-  const Type p = known_type(gwi->gwion->env, td); // check
-  if(!p) {
-    env_pop(gwi->gwion->env, 0);
-    return NULL;
-  }
+  const Type base = find_type(gwi->gwion->env, td);
+  const Type_List tl = td->types;
+  if(GET_FLAG(base, unary))
+    td->types = NULL;
+  const Type p = !td->types ? handle_class(gwi, td) : NULL;
+  td->types = tl;
   if(tmpl)
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
+  CHECK_OO(p)
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
   t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
   t->e->def->base.tmpl = tmpl;

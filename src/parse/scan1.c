@@ -547,7 +547,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if(parent->e->def && !GET_FLAG(parent, scan1))
-    CHECK_BB(scanx_parent(parent, scan1_cdef, env))
+    CHECK_BB(ensure_scan1(env, parent))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
   if(GET_FLAG(parent, nonnull))
@@ -558,7 +558,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     CHECK_BB(template_push_types(env, cdef->base.tmpl))
-  const m_bool ret = scanx_parent(cdef->base.type, scan1_parent, env);
+  const m_bool ret = scan1_parent(env, cdef);
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;

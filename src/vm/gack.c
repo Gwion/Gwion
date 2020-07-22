@@ -53,7 +53,6 @@ ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
   *(m_uint*)(shred->mem  + SZ_INT*3) = shred->pc;
   *(m_uint*)(shred->mem  + SZ_INT*4) = SZ_INT;
   shred->mem += SZ_INT*5;
-  *(M_Object*)(shred->mem) = *(M_Object*)(shred->reg - SZ_INT);
   shred->pc = 0;
 }
 
@@ -66,6 +65,10 @@ ANN void gack(const VM_Shred shred, const m_uint offset) {
     POP_REG(shred, sz);
   } else {
     prepare_call(shred, offset);
+    if(GET_FLAG(t, struct))
+      *(void**)(shred->mem) = (void*)(shred->reg - t->size);
+    else
+      *(M_Object*)(shred->mem) = *(M_Object*)(shred->reg - SZ_INT);
     shred->code = code;
   }
   return;

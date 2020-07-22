@@ -36,4 +36,9 @@ static inline void _release(const restrict M_Object obj, const restrict VM_Shred
 static inline void release(const restrict M_Object obj, const restrict VM_Shred shred) {
   if(obj)_release(obj, shred);
 }
+typedef void (f_release)(const VM_Shred shred, const Type t NUSED, const m_bit* ptr);
+#define RELEASE_FUNC(a) void (a)(const VM_Shred shred, const Type t NUSED, const m_bit* ptr)
+static inline RELEASE_FUNC(object_release) { release(*(M_Object*)ptr, shred); }
+RELEASE_FUNC(struct_release);
+
 #endif

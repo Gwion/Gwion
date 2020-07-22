@@ -53,16 +53,16 @@ ANN static inline int is_array(const Type *types, const Type type) {
 }
 
 static DTOR(array_dtor) {
-  const Type t = !GET_FLAG(o->type_ref, nonnull) ?
-    o->type_ref : o->type_ref->e->parent;
+  const Type t = unflag_type(o->type_ref);
   if(*(void**)(o->data + SZ_INT))
     xfree(*(void**)(o->data + SZ_INT));
   struct M_Vector_* a = ARRAY(o);
   if(!a)
     return;
-  if(t->array_depth > 1 || is_array(shred->info->vm->gwion->type, t))
+  if(t->nspc->info->class_data_size) {
     for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
-      release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
+      (*(f_release**)t->nspc->info->class_data)(shred, array_base(t), ARRAY_PTR(a) + i * ARRAY_SIZE(a));
+  }
   free_m_vector(shred->info->mp, a);
 }
 
@@ -95,8 +95,9 @@ ANN void m_vector_set(const M_Vector v, const m_uint i, const void* data) {
 
 ANN void m_vector_rem(const M_Vector v, m_uint index) {
   const m_uint size = ARRAY_SIZE(v);
-  memmove(ARRAY_PTR(v) + index * size, ARRAY_PTR(v) + (index + 1) * size,
-    (ARRAY_SIZE(v) - index - 1) *size);
+  if(index < ARRAY_LEN(v) - 1)
+    memmove(ARRAY_PTR(v) + index * size, ARRAY_PTR(v) + (index + 1) * size,
+      (ARRAY_SIZE(v) - index - 1) *size);
   --ARRAY_LEN(v);
   if(ARRAY_LEN(v) < ARRAY_CAP(v) / 2) {
     const m_uint cap = ARRAY_CAP(v) /= 2;
@@ -109,11 +110,9 @@ static MFUN(vm_vector_rem) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
-  if(isa(o->type_ref, shred->info->vm->gwion->type[et_object]) > 0) {
-    M_Object obj;
-    m_vector_get(v, (vtype)index, &obj);
-    release(obj,shred);
-  }
+  const Type t = unflag_type(o->type_ref);
+  if(t->nspc->info->class_data_size)
+    (*(f_release**)t->nspc->info->class_data)(shred, array_base(t), ARRAY_PTR(v) + index * ARRAY_SIZE(v));
   m_vector_rem(v, (vtype)index);
 }
 
@@ -371,6 +370,13 @@ GWION_IMPORT(array) {
   return GW_OK;
 }
 
+INSTR(ArrayStruct) {
+  const M_Object ref = *(M_Object*)(REG(-SZ_INT * 5));
+  const m_int idx = (*(m_int*)((shred->reg -SZ_INT * 3)))++;
+  *(m_bit**)(shred->reg) = m_vector_addr(ARRAY(ref), idx);
+  shred->reg += SZ_INT; // regpush
+}
+
 INSTR(ArrayBottom) {
   *(M_Object*)(*(m_uint**)REG(-SZ_INT * 4))[(*(m_int*)REG(-SZ_INT * 3))++] = *(M_Object*)REG(-SZ_INT);
 }
@@ -439,7 +445,7 @@ ANN static M_Object* init_array(const VM_Shred shred, const ArrayInfo* info, m_u
     *num_obj *= *(m_uint*)REG(SZ_INT * curr);
     ++curr;
   }
-  return *num_obj > 0 ? (M_Object*)xcalloc(*num_obj, SZ_INT) : NULL;
+  return *num_obj > 0 ? (M_Object*)xcalloc(*num_obj, info->base->size) : NULL;
 }
 
 INSTR(ArrayAlloc) {
@@ -470,3 +476,4 @@ INSTR(ArrayAlloc) {
     *(m_uint*) REG(-SZ_INT) = num_obj;
   }
 }
+
