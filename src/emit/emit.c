@@ -808,7 +808,6 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   }
   const Exp e = exp_self(exp_call);
   if(exp_getvar(e)) {
-puts("here");
     regpop(emit, exp_self(exp_call)->info->type->size - SZ_INT);
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val = -SZ_INT;
