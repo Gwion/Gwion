@@ -351,7 +351,7 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   return !is_fptr(env->gwion, tdef->type) ? scan1_cdef(env, tdef->type->e->def) : GW_OK;
 }
 
-ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
+ANN static m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     const Decl_List l) {
   const Exp_Decl decl = l->self->d.exp_decl;
   SET_FLAG(decl.td, valid | udef->flag);
@@ -362,12 +362,7 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
     SET_FLAG(decl.td, member);
   else if(GET_FLAG(udef, static))
     SET_FLAG(decl.td, static);
-  if(udef->tmpl && udef->tmpl->call)
-    CHECK_BB(template_push_types(env, udef->tmpl))
-  const m_bool ret = scan1_exp(env, l->self);
-  if(udef->tmpl && udef->tmpl->call)
-    nspc_pop_type(env->gwion->mp, env->curr);
-  CHECK_BB(ret)
+  CHECK_BB(scan1_exp(env, l->self))
 
   Var_Decl_List list = decl.list;
   do ADD_REF(list->self->value)
@@ -378,11 +373,19 @@ ANN m_bool scan1_union_def_action(const Env env, const Union_Def udef,
   return GW_OK;
 }
 
-ANN m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
-  Decl_List l = udef->l;
+ANN static inline m_bool scan1_union_def_inner_loop(const Env env, const Union_Def udef, Decl_List l) {
   do CHECK_BB(scan1_union_def_action(env, udef, l))
   while((l = l->next));
   return GW_OK;
+}
+
+ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
+  if(udef->tmpl && udef->tmpl->call)
+    CHECK_BB(template_push_types(env, udef->tmpl))
+  const m_bool ret = scan1_union_def_inner_loop(env, udef, udef->l);
+  if(udef->tmpl && udef->tmpl->call)
+    nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
 }
 
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
