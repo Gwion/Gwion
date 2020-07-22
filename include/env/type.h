@@ -44,6 +44,7 @@ ANN static inline m_uint env_push_type(const Env env, const Type type) { return 
 ANN m_bool is_fptr(const struct Gwion_*, const Type t);
 ANN m_bool is_class(const struct Gwion_*, const Type t);
 ANN m_uint get_depth(const Type type);
+ANN void inherit(const Type);
 
 __attribute__((returns_nonnull))
 ANN static inline Type get_gack(Type t) {

@@ -35,15 +35,6 @@ ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
   return GW_OK;
 }
 
-ANN void inherit(const Type t) {
-  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
-  if(!nspc || !parent)
-    return;
-  nspc->info->offset = parent->info->offset;
-  if(parent->info->vtable.ptr)
-    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
-}
-
 ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;

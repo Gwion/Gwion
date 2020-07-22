@@ -198,3 +198,12 @@ ANN inline m_bool is_class(const struct Gwion_* gwion, const Type t) {
 ANN Type actual_type(const struct Gwion_* gwion, const Type t) {
   return is_class(gwion, t) ? t->e->d.base_type : t;
 }
+
+ANN void inherit(const Type t) {
+  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  if(!nspc || !parent)
+    return;
+  nspc->info->offset = parent->info->offset;
+  if(parent->info->vtable.ptr)
+    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
+}
