@@ -57,6 +57,7 @@ cat << EOF >> "$RC"
 EOF
 run "$n" "config" "-c $RC" "file"
 rm "$RC"
+
 # loop
 n=$((n+1))
 run "$n" "loop" "-l0" "file"
