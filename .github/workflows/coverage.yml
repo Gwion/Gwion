@@ -33,7 +33,8 @@ jobs:
 
     - name: Install gcovr
       run: |
-         pip install git+https://github.com/gcovr/gcovr.git
+         pip install gcovr
+#         pip install git+https://github.com/gcovr/gcovr.git
 
     - name: Clone report repo
       run: | 
