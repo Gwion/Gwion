@@ -465,7 +465,7 @@ GWION_IMPORT(string) {
 
   gwi_item_ini(gwi, "@internal", "@data");
   GWI_BB(gwi_item_end(gwi,   ae_flag_const, NULL))
-  
+
   gwi_func_ini(gwi, "int", "size");
   GWI_BB(gwi_func_end(gwi, string_len, ae_flag_none))
 
