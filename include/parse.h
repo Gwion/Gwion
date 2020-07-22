@@ -58,10 +58,6 @@ static inline ANN m_bool env_body(const Env env, const Class_Def cdef, const _ex
 }
 #define env_body(a,b,c) env_body(a,b,(_exp_func)c)
 
-ANN m_bool scanx_parent(const Type t, const _exp_func f, void *d);
-#define scanx_parent(a,b,c) scanx_parent(a, (_exp_func)b, c)
-
-
 ANN m_bool scanx_cdef(const Env, void *,const Class_Def,
   const _exp_func f_cdef, const _exp_func f_union);
 

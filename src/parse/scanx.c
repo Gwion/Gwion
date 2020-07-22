@@ -41,8 +41,6 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
   return ret;
 }
 
-#undef scanx_parent
-
 __attribute__((returns_nonnull))
 ANN Type unflag_type(const Type t) {
   const Type type = !GET_FLAG(t, nonnull) ? t : t->e->parent;
@@ -53,18 +51,6 @@ __attribute__((returns_nonnull))
 ANN Type get_type(const Type t) {
   const Type type = !t->array_depth ? t : array_base(t);
   return unflag_type(type);
-}
-
-__attribute__((returns_nonnull))
-static inline Class_Def get_type_def(const Type t) {
-  const Type type = get_type(t);
-  return type->e->def;
-}
-
-ANN m_bool
-scanx_parent(const Type t, const _exp_func f, void* d) {
-  const Class_Def def = get_type_def(t);
-  return def ? f(d, def) : GW_OK;
 }
 
 ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
