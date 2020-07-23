@@ -9,7 +9,6 @@ for (i in 1..1000000) {
   if ("" == "abc") count = count + 1
   if ("abc" == "abcd") count = count + 1
   if ("changed one character" == "changed !ne character") count = count + 1
-  if ("123" == 123) count = count + 1
   if ("a slightly longer string" ==
       "a slightly longer string!") count = count + 1
   if ("a slightly longer string" ==

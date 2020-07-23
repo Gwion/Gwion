@@ -10,8 +10,8 @@ class Tree {
     if (depth > 0) {
       it + it => int item2;
       --depth;
-      Tree.new_Tree(item2 - 1, depth) @=> t.left;
-      Tree.new_Tree(item2, depth) @=> t.right;
+      new_Tree(item2 - 1, depth) @=> t.left;
+      new_Tree(item2, depth) @=> t.right;
     }
     return t;
   }
