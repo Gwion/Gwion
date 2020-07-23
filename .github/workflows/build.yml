@@ -128,7 +128,6 @@ jobs:
         sudo apt-get install gnuplot chuck
         echo 'chuck --silent $@' > ./chuck
         chmod +x ./chuck
-        ./chuck benchmark/string-equals.ck
         export PATH=./wren/bin:$PATH
         export PATH=./lua:$PATH
         export PATH=./mdr:$PATH
