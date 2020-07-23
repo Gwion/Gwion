@@ -3,6 +3,7 @@
 language=("gwion" "wren" "lua" "python" "chuck" "ruby")
 extension=("gw" "wren" "lua" "py" "ck" "rb")
 test_dir="benchmark"
+result_dir="$test_dir/results"
 plot_script="scripts/bench.plot"
 : "${repeats:=10}"
 
@@ -18,22 +19,19 @@ get_list() {
 }
 
 get_test() {
-  for (( i=0; i<=$(( ${#language[@]} -1 )); i++ ))
+  for i in $(seq 0 ${#language[@]})
   do
     if [ -f "$test_dir/$1.${extension[$i]}" ]
     then echo "${language[$i]} $(run "${language[$i]}" "${extension[$i]}" "$1")"
     fi
-  done > "benchmark/results/$1.dat"
+  done > "$result_dir/$1.dat"
 }
 
 plot() {
-  which perf
-  echo "$1"
-  cat "benchmark/results/$1.dat"
   gnuplot -e "bench='$1'" "$plot_script"
 }
 
-[ -d benchmark/results ] || mkdir benchmark/results
+[ -d "$result_dir/results" ] || mkdir "$result_dir"
 for bench in $(get_list)
 do
   get_test "$bench"
