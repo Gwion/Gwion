@@ -30,9 +30,8 @@ static INSTR(String_##name) {                    \
   release(lhs, shred);                           \
   release(rhs, shred);                           \
 }
-describe_string_logical(eq, (lhs && rhs && !strcmp(STRING(lhs), STRING(rhs))) || (!lhs && !rhs))
-describe_string_logical(neq, (lhs && rhs && strcmp(STRING(lhs), STRING(rhs))) ||
-    (lhs && !rhs) || (!lhs && rhs))
+describe_string_logical(eq, (lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
+describe_string_logical(neq, !(lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
 
 static INSTR(String_Assign) {
   POP_REG(shred, SZ_INT);
