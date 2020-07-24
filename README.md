@@ -64,9 +64,19 @@ The whole [Chuck](http://chuck.cs.princeton.edu/) team, for inspiration.
 
 Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
-<table><tr><td align="center"><a href="http://paulbatchelor.github.io"><img src="https://avatars3.githubusercontent.com/u/8139389?v=4" width="100px;" alt="Paul Batchelor"/><br /><sub><b>Paul Batchelor</b></sub></a><br /><a href="#question-PaulBatchelor" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3APaulBatchelor" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=PaulBatchelor" title="Code">💻</a> <a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td><td align="center"><a href="https://github.com/originalsouth"><img src="https://avatars1.githubusercontent.com/u/5300799?v=4" width="100px;" alt="Benny"/><br /><sub><b>Benny</b></sub></a><br /><a href="#question-originalsouth" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3Aoriginalsouth" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=originalsouth" title="Code">💻</a></td><td align="center"><a href="https://github.com/scalarwaves"><img src="https://avatars1.githubusercontent.com/u/4212896?v=4" width="100px;" alt="Andrew Prentice"/><br /><sub><b>Andrew Prentice</b></sub></a><br /><a href="#question-scalarwaves" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3Ascalarwaves" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=scalarwaves" title="Code">💻</a> <a href="#ideas-scalarwaves" title="Ideas, Planning, & Feedback">🤔</a></td></tr></table>
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="http://paulbatchelor.github.io"><img src="https://avatars3.githubusercontent.com/u/8139389?v=4" width="100px;" alt=""/><br /><sub><b>Paul Batchelor</b></sub></a></td>
+    <td align="center"><a href="https://github.com/originalsouth"><img src="https://avatars1.githubusercontent.com/u/5300799?v=4" width="100px;" alt=""/><br /><sub><b>Benny</b></sub></a></td>
+    <td align="center"><a href="https://github.com/scalarwaves"><img src="https://avatars1.githubusercontent.com/u/4212896?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Prentice</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a></td>
+  </tr>
+</table>
 
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
 
