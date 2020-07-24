@@ -1,6 +1,6 @@
 # Contributors
 
-@exec cp Gwion/README.md master_readme.md
+@hide cp Gwion/README.md master_readme.md
 
-@exec sed "$(cat -n master_readme.md | grep "ALL-CONTRIBUTOR" | cut -f1 | tr '\n' '\t' | sed 's/\t/,/')!d" master_readme.md
-@exec rm master_readme.md
+@hide sed "$(cat -n master_readme.md | grep "ALL-CONTRIBUTOR" | cut -f1 | tr '\n' '\t' | sed 's/\t/,/')!d" master_readme.md
+@hide rm master_readme.md
