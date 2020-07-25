@@ -14,9 +14,8 @@ else
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
 else
-#LDLAGS += ../../libgwion.dll.a ../
-LDLAGS += ../../libgwion.a ../../ast/libgwion_ast.a ../util/libgwion_util.a
 LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
+LDLAGS += ../../libgwion.dll.a
 endif
 endif
 
