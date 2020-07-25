@@ -45,7 +45,6 @@ typedef struct OperCK { // name_checker ?
 
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
-ANN ID_List tmpl_valid(const Gwi gwi, const m_str str);
 ANN Symbol str2sym(const Gwi gwi, const m_str path);
 ANN ID_List str2symlist(const Gwi gwi, const m_str path);
 
