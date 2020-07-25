@@ -38,10 +38,7 @@ CFLAGS  += -Iinclude
 
 ifeq (${BUILD_ON_WINDOWS}, 1)
 ifeq (${CC}, gcc)
-CFLAGS += -export-dynamic
 LDFLAGS += -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--out-implib=libgwion.dll.a
-CFLAGS += -Wl,-export-dynamic
-LDFLAGS += -Wl,-export-dynamic
 LDFLAGS += -lm
 endif
 else
