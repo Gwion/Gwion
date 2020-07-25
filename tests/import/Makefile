@@ -16,6 +16,7 @@ LDFLAGS += -shared
 else
 LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
 LDLAGS += ../../libgwion.dll.a
+LDLAGS += ../../libgwion.a
 endif
 endif
 
