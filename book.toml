@@ -6,7 +6,6 @@ title = "Gwion"
 default-theme = "rust"
 additional-css = ["custom.css", "ansi2html.css"]
 git-repository-url ="https://github.com/fennecdjay/Gwion"
-google-analytics = UA-173541140-1
 
 [output.html.fold]
 enable = true
