@@ -11,7 +11,6 @@
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
-#include "map_private.h"
 #include "gack.h"
 #include "array.h"
 
