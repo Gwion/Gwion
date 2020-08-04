@@ -72,6 +72,7 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
     <td align="center"><a href="https://github.com/originalsouth"><img src="https://avatars1.githubusercontent.com/u/5300799?v=4" width="100px;" alt=""/><br /><sub><b>Benny</b></sub></a></td>
     <td align="center"><a href="https://github.com/scalarwaves"><img src="https://avatars1.githubusercontent.com/u/4212896?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Prentice</b></sub></a></td>
     <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Pranav2612000"><img src="https://avatars3.githubusercontent.com/u/20909078?v=4" width="100px;" alt=""/><br /><sub><b>Pranav Joglekar</b></sub></a></td>
   </tr>
 </table>
 
