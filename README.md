@@ -3,6 +3,7 @@
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/fennecdjay/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
+[![](https://tokei.rs/b1/github/XAMPPRocky/tokei)](https://github.com/fennecdjay/Gwion)
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg)](#contributors)
 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
