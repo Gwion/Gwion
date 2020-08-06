@@ -8,7 +8,7 @@ The easiest way to do an action repeatidly in Gwion is, ... the **repeat** keywo
 repeat(3)
    <<< "Hello, world!" >>>;
 @```  
-@exec make -s CONTAINS="Hello" repeat.test
+@hide make -s CONTAINS="Hello" repeat.test
 
 
 ## Block example
@@ -21,4 +21,4 @@ repeat(3) {
    <<< "Hello, ", s, "!" >>>;
 }
 @```  
-@exec make -s CONTAINS="Hello" repeat2.test
+@hide make -s CONTAINS="Hello" repeat2.test

@@ -13,7 +13,7 @@ You can even use it to
 @``` lambda_call0.gw
 \ i { <<< "passed '", i, "'" >>>; }(3);
 @```  
-@exec make -s CONTAINS="passed '3'" lambda_call0.test
+@hide make -s CONTAINS="passed '3'" lambda_call0.test
 
 
 ## Use case
@@ -24,7 +24,7 @@ typedef void fptr_t(int);
 \ i { <<< "passed '", i, "'" >>>; } @=> fptr_t fptr;
 fptr(4);
 @```  
-@exec make -s CONTAINS="passed '4'" lambda_fptr0.test
+@hide make -s CONTAINS="passed '4'" lambda_fptr0.test
 
 ### As Argument to Functions
 @``` lambda_args0.gw
@@ -34,4 +34,4 @@ fun void test(fptr_t fptr) {
 }
 test(\ i { <<< "passed '", i, "'" >>>; });
 @```  
-@exec make -s CONTAINS="passed '5'" lambda_args0.test
+@hide make -s CONTAINS="passed '5'" lambda_args0.test

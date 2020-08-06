@@ -6,7 +6,7 @@
 for(int i; i < 3; ++i)
    <<< i >>>;
 @```  
-@exec make -s forloop0.test
+@hide make -s forloop0.test
 
 It also works with a block of code.
 
@@ -17,7 +17,7 @@ for(int i; i < 3; ++i) {
    <<< i, " " , f1, " ", f2 >>>;
 }
 @```  
-@exec make -s forloop2.test
+@hide make -s forloop2.test
 
 ## Nested Loops
 @``` forloop3.gw
@@ -29,7 +29,7 @@ for(int i; i < 3; ++i) {
   }
 }
 @```  
-@exec make -s forloop3.test
+@hide make -s forloop3.test
 
 ### Auto Loops
 
@@ -42,7 +42,7 @@ for(auto a: array) {
     <<< b >>>;
 }
 @```  
-@exec make -s forloop4.test
+@hide make -s forloop4.test
 
 ### Auto Pointer loop
 If you want to change it the value in the array, you need a pointer 
@@ -59,4 +59,4 @@ for(auto a: array) {
     <<< *b >>>;
 }
 @```  
-@exec make -s forloop5.test
+@hide make -s forloop5.test

@@ -7,7 +7,7 @@ while(true) {
   <<< "running..." >>>;
 }
 @```  
-@exec make -s while0.test
+@hide make -s while0.test
 
 well this may output nothing...
 lets try
@@ -20,4 +20,4 @@ do{
   <<< "running..." >>>;
 } while(true);
 @```  
-@exec make -s while1.test
+@hide make -s while1.test

@@ -10,7 +10,7 @@ Here is the piece of code you're waiting for :tada::
 @``` helloworld.gw
 <<< "Hello, World!" >>>;
 @```  
-@exec make -s CONTAINS="Hello, World!" helloworld.test
+@hide make -s CONTAINS="Hello, World!" helloworld.test
 
 ## (Bag of) Features
   * [single inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)#Design_constraints)

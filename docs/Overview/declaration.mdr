@@ -8,7 +8,7 @@ int i;
 Object o;
 <<< i, " ", o >>>;
 @```
-@exec make -s decl0.test
+@hide make -s decl0.test
 
 ## Declaring a reference
 
@@ -19,7 +19,7 @@ Object ref ref;
 new Object @=> ref;
 <<< "But now it does: ", ref >>>;
 @```
-@exec make -s decl1.test
+@hide make -s decl1.test
 
 ## Arrays
 
@@ -31,4 +31,4 @@ int ref[];
 new int[2] @=> ref;
 <<< ref >>>;
 @```
-@exec make -s decl2.test
+@hide make -s decl2.test

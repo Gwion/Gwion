@@ -16,4 +16,4 @@ fun int test_function(int arg) {
 #! or use alternate syntax
 <<< 1 => test_function >>>;
 @```
-@exec make -s function0.test
+@hide make -s function0.test

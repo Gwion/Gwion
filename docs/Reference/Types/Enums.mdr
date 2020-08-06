@@ -15,7 +15,7 @@ enum Optionnal_name {
 };
 <<< zero, one, two >>>;
 @```
-@exec make -s enum0.test
+@hide make -s enum0.test
 
 ## Storage and access Specifiers
 
