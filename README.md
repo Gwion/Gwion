@@ -14,19 +14,47 @@ Gwion is a programming language, aimed at making music
 
 **strongly** inspired by [chuck](http://chuck.stanford.edu/), but adding a bunch *high-level* features:  
 	  templating, first-class functions and more.  
-<!-- TODO: add benchmarks in doc and link to it -->
+
 It aims to be simple, small,
  [fast](https://fennecdjay.github.io/Gwion/#Benchmarks/),
  [extendable](https://github.com/fennecdjay/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
 
-### Executing your first code (hello_world.gw):
+## Build
+### Download the source
+You might just want the minimum to start with, try
+``` sh
+git clone https://github.com/fennecdjay/Gwion
+cd Gwion
+git submodule update --init util ast
+make
+```
 
-This assumes you have successfully installed gwion. To build follow [these steps](#build) . To check, if the build was successfully run
+### Configuring (optionnal)
+You can get a list of config files to tweak with
+``` sh
+find . -name "config.mk"
+```
+
+Please rebuild to take your change into account.
+```
+make -C util clean
+make -C ast  clean
+make clean
+make
+```
+
+> Besides develloper options, you migth want to check *USE_DOUBLE*, in util/config.mk, which set the floating point size (float or double).
+
+## Executing your first code (hello_world.gw):
+
+This assumes you have successfully compiled gwion. To build follow [these steps](#build) . To check, if the build was successfully run
 ```
 ./gwion
 ```
-if this gives out some error, there were problems with your installation. Try installing again, and open a issue if the problem persists. We would love to help you out.  
-If you see no errors, Congratulations!! You have successfully installed gwion, and can move ahead.
+if this gives out some error, there were problems with your compilation.
+Try building again, and open a [issue](https://github.com/fennecdjay/Gwion/issues)
+if the problem persists. We would love to help you out.  
+If you see no errors, Congratulations!! You have successfully compiled gwion, and can move ahead.
 
 Create a new file "hello_world.gw" in the same directory.(You are free to use any command)
 ```
@@ -51,22 +79,6 @@ Congratulations!! You ran your first gwion program.
 
 You want to know more? :smile: Look [here](https://fennecdjay.github.io/Gwion/)
 Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
-
-## Build
-### Download the source
-You might just want the minimum to start with, try
-``` sh
-git clone https://github.com/fennecdjay/Gwion
-cd Gwion
-git submodule update --init util ast
-make
-```
-
-You can get a list of config files to tweak with
-``` sh
-find . -name "config.mk"
-```
-> Besides develloper options, you migth want to check *USE_DOUBLE*, in util/config.mk, which set the floating point size (float or double).
 
 ## Reporting bugs / Contributing
 
