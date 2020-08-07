@@ -19,17 +19,36 @@ It aims to be simple, small,
  [fast](https://fennecdjay.github.io/Gwion/#Benchmarks/),
  [extendable](https://github.com/fennecdjay/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
 
-### simple example code (hello_world.gw):
+### Executing your first code (hello_world.gw):
 
-```cpp
-// print hello world
+This assumes you have successfully installed gwion. To build follow [these steps](#build) . To check, if the build was successfully run
+```
+./gwion
+```
+if this gives out some error, there were problems with your installation. Try installing again, and open a issue if the problem persists. We would love to help you out.  
+If you see no errors, Congratulations!! You have successfully installed gwion, and can move ahead.
+
+Create a new file "hello_world.gw" in the same directory.(You are free to use any command)
+```
+touch hello_world.gw
+```
+
+Open this file using your favourite text editor
+```
+vim hello_world.gw
+```
+
+Add the following lines to print "Hello World" (Note the semicolon at the end)
+```
 <<< "Hello World" >>>;
 ```
-to run this, do
 
+Save and exit the file(:wq in vim). Use the following command to run your first gwion program
 ```sh
 ./gwion hello_world.gw
 ```
+Congratulations!! You ran your first gwion program.
+
 You want to know more? :smile: Look [here](https://fennecdjay.github.io/Gwion/)
 Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
 
