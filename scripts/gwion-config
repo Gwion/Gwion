@@ -2,7 +2,7 @@
 
 usage() {
   echo "Usage:
-  gwion-config --version   - show installed script and Guile version
+  gwion-config --version   - show installed script and Gwion version
   gwion-config --help      - show usage info (this message)
   gwion-config link        - print libraries to link with
   gwion-config compile     - print C compiler flags to compile with"
