@@ -3,8 +3,8 @@ name: Linux Release
 on:
   push:
     branches:    
-    - '**'
-    - '!gh-pages'
+    - 'master'
+    - 'dev'
 
 jobs:
   build:
