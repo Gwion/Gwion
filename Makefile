@@ -106,8 +106,10 @@ install: ${PRG}
 
 uninstall:
 	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
-	@rm -rf ${DESTDIR}/${PREFIX}/bin/${PRG}
-	@rm -rf ${DESTDIR}/${PREFIX}/include/gwion
+	@rm ${DESTDIR}/${PREFIX}/bin/${PRG}
+	@rm ${DESTDIR}/${PREFIX}/lib/lib${PRG}.a
+	@rm ${DESTDIR}/${PREFIX}/include/gwion/*.h
+	@rmdir --ignore-fail-on-non-empty ${DESTDIR}/${PREFIX}/include/gwion
 
 test:
 	@bash scripts/test.sh ${test_dir}
