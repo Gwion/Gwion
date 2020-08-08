@@ -1,0 +1,28 @@
+name: Linux
+
+on:
+  push:
+    branches:    
+    - '**'
+    - '!gh-pages'
+
+jobs:
+  build:
+    name: \[ Linux \] ${{ matrix.double && 'double' || 'float '}} (${{ matrix.cc }})
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    strategy:
+
+    steps:
+
+    - name: clone Gwion
+    - uses: actions/checkout@v2
+
+    - name: SubModules
+      run: git submodule update --init util ast
+
+    - name: Build
+      run: make
+      env:
+        USE_LTO: 1 
+
