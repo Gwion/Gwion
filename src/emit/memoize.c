@@ -44,7 +44,6 @@ INSTR(MemoizeStore) {
   m_bit* data = get_data(shred->info->vm->gwion->mp, m);
   memcpy(data, shred->mem, m->arg_sz);
   memcpy(data + m->arg_sz, shred->reg - m->ret_sz, m->ret_sz);
-  vector_add(&m->v, (vtype)data);
 }
 
 INSTR(MemoizeIni) {
