@@ -43,7 +43,7 @@ such as this one, you can see a *huge* speed-up.
 
 Memoization setting will be active until the end of file
 or until it is changed.
-Therefor, if you want to disable memoization for subsequent functions, use:
+Therefore, if you want to disable memoization for subsequent functions, use:
 ``` cpp
 #pragma memoize 0
 ```
