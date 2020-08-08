@@ -19,5 +19,5 @@ Here is the piece of code you're waiting for :tada::
   * templates (both class and functions)
   * easy concurrency/async
   * [lambdas](Reference/Functions/Lambdas.html)
-  * memoization
+  * [memoization](Reference/Preprocessor.md#Memoization)
   * [variadic](Reference/Functions/Variadic.html) functions
