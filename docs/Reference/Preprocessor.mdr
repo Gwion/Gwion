@@ -39,6 +39,7 @@ Under circomstance where memoization is applicable,
 such as this one, you can see a *huge* speed-up.
 
 @hide echo "normal:   $(perf stat gwion fib_recurs.gw 2>&1 | grep elapsed)"
+
 @hide echo "memoized: $(perf stat gwion fib_recurs_memoize.gw 2>&1 | grep elapsed)"
 
 Memoization setting will be active until the end of file
