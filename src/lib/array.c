@@ -242,7 +242,11 @@ static FREEARG(freearg_array) {
 
 static OP_CHECK(opck_not_array) {
   const Array_Sub array = (Array_Sub)data;
-    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
+  if(get_depth(array->type)) {
+    struct Array_Sub_ next = { array->exp, array->type->e->parent, array->depth };
+    return check_array_access(env, &next);
+  }
+  ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
         array->depth, get_depth(array->type))
 }
 
