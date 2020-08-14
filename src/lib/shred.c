@@ -364,7 +364,7 @@ GWION_IMPORT(shred) {
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);
 
-  SET_FLAG((t_shred), abstract);
+  SET_FLAG(t_shred, abstract);
 
   const Type t_fork= gwi_class_ini(gwi,  "Fork", "Shred");
   gwi_class_xtor(gwi, NULL, fork_dtor);
