@@ -4,7 +4,7 @@
 #include "vm.h"
 #include "gwion.h"
 
-static m_str const special_name[] = { ":nonnull", ":force" };
+static m_str const special_name[] = { "~nonnull", "~force" };
 #define SPECIAL_LEN strlen(special_name[0]) + strlen(special_name[1])
 static const ae_flag special_flag[] = { ae_flag_nonnull, ae_flag_force };
 
@@ -45,7 +45,7 @@ ANN static void specialtype_init(SymTable *st, SpecialType *s) {
   const size_t sz = strlen(s->type->name);
   char c[sz + SPECIAL_LEN + 1];
   strcpy(c, s->type->name);
-  m_str flagged = strchr(c, ':');
+  m_str flagged = strchr(c, '~');
   if(flagged)
     *flagged = '\0';
   specialtype_flag(s, c, 0);
