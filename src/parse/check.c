@@ -831,8 +831,10 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   CHECK_OO(check_exp(env, bin->lhs))
   const m_bool is_auto = bin->rhs->exp_type == ae_exp_decl && bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if(is_auto)
-    bin->rhs->info->type = bin->rhs->d.exp_decl.type = bin->lhs->info->type;
+    bin->rhs->d.exp_decl.type = bin->lhs->info->type;
   CHECK_OO(check_exp(env, bin->rhs))
+  if(is_auto)
+    bin->rhs->info->type = bin->lhs->info->type;
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->info->type,
     .rhs=bin->rhs->info->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos, .op_type=op_binary };
   const Type ret = op_check(env, &opi);

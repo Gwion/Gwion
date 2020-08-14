@@ -1,4 +1,4 @@
 #! [contains] NullPtrException
 int i[];
-for(auto a : i)
+foreach(a : i)
  <<< a >>>;

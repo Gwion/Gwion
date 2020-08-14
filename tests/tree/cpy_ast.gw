@@ -15,7 +15,7 @@ class <~A~>C {
   for(int; i < 1; ++i);
   int array[2];
   array[0];
-  for(auto a : array);
+  foreach(a : array);
   repeat(1);
   match i,2 {
     case 12 when 0:;

@@ -1,4 +1,4 @@
 #! [contains]  not allowed in auto loop
 Object i;
-for(auto a: i)
+foreach(a: i)
   <<< a >>>;
