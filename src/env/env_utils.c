@@ -28,38 +28,31 @@ ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
 
-ANN Type _find_type(const Env env, const Symbol xid) {
-  Type type = nspc_lookup_type1(env->curr, xid);
-  if(!type && env->class_def) {
-    Type base = env->class_def->e->parent;
-    while(base && base->nspc) {
-      if((type = nspc_lookup_type1(base->nspc, xid)))
-       break;
-      base = base->e->parent;
-    }
+ANN Type __find_type(const Type type, const Symbol xid) {
+  Type base = type;
+  while(base && base->nspc) {
+    const Type t = nspc_lookup_type1(base->nspc, xid);
+    if(t)
+      return t;
+    base = base->e->parent;
   }
-  return type;
+  return NULL;
+}
+
+ANN Type _find_type(const Env env, const Symbol xid) {
+  const Type type = nspc_lookup_type1(env->curr, xid);
+  if(type || !env->class_def)
+    return type;
+  return __find_type(env->class_def, xid);
 }
 
 ANN Type find_type(const Env env, Type_Decl *path) {
   DECL_OO(Type, type, = _find_type(env, path->xid))
-  Nspc nspc = type->nspc;
-  path = path->next;
-  while(path) {
-    const Symbol xid = path->xid;
-    if(nspc) {
-      Type t = nspc_lookup_type1(nspc, xid);
-      while(!t && type && type->e->parent) {
-        if(type->e->parent->nspc) // should we break sooner ?
-          t = nspc_lookup_type1(type->e->parent->nspc, xid); // was lookup2
-        type = type->e->parent;
-      }
-      if(!t)
-        ERR_O(path->pos, _("...(cannot find class '%s' in nspc '%s')"), s_name(xid), nspc->name)
-      type = t;
-    }
-    nspc = type->nspc;
-    path = path->next;
+  while((path = path->next) && type && type->nspc) {
+    const Nspc nspc = type->nspc;
+    type = __find_type(type, path->xid);
+    if(!type)
+      ERR_O(path->pos, _("...(cannot find class '%s' in nspc '%s')"), s_name(path->xid), nspc->name)
   }
   return type;
 }
