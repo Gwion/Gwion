@@ -92,7 +92,7 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl* td) {
      _("type '%s' is not template. You should not provide template types"), t->name)
 }
 
-ANN Type _scan_type(const Env env, const Type t, const Type_Decl* td) {
+ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
   if(GET_FLAG(t, template)) {
     if(GET_FLAG(t, ref) || (GET_FLAG(t, unary) && !td->types))
       return t;
@@ -101,7 +101,11 @@ ANN Type _scan_type(const Env env, const Type t, const Type_Decl* td) {
     return op_check(env, &opi);
   } else if(td->types)
     return maybe_func(env, t, td);
-  return td->xid ? nspc_lookup_type1(env->curr, td->xid) : t;
+  Type_Decl *next = td->next;
+  td->next = NULL;
+  const Type ret = find_type(env, td);
+  td->next = next;
+  return ret;
 }
 
 ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
