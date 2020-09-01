@@ -78,6 +78,8 @@ ANN static inline void frame_push(Frame* frame) {
 }
 
 ANN static void struct_pop(const Emitter emit, const Type type, const m_uint offset) {
+  if(!type->e->tuple)
+    return;
   for(m_uint i = 0; i < vector_size(&type->e->tuple->types); ++i) {
     const Type t = (Type)vector_at(&type->e->tuple->types, i);
     if(isa(t, emit->gwion->type[et_object]) > 0) {
@@ -1320,6 +1322,8 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 
 ANN static void struct_addref(const Emitter emit, const Type type,
     const m_int size, const m_bool offset, const m_bool emit_var) {
+  if(!type->e->tuple)
+    return;
   for(m_uint i = 0; i < vector_size(&type->e->tuple->types); ++i) {
     const Type t = (Type)vector_at(&type->e->tuple->types, i);
     if(isa(t, emit->gwion->type[et_object]) > 0) {
