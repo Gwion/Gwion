@@ -36,9 +36,9 @@ for(int i; i < 3; ++i) {
 #### Simple auto loop
 @``` forloop4.gw
 int array[2][3];
-for(auto a: array) {
+foreach(a: array) {
   <<< a >>>;
-  for(auto b: a)
+  foreach(b: a)
     <<< b >>>;
 }
 @```  
@@ -50,12 +50,12 @@ If you want to change it the value in the array, you need a pointer
 @``` forloop5.gw
 int array[2][3];
 int i;
-for(auto a: array) {
-  for(auto ref b: a)
+foreach(a: array) {
+  foreach(ref b: a)
     <<< ++i => *b >>>;
 }
-for(auto a: array) {
-  for(auto ref b: a)
+foreach(a: array) {
+  foreach(ref b: a)
     <<< *b >>>;
 }
 @```  
