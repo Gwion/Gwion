@@ -2,7 +2,7 @@
 #define __UGEN
 typedef struct UGen_      * UGen;
 typedef void (*f_tick)(const UGen ug) ANN;
-typedef void (*f_ugop)(const UGen, const m_float) ANN;
+//typedef void (*f_ugop)(const UGen, const m_float) ANN;
 
 struct ugen_net_ {
   struct Vector_ from;
@@ -25,7 +25,6 @@ struct ugen_gen {
 
 struct UGen_ {
   f_tick compute;
-  f_ugop op;
   union {
     struct ugen_net_ *net;
     struct ugen_multi_* multi;
@@ -35,6 +34,7 @@ struct UGen_ {
     UGen ref;
   } module;
   m_float in, out;
+  uint op;
   uint multi;
   uint done;
 };
