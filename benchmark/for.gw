@@ -4,7 +4,7 @@ for (int i; i < 1000000; ++i)
  list << i;
 
 int sum;
-for(auto i : list)
+foreach(i : list)
   i +=> sum;
 
 <<< sum >>>;
