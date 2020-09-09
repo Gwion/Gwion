@@ -256,7 +256,7 @@ static MFUN(ugen_channel) {
 }
 
 static MFUN(ugen_get_op) {
-  *(m_uint*)RETURN = UGEN(o)->op;
+  *(m_uint*)RETURN = UGEN(o)->op + 1;
 }
 
 ANN static void set_op(const UGen u, const uint f) {
@@ -271,7 +271,7 @@ static MFUN(ugen_set_op) {
   const m_int i = *(m_int*)MEM(SZ_INT);
   if(i >= 1 && i <= 4)
     set_op(UGEN(o), i-1);
-  *(m_int*)RETURN = i;
+  *(m_int*)RETURN = UGEN(o)->op + 1;
 }
 
 static MFUN(ugen_get_last) {
