@@ -56,7 +56,7 @@ static GACK(gack_float) {
 }
 
 static GACK(gack_compound) {
-  INTERP_PRINTF("%p", VALUE);
+  INTERP_PRINTF("%p", *(void**)VALUE);
 }
 #define mk_class_instr(op, arg0, arg1, ...)                          \
 static INSTR(instr_class_##op) {                                     \
