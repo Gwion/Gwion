@@ -288,18 +288,30 @@ static OP_EMIT(opem_fptr_impl) {
 
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
+ANN static void fork_exp(const Env env, const Exp_Unary* unary) {
+  const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp);
+  const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
+  const Stmt code = new_stmt_code(env->gwion->mp, list);
+  ((Exp_Unary*)unary)->exp = NULL;
+  ((Exp_Unary*)unary)->code = code;
+}
+
+ANN static Type fork_type(const Env env, const Exp_Unary* unary) {
+  const Type t = unary->exp->info->type;
+  fork_exp(env, unary);
+  if(t == env->gwion->type[et_void])
+    return env->gwion->type[et_fork];
+  Type_Decl td0 = { .xid=insert_symbol(t->name), .pos=exp_self(unary)->pos };
+  struct Type_List_ tl = { .td=&td0 };
+  Type_Decl td = { .xid=insert_symbol("TypedFork"), .types=&tl, .pos=exp_self(unary)->pos };
+  return known_type(env, &td);
+}
+
 static OP_CHECK(opck_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   if(unary->exp && unary->exp->exp_type == ae_exp_call) {
     const m_bool is_spork = unary->op == insert_symbol("spork");
-    if(!is_spork) {
-      const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp);
-      const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
-      const Stmt code = new_stmt_code(env->gwion->mp, list);
-      ((Exp_Unary*)unary)->exp = NULL;
-      ((Exp_Unary*)unary)->code = code;
-    }
-    return env->gwion->type[is_spork ? et_shred : et_fork];
+    return is_spork ? env->gwion->type[et_shred] : fork_type(env, unary);
   }
   if(unary->code) {
     ++env->scope->depth;

@@ -13,13 +13,12 @@
 #include "specialid.h"
 #include "gwi.h"
 
-static m_int o_fork_thread, o_fork_cond, o_fork_mutex, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize, o_fork_ptr;
+static m_int o_fork_thread, o_fork_cond, o_fork_mutex, o_shred_cancel, o_fork_done, o_fork_ev, o_fork_retsize;
 
 #define FORK_THREAD(o) *(THREAD_TYPE*)(o->data + o_fork_thread)
 #define FORK_COND(o) *(THREAD_COND_TYPE*)(o->data + o_fork_cond)
 #define FORK_MUTEX(o) *(MUTEX_TYPE*)(o->data + o_fork_mutex)
 #define FORK_RETSIZE(o) *(m_int*)(o->data + o_fork_retsize)
-#define FORK_PTR(o) *(m_uint**)(o->data + o_fork_ptr)
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
@@ -199,7 +198,6 @@ static DTOR(fork_dtor) {
     vector_init(&parent->gwion->data->child2);
   vector_add(&parent->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
   REM_REF(ME(o)->code, ME(o)->info->vm->gwion);
-  mp_free2(shred->info->vm->gwion->mp, FORK_RETSIZE(o), FORK_PTR(o));
   MUTEX_UNLOCK(parent->shreduler->mutex);
 }
 
@@ -263,7 +261,7 @@ struct ThreadLauncher *tl = data;
     vm_run(vm);
     ++vm->bbq->pos;
   }
-  memcpy(FORK_PTR(me), ME(me)->reg, FORK_RETSIZE(me));
+  memcpy(me->data + vm->gwion->type[et_fork]->nspc->info->offset, *(m_bit**)ME(me)->reg, FORK_RETSIZE(me));
   gwion_end_child(ME(me), vm->gwion);
   MUTEX_LOCK(vm->parent->shreduler->mutex);
   *(m_int*)(me->data + o_fork_done) = 1;
@@ -275,7 +273,6 @@ struct ThreadLauncher *tl = data;
 
 ANN void fork_launch(const M_Object o, const m_uint sz) {
   FORK_RETSIZE(o) = sz;
-  FORK_PTR(o) = mp_calloc2(ME(o)->info->vm->gwion->mp, sz);
   MUTEX_SETUP(FORK_MUTEX(o));
   THREAD_COND_SETUP(FORK_COND(o));
   struct ThreadLauncher tl = { .mutex=FORK_MUTEX(o), .cond=FORK_COND(o), .vm=ME(o)->info->vm };
@@ -399,13 +396,18 @@ GWION_IMPORT(shred) {
   GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_item_ini(gwi, "int", "retsize");
   GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, NULL)))
-  gwi_item_ini(gwi, "@internal", "@ptr");
-  GWI_BB((o_fork_ptr = gwi_item_end(gwi, ae_flag_const, NULL)))
   gwi_func_ini(gwi, "void", "join");
   GWI_BB(gwi_func_end(gwi, fork_join, ae_flag_none))
   gwi_func_ini(gwi, "void", "test_cancel");
   GWI_BB(gwi_func_end(gwi, fork_test_cancel, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
+
+  const Type t_typed = gwi_class_ini(gwi,  "<~A~>TypedFork", "Fork");
+  gwi_item_ini(gwi, "A", "retval");
+  GWI_BB((gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB(gwi_class_end(gwi))
+  SET_FLAG((t_typed), abstract);
+
   return GW_OK;
 }

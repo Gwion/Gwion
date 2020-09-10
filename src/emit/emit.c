@@ -1245,7 +1245,7 @@ ANN static Instr spork_ini(const Emitter emit, const struct Sporker *sp) {
   const Func f = !sp->code ? sp->exp->d.exp_call.m_func : NULL;
   const Instr instr = emit_add_instr(emit, ForkIni);
   instr->m_val = (m_uint)sp->vm_code;
-  instr->m_val2 = f ? f->def->base->ret_type->size : 0;
+  instr->m_val2 = f ? sp->type->size : 0;
   return instr;
 }
 
