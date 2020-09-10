@@ -315,11 +315,7 @@ static OP_CHECK(opck_spork) {
 
 static OP_EMIT(opem_spork) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  const Env env = emit->env;
-  const Instr ret = emit_exp_spork(emit, unary);
-  if(unary->op == insert_symbol("fork"))
-    emit_add_instr(emit, GcAdd);
-  return ret;
+  return emit_exp_spork(emit, unary);
 }
 
 static FREEARG(freearg_xork) {

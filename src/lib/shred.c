@@ -28,16 +28,33 @@ VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   return sh;
 }
 
-M_Object new_shred(const VM_Shred shred, m_bool is_spork) {
+M_Object new_shred(const VM_Shred shred) {
   const M_Object obj = new_object(shred->info->mp, NULL,
-    shred->info->vm->gwion->type[is_spork ? et_shred :et_fork]);
+    shred->info->vm->gwion->type[et_shred]);
   ME(obj) = shred;
-  if(!is_spork) {
-    *(M_Object*)(obj->data + o_fork_ev) = new_object(shred->info->mp, NULL, shred->info->vm->gwion->type[et_event]);
-    EV_SHREDS(*(M_Object*)(obj->data + o_fork_ev)) = new_vector(shred->info->mp);
-  }
   return obj;
 }
+
+ANN static inline M_Object fork_object(const VM_Shred shred, const Type t) {
+  const Gwion gwion = shred->info->vm->gwion;
+  const M_Object o = new_object(gwion->mp, shred, t);
+  *(M_Object*)(o->data + o_fork_ev) = new_object(gwion->mp, NULL, gwion->type[et_event]);
+  EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)) = new_vector(gwion->mp);
+  return o;
+}
+
+ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
+  VM* parent = shred->info->vm;
+  const VM_Shred sh = new_shred_base(shred, code);
+  VM* vm = (sh->info->vm = gwion_cpy(parent));
+  vm->parent = parent;
+  const M_Object o = sh->info->me = fork_object(shred, t);
+  ME(o) = sh;
+  ++o->ref;
+  shreduler_add(vm->shreduler, sh);
+  return o;
+}
+
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
@@ -296,7 +313,6 @@ ANN void fork_clean(const VM_Shred shred, const Vector v) {
 GWION_IMPORT(shred) {
   const Type t_shred = gwi_class_ini(gwi,  "Shred", NULL);
   gwi_class_xtor(gwi, NULL, shred_dtor);
-  gwi->gwion->type[et_shred] = t_shred;
 
   gwi_item_ini(gwi, "@internal", "@me");
   GWI_BB(gwi_item_end(gwi, ae_flag_const, NULL))
@@ -360,6 +376,7 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "float", "get_now");
   GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
+  gwi_set_global_type(gwi, t_shred, et_shred);
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);

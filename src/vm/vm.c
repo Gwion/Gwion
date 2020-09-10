@@ -62,13 +62,13 @@ ANN void free_vm(VM* vm) {
 
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred) {
   shred->info->vm = (VM*)vm;
-  shred->info->me = new_shred(shred, 1);
+  shred->info->me = new_shred(shred);
   shreduler_add(vm->shreduler, shred);
 }
 
 ANN void vm_ini_shred(const VM* vm, const VM_Shred shred) {
   shred->info->vm = (VM*)vm;
-  shred->info->me = new_shred(shred, 1);
+  shred->info->me = new_shred(shred);
   shreduler_ini(vm->shreduler, shred);
 }
 
@@ -132,19 +132,15 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
   return sh;
 }
 
-ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, const m_uint retsz) {
-  VM* parent = shred->info->vm;
-  const VM_Shred sh = new_shred_base(shred, code);
-  VM* vm = (sh->info->vm = gwion_cpy(parent));
-  vm->parent = parent;
-  const M_Object o = sh->info->me = new_shred(sh, 0);
-  ++sh->info->me->ref;
-  if(!parent->gwion->data->child.ptr)
-    vector_init(&parent->gwion->data->child);
-  vector_add(&parent->gwion->data->child, (vtype)o);
-  shreduler_add(vm->shreduler, sh);
-  fork_launch(sh->info->me, retsz);
-  return sh;
+ANN M_Object new_fork(const VM_Shred, const VM_Code code, const Type);
+ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, const Type t, const m_uint retsz) {
+  const M_Object o = new_fork(shred, code, t);
+  VM* vm = shred->info->vm;
+  if(!vm->gwion->data->child.ptr)
+    vector_init(&vm->gwion->data->child);
+  vector_add(&vm->gwion->data->child, (vtype)o);
+  fork_launch(o, retsz);
+  return ME(o);
 }
 
 #define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; exception(shred, "ZeroDivideException"); break; }
@@ -669,7 +665,8 @@ sporkini:
   child = init_spork_shred(shred, (VM_Code)VAL);
   DISPATCH()
 forkini:
-  child = init_fork_shred(shred, (VM_Code)VAL, VAL2),
+  reg -= SZ_INT;
+  child = init_fork_shred(shred, (VM_Code)VAL, *(Type*)reg, VAL2),
   DISPATCH()
 sporkfunc:
 //  LOOP_OPTIM

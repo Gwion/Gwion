@@ -1179,6 +1179,7 @@ struct Sporker {
   const Stmt code;
   const Exp  exp;
   VM_Code vm_code;
+  const Type type;
   const m_bool emit_var;
   const m_bool is_spork;
 };
@@ -1240,6 +1241,7 @@ ANN static Instr spork_ini(const Emitter emit, const struct Sporker *sp) {
     instr->m_val2 = sp->is_spork;
     return instr;
   }
+  regpushi(emit, (m_uint)sp->type);
   const Func f = !sp->code ? sp->exp->d.exp_call.m_func : NULL;
   const Instr instr = emit_add_instr(emit, ForkIni);
   instr->m_val = (m_uint)sp->vm_code;
@@ -1251,6 +1253,7 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   struct Sporker sporker = {
     .exp=unary->exp,
     .code=unary->code,
+    .type=exp_self(unary)->info->type,
     .is_spork=(unary->op == insert_symbol("spork")),
     .emit_var=exp_getvar(exp_self(unary))
   };
