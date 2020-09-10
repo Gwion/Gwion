@@ -84,17 +84,17 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
-ANN Type check_td(const Env env, Type_Decl *td) {
-  CHECK_BO(scan1_exp(env, td->exp))
-  CHECK_BO(scan2_exp(env, td->exp))
-  CHECK_OO(check_exp(env, td->exp))
+ANN static inline m_bool check_td_exp(const Env env, Type_Decl *td) {
+  RET_NSPC(traverse_exp(env, td->exp))
+}
+
+ANN static Type check_td(const Env env, Type_Decl *td) {
+  CHECK_BO(check_td_exp(env, td))
   const Type t = actual_type(env->gwion, td->exp->info->type);
   assert(t);
   if(GET_FLAG(t, template) && !GET_FLAG(t, ref))
     ERR_O(td_pos(td), _("type '%s' needs template types"), t->name)
-  td->xid = insert_symbol("@resolved");
-  if(t->array_depth)
-    SET_FLAG(td, force);
+  td->xid = insert_symbol("auto");
   return t;
 }
 
