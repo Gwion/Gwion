@@ -325,7 +325,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
-    &&setobj, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+    &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&dotfunc, &&dotstaticfunc,
     &&gcini, &&gcadd, &&gcend,
@@ -680,9 +680,9 @@ PRAGMA_PUSH()
   DISPATCH()
 PRAGMA_POP()
 sporkmemberfptr:
-  for(m_uint i = 0; i < VAL; i+= SZ_INT)
+  for(m_uint i = SZ_INT; i < VAL; i+= SZ_INT)
     *(m_uint*)(child->reg + i) = *(m_uint*)(reg - VAL + i);
-  *(M_Object*)(child->reg + VAL) = a.obj;
+  *(M_Object*)(child->reg + VAL) = *(M_Object*)(reg + VAL + SZ_INT);
   *(m_uint*)(child->reg + VAL + SZ_INT) = *(m_uint*)(reg + VAL - SZ_INT*2);
   child->reg += VAL + SZ_INT*2;
   DISPATCH()
@@ -727,7 +727,8 @@ arraytop:
     goto _goto;
 arrayaccess:
 {
-  register const m_int idx = *(m_int*)(reg + SZ_INT * VAL);
+  register const m_int idx = *(m_int*)(reg + VAL);
+  a.obj = *(M_Object*)(reg-VAL2);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
@@ -738,10 +739,10 @@ arrayaccess:
   DISPATCH()
 }
 arrayget:
-  m_vector_get(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * VAL), (reg + (m_int)VAL2));
+  m_vector_get(ARRAY(a.obj), *(m_int*)(reg + VAL), (reg + (m_int)VAL2));
   DISPATCH()
 arrayaddr:
-  *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + SZ_INT * VAL));
+  *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + VAL));
   DISPATCH()
 arrayvalid:
 // are we sure it is the array ?
@@ -753,20 +754,27 @@ newobj:
   reg += SZ_INT;
   DISPATCH()
 addref:
-  a.obj = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
-  goto addrefcommon;
+  {
+    const M_Object o = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
+    if(o)
+      ++o->ref;
+  }
+  DISPATCH()
 addrefaddr:
-  a.obj = *(*(M_Object**)(reg+(m_int)VAL) + (m_int)VAL2);
-addrefcommon:
-  if(a.obj)
-    ++a.obj->ref;
+  {
+    const M_Object o = *(*(M_Object**)(reg+(m_int)VAL) + (m_int)VAL2);
+    if(o)
+      ++o->ref;
+  }
   DISPATCH()
 objassign:
-  a.obj = **(M_Object**)(reg -SZ_INT);
-  if(a.obj) {
-    --a.obj->ref;
-    _release(a.obj, shred);
+{
+  const M_Object o = **(M_Object**)(reg -SZ_INT);
+  if(o) {
+    --o->ref;
+    _release(o, shred);
   }
+}
 assign:
   reg -= SZ_INT;
   **(M_Object**)reg = *(M_Object*)(reg-SZ_INT);
@@ -774,43 +782,39 @@ assign:
 remref:
   release(*(M_Object*)(mem + VAL), shred);
   DISPATCH()
-setobj:
-  a.obj  = *(M_Object*)(reg-SZ_INT-(m_int)VAL);
-  DISPATCH();
 except:
 /* TODO: Refactor except instruction             *
  * so that                                       *
  *  VAL = offset (no default SZ_INT)             *
  *  VAL2 = error message                         *
  * grep for GWOP_EXCEPT and Except, exception... */
-  if(!(a.obj  = *(M_Object*)(reg-SZ_INT-VAL))) {
+  if(!*(M_Object*)(reg-SZ_INT-VAL)) {
     shred->pc = PC;
     exception(shred, "NullPtrException");
     continue;
   }
   DISPATCH();
 allocmemberaddr:
-  a.obj = *(M_Object*)mem;
-  *(m_bit**)reg = a.obj->data + VAL;
+  *(m_bit**)reg = (*(M_Object*)mem)->data + VAL;
   reg += SZ_INT;
   DISPATCH()
 dotmember:
-  *(m_uint*)(reg-SZ_INT) = *(m_uint*)(a.obj->data + VAL);
+  *(m_uint*)(reg-SZ_INT) = *(m_uint*)((*(M_Object*)(reg-SZ_INT))->data + VAL);
   DISPATCH()
 dotfloat:
-  *(m_float*)(reg-SZ_INT) = *(m_float*)(a.obj->data + VAL);
+  *(m_float*)(reg-SZ_INT) = *(m_float*)((*(M_Object*)(reg-SZ_INT))->data + VAL);
   reg += SZ_FLOAT - SZ_INT;
   DISPATCH()
 dotother:
 //  LOOP_OPTIM
 PRAGMA_PUSH()
   for(m_uint i = 0; i <= VAL2; i += SZ_INT)
-    *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)((a.obj->data + VAL) + i);
+    *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)(((*(M_Object*)(reg-SZ_INT))->data + VAL) + i);
 PRAGMA_POP()
   reg += VAL2 - SZ_INT;
   DISPATCH()
 dotaddr:
-  *(m_bit**)(reg-SZ_INT) = (a.obj->data + VAL);
+  *(m_bit**)(reg-SZ_INT) = ((*(M_Object*)(reg-SZ_INT))->data + VAL);
   DISPATCH()
 staticint:
   *(m_uint*)reg = *(m_uint*)VAL;
@@ -828,11 +832,11 @@ staticother:
   reg += VAL2;
   DISPATCH()
 dotfunc:
-  assert(a.obj);
   reg += SZ_INT;
+  VAL2 = SZ_INT;
 dotstaticfunc:
 PRAGMA_PUSH()
-  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at(a.obj->vtable, VAL))->code;
+  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT-VAL2))->vtable, VAL))->code;
 PRAGMA_POP()
   DISPATCH()
 gcini:
@@ -842,16 +846,19 @@ gcadd:
   vector_add(&shred->gc, *(vtype*)(reg-SZ_INT));
   DISPATCH();
 gcend:
-  while((a.obj = (M_Object)vector_pop(&shred->gc)))
-    _release(a.obj, shred);
+{
+  M_Object o;
+  while((o = (M_Object)vector_pop(&shred->gc)))
+    _release(o, shred);
+}
   DISPATCH()
 gacktype:
 {
   const M_Object o = *(M_Object*)(reg - SZ_INT);
   if(o)
     *(Type*)reg = o->type_ref;
-  DISPATCH()
 }
+  DISPATCH()
 gackend:
 {
   m_str str = *(m_str*)(reg - SZ_INT);

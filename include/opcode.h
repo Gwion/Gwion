@@ -156,7 +156,6 @@ enum {
   eObjectAssign,
   eAssign,
   eObjectRelease,
-  eSetObj,
   eGWOP_EXCEPT,
   eAllocMember4,
   eDotMember,
@@ -335,7 +334,6 @@ enum {
 #define  ObjectAssign        (f_instr)eObjectAssign
 #define  Assign              (f_instr)eAssign
 #define  ObjectRelease       (f_instr)eObjectRelease
-#define  SetObj              (f_instr)eSetObj
 #define  GWOP_EXCEPT         (f_instr)eGWOP_EXCEPT
 #define  AllocMember4        (f_instr)eAllocMember4
 #define  DotMember           (f_instr)eDotMember

@@ -272,22 +272,23 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
   emit_add_instr(emit, GWOP_EXCEPT);
   for(m_uint i = 0; i < depth - 1; ++i) {
     const Instr access = emit_add_instr(emit, ArrayAccess);
-    access->m_val = i;
+    access->m_val = i * SZ_INT;
+    access->m_val2 = !i ? SZ_INT : 0;
     const Instr get = emit_add_instr(emit, ArrayGet);
-    get->m_val = i;
+    get->m_val = i * SZ_INT;
     get->m_val2 = -SZ_INT;
     emit_add_instr(emit, GWOP_EXCEPT);
   }
   const Instr post_pop = emit_add_instr(emit, RegPop);
   post_pop->m_val = SZ_INT;
   const Instr access = emit_add_instr(emit, ArrayAccess);
-  access->m_val = depth;
+  access->m_val = depth * SZ_INT;
 }
 
 ANN static void array_finish(const Emitter emit, const m_uint depth,
 		const m_uint size, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
-  get->m_val = depth;
+  get->m_val = depth * SZ_INT;
   const Instr push = emit_add_instr(emit, ArrayValid);
   push->m_val = is_var ? SZ_INT : size;
 }

@@ -1097,8 +1097,9 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
     m_bit exec = back->opcode;
     m_uint val = back->m_val;
     m_uint val2 = back->m_val2;
-    back->opcode = eRegPushMem;
-    back->m_val = back->m_val2 = 0;
+    back->opcode = eReg2Reg;
+    back->m_val2 = -SZ_INT;
+    regpush(emit, SZ_INT);
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
     instr->m_val2 = val2;
@@ -1214,6 +1215,15 @@ ANN void spork_code(const Emitter emit, const struct Sporker *sp) {
 ANN void spork_func(const Emitter emit, const struct Sporker *sp) {
   const Func f = sp->exp->d.exp_call.m_func;
   if(GET_FLAG(f, member) && is_fptr(emit->gwion, f->value_ref->type)) {
+    regpush(emit, SZ_INT*2);
+    // (re-)emit owner
+    if(sp->exp->d.exp_call.func->exp_type == ae_exp_dot)
+      emit_exp(emit, sp->exp->d.exp_call.func->d.exp_dot.base);
+    else {
+      assert(sp->exp->d.exp_call.func->exp_type == ae_exp_primary);
+      emit_add_instr(emit, RegPushMem);
+    }
+    regpop(emit, SZ_INT*3);
     const m_uint depth = f->def->stack_depth;
     regpop(emit, depth -SZ_INT);
     const Instr spork = emit_add_instr(emit, SporkMemberFptr);
@@ -1470,7 +1480,6 @@ ANN static m_bool emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt) {
 ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, const m_uint status) {
   regpushi(emit, status);
   CHECK_BB(emit_exp(emit, stmt->exp))
-  emit_add_instr(emit, SetObj);
   const Instr member = emit_add_instr(emit, DotMember4);
   member->m_val = SZ_INT;
   emit_add_instr(emit, int_r_assign);

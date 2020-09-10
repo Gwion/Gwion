@@ -47,6 +47,7 @@ ANN m_uint emit_local(const Emitter emit, const Type t);
 ANN Instr emit_exp_spork(const Emitter, const Exp_Unary*);
 ANN m_bool emit_exp(const Emitter, const Exp);
 ANN static inline void emit_except(const Emitter emit, const Type t) {
-  emit_add_instr(emit, !GET_FLAG(t, nonnull) ? GWOP_EXCEPT : SetObj);
+  if(!GET_FLAG(t, nonnull))
+    emit_add_instr(emit, GWOP_EXCEPT);
 }
 #endif
