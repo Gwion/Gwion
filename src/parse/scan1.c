@@ -61,6 +61,8 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
 }
 
 static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
+  if(var->value) // from a `typeof` declaration
+    return GW_OK;
   if(((!env->class_def || env->scope->depth) ? nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
     ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
@@ -88,7 +90,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       else
         ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
     }
-    const Value v = var->value = new_value(env->gwion->mp, t, s_name(var->xid));
+    const Value v = var->value = var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
     if(SAFE_FLAG(env->class_def, struct) && !GET_FLAG(decl->td, static)) {
       v->from->offset = env->class_def->size;
       env->class_def->size += t->size;
