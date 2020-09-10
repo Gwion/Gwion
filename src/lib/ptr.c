@@ -57,7 +57,7 @@ static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   if(!cast->td->types || !cast->td->types->td)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
-  DECL_ON(const Type, t, = known_type(env, cast->td)) // was type_decl_resolve
+  DECL_ON(const Type, t, = known_type(env, cast->td))
   const Type _t = get_type(t);
   if(_t->e->def && !GET_FLAG(_t, check))
     CHECK_BN(ensure_traverse(env, _t))

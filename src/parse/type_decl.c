@@ -6,7 +6,7 @@
 #include "parse.h"
 
 
-ANN Type type_decl_resolve(const Env env, Type_Decl* td) {
+ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td))
   if(base->e->ctx && base->e->ctx->error)
     ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
@@ -52,5 +52,5 @@ ANN static inline void* type_unknown(const Env env, const Type_Decl* td) {
 ANN Type known_type(const Env env, Type_Decl* td) {
   if(!td->xid)
     return env->gwion->type[et_undefined];
-  return type_decl_resolve(env, td) ?:type_unknown(env, td);
+  return resolve(env, td) ?:type_unknown(env, td);
 }

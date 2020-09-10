@@ -35,8 +35,6 @@ ANN static inline m_uint env_push_global(const Env env) { return env_push(env, N
 ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
 ANN Type scan_type(const Env, const Type, Type_Decl*);
-//ANN Type type_decl_resolve(const Env, const Type_Decl*);
-ANN Type type_decl_resolve(const Env, Type_Decl*);
 ANN Value mk_class(const Env env, const Type base);
 // tl2str returns a mp_alloced string
 ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
