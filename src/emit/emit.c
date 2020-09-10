@@ -732,8 +732,6 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, r, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, decl, list->self, r, var))
-    if(GET_FLAG(list->self->value->type, nonnull))
-      emit_add_instr(emit, GWOP_EXCEPT);
   } while((list = list->next));
   return GW_OK;
 }
