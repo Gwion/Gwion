@@ -438,14 +438,18 @@ ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr)
 }
 
 GWION_IMPORT(object_op) {
-  const Type t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, "Object");
+  const Type t_null  = gwi_mk_type(gwi, "@null",  SZ_INT, NULL);
   gwi->gwion->type[et_null] = t_null;
   GWI_BB(gwi_set_global_type(gwi, t_null, et_null))
   GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_emi(gwi, opem_at_object))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", NULL))
+  GWI_BB(gwi_oper_add(gwi, at_object))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_object))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
   GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
@@ -455,9 +459,13 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
   GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@null", "Object", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
