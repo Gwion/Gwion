@@ -22,7 +22,7 @@ ANN static Type specialtype_create(const Env env, const SpecialType *s) {
     ADD_REF(t->nspc)
   t->name = s_name(s->name);
   t->flag = s->type->flag | s->flag;
-  t->e->parent = s->type;
+  t->e->parent = unflag_type(s->type);
   nspc_add_type_front(s->type->e->owner, s->name, t);
   mk_class(env, t);
   return t;
@@ -59,4 +59,3 @@ ANN Type special_type(const Env env, const Type t, const uint st_type) {
   return nspc_lookup_type1(t->e->owner, s.name) ?:
     specialtype_create(env, &s);
 }
-

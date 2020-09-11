@@ -25,15 +25,15 @@ ANN static Type _get_type(const Gwi gwi, const m_str s) {
   return t;
 }
 
-ANN2(1) static inline Type get_type(const Gwi gwi, const m_str str) {
+ANN2(1) static inline Type gwi_get_type(const Gwi gwi, const m_str str) {
   return str ? _get_type(gwi, str) : NULL;
 }
 
 ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
     const f_instr f) {
-  const Type lhs = get_type(gwi, op->lhs),
-             rhs = get_type(gwi, op->rhs),
-             ret = get_type(gwi, op->ret);
+  const Type lhs = gwi_get_type(gwi, op->lhs),
+             rhs = gwi_get_type(gwi, op->rhs),
+             ret = gwi_get_type(gwi, op->ret);
   const struct Op_Func opfunc = { .ck=op->ck, .em=op->em };
   const struct Op_Import opi = { .lhs=lhs, .rhs=rhs, .ret=ret,
     .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=op->sym };

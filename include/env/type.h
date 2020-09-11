@@ -54,6 +54,14 @@ ANN static inline Type get_gack(Type t) {
   return t; // unreachable
 }
 
+__attribute__((returns_nonnull))
+ANN Type unflag_type(const Type t);
+__attribute__((returns_nonnull))
+ANN Type get_type(const Type t);
+ANN static inline int is_special(const Type t) {
+  return GET_FLAG(t, nonnull) || GET_FLAG(t, force);
+}
+
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_null, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,

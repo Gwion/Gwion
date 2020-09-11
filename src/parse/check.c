@@ -88,7 +88,7 @@ ANN static inline m_bool check_td_exp(const Env env, Type_Decl *td) {
   RET_NSPC(traverse_exp(env, td->exp))
 }
 
-ANN static Type check_td(const Env env, Type_Decl *td) {
+ANN Type check_td(const Env env, Type_Decl *td) {
   CHECK_BO(check_td_exp(env, td))
   const Type t = actual_type(env->gwion, td->exp->info->type);
   assert(t);

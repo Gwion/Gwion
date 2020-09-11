@@ -166,7 +166,7 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
 
 ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
-  if(!GET_FLAG(t, nonnull) && GET_FLAG(t, ctor))
+  if(!is_special(t) && GET_FLAG(t, ctor))
     emit_ext_ctor(emit, t);
 }
 
@@ -891,12 +891,6 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   return op_emit_bool(emit, &opi);
 }
 
-ANN static inline m_bool is_special(const Emitter emit, const Type t) {
-  return isa(t, emit->gwion->type[et_object]) < 0 &&
-         isa(t, emit->gwion->type[et_class]) < 0  ?
-    GW_OK : GW_ERROR;
-}
-
 ANN static inline m_bool traverse_emit_func_def(const Emitter emit, const Func_Def fdef) {
   if(!fdef->base->ret_type)
     CHECK_BB(traverse_func_def(emit->env, fdef))
@@ -1080,7 +1074,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
         instr->m_val2 = -SZ_INT;
       }
     }
-  } else if((f->value_ref->from->owner_class && is_special(emit, f->value_ref->from->owner_class) > 0) ||
+  } else if((f->value_ref->from->owner_class && GET_FLAG(f->value_ref->from->owner_class, struct)) ||
         !f->value_ref->from->owner_class || (GET_FLAG(f, template) &&
         !is_fptr(emit->gwion, f->value_ref->type)))
     push_func_code(emit, f);

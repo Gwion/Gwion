@@ -74,10 +74,18 @@ OP_CHECK(opck_post) {
   return post->exp->info->type;
 }
 
+ANN Type check_td(const Env env, Type_Decl *td);
+ANN static inline Type check_new_td(const Env env, Type_Decl *td) {
+  if(!td->exp)
+    return known_type(env, td);
+  DECL_OO(const Type, t, = check_exp(env, td->exp))
+  return actual_type(env->gwion, t);
+}
+
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   SET_FLAG(unary->td, ref);
-  DECL_ON(const Type, t, = known_type(env, unary->td))
+  DECL_ON(const Type, t, = check_new_td(env, unary->td))
   if(isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
   if(type_ref(t))
