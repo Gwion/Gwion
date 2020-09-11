@@ -2,4 +2,4 @@
 class C{
   class private D{}
 }
-int->D d;
+var int.D d;

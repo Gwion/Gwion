@@ -1,6 +1,6 @@
 class C
 {
-   float f;
+   var float f;
 }
 
 operator => float   (C       c, C d){ <<< "float   => C: ", c.f => d.f >>>; return 2.0;}
@@ -10,19 +10,17 @@ operator => float   (float   f, C d){ <<< "float   => C: ", f     => d.f >>>; re
 operator => float   (C d, int     c){ <<< "int   => C: ", c => d.f >>>; return 2.0;}
 operator => float   (C d,  float   f){ <<< "C   => float: ", f     => d.f >>>; return 2.0;}
 
-C c, d;
+var C c, d;
 
 12.3 => c.f;
 <<<  c                     => d  >>>;
 <<<  2                     => d  >>>;
 <<<  2.3                   => d  >>>;
 
-int i;
-2 => float f;
-complex cmp;
+var int i;
+2 => var float f;
 <<< f >>>;
 c => i;
 <<< c.f >>>;
 <<< f >>>;
 c => f;
-c => cmp;

@@ -1,2 +1,2 @@
 #! [contains] NegativeArraySize
-int i[2][-1];
+var int i[2][-1];

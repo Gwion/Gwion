@@ -1,6 +1,6 @@
 <<< "test builtin variadic fun" >>>;
-Variadic v;
-"iiii" => string format;
+var Variadic v;
+"iiii" => var string format;
 <<< v, " ", format $ Object >>>;
 v.member(format, 1,2,3,4);
 v.member(format, 1,2,3,4);

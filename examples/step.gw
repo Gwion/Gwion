@@ -1,4 +1,4 @@
-Step step => dac;
+var Step step => dac;
 .1 => step.next;
 samp => now;
 <<<step.next()>>>;

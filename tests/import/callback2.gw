@@ -1,6 +1,6 @@
 fun int test(int i) { <<< "test with arg ", i >>>; }
 
-PtrTypeI p;
+var PtrTypeI p;
 test @=> p;
 <<< test >>>;
 <<< p >>>;

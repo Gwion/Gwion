@@ -1,5 +1,5 @@
 fun void test(...) {
-	Object o;
+	var Object o;
 	vararg.start;
 	vararg $ Object @=> o;
 	vararg.end;

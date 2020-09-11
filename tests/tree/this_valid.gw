@@ -5,5 +5,5 @@ class C
   }
 }
 
-C c;
+var C c;
 c.test();

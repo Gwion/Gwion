@@ -1,6 +1,6 @@
 typedef int[2] test;
-test var;
+var test vv;
 <<< int >>>;
 <<< test >>>;
-<<< var >>>;
-<<< var $ int[] >>>;
+<<< v >>>;
+<<< v $ int[] >>>;

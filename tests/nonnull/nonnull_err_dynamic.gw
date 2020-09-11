@@ -1,5 +1,5 @@
 #! [contains} NullPtrException
-fun void test(Object nonnull o) {
+fun void test(nonnull Object o) {
   <<< o >>>;
 }
-Object ref ref => test;
+ref Object o => test;

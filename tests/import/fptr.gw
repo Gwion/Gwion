@@ -1,5 +1,5 @@
 fun void test(){ <<< "test" >>>; }
-PtrType ptr;
+var PtrType ptr;
 test();
 test @=> ptr;
 ptr();
@@ -7,7 +7,7 @@ ptr();
 
 FuncTypedef.test_func();
 <<< FuncTypedef.test_func @=> FuncTypedef.ptr >>>;
-<FuncTypedef.PtrType> _ptr;
+var FuncTypedef.PtrType _ptr;
 <<< FuncTypedef.ptr >>>;
 FuncTypedef.ptr();
 

@@ -3,5 +3,5 @@ fun void test(int i){}
 fun void test(float f){}
 
 typedef void Test();
-Test t;
+var Test t;
 test @=> t;

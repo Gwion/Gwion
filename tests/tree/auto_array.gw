@@ -1,4 +1,4 @@
-int i[2][2];
+var int i[2][2];
 foreach(ref a : i)
    <<< a >>>;
 <<< i >>>;

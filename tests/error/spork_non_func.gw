@@ -1,4 +1,4 @@
 #! [contains] only function calls can be sporked
-int i;
+var int i;
 <<< i >>>;
 spork i;

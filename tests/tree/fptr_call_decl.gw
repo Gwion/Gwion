@@ -1,2 +1,2 @@
 typedef void test(int);
-(test t)(2);
+(var test t)(2);

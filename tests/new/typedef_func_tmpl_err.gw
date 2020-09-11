@@ -1,6 +1,6 @@
 typedef void t_ptr<~A~>();
 
-t_ptr ptr;
+var t_ptr ptr;
 
 fun void test<~A~>() {
   <<< __func_ >>>;
@@ -8,9 +8,3 @@ fun void test<~A~>() {
 
 test @=> ptr;
 ptr<~int~>();
-
-
-#!typedef <~int~>t_ptr B;
-#!B B;
-#!<<<b>>>;
-#!<<< B<~int~>() >>>;

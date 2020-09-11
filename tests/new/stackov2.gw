@@ -1,5 +1,4 @@
 fun void launch(int i) {
 <<< " launch ", i >>>;
 }
-#!spork launch(2);
 me.yield();

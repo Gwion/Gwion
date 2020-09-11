@@ -1,7 +1,7 @@
 typedef void t_ptr<~A~>();
 
-<~int~>t_ptr iptr;
-<~float~>t_ptr fptr;
+var <~int~>t_ptr iptr;
+var <~float~>t_ptr fptr;
 
 fun void test<~A~>() {
   <<< __func__ >>>;

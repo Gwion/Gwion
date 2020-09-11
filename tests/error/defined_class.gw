@@ -1,3 +1,3 @@
 #! [contains] already defined
- class C{}
+class C{}
 class C{}

@@ -1,20 +1,15 @@
 class C {
-typedef void ptr_t(int i);
-\a { <<< this, " ", a >>>; } @=> ptr_t ptr;
-#!ptr(3);
-fun void t1(int i) { <<< this, " t1 ", i >>>; }
-fun void test(ptr_t p) {
-<<< this >>>;
- p(1);
+  typedef void ptr_t(int i);
+  \a { <<< this, " ", a >>>; } @=> var ptr_t ptr;
+  fun void t1(int i) { <<< this, " t1 ", i >>>; }
+  fun void test(ptr_t p) {
+    <<< this >>>;
+    p(1);
+  }
+  t1 @=> var ptr_t t1p;
+  test(t1p);
 }
-t1 @=> ptr_t t1p;
-#!test(t1$ptr_t);
-test(t1p);
-#!test(ptr);
-#!<<< t1 >>>;
-#!<<< t1$ptr_t >>>;
-}
-<<< C c >>>;
+<<< var C c >>>;
 <<< c.test(c.ptr) >>>;
 <<< c.ptr(1) >>>;
 c.test(c.t1p);

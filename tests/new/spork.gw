@@ -1,6 +1,5 @@
 fun void _t() { <<< __func__ >>>; }
 fun int t() {
-#!<<< 1 >>>;
   spork _t();
 
  spork \a{ <<< __func__, " ", a >>>; }(1);

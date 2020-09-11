@@ -1,3 +1,3 @@
 #! [contains] Hello, interpolation! 1
-1 => int my;
+1 => var int my;
 <<< `Hello, interpolation! ${ my }` >>>;

@@ -1,5 +1,5 @@
 class C {
   operator @gack void() { <<< __func__ >>>; }
 }
-<<< C c >>>;
+<<< var C c >>>;
 <<< c >>>;

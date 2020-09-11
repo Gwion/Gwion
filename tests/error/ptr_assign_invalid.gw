@@ -2,5 +2,5 @@ class C {}
 
 class D extends C {}
 
-D d;
-d :=> <~int~>Ptr pd;
+var D d;
+d :=> var <~int~>Ptr pd;

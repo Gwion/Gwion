@@ -1,8 +1,9 @@
 struct S {
-  4 => int i;
-  12 => int j;
+  4 => var int i;
+  12 => var int j;
   fun int test() { <<< "test", i >>>; }
   test();
 }
-S s;
+
+var S s;
 s.test();

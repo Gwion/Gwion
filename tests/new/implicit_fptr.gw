@@ -5,4 +5,5 @@ class C {
   test => f;
   f(test);
 }
-C c;
+
+var C c;

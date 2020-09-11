@@ -8,7 +8,7 @@ class C
   spork  this.test();
 }
 
-C c;
+var C c;
 spork c.test();
 me.yield();
 4::samp => now;

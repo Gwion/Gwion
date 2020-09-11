@@ -1,14 +1,10 @@
 fun void test<~A~>(A i) {
-  A a;
+  var A a;
   <<< a >>>;
   <<< i, " ", a, " ", i > 1 >>>;
   if(i > 1) {
-#!    2 -=> i;
-#!    i => A a;
-#!    test(a);
     .1 -=> i;
     test(i);
-#!    test(i);
   }
 }
 test(2.0);

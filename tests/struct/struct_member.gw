@@ -1,13 +1,14 @@
 class C {
   struct S {
-    string s;
-    float a;
-    11 => int i;
-    13 => float f;
+    var string s;
+    var float a;
+    11 => var int i;
+    13 => var float f;
   }
-  S s;
+  var S s;
   <<< "after ctor" >>>;
 }
-C c;
+
+var C c;
 <<< c.s.i >>>;
 

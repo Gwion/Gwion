@@ -1,1 +1,1 @@
-GlobalStruct s;
+var GlobalStruct s;

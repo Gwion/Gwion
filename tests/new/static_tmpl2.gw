@@ -1,11 +1,6 @@
-#!C.t<~float~>();
-#!C.t<~Object~>();
 class D extends C {
 
 }
-#!<<< "here" >>>;
-D d;
+var D d;
 <<< d >>>;
-#!<<< d.t() >>>;
 <<< d.t<~int~>() >>>;
-#!d.t<~Object~>();

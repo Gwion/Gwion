@@ -2,7 +2,7 @@ class C {
 	samp;
 	minute;
 	5::samp;
-	float f;
+	var float f;
 	2.4 => f;
 	f ::samp => now;
 }

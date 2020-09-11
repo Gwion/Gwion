@@ -1,2 +1,2 @@
-typeof(1) i;
+var typeof(1) i;
 <<< i >>>;

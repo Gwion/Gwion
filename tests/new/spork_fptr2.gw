@@ -2,11 +2,9 @@ class C {
   typedef void t_fptr(int i, int);
   fun void test(int i, int j) { <<< this ,
        " ", __func__, " ", i, " " , j >>>;}
-  test @=> t_fptr ptr;
-<<< this, ptr >>>;
-#!  ptr(2);
+  test @=> var t_fptr ptr;
+  <<< this, ptr >>>;
   spork ptr(1,2);
-#!  me.yield();
   second => now;
 }
-<<<C c>>>;
+<<<var C c>>>;

@@ -2,9 +2,10 @@ class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
   typedef static void PtrType(int i);
   test @=>
-  PtrType p;
+  var PtrType p;
   p(1);
   test @=> p;
   p(1);
 }
-C c;
+
+var C c;

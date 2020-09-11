@@ -1,2 +1,2 @@
-"test" => string ref s;
+"test" => ref string s;
 <<<  s  >>>;

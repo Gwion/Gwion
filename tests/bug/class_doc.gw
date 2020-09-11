@@ -2,7 +2,7 @@
 class C
 {
 	#!! has an int
-	int i;
+	var int i;
 	#!! a fun
 	fun void test() {}
 	#!! operator

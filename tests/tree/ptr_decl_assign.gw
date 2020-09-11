@@ -1,4 +1,4 @@
 typedef void Test();
 fun void t(){<<< "lol" >>>;}
-t @=> Test test;
+t @=> var Test test;
 test();

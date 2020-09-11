@@ -1,2 +1,2 @@
 #! [contains] unknown type
- fun void my_func(unknown_type unknown_arg){}
+fun void my_func(unknown_type unknown_arg){}

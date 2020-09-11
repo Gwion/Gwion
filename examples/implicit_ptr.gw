@@ -1,4 +1,4 @@
 fun void test(<~int~>Ptr p) {
    <<< *p >>>;
 }
-int i => test;
+var int i => test;

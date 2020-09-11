@@ -4,5 +4,5 @@ class C {
 }
 class D {
   typedef void t_ptr();
-  C->t_ptr ptr;
+  var C.t_ptr ptr;
 }

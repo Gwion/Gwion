@@ -1,2 +1,2 @@
 #! [contains] can't infer
-auto i;
+var auto i;

@@ -1,8 +1,8 @@
 class <~A~>Parent {
   class <~B~>C {
-    12 => A a;
-    13 => B B;
+    12 => var A a;
+    13 => var B B;
   }
 }
-<~int, int~>Parent->C c;
+var <~int, int~>Parent.C c;
 <<< c.a >>>;

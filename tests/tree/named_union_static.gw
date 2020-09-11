@@ -1,5 +1,11 @@
-class C { union static { int i; } u;<<< this, " ", u, " ", this.u.i >>>;  }
-C c;
+class C {
+  union static {
+    int i;
+  } u;
+  <<< this, " ", u, " ", this.u.i >>>;
+}
+
+var C c;
 <<< c >>>;
 <<< C.u >>>;
 <<< C.u.i >>>;

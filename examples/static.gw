@@ -1,8 +1,8 @@
 class C
 {
-	static int i;
-	static float f;
-	static Object o;
+	static var int i;
+	static var float f;
+	static var Object o;
 
 	fun int     m_i() { return i; }
 	fun float   m_f() { return f; }

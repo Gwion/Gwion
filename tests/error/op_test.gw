@@ -4,6 +4,6 @@ class C
 
 }
 
-C c[1];
-C d[2][4];
+var C c[1];
+var C d[2][4];
 c => d;

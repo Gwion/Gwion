@@ -3,4 +3,4 @@ class C {
 
 }
 
-global C c;
+global var C c;

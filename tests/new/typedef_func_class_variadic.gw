@@ -1,7 +1,7 @@
 class C {
   typedef void t_ptr(...);
 
-  t_ptr iptr;
+  var t_ptr iptr;
 
   fun void test(...) {
     <<< this, " ", __func__ >>>;
@@ -14,7 +14,8 @@ class C {
   <<< iptr() >>>;
   <<< iptr() >>>;
 }
-<<<C c>>>;
-  <<< c.iptr >>>;
-  <<< c.iptr(1) >>>;
-  <<< c.iptr(1,2) >>>;
+
+<<<var C c>>>;
+<<< c.iptr >>>;
+<<< c.iptr(1) >>>;
+<<< c.iptr(1,2) >>>;

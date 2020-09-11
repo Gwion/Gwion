@@ -1,24 +1,13 @@
 class C {
-int m_i;
+  var int m_i;
   typedef void t_fptr0();
   typedef void t_fptr1(int i);
   fun void test() { <<< this , " ", __func__ >>>;}
   fun void test(int i) { <<< __func__, " ", i >>>;}
-#!  fun t_fptr call() {
-#!    <<< this >>>;
-#!    return test $ t_fptr;
-#!  }
-#!  spork call();
-#!  me.yield();
-#!<<< this >>>;
-#!  test @=>
-test @=> t_fptr0 ptr0;
-test @=> t_fptr1 ptr1;
-<<<ptr0>>>;
+  test @=> var t_fptr0 ptr0;
+  test @=> var t_fptr1 ptr1;
+  <<<ptr0>>>;
   spork ptr0();
-#!  spork ptr1(2);
   me.yield();
 }
-<<< C c >>>;
-#!<<< c.test >>>;
-#!<<< c.call() >>>;
+<<< var C c >>>;

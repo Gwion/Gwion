@@ -1,9 +1,9 @@
-123 => global int global_func_i;
+123 => global var int global_func_i;
 class global GlobalFuncClass {
-  13 => int i;
+  13 => var int i;
 }
 <<< global_func_i >>>;
-global GlobalFuncClass g_c;
+global var GlobalFuncClass g_c;
 <<< g_c, "->i => ", g_c.i >>>;
 fun global void g_test() { <<< global_func_i >>>; <<< g_c >>>; <<< g_c.i >>>; <<< "test" >>>; }
 #!fun global void g_test() { <<< "test" >>>; }

@@ -1,9 +1,9 @@
 #! [contains] can't assign member function to non member function pointer
 typedef void Test();
-Test test;
+var Test test;
 class D {
   fun void test(){}
 }
 
-D d;
+var D d;
 d.test @=> test;

@@ -1,13 +1,13 @@
 class Tester
 {
-	fun int assert<~A~>_equal(string description, A a, A b){ if(a == b) return 0; return 1; }
-	fun int assert<~A~>_not_equal(string description, A a, A b){ if(a != b) return 0; return 1; }
+	fun int assert_equal<~A~>(string description, A a, A b){ if(a == b) return 0; return 1; }
+	fun int assert_not_equal<~A~>(string description, A a, A b){ if(a != b) return 0; return 1; }
 }
 
-Tester t;
-Object o;
-Object ref ref;
-"test" => string s;
+var Tester t;
+var Object o;
+ref Object oref;
+"test" => var string s;
 #!<<< t.assert_equal("test", 1, 1) >>>;
 #!<<< t.assert_equal("test", 2, 1) >>>;
 <<< t.assert_equal(s, 1, 1) >>>;
@@ -16,11 +16,11 @@ Object ref ref;
 <<< t.assert_equal(s, o, o) >>>;
 <<< t.assert_equal(s, o, null) >>>;
 <<< t.assert_equal(s, null $ Object, null) >>>;
-<<< t.assert_equal(s, ref, null) >>>;
+<<< t.assert_equal(s, oref, null) >>>;
 <<< t.assert_not_equal(s, 1, 1) >>>;
 <<< t.assert_not_equal(s, 2, 1 + 1) >>>;
 <<< t.assert_not_equal(s, 2, 1) >>>;
 <<< t.assert_not_equal(s, o, o) >>>;
 <<< t.assert_not_equal(s, o, null) >>>;
 <<< t.assert_not_equal(s, null $ Object, null) >>>;
-<<< t.assert_not_equal(s, ref, null) >>>;
+<<< t.assert_not_equal(s, oref, null) >>>;

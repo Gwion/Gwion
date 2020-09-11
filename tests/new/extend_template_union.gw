@@ -10,7 +10,7 @@ class <~A~>C extends <~A~>U {
   operator @dtor void () { <<< __func__ >>>; }
 }
 
-<~float~>C c;
+var <~float~>C c;
 <<< c >>>;
 <<< c.test() >>>;
 <<< c.i >>>;
@@ -19,8 +19,9 @@ class <~A,B~>D extends <~float~>C {
 
 }
 
-<~int,int~>D d;
+var <~int,int~>D d;
 class <~A,B~>E extends <~float,B~>D {
 
 }
-<~int,int~>E e;
+
+var <~int,int~>E e;

@@ -1,8 +1,8 @@
 #! [contains] NullPtrException
 class C
 {
-	int i;
+	var int i;
 }
 
-C ref c;
+ref C c;
 c.i;

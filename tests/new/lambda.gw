@@ -1,32 +1,9 @@
 class C {
   typedef void ptr_t(int i,int j);
-  \a b { <<< this, " ", a, " ", b, " test" >>>; } @=> ptr_t ptr;
-#!  typeof(a,b) { <<< "test" >>>; } @=> 
-#!  ptr_t ptr;
-#!  ptr(1,2);
+  \a b { <<< this, " ", a, " ", b, " test" >>>; } @=> var ptr_t ptr;
   fun void test(int i, int j) { <<< this, " ", i, " ", j >>>; }
-#!  fun void test(ptr_t t, int i) {
-#!<<< t >>>;
-#!    t(2,i);
-#!  }
-#!  test(typeof(a,b) { <<< this, " lambda argument" >>>; }, 2);
 }
-#!<<< C c >>>;
-C c;
+var C c;
 <<< c >>>;
-#!<<< c.test >>>;
-#!<<< c.ptr >>>;
-#!c.ptr(1,2);
-#!<<< c.test >>>;
 c.test @=> c.ptr;
-#!c.ptr;
-#!<<< c.ptr >>>;
-#!c.test(1,2);
 c.ptr(1, 2);
-#!c.ptr(1, 2);
-#!c.ptr(1, 2);
-#!(1,2) => c.ptr;
-#!c.test(typeof(a,b) { <<< this, "lambda argument" >>>; }, 2);
-#!c.test(c.ptr, 2);
-#!<<< c.ptr >>>;
-#!c.ptr;

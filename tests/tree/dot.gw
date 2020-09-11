@@ -1,3 +1,2 @@
-int i[];
+var int i[];
 Machine.shreds() @=> i;
-#!null @=> i;

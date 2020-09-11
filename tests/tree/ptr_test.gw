@@ -1,4 +1,4 @@
 typedef void Test();
 fun  void t0(){}
-t0 @=> Test test;
+t0 @=> var Test test;
 test();

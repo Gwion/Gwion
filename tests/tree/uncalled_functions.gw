@@ -1,8 +1,8 @@
 #! just to check uncalled fun to not push the stack
 
 class C { fun void test(){} fun static void stest() {}}
-C c;
-Event e;
+var C c;
+var Event e;
 
 c.test;
 C.stest;

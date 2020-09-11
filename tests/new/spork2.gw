@@ -1,16 +1,16 @@
 fun void _t() { <<< __func__ >>>; }
 class C {
-<<< this >>>;
-fun void __t() { <<< __func__ >>>; }
-fun void __t(int i) { <<< this, " ", __func__, " ", i >>>; }
-fun void t() {
+  <<< this >>>;
+  fun void __t() { <<< __func__ >>>; }
+  fun void __t(int i) { <<< this, " ", __func__, " ", i >>>; }
+  fun void t() {
   spork _t();
   spork _t();
   spork this.__t();
   spork __t();
-<<< this >>>;
+  <<< this >>>;
   spork __t(2);
-me.yield();
+  me.yield();
   spork \{ <<< " " , __func__ >>>; }();
 
   spork \a{ <<< __func__, " ", a >>>; }(1);
@@ -23,5 +23,5 @@ t();
 t();
 me.yield();
 }
-<<< C c >>>;
+<<< var C c >>>;
 me.yield();

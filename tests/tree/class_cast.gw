@@ -1,4 +1,5 @@
 class C {
 	<<< 1 $ float >>>;
 }
-C c;
+
+var C c;

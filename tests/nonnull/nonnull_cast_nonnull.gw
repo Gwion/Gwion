@@ -1,1 +1,1 @@
-(Object nonnull o) $ Object nonnull;
+(nonnull Object o) $ nonnull Object;

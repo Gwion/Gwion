@@ -1,2 +1,2 @@
 #! [contains] NullPtrException
-(Object ref o) $ Object nonnull;
+(ref Object o) $ nonnull Object;

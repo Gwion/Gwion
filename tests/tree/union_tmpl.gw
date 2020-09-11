@@ -3,5 +3,5 @@ union <~A~> U{
   A a;
 };
 
-<~float~>U u;
+var <~float~>U u;
 <<< u.a >>>;

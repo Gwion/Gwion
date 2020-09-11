@@ -1,4 +1,4 @@
 #! [contains] 'global' can only be used at file scope
 {
-global int i;
+global var int i;
 }

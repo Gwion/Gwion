@@ -1,6 +1,6 @@
 #! [contains] 12
 class C {
-  12 => int i;
+  12 => var int i;
 }
 
 operator @implicit int (C c) {
@@ -8,5 +8,5 @@ operator @implicit int (C c) {
 }
 
 fun void test(int i) { <<< i >>>; }
-C c;
+var C c;
 c => test;

@@ -1,5 +1,5 @@
 class C {
-  1 => float f;
+  1 => var float f;
 }
-C c;
+var C c;
 <<< c.f >>>;

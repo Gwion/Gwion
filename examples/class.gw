@@ -1,8 +1,8 @@
 class C
 {
-  int i;
-  Object o;
+  var int i;
+  var Object o;
 }
 
-C c;
+var C c;
 <<< c >>>;

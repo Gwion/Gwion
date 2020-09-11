@@ -1,11 +1,9 @@
 typedef int ptr_t<~A~>(A);
-ptr_t ptr;
+var ptr_t ptr;
 <<<ptr>>>;
 
 fun int test<~A~>(A a) { <<< a >>>; }
 test @=> ptr;
 <<< ptr >>>;
-#!3;
-#!3 => test;
 ptr<~int~>(2);
 ptr<~float~>(2.3);

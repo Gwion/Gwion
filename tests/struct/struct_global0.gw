@@ -1,14 +1,14 @@
 struct global GlobalStruct {
-  int i;
-  float f;
-  string s;
+  var int i;
+  var float f;
+  var string s;
 }
 
 struct global GlobalStructWithCtor {
-  int i;
-  float f;
-  string s;
+  var int i;
+  var float f;
+  var string s;
 }
 
-global GlobalStruct global_s;
-GlobalStructWithCtor sctor;
+global var GlobalStruct global_s;
+var GlobalStructWithCtor sctor;

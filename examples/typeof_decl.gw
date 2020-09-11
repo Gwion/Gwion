@@ -1,2 +1,2 @@
-int i;
-<<<typeof(i) j>>>;
+var int i;
+<<< var typeof(i) j>>>;

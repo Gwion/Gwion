@@ -1,1 +1,1 @@
-new Object @=> Object nonnull ref o;
+new Object @=> nonnull ref Object o;

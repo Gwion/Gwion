@@ -1,6 +1,6 @@
 typedef int[1] Array;
 typedef Array[1] MyArray;
-MyArray a;
+var MyArray a;
 <<< a >>>;
 <<< a[0] >>>;
 <<< a[0][0] >>>;

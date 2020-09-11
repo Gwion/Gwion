@@ -11,6 +11,6 @@ class E extends D {
 }
 
 
-<<< E e >>>;
+<<< var E e >>>;
 
 e.test(123,3);

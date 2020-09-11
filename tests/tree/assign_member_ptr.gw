@@ -1,8 +1,9 @@
 class C
 {
 	typedef void Test();
-	Test test;
+	var Test test;
 	fun void func(){}
 }
-C c;
+
+var C c;
 c.func @=> c.test;

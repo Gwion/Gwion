@@ -1,2 +1,2 @@
-Object o;
+var Object o;
 <<< !o >>>;

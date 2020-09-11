@@ -1,10 +1,10 @@
 class C {
-	fun void test<~a~>(a var){ <<< var >>>; }
-	class D { int i;}
+	fun void test<~A~>(A a){ <<< a >>>; }
+	class D { var int i;}
 }
 
-C c;
-C->D d;
-C->D ref d_ref;
+var C c;
+var C.D d;
+ref C.D d_ref;
 
 <<<  c, " ", d, d_ref  >>>;

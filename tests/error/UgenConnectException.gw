@@ -1,1 +1,1 @@
-Gain ref g => dac;
+ref Gain g => dac;

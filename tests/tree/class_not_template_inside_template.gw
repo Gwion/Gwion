@@ -4,4 +4,4 @@ class <~A~>C {
   }
 }
 
-<~int~>C->D d;
+var <~int~>C.D d;

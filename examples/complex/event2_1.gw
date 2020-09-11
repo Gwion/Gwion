@@ -1,5 +1,5 @@
 class global TestEvent {
-	static Event e;
+	static var Event e;
 }
 second => now;
 #!second => now;

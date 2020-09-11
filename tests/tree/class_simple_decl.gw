@@ -1,4 +1,4 @@
 class C {
-	int i;
+	var int i;
 }
 

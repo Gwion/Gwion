@@ -3,7 +3,8 @@ class C
 	operator => void(C c, int i){<<< c, " ", i >>>;}
 #!	this => this;
 #!fun void test_op(C c){ this => c; }
-	this => int i;
+	this => var int i;
 }
-C c;
+
+var C c;
 #!c.test_op(c);

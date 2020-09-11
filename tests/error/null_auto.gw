@@ -1,4 +1,4 @@
 #! [contains] NullPtrException
-int i[];
+var int i[];
 foreach(a : i)
  <<< a >>>;

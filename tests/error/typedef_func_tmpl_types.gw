@@ -1,10 +1,10 @@
 #! [contains] pre-defined types
 typedef void t_ptr<~A~>();
 
-<~int~>t_ptr iptr;
+var <~int~>t_ptr iptr;
 
 fun void test<~A~>() {
-  A a;
+  var A a;
   <<< __func__, " ", a>>>;
 }
 

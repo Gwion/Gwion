@@ -1,5 +1,5 @@
 #! [contains] can't cast
 class C {}
 class D {}
-D d;
+var D d;
 d $ C;

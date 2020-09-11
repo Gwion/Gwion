@@ -2,4 +2,4 @@ typedef int INT;
 fun void test(INT i) { <<< i >>>; }
 fun void test2(int i) { <<< i >>>; }
 1 => test;
-INT i => test2;
+var INT i => test2;

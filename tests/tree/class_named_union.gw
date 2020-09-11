@@ -1,5 +1,5 @@
 class C {
-  12 => int _i;
+  12 => var int _i;
   union {
     int i;
     float f;
@@ -15,7 +15,7 @@ class C {
   <<< U.i >>>;
 }
 
-C c;
+var C c;
 
 <<< c >>>;
 <<< c.U >>>;

@@ -1,2 +1,2 @@
-(2.0 ? "yeah" : "not yeah") => string s;
+(2.0 ? "yeah" : "not yeah") => var string s;
 <<< s >>>;

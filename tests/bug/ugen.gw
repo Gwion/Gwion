@@ -1,7 +1,7 @@
-UGen ref u;
+ref UGen u;
 #!u.last(); #! should fail => fails.
-SinOsc s => Gain g => dac;
-for(-1 => int i;i < 6; i++)
+ref SinOsc s => ref Gain g => dac;
+for(-1 => var int i;i < 6; i++)
 	i => g.op;
 samp => now;
 s.last();

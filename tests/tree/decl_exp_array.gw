@@ -1,2 +1,2 @@
-<<< typeof( new int[2] ) i >>>;
+<<< var typeof( new int[2] ) i >>>;
 <<< i >>>;

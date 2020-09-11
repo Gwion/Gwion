@@ -1,6 +1,6 @@
-5 => int i;
+5 => var int i;
 do { <<< i-- >>>; } while(i);
-5 => float f;
+5 => var float f;
 do { <<<  1 -=> f  >>>; } while(f > 0.0);
 #! do { <<<  1 -=> f  >>>; } while(f > 0);
 5 => f;

@@ -1,9 +1,11 @@
 fun void test() {
   test(2);
 }
+
 fun void test(int i) {
   <<< i >>>;
 }
+
 test();
 test();
 

@@ -1,6 +1,6 @@
 class C {
-	int i;
-	now + 1.0::samp => time t;
+	var int i;
+	now + 1.0::samp => var time t;
 	until(now >= t) {
 	  i++;
 	  if(i == 3)

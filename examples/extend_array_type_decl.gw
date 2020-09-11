@@ -1,8 +1,8 @@
 class C extends int[2] {
   <<< "test" >>>;
-  123 => int i;
+  123 => var int i;
 }
 
-C c;
+var C c;
 <<< c.size() >>>;
 <<< c.i >>>;

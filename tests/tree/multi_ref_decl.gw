@@ -1,2 +1,2 @@
-Object ref i, a;
+ref Object i, a;
 <<< i, a >>>;

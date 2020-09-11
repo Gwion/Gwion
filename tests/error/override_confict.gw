@@ -1,7 +1,7 @@
 #! [contains] conflicts with previously defined value
 class C
 {
-	int test;
+	var int test;
 }
 
 class D extends C
@@ -9,7 +9,7 @@ class D extends C
 	fun void test() {}
 }
 
-C c;
-D d;
+var C c;
+var D d;
 <<< c >>>;
 <<< d >>>;

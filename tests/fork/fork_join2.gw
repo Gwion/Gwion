@@ -1,2 +1,2 @@
-fork { <<< __func__ >>>; minute => now; } @=> Fork ref f;
+fork { <<< __func__ >>>; minute => now; } @=> ref Fork f;
 f.join();

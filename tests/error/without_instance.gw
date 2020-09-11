@@ -1,6 +1,6 @@
 #! [contains] cannot access member
 class C {
-  int i;
+  var int i;
 }
 
 C.i;

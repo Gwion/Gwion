@@ -1,7 +1,7 @@
 #! [contains] can't access private
-class C { private int i;  }
+class C { private var int i;  }
 
 class D {
-  C c;
+  var C c;
   <<< c.i >>>;
 }

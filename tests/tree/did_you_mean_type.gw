@@ -1,4 +1,4 @@
 class C {
-  int iiii;
+  var int iiii;
   <<< this.iii >>>;
 }

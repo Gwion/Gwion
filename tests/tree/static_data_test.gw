@@ -1,10 +1,10 @@
 class C {
-  static int i;
-  typedef static void Test(){};
-  static Test test;
+  static var int i;
+  typedef static void Test();
+  static var Test test;
 }
 
-C c;
+var C c;
 c.i;
 C.i;
 c.test;

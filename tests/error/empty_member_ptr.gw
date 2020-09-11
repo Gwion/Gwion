@@ -2,8 +2,8 @@
 class C
 {
 	typedef void test();
-	test t;
+	var test t;
 }
-<<< C c >>>;
+<<< var C c >>>;
 <<< c.t >>>;
 c.t();

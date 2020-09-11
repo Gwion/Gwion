@@ -4,4 +4,4 @@ class C {
   }
 }
 
-C->D d;
+var C.D d;

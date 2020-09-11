@@ -10,7 +10,7 @@ class C extends UsrUGen {
   <<<test ~= this, " ", this>>>;
 }
 
-C u => dac;
+var C u => dac;
 <<< u >>>;
 samp => now;
 <<< u.last() >>>;

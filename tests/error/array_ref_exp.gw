@@ -1,2 +1,2 @@
 #! [contains] ref array must not have array expression
-int ref my_array[2];
+ref int my_array[2];

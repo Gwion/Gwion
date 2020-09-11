@@ -1,5 +1,5 @@
 fun void test(...) {
-  int i;
+  var int i;
   varloop vararg {
   	if(i == 0)
 	  	<<< vararg $ int >>>;

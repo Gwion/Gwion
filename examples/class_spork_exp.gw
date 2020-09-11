@@ -1,16 +1,16 @@
 class C
 {
-  12 => int i;
-  Object o;
+  12 => var int i;
+  var Object o;
   spork  {
     "test";
     second => now;
-    string s;
+    var string s;
     <<<   "test spork exp."  >>>;
-  } @=> Shred ref shred;
+  } @=> ref Shred shred;
 }
 
-C c;
+var C c;
 <<< c >>>;
 me.yield();
 second => now;

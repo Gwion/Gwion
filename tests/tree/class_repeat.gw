@@ -1,5 +1,5 @@
 class C {
-	int i;
+	var int i;
 	repeat(3) {
 	  i++;
 	  <<< i >>>;

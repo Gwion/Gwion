@@ -1,7 +1,8 @@
 struct S {
-  int i;
+  var int i;
 }
-S s;
+
+var S s;
 <<< s.i >>>;
 <<< 12 => s.i >>>;
 <<< s.i >>>;

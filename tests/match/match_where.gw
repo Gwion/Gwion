@@ -1,4 +1,4 @@
-int i;
+var int i;
 match (i) {
   case _ : <<< "success" >>>;
-} where int a;
+} where var int a;

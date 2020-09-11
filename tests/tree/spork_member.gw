@@ -6,12 +6,10 @@ class C
       <<< "test2" >>>;
     };
   }
-#!	spork test(2);
-#!	spork  { <<< "test", this >>>; };
 }
-C c;
+
+var C c;
 <<< c >>>;
-#!spork 
 c.test(1);
 c.test(2);
 samp => now;

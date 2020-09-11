@@ -1,2 +1,2 @@
 typedef void ptr_t();
-ptr_t t @=> ptr_t t2;
+var ptr_t t @=> var ptr_t t2;

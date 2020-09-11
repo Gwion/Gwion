@@ -1,4 +1,4 @@
 typedef Object[2] Class;
 class C extends Class {}
-C c;
+var C c;
 <<< c >>>;

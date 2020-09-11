@@ -1,6 +1,6 @@
 #! [contains] conflicts with previously defined value
 class C {
-  int test;
+  var int test;
 }
 
 class D extends C {

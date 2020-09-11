@@ -1,9 +1,7 @@
 fun void test<~A~>(int i) {
-  A a;
+  var A a;
   <<< a >>>;
-#!  <<< __func__, " ", i, " ", a >>>;
   if(i)
-#!me.exit();
     test<~float~>((i-2));
 }
 test<~Object~>(2);

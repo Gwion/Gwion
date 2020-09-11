@@ -7,7 +7,7 @@ fun float test(float f) {
 
 <<< 1.9 > 1 >>>;
 
-int i;
+var int i;
 
 <<< .1 -=> i >>>;
 

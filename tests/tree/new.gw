@@ -1,8 +1,8 @@
 new Object;
-new Object @=> Object refref;
+new Object @=> var Object refref;
 new Event;
-Event ev;
-ev @=> Event ref e;
+var Event ev;
+ev @=> ref Event e;
 new Event @=> e;
 ev @=> e;
 null @=> e;

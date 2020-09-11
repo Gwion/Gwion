@@ -1,3 +1,3 @@
-Object o;
-string s;
+var Object o;
+var string s;
 <<<  o + s  >>>;

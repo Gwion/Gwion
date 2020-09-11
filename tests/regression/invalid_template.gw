@@ -6,7 +6,7 @@ class<~A,B~>D extends<~A~>C{
   class<~A~> E{}
   class G extends ld
   {A0I:}
-  <~A~>d d;
+  var <~A~>d d;
 }
 
-<~int~>D d;
+var <~int~>D d;

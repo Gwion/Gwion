@@ -1,3 +1,3 @@
-Object i[4];
+var Object i[4];
 foreach(a: i)
   <<< a >>>;

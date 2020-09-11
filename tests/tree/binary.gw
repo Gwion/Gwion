@@ -1,1 +1,1 @@
-1 => int i;
+1 => var int i;

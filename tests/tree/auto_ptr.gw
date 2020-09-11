@@ -1,5 +1,5 @@
-<~int~>Ptr ptr;
-int i[4];
+var <~int~>Ptr ptr;
+var int i[4];
 foreach(ref a : i)
   <<< *a >>>;
 <<< ptr >>>;

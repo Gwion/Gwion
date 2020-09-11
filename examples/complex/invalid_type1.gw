@@ -1,1 +1,1 @@
-InvalidGlobalClass c;
+var InvalidGlobalClass c;

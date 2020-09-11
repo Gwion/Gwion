@@ -7,7 +7,7 @@ fun void test2(){ <<< "another test" >>>; };
 fun void test3(){ <<< "yet another test" >>>; };
 
 #! create a fun pointer instance
-Test test;
+var Test test;
 
 #! assign it a fun
 test1 @=> test;

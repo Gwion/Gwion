@@ -1,9 +1,9 @@
 fun void print_array(int a[]){
-	for(int i; i < a.size(); i++)
+	for(var int i; i < a.size(); i++)
 		<<< a[i] >>>;
 }
 
-int i[5][3];
+var int i[5][3];
 1 => i[2][0];
 
 <<< i.size() >>>;

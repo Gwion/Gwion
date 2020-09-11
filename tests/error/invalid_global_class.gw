@@ -1,6 +1,6 @@
 #! [contains] 'global' can only be used at class scope
 class C {
   {
-    global int i;
+    global var int i;
   }
 }

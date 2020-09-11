@@ -1,9 +1,9 @@
-15 => int i;
+15 => var int i;
 union {
   int i;
   float f;
 } U;
-7.3 => float f;
+7.3 => var float f;
 <<< U >>>;
 <<< U.i >>>;
 <<< U.f >>>;

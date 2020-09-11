@@ -1,7 +1,7 @@
 class <~A~>C {
   fun void test() {
-    <~A~>C c;
+    var <~A~>C c;
   }
 }
 
-<~int~>C c;
+var <~int~>C c;

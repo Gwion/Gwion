@@ -1,5 +1,5 @@
 fun void test<~A~>(int i, A a) {
-  A b;
+  var A b;
   <<< __func__, " ", a >>>;
   <<< i, " ", a >>>;
   if(i)

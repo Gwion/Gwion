@@ -3,7 +3,7 @@ class C {
   fun void test<~A~>(float f) {}
   fun void test<~A~>() {}
 }
-C c;
+var C c;
 #!c.test<~int~>();
 c.test<~int~>(2.3);
 c.test<~int~>(2.3, 2.3);

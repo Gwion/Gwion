@@ -3,5 +3,5 @@ class C {
   fun private void test(){}
 }
 
-C c;
+var C c;
 c.test;

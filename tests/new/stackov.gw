@@ -1,5 +1,5 @@
 fun void test(int i) {
-  <<< "test ", i >>>; 
+  <<< "test ", i >>>;
   if(i > 1)
     test(i-1);
 }
@@ -10,7 +10,5 @@ fun void launch(int i) {
 }
 
 spork launch(2);
-#!second => now;
 me.yield();
-#!.1::samp => now;
 launch(12);

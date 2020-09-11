@@ -22,7 +22,7 @@ class C
   fun static float s_test(float f) {}
 }
 
-C c;
+var C c;
 c.test();
 () => c.test;
 

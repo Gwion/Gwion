@@ -1,4 +1,9 @@
-class C { union static private { int i; } u;<<< this, " ", u, " ", this.u.i >>>;  
+class C {
+  union static private {
+    int i;
+  } u;
+  <<< this, " ", u, " ", this.u.i >>>;
 }
-C c;
+
+var C c;
 <<< c >>>;

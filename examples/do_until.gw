@@ -1,5 +1,5 @@
-int i;
-float f;
+var int i;
+var float f;
 do { <<< i++ >>>; if(maybe) break; }
 	until(i < 10);
 do { <<< 1 +=> f >>>; if(maybe)continue; }

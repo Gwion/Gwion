@@ -1,1 +1,1 @@
-typeof( 1 + 2 ) i;
+var typeof( 1 + 2 ) i;

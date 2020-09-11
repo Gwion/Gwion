@@ -1,9 +1,7 @@
 class C {
-	int i[];
-	int j[2];
-#!	Machine.shreds() @=> i;
-#!	null @=> i;
+	var int i[];
+	var int j[2];
 }
 
-C c;
+var C c;
 <<< c.j[1] >>>;

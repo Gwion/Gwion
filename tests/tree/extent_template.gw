@@ -1,7 +1,8 @@
 class <~A~> C {
-  A a;
+  var A a;
 }
 
 class D extends <~int~>C {}
-D d;
+
+var D d;
 <<<d.a>>>;

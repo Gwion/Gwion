@@ -1,9 +1,10 @@
 struct S {
-  int i;
-  int j;
-  12 => static int si;
+  var int i;
+  var int j;
+  12 => static var int si;
   fun static void test() { <<< __func__, si >>>; }
   test();
 }
-S s;
+
+var S s;
 s.test();

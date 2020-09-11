@@ -1,2 +1,2 @@
 #! [contains] is not template
-<~int~>Object o;
+var <~int~>Object o;

@@ -1,9 +1,8 @@
 fun void test<~A~>(A i) {
-  A a;
+  var A a;
   <<< a , " ", __func__>>>;
   <<< i, " ", a >>>;
   if(i > 0)
-#!me.exit();
     test(i-2.0);
 }
 test<~int~>(2);

@@ -1,5 +1,7 @@
 #! [contains] 1
-class C { 10 => int i; }
+class C {
+  10 => var int i;
+}
 
 operator @conditionnal int(C c) {
   <<< __func__ >>>;
@@ -7,5 +9,5 @@ operator @conditionnal int(C c) {
   return c.i;
 }
 
-C c;
+var C c;
 while(c) <<<c.i>>>;

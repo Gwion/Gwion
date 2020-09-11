@@ -2,7 +2,7 @@
 class C{}
 class D{}
 
-C c;
-D d;
+var C c;
+var D d;
 <<< c $ D >>>;
 <<< d >>>;

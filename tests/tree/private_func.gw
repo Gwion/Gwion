@@ -3,5 +3,5 @@ class C {
   test();
 }
 
-C c;
+var C c;
 <<< c >>>;

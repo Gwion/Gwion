@@ -7,7 +7,7 @@
 #!<<< c2 >>>;
 #!<<< c2.value >>>;
 
-<~int, int~>ClassTemplate ct;
+var <~int, int~>ClassTemplate ct;
 <<< ct.key >>>;
 #!<float, float>ClassTemplate ct2;
 #!<<< ct2.key >>>;

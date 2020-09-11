@@ -1,12 +1,13 @@
 class C {
   1 => test;
   fun int test(int i) {
-   13 => int j;
+   13 => var int j;
    return j;
   }
 }
-C c;
-12 => c.test => int ret;
+
+var C c;
+12 => c.test => var int ret;
 
 <<< 1394 >>>;
 <<<ret>>>;

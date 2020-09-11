@@ -1,4 +1,4 @@
 <<< "test" == "test" >>>;
-string s;
+var string s;
 <<< s == s >>>;
 <<< "test" == s >>>;

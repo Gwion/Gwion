@@ -1,11 +1,11 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
   typedef void ptr_t(int i);
-  test @=>
-  ptr_t p;
+  test @=> var ptr_t p;
   p(1);
   test @=> p;
   p(1);
 }
-C c;
+
+var C c;
 <<< c >>>;

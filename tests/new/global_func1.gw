@@ -3,6 +3,3 @@
 <<< g_c.i >>>;
 <<< g_test >>>;
 g_test();
-
-#!g_test();
-#!g_test();

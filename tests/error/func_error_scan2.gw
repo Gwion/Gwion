@@ -1,2 +1,2 @@
 #! [contains] unknown type
-fun void test() { skfuv sd; }
+fun void test() { var skfuv sd; }

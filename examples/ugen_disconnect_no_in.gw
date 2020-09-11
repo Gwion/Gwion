@@ -1,3 +1,3 @@
-Gain a;
-SinOsc s => blackhole;
+var Gain a;
+var SinOsc s => blackhole;
 a =< s;

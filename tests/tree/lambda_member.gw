@@ -1,5 +1,5 @@
 class C {
-  Event e;
+  var Event e;
   spork {second => now; e.broadcast(); };
   spork \{second => now; e.broadcast(); }();
   #!2::second => now;
@@ -7,4 +7,4 @@ class C {
   e => now;
 }
 
-C c;
+var C c;

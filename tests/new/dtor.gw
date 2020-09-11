@@ -8,4 +8,4 @@ class E extends <~int~>D {
   operator @dtor void () { <<< __func__ >>>; }
 }
 
-E e;
+var E e;

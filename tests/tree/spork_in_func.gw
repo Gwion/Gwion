@@ -1,7 +1,6 @@
 fun void test() {
-	spork { <<< 2 >>>; }; 
+	spork { <<< 2 >>>; };
 }
-#!spork { <<< 1 >>>; }; 
-#!spork test();
-test(); 
+
+test();
 second => now;

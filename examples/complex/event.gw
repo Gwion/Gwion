@@ -1,4 +1,4 @@
-Event e;
+var Event e;
 spork {second => now; e.broadcast(); };
 spork \{second => now; e.broadcast(); }();
 #!2::second => now;

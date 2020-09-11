@@ -1,15 +1,15 @@
 [1,2,3,4];
 [ [1,2,3,4], [1,2,3,4] ];
 <<< [1,2,3,4] >>>;
-int i[];
-int j[3];
-Object o[2];
-Object p[2][3];
-Object r[2][3][4];
-Object s[2][3][4][5];
-Object t[2][12][3][4][5];
+var int i[];
+var int j[3];
+var Object o[2];
+var Object p[2][3];
+var Object r[2][3][4];
+var Object s[2][3][4][5];
+var Object t[2][12][3][4][5];
 [1,2,3,4] @=> i;
-int k[1][1];
+var int k[1][1];
 
 
 <<< i, " ", j, " ", o, " ", p, " ", r, " ", s, " ", t, " ", k >>>;

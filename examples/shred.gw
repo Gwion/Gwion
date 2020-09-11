@@ -5,7 +5,7 @@
 <<<  "from_Id ", Shred.fromId(1)  >>>;
 <<<  "me ", me                    >>>;
 <<<  "args ",    me.args()       >>>;
-for (int i; i < me.args(); i++)
+for (var int i; i < me.args(); i++)
   <<<  "arg ", i, me.arg(i) >>>;
 <<< me.dir(), " ", me.path() >>>;
 <<< me.code_dir(), " ", me.code_path() >>>;

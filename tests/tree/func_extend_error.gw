@@ -5,6 +5,6 @@ class Sine extends SinOsc
   }
 }
 
-Sine s => dac;
+var Sine s => dac;
 220 => s.freq;
 second => now;

@@ -1,4 +1,4 @@
 #! [contains] unknown type
 class C extends Undefined {}
-C c;
+var C c;
 <<< c >>>;

@@ -1,1 +1,1 @@
-SinOsc s;
+var SinOsc s;

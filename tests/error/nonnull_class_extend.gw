@@ -1,4 +1,4 @@
 #! [contains] can't use nonnull type in class extend
-class C extends Object nonnull {
+class C extends nonnull Object {
 
 }

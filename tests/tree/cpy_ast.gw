@@ -1,8 +1,8 @@
 class <~A~>C {
   \a{};
   [ 1 ];
-  int i,j;
-  typeof(i) k;
+  var int i,j;
+  var typeof(i) k;
   'a';
   true $ int;
   i++;
@@ -12,15 +12,15 @@ class <~A~>C {
   union <~A~>U{ int ui; };
   typeof(i);
   if(i) i; else i;
-  for(int; i < 1; ++i);
-  int array[2];
+  for(var int _i; _i < 1; ++_i);
+  var int array[2];
   array[0];
   foreach(a : array);
   repeat(1);
   match i,2 {
     case 12 when 0:;
     case _,2 when 0:;
-  } where int b;
+  } where var int b;
   enum { zero };
   typedef int Int;
   goto end;
@@ -29,4 +29,5 @@ class <~A~>C {
   end:
   while(0){ <<< __func__ >>>; }
 }
-<~int~>C c;
+
+var <~int~>C c;

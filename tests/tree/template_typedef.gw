@@ -1,20 +1,20 @@
-<~int, int~>Pair p;
+var <~int, int~>Pair p;
 typedef <~int, int~>Pair lol;
-lol t;
+var lol t;
 <<< t >>>;
 <<< t.key >>>;
-class C extends lol { int i;}
-C c;
+class C extends lol { var int i;}
+var C c;
 <<< c.i >>>;
 class<~A~> D {
   <<< "lol" >>>;
-  int i;
+  var int i;
 }
 typedef <~int~>D Lol;
 class E extends Lol {
-  float f;
+  var float f;
 }
-E d;
+var E d;
 <<< d >>>;
 <<< d.i >>>;
 <<< d.f >>>;

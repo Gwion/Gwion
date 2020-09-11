@@ -1,10 +1,10 @@
-int i;
+var int i;
 do { <<< i++ >>>; }
 while(i < 6);
 do { <<< i-- >>>; }
 while(i);
 
-6 => float f;
+6 => var float f;
 do { <<< 1 -=> f >>>; }
 while(f);
 

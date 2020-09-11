@@ -1,8 +1,8 @@
-Trig trig => dac;
+var Trig trig => dac;
 adc :=> trig;
 adc :=< trig;
 
-Trig2 trig2 => dac;
+var Trig2 trig2 => dac;
 adc :=> trig2;
 adc :=< trig2;
 

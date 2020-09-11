@@ -1,6 +1,6 @@
 class C {
-  int i;
+  var int i;
 }
 
-C c;
+var C c;
 c $ C;

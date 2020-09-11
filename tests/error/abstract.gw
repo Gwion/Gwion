@@ -1,2 +1,2 @@
 #! [contains] is abstract, declare as ref
-Shred shred;
+var Shred shred;

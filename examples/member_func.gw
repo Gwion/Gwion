@@ -9,7 +9,7 @@ class C
   }
 }
 
-C c;
+var C c;
 <<< c.testf() >>>;
 <<< c.testf(1.4) >>>;
 <<< 1.2 >>>;

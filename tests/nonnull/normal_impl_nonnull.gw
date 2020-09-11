@@ -1,2 +1,2 @@
-fun void test(Object nonnull o) { <<< o >>>; }
+fun void test(nonnull Object o) { <<< o >>>; }
 new Object => test;

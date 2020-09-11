@@ -1,5 +1,5 @@
-<<< float f >>>;
-Coverage c;
+<<< var float f >>>;
+var Coverage c;
 c.s_i;
 <<<  Coverage.i()  >>>;
 <<<  Coverage.f()  >>>;

@@ -1,4 +1,4 @@
-Impulse imp => ZeroX fr => dac;
+var Impulse imp => var ZeroX fr => dac;
 samp => now;
 -1 => imp.next;
 samp => now;

@@ -1,10 +1,10 @@
 class C
 {
-	int i;
-	float f;
-	Object o;
+	var int i;
+	var float f;
+	var Object o;
 	operator @dtor void () { <<< "dtor" >>>; }
 }
 
-C c;
+var C c;
 <<< c >>>;

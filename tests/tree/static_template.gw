@@ -1,11 +1,11 @@
 class<~A~> C {
-  A a;
+  var A a;
 }
 
 class D {
-  static <~int~>C c;
+  static var <~int~>C c;
 }
 
-D d;
+var D d;
 <<< d >>>;
 <<< D.c.a >>>;

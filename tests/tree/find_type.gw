@@ -4,7 +4,8 @@ class C {
 }
 
 class E extends C {
-  D d;
+  var D d;
 }
-E e;
+
+var E e;
 <<< e.d >>>;

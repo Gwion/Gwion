@@ -1,7 +1,7 @@
 class C {
 typedef void t_ptr();
 typedef t_ptr A;
-A a;
+var A a;
 <<<a>>>;
 
 fun void test() { <<< __func__ >>>; }
@@ -11,4 +11,4 @@ a();
 a();
 }
 
-C c;
+var C c;

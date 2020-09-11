@@ -1,5 +1,7 @@
 #! [contains] 1
-class C { 10 => int i; }
+class C {
+  10 => var int i;
+}
 
 operator @unconditionnal int(C c) {
   <<< __func__ >>>;
@@ -7,5 +9,5 @@ operator @unconditionnal int(C c) {
   return !c.i;
 }
 
-C c;
+var C c;
 until(c) <<<c.i>>>;

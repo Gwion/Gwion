@@ -1,2 +1,2 @@
 #! [contains] unknown type
-fun void test(B->C a){}
+fun void test(B.C a){}

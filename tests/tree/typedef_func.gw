@@ -1,6 +1,6 @@
 typedef void t_ptr(int i);
 typedef t_ptr A;
-A a;
+var A a;
 <<<a>>>;
 
 fun void test(int i) { <<< __func__ , " ", i>>>; }

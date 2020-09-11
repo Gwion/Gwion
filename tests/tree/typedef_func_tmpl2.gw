@@ -4,7 +4,7 @@ fun void test<~A~>() {
 }
 
 typedef <~int~>t_ptr B;
-B b;
+var B b;
 <<< b >>>;
 test @=> b;
 <<< b >>>;
@@ -13,7 +13,7 @@ test @=> b;
 
 
 typedef <~float~>t_ptr C;
-C c;
+var C c;
 <<< c >>>;
 test @=> c;
 <<< c >>>;

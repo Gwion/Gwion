@@ -7,5 +7,5 @@ class C {
   }
   <<< zero, " ", one, " ", two, " ", three >>>;
 }
-C c;
+var C c;
 <<< c >>>;

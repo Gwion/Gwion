@@ -1,2 +1,2 @@
-int i;
+var int i;
 <<< i >>>;

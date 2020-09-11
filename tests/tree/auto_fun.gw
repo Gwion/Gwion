@@ -2,7 +2,7 @@ class C {
 
 }
 
-C i[2];
+var C i[2];
 
 foreach(ref a : i)
      <<< a >>>;

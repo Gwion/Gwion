@@ -1,2 +1,2 @@
-fun Object test(){ Object o; <<< o >>>; return new Object; }
+fun Object test(){ var Object o; <<< o >>>; return new Object; }
 test();

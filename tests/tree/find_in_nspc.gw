@@ -1,13 +1,13 @@
 class C {
   class D {
-    int i;
+    var int i;
   }
 }
 
 class E extends C {
-  C->D d;
+  var C.D d;
 }
 
 class F {
-  E->D d;
+  var E.D d;
 }

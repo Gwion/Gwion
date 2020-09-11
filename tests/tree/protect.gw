@@ -1,8 +1,9 @@
 class C {
-  protect int i;
+  protect var int i;
   <<< ++i >>>;
 }
-C c;
+
+var C c;
 <<< c.i >>>;
 #!<<< ++c.i >>>;
 #!1 => c.i;

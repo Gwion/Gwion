@@ -1,4 +1,9 @@
-class C { fun static C t() { C c; <<< c, "  something" >>>; 
-return c; } }
-#!C c;
+class C {
+  fun static C t() {
+    var C c;
+    <<< c, "  something" >>>;
+    return c;
+  }
+}
+
 <<< C.t() >>>;

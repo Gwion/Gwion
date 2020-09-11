@@ -1,4 +1,4 @@
-float f;
+var float f;
 if(f)
 	<<< "not ok" >>>;
 else

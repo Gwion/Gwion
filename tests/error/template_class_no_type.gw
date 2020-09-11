@@ -1,6 +1,6 @@
 #! [contains] you must provide template types
 class<~A~> C {
-  A a;
+  var A a;
 }
 
-C c;
+var C c;

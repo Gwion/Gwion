@@ -1,7 +1,7 @@
 class Test_Array
 {
-  int     i[4];
-  float   f[4];
+  var int     i[4];
+  var float   f[4];
   i[0];
   f[0];
 
@@ -14,5 +14,5 @@ class Test_Array
   <<< i.size() >>>;
 }
 
-Test_Array t;
+var Test_Array t;
 <<< t >>>;

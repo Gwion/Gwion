@@ -1,1 +1,1 @@
-new Object nonnull @=> Object nonnull o;
+new nonnull Object @=> nonnull Object o;

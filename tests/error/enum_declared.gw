@@ -1,5 +1,5 @@
 #! [contains] already been defined
-int i;
+var int i;
 enum i
 {
   test

@@ -1,4 +1,4 @@
-"lol" @=> string ref s;
+"lol" @=> ref string s;
 "test" => s;
 
 <<< "testmem".replace(2, 3, "UKUH") >>>;

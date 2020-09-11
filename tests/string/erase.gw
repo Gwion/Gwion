@@ -1,4 +1,4 @@
-"test test" => string s;
+"test test" => var string s;
 
 s.erase(-1, 0);
 s.erase(0, -1);

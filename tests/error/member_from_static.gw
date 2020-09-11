@@ -1,6 +1,6 @@
 #! [contains] 
 class C {
-  int i;
+  var int i;
   fun static void test() {
     <<< i >>>;
   }

@@ -1,6 +1,7 @@
 class C {
   fun void test() {}
 }
+
 class D extends C {
   fun void test() {}
 }

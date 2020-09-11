@@ -1,4 +1,4 @@
-Impulse imp => FullRect fr => dac;
+var Impulse imp => var FullRect fr => dac;
 samp => now;
 1 => imp.next;
 samp => now;

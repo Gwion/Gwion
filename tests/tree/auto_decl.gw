@@ -1,2 +1,2 @@
-<<< new float[3] @=> auto i >>>;
+<<< new float[3] @=> var auto i >>>;
 <<< i >>>;

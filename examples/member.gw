@@ -1,15 +1,15 @@
 class C
 {
-	int i;
-	float f;
-	Object o;
+	var int i;
+	var float f;
+	var Object o;
 
 	fun int     m_i() { return i; }
 	fun float   m_f() { return f; }
 	fun Object  m_o() { return o; }
 }
 
-C c;
+var C c;
 #! read members
 <<<  c.i, c.f, c.o  >>>;
 

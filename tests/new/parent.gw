@@ -6,9 +6,9 @@ class <~A~> C extends B {
 }
 class <~A,B~> D extends <~A~>C {
   class <~A~>Child {
-    A a;
+    var A a;
   }
-  <~A~>Child child;
+  var <~A~>Child child;
 }
 
-<~int~>D d;
+var <~int~>D d;

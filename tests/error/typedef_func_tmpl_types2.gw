@@ -6,7 +6,7 @@ fun void test<~A~>() {
   <<< __func__ >>>;
 }
 
-test @=> B b;
+test @=> var B b;
 #!<<< iptr<~int~>() >>>;
 <<< b() >>>;
 <<< b<~int~>() >>>;
