@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -142,7 +143,39 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   return ret;
 }
 
+ANN static inline int opiscall(const Symbol sym) {
+  const m_str opname = s_name(sym);
+  return opname[0] == '@' && (isalpha(opname[1]) || opname[1] == '_');
+}
+
+ANN static inline Exp sym2func(const Env env, const Symbol sym, const loc_t pos) {
+  MemPool mp = env->gwion->mp;
+  const m_str name = s_name(sym);
+  return new_prim_id(mp, insert_symbol(name + 1), loc_cpy(mp, pos));
+}
+
+ANN static void binary_args(const Exp_Binary* bin) {
+  Exp arg = bin->lhs;
+  while(arg->next)
+    arg = arg->next;
+  arg->next = bin->rhs;
+}
+
+ANN static m_bool exp2call(const Env env, const Exp e, const Symbol sym, const Exp args) {
+  e->exp_type = ae_exp_call;
+  e->d.exp_call.func = sym2func(env, sym, e->pos);
+  e->d.exp_call.args = args;
+  return scan1_exp(env, e);
+}
+
+ANN static m_bool binary2call(const Env env, const Exp_Binary* bin) {
+  binary_args(bin);
+  return exp2call(env, exp_self(bin), bin->op, bin->lhs);
+}
+
 ANN static inline m_bool scan1_exp_binary(const Env env, const Exp_Binary* bin) {
+  if(opiscall(bin->op))
+    return binary2call(env, bin);
   CHECK_BB(scan1_exp(env, bin->lhs))
   return scan1_exp(env, bin->rhs);
 }
@@ -181,6 +214,9 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast* cast) {
 }
 
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix* post) {
+  if(opiscall(post->op)) {
+    return exp2call(env, exp_self(post), post->op, post->exp);
+  }
   CHECK_BB(scan1_exp(env, post->exp))
   const m_str access = exp_access(post->exp);
   if(!access)
@@ -213,6 +249,9 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
   if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code)
     { RET_NSPC(scan1_stmt(env, unary->code)) }
+  else if(opiscall(unary->op)) {
+    return exp2call(env, exp_self(unary), unary->op, unary->exp);
+  }
   return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 

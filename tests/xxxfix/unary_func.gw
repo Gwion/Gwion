@@ -1,0 +1,5 @@
+fun int add(int i) {
+  return i + 3;
+}
+
+<<< (@add) 2 >>>;
