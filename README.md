@@ -4,8 +4,9 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg)](#contributors)
-
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg)](#contributors)
+<!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
 ![Windows](https://github.com/fennecdjay/Gwion/workflows/Windows/badge.svg)
