@@ -1,5 +1,5 @@
 #! [contains] can't access private
-class C { private var int i;  }
+class C { var private int i;  }
 
 class D {
   var C c;

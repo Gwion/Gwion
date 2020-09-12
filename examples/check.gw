@@ -1,1 +1,0 @@
-<<< Machine.check("SinOsc s => dac; second => now;") >>>;

@@ -1,5 +1,5 @@
 class C {
-  private var int i;
+  var private int i;
   <<< i >>>;
 }
 

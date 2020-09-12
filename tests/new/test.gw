@@ -1,7 +1,7 @@
 class C {
   typedef static void func_t<~A~>(A a);
   fun static void myfunc<~A~>(A a) { <<< a >>>; }
-  myfunc @=> static var func_t ptr;
+  myfunc @=> var static func_t ptr;
   ptr(1);
 }
 

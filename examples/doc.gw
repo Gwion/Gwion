@@ -1,7 +1,0 @@
-Machine.add("examples/int.gw");
-Machine.compile("int i;<<< 120 >>>;");
-#!Machine.compile("int i[error];");
-
-<<< Machine.check("12 => int i; <<< i >>>") >>>;
-Machine.check("int i[error];");
-Machine.check(null);

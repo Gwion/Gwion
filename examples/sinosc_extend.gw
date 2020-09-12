@@ -1,8 +1,0 @@
-class Sine extends SinOsc
-{
-  fun float freq(float f) { (2 * f) => (this $ SinOsc).freq; }
-}
-
-var Sine s => dac;
-220 => s.freq;
-second => now;

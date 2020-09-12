@@ -1,7 +1,7 @@
 class C {
-  static var int i;
+  var static int i;
   typedef static void Test();
-  static var Test test;
+  var static Test test;
 }
 
 var C c;

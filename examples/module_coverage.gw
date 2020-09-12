@@ -1,9 +1,0 @@
-var SinOsc s => var Gain g => var HalfRect h => blackhole;
-s => var ZeroX z => blackhole;
-17 => s.init;
-(1024, .17) => s.init;
-var Impulse i => var FullRect f => blackhole;
-var Step step => blackhole;
-second => now;
-<<< "end" >>>;
-step =< blackhole;

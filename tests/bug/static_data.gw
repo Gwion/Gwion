@@ -1,8 +1,8 @@
 class C
 {
-	static var int     i;
-	static var float   f;
-	static var Object  o;
+	var static int     i;
+	var static float   f;
+	var static Object  o;
 }
 <<< C.i >>>;
 <<< C.f >>>;

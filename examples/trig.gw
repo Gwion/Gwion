@@ -1,3 +1,0 @@
-var SinOsc s :=> var Dtrig dtrig => blackhole;
-second => now;
-s :=< dtrig;

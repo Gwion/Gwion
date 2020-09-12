@@ -5,7 +5,7 @@ class C {
     13 => var float f;
     <<< __func__ >>>;
   }
-  static var S s;
+  var static S s;
 }
 
 var C c;

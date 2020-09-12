@@ -1,7 +1,7 @@
 struct S {
   var int i;
   var int j;
-  12 => static var int si;
+  12 => var static int si;
   fun static void test() { <<< __func__, si >>>; }
   test();
 }

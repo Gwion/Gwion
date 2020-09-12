@@ -1,7 +1,7 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
   typedef void PtrType(int i);
-  test @=> static var PtrType p;
+  test @=> var static PtrType p;
   p(1);
   test @=> p;
   p(1);

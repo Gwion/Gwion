@@ -1,3 +1,0 @@
-var SinOsc sinosc => dac;
-<<< second >>>;
-5::second => now;

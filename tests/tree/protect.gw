@@ -1,5 +1,5 @@
 class C {
-  protect var int i;
+  var protect int i;
   <<< ++i >>>;
 }
 

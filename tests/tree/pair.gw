@@ -1,9 +1,0 @@
-var <~float, int~>Pair p;
-<<< p >>>;
-1 => p.key;
-2 => p.val;
-
-<<< p.key, " ", p.val >>>;
-
-(2,3) => p.set;
-<<< p.key, " ", p.val >>>;

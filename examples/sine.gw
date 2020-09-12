@@ -1,4 +1,0 @@
-var SinOsc sinosc => dac;
-1::second => now;
-sinosc.freq(220);
-1::second => now;

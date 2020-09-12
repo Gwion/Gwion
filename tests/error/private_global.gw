@@ -1,2 +1,2 @@
 #! [contains] can only be used at class scope
-private var int i;
+var private int i;

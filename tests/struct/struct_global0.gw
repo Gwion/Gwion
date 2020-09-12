@@ -10,5 +10,5 @@ struct global GlobalStructWithCtor {
   var string s;
 }
 
-global var GlobalStruct global_s;
+var global GlobalStruct global_s;
 var GlobalStructWithCtor sctor;
