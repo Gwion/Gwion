@@ -66,7 +66,6 @@ INSTR(VarargIni) {
   struct Vararg_* arg = mp_calloc(shred->info->mp, Vararg);
   *(struct Vararg_**)o->data = arg;
   POP_REG(shred, instr->m_val - SZ_INT)
-//  if((arg->l = instr->m_val)) {
   if((*(m_uint*)(o->data + SZ_INT * 2) = instr->m_val)) {
     arg->d = (m_bit*)xmalloc(round2szint(instr->m_val));
     const Vector kinds = (Vector)instr->m_val2;
@@ -85,6 +84,15 @@ INSTR(VarargIni) {
     arg->s = vector_size(kinds);
   }
   *(M_Object*)REG(-SZ_INT) = o;
+}
+
+INSTR(VarargCheck) {
+  const M_Object o = *(M_Object*)(shred->reg-SZ_INT);
+  struct Vararg_ *arg = *(struct Vararg_**)o->data;
+  if(arg->s)
+    return;
+  shred->reg -= SZ_INT;
+  shred->pc = instr->m_val;
 }
 
 static INSTR(VarargEnd) {
@@ -106,8 +114,6 @@ static INSTR(VarargCast) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!*(m_uint*)(o->data + SZ_INT))
 	  Except(shred, "Using Vararg outside varloop");
-  if(!*(m_uint*)(o->data + SZ_INT*2))
-	  Except(shred, "Using Vararg cast on empty vararg");
   struct Vararg_* arg = *(struct Vararg_**)o->data;
   const Type t = (Type)instr->m_val;
   if(isa((Type)vector_at(&arg->t, arg->i), t) < 0)

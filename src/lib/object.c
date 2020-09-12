@@ -74,7 +74,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
       else if(GET_FLAG(v->type, struct) &&
-            !GET_FLAG(v, static) && !GET_FLAG(v, pure)) {
+            !GET_FLAG(v, static) && !GET_FLAG(v, pure) && v->type->e->tuple) {
         const TupleForm tf = v->type->e->tuple;
         for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
           const m_bit *data = o->data + v->from->offset;

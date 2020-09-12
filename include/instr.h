@@ -48,6 +48,7 @@ INSTR(ArrayAlloc);
 
 /* vararg */
 INSTR(VarargIni);
+INSTR(VarargCheck);
 
 INSTR(PopArrayClass);
 

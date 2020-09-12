@@ -1,6 +1,6 @@
 fun void test(...) {
 	var Object o;
-	vararg.start;
-	vararg $ Object @=> o;
-	vararg.end;
+  varloop vararg {
+	  vararg $ Object @=> o;
+  }
 }

@@ -1485,6 +1485,7 @@ ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, co
 ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt) {
   CHECK_BB(variadic_state(emit, stmt, 1))
   CHECK_BB(emit_exp(emit, stmt->exp))
+  const Instr check = emit_add_instr(emit, VarargCheck);
   const Instr member = emit_add_instr(emit, DotMember4);
   member->m_val = SZ_INT*2;
   const Instr instr = emit_add_instr(emit, BranchEqInt);
@@ -1492,9 +1493,8 @@ ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt)
   emit_stmt(emit, stmt->body, 1);
   CHECK_BB(emit_exp(emit, stmt->exp))
   emit_vararg_end(emit, pc);
-  instr->m_val = emit_code_size(emit);
   CHECK_BB(variadic_state(emit, stmt, 0))
-  instr->m_val = emit_code_size(emit);
+  check->m_val = instr->m_val = emit_code_size(emit);
   return GW_OK;
 }
 

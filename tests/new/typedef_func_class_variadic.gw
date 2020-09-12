@@ -5,9 +5,9 @@ class C {
 
   fun void test(...) {
     <<< this, " ", __func__ >>>;
-    vararg.start;
-    <<< vararg $ int >>>;
-    vararg.end;
+    varloop vararg {
+      <<< vararg $ int >>>;
+    }
   }
 
   test @=> iptr;
