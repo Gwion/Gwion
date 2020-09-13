@@ -145,7 +145,8 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
 
 ANN static inline int opiscall(const Symbol sym) {
   const m_str opname = s_name(sym);
-  return opname[0] == '@' && (isalpha(opname[1]) || opname[1] == '_');
+  return (opname[0] == '@' || opname[0] == '$') &&
+    (isalpha(opname[1]) || opname[1] == '_');
 }
 
 ANN static inline Exp sym2func(const Env env, const Symbol sym, const loc_t pos) {
