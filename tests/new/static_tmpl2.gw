@@ -3,4 +3,4 @@ class D extends C {
 }
 var D d;
 <<< d >>>;
-<<< d.t<~int]() >>>;
+<<< d.t<[int]() >>>;

@@ -1,8 +1,8 @@
-class Parent<~A] {
-  class C<~B] {
+class Parent<[A] {
+  class C<[B] {
     12 => var A a;
     13 => var B B;
   }
 }
-var Parent.C<~int, int] c;
+var Parent.C<[int, int] c;
 <<< c.a >>>;

@@ -1,5 +1,5 @@
 class C {
-	fun void test<~A](A a){ <<< a >>>; }
+	fun void test<[A](A a){ <<< a >>>; }
 	class D { var int i;}
 }
 

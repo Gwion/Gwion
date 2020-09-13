@@ -3,4 +3,4 @@ class C {}
 class D extends C {}
 
 var D d;
-d :=> var Ptr<~int] pd;
+d :=> var Ptr<[int] pd;

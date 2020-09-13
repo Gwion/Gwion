@@ -1,8 +1,8 @@
-fun void test<~A](int i, A a) {
+fun void test<[A](int i, A a) {
   var A b;
   <<< __func__, " ", a >>>;
   <<< i, " ", a >>>;
   if(i)
-    test<~int]((i-2, b$int));
+    test<[int]((i-2, b$int));
 }
-test<~float](2, 2);
+test<[float](2, 2);

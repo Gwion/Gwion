@@ -1,9 +1,9 @@
-class C<~A] {
+class C<[A] {
   var A a;
 }
 
 class D {
-  var static C<~int] c;
+  var static C<[int] c;
 }
 
 var D d;

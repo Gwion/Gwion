@@ -1,14 +1,14 @@
 class global StaticTmpl {
-  fun static void t<~A]() { <<< __func__ >>>; }
+  fun static void t<[A]() { <<< __func__ >>>; }
 }
 class D extends StaticTmpl {
 
 }
 
 fun void test(StaticTmpl c) {
-  StaticTmpl.t<~int]();
+  StaticTmpl.t<[int]();
 }
 
 #!D d;
-#!d.t<~int]();
+#!d.t<[int]();
 #!d => test;

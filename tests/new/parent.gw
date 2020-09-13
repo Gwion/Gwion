@@ -1,14 +1,14 @@
 class B {
 
 }
-class C<~A] extends B {
+class C<[A] extends B {
 
 }
-class D<~A,B] extends C<~A] {
-  class Child<~A] {
+class D<[A,B] extends C<[A] {
+  class Child<[A] {
     var A a;
   }
-  var Child<~A] child;
+  var Child<[A] child;
 }
 
-var D<~int] d;
+var D<[int] d;

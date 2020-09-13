@@ -1,3 +1,3 @@
 #! [contains] template call of non-function value
 var int test;
-test<~int]();
+test<[int]();

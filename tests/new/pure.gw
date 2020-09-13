@@ -1,4 +1,4 @@
-fun A pure<~A](A i) { return i; }
+fun A pure<[A](A i) { return i; }
 <<< 2 => pure >>>;
 <<< 2 => pure >>>;
 <<< 3 => pure >>>;

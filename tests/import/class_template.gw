@@ -1,2 +1,2 @@
-var ClassTemplate<~int, int] ct;
+var ClassTemplate<[int, int] ct;
 <<< ct.key >>>;

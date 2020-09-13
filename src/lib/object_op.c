@@ -314,7 +314,7 @@ ANN static void template_name(struct tmpl_info* info, m_str s) {
   const m_uint size = info->index = vector_size(&info->type) -1;
   str = tmpl_get(info, str);
   *str++ = '<';
-  *str++ = '~';
+  *str++ = '[';
   for(info->index = 0; info->index < size; ++info->index) {
     str = tmpl_get(info, str);
     if(info->index < size - 1)

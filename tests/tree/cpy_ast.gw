@@ -1,4 +1,4 @@
-class C<~A] {
+class C<[A] {
   \a{};
   [ 1 ];
   var int i,j;
@@ -9,7 +9,7 @@ class C<~A] {
   i ? i : !i;
   ++i;
   union { int ui; } u;
-  union U<~A] { int ui; };
+  union U<[A] { int ui; };
   typeof(i);
   if(i) i; else i;
   for(var int _i; _i < 1; ++_i);
@@ -30,4 +30,4 @@ class C<~A] {
   while(0){ <<< __func__ >>>; }
 }
 
-var C<~int] c;
+var C<[int] c;

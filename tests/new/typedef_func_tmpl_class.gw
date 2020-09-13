@@ -1,9 +1,9 @@
 class C {
-  typedef void t_ptr<~A]();
+  typedef void t_ptr<[A]();
 
-  var t_ptr<~int] iptr;
+  var t_ptr<[int] iptr;
 
-  fun void test<~A]() {
+  fun void test<[A]() {
     <<< this, " ", __func__ >>>;
   }
 

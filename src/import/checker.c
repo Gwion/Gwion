@@ -108,7 +108,7 @@ ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {
 ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
   if(tdc->str[0] != '<')
     return NULL;
-  if(tdc->str[1] != '~')
+  if(tdc->str[1] != '[')
     return (ID_List)GW_ERROR;
   tdc->str += 2;
   const ID_List list =  _tmpl_list(gwi, tdc);
@@ -195,7 +195,7 @@ ANN static Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
   if(*tdc->str != '<')
     return NULL; // GW_PASS
   ++tdc->str;
-  if(*tdc->str != '~') {
+  if(*tdc->str != '[') {
     GWI_ERR("invalid character");
     return (Type_List)GW_ERROR;
   }
