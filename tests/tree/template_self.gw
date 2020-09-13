@@ -1,7 +1,7 @@
-class C<[A] {
+class C:[A] {
   fun void test() {
-    var C<[A] c;
+    var C:[A] c;
   }
 }
 
-var C<[int] c;
+var C:[int] c;

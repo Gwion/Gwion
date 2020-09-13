@@ -1,4 +1,4 @@
-var Map<[int, float] pp;
+var Map:[int, float] pp;
 <<< pp >>>;
 <<< pp.size() >>>;
 <<< pp.set(1, 2) >>>;

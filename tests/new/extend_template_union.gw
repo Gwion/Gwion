@@ -1,25 +1,25 @@
-union U<[A] {
+union U:[A] {
   A a;
   int i;
 };
 
-class C<[A] extends U<[A] {
+class C:[A] extends U:[A] {
   fun void test() { <<< this >>>; }
   operator @dtor void () { <<< __func__ >>>; }
 }
 
-var C<[float] c;
+var C:[float] c;
 <<< c >>>;
 <<< c.test() >>>;
 <<< c.i >>>;
 
-class D<[A,B] extends C<[float] {
+class D:[A,B] extends C:[float] {
 
 }
 
-var D<[int,int] d;
-class E<[A,B] extends D<[float,B] {
+var D:[int,int] d;
+class E:[A,B] extends D:[float,B] {
 
 }
 
-var E<[int,int] e;
+var E:[int,int] e;

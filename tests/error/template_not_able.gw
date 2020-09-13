@@ -1,3 +1,3 @@
 #! [contains] not able to guess types for template call
-fun void test<[A,B](A a) {}
+fun void test:[A,B](A a) {}
 test(1);

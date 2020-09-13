@@ -1,10 +1,10 @@
-struct S<[A] {
+struct S:[A] {
   var A a0;
   var A a1;
 }
 
-var D<[int] si;
-var D<[float] sf;
+var D:[int] si;
+var D:[float] sf;
 
 <<< si.a0 >>>;
 <<< sf.a0 >>>;

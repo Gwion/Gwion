@@ -30,7 +30,7 @@ ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
   const size_t len = base_len + tmpl_len + nspc_len + idx_len + 2;
   char name[len + 1];
   CHECK_BO(sprintf(name, "%s%s%s%s@%" UINT_F "@%s",
-    base, !tmpl ? "" : "<[", !tmpl ? "" : tmpl, !tmpl ? "" : "]",
+    base, !tmpl ? "" : ":[", !tmpl ? "" : tmpl, !tmpl ? "" : "]",
     i, nspc))
   return insert_symbol(env->gwion->st, name);
 }

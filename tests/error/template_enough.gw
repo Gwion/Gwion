@@ -1,3 +1,3 @@
 #! [contains] 
-fun void test<[A,B](){}
+fun void test:[A,B](){}
 test();

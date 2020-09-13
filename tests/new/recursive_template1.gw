@@ -1,7 +1,7 @@
-fun void test<[A](int i) {
+fun void test:[A](int i) {
   var A a;
   <<< a >>>;
   if(i)
-    test<[float]((i-2));
+    test:[float]((i-2));
 }
-test<[Object](2);
+test:[Object](2);

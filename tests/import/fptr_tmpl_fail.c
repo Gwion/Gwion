@@ -9,7 +9,7 @@
 #include "import.h"
 
 GWION_IMPORT(typedef_test) {
-  GWI_BB(gwi_fptr_ini(gwi, "int~", "test<[A]"))
+  GWI_BB(gwi_fptr_ini(gwi, "int~", "test:[A]"))
   GWI_OB(gwi_fptr_end(gwi, 0))
   return GW_OK;
 }

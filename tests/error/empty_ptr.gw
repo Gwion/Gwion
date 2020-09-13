@@ -1,3 +1,3 @@
 #! [contains] EmptyPointerException
-var Ptr<[int] t;
+var Ptr:[int] t;
 <<< *t >>>;

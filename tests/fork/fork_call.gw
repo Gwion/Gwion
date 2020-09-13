@@ -2,7 +2,7 @@ fun int test() {
   return 12;
 }
 
-fork test() @=> ref TypedFork<[int] sh;
+fork test() @=> ref TypedFork:[int] sh;
 <<< typeof(sh) >>>;
 sh.ev => now;
 <<< sh.retval >>>;

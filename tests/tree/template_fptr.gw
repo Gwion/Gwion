@@ -1,9 +1,9 @@
-typedef int ptr_t<[A](A);
+typedef int ptr_t:[A](A);
 var ptr_t ptr;
 <<<ptr>>>;
 
-fun int test<[A](A a) { <<< a >>>; }
+fun int test:[A](A a) { <<< a >>>; }
 test @=> ptr;
 <<< ptr >>>;
-ptr<[int](2);
-ptr<[float](2.3);
+ptr:[int](2);
+ptr:[float](2.3);

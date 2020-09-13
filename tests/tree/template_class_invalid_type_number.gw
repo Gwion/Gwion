@@ -1,3 +1,3 @@
-class C<[A] {}
+class C:[A] {}
 
-var C<[int, float] c;
+var C:[int, float] c;

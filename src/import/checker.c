@@ -59,7 +59,7 @@ ANN static Symbol __str2sym(const Gwi gwi, struct td_checker *tdc) {
 
 ANN static inline Symbol _str2sym(const Gwi gwi, struct td_checker *tdc, const m_str path) {
   const Symbol sym = __str2sym(gwi, tdc);
-  if(*tdc->str && *tdc->str != '<')
+  if(*tdc->str && *tdc->str != ':')
     GWI_ERR_O(_("illegal character '%c' in path '%s'."), *tdc->str, path)
   return sym;
 }
@@ -106,7 +106,7 @@ ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {
 }
 
 ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
-  if(tdc->str[0] != '<')
+  if(tdc->str[0] != ':')
     return NULL;
   if(tdc->str[1] != '[')
     return (ID_List)GW_ERROR;
@@ -192,7 +192,7 @@ ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
 }
 
 ANN static Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
-  if(*tdc->str != '<')
+  if(*tdc->str != ':')
     return NULL; // GW_PASS
   ++tdc->str;
   if(*tdc->str != '[') {

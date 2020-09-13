@@ -148,7 +148,7 @@ ANN m_bool type_ref(Type t) {
 ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
   if(!index)
     return NULL;
-  m_str name = strchr(t->name, '<');
+  m_str name = strchr(t->name, ':');
   if(!name)
     return NULL;
   name += 2;
@@ -157,7 +157,7 @@ ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
   m_uint n = 1;
   char c, buf[slen + 1], *tmp = buf;
   while((c = *name)) {
-    if(c == '<')
+    if(c == ':')
       ++lvl;
     else if(c == ']') {
       if(!lvl-- && n == index)

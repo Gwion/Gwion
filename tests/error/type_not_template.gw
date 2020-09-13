@@ -1,2 +1,2 @@
 #! [contains] is not template
-var Object<[int] o;
+var Object:[int] o;

@@ -1,10 +1,10 @@
-typedef void t_ptr<[A]();
+typedef void t_ptr:[A]();
 
 var t_ptr ptr;
 
-fun void test<[A]() {
+fun void test:[A]() {
   <<< __func_ >>>;
 }
 
 test @=> ptr;
-ptr<[int]();
+ptr:[int]();

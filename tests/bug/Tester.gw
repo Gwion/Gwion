@@ -1,7 +1,7 @@
 class Tester
 {
-	fun int assert_equal<[A](string description, A a, A b){ if(a == b) return 0; return 1; }
-	fun int assert_not_equal<[A](string description, A a, A b){ if(a != b) return 0; return 1; }
+	fun int assert_equal:[A](string description, A a, A b){ if(a == b) return 0; return 1; }
+	fun int assert_not_equal:[A](string description, A a, A b){ if(a != b) return 0; return 1; }
 }
 
 var Tester t;

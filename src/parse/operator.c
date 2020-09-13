@@ -39,7 +39,7 @@ ANN static Type op_parent(const Env env, const Type t) {
     const Type type = typedef_base(t);
     char name[strlen(type->name)];
     strcpy(name, type->name);
-    const m_str post = strrchr(name, '<');
+    const m_str post = strrchr(name, ':');
     *post = '\0';
     return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, name));
   }

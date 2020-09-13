@@ -1,10 +1,10 @@
-class C<[A] {
+class C:[A] {
   operator @dtor void () { <<< __func__ >>>; }
 }
-class D<[A] extends C<[A] {
+class D:[A] extends C:[A] {
   operator @dtor void () { <<< __func__ >>>; }
 }
-class E extends D<[int] {
+class E extends D:[int] {
   operator @dtor void () { <<< __func__ >>>; }
 }
 
