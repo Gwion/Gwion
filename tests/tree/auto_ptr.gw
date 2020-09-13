@@ -1,4 +1,4 @@
-var Ptr<~int~> ptr;
+var Ptr<~int] ptr;
 var int i[4];
 foreach(ref a : i)
   <<< *a >>>;

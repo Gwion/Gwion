@@ -1,4 +1,4 @@
 #! [contains] unknown type
-fun void my_function<~A~>() { <<< "test" >>>; }
+fun void my_function<~A]() { <<< "test" >>>; }
 
-my_function<~unknown_type~>();
+my_function<~unknown_type]();

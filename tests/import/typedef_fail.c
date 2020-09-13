@@ -9,7 +9,7 @@
 #include "import.h"
 
 GWION_IMPORT(typedef_test) {
-  GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef<~A~>"))
-  GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef<~A~>"))
+  GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef<~A]"))
+  GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef<~A]"))
   return GW_OK;
 }

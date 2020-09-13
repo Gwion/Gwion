@@ -1,2 +1,2 @@
 #! [contains] 
-Math.rand<~int~>();
+Math.rand<~int]();

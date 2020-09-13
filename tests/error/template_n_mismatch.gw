@@ -1,6 +1,6 @@
 #! [contains] arguments do not match for template call
-fun void test<~A~>(){ <<< "func" >>>;}
-fun void test<~A~>(int i){<<< "other func" >>>;}
+fun void test<~A](){ <<< "func" >>>;}
+fun void test<~A](int i){<<< "other func" >>>;}
 
-test<~int, float, int~>();
-#!test<~int~>();
+test<~int, float, int]();
+#!test<~int]();

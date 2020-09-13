@@ -704,7 +704,7 @@ ANN static Func get_template_func(const Env env, const Exp_Call* func, const Val
   assert(exp_self(func));
   ERR_O(exp_self(func)->pos,
         _("function is template. automatic type guess not fully implemented yet.\n"
-        "  please provide template types. eg: '<~type1, type2, ...~>'"))
+        "  please provide template types. eg: '<~type1, type2, ...]'"))
 }
 
 ANN static Func predefined_func(const Env env, const Value v,

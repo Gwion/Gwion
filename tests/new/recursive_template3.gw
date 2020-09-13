@@ -1,4 +1,4 @@
-fun void test<~A~>(A i) {
+fun void test<~A](A i) {
   var A a;
   <<< a >>>;
   <<< i, " ", a, " ", i > 1 >>>;

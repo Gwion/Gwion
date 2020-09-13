@@ -300,7 +300,7 @@ ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
     size += tmpl_set(info, t);
   } while((call = call->next) && (base = base->next) && ++size);
   size += tmpl_set(info, info->cdef->base.type);
-  return size + 16 + 3;
+  return size + 16 + 2;
 }
 
 ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
@@ -311,19 +311,18 @@ ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
 
 ANN static void template_name(struct tmpl_info* info, m_str s) {
   m_str str = s;
+  const m_uint size = info->index = vector_size(&info->type) -1;
+  str = tmpl_get(info, str);
   *str++ = '<';
   *str++ = '~';
-  const m_uint size = vector_size(&info->type) -1;
   for(info->index = 0; info->index < size; ++info->index) {
     str = tmpl_get(info, str);
     if(info->index < size - 1)
       *str++ = ',';
     else {
-      *str++ = '~';
-      *str++ = '>';
+      *str++ = ']';
     }
   }
-  str = tmpl_get(info, str);
   *str = '\0';
 }
 

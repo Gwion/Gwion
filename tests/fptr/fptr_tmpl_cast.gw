@@ -1,5 +1,5 @@
 class C {
-  typedef void ptr_t<~A~>();
-  fun void test<~A~>() {}
+  typedef void ptr_t<~A]();
+  fun void test<~A]() {}
   test $ ptr_t;
 }

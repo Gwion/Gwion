@@ -1,4 +1,4 @@
-class C<~A~> {}
+class C<~A] {}
 
-var C<~int~> c;
+var C<~int] c;
 <<< c >>>;

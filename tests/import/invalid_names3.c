@@ -13,6 +13,6 @@
 #include "gwi.h"
 
 GWION_IMPORT(trig) {
-  DECL_OB(const Type, t0, = gwi_mk_type(gwi, "T<~a~>", SZ_INT, NULL))
+  DECL_OB(const Type, t0, = gwi_mk_type(gwi, "T<~a]", SZ_INT, NULL))
   return gwi_add_type(gwi, t0);
 }

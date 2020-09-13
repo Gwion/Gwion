@@ -144,22 +144,24 @@ ANN m_bool type_ref(Type t) {
   return 0;
 }
 
+
 ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
-  if(!index || t->name[0] != '<')
+  if(!index)
     return NULL;
-  m_str name = t->name + 2;
+  m_str name = strchr(t->name, '<');
+  if(!name)
+    return NULL;
+  name += 2;
+  const size_t slen = strlen(name);
   m_uint lvl = 0;
   m_uint n = 1;
-  const size_t slen = strlen(name);
   char c, buf[slen + 1], *tmp = buf;
   while((c = *name)) {
     if(c == '<')
       ++lvl;
-    else if(c == '>') {
-      if(!lvl-- && n == index) {
-        --tmp;
+    else if(c == ']') {
+      if(!lvl-- && n == index)
         break;
-      }
     } else if(c == ',') {
       if(!lvl && n++ == index)
         break;
@@ -169,10 +171,9 @@ ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
     if(n == index)
       *tmp++ = *name;
     ++name;
-
   }
   *tmp = '\0';
-  return strlen(buf) ? s_name(insert_symbol(buf)) : NULL;
+  return tmp - buf ? s_name(insert_symbol(buf)) : NULL;
 }
 
 ANN m_uint get_depth(const Type type) {

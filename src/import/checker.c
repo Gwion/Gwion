@@ -114,13 +114,13 @@ ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
   const ID_List list =  _tmpl_list(gwi, tdc);
   if(list == (ID_List)GW_ERROR)
     return (ID_List)GW_ERROR;
-  if(tdc->str[0] != '~' || tdc->str[1] != '>') {
+  if(tdc->str[0] != ']') {
 // unfinished template
     if(list)
       free_id_list(gwi->gwion->mp, list);
     return (ID_List)GW_ERROR;
   }
-  tdc->str += 2;
+  ++tdc->str;
   return list;
 }
 
@@ -203,12 +203,12 @@ ANN static Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
   Type_List tl = __str2tl(gwi, tdc);
   if(!tl)
     return (Type_List)GW_ERROR;
-  if(tdc->str[0] != '~' || tdc->str[1] != '>') {
+  if(tdc->str[0] != ']') {
     free_type_list(gwi->gwion->mp, tl);
     GWI_ERR("unfinished template");
     return (Type_List)GW_ERROR;
   }
-  tdc->str += 2;
+  ++tdc->str;
   return tl;
 }
 

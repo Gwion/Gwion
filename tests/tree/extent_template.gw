@@ -1,8 +1,8 @@
-class C<~A~> {
+class C<~A] {
   var A a;
 }
 
-class D extends C<~int~> {}
+class D extends C<~int] {}
 
 var D d;
 <<<d.a>>>;

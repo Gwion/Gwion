@@ -1,9 +1,9 @@
 class C {
-  typedef static void t_ptr<~A~>();
+  typedef static void t_ptr<~A]();
 
-  var t_ptr<~int~> iptr;
+  var t_ptr<~int] iptr;
 
-  fun static void test<~A~>() {
+  fun static void test<~A]() {
     <<< __func__ >>>;
   }
 

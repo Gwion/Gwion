@@ -1,13 +1,13 @@
 class C {
-  fun int test<~A~>(A a) { <<< " A ", a >>>; }
-  fun int test<~A~>(A a, int i) { <<< " A ", a, " ", __func__  >>>; }
-  fun int test<~A~>(A a, int i, int j) { <<< a >>>; }
+  fun int test<~A](A a) { <<< " A ", a >>>; }
+  fun int test<~A](A a, int i) { <<< " A ", a, " ", __func__  >>>; }
+  fun int test<~A](A a, int i, int j) { <<< a >>>; }
 }
 class D extends C {
-  fun int test<~A~>(A a, int i) { <<< this, " extent ", a, __func__ >>>; }
+  fun int test<~A](A a, int i) { <<< this, " extent ", a, __func__ >>>; }
 }
 class E extends D {
-  fun int test<~A~>(A a, int i) { <<< this, " Extent ", a, __func__ >>>; }
+  fun int test<~A](A a, int i) { <<< this, " Extent ", a, __func__ >>>; }
 }
 
 

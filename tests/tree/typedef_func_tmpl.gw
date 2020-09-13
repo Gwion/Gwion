@@ -1,9 +1,9 @@
-typedef void t_ptr<~A~>();
+typedef void t_ptr<~A]();
 
-var t_ptr<~int~> iptr;
-var t_ptr<~float~> fptr;
+var t_ptr<~int] iptr;
+var t_ptr<~float] fptr;
 
-fun void test<~A~>() {
+fun void test<~A]() {
   <<< __func__ >>>;
 }
 

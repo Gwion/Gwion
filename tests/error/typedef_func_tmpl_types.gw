@@ -1,15 +1,15 @@
 #! [contains] pre-defined types
-typedef void t_ptr<~A~>();
+typedef void t_ptr<~A]();
 
-var t_ptr<~int~> iptr;
+var t_ptr<~int] iptr;
 
-fun void test<~A~>() {
+fun void test<~A]() {
   var A a;
   <<< __func__, " ", a>>>;
 }
 
 test @=> iptr;
 <<< iptr() >>>;
-<<< iptr<~int~>() >>>;
-<<< iptr<~float~>() >>>;
-<<< iptr<~Object~>() >>>;
+<<< iptr<~int]() >>>;
+<<< iptr<~float]() >>>;
+<<< iptr<~Object]() >>>;
