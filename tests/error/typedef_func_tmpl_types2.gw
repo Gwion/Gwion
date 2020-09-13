@@ -1,12 +1,11 @@
 #! [contains] pre-defined types
 typedef void t_ptr<~A~>();
-typedef <~int~>t_ptr B;
+typedef t_ptr<~int~> B;
 
 fun void test<~A~>() {
   <<< __func__ >>>;
 }
 
 test @=> var B b;
-#!<<< iptr<~int~>() >>>;
 <<< b() >>>;
 <<< b<~int~>() >>>;

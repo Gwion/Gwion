@@ -1,9 +1,9 @@
-class<~A~> C {
+class C<~A~> {
   var A a;
 }
 
 class D {
-  var static <~int~>C c;
+  var static C<~int~> c;
 }
 
 var D d;

@@ -3,7 +3,7 @@ fun void test<~A~>() {
   <<< __func__ >>>;
 }
 
-typedef <~int~>t_ptr B;
+typedef t_ptr<~int~> B;
 var B b;
 <<< b >>>;
 test @=> b;
@@ -12,7 +12,7 @@ test @=> b;
 <<< b() >>>;
 
 
-typedef <~float~>t_ptr C;
+typedef t_ptr<~float~> C;
 var C c;
 <<< c >>>;
 test @=> c;

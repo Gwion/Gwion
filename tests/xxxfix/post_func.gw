@@ -2,4 +2,4 @@ fun int add(int i) {
   return i + 3;
 }
 
-<<< 2 @add>>>;
+<<< 2 $add>>>;

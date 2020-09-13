@@ -1,7 +1,7 @@
-union <~A~> U{
+union U<~A~>{
   int i;
   A a;
 };
 
-var <~float~>U u;
+var U<~float~> u;
 <<< u.a >>>;

@@ -1,9 +1,8 @@
-#! fork me.id() @=> auto ref sh;
 fun int test() {
   return 12;
 }
 
-fork test() @=> ref <~int~>TypedFork sh;
+fork test() @=> ref TypedFork<~int~> sh;
 <<< typeof(sh) >>>;
 sh.ev => now;
 <<< sh.retval >>>;

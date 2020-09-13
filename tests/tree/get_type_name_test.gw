@@ -1,4 +1,4 @@
-class <~A, B~> C{}
-class <~A~> D {}
-var <~ <~int~>D, <~int~>D ~>C c;
+class C<~A, B~> {}
+class D<~A~> {}
+var C<~ D<~int~>, D<~int~> ~> c;
 <<< c >>>;

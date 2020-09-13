@@ -1,12 +1,12 @@
 class B {}
 
-class<~A~>C extends B{}
+class C<~A~> extends B{}
 
-class<~A,B~>D extends<~A~>C{
-  class<~A~> E{}
+class D<~A,B~> extends C<~A~> {
+  class E<~A~> {}
   class G extends ld
   {A0I:}
-  var <~A~>d d;
+  var D<~A~> d;
 }
 
-var <~int~>D d;
+var D<~int~> d;

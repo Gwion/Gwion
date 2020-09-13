@@ -1,7 +1,7 @@
-class <~A~>C {
+class C<~A~> {
   class D {
 
   }
 }
 
-var <~int~>C.D d;
+var C.D<~int~> d;

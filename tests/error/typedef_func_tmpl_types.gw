@@ -1,7 +1,7 @@
 #! [contains] pre-defined types
 typedef void t_ptr<~A~>();
 
-var <~int~>t_ptr iptr;
+var t_ptr<~int~> iptr;
 
 fun void test<~A~>() {
   var A a;
@@ -9,7 +9,6 @@ fun void test<~A~>() {
 }
 
 test @=> iptr;
-#!<<< iptr<~int~>() >>>;
 <<< iptr() >>>;
 <<< iptr<~int~>() >>>;
 <<< iptr<~float~>() >>>;

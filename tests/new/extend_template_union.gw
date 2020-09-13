@@ -1,27 +1,25 @@
-union <~A~>U {
+union U<~A~> {
   A a;
   int i;
 };
 
-#!<~float~>U u;
-#!<<< u.i >>>;
-class <~A~>C extends <~A~>U {
+class C<~A~> extends U<~A~> {
   fun void test() { <<< this >>>; }
   operator @dtor void () { <<< __func__ >>>; }
 }
 
-var <~float~>C c;
+var C<~float~> c;
 <<< c >>>;
 <<< c.test() >>>;
 <<< c.i >>>;
 
-class <~A,B~>D extends <~float~>C {
+class D<~A,B~> extends C<~float~> {
 
 }
 
-var <~int,int~>D d;
-class <~A,B~>E extends <~float,B~>D {
+var D<~int,int~> d;
+class E<~A,B~> extends D<~float,B~> {
 
 }
 
-var <~int,int~>E e;
+var E<~int,int~> e;

@@ -1,7 +1,7 @@
 class C {
   typedef static void t_ptr<~A~>();
 
-  var <~int~>t_ptr iptr;
+  var t_ptr<~int~> iptr;
 
   fun static void test<~A~>() {
     <<< __func__ >>>;

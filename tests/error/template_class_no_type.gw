@@ -1,5 +1,5 @@
 #! [contains] you must provide template types
-class<~A~> C {
+class C<~A~> {
   var A a;
 }
 

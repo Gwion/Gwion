@@ -1,2 +1,2 @@
 12 => var int i;
-<<<i   $ <~int~>Ptr >>>;
+<<<i   $ Ptr<~int~> >>>;

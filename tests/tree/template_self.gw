@@ -1,7 +1,7 @@
-class <~A~>C {
+class C<~A~> {
   fun void test() {
-    var <~A~>C c;
+    var C<~A~> c;
   }
 }
 
-var <~int~>C c;
+var C<~int~> c;

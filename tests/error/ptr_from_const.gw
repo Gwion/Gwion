@@ -1,1 +1,1 @@
-1 :=> var <~int~>Ptr i;
+1 :=> var Ptr<~int~> i;

@@ -1,10 +1,10 @@
-struct <~A~> S{
+struct S<~A~> {
   var A a0;
   var A a1;
 }
 
-var <~int~>S si;
-var <~float~>S sf;
+var D<~int~> si;
+var D<~float~> sf;
 
 <<< si.a0 >>>;
 <<< sf.a0 >>>;

@@ -1,4 +1,4 @@
-class<~A,B~> C {
+class C<~A,B~> {
   var A a;
   var B b;
   fun A test() {
@@ -9,9 +9,9 @@ class<~A,B~> C {
   }
 }
 
-var <~int, int~>C c;
-var <~float, int~>C d;
-var <~Object, int~>C g;
+var C<~int, int~> c;
+var C<~float, int~> d;
+var C<~Object, int~> g;
 <<< c.a >>>;
 <<< d.a >>>;
 <<< c.test() >>>;

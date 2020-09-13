@@ -1,4 +1,4 @@
-fun void test(<~int~>Ptr p) {
+fun void test(Ptr<~int~> p) {
    <<< *p >>>;
 }
 var int i => test;
