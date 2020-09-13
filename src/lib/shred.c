@@ -403,7 +403,7 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG((t_fork), abstract);
 
-  const Type t_typed = gwi_class_ini(gwi,  "<~A~>TypedFork", "Fork");
+  const Type t_typed = gwi_class_ini(gwi,  "TypedFork<~A~>", "Fork");
   gwi_item_ini(gwi, "A", "retval");
   GWI_BB((gwi_item_end(gwi, ae_flag_const, NULL)))
   GWI_BB(gwi_class_end(gwi))

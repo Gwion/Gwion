@@ -59,7 +59,7 @@ ANN static Symbol __str2sym(const Gwi gwi, struct td_checker *tdc) {
 
 ANN static inline Symbol _str2sym(const Gwi gwi, struct td_checker *tdc, const m_str path) {
   const Symbol sym = __str2sym(gwi, tdc);
-  if(*tdc->str)
+  if(*tdc->str && *tdc->str != '<')
     GWI_ERR_O(_("illegal character '%c' in path '%s'."), *tdc->str, path)
   return sym;
 }
@@ -126,14 +126,11 @@ ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
 
 ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   struct td_checker tdc = { .str= ck->name };
+  if(!(ck->sym = _str2sym(gwi, &tdc, tdc.str)))
+    return GW_ERROR;
   ID_List il = __tmpl_list(gwi, &tdc);
   if(il == (ID_List)GW_ERROR)
     return GW_ERROR;
-  if(!(ck->sym = _str2sym(gwi, &tdc, tdc.str))) {
-    if(il)
-      free_id_list(gwi->gwion->mp, il);
-    return GW_ERROR;
-  }
   ck->tmpl = il;
   ck->name = s_name(ck->sym);
   return GW_OK;
@@ -194,7 +191,7 @@ ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
   return new_type_list(gwi->gwion->mp, td, next);
 }
 
-ANN Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
+ANN static Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
   if(*tdc->str != '<')
     return NULL; // GW_PASS
   ++tdc->str;
@@ -224,22 +221,14 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 
 
 ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
+  DECL_OO(const Symbol, sym, = __str2sym(gwi, tdc))
+  struct AC ac = { .str = tdc->str };
+  CHECK_BO(ac_run(gwi, &ac))
+  tdc->str = ac.str;
   Type_List tl = td_tmpl(gwi, tdc);
   if(tl == (Type_List)GW_ERROR)
     return NULL;
   Type_Decl *next = NULL;
-  const Symbol sym = __str2sym(gwi, tdc);
-  if(!sym) {
-    if(tl)
-      free_type_list(gwi->gwion->mp, tl);
-    return NULL;
-  }
-  struct AC ac = { .str = tdc->str };
-  if(ac_run(gwi, &ac) < 0) {
-    if(tl)free_type_list(gwi->gwion->mp, tl);
-    return NULL;
-  }
-  tdc->str = ac.str;
   if(*tdc->str == '.') {
     ++tdc->str;
     if(!(next =  _str2decl(gwi, tdc))) {

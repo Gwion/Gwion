@@ -22,7 +22,7 @@ GWION_IMPORT(trig) {
   const Type t2 = gwi_mk_type(gwi, "T<a>", SZ_INT, NULL);
   gwi_add_type(gwi, t2);
 
-  const Type t3 = gwi_mk_type(gwi, "<~a~>T", SZ_INT, NULL);
+  const Type t3 = gwi_mk_type(gwi, "T<~a~>", SZ_INT, NULL);
   gwi_add_type(gwi, t3);
 
   return GW_OK;
