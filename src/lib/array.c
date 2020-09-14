@@ -191,14 +191,7 @@ static OP_CHECK(opck_array_sr) {
   return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->pos);
 }
 
-ANN static Instr emit_array_shift(const Emitter emit,
-    const Exp a, const Exp b, const f_instr exec) {
-  if(a->info->type->array_depth == b->info->type->array_depth + 1) {
-    const Type type = b->info->type;
-    const Instr pop = emit_add_instr(emit, RegPop);
-    pop->m_val = type->size;
-    return emit_add_instr(emit, ArrayAppend);
-  }
+ANN static Instr emit_array_shift(const Emitter emit, const f_instr exec) {
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
   return emit_add_instr(emit, exec);
@@ -249,18 +242,20 @@ static INSTR(ArrayConcatRight) {
 static OP_EMIT(opem_array_sr) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->info->type->array_depth == bin->lhs->info->type->array_depth)
-    return emit_array_shift(emit, bin->rhs, bin->lhs, ArrayConcatRight);
+    return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
+  (void)emit_gc(emit, 0);
   return emit_add_instr(emit, ArrayAppendFront);
 }
 
 static OP_EMIT(opem_array_sl) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->info->type->array_depth == bin->rhs->info->type->array_depth)
-    return emit_array_shift(emit, bin->lhs, bin->rhs, ArrayConcatLeft);
+    return emit_array_shift(emit, ArrayConcatLeft);
   const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
+  pop->m_val = bin->rhs->info->type->size;
+  (void)emit_gc(emit, -SZ_INT);
   return emit_add_instr(emit, ArrayAppend);
 }
 
@@ -313,7 +308,7 @@ static INSTR(ArraySlice) {
 
 static OP_EMIT(opem_array_slice) {
   emit_add_instr(emit, ArraySlice);
-  return emit_add_instr(emit, GcAdd);
+  return emit_gc(emit, -SZ_INT);
 }
 
 static FREEARG(freearg_array) {
@@ -376,7 +371,7 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
 }
 
 ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
-  emit_add_instr(emit, GcAdd);
+  emit_gc(emit, -SZ_INT);
   CHECK_BB(emit_exp(emit, array->exp))
   array_loop(emit, array->depth);
   array_finish(emit, array->depth, array->type->size, is_var);

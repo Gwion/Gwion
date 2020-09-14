@@ -102,5 +102,5 @@ OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->info->type,
     unary->td->array, GET_FLAG(unary->td, ref)))
-  return emit_add_instr(emit, GcAdd);
+  return emit_gc(emit, -SZ_INT);
 }

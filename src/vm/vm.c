@@ -709,7 +709,6 @@ branchnefloat:
   BRANCH_DISPATCH(*(m_float*)reg);
 arrayappend:
   m_vector_add(ARRAY(*(M_Object*)(reg-SZ_INT)), reg);
-  release(*(M_Object*)(reg-SZ_INT), shred);
   DISPATCH()
 autoloop:
   m_vector_get(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
@@ -850,7 +849,7 @@ gcini:
   vector_add(&shred->gc, 0);
   DISPATCH();
 gcadd:
-  vector_add(&shred->gc, *(vtype*)(reg-SZ_INT));
+  vector_add(&shred->gc, *(vtype*)(reg+(m_int)VAL));
   DISPATCH();
 gcend:
 {

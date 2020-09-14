@@ -50,4 +50,9 @@ ANN static inline void emit_except(const Emitter emit, const Type t) {
   if(!GET_FLAG(t, nonnull))
     emit_add_instr(emit, GWOP_EXCEPT);
 }
+ANN static inline Instr emit_gc(const Emitter emit, const m_int offset) {
+  const Instr gc = emit_add_instr(emit, GcAdd);
+  gc->m_val = offset;
+  return gc;
+}
 #endif

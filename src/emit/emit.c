@@ -405,7 +405,7 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
   instr->m_val2 = type->array_depth == 1 ? array_base(type)->size : SZ_INT;
-  emit_add_instr(emit, GcAdd);
+  emit_gc(emit, -SZ_INT);
   emit_notpure(emit);
   return GW_OK;
 }
@@ -432,7 +432,7 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   struct Op_Import opi = { .op=sym, .rhs=e->info->type,
     .pos=e->pos, .data=(uintptr_t)prim_exp(data), .op_type=op_exp };
   CHECK_OB(op_emit(emit, &opi))
-  emit_add_instr(emit, GcAdd);
+  emit_gc(emit, -SZ_INT);
   return GW_OK;
 }
 
