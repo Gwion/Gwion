@@ -42,5 +42,8 @@ int main(int argc, char** argv) {
   if(ini > 0)
     gwion_run(&gwion);
   gwion_end(&gwion);
-  THREAD_RETURN(EXIT_SUCCESS);
+#ifndef BUILD_ON_WINDOWS
+  pthread_exit(NULL);
+#endif
+  return EXIT_SUCCESS;
 }

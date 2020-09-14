@@ -275,7 +275,8 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 
 #define VM_OUT shred->code = code; shred->reg = reg; shred->mem = mem; shred->pc = PC;
 
-__attribute__ ((hot, optimize("-O2")))
+__attribute__ ((hot))
+CC_OPTIM(-O2)
 ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
   static const void* dispatch[] = {
     &&regsetimm,
