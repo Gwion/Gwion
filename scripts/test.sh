@@ -51,6 +51,7 @@ assert_exclude() {
 }
 
 read_test() {
+  [ -f "$1" ] && return # needed for macOS, modulo does not seem to work
   while read -r line
   do
     if [ "$line" = "#*" ]
@@ -214,12 +215,12 @@ test_dir() {
     l=$((l+1))
   done
   [ "$async" -ne 0 ] && {
-  wait
-  local rest=$(( $((n-base-1)) %async))
-  for i in $(seq $((n-rest))  $((n-1)))
-  do read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
-  done
-}
+    wait
+    local rest=$(( $((n-base-1)) %async))
+    for i in $(seq $((n-rest))  $((n-1)))
+    do read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
+    done
+  }
   fi
 
 
