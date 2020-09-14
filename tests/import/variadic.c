@@ -11,7 +11,7 @@
 #include "gwi.h"
 
 static MFUN(m_test) {
-  printf("%p\n", *(M_Object*)MEM(0));
+  gw_out("%p\n", *(M_Object*)MEM(0));
 }
 
 static MFUN(m_variadic) {
@@ -24,13 +24,13 @@ static MFUN(m_variadic) {
   m_uint i = 0;
   while(i < arg->s) {
     if(*str == 'i') {
-      printf("%" INT_F "\n", *(m_int*)(arg->d + arg->o));
+      gw_out("%"INT_F "\n", *(m_int*)(arg->d + arg->o));
       arg->o += SZ_INT;
     } else if(*str == 'f') {
-      printf("%f\n", *(m_float*)(arg->d + arg->o));
+      gw_out("%f\n", *(m_float*)(arg->d + arg->o));
       arg->o += SZ_FLOAT;
     } else if(*str == 'o') {
-      printf("%p\n", (void*)*(M_Object*)(arg->d + arg->o));
+      gw_out("%p\n", (void*)*(M_Object*)(arg->d + arg->o));
       arg->o += SZ_INT;
     }
     ++i;
