@@ -726,9 +726,9 @@ arraytop:
   else
     goto _goto;
 arrayaccess:
-  a.obj = *(M_Object*)(reg-VAL2);
 {
   register const m_int idx = *(m_int*)(reg + VAL);
+  a.obj = *(M_Object*)(reg-VAL2);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
@@ -739,10 +739,14 @@ arrayaccess:
   DISPATCH()
 }
 arrayget:
+PRAGMA_PUSH()
   m_vector_get(ARRAY(a.obj), *(m_int*)(reg + VAL), (reg + (m_int)VAL2));
+PRAGMA_POP()
   DISPATCH()
 arrayaddr:
+PRAGMA_PUSH()
   *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + VAL));
+PRAGMA_POP()
   DISPATCH()
 arrayvalid:
 // are we sure it is the array ?
