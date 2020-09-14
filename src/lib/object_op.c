@@ -300,7 +300,7 @@ ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
     size += tmpl_set(info, t);
   } while((call = call->next) && (base = base->next) && ++size);
   size += tmpl_set(info, info->cdef->base.type);
-  return size + 16 + 3;
+  return size + 4;
 }
 
 ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
