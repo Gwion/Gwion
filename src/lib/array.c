@@ -224,6 +224,8 @@ static INSTR(ArrayConcatLeft) {
   }
   m_bit *data = more->ptr + ARRAY_OFFSET;
   memmove(ARRAY_PTR(base) + (len - 1) * sz, data, sz);
+  release(obase, shred);
+  release(omore, shred);
 }
 
 static INSTR(ArrayConcatRight) {
@@ -240,6 +242,8 @@ static INSTR(ArrayConcatRight) {
   }
   memmove(ARRAY_PTR(base) + (ARRAY_LEN(more) + len - 1) * sz, ARRAY_PTR(base), len * sz);
   memmove(ARRAY_PTR(base), ARRAY_PTR(more), ARRAY_LEN(more) * sz);
+  release(obase, shred);
+  release(omore, shred);
 }
 
 static OP_EMIT(opem_array_sr) {
