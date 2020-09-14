@@ -37,7 +37,7 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
 ANN static Type op_parent(const Env env, const Type t) {
   if(GET_FLAG(t, template) && GET_FLAG(t, ref)) {
     const Type type = typedef_base(t);
-    char name[strlen(type->name)];
+    char name[strlen(type->name) + 1];
     strcpy(name, type->name);
     const m_str post = strrchr(name, ':');
     *post = '\0';
