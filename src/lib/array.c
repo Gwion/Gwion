@@ -83,6 +83,16 @@ ANN void m_vector_add(const M_Vector v, const void* data) {
   memcpy(ARRAY_PTR(v) + (ARRAY_LEN(v) - 1) * size, data, size);
 }
 
+ANN void m_vector_add_front(const M_Vector v, const void* data) {
+  const m_uint size = ARRAY_SIZE(v);
+  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
+    const m_uint cap = ARRAY_CAP(v) *=2;
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
+  }
+  memmove(ARRAY_PTR(v) + size, ARRAY_PTR(v), ARRAY_LEN(v) * size);
+  memmove(ARRAY_PTR(v), data, size);
+}
+
 ANN void m_vector_set(const M_Vector v, const m_uint i, const void* data) {
   const m_uint size = ARRAY_SIZE(v);
   memcpy(ARRAY_PTR(v) + i * size, data, size);
@@ -133,18 +143,18 @@ ANN static Type get_array_type(Type t) {
   return t;
 }
 
-#define ARRAY_OPCK                                        \
-  const Type l = get_array_type(bin->lhs->info->type);    \
-  const Type r = get_array_type(bin->rhs->info->type);    \
-  if(isa(l, r) < 0)                                       \
-    ERR_N(exp_self(bin)->pos, _("array types do not match."))
+#define ARRAY_OPCK(a, b, pos)                   \
+  const Type l = get_array_type(a->info->type); \
+  const Type r = get_array_type(b->info->type); \
+  if(isa(l, r) < 0)                             \
+    ERR_N(pos, _("array types do not match."))
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
     return env->gwion->type[et_null];
   if(bin->lhs->info->type != env->gwion->type[et_null]) {
-    ARRAY_OPCK
+    ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
     if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
       ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   }
@@ -158,22 +168,95 @@ static OP_CHECK(opck_array_at) {
   return bin->rhs->info->type;
 }
 
-static OP_CHECK(opck_array_shift) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->info->type == env->gwion->type[et_null] &&
-      bin->lhs->info->type->array_depth > 1)
-    return bin->lhs->info->type;
-  ARRAY_OPCK
-  if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth + 1)
-    ERR_N(exp_self(bin)->pos, "array depths do not match for '<<'.");
-  return bin->lhs->info->type;
+ANN static Type check_array_shift(const Env env,
+    const Exp a, const Exp b, const m_str str, const loc_t pos) {
+  if(a->info->type == env->gwion->type[et_null] &&
+      b->info->type->array_depth > 1)
+    return a->info->type;
+    ARRAY_OPCK(a, b, pos)
+  if(a->info->type->array_depth == b->info->type->array_depth + 1)
+    return a->info->type;
+  else if(a->info->type->array_depth == b->info->type->array_depth)
+    return a->info->type;
+  ERR_N(pos, "array depths do not match for '%s'.", str);
 }
 
-static OP_EMIT(opem_array_shift) {
+static OP_CHECK(opck_array_sl) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  const Type type = bin->rhs->info->type;
+  return check_array_shift(env, bin->lhs, bin->rhs, "<<", exp_self(bin)->pos);
+}
+
+static OP_CHECK(opck_array_sr) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->pos);
+}
+
+ANN static Instr emit_array_shift(const Emitter emit,
+    const Exp a, const Exp b, const f_instr exec) {
+  if(a->info->type->array_depth == b->info->type->array_depth + 1) {
+    const Type type = b->info->type;
+    const Instr pop = emit_add_instr(emit, RegPop);
+    pop->m_val = type->size;
+    return emit_add_instr(emit, ArrayAppend);
+  }
   const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = type->size;
+  pop->m_val = SZ_INT;
+  return emit_add_instr(emit, exec);
+}
+
+static INSTR(ArrayAppendFront) {
+  const M_Object o = *(M_Object*)(shred->reg);
+  const M_Vector a = ARRAY(o);
+  m_vector_add_front(a, shred->reg - ARRAY_SIZE(a));
+}
+
+static INSTR(ArrayConcatLeft) {
+  const M_Object obase = *(M_Object*)(shred->reg - SZ_INT);
+  const M_Object omore = *(M_Object*)(shred->reg);
+  const M_Vector base = ARRAY(obase);
+  const M_Vector more = ARRAY(omore);
+  const m_uint len = ARRAY_LEN(base);
+  const m_uint sz = ARRAY_SIZE(base);
+  if((ARRAY_LEN(base) += ARRAY_LEN(more)) >= ARRAY_CAP(base)) {
+    ARRAY_CAP(base) += ARRAY_CAP(more);
+    m_bit *ptr = (m_bit*)xrealloc(base->ptr, ARRAY_OFFSET + ARRAY_CAP(base) * sz);
+    base->ptr = ptr;
+  }
+  m_bit *data = more->ptr + ARRAY_OFFSET;
+  memmove(ARRAY_PTR(base) + (len - 1) * sz, data, sz);
+}
+
+static INSTR(ArrayConcatRight) {
+  const M_Object obase = *(M_Object*)(shred->reg);
+  const M_Object omore = *(M_Object*)(shred->reg - SZ_INT);
+  const M_Vector base = ARRAY(obase);
+  const M_Vector more = ARRAY(omore);
+  const m_uint len = ARRAY_LEN(base);
+  const m_uint sz = ARRAY_SIZE(base);
+  if((ARRAY_LEN(base) += ARRAY_LEN(more)) >= ARRAY_CAP(base)) {
+    ARRAY_CAP(base) += ARRAY_CAP(more);
+    m_bit *ptr = (m_bit*)xrealloc(base->ptr, ARRAY_OFFSET + ARRAY_CAP(base) * sz);
+    base->ptr = ptr;
+  }
+  memmove(ARRAY_PTR(base) + (ARRAY_LEN(more) + len - 1) * sz, ARRAY_PTR(base), len * sz);
+  memmove(ARRAY_PTR(base), ARRAY_PTR(more), ARRAY_LEN(more) * sz);
+}
+
+static OP_EMIT(opem_array_sr) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->info->type->array_depth == bin->lhs->info->type->array_depth)
+    return emit_array_shift(emit, bin->rhs, bin->lhs, ArrayConcatRight);
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  return emit_add_instr(emit, ArrayAppendFront);
+}
+
+static OP_EMIT(opem_array_sl) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->lhs->info->type->array_depth == bin->rhs->info->type->array_depth)
+    return emit_array_shift(emit, bin->lhs, bin->rhs, ArrayConcatLeft);
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
   return emit_add_instr(emit, ArrayAppend);
 }
 
@@ -349,9 +432,13 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_array_shift))
-  GWI_BB(gwi_oper_emi(gwi, opem_array_shift))
+  GWI_BB(gwi_oper_add(gwi, opck_array_sl))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "nonnull @Array", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_sr))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_sr))
+  GWI_BB(gwi_oper_end(gwi, ">>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
