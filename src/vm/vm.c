@@ -691,7 +691,9 @@ sporkexp:
   DISPATCH()
 sporkend:
   assert(!VAL); // spork are not mutable
+PRAGMA_PUSH()
   *(M_Object*)(reg-SZ_INT) = child->info->me;
+PRAGMA_POP()
   DISPATCH()
 brancheqint:
   reg -= SZ_INT;
@@ -724,9 +726,9 @@ arraytop:
   else
     goto _goto;
 arrayaccess:
+  a.obj = *(M_Object*)(reg-VAL2);
 {
   register const m_int idx = *(m_int*)(reg + VAL);
-  a.obj = *(M_Object*)(reg-VAL2);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
     gw_err(_("  ... at index [%" INT_F "]\n"), idx);
     gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
