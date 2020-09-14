@@ -321,6 +321,21 @@ do_test() {
 done
 }
 
+summary() {
+  win=$1
+  expected=$2
+  skip=$3
+  todo=$4
+  if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
+  then echo -e '\n\t'"${ANSI_GREEN}Everything is OK!${ANSI_RESET}"'\n'
+  else
+    echo -e '\n\t'"${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
+    echo -e '\t'"${ANSI_RED}Failure: $failure${ANSI_RESET}"
+    echo -e '\t'"Skipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
+    echo -e '\t'"todo   : ${ANSI_BOLD}$todo${ANSI_RESET}"'\n' >&2
+  fi
+}
+
 consummer() {
   local win failure skip todo expected
   win=0
@@ -365,14 +380,7 @@ consummer() {
     fi
     # ignore the rest
   done <&0
-  if [ "$win" = "$expected" ] && [ "$skip" = 0 ] && [ "$todo" = 0 ]
-  then echo -e '\n\t'"${ANSI_GREEN}Everything is OK!${ANSI_RESET}"'\n'
-  else
-    echo -e '\n\t'"${ANSI_GREEN}Success: $win/$expected${ANSI_RESET}"
-    echo -e '\t'"${ANSI_RED}Failure: $failure${ANSI_RESET}"
-    echo -e '\t'"Skipped: ${ANSI_BOLD}$skip${ANSI_RESET}"
-    echo -e '\t'"todo   : ${ANSI_BOLD}$todo${ANSI_RESET}"'\n' >&2
-  fi
+  summary "$win" "$expected" "$skip" "$todo"
   [ "$failure" -gt 0 ] && return 1
   return 0
 }
