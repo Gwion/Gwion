@@ -51,7 +51,7 @@ assert_exclude() {
 }
 
 read_test() {
-  [ -f "$1" ] && return # needed for macOS, modulo does not seem to work
+  [ -f "$1" ] || return # needed for macOS, modulo does not seem to work
   while read -r line
   do
     if [ "$line" = "#*" ]
