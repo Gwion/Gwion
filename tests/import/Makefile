@@ -4,8 +4,7 @@ CC       ?= gcc
 NAME := ${NAME}
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS   = -std=c99 $(../../gwion -k 2>&1 | grep CFLAGS | sed 's/CFLAGS: //') ${INC} ${CICFLAGS} -Wall -Wextra -g -Og
-LDFLAGS   = $(../../gwion -k 2>&1 | grep LDFLAGS)
+CFLAGS += -std=c99 ${INC} -Wall -Wextra -g -Og
 
 # os specific
 ifeq ($(shell uname), Darwin)
