@@ -98,15 +98,8 @@ ANN Type check_td(const Env env, Type_Decl *td) {
   return t;
 }
 
-ANN static inline void clear_decl(const Env env, const Exp_Decl *decl) {
-  Var_Decl_List list = decl->list;
-  do scope_add(env->curr->info->value, (vtype)list->self->xid, (vtype)NULL);
-  while((list = list->next));
-}
-
 ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
   CHECK_OO((((Exp_Decl*)decl)->type = check_td(env, decl->td)))
-//  clear_decl(env, decl);
   CHECK_BO(traverse_exp(env, exp_self(decl)))
   return decl->type;
 }

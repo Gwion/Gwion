@@ -47,11 +47,6 @@ void free_m_vector(MemPool p, M_Vector a) {
   mp_free(p, M_Vector, a);
 }
 
-ANN static inline int is_array(const Type *types, const Type type) {
-  const Type base = array_base(type);
-  return isa(base, types[et_object]) > 0;
-}
-
 static DTOR(array_dtor) {
   const Type t = unflag_type(o->type_ref);
   if(*(void**)(o->data + SZ_INT))

@@ -184,19 +184,6 @@ ANN static inline void emit_member(const Emitter emit, const Value v, const uint
   instr->m_val2 = size;
 }
 
-ANN static inline void emit_struct_addr(const Emitter emit, const Value v) {
-  const Instr set = emit_add_instr(emit, StructMemberAddr);
-  set->m_val = v->from->offset;
-}
-
-ANN static inline void emit_struct_var(const Emitter emit, const Value v) {
-  for(m_uint i = 0; i < v->type->size; i += SZ_INT) {
-    const Instr set = emit_add_instr(emit, Reg2Reg);
-    set->m_val2 = -v->type->size + i;
-    set->m_val = -v->type->size + v->from->offset + i;
-  }
-}
-
 ANN static inline void emit_struct_data(const Emitter emit, const Value v, const uint emit_addr) {
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
   instr->m_val = v->from->offset;
