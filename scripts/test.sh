@@ -183,12 +183,10 @@ dir_contains() {
 }
 
 test_dir() {
-  local n offset l base
-  l=0
+  local n offset l
   n=$2
-  #	[ -z "$n"  ] && n=1
+  l=$n
   offset=$n
-  base=$((n-1))
   [ "$async" -lt 0 ] && set -m
   found=0
   grep '\.gw' <<< "$(ls "$1")" &> /dev/null && found=1
@@ -201,25 +199,28 @@ test_dir() {
       else test_gw "$file" "$n"
       fi
       [ "$async" -ne 0 ] && {
-      if [ $(( $((n-base)) % async)) -eq 0 ]
+      if [ $((n % async)) -eq 0 ]
       then
         wait
         for i in $(seq "$offset" "$n")
         do
           read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
+          l=$((l+1))
         done
         offset=$((offset + async));
       fi
     }
     n=$((n+1))
-    l=$((l+1))
   done
-  [ "$async" -ne 0 ] && {
+  [ $l != $n ] && [ "$async" -ne 0 ] && {
     wait
-    local rest=$(( $((n-base-1)) %async))
-    for i in $(seq $((n-rest))  $((n-1)))
-    do read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
-    done
+    local rest=$((n-l))
+    if [ $rest -gt 0 ]
+    then
+      for i in $(seq $((l))  $((n-1)))
+      do read_test "${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$i").log"
+      done
+    fi
   }
   fi
 
@@ -309,7 +310,7 @@ do_test() {
   elif [ -d "$arg" ]
   then
     #			[ -f ${GWION_TEST_DIR}/${GWION_TEST_PREFIX}bailout ] && exit 1
-    [ "${arg: -1}" = "/" ] && arg=${arg:0: -1}
+    [ "${arg: -1}" = "/" ] && arg=${arg%?}
     # make header
     for i in $(seq 1 $((${#arg}+4))); do printf "#"; done
     echo -e '\n'"# $arg #"'\t'"${ANSI_RESET}severity: ${ANSI_BOLD}$severity${ANSI_RESET}"
