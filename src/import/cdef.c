@@ -27,11 +27,12 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_f
 }
 
 ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
-  while(t && !GET_FLAG(t, valid)) {
+  do {
+    if(GET_FLAG(t, valid))
+      break;
     if(t->e->def)
       CHECK_BB(traverse_class_def(env, t->e->def))
-    t = t->e->parent;
-  }
+  } while((t = t->e->parent));
   return GW_OK;
 }
 
