@@ -1,2 +1,2 @@
 #! [contains] Hello, interpolation!
-<<< `Hello, interpolation!` >>>;
+<<< "Hello, interpolation!" >>>;
