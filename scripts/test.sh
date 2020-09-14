@@ -398,7 +398,15 @@ clean() {
 
 if [ -f test.log ] && [ -z "$NO_LOG" ]
 then
-  cat test.log
+#  cat test.log
+# assuming CI for now
+  sudo apt-get update -y
+  sudo apt-get install -y valgrind
+  for file in $(cat test.log)
+  do
+      cat $file
+      valgrind ./gwion $file
+  done
   exit 1
 else
   exit 0
