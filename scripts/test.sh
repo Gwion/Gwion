@@ -274,7 +274,6 @@ do_test() {
   local n_test res1
   n_test=1
   count_test "$@"
-  command -v bc && res1=$(date +%s.%N)
   for arg in "$@"
   do
     if [ "${arg:0:6}" = "async=" ]
@@ -320,18 +319,6 @@ do_test() {
     n_test=$((n_test + $(count_tests "$arg")))
   fi
 done
-command -v bc > /dev/null && {
-local dt dd dt2 dh dt3 dm ds res2
-res2=$(date +%s.%N)
-dt=$(echo "$res2 - $res1" | bc)
-dd=$(echo "$dt/86400" | bc)
-dt2=$(echo "$dt-86400*$dd" | bc)
-dh=$(echo "$dt2/3600" | bc)
-dt3=$(echo "$dt2-3600*$dh" | bc)
-dm=$(echo "$dt3/60" | bc)
-ds=$(echo "$dt3-60*$dm" | bc)
-printf "# Total runtime: %d:%02d:%02d:%s%s" "$dd" "$dh" "$dm" "$ds" '\n'
-  }
 }
 
 consummer() {
