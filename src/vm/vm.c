@@ -836,11 +836,14 @@ staticother:
   reg += VAL2;
   DISPATCH()
 dotfunc:
+PRAGMA_PUSH()
+  *(VM_Code*)(reg) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT))->vtable, VAL))->code;
   reg += SZ_INT;
-  VAL2 = SZ_INT;
+PRAGMA_POP()
+  DISPATCH()
 dotstaticfunc:
 PRAGMA_PUSH()
-  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT-VAL2))->vtable, VAL))->code;
+  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT))->vtable, VAL))->code;
 PRAGMA_POP()
   DISPATCH()
 gcini:
