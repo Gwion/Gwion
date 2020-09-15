@@ -166,7 +166,7 @@ ANN static void clean_stmt_for(Clean *a, Stmt_For b) {
   --a->scope;
 }
 
-ANN static void clean_stmt_auto(Clean *a, Stmt_Auto b) {
+ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);

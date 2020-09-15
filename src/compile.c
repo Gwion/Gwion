@@ -105,11 +105,11 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
   gwion->env->name = c->name;
   for(m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass *pass = (compilation_pass*)vector_at(&gwion->data->passes->vec, i);
-    const m_bool ret = pass[0](gwion->env, c->ast);
+    m_bool ret = pass[0](gwion->env, c->ast);
     if(ret < 0)
       ast_cleaner(gwion, c->ast);
     if(pass[1])
-      CHECK_BB(pass[1](gwion->env, (Ast)(m_uint)ret))
+      CHECK_BB(pass[1](gwion->env, &ret))
     CHECK_BB(ret)
   }
   ast_cleaner(gwion, c->ast);

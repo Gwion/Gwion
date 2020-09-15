@@ -1000,7 +1000,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
-// the two next function do not account for arrays. (they are only stmt_auto() helpers
+// the two next function do not account for arrays. (they are only stmt_each() helpers
 ANN static Type_Decl* _type2td(const Env env, const Type t, Type_Decl *next) {
   Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol(t->name),
       loc_cpy(env->gwion->mp, td_pos(next)));
@@ -1015,7 +1015,7 @@ ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc) {
   return !t->e->owner_class ? td : _type2td(env, t->e->owner_class, td);
 }
 
-ANN static m_bool do_stmt_auto(const Env env, const Stmt_Auto stmt) {
+ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   DECL_OB(Type, t, = check_exp(env, stmt->exp))
   while(GET_FLAG(t, typedef))
     t = t->e->parent;
@@ -1071,7 +1071,7 @@ stmt_func_xxx(for, Stmt_For,, !(
 stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
   cond_type(env, stmt->cond) < 0 ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(auto, Stmt_Auto,, do_stmt_auto(env, stmt))
+stmt_func_xxx(each, Stmt_Each,, do_stmt_each(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)

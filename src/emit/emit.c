@@ -1522,7 +1522,7 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   return ret;
 }
 
-ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
+ANN static Instr emit_stmt_eachptr_init(const Emitter emit, const Type type) {
   const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
   new_obj->m_val2 = (m_uint)type;
   (void)emit_addref(emit, 0);
@@ -1530,9 +1530,9 @@ ANN static Instr emit_stmt_autoptr_init(const Emitter emit, const Type type) {
   return emit_add_instr(emit, Reg2Mem);
 }
 
-ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_uint *end_pc) {
+ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_uint *end_pc) {
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  Instr cpy = stmt->is_ptr ? emit_stmt_autoptr_init(emit, stmt->v->type) : NULL;
+  Instr cpy = stmt->is_ptr ? emit_stmt_eachptr_init(emit, stmt->v->type) : NULL;
   emit_local(emit, emit->gwion->type[et_int]);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   emit_local(emit, emit->gwion->type[et_int]);
@@ -1554,11 +1554,11 @@ ANN static m_bool _emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt, m_ui
   return ret;
 }
 
-ANN static m_bool emit_stmt_auto(const Emitter emit, const Stmt_Auto stmt) {
+ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   CHECK_BB(emit_exp(emit, stmt->exp))
   emit_push_stack(emit);
   m_uint end_pc = 0;
-  const m_bool ret = _emit_stmt_auto(emit, stmt, &end_pc);
+  const m_bool ret = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
   regpop(emit, SZ_INT);
   return ret;

@@ -213,7 +213,7 @@ scan2_stmt_func(for, Stmt_For,, !(scan2_stmt(env, stmt->c1) < 0 ||
     scan2_stmt(env, stmt->c2) < 0 ||
     (stmt->c3 && scan2_exp(env, stmt->c3) < 0) ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
-scan2_stmt_func(auto, Stmt_Auto,, !(scan2_exp(env, stmt->exp) < 0 ||
+scan2_stmt_func(each, Stmt_Each,, !(scan2_exp(env, stmt->exp) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
 scan2_stmt_func(loop, Stmt_Loop,, !(scan2_exp(env, stmt->cond) < 0 ||
     scan2_stmt(env, stmt->body) < 0) ? 1 : -1)
