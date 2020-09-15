@@ -110,8 +110,8 @@ ANN static inline m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
 }
 
 ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
-  return GET_FLAG(info->lhs->def, variadic) ==
-         GET_FLAG(info->rhs->def, variadic);
+  return GET_FLAG(info->lhs->def->base, variadic) ==
+         GET_FLAG(info->rhs->def->base, variadic);
 }
 
 ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
@@ -150,9 +150,9 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
-  l->def->flag = def->flag;
+  l->def->base->flag = def->base->flag;
   l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
-  SET_FLAG(l->def, abstract); // mark as non immediate lambda
+  SET_FLAG(l->def->base, abstract); // mark as non immediate lambda
   map_set(&env->curr->info->func->map, (m_uint)l->def->base, env->scope->depth);
   const m_bool ret = check_traverse_fdef(env, l->def);
   map_remove(&env->curr->info->func->map, (m_uint)l->def->base);
@@ -200,7 +200,7 @@ static OP_CHECK(opck_auto_fptr) {
   // create a matching signature
   // TODO: we could check first if there a matching existing one
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, bin->lhs->info->type->e->d.func->def->base);
-  const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase, bin->lhs->info->type->e->d.func->def->flag);
+  const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase, bin->lhs->info->type->e->d.func->def->base->flag);
   char name[13 + strlen(env->curr->name) +
     num_digit(bin->rhs->pos->first.line) + num_digit(bin->rhs->pos->first.column)];
   sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->pos->first.line, bin->rhs->pos->first.column);

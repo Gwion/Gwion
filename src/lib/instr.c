@@ -43,7 +43,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   dt->def = def;
   dt->owner = v->from->owner;
   dt->owner_class = v->from->owner_class;
-  SET_FLAG(def, template);
+  SET_FLAG(def->base, template);
   return def;
 }
 

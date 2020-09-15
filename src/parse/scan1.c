@@ -527,11 +527,11 @@ ANN static m_bool scan1_fdef_args(const Env env, Arg_List list) {
 
 ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
   if(fdef->base->args) {
-    if(!GET_FLAG(fdef, builtin))
+    if(!GET_FLAG(fdef->base, builtin))
       CHECK_BB(scan1_fdef_args(env, fdef->base->args))
     CHECK_BB(scan1_args(env, fdef->base->args))
   }
-  if(!GET_FLAG(fdef, builtin) && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
+  if(!GET_FLAG(fdef->base, builtin) && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan1_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list))
   return GW_OK;
 }
@@ -539,10 +539,10 @@ ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
 ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)))
-  if(GET_FLAG(fdef, typedef))
+  if(GET_FLAG(fdef->base, typedef))
     CHECK_BB(scan_internal(env, fdef->base))
-  else if(GET_FLAG(fdef, op) && env->class_def)
-    SET_FLAG(fdef, static);
+  else if(GET_FLAG(fdef->base, op) && env->class_def)
+    SET_FLAG(fdef->base, static);
   RET_NSPC(scan1_fbody(env, fdef))
   return GW_OK;
 }
@@ -559,7 +559,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) 
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if(fdef->base->td)
-    CHECK_BB(env_storage(env, fdef->flag, td_pos(fdef->base->td)))
+    CHECK_BB(env_storage(env, fdef->base->flag, td_pos(fdef->base->td)))
   CHECK_BB(scan1_fdef_defined(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
     return scan1_fdef_base_tmpl(env, fdef->base);

@@ -253,12 +253,12 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
       CHECK_BO(not_from_owner_class(env, env->class_def, value, prim_pos(data)))
     const Value v = value ?: find_value(env->class_def, var);
     if(v) {
-      if(env->func && GET_FLAG(env->func->def, static) && GET_FLAG(v, member))
+      if(env->func && GET_FLAG(env->func->def->base, static) && GET_FLAG(v, member))
         ERR_O(prim_pos(data),
               _("non-static member '%s' used from static function."), s_name(var))
     }
     return v;
-  } else if(SAFE_FLAG(env->class_def, global) || (env->func && GET_FLAG(env->func->def, global))) {
+  } else if(SAFE_FLAG(env->class_def, global) || (env->func && GET_FLAG(env->func->def->base, global))) {
     if(!SAFE_FLAG(value, abstract))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."), s_name(var))
@@ -308,7 +308,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   }
   prim_self(data)->value = v;
   if(env->func) {
-    if(GET_FLAG(env->func->def, abstract))
+    if(GET_FLAG(env->func->def->base, abstract))
       CHECK_BO(lambda_valid(env, prim_self(data)))
   if(env->func && !GET_FLAG(v, const) && v->from->owner)
     UNSET_FLAG(env->func, pure);
@@ -443,7 +443,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
     Arg_List e1 = func->def->base->args;
     while(e) {
       if(!e1) {
-        if(GET_FLAG(func->def, variadic))
+        if(GET_FLAG(func->def->base, variadic))
           return func;
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
@@ -512,7 +512,7 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
 }
 
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = GET_FLAG(fdef, valid) || check_traverse_fdef(env, fdef) > 0;
+  const m_bool ret = GET_FLAG(fdef->base, valid) || check_traverse_fdef(env, fdef) > 0;
   if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
@@ -565,7 +565,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
       fbase->tmpl->base = 0;
       fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
       if(template_push_types(env, fbase->tmpl) > 0) {
-        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->flag);
+        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->base->flag);
         if(traverse_fptr_def(env, fptr) > 0 &&
             (base->base->ret_type = known_type(env, base->base->td)) &&
             (!exp->args || !!check_exp(env, exp->args))) {
@@ -601,7 +601,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
           SET_FLAG(value->d.func_ref, builtin);
         }
         const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-        SET_FLAG(fdef, template);
+        SET_FLAG(fdef->base, template);
         fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
         fdef->base->tmpl->base = i;
         if((m_func = ensure_tmpl(env, fdef, exp)))
@@ -714,7 +714,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
     struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
       .scope=env->scope->depth, .flag=ae_flag_check };
     CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
-    SET_FLAG(func->def, typedef);
+    SET_FLAG(func->def->base, typedef);
     const m_bool ret = check_traverse_fdef(env, func->def);
     if(es.run)
       envset_pop(&es, v->from->owner_class);
@@ -780,7 +780,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
     ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
   CHECK_BO(check_traverse_fdef(env, l->def))
   if(env->class_def)
-    SET_FLAG(l->def, member);
+    SET_FLAG(l->def->base, member);
   ((Exp_Call*)exp)->m_func = l->def->base->func;
   return l->def->base->ret_type ?: (l->def->base->ret_type = env->gwion->type[et_void]);
 }
@@ -1269,7 +1269,7 @@ ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
 }
 
 ANN static m_bool check_signature_match(const Env env, const Func_Def fdef, const Func parent) {
-  if(GET_FLAG(parent->def, static) != GET_FLAG(fdef, static)) {
+  if(GET_FLAG(parent->def->base, static) != GET_FLAG(fdef->base, static)) {
     const m_str c_name  = fdef->base->func->value_ref->from->owner_class->name;
     const m_str p_name = parent->value_ref->from->owner_class->name;
     const m_str f_name = s_name(fdef->base->xid);
@@ -1277,7 +1277,7 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def fdef, cons
           _("function '%s.%s' ressembles '%s.%s' but cannot override...\n"
           "  ...(reason: '%s.%s' is declared as 'static')"),
           c_name, f_name, p_name, c_name,
-          GET_FLAG(fdef, static) ? c_name : p_name, f_name)
+          GET_FLAG(fdef->base, static) ? c_name : p_name, f_name)
   }
   return !fdef->base->tmpl ? isa(fdef->base->ret_type, parent->def->base->ret_type) : GW_OK;
 }
@@ -1353,7 +1353,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->args)
     CHECK_BB(check_func_args(env, fdef->base->args))
-  if(!GET_FLAG(fdef, builtin)) {
+  if(!GET_FLAG(fdef->base, builtin)) {
     if(fdef->d.code)
       CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code))
   } else
@@ -1374,25 +1374,25 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     return check_traverse_fdef(env, fdef);
   }
   CHECK_BB(check_func_def_override(env, fdef))
-  DECL_BB(const m_int, scope, = GET_FLAG(fdef, global) ? env_push_global(env) : env->scope->depth)
+  DECL_BB(const m_int, scope, = GET_FLAG(fdef->base, global) ? env_push_global(env) : env->scope->depth)
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;
   nspc_push_value(env->gwion->mp, env->curr);
   struct Op_Import opi = { };
-  if(GET_FLAG(fdef, op)) {
+  if(GET_FLAG(fdef->base, op)) {
     func_operator(f, &opi);
     operator_suspend(env->curr, &opi);
   }
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
-  if(GET_FLAG(fdef, op))
+  if(GET_FLAG(fdef->base, op))
     operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
   if(ret > 0)
-    SET_FLAG(fdef, valid);
-  if(GET_FLAG(fdef, global))
+    SET_FLAG(fdef->base, valid);
+  if(GET_FLAG(fdef->base, global))
     env_pop(env,scope);
   return ret;
 }

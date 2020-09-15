@@ -40,18 +40,18 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
     context_global(env);
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
-    SET_FLAG(def, global);
+    SET_FLAG(def->base, global);
   } else if(!GET_FLAG(fptr->base, static)) {
     SET_FLAG(fptr->value, member);
     SET_FLAG(fptr->base->func, member);
-    SET_FLAG(def, member);
+    SET_FLAG(def->base, member);
     def->stack_depth += SZ_INT;
   } else {
     SET_FLAG(fptr->value, static);
     SET_FLAG(fptr->base->func, static);
-    SET_FLAG(def, static);
+    SET_FLAG(def->base, static);
   }
-  if(GET_FLAG(def, variadic))
+  if(GET_FLAG(def->base, variadic))
     def->stack_depth += SZ_INT;
   fptr->value->from->owner_class = env->class_def;
 }
@@ -59,7 +59,7 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
 static void fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = new_func_def(env->gwion->mp,
       cpy_func_base(env->gwion->mp, fptr->base),
-    NULL, fptr->base->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
+    NULL, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
   fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
   fptr->value->d.func_ref = fptr->base->func;
   fptr->base->func->value_ref = fptr->value;

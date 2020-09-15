@@ -10,7 +10,7 @@
 ANN void func_operator(const Func_Def fdef, struct Op_Import *opi) {
   opi->op =fdef->base->xid;
   const m_str str = s_name(fdef->base->xid);
-  const uint is_unary = GET_FLAG(fdef, unary) +
+  const uint is_unary = GET_FLAG(fdef->base, unary) +
     (!strcmp(str, "@conditionnal") || !strcmp(str, "@unconditionnal"));
   const Arg_List args = fdef->base->args;
   opi->lhs = is_unary ? NULL :

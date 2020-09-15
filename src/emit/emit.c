@@ -787,7 +787,7 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
     CHECK_BB(emit_exp(emit, exp_call->args))
     emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
   }
-  if(exp_call->m_func && GET_FLAG(exp_call->m_func->def, variadic))
+  if(exp_call->m_func && GET_FLAG(exp_call->m_func->def->base, variadic))
     emit_func_arg_vararg(emit, exp_call);
   return GW_OK;
 }
@@ -1063,7 +1063,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
         back->m_val = 0;
       }
     } else if(emit->env->func != f && !f->value_ref->from->owner_class && !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
-      if(GET_FLAG(f->def, op)) {
+      if(GET_FLAG(f->def->base, op)) {
         const Instr back = (Instr)vector_back(&emit->code->instr);
         back->m_val = (m_uint)f;
       } else {
@@ -1302,7 +1302,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
 
 ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
   CHECK_BB(emit_func_def(emit, lambda->def))
-  if(GET_FLAG(lambda->def, member) && !exp_getvar(exp_self(lambda)))
+  if(GET_FLAG(lambda->def->base, member) && !exp_getvar(exp_self(lambda)))
     emit_add_instr(emit, RegPushMem);
   regpushi(emit, (m_uint)lambda->def->base->func->code);
   return GW_OK;
@@ -1911,7 +1911,7 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
 }
 
 ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
-  if(GET_FLAG(func->def, typedef))
+  if(GET_FLAG(func->def->base, typedef))
     return emit_internal(emit, func);
   else
     return finalyze(emit, FuncReturn);
@@ -1920,7 +1920,7 @@ ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if(fdef->base->args)
     emit_func_def_args(emit, fdef->base->args);
-  if(GET_FLAG(fdef, variadic))
+  if(GET_FLAG(fdef->base, variadic))
     stack_alloc(emit);
   if(fdef->d.code)
     CHECK_BB(scoped_stmt(emit, fdef->d.code, 1))
@@ -1993,7 +1993,7 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
 
 static ANN int fdef_is_file_global(const Emitter emit, const Func_Def fdef) {
   return isa(fdef->base->func->value_ref->type, emit->gwion->type[et_lambda]) < 0 &&
-    !emit->env->class_def && !GET_FLAG(fdef, global) && !fdef->base->tmpl &&
+    !emit->env->class_def && !GET_FLAG(fdef->base, global) && !fdef->base->tmpl &&
     !emit->env->scope->depth;
 }
 

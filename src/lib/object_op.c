@@ -163,7 +163,7 @@ else
 //    emit_add_instr(emit, DotTmplVal);
   else {
     if(GET_FLAG(member->t_base, struct)) {
-      if(!GET_FLAG(f->def, static)) {
+      if(!GET_FLAG(f->def->base, static)) {
         exp_setvar(member->base, 1);
         emit_exp(emit, member->base);
       }

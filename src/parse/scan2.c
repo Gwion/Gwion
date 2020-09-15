@@ -63,7 +63,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     if(GET_FLAG(f, member))
       SET_FLAG(v, member);
     else SET_FLAG(v, static);
-    SET_ACCESS(d, v)
+    SET_ACCESS(d->base, v)
   }
   d->base->func = v->d.func_ref = f;
   return f->value_ref = v;
@@ -298,10 +298,10 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = GET_FLAG(overload, template);
   if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
-    if(!GET_FLAG(f, typedef))
+    if(!GET_FLAG(f->base, typedef))
       ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
   }
-  if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f, template)))
+  if((!tmpl && base) || (tmpl && !base && !GET_FLAG(f->base, template)))
     ERR_B(f->pos, _("must overload template function with template"))
   return GW_OK;
 }
@@ -311,7 +311,7 @@ ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name)
   if(env->class_def) {
     if(GET_FLAG(env->class_def, template))
       SET_FLAG(func, ref);
-    if(!GET_FLAG(f, static))
+    if(!GET_FLAG(f->base, static))
       SET_FLAG(func, member);
   }
   return func;
@@ -399,7 +399,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
     nspc_add_func(env->curr, f->base->xid, func);
   } else
     func->vt_index = ++overload->from->offset;
-  if(GET_FLAG(f, builtin)) {
+  if(GET_FLAG(f->base, builtin)) {
     CHECK_BB(scan2_func_def_builtin(env->gwion->mp, func, func->name))
     SET_FLAG(func, builtin);
     SET_FLAG(value, builtin);
@@ -427,7 +427,7 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
 }
 
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
-  if(!GET_FLAG(f, builtin))
+  if(!GET_FLAG(f->base, builtin))
     SET_FLAG(f->base->func, pure);
   if(f->base->xid == insert_symbol("@dtor"))
     SET_FLAG(env->class_def, dtor);
@@ -467,7 +467,7 @@ ANN2(1,2,4) static Value func_create(const Env env, const Func_Def f,
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   const Value v = func_value(env, func, overload);
   scan2_func_def_flag(env, f);
-  if(GET_FLAG(f, builtin))
+  if(GET_FLAG(f->base, builtin))
     CHECK_BO(scan2_func_def_builtin(env->gwion->mp, func, func->name))
   nspc_add_value(env->curr, insert_symbol(func->name), v);
   return v;
@@ -492,10 +492,10 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
     f->base->func = base;
   if(f->base->args)
     CHECK_BB(scan2_args(f))
-  if(!GET_FLAG(f, builtin) && f->d.code)
+  if(!GET_FLAG(f->base, builtin) && f->d.code)
     CHECK_BB(scan2_func_def_code(env, f))
   if(!base) {
-    if(GET_FLAG(f, op))
+    if(GET_FLAG(f->base, op))
       CHECK_BB(scan2_func_def_op(env, f))
     SET_FLAG(f->base->func->value_ref, valid);
   }
@@ -525,21 +525,21 @@ static ANN Func_Def scan2_cpy_fdef(const Env env, const Func_Def fdef) {
 }
 
 static inline int is_cpy(const Func_Def fdef) {
-  return  GET_FLAG(fdef, global) ||
+  return  GET_FLAG(fdef->base, global) ||
     (fdef->base->tmpl && !fdef->base->tmpl->call);
 }
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
-  if(GET_FLAG(fdef, global))
+  if(GET_FLAG(fdef->base, global))
     env->context->global = 1;
   const Func_Def f = !is_cpy(fdef) ?
     fdef : scan2_cpy_fdef(env, fdef);
-  const m_uint scope = !GET_FLAG(f, global) ? env->scope->depth : env_push_global(env);
-  f->stack_depth = (env->class_def && !GET_FLAG(f, static) && !GET_FLAG(f, global)) ? SZ_INT : 0;
-  if(GET_FLAG(f, variadic))
+  const m_uint scope = !GET_FLAG(f->base, global) ? env->scope->depth : env_push_global(env);
+  f->stack_depth = (env->class_def && !GET_FLAG(f->base, static) && !GET_FLAG(f->base, global)) ? SZ_INT : 0;
+  if(GET_FLAG(f->base, variadic))
     f->stack_depth += SZ_INT;
   const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
-  if(GET_FLAG(f, global))
+  if(GET_FLAG(f->base, global))
     env_pop(env, scope);
   CHECK_BB(ret)
   fdef->base->func = f->base->func; // only needed if 'is_cpy()'

@@ -40,7 +40,7 @@ ANN Arg_List make_dll_arg_list(const Vector v) {
 
 ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
   const Arg_List arg_list = make_dll_arg_list(&gwi->ck->v);
-  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list, ck->flag);
+  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list, ck->flag | ae_flag_builtin);
   ck->td = NULL;
   if(ck->tmpl) {
     base->tmpl = gwi_tmpl(gwi);
@@ -51,11 +51,10 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
 
 ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   Func_Base* base = gwi_func_base(gwi, ck);
-  const Func_Def fdef = new_func_def(gwi->gwion->mp, base,
-    NULL, ck->flag | ae_flag_builtin, loc(gwi));
+  const Func_Def fdef = new_func_def(gwi->gwion->mp, base, NULL, loc(gwi));
   fdef->d.dl_func_ptr = (void*)(m_uint)ck->addr;
   if(base->tmpl)
-    SET_FLAG(fdef, template);
+    SET_FLAG(fdef->base, template);
   return fdef;
 }
 

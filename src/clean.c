@@ -278,16 +278,16 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
 ANN static void clean_func_def(Clean *a, Func_Def b) {
   clean_func_base(a, b->base);
   ++a->scope;
-  if(b->d.code && !GET_FLAG(b, builtin))
+  if(b->d.code && !GET_FLAG(b->base, builtin))
     clean_stmt(a, b->d.code);
+  else
+    b->d.code = NULL;
   --a->scope;
 }
 
 ANN void func_def_cleaner(const Gwion gwion, Func_Def b) {
   Clean a = { .gwion=gwion };
   clean_func_def(&a, b);
-  if(GET_FLAG(b, builtin))
-    b->d.code = NULL;
   free_func_def(gwion->mp, b);
 }
 
