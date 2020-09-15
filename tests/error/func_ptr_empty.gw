@@ -1,4 +1,4 @@
 #! [contains] NullPtrException
-typedef void Test();
+funcdef void Test();
 var Test test;
 test();

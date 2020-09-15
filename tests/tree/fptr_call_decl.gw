@@ -1,2 +1,2 @@
-typedef void test(int);
+funcdef void test(int);
 (var test t)(2);

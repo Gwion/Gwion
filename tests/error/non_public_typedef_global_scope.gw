@@ -1,6 +1,6 @@
 #! [contains] NullPtrException
 class C {
-  typedef void t_ptr();
+  funcdef void t_ptr();
 }
 var C.t_ptr ptr;
 ptr();

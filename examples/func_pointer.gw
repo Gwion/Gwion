@@ -1,4 +1,4 @@
-typedef void func_t();
+funcdef void func_t();
 var func_t func_p;
 fun void test1() { <<< "test1" >>>; }
 fun void test2() { <<< "test2" >>>; }

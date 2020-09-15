@@ -1,7 +1,7 @@
 #! [contains] NullPtrException
 class C
 {
-	typedef void test();
+	funcdef void test();
 	var test t;
 }
 <<< var C c >>>;

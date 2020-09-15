@@ -1,2 +1,2 @@
-typedef void ptr_t:[A](myPtr ptr);
+funcdef void ptr_t:[A](myPtr ptr);
 var ptr_t:[ Ptr:[A] ] t;

@@ -1,1 +1,1 @@
-typedef void test(int i[]);
+funcdef void test(int i[]);

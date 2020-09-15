@@ -1,6 +1,6 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
-  typedef void PtrType(int i);
+  funcdef void PtrType(int i);
   test @=> var static PtrType p;
   p(1);
   test @=> p;

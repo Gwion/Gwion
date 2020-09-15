@@ -1,4 +1,4 @@
-typedef int ptr_t:[A](A);
+funcdef int ptr_t:[A](A);
 var ptr_t ptr;
 <<<ptr>>>;
 

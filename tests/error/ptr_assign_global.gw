@@ -1,6 +1,6 @@
 #! [contains] can't assign non member function to member function pointer
 class C {
-  typedef void Test();
+  funcdef void Test();
   var Test test;
 }
 

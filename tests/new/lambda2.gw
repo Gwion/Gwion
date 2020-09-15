@@ -1,5 +1,5 @@
 class C {
-  typedef void ptr_t(int i);
+  funcdef void ptr_t(int i);
   \a { <<< this, " ", a >>>; } @=> var ptr_t ptr;
   fun void t1(int i) { <<< this, " t1 ", i >>>; }
   fun void test(ptr_t p) {

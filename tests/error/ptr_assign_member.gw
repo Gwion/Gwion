@@ -1,5 +1,5 @@
 #! [contains] can't assign member function to non member function pointer
-typedef void Test();
+funcdef void Test();
 var Test test;
 class D {
   fun void test(){}

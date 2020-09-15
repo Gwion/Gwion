@@ -1,5 +1,5 @@
 class C {
-typedef void t_ptr();
+funcdef void t_ptr();
 typedef t_ptr A;
 var A a;
 <<<a>>>;

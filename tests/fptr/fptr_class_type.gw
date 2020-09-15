@@ -1,2 +1,2 @@
-typedef void ptr_t();
+funcdef void ptr_t();
 var ptr_t t @=> var ptr_t t2;

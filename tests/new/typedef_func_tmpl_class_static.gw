@@ -1,5 +1,5 @@
 class C {
-  typedef static void t_ptr:[A]();
+  funcdef static void t_ptr:[A]();
 
   var t_ptr:[int] iptr;
 

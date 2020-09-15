@@ -1,5 +1,5 @@
 class C:[A] {
-  typedef static void func_t:[A](A a);
+  funcdef static void func_t:[A](A a);
   fun static void myfunc:[A](A a) { <<< a >>>; }
   myfunc @=> var static func_t ptr;
   ptr(1);

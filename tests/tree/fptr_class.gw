@@ -1,6 +1,6 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
-  typedef void ptr_t(int i);
+  funcdef void ptr_t(int i);
   test @=> var ptr_t p;
   p(1);
   test @=> p;

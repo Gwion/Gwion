@@ -1,1 +1,1 @@
-typedef int[] test(int i);
+funcdef int[] test(int i);

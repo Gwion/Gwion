@@ -1,5 +1,5 @@
 class C {
-	typedef void Test();
+	funcdef void Test();
 	fun void test1(){};
   var Test test0;
 	<<< test1 @=> test0 >>>;

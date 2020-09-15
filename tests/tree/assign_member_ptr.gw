@@ -1,6 +1,6 @@
 class C
 {
-	typedef void Test();
+	funcdef void Test();
 	var Test test;
 	fun void func(){}
 }

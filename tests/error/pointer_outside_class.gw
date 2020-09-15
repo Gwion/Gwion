@@ -1,2 +1,2 @@
 #! [contains] can only be used at class scope
-typedef static void my_fun();
+funcdef static void my_fun();

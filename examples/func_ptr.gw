@@ -1,5 +1,5 @@
 #! define a fun pointer type
-typedef void Test();
+funcdef void Test();
 
 #! define a few funs
 fun void test1(){ <<< "test" >>>; };

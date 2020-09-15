@@ -2,6 +2,6 @@
 fun void test(int i){}
 fun void test(float f){}
 
-typedef void Test();
+funcdef void Test();
 var Test t;
 test @=> t;
