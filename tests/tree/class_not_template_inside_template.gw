@@ -4,4 +4,4 @@ class C:[A] {
   }
 }
 
-var C.D:[int] d;
+var C:[int].D d;
