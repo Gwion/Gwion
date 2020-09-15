@@ -11,7 +11,7 @@ struct Passes_ {
   struct Vector_ vec;
 };
 // change this to gwion ?
-typedef m_bool (*compilation_pass)(Env, PassArg);
+typedef m_bool (*compilation_pass)(const Env, PassArg);
 
 ANEW ANN struct Passes_* new_passes(MemPool mp);
 ANN void free_passes(MemPool mp, struct Passes_*);
