@@ -100,8 +100,8 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   return traverse_ast(env, ast);
 }
 
-ANN m_bool type_engine_clean_prog(const Env env, const m_bool *r) {
-  const m_bool ret = (m_bool)r;
+ANN m_bool type_engine_clean_prog(const Env env, m_bool *r) {
+  const m_bool ret = (m_bool)*r;
   const Context ctx = env->context;
   if(ret > 0) //{
     nspc_commit(env->curr);
