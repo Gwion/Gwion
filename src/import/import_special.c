@@ -22,7 +22,7 @@ ANN void gwi_register_freearg(const Gwi gwi, const f_instr _exec, const f_freear
   map_set(&gwi->gwion->data->freearg, (vtype)_exec, (vtype)_free);
 }
 
-ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pass pass) {
+ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pass pass[2]) {
   pass_register(gwi->gwion, name, pass);
 }
 

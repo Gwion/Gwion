@@ -97,7 +97,12 @@ ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
   const Context ctx = new_context(env->gwion->mp, ast, env->name);
   env_reset(env);
   load_context(ctx, env);
-  const m_bool ret = traverse_ast(env, ast);
+  return traverse_ast(env, ast);
+}
+
+ANN m_bool type_engine_clean_prog(const Env env, const m_bool *r) {
+  const m_bool ret = (m_bool)r;
+  const Context ctx = env->context;
   if(ret > 0) //{
     nspc_commit(env->curr);
   if(ret > 0 || env->context->global)

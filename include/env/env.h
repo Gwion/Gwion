@@ -51,6 +51,7 @@ ANN void env_add_type(const Env, const Type);
 ANN Type find_type(const Env, Type_Decl*);
 ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos);
 ANN m_bool type_engine_check_prog(const Env, const Ast);
+ANN m_bool type_engine_clean_prog(const Env, const m_bool*);
 ANN m_bool traverse_func_template(const Env, const Func_Def);
 ANN2(1,3) void env_err(const Env, const loc_t pos, const m_str fmt, ...);
 ANN Value global_string(const Env env, const m_str str);

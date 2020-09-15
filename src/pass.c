@@ -8,12 +8,16 @@
 #include "pass.h"
 
 static const m_str default_passes_name[] = { "check", "emit" };
-static const compilation_pass default_passes[] = { type_engine_check_prog, emit_ast };
+static const compilation_pass default_passes[][2] = { { type_engine_check_prog, type_engine_clean_prog }, { emit_ast, NULL } };
 #define NPASS sizeof(default_passes)/sizeof(default_passes[0])
 
-ANN void pass_register(const Gwion gwion, const m_str name, const compilation_pass pass) {
+ANN void pass_register(const Gwion gwion, const m_str name, const compilation_pass pass[2]) {
+  compilation_pass *passes = mp_malloc2(gwion->mp, sizeof(compilation_pass)*2);
+  passes[0] = pass[0];
+  passes[1] = pass[1];
   const Symbol sym = insert_symbol(gwion->st, name);
   map_set(&gwion->data->passes->map, (vtype)sym, (vtype)pass);
+  map_set(&gwion->data->passes->map, (vtype)sym, (vtype)passes);
 }
 
 ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
@@ -52,7 +56,11 @@ ANEW ANN struct Passes_* new_passes(MemPool mp) {
   return a;
 }
 
-ANN void free_passes(struct Passes_ *a) {
+ANN void free_passes(const MemPool mp, struct Passes_ *a) {
   map_release(&a->map);
+  for(m_uint i = 0; i < vector_size(&a->vec); ++i) {
+    compilation_pass *passes = (compilation_pass *)vector_at(&a->vec, i);
+    mp_free2(mp, sizeof(compilation_pass)*2, passes);
+  }
   vector_release(&a->vec);
 }

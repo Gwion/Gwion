@@ -46,14 +46,12 @@ ANN static inline void compiler_error(MemPool p, const struct Compiler* c) {
   }
 }
 
-ANN static void compiler_clean(const Gwion gwion, const struct Compiler* c) {
+ANN static void compiler_clean(const struct Compiler* c) {
   if(c->name)
     xfree(c->name);
   /* test c->type because COMPILE_FILE does not own file */
   if(c->type != COMPILE_FILE && c->file)
     fclose(c->file);
-  if(c->ast)
-    ast_cleaner(gwion, c->ast);
 }
 
 ANN static m_bool _compiler_open(struct Compiler* c) {
@@ -106,9 +104,15 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
   CHECK_OB((c->ast = parse(&arg)))
   gwion->env->name = c->name;
   for(m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
-    const compilation_pass pass = (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    CHECK_BB(pass(gwion->env, c->ast))
+    const compilation_pass *pass = (compilation_pass*)vector_at(&gwion->data->passes->vec, i);
+    const m_bool ret = pass[0](gwion->env, c->ast);
+    if(ret < 0)
+      ast_cleaner(gwion, c->ast);
+    if(pass[1])
+      CHECK_BB(pass[1](gwion->env, (Ast)(m_uint)ret))
+    CHECK_BB(ret)
   }
+  ast_cleaner(gwion, c->ast);
   return GW_OK;
 }
 
@@ -135,7 +139,7 @@ ANN static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
   MUTEX_LOCK(gwion->data->mutex);
   const m_uint ret = _compile(gwion, c);
   MUTEX_UNLOCK(gwion->data->mutex);
-  compiler_clean(gwion, c);
+  compiler_clean(c);
   return ret;
 }
 

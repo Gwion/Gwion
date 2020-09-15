@@ -870,10 +870,9 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
     const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
-    const Value v = type_value(env->gwion, t) ?: t->e->d.func->value_ref;
-    if(!GET_FLAG(v, func) && !GET_FLAG(exp->func->info->type, func) )
+    if(isa(t, env->gwion->type[et_function]) < 0)
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
-    if(!v->d.func_ref || !v->d.func_ref->def->base->tmpl)
+    if(!t->e->d.func->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->e->d.func->def->base->tmpl->call) {
       if(env->func == t->e->d.func) {
@@ -884,6 +883,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       }  else
       CHECK_BO(predefined_call(env, t, exp_self(exp)->pos))
     }
+    const Value v = type_value(env->gwion, t);
     CHECK_OO((exp->m_func = find_template_match(env, v, exp)))
     return exp->m_func->def->base->ret_type;
   }

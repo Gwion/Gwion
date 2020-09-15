@@ -93,7 +93,7 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl* td) {
 }
 
 ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
-  if(GET_FLAG(t, template)) {
+  if(GET_FLAG(t, template) && isa(t, env->gwion->type[et_function]) < 0) {
     if(GET_FLAG(t, ref) || (GET_FLAG(t, unary) && !td->types))
       return t;
     struct TemplateScan ts = { .t=t, .td=td };
