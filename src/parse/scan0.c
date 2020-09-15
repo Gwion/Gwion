@@ -36,12 +36,12 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
 
 ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
   const Func_Def def = fptr->type->e->d.func->def;
-  if(GET_FLAG(fptr->base->td, global)) {
+  if(GET_FLAG(fptr->base, global)) {
     context_global(env);
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
     SET_FLAG(def, global);
-  } else if(!GET_FLAG(fptr->base->td, static)) {
+  } else if(!GET_FLAG(fptr->base, static)) {
     SET_FLAG(fptr->value, member);
     SET_FLAG(fptr->base->func, member);
     SET_FLAG(def, member);
@@ -59,7 +59,7 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
 static void fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = new_func_def(env->gwion->mp,
       cpy_func_base(env->gwion->mp, fptr->base),
-    NULL, fptr->base->td->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
+    NULL, fptr->base->flag, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
   fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
   fptr->value->d.func_ref = fptr->base->func;
   fptr->base->func->value_ref = fptr->value;
@@ -68,17 +68,17 @@ static void fptr_def(const Env env, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
-  CHECK_BB(env_access(env, fptr->base->td->flag, td_pos(fptr->base->td)))
+  CHECK_BB(env_access(env, fptr->base->flag, td_pos(fptr->base->td)))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
   const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
-  t->e->owner = !(!env->class_def && GET_FLAG(fptr->base->td, global)) ?
+  t->e->owner = !(!env->class_def && GET_FLAG(fptr->base, global)) ?
     env->curr : env->global_nspc;
   t->e->owner_class = env->class_def;
-  if(GET_FLAG(fptr->base->td, global))
+  if(GET_FLAG(fptr->base, global))
     context_global(env);
   t->nspc = new_nspc(env->gwion->mp, name);
-  t->flag = fptr->base->td->flag;
+  t->flag = fptr->base->flag;
   fptr->type = t;
   fptr->value = mk_class(env, t);
   valuefrom(env, fptr->value->from);

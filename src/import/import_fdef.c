@@ -40,7 +40,7 @@ ANN Arg_List make_dll_arg_list(const Vector v) {
 
 ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
   const Arg_List arg_list = make_dll_arg_list(&gwi->ck->v);
-  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list);
+  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list, ck->flag);
   ck->td = NULL;
   if(ck->tmpl) {
     base->tmpl = gwi_tmpl(gwi);
