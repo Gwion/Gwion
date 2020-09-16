@@ -68,7 +68,7 @@ jobs:
         cp gwion ..
 
     - uses: actions/cache@v1
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
+      if: "contains(github.event.head_commit.message, '[Gwion]')"
       name: Wren [ cache ]
       id: wren
       with:
@@ -76,14 +76,14 @@ jobs:
         key: ${{ runner.os }}-wren
 
     - name: wren [ init ]
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]') && steps.wren.outputs.cache-hit != 'true'"
+      if: "contains(github.event.head_commit.message, '[Gwion]') && steps.wren.outputs.cache-hit != 'true'"
       run: |
         git clone https://github.com/wren-lang/wren
         cd wren/projects/make
         make
 
     - name: wren [ update ]
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]') && steps.wren.outputs.cache-hit == 'true'"
+      if: "contains(github.event.head_commit.message, '[Gwion]') && steps.wren.outputs.cache-hit == 'true'"
       run: |
         cd wren
         if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/wren-lang/wren.git HEAD | cut -f1) ]
@@ -94,11 +94,11 @@ jobs:
         fi
 
     - name: wren [ install ]
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
+      if: "contains(github.event.head_commit.message, '[Gwion]')"
       run: cp wren/bin/wren_test wren/bin/wren
 
     - uses: actions/cache@v1
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
+      if: "contains(github.event.head_commit.message, '[Gwion]')"
       name: Lua [ cache ]
       id: lua
       with:
@@ -106,7 +106,7 @@ jobs:
         key: ${{ runner.os }}-lua
 
     - name: Lua [ init ]
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]') && steps.lua.outputs.cache-hit != 'true'"
+      if: "contains(github.event.head_commit.message, '[Gwion]') && steps.lua.outputs.cache-hit != 'true'"
       run: |
         git clone https://github.com/lua/lua
         cd lua
@@ -114,7 +114,7 @@ jobs:
         make
 
     - name: Lua [ update ]
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]') && steps.lua.outputs.cache-hit == 'true'"
+      if: "contains(github.event.head_commit.message, '[Gwion]') && steps.lua.outputs.cache-hit == 'true'"
       run: |
         cd lua
         if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/lua/lua.git HEAD | cut -f1) ]
@@ -125,7 +125,7 @@ jobs:
         fi
 
     - name: Benchmark
-      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
+      if: "contains(github.event.head_commit.message, '[Gwion]')"
       run: |
         echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
