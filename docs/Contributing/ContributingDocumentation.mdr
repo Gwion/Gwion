@@ -1,0 +1,44 @@
+# Contributing Documentation
+
+> this is a stub for now, this place deserves better
+
+You might be here because you found something you could improve in [Gwion](https://github.com/fennecdjay/Gwion)'s documentation.
+Please open a [issue](https://github.com/fennecdjay/gwion-docs/issues) describing the problem and how you might address it.
+
+
+## Dependencies
+
+  * Gwion
+  * mdr
+  * MdBook
+  
+## Editing the documentation
+
+### Clone the source
+
+``` sh
+git clone https://github.com/fennecdjay/gwion-docs
+```
+
+### Edit some files
+
+``` sh
+cd gwion-docs
+make watch
+```
+
+### Add your changes
+
+``` sh
+git add docs/myfile.mdr
+```
+
+### Let the world know
+
+``` sh
+git commit -m "Something meaningful about why we are here"
+git push
+```
+
+You're now ready to submit a [PullRequest](https://github.com/fennecdjay/gwion-docs/pulls).
+
