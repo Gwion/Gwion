@@ -1,9 +1,8 @@
-class C
-{
-	var int i;
-	var float f;
-	var Object o;
-	operator @dtor void () { <<< "dtor" >>>; }
+class C {
+  var int i;
+  var float f;
+  var Object o;
+  operator @dtor void () { <<< "dtor" >>>; }
 }
 
 var C c;
