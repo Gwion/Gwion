@@ -160,7 +160,8 @@ jobs:
         cd Gwion
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add -f ../book
+        mv ../book .
+        git add -f book
         git commit -m "add book"
         git remote set-url origin https://${{ secrets.GWION_TOKEN }}@github.com/fennecdjay/Gwion.git
         git subtree push --prefix book origin gh-pages
