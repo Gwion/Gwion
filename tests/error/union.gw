@@ -1,5 +1,4 @@
 #! [contains] 
-union
-{
+union {
   one; two;
 };

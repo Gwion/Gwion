@@ -1,5 +1,5 @@
 class C {
-  union static private {
+  union private static {
     int i;
   } u;
   <<< this, " ", u, " ", this.u.i >>>;
