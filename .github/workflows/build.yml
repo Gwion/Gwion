@@ -4,9 +4,9 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    
     steps:
     - uses: actions/checkout@v1
       name: Checkout
@@ -68,6 +68,7 @@ jobs:
         cp gwion ..
 
     - uses: actions/cache@v1
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       name: Wren [ cache ]
       id: wren
       with:
@@ -75,6 +76,7 @@ jobs:
         key: ${{ runner.os }}-wren
 
     - name: wren [ init ]
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       if: steps.wren.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/wren-lang/wren
@@ -82,6 +84,7 @@ jobs:
         make
 
     - name: wren [ update ]
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       if: steps.wren.outputs.cache-hit == 'true'
       run: |
         cd wren
@@ -93,9 +96,11 @@ jobs:
         fi
 
     - name: wren [ install ]
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       run: cp wren/bin/wren_test wren/bin/wren
 
     - uses: actions/cache@v1
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       name: Lua [ cache ]
       id: lua
       with:
@@ -103,6 +108,7 @@ jobs:
         key: ${{ runner.os }}-lua
 
     - name: Lua [ init ]
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       if: steps.lua.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/lua/lua
@@ -111,6 +117,7 @@ jobs:
         make
 
     - name: Lua [ update ]
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       if: steps.lua.outputs.cache-hit == 'true'
       run: |
         cd lua
@@ -122,6 +129,7 @@ jobs:
         fi
 
     - name: Benchmark
+      if: "!contains(github.event.head_commit.message, '[skip benchmark]')"
       run: |
         echo 1 | sudo tee /proc/sys/kernel/perf_event_paranoid
         sudo apt-get update
