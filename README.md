@@ -115,5 +115,3 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
 This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
 
 >    NOTE: if you should be on the list of contributors but we forgot you, don't be shy and let us know!
-
-qsdqisjdqls
