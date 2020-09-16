@@ -200,7 +200,7 @@ static OP_CHECK(opck_auto_fptr) {
   // create a matching signature
   // TODO: we could check first if there a matching existing one
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, bin->lhs->info->type->e->d.func->def->base);
-  const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase, bin->lhs->info->type->e->d.func->def->base->flag);
+  const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase);
   char name[13 + strlen(env->curr->name) +
     num_digit(bin->rhs->pos->first.line) + num_digit(bin->rhs->pos->first.column)];
   sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->pos->first.line, bin->rhs->pos->first.column);

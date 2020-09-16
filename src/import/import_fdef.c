@@ -108,7 +108,7 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
 
 ANN static Fptr_Def import_fptr(const Gwi gwi, ae_flag flag) {
   Func_Base *base = gwi_func_base(gwi, gwi->ck);
-  return new_fptr_def(gwi->gwion->mp, base, flag | ae_flag_builtin);
+  return new_fptr_def(gwi->gwion->mp, base);
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {

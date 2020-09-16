@@ -117,6 +117,9 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
           CHECK_OB((tmp = option_argument(ca)))
           arg_set_pass(gwion, tmp);
           break;
+        case '\0':
+          arg->stdin = 1;
+          break;
         default:
           gw_err(_("invalid arguments"));
           return GW_ERROR;

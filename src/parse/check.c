@@ -565,7 +565,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
       fbase->tmpl->base = 0;
       fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
       if(template_push_types(env, fbase->tmpl) > 0) {
-        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase, base->base->flag);
+        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
         if(traverse_fptr_def(env, fptr) > 0 &&
             (base->base->ret_type = known_type(env, base->base->td)) &&
             (!exp->args || !!check_exp(env, exp->args))) {

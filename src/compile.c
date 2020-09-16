@@ -72,7 +72,7 @@ ANN static m_bool _compiler_open(struct Compiler* c) {
 ANN static int is_reg(const m_str path) {
   struct stat s;
   stat(path, &s);
-  return S_ISREG(s.st_mode);
+  return S_ISREG(s.st_mode) || !S_ISFIFO(s.st_mode);
 }
 #else
 ANN static m_bool is_reg(const m_str path) {
