@@ -79,7 +79,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
     if(gwion_engine(gwion)) {
       gwion_cleaner(gwion);
       gwion_compile(gwion, &arg->add);
-      if(arg->stdin)
+      if(arg->read_stdin)
         compile_file(gwion, "stdin", stdin);
       return GW_OK;
     }
