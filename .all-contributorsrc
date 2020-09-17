@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "amberisvibin",
+      "name": "Amber",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/63863236?v=4",
+      "profile": "http://dev.to/amberisvibin",
+      "contributions": [
+        "doc"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "gwion-docs",
+  "projectOwner": "fennecdjay",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
