@@ -1,7 +1,7 @@
 # Welcome to Gwion
 
-:gwion: is a strongly timed programming language,   
-aiming to be easy, powerful and [fast](Benchmarks.html) strongly-timed programming language, 
+:gwion: is a strongly timed programming language,
+aiming to be easy, powerful and [fast](Benchmarks.html) strongly-timed programming language,
 
 ## And now for the hello world
 
@@ -13,11 +13,12 @@ Here is the piece of code you're waiting for :tada::
 @hide make -s CONTAINS="Hello, World!" helloworld.test
 
 ## (Bag of) Features
-  * [single inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)#Design_constraints)
-  * typedef (function pointers and type aliases)
-  * [enums](Reference/Types/Enums.html) and [unions](Reference/Types/Unions.html) 
-  * templates (both class and functions)
-  * easy concurrency/async
-  * [lambdas](Reference/Functions/Lambdas.html)
-  * [memoization](Reference/Preprocessor.md#Memoization)
-  * [variadic](Reference/Functions/Variadic.html) functions
+
+* [single inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)#Design_constraints)
+* typedef (function pointers and type aliases)
+* [enums](Reference/Types/Enums.html) and [unions](Reference/Types/Unions.html)
+* templates (both class and functions)
+* easy concurrency/async
+* [lambdas](Reference/Functions/Lambdas.html)
+* [memoization](Reference/Preprocessor.md#Memoization)
+* [variadic](Reference/Functions/Variadic.html) functions
