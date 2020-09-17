@@ -3,3 +3,4 @@ book
 log
 *.gw
 ansi2html*
+.replit
