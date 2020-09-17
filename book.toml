@@ -1,5 +1,5 @@
 [book]
-authors = ["Jérémie Astor"]
+authors = ["Jérémie Astor", "Pranav Joglekar", "Amber Zeller"]
 title = "Gwion"
 
 [output.html]
