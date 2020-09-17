@@ -36,7 +36,7 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
   struct scope_iter iter = { nspc->info->value, 0, 0 };
   Value value;
   while(scope_iter(&iter, &value) > 0) {
-    if(!strcmp(name, value->name))
+    if(vector_find(v, (vtype)value->name) > 0 &&!strcmp(name, value->name))
       continue;
     if(wagner_fisher(name, value->name))
       vector_add(v, (vtype)value->name);
@@ -68,6 +68,5 @@ ANN void did_you_mean_type(Type type, const char* name) {
   while((t = t->e->parent) && t->nspc);
   for(m_uint i = 0; i < vector_size(&v); ++i)
     gw_err(_("  (did you mean '%s'?)\n"), (m_str)vector_at(&v, i));
-  did_you_mean_nspc(type->nspc, name);
   vector_release(&v);
 }
