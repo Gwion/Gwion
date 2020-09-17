@@ -1,6 +1,8 @@
 [book]
 authors = ["Jérémie Astor", "Pranav Joglekar", "Amber Zeller"]
 title = "Gwion"
+description = "Tutorial and reference for gwion"
+language = "en"
 
 [output.html]
 default-theme = "rust"
