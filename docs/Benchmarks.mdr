@@ -1,6 +1,7 @@
 # Benchmarks
 
 ## test
+
 <table><tr><td align="center">
 @hide for a in $(find benchmark/results -type f -name "*.png"); do echo "<a href=:gwion:><img class=\"zoom\" src=\"./$(echo "$a" | sed 's/benchmark\/results/assets/')\" width=\"352px\"></a>"; done
 </td></tr></table>
