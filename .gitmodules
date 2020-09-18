@@ -1,0 +1,3 @@
+[submodule "gwion-benchmark"]
+	path = gwion-benchmark
+	url = https://github.com/fennecdjay/gwion-benchmark
