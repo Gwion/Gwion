@@ -77,6 +77,10 @@ jobs:
       with:
         mdbook-version: 'latest'
 
+    - name: Get becnhmarks
+        run: |
+          git submodule update --init gwion-benchmarks
+
     - name: Build book
       run: |
         export PATH=mdr:$PATH
