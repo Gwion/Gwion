@@ -5,6 +5,6 @@
 > @hide cd Gwion; git log -n1
 
 ## test
-<table><tr><td align="center">
+<table style="border:none"><tr><td align="center">
 @hide bash scripts/list_benchmarks.sh
 </td></tr></table>
