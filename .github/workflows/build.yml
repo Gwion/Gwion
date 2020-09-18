@@ -78,7 +78,7 @@ jobs:
         mdbook-version: 'latest'
 
     - name: Get becnhmarks
-      run: git submodule update --init gwion-benchmarks
+      run: git submodule update --init gwion-benchmark
 
     - name: Build book
       run: |
