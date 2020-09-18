@@ -9,7 +9,7 @@ Well, a function that takes a fixed number of arguments, and additionnal ones.
 fun void variadic_test(int i, ...) {
   <<<  "first argument is ", i  >>>;
   varloop vararg {
-    <<<  "\tadditionnal argument", vararg.i  >>>;
+    <<<  "\tadditionnal argument", vararg $ int  >>>;
   }
 }
 variadic_test(1);
