@@ -1,8 +1,8 @@
 # Benchmarks
 
-@hide date
+> @hide date
 
-@hide cd Gwion; git log -n1
+> @hide cd Gwion; git log -n1
 
 ## test
 <table><tr><td align="center">
