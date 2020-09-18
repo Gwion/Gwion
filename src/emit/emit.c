@@ -1823,7 +1823,8 @@ ANN static m_bool emit_stmt_pp(const Emitter emit, const struct Stmt_PP_* stmt) 
   if(stmt->pp_type == ae_pp_pragma) {
     if(!strncmp(stmt->data, "memoize", strlen("memoize")))
       emit->info->memoize = strtol(stmt->data + 7, NULL, 10);
-  }
+  } else if(stmt->pp_type == ae_pp_include)
+    emit->env->name = stmt->data;
   return GW_OK;
 }
 

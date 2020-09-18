@@ -280,7 +280,12 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
 #define scan2_stmt_continue (void*)dummy_func
 #define scan2_stmt_break    (void*)dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
-#define scan2_stmt_pp       dummy_func
+
+ANN static m_bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
+  if(stmt->pp_type == ae_pp_include)
+    env->name = stmt->data;
+  return GW_OK;
+}
 
 DECL_STMT_FUNC(scan2, m_bool, Env)
 

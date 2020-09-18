@@ -106,14 +106,14 @@ ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type, const restrict 
   return dl_func_init(gwi, type, name);
 }
 
-ANN static Fptr_Def import_fptr(const Gwi gwi, ae_flag flag) {
+ANN static Fptr_Def import_fptr(const Gwi gwi) {
   Func_Base *base = gwi_func_base(gwi, gwi->ck);
   return new_fptr_def(gwi->gwion->mp, base);
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_fdef))
-  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi, flag))
+  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi))
   // what happens if it is in a template class ?
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if(fptr->base->func) // is it needed ?

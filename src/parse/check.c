@@ -1253,7 +1253,13 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 
 #define check_stmt_while check_stmt_flow
 #define check_stmt_until check_stmt_flow
-#define check_stmt_pp    dummy_func
+
+ANN static m_bool check_stmt_pp(const Env env, const Stmt_PP stmt) {
+  if(stmt->pp_type == ae_pp_include)
+    env->name = stmt->data;
+  return GW_OK;
+}
+
 DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

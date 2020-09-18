@@ -359,6 +359,13 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   return t;
 }
 
+ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
+  do if(list->stmt->stmt_type == ae_stmt_pp && list->stmt->d.stmt_pp.pp_type == ae_pp_include)
+    env->name = list->stmt->d.stmt_pp.data;
+  while((list = list->next));
+  return GW_OK;
+}
+
 ANN static m_bool scan0_section(const Env env, const Section* section) {
   if(section->section_type == ae_section_class)
     return scan0_class_def(env, section->d.class_def);
@@ -370,6 +377,8 @@ ANN static m_bool scan0_section(const Env env, const Section* section) {
     return scan0_fptr_def(env, section->d.fptr_def);
   if(section->section_type == ae_section_type)
     return scan0_type_def(env, section->d.type_def);
+  if(section->section_type == ae_section_type)
+    return scan0_stmt_list(env, section->d.stmt_list);
   return GW_OK;
 }
 

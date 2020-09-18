@@ -450,7 +450,13 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 #define scan1_stmt_break    (void*)dummy_func
 #define scan1_stmt_jump     (void*)dummy_func
 #define scan1_stmt_return   scan1_stmt_exp
-#define scan1_stmt_pp       (void*)dummy_func
+
+ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
+  if(stmt->pp_type == ae_pp_include)
+    env->name = stmt->data;
+  return GW_OK;
+}
+
 DECL_STMT_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
