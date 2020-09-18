@@ -1,3 +1,56 @@
 # Contributing Code
 
-> stub, to be filled
+> this is a stub for now, this place deserves better
+
+You might be here because you found something you could improve in [Gwion](https://github.com/fennecdjay/gwion).
+Please open an [issue](https://github.com/fennecdjay/gwion/issues) describing the problem and how you might address it.
+
+## Dependencies
+
+-
+  
+## Editing the code
+
+### Fork the repository
+
+You can do this through the github site, or command-line tools like `gh` or `hub`. See **Further Reading**.
+
+### Clone the source
+
+Clone the url of your fork
+
+``` sh
+git clone https://github.com/<your username>/gwion
+```
+
+### Edit some files
+
+``` sh
+cd gwion
+make watch
+```
+
+### Add your changes
+
+``` sh
+git add src/myfile.c
+```
+
+### Let the world know
+
+``` sh
+git commit -m "Something meaningful about why we are here"
+git push
+```
+
+### Submit a pull request
+
+You can do this through the [github site](https://github.com/fennecdjay/gwion/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
+
+You can now sit back and wait for your pull request to be reviewed. If it's accepted, congrats! :tada: You've made a contribution!
+
+### Further reading
+
+For a more advanced info on contributing, check out @Chaser324's [GitHub Standard Fork & Pull Request Workflow](https://gist.github.com/Chaser324/ce0505fbed06b947d962).
+
+For a guide on making a pull request, there's github's [Creating a pull request from a fork](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork).
