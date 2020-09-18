@@ -9,9 +9,9 @@ Please open an [issue](https://github.com/fennecdjay/gwion-docs/issues) describi
 
 Technically none of these are *needed*, but they are quite useful:
 
-* Gwion
-* mdr
-* MdBook
+* [Gwion](https://github.com/fennecdjay/gwion)
+* [mdr](https://github.com/fennecdjay/mdr)
+* [MdBook](https://github.com/rust-lang/mdBook)
   
 ## Editing the documentation
 
