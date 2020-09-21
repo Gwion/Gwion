@@ -23,7 +23,7 @@ git submodule update --init util ast
 ```
 
 > At this point, you may want to configure the build.
-  In this case, have a look at the [configuration page](Configure.md)
+  In this case, have a look at the [configuration page](Configure.md).
 
 
 ## Build the libraries and program
@@ -38,3 +38,5 @@ make install
 ```
 
 > You may need root privilege to do this.
+
+> This is not *strictly* necessary, as you can run the program by typing `./gwion` in the `gwion` directory. It is a good idea to install it, however, so that it can be run in any folder on the system.

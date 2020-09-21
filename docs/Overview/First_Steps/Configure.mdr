@@ -1,18 +1,21 @@
 # Configuring Gwion
 
-## util/config.mk
+Gwion can be configured to better suit the user's needs. This is mainly done in two files: `config.mk` and `util/config.mk`.
 
-double
+## `config.mk`
 
-gettext
+- `DEBUG_STACK  ?= 0`
+  - Enables the debug stack, which prints some stack info, thus verifying whether a function is balanced.
 
-memcheck
+## `util/config.mk`
 
-lto
-
-coverage
-
-## ast/config.mk
-
-## config.mk
-Here are a few choices left
+- `USE_DOUBLE   ?= 0`
+  - Sets the size of float to double
+- `USE_GETTEXT  ?= 0`
+  - Enable internationalization (almost complete)
+- `USE_DEBUG    ?= 1`
+  - Enables debug features
+- `USE_LTO      ?= 0`
+  - Enables Link-Time Optimization
+- `USE_COVERAGE ?= 0`
+  - Enables code coverage
