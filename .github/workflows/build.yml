@@ -80,8 +80,7 @@ jobs:
     - name: Get becnhmarks
       run: |
         git submodule update --init gwion-benchmark
-        cd benchmark
-        git checkout results
+        cd gwion-benchmark
         git pull
 
     - name: Build book
