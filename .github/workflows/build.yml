@@ -22,13 +22,6 @@ jobs:
         path: mdr
         key: ${{ runner.os }}-mdr
 
-    - uses: actions/cache@v1
-      name: Results [ cache ]
-      id: results
-      with:
-        path: benchmark/results
-        key: ${{ runner.os }}-results
-
     - name: Mdr
       if: steps.mdr-bin.outputs.cache-hit != 'true'
       run: |
@@ -81,7 +74,7 @@ jobs:
       run: |
         git submodule update --init gwion-benchmark
         cd gwion-benchmark
-        git pull
+        git pull origin results
 
     - name: Build book
       run: |
