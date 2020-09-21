@@ -81,7 +81,8 @@ jobs:
       run: |
         git submodule update --init gwion-benchmark
         cd benchmark
-        git checkout origin/results
+        git checkout results
+        git pull
 
     - name: Build book
       run: |
