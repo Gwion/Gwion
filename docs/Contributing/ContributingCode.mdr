@@ -33,7 +33,7 @@ make watch
 ### Add your changes
 
 ``` sh
-git add docs/myfile.mdr
+git add src/myfile.c
 ```
 
 ### Let the world know
