@@ -1,7 +1,11 @@
 # Benchmarks
 
-> @hide date
-> @hide cd Gwion; git log -n1
+Created at:
+@hide date
+
+From commit:
+@hide git log -n1
+
 ## test
 <table><tr><td align="center" style="border:none">
 @hide bash scripts/list_benchmarks.sh
