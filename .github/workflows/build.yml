@@ -37,28 +37,8 @@ jobs:
         git checkout master
         make
 
-    - uses: actions/cache@v1
-      name: Gwion [ cache ]
-      id: gwion-bin
-      with:
-        path: Gwion
-        key: ${{ runner.os }}-gwion
-
     - name: Gwion
-      if: steps.gwion-bin.outputs.cache-hit != 'true'
-      uses: fennecdjay/gwion-action@v1
-
-    - name: Gwion [ update ]
-      if: steps.gwion-bin.outputs.cache-hit == 'true'
-      run: |
-        cd Gwion
-        if [ $(git rev-parse HEAD) != $(git ls-remote https://github.com/fennecdjay/Gwion.git HEAD | cut -f1) ]
-        then
-          git pull
-          git submodule update util ast
-          make
-        fi
-        cp gwion ..
+      run: bash scripts/update.sh
 
     - uses: fennecdjay/emojify-docker-action@v2
       name: Emojify
