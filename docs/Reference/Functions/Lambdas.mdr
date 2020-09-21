@@ -20,7 +20,7 @@ You can even use it to
 
 ### Passing to a function pointer
 @``` lambda_fptr0.gw
-typedef void fptr_t(int);
+funcdef void fptr_t(int);
 \ i { <<< "passed '", i, "'" >>>; } @=> var fptr_t fptr;
 fptr(4);
 @```  
@@ -28,7 +28,7 @@ fptr(4);
 
 ### As Argument to Functions
 @``` lambda_args0.gw
-typedef void fptr_t(int);
+funcdef void fptr_t(int);
 fun void test(fptr_t fptr) {
    fptr(5);
 }

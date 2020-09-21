@@ -12,8 +12,8 @@ It also works with a block of code.
 
 @``` forloop2.gw
 for(var int i; i < 3; ++i) {
-   i/2 => float f1;
-   i/2. => float f2;
+   i/2 => var float f1;
+   i/2. => var float f2;
    <<< i, " " , f1, " ", f2 >>>;
 }
 @```  
@@ -21,7 +21,7 @@ for(var int i; i < 3; ++i) {
 
 ## Nested Loops
 @``` forloop3.gw
-int array[3][4];
+var int array[3][4];
 
 for(var int i; i < 3; ++i) {
   for(var int j; j < 4; ++j) {
