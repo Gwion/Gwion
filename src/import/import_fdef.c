@@ -114,6 +114,7 @@ ANN static Fptr_Def import_fptr(const Gwi gwi) {
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_fdef))
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi))
+  fptr->base->flag |= flag;
   // what happens if it is in a template class ?
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if(fptr->base->func) // is it needed ?
