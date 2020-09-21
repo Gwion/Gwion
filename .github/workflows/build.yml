@@ -59,7 +59,7 @@ jobs:
     - name: Build book
       run: |
         export PATH=mdr:$PATH
-        export PATH=Gwion:$PATH
+        export PATH=$PWD:$PATH
         make build
 
     - name: GIT things
