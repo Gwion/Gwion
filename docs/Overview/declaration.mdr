@@ -4,8 +4,8 @@
 
 Declaring a primitive or an object is quite straight forward:
 @``` decl0.gw
-int i;
-Object o;
+var int i;
+var Object o;
 <<< i, " ", o >>>;
 @```
 @hide make -s decl0.test
@@ -13,7 +13,7 @@ Object o;
 ## Declaring a reference
 
 @``` decl1.gw
-Object ref object_ref;
+ref Object object_ref;
 <<< "Reference points to no object yet: ", object_ref >>>;
 new Object @=> object_ref;
 <<< "But now it does: ", object_ref >>>;
@@ -25,7 +25,7 @@ new Object @=> object_ref;
 ### array as refs
 
 @``` decl2.gw
-int array_ref[];
+var int array_ref[];
 <<< array_ref >>>;
 new int[2] @=> array_ref;
 <<< array_ref >>>;

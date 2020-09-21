@@ -1,6 +1,6 @@
 # Keywords
 
- * fun/function
+ * fun
  * operator
  * return
  * goto
@@ -22,6 +22,7 @@
  * typeof
 
  * typedef
+ * funcdef
  * class
    * dtor
    * extends
