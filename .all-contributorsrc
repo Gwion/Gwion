@@ -58,6 +58,17 @@
         "userTesting",
         "doc"
       ]
+    },
+    {
+      "login": "amberisvibin",
+      "name": "Amber",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/63863236?v=4",
+      "profile": "http://dev.to/amberisvibin",
+      "contributions": [
+        "question",
+        "doc",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
