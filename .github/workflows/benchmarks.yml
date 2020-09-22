@@ -9,6 +9,9 @@ jobs:
   post-test-success:
     runs-on: ubuntu-latest
     steps:
+
+    - uses: actions/checkout@v2
+
     - name: call the other repo
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
