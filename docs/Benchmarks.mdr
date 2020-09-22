@@ -4,7 +4,7 @@ Created at:
 > @hide date
 
 From commit:
-> @hide cd benchmarks; git log -n1
+> @hide cd gwion-benchmark; git log -n1
 
 ## test
 
