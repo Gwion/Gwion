@@ -18,26 +18,19 @@ jobs:
     - name: Dependencies
       run: bash scripts/update.sh
 
-    - uses: fennecdjay/emojify-docker-action@v2
-      name: Emojify
-      with:
-         directory: 'docs'
-
     - name: MdBook
       uses: peaceiris/actions-mdbook@v1
       with:
         mdbook-version: 'latest'
 
-    - name: Get becnhmarks
+    - name: Get benchmarks
       run: |
         git submodule update --init gwion-benchmark
         cd gwion-benchmark
         git pull origin results
 
     - name: Build book
-      run: |
-        export PATH=$PWD:$PATH
-        make build
+      run: PATH=$PWD:$PATH make build
 
     - name: GIT things
       run: |
