@@ -15,29 +15,7 @@ jobs:
     - uses: actions/setup-ruby@v1
       name: Setup Ruby
 
-    - uses: actions/cache@v1
-      name: Mdr [ cache ]
-      id: mdr-bin
-      with:
-        path: mdr
-        key: ${{ runner.os }}-mdr
-
-    - name: Mdr
-      if: steps.mdr-bin.outputs.cache-hit != 'true'
-      run: |
-        git clone https://github.com/fennecdjay/mdr
-        cd mdr
-        make
-
-    - name: Mdr
-      if: steps.mdr-bin.outputs.cache-hit == 'true'
-      run: |
-        cd mdr
-        git pull
-        git checkout master
-        make
-
-    - name: Gwion
+    - name: Dependencies
       run: bash scripts/update.sh
 
     - uses: fennecdjay/emojify-docker-action@v2
@@ -58,7 +36,6 @@ jobs:
 
     - name: Build book
       run: |
-        export PATH=mdr:$PATH
         export PATH=$PWD:$PATH
         make build
 
