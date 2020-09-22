@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
@@ -106,6 +106,7 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
     <td align="center"><a href="https://github.com/scalarwaves"><img src="https://avatars1.githubusercontent.com/u/4212896?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Prentice</b></sub></a><br /><a href="#question-scalarwaves" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/issues?q=author%3Ascalarwaves" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=scalarwaves" title="Code">💻</a> <a href="#ideas-scalarwaves" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=Aleserche" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Pranav2612000"><img src="https://avatars3.githubusercontent.com/u/20909078?v=4" width="100px;" alt=""/><br /><sub><b>Pranav Joglekar</b></sub></a><br /><a href="#userTesting-Pranav2612000" title="User Testing">📓</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=Pranav2612000" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://dev.to/amberisvibin"><img src="https://avatars3.githubusercontent.com/u/63863236?v=4" width="100px;" alt=""/><br /><sub><b>Amber</b></sub></a><br /><a href="#question-amberisvibin" title="Answering Questions">💬</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=amberisvibin" title="Documentation">📖</a> <a href="#ideas-amberisvibin" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
