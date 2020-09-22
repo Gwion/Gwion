@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
