@@ -1,10 +1,6 @@
 # Benchmarks
 
-Created at:
-> @hide date
-
-From commit:
-> @hide cd gwion-benchmark; git log -n1
+@hide cat gwion-benchmark/commit_info
 
 ## test
 
