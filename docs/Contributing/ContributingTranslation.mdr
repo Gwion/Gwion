@@ -51,8 +51,8 @@ It's now time to add your changes to the package
 make translation-commit TRANSLATION_TARGET=<xxx>
 ```
 
-> In [Gwion](:gwion:/Gwion)'s case,
+> In :gwion:'s case,
 the `vcs` is the well known [git](https://git-scm.com/),  
 but the `make` recipe makes things simple
 
-Now please submit a [pull request](:gwion:/Gwion/pulls).
+Now please submit a [pull request](https://github.com/fennecdjay/Gwion/pulls).
