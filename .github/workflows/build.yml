@@ -20,6 +20,8 @@ jobs:
 
     - name: MdBook
       uses: peaceiris/actions-mdbook@v1
+      with:                                                                                                                                                                                 
+         mdbook-version: 'latest'
 
     - name: Get benchmarks
       run: |
