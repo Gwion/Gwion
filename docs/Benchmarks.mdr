@@ -1,12 +1,16 @@
 # Benchmarks
 
 Created at:
-@hide date
+> @hide date
 
 From commit:
-@hide git log -n1
+> @hide cd benchmarks; git log -n1
 
 ## test
-<table><tr><td align="center" style="border:none">
+
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable MD033 -->
+Restore the <table><tr><td align="center" style="border:none">
 @hide bash scripts/list_benchmarks.sh
 </td></tr></table>
+<!-- markdownlint-restore -->
