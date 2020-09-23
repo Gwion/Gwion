@@ -235,9 +235,6 @@ ANN static m_bool scan1_exp_call(const Env env, const Exp_Call* exp_call) {
 }
 
 ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot* member) {
-  if(member->base->next)
-    ERR_B(member->base->pos, _("can't use multiple expression"
-      " in dot member base expression"))
   return scan1_exp(env, member->base);
 }
 
