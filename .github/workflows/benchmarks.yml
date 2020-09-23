@@ -9,7 +9,11 @@ jobs:
   post-test-success:
     runs-on: ubuntu-latest
     steps:
+
+    - uses: actions/checkout@v2
+
     - name: call the other repo
+      if: github.ref == 'refs/heads/master'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         EVENT: benchmark-event
