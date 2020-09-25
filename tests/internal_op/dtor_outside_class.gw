@@ -1,2 +1,2 @@
 #! [contains] '@dtor' must be in class def!!
-operator @dtor void () {}
+operator void @dtor () {}

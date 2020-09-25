@@ -1,2 +1,2 @@
 #! [contains] must have one
-operator @implicit int(int i, int i) {}
+operator int @implicit (int i, int i) {}

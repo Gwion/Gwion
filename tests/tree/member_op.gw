@@ -1,6 +1,6 @@
 class C
 {
-	operator => void(C c, int i){<<< c, " ", i >>>;}
+	operator void => (C c, int i){<<< c, " ", i >>>;}
 #!	this => this;
 #!fun void test_op(C c){ this => c; }
 	this => var int i;

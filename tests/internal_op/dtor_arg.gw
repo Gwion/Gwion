@@ -1,4 +1,4 @@
 #! [contains] must not have args
 class C {
-  operator @dtor void(int i) {}
+  operator void @dtor (int i) {}
 }

@@ -3,6 +3,6 @@
 <<<  1 + 2 >>>;
 
 #! define and operator
-operator $@+-*%~<>^&!= void (int i, int j) { <<< i, " ", j >>>; }
+operator void $@+-*%~<>^&!= (int i, int j) { <<< i, " ", j >>>; }
 
 1 $@+-*%~<>^&!= 2;

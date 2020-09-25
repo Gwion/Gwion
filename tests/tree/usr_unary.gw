@@ -2,7 +2,7 @@ class C {
   var int i;
 }
 
-++ operator int (C c) {
+operator ++ int (C c) {
   <<< "test" >>>;
   <<< c >>>;
   <<< ++c.i >>>;

@@ -1,2 +1,2 @@
 #! [contains] must return
-operator @conditionnal Object (int i) {}
+operator Object @conditionnal (int i) {}

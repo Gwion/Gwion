@@ -2,7 +2,7 @@ class C {
   var int i;
   var float f;
   var Object o;
-  operator @dtor void () { <<< "dtor" >>>; }
+  operator void @dtor () { <<< "dtor" >>>; }
 }
 
 var C c;

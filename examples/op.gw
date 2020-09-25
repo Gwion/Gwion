@@ -1,6 +1,6 @@
 #!! test operator
 
-operator => void (Object o, int i) {
+operator void => (Object o, int i) {
   <<< o, " ", i, " success" >>>;
 }
 
@@ -9,7 +9,7 @@ class C {
 }
 
 #!! assign object to C.ref
-operator => void (Object o, C c) {
+operator void => (Object o, C c) {
   o @=> c.ref_object;
   <<< "success" >>>;
 }

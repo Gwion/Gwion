@@ -2,7 +2,7 @@
 class C {
   0 => var int i;
 }
-operator @implicit int(C c) {
+operator int @implicit (C c) {
   return c;
 }
 

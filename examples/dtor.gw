@@ -1,6 +1,6 @@
 class C
 {
-  operator @dtor void () {<<< 1 >>>;}
+  operator void @dtor () {<<< 1 >>>;}
 }
 
 var C c;

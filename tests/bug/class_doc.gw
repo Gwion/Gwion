@@ -6,7 +6,7 @@ class C
 	#!! a fun
 	fun void test() {}
 	#!! operator
-	operator => void(C c, C d){
+	operator void => (C c, C d){
       <<< c, " ", d >>>;
     }
 }

@@ -1,11 +1,11 @@
 class C:[A] {
-  operator @dtor void () { <<< __func__ >>>; }
+  operator void @dtor () { <<< __func__ >>>; }
 }
 class D:[A] extends C:[A] {
-  operator @dtor void () { <<< __func__ >>>; }
+  operator void @dtor () { <<< __func__ >>>; }
 }
 class E extends D:[int] {
-  operator @dtor void () { <<< __func__ >>>; }
+  operator void @dtor () { <<< __func__ >>>; }
 }
 
 var E e;

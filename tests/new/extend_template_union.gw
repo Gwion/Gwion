@@ -5,7 +5,7 @@ union U:[A] {
 
 class C:[A] extends U:[A] {
   fun void test() { <<< this >>>; }
-  operator @dtor void () { <<< __func__ >>>; }
+  operator void @dtor () { <<< __func__ >>>; }
 }
 
 var C:[float] c;

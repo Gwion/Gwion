@@ -3,12 +3,12 @@ class C
    var float f;
 }
 
-operator => float   (C       c, C d){ <<< "float   => C: ", c.f => d.f >>>; return 2.0;}
-operator => int     (int     i, C d){ <<< "int   => C: ", i => d.f >>>; return 2;}
-operator => float   (float   f, C d){ <<< "float   => C: ", f     => d.f >>>; return 2.0;}
+operator float  => (C       c, C d){ <<< "float   => C: ", c.f => d.f >>>; return 2.0;}
+operator int    => (int     i, C d){ <<< "int   => C: ", i => d.f >>>; return 2;}
+operator float  => (float   f, C d){ <<< "float   => C: ", f     => d.f >>>; return 2.0;}
 
-operator => float   (C d, int     c){ <<< "int   => C: ", c => d.f >>>; return 2.0;}
-operator => float   (C d,  float   f){ <<< "C   => float: ", f     => d.f >>>; return 2.0;}
+operator float =>  (C d, int     c){ <<< "int   => C: ", c => d.f >>>; return 2.0;}
+operator float =>  (C d,  float   f){ <<< "C   => float: ", f     => d.f >>>; return 2.0;}
 
 var C c, d;
 

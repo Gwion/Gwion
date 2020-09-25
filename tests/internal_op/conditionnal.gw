@@ -3,7 +3,7 @@ class C {
   10 => var int i;
 }
 
-operator @conditionnal int(C c) {
+operator int @conditionnal (C c) {
   <<< __func__ >>>;
   --c.i;
   return c.i;
