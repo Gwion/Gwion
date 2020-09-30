@@ -12,7 +12,6 @@ EOF
 
 mk_target() {
   cmojify "$(cat $1)" |
-    sed 's/```.*gw/```cpp/' |
     sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
   footer
 }
