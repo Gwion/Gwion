@@ -17,4 +17,4 @@ jobs:
         ORG: fennecdjay
         REPO: gwion-docs
       run: |
-        curl -d"{\"event_type\": \event\"}" -H "Content-Type: application/json" -H "Authorization: token ${{ secrets.GWION_DOC }}" -H "Accept: application/vnd.github.everest-preview+json" "https://api.github.com/repos/${ORG}/${REPO}/dispatches"
+        curl -d"{\"event_type\": \"event\"}" -H "Content-Type: application/json" -H "Authorization: token ${{ secrets.GWION_DOC }}" -H "Accept: application/vnd.github.everest-preview+json" "https://api.github.com/repos/${ORG}/${REPO}/dispatches"
