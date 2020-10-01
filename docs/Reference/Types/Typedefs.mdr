@@ -1,1 +1,28 @@
-# Typedefs
+# Type aliases
+
+Create an alias for a previously defined type.
+
+@``` typedef_simple.gw
+typedef int MyInt;
+var MyInt i;
+<<< i >>>;
+<<< i $ int >>>;
+@```
+
+Aliases can also point to an array type
+
+@``` typedef_array.gw
+typedef float[3] Point;
+var Point p;
+foreach(a : p)
+  <<< a >>>;
+@```
+
+
+Aliases can be used to refer to a type family
+
+@``` typedef_tmpl.gw
+typedef Ptr:[int] IntPtr;
+var IntPtr int_ptr;
+<<< int_ptr >>>;
+@```
