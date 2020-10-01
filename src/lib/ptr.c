@@ -138,7 +138,7 @@ static DTOR(ptr_struct_dtor) {
 
 static OP_CHECK(opck_ptr_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
-  const Type t = (Type)scan_class(env, ts->t, ts->td);
+  DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
   const Type base = known_type(env, t->e->def->base.tmpl->call->td);
   if(isa(base, env->gwion->type[et_compound]) > 0 && !t->nspc->dtor) {
     t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@PtrDtor");
