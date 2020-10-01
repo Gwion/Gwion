@@ -12,12 +12,8 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-    - name: Clone and push
-      run: |
-        git clone https://github.com/fennecdjay/gwion-docs
-        cd gwion-docs
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git commit --allow-empty -m "update gwion"
-        git remote set-url origin https://${{ secrets.GWION_DOC }}@github.com/fennecdjay/gwion-docs.git
-        git push
+    - env:
+        ORG: fennecdjay
+        REPO: gwion-docs
+    - name: Trigger docs build
+      run: curl -H "Content-Type: application/json" -H "Authorization: token ${{ secrets.GWION_DOC }}" -H "Accept: application/vnd.github.everest-preview+json" "https://api.github.com/repos/${ORG}/${REPO}/dispatches"
