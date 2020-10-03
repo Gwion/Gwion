@@ -6,10 +6,8 @@ You might be here because you found something you could improve in [Gwion](https
 Please open an [issue](https://github.com/fennecdjay/gwion/issues) describing the problem and how you might address it.
 
 ## Dependencies
-
--
-  
-## Editing the code
+- C compiler supporting C99 (ex- `gcc`, `clang`)
+- GNU Make
 
 ### Fork the repository
 
@@ -23,17 +21,40 @@ Clone the url of your fork
 git clone https://github.com/<your username>/gwion
 ```
 
+### Set up the project
+``` sh
+git submodule update --init util ast
+```
+
 ### Edit some files
+
+Edit some files with your favorite text editor
 
 ``` sh
 cd gwion
-make watch
+vim src/path/to/file
+```
+
+### Build the project
+``` sh
+make
+```
+
+### Test your changes
+``` sh
+make test
+```
+
+### Rebuild project (if required)
+``` sh
+make -C util clean && make -C ast clean && make clean
+make
 ```
 
 ### Add your changes
 
 ``` sh
-git add src/myfile.c
+git add path/to/changed/files
 ```
 
 ### Let the world know
@@ -43,9 +64,15 @@ git commit -m "Something meaningful about why we are here"
 git push
 ```
 
+It is recommended that you follow [our styleguide](https://github.com/fennecdjay/Gwion/blob/master/.github/CONTRIBUTING.md#git-commit-messages) for commit messages
+
 ### Submit a pull request
 
 You can do this through the [github site](https://github.com/fennecdjay/gwion/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
+
+It is recommended you submit a PR to a branch other than master;
+  - If a branch that directly concerns your specific PR is readily available, PR to that
+  - Otherwise PR to `dev`
 
 You can now sit back and wait for your pull request to be reviewed. If it's accepted, congrats! :tada: You've made a contribution!
 
