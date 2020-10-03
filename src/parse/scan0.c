@@ -366,21 +366,8 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
   return GW_OK;
 }
 
-ANN static m_bool scan0_section(const Env env, const Section* section) {
-  if(section->section_type == ae_section_class)
-    return scan0_class_def(env, section->d.class_def);
-  if(section->section_type == ae_section_enum)
-    return scan0_enum_def(env, section->d.enum_def);
-  if(section->section_type == ae_section_union)
-    return scan0_union_def(env, section->d.union_def);
-  if(section->section_type == ae_section_fptr)
-    return scan0_fptr_def(env, section->d.fptr_def);
-  if(section->section_type == ae_section_type)
-    return scan0_type_def(env, section->d.type_def);
-  if(section->section_type == ae_section_type)
-    return scan0_stmt_list(env, section->d.stmt_list);
-  return GW_OK;
-}
+#define scan0_func_def dummy_func
+HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)))
