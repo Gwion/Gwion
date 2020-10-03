@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
@@ -111,6 +111,7 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/nithin-pankaj"><img src="https://avatars2.githubusercontent.com/u/15152472?v=4" width="100px;" alt=""/><br /><sub><b>Nithin Pankaj</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=nithin-pankaj" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/evayde"><img src="https://avatars1.githubusercontent.com/u/25255815?v=4" width="100px;" alt=""/><br /><sub><b>Enrico Gruner</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=evayde" title="Code">💻</a></td>
   </tr>
 </table>
 
