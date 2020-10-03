@@ -1,0 +1,14 @@
+name: Cancel
+on: [push]
+jobs:
+  cancel:
+    name: 'Cancel Previous Runs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          # Ids of other workflows that ought to be canceled
+          # Ids can be found here: https://api.github.com/repos/fennecdjay/Gwion/actions/workflows
+          workflow_id: 55357,55358,55359,356501,359430,575240,575243,575600,604136,612771,619820,1306635,2138185,2665681,2809967
+          access_token: ${{ secrets.GITHUB_TOKEN }}
