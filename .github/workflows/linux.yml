@@ -2,7 +2,11 @@ name: Linux
 
 on:
   push:
-    branches:    
+    branches:
+    - '**'
+    - '!gh-pages'
+  pull_request:
+    branches:
     - '**'
     - '!gh-pages'
 
