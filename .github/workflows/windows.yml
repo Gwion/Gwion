@@ -31,7 +31,7 @@ jobs:
       env:
         CC: gcc
         USE_DOUBLE: ${{ matrix.double }}
-        USE_DEBUG: 1
+        BUILD_ON_WINDOWS: 1
 
     - name: Test
       run: make test
