@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: make
       env:
-        CC: ${{ matrix.cc }}
+        CC: gcc
         USE_DOUBLE: ${{ matrix.double }}
         USE_DEBUG: 1
 
