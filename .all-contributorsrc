@@ -69,10 +69,37 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "TotallyNotChase",
+      "name": "Chase",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/44284917?v=4",
+      "profile": "https://github.com/TotallyNotChase",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "nithin-pankaj",
+      "name": "Nithin Pankaj",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/15152472?v=4",
+      "profile": "https://github.com/nithin-pankaj",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "evayde",
+      "name": "Enrico Gruner",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/25255815?v=4",
+      "profile": "https://github.com/evayde",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg](#contributors)",
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
   "projectName": "Gwion",
   "projectOwner": "fennecdjay",
   "repoType": "github",
