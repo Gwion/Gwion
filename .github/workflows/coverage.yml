@@ -53,7 +53,13 @@ jobs:
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
         sed -i 's/<html>/<script type="text\/javascript" src="..\/focus.js"><\/script><html>/' index.src_*.html
-        branch=$(basename ${{ github.event.ref }})
+        if [ "${{ github.event_name }}" == "push" ]
+        then
+          ref="${{ github.ref }}"
+        else
+          ref="${{ github.event.head.ref }}"
+        fi
+        branch=$(basename ref)
         cd gwion-coverage-report/
         bash old.sh $branch
         bash summary.sh
