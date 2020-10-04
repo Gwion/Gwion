@@ -24,10 +24,13 @@ jobs:
     - name: Init submodules
       run: git submodule update --init util ast
 
-    - name: Build & Test Gwion
-      run: make && make test
+    - name: Build Gwion
+      run: make
       env:
         USE_COVERAGE: 1
+        
+    - name: Test Gwion
+      run: make test
 
     - uses: actions/setup-python@v1
       with:
