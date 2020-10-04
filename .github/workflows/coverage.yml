@@ -103,18 +103,3 @@ jobs:
 #        git add -f html
 #        git commit -m "Update html report"
 #        git subtree push --prefix html origin gh-pages
-
-
-    - name: Send mail
-      uses: dawidd6/action-send-mail@master
-      with:
-        server_address: smtp.gmail.com
-        server_port: 465
-        username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}
-        subject: Github Actions job result
-        body: file://diff.html
-        to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
-        from: Gwion Coverage action
-        content_type: text/html
-      if: ${{ github.repository_owner == 'fennecdjay' }}
