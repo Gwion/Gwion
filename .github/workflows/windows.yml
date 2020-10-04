@@ -16,7 +16,7 @@ jobs:
         double: [0, 1]
 
     steps:
-    - name Checkout
+    - name: Checkout
       uses: actions/checkout@v2
 
     - name: Init submodules
