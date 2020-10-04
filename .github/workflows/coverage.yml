@@ -18,12 +18,14 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-    - name: Build Gwion
-      uses: fennecdjay/gwion-action@v1
-      with:
-        dir: .
-        ref: ${{ github.sha }}
-        run: 'true'
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Init submodules
+      run: git submodule update --init util ast
+
+    - name: Build & Test Gwion
+      run: make && make test
       env:
         USE_COVERAGE: 1
 
