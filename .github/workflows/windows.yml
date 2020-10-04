@@ -35,3 +35,5 @@ jobs:
 
     - name: Test
       run: make test
+      env:
+        BUILD_ON_WINDOWS: 1
