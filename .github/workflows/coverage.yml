@@ -117,3 +117,4 @@ jobs:
         to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
         from: Gwion Coverage action
         content_type: text/html
+      if: ${{ github.repository_owner == 'fennecdjay' }}
