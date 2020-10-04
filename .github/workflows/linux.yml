@@ -17,12 +17,18 @@ jobs:
         double: [0, 1]
 
     steps:
-    - name: Build Gwion
-      uses: fennecdjay/gwion-action@v1
-      with:
-        ref: ${{ github.sha }}
-        run: true
+    - name Checkout
+      uses: actions/checkout@v2
+
+    - name: Init submodules
+      run: git submodule update --init util ast
+
+    - name: Build
+      run: make
       env:
         CC: ${{ matrix.cc }}
         USE_DOUBLE: ${{ matrix.double }}
         USE_DEBUG: 1
+
+    - name: Test
+      run: make test
