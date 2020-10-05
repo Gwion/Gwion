@@ -12006,11 +12006,10 @@ hljs.registerLanguage('gwion', function () {
     var COMMENTS = hljs.COMMENT('#!','\n|!#');
 
     var KEYWORDS = {
-        keyword: 'if for foreach while until do break return continue goto',
-  //      class: 'operator extends',
+        keyword: 'if for foreach repeat while until do break return continue goto spork fork match where when case typeof varloop',
         name: 'true false maybe me null adc dac __func__ __file__ __line__ now vararg this',
         built_in: 'Object Vararg Shred Fork TypedFork UGen Gain Impulse FullRect HalfRect Step ZeroX UsrUGen Event Ptr:[A] string auto void int char float dur time',
-        meta: 'static global private protect var ref const nonnul',
+        meta: 'new static global private protect var ref const nonnul',
     };
 
     var CHAR = {
