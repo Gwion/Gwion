@@ -18,14 +18,19 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Init submodules
+      run: git submodule update --init util ast
+
     - name: Build Gwion
-      uses: fennecdjay/gwion-action@v1
-      with:
-        dir: .
-        ref: ${{ github.sha }}
-        run: 'true'
+      run: make
       env:
         USE_COVERAGE: 1
+        
+    - name: Test Gwion
+      run: make test
 
     - uses: actions/setup-python@v1
       with:
@@ -51,7 +56,13 @@ jobs:
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
         sed -i 's/<html>/<script type="text\/javascript" src="..\/focus.js"><\/script><html>/' index.src_*.html
-        branch=$(basename ${{ github.event.ref }})
+        if [ "${{ github.event_name }}" == "push" ]
+        then
+          ref="${{ github.ref }}"
+        else
+          ref="${{ github.event.head.ref }}"
+        fi
+        branch=$(basename ref)
         cd gwion-coverage-report/
         bash old.sh $branch
         bash summary.sh
@@ -91,21 +102,3 @@ jobs:
         git add .
         git commit -m "Update html report"
         git push origin HEAD:gh-pages
-#        git push origin --set-upstream origin gh-pages
-#        git add -f html
-#        git commit -m "Update html report"
-#        git subtree push --prefix html origin gh-pages
-
-
-    - name: Send mail
-      uses: dawidd6/action-send-mail@master
-      with:
-        server_address: smtp.gmail.com
-        server_port: 465
-        username: ${{ secrets.MAIL_USERNAME }}
-        password: ${{ secrets.MAIL_PASSWORD }}
-        subject: Github Actions job result
-        body: file://diff.html
-        to: ${{ github.event.repository.owner.email }},${{ github.event.pusher.email }}
-        from: Gwion Coverage action
-        content_type: text/html
