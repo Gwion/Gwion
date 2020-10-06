@@ -187,7 +187,7 @@ test_dir() {
   n=$2
   l=$n
   offset=$n
-  [ "$async" -lt 0 ] && set -m
+  [ "$async" -gt 0 ] && set -m
   found=0
   grep '\.gw' <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
