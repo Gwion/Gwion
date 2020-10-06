@@ -2,13 +2,13 @@ name: Windows
 
 on:
   push:
-    branches:    
-    - '**'
-    - '!gh-pages'
+    branches:
+      - "**"
+      - "!gh-pages"
   pull_request:
     branches:
-    - '**'
-    - '!gh-pages'
+      - "**"
+      - "!gh-pages"
 
 jobs:
   build:
@@ -20,20 +20,21 @@ jobs:
         double: [0, 1]
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Init submodules
-      run: git submodule update --init util ast
+      - name: Init submodules
+        run: git submodule update --init util ast
 
-    - name: Build
-      run: make
-      env:
-        CC: gcc
-        USE_DOUBLE: ${{ matrix.double }}
-        BUILD_ON_WINDOWS: 1
+      - name: Build
+        run: make
+        env:
+          CC: gcc
+          USE_DOUBLE: ${{ matrix.double }}
+          BUILD_ON_WINDOWS: 1
 
-    - name: Test
-      run: make test
-      env:
-        BUILD_ON_WINDOWS: 1
+      - name: Test
+        run: make test
+        env:
+          CC: gcc
+          BUILD_ON_WINDOWS: 1
