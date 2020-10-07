@@ -78,6 +78,13 @@ Save and exit the file(:wq in vim). Use the following command to run your first 
 ```
 Congratulations!! You ran your first gwion program.
 
+## Installation
+
+It's a good idea to install Gwion now that you have tried it out. Use the following command to install it
+```
+sudo make install
+```
+
 You want to know more? :smile: Look [here](https://fennecdjay.github.io/Gwion/)
 Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/fennecdjay/gwion/issues)
 
