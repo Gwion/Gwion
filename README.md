@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
@@ -120,7 +120,8 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
     <td align="center"><a href="https://github.com/nithin-pankaj"><img src="https://avatars2.githubusercontent.com/u/15152472?v=4" width="100px;" alt=""/><br /><sub><b>Nithin Pankaj</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=nithin-pankaj" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/evayde"><img src="https://avatars1.githubusercontent.com/u/25255815?v=4" width="100px;" alt=""/><br /><sub><b>Enrico Gruner</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=evayde" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/umer2001"><img src="https://avatars2.githubusercontent.com/u/35496058?v=4" width="100px;" alt=""/><br /><sub><b>Muhammad Umer Farooq</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=umer2001" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/a-mere-peasant"><img src="https://avatars3.githubusercontent.com/u/50142453?s=400&u=4844f21d4f48431d854307ecdf4d1f4d80977ab9&v=4" width="100px;" alt=""/><br /><sub><b>Harsh Jain</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=a-mere-peasant" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://shuvalov.info"><img src="https://avatars2.githubusercontent.com/u/1410106?v=4" width="100px;" alt=""/><br /><sub><b>Shuvalov Anton</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=a" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/ry-v1"><img src="https://avatars1.githubusercontent.com/u/72290009?v=4" width="100px;" alt=""/><br /><sub><b>ry-v1</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=ry-v1" title="Documentation">📖</a></td>
   </tr>
 </table>
 
