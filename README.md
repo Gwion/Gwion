@@ -26,7 +26,7 @@ You might just want the minimum to start with, try
 ``` sh
 git clone https://github.com/fennecdjay/Gwion
 cd Gwion
-git submodule update --init util ast
+git submodule update --init util ast plug
 make
 ```
 
@@ -40,6 +40,7 @@ Please rebuild to take your change into account.
 ```
 make -C util clean
 make -C ast  clean
+make -C plug clean
 make clean
 make
 ```
