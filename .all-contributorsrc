@@ -132,6 +132,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "forrcaho",
+      "name": "Forrest Cahoon",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/492742?v=4",
+      "profile": "https://github.com/forrcaho",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
