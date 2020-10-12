@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/fennecdjay/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/fennecdjay/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/fennecdjay/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/fennecdjay/Gwion/workflows/MacOs/badge.svg)
@@ -124,6 +124,9 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
     <td align="center"><a href="https://github.com/ry-v1"><img src="https://avatars1.githubusercontent.com/u/72290009?v=4" width="100px;" alt=""/><br /><sub><b>ry-v1</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=ry-v1" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/deekts"><img src="https://avatars0.githubusercontent.com/u/51462833?v=4" width="100px;" alt=""/><br /><sub><b>deekts</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=deekts" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/forrcaho"><img src="https://avatars3.githubusercontent.com/u/492742?v=4" width="100px;" alt=""/><br /><sub><b>Forrest Cahoon</b></sub></a><br /><a href="#ideas-forrcaho" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/SenorGrande"><img src="https://avatars2.githubusercontent.com/u/22025776?v=4" width="100px;" alt=""/><br /><sub><b>Connor Hewett</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=SenorGrande" title="Code">💻</a></td>
   </tr>
 </table>
 
