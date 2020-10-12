@@ -123,6 +123,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "deekts",
+      "name": "deekts",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/51462833?v=4",
+      "profile": "https://github.com/deekts",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
