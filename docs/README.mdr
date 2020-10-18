@@ -7,7 +7,7 @@ templating, first-class functions and more.
 
 It aims to be simple, small, [fast](https://Gwion.github.io/Gwion/Benchmarks.html), [extendable](https://github.com/Gwion/Gwion-plug) and [embeddable](https://github.com/Gwion/Gwion/blob/master/src/main.c#L18-L31).
 
-gwion was originally designed and created by [Jérémie Astor](https://github.com/Gwion)He is a musician, who made it to assist in his shows/compositions.
+gwion was originally designed and created by [Jérémie Astor](https://github.com/fennecdjay). He is a musician, who made it to assist in his shows/compositions.
 
 We are currently looking for contributions, you can learn how to make some [here](https://Gwion.github.io/Gwion/Contributing/).
 
