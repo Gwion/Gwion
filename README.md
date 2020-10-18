@@ -127,7 +127,6 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/SenorGrande"><img src="https://avatars2.githubusercontent.com/u/22025776?v=4" width="100px;" alt=""/><br /><sub><b>Connor Hewett</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=SenorGrande" title="Code">💻</a></td>
->>>>>>> 8f7fe1cd46d101e9b8c7b4e5340f6097268b5e79
   </tr>
 </table>
 
