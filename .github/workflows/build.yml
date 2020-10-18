@@ -24,6 +24,10 @@ jobs:
       with:                                                                                                                                                                                 
          mdbook-version: 'latest'
 
+    - name: GIT things
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
     - name: Get benchmarks
       run: |
         git submodule update --init gwion-benchmark
@@ -33,10 +37,8 @@ jobs:
     - name: Build book
       run: PATH=$PWD:$PATH make build
 
-    - name: GIT things
+    - name: Push book
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
         git add -f book
         git commit -m "add book"
         git remote set-url origin https://${{ secrets.GWION_TOKEN }}@github.com/Gwion/Gwion.git
