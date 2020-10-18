@@ -43,7 +43,7 @@ jobs:
 
     - name: Clone report repo
       run: | 
-        git clone https://github.com/fennecdjay/gwion-coverage-report
+        git clone https://github.com/Gwion/gwion-coverage-report
         cd gwion-coverage-report
         git worktree add html origin/gh-pages
 
@@ -93,7 +93,7 @@ jobs:
         cd gwion-coverage-report
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
+        git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/Gwion/gwion-coverage-report.git
         git add README.md coverage_num.txt badge.svg
         git commit -m "Update coverage" || true
         git push || true

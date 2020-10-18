@@ -14,7 +14,7 @@ jobs:
     steps:
     - name: Clone report repo
       run: |
-        git clone https://github.com/fennecdjay/gwion-coverage-report
+        git clone https://github.com/Gwion/gwion-coverage-report
         cd gwion-coverage-report
         branch=${{ github.event.ref }}
         if [ -d html/$branch ]
@@ -22,7 +22,7 @@ jobs:
           rm -r html/$branch
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/fennecdjay/gwion-coverage-report.git
+          git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/Gwion/gwion-coverage-report.git
           git add html
           git commit -m "Delete obsolete branch"
           git subtree push --prefix html origin gh-pages

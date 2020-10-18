@@ -85,4 +85,4 @@ include a [reference](https://help.github.com/articles/autolinked-references-and
 
 ### Issue and Pull Request labels
 Names should be self explanatory
-look [here](https://github.com/fennecdjay/Gwion/labels) for an up to date list.
+look [here](https://github.com/Gwion/Gwion/labels) for an up to date list.

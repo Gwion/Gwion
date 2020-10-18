@@ -21,7 +21,7 @@ jobs:
 
     - name: Download tool
       run: |
-        wget -q https://scan.coverity.com/download/cxx/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=fennecdjay/Gwion" -O cov-analysis-linux64.tar.gz
+        wget -q https://scan.coverity.com/download/cxx/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=Gwion/Gwion" -O cov-analysis-linux64.tar.gz
         mkdir cov-analysis-linux64
         tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
 
@@ -40,4 +40,4 @@ jobs:
           --form file=@gwion.tgz \
           --form version=trunk \
           --form description="strongly timed programming language" \
-          https://scan.coverity.com/builds?project=fennecdjay/Gwion
+          https://scan.coverity.com/builds?project=Gwion/Gwion
