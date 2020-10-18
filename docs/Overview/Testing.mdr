@@ -1,5 +1,5 @@
 # Tests
-[test.sh](https:#!github.com/fennecdjay/Gwion/blob/dev/util/test.sh)
+[test.sh](https:#!github.com/Gwion/Gwion/blob/dev/util/test.sh)
 requires [valgrind](http:#!valgrind.org/) 
 there are two kinds of tests:
   * [gwion](#gwion-tests)

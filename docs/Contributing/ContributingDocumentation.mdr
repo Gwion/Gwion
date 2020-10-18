@@ -2,14 +2,14 @@
 
 > this is a stub for now, this place deserves better
 
-You might be here because you found something you could improve in [Gwion's documentation](https://github.com/fennecdjay/gwion-docs).
-Please open an [issue](https://github.com/fennecdjay/gwion-docs/issues) describing the problem and how you might address it.
+You might be here because you found something you could improve in [Gwion's documentation](https://github.com/Gwion/gwion-docs).
+Please open an [issue](https://github.com/Gwion/gwion-docs/issues) describing the problem and how you might address it.
 
 ## Dependencies
 
 Technically none of these are *needed*, but they are quite useful:
 
-* [Gwion](https://github.com/fennecdjay/gwion)
+* [Gwion](https://github.com/Gwion/gwion)
 * [mdr](https://github.com/fennecdjay/mdr)
 * [MdBook](https://github.com/rust-lang/mdBook)
   
@@ -49,7 +49,7 @@ git push
 
 ### Submit a pull request
 
-You can do this through the [github site](https://github.com/fennecdjay/gwion-docs/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
+You can do this through the [github site](https://github.com/Gwion/gwion-docs/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
 
 You can now sit back and wait for your pull request to be reviewed. If it's accepted, congrats! :tada: You've made a contribution!
 

@@ -55,4 +55,4 @@ make translation-commit TRANSLATION_TARGET=<xxx>
 the `vcs` is the well known [git](https://git-scm.com/),  
 but the `make` recipe makes things simple
 
-Now please submit a [pull request](https://github.com/fennecdjay/Gwion/pulls).
+Now please submit a [pull request](https://github.com/Gwion/Gwion/pulls).

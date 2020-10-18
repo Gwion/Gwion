@@ -26,8 +26,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="http://dev.to/amberisvibin"><img src="https://avatars3.githubusercontent.com/u/63863236?v=4" width="100px;" alt=""/><br /><sub><b>Amber</b></sub></a><br /><a href="https://github.com/fennecdjay/gwion-docs/commits?author=amberisvibin" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a><br /><a href="https://github.com/fennecdjay/gwion-docs/commits?author=Aleserche" title="Code">💻</a></td>
+    <td align="center"><a href="http://dev.to/amberisvibin"><img src="https://avatars3.githubusercontent.com/u/63863236?v=4" width="100px;" alt=""/><br /><sub><b>Amber</b></sub></a><br /><a href="https://github.com/Gwion/gwion-docs/commits?author=amberisvibin" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a><br /><a href="https://github.com/Gwion/gwion-docs/commits?author=Aleserche" title="Code">💻</a></td>
   </tr>
 </table>
 

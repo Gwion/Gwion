@@ -11999,7 +11999,7 @@ hljs.registerLanguage('gwion', function () {
   Author: Jérémie Astor <astor.jeremie@wanadoo.fr>
   Contributors: 
   Description: A strongly timed musical programming language
-  Website: https://fennecdjay.github.io/Gwion
+  Website: https://Gwion.github.io/Gwion
   */
   function gwion(hljs) {
 

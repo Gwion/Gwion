@@ -5,7 +5,7 @@ footer() {
 <!-- added by doc2src.sh -->
 <footer>
 built with <a href="https://github.com/rust-lang/mdBook/">mdBook</a></br>
-You'll find the source <a href="https://github.com/fennecdjay/Gwion">here</a>, Luke!
+You'll find the source <a href="https://github.com/Gwion/Gwion">here</a>, Luke!
 </footer>
 EOF
 }
@@ -13,7 +13,7 @@ EOF
 mk_target() {
   cmojify "$(cat $1)" |
     sed 's/```.*gw/```gw/' | 
-    sed 's#:gwion:#[Gwion](https://github.com/fennecdjay/Gwion)#g'
+    sed 's#:gwion:#[Gwion](https://github.com/Gwion/Gwion)#g'
   footer
 }
 

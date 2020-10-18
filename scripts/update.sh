@@ -15,6 +15,6 @@ update() {
   rm $file
 }
 
-update fennecdjay Gwion
+update Gwion Gwion
 update fennecdjay mdr
 update fennecdjay cmojify

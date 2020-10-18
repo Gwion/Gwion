@@ -7,7 +7,7 @@ language = "en"
 [output.html]
 default-theme = "rust"
 additional-css = ["custom.css", "ansi2html.css"]
-git-repository-url ="https://github.com/fennecdjay/Gwion"
+git-repository-url ="https://github.com/Gwion/Gwion"
 site-url = "/Gwion/"
 
 [output.html.fold]

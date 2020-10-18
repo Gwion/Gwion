@@ -1,6 +1,6 @@
 # Contributors
 
-@hide curl "https://raw.githubusercontent.com/fennecdjay/Gwion/master/README.md" -o master_readme.md
+@hide curl "https://raw.githubusercontent.com/Gwion.Gwion/master/README.md" -o master_readme.md
 
 <!-- markdownlint-capture -->
 <!-- markdownlint-disable MD033 -->

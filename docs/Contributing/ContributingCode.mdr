@@ -2,8 +2,8 @@
 
 > this is a stub for now, this place deserves better
 
-You might be here because you found something you could improve in [Gwion](https://github.com/fennecdjay/gwion).
-Please open an [issue](https://github.com/fennecdjay/gwion/issues) describing the problem and how you might address it.
+You might be here because you found something you could improve in [Gwion](https://github.com/Gwion/gwion).
+Please open an [issue](https://github.com/Gwion/gwion/issues) describing the problem and how you might address it.
 
 ## Dependencies
 - C compiler supporting C99 (ex- `gcc`, `clang`)
@@ -64,11 +64,11 @@ git commit -m "Something meaningful about why we are here"
 git push
 ```
 
-It is recommended that you follow [our styleguide](https://github.com/fennecdjay/Gwion/blob/master/.github/CONTRIBUTING.md#git-commit-messages) for commit messages
+It is recommended that you follow [our styleguide](https://github.com/Gwion/Gwion/blob/master/.github/CONTRIBUTING.md#git-commit-messages) for commit messages
 
 ### Submit a pull request
 
-You can do this through the [github site](https://github.com/fennecdjay/gwion/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
+You can do this through the [github site](https://github.com/Gwion/gwion/pulls), or command-line tools like `gh` or `hub`. See **Further Reading**.
 
 It is recommended you submit a PR to a branch other than master;
   - If a branch that directly concerns your specific PR is readily available, PR to that
