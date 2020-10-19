@@ -15,6 +15,14 @@
 #include "specialid.h"
 #include "tmp_resolve.h"
 
+struct FptrArgs {
+  Value v;
+  const Exp_Call *e;
+  m_str tmpl_name;
+  Func m_func;
+  Type_List types;
+};
+
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
   const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl, i);
   return v->from->owner_class ? find_value(v->from->owner_class, sym) :
@@ -47,6 +55,39 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
   return NULL;
 }
 
+ANN static Func fptr_match(const Env env, struct FptrArgs* f_ptr_args) {
+  const Value v = f_ptr_args->v;
+  const m_str tmpl_name = f_ptr_args->tmpl_name;
+  const Exp_Call *exp = f_ptr_args->e;
+  Type_List types = f_ptr_args->types;
+  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
+  const Type exists = nspc_lookup_type0(v->from->owner, sym);
+  if(exists)
+    return exists->e->d.func;
+
+  Func m_func = f_ptr_args->m_func; 
+  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->e->d.func->def;
+  Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
+  fbase->xid = sym;
+  fbase->tmpl->base = 0;
+  fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
+  if(template_push_types(env, fbase->tmpl) > 0) {
+    const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
+    if(traverse_fptr_def(env, fptr) > 0 &&
+        (base->base->ret_type = known_type(env, base->base->td)) &&
+        (!exp->args || !!check_exp(env, exp->args))) {
+      m_func = find_func_match(env, fbase->func, exp->args);
+      nspc_pop_type(env->gwion->mp, env->curr);
+      if(m_func)
+        nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
+    }
+    if(fptr->type)
+      REM_REF(fptr->type, env->gwion)
+    free_fptr_def(env->gwion->mp, fptr);
+  }
+  return m_func;
+}
+
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
@@ -58,31 +99,8 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type)) {
-    const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
-    const Type exists = nspc_lookup_type0(v->from->owner, sym);
-    if(exists)
-      m_func = exists->e->d.func;
-    else {
-      Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->e->d.func->def;
-      Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
-      fbase->xid = sym;
-      fbase->tmpl->base = 0;
-      fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
-      if(template_push_types(env, fbase->tmpl) > 0) {
-        const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
-        if(traverse_fptr_def(env, fptr) > 0 &&
-            (base->base->ret_type = known_type(env, base->base->td)) &&
-            (!exp->args || !!check_exp(env, exp->args))) {
-          m_func = find_func_match(env, fbase->func, exp->args);
-          nspc_pop_type(env->gwion->mp, env->curr);
-          if(m_func)
-            nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
-        }
-        free_fptr_def(env->gwion->mp, fptr);
-        if(fptr->type)
-          REM_REF(fptr->type, env->gwion)
-      }
-    }
+    struct FptrArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
+    m_func = fptr_match(env, &f_ptr_args);
   } else {
     for(m_uint i = 0; i < v->from->offset + 1; ++i) {
       const Value exists = template_get_ready(env, v, tmpl_name, i);
