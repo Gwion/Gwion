@@ -1,13 +1,13 @@
 # plugins modules
 [submodule "plug"]
 	path = plug
-	url = https://github.com/fennecdjay/Gwion-plug
-  active = false
+	url = https://github.com/Gwion/Gwion-plug
+	active = false
 [submodule "util"]
 	path = util
-	url = https://github.com/fennecdjay/gwion-util
-  active = true
+	url = https://github.com/Gwion/gwion-util
+	active = true
 [submodule "ast"]
 	path = ast
-	url = https://github.com/fennecdjay/gwion-ast
-  active = true
+	url = https://github.com/Gwion/gwion-ast
+	active = true
