@@ -45,8 +45,11 @@ typedef struct OperCK { // name_checker ?
 
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
-ANN Symbol str2sym(const Gwi gwi, const m_str path);
+ANN Symbol str2sym(const Gwion gwi, const m_str path, const loc_t pos);
+
 ANN ID_List str2symlist(const Gwi gwi, const m_str path);
+
+#define gwi_str2sym(gwi, path) str2sym(gwi->gwion, path, gwi->loc)
 
 ANN m_bool ck_ini(const Gwi, const enum importck_type);
 ANN m_bool ck_ok(const Gwi, const enum importck_type);

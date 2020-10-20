@@ -21,8 +21,7 @@
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_BB(ck_ini(gwi, ck_edef))
   if(type)
-//    CHECK_OB((gwi->ck->sym = str2sym(gwi, type)))
-    CHECK_OB((gwi->ck->xid = str2sym(gwi, type)))
+    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)))
   vector_init(&gwi->ck->v);
   return GW_OK;
 }

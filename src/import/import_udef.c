@@ -27,7 +27,7 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
 ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef))
   if(name)
-    CHECK_OB((gwi->ck->xid = str2sym(gwi, name)))
+    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, name)))
   gwi->ck->name = type;
   if(type)
     CHECK_BB(check_typename_def(gwi, gwi->ck))

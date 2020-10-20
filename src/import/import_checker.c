@@ -66,14 +66,14 @@ ANN static inline Symbol _str2sym(const Gwion gwion, struct td_checker *tdc, con
 }
 
 /** convert a string to a symbol, with error checking **/
-ANN Symbol str2sym(const Gwi gwi, const m_str path) {
-  struct td_checker tdc = { .str=path, .pos=gwi->loc };
-  return _str2sym(gwi->gwion, &tdc, path);
+ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
+  struct td_checker tdc = { .str=path, .pos=pos };
+  return _str2sym(gwion, &tdc, path);
 }
 
 // only in enum.c
 ANN ID_List str2symlist(const Gwi gwi, const m_str path) {
-  DECL_OO(const Symbol, sym, = str2sym(gwi, path))
+  DECL_OO(const Symbol, sym, = str2sym(gwi->gwion, path, gwi->loc))
   return new_id_list(gwi->gwion->mp, sym, loc(gwi));
 }
 
