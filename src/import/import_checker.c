@@ -15,11 +15,6 @@
 #include "import.h"
 #include "gwi.h"
 
-__attribute__((returns_nonnull))
-ANN static Symbol gwisym(const Gwion gwion, const m_str str) {
-  return insert_symbol(gwion->st, str);
-}
-
 struct td_checker {
   m_str str;
   const loc_t pos;
@@ -33,7 +28,7 @@ struct AC {
   m_uint depth;
 };
 
-ANN static m_bool ac_run(const Gwion gwion, struct AC *ac);
+ANN static m_bool ac_run(const Gwion gwion, struct AC *const ac);
 ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
   const Array_Sub array = new_array_sub(mp, ac->base);
   array->depth = ac->depth;
@@ -41,6 +36,10 @@ ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
   return array;
 }
 
+__attribute__((returns_nonnull))
+ANN static Symbol gwisym(const Gwion gwion, const m_str str) {
+  return insert_symbol(gwion->st, str);
+}
 
 ANN static Symbol __str2sym(const Gwion gwion, struct td_checker *tdc) {
   char buf[strlen(tdc->str) + 1];
@@ -138,44 +137,6 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 
 }
 
-ANN m_bool ck_ini(const Gwi gwi, const enum importck_type t) {
-  if(gwi->ck) // TODO: improve error message
-    GWI_ERR_B(_("already importing"))
-  gwi->ck = mp_calloc2(gwi->gwion->mp, sizeof(ImportCK));
-  gwi->ck->type = t;
-  return GW_OK;
-}
-
-ANN m_bool ck_ok(const Gwi gwi, const enum importck_type t) {
-  if(!gwi->ck)
-    GWI_ERR_B(_("import not started"))
-  if(gwi->ck->type == t)
-    return GW_OK;
-  // TODO: improve error message
-  GWI_ERR_B(_("already importing"))
-}
-
-ANN void ck_end(const Gwi gwi) {
-  mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
-  gwi->ck = NULL;
-}
-
-typedef void (*cleaner) (MemPool, ImportCK*);
-static cleaner cleaners[] =
-{
-  ck_clean_edef,
-  ck_clean_udef,
-  ck_clean_tdef,
-NULL,//  ck_clean_oper,
-  ck_clean_item,
-  ck_clean_fdef
-};
-
-ANN void ck_clean(const Gwi gwi) {
-  cleaners[gwi->ck->type](gwi->gwion->mp, gwi->ck);
-  memset(gwi->ck, 0, sizeof(ImportCK));
-}
-
 ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc);
 ANN Type_List __str2tl(const Gwion gwion, struct td_checker *tdc) {
   Type_Decl *td = _str2decl(gwion, tdc);
@@ -212,14 +173,6 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   ++tdc->str;
   return tl;
 }
-
-ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
-  if(ac->exp)
-    ac->exp = (ac->exp->next = exp);
-  else
-    ac->base = ac->exp = exp;
-}
-
 
 ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
@@ -271,22 +224,29 @@ ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
   return NULL;
 }
 
-ANN static inline m_bool ac_finish(const Gwion gwion, struct AC *ac) {
+ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {
   if(*ac->str == ']')
     return GW_OK;
   GWION_ERR_B(ac->pos, "unfinished array");
 }
 
-ANN static inline m_bool ac_num(const Gwion gwion, struct AC *ac, const m_int num) {
+ANN static inline m_bool ac_num(const Gwion gwion, const struct AC *ac, const m_int num) {
   if(num >= 0)
     return GW_OK;
   GWION_ERR_B(ac->pos, "negative array dimension")
 }
 
-ANN static inline m_bool ac_exp(const Gwion gwion, struct AC *ac) {
+ANN static inline m_bool ac_exp(const Gwion gwion, const struct AC *ac) {
   if(!ac->depth || ac->base)
     return GW_OK;
   GWION_ERR_B(ac->pos, "malformed array [][...]")
+}
+
+ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
+  if(ac->exp)
+    ac->exp = (ac->exp->next = exp);
+  else
+    ac->base = ac->exp = exp;
 }
 
 ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
@@ -295,7 +255,7 @@ ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
   GWION_ERR_B(ac->pos, "malformed array [...][]")
 }
 
-ANN static m_bool _ac_run(const Gwion gwion, struct AC *ac) {
+ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
   const m_str str = ac->str;
   const m_int num = strtol(str, &ac->str, 10);
   CHECK_BB(ac_finish(gwion, ac))
@@ -310,7 +270,7 @@ ANN static m_bool _ac_run(const Gwion gwion, struct AC *ac) {
   return GW_OK;
 }
 
-ANN static m_bool ac_run(const Gwion gwion, struct AC *ac) {
+ANN static m_bool ac_run(const Gwion gwion, struct AC *const ac) {
   while(*ac->str) {
     if(*ac->str != '[')
       break;
