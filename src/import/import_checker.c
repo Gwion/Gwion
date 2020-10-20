@@ -262,12 +262,12 @@ ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
   return td;
 }
 
-ANN Type str2type(const Gwi gwi, const m_str str) {
-  DECL_OO(Type_Decl *, td, = str2decl(gwi->gwion, str, gwi->loc))
-  const Type t = known_type(gwi->gwion->env, td);
+ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
+  DECL_OO(Type_Decl *, td, = str2decl(gwion, str, pos))
+  const Type t = known_type(gwion->env, td);
   if(t)
     return t;
-  free_type_decl(gwi->gwion->mp, td);
+  free_type_decl(gwion->mp, td);
   return NULL;
 }
 
