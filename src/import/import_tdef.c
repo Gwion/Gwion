@@ -20,7 +20,7 @@ ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restri
   CHECK_BB(ck_ini(gwi, ck_tdef))
   gwi->ck->name = name;
   CHECK_BB(check_typename_def(gwi, gwi->ck))
-  return (gwi->ck->td = str2decl(gwi, type)) ? GW_OK : GW_ERROR;
+  return (gwi->ck->td = gwi_str2decl(gwi, type)) ? GW_OK : GW_ERROR;
 }
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {

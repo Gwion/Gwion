@@ -158,7 +158,6 @@ ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos)
   ERR_B(pos, _("can't infer type."))
 }
 
-ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc);
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
@@ -874,21 +873,6 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
-// the two next function do not account for arrays. (they are only stmt_each() helpers
-ANN static Type_Decl* _type2td(const Env env, const Type t, Type_Decl *next) {
-  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol(t->name),
-      loc_cpy(env->gwion->mp, td_pos(next)));
-  td->next = next;
-  return !t->e->owner_class ? td : _type2td(env, t->e->owner_class, td);
-
-}
-
-ANN static Type_Decl* type2td(const Env env, const Type t, const loc_t loc) {
-  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol(t->name),
-      loc_cpy(env->gwion->mp, loc));
-  return !t->e->owner_class ? td : _type2td(env, t->e->owner_class, td);
-}
-
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   DECL_OB(Type, t, = check_exp(env, stmt->exp))
   while(GET_FLAG(t, typedef))
@@ -897,17 +881,13 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   const m_uint depth = t->array_depth - 1;
   if(!ptr || isa(t, env->gwion->type[et_array]) < 0)
     ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
-          " This is not allowed in auto loop"), stmt->exp->info->type->name)
+          " This is not allowed in foreach loop"), stmt->exp->info->type->name)
   if(stmt->is_ptr) {
-    struct Type_List_ tl = {};
     if(depth)
       ptr = array_type(env, ptr, depth);
-    Type_Decl *td0 = type2td(env, ptr, stmt->exp->pos),
-      td = { .xid=insert_symbol("Ptr"), .types=&tl, .pos=stmt->exp->pos };
-    tl.td = td0;
-    ptr = known_type(env, &td);
-    td0->array = NULL;
-    free_type_decl(env->gwion->mp, td0);
+    char c[15 + strlen(ptr->name)];
+    sprintf(c, "nonnull Ptr:[%s]", ptr->name);
+    ptr = str2type(env->gwion, c, stmt->exp->pos);
     const Type base = get_type(ptr);
     if(!GET_FLAG(base, check))
       CHECK_BB(ensure_traverse(env, base))

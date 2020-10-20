@@ -301,10 +301,9 @@ ANN static Type fork_type(const Env env, const Exp_Unary* unary) {
   fork_exp(env, unary);
   if(t == env->gwion->type[et_void])
     return env->gwion->type[et_fork];
-  Type_Decl td0 = { .xid=insert_symbol(t->name), .pos=exp_self(unary)->pos };
-  struct Type_List_ tl = { .td=&td0 };
-  Type_Decl td = { .xid=insert_symbol("TypedFork"), .types=&tl, .pos=exp_self(unary)->pos };
-  return known_type(env, &td);
+  char c[21 + strlen(t->name)];
+  sprintf(c, "nonnull TypedFork:[%s]", t->name);
+  return str2type(env->gwion, c, exp_self(unary)->pos);
 }
 
 static OP_CHECK(opck_spork) {

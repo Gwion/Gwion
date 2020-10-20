@@ -21,8 +21,7 @@
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_BB(ck_ini(gwi, ck_edef))
   if(type)
-//    CHECK_OB((gwi->ck->sym = str2sym(gwi, type)))
-    CHECK_OB((gwi->ck->xid = str2sym(gwi, type)))
+    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)))
   vector_init(&gwi->ck->v);
   return GW_OK;
 }
@@ -50,7 +49,7 @@ void Append(DL_Enum* d, const ID_List list) {
 //! TODO: change return type to m_bool
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_BB(ck_ok(gwi, ck_edef))
-  DECL_OB(const ID_List, list, = str2symlist(gwi, name))
+  DECL_OB(const ID_List, list, = gwi_str2symlist(gwi, name))
   add2list(gwi->ck, list);
   ALLOC_PTR(gwi->gwion->mp, addr, m_int, i);
   vector_add(&gwi->ck->v, (vtype)addr);
