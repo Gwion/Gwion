@@ -29,10 +29,11 @@ struct AC {
   m_str str;
   Exp base;
   Exp exp;
+  loc_t pos;
   m_uint depth;
 };
 
-ANN static m_bool ac_run(const Gwi gwi, struct AC *ac);
+ANN static m_bool ac_run(const Gwion gwion, struct AC *ac);
 ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
   const Array_Sub array = new_array_sub(mp, ac->base);
   array->depth = ac->depth;
@@ -77,19 +78,19 @@ ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
   return new_id_list(gwion->mp, sym, loc_cpy(gwion->mp, pos));
 }
 
-ANN Var_Decl str2var(const Gwi gwi, const m_str path) {
-  struct td_checker tdc = { .str=path, .pos=gwi->loc };
-  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, &tdc))
+ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
+  struct td_checker tdc = { .str=path, .pos=pos };
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc))
   struct AC ac = { .str = tdc.str };
-  CHECK_BO(ac_run(gwi, &ac))
+  CHECK_BO(ac_run(gwion, &ac))
   const Array_Sub array = ac.depth ?
-    mk_array(gwi->gwion->mp, &ac) : NULL;
-  return new_var_decl(gwi->gwion->mp, sym, array, loc(gwi));
+    mk_array(gwion->mp, &ac) : NULL;
+  return new_var_decl(gwion->mp, sym, array, loc_cpy(gwion->mp, pos));
 }
 
 // only in udef.c
 ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
-  DECL_OO(const Var_Decl, var, = str2var(gwi, path))
+  DECL_OO(const Var_Decl, var, = str2var(gwi->gwion, path, gwi->loc))
   return new_var_decl_list(gwi->gwion->mp, var, NULL);
 }
 
@@ -224,7 +225,7 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 ANN static Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, tdc))
   struct AC ac = { .str = tdc->str };
-  CHECK_BO(ac_run(gwi, &ac))
+  CHECK_BO(ac_run(gwi->gwion, &ac))
   tdc->str = ac.str;
   Type_List tl = td_tmpl(gwi, tdc);
   if(tl == (Type_List)GW_ERROR)
@@ -271,51 +272,51 @@ ANN Type str2type(const Gwi gwi, const m_str str) {
   return NULL;
 }
 
-ANN static inline m_bool ac_finish(const Gwi gwi, struct AC *ac) {
+ANN static inline m_bool ac_finish(const Gwion gwion, struct AC *ac) {
   if(*ac->str == ']')
     return GW_OK;
-  GWI_ERR_B("unfinished array");
+  GWION_ERR_B(ac->pos, "unfinished array");
 }
 
-ANN static inline m_bool ac_num(const Gwi gwi, const m_int num) {
+ANN static inline m_bool ac_num(const Gwion gwion, struct AC *ac, const m_int num) {
   if(num >= 0)
     return GW_OK;
-  GWI_ERR_B("negative array dimension")
+  GWION_ERR_B(ac->pos, "negative array dimension")
 }
 
-ANN static inline m_bool ac_exp(const Gwi gwi, struct AC *ac) {
+ANN static inline m_bool ac_exp(const Gwion gwion, struct AC *ac) {
   if(!ac->depth || ac->base)
     return GW_OK;
-  GWI_ERR_B("malformed array [][...]")
+  GWION_ERR_B(ac->pos, "malformed array [][...]")
 }
 
-ANN static inline m_bool ac_noexp(const Gwi gwi, struct AC *ac) {
+ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
   if(!ac->exp)
     return GW_OK;
-  GWI_ERR_B("malformed array [...][]")
+  GWION_ERR_B(ac->pos, "malformed array [...][]")
 }
 
-ANN static m_bool _ac_run(const Gwi gwi, struct AC *ac) {
+ANN static m_bool _ac_run(const Gwion gwion, struct AC *ac) {
   const m_str str = ac->str;
   const m_int num = strtol(str, &ac->str, 10);
-  CHECK_BB(ac_finish(gwi, ac))
+  CHECK_BB(ac_finish(gwion, ac))
   if(str != ac->str) {
-    CHECK_BB(ac_num(gwi, num))
-    CHECK_BB(ac_exp(gwi, ac))
-    const Exp exp = new_prim_int(gwi->gwion->mp, num, loc(gwi));
+    CHECK_BB(ac_num(gwion, ac, num))
+    CHECK_BB(ac_exp(gwion, ac))
+    const Exp exp = new_prim_int(gwion->mp, num, loc_cpy(gwion->mp, ac->pos));
     ac_add_exp(ac, exp);
   } else
-    CHECK_BB(ac_noexp(gwi, ac))
+    CHECK_BB(ac_noexp(gwion, ac))
   ++ac->str;
   return GW_OK;
 }
 
-ANN static m_bool ac_run(const Gwi gwi, struct AC *ac) {
+ANN static m_bool ac_run(const Gwion gwion, struct AC *ac) {
   while(*ac->str) {
     if(*ac->str != '[')
       break;
     ++ac->str;
-    CHECK_BB(_ac_run(gwi, ac))
+    CHECK_BB(_ac_run(gwion, ac))
     ++ac->depth;
   }
   return GW_OK;

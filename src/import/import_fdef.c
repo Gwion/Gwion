@@ -92,7 +92,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   CHECK_BB(ck_ok(gwi, ck_fdef))
   DECL_OB(Type_Decl*, td, = str2decl(gwi, t))
-  const Var_Decl var = str2var(gwi, n);
+  const Var_Decl var = gwi_str2var(gwi, n);
   if(var) {
     const Arg_List arg = new_arg_list(gwi->gwion->mp, td, var, NULL);
     vector_add(&gwi->ck->v, (vtype)arg);
