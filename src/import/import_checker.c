@@ -16,12 +16,13 @@
 #include "gwi.h"
 
 __attribute__((returns_nonnull))
-ANN static Symbol gwisym(const Gwi gwi, const m_str str) {
-  return insert_symbol(gwi->gwion->st, str);
+ANN static Symbol gwisym(const Gwion gwion, const m_str str) {
+  return insert_symbol(gwion->st, str);
 }
 
 struct td_checker {
   m_str str;
+  const loc_t pos;
 };
 
 struct AC {
@@ -40,7 +41,7 @@ ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
 }
 
 
-ANN static Symbol __str2sym(const Gwi gwi, struct td_checker *tdc) {
+ANN static Symbol __str2sym(const Gwion gwion, struct td_checker *tdc) {
   char buf[strlen(tdc->str) + 1];
   m_str tmp = buf;
   if(*tdc->str == '@')
@@ -52,22 +53,22 @@ ANN static Symbol __str2sym(const Gwi gwi, struct td_checker *tdc) {
     *tmp++ = *tdc->str++;
   }
   if(tmp == buf)
-    GWI_ERR_O("empty symbol");
+    GWION_ERR_O(tdc->pos, "empty symbol");
   *tmp = '\0';
-  return gwisym(gwi, buf);
+  return gwisym(gwion, buf);
 }
 
-ANN static inline Symbol _str2sym(const Gwi gwi, struct td_checker *tdc, const m_str path) {
-  const Symbol sym = __str2sym(gwi, tdc);
+ANN static inline Symbol _str2sym(const Gwion gwion, struct td_checker *tdc, const m_str path) {
+  const Symbol sym = __str2sym(gwion, tdc);
   if(*tdc->str && *tdc->str != ':')
-    GWI_ERR_O(_("illegal character '%c' in path '%s'."), *tdc->str, path)
+    GWION_ERR_O(tdc->pos, _("illegal character '%c' in path '%s'."), *tdc->str, path)
   return sym;
 }
 
 /** convert a string to a symbol, with error checking **/
 ANN Symbol str2sym(const Gwi gwi, const m_str path) {
-  struct td_checker tdc = { .str=path };
-  return _str2sym(gwi, &tdc, path);
+  struct td_checker tdc = { .str=path, .pos=gwi->loc };
+  return _str2sym(gwi->gwion, &tdc, path);
 }
 
 // only in enum.c
@@ -77,8 +78,8 @@ ANN ID_List str2symlist(const Gwi gwi, const m_str path) {
 }
 
 ANN Var_Decl str2var(const Gwi gwi, const m_str path) {
-  struct td_checker tdc = { .str=path };
-  DECL_OO(const Symbol, sym, = __str2sym(gwi, &tdc))
+  struct td_checker tdc = { .str=path, .pos=gwi->loc };
+  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, &tdc))
   struct AC ac = { .str = tdc.str };
   CHECK_BO(ac_run(gwi, &ac))
   const Array_Sub array = ac.depth ?
@@ -93,7 +94,7 @@ ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
 }
 
 ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {
-  DECL_OO(const Symbol, sym, = __str2sym(gwi, tdc))
+  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, tdc))
   ID_List next = NULL;
   if(*tdc->str == ',') {
     ++tdc->str;
@@ -125,8 +126,8 @@ ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
 }
 
 ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
-  struct td_checker tdc = { .str= ck->name };
-  if(!(ck->sym = _str2sym(gwi, &tdc, tdc.str)))
+  struct td_checker tdc = { .str= ck->name, .pos=gwi->loc };
+  if(!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str)))
     return GW_ERROR;
   ID_List il = __tmpl_list(gwi, &tdc);
   if(il == (ID_List)GW_ERROR)
@@ -175,7 +176,7 @@ ANN void ck_clean(const Gwi gwi) {
   memset(gwi->ck, 0, sizeof(ImportCK));
 }
 
-ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc);
+ANN static Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc);
 ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
   Type_Decl *td = _str2decl(gwi, tdc);
   if(!td)
@@ -220,8 +221,8 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 }
 
 
-ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
-  DECL_OO(const Symbol, sym, = __str2sym(gwi, tdc))
+ANN static Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
+  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, tdc))
   struct AC ac = { .str = tdc->str };
   CHECK_BO(ac_run(gwi, &ac))
   tdc->str = ac.str;
@@ -249,7 +250,7 @@ ANN Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
 
 ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
   const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
-  struct td_checker tdc = { .str=str };
+  struct td_checker tdc = { .str=str, .pos=gwi->loc };
   if(flag == ae_flag_nonnull)
     tdc.str += 8;
   DECL_OO(Type_Decl *, td, = _str2decl(gwi, &tdc))

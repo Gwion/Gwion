@@ -16,4 +16,5 @@ ANN void gwi_set_loc(const Gwi, const m_str, const uint);
 ANN Type_Decl*    str2decl(const Gwi, const m_str);
 ANN Var_Decl      str2var(const Gwi, const m_str);
 ANN Var_Decl_List str2varlist(const Gwi, const m_str);
+ANN Type str2type(const Gwi, const m_str);
 #endif
