@@ -72,9 +72,9 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
 }
 
 // only in enum.c
-ANN ID_List str2symlist(const Gwi gwi, const m_str path) {
-  DECL_OO(const Symbol, sym, = str2sym(gwi->gwion, path, gwi->loc))
-  return new_id_list(gwi->gwion->mp, sym, loc(gwi));
+ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
+  DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos))
+  return new_id_list(gwion->mp, sym, loc_cpy(gwion->mp, pos));
 }
 
 ANN Var_Decl str2var(const Gwi gwi, const m_str path) {

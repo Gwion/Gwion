@@ -47,9 +47,10 @@ ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 ANN Symbol str2sym(const Gwion gwi, const m_str path, const loc_t pos);
 
-ANN ID_List str2symlist(const Gwi gwi, const m_str path);
+ANN ID_List str2symlist(const Gwion gwi, const m_str path, const loc_t);
 
 #define gwi_str2sym(gwi, path) str2sym(gwi->gwion, path, gwi->loc)
+#define gwi_str2symlist(gwi, path) str2symlist(gwi->gwion, path, gwi->loc)
 
 ANN m_bool ck_ini(const Gwi, const enum importck_type);
 ANN m_bool ck_ok(const Gwi, const enum importck_type);
