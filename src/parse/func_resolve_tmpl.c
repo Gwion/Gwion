@@ -15,7 +15,7 @@
 #include "specialid.h"
 #include "tmp_resolve.h"
 
-struct FptrArgs {
+struct ResolverArgs {
   Value v;
   const Exp_Call *e;
   m_str tmpl_name;
@@ -55,7 +55,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
   return NULL;
 }
 
-ANN static Func fptr_match(const Env env, struct FptrArgs* f_ptr_args) {
+ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
   const Value v = f_ptr_args->v;
   const m_str tmpl_name = f_ptr_args->tmpl_name;
   const Exp_Call *exp = f_ptr_args->e;
@@ -88,6 +88,47 @@ ANN static Func fptr_match(const Env env, struct FptrArgs* f_ptr_args) {
   return m_func;
 }
 
+ANN static Func func_match(const Env env, struct ResolverArgs* f_ptr_args) {
+  const Value v = f_ptr_args->v;
+  const m_str tmpl_name = f_ptr_args->tmpl_name;
+  const Exp_Call *exp = f_ptr_args->e;
+  Func m_func = f_ptr_args->m_func; 
+  Type_List types = f_ptr_args->types;
+  for(m_uint i = 0; i < v->from->offset + 1; ++i) {
+    const Value exists = template_get_ready(env, v, tmpl_name, i);
+    if(exists) {
+      if(env->func == exists->d.func_ref) {
+        if(check_call(env, exp) < 0 ||
+           !find_func_match(env, env->func, exp->args))
+          continue;
+        m_func = env->func;
+        break;
+      }
+      if((m_func = ensure_tmpl(env, exists->d.func_ref->def, exp)))
+        break;
+    } else {
+      const Value value = template_get_ready(env, v, "template", i);
+      if(!value)
+        continue;
+      if(GET_FLAG(v, builtin)) {
+        SET_FLAG(value, builtin);
+        SET_FLAG(value->d.func_ref, builtin);
+      }
+      const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
+      SET_FLAG(fdef->base, template);
+      fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
+      fdef->base->tmpl->base = i;
+      if((m_func = ensure_tmpl(env, fdef, exp))) {
+        break;
+      }
+      if(!fdef->base->func) {
+        free_func_def(env->gwion->mp, fdef);
+      }
+    }
+  }
+  return m_func;
+}
+
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
   CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
@@ -96,40 +137,13 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const m_uint scope = env->scope->depth;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=ae_flag_check };
+  struct ResolverArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type)) {
-    struct FptrArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
     m_func = fptr_match(env, &f_ptr_args);
   } else {
-    for(m_uint i = 0; i < v->from->offset + 1; ++i) {
-      const Value exists = template_get_ready(env, v, tmpl_name, i);
-      if(exists) {
-        if(env->func == exists->d.func_ref) {
-          if(check_call(env, exp) < 0 ||
-             !find_func_match(env, env->func, exp->args))
-            continue;
-          m_func = env->func;
-          break;
-        }
-        if((m_func = ensure_tmpl(env, exists->d.func_ref->def, exp)))
-          break;
-      } else {
-        const Value value = template_get_ready(env, v, "template", i);
-        if(!value)
-          continue;
-        if(GET_FLAG(v, builtin)) {
-          SET_FLAG(value, builtin);
-          SET_FLAG(value->d.func_ref, builtin);
-        }
-        const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-        SET_FLAG(fdef->base, template);
-        fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
-        fdef->base->tmpl->base = i;
-        if((m_func = ensure_tmpl(env, fdef, exp)))
-          break;
-      }
-    }
+    m_func = func_match(env, &f_ptr_args);
   }
   free_mstr(env->gwion->mp, tmpl_name);
   if(es.run)
