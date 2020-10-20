@@ -81,7 +81,7 @@ ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
 ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
   struct td_checker tdc = { .str=path, .pos=pos };
   DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc))
-  struct AC ac = { .str = tdc.str };
+  struct AC ac = { .str = tdc.str, .pos=pos };
   CHECK_BO(ac_run(gwion, &ac))
   const Array_Sub array = ac.depth ?
     mk_array(gwion->mp, &ac) : NULL;
@@ -223,7 +223,7 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 
 ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
-  struct AC ac = { .str = tdc->str };
+  struct AC ac = { .str = tdc->str, .pos=tdc->pos };
   CHECK_BO(ac_run(gwion, &ac))
   tdc->str = ac.str;
   Type_List tl = td_tmpl(gwion, tdc);
