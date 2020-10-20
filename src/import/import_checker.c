@@ -248,22 +248,22 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   return td;
 }
 
-ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
+ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
   const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
-  struct td_checker tdc = { .str=str, .pos=gwi->loc };
+  struct td_checker tdc = { .str=str, .pos=pos };
   if(flag == ae_flag_nonnull)
     tdc.str += 8;
-  DECL_OO(Type_Decl *, td, = _str2decl(gwi->gwion, &tdc))
+  DECL_OO(Type_Decl *, td, = _str2decl(gwion, &tdc))
   if(*tdc.str) {
-    free_type_decl(gwi->gwion->mp, td);
-    GWI_ERR_O("excedental character '%c'", *tdc.str);
+    free_type_decl(gwion->mp, td);
+    GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
   }
   td->flag |= flag;
   return td;
 }
 
 ANN Type str2type(const Gwi gwi, const m_str str) {
-  DECL_OO(Type_Decl *, td, = str2decl(gwi, str))
+  DECL_OO(Type_Decl *, td, = str2decl(gwi->gwion, str, gwi->loc))
   const Type t = known_type(gwi->gwion->env, td);
   if(t)
     return t;
