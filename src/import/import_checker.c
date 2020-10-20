@@ -176,37 +176,37 @@ ANN void ck_clean(const Gwi gwi) {
   memset(gwi->ck, 0, sizeof(ImportCK));
 }
 
-ANN static Type_Decl* _str2decl(const Gwi gw, struct td_checker *tdc);
-ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
-  Type_Decl *td = _str2decl(gwi, tdc);
+ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc);
+ANN Type_List __str2tl(const Gwion gwion, struct td_checker *tdc) {
+  Type_Decl *td = _str2decl(gwion, tdc);
   if(!td)
-    GWI_ERR_O("invalid types");
+    GWION_ERR_O(tdc->pos, "invalid types");
   Type_List next = NULL;
   if(*tdc->str == ',') {
     ++tdc->str;
-    if(!(next = __str2tl(gwi, tdc))) {
-      free_type_decl(gwi->gwion->mp, td);
+    if(!(next = __str2tl(gwion, tdc))) {
+      free_type_decl(gwion->mp, td);
       return NULL;
     }
   }
-  return new_type_list(gwi->gwion->mp, td, next);
+  return new_type_list(gwion->mp, td, next);
 }
 
-ANN static Type_List td_tmpl(const Gwi gwi, struct td_checker *tdc) {
+ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   if(*tdc->str != ':')
     return NULL; // GW_PASS
   ++tdc->str;
   if(*tdc->str != '[') {
-    GWI_ERR("invalid character");
+    GWION_ERR(tdc->pos, "invalid character");
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = __str2tl(gwi, tdc);
+  Type_List tl = __str2tl(gwion, tdc);
   if(!tl)
     return (Type_List)GW_ERROR;
   if(tdc->str[0] != ']') {
-    free_type_list(gwi->gwion->mp, tl);
-    GWI_ERR("unfinished template");
+    free_type_list(gwion->mp, tl);
+    GWION_ERR(tdc->pos, "unfinished template");
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
@@ -221,30 +221,30 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 }
 
 
-ANN static Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc) {
-  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, tdc))
+ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   struct AC ac = { .str = tdc->str };
-  CHECK_BO(ac_run(gwi->gwion, &ac))
+  CHECK_BO(ac_run(gwion, &ac))
   tdc->str = ac.str;
-  Type_List tl = td_tmpl(gwi, tdc);
+  Type_List tl = td_tmpl(gwion, tdc);
   if(tl == (Type_List)GW_ERROR)
     return NULL;
   Type_Decl *next = NULL;
   if(*tdc->str == '.') {
     ++tdc->str;
-    if(!(next =  _str2decl(gwi, tdc))) {
+    if(!(next =  _str2decl(gwion, tdc))) {
       if(tl)
-        free_type_list(gwi->gwion->mp, tl);
+        free_type_list(gwion->mp, tl);
       if(ac.base)
-        free_exp(gwi->gwion->mp, ac.base);
+        free_exp(gwion->mp, ac.base);
       return NULL;
     }
   }
-  Type_Decl *td = new_type_decl(gwi->gwion->mp, sym, loc(gwi));
+  Type_Decl *td = new_type_decl(gwion->mp, sym, loc_cpy(gwion->mp, tdc->pos));
   td->next = next;
   td->types = tl;
   if(ac.depth)
-    td->array = mk_array(gwi->gwion->mp, &ac);
+    td->array = mk_array(gwion->mp, &ac);
   return td;
 }
 
@@ -253,7 +253,7 @@ ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
   struct td_checker tdc = { .str=str, .pos=gwi->loc };
   if(flag == ae_flag_nonnull)
     tdc.str += 8;
-  DECL_OO(Type_Decl *, td, = _str2decl(gwi, &tdc))
+  DECL_OO(Type_Decl *, td, = _str2decl(gwi->gwion, &tdc))
   if(*tdc.str) {
     free_type_decl(gwi->gwion->mp, td);
     GWI_ERR_O("excedental character '%c'", *tdc.str);
