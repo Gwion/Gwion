@@ -11,15 +11,4 @@ ANN void gwi_reserve(const Gwi, const m_str);
 typedef struct SpecialId_* SpecialId;
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId);
 ANN void gwi_set_loc(const Gwi, const m_str, const uint);
-
-// TODO: move me
-ANN Var_Decl      str2var(const Gwion, const m_str, const loc_t);
-ANN Var_Decl_List str2varlist(const Gwion, const m_str, const loc_t);
-ANN Type_Decl*    str2decl(const Gwion, const m_str, const loc_t);
-ANN Type str2type(const Gwion, const m_str, const loc_t);
-
-#define gwi_str2var(gwi, path) str2var(gwi->gwion, path, gwi->loc)
-#define gwi_str2varlist(gwi, path) str2varlist(gwi->gwion, path, gwi->loc)
-#define gwi_str2decl(gwi, path) str2decl(gwi->gwion, path, gwi->loc)
-#define gwi_str2type(gwi, path) str2type(gwi->gwion, path, gwi->loc)
 #endif
