@@ -13,7 +13,7 @@
 
 Gwion is a programming language, aimed at making music
 
-**strongly** inspired by [chuck](http://chuck.stanford.edu/), but adding a bunch *high-level* features:  
+**strongly** inspired by [ChucK](http://chuck.stanford.edu/), but adding a bunch *high-level* features:  
 	  templating, first-class functions and more.  
 
 It aims to be simple, small,
@@ -26,11 +26,11 @@ You might just want the minimum to start with, try
 ``` sh
 git clone https://github.com/Gwion/Gwion
 cd Gwion
-git submodule update --init util ast
+git submodule update --init
 make
 ```
 
-### Configuring (optionnal)
+### Configuring (optional)
 You can get a list of config files to tweak with
 ``` sh
 find . -name "config.mk"
@@ -44,7 +44,8 @@ make clean
 make
 ```
 
-> Besides develloper options, you migth want to check *USE_DOUBLE*, in util/config.mk, which set the floating point size (float or double).
+> Besides developer options, you migth want to check *USE_DOUBLE*, in util/config.mk, which set the floating point size (float or double).
+> Note that the option you choose must match how you built your soundpipe library (more on soundpipe later). 
 
 ## Executing your first code (hello_world.gw):
 
@@ -77,6 +78,29 @@ Save and exit the file(:wq in vim). Use the following command to run your first 
 ./gwion hello_world.gw
 ```
 Congratulations!! You ran your first gwion program.
+
+## Making Sound
+
+_This section is currently very Linux-centric. We are working to improve that. Pull requests welcome!_
+
+Gwion relies on plugins for most of its language features, including all those that make sound. Plugins are located in the subdirectories of
+`plug`. To get some sounds going under linux using jack sound server, you can build the plugins `Jack`, `Soundpipe`, and `Modules`.
+
+Starting from the Gwion base directory, to build `Jack`:
+```
+cd plug/Jack
+make
+```
+This will give you a shared object file, `Jack.so`. The default place Gwion will look for plugins is in a subdir of your home directory 
+named `.gwplug`. So create that directory and move `Jack.so` there:
+```
+mkdir ~/.gwplug
+mv Jack.so ~/.gwplug
+```
+Repeat for the other plugins mentioned. The `Soundpipe` plugin requires the soundpipe library, which we hope to have build seamlessly for you when you build the `Soundpipe` module, but we're not quite there yet. Please ask for help if this isn't working.
+
+When all those plugin `.so` files are in your `~/.gwplug` directory, you should be able to run a Gwion program that makes sound! In `plug/Modules` there's a `test.gw` program which plays a sine wave for 5 seconds. If the `gwion` you built is still in the base dir of your cloned repo, from the
+`plug/Modules` subdirectory you should be able to run `../../gwion -d jack test.gw` and hear some sound!
 
 ## Installation
 
