@@ -94,32 +94,31 @@ ANN Var_Decl_List str2varlist(const Gwion gwion, const m_str path, const loc_t p
   return new_var_decl_list(gwion->mp, var, NULL);
 }
 
-ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {
-  DECL_OO(const Symbol, sym, = __str2sym(gwi->gwion, tdc))
+ANN static ID_List _tmpl_list(const Gwion gwion, struct td_checker *tdc) {
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   ID_List next = NULL;
   if(*tdc->str == ',') {
     ++tdc->str;
-    if(!(next = _tmpl_list(gwi, tdc)) || next == (ID_List)GW_ERROR)
+    if(!(next = _tmpl_list(gwion, tdc)) || next == (ID_List)GW_ERROR)
       return (ID_List)GW_ERROR;
   }
-  const ID_List list = new_id_list(gwi->gwion->mp, sym, loc(gwi));
+  const ID_List list = new_id_list(gwion->mp, sym, loc_cpy(gwion->mp, tdc->pos));
   list->next = next;
   return list;
 }
 
-ANN static ID_List __tmpl_list(const Gwi gwi, struct td_checker *tdc) {
+ANN static ID_List __tmpl_list(const Gwion gwion, struct td_checker *tdc) {
   if(tdc->str[0] != ':')
     return NULL;
   if(tdc->str[1] != '[')
     return (ID_List)GW_ERROR;
   tdc->str += 2;
-  const ID_List list =  _tmpl_list(gwi, tdc);
+  const ID_List list =  _tmpl_list(gwion, tdc);
   if(list == (ID_List)GW_ERROR)
     return (ID_List)GW_ERROR;
-  if(tdc->str[0] != ']') {
-// unfinished template
+  if(tdc->str[0] != ']') { // unfinished template
     if(list)
-      free_id_list(gwi->gwion->mp, list);
+      free_id_list(gwion->mp, list);
     return (ID_List)GW_ERROR;
   }
   ++tdc->str;
@@ -130,7 +129,7 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   struct td_checker tdc = { .str= ck->name, .pos=gwi->loc };
   if(!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str)))
     return GW_ERROR;
-  ID_List il = __tmpl_list(gwi, &tdc);
+  ID_List il = __tmpl_list(gwi->gwion, &tdc);
   if(il == (ID_List)GW_ERROR)
     return GW_ERROR;
   ck->tmpl = il;
@@ -177,7 +176,7 @@ ANN void ck_clean(const Gwi gwi) {
   memset(gwi->ck, 0, sizeof(ImportCK));
 }
 
-ANN static Type_Decl* _str2decl(const Gwi gwi, struct td_checker *tdc);
+ANN static Type_Decl* _str2decl(const Gwi gw, struct td_checker *tdc);
 ANN Type_List __str2tl(const Gwi gwi, struct td_checker *tdc) {
   Type_Decl *td = _str2decl(gwi, tdc);
   if(!td)
