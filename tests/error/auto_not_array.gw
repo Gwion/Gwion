@@ -1,4 +1,4 @@
-#! [contains]  not allowed in auto loop
+#! [contains]  not allowed in foreach loop
 var Object i;
 foreach(a: i)
   <<< a >>>;
