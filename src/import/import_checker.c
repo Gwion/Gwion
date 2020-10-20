@@ -261,6 +261,15 @@ ANN Type_Decl* str2decl(const Gwi gwi, const m_str str) {
   return td;
 }
 
+ANN Type str2type(const Gwi gwi, const m_str str) {
+  DECL_OO(Type_Decl *, td, = str2decl(gwi, str))
+  const Type t = known_type(gwi->gwion->env, td);
+  if(t)
+    return t;
+  free_type_decl(gwi->gwion->mp, td);
+  return NULL;
+}
+
 ANN static inline m_bool ac_finish(const Gwi gwi, struct AC *ac) {
   if(*ac->str == ']')
     return GW_OK;
