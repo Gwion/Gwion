@@ -89,9 +89,9 @@ ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
 }
 
 // only in udef.c
-ANN Var_Decl_List str2varlist(const Gwi gwi, const m_str path) {
-  DECL_OO(const Var_Decl, var, = str2var(gwi->gwion, path, gwi->loc))
-  return new_var_decl_list(gwi->gwion->mp, var, NULL);
+ANN Var_Decl_List str2varlist(const Gwion gwion, const m_str path, const loc_t pos) {
+  DECL_OO(const Var_Decl, var, = str2var(gwion, path, pos))
+  return new_var_decl_list(gwion->mp, var, NULL);
 }
 
 ANN static ID_List _tmpl_list(const Gwi gwi, struct td_checker *tdc) {

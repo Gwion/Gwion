@@ -17,7 +17,7 @@
 // move me
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   DECL_OO(Type_Decl*, td, = str2decl(gwi, type))
-  const Var_Decl_List vlist = str2varlist(gwi, name);
+  const Var_Decl_List vlist = gwi_str2varlist(gwi, name);
   if(vlist)
     return new_exp_decl(gwi->gwion->mp, td, vlist);
   free_type_decl(gwi->gwion->mp, td);
