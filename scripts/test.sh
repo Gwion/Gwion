@@ -23,6 +23,8 @@
 : "${separator:=/}"
 
 
+[ "$async" -gt 0 ] && set -m
+
 assert_returns() {
   [ "$1" -eq 0   ] && return 0
   [ "$1" -eq 139 ] && echo "segfault" > "$2"
@@ -187,7 +189,6 @@ test_dir() {
   n=$2
   l=$n
   offset=$n
-  [ "$async" -gt 0 ] && set -m
   found=0
   grep '\.gw' <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
