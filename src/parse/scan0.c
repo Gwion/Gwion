@@ -322,6 +322,13 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
   return t;
 }
 
+ANN static Type check_abstract(const Env env, Type_Decl *td) {
+  DECL_OO(const Type, t, = known_type(env, td))
+  if(!GET_FLAG(t, abstract)) // could be final
+    return t;
+  ERR_O(td_pos(td), _("can't inherit from abstract parent class '%s'\n."), t->name);
+}
+
 ANN static Type get_parent(const Env env, const Class_Def cdef) {
   if(GET_FLAG(cdef, struct))
     return env->gwion->type[et_compound];
@@ -331,7 +338,7 @@ ANN static Type get_parent(const Env env, const Class_Def cdef) {
     return get_parent_base(env, cdef->base.ext);
   if(cdef->base.tmpl)
     template_push_types(env, cdef->base.tmpl);
-  const Type t = known_type(env, cdef->base.ext);
+  const Type t = check_abstract(env, cdef->base.ext);
   if(cdef->base.tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   return t ?: (Type)GW_ERROR;
