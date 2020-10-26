@@ -66,13 +66,13 @@ lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
 
 util/libgwion_util.a:
-	@+GWION_PACKAGE= make -s -C util
+	@+GWION_PACKAGE= ${MAKE} -s -C util
 
 util: util/libgwion_util.a
 	@(info build util)
 
 ast/libgwion_ast.a:
-	@+GWION_PACKAGE= make -s -C ast
+	@+GWION_PACKAGE= ${MAKE} -s -C ast
 
 ast: ast/libgwion_ast.a
 	@(info build ast)
@@ -81,7 +81,7 @@ afl: gwion-fuzz
 
 gwion-fuzz:
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
-	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ make
+	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ ${MAKE}
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
 
 clean_core:
@@ -95,14 +95,17 @@ clean: clean_core
 
 install: ${PRG}
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
+	@mkdir -p ${DESTDIR}/${PREFIX}/{bin,lib,include,share}
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
 	@install lib${PRG}.a ${DESTDIR}/${PREFIX}/lib
-	@sed 's/PREFIX/$\{PREFIX\}/g' scripts/gwion-config > gwion-config
+	@PREFIX=${PREFIX} sed 's#PREFIX#${PREFIX}#g' scripts/gwion-config > gwion-config
 	@install gwion-config ${DESTDIR}/${PREFIX}/bin/gwion-config
 	@install scripts/gwion-pkg ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm gwion-config
 	@mkdir -p ${DESTDIR}/${PREFIX}/include/gwion
 	@cp -r include/* ${DESTDIR}/${PREFIX}/include/gwion
+	@make -s -C util install
+	@make -s -C ast install
 
 uninstall:
 	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
