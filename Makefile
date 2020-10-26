@@ -13,8 +13,6 @@ GWION_TEST_DIR ?= /tmp
 GWION_PACKAGE=gwion
 CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
-GIT_BRANCH=$(shell git branch | grep "*" | cut -d" " -f2)
-
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
@@ -93,7 +91,7 @@ clean: clean_core
 	$(info cleaning ...)
 	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a src/*.gcno src/*.gcda
 
-install: ${PRG}
+install: ${PRG} translation-install
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
 	@mkdir -p ${DESTDIR}/${PREFIX}/{bin,lib,include,share}
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
@@ -104,12 +102,14 @@ install: ${PRG}
 	@rm gwion-config
 	@mkdir -p ${DESTDIR}/${PREFIX}/include/gwion
 	@cp -r include/* ${DESTDIR}/${PREFIX}/include/gwion
-	@make -s -C util install
-	@make -s -C ast install
+	@${MAKE} -s -C util install
+	@${MAKE} -s -C ast install
 
-uninstall:
+uninstall: translation-uninstall
 	$(info uninstalling ${GWION_PACKAGE} from ${PREFIX})
 	@rm ${DESTDIR}/${PREFIX}/bin/${PRG}
+	@rm ${DESTDIR}/${PREFIX}/bin/gwion-config
+	@rm ${DESTDIR}/${PREFIX}/bin/gwion-pkg
 	@rm ${DESTDIR}/${PREFIX}/lib/lib${PRG}.a
 	@rm ${DESTDIR}/${PREFIX}/include/gwion/*.h
 	@rmdir --ignore-fail-on-non-empty ${DESTDIR}/${PREFIX}/include/gwion
