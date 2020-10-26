@@ -465,6 +465,11 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
   return GW_OK;
 }
 
+ANN static inline Instr specialid_instr(const Emitter emit,
+    struct SpecialId_ *spid, const Exp_Primary* prim) {
+  return spid->exec ? emit_add_instr(emit, spid->exec) : spid->em(emit, prim);
+}
+
 ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ * spid = specialid_get(emit->gwion, *data);
   if(spid)

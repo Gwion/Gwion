@@ -11,7 +11,6 @@
 #include "import.h"
 #include "parse.h"
 #include "match.h"
-#include "emit.h"
 #include "specialid.h"
 #include "tmp_resolve.h"
 

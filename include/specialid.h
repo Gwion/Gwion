@@ -3,7 +3,7 @@
 
 struct SpecialId_;
 typedef Type (*idck)(const Env, const Exp_Primary*);
-typedef Instr (*idem)(const Emitter, const Exp_Primary*);
+typedef struct Instr_* (*idem)(const Emitter, const Exp_Primary*);
 
 struct SpecialId_ {
   Type type;
@@ -22,11 +22,6 @@ ANN static inline Type specialid_type(const Env env,
   if(spid->is_const)
     exp_setmeta(exp_self(prim), 1);
   return spid->ck ? spid->ck(env, prim) : spid->type;
-}
-
-ANN static inline Instr specialid_instr(const Emitter emit,
-    struct SpecialId_ *spid, const Exp_Primary* prim) {
-  return spid->exec ? emit_add_instr(emit, spid->exec) : spid->em(emit, prim);
 }
 
 ANN struct SpecialId_* specialid_get(const Gwion, const Symbol);
