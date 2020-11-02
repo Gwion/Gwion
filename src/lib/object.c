@@ -70,11 +70,11 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
     while(scope_iter(&iter, &v) > 0) {
-      if(!GET_FLAG(v, static) && !GET_FLAG(v, pure) &&
+      if(!GET_FLAG(v, static) && !vflag(v, vflag_union) &&
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
-      else if(GET_FLAG(v->type, struct) &&
-            !GET_FLAG(v, static) && !GET_FLAG(v, pure) && v->type->e->tuple) {
+      else if(tflag(v->type, tflag_struct) &&
+            !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->e->tuple) {
         const TupleForm tf = v->type->e->tuple;
         for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
           const m_bit *data = o->data + v->from->offset;
@@ -84,8 +84,9 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
         }
       }
     }
-    if(GET_FLAG(t, dtor) && t->nspc->dtor) {
-      if(GET_FLAG(t->nspc->dtor, builtin))
+    if(tflag(t, tflag_dtor) && t->nspc->dtor) {
+    // check flag for array types
+      if(t->nspc->dtor->builtin)
         ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
       else {
         o->type_ref = t;
@@ -106,7 +107,7 @@ ANN void free_object(MemPool p, const M_Object o) {
 static ID_CHECK(opck_this) {
   if(!env->class_def)
     ERR_O(exp_self(prim)->pos, _("keyword 'this' can be used only inside class definition..."))
-  if(env->func && !GET_FLAG(env->func, member))
+  if(env->func && !vflag(env->func->value_ref, vflag_member))
       ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack"))
     return force_type(env, get_gack(env->class_def->e->parent)); // get_gack ?
@@ -114,7 +115,7 @@ static ID_CHECK(opck_this) {
 }
 
 static ID_EMIT(opem_this) {
-  if(!exp_getvar(exp_self(prim)) && GET_FLAG(exp_self(prim)->info->type, struct)) {
+  if(!exp_getvar(exp_self(prim)) && tflag(exp_self(prim)->info->type, tflag_struct)) {
     const Instr instr = emit_add_instr(emit, RegPushMemDeref);
     instr->m_val2 = emit->env->class_def->size;
     return (Instr)GW_OK;

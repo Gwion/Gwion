@@ -35,8 +35,8 @@ ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
 ANN static m_bool _template_push(const Env env, const Type t) {
   if(t->e->owner_class)
     CHECK_BB(template_push(env, t->e->owner_class))
-  if(GET_FLAG(t, template))
-    return push_types(env, t->e->def->base.tmpl);
+  if(tflag(t, tflag_tmpl))
+    return push_types(env, t->e->cdef->base.tmpl); // incorrect
   return GW_OK;
 }
 
@@ -69,12 +69,17 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   ADD_REF(ret->nspc)
   ret->e->parent = t;
   ret->name = s_name(sym);
-  SET_FLAG(ret, func);
+  set_tflag(ret, tflag_ftmpl);
   nspc_add_type_front(t->e->owner, sym, ret);
+  void* func_ptr = t->e->d.func->def->d.dl_func_ptr;
+  if(vflag(t->e->d.func->value_ref, vflag_builtin))
+    t->e->d.func->def->d.dl_func_ptr = NULL;
   const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
   const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
   const Value value = new_value(env->gwion->mp, ret, s_name(sym));
   func->flag = def->base->flag;
+  if(vflag(t->e->d.func->value_ref, vflag_member))
+    set_vflag(value, vflag_member);
   value->d.func_ref = func;
   value->from->owner = t->e->owner;
   value->from->owner_class = t->e->owner_class;
@@ -82,6 +87,10 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   func->def->base->tmpl = mk_tmpl(env, t->e->d.func->def->base->tmpl, td->types);
   def->base->func = func;
   nspc_add_value_front(t->e->owner, sym, value);
+  if(vflag(t->e->d.func->value_ref, vflag_builtin)) {
+    builtin_func(env->gwion->mp, func, func_ptr);
+    t->e->d.func->def->d.dl_func_ptr = func_ptr;
+  }
   return ret;
 }
 
@@ -93,8 +102,8 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl* td) {
 }
 
 ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
-  if(GET_FLAG(t, template) && isa(t, env->gwion->type[et_function]) < 0) {
-    if(GET_FLAG(t, ref) || (GET_FLAG(t, unary) && !td->types))
+  if(tflag(t, tflag_tmpl) && isa(t, env->gwion->type[et_function]) < 0) {
+    if(tflag(t, tflag_ctmpl) || (tflag(t, tflag_ntmpl) && !td->types))
       return t;
     struct TemplateScan ts = { .t=t, .td=td };
     struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td_pos(td), .op_type=op_scan };
@@ -118,7 +127,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     if(!owner->nspc)
       ERR_O(td_pos(td), "type '%s' has no namespace", owner->name)
     struct EnvSet es = { .env=env, .data=env,
-      .scope=env->scope->depth, .flag=ae_flag_none };
+      .scope=env->scope->depth, .flag=tflag_none };
     envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc);// TODO: is this needed?
     const Type ret = scan_type(env, t, td->next);

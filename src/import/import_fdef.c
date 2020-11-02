@@ -40,7 +40,9 @@ ANN Arg_List make_dll_arg_list(const Vector v) {
 
 ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
   const Arg_List arg_list = make_dll_arg_list(&gwi->ck->v);
-  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list, ck->flag | ae_flag_builtin);
+  Func_Base *base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, arg_list, ck->flag);
+  if(ck->variadic)
+    base->fbflag |= fbflag_variadic;
   ck->td = NULL;
   if(ck->tmpl) {
     base->tmpl = gwi_tmpl(gwi);
@@ -52,9 +54,6 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
 ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   Func_Base* base = gwi_func_base(gwi, ck);
   const Func_Def fdef = new_func_def(gwi->gwion->mp, base, NULL, loc(gwi));
-  fdef->d.dl_func_ptr = (void*)(m_uint)ck->addr;
-  if(base->tmpl)
-    SET_FLAG(fdef->base, template);
   return fdef;
 }
 
@@ -72,10 +71,11 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 
 ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
-  if(SAFE_FLAG(gwi->gwion->env->class_def, template))
+  if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl))
     /*return*/ section_fdef(gwi, fdef);
   if(traverse_func_def(gwi->gwion->env, fdef) < 0)
     return error_fdef(gwi, fdef);
+  builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);
   ck_end(gwi);
   return GW_OK;
 }
@@ -91,6 +91,12 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   CHECK_BB(ck_ok(gwi, ck_fdef))
+  if(gwi->ck->variadic)
+    GWI_ERR_B(_("already decalred as variadic"));
+  if(!strcmp(n, "...")) {
+    gwi->ck->variadic = 1;
+    return GW_OK;
+  }
   DECL_OB(Type_Decl*, td, = gwi_str2decl(gwi, t))
   const Var_Decl var = gwi_str2var(gwi, n);
   if(var) {
@@ -118,7 +124,7 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   // what happens if it is in a template class ?
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if(fptr->base->func) // is it needed ?
-    SET_FLAG(fptr->base->func, builtin);
+    set_vflag(fptr->base->func->value_ref, vflag_builtin);
   const Type t = ret > 0 ? fptr->type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
   if(fptr->type)

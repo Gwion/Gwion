@@ -31,6 +31,7 @@ typedef struct ImportCK { // name_checker ?
     ID_List curr;// enum
   };
   ae_flag flag; // ????
+  uint variadic;
   enum importck_type type;
 } ImportCK;
 

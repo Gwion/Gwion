@@ -44,7 +44,7 @@ ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
 }
 
 ANN static void gwion_cleaner(const Gwion gwion) {
-  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
+  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, 1, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
 }

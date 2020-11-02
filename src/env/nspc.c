@@ -13,8 +13,8 @@ ANN void nspc_commit(const Nspc nspc) {
 }
 
 ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
-  if(!GET_FLAG(value, pure) && ((GET_FLAG(value, static) && a->info->class_data) ||
-    (value->d.ptr && GET_FLAG(value, builtin)))) {
+  if(!vflag(value, vflag_union) && ((GET_FLAG(value, static) && a->info->class_data) ||
+    (value->d.ptr && vflag(value, vflag_builtin)))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->info->class_data + value->from->offset);
        release(obj, gwion->vm->cleaner_shred);
@@ -22,15 +22,15 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
 }
 
 ANN2(1,3) static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
-  if(!SAFE_FLAG(value, pure) && ((SAFE_FLAG(value, static) && a->info->class_data) ||
-    (SAFE_FLAG(value, builtin) && value->d.ptr))) {
+  if(value && !vflag(value, vflag_union) && ((GET_FLAG(value, static) && a->info->class_data) ||
+    (vflag(value, vflag_builtin) && value->d.ptr))) {
     const m_bit *ptr = (value && value->d.ptr) ? (m_bit*)value->d.ptr:
         (m_bit*)(a->info->class_data + value->from->offset);
     for(m_uint i = 0; i < vector_size(&value->type->e->tuple->types); ++i) {
       const Type t = (Type)vector_at(&value->type->e->tuple->types, i);
       if(isa(t, gwion->type[et_object]) > 0)
         release(*(M_Object*)(ptr + vector_at(&value->type->e->tuple->offset, i)), gwion->vm->cleaner_shred);
-      else if(GET_FLAG(t, struct))
+      else if(tflag(t, tflag_struct))
         nspc_release_struct(t->nspc, NULL, gwion);
     }
   }
@@ -42,7 +42,7 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   while(scope_iter(&iter, &v) > 0) {
     if(isa(v->type, gwion->type[et_object]) > 0)
       nspc_release_object(a, v, gwion);
-    else if(GET_FLAG(v->type, struct))
+    else if(tflag(v->type, tflag_struct))
       nspc_release_struct(a, v, gwion);
     REM_REF(v, gwion);
   }

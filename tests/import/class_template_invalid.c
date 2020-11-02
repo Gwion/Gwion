@@ -17,9 +17,9 @@ static m_int o_map_value;
 GWION_IMPORT(class_template) {
   GWI_OB(gwi_class_ini(gwi, "ClassTemplate:[A,B]", NULL))
     GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
-    GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_member | ae_flag_template, NULL)))
+    GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_none, NULL)))
     GWI_BB(gwi_item_ini(gwi, "B[]", "value"))
-    GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_member, NULL)))
+    GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_none, NULL)))
    GWI_BB(gwi_func_ini(gwi, "int", "test:[C,D]"))
    GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
 

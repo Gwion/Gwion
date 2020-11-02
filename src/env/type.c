@@ -9,22 +9,15 @@
 #include "object.h"
 
 ANN static inline m_bool freeable(const Type a) {
-  return !GET_FLAG(a, nonnull) && GET_FLAG(a, template);
+  return !(tflag(a, tflag_force) || tflag(a, tflag_nonnull)) && (tflag(a, tflag_tmpl) ||GET_FLAG(a, global));
 }
 
 ANN static void free_type(Type a, Gwion gwion) {
   if(freeable(a)) {
-    if(GET_FLAG(a, union)) {
-      if(a->e->def->union_def) {
-        if(!GET_FLAG(a, pure))
-          free_union_def(gwion->mp, a->e->def->union_def);
-        else
-          free_decl_list(gwion->mp, a->e->def->list);
-      }
-      a->e->def->union_def = NULL;
-    }
-    if(a->e->def)
-      class_def_cleaner(gwion, a->e->def);
+    if(tflag(a, tflag_udef))
+      free_union_def(gwion->mp, a->e->udef);
+    if(tflag(a, tflag_cdef))
+      class_def_cleaner(gwion, a->e->cdef);
   }
   if(a->nspc)
     REM_REF(a->nspc, gwion);
@@ -32,6 +25,7 @@ ANN static void free_type(Type a, Gwion gwion) {
     free_tupleform(a->e->tuple, gwion);
   mp_free(gwion->mp, TypeInfo, a->e);
   mp_free(gwion->mp, Type, a);
+
 }
 
 Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
@@ -79,7 +73,7 @@ describe_find(value, Value)
 //describe_find(func,  Func)
 
 ANN Type typedef_base(Type t) {
-  while(GET_FLAG(t, typedef))
+  while(tflag(t, tflag_typedef))
     t = t->e->parent;
   return t;
 }
@@ -116,11 +110,10 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
     inherit(t);
     t->nspc->info->class_data_size = SZ_INT;
     nspc_allocdata(env->gwion->mp, t->nspc);
-    *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !GET_FLAG(src, struct)) ?
+    *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !tflag(src, tflag_struct)) ?
       object_release : struct_release;
   } else
   ADD_REF((t->nspc = env->gwion->type[et_array]->nspc))
-  SET_FLAG(t, valid);
   mk_class(env, t);
   nspc_add_type_front(src->e->owner, sym, t);
   return t;
@@ -128,15 +121,15 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
 
 ANN m_bool type_ref(Type t) {
   do {
-    if(GET_FLAG(t, empty))
+    if(tflag(t, tflag_empty))
       return GW_OK;
-    if(GET_FLAG(t, typedef) && t->e->def)
-      if(t->e->def->base.ext && t->e->def->base.ext->array) {
-        if(!t->e->def->base.ext->array->exp)
+    if(tflag(t, tflag_typedef) && t->e->cdef)
+      if(t->e->cdef->base.ext && t->e->cdef->base.ext->array) {
+        if(!t->e->cdef->base.ext->array->exp)
           return GW_OK;
         else {
           const Type type = t->e->parent->e->d.base_type;
-          if(SAFE_FLAG(type, empty))
+          if(tflag(type, tflag_empty))
             return GW_OK;
         }
       }

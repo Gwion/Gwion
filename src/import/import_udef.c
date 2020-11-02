@@ -51,7 +51,7 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
       gwi->gwion->env->class_def->nspc->info->offset =
        udef->o + udef->s;
   if(udef->xid || !udef->type_xid) {
-    SET_FLAG(udef->value, builtin);
+    set_vflag(udef->value, vflag_builtin);
     const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
     udef->value->d.ptr = (m_uint*)o;
    return udef->value->type;
@@ -75,7 +75,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
     gwi->ck->tmpl = NULL;
   }
   const Type t = union_type(gwi, udef);
-  if(!SAFE_FLAG(t, template))
+  if(!safe_tflag(t, tflag_tmpl))
     free_union_def(gwi->gwion->mp, udef);
   ck_end(gwi);
   return t;

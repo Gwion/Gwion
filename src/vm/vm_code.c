@@ -29,7 +29,7 @@ ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
 ANN static void free_vm_code(VM_Code a, Gwion gwion) {
   if(a->memoize)
     memoize_end(gwion->mp, a->memoize);
-  if(!GET_FLAG(a, builtin)) {
+  if(!a->builtin) {
     _mp_free(gwion->mp, vector_size(a->instr) * SZ_INT, a->bytecode);
     _free_code_instr(a->instr, gwion);
   }
@@ -58,7 +58,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
 
 
 VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
-    const ae_flag flag, const m_str name) {
+    const int builtin, const m_str name) {
   VM_Code code           = mp_calloc(p, VM_Code);
   if(instr) {
     code->instr            = vector_copy(p, instr);
@@ -66,7 +66,7 @@ VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
   }
   code->name             = mstrdup(p, name);
   code->stack_depth      = stack_depth;
-  code->flag = flag;
+  code->builtin = builtin;
   code->ref = new_refcount(p, free_vm_code);
   return code;
 }

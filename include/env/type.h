@@ -5,7 +5,10 @@ struct TypeInfo_ {
   Type parent;
   Nspc owner;
   Type owner_class;
-  Class_Def def;
+  union {
+    Union_Def udef;
+    Class_Def cdef;
+  };
   union type_data {
     Func      func;
     Type      base_type;
@@ -14,6 +17,29 @@ struct TypeInfo_ {
   struct VM_Code_ *gack;
   struct Context_ *ctx;
 };
+
+enum tflag {
+  tflag_none    = 1 << 0,
+  tflag_scan0   = 1 << 1,//
+  tflag_scan1   = 1 << 2,//
+  tflag_scan2   = 1 << 3,//
+  tflag_check   = 1 << 4,//
+  tflag_emit    = 1 << 5,//
+  tflag_infer   = 1 << 6,
+  tflag_empty   = 1 << 7,
+  tflag_ftmpl   = 1 << 8,
+  tflag_ntmpl   = 1 << 9, // do NOT need types
+  tflag_ctmpl   = 1 << 10, // child template
+  tflag_udef    = 1 << 11,
+  tflag_cdef    = 1 << 12,
+  tflag_struct  = 1 << 13,
+  tflag_ctor    = 1 << 14,
+  tflag_dtor    = 1 << 15,
+  tflag_tmpl    = 1 << 16,
+  tflag_typedef = 1 << 17,
+  tflag_nonnull = 1 << 18,
+  tflag_force   = 1 << 19,
+} __attribute__((packed));
 
 struct Type_ {
   m_str     name;
@@ -24,8 +50,25 @@ struct Type_ {
   size_t array_depth;
   HAS_OBJ
   ae_flag flag;
+  enum tflag tflag;
 };
 
+ANN static inline int tflag(const Type t, const enum tflag flag) {
+  return (t->tflag & flag) == flag;
+}
+static inline int safe_tflag(const Type t, const enum tflag flag) {
+  return t ? ((t->tflag & flag) == flag) : 0;
+}
+#ifndef __cplusplus
+ANN static inline void set_tflag(const Type t, const enum tflag flag) {
+  t->tflag |= flag;
+}
+#else
+ANN static inline void set_tflag(const Type t, const enum tflag flag) {
+  auto ff = t->tflag | flag;
+  t->tflag = static_cast<enum tflag>(ff);
+}
+#endif
 ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);
 ANEW ANN Type type_copy(MemPool, const Type type);
 ANN m_str get_type_name(const Env, const Type t, const m_uint);
@@ -59,7 +102,7 @@ ANN Type unflag_type(const Type t);
 __attribute__((returns_nonnull))
 ANN Type get_type(const Type t);
 ANN static inline int is_special(const Type t) {
-  return GET_FLAG(t, nonnull) || GET_FLAG(t, force);
+  return tflag(t, tflag_nonnull) || tflag(t, tflag_force);
 }
 
 typedef enum {

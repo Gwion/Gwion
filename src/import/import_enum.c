@@ -65,7 +65,7 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
   for(m_uint i = 0; i < vector_size(v); i++) {
     const Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&ck->v, i);
-    SET_FLAG(value, builtin);
+    set_vflag(value, vflag_builtin);
 //    ADD_REF(value->type); // what ?
     if(!gwi->gwion->env->class_def)
       value->d.ptr = (m_uint*)(addr ? addr : i);

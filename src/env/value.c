@@ -6,11 +6,11 @@
 
 ANN static void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
-  if(!GET_FLAG(a, func) && a->d.ptr && !GET_FLAG(a, union) &&
-      !(GET_FLAG(a, enum) && GET_FLAG(a, builtin) && a->from->owner_class)
+  if(!vflag(a, vflag_func) && a->d.ptr && !vflag(a, vflag_direct) &&
+      !(vflag(a, vflag_enum) && vflag(a, vflag_builtin) && a->from->owner_class)
       && isa(t, gwion->type[et_object]) < 0)
    _mp_free(gwion->mp, t->size, a->d.ptr);
-  else if(GET_FLAG(a, enum) && GET_FLAG(a, dtor))
+  else if(vflag(a, vflag_freeme))
     xfree(a->d.ptr);
   if(is_class(gwion, t))
     REM_REF(t, gwion)

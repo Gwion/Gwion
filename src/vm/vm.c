@@ -612,7 +612,7 @@ setcode:
 PRAGMA_PUSH()
   reg -= SZ_INT;
   a.code = *(VM_Code*)reg;
-  if(!GET_FLAG((VM_Code)a.code, builtin)) {
+  if(!a.code->builtin) {
     register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
     mem += push;
     *(m_uint*)  mem = push;mem += SZ_INT;

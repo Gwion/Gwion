@@ -18,14 +18,15 @@ ANN static void check(struct EnvSet *es, const Type t) {
 }
 
 ANN static m_bool push(struct EnvSet *es, const Type t) {
+  es->env->scope->depth = 0;
   if(t->e->owner_class)
     CHECK_BB(push(es, t->e->owner_class))
   else
     env_push(es->env, NULL, t->e->ctx ? t->e->ctx->nspc : es->env->curr);
-  if(es->func && !(t->flag & es->flag))
-    CHECK_BB(es->func((void*)es->data, t->e->def))
-  if(GET_FLAG(t, template))
-    CHECK_BB(template_push_types(es->env, t->e->def->base.tmpl))
+  if(es->func && !(t->tflag & es->flag))
+    CHECK_BB(es->func((void*)es->data, t))
+  if(tflag(t, tflag_tmpl))
+    CHECK_BB(template_push_types(es->env, t->e->cdef->base.tmpl)) // incorrect templates
   env_push_type((void*)es->env, t);
   return GW_OK;
 }
@@ -46,7 +47,7 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
   env_pop(es->env, es->scope);
   if(!t)
     return;
-  if(GET_FLAG(t, template))
+  if(tflag(t, tflag_tmpl))
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
   if(t->e->owner_class)
     envset_pop(es, t->e->owner_class);
@@ -58,8 +59,9 @@ ANN m_bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
   if(es->run)
     CHECK_BB(push(es, t->e->owner_class))
-  const m_bool ret = !(t->flag & es->flag) ?
-    es->func(es->data, t->e->def) : GW_OK;
+  const m_bool ret = t->e->cdef &&
+    !(t->tflag & es->flag) ?
+        es->func(es->data, t) : GW_OK;
   if(es->run)
     envset_pop(es, t->e->owner_class);
   return ret;

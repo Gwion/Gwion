@@ -321,7 +321,7 @@ GWION_IMPORT(ugen) {
   gwi->gwion->type[et_ugen] = t_ugen; // use func
 
   GWI_BB(gwi_item_ini(gwi, "@internal", "@ugen"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
 
   GWI_BB(gwi_func_ini(gwi, "UGen", "chan"))
   GWI_BB(gwi_func_arg(gwi, "int", "arg0"))

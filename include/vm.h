@@ -13,6 +13,7 @@ struct VM_Code_ {
   m_str name;
   HAS_OBJ
   ae_flag flag;
+  int builtin;
 };
 
 typedef struct Shreduler_* Shreduler;
@@ -60,7 +61,7 @@ struct VM_Shred_ {
   struct ShredTick_ * tick;
   struct ShredInfo_ * info;
 };
-ANN2(1,5) ANEW VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth, const ae_flag, const m_str name);
+ANN2(1,5) ANEW VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth, const int builtin, const m_str name);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));

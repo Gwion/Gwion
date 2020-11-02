@@ -1,0 +1,3 @@
+class C {
+  fun abstract void test(int i);
+}

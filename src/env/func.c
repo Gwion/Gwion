@@ -6,7 +6,8 @@
 #include "clean.h"
 
 ANN static void free_func(Func a, Gwion gwion) {
-  if(GET_FLAG(a, template))
+//  if(GET_FLAG(a, template))
+  if(fflag(a, fflag_tmpl))
     func_def_cleaner(gwion, a->def);
   if(a->code)
     REM_REF(a->code, gwion);
@@ -33,4 +34,10 @@ ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
     base, !tmpl ? "" : ":[", !tmpl ? "" : tmpl, !tmpl ? "" : "]",
     i, nspc))
   return insert_symbol(env->gwion->st, name);
+}
+
+ANN void builtin_func(const MemPool mp, const Func f, void* func_ptr) {
+  set_vflag(f->value_ref, vflag_builtin);
+  f->code = new_vm_code(mp, NULL, f->def->stack_depth, 1, f->name);
+  f->code->native_func = (m_uint)func_ptr;
 }

@@ -373,12 +373,11 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "float", "get_now");
   GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
+  SET_FLAG(t_shred, abstract | ae_flag_final);
   gwi_set_global_type(gwi, t_shred, et_shred);
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);
-
-  SET_FLAG(t_shred, abstract);
 
   const Type t_fork= gwi_class_ini(gwi,  "Fork", "Shred");
   gwi_class_xtor(gwi, NULL, fork_dtor);
@@ -401,13 +400,13 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "void", "test_cancel");
   GWI_BB(gwi_func_end(gwi, fork_test_cancel, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG((t_fork), abstract);
+  SET_FLAG(t_fork, abstract | ae_flag_final);
 
   const Type t_typed = gwi_class_ini(gwi,  "TypedFork:[A]", "Fork");
   gwi_item_ini(gwi, "A", "retval");
   GWI_BB((gwi_item_end(gwi, ae_flag_const, NULL)))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG((t_typed), abstract);
-
+  SET_FLAG(t_typed, abstract | ae_flag_final);
+  set_tflag(t_typed, tflag_ntmpl);
   return GW_OK;
 }

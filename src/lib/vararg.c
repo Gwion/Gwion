@@ -31,7 +31,7 @@ static DTOR(vararg_dtor) {
       const Type t = (Type)vector_at(&arg->t, i);
       if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(arg->d + offset), shred);
-      else if(GET_FLAG(t, struct))
+      else if(tflag(t, tflag_struct))
         struct_release(shred, t, *(m_bit**)(arg->d + offset));
       offset += t->size;
     }
@@ -137,7 +137,7 @@ static FREEARG(freearg_vararg) {
 }
 
 static ID_CHECK(idck_vararg) {
-  if(env->func && GET_FLAG(env->func->def->base, variadic))
+  if(env->func && fbflag(env->func->def->base, fbflag_variadic))
     return nonnul_type(env, exp_self(prim)->info->type);
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }

@@ -34,7 +34,7 @@ static OP_EMIT(opem_func_assign) {
   if(bin->rhs->info->type->e->d.func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->info->type->e->d.func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
-  if(!is_fptr(emit->gwion, bin->lhs->info->type) && GET_FLAG(bin->rhs->info->type->e->d.func, member)) {
+  if(!is_fptr(emit->gwion, bin->lhs->info->type) && vflag(bin->rhs->info->type->e->d.func->value_ref, vflag_member)) {
     const Instr pop = emit_add_instr(emit, RegPop);
     pop->m_val = SZ_INT;
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
@@ -95,10 +95,10 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
       ERR_B(info->pos, _("can't assign non member function to member function pointer"))
   } else if(l_type && isa(r_type, l_type) < 0)
       ERR_B(info->pos, _("can't assign member function to a pointer of an other class"))
-  if(GET_FLAG(info->rhs, member)) {
-    if(!GET_FLAG(info->lhs, member))
+  if(vflag(info->rhs->value_ref, vflag_member)) {
+    if(!vflag(info->lhs->value_ref, vflag_member))
       ERR_B(info->pos, _("can't assign static function to member function pointer"))
-  } else if(GET_FLAG(info->lhs, member))
+  } else if(vflag(info->lhs->value_ref, vflag_member))
       ERR_B(info->pos, _("can't assign member function to static function pointer"))
   return GW_OK;
 }
@@ -110,8 +110,8 @@ ANN static inline m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
 }
 
 ANN static inline m_bool fptr_arity(struct FptrInfo *info) {
-  return GET_FLAG(info->lhs->def->base, variadic) ==
-         GET_FLAG(info->rhs->def->base, variadic);
+  return fbflag(info->lhs->def->base, fbflag_variadic) ==
+         fbflag(info->rhs->def->base, fbflag_variadic);
 }
 
 ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
@@ -152,7 +152,6 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
   l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
-  SET_FLAG(l->def->base, abstract); // mark as non immediate lambda
   map_set(&env->curr->info->func->map, (m_uint)l->def->base, env->scope->depth);
   const m_bool ret = check_traverse_fdef(env, l->def);
   map_remove(&env->curr->info->func->map, (m_uint)l->def->base);
@@ -168,7 +167,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->e->d.func->def;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
-    .scope=env->scope->depth, .flag=ae_flag_check };
+    .scope=env->scope->depth, .flag=tflag_check };
   l->owner = t->e->owner_class;
   CHECK_BB(envset_push(&es, l->owner, t->e->owner))
   const m_bool ret = _check_lambda(env, l, fdef);
@@ -182,7 +181,7 @@ ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->info->type, env->gwion->type[et_lambda]) < 0) {
-    m_bool nonnull = GET_FLAG(info->exp->info->type, nonnull);
+    m_bool nonnull = tflag(info->exp->info->type, tflag_nonnull);
     CHECK_BB(fptr_check(env, info))
     DECL_OB(const Type, t, = fptr_type(env, info))
     info->exp->info->type = !nonnull ? t : nonnul_type(env, t);
@@ -256,8 +255,8 @@ static void member_fptr(const Emitter emit) {
 }
 
 static int is_member(const Type from, const Type to) {
-  return GET_FLAG(from->e->d.func, member) &&
-    !(GET_FLAG(from, nonnull) || GET_FLAG(to, nonnull));
+  return vflag(from->e->d.func->value_ref, vflag_member) &&
+    !(tflag(from, tflag_nonnull) || tflag(to, tflag_nonnull));
 }
 
 static OP_EMIT(opem_fptr_cast) {
@@ -303,7 +302,14 @@ ANN static Type fork_type(const Env env, const Exp_Unary* unary) {
     return env->gwion->type[et_fork];
   char c[21 + strlen(t->name)];
   sprintf(c, "nonnull TypedFork:[%s]", t->name);
-  return str2type(env->gwion, c, exp_self(unary)->pos);
+  const Type fork = env->gwion->type[et_fork];
+  UNSET_FLAG(fork, final);
+  const Type typed = str2type(env->gwion, "TypedFork", exp_self(unary)->pos);
+  UNSET_FLAG(typed, final);
+  const Type ret = str2type(env->gwion, c, exp_self(unary)->pos);
+  SET_FLAG(typed, final);
+  SET_FLAG(fork, final);
+  return ret;
 }
 
 static OP_CHECK(opck_spork) {

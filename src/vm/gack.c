@@ -59,13 +59,13 @@ ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
 ANN void gack(const VM_Shred shred, const m_uint offset) {
   const Type t = *(Type*)shred->reg;
   const VM_Code code = get_gack(t)->e->gack;
-  if(GET_FLAG(code, builtin)) {
+  if(code->builtin) {
     const m_uint sz = *(m_uint*)(shred->reg + SZ_INT);
     ((f_gack)code->native_func)(t, (shred->reg - sz), shred);
     POP_REG(shred, sz);
   } else {
     prepare_call(shred, offset);
-    if(GET_FLAG(t, struct))
+    if(tflag(t, tflag_struct))
       *(void**)(shred->mem) = (void*)(shred->reg - t->size);
     else
       *(M_Object*)(shred->mem) = *(M_Object*)(shred->reg - SZ_INT);

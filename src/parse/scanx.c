@@ -43,8 +43,8 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
 
 __attribute__((returns_nonnull))
 ANN Type unflag_type(const Type t) {
-  const Type type = !GET_FLAG(t, nonnull) ? t : t->e->parent;
-  return !GET_FLAG(type, force) ? type : type->e->parent;
+  const Type type = !tflag(t, tflag_nonnull) ? t : t->e->parent;
+  return !tflag(type, tflag_force) ? type : type->e->parent;
 }
 
 __attribute__((returns_nonnull))
@@ -53,14 +53,12 @@ ANN Type get_type(const Type t) {
   return unflag_type(type);
 }
 
-ANN m_bool scanx_cdef(const Env env, void* opt, const Class_Def cdef,
+ANN m_bool scanx_cdef(const Env env, void* opt, const Type base,
     const _exp_func f_cdef, const _exp_func f_union) {
-  const Type t = get_type(cdef->base.type);
+  const Type t = get_type(base);
   if(t->e->parent !=  env->gwion->type[et_union])
-     return f_cdef(opt, t->e->def);
-  CHECK_BB(template_push_types(env, t->e->def->base.tmpl))
-  const m_bool ret = f_union(opt, t->e->def->union_def);
-  nspc_pop_type(env->gwion->mp, env->curr);
+     return f_cdef(opt, t->e->cdef);
+  const m_bool ret = f_union(opt, t->e->udef);
   return ret;
 }
 

@@ -17,21 +17,21 @@
 #include "specialid.h"
 #include "template.h"
 
-ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const ae_flag e) {
-  VM_Code* code = e == ae_flag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
+ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const enum tflag e) {
+  VM_Code* code = e == tflag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name = type->name;
-  *code = new_vm_code(p, NULL, SZ_INT, e | ae_flag_member | ae_flag_builtin, name);
+  *code = new_vm_code(p, NULL, SZ_INT, 1, name);
   (*code)->native_func = (m_uint)d;
-  type->flag |= e;
+  type->tflag |= e;
   return GW_OK;
 }
 
 ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
   do {
-    if(GET_FLAG(t, valid))
+    if(tflag(t, tflag_check))
       break;
-    if(t->e->def)
-      CHECK_BB(traverse_class_def(env, t->e->def))
+    if(t->e->cdef)
+      CHECK_BB(traverse_class_def(env, t->e->cdef))
   } while((t = t->e->parent));
   return GW_OK;
 }
@@ -43,20 +43,19 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
     inherit(t);
   t->e->owner = env->curr;
   t->e->owner_class = env->class_def;
-  SET_FLAG(t, valid);
   env_push_type(env, t);
 }
 
 ANN2(1) void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor) {
   const Type t = gwi->gwion->env->class_def;
   if(ctor)
-    mk_xtor(gwi->gwion->mp, t, (m_uint)ctor, ae_flag_ctor);
+    mk_xtor(gwi->gwion->mp, t, (m_uint)ctor, tflag_ctor);
   if(dtor)
-    mk_xtor(gwi->gwion->mp, t, (m_uint)dtor, ae_flag_dtor);
+    mk_xtor(gwi->gwion->mp, t, (m_uint)dtor, tflag_dtor);
 }
 
 ANN static inline void gwi_type_flag(const Type t) {
-  SET_FLAG(t, scan1 | ae_flag_scan2 | ae_flag_check | ae_flag_emit);
+  set_tflag(t, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check | tflag_emit);
 }
 
 ANN static Type type_finish(const Gwi gwi, const Type t) {
@@ -80,7 +79,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
     CHECK_BO(template_push_types(gwi->gwion->env, tmpl))
   const Type base = find_type(gwi->gwion->env, td);
   const Type_List tl = td->types;
-  if(GET_FLAG(base, unary))
+  if(tflag(base, tflag_ntmpl))
     td->types = NULL;
   const Type p = !td->types ? handle_class(gwi, td) : NULL;
   td->types = tl;
@@ -88,15 +87,15 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   CHECK_OO(p)
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
-  t->e->def = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
-  t->e->def->base.tmpl = tmpl;
-  t->e->def->base.type = t;
+  t->e->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
+  t->e->cdef->base.tmpl = tmpl;
+  t->e->cdef->base.type = t;
   t->e->tuple = new_tupleform(gwi->gwion->mp, p);
   t->e->parent = p;
   if(td->array)
-    SET_FLAG(t, typedef);
+    set_tflag(t, tflag_typedef);
   if(ck.tmpl)
-    SET_FLAG(t, template);
+    set_tflag(t, tflag_tmpl);
   else
     gwi_type_flag(t);
   return type_finish(gwi, t);
@@ -107,7 +106,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, gwi->gwion->type[et_compound]);
   t->e->tuple = new_tupleform(gwi->gwion->mp, NULL);
   gwi_type_flag(t);
-  SET_FLAG(t, struct);
+  set_tflag(t, tflag_struct);
   return type_finish(gwi, t);
 }
 

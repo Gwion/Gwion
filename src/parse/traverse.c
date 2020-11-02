@@ -58,11 +58,11 @@ ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
 
 ANN m_bool traverse_class_def(const Env env, const Class_Def def) {
   const Type t = def->base.type;
-  if(!GET_FLAG(t, scan1))
+  if(!tflag(t, tflag_scan1))
     CHECK_BB(scan1_class_def(env, def))
-  if(!GET_FLAG(t, scan2))
+  if(!tflag(t, tflag_scan2))
     CHECK_BB(scan2_class_def(env, def))
-  if(!GET_FLAG(t, valid))
+  if(!tflag(t, tflag_check))
     return check_class_def(env, def);
   return GW_OK;
 }

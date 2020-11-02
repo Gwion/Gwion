@@ -1,5 +1,14 @@
 #ifndef __FUNC
 #define __FUNC
+
+enum fflag {
+  fflag_none  = 1 << 0,
+  fflag_pure  = 1 << 1,
+  fflag_ftmpl = 1 << 2,
+  fflag_tmpl  = 1 << 3,
+  fflag_valid = 1 << 4,
+} __attribute__((packed));
+
 struct Func_ {
   m_str name;
   Func_Def def;
@@ -9,9 +18,34 @@ struct Func_ {
   size_t vt_index;
   HAS_OBJ
   ae_flag flag;
+  enum fflag fflag;
 };
+
+static inline int fflag(const Func f, const enum fflag flag) {
+  return (f->fflag & flag) == flag;
+}
+#ifndef __cplusplus
+static inline void set_fflag(const Func f, const enum fflag flag) {
+  f->fflag |= flag;
+}
+
+static inline void unset_fflag(const Func f, const enum fflag flag) {
+  f->fflag &= ~flag;
+}
+#else
+static inline void set_fflag(const Func f, const enum fflag flag) {
+  const auto ff = f->fflag | flag;
+  f->fflag = static_cast<enum fflag>(ff);
+}
+
+static inline void unset_fflag(const Func f, const enum fflag flag) {
+  const auto ff = f->fflag & ~flag;
+  f->fflag = static_cast<enum fflag>(ff);
+}
+#endif
 
 ANEW ANN Func new_func(MemPool, const m_str, const Func_Def);
 ANN2(1,2) Symbol func_symbol(const Env, const m_str, const m_str, const m_str, const m_uint);
 ANN m_bool check_lambda(const Env, const Type, Exp_Lambda*);
+ANN void builtin_func(const MemPool mp, const Func f, void* func_ptr);
 #endif
