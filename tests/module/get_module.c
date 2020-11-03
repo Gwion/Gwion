@@ -13,13 +13,12 @@
 #include "gwi.h"
 #include "plug.h"
 
-GWMODSTR(dummy_module);
-
-GWMODINI(dummy_module) {
+GWMODINI(get_module) {
   puts(__func__);
-  return (void*)2; // we need to return something
+  return (void*)2;
 }
-GWMODEND(dummy_module) {
+
+GWMODEND(get_module) {
   puts(__func__);
 }
 

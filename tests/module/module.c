@@ -8,8 +8,6 @@
 #include "gwion.h"
 #include "plug.h"
 
-GWMODSTR(dummy_module);
-
 GWMODINI(dummy_module) {
   puts(__func__);
   return NULL;

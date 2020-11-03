@@ -4,8 +4,6 @@
 #include "vm.h"
 #include "gwion.h"
 
-GWMODSTR(basic_module)
-
 GWMODINI(basic_module) {
   puts("ini module");
   if(args) {

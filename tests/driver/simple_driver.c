@@ -8,23 +8,21 @@
 #include "gwion.h"
 #include "plug.h"
 
-static DRVRUN(driver_test_run) {
+static DRVRUN(simple_driver_run) {
   while(di->is_running) {
     di->run(vm);
     ++di->pos;
   }
 }
 
-static DRVINI(driver_test_ini) {
+static DRVINI(simple_driver_ini) {
   return GW_OK;
 }
 
-static DRVDEL(driver_test_del) {}
+static DRVDEL(simple_driver_del) {}
 
-GWMODSTR(driver_test);
-
-GWDRIVER(driver_test) {
-  d->ini = driver_test_ini;
-  d->run = driver_test_run;
-  d->del = driver_test_del;
+GWDRIVER(driver) {
+  d->ini = simple_driver_ini;
+  d->run = simple_driver_run;
+  d->del = simple_driver_del;
 }

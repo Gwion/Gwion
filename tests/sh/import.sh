@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #77
+# [test] #75
 
 n=0
 [ "$1" ] && n="$1"
@@ -12,13 +12,14 @@ source tests/sh/test.sh
 export GWION_ADD_DIR
 
 test_plugin() {
-	export NAME=$"$1"
-	export PRG=$"../../gwion"
-	export SUPP=$"../../scripts/supp"
+	export NAME="$1"
+	export PRG="../../gwion"
+	export SUPP="../../scripts/supp"
 	make
+# we might have a test file for all now
   if [ -f "$NAME.gw" ]
-  then  GWOPT+=-p. test_gw "$NAME.gw" "$n"
-  else  GWOPT+=-p. test_gw "no_file" "$n"
+  then  GWOPT+="-p." test_gw "$NAME.gw" "$n"
+  else  GWOPT+="-p." test_gw "no_file" "$n"
   fi
   make clean
  	N=$(printf "% 4i" "$n")
@@ -36,13 +37,27 @@ rm "empty.so"
 
 
 BASE_DIR="$PWD"
-cd tests/import || exit
+pushd tests/plug || exit
 for test_file in *.c
 do test_plugin "$(basename "$test_file" .c)"
 done
+popd
 
-DRIVER="driver_test:arg" test_plugin driver
-MODULE="dummy_module=with,some,argument" test_plugin module
+pushd tests/driver || exit
+for test_file in *.c
+do
+ NAME="$(basename "$test_file" .c)"
+ GWOPT+="-d $NAME" test_plugin "$(basename "$test_file" .c)"
+done
+popd || exit
+
+pushd tests/module || exit
+for test_file in *.c
+do
+ NAME="$(basename "$test_file" .c)"
+ GWOPT+="-m $NAME" test_plugin "$NAME"
+done
+popd || exit
 
 # clean
 rm -f ./*.gcda ./*.gcno vgcore.* ./*.o ./*.so

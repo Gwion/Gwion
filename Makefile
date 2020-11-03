@@ -17,7 +17,7 @@ src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
 test_dir_all := $(wildcard tests/*)
-test_ignore = tests/import
+test_ignore = tests/plug test/driver tests/module
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
 
