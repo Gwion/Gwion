@@ -13,21 +13,10 @@
 #include "pass.h" // fork_clean
 #include "shreduler_private.h"
 
-ANN static void driver_arg(const Gwion gwion, Driver *di) {
-  for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
-    const m_str name = (m_str)VKEY(&gwion->data->plug->drv, i);
-    const size_t len = strlen(name);
-    if(!strncmp(name, di->si->arg, len)) {
-      di->func = (f_bbqset)VVAL(&gwion->data->plug->drv, i);
-      break;
-    }
-  }
-}
-
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
   if(di->si->arg)
-    driver_arg(gwion, di);
+    driver_ini(gwion);
   di->func(di->driver);
   CHECK_BB(di->driver->ini(gwion->vm, di));
   driver_alloc(di);
@@ -35,7 +24,7 @@ ANN m_bool gwion_audio(const Gwion gwion) {
 }
 
 ANN static inline m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion, &gwion->data->plug->vec[GWPLUG_IMPORT]) > 0;
+  return type_engine_init(gwion) > 0;
 }
 
 ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
@@ -72,7 +61,7 @@ ANN static void gwion_core(const Gwion gwion) {
 }
 
 ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
-  gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
+  CHECK_BB(plug_ini(gwion, &arg->lib))
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);

@@ -117,7 +117,6 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
 }
 
 ANN static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
-//  CHECK_BB(compiler_open(gwion->mp, c))
   if(compiler_open(gwion->mp, c) < 0)
     return 0;
   if(_check(gwion, c) < 0) {

@@ -27,3 +27,10 @@ ANN void gwi_reset(const Gwi gwi) {
   }
   env_reset(gwi->gwion->env);
 }
+
+ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
+   struct loc_t_ loc = {};
+   OperCK oper = {};
+   struct Gwi_ gwi = { .gwion=gwion, .loc=&loc, .oper=&oper };
+   return f(&gwi);
+}

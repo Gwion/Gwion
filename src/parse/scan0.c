@@ -355,9 +355,12 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
 }
 
 ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
-  do if(list->stmt->stmt_type == ae_stmt_pp && list->stmt->d.stmt_pp.pp_type == ae_pp_include)
-    env->name = list->stmt->d.stmt_pp.data;
-  while((list = list->next));
+  do if(list->stmt->stmt_type == ae_stmt_pp) {
+    if(list->stmt->d.stmt_pp.pp_type == ae_pp_include)
+      env->name = list->stmt->d.stmt_pp.data;
+    else if(list->stmt->d.stmt_pp.pp_type == ae_pp_require)
+      CHECK_BB(plugin_ini(env->gwion, list->stmt->d.stmt_pp.data))
+  } while((list = list->next));
   return GW_OK;
 }
 
