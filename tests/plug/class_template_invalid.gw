@@ -1,0 +1,2 @@
+#require class_template_invalid
+<<< __file__ >>>;

@@ -1,0 +1,2 @@
+#require func_tmpl_fail
+<<< __file__ >>>;

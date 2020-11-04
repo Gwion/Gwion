@@ -1,0 +1,2 @@
+#require array_in_var_name
+<<< __file__ >>>;

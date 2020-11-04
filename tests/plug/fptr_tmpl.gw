@@ -1,0 +1,2 @@
+#require fptr_tmpl
+<<< __file__ >>>;

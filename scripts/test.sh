@@ -230,8 +230,8 @@ test_dir() {
   grep '\.sh' <<< "$(ls "$1")" &> /dev/null && found=1
   if [ "$found" -eq 1 ]
   then
-    local old_async=$async
-    async=0;
+#    local old_async=$async
+#    async=0;
     #		[ -f ${GWION_TEST_DIR}/${GWION_TEST_PREFIX}bailout ] && exit 1
     for file in "$1"/*.sh
     do
@@ -242,7 +242,7 @@ test_dir() {
       bash "$file" "$((n))"
       n=$((n+count))
     done
-    async=$old_async
+#    async=$old_async
   fi
 }
 

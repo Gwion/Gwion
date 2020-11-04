@@ -1,0 +1,2 @@
+#require not_importing
+<<< __file__ >>>;

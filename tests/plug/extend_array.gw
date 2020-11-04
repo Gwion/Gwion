@@ -1,3 +1,4 @@
+#require extend_array
 var ArrayExt a;
 <<< a >>>;
 <<< a.size() >>>;

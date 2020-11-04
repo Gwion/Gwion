@@ -1,0 +1,2 @@
+#require fail_on_next_arg2
+<<< __file__ >>>;

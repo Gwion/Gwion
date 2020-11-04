@@ -1,0 +1,2 @@
+#require str2list_fail
+<<< __file__ >>>;

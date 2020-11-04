@@ -1,0 +1,2 @@
+#require union_tmpl_fail3
+<<< __file__ >>>;

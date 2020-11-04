@@ -1,3 +1,4 @@
+#require fptr
 fun void test(){ <<< "test" >>>; }
 var PtrType ptr;
 test();
@@ -10,4 +11,3 @@ FuncTypedef.test_func();
 var FuncTypedef.PtrType _ptr;
 <<< FuncTypedef.ptr >>>;
 FuncTypedef.ptr();
-

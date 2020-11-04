@@ -1,0 +1,2 @@
+#require func_fail3
+<<< __file__ >>>;
