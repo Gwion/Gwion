@@ -174,10 +174,10 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
   const Map map = &gwion->data->plug;
   for(m_uint i = 0; i < map_size(map); ++i) {
     const Plug plug = (Plug)VVAL(map, i);
-    if(plug->imp)
-      return GW_OK;
     const m_str name = (m_str)VKEY(map, i);
     if(!strcmp(name, iname)) {
+      if(plug->imp)
+        return GW_OK;
       const plugin imp = DLSYM(plug->dl, plugin, GWIMPORT_NAME);
       if(!imp)
         break;
