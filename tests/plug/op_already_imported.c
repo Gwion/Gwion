@@ -11,7 +11,6 @@
 #include "import.h"
 #include "gwi.h"
 
-
 GWION_IMPORT(op_already_imported) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
