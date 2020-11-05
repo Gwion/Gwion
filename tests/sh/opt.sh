@@ -56,9 +56,7 @@ cat << EOF > "$RC"
 -l0
 EOF
 run "$n" "config" "-c$RC" "file"
-./gwion -c ./tmp_gwionrc
-#GWOPT="-c ./$RC" run "$n" "config" "" "file"
-#rm "$RC"
+rm "$RC"
 
 # loop
 n=$((n+1))
