@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -270,9 +271,9 @@ static MFUN(string_find) {
 static MFUN(string_findStart) {
   const m_str base = STRING(o);
   const size_t sz = strlen(base);
-  const char pos = *(m_int*)MEM(SZ_INT);
+  const char pos = *(m_int*)MEM(SZ_INT *2);
   if(pos >= 0 && (size_t)pos < sz) {
-    const char arg = *(m_int*)MEM(SZ_INT * 2);
+    const char arg = *(m_int*)MEM(SZ_INT);
     char *str = index(base + pos, arg);
     *(m_uint*)RETURN = str ? str - pos - base : -1;
   } else
@@ -295,8 +296,8 @@ static MFUN(string_findStr) {
 static MFUN(string_findStrStart) {
   const m_str base = STRING(o);
   const size_t sz = strlen(base);
-  const char pos = *(m_int*)MEM(SZ_INT);
-  const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
+  const char pos = *(m_int*)MEM(SZ_INT*2);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
   if(pos >= 0 && (size_t)pos < sz) {
     const m_str arg = STRING(obj);
     const m_str str = strstr(base + pos, arg);
@@ -343,7 +344,7 @@ static MFUN(string_rfindStr) {
 static MFUN(string_rfindStrStart) {
   const m_str base = STRING(o);
   const size_t sz = strlen(base);
-  const char pos = *(m_int*)MEM(SZ_INT);
+  const char pos = *(m_int*)MEM(SZ_INT *2);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
   if(sz) {
     const m_str arg = STRING(obj);
@@ -432,8 +433,8 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_find, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
@@ -441,8 +442,8 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_findStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
@@ -450,8 +451,8 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_rfind, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
@@ -459,8 +460,8 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "void", "erase");
