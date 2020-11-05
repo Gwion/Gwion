@@ -163,17 +163,17 @@ GWION_IMPORT(vararg) {
   const Type t_vararg  = gwi_class_ini(gwi, "Vararg", "Object");
   gwi_class_xtor(gwi, NULL, vararg_dtor);
   gwi_gack(gwi, t_vararg, gack_vararg);
-  CHECK_BB(gwi_item_ini(gwi, "@internal", "@data"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_none, NULL))
-  CHECK_BB(gwi_item_ini(gwi, "int", "@inLoop"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_none, NULL))
-  CHECK_BB(gwi_item_ini(gwi, "int", "@len"))
-  CHECK_BB(gwi_item_end(gwi, ae_flag_none, NULL))
-  CHECK_BB(gwi_func_ini(gwi, "Vararg", "cpy"))
-  CHECK_BB(gwi_func_end(gwi, mfun_vararg_cpy, ae_flag_none))
+  GWI_BB(gwi_item_ini(gwi, "@internal", "@data"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@inLoop"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@len"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_func_ini(gwi, "Vararg", "cpy"))
+  GWI_BB(gwi_func_end(gwi, mfun_vararg_cpy, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG(t_vararg, abstract);
-  CHECK_BB(gwi_set_global_type(gwi, t_vararg, et_vararg))
+  SET_FLAG(t_vararg, abstract | ae_flag_final);
+  GWI_BB(gwi_set_global_type(gwi, t_vararg, et_vararg))
   GWI_BB(gwi_oper_ini(gwi, "nonnull Vararg", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))
