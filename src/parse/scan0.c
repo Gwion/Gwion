@@ -336,10 +336,8 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   if(parent == (Type)GW_ERROR)
     return NULL;
   const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), parent);
-//  if(GET_FLAG(parent, abstract))
-//    SET_FLAG(t, abstract);
   if(cflag(cdef, cflag_struct))
-    t->flag |= tflag_struct;
+    set_tflag(t, tflag_struct);
   t->e->tuple = new_tupleform(env->gwion->mp, parent);
   t->e->owner = env->curr;
   t->e->owner_class = env->class_def;
