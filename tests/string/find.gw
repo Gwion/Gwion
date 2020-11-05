@@ -1,0 +1,26 @@
+<<< "test".find('e') >>>;
+<<< "test".find('a') >>>;
+<<< "".find('a') >>>;
+
+<<< "test".find(-1, 'e') >>>;
+<<< "test".find(0, 'e') >>>;
+<<< "test".find(1, 'a') >>>;
+<<< "".find(1, 'a') >>>;
+
+<<< "test".find("es") >>>;
+<<< "test".find("a") >>>;
+<<< "".find("") >>>;
+
+<<< "test".find(-1, "es") >>>;
+<<< "test".find(0, "es") >>>;
+<<< "test".find(1, "a") >>>;
+<<< "".find(1, "") >>>;
+
+<<< "test".rfind("es") >>>;
+<<< "test".rfind("a") >>>;
+<<< "".rfind("") >>>;
+
+<<< "test".rfind(-1, "es") >>>;
+<<< "test".rfind(0, "e") >>>;
+<<< "test".rfind(1, "a") >>>;
+<<< "".rfind(1, "") >>>;

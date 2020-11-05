@@ -302,10 +302,6 @@ static MFUN(string_findStr) {
   strcpy(str, STRING(o));
   m_int ret = -1;
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  if(!obj) {
-    *(m_uint*)RETURN = 0;
-    return;
-  }
   const m_str arg = STRING(obj);
   const m_int len  = strlen(str);
   m_int i = 0;
@@ -331,10 +327,6 @@ static MFUN(string_findStrStart) {
   m_int ret = -1;
   const m_int start = *(m_int*)MEM(SZ_INT);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  if(!obj) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
   const m_str arg = STRING(obj);
   const m_int len  = strlen(str);
   m_int i = start;
@@ -418,10 +410,6 @@ static MFUN(string_rfindStrStart) {
   m_int ret = -1;
   m_int start = *(m_int*)MEM(SZ_INT);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  if(!obj) {
-    *(m_uint*)RETURN = 0;
-    return;
-  }
   m_str arg = STRING(obj);
 
   m_int i = start;
@@ -518,12 +506,12 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_findStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
@@ -536,12 +524,12 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "void", "erase");
