@@ -261,168 +261,99 @@ static MFUN(string_replaceN) {
 }
 
 static MFUN(string_find) {
-  const m_str str = STRING(o);
-  m_int i = 0, ret = -1;
-  char arg = *(m_int*)MEM(SZ_INT);
-  while(str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
-  *(m_uint*)RETURN = ret;
+  const m_str base = STRING(o);
+  char c = *(m_int*)MEM(SZ_INT);
+  char *str = index(base, c);
+  *(m_uint*)RETURN = str ? str - base : -1;
 }
 
 static MFUN(string_findStart) {
-  const m_str str = STRING(o);
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const char pos = *(m_int*)MEM(SZ_INT);
-  const char arg = *(m_int*)MEM(SZ_INT * 2);
-  m_int i = pos, ret = -1;
-  if(!strlen(str)) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  while(str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
-  *(m_uint*)RETURN = ret;
+  if(pos >= 0 && (size_t)pos < sz) {
+    const char arg = *(m_int*)MEM(SZ_INT * 2);
+    char *str = index(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
 }
 
 static MFUN(string_findStr) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str arg = STRING(obj);
-  const m_int len  = strlen(str);
-  m_int i = 0;
-  const m_int arg_len = strlen(arg);
-  while(i < len) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    const m_str str = strstr(base, arg);
+    *(m_uint*)RETURN = str ? str - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_findStrStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
-  const m_int start = *(m_int*)MEM(SZ_INT);
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
+  const char pos = *(m_int*)MEM(SZ_INT);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  const m_str arg = STRING(obj);
-  const m_int len  = strlen(str);
-  m_int i = start;
-  const m_int arg_len = strlen(arg);
-  while(i < len) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
+  if(pos >= 0 && (size_t)pos < sz) {
+    const m_str arg = STRING(obj);
+    const m_str str = strstr(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos- base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfind) {
-  const m_str str = STRING(o);
-  m_int i = strlen(str) - 1, ret = -1;
-  const char arg = *(m_int*)MEM(SZ_INT);
-  while(i > -1 && str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
-  *(m_uint*)RETURN = ret;
+  const m_str base = STRING(o);
+  char c = *(m_int*)MEM(SZ_INT);
+  char *str = rindex(base, c);
+  *(m_uint*)RETURN = str ? str - base : -1;
 }
 
 static MFUN(string_rfindStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const char pos = *(m_int*)MEM(SZ_INT);
-  const char arg = *(m_int*)MEM(SZ_INT * 2);
-  m_int i = pos, ret = -1;
-  while(i > 0 && str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
-  *(m_uint*)RETURN = ret;
+  if(pos >= 0 && (size_t)pos < sz) {
+    const char arg = *(m_int*)MEM(SZ_INT * 2);
+    char *str = rindex(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
 }
 
 static MFUN(string_rfindStr) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str arg = STRING(o);
-  const m_int len  = strlen(str);
-  m_int i = len - 1;
-  const m_int arg_len = strlen(arg);
-  while(i) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    m_str tmp = base, str = NULL;
+    while((tmp = strstr(tmp, arg)))
+      str = tmp++;
+    *(m_uint*)RETURN = str ? str - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfindStrStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
-  m_int start = *(m_int*)MEM(SZ_INT);
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
+  const char pos = *(m_int*)MEM(SZ_INT);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  m_str arg = STRING(obj);
-
-  m_int i = start;
-  const m_int arg_len = strlen(arg);
-  while(i > -1) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    m_str tmp = base + pos, str = NULL;
+    while((tmp = strstr(tmp, arg)))
+      str = tmp++;
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_erase) {
