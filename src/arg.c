@@ -78,14 +78,7 @@ ANN2(1) static void module_arg(const Map map, m_str str) {
     *val = '\0';
     ++val;
   }
-  const m_str key = str;
-  for(m_uint i = 0; i < map_size(map); ++i) {
-    if(!strcmp(key, (m_str)VKEY(map, i))) {
-      free((m_str)VKEY(map, i));
-      break;
-    }
-  }
-  map_set(map, (vtype)key, (vtype)val);
+  map_set(map, (vtype)str, (vtype)val);
 }
 
 ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {

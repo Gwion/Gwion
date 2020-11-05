@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #75
+# [test] #78
 
 n=0
 [ "$1" ] && n="$1"
@@ -16,7 +16,6 @@ test_plugin() {
 	export PRG="../../gwion"
 	export SUPP="../../scripts/supp"
 	make
-# we might have a test file for all now
   if [ -f "$NAME.gw" ]
   then  GWOPT+="-p." test_gw "$NAME.gw" "$n"
   else  GWOPT+="-p." test_gw "no_file" "$n"
@@ -41,13 +40,17 @@ pushd tests/plug || exit
 for test_file in *.c
 do test_plugin "$(basename "$test_file" .c)"
 done
+PRG="../../gwion" make NAME="array"
+test_plugin "deps" "$n"
+make NAME="array" clean
 popd
+
 
 pushd tests/driver || exit
 for test_file in *.c
 do
  NAME="$(basename "$test_file" .c)"
- GWOPT+="-d $NAME" test_plugin "$(basename "$test_file" .c)"
+ DRIVER="$NAME=some_arg" test_plugin "$(basename "$test_file" .c)"
 done
 popd || exit
 
@@ -55,7 +58,7 @@ pushd tests/module || exit
 for test_file in *.c
 do
  NAME="$(basename "$test_file" .c)"
- GWOPT+="-m $NAME" test_plugin "$NAME"
+ MODULE="$NAME=some_arg" test_plugin "$NAME"
 done
 popd || exit
 

@@ -1,4 +1,6 @@
 #require coverage
+#require coverage
+
 <<< var float f >>>;
 var Coverage c;
 c.s_i;

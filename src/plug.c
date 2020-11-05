@@ -46,7 +46,6 @@ struct PlugHandle {
 typedef struct Plug_ {
   void *dl;
   void *self;
-  int mod;
   int imp;
 } *Plug;
 
@@ -131,9 +130,6 @@ ANN void set_module(const struct Gwion_ *gwion, const m_str name, void *const pt
   for(m_uint j = 0; j < map_size(map); ++j) {
     if(!strcmp(name, (m_str)VKEY(map, j))) {
       Plug plug = (Plug)VVAL(map, j);
-      if(plug->mod)
-        return;
-      plug->mod = 1;
       plug->self = ptr;
       return;
     }

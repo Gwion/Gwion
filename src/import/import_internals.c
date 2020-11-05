@@ -34,6 +34,8 @@ ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
    OperCK oper = {};
    struct Gwi_ gwi = { .gwion=gwion, .loc=&loc, .oper=&oper };
    const m_bool ret = f(&gwi);
+   if(ret < 0)
+     gwi_reset(&gwi);
    gwion->env->name = name;
    return ret;
 }
