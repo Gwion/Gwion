@@ -157,7 +157,8 @@ ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {
 ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug) {
   const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
   if(dep) {
-    m_str *deps = dep();
+    m_str *const base = dep();
+    m_str *deps = base;
     while(*deps) {
       CHECK_BB(plugin_ini(gwion, *deps))
       ++deps;
