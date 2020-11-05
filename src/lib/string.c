@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <math.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -264,7 +263,7 @@ static MFUN(string_replaceN) {
 static MFUN(string_find) {
   const m_str base = STRING(o);
   char c = *(m_int*)MEM(SZ_INT);
-  char *str = index(base, c);
+  char *str = strchr(base, c);
   *(m_uint*)RETURN = str ? str - base : -1;
 }
 
@@ -274,7 +273,7 @@ static MFUN(string_findStart) {
   const char pos = *(m_int*)MEM(SZ_INT *2);
   if(pos >= 0 && (size_t)pos < sz) {
     const char arg = *(m_int*)MEM(SZ_INT);
-    char *str = index(base + pos, arg);
+    char *str = strchr(base + pos, arg);
     *(m_uint*)RETURN = str ? str - pos - base : -1;
   } else
     *(m_uint*)RETURN = -1;
@@ -310,7 +309,7 @@ static MFUN(string_findStrStart) {
 static MFUN(string_rfind) {
   const m_str base = STRING(o);
   char c = *(m_int*)MEM(SZ_INT);
-  char *str = rindex(base, c);
+  char *str = strrchr(base, c);
   *(m_uint*)RETURN = str ? str - base : -1;
 }
 
@@ -320,7 +319,7 @@ static MFUN(string_rfindStart) {
   const char pos = *(m_int*)MEM(SZ_INT);
   if(pos >= 0 && (size_t)pos < sz) {
     const char arg = *(m_int*)MEM(SZ_INT * 2);
-    char *str = rindex(base + pos, arg);
+    char *str = strrchr(base + pos, arg);
     *(m_uint*)RETURN = str ? str - pos - base : -1;
   } else
     *(m_uint*)RETURN = -1;
