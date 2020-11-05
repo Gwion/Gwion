@@ -483,11 +483,11 @@ GWION_IMPORT(string) {
   gwi_func_ini(gwi, "string", "trim");
   GWI_BB(gwi_func_end(gwi, string_trim, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "charAt");
+  gwi_func_ini(gwi, "char", "charAt");
   gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_charAt, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "charAt");
+  gwi_func_ini(gwi, "char", "charAt");
   gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_setCharAt, ae_flag_none))

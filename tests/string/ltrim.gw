@@ -1,0 +1,2 @@
+<<< "".ltrim() >>>;
+<<< "  test String  ".ltrim() >>>;
