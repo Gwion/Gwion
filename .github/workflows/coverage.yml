@@ -80,11 +80,6 @@ jobs:
         cd gwion-coverage-report
         bash badge.sh
 
-    - name: Make html mail
-      uses: docker://pandoc/core:2.9
-      with:
-        args: "--from gfm --to html -o diff.html gwion-coverage-report/diff.md"
-
     - name: Push Report
       if: github.event_name == 'push'
       run: |
