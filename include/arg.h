@@ -9,9 +9,9 @@ typedef struct Arg_ {
   struct Vector_ config;
   struct SoundInfo_ *si;
   m_bool loop;
-  m_bool read_stdin;
 } Arg;
 
 ANN void arg_release(Arg*);
 ANN m_bool arg_parse(const Gwion, Arg*);
+ANN void arg_compile(const Gwion, Arg*);
 #endif

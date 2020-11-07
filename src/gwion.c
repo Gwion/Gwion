@@ -27,11 +27,6 @@ ANN static inline m_bool gwion_engine(const Gwion gwion) {
   return type_engine_init(gwion) > 0;
 }
 
-ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
-  for(m_uint i = 0; i < vector_size(v); i++)
-    compile_filename(gwion, (m_str)vector_at(v, i));
-}
-
 ANN static void gwion_cleaner(const Gwion gwion) {
   const VM_Code code = new_vm_code(gwion->mp, NULL, 0, 1, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
@@ -67,9 +62,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
     plug_run(gwion, &arg->mod);
     if(gwion_engine(gwion)) {
       gwion_cleaner(gwion);
-      gwion_compile(gwion, &arg->add);
-      if(arg->read_stdin)
-        compile_file(gwion, "stdin", stdin);
+      (void)arg_compile(gwion, arg);
       return GW_OK;
     }
   }
