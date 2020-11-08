@@ -405,7 +405,7 @@ ANN static m_bool scan1_union_def_action(const Env env, const Union_Def udef,
   CHECK_BB(scan1_exp(env, l->self))
 
   Var_Decl_List list = decl.list;
-  do ADD_REF(list->self->value)
+  do value_addref(list->self->value);
   while((list = list->next));
 
   if(global)

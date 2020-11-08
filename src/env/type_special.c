@@ -19,7 +19,7 @@ typedef struct {
 ANN static Type specialtype_create(const Env env, const SpecialType *s) {
   const Type t = type_copy(env->gwion->mp, s->type);
   if(t->nspc)
-    ADD_REF(t->nspc)
+    nspc_addref(t->nspc);
   t->name = s_name(s->name);
   t->flag = s->type->flag;
   t->tflag |= s->type->tflag | s->flag;

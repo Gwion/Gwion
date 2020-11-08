@@ -1896,7 +1896,7 @@ ANN static void emit_func_def_return(const Emitter emit) {
 ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
   if(f->def->base->xid == insert_symbol("@dtor")) {
     emit->env->class_def->nspc->dtor = f->code = finalyze(emit, DTOR_EOC);
-    ADD_REF(f->code)
+    vmcode_addref(f->code);
     return f->code;
   } else if(f->def->base->xid == insert_symbol("@gack")) {
     regpop(emit, SZ_INT + f->value_ref->from->owner_class->size);

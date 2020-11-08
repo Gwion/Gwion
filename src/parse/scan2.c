@@ -345,7 +345,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   valuefrom(env, v->from);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
-    ADD_REF(v);
+    value_addref(v);
     nspc_add_value_front(env->curr, f->def->base->xid, v);
   } else if(overload->d.func_ref) {
     f->next = overload->d.func_ref->next;
@@ -385,7 +385,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
             "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
           if(!overload) {
-            ADD_REF(value)
+            value_addref(value);
             nspc_add_value(env->curr, f->base->xid, value);
           }
           func->vt_index = ff->vt_index;
@@ -398,7 +398,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
   if(!overload) {
-    ADD_REF(value)
+    value_addref(value);
     nspc_add_value(env->curr, f->base->xid, value);
     nspc_add_func(env->curr, f->base->xid, func);
   } else

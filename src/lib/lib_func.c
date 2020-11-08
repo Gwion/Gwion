@@ -207,7 +207,7 @@ static OP_CHECK(opck_auto_fptr) {
   const m_bool ret = traverse_fptr_def(env, fptr_def);
   const Type t = fptr_def->type;
   free_fptr_def(env->gwion->mp, fptr_def);
-  REM_REF(t, env->gwion)
+  type_remref(t, env->gwion);
   bin->rhs->d.exp_decl.list->self->value->type = bin->rhs->info->type = bin->rhs->d.exp_decl.type = t;
   exp_setvar(bin->rhs, 1);
   return ret > 0 ? t : env->gwion->type[et_null];
@@ -336,7 +336,7 @@ static OP_EMIT(opem_spork) {
 }
 
 static FREEARG(freearg_xork) {
-  REM_REF((VM_Code)instr->m_val, gwion)
+  vmcode_remref((VM_Code)instr->m_val, gwion);
 }
 
 static FREEARG(freearg_dottmpl) {

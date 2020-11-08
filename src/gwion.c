@@ -167,6 +167,6 @@ ANN void push_global(struct Gwion_ *gwion, const m_str name) {
 
 ANN Nspc pop_global(struct Gwion_ *gwion) {
   const Nspc nspc = gwion->env->global_nspc->parent;
-  REM_REF(gwion->env->global_nspc, gwion)
+  nspc_remref(gwion->env->global_nspc, gwion);
   return gwion->env->curr = gwion->env->global_nspc = nspc;
 }

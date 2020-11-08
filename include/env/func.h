@@ -16,10 +16,14 @@ struct Func_ {
   Value value_ref;
   Func next;
   size_t vt_index;
-  HAS_OBJ
+  uint16_t ref;
   ae_flag flag;
   enum fflag fflag;
 };
+
+ANN void free_func(const Func, struct Gwion_*const);
+ANN static inline void func_addref(const Func f) { ++f->ref; }
+ANN static inline void func_remref(const Func f, struct Gwion_ *const gwion) { if(!--f->ref) free_func(f, gwion); }
 
 static inline int fflag(const Func f, const enum fflag flag) {
   return (f->fflag & flag) == flag;

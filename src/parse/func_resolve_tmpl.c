@@ -83,7 +83,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
         nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
     }
     if(fptr->type)
-      REM_REF(fptr->type, env->gwion)
+      type_remref(fptr->type, env->gwion);
     free_fptr_def(env->gwion->mp, fptr);
   }
   return m_func;

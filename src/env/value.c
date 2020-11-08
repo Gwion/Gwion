@@ -4,7 +4,7 @@
 #include "vm.h"
 #include "gwion.h"
 
-ANN static void free_value(Value a, Gwion gwion) {
+ANN void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
   if(!vflag(a, vflag_func) && a->d.ptr && !vflag(a, vflag_direct) &&
       !(vflag(a, vflag_enum) && vflag(a, vflag_builtin) && a->from->owner_class)
@@ -13,7 +13,7 @@ ANN static void free_value(Value a, Gwion gwion) {
   else if(vflag(a, vflag_freeme))
     xfree(a->d.ptr);
   if(is_class(gwion, t))
-    REM_REF(t, gwion)
+    type_remref(t, gwion);
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);
 }
@@ -23,7 +23,7 @@ ANN Value new_value(MemPool p, const Type type, const m_str name) {
   a->from = mp_calloc(p, ValueFrom);
   a->type       = type;
   a->name       = name;
-  a->ref = new_refcount(p, free_value);
+  a->ref = 1;
   return a;
 }
 

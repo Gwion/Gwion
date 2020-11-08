@@ -17,9 +17,12 @@ struct Nspc_ {
   struct VM_Code_*   pre_ctor;
   struct VM_Code_*   dtor;
   struct NspcInfo_* info;
-  HAS_OBJ
+  uint16_t ref;
 };
 
+ANN void free_nspc(const Nspc, struct Gwion_*const);
+ANN static inline void nspc_addref(const Nspc  n) { ++n->ref; }
+ANN static inline void nspc_remref(const Nspc n, struct Gwion_ *const gwion) { if(!--n->ref) free_nspc(n, gwion); }
 extern ANEW ANN Nspc new_nspc(MemPool p, const m_str name);
 
 extern ANN void nspc_commit(const Nspc);

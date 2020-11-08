@@ -22,7 +22,7 @@ static m_int o_fork_thread, o_fork_cond, o_fork_mutex, o_shred_cancel, o_fork_do
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
-  ADD_REF(code)
+  vmcode_addref(code);
   sh->base = shred->base;
   return sh;
 }
@@ -197,7 +197,7 @@ static DTOR(fork_dtor) {
   if(!parent->gwion->data->child2.ptr)
     vector_init(&parent->gwion->data->child2);
   vector_add(&parent->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
-  REM_REF(ME(o)->code, ME(o)->info->vm->gwion);
+  vmcode_remref(ME(o)->code, ME(o)->info->vm->gwion);
   MUTEX_UNLOCK(parent->shreduler->mutex);
 }
 

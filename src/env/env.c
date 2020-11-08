@@ -43,7 +43,7 @@ ANN void env_reset(const Env env) {
 ANN void release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion) {
   const m_uint size = vector_size(&a->known_ctx);
   for(m_uint i = size + 1; --i;)
-    REM_REF((Context)vector_at(&a->known_ctx, i - 1), gwion);
+    context_remref((Context)vector_at(&a->known_ctx, i - 1), gwion);
 }
 
 ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
@@ -80,7 +80,7 @@ ANN void env_pop(const Env env, const m_uint scope) {
 
 ANN void env_add_type(const Env env, const Type type) {
   const Type v_type = type_copy(env->gwion->mp, env->gwion->type[et_class]);
-  ADD_REF(v_type);
+  type_addref(v_type);
   v_type->e->d.base_type = type;
   const Symbol sym = insert_symbol(type->name);
   nspc_add_type_front(env->curr, sym, type);
@@ -108,7 +108,7 @@ ANN m_bool type_engine_clean_prog(const Env env, m_bool *r) {
   if(ret > 0 || env->context->global)
     vector_add(&env->scope->known_ctx, (vtype)ctx);
   else //nspc_rollback(env->global_nspc);
-    REM_REF(ctx, env->gwion);
+    context_remref(ctx, env->gwion);
   unload_context(ctx, env);
   return ret;
 }

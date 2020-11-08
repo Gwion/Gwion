@@ -48,11 +48,14 @@ struct Type_ {
   size_t xid;
   size_t size;
   size_t array_depth;
-  HAS_OBJ
+  uint16_t ref;
   ae_flag flag;
   enum tflag tflag;
 };
 
+ANN void free_type(const Type, struct Gwion_*const);
+ANN static inline void type_addref(const Type t) { ++t->ref; }
+ANN static inline void type_remref(const Type t, struct Gwion_ *const gwion) { if(!--t->ref) free_type(t, gwion); }
 ANN static inline int tflag(const Type t, const enum tflag flag) {
   return (t->tflag & flag) == flag;
 }

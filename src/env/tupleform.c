@@ -28,7 +28,7 @@ ANN void tuple_contains(const Env env, const Value value) {
   const Vector v = &env->class_def->e->tuple->contains;
   const m_int idx = vector_size(v) ? vector_find(v, (vtype)t) : -1;
   if(idx == -1) {
-    ADD_REF(t);
+    type_addref(t);
     vector_add(v, (vtype)t);
   }
 }
@@ -58,7 +58,7 @@ ANN2(1) TupleForm new_tupleform(MemPool p, const Type parent_type) {
 
 ANN void free_tupleform(const TupleForm tuple, const struct Gwion_ *gwion) {
   for(m_uint i = 0; i < vector_size(&tuple->contains); ++i)
-    REM_REF((Type)vector_at(&tuple->contains, i), (void*)gwion);
+    type_remref((Type)vector_at(&tuple->contains, i), (void*)gwion);
   vector_release(&tuple->contains);
   vector_release(&tuple->types);
   vector_release(&tuple->offset);

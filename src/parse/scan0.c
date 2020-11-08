@@ -86,7 +86,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   set_vflag(fptr->value, vflag_func);
   add_type(env, t->e->owner, t);
   mk_class(env, t);
-  ADD_REF(t);
+  type_addref(t);
   return GW_OK;
 }
 
@@ -124,7 +124,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   t->e->owner_class = env->class_def;
   tdef->type = t;
   if(base->nspc)
-    ADD_REF((t->nspc = base->nspc));
+    nspc_addref((t->nspc = base->nspc));
   t->flag = tdef->ext->flag;
   scan0_implicit_similar(env, t, base);
   if(tdef->ext->array && !tdef->ext->array->exp)
@@ -144,7 +144,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type
 
 ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base) {
   tdef->type = type_copy(env->gwion->mp, base);
-  ADD_REF(tdef->type->nspc)
+  nspc_addref(tdef->type->nspc);
   tdef->type->name = s_name(tdef->xid);
   tdef->type->e->parent = base;
   add_type(env, env->curr, tdef->type);

@@ -26,7 +26,7 @@ ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
   free_vector(gwion->mp, v);
 }
 
-ANN static void free_vm_code(VM_Code a, Gwion gwion) {
+ANN void free_vm_code(VM_Code a, Gwion gwion) {
   if(a->memoize)
     memoize_end(gwion->mp, a->memoize);
   if(!a->builtin) {
@@ -67,7 +67,7 @@ VM_Code new_vm_code(MemPool p, const Vector instr, const m_uint stack_depth,
   code->name             = mstrdup(p, name);
   code->stack_depth      = stack_depth;
   code->builtin = builtin;
-  code->ref = new_refcount(p, free_vm_code);
+  code->ref = 1;
   return code;
 }
 

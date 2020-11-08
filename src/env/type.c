@@ -12,7 +12,7 @@ ANN static inline m_bool freeable(const Type a) {
   return !(tflag(a, tflag_force) || tflag(a, tflag_nonnull)) && (tflag(a, tflag_tmpl) ||GET_FLAG(a, global));
 }
 
-ANN static void free_type(Type a, Gwion gwion) {
+ANN void free_type(const Type a, struct Gwion_ *const gwion) {
   if(freeable(a)) {
     if(tflag(a, tflag_udef))
       free_union_def(gwion->mp, a->e->udef);
@@ -20,7 +20,7 @@ ANN static void free_type(Type a, Gwion gwion) {
       class_def_cleaner(gwion, a->e->cdef);
   }
   if(a->nspc)
-    REM_REF(a->nspc, gwion);
+    nspc_remref(a->nspc, gwion);
   if(a->e->tuple)
     free_tupleform(a->e->tuple, gwion);
   mp_free(gwion->mp, TypeInfo, a->e);
@@ -36,7 +36,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
   type->e->parent = parent;
   if(parent)
     type->size = parent->size;
-  type->ref = new_refcount(p, free_type);
+  type->ref = 1;
   return type;
 }
 
@@ -113,7 +113,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
     *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !tflag(src, tflag_struct)) ?
       object_release : struct_release;
   } else
-  ADD_REF((t->nspc = env->gwion->type[et_array]->nspc))
+  nspc_addref((t->nspc = env->gwion->type[et_array]->nspc));
   mk_class(env, t);
   nspc_add_type_front(src->e->owner, sym, t);
   return t;

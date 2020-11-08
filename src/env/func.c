@@ -5,12 +5,11 @@
 #include "gwion.h"
 #include "clean.h"
 
-ANN static void free_func(Func a, Gwion gwion) {
-//  if(GET_FLAG(a, template))
+ANN void free_func(Func a, Gwion gwion) {
   if(fflag(a, fflag_tmpl))
     func_def_cleaner(gwion, a->def);
   if(a->code)
-    REM_REF(a->code, gwion);
+    vmcode_remref(a->code, gwion);
   mp_free(gwion->mp, Func, a);
 }
 
@@ -18,7 +17,7 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
   Func func = mp_calloc(p, Func);
   func->name = name;
   func->def = def;
-  func->ref = new_refcount(p, free_func);
+  func->ref = 1;
   return func;
 }
 

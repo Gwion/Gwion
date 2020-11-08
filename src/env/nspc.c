@@ -44,7 +44,7 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
       nspc_release_object(a, v, gwion);
     else if(tflag(v->type, tflag_struct))
       nspc_release_struct(a, v, gwion);
-    REM_REF(v, gwion);
+    value_remref(v, gwion);
   }
   free_scope(gwion->mp, a->info->value);
 }
@@ -54,14 +54,14 @@ ANN static void nspc_free_##b(Nspc n, Gwion gwion) {\
   struct scope_iter iter = { n->info->b, 0, 0 };\
   A a;\
   while(scope_iter(&iter, &a) > 0) \
-    REM_REF(a, gwion);\
+    b##_remref(a, gwion);\
   free_scope(gwion->mp, n->info->b);\
 }
 
 describe_nspc_free(Func, func)
 describe_nspc_free(Type, type)
 
-ANN static void free_nspc(Nspc a, Gwion gwion) {
+ANN void free_nspc(const Nspc a, const Gwion gwion) {
   free_nspc_value(a, gwion);
   nspc_free_func(a, gwion);
   if(a->info->op_map.ptr)
@@ -73,9 +73,9 @@ ANN static void free_nspc(Nspc a, Gwion gwion) {
     vector_release(&a->info->vtable);
   mp_free(gwion->mp, NspcInfo, a->info);
   if(a->pre_ctor)
-    REM_REF(a->pre_ctor, gwion);
+    vmcode_remref(a->pre_ctor, gwion);
   if(a->dtor)
-    REM_REF(a->dtor, gwion);
+    vmcode_remref(a->dtor, gwion);
   mp_free(gwion->mp, Nspc, a);
 }
 
@@ -86,6 +86,6 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->info->value = new_scope(p);
   a->info->type = new_scope(p);
   a->info->func = new_scope(p);
-  a->ref = new_refcount(p, free_nspc);
+  a->ref = 1;
   return a;
 }

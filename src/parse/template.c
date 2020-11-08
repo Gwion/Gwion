@@ -66,7 +66,6 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   if(base_type)
     return base_type;
   const Type ret = type_copy(env->gwion->mp, t);
-  ADD_REF(ret->nspc)
   ret->e->parent = t;
   ret->name = s_name(sym);
   set_tflag(ret, tflag_ftmpl);
