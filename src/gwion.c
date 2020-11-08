@@ -13,21 +13,10 @@
 #include "pass.h" // fork_clean
 #include "shreduler_private.h"
 
-ANN static void driver_arg(const Gwion gwion, Driver *di) {
-  for(m_uint i = 0; i < map_size(&gwion->data->plug->drv); ++i) {
-    const m_str name = (m_str)VKEY(&gwion->data->plug->drv, i);
-    const size_t len = strlen(name);
-    if(!strncmp(name, di->si->arg, len)) {
-      di->func = (f_bbqset)VVAL(&gwion->data->plug->drv, i);
-      break;
-    }
-  }
-}
-
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
   if(di->si->arg)
-    driver_arg(gwion, di);
+    driver_ini(gwion);
   di->func(di->driver);
   CHECK_BB(di->driver->ini(gwion->vm, di));
   driver_alloc(di);
@@ -35,16 +24,11 @@ ANN m_bool gwion_audio(const Gwion gwion) {
 }
 
 ANN static inline m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion, &gwion->data->plug->vec[GWPLUG_IMPORT]) > 0;
-}
-
-ANN static inline void gwion_compile(const Gwion gwion, const Vector v) {
-  for(m_uint i = 0; i < vector_size(v); i++)
-    compile_filename(gwion, (m_str)vector_at(v, i));
+  return type_engine_init(gwion) > 0;
 }
 
 ANN static void gwion_cleaner(const Gwion gwion) {
-  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, ae_flag_builtin, "in code dtor");
+  const VM_Code code = new_vm_code(gwion->mp, NULL, 0, 1, "in code dtor");
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
 }
@@ -72,15 +56,13 @@ ANN static void gwion_core(const Gwion gwion) {
 }
 
 ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
-  gwion->data->plug = new_pluginfo(gwion->mp, &arg->lib);
+  CHECK_BB(plug_ini(gwion, &arg->lib))
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);
     if(gwion_engine(gwion)) {
       gwion_cleaner(gwion);
-      gwion_compile(gwion, &arg->add);
-      if(arg->read_stdin)
-        compile_file(gwion, "stdin", stdin);
+      (void)arg_compile(gwion, arg);
       return GW_OK;
     }
   }
@@ -185,6 +167,6 @@ ANN void push_global(struct Gwion_ *gwion, const m_str name) {
 
 ANN Nspc pop_global(struct Gwion_ *gwion) {
   const Nspc nspc = gwion->env->global_nspc->parent;
-  REM_REF(gwion->env->global_nspc, gwion)
+  nspc_remref(gwion->env->global_nspc, gwion);
   return gwion->env->curr = gwion->env->global_nspc = nspc;
 }

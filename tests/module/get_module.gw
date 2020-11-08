@@ -1,0 +1,2 @@
+#require get_module
+<<< __file__ >>>;

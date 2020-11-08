@@ -1,0 +1,9 @@
+#! [contains] override final
+class C {
+  fun final void test() { <<< "final" >>>;}
+}
+
+class D extends C {
+  fun void test() { <<< "final" >>>;}
+}
+var D d;

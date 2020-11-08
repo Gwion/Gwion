@@ -1,0 +1,2 @@
+#require typedef_fail
+<<< __file__ >>>;

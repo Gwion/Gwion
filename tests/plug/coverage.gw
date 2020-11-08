@@ -1,0 +1,19 @@
+#require coverage
+#require coverage
+
+<<< var float f >>>;
+var Coverage c;
+c.s_i;
+<<<  Coverage.i()  >>>;
+<<<  Coverage.f()  >>>;
+
+<<< Coverage.s_i  >>>;
+<<< Coverage.s_f  >>>;
+
+<<< Coverage.sc_i  >>>;
+<<< Coverage.sc_f  >>>;
+
+<<<  1 => Coverage.s_i  >>>;
+<<<  1.2 => Coverage.s_f  >>>;
+
+<<< c.test_array[0][0] >>>;

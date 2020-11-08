@@ -1,0 +1,13 @@
+#require fptr
+fun void test(){ <<< "test" >>>; }
+var PtrType ptr;
+test();
+test @=> ptr;
+ptr();
+
+
+FuncTypedef.test_func();
+<<< FuncTypedef.test_func @=> FuncTypedef.ptr >>>;
+var FuncTypedef.PtrType _ptr;
+<<< FuncTypedef.ptr >>>;
+FuncTypedef.ptr();

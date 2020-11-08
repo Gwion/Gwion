@@ -259,7 +259,7 @@ static INSTR(UsrUGenTick) {
   if(!code)
     Except(shred, "[NullTickException]");
   uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));
-  ADD_REF(*(VM_Code*)(shred->reg - offset));
+  vmcode_addref(*(VM_Code*)(shred->reg - offset));
   uu->shred->info->vm = shred->info->vm;
   code_prepare(uu->shred->code);
   shreduler_ini(uu->shred->info->vm->shreduler, uu->shred);

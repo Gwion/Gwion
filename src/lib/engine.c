@@ -74,9 +74,9 @@ OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
+  set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_gack(gwi, t_class, gack_class)) // not working yet
-  GWI_BB(gwi_add_type(gwi, t_class))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
@@ -84,9 +84,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
-  SET_FLAG(t_auto, infer);
+  set_tflag(t_auto, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
-  SET_FLAG(t_class, infer);
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
@@ -125,7 +124,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
   GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
-  SET_FLAG(t_lambda, infer);
+  set_tflag(t_lambda, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
@@ -164,19 +163,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   return GW_OK;
 }
 
-ANN m_bool type_engine_init(const Gwion gwion, const Vector plug_dirs) {
+ANN m_bool type_engine_init(const Gwion gwion) {
   gwion->env->name = "[builtin]";
-  struct loc_t_ loc = {};
-  OperCK oper = {};
-  struct Gwi_ gwi = { .gwion=gwion, .loc=&loc, .oper=&oper };
-  CHECK_BB(import_core_libs(&gwi))
-  push_global(gwion, "[plugins]");
-  gwion->env->name = "[imported]";
-  for(m_uint i = 0; i < vector_size(plug_dirs); ++i) {
-    m_bool (*import)(Gwi) = (m_bool(*)(Gwi))vector_at(plug_dirs, i);
-    if(import && import(&gwi) < 0)
-      gwi_reset(&gwi);
-  }
+  CHECK_BB(gwi_run(gwion, import_core_libs))
   push_global(gwion, "[user]");
   return GW_OK;
 }

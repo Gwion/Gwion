@@ -1,0 +1,2 @@
+#require typedef_tmpl
+<<< __file__ >>>;

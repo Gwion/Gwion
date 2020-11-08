@@ -7,7 +7,7 @@ struct EnvSet {
   const envset_func func;
   const void *data;
   const m_int scope;
-  const ae_flag flag;
+  const enum tflag flag;
   m_bool run;
 };
 

@@ -1,0 +1,2 @@
+#require compile_file
+<<< __file__ >>>;

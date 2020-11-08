@@ -1,7 +1,0 @@
-#! [contains] can't inherit
-class C extends TypedFork:[int] {
-
-}
-
-var C c;
-c.exit();

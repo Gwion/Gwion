@@ -62,7 +62,7 @@ ANN static void clean_var_decl(Clean *a, Var_Decl b) {
   if(b->array)
     clean_array_sub(a, b->array);
   if(a->scope && b->value)
-    REM_REF(b->value, a->gwion)
+    value_remref(b->value, a->gwion);
 }
 
 ANN static void clean_var_decl_list(Clean *a, Var_Decl_List b) {
@@ -171,7 +171,7 @@ ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
   if(b->v)
-    REM_REF(b->v, a->gwion)
+    value_remref(b->v, a->gwion);
   --a->scope;
 }
 
@@ -278,7 +278,7 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
 ANN static void clean_func_def(Clean *a, Func_Def b) {
   clean_func_base(a, b->base);
   ++a->scope;
-  if(b->d.code && !GET_FLAG(b->base, builtin))
+  if(b->d.code && !(b->base->func && vflag(b->base->func->value_ref, vflag_builtin)))
     clean_stmt(a, b->d.code);
   else
     b->d.code = NULL;
@@ -316,7 +316,7 @@ ANN static void clean_union_def(Clean *a, Union_Def b) {
 ANN static void clean_fptr_def(Clean *a, Fptr_Def b) {
   clean_func_base(a, b->base);
   if(b->type)
-    REM_REF(b->type, a->gwion)
+    type_remref(b->type, a->gwion);
 }
 
 ANN static void clean_type_def(Clean *a, Type_Def b) {

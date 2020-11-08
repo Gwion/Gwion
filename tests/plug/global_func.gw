@@ -1,0 +1,3 @@
+#require global_func
+<<< test >>>;
+<<< 1 => test >>>;

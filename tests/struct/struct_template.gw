@@ -3,8 +3,8 @@ struct S:[A] {
   var A a1;
 }
 
-var D:[int] si;
-var D:[float] sf;
+var S:[int] si;
+var S:[float] sf;
 
 <<< si.a0 >>>;
 <<< sf.a0 >>>;

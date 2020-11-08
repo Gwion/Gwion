@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #20
+# [test] #21
 
 n=0
 [ "$1" ] && n="$1"
@@ -50,12 +50,12 @@ run "$n" "arg is a directory" "-p src" "file"
 
 # config
 n=$((n+1))
-RC=tmp_gwionrc
-cat << EOF >> "$RC"
+RC=./tmp_gwionrc
+cat << EOF > "$RC"
 -p.
 -l0
 EOF
-run "$n" "config" "-c $RC" "file"
+run "$n" "config" "-c$RC" "file"
 rm "$RC"
 
 # loop
@@ -77,6 +77,10 @@ run "$n" "no pass" "-g nopass" "file"
 # option needs argument
 n=$((n+1))
 run "$n" "option needs argument" "-p" "file"
+
+# option needs argument
+n=$((n+1))
+echo "<<< __file__ >>>;" | run "$n" "stdin" "-" "file"
 
 # invalid global type
 n=$((n+1))

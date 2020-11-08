@@ -1,0 +1,2 @@
+#require class_template_fail
+<<< __file__ >>>;

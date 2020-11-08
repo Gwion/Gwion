@@ -1,0 +1,2 @@
+#require callback
+<<< __file__ >>>;

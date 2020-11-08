@@ -63,6 +63,7 @@ struct dottmpl_ {
   Nspc owner;
   size_t vt_index;
   Type_List tl;
+  void* xfun;// (type is f_xfun)
 };
 ANN void free_dottmpl(struct dottmpl_*);
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt);

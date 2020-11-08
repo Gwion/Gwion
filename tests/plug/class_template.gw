@@ -1,0 +1,3 @@
+#require class_template
+var ClassTemplate:[int, int] ct;
+<<< ct.key >>>;

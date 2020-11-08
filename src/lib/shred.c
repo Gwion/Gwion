@@ -22,7 +22,7 @@ static m_int o_fork_thread, o_fork_cond, o_fork_mutex, o_shred_cancel, o_fork_do
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
-  ADD_REF(code)
+  vmcode_addref(code);
   sh->base = shred->base;
   return sh;
 }
@@ -197,7 +197,7 @@ static DTOR(fork_dtor) {
   if(!parent->gwion->data->child2.ptr)
     vector_init(&parent->gwion->data->child2);
   vector_add(&parent->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
-  REM_REF(ME(o)->code, ME(o)->info->vm->gwion);
+  vmcode_remref(ME(o)->code, ME(o)->info->vm->gwion);
   MUTEX_UNLOCK(parent->shreduler->mutex);
 }
 
@@ -373,12 +373,11 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "float", "get_now");
   GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-  gwi_set_global_type(gwi, t_shred, et_shred);
+  SET_FLAG(t_shred, abstract | ae_flag_final);
+  gwi->gwion->type[et_shred] = t_shred;
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);
-
-  SET_FLAG(t_shred, abstract);
 
   const Type t_fork= gwi_class_ini(gwi,  "Fork", "Shred");
   gwi_class_xtor(gwi, NULL, fork_dtor);
@@ -401,13 +400,13 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "void", "test_cancel");
   GWI_BB(gwi_func_end(gwi, fork_test_cancel, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG((t_fork), abstract);
+  SET_FLAG(t_fork, abstract | ae_flag_final);
 
   const Type t_typed = gwi_class_ini(gwi,  "TypedFork:[A]", "Fork");
   gwi_item_ini(gwi, "A", "retval");
   GWI_BB((gwi_item_end(gwi, ae_flag_const, NULL)))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG((t_typed), abstract);
-
+  SET_FLAG(t_typed, abstract | ae_flag_final);
+  set_tflag(t_typed, tflag_ntmpl);
   return GW_OK;
 }

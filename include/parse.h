@@ -48,7 +48,7 @@ ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) { \
 
 ANN m_uint union_push(const Env, const Union_Def);
 ANN void union_pop(const Env, const Union_Def, const m_uint);
-ANN void union_flag(const Union_Def, const ae_flag);
+ANN void union_flag(const Union_Def, const enum tflag);
 ANN m_bool check_stmt(const Env env, const Stmt stmt);
 
 typedef m_bool (*_exp_func)(const void*, const void*);
@@ -58,25 +58,19 @@ static inline ANN m_bool env_body(const Env env, const Class_Def cdef, const _ex
 }
 #define env_body(a,b,c) env_body(a,b,(_exp_func)c)
 
-ANN m_bool scanx_cdef(const Env, void *,const Class_Def,
+ANN m_bool scanx_cdef(const Env, void *, const Type,
   const _exp_func f_cdef, const _exp_func f_union);
 
-#define xxx_cdef(prefix)                                                  \
-static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
-  return scanx_cdef(env, env, cdef,                                       \
-      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);      \
+#define xxx_cdef(prefix)                                             \
+static inline m_bool prefix##_cdef(const Env env, const Type t) {    \
+  return scanx_cdef(env, env, t,                                     \
+      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def); \
 }
 
-#define xxx_cdef_flag(prefix)                                             \
-static inline m_bool prefix##_cdef(const Env env, const Class_Def cdef) { \
-  SET_FLAG(cdef, prefix);                                                 \
-  return scanx_cdef(env, env, cdef,                                       \
-      (_exp_func)prefix##_class_def, (_exp_func)prefix##_union_def);      \
-}
-xxx_cdef_flag(scan0)
-xxx_cdef_flag(scan1)
-xxx_cdef_flag(scan2)
-xxx_cdef_flag(check)
+xxx_cdef(scan0)
+xxx_cdef(scan1)
+xxx_cdef(scan2)
+xxx_cdef(check)
 xxx_cdef(traverse)
 
 ANN m_bool scanx_fdef(const Env, void *, const Func_Def, const _exp_func);

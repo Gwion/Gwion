@@ -1,0 +1,4 @@
+#! [contains] inherit from final parent
+class final C {}
+
+class D extends C {}

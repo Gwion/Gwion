@@ -59,7 +59,7 @@ static OP_CHECK(opck_ptr_cast) {
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
   DECL_ON(const Type, t, = known_type(env, cast->td))
   const Type _t = get_type(t);
-  if(_t->e->def && !GET_FLAG(_t, check))
+  if(_t->e->cdef && !tflag(_t, tflag_check))
     CHECK_BN(ensure_traverse(env, _t))
   const Type to = known_type(env, cast->td->types->td);
   if(isa(cast->exp->info->type, to) > 0)
@@ -78,8 +78,8 @@ static OP_CHECK(opck_ptr_implicit) {
     e->info->cast_to = imp->t;
     exp_setvar(e, 1);
     const Type t = get_type(imp->t);
-    if(!GET_FLAG(t, check))
-      CHECK_BN(traverse_class_def(env, t->e->def))
+    if(!tflag(t, tflag_check))
+      CHECK_BN(traverse_class_def(env, t->e->cdef))
     return imp->t;
   }
   return NULL;
@@ -139,14 +139,16 @@ static DTOR(ptr_struct_dtor) {
 static OP_CHECK(opck_ptr_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
   DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
-  const Type base = known_type(env, t->e->def->base.tmpl->call->td);
+set_tflag(t, tflag_tmpl);
+//if(!tflag(t, tflag_scan1))exit(3);
+  const Type base = known_type(env, t->e->cdef->base.tmpl->call->td);
   if(isa(base, env->gwion->type[et_compound]) > 0 && !t->nspc->dtor) {
-    t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, ae_flag_member | ae_flag_builtin, "@PtrDtor");
-    if(!GET_FLAG(t, struct))
+    t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
+    if(!tflag(t, tflag_struct))
       t->nspc->dtor->native_func = (m_uint)ptr_object_dtor;
     else
       t->nspc->dtor->native_func = (m_uint)ptr_struct_dtor;
-    SET_FLAG(t, dtor);
+    set_tflag(t, tflag_dtor);
   }
   return t;
 }
@@ -154,7 +156,8 @@ static OP_CHECK(opck_ptr_scan) {
 GWION_IMPORT(ptr) {
   const Type _t_ptr = gwi_class_ini(gwi, "@Ptr", NULL);
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG(_t_ptr, unary);
+  set_tflag(_t_ptr, tflag_ntmpl);
+//  set_tflag(_t_ptr, tflag_tmpl);
   GWI_BB(gwi_oper_ini(gwi, "@Ptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
@@ -163,7 +166,8 @@ GWION_IMPORT(ptr) {
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
   GWI_BB(gwi_class_end(gwi))
-  SET_FLAG(t_ptr, unary);
+  set_tflag(t_ptr, tflag_ntmpl);
+//  set_tflag(t_ptr, tflag_tmpl);
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "nonnull Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_assign))
   GWI_BB(gwi_oper_end(gwi, ":=>", instr_ptr_assign))

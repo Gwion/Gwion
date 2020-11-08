@@ -1,0 +1,3 @@
+#require deps
+
+<<< __file__ >>>;

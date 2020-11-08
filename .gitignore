@@ -10,3 +10,5 @@ mkdocs.yml
 *.a
 *.o
 *.so
+*.gcda
+*.gcno

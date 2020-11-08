@@ -40,7 +40,7 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
 }
 
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = GET_FLAG(fdef->base, valid) || check_traverse_fdef(env, fdef) > 0;
+  const m_bool ret = (fdef->base->func && fflag(fdef->base->func, fflag_valid)) || check_traverse_fdef(env, fdef) > 0;
   if(ret) {
     const Func f = fdef->base->func;
     const Func next = f->next;
@@ -48,7 +48,8 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
     const Func func = find_func_match(env, f, exp->args);
     f->next = next;
     if(func) {
-      SET_FLAG(func, valid | ae_flag_template);
+      set_fflag(func, fflag_tmpl);
+      set_fflag(func, fflag_valid);
       return func;
     }
   }
@@ -65,7 +66,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
   if(exists)
     return exists->e->d.func;
 
-  Func m_func = f_ptr_args->m_func; 
+  Func m_func = f_ptr_args->m_func;
   Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->e->d.func->def;
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
@@ -82,7 +83,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
         nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
     }
     if(fptr->type)
-      REM_REF(fptr->type, env->gwion)
+      type_remref(fptr->type, env->gwion);
     free_fptr_def(env->gwion->mp, fptr);
   }
   return m_func;
@@ -92,7 +93,7 @@ ANN static Func func_match(const Env env, struct ResolverArgs* f_ptr_args) {
   const Value v = f_ptr_args->v;
   const m_str tmpl_name = f_ptr_args->tmpl_name;
   const Exp_Call *exp = f_ptr_args->e;
-  Func m_func = f_ptr_args->m_func; 
+  Func m_func = f_ptr_args->m_func;
   Type_List types = f_ptr_args->types;
   for(m_uint i = 0; i < v->from->offset + 1; ++i) {
     const Value exists = template_get_ready(env, v, tmpl_name, i);
@@ -110,12 +111,9 @@ ANN static Func func_match(const Env env, struct ResolverArgs* f_ptr_args) {
       const Value value = template_get_ready(env, v, "template", i);
       if(!value)
         continue;
-      if(GET_FLAG(v, builtin)) {
-        SET_FLAG(value, builtin);
-        SET_FLAG(value->d.func_ref, builtin);
-      }
+      if(vflag(v, vflag_builtin))
+        set_vflag(value, vflag_builtin);
       const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-      SET_FLAG(fdef->base, template);
       fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
       fdef->base->tmpl->base = i;
       if((m_func = ensure_tmpl(env, fdef, exp))) {
@@ -136,7 +134,7 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
   const m_uint scope = env->scope->depth;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
-    .scope=scope, .flag=ae_flag_check };
+    .scope=scope, .flag=tflag_check };
   struct ResolverArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);

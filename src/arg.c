@@ -6,6 +6,7 @@
 #include "gwion.h"
 #include "arg.h"
 #include "pass.h"
+#include "compile.h"
 
 #define GWIONRC ".gwionrc"
 
@@ -30,21 +31,52 @@ ANN static m_str plug_dir(void) {
   return plug_dir;
 }
 
+enum arg_type {
+  ARG_FILE,
+  ARG_STDIN,
+  ARG_DEFINE,
+  ARG_UNDEF,
+  ARG_INCLUDE
+};
+
 ANN static void arg_init(Arg* arg) {
+  map_init(&arg->mod);
   vector_init(&arg->add);
   vector_init(&arg->lib);
-  vector_init(&arg->mod);
   vector_init(&arg->config);
   vector_add(&arg->lib, (vtype)plug_dir());
 }
 
 ANN void arg_release(Arg* arg) {
+  map_release(&arg->mod);
   vector_release(&arg->add);
   xfree((m_str)vector_front(&arg->lib));
   vector_release(&arg->lib);
-  vector_release(&arg->mod);
   config_end(&arg->config);
   vector_release(&arg->config);
+}
+
+ANN void arg_compile(const Gwion gwion, Arg *arg) {
+  const Vector v = &arg->add;
+  for(m_uint i = 0; i < vector_size(v); i++) {
+    switch(vector_at(v, i)) {
+      case ARG_FILE:
+        compile_filename(gwion, (m_str)VPTR(v, ++i));
+        break;
+      case ARG_STDIN:
+        compile_file(gwion, "stdin", stdin);
+        break;
+      case ARG_DEFINE:
+        pparg_add(gwion->ppa, (m_str)VPTR(v, ++i));
+        break;
+      case ARG_UNDEF:
+        pparg_rem(gwion->ppa, (m_str)VPTR(v, ++i));
+        break;
+      case ARG_INCLUDE:
+        pparg_inc(gwion->ppa, (m_str)VPTR(v, ++i));
+        break;
+    }
+  }
 }
 
 static const char usage[] =
@@ -72,6 +104,15 @@ ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
   free_vector(gwion->mp, v);
 }
 
+ANN2(1) static void module_arg(const Map map, m_str str) {
+  m_str val = strchr(str, '=');
+  if(val) {
+    *val = '\0';
+    ++val;
+  }
+  map_set(map, (vtype)str, (vtype)val);
+}
+
 ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
   struct CArg *ca = &arg->arg;
   for(ca->idx = 1; ca->idx < ca->argc; ++ca->idx) {
@@ -91,7 +132,7 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
           break;
         case 'm':
           CHECK_OB((tmp = option_argument(ca)))
-          vector_add(&arg->mod, (vtype)tmp);
+          module_arg(&arg->mod, tmp);
           break;
         case 'l':
           CHECK_OB((tmp = option_argument(ca)))
@@ -118,14 +159,32 @@ ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
           arg_set_pass(gwion, tmp);
           break;
         case '\0':
-          arg->read_stdin = !arg->read_stdin;
+          vector_add(&arg->add, (vtype)ARG_STDIN);
+          break;
+        case 'D':
+          CHECK_OB((tmp = option_argument(ca)))
+          vector_add(&arg->add, (vtype)ARG_DEFINE);
+          vector_add(&arg->add, (vtype)tmp);
+          break;
+        case 'U':
+          CHECK_OB((tmp = option_argument(ca)))
+          vector_add(&arg->add, (vtype)ARG_UNDEF);
+          vector_add(&arg->add, (vtype)tmp);
+          break;
+        case 'I':
+          CHECK_OB((tmp = option_argument(ca)))
+          vector_add(&arg->add, (vtype)ARG_INCLUDE);
+          vector_add(&arg->add, (vtype)tmp);
           break;
         default:
           gw_err(_("invalid arguments"));
           return GW_ERROR;
       }
     } else
+{
+      vector_add(&arg->add, (vtype)ARG_FILE);
       vector_add(&arg->add, (vtype)ca->argv[ca->idx]);
+}
   }
   return GW_OK;
 }

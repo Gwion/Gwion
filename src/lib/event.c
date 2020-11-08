@@ -58,7 +58,7 @@ GWION_IMPORT(event) {
   gwi->gwion->type[et_event] = t_event; // use func
 
   GWI_BB(gwi_item_ini(gwi, "@internal", "@shreds"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_member, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   GWI_BB(gwi_func_ini(gwi, "void", "signal"))
   GWI_BB(gwi_func_end(gwi, event_signal, ae_flag_none))
   GWI_BB(gwi_func_ini(gwi, "void", "broadcast"))

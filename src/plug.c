@@ -1,6 +1,7 @@
 #ifndef BUILD_ON_WINDOWS
 #include <glob.h>
 #include <dlfcn.h>
+#include <limits.h>
 #else
 #include <windows.h>
 #endif
@@ -13,19 +14,13 @@
 #include "instr.h"
 #include "object.h"
 #include "import.h"
+#include "gwi.h"
 
-typedef m_bool (*import)(Gwi);
-typedef m_str  (*modstr)(void);
+typedef m_bool (*plugin)(Gwi);
 typedef void*  (*modini)(const struct Gwion_*, const Vector);
-typedef void*  (*modrun)(const struct Gwion_*, void*);
 typedef void*  (*modend)(const struct Gwion_*, void*);
+typedef m_str* (*gwdeps)(void);
 
-struct Plug_ {
-  m_str name;
-  modini ini;
-  modend end;
-  void* self;
-};
 #define STR_EXPAND(tok) #tok
 #define STR(tok) STR_EXPAND(tok)
 #ifndef BUILD_ON_WINDOWS
@@ -44,53 +39,32 @@ struct Plug_ {
 
 struct PlugHandle {
   MemPool mp;
-  PlugInfo* pi;
-  void *dl;
-  m_str file;
-  m_str name;
+  Map map;
+  size_t len;
 };
 
-ANN static struct Plug_* new_plug(MemPool p, const modini ini) {
+typedef struct Plug_ {
+  void *dl;
+  void *self;
+  int imp;
+} *Plug;
+
+ANN static struct Plug_* new_plug(MemPool p, void *dl) {
   struct Plug_ *plug = mp_calloc(p, Plug);
-  plug->ini  = ini;
+  plug->dl  = dl;
   return plug;
 }
 
-ANN static void plug_import(struct PlugHandle *h) {
-  const import imp = DLSYM(h->dl, import, GWIMPORT_NAME);
-  if(imp)
-    vector_add(&h->pi->vec[GWPLUG_IMPORT], (vtype)imp);
-}
-
-ANN static void plug_module(struct PlugHandle *h) {
-  const modini ini = DLSYM(h->dl, modini, GWMODINI_NAME);
-  if(ini) {
-    struct Plug_ *plug = new_plug(h->mp, ini);
-    plug->name = h->name;
-    plug->end  = DLSYM(h->dl, modend, GWMODEND_NAME);
-    vector_add(&h->pi->vec[GWPLUG_MODULE], (vtype)plug);
-  }
-}
-
-ANN static void plug_driver(struct PlugHandle *h) {
-  const f_bbqset drv = DLSYM(h->dl, f_bbqset, GWDRIVER_NAME);
-  if(drv)
-    map_set(&h->pi->drv, (vtype)h->name, (vtype)drv);
-}
-
-ANN static inline m_str plug_name(struct PlugHandle *h) {
-  const modstr str = DLSYM(h->dl, modstr, GWMODSTR_NAME);
-  return str ? str() : NULL;
-}
-
 ANN static void plug_get(struct PlugHandle *h, const m_str c) {
-  h->dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
-  if(h->dl) {
-    vector_add(&h->pi->vec[GWPLUG_DL], (vtype)h->dl);
-    h->name = plug_name(h);
-    plug_import(h);
-    plug_module(h);
-    plug_driver(h);
+  void *dl = DLOPEN(c, RTLD_LAZY | RTLD_GLOBAL);
+  const m_str pname = c + h->len + 1;
+  const size_t sz = strlen(pname) - 3;
+  char name[PATH_MAX];
+  memcpy(name, pname, sz);
+  name[sz] = '\0';
+  if(dl) {
+    Plug plug = new_plug(h->mp, dl);
+    map_set(h->map, (vtype)strdup(name), (vtype)plug);
   } else
     gw_err(_("error in %s."), DLERROR());
 }
@@ -113,74 +87,36 @@ ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {
     strcpy(c, name);
     strcpy(c + strlen(name) - 4, filedata.cFileName);
     plug_get(h, c);
-  } while(FindNextFile(file,&filedata));
+  } while(FindNextFile(file, &filedata));
   FindClose(file);
 #endif
 }
 
-ANN2(1) static void* pp_ini(const struct Gwion_ *gwion, const Vector v) {
-  pparg_run(gwion->ppa, v);
-  return NULL;
-}
-
-ANN static void register_pp(const struct PlugHandle* h) {
-  struct Plug_ *plug = new_plug(h->mp, pp_ini);
-  plug->name = "pp";
-  vector_add(&h->pi->vec[GWPLUG_MODULE], (vtype)plug);
-}
-
-ANN PlugInfo* new_pluginfo(MemPool p, const Vector list) {
-  PlugInfo *pi = (PlugInfo*)mp_calloc(p, PlugInfo);
-  for(m_uint i = 0; i < GWPLUG_LAST; ++i)
-    vector_init(&pi->vec[i]);
-  map_init(&pi->drv);
-  struct PlugHandle h = { .mp=p, .pi=pi };
-  register_pp(&h);
+ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
+  const Map map = &gwion->data->plug;
+  map_init(map);
+  struct PlugHandle h = { .mp=gwion->mp, .map=map };
   for(m_uint i = 0; i < vector_size(list); i++) {
     const m_str dir = (m_str)vector_at(list, i);
-    char name[strlen(dir) + 6];
+    h.len = strlen(dir);
+    char name[PATH_MAX];
     sprintf(name, "%s/*.so", dir);
     plug_get_all(&h, name);
   }
-  return pi;
-}
-
-ANN static void plug_free_module(const struct Gwion_* gwion, const Vector v) {
-  for(m_uint i = 0; i < vector_size(v); ++i) {
-    struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
-    if(plug->end)
-      plug->end(gwion, plug->self);
-    mp_free(gwion->mp, Plug, plug);
-  }
-}
-
-ANN static inline void plug_free_dls(const Vector v) {
-  for(m_uint i = 0; i < vector_size(v); ++i)
-    DLCLOSE((void*)vector_at(v, i));
+  return GW_OK;
 }
 
 void free_plug(const struct Gwion_ *gwion) {
-  PlugInfo *p = gwion->data->plug;
-  struct Vector_ * const v = p->vec;
-  plug_free_module(gwion, &v[GWPLUG_MODULE]);
-  plug_free_dls(&v[GWPLUG_DL]);
-  for(m_uint i = 0; i < GWPLUG_LAST; ++i)
-    vector_release(&v[i]);
-  map_release(&p->drv);
-  mp_free(gwion->mp, PlugInfo, p);
-}
-
-ANN static Vector get_arg(MemPool p, const m_str name, const Vector v) {
-  const size_t len = strlen(name);
-  for(m_uint i = vector_size(v) + 1; --i;) {
-    const m_str str = (m_str)vector_at(v, i - 1);
-    if(!strncmp(name, str, len)) {
-      vector_rem(v, i-1);
-      const m_str arg = strchr(str, '=');
-      return arg ? split_args(p, arg+1) : NULL;
-    }
+  const Map map = &gwion->data->plug;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    const Plug plug = (Plug)VVAL(map, i);
+    const modend end = DLSYM(plug->dl, modend, GWMODEND_NAME);
+    if(end)
+      end(gwion, plug->self);
+    free((m_str)VKEY(map, i));
+    DLCLOSE(plug->dl);
   }
-  return NULL;
+  map_release(map);
 }
 
 ANN static void plug_free_arg(MemPool p, const Vector v) {
@@ -189,23 +125,102 @@ ANN static void plug_free_arg(MemPool p, const Vector v) {
   free_vector(p, v);
 }
 
-ANN void plug_run(const struct Gwion_ *gwion, const Vector args) {
-  const Vector v = &gwion->data->plug->vec[GWPLUG_MODULE];
-  for(m_uint i = 0; i < vector_size(v); ++i) {
-    struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
-    const Vector arg = get_arg(gwion->mp, plug->name, args);
-    plug->self = plug->ini(gwion, arg);
-    if(arg)
-      plug_free_arg(gwion->mp, arg);
+ANN void set_module(const struct Gwion_ *gwion, const m_str name, void *const ptr) {
+  const Map map = &gwion->data->plug;
+  for(m_uint j = 0; j < map_size(map); ++j) {
+    if(!strcmp(name, (m_str)VKEY(map, j))) {
+      Plug plug = (Plug)VVAL(map, j);
+      plug->self = ptr;
+      return;
+    }
   }
 }
 
+ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {
+  const Map map = &gwion->data->plug;
+  for(m_uint i = 0; i < map_size(mod); ++i) {
+    const m_str name = (m_str)VKEY(mod, i);
+    const m_str opt = (m_str)VVAL(mod, i);
+    for(m_uint j = 0; j < map_size(map); ++j) {
+      if(!strcmp(name, (m_str)VKEY(map, j))) {
+        Plug plug = (Plug)VVAL(map, j);
+        const Vector arg = opt ? split_args(gwion->mp, opt) : NULL;
+        const modini ini = DLSYM(plug->dl, modini, GWMODINI_NAME);
+        plug->self = ini(gwion, arg);
+        if(arg)
+          plug_free_arg(gwion->mp, arg);
+      }
+    }
+  }
+}
+
+ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug) {
+  const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
+  if(dep) {
+    m_str *const base = dep();
+    m_str *deps = base;
+    while(*deps) {
+      CHECK_BB(plugin_ini(gwion, *deps))
+      ++deps;
+    }
+  }
+  return GW_OK;
+}
+
+ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
+  const Map map = &gwion->data->plug;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    const Plug plug = (Plug)VVAL(map, i);
+    const m_str name = (m_str)VKEY(map, i);
+    if(!strcmp(name, iname)) {
+      if(plug->imp)
+        return GW_OK;
+      const plugin imp = DLSYM(plug->dl, plugin, GWIMPORT_NAME);
+      if(!imp)
+        break;
+      plug->imp = 1;
+      CHECK_BB(dependencies(gwion, plug))
+      const m_uint scope = env_push_global(gwion->env);
+      const m_bool ret = gwi_run(gwion, imp);
+      env_pop(gwion->env, scope);
+      return ret;
+    }
+  }
+  gw_err("no such plugin '%s'\n", iname);
+  return GW_ERROR;
+}
+
+ANN m_bool driver_ini(const struct Gwion_ *gwion) {
+  const Map map = &gwion->data->plug;
+  m_str dname = gwion->vm->bbq->si->arg;
+  m_str opt = strchr(dname, '=');
+  const char c = opt ? *opt : '\0';
+  if(opt)
+    *opt = '\0';
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    const m_str name = (m_str)VKEY(map, i);
+    if(!strcmp(name, dname)) {
+      const Plug plug = (Plug)VVAL(map, i);
+      const f_bbqset drv = DLSYM(plug->dl, f_bbqset, GWDRIVER_NAME);
+      if(!drv)
+        break;
+      gwion->vm->bbq->func = drv;
+      if(opt)
+        *opt = c;
+      return GW_OK;
+    }
+  }
+  gw_err("can't find driver '%s'\n", dname);
+  return GW_ERROR;
+}
+
 ANN void* get_module(const struct Gwion_ *gwion, const m_str name) {
-  const Vector v = &gwion->data->plug->vec[GWPLUG_MODULE];
-  for(m_uint i = 0; i < vector_size(v); ++i) {
-    struct Plug_ *plug = (struct Plug_*)vector_at(v, i);
-    if(!strcmp(name, plug->name))
+  const Map map = &gwion->data->plug;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    if(!strcmp(name, (m_str)VKEY(map, i))) {
+      const Plug plug = (Plug)VVAL(map, i);
       return plug->self;
+    }
   }
   return NULL;
 }

@@ -6,12 +6,12 @@
 
 static m_str const special_name[] = { "^nonnull", "^force" };
 #define SPECIAL_LEN strlen(special_name[0]) + strlen(special_name[1])
-static const ae_flag special_flag[] = { ae_flag_nonnull, ae_flag_force };
+static const enum tflag special_flag[] = { tflag_nonnull, tflag_force };
 
 typedef struct {
   const Type    type;
   Symbol  name;
-  ae_flag flag;
+  enum tflag flag;
   uint st_type;
 } SpecialType;
 
@@ -19,22 +19,23 @@ typedef struct {
 ANN static Type specialtype_create(const Env env, const SpecialType *s) {
   const Type t = type_copy(env->gwion->mp, s->type);
   if(t->nspc)
-    ADD_REF(t->nspc)
+    nspc_addref(t->nspc);
   t->name = s_name(s->name);
-  t->flag = s->type->flag | s->flag;
+  t->flag = s->type->flag;
+  t->tflag |= s->type->tflag | s->flag;
   t->e->parent = unflag_type(s->type);
   nspc_add_type_front(s->type->e->owner, s->name, t);
   mk_class(env, t);
   return t;
 }
 
-static inline int get_flag(const Type t, const ae_flag flag) {
-  return (t->flag & flag) == flag;
+static inline int get_flag(const Type t, const enum tflag flag) {
+  return (t->tflag & flag) == flag;
 }
 
 
 ANN static void specialtype_flag(SpecialType *s, m_str c, const uint i) {
-  const ae_flag flag = special_flag[i];
+  const enum tflag flag = special_flag[i];
   if(i == s->st_type || get_flag(s->type, flag)) {
     strcat(c, special_name[i]);
     s->flag |= flag;

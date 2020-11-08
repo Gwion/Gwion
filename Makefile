@@ -11,13 +11,12 @@ SEVERITY ?= 10
 GWION_TEST_DIR ?= /tmp
 
 GWION_PACKAGE=gwion
-CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
 test_dir_all := $(wildcard tests/*)
-test_ignore = tests/import
+test_ignore = tests/plug test/driver tests/module
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
 

@@ -261,180 +261,99 @@ static MFUN(string_replaceN) {
 }
 
 static MFUN(string_find) {
-  const m_str str = STRING(o);
-  m_int i = 0, ret = -1;
-  char arg = *(m_int*)MEM(SZ_INT);
-  while(str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
-  *(m_uint*)RETURN = ret;
+  const m_str base = STRING(o);
+  char c = *(m_int*)MEM(SZ_INT);
+  char *str = strchr(base, c);
+  *(m_uint*)RETURN = str ? str - base : -1;
 }
 
 static MFUN(string_findStart) {
-  const m_str str = STRING(o);
-  const char pos = *(m_int*)MEM(SZ_INT);
-  const char arg = *(m_int*)MEM(SZ_INT * 2);
-  m_int i = pos, ret = -1;
-  if(!strlen(str)) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  while(str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
-  *(m_uint*)RETURN = ret;
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
+  const char pos = *(m_int*)MEM(SZ_INT *2);
+  if(pos >= 0 && (size_t)pos < sz) {
+    const char arg = *(m_int*)MEM(SZ_INT);
+    char *str = strchr(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
 }
 
 static MFUN(string_findStr) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  if(!obj) {
-    *(m_uint*)RETURN = 0;
-    return;
-  }
-  const m_str arg = STRING(obj);
-  const m_int len  = strlen(str);
-  m_int i = 0;
-  const m_int arg_len = strlen(arg);
-  while(i < len) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    const m_str str = strstr(base, arg);
+    *(m_uint*)RETURN = str ? str - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_findStrStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
-  const m_int start = *(m_int*)MEM(SZ_INT);
-  const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  if(!obj) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  const m_str arg = STRING(obj);
-  const m_int len  = strlen(str);
-  m_int i = start;
-  const m_int arg_len = strlen(arg);
-  while(i < len) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i++;
-  }
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
+  const char pos = *(m_int*)MEM(SZ_INT*2);
+  const M_Object obj = *(M_Object*)MEM(SZ_INT);
+  if(pos >= 0 && (size_t)pos < sz) {
+    const m_str arg = STRING(obj);
+    const m_str str = strstr(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos- base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfind) {
-  const m_str str = STRING(o);
-  m_int i = strlen(str) - 1, ret = -1;
-  const char arg = *(m_int*)MEM(SZ_INT);
-  while(i > -1 && str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
-  *(m_uint*)RETURN = ret;
+  const m_str base = STRING(o);
+  char c = *(m_int*)MEM(SZ_INT);
+  char *str = strrchr(base, c);
+  *(m_uint*)RETURN = str ? str - base : -1;
 }
 
 static MFUN(string_rfindStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const char pos = *(m_int*)MEM(SZ_INT);
-  const char arg = *(m_int*)MEM(SZ_INT * 2);
-  m_int i = pos, ret = -1;
-  while(i > 0 && str[i] != '\0') {
-    if(str[i] == arg) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
-  *(m_uint*)RETURN = ret;
+  if(pos >= 0 && (size_t)pos < sz) {
+    const char arg = *(m_int*)MEM(SZ_INT * 2);
+    char *str = strrchr(base + pos, arg);
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
 }
 
 static MFUN(string_rfindStr) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
   const M_Object obj = *(M_Object*)MEM(SZ_INT);
-  const m_str arg = STRING(o);
-  const m_int len  = strlen(str);
-  m_int i = len - 1;
-  const m_int arg_len = strlen(arg);
-  while(i) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    m_str tmp = base, str = NULL;
+    while((tmp = strstr(tmp, arg)))
+      str = tmp++;
+    *(m_uint*)RETURN = str ? str - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_rfindStrStart) {
-  if(!strlen(STRING(o))) {
-    *(M_Object*)RETURN = NULL;
-    return;
-  }
-  char str[strlen(STRING(o)) + 1];
-  strcpy(str, STRING(o));
-  m_int ret = -1;
-  m_int start = *(m_int*)MEM(SZ_INT);
+  const m_str base = STRING(o);
+  const size_t sz = strlen(base);
+  const char pos = *(m_int*)MEM(SZ_INT *2);
   const M_Object obj = *(M_Object*)MEM(SZ_INT * 2);
-  if(!obj) {
-    *(m_uint*)RETURN = 0;
-    return;
-  }
-  m_str arg = STRING(obj);
-
-  m_int i = start;
-  const m_int arg_len = strlen(arg);
-  while(i > -1) {
-    if(!strncmp(str + i, arg, arg_len)) {
-      ret = i;
-      break;
-    }
-    i--;
-  }
+  if(sz) {
+    const m_str arg = STRING(obj);
+    m_str tmp = base + pos, str = NULL;
+    while((tmp = strstr(tmp, arg)))
+      str = tmp++;
+    *(m_uint*)RETURN = str ? str - pos - base : -1;
+  } else
+    *(m_uint*)RETURN = -1;
   release(obj, shred);
-  *(m_uint*)RETURN = ret;
 }
 
 static MFUN(string_erase) {
@@ -458,9 +377,9 @@ static MFUN(string_erase) {
 
 GWION_IMPORT(string) {
   const Type t_string = gwi_class_ini(gwi, "string", NULL);
+  gwi->gwion->type[et_string] = t_string; // use func
   gwi_class_xtor(gwi, string_ctor, NULL);
   GWI_BB(gwi_gack(gwi, t_string, gack_string))
-  gwi->gwion->type[et_string] = t_string; // use func
 
   gwi_item_ini(gwi, "@internal", "@data");
   GWI_BB(gwi_item_end(gwi,   ae_flag_const, NULL))
@@ -483,11 +402,11 @@ GWION_IMPORT(string) {
   gwi_func_ini(gwi, "string", "trim");
   GWI_BB(gwi_func_end(gwi, string_trim, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "charAt");
+  gwi_func_ini(gwi, "char", "charAt");
   gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_charAt, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "charAt");
+  gwi_func_ini(gwi, "char", "charAt");
   gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
   GWI_BB(gwi_func_end(gwi, string_setCharAt, ae_flag_none))
@@ -513,17 +432,17 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_find, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_findStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
+  gwi_func_arg(gwi, "nonnull string", "str");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "string", "str");
   GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
@@ -531,17 +450,17 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_rfind, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "char", "c");
+  gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "string", "str");
+  gwi_func_arg(gwi, "nonnull string", "str");
   GWI_BB(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
+  gwi_func_arg(gwi, "nonnull string", "str");
   gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "string", "str");
   GWI_BB(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "void", "erase");

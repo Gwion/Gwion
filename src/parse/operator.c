@@ -35,7 +35,7 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
 }
 
 ANN static Type op_parent(const Env env, const Type t) {
-  if(GET_FLAG(t, template) && GET_FLAG(t, ref)) {
+  if(tflag(t, tflag_ctmpl)) {
     const Type type = typedef_base(t);
     char name[strlen(type->name) + 1];
     strcpy(name, type->name);
@@ -50,7 +50,6 @@ static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
   Type type = t;
-  while(SAFE_FLAG(type, template) && type->e->def && type->e->def->base.tmpl && type->e->def->base.tmpl->call) type = type->e->parent;
   if((type && mo && mo->xid == type->xid) || (!type && !mo))
     return GW_OK;
   return 0;
@@ -179,7 +178,7 @@ ANN static void set_nspc(struct Op_Import *opi, const Nspc nspc) {
 }
 
 ANN static inline void set_nonnull(const Type t, const Exp exp) {
-  if(t != OP_ANY_TYPE && GET_FLAG(t, nonnull))
+  if(t != OP_ANY_TYPE && tflag(t, tflag_nonnull))
     exp_setnonnull(exp, 1);
 }
 

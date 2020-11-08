@@ -1,0 +1,2 @@
+#require invalid_type1
+<<< __file__ >>>;

@@ -1,0 +1,2 @@
+#require invalid_func
+<<< __file__ >>>;

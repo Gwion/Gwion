@@ -37,19 +37,26 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid))
   if(isa(v->type, env->gwion->type[et_class]) > 0)
     return NULL;
+  if(vflag(v, vflag_builtin)) {
+    dt->xfun = v->d.func_ref->def->d.dl_func_ptr;
+    v->d.func_ref->def->d.dl_func_ptr = NULL;
+  }
   const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
+  if(vflag(v, vflag_builtin))
+    v->d.func_ref->def->d.dl_func_ptr = dt->xfun;
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
   def->base->tmpl->base = dt->vt_index;
   dt->def = def;
   dt->owner = v->from->owner;
   dt->owner_class = v->from->owner_class;
-  SET_FLAG(def->base, template);
   return def;
 }
 
 ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt, const Nspc nspc) {
   DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc))
   CHECK_BO(traverse_dot_tmpl(emit, dt))
+  if(dt->xfun)
+    builtin_func(emit->gwion->mp, def->base->func, dt->xfun);
   return def;
 }
 
@@ -83,7 +90,7 @@ INSTR(DotTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  Type t = !GET_FLAG(o->type_ref, nonnull) ? o->type_ref : o->type_ref->e->parent;
+  Type t = !tflag(o->type_ref, tflag_nonnull) ? o->type_ref : o->type_ref->e->parent;
   do {
     const Emitter emit = shred->info->vm->gwion->emit;
     emit->env->name = "runtime";
@@ -94,7 +101,7 @@ INSTR(DotTmpl) {
     if(f) {
       if(!f->code)
         break;
-      if(GET_FLAG(f, member))
+      if(vflag(f->value_ref, vflag_member))
         shred->reg += SZ_INT;
       *(VM_Code*)(shred->reg-SZ_INT) = f->code;
       return;
@@ -103,7 +110,7 @@ INSTR(DotTmpl) {
       if(!def)
         continue;
       const Func f = def->base->func;
-      if(GET_FLAG(f, member))
+      if(vflag(f->value_ref, vflag_member))
         shred->reg += SZ_INT;
       *(VM_Code*)(shred->reg-SZ_INT) = f->code;
       return;

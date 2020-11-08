@@ -1,0 +1,7 @@
+<<< "".charAt(-1) >>>;
+<<< "".charAt(2) >>>;
+<<< "  test String  ".charAt(2) >>>;
+
+<<< "test".charAt(-1, 'c') >>>;
+<<< "test".charAt(12, 'c') >>>;
+<<< "test".charAt(2, 'c') >>>;
