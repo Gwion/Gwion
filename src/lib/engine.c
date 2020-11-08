@@ -77,7 +77,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_gack(gwi, t_class, gack_class)) // not working yet
-  GWI_BB(gwi_add_type(gwi, t_class))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))

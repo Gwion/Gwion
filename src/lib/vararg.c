@@ -173,7 +173,7 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_func_end(gwi, mfun_vararg_cpy, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_vararg, abstract | ae_flag_final);
-  GWI_BB(gwi_set_global_type(gwi, t_vararg, et_vararg))
+  gwi->gwion->type[et_vararg] = t_vararg;
   GWI_BB(gwi_oper_ini(gwi, "nonnull Vararg", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))

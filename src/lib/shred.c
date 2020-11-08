@@ -374,7 +374,7 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_shred, abstract | ae_flag_final);
-  gwi_set_global_type(gwi, t_shred, et_shred);
+  gwi->gwion->type[et_shred] = t_shred;
 
   struct SpecialId_ spid = { .type=t_shred, .exec=RegPushMe, .is_const=1 };
   gwi_specialid(gwi, "me", &spid);

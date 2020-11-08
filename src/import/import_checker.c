@@ -218,10 +218,8 @@ ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
 ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
   DECL_OO(Type_Decl *, td, = str2decl(gwion, str, pos))
   const Type t = known_type(gwion->env, td);
-  if(t)
-    return t;
   free_type_decl(gwion->mp, td);
-  return NULL;
+  return t;
 }
 
 ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {

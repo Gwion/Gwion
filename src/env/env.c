@@ -79,17 +79,14 @@ ANN void env_pop(const Env env, const m_uint scope) {
 }
 
 ANN void env_add_type(const Env env, const Type type) {
-  const Type v_type = type_copy(env->gwion->mp, env->gwion->type[et_class]);
-  type_addref(v_type);
-  v_type->e->d.base_type = type;
+  type->e->owner = env->curr;
+  type->e->owner_class = env->class_def; // t owner_class ?
   const Symbol sym = insert_symbol(type->name);
   nspc_add_type_front(env->curr, sym, type);
-  const Value v = new_value(env->gwion->mp, v_type, s_name(sym));
-  SET_FLAG(v, const | ae_flag_global);
-  set_vflag(v, vflag_valid | vflag_builtin);
-  nspc_add_value(env->curr, insert_symbol(type->name), v);
-  v->from->owner = type->e->owner = env->curr;
-  v->from->owner_class = type->e->owner_class = env->class_def; // t owner_class ?
+  const Value v = mk_class(env, type);
+  SET_FLAG(v, global);
+  set_vflag(v, vflag_builtin);
+  set_tflag(type, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check | tflag_emit);
   type->xid = ++env->scope->type_xid;
 }
 
