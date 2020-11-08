@@ -25,7 +25,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     if(vector_size(&gwion.env->scope->known_ctx)) {
       Context ctx = (Context)vector_pop(&gwion.env->scope->known_ctx);
       if(!ctx->global)
-        REM_REF(ctx, &gwion);
+        context_remref(ctx, &gwion);
     }
   }
   mp_free2(gwion.mp, Size + 1, str);
