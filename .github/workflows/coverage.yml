@@ -84,8 +84,8 @@ jobs:
       if: github.event_name == 'push'
       run: |
         branch=$(basename ${{ github.event.ref }})
-        cp diff.html gwion-coverage-report/html/$branch
         cd gwion-coverage-report
+        cp diff.html html/$branch
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git remote set-url origin https://${{ secrets.COVERAGE_TOKEN }}@github.com/Gwion/gwion-coverage-report.git
