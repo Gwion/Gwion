@@ -92,7 +92,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
   CHECK_BB(ck_ok(gwi, ck_fdef))
   if(gwi->ck->variadic)
-    GWI_ERR_B(_("already decalred as variadic"));
+    GWI_ERR_B(_("already declared as variadic"));
   if(!strcmp(n, "...")) {
     gwi->ck->variadic = 1;
     return GW_OK;
@@ -104,7 +104,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
     vector_add(&gwi->ck->v, (vtype)arg);
     return GW_OK;
   }
-  free_type_decl(gwi->gwion->mp, td);
+  free_type_decl(gwi->gwion->mp, td); // ???
   return GW_ERROR;
 }
 
