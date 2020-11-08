@@ -11,7 +11,6 @@ SEVERITY ?= 10
 GWION_TEST_DIR ?= /tmp
 
 GWION_PACKAGE=gwion
-CFLAGS += -DGWION_PACKAGE='"${GWION_PACKAGE}"'
 
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
