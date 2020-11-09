@@ -16,16 +16,16 @@
 #include "array.h"
 
 ANN void tuple_info(const Env env, const Value v) {
-  const m_uint offset = vector_back(&env->class_def->e->tuple->offset);
-  vector_add(&env->class_def->e->tuple->types, (vtype)v->type);
-  vector_add(&env->class_def->e->tuple->offset, offset + v->type->size);
+  const m_uint offset = vector_back(&env->class_def->info->tuple->offset);
+  vector_add(&env->class_def->info->tuple->types, (vtype)v->type);
+  vector_add(&env->class_def->info->tuple->offset, offset + v->type->size);
 }
 
 ANN void tuple_contains(const Env env, const Value value) {
   const Type t = value->type;
-  if(!env->class_def->e->tuple || env->class_def == value->type)
+  if(!env->class_def->info->tuple || env->class_def == value->type)
     return;
-  const Vector v = &env->class_def->e->tuple->contains;
+  const Vector v = &env->class_def->info->tuple->contains;
   const m_int idx = vector_size(v) ? vector_find(v, (vtype)t) : -1;
   if(idx == -1) {
     type_addref(t);
@@ -38,8 +38,8 @@ ANN2(1) TupleForm new_tupleform(MemPool p, const Type parent_type) {
   vector_init(&tuple->contains);
   vector_init(&tuple->types);
   vector_init(&tuple->offset);
-  if(parent_type && parent_type->e->tuple) {
-    const TupleForm parent = parent_type->e->tuple;
+  if(parent_type && parent_type->info->tuple) {
+    const TupleForm parent = parent_type->info->tuple;
     const m_uint sz = vector_size(&parent->types);
     tuple->start = parent->start + sz;
     if(sz) {

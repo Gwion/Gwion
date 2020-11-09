@@ -74,8 +74,8 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
           isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(o->data + v->from->offset), shred);
       else if(tflag(v->type, tflag_struct) &&
-            !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->e->tuple) {
-        const TupleForm tf = v->type->e->tuple;
+            !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->info->tuple) {
+        const TupleForm tf = v->type->info->tuple;
         for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
           const m_bit *data = o->data + v->from->offset;
           const Type t = (Type)vector_at(&tf->types, i);
@@ -94,7 +94,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
         return;
       }
     }
-  } while((t = t->e->parent));
+  } while((t = t->info->parent));
   free_object(p, o);
 }
 
@@ -110,7 +110,7 @@ static ID_CHECK(opck_this) {
   if(env->func && !vflag(env->func->value_ref, vflag_member))
       ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack"))
-    return force_type(env, get_gack(env->class_def->e->parent)); // get_gack ?
+    return force_type(env, get_gack(env->class_def->info->parent)); // get_gack ?
   return env->class_def;
 }
 

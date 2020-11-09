@@ -17,16 +17,19 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Dec
     while(parent) {
       if(parent == owner)
         ERR_B(td_pos(td), _("%s declared inside %s"), t->name, owner->name);
-      parent = parent->e->parent;
+      parent = parent->info->parent;
     }
-  } while((owner = owner->e->owner_class));
+  } while((owner = owner->info->owner_class));
   return GW_OK;
 }
 
 ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
+  const Type base = get_type(t);
+  if(tflag(base, tflag_scan1) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+    return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan1_cdef,
     .scope=env->scope->depth, .flag=tflag_scan1 };
-  return envset_run(&es, t);
+  return envset_run(&es, base);
 }
 
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
@@ -34,8 +37,7 @@ ANN static Type scan1_type(const Env env, Type_Decl* td) {
   const Type t = get_type(type);
   if(!env->func && env->class_def && !GET_FLAG(td, ref))
     CHECK_BO(type_cyclic(env, t, td))
-  if(!tflag(t, tflag_scan1))
-    CHECK_BO(ensure_scan1(env, t))
+  CHECK_BO(ensure_scan1(env, t))
   return type;
 }
 
@@ -52,7 +54,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   DECL_OO(const Type ,t, = void_type(env, decl->td))
   if(decl->td->xid == insert_symbol("auto") && decl->type)
     return decl->type;
-  if(GET_FLAG(t, private) && t->e->owner != env->curr)
+  if(GET_FLAG(t, private) && t->info->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
@@ -103,7 +105,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     if(var->array && !var->array->exp)
       SET_FLAG(decl->td, ref);
     if(env->class_def) {
-      if(env->class_def->e->tuple)
+      if(env->class_def->info->tuple)
         tuple_contains(env, v);
     } else if(!env->scope->depth)
       set_vflag(v, vflag_fglobal);// file global
@@ -132,7 +134,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   if(global) {
     if(env->context)
       env->context->global = 1;
-    if(!is_global(decl->type->e->owner, env->global_nspc))
+    if(!is_global(decl->type->info->owner, env->global_nspc))
       ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -321,7 +323,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
     set_vflag(v, vflag_enum);
-    nspc_add_value(edef->t->e->owner, list->xid, v);
+    nspc_add_value(edef->t->info->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
   } while((list = list->next));
   return GW_OK;
@@ -389,8 +391,8 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type)
     tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
-  if(!tdef->type->e->cdef)return GW_OK;
-  return !is_fptr(env->gwion, tdef->type) ? scan1_cdef(env, tdef->type) : GW_OK;
+  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
+    scan1_cdef(env, tdef->type) : GW_OK;
 }
 
 ANN static m_bool scan1_union_def_action(const Env env, const Union_Def udef,
@@ -579,11 +581,11 @@ HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   const Type parent = known_type(env, tdef->ext);
-  CHECK_OO((tdef->type->e->parent = parent));
+  CHECK_OO((tdef->type->info->parent = parent));
   Type t = parent;
   do if(tdef->type == t)
       ERR_O(td_pos(tdef->ext), _("recursive (%s <= %s) class declaration."), tdef->type->name, t->name)
-  while((t = t->e->parent));
+  while((t = t->info->parent));
   return parent;
 }
 
@@ -592,13 +594,9 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
   DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base))
-//  if(GET_FLAG(parent, abstract)) // could be final
-//SET_FLAG(cdef->base.type, abstract);
-//    ERR_B(td_pos(cdef->base.ext), _("can't inherit from abstract parent class '%s'\n."), parent->name);
   if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
-  if(!tflag(parent, tflag_scan1))
-    CHECK_BB(ensure_scan1(env, parent))
+  CHECK_BB(ensure_scan1(env, parent))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
   if(tflag(parent, tflag_nonnull))
@@ -622,8 +620,8 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(tflag(t, tflag_scan1))
     return GW_OK;
   set_tflag(t, tflag_scan1);
-  if(t->e->owner_class && !tflag(t->e->owner_class, tflag_scan1))
-    CHECK_BB(ensure_scan1(env, t->e->owner_class))
+  if(t->info->owner_class)
+    CHECK_BB(ensure_scan1(env, t->info->owner_class))
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)

@@ -64,10 +64,10 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
   const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
   const Type exists = nspc_lookup_type0(v->from->owner, sym);
   if(exists)
-    return exists->e->d.func;
+    return exists->info->func;
 
   Func m_func = f_ptr_args->m_func;
-  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->e->d.func->def;
+  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->info->func->def;
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
   fbase->tmpl->base = 0;
@@ -157,7 +157,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
     return f;
   Type t = value->from->owner_class;
   while(t && t->nspc) {
-    Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->e->d.func->def;
+    Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->info->func->def;
     const Value v = nspc_lookup_value0(t->nspc, fdef->base->xid);
     if(!v)
       goto next;
@@ -165,7 +165,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
      if(f)
        return f;
    next:
-     t = t->e->parent;
+     t = t->info->parent;
   }
   ERR_O(exp_self(exp)->pos, _("arguments do not match for template call"))
 }

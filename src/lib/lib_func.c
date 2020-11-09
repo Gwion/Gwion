@@ -31,10 +31,10 @@ static inline void fptr_instr(const Emitter emit, const Func f, const m_uint i) 
 
 static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->info->type->e->d.func->def->base->tmpl)
-    fptr_instr(emit, bin->lhs->info->type->e->d.func, 2);
+  if(bin->rhs->info->type->info->func->def->base->tmpl)
+    fptr_instr(emit, bin->lhs->info->type->info->func, 2);
   const Instr instr = emit_add_instr(emit, int_r_assign);
-  if(!is_fptr(emit->gwion, bin->lhs->info->type) && vflag(bin->rhs->info->type->e->d.func->value_ref, vflag_member)) {
+  if(!is_fptr(emit->gwion, bin->lhs->info->type) && vflag(bin->rhs->info->type->info->func->value_ref, vflag_member)) {
     const Instr pop = emit_add_instr(emit, RegPop);
     pop->m_val = SZ_INT;
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
@@ -127,7 +127,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
       CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
     else {
       DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid))
-      info->lhs = actual_type(env->gwion, t)->e->d.func;
+      info->lhs = actual_type(env->gwion, t)->info->func;
     }
     Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
     if(fptr_tmpl_push(env, info) > 0) {
@@ -165,11 +165,11 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
 }
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
-  const Func_Def fdef = t->e->d.func->def;
+  const Func_Def fdef = t->info->func->def;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=env->scope->depth, .flag=tflag_check };
-  l->owner = t->e->owner_class;
-  CHECK_BB(envset_push(&es, l->owner, t->e->owner))
+  l->owner = t->info->owner_class;
+  CHECK_BB(envset_push(&es, l->owner, t->info->owner))
   const m_bool ret = _check_lambda(env, l, fdef);
   if(es.run)
     envset_pop(&es, l->owner);
@@ -198,7 +198,7 @@ static OP_CHECK(opck_auto_fptr) {
     return env->gwion->type[et_null];
   // create a matching signature
   // TODO: we could check first if there a matching existing one
-  Func_Base *const fbase = cpy_func_base(env->gwion->mp, bin->lhs->info->type->e->d.func->def->base);
+  Func_Base *const fbase = cpy_func_base(env->gwion->mp, bin->lhs->info->type->info->func->def->base);
   const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase);
   char name[13 + strlen(env->curr->name) +
     num_digit(bin->rhs->pos->first.line) + num_digit(bin->rhs->pos->first.column)];
@@ -215,15 +215,15 @@ static OP_CHECK(opck_auto_fptr) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->info->type->e->d.func->def->base->tmpl &&
-     bin->rhs->info->type->e->d.func->def->base->tmpl->call) {
-    struct FptrInfo info = { bin->lhs->info->type->e->d.func, bin->rhs->info->type->e->parent->e->d.func,
+  if(bin->rhs->info->type->info->func->def->base->tmpl &&
+     bin->rhs->info->type->info->func->def->base->tmpl->call) {
+    struct FptrInfo info = { bin->lhs->info->type->info->func, bin->rhs->info->type->info->parent->info->func,
       bin->lhs, exp_self(bin)->pos };
     CHECK_BO(fptr_do(env, &info))
     exp_setvar(bin->rhs, 1);
     return bin->rhs->info->type;
   }
-  struct FptrInfo info = { bin->lhs->info->type->e->d.func, bin->rhs->info->type->e->d.func,
+  struct FptrInfo info = { bin->lhs->info->type->info->func, bin->rhs->info->type->info->func,
       bin->lhs, exp_self(bin)->pos };
   CHECK_BO(fptr_do(env, &info))
   exp_setvar(bin->rhs, 1);
@@ -240,10 +240,10 @@ static OP_CHECK(opck_null_fptr_at) {
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast* cast = (Exp_Cast*)data;
   const Type t = exp_self(cast)->info->type;
-  struct FptrInfo info = { cast->exp->info->type->e->d.func, t->e->d.func,
+  struct FptrInfo info = { cast->exp->info->type->info->func, t->info->func,
      cast->exp, exp_self(cast)->pos };
   CHECK_BO(fptr_do(env, &info))
-  cast->func = cast->exp->info->type->e->d.func;
+  cast->func = cast->exp->info->type->info->func;
   return t;
 }
 
@@ -255,14 +255,14 @@ static void member_fptr(const Emitter emit) {
 }
 
 static int is_member(const Type from, const Type to) {
-  return vflag(from->e->d.func->value_ref, vflag_member) &&
+  return vflag(from->info->func->value_ref, vflag_member) &&
     !(tflag(from, tflag_nonnull) || tflag(to, tflag_nonnull));
 }
 
 static OP_EMIT(opem_fptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  if(exp_self(cast)->info->type->e->d.func->def->base->tmpl)
-    fptr_instr(emit, cast->exp->info->type->e->d.func, 1);
+  if(exp_self(cast)->info->type->info->func->def->base->tmpl)
+    fptr_instr(emit, cast->exp->info->type->info->func, 1);
   if(is_member(cast->exp->info->type, exp_self(cast)->info->type))
     member_fptr(emit);
   return (Instr)GW_OK;
@@ -270,7 +270,7 @@ static OP_EMIT(opem_fptr_cast) {
 
 static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
-  struct FptrInfo info = { impl->e->info->type->e->d.func, impl->t->e->d.func,
+  struct FptrInfo info = { impl->e->info->type->info->func, impl->t->info->func,
       impl->e, impl->e->pos };
   CHECK_BO(fptr_do(env, &info))
   return ((Exp)impl->e)->info->cast_to = impl->t;
@@ -280,8 +280,8 @@ static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   if(is_member(impl->e->info->type, impl->t))
     member_fptr(emit);
-  if(impl->t->e->d.func->def->base->tmpl)
-    fptr_instr(emit, ((Exp)impl->e)->info->type->e->d.func, 1);
+  if(impl->t->info->func->def->base->tmpl)
+    fptr_instr(emit, ((Exp)impl->e)->info->type->info->func, 1);
   return (Instr)GW_OK;
 }
 

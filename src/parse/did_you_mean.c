@@ -65,7 +65,7 @@ ANN void did_you_mean_type(Type type, const char* name) {
   struct Vector_ v;
   vector_init(&v);
   do ressembles(&v, t->nspc, name);
-  while((t = t->e->parent) && t->nspc);
+  while((t = t->info->parent) && t->nspc);
   for(m_uint i = 0; i < vector_size(&v); ++i)
     gw_err(_("  (did you mean '%s'?)\n"), (m_str)vector_at(&v, i));
   vector_release(&v);

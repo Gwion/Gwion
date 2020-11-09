@@ -11,7 +11,7 @@
 #include "gwi.h"
 
 void gwi_body(const Gwi gwi, const Ast body) {
-  const Class_Def cdef = gwi->gwion->env->class_def->e->cdef;
+  const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
   if(!cdef->body)
     cdef->body = body;
   else

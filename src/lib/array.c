@@ -138,8 +138,8 @@ static MFUN(vm_vector_cap) {
 }
 
 ANN static Type get_array_type(Type t) {
-  while(t->e->d.base_type)
-    t = t->e->d.base_type;
+  while(t->info->base_type)
+    t = t->info->base_type;
   return t;
 }
 
@@ -264,11 +264,11 @@ static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   Type l = cast->exp->info->type;
   Type r = exp_self(cast)->info->type;
-  while(!l->e->d.base_type)
-    l = l->e->parent;
-  while(!r->e->d.base_type)
-    r = r->e->parent;
-  if(get_depth(cast->exp->info->type) == get_depth(exp_self(cast)->info->type) && isa(l->e->d.base_type, r->e->d.base_type) > 0)
+  while(!l->info->base_type)
+    l = l->info->parent;
+  while(!r->info->base_type)
+    r = r->info->parent;
+  if(get_depth(cast->exp->info->type) == get_depth(exp_self(cast)->info->type) && isa(l->info->base_type, r->info->base_type) > 0)
     return l;
   return env->gwion->type[et_null];
 }
@@ -320,7 +320,7 @@ static FREEARG(freearg_array) {
 static OP_CHECK(opck_not_array) {
   const Array_Sub array = (Array_Sub)data;
   if(get_depth(array->type)) {
-    struct Array_Sub_ next = { array->exp, array->type->e->parent, array->depth };
+    struct Array_Sub_ next = { array->exp, array->type->info->parent, array->depth };
     return check_array_access(env, &next);
   }
   ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),

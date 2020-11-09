@@ -16,7 +16,7 @@
 
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object*)MEM(0);
-  o->type_ref = o->type_ref->e->parent;
+  o->type_ref = o->type_ref->info->parent;
   _release(o, shred);
   shred->info->me->ref = 1;
   vm_shred_exit(shred);
@@ -90,7 +90,7 @@ INSTR(DotTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  Type t = !tflag(o->type_ref, tflag_nonnull) ? o->type_ref : o->type_ref->e->parent;
+  Type t = !tflag(o->type_ref, tflag_nonnull) ? o->type_ref : o->type_ref->info->parent;
   do {
     const Emitter emit = shred->info->vm->gwion->emit;
     emit->env->name = "runtime";
@@ -115,7 +115,7 @@ INSTR(DotTmpl) {
       *(VM_Code*)(shred->reg-SZ_INT) = f->code;
       return;
     }
-  } while((t = t->e->parent));
+  } while((t = t->info->parent));
   Except(shred, "MissigTmplException[internal]");
 }
 

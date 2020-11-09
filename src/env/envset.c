@@ -7,26 +7,26 @@
 
 ANN static void check(struct EnvSet *es, const Type t) {
   const Vector v = &es->env->scope->class_stack;
-  Type owner = t->e->owner_class;
+  Type owner = t->info->owner_class;
   for(vtype i = vector_size(v) + 1; owner && --i;) {
     if(owner != (Type)vector_at(v, i - 1)) {
       es->run = 1;
       return;
     }
-    owner = owner->e->owner_class;
+    owner = owner->info->owner_class;
   }
 }
 
 ANN static m_bool push(struct EnvSet *es, const Type t) {
   es->env->scope->depth = 0;
-  if(t->e->owner_class)
-    CHECK_BB(push(es, t->e->owner_class))
+  if(t->info->owner_class)
+    CHECK_BB(push(es, t->info->owner_class))
   else
-    env_push(es->env, NULL, t->e->ctx ? t->e->ctx->nspc : es->env->curr);
+    env_push(es->env, NULL, t->info->ctx ? t->info->ctx->nspc : es->env->curr);
   if(es->func && !(t->tflag & es->flag))
     CHECK_BB(es->func((void*)es->data, t))
   if(tflag(t, tflag_tmpl))
-    CHECK_BB(template_push_types(es->env, t->e->cdef->base.tmpl)) // incorrect templates
+    CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)) // incorrect templates
   env_push_type((void*)es->env, t);
   return GW_OK;
 }
@@ -49,8 +49,8 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
     return;
   if(tflag(t, tflag_tmpl))
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
-  if(t->e->owner_class)
-    envset_pop(es, t->e->owner_class);
+  if(t->info->owner_class)
+    envset_pop(es, t->info->owner_class);
   else
     env_pop(es->env, es->scope);
 }
@@ -58,11 +58,11 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
 ANN m_bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
   if(es->run)
-    CHECK_BB(push(es, t->e->owner_class))
-  const m_bool ret = t->e->cdef &&
+    CHECK_BB(push(es, t->info->owner_class))
+  const m_bool ret = t->info->cdef &&
     !(t->tflag & es->flag) ?
         es->func(es->data, t) : GW_OK;
   if(es->run)
-    envset_pop(es, t->e->owner_class);
+    envset_pop(es, t->info->owner_class);
   return ret;
 }

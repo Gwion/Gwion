@@ -34,7 +34,7 @@ ANN Type __find_type(const Type type, const Symbol xid) {
     const Type t = nspc_lookup_type1(base->nspc, xid);
     if(t)
       return t;
-    base = base->e->parent;
+    base = base->info->parent;
   }
   return NULL;
 }
@@ -70,9 +70,9 @@ ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
 ANN static Type class_type(const Env env, const Type base) {
   const Type t_class = env->gwion->type[et_class];
   const Type t = type_copy(env->gwion->mp, t_class);
-  t->e->parent = t_class;
-  t->e->ctx = base->e->ctx;
-  t->e->d.base_type = base;
+  t->info->parent = t_class;
+  t->info->ctx = base->info->ctx;
+  t->info->base_type = base;
   set_tflag(t, tflag_infer);
   return t;
 }
@@ -84,7 +84,7 @@ ANN Value mk_class(const Env env, const Type base) {
   valuefrom(env, v->from);
   SET_FLAG(v, const);
   set_vflag(v, vflag_valid);
-  nspc_add_value_front(base->e->owner, sym, v);
+  nspc_add_value_front(base->info->owner, sym, v);
   return v;
 }
 

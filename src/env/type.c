@@ -15,25 +15,25 @@ ANN static inline m_bool freeable(const Type a) {
 ANN void free_type(const Type a, struct Gwion_ *const gwion) {
   if(freeable(a)) {
     if(tflag(a, tflag_udef))
-      free_union_def(gwion->mp, a->e->udef);
+      free_union_def(gwion->mp, a->info->udef);
     if(tflag(a, tflag_cdef))
-      class_def_cleaner(gwion, a->e->cdef);
+      class_def_cleaner(gwion, a->info->cdef);
   }
   if(a->nspc)
     nspc_remref(a->nspc, gwion);
-  if(a->e->tuple)
-    free_tupleform(a->e->tuple, gwion);
-  mp_free(gwion->mp, TypeInfo, a->e);
+  if(a->info->tuple)
+    free_tupleform(a->info->tuple, gwion);
+  mp_free(gwion->mp, TypeInfo, a->info);
   mp_free(gwion->mp, Type, a);
 
 }
 
 Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
   const Type type = mp_calloc(p, Type);
-  type->xid    = xid;
-  type->name   = name;
-  type->e = mp_calloc(p, TypeInfo);
-  type->e->parent = parent;
+  type->xid  = xid;
+  type->name = name;
+  type->info = mp_calloc(p, TypeInfo);
+  type->info->parent = parent;
   if(parent)
     type->size = parent->size;
   type->ref = 1;
@@ -41,19 +41,19 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
 }
 
 ANN Type type_copy(MemPool p, const Type type) {
-  const Type a = new_type(p, type->xid, type->name, type->e->parent);
+  const Type a = new_type(p, type->xid, type->name, type->info->parent);
   a->nspc           = type->nspc;
-  a->e->owner       = type->e->owner;
-  a->e->owner_class = type->e->owner_class;
+  a->info->owner       = type->info->owner;
+  a->info->owner_class = type->info->owner_class;
   a->size           = type->size;
-  a->e->d.base_type = type->e->d.base_type;
+  a->info->base_type = type->info->base_type;
   a->array_depth    = type->array_depth;
-  a->e->gack        = type->e->gack;
+  a->info->gack        = type->info->gack;
   return a;
 }
 
 ANN m_bool isa(const restrict Type var, const restrict Type parent) {
-  return (var->xid == parent->xid) ? 1 : var->e->parent ? isa(var->e->parent, parent) : -1;
+  return (var->xid == parent->xid) ? 1 : var->info->parent ? isa(var->info->parent, parent) : -1;
 }
 
 ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
@@ -67,20 +67,20 @@ ANN t find_##name(const Type type, const Symbol xid) {               \
   if(val)                                                            \
     return val;                                                      \
   }                                                                  \
-  return type->e->parent ? find_##name(type->e->parent, xid) : NULL; \
+  return type->info->parent ? find_##name(type->info->parent, xid) : NULL; \
 }
 describe_find(value, Value)
 //describe_find(func,  Func)
 
 ANN Type typedef_base(Type t) {
   while(tflag(t, tflag_typedef))
-    t = t->e->parent;
+    t = t->info->parent;
   return t;
 }
 
 ANN Type array_base(Type type) {
   const Type t = typedef_base(type);
-  return t->array_depth ? t->e->d.base_type : t;
+  return t->array_depth ? t->info->base_type : t;
 }
 
 ANN static Symbol array_sym(const Env env, const Type src, const m_uint depth) {
@@ -97,14 +97,14 @@ ANN static Symbol array_sym(const Env env, const Type src, const m_uint depth) {
 
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Symbol sym = array_sym(env, src, depth);
-  const Type type = nspc_lookup_type1(src->e->owner, sym);
+  const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)
     return type;
   const Type t = new_type(env->gwion->mp, env->gwion->type[et_array]->xid,
       s_name(sym), env->gwion->type[et_array]);
   t->array_depth = depth + src->array_depth;
-  t->e->d.base_type = array_base(src) ?: src;
-  t->e->owner = src->e->owner;
+  t->info->base_type = array_base(src) ?: src;
+  t->info->owner = src->info->owner;
   if(depth > 1 || isa(src, env->gwion->type[et_compound]) > 0) {
     t->nspc = new_nspc(env->gwion->mp, s_name(sym));
     inherit(t);
@@ -115,7 +115,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   } else
   nspc_addref((t->nspc = env->gwion->type[et_array]->nspc));
   mk_class(env, t);
-  nspc_add_type_front(src->e->owner, sym, t);
+  nspc_add_type_front(src->info->owner, sym, t);
   return t;
 }
 
@@ -123,17 +123,18 @@ ANN m_bool type_ref(Type t) {
   do {
     if(tflag(t, tflag_empty))
       return GW_OK;
-    if(tflag(t, tflag_typedef) && t->e->cdef)
-      if(t->e->cdef->base.ext && t->e->cdef->base.ext->array) {
-        if(!t->e->cdef->base.ext->array->exp)
+    if(tflag(t, tflag_typedef) && tflag(t, tflag_cdef)) {
+      if(t->info->cdef->base.ext && t->info->cdef->base.ext->array) {
+        if(!t->info->cdef->base.ext->array->exp)
           return GW_OK;
         else {
-          const Type type = t->e->parent->e->d.base_type;
+          const Type type = t->info->parent->info->base_type;
           if(tflag(type, tflag_empty))
             return GW_OK;
         }
       }
-  } while((t = t->e->parent));
+    }
+  } while((t = t->info->parent));
   return 0;
 }
 
@@ -175,9 +176,9 @@ ANN m_uint get_depth(const Type type) {
   do {
     if(t->array_depth) {
       depth += t->array_depth;
-      t = t->e->d.base_type;
+      t = t->info->base_type;
     } else
-      t = t->e->parent;
+      t = t->info->parent;
   } while(t);
   return depth;
 }
@@ -190,11 +191,11 @@ ANN inline m_bool is_class(const struct Gwion_* gwion, const Type t) {
 }
 
 ANN Type actual_type(const struct Gwion_* gwion, const Type t) {
-  return is_class(gwion, t) ? t->e->d.base_type : t;
+  return is_class(gwion, t) ? t->info->base_type : t;
 }
 
 ANN void inherit(const Type t) {
-  const Nspc nspc = t->nspc, parent = t->e->parent->nspc;
+  const Nspc nspc = t->nspc, parent = t->info->parent->nspc;
   if(!nspc || !parent)
     return;
   nspc->info->offset = parent->info->offset;

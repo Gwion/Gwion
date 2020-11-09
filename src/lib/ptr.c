@@ -35,8 +35,8 @@ static OP_CHECK(opck_ptr_assign) {
       const m_str str = get_type_name(env, u, 1);
       if(str && !strcmp(t->name, str))
         return bin->lhs->info->type; // use rhs?
-    } while((u = u->e->parent));
-  } while((t = t->e->parent));
+    } while((u = u->info->parent));
+  } while((t = t->info->parent));
   return env->gwion->type[et_null];
 }
 
@@ -59,7 +59,7 @@ static OP_CHECK(opck_ptr_cast) {
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
   DECL_ON(const Type, t, = known_type(env, cast->td))
   const Type _t = get_type(t);
-  if(_t->e->cdef && !tflag(_t, tflag_check))
+  if(_t->info->cdef && !tflag(_t, tflag_check))
     CHECK_BN(ensure_traverse(env, _t))
   const Type to = known_type(env, cast->td->types->td);
   if(isa(cast->exp->info->type, to) > 0)
@@ -79,7 +79,7 @@ static OP_CHECK(opck_ptr_implicit) {
     exp_setvar(e, 1);
     const Type t = get_type(imp->t);
     if(!tflag(t, tflag_check))
-      CHECK_BN(traverse_class_def(env, t->e->cdef))
+      CHECK_BN(traverse_class_def(env, t->info->cdef))
     return imp->t;
   }
   return NULL;
@@ -132,7 +132,7 @@ static DTOR(ptr_object_dtor) {
 }
 
 static DTOR(ptr_struct_dtor) {
-  const Type t = (Type)vector_front(&o->type_ref->e->tuple->types);
+  const Type t = (Type)vector_front(&o->type_ref->info->tuple->types);
   struct_release(shred, t, *(m_bit**)o->data);
 }
 
@@ -141,7 +141,7 @@ static OP_CHECK(opck_ptr_scan) {
   DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
 set_tflag(t, tflag_tmpl);
 //if(!tflag(t, tflag_scan1))exit(3);
-  const Type base = known_type(env, t->e->cdef->base.tmpl->call->td);
+  const Type base = known_type(env, t->info->cdef->base.tmpl->call->td);
   if(isa(base, env->gwion->type[et_compound]) > 0 && !t->nspc->dtor) {
     t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
     if(!tflag(t, tflag_struct))

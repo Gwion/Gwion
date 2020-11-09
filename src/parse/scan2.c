@@ -14,15 +14,17 @@ ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
 ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
+  const Type base = get_type(t);
+  if(tflag(base, tflag_scan2) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+    return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan2_cdef,
     .scope=env->scope->depth, .flag=tflag_scan2 };
-  return envset_run(&es, t);
+  return envset_run(&es, base);
 }
 
 ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
   const Type t = get_type(decl->type);
-  if(!tflag(t, tflag_scan2))
-    CHECK_BB(ensure_scan2(env, t))
+  CHECK_BB(ensure_scan2(env, t))
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
@@ -74,7 +76,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   if(!tmpl_base(fptr->base->tmpl)) {
-    const Func_Def def = fptr->type->e->d.func->def;
+    const Func_Def def = fptr->type->info->func->def;
     if(def->base->args) {
       RET_NSPC(scan2_args(def))
     }
@@ -84,8 +86,9 @@ ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
-  if(!tdef->type->e->cdef) return GW_OK;
-  return !is_fptr(env->gwion, tdef->type) ? scan2_class_def(env, tdef->type->e->cdef) : GW_OK;
+  if(!tdef->type->info->cdef) return GW_OK;
+  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
+    scan2_class_def(env, tdef->type->info->cdef) : GW_OK;
 }
 
 ANN static inline Value prim_value(const Env env, const Symbol s) {
@@ -307,7 +310,7 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
     if(!fbflag(f->base, fbflag_internal))
       ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
   }
-  const Func obase = !fptr ? overload->d.func_ref : overload->type->e->d.base_type->e->d.func;
+  const Func obase = !fptr ? overload->d.func_ref : overload->type->info->base_type->info->func;
   if(GET_FLAG(obase->def->base, final))
     ERR_B(f->pos, _("can't overload final function %s"), overload->name)
   const m_bool base = tmpl_base(f->base->tmpl);
@@ -330,11 +333,11 @@ ANN static Type func_type(const Env env, const Func func) {
   const Type base = env->gwion->type[func->def->base->td ? et_function : et_lambda];
   const Type t = type_copy(env->gwion->mp, base);
   t->xid = ++env->scope->type_xid;
-  t->e->parent = base;
+  t->info->parent = base;
   t->name = func->name;
-  t->e->owner = env->curr;
-  t->e->owner_class = env->class_def;
-  t->e->d.func = func;
+  t->info->owner = env->curr;
+  t->info->owner_class = env->class_def;
+  t->info->func = func;
   return t;
 }
 
@@ -393,7 +396,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
         }
       } while((ff = ff->next) && ++i);
    }
-  } while(type && (type = type->e->parent) && (nspc = type->nspc));
+  } while(type && (type = type->info->parent) && (nspc = type->nspc));
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
@@ -546,9 +549,8 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
-  const Type parent = cdef->base.type->e->parent;
-  if(!tflag(parent, tflag_scan2))
-    CHECK_BB(ensure_scan2(env, parent))
+  const Type parent = cdef->base.type->info->parent;
+  CHECK_BB(ensure_scan2(env, parent))
   if(cdef->base.ext->array)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;
@@ -569,8 +571,8 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(tflag(t, tflag_scan2))
     return GW_OK;
-  if(t->e->owner_class && !tflag(t->e->owner_class, tflag_scan2))
-    CHECK_BB(ensure_scan2(env, t->e->owner_class))
+  if(t->info->owner_class)
+    CHECK_BB(ensure_scan2(env, t->info->owner_class))
   set_tflag(t, tflag_scan2);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))

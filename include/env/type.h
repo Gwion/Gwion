@@ -8,11 +8,9 @@ struct TypeInfo_ {
   union {
     Union_Def udef;
     Class_Def cdef;
-  };
-  union type_data {
     Func      func;
     Type      base_type;
-  } d;
+  };
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
   struct Context_ *ctx;
@@ -44,7 +42,7 @@ enum tflag {
 struct Type_ {
   m_str     name;
   Nspc      nspc;
-  struct TypeInfo_ *e;
+  struct TypeInfo_ *info;
   size_t xid;
   size_t size;
   size_t array_depth;
@@ -94,9 +92,9 @@ ANN void inherit(const Type);
 
 __attribute__((returns_nonnull))
 ANN static inline Type get_gack(Type t) {
-  do if(t->e->gack)
+  do if(t->info->gack)
     return t;
-  while((t = t->e->parent));
+  while((t = t->info->parent));
   return t; // unreachable
 }
 

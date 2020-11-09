@@ -33,10 +33,10 @@ ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
 }
 
 ANN static m_bool _template_push(const Env env, const Type t) {
-  if(t->e->owner_class)
-    CHECK_BB(template_push(env, t->e->owner_class))
+  if(t->info->owner_class)
+    CHECK_BB(template_push(env, t->info->owner_class))
   if(tflag(t, tflag_tmpl))
-    return push_types(env, t->e->cdef->base.tmpl); // incorrect
+    return push_types(env, t->info->cdef->base.tmpl); // incorrect
   return GW_OK;
 }
 
@@ -60,41 +60,41 @@ ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
 
 static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   DECL_OO(const m_str, tl_name, = tl2str(env, td->types))
-  const Symbol sym = func_symbol(env, t->e->owner->name, t->e->d.func->name, tl_name, 0);
+  const Symbol sym = func_symbol(env, t->info->owner->name, t->info->func->name, tl_name, 0);
   free_mstr(env->gwion->mp, tl_name);
-  const Type base_type = nspc_lookup_type1(t->e->owner, sym);
+  const Type base_type = nspc_lookup_type1(t->info->owner, sym);
   if(base_type)
     return base_type;
   const Type ret = type_copy(env->gwion->mp, t);
-  ret->e->parent = t;
+  ret->info->parent = t;
   ret->name = s_name(sym);
   set_tflag(ret, tflag_ftmpl);
-  nspc_add_type_front(t->e->owner, sym, ret);
-  void* func_ptr = t->e->d.func->def->d.dl_func_ptr;
-  if(vflag(t->e->d.func->value_ref, vflag_builtin))
-    t->e->d.func->def->d.dl_func_ptr = NULL;
-  const Func_Def def = cpy_func_def(env->gwion->mp, t->e->d.func->def);
-  const Func func = ret->e->d.func = new_func(env->gwion->mp, s_name(sym), def);
+  nspc_add_type_front(t->info->owner, sym, ret);
+  void* func_ptr = t->info->func->def->d.dl_func_ptr;
+  if(vflag(t->info->func->value_ref, vflag_builtin))
+    t->info->func->def->d.dl_func_ptr = NULL;
+  const Func_Def def = cpy_func_def(env->gwion->mp, t->info->func->def);
+  const Func func = ret->info->func = new_func(env->gwion->mp, s_name(sym), def);
   const Value value = new_value(env->gwion->mp, ret, s_name(sym));
   func->flag = def->base->flag;
-  if(vflag(t->e->d.func->value_ref, vflag_member))
+  if(vflag(t->info->func->value_ref, vflag_member))
     set_vflag(value, vflag_member);
   value->d.func_ref = func;
-  value->from->owner = t->e->owner;
-  value->from->owner_class = t->e->owner_class;
+  value->from->owner = t->info->owner;
+  value->from->owner_class = t->info->owner_class;
   func->value_ref = value;
-  func->def->base->tmpl = mk_tmpl(env, t->e->d.func->def->base->tmpl, td->types);
+  func->def->base->tmpl = mk_tmpl(env, t->info->func->def->base->tmpl, td->types);
   def->base->func = func;
-  nspc_add_value_front(t->e->owner, sym, value);
-  if(vflag(t->e->d.func->value_ref, vflag_builtin)) {
+  nspc_add_value_front(t->info->owner, sym, value);
+  if(vflag(t->info->func->value_ref, vflag_builtin)) {
     builtin_func(env->gwion->mp, func, func_ptr);
-    t->e->d.func->def->d.dl_func_ptr = func_ptr;
+    t->info->func->def->d.dl_func_ptr = func_ptr;
   }
   return ret;
 }
 
 static ANN Type maybe_func(const Env env, const Type t, const Type_Decl* td) {
-  if(isa(t, env->gwion->type[et_function]) > 0 && t->e->d.func->def->base->tmpl)
+  if(isa(t, env->gwion->type[et_function]) > 0 && t->info->func->def->base->tmpl)
      return scan_func(env, t, td);
   ERR_O(td->pos,
      _("type '%s' is not template. You should not provide template types"), t->name)

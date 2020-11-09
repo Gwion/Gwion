@@ -42,7 +42,7 @@ static inline Type check_nonnull(const Env env, const Type l, const Type r,
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     if(isa(l, r) < 0)
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-    return r->e->parent;
+    return r->info->parent;
   }
   if(l != env->gwion->type[et_null] && isa(l, r) < 0)
     ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
@@ -148,7 +148,7 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v, c
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
-  const Func f = exp_self(member)->info->type->e->d.func;
+  const Func f = exp_self(member)->info->type->info->func;
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
 else
@@ -196,7 +196,7 @@ OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const m_str str = s_name(member->xid);
   const m_bool base_static = is_class(env->gwion, member->t_base);
-  const Type the_base = base_static ? member->t_base->e->d.base_type : member->t_base;
+  const Type the_base = base_static ? member->t_base->info->base_type : member->t_base;
   if(!the_base->nspc)
     ERR_N(member->base->pos,
           _("type '%s' does not have members - invalid use in dot expression of %s"),
@@ -340,14 +340,14 @@ ANN static Type tmpl_exists(const Env env, const Symbol name) {
 }
 
 ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
-  const Class_Def c = info->base->e->cdef;
+  const Class_Def c = info->base->info->cdef;
   const Class_Def cdef = new_class_def(env->gwion->mp, c->flag, info->name, c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
       c->body ?cpy_ast(env->gwion->mp, c->body) : NULL,
     loc_cpy(env->gwion->mp, c->pos));
   cdef->base.tmpl = mk_tmpl(env, c->base.tmpl, info->call);
   const m_bool ret = scan0_class_def(env, cdef);
   if((info->ret = cdef->base.type)) {
-    info->ret->e->cdef = cdef;
+    info->ret->info->cdef = cdef;
     set_tflag(info->ret, tflag_cdef);
     set_tflag(info->ret, tflag_ctmpl);
   } else
@@ -356,7 +356,7 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
 }
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
-  const Union_Def u = info->base->e->udef;
+  const Union_Def u = info->base->info->udef;
   const Union_Def udef = new_union_def(env->gwion->mp, cpy_decl_list(env->gwion->mp, u->l),
     loc_cpy(env->gwion->mp, u->pos));
   udef->type_xid = info->name;
@@ -365,7 +365,7 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
     SET_FLAG(udef, global);
   const m_bool ret = scan0_union_def(env, udef);
   if(udef->type) {
-    udef->type->e->udef = udef;// mark as udef
+    udef->type->info->udef = udef;// mark as udef
     info->ret = udef->type;
     set_tflag(info->ret, tflag_udef);
 //    set_tflag(info->ret, tflag_tmpl);
@@ -375,7 +375,7 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
 }
 
 ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
-  if(info->base->e->parent !=  env->gwion->type[et_union])
+  if(info->base->info->parent !=  env->gwion->type[et_union])
     CHECK_BO(scantmpl_class_def(env, info))
   else
     CHECK_BO(scantmpl_union_def(env, info))
@@ -383,19 +383,19 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 }
 
 ANN Type scan_class(const Env env, const Type t, const Type_Decl* td) {
-  if(template_match(t->e->cdef->base.tmpl->list, td->types) < 0) // invalid template
+  if(template_match(t->info->cdef->base.tmpl->list, td->types) < 0) // invalid template
     ERR_O(td->pos, _("invalid template types number"))
-  struct tmpl_info info = { .base=t, .call=td->types, .list=t->e->cdef->base.tmpl->list  };
+  struct tmpl_info info = { .base=t, .call=td->types, .list=t->info->cdef->base.tmpl->list  };
   DECL_OO(const Symbol, name, = info.name = template_id(env, &info))
   const Type exists = tmpl_exists(env, name);
   if(exists)
     return exists;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
-  CHECK_BO(envset_push(&es, t->e->owner_class, t->e->ctx ? t->e->ctx->nspc : env->curr))
+  CHECK_BO(envset_push(&es, t->info->owner_class, t->info->ctx ? t->info->ctx->nspc : env->curr))
   const Type ret = _scan_class(env, &info);
   if(es.run)
-    envset_pop(&es, t->e->owner_class);
+    envset_pop(&es, t->info->owner_class);
   return ret;
 }
 
@@ -417,8 +417,8 @@ ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
 }
 
 ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr) {
-  const Vector types   = &base->e->tuple->types;
-  const Vector offsets = &base->e->tuple->offset;
+  const Vector types   = &base->info->tuple->types;
+  const Vector offsets = &base->info->tuple->offset;
   for(m_uint i = 0; i < vector_size(types); ++i) {
     const Type t = (Type)vector_at(types, i);
     if(isa(t, shred->info->vm->gwion->type[et_compound]) < 0)

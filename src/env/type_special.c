@@ -23,8 +23,8 @@ ANN static Type specialtype_create(const Env env, const SpecialType *s) {
   t->name = s_name(s->name);
   t->flag = s->type->flag;
   t->tflag |= s->type->tflag | s->flag;
-  t->e->parent = unflag_type(s->type);
-  nspc_add_type_front(s->type->e->owner, s->name, t);
+  t->info->parent = unflag_type(s->type);
+  nspc_add_type_front(s->type->info->owner, s->name, t);
   mk_class(env, t);
   return t;
 }
@@ -57,6 +57,6 @@ ANN static void specialtype_init(SymTable *st, SpecialType *s) {
 ANN Type special_type(const Env env, const Type t, const uint st_type) {
   SpecialType s = { .type=t, .st_type=st_type };
   specialtype_init(env->gwion->st, &s);
-  return nspc_lookup_type1(t->e->owner, s.name) ?:
+  return nspc_lookup_type1(t->info->owner, s.name) ?:
     specialtype_create(env, &s);
 }

@@ -26,10 +26,10 @@ ANN2(1,3) static inline void nspc_release_struct(const Nspc a, Value value, Gwio
     (vflag(value, vflag_builtin) && value->d.ptr))) {
     const m_bit *ptr = (value && value->d.ptr) ? (m_bit*)value->d.ptr:
         (m_bit*)(a->info->class_data + value->from->offset);
-    for(m_uint i = 0; i < vector_size(&value->type->e->tuple->types); ++i) {
-      const Type t = (Type)vector_at(&value->type->e->tuple->types, i);
+    for(m_uint i = 0; i < vector_size(&value->type->info->tuple->types); ++i) {
+      const Type t = (Type)vector_at(&value->type->info->tuple->types, i);
       if(isa(t, gwion->type[et_object]) > 0)
-        release(*(M_Object*)(ptr + vector_at(&value->type->e->tuple->offset, i)), gwion->vm->cleaner_shred);
+        release(*(M_Object*)(ptr + vector_at(&value->type->info->tuple->offset, i)), gwion->vm->cleaner_shred);
       else if(tflag(t, tflag_struct))
         nspc_release_struct(t->nspc, NULL, gwion);
     }

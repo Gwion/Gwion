@@ -8,7 +8,7 @@
 
 ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td))
-  if(base->e->ctx && base->e->ctx->error)
+  if(base->info->ctx && base->info->ctx->error)
     ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, t, = scan_type(env, base, td))
   const Type ret = !td->array ? t : array_type(env, t, td->array->depth);

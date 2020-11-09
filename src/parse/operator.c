@@ -43,7 +43,7 @@ ANN static Type op_parent(const Env env, const Type t) {
     *post = '\0';
     return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, name));
   }
-  return t->e->parent;
+  return t->info->parent;
 }
 
 static m_bool op_match(const restrict Type t, const restrict Type mo) {

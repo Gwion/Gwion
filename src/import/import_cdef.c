@@ -30,9 +30,9 @@ ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
   do {
     if(tflag(t, tflag_check))
       break;
-    if(t->e->cdef)
-      CHECK_BB(traverse_class_def(env, t->e->cdef))
-  } while((t = t->e->parent));
+    if(t->info->cdef)
+      CHECK_BB(traverse_class_def(env, t->info->cdef))
+  } while((t = t->info->parent));
   return GW_OK;
 }
 
@@ -41,8 +41,8 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc->parent = env->curr;
   if(isa(t, env->gwion->type[et_object]) > 0)
     inherit(t);
-  t->e->owner = env->curr;
-  t->e->owner_class = env->class_def;
+  t->info->owner = env->curr;
+  t->info->owner_class = env->class_def;
   env_push_type(env, t);
 }
 
@@ -87,11 +87,11 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   CHECK_OO(p)
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), p);
-  t->e->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
-  t->e->cdef->base.tmpl = tmpl;
-  t->e->cdef->base.type = t;
-  t->e->tuple = new_tupleform(gwi->gwion->mp, p);
-  t->e->parent = p;
+  t->info->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, loc(gwi));
+  t->info->cdef->base.tmpl = tmpl;
+  t->info->cdef->base.type = t;
+  t->info->tuple = new_tupleform(gwi->gwion->mp, p);
+  t->info->parent = p;
   if(td->array)
     set_tflag(t, tflag_typedef);
   if(ck.tmpl)
@@ -104,7 +104,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
 ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   CHECK_OO(gwi_str2sym(gwi, name))
   const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, gwi->gwion->type[et_compound]);
-  t->e->tuple = new_tupleform(gwi->gwion->mp, NULL);
+  t->info->tuple = new_tupleform(gwi->gwion->mp, NULL);
   gwi_type_flag(t);
   set_tflag(t, tflag_struct);
   return type_finish(gwi, t);
