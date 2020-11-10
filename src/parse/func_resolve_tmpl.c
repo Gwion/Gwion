@@ -16,11 +16,11 @@
 #include "tmp_resolve.h"
 
 struct ResolverArgs {
-  Value v;
+  const Value v;
   const Exp_Call *e;
-  m_str tmpl_name;
+  const m_str tmpl_name;
+  const Type_List types;
   Func m_func;
-  Type_List types;
 };
 
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
