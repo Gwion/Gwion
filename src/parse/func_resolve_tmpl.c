@@ -56,17 +56,17 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
   return NULL;
 }
 
-ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
-  const Value v = f_ptr_args->v;
-  const m_str tmpl_name = f_ptr_args->tmpl_name;
-  const Exp_Call *exp = f_ptr_args->e;
-  Type_List types = f_ptr_args->types;
+ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
+  const Value v = ra->v;
+  const m_str tmpl_name = ra->tmpl_name;
+  const Exp_Call *exp = ra->e;
+  Type_List types = ra->types;
   const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
   const Type exists = nspc_lookup_type0(v->from->owner, sym);
   if(exists)
     return exists->info->func;
 
-  Func m_func = f_ptr_args->m_func;
+  Func m_func = ra->m_func;
   Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->info->func->def;
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
@@ -89,12 +89,12 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* f_ptr_args) {
   return m_func;
 }
 
-ANN static Func func_match(const Env env, struct ResolverArgs* f_ptr_args) {
-  const Value v = f_ptr_args->v;
-  const m_str tmpl_name = f_ptr_args->tmpl_name;
-  const Exp_Call *exp = f_ptr_args->e;
-  Func m_func = f_ptr_args->m_func;
-  Type_List types = f_ptr_args->types;
+ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
+  const Value v = ra->v;
+  const m_str tmpl_name = ra->tmpl_name;
+  const Exp_Call *exp = ra->e;
+  Func m_func = ra->m_func;
+  Type_List types = ra->types;
   for(m_uint i = 0; i < v->from->offset + 1; ++i) {
     const Value exists = template_get_ready(env, v, tmpl_name, i);
     if(exists) {
@@ -133,13 +133,13 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   const m_uint scope = env->scope->depth;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=tflag_check };
-  struct ResolverArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
+  struct ResolverArgs ra = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(is_fptr(env->gwion, v->type))
-    m_func = fptr_match(env, &f_ptr_args);
+    m_func = fptr_match(env, &ra);
   else
-    m_func = func_match(env, &f_ptr_args);
+    m_func = func_match(env, &ra);
   }
   free_mstr(env->gwion->mp, tmpl_name);
   if(es.run)
