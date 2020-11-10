@@ -470,7 +470,19 @@ ANN static inline Instr specialid_instr(const Emitter emit,
   return spid->exec ? emit_add_instr(emit, spid->exec) : spid->em(emit, prim);
 }
 
+static const f_instr upvalue[] = { UpvalueInt, UpvalueFloat, UpvalueOther, UpvalueAddr };
 ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
+  const Exp_Primary *prim = prim_self(data);
+  if(prim->value && emit->env->func && emit->env->func->upvalues.ptr) {
+    const Map map = &emit->env->func->upvalues;
+    for(m_uint i = 0; i < map_size(map); ++i) {
+      if(prim->value == (Value)((Exp_Primary*)VKEY(map, i))->value) {
+        const Instr instr = emit_kind(emit, prim->value->type->size, exp_getvar(exp_self(prim)), upvalue);
+        instr->m_val = i ? VVAL(map, i) : 0;
+        return GW_OK;
+      }
+    }
+  }
   struct SpecialId_ * spid = specialid_get(emit->gwion, *data);
   if(spid)
     return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
@@ -710,7 +722,7 @@ if(isa(type, emit->gwion->type[et_union]) < 0)
       push->m_val = -(missing_depth) * SZ_INT;
     }
     assign->m_val = emit_var;
-    (void)emit_addref(emit, emit_var);
+//    (void)emit_addref(emit, emit_var);
   } else if(struct_ctor(v) /* && !GET_FLAG(decl->td, ref) */)
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
@@ -930,7 +942,6 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     c[sz] = '\0';
     struct dottmpl_ *dt = mp_calloc(emit->gwion->mp, dottmpl);
     dt->name = s_name(insert_symbol(c));
-    dt->vt_index = f->def->base->tmpl->base;
     dt->tl = cpy_type_list(emit->gwion->mp, f->def->base->tmpl->call);
     dt->base = f->def;
     instr->opcode = eOP_MAX;
@@ -969,7 +980,6 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
   c[sz] = '\0';
   dt->tl = cpy_type_list(emit->gwion->mp, f->def->base->tmpl->call);
   dt->name = s_name(insert_symbol(c));
-  dt->vt_index = f->def->base->tmpl->base;
   dt->base = f->def;
   dt->owner = f->value_ref->from->owner;
   dt->owner_class = f->value_ref->from->owner_class;
@@ -1301,31 +1311,6 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
   return ret;
 }
 
-ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
-  CHECK_BB(emit_func_def(emit, lambda->def))
-  if(vflag(lambda->def->base->func->value_ref, vflag_member) && !exp_getvar(exp_self(lambda)))
-    emit_add_instr(emit, RegPushMem);
-  regpushi(emit, (m_uint)lambda->def->base->func->code);
-  return GW_OK;
-}
-
-ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
-  if(!lambda->def->base->func) {
-    regpushi(emit, SZ_INT);
-    return GW_OK;
-  }
-  struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
-    .scope=emit->env->scope->depth, .flag=tflag_emit };
-  CHECK_BB(envset_push(&es, lambda->owner, lambda->def->base->func->value_ref->from->owner))
-  const m_bool ret = emit_lambda(emit, lambda);
-  if(es.run)
-    envset_pop(&es, lambda->owner);
-  return ret;
-}
-
-DECL_EXP_FUNC(emit, m_bool, Emitter)
-
-
 ANN static void struct_addref(const Emitter emit, const Type type,
     const m_int size, const m_bool offset, const m_bool emit_var) {
   if(!type->info->tuple)
@@ -1340,6 +1325,7 @@ ANN static void struct_addref(const Emitter emit, const Type type,
       struct_addref(emit, t, size, offset + vector_at(&type->info->tuple->offset, i), emit_var);
   }
 }
+
 
 ANN static inline m_uint exp_size(const Exp e) {
   if(exp_getvar(e))
@@ -1363,6 +1349,73 @@ ANN2(1) static void emit_exp_addref(const Emitter emit, /* const */Exp exp, m_in
     size += exp_size(exp);
   } while((exp = exp->next));
 }
+
+
+ANN static inline m_bool emit_prim_novar(const Emitter emit, const Exp_Primary *prim) {
+  const Exp e = exp_self(prim);
+  const uint var = exp_getvar(e);
+  exp_setvar(e, 0);
+  CHECK_BB(emit_symbol(emit, prim))
+  exp_setvar(e, var);
+  return GW_OK;
+}
+
+ANN static m_bool emit_upvalues(const Emitter emit, const Func func) {
+  const Map map = &func->upvalues;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    const Exp_Primary *prim = (Exp_Primary*)VKEY(map, i);
+    const Value v = prim->value;
+    CHECK_BB(emit_prim_novar(emit, prim));
+    if(isa(prim->value->type, emit->gwion->type[et_compound]) > 0) {
+       emit_exp_addref1(emit, exp_self(prim), -v->type->size);
+       if(vflag(v, vflag_fglobal) && !vflag(v, vflag_closed))
+         emit_exp_addref1(emit, exp_self(prim), -v->type->size);
+       map_set(&func->code->closure->m, (vtype)v->type, VVAL(map, i));
+    }
+    set_vflag(v, vflag_closed);
+  }
+  return GW_OK;
+}
+
+ANN static m_bool emit_closure(const Emitter emit, const Func func) {
+  const Map map = &func->upvalues;
+  const m_uint sz = VVAL(map, VLEN(map) - 1) + ((Exp_Primary*)VKEY(map, VLEN(map) - 1))->value->type->size;
+  func->code->closure = new_closure(emit->gwion->mp, sz);
+  regpushi(emit, (m_uint)func->code->closure->data);
+  CHECK_BB(emit_upvalues(emit, func))
+  regpop(emit, sz);
+  const Instr cpy = emit_add_instr(emit, Reg2RegOther);
+  cpy->m_val2 = sz;
+  regpop(emit, SZ_INT);
+  return GW_OK;
+}
+
+ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda * lambda) {
+  CHECK_BB(emit_func_def(emit, lambda->def))
+  if(lambda->def->base->func->upvalues.ptr)
+    CHECK_BB(emit_closure(emit, lambda->def->base->func))
+  if(vflag(lambda->def->base->func->value_ref, vflag_member) && !exp_getvar(exp_self(lambda)))
+    emit_add_instr(emit, RegPushMem);
+  regpushi(emit, (m_uint)lambda->def->base->func->code);
+  return GW_OK;
+}
+
+ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda) {
+  if(!lambda->def->base->func) {
+    regpushi(emit, SZ_INT);
+    return GW_OK;
+  }
+  struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
+    .scope=emit->env->scope->depth, .flag=tflag_emit };
+  CHECK_BB(envset_push(&es, lambda->owner, lambda->def->base->func->value_ref->from->owner))
+  const m_bool ret = emit_lambda(emit, lambda);
+  if(es.run)
+    envset_pop(&es, lambda->owner);
+  return ret;
+}
+
+DECL_EXP_FUNC(emit, m_bool, Emitter)
+
 
 ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
   Exp exp = e;

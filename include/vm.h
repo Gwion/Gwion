@@ -1,6 +1,14 @@
 #ifndef __VM
 #define __VM
 
+typedef struct Closure_ {
+  m_bit *data;
+  struct Map_ m;
+  m_uint sz;
+} Closure;
+ANN Closure* new_closure(MemPool mp, const m_uint sz);
+ANN void free_closure(Closure *a, const Gwion gwion);
+
 typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   m_bit *bytecode;
@@ -10,6 +18,7 @@ struct VM_Code_ {
   };
   size_t stack_depth;
   void* memoize;
+  Closure *closure;
   m_str name;
   uint16_t ref;
   ae_flag flag;

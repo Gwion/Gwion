@@ -16,6 +16,7 @@ struct Func_ {
   Value value_ref;
   Func next;
   size_t vt_index;
+  struct Map_ upvalues;
   uint16_t ref;
   ae_flag flag;
   enum fflag fflag;

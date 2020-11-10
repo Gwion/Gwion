@@ -17,7 +17,8 @@ enum vflag {
   vflag_valid    = 1 << 6,
   vflag_direct    = 1 << 7,
   vflag_builtin    = 1 << 8,
-  vflag_member   = 1 << 9
+  vflag_member   = 1 << 9,
+  vflag_closed   = 1 << 10
 //  vflag_used = 1 << 3
 } __attribute__((packed));
 

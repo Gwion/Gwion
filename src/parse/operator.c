@@ -273,6 +273,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
       } while(l && (l = op_parent(env, l)));
     }
   } while((nspc = nspc->parent));
+//  if(env->func && env->func->nspc)
   if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
   if(opi->op != insert_symbol(env->gwion->st, "@implicit"))

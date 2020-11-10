@@ -152,29 +152,24 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
   l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
-  map_set(&env->curr->info->func->map, (m_uint)l->def->base, env->scope->depth);
-  const m_bool ret = check_traverse_fdef(env, l->def);
-  map_remove(&env->curr->info->func->map, (m_uint)l->def->base);
-  CHECK_BB(ret)
+  l->def->base->values = env->curr->info->value;
+  const m_bool ret = traverse_func_def(env, l->def);
+  if(l->def->base->func) {
+    free_scope(env->gwion->mp, env->curr->info->value);
+    env->curr->info->value = l->def->base->values;
+  }
   arg = l->def->base->args;
   while(arg) {
     arg->td = NULL;
     arg = arg->next;
   }
-  return GW_OK;
+  return ret;
 }
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->info->func->def;
-  struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
-    .scope=env->scope->depth, .flag=tflag_check };
   l->owner = t->info->owner_class;
-  CHECK_BB(envset_push(&es, l->owner, t->info->owner))
-  const m_bool ret = _check_lambda(env, l, fdef);
-  if(es.run)
-    envset_pop(&es, l->owner);
-  if(ret < 0)
-    return GW_ERROR;
+  CHECK_BB(_check_lambda(env, l, fdef))
   exp_self(l)->info->type = l->def->base->func->value_ref->type;
   return GW_OK;
 }

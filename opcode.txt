@@ -14,6 +14,7 @@ RegPushBase2
 RegPushBase3
 RegPushBase4
 Reg2Reg
+Reg2RegOther
 Reg2RegAddr
 Reg2RegDeref
 StructMember
@@ -162,6 +163,10 @@ DotMember4
 DotStatic
 DotStatic2
 DotStatic3
+UpvalueInt
+UpvalueFloat
+UpvalueOther
+UpvalueAddr
 DotFunc
 DotStaticFunc
 GcIni

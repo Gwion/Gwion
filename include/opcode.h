@@ -17,6 +17,7 @@ enum {
   eRegPushBase3,
   eRegPushBase4,
   eReg2Reg,
+  eReg2RegOther,
   eReg2RegAddr,
   eReg2RegDeref,
   eStructMember,
@@ -165,6 +166,10 @@ enum {
   eDotStatic,
   eDotStatic2,
   eDotStatic3,
+  eUpvalueInt,
+  eUpvalueFloat,
+  eUpvalueOther,
+  eUpvalueAddr,
   eDotFunc,
   eDotStaticFunc,
   eGcIni,
@@ -195,6 +200,7 @@ enum {
 #define  RegPushBase3        (f_instr)eRegPushBase3
 #define  RegPushBase4        (f_instr)eRegPushBase4
 #define  Reg2Reg             (f_instr)eReg2Reg
+#define  Reg2RegOther        (f_instr)eReg2RegOther
 #define  Reg2RegAddr         (f_instr)eReg2RegAddr
 #define  Reg2RegDeref        (f_instr)eReg2RegDeref
 #define  StructMember        (f_instr)eStructMember
@@ -343,6 +349,10 @@ enum {
 #define  DotStatic           (f_instr)eDotStatic
 #define  DotStatic2          (f_instr)eDotStatic2
 #define  DotStatic3          (f_instr)eDotStatic3
+#define  UpvalueInt          (f_instr)eUpvalueInt
+#define  UpvalueFloat        (f_instr)eUpvalueFloat
+#define  UpvalueOther        (f_instr)eUpvalueOther
+#define  UpvalueAddr         (f_instr)eUpvalueAddr
 #define  DotFunc             (f_instr)eDotFunc
 #define  DotStaticFunc       (f_instr)eDotStaticFunc
 #define  GcIni               (f_instr)eGcIni

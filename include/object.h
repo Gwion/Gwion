@@ -40,5 +40,11 @@ typedef void (f_release)(const VM_Shred shred, const Type t NUSED, const m_bit* 
 #define RELEASE_FUNC(a) void (a)(const VM_Shred shred, const Type t NUSED, const m_bit* ptr)
 static inline RELEASE_FUNC(object_release) { release(*(M_Object*)ptr, shred); }
 RELEASE_FUNC(struct_release);
+static inline void compound_release(const VM_Shred shred, const Type t, const m_bit* ptr) {
+  if(!tflag(t, tflag_struct))
+    object_release(shred, t, ptr);
+  else
+    struct_release(shred, t, ptr);
+}
 
 #endif

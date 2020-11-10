@@ -247,9 +247,18 @@ ANN m_bool not_from_owner_class(const Env env, const Type t,
   return GW_OK;
 }
 
+ANN static inline Value get_value(const Env env, const Symbol sym) {
+  const Value value = nspc_lookup_value1(env->curr, sym);
+  if(value)
+    return value;
+  if(env->func && env->func->def->base->values)
+    return  (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
+  return NULL;
+}
+
 ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   const Symbol var = *data;
-  const Value value = nspc_lookup_value1(env->curr, var);
+  const Value value = get_value(env, var);
   if(env->class_def) {
     if(value && value->from->owner_class)
       CHECK_BO(not_from_owner_class(env, env->class_def, value, prim_pos(data)))
@@ -280,22 +289,20 @@ static inline Nspc value_owner(const Value v) {
   return v ? v->from->owner : NULL;
 }
 
-ANN static m_bool lambda_valid(const Env env, const Exp_Primary* exp) {
-  const Value val = exp->value;
-  const Symbol sym = insert_symbol(val->name);
-  const Vector vec = (Vector)&env->curr->info->value->ptr;
-  const m_uint scope = map_get(&env->curr->info->func->map, (m_uint)env->func->def->base);
-  if(GET_FLAG(val, global))
-    return GW_OK;
-  if(val->from->owner_class && isa(val->from->owner_class, env->class_def) > 0)
-    return GW_OK;
-  const m_uint sz = vector_size(vec);
-  for(m_uint i = scope; i < sz; ++i) {
-    const Map map = (Map)vector_at(vec, i);
-    if(map_get(map, (m_uint)sym))
-      return GW_OK;
+ANN static void check_upvalue(const Env env, const Exp_Primary *prim) {
+  const Value v = prim->value;
+  if(GET_FLAG(v, global) || (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
+      nspc_lookup_value1(env->curr, insert_symbol(v->name)))
+    return;
+  const Map map = &env->func->upvalues;
+  if(!map->ptr) {
+    map_init(map);
+    map_set(&env->func->upvalues, (vtype)prim, 0);
+  } else {
+    if(map_get(map, (vtype)v))return;
+    const m_uint offset = VVAL(map, VLEN(map) -1) + ((Exp_Primary*)VKEY(map, VLEN(map) - 1))->value->type->size;
+    map_set(&env->func->upvalues, (vtype)prim, offset);
   }
-  ERR_B(exp_self(exp)->pos, _("variable '%s' is not in lambda scope"), val->name)
 }
 
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
@@ -311,11 +318,11 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   prim_self(data)->value = v;
   if(env->func) {
     if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
-      CHECK_BO(lambda_valid(env, prim_self(data)))
+      check_upvalue(env, prim_self(data));
     if(env->func && !GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
   }
-  //v->vflag |= used;
+  //set_vflag(v->vflag, vflag_used);
   if(GET_FLAG(v, const))
     exp_setmeta(prim_exp(data), 1);
   if(v->from->owner_class) {
@@ -655,11 +662,18 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(arg || e)
     ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-  CHECK_BO(check_traverse_fdef(env, l->def))
-  if(env->class_def)
-    set_vflag(l->def->base->func->value_ref, vflag_member);
+  l->def->base->values = env->curr->info->value;
+  const m_bool ret = traverse_func_def(env, l->def);
+  if(l->def->base->func) {
+    free_scope(env->gwion->mp, env->curr->info->value);
+    env->curr->info->value = l->def->base->values;
+    if(env->class_def)
+      set_vflag(l->def->base->func->value_ref, vflag_member);
+  }
   ((Exp_Call*)exp)->m_func = l->def->base->func;
-  return l->def->base->ret_type ?: (l->def->base->ret_type = env->gwion->type[et_void]);
+  if(!l->def->base->ret_type)
+    l->def->base->ret_type = env->gwion->type[et_void];
+  return ret > 0 ? l->def->base->ret_type : NULL;
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {

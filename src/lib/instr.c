@@ -33,7 +33,7 @@ INSTR(PopArrayClass) {
 ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Nspc nspc) {
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
-    "template", dt->vt_index);
+    "template", dt->base->base->tmpl->base);
   DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid))
   if(isa(v->type, env->gwion->type[et_class]) > 0)
     return NULL;
@@ -45,7 +45,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   if(vflag(v, vflag_builtin))
     v->d.func_ref->def->d.dl_func_ptr = dt->xfun;
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
-  def->base->tmpl->base = dt->vt_index;
+  def->base->tmpl->base = dt->base->base->tmpl->base;
   dt->def = def;
   dt->owner = v->from->owner;
   dt->owner_class = v->from->owner_class;

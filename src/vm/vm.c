@@ -284,7 +284,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr, &&regpushmemderef,
     &&pushnow,
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
-    &&regtoreg, &&regtoregaddr, &&regtoregderef,
+    &&regtoreg, &&regtoregother, &&regtoregaddr, &&regtoregderef,
     &&structmember, &&structmemberfloat, &&structmemberother, &&structmemberaddr,
     &&memsetimm,
     &&regpushme, &&regpushmaybe,
@@ -324,6 +324,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&staticint, &&staticfloat, &&staticother,
+    &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc, &&dotstaticfunc,
     &&gcini, &&gcadd, &&gcend,
     &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&other, &&regpushimm
@@ -414,6 +415,9 @@ baseaddr:
   DISPATCH();
 regtoreg:
   *(m_uint*)(reg + (m_int)VAL) = *(m_uint*)(reg + (m_int)VAL2);
+  DISPATCH()
+regtoregother:
+  memcpy(*(m_bit**)(reg - SZ_INT), reg + (m_int)VAL, VAL2);
   DISPATCH()
 regtoregaddr:
   *(m_uint**)(reg + (m_int)VAL) = &*(m_uint*)(reg + (m_int)VAL2);
@@ -833,6 +837,22 @@ staticother:
 //    *(m_uint*)(reg+i) = *(m_uint*)((m_bit*)VAL + i);
   memcpy(reg, (m_bit*)VAL, VAL2);
   reg += VAL2;
+  DISPATCH()
+upvalueint:
+  *(m_uint*)reg = *(m_uint*)(code->closure->data + VAL);
+  reg += SZ_INT;
+  DISPATCH()
+upvaluefloat:
+  *(m_float*)reg = *(m_float*)(code->closure->data + VAL);
+  reg += SZ_FLOAT;
+  DISPATCH()
+upvalueother:
+  memcpy(reg, code->closure->data + VAL, VAL2);
+  reg += VAL2;
+  DISPATCH()
+upvalueaddr:
+  *(m_uint**)reg = (m_uint*)(code->closure->data + VAL);
+  reg += SZ_INT;
   DISPATCH()
 dotfunc:
 PRAGMA_PUSH()

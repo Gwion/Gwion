@@ -61,7 +61,6 @@ struct dottmpl_ {
   Func_Def base, def;
   Type owner_class;
   Nspc owner;
-  size_t vt_index;
   Type_List tl;
   void* xfun;// (type is f_xfun)
 };

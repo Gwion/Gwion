@@ -33,6 +33,8 @@ ANN void free_vm_code(VM_Code a, Gwion gwion) {
     _mp_free(gwion->mp, vector_size(a->instr) * SZ_INT, a->bytecode);
     _free_code_instr(a->instr, gwion);
   }
+  if(a->closure)
+    free_closure(a->closure, gwion);
   free_mstr(gwion->mp, a->name);
   mp_free(gwion->mp , VM_Code, a);
 }

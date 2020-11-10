@@ -7,12 +7,11 @@ typedef struct Frame_ {
 } Frame;
 
 typedef struct Code_ {
-  m_str  name;
+  Frame* frame;
   size_t stack_depth;
   struct Vector_ instr;
   struct Vector_ stack_cont, stack_break, stack_return;
-  Frame* frame;
-  ae_flag flag;
+  m_str  name;
 } Code;
 
 struct EmitterInfo_ {

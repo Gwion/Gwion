@@ -322,15 +322,15 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
 
 ANN static Func scan_new_func(const Env env, const Func_Def f, const m_str name) {
   const Func func = new_func(env->gwion->mp, name, f);
-  if(env->class_def) {
-    if(tflag(env->class_def, tflag_tmpl))
-      set_fflag(func, fflag_ftmpl);
-  }
+  if(env->class_def && tflag(env->class_def, tflag_tmpl))
+    set_fflag(func, fflag_ftmpl);
+  if(fbflag(f->base, fbflag_lambda))
+    env->curr->info->value = new_scope(env->gwion->mp);
   return func;
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type base = env->gwion->type[func->def->base->td ? et_function : et_lambda];
+  const Type base = env->gwion->type[!fbflag(func->def->base, fbflag_lambda) ? et_function : et_lambda];
   const Type t = type_copy(env->gwion->mp, base);
   t->xid = ++env->scope->type_xid;
   t->info->parent = base;

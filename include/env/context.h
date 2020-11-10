@@ -6,9 +6,9 @@ struct Context_ {
   Ast         tree;
   Nspc        nspc;
   struct Map_ lbls;
-  uint16_t ref;
   m_bool error;
   m_bool global;
+  uint16_t ref;
 };
 
 ANN void free_context(const Context, struct Gwion_*const);
