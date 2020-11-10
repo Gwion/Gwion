@@ -30,7 +30,7 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
 }
 
 ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
-  ae_exp_t et = exp->func->exp_type;
+  const ae_exp_t et = exp->func->exp_type;
   if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
     ERR_B(exp->func->pos, _("invalid expression for function call."))
   CHECK_OB(check_exp(env, exp->func))
