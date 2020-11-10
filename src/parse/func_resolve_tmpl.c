@@ -58,10 +58,9 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
 
 ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   const Value v = ra->v;
-  const m_str tmpl_name = ra->tmpl_name;
   const Exp_Call *exp = ra->e;
   Type_List types = ra->types;
-  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, tmpl_name, 0);
+  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, ra->tmpl_name, 0);
   const Type exists = nspc_lookup_type0(v->from->owner, sym);
   if(exists)
     return exists->info->func;
@@ -91,21 +90,19 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
 
 ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
   const Value v = ra->v;
-  const m_str tmpl_name = ra->tmpl_name;
-  const Exp_Call *exp = ra->e;
   Func m_func = ra->m_func;
   Type_List types = ra->types;
   for(m_uint i = 0; i < v->from->offset + 1; ++i) {
-    const Value exists = template_get_ready(env, v, tmpl_name, i);
+    const Value exists = template_get_ready(env, v, ra->tmpl_name, i);
     if(exists) {
       if(env->func == exists->d.func_ref) {
-        if(check_call(env, exp) < 0 ||
-           !find_func_match(env, env->func, exp->args))
+        if(check_call(env, ra->e) < 0 ||
+           !find_func_match(env, env->func, ra->e->args))
           continue;
         m_func = env->func;
         break;
       }
-      if((m_func = ensure_tmpl(env, exists->d.func_ref->def, exp)))
+      if((m_func = ensure_tmpl(env, exists->d.func_ref->def, ra->e)))
         break;
     } else {
       const Value value = template_get_ready(env, v, "template", i);
@@ -116,7 +113,7 @@ ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
       const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
       fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
       fdef->base->tmpl->base = i;
-      if((m_func = ensure_tmpl(env, fdef, exp)))
+      if((m_func = ensure_tmpl(env, fdef, ra->e)))
         break;
       if(!fdef->base->func)
         free_func_def(env->gwion->mp, fdef);
