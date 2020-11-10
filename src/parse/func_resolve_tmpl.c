@@ -140,7 +140,6 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
     m_func = fptr_match(env, &ra);
   else
     m_func = func_match(env, &ra);
-  }
   free_mstr(env->gwion->mp, tmpl_name);
   if(es.run)
     envset_pop(&es, v->from->owner_class);
