@@ -73,9 +73,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
   if(template_push_types(env, fbase->tmpl) > 0) {
     const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
-    if(traverse_fptr_def(env, fptr) > 0 &&
-        (base->base->ret_type = known_type(env, base->base->td)) &&
-        (!exp->args || !!check_exp(env, exp->args))) {
+    if(traverse_fptr_def(env, fptr) > 0) {
       m_func = find_func_match(env, fbase->func, exp->args);
       nspc_pop_type(env->gwion->mp, env->curr);
       if(m_func)
@@ -96,8 +94,7 @@ ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
     const Value exists = template_get_ready(env, v, ra->tmpl_name, i);
     if(exists) {
       if(env->func == exists->d.func_ref) {
-        if(check_call(env, ra->e) < 0 ||
-           !find_func_match(env, env->func, ra->e->args))
+        if(!find_func_match(env, env->func, ra->e->args))
           continue;
         m_func = env->func;
         break;
