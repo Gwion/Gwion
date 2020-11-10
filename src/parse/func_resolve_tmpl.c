@@ -159,13 +159,12 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   while(t && t->nspc) {
     Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->info->func->def;
     const Value v = nspc_lookup_value0(t->nspc, fdef->base->xid);
-    if(!v)
-      goto next;
-     const Func f = _find_template_match(env, v, exp);
-     if(f)
-       return f;
-   next:
-     t = t->info->parent;
+    if(!v) {
+      const Func f = _find_template_match(env, v, exp);
+      if(f)
+        return f;
+    }
+    t = t->info->parent;
   }
   ERR_O(exp_self(exp)->pos, _("arguments do not match for template call"))
 }
