@@ -2045,7 +2045,7 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
 }
 
 static ANN int fdef_is_file_global(const Emitter emit, const Func_Def fdef) {
-  return isa(fdef->base->func->value_ref->type, emit->gwion->type[et_lambda]) < 0 &&
+  return !fbflag(fdef->base, fbflag_lambda) &&
     !emit->env->class_def && !GET_FLAG(fdef->base, global) && !fdef->base->tmpl &&
     !emit->env->scope->depth;
 }

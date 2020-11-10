@@ -317,7 +317,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   }
   prim_self(data)->value = v;
   if(env->func) {
-    if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
+    if(fbflag(env->func->def->base, fbflag_lambda))
       check_upvalue(env, prim_self(data));
     if(env->func && !GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
