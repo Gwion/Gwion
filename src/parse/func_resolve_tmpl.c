@@ -116,12 +116,10 @@ ANN static Func func_match(const Env env, struct ResolverArgs* f_ptr_args) {
       const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
       fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
       fdef->base->tmpl->base = i;
-      if((m_func = ensure_tmpl(env, fdef, exp))) {
+      if((m_func = ensure_tmpl(env, fdef, exp)))
         break;
-      }
-      if(!fdef->base->func) {
+      if(!fdef->base->func)
         free_func_def(env->gwion->mp, fdef);
-      }
     }
   }
   return m_func;
@@ -138,9 +136,9 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   struct ResolverArgs f_ptr_args = {.v = v, .e = exp, .tmpl_name = tmpl_name, m_func =  m_func, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
-  if(is_fptr(env->gwion, v->type)) {
+  if(is_fptr(env->gwion, v->type))
     m_func = fptr_match(env, &f_ptr_args);
-  } else {
+  else
     m_func = func_match(env, &f_ptr_args);
   }
   free_mstr(env->gwion->mp, tmpl_name);
