@@ -156,7 +156,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
   while(t && t->nspc) {
     Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->info->func->def;
     const Value v = nspc_lookup_value0(t->nspc, fdef->base->xid);
-    if(!v) {
+    if(v) {
       const Func f = _find_template_match(env, v, exp);
       if(f)
         return f;
