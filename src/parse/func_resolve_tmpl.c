@@ -20,7 +20,6 @@ struct ResolverArgs {
   const Exp_Call *e;
   const m_str tmpl_name;
   const Type_List types;
-  Func m_func;
 };
 
 ANN static inline Value template_get_ready(const Env env, const Value v, const m_str tmpl, const m_uint i) {
@@ -66,7 +65,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   if(exists)
     return exists->info->func;
 
-  Func m_func = ra->m_func;
+  Func m_func = NULL;
   Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->info->func->def;
   Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
@@ -87,37 +86,36 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   return m_func;
 }
 
+ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value exists) {
+  if(env->func == exists->d.func_ref && find_func_match(env, env->func, ra->e->args))
+    return env->func;
+  return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
+}
+
+ANN static Func create_tmpl(const Env env, struct ResolverArgs* ra, const m_uint i) {
+  const Value value = template_get_ready(env, ra->v, "template", i);
+  if(!value)
+    return NULL;
+  if(vflag(ra->v, vflag_builtin))
+    set_vflag(value, vflag_builtin);
+  const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
+  fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
+  fdef->base->tmpl->base = i;
+  const Func func = ensure_tmpl(env, fdef, ra->e);
+  if(!func && !fdef->base->func)
+    free_func_def(env->gwion->mp, fdef);
+  return func;
+}
+
 ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
-  const Value v = ra->v;
-  Func m_func = ra->m_func;
-  Type_List types = ra->types;
-  for(m_uint i = 0; i < v->from->offset + 1; ++i) {
-    const Value exists = template_get_ready(env, v, ra->tmpl_name, i);
-    if(exists) {
-      if(env->func == exists->d.func_ref) {
-        if(!find_func_match(env, env->func, ra->e->args))
-          continue;
-        m_func = env->func;
-        break;
-      }
-      if((m_func = ensure_tmpl(env, exists->d.func_ref->def, ra->e)))
-        break;
-    } else {
-      const Value value = template_get_ready(env, v, "template", i);
-      if(!value)
-        continue;
-      if(vflag(v, vflag_builtin))
-        set_vflag(value, vflag_builtin);
-      const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-      fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, types);
-      fdef->base->tmpl->base = i;
-      if((m_func = ensure_tmpl(env, fdef, ra->e)))
-        break;
-      if(!fdef->base->func)
-        free_func_def(env->gwion->mp, fdef);
-    }
+  for(m_uint i = 0; i < ra->v->from->offset + 1; ++i) {
+    const Value exists = template_get_ready(env, ra->v, ra->tmpl_name, i);
+    const Func func = exists ?
+      tmpl_exists(env, ra, exists) : create_tmpl(env, ra, i);
+    if(func)
+      return func;
   }
-  return m_func;
+  return NULL;
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
