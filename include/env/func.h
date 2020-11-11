@@ -29,6 +29,11 @@ ANN static inline void func_remref(const Func f, struct Gwion_ *const gwion) { i
 static inline int fflag(const Func f, const enum fflag flag) {
   return (f->fflag & flag) == flag;
 }
+
+static inline int safe_fflag(const Func f, const enum fflag flag) {
+  return f ? ((f->fflag & flag) == flag) : 0;
+}
+
 #ifndef __cplusplus
 static inline void set_fflag(const Func f, const enum fflag flag) {
   f->fflag |= flag;

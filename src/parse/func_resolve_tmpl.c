@@ -39,21 +39,22 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   return GW_OK;
 }
 
+ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
+  return safe_fflag(fdef->base->func, fflag_valid) ||
+      check_traverse_fdef(env, fdef) > 0;
+}
+
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  const m_bool ret = (fdef->base->func && fflag(fdef->base->func, fflag_valid)) || check_traverse_fdef(env, fdef) > 0;
-  if(ret) {
-    const Func f = fdef->base->func;
-    const Func next = f->next;
-    f->next = NULL;
-    const Func func = find_func_match(env, f, exp->args);
-    f->next = next;
-    if(func) {
-      set_fflag(func, fflag_tmpl);
-      set_fflag(func, fflag_valid);
-      return func;
-    }
-  }
-  return NULL;
+  if(!tmpl_valid(env, fdef))
+    return NULL;
+  const Func f = fdef->base->func;
+  const Func next = f->next;
+  f->next = NULL;
+  const Func func = find_func_match(env, f, exp->args);
+  f->next = next;
+  if(func)
+    set_fflag(func, fflag_tmpl | fflag_valid);
+  return func;
 }
 
 ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
@@ -146,7 +147,7 @@ ANN Func find_template_match(const Env env, const Value value, const Exp_Call* e
     return f;
   Type t = value->from->owner_class;
   while(t && t->nspc) {
-    Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->info->func->def;
+    const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : value->type->info->func->def;
     const Value v = nspc_lookup_value0(t->nspc, fdef->base->xid);
     if(v) {
       const Func f = _find_template_match(env, v, exp);
