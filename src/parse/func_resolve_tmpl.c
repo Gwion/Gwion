@@ -43,19 +43,6 @@ ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
       check_traverse_fdef(env, fdef) > 0;
 }
 
-ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
-  if(!tmpl_valid(env, fdef))
-    return NULL;
-  const Func f = fdef->base->func;
-  const Func next = f->next;
-  f->next = NULL;
-  const Func func = find_func_match(env, f, exp->args);
-  f->next = next;
-  if(func)
-    set_fflag(func, fflag_tmpl | fflag_valid);
-  return func;
-}
-
 ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   const Value v = ra->v;
   const Exp_Call *exp = ra->e;
@@ -86,10 +73,17 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   return m_func;
 }
 
-ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value exists) {
-  if(env->func == exists->d.func_ref && find_func_match(env, env->func, ra->e->args))
-    return env->func;
-  return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
+ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
+  if(!tmpl_valid(env, fdef))
+    return NULL;
+  const Func f = fdef->base->func;
+  const Func next = f->next;
+  f->next = NULL;
+  const Func func = find_func_match(env, f, exp->args);
+  f->next = next;
+  if(func)
+    set_fflag(func, fflag_tmpl | fflag_valid);
+  return func;
 }
 
 ANN static Func create_tmpl(const Env env, struct ResolverArgs* ra, const m_uint i) {
@@ -105,6 +99,12 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs* ra, const m_uint
   if(!func && !fdef->base->func)
     free_func_def(env->gwion->mp, fdef);
   return func;
+}
+
+ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value exists) {
+  if(env->func == exists->d.func_ref && find_func_match(env, env->func, ra->e->args))
+    return env->func;
+  return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
 }
 
 ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
