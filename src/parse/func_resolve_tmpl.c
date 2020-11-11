@@ -38,6 +38,37 @@ ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
   return GW_OK;
 }
 
+
+ANN static inline Func fptr_ensure(const Env env, struct ResolverArgs* ra, const Fptr_Def fptr ) {
+  CHECK_BO(traverse_fptr_def(env, fptr))
+  return find_func_match(env, fptr->base->func, ra->e->args);
+}
+
+ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
+  const Value v = ra->v;
+  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, ra->tmpl_name, 0);
+  const Type exists = nspc_lookup_type0(v->from->owner, sym);
+  if(exists)
+    return exists->info->func;
+  const Func_Def base = v->d.func_ref ? v->d.func_ref->def : ra->e->func->info->type->info->func->def;
+  const Tmpl tmpl = { .list=base->base->tmpl->list, .call=ra->types };
+  CHECK_BO(template_push_types(env, &tmpl))
+  Func m_func = NULL;
+  Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
+  fbase->xid = sym;
+  fbase->tmpl->base = 0;
+  fbase->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
+  const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
+  const Func func = fptr_ensure(env, ra, fptr);
+  if(func)
+    nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, func->value_ref->type));
+  if(fptr->type)
+    type_remref(fptr->type, env->gwion);
+  free_fptr_def(env->gwion->mp, fptr);
+  nspc_pop_type(env->gwion->mp, env->curr);
+  return m_func;
+}
+
 ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
   return safe_fflag(fdef->base->func, fflag_valid) ||
       check_traverse_fdef(env, fdef) > 0;
@@ -54,36 +85,6 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
   if(func)
     set_fflag(func, fflag_tmpl | fflag_valid);
   return func;
-}
-
-ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
-  const Value v = ra->v;
-  const Exp_Call *exp = ra->e;
-  Type_List types = ra->types;
-  const Symbol sym = func_symbol(env, v->from->owner->name, v->name, ra->tmpl_name, 0);
-  const Type exists = nspc_lookup_type0(v->from->owner, sym);
-  if(exists)
-    return exists->info->func;
-
-  Func m_func = NULL;
-  Func_Def base = v->d.func_ref ? v->d.func_ref->def : exp->func->info->type->info->func->def;
-  Func_Base *fbase = cpy_func_base(env->gwion->mp, base->base);
-  fbase->xid = sym;
-  fbase->tmpl->base = 0;
-  fbase->tmpl->call = cpy_type_list(env->gwion->mp, types);
-  if(template_push_types(env, fbase->tmpl) > 0) {
-    const Fptr_Def fptr = new_fptr_def(env->gwion->mp, fbase);
-    if(traverse_fptr_def(env, fptr) > 0) {
-      m_func = find_func_match(env, fbase->func, exp->args);
-      nspc_pop_type(env->gwion->mp, env->curr);
-      if(m_func)
-        nspc_add_type_front(v->from->owner, sym, actual_type(env->gwion, m_func->value_ref->type));
-    }
-    if(fptr->type)
-      type_remref(fptr->type, env->gwion);
-    free_fptr_def(env->gwion->mp, fptr);
-  }
-  return m_func;
 }
 
 ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value exists) {
