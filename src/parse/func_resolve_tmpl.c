@@ -28,16 +28,6 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->from->owner, sym);
 }
 
-ANN static m_bool check_call(const Env env, const Exp_Call* exp) {
-  const ae_exp_t et = exp->func->exp_type;
-  if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
-    ERR_B(exp->func->pos, _("invalid expression for function call."))
-  CHECK_OB(check_exp(env, exp->func))
-  if(exp->args)
-    CHECK_OB(check_exp(env, exp->args))
-  return GW_OK;
-}
-
 ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
   return safe_fflag(fdef->base->func, fflag_valid) ||
       check_traverse_fdef(env, fdef) > 0;
@@ -118,7 +108,6 @@ ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
-  CHECK_BO(check_call(env, exp))
   const Type_List types = exp->tmpl->call;
   const Func former = env->func;
   DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
@@ -138,7 +127,15 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   return m_func;
 }
 
+ANN static inline m_bool check_call(const Env env, const Exp_Call* exp) {
+  const ae_exp_t et = exp->func->exp_type;
+  if(et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
+    ERR_B(exp->func->pos, _("invalid expression for function call."))
+  return GW_OK;
+}
+
 ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
+  CHECK_BO(check_call(env, exp))
   const Func f = _find_template_match(env, value, exp);
   if(f)
     return f;

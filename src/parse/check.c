@@ -758,6 +758,8 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_OO(check_exp(env, exp->func))
+    if(exp->args)
+      CHECK_OO(check_exp(env, exp->args))
     const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
     if(isa(t, env->gwion->type[et_function]) < 0)
       ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
@@ -765,8 +767,6 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->info->func->def->base->tmpl->call) {
       if(env->func == t->info->func) {
-        if(exp->args)
-          CHECK_OO(check_exp(env, exp->args))
         exp->m_func = env->func;
         return env->func->def->base->ret_type;
       }  else
