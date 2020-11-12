@@ -30,15 +30,15 @@ ANN static m_int gwi_item_tmpl(const Gwi gwi) {
 }
 
 #undef gwi_item_end
-ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, const m_uint* addr) {
+ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, m_uint *const addr) {
   CHECK_BB(ck_ok(gwi, ck_item))
   const Env env = gwi->gwion->env;
-  gwi->ck->exp->d.exp_decl.list->self->addr = (m_uint*)addr;
   gwi->ck->exp->d.exp_decl.td->flag = flag;
   if(env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_BB(traverse_exp(env, gwi->ck->exp))
   const Value value = gwi->ck->exp->d.exp_decl.list->self->value;
+  value->d.ptr = addr;
   set_vflag(value, vflag_builtin);
   if(!env->class_def)
     SET_FLAG(value, global);
