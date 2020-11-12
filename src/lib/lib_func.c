@@ -238,7 +238,6 @@ static OP_CHECK(opck_fptr_cast) {
   struct FptrInfo info = { cast->exp->info->type->info->func, t->info->func,
      cast->exp, exp_self(cast)->pos };
   CHECK_BO(fptr_do(env, &info))
-  cast->func = cast->exp->info->type->info->func;
   return t;
 }
 
