@@ -407,7 +407,7 @@ ANN static inline Symbol dot_symbol(SymTable *st, const Value v) {
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
   const Value v = prim_self(data)->value;
   const Exp base = new_prim_id(gwion->mp, dot_symbol(gwion->st, v), loc_cpy(gwion->mp, prim_pos(data)));
-  const Exp dot = new_exp_dot(gwion->mp, base, *data);
+  const Exp dot = new_exp_dot(gwion->mp, base, *data, loc_cpy(gwion->mp, prim_pos(data)));
   const Type owner = v->from->owner_class;
   dot->d.exp_dot.t_base = dot->d.exp_dot.base->info->type = !GET_FLAG(v, static) ?
     owner : type_class(gwion, owner);

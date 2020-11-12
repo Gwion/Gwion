@@ -1710,7 +1710,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     type_decl->flag = udef->flag;
     const Var_Decl var_decl = new_var_decl(emit->gwion->mp, udef->xid, NULL, loc_cpy(emit->gwion->mp, udef->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
-    const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
+    const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list, loc_cpy(emit->gwion->mp, udef->pos));
     exp->d.exp_decl.type = udef->value->type;
     var_decl->value = udef->value;
     const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
