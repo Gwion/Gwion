@@ -709,8 +709,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, dotstatic);
   v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
-if(isa(type, emit->gwion->type[et_union]) < 0)
-  set_vflag(v, vflag_direct);// mpalloc
+  if(isa(type, emit->gwion->type[et_union]) < 0)
+    set_vflag(v, vflag_direct);// mpalloc
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref) && !GET_FLAG(decl->td, ref)) {
