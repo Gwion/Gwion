@@ -15,7 +15,6 @@
 #include "operator.h"
 #include "import.h"
 #include "match.h"
-#include "parser.h"
 #include "specialid.h"
 #include "vararg.h"
 

@@ -12,7 +12,6 @@
 #include "import.h"
 #include "gwi.h"
 #include "engine.h"
-#include "parser.h"
 #include "lang_private.h"
 #include "specialid.h"
 #include "gack.h"

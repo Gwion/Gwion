@@ -14,7 +14,6 @@
 #include "import.h"
 #include "gwi.h"
 #include "gwi.h"
-#include "parser.h"
 #include "specialid.h"
 #include "pass.h"
 

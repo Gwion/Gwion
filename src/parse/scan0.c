@@ -5,7 +5,6 @@
 #include "vm.h"
 #include "traverse.h"
 #include "template.h"
-#include "parser.h"
 #include "parse.h"
 #include "object.h"
 #include "instr.h"
