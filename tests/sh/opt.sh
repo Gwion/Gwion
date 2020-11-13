@@ -1,5 +1,5 @@
 #!/bin/bash
-# [test] #21
+# [test] #24
 
 n=0
 [ "$1" ] && n="$1"
@@ -90,9 +90,21 @@ run "$n" "invalid global type" "examples/complex/invalid_type0.gw examples/compl
 n=$((n+1))
 run "$n" "invalid global func" "examples/complex/invalid_func0.gw examples/complex/invalid_func1.gw" "file"
 
-# comma in module argument
+# comma in module argument, uses the now deprecated -mpp
 n=$((n+1))
 run "$n" "comma in module argument" "-mpp=-Dtest='\"dqs\,qs\"',-Dtsdl" "file"
+
+# define
+n=$((n+1))
+run "$n" "define" "-Dtest(a)=#a" "file"
+
+# undef
+n=$((n+1))
+run "$n" "undef" "-Utest" "nofile"
+
+# include path
+n=$((n+1))
+run "$n" "include path" "-I../Gwion" "file"
 
 # test signal
 # mask asan output for now
