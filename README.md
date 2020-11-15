@@ -100,7 +100,7 @@ mv Jack.so ~/.gwplug
 Repeat for the other plugins mentioned. The `Soundpipe` plugin requires the soundpipe library, which we hope to have build seamlessly for you when you build the `Soundpipe` module, but we're not quite there yet. Please ask for help if this isn't working.
 
 When all those plugin `.so` files are in your `~/.gwplug` directory, you should be able to run a Gwion program that makes sound! In `plug/Modules` there's a `test.gw` program which plays a sine wave for 5 seconds. If the `gwion` you built is still in the base dir of your cloned repo, from the
-`plug/Modules` subdirectory you should be able to run `../../gwion -d jack test.gw` and hear some sound!
+`plug/Modules` subdirectory you should be able to run `../../gwion -d Jack test.gw` and hear some sound!
 
 ## Installation
 
