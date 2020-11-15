@@ -138,7 +138,7 @@ static MFUN(vm_vector_cap) {
 }
 
 ANN static Type get_array_type(Type t) {
-  while(t->info->base_type)
+  while(t->array_depth && t->info->base_type)
     t = t->info->base_type;
   return t;
 }

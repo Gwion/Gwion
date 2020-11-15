@@ -74,7 +74,7 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
 // only in enum.c
 ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
   DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos))
-  return new_id_list(gwion->mp, sym, loc_cpy(gwion->mp, pos));
+  return new_id_list(gwion->mp, sym);
 }
 
 ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
@@ -101,7 +101,7 @@ ANN static ID_List _tmpl_list(const Gwion gwion, struct td_checker *tdc) {
     if(!(next = _tmpl_list(gwion, tdc)) || next == (ID_List)GW_ERROR)
       return (ID_List)GW_ERROR;
   }
-  const ID_List list = new_id_list(gwion->mp, sym, loc_cpy(gwion->mp, tdc->pos));
+  const ID_List list = new_id_list(gwion->mp, sym);
   list->next = next;
   return list;
 }

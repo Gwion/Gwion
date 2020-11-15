@@ -238,7 +238,6 @@ static OP_CHECK(opck_fptr_cast) {
   struct FptrInfo info = { cast->exp->info->type->info->func, t->info->func,
      cast->exp, exp_self(cast)->pos };
   CHECK_BO(fptr_do(env, &info))
-  cast->func = cast->exp->info->type->info->func;
   return t;
 }
 
@@ -283,9 +282,11 @@ static OP_EMIT(opem_fptr_impl) {
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 ANN static void fork_exp(const Env env, const Exp_Unary* unary) {
-  const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp);
+  const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp,
+      loc_cpy(env->gwion->mp, unary->exp->pos));
   const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
-  const Stmt code = new_stmt_code(env->gwion->mp, list);
+  const Stmt code = new_stmt_code(env->gwion->mp, list,
+      loc_cpy(env->gwion->mp, unary->exp->pos));
   ((Exp_Unary*)unary)->exp = NULL;
   ((Exp_Unary*)unary)->code = code;
 }

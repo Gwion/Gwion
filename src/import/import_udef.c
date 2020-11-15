@@ -19,7 +19,7 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   DECL_OO(Type_Decl*, td, = gwi_str2decl(gwi, type))
   const Var_Decl_List vlist = gwi_str2varlist(gwi, name);
   if(vlist)
-    return new_exp_decl(gwi->gwion->mp, td, vlist);
+    return new_exp_decl(gwi->gwion->mp, td, vlist, loc(gwi));
   free_type_decl(gwi->gwion->mp, td);
   return NULL;
 }

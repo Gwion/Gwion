@@ -15,7 +15,6 @@
 #include "operator.h"
 #include "import.h"
 #include "match.h"
-#include "parser.h"
 #include "specialid.h"
 #include "vararg.h"
 
@@ -710,8 +709,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, dotstatic);
   v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
-if(isa(type, emit->gwion->type[et_union]) < 0)
-  set_vflag(v, vflag_direct);// mpalloc
+  if(isa(type, emit->gwion->type[et_union]) < 0)
+    set_vflag(v, vflag_direct);// mpalloc
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref) && !GET_FLAG(decl->td, ref)) {
@@ -1711,7 +1710,7 @@ ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
     type_decl->flag = udef->flag;
     const Var_Decl var_decl = new_var_decl(emit->gwion->mp, udef->xid, NULL, loc_cpy(emit->gwion->mp, udef->pos));
     const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
-    const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list);
+    const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list, loc_cpy(emit->gwion->mp, udef->pos));
     exp->d.exp_decl.type = udef->value->type;
     var_decl->value = udef->value;
     const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
