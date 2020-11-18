@@ -78,12 +78,8 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     Type t = decl->type;
     CHECK_BB(scan1_defined(env, var))
    if(var->array) {
-      if(var->array->exp) {
-        if(GET_FLAG(decl->td, ref))
-          ERR_B(var->array->exp->pos, _("ref array must not have array expression.\n"
-            "e.g: int @my_array[];\nnot: int @my_array[2];"))
+      if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
-      }
       t = array_type(env, decl->type, var->array->depth);
     } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref)) {
       if(decl->td->xid == insert_symbol("auto"))

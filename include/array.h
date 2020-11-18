@@ -17,7 +17,6 @@ typedef struct ArrayInfo_ {
     m_int* idx;    // for object array
     size_t length; // array init
   } d;
-  uint is_ref;
   uint is_obj;
 } ArrayInfo;
 

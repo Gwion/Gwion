@@ -538,10 +538,9 @@ INSTR(ArrayAlloc) {
   const ArrayInfo* info = (ArrayInfo*)instr->m_val;
   m_uint num_obj = 1;
   m_int idx = 0;
-  const m_bool is_obj = info->is_obj && !info->is_ref;
   struct ArrayInfo_ aai = { -info->depth, info->type, info->base,
          NULL, { &idx }, 0, info->is_obj};
-  if(is_obj)
+  if(info->is_obj)
     aai.data = init_array(shred, info, &num_obj);
   const M_Object ref = do_alloc_array(shred, &aai);
   if(!ref) {
@@ -551,7 +550,7 @@ INSTR(ArrayAlloc) {
   }
   *(void**)(ref->data + SZ_INT) = aai.data;
   vector_add(&shred->gc, (m_uint)ref);
-  if(!is_obj) {
+  if(!info->is_obj) {
     POP_REG(shred, SZ_INT * (info->depth - 1));
     *(M_Object*)REG(-SZ_INT) = ref;
   } else {
