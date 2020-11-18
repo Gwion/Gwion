@@ -1,7 +1,7 @@
 #ifndef __GWION
 #define __GWION
 
-typedef struct Gwion_* Gwion;
+//typedef struct Gwion_* Gwion;
 #include "plug.h"
 #include "driver.h"
 #include "gwiondata.h"
