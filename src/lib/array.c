@@ -503,7 +503,7 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo* info,
     const m_uint cap, const M_Object base) {
   for(m_uint i = 0; i < cap; ++i) {
     struct ArrayInfo_ aai = { info->depth + 1, info->type,
-      info->base, info->data, { info->d.idx } , 0, info->is_obj };
+      info->base, info->data, { info->d.idx } , info->is_obj };
     const M_Object next = do_alloc_array(shred, &aai);
     if(!next) {
       _release(base, shred);
@@ -538,8 +538,8 @@ INSTR(ArrayAlloc) {
   const ArrayInfo* info = (ArrayInfo*)instr->m_val;
   m_uint num_obj = 1;
   m_int idx = 0;
-  struct ArrayInfo_ aai = { -info->depth, info->type, info->base,
-         NULL, { &idx }, 0, info->is_obj};
+  struct ArrayInfo_ aai = { -info->depth, info->type, .base=info->base,
+         NULL, { &idx }, info->is_obj};
   if(info->is_obj)
     aai.data = init_array(shred, info, &num_obj);
   const M_Object ref = do_alloc_array(shred, &aai);
