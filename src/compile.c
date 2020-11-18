@@ -112,7 +112,8 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
       CHECK_BB(pass[1](gwion->env, &ret))
     CHECK_BB(ret)
   }
-  ast_cleaner(gwion, c->ast);
+  if(!arg.global)
+    ast_cleaner(gwion, c->ast);
   return GW_OK;
 }
 

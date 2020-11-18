@@ -501,11 +501,25 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
   return GW_OK;
 }
 
-ANN m_bool scan2_fdef(const Env env, const Func_Def f) {
-  const Value overload = nspc_lookup_value2(env->curr, f->base->xid); // try0
+//! use function from parent class as next.
+ANN static void upfunction(const Env env, const Func_Base *fb) {
+  const Value v = find_value(env->class_def->info->parent, fb->xid);
+  if(!v)
+    return;
+  Func func = fb->func;
+  while(func->next && func->next->value_ref->from->owner == env->curr)
+    func = func->next;
+  func->next = v->d.func_ref;
+}
+
+ANN m_bool scan2_fdef(const Env env, const Func_Def fdef) {
+  const Value overload = nspc_lookup_value2(env->curr, fdef->base->xid);
   if(overload)
-    CHECK_BB(scan2_func_def_overload(env, f, overload))
-  return (!tmpl_base(f->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, f, overload);
+    CHECK_BB(scan2_func_def_overload(env, fdef, overload))
+  CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, fdef, overload))
+  if(env->class_def)
+    upfunction(env, fdef->base);
+  return GW_OK;
 }
 
 __attribute__((returns_nonnull))
