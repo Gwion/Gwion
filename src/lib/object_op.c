@@ -262,7 +262,6 @@ OP_EMIT(opem_object_dot) {
 }
 
 struct tmpl_info {
-//  const  Class_Def cdef;
   Symbol           name;
   ID_List          list;
   Type_List        call;
@@ -344,6 +343,7 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def cdef = new_class_def(env->gwion->mp, c->flag, info->name, c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
       c->body ?cpy_ast(env->gwion->mp, c->body) : NULL,
     loc_cpy(env->gwion->mp, c->pos));
+  cdef->cflag = c->cflag;
   cdef->base.tmpl = mk_tmpl(env, c->base.tmpl, info->call);
   const m_bool ret = scan0_class_def(env, cdef);
   if((info->ret = cdef->base.type)) {

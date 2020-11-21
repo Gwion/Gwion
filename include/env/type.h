@@ -64,10 +64,19 @@ static inline int safe_tflag(const Type t, const enum tflag flag) {
 ANN static inline void set_tflag(const Type t, const enum tflag flag) {
   t->tflag |= flag;
 }
+
+static inline void unset_tflag(const Type t, const enum tflag flag) {
+  t->tflag &= ~flag;
+}
 #else
 ANN static inline void set_tflag(const Type t, const enum tflag flag) {
   auto ff = t->tflag | flag;
   t->tflag = static_cast<enum tflag>(ff);
+}
+
+static inline void unset_tflag(const Type t, const enum tflag flag) {
+  const auto ff = t->tflag & ~flag;
+  t->tflag = static_cast<enum fflag>(tt);
 }
 #endif
 ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);

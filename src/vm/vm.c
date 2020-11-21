@@ -619,7 +619,7 @@ PRAGMA_PUSH()
   if(!a.code->builtin) {
     register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
     mem += push;
-    *(m_uint*)  mem = push;mem += SZ_INT;
+    *(m_uint*)  mem = push; mem += SZ_INT;
     *(VM_Code*) mem = code; mem += SZ_INT;
     *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
     *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
@@ -718,7 +718,7 @@ autoloop:
   m_vector_get(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
   goto autoloopcount;
 autoloopptr:
-  *(m_bit**)(*(M_Object*)(mem + VAL + SZ_INT))->data = m_vector_addr(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL));
+  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL));
 autoloopcount:
   *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(reg-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
   reg += SZ_INT;

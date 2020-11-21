@@ -102,11 +102,21 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
 }
 
 ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
-  CHECK_OO(gwi_str2sym(gwi, name))
-  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, name, gwi->gwion->type[et_compound]);
-  t->info->tuple = new_tupleform(gwi->gwion->mp, NULL);
-  gwi_type_flag(t);
+  struct ImportCK ck = { .name=name };
+  CHECK_BO(check_typename_def(gwi, &ck))
+  const Type t = new_type(gwi->gwion->mp, ++gwi->gwion->env->scope->type_xid, s_name(ck.sym), gwi->gwion->type[et_compound]);
   set_tflag(t, tflag_struct);
+  if(!ck.tmpl)
+    gwi_type_flag(t);
+  else {
+    t->info->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, NULL, NULL, loc(gwi));
+    t->info->cdef->base.type = t;
+    t->info->cdef->base.tmpl = new_tmpl_base(gwi->gwion->mp, ck.tmpl);
+    t->info->tuple = new_tupleform(gwi->gwion->mp, NULL);
+    t->info->parent = NULL;
+    t->info->cdef->cflag |= cflag_struct;
+    set_tflag(t, tflag_tmpl);
+  }
   return type_finish(gwi, t);
 }
 
