@@ -18,9 +18,5 @@ static inline Tmpl* gwi_tmpl(const Gwi gwi) {
 
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi));
 
-ANN static inline m_bool gwi_doc(const Gwi gwi, const m_str name, const m_str doc) {
-  DECL_OB(const Value, v, = nspc_lookup_value0(gwi->gwion->env->curr, insert_symbol(gwi->gwion->st, name)))
-  v->docstr = new_text(gwi->gwion->mp);
-  text_add(v->docstr, doc);
-}
+ANN m_bool gwi_doc(const Gwi gwi, const m_str name, const m_str doc);
 #endif
