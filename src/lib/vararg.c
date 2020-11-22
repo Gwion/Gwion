@@ -115,11 +115,15 @@ static INSTR(VarargCast) {
   if(!*(m_uint*)(o->data + SZ_INT))
 	  Except(shred, "Using Vararg outside varloop");
   struct Vararg_* arg = *(struct Vararg_**)o->data;
-  const Type t = (Type)instr->m_val;
-  if(isa((Type)vector_at(&arg->t, arg->i), t) < 0)
+  const Type t = (Type)instr->m_val,
+             u = (Type)vector_at(&arg->t, arg->i);
+  if(isa(u, t) > 0 ||
+      (u == shred->info->vm->gwion->type[et_null] &&
+       isa(t, shred->info->vm->gwion->type[et_object]) > 0)) {
+    for(m_uint i = 0; i < t->size; i += SZ_INT)
+      *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
+  } else
 	  Except(shred, "InvalidVariadicAccess");
-  for(m_uint i = 0; i < t->size; i += SZ_INT)
-    *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
 }
 
 static OP_EMIT(opem_vararg_cast) {
