@@ -38,20 +38,8 @@ struct Value_ {
 ANN void free_value(const Value, struct Gwion_*const);
 ANN static inline void value_addref(const Value v) { ++v->ref; }
 ANN static inline void value_remref(const Value v, struct Gwion_ *const gwion) { if(!--v->ref) free_value(v, gwion); }
-static inline int vflag(const Value v, const enum vflag flag) {
-  return (v->vflag & flag) == flag;
-}
 
-#ifndef __cplusplus
-static inline void set_vflag(const Value v, const enum vflag flag) {
-  v->vflag |= flag;
-}
-#else
-static inline void set_vflag(const Value v, const enum vflag flag) {
-  auto ff = v->vflag | flag;
-  v->vflag = static_cast<enum vflag>(ff);
-}
-#endif
+FLAG_FUNC(Value, v)
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
 ANN void valuefrom(const Env, struct ValueFrom_*);
