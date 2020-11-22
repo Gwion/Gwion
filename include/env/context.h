@@ -6,6 +6,7 @@ struct Context_ {
   Ast         tree;
   Nspc        nspc;
   struct Map_ lbls;
+  GwText *docstr;
   m_bool error;
   m_bool global;
   uint16_t ref;

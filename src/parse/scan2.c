@@ -286,9 +286,27 @@ ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
 #define scan2_stmt_break    (void*)dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
 
+#define DOCSTRING(name, value, prefix)                   \
+ANN static inline GwText* name##_docstr(const Env env) { \
+  prefix                                                 \
+  if(!(value))                                           \
+    (value) = new_text(env->gwion->mp);                  \
+  return value;                                          \
+}
+DOCSTRING(context, env->context->docstr,)
+DOCSTRING(func, env->func->value_ref->docstr,)
+DOCSTRING(class, v->docstr, const Value v = nspc_lookup_value0(env->curr->parent, insert_symbol(env->class_def->name));)
+typedef GwText* (*docfunc)(Env);
+
 ANN static m_bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
   if(stmt->pp_type == ae_pp_include)
     env->name = stmt->data;
+  else if(stmt->pp_type == ae_pp_docstr) {
+    const docfunc df = env->func ? func_docstr : env->class_def ? class_docstr : context_docstr;
+    GwText *docstr = df(env);
+    text_add(docstr, stmt->data);
+
+  }
   return GW_OK;
 }
 
