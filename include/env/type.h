@@ -51,9 +51,7 @@ struct Type_ {
   enum tflag tflag;
 };
 
-ANN void free_type(const Type, struct Gwion_*const);
-ANN static inline void type_addref(const Type t) { ++t->ref; }
-ANN static inline void type_remref(const Type t, struct Gwion_ *const gwion) { if(!--t->ref) free_type(t, gwion); }
+REF_FUNC(Type, type)
 FLAG_FUNC(Type, t)
 
 ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);

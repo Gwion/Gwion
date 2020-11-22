@@ -35,10 +35,7 @@ struct Value_ {
   enum vflag vflag;
 };
 
-ANN void free_value(const Value, struct Gwion_*const);
-ANN static inline void value_addref(const Value v) { ++v->ref; }
-ANN static inline void value_remref(const Value v, struct Gwion_ *const gwion) { if(!--v->ref) free_value(v, gwion); }
-
+REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);

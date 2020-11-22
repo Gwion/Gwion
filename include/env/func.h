@@ -22,9 +22,7 @@ struct Func_ {
   enum fflag fflag;
 };
 
-ANN void free_func(const Func, struct Gwion_*const);
-ANN static inline void func_addref(const Func f) { ++f->ref; }
-ANN static inline void func_remref(const Func f, struct Gwion_ *const gwion) { if(!--f->ref) free_func(f, gwion); }
+REF_FUNC(Func, func)
 FLAG_FUNC(Func, f)
 
 ANEW ANN Func new_func(MemPool, const m_str, const Func_Def);

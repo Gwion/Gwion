@@ -161,7 +161,7 @@ static OP_CHECK(opck_ptr_scan) {
   DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
   const Type base = known_type(env, t->info->cdef->base.tmpl->call->td);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
-    t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
+    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
     if(!tflag(base, tflag_struct))
       t->nspc->dtor->native_func = (m_uint)ptr_object_dtor;
     else

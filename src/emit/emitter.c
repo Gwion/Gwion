@@ -9,7 +9,7 @@
 
 static ANEW ANN VM_Code emit_code(const Emitter emit) {
   Code* const c = emit->code;
-  const VM_Code code = new_vm_code(emit->gwion->mp, &c->instr, c->stack_depth, 0, c->name);
+  const VM_Code code = new_vmcode(emit->gwion->mp, &c->instr, c->stack_depth, 0, c->name);
   return code;
 }
 
