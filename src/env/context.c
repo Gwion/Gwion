@@ -8,7 +8,7 @@ ANN void free_context(const Context a, Gwion gwion) {
   nspc_remref(a->nspc, gwion);
   free_mstr(gwion->mp, a->name);
   if(a->docstr)
-    free_text(gwion->mp, a->docstr);
+    free_text(a->docstr);
   mp_free(gwion->mp, Context, a);
 }
 

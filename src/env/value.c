@@ -14,6 +14,8 @@ ANN void free_value(Value a, Gwion gwion) {
     xfree(a->d.ptr);
   if(is_class(gwion, t))
     type_remref(t, gwion);
+  if(a->docstr)
+    free_text(a->docstr);
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);
 }
