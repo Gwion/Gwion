@@ -84,7 +84,7 @@ describe_compute(multi,,)
 describe_compute(mono,  trig, {u->module.gen.trig->compute(u->module.gen.trig);})
 describe_compute(multi, trig, {u->module.gen.trig->compute(u->module.gen.trig);})
 
-ANEW static UGen new_UGen(MemPool p) {
+ANEW UGen new_UGen(MemPool p) {
   const UGen u = mp_calloc(p, UGen);
   u->op = 0;
   u->compute = gen_compute_mono;
