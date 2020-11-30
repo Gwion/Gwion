@@ -114,7 +114,7 @@ static OP_EMIT(opem_implicit_null2obj) {
 ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
-  if(ts->td->types)
+  if(ts->t->info->cdef && ts->t->info->cdef->base.tmpl->call)
     return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_null];
   ERR_N(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
 }
