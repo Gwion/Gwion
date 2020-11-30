@@ -1,0 +1,15 @@
+#!! document file
+
+fun void test() {
+  #!! Document file level function
+}
+
+class C {
+  #!! document class
+
+  fun void test() {
+    #!! Document member function
+  }
+}
+
+<<< "Ensuring it parses: declaring a variable:", var C c >>>;

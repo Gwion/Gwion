@@ -30,7 +30,6 @@ struct Value_ {
     m_uint* ptr;
     Func func_ref;
   } d;
-  GwText *docstr;
   uint16_t ref;
   ae_flag flag;
   enum vflag vflag;

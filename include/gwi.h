@@ -17,6 +17,4 @@ static inline Tmpl* gwi_tmpl(const Gwi gwi) {
 }
 
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi));
-
-ANN m_bool gwi_doc(const Gwi gwi, const m_str name, const m_str doc);
 #endif

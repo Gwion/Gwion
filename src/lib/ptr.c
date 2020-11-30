@@ -95,7 +95,6 @@ static OP_CHECK(opck_ptr_implicit) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
-    e->info->cast_to = imp->t;
     exp_setvar(e, 1);
     const Type t = get_type(imp->t);
     if(!tflag(t, tflag_check))

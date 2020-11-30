@@ -17,21 +17,19 @@
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
-ANN static m_bool check_internal(const Env env, const Symbol sym,
+ANN static Type check_internal(const Env env, const Symbol sym,
       const Exp e, const Type t) {
   struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
   struct Op_Import opi = { .op=sym, .lhs=e->info->type,
         .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos, .op_type=op_implicit };
-  CHECK_OB(op_check(env, &opi))
-  assert(e->info->nspc);
-  return GW_OK;
+  return op_check(env, &opi);
 }
 
 ANN m_bool check_implicit(const Env env, const Exp e, const Type t) {
   if(e->info->type == t)
     return GW_OK;
   const Symbol sym = insert_symbol("@implicit");
-  return info->cast_to = check_internal(env, sym, e, t);
+  return (e->info->cast_to = check_internal(env, sym, e, t)) ? GW_OK : GW_ERROR;
 }
 
 ANN m_bool check_subscripts(Env env, const Array_Sub array, const m_bool is_decl) {
