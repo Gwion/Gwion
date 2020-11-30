@@ -17,10 +17,6 @@ static DTOR(event_dtor) {
   free_vector(shred->info->mp, EV_SHREDS(o));
 }
 
-static OP_CHECK(opck_eventwait) {
-  return env->gwion->type[et_int];
-}
-
 static INSTR(EventWait) {
   POP_REG(shred, SZ_FLOAT);
   const M_Object event = *(M_Object*)REG(-SZ_INT);
@@ -65,6 +61,6 @@ GWION_IMPORT(event) {
   GWI_BB(gwi_func_end(gwi, event_broadcast, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "nonnull Event", "@now", "int"))
-  _CHECK_OP("=>", eventwait, EventWait)
+  GWI_BB(gwi_oper_end(gwi, "=>", EventWait))
   return GW_OK;
 }
