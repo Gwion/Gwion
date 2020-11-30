@@ -31,7 +31,7 @@ ANN m_bool check_implicit(const Env env, const Exp e, const Type t) {
   if(e->info->type == t)
     return GW_OK;
   const Symbol sym = insert_symbol("@implicit");
-  return check_internal(env, sym, e, t);
+  return info->cast_to = check_internal(env, sym, e, t);
 }
 
 ANN m_bool check_subscripts(Env env, const Array_Sub array, const m_bool is_decl) {
@@ -676,30 +676,40 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   return ret > 0 ? l->def->base->ret_type : NULL;
 }
 
+ANN m_bool func_check(const Env env, const Exp_Call *exp) {
+  CHECK_OB(check_exp(env, exp->func))
+  const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
+  struct Op_Import opi = { .op=insert_symbol("@func_check"),
+  .rhs=t, .pos=exp_self(exp)->pos, .data=(uintptr_t)exp, .op_type=op_exp };
+  CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
+  return exp_self(exp)->info->type != env->gwion->type[et_null] ?
+    GW_OK : GW_ERROR;
+}
+
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
-  CHECK_OO(check_exp(env, exp->func))
-  if(isa(exp->func->info->type, env->gwion->type[et_function]) < 0) {
+//  CHECK_OO(check_exp(env, exp->func))
+  CHECK_BO(func_check(env, exp))
+  const Type t = actual_type(env->gwion, exp->func->info->type);
+  if(isa(t, env->gwion->type[et_function]) < 0) {
     // use func flag?
-    if(isa(exp->func->info->type, env->gwion->type[et_class]) < 0)
-      ERR_O(exp->func->pos, _("function call using a non-function value"))
-    struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=exp->func->info->type->info->base_type,
+    struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=actual_type(env->gwion, exp->func->info->type),
       .data=(uintptr_t)exp, .pos=exp_self(exp)->pos, .op_type=op_exp };
     const Type t = op_check(env, &opi);
     exp_self(exp)->info->nspc = t ? t->info->owner : NULL;
     return t;
   }
-  if(exp->func->info->type == env->gwion->type[et_lambda])
+  if(t == env->gwion->type[et_lambda])
     return check_lambda_call(env, exp);
-  if(fflag(exp->func->info->type->info->func, fflag_ftmpl)) {
-    const Value value = exp->func->info->type->info->func->value_ref;
+  if(fflag(t->info->func, fflag_ftmpl)) {
+    const Value value = t->info->func->value_ref;
     if(value->from->owner_class)
       CHECK_BO(ensure_traverse(env, value->from->owner_class))
   }
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
-  if(tflag(exp->func->info->type, tflag_ftmpl))
+  if(tflag(t, tflag_ftmpl))
     return check_exp_call_template(env, (Exp_Call*)exp);
-  const Func func = find_func_match(env, exp->func->info->type->info->func, exp->args);
+  const Func func = find_func_match(env, t->info->func, exp->args);
   if((exp_self(exp)->d.exp_call.m_func = func)) {
     exp->func->info->type = func->value_ref->type;
     return func->def->base->ret_type;
@@ -757,12 +767,12 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
-    CHECK_OO(check_exp(env, exp->func))
-    if(exp->args)
-      CHECK_OO(check_exp(env, exp->args))
+    CHECK_BO(func_check(env, exp))
     const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
     if(isa(t, env->gwion->type[et_function]) < 0)
-      ERR_O(exp_self(exp)->pos, _("template call of non-function value."))
+       return check_exp_call1(env, exp);
+    if(exp->args)
+      CHECK_OO(check_exp(env, exp->args))
     if(!t->info->func->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
     if(t->info->func->def->base->tmpl->call) {
