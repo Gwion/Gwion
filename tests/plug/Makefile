@@ -13,15 +13,12 @@ else
 ifeq ($(shell uname), Linux)
 LDFLAGS += -shared
 else
+CFLAGS += -DBUILD_ON_WINDOWS=1
 LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
 LDFLAGS += -L../../ -lgwion
 LDLAGS += ../../libgwion.dll.a
 LDLAGS += ../../libgwion.a
 endif
-endif
-
-ifeq (${BUILD_ON_WINDOWS}, 1)
-CFLAGS += -DBUILD_ON_WINDOWS=1
 endif
 
 all: ${NAME}.so
