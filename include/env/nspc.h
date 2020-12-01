@@ -20,9 +20,7 @@ struct Nspc_ {
   uint16_t ref;
 };
 
-ANN void free_nspc(const Nspc, struct Gwion_*const);
-ANN static inline void nspc_addref(const Nspc  n) { ++n->ref; }
-ANN static inline void nspc_remref(const Nspc n, struct Gwion_ *const gwion) { if(!--n->ref) free_nspc(n, gwion); }
+REF_FUNC(Nspc, nspc)
 extern ANEW ANN Nspc new_nspc(MemPool p, const m_str name);
 
 extern ANN void nspc_commit(const Nspc);

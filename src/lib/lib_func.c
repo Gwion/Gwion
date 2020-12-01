@@ -267,7 +267,7 @@ static OP_CHECK(opck_fptr_impl) {
   struct FptrInfo info = { impl->e->info->type->info->func, impl->t->info->func,
       impl->e, impl->e->pos };
   CHECK_BO(fptr_do(env, &info))
-  return ((Exp)impl->e)->info->cast_to = impl->t;
+  return impl->t;
 }
 
 static OP_EMIT(opem_fptr_impl) {

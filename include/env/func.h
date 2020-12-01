@@ -22,36 +22,8 @@ struct Func_ {
   enum fflag fflag;
 };
 
-ANN void free_func(const Func, struct Gwion_*const);
-ANN static inline void func_addref(const Func f) { ++f->ref; }
-ANN static inline void func_remref(const Func f, struct Gwion_ *const gwion) { if(!--f->ref) free_func(f, gwion); }
-
-static inline int fflag(const Func f, const enum fflag flag) {
-  return (f->fflag & flag) == flag;
-}
-
-static inline int safe_fflag(const Func f, const enum fflag flag) {
-  return f ? ((f->fflag & flag) == flag) : 0;
-}
-#ifndef __cplusplus
-static inline void set_fflag(const Func f, const enum fflag flag) {
-  f->fflag |= flag;
-}
-
-static inline void unset_fflag(const Func f, const enum fflag flag) {
-  f->fflag &= ~flag;
-}
-#else
-static inline void set_fflag(const Func f, const enum fflag flag) {
-  const auto ff = f->fflag | flag;
-  f->fflag = static_cast<enum fflag>(ff);
-}
-
-static inline void unset_fflag(const Func f, const enum fflag flag) {
-  const auto ff = f->fflag & ~flag;
-  f->fflag = static_cast<enum fflag>(ff);
-}
-#endif
+REF_FUNC(Func, func)
+FLAG_FUNC(Func, f)
 
 ANEW ANN Func new_func(MemPool, const m_str, const Func_Def);
 ANN2(1,2) Symbol func_symbol(const Env, const m_str, const m_str, const m_str, const m_uint);

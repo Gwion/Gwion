@@ -51,25 +51,9 @@ struct Type_ {
   enum tflag tflag;
 };
 
-ANN void free_type(const Type, struct Gwion_*const);
-ANN static inline void type_addref(const Type t) { ++t->ref; }
-ANN static inline void type_remref(const Type t, struct Gwion_ *const gwion) { if(!--t->ref) free_type(t, gwion); }
-ANN static inline int tflag(const Type t, const enum tflag flag) {
-  return (t->tflag & flag) == flag;
-}
-static inline int safe_tflag(const Type t, const enum tflag flag) {
-  return t ? ((t->tflag & flag) == flag) : 0;
-}
-#ifndef __cplusplus
-ANN static inline void set_tflag(const Type t, const enum tflag flag) {
-  t->tflag |= flag;
-}
-#else
-ANN static inline void set_tflag(const Type t, const enum tflag flag) {
-  auto ff = t->tflag | flag;
-  t->tflag = static_cast<enum tflag>(ff);
-}
-#endif
+REF_FUNC(Type, type)
+FLAG_FUNC(Type, t)
+
 ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);
 ANEW ANN Type type_copy(MemPool, const Type type);
 ANN m_str get_type_name(const Env, const Type t, const m_uint);

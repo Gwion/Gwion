@@ -11,9 +11,7 @@ struct Context_ {
   uint16_t ref;
 };
 
-ANN void free_context(const Context, struct Gwion_*const);
-ANN static inline void context_addref(const Context c) { ++c->ref; }
-ANN static inline void context_remref(const Context c, struct Gwion_ *const gwion) { if(!--c->ref) free_context(c, gwion); }
+REF_FUNC(Context, context)
 ANN2(1,3) ANEW Context new_context(MemPool p, const Ast, const m_str);
 ANN void load_context(const Context, const Env);
 ANN void unload_context(const Context, const Env);

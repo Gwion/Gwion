@@ -11,6 +11,7 @@ struct M_Object_ {
 ANN void instantiate_object(const VM_Shred, const Type);
 ANN void free_object(MemPool p, const M_Object);
 ANEW M_Object new_object(MemPool, const VM_Shred, const Type);
+ANEW struct UGen_* new_UGen(MemPool);
 ANEW M_Object new_M_UGen(const struct Gwion_*);
 ANN void fork_clean(const VM_Shred, const Vector);
 ANN ANEW M_Object new_array(MemPool, const Type t, const m_uint length);

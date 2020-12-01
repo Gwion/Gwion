@@ -18,7 +18,6 @@ OP_CHECK(opck_basic_cast) {
 
 OP_CHECK(opck_usr_implicit) {
   struct Implicit* imp = (struct Implicit*)data;
-  imp->e->info->cast_to = imp->t;
   return imp->t;
 }
 

@@ -29,6 +29,8 @@ LDFLAGS += -ldl -lpthread
 endif
 
 src_obj := $(src:.c=.o)
+gcda := $(src:.c=.gcda)
+gcno := $(src:.c=.gcno)
 lib_obj := $(filter-out src/main.o, ${src_obj})
 
 CFLAGS  += -Iinclude
@@ -88,7 +90,7 @@ clean_core:
 
 clean: clean_core
 	$(info cleaning ...)
-	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a src/*.gcno src/*.gcda
+	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a ${gcno} ${gcda}
 
 install: ${PRG} translation-install
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})

@@ -146,8 +146,7 @@ static OP_CHECK(opck_cast_i2f) {
 }
 
 static OP_CHECK(opck_implicit_i2f) {
-  struct Implicit* imp = (struct Implicit*)data;
-  return imp->e->info->cast_to = env->gwion->type[et_float];
+  return env->gwion->type[et_float];
 }
 
 #define CHECK_FF(op, check, func) _CHECK_OP(op, check, float_##func)

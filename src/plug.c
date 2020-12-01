@@ -21,22 +21,6 @@ typedef void*  (*modini)(const struct Gwion_*, const Vector);
 typedef void*  (*modend)(const struct Gwion_*, void*);
 typedef m_str* (*gwdeps)(void);
 
-#define STR_EXPAND(tok) #tok
-#define STR(tok) STR_EXPAND(tok)
-#ifndef BUILD_ON_WINDOWS
-#include <dlfcn.h>
-#define DLOPEN(dl, b) dlopen(dl, b)
-#define DLSYM(dl, t, a) (t)(intptr_t)dlsym(dl, STR(a));
-#define DLCLOSE(dl) dlclose(dl);
-#define DLERROR() dlerror()
-#else
-#include "windows.h"
-#define DLOPEN(dl, b) LoadLibrary(dl)
-#define DLSYM(dl, t, a) (t)(intptr_t)GetProcAddress(dl, STR(a));
-#define DLCLOSE(dl) FreeLibrary(dl);
-#define DLERROR() "plugin"
-#endif
-
 struct PlugHandle {
   MemPool mp;
   Map map;

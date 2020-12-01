@@ -71,6 +71,12 @@ mk_class_instr(lt, r, l, && l != r)
 
 OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
+
+static OP_CHECK(opck_basic_ctor) {
+  const Exp_Call* call = (Exp_Call*)data;
+  ERR_N(exp_self(call)->pos, _("can't call a non-callable value"))
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
@@ -159,6 +165,10 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, ">",  instr_class_gt))
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
   GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
+
+  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
+  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
   return GW_OK;
 }
 

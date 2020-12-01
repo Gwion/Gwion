@@ -276,6 +276,8 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
 //  if(env->func && env->func->nspc)
   if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
+  if(opi->op == insert_symbol(env->gwion->st, "@func_check"))
+    return NULL;
   if(opi->op != insert_symbol(env->gwion->st, "@implicit"))
     env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
     type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));

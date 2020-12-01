@@ -76,9 +76,68 @@ ANN static inline void frame_push(Frame* frame) {
   vector_add(&frame->stack, (vtype)NULL);
 }
 
+static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
+static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
+static const f_instr regpushbase[] = { RegPushBase, RegPushBase2, RegPushBase3, RegPushBase4 };
+static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
+static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
+static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, RegPushMem4 };
+static const f_instr structmember[]  = { StructMember, StructMemberFloat, StructMemberOther, StructMemberAddr };
+
+#define regxxx(name, instr) \
+ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
+  const Instr instr = emit_add_instr(emit, Reg##instr); \
+  instr->m_val = sz; \
+  return instr; \
+}
+regxxx(pop, Pop)
+regxxx(push, Push)
+regxxx(pushi, PushImm)
+regxxx(seti, SetImm)
+
+static inline enum Kind kindof(const m_uint size, const uint emit_var) {
+  if(emit_var)
+    return KIND_ADDR;
+  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
+}
+
+ANN /*static */Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]) {
+  const enum Kind kind = kindof(size, addr);
+  const Instr instr = emit_add_instr(emit, func[kind]);
+  instr->m_val2 = size;
+  return instr;
+}
+
+ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_uint offset) {
+  emit->code->frame->curr_offset += SZ_INT;
+  const Instr instr = emit_add_instr(emit, RegPushMem4);
+  instr->m_val = offset;
+  const Instr tomem = emit_add_instr(emit, Reg2Mem);
+  tomem->m_val = emit->code->frame->curr_offset;
+  tomem->m_val2 = -SZ_INT;
+  regpushi(emit, (m_uint)type);
+  const Instr tomem2 = emit_add_instr(emit, Reg2Mem);
+  tomem2->m_val = emit->code->frame->curr_offset + SZ_INT;
+  tomem2->m_val2 = -SZ_INT;
+  const Instr set_code = regseti(emit, (m_uint)type->nspc->dtor);
+  set_code->m_val2 = SZ_INT;
+  const m_uint code_offset = emit_code_offset(emit);
+  const Instr regset = regseti(emit, code_offset);
+  regset->m_val2 = SZ_INT *2;
+  regpush(emit, SZ_INT *2);
+  const Instr prelude = emit_add_instr(emit, SetCode);
+  prelude->m_val2 = 2;
+  prelude->m_val = SZ_INT*3;
+  const Instr next = emit_add_instr(emit, Overflow);
+  next->m_val2 = code_offset;
+  emit->code->frame->curr_offset -= SZ_INT;
+}
+
 ANN static void struct_pop(const Emitter emit, const Type type, const m_uint offset) {
   if(!type->info->tuple)
     return;
+  if(type->nspc->dtor)
+    emit_struct_ctor(emit, type, offset);
   for(m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
     const Type t = (Type)vector_at(&type->info->tuple->types, i);
     if(isa(t, emit->gwion->type[et_object]) > 0) {
@@ -177,17 +236,6 @@ ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
     emit_array_extend(emit, type->info->parent, type->info->cdef->base.ext->array->exp);
 }
 
-#define regxxx(name, instr) \
-ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
-  const Instr instr = emit_add_instr(emit, Reg##instr); \
-  instr->m_val = sz; \
-  return instr; \
-}
-regxxx(pop, Pop)
-regxxx(push, Push)
-regxxx(pushi, PushImm)
-regxxx(seti, SetImm)
-
 ANN static void struct_expand(const Emitter emit, const Type t) {
   const Instr instr = emit_add_instr(emit, Reg2RegDeref);
   instr->m_val = -SZ_INT;
@@ -275,8 +323,7 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   const m_uint offset = emit_code_offset(emit);
   const Instr regset = regseti(emit, offset);
   regset->m_val2 = SZ_INT *2;
-  const Instr push = emit_add_instr(emit, RegPush);
-  push->m_val = SZ_INT *2;
+  regpush(emit, SZ_INT*2);
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
   prelude->m_val = SZ_INT;
@@ -309,27 +356,6 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
   }
   return GW_OK;
 }
-
-static inline enum Kind kindof(const m_uint size, const uint emit_var) {
-  if(emit_var)
-    return KIND_ADDR;
-  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
-}
-
-ANN /*static */Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]) {
-  const enum Kind kind = kindof(size, addr);
-  const Instr instr = emit_add_instr(emit, func[kind]);
-  instr->m_val2 = size;
-  return instr;
-}
-
-static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
-static const f_instr regpushmem[] = { RegPushMem, RegPushMem2, RegPushMem3, RegPushMem4 };
-static const f_instr regpushbase[] = { RegPushBase, RegPushBase2, RegPushBase3, RegPushBase4 };
-static const f_instr dotstatic[]  = { DotStatic, DotStatic2, DotStatic3, RegPushImm };
-static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, AllocMember4 };
-static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, RegPushMem4 };
-static const f_instr structmember[]  = { StructMember, StructMemberFloat, StructMemberOther, StructMemberAddr };
 
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
 ANN static m_bool emit_symbol_owned(const Emitter emit, const Symbol *data) {
@@ -1572,20 +1598,12 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   return ret;
 }
 
-ANN static Instr emit_stmt_eachptr_init(const Emitter emit, const Type type) {
-  const Instr new_obj = emit_add_instr(emit, ObjectInstantiate);
-  new_obj->m_val2 = (m_uint)type;
-  (void)emit_addref(emit, 0);
-  regpop(emit, SZ_INT);
-  return emit_add_instr(emit, Reg2Mem);
-}
-
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_uint *end_pc) {
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  Instr cpy = stmt->is_ptr ? emit_stmt_eachptr_init(emit, stmt->v->type) : NULL;
+  Instr cpy = stmt->is_ptr ? emit_add_instr(emit, MemSetImm) : NULL;
   emit_local(emit, emit->gwion->type[et_int]);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  emit_local(emit, emit->gwion->type[et_int]);
+  emit_local(emit, emit->gwion->type[et_ptr]);//et_int
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
   emit_except(emit, stmt->exp->info->type);

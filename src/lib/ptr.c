@@ -12,6 +12,7 @@
 #include "emit.h"
 #include "traverse.h"
 #include "parse.h"
+#include "gack.h"
 #include "gwi.h"
 
 static m_bool ptr_access(const Env env, const Exp e) {
@@ -26,6 +27,7 @@ static OP_CHECK(opck_ptr_assign) {
   CHECK_BO(ptr_access(env, bin->lhs))
   CHECK_BO(ptr_access(env, bin->rhs))
   exp_setvar(bin->lhs, 1);
+  exp_setvar(bin->rhs, 1);
   Type t = bin->lhs->info->type;
   do {
 //    t = unflag_type(t);
@@ -41,10 +43,27 @@ static OP_CHECK(opck_ptr_assign) {
 }
 
 static INSTR(instr_ptr_assign) {
-  POP_REG(shred, SZ_INT)
-  const M_Object o = *(M_Object*)REG(0);
-  *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
-  _release(o, shred);
+  m_bit **o = *(m_bit***)REG(0);
+  *o = *(m_bit**)REG(-SZ_INT);
+}
+
+static INSTR(instr_ptr_assign_obj) {
+  m_bit **o = *(m_bit***)REG(0);
+  release(*(M_Object*)o, shred);
+  *o = *(m_bit**)REG(-SZ_INT);
+}
+
+static OP_EMIT(opem_ptr_assign) {
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  if(isa(bin->lhs->info->type, emit->gwion->type[et_object]) > 0) {
+    const Instr instr = emit_add_instr(emit, RegAddRefAddr);
+    instr->m_val = -SZ_INT;
+    emit_add_instr(emit, instr_ptr_assign_obj);
+  } else
+    emit_add_instr(emit, instr_ptr_assign);
+  return pop;
 }
 
 static OP_CHECK(opck_ptr_deref) {
@@ -62,6 +81,7 @@ static OP_CHECK(opck_ptr_cast) {
   if(_t->info->cdef && !tflag(_t, tflag_check))
     CHECK_BN(ensure_traverse(env, _t))
   const Type to = known_type(env, cast->td->types->td);
+  exp_setvar(cast->exp, 1);
   if(isa(cast->exp->info->type, to) > 0)
     return t;
   ERR_N(exp_self(cast)->pos, "invalid pointer cast")
@@ -75,7 +95,6 @@ static OP_CHECK(opck_ptr_implicit) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
-    e->info->cast_to = imp->t;
     exp_setvar(e, 1);
     const Type t = get_type(imp->t);
     if(!tflag(t, tflag_check))
@@ -86,21 +105,20 @@ static OP_CHECK(opck_ptr_implicit) {
 }
 
 static INSTR(instr_ptr_deref) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
-  if(!*(m_bit**)o->data)
+  const m_bit *o = *(m_bit**)REG(-SZ_INT);
+  if(!o)
     Except(shred, _("EmptyPointerException"));
   if(instr->m_val2)
-    memcpy(REG(-SZ_INT), o->data, SZ_INT);
+    memcpy(REG(-SZ_INT), &o, SZ_INT);
   else {
     shred->reg -= SZ_INT - instr->m_val;
-    memcpy(REG(-instr->m_val), *(m_bit**)o->data, instr->m_val);
+    memcpy(REG(-instr->m_val), o, instr->m_val);
   }
 }
 
 static INSTR(Cast2Ptr) {
-  const M_Object o = new_object(shred->info->mp, shred, (Type)instr->m_val);
-  *(m_uint**)o->data = *(m_uint**)REG(-SZ_INT);
-  *(M_Object*)REG(-SZ_INT) = o;
+  m_bit *o = *(m_bit**)REG(-SZ_INT);
+  *(m_bit**)REG(-SZ_INT) = o;
 }
 
 static OP_EMIT(opem_ptr_cast) {
@@ -128,23 +146,25 @@ static OP_EMIT(opem_ptr_deref) {
 ANN Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
 static DTOR(ptr_object_dtor) {
-  release(*(M_Object*)o->data, shred);
+  release(**(M_Object**)o, shred);
 }
 
 static DTOR(ptr_struct_dtor) {
-  const Type t = (Type)vector_front(&o->type_ref->info->tuple->types);
-  struct_release(shred, t, *(m_bit**)o->data);
+  const Type base = *(Type*)(shred->mem + SZ_INT);
+  const m_uint scope = env_push(shred->info->vm->gwion->env, base->info->owner_class, base->info->owner);
+  const Type t = known_type(shred->info->vm->gwion->env, base->info->cdef->base.tmpl->call->td);
+  env_pop(shred->info->vm->gwion->env, scope);
+  struct_release(shred, t, *(m_bit**)o);
 }
 
 static OP_CHECK(opck_ptr_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
   DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
-set_tflag(t, tflag_tmpl);
-//if(!tflag(t, tflag_scan1))exit(3);
   const Type base = known_type(env, t->info->cdef->base.tmpl->call->td);
-  if(isa(base, env->gwion->type[et_compound]) > 0 && !t->nspc->dtor) {
-    t->nspc->dtor = new_vm_code(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
-    if(!tflag(t, tflag_struct))
+  t->info->parent = env->gwion->type[et_ptr];
+  if(isa(base, env->gwion->type[et_compound]) > 0) {
+    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
+    if(!tflag(base, tflag_struct))
       t->nspc->dtor->native_func = (m_uint)ptr_object_dtor;
     else
       t->nspc->dtor->native_func = (m_uint)ptr_struct_dtor;
@@ -153,33 +173,54 @@ set_tflag(t, tflag_tmpl);
   return t;
 }
 
+static OP_CHECK(opck_ptr_ref) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
+}
+/*
+static OP_EMIT(opem_ptr_ref) {
+  const Exp_Binary* bin = (Exp_Binary*)data;
+  const Instr instr = emit_add_instr(emit, Reg2Reg);
+  instr->m_val = -SZ_INT;
+  instr->m_val2 = -SZ_INT*2;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  return instr;
+}
+*/
+static GACK(gack_ptr) {
+  INTERP_PRINTF("%p", *(m_str*)VALUE);
+}
+
 GWION_IMPORT(ptr) {
-  const Type _t_ptr = gwi_class_ini(gwi, "@Ptr", NULL);
-  GWI_BB(gwi_class_end(gwi))
-  set_tflag(_t_ptr, tflag_ntmpl);
-//  set_tflag(_t_ptr, tflag_tmpl);
-  GWI_BB(gwi_oper_ini(gwi, "@Ptr", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
-  const Type t_ptr = gwi_class_ini(gwi, "Ptr:[A]", "@Ptr");
+  const Type t_ptr = gwi_struct_ini(gwi, "Ptr:[A]");
   gwi->gwion->type[et_ptr] = t_ptr;
+  GWI_BB(gwi_gack(gwi, t_ptr, gack_ptr))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, NULL))
   GWI_BB(gwi_class_end(gwi))
   set_tflag(t_ptr, tflag_ntmpl);
-//  set_tflag(t_ptr, tflag_tmpl);
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "nonnull Ptr", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
+  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_assign))
-  GWI_BB(gwi_oper_end(gwi, ":=>", instr_ptr_assign))
+  GWI_BB(gwi_oper_emi(gwi, opem_ptr_assign))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_implicit))
   GWI_BB(gwi_oper_emi(gwi, opem_ptr_implicit))
   GWI_BB(gwi_oper_end(gwi, "@implicit", Cast2Ptr))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_ptr_cast))
   GWI_BB(gwi_oper_end(gwi, "$", Cast2Ptr))
-  GWI_BB(gwi_oper_ini(gwi, NULL, "nonnull Ptr", NULL))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_deref))
   GWI_BB(gwi_oper_emi(gwi, opem_ptr_deref))
   GWI_BB(gwi_oper_end(gwi, "*", instr_ptr_deref))
+  GWI_BB(gwi_oper_ini(gwi, "Ptr", "Ptr", "Ptr"))
+  GWI_BB(gwi_oper_add(gwi, opck_ptr_ref))
+//  GWI_BB(gwi_oper_emi(gwi, opem_ptr_ref))
+  GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
   return GW_OK;
 }
