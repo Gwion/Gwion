@@ -91,13 +91,6 @@ ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
     scan2_class_def(env, tdef->type->info->cdef) : GW_OK;
 }
 
-ANN static inline Value prim_value(const Env env, const Symbol s) {
-  const Value value = nspc_lookup_value1(env->curr, s);
-  if(env->class_def)
-    return value ?: find_value(env->class_def, s);
-  return value;
-}
-
 ANN static m_bool scan2_range(const Env env, Range *range) {
   if(range->start)
     CHECK_BB(scan2_exp(env, range->start))
