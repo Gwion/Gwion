@@ -64,12 +64,6 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
   return t;
 }
 
-ANN2(1,2) Type handle_class(const Gwi gwi, Type_Decl *td) {
-  DECL_OO(const Type, p, = known_type(gwi->gwion->env, td))
-  CHECK_BO(class_parent(gwi->gwion->env, p))
-  return p;
-}
-
 ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   struct ImportCK ck = { .name=name };
   CHECK_BO(check_typename_def(gwi, &ck))
@@ -81,7 +75,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   const Type_List tl = td->types;
   if(tflag(base, tflag_ntmpl))
     td->types = NULL;
-  const Type p = !td->types ? handle_class(gwi, td) : NULL;
+  const Type p = !td->types ? known_type(gwi->gwion->env, td) : NULL;
   td->types = tl;
   if(tmpl)
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
