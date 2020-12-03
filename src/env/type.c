@@ -53,7 +53,7 @@ ANN Type type_copy(MemPool p, const Type type) {
 }
 
 ANN m_bool isa(const restrict Type var, const restrict Type parent) {
-  return (var->xid == parent->xid) ? 1 : var->info->parent ? isa(var->info->parent, parent) : -1;
+  return (var->xid == parent->xid) ? GW_OK : var->info->parent ? isa(var->info->parent, parent) : GW_ERROR;
 }
 
 ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
