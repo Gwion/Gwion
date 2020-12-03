@@ -95,7 +95,7 @@ void free_plug(const struct Gwion_ *gwion) {
   for(m_uint i = 0; i < map_size(map); ++i) {
     const Plug plug = (Plug)VVAL(map, i);
     const modend end = DLSYM(plug->dl, modend, GWMODEND_NAME);
-    if(end && plg->self)
+    if(end && plug->self)
       end(gwion, plug->self);
     free((m_str)VKEY(map, i));
     DLCLOSE(plug->dl);
