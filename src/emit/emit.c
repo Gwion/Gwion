@@ -1771,8 +1771,8 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
   CHECK_BB(emit_exp(emit, base))
   CHECK_BB(emit_exp_pop_next(emit, e))
   const m_int size = -exp_size(e);
-  emit_exp_addref(emit, base, -exp_totalsize(base) - size);
-  emit_exp_addref1(emit, e, -size);
+  emit_exp_addref(emit, base, -exp_totalsize(base) + size);
+  emit_exp_addref1(emit, e, size);
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct ExpInfo_ info = { .nspc=e->info->nspc };
   struct Exp_ ebin = { .d={.exp_binary=bin}, .info=&info };
