@@ -63,10 +63,25 @@ static OP_CHECK(at_object) {
   return r;
 }
 
-static OP_EMIT(opem_at_object) {
+/*static*/ OP_EMIT(opem_at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   const Type l = bin->lhs->info->type;
   const Type r = bin->rhs->info->type;
+
+  const uint is_new = bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol(emit->gwion->st, "new");
+  if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol(emit->gwion->st, "new")) {
+    for(m_uint i = vector_size(&emit->code->instr); --i;) {
+      const Instr instr = (Instr)vector_at(&emit->code->instr, i - 1);
+      if(instr->opcode == GcAdd) {
+        vector_rem(&emit->code->instr, i - 1);
+        mp_free(emit->gwion->mp, Instr, instr);
+      }
+    }
+  } else if(bin->lhs->exp_type != ae_exp_primary || bin->lhs->d.prim.prim_type != ae_prim_array) {
+    const Instr instr = emit_add_instr(emit, RegAddRef);
+    instr->m_val = -SZ_INT*2;
+  }
+
   if(nonnull_check(l, r)) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = SZ_INT;

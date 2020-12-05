@@ -391,7 +391,7 @@ static OP_EMIT(opem_array_access) {
   info->array = next;
   return (Instr)(m_uint)(exp ? emit_array_access(emit, info) : GW_ERROR);
 }
-
+OP_EMIT(opem_at_object);
 GWION_IMPORT(array) {
   const Type t_array  = gwi_class_ini(gwi, "@Array", NULL);
   gwi->gwion->type[et_array] = t_array;
@@ -416,6 +416,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
+  GWI_BB(gwi_oper_emi(gwi, opem_at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
   GWI_BB(gwi_oper_ini(gwi, "@null", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))

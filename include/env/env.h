@@ -12,7 +12,6 @@ struct Env_Scope_ {
   struct Vector_    known_ctx;
   struct Match_ *match;
   size_t depth;
-  size_t type_xid;
 };
 
 typedef struct Env_       * Env;
