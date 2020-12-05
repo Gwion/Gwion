@@ -231,9 +231,9 @@ ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
   if(type->info->parent)
     emit_pre_ctor(emit, type->info->parent);
-  maybe_ctor(emit, type);
   if(tflag(type, tflag_typedef) && type->info->parent->array_depth)
-    emit_array_extend(emit, type->info->parent, type->info->cdef->base.ext->array->exp);
+    emit_array_extend(emit, type, type->info->cdef->base.ext->array->exp);
+  maybe_ctor(emit, type);
 }
 
 ANN static void struct_expand(const Emitter emit, const Type t) {
@@ -287,7 +287,7 @@ ANEW ANN static ArrayInfo* new_arrayinfo(const Emitter emit, const Type t) {
   for(m_uint i = 1; i < t->array_depth; ++i)
     vector_add(&info->type, (vtype)array_type(emit->env, base, i));
   vector_add(&info->type, (vtype)t);
-  info->depth = (m_int)t->array_depth;
+  info->depth = !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
   info->base = base;
   return info;
 }
@@ -334,7 +334,9 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
 
 ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
   CHECK_OB(emit_array_extend_inner(emit, t, e, 0))
-  emit_add_instr(emit, PopArrayClass);
+  regpop(emit, SZ_INT);
+  const Instr instr = emit_add_instr(emit, Reg2Reg);
+  instr->m_val = -SZ_INT;
   emit_add_instr(emit, RegAddRef);
   return GW_OK;
 }

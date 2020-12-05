@@ -63,7 +63,7 @@ static DTOR(array_dtor) {
 
 ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, NULL, t);
-  const m_uint depth = t->array_depth;
+  const m_uint depth = !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
   ARRAY(a) = new_m_vector(p, size,length);
   return a;

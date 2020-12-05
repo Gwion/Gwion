@@ -50,8 +50,6 @@ INSTR(ArrayAlloc);
 INSTR(VarargIni);
 INSTR(VarargCheck);
 
-INSTR(PopArrayClass);
-
 INSTR(DotTmpl);
 INSTR(GTmpl);
 

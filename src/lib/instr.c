@@ -22,14 +22,6 @@ INSTR(DTOR_EOC) {
   vm_shred_exit(shred);
 }
 
-INSTR(PopArrayClass) {
-  POP_REG(shred, SZ_INT);
-  const M_Object obj = *(M_Object*)REG(-SZ_INT);
-  const M_Object tmp = *(M_Object*)REG(0);
-  ARRAY(obj) = ARRAY(tmp);
-  free_object(shred->info->mp, tmp);
-}
-
 ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Nspc nspc) {
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
