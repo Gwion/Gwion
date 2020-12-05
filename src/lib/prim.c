@@ -248,6 +248,8 @@ static GWION_IMPORT(time) {
   CHECK_FF("=>", rassign, r_assign)
   GWI_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
   GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
+  GWI_BB(gwi_oper_end(gwi, "*",         FloatTimes))
+  GWI_BB(gwi_oper_end(gwi, "/",         FloatDivide))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "dur"))
   GWI_BB(gwi_oper_end(gwi, "-",         FloatMinus))
   GWI_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
