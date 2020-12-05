@@ -100,7 +100,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->mp, env->gwion->type[et_array]->xid,
+  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid,
       s_name(sym), env->gwion->type[et_array]);
   t->array_depth = depth + src->array_depth;
   t->info->base_type = array_base(src) ?: src;

@@ -317,16 +317,6 @@ static FREEARG(freearg_array) {
   mp_free(((Gwion)gwion)->mp, ArrayInfo, info);
 }
 
-static OP_CHECK(opck_not_array) {
-  const Array_Sub array = (Array_Sub)data;
-  if(get_depth(array->type)) {
-    struct Array_Sub_ next = { array->exp, array->type->info->parent, array->depth };
-    return check_array_access(env, &next);
-  }
-  ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
-        array->depth, get_depth(array->type))
-}
-
 ANN Type check_array_access(const Env env, const Array_Sub array);
 
 static OP_CHECK(opck_array) {
@@ -445,9 +435,6 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_not_array))
-  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
