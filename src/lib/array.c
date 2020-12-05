@@ -173,7 +173,7 @@ ANN static Type check_array_shift(const Env env,
   if(a->info->type == env->gwion->type[et_null] &&
       b->info->type->array_depth > 1)
     return a->info->type;
-    ARRAY_OPCK(a, b, pos)
+  ARRAY_OPCK(a, b, pos)
   if(a->info->type->array_depth == b->info->type->array_depth + 1)
     return a->info->type;
   else if(a->info->type->array_depth == b->info->type->array_depth)
@@ -325,11 +325,11 @@ static OP_CHECK(opck_array) {
   Exp e = array->exp;
   do CHECK_BO(check_implicit(env, e, t_int))
   while((e = e->next));
-  const Type t = array->type;
+  const Type t = array->type->array_depth ? array->type : typedef_base(array->type);
   if(t->array_depth >= array->depth)
     return array_type(env, array_base(t), t->array_depth - array->depth);
-  const Exp curr = take_exp(array->exp, array->type->array_depth);
-  struct Array_Sub_ next = { curr->next, array_base(array->type), array->depth - array->type->array_depth };
+  const Exp curr = take_exp(array->exp, t->array_depth);
+  struct Array_Sub_ next = { curr->next, array_base(t), array->depth - t->array_depth };
   return check_array_access(env, &next);
 }
 

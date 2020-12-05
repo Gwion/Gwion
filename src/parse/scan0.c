@@ -20,9 +20,8 @@ static inline void context_global(const Env env) {
     env->context->global = 1;
 }
 
-static inline Type scan0_type(const Env env, const m_uint xid,
-    const m_str name, const Type t) {
-  const Type type = new_type(env->gwion->mp, xid, name, t);
+static inline Type scan0_type(const Env env, const m_str name, const Type t) {
+  const Type type = new_type(env->gwion->mp, name, t);
   type->info->ctx = env->context;
   return type;
 }
@@ -68,7 +67,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(env_access(env, fptr->base->flag, td_pos(fptr->base->td)))
   CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
   const m_str name = s_name(fptr->base->xid);
-  const Type t = scan0_type(env, env->gwion->type[et_fptr]->xid, name, env->gwion->type[et_fptr]);
+  const Type t = scan0_type(env, name, env->gwion->type[et_fptr]);
   t->info->owner = !(!env->class_def && GET_FLAG(fptr->base, global)) ?
     env->curr : env->global_nspc;
   t->info->owner_class = env->class_def;
@@ -112,7 +111,7 @@ ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type
 }
 
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
-  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(tdef->xid), base);
+  const Type t = scan0_type(env, s_name(tdef->xid), base);
   t->size = base->size;
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
   env->global_nspc : env->curr;
@@ -182,7 +181,6 @@ ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
 
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_int]);
-  t->xid = ++env->scope->type_xid;
   const Symbol sym = scan0_sym(env, "enum", edef->pos);
   t->name = edef->xid ? s_name(edef->xid) : s_name(sym);
   t->info->parent = env->gwion->type[et_int];
@@ -214,7 +212,6 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
 ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
   const m_str name = s_name(s);
   const Type t = type_copy(env->gwion->mp, env->gwion->type[et_union]);
-  t->xid = ++env->scope->type_xid;
   t->name = name;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->info->owner = t->nspc->parent = env->curr;
@@ -335,7 +332,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   const Type parent = get_parent(env, cdef);
   if(parent == (Type)GW_ERROR)
     return NULL;
-  const Type t = scan0_type(env, ++env->scope->type_xid, s_name(cdef->base.xid), parent);
+  const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if(cflag(cdef, cflag_struct))
     set_tflag(t, tflag_struct);
   t->info->tuple = new_tupleform(env->gwion->mp, parent);

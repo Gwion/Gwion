@@ -35,12 +35,12 @@ static inline m_bool nonnull_check(const Type l, const Type r) {
   return !tflag(l, tflag_nonnull) && tflag(r, tflag_nonnull);
 }
 
-static inline Type check_nonnull(const Env env, const Type l, const Type r,
+ANN static inline Type check_nonnull(const Env env, const Type l, const Type r,
       const m_str action, const loc_t pos) {
   if(tflag(r, tflag_nonnull)) {
     if(isa(l, env->gwion->type[et_null]) > 0)
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
-    if(isa(l, r) < 0)
+    if(isa(l, unflag_type(r)) < 0)
       ERR_N(pos, _("can't %s '%s' to '%s'"), action, l->name, r->name);
     return r->info->parent;
   }

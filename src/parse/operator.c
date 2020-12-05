@@ -49,10 +49,9 @@ ANN static Type op_parent(const Env env, const Type t) {
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
-  Type type = t;
-  if((type && mo && mo->xid == type->xid) || (!type && !mo))
-    return GW_OK;
-  return 0;
+  if(t && mo)
+    return unflag_type(t) == unflag_type(mo);
+  return t == mo;
 }
 
 ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs, const restrict Type rhs) {
@@ -66,18 +65,10 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
   return NULL;
 }
 
-static m_bool op_match2(const restrict Type t, const restrict Type mo) {
-//  if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
-//    return GW_OK;
-  if((t && mo && (t != OP_ANY_TYPE && mo != OP_ANY_TYPE && mo->xid == t->xid)) || (!t && !mo))
-    return GW_OK;
-  return 0;
-}
-
 ANN2(1) static M_Operator* operator_find2(const Vector v, const restrict Type lhs, const restrict Type rhs) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
-    if(op_match2(lhs, mo->lhs) && op_match2(rhs, mo->rhs))
+    if(lhs == mo->lhs && rhs == mo->rhs)
       return mo;
   }
   return NULL;
@@ -87,7 +78,7 @@ ANN void operator_suspend(const Nspc n, struct Op_Import *opi) {
   const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
-    if(op_match2(opi->lhs, mo->lhs) && op_match2(opi->rhs, mo->rhs)) {
+    if(opi->lhs == mo->lhs && opi->rhs == mo->rhs) {
       opi->data = (uintptr_t)mo;
       opi->ret = (Type)&VPTR(v, i-1);
       VPTR(v, i-1) = 0;

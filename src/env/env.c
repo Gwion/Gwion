@@ -92,7 +92,6 @@ ANN void env_add_type(const Env env, const Type type) {
   SET_FLAG(v, global);
   set_vflag(v, vflag_builtin);
   set_tflag(type, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check | tflag_emit);
-  type->xid = ++env->scope->type_xid;
 }
 
 ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {

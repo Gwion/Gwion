@@ -43,7 +43,6 @@ struct Type_ {
   m_str     name;
   Nspc      nspc;
   struct TypeInfo_ *info;
-  size_t xid;
   size_t size;
   size_t array_depth;
   uint16_t ref;
@@ -54,7 +53,7 @@ struct Type_ {
 REF_FUNC(Type, type)
 FLAG_FUNC(Type, t)
 
-ANN2(1,3) ANEW Type new_type(MemPool, const m_uint xid, const m_str name, const Type);
+ANN2(1,2) ANEW Type new_type(MemPool, const m_str name, const Type);
 ANEW ANN Type type_copy(MemPool, const Type type);
 ANN m_str get_type_name(const Env, const Type t, const m_uint);
 ANN Value find_value(const Type, const Symbol);

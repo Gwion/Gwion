@@ -28,9 +28,8 @@ ANN void free_type(const Type a, struct Gwion_ *const gwion) {
 
 }
 
-Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) {
+Type new_type(MemPool p, const m_str name, const Type parent) {
   const Type type = mp_calloc(p, Type);
-  type->xid  = xid;
   type->name = name;
   type->info = mp_calloc(p, TypeInfo);
   type->info->parent = parent;
@@ -41,7 +40,7 @@ Type new_type(MemPool p, const m_uint xid, const m_str name, const Type parent) 
 }
 
 ANN Type type_copy(MemPool p, const Type type) {
-  const Type a = new_type(p, type->xid, type->name, type->info->parent);
+  const Type a = new_type(p, type->name, type->info->parent);
   a->nspc           = type->nspc;
   a->info->owner       = type->info->owner;
   a->info->owner_class = type->info->owner_class;
@@ -53,7 +52,7 @@ ANN Type type_copy(MemPool p, const Type type) {
 }
 
 ANN m_bool isa(const restrict Type var, const restrict Type parent) {
-  return (var->xid == parent->xid) ? GW_OK : var->info->parent ? isa(var->info->parent, parent) : GW_ERROR;
+  return (var == parent) ? GW_OK : var->info->parent ? isa(var->info->parent, parent) : GW_ERROR;
 }
 
 ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
@@ -100,8 +99,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->mp, ++env->scope->type_xid,
-      s_name(sym), env->gwion->type[et_array]);
+  const Type t = new_type(env->gwion->mp, s_name(sym), env->gwion->type[et_array]);
   t->array_depth = depth + src->array_depth;
   t->info->base_type = array_base(src) ?: src;
   t->info->owner = src->info->owner;
