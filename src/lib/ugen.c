@@ -11,6 +11,7 @@
 #include "ugen.h"
 #include "driver.h"
 #include "gwi.h"
+#include "array.h"
 
 static TICK(dac_tick) {
   m_float* out = ((VM*)u->module.gen.data)->bbq->out;
@@ -201,6 +202,66 @@ describe_connect_instr(Ugen, Disconnect,)
 describe_connect_instr(Trig, Connect,    TRIG_EX)
 describe_connect_instr(Trig, Disconnect, TRIG_EX)
 
+#define describe_connectaa_instr(name, func, opt) \
+static INSTR(name##func) {                        \
+  M_Object lhs, rhs;                              \
+  connect_init(shred, &lhs, &rhs);                \
+  const m_uint lsz = m_vector_size(ARRAY(lhs));   \
+  const m_uint rsz = m_vector_size(ARRAY(rhs));   \
+  const m_uint min = lsz < rsz ? lsz : rsz;       \
+  for(m_uint i = 0; i < min; ++i) {               \
+    M_Object ulhs, urhs;                          \
+    m_vector_get(ARRAY(lhs), i, &ulhs);           \
+    m_vector_get(ARRAY(rhs), i, &urhs);           \
+    opt                                           \
+    if(ulhs && urhs)                              \
+    _do_(func, UGEN(ulhs), UGEN(urhs));           \
+  }                                               \
+  release_connect(shred);                         \
+}
+describe_connectaa_instr(UgenAA, Connect,)
+describe_connectaa_instr(UgenAA, Disconnect,)
+describe_connectaa_instr(TrigAA, Connect, TRIG_EX)
+describe_connectaa_instr(TrigAA, Disconnect, TRIG_EX)
+
+#define describe_connectua_instr(name, func, opt) \
+static INSTR(name##func) {                        \
+  M_Object lhs, rhs;                              \
+  connect_init(shred, &lhs, &rhs);                \
+  const m_uint rsz = m_vector_size(ARRAY(rhs));   \
+  for(m_uint i = 0; i < rsz; ++i) {               \
+    M_Object urhs;                                \
+    m_vector_get(ARRAY(rhs), i, &urhs);           \
+    opt                                           \
+    if(urhs)                                      \
+    _do_(func, UGEN(lhs), UGEN(urhs));            \
+  }                                               \
+  release_connect(shred);                         \
+}
+describe_connectua_instr(UgenUA, Connect,)
+describe_connectua_instr(UgenUA, Disconnect,)
+describe_connectua_instr(TrigUA, Connect, TRIG_EX)
+describe_connectua_instr(TrigUA, Disconnect, TRIG_EX)
+
+#define describe_connectau_instr(name, func, opt) \
+static INSTR(name##func) {                        \
+  M_Object lhs, rhs;                              \
+  connect_init(shred, &lhs, &rhs);                \
+  const m_uint lsz = m_vector_size(ARRAY(lhs));   \
+  for(m_uint i = 0; i < lsz; ++i) {               \
+    M_Object ulhs;                                \
+    m_vector_get(ARRAY(lhs), i, &ulhs);           \
+    opt                                           \
+    if(ulhs)                                      \
+    _do_(func, UGEN(ulhs), UGEN(rhs));            \
+  }                                               \
+  release_connect(shred);                         \
+}
+describe_connectau_instr(UgenAU, Connect,)
+describe_connectau_instr(UgenAU, Disconnect,)
+describe_connectau_instr(TrigAU, Connect, TRIG_EX)
+describe_connectau_instr(TrigAU, Disconnect, TRIG_EX)
+
 static CTOR(ugen_ctor) {
   UGEN(o) = new_UGen(shred->info->mp);
   vector_add(&shred->info->vm->ugen, (vtype)UGEN(o));
@@ -343,5 +404,24 @@ GWION_IMPORT(ugen) {
   _CHECK_OP("=<", chuck_ugen, UgenDisconnect)
   _CHECK_OP(":=>", chuck_ugen, TrigConnect)
   _CHECK_OP(":=<", chuck_ugen, TrigDisconnect)
+
+  GWI_BB(gwi_oper_ini(gwi, "nonnull UGen[]", "nonnull UGen[]", "nonnull UGen[]"))
+  _CHECK_OP("=>", chuck_ugen, UgenAAConnect)
+  _CHECK_OP("=<", chuck_ugen, UgenAADisconnect)
+  _CHECK_OP(":=>", chuck_ugen, TrigAAConnect)
+  _CHECK_OP(":=<", chuck_ugen, TrigAADisconnect)
+
+  GWI_BB(gwi_oper_ini(gwi, "nonnull UGen", "nonnull UGen[]", "nonnull UGen[]"))
+  _CHECK_OP("=>", chuck_ugen, UgenUAConnect)
+  _CHECK_OP("=<", chuck_ugen, UgenUADisconnect)
+  _CHECK_OP(":=>", chuck_ugen, TrigUAConnect)
+  _CHECK_OP(":=<", chuck_ugen, TrigUADisconnect)
+
+  GWI_BB(gwi_oper_ini(gwi, "nonnull UGen[]", "nonnull UGen", "nonnull UGen"))
+  _CHECK_OP("=>", chuck_ugen, UgenAUConnect)
+  _CHECK_OP("=<", chuck_ugen, UgenAUDisconnect)
+  _CHECK_OP(":=>", chuck_ugen, TrigAUConnect)
+  _CHECK_OP(":=<", chuck_ugen, TrigAUDisconnect)
+
   return import_global_ugens(gwi);
 }
