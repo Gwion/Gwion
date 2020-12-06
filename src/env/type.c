@@ -99,7 +99,9 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)
     return type;
-  const Type t = new_type(env->gwion->mp, s_name(sym), env->gwion->type[et_array]);
+  const Type parent = src->info->parent ?
+    array_type(env, src->info->parent, depth) : env->gwion->type[et_array];
+  const Type t = new_type(env->gwion->mp, s_name(sym), parent);
   t->array_depth = depth + src->array_depth;
   t->info->base_type = array_base(src) ?: src;
   t->info->owner = src->info->owner;
@@ -111,7 +113,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
     *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !tflag(src, tflag_struct)) ?
       object_release : struct_release;
   } else
-  nspc_addref((t->nspc = env->gwion->type[et_array]->nspc));
+  nspc_addref((t->nspc = parent->nspc));
   mk_class(env, t);
   nspc_add_type_front(src->info->owner, sym, t);
   return t;
