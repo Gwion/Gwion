@@ -26,16 +26,6 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d, const enum
   return GW_OK;
 }
 
-ANN2(1,2) static inline m_bool class_parent(const Env env, Type t) {
-  do {
-    if(tflag(t, tflag_check))
-      break;
-    if(t->info->cdef)
-      CHECK_BB(traverse_class_def(env, t->info->cdef))
-  } while((t = t->info->parent));
-  return GW_OK;
-}
-
 ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;

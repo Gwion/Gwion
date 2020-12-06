@@ -68,11 +68,10 @@ static OP_CHECK(at_object) {
   const Type l = bin->lhs->info->type;
   const Type r = bin->rhs->info->type;
 
-  const uint is_new = bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol(emit->gwion->st, "new");
   if(bin->lhs->exp_type == ae_exp_unary && bin->lhs->d.exp_unary.op == insert_symbol(emit->gwion->st, "new")) {
     for(m_uint i = vector_size(&emit->code->instr); --i;) {
       const Instr instr = (Instr)vector_at(&emit->code->instr, i - 1);
-      if(instr->opcode == GcAdd) {
+      if(instr->opcode == (m_uint)GcAdd) {
         vector_rem(&emit->code->instr, i - 1);
         mp_free(emit->gwion->mp, Instr, instr);
       }
