@@ -64,7 +64,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
 static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
   if(var->value) // from a `typeof` declaration
     return GW_OK;
-  if(((!env->class_def || env->scope->depth) ? nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
+  if(((!env->class_def || !GET_FLAG(env->class_def, final) || env->scope->depth) ? nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
     ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
               s_name(var->xid))
   return GW_OK;
@@ -553,8 +553,10 @@ ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) 
     return GW_OK;
   if(isa(actual_type(env->gwion, v->type), env->gwion->type[et_function]) > 0)
     return GW_OK;
-  ERR_B(fdef->pos, _("function '%s' has already been defined in the same scope..."),
-       s_name(fdef->base->xid))
+  if((!env->class_def || !GET_FLAG(env->class_def, final)) && !nspc_lookup_value0(env->curr, fdef->base->xid))
+    ERR_B(fdef->pos, _("function '%s' has already been defined in the same scope..."),
+         s_name(fdef->base->xid))
+  return GW_OK;
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
