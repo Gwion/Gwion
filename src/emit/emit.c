@@ -1605,7 +1605,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   Instr cpy = stmt->is_ptr ? emit_add_instr(emit, MemSetImm) : NULL;
   emit_local(emit, emit->gwion->type[et_int]);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  emit_local(emit, emit->gwion->type[et_int]);//et_int
+  emit_local(emit, emit->gwion->type[et_int]);
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
   emit_except(emit, stmt->exp->info->type);
