@@ -62,6 +62,7 @@ ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
 
 __attribute__((hot))
 ANN void __release(const M_Object o, const VM_Shred shred) {
+  vector_rem2(&shred->gc, (vtype)o);
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
   do {

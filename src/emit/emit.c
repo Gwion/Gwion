@@ -1173,9 +1173,10 @@ static inline void stack_alloc(const Emitter emit) { // maybe vararg could use t
 
 static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
   ++emit->env->scope->depth;
-  emit_push_scope(emit);
   const Instr gc = emit_add_instr(emit, NoOp);
+  emit_push_scope(emit);
   const m_bool ret = emit_stmt(emit, stmt, pop);
+  emit_pop_scope(emit);
   if(ret > 0) {
     const m_bool pure = !vector_back(&emit->info->pure);
     if(!pure) {
@@ -1183,7 +1184,6 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
       emit_add_instr(emit, GcEnd);
     }
   }
-  emit_pop_scope(emit);
   --emit->env->scope->depth;
   return ret;
 }
