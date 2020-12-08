@@ -562,6 +562,8 @@ ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) 
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
+  const uint global = GET_FLAG(fdef->base, global);
+  const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->base->flag, td_pos(fdef->base->td)))
   CHECK_BB(scan1_fdef_defined(env, fdef))
@@ -573,6 +575,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)scan1_fdef);
   --env->scope->depth;
   env->func = former;
+  if(global)
+    env_pop(env, scope);
   return ret;
 }
 

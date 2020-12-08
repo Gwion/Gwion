@@ -747,7 +747,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
       push->m_val = -(missing_depth) * SZ_INT;
     }
     assign->m_val = emit_var;
-//    (void)emit_addref(emit, emit_var);
+    (void)emit_addref(emit, emit_var);
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
@@ -1920,7 +1920,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
   return op_emit_bool(emit, &opi);
 }
 
-ANN static inline void emit_func_def_global(const Emitter emit, const Value value) {
+ANN static inline void emit_func_def_fglobal(const Emitter emit, const Value value) {
   const Instr set_mem = emit_add_instr(emit, MemSetImm);
   set_mem->m_val = value->from->offset;
   set_mem->m_val2 = (m_uint)value->d.func_ref->code;
@@ -2070,7 +2070,7 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
   const Func func = fdef->base->func;
   func->code = emit_func_def_code(emit, func);
   if(fdef_is_file_global(emit, fdef))
-    emit_func_def_global(emit, func->value_ref);
+    emit_func_def_fglobal(emit, func->value_ref);
   if(emit->info->memoize && fflag(func, fflag_pure))
     func->code->memoize = memoize_ini(emit, func);
 }
@@ -2085,6 +2085,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     return GW_OK;
   if(fdef_is_file_global(emit, fdef))
     func->value_ref->from->offset = emit_local(emit, emit->gwion->type[et_int]);
+  const uint global = GET_FLAG(f->base, global);
+  const m_uint scope = !global ? emit->env->scope->depth : env_push_global(emit->env);
   emit_func_def_init(emit, func);
   if(vflag(func->value_ref, vflag_member))
     stack_alloc(emit);
@@ -2102,6 +2104,8 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     emit_fdef_finish(emit, fdef);
   else
     emit_pop_code(emit);
+  if(global)
+    env_pop(emit->env, scope);
   return ret;
 }
 

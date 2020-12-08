@@ -47,10 +47,13 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
 
 ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List list = f->base->args;
+  const uint global = GET_FLAG(f->base, global);
   do {
     const Value v = list->var_decl->value;
     v->from->offset = f->stack_depth;
     f->stack_depth += v->type->size;
+    if(global)
+      SET_FLAG(v, global);
   } while((list = list->next));
   return GW_OK;
 }
@@ -60,9 +63,10 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
   valuefrom(env, v->from);
   SET_FLAG(v, const);
   set_vflag(v, vflag_func);
-  if(!env->class_def)
-    set_vflag(v, vflag_fglobal);
-  else {
+  if(!env->class_def) {
+    if(!GET_FLAG(d->base, global))
+      set_vflag(v, vflag_fglobal);
+  } else {
     if(GET_FLAG(d->base, static))
       SET_FLAG(v, static);
     else

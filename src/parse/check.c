@@ -440,8 +440,11 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
       exp_setvar(e, 1);
       return check_lambda(env, t, &e->d.exp_lambda);
     }
-    if(implicit)
-      return check_implicit(env, e, t);
+    if(implicit) {
+      const m_bool ret = check_implicit(env, e, t);
+      if(ret == GW_OK)
+        return ret;
+    }
   }
   return match ? 1 : -1;
 }
@@ -468,7 +471,12 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
           nspc_pop_type(env->gwion->mp, env->curr);
         CHECK_OO(e1->type)
       }
-      if(func_match_inner(env, e, e1->type, implicit, specific) < 0)
+      if(!func->def->base->tmpl && func->next)
+        env->context->error = 1;
+      const m_bool ret = func_match_inner(env, e, e1->type, implicit, specific);
+      if(func->next)
+        env->context->error = ret < 0;
+      if(ret < 0)
         break;
       e = e->next;
       e1 = e1->next;
