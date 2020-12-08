@@ -173,60 +173,58 @@ ANN static inline void set_nonnull(const Type t, const Exp exp) {
     exp_setnonnull(exp, 1);
 }
 
+ANN static void nn_implicit(const M_Operator *mo, const struct Op_Import *opi) {
+  const struct Implicit *a = (struct Implicit*)opi->data;
+  set_nonnull(mo->lhs, a->e);
+}
+
+ANN static void nn_exp(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp a = (Exp)opi->data;
+  set_nonnull(mo->rhs, a); // rhs ???
+}
+
+ANN static void nn_dot(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp_Dot *a = (Exp_Dot*)opi->data;
+  set_nonnull(mo->lhs, a->base);
+}
+
+ANN static void nn_array(const M_Operator *mo, const struct Op_Import *opi) {
+  const Array_Sub a = (Array_Sub)opi->data;
+  set_nonnull(mo->lhs, a->exp);
+}
+
+ANN static void nn_binary(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp_Binary *a = (Exp_Binary*)opi->data;
+  set_nonnull(mo->lhs, a->lhs);
+  set_nonnull(mo->rhs, a->rhs);
+}
+
+ANN static void nn_cast(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp_Cast *a = (Exp_Cast*)opi->data;
+  set_nonnull(mo->lhs, a->exp);
+}
+
+ANN static void nn_postfix(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp_Postfix *a = (Exp_Postfix*)opi->data;
+  set_nonnull(mo->lhs, a->exp);
+}
+
+ANN static void nn_unary(const M_Operator *mo, const struct Op_Import *opi) {
+  const Exp_Unary *a = (Exp_Unary*)opi->data;
+  set_nonnull(mo->rhs, a->exp);
+}
+
+ANN static void nn_scan(const M_Operator *mo NUSED, const struct Op_Import *opi NUSED) {
+}
+
+typedef void (*nn_f)(const M_Operator *mo, const struct Op_Import *opi);
+static const nn_f nn_func[] = {
+  nn_implicit, nn_exp, nn_dot, nn_array,
+  nn_binary, nn_cast, nn_postfix, nn_unary, nn_scan
+};
+
 ANN static void opi_nonnull(const M_Operator *mo, const struct Op_Import *opi) {
-  switch(opi->op_type) {
-    case op_implicit:
-    {
-      const struct Implicit *a = (struct Implicit*)opi->data;
-      set_nonnull(mo->lhs, a->e);
-      break;
-    }
-    case op_exp:
-    {
-      const Exp a = (Exp)opi->data;
-      set_nonnull(mo->rhs, a); // rhs ???
-      break;
-    }
-    case op_dot:
-    {
-      const Exp_Dot *a = (Exp_Dot*)opi->data;
-      set_nonnull(mo->lhs, a->base);
-      break;
-    }
-    case op_array:
-    {
-      const Array_Sub a = (Array_Sub)opi->data;
-      set_nonnull(mo->lhs, a->exp);
-      break;
-    }
-    case op_binary:
-    {
-      const Exp_Binary *a = (Exp_Binary*)opi->data;
-      set_nonnull(mo->lhs, a->lhs);
-      set_nonnull(mo->rhs, a->rhs);
-      break;
-    }
-    case op_cast:
-    {
-      const Exp_Cast *a = (Exp_Cast*)opi->data;
-      set_nonnull(mo->lhs, a->exp);
-      break;
-    }
-    case op_postfix:
-    {
-      const Exp_Postfix *a = (Exp_Postfix*)opi->data;
-      set_nonnull(mo->lhs, a->exp);
-      break;
-    }
-    case op_unary:
-    {
-      const Exp_Unary *a = (Exp_Unary*)opi->data;
-      set_nonnull(mo->rhs, a->exp);
-      break;
-    }
-    case op_scan:
-      break;
-  }
+  nn_func[opi->op_type](mo, opi);
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {
