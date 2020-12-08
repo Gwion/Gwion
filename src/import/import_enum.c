@@ -80,6 +80,8 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 //! TODO: check what happens in inside template class
 ANN Type gwi_enum_end(const Gwi gwi) {
   CHECK_BO(ck_ok(gwi, ck_edef))
+  if(!vector_size(&gwi->ck->v))
+    GWI_ERR_O("Enum is empty");
   const Gwion gwion = gwi->gwion;
   const Enum_Def edef  = new_enum_def(gwion->mp, gwi->ck->tmpl,
       gwi->ck->xid, loc(gwi));
