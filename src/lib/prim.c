@@ -59,16 +59,15 @@ static GWION_IMPORT(int_r) {
 }
 
 static INSTR(IntRange) {
-  shred->reg -= SZ_INT *2;
-  const m_int start = *(m_int*)REG(0);
-  const m_int end   = *(m_int*)REG(SZ_INT);
+  shred->reg -= SZ_INT;
+  const m_int start = *(m_int*)REG(-SZ_INT);
+  const m_int end   = *(m_int*)REG(0);
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
   const M_Object array = new_array(shred->info->vm->gwion->mp, (Type)instr->m_val, sz);
   for(m_int i = start, j = 0; i != end; i += op, ++j)
     m_vector_set(ARRAY(array), j, &i);
-  *(M_Object*)REG(0) = array;
-  PUSH_REG(shred, SZ_INT);
+  *(M_Object*)REG(-SZ_INT) = array;
 }
 
 static OP_CHECK(opck_int_range) {
