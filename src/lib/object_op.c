@@ -110,6 +110,14 @@ static OP_EMIT(opem_implicit_null2obj) {
   return (Instr)GW_OK;
 }
 
+static OP_CHECK(opck_object_not) {
+  const Exp_Unary* unary = (Exp_Unary*)data;
+  const Type t = unary->exp->info->type;
+  if(tflag(t, tflag_nonnull))
+    ERR_N(unary->exp->pos, "expression is known to be nonnull");
+  return unary->exp->info->type;
+}
+
 ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl* td);
 
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
@@ -461,6 +469,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
+  GWI_BB(gwi_oper_add(gwi, opck_object_not))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
