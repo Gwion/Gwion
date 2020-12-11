@@ -114,7 +114,7 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
   gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta)) // should return bool
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
@@ -295,7 +295,7 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
   GWI_BB(gwi_oper_end(gwi, "::",         FloatTimes))
   GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2)) // should return bool
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_end(gwi,  "!", float_not))
   return GW_OK;
 }

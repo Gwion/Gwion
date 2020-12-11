@@ -9,14 +9,6 @@
 #include "gwion.h"
 #include "operator.h"
 
-struct tmpl_info {
-  const  Class_Def cdef;
-  Type_List        call;
-  struct Vector_   type;
-  struct Vector_   size;
-  uint8_t index;
-};
-
 ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
   ID_List list = tmpl->list;
   Type_List call = tmpl->call;

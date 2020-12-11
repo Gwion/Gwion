@@ -14,8 +14,8 @@
 #include "template.h"
 #include "parse.h"
 #include "specialid.h"
-
 #include "gwi.h"
+#include "tmpl_info.h"
 
 #undef insert_symbol
 
@@ -118,7 +118,7 @@ static OP_CHECK(opck_object_not) {
   return unary->exp->info->type;
 }
 
-ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl* td);
+ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl * td);
 
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
   if(ts->td->types)
@@ -204,10 +204,10 @@ OP_CHECK(opck_object_dot) {
   const m_str str = s_name(member->xid);
   const m_bool base_static = is_class(env->gwion, member->t_base);
   const Type the_base = base_static ? member->t_base->info->base_type : member->t_base;
-  if(!the_base->nspc)
-    ERR_N(member->base->pos,
-          _("type '%s' does not have members - invalid use in dot expression of %s"),
-          the_base->name, str)
+//  if(!the_base->nspc)
+//    ERR_N(member->base->pos,
+//          _("type '%s' does not have members - invalid use in dot expression of %s"),
+//          the_base->name, str)
   if(member->xid ==  insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
           _("keyword 'this' must be associated with object instance..."))
@@ -254,7 +254,6 @@ OP_EMIT(opem_object_dot) {
     if(!tflag(t_base, tflag_struct))
       emit_member(emit, value, exp_getvar(exp_self(member)));
     else {
-//      exp_setvar(member->base, exp_getvar(exp_self(member)));
       exp_setvar(member->base, 1);
       CHECK_BO(emit_exp(emit, member->base))
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
@@ -268,90 +267,13 @@ OP_EMIT(opem_object_dot) {
   return (Instr)GW_OK;
 }
 
-struct tmpl_info {
-  Symbol           name;
-  ID_List          list;
-  Type_List        call;
-  Type             ret;
-  Type             base;
-  struct Vector_   type;
-  struct Vector_   size;
-  uint8_t index;
-};
-
-ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
-  vector_add(&info->type, (vtype)t);
-  const size_t len = strlen(t->name);
-  vector_add(&info->size, len);
-  return len;
-}
-
-ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
-  ID_List base = info->list; // ???
-  Type_List call = info->call;
-  size_t size = 0;
-  do {
-    DECL_OB(const Type, t, = known_type(env, call->td))
-    size += tmpl_set(info, t);
-  } while((call = call->next) && (base = base->next) && ++size);
-//  } while((call = call->next) && ++size);
-  size += tmpl_set(info, info->base);
-  return size + 4;
-}
-
-ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
-  const Type t = (Type)vector_at(&info->type, info->index);
-  strcpy(str, t->name);
-  return str += vector_at(&info->size, info->index);
-}
-
-ANN static void template_name(struct tmpl_info* info, m_str s) {
-  m_str str = s;
-  const m_uint size = info->index = vector_size(&info->type) -1;
-  str = tmpl_get(info, str);
-  *str++ = ':';
-  *str++ = '[';
-  for(info->index = 0; info->index < size; ++info->index) {
-    str = tmpl_get(info, str);
-    if(info->index < size - 1)
-      *str++ = ',';
-    else {
-      *str++ = ']';
-    }
-  }
-  *str = '\0';
-}
-
-ANEW ANN static Symbol template_id(const Env env, struct tmpl_info* info) {
-  vector_init(&info->type);
-  vector_init(&info->size);
-  ssize_t sz = template_size(env, info);
-  char name[sz];
-  if(sz > GW_ERROR)
-    template_name(info, name);
-  vector_release(&info->type);
-  vector_release(&info->size);
-  return sz > GW_ERROR ? insert_symbol(env->gwion->st, name) : NULL;
-}
-
-ANN static m_bool template_match(ID_List base, Type_List call) {
-  while((call = call->next) && (base = base->next));
-  return !call ? GW_OK : GW_ERROR;
-}
-
-ANN static Type tmpl_exists(const Env env, const Symbol name) {
-  if(env->class_def && name == insert_symbol(env->gwion->st, env->class_def->name))
-     return env->class_def;
-  return nspc_lookup_type1(env->curr, name);
-}
-
 ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def c = info->base->info->cdef;
   const Class_Def cdef = new_class_def(env->gwion->mp, c->flag, info->name, c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
       c->body ?cpy_ast(env->gwion->mp, c->body) : NULL,
     loc_cpy(env->gwion->mp, c->pos));
   cdef->cflag = c->cflag;
-  cdef->base.tmpl = mk_tmpl(env, c->base.tmpl, info->call);
+  cdef->base.tmpl = mk_tmpl(env, c->base.tmpl, info->td->types);
   const m_bool ret = scan0_class_def(env, cdef);
   if((info->ret = cdef->base.type)) {
     info->ret->info->cdef = cdef;
@@ -362,16 +284,142 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   return ret;
 }
 
+ANN static OP_CHECK(opck_option_get) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
+}
+
+static INSTR(OptionCheck) {
+  const M_Object o = *(M_Object*)REG(-SZ_INT*2);
+  if(*(m_uint*)(o->data) != instr->m_val2)
+    Except(shred, "invalid union access");
+  memcpy(*(m_bit**)REG(-SZ_INT), o->data + SZ_INT, instr->m_val);
+  POP_REG(shred, SZ_INT*2 - instr->m_val);
+  memcpy(&*(m_bit*)REG(-instr->m_val), o->data + SZ_INT, instr->m_val);
+}
+
+ANN static OP_EMIT(opem_option_get) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Instr instr = emit_add_instr(emit, OptionCheck);
+  instr->m_val = bin->rhs->info->type->size;
+  instr->m_val2 = 1;
+  return instr;
+}
+
+ANN static OP_CHECK(opck_option_set) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  CHECK_NN(opck_rassign(env, data, mut)) // check those two lines
+  exp_setvar(bin->rhs, 0);
+  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(env->gwion->st, "@val"));
+  return v->type;
+}
+
+static INSTR(OptionSet) {
+  M_Object o = *(M_Object*)REG(-SZ_INT);
+  *(m_uint*)(o->data) = instr->m_val2;
+  *(m_bit**)(o->data + SZ_INT) = *(void**)REG(-instr->m_val);
+}
+
+ANN static OP_EMIT(opem_option_set) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(emit->gwion->st, "@val"));
+  const Instr set = emit_add_instr(emit, OptionSet);
+  set->m_val = SZ_INT + v->type->size;
+  set->m_val2 = 1;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = SZ_INT;
+  return set;
+}
+
+ANN static OP_CHECK(opck_option_setn) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  CHECK_NN(opck_rassign(env, data, mut))
+  exp_setvar(bin->rhs, 1);
+  return env->gwion->type[et_void];
+}
+
+ANN static OP_EMIT(opem_option_setn) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Instr instr = emit_add_instr(emit, OptionSet);
+  instr->m_val = bin->rhs->info->type->nspc->info->offset;
+  const Instr  pop2 = emit_add_instr(emit, RegPop);
+  pop2->m_val = SZ_INT * 2;
+  return instr;
+}
+
+ANN static OP_EMIT(opem_option_not) {
+  Exp_Unary *unary = (Exp_Unary*)data;
+  const Instr pop = emit_add_instr(emit, RegPop);
+  pop->m_val = unary->exp->info->type->nspc->info->offset - sizeof(uint16_t)*2;
+  const Instr set = emit_add_instr(emit, Reg2Reg);
+  set->m_val = -sizeof(uint16_t)*2;
+  set->m_val2 = unary->exp->info->type->nspc->info->offset - sizeof(uint16_t)*2;
+  return emit_add_instr(emit, IntNot);
+}
+
+ANN static OP_EMIT(opem_option_cond) {
+  Exp exp = (Exp)data;
+  const Instr set = emit_add_instr(emit, Reg2Reg);
+  set->m_val = -exp->info->type->size;
+  set->m_val2 = -sizeof(uint16_t)*2;
+  const Instr  pop2 = emit_add_instr(emit, RegPop);
+  pop2->m_val = exp->info->type->nspc->info->offset - sizeof(uint16_t)*2;
+  const Instr instr = emit_add_instr(emit, BranchEqInt);
+  return instr;
+}
+
+ANN static OP_EMIT(opem_option_uncond) {
+  Exp exp = (Exp)data;
+  const Instr set = emit_add_instr(emit, Reg2Reg);
+  set->m_val = -exp->info->type->size;
+  set->m_val2 = -sizeof(uint16_t)*2;
+  const Instr  pop2 = emit_add_instr(emit, RegPop);
+  pop2->m_val = exp->info->type->size - sizeof(uint16_t)*2;
+  const Instr instr = emit_add_instr(emit, BranchNeqInt);
+  return instr;
+}
+
+
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u = info->base->info->udef;
   const Union_Def udef = new_union_def(env->gwion->mp, cpy_decl_list(env->gwion->mp, u->l),
     loc_cpy(env->gwion->mp, u->pos));
-  udef->type_xid = info->name;
-  udef->tmpl = mk_tmpl(env, u->tmpl, info->call);
+  udef->xid = info->name;
+  udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
   if(GET_FLAG(info->base, global))
     SET_FLAG(udef, global);
   const m_bool ret = scan0_union_def(env, udef);
   if(udef->type) {
+    if(!strcmp(info->base->name, "Option")) {
+      const Type base = known_type(env, info->td->types->td);
+      const m_uint scope = env_push(env, udef->type->info->parent->info->owner_class, udef->type->info->parent->info->owner);
+      const struct Op_Func opfunc0 = { .ck=opck_option_get, .em=opem_option_get };
+      struct Op_Import opi0 = { .lhs=udef->type, .rhs=base, .ret=base,
+       .op=insert_symbol(env->gwion->st, "?=>"), .pos=info->td->pos, .func=&opfunc0 };
+      CHECK_BB(add_op(env->gwion, &opi0))
+      const struct Op_Func opfunc1 = { .ck=opck_option_set, .em=opem_option_set };
+      struct Op_Import opi1 = { .lhs=base, .rhs=udef->type, .ret=udef->type, .func=&opfunc1,
+       .op=insert_symbol(env->gwion->st, "@=>"), .pos=info->td->pos };
+      CHECK_BB(add_op(env->gwion, &opi1))
+      const struct Op_Func opfunc2 = { .ck=opck_option_setn, .em=opem_option_setn };
+      struct Op_Import opi2 = { .lhs=env->gwion->type[et_null], .rhs=udef->type, .ret=udef->type, .func=&opfunc2,
+       .op=insert_symbol(env->gwion->st, "@=>"), .pos=info->td->pos };
+      CHECK_BB(add_op(env->gwion, &opi2))
+      const struct Op_Func opfunc3 = { .em=opem_option_not };
+      struct Op_Import opi3 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc3,
+       .op=insert_symbol(env->gwion->st, "!"), .pos=info->td->pos };
+      CHECK_BB(add_op(env->gwion, &opi3))
+      const struct Op_Func opfunc4 = { .em=opem_option_cond };
+      struct Op_Import opi4 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc4,
+       .op=insert_symbol(env->gwion->st, "@conditionnal"), .pos=info->td->pos };
+      CHECK_BB(add_op(env->gwion, &opi4))
+      const struct Op_Func opfunc5 = { .em=opem_option_uncond };
+      struct Op_Import opi5 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc5,
+       .op=insert_symbol(env->gwion->st, "@unconditionnal"), .pos=info->td->pos };
+      CHECK_BB(add_op(env->gwion, &opi5))
+      env_pop(env, scope);
+    }
     udef->type->info->udef = udef;// mark as udef
     info->ret = udef->type;
     set_tflag(info->ret, tflag_udef);
@@ -389,14 +437,12 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
   return info->ret;
 }
 
-ANN Type scan_class(const Env env, const Type t, const Type_Decl* td) {
-  if(template_match(t->info->cdef->base.tmpl->list, td->types) < 0) // invalid template
-    ERR_O(td->pos, _("invalid template types number"))
-  struct tmpl_info info = { .base=t, .call=td->types, .list=t->info->cdef->base.tmpl->list  };
-  DECL_OO(const Symbol, name, = info.name = template_id(env, &info))
-  const Type exists = tmpl_exists(env, name);
+ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
+ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
+  struct tmpl_info info = { .base=t, .td=td, .list=t->info->cdef->base.tmpl->list  };
+  const Type exists = tmpl_exists(env, &info);
   if(exists)
-    return exists;
+    return exists != env->gwion->type[et_null] ? exists : NULL;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
   CHECK_BO(envset_push(&es, t->info->owner_class, t->info->ctx ? t->info->ctx->nspc : env->curr))
@@ -468,7 +514,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2)) // this is suspicious
   GWI_BB(gwi_oper_add(gwi, opck_object_not))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))

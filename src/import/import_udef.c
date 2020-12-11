@@ -24,13 +24,10 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   return NULL;
 }
 
-ANN2(1) m_int gwi_union_ini(const Gwi gwi, const m_str type, const m_str name) {
+ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef))
-  if(name)
-    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, name)))
-  gwi->ck->name = type;
-  if(type)
-    CHECK_BB(check_typename_def(gwi, gwi->ck))
+  gwi->ck->name = name;
+  CHECK_BB(check_typename_def(gwi, gwi->ck))
   return GW_OK;
 }
 
@@ -45,17 +42,14 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   CHECK_BO(scan0_union_def(gwi->gwion->env, udef))
   CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
-  if(!udef->tmpl)
-    emit_union_offset(udef->l, udef->o);
-  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
-      gwi->gwion->env->class_def->nspc->info->offset =
-       udef->o + udef->s;
-  if(udef->xid || !udef->type_xid) {
-    set_vflag(udef->value, vflag_builtin);
-    const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
-    udef->value->d.ptr = (m_uint*)o;
-   return udef->value->type;
-  }
+//  if(!udef->tmpl)
+//    emit_union_offset(udef->l, udef->o);
+//  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
+//      gwi->gwion->env->class_def->nspc->info->offset =
+//       udef->o + udef->s;
+//  set_vflag(udef->value, vflag_builtin);
+//  const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
+//  udef->value->d.ptr = (m_uint*)o;
   return udef->type;
 }
 
@@ -63,13 +57,10 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_udef))
   if(!gwi->ck->list)
     GWI_ERR_O(_("union is empty"));
-  if(gwi->ck->tmpl && gwi->ck->xid)
-    GWI_ERR_O(_("Template union type can't declare instance at declaration"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, loc(gwi));
   gwi->ck->list = NULL;
   udef->flag = flag;
-  udef->xid = gwi->ck->xid;
-  udef->type_xid = gwi->ck->sym;
+  udef->xid = gwi->ck->sym;
   if(gwi->ck->tmpl) {
     udef->tmpl = gwi_tmpl(gwi);
     gwi->ck->tmpl = NULL;

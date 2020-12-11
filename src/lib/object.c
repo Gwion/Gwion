@@ -66,7 +66,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
   do {
-    if(!t->nspc || is_special(t))
+    if(!t->nspc || is_special(t) || tflag(t, tflag_udef))
       continue;
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;

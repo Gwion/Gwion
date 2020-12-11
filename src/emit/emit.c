@@ -1350,7 +1350,6 @@ ANN static void struct_addref(const Emitter emit, const Type type,
   }
 }
 
-
 ANN static inline m_uint exp_size(const Exp e) {
   if(exp_getvar(e))
     return SZ_INT;
@@ -1700,67 +1699,10 @@ ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
   return GW_OK;
 }
 
-ANN void emit_union_offset(Decl_List l, const m_uint o) {
-  do {
-    Var_Decl_List v = l->self->d.exp_decl.list;
-    do v->self->value->from->offset = o;
-    while((v = v->next));
-  } while((l = l->next));
-}
-
-ANN static inline void union_allocdata(MemPool mp, const Union_Def udef) {
-  const Nspc nspc = (udef->xid ? udef->value->type : udef->type)->nspc;
-  nspc_allocdata(mp, nspc);
-  nspc->info->offset = udef->s;
-}
-
-ANN static m_bool emit_union_def(const Emitter emit, const Union_Def udef) {
+ANN static m_bool emit_union_def(const Emitter emit NUSED, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
-  Decl_List l = udef->l;
-  m_uint scope = emit->env->scope->depth;
-  const m_bool global = GET_FLAG(udef, global);
-  if(udef->xid) {
-    union_allocdata(emit->gwion->mp, udef);
-    Type_Decl *type_decl = new_type_decl(emit->gwion->mp,
-        udef->xid, loc_cpy(emit->gwion->mp, udef->pos));
-    type_decl->flag = udef->flag;
-    const Var_Decl var_decl = new_var_decl(emit->gwion->mp, udef->xid, NULL, loc_cpy(emit->gwion->mp, udef->pos));
-    const Var_Decl_List var_decl_list = new_var_decl_list(emit->gwion->mp, var_decl, NULL);
-    const Exp exp = new_exp_decl(emit->gwion->mp, type_decl, var_decl_list, loc_cpy(emit->gwion->mp, udef->pos));
-    exp->d.exp_decl.type = udef->value->type;
-    var_decl->value = udef->value;
-    const m_bool ret = emit_exp_decl(emit, &exp->d.exp_decl);
-    free_exp(emit->gwion->mp, exp);
-    CHECK_BB(ret)
-    if(global) {
-      const M_Object o = new_object(emit->gwion->mp, NULL, udef->value->type);
-      udef->value->d.ptr = (m_uint*)o;
-      set_vflag(udef->value, vflag_builtin);
-    }
-    scope = emit_push_type(emit, udef->value->type);
-  } else if(udef->type_xid) {
-    union_allocdata(emit->gwion->mp, udef);
-    scope = emit_push_type(emit, udef->type);
-  } else if(global) {
-    // TODO: use mpool allocation
-    void* ptr = (void*)xcalloc(1, udef->s);
-    l = udef->l;
-    udef->value->d.ptr = ptr;
-    udef->value->vflag |= (vflag_enum | vflag_freeme);
-    do {
-      Var_Decl_List list = l->self->d.exp_decl.list;
-      list->self->value->d.ptr = ptr;
-      set_vflag(list->self->value, vflag_direct);// xcalloc
-    } while((l = l->next));
-    udef->l->self->d.exp_decl.list->self->value->vflag |= (vflag_enum | vflag_freeme);
-  }
-  if(udef->xid)
-    regpop(emit, SZ_INT);
-  emit_union_offset(udef->l, udef->o);
-  if(udef->xid || udef->type_xid || global)
-    emit_pop(emit, scope);
-  union_flag(udef, tflag_emit);
+  set_tflag(udef->type, tflag_emit);
   return GW_OK;
 }
 

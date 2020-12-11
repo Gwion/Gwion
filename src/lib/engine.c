@@ -77,15 +77,55 @@ static OP_CHECK(opck_basic_ctor) {
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"))
 }
 
+static OP_CHECK(opck_dot_union) {
+  Exp_Dot *dot = (Exp_Dot*)data;
+  const Value v = nspc_lookup_value0(dot->t_base->nspc, dot->xid);
+  if(!v)
+    ERR_N(exp_self(dot)->pos, _("'%s' is not legit in '%s'\n"), s_name(dot->xid), dot->t_base->name)
+  return v->type;
+}
+
+static INSTR(UnionSet) {
+  const M_Object o = *(M_Object*)REG(-SZ_INT);
+  *(m_uint*)(o->data) = instr->m_val2;
+  memset(o->data + SZ_INT, 0, instr->m_val); // needed only for object!
+  *(void**)REG(-instr->m_val) = &*(m_bit**)(o->data + SZ_INT);
+}
+
+static INSTR(UnionGet) {
+  const M_Object o = *(M_Object*)REG(-SZ_INT);
+  if(*(m_uint*)(o->data) != instr->m_val2)
+    Except(shred, "invalid union access");
+  POP_REG(shred, SZ_INT - instr->m_val);
+  memcpy(REG(-instr->m_val), o->data + SZ_INT, instr->m_val);
+}
+
+static OP_EMIT(opem_dot_union) {
+  Exp_Dot *dot = (Exp_Dot*)data;
+  CHECK_BO(emit_exp(emit, dot->base))
+  const uint emit_var = exp_getvar(exp_self(dot));
+  const Value v = nspc_lookup_value0(dot->t_base->nspc, dot->xid);
+  const Instr instr = emit_add_instr(emit, !emit_var ? UnionGet : UnionSet);
+  instr->m_val = !emit_var ? v->type->size : SZ_INT;
+  instr->m_val2 = v->from->offset;
+  return instr;
+}
+
+DTOR(UnionDtor) {
+  const m_uint idx = *(m_uint*)o->data;
+  if(idx) {
+    const Type t = (Type)vector_at(&o->type_ref->info->tuple->contains, idx - 1);
+    if(isa(t, shred->info->vm->gwion->type[et_compound]) > 0)
+      compound_release(shred, t, *(m_bit**)(o->data + SZ_INT));
+  }
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
-  GWI_BB(gwi_gack(gwi, t_class, gack_class)) // not working yet
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_gack(gwi, t_class, gack_class))
+
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
@@ -120,7 +160,17 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_compound = gwi_mk_type(gwi, "@Compound", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
+
   GWI_BB(import_object(gwi))
+
+  const Type t_union = gwi_class_ini(gwi, "@Union", "Object");
+  gwi_class_xtor(gwi, NULL, UnionDtor);
+  GWI_BB(gwi_item_ini(gwi, "int", "@index"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_class_end(gwi))
+  GWI_BB(gwi_gack(gwi, t_union, gack_compound))
+  gwi->gwion->type[et_union] = t_union;
+
   GWI_BB(import_prim(gwi))
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_function, gack_function))
@@ -138,11 +188,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))
 
-// TODO: check me
-  const Type t_union = gwi_class_ini(gwi, "@Union", NULL);
-  gwi->gwion->type[et_union] = t_union;
-  GWI_BB(gwi_class_end(gwi))
-
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))
@@ -152,7 +197,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_add(gwi, opck_new))
   GWI_BB(gwi_oper_emi(gwi, opem_new))
   GWI_BB(gwi_oper_end(gwi, "new", NULL))
-//  GWI_BB(import_prim(gwi))
   GWI_BB(import_vararg(gwi))
   GWI_BB(import_string(gwi))
   GWI_BB(import_shred(gwi))
@@ -169,6 +213,26 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Class", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_dot_union))
+  GWI_BB(gwi_oper_emi(gwi, opem_dot_union))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
+  GWI_BB(gwi_union_ini(gwi, "Option:[A]"))
+  GWI_BB(gwi_union_add(gwi, "A", "@val"))
+  GWI_BB(gwi_union_end(gwi, ae_flag_none))
+
   return GW_OK;
 }
 

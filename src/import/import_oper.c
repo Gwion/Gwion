@@ -19,6 +19,7 @@
 ANN static Type _get_type(const Gwi gwi, const m_str s) {
   if(s == (m_str)OP_ANY_TYPE)
     return OP_ANY_TYPE;
+  // str2type
   Type_Decl *td = gwi_str2decl(gwi, s);
   const Type t = known_type(gwi->gwion->env, td);
   free_type_decl(gwi->gwion->mp, td);

@@ -1012,42 +1012,27 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
 
 ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
   Decl_List l = udef->l;
+  m_uint sz = 0, idx = 0;
   do {
     CHECK_OB(check_exp(env, l->self))
     Var_Decl_List list = l->self->d.exp_decl.list;
+    list->self->value->from->offset = ++idx;
     do set_vflag(list->self->value, vflag_union);
-    while((list = list->next));
-    if(l->self->info->type->size > udef->s)
-      udef->s = l->self->info->type->size;
+    while((list = list->next)); // disallow multiple values here.
+    if(l->self->info->type->size > sz)
+      sz = l->self->info->type->size;
   } while((l = l->next));
+  udef->type->nspc->info->offset = sz + SZ_INT;
   return GW_OK;
-}
-
-ANN void check_udef(const Env env, const Union_Def udef) {
-  if(udef->xid) {
-    if(env->class_def)
-      (!GET_FLAG(udef, static) ? decl_member : decl_static)(env, udef->value);
-    else if(env->class_def) {
-      if(!GET_FLAG(udef, static))
-        udef->o = env->class_def->nspc->info->offset;
-      else {
-        udef->o = env->class_def->nspc->info->class_data_size;
-        env->class_def->nspc->info->class_data_size += SZ_INT;
-      }
-    }
-  }
 }
 
 ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;
-  check_udef(env, udef);
-  const m_uint scope = union_push(env, udef);
+  const m_uint scope = env_push_type(env, udef->type);
   const m_bool ret = check_union_decl(env, udef);
-  if(!udef->xid && !udef->type_xid && env->class_def && !GET_FLAG(udef, static))
-    env->class_def->nspc->info->offset = udef->o + udef->s;
-  union_pop(env, udef, scope);
-  union_flag(udef, tflag_check);
+  env_pop(env, scope);
+  set_tflag(udef->type, tflag_check);
   return ret;
 }
 

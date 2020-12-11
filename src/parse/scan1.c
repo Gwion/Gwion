@@ -392,28 +392,8 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
     scan1_cdef(env, tdef->type) : GW_OK;
 }
 
-ANN static m_bool scan1_union_def_action(const Env env, const Union_Def udef,
-    const Decl_List l) {
-  const Exp_Decl decl = l->self->d.exp_decl;
-  decl.td->flag |= udef->flag;
-  const m_bool global = GET_FLAG(udef, global);
-  if(global)
-    UNSET_FLAG(decl.td, global);
-  else if(GET_FLAG(udef, static))
-    SET_FLAG(decl.td, static);
-  CHECK_BB(scan1_exp(env, l->self))
-
-  Var_Decl_List list = decl.list;
-  do value_addref(list->self->value);
-  while((list = list->next));
-
-  if(global)
-    SET_FLAG(decl.td, global);
-  return GW_OK;
-}
-
-ANN static inline m_bool scan1_union_def_inner_loop(const Env env, const Union_Def udef, Decl_List l) {
-  do CHECK_BB(scan1_union_def_action(env, udef, l))
+ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Decl_List l) {
+  do CHECK_BB(scan1_exp(env, l->self))
   while((l = l->next));
   return GW_OK;
 }
@@ -421,7 +401,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, const Union_D
 ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
   if(udef->tmpl && udef->tmpl->call)
     CHECK_BB(template_push_types(env, udef->tmpl))
-  const m_bool ret = scan1_union_def_inner_loop(env, udef, udef->l);
+  const m_bool ret = scan1_union_def_inner_loop(env, udef->l);
   if(udef->tmpl && udef->tmpl->call)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -430,14 +410,10 @@ ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
-  const m_uint scope = union_push(env, udef);
-  if(udef->xid || udef->type_xid) {
-    UNSET_FLAG(udef, private);
-    UNSET_FLAG(udef, protect);
-  }
+  const m_uint scope = env_push_type(env, udef->type);
   const m_bool ret = scan1_union_def_inner(env, udef);
-  union_pop(env, udef, scope);
-  union_flag(udef, tflag_scan1);
+  env_pop(env, scope);
+  set_tflag(udef->type, tflag_scan1);
   return ret;
 }
 

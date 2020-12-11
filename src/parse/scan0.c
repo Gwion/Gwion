@@ -209,18 +209,17 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
-ANN static Type union_type(const Env env, const Symbol s, const m_bool add) {
+ANN static Type union_type(const Env env, const Symbol s) {
   const m_str name = s_name(s);
-  const Type t = type_copy(env->gwion->mp, env->gwion->type[et_union]);
-  t->name = name;
+  const Type t = new_type(env->gwion->mp, name, env->gwion->type[et_union]);
+  t->size = SZ_INT;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->info->owner = t->nspc->parent = env->curr;
   t->info->owner_class = env->class_def;
-  t->info->parent = env->gwion->type[et_union];
   t->info->tuple = new_tupleform(env->gwion->mp, NULL);
   add_type(env, env->curr, t);
-  if(add)
-    mk_class(env, t);
+  mk_class(env, t);
+  SET_FLAG(t, final);
   return t;
 }
 
@@ -232,16 +231,8 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
     set_tflag(u->type, tflag_tmpl);
     set_tflag(u->type, tflag_udef);
   }
-  if(GET_FLAG(udef, global))
-    SET_FLAG(udef->type, global);
-}
-
-ANN static Value union_value(const Env env, const Type t, const Symbol sym) {
-  const Value v = new_value(env->gwion->mp, t, s_name(sym));
-  valuefrom(env, v->from);
-  nspc_add_value(env->curr, sym, v);
-  set_vflag(v, vflag_union);
-  return v;
+//  if(GET_FLAG(udef, global))
+//    SET_FLAG(udef->type, global);
 }
 
 ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
@@ -251,32 +242,14 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
       env_push_global(env);
   if(GET_FLAG(udef, global))
     context_global(env);
-  if(udef->xid) {
-    CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
-    const Symbol sym = udef->type_xid ?: scan0_sym(env, "union", udef->pos);
-    const Type t = union_type(env, sym, !!udef->type_xid);
-    udef->value = union_value(env, t, udef->xid);
-    udef->value->flag |= udef->flag;
-    SET_ACCESS(udef, t);
-    if(env->class_def && !GET_FLAG(udef, static))
-      set_vflag(udef->value, vflag_member);
-  } else if(udef->type_xid) {
-    CHECK_BB(scan0_defined(env, udef->type_xid, udef->pos))
-    udef->type = union_type(env, udef->type_xid, 1);
-    SET_ACCESS(udef, udef->type);
-  } else {
-    const Symbol sym = scan0_sym(env, "union", udef->pos);
-    CHECK_BB(scan0_defined(env, sym, udef->pos))
-    const Type t = union_type(env, sym, 1);
-    SET_ACCESS(udef, t);
-    udef->value = union_value(env, t, sym);
-    udef->value->flag |= udef->flag;
-  }
+  CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
+  udef->type = union_type(env, udef->xid);
+  SET_ACCESS(udef, udef->type);
   if(udef->tmpl)
     union_tmpl(env, udef);
   if(GET_FLAG(udef, global))
     env_pop(env, scope);
-  union_flag(udef, tflag_scan0);
+  set_tflag(udef->type, tflag_scan0);
   return GW_OK;
 }
 

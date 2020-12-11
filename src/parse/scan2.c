@@ -258,10 +258,8 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN static m_bool scan2_union_decl(const Env env, const Decl_List list) {
-  Decl_List l = list;
-  do CHECK_BB(scan2_exp_decl(env, &l->self->d.exp_decl))
-//  do CHECK_BB(scan2_exp(env, l->self))
+ANN static m_bool scan2_union_decl(const Env env, Decl_List l) {
+  do CHECK_BB(scan2_exp(env, l->self))
   while((l = l->next));
   return GW_OK;
 }
@@ -269,10 +267,10 @@ ANN static m_bool scan2_union_decl(const Env env, const Decl_List list) {
 ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
-  const m_uint scope = union_push(env, udef);
+  const m_uint scope = env_push_type(env, udef->type);
   const m_bool ret = scan2_union_decl(env, udef->l);
-  union_pop(env, udef, scope);
-  union_flag(udef, tflag_scan2);
+  env_pop(env, scope);
+  set_tflag(udef->type, tflag_scan2);
   return ret;
 }
 
