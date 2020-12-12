@@ -1,3 +1,0 @@
-#! [contains] NullPtrException
-ref Object ref_object;
-<<< ref_object $ nonnull Object >>>;

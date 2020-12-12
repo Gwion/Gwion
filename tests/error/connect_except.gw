@@ -1,3 +1,0 @@
-#! [contains] NullPtrException
-ref UGen u;
-adc => u;

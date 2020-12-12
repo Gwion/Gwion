@@ -13,7 +13,7 @@
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return isa(cast->exp->info->type, exp_self(cast)->info->type) > 0 ?
-     exp_self(cast)->info->type : env->gwion->type[et_null];
+     exp_self(cast)->info->type : env->gwion->type[et_error];
 }
 
 OP_CHECK(opck_usr_implicit) {
@@ -34,8 +34,8 @@ OP_CHECK(opck_const_rhs) {
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
+  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_error])
+    return env->gwion->type[et_error];
   exp_setvar(bin->rhs, 1);
   return bin->rhs->info->type;
 }

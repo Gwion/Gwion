@@ -42,15 +42,9 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
 }
 
 __attribute__((returns_nonnull))
-ANN Type unflag_type(const Type t) {
-  const Type type = !tflag(t, tflag_nonnull) ? t : t->info->parent;
-  return !tflag(type, tflag_force) ? type : type->info->parent;
-}
-
-__attribute__((returns_nonnull))
 ANN Type get_type(const Type t) {
   const Type type = !t->array_depth ? t : array_base(t);
-  return unflag_type(type);
+  return type;
 }
 
 ANN m_bool scanx_cdef(const Env env, void* opt, const Type base,

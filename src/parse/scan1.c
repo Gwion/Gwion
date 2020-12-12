@@ -578,8 +578,6 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   CHECK_BB(ensure_scan1(env, parent))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
-  if(tflag(parent, tflag_nonnull))
-    ERR_B(pos, _("can't use nonnull type in class extend"))
   return GW_OK;
 }
 

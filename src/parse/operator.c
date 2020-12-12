@@ -49,8 +49,6 @@ ANN static Type op_parent(const Env env, const Type t) {
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
-  if(t && mo)
-    return unflag_type(t) == unflag_type(mo);
   return t == mo;
 }
 
@@ -168,72 +166,12 @@ ANN static void set_nspc(struct Op_Import *opi, const Nspc nspc) {
     exp_self((union exp_data*)opi->data)->info->nspc = nspc;
 }
 
-ANN static inline void set_nonnull(const Type t, const Exp exp) {
-  if(t != OP_ANY_TYPE && tflag(t, tflag_nonnull))
-    exp_setnonnull(exp, 1);
-}
-
-ANN static void nn_implicit(const M_Operator *mo, const struct Op_Import *opi) {
-  const struct Implicit *a = (struct Implicit*)opi->data;
-  set_nonnull(mo->lhs, a->e);
-}
-
-ANN static void nn_exp(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp a = (Exp)opi->data;
-  set_nonnull(mo->rhs, a); // rhs ???
-}
-
-ANN static void nn_dot(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp_Dot *a = (Exp_Dot*)opi->data;
-  set_nonnull(mo->lhs, a->base);
-}
-
-ANN static void nn_array(const M_Operator *mo, const struct Op_Import *opi) {
-  const Array_Sub a = (Array_Sub)opi->data;
-  set_nonnull(mo->lhs, a->exp);
-}
-
-ANN static void nn_binary(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp_Binary *a = (Exp_Binary*)opi->data;
-  set_nonnull(mo->lhs, a->lhs);
-  set_nonnull(mo->rhs, a->rhs);
-}
-
-ANN static void nn_cast(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp_Cast *a = (Exp_Cast*)opi->data;
-  set_nonnull(mo->lhs, a->exp);
-}
-
-ANN static void nn_postfix(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp_Postfix *a = (Exp_Postfix*)opi->data;
-  set_nonnull(mo->lhs, a->exp);
-}
-
-ANN static void nn_unary(const M_Operator *mo, const struct Op_Import *opi) {
-  const Exp_Unary *a = (Exp_Unary*)opi->data;
-  set_nonnull(mo->rhs, a->exp);
-}
-
-ANN static void nn_scan(const M_Operator *mo NUSED, const struct Op_Import *opi NUSED) {
-}
-
-typedef void (*nn_f)(const M_Operator *mo, const struct Op_Import *opi);
-static const nn_f nn_func[] = {
-  nn_implicit, nn_exp, nn_dot, nn_array,
-  nn_binary, nn_cast, nn_postfix, nn_unary, nn_scan
-};
-
-ANN static void opi_nonnull(const M_Operator *mo, const struct Op_Import *opi) {
-  nn_func[opi->op_type](mo, opi);
-}
-
 ANN static Type op_check_inner(struct OpChecker* ock) {
   Type t, r = ock->opi->rhs;
   do {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
     if(v && (mo = operator_find(v, ock->opi->lhs, r))) {
-      opi_nonnull(mo, ock->opi);
       if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data, &ock->mut))))
         return t;
       else
@@ -253,7 +191,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
         struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
         const Type ret = op_check_inner(&ock);
         if(ret) {
-          if(ret == env->gwion->type[et_null])
+          if(ret == env->gwion->type[et_error])
             break;
           if(!ock.mut)
             set_nspc(&opi2, nspc);

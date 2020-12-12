@@ -1,4 +1,0 @@
-#! [contains] NullPtrException
-funcdef void Test();
-var Test test;
-test();

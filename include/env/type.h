@@ -35,8 +35,6 @@ enum tflag {
   tflag_dtor    = 1 << 15,
   tflag_tmpl    = 1 << 16,
   tflag_typedef = 1 << 17,
-  tflag_nonnull = 1 << 18,
-  tflag_force   = 1 << 19,
 } __attribute__((packed));
 
 struct Type_ {
@@ -82,16 +80,11 @@ ANN static inline Type get_gack(Type t) {
 }
 
 __attribute__((returns_nonnull))
-ANN Type unflag_type(const Type t);
-__attribute__((returns_nonnull))
 ANN Type get_type(const Type t);
-ANN static inline int is_special(const Type t) {
-  return tflag(t, tflag_nonnull) || tflag(t, tflag_force);
-}
 
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
-  et_null, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
+  et_error, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
   et_function, et_fptr, et_vararg, et_lambda, et_class, et_union, et_undefined, et_auto,
   MAX_TYPE
 } type_enum;

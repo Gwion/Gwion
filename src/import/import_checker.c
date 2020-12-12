@@ -202,16 +202,12 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
 }
 
 ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
-  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
   struct td_checker tdc = { .str=str, .pos=pos };
-  if(flag == ae_flag_nonnull)
-    tdc.str += 8;
   DECL_OO(Type_Decl *, td, = _str2decl(gwion, &tdc))
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
   }
-  td->flag |= flag;
   return td;
 }
 

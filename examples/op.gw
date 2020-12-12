@@ -14,7 +14,6 @@ operator void => (Object o, C c) {
   <<< "success" >>>;
 }
 
-#!operator int plusplus(null d, int i){}
 var int i;
 var Object o;
 <<< o, " ", i >>>;

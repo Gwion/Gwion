@@ -224,7 +224,7 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
 
 ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
-  if(!is_special(t) && tflag(t, tflag_ctor))
+  if(tflag(t, tflag_ctor))
     emit_ext_ctor(emit, t);
 }
 
@@ -594,7 +594,7 @@ ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
     regseti(emit, (m_uint)e->info->type);
     interp_size(emit, e->info->type);
     const m_bool isobj = isa(e->info->type, emit->gwion->type[et_object]) > 0;
-    if(isobj && !tflag(e->info->type, tflag_force))
+    if(isobj && e->exp_type != ae_exp_cast)
       emit_add_instr(emit, GackType);
     const Instr instr = emit_add_instr(emit, Gack);
     instr->m_val = emit_code_offset(emit);
@@ -777,6 +777,8 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, ref, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, list->self, ref, var))
+    if(!var && !GET_FLAG(decl->td, optionnal) && (GET_FLAG(decl->td, ref) || is_fptr(emit->gwion, list->self->value->type)))
+      ERR_B(list->self->pos, "kljlkj")
   } while((list = list->next));
   return GW_OK;
 }
@@ -1015,7 +1017,6 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
 ANN static Instr get_prelude(const Emitter emit, const Func f) {
   const Type t = actual_type(emit->gwion, f->value_ref->type);
   if(is_fptr(emit->gwion, t)) {
-    emit_except(emit, t);
     if(f->def->base->tmpl)
       tmpl_prelude(emit, f);
   }
@@ -1319,9 +1320,7 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   emit_exp_addref1(emit, e, -exp_size(e));
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
                            .rhs=e->info->type, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
-  const Instr instr = op_emit(emit, &opi);
-  assert(instr != (Instr)GW_OK);
-  return instr;
+  return op_emit(emit, &opi);
 }
 #define emit_flow(emit,b) _flow(emit, b, 1)
 
@@ -1444,8 +1443,6 @@ ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
   Exp exp = e;
   do {
     CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
-    if(exp_getnonnull(exp))
-      emit_except(emit, exp->info->type);
     if(exp->info->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp, exp->info->cast_to))
   } while((exp = exp->next));
@@ -1607,7 +1604,6 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   emit_local(emit, emit->gwion->type[et_int]);
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
-  emit_except(emit, stmt->exp->info->type);
   const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_bool ret = scoped_stmt(emit, stmt->body, 1);

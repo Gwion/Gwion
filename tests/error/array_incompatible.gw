@@ -1,2 +1,2 @@
 #! [contains] contains incompatible types
-[null, 1];
+[new Object, 1];

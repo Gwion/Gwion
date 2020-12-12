@@ -82,7 +82,7 @@ INSTR(DotTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  Type t = !tflag(o->type_ref, tflag_nonnull) ? o->type_ref : o->type_ref->info->parent;
+  Type t = o->type_ref;
   do {
     const Emitter emit = shred->info->vm->gwion->emit;
     emit->env->name = "runtime";

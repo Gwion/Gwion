@@ -30,16 +30,14 @@ static OP_CHECK(opck_ptr_assign) {
   exp_setvar(bin->rhs, 1);
   Type t = bin->lhs->info->type;
   do {
-//    t = unflag_type(t);
     Type u = bin->rhs->info->type;
     do {
-//      u = unflag_type(u);
       const m_str str = get_type_name(env, u, 1);
       if(str && !strcmp(t->name, str))
         return bin->lhs->info->type; // use rhs?
     } while((u = u->info->parent));
   } while((t = t->info->parent));
-  return env->gwion->type[et_null];
+  return env->gwion->type[et_error];
 }
 
 static INSTR(instr_ptr_assign) {

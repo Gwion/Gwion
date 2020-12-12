@@ -1,2 +1,0 @@
-nonnull Object o, p;
-o @=> p;

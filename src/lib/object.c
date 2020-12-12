@@ -66,7 +66,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
   do {
-    if(!t->nspc || is_special(t) || tflag(t, tflag_udef))
+    if(!t->nspc || isa(t, shred->info->vm->gwion->type[et_union]) > 0)
       continue;
     struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
     Value v;
@@ -111,7 +111,7 @@ static ID_CHECK(opck_this) {
   if(env->func && !vflag(env->func->value_ref, vflag_member))
       ERR_O(exp_self(prim)->pos, _("keyword 'this' cannot be used inside static functions..."))
   if(env->func && !strcmp(s_name(env->func->def->base->xid), "@gack"))
-    return force_type(env, get_gack(env->class_def->info->parent)); // get_gack ?
+    return get_gack(env->class_def->info->parent); // get_gack ?
   return env->class_def;
 }
 

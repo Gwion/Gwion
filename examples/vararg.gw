@@ -11,4 +11,4 @@ fun void test(...) {
   }
 }
 test(1);
-test(1, 2.3, null);
+test(1, 2.3, new Object);

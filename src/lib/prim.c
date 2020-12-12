@@ -137,7 +137,7 @@ static OP_CHECK(opck_cast_f2i) {
 }
 
 static OP_CHECK(opck_implicit_f2i) {
-  return env->gwion->type[et_null];
+  return env->gwion->type[et_error];
 }
 
 static OP_CHECK(opck_cast_i2f) {

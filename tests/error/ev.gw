@@ -1,3 +1,0 @@
-#! [contains] NullPtrException
-ref Event e;
-e => now;

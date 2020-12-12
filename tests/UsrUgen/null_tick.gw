@@ -1,3 +1,0 @@
-#! [contains] NullTickException
-funcdef float ptr_t(float);
-var ptr_t ptr ~= var UsrUGen u;

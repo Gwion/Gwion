@@ -1,4 +1,3 @@
 var string s;
 "CamelCase" => s;
 <<< "test" => s >>>;
-<<<  null @=> s  >>>; #!test me

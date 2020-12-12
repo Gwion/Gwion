@@ -1,3 +1,0 @@
-#! [contains] can't implicitly cast
-fun void test(nonnull Object o) { <<< o >>>; }
-null => test;

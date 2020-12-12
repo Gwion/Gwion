@@ -1,2 +1,0 @@
-#! [contains] can't assign
-null @=> nonnull Object o;

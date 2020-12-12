@@ -5,4 +5,3 @@ var Event ev;
 ev @=> ref Event e;
 new Event @=> e;
 ev @=> e;
-null @=> e;

@@ -99,10 +99,16 @@ static INSTR(UnionGet) {
   POP_REG(shred, SZ_INT - instr->m_val);
   memcpy(REG(-instr->m_val), o->data + SZ_INT, instr->m_val);
 }
-
+MFUN(union_is);
 static OP_EMIT(opem_dot_union) {
   Exp_Dot *dot = (Exp_Dot*)data;
   CHECK_BO(emit_exp(emit, dot->base))
+  if(isa(exp_self(dot)->info->type, emit->gwion->type[et_function]) > 0) {
+    const Func f = (Func)vector_at(&dot->t_base->nspc->info->vtable, 0);
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)f->code;
+    return instr;
+  }
   const uint emit_var = exp_getvar(exp_self(dot));
   const Value v = nspc_lookup_value0(dot->t_base->nspc, dot->xid);
   const Instr instr = emit_add_instr(emit, !emit_var ? UnionGet : UnionSet);

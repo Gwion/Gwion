@@ -350,8 +350,7 @@ ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
   const Exp e = *exp;
   DECL_OO(const Type, t, = check_exp(env, e))
   CHECK_BO(inferable(env, t, (*exp)->pos))
-  const Type force = force_type(env, t);
-  return type_class(env->gwion, force);
+  return type_class(env->gwion, t);
 }
 
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
@@ -687,16 +686,15 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 
 ANN m_bool func_check(const Env env, const Exp_Call *exp) {
   CHECK_OB(check_exp(env, exp->func))
-  const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
+  const Type t = actual_type(env->gwion, exp->func->info->type);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
   .rhs=t, .pos=exp_self(exp)->pos, .data=(uintptr_t)exp, .op_type=op_exp };
   CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
-  return exp_self(exp)->info->type != env->gwion->type[et_null] ?
+  return exp_self(exp)->info->type != env->gwion->type[et_error] ?
     GW_OK : GW_ERROR;
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
-//  CHECK_OO(check_exp(env, exp->func))
   CHECK_BO(func_check(env, exp))
   const Type t = actual_type(env->gwion, exp->func->info->type);
   if(isa(t, env->gwion->type[et_function]) < 0) {
@@ -777,7 +775,7 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
     CHECK_BO(func_check(env, exp))
-    const Type t = actual_type(env->gwion, unflag_type(exp->func->info->type));
+    const Type t = actual_type(env->gwion, exp->func->info->type);
     if(isa(t, env->gwion->type[et_function]) < 0)
        return check_exp_call1(env, exp);
     if(exp->args)
@@ -921,7 +919,7 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
     if(depth)
       ptr = array_type(env, ptr, depth);
     char c[15 + strlen(ptr->name)];
-    sprintf(c, "nonnull Ptr:[%s]", ptr->name);
+    sprintf(c, "Ptr:[%s]", ptr->name);
     ptr = str2type(env->gwion, c, stmt->exp->pos);
     const Type base = get_type(ptr);
     CHECK_BB(ensure_traverse(env, base))
@@ -1026,11 +1024,47 @@ ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
   return GW_OK;
 }
 
+static OP_CHECK(opck_union_is) {
+  Exp_Call *call = (Exp_Call*)data; 
+  Exp exp = call->args;
+  if(exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
+    ERR_N(exp->pos, "FFI variadic arguments must be of FFI type CHANGE ME");
+  const Value v = find_value(call->func->info->type->info->owner_class, exp->d.prim.d.var);
+  if(!v)
+    ERR_N(exp->pos, "'%s' has no member '%s'", call->func->info->type->info->owner_class, exp->d.prim.d.var);
+  exp->d.prim.prim_type = ae_prim_num;
+  exp->d.prim.d.num = v->from->offset;
+  return NULL;
+}
+
+/*static*/ MFUN(union_is) {
+ *(m_uint*)RETURN = *(m_uint*)MEM(SZ_INT) == *(m_uint*)o->data;
+}
+
 ANN m_bool check_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;
   const m_uint scope = env_push_type(env, udef->type);
   const m_bool ret = check_union_decl(env, udef);
+
+  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol("bool"), loc_cpy(env->gwion->mp, udef->pos));
+//  Type_Decl *arg_td = new_type_decl(env->gwion->mp, insert_symbol(), loc_cpy(env->gwion->mp, udef->pos));
+  Type_Decl *arg_td = new_type_decl(env->gwion->mp, insert_symbol("int"), loc_cpy(env->gwion->mp, udef->pos));;
+  Var_Decl var = new_var_decl(env->gwion->mp, insert_symbol("arg"), NULL, loc_cpy(env->gwion->mp, udef->pos));
+  Arg_List args = new_arg_list(env->gwion->mp, arg_td, var, NULL);
+  Func_Base *fb = new_func_base(env->gwion->mp, td, insert_symbol("is"), args, ae_flag_none);
+  Func_Def fdef = new_func_def(env->gwion->mp, fb, NULL, loc_cpy(env->gwion->mp, udef->pos));
+  CHECK_BB(traverse_func_def(env, fdef)) // use ret
+  builtin_func(env->gwion->mp, fb->func, union_is);
+
+  const m_uint oscope = env_push(env, udef->type->info->owner_class, udef->type->info->owner);
+  const struct Op_Func opfunc = { .ck=opck_union_is };
+  const struct Op_Import opi = { .rhs=fb->func->value_ref->type,
+      .func=&opfunc, .data=(uintptr_t)fb->func, .pos=udef->pos, .op=insert_symbol("@func_check") };
+  CHECK_BB(add_op(env->gwion, &opi))
+  env_pop(env, oscope);
+//  set_vflag(fb->func->value_ref, vflag_builtin);
+
   env_pop(env, scope);
   set_tflag(udef->type, tflag_check);
   return ret;

@@ -48,7 +48,7 @@ void free_m_vector(MemPool p, M_Vector a) {
 }
 
 static DTOR(array_dtor) {
-  const Type t = unflag_type(o->type_ref);
+  const Type t = o->type_ref;
   if(*(void**)(o->data + SZ_INT))
     xfree(*(void**)(o->data + SZ_INT));
   struct M_Vector_* a = ARRAY(o);
@@ -115,7 +115,7 @@ static MFUN(vm_vector_rem) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
-  const Type t = unflag_type(o->type_ref);
+  const Type t = o->type_ref;
   if(t->nspc->info->class_data_size)
     (*(f_release**)t->nspc->info->class_data)(shred, array_base(t), ARRAY_PTR(v) + index * ARRAY_SIZE(v));
   m_vector_rem(v, (vtype)index);
@@ -151,9 +151,9 @@ ANN static Type get_array_type(Type t) {
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
-  if(bin->lhs->info->type != env->gwion->type[et_null]) {
+  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_error])
+    return env->gwion->type[et_error];
+  if(bin->lhs->info->type != env->gwion->type[et_error]) {
     ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
     if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
       ERR_N(exp_self(bin)->pos, _("array depths do not match."))
@@ -170,7 +170,7 @@ static OP_CHECK(opck_array_at) {
 
 ANN static Type check_array_shift(const Env env,
     const Exp a, const Exp b, const m_str str, const loc_t pos) {
-  if(a->info->type == env->gwion->type[et_null] &&
+  if(a->info->type == env->gwion->type[et_error] &&
       b->info->type->array_depth > 1)
     return a->info->type;
   ARRAY_OPCK(a, b, pos)
@@ -270,13 +270,12 @@ static OP_CHECK(opck_array_cast) {
     r = r->info->parent;
   if(get_depth(cast->exp->info->type) == get_depth(exp_self(cast)->info->type) && isa(l->info->base_type, r->info->base_type) > 0)
     return l;
-  return env->gwion->type[et_null];
+  return env->gwion->type[et_error];
 }
 
 static OP_CHECK(opck_array_slice) {
   const Exp e = (Exp)data;
   exp_setmeta(exp_self(e), 1);
-  exp_setnonnull(e->d.exp_slice.base, 1);
   return e->d.exp_slice.base->info->type;
 }
 
@@ -336,7 +335,6 @@ static OP_CHECK(opck_array) {
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
   const Instr pre_pop = emit_add_instr(emit, RegPop);
   pre_pop->m_val = depth * SZ_INT;
-  emit_add_instr(emit, GWOP_EXCEPT);
   for(m_uint i = 0; i < depth - 1; ++i) {
     const Instr access = emit_add_instr(emit, ArrayAccess);
     access->m_val = i * SZ_INT;
@@ -344,7 +342,6 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
     const Instr get = emit_add_instr(emit, ArrayGet);
     get->m_val = i * SZ_INT;
     get->m_val2 = -SZ_INT;
-    emit_add_instr(emit, GWOP_EXCEPT);
   }
   const Instr post_pop = emit_add_instr(emit, RegPop);
   post_pop->m_val = SZ_INT;
@@ -391,7 +388,7 @@ static OP_EMIT(opem_array_access) {
   info->array = next;
   return (Instr)(m_uint)(exp ? emit_array_access(emit, info) : GW_ERROR);
 }
-OP_EMIT(opem_at_object);
+
 GWION_IMPORT(array) {
   const Type t_array  = gwi_class_ini(gwi, "@Array", NULL);
   gwi->gwion->type[et_array] = t_array;
@@ -416,23 +413,19 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
-  GWI_BB(gwi_oper_emi(gwi, opem_at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, "@null", "@Array", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_array_at))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, "nonnull @Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "nonnull @Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sr))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sr))
   GWI_BB(gwi_oper_end(gwi, ">>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "nonnull @Array", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))

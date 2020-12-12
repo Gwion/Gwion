@@ -1,8 +1,0 @@
-#! [contains] NullPtrException
-class C
-{
-	var int i;
-}
-
-ref C c;
-c.i;

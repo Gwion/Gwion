@@ -1,3 +1,0 @@
-#! [contains] expression is known to be nonnull
-nonnull Object o;
-<<< (!o) >>>;
