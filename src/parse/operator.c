@@ -223,12 +223,12 @@ ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr push = emit_add_instr(emit, mo->func->code ? RegPushImm : SetFunc);
     push->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
-    const Instr instr = emit_exp_call1(emit, mo->func);
+    CHECK_BO(emit_exp_call1(emit, mo->func))
     if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@conditionnal"))
       return emit_add_instr(emit, BranchEqInt);
     if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditionnal"))
       return emit_add_instr(emit, BranchNeqInt);
-    return instr;
+    return push;
   }
   return emit_add_instr(emit, mo->instr);
 }

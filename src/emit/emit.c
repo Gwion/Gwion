@@ -846,7 +846,7 @@ ANN static m_bool prepare_call(const Emitter emit, const Exp_Call* exp_call) {
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   CHECK_BB(prepare_call(emit, exp_call))
   if(exp_call->m_func)
-    CHECK_OB(emit_exp_call1(emit, exp_call->m_func))
+    CHECK_BB(emit_exp_call1(emit, exp_call->m_func))
   else {
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=exp_call->func->info->type->info->base_type,
       .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos, .op_type=op_exp };
@@ -1093,12 +1093,12 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
   return emit_add_instr(emit, Overflow);
 }
 
-ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
+ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
   const int tmpl = fflag(f, fflag_tmpl);
   if(!f->code || (fflag(f, fflag_ftmpl) && !vflag(f->value_ref, vflag_builtin))) {
     if(tmpl && !is_fptr(emit->gwion, f->value_ref->type)) {
       if(emit->env->func != f)
-        CHECK_BO(emit_template_code(emit, f))
+        CHECK_BB(emit_template_code(emit, f))
       else { // recursive function. (maybe should be used only for global funcs)
         const Instr back = (Instr) vector_size(&emit->code->instr) ?
             (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
@@ -1112,7 +1112,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
         back->m_val = (m_uint)f;
       } else {
 // ensure env?	
-        CHECK_BO(emit_func_def(emit, f->def))
+        CHECK_BB(emit_func_def(emit, f->def))
         const Instr instr = emit_add_instr(emit, RegSetImm);
         instr->m_val = (m_uint)f->code;
         instr->m_val2 = -SZ_INT;
@@ -1157,7 +1157,7 @@ ANN Instr emit_exp_call1(const Emitter emit, const Func f) {
   const Instr instr = emit_call(emit, f);
   instr->m_val = f->def->base->ret_type->size;
   instr->m_val2 = offset;
-  return instr;
+  return GW_OK;
 }
 
 ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
@@ -1200,10 +1200,6 @@ static void push_spork_code(const Emitter emit, const m_str prefix, const loc_t 
   emit_push_code(emit, c);
 }
 
-ANN static m_bool call_spork_func(const Emitter emit, const Exp_Call *exp) {
-  return emit_exp_call1(emit, exp->m_func) ? GW_OK : GW_ERROR;
-}
-
 struct Sporker {
   const Stmt code;
   const Exp  exp;
@@ -1223,7 +1219,7 @@ ANN static m_bool spork_prepare_code(const Emitter emit, const struct Sporker *s
 
 ANN static m_bool spork_prepare_func(const Emitter emit, const struct Sporker *sp) {
   push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
-  return call_spork_func(emit, &sp->exp->d.exp_call);
+  return emit_exp_call1(emit, sp->exp->d.exp_call.m_func);
 }
 
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
