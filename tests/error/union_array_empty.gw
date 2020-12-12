@@ -1,5 +1,5 @@
 #! [contains] must be defined with empty
 union U {
-  int i;
-  int array[4];
+  int i,
+  int array[4]
 };
