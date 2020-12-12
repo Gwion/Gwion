@@ -17,6 +17,10 @@
 #include "gack.h"
 
 #undef insert_symbol
+static GACK(gack_none) {
+  INTERP_PRINTF("None")
+}
+
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
   INTERP_PRINTF("class(%s)", type->name)
@@ -77,53 +81,125 @@ static OP_CHECK(opck_basic_ctor) {
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"))
 }
 
-static OP_CHECK(opck_dot_union) {
-  Exp_Dot *dot = (Exp_Dot*)data;
-  const Value v = nspc_lookup_value0(dot->t_base->nspc, dot->xid);
-  if(!v)
-    ERR_N(exp_self(dot)->pos, _("'%s' is not legit in '%s'\n"), s_name(dot->xid), dot->t_base->name)
-  return v->type;
+static OP_CHECK(opck_any_at_union) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  CHECK_NN(opck_rassign(env, data, mut)) // check those two lines
+  exp_setvar(bin->rhs, 0);
+  const Type lhs = bin->lhs->info->type;
+  const Nspc nspc = bin->rhs->info->type->nspc;
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(lhs == *(Type*)(nspc->info->class_data + i))
+      return lhs;
+  }
+  return env->gwion->type[et_error]; // err_msg
 }
 
 static INSTR(UnionSet) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
+  POP_REG(shred, SZ_INT);
+  const M_Object o = *(M_Object*)REG(0);
   *(m_uint*)(o->data) = instr->m_val2;
-  memset(o->data + SZ_INT, 0, instr->m_val); // needed only for object!
-  *(void**)REG(-instr->m_val) = &*(m_bit**)(o->data + SZ_INT);
+  memcpy(o->data + SZ_INT, REG(-instr->m_val), instr->m_val);
+}
+
+static OP_EMIT(opem_any_at_union) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Type lhs = bin->lhs->info->type;
+  const Nspc nspc = bin->rhs->info->type->nspc;
+  const Instr instr = emit_add_instr(emit, UnionSet);
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(lhs == *(Type*)(nspc->info->class_data + i)) {
+      instr->m_val2 = i + 1;
+      instr->m_val = lhs->size;
+      return instr;
+    }
+  }
+  return NULL;
+}
+
+static OP_CHECK(opck_union_at_any) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  CHECK_NN(opck_rassign(env, data, mut)) // check those two lines
+  const Type rhs = bin->rhs->info->type;
+  const Nspc nspc = bin->lhs->info->type->nspc;
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(rhs == *(Type*)(nspc->info->class_data + i))
+      return rhs;
+  }
+  return env->gwion->type[et_error]; // err_msg
 }
 
 static INSTR(UnionGet) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
+  const M_Object o = *(M_Object*)REG(-SZ_INT*2);
   if(*(m_uint*)(o->data) != instr->m_val2)
     Except(shred, "invalid union access");
-  POP_REG(shred, SZ_INT - instr->m_val);
+  memcpy(*(m_bit**)REG(-SZ_INT), o->data + SZ_INT, instr->m_val);
+  POP_REG(shred, SZ_INT*2 - instr->m_val);
   memcpy(REG(-instr->m_val), o->data + SZ_INT, instr->m_val);
 }
-MFUN(union_is);
-static OP_EMIT(opem_dot_union) {
-  Exp_Dot *dot = (Exp_Dot*)data;
-  CHECK_BO(emit_exp(emit, dot->base))
-  if(isa(exp_self(dot)->info->type, emit->gwion->type[et_function]) > 0) {
-    const Func f = (Func)vector_at(&dot->t_base->nspc->info->vtable, 0);
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)f->code;
-    return instr;
+
+static OP_EMIT(opem_union_at_any) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Type rhs = bin->rhs->info->type;
+  const Nspc nspc = bin->lhs->info->type->nspc;
+  const Instr instr = emit_add_instr(emit, UnionGet);
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(rhs == *(Type*)(nspc->info->class_data + i)) {
+      instr->m_val2 = i + 1;
+      instr->m_val = rhs->size;
+      return instr;
+    }
   }
-  const uint emit_var = exp_getvar(exp_self(dot));
-  const Value v = nspc_lookup_value0(dot->t_base->nspc, dot->xid);
-  const Instr instr = emit_add_instr(emit, !emit_var ? UnionGet : UnionSet);
-  instr->m_val = !emit_var ? v->type->size : SZ_INT;
-  instr->m_val2 = v->from->offset;
-  return instr;
+  return NULL;
+}
+
+static OP_CHECK(opck_union_eq_class) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Type rhs = bin->rhs->info->type->info->base_type;
+  const Nspc nspc = bin->lhs->info->type->nspc;
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(rhs == *(Type*)(nspc->info->class_data + i))
+      return env->gwion->type[et_bool];
+  }
+  return NULL; // err_msg
+}
+
+static INSTR(UnionEqClass) {
+  POP_REG(shred, SZ_INT);
+  const M_Object o = *(M_Object*)REG(-SZ_INT);
+  *(m_uint*)REG(-SZ_INT) = *(m_uint*)(o->data) == instr->m_val2;
+
+}
+
+static OP_EMIT(opem_union_eq_class) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  const Type rhs = bin->rhs->info->type->info->base_type;
+  const Nspc nspc = bin->lhs->info->type->nspc;
+  const Instr instr = emit_add_instr(emit, UnionEqClass);
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(rhs == *(Type*)(nspc->info->class_data + i)) {
+      instr->m_val2 = i + 1;
+      return instr;
+    }
+  }
+  return NULL;
 }
 
 DTOR(UnionDtor) {
   const m_uint idx = *(m_uint*)o->data;
   if(idx) {
-    const Type t = (Type)vector_at(&o->type_ref->info->tuple->contains, idx - 1);
+    const Type t = *(Type*)(o->type_ref->nspc->info->class_data + idx * SZ_INT);
     if(isa(t, shred->info->vm->gwion->type[et_compound]) > 0)
       compound_release(shred, t, *(m_bit**)(o->data + SZ_INT));
   }
+}
+
+static ID_CHECK(idck_none) {
+  struct loc_t_ loc = {};
+  return str2type(env->gwion, "None", &loc);
+}
+
+static ID_EMIT(idem_none) {
+  return (Instr)1;
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
@@ -166,6 +242,14 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_compound = gwi_mk_type(gwi, "@Compound", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
+
+  const Type t_none = gwi_mk_type(gwi, "None", 0, NULL);
+  GWI_BB(gwi_gack(gwi, t_none, gack_none))
+  gwi_add_type(gwi, t_none);
+{
+  struct SpecialId_ spid = { .ck=idck_none, .em=idem_none, .is_const=1 };
+  gwi_specialid(gwi, "None", &spid);
+}
 
   GWI_BB(import_object(gwi))
 
@@ -230,13 +314,24 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Union", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_any_at_union))
+  GWI_BB(gwi_oper_emi(gwi, opem_any_at_union))
+  GWI_BB(gwi_oper_end(gwi, "?=>", NULL))
+
   GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_dot_union))
-  GWI_BB(gwi_oper_emi(gwi, opem_dot_union))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_union_at_any))
+  GWI_BB(gwi_oper_emi(gwi, opem_union_at_any))
+  GWI_BB(gwi_oper_end(gwi, "?=>", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Union", "@Class", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_union_eq_class))
+  GWI_BB(gwi_oper_emi(gwi, opem_union_eq_class))
+  GWI_BB(gwi_oper_end(gwi, "==", NULL))
 
   GWI_BB(gwi_union_ini(gwi, "Option:[A]"))
-  GWI_BB(gwi_union_add(gwi, "A", "@val"))
+  GWI_BB(gwi_union_add(gwi, "None"))
+  GWI_BB(gwi_union_add(gwi, "A"))
   GWI_BB(gwi_union_end(gwi, ae_flag_none))
 
   return GW_OK;

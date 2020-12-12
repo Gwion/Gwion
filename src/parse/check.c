@@ -845,6 +845,11 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
 ANN static Type check_exp_lambda(const Env env,
     const Exp_If* exp_if NUSED) { return env->gwion->type[et_lambda]; }
 
+ANN static Type check_exp_td(const Env env, Type_Decl **td) {
+  DECL_OO(const Type, t, = known_type(env, *td))
+  return type_class(env->gwion, t);
+}
+
 DECL_EXP_FUNC(check, Type, Env)
 
 ANN Type check_exp(const Env env, const Exp exp) {
@@ -1008,65 +1013,11 @@ ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
-  Decl_List l = udef->l;
-  m_uint sz = 0, idx = 0;
-  do {
-    CHECK_OB(check_exp(env, l->self))
-    Var_Decl_List list = l->self->d.exp_decl.list;
-    list->self->value->from->offset = ++idx;
-    set_vflag(list->self->value, vflag_union);
-    if(l->self->info->type->size > sz)
-      sz = l->self->info->type->size;
-  } while((l = l->next));
-  udef->type->nspc->info->offset = sz + SZ_INT;
-  return GW_OK;
-}
-
-static OP_CHECK(opck_union_is) {
-  Exp_Call *call = (Exp_Call*)data; 
-  Exp exp = call->args;
-  if(exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
-    ERR_N(exp->pos, "FFI variadic arguments must be of FFI type CHANGE ME");
-  const Value v = find_value(call->func->info->type->info->owner_class, exp->d.prim.d.var);
-  if(!v)
-    ERR_N(exp->pos, "'%s' has no member '%s'", call->func->info->type->info->owner_class, exp->d.prim.d.var);
-  exp->d.prim.prim_type = ae_prim_num;
-  exp->d.prim.d.num = v->from->offset;
-  return NULL;
-}
-
-/*static*/ MFUN(union_is) {
- *(m_uint*)RETURN = *(m_uint*)MEM(SZ_INT) == *(m_uint*)o->data;
-}
-
-ANN m_bool check_union_def(const Env env, const Union_Def udef) {
+ANN m_bool check_union_def(const Env env NUSED, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;
-  const m_uint scope = env_push_type(env, udef->type);
-  const m_bool ret = check_union_decl(env, udef);
-
-  Type_Decl *td = new_type_decl(env->gwion->mp, insert_symbol("bool"), loc_cpy(env->gwion->mp, udef->pos));
-//  Type_Decl *arg_td = new_type_decl(env->gwion->mp, insert_symbol(), loc_cpy(env->gwion->mp, udef->pos));
-  Type_Decl *arg_td = new_type_decl(env->gwion->mp, insert_symbol("int"), loc_cpy(env->gwion->mp, udef->pos));;
-  Var_Decl var = new_var_decl(env->gwion->mp, insert_symbol("arg"), NULL, loc_cpy(env->gwion->mp, udef->pos));
-  Arg_List args = new_arg_list(env->gwion->mp, arg_td, var, NULL);
-  Func_Base *fb = new_func_base(env->gwion->mp, td, insert_symbol("is"), args, ae_flag_none);
-  Func_Def fdef = new_func_def(env->gwion->mp, fb, NULL, loc_cpy(env->gwion->mp, udef->pos));
-  CHECK_BB(traverse_func_def(env, fdef)) // use ret
-  builtin_func(env->gwion->mp, fb->func, union_is);
-
-  const m_uint oscope = env_push(env, udef->type->info->owner_class, udef->type->info->owner);
-  const struct Op_Func opfunc = { .ck=opck_union_is };
-  const struct Op_Import opi = { .rhs=fb->func->value_ref->type,
-      .func=&opfunc, .data=(uintptr_t)fb->func, .pos=udef->pos, .op=insert_symbol("@func_check") };
-  CHECK_BB(add_op(env->gwion, &opi))
-  env_pop(env, oscope);
-//  set_vflag(fb->func->value_ref, vflag_builtin);
-
-  env_pop(env, scope);
   set_tflag(udef->type, tflag_check);
-  return ret;
+  return GW_OK;
 }
 
 ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {

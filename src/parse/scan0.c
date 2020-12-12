@@ -216,7 +216,7 @@ ANN static Type union_type(const Env env, const Symbol s) {
   t->nspc = new_nspc(env->gwion->mp, name);
   t->info->owner = t->nspc->parent = env->curr;
   t->info->owner_class = env->class_def;
-  t->info->tuple = new_tupleform(env->gwion->mp, NULL);
+  t->info->tuple = new_tupleform(env->gwion->mp, NULL); // ???
   add_type(env, env->curr, t);
   mk_class(env, t);
   SET_FLAG(t, final);
@@ -244,6 +244,9 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
     context_global(env);
   CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
   udef->type = union_type(env, udef->xid);
+  Type_List tl = udef->l;
+  do udef->type->nspc->info->class_data_size += SZ_INT;
+  while((tl = tl->next));
   SET_ACCESS(udef, udef->type);
   if(udef->tmpl)
     union_tmpl(env, udef);

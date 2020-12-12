@@ -22,7 +22,7 @@ typedef struct ImportCK { // name_checker ?
     f_xfun addr;
   };
   union {
-    Decl_List list;// union
+    Type_List list;// union
     struct Vector_ v;
 //    ID_List curr;// enum
   };

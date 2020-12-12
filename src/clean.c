@@ -133,6 +133,10 @@ ANN static void clean_exp_lambda(Clean *a, Exp_Lambda *b) {
   clean_func_def(a, b->def);
 }
 
+ANN static void clean_exp_td(Clean *a, Type_Decl **b) {
+  clean_type_decl(a, *b);
+}
+
 DECL_EXP_FUNC(clean, void, Clean*)
 ANN static void clean_exp(Clean *a, Exp b) {
   clean_exp_func[b->exp_type](a, &b->d);
@@ -254,12 +258,6 @@ ANN static void clean_arg_list(Clean *a, Arg_List b) {
     clean_arg_list(a, b->next);
 }
 
-ANN static void clean_decl_list(Clean *a, Decl_List b) {
-  clean_exp(a, b->self);
-  if(b->next)
-    clean_decl_list(a, b->next);
-}
-
 ANN static void clean_stmt_list(Clean *a, Stmt_List b) {
   clean_stmt(a, b->stmt);
   if(b->next)
@@ -308,7 +306,7 @@ ANN static void clean_enum_def(Clean *a, Enum_Def b) {
 }
 
 ANN static void clean_union_def(Clean *a, Union_Def b) {
-  clean_decl_list(a, b->l);
+  clean_type_list(a, b->l);
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }

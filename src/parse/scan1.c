@@ -252,6 +252,7 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
 }
 
 #define scan1_exp_lambda dummy_func
+#define scan1_exp_td dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool _scan1_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
@@ -392,16 +393,25 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
     scan1_cdef(env, tdef->type) : GW_OK;
 }
 
-ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Decl_List l) {
-  do CHECK_BB(scan1_exp(env, l->self))
-  while((l = l->next));
+ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def udef) {
+  nspc_allocdata(env->gwion->mp, udef->type->nspc);
+  Type_List l = udef->l;
+  m_uint sz = 0;
+  const Nspc nspc = udef->type->nspc;
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    DECL_OB(const Type, t, =(*(Type*)(nspc->info->class_data +i) = known_type(env, l->td)))
+    if(t->size > sz)
+      sz = t->size;
+    l = l->next;
+  }
+  nspc->info->offset = sz;
   return GW_OK;
 }
 
 ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
   if(udef->tmpl && udef->tmpl->call)
     CHECK_BB(template_push_types(env, udef->tmpl))
-  const m_bool ret = scan1_union_def_inner_loop(env, udef->l);
+  const m_bool ret = scan1_union_def_inner_loop(env, udef);
   if(udef->tmpl && udef->tmpl->call)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;

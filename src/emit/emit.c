@@ -1432,6 +1432,11 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
   return ret;
 }
 
+ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl* td) {
+  regpushi(emit, (m_uint)exp_self(td)->info->type->info->base_type);
+  return GW_OK;
+}
+
 DECL_EXP_FUNC(emit, m_bool, Emitter)
 
 

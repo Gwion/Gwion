@@ -204,6 +204,7 @@ ANN static inline m_bool scan2_stmt_match(const restrict Env env, const Stmt_Mat
 }
 
 #define scan2_exp_lambda dummy_func
+#define scan2_exp_td dummy_func
 HANDLE_EXP_FUNC(scan2, m_bool, Env)
 
 #define scan2_stmt_func(name, type, prolog, exp) describe_stmt_func(scan2, name, type, prolog, exp)
@@ -258,20 +259,11 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN static m_bool scan2_union_decl(const Env env, Decl_List l) {
-  do CHECK_BB(scan2_exp(env, l->self))
-  while((l = l->next));
-  return GW_OK;
-}
-
 ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
-  if(tmpl_base(udef->tmpl))
-    return GW_OK;
-  const m_uint scope = env_push_type(env, udef->type);
-  const m_bool ret = scan2_union_decl(env, udef->l);
-  env_pop(env, scope);
+//  if(tmpl_base(udef->tmpl))
+//    return GW_OK;
   set_tflag(udef->type, tflag_scan2);
-  return ret;
+  return GW_OK;
 }
 
 

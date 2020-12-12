@@ -226,7 +226,7 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
     free_class_def(env->gwion->mp, cdef);
   return ret;
 }
-
+/*
 ANN static OP_CHECK(opck_option_get) {
   Exp_Binary *bin = (Exp_Binary*)data;
   exp_setvar(bin->rhs, 1);
@@ -254,8 +254,15 @@ ANN static OP_CHECK(opck_option_set) {
   Exp_Binary *bin = (Exp_Binary*)data;
   CHECK_NN(opck_rassign(env, data, mut)) // check those two lines
   exp_setvar(bin->rhs, 0);
-  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(env->gwion->st, "@val"));
-  return v->type;
+  const Type rhs = bin->rhs->info->type;
+  const Nspc nspc = bin->lhs->info->type->nspc;
+  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
+    if(rhs == *(Type*)(nspc->info->class_data + i))
+      return rhs;
+  }
+//  ERR_N(exp_self(data)->pos, _(
+//  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(env->gwion->st, "@val"));
+//  return v->type;
 }
 
 static INSTR(OptionSet) {
@@ -311,11 +318,11 @@ ANN static OP_EMIT(opem_option_uncond) {
   pop->m_val = exp->info->type->size - SZ_INT;
   return emit_add_instr(emit, BranchNeqInt);
 }
-
+*/
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u = info->base->info->udef;
-  const Union_Def udef = new_union_def(env->gwion->mp, cpy_decl_list(env->gwion->mp, u->l),
+  const Union_Def udef = new_union_def(env->gwion->mp, cpy_type_list(env->gwion->mp, u->l),
     loc_cpy(env->gwion->mp, u->pos));
   udef->xid = info->name;
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
@@ -323,6 +330,7 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
     SET_FLAG(udef, global);
   const m_bool ret = scan0_union_def(env, udef);
   if(udef->type) {
+/*
     if(!strcmp(info->base->name, "Option")) {
       const Type base = known_type(env, info->td->types->td);
       const m_uint scope = env_push(env, udef->type->info->parent->info->owner_class, udef->type->info->parent->info->owner);
@@ -352,6 +360,7 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
       CHECK_BB(add_op(env->gwion, &opi5))
       env_pop(env, scope);
     }
+*/
     udef->type->info->udef = udef;// mark as udef
     info->ret = udef->type;
     set_tflag(info->ret, tflag_udef);
@@ -433,7 +442,6 @@ GWION_IMPORT(object_op) {
   const Type t_error  = gwi_mk_type(gwi, "@error",  0, NULL);
   gwi->gwion->type[et_error] = t_error;
   GWI_BB(gwi_set_global_type(gwi, t_error, et_error))
-  GWI_BB(gwi_oper_cond(gwi, "Object", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
