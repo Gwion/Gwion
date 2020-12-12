@@ -1015,8 +1015,7 @@ ANN m_bool check_union_decl(const Env env, const Union_Def udef) {
     CHECK_OB(check_exp(env, l->self))
     Var_Decl_List list = l->self->d.exp_decl.list;
     list->self->value->from->offset = ++idx;
-    do set_vflag(list->self->value, vflag_union);
-    while((list = list->next)); // disallow multiple values here.
+    set_vflag(list->self->value, vflag_union);
     if(l->self->info->type->size > sz)
       sz = l->self->info->type->size;
   } while((l = l->next));
