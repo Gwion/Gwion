@@ -204,6 +204,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos))
   CHECK_BB(scan0_global(env, edef->flag, edef->pos))
   edef->t = enum_type(env, edef);
+  vector_init(&edef->values);
   if(GET_FLAG(edef, global))
     context_global(env);
   return GW_OK;
@@ -212,7 +213,6 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
 ANN static Type union_type(const Env env, const Symbol s) {
   const m_str name = s_name(s);
   const Type t = new_type(env->gwion->mp, name, env->gwion->type[et_union]);
-  t->size = SZ_INT;
   t->nspc = new_nspc(env->gwion->mp, name);
   t->info->owner = t->nspc->parent = env->curr;
   t->info->owner_class = env->class_def;

@@ -70,6 +70,10 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
+static inline uint array_ref(const Array_Sub array) {
+  return array && !array->exp;
+}
+
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   do {
@@ -77,7 +81,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     CHECK_BB(scan1_defined(env, var))
-   if(var->array) {
+    if(var->array) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);
@@ -100,7 +104,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     nspc_add_value(env->curr, var->xid, v);
     v->flag |= decl->td->flag;
     v->type = t;
-    if(var->array && !var->array->exp)
+    if(array_ref(var->array))
       SET_FLAG(decl->td, ref);
     if(env->class_def) {
       if(env->class_def->info->tuple)
@@ -126,6 +130,8 @@ ANN int is_global(const Nspc nspc, Nspc global) {
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
+  if(array_ref(decl->td->array))
+   SET_FLAG(decl->td, ref);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   if(global) {
@@ -399,12 +405,12 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
   m_uint sz = 0;
   const Nspc nspc = udef->type->nspc;
   for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
-    DECL_OB(const Type, t, =(*(Type*)(nspc->info->class_data +i) = known_type(env, l->td)))
+    DECL_OB(const Type, t, =(*(Type*)(nspc->info->class_data + i) = known_type(env, l->td)))
     if(t->size > sz)
       sz = t->size;
     l = l->next;
   }
-  nspc->info->offset = sz;
+  nspc->info->offset = sz + SZ_INT;
   return GW_OK;
 }
 

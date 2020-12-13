@@ -303,6 +303,8 @@ ANN void class_def_cleaner(const Gwion gwion, Class_Def b) {
 
 ANN static void clean_enum_def(Clean *a, Enum_Def b) {
   clean_id_list(a, b->list);
+  if(b->values.ptr)
+    vector_release(&b->values);
 }
 
 ANN static void clean_union_def(Clean *a, Union_Def b) {

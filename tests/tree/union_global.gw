@@ -1,5 +1,2 @@
-union global GlobalUnion {
-  int gui;
-  float guf;
-};
+union global GlobalUnion { int : float };
 <<<"test">>>;

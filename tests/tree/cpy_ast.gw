@@ -8,8 +8,8 @@ class C:[A] {
   i++;
   i ? i : !i;
   ++i;
-  union { int ui; } u;
-  union U:[A] { int ui; };
+  union U { int }
+  union V:[A] { int }
   typeof(i);
   if(i) i; else i;
   for(var int _i; _i < 1; ++_i);

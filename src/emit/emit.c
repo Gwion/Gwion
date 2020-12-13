@@ -244,8 +244,6 @@ ANN static void struct_expand(const Emitter emit, const Type t) {
 }
 
 
-INSTR(ArrayStruct);
-
 ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) {
   const m_uint start_index = emit_code_size(emit);
   const Instr top = emit_add_instr(emit, ArrayTop);
@@ -357,6 +355,23 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
     emit_pre_ctor(emit, type);
   }
   return GW_OK;
+}
+
+ANN2(1,2) m_bool emit_instantiate_decl(const Emitter emit, const Type type,
+      const Type_Decl *td, const Array_Sub array, const m_bool is_ref) {
+  Exp base = td->array ? td->array->exp : NULL, exp = base,
+     next = array ? array->exp : NULL;
+  const m_uint depth = (td->array ? td->array->depth : 0) + (array ? array->depth : 0);
+  if(exp) {
+    while(exp->next)
+      exp = exp->next;
+    exp->next = next;
+  } else base = next;
+  struct Array_Sub_ a = { .exp=base, .depth=depth };
+  const m_bool ret = emit_instantiate_object(emit, type, &a, is_ref);
+  if(td->array && td->array->exp)
+    exp->next = NULL;
+  return ret;
 }
 
 ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
@@ -635,11 +650,11 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v, const 
   return GW_OK;
 }
 
-ANN static m_bool decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref) {
+ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl, const Var_Decl var_decl, const uint is_ref) {
   const Value v = var_decl->value;
   Code* code = emit->code;
   emit->code = (Code*)vector_back(&emit->stack);
-  CHECK_BB(emit_instantiate_object(emit, v->type, var_decl->array, is_ref))
+  CHECK_BB(emit_instantiate_decl(emit, v->type, decl->td, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, 1))
   emit_add_instr(emit, Assign);
   (void)emit_addref(emit, 0);
@@ -665,10 +680,10 @@ ANN static void emit_struct_decl_finish(const Emitter emit, const Type t, const 
   emit->code->frame->curr_offset -= t->size + SZ_INT;
 }
 
-ANN static m_bool emit_exp_decl_static(const Emitter emit, const Var_Decl var_decl, const uint is_ref, const uint emit_addr) {
+ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl, const Var_Decl var_decl, const uint is_ref, const uint emit_addr) {
   const Value v = var_decl->value;
   if(isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref)
-    CHECK_BB(decl_static(emit, var_decl, 0))
+    CHECK_BB(decl_static(emit, decl, var_decl, 0))
   CHECK_BB(emit_dot_static_data(emit, v, !struct_ctor(v) ? emit_addr : 1))
   if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
@@ -692,7 +707,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
   if(is_obj && (is_array || !is_ref))
-    CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
+    CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref))
   f_instr *exec = (f_instr*)allocmember;
   if(!vflag(v, vflag_member)) {
     v->from->offset = emit_local(emit, type);
@@ -713,17 +728,19 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
       const Instr instr = emit_add_instr(emit, Reg2Reg);
       instr->m_val = -SZ_INT;
     }
-    const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
+/*
+    const size_t missing_depth = type->array_depth - (array ? array->depth : 0) - (decl->td->array ? decl->td->array->depth : 0);
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(missing_depth) * SZ_INT;
     }
+*/
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
 }
 
-ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_decl,
+ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl, const Var_Decl var_decl,
   const uint is_ref, const uint emit_var) {
   const Value v = var_decl->value;
   const Type type = v->type;
@@ -732,7 +749,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   const m_bool is_obj = isa(type, emit->gwion->type[et_object]) > 0;
   const uint emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
   if(is_obj && (is_array || !is_ref))
-    CHECK_BB(emit_instantiate_object(emit, type, array, is_ref))
+    CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, dotstatic);
   v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
   if(isa(type, emit->gwion->type[et_union]) < 0)
@@ -741,12 +758,14 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Var_Decl var_de
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, Assign);
-    const size_t missing_depth = type->array_depth - (array ? array->depth : 0);
+    assign->m_val = emit_var;
+/*
+    const size_t missing_depth = type->array_depth - (array ? array->depth : 0) - (decl->td->array ? decl->td->array->depth : 0);
     if(missing_depth) {
       const Instr push = emit_add_instr(emit, Reg2Reg);
       push->m_val = -(missing_depth) * SZ_INT;
     }
-    assign->m_val = emit_var;
+*/
     (void)emit_addref(emit, emit_var);
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
@@ -772,12 +791,12 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   do {
     if(GET_FLAG(decl->td, static))
-      CHECK_BB(emit_exp_decl_static(emit, list->self, ref, var))
+      CHECK_BB(emit_exp_decl_static(emit, decl, list->self, ref, var))
     else if(!global)
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, ref, var))
     else
-      CHECK_BB(emit_exp_decl_global(emit, list->self, ref, var))
-    if(!var && !GET_FLAG(decl->td, optionnal) && (GET_FLAG(decl->td, ref) || is_fptr(emit->gwion, list->self->value->type)))
+      CHECK_BB(emit_exp_decl_global(emit, decl, list->self, ref, var))
+    if(!var && !decl->td->option && (GET_FLAG(decl->td, ref) || is_fptr(emit->gwion, list->self->value->type)))
       ERR_B(list->self->pos, "kljlkj")
   } while((list = list->next));
   return GW_OK;
