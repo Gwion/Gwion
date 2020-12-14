@@ -924,26 +924,26 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
+ANN static inline Type foreach_type(const Env env, const Exp exp) {
+  DECL_OO(Type, et, = check_exp(env, exp))
+  if(isa(et, env->gwion->type[et_array]) < 0)
+    ERR_O(exp->pos, _("type '%s' is not array.\n"
+          " This is not allowed in foreach loop"), et->name)
+  DECL_OO(Type, base, = typedef_base(et))
+  DECL_OO(const Type, t, = array_base(base))
+  const m_uint depth = base->array_depth - 1;
+  return depth ? array_type(env, t, depth) : t;
+
+}
+
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
-  DECL_OB(Type, t, = check_exp(env, stmt->exp))
-  while(tflag(t, tflag_typedef))
-    t = t->info->parent;
-  Type ptr = array_base(t);
-  const m_uint depth = t->array_depth - 1;
-  if(!ptr || isa(t, env->gwion->type[et_array]) < 0)
-    ERR_B(stmt_self(stmt)->pos, _("type '%s' is not array.\n"
-          " This is not allowed in foreach loop"), stmt->exp->info->type->name)
-  if(stmt->is_ptr) {
-    if(depth)
-      ptr = array_type(env, ptr, depth);
-    char c[15 + strlen(ptr->name)];
-    sprintf(c, "Ptr:[%s]", ptr->name);
-    ptr = str2type(env->gwion, c, stmt->exp->pos);
-    const Type base = get_type(ptr);
-    CHECK_BB(ensure_traverse(env, base))
-  }
-  t = (!stmt->is_ptr && depth) ? array_type(env, ptr, depth) : ptr;
-  stmt->v = new_value(env->gwion->mp, t, s_name(stmt->sym));
+  DECL_OB(const Type, ptr, = foreach_type(env, stmt->exp))
+  const Type base = get_type(ptr);
+  CHECK_BB(ensure_traverse(env, base))
+  char c[15 + strlen(ptr->name)];
+  sprintf(c, "@Foreach:[%s]", ptr->name);
+  const Type ret = str2type(env->gwion, c, stmt->exp->pos);
+  stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   set_vflag(stmt->v, vflag_valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
   return check_conts(env, stmt_self(stmt), stmt->body);

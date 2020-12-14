@@ -10,4 +10,6 @@ struct tmpl_info {
   struct Vector_   size;
   uint8_t index;
 };
+
+ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
 #endif

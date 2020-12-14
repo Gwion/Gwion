@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -13,7 +11,6 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
-#include "specialid.h"
 #include "gwi.h"
 #include "tmpl_info.h"
 
@@ -241,41 +238,9 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
     SET_FLAG(udef, global);
   const m_bool ret = scan0_union_def(env, udef);
   if(udef->type) {
-/*
-    if(!strcmp(info->base->name, "Option")) {
-      const Type base = known_type(env, info->td->types->td);
-      const m_uint scope = env_push(env, udef->type->info->parent->info->owner_class, udef->type->info->parent->info->owner);
-      const struct Op_Func opfunc0 = { .ck=opck_option_get, .em=opem_option_get };
-      struct Op_Import opi0 = { .lhs=udef->type, .rhs=base, .ret=base,
-       .op=insert_symbol(env->gwion->st, "?=>"), .pos=info->td->pos, .func=&opfunc0 };
-      CHECK_BB(add_op(env->gwion, &opi0))
-      const struct Op_Func opfunc1 = { .ck=opck_option_set, .em=opem_option_set };
-      struct Op_Import opi1 = { .lhs=base, .rhs=udef->type, .ret=udef->type, .func=&opfunc1,
-       .op=insert_symbol(env->gwion->st, "@=>"), .pos=info->td->pos };
-      CHECK_BB(add_op(env->gwion, &opi1))
-      const struct Op_Func opfunc2 = { .ck=opck_option_setn, .em=opem_option_setn };
-      struct Op_Import opi2 = { .lhs=env->gwion->type[et_error], .rhs=udef->type, .ret=udef->type, .func=&opfunc2,
-       .op=insert_symbol(env->gwion->st, "@=>"), .pos=info->td->pos };
-      CHECK_BB(add_op(env->gwion, &opi2))
-      const struct Op_Func opfunc3 = { .em=opem_option_not };
-      struct Op_Import opi3 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc3,
-       .op=insert_symbol(env->gwion->st, "!"), .pos=info->td->pos };
-      CHECK_BB(add_op(env->gwion, &opi3))
-      const struct Op_Func opfunc4 = { .em=opem_option_cond };
-      struct Op_Import opi4 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc4,
-       .op=insert_symbol(env->gwion->st, "@conditionnal"), .pos=info->td->pos };
-      CHECK_BB(add_op(env->gwion, &opi4))
-      const struct Op_Func opfunc5 = { .em=opem_option_uncond };
-      struct Op_Import opi5 = { .rhs=udef->type, .ret=env->gwion->type[et_bool], .func=&opfunc5,
-       .op=insert_symbol(env->gwion->st, "@unconditionnal"), .pos=info->td->pos };
-      CHECK_BB(add_op(env->gwion, &opi5))
-      env_pop(env, scope);
-    }
-*/
     udef->type->info->udef = udef;// mark as udef
     info->ret = udef->type;
     set_tflag(info->ret, tflag_udef);
-//    set_tflag(info->ret, tflag_tmpl);
   } else
     free_union_def(env->gwion->mp, udef);
   return ret;
@@ -291,6 +256,7 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
+puts("here");
   struct tmpl_info info = { .base=t, .td=td, .list=t->info->cdef->base.tmpl->list  };
   const Type exists = tmpl_exists(env, &info);
   if(exists)
@@ -367,5 +333,6 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+
   return GW_OK;
 }

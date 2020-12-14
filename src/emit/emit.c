@@ -416,6 +416,18 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     return emit_symbol_owned(emit, data);
   if(vflag(v, vflag_builtin) || vflag(v, vflag_direct) || vflag(v, vflag_enum))
     return emit_symbol_builtin(emit, data);
+  if(!strncmp(v->type->name, "@Foreach:[", 10)) {
+    if(exp_getvar(exp_self(prim_self(data)))) {
+      const Instr instr = emit_add_instr(emit, RegPushMem);
+      instr->m_val = v->from->offset;
+      instr->m_val2 = SZ_INT;
+    } else {
+      const Instr instr = emit_add_instr(emit, RegPushMemDeref);
+      instr->m_val = v->from->offset;
+      instr->m_val2 = v->type->size;
+    }
+    return GW_OK;
+  }
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), !vflag(v, vflag_fglobal) ? regpushmem : regpushbase);
   instr->m_val  = v->from->offset;
@@ -1619,20 +1631,18 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
 
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_uint *end_pc) {
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  Instr cpy = stmt->is_ptr ? emit_add_instr(emit, MemSetImm) : NULL;
+  Instr cpy = emit_add_instr(emit, MemSetImm);
   emit_local(emit, emit->gwion->type[et_int]);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   emit_local(emit, emit->gwion->type[et_int]);
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
-  const Instr loop = emit_add_instr(emit, stmt->is_ptr ? AutoLoopPtr : AutoLoop);
+  const Instr loop = emit_add_instr(emit, AutoLoopPtr);
   const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_bool ret = scoped_stmt(emit, stmt->body, 1);
   *end_pc = emit_code_size(emit);
-  if(stmt->is_ptr) {
-    loop->m_val2 = (m_uint)stmt->v->type;
-    cpy->m_val = stmt->v->from->offset;
-  }
+  loop->m_val2 = (m_uint)stmt->v->type;
+  cpy->m_val = stmt->v->from->offset;
   const Instr tgt = emit_add_instr(emit, Goto);
   end->m_val = emit_code_size(emit);
   tgt->m_val = ini_pc;
