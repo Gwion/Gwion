@@ -31,10 +31,13 @@ ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   return GW_OK;
 }
 
-ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type) {
+ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   CHECK_BB(ck_ok(gwi, ck_udef))
   DECL_OB(Type_Decl*, td, = str2decl(gwi->gwion, type, gwi->loc))
-  gwi->ck->list = new_type_list(gwi->gwion->mp, td, gwi->ck->list);
+  DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc))
+  const Union_List l = new_union_list(gwi->gwion->mp, td, xid, loc(gwi));
+  l->next = gwi->ck->list;
+  gwi->ck->list = l;
   return GW_OK;
 }
 
@@ -73,7 +76,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
 
 ANN void ck_clean_udef(MemPool mp, ImportCK* ck) {
   if(ck->list)
-    free_type_list(mp, ck->list);
+    free_union_list(mp, ck->list);
   if(ck->tmpl)
     free_id_list(mp, ck->tmpl);
 }

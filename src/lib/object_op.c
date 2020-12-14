@@ -322,7 +322,7 @@ ANN static OP_EMIT(opem_option_uncond) {
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u = info->base->info->udef;
-  const Union_Def udef = new_union_def(env->gwion->mp, cpy_type_list(env->gwion->mp, u->l),
+  const Union_Def udef = new_union_def(env->gwion->mp, cpy_union_list(env->gwion->mp, u->l),
     loc_cpy(env->gwion->mp, u->pos));
   udef->xid = info->name;
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);

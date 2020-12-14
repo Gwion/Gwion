@@ -1,2 +1,2 @@
 #! [contains] can only be used at class scope.
-union static U { int };
+union static U { int i; }

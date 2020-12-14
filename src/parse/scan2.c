@@ -259,7 +259,7 @@ ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
   return GW_OK;
 }
 
-ANN m_bool scan2_union_def(const Env env, const Union_Def udef) {
+ANN m_bool scan2_union_def(const Env env NUSED, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
   set_tflag(udef->type, tflag_scan2);

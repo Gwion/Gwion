@@ -401,16 +401,21 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
 
 ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def udef) {
   nspc_allocdata(env->gwion->mp, udef->type->nspc);
-  Type_List l = udef->l;
+  Union_List l = udef->l;
   m_uint sz = 0;
-  const Nspc nspc = udef->type->nspc;
-  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
-    DECL_OB(const Type, t, =(*(Type*)(nspc->info->class_data + i) = known_type(env, l->td)))
+  do {
+    DECL_OB(const Type, t, = known_type(env, l->td))
+    if(nspc_lookup_value0(env->curr, l->xid))
+      ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
+// check name
+puts(env->curr->name);
+    const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
+    v->from->offset = SZ_INT;
+    valuefrom(env ,v->from);
+    nspc_add_value_front(env->curr, l->xid, v);
     if(t->size > sz)
       sz = t->size;
-    l = l->next;
-  }
-  nspc->info->offset = sz + SZ_INT;
+  } while((l = l->next));
   return GW_OK;
 }
 

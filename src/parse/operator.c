@@ -265,9 +265,13 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
         continue;
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
-        if(mo->em)
-          return mo->em(emit, (void*)opi->data);
-        return handle_instr(emit, mo);
+        if(mo->em) {
+          const Instr ret = mo->em(emit, (void*)opi->data);
+          if(ret)
+            return ret;
+        }
+        else if(mo->func || mo->instr)
+          return handle_instr(emit, mo);
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));

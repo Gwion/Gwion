@@ -11,6 +11,6 @@
 
 GWION_IMPORT(checker) {
   GWI_BB(gwi_union_ini(gwi, "U"))
-  GWI_BB(gwi_union_add(gwi, "int"))
+  GWI_BB(gwi_union_add(gwi, "int", "i"))
   return GW_OK;
 }

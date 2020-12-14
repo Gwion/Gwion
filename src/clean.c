@@ -307,8 +307,14 @@ ANN static void clean_enum_def(Clean *a, Enum_Def b) {
     vector_release(&b->values);
 }
 
+ANN static void clean_union_list(Clean *a, Union_List b) {
+  clean_type_decl(a, b->td);
+  if(b->next)
+    clean_union_list(a, b->next);
+}
+
 ANN static void clean_union_def(Clean *a, Union_Def b) {
-  clean_type_list(a, b->l);
+  clean_union_list(a, b->l);
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }

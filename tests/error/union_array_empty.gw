@@ -1,2 +1,5 @@
 #! [contains] must be defined with empty
-union U { int : int [4] };
+union U {
+  int i;
+  int[4] j;
+}
