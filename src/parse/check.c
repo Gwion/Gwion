@@ -120,6 +120,15 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
   return GW_OK;
 }
 
+ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Value v) {
+  if(!exp_getvar(exp_self(decl)) &&
+      (GET_FLAG(decl->td, ref) || is_fptr(gwion, v->type))) {
+    SET_FLAG(decl->td, ref);
+    SET_FLAG(v, ref);
+  } else
+    UNSET_FLAG(v, ref);
+}
+
 ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
   do {
@@ -128,6 +137,7 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
     CHECK_BB(check_var_td(env, var, decl->td))
     if(is_fptr(env->gwion, decl->type))
       CHECK_BB(check_fptr_decl(env, var))
+    set_late(env->gwion, decl, list->self->value);
     set_vflag(var->value, vflag_valid);
     //set_vflag(var->value, vflag_used));
     nspc_add_value(env->curr, var->xid, var->value);
@@ -686,6 +696,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 
 ANN m_bool func_check(const Env env, const Exp_Call *exp) {
   CHECK_OB(check_exp(env, exp->func))
+  if(exp->func->exp_type == ae_exp_decl)
+    ERR_B(exp->func->pos, _("Can't call late function pointer at declaration site"))
   const Type t = actual_type(env->gwion, exp->func->info->type);
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),

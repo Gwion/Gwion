@@ -207,6 +207,10 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val = (m_uint)value->type;
   }
+  if(GET_FLAG(value, ref)) {
+    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    instr->m_val = -SZ_INT;
+  }
   return (Instr)GW_OK;
 }
 
@@ -226,99 +230,6 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
     free_class_def(env->gwion->mp, cdef);
   return ret;
 }
-/*
-ANN static OP_CHECK(opck_option_get) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
-}
-
-static INSTR(OptionCheck) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT*2);
-  if(*(m_uint*)(o->data) != instr->m_val2)
-    Except(shred, "invalid union access");
-  memcpy(*(m_bit**)REG(-SZ_INT), o->data + SZ_INT, instr->m_val);
-  POP_REG(shred, SZ_INT*2 - instr->m_val);
-  memcpy(&*(m_bit*)REG(-instr->m_val), o->data + SZ_INT, instr->m_val);
-}
-
-ANN static OP_EMIT(opem_option_get) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, OptionCheck);
-  instr->m_val = bin->rhs->info->type->size;
-  instr->m_val2 = 1;
-  return instr;
-}
-
-ANN static OP_CHECK(opck_option_set) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  CHECK_NN(opck_rassign(env, data, mut)) // check those two lines
-  exp_setvar(bin->rhs, 0);
-  const Type rhs = bin->rhs->info->type;
-  const Nspc nspc = bin->lhs->info->type->nspc;
-  for(m_uint i = 0; i < nspc->info->class_data_size; i += SZ_INT) {
-    if(rhs == *(Type*)(nspc->info->class_data + i))
-      return rhs;
-  }
-//  ERR_N(exp_self(data)->pos, _(
-//  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(env->gwion->st, "@val"));
-//  return v->type;
-}
-
-static INSTR(OptionSet) {
-  M_Object o = *(M_Object*)REG(-SZ_INT);
-  *(m_uint*)(o->data) = instr->m_val2;
-  *(m_bit**)(o->data + SZ_INT) = *(void**)REG(-instr->m_val);
-}
-
-ANN static OP_EMIT(opem_option_set) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  const Value v = nspc_lookup_value0(bin->rhs->info->type->nspc, insert_symbol(emit->gwion->st, "@val"));
-  const Instr set = emit_add_instr(emit, OptionSet);
-  set->m_val = SZ_INT + v->type->size;
-  set->m_val2 = 1;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
-  return set;
-}
-
-ANN static OP_CHECK(opck_option_setn) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  CHECK_NN(opck_rassign(env, data, mut))
-  exp_setvar(bin->rhs, 1);
-  return env->gwion->type[et_void];
-}
-
-ANN static OP_EMIT(opem_option_setn) {
-  Exp_Binary *bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, OptionSet);
-  instr->m_val = bin->rhs->info->type->nspc->info->offset;
-  const Instr  pop2 = emit_add_instr(emit, RegPop);
-  pop2->m_val = SZ_INT * 2;
-  return instr;
-}
-
-ANN static OP_EMIT(opem_option_not) {
-  Exp_Unary *unary = (Exp_Unary*)data;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = unary->exp->info->type->size - SZ_INT;
-  return emit_add_instr(emit, IntNot);
-}
-
-ANN static OP_EMIT(opem_option_cond) {
-  Exp exp = (Exp)data;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = exp->info->type->size - SZ_INT;
-  return emit_add_instr(emit, BranchEqInt);
-}
-
-ANN static OP_EMIT(opem_option_uncond) {
-  Exp exp = (Exp)data;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = exp->info->type->size - SZ_INT;
-  return emit_add_instr(emit, BranchNeqInt);
-}
-*/
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u = info->base->info->udef;

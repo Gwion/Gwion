@@ -765,7 +765,7 @@ newobj:
 addref:
   {
     const M_Object o = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
-    if(o)
+//    if(o)
       ++o->ref;
   }
   DISPATCH()
@@ -797,7 +797,7 @@ except:
  *  VAL = offset (no default SZ_INT)             *
  *  VAL2 = error message                         *
  * grep for GWOP_EXCEPT and Except, exception... */
-  if(!*(M_Object*)(reg-SZ_INT-VAL)) {
+  if(!*(M_Object*)(reg-(m_int)VAL)) {
     shred->pc = PC;
     exception(shred, "NullPtrException");
     continue;

@@ -434,9 +434,67 @@ ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
   return code;
 }
 
+ANN static inline m_uint exp_size(const Exp e) {
+  if(exp_getvar(e))
+    return SZ_INT;
+  const Type type = e->info->cast_to ?: e->info->type;
+  return type->size;
+}
+
+
+ANN static inline m_uint exp_totalsize(Exp e) {
+  m_uint size = 0;
+  do size += exp_size(e);
+  while((e = e->next));
+  return size;
+}
+
+ANN static Instr emit_addref(const Emitter emit, const m_bool emit_var) {
+  const f_instr exec = !emit_var ? RegAddRef : RegAddRefAddr;
+  const Instr instr = emit_add_instr(emit, exec);
+  instr->m_val = -SZ_INT;
+  return instr;
+}
+
+ANN static void struct_addref(const Emitter emit, const Type type,
+    const m_int size, const m_bool offset, const m_bool emit_var) {
+  if(!type->info->tuple)
+    return;
+  for(m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
+    const Type t = (Type)vector_at(&type->info->tuple->types, i);
+    if(isa(t, emit->gwion->type[et_object]) > 0) {
+      const Instr instr = emit_addref(emit, emit_var);
+      instr->m_val = size;
+      instr->m_val2 = vector_at(&type->info->tuple->offset, i);
+    } else if(tflag(t, tflag_struct))
+      struct_addref(emit, t, size, offset + vector_at(&type->info->tuple->offset, i), emit_var);
+  }
+}
+
+ANN2(1) static void emit_exp_addref1(const Emitter emit, /* const */Exp exp, m_int size) {
+  if(isa(exp->info->type, emit->gwion->type[et_object]) > 0 &&
+        (exp->info->cast_to ? isa(exp->info->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
+    if(exp->exp_type == ae_exp_decl && GET_FLAG(exp->d.exp_decl.td, ref) && !exp_getvar(exp)) {
+      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+      instr->m_val = size;
+    }
+    const Instr instr = emit_addref(emit, exp_getvar(exp));
+    instr->m_val = size;
+  } else if(tflag(exp->info->type, tflag_struct)) // check cast_to ?
+    struct_addref(emit, exp->info->type, size, 0, exp_getvar(exp));
+}
+
+ANN2(1) static void emit_exp_addref(const Emitter emit, /* const */Exp exp, m_int size) {
+  do {
+    emit_exp_addref1(emit, exp, size);
+    size += exp_size(exp);
+  } while((exp = exp->next));
+}
+
 ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   Exp e = (*data)->exp;
   CHECK_BB(emit_exp(emit, e))
+  emit_exp_addref(emit, e, -exp_totalsize(e));
   m_uint count = 0;
   do ++count;
   while((e = e->next));
@@ -544,13 +602,6 @@ ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
   const char c = str2char(emit, *str, prim_pos(str));
   regpushi(emit, c);
   return GW_OK;
-}
-
-ANN static Instr emit_addref(const Emitter emit, const m_bool emit_var) {
-  const f_instr exec = !emit_var ? RegAddRef : RegAddRefAddr;
-  const Instr instr = emit_add_instr(emit, exec);
-  instr->m_val = -SZ_INT;
-  return instr;
 }
 
 ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
@@ -796,8 +847,6 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, ref, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, decl, list->self, ref, var))
-    if(!var && !decl->td->option && (GET_FLAG(decl->td, ref) || is_fptr(emit->gwion, list->self->value->type)))
-      ERR_B(list->self->pos, "kljlkj")
   } while((list = list->next));
   return GW_OK;
 }
@@ -836,16 +885,6 @@ ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_cal
   else
     free_vector(emit->gwion->mp, kinds);
 }
-
-ANN static inline m_uint exp_size(Exp e);
-ANN static inline m_uint exp_totalsize(Exp e) {
-  m_uint size = 0;
-  do size += exp_size(e);
-  while((e = e->next));
-  return size;
-}
-ANN static /*inline */void emit_exp_addref1(const Emitter emit, Exp, const m_int size);
-ANN static /*inline */void emit_exp_addref(const Emitter emit, Exp, const m_int size);
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
   if(exp_call->args) {
@@ -1149,11 +1188,13 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
   if(vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
         is_fptr(emit->gwion, f->value_ref->type)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    m_bit exec = back->opcode;
-    m_uint val = back->m_val;
-    m_uint val2 = back->m_val2;
-    back->opcode = eReg2Reg;
-    back->m_val2 = -SZ_INT;
+    const Instr base = back->opcode != eGWOP_EXCEPT ?
+      back : (Instr)vector_at(&emit->code->instr, vector_size(&emit->code->instr) -2);
+    const m_bit exec = base->opcode;
+    const m_uint val = base->m_val;
+    const m_uint val2 = base->m_val2;
+    base->opcode = eReg2Reg;
+    base->m_val2 = -SZ_INT;
     regpush(emit, SZ_INT);
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val = val;
@@ -1349,45 +1390,6 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
   return ret;
 }
 
-ANN static void struct_addref(const Emitter emit, const Type type,
-    const m_int size, const m_bool offset, const m_bool emit_var) {
-  if(!type->info->tuple)
-    return;
-  for(m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
-    const Type t = (Type)vector_at(&type->info->tuple->types, i);
-    if(isa(t, emit->gwion->type[et_object]) > 0) {
-      const Instr instr = emit_addref(emit, emit_var);
-      instr->m_val = size;
-      instr->m_val2 = vector_at(&type->info->tuple->offset, i);
-    } else if(tflag(t, tflag_struct))
-      struct_addref(emit, t, size, offset + vector_at(&type->info->tuple->offset, i), emit_var);
-  }
-}
-
-ANN static inline m_uint exp_size(const Exp e) {
-  if(exp_getvar(e))
-    return SZ_INT;
-  const Type type = e->info->cast_to ?: e->info->type;
-  return type->size;
-}
-
-ANN2(1) static void emit_exp_addref1(const Emitter emit, /* const */Exp exp, m_int size) {
-  if(isa(exp->info->type, emit->gwion->type[et_object]) > 0 &&
-    (exp->info->cast_to ? isa(exp->info->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
-    const Instr instr = emit_addref(emit, exp_getvar(exp));
-    instr->m_val = size;
-  } else if(tflag(exp->info->type, tflag_struct)) // check cast_to ?
-    struct_addref(emit, exp->info->type, size, 0, exp_getvar(exp));
-}
-
-ANN2(1) static void emit_exp_addref(const Emitter emit, /* const */Exp exp, m_int size) {
-  do {
-    emit_exp_addref1(emit, exp, size);
-    size += exp_size(exp);
-  } while((exp = exp->next));
-}
-
-
 ANN static inline m_bool emit_prim_novar(const Emitter emit, const Exp_Primary *prim) {
   const Exp e = exp_self(prim);
   const uint var = exp_getvar(e);
@@ -1404,7 +1406,6 @@ ANN static m_bool emit_upvalues(const Emitter emit, const Func func) {
     const Value v = prim->value;
     CHECK_BB(emit_prim_novar(emit, prim));
     if(isa(prim->value->type, emit->gwion->type[et_compound]) > 0) {
-       emit_exp_addref1(emit, exp_self(prim), -v->type->size);
        if(vflag(v, vflag_fglobal) && !vflag(v, vflag_closed))
          emit_exp_addref1(emit, exp_self(prim), -v->type->size);
        map_set(&func->code->closure->m, (vtype)v->type, VVAL(map, i));
