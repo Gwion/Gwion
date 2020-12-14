@@ -129,6 +129,7 @@ ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code 
   if(!shred->tick->child.ptr)
     vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
+  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
