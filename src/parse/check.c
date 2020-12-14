@@ -687,10 +687,11 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 ANN m_bool func_check(const Env env, const Exp_Call *exp) {
   CHECK_OB(check_exp(env, exp->func))
   const Type t = actual_type(env->gwion, exp->func->info->type);
+  const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
-  .rhs=t, .pos=exp_self(exp)->pos, .data=(uintptr_t)exp, .op_type=op_exp };
+  .rhs=t, .pos=exp_self(exp)->pos, .data=(uintptr_t)e, .op_type=op_exp };
   CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
-  return exp_self(exp)->info->type != env->gwion->type[et_error] ?
+  return e->info->type != env->gwion->type[et_error] ?
     GW_OK : GW_ERROR;
 }
 

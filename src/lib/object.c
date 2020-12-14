@@ -66,22 +66,24 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   MemPool p = shred->info->mp;
   Type t = o->type_ref;
   do {
-    if(!t->nspc || isa(t, shred->info->vm->gwion->type[et_union]) > 0)
+    if(!t->nspc)
       continue;
-    struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
-    Value v;
-    while(scope_iter(&iter, &v) > 0) {
-      if(!GET_FLAG(v, static) && !vflag(v, vflag_union) &&
-          isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
-        release(*(M_Object*)(o->data + v->from->offset), shred);
-      else if(tflag(v->type, tflag_struct) &&
-            !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->info->tuple) {
-        const TupleForm tf = v->type->info->tuple;
-        for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
-          const m_bit *data = o->data + v->from->offset;
-          const Type t = (Type)vector_at(&tf->types, i);
-          if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-            release(*(M_Object*)(data + vector_at(&tf->offset, i)), shred);
+    if(isa(t, shred->info->vm->gwion->type[et_union]) > 0) {
+      struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
+      Value v;
+      while(scope_iter(&iter, &v) > 0) {
+        if(!GET_FLAG(v, static) && !vflag(v, vflag_union) &&
+            isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
+          release(*(M_Object*)(o->data + v->from->offset), shred);
+        else if(tflag(v->type, tflag_struct) &&
+              !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->info->tuple) {
+          const TupleForm tf = v->type->info->tuple;
+          for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
+            const m_bit *data = o->data + v->from->offset;
+            const Type t = (Type)vector_at(&tf->types, i);
+            if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
+              release(*(M_Object*)(data + vector_at(&tf->offset, i)), shred);
+          }
         }
       }
     }

@@ -407,9 +407,9 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
     DECL_OB(const Type, t, = known_type(env, l->td))
     if(nspc_lookup_value0(env->curr, l->xid))
       ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
-// check name
-puts(env->curr->name);
     const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
+    if(!tflag(t, tflag_scan1))
+      tuple_contains(env, v);
     v->from->offset = SZ_INT;
     valuefrom(env ,v->from);
     nspc_add_value_front(env->curr, l->xid, v);

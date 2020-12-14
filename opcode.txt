@@ -160,6 +160,8 @@ DotMember
 DotMember2
 DotMember3
 DotMember4
+UnionSet
+UnionCheck
 DotStatic
 DotStatic2
 DotStatic3

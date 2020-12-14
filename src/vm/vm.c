@@ -323,6 +323,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+    &&unionset, &&unioncheck,
     &&staticint, &&staticfloat, &&staticother,
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc, &&dotstaticfunc,
@@ -757,7 +758,7 @@ arrayvalid:
   vector_pop(&shred->gc);
   goto regpush;
 newobj:
-  *(M_Object*)reg = new_object(vm->gwion->mp, shred, (Type)VAL2);
+  *(M_Object*)reg = new_object(vm->gwion->mp, NULL, (Type)VAL2);
   reg += SZ_INT;
   DISPATCH()
 addref:
@@ -822,6 +823,15 @@ PRAGMA_POP()
   DISPATCH()
 dotaddr:
   *(m_bit**)(reg-SZ_INT) = ((*(M_Object*)(reg-SZ_INT))->data + VAL);
+  DISPATCH()
+unionset:
+  *(m_uint*)(*(M_Object*)(reg-SZ_INT))->data = VAL;
+  DISPATCH()
+unioncheck:
+  if(*(m_uint*)(*(M_Object*)(reg-SZ_INT))->data != VAL) {
+    exception(shred, "invalid union acces");
+    continue;
+  }
   DISPATCH()
 staticint:
   *(m_uint*)reg = *(m_uint*)VAL;

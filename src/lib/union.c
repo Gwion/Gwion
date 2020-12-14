@@ -16,31 +16,30 @@ static GACK(gack_none) {
   INTERP_PRINTF("None")
 }
 
-static INSTR(UnionSet) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
-  *(m_uint*)o->data = instr->m_val;
-  memcpy(o->data + SZ_INT, REG(-SZ_INT-instr->m_val2), instr->m_val2);
-  *(m_bit**)REG(-SZ_INT) = o->data + SZ_INT;
-}
+static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 
-static INSTR(UnionCheck) {
-  const M_Object o = *(M_Object*)REG(-SZ_INT);
-  if(*(m_uint*)o->data != instr->m_val)
-    Except(shred, _("invalid union access"))
-  POP_REG(shred, SZ_INT - instr->m_val2);
-  memcpy(REG(-instr->m_val2), o->data + SZ_INT, instr->m_val2);
-}
+ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]);
 
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const Map map = &member->t_base->nspc->info->value->map;
+  CHECK_BO(emit_exp(emit, member->base))
+  if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0) {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    const Func f = (Func)vector_front(&member->t_base->info->parent->nspc->info->vtable);
+    instr->m_val = (m_uint)f->code;
+    return instr;
+  }
   for(m_uint i = 0; i < map_size(map); ++i) {
     if(VKEY(map, i) == (m_uint)member->xid) {
-      CHECK_BO(emit_exp(emit, member->base))
-      const Instr instr = emit_add_instr(emit,
-        !exp_getvar(exp_self(member)) ? UnionCheck : UnionSet);
-      instr->m_val = i + 1;
-      instr->m_val2 = ((Value)VVAL(map, i))->type->size;
+      const Value v = (Value)VVAL(map, i);
+      const uint emit_addr = exp_getvar(exp_self(member));
+      const Instr pre = emit_add_instr(emit,
+        !emit_addr ? UnionCheck : UnionSet);
+      pre->m_val = i + 1;
+      const Instr instr = emit_kind(emit, v->type->size, emit_addr, dotmember);
+      instr->m_val = SZ_INT;
+      instr->m_val2 = v->type->size;
       return instr;
     }
   }
@@ -50,10 +49,37 @@ static OP_EMIT(opem_union_dot) {
 static DTOR(UnionDtor) {
   const m_uint idx = *(m_uint*)o->data;
   if(idx) {
-    const Type t = *(Type*)(o->type_ref->nspc->info->class_data + (idx-1) * SZ_INT);
-    if(isa(t, shred->info->vm->gwion->type[et_compound]) > 0)
-      compound_release(shred, t, (o->data + SZ_INT));
+    const Map map = &o->type_ref->nspc->info->value->map;
+    const Value v = (Value)map_at(map, idx-1);
+    if(isa(v->type, shred->info->vm->gwion->type[et_compound]) > 0)
+      compound_release(shred, v->type, (o->data + SZ_INT));
   }
+}
+
+static OP_CHECK(opck_union_is) {
+  const Exp e = (Exp)data;
+  const Exp_Call *call = &e->d.exp_call;
+  const Exp exp = call->args;
+  if(exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
+    ERR_N(exp->pos, "Union.is() argument must be of form id");
+  const Type t = call->func->d.exp_dot.t_base;
+  const Value v = find_value(t, exp->d.prim.d.var);
+  if(!v)
+    ERR_N(exp->pos, "'%s' has no member '%s'", t->name, s_name(exp->d.prim.d.var));
+  const Map map = &t->nspc->info->value->map;
+  for(m_uint i = 0; i < map_size(map); ++i) {
+    const Value v = (Value)VVAL(map, i);
+    if(!strcmp(s_name(exp->d.prim.d.var), v->name)) {
+      exp->d.prim.prim_type = ae_prim_num;
+      exp->d.prim.d.num = i+1;
+      return env->gwion->type[et_bool];
+    }
+  }
+  return env->gwion->type[et_error];
+}
+
+static MFUN(union_is) {
+  *(m_uint*)RETURN = *(m_uint*)MEM(SZ_INT) == *(m_uint*)o->data;
 }
 
 ANN GWION_IMPORT(union) {
@@ -68,7 +94,15 @@ ANN GWION_IMPORT(union) {
   gwi_class_xtor(gwi, NULL, UnionDtor);
   GWI_BB(gwi_item_ini(gwi, "int", "@index"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_func_ini(gwi, "bool", "is"))
+  GWI_BB(gwi_func_arg(gwi, "int", "member"))
+  GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
+  const Func f = (Func)vector_front(&t_union->nspc->info->vtable);
+  const struct Op_Func opfunc = { .ck=opck_union_is };
+  const struct Op_Import opi = { .rhs=f->value_ref->type,
+       .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=insert_symbol(gwi->gwion->st, "@func_check") };
+  CHECK_BB(add_op(gwi->gwion, &opi))
   gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))
