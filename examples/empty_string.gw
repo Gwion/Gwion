@@ -1,2 +1,2 @@
-"test" => ref string s;
+"test" @=> var string s;
 <<<  s  >>>;

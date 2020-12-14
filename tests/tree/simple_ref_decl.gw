@@ -1,2 +1,2 @@
-ref Object o;
+late Object o;
 <<< o >>>;

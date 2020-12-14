@@ -35,7 +35,7 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  if(!env->func && env->class_def && !GET_FLAG(td, ref))
+  if(!env->func && env->class_def && !GET_FLAG(td, late))
     CHECK_BO(type_cyclic(env, t, td))
   CHECK_BO(ensure_scan1(env, t))
   return type;
@@ -85,10 +85,10 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);
-    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref)) {
+    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) {
       if(!(t == env->class_def && env->scope->depth)) {
         if(decl->td->xid == insert_symbol("auto"))
-          SET_FLAG(decl->td, ref);
+          SET_FLAG(decl->td, late);
         else
           ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
       }
@@ -105,7 +105,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     v->flag |= decl->td->flag;
     v->type = t;
     if(array_ref(var->array))
-      SET_FLAG(decl->td, ref);
+      SET_FLAG(decl->td, late);
     if(env->class_def) {
       if(env->class_def->info->tuple)
         tuple_contains(env, v);
@@ -131,7 +131,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   if(array_ref(decl->td->array))
-   SET_FLAG(decl->td, ref);
+   SET_FLAG(decl->td, late);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   if(global) {

@@ -1,4 +1,4 @@
 class C {
-	ref Object i, a;
+	late Object i, a;
 }
 

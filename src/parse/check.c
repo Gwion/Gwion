@@ -122,11 +122,11 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
 
 ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Value v) {
   if(!exp_getvar(exp_self(decl)) &&
-      (GET_FLAG(decl->td, ref) || is_fptr(gwion, v->type))) {
-    SET_FLAG(decl->td, ref);
-    SET_FLAG(v, ref);
+      (GET_FLAG(decl->td, late) || is_fptr(gwion, v->type))) {
+    SET_FLAG(decl->td, late);
+    SET_FLAG(v, late);
   } else
-    UNSET_FLAG(v, ref);
+    UNSET_FLAG(v, late);
 }
 
 ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
@@ -173,7 +173,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
   if(decl->td->xid == insert_symbol("auto")) { // should be better
-    SET_FLAG(decl->td, ref);
+    SET_FLAG(decl->td, late);
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
   }

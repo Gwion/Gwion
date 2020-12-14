@@ -5,6 +5,6 @@ class C {
 
 var C c;
 var C.D d;
-ref C.D d_ref;
+late C.D d_ref;
 
 <<<  c, " ", d, d_ref  >>>;

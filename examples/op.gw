@@ -5,7 +5,7 @@ operator void => (Object o, int i) {
 }
 
 class C {
-	ref Object ref_object;
+	late Object ref_object;
 }
 
 #!! assign object to C.ref

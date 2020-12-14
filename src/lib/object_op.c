@@ -34,7 +34,7 @@ static OP_CHECK(at_object) {
   if(opck_rassign(env, data, mut) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if(bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.td, ref);
+    SET_FLAG(bin->rhs->d.exp_decl.td, late); // ???
   exp_setvar(bin->rhs, 1);
   CHECK_BO(isa(bin->lhs->info->type , bin->rhs->info->type))
   return bin->rhs->info->type;
@@ -204,7 +204,7 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val = (m_uint)value->type;
   }
-  if(GET_FLAG(value, ref)) {
+  if(GET_FLAG(value, late)) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = -SZ_INT;
   }

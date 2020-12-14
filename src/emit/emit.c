@@ -486,7 +486,7 @@ ANN static void struct_addref(const Emitter emit, const Type type,
 ANN2(1) static void emit_exp_addref1(const Emitter emit, /* const */Exp exp, m_int size) {
   if(isa(exp->info->type, emit->gwion->type[et_object]) > 0 &&
         (exp->info->cast_to ? isa(exp->info->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
-    if(exp->exp_type == ae_exp_decl && GET_FLAG(exp->d.exp_decl.td, ref) && !exp_getvar(exp)) {
+    if(exp->exp_type == ae_exp_decl && GET_FLAG(exp->d.exp_decl.td, late) && !exp_getvar(exp)) {
       const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
       instr->m_val = size;
     }
@@ -775,7 +775,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   if(!vflag(v, vflag_member)) {
     v->from->offset = emit_local(emit, type);
     exec = (f_instr*)(allocword);
-    if(GET_FLAG(decl->td, ref)) { // ref or emit_var ?
+    if(GET_FLAG(decl->td, late)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
       clean->m_val = v->from->offset;
     }
@@ -850,7 +850,7 @@ ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
 ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const uint var = exp_getvar(exp_self(decl));
-  const uint ref = GET_FLAG(decl->td, ref) || type_ref(decl->type);
+  const uint ref = GET_FLAG(decl->td, late) || type_ref(decl->type);
   Var_Decl_List list = decl->list;
   do {
     if(GET_FLAG(decl->td, static))
