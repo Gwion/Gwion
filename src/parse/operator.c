@@ -34,18 +34,6 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   map_release(map);
 }
 
-ANN static Type op_parent(const Env env, const Type t) {
-  if(tflag(t, tflag_ctmpl)) {
-    const Type type = typedef_base(t);
-    char name[strlen(type->name) + 1];
-    strcpy(name, type->name);
-    const m_str post = strchr(name, ':');
-    *post = '\0';
-    return nspc_lookup_type1(env->curr, insert_symbol(env->gwion->st, name));
-  }
-  return t->info->parent;
-}
-
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
@@ -177,7 +165,7 @@ ANN static Type op_check_inner(struct OpChecker* ock) {
       else
         return mo->ret;
     }
-  } while(r && (r = op_parent(ock->env, r)));
+  } while(r && (r = r->info->parent));
   return NULL;
 }
 
@@ -197,7 +185,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
             set_nspc(&opi2, nspc);
           return ret;
         }
-      } while(l && (l = op_parent(env, l)));
+      } while(l && (l = l->info->parent));
     }
   } while((nspc = nspc->parent));
 //  if(env->func && env->func->nspc)
@@ -270,11 +258,10 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
           const m_bool ret = mo->em(emit, (void*)opi->data);
           if(ret)
             return ret;
-        }
-        else if(mo->func || mo->instr)
+        } else if(mo->func || mo->instr)
           return handle_instr(emit, mo);
       }
-    } while(r && (r = op_parent(emit->env, r)));
-  } while(l && (l = op_parent(emit->env, l)));
+    } while(r && (r = r->info->parent));
+  } while(l && (l = l->info->parent));
   return GW_ERROR;
 }

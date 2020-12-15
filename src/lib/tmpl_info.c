@@ -10,8 +10,8 @@
 #include "tmpl_info.h"
 
 ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
-  const Type t = (Type)vector_at(&info->type, info->index);
-  strcpy(str, t->name);
+  const m_str tmp = (m_str)vector_at(&info->type, info->index);
+  strcpy(str, tmp);
   return str += vector_at(&info->size, info->index);
 }
 
@@ -31,23 +31,16 @@ ANN static void template_name(struct tmpl_info* info, m_str s) {
   *str = '\0';
 }
 
-ANN static inline size_t tmpl_set(struct tmpl_info* info, const Type t) {
-  vector_add(&info->type, (vtype)t);
-  const size_t len = strlen(t->name);
+ANN static inline size_t tmpl_set(struct tmpl_info* info, const m_str str) {
+  vector_add(&info->type, (vtype)str);
+  const size_t len = strlen(str);
   vector_add(&info->size, len);
   return len;
 }
 
 ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
-  ID_List base = info->list; // ???
-  Type_List call = info->td->types;
-  size_t size = 0;
-  do {
-    DECL_OB(const Type, t, = known_type(env, call->td))
-    size += tmpl_set(info, t);
-  } while((call = call->next) && (base = base->next) && ++size);
-  size += tmpl_set(info, info->base);
-  return size + 4;
+  DECL_OB(const m_str, str, = tl2str(env, info->td->types))
+  return tmpl_set(info, str) + tmpl_set(info, info->base->name) + 4;
 }
 
 ANEW ANN static Symbol template_id(const Env env, struct tmpl_info *const info) {

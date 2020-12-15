@@ -208,6 +208,8 @@ static OP_CHECK(opck_auto_fptr) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary* bin = (Exp_Binary*)data;
+  if(bin->rhs->exp_type == ae_exp_decl)
+    UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   if(bin->rhs->info->type->info->func->def->base->tmpl &&
      bin->rhs->info->type->info->func->def->base->tmpl->call) {
     struct FptrInfo info = { bin->lhs->info->type->info->func, bin->rhs->info->type->info->parent->info->func,

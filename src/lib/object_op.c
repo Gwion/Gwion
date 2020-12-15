@@ -204,9 +204,10 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val = (m_uint)value->type;
   }
-  if(GET_FLAG(value, late)) {
+  if(GET_FLAG(value, late) && !exp_getvar(exp_self(member))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    instr->m_val = -SZ_INT;
+    if(!is_fptr(emit->gwion, value->type))
+      instr->m_val = -SZ_INT;
   }
   return GW_OK;
 }
@@ -256,7 +257,6 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
-puts("here");
   struct tmpl_info info = { .base=t, .td=td, .list=t->info->cdef->base.tmpl->list  };
   const Type exists = tmpl_exists(env, &info);
   if(exists)
