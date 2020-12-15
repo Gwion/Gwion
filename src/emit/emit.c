@@ -720,7 +720,7 @@ ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl, const Va
   CHECK_BB(emit_instantiate_decl(emit, v->type, decl->td, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, 1))
   emit_add_instr(emit, Assign);
-  (void)emit_addref(emit, 0);
+//  (void)emit_addref(emit, 0);
   regpop(emit, SZ_INT);
   emit->code = code;
   return GW_OK;
@@ -1339,7 +1339,6 @@ ANN static Instr spork_ini(const Emitter emit, const struct Sporker *sp) {
     return instr;
   }
   regpushi(emit, (m_uint)sp->type);
-  const Func f = !sp->code ? sp->exp->d.exp_call.m_func : NULL;
   const Instr instr = emit_add_instr(emit, ForkIni);
   instr->m_val = (m_uint)sp->vm_code;
   instr->m_val2 = sp->type->size;

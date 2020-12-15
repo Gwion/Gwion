@@ -68,7 +68,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
   do {
     if(!t->nspc)
       continue;
-    if(isa(t, shred->info->vm->gwion->type[et_union]) > 0) {
+    if(isa(t, shred->info->vm->gwion->type[et_union]) < 0) {
       struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
       Value v;
       while(scope_iter(&iter, &v) > 0) {
