@@ -107,10 +107,9 @@ ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
   return NULL;
 }
 
-ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+ANN static Func find_tmpl(const Env env, const Value v, const Exp_Call* exp, const m_str tmpl_name) {
   const Type_List types = exp->tmpl->call;
   const Func former = env->func;
-  DECL_OO(const m_str, tmpl_name, = tl2str(env, types))
   const m_uint scope = env->scope->depth;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=tflag_check };
@@ -119,12 +118,18 @@ ANN static Func _find_template_match(const Env env, const Value v, const Exp_Cal
   (void)env_push(env, v->from->owner_class, v->from->owner);
   const Func m_func = !is_fptr(env->gwion, v->type) ?
       func_match(env, &ra) :fptr_match(env, &ra);
-  free_mstr(env->gwion->mp, tmpl_name);
   if(es.run)
     envset_pop(&es, v->from->owner_class);
   env_pop(env, scope);
   env->func = former;
   return m_func;
+}
+
+ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+  DECL_OO(const m_str, tmpl_name, = tl2str(env, exp->tmpl->call))
+  const Func f = find_tmpl(env, v, exp, tmpl_name);
+  free_mstr(env->gwion->mp, tmpl_name);
+  return f;
 }
 
 ANN static inline m_bool check_call(const Env env, const Exp_Call* exp) {

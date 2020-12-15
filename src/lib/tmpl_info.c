@@ -40,19 +40,26 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const m_str str) {
 
 ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
   DECL_OB(const m_str, str, = tl2str(env, info->td->types))
-  return tmpl_set(info, str) + tmpl_set(info, info->base->name) + 4;
+  const m_str base = type2str(env, info->base);
+  return tmpl_set(info, str) + tmpl_set(info, base) + 4;
+}
+
+ANEW ANN static Symbol _template_id(const Env env, struct tmpl_info *const info, const size_t sz) {
+  char name[sz];
+  template_name(info, name);
+  return insert_symbol(name);
 }
 
 ANEW ANN static Symbol template_id(const Env env, struct tmpl_info *const info) {
   vector_init(&info->type);
   vector_init(&info->size);
   ssize_t sz = template_size(env, info);
-  char name[sz];
-  if(sz > GW_ERROR)
-    template_name(info, name);
+  const Symbol sym = sz > GW_ERROR ? _template_id(env, info, sz) : NULL;
+  for(m_uint i = 0; i < vector_size(&info->type); ++i)
+    mp_free2(env->gwion->mp, vector_at(&info->size, i), (m_str)vector_at(&info->type, i));
   vector_release(&info->type);
   vector_release(&info->size);
-  return sz > GW_ERROR ? insert_symbol(name) : NULL;
+  return sym;
 }
 
 ANN static m_bool template_match(ID_List base, Type_List call) {

@@ -33,15 +33,32 @@ struct td_info {
   GwText text;
 };
 
+ANN static void td_fullname(const Env env, GwText *text, const Type t) {
+  const Type owner = t->info->owner_class;
+  if(owner) {
+    td_fullname(env, text, owner);
+    text_add(text, ".");
+  }
+  text_add(text, t->name);
+}
+
 ANN static m_bool td_info_run(const Env env, struct td_info* info) {
   Type_List tl = info->tl;
   do {
     DECL_OB(const Type,  t, = known_type(env, tl->td))
-    text_add(&info->text, t->name);
+    td_fullname(env, &info->text, t);
     if(tl->next)
       text_add(&info->text, ",");
   } while((tl = tl->next));
   return GW_OK;
+}
+
+ANEW ANN m_str type2str(const Env env, const Type t) {
+  GwText text = { .mp=env->gwion->mp };
+  if(t->info->owner_class)
+    td_fullname(env, &text, t->info->owner_class);
+  text_add(&text, t->name);
+  return text.str;
 }
 
 ANEW ANN m_str tl2str(const Env env, Type_List tl) {
