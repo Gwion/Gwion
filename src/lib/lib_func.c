@@ -291,6 +291,9 @@ ANN static Type fork_type(const Env env, const Exp_Unary* unary) {
   const Type fork = env->gwion->type[et_fork];
   UNSET_FLAG(fork, final);
   const Type typed = str2type(env->gwion, "TypedFork", exp_self(unary)->pos);
+  // ensure room for retval
+  if(typed->nspc->info->offset == fork->nspc->info->offset)
+    typed->nspc->info->offset += t->size;
   UNSET_FLAG(typed, final);
   const Type ret = str2type(env->gwion, c, exp_self(unary)->pos);
   SET_FLAG(typed, final);
