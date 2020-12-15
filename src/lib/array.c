@@ -190,10 +190,11 @@ static OP_CHECK(opck_array_sr) {
   return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->pos);
 }
 
-ANN static Instr emit_array_shift(const Emitter emit, const f_instr exec) {
+ANN static inline m_bool emit_array_shift(const Emitter emit, const f_instr exec) {
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
-  return emit_add_instr(emit, exec);
+  (void)emit_add_instr(emit, exec);
+  return GW_OK;
 }
 
 static INSTR(ArrayAppendFront) {
@@ -244,8 +245,9 @@ static OP_EMIT(opem_array_sr) {
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
-  (void)emit_gc(emit, 0);
-  return emit_add_instr(emit, ArrayAppendFront);
+  emit_gc(emit, 0);
+  (void)emit_add_instr(emit, ArrayAppendFront);
+  return GW_OK;
 }
 
 static OP_EMIT(opem_array_sl) {
@@ -254,8 +256,9 @@ static OP_EMIT(opem_array_sl) {
     return emit_array_shift(emit, ArrayConcatLeft);
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = bin->rhs->info->type->size;
-  (void)emit_gc(emit, -SZ_INT);
-  return emit_add_instr(emit, ArrayAppend);
+  emit_gc(emit, -SZ_INT);
+  emit_add_instr(emit, ArrayAppend);
+  return GW_OK;
 }
 
 // check me. use common ancestor maybe
@@ -306,7 +309,8 @@ static INSTR(ArraySlice) {
 
 static OP_EMIT(opem_array_slice) {
   emit_add_instr(emit, ArraySlice);
-  return emit_gc(emit, -SZ_INT);
+  emit_gc(emit, -SZ_INT);
+  return GW_OK;
 }
 
 static FREEARG(freearg_array) {
@@ -377,7 +381,7 @@ static OP_EMIT(opem_array_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo*)data;
   if(info->array.type->array_depth >= info->array.depth) {
     struct Array_Sub_ next = { .exp=info->array.exp, .type=info->type, .depth=info->array.depth };
-    return (Instr)(m_uint)array_do(emit, &next, info->is_var);
+    return array_do(emit, &next, info->is_var);
   }
   struct Array_Sub_ partial = { info->array.exp, info->array.type, info->array.type->array_depth };
   struct Array_Sub_ next = { info->array.exp, array_base(info->array.type), info->array.depth - info->array.type->array_depth };
@@ -385,7 +389,7 @@ static OP_EMIT(opem_array_access) {
   const Exp exp = emit_n_exp(emit, info);
   next.exp = exp;
   info->array = next;
-  return (Instr)(m_uint)(exp ? emit_array_access(emit, info) : GW_ERROR);
+  return exp ? emit_array_access(emit, info) : GW_ERROR;
 }
 
 GWION_IMPORT(array) {

@@ -81,7 +81,7 @@ static OP_EMIT(opem_int_range) {
   const Exp exp = (Exp)data;
   const Instr instr = emit_add_instr(emit, IntRange);
   instr->m_val = (m_uint)exp->info->type;
-  return instr;
+  return GW_OK;
 }
 
 static GWION_IMPORT(int_unary) {

@@ -132,7 +132,7 @@ static OP_EMIT(opem_vararg_cast) {
   instr->m_val = (m_uint)exp_self(cast)->info->type;
   const Instr push = emit_add_instr(emit, RegPush);
   push->m_val = exp_self(cast)->info->type->size - SZ_INT;
-  return instr;
+  return GW_OK;
 }
 
 static FREEARG(freearg_vararg) {

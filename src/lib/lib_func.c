@@ -40,7 +40,7 @@ static OP_EMIT(opem_func_assign) {
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
     cpy->m_val = -SZ_INT;
   }
-  return instr;
+  return GW_OK;
 }
 
 struct FptrInfo {
@@ -249,7 +249,7 @@ static OP_EMIT(opem_fptr_cast) {
     fptr_instr(emit, cast->exp->info->type->info->func, 1);
   if(is_member(cast->exp->info->type))
     member_fptr(emit);
-  return (Instr)GW_OK;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_fptr_impl) {
@@ -266,7 +266,7 @@ static OP_EMIT(opem_fptr_impl) {
     member_fptr(emit);
   if(impl->t->info->func->def->base->tmpl)
     fptr_instr(emit, ((Exp)impl->e)->info->type->info->func, 1);
-  return (Instr)GW_OK;
+  return GW_OK;
 }
 
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);

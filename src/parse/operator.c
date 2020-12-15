@@ -219,18 +219,19 @@ ANN m_bool operator_set_func(const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static Instr handle_instr(const Emitter emit, const M_Operator* mo) {
+ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr push = emit_add_instr(emit, mo->func->code ? RegPushImm : SetFunc);
     push->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
-    CHECK_BO(emit_exp_call1(emit, mo->func))
+    CHECK_BB(emit_exp_call1(emit, mo->func))
     if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@conditionnal"))
-      return emit_add_instr(emit, BranchEqInt);
-    if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditionnal"))
-      return emit_add_instr(emit, BranchNeqInt);
-    return push;
+      emit_add_instr(emit, BranchEqInt);
+    else if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditionnal"))
+      emit_add_instr(emit, BranchNeqInt);
+    return GW_OK;
   }
-  return emit_add_instr(emit, mo->instr);
+  (void)emit_add_instr(emit, mo->instr);
+  return GW_OK;
 }
 
 ANN static Nspc get_nspc(const struct Op_Import* opi) {
@@ -254,8 +255,8 @@ ANN static inline Nspc ensure_nspc(const struct Op_Import* opi) {
   return nspc;
 }
 
-ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
-  DECL_OO(Nspc, nspc, = ensure_nspc(opi))
+ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
+  DECL_OB(Nspc, nspc, = ensure_nspc(opi))
   Type l = opi->lhs;
   do {
     Type r = opi->rhs;
@@ -266,7 +267,7 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
       const M_Operator* mo = operator_find(v, l, r);
       if(mo) {
         if(mo->em) {
-          const Instr ret = mo->em(emit, (void*)opi->data);
+          const m_bool ret = mo->em(emit, (void*)opi->data);
           if(ret)
             return ret;
         }
@@ -275,5 +276,5 @@ ANN Instr op_emit(const Emitter emit, const struct Op_Import* opi) {
       }
     } while(r && (r = op_parent(emit->env, r)));
   } while(l && (l = op_parent(emit->env, l)));
-  return NULL;
+  return GW_ERROR;
 }

@@ -23,12 +23,12 @@ ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_in
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const Map map = &member->t_base->nspc->info->value->map;
-  CHECK_BO(emit_exp(emit, member->base))
+  CHECK_BB(emit_exp(emit, member->base))
   if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     const Func f = (Func)vector_front(&member->t_base->info->parent->nspc->info->vtable);
     instr->m_val = (m_uint)f->code;
-    return instr;
+    return GW_OK;
   }
   for(m_uint i = 0; i < map_size(map); ++i) {
     if(VKEY(map, i) == (m_uint)member->xid) {
@@ -40,10 +40,10 @@ static OP_EMIT(opem_union_dot) {
       const Instr instr = emit_kind(emit, v->type->size, emit_addr, dotmember);
       instr->m_val = SZ_INT;
       instr->m_val2 = v->type->size;
-      return instr;
+      return GW_OK;
     }
   }
-  return NULL;
+  return GW_ERROR;
 }
 
 static DTOR(UnionDtor) {

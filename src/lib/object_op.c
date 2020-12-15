@@ -57,7 +57,7 @@ static OP_CHECK(opck_implicit_null2obj) {
 }
 
 static OP_EMIT(opem_implicit_null2obj) {
-  return (Instr)GW_OK;
+  return GW_OK;
 }
 
 ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl * td);
@@ -186,7 +186,7 @@ OP_EMIT(opem_object_dot) {
        (isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 &&
        !is_fptr(emit->gwion, exp_self(member)->info->type)))) {
     if(!tflag(t_base, tflag_struct))
-      CHECK_BO(emit_exp(emit, member->base))
+      CHECK_BB(emit_exp(emit, member->base))
   }
   if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->info->type))
 	  emit_member_func(emit, member);
@@ -195,7 +195,7 @@ OP_EMIT(opem_object_dot) {
       emit_member(emit, value, exp_getvar(exp_self(member)));
     else {
       exp_setvar(member->base, 1);
-      CHECK_BO(emit_exp(emit, member->base))
+      CHECK_BB(emit_exp(emit, member->base))
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
     }
   } else if(GET_FLAG(value, static))
@@ -208,7 +208,7 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = -SZ_INT;
   }
-  return (Instr)GW_OK;
+  return GW_OK;
 }
 
 ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {

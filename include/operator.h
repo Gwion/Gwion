@@ -12,8 +12,8 @@
 #define CHECK_BN(f) { if(f < 0) return env->gwion->type[et_error]; }
 #define CHECK_NN(f) { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }
 
-typedef Type (*opck)(const Env, void*, m_bool*);
-typedef struct Instr_* (*opem)(const Emitter, void*);
+typedef Type   (*opck)(const Env, void*, m_bool*);
+typedef m_bool (*opem)(const Emitter, void*);
 
 struct Op_Func {
   opck ck;
@@ -54,7 +54,7 @@ struct TemplateScan {
 
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
-ANN struct Instr_* op_emit(const Emitter, const struct Op_Import*);
+ANN m_bool op_emit(const Emitter, const struct Op_Import*);
 ANN m_bool operator_set_func(const struct Op_Import*);
 ANN void free_op_map(Map map, struct Gwion_* gwion);
 

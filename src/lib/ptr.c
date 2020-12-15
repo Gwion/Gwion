@@ -61,7 +61,7 @@ static OP_EMIT(opem_ptr_assign) {
     emit_add_instr(emit, instr_ptr_assign_obj);
   } else
     emit_add_instr(emit, instr_ptr_assign);
-  return pop;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_ptr_deref) {
@@ -123,14 +123,14 @@ static OP_EMIT(opem_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
   instr->m_val = (m_uint)exp_self(cast)->info->type;
-  return instr;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
   instr->m_val = (m_uint)imp->t;
-  return instr;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_ptr_deref) {
@@ -138,7 +138,7 @@ static OP_EMIT(opem_ptr_deref) {
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
   instr->m_val = exp_self(unary)->info->type->size;
   instr->m_val2 = exp_getvar(exp_self(unary));
-  return instr;
+  return GW_OK;
 }
 
 ANN Type scan_class(const Env env, const Type t, const Type_Decl* td);
@@ -176,17 +176,7 @@ static OP_CHECK(opck_ptr_ref) {
   exp_setvar(bin->rhs, 1);
   return bin->rhs->info->type;
 }
-/*
-static OP_EMIT(opem_ptr_ref) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, Reg2Reg);
-  instr->m_val = -SZ_INT;
-  instr->m_val2 = -SZ_INT*2;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
-  return instr;
-}
-*/
+
 static GACK(gack_ptr) {
   INTERP_PRINTF("%p", *(m_str*)VALUE);
 }

@@ -99,5 +99,6 @@ OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->info->type,
     unary->td->array, 0))
-  return emit_gc(emit, -SZ_INT);
+  emit_gc(emit, -SZ_INT);
+  return GW_OK;
 }
