@@ -20,7 +20,7 @@ ANN2(1,2,3) static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
   CHECK_BB(ck_ini(gwi, ck_fdef))
   gwi->ck->name = n;
   CHECK_BB(check_typename_def(gwi, gwi->ck))
-  CHECK_OB((gwi->ck->td = gwi_str2decl(gwi, t)))
+  CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)))
   vector_init(&gwi->ck->v);
   return GW_OK;
 }
@@ -97,7 +97,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
     gwi->ck->variadic = 1;
     return GW_OK;
   }
-  DECL_OB(Type_Decl*, td, = gwi_str2decl(gwi, t))
+  DECL_OB(Type_Decl*, td, = gwi_str2td(gwi, t))
   const Var_Decl var = gwi_str2var(gwi, n);
   if(var) {
     const Arg_List arg = new_arg_list(gwi->gwion->mp, td, var, NULL);

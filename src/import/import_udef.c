@@ -16,7 +16,7 @@
 
 // move me
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
-  DECL_OO(Type_Decl*, td, = gwi_str2decl(gwi, type))
+  DECL_OO(Type_Decl*, td, = gwi_str2td(gwi, type))
   const Var_Decl_List vlist = gwi_str2varlist(gwi, name);
   if(vlist)
     return new_exp_decl(gwi->gwion->mp, td, vlist, loc(gwi));
@@ -33,7 +33,7 @@ ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
   CHECK_BB(ck_ok(gwi, ck_udef))
-  DECL_OB(Type_Decl*, td, = str2decl(gwi->gwion, type, gwi->loc))
+  DECL_OB(Type_Decl*, td, = str2td(gwi->gwion, type, gwi->loc))
   DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc))
   const Union_List l = new_union_list(gwi->gwion->mp, td, xid, loc(gwi));
   l->next = gwi->ck->list;

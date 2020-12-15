@@ -137,9 +137,9 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 
 }
 
-ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc);
+ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc);
 ANN Type_List __str2tl(const Gwion gwion, struct td_checker *tdc) {
-  Type_Decl *td = _str2decl(gwion, tdc);
+  Type_Decl *td = _str2td(gwion, tdc);
   if(!td)
     GWION_ERR_O(tdc->pos, "invalid types");
   Type_List next = NULL;
@@ -174,7 +174,7 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   return tl;
 }
 
-ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
+ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   struct AC ac = { .str = tdc->str, .pos=tdc->pos };
   CHECK_BO(ac_run(gwion, &ac))
@@ -185,7 +185,7 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   Type_Decl *next = NULL;
   if(*tdc->str == '.') {
     ++tdc->str;
-    if(!(next =  _str2decl(gwion, tdc))) {
+    if(!(next =  _str2td(gwion, tdc))) {
       if(tl)
         free_type_list(gwion->mp, tl);
       if(ac.base)
@@ -201,9 +201,9 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   return td;
 }
 
-ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
+ANN Type_Decl* str2td(const Gwion gwion, const m_str str, const loc_t pos) {
   struct td_checker tdc = { .str=str, .pos=pos };
-  DECL_OO(Type_Decl *, td, = _str2decl(gwion, &tdc))
+  DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc))
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
@@ -212,7 +212,7 @@ ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
 }
 
 ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
-  DECL_OO(Type_Decl *, td, = str2decl(gwion, str, pos))
+  DECL_OO(Type_Decl *, td, = str2td(gwion, str, pos))
   const Type t = known_type(gwion->env, td);
   free_type_decl(gwion->mp, td);
   return t;
