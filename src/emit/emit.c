@@ -35,9 +35,7 @@ static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(em
 static inline m_uint emit_push(const Emitter emit, const Type type, const Nspc nspc) {
   return env_push(emit->env, type, nspc);
 }
-static inline m_uint emit_push_type(const Emitter emit, const Type type) {
-  return env_push_type(emit->env, type);
-}
+
 static inline m_uint emit_push_global(const Emitter emit) {
   return env_push_global(emit->env);
 }
