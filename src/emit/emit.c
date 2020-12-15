@@ -372,15 +372,6 @@ ANN2(1,2) m_bool emit_instantiate_decl(const Emitter emit, const Type type,
   return ret;
 }
 
-ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
-ANN static m_bool emit_symbol_owned(const Emitter emit, const Symbol *data) {
-  const Exp dot = symbol_owned_exp(emit->gwion, data);
-  dot->info->nspc = prim_exp(data)->info->nspc;
-  const m_bool ret = emit_exp_dot(emit, &dot->d.exp_dot);
-  free_exp(emit->gwion->mp, dot);
-  return ret;
-}
-
 ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
   const Value v = prim_self(data)->value;
   if(vflag(v, vflag_direct)) {
@@ -410,8 +401,6 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     regpushi(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
   }
-  if(v->from->owner_class)
-    return emit_symbol_owned(emit, data);
   if(vflag(v, vflag_builtin) || vflag(v, vflag_direct) || vflag(v, vflag_enum))
     return emit_symbol_builtin(emit, data);
   if(!strncmp(v->type->name, "@Foreach:[", 10)) {

@@ -284,8 +284,6 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   return value;
 }
 
-ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data);
-
 ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base, .data=(uintptr_t)member,
     .pos=exp_self(member)->pos, .op_type=op_dot };
@@ -333,11 +331,13 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   if(GET_FLAG(v, const))
     exp_setmeta(prim_exp(data), 1);
   if(v->from->owner_class) {
-    const Exp exp  = symbol_owned_exp(env->gwion, data);
-    const Type ret = check_dot(env, &exp->d.exp_dot);
-    prim_exp(data)->info->nspc = exp->info->nspc;
-    free_exp(env->gwion->mp, exp);
-    CHECK_OO(ret);
+    const Exp exp = exp_self(prim_exp(data));
+    const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
+    const Exp base = new_prim_id(env->gwion->mp, insert_symbol(name), loc_cpy(env->gwion->mp, prim_pos(data)));
+    exp->exp_type = ae_exp_dot;
+    exp->d.exp_dot.base = base;
+    exp->d.exp_dot.xid = sym;
+    return check_exp(env, exp);
   }
   return v->type;
 }

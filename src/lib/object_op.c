@@ -263,41 +263,11 @@ puts("here");
     return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
-//  CHECK_BO(envset_push(&es, t->info->owner_class, t->info->ctx ? t->info->ctx->nspc : env->curr))
-//const Nspc former = env->curr;
-//if(env->class_def)
-//const Type cdef = env->class_def;
   CHECK_BO(envset_push(&es, t->info->owner_class, t->info->ctx ? t->info->ctx->nspc : env->curr))
-//  CHECK_BO(envset_push(&es, t->info->owner_class, t->info->owner))
-/*{
-nspc_push_type(env->gwion->mp, env->curr);
-  Type_List tl = td->types;
-  do {
-    nspc_add_type(env->curr, tl->td->xid, nspc_lookup_type0(former, tl->td->xid));
-  } while((tl = tl->next));
-}*/
   const Type ret = _scan_class(env, &info);
-//nspc_pop_type(env->gwion->mp, env->curr);
   if(es.run)
     envset_pop(&es, t->info->owner_class);
   return ret;
-}
-
-ANN static inline Symbol dot_symbol(SymTable *st, const Value v) {
-  const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
-  return insert_symbol(st, name);
-}
-
-ANN Exp symbol_owned_exp(const Gwion gwion, const Symbol *data) {
-  const Value v = prim_self(data)->value;
-  const Exp base = new_prim_id(gwion->mp, dot_symbol(gwion->st, v), loc_cpy(gwion->mp, prim_pos(data)));
-  const Exp dot = new_exp_dot(gwion->mp, base, *data, loc_cpy(gwion->mp, prim_pos(data)));
-  const Type owner = v->from->owner_class;
-  dot->d.exp_dot.t_base = dot->d.exp_dot.base->info->type = !GET_FLAG(v, static) ?
-    owner : type_class(gwion, owner);
-  dot->info->type = prim_exp(data)->info->type;
-  exp_setvar(dot, exp_getvar(prim_exp(data)));
-  return dot;
 }
 
 ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr) {
