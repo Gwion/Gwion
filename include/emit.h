@@ -42,11 +42,10 @@ ANN void emit_class_finish(const Emitter, const Nspc);
 ANN2(1,2) m_bool emit_instantiate_object(const Emitter, const Type, const Array_Sub, const m_bool);
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
-ANN Instr emit_exp_spork(const Emitter, const Exp_Unary*);
+ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary*);
 ANN m_bool emit_exp(const Emitter, const Exp);
-ANN static inline Instr emit_gc(const Emitter emit, const m_int offset) {
+ANN static inline void emit_gc(const Emitter emit, const m_int offset) {
   const Instr gc = emit_add_instr(emit, GcAdd);
   gc->m_val = offset;
-  return gc;
 }
 #endif

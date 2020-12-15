@@ -33,7 +33,7 @@ static OP_EMIT(opem_func_assign) {
   Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->info->type->info->func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->info->type->info->func, 2);
-  const Instr instr = emit_add_instr(emit, int_r_assign);
+  (void)emit_add_instr(emit, int_r_assign);
   if(!is_fptr(emit->gwion, bin->lhs->info->type) && vflag(bin->rhs->info->type->info->func->value_ref, vflag_member)) {
     const Instr pop = emit_add_instr(emit, RegPop);
     pop->m_val = SZ_INT;

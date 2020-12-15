@@ -1312,21 +1312,20 @@ ANN void spork_func(const Emitter emit, const struct Sporker *sp) {
   (void)emit_add_instr(emit, SporkEnd);
 }
 
-ANN static Instr spork_ini(const Emitter emit, const struct Sporker *sp) {
+ANN static void spork_ini(const Emitter emit, const struct Sporker *sp) {
   if(sp->is_spork) {
     const Instr instr = emit_add_instr(emit, SporkIni);
     instr->m_val = (m_uint)sp->vm_code;
     instr->m_val2 = sp->is_spork;
-    return instr;
+    return;
   }
   regpushi(emit, (m_uint)sp->type);
   const Instr instr = emit_add_instr(emit, ForkIni);
   instr->m_val = (m_uint)sp->vm_code;
   instr->m_val2 = sp->type->size;
-  return instr;
 }
 
-ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
+ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
   struct Sporker sporker = {
     .exp=unary->exp,
     .code=unary->code,
@@ -1334,10 +1333,10 @@ ANN Instr emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
     .is_spork=(unary->op == insert_symbol("spork")),
     .emit_var=exp_getvar(exp_self(unary))
   };
-  CHECK_OO((sporker.vm_code = spork_prepare(emit, &sporker)))
-  const Instr ini = spork_ini(emit, &sporker);
+  CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)))
+  spork_ini(emit, &sporker);
   (unary->code ? spork_code : spork_func)(emit, &sporker);
-  return ini;
+  return GW_OK;
 }
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {

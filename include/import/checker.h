@@ -39,7 +39,7 @@ typedef struct OperCK { // name_checker ?
   m_str ret;
   Symbol sym;
   Type   (*ck)(Env, void*, m_bool*); // oper
-  Instr  (*em)(Emitter, void*); // oper
+  m_bool (*em)(Emitter, void*); // oper
   m_str lhs;// oper
   m_str rhs;// oper
 } OperCK;
