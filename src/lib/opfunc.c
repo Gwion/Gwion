@@ -83,7 +83,6 @@ ANN static inline Type check_new_td(const Env env, Type_Decl *td) {
 
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  SET_FLAG(unary->td, late);
   DECL_ON(const Type, t, = check_new_td(env, unary->td))
   if(isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
@@ -91,7 +90,6 @@ OP_CHECK(opck_new) {
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
   if(GET_FLAG(t, abstract))
     ERR_N(td_pos(unary->td), _("can't use 'new' on abstract type '%s'\n"), t->name)
-  UNSET_FLAG(unary->td, late);
   if(unary->td->array)
     CHECK_BN(check_subscripts(env, unary->td->array, 1))
   return t;
@@ -100,6 +98,6 @@ OP_CHECK(opck_new) {
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->info->type,
-    unary->td->array, GET_FLAG(unary->td, late)))
+    unary->td->array, 0))
   return emit_gc(emit, -SZ_INT);
 }
