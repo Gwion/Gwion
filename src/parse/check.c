@@ -942,6 +942,8 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   char c[15 + strlen(ptr->name)];
   sprintf(c, "@Foreach:[%s]", ptr->name);
   const Type ret = str2type(env->gwion, c, stmt->exp->pos);
+  if(ptr->array_depth)
+    set_tflag(ret, tflag_typedef);
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   set_vflag(stmt->v, vflag_valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
