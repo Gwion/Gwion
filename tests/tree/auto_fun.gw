@@ -4,6 +4,6 @@ class C {
 
 var C i[2];
 
-foreach(ref a : i)
+foreach(a : i)
      <<< a >>>;
 

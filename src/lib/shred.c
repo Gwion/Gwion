@@ -177,7 +177,7 @@ static void stop(const M_Object o) {
   MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
-static void join(const M_Object o) {
+static inline void join(const M_Object o) {
   if(FORK_THREAD(o)) {
     THREAD_JOIN(FORK_THREAD(o));
     FORK_THREAD(o) = 0;
@@ -187,6 +187,7 @@ static void join(const M_Object o) {
 static DTOR(fork_dtor) {
   *(m_int*)(o->data + o_fork_done) = 1;
   stop(o);
+  join(o);
   VM *parent = ME(o)->info->vm->parent;
   MUTEX_LOCK(parent->shreduler->mutex);
   if(parent->gwion->data->child.ptr) {
@@ -261,9 +262,10 @@ struct ThreadLauncher *tl = data;
     vm_run(vm);
     ++vm->bbq->pos;
   }
-  memcpy(me->data + vm->gwion->type[et_fork]->nspc->info->offset, *(m_bit**)ME(me)->reg, FORK_RETSIZE(me));
   gwion_end_child(ME(me), vm->gwion);
   MUTEX_LOCK(vm->parent->shreduler->mutex);
+  if(!*(m_int*)(me->data + o_shred_cancel) && me->type_ref != vm->gwion->type[et_fork])
+    memcpy(me->data + vm->gwion->type[et_fork]->nspc->info->offset, ME(me)->reg, FORK_RETSIZE(me));
   *(m_int*)(me->data + o_fork_done) = 1;
   if(!*(m_int*)(me->data + o_shred_cancel))
     broadcast(*(M_Object*)(me->data + o_fork_ev));

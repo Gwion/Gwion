@@ -1,6 +1,0 @@
-union global {
-  int int_from_global_union;
-  float float_from_global_union;
-};
-
-<<< float_from_global_union >>>;

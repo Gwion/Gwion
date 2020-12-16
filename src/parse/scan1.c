@@ -35,7 +35,7 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = known_type(env, td))
   const Type t = get_type(type);
-  if(!env->func && env->class_def && !GET_FLAG(td, ref))
+  if(!env->func && env->class_def && !GET_FLAG(td, late))
     CHECK_BO(type_cyclic(env, t, td))
   CHECK_BO(ensure_scan1(env, t))
   return type;
@@ -70,6 +70,10 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
+static inline uint array_ref(const Array_Sub array) {
+  return array && !array->exp;
+}
+
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
   do {
@@ -77,18 +81,12 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
     Type t = decl->type;
     CHECK_BB(scan1_defined(env, var))
-   if(var->array) {
+    if(var->array) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);
-    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, ref)) {
-      if(!(t == env->class_def && env->scope->depth)) {
-        if(decl->td->xid == insert_symbol("auto"))
-          SET_FLAG(decl->td, ref);
-        else
-          ERR_B(exp_self(decl)->pos, _("Type '%s' is abstract, declare as ref. (use @)"), t->name)
-      }
-    }
+    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late))
+      SET_FLAG(decl->td, late);
     const Value v = var->value = var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
 // rewrite logic
     if(!env->scope->depth && env->class_def && !GET_FLAG(decl->td, static))
@@ -100,8 +98,8 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     nspc_add_value(env->curr, var->xid, v);
     v->flag |= decl->td->flag;
     v->type = t;
-    if(var->array && !var->array->exp)
-      SET_FLAG(decl->td, ref);
+    if(array_ref(var->array))
+      SET_FLAG(decl->td, late);
     if(env->class_def) {
       if(env->class_def->info->tuple)
         tuple_contains(env, v);
@@ -126,6 +124,8 @@ ANN int is_global(const Nspc nspc, Nspc global) {
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
+  if(array_ref(decl->td->array))
+   SET_FLAG(decl->td, late);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   if(global) {
@@ -143,7 +143,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
 
 ANN static inline int opiscall(const Symbol sym) {
   const m_str opname = s_name(sym);
-  return (opname[0] == '@' || opname[0] == '$') &&
+  return (opname[0] == '@' || opname[0] == '&') &&
     (isalpha(opname[1]) || opname[1] == '_');
 }
 
@@ -252,6 +252,7 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary
 }
 
 #define scan1_exp_lambda dummy_func
+#define scan1_exp_td dummy_func
 HANDLE_EXP_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool _scan1_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
@@ -392,36 +393,30 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
     scan1_cdef(env, tdef->type) : GW_OK;
 }
 
-ANN static m_bool scan1_union_def_action(const Env env, const Union_Def udef,
-    const Decl_List l) {
-  const Exp_Decl decl = l->self->d.exp_decl;
-  decl.td->flag |= udef->flag;
-  const m_bool global = GET_FLAG(udef, global);
-  if(global)
-    UNSET_FLAG(decl.td, global);
-  else if(GET_FLAG(udef, static))
-    SET_FLAG(decl.td, static);
-  CHECK_BB(scan1_exp(env, l->self))
-
-  Var_Decl_List list = decl.list;
-  do value_addref(list->self->value);
-  while((list = list->next));
-
-  if(global)
-    SET_FLAG(decl.td, global);
-  return GW_OK;
-}
-
-ANN static inline m_bool scan1_union_def_inner_loop(const Env env, const Union_Def udef, Decl_List l) {
-  do CHECK_BB(scan1_union_def_action(env, udef, l))
-  while((l = l->next));
+ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def udef) {
+  nspc_allocdata(env->gwion->mp, udef->type->nspc);
+  Union_List l = udef->l;
+  m_uint sz = 0;
+  do {
+    DECL_OB(const Type, t, = known_type(env, l->td))
+    if(nspc_lookup_value0(env->curr, l->xid))
+      ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
+    const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
+    if(!tflag(t, tflag_scan1))
+      tuple_contains(env, v);
+    v->from->offset = SZ_INT;
+    valuefrom(env ,v->from);
+    nspc_add_value_front(env->curr, l->xid, v);
+    if(t->size > sz)
+      sz = t->size;
+  } while((l = l->next));
   return GW_OK;
 }
 
 ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
   if(udef->tmpl && udef->tmpl->call)
     CHECK_BB(template_push_types(env, udef->tmpl))
-  const m_bool ret = scan1_union_def_inner_loop(env, udef, udef->l);
+  const m_bool ret = scan1_union_def_inner_loop(env, udef);
   if(udef->tmpl && udef->tmpl->call)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -430,14 +425,10 @@ ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
 ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;
-  const m_uint scope = union_push(env, udef);
-  if(udef->xid || udef->type_xid) {
-    UNSET_FLAG(udef, private);
-    UNSET_FLAG(udef, protect);
-  }
+  const m_uint scope = env_push_type(env, udef->type);
   const m_bool ret = scan1_union_def_inner(env, udef);
-  union_pop(env, udef, scope);
-  union_flag(udef, tflag_scan1);
+  env_pop(env, scope);
+  set_tflag(udef->type, tflag_scan1);
   return ret;
 }
 
@@ -602,8 +593,6 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   CHECK_BB(ensure_scan1(env, parent))
   if(type_ref(parent))
     ERR_B(pos, _("can't use ref type in class extend"))
-  if(tflag(parent, tflag_nonnull))
-    ERR_B(pos, _("can't use nonnull type in class extend"))
   return GW_OK;
 }
 

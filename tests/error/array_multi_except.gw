@@ -1,4 +1,0 @@
-#! [contains] NullPtrException
-var int i[1][1];
-null @=> i[0];
-<<< i[0][0] >>>;

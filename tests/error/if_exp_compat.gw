@@ -1,2 +1,2 @@
 #! [contains] incompatible types
-maybe ? null : 1;
+maybe ? 2.1 : 1;

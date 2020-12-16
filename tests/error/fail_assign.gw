@@ -1,3 +1,0 @@
-#! [contains] can't assign
-class C extends Event{}
-var Event e @=> var C o;

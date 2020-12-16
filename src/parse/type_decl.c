@@ -5,43 +5,27 @@
 #include "traverse.h"
 #include "parse.h"
 
+ANN static Type _option(const Env env, Type_Decl* td, const m_uint n) {
+  struct Type_List_ tl = { .td=td };
+  Type_Decl option_td = { .xid=insert_symbol("Option"), .types=&tl, .pos=td->pos };
+  return !(n-1) ? known_type(env, &option_td) : _option(env, &option_td, n-1);
+}
+
+ANN static Type option(const Env env, Type_Decl* td) {
+  const m_uint option = td->option;
+  td->option = 0;
+  const Type ret = _option(env, td, option);
+  td->option = option;
+  return ret;
+}
 
 ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td))
   if(base->info->ctx && base->info->ctx->error)
     ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, t, = scan_type(env, base, td))
-  const Type ret = !td->array ? t : array_type(env, t, td->array->depth);
-  if(GET_FLAG(td, nonnull)) {
-    if(isa(ret, env->gwion->type[et_void]) > 0)
-      ERR_O(td_pos(td), _("void types can't be nonnull."))
-    if(isa(ret, env->gwion->type[et_object]) < 0 && isa(ret, env->gwion->type[et_fptr]) < 0)
-      return ret;
-    return nonnul_type(env, ret);
-  }
-  return ret;
-}
-
-struct td_info {
-  Type_List tl;
-  GwText text;
-};
-
-ANN static m_bool td_info_run(const Env env, struct td_info* info) {
-  Type_List tl = info->tl;
-  do {
-    DECL_OB(const Type,  t, = known_type(env, tl->td))
-    text_add(&info->text, t->name);
-    if(tl->next)
-      text_add(&info->text, ",");
-  } while((tl = tl->next));
-  return GW_OK;
-}
-
-ANEW ANN m_str tl2str(const Env env, Type_List tl) {
-  struct td_info info = { .tl=tl, { .mp=env->gwion->mp} };
-  CHECK_BO(td_info_run(env, &info))
-  return info.text.str;
+  const Type ret = !td->option ? t : option(env, td);
+  return !td->array ? ret : array_type(env, ret, td->array->depth);
 }
 
 ANN static inline void* type_unknown(const Env env, const Type_Decl* td) {

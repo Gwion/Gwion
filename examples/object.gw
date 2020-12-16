@@ -1,2 +1,0 @@
-fun void test(Object o) { <<< o >>>; }
-<<< new Object  == null , " ", null => test >>>;

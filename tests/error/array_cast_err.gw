@@ -1,2 +1,2 @@
-#! [contains] no match found for operator
+#! [contains] can't cast
 <<< [ 1 ] $ int[][] >>>;

@@ -22,6 +22,10 @@ static m_bool ptr_access(const Env env, const Exp e) {
   ERR_B(e->pos, _("operand is %s"), access);
 }
 
+ANN static inline Type ptr_base(const Env env, const Type t) {
+  return known_type(env, t->info->cdef->base.tmpl->call->td);
+}
+
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   CHECK_BO(ptr_access(env, bin->lhs))
@@ -30,16 +34,14 @@ static OP_CHECK(opck_ptr_assign) {
   exp_setvar(bin->rhs, 1);
   Type t = bin->lhs->info->type;
   do {
-//    t = unflag_type(t);
     Type u = bin->rhs->info->type;
     do {
-//      u = unflag_type(u);
-      const m_str str = get_type_name(env, u, 1);
-      if(str && !strcmp(t->name, str))
-        return bin->lhs->info->type; // use rhs?
-    } while((u = u->info->parent));
+      const Type base = ptr_base(env, u);
+      if(isa(t, base) > 0)
+        return t;
+    } while((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while((t = t->info->parent));
-  return env->gwion->type[et_null];
+  return env->gwion->type[et_error];
 }
 
 static INSTR(instr_ptr_assign) {
@@ -63,13 +65,12 @@ static OP_EMIT(opem_ptr_assign) {
     emit_add_instr(emit, instr_ptr_assign_obj);
   } else
     emit_add_instr(emit, instr_ptr_assign);
-  return pop;
+  return GW_OK;
 }
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->info->type, 1))
-  return exp_self(unary)->info->type = nspc_lookup_type1(env->curr, insert_symbol(str));
+  return ptr_base(env, unary->exp->info->type);
 }
 
 static OP_CHECK(opck_ptr_cast) {
@@ -90,8 +91,8 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
-  DECL_OO(const m_str, name, = get_type_name(env, imp->t, 1))
-  if(!strcmp(get_type_name(env, imp->t, 1), e->info->type->name)) {
+  const Type base = ptr_base(env, imp->t);
+  if(isa(e->info->type, base) > 0) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
@@ -125,14 +126,14 @@ static OP_EMIT(opem_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
   instr->m_val = (m_uint)exp_self(cast)->info->type;
-  return instr;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
   instr->m_val = (m_uint)imp->t;
-  return instr;
+  return GW_OK;
 }
 
 static OP_EMIT(opem_ptr_deref) {
@@ -140,7 +141,7 @@ static OP_EMIT(opem_ptr_deref) {
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
   instr->m_val = exp_self(unary)->info->type->size;
   instr->m_val2 = exp_getvar(exp_self(unary));
-  return instr;
+  return GW_OK;
 }
 
 ANN Type scan_class(const Env env, const Type t, const Type_Decl* td);
@@ -178,17 +179,7 @@ static OP_CHECK(opck_ptr_ref) {
   exp_setvar(bin->rhs, 1);
   return bin->rhs->info->type;
 }
-/*
-static OP_EMIT(opem_ptr_ref) {
-  const Exp_Binary* bin = (Exp_Binary*)data;
-  const Instr instr = emit_add_instr(emit, Reg2Reg);
-  instr->m_val = -SZ_INT;
-  instr->m_val2 = -SZ_INT*2;
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
-  return instr;
-}
-*/
+
 static GACK(gack_ptr) {
   INTERP_PRINTF("%p", *(m_str*)VALUE);
 }

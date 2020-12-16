@@ -19,4 +19,3 @@ var C c;
 #! write members
 <<<  12  => c.i  >>>;
 <<<  1.2 => c.f  >>>;
-<<<  null @=> c.o  >>>;

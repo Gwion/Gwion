@@ -1,4 +1,0 @@
-#! [contains] does not have members - invalid use in dot expression
-var int i;
-i.nothing;
-

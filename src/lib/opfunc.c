@@ -13,7 +13,7 @@
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   return isa(cast->exp->info->type, exp_self(cast)->info->type) > 0 ?
-     exp_self(cast)->info->type : env->gwion->type[et_null];
+     exp_self(cast)->info->type : env->gwion->type[et_error];
 }
 
 OP_CHECK(opck_usr_implicit) {
@@ -34,8 +34,8 @@ OP_CHECK(opck_const_rhs) {
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_null])
-    return env->gwion->type[et_null];
+  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_error])
+    return env->gwion->type[et_error];
   exp_setvar(bin->rhs, 1);
   return bin->rhs->info->type;
 }
@@ -83,7 +83,6 @@ ANN static inline Type check_new_td(const Env env, Type_Decl *td) {
 
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  SET_FLAG(unary->td, ref);
   DECL_ON(const Type, t, = check_new_td(env, unary->td))
   if(isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
@@ -91,7 +90,6 @@ OP_CHECK(opck_new) {
     ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
   if(GET_FLAG(t, abstract))
     ERR_N(td_pos(unary->td), _("can't use 'new' on abstract type '%s'\n"), t->name)
-  UNSET_FLAG(unary->td, ref);
   if(unary->td->array)
     CHECK_BN(check_subscripts(env, unary->td->array, 1))
   return t;
@@ -99,7 +97,8 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BO(emit_instantiate_object(emit, exp_self(unary)->info->type,
-    unary->td->array, GET_FLAG(unary->td, ref)))
-  return emit_gc(emit, -SZ_INT);
+  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->info->type,
+    unary->td->array, 0))
+  emit_gc(emit, -SZ_INT);
+  return GW_OK;
 }

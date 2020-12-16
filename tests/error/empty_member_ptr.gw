@@ -1,9 +1,0 @@
-#! [contains] NullPtrException
-class C
-{
-	funcdef void test();
-	var test t;
-}
-<<< var C c >>>;
-<<< c.t >>>;
-c.t();

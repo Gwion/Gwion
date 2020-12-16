@@ -118,7 +118,7 @@ static INSTR(VarargCast) {
   const Type t = (Type)instr->m_val,
              u = (Type)vector_at(&arg->t, arg->i);
   if(isa(u, t) > 0 ||
-      (u == shred->info->vm->gwion->type[et_null] &&
+      (u == shred->info->vm->gwion->type[et_error] &&
        isa(t, shred->info->vm->gwion->type[et_object]) > 0)) {
     for(m_uint i = 0; i < t->size; i += SZ_INT)
       *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
@@ -132,7 +132,7 @@ static OP_EMIT(opem_vararg_cast) {
   instr->m_val = (m_uint)exp_self(cast)->info->type;
   const Instr push = emit_add_instr(emit, RegPush);
   push->m_val = exp_self(cast)->info->type->size - SZ_INT;
-  return instr;
+  return GW_OK;
 }
 
 static FREEARG(freearg_vararg) {
@@ -142,7 +142,7 @@ static FREEARG(freearg_vararg) {
 
 static ID_CHECK(idck_vararg) {
   if(env->func && fbflag(env->func->def->base, fbflag_variadic))
-    return nonnul_type(env, exp_self(prim)->info->type);
+    return exp_self(prim)->info->type;
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
 
@@ -178,7 +178,7 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_vararg, abstract | ae_flag_final);
   gwi->gwion->type[et_vararg] = t_vararg;
-  GWI_BB(gwi_oper_ini(gwi, "nonnull Vararg", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Vararg", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_vararg_cast))
   GWI_BB(gwi_oper_emi(gwi, opem_vararg_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))

@@ -1,4 +1,0 @@
-#! [contains] NullPtrException
-var int i[];
-foreach(a : i)
- <<< a >>>;

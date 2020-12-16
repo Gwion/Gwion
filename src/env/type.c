@@ -9,7 +9,7 @@
 #include "object.h"
 
 ANN static inline m_bool freeable(const Type a) {
-  return !(tflag(a, tflag_force) || tflag(a, tflag_nonnull)) && (tflag(a, tflag_tmpl) ||GET_FLAG(a, global));
+  return tflag(a, tflag_tmpl) ||GET_FLAG(a, global);
 }
 
 ANN void free_type(const Type a, struct Gwion_ *const gwion) {

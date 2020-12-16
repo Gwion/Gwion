@@ -1,3 +1,0 @@
-funcdef void test_t:[A]();
-nonnull test_t t;
-t:[int]();

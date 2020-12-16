@@ -1,2 +1,0 @@
-fun void test(nonnull Object o) { <<< o >>>; }
-new Object => test;

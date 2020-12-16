@@ -15,12 +15,6 @@
 #include "gwi.h"
 #include "gack.h"
 
-ANN static void push_string(const VM_Shred shred, const M_Object obj, const m_str c) {
-  STRING(obj) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
-  *(M_Object*)REG(-SZ_INT) = (M_Object)obj;
-  _release(obj, shred);
-}
-
 #define describe_string_logical(name, action)    \
 static INSTR(String_##name) {                    \
   POP_REG(shred, SZ_INT);                        \
@@ -32,14 +26,6 @@ static INSTR(String_##name) {                    \
 }
 describe_string_logical(eq, (lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
 describe_string_logical(neq, !(lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
-
-static INSTR(String_Assign) {
-  POP_REG(shred, SZ_INT);
-  const M_Object lhs = *(M_Object*)REG(-SZ_INT);
-  const M_Object rhs = *(M_Object*)REG(0);
-  release(lhs, shred);
-  push_string(shred, rhs, lhs ? STRING(lhs) : "");
-}
 
 static CTOR(string_ctor) {
   STRING(o) = "";
@@ -437,11 +423,11 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "string", "str");
   GWI_BB(gwi_func_end(gwi, string_findStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
-  gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "string", "str");
   gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
@@ -455,11 +441,11 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "string", "str");
   GWI_BB(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
-  gwi_func_arg(gwi, "nonnull string", "str");
+  gwi_func_arg(gwi, "string", "str");
   gwi_func_arg(gwi, "int", "pos");
   GWI_BB(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
 
@@ -470,15 +456,11 @@ GWION_IMPORT(string) {
 
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "string",  "nonnull string", "nonnull string"))
-  GWI_BB(gwi_oper_add(gwi, opck_const_rhs))
-  GWI_BB(gwi_oper_end(gwi, "=>",      String_Assign))
-
   GWI_BB(gwi_oper_ini(gwi, "string",  "string", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",       String_eq))
   GWI_BB(gwi_oper_end(gwi, "!=",       String_neq))
 
-  GWI_BB(gwi_oper_ini(gwi, "int", "nonnull string", "nonnull string"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
   GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
 
   struct SpecialId_ spid = { .ck=check_funcpp, .exec=RegPushMe, .is_const=1 };

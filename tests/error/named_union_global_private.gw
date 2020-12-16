@@ -1,2 +1,0 @@
-#! [contains] can only be used at class scope.
-union private { int i; } u;

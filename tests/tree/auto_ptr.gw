@@ -1,5 +1,5 @@
-var Ptr:[int] ptr;
 var int i[4];
-foreach(ref a : i)
-  <<< *a >>>;
-<<< ptr >>>;
+foreach(a : i)
+  <<< 1 => a >>>;
+foreach(a : i)
+  <<< a >>>;

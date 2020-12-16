@@ -22,7 +22,7 @@ typedef struct ImportCK { // name_checker ?
     f_xfun addr;
   };
   union {
-    Decl_List list;// union
+    Union_List list;// union
     struct Vector_ v;
 //    ID_List curr;// enum
   };
@@ -39,7 +39,7 @@ typedef struct OperCK { // name_checker ?
   m_str ret;
   Symbol sym;
   Type   (*ck)(Env, void*, m_bool*); // oper
-  Instr  (*em)(Emitter, void*); // oper
+  m_bool (*em)(Emitter, void*); // oper
   m_str lhs;// oper
   m_str rhs;// oper
 } OperCK;
@@ -47,18 +47,29 @@ typedef struct OperCK { // name_checker ?
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 
-ANN Symbol str2sym(const Gwion gwi, const m_str path, const loc_t pos);
-ANN ID_List str2symlist(const Gwion gwi, const m_str path, const loc_t);
+ANN Symbol str2sym(const Gwion, const m_str, const loc_t);
+ANN ID_List str2symlist(const Gwion, const m_str, const loc_t);
 ANN Var_Decl      str2var(const Gwion, const m_str, const loc_t);
 ANN Var_Decl_List str2varlist(const Gwion, const m_str, const loc_t);
-ANN Type_Decl*    str2decl(const Gwion, const m_str, const loc_t);
+ANN Type_Decl*    str2td(const Gwion, const m_str, const loc_t);
 ANN Type str2type(const Gwion, const m_str, const loc_t);
+
+// those functions return a mp_alloced string
+ANEW ANN m_str tl2str(const Gwion, const Type_List, const loc_t);
+ANEW ANN m_str type2str(const Gwion, const Type, const loc_t);
+
+ANN static inline Type_Decl* type2td(const Gwion gwion, const Type t, const loc_t pos) {
+  const m_str str = type2str(gwion, t, pos);
+  Type_Decl *td = str2td(gwion, str, pos);
+  free_mstr(gwion->mp, str);
+  return td;
+}
 
 #define gwi_str2sym(gwi, path) str2sym(gwi->gwion, path, gwi->loc)
 #define gwi_str2symlist(gwi, path) str2symlist(gwi->gwion, path, gwi->loc)
 #define gwi_str2var(gwi, path) str2var(gwi->gwion, path, gwi->loc)
 #define gwi_str2varlist(gwi, path) str2varlist(gwi->gwion, path, gwi->loc)
-#define gwi_str2decl(gwi, path) str2decl(gwi->gwion, path, gwi->loc)
+#define gwi_str2td(gwi, path) str2td(gwi->gwion, path, gwi->loc)
 #define gwi_str2type(gwi, path) str2type(gwi->gwion, path, gwi->loc)
 
 ANN m_bool ck_ini(const Gwi, const enum importck_type);

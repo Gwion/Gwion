@@ -137,9 +137,9 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 
 }
 
-ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc);
+ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc);
 ANN Type_List __str2tl(const Gwion gwion, struct td_checker *tdc) {
-  Type_Decl *td = _str2decl(gwion, tdc);
+  Type_Decl *td = _str2td(gwion, tdc);
   if(!td)
     GWION_ERR_O(tdc->pos, "invalid types");
   Type_List next = NULL;
@@ -174,7 +174,7 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   return tl;
 }
 
-ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
+ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   struct AC ac = { .str = tdc->str, .pos=tdc->pos };
   CHECK_BO(ac_run(gwion, &ac))
@@ -185,7 +185,7 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   Type_Decl *next = NULL;
   if(*tdc->str == '.') {
     ++tdc->str;
-    if(!(next =  _str2decl(gwion, tdc))) {
+    if(!(next =  _str2td(gwion, tdc))) {
       if(tl)
         free_type_list(gwion->mp, tl);
       if(ac.base)
@@ -201,25 +201,60 @@ ANN static Type_Decl* _str2decl(const Gwion gwion, struct td_checker *tdc) {
   return td;
 }
 
-ANN Type_Decl* str2decl(const Gwion gwion, const m_str str, const loc_t pos) {
-  const ae_flag flag = strncmp(str, "nonnull ", 8) ? ae_flag_none : ae_flag_nonnull;
+ANN Type_Decl* str2td(const Gwion gwion, const m_str str, const loc_t pos) {
   struct td_checker tdc = { .str=str, .pos=pos };
-  if(flag == ae_flag_nonnull)
-    tdc.str += 8;
-  DECL_OO(Type_Decl *, td, = _str2decl(gwion, &tdc))
+  DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc))
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
   }
-  td->flag |= flag;
   return td;
 }
 
 ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
-  DECL_OO(Type_Decl *, td, = str2decl(gwion, str, pos))
+  DECL_OO(Type_Decl *, td, = str2td(gwion, str, pos))
   const Type t = known_type(gwion->env, td);
   free_type_decl(gwion->mp, td);
   return t;
+}
+
+struct td_info {
+  Type_List tl;
+  GwText text;
+};
+
+ANN static void td_fullname(const Env env, GwText *text, const Type t) {
+  const Type owner = t->info->owner_class;
+  if(owner) {
+    td_fullname(env, text, owner);
+    text_add(text, ".");
+  }
+  text_add(text, t->name);
+}
+
+ANN static m_bool td_info_run(const Env env, struct td_info* info) {
+  Type_List tl = info->tl;
+  do {
+    DECL_OB(const Type,  t, = known_type(env, tl->td))
+    td_fullname(env, &info->text, t);
+    if(tl->next)
+      text_add(&info->text, ",");
+  } while((tl = tl->next));
+  return GW_OK;
+}
+
+ANEW ANN m_str type2str(const Gwion gwion, const Type t, const loc_t pos NUSED) {
+  GwText text = { .mp=gwion->mp };
+  if(t->info->owner_class)
+    td_fullname(gwion->env, &text, t->info->owner_class);
+  text_add(&text, t->name);
+  return text.str;
+}
+
+ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl, const loc_t pos NUSED) {
+  struct td_info info = { .tl=tl, { .mp=gwion->mp} };
+  CHECK_BO(td_info_run(gwion->env, &info))
+  return info.text.str;
 }
 
 ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {

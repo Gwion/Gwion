@@ -35,14 +35,8 @@ ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
 ANN Type scan_type(const Env, const Type, Type_Decl*);
 ANN Value mk_class(const Env env, const Type base);
-// tl2str returns a mp_alloced string
-ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
 ANN Type known_type(const Env env, Type_Decl*);
-__attribute__((returns_nonnull))
-ANN Type special_type(const Env, const Type, const uint);
-#define nonnul_type(a, b) special_type(a, (b), 0);
-#define force_type(a, b) special_type(a, (b), 1);
 ANN Type prim_ref(const Env env, const Type t, const Type_Decl* td);
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos);
 ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos);

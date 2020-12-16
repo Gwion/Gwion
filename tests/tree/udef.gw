@@ -1,6 +1,0 @@
-class C {
-  union static {
-    int i;
-    float f;
-  };
-}

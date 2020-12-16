@@ -1,4 +1,4 @@
-typedef int[2]Type;
-nonnull Type type;
+typedef int[2] Type;
+Type type;
 <<<type>>>;
 foreach(ref a : type);

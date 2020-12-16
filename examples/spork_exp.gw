@@ -9,7 +9,7 @@ class C
     var string s;
     <<<  this,  " test spork exp. " , s >>>;
 
-  } @=> ref Shred shred;
+  } @=> var Shred shred;
 }
 
 var C c;

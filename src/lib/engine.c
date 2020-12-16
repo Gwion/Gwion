@@ -1,4 +1,3 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -6,17 +5,14 @@
 #include "instr.h"
 #include "object.h"
 #include "emit.h"
-#include "vm.h"
 #include "gwion.h"
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
-#include "engine.h"
 #include "lang_private.h"
 #include "specialid.h"
 #include "gack.h"
 
-#undef insert_symbol
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
   INTERP_PRINTF("class(%s)", type->name)
@@ -81,11 +77,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
-  GWI_BB(gwi_gack(gwi, t_class, gack_class)) // not working yet
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_gack(gwi, t_class, gack_class))
+
   const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
@@ -120,7 +113,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_compound = gwi_mk_type(gwi, "@Compound", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
+
   GWI_BB(import_object(gwi))
+
   GWI_BB(import_prim(gwi))
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_function, gack_function))
@@ -138,11 +133,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))
 
-// TODO: check me
-  const Type t_union = gwi_class_ini(gwi, "@Union", NULL);
-  gwi->gwion->type[et_union] = t_union;
-  GWI_BB(gwi_class_end(gwi))
-
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))
@@ -152,11 +142,12 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_add(gwi, opck_new))
   GWI_BB(gwi_oper_emi(gwi, opem_new))
   GWI_BB(gwi_oper_end(gwi, "new", NULL))
-//  GWI_BB(import_prim(gwi))
   GWI_BB(import_vararg(gwi))
   GWI_BB(import_string(gwi))
   GWI_BB(import_shred(gwi))
   GWI_BB(import_modules(gwi))
+  GWI_BB(import_union(gwi))
+  GWI_BB(import_foreach(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "@Class", "@Class", "int"))
   GWI_BB(gwi_oper_end(gwi, "==", int_eq))
@@ -169,6 +160,17 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "@Class", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
   return GW_OK;
 }
 

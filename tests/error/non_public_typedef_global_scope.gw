@@ -1,6 +1,0 @@
-#! [contains] NullPtrException
-class C {
-  funcdef void t_ptr();
-}
-var C.t_ptr ptr;
-ptr();

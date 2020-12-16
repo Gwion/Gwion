@@ -5,7 +5,7 @@ operator void => (Object o, int i) {
 }
 
 class C {
-	ref Object ref_object;
+	late Object ref_object;
 }
 
 #!! assign object to C.ref
@@ -14,7 +14,6 @@ operator void => (Object o, C c) {
   <<< "success" >>>;
 }
 
-#!operator int plusplus(null d, int i){}
 var int i;
 var Object o;
 <<< o, " ", i >>>;

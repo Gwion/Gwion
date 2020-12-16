@@ -1,0 +1,3 @@
+#! [contains] invalid union acces
+var int? i;
+<<< i.val >>>;

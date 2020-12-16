@@ -1,7 +1,0 @@
-union U:[A]{
-  int i;
-  A a;
-};
-
-var U:[float] u;
-<<< u.a >>>;

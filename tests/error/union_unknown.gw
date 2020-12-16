@@ -1,5 +1,2 @@
 #! [contains] unknown_type
-union
-{
-	unknown_type unknown_variable;
-};
+union U { unknown_type unknown_variable }

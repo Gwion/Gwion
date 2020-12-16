@@ -14,7 +14,7 @@ typedef struct Gwi_* Gwi;
 #define DTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define GACK(a) ANN2(2) void a(const Type t NUSED, const m_bit* VALUE NUSED, const VM_Shred shred NUSED)
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
-#define OP_EMIT(a)  ANN Instr a(const Emitter emit NUSED, void* data NUSED)
+#define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
 #define GWI_BB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); (void)(a); }
 #define GWI_OB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); (void)(a); }

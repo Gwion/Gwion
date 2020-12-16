@@ -13,4 +13,6 @@ ANN m_bool import_func(const Gwi gwi);
 ANN m_bool import_modules(const Gwi gwi);
 ANN m_bool import_object_op(const Gwi gwi);
 ANN m_bool import_values(const Gwi gwi);
+ANN m_bool import_union(const Gwi gwi);
+ANN m_bool import_foreach(const Gwi gwi);
 #endif

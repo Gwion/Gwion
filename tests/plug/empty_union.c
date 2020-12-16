@@ -9,7 +9,7 @@
 #include "import.h"
 
 GWION_IMPORT(empty_union_test) {
-  GWI_BB(gwi_union_ini(gwi, NULL, NULL))
+  GWI_BB(gwi_union_ini(gwi, "U"))
   GWI_OB(gwi_union_end(gwi, 0))
   return GW_OK;
 }

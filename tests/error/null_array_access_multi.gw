@@ -1,3 +1,0 @@
-#! [contains] NullPtrException
-var int i[][];
-i[0][0];

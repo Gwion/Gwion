@@ -1,6 +1,0 @@
-union
-{
-	int i;
-	Object o;
-};
-<<< i, " ", o >>>;

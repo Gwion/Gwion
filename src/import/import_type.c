@@ -15,7 +15,7 @@
 #include "gwi.h"
 
 ANN2(1) static Type get_parent(const Gwi gwi, const m_str parent_name) {
-  Type_Decl* td = parent_name ? gwi_str2decl(gwi, parent_name) : NULL;
+  Type_Decl* td = parent_name ? gwi_str2td(gwi, parent_name) : NULL;
   if(td) {
     if(td->array || td->types) {
       const m_str str = td->array ? "array" : "template";

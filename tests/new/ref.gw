@@ -1,1 +1,1 @@
-new Object @=> nonnull Object o;
+new Object @=> var Object? o;

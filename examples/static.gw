@@ -22,4 +22,3 @@ class C
 #! write members
 <<<  12  => C.i  >>>;
 <<<  1.2 => C.f  >>>;
-<<<  null @=> C.o  >>>;

@@ -3,7 +3,7 @@ fork {
   12::samp => now;
   me.test_cancel();
   <<< "stop" >>>;
-} @=> ref Fork f;
+} @=> var Fork f;
 
 1 => f.set_cancel;
 2::samp => now;

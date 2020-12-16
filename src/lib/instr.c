@@ -58,7 +58,8 @@ INSTR(GTmpl) {
   const m_str name = f->name;
   const Emitter emit = shred->info->vm->gwion->emit;
   emit->env->name = "runtime";
-  m_str tmpl_name = tl2str(emit->env, dt->tl);
+  struct loc_t_ pos = {};
+  m_str tmpl_name = tl2str(emit->gwion, dt->tl, &pos);
   for(m_uint i = 0 ; i <= f->value_ref->from->offset; ++i) {
     const Symbol sym = func_symbol(emit->env, f->value_ref->from->owner->name,
       name, tmpl_name, i);
@@ -82,7 +83,7 @@ INSTR(DotTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const m_str name = dt->name;
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  Type t = !tflag(o->type_ref, tflag_nonnull) ? o->type_ref : o->type_ref->info->parent;
+  Type t = o->type_ref;
   do {
     const Emitter emit = shred->info->vm->gwion->emit;
     emit->env->name = "runtime";
