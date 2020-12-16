@@ -47,14 +47,19 @@ typedef struct OperCK { // name_checker ?
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 
-ANN Symbol str2sym(const Gwion gwi, const m_str path, const loc_t pos);
-ANN ID_List str2symlist(const Gwion gwi, const m_str path, const loc_t);
+ANN Symbol str2sym(const Gwion, const m_str, const loc_t);
+ANN ID_List str2symlist(const Gwion, const m_str, const loc_t);
 ANN Var_Decl      str2var(const Gwion, const m_str, const loc_t);
 ANN Var_Decl_List str2varlist(const Gwion, const m_str, const loc_t);
 ANN Type_Decl*    str2td(const Gwion, const m_str, const loc_t);
 ANN Type str2type(const Gwion, const m_str, const loc_t);
+
+// those functions return a mp_alloced string
+ANEW ANN m_str tl2str(const Gwion, const Type_List, const loc_t);
+ANEW ANN m_str type2str(const Gwion, const Type, const loc_t);
+
 ANN static inline Type_Decl* type2td(const Gwion gwion, const Type t, const loc_t pos) {
-  const m_str str = type2str(gwion->env, t);
+  const m_str str = type2str(gwion, t, pos);
   Type_Decl *td = str2td(gwion, str, pos);
   free_mstr(gwion->mp, str);
   return td;

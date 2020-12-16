@@ -772,7 +772,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
 }
 
 ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) {
-  const m_str str = tl2str(env, t->info->func->def->base->tmpl->call);
+  const m_str str = tl2str(env->gwion, t->info->func->def->base->tmpl->call, pos);
   env_err(env, pos, _("Type '%s' has '%s' as pre-defined types."),
       t->name, str);
   free_mstr(env->gwion->mp, str);

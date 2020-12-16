@@ -35,11 +35,6 @@ ANN void env_pop(const Env, const m_uint);
 ANN Map env_label(const Env);
 ANN Type scan_type(const Env, const Type, Type_Decl*);
 ANN Value mk_class(const Env env, const Type base);
-
-// those functions return a mp_alloced string
-ANEW ANN m_str tl2str(const Env, const Type_List); // in type_decl.c
-ANEW ANN m_str type2str(const Env env, const Type t);
-
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);
 ANN Type known_type(const Env env, Type_Decl*);
 ANN Type prim_ref(const Env env, const Type t, const Type_Decl* td);

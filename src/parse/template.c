@@ -8,6 +8,9 @@
 #include "parse.h"
 #include "gwion.h"
 #include "operator.h"
+#include "instr.h"
+#include "object.h"
+#include "import.h"
 
 ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
   ID_List list = tmpl->list;
@@ -51,7 +54,7 @@ ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
 }
 
 static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
-  DECL_OO(const m_str, tl_name, = tl2str(env, td->types))
+  DECL_OO(const m_str, tl_name, = tl2str(env->gwion, td->types, td->pos))
   const Symbol sym = func_symbol(env, t->info->owner->name, t->info->func->name, tl_name, 0);
   free_mstr(env->gwion->mp, tl_name);
   const Type base_type = nspc_lookup_type1(t->info->owner, sym);

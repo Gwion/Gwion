@@ -218,6 +218,45 @@ ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
   return t;
 }
 
+struct td_info {
+  Type_List tl;
+  GwText text;
+};
+
+ANN static void td_fullname(const Env env, GwText *text, const Type t) {
+  const Type owner = t->info->owner_class;
+  if(owner) {
+    td_fullname(env, text, owner);
+    text_add(text, ".");
+  }
+  text_add(text, t->name);
+}
+
+ANN static m_bool td_info_run(const Env env, struct td_info* info) {
+  Type_List tl = info->tl;
+  do {
+    DECL_OB(const Type,  t, = known_type(env, tl->td))
+    td_fullname(env, &info->text, t);
+    if(tl->next)
+      text_add(&info->text, ",");
+  } while((tl = tl->next));
+  return GW_OK;
+}
+
+ANEW ANN m_str type2str(const Gwion gwion, const Type t, const loc_t pos NUSED) {
+  GwText text = { .mp=gwion->mp };
+  if(t->info->owner_class)
+    td_fullname(gwion->env, &text, t->info->owner_class);
+  text_add(&text, t->name);
+  return text.str;
+}
+
+ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl, const loc_t pos NUSED) {
+  struct td_info info = { .tl=tl, { .mp=gwion->mp} };
+  CHECK_BO(td_info_run(gwion->env, &info))
+  return info.text.str;
+}
+
 ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {
   if(*ac->str == ']')
     return GW_OK;

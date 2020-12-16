@@ -7,6 +7,9 @@
 #include "operator.h"
 #include "traverse.h"
 #include "parse.h"
+#include "object.h"
+#include "instr.h"
+#include "import.h"
 #include "tmpl_info.h"
 
 ANN static inline m_str tmpl_get(struct tmpl_info* info, m_str str) {
@@ -39,9 +42,9 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const m_str str) {
 }
 
 ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
-  DECL_OB(const m_str, str, = tl2str(env, info->td->types))
+  DECL_OB(const m_str, str, = tl2str(env->gwion, info->td->types, info->td->pos))
   const size_t tmpl_sz = tmpl_set(info, str);
-  const m_str base = type2str(env, info->base);
+  const m_str base = type2str(env->gwion, info->base, info->td->pos);
   return tmpl_sz + tmpl_set(info, base) + 4;
 }
 
