@@ -332,15 +332,7 @@ static OP_CHECK(opck_array) {
     return array_type(env, array_base(t), t->array_depth - array->depth);
   const Exp curr = take_exp(array->exp, t->array_depth);
   struct Array_Sub_ next = { curr->next, array_base(t), array->depth - t->array_depth };
-  return check_array_access(env, &next);
-}
-
-static OP_CHECK(opck_not_array) {
-  const Array_Sub array = (Array_Sub)data;
-  if(array->depth <= get_depth(array->type))
-    return array->type;
-  ERR_N(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
-         array->depth, get_depth(array->type))
+  return check_array_access(env, &next) ?: env->gwion->type[et_error];
 }
 
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
@@ -440,9 +432,6 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_not_array))
-  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))

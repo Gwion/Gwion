@@ -206,8 +206,7 @@ OP_EMIT(opem_object_dot) {
   }
   if(GET_FLAG(value, late) && !exp_getvar(exp_self(member))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    if(!is_fptr(emit->gwion, value->type))
-      instr->m_val = -SZ_INT;
+    instr->m_val = -SZ_INT;
   }
   return GW_OK;
 }

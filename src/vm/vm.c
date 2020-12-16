@@ -797,7 +797,7 @@ except:
  *  VAL = offset (no default SZ_INT)             *
  *  VAL2 = error message                         *
  * grep for GWOP_EXCEPT and Except, exception... */
-  if(!*(void**)(reg-(m_int)VAL)) {
+  if(!*(m_bit**)(reg+(m_int)(VAL))) {
     shred->pc = PC;
     exception(shred, "NullPtrException");
     continue;
