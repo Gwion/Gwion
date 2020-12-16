@@ -40,8 +40,9 @@ ANN static inline size_t tmpl_set(struct tmpl_info* info, const m_str str) {
 
 ANN static ssize_t template_size(const Env env, struct tmpl_info* info) {
   DECL_OB(const m_str, str, = tl2str(env, info->td->types))
+  const size_t tmpl_sz = tmpl_set(info, str);
   const m_str base = type2str(env, info->base);
-  return tmpl_set(info, str) + tmpl_set(info, base) + 4;
+  return tmpl_sz + tmpl_set(info, base) + 4;
 }
 
 ANEW ANN static Symbol _template_id(const Env env, struct tmpl_info *const info, const size_t sz) {

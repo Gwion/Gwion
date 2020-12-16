@@ -393,9 +393,9 @@ ANN static Type check_prim(const Env env, Exp_Primary *prim) {
 }
 
 ANN Type check_array_access(const Env env, const Array_Sub array) {
-  if(!get_depth(array->type))
-    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
-        array->depth, get_depth(array->type))
+//  if(!get_depth(array->type))
+//    ERR_O(array->exp->pos, _("array subscripts (%"UINT_F") exceeds defined dimension (%"UINT_F")"),
+//        array->depth, get_depth(array->type))
   const Symbol sym = insert_symbol("@array");
   struct Op_Import opi = { .op=sym, .lhs=array->exp->info->type, .rhs=array->type,
     .pos=array->exp->pos, .data=(uintptr_t)array, .op_type=op_array };

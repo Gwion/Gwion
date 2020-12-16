@@ -1,8 +1,0 @@
-union global {
-  int int_from_global_nanmed_union;
-  float float_from_global_named_union;
-} global_union;
-
-<<< "HERE", global_union >>>;
-<<< 123.456 => global_union.float_from_global_named_union >>>;
-<<< global_union.float_from_global_named_union >>>;

@@ -53,6 +53,12 @@ ANN Var_Decl      str2var(const Gwion, const m_str, const loc_t);
 ANN Var_Decl_List str2varlist(const Gwion, const m_str, const loc_t);
 ANN Type_Decl*    str2td(const Gwion, const m_str, const loc_t);
 ANN Type str2type(const Gwion, const m_str, const loc_t);
+ANN static inline Type_Decl* type2td(const Gwion gwion, const Type t, const loc_t pos) {
+  const m_str str = type2str(gwion->env, t);
+  Type_Decl *td = str2td(gwion, str, pos);
+  free_mstr(gwion->mp, str);
+  return td;
+}
 
 #define gwi_str2sym(gwi, path) str2sym(gwi->gwion, path, gwi->loc)
 #define gwi_str2symlist(gwi, path) str2symlist(gwi->gwion, path, gwi->loc)

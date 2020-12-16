@@ -22,6 +22,10 @@ static m_bool ptr_access(const Env env, const Exp e) {
   ERR_B(e->pos, _("operand is %s"), access);
 }
 
+ANN static inline Type ptr_base(const Env env, const Type t) {
+  return known_type(env, t->info->cdef->base.tmpl->call->td);
+}
+
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   CHECK_BO(ptr_access(env, bin->lhs))
@@ -32,10 +36,10 @@ static OP_CHECK(opck_ptr_assign) {
   do {
     Type u = bin->rhs->info->type;
     do {
-      const m_str str = get_type_name(env, u, 1);
-      if(str && !strcmp(t->name, str))
-        return bin->lhs->info->type; // use rhs?
-    } while((u = u->info->parent));
+      const Type base = ptr_base(env, u);
+      if(isa(t, base) > 0)
+        return t;
+    } while((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while((t = t->info->parent));
   return env->gwion->type[et_error];
 }
@@ -66,8 +70,7 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  DECL_ON(const m_str, str, = get_type_name(env, unary->exp->info->type, 1))
-  return exp_self(unary)->info->type = nspc_lookup_type1(env->curr, insert_symbol(str));
+  return ptr_base(env, unary->exp->info->type);
 }
 
 static OP_CHECK(opck_ptr_cast) {
@@ -88,8 +91,8 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
-  DECL_OO(const m_str, name, = get_type_name(env, imp->t, 1))
-  if(!strcmp(get_type_name(env, imp->t, 1), e->info->type->name)) {
+  const Type base = ptr_base(env, imp->t);
+  if(isa(e->info->type, base) > 0) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);

@@ -1,4 +1,0 @@
-union U:[A]{ int : A }
-
-var U:[float] u;
-<<< u.a >>>;

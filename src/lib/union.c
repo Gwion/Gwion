@@ -16,6 +16,19 @@ static GACK(gack_none) {
   INTERP_PRINTF("None")
 }
 
+static OP_CHECK(opck_none) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  CHECK_NN(opck_rassign(env, data, mut))
+  exp_setvar(bin->rhs, 1);
+  return bin->rhs->info->type;
+}
+
+static OP_EMIT(opem_none) {
+  const Instr instr = emit_add_instr(emit, RegPop);
+  instr->m_val = SZ_INT;
+  return GW_OK;
+}
+
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 
 ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_instr func[]);
@@ -89,6 +102,11 @@ ANN GWION_IMPORT(union) {
   gwi_add_type(gwi, t_none);
   struct SpecialId_ spid = { .type=gwi->gwion->type[et_none], .exec=NoOp, .is_const=1 };
   gwi_specialid(gwi, "None", &spid);
+
+  GWI_BB(gwi_oper_ini(gwi, "None", "None", "None"))
+  GWI_BB(gwi_oper_add(gwi, opck_none))
+  GWI_BB(gwi_oper_emi(gwi, opem_none))
+  GWI_BB(gwi_oper_end(gwi, "=>", NoOp))
 
   const Type t_union = gwi_class_ini(gwi, "@Union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);

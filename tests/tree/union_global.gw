@@ -1,2 +1,0 @@
-union global GlobalUnion { int : float };
-<<<"test">>>;

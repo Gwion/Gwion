@@ -180,7 +180,7 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
         const Type ret = op_check_inner(&ock);
         if(ret) {
           if(ret == env->gwion->type[et_error])
-            break;
+            return NULL;
           if(!ock.mut)
             set_nspc(&opi2, nspc);
           return ret;
@@ -188,7 +188,6 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
       } while(l && (l = l->info->parent));
     }
   } while((nspc = nspc->parent));
-//  if(env->func && env->func->nspc)
   if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
   if(opi->op == insert_symbol(env->gwion->st, "@func_check"))

@@ -1,2 +1,0 @@
-union U { int : string };
-<<< one, " ", two >>>;
