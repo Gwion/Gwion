@@ -101,7 +101,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
 else
-  if(is_class(emit->gwion, member->t_base) || member->base->exp_type == ae_exp_cast) {
+  if(is_class(emit->gwion, member->base->info->type) || member->base->exp_type == ae_exp_cast) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val = (m_uint)f->code ?: (m_uint)f;
     return;
@@ -109,7 +109,7 @@ else
 //  if(f->def->base->tmpl)
 //    emit_add_instr(emit, DotTmplVal);
   else {
-    if(tflag(member->t_base, tflag_struct)) {
+    if(tflag(member->base->info->type, tflag_struct)) {
       if(!GET_FLAG(f->def->base, static)) {
         exp_setvar(member->base, 1);
         emit_exp(emit, member->base);
@@ -144,8 +144,8 @@ ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, cons
 OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const m_str str = s_name(member->xid);
-  const m_bool base_static = is_class(env->gwion, member->t_base);
-  const Type the_base = base_static ? member->t_base->info->base_type : member->t_base;
+  const m_bool base_static = is_class(env->gwion, member->base->info->type);
+  const Type the_base = base_static ? member->base->info->type->info->base_type : member->base->info->type;
 //  if(!the_base->nspc)
 //    ERR_N(member->base->pos,
 //          _("type '%s' does not have members - invalid use in dot expression of %s"),
@@ -157,7 +157,7 @@ OP_CHECK(opck_object_dot) {
   if(!value) {
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
-    if(member->t_base->nspc)
+    if(member->base->info->type->nspc)
       did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
@@ -180,9 +180,9 @@ OP_CHECK(opck_object_dot) {
 
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Type t_base = actual_type(emit->gwion, member->t_base);
+  const Type t_base = actual_type(emit->gwion, member->base->info->type);
   const Value value = find_value(t_base, member->xid);
-  if(!is_class(emit->gwion, member->t_base) && (vflag(value, vflag_member) ||
+  if(!is_class(emit->gwion, member->base->info->type) && (vflag(value, vflag_member) ||
        (isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 &&
        !is_fptr(emit->gwion, exp_self(member)->info->type)))) {
     if(!tflag(t_base, tflag_struct))

@@ -285,7 +285,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
 }
 
 ANN static Type check_dot(const Env env, const Exp_Dot *member) {
-  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base, .data=(uintptr_t)member,
+  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->base->info->type, .data=(uintptr_t)member,
     .pos=exp_self(member)->pos, .op_type=op_dot };
   return op_check(env, &opi);
 }
@@ -843,7 +843,7 @@ ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
-  CHECK_OO((member->t_base = check_exp(env, member->base)))
+  CHECK_OO(check_exp(env, member->base))
   return check_dot(env, member);
 }
 

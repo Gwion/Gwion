@@ -35,11 +35,11 @@ ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_in
 
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Map map = &member->t_base->nspc->info->value->map;
+  const Map map = &member->base->info->type->nspc->info->value->map;
   CHECK_BB(emit_exp(emit, member->base))
   if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
-    const Func f = (Func)vector_front(&member->t_base->info->parent->nspc->info->vtable);
+    const Func f = (Func)vector_front(&member->base->info->type->info->parent->nspc->info->vtable);
     instr->m_val = (m_uint)f->code;
     return GW_OK;
   }
@@ -75,7 +75,7 @@ static OP_CHECK(opck_union_is) {
   const Exp exp = call->args;
   if(exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
     ERR_N(exp->pos, "Union.is() argument must be of form id");
-  const Type t = call->func->d.exp_dot.t_base;
+  const Type t = call->func->d.exp_dot.base->info->type;
   const Value v = find_value(t, exp->d.prim.d.var);
   if(!v)
     ERR_N(exp->pos, "'%s' has no member '%s'", t->name, s_name(exp->d.prim.d.var));

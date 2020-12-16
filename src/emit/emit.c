@@ -1868,7 +1868,7 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
 }
 
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
-  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->t_base,
+  struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->base->info->type,
     .rhs=exp_self(member)->info->type, .data=(uintptr_t)member, .pos=exp_self(member)->pos, .op_type=op_dot };
   return op_emit(emit, &opi);
 }
