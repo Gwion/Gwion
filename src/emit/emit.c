@@ -541,7 +541,7 @@ ANN m_bool emit_array_access(const Emitter emit, struct ArrayAccessInfo *const i
   // look mum no pos
   struct Op_Import opi = { .op=insert_symbol("@array"), .lhs=info->array.exp->info->type, .rhs=info->array.type,
     .data=(uintptr_t)info, .op_type=op_array };
-  if(type_ref(info->array.type)) {
+  if(!info->is_var && (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = -SZ_INT;
   }
