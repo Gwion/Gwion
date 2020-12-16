@@ -17,7 +17,7 @@ of course this also works with a block code.
 
 @``` repeat2.gw
 repeat(3) {
-   maybe ? "You" : "Me" => var string s;
+   maybe ? "You" : "Me" @=> var string s;
    <<< "Hello, ", s, "!" >>>;
 }
 @```  

@@ -51,12 +51,12 @@ If you want to change it the value in the array, you need a pointer
 var int array[2][3];
 var int i;
 foreach(a: array) {
-  foreach(ref b: a)
-    <<< ++i => *b >>>;
+  foreach(b: a)
+    <<< ++i => b >>>;
 }
 foreach(a: array) {
-  foreach(ref b: a)
-    <<< *b >>>;
+  foreach(b: a)
+    <<< b >>>;
 }
 @```  
 @hide make -s forloop5.test

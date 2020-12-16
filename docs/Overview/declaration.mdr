@@ -13,7 +13,7 @@ var Object o;
 ## Declaring a reference
 
 @``` decl1.gw
-ref Object object_ref;
+late Object object_ref;
 <<< "Reference points to no object yet: ", object_ref >>>;
 new Object @=> object_ref;
 <<< "But now it does: ", object_ref >>>;
