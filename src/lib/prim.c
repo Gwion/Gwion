@@ -28,10 +28,7 @@ GWION_IMPORT(int_op) {
 }
 
 static GWION_IMPORT(int_logical) {
-  GWI_BB(gwi_oper_end(gwi, "&&",  int_and))
-  GWI_BB(gwi_oper_end(gwi, "||",   int_or))
-  GWI_BB(gwi_oper_end(gwi, "==",   int_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=",   int_neq))
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   GWI_BB(gwi_oper_end(gwi, ">",   int_gt))
   GWI_BB(gwi_oper_end(gwi, ">=",   int_ge))
   GWI_BB(gwi_oper_end(gwi, "<",   int_lt))
@@ -40,10 +37,16 @@ static GWION_IMPORT(int_logical) {
   GWI_BB(gwi_oper_end(gwi, "<<",  int_sl))
   GWI_BB(gwi_oper_end(gwi, "&", int_sand))
   GWI_BB(gwi_oper_end(gwi, "|",  int_sor))
-  return   gwi_oper_end(gwi, "^", int_xor);
+  GWI_BB(gwi_oper_end(gwi, "^", int_xor))
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "&&",  int_and))
+  GWI_BB(gwi_oper_end(gwi, "||",   int_or))
+  GWI_BB(gwi_oper_end(gwi, "==",   int_eq))
+  return gwi_oper_end(gwi, "!=",   int_neq);
 }
 
 static GWION_IMPORT(int_r) {
+  GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   CHECK_OP("=>", rassign, r_assign)
   CHECK_OP("+=>",  rassign, r_plus)
   CHECK_OP("-=>",  rassign, r_minus)
@@ -154,10 +157,6 @@ static OP_CHECK(opck_implicit_i2f) {
 
 static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_ini(gwi, "int", "float", "int"))
-  GWI_BB(gwi_oper_end(gwi, "&&",           int_float_and))
-  GWI_BB(gwi_oper_end(gwi, "||",            int_float_or))
-  GWI_BB(gwi_oper_end(gwi, "==", 			 int_float_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=", 			 int_float_neq))
   GWI_BB(gwi_oper_end(gwi, ">", 			 int_float_gt))
   GWI_BB(gwi_oper_end(gwi, ">=", 			 int_float_ge))
   GWI_BB(gwi_oper_end(gwi, "<", 			 int_float_lt))
@@ -174,6 +173,11 @@ static GWION_IMPORT(intfloat) {
   CHECK_IF("/=>", rassign, r_div)
   _CHECK_OP("$", cast_i2f, CastI2F)
   _CHECK_OP("@implicit", implicit_i2f, CastI2F)
+  GWI_BB(gwi_oper_ini(gwi, "int", "float", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "&&",           int_float_and))
+  GWI_BB(gwi_oper_end(gwi, "||",            int_float_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 			 int_float_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 			 int_float_neq))
   return GW_OK;
 }
 
@@ -184,10 +188,6 @@ static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_end(gwi, "*",        float_int_mul))
   GWI_BB(gwi_oper_end(gwi, "/",       float_int_div))
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "int"))
-  GWI_BB(gwi_oper_end(gwi, "&&",          float_int_and))
-  GWI_BB(gwi_oper_end(gwi, "||",           float_int_or))
-  GWI_BB(gwi_oper_end(gwi, "==", 			float_int_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=", 			float_int_neq))
   GWI_BB(gwi_oper_end(gwi, ">", 			float_int_gt))
   GWI_BB(gwi_oper_end(gwi, ">=", 			float_int_ge))
   GWI_BB(gwi_oper_end(gwi, "<", 			float_int_lt))
@@ -199,6 +199,11 @@ static GWION_IMPORT(floatint) {
   CHECK_FI("/=>", rassign, r_div)
   _CHECK_OP("$", cast_f2i, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
+  GWI_BB(gwi_oper_ini(gwi, "float", "int", "bool"))
+  GWI_BB(gwi_oper_end(gwi, "&&",          float_int_and))
+  GWI_BB(gwi_oper_end(gwi, "||",           float_int_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 			float_int_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 			float_int_neq))
   return GW_OK;
 }
 
@@ -276,11 +281,12 @@ static GWION_IMPORT(float) {
   CHECK_FF("-=>", rassign, r_minus)
   CHECK_FF("*=>", rassign, r_mul)
   CHECK_FF("/=>", rassign, r_div)
-  GWI_BB(gwi_oper_ini(gwi, "float", "float", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "float", "float", "bool"))
   GWI_BB(gwi_oper_end(gwi, "&&",           float_and))
   GWI_BB(gwi_oper_end(gwi, "||",            float_or))
   GWI_BB(gwi_oper_end(gwi, "==", 			 float_eq))
   GWI_BB(gwi_oper_end(gwi, "!=", 			 float_neq))
+  GWI_BB(gwi_oper_ini(gwi, "float", "float", "int"))
   GWI_BB(gwi_oper_end(gwi, ">", 			 float_gt))
   GWI_BB(gwi_oper_end(gwi, ">=", 			 float_ge))
   GWI_BB(gwi_oper_end(gwi, "<", 			 float_lt))

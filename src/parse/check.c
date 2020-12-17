@@ -703,14 +703,18 @@ ANN m_bool func_check(const Env env, const Exp_Call *exp) {
   const Type t = actual_type(env->gwion, exp->func->info->type);
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
-  .rhs=t, .pos=exp_self(exp)->pos, .data=(uintptr_t)e, .op_type=op_exp };
+  .rhs=t, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
   CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
+  if(e->exp_type != ae_exp_call)
+    return 0;
   return e->info->type != env->gwion->type[et_error] ?
     GW_OK : GW_ERROR;
 }
 
 ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
-  CHECK_BO(func_check(env, exp))
+  DECL_BO(const m_bool, ret, = func_check(env, exp))
+  if(!ret)
+    return exp_self(exp)->info->type;
   const Type t = actual_type(env->gwion, exp->func->info->type);
   if(isa(t, env->gwion->type[et_function]) < 0) {
     // use func flag?
@@ -789,7 +793,10 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
-    CHECK_BO(func_check(env, exp))
+//    CHECK_BO(func_check(env, exp))
+    DECL_BO(const m_bool, ret, = func_check(env, exp))
+    if(!ret)
+      return exp_self(exp)->info->type;
     const Type t = actual_type(env->gwion, exp->func->info->type);
     if(isa(t, env->gwion->type[et_function]) < 0)
        return check_exp_call1(env, exp);

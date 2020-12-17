@@ -397,19 +397,23 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
   nspc_allocdata(env->gwion->mp, udef->type->nspc);
   Union_List l = udef->l;
   m_uint sz = 0;
+  const Value v = new_value(env->gwion->mp, env->gwion->type[et_int], "@index");
+  nspc_add_value_front(env->curr, insert_symbol("@index"), v);
+  valuefrom(env ,v->from);
   do {
     DECL_OB(const Type, t, = known_type(env, l->td))
     if(nspc_lookup_value0(env->curr, l->xid))
       ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
     const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
-    if(!tflag(t, tflag_scan1))
-      tuple_contains(env, v);
+    if(!tflag(t, tflag_scan1)) // ???
+      tuple_contains(env, v);  // ???
     v->from->offset = SZ_INT;
     valuefrom(env ,v->from);
     nspc_add_value_front(env->curr, l->xid, v);
     if(t->size > sz)
       sz = t->size;
   } while((l = l->next));
+udef->type->nspc->info->offset = SZ_INT +sz;
   return GW_OK;
 }
 

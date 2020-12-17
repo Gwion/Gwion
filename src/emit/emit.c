@@ -964,13 +964,13 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
 ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
   const Exp lhs = bin->lhs;
   const Exp rhs = bin->rhs;
-  struct Op_Import opi = { .op=bin->op, .lhs=lhs->info->type, .rhs=rhs->info->type,
-    .pos=exp_self(bin)->pos, .data=(uintptr_t)bin, .op_type=op_binary };
   CHECK_BB(emit_exp_pop_next(emit, lhs))
   CHECK_BB(emit_exp_pop_next(emit, rhs))
   const m_int size = exp_size(rhs);
   emit_exp_addref1(emit, lhs, -exp_size(lhs) - size);
   emit_exp_addref1(emit, rhs, -size);
+  struct Op_Import opi = { .op=bin->op, .lhs=lhs->info->type, .rhs=rhs->info->type,
+    .pos=exp_self(bin)->pos, .data=(uintptr_t)bin, .op_type=op_binary };
   return op_emit(emit, &opi);
 }
 

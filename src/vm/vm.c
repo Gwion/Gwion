@@ -324,7 +324,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
-    &&unionset, &&unioncheck,
+    &&unionint, &&unionfloat, &&unionother, &&unionaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc, &&dotstaticfunc,
@@ -825,15 +825,43 @@ PRAGMA_POP()
 dotaddr:
   *(m_bit**)(reg-SZ_INT) = ((*(M_Object*)(reg-SZ_INT))->data + VAL);
   DISPATCH()
-unionset:
-  *(m_uint*)(*(M_Object*)(reg-SZ_INT))->data = VAL;
-  DISPATCH()
-unioncheck:
-  if(*(m_uint*)(*(M_Object*)(reg-SZ_INT))->data != VAL) {
-    exception(shred, "invalid union acces");
-    continue;
+
+#define UNION_CHECK\
+  register const m_bit *data  = (*(M_Object*)(reg-SZ_INT))->data;\
+  if(*(m_uint*)data != VAL) {\
+    exception(shred, "invalid union acces");\
+    continue;\
   }
+
+unionint:
+{
+  UNION_CHECK
+  *(m_uint*)(reg-SZ_INT) = *(m_uint*)(data + SZ_INT);
   DISPATCH()
+}
+unionfloat:
+{
+  UNION_CHECK
+  *(m_float*)(reg-SZ_INT) = *(m_float*)(data + SZ_INT);
+  reg += SZ_FLOAT - SZ_INT;
+  DISPATCH()
+}
+unionother:
+{
+  UNION_CHECK
+PRAGMA_PUSH()
+  for(m_uint i = 0; i <= VAL2; i += SZ_INT)
+    *(m_uint*)(reg+i-SZ_INT) = *(m_uint*)(data + SZ_INT + i);
+PRAGMA_POP()
+  reg += VAL2 - SZ_INT;
+  DISPATCH()
+}
+unionaddr:
+{
+  *(m_uint*)(*(M_Object*)(reg-SZ_INT))->data = VAL;
+  *(m_bit**)(reg - SZ_INT)= &*(m_bit*)((*(M_Object*)(reg-SZ_INT))->data + SZ_INT);
+  DISPATCH()
+}
 staticint:
   *(m_uint*)reg = *(m_uint*)VAL;
   reg += SZ_INT;
