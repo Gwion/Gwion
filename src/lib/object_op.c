@@ -141,6 +141,16 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v, const
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v, const loc_t pos);
+
+ANN static inline Value get_value(const Env env, const Exp_Dot *member, const Type t) {
+  const Value value = find_value(t, member->xid);
+  if(value)
+    return value;
+  if(env->func && env->func->def->base->values)
+    return (Value)scope_lookup1(env->func->def->base->values, (m_uint)member->xid);
+  return NULL;
+}
+
 OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const m_str str = s_name(member->xid);
@@ -153,7 +163,7 @@ OP_CHECK(opck_object_dot) {
   if(member->xid ==  insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
           _("keyword 'this' must be associated with object instance..."))
-  const Value value = find_value(the_base, member->xid);
+  const Value value = get_value(env, member, the_base);
   if(!value) {
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);

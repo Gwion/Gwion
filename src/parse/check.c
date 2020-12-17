@@ -310,6 +310,17 @@ ANN static void check_upvalue(const Env env, const Exp_Primary *prim) {
   }
 }
 
+ANN static Type prim_owned(const Env env, const Symbol *data) {
+  const Exp exp = exp_self(prim_exp(data));
+  const Value v = exp->d.prim.value;
+  const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
+  const Exp base = new_prim_id(env->gwion->mp, insert_symbol(name), loc_cpy(env->gwion->mp, prim_pos(data)));
+  exp->exp_type = ae_exp_dot;
+  exp->d.exp_dot.base = base;
+  exp->d.exp_dot.xid = *data;
+  return check_exp(env, exp);
+}
+
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol sym = *data;
   const Value v = check_non_res_value(env, data);
@@ -321,24 +332,17 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     return NULL;
   }
   prim_self(data)->value = v;
-  if(env->func) {
-    if(fbflag(env->func->def->base, fbflag_lambda))
-      check_upvalue(env, prim_self(data));
-    if(env->func && !GET_FLAG(v, const) && v->from->owner)
-      unset_fflag(env->func, fflag_pure);
-  }
-  //set_vflag(v->vflag, vflag_used);
+  if(v->from->owner_class)
+    return prim_owned(env, data);
   if(GET_FLAG(v, const))
     exp_setmeta(prim_exp(data), 1);
-  if(v->from->owner_class) {
-    const Exp exp = exp_self(prim_exp(data));
-    const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
-    const Exp base = new_prim_id(env->gwion->mp, insert_symbol(name), loc_cpy(env->gwion->mp, prim_pos(data)));
-    exp->exp_type = ae_exp_dot;
-    exp->d.exp_dot.base = base;
-    exp->d.exp_dot.xid = sym;
-    return check_exp(env, exp);
+  if(env->func) {
+    if(!GET_FLAG(v, const) && v->from->owner)
+      unset_fflag(env->func, fflag_pure);
+    if(fbflag(env->func->def->base, fbflag_lambda))
+      check_upvalue(env, prim_self(data));
   }
+  //set_vflag(v->vflag, vflag_used);
   return v->type;
 }
 
