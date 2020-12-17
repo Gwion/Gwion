@@ -172,6 +172,8 @@ ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos)
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->td->xid)
     return no_xid(env, decl);
+  if(decl->td->array && decl->td->array->exp)
+    CHECK_OO(check_exp(env, decl->td->array->exp))
   if(decl->td->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)))
     CHECK_BO(scan2_exp(env, exp_self(decl)))
