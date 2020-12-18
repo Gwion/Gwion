@@ -1517,8 +1517,8 @@ ANN static inline m_bool emit_jump_index(const Emitter emit, const Vector v, con
   m_int idx = 1;
   for(m_uint i = sz; --i > 1;) {
     if(!vector_at(v, i) && ++idx == n) {
-      m_uint *data = v->ptr + OFFSET + i*SZ_INT;
-      memcpy(data + SZ_INT, data, (sz-i) * SZ_INT);
+      m_uint *data = v->ptr + OFFSET + i;
+      memmove(data + 1, data, (sz-i) * SZ_INT);
       const Instr instr = emit_add_instr(emit, Goto);
       VPTR(v, i-1) = (m_uint)instr;
       return GW_OK;
