@@ -1511,13 +1511,39 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
   return GW_OK;
 }
 
-ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt stmt NUSED) {
-  vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
+ANN static inline m_bool emit_jump_index(const Emitter emit, const Vector v, const m_int n) {
+  vector_add(v, 0); // make room
+  const m_uint sz = vector_size(v);
+  m_int idx = 1;
+  for(m_uint i = sz; --i > 1;) {
+    if(!vector_at(v, i) && ++idx == n) {
+      m_uint *data = v->ptr + OFFSET + i*SZ_INT;
+      memcpy(data + SZ_INT, data, (sz-i) * SZ_INT);
+      const Instr instr = emit_add_instr(emit, Goto);
+      VPTR(v, i-1) = (m_uint)instr;
+      return GW_OK;
+    }
+  }
+  return GW_ERROR;
+}
+
+ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt_Index stmt) {
+  if(stmt->idx == -1 || stmt->idx == 1)
+    vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
+  else if(stmt->idx) {
+    if(emit_jump_index(emit, &emit->code->stack_cont, stmt->idx) < 0)
+      ERR_B(stmt_self(stmt)->pos, _("to many jumps required."))
+  }
   return GW_OK;
 }
 
-ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt stmt NUSED) {
-  vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
+ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt_Index stmt NUSED) {
+  if(stmt->idx == -1 || stmt->idx == 1)
+    vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
+  else if(stmt->idx) {
+    if(emit_jump_index(emit, &emit->code->stack_break, stmt->idx) < 0)
+      ERR_B(stmt_self(stmt)->pos, _("to many jumps required."))
+  }
   return GW_OK;
 }
 
@@ -1669,26 +1695,6 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
   const m_bool ret = _emit_stmt_loop(emit, stmt, &index);
   emit_pop_stack(emit, index);
   return ret;
-}
-
-ANN static m_bool emit_stmt_jump(const Emitter emit, const Stmt_Jump stmt) {
-  if(!stmt->is_label)
-    stmt->data.instr = emit_add_instr(emit, Goto);
-  else {
-    assert(stmt->data.v.ptr);
-    const m_uint size = vector_size(&stmt->data.v);
-    if(!size)
-//return GW_OK;
-      ERR_B(stmt_self(stmt)->pos, _("label '%s' defined but not used."), s_name(stmt->name))
-    LOOP_OPTIM
-    for(m_uint i = size + 1; --i;) {
-      const Stmt_Jump label = (Stmt_Jump)vector_at(&stmt->data.v, i - 1);
-      if(!label->data.instr)
-        ERR_B(stmt_self(label)->pos, _("you are trying to use a upper label."))
-      label->data.instr->m_val = emit_code_size(emit);
-    }
-  }
-  return GW_OK;
 }
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {

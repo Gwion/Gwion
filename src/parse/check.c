@@ -1021,22 +1021,6 @@ ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) {\
 describe_check_stmt_stack(conts,  continue)
 describe_check_stmt_stack(breaks, break)
 
-ANN static m_bool check_stmt_jump(const Env env, const Stmt_Jump stmt) {
-  if(stmt->is_label)
-    return GW_OK;
-  const Map label = env_label(env);
-  const m_uint* key = env->class_def && !env->func ?
-                (m_uint*)env->class_def : (m_uint*)env->func;
-  const Map m = label->ptr ? (Map)map_get(label, (vtype)key) : NULL;
-  if(!m)
-    ERR_B(stmt_self(stmt)->pos, _("label '%s' used but not defined"), s_name(stmt->name))
-  const Stmt_Jump ref = (Stmt_Jump)map_get(m, (vtype)stmt->name);
-  if(!ref)
-    ERR_B(stmt_self(stmt)->pos, _("label '%s' used but not defined"), s_name(stmt->name))
-  vector_add(&ref->data.v, (vtype)stmt);
-  return GW_OK;
-}
-
 ANN m_bool check_union_def(const Env env NUSED, const Union_Def udef) {
   if(tmpl_base(udef->tmpl)) // there's a func for this
     return GW_OK;

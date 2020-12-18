@@ -234,31 +234,6 @@ ANN static inline m_bool scan2_stmt_exp(const Env env, const Stmt_Exp stmt) {
   return stmt->val ? scan2_exp(env, stmt->val) : 1;
 }
 
-__attribute__((returns_nonnull))
-ANN static Map scan2_label_map(const Env env) {
-  Map m, label = env_label(env);
-  const m_uint* key = env->class_def && !env->func ?
-    (m_uint*)env->class_def : (m_uint*)env->func;
-  if(!label->ptr)
-    map_init(label);
-  if(!(m = (Map)map_get(label, (vtype)key))) {
-    m = new_map(env->gwion->mp);
-    map_set(label, (vtype)key, (vtype)m);
-  }
-  return m;
-}
-
-ANN static m_bool scan2_stmt_jump(const Env env, const Stmt_Jump stmt) {
-  if(stmt->is_label) {
-    const Map m = scan2_label_map(env);
-    if(map_get(m, (vtype)stmt->name))
-      ERR_B(stmt_self(stmt)->pos, _("label '%s' already defined"), s_name(stmt->name))
-    map_set(m, (vtype)stmt->name, (vtype)stmt);
-    vector_init(&stmt->data.v);
-  }
-  return GW_OK;
-}
-
 ANN m_bool scan2_union_def(const Env env NUSED, const Union_Def udef) {
   if(tmpl_base(udef->tmpl))
     return GW_OK;

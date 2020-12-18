@@ -86,7 +86,6 @@ static OP_CHECK(opck_union_is) {
     if(!strcmp(s_name(exp->d.prim.d.var), v->name)) {
       *mut = 1;
       const Exp exp_func = call->func;
-      const Exp exp_base = call->func->d.exp_dot.base;
       const Exp exp_args = call->args;
       e->exp_type = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);

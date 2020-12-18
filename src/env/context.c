@@ -27,12 +27,6 @@ ANN void load_context(const Context context, const Env env) {
 }
 
 ANN void unload_context(const Context context, const Env env) {
-  if(context->lbls.ptr) {
-    LOOP_OPTIM
-    for(m_uint i = 0; i < map_size(&context->lbls); i++)
-      free_map(env->gwion->mp, (Map)map_at(&context->lbls, i));
-    map_release(&context->lbls);
-  }
   context_remref(context, env->gwion);
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
 }

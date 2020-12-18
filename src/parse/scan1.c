@@ -440,7 +440,6 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 #define scan1_stmt_until    scan1_stmt_flow
 #define scan1_stmt_continue (void*)dummy_func
 #define scan1_stmt_break    (void*)dummy_func
-#define scan1_stmt_jump     (void*)dummy_func
 #define scan1_stmt_return   scan1_stmt_exp
 
 ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {

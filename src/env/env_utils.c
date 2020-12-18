@@ -5,10 +5,6 @@
 #include "vm.h"
 #include "parse.h"
 
-ANN Map env_label(const Env env) {
-  return &env->context->lbls;
-}
-
 #define GET(a,b) ((a) & (b)) == (b)
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
   if(env->scope->depth) {
