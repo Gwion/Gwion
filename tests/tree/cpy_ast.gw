@@ -23,10 +23,8 @@ class C:[A] {
   } where var int b;
   enum { zero };
   typedef int Int;
-  goto end;
   new Object;
   spork { <<< __func__ >>>; };
-  end:
   while(0){ <<< __func__ >>>; }
 }
 

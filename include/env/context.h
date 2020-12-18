@@ -5,7 +5,6 @@ struct Context_ {
   m_str       name;
   Ast         tree;
   Nspc        nspc;
-  struct Map_ lbls;
   m_bool error;
   m_bool global;
   uint16_t ref;

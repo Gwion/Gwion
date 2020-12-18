@@ -32,7 +32,6 @@ ANN void free_env(Env);
 ANN2(1,3) m_uint env_push(const Env, const Type, const Nspc);
 ANN static inline m_uint env_push_global(const Env env) { return env_push(env, NULL, env->global_nspc); }
 ANN void env_pop(const Env, const m_uint);
-ANN Map env_label(const Env);
 ANN Type scan_type(const Env, const Type, Type_Decl*);
 ANN Value mk_class(const Env env, const Type base);
 ANN m_bool compat_func(const __restrict__ Func_Def, const __restrict__ Func_Def);

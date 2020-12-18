@@ -1,6 +1,0 @@
-class C {
-	goto here;
-	here:
-	;
-}
-
