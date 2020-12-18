@@ -294,6 +294,13 @@ ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr)
   }
 }
 
+static OP_EMIT(opem_not_object) {
+  const Instr instr = (Instr)vector_back(&emit->code->instr);
+  if(instr->opcode == eGWOP_EXCEPT)
+    vector_pop(&emit->code->instr);
+  return GW_OK;
+}
+
 GWION_IMPORT(object_op) {
   const Type t_error  = gwi_mk_type(gwi, "@error",  0, NULL);
   gwi->gwion->type[et_error] = t_error;
@@ -301,7 +308,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, at_object))
   GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
   GWI_BB(gwi_oper_add(gwi, opck_object_cast))
@@ -309,6 +316,9 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
   GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
+  GWI_BB(gwi_oper_emi(gwi, opem_not_object))
+  GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
