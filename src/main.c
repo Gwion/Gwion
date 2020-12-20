@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
   Arg arg = { .arg={.argc=argc, .argv=argv}, .loop=-1 };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
+  setlocale(LC_ALL, NULL);
   struct Gwion_ gwion = {};
   const m_bool ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);

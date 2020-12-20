@@ -1,3 +1,5 @@
+#include <locale.h>
+#include <libintl.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -69,7 +71,13 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
   return GW_ERROR;
 }
 
+#define LOCALE_INFO INSTALL_PREFIX "/share"
+
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
+  setlocale(LC_ALL, NULL);
+  bindtextdomain (GWION_PACKAGE, LOCALE_INFO);
+  bindtextdomain (GWION_PACKAGE "_util", LOCALE_INFO);
+  bindtextdomain (GWION_PACKAGE "_ast", LOCALE_INFO);
   gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->ppa = mp_calloc(gwion->mp, PPArg);
