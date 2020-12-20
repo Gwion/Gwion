@@ -1,5 +1,7 @@
+#ifdef USE_GETTEXT
 #include <locale.h>
 #include <libintl.h>
+#endif
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
