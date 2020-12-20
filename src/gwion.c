@@ -79,7 +79,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   bindtextdomain (GWION_PACKAGE, LOCALE_INFO);
   bindtextdomain (GWION_PACKAGE "_util", LOCALE_INFO);
   bindtextdomain (GWION_PACKAGE "_ast", LOCALE_INFO);
-#ifdef USE_GETTEXT
+#endif
   gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->ppa = mp_calloc(gwion->mp, PPArg);
