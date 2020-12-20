@@ -373,7 +373,7 @@ static GWION_IMPORT(global_ugens) {
 
 static OP_CHECK(opck_chuck_ugen) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 GWION_IMPORT(ugen) {

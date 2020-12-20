@@ -171,9 +171,9 @@ ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
-  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code) {
+  if(unary->unary_type == unary_code) {
     RET_NSPC(scan2_stmt(env, unary->code))
-  } else if(unary->exp)
+  } else if(unary->unary_type == unary_exp)
     return scan2_exp(env, unary->exp);
   return GW_OK;
 }

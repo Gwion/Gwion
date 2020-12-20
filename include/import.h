@@ -13,7 +13,7 @@ typedef struct Gwi_* Gwi;
 #define CTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define DTOR(a) ANN void a(const M_Object o NUSED, const m_bit* _ NUSED, const VM_Shred shred NUSED)
 #define GACK(a) ANN2(2) void a(const Type t NUSED, const m_bit* VALUE NUSED, const VM_Shred shred NUSED)
-#define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED, m_bool* mut NUSED)
+#define OP_CHECK(a) ANN Type a(const Env env NUSED, void* data NUSED)
 #define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void* data NUSED)
 #ifdef GWION_BUILTIN
 #define GWI_BB(a) { gwi_set_loc(gwi, __FILE__, __LINE__); (void)(a); }
@@ -54,7 +54,7 @@ OP_EMIT(opem_new);
 
 ANN2(1,3) static inline M_Object new_object_str(const Gwion gwion, const VM_Shred shred, const m_str str) {
 	struct loc_t_ loc = {};
-  DECL_OO(const Type, t, = str2type(gwion, str, &loc))
+  DECL_OO(const Type, t, = str2type(gwion, str, loc))
   return new_object(gwion->mp, shred, t);
 }
 #endif

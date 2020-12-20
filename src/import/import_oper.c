@@ -50,7 +50,7 @@ ANN2(1) m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
   return GW_OK;
 }
 
-ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*, m_bool*)) {
+ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
   gwi->oper->ck = ck;
   return GW_OK;
 }

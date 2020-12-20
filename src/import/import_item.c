@@ -19,7 +19,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type, const restrict 
 
 ANN static m_int gwi_item_tmpl(const Gwi gwi) {
   const MemPool mp = gwi->gwion->mp;
-  const Stmt stmt = new_stmt_exp(mp, ae_stmt_exp, gwi->ck->exp, loc(gwi));
+  const Stmt stmt = new_stmt_exp(mp, ae_stmt_exp, gwi->ck->exp, gwi->loc);
   const Stmt_List slist = new_stmt_list(mp, stmt, NULL);
   Section* section = new_section_stmt_list(mp, slist);
   const Ast body = new_ast(mp, section, NULL);

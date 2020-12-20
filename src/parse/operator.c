@@ -90,7 +90,6 @@ struct OpChecker {
   const Env env;
   const Map map;
   const struct Op_Import* opi;
-  m_bool mut;
 };
 
 __attribute__((returns_nonnull))
@@ -123,35 +122,16 @@ ANN static m_bool op_exist(const struct OpChecker* ock, const Nspc n) {
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   Nspc n = gwion->env->curr;
   do {
-    struct OpChecker ock = { gwion->env, &n->info->op_map, opi, 0 };
+    struct OpChecker ock = { gwion->env, &n->info->op_map, opi };
     CHECK_BB(op_exist(&ock, n))
   } while((n = n->parent));
   if(!gwion->env->curr->info->op_map.ptr)
     map_init(&gwion->env->curr->info->op_map);
-  struct OpChecker ock = { gwion->env, &gwion->env->curr->info->op_map, opi, 0 };
+  struct OpChecker ock = { gwion->env, &gwion->env->curr->info->op_map, opi };
   const Vector v = op_vector(gwion->mp, &ock);
   const M_Operator* mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
   return GW_OK;
-}
-
-ANN static void set_nspc(struct Op_Import *opi, const Nspc nspc) {
-  if(opi->op_type == op_implicit) {
-    struct Implicit* imp = (struct Implicit*)opi->data;
-    imp->e->info->nspc = nspc;
-    return;
-  }
-  if(opi->op_type == op_array) {
-    Array_Sub array = (Array_Sub)opi->data;
-    array->exp->info->nspc = nspc;
-    return;
-  }
-  if(opi->op_type == op_exp) {
-    ((Exp)opi->data)->info->nspc = nspc;
-    return;
-  }
-  if(opi->op_type != op_scan)
-    exp_self((union exp_data*)opi->data)->info->nspc = nspc;
 }
 
 ANN static Type op_check_inner(struct OpChecker* ock) {
@@ -160,7 +140,7 @@ ANN static Type op_check_inner(struct OpChecker* ock) {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
     if(v && (mo = operator_find(v, ock->opi->lhs, r))) {
-      if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data, &ock->mut))))
+      if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data))))
         return t;
       else
         return mo->ret;
@@ -176,13 +156,11 @@ ANN Type op_check(const Env env, struct Op_Import* opi) {
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data, .op_type=opi->op_type };
-        struct OpChecker ock = { env, &nspc->info->op_map, &opi2, 0 };
+        struct OpChecker ock = { env, &nspc->info->op_map, &opi2 };
         const Type ret = op_check_inner(&ock);
         if(ret) {
           if(ret == env->gwion->type[et_error])
             return NULL;
-          if(!ock.mut)
-            set_nspc(&opi2, nspc);
           return ret;
         }
       } while(l && (l = l->info->parent));
@@ -221,46 +199,28 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   return GW_OK;
 }
 
-ANN static Nspc get_nspc(const struct Op_Import* opi) {
-  if(opi->op_type == op_implicit) {
-    struct Implicit* imp = (struct Implicit*)opi->data;
-    return imp->e->info->nspc;
-  }
-  if(opi->op_type == op_array) {
-    struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)opi->data;
-    return info->array.exp->info->nspc;
-  }
-  if(opi->op_type == op_exp)
-    return ((Exp)opi->data)->info->nspc;
-  return exp_self((union exp_data*)opi->data)->info->nspc;
-}
-
-ANN static inline Nspc ensure_nspc(const struct Op_Import* opi) {
-  DECL_OO(Nspc, nspc, = get_nspc(opi))
-  while(!nspc->info->op_map.ptr)
-    nspc = nspc->parent;
-  return nspc;
-}
-
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
-  DECL_OB(Nspc, nspc, = ensure_nspc(opi))
-  Type l = opi->lhs;
+  Nspc nspc = emit->env->class_def ? emit->env->curr : emit->env->context->nspc;
   do {
-    Type r = opi->rhs;
+    if(!nspc->info->op_map.ptr)continue;
+    Type l = opi->lhs;
     do {
-      const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-      if(!v)
-        continue;
-      const M_Operator* mo = operator_find(v, l, r);
-      if(mo) {
-        if(mo->em) {
-          const m_bool ret = mo->em(emit, (void*)opi->data);
-          if(ret)
-            return ret;
-        } else if(mo->func || mo->instr)
-          return handle_instr(emit, mo);
-      }
-    } while(r && (r = r->info->parent));
-  } while(l && (l = l->info->parent));
+      Type r = opi->rhs;
+      do {
+        const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
+        if(!v)
+          continue;
+        const M_Operator* mo = operator_find(v, l, r);
+        if(mo) {
+          if(mo->em) {
+            const m_bool ret = mo->em(emit, (void*)opi->data);
+            if(ret)
+              return ret;
+          } else if(mo->func || mo->instr)
+            return handle_instr(emit, mo);
+        }
+      } while(r && (r = r->info->parent));
+    } while(l && (l = l->info->parent));
+  } while((nspc = nspc->parent));
   return GW_ERROR;
 }

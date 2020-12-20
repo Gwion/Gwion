@@ -100,7 +100,7 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
     if(tflag(t, tflag_ctmpl) || (tflag(t, tflag_ntmpl) && !td->types))
       return t;
     struct TemplateScan ts = { .t=t, .td=td };
-    struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td_pos(td), .op_type=op_scan };
+    struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td->pos, .op_type=op_scan };
     return op_check(env, &opi);
   } else if(td->types)
     return maybe_func(env, t, td);
@@ -119,7 +119,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     td->next = next;
     CHECK_OO(owner)
     if(!owner->nspc)
-      ERR_O(td_pos(td), "type '%s' has no namespace", owner->name)
+      ERR_O(td->pos, "type '%s' has no namespace", owner->name)
     struct EnvSet es = { .env=env, .data=env,
       .scope=env->scope->depth, .flag=tflag_none };
     envset_push(&es, owner, owner->nspc);

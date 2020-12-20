@@ -83,12 +83,17 @@ ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
 }
 
 ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
-  if(b->exp)
+  switch(b->unary_type) {
+    case unary_exp:
     clean_exp(a, b->exp);
-  if(b->td)
+    break;
+  case unary_td:
     clean_type_decl(a, b->td);
-  if(b->code)
+    break;
+  case unary_code:
     clean_stmt(a, b->code);
+    break;
+  }
 }
 
 ANN static void clean_exp_cast(Clean *a, Exp_Cast *b) {

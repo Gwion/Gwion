@@ -77,13 +77,13 @@ static OP_CHECK(opck_int_range) {
   const Exp exp = (Exp)data;
   const Range *range = exp->d.prim.d.range;
   const Exp e = range->start ?: range->end;
-  return array_type(env, e->info->type, 1);
+  return array_type(env, e->type, 1);
 }
 
 static OP_EMIT(opem_int_range) {
   const Exp exp = (Exp)data;
   const Instr instr = emit_add_instr(emit, IntRange);
-  instr->m_val = (m_uint)exp->info->type;
+  instr->m_val = (m_uint)exp->type;
   return GW_OK;
 }
 
@@ -241,9 +241,9 @@ static inline int is_now(const Env env, const Exp exp) {
 static OP_CHECK(opck_now) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(!is_now(env, bin->rhs))
-    CHECK_NN(opck_const_rhs(env, data, mut))
+    CHECK_NN(opck_const_rhs(env, data))
   exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 static GWION_IMPORT(time) {

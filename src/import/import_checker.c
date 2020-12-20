@@ -84,7 +84,7 @@ ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
   CHECK_BO(ac_run(gwion, &ac))
   const Array_Sub array = ac.depth ?
     mk_array(gwion->mp, &ac) : NULL;
-  return new_var_decl(gwion->mp, sym, array, loc_cpy(gwion->mp, pos));
+  return new_var_decl(gwion->mp, sym, array, pos);
 }
 
 // only in udef.c
@@ -193,7 +193,7 @@ ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
       return NULL;
     }
   }
-  Type_Decl *td = new_type_decl(gwion->mp, sym, loc_cpy(gwion->mp, tdc->pos));
+  Type_Decl *td = new_type_decl(gwion->mp, sym, tdc->pos);
   td->next = next;
   td->types = tl;
   if(ac.depth)
@@ -295,7 +295,7 @@ ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
   if(str != ac->str) {
     CHECK_BB(ac_num(gwion, ac, num))
     CHECK_BB(ac_exp(gwion, ac))
-    const Exp exp = new_prim_int(gwion->mp, num, loc_cpy(gwion->mp, ac->pos));
+    const Exp exp = new_prim_int(gwion->mp, num, ac->pos);
     ac_add_exp(ac, exp);
   } else
     CHECK_BB(ac_noexp(gwion, ac))

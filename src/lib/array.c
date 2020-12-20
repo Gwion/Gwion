@@ -143,19 +143,19 @@ ANN static Type get_array_type(Type t) {
   return t;
 }
 
-#define ARRAY_OPCK(a, b, pos)                   \
-  const Type l = get_array_type(a->info->type); \
-  const Type r = get_array_type(b->info->type); \
-  if(isa(l, r) < 0)                             \
+#define ARRAY_OPCK(a, b, pos)                  \
+  const Type l = get_array_type(a->type);      \
+  const Type r = get_array_type(b->type);      \
+  if(isa(l, r) < 0)                            \
     ERR_N(pos, _("array types do not match."))
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_error])
+  if(opck_const_rhs(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
-  if(bin->lhs->info->type != env->gwion->type[et_error]) {
+  if(bin->lhs->type != env->gwion->type[et_error]) {
     ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
-    if(bin->lhs->info->type->array_depth != bin->rhs->info->type->array_depth)
+    if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
       ERR_N(exp_self(bin)->pos, _("array depths do not match."))
   }
   if(bin->rhs->exp_type == ae_exp_decl) {
@@ -164,19 +164,19 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
   }
   exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 ANN static Type check_array_shift(const Env env,
     const Exp a, const Exp b, const m_str str, const loc_t pos) {
-  if(a->info->type == env->gwion->type[et_error] &&
-      b->info->type->array_depth > 1)
-    return a->info->type;
+  if(a->type == env->gwion->type[et_error] &&
+      b->type->array_depth > 1)
+    return a->type;
   ARRAY_OPCK(a, b, pos)
-  if(a->info->type->array_depth == b->info->type->array_depth + 1)
-    return a->info->type;
-  else if(a->info->type->array_depth == b->info->type->array_depth)
-    return a->info->type;
+  if(a->type->array_depth == b->type->array_depth + 1)
+    return a->type;
+  else if(a->type->array_depth == b->type->array_depth)
+    return a->type;
   ERR_N(pos, "array depths do not match for '%s'.", str);
 }
 
@@ -241,7 +241,7 @@ static INSTR(ArrayConcatRight) {
 
 static OP_EMIT(opem_array_sr) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->rhs->info->type->array_depth == bin->lhs->info->type->array_depth)
+  if(bin->rhs->type->array_depth == bin->lhs->type->array_depth)
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
@@ -252,10 +252,10 @@ static OP_EMIT(opem_array_sr) {
 
 static OP_EMIT(opem_array_sl) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(bin->lhs->info->type->array_depth == bin->rhs->info->type->array_depth)
+  if(bin->lhs->type->array_depth == bin->rhs->type->array_depth)
     return emit_array_shift(emit, ArrayConcatLeft);
   const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = bin->rhs->info->type->size;
+  pop->m_val = bin->rhs->type->size;
   emit_gc(emit, -SZ_INT);
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
@@ -264,13 +264,9 @@ static OP_EMIT(opem_array_sl) {
 // check me. use common ancestor maybe
 static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  Type l = cast->exp->info->type;
-  Type r = exp_self(cast)->info->type;
-  while(!l->info->base_type)
-    l = l->info->parent;
-  while(!r->info->base_type)
-    r = r->info->parent;
-  if(get_depth(cast->exp->info->type) == get_depth(exp_self(cast)->info->type) && isa(l->info->base_type, r->info->base_type) > 0)
+  Type l = array_base(cast->exp->type);
+  Type r = array_base(exp_self(cast)->type);
+  if(get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) && isa(l->info->base_type, r->info->base_type) > 0)
     return l;
   return NULL;
 }
@@ -278,7 +274,7 @@ static OP_CHECK(opck_array_cast) {
 static OP_CHECK(opck_array_slice) {
   const Exp e = (Exp)data;
   exp_setmeta(exp_self(e), 1);
-  return e->d.exp_slice.base->info->type;
+  return e->d.exp_slice.base->type;
 }
 
 static inline m_bool bounds(const M_Vector v, const m_int i) {

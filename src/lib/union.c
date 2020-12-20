@@ -19,9 +19,9 @@ static GACK(gack_none) {
 
 static OP_CHECK(opck_none) {
   Exp_Binary *bin = (Exp_Binary*)data;
-  CHECK_NN(opck_rassign(env, data, mut))
+  CHECK_NN(opck_rassign(env, data))
   exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 static OP_EMIT(opem_none) {
@@ -35,11 +35,11 @@ ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_in
 
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Map map = &member->base->info->type->nspc->info->value->map;
+  const Map map = &member->base->type->nspc->info->value->map;
   CHECK_BB(emit_exp(emit, member->base))
-  if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0) {
+  if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
-    const Func f = (Func)vector_front(&member->base->info->type->info->parent->nspc->info->vtable);
+    const Func f = (Func)vector_front(&member->base->type->info->parent->nspc->info->vtable);
     instr->m_val = (m_uint)f->code;
     return GW_OK;
   }
@@ -76,7 +76,7 @@ static OP_CHECK(opck_union_is) {
   const Exp exp = call->args;
   if(exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
     ERR_N(exp->pos, "Union.is() argument must be of form id");
-  const Type t = call->func->d.exp_dot.base->info->type;
+  const Type t = call->func->d.exp_dot.base->type;
   const Value v = find_value(t, exp->d.prim.d.var);
   if(!v)
     ERR_N(exp->pos, "'%s' has no member '%s'", t->name, s_name(exp->d.prim.d.var));
@@ -84,18 +84,17 @@ static OP_CHECK(opck_union_is) {
   for(m_uint i = 0; i < map_size(map); ++i) {
     const Value v = (Value)VVAL(map, i);
     if(!strcmp(s_name(exp->d.prim.d.var), v->name)) {
-      *mut = 1;
       const Exp exp_func = call->func;
       const Exp exp_args = call->args;
       e->exp_type = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
       e->d.exp_binary.lhs->d.exp_dot.xid = insert_symbol(env->gwion->st, "@index");
-      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, loc_cpy(env->gwion->mp, e->pos));
+      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->pos);
       free_exp(env->gwion->mp, exp_func);
       free_exp(env->gwion->mp, exp_args);
       e->d.exp_binary.op = insert_symbol(env->gwion->st, "==");
       CHECK_OO(check_exp(env, e))
-      return e->info->type;
+      return e->type;
     }
   }
   return env->gwion->type[et_error];

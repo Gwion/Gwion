@@ -20,7 +20,6 @@ ANEW Emitter new_emitter(MemPool p) {
   vector_init(&emit->info->pure);
   emit->info->escape = escape_table(p);
   emit->info->emit_code = emit_code;
-  emit->info->finalyzer = EOC;
   return emit;
 }
 

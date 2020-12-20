@@ -129,9 +129,9 @@ static INSTR(VarargCast) {
 static OP_EMIT(opem_vararg_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, VarargCast);
-  instr->m_val = (m_uint)exp_self(cast)->info->type;
+  instr->m_val = (m_uint)exp_self(cast)->type;
   const Instr push = emit_add_instr(emit, RegPush);
-  push->m_val = exp_self(cast)->info->type->size - SZ_INT;
+  push->m_val = exp_self(cast)->type->size - SZ_INT;
   return GW_OK;
 }
 
@@ -142,7 +142,7 @@ static FREEARG(freearg_vararg) {
 
 static ID_CHECK(idck_vararg) {
   if(env->func && fbflag(env->func->def->base, fbflag_variadic))
-    return exp_self(prim)->info->type;
+    return exp_self(prim)->type;
   ERR_O(exp_self(prim)->pos, _("'vararg' must be used inside variadic function"))
 }
 

@@ -21,7 +21,7 @@ ANN void gwi_register_freearg(const Gwi gwi, const f_instr _exec, const f_freear
   map_set(&gwi->gwion->data->freearg, (vtype)_exec, (vtype)_free);
 }
 
-ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pass pass[2]) {
+ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pass pass) {
   pass_register(gwi->gwion, name, pass);
 }
 
@@ -37,7 +37,7 @@ ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
 }
 
 ANN void gwi_set_loc(const Gwi gwi, const m_str file, const uint line) {
-  gwi->loc->first.line = gwi->loc->last.line = line;
+  gwi->loc.first.line = gwi->loc.last.line = line;
   gwi->gwion->env->name = file;
 }
 

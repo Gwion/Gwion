@@ -15,7 +15,7 @@ typedef m_bool (*compilation_pass)(const Env, PassArg);
 
 ANEW ANN struct Passes_* new_passes(MemPool mp);
 ANN void free_passes(MemPool mp, struct Passes_*);
-ANN void pass_register(const Gwion, const m_str, const compilation_pass[2]);
+ANN void pass_register(const Gwion, const m_str, const compilation_pass);
 ANN void pass_default(const Gwion);
 ANN m_bool pass_set(const Gwion, const Vector);
 #endif

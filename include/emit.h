@@ -17,7 +17,6 @@ typedef struct Code_ {
 struct EmitterInfo_ {
   struct Vector_ pure;
   char *escape;
-  f_instr finalyzer;
   VM_Code (*emit_code)(const Emitter);
   VM_Code code;
   m_bool memoize;

@@ -22,7 +22,7 @@ ANN static Type option(const Env env, Type_Decl* td) {
 ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td))
   if(base->info->ctx && base->info->ctx->error)
-    ERR_O(td_pos(td), _("type '%s' is invalid"), base->name)
+    ERR_O(td->pos, _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, t, = scan_type(env, base, td))
   const Type ret = !td->option ? t : option(env, td);
   return !td->array ? ret : array_type(env, ret, td->array->depth);

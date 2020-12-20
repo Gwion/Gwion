@@ -16,7 +16,7 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Dec
     Type parent = t;
     while(parent) {
       if(parent == owner)
-        ERR_B(td_pos(td), _("%s declared inside %s"), t->name, owner->name);
+        ERR_B(td->pos, _("%s declared inside %s"), t->name, owner->name);
       parent = parent->info->parent;
     }
   } while((owner = owner->info->owner_class));
@@ -45,7 +45,7 @@ ANN static Type void_type(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = scan1_type(env, td))
   if(type->size)
     return type;
-  ERR_O(td_pos(td), _("cannot declare variables of size '0' (i.e. 'void')..."))
+  ERR_O(td->pos, _("cannot declare variables of size '0' (i.e. 'void')..."))
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
@@ -150,7 +150,7 @@ ANN static inline int opiscall(const Symbol sym) {
 ANN static inline Exp sym2func(const Env env, const Symbol sym, const loc_t pos) {
   MemPool mp = env->gwion->mp;
   const m_str name = s_name(sym);
-  return new_prim_id(mp, insert_symbol(name + 1), loc_cpy(mp, pos));
+  return new_prim_id(mp, insert_symbol(name + 1), pos);
 }
 
 ANN static void binary_args(const Exp_Binary* bin) {
@@ -164,6 +164,7 @@ ANN static m_bool exp2call(const Env env, const Exp e, const Symbol sym, const E
   e->exp_type = ae_exp_call;
   e->d.exp_call.func = sym2func(env, sym, e->pos);
   e->d.exp_call.args = args;
+  e->d.exp_call.tmpl = NULL;
   return scan1_exp(env, e);
 }
 
@@ -243,12 +244,12 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If* exp_if) {
 }
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env, const Exp_Unary *unary) {
-  if((unary->op == insert_symbol("spork") || unary->op == insert_symbol("fork")) && unary->code)
+  if(unary->unary_type == unary_code)
     { RET_NSPC(scan1_stmt(env, unary->code)) }
   else if(opiscall(unary->op)) {
     return exp2call(env, exp_self(unary), unary->op, unary->exp);
   }
-  return unary->exp ? scan1_exp(env, unary->exp) : GW_OK;
+  return unary->unary_type == unary_exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 
 #define scan1_exp_lambda dummy_func
@@ -478,25 +479,25 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
 
 ANN static m_bool class_internal(const Env env, const Func_Base *base) {
   if(!env->class_def)
-    ERR_B(td_pos(base->td), _("'%s' must be in class def!!"), s_name(base->xid))
+    ERR_B(base->td->pos, _("'%s' must be in class def!!"), s_name(base->xid))
   if(base->args)
-    ERR_B(td_pos(base->td), _("'%s' must not have args"), s_name(base->xid))
+    ERR_B(base->td->pos, _("'%s' must not have args"), s_name(base->xid))
   if(base->ret_type != env->gwion->type[et_void])
-    ERR_B(td_pos(base->td), _("'%s' must return 'void'"), s_name(base->xid))
+    ERR_B(base->td->pos, _("'%s' must return 'void'"), s_name(base->xid))
   return GW_OK;
 }
 
 ANN static inline m_bool scan_internal_arg(const Env env, const Func_Base *base) {
   if(base->args && !base->args->next)
     return GW_OK;
-  ERR_B(td_pos(base->td), _("'%s' must have one (and only one) argument"), s_name(base->xid))
+  ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"), s_name(base->xid))
 }
 
 ANN static inline m_bool scan_internal_int(const Env env, const Func_Base *base) {
     CHECK_BB(scan_internal_arg(env, base))
     if(isa(base->ret_type, env->gwion->type[et_int]) > 0)
       return GW_OK;
-    ERR_B(td_pos(base->td), _("'%s' must return 'int'"), s_name(base->xid))
+    ERR_B(base->td->pos, _("'%s' must return 'int'"), s_name(base->xid))
 }
 
 ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
@@ -559,7 +560,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   const uint global = GET_FLAG(fdef->base, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   if(fdef->base->td)
-    CHECK_BB(env_storage(env, fdef->base->flag, td_pos(fdef->base->td)))
+    CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos))
   CHECK_BB(scan1_fdef_defined(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
     return scan1_fdef_base_tmpl(env, fdef->base);
@@ -581,13 +582,13 @@ ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   CHECK_OO((tdef->type->info->parent = parent));
   Type t = parent;
   do if(tdef->type == t)
-      ERR_O(td_pos(tdef->ext), _("recursive (%s <= %s) class declaration."), tdef->type->name, t->name)
+      ERR_O(tdef->ext->pos, _("recursive (%s <= %s) class declaration."), tdef->type->name, t->name)
   while((t = t->info->parent));
   return parent;
 }
 
 ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
-  const loc_t pos = td_pos(cdef->base.ext);
+  const loc_t pos = cdef->base.ext->pos;
   if(cdef->base.ext->array)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
   DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base))

@@ -93,23 +93,3 @@ ANN void env_add_type(const Env env, const Type type) {
   set_vflag(v, vflag_builtin);
   set_tflag(type, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check | tflag_emit);
 }
-
-ANN m_bool type_engine_check_prog(const Env env, const Ast ast) {
-  const Context ctx = new_context(env->gwion->mp, ast, env->name);
-  env_reset(env);
-  load_context(ctx, env);
-  return traverse_ast(env, ast);
-}
-
-ANN m_bool type_engine_clean_prog(const Env env, m_bool *r) {
-  const m_bool ret = (m_bool)*r;
-  const Context ctx = env->context;
-  if(ret > 0) //{
-    nspc_commit(env->curr);
-  if(ret > 0 || env->context->global)
-    vector_add(&env->scope->known_ctx, (vtype)ctx);
-  else //nspc_rollback(env->global_nspc);
-    context_remref(ctx, env->gwion);
-  unload_context(ctx, env);
-  return ret;
-}

@@ -84,7 +84,7 @@ ANN Type gwi_enum_end(const Gwi gwi) {
     GWI_ERR_O("Enum is empty");
   const Gwion gwion = gwi->gwion;
   const Enum_Def edef  = new_enum_def(gwion->mp, gwi->ck->tmpl,
-      gwi->ck->xid, loc(gwi));
+      gwi->ck->xid, gwi->loc);
   gwi->ck->tmpl = NULL;
   const m_bool ret = traverse_enum_def(gwion->env, edef);
   import_enum_end(gwi, &edef->values);

@@ -53,7 +53,7 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
 
 ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   Func_Base* base = gwi_func_base(gwi, ck);
-  const Func_Def fdef = new_func_def(gwi->gwion->mp, base, NULL, loc(gwi));
+  const Func_Def fdef = new_func_def(gwi->gwion->mp, base, NULL, gwi->loc);
   return fdef;
 }
 

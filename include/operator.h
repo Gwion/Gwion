@@ -12,7 +12,7 @@
 #define CHECK_BN(f) { if(f < 0) return env->gwion->type[et_error]; }
 #define CHECK_NN(f) { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }
 
-typedef Type   (*opck)(const Env, void*, m_bool*);
+typedef Type   (*opck)(const Env, void*);
 typedef m_bool (*opem)(const Emitter, void*);
 
 struct Op_Func {

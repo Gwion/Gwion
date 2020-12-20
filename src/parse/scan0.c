@@ -55,7 +55,7 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
 static void fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = new_func_def(env->gwion->mp,
       cpy_func_base(env->gwion->mp, fptr->base),
-    NULL, loc_cpy(env->gwion->mp, td_pos(fptr->base->td)));
+    NULL, fptr->base->td->pos);
   fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
   fptr->value->d.func_ref = fptr->base->func;
   fptr->base->func->value_ref = fptr->value;
@@ -64,8 +64,8 @@ static void fptr_def(const Env env, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
-  CHECK_BB(env_access(env, fptr->base->flag, td_pos(fptr->base->td)))
-  CHECK_BB(scan0_defined(env, fptr->base->xid, td_pos(fptr->base->td)));
+  CHECK_BB(env_access(env, fptr->base->flag, fptr->base->td->pos))
+  CHECK_BB(scan0_defined(env, fptr->base->xid, fptr->base->td->pos));
   const m_str name = s_name(fptr->base->xid);
   const Type t = scan0_type(env, name, env->gwion->type[et_fptr]);
   t->info->owner = !(!env->class_def && GET_FLAG(fptr->base, global)) ?
@@ -90,12 +90,12 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
 
 static OP_CHECK(opck_implicit_similar) {
   const struct Implicit *imp = (struct Implicit*)data;
-  return imp->e->info->type;
+  return imp->e->type;
 }
 
 static OP_CHECK(opck_cast_similar) {
   const Exp_Cast *cast = (Exp_Cast*)data;
-  return exp_self(cast)->info->type;
+  return exp_self(cast)->type;
 }
 
 ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
@@ -132,8 +132,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
 ANN static m_bool typedef_complex(const Env env, const Type_Def tdef, const Type base) {
   const ae_flag flag = base->info->cdef ? base->info->cdef->flag : 0;
   const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->xid,
-       cpy_type_decl(env->gwion->mp, tdef->ext), NULL,
-       loc_cpy(env->gwion->mp, td_pos(tdef->ext)));
+       cpy_type_decl(env->gwion->mp, tdef->ext), NULL, tdef->ext->pos);
   CHECK_BB(scan0_class_def(env, cdef))
   tdef->type = cdef->base.type;
   cdef->base.tmpl = tdef->tmpl;// check cpy
@@ -153,9 +152,9 @@ ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base
 }
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
-  CHECK_BB(env_access(env, tdef->ext->flag, td_pos(tdef->ext)))
+  CHECK_BB(env_access(env, tdef->ext->flag, tdef->ext->pos))
   DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext) : known_type(env, tdef->ext))
-  CHECK_BB(scan0_defined(env, tdef->xid, td_pos(tdef->ext)))
+  CHECK_BB(scan0_defined(env, tdef->xid, tdef->ext->pos))
   if(isa(base, env->gwion->type[et_function]) < 0) {
     if(!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
       typedef_simple(env, tdef, base);
@@ -168,11 +167,11 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
 }
 
 ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
-  const size_t line_len = num_digit(pos->first.line);
-  const size_t col_len = num_digit(pos->first.column);
+  const size_t line_len = num_digit(pos.first.line);
+  const size_t col_len = num_digit(pos.first.column);
   char c[strlen(env->curr->name) + strlen(env->name) + line_len + col_len + strlen(name) + 6];
   sprintf(c, "@%s:%s:%s:%u:%u", name, env->name, env->curr->name,
-      pos->first.line, pos->first.column);
+      pos.first.line, pos.first.column);
   return insert_symbol(c);
 }
 
@@ -276,7 +275,7 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
   Type owner = env->class_def;
   while(owner) {
     if(t == owner)
-      ERR_O(td_pos(td), _("'%s' as parent inside itself\n."), owner->name);
+      ERR_O(td->pos, _("'%s' as parent inside itself\n."), owner->name);
     owner = owner->info->owner_class;
   }
   return t;
@@ -286,7 +285,7 @@ ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
   DECL_OO(const Type, t, = known_type(env, td))
   if(!GET_FLAG(t, final))
     return t;
-  ERR_O(td_pos(td), _("can't inherit from final parent class '%s'\n."), t->name);
+  ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
 }
 
 ANN static Type get_parent(const Env env, const Class_Def cdef) {

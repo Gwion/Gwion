@@ -54,7 +54,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
       *(Instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT) = instr;
       *(f_instr*)(ptr + (i*BYTECODE_SZ) + SZ_INT*2) = instr->execute;
     }
-    *(unsigned short*)(ptr + (i*BYTECODE_SZ) + 2) = i;
+    *(unsigned*)(ptr + (i*BYTECODE_SZ) + 1) = i;
   }
   return ptr;
 }

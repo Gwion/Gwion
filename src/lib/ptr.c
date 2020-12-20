@@ -32,9 +32,9 @@ static OP_CHECK(opck_ptr_assign) {
   CHECK_BO(ptr_access(env, bin->rhs))
   exp_setvar(bin->lhs, 1);
   exp_setvar(bin->rhs, 1);
-  Type t = bin->lhs->info->type;
+  Type t = bin->lhs->type;
   do {
-    Type u = bin->rhs->info->type;
+    Type u = bin->rhs->type;
     do {
       const Type base = ptr_base(env, u);
       if(isa(t, base) > 0)
@@ -59,7 +59,7 @@ static OP_EMIT(opem_ptr_assign) {
   const Instr pop = emit_add_instr(emit, RegPop);
   pop->m_val = SZ_INT;
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(isa(bin->lhs->info->type, emit->gwion->type[et_object]) > 0) {
+  if(isa(bin->lhs->type, emit->gwion->type[et_object]) > 0) {
     const Instr instr = emit_add_instr(emit, RegAddRefAddr);
     instr->m_val = -SZ_INT;
     emit_add_instr(emit, instr_ptr_assign_obj);
@@ -70,7 +70,7 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  return ptr_base(env, unary->exp->info->type);
+  return ptr_base(env, unary->exp->type);
 }
 
 static OP_CHECK(opck_ptr_cast) {
@@ -83,7 +83,7 @@ static OP_CHECK(opck_ptr_cast) {
     CHECK_BN(ensure_traverse(env, _t))
   const Type to = known_type(env, cast->td->types->td);
   exp_setvar(cast->exp, 1);
-  if(isa(cast->exp->info->type, to) > 0)
+  if(isa(cast->exp->type, to) > 0)
     return t;
   ERR_N(exp_self(cast)->pos, "invalid pointer cast")
 }
@@ -92,7 +92,7 @@ static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit* imp = (struct Implicit*)data;
   const Exp e = imp->e;
   const Type base = ptr_base(env, imp->t);
-  if(isa(e->info->type, base) > 0) {
+  if(isa(e->type, base) > 0) {
     const m_str access = exp_access(e);
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
@@ -125,7 +125,7 @@ static INSTR(Cast2Ptr) {
 static OP_EMIT(opem_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, Cast2Ptr);
-  instr->m_val = (m_uint)exp_self(cast)->info->type;
+  instr->m_val = (m_uint)exp_self(cast)->type;
   return GW_OK;
 }
 
@@ -139,7 +139,7 @@ static OP_EMIT(opem_ptr_implicit) {
 static OP_EMIT(opem_ptr_deref) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   const Instr instr = emit_add_instr(emit, instr_ptr_deref);
-  instr->m_val = exp_self(unary)->info->type->size;
+  instr->m_val = exp_self(unary)->type->size;
   instr->m_val2 = exp_getvar(exp_self(unary));
   return GW_OK;
 }
@@ -177,7 +177,7 @@ static OP_CHECK(opck_ptr_scan) {
 static OP_CHECK(opck_ptr_ref) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 static GACK(gack_ptr) {

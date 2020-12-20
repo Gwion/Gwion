@@ -12,8 +12,8 @@
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  return isa(cast->exp->info->type, exp_self(cast)->info->type) > 0 ?
-     exp_self(cast)->info->type : env->gwion->type[et_error];
+  return isa(cast->exp->type, exp_self(cast)->type) > 0 ?
+     exp_self(cast)->type : env->gwion->type[et_error];
 }
 
 OP_CHECK(opck_usr_implicit) {
@@ -27,23 +27,23 @@ OP_CHECK(opck_const_rhs) {
   if(access)
     ERR_N(bin->rhs->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
          "  ...  (reason: --- right-side operand is %s.)"),
-         s_name(bin->op), bin->lhs->info->type->name, bin->rhs->info->type->name,
+         s_name(bin->op), bin->lhs->type->name, bin->rhs->type->name,
          access)
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 OP_CHECK(opck_rassign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_const_rhs(env, data, mut) == env->gwion->type[et_error])
+  if(opck_const_rhs(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   exp_setvar(bin->rhs, 1);
-  return bin->rhs->info->type;
+  return bin->rhs->type;
 }
 
 OP_CHECK(opck_unary_meta) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   exp_setmeta(exp_self(unary), 1);
-  return unary->exp->info->type;
+  return unary->exp->type;
 }
 
 OP_CHECK(opck_unary_meta2) {
@@ -60,7 +60,7 @@ OP_CHECK(opck_unary) {
           _("unary operator '%s' cannot be used on %s data-types."),
           s_name(unary->op), access);
   exp_setvar(unary->exp, 1);
-  return unary->exp->info->type;
+  return unary->exp->type;
 }
 
 OP_CHECK(opck_post) {
@@ -70,7 +70,7 @@ OP_CHECK(opck_post) {
     ERR_N(post->exp->pos, _("post operator '%s' cannot be used on %s data-type."),
           s_name(post->op), access)
   exp_setvar(post->exp, 1);
-  return post->exp->info->type;
+  return post->exp->type;
 }
 
 ANN Type check_td(const Env env, Type_Decl *td);
@@ -87,9 +87,9 @@ OP_CHECK(opck_new) {
   if(isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
   if(type_ref(t))
-    ERR_N(td_pos(unary->td), _("can't use 'new' on ref type '%s'\n"), t->name)
+    ERR_N(unary->td->pos, _("can't use 'new' on ref type '%s'\n"), t->name)
   if(GET_FLAG(t, abstract))
-    ERR_N(td_pos(unary->td), _("can't use 'new' on abstract type '%s'\n"), t->name)
+    ERR_N(unary->td->pos, _("can't use 'new' on abstract type '%s'\n"), t->name)
   if(unary->td->array)
     CHECK_BN(check_subscripts(env, unary->td->array, 1))
   return t;
@@ -97,7 +97,7 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->info->type,
+  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
     unary->td->array, 0))
   emit_gc(emit, -SZ_INT);
   return GW_OK;

@@ -10,7 +10,6 @@
 #include "operator.h"
 #include "import.h"
 #include "parse.h"
-#include "match.h"
 #include "emit.h"
 #include "specialid.h"
 #include "tmp_resolve.h"
@@ -57,7 +56,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
   const Type exists = nspc_lookup_type0(v->from->owner, sym);
   if(exists)
     return exists->info->func;
-  const Func_Def base = v->d.func_ref ? v->d.func_ref->def : ra->e->func->info->type->info->func->def;
+  const Func_Def base = v->d.func_ref ? v->d.func_ref->def : ra->e->func->type->info->func->def;
   const Tmpl tmpl = { .list=base->base->tmpl->list, .call=ra->types };
   CHECK_BO(template_push_types(env, &tmpl));
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);

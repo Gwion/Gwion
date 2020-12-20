@@ -118,7 +118,7 @@ static ID_CHECK(opck_this) {
 }
 
 static ID_EMIT(opem_this) {
-  if(!exp_getvar(exp_self(prim)) && tflag(exp_self(prim)->info->type, tflag_struct)) {
+  if(!exp_getvar(exp_self(prim)) && tflag(exp_self(prim)->type, tflag_struct)) {
     const Instr instr = emit_add_instr(emit, RegPushMemDeref);
     instr->m_val2 = emit->env->class_def->size;
     return (Instr)GW_OK;

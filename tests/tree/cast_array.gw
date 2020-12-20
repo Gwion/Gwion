@@ -1,5 +1,5 @@
 typedef int[2] test;
-var test vv;
+var test v;
 <<< int >>>;
 <<< test >>>;
 <<< v >>>;

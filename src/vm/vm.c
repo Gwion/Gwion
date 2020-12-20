@@ -166,7 +166,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, co
 
 #define ADISPATCH() { ADVANCE(); SDISPATCH(); }
 
-#define PC ((*(unsigned short*)(byte + 2)) + 1)
+#define PC ((*(unsigned*)(byte + 1)) + 1)
 
 #define OP(t, sz, op, ...) \
   reg -= sz;\

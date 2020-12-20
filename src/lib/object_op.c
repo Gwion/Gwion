@@ -31,24 +31,24 @@ describe_logical(Neq, !=)
 
 static OP_CHECK(at_object) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(opck_rassign(env, data, mut) == env->gwion->type[et_error])
+  if(opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, late); // ???
   exp_setvar(bin->rhs, 1);
-  CHECK_BO(isa(bin->lhs->info->type , bin->rhs->info->type))
-  return bin->rhs->info->type;
+  CHECK_BO(isa(bin->lhs->type , bin->rhs->type))
+  return bin->rhs->type;
 }
 
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Type to = known_type(env, cast->td);
-  if(isa(cast->exp->info->type, to) < 0) {
-    if(isa(to, cast->exp->info->type) > 0)
-      ERR_N(exp_self(cast)->pos, _("can't upcast '%s' to '%s'"), cast->exp->info->type->name, to->name)
-    ERR_N(exp_self(cast)->pos, _("can't cast '%s' to '%s'"), cast->exp->info->type->name, to->name)
+  if(isa(cast->exp->type, to) < 0) {
+    if(isa(to, cast->exp->type) > 0)
+      ERR_N(exp_self(cast)->pos, _("can't upcast '%s' to '%s'"), cast->exp->type->name, to->name)
+    ERR_N(exp_self(cast)->pos, _("can't cast '%s' to '%s'"), cast->exp->type->name, to->name)
   }
-  return exp_self(cast)->info->type;
+  return exp_self(cast)->type;
 }
 
 static OP_CHECK(opck_implicit_null2obj) {
@@ -65,7 +65,8 @@ ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl * td
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
   if(ts->td->types)
     return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
-  ERR_N(td_pos(ts->td), _("you must provide template types for type '%s'"), ts->t->name)
+  Type_Decl *td = (Type_Decl*)ts->td;
+  ERR_N(td->pos, _("you must provide template types for type '%s'"), ts->t->name)
 }
 
 static OP_CHECK(opck_struct_scan) {
@@ -97,11 +98,11 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v, c
 static const f_instr dotmember[]  = { DotMember, DotMember2, DotMember3, DotMember4 };
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
-  const Func f = exp_self(member)->info->type->info->func;
+  const Func f = exp_self(member)->type->info->func;
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
 else
-  if(is_class(emit->gwion, member->base->info->type) || member->base->exp_type == ae_exp_cast) {
+  if(is_class(emit->gwion, member->base->type) || member->base->exp_type == ae_exp_cast) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val = (m_uint)f->code ?: (m_uint)f;
     return;
@@ -109,7 +110,7 @@ else
 //  if(f->def->base->tmpl)
 //    emit_add_instr(emit, DotTmplVal);
   else {
-    if(tflag(member->base->info->type, tflag_struct)) {
+    if(tflag(member->base->type, tflag_struct)) {
       if(!GET_FLAG(f->def->base, static)) {
         exp_setvar(member->base, 1);
         emit_exp(emit, member->base);
@@ -154,10 +155,10 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member, const Ty
 OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const m_str str = s_name(member->xid);
-  const m_bool base_static = is_class(env->gwion, member->base->info->type);
-  const Type the_base = base_static ? member->base->info->type->info->base_type : member->base->info->type;
+  const m_bool base_static = is_class(env->gwion, member->base->type);
+  const Type the_base = base_static ? member->base->type->info->base_type : member->base->type;
 //  if(!the_base->nspc)
-//    ERR_N(member->base->pos,
+//    ERR_N(&member->base->pos,
 //          _("type '%s' does not have members - invalid use in dot expression of %s"),
 //          the_base->name, str)
   if(member->xid ==  insert_symbol(env->gwion->st, "this") && base_static)
@@ -167,7 +168,7 @@ OP_CHECK(opck_object_dot) {
   if(!value) {
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
-    if(member->base->info->type->nspc)
+    if(member->base->type->nspc)
       did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
@@ -190,15 +191,15 @@ OP_CHECK(opck_object_dot) {
 
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
-  const Type t_base = actual_type(emit->gwion, member->base->info->type);
+  const Type t_base = actual_type(emit->gwion, member->base->type);
   const Value value = find_value(t_base, member->xid);
-  if(!is_class(emit->gwion, member->base->info->type) && (vflag(value, vflag_member) ||
-       (isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 &&
-       !is_fptr(emit->gwion, exp_self(member)->info->type)))) {
+  if(!is_class(emit->gwion, member->base->type) && (vflag(value, vflag_member) ||
+       (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
+       !is_fptr(emit->gwion, exp_self(member)->type)))) {
     if(!tflag(t_base, tflag_struct))
       CHECK_BB(emit_exp(emit, member->base))
   }
-  if(isa(exp_self(member)->info->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->info->type))
+  if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
 	  emit_member_func(emit, member);
   else if(vflag(value, vflag_member)) {
     if(!tflag(t_base, tflag_struct))
@@ -224,8 +225,7 @@ OP_EMIT(opem_object_dot) {
 ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def c = info->base->info->cdef;
   const Class_Def cdef = new_class_def(env->gwion->mp, c->flag, info->name, c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
-      c->body ?cpy_ast(env->gwion->mp, c->body) : NULL,
-    loc_cpy(env->gwion->mp, c->pos));
+      c->body ?cpy_ast(env->gwion->mp, c->body) : NULL, c->pos);
   cdef->cflag = c->cflag;
   cdef->base.tmpl = mk_tmpl(env, c->base.tmpl, info->td->types);
   const m_bool ret = scan0_class_def(env, cdef);
@@ -240,8 +240,7 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u = info->base->info->udef;
-  const Union_Def udef = new_union_def(env->gwion->mp, cpy_union_list(env->gwion->mp, u->l),
-    loc_cpy(env->gwion->mp, u->pos));
+  const Union_Def udef = new_union_def(env->gwion->mp, cpy_union_list(env->gwion->mp, u->l), u->pos);
   udef->xid = info->name;
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
   if(GET_FLAG(info->base, global))
