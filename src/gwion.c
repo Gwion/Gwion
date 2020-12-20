@@ -74,10 +74,12 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
 #define LOCALE_INFO INSTALL_PREFIX "/share"
 
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
+#ifdef USE_GETTEXT
   setlocale(LC_ALL, NULL);
   bindtextdomain (GWION_PACKAGE, LOCALE_INFO);
   bindtextdomain (GWION_PACKAGE "_util", LOCALE_INFO);
   bindtextdomain (GWION_PACKAGE "_ast", LOCALE_INFO);
+#ifdef USE_GETTEXT
   gwion->mp = mempool_ini((sizeof(struct VM_Shred_) + SIZEOF_REG + SIZEOF_MEM));
   gwion->st = new_symbol_table(gwion->mp, 65347);
   gwion->ppa = mp_calloc(gwion->mp, PPArg);
