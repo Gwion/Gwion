@@ -176,7 +176,8 @@ ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
     CHECK_BB(fptr_check(env, info))
-    CHECK_OB((info->exp->type = fptr_type(env, info)))
+    if(!(info->exp->type = fptr_type(env, info)))
+      ERR_B(info->lhs->def->pos, _("no match found"))
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;
@@ -213,13 +214,13 @@ static OP_CHECK(opck_fptr_at) {
      bin->rhs->type->info->func->def->base->tmpl->call) {
     struct FptrInfo info = { bin->lhs->type->info->func, bin->rhs->type->info->parent->info->func,
       bin->lhs, exp_self(bin)->pos };
-    CHECK_BO(fptr_do(env, &info))
+    CHECK_BN(fptr_do(env, &info))
     exp_setvar(bin->rhs, 1);
     return bin->rhs->type;
   }
   struct FptrInfo info = { bin->lhs->type->info->func, bin->rhs->type->info->func,
       bin->lhs, exp_self(bin)->pos };
-  CHECK_BO(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info))
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -229,7 +230,7 @@ static OP_CHECK(opck_fptr_cast) {
   const Type t = exp_self(cast)->type;
   struct FptrInfo info = { cast->exp->type->info->func, t->info->func,
      cast->exp, exp_self(cast)->pos };
-  CHECK_BO(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info))
   return t;
 }
 
@@ -257,7 +258,7 @@ static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   struct FptrInfo info = { impl->e->type->info->func, impl->t->info->func,
       impl->e, impl->e->pos };
-  CHECK_BO(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info))
   return impl->t;
 }
 
@@ -313,7 +314,7 @@ static OP_CHECK(opck_spork) {
     const m_bool ret = check_stmt(env, unary->code);
     nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
-    CHECK_BO(ret)
+    CHECK_BN(ret)
     return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   }
   ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))

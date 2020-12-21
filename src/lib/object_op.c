@@ -36,7 +36,7 @@ static OP_CHECK(at_object) {
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.td, late); // ???
   exp_setvar(bin->rhs, 1);
-  CHECK_BO(isa(bin->lhs->type , bin->rhs->type))
+  CHECK_BN(isa(bin->lhs->type , bin->rhs->type))
   return bin->rhs->type;
 }
 

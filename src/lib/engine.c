@@ -155,11 +155,11 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, ">",  instr_class_gt))
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
   GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
-/*
+
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
-*/
+
   GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))

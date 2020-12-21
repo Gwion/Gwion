@@ -94,7 +94,7 @@ static OP_CHECK(opck_union_is) {
       free_exp(env->gwion->mp, exp_func);
       free_exp(env->gwion->mp, exp_args);
       e->d.exp_binary.op = insert_symbol(env->gwion->st, "==");
-      CHECK_OO(check_exp(env, e))
+      CHECK_ON(check_exp(env, e))
       return e->type;
     }
   }
@@ -111,7 +111,7 @@ static OP_CHECK(opck_union_ctor) {
   if(!name || !name->next || name->next->next)
     ERR_N(name->pos, "Union constructor takes two arguments, "
          "'id' and 'value'")
-  if(name->exp_type != ae_exp_primary ||
+    if(name->exp_type != ae_exp_primary ||
         name->d.prim.prim_type != ae_prim_id)
     return NULL;
     const Exp val = name->next;
@@ -137,7 +137,6 @@ static OP_CHECK(opck_union_ctor) {
 static INSTR(UnionCtor) {
   POP_REG(shred, instr->m_val2);
   POP_REG(shred, SZ_INT);
-  const Type t = *(Type*)REG(-SZ_INT*2);
   const m_uint index = *(m_uint*)REG(-SZ_INT);
   const M_Object o = *(M_Object*)REG(-SZ_INT) = new_object(shred->info->vm->gwion->mp, NULL, (Type)instr->m_val);
   *(m_uint*)o->data = index;// + 1;
@@ -148,7 +147,7 @@ static OP_EMIT(opem_union_ctor) {
   Exp_Call *call = (Exp_Call*)data;
   const Type base = actual_type(emit->gwion, call->func->type);
   const Instr instr = emit_add_instr(emit, UnionCtor);
-  instr->m_val = base;
+  instr->m_val = (m_uint)base;
   instr->m_val2 = call->args->next->type->size;
   return GW_OK;
 }

@@ -28,8 +28,8 @@ ANN static inline Type ptr_base(const Env env, const Type t) {
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  CHECK_BO(ptr_access(env, bin->lhs))
-  CHECK_BO(ptr_access(env, bin->rhs))
+  CHECK_BN(ptr_access(env, bin->lhs))
+  CHECK_BN(ptr_access(env, bin->rhs))
   exp_setvar(bin->lhs, 1);
   exp_setvar(bin->rhs, 1);
   Type t = bin->lhs->type;

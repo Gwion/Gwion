@@ -418,6 +418,10 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   const m_uint size = v->type->size;
   const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), !vflag(v, vflag_fglobal) ? regpushmem : regpushbase);
   instr->m_val  = v->from->offset;
+  if(GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) && isa(v->type, emit->gwion->type[et_object]) > 0) {
+    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    instr->m_val = -SZ_INT;
+  }
   return GW_OK;
 }
 
@@ -1774,7 +1778,6 @@ ANN static m_bool emit_case_body(const Emitter emit, const struct Stmt_Match_* s
 
 ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
   const Value v = e->d.prim.value;
-printf("base->type %s\n", base->type->name);
   v->from->offset = emit_local(emit, base->type);
   const Instr instr = emit_add_instr(emit, Reg2Mem4);
   instr->m_val = v->from->offset;
@@ -1837,10 +1840,11 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e, const
   CHECK_BO(op_emit(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(vec, (vtype)instr);
+  return CASE_PASS;
 }
 
 ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt,
-    const Vector v, struct Match_ *const match) {
+    const Vector v) {
   Exp e = stmt->cond;
   const Map map = &emit->env->scope->match->map;
   for(m_uint i = 0; i < map_size(map) && e; e = e->next, ++i) {
@@ -1848,18 +1852,16 @@ ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Ma
     const Symbol op = case_op(emit, base, e, v, 0);
     if(op != CASE_PASS)
       CHECK_BB(emit_case_head(emit, base, e, op, v))
-else puts("pass");
   }
   CHECK_BB(emit_case_body(emit, stmt))
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt,
-      struct Match_ *match) {
+ANN static m_bool emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt) {
   emit_push_scope(emit);
   struct Vector_ v;
   vector_init(&v);
-  const m_bool ret = _emit_stmt_match_case(emit, stmt, &v, match);
+  const m_bool ret = _emit_stmt_match_case(emit, stmt, &v);
   emit_pop_scope(emit);
   for(m_uint i = 0; i < vector_size(&v); ++i) {
     const Instr instr = (Instr)vector_at(&v, i);
@@ -1878,8 +1880,8 @@ ANN static inline void match_unvec(struct Match_ *const match, const m_uint pc) 
   vector_release(vec);
 }
 
-ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list, struct Match_ *match) {
-  do CHECK_BB(emit_stmt_match_case(emit, &list->stmt->d.stmt_match, match))
+ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list) {
+  do CHECK_BB(emit_stmt_match_case(emit, &list->stmt->d.stmt_match))
   while((list = list->next));
   return GW_OK;
 }
@@ -1889,7 +1891,7 @@ ANN static m_bool emit_match(const Emitter emit, const struct Stmt_Match_* stmt)
     CHECK_BB(emit_stmt(emit, stmt->where, 1))
   MATCH_INI(emit->env->scope)
   vector_init(&m.vec);
-  const m_bool ret = emit_stmt_cases(emit, stmt->list, &m);
+  const m_bool ret = emit_stmt_cases(emit, stmt->list);
   match_unvec(&m, emit_code_size(emit));
   MATCH_END(emit->env->scope)
   return ret;

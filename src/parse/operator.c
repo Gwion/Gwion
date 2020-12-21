@@ -58,7 +58,7 @@ ANN2(1) static M_Operator* operator_find(const Vector v, const restrict Type lhs
 ANN2(1) static M_Operator* operator_find2(const Vector v, const restrict Type lhs, const restrict Type rhs) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
-    if(lhs == mo->lhs && rhs == mo->rhs)
+    if(mo && lhs == mo->lhs && rhs == mo->rhs)
       return mo;
   }
   return NULL;
@@ -134,12 +134,12 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   return GW_OK;
 }
 
-ANN static Type op_check_inner(struct OpChecker* ock) {
+ANN static Type op_check_inner(struct OpChecker* ock, const uint i) {
   Type t, r = ock->opi->rhs;
   do {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
-    if(v && (mo = operator_find(v, ock->opi->lhs, r))) {
+    if(v && (mo = !i ? operator_find2(v, ock->opi->lhs, r) : operator_find(v, ock->opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data))))
         return t;
       else
@@ -150,22 +150,24 @@ ANN static Type op_check_inner(struct OpChecker* ock) {
 }
 
 ANN Type op_check(const Env env, struct Op_Import* opi) {
+for(int i = 0; i < 2; ++i) {
   Nspc nspc = env->curr;
   do {
-    if(nspc->info->op_map.ptr) {
-      Type l = opi->lhs;
-      do {
-        struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data, .op_type=opi->op_type };
-        struct OpChecker ock = { env, &nspc->info->op_map, &opi2 };
-        const Type ret = op_check_inner(&ock);
-        if(ret) {
-          if(ret == env->gwion->type[et_error])
-            return NULL;
-          return ret;
-        }
-      } while(l && (l = l->info->parent));
-    }
+    if(!nspc->info->op_map.ptr)
+      continue;
+    Type l = opi->lhs;
+    do {
+      struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data, .op_type=opi->op_type };
+      struct OpChecker ock = { env, &nspc->info->op_map, &opi2 };
+      const Type ret = op_check_inner(&ock, i);
+      if(ret) {
+        if(ret == env->gwion->type[et_error])
+          return NULL;
+        return ret;
+      }
+    } while(l && (l = l->info->parent));
   } while((nspc = nspc->parent));
+}
   if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
   if(opi->op == insert_symbol(env->gwion->st, "@func_check"))
@@ -200,6 +202,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
 }
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
+  for(int i = 0; i < 2; ++i) {
   Nspc nspc = emit->env->class_def ? emit->env->curr : emit->env->context->nspc;
   do {
     if(!nspc->info->op_map.ptr)continue;
@@ -210,7 +213,7 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
         const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
         if(!v)
           continue;
-        const M_Operator* mo = operator_find(v, l, r);
+        const M_Operator* mo = !i ? operator_find2(v, l, r) :operator_find(v, l, r);
         if(mo) {
           if(mo->em) {
             const m_bool ret = mo->em(emit, (void*)opi->data);
@@ -222,5 +225,6 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
       } while(r && (r = r->info->parent));
     } while(l && (l = l->info->parent));
   } while((nspc = nspc->parent));
+  }
   return GW_ERROR;
 }
