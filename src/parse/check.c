@@ -710,12 +710,10 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   if(!ret)
     return exp_self(exp)->type;
   const Type t = actual_type(env->gwion, exp->func->type);
-  if(isa(t, env->gwion->type[et_function]) < 0) {
-    // use func flag?
+  if(isa(t, env->gwion->type[et_function]) < 0) { // use func flag?
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=actual_type(env->gwion, exp->func->type),
       .data=(uintptr_t)exp, .pos=exp_self(exp)->pos, .op_type=op_exp };
     const Type t = op_check(env, &opi);
-//    exp_self(exp)->info->nspc = t ? t->info->owner : NULL;
     return t;
   }
   if(t == env->gwion->type[et_lambda])
@@ -1028,23 +1026,34 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
   return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
 }
 
-ANN static Value match_value(const Env env, const Exp_Primary* prim, const m_uint i) {
+ANN static Value match_value(const Env env, const Type base, const Exp_Primary* prim, const m_uint i) {
   const Symbol sym = prim->d.var;
-  const Value v = new_value(env->gwion->mp,
-     ((Exp)VKEY(&env->scope->match->map, i))->type, s_name(sym));
+  const Value v = new_value(env->gwion->mp, base, s_name(sym));
   set_vflag(v, vflag_valid);
   nspc_add_value(env->curr, sym, v);
   VVAL(&env->scope->match->map, i) = (vtype)v;
   return v;
 }
 
-ANN static Symbol case_op(const Env env, const Exp e, const m_uint i) {
+ANN static Symbol case_op(const Env env, const Type base, const Exp e, const m_uint i) {
   if(e->exp_type == ae_exp_primary) {
     if(e->d.prim.prim_type == ae_prim_id) {
       if(e->d.prim.d.var == insert_symbol("_"))
         return NULL;
       if(!nspc_lookup_value1(env->curr, e->d.prim.d.var)) {
-        e->d.prim.value = match_value(env, &e->d.prim, i);
+        e->d.prim.value = match_value(env, base, &e->d.prim, i);
+        return NULL;
+      }
+    }
+  } else if(isa(actual_type(env->gwion, base), env->gwion->type[et_union]) > 0 && e->exp_type == ae_exp_call) {
+    const Exp func = e->d.exp_call.func;
+    if(func->d.prim.prim_type == ae_prim_id) {
+      const Value v= find_value(actual_type(env->gwion, base), func->d.prim.d.var);
+      if(v) {
+        if(!i)
+          e->type = v->type;
+        case_op(env, v->type, e->d.exp_call.args, i);
+        e->d.exp_call.args->type = v->type;
         return NULL;
       }
     }
@@ -1058,17 +1067,19 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
     if(!e)
       ERR_B(last->pos, _("no enough to match"))
     last = e;
-    const Symbol op = case_op(env, e, i);
+    const Exp base = (Exp)VKEY(&env->scope->match->map, i);
+    const Symbol op = case_op(env, base->type, e, i);
     if(op) {
-      const Exp base = (Exp)VKEY(&env->scope->match->map, i);
-      CHECK_OB(check_exp(env, e))
+      const Exp next = e->next;
+      e->next = NULL;
+      const Type t = check_exp(env, e);
+      e->next = next;
+      CHECK_OB(t)
       Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
       struct Exp_ ebin = { .d={.exp_binary=bin} };
       struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type,
         .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos, .op_type=op_binary };
       CHECK_OB(op_check(env, &opi))
-//      e->info->nspc= info.nspc;
-      return GW_OK;
     }
   }
   if(e)

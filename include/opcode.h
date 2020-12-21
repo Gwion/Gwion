@@ -163,6 +163,7 @@ enum {
   eDotMember2,
   eDotMember3,
   eDotMember4,
+  eUnionCheck,
   eUnionMember,
   eUnionMember2,
   eUnionMember3,
@@ -350,6 +351,7 @@ enum {
 #define  DotMember2          (f_instr)eDotMember2
 #define  DotMember3          (f_instr)eDotMember3
 #define  DotMember4          (f_instr)eDotMember4
+#define  UnionCheck          (f_instr)eUnionCheck
 #define  UnionMember         (f_instr)eUnionMember
 #define  UnionMember2        (f_instr)eUnionMember2
 #define  UnionMember3        (f_instr)eUnionMember3

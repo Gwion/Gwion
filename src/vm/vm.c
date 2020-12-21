@@ -324,7 +324,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
-    &&unionint, &&unionfloat, &&unionother, &&unionaddr,
+    &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc, &&dotstaticfunc,
@@ -833,6 +833,14 @@ dotaddr:
     continue;\
   }
 
+unioncheck:
+{
+  if(*(m_uint*)(*(M_Object*)(reg-SZ_INT))->data != VAL2) {
+    reg -= SZ_INT;
+    PC_DISPATCH(VAL);
+  }
+  DISPATCH()
+}
 unionint:
 {
   UNION_CHECK

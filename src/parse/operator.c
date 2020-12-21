@@ -34,6 +34,10 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   map_release(map);
 }
 
+static m_str type_name(const Type t) {
+  return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
+}
+
 static m_bool op_match(const restrict Type t, const restrict Type mo) {
   if(t == OP_ANY_TYPE || mo == OP_ANY_TYPE)
     return GW_OK;
@@ -100,10 +104,6 @@ ANN static Vector op_vector(MemPool p, const struct OpChecker *ock) {
   const Vector create = new_vector(p);
   map_set(ock->map, (vtype)ock->opi->op, (vtype)create);
   return create;
-}
-
-static m_str type_name(const Type t) {
-  return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
 }
 
 ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {

@@ -218,7 +218,7 @@ ANN static Type union_type(const Env env, const Symbol s) {
   t->info->tuple = new_tupleform(env->gwion->mp, NULL); // ???
   add_type(env, env->curr, t);
   mk_class(env, t);
-  SET_FLAG(t, final);
+  SET_FLAG(t, final | ae_flag_abstract);
   return t;
 }
 
