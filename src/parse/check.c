@@ -1025,22 +1025,21 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
   return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
 }
 
-ANN static Value match_value(const Env env, const Type base, const Exp_Primary* prim, const m_uint i) {
+ANN static Value match_value(const Env env, const Type base, const Exp_Primary* prim) {
   const Symbol sym = prim->d.var;
   const Value v = new_value(env->gwion->mp, base, s_name(sym));
   set_vflag(v, vflag_valid);
   nspc_add_value(env->curr, sym, v);
-  VVAL(&env->scope->match->map, i) = (vtype)v;
   return v;
 }
 
-ANN static Symbol case_op(const Env env, const Type base, const Exp e, const m_uint i) {
+ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
   if(e->exp_type == ae_exp_primary) {
     if(e->d.prim.prim_type == ae_prim_id) {
       if(e->d.prim.d.var == insert_symbol("_"))
         return NULL;
       if(!nspc_lookup_value1(env->curr, e->d.prim.d.var)) {
-        e->d.prim.value = match_value(env, base, &e->d.prim, i);
+        e->d.prim.value = match_value(env, base, &e->d.prim);
         return NULL;
       }
     }
@@ -1049,9 +1048,8 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e, const m_u
     if(func->d.prim.prim_type == ae_prim_id) {
       const Value v= find_value(actual_type(env->gwion, base), func->d.prim.d.var);
       if(v) {
-        if(!i)
-          e->type = v->type;
-        case_op(env, v->type, e->d.exp_call.args, i);
+        e->type = v->type;
+        case_op(env, v->type, e->d.exp_call.args);
         e->d.exp_call.args->type = v->type;
         return NULL;
       }
@@ -1062,12 +1060,12 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e, const m_u
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
   Exp last = e;
-  for(m_uint i = 0; i < map_size(&env->scope->match->map); e = e->next, ++i) {
+  for(m_uint i = 0; i < vector_size(&env->scope->match->cond); e = e->next, ++i) {
     if(!e)
       ERR_B(last->pos, _("no enough to match"))
     last = e;
-    const Exp base = (Exp)VKEY(&env->scope->match->map, i);
-    const Symbol op = case_op(env, base->type, e, i);
+    const Exp base = (Exp)vector_at(&env->scope->match->cond, i);
+    const Symbol op = case_op(env, base->type, e);
     if(op) {
       const Exp next = e->next;
       e->next = NULL;

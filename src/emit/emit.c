@@ -1852,9 +1852,9 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e, const
 ANN static m_bool _emit_stmt_match_case(const Emitter emit, const struct Stmt_Match_* stmt,
     const Vector v) {
   Exp e = stmt->cond;
-  const Map map = &emit->env->scope->match->map;
-  for(m_uint i = 0; i < map_size(map) && e; e = e->next, ++i) {
-    const Exp base = (Exp)VKEY(map, i);
+  const Vector cond = &emit->env->scope->match->cond;
+  for(m_uint i = 0; i < vector_size(cond) && e; e = e->next, ++i) {
+    const Exp base = (Exp)vector_at(cond, i);
     const Symbol op = case_op(emit, base, e, v, 0);
     if(op != CASE_PASS)
       CHECK_BB(emit_case_head(emit, base, e, op, v))

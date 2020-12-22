@@ -1,30 +1,30 @@
 #ifndef __MATCH
 #define __MATCH
 struct Match_ {
-  struct Map_ map;
+  struct Vector_ cond;
   struct Vector_ vec;
 };
 
 ANN static inline void match_map(struct Match_ * const match, Exp e) {
-  const Map map = &match->map;
-  map_init(map);
+  const Vector cond = &match->cond;
+  vector_init(cond);
   Exp next;
   do {
     next = e->next;
     e->next = NULL;
-    map_set(map, (vtype)e, 0);
+    vector_add(cond, (vtype)e);
   } while((e = next));
 }
 
 ANN static inline void match_unmap(struct Match_ * const match) {
-  const Map map = &match->map;
-  const vtype sz = map_size(map);
-  for(m_uint i = 0; i < sz; ++i) {
-    const Exp e = (Exp)VKEY(map, i),
-      next = (i < (sz-2)) ? (Exp)VKEY(map, i + 1) : NULL;
+  const Vector cond = &match->cond;
+  const vtype sz = vector_size(cond);
+  for(m_uint i = 0; i < sz -1; ++i) {
+    const Exp e = (Exp)vector_at(cond, i),
+      next = (Exp)vector_at(cond, i + 1);
     e->next = next;
   }
-  map_release(map);
+  vector_release(cond);
 }
 
 #define MATCH_INI(scope)                        \
