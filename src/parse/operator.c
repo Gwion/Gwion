@@ -203,7 +203,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   for(int i = 0; i < 2; ++i) {
-  Nspc nspc = emit->env->class_def ? emit->env->curr : emit->env->context->nspc;
+  Nspc nspc = emit->env->curr;
   do {
     if(!nspc->info->op_map.ptr)continue;
     Type l = opi->lhs;
