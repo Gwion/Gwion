@@ -145,18 +145,33 @@ ANN static void env_header(const Env env) {
     gw_err(_("in function: '%s'\n"), env->func->name);
 }
 
+ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt, va_list arg) {
+#ifndef __FUZZING__
+  env_header(env);
+  loc_header(pos, env->name);
+  vfprintf(stderr, fmt, arg);
+  fprintf(stderr, "\n");
+  loc_err(pos, env->name);
+#endif
+}
+
+ANN void env_warn(const Env env, const loc_t pos, const m_str fmt, ...) {
+#ifndef __FUZZING__
+  va_list arg;
+  va_start(arg, fmt);
+  env_xxx(env, pos, fmt, arg);
+  va_end(arg);
+#endif
+}
+
 ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
   if(env->context && env->context->error)
     return;
 #ifndef __FUZZING__
-  env_header(env);
-  loc_header(pos, env->name);
   va_list arg;
   va_start(arg, fmt);
-  vfprintf(stderr, fmt, arg);
+  env_xxx(env, pos, fmt, arg);
   va_end(arg);
-  fprintf(stderr, "\n");
-  loc_err(pos, env->name);
 #endif
   if(env->context)
     env->context->error = 1;

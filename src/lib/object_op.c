@@ -34,7 +34,7 @@ static OP_CHECK(at_object) {
   if(opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if(bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.td, late); // ???
+    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   exp_setvar(bin->rhs, 1);
   CHECK_BN(isa(bin->lhs->type , bin->rhs->type))
   return bin->rhs->type;

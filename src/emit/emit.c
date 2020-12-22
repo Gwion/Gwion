@@ -813,7 +813,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     set_vflag(v, vflag_direct);// mpalloc
   instr->m_val = (m_uint)v->d.ptr;
   instr->m_val2 = v->type->size;
-  if(is_obj && (is_array || !is_ref)) {
+  if(is_obj && (is_array || !is_ref || emit_addr)) {
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
 /*
@@ -847,12 +847,17 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
   const uint ref = GET_FLAG(decl->td, late) || type_ref(decl->type);
   Var_Decl_List list = decl->list;
   do {
+    const Value v = list->self->value;
+    const uint r = ref || GET_FLAG(v, late);
     if(GET_FLAG(decl->td, static))
-      CHECK_BB(emit_exp_decl_static(emit, decl, list->self, ref, var))
+      CHECK_BB(emit_exp_decl_static(emit, decl, list->self, r, var))
     else if(!global)
-      CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, ref, var))
+      CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, r, var))
     else
-      CHECK_BB(emit_exp_decl_global(emit, decl, list->self, ref, var))
+      CHECK_BB(emit_exp_decl_global(emit, decl, list->self, r, var))
+    if(GET_FLAG(v->type, abstract) && !GET_FLAG(decl->td, late) && GET_FLAG(v, late)) {
+     env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use late"), v->type->name);
+    }
   } while((list = list->next));
   return GW_OK;
 }
@@ -863,6 +868,7 @@ ANN /*static */m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
   const m_bool ret = emit_decl(emit, decl);
+
   if(global)
     emit_pop(emit, scope);
   return ret;

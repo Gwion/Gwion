@@ -121,9 +121,8 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
 }
 
 ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Value v) {
-  if(!exp_getvar(exp_self(decl)) &&
-      (GET_FLAG(decl->td, late) || is_fptr(gwion, v->type))) {
-    SET_FLAG(decl->td, late);
+  if(!exp_getvar(exp_self(decl)) && (GET_FLAG(v->type, abstract) ||
+      GET_FLAG(decl->td, late) || is_fptr(gwion, v->type))) {
     SET_FLAG(v, late);
   } else
     UNSET_FLAG(v, late);

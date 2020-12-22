@@ -85,9 +85,6 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);
-    } else if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) {
-     //   ERR_B(var->pos, "Type '%s' is abstract, use late", t->name)
-     SET_FLAG(decl->td, late);
     }
     const Value v = var->value = var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
 // rewrite logic
@@ -98,10 +95,12 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       env->class_def->size += t->size;
     }
     nspc_add_value(env->curr, var->xid, v);
-    v->flag |= decl->td->flag;
+    if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late))
+     SET_FLAG(v, late);
     v->type = t;
     if(array_ref(var->array))
       SET_FLAG(decl->td, late);
+    v->flag |= decl->td->flag;
     if(env->class_def) {
       if(env->class_def->info->tuple)
         tuple_contains(env, v);
@@ -127,7 +126,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   if(array_ref(decl->td->array))
-   SET_FLAG(decl->td, late);
+    SET_FLAG(decl->td, late);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   if(global) {
