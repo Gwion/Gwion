@@ -102,7 +102,7 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
   const m_uint size = ARRAY_SIZE(v);
   if(index < ARRAY_LEN(v) - 1)
     memmove(ARRAY_PTR(v) + index * size, ARRAY_PTR(v) + (index + 1) * size,
-      (ARRAY_SIZE(v) - index - 1) *size);
+      (ARRAY_LEN(v) - index - 1) *size);
   --ARRAY_LEN(v);
   if(ARRAY_LEN(v) < ARRAY_CAP(v) / 2) {
     const m_uint cap = ARRAY_CAP(v) /= 2;
