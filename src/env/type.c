@@ -139,37 +139,6 @@ ANN m_bool type_ref(Type t) {
 }
 
 
-ANN m_str get_type_name(const Env env, const Type t, const m_uint index) {
-  if(!index)
-    return NULL;
-  m_str name = strchr(t->name, ':');
-  if(!name)
-    return NULL;
-  name += 2;
-  const size_t slen = strlen(name);
-  m_uint lvl = 0;
-  m_uint n = 1;
-  char c, buf[slen + 1], *tmp = buf;
-  while((c = *name)) {
-    if(c == ':')
-      ++lvl;
-    else if(c == ']') {
-      if(!lvl-- && n == index)
-        break;
-    } else if(c == ',') {
-      if(!lvl && n++ == index)
-        break;
-      if(!lvl)
-        ++name;
-    }
-    if(n == index)
-      *tmp++ = *name;
-    ++name;
-  }
-  *tmp = '\0';
-  return tmp - buf ? s_name(insert_symbol(buf)) : NULL;
-}
-
 ANN m_uint get_depth(const Type type) {
   m_uint depth = 0;
   Type t = type;
