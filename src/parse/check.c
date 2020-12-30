@@ -1202,7 +1202,10 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
     const Func f1 = get_overload(env, fdef, i);
     for(m_uint j = i + 1; f1 && j <= v->from->offset; ++j) {
       const Func f2 = get_overload(env, fdef, j);
-      if(f2 && compat_func(f1->def, f2->def) > 0)
+      if(f2 && compat_func(f1->def, f2->def) > 0 &&
+          fbflag(f1->def->base, fbflag_op) == fbflag(f2->def->base, fbflag_op) &&
+          fbflag(f1->def->base, fbflag_unary) == fbflag(f2->def->base, fbflag_unary) &&
+          fbflag(f1->def->base, fbflag_postfix) == fbflag(f2->def->base, fbflag_postfix))
         ERR_B(f2->def->base->td->pos, _("global function '%s' already defined"
           " for those arguments"), s_name(fdef->base->xid))
     }
