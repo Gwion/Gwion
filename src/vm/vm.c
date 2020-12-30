@@ -616,10 +616,9 @@ timeadv:
   break;
 setcode:
 PRAGMA_PUSH()
-  reg -= SZ_INT;
-  a.code = *(VM_Code*)reg;
+  a.code = *(VM_Code*)(reg - SZ_INT);
   if(!a.code->builtin) {
-    register const m_uint push = *(m_uint*)(reg + SZ_INT) + *(m_uint*)(mem-SZ_INT);
+    register const m_uint push = *(m_uint*)reg + *(m_uint*)(mem-SZ_INT);
     mem += push;
     *(m_uint*)  mem = push; mem += SZ_INT;
     *(VM_Code*) mem = code; mem += SZ_INT;
@@ -627,7 +626,7 @@ PRAGMA_PUSH()
     *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
     next = eFuncUsrEnd;
   } else {
-    mem += *(m_uint*)(reg + SZ_INT);
+    mem += *(m_uint*)reg;
     next = eFuncMemberEnd;
   }
 PRAGMA_POP()

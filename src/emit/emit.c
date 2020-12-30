@@ -131,7 +131,7 @@ ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_ui
   regpush(emit, SZ_INT *2);
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
-  prelude->m_val = -SZ_INT*3;
+  prelude->m_val = -SZ_INT*4;
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = code_offset;
   emit->code->frame->curr_offset -= SZ_INT;
@@ -328,7 +328,7 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   regpush(emit, SZ_INT*2);
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
-  prelude->m_val = -SZ_INT;
+  prelude->m_val = -SZ_INT * 2;
   emit_add_instr(emit, Reg2Mem);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = offset;
@@ -1154,7 +1154,7 @@ ANN static m_bool me_arg(MemoizeEmitter *me) {
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   const Instr prelude = get_prelude(emit, f);
-  prelude->m_val = -f->def->stack_depth;
+  prelude->m_val = -f->def->stack_depth - SZ_INT;
   const m_uint member = vflag(f->value_ref, vflag_member) ? SZ_INT : 0;
   if(member) {
     const Instr instr = emit_add_instr(emit, Reg2Mem);

@@ -100,14 +100,12 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
     if(opcode != eNoOp) {
       m_bit *const base = ptr   + i*BYTECODE_SZ,
             *const data = final + j*BYTECODE_SZ;
-//        if(!isgoto(opcode))
       memcpy(data, base, BYTECODE_SZ);
       if(isgoto(opcode)) {
         m_bit pc = 0;
-        for(m_uint k = 0; k < vector_size(&nop); ++k) {
-          if(instr->m_val <= vector_at(&nop, k))
+        for(pc = 0; pc < vector_size(&nop); ++pc) {
+          if(instr->m_val <= vector_at(&nop, pc))
             break;
-          ++pc;
         }
         *(m_uint*)(data + SZ_INT) = instr->m_val > pc ? instr->m_val - pc : 0;
       }
@@ -133,4 +131,3 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
   code->ref = 1;
   return code;
 }
-
