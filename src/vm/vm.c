@@ -166,7 +166,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, co
 
 #define ADISPATCH() { ADVANCE(); SDISPATCH(); }
 
-#define PC ((*(unsigned*)(byte + 1)) + 1)
+#define PC (*(unsigned*)(byte + 1))
 
 #define OP(t, sz, op, ...) \
   reg -= sz;\
@@ -318,7 +318,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&itof, &&ftoi,
     &&timeadv,
     &&setcode,
-    &&regpop, &&regpush, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
+    &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
@@ -631,11 +631,8 @@ PRAGMA_PUSH()
     next = eFuncMemberEnd;
   }
 PRAGMA_POP()
-regpop:
-  reg -= VAL;
-  DISPATCH();
-regpush:
-  reg += VAL;
+regmove:
+  reg += (m_int)VAL;
   DISPATCH();
 regtomem:
   *(m_uint*)(mem+VAL) = *(m_uint*)(reg+(m_int)VAL2);
@@ -757,7 +754,7 @@ arrayvalid:
 // are we sure it is the array ?
 // rather increase ref
   vector_pop(&shred->gc);
-  goto regpush;
+  DISPATCH()
 newobj:
   *(M_Object*)reg = new_object(vm->gwion->mp, NULL, (Type)VAL2);
   reg += SZ_INT;

@@ -34,8 +34,8 @@ static OP_EMIT(opem_func_assign) {
     fptr_instr(emit, bin->lhs->type->info->func, 2);
   (void)emit_add_instr(emit, int_r_assign);
   if(!is_fptr(emit->gwion, bin->lhs->type) && vflag(bin->rhs->type->info->func->value_ref, vflag_member)) {
-    const Instr pop = emit_add_instr(emit, RegPop);
-    pop->m_val = SZ_INT;
+    const Instr pop = emit_add_instr(emit, RegMove);
+    pop->m_val = -SZ_INT;
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
     cpy->m_val = -SZ_INT;
   }
@@ -235,8 +235,8 @@ static OP_CHECK(opck_fptr_cast) {
 }
 
 static void member_fptr(const Emitter emit) {
-  const Instr instr = emit_add_instr(emit, RegPop);
-  instr->m_val = SZ_INT;
+  const Instr instr = emit_add_instr(emit, RegMove);
+  instr->m_val = -SZ_INT;
   const Instr dup = emit_add_instr(emit, Reg2Reg);
   dup->m_val = -SZ_INT;
 }

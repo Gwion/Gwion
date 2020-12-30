@@ -122,8 +122,7 @@ CastI2F
 CastF2I
 Time_Advance
 SetCode
-RegPop
-RegPush
+RegMove
 Reg2Mem
 Reg2Mem4
 Overflow

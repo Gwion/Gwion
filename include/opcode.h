@@ -125,8 +125,7 @@ enum {
   eCastF2I,
   eTime_Advance,
   eSetCode,
-  eRegPop,
-  eRegPush,
+  eRegMove,
   eReg2Mem,
   eReg2Mem4,
   eOverflow,
@@ -313,8 +312,7 @@ enum {
 #define  CastF2I             (f_instr)eCastF2I
 #define  Time_Advance        (f_instr)eTime_Advance
 #define  SetCode             (f_instr)eSetCode
-#define  RegPop              (f_instr)eRegPop
-#define  RegPush             (f_instr)eRegPush
+#define  RegMove             (f_instr)eRegMove
 #define  Reg2Mem             (f_instr)eReg2Mem
 #define  Reg2Mem4            (f_instr)eReg2Mem4
 #define  Overflow            (f_instr)eOverflow

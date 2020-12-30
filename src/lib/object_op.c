@@ -136,7 +136,7 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v, const
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
   instr->m_val = v->from->offset;
   if(!emit_addr) {
-    const Instr instr = emit_add_instr(emit, RegPush);
+    const Instr instr = emit_add_instr(emit, RegMove);
     instr->m_val = v->type->size -SZ_INT;
   }
 }
@@ -294,9 +294,18 @@ ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr)
 }
 
 static OP_EMIT(opem_not_object) {
-  const Instr instr = (Instr)vector_back(&emit->code->instr);
-  if(instr->opcode == eGWOP_EXCEPT)
-    vector_pop(&emit->code->instr);
+  const Vector v = &emit->code->instr;
+  const Instr last = (Instr)vector_pop(v);
+  mp_free(emit->gwion->mp, Instr, last);
+  const Instr back = (Instr)vector_back(v);
+  if(back->opcode == eGWOP_EXCEPT) {
+    vector_pop(v);
+    mp_free(emit->gwion->mp, Instr, back);
+    emit_add_instr(emit, IntNot);
+    return GW_OK;
+  }
+  const Instr instr = emit_add_instr(emit, RegSetImm);
+  instr->m_val2 = -SZ_INT;
   return GW_OK;
 }
 

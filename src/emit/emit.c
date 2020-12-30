@@ -82,14 +82,20 @@ static const f_instr allocmember[]  = { RegPushImm, RegPushImm2, RegPushImm3, Al
 static const f_instr allocword[]  = { AllocWord, AllocWord2, AllocWord3, RegPushMem4 };
 static const f_instr structmember[]  = { StructMember, StructMemberFloat, StructMemberOther, StructMemberAddr };
 
+#define regmove(name, op) \
+ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
+  const Instr instr = emit_add_instr(emit, RegMove); \
+  instr->m_val = op sz; \
+  return instr; \
+}
+regmove(pop,-)
+regmove(push,)
 #define regxxx(name, instr) \
 ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) { \
   const Instr instr = emit_add_instr(emit, Reg##instr); \
   instr->m_val = sz; \
   return instr; \
 }
-regxxx(pop, Pop)
-regxxx(push, Push)
 regxxx(pushi, PushImm)
 regxxx(seti, SetImm)
 
@@ -125,7 +131,7 @@ ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_ui
   regpush(emit, SZ_INT *2);
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
-  prelude->m_val = SZ_INT*3;
+  prelude->m_val = -SZ_INT*3;
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = code_offset;
   emit->code->frame->curr_offset -= SZ_INT;
@@ -322,7 +328,7 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   regpush(emit, SZ_INT*2);
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val2 = 2;
-  prelude->m_val = SZ_INT;
+  prelude->m_val = -SZ_INT;
   emit_add_instr(emit, Reg2Mem);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = offset;
@@ -769,7 +775,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   if(!vflag(v, vflag_member)) {
     v->from->offset = emit_local(emit, type);
     exec = (f_instr*)(allocword);
-    if(GET_FLAG(decl->td, late)) { // ref or emit_var ?
+    if(GET_FLAG(v, late)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
       clean->m_val = v->from->offset;
     }
@@ -1148,7 +1154,7 @@ ANN static m_bool me_arg(MemoizeEmitter *me) {
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   const Instr prelude = get_prelude(emit, f);
-  prelude->m_val = f->def->stack_depth;
+  prelude->m_val = -f->def->stack_depth;
   const m_uint member = vflag(f->value_ref, vflag_member) ? SZ_INT : 0;
   if(member) {
     const Instr instr = emit_add_instr(emit, Reg2Mem);
@@ -1621,9 +1627,14 @@ ANN static m_bool variadic_state(const Emitter emit, const Stmt_VarLoop stmt, co
 ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt) {
   CHECK_BB(variadic_state(emit, stmt, 1))
   CHECK_BB(emit_exp(emit, stmt->exp))
-  const Instr check = emit_add_instr(emit, VarargCheck);
+  const Instr s = emit_add_instr(emit, DotMember);
+  s->m_val = SZ_INT * 5;
+  const Instr nonnull = emit_add_instr(emit, Goto);
+  regpop(emit, SZ_INT);
+  const Instr check = emit_add_instr(emit, Goto);
   const Instr member = emit_add_instr(emit, DotMember4);
   member->m_val = SZ_INT*2;
+  nonnull->m_val = emit_code_size(emit);
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   const m_uint pc = emit_code_size(emit);
   emit_stmt(emit, stmt->body, 1);

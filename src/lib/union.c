@@ -25,8 +25,8 @@ static OP_CHECK(opck_none) {
 }
 
 static OP_EMIT(opem_none) {
-  const Instr instr = emit_add_instr(emit, RegPop);
-  instr->m_val = SZ_INT;
+  const Instr instr = emit_add_instr(emit, RegMove);
+  instr->m_val = -SZ_INT;
   return GW_OK;
 }
 

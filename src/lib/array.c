@@ -191,8 +191,8 @@ static OP_CHECK(opck_array_sr) {
 }
 
 ANN static inline m_bool emit_array_shift(const Emitter emit, const f_instr exec) {
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
+  const Instr pop = emit_add_instr(emit, RegMove);
+  pop->m_val = -SZ_INT;
   (void)emit_add_instr(emit, exec);
   return GW_OK;
 }
@@ -243,8 +243,8 @@ static OP_EMIT(opem_array_sr) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->rhs->type->array_depth == bin->lhs->type->array_depth)
     return emit_array_shift(emit, ArrayConcatRight);
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
+  const Instr pop = emit_add_instr(emit, RegMove);
+  pop->m_val = -SZ_INT;
   emit_gc(emit, 0);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
@@ -254,8 +254,8 @@ static OP_EMIT(opem_array_sl) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(bin->lhs->type->array_depth == bin->rhs->type->array_depth)
     return emit_array_shift(emit, ArrayConcatLeft);
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = bin->rhs->type->size;
+  const Instr pop = emit_add_instr(emit, RegMove);
+  pop->m_val = -bin->rhs->type->size;
   emit_gc(emit, -SZ_INT);
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
@@ -332,8 +332,8 @@ static OP_CHECK(opck_array) {
 }
 
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
-  const Instr pre_pop = emit_add_instr(emit, RegPop);
-  pre_pop->m_val = depth * SZ_INT;
+  const Instr pre_pop = emit_add_instr(emit, RegMove);
+  pre_pop->m_val = -depth * SZ_INT;
   for(m_uint i = 0; i < depth - 1; ++i) {
     const Instr access = emit_add_instr(emit, ArrayAccess);
     access->m_val = i * SZ_INT;
@@ -342,8 +342,8 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
     get->m_val = i * SZ_INT;
     get->m_val2 = -SZ_INT;
   }
-  const Instr post_pop = emit_add_instr(emit, RegPop);
-  post_pop->m_val = SZ_INT;
+  const Instr post_pop = emit_add_instr(emit, RegMove);
+  post_pop->m_val = -SZ_INT;
   const Instr access = emit_add_instr(emit, ArrayAccess);
   access->m_val = depth * SZ_INT;
 }
@@ -352,7 +352,8 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
 		const m_uint size, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
   get->m_val = depth * SZ_INT;
-  const Instr push = emit_add_instr(emit, ArrayValid);
+  emit_add_instr(emit, ArrayValid);
+  const Instr push = emit_add_instr(emit, RegMove);
   push->m_val = is_var ? SZ_INT : size;
 }
 

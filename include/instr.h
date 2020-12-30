@@ -28,7 +28,7 @@ struct Instr_ {
   m_uint m_val2;
   void (*execute)(const VM_Shred shred, const Instr instr);
 };
-#define BYTECODE_SZ (sizeof(struct Instr_) - SZ_INT)
+#define BYTECODE_SZ ((2*sizeof(unsigned)) + sizeof(struct Instr_) - SZ_INT*2)
 
 INSTR(EOC);
 INSTR(DTOR_EOC);
@@ -49,7 +49,6 @@ INSTR(ArrayStruct);
 
 /* vararg */
 INSTR(VarargIni);
-INSTR(VarargCheck);
 
 INSTR(DotTmpl);
 INSTR(GTmpl);

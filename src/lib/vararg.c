@@ -46,18 +46,18 @@ static MFUN(mfun_vararg_cpy) {
   arg->d = (m_bit*)xmalloc(round2szint(*(m_uint*)(o->data + SZ_INT*2)));
   m_uint offset = 0;
   for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
-    const Type t = (Type)vector_at(&arg->t, arg->i);
+    const Type t = (Type)vector_at(&arg->t, *(m_uint*)(o->data + SZ_INT*4));
     *(m_uint*)(arg->d + offset) = *(m_uint*)(src->d + offset);
     if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
       ++(*(M_Object*)(arg->d + offset))->ref;
     offset += t->size;
   }
-  arg->s = vector_size(&arg->t);
-  arg->i = src->i;
-  arg->o = src->o;
   const M_Object obj = new_object(shred->info->mp, shred, o->type_ref);
   *(struct Vararg_**)obj->data = arg;
   *(m_uint*)(obj->data + SZ_INT*2) = *(m_uint*)(o->data + SZ_INT*2);
+  *(m_uint*)(obj->data + SZ_INT*3) = *(m_uint*)(o->data + SZ_INT*3);
+  *(m_uint*)(obj->data + SZ_INT*4) = *(m_uint*)(o->data + SZ_INT*4);
+  *(m_uint*)(obj->data + SZ_INT*4) = vector_size(&arg->t); // can we copy?
   *(M_Object*)RETURN = obj;
 }
 
@@ -81,28 +81,22 @@ INSTR(VarargIni) {
       }
       offset += t->size;
     }
-    arg->s = vector_size(kinds);
+    *(m_uint*)(o->data + SZ_INT * 5) = vector_size(kinds);
   }
   *(M_Object*)REG(-SZ_INT) = o;
-}
-
-INSTR(VarargCheck) {
-  const M_Object o = *(M_Object*)(shred->reg-SZ_INT);
-  struct Vararg_ *arg = *(struct Vararg_**)o->data;
-  if(arg->s)
-    return;
-  shred->reg -= SZ_INT;
-  shred->pc = instr->m_val;
 }
 
 static INSTR(VarargEnd) {
   const M_Object o = *(M_Object*)REG(0);
   struct Vararg_* arg = *(struct Vararg_**)o->data;
-  arg->o += arg->t.ptr ? ((Type)vector_at(&arg->t, arg->i))->size : 0;
-  if(++arg->i < arg->s)
-    shred->pc = instr->m_val;
-  else
-    arg->i = arg->o = 0;
+  *(m_uint*)(o->data + SZ_INT*3) += arg->t.ptr ? ((Type)vector_at(&arg->t, *(m_uint*)(o->data + SZ_INT*4)))->size : 0;
+  if(++*(m_uint*)(o->data + SZ_INT*4) == *(m_uint*)(o->data + SZ_INT * 5)) {
+//  if(++*(m_uint*)(o->data + SZ_INT*4) < *(m_uint*)(o->data + SZ_INT * 5))
+//    shred->pc = instr->m_val;
+//  else
+    *(m_uint*)(o->data + SZ_INT*4) = *(m_uint*)(o->data + SZ_INT*3) = 0;
+    ++shred->pc;
+  }
 }
 
 static OP_CHECK(opck_vararg_cast) {
@@ -116,12 +110,12 @@ static INSTR(VarargCast) {
 	  Except(shred, "Using Vararg outside varloop");
   struct Vararg_* arg = *(struct Vararg_**)o->data;
   const Type t = (Type)instr->m_val,
-             u = (Type)vector_at(&arg->t, arg->i);
+             u = (Type)vector_at(&arg->t, *(m_uint*)(o->data + SZ_INT*4));
   if(isa(u, t) > 0 ||
       (u == shred->info->vm->gwion->type[et_error] &&
        isa(t, shred->info->vm->gwion->type[et_object]) > 0)) {
     for(m_uint i = 0; i < t->size; i += SZ_INT)
-      *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + arg->o + i);
+      *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + *(m_uint*)(o->data + SZ_INT*3) + i);
   } else
 	  Except(shred, "InvalidVariadicAccess");
 }
@@ -130,7 +124,7 @@ static OP_EMIT(opem_vararg_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   const Instr instr = emit_add_instr(emit, VarargCast);
   instr->m_val = (m_uint)exp_self(cast)->type;
-  const Instr push = emit_add_instr(emit, RegPush);
+  const Instr push = emit_add_instr(emit, RegMove);
   push->m_val = exp_self(cast)->type->size - SZ_INT;
   return GW_OK;
 }
@@ -157,9 +151,10 @@ static GACK(gack_vararg) {
 }
 
 ANN void emit_vararg_end(const Emitter emit, const m_uint pc) {
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
-  const Instr instr = emit_add_instr(emit, VarargEnd);
+  const Instr pop = emit_add_instr(emit, RegMove);
+  pop->m_val = -SZ_INT;
+  (void)emit_add_instr(emit, VarargEnd);
+  const Instr instr = emit_add_instr(emit, Goto);
   instr->m_val = pc;
 }
 
@@ -172,6 +167,12 @@ GWION_IMPORT(vararg) {
   GWI_BB(gwi_item_ini(gwi, "int", "@inLoop"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   GWI_BB(gwi_item_ini(gwi, "int", "@len"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@o"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@i"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_ini(gwi, "int", "@s"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
   GWI_BB(gwi_func_ini(gwi, "Vararg", "cpy"))
   GWI_BB(gwi_func_end(gwi, mfun_vararg_cpy, ae_flag_none))

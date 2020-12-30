@@ -56,8 +56,8 @@ static INSTR(instr_ptr_assign_obj) {
 }
 
 static OP_EMIT(opem_ptr_assign) {
-  const Instr pop = emit_add_instr(emit, RegPop);
-  pop->m_val = SZ_INT;
+  const Instr pop = emit_add_instr(emit, RegMove);
+  pop->m_val = -SZ_INT;
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(isa(bin->lhs->type, emit->gwion->type[et_object]) > 0) {
     const Instr instr = emit_add_instr(emit, RegAddRefAddr);
