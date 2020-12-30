@@ -22,8 +22,6 @@ static INSTR(name##Object) {                     \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \
   *(m_uint*)REG(-SZ_INT) = (lhs op rhs);         \
-  release(lhs, shred);                           \
-  release(rhs, shred);                           \
 }
 
 describe_logical(Eq,  ==)
@@ -295,8 +293,6 @@ ANN void struct_release(const VM_Shred shred, const Type base, const m_bit *ptr)
 
 static OP_EMIT(opem_not_object) {
   const Vector v = &emit->code->instr;
-  const Instr last = (Instr)vector_pop(v);
-  mp_free(emit->gwion->mp, Instr, last);
   const Instr back = (Instr)vector_back(v);
   if(back->opcode == eGWOP_EXCEPT) {
     vector_pop(v);

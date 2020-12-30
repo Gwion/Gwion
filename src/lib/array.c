@@ -217,8 +217,6 @@ static INSTR(ArrayConcatLeft) {
   }
   m_bit *data = more->ptr + ARRAY_OFFSET;
   memmove(ARRAY_PTR(base) + (len - 1) * sz, data, sz);
-  release(obase, shred);
-  release(omore, shred);
 }
 
 static INSTR(ArrayConcatRight) {
@@ -235,8 +233,6 @@ static INSTR(ArrayConcatRight) {
   }
   memmove(ARRAY_PTR(base) + (ARRAY_LEN(more) + len - 1) * sz, ARRAY_PTR(base), len * sz);
   memmove(ARRAY_PTR(base), ARRAY_PTR(more), ARRAY_LEN(more) * sz);
-  release(obase, shred);
-  release(omore, shred);
 }
 
 static OP_EMIT(opem_array_sr) {
@@ -245,7 +241,8 @@ static OP_EMIT(opem_array_sr) {
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val = -SZ_INT;
-  emit_gc(emit, 0);
+  if(isa(bin->rhs->type, emit->gwion->type[et_object]) > 0)
+    emit_add_instr(emit, RegAddRef);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
@@ -256,7 +253,10 @@ static OP_EMIT(opem_array_sl) {
     return emit_array_shift(emit, ArrayConcatLeft);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val = -bin->rhs->type->size;
-  emit_gc(emit, -SZ_INT);
+  if(isa(bin->rhs->type, emit->gwion->type[et_object]) > 0){
+    const Instr ref = emit_add_instr(emit, RegAddRef);
+    ref->m_val = -SZ_INT;
+  }
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }

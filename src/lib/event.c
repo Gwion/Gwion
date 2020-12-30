@@ -24,7 +24,6 @@ static INSTR(EventWait) {
   const Vector v = EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int*)REG(-SZ_INT) = 1;
-  _release(event, shred);
 }
 
 static MFUN(event_signal) {

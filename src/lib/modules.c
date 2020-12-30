@@ -255,7 +255,6 @@ static INSTR(UsrUGenTick) {
     free_vm_shred(uu->shred);
   UGEN(o)->module.gen.tick = usrugen_tick;
   const VM_Code code = *(VM_Code*)(shred->reg-offset);
-  release(o, shred);
   if(!code)
     Except(shred, "[NullTickException]");
   uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));

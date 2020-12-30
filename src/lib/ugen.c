@@ -154,8 +154,6 @@ describe_connect(C,vector_add)
 describe_connect(Disc,vector_rem2)
 
 ANN static void release_connect(const VM_Shred shred) {
-  _release(*(M_Object*)REG(0), shred);
-  _release(*(M_Object*)REG(SZ_INT), shred);
   *(M_Object*)REG(0) = *(M_Object*)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }

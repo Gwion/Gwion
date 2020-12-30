@@ -51,7 +51,8 @@ static INSTR(instr_ptr_assign) {
 
 static INSTR(instr_ptr_assign_obj) {
   m_bit **o = *(m_bit***)REG(0);
-  release(*(M_Object*)o, shred);
+  //release(*(M_Object*)o, shred);
+  // addref to object?
   *o = *(m_bit**)REG(-SZ_INT);
 }
 

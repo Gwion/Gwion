@@ -987,9 +987,9 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
   const Exp rhs = bin->rhs;
   CHECK_BB(emit_exp_pop_next(emit, lhs))
   CHECK_BB(emit_exp_pop_next(emit, rhs))
-  const m_int size = exp_size(rhs);
-  emit_exp_addref1(emit, lhs, -exp_size(lhs) - size);
-  emit_exp_addref1(emit, rhs, -size);
+//  const m_int size = exp_size(rhs);
+//  emit_exp_addref1(emit, lhs, -exp_size(lhs) - size);
+//  emit_exp_addref1(emit, rhs, -size);
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type,
     .pos=exp_self(bin)->pos, .data=(uintptr_t)bin, .op_type=op_binary };
   return op_emit(emit, &opi);
@@ -1009,7 +1009,6 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=post->exp->type,
     .data=(uintptr_t)post, .op_type=op_postfix };
   CHECK_BB(emit_exp(emit, post->exp))
-  emit_exp_addref(emit, post->exp, -exp_totalsize(post->exp));
   return op_emit(emit, &opi);
 }
 
@@ -1372,7 +1371,6 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary, .op_type=op_unary };
   if(unary->unary_type == unary_exp && unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork")) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp))
-    emit_exp_addref1(emit, unary->exp, -exp_size(unary->exp));
     opi.rhs = unary->exp->type;
   }
   return op_emit(emit, &opi);
@@ -1483,6 +1481,13 @@ ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
     CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d))
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
+    if(isa(e->type, emit->gwion->type[et_object]) > 0 &&
+        (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) > 0 : 1) &&
+         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) && !exp_getvar(e)) {
+      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+      instr->m_val = -SZ_INT;
+    }
+
   } while((exp = exp->next));
   return GW_OK;
 }

@@ -776,9 +776,9 @@ objassign:
 {
   const M_Object o = **(M_Object**)(reg -SZ_INT);
   if(o) {
-    --o->ref;
     _release(o, shred);
   }
+  ++(*(M_Object*)(reg -SZ_INT*2))->ref;
 }
 assign:
   reg -= SZ_INT;

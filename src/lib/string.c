@@ -21,8 +21,6 @@ static INSTR(String_##name) {                    \
   const M_Object lhs = *(M_Object*)REG(-SZ_INT); \
   const M_Object rhs = *(M_Object*)REG(0);       \
   *(m_int*)REG(-SZ_INT) = action;                \
-  release(lhs, shred);                           \
-  release(rhs, shred);                           \
 }
 describe_string_logical(eq, (lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
 describe_string_logical(neq, !(lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
