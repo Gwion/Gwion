@@ -28,6 +28,7 @@ static DTOR(vararg_dtor) {
   if(*(m_uint*)(o->data + SZ_INT*2)) {
     m_uint offset = 0;
     for(m_uint i = 0; i < vector_size(&arg->t); ++i) {
+// could be compound release
       const Type t = (Type)vector_at(&arg->t, i);
       if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
         release(*(M_Object*)(arg->d + offset), shred);

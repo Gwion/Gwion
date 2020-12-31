@@ -29,6 +29,7 @@
 typedef struct Local_ {
   Type type;
   m_uint offset;
+  uint skip;
 } Local;
 
 static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(emit->env, scope); }
@@ -62,9 +63,10 @@ ANN static Local* new_local(MemPool p, const Type type) {
   return local;
 }
 
-ANN static m_uint frame_local(MemPool p, Frame* frame, const Type t) {
+ANN static m_uint frame_local(MemPool p, Frame* frame, const Type t, const uint skip) {
   Local* local = new_local(p, t);
   local->offset = frame->curr_offset;
+  local->skip = skip;
   frame->curr_offset += t->size;
   vector_add(&frame->stack, (vtype)local);
   return local->offset;
@@ -156,6 +158,8 @@ ANN static m_int frame_pop(const Emitter emit) {
   Frame *frame = emit->code->frame;
   DECL_OB(const Local*, l, = (Local*)vector_pop(&frame->stack))
   frame->curr_offset -= l->type->size;
+  if(l->skip)
+    return frame_pop(emit);
   if(tflag(l->type, tflag_struct)) {
     struct_pop(emit, l->type, l->offset);
     return frame_pop(emit);
@@ -222,7 +226,11 @@ ANN m_uint emit_code_offset(const Emitter emit) {
 }
 
 ANN m_uint emit_local(const Emitter emit, const Type t) {
-  return frame_local(emit->gwion->mp, emit->code->frame, t);
+  return frame_local(emit->gwion->mp, emit->code->frame, t, 0);
+}
+
+ANN m_uint emit_localn(const Emitter emit, const Type t) {
+  return frame_local(emit->gwion->mp, emit->code->frame, t, 1);
 }
 
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
@@ -908,7 +916,7 @@ ANN static void emit_func_arg_vararg(const Emitter emit, const Exp_Call* exp_cal
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call* exp_call) {
   if(exp_call->args) {
     CHECK_BB(emit_exp(emit, exp_call->args))
-    emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
+//    emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
   }
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   if(isa(t, emit->gwion->type[et_function]) > 0 &&
@@ -1976,7 +1984,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
   do {
     const Type type = a->var_decl->value->type;
     emit->code->stack_depth += type->size;
-    a->var_decl->value->from->offset = emit_local(emit, type);
+    a->var_decl->value->from->offset = emit_localn(emit, type);
   } while((a = a->next));
 }
 

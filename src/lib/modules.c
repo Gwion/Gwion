@@ -241,7 +241,6 @@ static MFUN(default_tick) {
     uu->shred = NULL;
   }
   UGEN(o)->module.gen.tick = id_tick;
-//  release(o, shred);
 }
 
 static INSTR(UsrUGenTick) {

@@ -182,7 +182,6 @@ static MFUN(string_insert) {
   for(i = index; i < (m_int)len; i++)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
-  release(arg, shred);
   *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
 }
 
@@ -200,7 +199,6 @@ static MFUN(string_replace) {
   const m_uint len = strlen(str);
   len_insert =  strlen(insert);
   if(index >= (m_int)len  || index < 0 || (index + len_insert + 1) <= 0) {
-    release(arg, shred);
     *(M_Object*)RETURN = NULL;
     return;
   }
@@ -210,7 +208,6 @@ static MFUN(string_replace) {
   for(i = 0; i < len_insert; i++)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  release(arg, shred);
   *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
 }
 
@@ -240,7 +237,6 @@ static MFUN(string_replaceN) {
   for(i = index + _len; i < (m_int)len; i++)
     c[i] = str[i];
   c[len + _len - 1] = '\0';
-  release(arg, shred);
   *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
 }
 
@@ -273,7 +269,6 @@ static MFUN(string_findStr) {
     *(m_uint*)RETURN = str ? str - base : -1;
   } else
     *(m_uint*)RETURN = -1;
-  release(obj, shred);
 }
 
 static MFUN(string_findStrStart) {
@@ -287,7 +282,6 @@ static MFUN(string_findStrStart) {
     *(m_uint*)RETURN = str ? str - pos- base : -1;
   } else
     *(m_uint*)RETURN = -1;
-  release(obj, shred);
 }
 
 static MFUN(string_rfind) {
@@ -321,7 +315,6 @@ static MFUN(string_rfindStr) {
     *(m_uint*)RETURN = str ? str - base : -1;
   } else
     *(m_uint*)RETURN = -1;
-  release(obj, shred);
 }
 
 static MFUN(string_rfindStrStart) {
@@ -337,7 +330,6 @@ static MFUN(string_rfindStrStart) {
     *(m_uint*)RETURN = str ? str - pos - base : -1;
   } else
     *(m_uint*)RETURN = -1;
-  release(obj, shred);
 }
 
 static MFUN(string_erase) {
