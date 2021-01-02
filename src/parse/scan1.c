@@ -87,13 +87,6 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       t = array_type(env, decl->type, var->array->depth);
     }
     const Value v = var->value = var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
-// rewrite logic
-    if(!env->scope->depth && env->class_def && !GET_FLAG(decl->td, static))
-      set_vflag(v, vflag_member);
-  if(safe_tflag(env->class_def, tflag_struct) && !GET_FLAG(decl->td, static)) {
-      v->from->offset = env->class_def->size;
-      env->class_def->size += t->size;
-    }
     nspc_add_value(env->curr, var->xid, v);
     if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late))
      SET_FLAG(v, late);
@@ -101,15 +94,23 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     if(array_ref(var->array))
       SET_FLAG(decl->td, late);
     v->flag |= decl->td->flag;
-    if(env->class_def) {
-      if(env->class_def->info->tuple)
-        tuple_contains(env, v);
-    } else if(!env->scope->depth)
-      set_vflag(v, vflag_fglobal);// file global
+    if(!env->scope->depth) {
+      valuefrom(env, v->from);
+      if(env->class_def) {
+        if(env->class_def->info->tuple)
+          tuple_contains(env, v);
+        if(!GET_FLAG(decl->td, static)) {
+          set_vflag(v, vflag_member);
+          if(tflag(env->class_def, tflag_struct)) {
+            v->from->offset = env->class_def->size;
+            env->class_def->size += t->size;
+          }
+        }
+      } else
+        set_vflag(v, vflag_fglobal);// file global
+    }
     if(GET_FLAG(decl->td, global))
       SET_FLAG(v, global);
-    if(!env->scope->depth)
-      valuefrom(env, v->from);
   } while((list = list->next));
   ((Exp_Decl*)decl)->type = decl->list->self->value->type;
   return GW_OK;
