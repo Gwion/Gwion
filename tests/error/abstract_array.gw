@@ -1,0 +1,2 @@
+#! [contains] must be declared empty
+var Shred[12] shreds;
