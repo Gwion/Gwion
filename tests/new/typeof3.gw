@@ -1,9 +1,0 @@
-class C {}
-class D extends C {}
-var C c;
-var D d;
-<<< typeof(c) < typeof(d) >>>;
-<<< typeof(c) > typeof(d) >>>;
-<<< C < D >>>;
-<<< C > D >>>;
-

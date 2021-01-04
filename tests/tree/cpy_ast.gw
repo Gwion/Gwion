@@ -2,7 +2,6 @@ class C:[A] {
   \a{};
   [ 1 ];
   var int i,j;
-  var typeof(i) k;
   'a';
   true $ int;
   i++;
@@ -10,7 +9,6 @@ class C:[A] {
   ++i;
   union U { int i; }
   union V:[A] { int i; }
-  typeof(i);
   if(i) i; else i;
   for(var int _i; _i < 1; ++_i);
   var int array[2];

@@ -1,1 +1,0 @@
-fun void test(typeof(1) i) {}

@@ -1,3 +1,0 @@
-var int array[][][];
-var typeof(array) other_array;
-<<< other_array >>>;
