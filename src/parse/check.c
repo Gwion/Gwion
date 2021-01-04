@@ -82,23 +82,6 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
-ANN static inline m_bool check_td_exp(const Env env, Type_Decl *td) {
-  RET_NSPC(traverse_exp(env, td->exp))
-}
-
-ANN Type check_td(const Env env, Type_Decl *td) {
-  CHECK_BO(check_td_exp(env, td))
-  const Type t = actual_type(env->gwion, td->exp->type);
-  td->xid = insert_symbol("auto");
-  return t;
-}
-
-ANN static Type no_xid(const Env env, const Exp_Decl *decl) {
-  CHECK_OO((((Exp_Decl*)decl)->type = check_td(env, decl->td)))
-  CHECK_BO(traverse_exp(env, exp_self(decl)))
-  return decl->type;
-}
-
 ANN static m_bool check_var(const Env env, const Var_Decl var) {
   if(env->class_def && !env->scope->depth && env->class_def->info->parent)
     CHECK_BB(check_exp_decl_parent(env, var))
@@ -169,8 +152,6 @@ ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos)
 }
 
 ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
-  if(!decl->td->xid)
-    return no_xid(env, decl);
   if(decl->td->array && decl->td->array->exp)
     CHECK_OO(check_exp(env, decl->td->array->exp))
   if(decl->td->xid == insert_symbol("auto")) { // should be better
@@ -520,8 +501,6 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
   do {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
-    if(arg_list->td && !arg_list->td->xid)
-      CHECK_OB((arg_list->type = v->type = check_td(env, arg_list->td)))
 // TODO: use coumpound instead of object?
     if(isa(v->type, env->gwion->type[et_object]) > 0 || isa(v->type, env->gwion->type[et_function]) > 0)
       unset_fflag(env->func, fflag_pure);
@@ -753,7 +732,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   DECL_OO(const Type, t, = check_exp(env, cast->exp))
-  CHECK_OO((exp_self(cast)->type = cast->td->xid ? known_type(env, cast->td) : check_td(env, cast->td)))
+  CHECK_OO((exp_self(cast)->type = known_type(env, cast->td)))
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->type,
     .data=(uintptr_t)cast, .pos=exp_self(cast)->pos, .op_type=op_cast };
   return op_check(env, &opi);
@@ -1244,10 +1223,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     CHECK_BB(check_parent_match(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(fdef->base->td && !fdef->base->td->xid) { // tmpl ?
-    CHECK_OB((fdef->base->ret_type = check_td(env, fdef->base->td)))
-    return check_traverse_fdef(env, fdef);
-  }
   CHECK_BB(check_func_def_override(env, fdef))
   DECL_BB(const m_int, scope, = GET_FLAG(fdef->base, global) ? env_push_global(env) : env->scope->depth)
   const Func former = env->func;

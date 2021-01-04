@@ -37,8 +37,6 @@ ANN static void clean_range(Clean *a, Range *b) {
 }
 
 ANN static void clean_type_decl(Clean *a, Type_Decl *b) {
-  if(b->exp)
-    clean_exp(a, b->exp);
   if(b->array)
     clean_array_sub(a, b->array);
   if(b->types)
