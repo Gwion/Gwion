@@ -150,6 +150,8 @@ ArrayValid
 ObjectInstantiate
 RegAddRef
 RegAddRefAddr
+StructRegAddRef
+StructRegAddRefAddr
 ObjectAssign
 Assign
 ObjectRelease
