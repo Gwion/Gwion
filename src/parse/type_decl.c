@@ -34,7 +34,5 @@ ANN static inline void* type_unknown(const Env env, const Type_Decl* td) {
 }
 
 ANN Type known_type(const Env env, Type_Decl* td) {
-  if(!td->xid)
-    return env->gwion->type[et_undefined];
   return resolve(env, td) ?:type_unknown(env, td);
 }

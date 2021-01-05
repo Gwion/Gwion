@@ -44,28 +44,12 @@ static OP_CHECK(opck_ptr_assign) {
   return env->gwion->type[et_error];
 }
 
-static INSTR(instr_ptr_assign) {
-  m_bit **o = *(m_bit***)REG(0);
-  *o = *(m_bit**)REG(-SZ_INT);
-}
-
-static INSTR(instr_ptr_assign_obj) {
-  m_bit **o = *(m_bit***)REG(0);
-  //release(*(M_Object*)o, shred);
-  // addref to object?
-  *o = *(m_bit**)REG(-SZ_INT);
-}
-
 static OP_EMIT(opem_ptr_assign) {
-  const Instr pop = emit_add_instr(emit, RegMove);
-  pop->m_val = -SZ_INT;
   const Exp_Binary* bin = (Exp_Binary*)data;
-  if(isa(bin->lhs->type, emit->gwion->type[et_object]) > 0) {
-    const Instr instr = emit_add_instr(emit, RegAddRefAddr);
-    instr->m_val = -SZ_INT;
-    emit_add_instr(emit, instr_ptr_assign_obj);
-  } else
-    emit_add_instr(emit, instr_ptr_assign);
+  const Type t = bin->lhs->cast_to ?: bin->lhs->type;
+  if(isa(t, emit->gwion->type[et_compound]) > 0)
+    (void)emit_compound_addref(emit, t, -(SZ_INT + t->size), 0);
+  emit_add_instr(emit, int_r_assign);
   return GW_OK;
 }
 

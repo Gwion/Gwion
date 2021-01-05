@@ -3,8 +3,8 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
-#include "object.h"
 #include "gwion.h"
+#include "object.h"
 #include "operator.h"
 
 ANN void func_operator(const Func_Def fdef, struct Op_Import *opi) {

@@ -47,4 +47,12 @@ ANN static inline void emit_gc(const Emitter emit, const m_int offset) {
   const Instr gc = emit_add_instr(emit, GcAdd);
   gc->m_val = offset;
 }
+
+
+ANN Instr emit_object_addref(const Emitter emit, const m_int size, const m_bool emit_var);
+ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size, const m_bool emit_var);
+ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t, const m_int size, const m_bool emit_var) {
+  return !tflag(t, tflag_struct) ? emit_object_addref(emit, size, emit_var) :
+                                                emit_struct_addref(emit, t, size, emit_var);
+}
 #endif

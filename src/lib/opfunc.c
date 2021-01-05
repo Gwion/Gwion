@@ -3,6 +3,7 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
+#include "gwion.h"
 #include "object.h"
 #include "emit.h"
 #include "traverse.h"

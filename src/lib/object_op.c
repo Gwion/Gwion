@@ -27,7 +27,7 @@ static INSTR(name##Object) {                     \
 describe_logical(Eq,  ==)
 describe_logical(Neq, !=)
 
-static OP_CHECK(at_object) {
+static OP_CHECK(opck_object_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
@@ -36,6 +36,13 @@ static OP_CHECK(at_object) {
   exp_setvar(bin->rhs, 1);
   CHECK_BN(isa(bin->lhs->type , bin->rhs->type))
   return bin->rhs->type;
+}
+
+static OP_EMIT(opem_object_at) {
+  const Instr addref = emit_add_instr(emit, RegAddRef);
+  addref->m_val = -SZ_INT*2;
+  (void)emit_add_instr(emit, ObjectAssign);
+  return GW_OK;
 }
 
 static OP_CHECK(opck_object_cast) {
@@ -310,8 +317,9 @@ GWION_IMPORT(object_op) {
   gwi->gwion->type[et_error] = t_error;
   GWI_BB(gwi_set_global_type(gwi, t_error, et_error))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
-  GWI_BB(gwi_oper_add(gwi, at_object))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_add(gwi, opck_object_at))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_at))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))

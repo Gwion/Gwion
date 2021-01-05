@@ -41,6 +41,19 @@ typedef void (f_release)(const VM_Shred shred, const Type t NUSED, const m_bit* 
 #define RELEASE_FUNC(a) void (a)(const VM_Shred shred, const Type t NUSED, const m_bit* ptr)
 static inline RELEASE_FUNC(object_release) { release(*(M_Object*)ptr, shred); }
 RELEASE_FUNC(struct_release);
+
+static inline void struct_addref(const Gwion gwion, const Type type, const m_bit* ptr) {
+  for(m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
+    const Type t = (Type)vector_at(&type->info->tuple->types, i);
+    if(isa(t, gwion->type[et_object]) > 0) {
+      const M_Object o = *(M_Object*)(ptr + vector_at(&type->info->tuple->offset, i));
+      ++o->ref;
+    } else if(tflag(t, tflag_struct)) {
+      struct_addref(gwion, t, *(m_bit**)(ptr + vector_at(&type->info->tuple->offset, i)));
+    }
+  }
+}
+
 static inline void compound_release(const VM_Shred shred, const Type t, const m_bit* ptr) {
   if(!tflag(t, tflag_struct))
     object_release(shred, t, ptr);

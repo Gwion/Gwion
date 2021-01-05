@@ -2,8 +2,8 @@
 #include "gwion_ast.h"
 #include "gwion_env.h"
 #include "vm.h"
-#include "object.h"
 #include "gwion.h"
+#include "object.h"
 #include "operator.h"
 
 ANN void nspc_commit(const Nspc nspc) {

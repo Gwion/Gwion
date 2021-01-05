@@ -2,8 +2,8 @@
 #include "gwion_ast.h"
 #include "gwion_env.h"
 #include "vm.h"
-#include "object.h"
 #include "gwion.h"
+#include "object.h"
 
 struct Stack_ {
   VM_Shred shred;

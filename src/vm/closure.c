@@ -3,10 +3,10 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
-#include "object.h"
-#include "array.h"
 #include "memoize.h"
 #include "gwion.h"
+#include "object.h"
+#include "array.h"
 #include "operator.h"
 #include "import.h"
 

@@ -466,39 +466,26 @@ ANN static inline m_uint exp_totalsize(Exp e) {
   return size;
 }
 
-ANN static Instr emit_addref(const Emitter emit, const m_bool emit_var) {
+ANN Instr emit_object_addref(const Emitter emit, const m_int size, const m_bool emit_var) {
   const f_instr exec = !emit_var ? RegAddRef : RegAddRefAddr;
   const Instr instr = emit_add_instr(emit, exec);
-  instr->m_val = -SZ_INT;
+  instr->m_val = size;
   return instr;
 }
 
-ANN static void struct_addref(const Emitter emit, const Type type,
-    const m_int size, const m_bool offset, const m_bool emit_var) {
-  if(!type->info->tuple)
-    return;
-  for(m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
-    const Type t = (Type)vector_at(&type->info->tuple->types, i);
-    if(isa(t, emit->gwion->type[et_object]) > 0) {
-      const Instr instr = emit_addref(emit, emit_var);
-      instr->m_val = size;
-      instr->m_val2 = vector_at(&type->info->tuple->offset, i);
-    } else if(tflag(t, tflag_struct))
-      struct_addref(emit, t, size, offset + vector_at(&type->info->tuple->offset, i), emit_var);
-  }
+ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size, const m_bool emit_var) {
+  const Instr instr = emit_add_instr(emit, !emit_var ? StructRegAddRef : StructRegAddRefAddr);
+  instr->m_val = (m_uint)t;
+  instr->m_val2 = size;
+  return instr;
 }
 
-ANN2(1) static void emit_exp_addref1(const Emitter emit, /* const */Exp exp, m_int size) {
-  if(isa(exp->type, emit->gwion->type[et_object]) > 0 &&
-        (exp->cast_to ? isa(exp->cast_to, emit->gwion->type[et_object]) > 0 : 1)) {
-    if(exp->exp_type == ae_exp_decl && GET_FLAG(exp->d.exp_decl.td, late) && !exp_getvar(exp)) {
-      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-      instr->m_val = size;
-    }
-    const Instr instr = emit_addref(emit, exp_getvar(exp));
-    instr->m_val = size;
-  } else if(tflag(exp->type, tflag_struct)) // check cast_to ?
-    struct_addref(emit, exp->type, size, 0, exp_getvar(exp));
+ANN2(1) static void emit_exp_addref1(const Emitter emit, const Exp exp, m_int size) {
+  const Type t = exp->cast_to ?: exp->type;
+  if(isa(t, emit->gwion->type[et_compound]) > 0)
+//    emit_object_addref(emit, size, exp_getvar(exp));
+//  else if(tflag(t, tflag_struct))
+    emit_compound_addref(emit, exp->type, size, exp_getvar(exp));
 }
 
 ANN2(1) static void emit_exp_addref(const Emitter emit, /* const */Exp exp, m_int size) {
@@ -635,7 +622,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
   if(!v->d.ptr)
     v->d.ptr = (m_uint*)new_string2(emit->gwion, NULL, s_name(sym));
   regpushi(emit, (m_uint)v->d.ptr);
-  emit_addref(emit, 0);
+  emit_object_addref(emit, -SZ_INT, 0);
   return GW_OK;
 }
 
@@ -728,7 +715,7 @@ ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl, const Va
   CHECK_BB(emit_instantiate_decl(emit, v->type, decl->td, var_decl->array, is_ref))
   CHECK_BB(emit_dot_static_data(emit, v, 1))
   emit_add_instr(emit, Assign);
-//  (void)emit_addref(emit, 0);
+//  (void)emit_object_addref(emit, -SZ_INT, 0);
   regpop(emit, SZ_INT);
   emit->code = code;
   return GW_OK;
@@ -837,7 +824,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
       push->m_val = -(missing_depth) * SZ_INT;
     }
 */
-    (void)emit_addref(emit, emit_var);
+    (void)emit_object_addref(emit, -SZ_INT, emit_var);
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;

@@ -413,7 +413,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
-  GWI_BB(gwi_oper_end(gwi, "@=>", ObjectAssign))
+  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))

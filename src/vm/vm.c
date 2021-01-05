@@ -4,11 +4,11 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
-#include "object.h"
-#include "ugen.h"
 #include "shreduler_private.h"
 #include "emit.h"
 #include "gwion.h"
+#include "object.h"
+#include "ugen.h"
 #include "operator.h"
 #include "import.h"
 #include "gack.h"
@@ -322,7 +322,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
     &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
-    &&newobj, &&addref, &&addrefaddr, &&objassign, &&assign, &&remref,
+    &&newobj, &&addref, &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
     &&staticint, &&staticfloat, &&staticother,
@@ -760,25 +760,28 @@ newobj:
   DISPATCH()
 addref:
   {
-    const M_Object o = *((M_Object*)(reg+(m_int)VAL) + (m_int)VAL2);
+    const M_Object o = *(M_Object*)(reg+(m_int)VAL);
 //    if(o)
       ++o->ref;
   }
   DISPATCH()
 addrefaddr:
   {
-    const M_Object o = *(*(M_Object**)(reg+(m_int)VAL) + (m_int)VAL2);
+    const M_Object o = **(M_Object**)(reg+(m_int)VAL);
     if(o)
       ++o->ref;
   }
   DISPATCH()
+structaddref:
+  struct_addref(vm->gwion, (Type)VAL2, *(m_bit**)(reg + (m_int)VAL));
+  DISPATCH()
+structaddrefaddr:
+    struct_addref(vm->gwion, (Type)VAL2, **(m_bit***)(reg + (m_int)VAL));
+  DISPATCH()
 objassign:
 {
   const M_Object o = **(M_Object**)(reg -SZ_INT);
-  if(o) {
-    _release(o, shred);
-  }
-  ++(*(M_Object*)(reg -SZ_INT*2))->ref;
+  release(o, shred);
 }
 assign:
   reg -= SZ_INT;

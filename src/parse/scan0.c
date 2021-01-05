@@ -6,6 +6,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "gwion.h"
 #include "object.h"
 #include "instr.h"
 #include "operator.h"
