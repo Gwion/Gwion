@@ -3,8 +3,8 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "instr.h"
-#include "object.h"
 #include "gwion.h"
+#include "object.h"
 #include "operator.h"
 #include "import.h"
 #include "vararg.h"
@@ -22,16 +22,17 @@ static MFUN(m_variadic) {
   struct Vararg_* arg = *(struct Vararg_**)vararg_obj->data;
 
   m_uint i = 0;
-  while(i < arg->s) {
+  const m_uint offset = *(m_uint*)(vararg_obj->data + SZ_INT * 3);
+  while(i < *(m_uint*)(vararg_obj->data + SZ_INT * 5)) {
     if(*str == 'i') {
-      gw_out("%"INT_F "\n", *(m_int*)(arg->d + arg->o));
-      arg->o += SZ_INT;
+      gw_out("%"INT_F "\n", *(m_int*)(arg->d + offset));
+      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
     } else if(*str == 'f') {
-      gw_out("%f\n", *(m_float*)(arg->d + arg->o));
-      arg->o += SZ_FLOAT;
+      gw_out("%f\n", *(m_float*)(arg->d + offset));
+      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_FLOAT;
     } else if(*str == 'o') {
-      gw_out("%p\n", (void*)*(M_Object*)(arg->d + arg->o));
-      arg->o += SZ_INT;
+      gw_out("%p\n", (void*)*(M_Object*)(arg->d + offset));
+      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
     }
     ++i;
     str++;
