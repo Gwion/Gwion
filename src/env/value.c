@@ -4,17 +4,12 @@
 #include "vm.h"
 #include "gwion.h"
 
+#define MAX(a, b) (a >= b ? a : b)
 ANN void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
-if(!vflag(a, vflag_enum)) {
-  if(!vflag(a, vflag_func) && a->d.ptr && !vflag(a, vflag_direct) &&
-      !(vflag(a, vflag_builtin) && a->from->owner_class)
-      && isa(t, gwion->type[et_object]) < 0)
-   _mp_free(gwion->mp, t->size, a->d.ptr);
-  else if(vflag(a, vflag_freeme))
-    xfree(a->d.ptr);
-}
-  if(is_class(gwion, t))
+  if(t->size > SZ_INT && !vflag(a, vflag_func) && a->d.ptr)
+    _mp_free(gwion->mp, t->size, a->d.ptr);
+  else if(is_class(gwion, t))
     type_remref(t, gwion);
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);

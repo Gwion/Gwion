@@ -101,13 +101,19 @@ static MFUN(string_ltrim) {
 
 static MFUN(string_rtrim) {
   const m_str str = STRING(o);
-  m_uint len = strlen(str) - 1;
-  while(str[len] == ' ')
-    len--;
-  char c[len + 2];
-  strncpy(c, str, len + 1);
-  c[len + 1] = '\0';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  const size_t sz = strlen(str);
+  if(sz) {
+    m_uint len = strlen(str) - 1;
+    while(str[len] == ' ')
+      len--;
+    char c[len + 2];
+    strncpy(c, str, len + 1);
+    c[len + 1] = '\0';
+    *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  } else {
+    ++o->ref;
+    *(M_Object*)RETURN = o;
+  }
 }
 
 static MFUN(string_trim) {

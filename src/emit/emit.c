@@ -391,19 +391,14 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
   if(vflag(v, vflag_direct)) {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), dotstatic);
-    instr->m_val = (m_uint)v->d.ptr;
+    instr->m_val = (m_uint)&v->d.ptr;
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), regpushimm);
-    if((!exp_getvar(prim_exp(data)) && size == SZ_INT)) {
-      if(isa(v->type, emit->gwion->type[et_object]) > 0 || vflag(v, vflag_enum))
-        instr->m_val = (m_uint)v->d.ptr;
-      else if(v->d.ptr)
-        instr->m_val = *(m_uint*)v->d.ptr;
-    } else {
-      assert(v->d.ptr); // instr->m_val = v->d.ptr;
-      memcpy(&instr->m_val, v->d.ptr, v->type->size);
-    }
+    if(v->type->size == SZ_FLOAT)
+      instr->f = v->d.fnum;
+    else
+      instr->m_val = v->d.num;
     instr->m_val2 = size;
   }
   return GW_OK;
@@ -786,13 +781,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
       const Instr instr = emit_add_instr(emit, Reg2Reg);
       instr->m_val = -SZ_INT;
     }
-/*
-    const size_t missing_depth = type->array_depth - (array ? array->depth : 0) - (decl->td->array ? decl->td->array->depth : 0);
-    if(missing_depth) {
-      const Instr push = emit_add_instr(emit, Reg2Reg);
-      push->m_val = -(missing_depth) * SZ_INT;
-    }
-*/
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
@@ -809,21 +797,14 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref))
   const Instr instr = emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1, dotstatic);
-  v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
-  if(isa(type, emit->gwion->type[et_union]) < 0)
-    set_vflag(v, vflag_direct);// mpalloc
-  instr->m_val = (m_uint)v->d.ptr;
+  if(type->size > SZ_INT) //{
+    v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
+  instr->m_val = (m_uint)&v->d.ptr;
+  set_vflag(v, vflag_direct);// mpalloc
   instr->m_val2 = v->type->size;
   if(is_obj && (is_array || !is_ref || emit_addr)) {
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val = emit_var;
-/*
-    const size_t missing_depth = type->array_depth - (array ? array->depth : 0) - (decl->td->array ? decl->td->array->depth : 0);
-    if(missing_depth) {
-      const Instr push = emit_add_instr(emit, Reg2Reg);
-      push->m_val = -(missing_depth) * SZ_INT;
-    }
-*/
     (void)emit_object_addref(emit, -SZ_INT, emit_var);
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
