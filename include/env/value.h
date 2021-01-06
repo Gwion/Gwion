@@ -28,7 +28,7 @@ union __attribute__((transparent_union)) value_data {
   m_uint* ptr;
   struct M_Object_ *obj;
   Func func_ref;
-};
+} __attribute__((transparent_union));
 
 struct Value_ {
   Type type;
