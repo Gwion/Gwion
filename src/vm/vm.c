@@ -265,9 +265,11 @@ _Pragma(STRINGIFY(COMPILER diagnostic push)) \
 _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define PRAGMA_POP() _Pragma(STRINGIFY(COMPILER diagnostic pop)) \
 
-#define VAL (*(m_uint*)(byte + SZ_INT))
-#define FVAL (*(m_float*)(byte + SZ_INT))
-#define VAL2 (*(m_uint*)(byte + SZ_INT*2))
+#define VMSZ (SZ_INT > SZ_FLOAT ? SZ_INT : SZ_FLOAT)
+
+#define VAL  (*(m_uint*)(byte + VMSZ))
+#define FVAL (*(m_float*)(byte + VMSZ))
+#define VAL2 (*(m_uint*)(byte + SZ_INT + SZ_INT))
 
 #define BRANCH_DISPATCH(check) \
   if(check) SET_BYTE(VAL);\
