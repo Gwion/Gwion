@@ -174,7 +174,7 @@ GWION_IMPORT(ptr) {
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_gack(gwi, t_ptr, gack_ptr))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
-  GWI_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_class_end(gwi))
   set_tflag(t_ptr, tflag_ntmpl);
   GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))

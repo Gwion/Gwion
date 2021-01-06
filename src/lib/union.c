@@ -168,7 +168,7 @@ ANN GWION_IMPORT(union) {
   const Type t_union = gwi_class_ini(gwi, "@Union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);
   GWI_BB(gwi_item_ini(gwi, "int", "@index"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   GWI_BB(gwi_func_ini(gwi, "bool", "is"))
   GWI_BB(gwi_func_arg(gwi, "int", "member"))
   GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))

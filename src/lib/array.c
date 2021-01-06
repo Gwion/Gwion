@@ -394,9 +394,9 @@ GWION_IMPORT(array) {
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
   GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
-  GWI_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
-  GWI_BB(gwi_item_end(gwi, 0, NULL))
+  GWI_BB(gwi_item_end(gwi, 0, num, 0))
 
   GWI_BB(gwi_func_ini(gwi, "int", "size"))
   GWI_BB(gwi_func_end(gwi, vm_vector_size, ae_flag_none))

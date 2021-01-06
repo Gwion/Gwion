@@ -32,7 +32,7 @@ GWION_IMPORT(foreach) {
   const Type t_foreach = gwi_struct_ini(gwi, "@Foreach:[A]");
   set_tflag(t_foreach, tflag_ntmpl | tflag_infer);
   GWI_BB(gwi_item_ini(gwi, "@internal", "val"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   GWI_BB(gwi_struct_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "@Foreach", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_foreach_scan))

@@ -352,7 +352,7 @@ ANN static UGen add_ugen(const Gwi gwi, struct ugen_importer* imp) {
   ugen_gen(vm->gwion, u, imp->tick, (void*)imp->vm, 0);
   vector_add(&vm->ugen, (vtype)u);
   gwi_item_ini(gwi, "UGen", imp->name);
-  gwi_item_end(gwi, ae_flag_const, o);
+  gwi_item_end(gwi, ae_flag_const, obj, o);
   return u;
 }
 
@@ -380,7 +380,7 @@ GWION_IMPORT(ugen) {
   gwi->gwion->type[et_ugen] = t_ugen; // use func
 
   GWI_BB(gwi_item_ini(gwi, "@internal", "@ugen"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
 
   GWI_BB(gwi_func_ini(gwi, "UGen", "chan"))
   GWI_BB(gwi_func_arg(gwi, "int", "arg0"))

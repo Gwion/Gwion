@@ -314,10 +314,10 @@ GWION_IMPORT(shred) {
   gwi_class_xtor(gwi, NULL, shred_dtor);
 
   gwi_item_ini(gwi, "@internal", "@me");
-  GWI_BB(gwi_item_end(gwi, ae_flag_const, NULL))
+  GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
 
   gwi_item_ini(gwi, "int", "cancel");
-  GWI_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, num, 0)))
 
   gwi_func_ini(gwi, "void", "exit");
   GWI_BB(gwi_func_end(gwi, gw_shred_exit, ae_flag_none))
@@ -386,17 +386,17 @@ GWION_IMPORT(shred) {
   gwi->gwion->type[et_fork] = t_fork;
 
   gwi_item_ini(gwi, "@internal", "@thread");
-  GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "@internal", "@cond");
-  GWI_BB((o_fork_cond = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_cond = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "@internal", "@mutex");
-  GWI_BB((o_fork_mutex = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_mutex = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "int", "is_done");
-  GWI_BB((o_fork_done = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_done = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "Event", "ev");
-  GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "int", "retsize");
-  GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_func_ini(gwi, "void", "join");
   GWI_BB(gwi_func_end(gwi, fork_join, ae_flag_none))
   gwi_func_ini(gwi, "void", "test_cancel");
@@ -406,7 +406,7 @@ GWION_IMPORT(shred) {
 
   const Type t_typed = gwi_class_ini(gwi,  "TypedFork:[A]", "Fork");
   gwi_item_ini(gwi, "A", "retval");
-  GWI_BB((gwi_item_end(gwi, ae_flag_const, NULL)))
+  GWI_BB((gwi_item_end(gwi, ae_flag_const, num, 0)))
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_typed, abstract | ae_flag_final);
   set_tflag(t_typed, tflag_ntmpl);
