@@ -22,17 +22,19 @@ enum vflag {
 //  vflag_used = 1 << 3
 } __attribute__((packed));
 
+union __attribute__((transparent_union)) value_data {
+  m_uint num;
+  m_float fnum;
+  m_uint* ptr;
+  struct M_Object_ *obj;
+  Func func_ref;
+};
+
 struct Value_ {
   Type type;
   m_str name;
   struct ValueFrom_ *from;
-  union __attribute__((transparent_union)) value_data {
-    m_uint num;
-    m_float fnum;
-    m_uint* ptr;
-    struct M_Object_ *obj;
-    Func func_ref;
-  } d;
+  union value_data d;
   uint16_t ref;
   ae_flag flag;
   enum vflag vflag;
