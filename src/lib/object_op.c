@@ -92,7 +92,8 @@ ANN static void emit_dot_static_data(const Emitter emit, const Value v, const ui
 
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
 ANN static void emit_dot_static_import_data(const Emitter emit, const Value v, const uint emit_addr) {
-  if(v->d.ptr && vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
+//  if(v->d.ptr && vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
+  if(vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, emit_addr, regpushimm);
     instr->m_val = (m_uint)v->d.ptr;

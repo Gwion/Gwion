@@ -619,9 +619,9 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
   } else c[0] = '\0';
   const Value v = prim_self(str)->value;
   const Symbol sym = insert_symbol(c);
-  if(!v->d.ptr)
-    v->d.ptr = (m_uint*)new_string2(emit->gwion, NULL, s_name(sym));
-  regpushi(emit, (m_uint)v->d.ptr);
+  if(!v->d.obj)
+    v->d.obj = new_string2(emit->gwion, NULL, s_name(sym));
+  regpushi(emit, (m_uint)v->d.obj);
   emit_object_addref(emit, -SZ_INT, 0);
   return GW_OK;
 }

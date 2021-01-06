@@ -26,10 +26,11 @@ struct Value_ {
   Type type;
   m_str name;
   struct ValueFrom_ *from;
-  union value_data{
+  union __attribute__((transparent_union)) value_data {
     m_uint num;
     m_float fnum;
     m_uint* ptr;
+    struct M_Object_ *obj;
     Func func_ref;
   } d;
   uint16_t ref;

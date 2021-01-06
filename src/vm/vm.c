@@ -365,7 +365,7 @@ regpushfloat:
 regpushother:
 //  LOOP_OPTIM
   for(m_uint i = 0; i <= VAL2; i+= SZ_INT)
-    *(m_bit**)(reg+i) = (m_bit*)(VAL + i);
+    *(m_bit**)(reg+i) = *(m_bit**)(VAL + i);
   reg += VAL2;
   DISPATCH();
 regpushaddr:
