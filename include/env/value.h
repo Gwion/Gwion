@@ -27,6 +27,8 @@ struct Value_ {
   m_str name;
   struct ValueFrom_ *from;
   union value_data{
+    m_uint num;
+    m_float fnum;
     m_uint* ptr;
     Func func_ref;
   } d;

@@ -51,8 +51,7 @@ ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_BB(ck_ok(gwi, ck_edef))
   DECL_OB(const ID_List, list, = gwi_str2symlist(gwi, name))
   add2list(gwi->ck, list);
-  ALLOC_PTR(gwi->gwion->mp, addr, m_int, i);
-  vector_add(&gwi->ck->v, (vtype)addr);
+  vector_add(&gwi->ck->v, (vtype)i);
   return GW_OK;
 }
 
@@ -66,11 +65,7 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
     const Value value = (Value)vector_at(v, i);
     const m_uint addr = vector_at(&ck->v, i);
     set_vflag(value, vflag_builtin);
-//    ADD_REF(value->type); // what ?
-    if(!gwi->gwion->env->class_def)
-      value->d.ptr = (m_uint*)(addr ? addr : i);
-    else
-      value->d.ptr = (m_uint*)(addr ? *(m_uint*)addr : i);
+      value->d.num = addr ?: i;
   }
   // better clean ?
 }

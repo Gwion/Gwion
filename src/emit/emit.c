@@ -395,8 +395,8 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_kind(emit, size, exp_getvar(prim_exp(data)), regpushimm);
-    if(!exp_getvar(prim_exp(data)) && size == SZ_INT) {
-      if(isa(v->type, emit->gwion->type[et_object]) > 0)
+    if((!exp_getvar(prim_exp(data)) && size == SZ_INT)) {
+      if(isa(v->type, emit->gwion->type[et_object]) > 0 || vflag(v, vflag_enum))
         instr->m_val = (m_uint)v->d.ptr;
       else if(v->d.ptr)
         instr->m_val = *(m_uint*)v->d.ptr;
@@ -1737,9 +1737,8 @@ ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
   for(m_uint i = 0; i < vector_size(&edef->values); ++i) {
     const Value v = (Value)vector_at(&edef->values, i);
     if(!emit->env->class_def) {
-      ALLOC_PTR(emit->gwion->mp, addr, m_uint, i);
       v->from->offset = emit_local(emit, emit->gwion->type[et_int]);
-      v->d.ptr = addr;
+      v->d.num = i;
     } else
       *(m_bit*)(emit->env->class_def->nspc->info->class_data + v->from->offset) = i;
   }

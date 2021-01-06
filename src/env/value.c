@@ -6,12 +6,14 @@
 
 ANN void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
+if(!vflag(a, vflag_enum)) {
   if(!vflag(a, vflag_func) && a->d.ptr && !vflag(a, vflag_direct) &&
-      !(vflag(a, vflag_enum) && vflag(a, vflag_builtin) && a->from->owner_class)
+      !(vflag(a, vflag_builtin) && a->from->owner_class)
       && isa(t, gwion->type[et_object]) < 0)
    _mp_free(gwion->mp, t->size, a->d.ptr);
   else if(vflag(a, vflag_freeme))
     xfree(a->d.ptr);
+}
   if(is_class(gwion, t))
     type_remref(t, gwion);
   mp_free(gwion->mp, ValueFrom, a->from);
