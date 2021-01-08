@@ -4,5 +4,5 @@ class Parent:[A] {
     13 => var B B;
   }
 }
-var Parent.C:[int, int] c;
+var Parent:[int].C:[int] c;
 <<< c.a >>>;

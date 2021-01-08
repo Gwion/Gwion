@@ -79,7 +79,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   if(td->array)
     set_tflag(t, tflag_typedef);
   if(ck.tmpl)
-    set_tflag(t, tflag_tmpl);
+    set_tflag(t, tflag_tmpl | tflag_ntmpl);
   else
     gwi_type_flag(t);
   return type_finish(gwi, t);

@@ -238,7 +238,6 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   if((info->ret = cdef->base.type)) {
     info->ret->info->cdef = cdef;
     set_tflag(info->ret, tflag_cdef);
-    set_tflag(info->ret, tflag_ctmpl);
   } else
     free_class_def(env->gwion->mp, cdef);
   return ret;

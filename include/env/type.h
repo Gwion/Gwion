@@ -27,14 +27,13 @@ enum tflag {
   tflag_empty   = 1 << 7,
   tflag_ftmpl   = 1 << 8,
   tflag_ntmpl   = 1 << 9, // do NOT need types
-  tflag_ctmpl   = 1 << 10, // child template
-  tflag_udef    = 1 << 11,
-  tflag_cdef    = 1 << 12,
-  tflag_struct  = 1 << 13,
-  tflag_ctor    = 1 << 14,
-  tflag_dtor    = 1 << 15,
-  tflag_tmpl    = 1 << 16,
-  tflag_typedef = 1 << 17,
+  tflag_udef    = 1 << 10,
+  tflag_cdef    = 1 << 11,
+  tflag_struct  = 1 << 12,
+  tflag_ctor    = 1 << 13,
+  tflag_dtor    = 1 << 14,
+  tflag_tmpl    = 1 << 15,
+  tflag_typedef = 1 << 16,
 } __attribute__((packed));
 
 struct Type_ {
