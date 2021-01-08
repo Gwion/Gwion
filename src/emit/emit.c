@@ -623,15 +623,6 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
 
 #define emit_prim_nil     (void*)dummy_func
 
-ANN static m_bool emit_prim_typeof(const Emitter emit, const Exp *exp) {
-  const Exp e = *exp;
-  if(!e->type->array_depth)
-    regpushi(emit, (m_uint)(actual_type(emit->gwion, e->type)));
-  else
-    regpushi(emit, (m_uint)e->type);
-  return GW_OK;
-}
-
 ANN static void interp_multi(const Emitter emit, const Exp e) {
   Var_Decl_List list = e->d.exp_decl.list;
   const int emit_var = exp_getvar(e);

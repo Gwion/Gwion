@@ -105,8 +105,7 @@ ANN static m_bool scan2_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
-  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_typeof ||
-        prim->prim_type == ae_prim_interp)
+  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_interp)
     CHECK_BB(scan2_exp(env, prim->d.exp))
 /*  else if(prim->prim_type == ae_prim_id) {
     const Value v = prim_value(env, prim->d.var);

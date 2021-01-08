@@ -334,13 +334,6 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
   return prim_id_non_res(env, data);
 }
 
-ANN static Type check_prim_typeof(const Env env, const Exp *exp) {
-  const Exp e = *exp;
-  DECL_OO(const Type, t, = check_exp(env, e))
-  CHECK_BO(inferable(env, t, (*exp)->pos))
-  return type_class(env->gwion, t);
-}
-
 ANN static Type check_prim_interp(const Env env, const Exp* exp) {
   CHECK_OO(check_exp(env, *exp))
   return env->gwion->type[et_string];

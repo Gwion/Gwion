@@ -62,7 +62,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
 }
 
 static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
-  if(var->value) // from a `typeof` declaration
+  if(var->value) // from an auto declaration
     return GW_OK;
   if(((!env->class_def || !GET_FLAG(env->class_def, final) || env->scope->depth) ? nspc_lookup_value1 : nspc_lookup_value2)(env->curr, var->xid))
     ERR_B(var->pos, _("variable %s has already been defined in the same scope..."),
@@ -195,8 +195,7 @@ ANN static m_bool scan1_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary* prim) {
-  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_typeof ||
-        prim->prim_type == ae_prim_interp)
+  if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_interp)
     return scan1_exp(env, prim->d.exp);
   if(prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);

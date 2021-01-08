@@ -46,9 +46,7 @@ ANN static void clean_type_decl(Clean *a, Type_Decl *b) {
 }
 
 ANN static void clean_prim(Clean *a, Exp_Primary *b) {
-  if(b->prim_type == ae_prim_hack   ||
-     b->prim_type == ae_prim_typeof ||
-     b->prim_type == ae_prim_interp)
+  if(b->prim_type == ae_prim_hack || b->prim_type == ae_prim_interp)
     clean_exp(a, b->d.exp);
   else if(b->prim_type == ae_prim_array)
     clean_array_sub(a, b->d.array);
