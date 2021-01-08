@@ -410,7 +410,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     regpushi(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
   }
-  if(vflag(v, vflag_builtin) || vflag(v, vflag_direct) || vflag(v, vflag_enum))
+  if(vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
   if(!strncmp(v->type->name, "@Foreach:[", 10)) {
     if(exp_getvar(exp_self(prim_self(data)))) {

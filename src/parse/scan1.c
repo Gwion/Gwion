@@ -324,10 +324,10 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
       SET_ACCESS(edef, edef->t)
-    }
+    } else
+      set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
-    set_vflag(v, vflag_enum);
     nspc_add_value(edef->t->info->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
   } while((list = list->next));

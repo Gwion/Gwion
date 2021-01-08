@@ -72,19 +72,8 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
       struct scope_iter iter = { t->nspc->info->value, 0, 0 };\
       Value v;
       while(scope_iter(&iter, &v) > 0) {
-        if(!GET_FLAG(v, static) && !vflag(v, vflag_union) &&
-            isa(v->type, shred->info->vm->gwion->type[et_object]) > 0)
-          release(*(M_Object*)(o->data + v->from->offset), shred);
-        else if(tflag(v->type, tflag_struct) &&
-              !GET_FLAG(v, static) && !vflag(v, vflag_union) && v->type->info->tuple) {
-          const TupleForm tf = v->type->info->tuple;
-          for(m_uint i = 0; i < vector_size(&tf->types); ++i) {
-            const m_bit *data = o->data + v->from->offset;
-            const Type t = (Type)vector_at(&tf->types, i);
-            if(isa(t, shred->info->vm->gwion->type[et_object]) > 0)
-              release(*(M_Object*)(data + vector_at(&tf->offset, i)), shred);
-          }
-        }
+        if(!GET_FLAG(v, static) && isa(v->type, shred->info->vm->gwion->type[et_compound]) > 0)
+          compound_release(shred, v->type, o->data + v->from->offset);
       }
     }
     if(tflag(t, tflag_dtor) && t->nspc->dtor) {

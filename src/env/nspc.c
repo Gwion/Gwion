@@ -13,8 +13,8 @@ ANN void nspc_commit(const Nspc nspc) {
 }
 
 ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
-  if(!vflag(value, vflag_union) && ((GET_FLAG(value, static) && a->info->class_data) ||
-    (value->d.ptr && vflag(value, vflag_builtin)))) {
+  if((GET_FLAG(value, static) && a->info->class_data) ||
+    (value->d.ptr && vflag(value, vflag_builtin))) {
     const M_Object obj = value->d.ptr ? (M_Object)value->d.ptr :
         *(M_Object*)(a->info->class_data + value->from->offset);
        release(obj, gwion->vm->cleaner_shred);
@@ -22,7 +22,7 @@ ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwio
 }
 
 ANN2(1,3) static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
-  if(value && !vflag(value, vflag_union) && ((GET_FLAG(value, static) && a->info->class_data) ||
+  if(value && ((GET_FLAG(value, static) && a->info->class_data) ||
     (vflag(value, vflag_builtin) && value->d.ptr))) {
     const m_bit *ptr = (value && value->d.ptr) ? (m_bit*)value->d.ptr:
         (m_bit*)(a->info->class_data + value->from->offset);

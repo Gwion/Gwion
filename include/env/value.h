@@ -10,15 +10,12 @@ struct ValueFrom_ {
 enum vflag {
   vflag_none  = 1 << 0,
   vflag_func  = 1 << 1,
-  vflag_union = 1 << 2,
-  vflag_enum  = 1 << 3,
-  vflag_freeme  = 1 << 4,
-  vflag_fglobal  = 1 << 5,
-  vflag_valid    = 1 << 6,
-  vflag_direct    = 1 << 7,
-  vflag_builtin    = 1 << 8,
-  vflag_member   = 1 << 9,
-  vflag_closed   = 1 << 10
+  vflag_fglobal  = 1 << 2,
+  vflag_valid    = 1 << 3,
+  vflag_direct    = 1 << 4,
+  vflag_builtin    = 1 << 5,
+  vflag_member   = 1 << 6,
+  vflag_closed   = 1 << 7
 //  vflag_used = 1 << 3
 } __attribute__((packed));
 
