@@ -99,7 +99,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
     t->info->tuple = new_tupleform(gwi->gwion->mp, NULL);
     t->info->parent = NULL;
     t->info->cdef->cflag |= cflag_struct;
-    set_tflag(t, tflag_tmpl);
+    set_tflag(t, tflag_tmpl | tflag_ntmpl);
   }
   return type_finish(gwi, t);
 }

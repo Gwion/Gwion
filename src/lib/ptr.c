@@ -176,7 +176,6 @@ GWION_IMPORT(ptr) {
   GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_class_end(gwi))
-  set_tflag(t_ptr, tflag_ntmpl);
   GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))

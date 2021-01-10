@@ -347,7 +347,7 @@ ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
   regpop(emit, SZ_INT);
   const Instr instr = emit_add_instr(emit, Reg2Reg);
   instr->m_val = -SZ_INT;
-  emit_add_instr(emit, RegAddRef);
+//  emit_add_instr(emit, RegAddRef);
   return GW_OK;
 }
 
@@ -638,7 +638,7 @@ ANN static inline void interp_size(const Emitter emit, const Type t) {
   instr->m_val2 = SZ_INT;
 }
 
-ANN static m_bool emit_interp(const Emitter emit, const Exp exp) {
+ANN /*static*/ m_bool emit_interp(const Emitter emit, const Exp exp) {
   regpushi(emit, 0);
   Exp e = exp, next = NULL;
   do {
@@ -895,6 +895,8 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   if(isa(t, emit->gwion->type[et_function]) > 0)
     CHECK_BB(emit_exp_call1(emit, t->info->func))
   else {
+printf("call type %s %p\n", exp_call->func->type->name, actual_type(emit->gwion, exp_call->func->type));
+printf("call type %s %p\n", exp_call->func->type->name, exp_call->func->type);
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=t,
       .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos, .op_type=op_exp };
     CHECK_BB(op_emit(emit, &opi))

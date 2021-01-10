@@ -41,13 +41,13 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
 
 M_Object new_string(MemPool p, const VM_Shred shred, const m_str str) {
   const M_Object o = new_object(p, shred, shred->info->vm->gwion->type[et_string]);
-  STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, str));
+  STRING(o) = mstrdup(p, str);
   return o;
 }
 
 M_Object new_string2(const struct Gwion_ *gwion, const VM_Shred shred, const m_str str) {
   const M_Object o = new_object(gwion->mp, shred, gwion->type[et_string]);
-  STRING(o) = str;
+  STRING(o) = mstrdup(gwion->mp, str);
   return o;
 }
 

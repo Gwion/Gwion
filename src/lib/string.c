@@ -22,11 +22,15 @@ static INSTR(String_##name) {                    \
   const M_Object rhs = *(M_Object*)REG(0);       \
   *(m_int*)REG(-SZ_INT) = action;                \
 }
-describe_string_logical(eq, (lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
-describe_string_logical(neq, !(lhs && rhs && STRING(lhs) == STRING(rhs)) || (!lhs && !rhs))
+describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
+describe_string_logical(neq, (strcmp(STRING(lhs), STRING(rhs))))
 
 static CTOR(string_ctor) {
-  STRING(o) = "";
+  STRING(o) = _mp_calloc(shred->info->vm->gwion->mp, 1);
+}
+
+static DTOR(string_dtor) {
+  free_mstr(shred->info->vm->gwion->mp, STRING(o));
 }
 
 ID_CHECK(check_funcpp) {
@@ -360,7 +364,7 @@ static MFUN(string_erase) {
 GWION_IMPORT(string) {
   const Type t_string = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
-  gwi_class_xtor(gwi, string_ctor, NULL);
+  gwi_class_xtor(gwi, string_ctor, string_dtor);
   GWI_BB(gwi_gack(gwi, t_string, gack_string))
 
   gwi_item_ini(gwi, "@internal", "@data");
