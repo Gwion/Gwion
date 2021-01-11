@@ -607,15 +607,15 @@ ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
 }
 
 ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
-  char c[strlen(*str) + 1];
-  if(strlen(*str)) {
-    strcpy(c, *str);
-    CHECK_BB(escape_str(emit, c, prim_pos(str)));
-  } else c[0] = '\0';
   const Value v = prim_self(str)->value;
-  const Symbol sym = insert_symbol(c);
-  if(!v->d.obj)
-    v->d.obj = new_string2(emit->gwion, NULL, s_name(sym));
+  if(!v->d.obj) {
+    char c[strlen(*str) + 1];
+    if(strlen(*str)) {
+      strcpy(c, *str);
+      CHECK_BB(escape_str(emit, c, prim_pos(str)));
+    } else c[0] = '\0';
+      v->d.obj = new_string2(emit->gwion, NULL, c);
+  }
   regpushi(emit, (m_uint)v->d.obj);
   emit_object_addref(emit, -SZ_INT, 0);
   return GW_OK;
