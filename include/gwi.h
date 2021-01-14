@@ -6,6 +6,7 @@ struct Gwi_ {
   Ast body;
   struct ImportCK *ck;
   struct OperCK *oper; // _misc
+  uint tmpls;
   loc_t loc;
 };
 
