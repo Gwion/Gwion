@@ -76,8 +76,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
           compound_release(shred, v->type, o->data + v->from->offset);
       }
     }
-    if(tflag(t, tflag_dtor) && t->nspc->dtor) {
-    // check flag for array types
+    if(tflag(t, tflag_dtor)) {
       if(t->nspc->dtor->builtin)
         ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
       else {

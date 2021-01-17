@@ -79,8 +79,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_gack(gwi, t_class, gack_class))
 
-  const Type t_undefined = gwi_mk_type(gwi, "@Undefined", SZ_INT, NULL);
-  GWI_BB(gwi_set_global_type(gwi, t_undefined, et_undefined))
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
   set_tflag(t_auto, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))

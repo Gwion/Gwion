@@ -104,11 +104,7 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
     return op_check(env, &opi);
   } else if(td->types)
     return maybe_func(env, t, td);
-  Type_Decl *next = td->next;
-  td->next = NULL;
-  const Type ret = find_type(env, td);
-  td->next = next;
-  return ret;
+  return find_type(env, td);
 }
 
 ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {

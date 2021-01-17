@@ -24,21 +24,19 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Dec
 }
 
 ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
-  const Type base = get_type(t);
-  if(tflag(base, tflag_scan1) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+  if(tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan1_cdef,
     .scope=env->scope->depth, .flag=tflag_scan1 };
-  return envset_run(&es, base);
+  return envset_run(&es, t);
 }
 
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
-  DECL_OO(const Type, type, = known_type(env, td))
-  const Type t = get_type(type);
+  DECL_OO(const Type, t, = known_type(env, td))
   if(!env->func && env->class_def && !GET_FLAG(td, late))
     CHECK_BO(type_cyclic(env, t, td))
   CHECK_BO(ensure_scan1(env, t))
-  return type;
+  return t;
 }
 
 ANN static Type void_type(const Env env, Type_Decl* td) {
@@ -76,6 +74,7 @@ static inline uint array_ref(const Array_Sub array) {
 
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
   Var_Decl_List list = decl->list;
+  const uint decl_ref = array_ref(decl->td->array);
   do {
     const Var_Decl var = list->self;
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos))
@@ -86,7 +85,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
         CHECK_BB(scan1_exp(env, var->array->exp))
       t = array_type(env, decl->type, var->array->depth);
     }
-    if(t->array_depth && GET_FLAG(array_base(t), abstract) && ((var->array && var->array->exp)
+    if(GET_FLAG(array_base(t), abstract) && ((var->array && var->array->exp)
                                                   || (decl->td->array && decl->td->array->exp)))
       ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
         array_base(t)->name);
@@ -95,8 +94,8 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     if(GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late))
      SET_FLAG(v, late);
     v->type = t;
-    if(array_ref(var->array))
-      SET_FLAG(decl->td, late);
+    if(decl_ref || array_ref(var->array))
+      SET_FLAG(v, late);
     v->flag |= decl->td->flag;
     if(!env->scope->depth) {
       valuefrom(env, v->from);
@@ -130,8 +129,6 @@ ANN int is_global(const Nspc nspc, Nspc global) {
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
-  if(array_ref(decl->td->array))
-    SET_FLAG(decl->td, late);
   CHECK_OB(decl->type)
   const m_bool global = GET_FLAG(decl->td, global);
   if(global) {
@@ -360,7 +357,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
 
 ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
   ID_List id = base->tmpl->list;
-  do nspc_add_type(env->curr, id->xid, env->gwion->type[et_undefined]);
+  do nspc_add_type(env->curr, id->xid, env->gwion->type[et_auto]);
   while((id = id->next));
   CHECK_OB((base->ret_type = known_type(env, base->td)))
   if(base->args) {
@@ -594,7 +591,7 @@ ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
 
 ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = cdef->base.ext->pos;
-  if(cdef->base.ext->array)
+  if(cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp))
   DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base))
   if(isa(parent, env->gwion->type[et_object]) < 0)

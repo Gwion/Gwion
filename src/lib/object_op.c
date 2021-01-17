@@ -56,15 +56,6 @@ static OP_CHECK(opck_object_cast) {
   return exp_self(cast)->type;
 }
 
-static OP_CHECK(opck_implicit_null2obj) {
-  const struct Implicit* imp = (struct Implicit*)data;
-  return imp->t;
-}
-
-static OP_EMIT(opem_implicit_null2obj) {
-  return GW_OK;
-}
-
 ANN /*static*/ Type scan_class(const Env env, const Type t, const Type_Decl * td);
 
 static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
@@ -162,7 +153,7 @@ OP_CHECK(opck_object_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const m_str str = s_name(member->xid);
   const m_bool base_static = is_class(env->gwion, member->base->type);
-  const Type the_base = base_static ? member->base->type->info->base_type : member->base->type;
+  const Type the_base = base_static ? _class_base(member->base->type) : member->base->type;
 //  if(!the_base->nspc)
 //    ERR_N(&member->base->pos,
 //          _("type '%s' does not have members - invalid use in dot expression of %s"),
@@ -325,9 +316,9 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
   GWI_BB(gwi_oper_add(gwi, opck_object_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
-  GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+//.  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
+//  GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
+//  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
   GWI_BB(gwi_oper_emi(gwi, opem_not_object))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))

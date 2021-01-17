@@ -48,24 +48,29 @@ void free_m_vector(MemPool p, M_Vector a) {
 }
 
 static DTOR(array_dtor) {
-  const Type t = o->type_ref;
   if(*(void**)(o->data + SZ_INT))
     xfree(*(void**)(o->data + SZ_INT));
   struct M_Vector_* a = ARRAY(o);
-  if(!a)
-    return;
-  if(t->nspc->info->class_data_size) {
-    for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
-      (*(f_release**)t->nspc->info->class_data)(shred, array_base(t), ARRAY_PTR(a) + i * ARRAY_SIZE(a));
-  }
   free_m_vector(shred->info->mp, a);
+}
+
+static DTOR(array_dtor_obj) {
+  struct M_Vector_* a = ARRAY(o);
+  for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
+    release(*(M_Object*)(ARRAY_PTR(a) + i * SZ_INT), shred);
+}
+
+static DTOR(array_dtor_struct) {
+  struct M_Vector_* a = ARRAY(o);
+  for(m_uint i = 0; i < ARRAY_LEN(a); ++i)
+    struct_release(shred, array_base(o->type_ref), &*(m_bit*)(ARRAY_PTR(a) + i * SZ_INT));
 }
 
 ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, NULL, t);
   const m_uint depth = !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  ARRAY(a) = new_m_vector(p, size,length);
+  ARRAY(a) = new_m_vector(p, size, length);
   return a;
 }
 
@@ -264,8 +269,8 @@ static OP_EMIT(opem_array_sl) {
 // check me. use common ancestor maybe
 static OP_CHECK(opck_array_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
-  Type l = array_base(cast->exp->type);
-  Type r = array_base(exp_self(cast)->type);
+  const Type l = array_base(cast->exp->type);
+  const Type r = array_base(exp_self(cast)->type);
   if(get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) && isa(l->info->base_type, r->info->base_type) > 0)
     return l;
   return NULL;
@@ -389,15 +394,67 @@ static OP_EMIT(opem_array_access) {
   return exp ? emit_array_access(emit, info) : GW_ERROR;
 }
 
+ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint depth);
+#include "template.h"
+static OP_CHECK(opck_array_scan) {
+  struct TemplateScan *ts = (struct TemplateScan*)data;
+  const Type t_array = env->gwion->type[et_array];
+  const Class_Def c = t_array->info->cdef;
+  const Type base = ts->t != t_array ?
+    ts->t : known_type(env, ts->td->types->td);
+  const Symbol sym = array_sym(env, base, base->array_depth + 1);
+  const Type type = nspc_lookup_type1(base->info->owner, sym);
+  if(type)
+    return type;
+  const Class_Def cdef = cpy_class_def(env->gwion->mp, c);
+  cdef->cflag = c->cflag;
+  cdef->base.ext = type2td(env->gwion, t_array, (loc_t){});
+  cdef->base.xid = sym;
+  cdef->base.tmpl->base = 1; // could store depth here?
+  cdef->base.tmpl->call = new_type_list(env->gwion->mp, type2td(env->gwion, base, (loc_t){}), NULL);
+  const m_uint scope = env_push(env, NULL, base->info->owner);
+  (void)scan0_class_def(env, cdef);
+  const Type t = cdef->base.type;
+  (void)traverse_cdef(env, t);
+  env_pop(env, scope);
+  if(GET_FLAG(base, abstract))
+    SET_FLAG(t, abstract);
+  else
+    UNSET_FLAG(t, abstract);
+  unset_tflag(t, tflag_typedef);
+  t->info->owner = base->info->owner;
+  t->array_depth = base->array_depth + 1;
+  t->info->base_type = array_base(base);
+//  if(t->info->parent == env->gwion->type[et_array]) {
+//    vector_add(&t->info->tuple->types, (m_uint)base);
+//  }
+  set_tflag(t, tflag_cdef | tflag_tmpl);
+  if(isa(base, env->gwion->type[et_compound]) > 0) {
+    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
+    set_tflag(t, tflag_dtor);
+    t->nspc->dtor->native_func = (m_uint) (!tflag(base, tflag_struct) ?
+        array_dtor_obj : array_dtor_struct);
+  }
+  return t;
+}
+
+static OP_CHECK(opck_array_implicit) {
+  const struct Implicit* imp = (struct Implicit*)data;
+  if(imp->t->array_depth != imp->e->type->array_depth)
+    return env->gwion->type[et_error];
+  if(isa(array_base(imp->e->type), array_base(imp->t)) < 0)
+    return env->gwion->type[et_error];
+  return imp->t;
+}
+
 GWION_IMPORT(array) {
-  const Type t_array  = gwi_class_ini(gwi, "@Array", NULL);
+  const Type t_array  = gwi_class_ini(gwi, "Array:[T]", "Object");
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
   GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
-
   GWI_BB(gwi_func_ini(gwi, "int", "size"))
   GWI_BB(gwi_func_end(gwi, vm_vector_size, ae_flag_none))
   GWI_BB(gwi_func_ini(gwi, "int", "depth"))
@@ -410,29 +467,39 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_arg(gwi, "int", "index"))
   GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
 
+  GWI_BB(gwi_func_ini(gwi, "T", "insert"))
+//  GWI_BB(gwi_func_arg(gwi, "int", "index"))
+//  GWI_BB(gwi_func_arg(gwi, "T", "data"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
+
   GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sr))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sr))
   GWI_BB(gwi_oper_end(gwi, ">>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_scan))
+  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }

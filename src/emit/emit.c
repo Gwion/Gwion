@@ -297,7 +297,7 @@ ANEW ANN static ArrayInfo* new_arrayinfo(const Emitter emit, const Type t) {
   for(m_uint i = 1; i < t->array_depth; ++i)
     vector_add(&info->type, (vtype)array_type(emit->env, base, i));
   vector_add(&info->type, (vtype)t);
-  info->depth = !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
+  info->depth = get_depth(t);
   info->base = base;
   return info;
 }
@@ -501,7 +501,7 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   regseti(emit, count);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val = (m_uint)type;
-  instr->m_val2 = type->array_depth == 1 ? array_base(type)->size : SZ_INT;
+  instr->m_val2 = array_base(type)->size;
   emit_gc(emit, -SZ_INT);
   emit_notpure(emit);
   return GW_OK;
@@ -806,12 +806,11 @@ ANN static m_bool emit_class_def(const Emitter, const Class_Def);
 ANN static m_bool emit_cdef(const Emitter, const Type);
 
 ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
-  const Type base = get_type(t);
-  if(tflag(base, tflag_emit) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+  if(tflag(t, tflag_emit) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;//clean callers
   struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
     .scope=emit->env->scope->depth, .flag=tflag_emit };
-  return envset_run(&es, base);
+  return envset_run(&es, t);
 }
 
 ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
@@ -828,15 +827,15 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, r, var))
     else
       CHECK_BB(emit_exp_decl_global(emit, decl, list->self, r, var))
-    if(GET_FLAG(v->type, abstract) && !GET_FLAG(decl->td, late) && GET_FLAG(v, late)) {
-     env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use late"), v->type->name);
+    if(GET_FLAG(array_base(v->type), abstract) && !GET_FLAG(decl->td, late) && GET_FLAG(v, late)) {
+      env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use late"), v->type->name);
     }
   } while((list = list->next));
   return GW_OK;
 }
 
 ANN /*static */m_bool emit_exp_decl(const Emitter emit, const Exp_Decl* decl) {
-  const Type t = get_type(decl->type);
+  const Type t = decl->type;
   CHECK_BB(ensure_emit(emit, t))
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? emit->env->scope->depth : emit_push_global(emit);
@@ -1332,7 +1331,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary* unary) {
 
 ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   const Type t = exp_self(unary)->type;
-  const Type base = get_type(actual_type(emit->gwion, t));
+  const Type base = actual_type(emit->gwion, t);
   CHECK_BB(ensure_emit(emit, base))
   // no pos ?
   struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary, .op_type=op_unary };
@@ -1435,7 +1434,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
 }
 
 ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl* td) {
-  regpushi(emit, (m_uint)exp_self(td)->type->info->base_type);
+  regpushi(emit, (m_uint)_class_base(exp_self(td)->type));
   return GW_OK;
 }
 
@@ -1450,11 +1449,10 @@ ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
       CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(isa(e->type, emit->gwion->type[et_object]) > 0 &&
         (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) > 0 : 1) &&
-         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) && !exp_getvar(e)) {
+         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) && exp_getuse(e) && !exp_getvar(e)) {
       const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
       instr->m_val = -SZ_INT;
     }
-
   } while((exp = exp->next));
   return GW_OK;
 }

@@ -366,7 +366,6 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
     c->base.type = cdef->base.type;
     c->base.type->info->cdef = cdef;
     set_tflag(c->base.type, tflag_cdef);
-    set_tflag(cdef->base.type, tflag_scan0);// redundant
   }
   return ret;
 }

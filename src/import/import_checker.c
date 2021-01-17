@@ -245,8 +245,10 @@ ANN static m_bool td_info_run(const Env env, struct td_info* info) {
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t, const loc_t pos NUSED) {
   GwText text = { .mp=gwion->mp };
-  if(t->info->owner_class)
+  if(t->info->owner_class) {
     td_fullname(gwion->env, &text, t->info->owner_class);
+    text_add(&text, ".");
+  }
   text_add(&text, t->name);
   return text.str;
 }

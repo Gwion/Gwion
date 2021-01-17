@@ -9,8 +9,8 @@ struct TypeInfo_ {
     Union_Def udef;
     Class_Def cdef;
     Func      func;
-    Type      base_type;
   };
+  Type      base_type;
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
   struct Context_ *ctx;
@@ -57,8 +57,6 @@ ANN m_bool isa(const Type, const Type) __attribute__((pure));
 ANN m_bool isres(const Env, const Symbol, const loc_t pos);
 ANN Type array_type(const Env, const Type, const m_uint);
 ANN Type find_common_anc(const Type, const Type) __attribute__((pure));
-ANN m_uint id_list_len(ID_List);
-ANN void type_path(const m_str, const ID_List);
 ANN Type typedef_base(Type) __attribute__((pure));
 ANN Type array_base(Type) __attribute__((pure));
 ANN m_bool type_ref(Type) __attribute__((pure));
@@ -66,6 +64,10 @@ ANN Type actual_type(const struct Gwion_* gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) { return env_push(env, type, type->nspc); }
 ANN m_bool is_fptr(const struct Gwion_*, const Type t);
 ANN m_bool is_class(const struct Gwion_*, const Type t);
+ANN __attribute__((returns_nonnull))
+static inline Type _class_base(Type t) {
+  return t->info->base_type;
+}
 ANN m_uint get_depth(const Type type);
 ANN void inherit(const Type);
 
@@ -77,13 +79,10 @@ ANN static inline Type get_gack(Type t) {
   return t; // unreachable
 }
 
-__attribute__((returns_nonnull))
-ANN Type get_type(const Type t);
-
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_error, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
-  et_function, et_fptr, et_vararg, et_lambda, et_class, et_union, et_undefined, et_auto, et_none,
+  et_function, et_fptr, et_vararg, et_lambda, et_class, et_union, et_auto, et_none,
   MAX_TYPE
 } type_enum;
 #endif

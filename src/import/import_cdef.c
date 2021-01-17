@@ -37,12 +37,12 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
 }
 
 ANN2(1) void add_template(const Env env, const Type t) {
-  Tmpl* tmpl = tflag(t, tflag_cdef) ? t->info->cdef->base.tmpl : NULL;
+  Tmpl* tmpl = t->info->cdef->base.tmpl;
   if(tmpl) {
     nspc_push_type(env->gwion->mp, env->curr);//
     ID_List il = tmpl->list;
     do {
-      nspc_add_type(env->curr, il->xid, env->gwion->type[et_undefined]);
+      nspc_add_type(env->curr, il->xid, env->gwion->type[et_auto]);
     } while((il = il->next));
   }
 }
@@ -123,8 +123,8 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   if(!gwi->gwion->env->class_def)
     GWI_ERR_B(_("import: too many class_end called."))
   nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);
-  const Type t =gwi->gwion->env->class_def;
-  if(tflag(t, tflag_cdef | tflag_tmpl)) {
+  const Type t = gwi->gwion->env->class_def;
+  if(tflag(t, tflag_tmpl)) {
     --gwi->tmpls;
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   }

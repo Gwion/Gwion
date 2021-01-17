@@ -73,8 +73,8 @@ ANN void did_you_mean_type(const Type, const char*);
 #define did_you_mean_type(a, b) if(strlen(b) < DID_YOU_MEAN_LIMIT) did_you_mean_type(a,b);
 
 ANN static inline void nspc_allocdata(MemPool mp, const Nspc nspc) {
-  if(nspc->info->class_data_size)
-//    nspc->info->class_data = (m_bit*)xcalloc(1, nspc->info->class_data_size);
+  if(nspc->info->class_data_size) {
     nspc->info->class_data = (m_bit*)mp_calloc2(mp, nspc->info->class_data_size);
+  }
 }
 #endif
