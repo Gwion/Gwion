@@ -30,7 +30,7 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
   a->ref = 1;
   a->type_ref = t;
   if(t->nspc) {
-    a->vtable = &t->nspc->info->vtable;
+    a->vtable.ptr = t->nspc->info->vtable.ptr;
     if(t->nspc->info->offset)
       a->data = (m_bit*)_mp_calloc(p, t->nspc->info->offset);
   }

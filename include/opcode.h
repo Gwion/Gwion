@@ -177,7 +177,6 @@ enum {
   eUpvalueOther,
   eUpvalueAddr,
   eDotFunc,
-  eDotStaticFunc,
   eGcIni,
   eGcAdd,
   eGcEnd,
@@ -366,7 +365,6 @@ enum {
 #define  UpvalueOther         (f_instr)eUpvalueOther
 #define  UpvalueAddr          (f_instr)eUpvalueAddr
 #define  DotFunc              (f_instr)eDotFunc
-#define  DotStaticFunc        (f_instr)eDotStaticFunc
 #define  GcIni                (f_instr)eGcIni
 #define  GcAdd                (f_instr)eGcAdd
 #define  GcEnd                (f_instr)eGcEnd

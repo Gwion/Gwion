@@ -1164,7 +1164,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
     push_func_code(emit, f);
   else if(vector_size(&emit->code->instr)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    if((f_instr)(m_uint)back->opcode == DotFunc || (f_instr)(m_uint)back->opcode == DotStaticFunc)
+    if((f_instr)(m_uint)back->opcode == DotFunc)
       back->m_val = f->vt_index;
   }
   if(vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
@@ -1790,10 +1790,10 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e, const
         return CASE_PASS;
       }
     }
-  } else if(isa(actual_type(emit->gwion, base->type), emit->gwion->type[et_union]) > 0 && e->exp_type == ae_exp_call) {
+  } else if(isa(base->type, emit->gwion->type[et_union]) > 0 && e->exp_type == ae_exp_call) {
     const Exp func = e->d.exp_call.func;
     if(func->d.prim.prim_type == ae_prim_id) {
-      const Map map = &actual_type(emit->gwion, base->type)->nspc->info->value->map;
+      const Map map = &base->type->nspc->info->value->map;
       for(m_uint i = 0; i < map_size(map); ++i) {
          if(VKEY(map, i) == (m_uint)func->d.prim.d.var) {
           const Value v = (Value)VVAL(map, i);

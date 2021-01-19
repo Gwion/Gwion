@@ -174,7 +174,6 @@ UpvalueFloat
 UpvalueOther
 UpvalueAddr
 DotFunc
-DotStaticFunc
 GcIni
 GcAdd
 GcEnd

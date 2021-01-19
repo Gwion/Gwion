@@ -4,7 +4,7 @@ typedef struct M_Object_  * M_Object;
 struct M_Object_ {
   m_bit* data;
   Type type_ref;
-  Vector vtable;
+  struct Vector_ vtable;
   volatile size_t ref;
 };
 

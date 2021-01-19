@@ -329,7 +329,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
     &&staticint, &&staticfloat, &&staticother,
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
-    &&dotfunc, &&dotstaticfunc,
+    &&dotfunc,
     &&gcini, &&gcadd, &&gcend,
     &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&other, &&regpushimm
   };
@@ -903,15 +903,7 @@ upvalueaddr:
   reg += SZ_INT;
   DISPATCH()
 dotfunc:
-PRAGMA_PUSH()
-  *(VM_Code*)(reg) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT))->vtable, VAL))->code;
-  reg += SZ_INT;
-PRAGMA_POP()
-  DISPATCH()
-dotstaticfunc:
-PRAGMA_PUSH()
-  *(VM_Code*)(reg-SZ_INT) = ((Func)vector_at((*(M_Object*)(reg-SZ_INT))->vtable, VAL))->code;
-PRAGMA_POP()
+  *(VM_Code*)(reg+(m_uint)VAL2) = ((Func)(*(M_Object*)(reg-SZ_INT))->vtable.ptr[OFFSET + VAL])->code;
   DISPATCH()
 gcini:
   vector_add(&shred->gc, 0);

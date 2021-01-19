@@ -1018,10 +1018,10 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
         return NULL;
       }
     }
-  } else if(isa(actual_type(env->gwion, base), env->gwion->type[et_union]) > 0 && e->exp_type == ae_exp_call) {
+  } else if(isa(base, env->gwion->type[et_union]) > 0 && e->exp_type == ae_exp_call) {
     const Exp func = e->d.exp_call.func;
     if(func->d.prim.prim_type == ae_prim_id) {
-      const Value v= find_value(actual_type(env->gwion, base), func->d.prim.d.var);
+      const Value v= find_value(base, func->d.prim.d.var);
       if(v) {
         e->type = v->type;
         case_op(env, v->type, e->d.exp_call.args);
