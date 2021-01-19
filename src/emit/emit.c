@@ -294,10 +294,10 @@ ANEW ANN static ArrayInfo* new_arrayinfo(const Emitter emit, const Type t) {
   const Type base = array_base(t);
   ArrayInfo* info = mp_calloc(emit->gwion->mp, ArrayInfo);
   vector_init(&info->type);
-  for(m_uint i = 1; i < t->array_depth; ++i)
+  info->depth = get_depth(t);
+  for(long i = 1; i < info->depth; ++i)
     vector_add(&info->type, (vtype)array_type(emit->env, base, i));
   vector_add(&info->type, (vtype)t);
-  info->depth = get_depth(t);
   info->base = base;
   return info;
 }
@@ -311,7 +311,7 @@ ANN static inline void arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
 }
 
 ANN2(1,2) static ArrayInfo* emit_array_extend_inner(const Emitter emit, const Type t, const Exp e, const uint is_ref) {
-  CHECK_BO(extend_indices(emit, e, t->array_depth))
+  CHECK_BO(extend_indices(emit, e, get_depth(t)))
   ArrayInfo* info = new_arrayinfo(emit, t);
   const Instr alloc = emit_add_instr(emit, ArrayAlloc);
   alloc->m_val = (m_uint)info;

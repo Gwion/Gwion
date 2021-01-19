@@ -83,10 +83,11 @@ ANN Type array_base(Type type) {
 }
 
 ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint depth) {
-  size_t len = strlen(src->name);
+  const Type t = array_base(src);
+  size_t len = strlen(t->name);
   char name[len + 2* depth + 1];
-  strcpy(name, src->name);
-  m_uint i = depth + 1;
+  strcpy(name, t->name);
+  m_uint i = src->array_depth + depth + 1;
   while(--i) {
     strcpy(name+len, "[]");
     len += 2;

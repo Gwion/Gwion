@@ -108,7 +108,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
 
-  const Type t_compound = gwi_mk_type(gwi, "@Compound", 0, NULL);
+  const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
 

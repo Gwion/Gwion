@@ -120,10 +120,70 @@ static MFUN(vm_vector_rem) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
     return;
-  const Type t = o->type_ref;
-  if(t->nspc->info->class_data_size)
-    (*(f_release**)t->nspc->info->class_data)(shred, array_base(t), ARRAY_PTR(v) + index * ARRAY_SIZE(v));
   m_vector_rem(v, (vtype)index);
+}
+
+static MFUN(vm_vector_rem_obj) {
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
+  const M_Vector v = ARRAY(o);
+  if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
+    return;
+  release(*(M_Object*)(ARRAY_PTR(v) + index * ARRAY_SIZE(v)), shred);
+  m_vector_rem(v, (vtype)index);
+}
+
+static MFUN(vm_vector_rem_struct) {
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
+  const M_Vector v = ARRAY(o);
+  if(index < 0 || (m_uint)index >= ARRAY_LEN(v))
+    return;
+  const Type t = o->type_ref;
+  struct_release(shred, array_base(t), ARRAY_PTR(v) + index * ARRAY_SIZE(v));
+  m_vector_rem(v, (vtype)index);
+}
+
+static MFUN(vm_vector_insert) {
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
+  const M_Vector v = ARRAY(o);
+  if(index < 0 || (m_uint)index > ARRAY_LEN(v))
+    return;
+  const size_t size = ARRAY_SIZE(v);
+  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
+    const m_uint cap = ARRAY_CAP(v) *=2;
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
+  }
+  memmove(ARRAY_PTR(v) + (index+1) * size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
+  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+}
+
+static MFUN(vm_vector_insert_obj) {
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
+  const M_Vector v = ARRAY(o);
+  if(index < 0 || (m_uint)index > ARRAY_LEN(v))
+    return;
+  const size_t size = SZ_INT;
+  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
+    const m_uint cap = ARRAY_CAP(v) *=2;
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
+  }
+  memmove(ARRAY_PTR(v) + (index+1) *size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
+  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+  ++(*(M_Object*)(shred->mem + SZ_INT*2))->ref;
+}
+
+static MFUN(vm_vector_insert_struct) {
+  const m_int index = *(m_int*)(shred->mem + SZ_INT);
+  const M_Vector v = ARRAY(o);
+  if(index < 0 || (m_uint)index > ARRAY_LEN(v))
+    return;
+  const size_t size = ARRAY_SIZE(v);
+  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
+    const m_uint cap = ARRAY_CAP(v) *=2;
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
+  }
+  memmove(ARRAY_PTR(v) + (index+1) *size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
+  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+  struct_addref(shred->info->vm->gwion, array_base(o->type_ref),  shred->mem + SZ_INT*2);
 }
 
 ANN m_bit* m_vector_addr(const M_Vector v, const m_uint i) {
@@ -142,16 +202,10 @@ static MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY_CAP(ARRAY(o));
 }
 
-ANN static Type get_array_type(Type t) {
-  while(t->array_depth && t->info->base_type)
-    t = t->info->base_type;
-  return t;
-}
-
 #define ARRAY_OPCK(a, b, pos)                  \
-  const Type l = get_array_type(a->type);      \
-  const Type r = get_array_type(b->type);      \
-  if(isa(l, r) < 0)                            \
+  const Type l = array_base(a->type);          \
+  const Type r = array_base(b->type);          \
+  if(isa(r, l) < 0)                            \
     ERR_N(pos, _("array types do not match."))
 
 static OP_CHECK(opck_array_at) {
@@ -174,9 +228,9 @@ static OP_CHECK(opck_array_at) {
 
 ANN static Type check_array_shift(const Env env,
     const Exp a, const Exp b, const m_str str, const loc_t pos) {
-  if(a->type == env->gwion->type[et_error] &&
+/*  if(a->type == env->gwion->type[et_error] &&
       b->type->array_depth > 1)
-    return a->type;
+    return a->type;*/
   ARRAY_OPCK(a, b, pos)
   if(a->type->array_depth == b->type->array_depth + 1)
     return a->type;
@@ -402,12 +456,11 @@ static OP_CHECK(opck_array_scan) {
   const Class_Def c = t_array->info->cdef;
   const Type base = ts->t != t_array ?
     ts->t : known_type(env, ts->td->types->td);
-  const Symbol sym = array_sym(env, base, base->array_depth + 1);
+  const Symbol sym = array_sym(env, array_base(base), base->array_depth + 1);
   const Type type = nspc_lookup_type1(base->info->owner, sym);
   if(type)
     return type;
   const Class_Def cdef = cpy_class_def(env->gwion->mp, c);
-  cdef->cflag = c->cflag;
   cdef->base.ext = type2td(env->gwion, t_array, (loc_t){});
   cdef->base.xid = sym;
   cdef->base.tmpl->base = 1; // could store depth here?
@@ -421,20 +474,26 @@ static OP_CHECK(opck_array_scan) {
     SET_FLAG(t, abstract);
   else
     UNSET_FLAG(t, abstract);
-  unset_tflag(t, tflag_typedef);
-  t->info->owner = base->info->owner;
+  set_tflag(t, tflag_emit);
   t->array_depth = base->array_depth + 1;
   t->info->base_type = array_base(base);
-//  if(t->info->parent == env->gwion->type[et_array]) {
-//    vector_add(&t->info->tuple->types, (m_uint)base);
-//  }
   set_tflag(t, tflag_cdef | tflag_tmpl);
+  void* rem = isa(base, env->gwion->type[et_compound]) > 0 ?
+    !tflag(base, tflag_struct) ? vm_vector_rem_obj : vm_vector_rem_struct : vm_vector_rem;
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 0), rem);
+  void* insert = isa(base, env->gwion->type[et_compound]) > 0 ?
+    !tflag(base, tflag_struct) ? vm_vector_insert_obj : vm_vector_insert_struct : vm_vector_insert;
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 1), insert);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 2), vm_vector_size);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 3), vm_vector_depth);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 4), vm_vector_cap);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
     set_tflag(t, tflag_dtor);
     t->nspc->dtor->native_func = (m_uint) (!tflag(base, tflag_struct) ?
         array_dtor_obj : array_dtor_struct);
   }
+  unset_tflag(t, tflag_ctor);
   return t;
 }
 
@@ -455,6 +514,17 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
+
+  // put functions using T first
+  GWI_BB(gwi_func_ini(gwi, "bool", "remove"))
+  GWI_BB(gwi_func_arg(gwi, "int", "index"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "bool", "insert"))
+  GWI_BB(gwi_func_arg(gwi, "int", "index"))
+  GWI_BB(gwi_func_arg(gwi, "T", "data"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_insert, ae_flag_none))
+
   GWI_BB(gwi_func_ini(gwi, "int", "size"))
   GWI_BB(gwi_func_end(gwi, vm_vector_size, ae_flag_none))
   GWI_BB(gwi_func_ini(gwi, "int", "depth"))
@@ -462,15 +532,6 @@ GWION_IMPORT(array) {
 
   GWI_BB(gwi_func_ini(gwi, "int", "cap"))
   GWI_BB(gwi_func_end(gwi, vm_vector_cap, ae_flag_none))
-
-  GWI_BB(gwi_func_ini(gwi, "int", "remove"))
-  GWI_BB(gwi_func_arg(gwi, "int", "index"))
-  GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
-
-  GWI_BB(gwi_func_ini(gwi, "T", "insert"))
-//  GWI_BB(gwi_func_arg(gwi, "int", "index"))
-//  GWI_BB(gwi_func_arg(gwi, "T", "data"))
-  GWI_BB(gwi_func_end(gwi, vm_vector_rem, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))

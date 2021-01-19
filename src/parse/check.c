@@ -736,6 +736,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp),
     .data=(uintptr_t)post, .pos=exp_self(post)->pos, .op_type=op_postfix };
   CHECK_OO(opi.lhs)
+  exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
   if(t && isa(t, env->gwion->type[et_object]) < 0)
     exp_setmeta(exp_self(post), 1);
@@ -785,8 +786,10 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   const Type rhs = unary->unary_type == unary_exp ? check_exp(env, unary->exp) : NULL;
-  if(unary->unary_type == unary_exp)
+  if(unary->unary_type == unary_exp) {
     CHECK_OO(rhs)
+    exp_setuse(unary->exp, 1);
+  }
   struct Op_Import opi = { .op=unary->op, .rhs=rhs,
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos, .op_type=op_unary };
   DECL_OO(const Type, ret, = op_check(env, &opi))

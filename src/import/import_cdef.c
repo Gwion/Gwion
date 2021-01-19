@@ -41,9 +41,8 @@ ANN2(1) void add_template(const Env env, const Type t) {
   if(tmpl) {
     nspc_push_type(env->gwion->mp, env->curr);//
     ID_List il = tmpl->list;
-    do {
-      nspc_add_type(env->curr, il->xid, env->gwion->type[et_auto]);
-    } while((il = il->next));
+    do nspc_add_type(env->curr, il->xid, env->gwion->type[et_auto]);
+    while((il = il->next));
   }
 }
 

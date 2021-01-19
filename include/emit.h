@@ -19,7 +19,8 @@ struct EmitterInfo_ {
   char *escape;
   VM_Code (*emit_code)(const Emitter);
   VM_Code code;
-  m_bool memoize;
+  uint memoize;
+//  uint unroll;
 };
 
 struct Emitter_ {
