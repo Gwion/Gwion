@@ -56,8 +56,8 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
           t1 = info->rhs->def->base->tmpl->list;
   nspc_push_type(env->gwion->mp, env->curr);
   while(t0) {
-    nspc_add_type(env->curr, t0->xid, env->gwion->type[et_undefined]);
-    nspc_add_type(env->curr, t1->xid, env->gwion->type[et_undefined]);
+    nspc_add_type(env->curr, t0->xid, env->gwion->type[et_auto]);
+    nspc_add_type(env->curr, t1->xid, env->gwion->type[et_auto]);
     t0 = t0->next;
     t1 = t1->next;
   }

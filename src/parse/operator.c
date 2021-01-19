@@ -134,6 +134,13 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   return GW_OK;
 }
 
+ANN static inline Type op_parent(const Env env, const Type t) {
+  const size_t depth = t->array_depth;
+  return !depth || !array_base(t)->info->parent ?
+      t->info->parent :
+      array_type(env, array_base(t)->info->parent, depth);
+}
+
 ANN static Type op_check_inner(struct OpChecker* ock, const uint i) {
   Type t, r = ock->opi->rhs;
   do {
@@ -165,7 +172,7 @@ for(int i = 0; i < 2; ++i) {
           return NULL;
         return ret;
       }
-    } while(l && (l = l->info->parent));
+    } while(l && (l = op_parent(env, l)));
   } while((nspc = nspc->parent));
 }
   if(opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
@@ -222,8 +229,8 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
           } else if(mo->func || mo->instr)
             return handle_instr(emit, mo);
         }
-      } while(r && (r = r->info->parent));
-    } while(l && (l = l->info->parent));
+      } while(r && (r = op_parent(emit->env, r)));
+    } while(l && (l = op_parent(emit->env, l)));
   } while((nspc = nspc->parent));
   }
   return GW_ERROR;

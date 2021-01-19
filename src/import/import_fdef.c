@@ -72,11 +72,10 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
   if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl))
-    /*return*/ section_fdef(gwi, fdef);
+    return section_fdef(gwi, fdef);
   if(traverse_func_def(gwi->gwion->env, fdef) < 0)
     return error_fdef(gwi, fdef);
   builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);
-  ck_end(gwi);
   return GW_OK;
 }
 
@@ -84,9 +83,9 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
   CHECK_BB(ck_ok(gwi, ck_fdef))
   gwi->ck->addr = addr;
   gwi->ck->flag = flag;
-  if(gwi_func_valid(gwi, gwi->ck) > 0)
-    return GW_OK;
-  return GW_ERROR;
+  const m_bool ret = gwi_func_valid(gwi, gwi->ck);
+  ck_end(gwi);
+  return ret;
 }
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {

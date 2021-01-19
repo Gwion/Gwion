@@ -103,9 +103,11 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
   return GW_OK;
 }
 
-ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Value v) {
-  if(!exp_getvar(exp_self(decl)) && (GET_FLAG(v->type, abstract) ||
-      GET_FLAG(decl->td, late) || is_fptr(gwion, v->type))) {
+ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Var_Decl var) {
+  const Value v = var->value;
+  const uint array_ref = (decl->td->array && !decl->td->array->exp) || (var->array && !var->array->exp);
+  if(!exp_getvar(exp_self(decl)) && (GET_FLAG(array_base(v->type), abstract) ||
+      GET_FLAG(decl->td, late) || is_fptr(gwion, v->type) || array_ref)) {
     SET_FLAG(v, late);
   } else
     UNSET_FLAG(v, late);
@@ -119,7 +121,7 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
     CHECK_BB(check_var_td(env, var, decl->td))
     if(is_fptr(env->gwion, decl->type))
       CHECK_BB(check_fptr_decl(env, var))
-    set_late(env->gwion, decl, list->self->value);
+    set_late(env->gwion, decl, list->self);
     set_vflag(var->value, vflag_valid);
     //set_vflag(var->value, vflag_used));
     nspc_add_value(env->curr, var->xid, var->value);
@@ -128,21 +130,19 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN static inline m_bool ensure_check(const Env env, const Type t) {
-  const Type base = get_type(t);
-  if(tflag(base, tflag_check) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+  if(tflag(t, tflag_check) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=env->scope->depth, .flag=tflag_check };
-  return envset_run(&es, base);
+  return envset_run(&es, t);
 }
 
 ANN m_bool ensure_traverse(const Env env, const Type t) {
-  const Type base = get_type(t);
-  if(tflag(base, tflag_check) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+  if(tflag(t, tflag_check) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)traverse_cdef,
     .scope=env->scope->depth, .flag=tflag_check };
-  return envset_run(&es, base);
+  return envset_run(&es, t);
 }
 
 ANN static inline m_bool inferable(const Env env, const Type t, const loc_t pos) {
@@ -161,9 +161,8 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   if(!decl->type)
     ERR_O(decl->td->pos, _("can't find type"));
   {
-    const Type t = get_type(decl->type);
-    CHECK_BO(inferable(env, t, decl->td->pos))
-    CHECK_BO(ensure_check(env, t))
+    CHECK_BO(inferable(env, decl->type, decl->td->pos))
+    CHECK_BO(ensure_check(env, decl->type))
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -438,7 +437,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
       }
-      if(e1->type == env->gwion->type[et_undefined] ||
+      if(e1->type == env->gwion->type[et_auto] ||
             (func->def->base->tmpl && is_fptr(env->gwion, func->value_ref->type) > 0)) {
         const Type owner = func->value_ref->from->owner_class;
         if(owner)
@@ -720,6 +719,8 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   const Type ret = op_check(env, &opi);
   if(!ret && is_auto && exp_self(bin)->exp_type == ae_exp_binary)
     bin->rhs->d.exp_decl.list->self->value->type = env->gwion->type[et_auto];
+  exp_setuse(bin->lhs, 1);
+  exp_setuse(bin->rhs, 1);
   return ret;
 }
 
@@ -735,6 +736,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp),
     .data=(uintptr_t)post, .pos=exp_self(post)->pos, .op_type=op_postfix };
   CHECK_OO(opi.lhs)
+  exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
   if(t && isa(t, env->gwion->type[et_object]) < 0)
     exp_setmeta(exp_self(post), 1);
@@ -784,12 +786,14 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
 
 ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   const Type rhs = unary->unary_type == unary_exp ? check_exp(env, unary->exp) : NULL;
-  if(unary->unary_type == unary_exp)
+  if(unary->unary_type == unary_exp) {
     CHECK_OO(rhs)
+    exp_setuse(unary->exp, 1);
+  }
   struct Op_Import opi = { .op=unary->op, .rhs=rhs,
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos, .op_type=op_unary };
   DECL_OO(const Type, ret, = op_check(env, &opi))
-  const Type t = get_type(actual_type(env->gwion, ret));
+  const Type t = actual_type(env->gwion, ret);
   CHECK_BO(ensure_traverse(env, t))
   return ret;
 }
@@ -911,13 +915,12 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
 }
 
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
-  DECL_OB(const Type, ptr, = foreach_type(env, stmt->exp))
-  const Type base = get_type(ptr);
+  DECL_OB(const Type, base, = foreach_type(env, stmt->exp))
   CHECK_BB(ensure_traverse(env, base))
-  char c[15 + strlen(ptr->name)];
-  sprintf(c, "@Foreach:[%s]", ptr->name);
+  char c[15 + strlen(base->name)];
+  sprintf(c, "@Foreach:[%s]", base->name);
   const Type ret = str2type(env->gwion, c, stmt->exp->pos);
-  if(ptr->array_depth)
+  if(base->array_depth)
     set_tflag(ret, tflag_typedef);
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   set_vflag(stmt->v, vflag_valid);
@@ -1246,12 +1249,13 @@ HANDLE_SECTION_FUNC(check, m_bool, Env)
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->info->parent;
   const Type_Decl *td = cdef->base.ext;
-  if(td->array)
+//  if(td->array)
+  if(td->array && td->array->exp)
     CHECK_BB(check_subscripts(env, td->array, 1))
   CHECK_BB(ensure_check(env, parent))
-  if(tflag(parent, tflag_typedef)) {
-    set_tflag(cdef->base.type, tflag_typedef);
-  }
+//  if(tflag(parent, tflag_typedef)) {
+//    set_tflag(cdef->base.type, tflag_typedef);
+//  }
   return GW_OK;
 }
 

@@ -63,9 +63,8 @@ static OP_CHECK(opck_ptr_cast) {
   if(!cast->td->types || !cast->td->types->td)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
   DECL_ON(const Type, t, = known_type(env, cast->td))
-  const Type _t = get_type(t);
-  if(_t->info->cdef && !tflag(_t, tflag_check))
-    CHECK_BN(ensure_traverse(env, _t))
+  if(t->info->cdef && !tflag(t, tflag_check))
+    CHECK_BN(ensure_traverse(env, t))
   const Type to = known_type(env, cast->td->types->td);
   exp_setvar(cast->exp, 1);
   if(isa(cast->exp->type, to) > 0)
@@ -82,7 +81,7 @@ static OP_CHECK(opck_ptr_implicit) {
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
     exp_setvar(e, 1);
-    const Type t = get_type(imp->t);
+    const Type t = imp->t;
     if(!tflag(t, tflag_check))
       CHECK_BN(traverse_class_def(env, t->info->cdef))
     return imp->t;

@@ -15,16 +15,15 @@ ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
 ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
-  const Type base = get_type(t);
-  if(tflag(base, tflag_scan2) || !(tflag(base, tflag_cdef) || tflag(base, tflag_udef)))
+  if(tflag(t, tflag_scan2) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan2_cdef,
     .scope=env->scope->depth, .flag=tflag_scan2 };
-  return envset_run(&es, base);
+  return envset_run(&es, t);
 }
 
 ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
-  const Type t = get_type(decl->type);
+  const Type t = decl->type;
   CHECK_BB(ensure_scan2(env, t))
   Var_Decl_List list = decl->list;
   do {
@@ -272,7 +271,7 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
     if(!fbflag(f->base, fbflag_internal))
       ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
   }
-  const Func obase = !fptr ? overload->d.func_ref : overload->type->info->base_type->info->func;
+  const Func obase = !fptr ? overload->d.func_ref : _class_base(overload->type)->info->func;
   if(GET_FLAG(obase->def->base, final))
     ERR_B(f->pos, _("can't overload final function %s"), overload->name)
   const m_bool base = tmpl_base(f->base->tmpl);
@@ -526,7 +525,7 @@ HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->info->parent;
   CHECK_BB(ensure_scan2(env, parent))
-  if(cdef->base.ext->array)
+  if(cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
   return GW_OK;
 }

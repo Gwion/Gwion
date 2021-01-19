@@ -41,15 +41,8 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
   return ret;
 }
 
-__attribute__((returns_nonnull))
-ANN Type get_type(const Type t) {
-  const Type type = !t->array_depth ? t : array_base(t);
-  return type;
-}
-
-ANN m_bool scanx_cdef(const Env env, void* opt, const Type base,
+ANN m_bool scanx_cdef(const Env env, void* opt, const Type t,
     const _exp_func f_cdef, const _exp_func f_union) {
-  const Type t = get_type(base);
   if(t->info->parent !=  env->gwion->type[et_union])
      return f_cdef(opt, t->info->cdef);
   const m_bool ret = f_union(opt, t->info->udef);

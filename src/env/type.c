@@ -45,7 +45,6 @@ ANN Type type_copy(MemPool p, const Type type) {
   a->info->owner       = type->info->owner;
   a->info->owner_class = type->info->owner_class;
   a->size           = type->size;
-  a->info->base_type = type->info->base_type;
   a->array_depth    = type->array_depth;
   a->info->gack        = type->info->gack;
   return a;
@@ -79,14 +78,16 @@ ANN Type typedef_base(Type t) {
 
 ANN Type array_base(Type type) {
   const Type t = typedef_base(type);
-  return t->array_depth ? t->info->base_type : t;
+//  return t->array_depth ? t->info->base_type : t;
+  return t->array_depth ? array_base(t->info->base_type) : t;
 }
 
-ANN static Symbol array_sym(const Env env, const Type src, const m_uint depth) {
-  size_t len = strlen(src->name);
+ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint depth) {
+  const Type t = array_base(src);
+  size_t len = strlen(t->name);
   char name[len + 2* depth + 1];
-  strcpy(name, src->name);
-  m_uint i = depth + 1;
+  strcpy(name, t->name);
+  m_uint i = src->array_depth + depth + 1;
   while(--i) {
     strcpy(name+len, "[]");
     len += 2;
@@ -94,29 +95,19 @@ ANN static Symbol array_sym(const Env env, const Type src, const m_uint depth) {
   return insert_symbol(name);
 }
 
+#include "instr.h"
+#include "operator.h"
+#include "import.h"
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Symbol sym = array_sym(env, src, depth);
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)
     return type;
-  const Type parent = src->info->parent ?
-    array_type(env, src->info->parent, depth) : env->gwion->type[et_array];
-  const Type t = new_type(env->gwion->mp, s_name(sym), parent);
-  t->array_depth = depth + src->array_depth;
-  t->info->base_type = array_base(src) ?: src;
-  t->info->owner = src->info->owner;
-  if(depth > 1 || isa(src, env->gwion->type[et_compound]) > 0) {
-    t->nspc = new_nspc(env->gwion->mp, s_name(sym));
-    inherit(t);
-    t->nspc->info->class_data_size = SZ_INT;
-    nspc_allocdata(env->gwion->mp, t->nspc);
-    *(f_release**)(t->nspc->info->class_data) = (depth > 1 || !tflag(src, tflag_struct)) ?
-      object_release : struct_release;
-  } else
-  nspc_addref((t->nspc = parent->nspc));
-  mk_class(env, t);
-  nspc_add_type_front(src->info->owner, sym, t);
-  return t;
+  const size_t tdepth = depth + src->array_depth;
+  const Type base = tdepth > 1 ? array_type(env, src, tdepth-1) : src;
+  struct TemplateScan ts = { .t=base, /*.td=td*/ };
+  struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=env->gwion->type[et_array], .data=(uintptr_t)&ts, .op_type=op_scan };
+  return op_check(env, &opi);
 }
 
 ANN m_bool type_ref(Type t) {
