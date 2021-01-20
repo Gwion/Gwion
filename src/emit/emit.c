@@ -1643,29 +1643,25 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
 }
 
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_uint *end_pc) {
-  CHECK_BB(emit_exp(emit, stmt->exp))
-  const m_uint _offset = emit_local(emit, emit->gwion->type[et_int]);//array?
-  const Instr tomem = emit_add_instr(emit, Reg2Mem);
-  tomem->m_val = _offset + SZ_INT;
-  tomem->m_val2 = -SZ_INT;
+  CHECK_BB(emit_exp(emit, stmt->exp)) // add ref?
   regpop(emit, SZ_INT);
+  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);//array?
+  emit_local(emit, emit->gwion->type[et_int]);
+  emit_local(emit, emit->gwion->type[et_int]);
+  const Instr tomem = emit_add_instr(emit, Reg2Mem);
+  tomem->m_val = offset;
   const Instr s1 = emit_add_instr(emit, MemSetImm);
-  Instr cpy = emit_add_instr(emit, MemSetImm);
-  emit_local(emit, emit->gwion->type[et_int]);
-  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  emit_local(emit, emit->gwion->type[et_int]);
-  stmt->v->from->offset = offset + SZ_INT;
+  stmt->v->from->offset = offset + SZ_INT*2;
   const m_uint ini_pc  = emit_code_size(emit);
   const Instr loop = emit_add_instr(emit, AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_bool ret = scoped_stmt(emit, stmt->body, 1);
   *end_pc = emit_code_size(emit);
   loop->m_val2 = (m_uint)stmt->v->type;
-  cpy->m_val = stmt->v->from->offset;
   const Instr tgt = emit_add_instr(emit, Goto);
   end->m_val = emit_code_size(emit);
   tgt->m_val = ini_pc;
-  s1->m_val = loop->m_val = offset;
+  s1->m_val = loop->m_val = offset + SZ_INT;
   return ret;
 }
 
