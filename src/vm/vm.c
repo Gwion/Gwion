@@ -323,7 +323,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
-    &&arrayappend, &&autoloop, &&autoloopptr, &&autoloopcount, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
+    &&arrayappend, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
@@ -715,12 +715,8 @@ arrayappend:
   m_vector_add(ARRAY(*(M_Object*)(reg-SZ_INT)), reg);
   DISPATCH()
 autoloop:
-  m_vector_get(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL), mem + VAL + SZ_INT);
-  goto autoloopcount;
-autoloopptr:
-  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(reg-SZ_INT)), *(m_uint*)(mem + VAL));
-autoloopcount:
-  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(reg-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
+  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL-SZ_INT)), *(m_uint*)(mem + VAL));
+  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(mem+VAL-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
   reg += SZ_INT;
   DISPATCH()
 arraytop:

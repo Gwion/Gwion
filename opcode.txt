@@ -140,8 +140,6 @@ BranchEqFloat
 BranchNeqFloat
 ArrayAppend
 AutoLoop
-AutoLoopPtr
-AutoLoopCount
 ArrayTop
 ArrayAccess
 ArrayGet

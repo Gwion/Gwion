@@ -737,8 +737,11 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v, const m_bool emit_addr) {
   emit_add_instr(emit, RegPushMem);
   const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
-  if(!emit_addr)
-    regpush(emit, v->type->size - SZ_INT);
+  if(!emit_addr) {
+    const m_int sz = v->type->size - SZ_INT;
+    if(sz)
+      regpush(emit, v->type->size - SZ_INT);
+  }
   return instr;
 }
 
@@ -1640,6 +1643,12 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
 }
 
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_uint *end_pc) {
+  CHECK_BB(emit_exp(emit, stmt->exp))
+  const m_uint _offset = emit_local(emit, emit->gwion->type[et_int]);//array?
+  const Instr tomem = emit_add_instr(emit, Reg2Mem);
+  tomem->m_val = _offset + SZ_INT;
+  tomem->m_val2 = -SZ_INT;
+  regpop(emit, SZ_INT);
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   Instr cpy = emit_add_instr(emit, MemSetImm);
   emit_local(emit, emit->gwion->type[et_int]);
@@ -1647,7 +1656,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   emit_local(emit, emit->gwion->type[et_int]);
   stmt->v->from->offset = offset + SZ_INT;
   const m_uint ini_pc  = emit_code_size(emit);
-  const Instr loop = emit_add_instr(emit, AutoLoopPtr);
+  const Instr loop = emit_add_instr(emit, AutoLoop);
   const Instr end = emit_add_instr(emit, BranchEqInt);
   const m_bool ret = scoped_stmt(emit, stmt->body, 1);
   *end_pc = emit_code_size(emit);
@@ -1661,12 +1670,10 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
 }
 
 ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
-  CHECK_BB(emit_exp(emit, stmt->exp))
   emit_push_stack(emit);
   m_uint end_pc = 0;
   const m_bool ret = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
-  regpop(emit, SZ_INT);
   return ret;
 }
 
