@@ -49,6 +49,7 @@ static inline void setpc(const m_bit *data, const m_uint i) {
   *(unsigned*)(data+1) = i + 1;
 }
 
+INSTR(Unroll2);
 ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
   const Vector v = code->instr;
   const m_uint sz = vector_size(v);
@@ -83,6 +84,23 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
       else
         vector_add(&nop, i);
     } else {
+      if(instr->execute == Unroll2) {
+        const Instr unroll = (Instr)instr->m_val;
+        const m_uint pc = vector_find(v, unroll);
+        m_uint reduce = 0;
+        for(m_uint j = 0; j < vector_size(&nop); ++j) {
+          const m_uint at = vector_at(&nop, j);
+          if(at >= pc) {
+            if(at >= (pc + unroll->m_val2))
+              break;
+            ++reduce;
+          }
+        }
+        unroll->m_val2 -= reduce;
+        instr->opcode = eNoOp;
+        vector_add(&nop, i);
+        continue;
+      }
       *(m_bit*)(data) = instr->opcode;
       *(Instr*)(data + SZ_INT) = instr;
       *(f_instr*)(data + SZ_INT*2) = instr->execute;
