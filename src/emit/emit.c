@@ -1212,18 +1212,20 @@ ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
   spork->m_val2 = -SZ_INT;
 }
 
-static inline void stack_alloc(const Emitter emit) { // maybe vararg could use t_vararg instead
+ANN static inline void stack_alloc(const Emitter emit) { // maybe vararg could use t_vararg instead
   emit_local(emit, emit->gwion->type[et_int]); // hiding the fact it is an object
   emit->code->stack_depth += SZ_INT;
 }
 
-static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
+ANN static inline Instr scoped_ini(const Emitter emit) {
   ++emit->env->scope->depth;
-  const Instr gc = emit_add_instr(emit, NoOp);
   emit_push_scope(emit);
-  const m_bool ret = emit_stmt(emit, stmt, pop);
+  return emit_add_instr(emit, NoOp);
+}
+
+ANN2(1) static inline void scoped_end(const Emitter emit, const Instr gc) {
   emit_pop_scope(emit);
-  if(ret > 0) {
+  if(gc) {
     const m_bool pure = !vector_back(&emit->info->pure);
     if(!pure) {
       gc->opcode = eGcIni;
@@ -1231,6 +1233,12 @@ static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop)
     }
   }
   --emit->env->scope->depth;
+}
+
+ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool pop) {
+  const Instr gc = scoped_ini(emit);
+  const m_bool ret = emit_stmt(emit, stmt, pop);
+  scoped_end(emit, ret > 0 ? gc : NULL);
   return ret;
 }
 
@@ -1673,22 +1681,74 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   return ret;
 }
 
-ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_uint *index) {
-  CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
-  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  const Instr tomem = emit_add_instr(emit, Reg2Mem);
-  tomem->m_val = offset;
-  tomem->m_val2 = -SZ_INT;
-  regpop(emit, SZ_INT);
-  *index = emit_code_size(emit);
+static INSTR(Unroll) {
+  const m_uint n = *(m_uint*)MEM(instr->m_val -SZ_INT);
+  const m_uint idx = *(m_uint*)MEM(instr->m_val);
+  if(idx) {
+    if(idx >= n)
+      *(m_uint*)MEM(instr->m_val) -= n;
+    else {
+      *(m_uint*)MEM(instr->m_val) = 0;
+      shred->pc += instr->m_val2*(idx+1);
+    }
+  } else
+    shred->pc += instr->m_val2 *n + 1;
+}
+
+INSTR(Unroll2) {
+  exit(4);
+}
+
+ANN static m_bool stmt_loop_roll(const Emitter emit, const Stmt stmt, const m_uint offset) {
   const Instr cpy = emit_add_instr(emit, RegPushMem4);
   cpy->m_val = offset;
   emit_add_instr(emit, int_post_dec);
   const Instr op = emit_add_instr(emit, BranchEqInt);
-  CHECK_BB(scoped_stmt(emit, stmt->body, 1))
+  CHECK_BB(scoped_stmt(emit, stmt, 1))
+  op->m_val = emit_code_size(emit) + 1; // pass after goto
+  return GW_OK;
+}
+
+ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
+  emit->info->unroll = 0;
+  const Instr instr = emit_add_instr(emit, MemSetImm);
+  instr->m_val = emit_local(emit, emit->gwion->type[et_int]);
+  instr->m_val2 = n;
+}
+
+ANN static m_bool stmt_loop_unroll(const Emitter emit, const Stmt stmt,
+          const m_uint offset, const m_uint n) {
+  const Instr unroll = emit_add_instr(emit, Unroll);
+  unroll->m_val = offset;
+  const m_uint start = emit_code_size(emit);
+  const Instr gc = scoped_ini(emit);
+  CHECK_BB(emit_stmt(emit, stmt, 1))
+  const m_uint end = emit_code_size(emit);
+  for(m_uint i = 1; i < n; ++i)
+    CHECK_BB(emit_stmt(emit, stmt, 1))
+  unroll->m_val2 = end - start;
+  scoped_end(emit, gc);
+  const Instr unroll2 = emit_add_instr(emit, Unroll2);
+  unroll2->m_val = (m_uint)unroll;
+  return GW_OK;
+}
+
+ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_uint *index) {
+  const uint n = emit->info->unroll;
+  if(n)
+    unroll_init(emit, n);
+  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
+  CHECK_BB(emit_exp_pop_next(emit, stmt->cond))
+  regpop(emit, SZ_INT);
+  const Instr tomem = emit_add_instr(emit, Reg2Mem);
+  tomem->m_val = offset;
+  *index = emit_code_size(emit);
+  if(!n)
+    CHECK_BB(stmt_loop_roll(emit, stmt->body, offset))
+  else
+    CHECK_BB(stmt_loop_unroll(emit, stmt->body, offset, n))
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val = *index;
-  op->m_val = emit_code_size(emit);
   return GW_OK;
 }
 
@@ -1897,6 +1957,8 @@ ANN static m_bool emit_stmt_pp(const Emitter emit, const struct Stmt_PP_* stmt) 
   if(stmt->pp_type == ae_pp_pragma) {
     if(!strncmp(stmt->data, "memoize", strlen("memoize")))
       emit->info->memoize = strtol(stmt->data + 7, NULL, 10);
+    else if(!strncmp(stmt->data, "unroll", strlen("unroll")))
+      emit->info->unroll = strtol(stmt->data + 6, NULL, 10);
   } else if(stmt->pp_type == ae_pp_include)
     emit->env->name = stmt->data;
   return GW_OK;
