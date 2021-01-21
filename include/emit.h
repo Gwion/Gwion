@@ -20,7 +20,7 @@ struct EmitterInfo_ {
   VM_Code (*emit_code)(const Emitter);
   VM_Code code;
   uint memoize;
-//  uint unroll;
+  uint unroll;
 };
 
 struct Emitter_ {
