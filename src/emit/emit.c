@@ -1681,24 +1681,6 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   return ret;
 }
 
-static INSTR(Unroll) {
-  const m_uint n = *(m_uint*)MEM(instr->m_val -SZ_INT);
-  const m_uint idx = *(m_uint*)MEM(instr->m_val);
-  if(idx) {
-    if(idx >= n)
-      *(m_uint*)MEM(instr->m_val) -= n;
-    else {
-      *(m_uint*)MEM(instr->m_val) = 0;
-      shred->pc += instr->m_val2*(idx+1);
-    }
-  } else
-    shred->pc += instr->m_val2 *n + 1;
-}
-
-INSTR(Unroll2) {
-  exit(4);
-}
-
 ANN static m_bool stmt_loop_roll(const Emitter emit, const Stmt stmt, const m_uint offset) {
   const Instr cpy = emit_add_instr(emit, RegPushMem4);
   cpy->m_val = offset;

@@ -138,6 +138,7 @@ BranchEqInt
 BranchNeqInt
 BranchEqFloat
 BranchNeqFloat
+Unroll
 ArrayAppend
 AutoLoop
 ArrayTop
@@ -180,5 +181,6 @@ GackEnd
 Gack
 NoOp
 EOC
+Unroll2
 OP_MAX
 DotTmplVal

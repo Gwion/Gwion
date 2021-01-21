@@ -141,6 +141,7 @@ enum {
   eBranchNeqInt,
   eBranchEqFloat,
   eBranchNeqFloat,
+  eUnroll,
   eArrayAppend,
   eAutoLoop,
   eArrayTop,
@@ -183,6 +184,7 @@ enum {
   eGack,
   eNoOp,
   eEOC,
+  eUnroll2,
   eOP_MAX,
   eDotTmplVal,
 };
@@ -327,6 +329,7 @@ enum {
 #define  BranchNeqInt         (f_instr)eBranchNeqInt
 #define  BranchEqFloat        (f_instr)eBranchEqFloat
 #define  BranchNeqFloat       (f_instr)eBranchNeqFloat
+#define  Unroll               (f_instr)eUnroll
 #define  ArrayAppend          (f_instr)eArrayAppend
 #define  AutoLoop             (f_instr)eAutoLoop
 #define  ArrayTop             (f_instr)eArrayTop
@@ -369,6 +372,7 @@ enum {
 #define  Gack                 (f_instr)eGack
 #define  NoOp                 (f_instr)eNoOp
 #define  EOC                  (f_instr)eEOC
+#define  Unroll2              (f_instr)eUnroll2
 #define  OP_MAX               (f_instr)eOP_MAX
 #define  DotTmplVal           (f_instr)eDotTmplVal
 #endif

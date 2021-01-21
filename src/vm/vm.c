@@ -322,7 +322,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&setcode,
     &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
-    &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat,
+    &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat, &&unroll,
     &&arrayappend, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
@@ -331,7 +331,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc,
     &&gcini, &&gcadd, &&gcend,
-    &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&other, &&regpushimm
+    &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -711,6 +711,20 @@ brancheqfloat:
 branchnefloat:
   reg -= SZ_FLOAT;
   BRANCH_DISPATCH(*(m_float*)reg);
+unroll:
+{
+  const m_uint n = *(m_uint*)(mem + VAL - SZ_INT);
+  const m_uint idx = *(m_uint*)(mem + VAL);
+  if(idx) {
+    if(idx >= n) {
+      *(m_uint*)(mem + VAL) -= n;
+       DISPATCH()
+    }
+    *(m_uint*)(mem + VAL) = 0;
+    PC_DISPATCH(PC + VAL2*(idx));
+  }
+  PC_DISPATCH(PC + VAL2 *n + 1);
+}
 arrayappend:
   m_vector_add(ARRAY(*(M_Object*)(reg-SZ_INT)), reg);
   DISPATCH()
@@ -941,6 +955,7 @@ noop:
 other:
   VM_OUT
   ((f_instr)VAL2)(shred, (Instr)VAL);
+unroll2:
 in:
   if(!s->curr)
     break;

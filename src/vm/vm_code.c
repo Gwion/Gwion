@@ -49,9 +49,8 @@ static inline void setpc(const m_bit *data, const m_uint i) {
   *(unsigned*)(data+1) = i + 1;
 }
 
-INSTR(Unroll2);
 ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
-  const Vector v = code->instr;
+   const Vector v = code->instr;
   const m_uint sz = vector_size(v);
   m_bit *ptr = _mp_malloc(p, sz * BYTECODE_SZ);
   struct Vector_ nop;
@@ -78,29 +77,32 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
         }
         i += j;
         continue;
-      }
-      if(instr->opcode != eNoOp)
-        memcpy(data, instr, BYTECODE_SZ);
-      else
-        vector_add(&nop, i);
-    } else {
-      if(instr->execute == Unroll2) {
+      } else if(instr->opcode == eUnroll2) {
         const Instr unroll = (Instr)instr->m_val;
-        const m_uint pc = vector_find(v, unroll);
-        m_uint reduce = 0;
+        const m_uint pc = vector_find(v, (m_uint)unroll);
+        m_uint reduce_pre = 0, reduce = 0;
         for(m_uint j = 0; j < vector_size(&nop); ++j) {
           const m_uint at = vector_at(&nop, j);
+          if(at < pc)
+            ++reduce_pre;
           if(at >= pc) {
             if(at >= (pc + unroll->m_val2))
               break;
             ++reduce;
           }
         }
+        m_bit *const unroll_data = ptr + (pc-reduce_pre)*BYTECODE_SZ;
         unroll->m_val2 -= reduce;
+        *(m_uint*)(unroll_data + SZ_INT *2) -= reduce;
         instr->opcode = eNoOp;
         vector_add(&nop, i);
         continue;
       }
+      if(instr->opcode != eNoOp)
+        memcpy(data, instr, BYTECODE_SZ);
+      else
+        vector_add(&nop, i);
+    } else {
       *(m_bit*)(data) = instr->opcode;
       *(Instr*)(data + SZ_INT) = instr;
       *(f_instr*)(data + SZ_INT*2) = instr->execute;
