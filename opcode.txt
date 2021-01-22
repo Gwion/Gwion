@@ -140,6 +140,7 @@ BranchEqFloat
 BranchNeqFloat
 Unroll
 ArrayAppend
+AutoUnrollInit
 AutoLoop
 ArrayTop
 ArrayAccess

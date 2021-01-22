@@ -86,7 +86,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
           if(at < pc)
             ++reduce_pre;
           if(at >= pc) {
-            if(at >= (pc + unroll->m_val2))
+            if(at > (pc + unroll->m_val2))
               break;
             ++reduce;
           }

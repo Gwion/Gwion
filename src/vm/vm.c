@@ -323,7 +323,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat, &&unroll,
-    &&arrayappend, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
+    &&arrayappend, &&autounrollinit, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
     &&newobj, &&addref, &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
@@ -715,7 +715,7 @@ unroll:
 {
   const m_uint n = *(m_uint*)(mem + VAL - SZ_INT);
   const m_uint idx = *(m_uint*)(mem + VAL);
-  if(idx) {
+  if(idx > 0) {
     if(idx >= n) {
       *(m_uint*)(mem + VAL) -= n;
        DISPATCH()
@@ -728,10 +728,12 @@ unroll:
 arrayappend:
   m_vector_add(ARRAY(*(M_Object*)(reg-SZ_INT)), reg);
   DISPATCH()
+autounrollinit:
+  *(m_uint*)(mem + VAL) = m_vector_size(ARRAY(*(M_Object*)(mem+VAL+SZ_INT)));
+  DISPATCH()
 autoloop:
   *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL-SZ_INT)), *(m_uint*)(mem + VAL));
   *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(mem+VAL-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
-  reg += SZ_INT;
   DISPATCH()
 arraytop:
   if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))

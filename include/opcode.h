@@ -143,6 +143,7 @@ enum {
   eBranchNeqFloat,
   eUnroll,
   eArrayAppend,
+  eAutoUnrollInit,
   eAutoLoop,
   eArrayTop,
   eArrayAccess,
@@ -331,6 +332,7 @@ enum {
 #define  BranchNeqFloat       (f_instr)eBranchNeqFloat
 #define  Unroll               (f_instr)eUnroll
 #define  ArrayAppend          (f_instr)eArrayAppend
+#define  AutoUnrollInit       (f_instr)eAutoUnrollInit
 #define  AutoLoop             (f_instr)eAutoLoop
 #define  ArrayTop             (f_instr)eArrayTop
 #define  ArrayAccess          (f_instr)eArrayAccess
