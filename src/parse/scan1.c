@@ -283,6 +283,14 @@ ANN static inline m_bool scan1_stmt_match(const restrict Env env, const Stmt_Mat
   RET_NSPC(_scan1_stmt_match(env, stmt))
 }
 
+ANN static inline m_bool stmt_each_defined(const restrict Env env, const Stmt_Each stmt) {
+  if(nspc_lookup_value1(env->curr, stmt->sym))
+    ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"), s_name(stmt->sym))
+  if(stmt->idx && nspc_lookup_value1(env->curr, stmt->idx))
+    ERR_B(stmt_self(stmt)->pos, _("foreach index '%s' is already defined"), s_name(stmt->idx))
+  return GW_OK;
+}
+
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
@@ -292,7 +300,7 @@ describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->c2) < 0 ||
     (stmt->c3 && scan1_exp(env, stmt->c3) < 0) ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(each, Stmt_Each,, !(scan1_exp(env, stmt->exp) < 0 ||
+describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(loop, Stmt_Loop,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)

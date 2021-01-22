@@ -925,6 +925,11 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   set_vflag(stmt->v, vflag_valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
+  if(stmt->idx) {
+    stmt->vidx = new_value(env->gwion->mp, env->gwion->type[et_int], s_name(stmt->idx));
+    set_vflag(stmt->vidx, vflag_valid);
+    nspc_add_value(env->curr, stmt->idx, stmt->vidx);
+  }
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
