@@ -18,30 +18,104 @@
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
+static inline int is_prim(const Exp e) {
+  return e->exp_type == ae_exp_primary;
+}
+
+static inline int is_prim_int(const Exp e) {
+  return (is_prim(e) && e->d.prim.prim_type == ae_prim_num);
+}
+
+uint pot(const m_int x){
+  return (x > 0) && ((x & (x - 1)) == 0);
+}
+
+#define POWEROF2_OPT(name, OP)                              \
+  if(is_prim_int(bin->rhs) && pot(bin->rhs->d.prim.d.num)) { \
+    bin->op = insert_symbol(#OP);\
+    bin->rhs->d.prim.d.num = sqrt(bin->rhs->d.prim.d.num);\
+    return check_exp(env, exp_self(bin));\
+  }
+
+#define BINARY_FOLD(name, TYPE, OP, pre, post)                        \
+static OP_CHECK(opck_int_##name) {                                    \
+  /*const*/ Exp_Binary *bin = (Exp_Binary*)data;                      \
+  const Type t = env->gwion->type[TYPE];                              \
+  if(!exp_self(bin)->pos.first.line)return t;                         \
+  pre                                                                 \
+  if(!is_prim_int(bin->lhs) || !is_prim_int(bin->rhs))                \
+    return t;                                                         \
+  post                                                                \
+  const m_int num = bin->lhs->d.prim.d.num OP bin->rhs->d.prim.d.num; \
+  free_exp(env->gwion->mp, bin->lhs);                                 \
+  free_exp(env->gwion->mp, bin->rhs);                                 \
+  exp_self(bin)->exp_type = ae_exp_primary;                           \
+  exp_self(bin)->d.prim.prim_type = ae_prim_num;                      \
+  exp_self(bin)->d.prim.d.num = num;                                  \
+  return t;                                                           \
+}
+
+BINARY_FOLD(add, et_int, +,,)
+BINARY_FOLD(sub, et_int, -,,)
+BINARY_FOLD(mul, et_int, *,POWEROF2_OPT(name, <<),)
+BINARY_FOLD(div, et_int, /,POWEROF2_OPT(name, >>),if(bin->rhs->d.prim.d.num == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+BINARY_FOLD(mod, et_int, %,, if(bin->rhs->d.prim.d.num == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+
 GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  GWI_BB(gwi_oper_add(gwi, opck_int_add))
   GWI_BB(gwi_oper_end(gwi, "+", int_plus))
+  GWI_BB(gwi_oper_add(gwi, opck_int_sub))
   GWI_BB(gwi_oper_end(gwi, "-", int_minus))
+  GWI_BB(gwi_oper_add(gwi, opck_int_mul))
   GWI_BB(gwi_oper_end(gwi, "*", int_mul))
+  GWI_BB(gwi_oper_add(gwi, opck_int_div))
   GWI_BB(gwi_oper_end(gwi, "/", int_div))
+  GWI_BB(gwi_oper_add(gwi, opck_int_mod))
   return gwi_oper_end(gwi, "%", int_modulo);
 }
 
+BINARY_FOLD(gt,   et_int, >,,)
+BINARY_FOLD(lt,   et_int, <,,)
+BINARY_FOLD(ge,   et_int, >=,,)
+BINARY_FOLD(le,   et_int, <=,,)
+BINARY_FOLD(sl,   et_int, <<,,)
+BINARY_FOLD(sr,   et_int, >>,,)
+BINARY_FOLD(sand, et_int, &,,)
+BINARY_FOLD(sor,  et_int, |,,)
+BINARY_FOLD(xor,  et_int, ^,,)
+BINARY_FOLD(and,  et_bool, &&,,)
+BINARY_FOLD(or,   et_bool, ||,,)
+BINARY_FOLD(eq,   et_bool, ==,,)
+BINARY_FOLD(neq,  et_bool, !=,,)
 static GWION_IMPORT(int_logical) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
+  GWI_BB(gwi_oper_add(gwi, opck_int_gt))
   GWI_BB(gwi_oper_end(gwi, ">",   int_gt))
+  GWI_BB(gwi_oper_add(gwi, opck_int_ge))
   GWI_BB(gwi_oper_end(gwi, ">=",   int_ge))
+  GWI_BB(gwi_oper_add(gwi, opck_int_lt))
   GWI_BB(gwi_oper_end(gwi, "<",   int_lt))
+  GWI_BB(gwi_oper_add(gwi, opck_int_le))
   GWI_BB(gwi_oper_end(gwi, "<=",   int_le))
+  GWI_BB(gwi_oper_add(gwi, opck_int_sr))
   GWI_BB(gwi_oper_end(gwi, ">>",  int_sr))
+  GWI_BB(gwi_oper_add(gwi, opck_int_sl))
   GWI_BB(gwi_oper_end(gwi, "<<",  int_sl))
+  GWI_BB(gwi_oper_add(gwi, opck_int_sand))
   GWI_BB(gwi_oper_end(gwi, "&", int_sand))
+  GWI_BB(gwi_oper_add(gwi, opck_int_sor))
   GWI_BB(gwi_oper_end(gwi, "|",  int_sor))
+  GWI_BB(gwi_oper_add(gwi, opck_int_xor))
   GWI_BB(gwi_oper_end(gwi, "^", int_xor))
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_int_and))
   GWI_BB(gwi_oper_end(gwi, "&&",  int_and))
+  GWI_BB(gwi_oper_add(gwi, opck_int_or))
   GWI_BB(gwi_oper_end(gwi, "||",   int_or))
+  GWI_BB(gwi_oper_add(gwi, opck_int_eq))
   GWI_BB(gwi_oper_end(gwi, "==",   int_eq))
+  GWI_BB(gwi_oper_add(gwi, opck_int_neq))
   return gwi_oper_end(gwi, "!=",   int_neq);
 }
 
