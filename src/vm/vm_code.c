@@ -98,7 +98,10 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
         vector_add(&nop, i);
         continue;
       }
-      if(instr->opcode != eNoOp)
+      if(instr->opcode == eGoto && instr->m_val  == i+1) {
+        instr->opcode = eNoOp;
+        vector_add(&nop, i);
+      } else if(instr->opcode != eNoOp)
         memcpy(data, instr, BYTECODE_SZ);
       else
         vector_add(&nop, i);
