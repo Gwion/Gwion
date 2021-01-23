@@ -161,12 +161,29 @@ static OP_EMIT(opem_int_range) {
   return GW_OK;
 }
 
+#define UNARY_FOLD(name, TYPE, OP)                                    \
+static OP_CHECK(opck_int_##name) {                                    \
+  /*const*/ Exp_Unary *unary = (Exp_Unary*)data;                      \
+  CHECK_NN(opck_unary_meta(env, data))                                \
+  const Type t = env->gwion->type[TYPE];                              \
+  if(!exp_self(unary)->pos.first.line || !is_prim_int(unary->exp))    \
+    return t;                                                         \
+  const m_int num = OP unary->exp->d.prim.d.num;                      \
+  exp_self(unary)->exp_type = ae_exp_primary;                         \
+  exp_self(unary)->d.prim.prim_type = ae_prim_num;                    \
+  exp_self(unary)->d.prim.d.num = num;                                \
+  return t;                                                           \
+}
+
+UNARY_FOLD(negate, et_int, -)
+UNARY_FOLD(cmp, et_int, ~)
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
+  GWI_BB(gwi_oper_add(gwi, opck_int_negate))
   GWI_BB(gwi_oper_end(gwi, "-", int_negate))
   CHECK_OP("++", unary, pre_inc)
   CHECK_OP("--", unary, pre_dec)
+  GWI_BB(gwi_oper_add(gwi, opck_int_cmp))
   GWI_BB(gwi_oper_end(gwi,  "~", int_cmp))
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_int_range))

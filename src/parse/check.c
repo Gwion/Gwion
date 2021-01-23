@@ -716,11 +716,11 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
     bin->rhs->type = bin->lhs->type;
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
     .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos, .op_type=op_binary };
+  exp_setuse(bin->lhs, 1);
+  exp_setuse(bin->rhs, 1);
   const Type ret = op_check(env, &opi);
   if(!ret && is_auto && exp_self(bin)->exp_type == ae_exp_binary)
     bin->rhs->d.exp_decl.list->self->value->type = env->gwion->type[et_auto];
-  exp_setuse(bin->lhs, 1);
-  exp_setuse(bin->rhs, 1);
   return ret;
 }
 
