@@ -807,20 +807,22 @@ ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
 #define check_flow(emit,b) _flow(emit, b, 1)
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
+  const Exp e = exp_if->if_exp ?: exp_if->cond;
   DECL_OO(const Type, cond, = check_flow(env, exp_if->cond))
   DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond))
   DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
+
+  const uint meta = exp_getmeta(e) || exp_getmeta(exp_if->else_exp);
+  exp_setmeta(exp_self(exp_if), meta);
   const Type ret = find_common_anc(if_exp, else_exp);
   if(!ret)
     ERR_O(exp_self(exp_if)->pos,
           _("incompatible types '%s' and '%s' in if expression..."),
           if_exp->name, else_exp->name)
-  if(!exp_if->if_exp && isa(exp_if->cond->type, else_exp) < 0)
+  if(isa(if_exp, else_exp) < 0)
     ERR_O(exp_self(exp_if)->pos,
         _("condition type '%s' does not match '%s'"),
          cond->name, ret->name)
-  if(exp_getmeta(exp_if->if_exp ?: exp_if->cond) || exp_getmeta(exp_if->else_exp))
-    exp_setmeta(exp_self(exp_if), 1);
   return ret;
 }
 

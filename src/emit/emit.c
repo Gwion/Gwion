@@ -1371,6 +1371,11 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
 #define emit_flow(emit,b) _flow(emit, b, 1)
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
+  const Exp e = exp_if->if_exp ?: exp_if->cond;
+  if(exp_getvar(exp_self(exp_if))) {
+    exp_setvar(e, 1);
+    exp_setvar(exp_if->else_exp, 1);
+  }
   DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond))
   CHECK_BB(emit_exp_pop_next(emit, exp_if->if_exp ?: exp_if->cond))
   const Instr op2 = emit_add_instr(emit, Goto);

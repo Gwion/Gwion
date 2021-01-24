@@ -38,7 +38,7 @@ ANN static inline M_Object fork_object(const VM_Shred shred, const Type t) {
   const Gwion gwion = shred->info->vm->gwion;
   const M_Object o = new_object(gwion->mp, shred, t);
   *(M_Object*)(o->data + o_fork_ev) = new_object(gwion->mp, NULL, gwion->type[et_event]);
-  EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)) = new_vector(gwion->mp);
+  vector_init(&EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)));
   return o;
 }
 
@@ -206,7 +206,7 @@ static MFUN(fork_join) {
   if(*(m_int*)(o->data + o_fork_done))
     return;
   shreduler_remove(shred->tick->shreduler, shred, 0);
-  vector_add(EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)), (vtype)shred);
+  vector_add(&EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)), (vtype)shred);
 }
 
 static MFUN(shred_cancel) {

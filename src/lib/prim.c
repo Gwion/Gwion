@@ -88,6 +88,7 @@ BINARY_FOLD(and,  et_bool, &&,,)
 BINARY_FOLD(or,   et_bool, ||,,)
 BINARY_FOLD(eq,   et_bool, ==,,)
 BINARY_FOLD(neq,  et_bool, !=,,)
+
 static GWION_IMPORT(int_logical) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_int_gt))
@@ -164,7 +165,6 @@ static OP_EMIT(opem_int_range) {
 #define UNARY_FOLD(name, TYPE, OP)                                    \
 static OP_CHECK(opck_int_##name) {                                    \
   /*const*/ Exp_Unary *unary = (Exp_Unary*)data;                      \
-  CHECK_NN(opck_unary_meta(env, data))                                \
   const Type t = env->gwion->type[TYPE];                              \
   if(!exp_self(unary)->pos.first.line || !is_prim_int(unary->exp))    \
     return t;                                                         \
@@ -177,6 +177,7 @@ static OP_CHECK(opck_int_##name) {                                    \
 
 UNARY_FOLD(negate, et_int, -)
 UNARY_FOLD(cmp, et_int, ~)
+UNARY_FOLD(not, et_bool, !)
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_int_negate))
@@ -209,6 +210,7 @@ static GWION_IMPORT(int_values) {
   gwi->gwion->type[et_bool] = t_bool;
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
+  GWI_BB(gwi_oper_add(gwi, opck_int_not))
   GWI_BB(gwi_oper_end(gwi,  "!", IntNot))
   struct SpecialId_ spid = { .type=t_bool, .exec=RegPushMaybe, .is_const=1 };
   gwi_specialid(gwi, "maybe", &spid);
