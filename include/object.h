@@ -25,7 +25,7 @@ ANN void broadcast(const M_Object);
 
 #define STRING(o)    (*(m_str*)    ((M_Object)o)->data)
 #define ME(o)        (*(VM_Shred*) ((M_Object)o)->data)
-#define EV_SHREDS(o) (*(Vector*)   ((M_Object)o)->data)
+#define EV_SHREDS(o) (*(struct Vector_*)  ((M_Object)o)->data)
 #define UGEN(o)      (*(UGen*)     ((M_Object)o)->data)
 #define ARRAY(o)     (*(M_Vector*) ((M_Object)o)->data)
 #define IO_FILE(o)   (*(FILE**)    (((M_Object)o)->data + SZ_INT))

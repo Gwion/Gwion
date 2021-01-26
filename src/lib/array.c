@@ -97,6 +97,16 @@ ANN void m_vector_rem(const M_Vector v, m_uint index) {
   }
 }
 
+ANN void m_vector_insert(const M_Vector v, m_uint index, const void* data) {
+  const size_t size = ARRAY_SIZE(v);
+  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
+    const m_uint cap = ARRAY_CAP(v) *=2;
+    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
+  }
+  memmove(ARRAY_PTR(v) + (index+1) * size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
+  memcpy(ARRAY_PTR(v) + index*size, data, size);
+}
+
 static MFUN(vm_vector_rem) {
   const m_int index = *(m_int*)(shred->mem + SZ_INT);
   const M_Vector v = ARRAY(o);
@@ -129,13 +139,7 @@ static MFUN(vm_vector_insert) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index > ARRAY_LEN(v))
     return;
-  const size_t size = ARRAY_SIZE(v);
-  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
-    const m_uint cap = ARRAY_CAP(v) *=2;
-    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
-  }
-  memmove(ARRAY_PTR(v) + (index+1) * size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
-  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+  m_vector_insert(v, index, shred->mem + SZ_INT*2);
 }
 
 static MFUN(vm_vector_insert_obj) {
@@ -143,13 +147,7 @@ static MFUN(vm_vector_insert_obj) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index > ARRAY_LEN(v))
     return;
-  const size_t size = SZ_INT;
-  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
-    const m_uint cap = ARRAY_CAP(v) *=2;
-    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
-  }
-  memmove(ARRAY_PTR(v) + (index+1) *size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
-  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+  m_vector_insert(v, index, shred->mem + SZ_INT*2);
   ++(*(M_Object*)(shred->mem + SZ_INT*2))->ref;
 }
 
@@ -158,13 +156,7 @@ static MFUN(vm_vector_insert_struct) {
   const M_Vector v = ARRAY(o);
   if(index < 0 || (m_uint)index > ARRAY_LEN(v))
     return;
-  const size_t size = ARRAY_SIZE(v);
-  if(++ARRAY_LEN(v) >= ARRAY_CAP(v)) {
-    const m_uint cap = ARRAY_CAP(v) *=2;
-    v->ptr = (m_bit*)xrealloc(v->ptr, ARRAY_OFFSET + cap * size);
-  }
-  memmove(ARRAY_PTR(v) + (index+1) *size, ARRAY_PTR(v) + index*size, (ARRAY_LEN(v) - index + 1)* size);
-  memcpy(ARRAY_PTR(v) + index*size, shred->mem + SZ_INT*2, size);
+  m_vector_insert(v, index, shred->mem + SZ_INT*2);
   struct_addref(shred->info->vm->gwion, array_base(o->type_ref),  shred->mem + SZ_INT*2);
 }
 
