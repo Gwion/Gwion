@@ -38,7 +38,7 @@ CFLAGS  += -Iinclude
 ifeq (${BUILD_ON_WINDOWS}, 1)
 ifeq (${CC}, gcc)
 #LDFLAGS += -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--out-implib=lib${PRG}.dll.a
-LDFLAGS += -Wl,-Wl,--enable-auto-import
+LDFLAGS += -Wl,--enable-auto-import
 LDFLAGS += -lm
 endif
 else
