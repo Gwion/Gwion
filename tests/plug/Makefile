@@ -15,15 +15,15 @@ LDFLAGS += -shared
 else
 CFLAGS += -DBUILD_ON_WINDOWS=1
 LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
-LDLAGS += ../../util/libgwion_util.a
 #LDFLAGS += -L../../ -lgwion
 #LDLAGS += ../../libgwion.dll.a
-#LDLAGS += ../../libgwion.a
+LDLAGS += ../../libgwion.a
 #LDFLAGS += -L../../ast -lgwion_ast
 #LDLAGS += ../../ast/libgwion_ast.dll.a
-#LDLAGS += ../../ast/libgwion_ast.a
+LDLAGS += ../../ast/libgwion_ast.a
 #LDFLAGS += -L../../util -lgwion_util
 #LDLAGS += ../../util/libgwion_util.dll.a
+LDLAGS += ../../util/libgwion_util.a
 endif
 endif
 
