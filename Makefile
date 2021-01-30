@@ -1,3 +1,5 @@
+GWION_PACKAGE=gwion
+
 ifeq (,$(wildcard util/config.mk))
 $(shell cp util/config.mk.orig util/config.mk)
 endif
@@ -9,8 +11,6 @@ include config.mk
 
 SEVERITY ?= 10
 GWION_TEST_DIR ?= /tmp
-
-GWION_PACKAGE=gwion
 
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
