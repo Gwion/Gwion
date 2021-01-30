@@ -18,6 +18,12 @@ LDFLAGS += -shared -lpsapi -fPIC -Wl,--export-all -Wl,--enable-auto-import
 LDFLAGS += -L../../ -lgwion
 LDLAGS += ../../libgwion.dll.a
 LDLAGS += ../../libgwion.a
+LDFLAGS += -L../../ -lgwion-ast
+LDLAGS += ../../libgwion-ast.dll.a
+LDLAGS += ../../libgwion-ast.a
+LDFLAGS += -L../../ -lgwion-util
+LDLAGS += ../../libgwion-util.dll.a
+LDLAGS += ../../libgwion-util.a
 endif
 endif
 
