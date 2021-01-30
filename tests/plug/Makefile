@@ -19,11 +19,11 @@ LDFLAGS += -L../../ -lgwion
 LDLAGS += ../../libgwion.dll.a
 LDLAGS += ../../libgwion.a
 LDFLAGS += -L../../ -lgwion-ast
-LDLAGS += ../../libgwion-ast.dll.a
-LDLAGS += ../../libgwion-ast.a
+LDLAGS += ../../ast/libgwion-ast.dll.a
+LDLAGS += ../../ast/libgwion-ast.a
 LDFLAGS += -L../../ -lgwion-util
-LDLAGS += ../../libgwion-util.dll.a
-LDLAGS += ../../libgwion-util.a
+LDLAGS += ../../util/libgwion-util.dll.a
+LDLAGS += ../../util/libgwion-util.a
 endif
 endif
 
