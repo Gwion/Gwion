@@ -459,6 +459,10 @@ ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
   return GW_OK;
 }
 
+ANN static m_bool scan1_stmt_defer(const Env env, const Stmt_Defer stmt) {
+  return scan1_stmt(env, stmt->stmt);
+}
+
 DECL_STMT_FUNC(scan1, m_bool, Env)
 
 ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {

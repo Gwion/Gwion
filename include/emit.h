@@ -4,13 +4,16 @@
 typedef struct Frame_ {
   size_t curr_offset;
   struct Vector_ stack;
+  struct Vector_ defer;
 } Frame;
 
 typedef struct Code_ {
   Frame* frame;
   size_t stack_depth;
   struct Vector_ instr;
-  struct Vector_ stack_cont, stack_break, stack_return;
+  struct Vector_  stack_cont;
+  struct Vector_ stack_break;
+  struct Vector_ stack_return;
   m_str  name;
 } Code;
 

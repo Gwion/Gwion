@@ -239,6 +239,9 @@ ANN static void clean_stmt_case(Clean *a, Stmt_Match b) {
   --a->scope;
 }
 
+ANN static void clean_stmt_defer(Clean *a, Stmt_Defer b) {
+  clean_stmt(a, b->stmt);
+}
 
 ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_jump clean_dummy

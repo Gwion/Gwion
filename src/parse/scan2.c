@@ -253,6 +253,10 @@ ANN static m_bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
   return GW_OK;
 }
 
+ANN static m_bool scan2_stmt_defer(const Env env, const Stmt_Defer stmt) {
+  return scan2_stmt(env, stmt->stmt);
+}
+
 DECL_STMT_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {

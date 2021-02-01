@@ -45,6 +45,8 @@ ANEW static Frame* new_frame(MemPool p) {
   Frame* frame = mp_calloc(p, Frame);
   vector_init(&frame->stack);
   vector_add(&frame->stack, (vtype)NULL);
+  vector_init(&frame->defer);
+  vector_add(&frame->defer, (vtype)NULL);
   return frame;
 }
 
@@ -74,6 +76,7 @@ ANN static m_uint frame_local(MemPool p, Frame* frame, const Type t, const uint 
 
 ANN static inline void frame_push(Frame* frame) {
   vector_add(&frame->stack, (vtype)NULL);
+  vector_add(&frame->defer, (vtype)NULL);
 }
 
 static const f_instr regpushimm[] = { RegPushImm, RegPushImm2, RegPushImm3, RegPushImm4 };
@@ -154,17 +157,43 @@ ANN static void struct_pop(const Emitter emit, const Type type, const m_uint off
   }
 }
 
-ANN static m_int frame_pop(const Emitter emit) {
+ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
+
+ANN static m_bool emit_defers(const Emitter emit) {
+  if(!vector_size(&emit->code->frame->defer))
+    return GW_OK;
+  Stmt stmt;
+  while((stmt = (Stmt)vector_pop(&emit->code->frame->defer)))
+    CHECK_BB(emit_stmt(emit, stmt, 1))
+  return GW_OK;
+}
+
+ANN static m_bool emit_defers2(const Emitter emit) {
+  for(m_uint i = vector_size(&emit->code->frame->defer) + 1; --i;) {
+    const Stmt stmt = (Stmt)vector_at(&emit->code->frame->defer, i-1);
+    if(!stmt)
+      break;
+    CHECK_BB(emit_stmt(emit, stmt, 1))
+  }
+  return GW_OK;
+}
+
+ANN static m_int _frame_pop(const Emitter emit) {
   Frame *frame = emit->code->frame;
   DECL_OB(const Local*, l, = (Local*)vector_pop(&frame->stack))
   frame->curr_offset -= l->type->size;
   if(l->skip)
-    return frame_pop(emit);
+    return _frame_pop(emit);
   if(tflag(l->type, tflag_struct)) {
     struct_pop(emit, l->type, l->offset);
-    return frame_pop(emit);
+    return _frame_pop(emit);
   }
-  return isa(l->type, emit->gwion->type[et_object]) > 0 ? (m_int)l->offset : frame_pop(emit);
+  return isa(l->type, emit->gwion->type[et_object]) > 0 ? (m_int)l->offset : _frame_pop(emit);
+}
+
+ANN static m_int frame_pop(const Emitter emit) {
+  emit_defers(emit);
+  return _frame_pop(emit);
 }
 
 ANN /*static */m_bool emit_exp(const Emitter emit, Exp exp);
@@ -1508,6 +1537,7 @@ ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
 }
 
 ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
+  CHECK_BB(emit_defers2(emit))
   if(stmt->val) {
     if(stmt->val->exp_type == ae_exp_call) {
       const Func f = stmt->val->d.exp_call.func->type->info->func;
@@ -1537,6 +1567,7 @@ ANN static inline m_bool emit_jump_index(const Emitter emit, const Vector v, con
 }
 
 ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt_Index stmt) {
+  CHECK_BB(emit_defers2(emit))
   if(stmt->idx == -1 || stmt->idx == 1)
     vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
   else if(stmt->idx) {
@@ -1547,6 +1578,7 @@ ANN static inline m_bool emit_stmt_continue(const Emitter emit, const Stmt_Index
 }
 
 ANN static inline m_bool emit_stmt_break(const Emitter emit, const Stmt_Index stmt NUSED) {
+  CHECK_BB(emit_defers2(emit))
   if(stmt->idx == -1 || stmt->idx == 1)
     vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
   else if(stmt->idx) {
@@ -1778,7 +1810,6 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_ui
   *index = emit_code_size(emit);
   struct Looper loop = { .stmt=stmt->body, .offset=offset, .n=n,
     .roll=stmt_loop_roll };
-//roll(emit, &loop);
   CHECK_BB(looper_run(emit, &loop))
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val = *index;
@@ -1997,6 +2028,11 @@ ANN static m_bool emit_stmt_pp(const Emitter emit, const struct Stmt_PP_* stmt) 
   return GW_OK;
 }
 
+ANN static m_bool emit_stmt_defer(const Emitter emit, const struct Stmt_Defer_* stmt) {
+  vector_add(&emit->code->frame->defer, (m_uint)stmt->stmt);
+  return GW_OK;
+}
+
 #define emit_stmt_while emit_stmt_flow
 #define emit_stmt_until emit_stmt_flow
 DECL_STMT_FUNC(emit, m_bool , Emitter)
@@ -2051,8 +2087,9 @@ ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def fdef) {
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
 }
 
-ANN static void emit_func_def_return(const Emitter emit) {
+ANN static m_bool emit_func_def_return(const Emitter emit) {
   const m_uint val = emit_code_size(emit);
+  CHECK_BB(emit_defers(emit))
   LOOP_OPTIM
   for(m_uint i = vector_size(&emit->code->stack_return) + 1; --i; ) {
     const Instr instr = (Instr)vector_at(&emit->code->stack_return, i-1);
@@ -2063,6 +2100,7 @@ ANN static void emit_func_def_return(const Emitter emit) {
     const Instr instr = emit_add_instr(emit, MemoizeStore);
     instr->m_val = emit->env->func->def->stack_depth;
   }
+  return GW_OK;
 }
 
 ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
@@ -2285,7 +2323,7 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
 ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
   do CHECK_BB(emit_section(emit, ast->section))
   while((ast = ast->next));
-  return GW_OK;
+  return emit_defers(emit);
 }
 
 ANN m_bool emit_ast(const Env env, Ast ast) {
