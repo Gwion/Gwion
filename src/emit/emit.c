@@ -56,6 +56,7 @@ ANN static void free_frame(MemPool p, Frame* a) {
     if(vector_at(&a->stack, i - 1))
       mp_free(p, Local, (Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
+  vector_release(&a->defer);
   mp_free(p, Frame, a);
 }
 
