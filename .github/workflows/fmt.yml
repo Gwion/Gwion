@@ -1,0 +1,25 @@
+name: 'trigger Formatter'
+on:
+  workflow_run:
+    workflows: ["Linux Release"]
+    types:
+      - completed
+
+jobs:
+  post-test-success:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: call the other repo
+      if: github.ref == 'refs/heads/master'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        EVENT: benchmark-event
+        ORG: Gwion
+        REPO: gwion-fmt
+      run: |
+        [ ! -z "$(git log -n1 --oneline --grep='skip ci')" ] && exit 0
+        echo "{\"event_type\": \"${EVENT}\", \"client_payload\": {\"commit_info\":\"$(git log -n1 --date=format:'%D %H:%M:%S' --format='> Author: %an Date: %cd  Commit: %h')\"}}" > commit_info
+        curl -d "@commit_info" -H "Content-Type: application/json" -H "Authorization: token ${{ secrets.BENCHMARK_TOKEN }}" -H "Accept: application/vnd.github.everest-preview+json" "https://api.github.com/repos/${ORG}/${REPO}/dispatches"
