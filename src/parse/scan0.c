@@ -125,7 +125,6 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   if(base->nspc)
     nspc_addref((t->nspc = base->nspc));
   t->flag = tdef->ext->flag;
-  scan0_implicit_similar(env, t, base);
   if(tdef->ext->array && !tdef->ext->array->exp)
     set_tflag(t, tflag_empty);
 }
@@ -163,6 +162,8 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
       CHECK_BB(typedef_complex(env, tdef, base))
   } else
     typedef_fptr(env, tdef, base);
+  if(!tdef->distinct)
+    scan0_implicit_similar(env, tdef->type, base);
   set_tflag(tdef->type, tflag_typedef);
   return GW_OK;
 }
@@ -189,7 +190,7 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   t->info->owner_class = env->class_def;
   add_type(env, nspc, t);
   mk_class(env, t);
-  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
+//  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
   return t;
 }
 
