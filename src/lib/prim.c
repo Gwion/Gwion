@@ -310,17 +310,33 @@ static GWION_IMPORT(intfloat) {
   return GW_OK;
 }
 
+#define BINARY_FLOAT_INT_FOLD(name, TYPE, OP, pre, post) \
+  BINARY_FOLD(float_int, name, TYPE, OP, pre, post, is_prim_float, is_prim_int, m_float, ae_prim_float, fnum)
+
+BINARY_FLOAT_INT_FOLD(add,  et_float, +,,)
+BINARY_FLOAT_INT_FOLD(sub,  et_float, -,,)
+BINARY_FLOAT_INT_FOLD(mul,  et_float, *,POWEROF2_OPT(name, <<),)
+BINARY_FLOAT_INT_FOLD(div,  et_float, /,POWEROF2_OPT(name, >>),if(bin->rhs->d.prim.d.num == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+
+BINARY_FLOAT_INT_FOLD(gt,   et_bool, >,,)
+BINARY_FLOAT_INT_FOLD(ge,   et_bool, >=,,)
+BINARY_FLOAT_INT_FOLD(lt,   et_bool, <=,,)
+BINARY_FLOAT_INT_FOLD(le,   et_bool, <=,,)
+BINARY_FLOAT_INT_FOLD(and,  et_bool, &&,,)
+BINARY_FLOAT_INT_FOLD(or,   et_bool, ||,,)
+BINARY_FLOAT_INT_FOLD(eq,   et_bool, ==,,)
+BINARY_FLOAT_INT_FOLD(neq,  et_bool, !=,,)
+
 static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "float"))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_add))
   GWI_BB(gwi_oper_end(gwi, "+",         float_int_plus))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_sub))
   GWI_BB(gwi_oper_end(gwi, "-",        float_int_minus))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_mul))
   GWI_BB(gwi_oper_end(gwi, "*",        float_int_mul))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_div))
   GWI_BB(gwi_oper_end(gwi, "/",       float_int_div))
-  GWI_BB(gwi_oper_ini(gwi, "float", "int", "int"))
-  GWI_BB(gwi_oper_end(gwi, ">", 			float_int_gt))
-  GWI_BB(gwi_oper_end(gwi, ">=", 			float_int_ge))
-  GWI_BB(gwi_oper_end(gwi, "<", 			float_int_lt))
-  GWI_BB(gwi_oper_end(gwi, "<=", 			float_int_le))
   CHECK_FI("=>", rassign, r_assign)
   CHECK_FI("+=>", rassign, r_plus)
   CHECK_FI("-=>", rassign, r_minus)
@@ -329,10 +345,22 @@ static GWION_IMPORT(floatint) {
   _CHECK_OP("$", cast_f2i, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_and))
   GWI_BB(gwi_oper_end(gwi, "&&",    float_int_and))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_or))
   GWI_BB(gwi_oper_end(gwi, "||",    float_int_or))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_eq))
   GWI_BB(gwi_oper_end(gwi, "==", 		float_int_eq))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_neq))
   GWI_BB(gwi_oper_end(gwi, "!=", 		float_int_neq))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_gt))
+  GWI_BB(gwi_oper_end(gwi, ">", 			float_int_gt))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_ge))
+  GWI_BB(gwi_oper_end(gwi, ">=", 			float_int_ge))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_lt))
+  GWI_BB(gwi_oper_end(gwi, "<", 			float_int_lt))
+  GWI_BB(gwi_oper_add(gwi, opck_float_int_le))
+  GWI_BB(gwi_oper_end(gwi, "<=", 			float_int_le))
   return GW_OK;
 }
 
@@ -473,7 +501,7 @@ GWION_IMPORT(prim) {
   GWI_BB(import_int(gwi))      // const folded
   GWI_BB(import_float(gwi))    // const folded
   GWI_BB(import_intfloat(gwi)) // const folded
-  GWI_BB(import_floatint(gwi))
+  GWI_BB(import_floatint(gwi)) // const folded
   GWI_BB(import_dur(gwi))
   return import_time(gwi);
 }
