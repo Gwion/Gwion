@@ -169,22 +169,24 @@ static OP_EMIT(opem_int_range) {
   return GW_OK;
 }
 
-#define UNARY_FOLD(name, TYPE, OP)                                    \
-static OP_CHECK(opck_int_##name) {                                    \
-  /*const*/ Exp_Unary *unary = (Exp_Unary*)data;                      \
-  const Type t = env->gwion->type[TYPE];                              \
-  if(!exp_self(unary)->pos.first.line || !is_prim_int(unary->exp))    \
-    return t;                                                         \
-  const m_int num = OP unary->exp->d.prim.d.num;                      \
-  exp_self(unary)->exp_type = ae_exp_primary;                         \
-  exp_self(unary)->d.prim.prim_type = ae_prim_num;                    \
-  exp_self(unary)->d.prim.d.num = num;                                \
-  return t;                                                           \
+#define UNARY_FOLD(ntype, name, TYPE, OP, func, ctype, exptype, member) \
+static OP_CHECK(opck_##ntype##_##name) {                                \
+  /*const*/ Exp_Unary *unary = (Exp_Unary*)data;                        \
+  const Type t = env->gwion->type[TYPE];                                \
+  if(!exp_self(unary)->pos.first.line || !func(unary->exp))             \
+    return t;                                                           \
+  CHECK_NN(opck_unary_meta(env, data))\
+  const ctype num = OP unary->exp->d.prim.d.member;                     \
+  exp_self(unary)->exp_type = ae_exp_primary;                           \
+  exp_self(unary)->d.prim.prim_type = exptype;                          \
+  exp_self(unary)->d.prim.d.num = num;                                  \
+  return t;                                                             \
 }
+#define UNARY_INT_FOLD(name, TYPE, OP) UNARY_FOLD(int, name, TYPE, OP, is_prim_int, m_int, ae_prim_num, num)
+UNARY_INT_FOLD(negate, et_int, -)
+UNARY_INT_FOLD(cmp, et_int, ~)
+UNARY_INT_FOLD(not, et_bool, !)
 
-UNARY_FOLD(negate, et_int, -)
-UNARY_FOLD(cmp, et_int, ~)
-UNARY_FOLD(not, et_bool, !)
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_int_negate))
@@ -300,10 +302,10 @@ static GWION_IMPORT(floatint) {
   _CHECK_OP("$", cast_f2i, CastF2I)
   _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "bool"))
-  GWI_BB(gwi_oper_end(gwi, "&&",          float_int_and))
-  GWI_BB(gwi_oper_end(gwi, "||",           float_int_or))
-  GWI_BB(gwi_oper_end(gwi, "==", 			float_int_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=", 			float_int_neq))
+  GWI_BB(gwi_oper_end(gwi, "&&",    float_int_and))
+  GWI_BB(gwi_oper_end(gwi, "||",    float_int_or))
+  GWI_BB(gwi_oper_end(gwi, "==", 		float_int_eq))
+  GWI_BB(gwi_oper_end(gwi, "!=", 		float_int_neq))
   return GW_OK;
 }
 
@@ -386,6 +388,10 @@ BINARY_FLOAT_FOLD(ge, et_bool, >=,,)
 BINARY_FLOAT_FOLD(lt, et_bool, <,,)
 BINARY_FLOAT_FOLD(le, et_bool, <=,,)
 
+#define UNARY_FLOAT_FOLD(name, TYPE, OP) UNARY_FOLD(float, name, TYPE, OP, is_prim_int, m_float, ae_prim_float, fnum)
+UNARY_FLOAT_FOLD(negate, et_float, -)
+//UNARY_INT_FOLD(cmp, et_float, ~)
+UNARY_FLOAT_FOLD(not, et_bool, !)
 
 static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_cond(gwi, "float", BranchEqFloat, BranchNeqFloat))
@@ -422,16 +428,16 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_add(gwi, opck_float_le))
   GWI_BB(gwi_oper_end(gwi, "<=", 			 float_le))
   GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "float"))
-  CHECK_FF("-", unary_meta, negate)
-  GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "int"))
-  GWI_BB(gwi_oper_ini(gwi, NULL,   "time", "int"))
-  GWI_BB(gwi_oper_ini(gwi, NULL,   "dur", "int"))
+//  CHECK_FF("-", unary_meta, negate)
+  GWI_BB(gwi_oper_add(gwi, opck_float_negate))
+  GWI_BB(gwi_oper_end(gwi, "-", 			 float_negate))
   GWI_BB(gwi_oper_ini(gwi, "int", "dur", "dur"))
   GWI_BB(gwi_oper_end(gwi, "::",         int_float_mul))
   GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
   GWI_BB(gwi_oper_end(gwi, "::",         FloatTimes))
   GWI_BB(gwi_oper_ini(gwi, NULL,   "float", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
+//  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
+  GWI_BB(gwi_oper_add(gwi, opck_float_not))
   GWI_BB(gwi_oper_end(gwi,  "!", float_not))
   return GW_OK;
 }
