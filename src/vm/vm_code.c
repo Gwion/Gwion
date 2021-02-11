@@ -151,3 +151,16 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
   code->ref = 1;
   return code;
 }
+
+// TODO: handle native code
+// TODO: do not re-create if code exists
+VM_Code vmcode_callback(MemPool mp, VM_Code base) {
+  char name[strlen(base->name) + 11];
+  sprintf(name, "%s(callback)", base->name);
+  const Instr instr = (Instr)vector_back(base->instr);
+  instr->opcode = eEOC;
+  VM_Code code = new_vmcode(mp, base->instr, base->stack_depth, base->builtin, name);
+  code->callback = 1;
+  instr->opcode = eFuncReturn;
+  return code;
+}

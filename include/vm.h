@@ -73,6 +73,7 @@ struct VM_Shred_ {
 };
 REF_FUNC(VM_Code, vmcode)
 ANN2(1,5) ANEW VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth, const int builtin, const m_str name);
+ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
