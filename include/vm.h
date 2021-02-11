@@ -23,6 +23,7 @@ struct VM_Code_ {
   uint16_t ref;
   ae_flag flag;
   int builtin;
+  int callback;
 };
 
 typedef struct Shreduler_* Shreduler;

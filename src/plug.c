@@ -151,7 +151,7 @@ ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug) {
   return GW_OK;
 }
 
-ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
+ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
   const Map map = &gwion->data->plug;
   for(m_uint i = 0; i < map_size(map); ++i) {
     const Plug plug = (Plug)VVAL(map, i);
@@ -179,6 +179,14 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
   }
   gw_err("no such plugin '%s'\n", iname);
   return GW_ERROR;
+}
+
+ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
+  const Context ctx = gwion->env->context;
+  gwion->env->context = NULL;
+  const m_bool ret = _plugin_ini(gwion, iname);
+  gwion->env->context = ctx;
+  return ret;
 }
 
 ANN m_bool driver_ini(const struct Gwion_ *gwion) {

@@ -436,7 +436,8 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
           return func;
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
-      }
+      } else if(!e->type) //fix bug found with Cytosol
+          return NULL;
       if(e1->type == env->gwion->type[et_auto] ||
             (func->def->base->tmpl && is_fptr(env->gwion, func->value_ref->type) > 0)) {
         const Type owner = func->value_ref->from->owner_class;
@@ -515,7 +516,7 @@ next_arg(Arg_List)
 
 ANN static void print_current_args(Exp e) {
   gw_err(_("and not\n  "));
-  do gw_err(" \033[32m%s\033[0m", e->type->name);
+  do gw_err(" \033[32m%s\033[0m", e->type ? e->type->name : "Unknown");
   while((e = next_arg_Exp(e)));
   gw_err("\n");
 }

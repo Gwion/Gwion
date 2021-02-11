@@ -21,17 +21,14 @@ ANN void free_code_instr(const Vector v, const Gwion gwion) {
   }
 }
 
-ANN static void _free_code_instr(const Vector v, const Gwion gwion) {
-  free_code_instr(v, gwion);
-  free_vector(gwion->mp, v);
-}
-
 ANN void free_vmcode(VM_Code a, Gwion gwion) {
   if(a->memoize)
     memoize_end(gwion->mp, a->memoize);
   if(!a->builtin) {
     _mp_free(gwion->mp, vector_size(a->instr) * BYTECODE_SZ, a->bytecode);
-    _free_code_instr(a->instr, gwion);
+    if(likely(!a->callback))
+      free_code_instr(a->instr, gwion);
+    free_vector(gwion->mp, a->instr);
   }
   if(a->closure)
     free_closure(a->closure, gwion);

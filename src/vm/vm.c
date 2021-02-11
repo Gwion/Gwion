@@ -122,7 +122,7 @@ ANN static inline m_bool overflow_(const m_bit* mem, const VM_Shred c) {
   return mem > (((m_bit*)c + sizeof(struct VM_Shred_) + SIZEOF_REG) + (SIZEOF_MEM) - (MEM_STEP*16));
 }
 
-ANN static inline VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
+ANN /*static inline */VM_Shred init_spork_shred(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
   sh->tick->parent = shred->tick;
