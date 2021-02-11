@@ -355,8 +355,11 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
     const Var_Decl var = list->var_decl;
     if(var->xid)
       CHECK_BB(isres(env, var->xid, var->pos))
-    if(list->td)
+    if(list->td) {
+      SET_FLAG(list->td, late);
       CHECK_OB((list->type = void_type(env, list->td)))
+      SET_FLAG(list->td, late);
+    }
     var->value = arg_value(env, list);
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
