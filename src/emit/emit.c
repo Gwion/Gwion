@@ -1501,7 +1501,15 @@ ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
   return GW_OK;
 }
 
+ANN static m_bool emit_if_const(const Emitter emit, const Stmt_If stmt) {
+  if(stmt->cond->d.prim.d.num)
+    return emit_stmt(emit, stmt->if_body, 1);
+  return stmt->else_body ? emit_stmt(emit, stmt->else_body, 1) : GW_OK;
+}
+
 ANN static m_bool emit_if(const Emitter emit, const Stmt_If stmt) {
+  if(stmt->cond->exp_type == ae_exp_primary && stmt->cond->d.prim.prim_type == ae_prim_num)
+    return emit_if_const(emit, stmt);
   DECL_OB(const Instr, op, = emit_flow(emit, stmt->cond))
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1))
   const Instr op2 = emit_add_instr(emit, Goto);
@@ -1609,16 +1617,30 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
 
 ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt, const m_uint index) {
   Instr op = NULL;
-  if(!stmt->is_do)
-    op = _flow(emit, stmt->cond, stmt_self(stmt)->stmt_type == ae_stmt_while);
+  const ae_stmt_t is_while = stmt_self(stmt)->stmt_type == ae_stmt_while;
+  const uint is_const = stmt->cond->exp_type == ae_exp_primary && stmt->cond->d.prim.prim_type == ae_prim_num;
+  if(!stmt->is_do) {
+    if(!is_const)
+      op = _flow(emit, stmt->cond, is_while);
+    else if((!is_while && stmt->cond->d.prim.d.num) ||
+        (is_while && !stmt->cond->d.prim.d.num))
+      return GW_OK;
+  }
   CHECK_BB(scoped_stmt(emit, stmt->body, 1))
   if(stmt->is_do) {
-    CHECK_OB((op = _flow(emit, stmt->cond, stmt_self(stmt)->stmt_type != ae_stmt_while)))
-    op->m_val = index;
+    if(!is_const) {
+      CHECK_OB((op = _flow(emit, stmt->cond, !is_while)))
+      op->m_val = index;
+    } else if((is_while && stmt->cond->d.prim.d.num) ||
+        (!is_while && !stmt->cond->d.prim.d.num)) {
+      const Instr goto_ = emit_add_instr(emit, Goto);
+      goto_->m_val = index;
+    }
   } else {
     const Instr goto_ = emit_add_instr(emit, Goto);
     goto_->m_val = index;
-    op->m_val = emit_code_size(emit);
+    if(op)
+      op->m_val = emit_code_size(emit);
   }
   return GW_OK;
 }

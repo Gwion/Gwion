@@ -25,6 +25,29 @@ static INSTR(String_##name) {                    \
 describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
 describe_string_logical(neq, (strcmp(STRING(lhs), STRING(rhs))))
 
+static inline uint is_const_str(const Exp exp) {
+  return exp->exp_type == ae_exp_primary &&
+         exp->d.prim.prim_type == ae_prim_str;
+}
+
+#define opck_str(name, __exp__)                          \
+OP_CHECK(opck_string_##name) {                           \
+  Exp_Binary *bin = (Exp_Binary*)data;                   \
+  if(!is_const_str(bin->lhs) || !is_const_str(bin->rhs)) \
+    return env->gwion->type[et_bool];                    \
+  const int ret = __exp__;                               \
+  free_exp(env->gwion->mp, bin->lhs);                    \
+  free_exp(env->gwion->mp, bin->rhs);                    \
+  const Exp e = exp_self(bin);                           \
+  e->exp_type = ae_exp_primary;                          \
+  e->d.prim.prim_type = ae_prim_num;                     \
+  e->d.prim.d.num = ret;                                 \
+  return env->gwion->type[et_bool];                      \
+}
+
+opck_str(eq, !strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
+opck_str(neq, strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
+
 static CTOR(string_ctor) {
   STRING(o) = _mp_calloc(shred->info->vm->gwion->mp, 1);
 }
@@ -457,7 +480,9 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "string",  "string", "bool"))
+  GWI_BB(gwi_oper_add(gwi, opck_string_eq))
   GWI_BB(gwi_oper_end(gwi, "==",       String_eq))
+  GWI_BB(gwi_oper_add(gwi, opck_string_neq))
   GWI_BB(gwi_oper_end(gwi, "!=",       String_neq))
 
   GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
