@@ -264,8 +264,8 @@ static OP_CHECK(opck_implicit_i2f) {
 
 BINARY_INT_FLOAT_FOLD(add, et_float, +,,)
 BINARY_INT_FLOAT_FOLD(sub, et_float, -,,)
-BINARY_INT_FLOAT_FOLD(mul, et_float, *,POWEROF2_OPT(name, <<),)
-BINARY_INT_FLOAT_FOLD(div, et_float, /,POWEROF2_OPT(name, >>),if(bin->rhs->d.prim.d.fnum == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+BINARY_INT_FLOAT_FOLD(mul, et_float, *,/*POWEROF2_OPT(name, <<)*/,)
+BINARY_INT_FLOAT_FOLD(div, et_float, /,/*POWEROF2_OPT(name, >>)*/,if(bin->rhs->d.prim.d.fnum == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
 BINARY_INT_FLOAT_FOLD2(gt,   et_bool, >,,)
 BINARY_INT_FLOAT_FOLD2(ge,   et_bool, >=,,)
 BINARY_INT_FLOAT_FOLD2(lt,   et_bool, <=,,)
@@ -321,8 +321,8 @@ static GWION_IMPORT(intfloat) {
 
 BINARY_FLOAT_INT_FOLD(add,  et_float, +,,)
 BINARY_FLOAT_INT_FOLD(sub,  et_float, -,,)
-BINARY_FLOAT_INT_FOLD(mul,  et_float, *,POWEROF2_OPT(name, <<),)
-BINARY_FLOAT_INT_FOLD(div,  et_float, /,POWEROF2_OPT(name, >>),if(bin->rhs->d.prim.d.num == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+BINARY_FLOAT_INT_FOLD(mul,  et_float, *,/*POWEROF2_OPT(name, <<)*/,)
+BINARY_FLOAT_INT_FOLD(div,  et_float, /,/*POWEROF2_OPT(name, >>)*/,if(bin->rhs->d.prim.d.num == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
 
 BINARY_FLOAT_INT_FOLD2(gt,   et_bool, >,,)
 BINARY_FLOAT_INT_FOLD2(ge,   et_bool, >=,,)
@@ -440,8 +440,8 @@ static GWION_IMPORT(time) {
 
 BINARY_FLOAT_FOLD(add, et_float, +,,)
 BINARY_FLOAT_FOLD(sub, et_float, -,,)
-BINARY_FLOAT_FOLD(mul, et_float, *,POWEROF2_OPT(name, <<),)
-BINARY_FLOAT_FOLD(div, et_float, /,POWEROF2_OPT(name, >>),if(bin->rhs->d.prim.d.fnum == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
+BINARY_FLOAT_FOLD(mul, et_float, *,/*POWEROF2_OPT(name, <<)*/,)
+BINARY_FLOAT_FOLD(div, et_float, /,/*POWEROF2_OPT(name, >>)*/,if(bin->rhs->d.prim.d.fnum == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
 //BINARY_FLOAT_FOLD(mod, et_float, %,, if(bin->rhs->d.prim.d.fnum == 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException")))
 BINARY_FLOAT_FOLD2(and, et_bool, &&,,)
 BINARY_FLOAT_FOLD2(or,  et_bool, ||,,)
