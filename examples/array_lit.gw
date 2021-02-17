@@ -8,7 +8,7 @@ var Object p[2][3];
 var Object r[2][3][4];
 var Object s[2][3][4][5];
 var Object t[2][12][3][4][5];
-[1,2,3,4] @=> i;
+[1,2,3,4] => i;
 var int k[1][1];
 
 

@@ -6,4 +6,4 @@ class C
 
 var C c[1];
 var C d[2][4];
-c => d;
+c :=> d;

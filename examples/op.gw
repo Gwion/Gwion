@@ -10,7 +10,7 @@ class C {
 
 #!! assign object to C.ref
 operator void => (Object o, C c) {
-  o @=> c.ref_object;
+  o => c.ref_object;
   <<< "success" >>>;
 }
 

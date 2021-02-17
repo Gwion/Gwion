@@ -1,4 +1,4 @@
-adc => var Gain g => dac;
+adc ~> var Gain g ~> dac;
 g.chan(0);
 spork  { while(true) { g.gain() == (.2 ? .2 : .1) => g.gain; .15::second => now; }};
 for(var int i; i < 5; i++) {

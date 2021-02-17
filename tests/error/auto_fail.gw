@@ -1,2 +1,2 @@
 #! [contains] no match found for operator
-var int i => var auto ae @=> var auto A;
+var int i => var auto ae :=> var auto A;

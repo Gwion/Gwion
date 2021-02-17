@@ -190,7 +190,7 @@ static OP_CHECK(opck_array_at) {
   if(bin->rhs->exp_type == ae_exp_decl) {
     if(bin->rhs->d.exp_decl.list->self->array &&
           bin->rhs->d.exp_decl.list->self->array->exp)
-      ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx @=> declaration'."))
+      ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx => declaration'."))
   }
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
@@ -506,7 +506,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
