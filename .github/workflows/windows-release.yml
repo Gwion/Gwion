@@ -10,6 +10,9 @@ jobs:
     name: Windows Release
     runs-on: windows-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    env:
+      CC: gcc
+      BUILD_ON_WINDOWS: 1 
 
     steps:
     - name: clone Gwion
@@ -20,8 +23,6 @@ jobs:
 
     - name: Build
       run: make
-      env:
-        BUILD_ON_WINDOWS: 1 
 
     - name: Create Release                                                                                                                                                                
       id: create_release                                                                                                                                                                  
