@@ -151,7 +151,7 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/SenorGrande"><img src="https://avatars2.githubusercontent.com/u/22025776?v=4" width="100px;" alt=""/><br /><sub><b>Connor Hewett</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=SenorGrande" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/euppal"><img src="https://avatars2.githubusercontent.com/u/67026187?v=4" width="100px;" alt=""/><br /><sub><b>Ethan Uppal</b></sub></a><br /><a href="https://github.com/euppal"</a></td>
+    <td align="center"><a href="https://github.com/euppal"><img src="https://avatars2.githubusercontent.com/u/67026187?v=4" width="100px;" alt=""/><br /><sub><b>Ethan Uppal</b></sub></a><br /><a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
