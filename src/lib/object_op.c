@@ -98,8 +98,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
   const Func f = exp_self(member)->type->info->func;
   if(f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
-else
-  if(is_class(emit->gwion, member->base->type) || member->base->exp_type == ae_exp_cast) {
+  else if(GET_FLAG(member->base->type, final) || is_class(emit->gwion, member->base->type) || member->base->exp_type == ae_exp_cast) {
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val = (m_uint)f->code ?: (m_uint)f;
     return;
