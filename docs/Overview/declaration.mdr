@@ -15,7 +15,7 @@ var Object o;
 @``` decl1.gw
 late Object object_ref;
 <<< "Reference points to no object yet: ", object_ref >>>;
-new Object @=> object_ref;
+new Object => object_ref;
 <<< "But now it does: ", object_ref >>>;
 @```
 @hide make -s decl1.test
@@ -27,7 +27,7 @@ new Object @=> object_ref;
 @``` decl2.gw
 var int array_ref[];
 <<< array_ref >>>;
-new int[2] @=> array_ref;
+new int[2] => array_ref;
 <<< array_ref >>>;
 @```
 @hide make -s decl2.test
