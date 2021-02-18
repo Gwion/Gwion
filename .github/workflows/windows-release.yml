@@ -38,7 +38,7 @@ jobs:
         prerelease: false       
 
     - name: Compress
-      run: tar -czvf windows.tar.gz ./gwion
+      run: tar -czvf windows.tar.gz ./gwion.exe
 
     - name: Upload Release Asset
       id: upload-release-asset 
