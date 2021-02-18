@@ -29,7 +29,6 @@ describe_logical(Neq, !=)
 
 static OP_CHECK(opck_object_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-printf("HERE %s\n", env->name);
   if(opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if(bin->rhs->exp_type == ae_exp_decl)
