@@ -29,6 +29,7 @@ describe_logical(Neq, !=)
 
 static OP_CHECK(opck_object_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
+printf("HERE %s\n", env->name);
   if(opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if(bin->rhs->exp_type == ae_exp_decl)
@@ -316,7 +317,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_at))
   GWI_BB(gwi_oper_emi(gwi, opem_object_at))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==",  EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))

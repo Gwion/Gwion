@@ -195,6 +195,6 @@ GWION_IMPORT(ptr) {
   GWI_BB(gwi_oper_ini(gwi, "Ptr", "Ptr", "Ptr"))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_ref))
 //  GWI_BB(gwi_oper_emi(gwi, opem_ptr_ref))
-  GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
+  GWI_BB(gwi_oper_end(gwi, "=>", int_r_assign))
   return GW_OK;
 }

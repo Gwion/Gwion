@@ -1,2 +1,2 @@
-adc => dac;
-adc =< dac;
+adc ~> dac;
+adc ~< dac;

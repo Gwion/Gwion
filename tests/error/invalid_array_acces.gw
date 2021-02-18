@@ -1,3 +1,3 @@
 #! [contains] invalid array acces expression
 var int j[];
-j[1,2,3,4] @=> i;
+j[1,2,3,4] => i;

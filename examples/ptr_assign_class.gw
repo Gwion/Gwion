@@ -2,7 +2,7 @@ class C {
 	funcdef void Test();
 	fun void test1(){};
   var Test test0;
-	<<< test1 @=> test0 >>>;
+	<<< test1 => test0 >>>;
 }
 
 var C c;

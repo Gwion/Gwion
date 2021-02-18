@@ -2,8 +2,8 @@
 var Event e;
 spork { e => now; };
 spork { samp => now; 4::samp => now;};
-spork { 5::samp => now;} @=> var Shred s;
-spork { samp => now; 4::samp => now; } @=> var Shred t;
+spork { 5::samp => now;} => var Shred s;
+spork { samp => now; 4::samp => now; } => var Shred t;
 spork { 2::samp => now; me.exit(); };
 spork { new Object; <<< "garbage collect me"  >>>; 3::samp => now; };
 2::samp => now;
