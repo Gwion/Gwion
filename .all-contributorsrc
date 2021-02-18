@@ -151,6 +151,15 @@
         "code"
       ]
     }
+    {
+      "login": "euppal",
+      "name": "Ethan Uppal",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/?v=67026187?v=4",
+      "profile": "https://github.com/euppal",
+      "contributions": [
+        "ideas"
+      ]
+    }
   ],
   "contributorsPerLine": 7,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",

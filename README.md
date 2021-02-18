@@ -5,7 +5,7 @@
 [![Coverage](https://raw.githubusercontent.com/Gwion/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/Gwion/Gwion)](https://github.com/fennecdjay/Gwion)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-16-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/Gwion/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/Gwion/Gwion/workflows/MacOs/badge.svg)
@@ -151,6 +151,7 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/SenorGrande"><img src="https://avatars2.githubusercontent.com/u/22025776?v=4" width="100px;" alt=""/><br /><sub><b>Connor Hewett</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=SenorGrande" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/euppal"><img src="https://avatars2.githubusercontent.com/u/67026187?v=4" width="100px;" alt=""/><br /><sub><b>Ethan Uppal</b></sub></a><br /><a href="https://github.com/euppal"</a></td>
   </tr>
 </table>
 
