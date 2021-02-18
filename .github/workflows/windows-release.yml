@@ -38,7 +38,7 @@ jobs:
         prerelease: false       
 
     - name: Compress
-      run: zip ./gwion.exe windows.zip
+      run: 7za windows.zip gwion.exe
 
     - name: Upload Release Asset
       id: upload-release-asset 
