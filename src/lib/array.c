@@ -172,6 +172,13 @@ static MFUN(vm_vector_cap) {
   *(m_uint*)RETURN = ARRAY_CAP(ARRAY(o));
 }
 
+static MFUN(vm_vector_random) {
+  const M_Vector array = ARRAY(o);
+  const m_uint sz = ARRAY_LEN(array);
+  const m_uint idx = (m_int)(sz) * (gw_rand(shred->info->vm->rand) / (UINT32_MAX + 1.0));
+  m_vector_get(array, idx, (void*)RETURN);
+}
+
 #define ARRAY_OPCK(a, b, pos)                  \
   const Type l = array_base(a->type);          \
   const Type r = array_base(b->type);          \
@@ -393,6 +400,7 @@ ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, co
   array_finish(emit, array->depth, array->type->size, is_var);
   return GW_OK;
 }
+
 ANN static inline Exp emit_n_exp(const Emitter emit,  struct ArrayAccessInfo *const info) {
   const Exp e = take_exp(info->array.exp, info->array.depth);
   const Exp next = e->next;
@@ -457,6 +465,7 @@ static OP_CHECK(opck_array_scan) {
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 2), vm_vector_size);
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 3), vm_vector_depth);
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 4), vm_vector_cap);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 5), vm_vector_random);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
     set_tflag(t, tflag_dtor);
@@ -503,7 +512,11 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_ini(gwi, "int", "cap"))
   GWI_BB(gwi_func_end(gwi, vm_vector_cap, ae_flag_none))
 
+  GWI_BB(gwi_func_ini(gwi, "T", "random"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_random, ae_flag_none))
+
   GWI_BB(gwi_class_end(gwi))
+
   GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
