@@ -1255,7 +1255,7 @@ ANN static inline Instr scoped_ini(const Emitter emit) {
 
 ANN static inline void scoped_end(const Emitter emit, const Instr gc) {
   emit_pop_scope(emit);
-  const m_bool pure = !vector_back(&emit->info->pure);
+  const m_bool pure = vector_size(&emit->info->pure) && !vector_back(&emit->info->pure);
   if(!pure) {
     gc->opcode = eGcIni;
     emit_add_instr(emit, GcEnd);
@@ -1788,7 +1788,10 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   tomem->m_val = offset;
   const Instr s1 = emit_add_instr(emit, MemSetImm);
   s1->m_val = offset + SZ_INT;
-  stmt->v->from->offset = offset + SZ_INT*2;
+  const Instr loop_idx = emit_add_instr(emit, MemSetImm);
+  loop_idx->m_val = offset + SZ_INT;
+  loop_idx->m_val2 = -1;
+  stmt->v->from->offset = offset + SZ_INT *2;
   if(stmt->idx)
     stmt->vidx->from->offset = offset + SZ_INT;
   if(n) {
