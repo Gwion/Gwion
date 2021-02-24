@@ -732,8 +732,8 @@ autounrollinit:
   *(m_uint*)(mem + VAL) = m_vector_size(ARRAY(*(M_Object*)(mem+VAL+SZ_INT)));
   DISPATCH()
 autoloop:
-  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL-SZ_INT)), *(m_uint*)(mem + VAL));
-  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(mem+VAL-SZ_INT))) - (*(m_uint*)(mem + VAL))++;
+  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL-SZ_INT)), *(m_uint*)(mem + VAL) + 1);
+  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(mem+VAL-SZ_INT))) - (*(m_uint*)(mem + VAL))++ -1;
   DISPATCH()
 arraytop:
   if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
