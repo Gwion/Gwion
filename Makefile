@@ -55,10 +55,11 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-GWLIBS = lib${PRG}.a ast/libgwion_ast.a util/libgwion_util.a libcmdapp/libcmdapp.a
+_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a
+GWLIBS = lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a util/libgwion_util.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
-all: options-show ${GWLIBS} src/main.o
+all: options-show ${_GWLIBS} src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
 
