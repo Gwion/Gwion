@@ -9,6 +9,7 @@ typedef struct Arg_ {
   struct Vector_ config;
   struct SoundInfo_ *si;
   m_bool loop;
+  m_bool quit;
 } Arg;
 
 ANN void arg_release(Arg*);

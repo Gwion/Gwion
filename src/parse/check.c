@@ -21,7 +21,7 @@ ANN static Type check_internal(const Env env, const Symbol sym,
       const Exp e, const Type t) {
   struct Implicit imp = { .e=e, .t=t, .pos=e->pos };
   struct Op_Import opi = { .op=sym, .lhs=e->type,
-        .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos, .op_type=op_implicit };
+        .rhs=t, .data=(uintptr_t)&imp, .pos=e->pos };
   return op_check(env, &opi);
 }
 
@@ -214,7 +214,7 @@ ANN static Type check_prim_range(const Env env, Range **data) {
   CHECK_BO(check_range(env, range))
   const Exp e = range->start ?: range->end;
   const Symbol sym = insert_symbol("@range");
-  struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data), .op_type=op_exp };
+  struct Op_Import opi = { .op=sym, .rhs=e->type, .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
   return op_check(env, &opi);
 }
 
@@ -260,7 +260,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
 
 ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->base->type, .data=(uintptr_t)member,
-    .pos=exp_self(member)->pos, .op_type=op_dot };
+    .pos=exp_self(member)->pos };
   return op_check(env, &opi);
 }
 
@@ -366,7 +366,7 @@ ANN static Type check_prim(const Env env, Exp_Primary *prim) {
 ANN Type check_array_access(const Env env, const Array_Sub array) {
   const Symbol sym = insert_symbol("@array");
   struct Op_Import opi = { .op=sym, .lhs=array->exp->type, .rhs=array->type,
-    .pos=array->exp->pos, .data=(uintptr_t)array, .op_type=op_array };
+    .pos=array->exp->pos, .data=(uintptr_t)array };
   return op_check(env, &opi);
 }
 
@@ -382,7 +382,7 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice* range) {
   const Symbol sym = insert_symbol("@slice");
   const Exp e = range->range->start ?: range->range->end;
   struct Op_Import opi = { .op=sym, .lhs=e->type, .rhs=range->base->type,
-    .pos=e->pos, .data=(uintptr_t)exp_self(range), .op_type=op_exp };
+    .pos=e->pos, .data=(uintptr_t)exp_self(range) };
   return op_check(env, &opi);
 }
 
@@ -668,7 +668,7 @@ ANN m_bool func_check(const Env env, const Exp_Call *exp) {
   const Type t = actual_type(env->gwion, exp->func->type);
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
-  .rhs=t, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
+  .rhs=t, .pos=e->pos, .data=(uintptr_t)e };
   CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
   if(e->exp_type != ae_exp_call)
     return 0;
@@ -683,7 +683,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
   const Type t = actual_type(env->gwion, exp->func->type);
   if(isa(t, env->gwion->type[et_function]) < 0) { // use func flag?
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=actual_type(env->gwion, exp->func->type),
-      .data=(uintptr_t)exp, .pos=exp_self(exp)->pos, .op_type=op_exp };
+      .data=(uintptr_t)exp, .pos=exp_self(exp)->pos };
     const Type t = op_check(env, &opi);
     return t;
   }
@@ -716,7 +716,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
   if(is_auto)
     bin->rhs->type = bin->lhs->type;
   struct Op_Import opi = { .op=bin->op, .lhs=bin->lhs->type,
-    .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos, .op_type=op_binary };
+    .rhs=bin->rhs->type, .data=(uintptr_t)bin, .pos=exp_self(bin)->pos };
   exp_setuse(bin->lhs, 1);
   exp_setuse(bin->rhs, 1);
   const Type ret = op_check(env, &opi);
@@ -729,13 +729,13 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
   DECL_OO(const Type, t, = check_exp(env, cast->exp))
   CHECK_OO((exp_self(cast)->type = known_type(env, cast->td)))
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->type,
-    .data=(uintptr_t)cast, .pos=exp_self(cast)->pos, .op_type=op_cast };
+    .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
   return op_check(env, &opi);
 }
 
 ANN static Type check_exp_post(const Env env, const Exp_Postfix* post) {
   struct Op_Import opi = { .op=post->op, .lhs=check_exp(env, post->exp),
-    .data=(uintptr_t)post, .pos=exp_self(post)->pos, .op_type=op_postfix };
+    .data=(uintptr_t)post, .pos=exp_self(post)->pos };
   CHECK_OO(opi.lhs)
   exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
@@ -792,7 +792,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
     exp_setuse(unary->exp, 1);
   }
   struct Op_Import opi = { .op=unary->op, .rhs=rhs,
-    .data=(uintptr_t)unary, .pos=exp_self(unary)->pos, .op_type=op_unary };
+    .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
   DECL_OO(const Type, ret, = op_check(env, &opi))
   const Type t = actual_type(env->gwion, ret);
   CHECK_BO(ensure_traverse(env, t))
@@ -802,7 +802,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
 ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
   DECL_OO(const Type, type, = check_exp(env, e))
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
-    .rhs=type, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
+    .rhs=type, .pos=e->pos, .data=(uintptr_t)e };
   return op_check(env, &opi);
 }
 #define check_flow(emit,b) _flow(emit, b, 1)
@@ -1059,7 +1059,7 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
       struct Exp_ ebin = { .d={.exp_binary=bin} };
       struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type,
-        .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos, .op_type=op_binary };
+        .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
       CHECK_OB(op_check(env, &opi))
     }
   }

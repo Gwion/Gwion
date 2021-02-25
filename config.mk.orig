@@ -1,7 +1,6 @@
 # handle base options
 PRG ?=gwion
 PREFIX ?=/usr/local
-CFLAGS += -Iutil/include -Iast/include -D_GNU_SOURCE
 
 # base plugin directories
 GWPLUG_DIR   ?= $(shell echo ~/.gwplug)

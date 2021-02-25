@@ -20,25 +20,12 @@ struct Op_Func {
   opem em;
 };
 
-enum op_type {
-  op_implicit,
-  op_exp,
-  op_dot,
-  op_array,
-  op_binary,
-  op_cast,
-  op_postfix,
-  op_unary,
-  op_scan
-};
-
 struct Op_Import {
   Type lhs, rhs, ret;
   const struct Op_Func *func;
   uintptr_t data;
   loc_t pos;
   Symbol op;
-  enum op_type op_type;
 };
 
 struct Implicit {

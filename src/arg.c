@@ -7,8 +7,19 @@
 #include "arg.h"
 #include "pass.h"
 #include "compile.h"
+#include "cmdapp.h"
 
 #define GWIONRC ".gwionrc"
+
+enum {
+  CONFIG, PLUGIN, MODULE,
+  LOOP, PASS, STDIN,
+// sound options
+  DRIVER, SRATE, INPUT, OUTPUT,
+// pp options
+  DEFINE, UNDEF, INCLUDE,
+  NOPTIONS
+};
 
 /* use before MemPool allocation */
 ANN static inline void config_end(const Vector config) {
@@ -79,32 +90,15 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
   }
 }
 
-static const char usage[] =
-"usage: Gwion <options>\n"
-"  -h              : this help\n"
-"  -c     <file>   : load config\n"
-"  -p     <path>   : add a plugin directory\n"
-"  -s    <number>  : set samplerate\n"
-"  -i    <number>  : set input channel number\n"
-"  -o    <number>  : set output channel number\n"
-"  -d    <number>  : set driver (and arguments)\n"
-"  -l    <number>  : set loop mode\n"
-"  -m   <mod:args> : load module (and arguments)\n"
-"  -g   <mod:args> : set Gwion compiler passes order\n";
-
-ANN static void config_parse(const Gwion, Arg*, const m_str);
-
-#define ARG2INT(a) strtol(a, NULL, 10)
-
-ANN2(1) static inline void arg_set_pass(const Gwion gwion, const m_str str) {
-  const Vector v = split_args(gwion->mp, str);
+ANN2(1) static inline void arg_set_pass(const Gwion gwion, const char *str) {
+  const Vector v = split_args(gwion->mp, (const m_str)str);
   pass_set(gwion, v);
   for(m_uint i = 0; i < vector_size(v); ++i)
     free_mstr(gwion->mp, (m_str)vector_at(v, i));
   free_vector(gwion->mp, v);
 }
 
-ANN2(1) static void module_arg(const Map map, m_str str) {
+ANN2(1) static void module_arg(const Map map, const char *str) {
   m_str val = strchr(str, '=');
   if(val) {
     *val = '\0';
@@ -113,80 +107,78 @@ ANN2(1) static void module_arg(const Map map, m_str str) {
   map_set(map, (vtype)str, (vtype)val);
 }
 
-ANN m_bool _arg_parse(const Gwion gwion, Arg* arg) {
-  struct CArg *ca = &arg->arg;
-  for(ca->idx = 1; ca->idx < ca->argc; ++ca->idx) {
-    if(ca->argv[ca->idx][0] == '-') {
-      m_str tmp;
-      switch(ca->argv[ca->idx][1]) {
-        case 'h':
-          gw_err(usage);
-          break;
-        case 'c':
-          CHECK_OB((tmp = option_argument(ca)))
-          config_parse(gwion, arg, tmp);
-          break;
-        case 'p':
-          CHECK_OB((tmp = option_argument(ca)))
-          vector_add(&arg->lib, (vtype)tmp);
-          break;
-        case 'm':
-          CHECK_OB((tmp = option_argument(ca)))
-          module_arg(&arg->mod, tmp);
-          break;
-        case 'l':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg->loop = (m_bool)ARG2INT(tmp) > 0 ? 1 : -1;
-          break;
-        case 'i':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg->si->in = (uint8_t)ARG2INT(tmp);
-          break;
-        case 'o':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg->si->out = (uint8_t)ARG2INT(tmp);
-          break;
-        case 's':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg->si->sr = (uint32_t)ARG2INT(tmp);
-          break;
-        case 'd':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg->si->arg = tmp;
-          break;
-        case 'g':
-          CHECK_OB((tmp = option_argument(ca)))
-          arg_set_pass(gwion, tmp);
-          break;
-        case '\0':
-          vector_add(&arg->add, (vtype)ARG_STDIN);
-          break;
-        case 'D':
-          CHECK_OB((tmp = option_argument(ca)))
-          vector_add(&arg->add, (vtype)ARG_DEFINE);
-          vector_add(&arg->add, (vtype)tmp);
-          break;
-        case 'U':
-          CHECK_OB((tmp = option_argument(ca)))
-          vector_add(&arg->add, (vtype)ARG_UNDEF);
-          vector_add(&arg->add, (vtype)tmp);
-          break;
-        case 'I':
-          CHECK_OB((tmp = option_argument(ca)))
-          vector_add(&arg->add, (vtype)ARG_INCLUDE);
-          vector_add(&arg->add, (vtype)tmp);
-          break;
-        default:
-          gw_err(_("invalid arguments"));
-          return GW_ERROR;
-      }
-    } else
-{
-      vector_add(&arg->add, (vtype)ARG_FILE);
-      vector_add(&arg->add, (vtype)ca->argv[ca->idx]);
+static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
+    cmdapp_set(app,
+        'c', "config",
+        CMDOPT_TAKESARG, NULL,
+        "parse a config file", &opt[CONFIG]
+    );
+    cmdapp_set(app,
+        'p', "plugdir",
+        CMDOPT_TAKESARG, NULL,
+        "add ARG to the plugin search path", &opt[PLUGIN]
+    );
+    cmdapp_set(app,
+        'm', "module",
+        CMDOPT_TAKESARG, NULL,
+        "activate module (and arguments)", &opt[MODULE]
+    );
+    cmdapp_set(app,
+        'l', "loop",
+        CMDOPT_TAKESARG, NULL,
+        "set loop mode", &opt[LOOP]
+    );
+    cmdapp_set(app,
+        'g', "passes",
+        CMDOPT_TAKESARG, NULL,
+        "set pass order", &opt[PASS]
+    );
+    cmdapp_set(app,
+        '\0', "stdin",
+        CMDOPT_OPTIONAL, NULL,
+        "read from stdin", &opt[STDIN]
+    );
+// sound options
+    cmdapp_set(app,
+        'd', "driver",
+        CMDOPT_TAKESARG, NULL,
+        "set driver (and arguments)", &opt[DRIVER]
+    );
+    cmdapp_set(app,
+        's', "samplerate",
+        CMDOPT_TAKESARG, NULL,
+        "set the samplerate", &opt[SRATE]
+    );
+    cmdapp_set(app,
+        'i', "input",
+        CMDOPT_TAKESARG, NULL,
+        "number of input channel", &opt[INPUT]
+    );
+    cmdapp_set(app,
+        'o', "output",
+        CMDOPT_TAKESARG, NULL,
+        "number of output channel", &opt[OUTPUT]
+    );
+    cmdapp_set(app,
+        'D', "define",
+        CMDOPT_TAKESARG, NULL,
+        "define a macro", &opt[DEFINE]
+    );
+    cmdapp_set(app,
+        'U', "undef",
+        CMDOPT_TAKESARG, NULL,
+        "undefine a macro", &opt[UNDEF]
+    );
+    cmdapp_set(app,
+        'I', "include",
+        CMDOPT_TAKESARG, NULL,
+        "add ARG to include path", &opt[INCLUDE]
+    );
 }
-  }
-  return GW_OK;
+
+static inline void add2arg(Arg *const arg, const char *data, const enum arg_type type) {
+  vector_add(&arg->add, type);
+  vector_add(&arg->add, (vtype)data);
 }
 
 ANN static void split_line(const m_str line, const Vector v) {
@@ -201,7 +193,8 @@ ANN static void split_line(const m_str line, const Vector v) {
   xfree(c);
 }
 
-ANN static Vector get_config(const m_str name) {
+
+ANN static Vector get_config(const char *name) {
   char *line = NULL;
   size_t len = 0;
   ssize_t nread;
@@ -219,30 +212,121 @@ ANN static Vector get_config(const m_str name) {
   return v;
 }
 
-ANN static void config_parse(const Gwion gwion, Arg* arg, const m_str name) {
+struct ArgInternal {
+  const Gwion gwion;
+  Arg *arg;
+};
+
+ANN m_bool _arg_parse(struct ArgInternal* arg);
+
+ANN static void config_parse(struct ArgInternal* arg, const char *name) {
   const Vector v = get_config(name);
   if(v) {
-    struct CArg ca = arg->arg;
-    arg->arg.argc = vector_size(v);
-    arg->arg.argv =  (m_str*)(v->ptr + OFFSET);
-    _arg_parse(gwion, arg);
-    arg->arg = ca;
-    vector_add(&arg->config, (vtype)v);
+    struct CArg ca = arg->arg->arg;
+    arg->arg->arg.argc = vector_size(v);
+    arg->arg->arg.argv =  (m_str*)(v->ptr + OFFSET);
+    _arg_parse(arg);
+    arg->arg->arg = ca;
+    vector_add(&arg->arg->config, (vtype)v);
   }
 }
 
-ANN static void config_default(const Gwion gwion , Arg* arg) {
+#define ARG2INT(a) strtol(a, NULL, 10)
+
+static void myproc(void *data, cmdopt_t* option, const char* arg) {
+  struct ArgInternal *arg_int = data;
+  Arg *_arg = arg_int->arg;
+  if(arg) {
+    if(!_arg->arg.idx)
+      _arg->arg.idx++;
+    else
+      add2arg(_arg, arg, ARG_FILE);
+  } else {
+    switch(option->shorto) {
+      case 'p':
+        vector_add(&_arg->lib, (vtype)option->value);
+        break;
+      case 'm':
+        module_arg(&_arg->mod, option->value);
+        break;
+      case 'c':
+        config_parse(arg_int, option->value);
+        break;
+      case 'l':
+        _arg->loop = (m_bool)ARG2INT(option->value) > 0 ? 1 : -1;
+        break;
+      case 'g':
+        arg_set_pass(arg_int->gwion, option->value);
+        break;
+      case '\0':
+        vector_add(&_arg->add, (vtype)ARG_STDIN);
+        break;
+// sound options
+        case 's':
+          _arg->si->sr = (uint32_t)ARG2INT(option->value);
+          break;
+        case 'd':
+          _arg->si->arg = (m_str)option->value;
+          break;
+        case 'i':
+          _arg->si->in = (uint8_t)ARG2INT(option->value);
+          break;
+        case 'o':
+          _arg->si->out = (uint8_t)ARG2INT(option->value);
+          break;
+// pp options
+        case 'D':
+          add2arg(_arg, option->value, ARG_DEFINE);
+          break;
+        case 'U':
+          add2arg(_arg, option->value, ARG_UNDEF);
+          break;
+        case 'I':
+          add2arg(_arg, option->value, ARG_INCLUDE);
+          break;
+    }
+  }
+}
+
+ANN m_bool _arg_parse(struct ArgInternal *arg) {
+  cmdapp_t app;
+  const cmdapp_info_t info = {
+        .program = "gwion",
+        .synopses = NULL, // so it's automatic
+        .version = "N.A.",
+        .author = "Jérémie Astor",
+        .year = 2016,
+        .description = "Strongly timed musical programming language.",
+        .help_des_offset = 28,
+        .ver_extra =
+        "License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>\n"
+        "This is free software: you are free to change and redistribute it.\n"
+        "There is NO WARRANTY, to the extent permitted by law.\n"
+  };
+  struct CArg *ca = &arg->arg->arg;
+  cmdapp_init(&app, ca->argc, ca->argv, CMDAPP_MODE_SHORTARG, &info);
+  cmdapp_enable_procedure(&app, myproc, arg);
+  cmdopt_t opt[NOPTIONS];
+  setup_options(&app, opt);
+  if(cmdapp_run(&app) == EXIT_SUCCESS && cmdapp_should_exit(&app))
+     arg->arg->quit = 1;
+  cmdapp_destroy(&app);
+  return GW_OK;
+}
+
+ANN static void config_default(struct ArgInternal* arg) {
   char* home = getenv("HOME");
   char c[strlen(home) + strlen(GWIONRC) + 2];
   sprintf(c, "%s/%s", home, GWIONRC);
-  config_parse(gwion, arg, c);
+  config_parse(arg, c);
 }
 
 ANN m_bool arg_parse(const Gwion gwion, Arg* a) {
+  struct ArgInternal arg = { .gwion=gwion, .arg=a };
   arg_init(a);
 #ifdef __FUZZING
   return;
 #endif
-  config_default(gwion, a);
-  return _arg_parse(gwion, a);
+  config_default(&arg);
+  return _arg_parse(&arg);
 }

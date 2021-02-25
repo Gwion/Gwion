@@ -92,7 +92,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   CHECK_BB(arg_parse(gwion, arg))
-  return gwion_ok(gwion, arg);
+  return !arg->quit ? gwion_ok(gwion, arg) : GW_ERROR;
 }
 
 ANN void gwion_run(const Gwion gwion) {

@@ -20,6 +20,9 @@ test_ignore = tests/plug test/driver tests/module
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
 
+
+CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
+
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif
@@ -52,10 +55,10 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-GWLIBS = lib${PRG}.a ast/libgwion_ast.a util/libgwion_util.a
+GWLIBS = lib${PRG}.a ast/libgwion_ast.a util/libgwion_util.a libcmdapp/libcmdapp.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
-all: options-show util/libgwion_util.a ast/libgwion_ast.a lib${PRG}.a src/main.o
+all: options-show ${GWLIBS} src/main.o
 	$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
 
@@ -73,6 +76,9 @@ util: util/libgwion_util.a
 
 ast/libgwion_ast.a:
 	@+GWION_PACKAGE= ${MAKE} -s -C ast
+
+libcmdapp/libcmdapp.a:
+	@+${MAKE} -s -C libcmdapp static
 
 ast: ast/libgwion_ast.a
 	@(info build ast)

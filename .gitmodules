@@ -11,3 +11,6 @@
 	path = ast
 	url = https://github.com/Gwion/gwion-ast
 	active = true
+[submodule "libcmdapp"]
+	path = libcmdapp
+	url = https://github.com/euppal/libcmdapp

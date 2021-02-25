@@ -52,7 +52,7 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - run: |
-        git submodule update --init util ast
+        git submodule update --init util ast libcmdapp
         make
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)

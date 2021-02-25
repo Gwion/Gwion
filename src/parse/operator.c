@@ -164,7 +164,7 @@ for(int i = 0; i < 2; ++i) {
       continue;
     Type l = opi->lhs;
     do {
-      struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data, .op_type=opi->op_type };
+      struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
       struct OpChecker ock = { env, &nspc->info->op_map, &opi2 };
       const Type ret = op_check_inner(&ock, i);
       if(ret) {

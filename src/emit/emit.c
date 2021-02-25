@@ -557,7 +557,7 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   const Exp e = range->start ?: range->end;
   const Symbol sym = insert_symbol("@range");
   struct Op_Import opi = { .op=sym, .rhs=e->type,
-    .pos=e->pos, .data=(uintptr_t)prim_exp(data), .op_type=op_exp };
+    .pos=e->pos, .data=(uintptr_t)prim_exp(data) };
   CHECK_BB(op_emit(emit, &opi))
   emit_gc(emit, -SZ_INT);
   return GW_OK;
@@ -570,7 +570,7 @@ ANN m_bool emit_array_access(const Emitter emit, struct ArrayAccessInfo *const i
   }
   // look mum no pos
   struct Op_Import opi = { .op=insert_symbol("@array"), .lhs=info->array.exp->type, .rhs=info->array.type,
-    .data=(uintptr_t)info, .op_type=op_array };
+    .data=(uintptr_t)info };
   if(!info->is_var && (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val = -SZ_INT;
@@ -591,7 +591,7 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice* range) {
   const Symbol sym = insert_symbol("@slice");
   const Exp e = range->range->start ?: range->range->end;
   struct Op_Import opi = { .op=sym, .lhs=e->type, .rhs=range->base->type,
-    .pos=e->pos, .data=(uintptr_t)exp_self(range), .op_type=op_exp };
+    .pos=e->pos, .data=(uintptr_t)exp_self(range) };
   return op_emit(emit, &opi);
 }
 
@@ -928,7 +928,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
     CHECK_BB(emit_exp_call1(emit, t->info->func))
   else {
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=t,
-      .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos, .op_type=op_exp };
+      .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos };
     CHECK_BB(op_emit(emit, &opi))
   }
   const Exp e = exp_self(exp_call);
@@ -990,14 +990,14 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
 //  emit_exp_addref1(emit, lhs, -exp_size(lhs) - size);
 //  emit_exp_addref1(emit, rhs, -size);
   struct Op_Import opi = { .op=bin->op, .lhs=lhs->type, .rhs=rhs->type,
-    .pos=exp_self(bin)->pos, .data=(uintptr_t)bin, .op_type=op_binary };
+    .pos=exp_self(bin)->pos, .data=(uintptr_t)bin };
   return op_emit(emit, &opi);
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
   // no pos ?
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=cast->exp->type, .rhs=exp_self(cast)->type,
-    .data=(uintptr_t)cast, .op_type=op_cast};
+    .data=(uintptr_t)cast };
   CHECK_BB(emit_exp(emit, cast->exp))
   (void)op_emit(emit, &opi);
   return GW_OK;
@@ -1006,7 +1006,7 @@ ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
 ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
   // no pos ?
   struct Op_Import opi = { .op=post->op, .lhs=post->exp->type,
-    .data=(uintptr_t)post, .op_type=op_postfix };
+    .data=(uintptr_t)post };
   CHECK_BB(emit_exp(emit, post->exp))
   return op_emit(emit, &opi);
 }
@@ -1130,7 +1130,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg_List arg) {
   const Symbol sym = insert_symbol("==");
   struct Exp_ exp = {};
   struct Op_Import opi = { .op=sym, .lhs=arg->type, .rhs=arg->type,
-    .pos=me->fdef->pos, .data=(uintptr_t)&exp.d, .op_type=op_binary };
+    .pos=me->fdef->pos, .data=(uintptr_t)&exp.d };
   CHECK_BB(op_emit(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(&me->branch, (vtype)instr);
@@ -1373,7 +1373,7 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary* unary) {
   const Type base = actual_type(emit->gwion, t);
   CHECK_BB(ensure_emit(emit, base))
   // no pos ?
-  struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary, .op_type=op_unary };
+  struct Op_Import opi = { .op=unary->op, .data=(uintptr_t)unary };
   if(unary->unary_type == unary_exp && unary->op != insert_symbol("spork") && unary->op != insert_symbol("fork")) {
     CHECK_BB(emit_exp_pop_next(emit, unary->exp))
     opi.rhs = unary->exp->type;
@@ -1386,7 +1386,7 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
   const struct Implicit imp = { from, to, from->pos };
   // no pos
   struct Op_Import opi = { .op=insert_symbol("@implicit"), .lhs=from->type, .rhs=to,
-    .data=(m_uint)&imp, .op_type=op_implicit };
+    .data=(m_uint)&imp };
   return op_emit(emit, &opi);
 }
 
@@ -1394,7 +1394,7 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e))
   emit_exp_addref1(emit, e, -exp_size(e));
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
-                           .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e, .op_type=op_exp };
+                           .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e };
   CHECK_BO(op_emit(emit, &opi))
   return (Instr)vector_back(&emit->code->instr);
 }
@@ -1896,7 +1896,7 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=op };
   struct Exp_ ebin = { .d={.exp_binary=bin}, };
   struct Op_Import opi = { .op=op, .lhs=base->type, .rhs=e->type,
-    .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos, .op_type=op_binary };
+    .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
   CHECK_BB(op_emit(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(v, (vtype)instr);
@@ -1975,7 +1975,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e, const
   const Exp_Binary bin = { .lhs=base, .rhs=e, .op=insert_symbol("==") };
   struct Exp_ ebin = { .d={.exp_binary=bin}, };
   struct Op_Import opi = { .op=insert_symbol("=="), .lhs=base->type, .rhs=e->type,
-    .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos, .op_type=op_binary };
+    .data=(uintptr_t)&ebin.d.exp_binary, .pos=e->pos };
   CHECK_BO(op_emit(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(vec, (vtype)instr);
@@ -2079,7 +2079,7 @@ ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
 
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member) {
   struct Op_Import opi = { .op=insert_symbol("@dot"), .lhs=member->base->type,
-    .rhs=exp_self(member)->type, .data=(uintptr_t)member, .pos=exp_self(member)->pos, .op_type=op_dot };
+    .rhs=exp_self(member)->type, .data=(uintptr_t)member, .pos=exp_self(member)->pos };
   return op_emit(emit, &opi);
 }
 

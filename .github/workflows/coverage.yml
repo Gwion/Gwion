@@ -22,7 +22,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Init submodules
-      run: git submodule update --init util ast
+      run: git submodule update --init util ast libcmdapp
 
     - name: Build Gwion
       run: make
