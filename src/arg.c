@@ -15,7 +15,7 @@ enum {
   CONFIG, PLUGIN, MODULE,
   LOOP, PASS, STDIN,
 // sound options
-  DRIVER, SRATE, INPUT, OUTPUT,
+  DRIVER, SRATE, NINPUT, NOUTPUT,
 // pp options
   DEFINE, UNDEF, INCLUDE,
   NOPTIONS
@@ -152,12 +152,12 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
     cmdapp_set(app,
         'i', "input",
         CMDOPT_TAKESARG, NULL,
-        "number of input channel", &opt[INPUT]
+        "number of input channel", &opt[NINPUT]
     );
     cmdapp_set(app,
         'o', "output",
         CMDOPT_TAKESARG, NULL,
-        "number of output channel", &opt[OUTPUT]
+        "number of output channel", &opt[NOUTPUT]
     );
     cmdapp_set(app,
         'D', "define",
