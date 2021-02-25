@@ -1296,6 +1296,9 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
   const Type t = cdef->base.type;
+  struct Op_Import opi = { .op=insert_symbol("@class_check"), .lhs=t,
+        .data=(uintptr_t)cdef, .pos=cdef->pos };
+  CHECK_OB(op_check(env, &opi))
   if(t->info->owner_class)
     CHECK_BB(ensure_check(env, t->info->owner_class))
   if(tflag(t, tflag_check))
