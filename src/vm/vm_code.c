@@ -122,7 +122,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
             *const data = final + j*BYTECODE_SZ;
       memcpy(data, base, BYTECODE_SZ);
       if(isgoto(opcode)) {
-        m_bit pc = 0;
+        m_uint pc = 0;
         for(pc = 0; pc < vector_size(&nop); ++pc) {
           if(instr->m_val <= vector_at(&nop, pc))
             break;
