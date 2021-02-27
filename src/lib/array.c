@@ -443,11 +443,14 @@ static OP_CHECK(opck_array_scan) {
   cdef->base.xid = sym;
   cdef->base.tmpl->base = 1; // could store depth here?
   cdef->base.tmpl->call = new_type_list(env->gwion->mp, type2td(env->gwion, base, (loc_t){}), NULL);
-  const m_uint scope = env_push(env, NULL, base->info->owner);
+  const Context ctx = env->context;
+  env->context = base->info->ctx;
+  const m_uint scope = env_push(env, base->info->owner_class, base->info->owner);
   (void)scan0_class_def(env, cdef);
   const Type t = cdef->base.type;
   (void)traverse_cdef(env, t);
   env_pop(env, scope);
+  env->context = ctx;
   if(GET_FLAG(base, abstract))
     SET_FLAG(t, abstract);
   else
