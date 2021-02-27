@@ -23,6 +23,9 @@ test_dir += examples
 
 CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
 
+# add commit hash to version for now
+CFLAGS += -DGWION_VERSION=\"$(shell git log -n1 --format="%h")\"
+
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK
 endif

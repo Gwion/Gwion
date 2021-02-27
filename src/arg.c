@@ -288,12 +288,16 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
   }
 }
 
+#ifndef GWION_VERSION
+#define GWION_VERSION "N.A."
+#endif
+
 ANN m_bool _arg_parse(struct ArgInternal *arg) {
   cmdapp_t app;
   const cmdapp_info_t info = {
         .program = "gwion",
         .synopses = NULL, // so it's automatic
-        .version = "N.A.",
+        .version = GWION_VERSION,
         .author = "Jérémie Astor",
         .year = 2016,
         .description = "Strongly timed musical programming language.",
