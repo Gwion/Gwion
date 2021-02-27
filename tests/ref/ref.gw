@@ -1,0 +1,9 @@
+fun void inc(Ref:[int] a) {
+   <<< a >>>;
+   ++a;
+   <<< a >>>;
+}
+
+12 => var int i;
+i => inc;
+<<< i >>>;
