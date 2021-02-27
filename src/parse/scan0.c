@@ -99,7 +99,7 @@ static OP_CHECK(opck_cast_similar) {
   return exp_self(cast)->type;
 }
 
-ANN static void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
+ANN /*static */void scan0_implicit_similar(const Env env, const Type lhs, const Type rhs) {
   struct Op_Func opfunc = { .ck=opck_cast_similar };
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .func=&opfunc };
   add_op(env->gwion, &opi);

@@ -442,7 +442,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
   if(vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
-  if(!strncmp(v->type->name, "@Foreach:[", 10)) {
+  if(!strncmp(v->type->name, "Ref:[", 5)) {
     if(exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
       instr->m_val = v->from->offset;

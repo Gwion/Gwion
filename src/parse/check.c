@@ -922,7 +922,7 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   CHECK_BB(ensure_traverse(env, base))
   const m_str basename = type2str(env->gwion, base, stmt->exp->pos);
   char c[15 + strlen(basename)];
-  sprintf(c, "@Foreach:[%s]", basename);
+  sprintf(c, "Ref:[%s]", basename);
   const Type ret = str2type(env->gwion, c, stmt->exp->pos);
   if(base->array_depth)
     set_tflag(ret, tflag_typedef);

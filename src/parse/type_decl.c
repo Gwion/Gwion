@@ -19,11 +19,21 @@ ANN static Type option(const Env env, Type_Decl* td) {
   return ret;
 }
 
+ANN static inline Type ref(const Env env, Type_Decl* td) {
+  struct Type_List_ tl = { .td=td };
+  td->ref = 0;
+  Type_Decl option_td = { .xid=insert_symbol("Ref"), .types=&tl, .pos=td->pos };
+  const Type t = known_type(env, &option_td);
+  td->ref = 1;
+  return t;
+}
+
 ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, base, = find_type(env, td))
   if(base->info->ctx && base->info->ctx->error)
     ERR_O(td->pos, _("type '%s' is invalid"), base->name)
-  DECL_OO(const Type, t, = scan_type(env, base, td))
+  DECL_OO(const Type, type, = scan_type(env, base, td))
+  const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
   return !td->array ? ret : array_type(env, ret, td->array->depth);
 }
