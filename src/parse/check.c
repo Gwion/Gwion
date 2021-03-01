@@ -289,6 +289,7 @@ ANN static Type prim_owned(const Env env, const Symbol *data) {
   const Value v = exp->d.prim.value;
   const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
   const Exp base = new_prim_id(env->gwion->mp, insert_symbol(name), prim_pos(data));
+  exp_setuse(base, 1);
   exp->exp_type = ae_exp_dot;
   exp->d.exp_dot.base = base;
   exp->d.exp_dot.xid = *data;
