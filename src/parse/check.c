@@ -103,16 +103,6 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var, Type_Decl *con
   return GW_OK;
 }
 
-ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Var_Decl var) {
-  const Value v = var->value;
-  const uint array_ref = (decl->td->array && !decl->td->array->exp) || (var->array && !var->array->exp);
-  if(!exp_getvar(exp_self(decl)) && (GET_FLAG(array_base(v->type), abstract) ||
-      GET_FLAG(decl->td, late) || is_fptr(gwion, v->type) || array_ref)) {
-    SET_FLAG(v, late);
-  } else
-    UNSET_FLAG(v, late);
-}
-
 ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
   do {
@@ -121,7 +111,6 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
     CHECK_BB(check_var_td(env, var, decl->td))
     if(is_fptr(env->gwion, decl->type))
       CHECK_BB(check_fptr_decl(env, var))
-    set_late(env->gwion, decl, list->self);
     set_vflag(var->value, vflag_valid);
     //set_vflag(var->value, vflag_used));
     nspc_add_value(env->curr, var->xid, var->value);
