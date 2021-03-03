@@ -8,7 +8,7 @@ class C extends UsrUGen {
     <<< this , " ", f>>>;
     return 0.2;
   }
-  <<<test ~= this, " ", this>>>;
+  <<<test ~=> this, " ", this>>>;
 }
 
 var C u ~> dac;
@@ -16,6 +16,6 @@ var C u ~> dac;
 samp => now;
 <<< u.last() >>>;
 
-<<<t ~= u>>>;
+<<<t ~=> u>>>;
 samp => now;
 <<< u.last() >>>;

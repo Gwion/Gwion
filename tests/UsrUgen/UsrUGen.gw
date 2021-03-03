@@ -7,7 +7,7 @@ class C extends UsrUGen {
     <<< this , " ", f>>>;
     return 0.2;
   }
-  <<<test ~= this, " ", this>>>;
+  <<<test ~=> this, " ", this>>>;
 }
 
 var C u ~> dac;
