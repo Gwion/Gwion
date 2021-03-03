@@ -259,7 +259,7 @@ static INSTR(UsrUGenTick) {
   uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));
   vmcode_addref(*(VM_Code*)(shred->reg - offset));
   uu->shred->info->vm = shred->info->vm;
-  code_prepare(uu->shred->code);
+  code_prepare(vmcode_callback(shred->info->vm->gwion->mp, uu->shred->code));
   shreduler_ini(uu->shred->info->vm->shreduler, uu->shred);
   uu->prep = instr->m_val ? member_prep : global_prep;
   *(M_Object*)(shred->reg - SZ_INT) = o;
@@ -281,7 +281,7 @@ static GWION_IMPORT(usrugen) {
   GWI_BB(gwi_oper_ini(gwi, "@function", "UsrUGen", "UsrUGen"))
   GWI_BB(gwi_oper_add(gwi, opck_usrugen))
   GWI_BB(gwi_oper_emi(gwi, opem_usrugen))
-  GWI_BB(gwi_oper_end(gwi, "~=", NULL))
+  GWI_BB(gwi_oper_end(gwi, "~=>", NULL))
   return GW_OK;
 }
 

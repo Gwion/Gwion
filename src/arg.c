@@ -135,7 +135,7 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
     );
     cmdapp_set(app,
         '\0', "stdin",
-        CMDOPT_OPTIONAL, NULL,
+        0, NULL,
         "read from stdin", &opt[STDIN]
     );
 // sound options
