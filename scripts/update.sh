@@ -9,7 +9,7 @@ get_latest_release() {
 update() {
   new_release=$(get_latest_release $1 $2)
   url=https://github.com/$1/$2/releases/download
-  file=linux.tar.gz
+  file=gwion-linux.tar.gz
   wget "$url/$new_release/$file"
   tar -zxvf $file
   rm $file
