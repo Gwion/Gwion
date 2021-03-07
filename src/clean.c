@@ -280,7 +280,7 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
 ANN static void clean_func_def(Clean *a, Func_Def b) {
   clean_func_base(a, b->base);
   ++a->scope;
-  if(b->d.code && !(b->base->func && vflag(b->base->func->value_ref, vflag_builtin)))
+  if(b->d.code && !(b->base->func && safe_vflag(b->base->func->value_ref, vflag_builtin)))
     clean_stmt(a, b->d.code);
   else
     b->d.code = NULL;

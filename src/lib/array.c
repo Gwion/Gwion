@@ -161,7 +161,6 @@ static MFUN(vm_vector_insert_struct) {
 }
 
 static MFUN(vm_vector_size) {
-printf("[%s] %p %p\n", __func__, o, ARRAY(o));
   *(m_uint*)RETURN = ARRAY_LEN(ARRAY(o));
 }
 
