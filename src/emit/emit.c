@@ -302,7 +302,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   regpop(emit, SZ_INT);
   const Instr pc = emit_add_instr(emit, Goto);
   pc->m_val = start_index;
-  top->m_val = emit_code_size(emit);
+  top->m_val = emit_code_size(emit) - !!emit->env->func;
   regpop(emit, SZ_INT*3);
   emit_add_instr(emit, ArrayPost);
 }
