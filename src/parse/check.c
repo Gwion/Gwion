@@ -456,7 +456,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp);
 
-ANN static Func call2ufcc(const Env env, Exp_Call* call, const Value v) {
+ANN static Func call2ufcs(const Env env, Exp_Call* call, const Value v) {
   const Exp this = call->func->d.exp_dot.base;
   this->next = call->args;
   call->args = this;
@@ -470,10 +470,10 @@ ANN static Func call2ufcc(const Env env, Exp_Call* call, const Value v) {
   return call->func->type->info->func;
 }
 
-ANN Func ufcc(const Env env, const Func up, Exp_Call *const call) {
+ANN Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
   if(v && isa(v->type, env->gwion->type[et_function]) > 0 && !vflag(v, vflag_member))
-    return call2ufcc(env, call, v);
+    return call2ufcs(env, call, v);
   return NULL;
 }
 
@@ -487,7 +487,7 @@ ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
      (func = find_func_match_actual(env, up, args, 1, 0)))
     return func;
   return call->func->exp_type == ae_exp_dot && up->value_ref->from->owner_class ?
-    ufcc(env, up, call) : NULL;
+    ufcs(env, up, call) : NULL;
 }
 
 ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
@@ -543,6 +543,8 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
+  if(env->context->error) // needed for ufcs
+    return;
   env_err(env, pos, _("argument type(s) do not match for function. should be :"));
   Func up = f->info->func;
   do {
@@ -685,9 +687,8 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
         exp->func->exp_type == ae_exp_dot && !t->info->owner_class) {
     if(exp->args)
       CHECK_OB(check_exp(env, exp->args))
-    const Func f = call2ufcc(env, exp, t->info->func->value_ref);
-    if(f)
-      return GW_OK;
+    return call2ufcs(env, exp, t->info->func->value_ref) ?
+          GW_OK: GW_ERROR;
   }
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
