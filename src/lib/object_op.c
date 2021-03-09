@@ -111,8 +111,8 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot* member) {
         exp_setvar(member->base, 1);
         emit_exp(emit, member->base);
       }
-    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-    func_i->m_val = (m_uint)f->code ?: (m_uint)f;
+      const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
+      func_i->m_val = (m_uint)f->code ?: (m_uint)f;
       return;
     }
     const Instr instr = emit_add_instr(emit, DotFunc);
@@ -168,6 +168,9 @@ OP_CHECK(opck_object_dot) {
           _("keyword 'this' must be associated with object instance..."))
   const Value value = get_value(env, member, the_base);
   if(!value) {
+    const Value v = nspc_lookup_value1(env->curr, member->xid);
+    if(v && isa(v->type, env->gwion->type[et_function]) > 0)
+      return v->type;
     env_err(env, exp_self(member)->pos,
           _("class '%s' has no member '%s'"), the_base->name, str);
     if(member->base->type->nspc)

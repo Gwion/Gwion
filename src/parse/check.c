@@ -454,15 +454,40 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
   return NULL;
 }
 
-ANN2(1, 2) Func find_func_match(const Env env, const Func up, const Exp exp) {
+ANN static Type check_exp_call(const Env env, Exp_Call* exp);
+
+ANN static Func call2ufcc(const Env env, Exp_Call* call, const Value v) {
+  const Exp this = call->func->d.exp_dot.base;
+  this->next = call->args;
+  call->args = this;
+  call->func->type = v->type;
+  call->func->d.prim.value = v;
+  call->func->d.prim.d.var = call->func->d.exp_dot.xid;
+  call->func->exp_type = ae_exp_primary;
+  call->func->d.prim.prim_type = ae_prim_id;
+  call->args = this;
+  CHECK_OO(check_exp_call(env, call))
+  return call->func->type->info->func;
+}
+
+ANN Func ufcc(const Env env, const Func up, Exp_Call *const call) {
+  const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
+  if(v && isa(v->type, env->gwion->type[et_function]) > 0 && !vflag(v, vflag_member))
+    return call2ufcc(env, call, v);
+  return NULL;
+}
+
+ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
   Func func;
+  const Exp exp = call->args;
   const Exp args = (exp && isa(exp->type, env->gwion->type[et_void]) < 0) ? exp : NULL;
   if((func = find_func_match_actual(env, up, args, 0, 1)) ||
      (func = find_func_match_actual(env, up, args, 1, 1)) ||
      (func = find_func_match_actual(env, up, args, 0, 0)) ||
      (func = find_func_match_actual(env, up, args, 1, 0)))
     return func;
-  return NULL;
+  return call->func->exp_type == ae_exp_dot && up->value_ref->from->owner_class ?
+    ufcc(env, up, call) : NULL;
 }
 
 ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
@@ -542,7 +567,7 @@ ANN static m_uint get_type_number(ID_List list) {
   return type_number;
 }
 
-ANN static Func get_template_func(const Env env, const Exp_Call* func, const Value v) {
+ANN static Func get_template_func(const Env env, Exp_Call *const func, const Value v) {
   const Func f = find_template_match(env, v, func);
   if(f) {
 // copy that tmpl->call?
@@ -651,14 +676,22 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   return ret > 0 ? l->def->base->ret_type : NULL;
 }
 
-ANN m_bool func_check(const Env env, const Exp_Call *exp) {
+ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   CHECK_OB(check_exp(env, exp->func))
   if(exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration site"))
   const Type t = actual_type(env->gwion, exp->func->type);
+  if(isa(t, env->gwion->type[et_function]) > 0 &&
+        exp->func->exp_type == ae_exp_dot && !t->info->owner_class) {
+    if(exp->args)
+      CHECK_OB(check_exp(env, exp->args))
+    const Func f = call2ufcc(env, exp, t->info->func->value_ref);
+    if(f)
+      return GW_OK;
+  }
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
-  .rhs=t, .pos=e->pos, .data=(uintptr_t)e };
+    .rhs=t, .pos=e->pos, .data=(uintptr_t)e };
   CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
   if(e->exp_type != ae_exp_call)
     return 0;
@@ -666,7 +699,7 @@ ANN m_bool func_check(const Env env, const Exp_Call *exp) {
     GW_OK : GW_ERROR;
 }
 
-ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
+ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp))
   if(!ret)
     return exp_self(exp)->type;
@@ -688,7 +721,7 @@ ANN Type check_exp_call1(const Env env, const Exp_Call *exp) {
     CHECK_OO(check_exp(env, exp->args))
   if(tflag(t, tflag_ftmpl))
     return check_exp_call_template(env, (Exp_Call*)exp);
-  const Func func = find_func_match(env, t->info->func, exp->args);
+  const Func func = find_func_match(env, t->info->func, exp);
   if(func) {
     exp->func->type = func->value_ref->type;
     return func->def->base->ret_type;
@@ -838,12 +871,14 @@ DECL_EXP_FUNC(check, Type, Env)
 
 ANN Type check_exp(const Env env, const Exp exp) {
   Exp curr = exp;
-  do {
-    CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)))
-    if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
-        !fflag(curr->type->info->func, fflag_pure))
-      unset_fflag(env->func, fflag_pure);
-  } while((curr = curr->next));
+  if(!exp->type) {
+    do {
+      CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)))
+      if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
+          !fflag(curr->type->info->func, fflag_pure))
+        unset_fflag(env->func, fflag_pure);
+    } while((curr = curr->next));
+  }
   return exp->type;
 }
 

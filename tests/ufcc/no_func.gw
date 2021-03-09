@@ -1,0 +1,9 @@
+#! [contains] func called test
+class C {}
+
+fun void test(C c) {
+ <<< "func called test">>>;
+}
+
+const C c;
+c.test();

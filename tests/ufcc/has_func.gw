@@ -1,0 +1,13 @@
+class C {
+  fun void test(int i) {
+   <<< "member func called test">>>;
+  }
+}
+
+fun void test(C c) {
+ <<< "func called test">>>;
+}
+
+const C c;
+c.test();
+c.test(2);

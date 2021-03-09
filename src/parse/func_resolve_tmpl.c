@@ -16,7 +16,7 @@
 
 struct ResolverArgs {
   const Value v;
-  const Exp_Call *e;
+  Exp_Call *const e;
   const m_str tmpl_name;
   const Type_List types;
 };
@@ -32,13 +32,13 @@ ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
       check_traverse_fdef(env, fdef) > 0;
 }
 
-ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *exp) {
+ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const exp) {
   if(!tmpl_valid(env, fdef))
     return NULL;
   const Func f = fdef->base->func;
   const Func next = f->next;
   f->next = NULL;
-  const Func func = find_func_match(env, f, exp->args);
+  const Func func = find_func_match(env, f, exp);
   f->next = next;
   if(func)
     set_fflag(func, fflag_tmpl | fflag_valid);
@@ -47,7 +47,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, const Exp_Call *
 
 ANN static inline Func ensure_fptr(const Env env, struct ResolverArgs* ra, const Fptr_Def fptr) {
   CHECK_BO(traverse_fptr_def(env, fptr))
-  return find_func_match(env, fptr->base->func, ra->e->args);
+  return find_func_match(env, fptr->base->func, ra->e);
 }
 
 ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
@@ -76,7 +76,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
 
 ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value exists) {
   if(env->func == exists->d.func_ref)
-    return find_func_match(env, env->func, ra->e->args) ? env->func : NULL;
+    return find_func_match(env, env->func, ra->e) ? env->func : NULL;
   return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
 }
 
@@ -106,7 +106,7 @@ ANN static Func func_match(const Env env, struct ResolverArgs* ra) {
   return NULL;
 }
 
-ANN static Func find_tmpl(const Env env, const Value v, const Exp_Call* exp, const m_str tmpl_name) {
+ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, const m_str tmpl_name) {
   const Type_List types = exp->tmpl->call;
   const Func former = env->func;
   const m_uint scope = env->scope->depth;
@@ -124,7 +124,7 @@ ANN static Func find_tmpl(const Env env, const Value v, const Exp_Call* exp, con
   return m_func;
 }
 
-ANN static Func _find_template_match(const Env env, const Value v, const Exp_Call* exp) {
+ANN static Func _find_template_match(const Env env, const Value v, Exp_Call *const exp) {
   DECL_OO(const m_str, tmpl_name, = tl2str(env->gwion, exp->tmpl->call, exp->func->pos))
   const Func f = find_tmpl(env, v, exp, tmpl_name);
   free_mstr(env->gwion->mp, tmpl_name);
@@ -138,7 +138,7 @@ ANN static inline m_bool check_call(const Env env, const Exp_Call* exp) {
   return GW_OK;
 }
 
-ANN Func find_template_match(const Env env, const Value value, const Exp_Call* exp) {
+ANN Func find_template_match(const Env env, const Value value, Exp_Call *const exp) {
   CHECK_BO(check_call(env, exp))
   const Func f = _find_template_match(env, value, exp);
   if(f)
