@@ -62,7 +62,7 @@ lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
 
 util/libtermcolor/libtermcolor.a:
-	@+${MAKE} -s -C util/libtermcolor static
+	@+${MAKE} BUILD_ON_WINDOWS=${BUILD_ON_WINDOWS} -s -C util/libtermcolor static
 
 util/libgwion_util.a:
 	@+GWION_PACKAGE= ${MAKE} -s -C util
