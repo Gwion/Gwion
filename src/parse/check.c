@@ -546,7 +546,6 @@ ANN2(1) static void function_alternative(const Env env, const Type f, const Exp 
   if(env->context->error) // needed for ufcs
     return;
   loc_header(pos, env->name);
-  loc_header(pos, env->name);
   gw_err(_("argument type(s) do not match for function {+/}%s{0}.\n"),
     s_name(f->info->func->def->base->xid));
   loc_err(pos, env->name);
