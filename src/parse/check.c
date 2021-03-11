@@ -545,10 +545,15 @@ ANN static void print_arg(Arg_List e) {
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   if(env->context->error) // needed for ufcs
     return;
-  env_err(env, pos, _("argument type(s) do not match for function."));
+  loc_header(pos, env->name);
+  loc_header(pos, env->name);
+  gw_err(_("argument type(s) do not match for function {+/}%s{0}.\n"),
+    s_name(f->info->func->def->base->xid));
+  loc_err(pos, env->name);
+  gw_err("\nalternative:\n");
   Func up = f->info->func;
   do {
-    gw_err("{-}(%s){0}  ", up->name);
+    gw_err("  {-}(%s){0}  ", up->name);
     const Arg_List e = up->def->base->args;
     if(e)
       print_arg(e);
