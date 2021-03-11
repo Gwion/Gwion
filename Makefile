@@ -45,6 +45,8 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif
 
+LDFLAGS += ${TERMCOLOR_DIR}/libtermcolor.a
+
 CFLAGS += -DGWION_BUILTIN
 
 _GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a
