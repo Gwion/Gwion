@@ -41,17 +41,6 @@ lib_obj := $(filter-out src/main.o, ${src_obj})
 
 CFLAGS  += -Iinclude
 
-ifeq (${BUILD_ON_WINDOWS}, 1)
-ifeq (${CC}, gcc)
-#LDFLAGS += -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--out-implib=lib${PRG}.dll.a
-LDFLAGS += -Wl,--enable-auto-import
-LDFLAGS += -lm
-endif
-else
-LDFLAGS += -rdynamic
-LDFLAGS += -lm
-endif
-
 ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif

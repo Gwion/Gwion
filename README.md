@@ -22,11 +22,11 @@ It aims to be simple, small,
 
 ## Build
 ### Download the source
-You might just want the minimum to start with, try
+
 ``` sh
 git clone https://github.com/Gwion/Gwion
 cd Gwion
-git submodule update --init
+git submodule update --init --recursive util ast
 make
 ```
 
@@ -85,6 +85,12 @@ _This section is currently very Linux-centric. We are working to improve that. P
 
 Gwion relies on plugins for most of its language features, including all those that make sound. Plugins are located in the subdirectories of
 `plug`. To get some sounds going under linux using jack sound server, you can build the plugins `Jack`, `Soundpipe`, and `Modules`.
+
+Start by downloading the sources
+```
+git submodule update plug
+cd plug
+```
 
 Starting from the Gwion base directory, to build `Jack`:
 ```
