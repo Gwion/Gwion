@@ -138,7 +138,7 @@ ANN static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
   if(compiler_open(gwion->mp, c) < 0)
     return 0;
   if(_check(gwion, c) < 0) {
-    gw_err(_("while compiling file '%s'\n"), c->base);
+    gw_err(_("{-}while compiling file `{0}{/}%s{-}`{0}\n"), c->base);
     return 0;
   }
   if(gwion->emit->info->code) {

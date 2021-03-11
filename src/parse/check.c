@@ -523,7 +523,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
 ANN static inline type next_arg_##type(const type e) { \
   const type next = e->next;                           \
   if(next)                                             \
-    gw_err(",");                                       \
+    gw_err(", ");                                      \
   return next;                                         \
 }
 next_arg(Exp)
@@ -531,13 +531,13 @@ next_arg(Arg_List)
 
 ANN static void print_current_args(Exp e) {
   gw_err(_("and not\n  "));
-  do gw_err(" \033[32m%s\033[0m", e->type ? e->type->name : "Unknown");
+  do gw_err(" {G}%s{0}", e->type ? e->type->name : "{-/}Unknown");
   while((e = next_arg_Exp(e)));
   gw_err("\n");
 }
 
 ANN static void print_arg(Arg_List e) {
-  do gw_err(" \033[32m%s\033[0m \033[1m%s\033[0m", e->type ? e->type->name : NULL,
+  do gw_err("{G}%s{0} {/}%s{0}", e->type ? e->type->name : NULL,
        e->var_decl->xid ? s_name(e->var_decl->xid)  : "");
   while((e = next_arg_Arg_List(e)));
 }
@@ -545,21 +545,21 @@ ANN static void print_arg(Arg_List e) {
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   if(env->context->error) // needed for ufcs
     return;
-  env_err(env, pos, _("argument type(s) do not match for function. should be :"));
+  env_err(env, pos, _("argument type(s) do not match for function."));
   Func up = f->info->func;
   do {
-    gw_err("(%s)  ", up->name);
+    gw_err("{-}(%s){0}  ", up->name);
     const Arg_List e = up->def->base->args;
     if(e)
       print_arg(e);
     else
-      gw_err("\033[32mvoid\033[0m");
+      gw_err("{G}void{0}");
     gw_err("\n");
   } while((up = up->next));
   if(args)
     print_current_args(args);
   else
-    gw_err(_("and not:\n  \033[32mvoid\033[0m\n"));
+    gw_err(_("and not:\n  {G}void{0}\n"));
 }
 
 ANN static m_uint get_type_number(ID_List list) {
