@@ -47,7 +47,7 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a
+_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a
 GWLIBS = lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a util/libgwion_util.a util/libtermcolor/libtermcolor.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
@@ -60,6 +60,9 @@ options-show:
 
 lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
+
+util/libtermcolor/libtermcolor.a:
+	@+${MAKE} -s -C util/libtermcolor static
 
 util/libgwion_util.a:
 	@+GWION_PACKAGE= ${MAKE} -s -C util
