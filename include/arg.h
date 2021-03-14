@@ -1,6 +1,12 @@
 #ifndef __ARG
 #define __ARG
 
+enum COLOR {
+  COLOR_NEVER,
+  COLOR_AUTO,
+  COLOR_ALWAYS,
+} __attribute__((packed));
+
 typedef struct Arg_ {
   struct CArg    arg;
   struct Map_    mod;
@@ -9,7 +15,8 @@ typedef struct Arg_ {
   struct Vector_ config;
   struct SoundInfo_ *si;
   m_bool loop;
-  m_bool quit;
+  m_bool quit : 1;
+  enum COLOR color;
 } Arg;
 
 ANN void arg_release(Arg*);

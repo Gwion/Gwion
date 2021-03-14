@@ -2,6 +2,7 @@
 #include <locale.h>
 #include <libintl.h>
 #endif
+#include <unistd.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -92,6 +93,12 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   CHECK_BB(arg_parse(gwion, arg))
+  if(arg->color == COLOR_NEVER)
+    tcol_override_color_checks(0);
+  else if(arg->color == COLOR_AUTO)
+    tcol_override_color_checks(isatty(1));
+  else if(arg->color == COLOR_ALWAYS)
+    tcol_override_color_checks(1);
   return !arg->quit ? gwion_ok(gwion, arg) : GW_ERROR;
 }
 

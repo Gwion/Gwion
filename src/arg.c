@@ -13,7 +13,7 @@
 
 enum {
   CONFIG, PLUGIN, MODULE,
-  LOOP, PASS, STDIN,
+  LOOP, PASS, STDIN, COLOR,
 // sound options
   DRIVER, SRATE, NINPUT, NOUTPUT,
 // pp options
@@ -56,6 +56,7 @@ ANN static void arg_init(Arg* arg) {
   vector_init(&arg->lib);
   vector_init(&arg->config);
   vector_add(&arg->lib, (vtype)plug_dir());
+  arg->color = COLOR_AUTO;
 }
 
 ANN void arg_release(Arg* arg) {
@@ -109,7 +110,7 @@ ANN2(1) static void module_arg(const Map map, const char *str) {
 
 static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
     cmdapp_set(app,
-        'c', "config",
+        'C', "config",
         CMDOPT_TAKESARG, NULL,
         "parse a config file", &opt[CONFIG]
     );
@@ -137,6 +138,11 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
         '\0', "stdin",
         0, NULL,
         "read from stdin", &opt[STDIN]
+    );
+    cmdapp_set(app,
+        'c', "color",
+        CMDOPT_TAKESARG, NULL,
+        "set colored output (never/auto/always, defaults to auto)", &opt[STDIN]
     );
 // sound options
     cmdapp_set(app,
@@ -249,7 +255,7 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
       case 'm':
         module_arg(&_arg->mod, option->value);
         break;
-      case 'c':
+      case 'C':
         config_parse(arg_int, option->value);
         break;
       case 'l':
@@ -260,6 +266,15 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
         break;
       case '\0':
         vector_add(&_arg->add, (vtype)ARG_STDIN);
+        break;
+      case 'c':
+        if(!strcmp(option->value, "never"))
+          _arg->color = COLOR_NEVER;
+        else if(!strcmp(option->value, "auto"))
+          _arg->color = COLOR_AUTO;
+        else if(!strcmp(option->value, "always"))
+          _arg->color = COLOR_ALWAYS;
+        // ignore error silently
         break;
 // sound options
         case 's':
