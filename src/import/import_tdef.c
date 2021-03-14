@@ -27,7 +27,7 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_tdef))
   Type_Decl *td = gwi->ck->td;
   td->flag |= flag;
-  const Type_Def tdef = new_type_def(gwi->gwion->mp, td, gwi->ck->sym);
+  const Type_Def tdef = new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);
   if(gwi->ck->tmpl)
     tdef->tmpl = gwi_tmpl(gwi);
   gwi->ck->td = NULL;

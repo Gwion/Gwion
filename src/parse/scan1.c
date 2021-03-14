@@ -403,6 +403,8 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if(!tdef->type)
     tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
+  if(tdef->when)
+    CHECK_BB(scan1_exp(env, tdef->when))
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
     scan1_cdef(env, tdef->type) : GW_OK;
 }
@@ -533,7 +535,7 @@ ANN static m_bool scan1_fdef_args(const Env env, Arg_List list) {
   do {
     Nspc nspc = env->curr;
     do if(nspc_lookup_value0(nspc, list->var_decl->xid))
-       ERR_B(list->var_decl->pos, _("argument '%s' shadows a previuosly defined variable"),
+       ERR_B(list->var_decl->pos, _("argument '%s' shadows a previously defined variable"),
             s_name(list->var_decl->xid))
     while((nspc = nspc->parent));
   } while((list = list->next));

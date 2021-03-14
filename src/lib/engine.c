@@ -73,6 +73,11 @@ static OP_CHECK(opck_basic_ctor) {
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"))
 }
 
+static INSTR(PredicateCheck) {
+  if(!*(m_uint*)REG(-SZ_INT))
+    Except(shred, "predicate failed");
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
@@ -107,6 +112,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
+
+  struct SpecialId_ predicate = { .type=t_void, .exec=PredicateCheck, .is_const=1 };
+  gwi_specialid(gwi, "@predicate", &predicate);
 
   const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))

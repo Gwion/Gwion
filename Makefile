@@ -22,6 +22,7 @@ test_dir += examples
 
 
 CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
+CFLAGS += -Iast/libprettyerr/src
 
 # add commit hash to version for now
 CFLAGS += -DGWION_VERSION=\"$(shell git log -n1 --format="%h")\"
@@ -47,8 +48,8 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a
-GWLIBS = lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a util/libgwion_util.a util/libtermcolor/libtermcolor.a
+_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a
+GWLIBS = lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a util/libgwion_util.a util/libtermcolor/libtermcolor.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options-show ${_GWLIBS} src/main.o
@@ -75,6 +76,9 @@ ast/libgwion_ast.a:
 
 libcmdapp/libcmdapp.a:
 	@+${MAKE} -s -C libcmdapp static
+
+ast/libprettyerr/libprettyerr.a:
+	@+CFLAGS=-I${PWD}/util/libtermcolor/src ${MAKE} -s -C ast/libprettyerr static
 
 ast: ast/libgwion_ast.a
 	@(info build ast)

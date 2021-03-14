@@ -140,18 +140,21 @@ ANN void gwion_end(const Gwion gwion) {
 
 ANN static void env_header(const Env env) {
   if(env->class_def)
-    gw_err(_("in class: '%s'\n"), env->class_def->name);
-  if(env->func)
-    gw_err(_("in function: '%s'\n"), env->func->name);
+    gwerr_secondary("in class:", env->name, env->class_def->info->cdef->pos);
+  if(env->func && env->func != (Func)1 && env->func->def)
+    gwerr_secondary("in function:", env->name, env->func->def->pos);
 }
 
 ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt, va_list arg) {
 #ifndef __FUZZING__
+  va_list tmpa;
+  va_copy(tmpa, arg);
+  const int size = vsnprintf(NULL, 0, fmt, tmpa);
+  va_end(tmpa);
+  char c[size + 1];
+  vsprintf(c, fmt, arg);
+  gwerr_basic(c, NULL, NULL, env->name, pos, 0);
   env_header(env);
-  loc_header(pos, env->name);
-  vfprintf(stderr, fmt, arg);
-  fprintf(stderr, "\n");
-  loc_err(pos, env->name);
 #endif
 }
 

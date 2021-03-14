@@ -1,2 +1,6 @@
 #! [contains] in function:
-fun void test() { <<< b >>>; }
+class C {
+  fun void test() {
+    <<< b >>>;
+  }
+}

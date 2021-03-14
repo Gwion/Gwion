@@ -21,7 +21,8 @@ static m_bool ref_access(const Env env, const Exp e) {
   const m_str access = exp_access(e);
   if(!access)
     return GW_OK;
-  ERR_B(e->pos, _("operand is %s"), access);
+  env_err(env, e->pos, _("operand is %s"), access );
+  return GW_ERROR;
 }
 
 static OP_CHECK(opck_implicit_similar) {

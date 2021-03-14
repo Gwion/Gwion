@@ -162,7 +162,7 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
       CHECK_BB(typedef_complex(env, tdef, base))
   } else
     typedef_fptr(env, tdef, base);
-  if(!tdef->distinct)
+  if(!tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, tdef->type, base);
   set_tflag(tdef->type, tflag_typedef);
   return GW_OK;

@@ -861,6 +861,41 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
 }
 
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
+  if(tdef->when) {
+    const Var_Decl decl = new_var_decl(env->gwion->mp, insert_symbol("self"), NULL, tdef->when->pos);
+    const Arg_List args = new_arg_list(env->gwion->mp, cpy_type_decl(env->gwion->mp, tdef->ext), decl, NULL);
+    Func_Base *fb = new_func_base(env->gwion->mp, type2td(env->gwion, tdef->type, tdef->when->pos),
+      insert_symbol("@implicit"), args, ae_flag_none);
+    set_fbflag(fb, fbflag_op);
+    const Exp helper = new_prim_id(env->gwion->mp, insert_symbol("@predicate"), tdef->when->pos);
+    tdef->when->next = helper;
+    const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, cpy_exp(env->gwion->mp, tdef->when), tdef->when->pos);// copy exp
+    const Stmt_List body = new_stmt_list(env->gwion->mp, stmt, NULL);//ret_list);
+    const Stmt code = new_stmt_code(env->gwion->mp, body, tdef->when->pos);
+    const Func_Def fdef = new_func_def(env->gwion->mp, fb, code, tdef->when->pos);
+    CHECK_BB(traverse_func_def(env, fdef))
+    const Exp predicate = stmt->d.stmt_exp.val;
+    if(isa(predicate->type, env->gwion->type[et_bool]) < 0) {
+      char explain[strlen(predicate->type->name) + 7];
+      sprintf(explain, "found `{/+}%s{0}`", predicate->type->name);
+      gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain, "use `{/+}bool{0}`",
+        env->name, tdef->when->pos, 0);
+      char from[strlen(tdef->type->name) + 39];
+      sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
+      gwerr_secondary(from, env->name, tdef->pos);
+      if(env->context)
+        env->context->error++;
+      return GW_ERROR;
+    }
+    // we handle the return after, so that we don't get *cant' use implicit casting while defining it*
+    const Exp ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), tdef->when->pos);
+    ret_id->d.prim.value = new_value(env->gwion->mp, tdef->type, "self");
+    const Stmt ret = new_stmt_exp(env->gwion->mp, ae_stmt_return, ret_id, tdef->when->pos);
+    const Stmt_List ret_list = new_stmt_list(env->gwion->mp, ret, NULL);
+    ret_id->type = tdef->type;
+    body->next = ret_list;
+    tdef->when_def = fdef;
+  }
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
      check_class_def(env, tdef->type->info->cdef) : GW_OK;
 }
@@ -931,7 +966,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   if(!stmt->c2 || !stmt->c2->d.stmt_exp.val)
     ERR_B(stmt_self(stmt)->pos, _("empty for loop condition..."
           "...(note: explicitly use 'true' if it's the intent)"
-          "...(e.g., 'for(; true;){ /*...*/ }')"))
+          "...(e.g., 'for(; true;){{ /*...*/ }')"))
   return GW_OK;
 }
 

@@ -332,6 +332,11 @@ ANN static void clean_fptr_def(Clean *a, Fptr_Def b) {
 ANN static void clean_type_def(Clean *a, Type_Def b) {
   if(b->ext)
     clean_type_decl(a, b->ext);
+  if(b->when) {
+    clean_exp(a, b->when);
+    if(b->when_def)
+      clean_func_def(a, b->when_def);
+  }
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }

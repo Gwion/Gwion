@@ -1504,7 +1504,8 @@ ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
       CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to))
     if(isa(e->type, emit->gwion->type[et_object]) > 0 &&
         (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) > 0 : 1) &&
-         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) && exp_getuse(e) && !exp_getvar(e)) {
+         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) && exp_getuse(e) && !exp_getvar(e) && GET_FLAG(e->d.exp_decl.list->self->value, late)) {
+//         e->exp_type == ae_exp_decl && !exp_getvar(e)) {
       const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
       instr->m_val = -SZ_INT;
     }
@@ -1862,6 +1863,8 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
 }
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
+  if(tdef->when)
+    CHECK_BB(emit_func_def(emit, tdef->when_def))
   return (!is_fptr(emit->gwion, tdef->type) && tdef->type->info->cdef) ?
     emit_class_def(emit, tdef->type->info->cdef) : GW_OK;
 }
