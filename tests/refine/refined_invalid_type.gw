@@ -1,0 +1,5 @@
+typedef int MoreThan10
+  when <<< __func__ >>>;
+
+fun void test(const MoreThan10 i) { <<< "test: ", i >>>; }
+test(1);

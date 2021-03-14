@@ -1,4 +1,5 @@
 #! [contains] 1
+#! [skip] Do to a window bug
 class C {
   10 => var int i;
 }

@@ -1,0 +1,5 @@
+typedef int MoreThan10
+  when self > 10;
+
+fun void test(const MoreThan10 i) { <<< "test: ", i >>>; }
+test(11);
