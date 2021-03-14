@@ -49,7 +49,8 @@ endif
 CFLAGS += -DGWION_BUILTIN
 
 _GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a
-GWLIBS = lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a util/libgwion_util.a util/libtermcolor/libtermcolor.a
+GWLIBS := lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a
+GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor/libtermcolor.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options-show ${_GWLIBS} src/main.o
