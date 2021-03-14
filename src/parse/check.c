@@ -545,11 +545,8 @@ ANN static void print_arg(Arg_List e) {
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
   if(env->context->error) // needed for ufcs
     return;
-  loc_header(pos, env->name);
-  gw_err(_("argument type(s) do not match for function {+/}%s{0}.\n"),
-    s_name(f->info->func->def->base->xid));
-  loc_err(pos, env->name);
-  gw_err("\nalternative:\n");
+  gwerr_basic("Argument type mismatch", "call site", "valid alternatives:",
+    env->name, pos, 0);
   Func up = f->info->func;
   do {
     gw_err("  {-}(%s){0}  ", up->name);
@@ -731,7 +728,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     exp->func->type = func->value_ref->type;
     return func->def->base->ret_type;
   }
-  function_alternative(env, exp->func->type, exp->args, exp_self(exp)->pos);
+  function_alternative(env, exp->func->type, exp->args, exp->args->pos);
   return NULL;
 }
 
@@ -778,16 +775,14 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
       t->name, str);
   free_mstr(env->gwion->mp, str);
   if(tflag(t, tflag_typedef)) {
-    loc_header(t->info->func->def->pos, env->name);
-    gw_err(_("from definition:\n"));
-    loc_err(t->info->func->def->pos, env->name);
+    gwerr_secondary("from definition:",
+        env->name, t->info->func->def->pos);
   }
   return GW_ERROR;
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
-//    CHECK_BO(func_check(env, exp))
     DECL_BO(const m_bool, ret, = func_check(env, exp))
     if(!ret)
       return exp_self(exp)->type;
