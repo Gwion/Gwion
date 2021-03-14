@@ -54,11 +54,12 @@ GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 all: options-show ${_GWLIBS} src/main.o
-	$(info link ${PRG})
+	@$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
 
 options-show:
 	@$(call _options)
+	@$(info libs: ${GWLIBS})
 
 lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
