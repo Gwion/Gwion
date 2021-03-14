@@ -142,7 +142,7 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
     cmdapp_set(app,
         'c', "color",
         CMDOPT_TAKESARG, NULL,
-        "set colored output (never/auto/always, defaults to auto)", &opt[STDIN]
+        "set colored output (never/auto/always, defaults to auto)", &opt[COLOR]
     );
 // sound options
     cmdapp_set(app,
