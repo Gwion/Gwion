@@ -38,7 +38,7 @@ ANN2(1,2) Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, c
 }
 
 ANN void gwi_add_type(const Gwi gwi, const Type type) {
-  return env_add_type(gwi->gwion->env, type);
+  return env_add_type(gwi->gwion->env, type, gwi->loc);
 }
 
 ANN void gwi_set_global_type(const Gwi gwi, const Type type, const type_enum te) {

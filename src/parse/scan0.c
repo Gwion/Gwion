@@ -56,7 +56,7 @@ ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
 static void fptr_def(const Env env, const Fptr_Def fptr) {
   const Func_Def def = new_func_def(env->gwion->mp,
       cpy_func_base(env->gwion->mp, fptr->base),
-    NULL, fptr->base->td->pos);
+    NULL);
   fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
   fptr->value->d.func_ref = fptr->base->func;
   fptr->base->func->value_ref = fptr->value;
@@ -77,14 +77,14 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   t->nspc = new_nspc(env->gwion->mp, name);
   t->flag |= fptr->base->flag;
   fptr->type = t;
-  fptr->value = mk_class(env, t);
-  valuefrom(env, fptr->value->from);
+  fptr->value = mk_class(env, t, fptr->base->pos);
+  valuefrom(env, fptr->value->from, fptr->base->pos);
   fptr_def(env, fptr);
   if(env->class_def)
     fptr_assign(env, fptr);
   set_vflag(fptr->value, vflag_func);
   add_type(env, t->info->owner, t);
-  mk_class(env, t);
+  mk_class(env, t, fptr->base->pos);
   type_addref(t);
   return GW_OK;
 }
@@ -146,7 +146,7 @@ ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base
   tdef->type->name = s_name(tdef->xid);
   tdef->type->info->parent = base;
   add_type(env, env->curr, tdef->type);
-  mk_class(env, tdef->type);
+  mk_class(env, tdef->type, tdef->pos);
   if(base->info->func->def->base->tmpl)
     set_tflag(tdef->type, tflag_ftmpl);
 }
@@ -189,7 +189,7 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   t->info->owner = nspc;
   t->info->owner_class = env->class_def;
   add_type(env, nspc, t);
-  mk_class(env, t);
+  mk_class(env, t, edef->pos);
 //  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
   return t;
 }
@@ -211,7 +211,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
-ANN static Type union_type(const Env env, const Symbol s) {
+ANN static Type union_type(const Env env, const Symbol s, const loc_t loc) {
   const m_str name = s_name(s);
   const Type t = new_type(env->gwion->mp, name, env->gwion->type[et_union]);
   t->nspc = new_nspc(env->gwion->mp, name);
@@ -219,7 +219,7 @@ ANN static Type union_type(const Env env, const Symbol s) {
   t->info->owner_class = env->class_def;
   t->info->tuple = new_tupleform(env->gwion->mp, NULL); // ???
   add_type(env, env->curr, t);
-  mk_class(env, t);
+  mk_class(env, t, loc);
   SET_FLAG(t, final);
   if(strncmp(t->name, "Option", 6))
     SET_FLAG(t, abstract);
@@ -246,7 +246,7 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   if(GET_FLAG(udef, global))
     context_global(env);
   CHECK_BB(scan0_defined(env, udef->xid, udef->pos))
-  udef->type = union_type(env, udef->xid);
+  udef->type = union_type(env, udef->xid, udef->pos);
   Union_List l = udef->l;
   do udef->type->nspc->info->offset += SZ_INT;
   while((l = l->next));
@@ -349,7 +349,7 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   set_tflag(cdef->base.type, tflag_scan0);
   if(cdef->body)
     CHECK_BB(env_body(env, cdef, scan0_section))
-  (void)mk_class(env, cdef->base.type);
+  (void)mk_class(env, cdef->base.type, cdef->pos);
   return GW_OK;
 }
 

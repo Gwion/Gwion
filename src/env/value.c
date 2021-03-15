@@ -24,8 +24,10 @@ ANN Value new_value(MemPool p, const Type type, const m_str name) {
   return a;
 }
 
-ANN void valuefrom(const Env env, struct ValueFrom_ *from) {
+ANN void valuefrom(const Env env, struct ValueFrom_ *from, const loc_t loc) {
   from->owner = env->curr;
   from->owner_class = env->class_def;
   from->ctx = env->context;
+  from->filename = env->name;
+  from->loc = loc;
 }

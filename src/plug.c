@@ -50,7 +50,7 @@ ANN static void plug_get(struct PlugHandle *h, const m_str c) {
     Plug plug = new_plug(h->mp, dl);
     map_set(h->map, (vtype)strdup(name), (vtype)plug);
   } else
-    gw_err(_("error in %s."), DLERROR());
+    gw_err(_("{+R}error{0} in {/+}%s{0}."), DLERROR());
 }
 
 ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {

@@ -621,7 +621,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
     Exp template_arg = exp->args;
     while(arg && template_arg) {
       if(list->xid == arg->td->xid) {
-        tl[args_number] = mk_type_list(env, template_arg->type, fdef->pos);
+        tl[args_number] = mk_type_list(env, template_arg->type, fdef->base->pos);
         if(args_number)
           tl[args_number - 1]->next = tl[args_number];
         ++args_number;
@@ -776,7 +776,7 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
   free_mstr(env->gwion->mp, str);
   if(tflag(t, tflag_typedef)) {
     gwerr_secondary("from definition:",
-        env->name, t->info->func->def->pos);
+        env->name, t->info->func->def->base->pos);
   }
   return GW_ERROR;
 }
@@ -859,15 +859,15 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   if(tdef->when) {
     const Var_Decl decl = new_var_decl(env->gwion->mp, insert_symbol("self"), NULL, tdef->when->pos);
     const Arg_List args = new_arg_list(env->gwion->mp, cpy_type_decl(env->gwion->mp, tdef->ext), decl, NULL);
-    Func_Base *fb = new_func_base(env->gwion->mp, type2td(env->gwion, tdef->type, tdef->when->pos),
-      insert_symbol("@implicit"), args, ae_flag_none);
+    Func_Base *fb = new_func_base(env->gwion->mp, type2td(env->gwion, tdef->type, tdef->pos),
+      insert_symbol("@implicit"), args, ae_flag_none, tdef->pos);
     set_fbflag(fb, fbflag_op);
     const Exp helper = new_prim_id(env->gwion->mp, insert_symbol("@predicate"), tdef->when->pos);
     tdef->when->next = helper;
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, cpy_exp(env->gwion->mp, tdef->when), tdef->when->pos);// copy exp
     const Stmt_List body = new_stmt_list(env->gwion->mp, stmt, NULL);//ret_list);
     const Stmt code = new_stmt_code(env->gwion->mp, body, tdef->when->pos);
-    const Func_Def fdef = new_func_def(env->gwion->mp, fb, code, tdef->when->pos);
+    const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     CHECK_BB(traverse_func_def(env, fdef))
     const Exp predicate = stmt->d.stmt_exp.val;
     if(isa(predicate->type, env->gwion->type[et_bool]) < 0) {
@@ -1266,7 +1266,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
   if(env->class_def && env->class_def->info->parent) {
     const Value override = find_value(env->class_def->info->parent, fdef->base->xid);
     if(override && override->from->owner_class && isa(override->type, env->gwion->type[et_function]) < 0)
-      ERR_B(fdef->pos,
+      ERR_B(fdef->base->pos,
             _("function name '%s' conflicts with previously defined value...\n"
             "  from super class '%s'..."),
             s_name(fdef->base->xid), override->from->owner_class->name)

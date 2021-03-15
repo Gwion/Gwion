@@ -1,6 +1,0 @@
-#! [contains] in function:
-class C {
-  fun void test() {
-    <<< b >>>;
-  }
-}

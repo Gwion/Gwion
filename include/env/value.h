@@ -5,6 +5,8 @@ struct ValueFrom_ {
   Type owner_class;
   struct Context_ *ctx;
   size_t offset;
+  m_str filename;
+  loc_t loc;
 };
 
 enum vflag {
@@ -41,5 +43,5 @@ REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
-ANN void valuefrom(const Env, struct ValueFrom_*);
+ANN void valuefrom(const Env, struct ValueFrom_*, const loc_t loc);
 #endif

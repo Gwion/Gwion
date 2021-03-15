@@ -73,11 +73,11 @@ ANN static Type class_type(const Env env, const Type base) {
   return t;
 }
 
-ANN Value mk_class(const Env env, const Type base) {
+ANN Value mk_class(const Env env, const Type base, const loc_t loc) {
   const Type t = class_type(env, base);
   const Symbol sym = insert_symbol(base->name);
   const Value v = new_value(env->gwion->mp, t, s_name(sym));
-  valuefrom(env, v->from);
+  valuefrom(env, v->from, loc);
   SET_FLAG(v, const);
   set_vflag(v, vflag_valid);
   nspc_add_value_front(base->info->owner, sym, v);

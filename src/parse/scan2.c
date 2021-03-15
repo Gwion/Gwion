@@ -60,7 +60,7 @@ ANN static m_bool scan2_args(const Func_Def f) {
 
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
     const Func f, const Value v) {
-  valuefrom(env, v->from);
+  valuefrom(env, v->from, d->base->pos);
   SET_FLAG(v, const);
   set_vflag(v, vflag_func);
   if(!env->class_def) {
@@ -277,15 +277,15 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f, const
   const m_bool fptr = is_fptr(env->gwion, overload->type);
   if(isa(overload->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, overload->type)) {
     if(!fbflag(f->base, fbflag_internal))
-      ERR_B(f->pos, _("function name '%s' is already used by another value"), overload->name)
+      ERR_B(f->base->pos, _("function name '%s' is already used by another value"), overload->name)
   }
   const Func obase = !fptr ? overload->d.func_ref : _class_base(overload->type)->info->func;
   if(GET_FLAG(obase->def->base, final))
-    ERR_B(f->pos, _("can't overload final function %s"), overload->name)
+    ERR_B(f->base->pos, _("can't overload final function %s"), overload->name)
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = fflag(obase, fflag_tmpl);
   if((!tmpl && base) || (tmpl && !base && !f->base->tmpl))
-    ERR_B(f->pos, _("must overload template function with template"))
+    ERR_B(f->base->pos, _("must overload template function with template"))
   return GW_OK;
 }
 
@@ -313,7 +313,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
   const Value v = new_value(env->gwion->mp, t, t->name);
-  valuefrom(env, v->from);
+  valuefrom(env, v->from, f->def->base->pos);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
     value_addref(v);
@@ -351,7 +351,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
         }
         if(compat_func(ff->def, f) > 0) {
           if(ff->value_ref->from->owner == env->curr)
-            ERR_B(f->pos, "template function '%s' already defined with those arguments in this namespace", name)
+            ERR_B(f->base->pos, "template function '%s' already defined with those arguments in this namespace", name)
           const Symbol sym = func_symbol(env, env->curr->name, name,
             "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
@@ -380,7 +380,7 @@ ANN2(1, 2) static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f, const 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   const m_str str = s_name(f->base->xid);
   struct Op_Func opfunc = { .ck=strcmp(str, "@implicit") ? 0 : opck_usr_implicit };
-  struct Op_Import opi = { .ret=f->base->ret_type, .pos=f->pos,
+  struct Op_Import opi = { .ret=f->base->ret_type, .pos=f->base->pos,
       .data=(uintptr_t)f->base->func, .func=&opfunc };
   func_operator(f, &opi);
   CHECK_BB(add_op(env->gwion, &opi))

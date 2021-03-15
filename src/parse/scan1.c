@@ -98,7 +98,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
       SET_FLAG(v, late);
     v->flag |= decl->td->flag;
     if(!env->scope->depth) {
-      valuefrom(env, v->from);
+      valuefrom(env, v->from, var->pos);
       if(env->class_def) {
         if(env->class_def->info->tuple)
           tuple_contains(env, v);
@@ -323,7 +323,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   do {
     CHECK_BB(already_defined(env, list->xid, edef->pos))
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
-    valuefrom(env, v->from);
+    valuefrom(env, v->from, edef->pos);
     if(env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
@@ -415,7 +415,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
   m_uint sz = 0;
   const Value v = new_value(env->gwion->mp, env->gwion->type[et_int], "@index");
   nspc_add_value_front(env->curr, insert_symbol("@index"), v);
-  valuefrom(env ,v->from);
+  valuefrom(env, v->from, udef->pos);
   do {
     DECL_OB(const Type, t, = known_type(env, l->td))
     if(nspc_lookup_value0(env->curr, l->xid))
@@ -424,7 +424,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
     if(!tflag(t, tflag_scan1)) // ???
       tuple_contains(env, v);  // ???
     v->from->offset = SZ_INT;
-    valuefrom(env ,v->from);
+    valuefrom(env ,v->from, udef->pos);
     nspc_add_value_front(env->curr, l->xid, v);
     if(t->size > sz)
       sz = t->size;
@@ -570,7 +570,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) 
   if(isa(actual_type(env->gwion, v->type), env->gwion->type[et_function]) > 0)
     return GW_OK;
   if((!env->class_def || !GET_FLAG(env->class_def, final)) && !nspc_lookup_value0(env->curr, fdef->base->xid))
-    ERR_B(fdef->pos, _("function '%s' has already been defined in the same scope..."),
+    ERR_B(fdef->base->pos, _("function '%s' has already been defined in the same scope..."),
          s_name(fdef->base->xid))
   return GW_OK;
 }

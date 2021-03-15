@@ -177,7 +177,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
     CHECK_BB(fptr_check(env, info))
     if(!(info->exp->type = fptr_type(env, info)))
-      ERR_B(info->lhs->def->pos, _("no match found"))
+      ERR_B(info->lhs->def->base->pos, _("no match found"))
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;

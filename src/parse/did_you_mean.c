@@ -38,8 +38,10 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
   while(scope_iter(&iter, &value) > 0) {
     if(vector_find(v, (vtype)value->name) > 0 &&!strcmp(name, value->name))
       continue;
-    if(wagner_fisher(name, value->name))
-      vector_add(v, (vtype)value->name);
+    if(wagner_fisher(name, value->name)) {
+      if(!vflag(value, vflag_builtin))
+      gwerr_secondary("declared here", value->from->filename, value->from->loc);
+    }
   }
 }
 
@@ -54,9 +56,6 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   vector_init(&v);
   do ressembles(&v, nspc, name);
   while((nspc = nspc->parent));
-  for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err(DYM_FMT, (m_str)vector_at(&v, i));
-  vector_release(&v);
 }
 
 #undef did_you_mean_type
@@ -67,7 +66,4 @@ ANN void did_you_mean_type(Type type, const char* name) {
   vector_init(&v);
   do ressembles(&v, t->nspc, name);
   while((t = t->info->parent) && t->nspc);
-  for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err(DYM_FMT, (m_str)vector_at(&v, i));
-  vector_release(&v);
 }

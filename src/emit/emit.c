@@ -1141,7 +1141,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg_List arg) {
   const Symbol sym = insert_symbol("==");
   struct Exp_ exp = {};
   struct Op_Import opi = { .op=sym, .lhs=arg->type, .rhs=arg->type,
-    .pos=me->fdef->pos, .data=(uintptr_t)&exp.d };
+    .pos=me->fdef->base->pos, .data=(uintptr_t)&exp.d };
   CHECK_BB(op_emit(emit, &opi))
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(&me->branch, (vtype)instr);
