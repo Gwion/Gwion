@@ -37,7 +37,7 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
 }
 
 static inline uint isgoto(const unsigned opcode) {
-  return opcode == eGoto ||
+  return opcode == eGoto || opcode == eArrayTop ||
       opcode == eBranchEqInt || opcode == eBranchNeqInt ||
       opcode == eBranchEqFloat || opcode == eBranchNeqFloat;
 }

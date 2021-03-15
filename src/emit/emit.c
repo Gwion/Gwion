@@ -282,7 +282,6 @@ ANN static void struct_expand(const Emitter emit, const Type t) {
   const Instr instr = emit_add_instr(emit, Reg2RegDeref);
   instr->m_val = -SZ_INT;
   instr->m_val2 = t->size;
-//  regpush(emit, t->size - SZ_INT);
 }
 
 
@@ -302,7 +301,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit, const Type type) 
   regpop(emit, SZ_INT);
   const Instr pc = emit_add_instr(emit, Goto);
   pc->m_val = start_index;
-  top->m_val = emit_code_size(emit) - !!emit->env->func;
+  top->m_val = emit_code_size(emit);
   regpop(emit, SZ_INT*3);
   emit_add_instr(emit, ArrayPost);
 }
