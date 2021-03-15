@@ -253,8 +253,8 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   return op_check(env, &opi);
 }
 
-static inline Nspc value_owner(const Value v) {
-  return v ? v->from->owner : NULL;
+static inline Nspc value_owner(const Env env, const Value v) {
+  return v ? v->from->owner : env->curr;
 }
 
 ANN static void check_upvalue(const Env env, const Exp_Primary *prim) {
@@ -291,8 +291,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   if(!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
     env_err(env, prim_pos(data),
           _("variable %s not legit at this point."), s_name(sym));
-    if(v)
-      did_you_mean_nspc(value_owner(v) ?: env->curr, s_name(sym));
+    did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
     return NULL;
   }
   prim_self(data)->value = v;
