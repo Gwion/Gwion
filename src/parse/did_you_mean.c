@@ -56,6 +56,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   vector_init(&v);
   do ressembles(&v, nspc, name);
   while((nspc = nspc->parent));
+  vector_release(&v);
 }
 
 #undef did_you_mean_type
@@ -66,4 +67,5 @@ ANN void did_you_mean_type(Type type, const char* name) {
   vector_init(&v);
   do ressembles(&v, t->nspc, name);
   while((t = t->info->parent) && t->nspc);
+  vector_release(&v);
 }
