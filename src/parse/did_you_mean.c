@@ -45,6 +45,7 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
 
 #define MAX_NAME_LEN 16
 #define CHECK_LEN(name) if(strlen(name) > MAX_NAME_LEN) return;
+#define DYM_FMT "`{/+}%s{0}`?\n"
 
 #undef did_you_mean_nspc
 ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
@@ -54,7 +55,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   do ressembles(&v, nspc, name);
   while((nspc = nspc->parent));
   for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err(_("  (did you mean '%s'?)\n"), (m_str)vector_at(&v, i));
+    gw_err(DYM_FMT, (m_str)vector_at(&v, i));
   vector_release(&v);
 }
 
@@ -67,6 +68,6 @@ ANN void did_you_mean_type(Type type, const char* name) {
   do ressembles(&v, t->nspc, name);
   while((t = t->info->parent) && t->nspc);
   for(m_uint i = 0; i < vector_size(&v); ++i)
-    gw_err(_("  (did you mean '%s'?)\n"), (m_str)vector_at(&v, i));
+    gw_err(DYM_FMT, (m_str)vector_at(&v, i));
   vector_release(&v);
 }

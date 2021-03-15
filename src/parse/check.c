@@ -289,8 +289,8 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol sym = *data;
   const Value v = check_non_res_value(env, data);
   if(!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
-    env_err(env, prim_pos(data),
-          _("variable %s not legit at this point."), s_name(sym));
+    gwerr_basic(_("Invalid variable"), _("not legit at this point."), "did you mean:",
+         env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
     return NULL;
   }
