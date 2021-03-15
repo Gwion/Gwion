@@ -543,7 +543,7 @@ ANN static void print_arg(Arg_List e) {
 }
 
 ANN2(1) static void function_alternative(const Env env, const Type f, const Exp args, const loc_t pos){
-  if(env->context->error) // needed for ufcs
+  if(env->context && env->context->error) // needed for ufcs
     return;
   gwerr_basic("Argument type mismatch", "call site", "valid alternatives:",
     env->name, pos, 0);
@@ -728,7 +728,8 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     exp->func->type = func->value_ref->type;
     return func->def->base->ret_type;
   }
-  function_alternative(env, exp->func->type, exp->args, exp->args->pos);
+  const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
+  function_alternative(env, exp->func->type, exp->args, pos);
   return NULL;
 }
 

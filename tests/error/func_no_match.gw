@@ -1,4 +1,4 @@
-#! [contains] argument type(s) do not match for fun
+#! [contains] Argument type mismatch
 fun void test(){}
 fun void test(int i[], int j[]){}
 test(1,2);
