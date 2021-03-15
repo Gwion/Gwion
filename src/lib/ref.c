@@ -63,8 +63,10 @@ OP_CHECK(opck_foreach_scan) {
   const Type t = new_type(env->gwion->mp, s_name(info.name), base);
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
+  const m_uint scope = env_push(env, base->info->owner_class, base->info->owner);
   base2ref(env, base, t);
   ref2base(env, t, base);
+  env_pop(env, scope);
   return t;
 }
 

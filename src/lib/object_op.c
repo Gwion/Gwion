@@ -269,16 +269,17 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
-  struct tmpl_info info = { .base=t, .td=td, .list=t->info->cdef->base.tmpl->list  };
+  struct tmpl_info info = { .base=t, .td=td, .list=t->info->cdef->base.tmpl->list };
   const Type exists = tmpl_exists(env, &info);
   if(exists)
     return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
-  CHECK_BO(envset_push(&es, t->info->owner_class, t->info->ctx ? t->info->ctx->nspc : env->curr))
+  const Type _t = known_type(env, td->types->td);
+  CHECK_BO(envset_push(&es, _t->info->owner_class, _t->info->owner))
   const Type ret = _scan_class(env, &info);
   if(es.run)
-    envset_pop(&es, t->info->owner_class);
+    envset_pop(&es, _t->info->owner_class);
   return ret;
 }
 

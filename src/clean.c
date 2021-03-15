@@ -23,7 +23,7 @@ ANN static void clean_type_list(Clean *a, Type_List b) {
 }
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
-  if(b->list)
+  if(b->base < 0 && b->list)
     clean_id_list(a, b->list);
   if(b->call)
     clean_type_list(a, b->call);

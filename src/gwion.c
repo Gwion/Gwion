@@ -161,7 +161,7 @@ ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt, va_list
   char c[size + 1];
   vsprintf(c, fmt, arg);
   gwerr_basic(c, NULL, NULL, env->name, pos, 0);
-  env_header(env);
+//  env_header(env);
 #endif
 }
 

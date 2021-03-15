@@ -855,6 +855,19 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot* member) {
   return check_dot(env, member);
 }
 
+/*
+// enable static checking
+ANN static OP_CHECK(opck_predicate) {
+  const Exp_Call *call = (Exp_Call*)data;
+  const Exp predicate = call->args;
+const Func f = exp_self(call)->type->info->func;
+//f->def->d.code->d.stmt_code.stmt_list->stmt->d.stmt_exp.val;
+  if(predicate->exp_type != ae_exp_primary ||
+     predicate->d.prim.prim_type != ae_prim_num ||
+     !predicate->d.prim.d.num) exit(12);
+}
+*/
+
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   if(tdef->when) {
     const Var_Decl decl = new_var_decl(env->gwion->mp, insert_symbol("self"), NULL, tdef->when->pos);
@@ -863,10 +876,11 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       insert_symbol("@implicit"), args, ae_flag_none, tdef->pos);
     set_fbflag(fb, fbflag_op);
     const Exp helper = new_prim_id(env->gwion->mp, insert_symbol("@predicate"), tdef->when->pos);
-    tdef->when->next = helper;
-    const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, cpy_exp(env->gwion->mp, tdef->when), tdef->when->pos);// copy exp
+    const Exp when = cpy_exp(env->gwion->mp, tdef->when);
+    when->next = helper;
+    const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, when, when->pos);
     const Stmt_List body = new_stmt_list(env->gwion->mp, stmt, NULL);//ret_list);
-    const Stmt code = new_stmt_code(env->gwion->mp, body, tdef->when->pos);
+    const Stmt code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     CHECK_BB(traverse_func_def(env, fdef))
     const Exp predicate = stmt->d.stmt_exp.val;
@@ -874,7 +888,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       char explain[strlen(predicate->type->name) + 7];
       sprintf(explain, "found `{/+}%s{0}`", predicate->type->name);
       gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain, "use `{/+}bool{0}`",
-        env->name, tdef->when->pos, 0);
+        env->name, when->pos, 0);
       char from[strlen(tdef->type->name) + 39];
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
       gwerr_secondary(from, env->name, tdef->pos);
@@ -882,10 +896,18 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
         env->context->error++;
       return GW_ERROR;
     }
+/*
+    // enable static checking
+    const Func f = fdef->base->func;
+    const struct Op_Func opfunc = { .ck=opck_predicate };
+    const struct Op_Import opi = { .rhs=f->value_ref->type,
+       .func=&opfunc, .data=(uintptr_t)f, .pos=tdef->pos, .op=insert_symbol("@func_check") };
+    CHECK_BB(add_op(env->gwion, &opi))
+*/
     // we handle the return after, so that we don't get *cant' use implicit casting while defining it*
-    const Exp ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), tdef->when->pos);
+    const Exp ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
     ret_id->d.prim.value = new_value(env->gwion->mp, tdef->type, "self");
-    const Stmt ret = new_stmt_exp(env->gwion->mp, ae_stmt_return, ret_id, tdef->when->pos);
+    const Stmt ret = new_stmt_exp(env->gwion->mp, ae_stmt_return, ret_id, when->pos);
     const Stmt_List ret_list = new_stmt_list(env->gwion->mp, ret, NULL);
     ret_id->type = tdef->type;
     body->next = ret_list;

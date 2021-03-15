@@ -80,6 +80,9 @@ ANN static Type _tmpl_exists(const Env env, const Symbol name) {
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
   if(template_match(info->list, info->td->types) < 0) // invalid template
     ERR_N(info->td->pos, _("invalid template types number"))
-  DECL_ON(const Symbol, name, = info->name = template_id(env, info))
-  return _tmpl_exists(env, name);
+  if(!info->name) {
+    DECL_ON(const Symbol, name, = info->name = template_id(env, info))
+    return _tmpl_exists(env, name);
+  }
+  return _tmpl_exists(env, info->name);
 }

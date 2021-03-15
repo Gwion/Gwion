@@ -19,6 +19,26 @@ OP_CHECK(opck_basic_cast) {
 
 OP_CHECK(opck_usr_implicit) {
   struct Implicit* imp = (struct Implicit*)data;
+/*
+// in use for refinement types
+  const Value v = nspc_lookup_value1(imp->t->info->owner, insert_symbol("@implicit"));
+  if(v) {
+    Func f = v->d.func_ref;
+    while(f) {
+      if(f->def->base->ret_type == imp->t)
+        break;
+      f = f->next;
+    }
+    if(f) {
+      // TODO: add call exp
+      struct Exp_ call = { .exp_type=ae_exp_call, .d={.exp_call={.args=imp->e}}, .pos=imp->e->pos,
+        .type=f->value_ref->type };
+      struct Op_Import opi = { .op=insert_symbol("@func_check"),
+        .rhs=f->value_ref->type, .pos=imp->e->pos, .data=(uintptr_t)&call };
+      CHECK_NN(op_check(env, &opi))
+    }
+  }
+*/
   return imp->t;
 }
 
