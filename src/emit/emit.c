@@ -1804,7 +1804,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   loop_idx->m_val2 = -1;
   stmt->v->from->offset = offset + SZ_INT *2;
   if(stmt->idx)
-    stmt->vidx->from->offset = offset + SZ_INT;
+    stmt->idx->v->from->offset = offset + SZ_INT;
   if(n) {
     const Instr instr = emit_add_instr(emit, AutoUnrollInit);
     instr->m_val = offset-SZ_INT;

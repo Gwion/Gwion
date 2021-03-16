@@ -286,8 +286,8 @@ ANN static inline m_bool scan1_stmt_match(const restrict Env env, const Stmt_Mat
 ANN static inline m_bool stmt_each_defined(const restrict Env env, const Stmt_Each stmt) {
   if(nspc_lookup_value1(env->curr, stmt->sym))
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"), s_name(stmt->sym))
-  if(stmt->idx && nspc_lookup_value1(env->curr, stmt->idx))
-    ERR_B(stmt_self(stmt)->pos, _("foreach index '%s' is already defined"), s_name(stmt->idx))
+  if(stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->sym))
+    ERR_B(stmt_self(stmt)->pos, _("foreach index '%s' is already defined"), s_name(stmt->idx->sym))
   return GW_OK;
 }
 
@@ -358,7 +358,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
     if(list->td) {
       SET_FLAG(list->td, late);
       CHECK_OB((list->type = void_type(env, list->td)))
-      SET_FLAG(list->td, late);
+      UNSET_FLAG(list->td, late);
     }
     var->value = arg_value(env, list);
     nspc_add_value(env->curr, var->xid, var->value);

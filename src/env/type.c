@@ -99,6 +99,7 @@ ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint dept
 #include "operator.h"
 #include "import.h"
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
+if(src == env->gwion->type[et_auto])return src;
   const Symbol sym = array_sym(env, src, depth);
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)

@@ -40,7 +40,7 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
       continue;
     if(wagner_fisher(name, value->name)) {
       if(!vflag(value, vflag_builtin))
-      gwerr_secondary("declared here", value->from->filename, value->from->loc);
+        gwerr_secondary("declared here", value->from->filename, value->from->loc);
     }
   }
 }

@@ -16,13 +16,17 @@ ANN m_bool traverse_exp(const Env env, const Exp exp) {
  return check_exp(env, exp) ? 1 : -1;
 }
 
-ANN m_bool traverse_func_def(const Env env, const Func_Def def) {
+ANN static m_bool _traverse_func_def(const Env env, const Func_Def fdef) {
+  CHECK_BB(scan1_func_def(env, fdef))
+  CHECK_BB(scan2_func_def(env, fdef))
+  return check_func_def(env, fdef);
+}
+
+ANN m_bool traverse_func_def(const Env env, const Func_Def fdef) {
   const Func former = env->func;
-  const m_bool ret = scan1_func_def(env, def) > 0 &&
-     scan2_func_def(env, def) > 0 &&
-     check_func_def(env, def) > 0;
+  const m_bool ret = _traverse_func_def(env, fdef);
   env->func = former;
-  return ret ? GW_OK : GW_ERROR;
+  return ret;
 }
 
 ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
