@@ -150,12 +150,16 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   if(base || arg)
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
+  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)
+    UNSET_FLAG(l->def->base, global);
   l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
   l->def->base->values = env->curr->info->value;
   const m_bool ret = traverse_func_def(env, l->def);
   if(l->def->base->func) {
-    free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = l->def->base->values;
+    if(env->curr->info->value != l->def->base->values) {
+      free_scope(env->gwion->mp, env->curr->info->value);
+      env->curr->info->value = l->def->base->values;
+    }
   }
   arg = l->def->base->args;
   while(arg) {
@@ -167,7 +171,8 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->info->func->def;
-  l->owner = t->info->owner_class;
+  if(!GET_FLAG(t->info->func->value_ref, global))
+    l->owner = t->info->owner_class;
   CHECK_BB(_check_lambda(env, l, fdef))
   exp_self(l)->type = l->def->base->func->value_ref->type;
   return GW_OK;
