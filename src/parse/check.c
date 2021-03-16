@@ -292,6 +292,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), "did you mean:",
          env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
+    env->context->error++;
     return NULL;
   }
   prim_self(data)->value = v;
