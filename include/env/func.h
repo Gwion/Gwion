@@ -2,11 +2,12 @@
 #define __FUNC
 
 enum fflag {
-  fflag_none  = 1 << 0,
-  fflag_pure  = 1 << 1,
-  fflag_ftmpl = 1 << 2,
-  fflag_tmpl  = 1 << 3,
-  fflag_valid = 1 << 4,
+  fflag_none   = 1 << 0,
+  fflag_pure   = 1 << 1,
+  fflag_ftmpl  = 1 << 2,
+  fflag_tmpl   = 1 << 3,
+  fflag_valid  = 1 << 4,
+  fflag_return = 1 << 5,
 } __attribute__((packed));
 
 struct Func_ {

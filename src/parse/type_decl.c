@@ -35,9 +35,6 @@ ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = scan_type(env, base, td))
   const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
-//  if(!td->array || ret == env->gwion->type[et_auto])
-//    return ret;
-//  return array_type(env, ret, td->array->depth);
   return !td->array ? ret: array_type(env, ret, td->array->depth);
 }
 

@@ -1,0 +1,14 @@
+#! [contains] 1
+fun void test:[A](A t) {
+ <<< t[0] >>>;
+}
+
+test:[ int[] ]([1]);
+test([1]);
+
+fun void test2:[A](A t[]) {
+ <<< t[0] >>>;
+}
+
+test2:[ int ]([1]);
+test2([1]);

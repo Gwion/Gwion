@@ -78,11 +78,12 @@ ANN Type typedef_base(Type t) {
 
 ANN Type array_base(Type type) {
   const Type t = typedef_base(type);
-//  return t->array_depth ? t->info->base_type : t;
   return t->array_depth ? array_base(t->info->base_type) : t;
 }
 
 ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint depth) {
+  if(src->array_depth == depth)
+    return insert_symbol(src->name);
   const Type t = array_base(src);
   size_t len = strlen(t->name);
   char name[len + 2* depth + 1];
@@ -99,7 +100,6 @@ ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint dept
 #include "operator.h"
 #include "import.h"
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
-if(src == env->gwion->type[et_auto])return src;
   const Symbol sym = array_sym(env, src, depth);
   const Type type = nspc_lookup_type1(src->info->owner, sym);
   if(type)

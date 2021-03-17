@@ -1,0 +1,6 @@
+#! [contains] NullPtrException
+fun Object test() {
+  late Object o;
+  return o;
+}
+test();

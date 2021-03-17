@@ -376,25 +376,10 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice* range) {
   return op_check(env, &opi);
 }
 
-ANN2(1,2) static Type_Decl* prepend_type_decl(MemPool mp, const Symbol xid, Type_Decl* td, const struct loc_t_ pos) {
-  Type_Decl *a = new_type_decl(mp, xid, pos);
-  a->next = td;
-  return a;
-}
-
-ANN static Type_List mk_type_list(const Env env, const Type type, const loc_t pos) {
-  struct Vector_ v;
-  vector_init(&v);
-  vector_add(&v, (vtype)insert_symbol(type->name));
-  Type owner = type->info->owner_class;
-  while(owner) {
-    vector_add(&v, (vtype)insert_symbol(owner->name));
-    owner = owner->info->owner_class;
-  }
-  Type_Decl *td = NULL;
-  for(m_uint i = 0 ; i < vector_size(&v); ++i)
-    td = prepend_type_decl(env->gwion->mp, (Symbol)vector_at(&v, i), td, pos);
-  vector_release(&v);
+ANN static Type_List mk_type_list(const Env env, const Arg_List arg, const Type type, const loc_t pos) {
+  const Type t = !arg->td->array ?
+      type : array_type(env, type, arg->td->array->depth);
+  Type_Decl *td = type2td(env->gwion, t, pos);
   return new_type_list(env->gwion->mp, td, NULL);
 }
 
@@ -622,7 +607,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
     Exp template_arg = exp->args;
     while(arg && template_arg) {
       if(list->xid == arg->td->xid) {
-        tl[args_number] = mk_type_list(env, template_arg->type, fdef->base->pos);
+        tl[args_number] = mk_type_list(env, arg, template_arg->type, fdef->base->pos);
         if(args_number)
           tl[args_number - 1]->next = tl[args_number];
         ++args_number;
@@ -1052,6 +1037,8 @@ stmt_func_xxx(each, Stmt_Each,, do_stmt_each(env, stmt))
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
     ERR_B(stmt_self(stmt)->pos, _("'return' statement found outside function definition"))
+  if(env->scope->depth == 1) // so ops no dot set scope->depth ?
+    set_fflag(env->func, fflag_return);
   DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void])
   if(!env->func->def->base->ret_type) {
     assert(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0);
@@ -1303,8 +1290,14 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if(fdef->base->args)
     CHECK_BB(check_func_args(env, fdef->base->args))
-  if(fdef->d.code)
+  if(fdef->d.code) {
+    env->scope->depth--;
     CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code))
+    env->scope->depth++;
+  }
+  if(fdef->base->ret_type && fdef->base->ret_type != env->gwion->type[et_void] &&
+     fdef->d.code && !fflag(fdef->base->func, fflag_return))
+    ERR_B(fdef->base->td->pos, _("missing return statement in a non void function"));
   return GW_OK;
 }
 

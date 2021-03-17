@@ -1,5 +1,6 @@
 #! [contains] must be of type float
 fun float t(int i) {
+  return 0;
 }
 
 class C extends UsrUGen {

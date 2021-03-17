@@ -99,6 +99,8 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
   if(tflag(t, tflag_tmpl) && isa(t, env->gwion->type[et_function]) < 0) {
     if(tflag(t, tflag_ntmpl) && !td->types)
       return t;
+//    if(t->array_depth && tflag(t, tflag_scan1))
+//      return t;
     struct TemplateScan ts = { .t=t, .td=td };
     struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td->pos };
     return op_check(env, &opi);
@@ -126,5 +128,5 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
       envset_pop(&es, owner);
     return ret;
   }
-  return _scan_type(env, t, td);
+  return !t->array_depth ? _scan_type(env, t, td) : t;
 }
