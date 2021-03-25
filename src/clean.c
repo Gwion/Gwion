@@ -340,7 +340,7 @@ ANN static void clean_type_def(Clean *a, Type_Def b) {
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }
-
+#define clean_extend clean_class_def
 DECL_SECTION_FUNC(clean, void, Clean*)
 
 ANN static inline void clean_section(Clean *a, Section *b) {

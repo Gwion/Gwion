@@ -528,6 +528,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
 }
 
 #define scan2_enum_def dummy_func
+#define scan2_extend dummy_func
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {

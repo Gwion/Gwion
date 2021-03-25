@@ -2288,6 +2288,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
 }
 
 #define emit_fptr_def dummy_func
+#define emit_extend dummy_func
 HANDLE_SECTION_FUNC(emit, m_bool, Emitter)
 
 ANN Code* emit_class_code(const Emitter emit, const m_str name) {

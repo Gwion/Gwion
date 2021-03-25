@@ -1334,6 +1334,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
 }
 
 #define check_fptr_def dummy_func
+#define check_extend dummy_func
 HANDLE_SECTION_FUNC(check, m_bool, Env)
 
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {

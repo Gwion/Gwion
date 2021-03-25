@@ -593,7 +593,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     env_pop(env, scope);
   return ret;
 }
-
+#define scan1_extend dummy_func
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {

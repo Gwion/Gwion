@@ -342,6 +342,7 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
 }
 
 #define scan0_func_def dummy_func
+#define scan0_extend dummy_func
 HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
