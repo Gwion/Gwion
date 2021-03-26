@@ -55,7 +55,6 @@ ANN static void arg_init(Arg* arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->config);
-  vector_add(&arg->lib, (vtype)plug_dir());
   arg->color = COLOR_AUTO;
 }
 
@@ -347,5 +346,9 @@ ANN m_bool arg_parse(const Gwion gwion, Arg* a) {
   return;
 #endif
   config_default(&arg);
-  return _arg_parse(&arg);
+  if(_arg_parse(&arg) > 0) {
+    vector_add(&a->lib, (vtype)plug_dir());
+    return GW_OK;
+  }
+  return GW_ERROR;
 }
