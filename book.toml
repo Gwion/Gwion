@@ -1,11 +1,11 @@
 [book]
 authors = ["Jérémie Astor", "Pranav Joglekar", "Amber Zeller"]
 title = "Gwion"
-description = "Tutorial and reference for gwion"
+description = "Tutorial and reference for Gwion"
 language = "en"
 
 [output.html]
-default-theme = "rust"
+default-theme = "coal"
 additional-css = ["custom.css", "ansi2html.css"]
 git-repository-url ="https://github.com/Gwion/Gwion"
 site-url = "/Gwion/"
