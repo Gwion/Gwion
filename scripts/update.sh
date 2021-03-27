@@ -15,7 +15,7 @@ update() {
   rm $file
 }
 
-git clone --recursive https://github.com/Gwion/gwion
+git clone --recursive https://github.com/Gwion/Gwion
 make -C Gwion
 cp Gwion/gwion .
 
