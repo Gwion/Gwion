@@ -32,13 +32,17 @@ static m_bool wagner_fisher(const char *s, const char* t) {
   return (i && j && d[m-1][n-1] < MAX_DISTANCE);
 }
 
-ANN static void ressembles(const Vector v, const Nspc nspc, const char* name) {
+ANN static void ressembles(const Vector v, const Nspc nspc, const char* name, bool *const done) {
   struct scope_iter iter = { nspc->info->value, 0, 0 };
   Value value;
   while(scope_iter(&iter, &value) > 0) {
     if(vector_find(v, (vtype)value->name) > 0 &&!strcmp(name, value->name))
       continue;
     if(wagner_fisher(name, value->name)) {
+      if(!*done) {
+        *done = true;
+        gw_err("{-/}did you mean{0}:");
+      }
       if(!vflag(value, vflag_builtin))
         gwerr_secondary("declared here", value->from->filename, value->from->loc);
     }
@@ -54,7 +58,8 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   CHECK_LEN(name)
   struct Vector_ v;
   vector_init(&v);
-  do ressembles(&v, nspc, name);
+  bool done;
+  do ressembles(&v, nspc, name, &done);
   while((nspc = nspc->parent));
   vector_release(&v);
 }
@@ -65,7 +70,8 @@ ANN void did_you_mean_type(Type type, const char* name) {
   Type t = type;
   struct Vector_ v;
   vector_init(&v);
-  do ressembles(&v, t->nspc, name);
+  bool done;
+  do ressembles(&v, t->nspc, name, &done);
   while((t = t->info->parent) && t->nspc);
   vector_release(&v);
 }
