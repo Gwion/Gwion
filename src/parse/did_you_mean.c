@@ -41,7 +41,7 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name, bo
     if(wagner_fisher(name, value->name)) {
       if(!*done) {
         *done = true;
-        gw_err("{-/}did you mean{0}:");
+        gw_err("{-/}did you mean{0}:\n");
       }
       if(!vflag(value, vflag_builtin))
         gwerr_secondary("declared here", value->from->filename, value->from->loc);
@@ -51,7 +51,6 @@ ANN static void ressembles(const Vector v, const Nspc nspc, const char* name, bo
 
 #define MAX_NAME_LEN 16
 #define CHECK_LEN(name) if(strlen(name) > MAX_NAME_LEN) return;
-#define DYM_FMT "`{/+}%s{0}`?\n"
 
 #undef did_you_mean_nspc
 ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
