@@ -40,12 +40,12 @@ Type new_type(MemPool p, const m_str name, const Type parent) {
 }
 
 ANN Type type_copy(MemPool p, const Type type) {
-  const Type a = new_type(p, type->name, type->info->parent);
-  a->nspc           = type->nspc;
+  const Type a         = new_type(p, type->name, type->info->parent);
+  a->nspc              = type->nspc;
   a->info->owner       = type->info->owner;
   a->info->owner_class = type->info->owner_class;
-  a->size           = type->size;
-  a->array_depth    = type->array_depth;
+  a->size              = type->size;
+  a->array_depth       = type->array_depth;
   a->info->gack        = type->info->gack;
   return a;
 }

@@ -61,12 +61,17 @@ OP_CHECK(opck_foreach_scan) {
     return exists != env->gwion->type[et_error] ? exists : NULL;
   const Type base = known_type(env, ts->td->types->td);
   const Type t = new_type(env->gwion->mp, s_name(info.name), base);
+  t->info->owner = base->info->owner;
+  t->info->owner_class = base->info->owner_class;
+  t->info->ctx = base->info->ctx;
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
   const m_uint scope = env_push(env, base->info->owner_class, base->info->owner);
+//  mk_class(env, t, (loc_t){});
   base2ref(env, base, t);
   ref2base(env, t, base);
   env_pop(env, scope);
+  nspc_add_type_front(t->info->owner, info.name, t);
   return t;
 }
 
