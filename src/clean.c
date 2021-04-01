@@ -293,6 +293,11 @@ ANN void func_def_cleaner(const Gwion gwion, Func_Def b) {
   free_func_def(gwion->mp, b);
 }
 
+ANN static void clean_extend_def(Clean *a, Extend_Def b) {
+  clean_type_decl(a, b->td);
+  clean_ast(a, b->body);
+}
+
 ANN static void clean_class_def(Clean *a, Class_Def b) {
   clean_type_def(a, &b->base);
   if(b->body)
@@ -340,7 +345,6 @@ ANN static void clean_type_def(Clean *a, Type_Def b) {
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }
-#define clean_extend clean_class_def
 DECL_SECTION_FUNC(clean, void, Clean*)
 
 ANN static inline void clean_section(Clean *a, Section *b) {

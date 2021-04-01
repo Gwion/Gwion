@@ -342,7 +342,23 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
 }
 
 #define scan0_func_def dummy_func
-#define scan0_extend dummy_func
+
+ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
+  DECL_OB(const Type, t, = known_type(env, xdef->td))
+  if(isa(t, env->gwion->type[et_compound]) < 0)
+    ERR_B(xdef->td->pos, _("only compound types can be extended"))
+  if(GET_FLAG(t, final)) // TODO: add type initial declaration
+    ERR_B(xdef->td->pos, _("can't extend final type"))
+  Ast ast = xdef->body;
+  do {
+    if(ast->section->section_type == ae_section_func &&
+       GET_FLAG(ast->section->d.func_def->base, abstract))
+      ERR_B(ast->section->d.func_def->base->pos, _("can't use {/+}abstract{0} functions in {+/}extends{0}"))
+  } while((ast = ast->next));
+  xdef->t = t;
+  return GW_OK;
+}
+
 HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {

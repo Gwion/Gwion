@@ -527,8 +527,15 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+
+ANN static m_bool scan2_extend_def(const Env env, const Extend_Def xdef) {
+  CHECK_BB(extend_push(env, xdef->t))
+  const m_bool ret = scan2_ast(env, xdef->body);
+  extend_pop(env, xdef->t);
+  return ret;
+}
+
 #define scan2_enum_def dummy_func
-#define scan2_extend dummy_func
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {

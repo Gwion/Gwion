@@ -2287,9 +2287,22 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   return ret;
 }
 
+ANN static m_bool emit_extend_def(const Emitter emit, const Extend_Def xdef);
 #define emit_fptr_def dummy_func
-#define emit_extend dummy_func
 HANDLE_SECTION_FUNC(emit, m_bool, Emitter)
+
+ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
+  do CHECK_BB(emit_section(emit, ast->section))
+  while((ast = ast->next));
+  return emit_defers(emit);
+}
+
+ANN static m_bool emit_extend_def(const Emitter emit, const Extend_Def xdef) {
+  CHECK_BB(extend_push(emit->env, xdef->t))
+  const m_bool ret = emit_ast_inner(emit, xdef->body);
+  extend_pop(emit->env, xdef->t);
+  return ret;
+}
 
 ANN Code* emit_class_code(const Emitter emit, const m_str name) {
   const m_uint len = strlen(name) + 7;
@@ -2358,12 +2371,6 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
   vector_clear(&emit->info->pure);
   emit_free_code(emit, emit->code);
   return NULL;
-}
-
-ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
-  do CHECK_BB(emit_section(emit, ast->section))
-  while((ast = ast->next));
-  return emit_defers(emit);
 }
 
 ANN m_bool emit_ast(const Env env, Ast ast) {

@@ -593,7 +593,14 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
     env_pop(env, scope);
   return ret;
 }
-#define scan1_extend dummy_func
+
+ANN static m_bool scan1_extend_def(const Env env, const Extend_Def xdef) {
+  CHECK_BB(extend_push(env, xdef->t))
+  const m_bool ret = scan1_ast(env, xdef->body);
+  extend_pop(env, xdef->t);
+  return ret;
+}
+
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {

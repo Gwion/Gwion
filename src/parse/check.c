@@ -1333,8 +1333,14 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   return ret;
 }
 
+ANN static m_bool check_extend_def(const Env env, const Extend_Def xdef) {
+  CHECK_BB(extend_push(env, xdef->t))
+  const m_bool ret = check_ast(env, xdef->body);
+  extend_pop(env, xdef->t);
+  return ret;
+}
+
 #define check_fptr_def dummy_func
-#define check_extend dummy_func
 HANDLE_SECTION_FUNC(check, m_bool, Env)
 
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
