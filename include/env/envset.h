@@ -16,14 +16,14 @@ ANN2(1,3) m_bool envset_push(struct EnvSet*, const Type, const Nspc);
 ANN2(1) void   envset_pop(struct EnvSet*, const Type);
 
 ANN static inline m_bool extend_push(const Env env, const Type t) {
-  if(t->info->parent)
-    CHECK_BB(extend_push(env, t->info->parent))
+  if(t->info->owner_class)
+    CHECK_BB(extend_push(env, t->info->owner_class))
   return env_push_type(env, t);
 }
 
 ANN static inline void extend_pop(const Env env, const Type t) {
   env_pop(env, 0);
-  if(t->info->parent)
-    extend_pop(env, t->info->parent);
+  if(t->info->owner_class)
+    extend_pop(env, t->info->owner_class);
 }
 #endif
