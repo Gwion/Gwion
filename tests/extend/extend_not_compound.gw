@@ -1,0 +1,4 @@
+#! [contains] only compound types can be extended
+extends int {
+  fun void test(){}
+}

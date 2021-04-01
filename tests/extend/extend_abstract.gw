@@ -1,0 +1,4 @@
+#! [contains] abstract functions in extends
+extends Event {
+  fun void test();
+}
