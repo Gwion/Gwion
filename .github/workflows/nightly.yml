@@ -12,7 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
+    env:
+      USE_LTO: 1 
     runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
     - uses: actions/checkout@v2
@@ -21,9 +24,14 @@ jobs:
       run: git submodule update --init --recursive util ast libcmdapp
 
     - name: Build
+      if: "${{ matrix.os }} != "windows-latest"
+      run: make
+
+    - name: Build
+      if: "${{ matrix.os }} == "windows-latest"
       run: make
       env:
-        USE_LTO: 1 
+        BUILD_ON_WINDOWS: 1 
 
     - name: build asset
       run: |
