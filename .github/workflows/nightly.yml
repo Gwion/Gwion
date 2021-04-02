@@ -35,6 +35,7 @@ jobs:
 
     - name: build asset
       run: |
+        strip gwion
         7z a gwion-nightly.zip gwion
 
     - name: Deploy release
@@ -47,4 +48,4 @@ jobs:
         asset_path: ./gwion-nightly.zip # path to archive to upload
         asset_name: gwion-nightly-${{matrix.os}}-$$.zip # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
         asset_content_type: application/zip # required by GitHub API
-        max_releases: 7 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
+        max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
