@@ -55,4 +55,4 @@ jobs:
       with:
         webhook_id: ${{ secrets.WEBHOOK_ID }}
         webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
-        message: !gwion update
+        message: "!gwion update"
