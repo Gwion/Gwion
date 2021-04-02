@@ -45,7 +45,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git tag -f -a nightly
-        git push origin -f nightly
+        git push origin -f --follow-tags nightly
 
     - name: Deploy release
       uses: WebFreak001/deploy-nightly@v1.1.0
