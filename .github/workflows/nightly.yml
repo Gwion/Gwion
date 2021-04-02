@@ -1,9 +1,9 @@
-name: Cffi Nightly
+name: Nightly
 
 on:
   push:
     branches: 
-    - 'main'
+    - 'master'
 
 jobs:
   nightly:
