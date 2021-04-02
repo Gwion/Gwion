@@ -40,6 +40,7 @@ jobs:
         7z a gwion-nightly.zip gwion*
 
     - name: Set tag
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: |
         git tag -f -a nightly
         git push origin -f nightly
