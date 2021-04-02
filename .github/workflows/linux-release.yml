@@ -50,9 +50,12 @@ jobs:
         asset_name: gwion-linux.tar.gz
         asset_content_type: application/gzip
 
-    - name: send message
+    - name: Update Discord bot
       uses: appleboy/discord-action@master
       with:
         webhook_id: ${{ secrets.WEBHOOK_ID }}
         webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
         message: "!gwion update"
+
+    - name: Update playground
+      run:  curl https://thegwionplayground.fennecdjay.repl.co/bumcledyfynaghat
