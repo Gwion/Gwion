@@ -44,7 +44,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git tag -f -a nightly
+        git tag -f -a nightly -m "Nightly update"
         git push origin -f --follow-tags nightly
 
     - name: Deploy release
