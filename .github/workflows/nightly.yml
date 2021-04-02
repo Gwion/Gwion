@@ -36,8 +36,8 @@ jobs:
 
     - name: build asset
       run: |
-        strip gwion
-        7z a gwion-nightly.zip gwion
+        strip gwion*
+        7z a gwion-nightly.zip gwion*
 
     - name: Deploy release
       uses: WebFreak001/deploy-nightly@v1.1.0
