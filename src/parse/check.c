@@ -1368,10 +1368,22 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   if(!cdef->base.type->nspc->info->vtable.ptr)
     return GW_OK;
+  bool err = false;
   for(m_uint i = 0; i < vector_size(&cdef->base.type->nspc->info->vtable); ++i) {
     Func f = (Func)vector_at(&cdef->base.type->nspc->info->vtable, i);
-    if(GET_FLAG(f->def->base, abstract))
-      ERR_B(cdef->pos, _("'%s' must be declared 'abstract'"), s_name(cdef->base.xid))
+    if(GET_FLAG(f->def->base, abstract)) {
+      if(!err) {
+        err = true;
+        gwerr_basic(
+          _("missing function definition"),
+          _("must be declared 'abstract'"),
+          _("provide an implementation for the following:"),
+          env->name, cdef->pos, 0);
+      }
+      struct ValueFrom_ *from = f->value_ref->from;
+      gwerr_secondary("implementation missing", from->filename, from->loc);
+      env->context->error = true;
+    }
   }
   return GW_OK;
 }
