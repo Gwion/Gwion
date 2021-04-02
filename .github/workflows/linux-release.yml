@@ -49,3 +49,10 @@ jobs:
         asset_path: ./gwion-linux.tar.gz
         asset_name: gwion-linux.tar.gz
         asset_content_type: application/gzip
+
+    - name: send message
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ secrets.WEBHOOK_ID }}
+        webhook_token: ${{ secrets.WEBHOOK_TOKEN }}
+        message: !gwion update
