@@ -30,7 +30,7 @@ jobs:
 
     - name: Build
       if: ${{ matrix.os  == 'windows-latest' }}
-      run: make USE_LTO = 0
+      run: make USE_LTO=0
       env:
         BUILD_ON_WINDOWS: 1 
 
