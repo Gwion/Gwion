@@ -1,0 +1,43 @@
+name: Cffi Nightly
+
+on:
+  push:
+    branches: 
+    - 'main'
+
+jobs:
+  nightly:
+    name: Deploy nightly
+    strategy:
+      fail-fast: false
+      matrix:
+#        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: SubModules
+      run: git submodule update --init --recursive util ast libcmdapp
+
+    - name: Build
+      run: make
+      env:
+        USE_LTO: 1 
+
+    - name: build asset
+      run: |
+        7z a gwion-nightly.zip gwion
+
+    - name: Deploy release
+      uses: WebFreak001/deploy-nightly@v1.1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: https://uploads.github.com/repos/Gwion/Gwion/releases/40867029/assets{?name,label}
+        release_id: 40867029 # same as above (id can just be taken out the upload_url, it's used to find old releases)
+        asset_path: ./gwion-nightly.zip # path to archive to upload
+        asset_name: gwion-nightly-${{matrix.os}}-$$.zip # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
+        asset_content_type: application/zip # required by GitHub API
+        max_releases: 7 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
