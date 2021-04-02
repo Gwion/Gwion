@@ -24,11 +24,11 @@ jobs:
       run: git submodule update --init --recursive util ast libcmdapp
 
     - name: Build
-      if: "${{ matrix.os }} != "windows-latest"
+      if: "${{ matrix.os }} != windows-latest"
       run: make
 
     - name: Build
-      if: "${{ matrix.os }} == "windows-latest"
+      if: "${{ matrix.os }} == windows-latest"
       run: make
       env:
         BUILD_ON_WINDOWS: 1 
