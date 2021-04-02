@@ -34,10 +34,15 @@ jobs:
       env:
         BUILD_ON_WINDOWS: 1 
 
-    - name: build asset
+    - name: Build asset
       run: |
         strip gwion*
         7z a gwion-nightly.zip gwion*
+
+    - name: Set tag
+      run: |
+        git tag -f -a nightly
+        git push origin -f nightly
 
     - name: Deploy release
       uses: WebFreak001/deploy-nightly@v1.1.0
