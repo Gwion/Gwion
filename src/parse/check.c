@@ -46,11 +46,12 @@ ANN m_bool check_subscripts(Env env, const Array_Sub array, const m_bool is_decl
 
 ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var) {
   const Value value = find_value(env->class_def->info->parent, var->xid);
-  if(value)
-    ERR_B(var->pos,
-          _("in class '%s': '%s' has already been defined in parent class '%s' ..."),
-          env->class_def->name, s_name(var->xid),
-          value->from->owner_class ? value->from->owner_class->name : "?")
+  if(value) {
+    env_err(env, var->pos,
+          _("Value defined in parent class"));
+    gwerr_secondary(_("defined here"), value->from->filename, value->from->loc);
+    return GW_ERROR;
+  }
   return GW_OK;
 }
 
@@ -1385,7 +1386,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
       env->context->error = true;
     }
   }
-  return GW_OK;
+  return !err ? GW_OK : GW_ERROR;
 }
 
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
