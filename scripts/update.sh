@@ -9,7 +9,7 @@ get_latest_release() {
 update() {
   new_release=$(get_latest_release $1 $2)
   url=https://github.com/$1/$2/releases/download
-  file=${2}*.tar.gz
+  file=${2}*.zip
   wget "$url/$new_release/$file"
   7z e $file
   rm $file
