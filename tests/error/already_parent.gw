@@ -1,4 +1,4 @@
-#! [contains] has already been defined in parent class
+#! [contains] defined in parent class
 class C {
   var int i;
 }
