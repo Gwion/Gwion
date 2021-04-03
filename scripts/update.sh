@@ -11,7 +11,7 @@ update() {
   url=https://github.com/$1/$2/releases/download
   file=${2}*.tar.gz
   wget "$url/$new_release/$file"
-  tar -zxvf $file
+  7z e $file
   rm $file
 }
 
