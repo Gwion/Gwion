@@ -20,6 +20,8 @@ It aims to be simple, small,
  [fast](https://Gwion.github.io/Gwion/#Benchmarks/),
  [extendable](https://github.com/Gwion/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
 
+Checkout the community, and join us on discord: https://discord.gg/uYjFymzu.
+
 ## Build
 ### Download the source
 
