@@ -4,21 +4,19 @@ The easiest way to do an action repeatidly in Gwion is, ... the **repeat** keywo
 
 ## Basic example
 
-@``` repeat.gw
+```gwion,editable
 repeat(3)
    <<< "Hello, world!" >>>;
-@```  
-@hide make -s CONTAINS="Hello" repeat.test
+```  
 
 
 ## Block example
 
 of course this also works with a block code.
 
-@``` repeat2.gw
+```gwion,editable
 repeat(3) {
    maybe ? "You" : "Me" => var string s;
    <<< "Hello, ", s, "!" >>>;
 }
-@```  
-@hide make -s CONTAINS="Hello" repeat2.test
+```  

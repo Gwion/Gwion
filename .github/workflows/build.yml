@@ -11,10 +11,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       name: Checkout
-    - uses: actions/setup-python@v1
-      name: Setup Python
-    - uses: actions/setup-ruby@v1
-      name: Setup Ruby
 
     - name: Dependencies
       run: bash scripts/update.sh

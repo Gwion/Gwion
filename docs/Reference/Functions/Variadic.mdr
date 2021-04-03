@@ -5,7 +5,7 @@
 Well, a function that takes a fixed number of arguments, and additionnal ones.
 
 ## a simple example
-@``` variadic.gw
+```gwion,editable
 fun void variadic_test(int i, ...) {
   <<<  "first argument is ", i  >>>;
   varloop vararg {
@@ -15,5 +15,4 @@ fun void variadic_test(int i, ...) {
 variadic_test(1);
 variadic_test(1, 2);
 variadic_test(1, 2, 3);
-@```
-@hide make -s variadic.test
+```

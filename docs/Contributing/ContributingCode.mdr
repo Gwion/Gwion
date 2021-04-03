@@ -18,20 +18,17 @@ You can do this through the github site, or command-line tools like `gh` or `hub
 Clone the url of your fork
 
 ``` sh
-git clone https://github.com/<your username>/gwion
+git clone --recursive https://github.com/<your username>/Gwion
 ```
 
 ### Set up the project
-``` sh
-git submodule update --init util ast
-```
 
 ### Edit some files
 
 Edit some files with your favorite text editor
 
 ``` sh
-cd gwion
+cd Gwion
 vim src/path/to/file
 ```
 

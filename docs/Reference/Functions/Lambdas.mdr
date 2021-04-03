@@ -10,28 +10,25 @@ The syntax to create them is simple:
 ```
 You can even use it to
 ### Call a function just once
-@``` lambda_call0.gw
+```gwion,editable
 \ i { <<< "passed '", i, "'" >>>; }(3);
-@```  
-@hide make -s CONTAINS="passed '3'" lambda_call0.test
+```  
 
 
 ## Use case
 
 ### Passing to a function pointer
-@``` lambda_fptr0.gw
+```gwion,editable
 funcdef void fptr_t(int);
 \ i { <<< "passed '", i, "'" >>>; } => var fptr_t fptr;
 fptr(4);
-@```  
-@hide make -s CONTAINS="passed '4'" lambda_fptr0.test
+```  
 
 ### As Argument to Functions
-@``` lambda_args0.gw
+```gwion,editable
 funcdef void fptr_t(int);
 fun void test(fptr_t fptr) {
    fptr(5);
 }
 test(\ i { <<< "passed '", i, "'" >>>; });
-@```  
-@hide make -s CONTAINS="passed '5'" lambda_args0.test
+```  

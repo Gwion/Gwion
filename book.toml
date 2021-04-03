@@ -19,3 +19,7 @@ use-boolean-and = true
 boost-title = 3
 boost-hierarchy = 2
 boost-paragraph = 1
+
+[output.html.playground]
+line-numbers= false
+editable = true

@@ -27,6 +27,7 @@ doc2src() {
   target=$(sed 's/docs/src/' <<< $mdfile)
   ensure_dir $target
   mk_target $mdfile > $target
+#  mv $mdfile $target
   rm $mdfile
 }
 
@@ -44,3 +45,4 @@ then bash scripts/summary.sh > src/SUMMARY.md
 fi
 else runall
 fi
+cp docs/*.js src

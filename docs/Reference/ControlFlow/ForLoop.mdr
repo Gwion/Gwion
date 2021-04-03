@@ -2,25 +2,23 @@
 **For** loops in Gwion is pretty similar to classic **C** syntax
 
 ## basic loops
-@``` forloop0.gw
+```gwion,editable
 for(var int i; i < 3; ++i)
    <<< i >>>;
-@```  
-@hide make -s forloop0.test
+```  
 
 It also works with a block of code.
 
-@``` forloop2.gw
+```gwion,editable
 for(var int i; i < 3; ++i) {
    i/2 => var float f1;
    i/2. => var float f2;
    <<< i, " " , f1, " ", f2 >>>;
 }
-@```  
-@hide make -s forloop2.test
+```  
 
 ## Nested Loops
-@``` forloop3.gw
+```gwion,editable
 var int array[3][4];
 
 for(var int i; i < 3; ++i) {
@@ -28,26 +26,24 @@ for(var int i; i < 3; ++i) {
     <<< array[i][j] >>>;
   }
 }
-@```  
-@hide make -s forloop3.test
+```  
 
 ### Auto Loops
 
 #### Simple auto loop
-@``` forloop4.gw
+```gwion,editable
 var int array[2][3];
 foreach(a: array) {
   <<< a >>>;
   foreach(b: a)
     <<< b >>>;
 }
-@```  
-@hide make -s forloop4.test
+```  
 
 ### Auto Pointer loop
 If you want to change it the value in the array, you need a pointer 
 
-@``` forloop5.gw
+```
 var int array[2][3];
 var int i;
 foreach(a: array) {
@@ -58,5 +54,4 @@ foreach(a: array) {
   foreach(b: a)
     <<< b >>>;
 }
-@```  
-@hide make -s forloop5.test
+```  

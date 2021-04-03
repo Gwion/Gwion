@@ -3,31 +3,28 @@
 ## Basics
 
 Declaring a primitive or an object is quite straight forward:
-@``` decl0.gw
+```gwion,editable
 var int i;
 var Object o;
 <<< i, " ", o >>>;
-@```
-@hide make -s decl0.test
+```
 
 ## Declaring a reference
 
-@``` decl1.gw
+```gwion,editable
 late Object object_ref;
 <<< "Reference points to no object yet: ", object_ref >>>;
 new Object => object_ref;
 <<< "But now it does: ", object_ref >>>;
-@```
-@hide make -s decl1.test
+```
 
 ## Arrays
 
 ### array as refs
 
-@``` decl2.gw
+```gwion,editable
 var int array_ref[];
 <<< array_ref >>>;
 new int[2] => array_ref;
 <<< array_ref >>>;
-@```
-@hide make -s decl2.test
+```

@@ -9,13 +9,12 @@ you can read about those
 
 You use an enum like this
 
-@``` enum0.gw
+```gwion,editable
 enum Optionnal_name {
   zero, one, two
 };
 <<< zero, one, two >>>;
-@```
-@hide make -s enum0.test
+```
 
 ## Storage and access Specifiers
 

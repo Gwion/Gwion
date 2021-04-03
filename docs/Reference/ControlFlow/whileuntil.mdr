@@ -1,23 +1,21 @@
 # While Loops
 
-@``` while0.gw
+```gwion,editable
 while(true) {
   if(maybe)
     break;
   <<< "running..." >>>;
 }
-@```  
-@hide make -s while0.test
+```  
 
 well this may output nothing...
 lets try
 
-@``` while1.gw
+```gwion,editable
 <<< maybe >>>;
 do{
   if(maybe)
     break;
   <<< "running..." >>>;
 } while(true);
-@```  
-@hide make -s while1.test
+```  
