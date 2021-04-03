@@ -12077,7 +12077,7 @@ hljs.registerLanguage('gwion', function () {
 
     var FUNCTION = {
        className: 'function',
-       beginKeywords: 'fun function operator',
+       beginKeywords: 'fun operator',
        end: /{/,
        excludeEnd: true,
        contains: [
