@@ -8,9 +8,9 @@ get_latest_release() {
 
 update() {
   new_release=$(get_latest_release $1 $2)
-  url=https://github.com/$1/$2/releases/download
+#  url=https://github.com/$1/$2/releases/download
   file=${2}*.zip
-  wget "$url/$new_release/$file"
+  wget "$new_release"
   7z e $file
   rm $file
 }
