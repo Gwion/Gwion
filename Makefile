@@ -53,6 +53,9 @@ GWLIBS := lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a
 GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor/libtermcolor.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
+# we are not pedantic
+CFLAGS += -Wno-pedantic
+
 all: options-show ${_GWLIBS} src/main.o
 	@$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}

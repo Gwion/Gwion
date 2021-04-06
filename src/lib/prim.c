@@ -387,6 +387,10 @@ static GWION_IMPORT(dur) {
   GWI_BB(gwi_oper_ini(gwi, "dur", "float", "dur"))
   GWI_BB(gwi_oper_end(gwi, "/",       FloatDivide))
 
+  GWI_BB(gwi_oper_ini(gwi, "float", "dur", "dur"))
+  CHECK_FF("*=>", rassign, r_mul)
+  CHECK_FF("/=>", rassign, r_div)
+
   GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "int"))
   GWI_BB(gwi_oper_end(gwi, ">",           float_gt))
   GWI_BB(gwi_oper_end(gwi, ">=",           float_ge))
@@ -419,6 +423,9 @@ static GWION_IMPORT(time) {
   GWI_BB(gwi_oper_end(gwi, "/",         FloatDivide))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "dur"))
   GWI_BB(gwi_oper_end(gwi, "-",         FloatMinus))
+  GWI_BB(gwi_oper_ini(gwi, "float", "time", "time"))
+  CHECK_FF("*=>", rassign, r_mul)
+  CHECK_FF("/=>", rassign, r_div)
   GWI_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
   CHECK_FF("=>", rassign, r_assign)
   GWI_BB(gwi_oper_end(gwi, "+",         FloatPlus))
@@ -430,7 +437,6 @@ static GWION_IMPORT(time) {
   GWI_BB(gwi_oper_end(gwi, "<", 		  float_lt))
   return gwi_oper_end(gwi, "<=",           float_le);
 }
-
 
 #define BINARY_FLOAT_FOLD(name, TYPE, OP, pre, post) \
   BINARY_FOLD(float, name, TYPE, OP, pre, post, is_prim_float, is_prim_float, m_float, ae_prim_float, fnum, fnum, fnum)
