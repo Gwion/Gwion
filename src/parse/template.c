@@ -122,7 +122,6 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc);// TODO: is this needed?
 //    const Type ret = scan_type(env, t, td->next);
-printf("known %s\n", owner->name);
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
     if(es.run)

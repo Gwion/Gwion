@@ -170,7 +170,7 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e,
   if(check_implicit(env, e, type) > 0)
     return GW_OK;
 
-  char fst[16 + strlen(type->name)];
+  char fst[20 + strlen(type->name)];
   sprintf(fst, "expected `{+/}%s{0}`", type->name);
   gwerr_basic(_("literal contains incompatible types"), fst, NULL,
     env->name, loc, 0);
