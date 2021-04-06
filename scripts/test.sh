@@ -397,6 +397,9 @@ clean() {
 if [ -f test.log ] && [ -z "$NO_LOG" ]
 then
   cat test.log
+  for a in $(cat test.log)
+  do ./gwion $a
+  done
   exit 1
 else
   exit 0
