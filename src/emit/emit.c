@@ -2319,7 +2319,7 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   return ensure_emit(emit, parent);
 }
 
-ANN static inline m_bool emit_cdef(const Emitter emit, const Type t) {
+ANN /*static */inline m_bool emit_cdef(const Emitter emit, const Type t) {
   return scanx_cdef(emit->env, emit, t,
       (_exp_func)emit_class_def, (_exp_func)emit_union_def);
 }
