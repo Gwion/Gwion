@@ -118,6 +118,17 @@ ANN /*static */Instr emit_kind(Emitter emit, const m_uint size, const uint addr,
   return instr;
 }
 
+ANN static m_bool emit_class_def(const Emitter, const Class_Def);
+ANN /*static */m_bool emit_cdef(const Emitter, const Type);
+
+ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
+  if(tflag(t, tflag_emit) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
+    return GW_OK;//clean callers
+  struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
+    .scope=emit->env->scope->depth, .flag=tflag_emit };
+  return envset_run(&es, t);
+}
+
 ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_uint offset) {
   emit->code->frame->curr_offset += SZ_INT;
   const Instr instr = emit_add_instr(emit, RegPushMem4);
@@ -832,17 +843,6 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
   } else if(struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
-}
-
-ANN static m_bool emit_class_def(const Emitter, const Class_Def);
-ANN static m_bool emit_cdef(const Emitter, const Type);
-
-ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
-  if(tflag(t, tflag_emit) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
-    return GW_OK;//clean callers
-  struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
-    .scope=emit->env->scope->depth, .flag=tflag_emit };
-  return envset_run(&es, t);
 }
 
 ANN static void set_late(const Gwion gwion, const Exp_Decl *decl, const Var_Decl var) {
@@ -2298,6 +2298,7 @@ ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
 }
 
 ANN static m_bool emit_extend_def(const Emitter emit, const Extend_Def xdef) {
+  CHECK_BB(ensure_emit(emit, xdef->t))
   CHECK_BB(extend_push(emit->env, xdef->t))
   const m_bool ret = emit_ast_inner(emit, xdef->body);
   extend_pop(emit->env, xdef->t);

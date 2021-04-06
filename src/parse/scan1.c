@@ -595,6 +595,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 }
 
 ANN static m_bool scan1_extend_def(const Env env, const Extend_Def xdef) {
+  CHECK_BB(ensure_scan1(env, xdef->t))
   CHECK_BB(extend_push(env, xdef->t))
   const m_bool ret = scan1_ast(env, xdef->body);
   extend_pop(env, xdef->t);

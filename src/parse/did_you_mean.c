@@ -53,7 +53,7 @@ ANN static void ressembles(const Nspc nspc, const char* name, bool *const done) 
 #undef did_you_mean_nspc
 ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
   CHECK_LEN(name)
-  bool done;
+  bool done = false;
   do ressembles(nspc, name, &done);
   while((nspc = nspc->parent));
 }
@@ -61,7 +61,7 @@ ANN void did_you_mean_nspc(Nspc nspc, const char* name) {
 #undef did_you_mean_type
 ANN void did_you_mean_type(Type type, const char* name) {
   CHECK_LEN(name)
-  bool done;
+  bool done = false;
   do ressembles(type->nspc, name, &done);
   while((type = type->info->parent) && type->nspc);
 }

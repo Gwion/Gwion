@@ -111,7 +111,8 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
   if(td->next) {
     Type_Decl *next = td->next;
     td->next = NULL;
-    const Type owner = known_type(env, td);
+    const Type maybe_array = known_type(env, td);
+    const Type owner = array_base(maybe_array);
     td->next = next;
     CHECK_OO(owner)
     if(!owner->nspc)
@@ -120,11 +121,15 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
       .scope=env->scope->depth, .flag=tflag_none };
     envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc);// TODO: is this needed?
-    const Type ret = scan_type(env, t, td->next);
+//    const Type ret = scan_type(env, t, td->next);
+printf("known %s\n", owner->name);
+    const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
     if(es.run)
       envset_pop(&es, owner);
-    return ret;
+    if(!td->array)
+      return ret;
+    return array_type(env, ret, td->array->depth);
   }
   return !t->array_depth ? _scan_type(env, t, td) : t;
 }

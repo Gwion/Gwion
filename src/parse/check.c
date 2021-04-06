@@ -162,20 +162,37 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl* decl) {
   return ret > 0 ? decl->list->self->value->type : NULL;
 }
 
-ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e) {
+ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e,
+    const loc_t loc) {
   const Type common = find_common_anc(e->type, type);
   if(common)
     return GW_OK;
-  if(check_implicit(env, e, type) < 0)
-    ERR_B(e->pos, _("array init [...] contains incompatible types ..."))
-  return GW_OK;
+  if(check_implicit(env, e, type) > 0)
+    return GW_OK;
+
+  char fst[16 + strlen(type->name)];
+  sprintf(fst, "expected `{+/}%s{0}`", type->name);
+  gwerr_basic(_("literal contains incompatible types"), fst, NULL,
+    env->name, loc, 0);
+  // suggested fix: rewrite int 2 as float 2.0"
+  char sec[12 + strlen(e->type->name)];
+  sprintf(sec, "got `{+/}%s{0}`", e->type->name);
+  gwerr_secondary(sec, env->name, e->pos);
+
+  return GW_ERROR;
 }
 
 ANN static inline Type prim_array_match(const Env env, Exp e) {
   const Type type = e->type;
-  do CHECK_BO(prim_array_inner(env, type, e))
+  bool err = false;
+  const loc_t loc = e->pos;
+  do if(prim_array_inner(env, type, e, loc) < 0)
+    err = true;
   while((e = e->next));
-  return array_type(env, array_base(type), type->array_depth + 1);
+  if(!err)
+    return array_type(env, array_base(type), type->array_depth + 1);
+  env->context->error = true;
+  return NULL;
 }
 
 ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
@@ -184,7 +201,7 @@ ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
   if(!e)
     ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e))
-  return (array->type = prim_array_match(env, e));
+  return array->type = prim_array_match(env, e);
 }
 
 ANN static m_bool check_range(const Env env, Range *range) {
@@ -336,8 +353,43 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   return env->gwion->type[et_gack];
 }
 
+ANN static Type check_prim_map(const Env env, const Exp *data) {
+  CHECK_OO(check_exp(env, *data))
+  if(env->func) // really?
+    unset_fflag(env->func, fflag_pure);
+  bool err = false;
+  Exp key = *data;
+  Exp val = key->next;
+  const Type type_key = key->type;
+  const Type type_val = val->type;
+  const loc_t loc_key = (*data)->pos;
+  const loc_t loc_val = (*data)->next->pos;
+  do {
+    val = key->next;
+    if(prim_array_inner(env, type_key, key, loc_key) < 0)
+      err = true;
+    if(prim_array_inner(env, type_val, val, loc_val) < 0)
+      err = true;
+  } while((key = val->next));
+  if(!err) {
+    Type_Decl *td_key = type2td(env->gwion, type_key, loc_key);
+    Type_Decl *td_val = type2td(env->gwion, type_val, loc_val);
+    struct Type_List_ tl_val = { .td=td_val };
+    struct Type_List_ tl_key = { .td=td_key, .next=&tl_val };
+    Type_Decl td = { .xid=insert_symbol("Map"), .types=&tl_key };
+    const Type t = known_type(env, &td);
+    free_type_decl(env->gwion->mp, td_key);
+    free_type_decl(env->gwion->mp, td_val);
+    ensure_traverse(env, t);
+    prim_exp(data)->type = t;
+    return t;
+  }
+  env->context->error = true;
+  return NULL;
+}
+
 #define describe_prim_xxx(name, type) \
-ANN static Type check##_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
+ANN static Type check_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
   return type; \
 }
 describe_prim_xxx(num, env->gwion->type[et_int])
@@ -345,9 +397,6 @@ describe_prim_xxx(char, env->gwion->type[et_char])
 describe_prim_xxx(float, env->gwion->type[et_float])
 describe_prim_xxx(nil, env->gwion->type[et_void])
 
-#define check_prim_complex check_prim_vec
-#define check_prim_polar check_prim_vec
-#define check_prim_char check_prim_char
 DECL_PRIM_FUNC(check, Type, Env);
 
 ANN static Type check_prim(const Env env, Exp_Primary *prim) {
@@ -983,7 +1032,6 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   DECL_OO(const Type, t, = array_base(base))
   const m_uint depth = base->array_depth - 1;
   return depth ? array_type(env, t, depth) : t;
-
 }
 
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
@@ -1335,6 +1383,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
 }
 
 ANN static m_bool check_extend_def(const Env env, const Extend_Def xdef) {
+  CHECK_BB(ensure_check(env, xdef->t))
   CHECK_BB(extend_push(env, xdef->t))
   const m_bool ret = check_ast(env, xdef->body);
   extend_pop(env, xdef->t);

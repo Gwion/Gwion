@@ -29,13 +29,17 @@ ANN static inline Type ref(const Env env, Type_Decl* td) {
 }
 
 ANN static Type resolve(const Env env, Type_Decl* td) {
+  Type_Decl *last = td;
+  while(last->next)
+    last = last->next;
+  Array_Sub array = last->array;
   DECL_OO(const Type, base, = find_type(env, td))
   if(base->info->ctx && base->info->ctx->error)
     ERR_O(td->pos, _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, type, = scan_type(env, base, td))
   const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
-  return !td->array ? ret: array_type(env, ret, td->array->depth);
+  return !array ? ret: array_type(env, ret, array->depth);
 }
 
 ANN static inline void* type_unknown(const Env env, const Type_Decl* td) {
