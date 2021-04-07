@@ -13,7 +13,7 @@
 
 Gwion is a programming language, aimed at making music
 
-**strongly** inspired by [ChucK](http://chuck.stanford.edu/), but adding a bunch *high-level* features:  
+**strongly** inspired by [ChucK](http://chuck.stanford.edu/), but adding a bunch *high-level* features;
 	  templating, first-class functions and more.  
 
 It aims to be simple, small,
