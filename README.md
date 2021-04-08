@@ -21,6 +21,9 @@ It aims to be simple, small,
  [extendable](https://github.com/Gwion/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
 
 Checkout the community, and join us on discord: https://discord.gg/uYjFymzu.
+You can also check this very nice server about programming language devlopment: https://discord.gg/4Kjt3ZE,
+since a lot of improvements to gwion are discussed there.
+
 
 ## Build
 ### Download the source
