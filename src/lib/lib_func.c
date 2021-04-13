@@ -49,25 +49,40 @@ struct FptrInfo {
   const loc_t pos;
 };
 
+ANN static void _fptr_tmpl_push(const Env env, const Func f) {
+  ID_List il = f->def->base->tmpl ? f->def->base->tmpl->list : NULL;
+  if(il) {
+    Type_List tl = f->def->base->tmpl->call;
+    while(il) {
+      const Type t = tl ? known_type(env, tl->td) : env->gwion->type[et_auto];
+      nspc_add_type(env->curr, il->xid, t);
+      il = il->next;
+      if(tl)
+        tl = tl->next;
+    }
+  }
+}
+
 ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
   if(!info->rhs->def->base->tmpl)
     return GW_OK;
-  ID_List t0 = info->lhs->def->base->tmpl->list,
-          t1 = info->rhs->def->base->tmpl->list;
   nspc_push_type(env->gwion->mp, env->curr);
-  while(t0) {
-    nspc_add_type(env->curr, t0->xid, env->gwion->type[et_auto]);
-    nspc_add_type(env->curr, t1->xid, env->gwion->type[et_auto]);
-    t0 = t0->next;
-    t1 = t1->next;
-  }
+//  Type owner = info->rhs->value_ref->from->owner_class;
+//  while(owner) {
+//    owner = owner->info->value->from->owner_class;
+//  }
+
+//  _fptr_tmpl_push(env, info->lhs);
+  _fptr_tmpl_push(env, info->rhs);
   return GW_OK;
 }
 
 static m_bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_OB(const Type, t0, = known_type(env, id[0]))
   DECL_OB(const Type, t1, = known_type(env, id[1]))
-  return isa(t0, t1);
+  if(isa(t0, t1) > 0)
+    return GW_OK;
+  return t1 == env->gwion->type[et_auto];
 }
 
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
@@ -83,8 +98,8 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 }
 
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
-  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
-    return GW_ERROR;
+//  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
+//    return GW_ERROR;
   const Type l_type = info->lhs->value_ref->from->owner_class;
   const Type r_type = info->rhs->value_ref->from->owner_class;
   if(!r_type && l_type)
@@ -122,20 +137,24 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   for(m_uint i = 0; i <= v->from->offset && !type; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0) ?
         func_symbol(env, nspc->name, c, stmpl, i) : info->lhs->def->base->xid;
-    if(!is_class(env->gwion, info->lhs->value_ref->type))
-      CHECK_OO((info->lhs = nspc_lookup_func1(nspc, sym)))
-    else {
+    if(!is_class(env->gwion, info->lhs->value_ref->type)) {
+      if(!(info->lhs = nspc_lookup_func1(nspc, sym))) {
+        const Value v = nspc_lookup_value1(nspc, insert_symbol(c));
+        if(isa(v->type, env->gwion->type[et_function]) < 0)
+          return NULL;
+        info->lhs = v->type->info->func;
+      }
+    } else {
       DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid))
       info->lhs = actual_type(env->gwion, t)->info->func;
     }
     Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
-    if(fptr_tmpl_push(env, info) > 0) {
-      if(fptr_rettype(env, info) > 0 &&
-           fptr_arity(info) && fptr_args(env, base) > 0)
+    CHECK_BO(fptr_tmpl_push(env, info))
+    if(fptr_rettype(env, info) > 0 &&
+         fptr_arity(info) && fptr_args(env, base) > 0)
       type = actual_type(env->gwion, info->lhs->value_ref->type) ?: info->lhs->value_ref->type;
-      if(info->rhs->def->base->tmpl)
-        nspc_pop_type(env->gwion->mp, env->curr);
-    }
+    if(info->rhs->def->base->tmpl)
+      nspc_pop_type(env->gwion->mp, env->curr);
   }
   return type;
 }
@@ -143,16 +162,18 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def) {
   Arg_List base = def->base->args, arg = l->def->base->args;
   while(base && arg) {
-    arg->td = base->td;
+//    arg->td = base->td;
+    arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
+//    arg->type = known_type(env, base->td);
     base = base->next;
     arg = arg->next;
   }
   if(base || arg)
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
-  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)
+//  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)
     UNSET_FLAG(l->def->base, global);
-  l->def->base->td = cpy_type_decl(env->gwion->mp, def->base->td);
+  l->def->base->td = type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
   l->def->base->values = env->curr->info->value;
   const m_bool ret = traverse_func_def(env, l->def);
   if(l->def->base->func) {
@@ -161,18 +182,13 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
       env->curr->info->value = l->def->base->values;
     }
   }
-  arg = l->def->base->args;
-  while(arg) {
-    arg->td = NULL;
-    arg = arg->next;
-  }
   return ret;
 }
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->info->func->def;
   if(!GET_FLAG(t->info->func->value_ref, global))
-    l->owner = t->info->owner_class;
+    l->owner = t->info->value->from->owner_class;
   CHECK_BB(_check_lambda(env, l, fdef))
   exp_self(l)->type = l->def->base->func->value_ref->type;
   return GW_OK;
@@ -182,7 +198,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
     CHECK_BB(fptr_check(env, info))
     if(!(info->exp->type = fptr_type(env, info)))
-      ERR_B(info->lhs->def->base->pos, _("no match found"))
+      ERR_B(info->pos, _("no match found"))
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;

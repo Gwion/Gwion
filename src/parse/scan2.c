@@ -303,8 +303,6 @@ ANN static Type func_type(const Env env, const Func func) {
   const Type t = type_copy(env->gwion->mp, base);
   t->info->parent = base;
   t->name = func->name;
-  t->info->owner = env->curr;
-  t->info->owner_class = env->class_def;
   t->info->func = func;
   return t;
 }
@@ -312,7 +310,7 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN2(1,2) static Value func_value(const Env env, const Func f,
     const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = new_value(env->gwion->mp, t, t->name);
+  const Value v = t->info->value = new_value(env->gwion->mp, t, t->name);
   valuefrom(env, v->from, f->def->base->pos);
   CHECK_OO(scan2_func_assign(env, f->def, f, v))
   if(!overload) {
@@ -511,7 +509,7 @@ static inline int is_cpy(const Func_Def fdef) {
 }
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
-  if(GET_FLAG(fdef->base, global))
+  if(GET_FLAG(fdef->base, global) && !env->class_def)
     env->context->global = 1;
   const Func_Def f = !is_cpy(fdef) ?
     fdef : scan2_cpy_fdef(env, fdef);
@@ -562,8 +560,8 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(tflag(t, tflag_scan2))
     return GW_OK;
-  if(t->info->owner_class)
-    CHECK_BB(ensure_scan2(env, t->info->owner_class))
+  if(t->info->value->from->owner_class)
+    CHECK_BB(ensure_scan2(env, t->info->value->from->owner_class))
   set_tflag(t, tflag_scan2);
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))

@@ -7,22 +7,23 @@
 
 ANN static void check(struct EnvSet *es, const Type t) {
   const Vector v = &es->env->scope->class_stack;
-  Type owner = t->info->owner_class;
+  Type owner = t->info->value->from->owner_class;
   for(vtype i = vector_size(v) + 1; owner && --i;) {
     if(owner != (Type)vector_at(v, i - 1)) {
       es->run = 1;
       return;
     }
-    owner = owner->info->owner_class;
+    owner = owner->info->value->from->owner_class;
   }
 }
 
 ANN static m_bool push(struct EnvSet *es, const Type t) {
   es->env->scope->depth = 0;
-  if(t->info->owner_class)
-    CHECK_BB(push(es, t->info->owner_class))
+  const Type owner_class = t->info->value->from->owner_class;
+  if(owner_class)
+    CHECK_BB(push(es, owner_class))
   else
-    env_push(es->env, NULL, t->info->ctx ? t->info->ctx->nspc : es->env->curr);
+    env_push(es->env, NULL, t->info->value->from->ctx ? t->info->value->from->ctx->nspc : es->env->curr);
   if(es->func && !(t->tflag & es->flag))
     CHECK_BB(es->func((void*)es->data, t))
   if(tflag(t, tflag_tmpl))
@@ -49,20 +50,22 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
     return;
   if(tflag(t, tflag_tmpl))
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
-  if(t->info->owner_class)
-    envset_pop(es, t->info->owner_class);
+  const Type owner_class = t->info->value->from->owner_class;
+  if(owner_class)
+    envset_pop(es, owner_class);
   else
     env_pop(es->env, es->scope);
 }
 
 ANN m_bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
+  const Type owner_class = t->info->value->from->owner_class;
   if(es->run)
-    CHECK_BB(push(es, t->info->owner_class))
+    CHECK_BB(push(es, owner_class))
   const m_bool ret = t->info->cdef &&
     !(t->tflag & es->flag) ?
         es->func(es->data, t) : GW_OK;
   if(es->run)
-    envset_pop(es, t->info->owner_class);
+    envset_pop(es, owner_class);
   return ret;
 }

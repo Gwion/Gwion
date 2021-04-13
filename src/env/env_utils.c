@@ -67,7 +67,6 @@ ANN static Type class_type(const Env env, const Type base) {
   const Type t_class = env->gwion->type[et_class];
   const Type t = type_copy(env->gwion->mp, t_class);
   t->info->parent = t_class;
-  t->info->ctx = base->info->ctx;
   t->info->base_type = base;
   set_tflag(t, tflag_infer);
   return t;
@@ -80,7 +79,8 @@ ANN Value mk_class(const Env env, const Type base, const loc_t loc) {
   valuefrom(env, v->from, loc);
   SET_FLAG(v, const);
   set_vflag(v, vflag_valid);
-  nspc_add_value_front(base->info->owner, sym, v);
+  nspc_add_value_front(env->curr, sym, v);
+  t->info->value = base->info->value = v;
   return v;
 }
 

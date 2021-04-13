@@ -720,7 +720,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration site"))
   const Type t = actual_type(env->gwion, exp->func->type);
   if(isa(t, env->gwion->type[et_function]) > 0 &&
-        exp->func->exp_type == ae_exp_dot && !t->info->owner_class) {
+        exp->func->exp_type == ae_exp_dot && !t->info->value->from->owner_class) {
     if(exp->args)
       CHECK_OB(check_exp(env, exp->args))
     return call2ufcs(env, exp, t->info->func->value_ref) ?
@@ -1421,7 +1421,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   bool err = false;
   for(m_uint i = 0; i < vector_size(&cdef->base.type->nspc->info->vtable); ++i) {
     Func f = (Func)vector_at(&cdef->base.type->nspc->info->vtable, i);
-    if(GET_FLAG(f->def->base, abstract)) {
+    if(f && GET_FLAG(f->def->base, abstract)) {
       if(!err) {
         err = true;
         gwerr_basic(
@@ -1445,8 +1445,8 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   struct Op_Import opi = { .op=insert_symbol("@class_check"), .lhs=t,
         .data=(uintptr_t)cdef, .pos=cdef->pos };
   CHECK_OB(op_check(env, &opi))
-  if(t->info->owner_class)
-    CHECK_BB(ensure_check(env, t->info->owner_class))
+  if(t->info->value->from->owner_class)
+    CHECK_BB(ensure_check(env, t->info->value->from->owner_class))
   if(tflag(t, tflag_check))
     return GW_OK;
   set_tflag(t, tflag_check);

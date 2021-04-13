@@ -174,7 +174,17 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   return tl;
 }
 
+ANN static inline uint get_n(struct td_checker *tdc, const char c) {
+  uint n = 0;
+  while(*tdc->str == c) {
+    n++;
+    ++tdc->str;
+  }
+  return n;
+}
+
 ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
+  const uint ref = get_n(tdc, '&');
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   struct AC ac = { .str = tdc->str, .pos=tdc->pos };
   CHECK_BO(ac_run(gwion, &ac))
@@ -182,6 +192,7 @@ ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   Type_List tl = td_tmpl(gwion, tdc);
   if(tl == (Type_List)GW_ERROR)
     return NULL;
+  const uint option = get_n(tdc, '?');
   Type_Decl *next = NULL;
   if(*tdc->str == '.') {
     ++tdc->str;
@@ -196,6 +207,8 @@ ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   Type_Decl *td = new_type_decl(gwion->mp, sym, tdc->pos);
   td->next = next;
   td->types = tl;
+  td->option = option;
+  td->ref = ref;
   if(ac.depth)
     td->array = mk_array(gwion->mp, &ac);
   return td;
@@ -224,7 +237,7 @@ struct td_info {
 };
 
 ANN static void td_fullname(const Env env, GwText *text, const Type t) {
-  const Type owner = t->info->owner_class;
+  const Type owner = t->info->value->from->owner_class;
   if(owner) {
     td_fullname(env, text, owner);
     text_add(text, ".");
@@ -245,8 +258,9 @@ ANN static m_bool td_info_run(const Env env, struct td_info* info) {
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t, const loc_t pos NUSED) {
   GwText text = { .mp=gwion->mp };
-  if(t->info->owner_class) {
-    td_fullname(gwion->env, &text, t->info->owner_class);
+  const Type owner = t->info->value->from->owner_class;
+  if(owner) {
+    td_fullname(gwion->env, &text, owner);
     text_add(&text, ".");
   }
   text_add(&text, t->name);

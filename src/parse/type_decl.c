@@ -34,7 +34,8 @@ ANN static Type resolve(const Env env, Type_Decl* td) {
     last = last->next;
   Array_Sub array = last->array;
   DECL_OO(const Type, base, = find_type(env, td))
-  if(base->info->ctx && base->info->ctx->error)
+  const Context ctx = base->info->value->from->ctx;
+  if(ctx && ctx->error)
     ERR_O(td->pos, _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, type, = scan_type(env, base, td))
   const Type t = !td->ref ? type : ref(env, td);

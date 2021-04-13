@@ -31,8 +31,6 @@ ANN2(1,2) static void import_class_ini(const Env env, const Type t) {
   t->nspc->parent = env->curr;
   if(isa(t, env->gwion->type[et_object]) > 0)
     inherit(t);
-  t->info->owner = env->curr;
-  t->info->owner_class = env->class_def;
   env_push_type(env, t);
 }
 

@@ -3,8 +3,7 @@
 
 struct TypeInfo_ {
   Type parent;
-  Nspc owner;
-  Type owner_class;
+  Value value;
   union {
     Union_Def udef;
     Class_Def cdef;
@@ -13,7 +12,6 @@ struct TypeInfo_ {
   Type      base_type;
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
-  struct Context_ *ctx;
 };
 
 enum tflag {

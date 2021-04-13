@@ -55,6 +55,12 @@ ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt,
 INSTR(GTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const Func f = *(Func*)REG(-SZ_INT);
+  if(!f)
+    Except(shred, _("EmptyFuncPointerException"));
+if(f->code) {
+  *(VM_Code*)(shred->reg -SZ_INT) = f->code;
+ return;
+}
   const m_str name = f->name;
   const Emitter emit = shred->info->vm->gwion->emit;
   emit->env->name = "runtime";

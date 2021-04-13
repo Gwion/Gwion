@@ -35,10 +35,15 @@ ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const exp) {
   if(!tmpl_valid(env, fdef))
     return NULL;
+  if(exp->args && !exp->args->type)
+    return NULL;
   const Func f = fdef->base->func;
   const Func next = f->next;
   f->next = NULL;
+  const Tmpl tmpl = { .list=fdef->base->tmpl->list, .call=exp->tmpl->call };
+  CHECK_BO(template_push_types(env, &tmpl));
   const Func func = find_func_match(env, f, exp);
+  nspc_pop_type(env->gwion->mp, env->curr);
   f->next = next;
   if(func)
     set_fflag(func, fflag_tmpl | fflag_valid);
@@ -84,14 +89,16 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs* ra, const m_uint
   const Value value = template_get_ready(env, ra->v, "template", i);
   if(!value)
     return NULL;
+  const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
   if(vflag(ra->v, vflag_builtin))
     set_vflag(value, vflag_builtin);
-  const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
   fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
   fdef->base->tmpl->base = i;
   const Func func = ensure_tmpl(env, fdef, ra->e);
   if(!func && !fdef->base->func)
     free_func_def(env->gwion->mp, fdef);
+  if(func && vflag(ra->v, vflag_builtin))
+    set_vflag(func->value_ref, vflag_builtin);
   return func;
 }
 
@@ -115,11 +122,18 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   struct ResolverArgs ra = {.v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
+if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+(void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
+//const Tmpl tmpl = { .list=v->frombase->tmpl->list, .call=ra->types };
+//CHECK_BO(template_push_types(env, &tmpl));
   const Func m_func = !is_fptr(env->gwion, v->type) ?
       func_match(env, &ra) :fptr_match(env, &ra);
+if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+nspc_pop_type(env->gwion->mp, env->curr);
+//nspc_pop_type(env->gwion->mp, env->curr);
+  env_pop(env, scope);
   if(es.run)
     envset_pop(&es, v->from->owner_class);
-  env_pop(env, scope);
   env->func = former;
   return m_func;
 }

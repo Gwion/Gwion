@@ -84,8 +84,6 @@ ANN void env_pop(const Env env, const m_uint scope) {
 }
 
 ANN void env_add_type(const Env env, const Type type, const loc_t loc) {
-  type->info->owner = env->curr;
-  type->info->owner_class = env->class_def; // t owner_class ?
   const Symbol sym = insert_symbol(type->name);
   nspc_add_type_front(env->curr, sym, type);
   const Value v = mk_class(env, type, loc);

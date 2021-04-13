@@ -19,7 +19,7 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t, const Type_Dec
         ERR_B(td->pos, _("%s declared inside %s"), t->name, owner->name);
       parent = parent->info->parent;
     }
-  } while((owner = owner->info->owner_class));
+  } while((owner = owner->info->value->from->owner_class));
   return GW_OK;
 }
 
@@ -52,7 +52,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   DECL_OO(const Type ,t, = void_type(env, decl->td))
   if(decl->td->xid == insert_symbol("auto") && decl->type)
     return decl->type;
-  if(GET_FLAG(t, private) && t->info->owner != env->curr)
+  if(GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if(GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
@@ -134,7 +134,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   if(global) {
     if(env->context)
       env->context->global = 1;
-    if(!is_global(decl->type->info->owner, env->global_nspc))
+    if(!is_global(decl->type->info->value->from->owner, env->global_nspc))
       ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
@@ -332,7 +332,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
-    nspc_add_value(edef->t->info->owner, list->xid, v);
+    nspc_add_value(edef->t->info->value->from->owner, list->xid, v);
     vector_add(&edef->values, (vtype)v);
   } while((list = list->next));
   return GW_OK;
@@ -643,8 +643,8 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if(tflag(t, tflag_scan1))
     return GW_OK;
   set_tflag(t, tflag_scan1);
-  if(t->info->owner_class)
-    CHECK_BB(ensure_scan1(env, t->info->owner_class))
+  if(t->info->value->from->owner_class)
+    CHECK_BB(ensure_scan1(env, t->info->value->from->owner_class))
   if(cdef->base.ext)
     CHECK_BB(cdef_parent(env, cdef))
   if(cdef->body)

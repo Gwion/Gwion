@@ -2259,8 +2259,18 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   const Func former = emit->env->func;
   if(func->code || tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  if(vflag(func->value_ref, vflag_builtin) && safe_tflag(emit->env->class_def, tflag_tmpl))
+  if(vflag(func->value_ref, vflag_builtin) && safe_tflag(emit->env->class_def, tflag_tmpl)) {
+    const Func base = nspc_lookup_func1(func->value_ref->from->owner, f->base->xid);
+    builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);
+    vector_init(&func->code->tmpl_types);
+    vector_add(&func->code->tmpl_types, (m_uint)fdef->base->ret_type);
+    Arg_List args = fdef->base->args;
+    while(args) {
+      vector_add(&func->code->tmpl_types, (m_uint)args->type);
+      args = args->next;
+    }
     return GW_OK;
+  }
   if(fdef_is_file_global(emit, fdef))
     func->value_ref->from->offset = emit_local(emit, emit->gwion->type[et_int]);
   const uint global = GET_FLAG(f->base, global);
@@ -2340,8 +2350,9 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if(tflag(t, tflag_emit))
     return GW_OK;
   set_tflag(t, tflag_emit);
-  if(t->info->owner_class)
-    CHECK_BB(ensure_emit(emit, t->info->owner_class))
+  const Type owner = t->info->value->from->owner_class;
+  if(owner)
+    CHECK_BB(ensure_emit(emit, owner))
   if(cdef->base.ext && t->info->parent->info->cdef && !tflag(t->info->parent, tflag_emit)) // ?????
     CHECK_BB(cdef_parent(emit, cdef))
   nspc_allocdata(emit->gwion->mp, t->nspc);

@@ -17,13 +17,14 @@ struct VM_Code_ {
     m_uint native_func;
   };
   size_t stack_depth;
+  struct Vector_ tmpl_types;
   void* memoize;
   Closure *closure;
   m_str name;
   uint16_t ref;
   ae_flag flag;
-  int builtin;
-  int callback;
+  bool builtin;
+  bool callback;
 };
 
 typedef struct Shreduler_* Shreduler;

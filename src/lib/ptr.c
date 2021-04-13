@@ -23,6 +23,7 @@ static m_bool ptr_access(const Env env, const Exp e) {
 }
 
 ANN static inline Type ptr_base(const Env env, const Type t) {
+  return (Type)vector_front(&t->info->tuple->types);
   return known_type(env, t->info->cdef->base.tmpl->call->td);
 }
 
@@ -81,9 +82,6 @@ static OP_CHECK(opck_ptr_implicit) {
     if(access)
       ERR_N(e->pos, _("can't cast %s value to Ptr"), access);
     exp_setvar(e, 1);
-    const Type t = imp->t;
-    if(!tflag(t, tflag_check))
-      CHECK_BN(traverse_class_def(env, t->info->cdef))
     return imp->t;
   }
   return NULL;
@@ -136,17 +134,29 @@ static DTOR(ptr_object_dtor) {
 
 static DTOR(ptr_struct_dtor) {
   const Type base = *(Type*)(shred->mem + SZ_INT);
-  const m_uint scope = env_push(shred->info->vm->gwion->env, base->info->owner_class, base->info->owner);
+  const m_uint scope = env_push(shred->info->vm->gwion->env, base->info->value->from->owner_class, base->info->value->from->owner);
   const Type t = known_type(shred->info->vm->gwion->env, base->info->cdef->base.tmpl->call->td);
   env_pop(shred->info->vm->gwion->env, scope);
   struct_release(shred, t, *(m_bit**)o);
 }
-
+#include "tmpl_info.h"
 static OP_CHECK(opck_ptr_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
-  DECL_ON(const Type, t, = (Type)scan_class(env, ts->t, ts->td))
-  const Type base = known_type(env, t->info->cdef->base.tmpl->call->td);
+  struct tmpl_info info = { .base=ts->t, .td=ts->td, .list=ts->t->info->cdef->base.tmpl->list  };
+  const Type exists = tmpl_exists(env, &info);
+  if(exists)
+    return exists != env->gwion->type[et_error] ? exists : NULL;
+  const Type base = known_type(env, ts->td->types->td);
+  const Type t = new_type(env->gwion->mp, s_name(info.name), base);
   t->info->parent = env->gwion->type[et_ptr];
+  SET_FLAG(t, abstract | ae_flag_final);
+  t->info->tuple = new_tupleform(env->gwion->mp, NULL);
+  t->nspc = new_nspc(env->gwion->mp, t->name);
+  vector_add(&t->info->tuple->types, (m_uint)base);
+  const m_uint scope = env_push(env, base->info->value->from->owner_class, base->info->value->from->owner);
+  mk_class(env, t, (loc_t){});
+  env_pop(env, scope);
+  nspc_add_type_front(t->info->value->from->owner, info.name, t);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
     if(!tflag(base, tflag_struct))

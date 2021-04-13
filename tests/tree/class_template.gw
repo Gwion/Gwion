@@ -3,6 +3,7 @@ class C:[A,B] {
   var B b;
   fun A test() {
     <<< "lol" >>>;
+    return a;
   }
   fun void test2:[C](C o) {
     <<< o >>>;

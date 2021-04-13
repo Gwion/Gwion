@@ -275,11 +275,11 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
     return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
-  const Type _t = known_type(env, td->types->td);
-  CHECK_BO(envset_push(&es, _t->info->owner_class, _t->info->owner))
+  const Type owner = t->info->value->from->owner_class;
+  CHECK_BO(envset_push(&es, owner, t->info->value->from->owner))
   const Type ret = _scan_class(env, &info);
   if(es.run)
-    envset_pop(&es, _t->info->owner_class);
+    envset_pop(&es, owner);
   return ret;
 }
 

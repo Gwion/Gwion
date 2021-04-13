@@ -28,8 +28,8 @@ ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
 }
 
 ANN static m_bool _template_push(const Env env, const Type t) {
-  if(t->info->owner_class)
-    CHECK_BB(template_push(env, t->info->owner_class))
+  if(t->info->value->from->owner_class)
+    CHECK_BB(template_push(env, t->info->value->from->owner_class))
   if(tflag(t, tflag_tmpl))
     return push_types(env, t->info->cdef->base.tmpl); // incorrect
   return GW_OK;
@@ -55,16 +55,17 @@ ANN Tmpl* mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
 
 static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   DECL_OO(const m_str, tl_name, = tl2str(env->gwion, td->types, td->pos))
-  const Symbol sym = func_symbol(env, t->info->owner->name, t->info->func->name, tl_name, 0);
+  const Symbol sym = func_symbol(env, t->info->value->from->owner->name, t->info->func->name, tl_name, 0);
   free_mstr(env->gwion->mp, tl_name);
-  const Type base_type = nspc_lookup_type1(t->info->owner, sym);
+  const Type base_type = nspc_lookup_type1(t->info->value->from->owner, sym);
   if(base_type)
     return base_type;
   const Type ret = type_copy(env->gwion->mp, t);
   ret->info->parent = t;
+  ret->info->value = t->info->func->value_ref;
   ret->name = s_name(sym);
   set_tflag(ret, tflag_ftmpl);
-  nspc_add_type_front(t->info->owner, sym, ret);
+  nspc_add_type_front(t->info->value->from->owner, sym, ret);
   void* func_ptr = t->info->func->def->d.dl_func_ptr;
   if(vflag(t->info->func->value_ref, vflag_builtin))
     t->info->func->def->d.dl_func_ptr = NULL;
@@ -75,12 +76,12 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl* td) {
   if(vflag(t->info->func->value_ref, vflag_member))
     set_vflag(value, vflag_member);
   value->d.func_ref = func;
-  value->from->owner = t->info->owner;
-  value->from->owner_class = t->info->owner_class;
+  value->from->owner = t->info->value->from->owner;
+//  value->from->owner_class = t->info->owner_class;
   func->value_ref = value;
   func->def->base->tmpl = mk_tmpl(env, t->info->func->def->base->tmpl, td->types);
   def->base->func = func;
-  nspc_add_value_front(t->info->owner, sym, value);
+  nspc_add_value_front(t->info->value->from->owner, sym, value);
   if(vflag(t->info->func->value_ref, vflag_builtin)) {
     builtin_func(env->gwion->mp, func, func_ptr);
     t->info->func->def->d.dl_func_ptr = func_ptr;
