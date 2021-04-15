@@ -426,7 +426,7 @@ static OP_EMIT(opem_array_access) {
   return exp ? emit_array_access(emit, info) : GW_ERROR;
 }
 
-static m_bit map_byte[BYTECODE_SZ*4];// = { eOP_MAX, test };
+static m_bit map_byte[BYTECODE_SZ*4];
 static const struct VM_Code_ map_run_code = {
   .name        = "map_run_code",
   .stack_depth = SZ_INT,
@@ -434,7 +434,7 @@ static const struct VM_Code_ map_run_code = {
 };
 
 #define MAP_CODE_OFFSET SZ_INT*10
-static INSTR(test) {
+static INSTR(map_run_ini) {
   *(VM_Code*)(shred->reg) = (*(VM_Code*)MEM(SZ_INT));
   *(VM_Code*)(shred->reg + SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
@@ -451,22 +451,22 @@ static INSTR(test) {
   m_vector_get(array, index, &*(m_bit**)(shred->mem + SZ_INT*5));
 }
 
-static INSTR(test2) {
+static INSTR(map_run_end) {
   shred->mem -= MAP_CODE_OFFSET;
   const M_Object ret_obj = *(M_Object*)MEM(SZ_INT*2);
   const M_Vector array = ARRAY(ret_obj);
   POP_REG(shred, ARRAY_SIZE(array));
-  POP_REG(shred, SZ_INT);
   const m_uint index = *(m_uint*)MEM(SZ_INT*5);
   const m_uint size = m_vector_size(array);
-  m_vector_set(array, index - 1, &*(m_bit**)(shred->reg + SZ_INT));
+  m_vector_set(array, index - 1, &*(m_bit**)shred->reg);
   if(index == size) {
     shred->pc = *(m_uint*)MEM(SZ_INT*3);
     shred->code = *(VM_Code*)MEM(SZ_INT*4);
-    *(M_Object*)(shred->reg) = ret_obj;
-    shred->reg += SZ_INT;
-  } else
+    *(M_Object*)(shred->reg-SZ_INT) = ret_obj;
+  } else {
     shred->pc = 0;
+    POP_REG(shred, SZ_INT);
+  }
   shredule(shred->tick->shreduler, shred, 0);
 }
 
@@ -546,12 +546,12 @@ static OP_CHECK(opck_array_implicit) {
 
 static void prepare_map_run(void) {
   *(unsigned*)map_byte = eOP_MAX;
-  *(f_instr*)(map_byte + SZ_INT*2) = test;
+  *(f_instr*)(map_byte + SZ_INT*2) = map_run_ini;
   *(unsigned*)(map_byte+ BYTECODE_SZ) = eSetCode;
   *(m_uint*)(map_byte + BYTECODE_SZ + SZ_INT*2) = 3;
   *(unsigned*)(map_byte+ BYTECODE_SZ*2) = eOverflow;
   *(unsigned*)(map_byte+ BYTECODE_SZ*3) = eOP_MAX;
-  *(f_instr*)(map_byte + BYTECODE_SZ*3 + SZ_INT*2) = test2;
+  *(f_instr*)(map_byte + BYTECODE_SZ*3 + SZ_INT*2) = map_run_end;
 }
 
 GWION_IMPORT(array) {

@@ -1057,8 +1057,14 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
 
 ANN static inline m_bool cond_type(const Env env, const Exp e) {
   const Type t_int = env->gwion->type[et_int];
-  if(check_implicit(env, e, t_int) < 0)
-    ERR_B(e->pos, _("invalid condition type"))
+  if(check_implicit(env, e, t_int) < 0) {
+    char explain[40 + strlen(e->type->name)];
+    sprintf(explain, "expected `{/+}int{0}`, got `{/+}%s{0}`", e->type->name);
+    gwerr_basic(_("invalid repeat condition type"), explain,
+      _("use an integer or cast to int if possible"), env->name, e->pos, 0);
+    env->context->error = true;
+    return GW_ERROR;
+  }
   return GW_OK;
 }
 
