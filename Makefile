@@ -83,7 +83,7 @@ libcmdapp/libcmdapp.a:
 	@+${MAKE} -s -C libcmdapp static
 
 ast/libprettyerr/libprettyerr.a:
-	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/src ${MAKE} -s -C ast/libprettyerr static
+	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C ast/libprettyerr static
 
 ast: ast/libgwion_ast.a
 	@(info build ast)
