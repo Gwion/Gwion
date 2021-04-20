@@ -80,7 +80,7 @@ ANN static inline Type get_gack(Type t) {
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_error, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
-  et_function, et_fptr, et_vararg, et_lambda, et_class, et_union, et_auto, et_none,
+  et_function, et_fptr, et_vararg, et_lambda, et_op, et_class, et_union, et_auto, et_none,
   MAX_TYPE
 } type_enum;
 #endif

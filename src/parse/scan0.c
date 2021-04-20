@@ -31,10 +31,9 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s, const loc_
   return already_defined(env, s, pos);
 }
 
-ANN static void fptr_assign(const Env env, const Fptr_Def fptr) {
+ANN static void fptr_assign(const Fptr_Def fptr) {
   const Func_Def def = fptr->type->info->func->def;
   if(GET_FLAG(fptr->base, global)) {
-    context_global(env);
     SET_FLAG(fptr->value, global);
     SET_FLAG(fptr->base->func, global);
     SET_FLAG(def->base, global);
@@ -68,7 +67,6 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   const m_str name = s_name(fptr->base->xid);
   const Type t = scan0_type(env, name, env->gwion->type[et_fptr]);
   const bool global = !env->class_def && GET_FLAG(fptr->base, global);
-  t->nspc = new_nspc(env->gwion->mp, name);
   t->flag |= fptr->base->flag;
   fptr->type = t;
   if(global) {
@@ -81,7 +79,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   valuefrom(env, fptr->value->from, fptr->base->pos);
   fptr_def(env, fptr);
   if(env->class_def)
-    fptr_assign(env, fptr);
+    fptr_assign(fptr);
   set_vflag(fptr->value, vflag_func);
   add_type(env, t->info->value->from->owner, t);
   type_addref(t);

@@ -37,6 +37,7 @@ struct Emitter_ {
 ANEW ANN Emitter new_emitter(MemPool);
 ANN void free_emitter(MemPool, Emitter);
 ANN m_bool emit_ast(const Env env, Ast ast);
+ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef);
 ANN m_bool emit_exp_call1(const Emitter, const Func);
 ANN2(1) Instr emit_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull));
 ANN Code* emit_class_code(const Emitter, const m_str);

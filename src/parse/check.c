@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -307,6 +308,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol sym = *data;
   const Value v = check_non_res_value(env, data);
   if(!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
+    const m_str name = s_name(*data);
+    if(!isalpha(*name) && *name != '_')
+      return env->gwion->type[et_op];
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
          env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
@@ -352,7 +356,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   CHECK_OO(check_prim_interp(env, data))
   return env->gwion->type[et_gack];
 }
-
+/*
 ANN static Type check_prim_map(const Env env, const Exp *data) {
   CHECK_OO(check_exp(env, *data))
   if(env->func) // really?
@@ -387,7 +391,7 @@ ANN static Type check_prim_map(const Env env, const Exp *data) {
   env->context->error = true;
   return NULL;
 }
-
+*/
 #define describe_prim_xxx(name, type) \
 ANN static Type check_prim_##name(const Env env NUSED, const union prim_data* data NUSED) {\
   return type; \
@@ -544,9 +548,6 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
   do {
     const Var_Decl decl = arg_list->var_decl;
     const Value v = decl->value;
-// TODO: use coumpound instead of object?
-    if(isa(v->type, env->gwion->type[et_object]) > 0 || isa(v->type, env->gwion->type[et_function]) > 0)
-      unset_fflag(env->func, fflag_pure);
     CHECK_BB(already_defined(env, decl->xid, decl->pos))
     set_vflag(v, vflag_valid);
     nspc_add_value(env->curr, decl->xid, v);
@@ -747,6 +748,8 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     const Type t = op_check(env, &opi);
     return t;
   }
+  if(t == env->gwion->type[et_op])
+    return check_op_call(env, exp);
   if(t == env->gwion->type[et_lambda])
     return check_lambda_call(env, exp);
   if(fflag(t->info->func, fflag_ftmpl)) {

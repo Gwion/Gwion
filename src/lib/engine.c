@@ -129,6 +129,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, "@function");
   GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
   GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
+  const Type t_op = gwi_mk_type(gwi, "@op", SZ_INT, "@function");
+  GWI_BB(gwi_set_global_type(gwi, t_op, et_op))
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
   set_tflag(t_lambda, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
@@ -138,6 +140,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))
+  GWI_BB(import_union(gwi))
 
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
@@ -176,7 +179,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
-  GWI_BB(import_union(gwi))
   return GW_OK;
 }
 

@@ -17,7 +17,7 @@ struct VM_Code_ {
     m_uint native_func;
   };
   size_t stack_depth;
-  struct Vector_ tmpl_types;
+  Type ret_type; // could be `struct Vector_ tmpl_types;`
   void* memoize;
   Closure *closure;
   m_str name;

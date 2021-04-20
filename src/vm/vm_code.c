@@ -32,8 +32,7 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
       free_code_instr(a->instr, gwion);
     }
     free_vector(gwion->mp, a->instr);
-  } else if(a->tmpl_types.ptr)
-    vector_release(&a->tmpl_types);
+  }
   free_mstr(gwion->mp, a->name);
   mp_free(gwion->mp , VM_Code, a);
 }

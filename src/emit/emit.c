@@ -212,7 +212,6 @@ ANN /*static */m_bool emit_exp(const Emitter emit, Exp exp);
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt, const m_bool pop);
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot* member);
-ANN static m_bool emit_func_def(const Emitter emit, const Func_Def func_def);
 
 ANEW static Code* new_code(const Emitter emit, const m_str name) {
   Code* code = mp_calloc(emit->gwion->mp, Code);
@@ -2253,7 +2252,7 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
     func->code->memoize = memoize_ini(emit, func);
 }
 
-ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
+ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   const Func func = f->base->func;
   const Func_Def fdef = func->def;
   const Func former = emit->env->func;
@@ -2262,13 +2261,7 @@ ANN static m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   if(vflag(func->value_ref, vflag_builtin) && safe_tflag(emit->env->class_def, tflag_tmpl)) {
     const Func base = nspc_lookup_func1(func->value_ref->from->owner, f->base->xid);
     builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);
-    vector_init(&func->code->tmpl_types);
-    vector_add(&func->code->tmpl_types, (m_uint)fdef->base->ret_type);
-    Arg_List args = fdef->base->args;
-    while(args) {
-      vector_add(&func->code->tmpl_types, (m_uint)args->type);
-      args = args->next;
-    }
+    func->code->ret_type = fdef->base->ret_type;
     return GW_OK;
   }
   if(fdef_is_file_global(emit, fdef))

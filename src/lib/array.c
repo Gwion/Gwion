@@ -429,56 +429,273 @@ static OP_EMIT(opem_array_access) {
 static m_bit map_byte[BYTECODE_SZ*4];
 static const struct VM_Code_ map_run_code = {
   .name        = "map_run_code",
-  .stack_depth = SZ_INT,
   .bytecode = map_byte
 };
 
-#define MAP_CODE_OFFSET SZ_INT*10
+static m_bit compactmap_byte[BYTECODE_SZ*4];
+static const struct VM_Code_ compactmap_run_code = {
+  .name        = "compactmap_run_code",
+  .bytecode = compactmap_byte
+};
+
+static m_bit filter_byte[BYTECODE_SZ*4];
+static const struct VM_Code_ filter_run_code = {
+  .name        = "filter_run_code",
+  .bytecode = filter_byte
+};
+
+static m_bit count_byte[BYTECODE_SZ*4];
+static const struct VM_Code_ count_run_code = {
+  .name        = "count_run_code",
+  .bytecode = count_byte
+};
+
+static m_bit foldl_byte[BYTECODE_SZ*4];
+static const struct VM_Code_ foldl_run_code = {
+  .name        = "foldl_run_code",
+  .bytecode = foldl_byte
+};
+
+static m_bit foldr_byte[BYTECODE_SZ*4];
+static const struct VM_Code_ foldr_run_code = {
+  .name        = "foldr_run_code",
+  .bytecode = foldr_byte
+};
+
+typedef struct FunctionalFrame {
+  m_uint pc;
+  VM_Code code;
+  m_uint offset;
+  m_uint index;
+} FunctionalFrame;
+
+ANN static inline void _init(const VM_Shred shred,
+    const struct VM_Code_ *code, const m_uint offset, const m_uint start) {
+  FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*2 + start);
+  frame->pc = shred->pc;
+  frame->code = shred->code;
+  frame->offset = offset;
+  frame->index = 0;
+  *(m_uint*)REG(SZ_INT) = offset;
+  shred->code = (VM_Code)code;
+  shred->pc = 0;
+  shredule(shred->tick->shreduler, shred, 0);
+}
+
+ANN static inline void _next(const VM_Shred shred, const m_uint offset) {
+  shred->pc = 0;
+  *(m_uint*)REG(0) = offset;
+  POP_REG(shred, SZ_INT);
+}
+
+ANN static inline void _return(const VM_Shred shred, const FunctionalFrame* frame) {
+  shred->pc = frame->pc;
+  shred->code = frame->code;
+}
+
+ANN static inline void _finish(const VM_Shred shred, const FunctionalFrame* frame) {
+  POP_MEM(shred, frame->offset);
+  shredule(shred->tick->shreduler, shred, 0);
+}
+
+#define MAP_CODE_OFFSET (sizeof(FunctionalFrame) + SZ_INT*4)
 static INSTR(map_run_ini) {
-  *(VM_Code*)(shred->reg) = (*(VM_Code*)MEM(SZ_INT));
-  *(VM_Code*)(shred->reg + SZ_INT) = 0;
+  const m_uint offset = *(m_uint*)REG(SZ_INT);
+  if(offset)
+    PUSH_MEM(shred, offset);
   PUSH_REG(shred, SZ_INT);
   const M_Object self = *(M_Object*)MEM(0);
   const M_Vector array = ARRAY(self);
-  const m_uint index = *(m_uint*)MEM(SZ_INT*5);
-   shred->pc++;
-  (*(m_uint*)MEM(SZ_INT*5))++;   // increment the index
-  shred->mem += MAP_CODE_OFFSET; // work in a safe memory space
-  *(m_uint*)(shred->reg + SZ_INT) = 0;
+  FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  shred->pc++;
+  shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   *(m_uint*)(shred->mem-SZ_INT) = 0;
   *(m_uint*)(shred->mem-SZ_INT*2) = 0;
-  *(VM_Code*)(shred->mem-SZ_INT*3) = (VM_Code)&map_run_code;
-  m_vector_get(array, index, &*(m_bit**)(shred->mem + SZ_INT*5));
+  m_vector_get(array, frame->index, &*(m_bit**)(shred->mem + SZ_INT*6));
 }
 
 static INSTR(map_run_end) {
-  shred->mem -= MAP_CODE_OFFSET;
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  const M_Object ret_obj = *(M_Object*)MEM(SZ_INT*2);
+  const M_Vector array = ARRAY(*(M_Object*)MEM(0));
+  POP_REG(shred, ARRAY_SIZE(array));
+  FunctionalFrame *const frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  m_vector_set(ARRAY(ret_obj), frame->index, shred->reg);
+  if(++frame->index == ARRAY_LEN(array)) {
+    _return(shred, frame);
+    *(M_Object*)(REG(-SZ_INT)) = ret_obj;
+  } else
+    _next(shred, frame->offset);
+  _finish(shred, frame);
+}
+
+static INSTR(compactmap_run_end) {
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  const M_Object self = *(M_Object*)MEM(0);
+  const M_Vector self_array = ARRAY(self);
+  const M_Object ret_obj = *(M_Object*)MEM(SZ_INT*2);
+  const M_Vector ret_array = ARRAY(ret_obj);
+  POP_REG(shred, ARRAY_SIZE(ret_array));
+  FunctionalFrame *const frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  const m_uint size = m_vector_size(self_array);
+  const M_Object obj = *(M_Object*)REG(0);
+  if(*(m_uint*)obj->data)
+    m_vector_add(ret_array, &*(m_bit*)(obj->data + SZ_INT));
+  if(++frame->index == size) {
+    _return(shred, frame);
+    *(M_Object*)(REG(-SZ_INT)) = ret_obj;
+  } else
+    _next(shred, frame->offset);
+  _finish(shred, frame);
+}
+
+static INSTR(filter_run_end) {
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  POP_REG(shred, SZ_INT);
+  const M_Object self = *(M_Object*)MEM(0);
   const M_Object ret_obj = *(M_Object*)MEM(SZ_INT*2);
   const M_Vector array = ARRAY(ret_obj);
-  POP_REG(shred, ARRAY_SIZE(array));
-  const m_uint index = *(m_uint*)MEM(SZ_INT*5);
-  const m_uint size = m_vector_size(array);
-  m_vector_set(array, index - 1, &*(m_bit**)shred->reg);
-  if(index == size) {
-    shred->pc = *(m_uint*)MEM(SZ_INT*3);
-    shred->code = *(VM_Code*)MEM(SZ_INT*4);
-    *(M_Object*)(shred->reg-SZ_INT) = ret_obj;
-  } else {
-    shred->pc = 0;
-    POP_REG(shred, SZ_INT);
-  }
-  shredule(shred->tick->shreduler, shred, 0);
+  FunctionalFrame *const frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  if(*(m_uint*)(shred->reg))
+    m_vector_add(array, ARRAY_PTR(ARRAY(self)) + frame->index * ARRAY_SIZE(array));
+  if(++frame->index == ARRAY_LEN(ARRAY(self))) {
+    _return(shred, frame);
+    *(M_Object*)(REG(-SZ_INT)) = ret_obj;
+  } else
+    _next(shred, frame->offset);
+  _finish(shred, frame);
+}
+
+static INSTR(count_run_end) {
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  const M_Object self= *(M_Object*)MEM(0);
+  POP_REG(shred, SZ_INT);
+  FunctionalFrame *const frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  if(*(m_uint*)(shred->reg))
+    (*(m_uint*)MEM(SZ_INT*2))++;
+  if(++frame->index == ARRAY_LEN(ARRAY(self))) {
+    _return(shred, frame);
+    *(m_uint*)(REG(-SZ_INT)) = *(m_uint*)MEM(SZ_INT*2);
+  } else
+    _next(shred, frame->offset);
+  _finish(shred, frame);
 }
 
 static MFUN(vm_vector_map) {
-  const VM_Code code = *(VM_Code*)REG(SZ_INT*2);
-  const M_Object ret = *(M_Object*)MEM(SZ_INT*2) = *(M_Object*)RETURN = new_array(shred->info->vm->gwion->mp, (Type)vector_front(&code->tmpl_types), ARRAY_LEN(ARRAY(o)));
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3);
+  const M_Object ret = new_array(shred->info->vm->gwion->mp, o->type_ref, ARRAY_LEN(ARRAY(o)));
   vector_add(&shred->gc, (m_uint)ret);
-  *(m_uint*)MEM(SZ_INT*3) = shred->pc;
-  *(VM_Code*)MEM(SZ_INT*4) = shred->code;
-  shred->code = (VM_Code)&map_run_code;
-  shred->pc = 0;
-  shredule(shred->tick->shreduler, shred, 0);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &map_run_code, offset, SZ_INT);
+    *(M_Object*)MEM(SZ_INT*2) = ret;
+  } else
+    *(M_Object*)RETURN = ret;
+}
+
+static MFUN(vm_vector_compactmap) {
+  const VM_Code code = *(VM_Code*)REG(SZ_INT*2);
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3);
+  const M_Object ret = new_array(shred->info->vm->gwion->mp,
+    code->ret_type, 0);
+  vector_add(&shred->gc, (m_uint)ret);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &compactmap_run_code, offset, SZ_INT);
+    *(M_Object*)MEM(SZ_INT*2) = ret;
+  } else
+    *(M_Object*)RETURN = ret;
+}
+
+static MFUN(vm_vector_filter) {
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3);
+  const M_Object ret = new_array(shred->info->vm->gwion->mp, o->type_ref, 0);
+  vector_add(&shred->gc, (m_uint)ret);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &filter_run_code, offset, SZ_INT);
+    *(M_Object*)MEM(SZ_INT*2) = ret;
+  } else
+    *(M_Object*)RETURN = ret;
+}
+
+static MFUN(vm_vector_count) {
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &count_run_code, offset, SZ_INT);
+    *(m_uint*)MEM(SZ_INT*2) = 0;
+  } else
+    *(m_uint*)RETURN = 0;
+}
+
+static INSTR(foldl_run_ini) {
+  const m_uint offset = *(m_uint*)REG(SZ_INT);
+  if(offset)
+    PUSH_MEM(shred, offset);
+  const M_Object self = *(M_Object*)MEM(0);
+  *(m_uint*)(shred->reg + SZ_INT) = 0;
+  PUSH_REG(shred, SZ_INT);
+  shred->pc++;
+  const FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
+  *(m_uint*)(shred->mem-SZ_INT) = 0;
+  *(m_uint*)(shred->mem-SZ_INT*2) = 0;
+  m_vector_get(ARRAY(self), frame->index, &*(m_bit**)(shred->mem + SZ_INT*4));
+}
+
+static INSTR(foldr_run_ini) {
+  const m_uint offset = *(m_uint*)REG(SZ_INT);
+  if(offset)
+    PUSH_MEM(shred, offset);
+  const M_Object self = *(M_Object*)MEM(0);
+  *(m_uint*)(shred->reg + SZ_INT) = 0;
+  PUSH_REG(shred, SZ_INT);
+  shred->pc++;
+  const FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
+  *(m_uint*)(shred->mem-SZ_INT) = 0;
+  *(m_uint*)(shred->mem-SZ_INT*2) = 0;
+  const M_Vector array = ARRAY(self);
+  m_vector_get(array, ARRAY_LEN(array) - frame->index - 1, &*(m_bit**)(shred->mem + SZ_INT*4));
+}
+
+static INSTR(fold_run_end) {
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  FunctionalFrame *const frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
+  const M_Object self = *(M_Object*)MEM(0);
+  const VM_Code code = *(VM_Code*)MEM(SZ_INT);
+  const m_uint sz = code->stack_depth - ARRAY_SIZE(ARRAY(self));
+  const m_uint base_sz = code->stack_depth - sz;
+  POP_REG(shred, base_sz);
+  if(++frame->index == ARRAY_LEN(ARRAY(self))) {
+    POP_REG(shred, SZ_INT - base_sz);
+    shred->pc = frame->pc;
+    shred->code = frame->code;
+    memcpy(REG(-sz), REG(0), base_sz);
+  } else {
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*2 + SZ_INT*3 + sz, shred->reg, base_sz);
+    _next(shred, frame->offset);
+  }
+  _finish(shred, frame);
+}
+
+static MFUN(vm_vector_foldl) {
+  const m_bit *byte   = shred->code->bytecode + (shred->pc-1) * BYTECODE_SZ;
+  const m_uint acc_sz = *(m_uint*)(byte + SZ_INT);
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3 + acc_sz);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &foldl_run_code, offset, SZ_INT);
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*5 + acc_sz, MEM(SZ_INT*2), acc_sz);
+  } else
+    memcpy((m_bit*)RETURN, MEM(SZ_INT*2), acc_sz);
+}
+
+static MFUN(vm_vector_foldr) {
+  const m_bit *byte   = shred->code->bytecode + (shred->pc-1) * BYTECODE_SZ;
+  const m_uint acc_sz = *(m_uint*)(byte + SZ_INT);
+  const m_uint offset = *(m_uint*)REG(SZ_INT*3 + acc_sz);
+  if(ARRAY_LEN(ARRAY(o))) {
+    _init(shred, &foldr_run_code, offset, SZ_INT);
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*5 + acc_sz, MEM(SZ_INT*2), acc_sz);
+  } else
+    memcpy((m_bit*)RETURN, MEM(SZ_INT*2), acc_sz);
 }
 
 ANN /*static */Symbol array_sym(const Env env, const Type src, const m_uint depth);
@@ -525,6 +742,11 @@ static OP_CHECK(opck_array_scan) {
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 4), vm_vector_cap);
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 5), vm_vector_random);
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 6), vm_vector_map);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 7), vm_vector_compactmap);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 8), vm_vector_filter);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 9), vm_vector_count);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 10), vm_vector_foldl);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 11), vm_vector_foldr);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
     set_tflag(t, tflag_dtor);
@@ -544,18 +766,31 @@ static OP_CHECK(opck_array_implicit) {
   return imp->t;
 }
 
-static void prepare_map_run(void) {
-  *(unsigned*)map_byte = eOP_MAX;
-  *(f_instr*)(map_byte + SZ_INT*2) = map_run_ini;
-  *(unsigned*)(map_byte+ BYTECODE_SZ) = eSetCode;
-  *(m_uint*)(map_byte + BYTECODE_SZ + SZ_INT*2) = 3;
-  *(unsigned*)(map_byte+ BYTECODE_SZ*2) = eOverflow;
-  *(unsigned*)(map_byte+ BYTECODE_SZ*3) = eOP_MAX;
-  *(f_instr*)(map_byte + BYTECODE_SZ*3 + SZ_INT*2) = map_run_end;
+ANN static void prepare_run(m_bit *const byte, const f_instr ini, const f_instr end) {
+  *(unsigned*)byte = eOP_MAX;
+  *(f_instr*)(byte + SZ_INT*2) = ini;
+  *(unsigned*)(byte+ BYTECODE_SZ) = eSetCode;
+  *(m_uint*)(byte + BYTECODE_SZ + SZ_INT*2) = 3;
+  *(unsigned*)(byte+ BYTECODE_SZ*2) = eOverflow;
+  *(unsigned*)(byte+ BYTECODE_SZ*3) = eOP_MAX;
+  *(f_instr*)(byte + BYTECODE_SZ*3 + SZ_INT*2) = end;
+}
+
+ANN static void prepare_map_run(m_bit *const byte, const f_instr end) {
+  prepare_run(byte, map_run_ini, end);
+}
+
+ANN static void prepare_fold_run(m_bit *const byte, const f_instr ini) {
+  prepare_run(byte, ini, fold_run_end);
 }
 
 GWION_IMPORT(array) {
-  prepare_map_run();
+  prepare_map_run(map_byte, map_run_end);
+  prepare_map_run(compactmap_byte, compactmap_run_end);
+  prepare_map_run(filter_byte, filter_run_end);
+  prepare_map_run(count_byte, count_run_end);
+  prepare_fold_run(foldl_byte, foldl_run_ini);
+  prepare_fold_run(foldr_byte, foldr_run_ini);
   const Type t_array  = gwi_class_ini(gwi, "Array:[T]", "Object");
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
@@ -565,6 +800,19 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
 
   GWI_BB(gwi_fptr_ini(gwi, "A", "map_t:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "T", "elem"))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+
+  GWI_BB(gwi_fptr_ini(gwi, "Option:[A]", "compactmap_t:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "T", "elem"))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+
+  GWI_BB(gwi_fptr_ini(gwi, "A", "fold_t:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "T", "elem"))
+  GWI_BB(gwi_func_arg(gwi, "A", "acc"))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+
+  GWI_BB(gwi_fptr_ini(gwi, "bool", "filter_t"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
   GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
 
@@ -592,6 +840,28 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_ini(gwi, "A[]", "map:[A]"))
   GWI_BB(gwi_func_arg(gwi, "map_t:[A]", "data"))
   GWI_BB(gwi_func_end(gwi, vm_vector_map, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "A[]", "compactMap:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "compactmap_t:[A]", "data"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_compactmap, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "T[]", "filter"))
+  GWI_BB(gwi_func_arg(gwi, "filter_t", "data"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_filter, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "int", "count"))
+  GWI_BB(gwi_func_arg(gwi, "filter_t", "data"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_count, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "A", "foldl:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "fold_t", "data"))
+  GWI_BB(gwi_func_arg(gwi, "A", "initial"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_foldl, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "A", "foldr:[A]"))
+  GWI_BB(gwi_func_arg(gwi, "fold_t", "data"))
+  GWI_BB(gwi_func_arg(gwi, "A", "initial"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_foldr, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
 

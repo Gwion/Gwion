@@ -23,31 +23,42 @@ ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
   CHECK_BB(env_access(env, flag, pos))
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
+#undef GET
 
-ANN Type __find_type(const Type type, const Symbol xid) {
+#define RETURN_TYPE(a) \
+do {                   \
+  const Type t = (a);  \
+  if(t) return t;      \
+} while(0)
+
+ANN static Type find_in_parent(const Type type, const Symbol xid) {
   Type base = type;
   while(base && base->nspc) {
-    const Type t = nspc_lookup_type1(base->nspc, xid);
-    if(t)
-      return t;
+    RETURN_TYPE(nspc_lookup_type1(base->nspc, xid));
     base = base->info->parent;
   }
   return NULL;
 }
 
-ANN Type _find_type(const Env env, const Symbol xid) {
-  const Type type = nspc_lookup_type1(env->curr, xid);
-  if(type || !env->class_def)
-    return type;
-  return __find_type(env->class_def, xid);
+ANN Type find_initial(const Env env, const Symbol xid) {
+  if(env->class_def)
+    RETURN_TYPE(find_in_parent(env->class_def, xid));
+  RETURN_TYPE(nspc_lookup_type1(env->curr, xid));
+  const Vector v = &env->scope->nspc_stack;
+  for(m_uint i = vector_size(v) + 1; --i;) {
+    const Nspc nspc = (Nspc)vector_at(v, i-1);
+    RETURN_TYPE(nspc_lookup_type1(nspc, xid));
+  }
+  return NULL;
 }
+#undef RETURN_TYPE
 
 ANN Type find_type(const Env env, Type_Decl *path) {
-  DECL_OO(Type, type, = _find_type(env, path->xid))
+  DECL_OO(const Type, type, = find_initial(env, path->xid))
   while((path = path->next) && type && type->nspc) {
     const Nspc nspc = type->nspc;
-    type = __find_type(type, path->xid);
-    if(!type)
+    const Type child = find_in_parent(type, path->xid);
+    if(!child)
       ERR_O(path->pos, _("...(cannot find class '%s' in nspc '%s')"), s_name(path->xid), nspc->name)
   }
   return type;

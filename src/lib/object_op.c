@@ -247,12 +247,13 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def udef = new_union_def(env->gwion->mp, cpy_union_list(env->gwion->mp, u->l), u->pos);
   udef->xid = info->name;
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
+  // resolve the template here
   if(GET_FLAG(info->base, global))
     SET_FLAG(udef, global);
   const m_bool ret = scan0_union_def(env, udef);
   if(udef->type) {
     udef->type->info->udef = udef;// mark as udef
-    info->ret = udef->type;
+    info->ret = udef->type;// is info->ret necessary?
     set_tflag(info->ret, tflag_udef);
   } else
     free_union_def(env->gwion->mp, udef);

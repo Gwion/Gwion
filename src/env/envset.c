@@ -26,9 +26,9 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
     env_push(es->env, NULL, t->info->value->from->ctx ? t->info->value->from->ctx->nspc : es->env->curr);
   if(es->func && !(t->tflag & es->flag))
     CHECK_BB(es->func((void*)es->data, t))
-  if(tflag(t, tflag_tmpl))
-    CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)) // incorrect templates
   env_push_type((void*)es->env, t);
+  if(tflag(t, tflag_tmpl))
+    CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)) // incorrect templates?
   return GW_OK;
 }
 
@@ -45,11 +45,11 @@ ANN2(1,3) m_bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
 }
 
 ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
+  if(safe_tflag(t, tflag_tmpl)) // might not be useful
+    nspc_pop_type(es->env->gwion->mp, es->env->curr);
   env_pop(es->env, es->scope);
   if(!t)
     return;
-  if(tflag(t, tflag_tmpl))
-    nspc_pop_type(es->env->gwion->mp, es->env->curr);
   const Type owner_class = t->info->value->from->owner_class;
   if(owner_class)
     envset_pop(es, owner_class);

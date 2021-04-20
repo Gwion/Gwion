@@ -1,6 +1,7 @@
 #! [contains] must be declared 'abstract'
 class abstract C {
   fun abstract void test(int i);
+  fun abstract void test(int i, float f);
 }
 
 class D extends C {}

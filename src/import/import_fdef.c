@@ -116,11 +116,22 @@ ANN static Fptr_Def import_fptr(const Gwi gwi) {
   return new_fptr_def(gwi->gwion->mp, base);
 }
 
+ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
+  Section* section = new_section_fptr_def(gwi->gwion->mp, fdef);
+  const Ast body = new_ast(gwi->gwion->mp, section, NULL);
+  gwi_body(gwi, body);
+  return GW_OK;
+}
+
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_fdef))
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi))
   fptr->base->flag |= flag;
-  // what happens if it is in a template class ?
+  if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)/* && !fptr->base->tmpl*/) {
+    section_fptr(gwi, fptr);
+    ck_end(gwi);
+    return (Type)GW_OK;
+  }
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if(fptr->base->func) // is it needed ?
     set_vflag(fptr->base->func->value_ref, vflag_builtin);

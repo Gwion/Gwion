@@ -53,7 +53,7 @@ ANN static void ref2base(Env env, const Type lhs, const Type rhs) {
   add_op(env->gwion, &opi);
 }
 
-OP_CHECK(opck_foreach_scan) {
+static OP_CHECK(opck_ref_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
   struct tmpl_info info = { .base=ts->t, .td=ts->td, .list=ts->t->info->cdef->base.tmpl->list  };
   const Type exists = tmpl_exists(env, &info);
@@ -79,7 +79,7 @@ GWION_IMPORT(ref) {
   GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   GWI_BB(gwi_struct_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Ref", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_foreach_scan))
+  GWI_BB(gwi_oper_add(gwi, opck_ref_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   return GW_OK;
 }

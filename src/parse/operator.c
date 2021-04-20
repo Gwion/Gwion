@@ -170,6 +170,7 @@ for(int i = 0; i < 2; ++i) {
       if(ret) {
         if(ret == env->gwion->type[et_error])
           return NULL;
+        opi->nspc = nspc;
         return ret;
       }
     } while(l && (l = op_parent(env, l)));

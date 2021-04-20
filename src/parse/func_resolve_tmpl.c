@@ -27,13 +27,22 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->from->owner, sym);
 }
 
-ANN static inline m_bool tmpl_valid(const Env env, const Func_Def fdef) {
-  return safe_fflag(fdef->base->func, fflag_valid) ||
-      check_traverse_fdef(env, fdef) > 0;
+ANN static inline m_bool tmpl_traverse(const Env env, const Func_Def fdef) {
+  return check_traverse_fdef(env, fdef);
+}
+
+ANN static inline bool tmpl_valid(const Env env, const Func_Def fdef/*, Exp_Call *const exp*/) {
+  if(safe_fflag(fdef->base->func, fflag_valid))
+    return true;
+//  const Tmpl tmpl = { .list=fdef->base->tmpl->list, .call=exp->tmpl->call };
+//  CHECK_BO(template_push_types(env, &tmpl));
+  const bool ret = check_traverse_fdef(env, fdef) > 0;
+//  nspc_pop_type(env->gwion->mp, env->curr);
+  return ret;
 }
 
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const exp) {
-  if(!tmpl_valid(env, fdef))
+  if(!tmpl_valid(env, fdef/*, exp*/))
     return NULL;
   if(exp->args && !exp->args->type)
     return NULL;
@@ -122,15 +131,12 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   struct ResolverArgs ra = {.v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
   (void)env_push(env, v->from->owner_class, v->from->owner);
-if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
-(void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
-//const Tmpl tmpl = { .list=v->frombase->tmpl->list, .call=ra->types };
-//CHECK_BO(template_push_types(env, &tmpl));
+  if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+    (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
   const Func m_func = !is_fptr(env->gwion, v->type) ?
       func_match(env, &ra) :fptr_match(env, &ra);
-if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
-nspc_pop_type(env->gwion->mp, env->curr);
-//nspc_pop_type(env->gwion->mp, env->curr);
+  if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   if(es.run)
     envset_pop(&es, v->from->owner_class);

@@ -21,11 +21,16 @@ struct Op_Func {
 };
 
 struct Op_Import {
-  Type lhs, rhs, ret;
+  Type lhs;
+  Type rhs;
+  Type ret;
   const struct Op_Func *func;
   uintptr_t data;
-  loc_t pos;
+  // used to return nspc in op_check.
+  // could be put in a union with `ret`
+  Nspc nspc;
   Symbol op;
+  loc_t pos;
 };
 
 struct Implicit {
