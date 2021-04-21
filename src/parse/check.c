@@ -1258,7 +1258,7 @@ ANN static m_bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return check_stmt(env, stmt->stmt);
 }
 
-#define check_stmt_resume dummy_func
+#define check_stmt_retry dummy_func
 DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

@@ -261,7 +261,7 @@ ANN m_bool scan2_union_def(const Env env NUSED, const Union_Def udef) {
 #define scan2_stmt_continue dummy_func
 #define scan2_stmt_break    dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
-#define scan2_stmt_resume   dummy_func
+#define scan2_stmt_retry    dummy_func
 
 ANN static m_bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
   if(stmt->pp_type == ae_pp_include)

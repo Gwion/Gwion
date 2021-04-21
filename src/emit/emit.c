@@ -2119,7 +2119,7 @@ ANN static m_bool emit_stmt_defer(const Emitter emit, const struct Stmt_Defer_* 
   return GW_OK;
 }
 
-ANN static m_bool emit_stmt_resume(const Emitter emit, const struct Stmt_Index_* stmt NUSED) {
+ANN static m_bool emit_stmt_retry(const Emitter emit, const struct Stmt_Index_* stmt NUSED) {
   const Instr instr = emit_add_instr(emit, Goto);
   instr->m_val = emit->code->frame->try_top;
   return GW_OK;

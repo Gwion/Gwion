@@ -262,7 +262,7 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_pp clean_dummy
 #define clean_stmt_break clean_dummy
 #define clean_stmt_continue clean_dummy
-#define clean_stmt_resume clean_dummy
+#define clean_stmt_retry    clean_dummy
 
 DECL_STMT_FUNC(clean, void, Clean*)
 ANN static void clean_stmt(Clean *a, Stmt b) {
