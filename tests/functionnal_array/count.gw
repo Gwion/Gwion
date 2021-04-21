@@ -1,0 +1,13 @@
+var int _i;
+const int i[2];
+
+fun bool t(int i) { return true; }
+<<< i.count(t) >>>;
+<<< i.count(t) >>>;
+<<< i.count(t) >>>;
+<<< i.count(t) >>>;
+
+<<< i.filter(\a { return maybe; }).size() >>>;
+<<< i.filter(\a { return maybe; }).size() >>>;
+<<< i.filter(\a { return maybe; }).size() >>>;
+<<< i.filter(\a { return maybe; }).size() >>>;

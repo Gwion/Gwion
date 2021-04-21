@@ -1,0 +1,9 @@
+fun float t(float i, float j) {
+  <<< "${i} ${j} ${i+j}" >>>;
+  return i$int + j$int;
+}
+
+#!const int i ;
+const float f[3];
+#!<<< f.foldl:[float](t, 1.2) >>>;
+[1.,2.,3.].foldl:[float](t, 3.);

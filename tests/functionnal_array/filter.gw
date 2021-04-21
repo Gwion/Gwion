@@ -1,0 +1,9 @@
+#!const float f;const int i[0];
+#!const int aa;
+fun bool t(int i) { return true; }
+<<< [1].filter(\a { return maybe; }).size() >>>;
+<<< [1].filter(t).size() >>>;
+#!me.exit();
+#!me.exit();
+
+#!<<< i.filter(\a { return maybe; }).size() >>>;

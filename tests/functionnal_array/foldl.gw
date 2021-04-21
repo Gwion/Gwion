@@ -1,0 +1,12 @@
+const float iii;
+fun int t(int i, int j) {
+  <<< "${i} ${j} ${i+j}" >>>;
+  return i$int + j;
+}
+<<< [1,2,3].foldl:[int](t, 0) >>>;
+<<< [1,2,3].foldl:[int](t, 0) >>>;
+<<< [1,2,3].foldl:[int](t, 0) >>>;
+<<< [1,2,3].foldl:[int](t, 0) >>>;
+
+const int i[0];
+<<< i.foldl:[int](t, 0) >>>;
