@@ -630,6 +630,12 @@ ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
   return emit_symbol(emit, prim_self(data));
 }
 
+ANN static m_bool emit_prim_perform(const Emitter emit, const Symbol *xid) {
+  const Instr instr = emit_add_instr(emit, PerformEffect);
+  instr->m_val = (m_uint)s_name(*xid);
+  return GW_OK;
+}
+
 ANN static m_bool emit_prim_num(const Emitter emit, const m_uint *num) {
   regpushi(emit, *num);
   return GW_OK;

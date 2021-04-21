@@ -90,7 +90,7 @@ static OP_CHECK(opck_ptr_implicit) {
 static INSTR(instr_ptr_deref) {
   const m_bit *o = *(m_bit**)REG(-SZ_INT);
   if(!o)
-    Except(shred, _("EmptyPointerException"));
+    handle(shred, _("EmptyPointerException"));
   if(instr->m_val2)
     memcpy(REG(-SZ_INT), &o, SZ_INT);
   else {

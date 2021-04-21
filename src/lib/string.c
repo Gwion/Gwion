@@ -84,7 +84,7 @@ static INSTR(StringSlice) {
   if(end < 0)
     end = strsz + end;
   if(bounds(str, start) < 0 || bounds(str, end) < 0)
-    Except(shred, "OutOfBoundsStringSlice");
+    handle(shred, "OutOfBoundsStringSlice");
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
   char c[sz + 1];

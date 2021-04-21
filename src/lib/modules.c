@@ -248,14 +248,14 @@ static INSTR(UsrUGenTick) {
   shred->reg -= SZ_INT*2 - offset;
   const M_Object o = *(M_Object*)(shred->reg + SZ_INT - offset);
   if(!o)
-    Except(shred, "[NullPtrException]");
+    handle(shred, "NullPtrException");
   struct UUGen_ *uu = UGEN(o)->module.gen.data;
   if(uu->shred)
     free_vm_shred(uu->shred);
   UGEN(o)->module.gen.tick = usrugen_tick;
   const VM_Code code = *(VM_Code*)(shred->reg-offset);
   if(!code)
-    Except(shred, "[NullTickException]");
+    handle(shred, "NullTickException");
   uu->shred = new_vm_shred(shred->info->vm->gwion->mp, *(VM_Code*)(shred->reg-offset));
   vmcode_addref(*(VM_Code*)(shred->reg - offset));
   uu->shred->info->vm = shred->info->vm;

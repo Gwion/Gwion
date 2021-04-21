@@ -186,6 +186,7 @@ enum {
   eTryIni,
   eTryEnd,
   eHandleEffect,
+  ePerformEffect,
   eNoOp,
   eEOC,
   eUnroll2,
@@ -378,6 +379,7 @@ enum {
 #define  TryIni               (f_instr)eTryIni
 #define  TryEnd               (f_instr)eTryEnd
 #define  HandleEffect         (f_instr)eHandleEffect
+#define  PerformEffect        (f_instr)ePerformEffect
 #define  NoOp                 (f_instr)eNoOp
 #define  EOC                  (f_instr)eEOC
 #define  Unroll2              (f_instr)eUnroll2

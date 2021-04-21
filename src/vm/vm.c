@@ -40,13 +40,66 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
+ANN static bool unwind(VM_Shred shred, const Symbol effect) {
+  if(!shred->info->frame.ptr || !map_size(&shred->info->frame))
+    return true;
+  if(shred->code->handlers.ptr) {
+    const m_uint start = VKEY(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    if(start > shred->pc)
+      return true;
+    const Map m = &shred->code->handlers;
+    m_uint pc = 0;
+    for(m_uint i = 0; i < map_size(m); i++) {
+      if(start > shred->pc)
+        break;
+      if(start < shred->pc && VKEY(m, i) > shred->pc) {
+         const m_uint next = VKEY(m, i);
+         const Instr instr = (Instr)vector_at(shred->code->instr, next + 1);
+         if(!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
+           pc = next + 1;
+           break;
+         }
+      }
+    }
+    if(!pc) // outside of a try statement
+      return true;
+    shred->reg = (m_bit*)VVAL(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    shredule(shred->tick->shreduler, shred, 0);
+    shred->pc = pc;//VKEY(m, i);
+    return false;
+  }
+  // there might be no more stack to unwind
+  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
+  if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
+    return true;
+  // literally unwind
+  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
+  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
+  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
+  return unwind(shred, effect);
+}
+
+ANN void handle(VM_Shred shred, const m_str effect) {
+  // remove from the shreduler
+  // TODO: get shred->mem and shred->reg offsets
+  shreduler_remove(shred->tick->shreduler, shred, false);
+  // do the unwiding
+  if(unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect))) {
+    vm_shred_exit(shred);
+    gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}: {-R}Unhandled {+R}%s{0}\n", shred->tick->xid, effect);
+  }
+  // I guess the VM could have *trace mode*
+  // which would happen here from the top
+}
+
+
 void vm_remove(const VM* vm, const m_uint index) {
   const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
     if(sh && sh->tick->xid == index)
-       Except(sh, "MsgRemove");
+       handle(sh, "MsgRemove");
   }
 }
 
@@ -144,60 +197,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, co
   return ME(o);
 }
 
-ANN static bool unwind(VM_Shred shred, const Symbol effect) {
-  // there is an handler
-  if(!map_size(&shred->info->frame))
-    return true;
-  if(shred->code->handlers.ptr) {
-    const m_uint start = VKEY(&shred->info->frame, VLEN(&shred->info->frame) - 1);
-    if(start > shred->pc)
-      return true;
-    const Map m = &shred->code->handlers;
-    m_uint pc = 0;
-    for(m_uint i = 0; i < map_size(m); i++) {
-      if(start > shred->pc)
-        break;
-      if(start < shred->pc && VKEY(m, i) > shred->pc) {
-         const m_uint next = VKEY(m, i);
-         const Instr instr = (Instr)vector_at(shred->code->instr, next + 1);
-         if(!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
-           pc = next + 1;
-           break;
-         }
-      }
-    }
-    if(!pc) // outside of a try statement
-      return true;
-    shred->reg = (m_bit*)VVAL(&shred->info->frame, VLEN(&shred->info->frame) - 1);
-    shredule(shred->tick->shreduler, shred, 0);
-    shred->pc = pc;//VKEY(m, i);
-    return false;
-  }
-  // there might be no more stack to unwind
-  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
-  if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
-    return true;
-  // literally unwind
-  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
-  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
-  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
-  return unwind(shred, effect);
-}
-
-ANN void handle(VM_Shred shred, const Symbol xid) {
-  // remove from the shreduler
-  // TODO: get shred->mem and shred->reg offsets
-  shreduler_remove(shred->tick->shreduler, shred, false);
-  // do the unwiding
-  if(unwind(shred, xid)) {
-    vm_shred_exit(shred);
-    puts(s_name(xid));
-  }
-  // I guess the VM could have *trace mode*
-  // which would happen here from the top
-}
-
-#define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; handle(shred, insert_symbol(vm->gwion->st, "ZeroDivideException")); break; }
+#define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; handle(shred, "ZeroDivideException"); break; }
 
 #define ADVANCE() byte += BYTECODE_SZ;
 
@@ -384,7 +384,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc,
     &&gcini, &&gcadd, &&gcend,
-    &&gacktype, &&gackend, &&gack, &&try_ini, &&try_end, &&handleeffect, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
+    &&gacktype, &&gackend, &&gack, &&try_ini, &&try_end, &&handleeffect, &&performeffect, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -697,7 +697,7 @@ regtomemother:
 overflow:
   if(overflow_(mem + VAL2, shred)) {
     shred->pc = PC;
-    exception(shred, "StackOverflow");
+    handle(shred, "StackOverflow");
     continue;
   }
 PRAGMA_PUSH()
@@ -798,10 +798,10 @@ arrayaccess:
   register const m_int idx = *(m_int*)(reg + VAL);
   a.obj = *(M_Object*)(reg-VAL2);
   if(idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
-    gw_err(_("  ... at index [%" INT_F "]\n"), idx);
-    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
+    gw_err(_("{-}  ... at index {W}[{Y}%" INT_F "{W}]{0}\n"), idx);
+//    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
     VM_OUT
-    exception(shred, "ArrayOutofBounds");
+    handle(shred, "ArrayOutofBounds");
     continue; // or break ?
   }
   DISPATCH()
@@ -865,7 +865,7 @@ except:
  * grep for GWOP_EXCEPT and Except, exception... */
   if(!*(m_bit**)(reg+(m_int)(VAL))) {
     shred->pc = PC;
-    exception(shred, "NullPtrException");
+    handle(shred, "NullPtrException");
     continue;
   }
   DISPATCH();
@@ -895,7 +895,7 @@ dotaddr:
 #define UNION_CHECK\
   register const m_bit *data  = (*(M_Object*)(reg-SZ_INT))->data;\
   if(*(m_uint*)data != VAL) {\
-    exception(shred, "invalid union acces");\
+    handle(shred, "invalid union acces");\
     continue;\
   }
 
@@ -1013,6 +1013,11 @@ try_ini:
 try_end:
   map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
 handleeffect:
+// this should check the *xid* of the exception
+  DISPATCH();
+performeffect:
+  handle(shred, (m_str)VAL);
+  break;
 // this should check the *xid* of the exception
 noop:
   DISPATCH();

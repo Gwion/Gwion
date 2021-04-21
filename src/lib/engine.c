@@ -75,7 +75,7 @@ static OP_CHECK(opck_basic_ctor) {
 
 static INSTR(PredicateCheck) {
   if(!*(m_uint*)REG(-SZ_INT))
-    Except(shred, "predicate failed");
+    handle(shred, "predicate failed");
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {

@@ -56,7 +56,7 @@ INSTR(GTmpl) {
   struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val;
   const Func f = *(Func*)REG(-SZ_INT);
   if(!f)
-    Except(shred, _("EmptyFuncPointerException"));
+    handle(shred, "EmptyFuncPointerException");
 if(f->code) {
   *(VM_Code*)(shred->reg -SZ_INT) = f->code;
  return;
@@ -81,7 +81,7 @@ if(f->code) {
   dt->def = f->def;
   const Func_Def def = traverse_tmpl(emit, dt, f->value_ref->from->owner);
   if(!def)
-    Except(shred, "MissigTmplPtrException[internal]");
+    handle(shred, "MissigTmplPtrException");
   *(VM_Code*)(shred->reg -SZ_INT) = def->base->func->code;
 }
 
@@ -115,7 +115,7 @@ INSTR(DotTmpl) {
       return;
     }
   } while((t = t->info->parent));
-  Except(shred, "MissigTmplException[internal]");
+  handle(shred, "MissigTmplException");
 }
 
 #define VAL (*(m_uint*)(byte + SZ_INT))

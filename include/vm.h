@@ -107,4 +107,5 @@ ANN m_str code_name_set(MemPool p, const m_str, const m_str);
 ANN m_str code_name(const m_str, const bool);
 ANN uint32_t gw_rand(uint32_t s[2]);
 ANN void gw_seed(uint32_t s[2], const uint64_t);
+ANN void handle(VM_Shred shred, const m_str effect);
 #endif

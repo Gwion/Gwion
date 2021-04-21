@@ -108,7 +108,7 @@ static OP_CHECK(opck_vararg_cast) {
 static INSTR(VarargCast) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
   if(!*(m_uint*)(o->data + SZ_INT))
-	  Except(shred, "Using Vararg outside varloop");
+	  handle(shred, "Using Vararg outside varloop");
   struct Vararg_* arg = *(struct Vararg_**)o->data;
   const Type t = (Type)instr->m_val,
              u = (Type)vector_at(&arg->t, *(m_uint*)(o->data + SZ_INT*4));
@@ -118,7 +118,7 @@ static INSTR(VarargCast) {
     for(m_uint i = 0; i < t->size; i += SZ_INT)
       *(m_uint*)REG(i - SZ_INT) = *(m_uint*)(arg->d + *(m_uint*)(o->data + SZ_INT*3) + i);
   } else
-	  Except(shred, "InvalidVariadicAccess");
+	  handle(shred, "InvalidVariadicAccess");
 }
 
 static OP_EMIT(opem_vararg_cast) {
