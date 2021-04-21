@@ -70,7 +70,7 @@ ANN static m_bool _compiler_open(struct Compiler* c) {
 #ifndef BUILD_ON_WINDOWS
 #include <sys/stat.h>
 ANN static int is_reg(const m_str path) {
-  struct stat s;
+  struct stat s = {};
   stat(path, &s);
   return !S_ISDIR(s.st_mode) &&
     (S_ISREG(s.st_mode) || !S_ISFIFO(s.st_mode));
