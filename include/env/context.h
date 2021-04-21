@@ -5,8 +5,8 @@ struct Context_ {
   m_str       name;
   Ast         tree;
   Nspc        nspc;
-  m_bool error;
-  m_bool global;
+  bool error;
+  bool global;
   uint16_t ref;
 };
 

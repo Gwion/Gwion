@@ -14,8 +14,8 @@ typedef struct Arg_ {
   struct Vector_ lib;
   struct Vector_ config;
   struct SoundInfo_ *si;
-  m_bool loop;
-  m_bool quit : 1;
+  bool loop;
+  bool quit;
   enum COLOR color;
 } Arg;
 

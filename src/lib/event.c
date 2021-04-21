@@ -20,7 +20,7 @@ static DTOR(event_dtor) {
 static INSTR(EventWait) {
   POP_REG(shred, SZ_FLOAT);
   const M_Object event = *(M_Object*)REG(-SZ_INT);
-  shreduler_remove(shred->tick->shreduler, shred, 0);
+  shreduler_remove(shred->tick->shreduler, shred, false);
   const Vector v = &EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int*)REG(-SZ_INT) = 1;

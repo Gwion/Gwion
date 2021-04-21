@@ -130,10 +130,10 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl* decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos))
   ((Exp_Decl*)decl)->type = scan1_exp_decl_type(env, (Exp_Decl*)decl);
   CHECK_OB(decl->type)
-  const m_bool global = GET_FLAG(decl->td, global);
+  const bool global = GET_FLAG(decl->td, global);
   if(global) {
     if(env->context)
-      env->context->global = 1;
+      env->context->global = true;
     if(!is_global(decl->type->info->value->from->owner, env->global_nspc))
       ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
   }
@@ -576,7 +576,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env env, const Func_Def fdef) 
 }
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
-  const uint global = GET_FLAG(fdef->base, global);
+  const bool global = GET_FLAG(fdef->base, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   if(fdef->base->td)
     CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos))

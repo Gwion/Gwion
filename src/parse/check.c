@@ -314,7 +314,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
          env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
-    env->context->error++;
+    env->context->error = true;
     return NULL;
   }
   prim_self(data)->value = v;
@@ -932,7 +932,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
       gwerr_secondary(from, env->name, tdef->pos);
       if(env->context)
-        env->context->error++;
+        env->context->error = true;
       return GW_ERROR;
     }
 /*

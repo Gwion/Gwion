@@ -2153,7 +2153,10 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     f->code = finalyze(emit, FuncReturn);
     return emit->env->class_def->info->gack = f->code;
   }
-  return finalyze(emit, FuncReturn);
+  const VM_Code code = finalyze(emit, FuncReturn);
+  if(emit->info->memoize && fflag(emit->env->func, fflag_pure))
+  code->is_memoize = true;
+  return code;
 }
 
 ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {

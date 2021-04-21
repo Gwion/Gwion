@@ -7,6 +7,6 @@ struct  Shreduler_ {
   struct Vector_ shreds;
   MUTEX_TYPE mutex;
   size_t shred_ids;
-  m_bool   loop;
+  bool   loop;
 };
 #endif

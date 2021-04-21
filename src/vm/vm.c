@@ -83,7 +83,7 @@ ANN void vm_unlock(VM const *vm) {
   while((vm = vm->parent));
 }
 
-ANN m_bool vm_running(VM const *vm) {
+ANN bool vm_running(VM const *vm) {
   if(!vm->shreduler->bbq->is_running)
     return 0;
   if(!vm->parent)
@@ -978,7 +978,7 @@ static void vm_run_audio(const VM *vm) {
   vm_ugen_init(vm);
 }
 
-VM* new_vm(MemPool p, const m_bool audio) {
+VM* new_vm(MemPool p, const bool audio) {
   VM* vm = (VM*)mp_calloc(p, VM);
   vector_init(&vm->ugen);
   vm->bbq = new_driver(p);

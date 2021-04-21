@@ -37,7 +37,7 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
 }
 
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
-  const m_bool global = GET_FLAG(decl->td, global);
+  const bool global = GET_FLAG(decl->td, global);
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret = scan2_decl(env, decl);
   if(global)
@@ -47,7 +47,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl* decl) {
 
 ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List list = f->base->args;
-  const uint global = GET_FLAG(f->base, global);
+  const bool global = GET_FLAG(f->base, global);
   do {
     const Value v = list->var_decl->value;
     v->from->offset = f->stack_depth;

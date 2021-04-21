@@ -40,7 +40,7 @@ ANN static void gwion_cleaner(const Gwion gwion) {
 
 ANN VM* gwion_cpy(const VM* src) {
   const Gwion gwion = mp_calloc(src->gwion->mp, Gwion);
-  gwion->vm = new_vm(src->gwion->mp, 0);
+  gwion->vm = new_vm(src->gwion->mp, false);
   gwion->vm->gwion = gwion;
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);
   gwion->emit = src->gwion->emit;
@@ -53,7 +53,7 @@ ANN VM* gwion_cpy(const VM* src) {
 }
 
 ANN static void gwion_core(const Gwion gwion) {
-  gwion->vm = new_vm(gwion->mp, 1);
+  gwion->vm = new_vm(gwion->mp, true);
   gwion->emit = new_emitter(gwion->mp);
   gwion->env = new_env(gwion->mp);
   gwion->emit->env = gwion->env;

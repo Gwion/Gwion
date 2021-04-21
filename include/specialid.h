@@ -10,7 +10,7 @@ struct SpecialId_ {
   idck ck;
   f_instr exec;
   idem em;
-  m_bool is_const;
+  bool is_const;
 };
 
 #define ID_CHECK(a)  ANN Type a(const Env env NUSED, const Exp_Primary* prim NUSED)

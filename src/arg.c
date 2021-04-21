@@ -259,7 +259,7 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
         config_parse(arg_int, option->value);
         break;
       case 'l':
-        _arg->loop = (m_bool)ARG2INT(option->value) > 0 ? 1 : -1;
+        _arg->loop = ARG2INT(option->value) > 0 ? true : false;
         break;
       case 'g':
         arg_set_pass(arg_int->gwion, option->value);

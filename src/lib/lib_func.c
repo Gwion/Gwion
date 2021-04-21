@@ -234,6 +234,7 @@ static OP_CHECK(opck_auto_fptr) {
   const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase);
   char name[13 + strlen(env->curr->name) +
     num_digit(bin->rhs->pos.first.line) + num_digit(bin->rhs->pos.first.column)];
+  sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->pos.first.line, bin->rhs->pos.first.column);
   fptr_def->base->xid = insert_symbol(name);
   const m_bool ret = traverse_fptr_def(env, fptr_def);
   const Type t = fptr_def->type;

@@ -8,8 +8,8 @@
 #include "driver.h"
 #include "shreduler_private.h"
 
-ANN void shreduler_set_loop(const Shreduler s, const m_bool loop) {
-  s->loop = loop > 0;
+ANN void shreduler_set_loop(const Shreduler s, const bool loop) {
+  s->loop = loop;
 }
 
 ANN VM_Shred shreduler_get(const Shreduler s) {
@@ -42,7 +42,7 @@ ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
 ANN static inline void shreduler_child(const Vector v) {
   for(m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-    shreduler_remove(child->info->vm->shreduler, child, 1);
+    shreduler_remove(child->info->vm->shreduler, child, true);
   }
 }
 
@@ -54,7 +54,7 @@ ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
   vector_rem2(&s->shreds, (vtype)tk->self);
 }
 
-ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase) {
+ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const bool erase) {
   MUTEX_LOCK(s->mutex);
   struct ShredTick_ *tk = out->tick;
   if(tk == s->curr)

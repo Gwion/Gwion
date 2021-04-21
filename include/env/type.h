@@ -32,6 +32,7 @@ enum tflag {
   tflag_dtor    = 1 << 14,
   tflag_tmpl    = 1 << 15,
   tflag_typedef = 1 << 16,
+  tflag_distinct = 1 << 17,
 } __attribute__((packed));
 
 struct Type_ {

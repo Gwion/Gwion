@@ -23,7 +23,7 @@ typedef struct BBQ_ {
   f_bbqset func;
   f_bbqrun run;
   struct DriverData_* driver;
-  volatile uint is_running;
+  volatile bool is_running;
 } Driver;
 
 #define DRVINI(a) ANN m_bool a(struct VM_ *vm NUSED, Driver* di NUSED)

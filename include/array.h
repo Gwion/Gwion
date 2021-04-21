@@ -4,7 +4,7 @@
 struct ArrayAccessInfo {
   struct Array_Sub_ array;
   const Type type;
-  const m_bool is_var;
+  const bool is_var;
 };
 
 typedef struct M_Vector_  {

@@ -8,7 +8,7 @@ struct EnvSet {
   const void *data;
   const m_int scope;
   const enum tflag flag;
-  m_bool run;
+  bool run;
 };
 
 ANN m_bool envset_run(struct EnvSet*, const Type);

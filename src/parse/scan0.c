@@ -18,7 +18,7 @@ static inline void add_type(const Env env, const Nspc nspc, const Type t) {
 
 static inline void context_global(const Env env) {
   if(env->context)
-    env->context->global = 1;
+    env->context->global = true;
 }
 
 static inline Type scan0_type(const Env env, const m_str name, const Type t) {
@@ -112,12 +112,12 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type ba
   const Type t = scan0_type(env, s_name(tdef->xid), base);
   t->size = base->size;
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global)) ?
-  env->global_nspc : env->curr;
+      env->global_nspc : env->curr;
   if(GET_FLAG(tdef->ext, global))
     context_global(env);
   add_type(env, nspc, t);
   tdef->type = t;
-  if(base->nspc)
+  if(base->nspc) // create a new nspc if `distinct`?
     nspc_addref((t->nspc = base->nspc));
   t->flag = tdef->ext->flag;
   if(tdef->ext->array && !tdef->ext->array->exp)
@@ -165,6 +165,8 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     typedef_fptr(env, tdef, base);
   if(!tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, tdef->type, base);
+  if(tdef->distinct)
+    set_tflag(tdef->type, tflag_distinct);
   if(global)
     env_pop(env, 0);
   set_tflag(tdef->type, tflag_typedef);

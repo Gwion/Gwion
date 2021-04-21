@@ -79,7 +79,7 @@ static MFUN(shred_yield) {
   const VM_Shred s = ME(o);
   const Shreduler sh = s->tick->shreduler;
   if(s != shred)
-    shreduler_remove(sh, s, 0);
+    shreduler_remove(sh, s, false);
   shredule(sh, s, GWION_EPSILON);
 }
 
@@ -205,7 +205,7 @@ static DTOR(fork_dtor) {
 static MFUN(fork_join) {
   if(*(m_int*)(o->data + o_fork_done))
     return;
-  shreduler_remove(shred->tick->shreduler, shred, 0);
+  shreduler_remove(shred->tick->shreduler, shred, false);
   vector_add(&EV_SHREDS(*(M_Object*)(o->data + o_fork_ev)), (vtype)shred);
 }
 

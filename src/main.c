@@ -33,7 +33,7 @@ static void afl_run(const Gwion gwion) {
 #endif
 
 int main(int argc, char** argv) {
-  Arg arg = { .arg={.argc=argc, .argv=argv}, .loop=-1 };
+  Arg arg = { .arg={.argc=argc, .argv=argv}, .loop=false };
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   struct Gwion_ gwion = {};

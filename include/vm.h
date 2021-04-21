@@ -18,13 +18,16 @@ struct VM_Code_ {
   };
   size_t stack_depth;
   Type ret_type; // could be `struct Vector_ tmpl_types;`
-  void* memoize;
-  Closure *closure;
+  union {
+    void* memoize;
+    Closure *closure;
+  };
   m_str name;
   uint16_t ref;
   ae_flag flag;
   bool builtin;
   bool callback;
+  bool is_memoize;
 };
 
 typedef struct Shreduler_* Shreduler;
@@ -77,29 +80,29 @@ ANN2(1,5) ANEW VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint st
 ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
-ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const m_bool erase)__attribute__((hot));
+ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const bool erase)__attribute__((hot));
 ANN void shredule(const Shreduler s, const VM_Shred shred, const m_float wake_time)__attribute__((hot));
-ANN void shreduler_set_loop(const Shreduler s, const m_bool loop);
+ANN void shreduler_set_loop(const Shreduler s, const bool loop);
 ANN void shreduler_ini(const Shreduler s, const VM_Shred shred);
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred);
 
 ANEW ANN VM_Shred new_vm_shred(MemPool, const VM_Code code) __attribute__((hot));
 ANEW ANN VM_Shred new_shred_base(const VM_Shred, const VM_Code code) __attribute__((hot));
 __attribute__((hot))
-ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->info->vm->shreduler, shred, 1); }
+ANN static inline void vm_shred_exit(const VM_Shred shred) { shreduler_remove(shred->info->vm->shreduler, shred, true); }
 void free_vm_shred(const VM_Shred shred)__attribute__((hot, nonnull));
 
 ANN void vm_run(const VM* vm) __attribute__((hot));
-ANEW VM* new_vm(MemPool, const m_bool);
+ANEW VM* new_vm(MemPool, const bool);
 ANN void vm_lock(VM const*);
 ANN void vm_unlock(VM const*);
-ANN m_bool vm_running(VM const*);
+ANN bool vm_running(VM const*);
 ANN void free_vm(VM* vm);
 ANN void vm_ini_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_add_shred(const VM* vm, const VM_Shred shred)__attribute__((hot));
 ANN void vm_remove(const VM* vm, const m_uint index)__attribute__((hot));
 ANN m_str code_name_set(MemPool p, const m_str, const m_str);
-ANN m_str code_name(const m_str, const m_bool);
+ANN m_str code_name(const m_str, const bool);
 ANN uint32_t gw_rand(uint32_t s[2]);
 ANN void gw_seed(uint32_t s[2], const uint64_t);
 #endif

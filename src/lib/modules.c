@@ -221,7 +221,7 @@ static OP_CHECK(opck_usrugen) {
 }
 
 static INSTR(UURet) {
-  shreduler_remove(shred->tick->shreduler, shred, 0);
+  shreduler_remove(shred->tick->shreduler, shred, false);
 }
 
 ANN static void code_prepare(const VM_Code code) {
