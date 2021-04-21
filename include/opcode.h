@@ -183,6 +183,9 @@ enum {
   eGackType,
   eGackEnd,
   eGack,
+  eTryIni,
+  eTryEnd,
+  eHandleEffect,
   eNoOp,
   eEOC,
   eUnroll2,
@@ -372,6 +375,9 @@ enum {
 #define  GackType             (f_instr)eGackType
 #define  GackEnd              (f_instr)eGackEnd
 #define  Gack                 (f_instr)eGack
+#define  TryIni               (f_instr)eTryIni
+#define  TryEnd               (f_instr)eTryEnd
+#define  HandleEffect         (f_instr)eHandleEffect
 #define  NoOp                 (f_instr)eNoOp
 #define  EOC                  (f_instr)eEOC
 #define  Unroll2              (f_instr)eUnroll2

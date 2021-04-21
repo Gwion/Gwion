@@ -66,7 +66,7 @@ ANN static void _fptr_tmpl_push(const Env env, const Func f) {
 }
 
 ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
-  if(safe_tflag(info->rhs->value_ref->from->owner_class, tflag_tmpl))
+//  if(safe_tflag(info->rhs->value_ref->from->owner_class, tflag_tmpl))
   if(!info->rhs->def->base->tmpl)
     return GW_OK;
   nspc_push_type(env->gwion->mp, env->curr);
@@ -169,7 +169,8 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def) {
 //if(l->def->base->func)return GW_OK;
-  if(safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl))
+  const bool is_tmpl = safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl);
+  if(is_tmpl)
     template_push_types(env, def->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
   Arg_List base = def->base->args, arg = l->def->base->args;
   while(base && arg) {
@@ -177,15 +178,15 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
     base = base->next;
     arg = arg->next;
   }
+  l->def->base->td = type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
+  if(is_tmpl)
+    nspc_pop_type(env->gwion->mp, env->curr);
   if(base || arg) // beware, error between pops
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
 //  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)
     UNSET_FLAG(l->def->base, global);
-  l->def->base->td = type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
   l->def->base->values = env->curr->info->value;
-  if(safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl))
-    nspc_pop_type(env->gwion->mp, env->curr);
   const m_uint scope = env->scope->depth;
 //  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)
 //env_push(env, NULL, env->context->nspc);

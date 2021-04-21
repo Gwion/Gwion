@@ -201,6 +201,17 @@ ANN static inline m_bool _scan2_stmt_match(const restrict Env env, const Stmt_Ma
   return GW_OK;
 }
 
+ANN static inline m_bool scan2_handler_list(const restrict Env env, const Handler_List handler) {
+  if(handler->next)
+    CHECK_BB(scan2_handler_list(env, handler->next))
+  RET_NSPC(scan2_stmt(env, handler->stmt))
+}
+
+ANN static inline m_bool scan2_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+  CHECK_BB(scan2_handler_list(env, stmt->handler))
+  RET_NSPC(scan2_stmt(env, stmt->stmt))
+}
+
 ANN static inline m_bool scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   CHECK_BB(scan2_exp(env, stmt->cond))
   RET_NSPC(_scan2_stmt_match(env, stmt))
@@ -247,9 +258,10 @@ ANN m_bool scan2_union_def(const Env env NUSED, const Union_Def udef) {
 
 #define scan2_stmt_while    scan2_stmt_flow
 #define scan2_stmt_until    scan2_stmt_flow
-#define scan2_stmt_continue (void*)dummy_func
-#define scan2_stmt_break    (void*)dummy_func
+#define scan2_stmt_continue dummy_func
+#define scan2_stmt_break    dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
+#define scan2_stmt_resume   dummy_func
 
 ANN static m_bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
   if(stmt->pp_type == ae_pp_include)

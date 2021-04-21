@@ -22,6 +22,7 @@ ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
 ANN void load_context(const Context context, const Env env) {
   context_addref((env->context = context));
   vector_add(&env->scope->nspc_stack, (vtype)env->curr);
+  env->name = context->name;
   context->nspc->parent = env->curr;
   env->curr = context->nspc;
 }

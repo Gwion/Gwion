@@ -5,6 +5,8 @@ typedef struct Frame_ {
   size_t curr_offset;
   struct Vector_ stack;
   struct Vector_ defer;
+  struct Map_    handlers;
+  m_uint try_top;
 } Frame;
 
 typedef struct Code_ {

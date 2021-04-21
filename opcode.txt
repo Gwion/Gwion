@@ -180,6 +180,9 @@ GcEnd
 GackType
 GackEnd
 Gack
+TryIni
+TryEnd
+HandleEffect
 NoOp
 EOC
 Unroll2

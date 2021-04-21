@@ -144,7 +144,60 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code, co
   return ME(o);
 }
 
-#define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; exception(shred, "ZeroDivideException"); break; }
+ANN static bool unwind(VM_Shred shred, const Symbol effect) {
+  // there is an handler
+  if(!map_size(&shred->info->frame))
+    return true;
+  if(shred->code->handlers.ptr) {
+    const m_uint start = VKEY(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    if(start > shred->pc)
+      return true;
+    const Map m = &shred->code->handlers;
+    m_uint pc = 0;
+    for(m_uint i = 0; i < map_size(m); i++) {
+      if(start > shred->pc)
+        break;
+      if(start < shred->pc && VKEY(m, i) > shred->pc) {
+         const m_uint next = VKEY(m, i);
+         const Instr instr = (Instr)vector_at(shred->code->instr, next + 1);
+         if(!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
+           pc = next + 1;
+           break;
+         }
+      }
+    }
+    if(!pc) // outside of a try statement
+      return true;
+    shred->reg = (m_bit*)VVAL(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    shredule(shred->tick->shreduler, shred, 0);
+    shred->pc = pc;//VKEY(m, i);
+    return false;
+  }
+  // there might be no more stack to unwind
+  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
+  if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
+    return true;
+  // literally unwind
+  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
+  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
+  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
+  return unwind(shred, effect);
+}
+
+ANN void handle(VM_Shred shred, const Symbol xid) {
+  // remove from the shreduler
+  // TODO: get shred->mem and shred->reg offsets
+  shreduler_remove(shred->tick->shreduler, shred, false);
+  // do the unwiding
+  if(unwind(shred, xid)) {
+    vm_shred_exit(shred);
+    puts(s_name(xid));
+  }
+  // I guess the VM could have *trace mode*
+  // which would happen here from the top
+}
+
+#define TEST0(t, pos) if(!*(t*)(reg-pos)){ shred->pc = PC; handle(shred, insert_symbol(vm->gwion->st, "ZeroDivideException")); break; }
 
 #define ADVANCE() byte += BYTECODE_SZ;
 
@@ -331,7 +384,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc,
     &&gcini, &&gcadd, &&gcend,
-    &&gacktype, &&gackend, &&gack, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
+    &&gacktype, &&gackend, &&gack, &&try_ini, &&try_end, &&handleeffect, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -952,6 +1005,15 @@ gack:
   VM_OUT
   gack(shred, VAL);
   goto in;
+try_ini:
+  if(!shred->info->frame.ptr) // ???
+    map_init(&shred->info->frame);
+  map_set(&shred->info->frame, PC, (m_uint)shred->reg);
+  DISPATCH();
+try_end:
+  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
+handleeffect:
+// this should check the *xid* of the exception
 noop:
   DISPATCH();
 other:

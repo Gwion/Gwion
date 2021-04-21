@@ -20,6 +20,7 @@
 
 #undef insert_symbol
 ANN void exception(const VM_Shred shred, const m_str c) {
+//handle(shred);
   gw_err("{+}%s{0}: shred[{-}id=%" UINT_F "{0}:%s], PC=[{-}%" UINT_F "{0}]\n",
           c, shred->tick->xid, shred->info->name, shred->pc - 1);
   vm_shred_exit(shred);

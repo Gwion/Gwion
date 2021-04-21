@@ -57,6 +57,8 @@ ANN static void free_frame(MemPool p, Frame* a) {
       mp_free(p, Local, (Local*)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
   vector_release(&a->defer);
+  if(a->handlers.ptr)
+    map_release(&a->handlers);
   mp_free(p, Frame, a);
 }
 
@@ -1887,6 +1889,52 @@ ANN static m_bool emit_union_def(const Emitter emit NUSED, const Union_Def udef)
   return GW_OK;
 }
 
+
+// add a Goto. later the index is set to the ont of the happy path
+// maybe this and the function above can use the same machinery as returns or breaks
+ANN static inline void emit_try_goto(const restrict Emitter emit, const Vector v) {
+  const Instr instr = emit_add_instr(emit, Goto);
+  vector_add(v, (m_uint)instr);
+}
+
+// set Goto indexes the one of the happy path
+ANN static inline void try_goto_indexes(const Vector v, const m_uint pc) {
+  for(m_uint i = 0; i < vector_size(v); i++) {
+    const Instr instr = (Instr)vector_at(v, i);
+    instr->m_val = pc;
+  }
+}
+
+ANN static inline m_bool emit_handler_list(const restrict Emitter emit, const Handler_List handler,
+          const Vector v) {
+  const Instr instr = emit_add_instr(emit, HandleEffect);
+  instr->m_val2 = (m_uint)handler->xid;
+  CHECK_BB(scoped_stmt(emit, handler->stmt, 1))
+  if(handler->next)
+    CHECK_BB(emit_handler_list(emit, handler->next, v))
+  emit_try_goto(emit, v);
+  instr->m_val = emit_code_size(emit);
+  return GW_OK;
+}
+
+ANN static inline m_bool emit_stmt_try(const restrict Emitter emit, const Stmt_Try stmt) {
+  const m_uint top = emit->code->frame->try_top;
+  emit->code->frame->try_top = emit_code_size(emit);
+  (void)emit_add_instr(emit, TryIni);
+  struct Vector_ v; // store Gotos to the happy path
+  vector_init(&v);
+  CHECK_BB(scoped_stmt(emit, stmt->stmt, 1))
+  emit_try_goto(emit, &v);
+  if(!emit->code->frame->handlers.ptr)
+    map_init(&emit->code->frame->handlers);
+  CHECK_BB(emit_handler_list(emit, stmt->handler, &v))
+  try_goto_indexes(&v, emit_code_size(emit));
+  vector_release(&v);
+  emit->code->frame->try_top = top;
+  (void)emit_add_instr(emit, TryEnd);
+  return GW_OK;
+}
+
 ANN static m_bool emit_stmt_exp(const Emitter emit, const struct Stmt_Exp_* exp) {
   return exp->val ? emit_exp(emit, exp->val) : GW_OK;
 }
@@ -2068,6 +2116,12 @@ ANN static m_bool emit_stmt_pp(const Emitter emit, const struct Stmt_PP_* stmt) 
 
 ANN static m_bool emit_stmt_defer(const Emitter emit, const struct Stmt_Defer_* stmt) {
   vector_add(&emit->code->frame->defer, (m_uint)stmt->stmt);
+  return GW_OK;
+}
+
+ANN static m_bool emit_stmt_resume(const Emitter emit, const struct Stmt_Index_* stmt NUSED) {
+  const Instr instr = emit_add_instr(emit, Goto);
+  instr->m_val = emit->code->frame->try_top;
   return GW_OK;
 }
 

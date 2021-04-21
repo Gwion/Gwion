@@ -283,6 +283,18 @@ ANN static inline m_bool scan1_stmt_match(const restrict Env env, const Stmt_Mat
   RET_NSPC(_scan1_stmt_match(env, stmt))
 }
 
+
+ANN static inline m_bool scan1_handler_list(const restrict Env env, const Handler_List handler) {
+  if(handler->next)
+    CHECK_BB(scan1_handler_list(env, handler->next))
+  RET_NSPC(scan1_stmt(env, handler->stmt))
+}
+
+ANN static inline m_bool scan1_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+  CHECK_BB(scan1_handler_list(env, stmt->handler))
+  RET_NSPC(scan1_stmt(env, stmt->stmt))
+}
+
 ANN static inline m_bool stmt_each_defined(const restrict Env env, const Stmt_Each stmt) {
   if(nspc_lookup_value1(env->curr, stmt->sym))
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"), s_name(stmt->sym))
@@ -454,9 +466,10 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 
 #define scan1_stmt_while    scan1_stmt_flow
 #define scan1_stmt_until    scan1_stmt_flow
-#define scan1_stmt_continue (void*)dummy_func
-#define scan1_stmt_break    (void*)dummy_func
+#define scan1_stmt_continue dummy_func
+#define scan1_stmt_break    dummy_func
 #define scan1_stmt_return   scan1_stmt_exp
+#define scan1_stmt_resume   dummy_func
 
 ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
   if(stmt->pp_type == ae_pp_include)

@@ -33,6 +33,8 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
       }
       free_code_instr(a->instr, gwion);
     }
+    if(a->handlers.ptr)
+      map_release(&a->handlers);
     free_vector(gwion->mp, a->instr);
   }
   free_mstr(gwion->mp, a->name);
@@ -42,7 +44,8 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
 static inline uint isgoto(const unsigned opcode) {
   return opcode == eGoto || opcode == eArrayTop ||
       opcode == eBranchEqInt || opcode == eBranchNeqInt ||
-      opcode == eBranchEqFloat || opcode == eBranchNeqFloat;
+      opcode == eBranchEqFloat || opcode == eBranchNeqFloat ||
+      opcode == eHandleEffect;
 }
 
 static inline void setpc(const m_bit *data, const m_uint i) {
@@ -130,7 +133,13 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
           if(instr->m_val <= vector_at(&nop, pc))
             break;
         }
-        *(m_uint*)(data + SZ_INT) = instr->m_val > pc ? instr->m_val - pc : 0;
+        const m_uint new_pc = instr->m_val > pc ? instr->m_val - pc : 0;
+        if(instr->opcode == eHandleEffect) {
+            if(!code->handlers.ptr)
+              map_init(&code->handlers);
+            map_set(&code->handlers, j, new_pc);
+        }
+        *(m_uint*)(data + SZ_INT) = new_pc;
       }
       setpc(data, j);
       ++j;

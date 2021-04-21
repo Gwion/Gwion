@@ -1215,6 +1215,18 @@ ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   return GW_OK;
 }
 
+
+ANN static inline m_bool check_handler_list(const restrict Env env, const Handler_List handler) {
+  if(handler->next)
+    CHECK_BB(check_handler_list(env, handler->next))
+  RET_NSPC(check_stmt(env, handler->stmt))
+}
+
+ANN static inline m_bool check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+  CHECK_BB(check_handler_list(env, stmt->handler))
+  RET_NSPC(check_stmt(env, stmt->stmt))
+}
+
 ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
   CHECK_OB(check_exp(env, stmt->cond))
   MATCH_INI(env->scope)
@@ -1246,6 +1258,7 @@ ANN static m_bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return check_stmt(env, stmt->stmt);
 }
 
+#define check_stmt_resume dummy_func
 DECL_STMT_FUNC(check, m_bool , Env)
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt) {

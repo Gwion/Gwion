@@ -22,6 +22,7 @@ struct VM_Code_ {
     void* memoize;
     Closure *closure;
   };
+  struct Map_ handlers;
   m_str name;
   uint16_t ref;
   ae_flag flag;
@@ -52,6 +53,7 @@ struct ShredInfo_ {
   Vector args;
   MemPool mp;
   VM_Code orig;
+  struct Map_ frame;
 };
 
 struct ShredTick_ {

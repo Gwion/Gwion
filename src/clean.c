@@ -221,6 +221,20 @@ ANN static void clean_case_list(Clean *a, Stmt_List b) {
     clean_case_list(a, b->next);
 }
 
+ANN static void clean_handler_list(Clean *a, Handler_List b) {
+  ++a->scope;
+  clean_stmt(a, b->stmt);
+  --a->scope;
+  if(b->next)
+    clean_handler_list(a, b->next);
+}
+ANN static void clean_stmt_try(Clean *a, Stmt_Try b) {
+  ++a->scope;
+  clean_stmt(a, b->stmt);
+  --a->scope;
+  clean_handler_list(a, b->handler);
+}
+
 ANN static void clean_stmt_match(Clean *a, Stmt_Match b) {
   ++a->scope;
   clean_exp(a, b->cond);
@@ -248,6 +262,7 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_pp clean_dummy
 #define clean_stmt_break clean_dummy
 #define clean_stmt_continue clean_dummy
+#define clean_stmt_resume clean_dummy
 
 DECL_STMT_FUNC(clean, void, Clean*)
 ANN static void clean_stmt(Clean *a, Stmt b) {
