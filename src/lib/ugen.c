@@ -186,6 +186,7 @@ ANN void ugen_disconnect(const restrict UGen lhs, const restrict UGen rhs) {
 if(!UGEN(rhs)->module.gen.trig) {       \
   release_connect(shred);               \
   handle(shred, "NonTriggerException"); \
+  return;                               \
 }
 #define describe_connect_instr(name, func, tgt, opt) \
 static INSTR(name##func) {                           \

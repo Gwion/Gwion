@@ -107,8 +107,10 @@ static OP_CHECK(opck_vararg_cast) {
 
 static INSTR(VarargCast) {
   const M_Object o = *(M_Object*)REG(-SZ_INT);
-  if(!*(m_uint*)(o->data + SZ_INT))
+  if(!*(m_uint*)(o->data + SZ_INT)) {
 	  handle(shred, "Using Vararg outside varloop");
+    return;
+  }
   struct Vararg_* arg = *(struct Vararg_**)o->data;
   const Type t = (Type)instr->m_val,
              u = (Type)vector_at(&arg->t, *(m_uint*)(o->data + SZ_INT*4));

@@ -328,8 +328,10 @@ static INSTR(ArraySlice) {
     end = ARRAY_LEN(in) + end;
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
-  if(bounds(in, start) < 0 || bounds(in, end) < 0)
+  if(bounds(in, start) < 0 || bounds(in, end) < 0) {
     handle(shred, "OutOfBoundsArraySliceException");
+    return;
+  }
   const M_Object out = new_array(shred->info->vm->gwion->mp, array->type_ref, sz);
   for(m_int i = start, j = 0; i != end; i += op, ++j) {
     m_bit buf[ARRAY_SIZE(in)];
