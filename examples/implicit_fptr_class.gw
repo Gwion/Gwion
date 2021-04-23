@@ -1,6 +1,6 @@
 class C {
-  funcdef void t_ptr();
-  funcdef void t_ptr1(int);
+  funptr void t_ptr();
+  funptr void t_ptr1(int);
   fun void test(t_ptr p) {
      <<< p >>>;
   }

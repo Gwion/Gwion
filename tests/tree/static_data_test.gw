@@ -1,6 +1,6 @@
 class C {
   var static int i;
-  funcdef static void Test();
+  funptr static void Test();
   var static Test test;
 }
 

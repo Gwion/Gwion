@@ -1,5 +1,5 @@
 class C {
-  funcdef void ptr_t:[A]();
+  funptr void ptr_t:[A]();
   fun void test:[A]() {}
   test $ ptr_t;
 }

@@ -1,2 +1,2 @@
-funcdef void test(int);
+funptr void test(int);
 (var test t)(2);

@@ -1,2 +1,2 @@
 #! [contains] unknown type
-funcdef unknown_type my_fun();
+funptr unknown_type my_fun();

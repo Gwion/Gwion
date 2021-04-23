@@ -1,5 +1,5 @@
 class C {
-  funcdef void t_ptr(...);
+  funptr void t_ptr(...);
 
   var t_ptr iptr;
 

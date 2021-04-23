@@ -1,2 +1,2 @@
 #! [contains] cannot declare variables of size '0'
-funcdef void my_func(void arg);
+funptr void my_func(void arg);

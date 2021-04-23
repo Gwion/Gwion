@@ -1,7 +1,7 @@
 #! [contains] can't assign
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
-  funcdef static void PtrType(int i);
+  funptr static void PtrType(int i);
   test @=> var static PtrType p;
   p(1);
   test @=> p;

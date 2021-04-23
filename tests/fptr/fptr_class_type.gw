@@ -1,2 +1,2 @@
-funcdef void ptr_t();
+funptr void ptr_t();
 var ptr_t t @=> var ptr_t t2;

@@ -1,4 +1,4 @@
-funcdef void t_ptr();
+funptr void t_ptr();
 fun void test(t_ptr p) {
    <<< p >>>;
 }

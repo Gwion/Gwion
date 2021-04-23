@@ -1,7 +1,7 @@
 fun void test() { <<< "member function." >>>; }
 class C {
-	funcdef void func_t();
-#!	funcdef static void s_func_t();
+	funptr void func_t();
+#!	funptr static void s_func_t();
 	var func_t func_p;
 #!	static fun c_t s_func_p;
 #!	static s_func_t s_ptr;

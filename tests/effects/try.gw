@@ -1,0 +1,12 @@
+0 => var auto i;
+
+try { #! it will resume here
+  <<< "value of i ${i}" >>>;
+  1/i; #! will perform ZeroDiveException on first try
+} handle ZeroDivideException {
+  <<< "set i to ${ 42 => i } and resume" >>>;
+  retry;
+}
+<<< "value of i at the end ${i}" >>>;
+
+#!perform Something;

@@ -1,4 +1,4 @@
 #! [contains] argument number does not match for lambda
-funcdef void ptr_t(int i);
+funptr void ptr_t(int i);
 \a b { <<< a, " ", b >>>; } @=> var ptr_t ptr;
 ptr(2);

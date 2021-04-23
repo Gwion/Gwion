@@ -1,5 +1,5 @@
 class C {
-  funcdef void T();
+  funptr void T();
   fun int f(T t) { <<< t >>>;  t();}
   fun void test() { <<< __func__ >>>; }
   test => f;

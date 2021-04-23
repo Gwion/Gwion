@@ -1,4 +1,4 @@
-funcdef void t_ptr:[A]();
+funptr void t_ptr:[A]();
 fun void test:[A]() {
   <<< __func__ >>>;
 }

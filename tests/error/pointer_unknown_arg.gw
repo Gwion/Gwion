@@ -1,2 +1,2 @@
 #! [contains] unknown type
-funcdef void my_func(unknown_type type);
+funptr void my_func(unknown_type type);

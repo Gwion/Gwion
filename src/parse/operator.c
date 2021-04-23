@@ -19,7 +19,6 @@ typedef struct M_Operator_{
   Func func;
   opck ck;
   opem em;
-  m_uint emit_var;
 } M_Operator;
 
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {

@@ -1,1 +1,1 @@
-funcdef void test(int i[]);
+funptr void test(int i[]);

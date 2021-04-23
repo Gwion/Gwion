@@ -1,3 +1,3 @@
 class C {
-funcdef global void global_fptr(int i);
+funptr global void global_fptr(int i);
 }

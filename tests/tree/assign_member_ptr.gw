@@ -1,6 +1,6 @@
 class C
 {
-	funcdef void Test();
+	funptr void Test();
 	var Test test;
 	fun void func(){}
 }

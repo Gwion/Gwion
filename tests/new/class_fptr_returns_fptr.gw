@@ -1,7 +1,7 @@
 class C {
   var int m_i;
-  funcdef void t_fptr0();
-  funcdef void t_fptr1(int i);
+  funptr void t_fptr0();
+  funptr void t_fptr1(int i);
   fun void test() { <<< this , " ", __func__ >>>;}
   fun void test(int i) { <<< __func__, " ", i >>>;}
   test @=> var t_fptr0 ptr0;

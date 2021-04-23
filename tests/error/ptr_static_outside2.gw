@@ -1,2 +1,2 @@
 #! [contains] can only be used at class scope
-funcdef static void Test(int i);
+funptr static void Test(int i);

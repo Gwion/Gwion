@@ -1,4 +1,4 @@
-funcdef void Test();
+funptr void Test();
 fun void t(){<<< "lol" >>>;}
 t @=> var Test test;
 test();

@@ -1,4 +1,4 @@
-funcdef void t_ptr(int i);
+funptr void t_ptr(int i);
 typedef t_ptr A;
 var A a;
 <<<a>>>;
