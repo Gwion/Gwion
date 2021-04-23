@@ -30,7 +30,7 @@ ANN2(1) static inline Type gwi_get_type(const Gwi gwi, const m_str str) {
   return str ? _get_type(gwi, str) : NULL;
 }
 
-ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
+ANN2(1,2) static int import_op(const Gwi gwi, struct OperCK*const op,
     const f_instr f) {
   const Type lhs = gwi_get_type(gwi, op->lhs),
              rhs = gwi_get_type(gwi, op->rhs),
@@ -38,7 +38,9 @@ ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
   const struct Op_Func opfunc = { .ck=op->ck, .em=op->em, .effect = { .ptr=op->effect.ptr } };
   const struct Op_Import opi = { .lhs=lhs, .rhs=rhs, .ret=ret,
     .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=op->sym };
-  return add_op(gwi->gwion, &opi);
+  const m_bool b = add_op(gwi->gwion, &opi);
+  op->effect.ptr = NULL;
+  return b;
 }
 
 
