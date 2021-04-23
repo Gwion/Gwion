@@ -18,6 +18,7 @@ typedef m_bool (*opem)(const Emitter, void*);
 struct Op_Func {
   opck ck;
   opem em;
+  struct Vector_ effect;
 };
 
 struct Op_Import {

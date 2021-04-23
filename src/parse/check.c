@@ -722,7 +722,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   CHECK_OB(check_exp(env, exp->func))
   if(exp->func->exp_type == ae_exp_decl)
-    ERR_B(exp->func->pos, _("Can't call late function pointer at declaration site"))
+    ERR_B(exp->func->pos, _("Can't call late function pointer at declaration site. did you meant to use `@=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
   if(isa(t, env->gwion->type[et_function]) > 0 &&
         exp->func->exp_type == ae_exp_dot && !t->info->value->from->owner_class) {

@@ -183,6 +183,7 @@ Gack
 TryIni
 TryEnd
 HandleEffect
+PerformEffect
 NoOp
 EOC
 Unroll2

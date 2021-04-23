@@ -42,6 +42,7 @@ typedef struct OperCK { // name_checker ?
   m_bool (*em)(Emitter, void*); // oper
   m_str lhs;// oper
   m_str rhs;// oper
+  struct Vector_ effect;
 } OperCK;
 
 ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);

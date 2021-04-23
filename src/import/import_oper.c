@@ -35,7 +35,7 @@ ANN2(1,2) static int import_op(const Gwi gwi, const struct OperCK* op,
   const Type lhs = gwi_get_type(gwi, op->lhs),
              rhs = gwi_get_type(gwi, op->rhs),
              ret = gwi_get_type(gwi, op->ret);
-  const struct Op_Func opfunc = { .ck=op->ck, .em=op->em };
+  const struct Op_Func opfunc = { .ck=op->ck, .em=op->em, .effect = { .ptr=op->effect.ptr } };
   const struct Op_Import opi = { .lhs=lhs, .rhs=rhs, .ret=ret,
     .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=op->sym };
   return add_op(gwi->gwion, &opi);
@@ -58,6 +58,12 @@ ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void*)) {
 ANN m_int gwi_oper_emi(const Gwi gwi, const opem em) {
   gwi->oper->em = em;
   return GW_OK;
+}
+
+ANN void gwi_oper_eff(const Gwi gwi, const m_str effect) {
+  if(!gwi->oper->effect.ptr)
+    vector_init(&gwi->oper->effect);
+  vector_add(&gwi->oper->effect, (m_uint)insert_symbol(gwi->gwion->st, effect));
 }
 
 ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {

@@ -19,6 +19,7 @@ typedef struct M_Operator_{
   Func func;
   opck ck;
   opem em;
+  struct Vector_ effect;
 } M_Operator;
 
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
@@ -26,8 +27,13 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   for(m_uint i = map_size(map) + 1; --i;) {
     const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
     LOOP_OPTIM
-    for(m_uint j = vector_size(v) + 1; --j;)
-      mp_free(gwion->mp, M_Operator, (M_Operator*)vector_at(v, j - 1));
+    for(m_uint j = vector_size(v) + 1; --j;) {
+      M_Operator *const mop = (M_Operator*)vector_at(v, j - 1);
+      if(mop->effect.ptr)
+        vector_release(&mop->effect);
+      mp_free(gwion->mp, M_Operator, mop);
+
+    }
     free_vector(gwion->mp, v);
   }
   map_release(map);
