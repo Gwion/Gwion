@@ -91,11 +91,7 @@ ANN static M_Operator* new_mo(MemPool p, const struct Op_Import* opi) {
   if(opi->func) {
     mo->ck     = opi->func->ck;
     mo->em     = opi->func->em;
-    if(opi->func->effect.ptr) {
-if(opi->lhs && opi->lhs != OP_ANY_TYPE)
-puts(opi->lhs->name);
-      mo->effect.ptr = opi->func->effect.ptr;
-}
+    mo->effect.ptr = opi->func->effect.ptr;
   }
   return mo;
 }
