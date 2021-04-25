@@ -2,7 +2,7 @@
 
 ## Memoization
 
-You can use the `memoize` pragma to enable [memoization](wikipedia.org/wiki/Memoization) on functions:
+You can use the `memoize` pragma to enable [memoization](https://wikipedia.org/wiki/Memoization) on functions:
 
 ### normal version
 
