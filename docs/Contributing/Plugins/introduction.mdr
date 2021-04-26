@@ -107,7 +107,7 @@ Looks like we are good to go! Let's compile...and:
 ```
 adder.c: In function 'import':
 adder.c:22:28: error: 'adder_add' undeclared (first use in this function)
-   22 |   GWI_BB(gwi_func_end(gwi, adder_add, ae_flag_static))
+   22 |   GWI_BB(gwi_func_end(gwi, adder_add, ae_flag_static));
       |                            ^~~~~~~~~
 ```
 
