@@ -295,7 +295,7 @@ static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
   const Type t_int = env->gwion->type[et_int];
   Exp e = array->exp;
-  do CHECK_BN(check_implicit(env, e, t_int))
+  do CHECK_BN(check_implicit(env, e, t_int));
   while((e = e->next));
   const Type t = array->type->array_depth ? array->type : typedef_base(array->type);
   if(t->array_depth >= array->depth)

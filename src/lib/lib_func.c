@@ -272,13 +272,13 @@ static OP_CHECK(opck_fptr_at) {
      bin->rhs->type->info->func->def->base->tmpl->call) {
     struct FptrInfo info = { bin->lhs->type->info->func, bin->rhs->type->info->parent->info->func,
       bin->lhs, exp_self(bin)->pos };
-    CHECK_BN(fptr_do(env, &info))
+    CHECK_BN(fptr_do(env, &info));
     exp_setvar(bin->rhs, 1);
     return bin->rhs->type;
   }
   struct FptrInfo info = { bin->lhs->type->info->func, bin->rhs->type->info->func,
       bin->lhs, exp_self(bin)->pos };
-  CHECK_BN(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info));
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -288,7 +288,7 @@ static OP_CHECK(opck_fptr_cast) {
   const Type t = exp_self(cast)->type;
   struct FptrInfo info = { cast->exp->type->info->func, t->info->func,
      cast->exp, exp_self(cast)->pos };
-  CHECK_BN(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info));
   return t;
 }
 
@@ -316,7 +316,7 @@ static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   struct FptrInfo info = { impl->e->type->info->func, impl->t->info->func,
       impl->e, impl->e->pos };
-  CHECK_BN(fptr_do(env, &info))
+  CHECK_BN(fptr_do(env, &info));
   return impl->t;
 }
 
@@ -414,7 +414,7 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
 static OP_CHECK(opck_op_impl){
   struct Implicit *impl = (struct Implicit*)data;
   const Func func = impl->t->info->func;
-  CHECK_BN(op_impl_narg(env, func->def, impl->e->pos))
+  CHECK_BN(op_impl_narg(env, func->def, impl->e->pos));
   op_impl_ensure_types(env, func);
   const Symbol lhs_sym = insert_symbol("@lhs");
   const Symbol rhs_sym = insert_symbol("@rhs");
@@ -427,8 +427,8 @@ static OP_CHECK(opck_op_impl){
   self.d.exp_binary.op = impl->e->d.prim.d.var;
   struct Op_Import opi = { .op=impl->e->d.prim.d.var, .lhs=func->def->base->args->type,
     .rhs=func->def->base->args->next->type, .data=(uintptr_t)&self.d.exp_binary, .pos=impl->e->pos };
-  DECL_ON(const Type, t, = op_check(env, &opi))
-  CHECK_BN(isa(t, func->def->base->ret_type))
+  DECL_ON(const Type, t, = op_check(env, &opi));
+  CHECK_BN(isa(t, func->def->base->ret_type));
   // Find if the function exists
   Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if(v) {
@@ -516,7 +516,7 @@ static OP_CHECK(opck_spork) {
     const m_bool ret = check_stmt(env, unary->code);
     nspc_pop_value(env->gwion->mp, env->curr);
     --env->scope->depth;
-    CHECK_BN(ret)
+    CHECK_BN(ret);
     return env->gwion->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   }
   ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))

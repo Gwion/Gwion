@@ -34,7 +34,7 @@ static OP_CHECK(opck_object_at) {
   if(bin->rhs->exp_type == ae_exp_decl)
     SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   exp_setvar(bin->rhs, 1);
-  CHECK_BN(isa(bin->lhs->type , bin->rhs->type))
+  CHECK_BN(isa(bin->lhs->type , bin->rhs->type));
   return bin->rhs->type;
 }
 
@@ -177,7 +177,7 @@ OP_CHECK(opck_object_dot) {
       did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
-  CHECK_BN(not_from_owner_class(env, the_base, value, exp_self(member)->pos))
+  CHECK_BN(not_from_owner_class(env, the_base, value, exp_self(member)->pos));
   if(!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if(GET_FLAG(value, private))
       ERR_N(exp_self(member)->pos,

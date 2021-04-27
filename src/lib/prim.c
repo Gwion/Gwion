@@ -176,7 +176,7 @@ static OP_CHECK(opck_##ntype##_##name) {                                \
   const Type t = env->gwion->type[TYPE];                                \
   if(!exp_self(unary)->pos.first.line || !func(unary->exp))             \
     return t;                                                           \
-  CHECK_NN(opck_unary_meta(env, data))\
+  CHECK_NN(opck_unary_meta(env, data));                                 \
   const ctype num = OP unary->exp->d.prim.d.member;                     \
   exp_self(unary)->exp_type = ae_exp_primary;                           \
   exp_self(unary)->d.prim.prim_type = exptype;                          \
@@ -413,7 +413,7 @@ static inline int is_now(const Env env, const Exp exp) {
 static OP_CHECK(opck_now) {
   const Exp_Binary* bin = (Exp_Binary*)data;
   if(!is_now(env, bin->rhs))
-    CHECK_NN(opck_const_rhs(env, data))
+    CHECK_NN(opck_const_rhs(env, data));
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }

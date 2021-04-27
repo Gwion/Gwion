@@ -735,7 +735,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   const Exp e = exp_self(exp);
   struct Op_Import opi = { .op=insert_symbol("@func_check"),
     .rhs=t, .pos=e->pos, .data=(uintptr_t)e };
-  CHECK_NB(op_check(env, &opi)) // doesn't really return NULL
+  CHECK_NB(op_check(env, &opi)); // doesn't really return NULL
   if(e->exp_type != ae_exp_call)
     return 0;
   return e->type != env->gwion->type[et_error] ?

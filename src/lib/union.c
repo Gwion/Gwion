@@ -19,7 +19,7 @@ static GACK(gack_none) {
 
 static OP_CHECK(opck_none) {
   Exp_Binary *bin = (Exp_Binary*)data;
-  CHECK_NN(opck_rassign(env, data))
+  CHECK_NN(opck_rassign(env, data));
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -94,7 +94,7 @@ static OP_CHECK(opck_union_is) {
       free_exp(env->gwion->mp, exp_func);
       free_exp(env->gwion->mp, exp_args);
       e->d.exp_binary.op = insert_symbol(env->gwion->st, "==");
-      CHECK_ON(check_exp(env, e))
+      CHECK_ON(check_exp(env, e));
       return e->type;
     }
   }
@@ -123,7 +123,7 @@ static OP_CHECK(opck_union_ctor) {
       name->d.prim.prim_type = ae_prim_num;
       name->d.prim.d.num = i;
       name->type = env->gwion->type[et_int];
-      DECL_ON(const Type, t, = check_exp(env, val))
+      DECL_ON(const Type, t, = check_exp(env, val));
       if(isa(t, v->type) < 0) {
         ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'",
            t->name, v->name, v->type->name);

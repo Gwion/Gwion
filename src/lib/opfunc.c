@@ -35,7 +35,7 @@ OP_CHECK(opck_usr_implicit) {
         .type=f->value_ref->type };
       struct Op_Import opi = { .op=insert_symbol("@func_check"),
         .rhs=f->value_ref->type, .pos=imp->e->pos, .data=(uintptr_t)&call };
-      CHECK_NN(op_check(env, &opi))
+      CHECK_NN(op_check(env, &opi));
     }
   }
 */
@@ -98,7 +98,7 @@ ANN Type check_td(const Env env, Type_Decl *td);
 
 OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
-  DECL_ON(const Type, t, = known_type(env, unary->td))
+  DECL_ON(const Type, t, = known_type(env, unary->td));
   if(isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));
   if(type_ref(t))
@@ -106,7 +106,7 @@ OP_CHECK(opck_new) {
   if(GET_FLAG(t, abstract))
     ERR_N(unary->td->pos, _("can't use 'new' on abstract type '%s'\n"), t->name);
   if(unary->td->array)
-    CHECK_BN(check_subscripts(env, unary->td->array, 1))
+    CHECK_BN(check_subscripts(env, unary->td->array, 1));
   return t;
 }
 

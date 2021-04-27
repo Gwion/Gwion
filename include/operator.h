@@ -3,14 +3,14 @@
 #define OP_ANY_TYPE (Type)1
 
 #define ERR_N(a, b, ...) do { env_err(env, (a), (b), ## __VA_ARGS__); return env->gwion->type[et_error]; } while(0)
-#define DECL_ON(decl, f, exp) decl f exp; { if(!f)    return env->gwion->type[et_error]; }
-#define DECL_BN(decl, f, exp) decl f exp; { if(f < 0)    return env->gwion->type[et_error]; }
-#define DECL_NN(decl, f, exp) decl f exp; { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }
-#define CHECK_ON(f) { if(!f)    return env->gwion->type[et_error]; }
-#define CHECK_NB(f) { if(f == env->gwion->type[et_error]) return GW_ERROR; }
-#define CHECK_NO(f) { if(f == env->gwion->type[et_error]) return NULL; }
-#define CHECK_BN(f) { if(f < 0) return env->gwion->type[et_error]; }
-#define CHECK_NN(f) { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }
+#define DECL_ON(decl, f, exp) decl f exp; do { if(!f)    return env->gwion->type[et_error]; } while(0)
+#define DECL_BN(decl, f, exp) decl f exp; do { if(f < 0)    return env->gwion->type[et_error]; } while(0)
+#define DECL_NN(decl, f, exp) decl f exp; do { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; } while(0)
+#define CHECK_ON(f) do { if(!f)                              return env->gwion->type[et_error]; }  while(0)
+#define CHECK_NB(f) do { if(f == env->gwion->type[et_error]) return GW_ERROR; }                    while(0)
+#define CHECK_NO(f) do { if(f == env->gwion->type[et_error]) return NULL; }                        while(0)
+#define CHECK_BN(f) do { if(f < 0)                           return env->gwion->type[et_error]; }  while(0)
+#define CHECK_NN(f) do { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }  while(0)
 
 typedef Type   (*opck)(const Env, void*);
 typedef m_bool (*opem)(const Emitter, void*);

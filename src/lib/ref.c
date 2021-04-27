@@ -27,7 +27,7 @@ static m_bool ref_access(const Env env, const Exp e) {
 
 static OP_CHECK(opck_implicit_similar) {
   const struct Implicit *imp = (struct Implicit*)data;
-  CHECK_BN(ref_access(env, imp->e))
+  CHECK_BN(ref_access(env, imp->e));
   exp_setvar(imp->e, 1);
   return imp->t;
 }

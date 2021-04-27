@@ -216,7 +216,7 @@ static OP_CHECK(opck_usrugen) {
     ERR_N(exp_self(bin)->pos, _("Tick function must return float"));
   if(bin->lhs->type->info->func->value_ref->from->owner_class)
     CHECK_BN(isa(bin->lhs->type->info->func->value_ref->from->owner_class,
-      bin->rhs->type))
+      bin->rhs->type));
   return bin->rhs->type;
 }
 

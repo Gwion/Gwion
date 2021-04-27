@@ -29,8 +29,8 @@ ANN static inline Type ptr_base(const Env env, const Type t) {
 
 static OP_CHECK(opck_ptr_assign) {
   const Exp_Binary* bin = (Exp_Binary*)data;
-  CHECK_BN(ptr_access(env, bin->lhs))
-  CHECK_BN(ptr_access(env, bin->rhs))
+  CHECK_BN(ptr_access(env, bin->lhs));
+  CHECK_BN(ptr_access(env, bin->rhs));
   exp_setvar(bin->lhs, 1);
   exp_setvar(bin->rhs, 1);
   Type t = bin->lhs->type;
@@ -63,9 +63,9 @@ static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   if(!cast->td->types || !cast->td->types->td)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast");
-  DECL_ON(const Type, t, = known_type(env, cast->td))
+  DECL_ON(const Type, t, = known_type(env, cast->td));
   if(t->info->cdef && !tflag(t, tflag_check))
-    CHECK_BN(ensure_traverse(env, t))
+    CHECK_BN(ensure_traverse(env, t));
   const Type to = known_type(env, cast->td->types->td);
   exp_setvar(cast->exp, 1);
   if(isa(cast->exp->type, to) > 0)
