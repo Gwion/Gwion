@@ -62,7 +62,7 @@ static OP_CHECK(opck_ptr_deref) {
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast* cast = (Exp_Cast*)data;
   if(!cast->td->types || !cast->td->types->td)
-    ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast")
+    ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast");
   DECL_ON(const Type, t, = known_type(env, cast->td))
   if(t->info->cdef && !tflag(t, tflag_check))
     CHECK_BN(ensure_traverse(env, t))
@@ -70,7 +70,7 @@ static OP_CHECK(opck_ptr_cast) {
   exp_setvar(cast->exp, 1);
   if(isa(cast->exp->type, to) > 0)
     return t;
-  ERR_N(exp_self(cast)->pos, "invalid pointer cast")
+  ERR_N(exp_self(cast)->pos, "invalid pointer cast");
 }
 
 static OP_CHECK(opck_ptr_implicit) {

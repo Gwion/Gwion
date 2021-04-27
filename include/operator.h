@@ -2,7 +2,7 @@
 #define __OPERATOR
 #define OP_ANY_TYPE (Type)1
 
-#define ERR_N(a, b, ...) { env_err(env, (a), (b), ## __VA_ARGS__); return env->gwion->type[et_error]; }
+#define ERR_N(a, b, ...) do { env_err(env, (a), (b), ## __VA_ARGS__); return env->gwion->type[et_error]; } while(0)
 #define DECL_ON(decl, f, exp) decl f exp; { if(!f)    return env->gwion->type[et_error]; }
 #define DECL_BN(decl, f, exp) decl f exp; { if(f < 0)    return env->gwion->type[et_error]; }
 #define DECL_NN(decl, f, exp) decl f exp; { if(f == env->gwion->type[et_error]) return env->gwion->type[et_error]; }

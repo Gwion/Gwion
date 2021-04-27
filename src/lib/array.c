@@ -119,7 +119,7 @@ static MFUN(vm_vector_random) {
   const Type l = array_base(a->type);          \
   const Type r = array_base(b->type);          \
   if(isa(r, l) < 0)                            \
-    ERR_N(pos, _("array types do not match."))
+    ERR_N(pos, _("array types do not match."));
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary* bin = (Exp_Binary*)data;
@@ -128,12 +128,12 @@ static OP_CHECK(opck_array_at) {
   if(bin->lhs->type != env->gwion->type[et_error]) {
     ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
     if(bin->lhs->type->array_depth != bin->rhs->type->array_depth)
-      ERR_N(exp_self(bin)->pos, _("array depths do not match."))
+      ERR_N(exp_self(bin)->pos, _("array depths do not match."));
   }
   if(bin->rhs->exp_type == ae_exp_decl) {
     if(bin->rhs->d.exp_decl.list->self->array &&
           bin->rhs->d.exp_decl.list->self->array->exp)
-      ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx => declaration'."))
+      ERR_N(exp_self(bin)->pos, _("do not provide array for 'xxx => declaration'."));
   }
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;

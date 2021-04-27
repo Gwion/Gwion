@@ -110,7 +110,7 @@ static OP_CHECK(opck_union_ctor) {
   const Exp name = call->args;
   if(!name || !name->next || name->next->next)
     ERR_N(name->pos, "Union constructor takes two arguments, "
-         "'id' and 'value'")
+         "'id' and 'value'");
     if(name->exp_type != ae_exp_primary ||
         name->d.prim.prim_type != ae_prim_id)
     return NULL;
@@ -126,7 +126,7 @@ static OP_CHECK(opck_union_ctor) {
       DECL_ON(const Type, t, = check_exp(env, val))
       if(isa(t, v->type) < 0) {
         ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'",
-           t->name, v->name, v->type->name)
+           t->name, v->name, v->type->name);
       }
       return base;
     }

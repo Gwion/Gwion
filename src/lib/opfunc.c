@@ -49,7 +49,7 @@ OP_CHECK(opck_const_rhs) {
     ERR_N(bin->rhs->pos, _("cannot assign '%s' on types '%s' and '%s'.\n"
          "  ...  (reason: --- right-side operand is %s.)"),
          s_name(bin->op), bin->lhs->type->name, bin->rhs->type->name,
-         access)
+         access);
   return bin->rhs->type;
 }
 
@@ -89,7 +89,7 @@ OP_CHECK(opck_post) {
   const m_str access = exp_access(post->exp);
   if(access)
     ERR_N(post->exp->pos, _("post operator '%s' cannot be used on %s data-type."),
-          s_name(post->op), access)
+          s_name(post->op), access);
   exp_setvar(post->exp, 1);
   return post->exp->type;
 }
@@ -100,11 +100,11 @@ OP_CHECK(opck_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   DECL_ON(const Type, t, = known_type(env, unary->td))
   if(isa(t, env->gwion->type[et_object]) < 0)
-    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"))
+    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));
   if(type_ref(t))
-    ERR_N(unary->td->pos, _("can't use 'new' on ref type '%s'\n"), t->name)
+    ERR_N(unary->td->pos, _("can't use 'new' on ref type '%s'\n"), t->name);
   if(GET_FLAG(t, abstract))
-    ERR_N(unary->td->pos, _("can't use 'new' on abstract type '%s'\n"), t->name)
+    ERR_N(unary->td->pos, _("can't use 'new' on abstract type '%s'\n"), t->name);
   if(unary->td->array)
     CHECK_BN(check_subscripts(env, unary->td->array, 1))
   return t;

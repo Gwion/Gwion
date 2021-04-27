@@ -209,11 +209,11 @@ static OP_CHECK(opck_usrugen) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Arg_List arg = bin->lhs->type->info->func->def->base->args;
   if(!arg || arg->next)
-    ERR_N(exp_self(bin)->pos, _("Tick function take one and only one argument"))
+    ERR_N(exp_self(bin)->pos, _("Tick function take one and only one argument"));
   if(isa(arg->type, env->gwion->type[et_float]) < 0)
-    ERR_N(exp_self(bin)->pos, _("Tick functions argument must be of type float"))
+    ERR_N(exp_self(bin)->pos, _("Tick functions argument must be of type float"));
   if(isa(bin->lhs->type->info->func->def->base->ret_type, env->gwion->type[et_float]) < 0)
-    ERR_N(exp_self(bin)->pos, _("Tick function must return float"))
+    ERR_N(exp_self(bin)->pos, _("Tick function must return float"));
   if(bin->lhs->type->info->func->value_ref->from->owner_class)
     CHECK_BN(isa(bin->lhs->type->info->func->value_ref->from->owner_class,
       bin->rhs->type))

@@ -50,8 +50,8 @@ static OP_CHECK(opck_object_cast) {
   const Type to = known_type(env, cast->td);
   if(isa(cast->exp->type, to) < 0) {
     if(isa(to, cast->exp->type) > 0)
-      ERR_N(exp_self(cast)->pos, _("can't upcast '%s' to '%s'"), cast->exp->type->name, to->name)
-    ERR_N(exp_self(cast)->pos, _("can't cast '%s' to '%s'"), cast->exp->type->name, to->name)
+      ERR_N(exp_self(cast)->pos, _("can't upcast '%s' to '%s'"), cast->exp->type->name, to->name);
+    ERR_N(exp_self(cast)->pos, _("can't cast '%s' to '%s'"), cast->exp->type->name, to->name);
   }
   return exp_self(cast)->type;
 }
@@ -62,7 +62,7 @@ static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
   if(ts->td->types)
     return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
   Type_Decl *td = (Type_Decl*)ts->td;
-  ERR_N(td->pos, _("you must provide template types for type '%s'"), ts->t->name)
+  ERR_N(td->pos, _("you must provide template types for type '%s'"), ts->t->name);
 }
 
 static OP_CHECK(opck_struct_scan) {
@@ -162,10 +162,10 @@ OP_CHECK(opck_object_dot) {
 //  if(!the_base->nspc)
 //    ERR_N(&member->base->pos,
 //          _("type '%s' does not have members - invalid use in dot expression of %s"),
-//          the_base->name, str)
+//          the_base->name, str);
   if(member->xid ==  insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
-          _("keyword 'this' must be associated with object instance..."))
+          _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if(!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
@@ -181,14 +181,14 @@ OP_CHECK(opck_object_dot) {
   if(!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if(GET_FLAG(value, private))
       ERR_N(exp_self(member)->pos,
-          _("can't access private '%s' outside of class..."), value->name)
+          _("can't access private '%s' outside of class..."), value->name);
     else if(GET_FLAG(value, protect))
       exp_setprot(exp_self(member), 1);
   }
   if(base_static && vflag(value, vflag_member))
     ERR_N(exp_self(member)->pos,
           _("cannot access member '%s.%s' without object instance..."),
-          the_base->name, str)
+          the_base->name, str);
   if(GET_FLAG(value, const))
     exp_setmeta(exp_self(member), 1);
   return value->type;
