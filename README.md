@@ -24,6 +24,7 @@ Checkout the community, and join us on discord: https://discord.gg/KmHqbTKSmS.
 You can also check this very nice server about programming language devlopment: https://discord.gg/4Kjt3ZE,
 since a lot of improvements to gwion are discussed there.
 
+Please also consider taking the (WIP) [*tour*](https://github.com/Gwion/GwionTour) 
 
 ## Build
 ### Download the source
