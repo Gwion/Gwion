@@ -21,7 +21,7 @@ ANN static inline m_bool tmpl_push(const Env env, const Tmpl* tmpl) {
 }
 
 ANN static inline m_int _push(const Env env, const Class_Def c) {
-  DECL_BB(const m_int, scope, = env_push_type(env, c->base.type))
+  DECL_BB(const m_int, scope, = env_push_type(env, c->base.type));
   return (!c->base.tmpl || tmpl_push(env, c->base.tmpl)) ?
     scope : GW_ERROR;
 }
@@ -35,7 +35,7 @@ ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
 // TODO: 'v' should be 2° argument
 ANN m_bool
 scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
-  DECL_BB(const m_int, scope, = _push(e, c))
+  DECL_BB(const m_int, scope, = _push(e, c));
   const m_bool ret =  _body(d, c->body, f);
   _pop(e, c, scope);
   return ret;

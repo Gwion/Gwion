@@ -149,7 +149,7 @@ ANN static void typedef_fptr(const Env env, const Type_Def tdef, const Type base
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_BB(env_access(env, tdef->ext->flag, tdef->ext->pos));
-  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext) : known_type(env, tdef->ext))
+  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext) : known_type(env, tdef->ext));
   CHECK_BB(scan0_defined(env, tdef->xid, tdef->ext->pos));
   const bool global = GET_FLAG(tdef->ext, global); // TODO: handle global in class
   if(global) {
@@ -286,7 +286,7 @@ ANN static void cdef_flag(const Class_Def cdef, const Type t) {
 }
 
 ANN static Type get_parent_base(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = find_type(env, td))
+  DECL_OO(const Type, t, = find_type(env, td));
   Type owner = env->class_def;
   while(owner) {
     if(t == owner)
@@ -297,7 +297,7 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
 }
 
 ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = known_type(env, td))
+  DECL_OO(const Type, t, = known_type(env, td));
   if(!GET_FLAG(t, final))
     return t;
   ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
@@ -353,7 +353,7 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
 #define scan0_func_def dummy_func
 
 ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
-  DECL_OB(const Type, t, = known_type(env, xdef->td))
+  DECL_OB(const Type, t, = known_type(env, xdef->td));
   if(isa(t, env->gwion->type[et_compound]) < 0)
     ERR_B(xdef->td->pos, _("only compound types can be extended"))
   if(GET_FLAG(t, final)) // TODO: add type initial declaration

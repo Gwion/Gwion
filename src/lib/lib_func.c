@@ -81,8 +81,8 @@ ANN static m_bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
 }
 
 static m_bool td_match(const Env env, Type_Decl *id[2]) {
-  DECL_OB(const Type, t0, = known_type(env, id[0]))
-  DECL_OB(const Type, t1, = known_type(env, id[1]))
+  DECL_OB(const Type, t0, = known_type(env, id[0]));
+  DECL_OB(const Type, t1, = known_type(env, id[1]));
   if(isa(t0, t1) > 0)
     return GW_OK;
   return t1 == env->gwion->type[et_auto] ? GW_OK:GW_ERROR;
@@ -169,7 +169,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
         info->lhs = v->type->info->func;
       }
     } else {
-      DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid))
+      DECL_OO(const Type, t, = nspc_lookup_type1(nspc, info->lhs->def->base->xid));
       info->lhs = actual_type(env->gwion, t)->info->func;
     }
     Type type = NULL;

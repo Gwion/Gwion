@@ -73,13 +73,13 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
 
 // only in enum.c
 ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
-  DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos))
+  DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos));
   return new_id_list(gwion->mp, sym);
 }
 
 ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
   struct td_checker tdc = { .str=path, .pos=pos };
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc))
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc));
   struct AC ac = { .str = tdc.str, .pos=pos };
   CHECK_BO(ac_run(gwion, &ac));
   const Array_Sub array = ac.depth ?
@@ -89,12 +89,12 @@ ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
 
 // only in udef.c
 ANN Var_Decl_List str2varlist(const Gwion gwion, const m_str path, const loc_t pos) {
-  DECL_OO(const Var_Decl, var, = str2var(gwion, path, pos))
+  DECL_OO(const Var_Decl, var, = str2var(gwion, path, pos));
   return new_var_decl_list(gwion->mp, var, NULL);
 }
 
 ANN static ID_List _tmpl_list(const Gwion gwion, struct td_checker *tdc) {
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   ID_List next = NULL;
   if(*tdc->str == ',') {
     ++tdc->str;
@@ -185,7 +185,7 @@ ANN static inline uint get_n(struct td_checker *tdc, const char c) {
 
 ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   const uint ref = get_n(tdc, '&');
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
+  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   struct AC ac = { .str = tdc->str, .pos=tdc->pos };
   CHECK_BO(ac_run(gwion, &ac));
   tdc->str = ac.str;
@@ -216,7 +216,7 @@ ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
 
 ANN Type_Decl* str2td(const Gwion gwion, const m_str str, const loc_t pos) {
   struct td_checker tdc = { .str=str, .pos=pos };
-  DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc))
+  DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
@@ -225,7 +225,7 @@ ANN Type_Decl* str2td(const Gwion gwion, const m_str str, const loc_t pos) {
 }
 
 ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
-  DECL_OO(Type_Decl *, td, = str2td(gwion, str, pos))
+  DECL_OO(Type_Decl *, td, = str2td(gwion, str, pos));
   const Type t = known_type(gwion->env, td);
   free_type_decl(gwion->mp, td);
   return t;
@@ -248,7 +248,7 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
 ANN static m_bool td_info_run(const Env env, struct td_info* info) {
   Type_List tl = info->tl;
   do {
-    DECL_OB(const Type,  t, = known_type(env, tl->td))
+    DECL_OB(const Type,  t, = known_type(env, tl->td));
     td_fullname(env, &info->text, t);
     if(tl->next)
       text_add(&info->text, ",");

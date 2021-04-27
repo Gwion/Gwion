@@ -194,7 +194,7 @@ ANN static m_bool emit_defers2(const Emitter emit) {
 
 ANN static m_int _frame_pop(const Emitter emit) {
   Frame *frame = emit->code->frame;
-  DECL_OB(const Local*, l, = (Local*)vector_pop(&frame->stack))
+  DECL_OB(const Local*, l, = (Local*)vector_pop(&frame->stack));
   frame->curr_offset -= l->type->size;
   if(l->skip)
     return _frame_pop(emit);
@@ -400,7 +400,7 @@ ANN2(1,2) m_bool emit_instantiate_object(const Emitter emit, const Type type,
       const Array_Sub array, const m_bool is_ref) {
   emit_notpure(emit);
   if(type->array_depth) {
-    DECL_OB(ArrayInfo*, info, = emit_array_extend_inner(emit, type, array ? array->exp : NULL, is_ref))
+    DECL_OB(ArrayInfo*, info, = emit_array_extend_inner(emit, type, array ? array->exp : NULL, is_ref));
     return GW_OK;
   } else if(!is_ref) {
     const Instr instr = emit_add_instr(emit, ObjectInstantiate);
@@ -1423,7 +1423,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If* exp_if) {
     exp_setvar(e, 1);
     exp_setvar(exp_if->else_exp, 1);
   }
-  DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond))
+  DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond));
   CHECK_BB(emit_exp_pop_next(emit, exp_if->if_exp ?: exp_if->cond));
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
@@ -1528,7 +1528,7 @@ ANN static m_bool emit_if_const(const Emitter emit, const Stmt_If stmt) {
 ANN static m_bool emit_if(const Emitter emit, const Stmt_If stmt) {
   if(stmt->cond->exp_type == ae_exp_primary && stmt->cond->d.prim.prim_type == ae_prim_num)
     return emit_if_const(emit, stmt);
-  DECL_OB(const Instr, op, = emit_flow(emit, stmt->cond))
+  DECL_OB(const Instr, op, = emit_flow(emit, stmt->cond));
   CHECK_BB(scoped_stmt(emit, stmt->if_body, 1));
   const Instr op2 = emit_add_instr(emit, Goto);
   op->m_val = emit_code_size(emit);
@@ -1705,7 +1705,7 @@ ANN static m_bool emit_stmt_varloop(const Emitter emit, const Stmt_VarLoop stmt)
 ANN static m_bool _emit_stmt_for(const Emitter emit, const Stmt_For stmt, m_uint *action_index) {
   CHECK_BB(emit_stmt(emit, stmt->c1, 1));
   const m_uint index = emit_code_size(emit);
-  DECL_OB(const Instr, op, = emit_flow(emit, stmt->c2->d.stmt_exp.val))
+  DECL_OB(const Instr, op, = emit_flow(emit, stmt->c2->d.stmt_exp.val));
   CHECK_BB(scoped_stmt(emit, stmt->body, 1));
   *action_index = emit_code_size(emit);
   if(stmt->c3) {

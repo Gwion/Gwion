@@ -23,7 +23,7 @@ ANN2(1) static int fmtlen(const char *fmt, va_list args) {
 ANN2(2) static int gw_vasprintf(MemPool mp, char **str, const char *fmt, va_list args) {
   char *base = *str;
   const size_t base_len = base ? strlen(base) : 0;
-  DECL_BB(const int, size, = fmtlen(fmt, args))
+  DECL_BB(const int, size, = fmtlen(fmt, args));
   char *ret = mp_malloc2(mp, base_len + size + 1);
   if(base)
     strcpy(ret, base);

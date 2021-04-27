@@ -147,7 +147,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
 }
 
 ANN static Func _find_template_match(const Env env, const Value v, Exp_Call *const exp) {
-  DECL_OO(const m_str, tmpl_name, = tl2str(env->gwion, exp->tmpl->call, exp->func->pos))
+  DECL_OO(const m_str, tmpl_name, = tl2str(env->gwion, exp->tmpl->call, exp->func->pos));
   const Func f = find_tmpl(env, v, exp, tmpl_name);
   free_mstr(env->gwion->mp, tmpl_name);
   return f;

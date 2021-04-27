@@ -96,7 +96,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_s
     gwi->ck->variadic = 1;
     return GW_OK;
   }
-  DECL_OB(Type_Decl*, td, = gwi_str2td(gwi, t))
+  DECL_OB(Type_Decl*, td, = gwi_str2td(gwi, t));
   const Var_Decl var = gwi_str2var(gwi, n);
   if(var) {
     const Arg_List arg = new_arg_list(gwi->gwion->mp, td, var, NULL);
@@ -125,7 +125,7 @@ ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_fdef));
-  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi))
+  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi));
   fptr->base->flag |= flag;
   if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)/* && !fptr->base->tmpl*/) {
     section_fptr(gwi, fptr);

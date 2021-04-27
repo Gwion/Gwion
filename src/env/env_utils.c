@@ -54,7 +54,7 @@ ANN Type find_initial(const Env env, const Symbol xid) {
 #undef RETURN_TYPE
 
 ANN Type find_type(const Env env, Type_Decl *path) {
-  DECL_OO(const Type, type, = find_initial(env, path->xid))
+  DECL_OO(const Type, type, = find_initial(env, path->xid));
   while((path = path->next) && type && type->nspc) {
     const Nspc nspc = type->nspc;
     const Type child = find_in_parent(type, path->xid);

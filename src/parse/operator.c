@@ -205,7 +205,7 @@ for(int i = 0; i < 2; ++i) {
 ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->from->owner;
   const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-  DECL_OB(M_Operator*, mo, = operator_find(v, opi->lhs, opi->rhs))
+  DECL_OB(M_Operator*, mo, = operator_find(v, opi->lhs, opi->rhs));
   mo->func = (Func)opi->data;
   return GW_OK;
 }

@@ -632,12 +632,12 @@ ANN static Func predefined_func(const Env env, const Value v,
     Exp_Call *exp, const Tmpl *tm) {
   Tmpl tmpl = { .call=tm->call };
   exp->tmpl = &tmpl;
-  DECL_OO(const Func, func, = get_template_func(env, exp, v))
+  DECL_OO(const Func, func, = get_template_func(env, exp, v));
   return v->d.func_ref = func;
 }
 
 ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, const Tmpl *tm, const Func_Def fdef) {
-  DECL_OO(const Func, func, = v->d.func_ref ?: predefined_func(env, v, exp, tm))
+  DECL_OO(const Func, func, = v->d.func_ref ?: predefined_func(env, v, exp, tm));
   if(!fdef->base->ret_type) { // template fptr
     struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
       .scope=env->scope->depth, .flag=tflag_check };
@@ -681,15 +681,15 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
 
 ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   const Type t = exp->func->type;
-  DECL_OO(const Value, value, = type_value(env->gwion, t))
+  DECL_OO(const Value, value, = type_value(env->gwion, t));
   const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def : t->info->func->def;
   Tmpl *tm = fdef->base->tmpl;
   if(tm->call)
     return check_predefined(env, exp, value, tm, fdef);
-  DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));
+  DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));;
   Tmpl tmpl = { .call=tl };
   ((Exp_Call*)exp)->tmpl = &tmpl;
-  DECL_OO(const Func,func, = get_template_func(env, exp, value))
+  DECL_OO(const Func,func, = get_template_func(env, exp, value));
   return func->def->base->ret_type;
 }
 
@@ -750,7 +750,7 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
   }
 }
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
-  DECL_BO(const m_bool, ret, = func_check(env, exp))
+  DECL_BO(const m_bool, ret, = func_check(env, exp));
   if(!ret)
     return exp_self(exp)->type;
   const Type t = actual_type(env->gwion, exp->func->type);
@@ -813,7 +813,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary* bin) {
 }
 
 ANN static Type check_exp_cast(const Env env, const Exp_Cast* cast) {
-  DECL_OO(const Type, t, = check_exp(env, cast->exp))
+  DECL_OO(const Type, t, = check_exp(env, cast->exp));
   CHECK_OO((exp_self(cast)->type = known_type(env, cast->td)));
   struct Op_Import opi = { .op=insert_symbol("$"), .lhs=t, .rhs=exp_self(cast)->type,
     .data=(uintptr_t)cast, .pos=exp_self(cast)->pos };
@@ -845,7 +845,7 @@ ANN static m_bool predefined_call(const Env env, const Type t, const loc_t pos) 
 
 ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
   if(exp->tmpl) {
-    DECL_BO(const m_bool, ret, = func_check(env, exp))
+    DECL_BO(const m_bool, ret, = func_check(env, exp));
     if(!ret)
       return exp_self(exp)->type;
     const Type t = actual_type(env->gwion, exp->func->type);
@@ -863,7 +863,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call* exp) {
         CHECK_BO(predefined_call(env, t, exp_self(exp)->pos));
     }
     const Value v = type_value(env->gwion, t);
-    DECL_OO(const Func, f, = find_template_match(env, v, exp))
+    DECL_OO(const Func, f, = find_template_match(env, v, exp));
     exp->func->type = f->value_ref->type;
     return f->def->base->ret_type;
   }
@@ -878,14 +878,14 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
   }
   struct Op_Import opi = { .op=unary->op, .rhs=rhs,
     .data=(uintptr_t)unary, .pos=exp_self(unary)->pos };
-  DECL_OO(const Type, ret, = op_check(env, &opi))
+  DECL_OO(const Type, ret, = op_check(env, &opi));
   const Type t = actual_type(env->gwion, ret);
   CHECK_BO(ensure_traverse(env, t));
   return ret;
 }
 
 ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
-  DECL_OO(const Type, type, = check_exp(env, e))
+  DECL_OO(const Type, type, = check_exp(env, e));
   struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
     .rhs=type, .pos=e->pos, .data=(uintptr_t)e };
   return op_check(env, &opi);
@@ -894,9 +894,9 @@ ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
 
 ANN static Type check_exp_if(const Env env, const Exp_If* exp_if) {
   const Exp e = exp_if->if_exp ?: exp_if->cond;
-  DECL_OO(const Type, cond, = check_flow(env, exp_if->cond))
-  DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond))
-  DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp))
+  DECL_OO(const Type, cond, = check_flow(env, exp_if->cond));
+  DECL_OO(const Type, if_exp, = (exp_if->if_exp ? check_exp(env, exp_if->if_exp) : cond));
+  DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp));
 
   const uint meta = exp_getmeta(e) || exp_getmeta(exp_if->else_exp);
   exp_setmeta(exp_self(exp_if), meta);
@@ -982,7 +982,7 @@ ANN static Type check_exp_lambda(const Env env,
     const Exp_If* exp_if NUSED) { return env->gwion->type[et_lambda]; }
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
-  DECL_OO(const Type, t, = known_type(env, *td))
+  DECL_OO(const Type, t, = known_type(env, *td));
   return type_class(env->gwion, t);
 }
 
@@ -1050,18 +1050,18 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static inline Type foreach_type(const Env env, const Exp exp) {
-  DECL_OO(Type, et, = check_exp(env, exp))
+  DECL_OO(Type, et, = check_exp(env, exp));
   if(isa(et, env->gwion->type[et_array]) < 0)
     ERR_O(exp->pos, _("type '%s' is not array.\n"
           " This is not allowed in foreach loop"), et->name)
-  DECL_OO(Type, base, = typedef_base(et))
-  DECL_OO(const Type, t, = array_base(base))
+  DECL_OO(Type, base, = typedef_base(et));
+  DECL_OO(const Type, t, = array_base(base));
   const m_uint depth = base->array_depth - 1;
   return depth ? array_type(env, t, depth) : t;
 }
 
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
-  DECL_OB(const Type, base, = foreach_type(env, stmt->exp))
+  DECL_OB(const Type, base, = foreach_type(env, stmt->exp));
   CHECK_BB(ensure_traverse(env, base));
   const m_str basename = type2str(env->gwion, base, stmt->exp->pos);
   char c[15 + strlen(basename)];
@@ -1120,7 +1120,7 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
     ERR_B(stmt_self(stmt)->pos, _("'return' statement found outside function definition"))
   if(env->scope->depth == 1) // so ops no dot set scope->depth ?
     set_fflag(env->func, fflag_return);
-  DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void])
+  DECL_OB(const Type, ret_type, = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void]);
   if(!env->func->def->base->ret_type) {
     assert(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0);
     env->func->def->base->ret_type = ret_type;
@@ -1450,7 +1450,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     return GW_OK;
   Value override = NULL;
   CHECK_BB(check_func_def_override(env, fdef, &override));
-  DECL_BB(const m_int, scope, = GET_FLAG(fdef->base, global) ? env_push_global(env) : env->scope->depth)
+  DECL_BB(const m_int, scope, = GET_FLAG(fdef->base, global) ? env_push_global(env) : env->scope->depth);
   const Func former = env->func;
   env->func = func;
   ++env->scope->depth;

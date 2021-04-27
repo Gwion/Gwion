@@ -32,7 +32,7 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 }
 
 ANN static Type scan1_type(const Env env, Type_Decl* td) {
-  DECL_OO(const Type, t, = known_type(env, td))
+  DECL_OO(const Type, t, = known_type(env, td));
   if(!env->func && env->class_def && !GET_FLAG(td, late))
     CHECK_BO(type_cyclic(env, t, td));
   CHECK_BO(ensure_scan1(env, t));
@@ -40,7 +40,7 @@ ANN static Type scan1_type(const Env env, Type_Decl* td) {
 }
 
 ANN static Type void_type(const Env env, Type_Decl* td) {
-  DECL_OO(const Type, type, = scan1_type(env, td))
+  DECL_OO(const Type, type, = scan1_type(env, td));
   if(type->size)
     return type;
   ERR_O(td->pos, _("cannot declare variables of size '0' (i.e. 'void')..."))
@@ -49,7 +49,7 @@ ANN static Type void_type(const Env env, Type_Decl* td) {
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl* decl) {
   if(decl->type)
     return decl->type;
-  DECL_OO(const Type ,t, = void_type(env, decl->td))
+  DECL_OO(const Type ,t, = void_type(env, decl->td));
   if(decl->td->xid == insert_symbol("auto") && decl->type)
     return decl->type;
   if(GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
@@ -429,7 +429,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env, Union_Def ude
   nspc_add_value_front(env->curr, insert_symbol("@index"), v);
   valuefrom(env, v->from, udef->pos);
   do {
-    DECL_OB(const Type, t, = known_type(env, l->td))
+    DECL_OB(const Type, t, = known_type(env, l->td));
     if(nspc_lookup_value0(env->curr, l->xid))
       ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
     const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
@@ -631,7 +631,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   const loc_t pos = cdef->base.ext->pos;
   if(cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp));
-  DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base))
+  DECL_OB(const Type , parent, = scan1_get_parent(env, &cdef->base));
   if(isa(parent, env->gwion->type[et_object]) < 0)
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   CHECK_BB(ensure_scan1(env, parent));

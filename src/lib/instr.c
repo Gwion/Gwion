@@ -26,7 +26,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
   const Func_Def fdef = dt->def ?: dt->base;
   const Symbol sym = func_symbol(env, nspc->name, s_name(fdef->base->xid),
     "template", dt->base->base->tmpl->base);
-  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid))
+  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym) ?: nspc_lookup_value0(nspc, fdef->base->xid));
   if(is_class(env->gwion, v->type))
     return NULL;
   if(vflag(v, vflag_builtin)) {
@@ -45,7 +45,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
 }
 
 ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt, const Nspc nspc) {
-  DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc))
+  DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc));
   CHECK_BO(traverse_dot_tmpl(emit, dt));
   if(dt->xfun)
     builtin_func(emit->gwion->mp, def->base->func, dt->xfun);

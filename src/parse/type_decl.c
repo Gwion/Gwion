@@ -33,11 +33,11 @@ ANN static Type resolve(const Env env, Type_Decl* td) {
   while(last->next)
     last = last->next;
   Array_Sub array = last->array;
-  DECL_OO(const Type, base, = find_type(env, td))
+  DECL_OO(const Type, base, = find_type(env, td));
   const Context ctx = base->info->value->from->ctx;
   if(ctx && ctx->error)
     ERR_O(td->pos, _("type '%s' is invalid"), base->name)
-  DECL_OO(const Type, type, = scan_type(env, base, td))
+  DECL_OO(const Type, type, = scan_type(env, base, td));
   const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
   return !array ? ret: array_type(env, ret, array->depth);
