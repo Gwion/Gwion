@@ -104,6 +104,24 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   return !arg1 ? GW_OK : GW_ERROR;
 }
 
+ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
+  if(!info->lhs->def->base->effects.ptr)
+    return true;
+  if(!info->rhs->def->base->effects.ptr) {
+    puts("too many effects");
+    return false;
+  }
+  const Vector lhs = &info->lhs->def->base->effects;
+  const Vector rhs = &info->rhs->def->base->effects;
+  for(m_uint i = 0; i < vector_size(lhs); i++) {
+    if(vector_find(rhs, vector_at(lhs, 0)) == -1) {
+      gwerr_secondary("effect not handled", env->name, info->pos);
+      return false;
+    }
+  }
+  return true;
+}
+
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
 //  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
 //    return GW_ERROR;
@@ -157,8 +175,8 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
     Type type = NULL;
     Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
     CHECK_BO(fptr_tmpl_push(env, info))
-    if(fptr_rettype(env, info) > 0 &&
-         fptr_arity(info) && fptr_args(env, base) > 0)
+    if (fptr_rettype(env, info) > 0 && fptr_arity(info) &&
+        fptr_args(env, base) > 0 && fptr_effects(env, info))
       type = actual_type(env->gwion, info->lhs->value_ref->type) ?: info->lhs->value_ref->type;
     if(info->rhs->def->base->tmpl)
       nspc_pop_type(env->gwion->mp, env->curr);
@@ -181,7 +199,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l, const Func_Def def
   l->def->base->td = type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
   if(is_tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
-  if(base || arg) // beware, error between pops
+  if(base || arg)
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
 //  if(GET_FLAG(def->base, global) && !l->owner && def->base->func->value_ref->from->owner_class)

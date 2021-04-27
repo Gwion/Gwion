@@ -100,6 +100,7 @@ struct OpChecker {
   const Env env;
   const Map map;
   const struct Op_Import* opi;
+  struct Vector_ effect;
 };
 
 __attribute__((returns_nonnull))
@@ -128,12 +129,12 @@ ANN static m_bool op_exist(const struct OpChecker* ock, const Nspc n) {
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   Nspc n = gwion->env->curr;
   do {
-    struct OpChecker ock = { gwion->env, &n->info->op_map, opi };
+    struct OpChecker ock = { .env=gwion->env, .map=&n->info->op_map, .opi=opi };
     CHECK_BB(op_exist(&ock, n))
   } while((n = n->parent));
   if(!gwion->env->curr->info->op_map.ptr)
     map_init(&gwion->env->curr->info->op_map);
-  struct OpChecker ock = { gwion->env, &gwion->env->curr->info->op_map, opi };
+  struct OpChecker ock = { .env=gwion->env, .map=&gwion->env->curr->info->op_map, .opi=opi };
   const Vector v = op_vector(gwion->mp, &ock);
   const M_Operator* mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
@@ -153,9 +154,10 @@ ANN static Type op_check_inner(struct OpChecker* ock, const uint i) {
     const M_Operator* mo;
     const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
     if(v && (mo = !i ? operator_find2(v, ock->opi->lhs, r) : operator_find(v, ock->opi->lhs, r))) {
-      if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data))))
+      if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data)))) {
+        ock->effect.ptr = mo->effect.ptr;
         return t;
-      else
+      } else
         return mo->ret;
     }
   } while(r && (r = r->info->parent));
@@ -171,11 +173,16 @@ for(int i = 0; i < 2; ++i) {
     Type l = opi->lhs;
     do {
       struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
-      struct OpChecker ock = { env, &nspc->info->op_map, &opi2 };
+      struct OpChecker ock = { .env=env, .map=&nspc->info->op_map, .opi=&opi2 };
       const Type ret = op_check_inner(&ock, i);
       if(ret) {
         if(ret == env->gwion->type[et_error])
           return NULL;
+        if(ock.effect.ptr) {
+          const Vector base = &ock.effect;
+          for(m_uint i = 0; i < vector_size(base); i++)
+            env_add_effect(env, (Symbol)vector_at(base, i), opi->pos);
+        }
         opi->nspc = nspc;
         return ret;
       }

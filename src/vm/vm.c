@@ -41,7 +41,7 @@ uint32_t gw_rand(uint32_t s[2]) {
 }
 
 ANN static bool unwind(VM_Shred shred, const Symbol effect) {
-  if(!shred->info->frame.ptr || !map_size(&shred->info->frame))
+  if(!shred->info->frame.ptr || !vector_size(&shred->info->frame))
     return true;
   if(shred->code->handlers.ptr) {
     const m_uint start = VKEY(&shred->info->frame, VLEN(&shred->info->frame) - 1);
@@ -63,13 +63,14 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect) {
     }
     if(!pc) // outside of a try statement
       return true;
-    shred->reg = (m_bit*)VVAL(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    shred->reg = (m_bit*)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
     shredule(shred->tick->shreduler, shred, 0);
     shred->pc = pc;//VKEY(m, i);
     return false;
   }
   // there might be no more stack to unwind
-  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
+  vector_pop(&shred->info->frame);
+  vector_pop(&shred->info->frame);
   if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return true;
   // literally unwind
@@ -1007,11 +1008,13 @@ gack:
   goto in;
 try_ini:
   if(!shred->info->frame.ptr) // ???
-    map_init(&shred->info->frame);
-  map_set(&shred->info->frame, PC, (m_uint)shred->reg);
+    vector_init(&shred->info->frame);
+  vector_add(&shred->info->frame, PC);
+  vector_add(&shred->info->frame, (m_uint)reg);
   DISPATCH();
 try_end:
-  map_remove(&shred->info->frame, VLEN(&shred->info->frame)-1);
+  vector_pop(&shred->info->frame);
+  vector_pop(&shred->info->frame);
 handleeffect:
 // this should check the *xid* of the exception
   DISPATCH();

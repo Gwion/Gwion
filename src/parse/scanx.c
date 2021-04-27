@@ -41,11 +41,19 @@ scanx_body(const Env e, const Class_Def c, const _exp_func f, void* d) {
   return ret;
 }
 
-ANN m_bool scanx_cdef(const Env env, void* opt, const Type t,
-    const _exp_func f_cdef, const _exp_func f_union) {
+ANN static m_bool _scanx_cdef(const Env env, void* opt, const Type t,
+    const _exp_func f_cdef, const _exp_func f_udef) {
   if(t->info->parent !=  env->gwion->type[et_union])
      return f_cdef(opt, t->info->cdef);
-  const m_bool ret = f_union(opt, t->info->udef);
+  const m_bool ret = f_udef(opt, t->info->udef);
+  return ret;
+}
+
+ANN m_bool scanx_cdef(const Env env, void* opt, const Type t,
+    const _exp_func f_cdef, const _exp_func f_udef) {
+  const bool in_try = env->scope->in_try;
+  const m_bool ret = _scanx_cdef(env, opt, t, f_cdef, f_udef);
+  env->scope->in_try = in_try;
   return ret;
 }
 
@@ -53,8 +61,10 @@ ANN m_bool scanx_fdef(const Env env, void *data,
     const Func_Def fdef, const _exp_func func) {
   if(fdef->base->tmpl)
     CHECK_BB(template_push_types(env, fdef->base->tmpl))
+  const bool in_try = env->scope->in_try;
   const m_bool ret = func(data, fdef);
   if(fdef->base->tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
+  env->scope->in_try = in_try;
   return ret;
 }

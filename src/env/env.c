@@ -16,6 +16,7 @@ ANN static struct Env_Scope_ *new_envscope(MemPool p) {
   vector_init(&a->class_stack);
   vector_init(&a->nspc_stack);
   vector_init(&a->known_ctx);
+  vector_init(&a->effects);
   return a;
 }
 
@@ -35,6 +36,7 @@ ANN void env_reset(const Env env) {
   vector_add(&env->scope->nspc_stack, (vtype)env->global_nspc);
   vector_clear(&env->scope->class_stack);
   vector_add(&env->scope->class_stack, (vtype)NULL);
+  vector_add(&env->scope->effects, 0);
   env->curr = env->global_nspc;
   env->class_def = NULL;
   env->func = NULL;
@@ -58,7 +60,23 @@ ANN static void free_env_scope(struct Env_Scope_  *a, Gwion gwion) {
   vector_release(&a->class_stack);
   vector_release(&a->breaks);
   vector_release(&a->conts);
+  const Vector v = &a->effects;
+  for(m_uint i = 0; i < vector_size(v); i++) {
+    m_uint _v = vector_at(v, i);
+    if(_v)
+      m_vector_release((M_Vector)&_v);
+  }
+  vector_release(&a->effects);
   mp_free(gwion->mp, Env_Scope, a);
+}
+
+ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos) {
+  const Vector v = &a->scope->effects;
+  const M_Vector w = (M_Vector)&VPTR(v, VLEN(v) - 1);
+  if(!w->ptr)
+    m_vector_init(w, sizeof(struct ScopeEffect), 0);
+  struct ScopeEffect eff = { effect, pos };
+  m_vector_add(w, &eff);
 }
 
 ANN void free_env(const Env a) {
@@ -72,6 +90,7 @@ ANN2(1,3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {
   vector_add(&env->scope->class_stack, (vtype)env->class_def);
   env->class_def = type;
   vector_add(&env->scope->nspc_stack, (vtype)env->curr);
+  vector_add(&env->scope->effects, 0);
   env->curr = nspc;
   env->scope->depth = 0;
   return scope;
@@ -80,6 +99,9 @@ ANN2(1,3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {
 ANN void env_pop(const Env env, const m_uint scope) {
   env->class_def = (Type)vector_pop(&env->scope->class_stack);
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
+  const m_uint _v = vector_pop(&env->scope->effects);
+  if(_v)
+    m_vector_release((M_Vector)&_v);
   env->scope->depth = scope;
 }
 

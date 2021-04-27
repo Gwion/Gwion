@@ -11,7 +11,9 @@ struct Env_Scope_ {
   struct Vector_  conts;
   struct Vector_  known_ctx;
   struct Match_  *match;
-  size_t depth;
+  struct Vector_ effects; // a vector of Effect[]
+  uint   depth;
+  bool   in_try;
 };
 
 typedef struct Env_ {
@@ -46,4 +48,11 @@ ANN void env_err(const Env, const loc_t pos, const m_str fmt, ...);
 ANN void env_warn(const Env, const loc_t pos, const m_str fmt, ...);
 ANN Value global_string(const Env env, const m_str str);
 ANN void release_ctx(struct Env_Scope_ *a, struct Gwion_* gwion);
+
+struct ScopeEffect {
+  Symbol sym;
+  loc_t pos;
+};
+
+ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos);
 #endif

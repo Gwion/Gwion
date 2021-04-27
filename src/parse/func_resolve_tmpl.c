@@ -54,8 +54,10 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const 
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
   f->next = next;
-  if(func)
+  if(func) {
     set_fflag(func, fflag_tmpl | fflag_valid);
+    call_add_effect(env, func, exp->func->pos);
+  }
   return func;
 }
 

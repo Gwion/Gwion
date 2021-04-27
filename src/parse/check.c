@@ -345,7 +345,8 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
   return prim_id_non_res(env, data);
 }
 
-ANN static Type check_prim_perform(const Env env, const Symbol *data NUSED) {
+ANN static Type check_prim_perform(const Env env, const Symbol *data) {
+  env_add_effect(env, *data, prim_pos(data));
   return env->gwion->type[et_void];
 }
 
@@ -741,6 +742,13 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
     GW_OK : GW_ERROR;
 }
 
+ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
+  if(func != env->func && func->def->base->effects.ptr) {
+    const Vector v = &func->def->base->effects;
+    for(m_uint i = 0; i < vector_size(v); i++)
+      env_add_effect(env, (Symbol)vector_at(v, i), pos);
+  }
+}
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp))
   if(!ret)
@@ -754,7 +762,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   }
   if(t == env->gwion->type[et_op])
     return check_op_call(env, exp);
-  if(t == env->gwion->type[et_lambda])
+  if(t == env->gwion->type[et_lambda])   // TODO: effects?
     return check_lambda_call(env, exp);
   if(fflag(t->info->func, fflag_ftmpl)) {
     const Value value = t->info->func->value_ref;
@@ -764,10 +772,21 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   if(exp->args)
     CHECK_OO(check_exp(env, exp->args))
   if(tflag(t, tflag_ftmpl))
-    return check_exp_call_template(env, (Exp_Call*)exp);
+    return check_exp_call_template(env, (Exp_Call*)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
   if(func) {
+    if(!is_fptr(env->gwion, func->value_ref->type))// skip function pointers
+    if(func != env->func && func->def && !fflag(func, fflag_valid)) {
+//  if(!fflag(func, fflag_valid)) {
+      struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
+        .scope=env->scope->depth, .flag=tflag_check };
+      CHECK_BO(envset_push(&es, func->value_ref->from->owner_class, func->value_ref->from->owner))
+      CHECK_BO(check_func_def(env, func->def))
+      if(es.run)
+        envset_pop(&es, func->value_ref->from->owner_class);
+    }
     exp->func->type = func->value_ref->type;
+    call_add_effect(env, func, exp->func->pos);
     return func->def->base->ret_type;
   }
   const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
@@ -1226,9 +1245,40 @@ ANN static inline m_bool check_handler_list(const restrict Env env, const Handle
   RET_NSPC(check_stmt(env, handler->stmt))
 }
 
-ANN static inline m_bool check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
-  CHECK_BB(check_handler_list(env, stmt->handler))
+ANN static inline m_bool check_stmt_try_start(const restrict Env env, const Stmt_Try stmt) {
   RET_NSPC(check_stmt(env, stmt->stmt))
+}
+ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+  CHECK_BB(check_handler_list(env, stmt->handler))
+  vector_add(&env->scope->effects, 0);
+  const m_bool ret = check_stmt_try_start(env, stmt);
+  const m_uint _v = vector_pop(&env->scope->effects);
+  if(_v) {
+    const M_Vector v = (M_Vector)&_v;
+    for(m_uint i = 0; i < m_vector_size(v); i++) {
+      struct ScopeEffect eff;
+      m_vector_get(v, i, &eff);
+      Handler_List handler = stmt->handler;
+      bool found = false;
+      do { // check there is no duplicate handler
+        if(eff.sym == handler->xid) {
+          found = true;
+          break;
+        }
+      } while((handler = handler->next));
+      if(!found)
+        env_add_effect(env, eff.sym, eff.pos);
+    }
+    m_vector_release(v);
+  }
+  return ret;
+}
+
+ANN static inline m_bool check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+  const bool in_try = env->scope->in_try;
+  const m_bool ret = _check_stmt_try(env, stmt);
+  env->scope->in_try = in_try;
+  return ret;
 }
 
 ANN static m_bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
@@ -1347,15 +1397,29 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef) {
+ANN bool check_effect_overload(const Func_Base *base, const Value override) {
+  if(!base->effects.ptr)
+    return true;
+  if(!override->d.func_ref->def->base->effects.ptr)
+    return false; // TODO: error message
+  const Vector v = &override->d.func_ref->def->base->effects;
+  for(m_uint i = 0; i < vector_size(v); i++) {
+    if(vector_find((Vector)&base->effects, vector_at(v, i)) == -1)
+      return false;
+  }
+  return true;
+}
+
+ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef, Value *ov) {
   const Func func = fdef->base->func;
   if(env->class_def && env->class_def->info->parent) {
     const Value override = find_value(env->class_def->info->parent, fdef->base->xid);
     if(override && override->from->owner_class && isa(override->type, env->gwion->type[et_function]) < 0)
-      ERR_B(fdef->base->pos,
+        ERR_B(fdef->base->pos,
             _("function name '%s' conflicts with previously defined value...\n"
             "  from super class '%s'..."),
             s_name(fdef->base->xid), override->from->owner_class->name)
+    *ov = override;
   }
   if(func->value_ref->from->offset && (!fdef->base->tmpl || !fdef->base->tmpl->base))
     CHECK_BB(check_func_overload(env, fdef))
@@ -1384,7 +1448,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     CHECK_BB(check_parent_match(env, fdef))
   if(tmpl_base(fdef->base->tmpl))
     return GW_OK;
-  CHECK_BB(check_func_def_override(env, fdef))
+  Value override = NULL;
+  CHECK_BB(check_func_def_override(env, fdef, &override))
   DECL_BB(const m_int, scope, = GET_FLAG(fdef->base, global) ? env_push_global(env) : env->scope->depth)
   const Func former = env->func;
   env->func = func;
@@ -1395,14 +1460,33 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     func_operator(f, &opi);
     operator_suspend(env->curr, &opi);
   }
+  vector_add(&env->scope->effects, 0);
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
+  const m_uint _v = vector_pop(&env->scope->effects);
+  if(_v) {
+    const Vector v = (Vector)&_v;
+    const Vector base = &fdef->base->effects;
+    if(!base->ptr)
+      vector_init(base);
+    for(m_uint i = 0; i < vector_size(v); i += 2) {
+      const Symbol effect = (Symbol)vector_at(v, i);
+      if(vector_find(base, (m_uint)effect) == -1)
+        vector_add(base, (m_uint)effect);
+    }
+    vector_release(v);
+  }
   if(fbflag(fdef->base, fbflag_op))
     operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
   --env->scope->depth;
   env->func = former;
-  if(ret > 0)
+  if(ret > 0) {
     set_fflag(fdef->base->func, fflag_valid);
+    if(env->class_def && !check_effect_overload(fdef->base, override))
+      ERR_B(fdef->base->pos,
+          _("too much effects in override."),
+          s_name(fdef->base->xid))
+  }
   if(GET_FLAG(fdef->base, global))
     env_pop(env,scope);
   return ret;
@@ -1464,6 +1548,44 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   return !err ? GW_OK : GW_ERROR;
 }
 
+ANN static inline void check_unhandled(const Env env) {
+  const Vector v = &env->scope->effects;
+  const m_uint _w = vector_back(v);
+  if(!_w)
+    return;
+  const M_Vector w = (M_Vector)&_w;
+  for(m_uint j = 0; j < m_vector_size(w); j++) {
+    struct ScopeEffect eff;
+    m_vector_get(w, j, &eff);
+    gwerr_secondary("Unhandled effect", env->name, eff.pos);
+    env->context->error = false;
+  }
+  m_vector_release(w);
+  vector_pop(v);
+}
+
+
+ANN static m_bool check_body(const Env env, Section *const section) {
+  const m_bool ret = check_section(env, section);
+  check_unhandled(env);
+  return ret;
+}
+
+ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
+  const Type t = cdef->base.type;
+  if(cdef->base.ext)
+    CHECK_BB(cdef_parent(env, cdef))
+  if(!tflag(t, tflag_struct))
+    inherit(t);
+  if(cdef->body) {
+    CHECK_BB(env_body(env, cdef, check_body))
+    set_tflag(t, tflag_ctor);
+  }
+  if(!GET_FLAG(cdef, abstract))
+    CHECK_BB(check_abstract(env, cdef))
+  return GW_OK;
+}
+
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tmpl_base(cdef->base.tmpl))
     return GW_OK;
@@ -1476,21 +1598,12 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if(tflag(t, tflag_check))
     return GW_OK;
   set_tflag(t, tflag_check);
-  if(cdef->base.ext)
-    CHECK_BB(cdef_parent(env, cdef))
-  if(!tflag(t, tflag_struct))
-    inherit(t);
-  if(cdef->body) {
-    CHECK_BB(env_body(env, cdef, check_section))
-    set_tflag(t, tflag_ctor);
-  }
-  if(!GET_FLAG(cdef, abstract))
-    CHECK_BB(check_abstract(env, cdef))
-  return GW_OK;
+  return _check_class_def(env, cdef);
 }
 
 ANN m_bool check_ast(const Env env, Ast ast) {
   do CHECK_BB(check_section(env, ast->section))
   while((ast = ast->next));
+  check_unhandled(env);
   return GW_OK;
 }

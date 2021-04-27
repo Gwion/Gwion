@@ -46,7 +46,7 @@ void free_vm_shred(VM_Shred shred) {
     release((M_Object)vector_at(&shred->gc, i - 1), shred);
   vector_release(&shred->gc);
   if(shred->info->frame.ptr)
-    map_release(&shred->info->frame);
+    vector_release(&shred->info->frame);
   vmcode_remref(shred->info->orig, shred->info->vm->gwion);
   const MemPool mp = shred->info->mp;
   mp_free(mp, ShredTick, shred->tick);

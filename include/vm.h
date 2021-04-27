@@ -53,7 +53,7 @@ struct ShredInfo_ {
   Vector args;
   MemPool mp;
   VM_Code orig;
-  struct Map_ frame;
+  struct Vector_ frame;
 };
 
 struct ShredTick_ {
