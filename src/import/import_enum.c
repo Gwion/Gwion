@@ -19,9 +19,9 @@
 //! \arg string defining a primitive type
 //! why is return type m_int ?
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
-  CHECK_BB(ck_ini(gwi, ck_edef))
+  CHECK_BB(ck_ini(gwi, ck_edef));
   if(type)
-    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)))
+    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
   vector_init(&gwi->ck->v);
   return GW_OK;
 }
@@ -48,7 +48,7 @@ void Append(DL_Enum* d, const ID_List list) {
 //! \arg name of the entry
 //! TODO: change return type to m_bool
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
-  CHECK_BB(ck_ok(gwi, ck_edef))
+  CHECK_BB(ck_ok(gwi, ck_edef));
   DECL_OB(const ID_List, list, = gwi_str2symlist(gwi, name))
   add2list(gwi->ck, list);
   vector_add(&gwi->ck->v, (vtype)i);
@@ -74,7 +74,7 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 //! \arg the importer
 //! TODO: check what happens in inside template class
 ANN Type gwi_enum_end(const Gwi gwi) {
-  CHECK_BO(ck_ok(gwi, ck_edef))
+  CHECK_BO(ck_ok(gwi, ck_edef));
   if(!vector_size(&gwi->ck->v))
     GWI_ERR_O("Enum is empty");
   const Gwion gwion = gwi->gwion;

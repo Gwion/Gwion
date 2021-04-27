@@ -104,7 +104,7 @@ ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
 ANN static inline m_bool _passes(struct Gwion_* gwion, struct Compiler* c) {
   for(m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass pass = (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    CHECK_BB(pass(gwion->env, c->ast))
+    CHECK_BB(pass(gwion->env, c->ast));
   }
   return GW_OK;
 }
@@ -128,7 +128,7 @@ ANN static inline m_bool passes(struct Gwion_* gwion, struct Compiler* c) {
 
 ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
   struct AstGetter_ arg = { c->name, c->file, gwion->st, .ppa=gwion->ppa };
-  CHECK_OB((c->ast = parse(&arg)))
+  CHECK_OB((c->ast = parse(&arg)));
   gwion->env->name = c->name;
   const m_bool ret = passes(gwion, c);
   if(!arg.global)

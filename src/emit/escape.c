@@ -62,7 +62,7 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
           return GW_ERROR;
         }
       } else
-        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, pos)))
+        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, pos)));
     }
     else
         *str++ = (char)*str_lit;

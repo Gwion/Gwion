@@ -24,13 +24,13 @@ ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
 
 ANN static m_bool scan2_decl(const Env env, const Exp_Decl* decl) {
   const Type t = decl->type;
-  CHECK_BB(ensure_scan2(env, t))
+  CHECK_BB(ensure_scan2(env, t));
   Var_Decl_List list = decl->list;
   do {
     const Var_Decl var = list->self;
     const Exp array = var->array ? var->array->exp : NULL;
     if(array)
-      CHECK_BB(scan2_exp(env, array))
+      CHECK_BB(scan2_exp(env, array));
     nspc_add_value(env->curr, var->xid, var->value);
   } while((list = list->next));
   return GW_OK;
@@ -92,7 +92,7 @@ ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f);
 ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
   if(tdef->when)
-    CHECK_BB(scan2_exp(env, tdef->when))
+    CHECK_BB(scan2_exp(env, tdef->when));
   if(!tdef->type->info->cdef)
     return GW_OK;
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
@@ -101,15 +101,15 @@ ANN m_bool scan2_type_def(const Env env, const Type_Def tdef) {
 
 ANN static m_bool scan2_range(const Env env, Range *range) {
   if(range->start)
-    CHECK_BB(scan2_exp(env, range->start))
+    CHECK_BB(scan2_exp(env, range->start));
   if(range->end)
-    CHECK_BB(scan2_exp(env, range->end))
+    CHECK_BB(scan2_exp(env, range->end));
   return GW_OK;
 }
 
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
   if(prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_interp)
-    CHECK_BB(scan2_exp(env, prim->d.exp))
+    CHECK_BB(scan2_exp(env, prim->d.exp));
 /*  else if(prim->prim_type == ae_prim_id) {
     const Value v = prim_value(env, prim->d.var);
     if(v)
@@ -122,12 +122,12 @@ ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary* prim) {
 }
 
 ANN static inline m_bool scan2_exp_array(const Env env, const Exp_Array* array) {
-  CHECK_BB(scan2_exp(env, array->base))
+  CHECK_BB(scan2_exp(env, array->base));
   return scan2_exp(env, array->array->exp);
 }
 
 ANN static inline m_bool scan2_exp_slice(const Env env, const Exp_Slice* exp) {
-  CHECK_BB(scan2_exp(env, exp->base))
+  CHECK_BB(scan2_exp(env, exp->base));
   return scan2_range(env, exp->range);
 }
 
@@ -141,9 +141,9 @@ ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
 }
 
 ANN static inline m_bool scan2_exp_binary(const Env env, const Exp_Binary* bin) {
-  CHECK_BB(scan2_exp(env, bin->lhs))
-  CHECK_BB(scan2_exp(env, bin->rhs))
-  CHECK_BB(multi_decl(env, bin->lhs, bin->op))
+  CHECK_BB(scan2_exp(env, bin->lhs));
+  CHECK_BB(scan2_exp(env, bin->rhs));
+  CHECK_BB(multi_decl(env, bin->lhs, bin->op));
   return multi_decl(env, bin->rhs, bin->op);
 }
 
@@ -158,7 +158,7 @@ ANN static inline m_bool scan2_exp_post(const Env env, const Exp_Postfix* post) 
 ANN static inline m_bool scan2_exp_call(const Env env, const Exp_Call* exp_call) {
   if(exp_call->tmpl)
     return GW_OK;
-  CHECK_BB(scan2_exp(env, exp_call->func))
+  CHECK_BB(scan2_exp(env, exp_call->func));
   const Exp args = exp_call->args;
   return args ? scan2_exp(env, args) : GW_OK;
 }
@@ -168,8 +168,8 @@ ANN static inline m_bool scan2_exp_dot(const Env env, const Exp_Dot* member) {
 }
 
 ANN static inline m_bool scan2_exp_if(const Env env, const Exp_If* exp_if) {
-  CHECK_BB(scan2_exp(env, exp_if->cond))
-  CHECK_BB(scan2_exp(env, exp_if->if_exp ?: exp_if->cond))
+  CHECK_BB(scan2_exp(env, exp_if->cond));
+  CHECK_BB(scan2_exp(env, exp_if->if_exp ?: exp_if->cond));
   return scan2_exp(env, exp_if->else_exp);
 }
 
@@ -182,9 +182,9 @@ ANN static m_bool scan2_exp_unary(const Env env, const Exp_Unary * unary) {
 }
 
 ANN static inline m_bool _scan2_stmt_match_case(const restrict Env env, const Stmt_Match stmt) {
-  CHECK_BB(scan2_exp(env, stmt->cond))
+  CHECK_BB(scan2_exp(env, stmt->cond));
   if(stmt->when)
-    CHECK_BB(scan2_exp(env, stmt->when))
+    CHECK_BB(scan2_exp(env, stmt->when));
   return scan2_stmt_list(env, stmt->list);
 }
 
@@ -194,26 +194,26 @@ ANN static inline m_bool scan2_stmt_match_case(const restrict Env env, const Stm
 
 ANN static inline m_bool _scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   if(stmt->where)
-    CHECK_BB(scan2_stmt(env, stmt->where))
+    CHECK_BB(scan2_stmt(env, stmt->where));
   Stmt_List list = stmt->list;
-  do CHECK_BB(scan2_stmt_match_case(env, &list->stmt->d.stmt_match))
+  do CHECK_BB(scan2_stmt_match_case(env, &list->stmt->d.stmt_match));
   while((list = list->next));
   return GW_OK;
 }
 
 ANN static inline m_bool scan2_handler_list(const restrict Env env, const Handler_List handler) {
   if(handler->next)
-    CHECK_BB(scan2_handler_list(env, handler->next))
+    CHECK_BB(scan2_handler_list(env, handler->next));
   RET_NSPC(scan2_stmt(env, handler->stmt))
 }
 
 ANN static inline m_bool scan2_stmt_try(const restrict Env env, const Stmt_Try stmt) {
-  CHECK_BB(scan2_handler_list(env, stmt->handler))
+  CHECK_BB(scan2_handler_list(env, stmt->handler));
   RET_NSPC(scan2_stmt(env, stmt->stmt))
 }
 
 ANN static inline m_bool scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
-  CHECK_BB(scan2_exp(env, stmt->cond))
+  CHECK_BB(scan2_exp(env, stmt->cond));
   RET_NSPC(_scan2_stmt_match(env, stmt))
 }
 
@@ -280,7 +280,7 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
-  do CHECK_BB(scan2_stmt(env, list->stmt))
+  do CHECK_BB(scan2_stmt(env, list->stmt));
   while((list = list->next));
   return GW_OK;
 }
@@ -324,7 +324,7 @@ ANN2(1,2) static Value func_value(const Env env, const Func f,
   const Type  t = func_type(env, f);
   const Value v = t->info->value = new_value(env->gwion->mp, t, t->name);
   valuefrom(env, v->from, f->def->base->pos);
-  CHECK_OO(scan2_func_assign(env, f->def, f, v))
+  CHECK_OO(scan2_func_assign(env, f->def, f, v));
   if(!overload) {
     value_addref(v);
     nspc_add_value_front(env->curr, f->def->base->xid, v);
@@ -393,7 +393,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   struct Op_Import opi = { .ret=f->base->ret_type, .pos=f->base->pos,
       .data=(uintptr_t)f->base->func, .func=&opfunc };
   func_operator(f, &opi);
-  CHECK_BB(add_op(env->gwion, &opi))
+  CHECK_BB(add_op(env->gwion, &opi));
   operator_set_func(&opi);
   return GW_OK;
 }
@@ -401,7 +401,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
   const Func former = env->func;
   env->func = f->base->func;
-  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code))
+  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code));
   env->func = former;
   return GW_OK;
 }
@@ -464,16 +464,16 @@ ANN2(1,2) m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value ove
   if(!name)return GW_ERROR;
   const Func base = f->base->func;
   if(!base)
-    CHECK_OB(func_create(env, f, overload, name))
+    CHECK_OB(func_create(env, f, overload, name));
   else
     f->base->func = base;
   if(f->base->args)
-    CHECK_BB(scan2_args(f))
+    CHECK_BB(scan2_args(f));
   if(f->d.code)
-    CHECK_BB(scan2_func_def_code(env, f))
+    CHECK_BB(scan2_func_def_code(env, f));
   if(!base) {
     if(fbflag(f->base, fbflag_op))
-      CHECK_BB(scan2_func_def_op(env, f))
+      CHECK_BB(scan2_func_def_op(env, f));
     set_vflag(f->base->func->value_ref, vflag_valid);
   }
   return GW_OK;
@@ -493,8 +493,8 @@ ANN static void upfunction(const Env env, const Func_Base *fb) {
 ANN m_bool scan2_fdef(const Env env, const Func_Def fdef) {
   const Value overload = nspc_lookup_value2(env->curr, fdef->base->xid);
   if(overload)
-    CHECK_BB(scan2_func_def_overload(env, fdef, overload))
-  CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, fdef, overload))
+    CHECK_BB(scan2_func_def_overload(env, fdef, overload));
+  CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(env, fdef, overload));
   if(env->class_def)
     upfunction(env, fdef->base);
   return GW_OK;
@@ -532,15 +532,15 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
   const m_bool ret = scanx_fdef(env, env, f, (_exp_func)scan2_fdef);
   if(GET_FLAG(f->base, global))
     env_pop(env, scope);
-  CHECK_BB(ret)
+  CHECK_BB(ret);
   fdef->base->func = f->base->func; // only needed if 'is_cpy()'
   return GW_OK;
 }
 
 
 ANN static m_bool scan2_extend_def(const Env env, const Extend_Def xdef) {
-  CHECK_BB(ensure_scan2(env, xdef->t))
-  CHECK_BB(extend_push(env, xdef->t))
+  CHECK_BB(ensure_scan2(env, xdef->t));
+  CHECK_BB(extend_push(env, xdef->t));
   const m_bool ret = scan2_ast(env, xdef->body);
   extend_pop(env, xdef->t);
   return ret;
@@ -551,15 +551,15 @@ HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
   const Type parent = cdef->base.type->info->parent;
-  CHECK_BB(ensure_scan2(env, parent))
+  CHECK_BB(ensure_scan2(env, parent));
   if(cdef->base.ext->array && cdef->base.ext->array->exp)
-    CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp))
+    CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp));
   return GW_OK;
 }
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   if(cdef->base.tmpl && cdef->base.tmpl->list)
-    CHECK_BB(template_push_types(env, cdef->base.tmpl))
+    CHECK_BB(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = scan2_parent(env, cdef);
   if(cdef->base.tmpl && cdef->base.tmpl->list)
     nspc_pop_type(env->gwion->mp, env->curr);
@@ -573,17 +573,17 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if(tflag(t, tflag_scan2))
     return GW_OK;
   if(t->info->value->from->owner_class)
-    CHECK_BB(ensure_scan2(env, t->info->value->from->owner_class))
+    CHECK_BB(ensure_scan2(env, t->info->value->from->owner_class));
   set_tflag(t, tflag_scan2);
   if(cdef->base.ext)
-    CHECK_BB(cdef_parent(env, cdef))
+    CHECK_BB(cdef_parent(env, cdef));
   if(cdef->body)
-    CHECK_BB(env_body(env, cdef, scan2_section))
+    CHECK_BB(env_body(env, cdef, scan2_section));
   return GW_OK;
 }
 
 ANN m_bool scan2_ast(const Env env, Ast ast) {
-  do CHECK_BB(scan2_section(env, ast->section))
+  do CHECK_BB(scan2_section(env, ast->section));
   while((ast = ast->next));
   return GW_OK;
 }

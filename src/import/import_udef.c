@@ -25,14 +25,14 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
 }
 
 ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
-  CHECK_BB(ck_ini(gwi, ck_udef))
+  CHECK_BB(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
-  CHECK_BB(check_typename_def(gwi, gwi->ck))
+  CHECK_BB(check_typename_def(gwi, gwi->ck));
   return GW_OK;
 }
 
 ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  CHECK_BB(ck_ok(gwi, ck_udef))
+  CHECK_BB(ck_ok(gwi, ck_udef));
   DECL_OB(Type_Decl*, td, = str2td(gwi->gwion, type, gwi->loc))
   DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc))
   const Union_List l = new_union_list(gwi->gwion->mp, td, xid, gwi->loc);
@@ -42,8 +42,8 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type, const restrict
 }
 
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
-  CHECK_BO(scan0_union_def(gwi->gwion->env, udef))
-  CHECK_BO(traverse_union_def(gwi->gwion->env, udef))
+  CHECK_BO(scan0_union_def(gwi->gwion->env, udef));
+  CHECK_BO(traverse_union_def(gwi->gwion->env, udef));
 //  if(!udef->tmpl)
 //    emit_union_offset(udef->l, udef->o);
 //  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))
@@ -56,7 +56,7 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 }
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_BO(ck_ok(gwi, ck_udef))
+  CHECK_BO(ck_ok(gwi, ck_udef));
   if(!gwi->ck->list)
     GWI_ERR_O(_("union is empty"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, gwi->loc);

@@ -184,7 +184,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
 ANN m_bool type_engine_init(const Gwion gwion) {
   gwion->env->name = "[builtin]";
-  CHECK_BB(gwi_run(gwion, import_core_libs))
+  CHECK_BB(gwi_run(gwion, import_core_libs));
   push_global(gwion, "[user]");
   return GW_OK;
 }

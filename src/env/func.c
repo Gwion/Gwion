@@ -33,7 +33,7 @@ ANN2(1,2) Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
   char name[len + 1];
   CHECK_BO(sprintf(name, "%s%s%s%s@%" UINT_F "@%s",
     base, !tmpl ? "" : ":[", !tmpl ? "" : tmpl, !tmpl ? "" : "]",
-    i, nspc))
+    i, nspc));
   return insert_symbol(env->gwion->st, name);
 }
 

@@ -36,7 +36,7 @@ ANN Instr emit_kind(Emitter emit, const m_uint size, const uint addr, const f_in
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot*)data;
   const Map map = &member->base->type->nspc->info->value->map;
-  CHECK_BB(emit_exp(emit, member->base))
+  CHECK_BB(emit_exp(emit, member->base));
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     const Func f = (Func)vector_front(&member->base->type->info->parent->nspc->info->vtable);
@@ -183,7 +183,7 @@ ANN GWION_IMPORT(union) {
   const struct Op_Func opfunc = { .ck=opck_union_is };
   const struct Op_Import opi = { .rhs=f->value_ref->type,
        .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=insert_symbol(gwi->gwion->st, "@func_check") };
-  CHECK_BB(add_op(gwi->gwion, &opi))
+  CHECK_BB(add_op(gwi->gwion, &opi));
   gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))

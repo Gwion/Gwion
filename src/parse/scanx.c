@@ -7,7 +7,7 @@
 #include "parse.h"
 
 ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
-  do CHECK_BB(f(e, b->section))
+  do CHECK_BB(f(e, b->section));
   while((b = b->next));
   return GW_OK;
 }
@@ -60,7 +60,7 @@ ANN m_bool scanx_cdef(const Env env, void* opt, const Type t,
 ANN m_bool scanx_fdef(const Env env, void *data,
     const Func_Def fdef, const _exp_func func) {
   if(fdef->base->tmpl)
-    CHECK_BB(template_push_types(env, fdef->base->tmpl))
+    CHECK_BB(template_push_types(env, fdef->base->tmpl));
   const bool in_try = env->scope->in_try;
   const m_bool ret = func(data, fdef);
   if(fdef->base->tmpl)

@@ -29,7 +29,7 @@ ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
 
 ANN static m_bool _template_push(const Env env, const Type t) {
   if(t->info->value->from->owner_class)
-    CHECK_BB(template_push(env, t->info->value->from->owner_class))
+    CHECK_BB(template_push(env, t->info->value->from->owner_class));
   if(tflag(t, tflag_tmpl))
     return push_types(env, t->info->cdef->base.tmpl); // incorrect
   return GW_OK;
@@ -115,7 +115,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl* td) {
     const Type maybe_array = known_type(env, td);
     const Type owner = array_base(maybe_array);
     td->next = next;
-    CHECK_OO(owner)
+    CHECK_OO(owner);
     if(!owner->nspc)
       ERR_O(td->pos, "type '%s' has no namespace", owner->name)
     struct EnvSet es = { .env=env, .data=env,

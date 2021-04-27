@@ -23,7 +23,7 @@ ANN m_bool gwion_audio(const Gwion gwion) {
   if(di->si->arg)
     driver_ini(gwion);
   di->func(di->driver);
-  CHECK_BB(di->driver->ini(gwion->vm, di));
+  CHECK_BB(di->driver->ini(gwion->vm, di));;
   driver_alloc(di);
   return GW_OK;
 }
@@ -61,7 +61,7 @@ ANN static void gwion_core(const Gwion gwion) {
 }
 
 ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
-  CHECK_BB(plug_ini(gwion, &arg->lib))
+  CHECK_BB(plug_ini(gwion, &arg->lib));
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);
@@ -92,7 +92,7 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
   pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
-  CHECK_BB(arg_parse(gwion, arg))
+  CHECK_BB(arg_parse(gwion, arg));
   if(arg->color == COLOR_NEVER)
     tcol_override_color_checks(0);
   else if(arg->color == COLOR_AUTO)

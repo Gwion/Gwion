@@ -18,7 +18,7 @@ ANN2(1) void   envset_pop(struct EnvSet*, const Type);
 ANN static inline m_bool extend_push(const Env env, const Type t) {
   const Type owner = t->info->value->from->owner_class;
   if(owner)
-    CHECK_BB(extend_push(env, owner))
+    CHECK_BB(extend_push(env, owner));
   return env_push_type(env, t);
 }
 

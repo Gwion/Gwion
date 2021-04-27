@@ -91,12 +91,12 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   while(arg0) {
-    CHECK_OB(arg1)
+    CHECK_OB(arg1);
     if(arg0->type && arg1->type)
-      CHECK_BB(isa(arg0->type, arg1->type))
+      CHECK_BB(isa(arg0->type, arg1->type));
     else {
       Type_Decl* td[2] = { arg0->td, arg1->td };
-      CHECK_BB(td_match(env, td))
+      CHECK_BB(td_match(env, td));
     }
     arg0 = arg0->next;
     arg1 = arg1->next;
@@ -174,7 +174,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
     }
     Type type = NULL;
     Func_Base *base[2] =  { info->lhs->def->base, info->rhs->def->base };
-    CHECK_BO(fptr_tmpl_push(env, info))
+    CHECK_BO(fptr_tmpl_push(env, info));
     if (fptr_rettype(env, info) > 0 && fptr_arity(info) &&
         fptr_args(env, base) > 0 && fptr_effects(env, info))
       type = actual_type(env->gwion, info->lhs->value_ref->type) ?: info->lhs->value_ref->type;
@@ -226,14 +226,14 @@ ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
   const Func_Def fdef = t->info->func->def;
   if(!GET_FLAG(t->info->func->value_ref, global))
     l->owner = t->info->value->from->owner_class;
-  CHECK_BB(_check_lambda(env, l, fdef))
+  CHECK_BB(_check_lambda(env, l, fdef));
   exp_self(l)->type = l->def->base->func->value_ref->type;
   return GW_OK;
 }
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
-    CHECK_BB(fptr_check(env, info))
+    CHECK_BB(fptr_check(env, info));
     if(!(info->exp->type = fptr_type(env, info)))
       ERR_B(info->pos, _("no match found"))
     return GW_OK;
@@ -362,7 +362,7 @@ static m_bool op_call_narg(const Env env, Exp arg,
 }
 
 ANN Type check_op_call(const Env env, Exp_Call *const exp) {
-  CHECK_BO(op_call_narg(env, exp->args, exp->func->pos))
+  CHECK_BO(op_call_narg(env, exp->args, exp->func->pos));
   const Exp base = exp_self(exp);
   const Exp op_exp = exp->func;
   base->exp_type = ae_exp_binary;

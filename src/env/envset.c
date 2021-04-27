@@ -21,14 +21,14 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
   es->env->scope->depth = 0;
   const Type owner_class = t->info->value->from->owner_class;
   if(owner_class)
-    CHECK_BB(push(es, owner_class))
+    CHECK_BB(push(es, owner_class));
   else
     env_push(es->env, NULL, t->info->value->from->ctx ? t->info->value->from->ctx->nspc : es->env->curr);
   if(es->func && !(t->tflag & es->flag))
-    CHECK_BB(es->func((void*)es->data, t))
+    CHECK_BB(es->func((void*)es->data, t));
   env_push_type((void*)es->env, t);
   if(tflag(t, tflag_tmpl))
-    CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)) // incorrect templates?
+    CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)); // incorrect templates?
   return GW_OK;
 }
 
@@ -61,7 +61,7 @@ ANN m_bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
   const Type owner_class = t->info->value->from->owner_class;
   if(es->run)
-    CHECK_BB(push(es, owner_class))
+    CHECK_BB(push(es, owner_class));
   const m_bool ret = t->info->cdef &&
     !(t->tflag & es->flag) ?
         es->func(es->data, t) : GW_OK;

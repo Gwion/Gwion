@@ -81,7 +81,7 @@ ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
   struct td_checker tdc = { .str=path, .pos=pos };
   DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc))
   struct AC ac = { .str = tdc.str, .pos=pos };
-  CHECK_BO(ac_run(gwion, &ac))
+  CHECK_BO(ac_run(gwion, &ac));
   const Array_Sub array = ac.depth ?
     mk_array(gwion->mp, &ac) : NULL;
   return new_var_decl(gwion->mp, sym, array, pos);
@@ -187,7 +187,7 @@ ANN static Type_Decl* _str2td(const Gwion gwion, struct td_checker *tdc) {
   const uint ref = get_n(tdc, '&');
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc))
   struct AC ac = { .str = tdc->str, .pos=tdc->pos };
-  CHECK_BO(ac_run(gwion, &ac))
+  CHECK_BO(ac_run(gwion, &ac));
   tdc->str = ac.str;
   Type_List tl = td_tmpl(gwion, tdc);
   if(tl == (Type_List)GW_ERROR)
@@ -269,7 +269,7 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t, const loc_t pos NUSED) 
 
 ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl, const loc_t pos NUSED) {
   struct td_info info = { .tl=tl, { .mp=gwion->mp} };
-  CHECK_BO(td_info_run(gwion->env, &info))
+  CHECK_BO(td_info_run(gwion->env, &info));
   return info.text.str;
 }
 
@@ -307,14 +307,14 @@ ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
 ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
   const m_str str = ac->str;
   const m_int num = strtol(str, &ac->str, 10);
-  CHECK_BB(ac_finish(gwion, ac))
+  CHECK_BB(ac_finish(gwion, ac));
   if(str != ac->str) {
-    CHECK_BB(ac_num(gwion, ac, num))
-    CHECK_BB(ac_exp(gwion, ac))
+    CHECK_BB(ac_num(gwion, ac, num));
+    CHECK_BB(ac_exp(gwion, ac));
     const Exp exp = new_prim_int(gwion->mp, num, ac->pos);
     ac_add_exp(ac, exp);
   } else
-    CHECK_BB(ac_noexp(gwion, ac))
+    CHECK_BB(ac_noexp(gwion, ac));
   ++ac->str;
   return GW_OK;
 }
@@ -324,7 +324,7 @@ ANN static m_bool ac_run(const Gwion gwion, struct AC *const ac) {
     if(*ac->str != '[')
       break;
     ++ac->str;
-    CHECK_BB(_ac_run(gwion, ac))
+    CHECK_BB(_ac_run(gwion, ac));
     ++ac->depth;
   }
   return GW_OK;

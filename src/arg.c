@@ -205,7 +205,7 @@ ANN static Vector get_config(const char *name) {
   size_t len = 0;
   ssize_t nread;
   FILE *f = fopen(name, "r");
-  CHECK_OO(f)
+  CHECK_OO(f);
   const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
   vector_init(v);
   vector_add(v, (vtype)name);

@@ -46,7 +46,7 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt, const Ns
 
 ANN static Func_Def traverse_tmpl(const Emitter emit, struct dottmpl_ *const dt, const Nspc nspc) {
   DECL_OO(const Func_Def, def, = from_base(emit->env, dt, nspc))
-  CHECK_BO(traverse_dot_tmpl(emit, dt))
+  CHECK_BO(traverse_dot_tmpl(emit, dt));
   if(dt->xfun)
     builtin_func(emit->gwion->mp, def->base->func, dt->xfun);
   return def;

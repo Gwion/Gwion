@@ -250,7 +250,7 @@ static OP_CHECK(opck_array_slice) {
 }
 
 static inline m_bool bounds(const M_Vector v, const m_int i) {
-  CHECK_BB(i)
+  CHECK_BB(i);
   return (m_uint)i < ARRAY_LEN(v) ? GW_OK : GW_ERROR;
 }
 
@@ -333,7 +333,7 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
 
 ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
   emit_gc(emit, -SZ_INT);
-  CHECK_BB(emit_exp(emit, array->exp))
+  CHECK_BB(emit_exp(emit, array->exp));
   array_loop(emit, array->depth);
   array_finish(emit, array->depth, array->type->size, is_var);
   return GW_OK;

@@ -130,7 +130,7 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   Nspc n = gwion->env->curr;
   do {
     struct OpChecker ock = { .env=gwion->env, .map=&n->info->op_map, .opi=opi };
-    CHECK_BB(op_exist(&ock, n))
+    CHECK_BB(op_exist(&ock, n));
   } while((n = n->parent));
   if(!gwion->env->curr->info->op_map.ptr)
     map_init(&gwion->env->curr->info->op_map);
@@ -214,7 +214,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr push = emit_add_instr(emit, mo->func->code ? RegPushImm : SetFunc);
     push->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
-    CHECK_BB(emit_exp_call1(emit, mo->func))
+    CHECK_BB(emit_exp_call1(emit, mo->func));
     if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@conditionnal"))
       emit_add_instr(emit, BranchEqInt);
     else if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditionnal"))

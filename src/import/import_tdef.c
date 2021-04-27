@@ -17,14 +17,14 @@
 #include "specialid.h"
 
 ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type, const restrict m_str name) {
-  CHECK_BB(ck_ini(gwi, ck_tdef))
+  CHECK_BB(ck_ini(gwi, ck_tdef));
   gwi->ck->name = name;
-  CHECK_BB(check_typename_def(gwi, gwi->ck))
+  CHECK_BB(check_typename_def(gwi, gwi->ck));
   return (gwi->ck->td = gwi_str2td(gwi, type)) ? GW_OK : GW_ERROR;
 }
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_BO(ck_ok(gwi, ck_tdef))
+  CHECK_BO(ck_ok(gwi, ck_tdef));
   Type_Decl *td = gwi->ck->td;
   td->flag |= flag;
   const Type_Def tdef = new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);

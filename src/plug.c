@@ -144,7 +144,7 @@ ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug) {
     m_str *const base = dep();
     m_str *deps = base;
     while(*deps) {
-      CHECK_BB(plugin_ini(gwion, *deps))
+      CHECK_BB(plugin_ini(gwion, *deps));
       ++deps;
     }
   }
@@ -170,7 +170,7 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
       if(!imp)
         break;
       plug->imp = 1;
-      CHECK_BB(dependencies(gwion, plug))
+      CHECK_BB(dependencies(gwion, plug));
       const m_uint scope = env_push_global(gwion->env);
       const m_bool ret = gwi_run(gwion, imp);
       env_pop(gwion->env, scope);

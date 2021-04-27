@@ -31,12 +31,12 @@ ANN static inline type prefix##_section(const Arg a, /* const */ Section* sectio
   return prefix##_section_func[section->section_type](a, *(void**)d);                    \
 }
 
-#define HANDLE_EXP_FUNC(prefix, type, Arg)                  \
-DECL_EXP_FUNC(prefix, type, Arg)                            \
-ANN type prefix##_exp(const Arg arg, Exp exp) {             \
-  do CHECK_BB(prefix##_exp_func[exp->exp_type](arg, &exp->d)) \
-  while((exp = exp->next));                                 \
-  return GW_OK;                                             \
+#define HANDLE_EXP_FUNC(prefix, type, Arg)                     \
+DECL_EXP_FUNC(prefix, type, Arg)                               \
+ANN type prefix##_exp(const Arg arg, Exp exp) {                \
+  do CHECK_BB(prefix##_exp_func[exp->exp_type](arg, &exp->d)); \
+  while((exp = exp->next));                                    \
+  return GW_OK;                                                \
 }
 ANN m_bool scan1_exp(const Env, Exp);
 ANN m_bool scan2_exp(const Env, Exp);

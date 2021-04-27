@@ -17,10 +17,10 @@
 
 ANN2(1,2,3) static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
     const restrict m_str n) {
-  CHECK_BB(ck_ini(gwi, ck_fdef))
+  CHECK_BB(ck_ini(gwi, ck_fdef));
   gwi->ck->name = n;
-  CHECK_BB(check_typename_def(gwi, gwi->ck))
-  CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)))
+  CHECK_BB(check_typename_def(gwi, gwi->ck));
+  CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)));
   vector_init(&gwi->ck->v);
   return GW_OK;
 }
@@ -80,7 +80,7 @@ ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
-  CHECK_BB(ck_ok(gwi, ck_fdef))
+  CHECK_BB(ck_ok(gwi, ck_fdef));
   gwi->ck->addr = addr;
   gwi->ck->flag = flag;
   const m_bool ret = gwi_func_valid(gwi, gwi->ck);
@@ -89,7 +89,7 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 }
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t, const restrict m_str n) {
-  CHECK_BB(ck_ok(gwi, ck_fdef))
+  CHECK_BB(ck_ok(gwi, ck_fdef));
   if(gwi->ck->variadic)
     GWI_ERR_B(_("already declared as variadic"));
   if(!strcmp(n, "...")) {
@@ -124,7 +124,7 @@ ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_BO(ck_ok(gwi, ck_fdef))
+  CHECK_BO(ck_ok(gwi, ck_fdef));
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi))
   fptr->base->flag |= flag;
   if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)/* && !fptr->base->tmpl*/) {

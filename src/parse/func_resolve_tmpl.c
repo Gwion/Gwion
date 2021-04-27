@@ -35,7 +35,7 @@ ANN static inline bool tmpl_valid(const Env env, const Func_Def fdef/*, Exp_Call
   if(safe_fflag(fdef->base->func, fflag_valid))
     return true;
 //  const Tmpl tmpl = { .list=fdef->base->tmpl->list, .call=exp->tmpl->call };
-//  CHECK_BO(template_push_types(env, &tmpl));
+//  CHECK_BO(template_push_types(env, &tmpl));;
   const bool ret = check_traverse_fdef(env, fdef) > 0;
 //  nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -50,7 +50,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const 
   const Func next = f->next;
   f->next = NULL;
   const Tmpl tmpl = { .list=fdef->base->tmpl->list, .call=exp->tmpl->call };
-  CHECK_BO(template_push_types(env, &tmpl));
+  CHECK_BO(template_push_types(env, &tmpl));;
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
   f->next = next;
@@ -62,7 +62,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef, Exp_Call *const 
 }
 
 ANN static inline Func ensure_fptr(const Env env, struct ResolverArgs* ra, const Fptr_Def fptr) {
-  CHECK_BO(traverse_fptr_def(env, fptr))
+  CHECK_BO(traverse_fptr_def(env, fptr));
   return find_func_match(env, fptr->base->func, ra->e);
 }
 
@@ -74,7 +74,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs* ra) {
     return exists->info->func;
   const Func_Def base = v->d.func_ref ? v->d.func_ref->def : ra->e->func->type->info->func->def;
   const Tmpl tmpl = { .list=base->base->tmpl->list, .call=ra->types };
-  CHECK_BO(template_push_types(env, &tmpl));
+  CHECK_BO(template_push_types(env, &tmpl));;
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid = sym;
   fbase->tmpl->base = 0;
@@ -131,7 +131,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=tflag_check };
   struct ResolverArgs ra = {.v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner))
+  CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner));
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
@@ -161,7 +161,7 @@ ANN static inline m_bool check_call(const Env env, const Exp_Call* exp) {
 }
 
 ANN Func find_template_match(const Env env, const Value value, Exp_Call *const exp) {
-  CHECK_BO(check_call(env, exp))
+  CHECK_BO(check_call(env, exp));
   const Func f = _find_template_match(env, value, exp);
   if(f)
     return f;

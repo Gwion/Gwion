@@ -202,7 +202,7 @@ OP_EMIT(opem_object_dot) {
        (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
        !is_fptr(emit->gwion, exp_self(member)->type)))) {
     if(!tflag(t_base, tflag_struct))
-      CHECK_BB(emit_exp(emit, member->base))
+      CHECK_BB(emit_exp(emit, member->base));
   }
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 && !is_fptr(emit->gwion, exp_self(member)->type))
 	  emit_member_func(emit, member);
@@ -211,7 +211,7 @@ OP_EMIT(opem_object_dot) {
       emit_member(emit, value, exp_getvar(exp_self(member)));
     else {
       exp_setvar(member->base, 1);
-      CHECK_BB(emit_exp(emit, member->base))
+      CHECK_BB(emit_exp(emit, member->base));
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
     }
   } else if(GET_FLAG(value, static))
@@ -262,9 +262,9 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
 
 ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
   if(info->base->info->parent !=  env->gwion->type[et_union])
-    CHECK_BO(scantmpl_class_def(env, info))
+    CHECK_BO(scantmpl_class_def(env, info));
   else
-    CHECK_BO(scantmpl_union_def(env, info))
+    CHECK_BO(scantmpl_union_def(env, info));
   return info->ret;
 }
 
@@ -277,7 +277,7 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
   const Type owner = t->info->value->from->owner_class;
-  CHECK_BO(envset_push(&es, owner, t->info->value->from->owner))
+  CHECK_BO(envset_push(&es, owner, t->info->value->from->owner));
   const Type ret = _scan_class(env, &info);
   if(es.run)
     envset_pop(&es, owner);

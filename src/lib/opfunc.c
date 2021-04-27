@@ -113,7 +113,7 @@ OP_CHECK(opck_new) {
 OP_EMIT(opem_new) {
   const Exp_Unary* unary = (Exp_Unary*)data;
   CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
-    unary->td->array, 0))
+    unary->td->array, 0));
   emit_gc(emit, -SZ_INT);
   return GW_OK;
 }

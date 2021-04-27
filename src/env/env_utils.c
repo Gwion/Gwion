@@ -20,7 +20,7 @@ ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
 }
 
 ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
-  CHECK_BB(env_access(env, flag, pos))
+  CHECK_BB(env_access(env, flag, pos));
   return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK :GW_ERROR;
 }
 #undef GET
