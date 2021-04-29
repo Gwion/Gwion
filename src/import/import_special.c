@@ -55,3 +55,10 @@ ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d) {
 ANN VM* gwi_vm(const Gwi gwi) {
   return gwi->gwion->vm;
 }
+
+ANN void gwi_effects(const Gwi gwi, const m_str name) {
+  if(!gwi->effects.ptr)
+    vector_init(&gwi->effects);
+  const Symbol sym = insert_symbol(gwi->gwion->st, name);
+  vector_add(&gwi->effects, (m_uint)sym);
+}

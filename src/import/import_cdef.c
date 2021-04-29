@@ -125,6 +125,11 @@ ANN m_int gwi_class_end(const Gwi gwi) {
     --gwi->tmpls;
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   }
+  if(gwi->effects.ptr) {
+    vector_init(&t->effects);
+    vector_copy2(&gwi->effects, &t->effects);
+    vector_release(&gwi->effects);
+  }
   env_pop(gwi->gwion->env, 0);
   return GW_OK;
 }
