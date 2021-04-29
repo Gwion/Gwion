@@ -427,9 +427,12 @@ static OP_CHECK(opck_op_impl){
   self.d.exp_binary.op = impl->e->d.prim.d.var;
   struct Op_Import opi = { .op=impl->e->d.prim.d.var, .lhs=func->def->base->args->type,
     .rhs=func->def->base->args->next->type, .data=(uintptr_t)&self.d.exp_binary, .pos=impl->e->pos };
+  vector_add(&env->scope->effects, 0);
   DECL_ON(const Type, t, = op_check(env, &opi));
-  CHECK_BN(isa(t, func->def->base->ret_type));
-  // Find if the function exists
+  CHECK_BN(isa(t, func->def->base->ret_type)); // error message?
+  const m_uint _eff = vector_back(&env->scope->effects);
+  if(!check_effect_overload((Vector)&_eff, func))
+    ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"), s_name(impl->e->d.prim.d.var), func->name);
   Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if(v) {
       const m_uint scope = env_push(env, NULL, opi.nspc);
@@ -437,8 +440,14 @@ static OP_CHECK(opck_op_impl){
       Exp_Call call = { .args=&_lhs };
       const Func exists = (Func)find_func_match(env, v->d.func_ref, &call);
       env_pop(env, scope);
-      if(exists)
+      if(exists) { // improve me
+        if(_eff) {
+          const M_Vector eff = (M_Vector)&_eff;
+          m_vector_release(eff);
+          ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"), s_name(impl->e->d.prim.d.var), func->name);
+        }
         return actual_type(env->gwion, func->value_ref->type);
+      }
   }
   const Arg_List args = cpy_arg_list(env->gwion->mp, func->def->base->args);
   // beware shadowing ?
@@ -446,6 +455,15 @@ static OP_CHECK(opck_op_impl){
   args->next->var_decl->xid = rhs_sym;
   Func_Base *base = new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
        impl->e->d.prim.d.var, args, ae_flag_none, impl->e->pos);
+  if(_eff) {
+    const M_Vector eff = (M_Vector)&_eff;
+    for (m_uint i = 0; i < m_vector_size(eff); i++) {
+      struct ScopeEffect effect;
+      m_vector_get(eff, i, &effect);
+      vector_add(&base->effects, (m_uint)effect.sym);
+    }
+    m_vector_release(eff);
+  }
   const Exp lhs = new_prim_id(env->gwion->mp, args->var_decl->xid, impl->e->pos);
   const Exp rhs = new_prim_id(env->gwion->mp, args->next->var_decl->xid, impl->e->pos);
   const Exp bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var, rhs, impl->e->pos);

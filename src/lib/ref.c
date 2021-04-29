@@ -63,6 +63,7 @@ static OP_CHECK(opck_ref_scan) {
   const Type t = new_type(env->gwion->mp, s_name(info.name), base);
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
+  set_tflag(t, tflag_noret);
   const m_uint scope = env_push(env, base->info->value->from->owner_class, base->info->value->from->owner);
   mk_class(env, t, (loc_t){});
   base2ref(env, base, t);

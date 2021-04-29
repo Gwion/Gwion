@@ -383,6 +383,9 @@ ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
   do nspc_add_type(env->curr, id->xid, env->gwion->type[et_auto]);
   while((id = id->next));
   CHECK_OB((base->ret_type = known_type(env, base->td)));
+  if(tflag(base->ret_type, tflag_noret))
+        ERR_B(base->pos, _("Can't use type `{+G}%s{0}` for return"),
+             base->ret_type->name);
   if(base->args) {
     Arg_List arg = base->args;
     do CHECK_OB(known_type(env, arg->td));
@@ -407,6 +410,9 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
   }
   const Func_Def fdef = fptr->base->func->def;
   CHECK_OB((fdef->base->ret_type = scan1_type(env, fdef->base->td)));
+  if(tflag(fdef->base->ret_type, tflag_noret))
+       ERR_B(fdef->base->pos, _("Can't use type `{+G}%s{0}` for return"),
+             fdef->base->ret_type->name);
   if(!fdef->base->args)
     return GW_OK;
   RET_NSPC(scan1_args(env, fdef->base->args))
@@ -566,8 +572,12 @@ ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
 }
 
 ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
-  if(fdef->base->td)
+  if(fdef->base->td) {
     CHECK_OB((fdef->base->ret_type = known_type(env, fdef->base->td)));
+    if(tflag(fdef->base->ret_type, tflag_noret))
+         ERR_B(fdef->base->pos, _("Can't use type `{+G}%s{0}` for return"),
+             fdef->base->ret_type->name);
+  }
   if(fbflag(fdef->base, fbflag_internal))
     CHECK_BB(scan_internal(env, fdef->base));
   else if(fbflag(fdef->base, fbflag_op) && env->class_def)

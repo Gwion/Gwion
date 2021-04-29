@@ -87,6 +87,11 @@ ANN static m_bool check_fptr_decl(const Env env, const Var_Decl var) {
 ANN static m_bool check_var(const Env env, const Var_Decl var) {
   if(env->class_def && !env->scope->depth && env->class_def->info->parent)
     CHECK_BB(check_exp_decl_parent(env, var));
+  if(var->value->type->effects.ptr) {
+    const Vector v = &var->value->type->effects;
+    for(m_uint i = 0; i < vector_size(v); i++)
+      env_add_effect(env, (Symbol)vector_at(v, i), var->pos);
+  }
   if(var->array && var->array->exp)
     return check_subscripts(env, var->array, 1);
   return GW_OK;
@@ -749,6 +754,7 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
       env_add_effect(env, (Symbol)vector_at(v, i), pos);
   }
 }
+
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if(!ret)
@@ -1128,6 +1134,8 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   }
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
+  if(tflag(ret_type, tflag_noret))
+    ERR_B(stmt->val->pos, _("Can't use type `{+G}%s{+G}` for return"));
   if(stmt->val) {
     if(env->func->def->base->xid == insert_symbol("@implicit") && ret_type == env->func->def->base->args->type)
       ERR_B(stmt_self(stmt)->pos, _("can't use implicit casting while defining it"))
@@ -1397,14 +1405,14 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN bool check_effect_overload(const Func_Base *base, const Value override) {
-  if(!base->effects.ptr)
+ANN bool check_effect_overload(const Vector base, const Func override) {
+  if(!base->ptr)
     return true;
-  if(!override->d.func_ref->def->base->effects.ptr)
+  if(!override->def->base->effects.ptr)
     return false; // TODO: error message
-  const Vector v = &override->d.func_ref->def->base->effects;
+  const Vector v = &override->def->base->effects;
   for(m_uint i = 0; i < vector_size(v); i++) {
-    if(vector_find((Vector)&base->effects, vector_at(v, i)) == -1)
+    if(vector_find((Vector)base, vector_at(v, i)) == -1)
       return false;
   }
   return true;
@@ -1462,8 +1470,10 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   }
   vector_add(&env->scope->effects, 0);
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
-  const m_uint _v = vector_pop(&env->scope->effects);
+  const m_uint _v = vector_back(&env->scope->effects);
   if(_v) {
+    if(fdef->base->xid == insert_symbol("@dtor"))
+      ERR_B(fdef->base->pos, _("can't use effects in destructors"));
     const Vector v = (Vector)&_v;
     const Vector base = &fdef->base->effects;
     if(!base->ptr)
@@ -1475,6 +1485,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     }
     vector_release(v);
   }
+  vector_pop(&env->scope->effects);
   if(fbflag(fdef->base, fbflag_op))
     operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
@@ -1482,7 +1493,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   env->func = former;
   if(ret > 0) {
     set_fflag(fdef->base->func, fflag_valid);
-    if(env->class_def && !check_effect_overload(fdef->base, override))
+    if(env->class_def && !check_effect_overload(&fdef->base->effects, override->d.func_ref))
       ERR_B(fdef->base->pos,
           _("too much effects in override."),
           s_name(fdef->base->xid))
@@ -1548,26 +1559,25 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   return !err ? GW_OK : GW_ERROR;
 }
 
-ANN static inline void check_unhandled(const Env env) {
+ANN static inline void ctor_effects(const Env env) {
   const Vector v = &env->scope->effects;
   const m_uint _w = vector_back(v);
   if(!_w)
     return;
+  vector_init(&env->class_def->effects);
   const M_Vector w = (M_Vector)&_w;
   for(m_uint j = 0; j < m_vector_size(w); j++) {
     struct ScopeEffect eff;
     m_vector_get(w, j, &eff);
-    gwerr_secondary("Unhandled effect", env->name, eff.pos);
-    env->context->error = false;
+    vector_add(&env->class_def->effects, (m_uint)eff.sym);
   }
   m_vector_release(w);
   vector_pop(v);
 }
 
-
 ANN static m_bool check_body(const Env env, Section *const section) {
   const m_bool ret = check_section(env, section);
-  check_unhandled(env);
+  ctor_effects(env);
   return ret;
 }
 
@@ -1599,6 +1609,22 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
     return GW_OK;
   set_tflag(t, tflag_check);
   return _check_class_def(env, cdef);
+}
+
+ANN static inline void check_unhandled(const Env env) {
+  const Vector v = &env->scope->effects;
+  const m_uint _w = vector_back(v);
+  if(!_w)
+    return;
+  const M_Vector w = (M_Vector)&_w;
+  for(m_uint j = 0; j < m_vector_size(w); j++) {
+    struct ScopeEffect eff;
+    m_vector_get(w, j, &eff);
+    gwerr_secondary("Unhandled effect", env->name, eff.pos);
+    env->context->error = false;
+  }
+  m_vector_release(w);
+  vector_pop(v);
 }
 
 ANN m_bool check_ast(const Env env, Ast ast) {

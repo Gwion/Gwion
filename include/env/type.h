@@ -15,24 +15,25 @@ struct TypeInfo_ {
 };
 
 enum tflag {
-  tflag_none    = 1 << 0,
-  tflag_scan0   = 1 << 1,//
-  tflag_scan1   = 1 << 2,//
-  tflag_scan2   = 1 << 3,//
-  tflag_check   = 1 << 4,//
-  tflag_emit    = 1 << 5,//
-  tflag_infer   = 1 << 6,
-  tflag_empty   = 1 << 7,
-  tflag_ftmpl   = 1 << 8,
-  tflag_ntmpl   = 1 << 9, // do NOT need types
-  tflag_udef    = 1 << 10,
-  tflag_cdef    = 1 << 11,
-  tflag_struct  = 1 << 12,
-  tflag_ctor    = 1 << 13,
-  tflag_dtor    = 1 << 14,
-  tflag_tmpl    = 1 << 15,
-  tflag_typedef = 1 << 16,
+  tflag_none     = 1 << 0,
+  tflag_scan0    = 1 << 1,//
+  tflag_scan1    = 1 << 2,//
+  tflag_scan2    = 1 << 3,//
+  tflag_check    = 1 << 4,//
+  tflag_emit     = 1 << 5,//
+  tflag_infer    = 1 << 6,
+  tflag_empty    = 1 << 7,
+  tflag_ftmpl    = 1 << 8,
+  tflag_ntmpl    = 1 << 9, // do NOT need types
+  tflag_udef     = 1 << 10,
+  tflag_cdef     = 1 << 11,
+  tflag_struct   = 1 << 12,
+  tflag_ctor     = 1 << 13,
+  tflag_dtor     = 1 << 14,
+  tflag_tmpl     = 1 << 15,
+  tflag_typedef  = 1 << 16,
   tflag_distinct = 1 << 17,
+  tflag_noret    = 1 << 17,
 } __attribute__((packed));
 
 struct Type_ {
@@ -41,6 +42,7 @@ struct Type_ {
   struct TypeInfo_ *info;
   size_t size;
   size_t array_depth;
+  struct Vector_ effects; // pre-ctor effects
   uint16_t ref;
   ae_flag flag;
   enum tflag tflag;
