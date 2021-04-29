@@ -1135,7 +1135,7 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(isa(ret_type, env->func->def->base->ret_type) > 0)
     return GW_OK;
   if(tflag(ret_type, tflag_noret))
-    ERR_B(stmt->val->pos, _("Can't use type `{+G}%s{+G}` for return"));
+    ERR_B(stmt->val->pos, _("Can't use type `{+G}%s{+G}` for return"), ret_type->name);
   if(stmt->val) {
     if(env->func->def->base->xid == insert_symbol("@implicit") && ret_type == env->func->def->base->args->type)
       ERR_B(stmt_self(stmt)->pos, _("can't use implicit casting while defining it"))
