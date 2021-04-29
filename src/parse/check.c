@@ -1493,7 +1493,7 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   env->func = former;
   if(ret > 0) {
     set_fflag(fdef->base->func, fflag_valid);
-    if(env->class_def && !check_effect_overload(&fdef->base->effects, override->d.func_ref))
+    if(env->class_def && fdef->base->effects.ptr && !check_effect_overload(&fdef->base->effects, override->d.func_ref))
       ERR_B(fdef->base->pos,
           _("too much effects in override."),
           s_name(fdef->base->xid))
