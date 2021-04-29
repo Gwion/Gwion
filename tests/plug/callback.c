@@ -39,7 +39,7 @@ static SFUN(cb_func) {
   m_uint i;
   Func f = *(Func*)MEM(0);
   if(!f){
-    Except(shred, "NullCallbackException");
+    handle(shred, "NullCallbackException");
   }
   m_uint offset = shred->mem - ((m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG);
   PUSH_MEM(shred, offset);

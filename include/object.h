@@ -20,7 +20,6 @@ ANEW M_Object new_string2(const struct Gwion_*, const VM_Shred, const m_str);
 ANEW M_Object new_shred(const VM_Shred);
 ANN void fork_launch(const M_Object, const m_uint);
 ANN void __release(const M_Object, const VM_Shred);
-ANN void exception(const VM_Shred, const m_str);
 ANN void broadcast(const M_Object);
 
 #define STRING(o)    (*(m_str*)    ((M_Object)o)->data)
@@ -29,7 +28,6 @@ ANN void broadcast(const M_Object);
 #define UGEN(o)      (*(UGen*)     ((M_Object)o)->data)
 #define ARRAY(o)     (*(M_Vector*) ((M_Object)o)->data)
 #define IO_FILE(o)   (*(FILE**)    (((M_Object)o)->data + SZ_INT))
-#define Except(s, c) { exception(s, c); return; }
 
 static inline void _release(const restrict M_Object obj, const restrict VM_Shred shred) {
   if(!--obj->ref)__release(obj, shred);
