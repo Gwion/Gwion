@@ -91,7 +91,7 @@ ast: ast/libgwion_ast.a
 afl: gwion-fuzz
 
 gwcdoc:
-	@+LDFLAGS="-L../fmt/ -lgwfmt" CFLAGS="-I../fmt/include -DGWION_DOC" ${MAKE} PRG=gwcdoc all
+	@+LDFLAGS="-L../gwion-fmt/ -lgwfmt" CFLAGS="-I../gwion-fmt/include -DGWION_DOC" ${MAKE} PRG=gwcdoc all
 
 gwion-fuzz:
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
