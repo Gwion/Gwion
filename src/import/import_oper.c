@@ -84,7 +84,7 @@ ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
   lint_lparen(gwi->lint);
   if(gwi->oper->lhs && gwi->oper->rhs) {
     lint(gwi->lint, "{+}%s{0}", gwi->oper->lhs != (m_str)1 ? gwi->oper->lhs : "@Any");
-    lint(gwi->lint, ",");
+    lint_comma(gwi->lint);
     lint_space(gwi->lint);
   }
   if(gwi->oper->rhs)
