@@ -63,6 +63,11 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
     gwi->tmpls++;
     add_template(gwi->gwion->env, t);
   }
+#ifdef GWION_DOC
+  lint_indent(gwi->lint);
+  gwi->lint->indent++;
+  lint_class_def(gwi->lint, t->info->cdef);
+#endif
   return t;
 }
 
@@ -117,6 +122,11 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
 }
 
 ANN m_int gwi_class_end(const Gwi gwi) {
+#ifdef GWION_DOC
+  gwi->lint->indent--;
+  lint_rbrace(gwi->lint);
+  lint_nl(gwi->lint);
+#endif
   if(!gwi->gwion->env->class_def)
     GWI_ERR_B(_("import: too many class_end called."))
   nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);

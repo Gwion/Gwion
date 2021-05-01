@@ -90,6 +90,9 @@ ast: ast/libgwion_ast.a
 
 afl: gwion-fuzz
 
+gwcdoc:
+	@+LDFLAGS="-L../fmt/ -lgwfmt" CFLAGS="-I../fmt/include -DGWION_DOC" ${MAKE} PRG=gwcdoc all
+
 gwion-fuzz:
 	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
 	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ ${MAKE}

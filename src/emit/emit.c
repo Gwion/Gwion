@@ -1410,7 +1410,7 @@ ANN static m_bool emit_implicit_cast(const Emitter emit,
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e));
   emit_exp_addref1(emit, e, -exp_size(e));
-  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
+  struct Op_Import opi = { .op=insert_symbol(b ? "@conditional" : "@unconditional"),
                            .rhs=e->type, .pos=e->pos, .data=(uintptr_t)e };
   CHECK_BO(op_emit(emit, &opi));
   return (Instr)vector_back(&emit->code->instr);

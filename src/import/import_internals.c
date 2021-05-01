@@ -29,12 +29,18 @@ ANN void gwi_reset(const Gwi gwi) {
 }
 
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
-   const m_str name = gwion->env->name;
-   OperCK oper = {};
-   struct Gwi_ gwi = { .gwion=gwion, .oper=&oper };
-   const m_bool ret = f(&gwi);
-   if(ret < 0)
-     gwi_reset(&gwi);
-   gwion->env->name = name;
-   return ret;
+  const m_str name = gwion->env->name;
+  OperCK oper = {};
+  struct Gwi_ gwi = { .gwion=gwion, .oper=&oper };
+#ifdef GWION_DOC
+  struct LintState ls = { .builtin=true };
+  Lint linter = { .mp=gwion->mp, .ls=&ls };
+  lint(&linter, "{-}#!+ %s{0}\n", name);
+  gwi.lint = &linter;
+#endif
+  const m_bool ret = f(&gwi);
+  if(ret < 0)
+    gwi_reset(&gwi);
+  gwion->env->name = name;
+  return ret;
 }

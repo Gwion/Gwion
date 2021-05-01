@@ -79,43 +79,63 @@ static INSTR(PredicateCheck) {
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
+  gwidoc(gwi, "one type to rule them all.");
   const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_gack(gwi, t_class, gack_class))
 
+  gwidoc(gwi, "this type is infered.");
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
   set_tflag(t_auto, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
+
+  gwidoc(gwi, "a void type.");
   const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
+
+  gwidoc(gwi, "a type for *pretty print*.");
   const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_gack, gack_gack))
   GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
+
+  gwidoc(gwi, "integer type.");
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_int, gack_int))
   GWI_BB(gwi_set_global_type(gwi, t_int, et_int))
+
+  gwidoc(gwi, "character type.");
   const Type t_char = gwi_mk_type(gwi, "char", SZ_INT, "int");
   GWI_BB(gwi_gack(gwi, t_char, gack_char))
   GWI_BB(gwi_set_global_type(gwi, t_char, et_char))
+
+  gwidoc(gwi, "float type.");
   const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_float, gack_float))
   GWI_BB(gwi_set_global_type(gwi, t_float, et_float))
+
+  gwidoc(gwi, "represent duration.");
   const Type t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_dur, gack_float))
   GWI_BB(gwi_add_type(gwi, t_dur))
+
+  gwidoc(gwi, "represent time.");
   const Type t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_time, gack_float))
   GWI_BB(gwi_add_type(gwi, t_time))
+
+  gwidoc(gwi, "internal time for `{/}now{0}{-}`.");
   const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, "time");
   GWI_BB(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
   gwi_specialid(gwi, "now", &spid);
 
+  gwidoc(gwi, "internal predicate representation.");
   struct SpecialId_ predicate = { .type=t_void, .exec=PredicateCheck, .is_const=1 };
   gwi_specialid(gwi, "@predicate", &predicate);
 
+  gwidoc(gwi, "internal base of all objects and structures.");
   const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
@@ -123,18 +143,24 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_object(gwi))
 
   GWI_BB(import_prim(gwi))
+  gwidoc(gwi, "the base of all functions.");
   const Type t_function = gwi_mk_type(gwi, "@function", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_function, gack_function))
   GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
+
+  gwidoc(gwi, "the base of function pointers.");
   const Type t_fptr = gwi_mk_type(gwi, "@func_ptr", SZ_INT, "@function");
   GWI_BB(gwi_gack(gwi, t_fptr, gack_fptr))
   GWI_BB(gwi_set_global_type(gwi, t_fptr, et_fptr))
+
+  gwidoc(gwi, "the base of decayed operators.");
   const Type t_op = gwi_mk_type(gwi, "@op", SZ_INT, "@function");
   GWI_BB(gwi_set_global_type(gwi, t_op, et_op))
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
   set_tflag(t_lambda, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
+  gwidoc(gwi, "type for internal pointer data.");
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
   GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
 
@@ -157,6 +183,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_modules(gwi))
   GWI_BB(import_ref(gwi))
 
+  gwidoc(gwi, "Operators class types.");
   GWI_BB(gwi_oper_ini(gwi, "@Class", "@Class", "int"))
   GWI_BB(gwi_oper_end(gwi, "==", int_eq))
   GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
@@ -165,15 +192,18 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
   GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
 
+  gwidoc(gwi, "internal constructor operator.");
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
 
+  gwidoc(gwi, "allow member access.");
   GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
+  gwidoc(gwi, "allow static access.");
   GWI_BB(gwi_oper_ini(gwi, "@Class", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))

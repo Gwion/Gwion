@@ -4,7 +4,7 @@ class C {
   10 => var int i;
 }
 
-operator int @conditionnal (C c) {
+operator int @conditional (C c) {
   <<< __func__ >>>;
   --c.i;
   return c.i;

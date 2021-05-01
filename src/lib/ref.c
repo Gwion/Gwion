@@ -74,11 +74,20 @@ static OP_CHECK(opck_ref_scan) {
 }
 
 GWION_IMPORT(ref) {
+  gwidoc(gwi, "Ref: take a reference from a variable.");
+  gwinote(gwi, "used just as the variable it reference.");
+  gwinote(gwi, "can only be used as argument.");
+  gwinote(gwi, "and cannot be returned.");
   const Type t_foreach = gwi_struct_ini(gwi, "Ref:[A]");
   set_tflag(t_foreach, tflag_infer);
-  GWI_BB(gwi_item_ini(gwi, "@internal", "val"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+
+    gwinote(gwi, "a pointer to the referenced variable.");
+    GWI_BB(gwi_item_ini(gwi, "@internal", "val"))
+    GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+
   GWI_BB(gwi_struct_end(gwi))
+
+  gwidoc(gwi, "internal `Ref` type creation.");
   GWI_BB(gwi_oper_ini(gwi, "Ref", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ref_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))

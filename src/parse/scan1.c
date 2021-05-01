@@ -544,8 +544,8 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
     return class_internal(env, base);
   if(op == insert_symbol("@implicit"))
     return scan_internal_arg(env, base);
-  if(op == insert_symbol("@conditionnal") ||
-     op == insert_symbol("@unconditionnal"))
+  if(op == insert_symbol("@conditional") ||
+     op == insert_symbol("@unconditional"))
     return scan_internal_int(env, base);
   return GW_OK;
 }

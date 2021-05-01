@@ -54,6 +54,10 @@ ANEW ANN static Func_Base* gwi_func_base(const Gwi gwi, ImportCK *ck) {
 ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   Func_Base* base = gwi_func_base(gwi, ck);
   const Func_Def fdef = new_func_def(gwi->gwion->mp, base, NULL);
+#ifdef GWION_DOC
+  lint_indent(gwi->lint);
+  lint_func_def(gwi->lint, fdef);
+#endif
   if(gwi->effects.ptr) {
     vector_init(&fdef->base->effects);
     vector_copy2(&gwi->effects, &fdef->base->effects);
@@ -132,6 +136,10 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_fdef));
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi));
   fptr->base->flag |= flag;
+#ifdef GWION_DOC
+  lint_indent(gwi->lint);
+  lint_fptr_def(gwi->lint, fptr);
+#endif
   if(safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)/* && !fptr->base->tmpl*/) {
     section_fptr(gwi, fptr);
     ck_end(gwi);

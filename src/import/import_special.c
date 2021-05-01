@@ -30,6 +30,11 @@ ANN void gwi_reserve(const Gwi gwi, const m_str str) {
 }
 
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
+#ifdef GWION_DOC
+  lint(gwi->lint, "{+C}specialid{0} %s{/}%s{0};\n",
+      spid->is_const ? "{+G}const{0} " : "",
+      id);
+#endif
   struct SpecialId_ *a = mp_calloc(gwi->gwion->mp, SpecialId);
   memcpy(a, spid, sizeof(struct SpecialId_));
   map_set(&gwi->gwion->data->id, (vtype)insert_symbol(gwi->gwion->st, id), (vtype)a);

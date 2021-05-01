@@ -172,7 +172,10 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
       plug->imp = 1;
       CHECK_BB(dependencies(gwion, plug));
       const m_uint scope = env_push_global(gwion->env);
+      const m_str name = gwion->env->name;
+      gwion->env->name = iname;
       const m_bool ret = gwi_run(gwion, imp);
+      gwion->env->name = name;
       env_pop(gwion->env, scope);
       return ret;
     }

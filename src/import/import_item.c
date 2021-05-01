@@ -34,6 +34,12 @@ ANN2(1) m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data a
   CHECK_BB(ck_ok(gwi, ck_item));
   const Env env = gwi->gwion->env;
   gwi->ck->exp->d.exp_decl.td->flag = flag;
+#ifdef GWION_DOC
+  lint_indent(gwi->lint);
+  lint_exp(gwi->lint, gwi->ck->exp);
+  lint_sc(gwi->lint);
+  lint_nl(gwi->lint);
+#endif
   if(env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_BB(traverse_exp(env, gwi->ck->exp));

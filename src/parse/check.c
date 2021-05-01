@@ -892,7 +892,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary* unary) {
 
 ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
   DECL_OO(const Type, type, = check_exp(env, e));
-  struct Op_Import opi = { .op=insert_symbol(b ? "@conditionnal" : "@unconditionnal"),
+  struct Op_Import opi = { .op=insert_symbol(b ? "@conditional" : "@unconditional"),
     .rhs=type, .pos=e->pos, .data=(uintptr_t)e };
   return op_check(env, &opi);
 }
