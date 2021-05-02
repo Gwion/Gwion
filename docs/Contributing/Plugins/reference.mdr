@@ -10,7 +10,7 @@ Name | Value | Description
 `GW_PASS` | 0 | Ignore the result and continue
 `GW_ERROR` | -1 | An error occured
 
-The following macros are sugar for handling error codes. They can exit the scope of the function. It si recommended to use these rather than writing:
+The following macros are sugar for handling error codes. They can exit the scope of the function. It is recommended to use these rather than writing:
 ```c
 if (!a) return NULL;
 ```
