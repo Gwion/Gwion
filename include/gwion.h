@@ -35,4 +35,6 @@ ANN static inline Type type_class(const Gwion gwion, const Type t) {
   const Value v = nspc_lookup_value1(t->info->value->from->owner, insert_symbol(gwion->st, t->name));
   return v->type;
 }
+
+ANN void gwion_set_debug(const Gwion gwion, const bool dbg);
 #endif

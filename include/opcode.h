@@ -188,6 +188,10 @@ enum {
   eHandleEffect,
   ePerformEffect,
   eNoOp,
+  eDebugLine,
+  eDebugValue,
+  eDebugPush,
+  eDebugPop,
   eEOC,
   eUnroll2,
   eOP_MAX,
@@ -381,6 +385,10 @@ enum {
 #define  HandleEffect         (f_instr)eHandleEffect
 #define  PerformEffect        (f_instr)ePerformEffect
 #define  NoOp                 (f_instr)eNoOp
+#define  DebugLine            (f_instr)eDebugLine
+#define  DebugValue           (f_instr)eDebugValue
+#define  DebugPush            (f_instr)eDebugPush
+#define  DebugPop             (f_instr)eDebugPop
 #define  EOC                  (f_instr)eEOC
 #define  Unroll2              (f_instr)eUnroll2
 #define  OP_MAX               (f_instr)eOP_MAX

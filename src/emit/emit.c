@@ -41,6 +41,13 @@ static inline m_uint emit_push_global(const Emitter emit) {
   return env_push_global(emit->env);
 }
 
+static inline void emit_debug(const Emitter emit, const Value v) {
+  if(!emit->info->debug)
+    return;
+  const Instr instr = emit_add_instr(emit, DebugValue);
+  instr->m_val = (m_uint)v;
+}
+
 ANEW static Frame* new_frame(MemPool p) {
   Frame* frame = mp_calloc(p, Frame);
   vector_init(&frame->stack);
@@ -243,11 +250,15 @@ ANN static void emit_pop_scope(const Emitter emit) {
     instr->m_val = (m_uint)offset;
   }
   vector_pop(&emit->info->pure);
+  if(emit->info->debug)
+    emit_add_instr(emit, DebugPop);
 }
 
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code(emit, name);
+  if(emit->info->debug)
+    emit_add_instr(emit, DebugLine);
 }
 
 ANN static inline void emit_pop_code(const Emitter emit) {
@@ -257,6 +268,8 @@ ANN static inline void emit_pop_code(const Emitter emit) {
 ANN static inline void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
   vector_add(&emit->info->pure, 0);
+  if(emit->info->debug)
+    emit_add_instr(emit, DebugPush);
 }
 
 ANN static inline m_uint emit_code_size(const Emitter emit) {
@@ -805,6 +818,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   f_instr *exec = (f_instr*)allocmember;
   if(!vflag(v, vflag_member)) {
     v->from->offset = emit_local(emit, type);
+    emit_debug(emit, v);
     exec = (f_instr*)(allocword);
     if(GET_FLAG(v, late)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
@@ -1501,10 +1515,13 @@ ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl* td) {
 
 DECL_EXP_FUNC(emit, m_bool, Emitter)
 
-
 ANN2(1) /*static */m_bool emit_exp(const Emitter emit, /* const */Exp e) {
   Exp exp = e;
   do {
+    if(emit->info->debug && emit->info->line < e->pos.first.line) {
+      const Instr instr = emit_add_instr(emit, DebugLine);
+      instr->m_val = emit->info->line = e->pos.first.line;
+    }
     CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d));
     if(exp->cast_to)
       CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to));
@@ -1546,8 +1563,10 @@ ANN static m_bool emit_stmt_if(const Emitter emit, const Stmt_If stmt) {
 }
 
 ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
+  emit_push_scope(emit);
   ++emit->env->scope->depth;
   const m_bool ret = stmt->stmt_list ? emit_stmt_list(emit, stmt->stmt_list) : 1;
+  emit_pop_scope(emit);
   --emit->env->scope->depth;
   return ret;
 }
@@ -1810,6 +1829,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt, m_ui
   loop_idx->m_val = offset + SZ_INT;
   loop_idx->m_val2 = -1;
   stmt->v->from->offset = offset + SZ_INT *2;
+  emit_debug(emit, stmt->v);
   if(stmt->idx)
     stmt->idx->v->from->offset = offset + SZ_INT;
   if(n) {
@@ -1984,6 +2004,7 @@ ANN static m_bool emit_case_body(const Emitter emit, const struct Stmt_Match_* s
 ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
   const Value v = e->d.prim.value;
   v->from->offset = emit_local(emit, base->type);
+  emit_debug(emit, v);
   const Instr instr = emit_add_instr(emit, Reg2Mem4);
   instr->m_val = v->from->offset;
   instr->m_val2 = base->type->size;
@@ -2173,6 +2194,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
     const Type type = a->var_decl->value->type;
     emit->code->stack_depth += type->size;
     a->var_decl->value->from->offset = emit_localn(emit, type);
+    emit_debug(emit, a->var_decl->value);
   } while((a = a->next));
 }
 

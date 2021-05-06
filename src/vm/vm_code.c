@@ -23,7 +23,7 @@ ANN void free_code_instr(const Vector v, const Gwion gwion) {
 
 ANN void free_vmcode(VM_Code a, Gwion gwion) {
   if(!a->builtin) {
-    _mp_free(gwion->mp, vector_size(a->instr) * BYTECODE_SZ, a->bytecode);
+    _mp_free(gwion->mp, vector_size(&a->instr) * BYTECODE_SZ, a->bytecode);
     if(likely(!a->callback)) {
       if(a->closure) {
         if(!a->is_memoize)
@@ -31,11 +31,11 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
         else
           memoize_end(gwion->mp, a->memoize);
       }
-      free_code_instr(a->instr, gwion);
+      free_code_instr(&a->instr, gwion);
     }
     if(a->handlers.ptr)
       map_release(&a->handlers);
-    free_vector(gwion->mp, a->instr);
+    vector_release(&a->instr);
   }
   free_mstr(gwion->mp, a->name);
   mp_free(gwion->mp , VM_Code, a);
@@ -53,7 +53,7 @@ static inline void setpc(const m_bit *data, const m_uint i) {
 }
 
 ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
-   const Vector v = code->instr;
+  const Vector v = &code->instr;
   const m_uint sz = vector_size(v);
   m_bit *ptr = _mp_malloc(p, sz * BYTECODE_SZ);
   struct Vector_ nop;
@@ -155,7 +155,9 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
   VM_Code code           = mp_calloc(p, VM_Code);
   code->name             = mstrdup(p, name);
   if(instr) {
-    code->instr            = vector_copy(p, instr);
+//    code->instr            = vector_copy(p, instr);
+    vector_init(&code->instr);
+    vector_copy2(instr, &code->instr);
     code->bytecode = tobytecode(p, code);
   }
   code->stack_depth      = stack_depth;
@@ -169,9 +171,9 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
 VM_Code vmcode_callback(MemPool mp, VM_Code base) {
   char name[strlen(base->name) + 11];
   sprintf(name, "%s(callback)", base->name);
-  const Instr instr = (Instr)vector_back(base->instr);
+  const Instr instr = (Instr)vector_back(&base->instr);
   instr->opcode = eEOC;
-  VM_Code code = new_vmcode(mp, base->instr, base->stack_depth, base->builtin, name);
+  VM_Code code = new_vmcode(mp, &base->instr, base->stack_depth, base->builtin, name);
   code->closure = base->closure;
   code->callback = 1;
   instr->opcode = eFuncReturn;

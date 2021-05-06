@@ -124,7 +124,7 @@ static MFUN(shred##name##_name) { \
   const m_str str = code_name((src), 0); \
   *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, str); \
 }
-describe_name(, s->info->name)
+describe_name(, s->info->orig->name)
 describe_name(_code, s->code->name)
 
 #define describe_path_and_dir(name, src) \
@@ -149,7 +149,7 @@ static MFUN(shred##name##_dir) { \
   }\
   *(m_uint*)RETURN = (m_uint)new_string(shred->info->mp, shred, c); \
 }
-describe_path_and_dir(, s->info->name)
+describe_path_and_dir(, s->info->orig->name)
 describe_path_and_dir(_code, s->code->name)
 
 static DTOR(shred_dtor) {

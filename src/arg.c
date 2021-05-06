@@ -18,6 +18,7 @@ enum {
   DRIVER, SRATE, NINPUT, NOUTPUT,
 // pp options
   DEFINE, UNDEF, INCLUDE,
+  DEBUG,
   NOPTIONS
 };
 
@@ -47,7 +48,8 @@ enum arg_type {
   ARG_STDIN,
   ARG_DEFINE,
   ARG_UNDEF,
-  ARG_INCLUDE
+  ARG_INCLUDE,
+  ARG_DEBUG
 };
 
 ANN static void arg_init(Arg* arg) {
@@ -68,6 +70,19 @@ ANN void arg_release(Arg* arg) {
   vector_release(&arg->config);
 }
 
+static inline bool _get_debug(const m_str dbg) {
+  if(!dbg || !strcmp(dbg, "true"))
+    return true;
+  if(!strcmp(dbg, "false"))
+    return false;
+  return atoi(dbg) ? true : false;
+}
+
+ANN static inline void get_debug(const Gwion gwion, const m_str dbg) {
+  const bool is_dbg = _get_debug(dbg);
+  gwion_set_debug(gwion, is_dbg);
+}
+
 ANN void arg_compile(const Gwion gwion, Arg *arg) {
   const Vector v = &arg->add;
   for(m_uint i = 0; i < vector_size(v); i++) {
@@ -86,6 +101,9 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
         break;
       case ARG_INCLUDE:
         pparg_inc(gwion->ppa, (m_str)VPTR(v, ++i));
+        break;
+      case ARG_DEBUG:
+        get_debug(gwion, (m_str)VPTR(v, ++i));
         break;
     }
   }
@@ -179,6 +197,11 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
         'I', "include",
         CMDOPT_TAKESARG, NULL,
         "add ARG to include path", &opt[INCLUDE]
+    );
+    cmdapp_set(app,
+        'G', "debug",
+        CMDOPT_MAYTAKEARG, NULL,
+        "set/unset debug mode", &opt[DEBUG]
     );
 }
 
@@ -298,6 +321,10 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
           break;
         case 'I':
           add2arg(_arg, option->value, ARG_INCLUDE);
+          break;
+// debug
+        case 'G':
+          add2arg(_arg, option->value, ARG_DEBUG);
           break;
     }
   }

@@ -185,6 +185,10 @@ TryEnd
 HandleEffect
 PerformEffect
 NoOp
+DebugLine
+DebugValue
+DebugPush
+DebugPop
 EOC
 Unroll2
 OP_MAX

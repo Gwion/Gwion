@@ -226,7 +226,7 @@ static INSTR(UURet) {
 
 ANN static void code_prepare(const VM_Code code) {
   m_bit *byte = code->bytecode;
-  for(m_uint i = 0; i < vector_size(code->instr); ++i) {
+  for(m_uint i = 0; i < vector_size(&code->instr); ++i) {
     if(*(m_bit*)(byte + i *BYTECODE_SZ) == eFuncReturn) {
       *(m_bit*)(byte + i * BYTECODE_SZ)= eOP_MAX;
       *(f_instr*)(byte + (i*BYTECODE_SZ) + SZ_INT*2) = UURet;

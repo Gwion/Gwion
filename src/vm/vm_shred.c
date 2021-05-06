@@ -11,22 +11,23 @@ struct Stack_ {
   char d[SIZEOF_MEM];
 };
 
-static inline struct ShredInfo_ *new_shredinfo(MemPool p, const m_str name) {
+static inline struct ShredInfo_ *new_shredinfo(MemPool p, const VM_Code c) {
   struct ShredInfo_ *info = mp_calloc(p, ShredInfo);
   info->mp = p;
-  info->name = mstrdup(p, name);
+  info->orig = c;
   return info;
 }
 
 static inline void free_shredinfo(MemPool mp, struct ShredInfo_ *info) {
-  free_mstr(mp, info->name);
-  if(info->args) {
+  if(info->args) { // could be a struct
     const Vector v = info->args;
     LOOP_OPTIM
     for(m_uint i = vector_size(v) + 1; --i;)
       xfree((void*)vector_at(v, i - 1));
     free_vector(mp, v);
   }
+  if(info->line.ptr)
+    vector_release(&info->line);
   mp_free(mp, ShredInfo, info);
 }
 
@@ -35,8 +36,7 @@ VM_Shred new_vm_shred(MemPool p, VM_Code c) {
   shred->code = c;
   shred->reg  = (m_bit*)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
-  shred->info = new_shredinfo(p, c->name);
-  shred->info->orig = c;
+  shred->info = new_shredinfo(p, c);
   vector_init(&shred->gc);
   return shred;
 }

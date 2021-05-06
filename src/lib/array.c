@@ -922,7 +922,7 @@ INSTR(ArrayAlloc) {
     aai.data = init_array(shred, info, &num_obj);
   const M_Object ref = do_alloc_array(shred, &aai);
   if(!ref) {
-    gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->tick->xid, shred->info->name);
+    gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n", shred->tick->xid, shred->code->name);
     vm_shred_exit(shred);
     return; // TODO make exception vararg
   }

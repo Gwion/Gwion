@@ -2,7 +2,7 @@
 #define __GWI
 
 #ifdef GWION_DOC
-#include "lint.h"
+#include "gwfmt.h"
 #define gwiheader(a,...) do { lint_nl(a->lint); lint_indent(a->lint); lint(a->lint, "{-}#!+ {/}%s{0}\n", __VA_ARGS__); } while(0)
 #define gwidoc(a,...)    do { lint_nl(a->lint); lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)
 #define gwinote(a,...)   do { lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)

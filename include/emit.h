@@ -26,6 +26,8 @@ struct EmitterInfo_ {
   VM_Code code;
   uint memoize;
   uint unroll;
+  uint line;
+  bool debug;
 };
 
 struct Emitter_ {

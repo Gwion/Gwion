@@ -40,11 +40,17 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
-ANN static bool unwind(VM_Shred shred, const Symbol effect) {
-  if(!shred->info->frame.ptr || !vector_size(&shred->info->frame))
+ANN static inline void shred_unwind(VM_Shred shred) {
+  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
+  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
+  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
+}
+
+ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
+  if(!size)
     return true;
   if(shred->code->handlers.ptr) {
-    const m_uint start = VKEY(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+    const m_uint start = VKEY(&shred->info->frame, size - 1);
     if(start > shred->pc)
       return true;
     const Map m = &shred->code->handlers;
@@ -54,7 +60,7 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect) {
         break;
       if(start < shred->pc && VKEY(m, i) > shred->pc) {
          const m_uint next = VKEY(m, i);
-         const Instr instr = (Instr)vector_at(shred->code->instr, next + 1);
+         const Instr instr = (Instr)vector_at(&shred->code->instr, next + 1);
          if(!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
            pc = next + 1;
            break;
@@ -66,31 +72,50 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect) {
     shred->reg = (m_bit*)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
     shredule(shred->tick->shreduler, shred, 0);
     shred->pc = pc;//VKEY(m, i);
+    // should we pop?
+    VLEN(&shred->info->frame) = size;
     return false;
   }
   // there might be no more stack to unwind
-  vector_pop(&shred->info->frame);
-  vector_pop(&shred->info->frame);
   if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return true;
-  // literally unwind
-  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
-  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
-  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
-  return unwind(shred, effect);
+  shred_unwind(shred);
+  return unwind(shred, effect, size - 2);
+}
+
+ANN static void trace(VM_Shred shred, const m_uint size) {
+  const m_uint line = vector_at(&shred->info->line, size-1);
+  m_uint i;
+  for(i = size; --i;) {
+    if(VPTR(&shred->info->line, i-1))
+      break;
+  }
+  loc_t loc = {.first={.line=line, .column=1},.last={.line=line, .column=1}};
+  gw_err("      {-B}┃{0} in function {+}%s{0}{-}:{0}\n", shred->code->name);
+  gwerr_secondary("called from here", code_name(shred->code->name, true), loc);
+  if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
+    return;
+  shred_unwind(shred);
+  trace(shred, i);
 }
 
 ANN void handle(VM_Shred shred, const m_str effect) {
-  // remove from the shreduler
-  // TODO: get shred->mem and shred->reg offsets
+  m_bit *const reg = shred->reg;
+  m_bit *const mem = shred->mem;
+  const m_uint size = shred->info->frame.ptr ?
+    vector_size(&shred->info->frame) : 0;
+  const VM_Code code = shred->code;
   shreduler_remove(shred->tick->shreduler, shred, false);
-  // do the unwiding
-  if(unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect))) {
-    vm_shred_exit(shred);
-    gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}: {-R}Unhandled {+R}%s{0}\n", shred->tick->xid, effect);
+  if(!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size))
+    return;
+  gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}: {-R}Unhandled {+R}%s{0}\n", shred->tick->xid, effect);
+  if(shred->info->line.ptr) { // trace if available
+    shred->reg = reg;
+    shred->mem = mem;
+    shred->code = code;
+    trace(shred, vector_size(&shred->info->line));
   }
-  // I guess the VM could have *trace mode*
-  // which would happen here from the top
+  vm_shred_exit(shred);
 }
 
 
@@ -385,7 +410,9 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr,
     &&dotfunc,
     &&gcini, &&gcadd, &&gcend,
-    &&gacktype, &&gackend, &&gack, &&try_ini, &&try_end, &&handleeffect, &&performeffect, &&noop, &&eoc, &&unroll2, &&other, &&regpushimm
+    &&gacktype, &&gackend, &&gack, &&try_ini, &&try_end, &&handleeffect, &&performeffect, &&noop,
+    &&debugline, &&debugvalue, &&debugpush, &&debugpop,
+    &&eoc, &&unroll2, &&other, &&regpushimm
   };
   const Shreduler s = vm->shreduler;
   register VM_Shred shred;
@@ -1019,9 +1046,9 @@ handleeffect:
 // this should check the *xid* of the exception
   DISPATCH();
 performeffect:
+  VM_OUT
   handle(shred, (m_str)VAL);
   break;
-// this should check the *xid* of the exception
 noop:
   DISPATCH();
 other:
@@ -1035,6 +1062,27 @@ in:
   reg = shred->reg;
   mem = shred->mem;
   PC_DISPATCH(shred->pc)
+debugline:
+  if(!shred->info->line.ptr) {// from a problem with spork it seems
+    vector_init(&shred->info->line);
+    vector_add(&shred->info->line, VAL);
+  } else if(!VAL) {
+    vector_add(&shred->info->line, VAL);
+  } else {
+    const m_uint sz = vector_size(&shred->info->line);
+    vector_set(&shred->info->line, sz - 1, VAL);
+  }
+  DISPATCH();
+debugvalue:
+  DISPATCH();
+debugpush:
+  if(!shred->info->line.ptr)
+    vector_init(&shred->info->line);
+  vector_add(&shred->info->line, 0);
+  DISPATCH();
+debugpop:
+  vector_pop(&shred->info->line);
+  DISPATCH();
 eoc:
   VM_OUT
   vm_shred_exit(shred);

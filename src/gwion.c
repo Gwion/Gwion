@@ -207,3 +207,7 @@ ANN Nspc pop_global(struct Gwion_ *gwion) {
   nspc_remref(gwion->env->global_nspc, gwion);
   return gwion->env->curr = gwion->env->global_nspc = nspc;
 }
+
+ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {
+  gwion->emit->info->debug = dbg;
+}

@@ -13,7 +13,7 @@ typedef struct VM_Code_* VM_Code;
 struct VM_Code_ {
   m_bit *bytecode;
   union {
-    Vector instr;
+    struct Vector_ instr;
     m_uint native_func;
   };
   size_t stack_depth;
@@ -35,6 +35,12 @@ typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_Shred_* VM_Shred;
 
+typedef struct Debugger_ {
+  struct Vector_ breakpoint;
+  Nspc nspc;
+  bool step;
+} Debugger;
+
 typedef struct VM_ {
   Shreduler shreduler;
   struct Vector_ ugen;
@@ -42,18 +48,18 @@ typedef struct VM_ {
   struct Gwion_* gwion;
   VM_Shred cleaner_shred;
   struct VM_ *parent;
+  Debugger debugger;
   uint32_t rand[2];
 } VM;
-
 
 struct ShredInfo_ {
   VM* vm;
   struct M_Object_* me;
-  m_str name;
   Vector args;
   MemPool mp;
   VM_Code orig;
   struct Vector_ frame;
+  struct Vector_ line;
 };
 
 struct ShredTick_ {
