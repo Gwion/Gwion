@@ -86,13 +86,17 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
 ANN static void trace(VM_Shred shred, const m_uint size) {
   const m_uint line = vector_at(&shred->info->line, size-1);
   m_uint i;
+  bool can_skip = false;
   for(i = size; --i;) {
-    if(VPTR(&shred->info->line, i-1))
+    const m_uint val = VPTR(&shred->info->line, i-1);
+    if(!val)
+      can_skip = true;
+    else if(can_skip && val)
       break;
   }
   loc_t loc = {.first={.line=line, .column=1},.last={.line=line, .column=1}};
-  gw_err("      {-B}┃{0} in function {+}%s{0}{-}:{0}\n", shred->code->name);
   gwerr_secondary("called from here", code_name(shred->code->name, true), loc);
+  gw_err("      {M}┗━╸{0} {-}in code{0} {+W}%s{0}{-}:{0}\n", shred->code->name);
   if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return;
   shred_unwind(shred);
@@ -113,6 +117,7 @@ ANN void handle(VM_Shred shred, const m_str effect) {
     shred->reg = reg;
     shred->mem = mem;
     shred->code = code;
+    gw_err("\n{-/}here is the trace:\n");
     trace(shred, vector_size(&shred->info->line));
   }
   vm_shred_exit(shred);
