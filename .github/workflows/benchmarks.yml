@@ -1,7 +1,7 @@
 name: 'Benchmarks'
 on:
   workflow_run:
-    workflows: ["Linux Release"]
+    workflows: ["Deploy nightly"]
     types:
       - completed
 
