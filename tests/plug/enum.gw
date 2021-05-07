@@ -1,4 +1,4 @@
-#require enum
+#import enum
 #! untyped global enum
 <<< ENUM0 >>>;
 <<< ENUM1 >>>;

@@ -1,4 +1,4 @@
-#require union
+#import union
 var Union u;
 <<< u.i >>>;
 <<< 12 => u.f >>>;

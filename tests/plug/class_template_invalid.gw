@@ -1,2 +1,2 @@
-#require class_template_invalid
+#import class_template_invalid
 <<< __file__ >>>;

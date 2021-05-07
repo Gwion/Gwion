@@ -1,2 +1,2 @@
-#require array
+#import array
 <<< __file__ >>>;

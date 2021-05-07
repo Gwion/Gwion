@@ -1,4 +1,4 @@
-#require variadic
+#import variadic
 <<< "test builtin variadic fun" >>>;
 var Variadic v;
 "iiii" => var string format;

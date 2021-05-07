@@ -1,2 +1,2 @@
-#require empty_union
+#import empty_union
 <<< __file__ >>>;

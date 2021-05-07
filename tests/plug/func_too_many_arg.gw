@@ -1,2 +1,2 @@
-#require func_too_many_arg
+#import func_too_many_arg
 <<< __file__ >>>;

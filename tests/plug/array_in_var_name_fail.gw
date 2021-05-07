@@ -1,2 +1,2 @@
-#require array_in_var_name_fail
+#import array_in_var_name_fail
 <<< __file__ >>>;

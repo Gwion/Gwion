@@ -1,2 +1,2 @@
-#require union_fail_exp
+#import union_fail_exp
 <<< __file__ >>>;

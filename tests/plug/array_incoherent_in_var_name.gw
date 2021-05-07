@@ -1,2 +1,2 @@
-#require array_incoherent_in_var_name
+#import array_incoherent_in_var_name
 <<< __file__ >>>;

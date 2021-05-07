@@ -1,4 +1,4 @@
-#require struct
+#import struct
 
 <<< var float f >>>;
 var Struct c;

@@ -1,2 +1,2 @@
-#require template_arg
+#import template_arg
 <<< __file__ >>>;

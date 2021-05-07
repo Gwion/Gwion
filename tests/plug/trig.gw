@@ -1,4 +1,4 @@
-#require trig
+#import trig
 var Trig trig => dac;
 adc :=> trig;
 adc :=< trig;

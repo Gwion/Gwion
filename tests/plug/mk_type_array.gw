@@ -1,2 +1,2 @@
-#require mk_type_array
+#import mk_type_array
 <<< __file__ >>>;

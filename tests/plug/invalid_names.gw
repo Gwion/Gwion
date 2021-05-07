@@ -1,2 +1,2 @@
-#require invalid_names
+#import invalid_names
 <<< __file__ >>>;

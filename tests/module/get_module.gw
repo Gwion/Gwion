@@ -1,2 +1,2 @@
-#require get_module
+#import get_module
 <<< __file__ >>>;

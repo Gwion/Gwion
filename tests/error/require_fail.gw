@@ -1,4 +1,4 @@
-#require NonExisting
+#import NonExisting
 
 var ftbl f;
 <<< var SinOsc s >>>;

@@ -1,2 +1,2 @@
-#require ugen_connect
+#import ugen_connect
 <<< __file__ >>>;

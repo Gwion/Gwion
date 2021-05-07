@@ -1,2 +1,2 @@
-#require enum_fail
+#import enum_fail
 <<< __file__ >>>;

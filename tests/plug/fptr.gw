@@ -1,4 +1,4 @@
-#require fptr
+#import fptr
 fun void test(){ <<< "test" >>>; }
 var PtrType ptr;
 test();

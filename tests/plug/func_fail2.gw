@@ -1,2 +1,2 @@
-#require func_fail2
+#import func_fail2
 <<< __file__ >>>;

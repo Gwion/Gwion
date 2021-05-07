@@ -1,2 +1,2 @@
-#require invalid_type3
+#import invalid_type3
 <<< __file__ >>>;
