@@ -30,7 +30,7 @@ typedef struct ImportCK { // name_checker ?
     Type_Decl *td; // typedef
     ID_List curr;// enum
   };
-  uint variadic;
+  bool variadic;
   enum importck_type type;
   ae_flag flag; // ????
 } ImportCK;

@@ -16,7 +16,7 @@ typedef struct ArrayInfo_ {
     m_int* idx;    // for object array
     size_t length; // array init
   } d;
-  uint is_obj;
+  bool is_obj;
 } ArrayInfo;
 
 ANN Type check_array_access(const Env env, const Array_Sub array);

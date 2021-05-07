@@ -21,7 +21,7 @@ struct Gwi_ {
 #ifdef GWION_DOC
   Lint *lint;
 #endif
-  uint tmpls;
+  uint8_t tmpls;
 };
 
 #include "import/internals.h"

@@ -11,9 +11,9 @@ struct Env_Scope_ {
   struct Vector_  conts;
   struct Vector_  known_ctx;
   struct Match_  *match;
-  struct Vector_ effects; // a vector of Effect[]
-  uint   depth;
-  bool   in_try;
+  struct Vector_  effects;
+  uint16_t        depth;
+  bool            in_try;
 };
 
 typedef struct Env_ {

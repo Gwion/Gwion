@@ -7,14 +7,14 @@ typedef void (*f_tick)(const UGen ug) ANN;
 struct ugen_net_ {
   struct Vector_ from;
   struct Vector_ to;
-  uint size;
+  uint16_t size;
 };
 
 struct ugen_multi_ {
   M_Object* channel;
-  uint    n_in;
-  uint    n_out;
-  uint    n_chan;
+  uint8_t    n_in;
+  uint8_t    n_out;
+  uint8_t    n_chan;
 };
 
 struct ugen_gen {
@@ -34,9 +34,9 @@ struct UGen_ {
     UGen ref;
   } module;
   m_float in, out;
-  uint op;
-  uint multi;
-  uint done;
+  uint8_t op;
+  bool multi;
+  bool done;
 };
 
 #define TICK(a) __attribute__((hot)) ANN inline void a(const UGen u)
