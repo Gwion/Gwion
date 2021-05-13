@@ -66,7 +66,7 @@ struct ShredInfo_ {
   MemPool mp;
   VM_Code orig;
   struct Vector_ frame;
-  ShredDebugger *dbg;
+  struct Vector_ line;
 };
 
 struct ShredTick_ {
