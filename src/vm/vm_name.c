@@ -3,7 +3,7 @@
 
 m_str code_name_set(MemPool p, const m_str name, const m_str file) {
   const size_t len = strlen(name) + strlen(file) + 2;
-  m_str str = (const m_str)_mp_malloc(p, len);
+  const m_str str = (const m_str)_mp_malloc(p, len);
   sprintf(str, "%s$%s", name, file);
   return str;
 }

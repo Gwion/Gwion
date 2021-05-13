@@ -1027,19 +1027,17 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary* bin) {
 }
 
 ANN static m_bool emit_exp_cast(const Emitter emit, const Exp_Cast* cast) {
-  // no pos ?
-  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=cast->exp->type, .rhs=exp_self(cast)->type,
-    .data=(uintptr_t)cast };
   CHECK_BB(emit_exp(emit, cast->exp));
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=cast->exp->type, .rhs=exp_self(cast)->type,
+    .data=(uintptr_t)cast };  // no pos ?
   (void)op_emit(emit, &opi);
   return GW_OK;
 }
 
 ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix* post) {
-  // no pos ?
-  struct Op_Import opi = { .op=post->op, .lhs=post->exp->type,
-    .data=(uintptr_t)post };
   CHECK_BB(emit_exp(emit, post->exp));
+  struct Op_Import opi = { .op=post->op, .lhs=post->exp->type,
+    .data=(uintptr_t)post };  // no pos ?
   return op_emit(emit, &opi);
 }
 

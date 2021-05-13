@@ -15,28 +15,19 @@ ANN void shreduler_set_loop(const Shreduler s, const bool loop) {
 ANN VM_Shred shreduler_get(const Shreduler s) {
   Driver *const bbq = s->bbq;
   struct ShredTick_ *const tk = s->list;
-  if(!tk) {
-    if(!vector_size(&s->shreds) && !s->loop)
-      bbq->is_running = 0;
-    return NULL;
+  if(tk) {
+    const m_float time = (m_float)bbq->pos + (m_float)GWION_EPSILON;
+    if(tk->wake_time <= time) {
+      if((s->list = tk->next))
+        s->list->prev = NULL;
+      tk->next = tk->prev = NULL;
+      s->curr = tk;
+      return tk->self;
+    }
   }
-  const m_float time = (m_float)bbq->pos + (m_float)GWION_EPSILON;
-  if(tk->wake_time <= time) {
-    if((s->list = tk->next))
-      s->list->prev = NULL;
-    tk->next = tk->prev = NULL;
-    s->curr = tk;
-    return tk->self;
-  }
+  if(!s->loop && !vector_size(&s->shreds))
+    bbq->is_running = 0;
   return NULL;
-}
-
-ANN static void shreduler_parent(const VM_Shred out, const Vector v) {
-  vector_rem2(v, (vtype)out);
-  if(!vector_size(v)) {
-    vector_release(v);
-    out->tick->parent->child.ptr = NULL;
-  }
 }
 
 ANN static inline void shreduler_child(const Vector v) {
@@ -46,9 +37,9 @@ ANN static inline void shreduler_child(const Vector v) {
   }
 }
 
-ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
+ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *const tk) {
   if(tk->parent)
-    shreduler_parent(tk->self, &tk->parent->child);
+    vector_rem2(&tk->parent->child, (vtype)tk->self);
   if(tk->child.ptr)
     shreduler_child(&tk->child);
   vector_rem2(&s->shreds, (vtype)tk->self);
@@ -56,7 +47,7 @@ ANN static void shreduler_erase(const Shreduler s, struct ShredTick_ *tk) {
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const bool erase) {
   MUTEX_LOCK(s->mutex);
-  struct ShredTick_ *tk = out->tick;
+  struct ShredTick_ *const tk = out->tick;
   if(tk == s->curr)
     s->curr = NULL;
   else if(tk == s->list)
@@ -65,8 +56,9 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out, const bool eras
     tk->prev->next = tk->next;
   if(tk->next)
     tk->next->prev = tk->prev;
-  tk->prev = tk->next = NULL;
-  if(erase) {
+  if(!erase)
+    tk->prev = tk->next = NULL;
+  else {
     shreduler_erase(s, tk);
     _release(out->info->me, out);
   }

@@ -61,12 +61,13 @@ typedef struct ShredDebugger_ {
 
 struct ShredInfo_ {
   VM* vm;
-  struct M_Object_* me;
-  Vector args;
   MemPool mp;
+  struct M_Object_* me;
   VM_Code orig;
   struct Vector_ frame;
+  struct Vector_ args;
   struct Vector_ line;
+  ShredDebugger *dbg;
 };
 
 struct ShredTick_ {

@@ -99,14 +99,14 @@ static SFUN(vm_shred_from_id) {
 
 static MFUN(shred_args) {
   const VM_Shred s = ME(o);
-  *(m_uint*)RETURN = s->info->args ? vector_size(s->info->args) : 0;
+  *(m_uint*)RETURN = s->info->args.ptr ? vector_size(&s->info->args) : 0;
 }
 
 static MFUN(shred_arg) {
   const VM_Shred s = ME(o);
   const m_int idx = *(m_int*)MEM(SZ_INT);
-  if(s->info->args && idx >= 0) {
-    const m_str str = (m_str)vector_at(s->info->args, *(m_uint*)MEM(SZ_INT));
+  if(s->info->args.ptr && idx >= 0) {
+    const m_str str = (m_str)vector_at(&s->info->args, *(m_uint*)MEM(SZ_INT));
     *(M_Object*)RETURN = str ? new_string(shred->info->mp, shred, str) : NULL;
   } else
     *(m_uint*)RETURN = 0;

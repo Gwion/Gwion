@@ -21,28 +21,29 @@ struct Compiler {
   m_str data;
   FILE*  file;
   Ast    ast;
-  Vector args;
+  struct Vector_ args;
   enum compile_type type;
 };
 
-ANN static void compiler_name(MemPool p, struct Compiler* c) {
+ANN static void compiler_name(struct Compiler* c) {
   m_str d = strdup(c->base);
   c->name = strsep(&d, ":");
   if(d)
-    c->args = new_vector(p);
+    vector_init(&c->args);
   while(d)
-    vector_add(c->args, (vtype)strdup(strsep(&d, ":")));
+    vector_add(&c->args, (vtype)strdup(strsep(&d, ":")));
   free(d);
 }
 
-ANN static inline void compiler_error(MemPool p, const struct Compiler* c) {
-  if(c->args) {
-    for(m_uint i = 0; i < vector_size(c->args); ++i) {
-      const m_str str = (m_str)vector_at(c->args, i);
+ANN static inline void compiler_error(struct Compiler*const c) {
+  if(c->args.ptr) {
+    const Vector v = &c->args;
+    for(m_uint i = 0; i < vector_size(v); ++i) {
+      const m_str str = (m_str)vector_at(v, i);
       if(str)
-        xfree((m_str)vector_at(c->args, i));
+        xfree((m_str)vector_at(v, i));
     }
-    free_vector(p, c->args);
+    vector_release(v);
   }
 }
 
@@ -84,7 +85,7 @@ ANN static m_bool is_reg(const m_str path) {
 }
 #endif
 
-ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
+ANN static inline m_bool compiler_open(struct Compiler* c) {
   char name[strlen(c->name) + 1];
   strcpy(name, c->name);
 #ifndef __FUZZING__
@@ -94,7 +95,7 @@ ANN static inline m_bool compiler_open(MemPool p, struct Compiler* c) {
   }
 #endif
   if(_compiler_open(c) < 0) {
-    compiler_error(p, c);
+    compiler_error(c);
     gw_err(_("can't open '%s'\n"), name);
     return GW_ERROR;
   }
@@ -120,8 +121,13 @@ ANN static inline m_bool passes(struct Gwion_* gwion, struct Compiler* c) {
     nspc_commit(env->curr);
   if(ret > 0 || env->context->global)
     vector_add(&env->scope->known_ctx, (vtype)ctx);
-  else //nspc_rollback(env->global_nspc);
+  else {//nspc_rollback(env->global_nspc);
+    if(!ctx->error) {
+      gw_err(_("{-}while compiling file `{0}{/}%s{-}`{0}\n"), c->base);
+      ctx->error = 1;
+    }
     context_remref(ctx, env->gwion);
+  }
   unload_context(ctx, env);
   return ret;
 }
@@ -137,15 +143,13 @@ ANN static inline m_bool _check(struct Gwion_* gwion, struct Compiler* c) {
 }
 
 ANN static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
-  if(compiler_open(gwion->mp, c) < 0)
+  if(compiler_open(c) < 0)
     return 0;
-  if(_check(gwion, c) < 0) {
-    gw_err(_("{-}while compiling file `{0}{/}%s{-}`{0}\n"), c->base);
+  if(_check(gwion, c) < 0)
     return 0;
-  }
   if(gwion->emit->info->code) {
     const VM_Shred shred = new_vm_shred(gwion->mp, gwion->emit->info->code);
-    shred->info->args = c->args;
+    shred->info->args.ptr = c->args.ptr;
     vm_add_shred(gwion->vm, shred);
     gwion->emit->info->code = NULL;
     return shred->tick->xid;
@@ -154,7 +158,7 @@ ANN static m_uint _compile(struct Gwion_* gwion, struct Compiler* c) {
 }
 
 ANN static m_uint compile(struct Gwion_* gwion, struct Compiler* c) {
-  compiler_name(gwion->mp, c);
+  compiler_name(c);
   MUTEX_LOCK(gwion->data->mutex);
   const m_uint ret = _compile(gwion, c);
   MUTEX_UNLOCK(gwion->data->mutex);

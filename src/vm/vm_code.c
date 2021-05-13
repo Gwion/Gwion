@@ -48,14 +48,14 @@ static inline uint isgoto(const unsigned opcode) {
       opcode == eHandleEffect;
 }
 
-static inline void setpc(const m_bit *data, const m_uint i) {
+ANN static inline void setpc(const m_bit *data, const m_uint i) {
   *(unsigned*)(data+1) = i + 1;
 }
 
 ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
   const Vector v = &code->instr;
   const m_uint sz = vector_size(v);
-  m_bit *ptr = _mp_malloc(p, sz * BYTECODE_SZ);
+  m_bit *const ptr = _mp_malloc(p, sz * BYTECODE_SZ);
   struct Vector_ nop;
   vector_init(&nop);
   for(m_uint i= 0; i < sz; ++i) {
@@ -122,7 +122,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
   m_bit *const final = _mp_malloc(p, sz * BYTECODE_SZ); // could use smaller size
   for(m_uint i= 0, j = 0; i < sz; ++i) {
     const Instr instr = (Instr)vector_at(v, i);
-    unsigned opcode = instr->opcode;
+    const unsigned opcode = instr->opcode;
     if(opcode != eNoOp) {
       m_bit *const base = ptr   + i*BYTECODE_SZ,
             *const data = final + j*BYTECODE_SZ;
@@ -172,7 +172,8 @@ VM_Code vmcode_callback(MemPool mp, VM_Code base) {
   sprintf(name, "%s(callback)", base->name);
   const Instr instr = (Instr)vector_back(&base->instr);
   instr->opcode = eEOC;
-  VM_Code code = new_vmcode(mp, &base->instr, base->stack_depth, base->builtin, name);
+  const VM_Code code = new_vmcode(mp, &base->instr,
+           base->stack_depth, base->builtin, name);
   code->closure = base->closure;
   code->callback = 1;
   instr->opcode = eFuncReturn;
