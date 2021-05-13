@@ -2,17 +2,17 @@
 #define EMIT_H
 
 typedef struct Frame_ {
-  size_t curr_offset;
   struct Vector_ stack;
-  struct Vector_ defer;
+  size_t curr_offset;
   struct Map_    handlers;
+  struct Vector_ defer;
   m_uint try_top;
 } Frame;
 
 typedef struct Code_ {
   Frame* frame;
-  size_t stack_depth;
   struct Vector_ instr;
+  size_t stack_depth;
   struct Vector_  stack_cont;
   struct Vector_ stack_break;
   struct Vector_ stack_return;

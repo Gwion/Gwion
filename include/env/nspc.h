@@ -12,11 +12,11 @@ struct NspcInfo_ {
 };
 
 struct Nspc_ {
-  m_str     name;
+  struct NspcInfo_* info;
   Nspc parent;
+  m_str     name;
   struct VM_Code_*   pre_ctor;
   struct VM_Code_*   dtor;
-  struct NspcInfo_* info;
   uint16_t ref;
 };
 

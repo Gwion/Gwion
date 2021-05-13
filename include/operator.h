@@ -35,7 +35,7 @@ struct Op_Import {
 };
 
 struct Implicit {
-  Exp e;
+  Exp   e;
   Type  t;
   loc_t pos;
 };

@@ -19,10 +19,10 @@ struct Env_Scope_ {
 typedef struct Env_ {
   m_str name;
   Nspc curr;
-  Nspc global_nspc;
-  struct Context_ *context;
   Type      class_def;
   Func      func;
+  struct Context_ *context;
+  Nspc global_nspc;
   struct Gwion_ *gwion;
   struct Env_Scope_* scope;
 } *Env;

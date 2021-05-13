@@ -11,11 +11,11 @@ enum fflag {
 } __attribute__((packed));
 
 struct Func_ {
-  m_str name;
   Func_Def def;
   struct VM_Code_* code;
   Value value_ref;
   Func next;
+  m_str name;
   size_t vt_index;
   struct Map_ upvalues;
   uint16_t ref;

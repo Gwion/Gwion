@@ -2,12 +2,12 @@
 #define __CONTEXT
 typedef struct Context_   * Context;
 struct Context_ {
+  Nspc        nspc;
   m_str       name;
   Ast         tree;
-  Nspc        nspc;
+  uint16_t ref;
   bool error;
   bool global;
-  uint16_t ref;
 };
 
 REF_FUNC(Context, context)

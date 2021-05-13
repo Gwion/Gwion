@@ -35,11 +35,12 @@ typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_Shred_* VM_Shred;
 
-typedef struct Debugger_ {
-  struct Vector_ breakpoint;
-  Nspc nspc;
+typedef struct VMDebugger_ {
+  struct VM_ *vm;
+//  struct VM_Shred *shred;
+  struct Map_ map; // code, Vector<lines>
   bool step;
-} Debugger;
+} VMDebugger;
 
 typedef struct VM_ {
   Shreduler shreduler;
@@ -48,9 +49,15 @@ typedef struct VM_ {
   struct Gwion_* gwion;
   VM_Shred cleaner_shred;
   struct VM_ *parent;
-  Debugger debugger;
   uint32_t rand[2];
+  VMDebugger *dbg;
 } VM;
+
+typedef struct ShredDebugger_ {
+  struct Vector_ breakpoint;
+  struct Vector_ line;
+  struct Scope_ scope;
+} ShredDebugger;
 
 struct ShredInfo_ {
   VM* vm;
@@ -59,7 +66,7 @@ struct ShredInfo_ {
   MemPool mp;
   VM_Code orig;
   struct Vector_ frame;
-  struct Vector_ line;
+  ShredDebugger *dbg;
 };
 
 struct ShredTick_ {

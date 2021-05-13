@@ -8,14 +8,14 @@
 struct Arg_;
 
 struct Gwion_ {
+  MemPool mp;
+  VM*      vm;
+  SymTable *st;
   Env      env;
   Emitter  emit;
-  VM*      vm;
   struct GwionData_ *data;
-  SymTable *st;
-  MemPool mp;
-  struct PPArg_ *ppa;
   Type *type;
+  struct PPArg_ *ppa;
 };
 
 ANN m_bool gwion_ini(const Gwion, struct Arg_*);
