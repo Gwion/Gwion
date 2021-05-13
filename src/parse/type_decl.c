@@ -5,26 +5,31 @@
 #include "traverse.h"
 #include "parse.h"
 
-ANN static Type _option(const Env env, Type_Decl* td, const m_uint n) {
+ANN static Type _option(const Env env, Type_Decl* td, const uint8_t n) {
   struct Type_List_ tl = { .td=td };
-  Type_Decl option_td = { .xid=insert_symbol("Option"), .types=&tl, .pos=td->pos };
-  return !(n-1) ? known_type(env, &option_td) : _option(env, &option_td, n-1);
+  Type_Decl tmp = { .xid=insert_symbol("Option"), .types=&tl, .pos=td->pos };
+  return !(n-1) ? known_type(env, &tmp) : _option(env, &tmp, n-1);
 }
 
 ANN static Type option(const Env env, Type_Decl* td) {
-  const m_uint option = td->option;
+  const uint8_t option = td->option;
   td->option = 0;
-  const Type ret = _option(env, td, option);
+  const Type t = _option(env, td, option);
   td->option = option;
-  return ret;
+  return t;
+}
+
+ANN static Type _ref(const Env env, Type_Decl* td, const uint8_t n) {
+  struct Type_List_ tl = { .td=td };
+  Type_Decl tmp = { .xid=insert_symbol("Ref"), .types=&tl, .pos=td->pos };
+  return !(n-1) ? known_type(env, &tmp) : _ref(env, &tmp, n-1);
 }
 
 ANN static inline Type ref(const Env env, Type_Decl* td) {
-  struct Type_List_ tl = { .td=td };
+  const uint8_t ref = td->ref;
   td->ref = 0;
-  Type_Decl option_td = { .xid=insert_symbol("Ref"), .types=&tl, .pos=td->pos };
-  const Type t = known_type(env, &option_td);
-  td->ref = 1;
+  const Type t = _ref(env, td, ref);
+  td->ref = ref;
   return t;
 }
 
@@ -32,7 +37,6 @@ ANN static Type resolve(const Env env, Type_Decl* td) {
   Type_Decl *last = td;
   while(last->next)
     last = last->next;
-  Array_Sub array = last->array;
   DECL_OO(const Type, base, = find_type(env, td));
   const Context ctx = base->info->value->from->ctx;
   if(ctx && ctx->error)
@@ -40,6 +44,7 @@ ANN static Type resolve(const Env env, Type_Decl* td) {
   DECL_OO(const Type, type, = scan_type(env, base, td));
   const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
+  const Array_Sub array = last->array;
   return !array ? ret: array_type(env, ret, array->depth);
 }
 
