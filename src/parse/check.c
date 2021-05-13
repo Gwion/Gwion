@@ -1581,6 +1581,36 @@ ANN static m_bool check_body(const Env env, Section *const section) {
   return ret;
 }
 
+ANN static bool class_def_has_body(Ast ast) {
+  do {
+    const Section *section = ast->section;
+    if(section->section_type == ae_section_stmt) {
+      Stmt_List list = section->d.stmt_list;
+      do {
+        const Stmt stmt = list->stmt;
+        if(stmt->stmt_type == ae_stmt_pp)
+          continue;
+        if(stmt->stmt_type == ae_stmt_exp) {
+          const Exp exp = stmt->d.stmt_exp.val;
+          if(!exp)
+            continue;
+          if(exp->exp_type != ae_exp_decl)
+            return true;
+          if(GET_FLAG(exp->d.exp_decl.td, late))
+            continue;
+          Var_Decl_List dlist = exp->d.exp_decl.list;
+          do {
+            if(tflag(dlist->self->value->type, tflag_ctor))
+              return true;
+          } while((dlist = dlist->next));
+        } else
+          return true;
+      } while((list = list->next));
+    }
+  } while((ast = ast->next));
+  return false;
+}
+
 ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(cdef->base.ext)
@@ -1589,7 +1619,8 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     inherit(t);
   if(cdef->body) {
     CHECK_BB(env_body(env, cdef, check_body));
-    set_tflag(t, tflag_ctor);
+    if(class_def_has_body(cdef->body))
+      set_tflag(t, tflag_ctor);
   }
   if(!GET_FLAG(cdef, abstract))
     CHECK_BB(check_abstract(env, cdef));
