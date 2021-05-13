@@ -29,7 +29,7 @@
 typedef struct Local_ {
   Type type;
   m_uint offset;
-  uint skip;
+  bool skip;
 } Local;
 
 static inline void emit_pop(const Emitter emit, const m_uint scope) { env_pop(emit->env, scope); }
@@ -75,7 +75,7 @@ ANN static Local* new_local(MemPool p, const Type type) {
   return local;
 }
 
-ANN static m_uint frame_local(MemPool p, Frame* frame, const Type t, const uint skip) {
+ANN static m_uint frame_local(MemPool p, Frame* frame, const Type t, const bool skip) {
   Local* local = new_local(p, t);
   local->offset = frame->curr_offset;
   local->skip = skip;
@@ -281,11 +281,11 @@ ANN m_uint emit_code_offset(const Emitter emit) {
 }
 
 ANN m_uint emit_local(const Emitter emit, const Type t) {
-  return frame_local(emit->gwion->mp, emit->code->frame, t, 0);
+  return frame_local(emit->gwion->mp, emit->code->frame, t, false);
 }
 
 ANN m_uint emit_localn(const Emitter emit, const Type t) {
-  return frame_local(emit->gwion->mp, emit->code->frame, t, 1);
+  return frame_local(emit->gwion->mp, emit->code->frame, t, true);
 }
 
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
