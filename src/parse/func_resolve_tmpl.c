@@ -27,10 +27,6 @@ ANN static inline Value template_get_ready(const Env env, const Value v, const m
       nspc_lookup_value1(v->from->owner, sym);
 }
 
-ANN static inline m_bool tmpl_traverse(const Env env, const Func_Def fdef) {
-  return check_traverse_fdef(env, fdef);
-}
-
 ANN static inline bool tmpl_valid(const Env env, const Func_Def fdef/*, Exp_Call *const exp*/) {
   if(safe_fflag(fdef->base->func, fflag_valid))
     return true;
