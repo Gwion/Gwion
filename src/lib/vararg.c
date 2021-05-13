@@ -37,7 +37,7 @@ static DTOR(vararg_dtor) {
       offset += t->size;
     }
   }
-  free_vararg(shred->info->vm->gwion->mp, arg);
+  free_vararg(shred->info->mp, arg);
 }
 
 static MFUN(mfun_vararg_cpy) {

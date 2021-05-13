@@ -816,9 +816,10 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter emit, const Exp_Decl *d
   if(is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref));
   f_instr *exec = (f_instr*)allocmember;
+  if(!emit->env->scope->depth)
+    emit_debug(emit, v);
   if(!vflag(v, vflag_member)) {
     v->from->offset = emit_local(emit, type);
-    emit_debug(emit, v);
     exec = (f_instr*)(allocword);
     if(GET_FLAG(v, late)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
@@ -1301,10 +1302,10 @@ ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt, const m_bool 
   return ret;
 }
 
-#define SPORK_FUNC_PREFIX "spork~func:%i"
-#define FORK_FUNC_PREFIX "fork~func:%i"
-#define SPORK_CODE_PREFIX "spork~code:%i"
-#define FORK_CODE_PREFIX  "fork~code:%i"
+#define SPORK_FUNC_PREFIX "spork~func:%u"
+#define FORK_FUNC_PREFIX "fork~func:%u"
+#define SPORK_CODE_PREFIX "spork~code:%u"
+#define FORK_CODE_PREFIX  "fork~code:%u"
 
 static void push_spork_code(const Emitter emit, const m_str prefix, const loc_t pos) {
   char c[strlen(SPORK_FUNC_PREFIX) + num_digit(pos.first.line) + 1];

@@ -41,7 +41,7 @@ ANN static inline m_bit* get_data(MemPool mp, Memoize m) {
 
 INSTR(MemoizeStore) {
   const Memoize m = shred->code->memoize;
-  m_bit* data = get_data(shred->info->vm->gwion->mp, m);
+  m_bit* data = get_data(shred->info->mp, m);
   memcpy(data, shred->mem, m->arg_sz);
   memcpy(data + m->arg_sz, shred->reg - m->ret_sz, m->ret_sz);
 }

@@ -138,7 +138,7 @@ static INSTR(UnionCtor) {
   POP_REG(shred, instr->m_val2);
   POP_REG(shred, SZ_INT);
   const m_uint index = *(m_uint*)REG(-SZ_INT);
-  const M_Object o = *(M_Object*)REG(-SZ_INT) = new_object(shred->info->vm->gwion->mp, NULL, (Type)instr->m_val);
+  const M_Object o = *(M_Object*)REG(-SZ_INT) = new_object(shred->info->mp, NULL, (Type)instr->m_val);
   *(m_uint*)o->data = index;// + 1;
   memcpy(o->data + SZ_INT, REG(0), instr->m_val2);
 }

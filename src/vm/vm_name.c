@@ -8,7 +8,7 @@ m_str code_name_set(MemPool p, const m_str name, const m_str file) {
   return str;
 }
 
-m_str code_name(const m_str name, const m_bool b) {
+m_str code_name(const m_str name, const bool b) {
   const m_str str = strchr(name, '$');
   return (b && str) ?  (str + 1) : name;
 }

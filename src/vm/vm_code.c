@@ -155,7 +155,6 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
   VM_Code code           = mp_calloc(p, VM_Code);
   code->name             = mstrdup(p, name);
   if(instr) {
-//    code->instr            = vector_copy(p, instr);
     vector_init(&code->instr);
     vector_copy2(instr, &code->instr);
     code->bytecode = tobytecode(p, code);

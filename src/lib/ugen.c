@@ -292,7 +292,7 @@ ANN static void release_multi(const UGen ug, const VM_Shred shred) {
 
 static DTOR(ugen_dtor) {
   const UGen ug = UGEN(o);
-  MemPool p = shred->info->vm->gwion->mp;
+  MemPool p = shred->info->mp;
   vector_rem2(&shred->info->vm->ugen, (vtype)ug);
   if(!ug->multi)
     release_mono(p, ug);

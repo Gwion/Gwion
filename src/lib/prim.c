@@ -150,7 +150,7 @@ static INSTR(IntRange) {
   const m_int end   = *(m_int*)REG(0);
   const m_int op    = start < end ? 1 : -1;
   const m_uint sz    = op > 0 ? end - start : start - end;
-  const M_Object array = new_array(shred->info->vm->gwion->mp, (Type)instr->m_val, sz);
+  const M_Object array = new_array(shred->info->mp, (Type)instr->m_val, sz);
   for(m_int i = start, j = 0; i != end; i += op, ++j)
     m_vector_set(ARRAY(array), j, &i);
   *(M_Object*)REG(-SZ_INT) = array;

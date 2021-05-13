@@ -268,7 +268,7 @@ static INSTR(ArraySlice) {
     handle(shred, "OutOfBoundsArraySliceException");
     return;
   }
-  const M_Object out = new_array(shred->info->vm->gwion->mp, array->type_ref, sz);
+  const M_Object out = new_array(shred->info->mp, array->type_ref, sz);
   for(m_int i = start, j = 0; i != end; i += op, ++j) {
     m_bit buf[ARRAY_SIZE(in)];
     m_vector_get(in, i, &buf);
@@ -521,7 +521,7 @@ static INSTR(count_run_end) {
 
 static MFUN(vm_vector_map) {
   const m_uint offset = *(m_uint*)REG(SZ_INT*3);
-  const M_Object ret = new_array(shred->info->vm->gwion->mp, o->type_ref, ARRAY_LEN(ARRAY(o)));
+  const M_Object ret = new_array(shred->info->mp, o->type_ref, ARRAY_LEN(ARRAY(o)));
   vector_add(&shred->gc, (m_uint)ret);
   if(ARRAY_LEN(ARRAY(o))) {
     _init(shred, &map_run_code, offset, SZ_INT);
@@ -533,7 +533,7 @@ static MFUN(vm_vector_map) {
 static MFUN(vm_vector_compactmap) {
   const VM_Code code = *(VM_Code*)REG(SZ_INT*2);
   const m_uint offset = *(m_uint*)REG(SZ_INT*3);
-  const M_Object ret = new_array(shred->info->vm->gwion->mp,
+  const M_Object ret = new_array(shred->info->mp,
     code->ret_type, 0);
   vector_add(&shred->gc, (m_uint)ret);
   if(ARRAY_LEN(ARRAY(o))) {
@@ -545,7 +545,7 @@ static MFUN(vm_vector_compactmap) {
 
 static MFUN(vm_vector_filter) {
   const m_uint offset = *(m_uint*)REG(SZ_INT*3);
-  const M_Object ret = new_array(shred->info->vm->gwion->mp, o->type_ref, 0);
+  const M_Object ret = new_array(shred->info->mp, o->type_ref, 0);
   vector_add(&shred->gc, (m_uint)ret);
   if(ARRAY_LEN(ARRAY(o))) {
     _init(shred, &filter_run_code, offset, SZ_INT);

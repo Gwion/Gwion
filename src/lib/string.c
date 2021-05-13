@@ -49,11 +49,11 @@ opck_str(eq, !strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
 opck_str(neq, strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
 
 static CTOR(string_ctor) {
-  STRING(o) = _mp_calloc(shred->info->vm->gwion->mp, 1);
+  STRING(o) = _mp_calloc(shred->info->mp, 1);
 }
 
 static DTOR(string_dtor) {
-  free_mstr(shred->info->vm->gwion->mp, STRING(o));
+  free_mstr(shred->info->mp, STRING(o));
 }
 
 ID_CHECK(check_funcpp) {
@@ -93,7 +93,7 @@ static INSTR(StringSlice) {
   for(m_int i = start, j = 0; i != end; i += op, ++j)
     c[j] = str[i];
   c[sz] = '\0';
-  *(M_Object*)REG(-SZ_INT) = new_string(shred->info->vm->gwion->mp, shred, c);
+  *(M_Object*)REG(-SZ_INT) = new_string(shred->info->mp, shred, c);
 }
 
 static MFUN(string_len) {
@@ -106,7 +106,7 @@ static MFUN(string_upper) {
   for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'a' && c[i] <= 'z')
       c[i] += 'A' - 'a';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);
 }
 
 static MFUN(string_lower) {
@@ -115,7 +115,7 @@ static MFUN(string_lower) {
   for(m_uint i = 0; i < strlen(c); i++)
     if(c[i]  >= 'A' && c[i] <= 'Z')
       c[i] -= 'A' - 'a';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);
 }
 
 static MFUN(string_ltrim) {
@@ -125,7 +125,7 @@ static MFUN(string_ltrim) {
     i++;
   char c[strlen(str) - i + 1];
   strcpy(c, STRING(o) + i);
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);
 }
 
 static MFUN(string_rtrim) {
@@ -138,7 +138,7 @@ static MFUN(string_rtrim) {
     char c[len + 2];
     strncpy(c, str, len + 1);
     c[len + 1] = '\0';
-    *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+    *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);
   } else {
     ++o->ref;
     *(M_Object*)RETURN = o;
@@ -168,7 +168,7 @@ static MFUN(string_trim) {
   for(i = start; i < len - end; i++)
     c[i - start] = str[i];
   c[len - start - end ] = '\0';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);
 }
 
 static MFUN(string_charAt) {
@@ -217,7 +217,7 @@ static MFUN(string_insert) {
   for(i = index; i < (m_int)len; i++)
     c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);;
 }
 
 static MFUN(string_replace) {
@@ -243,7 +243,7 @@ static MFUN(string_replace) {
   for(i = 0; i < len_insert; i++)
     c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);;
 }
 
 static MFUN(string_replaceN) {
@@ -272,7 +272,7 @@ static MFUN(string_replaceN) {
   for(i = index + _len; i < (m_int)len; i++)
     c[i] = str[i];
   c[len + _len - 1] = '\0';
-  *(M_Object*)RETURN = new_string(shred->info->vm->gwion->mp, shred, c);;
+  *(M_Object*)RETURN = new_string(shred->info->mp, shred, c);;
 }
 
 static MFUN(string_find) {
