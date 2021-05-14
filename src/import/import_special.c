@@ -25,20 +25,14 @@ ANN void gwi_register_pass(const Gwi gwi, const m_str name, const compilation_pa
   pass_register(gwi->gwion, name, pass);
 }
 
-ANN void gwi_reserve(const Gwi gwi, const m_str str) {
-  vector_add(&gwi->gwion->data->reserved, (vtype)insert_symbol(gwi->gwion->st, str));
-}
-
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
-#ifdef GWION_DOC
-  lint(gwi->lint, "{+C}specialid{0} %s{/}%s{0};\n",
-      spid->is_const ? "{+G}const{0} " : "",
-      id);
-#endif
+  if(gwi->gwion->data->cdoc)
+    lint(gwi->lint, "{+C}specialid{0} %s{/}%s{0};\n",
+        spid->is_const ? "{+G}const{0} " : "",
+        id);
   struct SpecialId_ *a = mp_calloc(gwi->gwion->mp, SpecialId);
   memcpy(a, spid, sizeof(struct SpecialId_));
   map_set(&gwi->gwion->data->id, (vtype)insert_symbol(gwi->gwion->st, id), (vtype)a);
-  gwi_reserve(gwi, id);
 }
 
 ANN void gwi_set_loc(const Gwi gwi, const m_str file, const uint line) {

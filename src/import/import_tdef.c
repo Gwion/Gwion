@@ -33,10 +33,10 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   gwi->ck->td = NULL;
   gwi->ck->tmpl = NULL;
   const m_bool ret = traverse_type_def(gwi->gwion->env, tdef);
-#ifdef GWION_DOC
-  lint_indent(gwi->lint);
-  lint_type_def(gwi->lint, tdef);
-#endif
+  if(gwi->gwion->data->cdoc) {
+    lint_indent(gwi->lint);
+    lint_type_def(gwi->lint, tdef);
+  }
   const Type t = tdef->type;
   set_tflag(t, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check | tflag_emit);
   free_type_def(gwi->gwion->mp, tdef);

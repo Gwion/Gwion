@@ -20,7 +20,6 @@ ANN GwionData* new_gwiondata(MemPool mp) {
   GwionData *data = gwiondata(mp);
   map_init(&data->freearg);
   map_init(&data->id);
-  vector_init(&data->reserved);
   data->passes = new_passes(mp);
   return data;
 }
@@ -29,7 +28,6 @@ ANN GwionData* cpy_gwiondata(MemPool mp, const GwionData* src) {
   GwionData *data = gwiondata(mp);
   data->freearg = src->freearg;
   data->id = src->id;
-  data->reserved = src->reserved;
   data->plug = src->plug;
   data->passes = src->passes;
   return data;
@@ -46,7 +44,6 @@ ANN void free_gwiondata(const struct Gwion_ *gwion) {
   for(m_uint i = 0; i < map_size(&data->id); ++i)
     mp_free(gwion->mp, SpecialId, (struct SpecialId_*)map_at(&data->id, i));
   map_release(&data->id);
-  vector_release(&data->reserved);
   free_passes(gwion->mp, data->passes);
   if(data->plug.ptr)
     free_plug(gwion);

@@ -14,3 +14,6 @@
 [submodule "libcmdapp"]
 	path = libcmdapp
 	url = https://github.com/euppal/libcmdapp
+[submodule "fmt"]
+	path = fmt
+	url = https://github.com/Gwion/gwion-fmt

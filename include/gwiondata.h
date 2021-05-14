@@ -6,9 +6,9 @@ typedef struct GwionData_ {
   MUTEX_TYPE mutex;
   struct Vector_ child;
   struct Vector_ child2;
-  struct Vector_ reserved;
   struct Passes_  *passes;
   struct Map_ plug;
+  bool   cdoc;
 } GwionData;
 
 ANN GwionData* new_gwiondata(MemPool);

@@ -211,3 +211,6 @@ ANN Nspc pop_global(struct Gwion_ *gwion) {
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {
   gwion->emit->info->debug = dbg;
 }
+ANN void gwion_set_cdoc(const Gwion gwion, const bool cdoc) {
+  gwion->data->cdoc = cdoc;
+}

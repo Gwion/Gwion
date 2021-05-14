@@ -1,16 +1,11 @@
 #ifndef __GWI
 #define __GWI
 
-#ifdef GWION_DOC
 #include "gwfmt.h"
-#define gwiheader(a,...) do { lint_nl(a->lint); lint_indent(a->lint); lint(a->lint, "{-}#!+ {/}%s{0}\n", __VA_ARGS__); } while(0)
-#define gwidoc(a,...)    do { lint_nl(a->lint); lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)
-#define gwinote(a,...)   do { lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)
-#else
-#define gwiheader(a,...)
-#define gwidoc(a,...)
-#define gwinote(a,...)
-#endif
+#define gwiheader(a,...) if(a->gwion->data->cdoc) do {lint_nl(gwi->lint); lint_indent(gwi->lint); lint(gwi->lint, "{-}#!+ {/}%s{0}\n", __VA_ARGS__); } while(0)
+#define gwidoc(a,...)     if(a->gwion->data->cdoc) do { lint_nl(a->lint); lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)
+#define gwinote(a,...)    if(a->gwion->data->cdoc) do { lint_indent(a->lint); lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__); } while(0)
+
 struct Gwi_ {
   struct Gwion_ *const gwion;
   Ast body;
@@ -18,9 +13,7 @@ struct Gwi_ {
   struct OperCK *oper; // _misc
   struct Vector_ effects;
   loc_t loc;
-#ifdef GWION_DOC
   Lint *lint;
-#endif
   uint8_t tmpls;
 };
 

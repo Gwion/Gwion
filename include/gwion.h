@@ -37,4 +37,5 @@ ANN static inline Type type_class(const Gwion gwion, const Type t) {
 }
 
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg);
+ANN void gwion_set_cdoc(const Gwion gwion, const bool dbg);
 #endif

@@ -28,17 +28,20 @@ ANN void gwi_reset(const Gwi gwi) {
   env_reset(gwi->gwion->env);
 }
 
+ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
+  struct LintState ls = { .builtin=true };
+  Lint linter = { .mp=gwi->gwion->mp, .ls=&ls };
+  lint(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
+  gwi->lint = &linter;
+  return f(gwi);
+}
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   const m_str name = gwion->env->name;
   OperCK oper = {};
+printf("cdoc %u\n", gwion->data->cdoc);
   struct Gwi_ gwi = { .gwion=gwion, .oper=&oper };
-#ifdef GWION_DOC
-  struct LintState ls = { .builtin=true };
-  Lint linter = { .mp=gwion->mp, .ls=&ls };
-  lint(&linter, "{-}#!+ %s{0}\n", name);
-  gwi.lint = &linter;
-#endif
-  const m_bool ret = f(&gwi);
+  const m_bool ret = !gwion->data->cdoc ?
+        f(&gwi) : run_with_doc(&gwi, f);
   if(ret < 0)
     gwi_reset(&gwi);
   gwion->env->name = name;

@@ -30,14 +30,14 @@ ANN2(1) static Type get_parent(const Gwi gwi, const m_str parent_name) {
 }
 
 ANN2(1,2) Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size, const m_str parent_name) {
-#ifdef GWION_DOC
-  lint_indent(gwi->lint);
-  lint(gwi->lint, "{+C}primitive{0} {+}%s{0}", name);
-  if(parent_name)
-    lint(gwi->lint, " {+C}extends{0} {+}%s{0}", parent_name);
-  lint_sc(gwi->lint);
-  lint_nl(gwi->lint);
-#endif
+  if(gwi->gwion->data->cdoc) {
+    lint_indent(gwi->lint);
+    lint(gwi->lint, "{+C}primitive{0} {+}%s{0}", name);
+    if(parent_name)
+      lint(gwi->lint, " {+C}extends{0} {+}%s{0}", parent_name);
+    lint_sc(gwi->lint);
+    lint_nl(gwi->lint);
+  }
   CHECK_OO(gwi_str2sym(gwi, name));
   const Type parent = get_parent(gwi, parent_name);
   const Type t = new_type(gwi->gwion->mp, name, parent);

@@ -22,7 +22,7 @@ test_dir += examples
 
 
 CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
-CFLAGS += -Iast/libprettyerr/src
+CFLAGS += -Iast/libprettyerr/src -Ifmt/include
 
 # add commit hash to version for now
 CFLAGS += -DGWION_VERSION=\"$(shell git log -n1 --format="%h")\"
@@ -51,6 +51,7 @@ CFLAGS += -DGWION_BUILTIN
 _GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a
 GWLIBS := lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a
 GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor/libtermcolor.a
+GWLIBS += fmt/libgwion-fmt.a
 _LDFLAGS = ${GWLIBS} ${LDFLAGS}
 
 # we are not pedantic

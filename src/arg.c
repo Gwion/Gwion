@@ -18,7 +18,7 @@ enum {
   DRIVER, SRATE, NINPUT, NOUTPUT,
 // pp options
   DEFINE, UNDEF, INCLUDE,
-  DEBUG,
+  DEBUG, CDOC,
   NOPTIONS
 };
 
@@ -49,7 +49,8 @@ enum arg_type {
   ARG_DEFINE,
   ARG_UNDEF,
   ARG_INCLUDE,
-  ARG_DEBUG
+  ARG_DEBUG,
+  ARG_CDOC
 };
 
 ANN static void arg_init(Arg* arg) {
@@ -70,17 +71,22 @@ ANN void arg_release(Arg* arg) {
   vector_release(&arg->config);
 }
 
-static inline bool _get_debug(const m_str dbg) {
-  if(!dbg || !strcmp(dbg, "true"))
+static inline bool str2bool(const char *str) {
+  if(!str || !strcmp(str, "true"))
     return true;
-  if(!strcmp(dbg, "false"))
+  if(!strcmp(str, "false"))
     return false;
-  return atoi(dbg) ? true : false;
+  return atoi(str) ? true : false;
 }
 
-ANN static inline void get_debug(const Gwion gwion, const m_str dbg) {
-  const bool is_dbg = _get_debug(dbg);
+ANN static inline void get_debug(const Gwion gwion, const char *dbg) {
+  const bool is_dbg = str2bool(dbg);
   gwion_set_debug(gwion, is_dbg);
+}
+
+ANN static inline void get_cdoc(const Gwion gwion, const char *cdoc) {
+  const bool is_cdoc = str2bool(cdoc);
+  gwion_set_cdoc(gwion, is_cdoc);
 }
 
 ANN void arg_compile(const Gwion gwion, Arg *arg) {
@@ -202,6 +208,11 @@ static void setup_options(cmdapp_t* app, cmdopt_t* opt) {
         'G', "debug",
         CMDOPT_MAYTAKEARG, NULL,
         "set/unset debug mode", &opt[DEBUG]
+    );
+    cmdapp_set(app,
+        'H', "cdoc",
+        CMDOPT_MAYTAKEARG, NULL,
+        "set/unset cdoc mode", &opt[CDOC]
     );
 }
 
@@ -325,6 +336,9 @@ static void myproc(void *data, cmdopt_t* option, const char* arg) {
 // debug
         case 'G':
           add2arg(_arg, option->value, ARG_DEBUG);
+          break;
+        case 'H':
+          get_cdoc(arg_int->gwion, option->value);
           break;
     }
   }

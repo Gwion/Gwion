@@ -52,10 +52,10 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 //  set_vflag(udef->value, vflag_builtin);
 //  const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
 //  udef->value->d.ptr = (m_uint*)o;
-#ifdef GWION_DOC
-  lint_indent(gwi->lint);
-  lint_union_def(gwi->lint, udef);
-#endif
+  if(gwi->gwion->data->cdoc) {
+    lint_indent(gwi->lint);
+    lint_union_def(gwi->lint, udef);
+  }
   return udef->type;
 }
 
