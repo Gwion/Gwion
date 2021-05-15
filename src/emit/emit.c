@@ -2234,17 +2234,19 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     f->code = finalyze(emit, FuncReturn);
     return emit->env->class_def->info->gack = f->code;
   }
-  const VM_Code code = finalyze(emit, FuncReturn);
-  if(emit->info->memoize && fflag(emit->env->func, fflag_pure))
-  code->is_memoize = true;
-  return code;
+  return finalyze(emit, FuncReturn);
+}
+
+ANN static inline VM_Code _emit_func_def_code(const Emitter emit, const Func func) {
+  return !fbflag(func->def->base, fbflag_internal) ?
+        finalyze(emit, FuncReturn) : emit_internal(emit, func);
 }
 
 ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
-  if(fbflag(func->def->base, fbflag_internal))
-    return emit_internal(emit, func);
-  else
-    return finalyze(emit, FuncReturn);
+  const VM_Code code = _emit_func_def_code(emit, func);
+  if(emit->info->memoize && fflag(func, fflag_pure))
+    code->is_memoize = true;
+  return code;
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
