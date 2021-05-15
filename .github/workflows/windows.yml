@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Init submodules
-        run: git submodule update --init --recursive util ast libcmdapp
+        run: git submodule update --init --recursive
 
       - name: Build
         run: make
