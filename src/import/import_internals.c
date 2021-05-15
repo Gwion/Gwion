@@ -38,7 +38,6 @@ ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   const m_str name = gwion->env->name;
   OperCK oper = {};
-printf("cdoc %u\n", gwion->data->cdoc);
   struct Gwi_ gwi = { .gwion=gwion, .oper=&oper };
   const m_bool ret = !gwion->data->cdoc ?
         f(&gwi) : run_with_doc(&gwi, f);

@@ -13,7 +13,7 @@ struct Passes_ {
 // change this to gwion ?
 typedef m_bool (*compilation_pass)(const Env, PassArg);
 
-ANEW ANN struct Passes_* new_passes(MemPool mp);
+ANEW ANN struct Passes_* new_passes(const Gwion);
 ANN void free_passes(MemPool mp, struct Passes_*);
 ANN void pass_register(const Gwion, const m_str, const compilation_pass);
 ANN void pass_default(const Gwion);

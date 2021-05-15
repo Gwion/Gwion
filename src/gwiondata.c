@@ -16,11 +16,10 @@ ANN static inline GwionData* gwiondata(MemPool mp) {
   return data;
 }
 
-ANN GwionData* new_gwiondata(MemPool mp) {
+ANN GwionData* new_gwiondata(const MemPool mp) {
   GwionData *data = gwiondata(mp);
   map_init(&data->freearg);
   map_init(&data->id);
-  data->passes = new_passes(mp);
   return data;
 }
 
@@ -38,7 +37,7 @@ ANN void free_gwiondata_cpy(const MemPool mp, GwionData *data) {
   mp_free(mp, GwionData, data);
 }
 
-ANN void free_gwiondata(const struct Gwion_ *gwion) {
+ANN void free_gwiondata(const Gwion gwion) {
   GwionData *data = gwion->data;
   map_release(&data->freearg);
   for(m_uint i = 0; i < map_size(&data->id); ++i)

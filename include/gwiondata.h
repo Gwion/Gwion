@@ -11,8 +11,8 @@ typedef struct GwionData_ {
   bool   cdoc;
 } GwionData;
 
-ANN GwionData* new_gwiondata(MemPool);
+ANN GwionData* new_gwiondata(const MemPool);
 ANN GwionData* cpy_gwiondata(MemPool, const GwionData*);
-ANN void free_gwiondata(const struct Gwion_*);
+ANN void free_gwiondata(const Gwion);
 ANN void free_gwiondata_cpy(const MemPool, GwionData*);
 #endif

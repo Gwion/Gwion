@@ -8,9 +8,13 @@
 #include "pass.h"
 #include "traverse.h"
 
-static const m_str default_passes_name[] = { "check", "emit" };
-static const compilation_pass default_passes[] = { traverse_ast, emit_ast };
-#define NPASS sizeof(default_passes)/sizeof(default_passes[0])
+#define N_PASS     2
+#define N_SCANPASS 4
+
+static const m_str default_passes_name[2] = { "check", "emit" };
+static const compilation_pass default_passes[4] = { traverse_ast, emit_ast };
+static const m_str scan_passes_name[4] = { "scan0", "scan1", "scan2", "type_check" };
+static const compilation_pass scan_passes[4] = { scan0_ast, scan1_ast, scan2_ast, check_ast };
 
 ANN void pass_register(const Gwion gwion, const m_str name, const compilation_pass pass) {
   const Symbol sym = insert_symbol(gwion->st, name);
@@ -37,18 +41,19 @@ ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
 ANN void pass_default(const Gwion gwion) {
   struct Vector_ v;
   vector_init(&v);
-  for(m_uint i = 0; i < NPASS; ++i) {
+  for(m_uint i = 0; i < N_PASS; ++i)
     vector_add(&v, (vtype)default_passes_name[i]);
-    pass_register(gwion, default_passes_name[i], default_passes[i]);
-  }
   pass_set(gwion, &v);
   vector_release(&v);
 }
 
-
-ANEW ANN struct Passes_* new_passes(MemPool mp) {
-  struct Passes_ *a = mp_calloc(mp, Passes);
+ANEW ANN struct Passes_* new_passes(const Gwion gwion) {
+  struct Passes_ *a = gwion->data->passes = mp_calloc(gwion->mp, Passes);
   map_init(&a->map);
+  for(m_uint i = 0; i < N_PASS; ++i)
+    pass_register(gwion, default_passes_name[i], default_passes[i]);
+  for(m_uint i = 0; i < N_SCANPASS; ++i)
+    pass_register(gwion, scan_passes_name[i], scan_passes[i]);
   vector_init(&a->vec);
   return a;
 }

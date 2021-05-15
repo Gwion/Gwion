@@ -108,7 +108,10 @@ ANN Value global_string(const Env env, const m_str str) {
 }
 
 ANN m_bool isres(const Env env, const Symbol xid, const loc_t pos) {
-  if(vector_find(&env->gwion->data->reserved, (vtype)xid) > -1)
-    ERR_B(pos, _("%s is reserved."), s_name(xid));
+  const Map map = &env->gwion->data->id;
+  for(m_uint i = 0; i < map_size(map); i++) {
+    if(xid == (Symbol)VKEY(map, i))
+      ERR_B(pos, _("%s is reserved."), s_name(xid));
+  }
   return GW_OK;
 }

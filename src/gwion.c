@@ -76,6 +76,13 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg* arg) {
 
 #define LOCALE_INFO INSTALL_PREFIX "/share"
 
+ANN static void doc_mode(const Gwion gwion) {
+  struct Vector_ v;
+  vector_init(&v);
+  vector_add(&v, (m_uint)"scan0");
+  pass_set(gwion, &v);
+}
+
 ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
 #ifdef USE_GETTEXT
   setlocale(LC_ALL, NULL);
@@ -90,8 +97,8 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
   gwion_core(gwion);
   gwion->data = new_gwiondata(gwion->mp);
   gwion->type = (Type*)xcalloc(MAX_TYPE, sizeof(struct Type_*));
-  pass_default(gwion);
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
+  new_passes(gwion);
   CHECK_BB(arg_parse(gwion, arg));
   if(arg->color == COLOR_NEVER)
     tcol_override_color_checks(0);
@@ -99,6 +106,10 @@ ANN m_bool gwion_ini(const Gwion gwion, Arg* arg) {
     tcol_override_color_checks(isatty(1));
   else if(arg->color == COLOR_ALWAYS)
     tcol_override_color_checks(1);
+  if(!gwion->data->cdoc)
+    pass_default(gwion);
+  else
+    doc_mode(gwion);
   return !arg->quit ? gwion_ok(gwion, arg) : GW_ERROR;
 }
 
