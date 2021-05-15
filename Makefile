@@ -48,7 +48,7 @@ endif
 
 CFLAGS += -DGWION_BUILTIN
 
-_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a
+_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a fmt/libgwion-fmt.a
 GWLIBS := lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a
 GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor/libtermcolor.a
 GWLIBS += fmt/libgwion-fmt.a
@@ -83,7 +83,7 @@ ast/libgwion_ast.a:
 libcmdapp/libcmdapp.a:
 	@+${MAKE} -s -C libcmdapp static
 
-fmt/lib-gwion-fmt.a:
+fmt/libgwion-fmt.a:
 	@+${MAKE} -s -C fmt libgwion-fmt.a
 
 ast/libprettyerr/libprettyerr.a:
