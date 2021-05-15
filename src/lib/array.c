@@ -691,7 +691,6 @@ static OP_CHECK(opck_array_scan) {
     t->nspc->dtor->native_func = (m_uint) (!tflag(base, tflag_struct) ?
         array_dtor_obj : array_dtor_struct);
   }
-  unset_tflag(t, tflag_ctor);
   return t;
 }
 

@@ -1600,7 +1600,10 @@ ANN static bool class_def_has_body(Ast ast) {
             continue;
           Var_Decl_List dlist = exp->d.exp_decl.list;
           do {
-            if(tflag(dlist->self->value->type, tflag_ctor))
+            if(GET_FLAG(dlist->self->value, late))
+              continue;
+            if(tflag(dlist->self->value->type, tflag_ctor) ||
+                     dlist->self->value->type->array_depth)
               return true;
           } while((dlist = dlist->next));
         } else
