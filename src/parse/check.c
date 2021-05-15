@@ -1581,7 +1581,7 @@ ANN static m_bool check_body(const Env env, Section *const section) {
   return ret;
 }
 
-ANN static bool class_def_has_body(Ast ast) {
+ANN static bool class_def_has_body(const Env env, Ast ast) {
   do {
     const Section *section = ast->section;
     if(section->section_type == ae_section_stmt) {
@@ -1602,8 +1602,9 @@ ANN static bool class_def_has_body(Ast ast) {
           do {
             if(GET_FLAG(dlist->self->value, late))
               continue;
-            if(tflag(dlist->self->value->type, tflag_ctor) ||
-                     dlist->self->value->type->array_depth)
+if(isa(dlist->self->value->type, env->gwion->type[et_compound]) > 0)
+//            if(tflag(dlist->self->value->type, tflag_ctor) ||
+//                     dlist->self->value->type->array_depth)
               return true;
           } while((dlist = dlist->next));
         } else
@@ -1622,11 +1623,31 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     inherit(t);
   if(cdef->body) {
     CHECK_BB(env_body(env, cdef, check_body));
-    if(class_def_has_body(cdef->body))
+    if(class_def_has_body(env, cdef->body))
       set_tflag(t, tflag_ctor);
   }
   if(!GET_FLAG(cdef, abstract))
     CHECK_BB(check_abstract(env, cdef));
+  Value value;
+  struct scope_iter iter = { t->nspc->info->value, 0, 0 };
+  while(scope_iter(&iter, &value) > 0) {
+    if(isa(value->type, env->gwion->type[et_compound]) < 0)
+      continue;
+    if(value->type->nspc && !GET_FLAG(value, late)) {
+      Value v;
+  struct scope_iter inner = { value->type->nspc->info->value, 0, 0 };
+  while(scope_iter(&inner, &v) > 0) {
+      if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
+//exit(3);
+        env_err(env, v->from->loc, _("recursive type"));
+env->context->error = false;
+        env_err(env, value->from->loc, _("recursive type"));
+env->context->error = true;
+return GW_ERROR;
+}
+}
+}
+  }
   return GW_OK;
 }
 

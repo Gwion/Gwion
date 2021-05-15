@@ -33,15 +33,33 @@ ANN static inline Type ref(const Env env, Type_Decl* td) {
   return t;
 }
 
+ANN static inline Type find(const Env env, Type_Decl* td) {
+  if(!td->fptr)
+    return find_type(env, td);
+  if(!td->fptr->type)
+    CHECK_BO(traverse_fptr_def(env, td->fptr));
+  return td->fptr->type;
+}
+
+ANN static inline Type find1(const Env env, const Type base, Type_Decl* td) {
+  if(!td->fptr)
+    return scan_type(env, base, td);
+  if(!td->fptr->type) {
+    CHECK_BO(scan0_fptr_def(env, td->fptr));
+    CHECK_BO(traverse_fptr_def(env, td->fptr));
+  }
+  return td->fptr->type;
+}
+
 ANN static Type resolve(const Env env, Type_Decl* td) {
   Type_Decl *last = td;
   while(last->next)
     last = last->next;
-  DECL_OO(const Type, base, = find_type(env, td));
+  DECL_OO(const Type, base, = find(env, td));
   const Context ctx = base->info->value->from->ctx;
   if(ctx && ctx->error)
     ERR_O(td->pos, _("type '%s' is invalid"), base->name)
-  DECL_OO(const Type, type, = scan_type(env, base, td));
+  DECL_OO(const Type, type, = find1(env, base, td));
   const Type t = !td->ref ? type : ref(env, td);
   const Type ret = !td->option ? t : option(env, td);
   const Array_Sub array = last->array;
