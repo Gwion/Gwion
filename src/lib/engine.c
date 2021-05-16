@@ -73,9 +73,14 @@ static OP_CHECK(opck_basic_ctor) {
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"));
 }
 
+static ID_CHECK(idck_predicate) {
+  set_fflag(env->func, fflag_return);
+  return exp_self(prim)->type;
+}
+
 static INSTR(PredicateCheck) {
   if(!*(m_uint*)REG(-SZ_INT))
-    handle(shred, "predicate failed");
+    handle(shred, "PredicateFail");
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
@@ -132,7 +137,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   gwi_specialid(gwi, "now", &spid);
 
   gwidoc(gwi, "internal predicate representation.");
-  struct SpecialId_ predicate = { .type=t_void, .exec=PredicateCheck, .is_const=1 };
+  struct SpecialId_ predicate = { .type=t_void, .ck=idck_predicate, .exec=PredicateCheck, .is_const=1 };
   gwi_specialid(gwi, "@predicate", &predicate);
 
   gwidoc(gwi, "internal base of all objects and structures.");

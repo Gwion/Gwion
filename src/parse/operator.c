@@ -148,7 +148,7 @@ ANN static inline Type op_parent(const Env env, const Type t) {
       array_type(env, array_base(t)->info->parent, depth);
 }
 
-ANN static Type op_check_inner(struct OpChecker* ock, const uint i) {
+ANN static Type op_check_inner(const Env env, struct OpChecker* ock, const uint i) {
   Type t, r = ock->opi->rhs;
   do {
     const M_Operator* mo;
@@ -160,7 +160,7 @@ ANN static Type op_check_inner(struct OpChecker* ock, const uint i) {
       } else
         return mo->ret;
     }
-  } while(r && (r = r->info->parent));
+  } while(r && (r = op_parent(env, r)));
   return NULL;
 }
 
@@ -174,7 +174,7 @@ for(int i = 0; i < 2; ++i) {
     do {
       struct Op_Import opi2 = { .op=opi->op, .lhs=l, .rhs=opi->rhs, .data=opi->data };
       struct OpChecker ock = { .env=env, .map=&nspc->info->op_map, .opi=&opi2 };
-      const Type ret = op_check_inner(&ock, i);
+      const Type ret = op_check_inner(env, &ock, i);
       if(ret) {
         if(ret == env->gwion->type[et_error])
           return NULL;
@@ -251,4 +251,72 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
   } while((nspc = nspc->parent));
   }
   return GW_ERROR;
+}
+
+#define CONVERT(t) t != from ? t : to
+ANN static M_Operator* cpy_mo(MemPool p, M_Operator *const base,
+      const Type from, const Type to) {
+  M_Operator* mo = mp_calloc(p, M_Operator);
+  mo->lhs   = CONVERT(base->lhs);
+  mo->rhs   = CONVERT(base->rhs);
+  mo->ret   = CONVERT(base->ret);
+  mo->instr = base->instr;
+  mo->func  = base->func;
+  mo->ck    = base->ck;
+  mo->em    = base->em;
+  if(base->effect.ptr) {
+    vector_init(&mo->effect);
+    vector_copy2(&base->effect, &mo->effect);
+  }
+  return mo;
+}
+#undef CONVERT
+
+ANN static inline Map ensure_map(const Nspc nspc) {
+  const Map map = &nspc->info->op_map;
+  if(!map->ptr)
+    map_init(map);
+  return map;
+}
+
+ANN static inline Vector ensure_vec(const MemPool mp, const Map map, const m_uint key) {
+  const Vector exists = (Vector)map_get(map, key);
+  if(exists)
+    return exists;
+  const Vector vec = new_vector(mp);
+  map_set(map, key, (m_uint)vec);
+  return vec;
+}
+
+ANN static void op_visit(const MemPool mp, const Nspc nspc, const struct Op_Import* opi, const Vector visited) {
+  if(vector_find(visited, (m_uint)nspc) != -1)
+    return;
+  vector_add(visited, (m_uint)nspc);
+  if(nspc->info->op_map.ptr) {
+    const Map map = &nspc->info->op_map;
+    const Map base_map = ensure_map(opi->rhs->info->value->from->owner);
+    for(m_uint i = 0; i < map_size(map); i++) {
+      const Vector v = (Vector)map_at(map, i);
+      const m_uint sz = vector_size(v);
+      for(m_uint j = 0; j < sz; j++) {
+        M_Operator *const mo = (M_Operator*)vector_at(v, j);
+        if(opi->lhs == mo->lhs || opi->lhs == mo->rhs || opi->lhs == mo->ret) {
+          const M_Operator* tmp = cpy_mo(mp, mo, opi->lhs, opi->rhs);
+          const Vector target = ensure_vec(mp, base_map, VKEY(map, i));
+          vector_add(target, (vtype)tmp);
+        }
+      }
+    }
+  }
+  if(nspc->parent)
+    op_visit(mp, nspc->parent, opi, visited);
+}
+
+ANN void op_cpy(const Env env, const struct Op_Import* opi) {
+  struct Vector_ visited;
+  vector_init(&visited);
+  op_visit(env->gwion->mp, opi->rhs->info->value->from->owner, opi, &visited);
+  op_visit(env->gwion->mp, opi->lhs->info->value->from->owner, opi, &visited);
+  op_visit(env->gwion->mp, env->curr, opi, &visited);
+  vector_release(&visited);
 }

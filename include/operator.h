@@ -45,6 +45,7 @@ struct TemplateScan {
   const Type_Decl  *td;
 };
 
+ANN void op_cpy(const Env env, const struct Op_Import* opi);
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import*);
 ANN Type   op_check(const Env, struct Op_Import*);
 ANN m_bool op_emit(const Emitter, const struct Op_Import*);

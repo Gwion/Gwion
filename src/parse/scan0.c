@@ -108,6 +108,12 @@ ANN /*static */void scan0_implicit_similar(const Env env, const Type lhs, const 
   add_op(env->gwion, &opi);
 }
 
+ANN static void scan0_explicit_distinct(const Env env, const Type lhs, const Type rhs) {
+  struct Op_Func opfunc = { .ck=opck_cast_similar };
+  struct Op_Import opi = { .op=insert_symbol("$"), .lhs=lhs, .rhs=rhs, .func=&opfunc };
+  add_op(env->gwion, &opi);
+}
+
 ANN static void typedef_simple(const Env env, const Type_Def tdef, const Type base) {
   const Type t = scan0_type(env, s_name(tdef->xid), base);
   t->size = base->size;
@@ -164,12 +170,20 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   } else
     typedef_fptr(env, tdef, base);
   if(!tdef->distinct && !tdef->when)
-    scan0_implicit_similar(env, tdef->type, base);
-  if(tdef->distinct)
+    scan0_implicit_similar(env, base, tdef->type);
+  if(tdef->distinct) {
+    tdef->type->info->parent = base->info->parent;
+    if(base->info->gack)
+      vmcode_addref(tdef->type->info->gack = base->info->gack);
     set_tflag(tdef->type, tflag_distinct);
+    struct Op_Import opi = { .lhs=base, .rhs=tdef->type };
+    op_cpy(env, &opi);
+    scan0_explicit_distinct(env, base, tdef->type);
+//    type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
+  } else
+    set_tflag(tdef->type, tflag_typedef);
   if(global)
     env_pop(env, 0);
-  set_tflag(tdef->type, tflag_typedef);
   return GW_OK;
 }
 

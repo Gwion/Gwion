@@ -947,6 +947,8 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp when = cpy_exp(env->gwion->mp, tdef->when);
     when->next = helper;
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, when, when->pos);
+//    const Stmt stmt_return = new_stmt_exp(env->gwion->mp, ae_stmt_return, new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos), when->pos);
+//    const Stmt_List ret_list = new_stmt_list(env->gwion->mp, stmt_return, NULL);//ret_list);
     const Stmt_List body = new_stmt_list(env->gwion->mp, stmt, NULL);//ret_list);
     const Stmt code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
@@ -980,6 +982,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     ret_id->type = tdef->type;
     body->next = ret_list;
     tdef->when_def = fdef;
+
   }
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef) ?
      check_class_def(env, tdef->type->info->cdef) : GW_OK;
