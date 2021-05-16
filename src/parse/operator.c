@@ -25,7 +25,7 @@ typedef struct M_Operator_{
 ANN void free_op_map(Map map, struct Gwion_ *gwion) {
   LOOP_OPTIM
   for(m_uint i = map_size(map) + 1; --i;) {
-    const restrict Vector v = (Vector)map_at(map, (vtype)i - 1);
+    const restrict Vector v = (Vector)&VVAL(map, (vtype)i - 1);
     LOOP_OPTIM
     for(m_uint j = vector_size(v) + 1; --j;) {
       M_Operator *const mop = (M_Operator*)vector_at(v, j - 1);
@@ -34,7 +34,7 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
       mp_free(gwion->mp, M_Operator, mop);
 
     }
-    free_vector(gwion->mp, v);
+    vector_release(v);
   }
   map_release(map);
 }
@@ -70,7 +70,8 @@ ANN2(1) static M_Operator* operator_find2(const Vector v, const restrict Type lh
 }
 
 ANN void operator_suspend(const Nspc n, struct Op_Import *opi) {
-  const Vector v = (Vector)map_get(&n->info->op_map, (vtype)opi->op);
+  const m_int idx = map_index(&n->info->op_map, (vtype)opi->op);
+  const Vector v = (Vector)&VVAL(&n->info->op_map, idx);
   for(m_uint i = vector_size(v) + 1; --i;) {
     M_Operator* mo = (M_Operator*)vector_at(v, i - 1);
     if(opi->lhs == mo->lhs && opi->rhs == mo->rhs) {
@@ -105,17 +106,18 @@ struct OpChecker {
 
 __attribute__((returns_nonnull))
 ANN static Vector op_vector(MemPool p, const struct OpChecker *ock) {
-  const Vector exist = (Vector)map_get(ock->map, (vtype)ock->opi->op);
-  if(exist)
-    return exist;
-  const Vector create = new_vector(p);
-  map_set(ock->map, (vtype)ock->opi->op, (vtype)create);
+  const m_int idx = map_index(ock->map, (vtype)ock->opi->op);
+  if(idx > -1)
+    return (Vector)&VVAL(ock->map, idx);
+  map_set(ock->map, (vtype)ock->opi->op, 0);
+  const Vector create = (Vector)&VVAL(ock->map, VLEN(ock->map) - 1);
+  vector_init(create);
   return create;
 }
 
 ANN static m_bool _op_exist(const struct OpChecker* ock, const Nspc n) {
-  const Vector v = (Vector)map_get(&n->info->op_map, (vtype)ock->opi->op);
-  if(!v || !operator_find2(v, ock->opi->lhs, ock->opi->rhs))
+  const m_int idx = map_index(&n->info->op_map, (vtype)ock->opi->op);
+  if(idx == -1 || !operator_find2((Vector)&VVAL(ock->map, idx), ock->opi->lhs, ock->opi->rhs))
     return GW_OK;
   env_err(ock->env, ock->opi->pos, _("operator '%s', for type '%s' and '%s' already imported"),
         s_name(ock->opi->op), type_name(ock->opi->lhs), type_name(ock->opi->rhs));
@@ -152,8 +154,8 @@ ANN static Type op_check_inner(const Env env, struct OpChecker* ock, const uint 
   Type t, r = ock->opi->rhs;
   do {
     const M_Operator* mo;
-    const Vector v = (Vector)map_get(ock->map, (vtype)ock->opi->op);
-    if(v && (mo = !i ? operator_find2(v, ock->opi->lhs, r) : operator_find(v, ock->opi->lhs, r))) {
+    const m_int idx = map_index(ock->map, (vtype)ock->opi->op);
+    if(idx > -1 && (mo = !i ? operator_find2(&VVAL(ock->map, idx), ock->opi->lhs, r) : operator_find(&VVAL(ock->map, idx), ock->opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data)))) {
         ock->effect.ptr = mo->effect.ptr;
         return t;
@@ -204,7 +206,8 @@ for(int i = 0; i < 2; ++i) {
 
 ANN m_bool operator_set_func(const struct Op_Import* opi) {
   const Nspc nspc = ((Func)opi->data)->value_ref->from->owner;
-  const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
+  const m_int idx = map_index(&nspc->info->op_map, (vtype)opi->op);
+  const Vector v = (Vector)&VVAL(&nspc->info->op_map, idx);
   DECL_OB(M_Operator*, mo, = operator_find(v, opi->lhs, opi->rhs));
   mo->func = (Func)opi->data;
   return GW_OK;
@@ -234,9 +237,10 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import* opi) {
     do {
       Type r = opi->rhs;
       do {
-        const Vector v = (Vector)map_get(&nspc->info->op_map, (vtype)opi->op);
-        if(!v)
+        const m_int idx = map_index(&nspc->info->op_map, (vtype)opi->op);
+        if(idx == -1)
           continue;
+        const Vector v = (Vector)&VVAL(&nspc->info->op_map, idx);
         const M_Operator* mo = !i ? operator_find2(v, l, r) :operator_find(v, l, r);
         if(mo) {
           if(mo->em) {
@@ -280,12 +284,13 @@ ANN static inline Map ensure_map(const Nspc nspc) {
 }
 
 ANN static inline Vector ensure_vec(const MemPool mp, const Map map, const m_uint key) {
-  const Vector exists = (Vector)map_get(map, key);
-  if(exists)
-    return exists;
-  const Vector vec = new_vector(mp);
-  map_set(map, key, (m_uint)vec);
-  return vec;
+  const m_int idx = (Vector)map_index(map, key);
+  if(idx > -1)
+    return (Vector)&VVAL(map, idx);
+  map_set(map, key, 0);
+  const Vector v = (Vector)&VVAL(map, VLEN(map) - 1);
+  vector_init(v);
+  return v;
 }
 
 ANN static void op_visit(const MemPool mp, const Nspc nspc, const struct Op_Import* opi, const Vector visited) {
@@ -296,7 +301,7 @@ ANN static void op_visit(const MemPool mp, const Nspc nspc, const struct Op_Impo
     const Map map = &nspc->info->op_map;
     const Map base_map = ensure_map(opi->rhs->info->value->from->owner);
     for(m_uint i = 0; i < map_size(map); i++) {
-      const Vector v = (Vector)map_at(map, i);
+      const Vector v = (Vector)&VVAL(map, i);
       const m_uint sz = vector_size(v);
       for(m_uint j = 0; j < sz; j++) {
         M_Operator *const mo = (M_Operator*)vector_at(v, j);
