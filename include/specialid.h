@@ -1,7 +1,6 @@
 #ifndef __SPECIALID
 #define __SPECIALID
 
-struct SpecialId_;
 typedef Type (*idck)(const Env, const Exp_Primary*);
 typedef struct Instr_* (*idem)(const Emitter, const Exp_Primary*);
 
