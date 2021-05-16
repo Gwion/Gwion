@@ -80,7 +80,7 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
   if(shred->mem == (m_bit*)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return true;
   shred_unwind(shred);
-  return unwind(shred, effect, size - 2);
+  return unwind(shred, effect, size - 1);
 }
 
 ANN static void trace(VM_Shred shred, const m_uint size) {
