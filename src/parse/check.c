@@ -938,6 +938,7 @@ const Func f = exp_self(call)->type->info->func;
 
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   if(tdef->when) {
+    set_tflag(tdef->type, tflag_contract);
     const Var_Decl decl = new_var_decl(env->gwion->mp, insert_symbol("self"), NULL, tdef->when->pos);
     const Arg_List args = new_arg_list(env->gwion->mp, cpy_type_decl(env->gwion->mp, tdef->ext), decl, NULL);
     Func_Base *fb = new_func_base(env->gwion->mp, type2td(env->gwion, tdef->type, tdef->pos),

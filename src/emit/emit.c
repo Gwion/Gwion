@@ -891,6 +891,11 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl* decl) {
       CHECK_BB(emit_exp_decl_non_static(emit, decl, list->self, r, var));
     else
       CHECK_BB(emit_exp_decl_global(emit, decl, list->self, r, var));
+    if(tflag(list->self->value->type, tflag_contract) && !exp_getvar(exp_self(decl))) {
+      const Type t = list->self->value->type;
+      struct Op_Import opi = { .lhs=t->info->base_type, .op=insert_symbol("@implicit"), .rhs=t };
+      CHECK_BB(op_emit(emit, &opi));
+    }
     set_late(emit->gwion, decl, list->self);
     if(GET_FLAG(array_base(v->type), abstract) && !GET_FLAG(decl->td, late) && GET_FLAG(v, late)) {
       env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use late"), v->type->name);

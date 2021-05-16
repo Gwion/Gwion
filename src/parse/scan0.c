@@ -179,11 +179,12 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     struct Op_Import opi = { .lhs=base, .rhs=tdef->type };
     op_cpy(env, &opi);
     scan0_explicit_distinct(env, base, tdef->type);
-//    type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
+    type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
   } else
     set_tflag(tdef->type, tflag_typedef);
   if(global)
     env_pop(env, 0);
+  tdef->type->info->base_type = base;
   return GW_OK;
 }
 

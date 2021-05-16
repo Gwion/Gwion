@@ -41,6 +41,7 @@ ANN void env_reset(const Env env) {
   env->class_def = NULL;
   env->func = NULL;
   env->scope->depth = 0;
+  env->scope->in_try = false;
 }
 
 ANN void release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion) {
