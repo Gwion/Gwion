@@ -318,24 +318,25 @@ ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
   ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
 }
 
-ANN static Type get_parent(const Env env, const Class_Def cdef) {
+ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   if(cflag(cdef, cflag_struct))
     return env->gwion->type[et_compound];
   if(!cdef->base.ext)
     return env->gwion->type[et_object];
   if(tmpl_base(cdef->base.tmpl))
     return get_parent_base(env, cdef->base.ext);
-  if(cdef->base.tmpl)
+  const bool tmpl = !!cdef->base.tmpl;
+  if(tmpl)
     template_push_types(env, cdef->base.tmpl);
   const Type t = scan0_final(env, cdef->base.ext);
-  if(cdef->base.tmpl)
+  if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   return t ?: (Type)GW_ERROR;
 }
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
-  const Type parent = get_parent(env, cdef);
+  const Type parent = cdef_parent(env, cdef);
   if(parent == (Type)GW_ERROR)
     return NULL;
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);

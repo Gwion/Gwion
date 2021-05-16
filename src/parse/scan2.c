@@ -558,10 +558,11 @@ ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
-  if(cdef->base.tmpl && cdef->base.tmpl->list)
+  const bool tmpl = !!cdef->base.tmpl;
+  if(tmpl)
     CHECK_BB(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = scan2_parent(env, cdef);
-  if(cdef->base.tmpl && cdef->base.tmpl->list)
+  if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
 }
