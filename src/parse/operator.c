@@ -105,7 +105,7 @@ struct OpChecker {
 };
 
 __attribute__((returns_nonnull))
-ANN static Vector op_vector(MemPool p, const struct OpChecker *ock) {
+ANN static Vector op_vector(const struct OpChecker *ock) {
   const m_int idx = map_index(ock->map, (vtype)ock->opi->op);
   if(idx > -1)
     return (Vector)&VVAL(ock->map, idx);
@@ -137,7 +137,7 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import* opi) {
   if(!gwion->env->curr->info->op_map.ptr)
     map_init(&gwion->env->curr->info->op_map);
   struct OpChecker ock = { .env=gwion->env, .map=&gwion->env->curr->info->op_map, .opi=opi };
-  const Vector v = op_vector(gwion->mp, &ock);
+  const Vector v = op_vector(&ock);
   const M_Operator* mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
   return GW_OK;
@@ -155,7 +155,9 @@ ANN static Type op_check_inner(const Env env, struct OpChecker* ock, const uint 
   do {
     const M_Operator* mo;
     const m_int idx = map_index(ock->map, (vtype)ock->opi->op);
-    if(idx > -1 && (mo = !i ? operator_find2(&VVAL(ock->map, idx), ock->opi->lhs, r) : operator_find(&VVAL(ock->map, idx), ock->opi->lhs, r))) {
+    if(idx > -1 && (mo = !i ?
+          operator_find2((Vector)&VVAL(ock->map, idx), ock->opi->lhs, r) :
+          operator_find( (Vector)&VVAL(ock->map, idx), ock->opi->lhs, r))) {
       if((mo->ck && (t = mo->ck(ock->env, (void*)ock->opi->data)))) {
         ock->effect.ptr = mo->effect.ptr;
         return t;
@@ -283,8 +285,8 @@ ANN static inline Map ensure_map(const Nspc nspc) {
   return map;
 }
 
-ANN static inline Vector ensure_vec(const MemPool mp, const Map map, const m_uint key) {
-  const m_int idx = (Vector)map_index(map, key);
+ANN static inline Vector ensure_vec(const Map map, const m_uint key) {
+  const m_int idx = map_index(map, key);
   if(idx > -1)
     return (Vector)&VVAL(map, idx);
   map_set(map, key, 0);
@@ -307,7 +309,7 @@ ANN static void op_visit(const MemPool mp, const Nspc nspc, const struct Op_Impo
         M_Operator *const mo = (M_Operator*)vector_at(v, j);
         if(opi->lhs == mo->lhs || opi->lhs == mo->rhs || opi->lhs == mo->ret) {
           const M_Operator* tmp = cpy_mo(mp, mo, opi->lhs, opi->rhs);
-          const Vector target = ensure_vec(mp, base_map, VKEY(map, i));
+          const Vector target = ensure_vec(base_map, VKEY(map, i));
           vector_add(target, (vtype)tmp);
         }
       }
