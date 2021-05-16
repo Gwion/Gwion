@@ -1,3 +1,4 @@
+#! [contains] Unhandled PredicateFail
 typedef int MoreThan10
   when self > 10;
 

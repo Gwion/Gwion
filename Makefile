@@ -20,12 +20,11 @@ test_ignore = tests/plug test/driver tests/module
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
 
-
 CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
 CFLAGS += -Iast/libprettyerr/src -Ifmt/include
 
 # add commit hash to version for now
-CFLAGS += -DGWION_VERSION=\"$(shell git log -n1 --format="%h")\"
+CFLAGS += -DGWION_VERSION="\"$(shell git log -n1 --format="%h%m%cs")\""
 
 ifeq (${DEBUG_STACK}, 1)
 CFLAGS += -DDEBUG_STACK

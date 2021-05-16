@@ -1,3 +1,4 @@
+#! [contains] Invalid `when` predicate
 typedef int MoreThan10
   when <<< __func__ >>>;
 
