@@ -1,0 +1,10 @@
+#! [contains] no match found
+funptr void test_t(int)
+  perform SomeEffect;
+
+fun void myfunc(int i) {
+  perform Test;
+}
+
+myfunc @=> const test_t t;
+t(2);

@@ -1,0 +1,6 @@
+#! [contains] Unhandled SomeEffect
+class C {
+  perform SomeEffect;
+}
+
+const C c;

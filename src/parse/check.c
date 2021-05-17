@@ -948,15 +948,13 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp when = cpy_exp(env->gwion->mp, tdef->when);
     when->next = helper;
     const Stmt stmt = new_stmt_exp(env->gwion->mp, ae_stmt_exp, when, when->pos);
-//    const Stmt stmt_return = new_stmt_exp(env->gwion->mp, ae_stmt_return, new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos), when->pos);
-//    const Stmt_List ret_list = new_stmt_list(env->gwion->mp, stmt_return, NULL);//ret_list);
     const Stmt_List body = new_stmt_list(env->gwion->mp, stmt, NULL);//ret_list);
     const Stmt code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     CHECK_BB(traverse_func_def(env, fdef));
     const Exp predicate = stmt->d.stmt_exp.val;
     if(isa(predicate->type, env->gwion->type[et_bool]) < 0) {
-      char explain[strlen(predicate->type->name) + 7];
+      char explain[strlen(predicate->type->name) + 20];
       sprintf(explain, "found `{/+}%s{0}`", predicate->type->name);
       gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain, "use `{/+}bool{0}`",
         env->name, when->pos, 0);

@@ -1,0 +1,4 @@
+#define macro1(a) macro3(a)
+#define macro2(a) macro1(a)
+#define macro3(a) macro2(a)
+macro3(a);

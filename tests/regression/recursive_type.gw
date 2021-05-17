@@ -1,0 +1,9 @@
+#! [contains] recursive type
+class C {
+  var D d;
+}
+class D {
+  var C c;
+}
+
+<<< new D >>>;

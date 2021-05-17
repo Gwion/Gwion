@@ -1,0 +1,6 @@
+#! [contains] Can't use type
+fun &int test(&int i) {
+  return i;
+}
+var int i;
+<<< test(i) >>>;
