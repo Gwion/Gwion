@@ -1,0 +1,4 @@
+#! [contains] shadows a previously defined variable
+var int i;
+
+repeat(i, 12);

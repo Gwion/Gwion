@@ -171,12 +171,19 @@ ANN static void clean_stmt_for(Clean *a, Stmt_For b) {
   --a->scope;
 }
 
+ANN static void clean_idx(Clean *a, struct EachIdx_ *b) {
+  if(b->v)
+    value_remref(b->v, a->gwion);
+}
+
 ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
   if(b->v)
     value_remref(b->v, a->gwion);
+  if(b->idx)
+    clean_idx(a, b->idx);
   --a->scope;
 }
 

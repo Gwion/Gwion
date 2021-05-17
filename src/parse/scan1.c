@@ -303,6 +303,25 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env, const Stmt_Ea
   return GW_OK;
 }
 
+ANN static inline m_bool shadow_err(const Env env, const Symbol sym, const loc_t  loc) {
+  ERR_B(loc, _("argument '%s' shadows a previously defined variable"),
+        s_name(sym))
+}
+
+ANN static inline m_bool shadow_arg(const Env env, const Symbol sym, const loc_t  loc) {
+  Nspc nspc = env->curr;
+  do if(nspc_lookup_value0(nspc, sym))
+    return shadow_err(env, sym, loc);
+  while((nspc = nspc->parent));
+  return GW_OK;
+}
+
+ANN static inline m_bool shadow_var(const Env env, const Symbol sym, const loc_t  loc) {
+  if(nspc_lookup_value1(env->curr, sym))
+    return shadow_err(env, sym, loc);
+  return GW_OK;
+}
+
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
@@ -314,7 +333,8 @@ describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(loop, Stmt_Loop,, !(scan1_exp(env, stmt->cond) < 0 ||
+describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->sym, stmt->idx->pos)) < 0 ||
+    scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->if_body) < 0 ||
@@ -553,13 +573,8 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
 }
 
 ANN static m_bool scan1_fdef_args(const Env env, Arg_List list) {
-  do {
-    Nspc nspc = env->curr;
-    do if(nspc_lookup_value0(nspc, list->var_decl->xid))
-       ERR_B(list->var_decl->pos, _("argument '%s' shadows a previously defined variable"),
-            s_name(list->var_decl->xid))
-    while((nspc = nspc->parent));
-  } while((list = list->next));
+  do CHECK_BB(shadow_arg(env, list->var_decl->xid, list->var_decl->pos));
+  while((list = list->next));
   return GW_OK;
 }
 

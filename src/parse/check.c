@@ -1068,6 +1068,13 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   return depth ? array_type(env, t, depth) : t;
 }
 
+ANN static void check_idx(const Env env, struct EachIdx_ *const idx) {
+  idx->v = new_value(env->gwion->mp, env->gwion->type[et_int], s_name(idx->sym));
+  valuefrom(env, idx->v->from, idx->pos);
+  set_vflag(idx->v, vflag_valid);
+  nspc_add_value(env->curr, idx->sym, idx->v);
+}
+
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   DECL_OB(const Type, base, = foreach_type(env, stmt->exp));
   CHECK_BB(ensure_traverse(env, base));
@@ -1080,12 +1087,14 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   set_vflag(stmt->v, vflag_valid);
   nspc_add_value(env->curr, stmt->sym, stmt->v);
-  if(stmt->idx) {
-    stmt->idx->v = new_value(env->gwion->mp, env->gwion->type[et_int], s_name(stmt->idx->sym));
-    valuefrom(env, stmt->idx->v->from, stmt->idx->pos);
-    set_vflag(stmt->idx->v, vflag_valid);
-    nspc_add_value(env->curr, stmt->idx->sym, stmt->idx->v);
-  }
+  if(stmt->idx)
+    check_idx(env, stmt->idx);
+  return check_conts(env, stmt_self(stmt), stmt->body);
+}
+
+ANN static m_bool do_stmt_repeat(const Env env, const Stmt_Loop stmt) {
+  if(stmt->idx)
+    check_idx(env, stmt->idx);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -1118,9 +1127,9 @@ stmt_func_xxx(for, Stmt_For,, !(
   !check_flow(env, stmt->c2->d.stmt_exp.val) ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(loop, Stmt_Loop,, !(!check_exp(env, stmt->cond) ||
+stmt_func_xxx(loop, Stmt_Loop, check_idx(env, stmt->idx), !(!check_exp(env, stmt->cond) ||
   cond_type(env, stmt->cond) < 0 ||
-  check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
+  do_stmt_repeat(env, stmt) < 0) ? 1 : -1)
 stmt_func_xxx(each, Stmt_Each,, do_stmt_each(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
