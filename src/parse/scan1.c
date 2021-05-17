@@ -303,23 +303,26 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env, const Stmt_Ea
   return GW_OK;
 }
 
-ANN static inline m_bool shadow_err(const Env env, const Symbol sym, const loc_t  loc) {
-  ERR_B(loc, _("argument '%s' shadows a previously defined variable"),
-        s_name(sym))
+ANN static inline m_bool shadow_err(const Env env, const Value v, const loc_t loc) {
+  gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL, env->name, loc, 0);
+  gwerr_secondary(_("defined here"), v->from->filename, v->from->loc);
+  env->context->error = true;
+  return GW_ERROR;
 }
 
 ANN static inline m_bool shadow_arg(const Env env, const Symbol sym, const loc_t  loc) {
   Nspc nspc = env->curr;
-  do if(nspc_lookup_value0(nspc, sym))
-    return shadow_err(env, sym, loc);
-  while((nspc = nspc->parent));
+  do {
+    const Value v = nspc_lookup_value0(nspc, sym);
+    if(v)
+      return shadow_err(env, v, loc);
+  } while((nspc = nspc->parent));
   return GW_OK;
 }
 
 ANN static inline m_bool shadow_var(const Env env, const Symbol sym, const loc_t  loc) {
-  if(nspc_lookup_value1(env->curr, sym))
-    return shadow_err(env, sym, loc);
-  return GW_OK;
+  const Value v = nspc_lookup_value1(env->curr, sym);
+  return !v ? GW_OK : shadow_err(env, v, loc);
 }
 
 #define describe_ret_nspc(name, type, prolog, exp) describe_stmt_func(scan1, name, type, prolog, exp)

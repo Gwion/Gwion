@@ -1,4 +1,4 @@
-#! [contains] shadows a previously defined variable
+#! [contains] shadowing a previously defined variable
 var int i;
 
 repeat(i, 12);
