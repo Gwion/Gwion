@@ -29,6 +29,10 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
   env_push_type((void*)es->env, t);
   if(tflag(t, tflag_tmpl))
     CHECK_BB(template_push_types(es->env, t->info->cdef->base.tmpl)); // incorrect templates?
+  es->_ctx = es->env->context;
+  es->_filename = es->env->name;
+  es->env->context = t->info->value->from->ctx;
+  es->env->name = t->info->value->from->filename;
   return GW_OK;
 }
 
@@ -44,7 +48,7 @@ ANN2(1,3) m_bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
   return GW_OK;
 }
 
-ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
+ANN2(1) static void _envset_pop(struct EnvSet *es, const Type t) {
   if(safe_tflag(t, tflag_tmpl)) // might not be useful
     nspc_pop_type(es->env->gwion->mp, es->env->curr);
   env_pop(es->env, es->scope);
@@ -55,6 +59,14 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
     envset_pop(es, owner_class);
   else
     env_pop(es->env, es->scope);
+}
+
+ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
+  _envset_pop(es, t);
+  if(es->_ctx)
+    es->env->context = es->_ctx;
+  if(es->_filename)
+    es->env->name = es->_filename;
 }
 
 ANN m_bool envset_run(struct EnvSet *es, const Type t) {

@@ -646,7 +646,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v, co
   if(!fdef->base->ret_type) { // template fptr
     struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
       .scope=env->scope->depth, .flag=tflag_check };
-    CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner));
+    CHECK_BO(envset_pushv(&es, v));
     func->def->base->fbflag |= fbflag_internal;
     const m_bool ret = check_traverse_fdef(env, func->def);
     if(es.run)
@@ -786,7 +786,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
 //  if(!fflag(func, fflag_valid)) {
       struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
         .scope=env->scope->depth, .flag=tflag_check };
-      CHECK_BO(envset_push(&es, func->value_ref->from->owner_class, func->value_ref->from->owner));
+      CHECK_BO(envset_pushv(&es, func->value_ref));
       CHECK_BO(check_func_def(env, func->def));
       if(es.run)
         envset_pop(&es, func->value_ref->from->owner_class);

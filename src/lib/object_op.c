@@ -277,7 +277,7 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)scan0_cdef,
     .scope=env->scope->depth, .flag=tflag_scan0 };
   const Type owner = t->info->value->from->owner_class;
-  CHECK_BO(envset_push(&es, owner, t->info->value->from->owner));
+  CHECK_BO(envset_pushv(&es, t->info->value));
   const Type ret = _scan_class(env, &info);
   if(es.run)
     envset_pop(&es, owner);

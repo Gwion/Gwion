@@ -8,11 +8,16 @@ struct EnvSet {
   const void *data;
   const m_int scope;
   const enum tflag flag;
+  Context _ctx;
+  m_str _filename;
   bool run;
 };
 
 ANN m_bool envset_run(struct EnvSet*, const Type);
 ANN2(1,3) m_bool envset_push(struct EnvSet*, const Type, const Nspc);
+ANN static inline m_bool envset_pushv(struct EnvSet *es, const Value v) {
+  return envset_push(es, v->from->owner_class, v->from->owner);
+}
 ANN2(1) void   envset_pop(struct EnvSet*, const Type);
 
 ANN static inline m_bool extend_push(const Env env, const Type t) {

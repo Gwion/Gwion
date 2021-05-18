@@ -1095,7 +1095,7 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   const size_t scope = emit->env->scope->depth;
   struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
     .scope=scope, .flag=tflag_emit };
-  CHECK_BB(envset_push(&es, v->from->owner_class, v->from->owner));
+  CHECK_BB(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const m_bool ret = emit_func_def(emit, f->def);
   if(es.run)
@@ -1505,7 +1505,7 @@ ANN static m_bool emit_exp_lambda(const Emitter emit, const Exp_Lambda * lambda)
   }
   struct EnvSet es = { .env=emit->env, .data=emit, .func=(_exp_func)emit_cdef,
     .scope=emit->env->scope->depth, .flag=tflag_emit };
-  CHECK_BB(envset_push(&es, lambda->owner, lambda->def->base->func->value_ref->from->owner));
+  CHECK_BB(envset_pushv(&es, lambda->def->base->func->value_ref));
   const m_bool ret = emit_lambda(emit, lambda);
   if(es.run)
     envset_pop(&es, lambda->owner);
@@ -1575,7 +1575,7 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
   return ret;
 }
 
-ANN static m_bool optimize_taill_call(const Emitter emit, const Exp_Call* e) {
+ANN static m_bool optimize_tail_call(const Emitter emit, const Exp_Call* e) {
   if(e->args) {
     emit_func_args(emit, e);
     const Func f = e->func->type->info->func;
@@ -1592,7 +1592,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
     if(stmt->val->exp_type == ae_exp_call) {
       const Func f = stmt->val->d.exp_call.func->type->info->func;
       if(stmt->val->exp_type == ae_exp_call && emit->env->func == f)
-        return optimize_taill_call(emit, &stmt->val->d.exp_call);
+        return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
     CHECK_BB(emit_exp_pop_next(emit, stmt->val));
   }

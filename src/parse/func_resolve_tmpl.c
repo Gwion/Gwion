@@ -127,7 +127,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   struct EnvSet es = { .env=env, .data=env, .func=(_exp_func)check_cdef,
     .scope=scope, .flag=tflag_check };
   struct ResolverArgs ra = {.v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_BO(envset_push(&es, v->from->owner_class, v->from->owner));
+  CHECK_BO(envset_pushv(&es, v));
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
