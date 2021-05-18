@@ -806,7 +806,7 @@ unroll:
        DISPATCH()
     }
     *(m_uint*)(mem + VAL) = 0;
-    PC_DISPATCH(PC + VAL2*(idx));
+    PC_DISPATCH(PC + VAL2*(idx+1));
   }
   PC_DISPATCH(PC + VAL2 *n + 1);
 }

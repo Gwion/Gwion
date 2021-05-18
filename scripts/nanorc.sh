@@ -125,7 +125,7 @@ color italic,green "\<(protected|private)\>"
 color bold,green "\<(var|late|const)\>"
 color bold,italic,green "\<(const)\>"
 
-color bold,yellow "\<(for|until|if|while|do|else|match|case|when|where|defer)\>"
+color bold,yellow "\<(for|foreach|repeat|until|if|while|do|else|match|case|when|where|defer)\>"
 color magenta "\<(goto|continue|break|return)\>"
 
 ## Comment highlighting
