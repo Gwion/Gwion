@@ -1,4 +1,4 @@
-repeat(i, 100000)
+repeat(i, 100)
   <<< "${i} test" >>>;
-repeat(100000)
+repeat(100)
   <<< "test" >>>;
