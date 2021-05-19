@@ -366,6 +366,59 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
   return GW_OK;
 }
 
+//#define scan0_func_def dummy_func
+
+ANN static m_bool fdef_defaults(const Func_Def fdef) {
+  Arg_List list = fdef->base->args;
+  while(list) {
+    if(list->exp)
+      return true;
+    list = list->next;
+  }
+  return false;
+}
+
+ANN static Exp arglist2exp(MemPool p, Arg_List arg, const Exp default_arg) {
+  Exp exp = new_prim_id(p, arg->var_decl->xid, arg->var_decl->pos);
+  if(arg->next)
+    exp->next = arglist2exp(p, arg->next, default_arg);
+  else
+    exp->next = cpy_exp(p, default_arg);
+  return exp;
+}
+
+ANN static Ast scan0_func_def_default(const MemPool p, const Ast ast, const Ast next) {
+  const Func_Def base_fdef = ast->section->d.func_def;
+  Arg_List base_arg = base_fdef->base->args, former = NULL;
+  while(base_arg) {
+    if(!base_arg->next && base_arg->exp) {
+      if(former)
+        former->next = NULL;
+      // use cpy_func_base?
+      Func_Base *base = new_func_base(p, cpy_type_decl(p, base_fdef->base->td),
+        base_fdef->base->xid, former ? cpy_arg_list(p, base_fdef->base->args) : NULL,
+        base_fdef->base->flag, base_fdef->base->pos);
+      const Exp efunc = new_prim_id(p, base_fdef->base->xid, base_fdef->base->pos);
+      Exp arg_exp = former ? arglist2exp(p, base_fdef->base->args, base_arg->exp) :
+      cpy_exp(p, base_arg->exp);
+      const Exp ecall = new_exp_call(p, efunc, arg_exp, base_fdef->base->pos);
+      const Stmt code = new_stmt_exp(p, ae_stmt_return, ecall, base_fdef->base->pos);
+      const Stmt_List slist = new_stmt_list(p, code, NULL);
+      const Stmt body = new_stmt_code(p, slist, base_fdef->base->pos);
+      const Func_Def fdef = new_func_def(p, base, body);
+      Section *new_section = new_section_func_def(p, fdef);
+      if(former)
+        former->next = base_arg;
+      const Ast tmp_ast = new_ast(p, new_section, NULL);
+      ast->next = scan0_func_def_default(p, tmp_ast, next);
+      return ast;
+    }
+    former = base_arg;
+    base_arg = base_arg->next;
+  }
+  return ast->next = next;
+}
+
 #define scan0_func_def dummy_func
 
 ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
@@ -417,7 +470,14 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
 }
 
 ANN m_bool scan0_ast(const Env env, Ast ast) {
-  do CHECK_BB(scan0_section(env, ast->section));
+  do {
+    CHECK_BB(scan0_section(env, ast->section));
+    if(ast->section->section_type != ae_section_func || !fdef_defaults(ast->section->d.func_def))
+      continue;
+    const Ast next = ast->next;
+    scan0_func_def_default(env->gwion->mp, ast, next);
+    ast = next;
+  }
   while((ast = ast->next));
   return GW_OK;
 }
