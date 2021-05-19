@@ -44,4 +44,8 @@ FLAG_FUNC(Value, v)
 
 ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
 ANN void valuefrom(const Env, struct ValueFrom_*, const loc_t loc);
+
+ANN static inline void defined_here(const Value v) {
+  gwerr_secondary(_("defined here"), v->from->filename, v->from->loc);
+}
 #endif

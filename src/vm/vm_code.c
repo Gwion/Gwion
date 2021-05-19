@@ -42,10 +42,11 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
 }
 
 static inline uint isgoto(const unsigned opcode) {
-  return opcode == eGoto || opcode == eArrayTop ||
-      opcode == eBranchEqInt || opcode == eBranchNeqInt ||
+  return opcode == eGoto       || opcode == eArrayTop       ||
+      opcode == eBranchEqInt   || opcode == eBranchNeqInt   ||
       opcode == eBranchEqFloat || opcode == eBranchNeqFloat ||
-      opcode == eHandleEffect;
+      opcode == eHandleEffect  || opcode == eRepeat         ||
+      opcode == eRepeatIdx     || opcode == eAutoLoop;
 }
 
 ANN static inline void setpc(const m_bit *data, const m_uint i) {

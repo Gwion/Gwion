@@ -50,7 +50,7 @@ ANN static inline m_bool check_exp_decl_parent(const Env env, const Var_Decl var
   if(value) {
     env_err(env, var->pos,
           _("Value defined in parent class"));
-    gwerr_secondary(_("defined here"), value->from->filename, value->from->loc);
+    defined_here(value);
     return GW_ERROR;
   }
   return GW_OK;

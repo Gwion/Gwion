@@ -1751,28 +1751,27 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
 
 
 struct Looper;
+typedef Instr (*f_looper_init)(const Emitter, const struct Looper *);
 typedef void (*f_looper)(const Emitter, const struct Looper *);
 struct Looper {
   const Stmt stmt;
   /*const */m_uint offset;
   const m_uint n;
-  const f_looper roll;
+  const f_looper_init roll;
   const f_looper unroll;
 };
 
 ANN static inline m_bool roll(const Emitter emit, const struct Looper *loop) {
-  if(loop->roll)
-    loop->roll(emit, loop);
-  const Instr instr = emit_add_instr(emit, BranchEqInt);
+  const Instr instr = loop->roll(emit, loop);
   CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
   instr->m_val = emit_code_size(emit) + 1; // pass after goto
   return GW_OK;
 }
 
-ANN static void stmt_each_roll(const Emitter emit, const struct Looper *loop) {
+ANN static Instr stmt_each_roll(const Emitter emit, const struct Looper *loop) {
   const Instr instr = emit_add_instr(emit, AutoLoop);
-  instr->m_val = loop->offset + SZ_INT;
-  regpush(emit, SZ_INT);
+  instr->m_val2 = loop->offset + SZ_INT;
+  return instr;
 }
 
 ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
@@ -1860,28 +1859,28 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   return ret;
 }
 
-ANN static void stmt_loop_roll(const Emitter emit, const struct Looper *loop) {
-  const Instr counter = emit_add_instr(emit, RegPushMem4);
-  counter->m_val = loop->offset;
-  emit_add_instr(emit, int_post_dec);
+ANN static Instr stmt_loop_roll(const Emitter emit, const struct Looper *loop) {
+  const Instr eq = emit_add_instr(emit, Repeat);
+  eq->m_val2 = loop->offset;
+  return eq;
 }
 
-ANN static void stmt_loop_roll_idx(const Emitter emit, const struct Looper *loop) {
-  const Instr target = emit_add_instr(emit, RegPushMem);
-  target->m_val = loop->offset + SZ_INT;
-  const Instr counter = emit_add_instr(emit, RegPushMem4);
-  counter->m_val = loop->offset;
-  emit_add_instr(emit, int_post_inc);
-  emit_add_instr(emit, int_minus);
+ANN static Instr stmt_loop_roll_idx(const Emitter emit, const struct Looper *loop) {
+  const Instr instr = emit_add_instr(emit, RepeatIdx);
+  instr->m_val2 = loop->offset;
+  return instr;
 }
 
-ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt, m_uint *index) {
+ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
+          m_uint *index) {
   const uint n = emit->info->unroll;
   if(n)
     unroll_init(emit, n);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  if(stmt->idx)
-    emit_local(emit, emit->gwion->type[et_int]);
+  if(stmt->idx) {
+    const Instr instr = emit_add_instr(emit, MemSetImm);
+    instr->m_val = stmt->idx->v->from->offset = emit_local(emit, emit->gwion->type[et_int]);
+  }
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond));
   regpop(emit, SZ_INT);
   const Instr tomem = emit_add_instr(emit, Reg2Mem);

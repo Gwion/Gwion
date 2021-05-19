@@ -25,6 +25,9 @@ enum {
   eStructMemberOther,
   eStructMemberAddr,
   eMemSetImm,
+  eMemAddImm,
+  eRepeatIdx,
+  eRepeat,
   eRegPushMe,
   eRegPushMaybe,
   eFuncReturn,
@@ -222,6 +225,9 @@ enum {
 #define  StructMemberOther    (f_instr)eStructMemberOther
 #define  StructMemberAddr     (f_instr)eStructMemberAddr
 #define  MemSetImm            (f_instr)eMemSetImm
+#define  MemAddImm            (f_instr)eMemAddImm
+#define  RepeatIdx            (f_instr)eRepeatIdx
+#define  Repeat               (f_instr)eRepeat
 #define  RegPushMe            (f_instr)eRegPushMe
 #define  RegPushMaybe         (f_instr)eRegPushMaybe
 #define  FuncReturn           (f_instr)eFuncReturn

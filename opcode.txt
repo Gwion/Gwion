@@ -22,6 +22,9 @@ StructMemberFloat
 StructMemberOther
 StructMemberAddr
 MemSetImm
+MemAddImm
+RepeatIdx
+Repeat
 RegPushMe
 RegPushMaybe
 FuncReturn

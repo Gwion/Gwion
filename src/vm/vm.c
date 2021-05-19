@@ -372,7 +372,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&baseint, &&basefloat, &&baseother, &&baseaddr,
     &&regtoreg, &&regtoregother, &&regtoregaddr, &&regtoregderef,
     &&structmember, &&structmemberfloat, &&structmemberother, &&structmemberaddr,
-    &&memsetimm,
+    &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
     &&regpushme, &&regpushmaybe,
     &&funcreturn,
     &&_goto,
@@ -529,6 +529,14 @@ structmemberaddr:
 memsetimm:
   *(m_uint*)(mem+VAL) = VAL2;
   DISPATCH();
+memaddimm:
+  *(m_int*)(mem+VAL) += (m_int)VAL2;
+//  (*(m_int*)(mem+VAL))--;
+  DISPATCH();
+repeatidx:
+  BRANCH_DISPATCH(*(m_int*)(mem+VAL2+SZ_INT) == ++(*(m_int*)(mem+VAL2)));
+repeat:
+  BRANCH_DISPATCH(!--*(m_uint*)(mem+VAL2));
 regpushme:
   *(M_Object*)reg = shred->info->me;
   reg += SZ_INT;
@@ -817,9 +825,8 @@ autounrollinit:
   *(m_uint*)(mem + VAL) = m_vector_size(ARRAY(*(M_Object*)(mem+VAL+SZ_INT)));
   DISPATCH()
 autoloop:
-  *(m_bit**)(mem + VAL + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL-SZ_INT)), *(m_uint*)(mem + VAL) + 1);
-  *(m_uint*)reg = m_vector_size(ARRAY(*(M_Object*)(mem+VAL-SZ_INT))) - (*(m_uint*)(mem + VAL))++ -1;
-  DISPATCH()
+  *(m_bit**)(mem + VAL2 + SZ_INT) = m_vector_addr(ARRAY(*(M_Object*)(mem+VAL2-SZ_INT)), *(m_uint*)(mem + VAL2) + 1);
+  BRANCH_DISPATCH(m_vector_size(ARRAY(*(M_Object*)(mem+VAL2-SZ_INT))) == ++*(m_uint*)(mem + VAL2));
 arraytop:
   if(*(m_uint*)(reg - SZ_INT * 2) < *(m_uint*)(reg-SZ_INT))
     goto newobj;
