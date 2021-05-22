@@ -36,6 +36,8 @@ struct Emitter_ {
   struct Gwion_ *gwion;
   struct EmitterInfo_ *info;
   struct Vector_ stack;
+  m_uint this_offset; // reset
+  m_uint vararg_offset; // reset
 };
 
 ANEW ANN Emitter new_emitter(MemPool);

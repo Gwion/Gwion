@@ -8,6 +8,7 @@ enum fflag {
   fflag_tmpl   = 1 << 3,
   fflag_valid  = 1 << 4,
   fflag_return = 1 << 5,
+  fflag_recurs = 1 << 6,
 } __attribute__((packed));
 
 struct Func_ {
@@ -16,9 +17,11 @@ struct Func_ {
   Value value_ref;
   Func next;
   m_str name;
-  size_t vt_index;
-  struct Map_ upvalues;
+  float inline_mult;
+  uint16_t weight;
   uint16_t ref;
+  struct Map_ upvalues;
+  uint16_t vt_index;
   ae_flag flag;
   enum fflag fflag;
 };

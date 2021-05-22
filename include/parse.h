@@ -76,4 +76,18 @@ ANN m_bool check_subscripts(const Env, const Array_Sub, const m_bool is_decl);
 ANN m_bool check_implicit(const Env env, const Exp e, const Type t);
 ANN m_bool ensure_traverse(const Env env, const Type t);
 ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef);
+
+ANN static inline void env_weight(const Env env, const uint16_t weight) {
+  if(env->func)
+    env->func->weight += weight;
+  else if(env->class_def)
+    env->class_def->weight += weight;
+  else if(env->context)
+    env->context->weight += weight;
+}
+
+ANN static inline void env_inline_mult(const Env env, const float mult) {
+  if(env->func)
+    env->func->inline_mult += mult;
+}
 #endif

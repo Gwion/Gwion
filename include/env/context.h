@@ -6,6 +6,7 @@ struct Context_ {
   m_str       name;
   Ast         tree;
   uint16_t ref;
+  uint16_t weight;
   bool error;
   bool global;
 };

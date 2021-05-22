@@ -19,6 +19,7 @@ ANN Func new_func(MemPool p, const m_str name, const Func_Def def) {
   Func func = mp_calloc(p, Func);
   func->name = name;
   func->def = def;
+  func->inline_mult = 1.0;
   func->ref = 1;
   return func;
 }

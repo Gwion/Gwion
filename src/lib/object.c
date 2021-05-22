@@ -106,7 +106,9 @@ static ID_EMIT(opem_this) {
     instr->m_val2 = emit->env->class_def->size;
     return (Instr)GW_OK;
   }
-  return emit_add_instr(emit, RegPushMem);
+  const Instr instr = emit_add_instr(emit, RegPushMem);
+  instr->m_val = emit->this_offset;
+  return instr;
 }
 
 GWION_IMPORT(object) {

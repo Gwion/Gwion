@@ -102,7 +102,7 @@ INSTR(DotTmpl) {
     const Func f = nspc_lookup_func0(t->nspc, insert_symbol(emit->env->gwion->st, str));
     if(f) {
       if(!f->code)
-        break;
+        continue;
       if(vflag(f->value_ref, vflag_member))
         shred->reg += SZ_INT;
       *(VM_Code*)(shred->reg-SZ_INT) = f->code;

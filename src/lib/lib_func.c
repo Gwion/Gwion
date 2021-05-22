@@ -108,7 +108,7 @@ ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
   if(!info->lhs->def->base->effects.ptr)
     return true;
   if(!info->rhs->def->base->effects.ptr) {
-    puts("too many effects");
+    gwerr_secondary("too many effects", env->name, info->pos);
     return false;
   }
   const Vector lhs = &info->lhs->def->base->effects;
@@ -486,8 +486,9 @@ static OP_EMIT(opem_op_impl) {
   struct Implicit *impl = (struct Implicit*)data;
   const Func_Def fdef = impl->e->type->info->func->def;
   const m_bool ret = emit_func_def(emit, fdef);
-  const Instr instr = emit_add_instr(emit, RegPushImm);
+  const Instr instr = emit_add_instr(emit, RegSetImm);
   instr->m_val = (m_uint)fdef->base->func->code;
+  instr->m_val2 = -SZ_INT;
   return ret;
 }
 

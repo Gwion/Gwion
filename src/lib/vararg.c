@@ -145,7 +145,7 @@ static ID_CHECK(idck_vararg) {
 
 static ID_EMIT(idem_vararg) {
   const Instr instr = emit_add_instr(emit, RegPushMem);
-  instr->m_val = emit->code->stack_depth - SZ_INT;
+  instr->m_val = emit->vararg_offset + emit->code->stack_depth - SZ_INT;
   return instr;
 }
 

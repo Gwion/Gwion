@@ -14,6 +14,7 @@ struct Env_Scope_ {
   struct Vector_  effects;
   uint16_t        depth;
   bool            in_try;
+  bool            in_loop;
 };
 
 typedef struct Env_ {

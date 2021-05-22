@@ -45,6 +45,7 @@ struct Type_ {
   size_t array_depth;
   struct Vector_ effects; // pre-ctor effects
   uint16_t ref;
+  uint16_t weight;
   ae_flag flag;
   enum tflag tflag;
 };

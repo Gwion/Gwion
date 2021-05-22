@@ -793,6 +793,8 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     }
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
+    if(func == env->func)
+      set_fflag(env->func, fflag_recurs);
     return func->def->base->ret_type;
   }
   const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
@@ -999,6 +1001,7 @@ DECL_EXP_FUNC(check, Type, Env)
 ANN Type check_exp(const Env env, const Exp exp) {
   Exp curr = exp;
   if(!exp->type) {
+    env_weight(env, 1);
     do {
       CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)));
       if(env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 && isa(curr->type, env->gwion->type[et_function]) > 0 &&
@@ -1115,22 +1118,22 @@ ANN static inline m_bool cond_type(const Env env, const Exp e) {
 stmt_func_xxx(if, Stmt_If,, !(!check_flow(env, stmt->cond)   ||
   check_stmt(env, stmt->if_body) < 0 ||
   (stmt->else_body && check_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
-stmt_func_xxx(flow, Stmt_Flow,,
+stmt_func_xxx(flow, Stmt_Flow, env_inline_mult(env, 1.5),
   !(!check_exp(env, stmt->cond) ||
     !_flow(env, stmt->cond, !stmt->is_do ?
        stmt_self(stmt)->stmt_type == ae_stmt_while :
        stmt_self(stmt)->stmt_type != ae_stmt_while) ||
     check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(for, Stmt_For,, !(
+stmt_func_xxx(for, Stmt_For, env_inline_mult(env, 1.5), !(
   for_empty(env, stmt) < 0 ||
   check_stmt(env, stmt->c1) < 0 ||
   !check_flow(env, stmt->c2->d.stmt_exp.val) ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
-stmt_func_xxx(loop, Stmt_Loop, check_idx(env, stmt->idx), !(!check_exp(env, stmt->cond) ||
+stmt_func_xxx(loop, Stmt_Loop, env_inline_mult(env, 1.5); check_idx(env, stmt->idx), !(!check_exp(env, stmt->cond) ||
   cond_type(env, stmt->cond) < 0 ||
   do_stmt_repeat(env, stmt) < 0) ? 1 : -1)
-stmt_func_xxx(each, Stmt_Each,, do_stmt_each(env, stmt))
+stmt_func_xxx(each, Stmt_Each, env_inline_mult(env, 1.5), do_stmt_each(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if(!env->func)
@@ -1511,6 +1514,10 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   }
   if(GET_FLAG(fdef->base, global))
     env_pop(env,scope);
+  if(func->value_ref->from->owner_class)
+    func->inline_mult += 3;
+  else
+    func->inline_mult += 4;
   return ret;
 }
 
@@ -1635,7 +1642,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     inherit(t);
   if(cdef->body) {
     CHECK_BB(env_body(env, cdef, check_body));
-    if(class_def_has_body(env, cdef->body))
+    if(cflag(cdef, cflag_struct) || class_def_has_body(env, cdef->body))
       set_tflag(t, tflag_ctor);
   }
   if(!GET_FLAG(cdef, abstract))
