@@ -30,9 +30,8 @@ Please also consider taking the (WIP) [*tour*](https://github.com/Gwion/GwionTou
 ### Download the source
 
 ``` sh
-git clone https://github.com/Gwion/Gwion
+git clone --recursive https://github.com/Gwion/Gwion
 cd Gwion
-git submodule update --init --recursive util ast
 make
 ```
 
