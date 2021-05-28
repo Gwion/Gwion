@@ -314,7 +314,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Value v = check_non_res_value(env, data);
   if(!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
     const m_str name = s_name(*data);
-    if(!isalpha(*name) && *name != '_')
+    if(!isalpha(*name) && *name != '_') /* && *name != '@' ???*/
       return env->gwion->type[et_op];
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
          env->name, prim_pos(data), 0);
@@ -476,7 +476,7 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
       } else if(!e->type) //fix bug found with Cytosol
-          return NULL;
+        return NULL;
       if(e1->type == env->gwion->type[et_auto] ||
             (func->def->base->tmpl && is_fptr(env->gwion, func->value_ref->type) > 0)) {
         const Type owner = func->value_ref->from->owner_class;

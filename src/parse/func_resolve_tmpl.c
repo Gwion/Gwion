@@ -93,9 +93,7 @@ ANN static Func tmpl_exists(const Env env, struct ResolverArgs* ra, const Value 
 }
 
 ANN static Func create_tmpl(const Env env, struct ResolverArgs* ra, const m_uint i) {
-  const Value value = template_get_ready(env, ra->v, "template", i);
-  if(!value)
-    return NULL;
+  DECL_OO(const Value, value, = template_get_ready(env, ra->v, "template", i));
   const Func_Def fdef = (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
   if(vflag(ra->v, vflag_builtin))
     set_vflag(value, vflag_builtin);
@@ -132,7 +130,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
   const Func m_func = !is_fptr(env->gwion, v->type) ?
-      func_match(env, &ra) :fptr_match(env, &ra);
+      func_match(env, &ra) : fptr_match(env, &ra);
   if(v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
