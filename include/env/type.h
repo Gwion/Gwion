@@ -12,6 +12,7 @@ struct TypeInfo_ {
   Type      base_type;
   struct TupleForm_* tuple;
   struct VM_Code_ *gack;
+  ID_List traits;
 };
 
 enum tflag {

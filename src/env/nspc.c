@@ -10,6 +10,7 @@ ANN void nspc_commit(const Nspc nspc) {
   scope_commit(nspc->info->value);
   scope_commit(nspc->info->func);
   scope_commit(nspc->info->type);
+  scope_commit(nspc->info->trait);
 }
 
 ANN static inline void nspc_release_object(const Nspc a, Value value, Gwion gwion) {
@@ -60,17 +61,25 @@ ANN static void nspc_free_##b(Nspc n, Gwion gwion) {\
 
 describe_nspc_free(Func, func)
 describe_nspc_free(Type, type)
+ANN static void nspc_free_trait(Nspc n, Gwion gwion) {
+  struct scope_iter iter = { n->info->trait, 0, 0 };
+  Trait a;
+  while(scope_iter(&iter, &a) > 0)
+    free_trait(gwion->mp, a);
+  free_scope(gwion->mp, n->info->trait);
+}
 
 ANN void free_nspc(const Nspc a, const Gwion gwion) {
   free_nspc_value(a, gwion);
   nspc_free_func(a, gwion);
+  nspc_free_trait(a, gwion);
   if(a->info->op_map.ptr)
     free_op_map(&a->info->op_map, gwion);
   nspc_free_type(a, gwion);
   if(a->info->class_data && a->info->class_data_size)
     mp_free2(gwion->mp, a->info->class_data_size, a->info->class_data);
-  if(a->info->vtable.ptr)
-    vector_release(&a->info->vtable);
+  if(a->vtable.ptr)
+    vector_release(&a->vtable);
   mp_free(gwion->mp, NspcInfo, a->info);
   if(a->pre_ctor)
     vmcode_remref(a->pre_ctor, gwion);
@@ -84,8 +93,9 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->name = name;
   a->info = mp_calloc(p, NspcInfo);
   a->info->value = new_scope(p);
-  a->info->type = new_scope(p);
-  a->info->func = new_scope(p);
+  a->info->type  = new_scope(p);
+  a->info->func  = new_scope(p);
+  a->info->trait = new_scope(p);
   a->ref = 1;
   return a;
 }

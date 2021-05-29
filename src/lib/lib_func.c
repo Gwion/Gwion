@@ -56,7 +56,7 @@ ANN static void _fptr_tmpl_push(const Env env, const Func f) {
   Type_List tl = tmpl->call;
   if(!tl)
     return;
-  ID_List il = tmpl->list;
+  Specialized_List il = tmpl->list;
   while(il) {
     const Type t = known_type(env, tl->td);
     nspc_add_type(env->curr, il->xid, t);

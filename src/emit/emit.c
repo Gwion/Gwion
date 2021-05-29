@@ -1064,11 +1064,13 @@ ANN static inline m_bool emit_inline(const Emitter emit, const Func f, const Exp
 }
 
 ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
+/*
 #ifndef GWION_NOINLINE
   const Func f = is_inlinable(emit, exp_call);
   if(f)
     return emit_inline(emit, f, exp_call);
 #endif
+*/
   CHECK_BB(prepare_call(emit, exp_call));
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   if(isa(t, emit->gwion->type[et_function]) > 0)
@@ -2511,6 +2513,7 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
 
 ANN static m_bool emit_extend_def(const Emitter emit, const Extend_Def xdef);
 #define emit_fptr_def dummy_func
+#define emit_trait_def dummy_func
 HANDLE_SECTION_FUNC(emit, m_bool, Emitter)
 
 ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {

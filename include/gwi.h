@@ -19,7 +19,7 @@ struct Gwi_ {
 
 #include "import/internals.h"
 static inline Tmpl* gwi_tmpl(const Gwi gwi) {
-  return new_tmpl_base(gwi->gwion->mp, gwi->ck->tmpl);
+  return new_tmpl_base(gwi->gwion->mp, gwi->ck->sl);
 }
 
 ANN void gwi_effects(const Gwi gwi, const m_str name);

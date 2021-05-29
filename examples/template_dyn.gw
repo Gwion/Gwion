@@ -4,15 +4,15 @@ fun void test(C cc, int i) { <<< 1 >>>; <<< cc.test(i, i) >>>; }
 
 
 class C {
-  fun int test:[A](A a) { <<< " A ", a >>>; }
-  fun int test:[A](A a, int i) { <<< " ", a  >>>; }
-  fun int test:[A](A a, int i, int j) { <<< a >>>; }
+  fun void test:[A](A a) { <<< " A ", a >>>; }
+  fun void test:[A](A a, int i) { <<< " ", a  >>>; }
+  fun void test:[A](A a, int i, int j) { <<< a >>>; }
 }
 class D extends C {
-  fun int test:[A](A a, int i) { <<< this, " extent ", a, __func__ >>>; }
+  fun void test:[A](A a, int i) { <<< this, " extent ", a, __func__ >>>; }
 }
 class E extends D {
-  fun int test:[A](A a, int i) { <<< this, " Extent ", a, __func__ >>>; }
+  fun void test:[A](A a, int i) { <<< this, " Extent ", a, __func__ >>>; }
 }
 
 

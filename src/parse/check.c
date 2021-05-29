@@ -609,7 +609,7 @@ ANN2(1) static void function_alternative(const Env env, const Type f, const Exp 
     gw_err(_("and not:\n  {G}void{0}\n"));
 }
 
-ANN static m_uint get_type_number(ID_List list) {
+ANN static m_uint get_type_number(Specialized_List list) {
   m_uint type_number = 0;
   do ++type_number;
   while((list = list->next));
@@ -662,7 +662,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp, const Tmp
   const m_uint type_number = get_type_number(tm->list);
   Type_List tl[type_number];
   tl[0] = NULL;
-  ID_List list = tm->list;
+  Specialized_List list = tm->list;
   while(list) {
     Arg_List arg = fdef->base->args;
     Exp template_arg = exp->args;
@@ -1371,7 +1371,7 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def fde
       CHECK_BB(check_signature_match(env, fdef, parent_func));
       if(!fdef->base->tmpl) {
         fdef->base->func->vt_index = parent_func->vt_index;
-        vector_set(&env->curr->info->vtable, fdef->base->func->vt_index, (vtype)fdef->base->func);
+        vector_set(&env->curr->vtable, fdef->base->func->vt_index, (vtype)fdef->base->func);
       }
       return GW_OK;
     }
@@ -1382,8 +1382,8 @@ ANN static m_bool parent_match_actual(const Env env, const restrict Func_Def fde
 ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
   const Func func = fdef->base->func;
   const Type parent = env->class_def->info->parent;
-  if(!env->curr->info->vtable.ptr)
-    vector_init(&env->curr->info->vtable);
+  if(!env->curr->vtable.ptr)
+    vector_init(&env->curr->vtable);
   if(parent) {
     const Value v = find_value(parent, fdef->base->xid);
     if(v && isa(v->type, env->gwion->type[et_function]) > 0) {
@@ -1392,8 +1392,8 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
         return match;
     }
   }
-  func->vt_index = vector_size(&env->curr->info->vtable);
-  vector_add(&env->curr->info->vtable, (vtype)func);
+  func->vt_index = vector_size(&env->curr->vtable);
+  vector_add(&env->curr->vtable, (vtype)func);
   return GW_OK;
 }
 
@@ -1529,6 +1529,39 @@ ANN static m_bool check_extend_def(const Env env, const Extend_Def xdef) {
   return ret;
 }
 
+ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
+  const Trait trait = nspc_lookup_trait1(env->curr, pdef->xid);
+  Ast ast = pdef->body;
+  while(ast) {
+    Section * section = ast->section;
+    if(section->section_type == ae_section_stmt) {
+      Stmt_List list = section->d.stmt_list;
+      while(list) {
+        const Stmt stmt = list->stmt;
+        if(stmt->stmt_type == ae_stmt_exp) {
+          CHECK_BB(traverse_exp(env, stmt->d.stmt_exp.val));
+          Var_Decl_List list = stmt->d.stmt_exp.val->d.exp_decl.list;
+          while(list) {
+            const Value value = list->self->value;
+            valuefrom(env, value->from, list->self->pos); // we do not need owner
+            if(!trait->requested_values.ptr)
+              vector_init(&trait->requested_values);
+            vector_add(&trait->requested_values, (m_uint)value);
+            list = list->next;
+          }
+        }
+        list = list->next;
+      }
+    }
+    ast = ast->next;
+  }
+  return GW_OK;
+}
+
+ANN static m_bool check_trait_def(const Env env, const Trait_Def pdef) {
+  RET_NSPC(_check_trait_def(env, pdef));
+}
+
 #define check_fptr_def dummy_func
 HANDLE_SECTION_FUNC(check, m_bool, Env)
 
@@ -1556,11 +1589,11 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
-  if(!cdef->base.type->nspc->info->vtable.ptr)
+  if(!cdef->base.type->nspc->vtable.ptr)
     return GW_OK;
   bool err = false;
-  for(m_uint i = 0; i < vector_size(&cdef->base.type->nspc->info->vtable); ++i) {
-    Func f = (Func)vector_at(&cdef->base.type->nspc->info->vtable, i);
+  for(m_uint i = 0; i < vector_size(&cdef->base.type->nspc->vtable); ++i) {
+    Func f = (Func)vector_at(&cdef->base.type->nspc->vtable, i);
     if(f && GET_FLAG(f->def->base, abstract)) {
       if(!err) {
         err = true;
@@ -1634,6 +1667,120 @@ if(isa(dlist->self->value->type, env->gwion->type[et_compound]) > 0)
   return false;
 }
 
+ANN static bool request_var(const Env env, const Type t, const Value request) {
+  const Value value = nspc_lookup_value0(t->nspc, insert_symbol(request->name));
+  if(!value) {
+    gwerr_basic("missing requested variable", NULL, NULL,
+        request->from->filename, request->from->loc, 0);
+    return false;
+  }
+  bool error = true;
+  if(isa(value->type, request->type) < 0) {
+    gwerr_basic("invalid variable type", NULL, NULL,
+        value->from->filename, value->from->loc, 0);
+    // can we point to the type decl?
+    error = false;
+  }
+  if(GET_FLAG(value, const) && !GET_FLAG(request, const)) {
+    gwerr_basic("variable differs in {/}constness{0}", NULL, NULL,
+        value->from->filename, value->from->loc, 0);
+    // can we point to the flag?
+    error = false;
+  }
+  if(error)
+    return true;
+  gwerr_secondary("from requested variable", request->from->filename, request->from->loc);
+  return error;
+}
+
+ANN static bool check_trait_variables(const Env env, const Type t, const Trait trait) {
+  bool error = false;
+  for(m_uint i = 0; i < vector_size(&trait->requested_values); i++) {
+    const Value request = (Value)vector_at(&trait->requested_values, i);
+    if(!request_var(env, t, request))
+      error = true;
+  }
+  return error;
+}
+
+ANN static bool request_fun(const Env env, const Type t, const Func_Def request) {
+  const Value v = nspc_lookup_value0(t->nspc, request->base->xid);
+if(v) {
+  if(isa(v->type, env->gwion->type[et_function]) < 0 || is_fptr(env->gwion, v->type)) {
+    gwerr_basic("is not a function", NULL, NULL,
+      v->from->filename, v->from->loc, 0);
+    return false;
+  }
+  Func f = v->d.func_ref;
+  do {
+    if(compat_func(f->def, request) > 0) {
+      if(!GET_FLAG(f->def->base, abstract))
+        return true;
+    }
+  } while ((f = f->next));
+}
+  if(!GET_FLAG(request->base, abstract)){
+    const m_uint scope = env_push_type(env, t);
+    const Func_Def cpy = cpy_func_def(env->gwion->mp, request);
+    const m_bool ret = traverse_func_def(env, cpy);
+    env_pop(env, scope);
+    if(ret > 0){
+      Section *section = new_section_func_def(env->gwion->mp, cpy);
+      const Ast ast = new_ast(env->gwion->mp, section, NULL);
+      Ast last = t->info->cdef->body;
+      while(last->next)
+        last = last->next;
+      last->next = ast;
+      return true;
+    } else
+    free_func_def(env->gwion->mp, cpy);
+  }
+  if(!v) {
+    gwerr_basic("missing requested function", NULL, NULL,
+      env->name, request->base->pos, 0);
+    return false;
+  }
+  return true;
+}
+
+ANN static bool check_trait_functions(const Env env, const Type t, const Trait trait) {
+  bool error = false;
+  for(m_uint i = 0; i < vector_size(&trait->requested_funcs); i++) {
+    const Func_Def request = (Func_Def)vector_at(&trait->requested_funcs, i);
+    if(!request_fun(env, t, request))
+      error = true;
+  }
+  return error;
+}
+
+ANN2(1,2,3) static inline bool trait_nodup(Type t, const Symbol trait, ID_List list) {
+  bool nodup = true;
+  do {
+    while(list) {
+      if(trait == list->xid)
+//        return false;
+        nodup = false;
+      list = list->next;
+    }
+  } while ((t = t->info->parent));
+  return nodup;
+}
+
+ANN static bool check_trait_requests(const Env env, const Type t, const ID_List list) {
+  const Trait trait = nspc_lookup_trait1(env->curr, list->xid);
+  if(!trait_nodup(t, list->xid, list->next)) {
+    gwerr_secondary("duplicated trait", trait->filename, trait->loc);
+    return false;
+  }
+  const bool value_error = check_trait_variables(env, t, trait);
+  const bool funcs_error = check_trait_functions(env, t, trait);
+  if(!value_error && !funcs_error)
+    return true;
+  const Value request = (Value)vector_front(&trait->requested_values);
+  gwerr_secondary("from trait", request->from->filename, trait->loc);
+  return false;
+}
+
 ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if(cdef->base.ext)
@@ -1647,6 +1794,21 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   }
   if(!GET_FLAG(cdef, abstract))
     CHECK_BB(check_abstract(env, cdef));
+  if(cdef->traits) {
+    ID_List list = cdef->traits;
+    bool value_error = false;
+    do if(!check_trait_requests(env, t, list))
+      value_error = true;
+    while((list = list->next));
+
+    if(value_error) {
+      env->class_def = t;
+      env_error_footer(env);
+      env->context->error = true;
+      return GW_ERROR;
+    }
+  }
+
   Value value;
   struct scope_iter iter = { t->nspc->info->value, 0, 0 };
   while(scope_iter(&iter, &value) > 0) {
@@ -1657,11 +1819,10 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   struct scope_iter inner = { value->type->nspc->info->value, 0, 0 };
   while(scope_iter(&inner, &v) > 0) {
       if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
-//exit(3);
         env_err(env, v->from->loc, _("recursive type"));
-env->context->error = false;
+        env->context->error = false;
         env_err(env, value->from->loc, _("recursive type"));
-env->context->error = true;
+       env->context->error = true;
 return GW_ERROR;
 }
 }

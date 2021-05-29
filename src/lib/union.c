@@ -39,7 +39,7 @@ static OP_EMIT(opem_union_dot) {
   CHECK_BB(emit_exp(emit, member->base));
   if(isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
-    const Func f = (Func)vector_front(&member->base->type->info->parent->nspc->info->vtable);
+    const Func f = (Func)vector_front(&member->base->type->info->parent->nspc->vtable);
     instr->m_val = (m_uint)f->code;
     return GW_OK;
   }
@@ -179,7 +179,7 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_oper_emi(gwi, opem_union_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
 
-  const Func f = (Func)vector_front(&t_union->nspc->info->vtable);
+  const Func f = (Func)vector_front(&t_union->nspc->vtable);
   const struct Op_Func opfunc = { .ck=opck_union_is };
   const struct Op_Import opi = { .rhs=f->value_ref->type,
        .func=&opfunc, .data=(uintptr_t)f, .pos=gwi->loc, .op=insert_symbol(gwi->gwion->st, "@func_check") };

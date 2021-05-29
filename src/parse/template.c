@@ -13,7 +13,7 @@
 #include "import.h"
 
 ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
-  ID_List list = tmpl->list;
+  Specialized_List list = tmpl->list;
   Type_List call = tmpl->call;
   do {
     if(!call)

@@ -334,11 +334,21 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   return t ?: (Type)GW_ERROR;
 }
 
+ANN static m_bool cdef_traits(const Env env, ID_List traits, const loc_t pos) {
+  do {
+    if(!nspc_lookup_trait1(env->curr, traits->xid))
+      ERR_B(pos, _("can't find trait"));
+  } while((traits = traits->next));
+  return GW_OK;
+}
+
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
   const Type parent = cdef_parent(env, cdef);
   if(parent == (Type)GW_ERROR)
     return NULL;
+  if(cdef->traits)
+    CHECK_BO(cdef_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if(cflag(cdef, cflag_struct)) {
     t->size = 0;
@@ -437,10 +447,43 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
   return GW_OK;
 }
 
+ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
+  const Trait trait = new_trait(env->gwion->mp, pdef->pos);
+  trait->loc = pdef->pos;
+  trait->filename = env->name;
+  nspc_add_trait(env->curr, pdef->xid, trait);
+  Ast ast = pdef->body;
+  while(ast) {
+    Section * section = ast->section;
+    if(section->section_type == ae_section_func) {
+      const Func_Def fdef = section->d.func_def;
+      if(!trait->requested_funcs.ptr)
+        vector_init(&trait->requested_funcs);
+      vector_add(&trait->requested_funcs, (m_uint)fdef);
+    }
+    ast = ast->next;
+  }
+  return GW_OK;
+}
+
+ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
+  const Symbol s = pdef->xid;
+  const Trait exists = nspc_lookup_trait1(env->curr, s);
+  if(exists) {
+    gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->pos, 0);
+    gwerr_secondary("defined here", env->name, exists->loc);
+    env->context->error = true;
+    return already_defined(env, s, pdef->pos);
+  }
+  _scan0_trait_def(env, pdef);
+  return GW_OK;
+}
+
 HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)));
+  cdef->base.type->info->traits = cdef->traits;
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->pos);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
