@@ -157,7 +157,8 @@ ANN static inline bool has_trait(const Type t, const Symbol trait) {
   return false;
 }
 
-ANN static inline bool has_traits(const Type t, ID_List traits) {
+ANN static inline bool has_traits(const Type t, const Specialized_List sl) {
+  ID_List traits = sl->traits;
   while(traits) {
     if(!has_trait(t, traits->xid))
       return false;
@@ -172,7 +173,7 @@ ANN static Func _find_template_match(const Env env, const Value v, Exp_Call *con
   Specialized_List sl = f->def->base->tmpl->list;
   while(tl) {
     DECL_OO(const Type, t, = known_type(env, tl->td));
-    if(!has_traits(t, sl->traits))
+    if(!has_traits(t, sl))
       return NULL;
     tl = tl->next;
   }
