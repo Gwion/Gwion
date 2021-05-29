@@ -101,6 +101,19 @@ gwion-fuzz:
 clean_core:
 	@rm -f core.* *vgcore.*
 
+clean-all:
+		${MAKE} -s -C libcmdapp clean
+		${MAKE} -s -C fmt clean
+		${MAKE} -s -C ast clean
+		${MAKE} -s -C ast/libprettyerr clean
+		${MAKE} -s -C util clean
+		${MAKE} -s -C util/libtermcolor clean
+
+update: clean-all
+	git pull
+	git submodule update --recursive --init
+	make
+
 .PHONY: .afl
 
 clean: clean_core
