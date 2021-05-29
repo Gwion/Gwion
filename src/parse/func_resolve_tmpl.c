@@ -140,10 +140,43 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp, con
   return m_func;
 }
 
-ANN static Func _find_template_match(const Env env, const Value v, Exp_Call *const exp) {
+ANN static Func __find_template_match(const Env env, const Value v, Exp_Call *const exp) {
   DECL_OO(const m_str, tmpl_name, = tl2str(env->gwion, exp->tmpl->call, exp->func->pos));
   const Func f = find_tmpl(env, v, exp, tmpl_name);
   free_mstr(env->gwion->mp, tmpl_name);
+  return f;
+}
+
+ANN static inline bool has_trait(const Type t, const Symbol trait) {
+  ID_List list = t->info->traits;
+  while(list) {
+    if(list->xid == trait)
+      return true;
+    list = list->next;
+  }
+  return false;
+}
+
+ANN static inline bool has_traits(const Type t, const Specialized_List sl) {
+  ID_List traits = sl->traits;
+  while(traits) {
+    if(!has_trait(t, traits->xid))
+      return false;
+    traits = traits->next;
+  }
+  return true;
+}
+
+ANN static Func _find_template_match(const Env env, const Value v, Exp_Call *const exp) {
+  DECL_OO(const Func, f, = __find_template_match(env, v, exp));
+  Type_List tl = exp->tmpl->call;
+  Specialized_List sl = f->def->base->tmpl->list;
+  while(tl) {
+    DECL_OO(const Type, t, = known_type(env, tl->td));
+    if(!has_traits(t, sl))
+      return NULL;
+    tl = tl->next;
+  }
   return f;
 }
 

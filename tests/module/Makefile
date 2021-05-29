@@ -1,4 +1,4 @@
-INC      = -I../../include -I../../util/include -I../../util/libtermcolor/include -I../../ast/include
+INC      = -I../../include -I../../util/include -I../../util/libtermcolor/include -I../../ast/include -I../../fmt/include
 CC       ?= gcc
 
 NAME := ${NAME}

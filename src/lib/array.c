@@ -671,20 +671,20 @@ static OP_CHECK(opck_array_scan) {
   set_tflag(t, tflag_cdef | tflag_tmpl);
   void* rem = isa(base, env->gwion->type[et_compound]) > 0 ?
     !tflag(base, tflag_struct) ? vm_vector_rem_obj : vm_vector_rem_struct : vm_vector_rem;
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 0), rem);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 0), rem);
   void* insert = isa(base, env->gwion->type[et_compound]) > 0 ?
     !tflag(base, tflag_struct) ? vm_vector_insert_obj : vm_vector_insert_struct : vm_vector_insert;
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 1), insert);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 2), vm_vector_size);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 3), vm_vector_depth);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 4), vm_vector_cap);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 5), vm_vector_random);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 6), vm_vector_map);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 7), vm_vector_compactmap);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 8), vm_vector_filter);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 9), vm_vector_count);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 10), vm_vector_foldl);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->info->vtable, 11), vm_vector_foldr);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 1), insert);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 2), vm_vector_size);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 3), vm_vector_depth);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 4), vm_vector_cap);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 5), vm_vector_random);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 6), vm_vector_map);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 7), vm_vector_compactmap);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 8), vm_vector_filter);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 9), vm_vector_count);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 10), vm_vector_foldl);
+  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 11), vm_vector_foldr);
   if(isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
     set_tflag(t, tflag_dtor);

@@ -93,32 +93,34 @@ ANN Var_Decl_List str2varlist(const Gwion gwion, const m_str path, const loc_t p
   return new_var_decl_list(gwion->mp, var, NULL);
 }
 
-ANN static ID_List _tmpl_list(const Gwion gwion, struct td_checker *tdc) {
+#define SPEC_ERROR (Specialized_List)GW_ERROR
+ANN static Specialized_List _tmpl_list(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
-  ID_List next = NULL;
+  Specialized_List next = NULL;
   if(*tdc->str == ',') {
     ++tdc->str;
-    if(!(next = _tmpl_list(gwion, tdc)) || next == (ID_List)GW_ERROR)
-      return (ID_List)GW_ERROR;
+    if(!(next = _tmpl_list(gwion, tdc)) || next == SPEC_ERROR)
+      return SPEC_ERROR;
   }
-  const ID_List list = new_id_list(gwion->mp, sym);
+  // TODO: handle traits?
+  const Specialized_List list = new_specialized_list(gwion->mp, sym, NULL, tdc->pos);
   list->next = next;
   return list;
 }
 
-ANN static ID_List __tmpl_list(const Gwion gwion, struct td_checker *tdc) {
+ANN static Specialized_List __tmpl_list(const Gwion gwion, struct td_checker *tdc) {
   if(tdc->str[0] != ':')
     return NULL;
   if(tdc->str[1] != '[')
-    return (ID_List)GW_ERROR;
+    return SPEC_ERROR;
   tdc->str += 2;
-  const ID_List list =  _tmpl_list(gwion, tdc);
-  if(list == (ID_List)GW_ERROR)
-    return (ID_List)GW_ERROR;
+  const Specialized_List list =  _tmpl_list(gwion, tdc);
+  if(list == SPEC_ERROR)
+    return SPEC_ERROR;
   if(tdc->str[0] != ']') { // unfinished template
     if(list)
-      free_id_list(gwion->mp, list);
-    return (ID_List)GW_ERROR;
+      free_specialized_list(gwion->mp, list);
+    return SPEC_ERROR;
   }
   ++tdc->str;
   return list;
@@ -128,10 +130,10 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   struct td_checker tdc = { .str= ck->name, .pos=gwi->loc };
   if(!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str)))
     return GW_ERROR;
-  ID_List il = __tmpl_list(gwi->gwion, &tdc);
-  if(il == (ID_List)GW_ERROR)
+  Specialized_List sl = __tmpl_list(gwi->gwion, &tdc);
+  if(sl == SPEC_ERROR)
     return GW_ERROR;
-  ck->tmpl = il;
+  ck->sl = sl;
   ck->name = s_name(ck->sym);
   return GW_OK;
 

@@ -16,6 +16,13 @@ ANN static void clean_id_list(Clean *a, ID_List b) {
     clean_id_list(a, b->next);
 }
 
+ANN static void clean_specialized_list(Clean *a, Specialized_List b) {
+  if(b->traits)
+    clean_id_list(a, b->traits);
+  if(b->next)
+    clean_specialized_list(a, b->next);
+}
+
 ANN static void clean_type_list(Clean *a, Type_List b) {
   clean_type_decl(a, b->td);
   if(b->next)
@@ -24,7 +31,7 @@ ANN static void clean_type_list(Clean *a, Type_List b) {
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
   if(b->base < 0 && b->list)
-    clean_id_list(a, b->list);
+    clean_specialized_list(a, b->list);
   if(b->call)
     clean_type_list(a, b->call);
 }
@@ -322,6 +329,8 @@ ANN static void clean_extend_def(Clean *a, Extend_Def b) {
 
 ANN static void clean_class_def(Clean *a, Class_Def b) {
   clean_type_def(a, &b->base);
+  if(b->traits)
+    clean_id_list(a, b->traits);
   if(b->body)
     clean_ast(a, b->body);
 }
@@ -367,6 +376,14 @@ ANN static void clean_type_def(Clean *a, Type_Def b) {
   if(b->tmpl)
     clean_tmpl(a, b->tmpl);
 }
+
+ANN static void clean_trait_def(Clean *a, Trait_Def b) {
+  if(b->traits)
+    clean_id_list(a, b->traits);
+  if(b->body)
+    clean_ast(a, b->body);
+}
+
 DECL_SECTION_FUNC(clean, void, Clean*)
 
 ANN static inline void clean_section(Clean *a, Section *b) {

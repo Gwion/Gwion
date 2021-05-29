@@ -157,6 +157,6 @@ ANN void inherit(const Type t) {
   if(!nspc || !parent)
     return;
   nspc->info->offset = parent->info->offset;
-  if(parent->info->vtable.ptr)
-    vector_copy2(&parent->info->vtable, &nspc->info->vtable);
+  if(parent->vtable.ptr)
+    vector_copy2(&parent->vtable, &nspc->vtable);
 }

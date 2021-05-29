@@ -109,9 +109,9 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
             env->class_def->size += t->size;
           }
         }
-      } else
-        set_vflag(v, vflag_fglobal);// file global
-    }
+      }
+      set_vflag(v, vflag_fglobal);// file global
+    } else
     if(GET_FLAG(decl->td, global))
       SET_FLAG(v, global);
   } while((list = list->next));
@@ -410,7 +410,7 @@ ANN static Type scan1_noret(const Env env, const Func_Base *base) {
 }
 
 ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
-  ID_List id = base->tmpl->list;
+  Specialized_List id = base->tmpl->list;
   do nspc_add_type(env->curr, id->xid, env->gwion->type[et_auto]);
   while((id = id->next));
   CHECK_OB((base->ret_type = scan1_noret(env, base)));
@@ -641,6 +641,7 @@ ANN static m_bool scan1_extend_def(const Env env, const Extend_Def xdef) {
   return ret;
 }
 
+#define scan1_trait_def dummy_func
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {

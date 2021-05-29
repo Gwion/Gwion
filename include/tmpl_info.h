@@ -2,7 +2,7 @@
 #define _TMPL_INFO
 struct tmpl_info {
   Symbol           name;
-  ID_List          list;
+  Specialized_List list;
   const Type_Decl* td;
   Type             ret;
   Type             base;

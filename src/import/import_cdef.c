@@ -38,7 +38,7 @@ ANN2(1) void add_template(const Env env, const Type t) {
   Tmpl* tmpl = t->info->cdef->base.tmpl;
   if(tmpl) {
     nspc_push_type(env->gwion->mp, env->curr);//
-    ID_List il = tmpl->list;
+    Specialized_List il = tmpl->list;
     do nspc_add_type(env->curr, il->xid, env->gwion->type[et_auto]);
     while((il = il->next));
   }
@@ -75,7 +75,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   struct ImportCK ck = { .name=name };
   CHECK_BO(check_typename_def(gwi, &ck));
   DECL_OO(Type_Decl *,td, = gwi_str2td(gwi, parent ?: "Object"));
-  Tmpl* tmpl = ck.tmpl ? new_tmpl_base(gwi->gwion->mp, ck.tmpl) : NULL;
+  Tmpl* tmpl = ck.sl ? new_tmpl_base(gwi->gwion->mp, ck.sl) : NULL;
   if(tmpl)
     CHECK_BO(template_push_types(gwi->gwion->env, tmpl));
   const Type base = find_type(gwi->gwion->env, td);
@@ -95,7 +95,7 @@ ANN2(1,2) Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent
   t->info->parent = p;
   if(td->array)
     set_tflag(t, tflag_typedef);
-  if(ck.tmpl)
+  if(ck.sl)
     set_tflag(t, tflag_tmpl | tflag_ntmpl);
   else
     gwi_type_flag(t);
@@ -107,12 +107,12 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   CHECK_BO(check_typename_def(gwi, &ck));
   const Type t = new_type(gwi->gwion->mp, s_name(ck.sym), gwi->gwion->type[et_compound]);
   set_tflag(t, tflag_struct);
-  if(!ck.tmpl)
+  if(!ck.sl)
     gwi_type_flag(t);
   else {
     t->info->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, NULL, NULL, gwi->loc);
     t->info->cdef->base.type = t;
-    t->info->cdef->base.tmpl = new_tmpl_base(gwi->gwion->mp, ck.tmpl);
+    t->info->cdef->base.tmpl = new_tmpl_base(gwi->gwion->mp, ck.sl);
     t->info->tuple = new_tupleform(gwi->gwion->mp, NULL);
     t->info->parent = NULL;
     t->info->cdef->cflag |= cflag_struct;

@@ -415,7 +415,7 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str name = s_name(f->base->xid);
   struct Vector_ v;
-  ID_List id = f->base->tmpl->list;
+  Specialized_List id = f->base->tmpl->list;
   m_uint tlen = 0;
   vector_init(&v);
   do {
@@ -547,6 +547,8 @@ ANN static m_bool scan2_extend_def(const Env env, const Extend_Def xdef) {
 }
 
 #define scan2_enum_def dummy_func
+#define scan2_trait_def dummy_func
+
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {

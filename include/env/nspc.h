@@ -1,23 +1,24 @@
 #ifndef __NSPC
 #define __NSPC
 struct NspcInfo_ {
-  m_bit* class_data;
-  struct Vector_    vtable;
-  struct Map_      	op_map;
-  Scope  value;
-  Scope  type;
-  Scope  func;
-  size_t offset;
-  size_t class_data_size;
+  m_bit*      class_data;
+  struct Map_ op_map;
+  Scope       value;
+  Scope       type;
+  Scope       func;
+  Scope       trait;
+  size_t      offset;
+  size_t      class_data_size;
 };
 
 struct Nspc_ {
   struct NspcInfo_* info;
-  Nspc parent;
-  m_str     name;
-  struct VM_Code_*   pre_ctor;
-  struct VM_Code_*   dtor;
-  uint16_t ref;
+  Nspc              parent;
+  m_str             name;
+  struct Vector_    vtable;
+  struct VM_Code_*  pre_ctor;
+  struct VM_Code_*  dtor;
+  uint16_t          ref;
 };
 
 REF_FUNC(Nspc, nspc)
@@ -63,6 +64,7 @@ describe_lookups(A, b)
 describe_nspc_func(Value, value)
 describe_nspc_func(Type, type)
 describe_nspc_func(Func, func)
+describe_nspc_func(Trait, trait)
 /* howere there is no need for lookup_func0, push_func, pop_func */
 ANN void did_you_mean_nspc(const Nspc, const char*);
 ANN void did_you_mean_type(const Type, const char*);

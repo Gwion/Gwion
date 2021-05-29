@@ -15,6 +15,7 @@ typedef struct ImportCK { // name_checker ?
   Symbol sym;
   union {
     ID_List tmpl;
+    Specialized_List sl;
     Exp exp;
   };
   union {

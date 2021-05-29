@@ -2,6 +2,7 @@
 #define __GWION_ENV
 
 #include "env/oo.h"
+#include "env/trait.h"
 #include "env/nspc.h"
 #include "env/env.h"
 

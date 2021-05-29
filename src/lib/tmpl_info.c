@@ -66,7 +66,7 @@ ANEW ANN static Symbol template_id(const Env env, struct tmpl_info *const info) 
   return sym;
 }
 
-ANN static m_bool template_match(ID_List base, Type_List call) {
+ANN static m_bool template_match(Specialized_List base, Type_List call) {
   while((call = call->next) && (base = base->next));
   return !call ? GW_OK : GW_ERROR;
 }
