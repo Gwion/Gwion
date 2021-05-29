@@ -89,7 +89,7 @@ Congratulations!! You ran your first gwion program.
 _This section is currently very Linux-centric. We are working to improve that. Pull requests welcome!_
 
 Gwion relies on plugins for most of its language features, including all those that make sound. Plugins are located in the subdirectories of
-`plug`. To get some sounds going under linux using jack sound server, you can build the plugins `Jack`, `Soundpipe`, and `Modules`.
+`plug`. To get some sounds going under linux using jack sound server, you can build the plugins `Jack`, `Soundpipe`, and `Modules`. Make sure you have Jack installed.
 
 Start by downloading the sources
 ```
@@ -108,7 +108,7 @@ named `.gwplug`. So create that directory and move `Jack.so` there:
 mkdir ~/.gwplug
 mv Jack.so ~/.gwplug
 ```
-Repeat for the other plugins mentioned. The `Soundpipe` plugin requires the soundpipe library, which we hope to have build seamlessly for you when you build the `Soundpipe` module, but we're not quite there yet. Please ask for help if this isn't working.
+Repeat for the other plugins mentioned. The `Soundpipe` plugin requires the [gwion-soundpipe](https://github.com/Gwion/gwion-soundpipe) library, which we hope to have build seamlessly for you when you build the `Soundpipe` module, but we're not quite there yet. For now, please clone gwion-soundpipe in the Soundpipe plugin directory `plug/Soundpipe`. Please ask for help if this isn't working.
 
 When all those plugin `.so` files are in your `~/.gwplug` directory, you should be able to run a Gwion program that makes sound! In `plug/Modules` there's a `test.gw` program which plays a sine wave for 5 seconds. If the `gwion` you built is still in the base dir of your cloned repo, from the
 `plug/Modules` subdirectory you should be able to run `../../gwion -d Jack test.gw` and hear some sound!
@@ -120,8 +120,25 @@ It's a good idea to install Gwion now that you have tried it out. Use the follow
 sudo make install
 ```
 
-You want to know more? :smile: Look [here](https://Gwion.github.io/Gwion/)
+To confirm Gwion can make sound, update `hello_world.gw` to:
+
+```
+#import Modules
+
+<<<"Sound from Gwion!">>>;
+
+new SinOsc ~> dac;
+
+5::second => now;
+```
+
+To run it with Jack as the driver: `gwion hello_world.gw -dJack`. Hopefully you will hear a smooth sine wave. If not, please reach out on Discord and we'll help you out.
+
+## Documentation
+
+Do you want to know more? :smile: Look [here](https://Gwion.github.io/Gwion/)
 Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/Gwion/gwion/issues)
+
 
 ## Reporting bugs / Contributing
 
