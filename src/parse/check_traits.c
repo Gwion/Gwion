@@ -98,7 +98,7 @@ ANN static bool check_trait_functions(const Env env, const Type t, const Trait t
   return error;
 }
 
-ANN2(1,2,3) static inline bool trait_nodup(Type t, const Symbol trait, ID_List list) {
+ANN2(1,2) static inline bool trait_nodup(Type t, const Symbol trait, ID_List list) {
   bool nodup = true;
   do {
     while(list) {

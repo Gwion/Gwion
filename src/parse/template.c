@@ -101,6 +101,18 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl* td) {
     if(tflag(t, tflag_ntmpl) && !td->types)
       return t;
     struct TemplateScan ts = { .t=t, .td=td };
+Type_List tl = td->types;
+Specialized_List sl = t->info->cdef->base.tmpl->list;
+
+while(tl && sl) {
+  DECL_OO(const Type, t, = known_type(env, tl->td));
+  ID_List missing = miss_traits(t, sl);
+  if(missing) {
+    ERR_O(tl->td->pos, "does not implement requested trait '{/}%s{0}'", s_name(missing->xid));
+  }
+  tl = tl->next;
+  sl = sl->next;
+}
     struct Op_Import opi = { .op=insert_symbol("@scan"), .lhs=t, .data=(uintptr_t)&ts, .pos=td->pos };
     return op_check(env, &opi);
   } else if(td->types)

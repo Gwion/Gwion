@@ -83,6 +83,26 @@ ANN static inline Type get_gack(Type t) {
   return t; // unreachable
 }
 
+// trait helpers
+ANN static inline bool has_trait(const Type t, const Symbol trait) {
+  ID_List list = t->info->traits;
+  while(list) {
+    if(list->xid == trait)
+      return true;
+    list = list->next;
+  }
+  return false;
+}
+
+ANN static inline ID_List miss_traits(const Type t, const Specialized_List sl) {
+  ID_List traits = sl->traits;
+  while(traits) {
+    if(!has_trait(t, traits->xid))
+      return traits;
+    traits = traits->next;
+  }
+  return NULL;
+}
 typedef enum {
   et_void, et_int, et_bool, et_char, et_float,
   et_error, et_compound, et_object, et_shred, et_fork, et_event, et_ugen, et_string, et_ptr, et_array, et_gack,
