@@ -12,6 +12,32 @@
 #include "import.h"
 #include "parse.h"
 
+ANN static bool var_match(const Value a, const Value b) {
+  bool error = true;
+  if(isa(a->type, a->type) < 0) {
+    gwerr_basic("invalid variable type", NULL, NULL,
+        a->from->filename, a->from->loc, 0);
+    // can we point to the type decl?
+    error = false;
+  }
+  if(GET_FLAG(a, const) && !GET_FLAG(b, const)) {
+    gwerr_basic("variable differs in {/}constness{0}", NULL, NULL,
+        a->from->filename, a->from->loc, 0);
+    // can we point to the flag?
+    error = false;
+  }
+  if(GET_FLAG(a, static) && !GET_FLAG(b, static)) {
+    gwerr_basic("variable differs in {/}storage{0}", NULL, NULL,
+        a->from->filename, a->from->loc, 0);
+    // can we point to the flag?
+    error = false;
+  }
+  if(error)
+    return true;
+  gwerr_secondary("from requested variable", b->from->filename, b->from->loc);
+  return error;
+}
+
 ANN static bool request_var(const Env env, const Type t, const Value request) {
   const Value value = nspc_lookup_value0(t->nspc, insert_symbol(request->name));
   if(!value) {
@@ -19,23 +45,7 @@ ANN static bool request_var(const Env env, const Type t, const Value request) {
         request->from->filename, request->from->loc, 0);
     return false;
   }
-  bool error = true;
-  if(isa(value->type, request->type) < 0) {
-    gwerr_basic("invalid variable type", NULL, NULL,
-        value->from->filename, value->from->loc, 0);
-    // can we point to the type decl?
-    error = false;
-  }
-  if(GET_FLAG(value, const) && !GET_FLAG(request, const)) {
-    gwerr_basic("variable differs in {/}constness{0}", NULL, NULL,
-        value->from->filename, value->from->loc, 0);
-    // can we point to the flag?
-    error = false;
-  }
-  if(error)
-    return true;
-  gwerr_secondary("from requested variable", request->from->filename, request->from->loc);
-  return error;
+  return var_match(value, request);
 }
 
 ANN static bool check_trait_variables(const Env env, const Type t, const Trait trait) {
