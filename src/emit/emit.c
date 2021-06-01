@@ -2004,6 +2004,9 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
     const Instr instr = emit_add_instr(emit, MemSetImm);
     instr->m_val = emit_local(emit, emit->gwion->type[et_int]);
     stmt->idx->v->from->offset = offset;
+    const Instr idx = emit_add_instr(emit, MemSetImm);
+    idx->m_val = offset;
+    idx->m_val2 = -1;
   }
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond));
   regpop(emit, SZ_INT);

@@ -534,7 +534,7 @@ memaddimm:
 //  (*(m_int*)(mem+VAL))--;
   DISPATCH();
 repeatidx:
-  BRANCH_DISPATCH(*(m_int*)(mem+VAL2+SZ_INT) == (*(m_int*)(mem+VAL2))++);
+  BRANCH_DISPATCH(*(m_int*)(mem+VAL2+SZ_INT) == ++(*(m_int*)(mem+VAL2)));
 repeat:
   BRANCH_DISPATCH(!(*(m_uint*)(mem+VAL2))--);
 regpushme:
