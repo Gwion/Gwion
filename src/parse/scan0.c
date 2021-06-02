@@ -334,7 +334,7 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   return t ?: (Type)GW_ERROR;
 }
 
-ANN static m_bool cdef_traits(const Env env, ID_List traits, const loc_t pos) {
+ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
   do {
     if(!nspc_lookup_trait1(env->curr, traits->xid))
       ERR_B(pos, _("can't find trait"));
@@ -348,7 +348,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   if(parent == (Type)GW_ERROR)
     return NULL;
   if(cdef->traits)
-    CHECK_BO(cdef_traits(env, cdef->traits, cdef->pos));
+    CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if(cflag(cdef, cflag_struct)) {
     t->size = 0;
@@ -475,6 +475,8 @@ ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
     env->context->error = true;
     return already_defined(env, s, pdef->pos);
   }
+  if(pdef->traits)
+    CHECK_BB(find_traits(env, pdef->traits, pdef->pos));
   _scan0_trait_def(env, pdef);
   return GW_OK;
 }
