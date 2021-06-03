@@ -426,7 +426,8 @@ ANN static Ast scan0_func_def_default(const MemPool p, const Ast ast, const Ast 
     former = base_arg;
     base_arg = base_arg->next;
   }
-  return ast->next = next;
+  ast->next = next;
+  return ast;
 }
 
 #define scan0_func_def dummy_func
