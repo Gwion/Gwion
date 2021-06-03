@@ -149,7 +149,6 @@ ArrayTop
 ArrayAccess
 ArrayGet
 ArrayAddr
-ArrayValid
 ObjectInstantiate
 RegAddRef
 RegAddRefAddr

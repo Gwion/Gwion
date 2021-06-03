@@ -406,7 +406,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat, &&unroll,
-    &&arrayappend, &&autounrollinit, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arrayvalid,
+    &&arrayappend, &&autounrollinit, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr,
     &&newobj, &&addref, &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign, &&remref,
     &&except, &&allocmemberaddr, &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
     &&unioncheck, &&unionint, &&unionfloat, &&unionother, &&unionaddr,
@@ -854,11 +854,6 @@ arrayaddr:
 PRAGMA_PUSH()
   *(m_bit**)(reg + (m_int)VAL2) = m_vector_addr(ARRAY(a.obj), *(m_int*)(reg + VAL));
 PRAGMA_POP()
-  DISPATCH()
-arrayvalid:
-// are we sure it is the array ?
-// rather increase ref
-  vector_pop(&shred->gc);
   DISPATCH()
 newobj:
   *(M_Object*)reg = new_object(vm->gwion->mp, NULL, (Type)VAL2);

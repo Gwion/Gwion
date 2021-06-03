@@ -152,7 +152,6 @@ enum {
   eArrayAccess,
   eArrayGet,
   eArrayAddr,
-  eArrayValid,
   eObjectInstantiate,
   eRegAddRef,
   eRegAddRefAddr,
@@ -352,7 +351,6 @@ enum {
 #define  ArrayAccess          (f_instr)eArrayAccess
 #define  ArrayGet             (f_instr)eArrayGet
 #define  ArrayAddr            (f_instr)eArrayAddr
-#define  ArrayValid           (f_instr)eArrayValid
 #define  ObjectInstantiate    (f_instr)eObjectInstantiate
 #define  RegAddRef            (f_instr)eRegAddRef
 #define  RegAddRefAddr        (f_instr)eRegAddRefAddr

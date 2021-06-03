@@ -1709,7 +1709,8 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
         env_err(env, v->from->loc, _("recursive type"));
         env->context->error = false;
         env_err(env, value->from->loc, _("recursive type"));
-       env->context->error = true;
+        env->context->error = true;
+type_remref(t, env->gwion);
 return GW_ERROR;
 }
 }

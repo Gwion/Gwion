@@ -326,13 +326,13 @@ ANN static void array_finish(const Emitter emit, const m_uint depth,
 		const m_uint size, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
   get->m_val = depth * SZ_INT;
-  emit_add_instr(emit, ArrayValid);
+//  emit_add_instr(emit, ArrayValid);
   const Instr push = emit_add_instr(emit, RegMove);
   push->m_val = is_var ? SZ_INT : size;
 }
 
 ANN static inline m_bool array_do(const  Emitter emit, const Array_Sub array, const m_bool is_var) {
-  emit_gc(emit, -SZ_INT);
+//  emit_gc(emit, -SZ_INT);
   CHECK_BB(emit_exp(emit, array->exp));
   array_loop(emit, array->depth);
   array_finish(emit, array->depth, array->type->size, is_var);

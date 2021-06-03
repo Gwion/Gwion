@@ -16,9 +16,11 @@ ANN void free_type(const Type a, struct Gwion_ *const gwion) {
   if(freeable(a)) {
     if(tflag(a, tflag_udef))
       free_union_def(gwion->mp, a->info->udef);
-    if(tflag(a, tflag_cdef))
+    else if(tflag(a, tflag_cdef))
       class_def_cleaner(gwion, a->info->cdef);
   }
+  if(a->effects.ptr)
+    vector_release(&a->effects);
   if(a->nspc)
     nspc_remref(a->nspc, gwion);
   if(a->info->tuple)
