@@ -1071,8 +1071,13 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
     return emit_inline(emit, f, exp_call);
 #endif
 */
-  CHECK_BB(prepare_call(emit, exp_call));
+  // skip when recursing
   const Type t = actual_type(emit->gwion, exp_call->func->type);
+  const Func f  = t->info->func;
+  if(is_fptr(emit->gwion, t) || f != emit->env->func || f->value_ref->from->owner_class || strstr(emit->code->name, "ork~"))
+    CHECK_BB(prepare_call(emit, exp_call));
+  else
+    CHECK_BB(emit_func_args(emit, exp_call));
   if(isa(t, emit->gwion->type[et_function]) > 0)
     CHECK_BB(emit_exp_call1(emit, t->info->func));
   else {
@@ -1243,12 +1248,19 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
 
 ANN static Instr get_prelude(const Emitter emit, const Func f) {
   const Type t = actual_type(emit->gwion, f->value_ref->type);
+  const bool fp = is_fptr(emit->gwion, t);
   if(is_fptr(emit->gwion, t)) {
     if(f->def->base->tmpl)
       tmpl_prelude(emit, f);
   }
-  const Instr instr = emit_add_instr(emit, SetCode);
+  if(fp || f != emit->env->func || f->value_ref->from->owner_class || strstr(emit->code->name, "ork~")) {
+    const Instr instr = emit_add_instr(emit, SetCode);
+    instr->m_val2 = 1;
+    return instr;
+  }
+  const Instr instr = emit_add_instr(emit, Recurs);
   instr->m_val2 = 1;
+  instr->m_val = SZ_INT;
   return instr;
 }
 
@@ -1305,7 +1317,7 @@ ANN static m_bool me_arg(MemoizeEmitter *me) {
 
 ANN static Instr emit_call(const Emitter emit, const Func f) {
   const Instr prelude = get_prelude(emit, f);
-  prelude->m_val = -f->def->stack_depth - SZ_INT;
+  prelude->m_val += -f->def->stack_depth - SZ_INT;
   const m_uint member = vflag(f->value_ref, vflag_member) ? SZ_INT : 0;
   if(member) {
     const Instr instr = emit_add_instr(emit, Reg2Mem);
@@ -1313,8 +1325,11 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
     ++prelude->m_val2;
   }
   if(f->def->stack_depth - member) {
+//  if(is_fptr(emit->gwion, t) || f != emit->env->func || f->value_ref->from->owner_class || strstr(emit->code->name, "ork~"))
+{
     emit_args(emit, f);
     ++prelude->m_val2;
+}
   }
   return emit_add_instr(emit, Overflow);
 }
@@ -1329,11 +1344,11 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
       if(emit->env->func != f)
         CHECK_BB(emit_template_code(emit, f));
       else { // recursive function. (maybe should be used only for global funcs)
-        const Instr back = (Instr) vector_size(&emit->code->instr) ?
+      /*  const Instr back = (Instr) vector_size(&emit->code->instr) ?
             (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit, RegPushImm);
         back->opcode = eOP_MAX;
         back->execute = SetRecurs;
-        back->m_val = 0;
+        back->m_val = 0;*/
       }
     } else if(emit->env->func != f && !f->value_ref->from->owner_class && !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
       if(fbflag(f->def->base, fbflag_op)) {

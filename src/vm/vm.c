@@ -40,10 +40,11 @@ uint32_t gw_rand(uint32_t s[2]) {
   return ret;
 }
 
-ANN static inline void shred_unwind(VM_Shred shred) {
-  shred->pc   = *(m_uint*) (shred->mem - SZ_INT * 2);
-  shred->code = *(VM_Code*)(shred->mem - SZ_INT * 3);
-  shred->mem -= (*(m_uint*)(shred->mem - SZ_INT * 4) + SZ_INT * 4);
+ANN static inline void shred_unwind(const VM_Shred shred) {
+  register struct frame_t *frame = &*(struct frame_t*)(shred->mem - sizeof(struct frame_t));
+  shred->code = frame->code;
+  shred->pc   = frame->pc;
+  shred->mem -= (frame->push + sizeof(struct frame_t));
 }
 
 ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
@@ -402,8 +403,7 @@ ANN void vm_run(const VM* vm) { // lgtm [cpp/use-of-goto]
     &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv,
     &&itof, &&ftoi,
     &&timeadv,
-    &&setcode,
-    &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcmemberend,
+    &&recurs, &&setcode, &&regmove, &&regtomem, &&regtomemother, &&overflow, &&funcusrend, &&funcusrend2, &&funcmemberend,
     &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkend,
     &&brancheqint, &&branchneint, &&brancheqfloat, &&branchnefloat, &&unroll,
     &&arrayappend, &&autounrollinit, &&autoloop, &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr,
@@ -547,10 +547,10 @@ regpushmaybe:
   DISPATCH();
 funcreturn:
 {
-  register const m_uint pc = *(m_uint*)(mem-SZ_INT*2);
-  bytecode = (code = *(VM_Code*)(mem-SZ_INT*3))->bytecode;
-  mem -= (*(m_uint*)(mem-SZ_INT*4) + SZ_INT*4);
-  PC_DISPATCH(pc);
+  register struct frame_t frame = *(struct frame_t*)(mem - sizeof(struct frame_t));
+  bytecode = (code = frame.code)->bytecode;
+  mem -= (frame.push + sizeof(struct frame_t));
+  PC_DISPATCH(frame.pc);
 }
 _goto:
   PC_DISPATCH(VAL);
@@ -709,16 +709,22 @@ timeadv:
   *(m_float*)(reg-SZ_FLOAT) += vm->bbq->pos;
   VM_OUT
   break;
+recurs:
+{
+  register const uint push = *(m_uint*)reg + code->stack_depth;
+  mem += push + sizeof(struct frame_t);
+  *(struct frame_t*)(mem - sizeof(struct frame_t)) = (struct frame_t){.code=code,.pc=VAL2,.push=push};
+  reg += (m_int)VAL;
+  next = eFuncUsrEnd2;
+}
+  DISPATCH();
 setcode:
 PRAGMA_PUSH()
   a.code = *(VM_Code*)(reg - SZ_INT);
   if(!a.code->builtin) {
-    register const m_uint push = *(m_uint*)reg + *(m_uint*)(mem-SZ_INT);
-    mem += push;
-    *(m_uint*)  mem = push; mem += SZ_INT;
-    *(VM_Code*) mem = code; mem += SZ_INT;
-    *(m_uint*)  mem = PC + VAL2; mem += SZ_INT;
-    *(m_uint*) mem = a.code->stack_depth; mem += SZ_INT;
+    register const uint push = *(m_uint*)reg + code->stack_depth;
+    mem += push + sizeof(struct frame_t);
+    *(struct frame_t*)(mem - sizeof(struct frame_t)) = (struct frame_t){.code=code,.pc=PC+VAL2,.push=push};
     next = eFuncUsrEnd;
   } else {
     mem += *(m_uint*)reg;
@@ -747,6 +753,9 @@ funcusrend:
 PRAGMA_PUSH()
   byte = bytecode = (code = a.code)->bytecode;
 PRAGMA_POP()
+  SDISPATCH();
+funcusrend2:
+  byte = bytecode;
   SDISPATCH();
 funcmemberend:
   VM_OUT

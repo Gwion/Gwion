@@ -31,6 +31,11 @@ struct VM_Code_ {
   bool is_memoize;
 };
 
+struct frame_t {
+  uint32_t push, pc;
+  VM_Code code;
+};
+
 typedef struct Shreduler_* Shreduler;
 typedef struct Emitter_   * Emitter;
 typedef struct VM_Shred_* VM_Shred;

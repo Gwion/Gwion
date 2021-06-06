@@ -127,12 +127,14 @@ enum {
   eCastI2F,
   eCastF2I,
   eTime_Advance,
+  eRecurs,
   eSetCode,
   eRegMove,
   eReg2Mem,
   eReg2Mem4,
   eOverflow,
   eFuncUsrEnd,
+  eFuncUsrEnd2,
   eFuncMemberEnd,
   eSporkIni,
   eForkIni,
@@ -326,12 +328,14 @@ enum {
 #define  CastI2F              (f_instr)eCastI2F
 #define  CastF2I              (f_instr)eCastF2I
 #define  Time_Advance         (f_instr)eTime_Advance
+#define  Recurs               (f_instr)eRecurs
 #define  SetCode              (f_instr)eSetCode
 #define  RegMove              (f_instr)eRegMove
 #define  Reg2Mem              (f_instr)eReg2Mem
 #define  Reg2Mem4             (f_instr)eReg2Mem4
 #define  Overflow             (f_instr)eOverflow
 #define  FuncUsrEnd           (f_instr)eFuncUsrEnd
+#define  FuncUsrEnd2          (f_instr)eFuncUsrEnd2
 #define  FuncMemberEnd        (f_instr)eFuncMemberEnd
 #define  SporkIni             (f_instr)eSporkIni
 #define  ForkIni              (f_instr)eForkIni

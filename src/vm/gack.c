@@ -47,12 +47,11 @@ ANN2(2) int gw_asprintf(MemPool mp, char **str, const char *fmt, ...) {
 }
 
 ANN static void prepare_call(const VM_Shred shred, const m_uint offset) {
-  shred->mem += offset;
-  *(m_uint*)(shred->mem  + SZ_INT) = offset + SZ_INT;
-  *(VM_Code*)(shred->mem + SZ_INT*2) = shred->code;
-  *(m_uint*)(shred->mem  + SZ_INT*3) = shred->pc;
-  *(m_uint*)(shred->mem  + SZ_INT*4) = SZ_INT;
-  shred->mem += SZ_INT*5;
+  shred->mem += offset + SZ_INT + sizeof(struct frame_t);
+  register struct frame_t *frame = (struct frame_t*)(shred->mem - sizeof(struct frame_t));
+  frame->push = offset + SZ_INT;
+  frame->code = shred->code;
+  frame->pc   = shred->pc;
   shred->pc = 0;
 }
 

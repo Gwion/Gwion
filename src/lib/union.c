@@ -111,13 +111,13 @@ static OP_CHECK(opck_union_ctor) {
   if(!name || !name->next || name->next->next)
     ERR_N(name->pos, "Union constructor takes two arguments, "
          "'id' and 'value'");
-    if(name->exp_type != ae_exp_primary ||
-        name->d.prim.prim_type != ae_prim_id)
-    return NULL;
-    const Exp val = name->next;
-    const Type base = actual_type(env->gwion, call->func->type);
-    const Map map = &base->nspc->info->value->map;
-    for(m_uint i = 0; i < map_size(map); ++i) {
+  if(name->exp_type != ae_exp_primary ||
+      name->d.prim.prim_type != ae_prim_id)
+  return NULL;
+  const Exp val = name->next;
+  const Type base = actual_type(env->gwion, call->func->type);
+  const Map map = &base->nspc->info->value->map;
+  for(m_uint i = 0; i < map_size(map); ++i) {
     if(VKEY(map, i) == (m_uint)name->d.prim.d.var) {
       const Value v = (Value)VVAL(map, i);
       name->d.prim.prim_type = ae_prim_num;

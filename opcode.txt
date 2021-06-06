@@ -124,12 +124,14 @@ float_int_r_div
 CastI2F
 CastF2I
 Time_Advance
+Recurs
 SetCode
 RegMove
 Reg2Mem
 Reg2Mem4
 Overflow
 FuncUsrEnd
+FuncUsrEnd2
 FuncMemberEnd
 SporkIni
 ForkIni

@@ -101,7 +101,7 @@ gwion-fuzz:
 clean_core:
 	@rm -f core.* *vgcore.*
 
-clean-all:
+clean-all: clean
 		${MAKE} -s -C libcmdapp clean
 		${MAKE} -s -C fmt clean
 		${MAKE} -s -C ast clean
