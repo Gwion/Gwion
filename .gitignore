@@ -12,3 +12,4 @@ mkdocs.yml
 *.so
 *.gcda
 *.gcno
+*.swp
