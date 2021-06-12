@@ -401,10 +401,10 @@ static const struct VM_Code_ foldr_run_code = {
 };
 
 typedef struct FunctionalFrame {
-  m_uint pc;
   VM_Code code;
-  m_uint offset;
-  m_uint index;
+  uint16_t pc;
+  uint16_t offset;
+  uint16_t index;
 } FunctionalFrame;
 
 ANN static inline void _init(const VM_Shred shred,
@@ -436,7 +436,7 @@ ANN static inline void _finish(const VM_Shred shred, const FunctionalFrame* fram
   shredule(shred->tick->shreduler, shred, 0);
 }
 
-#define MAP_CODE_OFFSET (sizeof(FunctionalFrame) + SZ_INT*4)
+#define MAP_CODE_OFFSET (sizeof(FunctionalFrame) + sizeof(struct frame_t))
 static INSTR(map_run_ini) {
   const m_uint offset = *(m_uint*)REG(SZ_INT);
   if(offset)
@@ -447,9 +447,7 @@ static INSTR(map_run_ini) {
   FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  *(m_uint*)(shred->mem-SZ_INT) = 0;
-  *(m_uint*)(shred->mem-SZ_INT*2) = 0;
-  m_vector_get(array, frame->index, &*(m_bit**)(shred->mem + SZ_INT*6));
+  m_vector_get(array, frame->index, &*(m_bit**)(shred->mem + SZ_INT*3));
 }
 
 static INSTR(map_run_end) {
@@ -573,9 +571,7 @@ static INSTR(foldl_run_ini) {
   shred->pc++;
   const FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  *(m_uint*)(shred->mem-SZ_INT) = 0;
-  *(m_uint*)(shred->mem-SZ_INT*2) = 0;
-  m_vector_get(ARRAY(self), frame->index, &*(m_bit**)(shred->mem + SZ_INT*4));
+  m_vector_get(ARRAY(self), frame->index, &*(m_bit**)(shred->mem + SZ_INT*2));
 }
 
 static INSTR(foldr_run_ini) {
@@ -588,10 +584,8 @@ static INSTR(foldr_run_ini) {
   shred->pc++;
   const FunctionalFrame *frame = &*(FunctionalFrame*)MEM(SZ_INT*3);
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  *(m_uint*)(shred->mem-SZ_INT) = 0;
-  *(m_uint*)(shred->mem-SZ_INT*2) = 0;
   const M_Vector array = ARRAY(self);
-  m_vector_get(array, ARRAY_LEN(array) - frame->index - 1, &*(m_bit**)(shred->mem + SZ_INT*4));
+  m_vector_get(array, ARRAY_LEN(array) - frame->index - 1, &*(m_bit**)(shred->mem + SZ_INT*2));
 }
 
 static INSTR(fold_run_end) {
@@ -608,7 +602,7 @@ static INSTR(fold_run_end) {
     shred->code = frame->code;
     memcpy(REG(-sz), REG(0), base_sz);
   } else {
-    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*2 + SZ_INT*3 + sz, shred->reg, base_sz);
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*3 + sz, shred->reg, base_sz);
     _next(shred, frame->offset);
   }
   _finish(shred, frame);
@@ -620,7 +614,7 @@ static MFUN(vm_vector_foldl) {
   const m_uint offset = *(m_uint*)REG(SZ_INT*3 + acc_sz);
   if(ARRAY_LEN(ARRAY(o))) {
     _init(shred, &foldl_run_code, offset, SZ_INT);
-    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*5 + acc_sz, MEM(SZ_INT*2), acc_sz);
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*3 + acc_sz, MEM(SZ_INT*2), acc_sz);
   } else
     memcpy((m_bit*)RETURN, MEM(SZ_INT*2), acc_sz);
 }
@@ -631,7 +625,7 @@ static MFUN(vm_vector_foldr) {
   const m_uint offset = *(m_uint*)REG(SZ_INT*3 + acc_sz);
   if(ARRAY_LEN(ARRAY(o))) {
     _init(shred, &foldr_run_code, offset, SZ_INT);
-    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*5 + acc_sz, MEM(SZ_INT*2), acc_sz);
+    memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT*3 + acc_sz, MEM(SZ_INT*2), acc_sz);
   } else
     memcpy((m_bit*)RETURN, MEM(SZ_INT*2), acc_sz);
 }
