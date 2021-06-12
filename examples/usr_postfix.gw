@@ -5,6 +5,7 @@ class C {
 operator int ++ (C c) {
   <<< "here" >>>;
   <<< c.i++ >>>;
+  return 0;
 }
 var C c;
 c++;
