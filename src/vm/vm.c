@@ -352,9 +352,11 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 
 #define VMSZ (SZ_INT > SZ_FLOAT ? SZ_INT : SZ_FLOAT)
 
-#define VAL  (*(m_uint*)(byte + VMSZ))
-#define FVAL (*(m_float*)(byte + VMSZ))
-#define VAL2 (*(m_uint*)(byte + SZ_INT + SZ_INT))
+#define VAL   (*(m_uint*)(byte + VMSZ))
+#define FVAL  (*(m_float*)(byte + VMSZ))
+#define VAL2  (*(m_uint*)(byte + SZ_INT + SZ_INT))
+#define UVAL  (*(uint16_t*)(byte + SZ_INT + SZ_INT))
+#define UVAL2 (*(uint16_t*)(byte + SZ_INT + SZ_INT + sizeof(uint16_t)))
 
 #define BRANCH_DISPATCH(check) \
   if(check) SET_BYTE(VAL);\
