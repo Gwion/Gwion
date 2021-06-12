@@ -636,8 +636,18 @@ static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts = (struct TemplateScan*)data;
   const Type t_array = env->gwion->type[et_array];
   const Class_Def c = t_array->info->cdef;
-  const Type base = ts->t != t_array ?
-    ts->t : known_type(env, ts->td->types->td);
+  DECL_ON(const Type, base, = ts->t != t_array ?
+    ts->t : known_type(env, ts->td->types->td));
+  if(!strncmp(base->name, "Ref:[", 5)) {
+    gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null", (loc_t){}, 0);
+    env->context->error = true;
+    return env->gwion->type[et_error];
+  }
+  if(!strncmp(base->name, "Option:[", 5)) {
+    gwerr_basic("Can't use option types as array base", NULL, NULL, "/dev/null", (loc_t){}, 0);
+    env->context->error = true;
+    return env->gwion->type[et_error];
+  }
   const Symbol sym = array_sym(env, array_base(base), base->array_depth + 1);
   const Type type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if(type)
@@ -722,7 +732,8 @@ GWION_IMPORT(array) {
   prepare_map_run(count_byte, count_run_end);
   prepare_fold_run(foldl_byte, foldl_run_ini);
   prepare_fold_run(foldr_byte, foldr_run_ini);
-  const Type t_array  = gwi_class_ini(gwi, "Array:[T]", "Object");
+  const Type t_array  = gwi_class_ini(gwi, "@Array:[T]", "Object");
+  set_tflag(t_array, tflag_infer);
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
   GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
@@ -796,31 +807,31 @@ GWION_IMPORT(array) {
 
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sr))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sr))
   GWI_BB(gwi_oper_end(gwi, ">>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "Array", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);

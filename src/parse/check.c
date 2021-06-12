@@ -470,13 +470,15 @@ ANN2(1,2) static Func find_func_match_actual(const Env env, Func func, const Exp
     Exp e = args;
     Arg_List e1 = func->def->base->args;
     while(e) {
+      if(!strncmp(e->type->name, "Ref:[", 5))
+        exp_setvar(e, true);
       if(!e1) {
         if(fbflag(func->def->base, fbflag_variadic))
           return func;
         CHECK_OO(func->next);
         return find_func_match_actual(env, func->next, args, implicit, specific);
-      } else if(!e->type) //fix bug found with Cytosol
-        return NULL;
+      } //else if(!e->type) //fix bug found with Cytosol
+        //return NULL;
       if(e1->type == env->gwion->type[et_auto] ||
             (func->def->base->tmpl && is_fptr(env->gwion, func->value_ref->type) > 0)) {
         const Type owner = func->value_ref->from->owner_class;
@@ -1705,7 +1707,8 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
       Value v;
   struct scope_iter inner = { value->type->nspc->info->value, 0, 0 };
   while(scope_iter(&inner, &v) > 0) {
-      if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
+//      if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
+      if(v->type == t) {
         env_err(env, v->from->loc, _("recursive type"));
         env->context->error = false;
         env_err(env, value->from->loc, _("recursive type"));

@@ -19,13 +19,22 @@ enum Kind {
 
 typedef struct Instr_     * Instr;
 typedef void (*f_instr)(const VM_Shred, const Instr);
+
+struct InstrVal {
+  uint16_t one;
+  uint16_t two;
+};
+
 struct Instr_ {
   m_uint opcode;
   union {
     m_float f;
     m_uint m_val;
   };
-  m_uint m_val2;
+  union {
+    m_uint m_val2;
+    struct InstrVal udata;
+  };
   void (*execute)(const VM_Shred shred, const Instr instr);
 };
 #define BYTECODE_SZ ((2*sizeof(unsigned)) + sizeof(struct Instr_) - SZ_INT*2)

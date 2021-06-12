@@ -142,7 +142,7 @@ ANN static m_bit* tobytecode(MemPool p, const VM_Code code) {
         }
         *(m_uint*)(data + SZ_INT) = new_pc;
       } else if(opcode == eRecurs /*|| opcode == eSetCode*/) {
-        *(m_uint*)(final + j * BYTECODE_SZ + SZ_INT*2) =
+        *(uint16_t*)(final + j * BYTECODE_SZ + SZ_INT*2) =
           instr->m_val2 += j+1;
       }
       setpc(data, j);

@@ -82,7 +82,8 @@ ANN Type gwi_enum_end(const Gwi gwi) {
       gwi->ck->xid, gwi->loc);
   gwi->ck->tmpl = NULL;
   const m_bool ret = traverse_enum_def(gwion->env, edef);
-  import_enum_end(gwi, &edef->values);
+  if(ret > 0)
+    import_enum_end(gwi, &edef->values);
   if(gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);
     lint_enum_def(gwi->lint, edef);
