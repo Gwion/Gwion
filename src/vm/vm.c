@@ -44,7 +44,7 @@ ANN static inline void shred_unwind(const VM_Shred shred) {
   register struct frame_t *frame = &*(struct frame_t*)(shred->mem - sizeof(struct frame_t));
   shred->code = frame->code;
   shred->pc   = frame->pc;
-  shred->mem -= (frame->push + sizeof(struct frame_t));
+  shred->mem -= frame->push;
 }
 
 ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
@@ -549,7 +549,7 @@ funcreturn:
 {
   register struct frame_t frame = *(struct frame_t*)(mem - sizeof(struct frame_t));
   bytecode = (code = frame.code)->bytecode;
-  mem -= (frame.push + sizeof(struct frame_t));
+  mem -= frame.push;
   PC_DISPATCH(frame.pc);
 }
 _goto:
@@ -711,8 +711,8 @@ timeadv:
   break;
 recurs:
 {
-  register const uint push = *(m_uint*)reg + code->stack_depth;
-  mem += push + sizeof(struct frame_t);
+  register const uint push = *(m_uint*)reg + code->stack_depth + sizeof(struct frame_t);
+  mem += push;
   *(struct frame_t*)(mem - sizeof(struct frame_t)) = (struct frame_t){.code=code,.pc=VAL2,.push=push};
   reg += (m_int)VAL;
   next = eFuncUsrEnd2;
@@ -722,8 +722,8 @@ setcode:
 PRAGMA_PUSH()
   a.code = *(VM_Code*)(reg - SZ_INT);
   if(!a.code->builtin) {
-    register const uint push = *(m_uint*)reg + code->stack_depth;
-    mem += push + sizeof(struct frame_t);
+    register const uint push = *(m_uint*)reg + code->stack_depth + sizeof(struct frame_t);
+    mem += push;
     *(struct frame_t*)(mem - sizeof(struct frame_t)) = (struct frame_t){.code=code,.pc=PC+VAL2,.push=push};
     next = eFuncUsrEnd;
   } else {
