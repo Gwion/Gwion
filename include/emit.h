@@ -44,7 +44,7 @@ ANEW ANN Emitter new_emitter(MemPool);
 ANN void free_emitter(MemPool, Emitter);
 ANN m_bool emit_ast(const Env env, Ast ast);
 ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef);
-ANN m_bool emit_exp_call1(const Emitter, const Func);
+ANN m_bool emit_exp_call1(const Emitter, const Func, const bool is_static);
 ANN2(1) Instr emit_add_instr(const Emitter, const f_instr) __attribute__((returns_nonnull));
 ANN Code* emit_class_code(const Emitter, const m_str);
 ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
@@ -65,5 +65,12 @@ ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
 ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t, const m_int size, const m_bool emit_var) {
   return !tflag(t, tflag_struct) ? emit_object_addref(emit, size, emit_var) :
                                                 emit_struct_addref(emit, t, size, emit_var);
+}
+
+ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
+  if(e->exp_type != ae_exp_dot)
+    return true;
+  const Exp_Dot *member = &e->d.exp_dot;
+  return GET_FLAG(member->base->type, final) || is_class(emit->gwion, member->base->type) || member->base->exp_type == ae_exp_cast;
 }
 #endif
