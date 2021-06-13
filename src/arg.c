@@ -195,9 +195,9 @@ ANN static void split_line(const m_str line, const Vector v) {
 }
 
 ANN static Vector get_config(const char *name) {
-  char *  line = NULL;
-  size_t  len  = 0;
-  FILE *  f = fopen(name, "r");
+  char * line = NULL;
+  size_t len  = 0;
+  FILE * f    = fopen(name, "r");
   CHECK_OO(f);
   const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
   vector_init(v);

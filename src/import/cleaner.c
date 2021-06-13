@@ -35,11 +35,12 @@ ANN void ck_end(const Gwi gwi) {
 }
 
 typedef void (*cleaner)(MemPool, ImportCK *);
-static cleaner cleaners[] = {NULL, ck_clean_udef, ck_clean_tdef,
+static cleaner cleaners[] = {NULL,          ck_clean_udef, ck_clean_tdef,
                              NULL, //  ck_clean_oper,
                              ck_clean_item, ck_clean_fdef};
 
 ANN void ck_clean(const Gwi gwi) {
-  cleaners[gwi->ck->type](gwi->gwion->mp, gwi->ck);
+  const cleaner clean = cleaners[gwi->ck->type];
+  if (clean) clean(gwi->gwion->mp, gwi->ck);
   memset(gwi->ck, 0, sizeof(ImportCK));
 }

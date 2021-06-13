@@ -18,6 +18,7 @@ struct Compiler {
   FILE *            file;
   Ast               ast;
   struct Vector_    args;
+  VM_Shred          shred;
   enum compile_type type;
 };
 
@@ -134,11 +135,11 @@ ANN static m_uint _compile(struct Gwion_ *gwion, struct Compiler *c) {
   if (compiler_open(c) < 0) return 0;
   if (_check(gwion, c) < 0) return 0;
   if (gwion->emit->info->code) {
-    const VM_Shred shred  = new_vm_shred(gwion->mp, gwion->emit->info->code);
-    shred->info->args.ptr = c->args.ptr;
-    vm_add_shred(gwion->vm, shred);
+    c->shred                 = new_vm_shred(gwion->mp, gwion->emit->info->code);
+    c->shred->info->args.ptr = c->args.ptr;
+    vm_add_shred(gwion->vm, c->shred);
     gwion->emit->info->code = NULL;
-    return shred->tick->xid;
+    return c->shred->tick->xid;
   }
   return GW_OK;
 }
@@ -167,4 +168,25 @@ ANN m_uint compile_file(struct Gwion_ *gwion, const m_str filename,
                         FILE *file) {
   struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file};
   return compile(gwion, &c);
+}
+
+ANN m_uint compile_filename_xid(struct Gwion_ *gwion, const m_str filename,
+                                const m_uint xid) {
+  struct Compiler c = {.base = filename, .type = COMPILE_NAME};
+  if (!compile(gwion, &c)) return 0;
+  return c.shred->tick->xid = xid;
+}
+
+ANN m_uint compile_string_xid(struct Gwion_ *gwion, const m_str filename,
+                              const m_str data, const m_uint xid) {
+  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data};
+  if (!compile(gwion, &c)) return 0;
+  return c.shred->tick->xid = xid;
+}
+
+ANN m_uint compile_file_xid(struct Gwion_ *gwion, const m_str filename,
+                            FILE *file, const m_uint xid) {
+  struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file};
+  if (!compile(gwion, &c)) return 0;
+  return c.shred->tick->xid = xid;
 }

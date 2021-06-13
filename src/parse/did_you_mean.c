@@ -39,9 +39,7 @@ ANN static void ressembles(const Nspc nspc, const char *name,
         *done = true;
         gw_err("{-/}did you mean{0}:\n");
       }
-      if (!vflag(value, vflag_builtin))
-        gwerr_secondary("declared here", value->from->filename,
-                        value->from->loc);
+      if (!vflag(value, vflag_builtin)) defined_here(value);
     }
   }
 }

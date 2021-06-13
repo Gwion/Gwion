@@ -358,11 +358,10 @@ static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
     gwerr_basic(_("invalid operator decay"),
                 _("Decayed operators take two arguments"), NULL, env->name, loc,
                 0);
-    if (fdef) gwerr_secondary("declared here", env->name, fdef->base->pos);
+    if (fdef) defined_here(fdef->base->func->value_ref);
     env->context->error = true;
   }
 }
-
 static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {
   m_uint narg = 0;
   while (arg) {

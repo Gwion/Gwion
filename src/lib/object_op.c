@@ -194,7 +194,7 @@ OP_CHECK(opck_object_dot) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
                   exp_self(member)->pos, 0);
       env_error_footer(env);
-      gwerr_secondary("declared here", value->from->filename, value->from->loc);
+      defined_here(value);
       env->context->error = true;
     } else if (GET_FLAG(value, protect))
       exp_setprot(exp_self(member), 1);
