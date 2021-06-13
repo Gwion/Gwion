@@ -35,7 +35,7 @@ ANN void ck_end(const Gwi gwi) {
 }
 
 typedef void (*cleaner)(MemPool, ImportCK *);
-static cleaner cleaners[] = {ck_clean_edef, ck_clean_udef, ck_clean_tdef,
+static cleaner cleaners[] = {NULL, ck_clean_udef, ck_clean_tdef,
                              NULL, //  ck_clean_oper,
                              ck_clean_item, ck_clean_fdef};
 

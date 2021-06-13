@@ -93,15 +93,3 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   ck_end(gwi);
   return t;
 }
-
-ANN void ck_clean_edef(MemPool mp, ImportCK *ck) {
-  /*
-    if(ck->tmpl)
-      free_id_list(mp, ck->tmpl);
-    if(ck->v.ptr) {
-      for(m_uint i = 0; i < vector_size(&ck->v); ++i)
-        mp_free2(mp, SZ_INT, (m_uint*)vector_at(&ck->v, i));
-      vector_release(&ck->v);
-    }
-  */
-}
