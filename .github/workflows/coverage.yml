@@ -55,7 +55,7 @@ jobs:
         COV_TXT=$(gcovr -s --html-details index.html --html-title "Gwion coverage report" --filter '.*\.c$' src | grep lines | cut -d" " -f2)
         COV_NUM=${COV_TXT: : -1}
         echo $COV_NUM > gwion-coverage-report/coverage_num.txt
-        sed -i 's/<html>/<script type="text\/javascript" src="..\/focus.js"><\/script><html>/' index.src_*.html
+        #sed -i 's/<html>/<script type="text\/javascript" src="..\/focus.js"><\/script><html>/' index.src_*.html
         if [ "${{ github.event_name }}" == "push" ]
         then
           ref="${{ github.ref }}"
