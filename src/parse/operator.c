@@ -219,7 +219,7 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator* mo) {
   if(mo->func) {
     const Instr push = emit_add_instr(emit, mo->func->code ? RegPushImm : SetFunc);
     push->m_val = ((m_uint)mo->func->code ?:(m_uint)mo->func);
-    CHECK_BB(emit_exp_call1(emit, mo->func));
+    CHECK_BB(emit_exp_call1(emit, mo->func, true));
     if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@conditional"))
       emit_add_instr(emit, BranchEqInt);
     else if(mo->func->def->base->xid == insert_symbol(emit->gwion->st, "@unconditional"))

@@ -157,7 +157,7 @@ ANN void gwion_end(const Gwion gwion) {
 }
 
 ANN void env_error_footer(const Env env) {
-  if(env->class_def)
+  if(env->class_def && tflag(env->class_def, tflag_cdef))
     gwerr_secondary("in class", env->name, env->class_def->info->cdef->pos);
   if(env->func && env->func->def)
     gwerr_secondary("in function", env->name, env->func->def->base->pos);

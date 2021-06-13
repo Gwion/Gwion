@@ -152,12 +152,13 @@ ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_ui
   const Instr set_code = regseti(emit, (m_uint)type->nspc->dtor);
   set_code->m_val2 = SZ_INT;
   const m_uint code_offset = emit_code_offset(emit);
-  const Instr regset = regseti(emit, code_offset);
+  const Instr regset = regseti(emit, code_offset /*+ SZ_INT*/ /*+ sizeof(frame_t)*/);
   regset->m_val2 = SZ_INT *2;
   regpush(emit, SZ_INT *2);
   const Instr prelude = emit_add_instr(emit, SetCode);
-  prelude->m_val2 = 2;
   prelude->m_val = -SZ_INT*4;
+  prelude->udata.one = 2;
+//  prelude->udata.two = emit_code_offset(emit) + SZ_INT + sizeof(frame_t);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = code_offset;
   emit->code->frame->curr_offset -= SZ_INT;
@@ -385,12 +386,13 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
     instr->m_val = (m_uint)t;
   }
   const m_uint offset = emit_code_offset(emit);
-  const Instr regset = regseti(emit, offset);
+  const Instr regset = regseti(emit, offset /*+ SZ_INT */ /*+ sizeof(frame_t)*/);
   regset->m_val2 = SZ_INT *2;
   regpush(emit, SZ_INT*2);
   const Instr prelude = emit_add_instr(emit, SetCode);
-  prelude->m_val2 = 2;
   prelude->m_val = -SZ_INT * 2;
+  prelude->udata.one = 2;
+//  prelude->udata.two = emit_code_offset(emit) + SZ_INT + sizeof(frame_t);
   emit_add_instr(emit, Reg2Mem);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = offset;
@@ -1079,7 +1081,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call* exp_call) {
   else
     CHECK_BB(emit_func_args(emit, exp_call));
   if(isa(t, emit->gwion->type[et_function]) > 0)
-    CHECK_BB(emit_exp_call1(emit, t->info->func));
+    CHECK_BB(emit_exp_call1(emit, t->info->func, is_static_call(emit, exp_call->func)));
   else {
     struct Op_Import opi = { .op=insert_symbol("@ctor"), .rhs=t,
       .data=(uintptr_t)exp_call, .pos=exp_self(exp_call)->pos };
@@ -1246,21 +1248,21 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
   gtmpl->m_val2 = strlen(c);
 }
 
-ANN static Instr get_prelude(const Emitter emit, const Func f) {
+ANN static Instr get_prelude(const Emitter emit, const Func f, const bool is_static) {
   const Type t = actual_type(emit->gwion, f->value_ref->type);
   const bool fp = is_fptr(emit->gwion, t);
   if(is_fptr(emit->gwion, t)) {
     if(f->def->base->tmpl)
       tmpl_prelude(emit, f);
   }
-  if(fp || f != emit->env->func || f->value_ref->from->owner_class || strstr(emit->code->name, "ork~")) {
+  if(fp || f != emit->env->func || !is_static || strstr(emit->code->name, "ork~")) {
     const Instr instr = emit_add_instr(emit, SetCode);
-    instr->m_val2 = 1;
+    instr->udata.one = 1;
     return instr;
   }
   const Instr instr = emit_add_instr(emit, Recurs);
-  instr->m_val2 = 1;
   instr->m_val = SZ_INT;
+  instr->udata.one = 1;
   return instr;
 }
 
@@ -1315,9 +1317,10 @@ ANN static m_bool me_arg(MemoizeEmitter *me) {
   return GW_OK;
 }
 
-ANN static Instr emit_call(const Emitter emit, const Func f) {
-  const Instr prelude = get_prelude(emit, f);
+ANN static Instr emit_call(const Emitter emit, const Func f, const bool is_static) {
+  const Instr prelude = get_prelude(emit, f, is_static);
   prelude->m_val += -f->def->stack_depth - SZ_INT;
+  prelude->udata.two = emit_code_offset(emit) + f->def->stack_depth + sizeof(frame_t);
   const m_uint member = vflag(f->value_ref, vflag_member) ? SZ_INT : 0;
   if(member) {
     const Instr instr = emit_add_instr(emit, Reg2Mem);
@@ -1334,7 +1337,7 @@ ANN static Instr emit_call(const Emitter emit, const Func f) {
   return emit_add_instr(emit, Overflow);
 }
 
-ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
+ANN m_bool emit_exp_call1(const Emitter emit, const Func f, const bool is_static) {
   const m_uint this_offset = emit->this_offset;
   const m_uint vararg_offset = emit->vararg_offset;
   emit->this_offset = 0;
@@ -1399,8 +1402,9 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f) {
     }
   }
   const m_uint offset = emit_code_offset(emit);
-  regseti(emit, offset);
-  const Instr instr = emit_call(emit, f);
+  if(f != emit->env->func || !is_static)
+    regseti(emit, offset /*+ f->def->stack_depth + */ /*+ sizeof(frame_t)*/);
+  const Instr instr = emit_call(emit, f, is_static);
   instr->m_val = f->def->base->ret_type->size;
   instr->m_val2 = offset;
   emit->this_offset = this_offset;
@@ -1474,7 +1478,7 @@ ANN static m_bool spork_prepare_code(const Emitter emit, const struct Sporker *s
 ANN static m_bool spork_prepare_func(const Emitter emit, const struct Sporker *sp) {
   push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX, sp->exp->pos);
   const Type t = actual_type(emit->gwion, sp->exp->d.exp_call.func->type);
-  return emit_exp_call1(emit, t->info->func);
+  return emit_exp_call1(emit, t->info->func, false);
 }
 
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {

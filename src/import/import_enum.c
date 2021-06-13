@@ -99,6 +99,7 @@ ANN Type gwi_enum_end(const Gwi gwi) {
 }
 
 ANN void ck_clean_edef(MemPool mp, ImportCK *ck) {
+/*
   if(ck->tmpl)
     free_id_list(mp, ck->tmpl);
   if(ck->v.ptr) {
@@ -106,5 +107,6 @@ ANN void ck_clean_edef(MemPool mp, ImportCK *ck) {
       mp_free2(mp, SZ_INT, (m_uint*)vector_at(&ck->v, i));
     vector_release(&ck->v);
   }
+*/
 }
 

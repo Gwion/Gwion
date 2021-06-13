@@ -314,6 +314,8 @@ ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
     CHECK_BB(ac_num(gwion, ac, num));
     CHECK_BB(ac_exp(gwion, ac));
     const Exp exp = new_prim_int(gwion->mp, num, ac->pos);
+    // set type: otherwise could fail at emit time
+    exp->type = gwion->type[et_int];
     ac_add_exp(ac, exp);
   } else
     CHECK_BB(ac_noexp(gwion, ac));

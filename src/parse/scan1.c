@@ -83,7 +83,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl* decl) {
     if(var->array) {
       if(var->array->exp)
         CHECK_BB(scan1_exp(env, var->array->exp));
-      t = array_type(env, decl->type, var->array->depth);
+      CHECK_OB((t = array_type(env, decl->type, var->array->depth)));
     }
     if(GET_FLAG(array_base(t), abstract) && ((var->array && var->array->exp)
                                                   || (decl->td->array && decl->td->array->exp)))

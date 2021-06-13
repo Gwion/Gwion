@@ -37,6 +37,7 @@ ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
 
 ANN void gwi_set_loc(const Gwi gwi, const m_str file, const uint line) {
   gwi->loc.first.line = gwi->loc.last.line = line;
+  gwi->loc.first.column = 1; gwi->loc.last.column = 2;
   gwi->gwion->env->name = file;
 }
 

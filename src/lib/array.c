@@ -414,7 +414,7 @@ ANN static inline void _init(const VM_Shred shred,
   frame->code = shred->code;
   frame->offset = offset;
   frame->index = 0;
-  *(m_uint*)REG(SZ_INT) = offset;
+  *(m_uint*)REG(SZ_INT) = offset;// + sizeof(frame_t);// + shred->code->stack_depth;
   shred->code = (VM_Code)code;
   shred->pc = 0;
   shredule(shred->tick->shreduler, shred, 0);
@@ -422,7 +422,7 @@ ANN static inline void _init(const VM_Shred shred,
 
 ANN static inline void _next(const VM_Shred shred, const m_uint offset) {
   shred->pc = 0;
-  *(m_uint*)REG(0) = offset;
+  *(m_uint*)REG(0) = offset;// + sizeof(frame_t);
   POP_REG(shred, SZ_INT);
 }
 
@@ -711,7 +711,9 @@ ANN static void prepare_run(m_bit *const byte, const f_instr ini, const f_instr 
   *(unsigned*)byte = eOP_MAX;
   *(f_instr*)(byte + SZ_INT*2) = ini;
   *(unsigned*)(byte+ BYTECODE_SZ) = eSetCode;
-  *(m_uint*)(byte + BYTECODE_SZ + SZ_INT*2) = 3;
+//  *(m_uint*)(byte + BYTECODE_SZ + SZ_INT*2) = 3;
+  *(uint16_t*)(byte + BYTECODE_SZ + SZ_INT*2) = 3;
+//  *(uint16_t*)(byte + BYTECODE_SZ + SZ_INT*2 + sizeof(uint16_t)) = sizeof(frame_t);
   *(unsigned*)(byte+ BYTECODE_SZ*2) = eOverflow;
   *(unsigned*)(byte+ BYTECODE_SZ*3) = eOP_MAX;
   *(f_instr*)(byte + BYTECODE_SZ*3 + SZ_INT*2) = end;
