@@ -20,17 +20,16 @@ ANN static Type option(const Env env, Type_Decl *td) {
   return t;
 }
 
-ANN static Type _ref(const Env env, Type_Decl *td, const uint8_t n) {
+ANN static Type _ref(const Env env, Type_Decl *td) {
   struct Type_List_ tl = {.td = td};
   Type_Decl tmp = {.xid = insert_symbol("Ref"), .types = &tl, .pos = td->pos};
-  return !(n - 1) ? known_type(env, &tmp) : _ref(env, &tmp, n - 1);
+  return known_type(env, &tmp);
 }
 
 ANN static inline Type ref(const Env env, Type_Decl *td) {
-  const uint8_t ref = td->ref;
-  td->ref           = 0;
-  const Type t      = _ref(env, td, ref);
-  td->ref           = ref;
+  td->ref      = false;
+  const Type t = _ref(env, td);
+  td->ref      = true;
   return t;
 }
 
