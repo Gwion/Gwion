@@ -64,9 +64,9 @@ ANN static inline void emit_gc(const Emitter emit, const m_int offset) {
 }
 
 ANN Instr emit_object_addref(const Emitter emit, const m_int size,
-                             const m_bool emit_var);
+                             const bool emit_var);
 ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
-                             const m_bool emit_var);
+                             const bool emit_var);
 ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t,
                                              const m_int  size,
                                              const m_bool emit_var) {
@@ -81,4 +81,13 @@ ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
          is_class(emit->gwion, member->base->type) ||
          member->base->exp_type == ae_exp_cast;
 }
+
+ANN Instr emit_kind(Emitter, const m_uint size, const bool addr, const f_instr func[]);
+ANN Instr emit_regpushimm(Emitter, const m_uint, const bool);
+ANN Instr emit_regpushmem(Emitter, const m_uint, const bool);
+ANN Instr emit_regpushbase(Emitter, const m_uint, const bool);
+ANN Instr emit_dotstatic(Emitter, const m_uint, const bool);
+ANN Instr emit_dotmember(Emitter, const m_uint, const bool);
+ANN Instr emit_structmember(Emitter, const m_uint, const bool);
+ANN Instr emit_unionmember(Emitter, const m_uint, const bool);
 #endif

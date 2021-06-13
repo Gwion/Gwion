@@ -73,37 +73,25 @@ static OP_CHECK(opck_struct_scan) {
   return opck_object_scan(env, ts);
 }
 
-static const f_instr dotstatic[]    = {DotStatic, DotStatic2, DotStatic3,
-                                    RegPushImm};
-static const f_instr structmember[] = {StructMember, StructMemberFloat,
-                                       StructMemberOther, StructMemberAddr};
-
-ANN Instr       emit_kind(Emitter emit, const m_uint size, const uint addr,
-                          const f_instr func[]);
 ANN static void emit_dot_static_data(const Emitter emit, const Value v,
-                                     const uint emit_var) {
+                                     const bool emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_kind(emit, size, emit_var, dotstatic);
+  const Instr  instr = emit_dotstatic(emit, size, emit_addr);
   instr->m_val  = (m_uint)(v->from->owner->info->class_data + v->from->offset);
   instr->m_val2 = size;
 }
 
-static const f_instr regpushimm[] = {RegPushImm, RegPushImm2, RegPushImm3,
-                                     RegPushImm4};
 ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
-                                            const uint emit_addr) {
+                                            const bool emit_addr) {
   //  if(v->d.ptr && vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
   if (vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
     const m_uint size  = v->type->size;
-    const Instr  instr = emit_kind(emit, size, emit_addr, regpushimm);
+    const Instr  instr = emit_regpushimm(emit, size, emit_addr);
     instr->m_val       = (m_uint)v->d.ptr;
     instr->m_val2      = size;
   } else
     emit_dot_static_data(emit, v, emit_addr);
 }
-static const f_instr dotmember[] = {DotMember, DotMember2, DotMember3,
-                                    DotMember4};
-
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
   if (f->def->base->tmpl)
@@ -138,14 +126,14 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
 ANN static inline void emit_member(const Emitter emit, const Value v,
                                    const uint emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_kind(emit, size, emit_addr, dotmember);
+  const Instr  instr = emit_dotmember(emit, size, emit_addr);
   instr->m_val       = v->from->offset;
   instr->m_val2      = size;
 }
 
 ANN static inline void emit_struct_data(const Emitter emit, const Value v,
-                                        const uint emit_addr) {
-  const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
+                                        const bool emit_addr) {
+  const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   instr->m_val      = v->from->offset;
   if (!emit_addr) {
     const Instr instr = emit_add_instr(emit, RegMove);

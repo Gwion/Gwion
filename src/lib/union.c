@@ -28,11 +28,6 @@ static OP_EMIT(opem_none) {
   return GW_OK;
 }
 
-static const f_instr unionmember[] = {UnionMember, UnionMember2, UnionMember3,
-                                      UnionMember4};
-ANN Instr            emit_kind(Emitter emit, const m_uint size, const uint addr,
-                               const f_instr func[]);
-
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Map      map    = &member->base->type->nspc->info->value->map;
@@ -52,10 +47,9 @@ static OP_EMIT(opem_union_dot) {
     if (VKEY(map, i) == (m_uint)member->xid) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
-      const Instr instr =
-          emit_kind(emit, v->type->size, emit_addr, unionmember);
-      instr->m_val  = i; // + 1;
-      instr->m_val2 = v->type->size;
+      const Instr instr     = emit_unionmember(emit, v->type->size, emit_addr);
+      instr->m_val          = i; // + 1;
+      instr->m_val2         = v->type->size;
       return GW_OK;
     }
   }

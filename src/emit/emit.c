@@ -99,20 +99,10 @@ ANN static inline void frame_push(Frame *frame) {
   vector_add(&frame->defer, (vtype)NULL);
 }
 
-static const f_instr regpushimm[]   = {RegPushImm, RegPushImm2, RegPushImm3,
-                                     RegPushImm4};
-static const f_instr regpushmem[]   = {RegPushMem, RegPushMem2, RegPushMem3,
-                                     RegPushMem4};
-static const f_instr regpushbase[]  = {RegPushBase, RegPushBase2, RegPushBase3,
-                                      RegPushBase4};
-static const f_instr dotstatic[]    = {DotStatic, DotStatic2, DotStatic3,
-                                    RegPushImm};
-static const f_instr allocmember[]  = {RegPushImm, RegPushImm2, RegPushImm3,
+static const f_instr allocmember[] = {RegPushImm, RegPushImm2, RegPushImm3,
                                       AllocMember4};
-static const f_instr allocword[]    = {AllocWord, AllocWord2, AllocWord3,
+static const f_instr allocword[]   = {AllocWord, AllocWord2, AllocWord3,
                                     RegPushMem4};
-static const f_instr structmember[] = {StructMember, StructMemberFloat,
-                                       StructMemberOther, StructMemberAddr};
 
 #define regmove(name, op)                                                      \
   ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) {     \
@@ -120,27 +110,15 @@ static const f_instr structmember[] = {StructMember, StructMemberFloat,
     instr->m_val            = op sz;                                           \
     return instr;                                                              \
   }
-regmove(pop, -) regmove(push, )
+regmove(pop, -) regmove(push, );
+
 #define regxxx(name, instr)                                                    \
   ANN static inline Instr reg##name(const Emitter emit, const m_uint sz) {     \
     const Instr instr = emit_add_instr(emit, Reg##instr);                      \
     instr->m_val      = sz;                                                    \
     return instr;                                                              \
   }
-    regxxx(pushi, PushImm) regxxx(seti, SetImm)
-
-        static inline enum Kind kindof(const m_uint size, const uint emit_var) {
-  if (emit_var) return KIND_ADDR;
-  return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
-}
-
-ANN /*static */ Instr emit_kind(Emitter emit, const m_uint size,
-                                const uint addr, const f_instr func[]) {
-  const enum Kind kind  = kindof(size, addr);
-  const Instr     instr = emit_add_instr(emit, func[kind]);
-  instr->m_val2         = size;
-  return instr;
-}
+regxxx(pushi, PushImm) regxxx(seti, SetImm);
 
 ANN static m_bool      emit_class_def(const Emitter, const Class_Def);
 ANN /*static */ m_bool emit_cdef(const Emitter, const Type);
@@ -464,14 +442,12 @@ m_bool emit_instantiate_decl(const Emitter emit, const Type type,
 ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
   const Value v = prim_self(data)->value;
   if (vflag(v, vflag_direct)) {
-    const m_uint size = v->type->size;
-    const Instr  instr =
-        emit_kind(emit, size, exp_getvar(prim_exp(data)), dotstatic);
-    instr->m_val = (m_uint)&v->d.ptr;
+    const m_uint size  = v->type->size;
+    const Instr  instr = emit_dotstatic(emit, size, exp_getvar(prim_exp(data)));
+    instr->m_val       = (m_uint)&v->d.ptr;
   } else {
     const m_uint size = v->type->size;
-    const Instr  instr =
-        emit_kind(emit, size, exp_getvar(prim_exp(data)), regpushimm);
+    const Instr instr = emit_regpushimm(emit, size, exp_getvar(prim_exp(data)));
     if (v->type->size == SZ_FLOAT)
       instr->f = v->d.fnum;
     else
@@ -503,8 +479,9 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
   const m_uint size = v->type->size;
   const Instr  instr =
-      emit_kind(emit, size, exp_getvar(prim_exp(data)),
-                !vflag(v, vflag_fglobal) ? regpushmem : regpushbase);
+      !vflag(v, vflag_fglobal)
+           ? emit_regpushmem(emit, size, exp_getvar(prim_exp(data)))
+           : emit_regpushbase(emit, size, exp_getvar(prim_exp(data)));
   instr->m_val = v->from->offset;
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
       isa(v->type, emit->gwion->type[et_object]) > 0) {
@@ -540,7 +517,7 @@ ANN static inline m_uint exp_totalsize(Exp e) {
 }
 
 ANN Instr emit_object_addref(const Emitter emit, const m_int size,
-                             const m_bool emit_var) {
+                             const bool emit_var) {
   const f_instr exec  = !emit_var ? RegAddRef : RegAddRefAddr;
   const Instr   instr = emit_add_instr(emit, exec);
   instr->m_val        = size;
@@ -548,7 +525,7 @@ ANN Instr emit_object_addref(const Emitter emit, const m_int size,
 }
 
 ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
-                             const m_bool emit_var) {
+                             const bool emit_var) {
   const Instr instr =
       emit_add_instr(emit, !emit_var ? StructRegAddRef : StructRegAddRefAddr);
   instr->m_val  = (m_uint)t;
@@ -729,7 +706,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
 
 ANN static void interp_multi(const Emitter emit, const Exp e) {
   Var_Decl_List list     = e->d.exp_decl.list;
-  const int     emit_var = exp_getvar(e);
+  const bool    emit_var = exp_getvar(e);
   m_uint        offset   = 0;
   while ((list = list->next))
     offset += !emit_var ? list->self->value->type->size : SZ_INT;
@@ -790,9 +767,9 @@ ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
 }
 
 ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v,
-                                       const uint emit_var) {
+                                       const bool emit_var) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_kind(emit, size, emit_var, dotstatic);
+  const Instr  instr = emit_dotstatic(emit, size, emit_var);
   instr->m_val  = (m_uint)(v->from->owner->info->class_data + v->from->offset);
   instr->m_val2 = size;
   return GW_OK;
@@ -823,7 +800,7 @@ ANN static void decl_expand(const Emitter emit, const Type t) {
 }
 
 ANN static void emit_struct_decl_finish(const Emitter emit, const Type t,
-                                        const uint emit_addr) {
+                                        const bool emit_addr) {
   emit->code->frame->curr_offset += t->size + SZ_INT;
   emit_ext_ctor(emit, t);
   if (!emit_addr) decl_expand(emit, t);
@@ -832,8 +809,8 @@ ANN static void emit_struct_decl_finish(const Emitter emit, const Type t,
 
 ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
                                        const Var_Decl var_decl,
-                                       const uint     is_ref,
-                                       const uint     emit_addr) {
+                                       const bool     is_ref,
+                                       const bool     emit_addr) {
   const Value v = var_decl->value;
   if (isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref)
     CHECK_BB(decl_static(emit, decl, var_decl, 0));
@@ -843,9 +820,9 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
 }
 
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
-                                  const m_bool emit_addr) {
+                                  const bool emit_addr) {
   emit_add_instr(emit, RegPushMem);
-  const Instr instr = emit_kind(emit, v->type->size, emit_addr, structmember);
+  const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   if (!emit_addr) {
     const m_int sz = v->type->size - SZ_INT;
     if (sz) regpush(emit, v->type->size - SZ_INT);
@@ -858,12 +835,12 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
                                            const Var_Decl  var_decl,
                                            const uint      is_ref,
                                            const uint      emit_var) {
-  const Value     v         = var_decl->value;
-  const Type      type      = v->type;
-  const Array_Sub array     = var_decl->array;
-  const m_bool    is_array  = array && array->exp;
-  const m_bool    is_obj    = isa(type, emit->gwion->type[et_object]) > 0;
-  const uint      emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
+  const Value     v        = var_decl->value;
+  const Type      type     = v->type;
+  const Array_Sub array    = var_decl->array;
+  const bool      is_array = array && array->exp;
+  const bool      is_obj   = isa(type, emit->gwion->type[et_object]) > 0;
+  const bool emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : true;
   if (is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref));
   f_instr *exec = (f_instr *)allocmember;
@@ -879,7 +856,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
   const Instr instr =
       !(safe_tflag(emit->env->class_def, tflag_struct) &&
         !emit->env->scope->depth)
-          ? emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1,
+          ? emit_kind(emit, v->type->size, !struct_ctor(v) ? emit_addr : true,
                       exec)
           : emit_struct_decl(emit, v, !struct_ctor(v) ? emit_addr : 1);
   instr->m_val = v->from->offset;
@@ -898,17 +875,17 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
 
 ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
                                        const Var_Decl var_decl,
-                                       const uint is_ref, const uint emit_var) {
-  const Value     v         = var_decl->value;
-  const Type      type      = v->type;
-  const Array_Sub array     = var_decl->array;
-  const m_bool    is_array  = array && array->exp;
-  const m_bool    is_obj    = isa(type, emit->gwion->type[et_object]) > 0;
-  const uint      emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : 1;
+                                       const uint is_ref, const bool emit_var) {
+  const Value     v        = var_decl->value;
+  const Type      type     = v->type;
+  const Array_Sub array    = var_decl->array;
+  const bool      is_array = array && array->exp;
+  const bool      is_obj   = isa(type, emit->gwion->type[et_object]) > 0;
+  const bool emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : true;
   if (is_obj && (is_array || !is_ref))
     CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref));
-  const Instr instr = emit_kind(emit, v->type->size,
-                                !struct_ctor(v) ? emit_addr : 1, dotstatic);
+  const Instr instr =
+      emit_dotstatic(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1);
   if (type->size > SZ_INT) //{
     v->d.ptr = mp_calloc2(emit->gwion->mp, v->type->size);
   instr->m_val = (m_uint)&v->d.ptr;
@@ -1176,7 +1153,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   return GW_OK;
 }
 
-ANN static m_uint get_decl_size(Var_Decl_List a, uint emit_addr) {
+ANN static m_uint get_decl_size(Var_Decl_List a, bool emit_addr) {
   m_uint size = 0;
   do // if(GET_FLAG(a->self->value, used))
     size += !emit_addr ? a->self->value->type->size : SZ_INT;
@@ -1185,7 +1162,7 @@ ANN static m_uint get_decl_size(Var_Decl_List a, uint emit_addr) {
 }
 
 ANN static m_uint pop_exp_size(Exp e) {
-  const uint emit_addr = exp_getvar(e);
+  const bool emit_addr = exp_getvar(e);
   m_uint     size      = 0;
   do { // account for emit_var ?
     size += (e->exp_type == ae_exp_decl
@@ -1368,7 +1345,7 @@ typedef struct {
 } MemoizeEmitter;
 
 ANN static Instr me_push(const MemoizeEmitter *me, const m_uint sz) {
-  const Instr instr = emit_kind(me->emit, sz, 0, regpushmem);
+  const Instr instr = emit_regpushmem(me->emit, sz, false);
   instr->m_val      = me->arg_offset;
   return instr;
 }
@@ -1556,12 +1533,12 @@ static void push_spork_code(const Emitter emit, const m_str prefix,
 }
 
 struct Sporker {
-  const Stmt   code;
-  const Exp    exp;
-  VM_Code      vm_code;
-  const Type   type;
-  const m_bool emit_var;
-  const m_bool is_spork;
+  const Stmt code;
+  const Exp  exp;
+  VM_Code    vm_code;
+  const Type type;
+  const bool emit_var;
+  const bool is_spork;
 };
 
 ANN static m_bool spork_prepare_code(const Emitter         emit,
@@ -2306,10 +2283,6 @@ ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
   return GW_OK;
 }
 
-// should be in src/lib/union.c
-static const f_instr unionmember[] = {UnionMember, UnionMember2, UnionMember3,
-                                      UnionMember4};
-
 #define CASE_PASS (Symbol)1
 ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
                           const Vector vec, const uint n) {
@@ -2343,7 +2316,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
             check->m_val2     = i;
             vector_add(vec, (m_uint)check);
             const Instr instr =
-                emit_kind(emit, v->type->size, 0 /*emit_addr*/, unionmember);
+                emit_unionmember(emit, v->type->size, false /*emit_addr*/);
             instr->m_val = i;
             regpop(emit, v->type->size);
             case_op(emit, e->d.exp_call.args, e->d.exp_call.args, vec, i + 1);
@@ -2514,7 +2487,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
 ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def fdef) {
   const m_uint size = fdef->base->ret_type->size;
   if (size) {
-    const Instr instr = emit_kind(emit, size, 0, regpushimm);
+    const Instr instr = emit_regpushimm(emit, size, false);
     instr->m_val2     = size;
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
@@ -2597,7 +2570,7 @@ ANN static void me_bottom(MemoizeEmitter *me, const m_uint pc) {
 
 ANN static void me_ret(MemoizeEmitter *me) {
   const Instr instr =
-      emit_kind(me->emit, me->fdef->base->ret_type->size, 0, regpushmem);
+      emit_regpushmem(me->emit, me->fdef->base->ret_type->size, false);
   instr->m_val = (me->offset + SZ_INT) * 2;
   emit_add_instr(me->emit, FuncReturn);
 }
