@@ -13,3 +13,4 @@ mkdocs.yml
 *.gcda
 *.gcno
 *.swp
+.vscode
