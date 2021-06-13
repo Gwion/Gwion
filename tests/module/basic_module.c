@@ -6,14 +6,12 @@
 
 GWMODINI(basic_module) {
   puts("ini module");
-  if(args) {
+  if (args) {
     puts("have arguments");
-    for(vtype i = 0; i < vector_size(args); ++i)
+    for (vtype i = 0; i < vector_size(args); ++i)
       puts((m_str)vector_at(args, i));
   }
   return NULL;
 }
 
-GWMODEND(basic_module) {
-  puts("end module");
-}
+GWMODEND(basic_module) { puts("end module"); }

@@ -1,11 +1,11 @@
 #ifndef __TUPLE
 #define __TUPLE
-typedef struct TupleForm_* TupleForm;
+typedef struct TupleForm_ *TupleForm;
 struct TupleForm_ {
   struct Vector_ contains;
   struct Vector_ types;
   struct Vector_ offset;
-  m_uint start;
+  m_uint         start;
 };
 
 ANN Type tuple_type(const Env, const Vector, const loc_t);

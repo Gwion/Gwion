@@ -8,17 +8,18 @@
 #include "escape.h"
 
 static ANEW ANN VM_Code emit_code(const Emitter emit) {
-  Code* const c = emit->code;
-  const VM_Code code = new_vmcode(emit->gwion->mp, &c->instr, c->stack_depth, 0, c->name);
+  Code *const   c = emit->code;
+  const VM_Code code =
+      new_vmcode(emit->gwion->mp, &c->instr, c->stack_depth, 0, c->name);
   return code;
 }
 
 ANEW Emitter new_emitter(MemPool p) {
   Emitter emit = (Emitter)mp_calloc(p, Emitter);
   vector_init(&emit->stack);
-  emit->info = (struct EmitterInfo_*)mp_calloc(p, EmitterInfo);
+  emit->info = (struct EmitterInfo_ *)mp_calloc(p, EmitterInfo);
   vector_init(&emit->info->pure);
-  emit->info->escape = escape_table(p);
+  emit->info->escape    = escape_table(p);
   emit->info->emit_code = emit_code;
   return emit;
 }
@@ -31,13 +32,13 @@ ANN void free_emitter(MemPool p, Emitter a) {
   mp_free(p, Emitter, a);
 }
 
-__attribute__((returns_nonnull))
-ANN2(1) Instr emit_add_instr(const Emitter emit, const f_instr f) {
+__attribute__((returns_nonnull)) ANN2(1) Instr
+    emit_add_instr(const Emitter emit, const f_instr f) {
   const Instr instr = mp_calloc(emit->gwion->mp, Instr);
-  if((m_uint)f < 255)
+  if ((m_uint)f < 255)
     instr->opcode = (m_uint)f;
   else {
-    instr->opcode = eOP_MAX;
+    instr->opcode  = eOP_MAX;
     instr->execute = f;
   }
   vector_add(&emit->code->instr, (vtype)instr);

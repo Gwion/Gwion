@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "import.h"
 
-static MFUN(test_mfun){}
+static MFUN(test_mfun) {}
 GWION_IMPORT(invalid_arg_test) {
   GWI_OB(gwi_class_ini(gwi, "InvalidArg", NULL))
   GWI_BB(gwi_func_ini(gwi, "int[]", "func"))

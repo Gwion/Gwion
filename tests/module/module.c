@@ -12,6 +12,4 @@ GWMODINI(dummy_module) {
   puts(__func__);
   return NULL;
 }
-GWMODEND(dummy_module) {
-  puts(__func__);
-}
+GWMODEND(dummy_module) { puts(__func__); }

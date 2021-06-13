@@ -11,7 +11,7 @@
 
 SFUN(coverage_int) {
   puts("test");
-  *(m_int*)RETURN = *(m_int*)MEM(0);
+  *(m_int *)RETURN = *(m_int *)MEM(0);
 }
 
 GWION_IMPORT(global_func_test) {

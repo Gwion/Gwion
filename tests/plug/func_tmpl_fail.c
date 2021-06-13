@@ -9,9 +9,7 @@
 #include "import.h"
 #include "instr.h"
 
-static SFUN(func_tmpl_xfun) {
-  
-}
+static SFUN(func_tmpl_xfun) {}
 
 GWION_IMPORT(func_tmpl) {
   GWI_BB(gwi_func_ini(gwi, "voit", "test:[A]"))

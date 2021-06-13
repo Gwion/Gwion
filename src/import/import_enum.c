@@ -20,16 +20,15 @@
 //! why is return type m_int ?
 ANN2(1) m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_BB(ck_ini(gwi, ck_edef));
-  if(type)
-    CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
+  if (type) CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
   vector_init(&gwi->ck->v);
   return GW_OK;
 }
 
 // adds the id_list to the enum
 // change that algo?
-ANN static void add2list(struct ImportCK* ck, const ID_List list) {
-  if(!ck->tmpl)
+ANN static void add2list(struct ImportCK *ck, const ID_List list) {
+  if (!ck->tmpl)
     ck->tmpl = list;
   else
     ck->curr->next = list;
@@ -61,11 +60,11 @@ ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
 //! \note [internal]
 ANN static void import_enum_end(const Gwi gwi, const Vector v) {
   ImportCK *ck = gwi->ck;
-  for(m_uint i = 0; i < vector_size(v); i++) {
-    const Value value = (Value)vector_at(v, i);
-    const m_uint addr = vector_at(&ck->v, i);
+  for (m_uint i = 0; i < vector_size(v); i++) {
+    const Value  value = (Value)vector_at(v, i);
+    const m_uint addr  = vector_at(&ck->v, i);
     set_vflag(value, vflag_builtin);
-      value->d.num = addr ?: i;
+    value->d.num = addr ?: i;
   }
   // better clean ?
 }
@@ -75,22 +74,19 @@ ANN static void import_enum_end(const Gwi gwi, const Vector v) {
 //! TODO: check what happens in inside template class
 ANN Type gwi_enum_end(const Gwi gwi) {
   CHECK_BO(ck_ok(gwi, ck_edef));
-  if(!vector_size(&gwi->ck->v))
-    GWI_ERR_O("Enum is empty");
-  const Gwion gwion = gwi->gwion;
-  const Enum_Def edef  = new_enum_def(gwion->mp, gwi->ck->tmpl,
-      gwi->ck->xid, gwi->loc);
-  gwi->ck->tmpl = NULL;
+  if (!vector_size(&gwi->ck->v)) GWI_ERR_O("Enum is empty");
+  const Gwion    gwion = gwi->gwion;
+  const Enum_Def edef =
+      new_enum_def(gwion->mp, gwi->ck->tmpl, gwi->ck->xid, gwi->loc);
+  gwi->ck->tmpl    = NULL;
   const m_bool ret = traverse_enum_def(gwion->env, edef);
-  if(ret > 0)
-    import_enum_end(gwi, &edef->values);
-  if(gwi->gwion->data->cdoc) {
+  if (ret > 0) import_enum_end(gwi, &edef->values);
+  if (gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);
     lint_enum_def(gwi->lint, edef);
   }
   const Type t = ret > 0 ? edef->t : NULL;
-  if(edef->values.ptr)
-    vector_release(&edef->values);
+  if (edef->values.ptr) vector_release(&edef->values);
   free_enum_def(gwion->mp, edef);
   vector_release(&gwi->ck->v);
   gwi->ck->v.ptr = NULL;
@@ -99,14 +95,13 @@ ANN Type gwi_enum_end(const Gwi gwi) {
 }
 
 ANN void ck_clean_edef(MemPool mp, ImportCK *ck) {
-/*
-  if(ck->tmpl)
-    free_id_list(mp, ck->tmpl);
-  if(ck->v.ptr) {
-    for(m_uint i = 0; i < vector_size(&ck->v); ++i)
-      mp_free2(mp, SZ_INT, (m_uint*)vector_at(&ck->v, i));
-    vector_release(&ck->v);
-  }
-*/
+  /*
+    if(ck->tmpl)
+      free_id_list(mp, ck->tmpl);
+    if(ck->v.ptr) {
+      for(m_uint i = 0; i < vector_size(&ck->v); ++i)
+        mp_free2(mp, SZ_INT, (m_uint*)vector_at(&ck->v, i));
+      vector_release(&ck->v);
+    }
+  */
 }
-

@@ -12,7 +12,7 @@
 
 void gwi_body(const Gwi gwi, const Ast body) {
   const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
-  if(!cdef->body)
+  if (!cdef->body)
     cdef->body = body;
   else
     gwi->body->next = body;
@@ -20,7 +20,7 @@ void gwi_body(const Gwi gwi, const Ast body) {
 }
 
 ANN void gwi_reset(const Gwi gwi) {
-  if(gwi->ck) {
+  if (gwi->ck) {
     ck_clean(gwi);
     mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
     gwi->ck = NULL;
@@ -29,8 +29,8 @@ ANN void gwi_reset(const Gwi gwi) {
 }
 
 ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
-  struct LintState ls = { .builtin=true };
-  Lint linter = { .mp=gwi->gwion->mp, .ls=&ls };
+  struct LintState ls     = {.builtin = true};
+  Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls};
   lint(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->lint = &linter;
   return f(gwi);
@@ -38,15 +38,13 @@ ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
 
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   const m_str name = gwion->env->name;
-//  const Context ctx = gwion->env->context;
-//  gwion->env->context = NULL;
-  OperCK oper = {};
-  struct Gwi_ gwi = { .gwion=gwion, .oper=&oper };
-  const m_bool ret = !gwion->data->cdoc ?
-        f(&gwi) : run_with_doc(&gwi, f);
-  if(ret < 0)
-    gwi_reset(&gwi);
+  //  const Context ctx = gwion->env->context;
+  //  gwion->env->context = NULL;
+  OperCK       oper = {};
+  struct Gwi_  gwi  = {.gwion = gwion, .oper = &oper};
+  const m_bool ret  = !gwion->data->cdoc ? f(&gwi) : run_with_doc(&gwi, f);
+  if (ret < 0) gwi_reset(&gwi);
   gwion->env->name = name;
-//  gwion->env->context = ctx;
+  //  gwion->env->context = ctx;
   return ret;
 }

@@ -9,9 +9,7 @@
 #include "import.h"
 #include "instr.h"
 
-SFUN(coverage_int) {
-  vm_remove(shred->info->vm, *(m_int*)MEM(0));
-}
+SFUN(coverage_int) { vm_remove(shred->info->vm, *(m_int *)MEM(0)); }
 
 GWION_IMPORT(gwion_remove_test) {
   GWI_BB(gwi_func_ini(gwi, "int", "test"))

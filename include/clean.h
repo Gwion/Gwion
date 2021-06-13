@@ -7,7 +7,7 @@ void func_def_cleaner(const Gwion, Func_Def);
 #ifdef __CLEAN_IMPL
 typedef struct {
   m_uint scope;
-  Gwion gwion;
+  Gwion  gwion;
 } Clean;
 
 ANN static void clean_array_sub(Clean *a, Array_Sub b);

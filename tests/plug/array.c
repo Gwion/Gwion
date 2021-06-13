@@ -9,7 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-MFUN(test_mfun){}
+MFUN(test_mfun) {}
 
 GWION_IMPORT(array_test) {
   GWI_OB(gwi_class_ini(gwi, "ArrayTest", NULL))

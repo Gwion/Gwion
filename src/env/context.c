@@ -12,19 +12,19 @@ ANN void free_context(const Context a, Gwion gwion) {
 
 ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
   const Context context = mp_calloc(p, Context);
-  context->name = mstrdup(p, str);
-  context->nspc = new_nspc(p, context->name);
-  context->tree = ast;
-  context->ref = 1;
+  context->name         = mstrdup(p, str);
+  context->nspc         = new_nspc(p, context->name);
+  context->tree         = ast;
+  context->ref          = 1;
   return context;
 }
 
 ANN void load_context(const Context context, const Env env) {
   context_addref((env->context = context));
   vector_add(&env->scope->nspc_stack, (vtype)env->curr);
-  env->name = context->name;
+  env->name             = context->name;
   context->nspc->parent = env->curr;
-  env->curr = context->nspc;
+  env->curr             = context->nspc;
 }
 
 ANN void unload_context(const Context context, const Env env) {

@@ -146,5 +146,10 @@ uninstall: translation-uninstall
 test:
 	@bash scripts/test.sh ${test_dir}
 
+scan:
+	@rm -rf scan_output
+	@scan-build -o ./scan_output make
+	@scan-view ./scan_output/*
+
 include $(wildcard .d/*.d)
 include util/locale.mk

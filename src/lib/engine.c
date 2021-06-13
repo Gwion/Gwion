@@ -18,58 +18,42 @@ static GACK(gack_class) {
   INTERP_PRINTF("class(%s)", type->name)
 }
 
-static GACK(gack_function) {
-  INTERP_PRINTF("%s", t->name)
-}
+static GACK(gack_function) { INTERP_PRINTF("%s", t->name) }
 
-static GACK(gack_gack) {
-  INTERP_PRINTF("%s", *(m_str*)VALUE)
-}
+static GACK(gack_gack) { INTERP_PRINTF("%s", *(m_str *)VALUE) }
 
 static GACK(gack_fptr) {
-  const VM_Code code = *(VM_Code*)VALUE;
-  if(code)
+  const VM_Code code = *(VM_Code *)VALUE;
+  if (code)
     INTERP_PRINTF("%s", code->name)
   else
     INTERP_PRINTF("%s", t->name)
 }
 
-static GACK(gack_void) {
- INTERP_PRINTF("void");
-}
+static GACK(gack_void) { INTERP_PRINTF("void"); }
 
-static GACK(gack_int) {
-  INTERP_PRINTF("%"INT_F, *(m_uint*)VALUE);
-}
+static GACK(gack_int) { INTERP_PRINTF("%" INT_F, *(m_uint *)VALUE); }
 
-static GACK(gack_char) {
-  INTERP_PRINTF("%c", *(char*)VALUE);
-}
+static GACK(gack_char) { INTERP_PRINTF("%c", *(char *)VALUE); }
 
-static GACK(gack_float) {
-  INTERP_PRINTF("%.4f", *(m_float*)VALUE);
-}
+static GACK(gack_float) { INTERP_PRINTF("%.4f", *(m_float *)VALUE); }
 
-static GACK(gack_compound) {
-  INTERP_PRINTF("%p", *(void**)VALUE);
-}
-#define mk_class_instr(op, arg0, arg1, ...)                          \
-static INSTR(instr_class_##op) {                                     \
-  POP_REG(shred, SZ_INT);                                            \
-  const Type l = *(Type*)(shred->reg - SZ_INT);                      \
-  const Type r = *(Type*)(shred->reg);                               \
-  *(m_uint*)(shred->reg - SZ_INT) = isa(arg0, arg1) > 0 __VA_ARGS__; \
-}
-mk_class_instr(ge, l, r)
-mk_class_instr(gt, l, r, && l != r)
-mk_class_instr(le, r, l)
-mk_class_instr(lt, r, l, && l != r)
+static GACK(gack_compound) { INTERP_PRINTF("%p", *(void **)VALUE); }
+#define mk_class_instr(op, arg0, arg1, ...)                                    \
+  static INSTR(instr_class_##op) {                                             \
+    POP_REG(shred, SZ_INT);                                                    \
+    const Type l                     = *(Type *)(shred->reg - SZ_INT);         \
+    const Type r                     = *(Type *)(shred->reg);                  \
+    *(m_uint *)(shred->reg - SZ_INT) = isa(arg0, arg1) > 0 __VA_ARGS__;        \
+  }
+mk_class_instr(ge, l, r) mk_class_instr(gt, l, r, &&l != r)
+    mk_class_instr(le, r, l) mk_class_instr(lt, r, l, &&l != r)
 
-OP_CHECK(opck_object_dot);
+        OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
 
 static OP_CHECK(opck_basic_ctor) {
-  const Exp_Call* call = (Exp_Call*)data;
+  const Exp_Call *call = (Exp_Call *)data;
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"));
 }
 
@@ -79,8 +63,7 @@ static ID_CHECK(idck_predicate) {
 }
 
 static INSTR(PredicateCheck) {
-  if(!*(m_uint*)REG(-SZ_INT))
-    handle(shred, "PredicateFail");
+  if (!*(m_uint *)REG(-SZ_INT)) handle(shred, "PredicateFail");
 }
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
@@ -96,7 +79,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
 
   gwidoc(gwi, "a void type.");
-  const Type t_void  = gwi_mk_type(gwi, "void", 0, NULL);
+  const Type t_void = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
 
@@ -133,11 +116,14 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "internal time for `{/}now{0}{-}`.");
   const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, "time");
   GWI_BB(gwi_add_type(gwi, t_now))
-  struct SpecialId_ spid = { .type=t_now, .exec=RegPushNow, .is_const=1 };
+  struct SpecialId_ spid = {.type = t_now, .exec = RegPushNow, .is_const = 1};
   gwi_specialid(gwi, "now", &spid);
 
   gwidoc(gwi, "internal predicate representation.");
-  struct SpecialId_ predicate = { .type=t_void, .ck=idck_predicate, .exec=PredicateCheck, .is_const=1 };
+  struct SpecialId_ predicate = {.type     = t_void,
+                                 .ck       = idck_predicate,
+                                 .exec     = PredicateCheck,
+                                 .is_const = 1};
   gwi_specialid(gwi, "@predicate", &predicate);
 
   gwidoc(gwi, "internal base of all objects and structures.");
@@ -193,9 +179,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, "==", int_eq))
   GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
   GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
-  GWI_BB(gwi_oper_end(gwi, ">",  instr_class_gt))
+  GWI_BB(gwi_oper_end(gwi, ">", instr_class_gt))
   GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
-  GWI_BB(gwi_oper_end(gwi, "<",  instr_class_lt))
+  GWI_BB(gwi_oper_end(gwi, "<", instr_class_lt))
 
   gwidoc(gwi, "internal constructor operator.");
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))

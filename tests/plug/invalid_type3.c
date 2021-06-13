@@ -10,7 +10,7 @@
 
 GWION_IMPORT(invalid_type3_test) {
   GWI_OB(gwi_class_ini(gwi, "InvalidVarType", NULL))
-  GWI_BB(gwi_item_ini(gwi,".int", "test"))
+  GWI_BB(gwi_item_ini(gwi, ".int", "test"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;

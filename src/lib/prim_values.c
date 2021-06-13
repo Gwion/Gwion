@@ -17,7 +17,7 @@
 #include "gack.h"
 
 GWION_IMPORT(values) {
-  VM* vm = gwi_vm(gwi);
+  VM *          vm = gwi_vm(gwi);
   const m_float sr = vm->bbq->si->sr;
   gwi_item_ini(gwi, "float", "samplerate");
   gwi_item_end(gwi, ae_flag_const, fnum, sr);
@@ -28,13 +28,13 @@ GWION_IMPORT(values) {
   gwi_item_ini(gwi, "dur", "samp");
   gwi_item_end(gwi, ae_flag_const, fnum, 1.0);
   gwi_item_ini(gwi, "dur", "ms");
-  gwi_item_end(gwi, ae_flag_const, fnum, sr/1000.0);
+  gwi_item_end(gwi, ae_flag_const, fnum, sr / 1000.0);
   gwi_item_ini(gwi, "dur", "second");
   gwi_item_end(gwi, ae_flag_const, fnum, sr);
   gwi_item_ini(gwi, "dur", "minute");
-  gwi_item_end(gwi, ae_flag_const, fnum, sr*60.0);
+  gwi_item_end(gwi, ae_flag_const, fnum, sr * 60.0);
   gwi_item_ini(gwi, "dur", "hour");
-  gwi_item_end(gwi, ae_flag_const, fnum, sr*60*60);
+  gwi_item_end(gwi, ae_flag_const, fnum, sr * 60 * 60);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, fnum, 0.0);
   return GW_OK;

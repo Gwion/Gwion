@@ -10,7 +10,7 @@
 
 GWION_IMPORT(enum_test) {
   GWI_BB(gwi_enum_ini(gwi, "int"))
-    GWI_BB(gwi_enum_add(gwi, "zero", 0))
+  GWI_BB(gwi_enum_add(gwi, "zero", 0))
   GWI_OB(gwi_enum_end(gwi))
   return GW_OK;
 }

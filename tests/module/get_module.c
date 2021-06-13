@@ -18,12 +18,10 @@ GWMODINI(get_module) {
   return NULL;
 }
 
-GWMODEND(get_module) {
-  puts(__func__);
-}
+GWMODEND(get_module) { puts(__func__); }
 
 GWION_IMPORT(dummy_module) {
-  set_module(gwi->gwion, "get_module", (void*)1);
+  set_module(gwi->gwion, "get_module", (void *)1);
   GWI_OB(get_module(gwi->gwion, "get_module"))
   puts("test passed");
   get_module(gwi->gwion, "non_existant_module");

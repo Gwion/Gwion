@@ -10,8 +10,8 @@
 
 GWION_IMPORT(union_test) {
   GWI_BB(gwi_union_ini(gwi, "my_union"))
-  GWI_BB(gwi_union_add(gwi,"float", "f"))
-  GWI_BB(gwi_union_add(gwi,"int", "i"))
+  GWI_BB(gwi_union_add(gwi, "float", "f"))
+  GWI_BB(gwi_union_add(gwi, "int", "i"))
   GWI_OB(gwi_union_end(gwi, 0))
   return GW_OK;
 }

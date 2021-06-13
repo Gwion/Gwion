@@ -10,29 +10,27 @@
 #include "vararg.h"
 #include "gwi.h"
 
-static MFUN(m_test) {
-  gw_out("%p\n", *(M_Object*)MEM(0));
-}
+static MFUN(m_test) { gw_out("%p\n", *(M_Object *)MEM(0)); }
 
 static MFUN(m_variadic) {
-  M_Object str_obj = *(M_Object*)MEM(SZ_INT);
-  if(!str_obj)return;
-  m_str str = STRING(str_obj);
-  const M_Object vararg_obj = *(M_Object*)MEM(SZ_INT*2);
-  struct Vararg_* arg = *(struct Vararg_**)vararg_obj->data;
+  M_Object str_obj = *(M_Object *)MEM(SZ_INT);
+  if (!str_obj) return;
+  m_str           str        = STRING(str_obj);
+  const M_Object  vararg_obj = *(M_Object *)MEM(SZ_INT * 2);
+  struct Vararg_ *arg        = *(struct Vararg_ **)vararg_obj->data;
 
-  m_uint i = 0;
-  const m_uint offset = *(m_uint*)(vararg_obj->data + SZ_INT * 3);
-  while(i < *(m_uint*)(vararg_obj->data + SZ_INT * 5)) {
-    if(*str == 'i') {
-      gw_out("%"INT_F "\n", *(m_int*)(arg->d + offset));
-      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
-    } else if(*str == 'f') {
-      gw_out("%f\n", *(m_float*)(arg->d + offset));
-      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_FLOAT;
-    } else if(*str == 'o') {
-      gw_out("%p\n", (void*)*(M_Object*)(arg->d + offset));
-      *(m_uint*)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
+  m_uint       i      = 0;
+  const m_uint offset = *(m_uint *)(vararg_obj->data + SZ_INT * 3);
+  while (i < *(m_uint *)(vararg_obj->data + SZ_INT * 5)) {
+    if (*str == 'i') {
+      gw_out("%" INT_F "\n", *(m_int *)(arg->d + offset));
+      *(m_uint *)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
+    } else if (*str == 'f') {
+      gw_out("%f\n", *(m_float *)(arg->d + offset));
+      *(m_uint *)(vararg_obj->data + SZ_INT * 3) += SZ_FLOAT;
+    } else if (*str == 'o') {
+      gw_out("%p\n", (void *)*(M_Object *)(arg->d + offset));
+      *(m_uint *)(vararg_obj->data + SZ_INT * 3) += SZ_INT;
     }
     ++i;
     str++;

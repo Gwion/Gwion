@@ -9,15 +9,13 @@
 #include "plug.h"
 
 static DRVRUN(simple_driver_run) {
-  while(di->is_running) {
+  while (di->is_running) {
     di->run(vm);
     ++di->pos;
   }
 }
 
-static DRVINI(simple_driver_ini) {
-  return GW_OK;
-}
+static DRVINI(simple_driver_ini) { return GW_OK; }
 
 static DRVDEL(simple_driver_del) {}
 

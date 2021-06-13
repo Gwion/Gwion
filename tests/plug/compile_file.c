@@ -13,11 +13,11 @@
 #define _XOPEN_SOURCE 500
 #include <string.h>
 GWION_IMPORT(compile_string) {
-  DECL_OB(FILE *,file, = fopen("rm_me.gw", "w+"));
+  DECL_OB(FILE *, file, = fopen("rm_me.gw", "w+"));
   fprintf(file, "1;");
   rewind(file);
-  const m_bool ret = compile_file(gwi->gwion, __FILE__, file) ?
-      GW_OK : GW_ERROR;
+  const m_bool ret =
+      compile_file(gwi->gwion, __FILE__, file) ? GW_OK : GW_ERROR;
   fclose(file);
   return ret;
 }

@@ -9,9 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN static m_bool pass(Env nv NUSED, Ast ast NUSED) {
-  return GW_OK;
-}
+ANN static m_bool pass(Env nv NUSED, Ast ast NUSED) { return GW_OK; }
 
 GWION_IMPORT(array_test) {
   gwi_register_pass(gwi, "dummy", pass);
