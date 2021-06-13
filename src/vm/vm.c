@@ -724,12 +724,12 @@ setcode:
 PRAGMA_PUSH()
   a.code = *(VM_Code*)(reg - SZ_INT);
   if(!a.code->builtin) {
-    register const uint push = *(m_uint*)reg + code->stack_depth + sizeof(frame_t);
+    register const uint push = *(m_uint*)reg /*+ code->stack_depth*/ + sizeof(frame_t);
     mem += push;
     *(frame_t*)(mem - sizeof(frame_t)) = (frame_t){ .code=code, .pc=PC+UVAL, .push=push };
     next = eFuncUsrEnd;
   } else {
-    mem += *(m_uint*)reg /*- (code->stack_depth + */ /*- sizeof(frame_t)*/;
+    mem += *(m_uint*)reg;
     next = eFuncMemberEnd;
   }
 PRAGMA_POP()

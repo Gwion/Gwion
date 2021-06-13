@@ -138,6 +138,10 @@ ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
   return envset_run(&es, t);
 }
 
+ANN static inline m_uint emit_code_size(const Emitter emit) {
+  return vector_size(&emit->code->instr);
+}
+
 ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_uint offset) {
   emit->code->frame->curr_offset += SZ_INT;
   const Instr instr = emit_add_instr(emit, RegPushMem4);
@@ -158,7 +162,6 @@ ANN static void emit_struct_ctor(const Emitter emit, const Type type, const m_ui
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val = -SZ_INT*4;
   prelude->udata.one = 2;
-//  prelude->udata.two = emit_code_offset(emit) + SZ_INT + sizeof(frame_t);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = code_offset;
   emit->code->frame->curr_offset -= SZ_INT;
@@ -271,10 +274,6 @@ ANN static inline void emit_push_scope(const Emitter emit) {
   vector_add(&emit->info->pure, 0);
   if(emit->info->debug)
     emit_add_instr(emit, DebugPush);
-}
-
-ANN static inline m_uint emit_code_size(const Emitter emit) {
-  return vector_size(&emit->code->instr);
 }
 
 ANN m_uint emit_code_offset(const Emitter emit) {
@@ -392,7 +391,6 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   const Instr prelude = emit_add_instr(emit, SetCode);
   prelude->m_val = -SZ_INT * 2;
   prelude->udata.one = 2;
-//  prelude->udata.two = emit_code_offset(emit) + SZ_INT + sizeof(frame_t);
   emit_add_instr(emit, Reg2Mem);
   const Instr next = emit_add_instr(emit, Overflow);
   next->m_val2 = offset;
@@ -1263,6 +1261,7 @@ ANN static Instr get_prelude(const Emitter emit, const Func f, const bool is_sta
   const Instr instr = emit_add_instr(emit, Recurs);
   instr->m_val = SZ_INT;
   instr->udata.one = 1;
+  instr->udata.two = emit_code_offset(emit) + sizeof(frame_t);
   return instr;
 }
 
@@ -1320,7 +1319,6 @@ ANN static m_bool me_arg(MemoizeEmitter *me) {
 ANN static Instr emit_call(const Emitter emit, const Func f, const bool is_static) {
   const Instr prelude = get_prelude(emit, f, is_static);
   prelude->m_val += -f->def->stack_depth - SZ_INT;
-  prelude->udata.two = emit_code_offset(emit) + f->def->stack_depth + sizeof(frame_t);
   const m_uint member = vflag(f->value_ref, vflag_member) ? SZ_INT : 0;
   if(member) {
     const Instr instr = emit_add_instr(emit, Reg2Mem);
