@@ -887,7 +887,18 @@ ANN static m_bool predefined_call(const Env env, const Type t,
   return GW_ERROR;
 }
 
+ANN2(1) static inline bool curried(const Env env, Exp exp) {
+  while(exp) {
+    if (is_hole(env, exp))
+      return true;
+    exp = exp->next;
+  }
+  return false;
+}
+
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
+  if(curried(env, exp->args))
+    return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;

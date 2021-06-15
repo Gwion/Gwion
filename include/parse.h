@@ -98,4 +98,15 @@ ANN static inline void env_weight(const Env env, const uint16_t weight) {
 ANN static inline void env_inline_mult(const Env env, const float mult) {
   if (env->func) env->func->inline_mult += mult;
 }
+
+ANN static inline bool is_hole(const Env env, const Exp exp) {
+  const Symbol hole = insert_symbol("_");
+  if(exp->exp_type == ae_exp_primary) {
+    if(exp->d.prim.prim_type == ae_prim_id) {
+      if(exp->d.prim.d.var == hole)
+        return true;
+    }
+  }
+  return false;
+}
 #endif

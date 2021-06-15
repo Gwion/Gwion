@@ -22,6 +22,65 @@ static OP_CHECK(opck_func_call) {
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
+ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
+  const MemPool mp = env->gwion->mp;
+  const Exp next = e->next;
+  e->next = NULL;
+  const Exp ret = cpy_exp(mp, e);
+  e->next = next;
+  if(!check_exp(env, ret)) {
+    free_exp(mp, ret);
+    return NULL;
+  }
+  return ret;
+}
+
+ANN static Exp order_curry(const Env env, Exp fn, Exp arg) {
+  const MemPool mp = env->gwion->mp;
+  Exp base   = NULL;
+  Exp next   = NULL;
+  do {
+    const bool hole = is_hole(env, fn);
+    const Exp curr = !hole ? fn : arg;
+    if(hole) {
+      if(!arg) {
+        if(base)
+          free_exp(mp, base);
+        ERR_O(fn->pos, "no enough arguments for holes");
+      }
+      arg = arg->next;
+    }
+    if(!base)
+      base = next = cpy_nonext(env, curr);
+    else {
+      next->next = cpy_nonext(env, curr);
+      next = next->next;
+    }
+  } while ((fn = fn->next));
+  assert(base);
+  if(arg) {
+    free_exp(mp, base);
+    ERR_O(arg->pos, "too many arguments for holes");
+  }
+  return base;
+}
+
+static OP_CHECK(opck_curry) {
+  Exp_Binary *bin  = (Exp_Binary *)data;
+  Exp         lhs  = bin->lhs;
+  Exp_Call    base = bin->rhs->d.exp_call;
+  DECL_OO(const Exp,   args, = order_curry(env, base.args, lhs));
+  Exp_Call    call = {.func = base.func, .args = args};
+  Exp         e    = exp_self(bin);
+  e->exp_type      = ae_exp_call;
+  e->type          = NULL;
+  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  const MemPool mp = env->gwion->mp;
+  free_exp(mp, base.args);
+  free_exp(mp, lhs);
+  return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
+}
+
 static inline void fptr_instr(const Emitter emit, const Func f,
                               const m_uint i) {
   const Instr set = emit_add_instr(emit, RegSetImm);
@@ -588,6 +647,9 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_cond(gwi, "@func_ptr", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Curry", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_curry))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "bool"))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
