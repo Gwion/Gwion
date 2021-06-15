@@ -703,8 +703,8 @@ static OP_CHECK(opck_array_scan) {
   builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 11),
                vm_vector_foldr);
   if (isa(base, env->gwion->type[et_compound]) > 0) {
-    t->nspc->dtor =
-        new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "array component dtor");
+    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
+                               "array component dtor", SZ_INT, true);
     set_tflag(t, tflag_dtor);
     t->nspc->dtor->native_func = (m_uint)(
         !tflag(base, tflag_struct) ? array_dtor_obj : array_dtor_struct);
@@ -947,6 +947,7 @@ INSTR(ArrayAlloc) {
     gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n",
            shred->tick->xid, shred->code->name);
     vm_shred_exit(shred);
+    if (info->is_obj) free(aai.data);
     return; // TODO make exception vararg
   }
   *(void **)(ref->data + SZ_INT) = aai.data;

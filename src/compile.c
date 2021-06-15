@@ -174,6 +174,7 @@ ANN m_uint compile_filename_xid(struct Gwion_ *gwion, const m_str filename,
                                 const m_uint xid) {
   struct Compiler c = {.base = filename, .type = COMPILE_NAME};
   if (!compile(gwion, &c)) return 0;
+  assert(c.shred);
   return c.shred->tick->xid = xid;
 }
 
@@ -181,6 +182,7 @@ ANN m_uint compile_string_xid(struct Gwion_ *gwion, const m_str filename,
                               const m_str data, const m_uint xid) {
   struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data};
   if (!compile(gwion, &c)) return 0;
+  assert(c.shred);
   return c.shred->tick->xid = xid;
 }
 
@@ -188,5 +190,6 @@ ANN m_uint compile_file_xid(struct Gwion_ *gwion, const m_str filename,
                             FILE *file, const m_uint xid) {
   struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file};
   if (!compile(gwion, &c)) return 0;
+  assert(c.shred);
   return c.shred->tick->xid = xid;
 }

@@ -11,14 +11,13 @@ include config.mk
 
 SEVERITY ?= 10
 GWION_TEST_DIR ?= /tmp
-
-src := $(wildcard src/*.c)
-src += $(wildcard src/*/*.c)
-
 test_dir_all := $(wildcard tests/*)
 test_ignore = tests/plug test/driver tests/module
 test_dir := $(filter-out $(test_ignore), $(test_dir_all))
 test_dir += examples
+
+src := $(wildcard src/*.c)
+src += $(wildcard src/*/*.c)
 
 CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
 CFLAGS += -Iast/libprettyerr/src -Ifmt/include
@@ -38,6 +37,7 @@ src_obj := $(src:.c=.o)
 gcda := $(src:.c=.gcda)
 gcno := $(src:.c=.gcno)
 lib_obj := $(filter-out src/main.o, ${src_obj})
+almost_obj := $(filter-out src/vm/vm.o, ${src_obj})
 
 CFLAGS  += -Iinclude
 
@@ -45,24 +45,30 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif
 
-CFLAGS += -DGWION_BUILTIN
-
-_GWLIBS = util/libgwion_util.a ast/libgwion_ast.a libcmdapp/libcmdapp.a lib${PRG}.a util/libtermcolor/libtermcolor.a ast/libprettyerr/libprettyerr.a fmt/libgwion-fmt.a
-GWLIBS := lib${PRG}.a libcmdapp/libcmdapp.a ast/libgwion_ast.a
-GWLIBS += util/libgwion_util.a ast/libprettyerr/libprettyerr.a util/libtermcolor/libtermcolor.a
-GWLIBS += fmt/libgwion-fmt.a
-_LDFLAGS = ${GWLIBS} ${LDFLAGS}
+ALMOST_LIBS := libcmdapp/libcmdapp.a fmt/libgwion-fmt.a
+ALMOST_LIBS += ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a
+ALMOST_LIBS += util/libgwion_util.a util/libtermcolor/libtermcolor.a
+GWLIBS := lib${PRG}.a ${ALMOST_LIBS}
+LDFLAGS := ${GWLIBS} ${LDFLAGS}
 
 # we are not pedantic
 CFLAGS += -Wno-pedantic
 
-all: options-show ${_GWLIBS} src/main.o
+CFLAGS += -DGWION_BUILTIN
+
+all: options-show ${GWLIBS} src/main.o
 	@$(info link ${PRG})
-	@${CC} src/main.o -o ${PRG} ${_LDFLAGS} ${LIBS}
+	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
 
 options-show:
 	@$(call _options)
 	@$(info libs: ${GWLIBS})
+
+almost_gwion: ${almost_obj} ${ALMOST_LIBS}
+
+lto:
+	@${MAKE} USE_LTO=1 almost_gwion
+	@${MAKE} USE_LTO=0
 
 lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
@@ -114,8 +120,6 @@ update: clean-all
 	git submodule update --recursive --init
 	make
 
-.PHONY: .afl
-
 clean: clean_core
 	$(info cleaning ...)
 	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a ${gcno} ${gcda}
@@ -148,7 +152,7 @@ test:
 
 scan:
 	@rm -rf scan_output
-	@scan-build -o ./scan_output make
+	@scan-build -o ./scan_output make USE_DEBUG=1
 	@scan-view ./scan_output/*
 
 include $(wildcard .d/*.d)

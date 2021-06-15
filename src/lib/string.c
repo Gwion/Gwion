@@ -247,7 +247,7 @@ static MFUN(string_replaceN) {
   }
   char         insert[strlen(STRING(arg)) + 1];
   const m_uint len = strlen(str);
-  memset(insert, 0, len + 1);
+  //  memset(insert, 0, len + 1);
   strcpy(insert, STRING(arg));
   str[len] = '\0';
   if (index > (m_int)len) index = len - 1;

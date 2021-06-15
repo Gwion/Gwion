@@ -107,8 +107,8 @@ static OP_CHECK(opck_union_ctor) {
   Exp_Call *call = (Exp_Call *)data;
   const Exp name = call->args;
   if (!name || !name->next || name->next->next)
-    ERR_N(name->pos, "Union constructor takes two arguments, "
-                     "'id' and 'value'");
+    ERR_N(call->func->pos, "Union constructor takes two arguments, "
+                           "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
     return NULL;
   const Exp  val  = name->next;

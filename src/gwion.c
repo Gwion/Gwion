@@ -33,7 +33,8 @@ ANN static inline m_bool gwion_engine(const Gwion gwion) {
 }
 
 ANN static void gwion_cleaner(const Gwion gwion) {
-  const VM_Code code       = new_vmcode(gwion->mp, NULL, 0, 1, "in code dtor");
+  const VM_Code code =
+      new_vmcode(gwion->mp, NULL, NULL, "in code dtor", 0, true);
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
 }

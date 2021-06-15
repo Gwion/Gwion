@@ -16,16 +16,16 @@ struct VM_Code_ {
     struct Vector_ instr;
     m_uint         native_func;
   };
-  size_t stack_depth;
   Type   ret_type; // could be `struct Vector_ tmpl_types;`
   union {
     void *   memoize;
     Closure *closure;
   };
-  struct Map_ handlers;
   m_str       name;
+  struct Map_ handlers;
+  struct M_Vector_ live_values;
+  uint16_t    stack_depth;
   uint16_t    ref;
-  ae_flag     flag;
   bool        builtin;
   bool        callback;
   bool        is_memoize;
@@ -97,9 +97,9 @@ struct VM_Shred_ {
   struct ShredInfo_ *info;
 };
 REF_FUNC(VM_Code, vmcode)
-ANN2(1, 5)
-ANEW VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
-                        const int builtin, const m_str name);
+ANN2(1,4)
+ANEW VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values, const m_str name,
+                        const uint16_t stack_depth, const bool builtin);
 ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
@@ -129,7 +129,7 @@ ANN bool  vm_running(VM const *);
 ANN void  free_vm(VM *vm);
 ANN void  vm_ini_shred(const VM *vm, const VM_Shred shred) __attribute__((hot));
 ANN void  vm_add_shred(const VM *vm, const VM_Shred shred) __attribute__((hot));
-ANN void  vm_remove(const VM *vm, const m_uint index) __attribute__((hot));
+ANN bool  vm_remove(const VM *vm, const m_uint index) __attribute__((hot));
 ANN m_str code_name_set(MemPool p, const m_str, const m_str);
 ANN m_str code_name(const m_str, const bool);
 ANN uint32_t gw_rand(uint32_t s[2]);

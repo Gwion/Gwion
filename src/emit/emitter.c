@@ -8,9 +8,12 @@
 #include "escape.h"
 
 static ANEW ANN VM_Code emit_code(const Emitter emit) {
-  Code *const   c = emit->code;
-  const VM_Code code =
-      new_vmcode(emit->gwion->mp, &c->instr, c->stack_depth, 0, c->name);
+  Code *const   c          = emit->code;
+  const bool    has_values = m_vector_size(&c->live_values);
+  const VM_Code code       = new_vmcode(emit->gwion->mp, &c->instr,
+                                  has_values ? &c->live_values : NULL, c->name,
+                                  c->stack_depth, false);
+  if (has_values) c->live_values.ptr = NULL;
   return code;
 }
 

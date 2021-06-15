@@ -182,7 +182,7 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e,
   gwerr_basic(_("literal contains incompatible types"), fst, NULL, env->name,
               loc, 0);
   // suggested fix: rewrite int 2 as float 2.0"
-  char sec[12 + strlen(e->type->name)];
+  char sec[16 + strlen(e->type->name)];
   sprintf(sec, "got `{+/}%s{0}`", e->type->name);
   gwerr_secondary(sec, env->name, e->pos);
 
@@ -223,7 +223,8 @@ ANN static m_bool check_range(const Env env, Range *range) {
 ANN static Type check_prim_range(const Env env, Range **data) {
   Range *range = *data;
   CHECK_BO(check_range(env, range));
-  const Exp        e   = range->start ?: range->end;
+  const Exp e = range->start ?: range->end;
+  assert(e);
   const Symbol     sym = insert_symbol("@range");
   struct Op_Import opi = {.op   = sym,
                           .rhs  = e->type,
@@ -443,8 +444,9 @@ static ANN Type check_exp_array(const Env env, const Exp_Array *array) {
 static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
   CHECK_OO(check_exp(env, range->base));
   CHECK_BO(check_range(env, range->range));
-  const Symbol     sym = insert_symbol("@slice");
-  const Exp        e   = range->range->start ?: range->range->end;
+  const Symbol sym = insert_symbol("@slice");
+  const Exp    e   = range->range->start ?: range->range->end;
+  assert(e);
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
                           .rhs  = range->base->type,
@@ -744,10 +746,10 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
     free_scope(env->gwion->mp, env->curr->info->value);
     env->curr->info->value = l->def->base->values;
     if (env->class_def) set_vflag(l->def->base->func->value_ref, vflag_member);
+    exp->func->type = l->def->base->func->value_ref->type;
+    if (!l->def->base->ret_type)
+      l->def->base->ret_type = env->gwion->type[et_void];
   }
-  exp->func->type = l->def->base->func->value_ref->type;
-  if (!l->def->base->ret_type)
-    l->def->base->ret_type = env->gwion->type[et_void];
   return ret > 0 ? l->def->base->ret_type : NULL;
 }
 
@@ -1573,7 +1575,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   if (ret > 0) {
     set_fflag(fdef->base->func, fflag_valid);
     if (env->class_def && fdef->base->effects.ptr &&
-        !check_effect_overload(&fdef->base->effects, override->d.func_ref))
+        (override &&
+         !check_effect_overload(&fdef->base->effects, override->d.func_ref)))
       ERR_B(fdef->base->pos, _("too much effects in override."),
             s_name(fdef->base->xid))
   }

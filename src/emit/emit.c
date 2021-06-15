@@ -38,6 +38,7 @@ typedef struct Local_ {
   Type   type;
   m_uint offset;
   bool   skip;
+  bool   is_compound;
 } Local;
 
 static inline void emit_pop(const Emitter emit, const m_uint scope) {
@@ -84,14 +85,12 @@ ANN static Local *new_local(MemPool p, const Type type) {
   return local;
 }
 
-ANN static m_uint frame_local(MemPool p, Frame *frame, const Type t,
-                              const bool skip) {
-  Local *local  = new_local(p, t);
-  local->offset = frame->curr_offset;
-  local->skip   = skip;
+ANN static Local *frame_local(MemPool p, Frame *frame, const Type t) {
+  Local *const l = new_local(p, t);
+  l->offset      = frame->curr_offset;
   frame->curr_offset += t->size;
-  vector_add(&frame->stack, (vtype)local);
-  return local->offset;
+  vector_add(&frame->stack, (vtype)l);
+  return l;
 }
 
 ANN static inline void frame_push(Frame *frame) {
@@ -204,12 +203,13 @@ ANN static m_int _frame_pop(const Emitter emit) {
   DECL_OB(const Local *, l, = (Local *)vector_pop(&frame->stack));
   frame->curr_offset -= l->type->size;
   if (l->skip) return _frame_pop(emit);
-  if (tflag(l->type, tflag_struct)) {
-    struct_pop(emit, l->type, l->offset);
-    return _frame_pop(emit);
-  }
-  return isa(l->type, emit->gwion->type[et_object]) > 0 ? (m_int)l->offset
-                                                        : _frame_pop(emit);
+  if (!l->is_compound) return _frame_pop(emit);
+  VMValue *vmval =
+      (VMValue *)m_vector_addr(&emit->code->live_values, --frame->value_count);
+  vmval->end = emit_code_size(emit);
+  if (!tflag(l->type, tflag_struct)) return (m_int)l->offset;
+  struct_pop(emit, l->type, l->offset);
+  return _frame_pop(emit);
 }
 
 ANN static m_int frame_pop(const Emitter emit) {
@@ -230,6 +230,7 @@ ANEW static Code *new_code(const Emitter emit, const m_str name) {
   vector_init(&code->stack_break);
   vector_init(&code->stack_cont);
   vector_init(&code->stack_return);
+  m_vector_init(&code->live_values, sizeof(VMValue), 0);
   code->frame = new_frame(emit->gwion->mp);
   return code;
 }
@@ -239,6 +240,7 @@ ANN static void free_code(MemPool p, Code *code) {
   vector_release(&code->stack_break);
   vector_release(&code->stack_cont);
   vector_release(&code->stack_return);
+  if (code->live_values.ptr) m_vector_release(&code->live_values);
   free_frame(p, code->frame);
   free_mstr(p, code->name);
   mp_free(p, Code, code);
@@ -275,11 +277,21 @@ ANN m_uint emit_code_offset(const Emitter emit) {
 }
 
 ANN m_uint emit_local(const Emitter emit, const Type t) {
-  return frame_local(emit->gwion->mp, emit->code->frame, t, false);
+  Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
+  if (isa(t, emit->gwion->type[et_compound]) > 0) {
+    l->is_compound = true;
+    VMValue vmval  = {
+        .t = t, .offset = l->offset, .start = emit_code_size(emit)};
+    m_vector_add(&emit->code->live_values, &vmval);
+    ++emit->code->frame->value_count;
+  }
+  return l->offset;
 }
 
 ANN m_uint emit_localn(const Emitter emit, const Type t) {
-  return frame_local(emit->gwion->mp, emit->code->frame, t, true);
+  Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
+  l->skip        = true;
+  return l->offset;
 }
 
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
@@ -289,9 +301,11 @@ ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
 }
 
 ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
-  if (type->info->parent) emit_pre_ctor(emit, type->info->parent);
-  if (tflag(type, tflag_typedef) && type->info->parent->array_depth)
-    emit_array_extend(emit, type, type->info->cdef->base.ext->array->exp);
+  if (type->info->parent) {
+    emit_pre_ctor(emit, type->info->parent);
+    if (tflag(type, tflag_typedef) && type->info->parent->array_depth)
+      emit_array_extend(emit, type, type->info->cdef->base.ext->array->exp);
+  }
   maybe_ctor(emit, type);
 }
 
@@ -585,8 +599,9 @@ ANN static m_bool emit_range(const Emitter emit, Range *range) {
 ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   Range *range = *data;
   CHECK_BB(emit_range(emit, range));
-  const Exp        e   = range->start ?: range->end;
-  const Symbol     sym = insert_symbol("@range");
+  const Exp    e   = range->start ?: range->end;
+  const Symbol sym = insert_symbol("@range");
+  assert(e);
   struct Op_Import opi = {.op   = sym,
                           .rhs  = e->type,
                           .pos  = e->pos,
@@ -625,8 +640,9 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array *array) {
 ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {
   CHECK_BB(emit_exp(emit, range->base));
   CHECK_BB(emit_range(emit, range->range));
-  const Symbol     sym = insert_symbol("@slice");
-  const Exp        e   = range->range->start ?: range->range->end;
+  const Symbol sym = insert_symbol("@slice");
+  const Exp    e   = range->range->start ?: range->range->end;
+  assert(e);
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
                           .rhs  = range->base->type,
@@ -1250,7 +1266,8 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
   const Instr instr = (Instr)vector_back(&emit->code->instr);
   if (instr->opcode == eDotTmplVal) {
     size_t len = strlen(f->name);
-    size_t sz  = len - strlen(f->value_ref->from->owner_class->name);
+    assert(f->value_ref->from->owner_class);
+    size_t sz = len - strlen(f->value_ref->from->owner_class->name);
     char   c[sz + 1];
     memcpy(c, f->name, sz);
     c[sz]               = '\0';
@@ -1546,6 +1563,7 @@ ANN static m_bool spork_prepare_code(const Emitter         emit,
   emit_add_instr(emit, RegPushImm);
   push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX,
                   sp->code->pos);
+  if (emit->env->class_def) stack_alloc(emit);
   if (emit->env->func && vflag(emit->env->func->value_ref, vflag_member))
     stack_alloc(emit);
   return scoped_stmt(emit, sp->code, 0);
@@ -1560,7 +1578,10 @@ ANN static m_bool spork_prepare_func(const Emitter         emit,
 }
 
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
-  if (!sp->code) CHECK_BO(prepare_call(emit, &sp->exp->d.exp_call));
+  if (!sp->code) {
+    assert(sp->exp);
+    CHECK_BO(prepare_call(emit, &sp->exp->d.exp_call));
+  }
   if ((sp->code ? spork_prepare_code : spork_prepare_func)(emit, sp) > 0)
     return finalyze(emit, EOC);
   emit_pop_code(emit);

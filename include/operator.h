@@ -85,6 +85,7 @@ ANN void   free_op_map(Map map, struct Gwion_ *gwion);
 
 ANN void               operator_suspend(const Nspc, struct Op_Import *);
 ANN static inline void operator_resume(struct Op_Import *opi) {
+  assert(opi->ret);
   *(uintptr_t *)opi->ret = opi->data;
 }
 

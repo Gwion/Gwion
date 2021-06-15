@@ -48,17 +48,28 @@ ANN static inline void shred_unwind(const VM_Shred shred) {
 }
 
 ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
+  const VM_Code code = shred->code;
+  if (code->live_values.ptr) {
+    const uint16_t pc = shred->pc;
+    for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
+      VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
+      if (pc < vmval->start) break;
+      if (pc > vmval->end) continue;
+      m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
+      compound_release(shred, vmval->t, data);
+    }
+  }
   if (!size) return true;
-  if (shred->code->handlers.ptr) {
+  if (code->handlers.ptr) {
     const m_uint start = VKEY(&shred->info->frame, size - 1);
     if (start > shred->pc) return true;
-    const Map m  = &shred->code->handlers;
+    const Map m  = &code->handlers;
     m_uint    pc = 0;
     for (m_uint i = 0; i < map_size(m); i++) {
       if (start > shred->pc) break;
       if (start < shred->pc && VKEY(m, i) > shred->pc) {
         const m_uint next  = VKEY(m, i);
-        const Instr  instr = (Instr)vector_at(&shred->code->instr, next + 1);
+        const Instr  instr = (Instr)vector_at(&code->instr, next + 1);
         if (!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
           pc = next + 1;
           break;
@@ -124,13 +135,17 @@ ANN void handle(VM_Shred shred, const m_str effect) {
   vm_shred_exit(shred);
 }
 
-void vm_remove(const VM *vm, const m_uint index) {
+ANN bool vm_remove(const VM *vm, const m_uint index) {
   const Vector v = (Vector)&vm->shreduler->shreds;
   LOOP_OPTIM
   for (m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
-    if (sh && sh->tick->xid == index) handle(sh, "MsgRemove");
+    if (sh && sh->tick->xid == index) {
+      handle(sh, "MsgRemove");
+      return true;
+    }
   }
+  return false;
 }
 
 ANN void free_vm(VM *vm) {

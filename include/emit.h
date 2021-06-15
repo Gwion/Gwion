@@ -3,20 +3,29 @@
 
 typedef struct Frame_ {
   struct Vector_ stack;
-  size_t         curr_offset;
   struct Map_    handlers;
   struct Vector_ defer;
-  m_uint         try_top;
+  m_uint         value_count;
+  uint16_t       curr_offset;
+  uint16_t       try_top;
 } Frame;
 
+typedef struct VMValue_ {
+  Type t;
+  uint16_t offset;
+  uint16_t start;
+  uint16_t end;
+} VMValue;
+
 typedef struct Code_ {
-  Frame *        frame;
-  struct Vector_ instr;
-  size_t         stack_depth;
-  struct Vector_ stack_cont;
-  struct Vector_ stack_break;
-  struct Vector_ stack_return;
-  m_str          name;
+  Frame *          frame;
+  struct Vector_   instr;
+  struct Vector_   stack_cont;
+  struct Vector_   stack_break;
+  struct Vector_   stack_return;
+  struct M_Vector_ live_values;
+  m_str            name;
+  uint16_t         stack_depth;
 } Code;
 
 struct EmitterInfo_ {
@@ -36,8 +45,8 @@ struct Emitter_ {
   struct Gwion_ *      gwion;
   struct EmitterInfo_ *info;
   struct Vector_       stack;
-  m_uint               this_offset;   // reset
-  m_uint               vararg_offset; // reset
+  uint16_t             this_offset;   // reset
+  uint16_t             vararg_offset; // reset
 };
 
 ANEW ANN Emitter new_emitter(MemPool);

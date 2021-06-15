@@ -37,6 +37,6 @@ Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
 
 ANN void builtin_func(const MemPool mp, const Func f, void *func_ptr) {
   set_vflag(f->value_ref, vflag_builtin);
-  f->code              = new_vmcode(mp, NULL, f->def->stack_depth, 1, f->name);
+  f->code = new_vmcode(mp, NULL, NULL, f->name, f->def->stack_depth, true);
   f->code->native_func = (m_uint)func_ptr;
 }

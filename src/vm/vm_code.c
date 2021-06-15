@@ -34,6 +34,7 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
       free_code_instr(&a->instr, gwion);
     }
     if (a->handlers.ptr) map_release(&a->handlers);
+    if (a->live_values.ptr) m_vector_release(&a->live_values);
     vector_release(&a->instr);
   }
   free_mstr(gwion->mp, a->name);
@@ -151,8 +152,9 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
   return final;
 }
 
-VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
-                   const int builtin, const m_str name) {
+VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values,
+                   const m_str name, const uint16_t stack_depth,
+                   const bool builtin) {
   VM_Code code = mp_calloc(p, VM_Code);
   code->name   = mstrdup(p, name);
   if (instr) {
@@ -160,6 +162,7 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
     vector_copy2(instr, &code->instr);
     code->bytecode = tobytecode(p, code);
   }
+  if (live_values) code->live_values.ptr = live_values->ptr;
   code->stack_depth = stack_depth;
   code->builtin     = builtin;
   code->ref         = 1;
@@ -171,12 +174,12 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const m_uint stack_depth,
 VM_Code vmcode_callback(MemPool mp, VM_Code base) {
   char name[strlen(base->name) + 11];
   sprintf(name, "%s(callback)", base->name);
-  const Instr instr = (Instr)vector_back(&base->instr);
-  instr->opcode     = eEOC;
-  const VM_Code code =
-      new_vmcode(mp, &base->instr, base->stack_depth, base->builtin, name);
-  code->closure  = base->closure;
-  code->callback = 1;
-  instr->opcode  = eFuncReturn;
+  const Instr instr  = (Instr)vector_back(&base->instr);
+  instr->opcode      = eEOC;
+  const VM_Code code = new_vmcode(mp, &base->instr, &base->live_values, name,
+                                  base->stack_depth, base->builtin);
+  code->closure      = base->closure;
+  code->callback     = 1;
+  instr->opcode      = eFuncReturn;
   return code;
 }

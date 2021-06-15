@@ -404,12 +404,13 @@ ANN static m_bool scan1_args(const Env env, Arg_List list) {
       UNSET_FLAG(list->td, late);
     }
     var->value = arg_value(env, list);
-    nspc_add_value(env->curr, var->xid, var->value);
+    if (var->xid) nspc_add_value(env->curr, var->xid, var->value);
   } while ((list = list->next));
   return GW_OK;
 }
 
 ANN static Type scan1_noret(const Env env, const Func_Base *base) {
+  assert(base->td);
   DECL_OO(const Type, t, = known_type(env, base->td));
   if (!tflag(t, tflag_noret)) return t;
   ERR_O(base->pos, _("Can't use type `{+G}%s{0}` for return"), t->name);
@@ -542,6 +543,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
 }
 
 ANN static m_bool class_internal(const Env env, const Func_Base *base) {
+  assert(base->td);
   if (!env->class_def)
     ERR_B(base->td->pos, _("'%s' must be in class def!!"), s_name(base->xid))
   if (base->args)
@@ -554,12 +556,14 @@ ANN static m_bool class_internal(const Env env, const Func_Base *base) {
 ANN static inline m_bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
   if (base->args && !base->args->next) return GW_OK;
+  assert(base->td);
   ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"),
         s_name(base->xid))
 }
 
 ANN static inline m_bool scan_internal_int(const Env        env,
                                            const Func_Base *base) {
+  assert(base->td);
   CHECK_BB(scan_internal_arg(env, base));
   if (isa(base->ret_type, env->gwion->type[et_int]) > 0) return GW_OK;
   ERR_B(base->td->pos, _("'%s' must return 'int'"), s_name(base->xid))

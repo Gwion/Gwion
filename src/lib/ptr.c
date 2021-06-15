@@ -158,7 +158,8 @@ static OP_CHECK(opck_ptr_scan) {
   env_pop(env, scope);
   nspc_add_type_front(t->info->value->from->owner, info.name, t);
   if (isa(base, env->gwion->type[et_compound]) > 0) {
-    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, SZ_INT, 1, "@PtrDtor");
+    t->nspc->dtor =
+        new_vmcode(env->gwion->mp, NULL, NULL, "@PtrDtor", SZ_INT, true);
     if (!tflag(base, tflag_struct))
       t->nspc->dtor->native_func = (m_uint)ptr_object_dtor;
     else

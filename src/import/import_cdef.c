@@ -21,7 +21,7 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d,
                           const enum tflag e) {
   VM_Code *code = e == tflag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name     = type->name;
-  *code                = new_vmcode(p, NULL, SZ_INT, 1, name);
+  *code                = new_vmcode(p, NULL, NULL, name, SZ_INT, true);
   (*code)->native_func = (m_uint)d;
   type->tflag |= e;
   return GW_OK;
@@ -66,6 +66,7 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
   if (gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);
     gwi->lint->indent++;
+    assert(t->info->cdef);
     lint_class_def(gwi->lint, t->info->cdef);
   }
   return t;

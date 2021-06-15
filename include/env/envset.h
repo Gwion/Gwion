@@ -6,10 +6,10 @@ struct EnvSet {
   const Env         env;
   const envset_func func;
   const void *      data;
-  const m_int       scope;
   const enum tflag  flag;
   Context           _ctx;
   m_str             _filename;
+  const uint16_t    scope;
   bool              run;
 };
 
