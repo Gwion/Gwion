@@ -498,7 +498,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
            : emit_regpushbase(emit, size, exp_getvar(prim_exp(data)));
   instr->m_val = v->from->offset;
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
-      isa(v->type, emit->gwion->type[et_object]) > 0) {
+      (isa(v->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion,  v->type))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val      = -SZ_INT;
   }
@@ -1458,11 +1458,13 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   if (vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
       is_fptr(emit->gwion, f->value_ref->type)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    const Instr base =
-        back->opcode != eGWOP_EXCEPT
+    const bool is_except = back->opcode == eGWOP_EXCEPT;
+    const Instr base = !is_except
             ? back
             : (Instr)vector_at(&emit->code->instr,
                                vector_size(&emit->code->instr) - 2);
+    if(is_except)
+      vector_pop(&emit->code->instr);
     const m_bit  exec = base->opcode;
     const m_uint val  = base->m_val;
     const m_uint val2 = base->m_val2;
@@ -1472,6 +1474,10 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val      = val;
     instr->m_val2     = val2;
+    if(is_except) {
+       vector_add(&emit->code->instr, (m_uint)back);
+       back->m_val = -SZ_INT;
+    }
   } else if (f != emit->env->func && !f->code &&
              !is_fptr(emit->gwion, f->value_ref->type)) {
     // not yet emitted static func

@@ -31,7 +31,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
 ANN static inline void shreduler_child(const Vector v) {
   for (m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-    shreduler_remove(child->info->vm->shreduler, child, true);
+    shreduler_remove(child->tick->shreduler, child, true);
   }
 }
 

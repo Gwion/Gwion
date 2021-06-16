@@ -264,7 +264,7 @@ static INSTR(UsrUGenTick) {
   vmcode_addref(*(VM_Code *)(shred->reg - offset));
   uu->shred->info->vm = shred->info->vm;
   code_prepare(vmcode_callback(shred->info->mp, uu->shred->code));
-  shreduler_ini(uu->shred->info->vm->shreduler, uu->shred);
+  shreduler_ini(uu->shred->tick->shreduler, uu->shred);
   uu->prep                           = instr->m_val ? member_prep : global_prep;
   *(M_Object *)(shred->reg - SZ_INT) = o;
 }
