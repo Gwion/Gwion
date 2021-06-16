@@ -686,12 +686,13 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type t = cdef->base.type;
+  const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan1)) return GW_OK;
   set_tflag(t, tflag_scan1);
   if (t->info->value->from->owner_class)
     CHECK_BB(ensure_scan1(env, t->info->value->from->owner_class));
-  if (cdef->base.ext) CHECK_BB(cdef_parent(env, cdef));
-  if (cdef->body) CHECK_BB(env_body(env, cdef, scan1_section));
+  if (c->base.ext) CHECK_BB(cdef_parent(env, c));
+  if (c->body) CHECK_BB(env_body(env, c, scan1_section));
   return GW_OK;
 }
 

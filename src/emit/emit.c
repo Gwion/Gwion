@@ -2732,17 +2732,18 @@ ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type t = cdef->base.type;
+  const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_emit)) return GW_OK;
   set_tflag(t, tflag_emit);
   const Type owner = t->info->value->from->owner_class;
   if (owner) CHECK_BB(ensure_emit(emit, owner));
-  if (cdef->base.ext && t->info->parent->info->cdef &&
+  if (c->base.ext && t->info->parent->info->cdef &&
       !tflag(t->info->parent, tflag_emit)) // ?????
-    CHECK_BB(cdef_parent(emit, cdef));
+    CHECK_BB(cdef_parent(emit, c));
   nspc_allocdata(emit->gwion->mp, t->nspc);
-  if (cdef->body) {
+  if (c->body) {
     emit_class_code(emit, t->name);
-    if (scanx_body(emit->env, cdef, (_exp_func)emit_section, emit) > 0)
+    if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0)
       t->nspc->pre_ctor = finalyze(emit, FuncReturn);
     else {
       free_code(emit->gwion->mp, emit->code);

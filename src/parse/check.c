@@ -1789,16 +1789,17 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type       t   = cdef->base.type;
+  const Class_Def  c   = t->info->cdef;
   struct Op_Import opi = {.op   = insert_symbol("@class_check"),
                           .lhs  = t,
-                          .data = (uintptr_t)cdef,
-                          .pos  = cdef->pos};
+                          .data = (uintptr_t)c,
+                          .pos  = c->pos};
   CHECK_OB(op_check(env, &opi));
   if (t->info->value->from->owner_class)
     CHECK_BB(ensure_check(env, t->info->value->from->owner_class));
   if (tflag(t, tflag_check)) return GW_OK;
   set_tflag(t, tflag_check);
-  return _check_class_def(env, cdef);
+  return _check_class_def(env, c);
 }
 
 ANN static inline void check_unhandled(const Env env) {
