@@ -70,6 +70,7 @@ static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
 
 static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan *)data;
+  CHECK_OO(ts->td);
   return opck_object_scan(env, ts);
 }
 
@@ -128,7 +129,6 @@ ANN static inline void emit_member(const Emitter emit, const Value v,
   const m_uint size  = v->type->size;
   const Instr  instr = emit_dotmember(emit, size, emit_addr);
   instr->m_val       = v->from->offset;
-  instr->m_val2      = size;
 }
 
 ANN static inline void emit_struct_data(const Emitter emit, const Value v,
@@ -199,11 +199,17 @@ OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Type     t_base = actual_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
+  if (is_class(emit->gwion, value->type)) {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val      = (m_uint)value->type;
+    return GW_OK;
+  }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
        (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
         !is_fptr(emit->gwion, exp_self(member)->type)))) {
-    if (!tflag(t_base, tflag_struct)) CHECK_BB(emit_exp(emit, member->base));
+    if (!tflag(t_base, tflag_struct) && vflag(value, vflag_member))
+      CHECK_BB(emit_exp(emit, member->base));
   }
   if (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
       !is_fptr(emit->gwion, exp_self(member)->type))

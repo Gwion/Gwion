@@ -101,10 +101,9 @@ ANN static inline void env_inline_mult(const Env env, const float mult) {
 
 ANN static inline bool is_hole(const Env env, const Exp exp) {
   const Symbol hole = insert_symbol("_");
-  if(exp->exp_type == ae_exp_primary) {
-    if(exp->d.prim.prim_type == ae_prim_id) {
-      if(exp->d.prim.d.var == hole)
-        return true;
+  if (exp->exp_type == ae_exp_primary) {
+    if (exp->d.prim.prim_type == ae_prim_id) {
+      if (exp->d.prim.d.var == hole) return true;
     }
   }
   return false;

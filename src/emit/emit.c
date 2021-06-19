@@ -498,7 +498,8 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
            : emit_regpushbase(emit, size, exp_getvar(prim_exp(data)));
   instr->m_val = v->from->offset;
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
-      (isa(v->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion,  v->type))) {
+      (isa(v->type, emit->gwion->type[et_object]) > 0 ||
+       is_fptr(emit->gwion, v->type))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val      = -SZ_INT;
   }
@@ -506,6 +507,8 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
 }
 
 ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary *prim) {
+  if (!prim->value) // assume it's an operator
+    ERR_B(exp_self(prim)->pos, "missing value for operator");
   return _emit_symbol(emit, &prim->d.var);
 }
 
@@ -1137,8 +1140,8 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   // skip when recursing
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   const Func f = t->info->func;
-  if (is_fptr(emit->gwion, t) || f != emit->env->func ||
-      f->value_ref->from->owner_class || strstr(emit->code->name, "ork~"))
+  if (is_fptr(emit->gwion, t) || strstr(emit->code->name, "ork~") ||
+      (f != emit->env->func || f->value_ref->from->owner_class))
     CHECK_BB(prepare_call(emit, exp_call));
   else
     CHECK_BB(emit_func_args(emit, exp_call));
@@ -1180,10 +1183,11 @@ ANN static m_uint get_decl_size(Var_Decl_List a, bool emit_addr) {
 ANN static m_uint pop_exp_size(Exp e) {
   const bool emit_addr = exp_getvar(e);
   m_uint     size      = 0;
-  do { // account for emit_var ?
+  do {
     size += (e->exp_type == ae_exp_decl
                  ? get_decl_size(e->d.exp_decl.list, emit_addr)
-                 : e->type->size);
+             : !emit_addr ? e->type->size
+                          : SZ_INT);
   } while ((e = e->next));
   return size;
 }
@@ -1435,12 +1439,12 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       }
     } else if (emit->env->func != f && !f->value_ref->from->owner_class &&
                !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
+      // ensure env?
+      CHECK_BB(emit_func_def(emit, f->def));
       if (fbflag(f->def->base, fbflag_op)) {
         const Instr back = (Instr)vector_back(&emit->code->instr);
         back->m_val      = (m_uint)f;
       } else {
-        // ensure env?
-        CHECK_BB(emit_func_def(emit, f->def));
         const Instr instr = emit_add_instr(emit, RegSetImm);
         instr->m_val      = (m_uint)f->code;
         instr->m_val2     = -SZ_INT;
@@ -1457,14 +1461,13 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   }
   if (vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
       is_fptr(emit->gwion, f->value_ref->type)) {
-    const Instr back = (Instr)vector_back(&emit->code->instr);
-    const bool is_except = back->opcode == eGWOP_EXCEPT;
-    const Instr base = !is_except
-            ? back
-            : (Instr)vector_at(&emit->code->instr,
-                               vector_size(&emit->code->instr) - 2);
-    if(is_except)
-      vector_pop(&emit->code->instr);
+    const Instr back      = (Instr)vector_back(&emit->code->instr);
+    const bool  is_except = back->opcode == eGWOP_EXCEPT;
+    const Instr base =
+        !is_except ? back
+                   : (Instr)vector_at(&emit->code->instr,
+                                      vector_size(&emit->code->instr) - 2);
+    if (is_except) vector_pop(&emit->code->instr);
     const m_bit  exec = base->opcode;
     const m_uint val  = base->m_val;
     const m_uint val2 = base->m_val2;
@@ -1474,9 +1477,9 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
     instr->m_val      = val;
     instr->m_val2     = val2;
-    if(is_except) {
-       vector_add(&emit->code->instr, (m_uint)back);
-       back->m_val = -SZ_INT;
+    if (is_except) {
+      vector_add(&emit->code->instr, (m_uint)back);
+      back->m_val = -SZ_INT;
     }
   } else if (f != emit->env->func && !f->code &&
              !is_fptr(emit->gwion, f->value_ref->type)) {
@@ -1696,7 +1699,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
     exp_setvar(exp_if->else_exp, 1);
   }
   DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond));
-  CHECK_BB(emit_exp_pop_next(emit, exp_if->if_exp ?: exp_if->cond));
+  CHECK_BB(emit_exp_pop_next(emit, e));
   const Instr op2  = emit_add_instr(emit, Goto);
   op->m_val        = emit_code_size(emit);
   const m_bool ret = emit_exp_pop_next(emit, exp_if->else_exp);
@@ -1775,7 +1778,9 @@ ANN static m_bool emit_exp_lambda(const Emitter     emit,
 }
 
 ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl *td) {
-  regpushi(emit, (m_uint)_class_base(exp_self(td)->type));
+  const Type base = exp_self(td)->type;
+  const Type t    = _class_base(base) ?: base;
+  regpushi(emit, (m_uint)t);
   return GW_OK;
 }
 
@@ -2649,7 +2654,9 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   const Func     func   = f->base->func;
   const Func_Def fdef   = func->def;
   const Func     former = emit->env->func;
-  if (func->code || tmpl_base(fdef->base->tmpl)) return GW_OK;
+  if (func->code || tmpl_base(fdef->base->tmpl) || fflag(func, fflag_emit))
+    return GW_OK;
+  set_fflag(func, fflag_emit);
   if (vflag(func->value_ref, vflag_builtin) &&
       safe_tflag(emit->env->class_def, tflag_tmpl)) {
     const Func base =
@@ -2731,7 +2738,7 @@ ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
 
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
-  const Type t = cdef->base.type;
+  const Type      t = cdef->base.type;
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_emit)) return GW_OK;
   set_tflag(t, tflag_emit);

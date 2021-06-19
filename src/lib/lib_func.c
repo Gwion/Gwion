@@ -23,12 +23,12 @@ static OP_CHECK(opck_func_call) {
 }
 
 ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
-  const MemPool mp = env->gwion->mp;
-  const Exp next = e->next;
-  e->next = NULL;
-  const Exp ret = cpy_exp(mp, e);
-  e->next = next;
-  if(!check_exp(env, ret)) {
+  const MemPool mp   = env->gwion->mp;
+  const Exp     next = e->next;
+  e->next            = NULL;
+  const Exp ret      = cpy_exp(mp, e);
+  e->next            = next;
+  if (!check_exp(env, ret)) {
     free_exp(mp, ret);
     return NULL;
   }
@@ -36,29 +36,28 @@ ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
 }
 
 ANN static Exp order_curry(const Env env, Exp fn, Exp arg) {
-  const MemPool mp = env->gwion->mp;
-  Exp base   = NULL;
-  Exp next   = NULL;
+  const MemPool mp   = env->gwion->mp;
+  Exp           base = NULL;
+  Exp           next = NULL;
   do {
     const bool hole = is_hole(env, fn);
-    const Exp curr = !hole ? fn : arg;
-    if(hole) {
-      if(!arg) {
-        if(base)
-          free_exp(mp, base);
+    const Exp  curr = !hole ? fn : arg;
+    if (hole) {
+      if (!arg) {
+        if (base) free_exp(mp, base);
         ERR_O(fn->pos, "no enough arguments for holes");
       }
       arg = arg->next;
     }
-    if(!base)
+    if (!base)
       base = next = cpy_nonext(env, curr);
     else {
       next->next = cpy_nonext(env, curr);
-      next = next->next;
+      next       = next->next;
     }
   } while ((fn = fn->next));
   assert(base);
-  if(arg) {
+  if (arg) {
     free_exp(mp, base);
     ERR_O(arg->pos, "too many arguments for holes");
   }
@@ -69,15 +68,16 @@ static OP_CHECK(opck_curry) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   Exp         lhs  = bin->lhs;
   Exp_Call    base = bin->rhs->d.exp_call;
-  DECL_OO(const Exp,   args, = order_curry(env, base.args, lhs));
-  Exp_Call    call = {.func = base.func, .args = args};
-  Exp         e    = exp_self(bin);
-  e->exp_type      = ae_exp_call;
-  e->type          = NULL;
+  DECL_ON(const Exp, args, = order_curry(env, base.args, lhs));
+  Exp_Call call = {.func = base.func, .args = args};
+  Exp      e    = exp_self(bin);
+  e->exp_type   = ae_exp_call;
+  e->type       = NULL;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   const MemPool mp = env->gwion->mp;
   free_exp(mp, base.args);
   free_exp(mp, lhs);
+  env->scope->allow_curry = true;
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
@@ -94,7 +94,8 @@ static OP_EMIT(opem_func_assign) {
     fptr_instr(emit, bin->lhs->type->info->func, 2);
   (void)emit_add_instr(emit, int_r_assign);
   if (!is_fptr(emit->gwion, bin->lhs->type) &&
-      vflag(bin->rhs->type->info->func->value_ref, vflag_member)) {
+      vflag(bin->rhs->type->info->func->value_ref, vflag_member)/*&&
+      bin->lhs->exp_type != ae_exp_td*/) {
     const Instr pop = emit_add_instr(emit, RegMove);
     pop->m_val      = -SZ_INT;
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
@@ -341,6 +342,9 @@ static OP_CHECK(opck_fptr_at) {
   Exp_Binary *bin = (Exp_Binary *)data;
   if (bin->rhs->exp_type == ae_exp_decl)
     UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
+  if (bin->lhs->exp_type == ae_exp_td)
+    ERR_N(bin->lhs->pos, "can't use type_decl expression");
+  //    UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   if (bin->rhs->type->info->func->def->base->tmpl &&
       bin->rhs->type->info->func->def->base->tmpl->call) {
     struct FptrInfo info = {bin->lhs->type->info->func,
@@ -357,7 +361,7 @@ static OP_CHECK(opck_fptr_at) {
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
-
+/*
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast *      cast = (Exp_Cast *)data;
   const Type      t    = exp_self(cast)->type;
@@ -366,7 +370,7 @@ static OP_CHECK(opck_fptr_cast) {
   CHECK_BN(fptr_do(env, &info));
   return t;
 }
-
+*/
 static void member_fptr(const Emitter emit) {
   const Instr instr = emit_add_instr(emit, RegMove);
   instr->m_val      = -SZ_INT;
@@ -377,7 +381,7 @@ static void member_fptr(const Emitter emit) {
 static inline int is_member(const Type from) {
   return vflag(from->info->func->value_ref, vflag_member);
 }
-
+/*
 static OP_EMIT(opem_fptr_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
   if (is_member(cast->exp->type)) member_fptr(emit);
@@ -385,7 +389,7 @@ static OP_EMIT(opem_fptr_cast) {
     fptr_instr(emit, cast->exp->type->info->func, 1);
   return GW_OK;
 }
-
+*/
 static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   struct FptrInfo  info = {impl->e->type->info->func, impl->t->info->func,
@@ -657,9 +661,9 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
   GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
-  GWI_BB(gwi_oper_emi(gwi, opem_fptr_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
+  //  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  //  GWI_BB(gwi_oper_emi(gwi, opem_fptr_cast))
+  //  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))

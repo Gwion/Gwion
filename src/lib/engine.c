@@ -157,7 +157,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_curry = gwi_mk_type(gwi, "@Curry", 0, NULL);
   GWI_BB(gwi_set_global_type(gwi, t_curry, et_curry))
 
-
   gwidoc(gwi, "type for internal pointer data.");
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
   GWI_BB(gwi_typedef_end(gwi, ae_flag_none))

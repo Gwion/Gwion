@@ -16,19 +16,19 @@ struct VM_Code_ {
     struct Vector_ instr;
     m_uint         native_func;
   };
-  Type   ret_type; // could be `struct Vector_ tmpl_types;`
+  Type ret_type; // could be `struct Vector_ tmpl_types;`
   union {
     void *   memoize;
     Closure *closure;
   };
-  m_str       name;
-  struct Map_ handlers;
+  m_str            name;
+  struct Map_      handlers;
   struct M_Vector_ live_values;
-  uint16_t    stack_depth;
-  uint16_t    ref;
-  bool        builtin;
-  bool        callback;
-  bool        is_memoize;
+  uint16_t         stack_depth;
+  uint16_t         ref;
+  bool             builtin;
+  bool             callback;
+  bool             is_memoize;
 };
 
 typedef struct frame_t {
@@ -97,9 +97,10 @@ struct VM_Shred_ {
   struct ShredInfo_ *info;
 };
 REF_FUNC(VM_Code, vmcode)
-ANN2(1,4)
-ANEW VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values, const m_str name,
-                        const uint16_t stack_depth, const bool builtin);
+ANN2(1, 4)
+ANEW VM_Code     new_vmcode(MemPool p, const Vector instr,
+                            const M_Vector live_values, const m_str name,
+                            const uint16_t stack_depth, const bool builtin);
 ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));

@@ -1,14 +1,15 @@
 #ifndef __NSPC
 #define __NSPC
 struct NspcInfo_ {
-  m_bit *     class_data;
-  struct Map_ op_map;
-  Scope       value;
-  Scope       type;
-  Scope       func;
-  Scope       trait;
-  size_t      offset;
-  size_t      class_data_size;
+  m_bit *        class_data;
+  struct Map_    op_map;
+  Scope          value;
+  Scope          type;
+  Scope          func;
+  Scope          trait;
+  struct Vector_ op_map_tmpl;
+  uint16_t       offset;
+  uint16_t       class_data_size;
 };
 
 struct Nspc_ {

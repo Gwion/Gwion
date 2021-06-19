@@ -888,17 +888,15 @@ ANN static m_bool predefined_call(const Env env, const Type t,
 }
 
 ANN2(1) static inline bool curried(const Env env, Exp exp) {
-  while(exp) {
-    if (is_hole(env, exp))
-      return true;
+  while (exp) {
+    if (is_hole(env, exp)) return true;
     exp = exp->next;
   }
   return false;
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if(curried(env, exp->args))
-    return env->gwion->type[et_curry];
+  if (curried(env, exp->args)) return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;
@@ -952,7 +950,7 @@ ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
 #define check_flow(emit, b) _flow(emit, b, 1)
 
 ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
-  if(!exp_if->if_exp) {
+  if (!exp_if->if_exp) {
     const Exp e = exp_if->if_exp = cpy_exp(env->gwion->mp, exp_if->cond);
     scan1_exp(env, e);
     scan2_exp(env, e);
@@ -961,7 +959,8 @@ ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
   DECL_OO(const Type, if_exp, = check_exp(env, exp_if->if_exp));
   DECL_OO(const Type, else_exp, = check_exp(env, exp_if->else_exp));
 
-  const uint meta = exp_getmeta(exp_if->if_exp) || exp_getmeta(exp_if->else_exp);
+  const uint meta =
+      exp_getmeta(exp_if->if_exp) || exp_getmeta(exp_if->else_exp);
   exp_setmeta(exp_self(exp_if), meta);
   const Type ret = find_common_anc(if_exp, else_exp);
   if (!ret)
@@ -1056,7 +1055,7 @@ ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
   DECL_OO(const Type, t, = known_type(env, *td));
-  if(isa(t, env->gwion->type[et_function]) > 0 && !is_fptr(env->gwion, t))
+  if (isa(t, env->gwion->type[et_function]) > 0 && !is_fptr(env->gwion, t))
     return type_class(env->gwion, t);
   return t;
 }

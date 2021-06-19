@@ -329,10 +329,10 @@ ANN static void func_no_overload(const Env env, const Func f, const Value v) {
   value_addref(v);
   nspc_add_value_front(env->curr, f->def->base->xid, v);
 
-  const Type newt    = type_copy(env->gwion->mp, t);
-  t->info->parent = newt;
-  newt->name         = s_name(f->def->base->xid);
-  newt->info->func   = f;
+  const Type newt  = type_copy(env->gwion->mp, t);
+  t->info->parent  = newt;
+  newt->name       = s_name(f->def->base->xid);
+  newt->info->func = f;
   nspc_add_type_front(env->curr, f->def->base->xid, newt);
   newt->info->value = v;
 }
@@ -591,7 +591,7 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
-  const Type t = cdef->base.type;
+  const Type      t = cdef->base.type;
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan2)) return GW_OK;
   if (t->info->value->from->owner_class)

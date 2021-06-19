@@ -12,24 +12,35 @@
 #include "object.h"
 #include "import.h"
 
-ANN static m_bool push_types(const Env env, const Tmpl *tmpl) {
+ANN static m_bool _push_types(const Env env, const Nspc nspc,
+                              const Tmpl *tmpl) {
   Specialized_List list = tmpl->list;
   Type_List        call = tmpl->call;
   do {
     if (!call) break;
     const Type t = known_type(env, call->td);
-    if (!t) return 1;
-    nspc_add_type(env->curr, list->xid, t);
+    if (!t) return GW_OK;
+    nspc_add_type(nspc, list->xid, t);
     call = call->next;
   } while ((list = list->next));
-  return !call;
+  return !call ? GW_OK : GW_ERROR;
+}
+
+ANN static m_bool push_types(const Env env, const Nspc nspc, const Tmpl *tmpl) {
+  if (nspc->parent) env->curr = env->curr->parent;
+  const Type t = env->class_def;
+  if (t) env->class_def = t->info->value->from->owner_class;
+  const m_bool ret = _push_types(env, nspc, tmpl);
+  if (nspc->parent) env->curr = nspc;
+  env->class_def = t;
+  return ret;
 }
 
 ANN static m_bool _template_push(const Env env, const Type t) {
   if (t->info->value->from->owner_class)
     CHECK_BB(template_push(env, t->info->value->from->owner_class));
   if (tflag(t, tflag_tmpl))
-    return push_types(env, t->info->cdef->base.tmpl); // incorrect
+    return push_types(env, t->nspc, t->info->cdef->base.tmpl); // incorrect
   return GW_OK;
 }
 
@@ -40,7 +51,7 @@ ANN m_bool template_push(const Env env, const Type t) {
 
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
-  if (push_types(env, tmpl)) return GW_OK;
+  if (push_types(env, env->curr, tmpl) > 0) return GW_OK;
   POP_RET(GW_ERROR);
 }
 

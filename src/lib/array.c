@@ -634,6 +634,12 @@ static OP_CHECK(opck_array_scan) {
   const Class_Def      c       = t_array->info->cdef;
   DECL_ON(const Type, base,
           = ts->t != t_array ? ts->t : known_type(env, ts->td->types->td));
+  if (base->size == 0) {
+    gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
+                "/dev/null", (loc_t) {}, 0);
+    env->context->error = true;
+    return env->gwion->type[et_error];
+  }
   if (!strncmp(base->name, "Ref:[", 5)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
@@ -660,10 +666,11 @@ static OP_CHECK(opck_array_scan) {
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
   (void)scan0_class_def(env, cdef);
-  const Type t = cdef->base.type;
-  (void)traverse_cdef(env, t);
+  const Type   t   = cdef->base.type;
+  const m_bool ret = traverse_cdef(env, t);
   env_pop(env, scope);
   env->context = ctx;
+  if (ret == GW_ERROR) return NULL;
   if (GET_FLAG(base, abstract))
     SET_FLAG(t, abstract);
   else

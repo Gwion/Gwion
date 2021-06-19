@@ -11,7 +11,7 @@
   __attribute__((hot)) ANN2(1) void a(const VM_Shred shred NUSED,              \
                                       const Instr instr    NUSED)
 
-//enum Kind { KIND_INT, KIND_FLOAT, KIND_OTHER, KIND_ADDR };
+// enum Kind { KIND_INT, KIND_FLOAT, KIND_OTHER, KIND_ADDR };
 
 typedef struct Instr_ *Instr;
 typedef void (*f_instr)(const VM_Shred, const Instr);

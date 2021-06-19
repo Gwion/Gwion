@@ -153,7 +153,7 @@ static MFUN(string_trim) {
       break;
   }
   if (len - start - end <= 0) {
-    *(m_uint *)RETURN = 0;
+    handle(shred, "InvalidStringTrimRequest");
     return;
   }
   char c[len - start - end + 1];
@@ -191,12 +191,7 @@ static MFUN(string_insert) {
   strcpy(str, STRING(o));
   m_int          i, len_insert = 0, index = *(m_int *)MEM(SZ_INT);
   const M_Object arg = *(M_Object *)MEM(SZ_INT * 2);
-
-  if (!arg) {
-    *(M_Object *)RETURN = NULL;
-    return;
-  }
-  char insert[strlen(STRING(arg)) + 1];
+  char           insert[strlen(STRING(arg)) + 1];
   strcpy(insert, STRING(arg));
   const m_uint len = strlen(str);
   len_insert       = strlen(insert);
@@ -223,7 +218,7 @@ static MFUN(string_replace) {
   const m_uint len = strlen(str);
   len_insert       = strlen(insert);
   if (index >= (m_int)len || index < 0 || (index + len_insert + 1) <= 0) {
-    *(M_Object *)RETURN = NULL;
+    handle(shred, "InvalidStringReplace");
     return;
   }
   char c[index + len_insert + 1];
@@ -242,7 +237,7 @@ static MFUN(string_replaceN) {
   const m_int    _len = *(m_int *)MEM(SZ_INT * 2);
   if (!arg || index > (m_int)strlen(STRING(o)) ||
       _len > (m_int)strlen(STRING(arg))) {
-    *(M_Object *)RETURN = NULL;
+    handle(shred, "InvalidStringReplace");
     return;
   }
   char         insert[strlen(STRING(arg)) + 1];
@@ -358,7 +353,7 @@ static MFUN(string_erase) {
   const m_int len   = strlen(str);
   const m_int size  = len - rem + 1;
   if (start >= len || size <= 0) {
-    *(M_Object *)RETURN = NULL;
+    handle(shred, "InvalidStringErase");
     return;
   }
   char c[size];

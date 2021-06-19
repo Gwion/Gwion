@@ -11,7 +11,7 @@ typedef struct Frame_ {
 } Frame;
 
 typedef struct VMValue_ {
-  Type t;
+  Type     t;
   uint16_t offset;
   uint16_t start;
   uint16_t end;
@@ -87,11 +87,13 @@ ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
   if (e->exp_type != ae_exp_dot) return true;
   const Exp_Dot *member = &e->d.exp_dot;
   return GET_FLAG(member->base->type, final) ||
+         !vflag(exp_self(member)->type->info->value, vflag_member) ||
          is_class(emit->gwion, member->base->type) ||
          member->base->exp_type == ae_exp_cast;
 }
 
-ANN Instr emit_kind(Emitter, const m_uint size, const bool addr, const f_instr func[]);
+ANN Instr emit_kind(Emitter, const m_uint size, const bool addr,
+                    const f_instr func[]);
 ANN Instr emit_regpushimm(Emitter, const m_uint, const bool);
 ANN Instr emit_regpushmem(Emitter, const m_uint, const bool);
 ANN Instr emit_regpushbase(Emitter, const m_uint, const bool);

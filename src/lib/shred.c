@@ -93,7 +93,7 @@ static SFUN(vm_shred_from_id) {
       }
     }
   }
-  *(m_uint *)RETURN = 0;
+  handle(shred, "InvalidShredRequest");
 }
 
 static MFUN(shred_args) {
@@ -108,7 +108,7 @@ static MFUN(shred_arg) {
     const m_str str = (m_str)vector_at(&s->info->args, *(m_uint *)MEM(SZ_INT));
     *(M_Object *)RETURN = str ? new_string(shred->info->mp, shred, str) : NULL;
   } else
-    *(m_uint *)RETURN = 0;
+    handle(shred, "InvalidShredArgumentRequest");
 }
 
 #ifndef BUILD_ON_WINDOWS

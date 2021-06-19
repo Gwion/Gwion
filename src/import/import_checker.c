@@ -209,7 +209,7 @@ ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t pos) {
   DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
   if (*tdc.str) {
     free_type_decl(gwion->mp, td);
-    GWION_ERR_O(pos, "excedental character '%c'", *tdc.str);
+    GWION_ERR_O(pos, "excedental character '%c' in '%s'", *tdc.str, str);
   }
   return td;
 }

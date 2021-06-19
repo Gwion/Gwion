@@ -173,8 +173,8 @@ static OP_EMIT(opem_int_range) {
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Unary *unary = (Exp_Unary *)data;                            \
     const Type           t     = env->gwion->type[TYPE];                       \
-    if (!exp_self(unary)->pos.first.line || !func(unary->exp)) return t;       \
     CHECK_NN(opck_unary_meta(env, data));                                      \
+    if (!func(unary->exp)) return t;                                           \
     const ctype num                   = OP unary->exp->d.prim.d.member;        \
     exp_self(unary)->exp_type         = ae_exp_primary;                        \
     exp_self(unary)->d.prim.prim_type = exptype;                               \
@@ -255,7 +255,7 @@ static OP_CHECK(opck_implicit_i2f) { return env->gwion->type[et_float]; }
               is_prim_float, m_float, ae_prim_float, num, fnum, fnum)
 #define BINARY_INT_FLOAT_FOLD2(name, TYPE, OP, pre, post)                      \
   BINARY_FOLD(int_float, name, TYPE, OP, pre, post, is_prim_int,               \
-              is_prim_float, m_float, ae_prim_float, num, fnum, num)
+              is_prim_float, m_float, ae_prim_num, num, fnum, num)
 
 BINARY_INT_FLOAT_FOLD(add, et_float, +, , )
 BINARY_INT_FLOAT_FOLD(sub, et_float, -, , )

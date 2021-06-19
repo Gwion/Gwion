@@ -17,6 +17,8 @@ static void sig(int unused NUSED) {
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 
+#include "compile.h"
+
 static void afl_run(const Gwion gwion) {
   gw_seed(gwion->vm->rand, 0);
   __AFL_INIT();
