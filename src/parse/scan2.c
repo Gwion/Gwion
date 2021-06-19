@@ -324,16 +324,28 @@ ANN static Type func_type(const Env env, const Func func) {
   return t;
 }
 
+ANN static void func_no_overload(const Env env, const Func f, const Value v) {
+  const Type t = v->type;
+  value_addref(v);
+  nspc_add_value_front(env->curr, f->def->base->xid, v);
+
+  const Type newt    = type_copy(env->gwion->mp, t);
+  t->info->parent = newt;
+  newt->name         = s_name(f->def->base->xid);
+  newt->info->func   = f;
+  nspc_add_type_front(env->curr, f->def->base->xid, newt);
+  newt->info->value = v;
+}
+
 ANN2(1, 2)
 static Value func_value(const Env env, const Func f, const Value overload) {
   const Type  t = func_type(env, f);
   const Value v = t->info->value = new_value(env->gwion->mp, t, t->name);
   valuefrom(env, v->from, f->def->base->pos);
   CHECK_OO(scan2_func_assign(env, f->def, f, v));
-  if (!overload) {
-    value_addref(v);
-    nspc_add_value_front(env->curr, f->def->base->xid, v);
-  } else if (overload->d.func_ref) {
+  if (!overload)
+    func_no_overload(env, f, v);
+  else if (overload->d.func_ref) {
     f->next                    = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
   }
