@@ -47,7 +47,6 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
   f->next         = NULL;
   const Tmpl tmpl = {.list = fdef->base->tmpl->list, .call = exp->tmpl->call};
   CHECK_BO(template_push_types(env, &tmpl));
-  ;
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
   f->next = next;
