@@ -1056,7 +1056,9 @@ ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
   DECL_OO(const Type, t, = known_type(env, *td));
-  return type_class(env->gwion, t);
+  if(isa(t, env->gwion->type[et_function]) > 0 && !is_fptr(env->gwion, t))
+    return type_class(env->gwion, t);
+  return t;
 }
 
 DECL_EXP_FUNC(check, Type, Env)
