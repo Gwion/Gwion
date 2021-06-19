@@ -365,6 +365,8 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   ID_List list = edef->list;
   do {
     CHECK_BB(already_defined(env, list->xid, edef->pos));
+    if(nspc_lookup_value1(edef->t->info->value->from->owner, list->xid))
+      ERR_B(edef->pos, "'%s' already defined", s_name(list->xid));
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
     valuefrom(env, v->from, edef->pos);
     if (env->class_def) {
