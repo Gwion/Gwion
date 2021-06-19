@@ -1071,7 +1071,7 @@ ANN Type check_exp(const Env env, const Exp exp) {
       CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)));
       if (env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 &&
           isa(curr->type, env->gwion->type[et_function]) > 0 &&
-          !fflag(curr->type->info->func, fflag_pure))
+          !safe_fflag(curr->type->info->func, fflag_pure))
         unset_fflag(env->func, fflag_pure);
     } while ((curr = curr->next));
   }
