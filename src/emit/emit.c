@@ -1052,9 +1052,8 @@ ANN static inline bool member_inlinable(const Func f, const Exp e) {
 ANN static inline Func is_inlinable(const Emitter   emit,
                                     const Exp_Call *exp_call) {
   const Type ftype = exp_call->func->type;
-  if (!is_func(emit->gwion, ftype)||
-      is_fptr(emit->gwion, ftype) || !ftype->info->func->code ||
-      ftype->info->func->code->builtin)
+  if (!is_func(emit->gwion, ftype) || is_fptr(emit->gwion, ftype) ||
+      !ftype->info->func->code || ftype->info->func->code->builtin)
     return false;
   const Func f = ftype->info->func;
   return (member_inlinable(f, exp_call->func) && check_inline(emit, f)) ? f
@@ -1779,8 +1778,7 @@ ANN static m_bool emit_exp_lambda(const Emitter     emit,
 
 ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl *td) {
   const Type base = exp_self(td)->type;
-  const Type t    = _class_base(base) ?: base;
-  regpushi(emit, (m_uint)t);
+  regpushi(emit, (m_uint)base);
   return GW_OK;
 }
 

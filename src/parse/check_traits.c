@@ -61,8 +61,7 @@ ANN static bool request_fun(const Env env, const Type t,
                             const Func_Def request) {
   const Value v = nspc_lookup_value0(t->nspc, request->base->xid);
   if (v) {
-    if (!is_func(env->gwion, v->type) ||
-        is_fptr(env->gwion, v->type)) {
+    if (!is_func(env->gwion, v->type) || is_fptr(env->gwion, v->type)) {
       gwerr_basic("is not a function", NULL, NULL, v->from->filename,
                   v->from->loc, 0);
       return false;

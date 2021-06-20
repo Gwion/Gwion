@@ -628,8 +628,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
                                             const Func_Def fdef) {
   const Value v = nspc_lookup_value1(env->curr, fdef->base->xid);
   if (!v) return GW_OK;
-  if (is_func(env->gwion, actual_type(env->gwion, v->type)))
-    return GW_OK;
+  if (is_func(env->gwion, actual_type(env->gwion, v->type))) return GW_OK;
   if ((!env->class_def || !GET_FLAG(env->class_def, final)) &&
       !nspc_lookup_value0(env->curr, fdef->base->xid))
     ERR_B(fdef->base->pos,

@@ -100,8 +100,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
 }
 
 static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
-  if (is_func(env->gwion, t) &&
-      t->info->func->def->base->tmpl)
+  if (is_func(env->gwion, t) && t->info->func->def->base->tmpl)
     return scan_func(env, t, td);
   ERR_O(td->pos,
         _("type '%s' is not template. You should not provide template types"),

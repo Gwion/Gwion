@@ -321,9 +321,9 @@ static DTOR(ugen_dtor) {
 
 static MFUN(ugen_channel) {
   const m_int i = *(m_int *)MEM(SZ_INT);
-  if (!UGEN(o)->multi)
-    *(M_Object *)RETURN = !i ? o : NULL;
-  else if (i > 0 || (m_uint)i < UGEN(o)->connect.multi->n_chan)
+  if (!UGEN(o)->multi && !i)
+    *(M_Object *)RETURN = o;
+  else if (i >= 0 && (m_uint)i < UGEN(o)->connect.multi->n_chan)
     *(M_Object *)RETURN = UGEN(o)->connect.multi->channel[i];
   else
     handle(shred, "InvalidChannelRequest");

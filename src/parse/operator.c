@@ -203,15 +203,13 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   Specialized_List sl  = base->tmpl->list;
   const Arg_List   arg = base->args;
   if (opi->lhs) {
-    if (!_tmpl_match(env, opi->lhs, arg->td, &sl))
-       return false;
-    if (fbflag(base, fbflag_postfix))
-       return !!opi->rhs;
+    if (!_tmpl_match(env, opi->lhs, arg->td, &sl)) return false;
+    if (fbflag(base, fbflag_postfix)) return !!opi->rhs;
     if (!fbflag(base, fbflag_unary)) {
-      if(!opi->rhs)return false;
-      if (!_tmpl_match(env, opi->rhs, arg->next->td, &sl))
-        return false;
-    } else if(opi->rhs) return false;
+      if (!opi->rhs) return false;
+      if (!_tmpl_match(env, opi->rhs, arg->next->td, &sl)) return false;
+    } else if (opi->rhs)
+      return false;
   } else {
     if (!fbflag(base, fbflag_unary) ||
         !_tmpl_match(env, opi->rhs, arg->td, &sl))
@@ -254,7 +252,7 @@ ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
     const Vector v = &nspc->info->op_tmpl;
     for (m_uint i = vector_size(v) + 1; --i;) {
       const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
-      if(opi->op != fdef->base->xid) continue;
+      if (opi->op != fdef->base->xid) continue;
       if (!tmpl_match(env, opi, fdef->base)) continue;
       return op_def(env, opi, fdef);
     }

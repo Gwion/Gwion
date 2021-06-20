@@ -292,6 +292,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
 }
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
+  if (l->def->base->func) return GW_ERROR;
   const Func_Def fdef = t->info->func->def;
   if (!GET_FLAG(t->info->func->value_ref, global))
     l->owner = t->info->value->from->owner_class;
