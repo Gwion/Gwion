@@ -186,26 +186,32 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
 
 //! check if type matches for template operator
 ANN bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
-                     Specialized_List *sl) {
-  if (!td->next && td->xid == (*sl)->xid) {
-    *sl = (*sl)->next;
+                     Specialized_List *slp) {
+  const Specialized_List sl = *slp;
+  if (sl && !td->next && !td->types && td->xid == sl->xid) {
+    *slp = sl->next;
     return true;
   }
   const Type base = known_type(env, td);
-  return isa(t, base) > 0;
+  return base ? isa(t, base) > 0 : false;
 }
 
 //! check Func_Base matches for template operator
+// usage of `is_class` is supicious rn
 ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
                     Func_Base *const base) {
   Specialized_List sl  = base->tmpl->list;
   const Arg_List   arg = base->args;
   if (opi->lhs) {
-    if (fbflag(base, fbflag_unary) ||
-        !_tmpl_match(env, opi->lhs, arg->td, &sl) ||
-        (opi->rhs && fbflag(base, fbflag_postfix)) ||
-        !_tmpl_match(env, opi->rhs, arg->next->td, &sl))
-      return false;
+    if (!_tmpl_match(env, opi->lhs, arg->td, &sl))
+       return false;
+    if (fbflag(base, fbflag_postfix))
+       return !!opi->rhs;
+    if (!fbflag(base, fbflag_unary)) {
+      if(!opi->rhs)return false;
+      if (!_tmpl_match(env, opi->rhs, arg->next->td, &sl))
+        return false;
+    } else if(opi->rhs) return false;
   } else {
     if (!fbflag(base, fbflag_unary) ||
         !_tmpl_match(env, opi->rhs, arg->td, &sl))
@@ -248,6 +254,7 @@ ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
     const Vector v = &nspc->info->op_tmpl;
     for (m_uint i = vector_size(v) + 1; --i;) {
       const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
+      if(opi->op != fdef->base->xid) continue;
       if (!tmpl_match(env, opi, fdef->base)) continue;
       return op_def(env, opi, fdef);
     }

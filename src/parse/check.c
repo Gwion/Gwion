@@ -721,7 +721,6 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   Tmpl *tm = fdef->base->tmpl;
   if (tm->call) return check_predefined(env, exp, value, tm, fdef);
   DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));
-  ;
   Tmpl tmpl               = {.call = tl};
   ((Exp_Call *)exp)->tmpl = &tmpl;
   DECL_OO(const Func, func, = get_template_func(env, exp, value));
@@ -896,7 +895,7 @@ ANN2(1) static inline bool curried(const Env env, Exp exp) {
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if (curried(env, exp->args)) return env->gwion->type[et_curry];
+  if (env->scope->allow_curry && curried(env, exp->args)) return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;
