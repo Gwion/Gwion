@@ -82,6 +82,7 @@ ANN Type   op_check(const Env, struct Op_Import *);
 ANN m_bool op_emit(const Emitter, const struct Op_Import *);
 ANN m_bool operator_set_func(const struct Op_Import *);
 ANN void   free_op_map(Map map, struct Gwion_ *gwion);
+ANN void   free_op_tmpl(Vector v, struct Gwion_ *gwion);
 
 ANN void               operator_suspend(const Nspc, struct Op_Import *);
 ANN static inline void operator_resume(struct Op_Import *opi) {

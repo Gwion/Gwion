@@ -590,9 +590,9 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
     if (next) gw_err(", ");                                                    \
     return next;                                                               \
   }
-next_arg(Exp) next_arg(Arg_List)
+next_arg(Exp) next_arg(Arg_List);
 
-    ANN static void print_current_args(Exp e) {
+ANN static void print_current_args(Exp e) {
   gw_err(_("and not\n  "));
   do gw_err(" {G}%s{0}", e->type ? e->type->name : "{-/}Unknown");
   while ((e = next_arg_Exp(e)));
@@ -1546,6 +1546,7 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
 }
 
 ANN m_bool check_func_def(const Env env, const Func_Def f) {
+  if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
   assert(func == fdef->base->func);

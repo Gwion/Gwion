@@ -1,0 +1,3 @@
+operator int --- :[A,C] (A i, C j) { return i;}
+<<< 1 --- 2 >>>;
+<<< 2 --- 2 >>>;

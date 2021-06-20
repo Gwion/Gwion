@@ -10,6 +10,9 @@
 #include "operator.h"
 #include "object.h"
 #include "array.h"
+#include "import.h"
+#include "traverse.h"
+#include "clean.h"
 
 typedef Type (*f_type)(const Env env, const Exp exp);
 
@@ -35,6 +38,15 @@ ANN void free_op_map(Map map, struct Gwion_ *gwion) {
     vector_release(v);
   }
   map_release(map);
+}
+
+ANN void free_op_tmpl(Vector v, struct Gwion_ *gwion) {
+  LOOP_OPTIM
+  for (m_uint i = vector_size(v) + 1; --i;) {
+    const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
+    free_func_def(gwion->mp, fdef);
+  }
+  vector_release(v);
 }
 
 static m_str type_name(const Type t) {
@@ -172,6 +184,77 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
   return NULL;
 }
 
+//! check if type matches for template operator
+ANN bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
+                     Specialized_List *sl) {
+  if (!td->next && td->xid == (*sl)->xid) {
+    *sl = (*sl)->next;
+    return true;
+  }
+  const Type base = known_type(env, td);
+  return isa(t, base) > 0;
+}
+
+//! check Func_Base matches for template operator
+ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
+                    Func_Base *const base) {
+  Specialized_List sl  = base->tmpl->list;
+  const Arg_List   arg = base->args;
+  if (opi->lhs) {
+    if (fbflag(base, fbflag_unary) ||
+        !_tmpl_match(env, opi->lhs, arg->td, &sl) ||
+        (opi->rhs && fbflag(base, fbflag_postfix)) ||
+        !_tmpl_match(env, opi->rhs, arg->next->td, &sl))
+      return false;
+  } else {
+    if (!fbflag(base, fbflag_unary) ||
+        !_tmpl_match(env, opi->rhs, arg->td, &sl))
+      return false;
+  }
+  return true;
+}
+
+//! make template operator Type_List
+ANN2(1, 2)
+static Type_List op_type_list(const Env env, const Type t, const Type_List next,
+                              const loc_t loc) {
+  Type_Decl *const td0 = type2td(env->gwion, t, loc);
+  return new_type_list(env->gwion->mp, td0, next);
+}
+
+//! make template operator Func_def
+ANN Type op_def(const Env env, struct Op_Import *const opi,
+                const Func_Def fdef) {
+  const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
+  tmpl_fdef->base->tmpl->base = 0;
+  if (opi->lhs) {
+    Type_List next =
+        opi->rhs ? op_type_list(env, opi->rhs, NULL, opi->pos) : NULL;
+    tmpl_fdef->base->tmpl->call = op_type_list(env, opi->lhs, next, opi->pos);
+  } else
+    tmpl_fdef->base->tmpl->call = op_type_list(env, opi->rhs, NULL, opi->pos);
+  if (traverse_func_def(env, tmpl_fdef) < 0) {
+    if (!tmpl_fdef->base->func) func_def_cleaner(env->gwion, tmpl_fdef);
+    return NULL;
+  }
+  return op_check(env, opi);
+}
+
+//! find template operator
+ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
+  Nspc nspc = env->curr;
+  do {
+    if (!nspc->info->op_tmpl.ptr) continue;
+    const Vector v = &nspc->info->op_tmpl;
+    for (m_uint i = vector_size(v) + 1; --i;) {
+      const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
+      if (!tmpl_match(env, opi, fdef->base)) continue;
+      return op_def(env, opi, fdef);
+    }
+  } while ((nspc = nspc->parent));
+  return NULL;
+}
+
 ANN Type op_check(const Env env, struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = env->curr;
@@ -197,6 +280,8 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
       } while (l && (l = op_parent(env, l)));
     } while ((nspc = nspc->parent));
   }
+  const Type try_tmpl = op_check_tmpl(env, opi);
+  if (try_tmpl) return try_tmpl;
   // this should be an any case
   if (opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
     return opi->rhs;

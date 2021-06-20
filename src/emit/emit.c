@@ -2651,6 +2651,7 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
 }
 
 ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
+  if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func   = f->base->func;
   const Func_Def fdef   = func->def;
   const Func     former = emit->env->func;

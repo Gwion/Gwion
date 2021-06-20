@@ -7,7 +7,7 @@ struct NspcInfo_ {
   Scope          type;
   Scope          func;
   Scope          trait;
-  struct Vector_ op_map_tmpl;
+  struct Vector_ op_tmpl;
   uint16_t       offset;
   uint16_t       class_data_size;
 };

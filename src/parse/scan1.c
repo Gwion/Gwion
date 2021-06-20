@@ -418,7 +418,7 @@ ANN static Type scan1_noret(const Env env, const Func_Base *base) {
   ERR_O(base->pos, _("Can't use type `{+G}%s{0}` for return"), t->name);
 }
 
-ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
+ANN static m_bool _scan1_fbase_tmpl(const Env env, Func_Base *base) {
   Specialized_List id = base->tmpl->list;
   do nspc_add_type(env->curr, id->xid, env->gwion->type[et_auto]);
   while ((id = id->next));
@@ -431,15 +431,30 @@ ANN static m_bool _scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
   return GW_OK;
 }
 
-ANN static m_bool scan1_fdef_base_tmpl(const Env env, Func_Base *base) {
+ANN static m_bool scan1_fbase_tmpl(const Env env, Func_Base *const base) {
   nspc_push_type(env->gwion->mp, env->curr);
-  const m_bool ret = _scan1_fdef_base_tmpl(env, base);
+  const m_bool ret = _scan1_fbase_tmpl(env, base);
   nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
 }
 
+ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
+  Func_Base *const base = fdef->base;
+  if (!fbflag(base, fbflag_op)) return scan1_fbase_tmpl(env, base);
+  Arg_List         arg = fdef->base->args;
+  Specialized_List sl  = fdef->base->tmpl->list;
+  do {
+    if (!arg->td->next && sl && arg->td->xid == sl->xid) { sl = sl->next; }
+  } while ((arg = arg->next));
+  if (sl) ERR_B(base->pos, "too many template types for operator");
+  const Vector v = &env->curr->info->op_tmpl;
+  if (!v->ptr) vector_init(v);
+  vector_add(v, (m_uint)cpy_func_def(env->gwion->mp, fdef));
+  return GW_OK;
+}
+
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  if (tmpl_base(fptr->base->tmpl)) return scan1_fdef_base_tmpl(env, fptr->base);
+  if (tmpl_base(fptr->base->tmpl)) return scan1_fbase_tmpl(env, fptr->base);
   if (!fptr->base->func) {
     fptr->base->func =
         nspc_lookup_value0(env->curr, fptr->base->xid)->d.func_ref;
@@ -629,7 +644,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   if (fdef->base->td)
     CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos));
   CHECK_BB(scan1_fdef_defined(env, fdef));
-  if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef->base);
+  if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef);
   struct Func_ fake = {.name = s_name(fdef->base->xid)}, *const former =
                                                              env->func;
   env->func = &fake;

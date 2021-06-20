@@ -78,6 +78,7 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   nspc_free_func(a, gwion);
   nspc_free_trait(a, gwion);
   if (a->info->op_map.ptr) free_op_map(&a->info->op_map, gwion);
+  if (a->info->op_tmpl.ptr) free_op_tmpl(&a->info->op_tmpl, gwion);
   nspc_free_type(a, gwion);
   if (a->info->class_data && a->info->class_data_size)
     mp_free2(gwion->mp, a->info->class_data_size, a->info->class_data);

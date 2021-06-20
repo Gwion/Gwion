@@ -544,6 +544,8 @@ static inline int is_cpy(const Func_Def fdef) {
 }
 
 ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
+  if (tmpl_base(fdef->base->tmpl) && fbflag(fdef->base, fbflag_op))
+    return GW_OK;
   if (GET_FLAG(fdef->base, global) && !env->class_def) env->context->global = 1;
   const Func_Def f = !is_cpy(fdef) ? fdef : scan2_cpy_fdef(env, fdef);
   const m_uint   scope =
