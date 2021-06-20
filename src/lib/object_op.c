@@ -170,7 +170,7 @@ OP_CHECK(opck_object_dot) {
   const Value value = get_value(env, member, the_base);
   if (!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if (v && isa(v->type, env->gwion->type[et_function]) > 0) return v->type;
+    if (v && is_func(env->gwion, v->type)) return v->type;
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
@@ -206,12 +206,12 @@ OP_EMIT(opem_object_dot) {
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
-       (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
+       (is_func(emit->gwion, exp_self(member)->type) &&
         !is_fptr(emit->gwion, exp_self(member)->type)))) {
     if (!tflag(t_base, tflag_struct) && vflag(value, vflag_member))
       CHECK_BB(emit_exp(emit, member->base));
   }
-  if (isa(exp_self(member)->type, emit->gwion->type[et_function]) > 0 &&
+  if (is_func(emit->gwion, exp_self(member)->type) &&
       !is_fptr(emit->gwion, exp_self(member)->type))
     emit_member_func(emit, member);
   else if (vflag(value, vflag_member)) {

@@ -100,7 +100,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
 }
 
 static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
-  if (isa(t, env->gwion->type[et_function]) > 0 &&
+  if (is_func(env->gwion, t) &&
       t->info->func->def->base->tmpl)
     return scan_func(env, t, td);
   ERR_O(td->pos,
@@ -109,7 +109,7 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
 }
 
 ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
-  if (tflag(t, tflag_tmpl) && isa(t, env->gwion->type[et_function]) < 0) {
+  if (tflag(t, tflag_tmpl) && !is_func(env->gwion, t)) {
     if (tflag(t, tflag_ntmpl) && !td->types) return t;
     struct TemplateScan ts = {.t = t, .td = td};
     Type_List           tl = td->types;

@@ -137,10 +137,13 @@ ANN m_uint get_depth(const Type type) {
   return depth;
 }
 
-ANN m_bool is_fptr(const struct Gwion_ *gwion, const Type t) {
+ANN bool is_func(const struct Gwion_ *gwion, const Type t) {
+  return isa(actual_type(gwion, t), gwion->type[et_function]) > 0;
+}
+ANN bool is_fptr(const struct Gwion_ *gwion, const Type t) {
   return isa(actual_type(gwion, t), gwion->type[et_fptr]) > 0;
 }
-ANN inline m_bool is_class(const struct Gwion_ *gwion, const Type t) {
+ANN inline bool is_class(const struct Gwion_ *gwion, const Type t) {
   return isa(t, gwion->type[et_class]) > 0;
 }
 

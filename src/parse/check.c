@@ -537,8 +537,7 @@ ANN static Func call2ufcs(const Env env, Exp_Call *call, const Value v) {
 
 ANN Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
-  if (v && isa(v->type, env->gwion->type[et_function]) > 0 &&
-      !vflag(v, vflag_member))
+  if (v && is_func(env->gwion, v->type) && !vflag(v, vflag_member))
     return call2ufcs(env, call, v);
   return NULL;
 }
@@ -758,7 +757,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
                             "site. did you meant to use `@=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
-  if (isa(t, env->gwion->type[et_function]) > 0 &&
+  if (is_func(env->gwion , t) &&
       exp->func->exp_type == ae_exp_dot && !t->info->value->from->owner_class) {
     if (exp->args) CHECK_OB(check_exp(env, exp->args));
     return call2ufcs(env, exp, t->info->func->value_ref) ? GW_OK : GW_ERROR;
@@ -785,7 +784,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if (!ret) return exp_self(exp)->type;
   const Type t = actual_type(env->gwion, exp->func->type);
-  if (isa(t, env->gwion->type[et_function]) < 0) { // use func flag?
+  if (!is_func(env->gwion, t)) { // use func flag?
     struct Op_Import opi = {.op   = insert_symbol("@ctor"),
                             .rhs  = actual_type(env->gwion, exp->func->type),
                             .data = (uintptr_t)exp,
@@ -900,7 +899,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;
     const Type t = actual_type(env->gwion, exp->func->type);
-    if (isa(t, env->gwion->type[et_function]) < 0)
+    if (!is_func(env->gwion, t))
       return check_exp_call1(env, exp);
     if (exp->args) CHECK_OO(check_exp(env, exp->args));
     if (!t->info->func->def->base->tmpl)
@@ -1054,7 +1053,7 @@ ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
   DECL_OO(const Type, t, = known_type(env, *td));
-  if (isa(t, env->gwion->type[et_function]) > 0 && !is_fptr(env->gwion, t))
+  if (is_func(env->gwion, t) && !is_fptr(env->gwion, t))
     return type_class(env->gwion, t);
   return t;
 }
@@ -1068,7 +1067,7 @@ ANN Type check_exp(const Env env, const Exp exp) {
     do {
       CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)));
       if (env->func && isa(curr->type, env->gwion->type[et_lambda]) < 0 &&
-          isa(curr->type, env->gwion->type[et_function]) > 0 &&
+          is_func(env->gwion, curr->type) &&
           !safe_fflag(curr->type->info->func, fflag_pure))
         unset_fflag(env->func, fflag_pure);
     } while ((curr = curr->next));
@@ -1460,7 +1459,7 @@ ANN static m_bool check_parent_match(const Env env, const Func_Def fdef) {
   if (!env->curr->vtable.ptr) vector_init(&env->curr->vtable);
   if (parent) {
     const Value v = find_value(parent, fdef->base->xid);
-    if (v && isa(v->type, env->gwion->type[et_function]) > 0) {
+    if (v && is_func(env->gwion, v->type)) {
       const m_bool match = parent_match_actual(env, fdef, v->d.func_ref);
       if (match) return match;
     }
@@ -1516,7 +1515,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef,
     const Value override =
         find_value(env->class_def->info->parent, fdef->base->xid);
     if (override && override->from->owner_class &&
-        isa(override->type, env->gwion->type[et_function]) < 0)
+        !is_func(env->gwion, override->type))
       ERR_B(fdef->base->pos,
             _("function name '%s' conflicts with previously defined value...\n"
               "  from super class '%s'..."),

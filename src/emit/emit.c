@@ -1009,7 +1009,7 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call *exp_call) {
     //    emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
   }
   const Type t = actual_type(emit->gwion, exp_call->func->type);
-  if (isa(t, emit->gwion->type[et_function]) > 0 &&
+  if (is_func(emit->gwion, t) &&
       fbflag(t->info->func->def->base, fbflag_variadic))
     emit_func_arg_vararg(emit, exp_call);
   return GW_OK;
@@ -1052,7 +1052,7 @@ ANN static inline bool member_inlinable(const Func f, const Exp e) {
 ANN static inline Func is_inlinable(const Emitter   emit,
                                     const Exp_Call *exp_call) {
   const Type ftype = exp_call->func->type;
-  if (isa(ftype, emit->gwion->type[et_function]) < 0 ||
+  if (!is_func(emit->gwion, ftype)||
       is_fptr(emit->gwion, ftype) || !ftype->info->func->code ||
       ftype->info->func->code->builtin)
     return false;
@@ -1145,7 +1145,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     CHECK_BB(prepare_call(emit, exp_call));
   else
     CHECK_BB(emit_func_args(emit, exp_call));
-  if (isa(t, emit->gwion->type[et_function]) > 0)
+  if (is_func(emit->gwion, t))
     CHECK_BB(emit_exp_call1(emit, t->info->func,
                             is_static_call(emit, exp_call->func)));
   else {
@@ -1166,7 +1166,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     regpop(emit, exp_self(exp_call)->type->size);
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val      = -SZ_INT;
-  } else if (isa(exp_call->func->type, emit->gwion->type[et_function]) < 0 &&
+  } else if (!is_func(emit->gwion, exp_call->func->type) &&
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
   return GW_OK;
