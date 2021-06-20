@@ -468,16 +468,18 @@ ANN static m_bool func_match_inner(const Env env, const Exp e, const Type t,
                                    const m_bool specific) {
   const m_bool match = (specific ? e->type == t : isa(e->type, t) > 0);
   if (!match) {
+/*
     if (e->type == env->gwion->type[et_lambda] && is_fptr(env->gwion, t)) {
       exp_setvar(e, 1);
       return check_lambda(env, t, &e->d.exp_lambda);
     }
+*/
     if (implicit) {
       const m_bool ret = check_implicit(env, e, t);
       if (ret == GW_OK) return ret;
     }
   }
-  return match ? 1 : -1;
+  return match ? GW_OK : GW_ERROR;
 }
 
 ANN2(1, 2)
