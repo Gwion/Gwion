@@ -11,6 +11,8 @@ ANN void free_value(Value a, Gwion gwion) {
     _mp_free(gwion->mp, t->size, a->d.ptr);
   else if (is_class(gwion, t))
     type_remref(t, gwion);
+  /* else */if (vflag(a, vflag_inner))
+    type_remref(t, gwion);
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);
 }

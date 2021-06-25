@@ -20,22 +20,25 @@ static void sig(int unused NUSED) {
 #include "compile.h"
 
 static void afl_run(const Gwion gwion) {
-  gw_seed(gwion->vm->rand, 0);
   __AFL_INIT();
-  while (__AFL_LOOP(256)) {
-    FILE *f = fdopen(0, "r");
+  while (__AFL_LOOP(128)) {
     push_global(gwion, "[afl]");
+    FILE *f = fdopen(0, "r");
     if (compile_file(gwion, "afl", f)) gwion_run(gwion);
     pop_global(gwion);
   }
 }
 
-#define gwion_run(a)                                                           \
-  {                                                                            \
-    afl_run(a);                                                                \
-    return 0;                                                                  \
-  }
-#endif
+int main(int argc, char **argv) {
+  Arg arg = {};
+  struct Gwion_ gwion = {};
+  gwion_ini(&gwion, &arg);
+  arg_release(&arg);
+  afl_run(&gwion);
+  return EXIT_SUCCESS;
+}
+
+#else
 
 int main(int argc, char **argv) {
   Arg arg = {.arg = {.argc = argc, .argv = argv}, .loop = false};
@@ -51,3 +54,5 @@ int main(int argc, char **argv) {
 #endif
   return EXIT_SUCCESS;
 }
+
+#endif

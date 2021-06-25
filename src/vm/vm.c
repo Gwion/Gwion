@@ -53,8 +53,8 @@ ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
     const uint16_t pc = shred->pc;
     for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
       VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
-      if (pc < vmval->start) break;
-      if (pc > vmval->end) continue;
+      if (pc <= vmval->start) break;
+      if (pc >= vmval->end) continue;
       m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
       compound_release(shred, vmval->t, data);
     }

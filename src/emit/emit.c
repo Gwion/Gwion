@@ -516,7 +516,7 @@ ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
   emit_add_instr(emit, exec);
   const VM_Code code = emit->info->emit_code(emit);
   free_code(emit->gwion->mp, emit->code);
-  emit->code = (Code *)vector_pop(&emit->stack);
+  emit_pop_code(emit);
   return code;
 }
 
@@ -1442,7 +1442,13 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       CHECK_BB(emit_func_def(emit, f->def));
       if (fbflag(f->def->base, fbflag_op)) {
         const Instr back = (Instr)vector_back(&emit->code->instr);
-        back->m_val      = (m_uint)f;
+        assert(back->execute == SetFunc);
+        if(f->code) {
+          back->opcode = eRegPushImm;
+          back->m_val = f->code;
+          //  back->m_val2     = SZ_INT;
+        } else
+          back->m_val      = (m_uint)f;
       } else {
         const Instr instr = emit_add_instr(emit, RegSetImm);
         instr->m_val      = (m_uint)f->code;
@@ -1471,6 +1477,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     const m_uint val  = base->m_val;
     const m_uint val2 = base->m_val2;
     base->opcode      = eReg2Reg;
+//    base->m_val       = 0;//-SZ_INT;
     base->m_val2      = -SZ_INT;
     regpush(emit, SZ_INT);
     const Instr instr = emit_add_instr(emit, (f_instr)(m_uint)exec);
@@ -1491,8 +1498,11 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       instr->execute    = SetFunc;
       instr->m_val      = (m_uint)f;
     } else {
-      const Instr instr = emit_add_instr(emit, SetFunc);
-      instr->m_val      = (m_uint)f;
+        const Instr back = (Instr)vector_back(&emit->code->instr);
+        if(back->execute != SetFunc) {
+          const Instr instr = emit_add_instr(emit, SetFunc);
+          instr->m_val      = (m_uint)f;
+        }
     }
   }
   const m_uint offset = emit_code_offset(emit);
@@ -2636,6 +2646,7 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
 static ANN int fdef_is_file_global(const Emitter emit, const Func_Def fdef) {
   return !fbflag(fdef->base, fbflag_lambda) && !emit->env->class_def &&
          !GET_FLAG(fdef->base, global) && !fdef->base->tmpl &&
+         !fbflag(fdef->base, fbflag_op) &&
          !emit->env->scope->depth;
 }
 
@@ -2775,13 +2786,17 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
   return NULL;
 }
 
-ANN m_bool emit_ast(const Env env, Ast ast) {
-  const Emitter emit  = env->gwion->emit;
+ANN static inline void emit_clear(const Emitter emit) {
   emit->info->memoize = 0;
   emit->info->unroll  = 0;
   emit->info->line    = 0;
   emit->this_offset   = 0;
   emit->vararg_offset = 0;
+}
+
+ANN m_bool emit_ast(const Env env, Ast ast) {
+  const Emitter emit  = env->gwion->emit;
+  emit_clear(emit);
   emit->code          = new_code(emit, emit->env->name);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, ast);
@@ -2790,5 +2805,6 @@ ANN m_bool emit_ast(const Env env, Ast ast) {
     emit->info->code = finalyze(emit, EOC);
   else
     emit_free_stack(emit);
+  emit_clear(emit);
   return ret;
 }

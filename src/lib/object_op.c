@@ -24,9 +24,9 @@
     *(m_uint *)REG(-SZ_INT) = (lhs op rhs);                                    \
   }
 
-describe_logical(Eq, ==) describe_logical(Neq, !=)
+describe_logical(Eq, ==) describe_logical(Neq, !=);
 
-    static OP_CHECK(opck_object_at) {
+static OP_CHECK(opck_object_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
@@ -147,7 +147,8 @@ ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
 ANN static inline Value get_value(const Env env, const Exp_Dot *member,
                                   const Type t) {
   const Value value = find_value(t, member->xid);
-  if (value) return value;
+  if (value)
+    return value;
   if (env->func && env->func->def->base->values)
     return (Value)scope_lookup1(env->func->def->base->values,
                                 (m_uint)member->xid);
@@ -160,17 +161,15 @@ OP_CHECK(opck_object_dot) {
   const m_bool   base_static = is_class(env->gwion, member->base->type);
   const Type     the_base =
       base_static ? _class_base(member->base->type) : member->base->type;
-  //  if(!the_base->nspc)
-  //    ERR_N(&member->base->pos,
-  //          _("type '%s' does not have members - invalid use in dot expression
-  //          of %s"), the_base->name, str);
+
   if (member->xid == insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if (v && is_func(env->gwion, v->type)) return v->type;
+    if (v && member->is_call && is_func(env->gwion, v->type))
+      return v->type;
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
@@ -199,6 +198,7 @@ OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Type     t_base = actual_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
+
   if (is_class(emit->gwion, value->type)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;

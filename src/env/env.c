@@ -81,7 +81,7 @@ ANN void free_env(const Env a) {
   free_env_scope(a->scope, a->gwion);
   while (pop_global(a->gwion))
     ;
-  xfree(a);
+  mp_free(a->gwion->mp, Env, a);
 }
 
 ANN2(1, 3) m_uint env_push(const Env env, const Type type, const Nspc nspc) {

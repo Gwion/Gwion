@@ -12,6 +12,7 @@
 #include "lang_private.h"
 #include "specialid.h"
 #include "gack.h"
+#include "traverse.h"
 
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
@@ -55,6 +56,15 @@ OP_EMIT(opem_object_dot);
 static OP_CHECK(opck_basic_ctor) {
   const Exp_Call *call = (Exp_Call *)data;
   ERR_N(exp_self(call)->pos, _("can't call a non-callable value"));
+}
+
+static OP_CHECK(opck_class_call) {
+  const Exp_Binary *bin = (Exp_Binary *)data;
+  Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
+  Exp         e    = exp_self(bin);
+  e->exp_type      = ae_exp_call;
+  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
 static ID_CHECK(idck_predicate) {
@@ -205,6 +215,11 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+
+  gwidoc(gwi, "Allow binary call to constructors.");
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Class", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_class_call))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
 
   return GW_OK;
 }

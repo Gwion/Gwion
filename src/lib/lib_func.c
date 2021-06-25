@@ -282,6 +282,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
   // env_pop(env, scope);
+
   if (l->def->base->func) {
     if (env->curr->info->value != l->def->base->values) {
       free_scope(env->gwion->mp, env->curr->info->value);

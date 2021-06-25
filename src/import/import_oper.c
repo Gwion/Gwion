@@ -86,6 +86,7 @@ ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
       lint_space(gwi->lint);
     }
     lint(gwi->lint, "{/}%s{0}", op);
+    lint_space(gwi->lint);
     lint_lparen(gwi->lint);
     if (gwi->oper->lhs && gwi->oper->rhs) {
       lint(gwi->lint, "{+}%s{0}",

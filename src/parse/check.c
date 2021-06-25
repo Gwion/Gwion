@@ -457,11 +457,25 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
   return op_check(env, &opi);
 }
 
+// get the type of the function
+// without the mangling
+ANN static inline Type type_list_base_func(const Type type) {
+  const Nspc owner = type->info->value->from->owner;
+  const Symbol xid = type->info->func->def->base->xid;
+  return nspc_lookup_type0(owner, xid);
+}
+
+ANN static inline Type type_list_base(const Gwion gwion, const Type type) {
+  return !(is_func(gwion, type) && !is_fptr(gwion, type)) ?
+    type : type_list_base_func(type);
+}
+
 ANN static Type_List mk_type_list(const Env env, const Arg_List arg,
                                   const Type type, const loc_t pos) {
-  const Type t =
-      !arg->td->array ? type : array_type(env, type, arg->td->array->depth);
-  Type_Decl *td = type2td(env->gwion, t, pos);
+  const Type base = type_list_base(env->gwion, type);
+  const Type t    = !arg->td->array ?
+          base : array_type(env, base, arg->td->array->depth);
+  Type_Decl *td   = type2td(env->gwion, t, pos);
   return new_type_list(env->gwion->mp, td, NULL);
 }
 
@@ -518,14 +532,13 @@ ANN static Func call2ufcs(const Env env, Exp_Call *call, const Value v) {
   call->func->d.prim.d.var     = call->func->d.exp_dot.xid;
   call->func->exp_type         = ae_exp_primary;
   call->func->d.prim.prim_type = ae_prim_id;
-  call->args                   = this;
   CHECK_OO(check_exp_call(env, call));
   return call->func->type->info->func;
 }
 
 ANN Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
-  if (v && is_func(env->gwion, v->type) && !vflag(v, vflag_member))
+  if (v && is_func(env->gwion, v->type) && !v->from->owner_class)
     return call2ufcs(env, call, v);
   return NULL;
 }
@@ -684,6 +697,9 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     Exp      template_arg = exp->args;
     while (arg && template_arg) {
       if (list->xid == arg->td->xid) {
+        if  (isa(template_arg->type, env->gwion->type[et_lambda]) > 0 &&
+             !template_arg->type->info->func)
+          break;
         tl[args_number] =
             mk_type_list(env, arg, template_arg->type, fdef->base->pos);
         if (args_number) tl[args_number - 1]->next = tl[args_number];
@@ -695,7 +711,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     }
     list = list->next;
   }
-  if (args_number < type_number)
+  if (args_number < type_number) // TODO: free type_list
     ERR_O(exp->func->pos, _("not able to guess types for template call."))
   return tl[0];
 }
@@ -721,6 +737,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   Exp         e   = exp->args;
   while (arg && e) {
     arg->type = e->type;
+    if(is_class(env->gwion, arg->type))
+      type_addref(arg->type);
     arg       = arg->next;
     e         = e->next;
   }
@@ -740,6 +758,8 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 }
 
 ANN m_bool func_check(const Env env, Exp_Call *const exp) {
+  if(exp->func->exp_type == ae_exp_dot)
+    exp->func->d.exp_dot.is_call = true;
   CHECK_OB(check_exp(env, exp->func));
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
@@ -893,6 +913,9 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     if (!ret) return exp_self(exp)->type;
     const Type t = actual_type(env->gwion, exp->func->type);
     if (!is_func(env->gwion, t)) return check_exp_call1(env, exp);
+    if(isa(t, env->gwion->type[et_lambda]) > 0)
+      if  (!t->info->func)
+        ERR_O(exp->func->pos, _("invalid lambda use."))
     if (exp->args) CHECK_OO(check_exp(env, exp->args));
     if (!t->info->func->def->base->tmpl)
       ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
@@ -1540,6 +1563,8 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
+  if(fflag(func, fflag_valid))return GW_OK;
+  set_fflag(fdef->base->func, fflag_valid);
   assert(func == fdef->base->func);
   if (env->class_def) // tmpl ?
     CHECK_BB(check_parent_match(env, fdef));
@@ -1580,7 +1605,6 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
   --env->scope->depth;
   env->func = former;
   if (ret > 0) {
-    set_fflag(fdef->base->func, fflag_valid);
     if (env->class_def && fdef->base->effects.ptr &&
         (override &&
          !check_effect_overload(&fdef->base->effects, override->d.func_ref)))

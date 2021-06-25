@@ -112,10 +112,14 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
             env->class_def->size += t->size;
           }
         }
-      }
-      set_vflag(v, vflag_fglobal); // file global
+      } else
+        set_vflag(v, vflag_fglobal); // file global
     } else if (GET_FLAG(decl->td, global))
       SET_FLAG(v, global);
+    else if(v->type != env->gwion->type[et_auto] && v->type != env->class_def) {
+      type_addref(v->type);
+      set_vflag(v, vflag_inner); // file global
+    }
   } while ((list = list->next));
   ((Exp_Decl *)decl)->type = decl->list->self->value->type;
   return GW_OK;

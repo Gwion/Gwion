@@ -348,10 +348,11 @@ static MFUN(string_rfindStrStart) {
 
 static MFUN(string_erase) {
   const m_str str   = STRING(o);
-  const m_int start = *(m_int *)MEM(SZ_INT);
+  const m_int _start = *(m_int *)MEM(SZ_INT);
   const m_int rem   = *(m_int *)MEM(SZ_INT * 2);
   const m_int len   = strlen(str);
   const m_int size  = len - rem + 1;
+  const m_int start = _start >= 0 ? _start : len - _start;
   if (start >= len || size <= 0) {
     handle(shred, "InvalidStringErase");
     return;
