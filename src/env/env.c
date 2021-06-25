@@ -21,7 +21,7 @@ ANN static struct Env_Scope_ *new_envscope(MemPool p) {
 }
 
 Env new_env(MemPool p) {
-  const Env env    = (Env)xmalloc(sizeof(struct Env_));
+  const Env env    = (Env)mp_malloc(p, Env);
   env->global_nspc = new_nspc(p, "global_nspc");
   env->context     = NULL;
   env->scope       = new_envscope(p);

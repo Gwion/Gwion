@@ -1445,7 +1445,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
         assert(back->execute == SetFunc);
         if(f->code) {
           back->opcode = eRegPushImm;
-          back->m_val = f->code;
+          back->m_val = (m_uint)f->code;
           //  back->m_val2     = SZ_INT;
         } else
           back->m_val      = (m_uint)f;

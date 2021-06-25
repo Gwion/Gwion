@@ -7,12 +7,12 @@
 #include "arg.h"
 
 static void sig(int unused NUSED) {
-#ifdef BUILD_ON_WINDOWS
+//#ifdef BUILD_ON_WINDOWS
   exit(EXIT_FAILURE);
-#else
-  pthread_kill(pthread_self(), SIGTERM);
-  pthread_exit(NULL);
-#endif
+//#else
+//  pthread_kill(pthread_self(), SIGKILL);
+//  pthread_exit(NULL);
+//#endif
 }
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
