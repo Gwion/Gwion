@@ -21,7 +21,7 @@ ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d,
                           const enum tflag e) {
   VM_Code *code = e == tflag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
   const m_str name     = type->name;
-  *code                = new_vmcode(p, NULL, NULL, name, SZ_INT, true);
+  *code                = new_vmcode(p, NULL, NULL, name, SZ_INT, true, false);
   (*code)->native_func = (m_uint)d;
   type->tflag |= e;
   return GW_OK;

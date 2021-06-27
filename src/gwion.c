@@ -34,7 +34,7 @@ ANN static inline m_bool gwion_engine(const Gwion gwion) {
 
 ANN static void gwion_cleaner(const Gwion gwion) {
   const VM_Code code =
-      new_vmcode(gwion->mp, NULL, NULL, "in code dtor", 0, true);
+      new_vmcode(gwion->mp, NULL, NULL, "in code dtor", 0, true, false);
   gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
   vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
 }
@@ -217,6 +217,9 @@ ANN Nspc pop_global(struct Gwion_ *gwion) {
 
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {
   gwion->emit->info->debug = dbg;
+}
+ANN void gwion_set_dump(const Gwion gwion, const bool dump) {
+  gwion->emit->info->dump = dump;
 }
 ANN void gwion_set_cdoc(const Gwion gwion, const bool cdoc) {
   gwion->data->cdoc = cdoc;

@@ -100,7 +100,7 @@ REF_FUNC(VM_Code, vmcode)
 ANN2(1, 4)
 ANEW VM_Code     new_vmcode(MemPool p, const Vector instr,
                             const M_Vector live_values, const m_str name,
-                            const uint16_t stack_depth, const bool builtin);
+                            const uint16_t stack_depth, const bool builtin, const bool dump);
 ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));

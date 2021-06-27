@@ -12,7 +12,7 @@ static ANEW ANN VM_Code emit_code(const Emitter emit) {
   const bool    has_values = m_vector_size(&c->live_values);
   const VM_Code code       = new_vmcode(emit->gwion->mp, &c->instr,
                                   has_values ? &c->live_values : NULL, c->name,
-                                  c->stack_depth, false);
+                                  c->stack_depth, false, emit->info->dump);
   if (has_values) c->live_values.ptr = NULL;
   return code;
 }

@@ -37,6 +37,7 @@ struct EmitterInfo_ {
   uint16_t unroll;
   uint16_t line;
   bool     debug;
+  bool     dump;
 };
 
 struct Emitter_ {

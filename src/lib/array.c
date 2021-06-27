@@ -711,7 +711,7 @@ static OP_CHECK(opck_array_scan) {
                vm_vector_foldr);
   if (isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
-                               "array component dtor", SZ_INT, true);
+                               "array component dtor", SZ_INT, true, false);
     set_tflag(t, tflag_dtor);
     t->nspc->dtor->native_func = (m_uint)(
         !tflag(base, tflag_struct) ? array_dtor_obj : array_dtor_struct);

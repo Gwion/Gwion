@@ -155,7 +155,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
 
 VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values,
                    const m_str name, const uint16_t stack_depth,
-                   const bool builtin) {
+                   const bool builtin, const bool dump) {
   VM_Code code = mp_calloc(p, VM_Code);
   code->name   = mstrdup(p, name);
   if (instr) {
@@ -167,6 +167,7 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values,
   code->stack_depth = stack_depth;
   code->builtin     = builtin;
   code->ref         = 1;
+  if (dump) dump_opcodes(code);
   return code;
 }
 
@@ -178,7 +179,7 @@ VM_Code vmcode_callback(MemPool mp, VM_Code base) {
   const Instr instr  = (Instr)vector_back(&base->instr);
   instr->opcode      = eEOC;
   const VM_Code code = new_vmcode(mp, &base->instr, &base->live_values, name,
-                                  base->stack_depth, base->builtin);
+                                  base->stack_depth, base->builtin, false);
   code->closure      = base->closure;
   code->callback     = 1;
   instr->opcode      = eFuncReturn;

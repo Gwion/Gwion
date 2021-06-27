@@ -29,6 +29,7 @@ enum {
   UNDEF,
   INCLUDE,
   DEBUG,
+  DUMP,
   CDOC,
   NOPTIONS
 };
@@ -60,7 +61,8 @@ enum arg_type {
   ARG_UNDEF,
   ARG_INCLUDE,
   ARG_DEBUG,
-  ARG_CDOC
+  ARG_DUMP,
+  ARG_CDOC,
 };
 
 ANN static void arg_init(Arg *arg) {
@@ -92,6 +94,11 @@ ANN static inline void get_debug(const Gwion gwion, const char *dbg) {
   gwion_set_debug(gwion, is_dbg);
 }
 
+ANN static inline void get_dump(const Gwion gwion, const char *dbg) {
+  const bool is_dbg = str2bool(dbg);
+  gwion_set_dump(gwion, is_dbg);
+}
+
 ANN static inline void get_cdoc(const Gwion gwion, const char *cdoc) {
   const bool is_cdoc = str2bool(cdoc);
   gwion_set_cdoc(gwion, is_cdoc);
@@ -117,6 +124,9 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
       pparg_inc(gwion->ppa, (m_str)VPTR(v, ++i));
       break;
     case ARG_DEBUG:
+      get_debug(gwion, (m_str)VPTR(v, ++i));
+      break;
+    case ARG_DUMP:
       get_debug(gwion, (m_str)VPTR(v, ++i));
       break;
     }
@@ -172,6 +182,8 @@ static void setup_options(cmdapp_t *app, cmdopt_t *opt) {
              "add ARG to include path", &opt[INCLUDE]);
   cmdapp_set(app, 'G', "debug", CMDOPT_MAYTAKEARG, NULL, "set/unset debug mode",
              &opt[DEBUG]);
+  cmdapp_set(app, 'B', "dump", CMDOPT_MAYTAKEARG, NULL, "set/unset bytecode dump",
+             &opt[DUMP]);
   cmdapp_set(app, 'H', "cdoc", CMDOPT_MAYTAKEARG, NULL, "set/unset cdoc mode",
              &opt[CDOC]);
 }
@@ -294,6 +306,9 @@ static void myproc(void *data, cmdopt_t *option, const char *arg) {
       // debug
     case 'G':
       add2arg(_arg, option->value, ARG_DEBUG);
+      break;
+    case 'B':
+      get_dump(arg_int->gwion, option->value);
       break;
     case 'H':
       get_cdoc(arg_int->gwion, option->value);
