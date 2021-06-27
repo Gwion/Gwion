@@ -139,6 +139,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
           map_set(&code->handlers, j, new_pc);
         }
         *(m_uint *)(data + SZ_INT) = new_pc;
+        instr->m_val = new_pc;
       } else if (opcode == eRecurs /*|| opcode == eSetCode*/) {
         *(uint16_t *)(final + j * BYTECODE_SZ + SZ_INT * 2) =
             instr->udata.one += j + 1;

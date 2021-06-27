@@ -2524,15 +2524,6 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
   } while ((a = a->next));
 }
 
-ANN static void emit_func_def_ensure(const Emitter emit, const Func_Def fdef) {
-  const m_uint size = fdef->base->ret_type->size;
-  if (size) {
-    const Instr instr = emit_regpushimm(emit, size, false);
-    instr->m_val2     = size;
-  }
-  vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
-}
-
 ANN static m_bool emit_func_def_return(const Emitter emit) {
   const m_uint val = emit_code_size(emit);
   CHECK_BB(emit_defers(emit));
@@ -2577,7 +2568,6 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if (fdef->base->args) emit_func_def_args(emit, fdef->base->args);
   if (fbflag(fdef->base, fbflag_variadic)) stack_alloc(emit);
   if (fdef->d.code) CHECK_BB(scoped_stmt(emit, fdef->d.code, 1));
-  emit_func_def_ensure(emit, fdef);
   return GW_OK;
 }
 
