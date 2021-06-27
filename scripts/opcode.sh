@@ -55,6 +55,7 @@ echo "  gw_out(\"{Y}┏━━━━┓{0}{-Y} {+}%s{0}\n{Y}┃{0}\n\", code->nam
 echo "  m_uint j = 0;"
 echo "  for(m_uint i = 0; i < vector_size(&code->instr); i++) {"
 echo "    const Instr instr = (Instr)vector_at(&code->instr, i);"
+echo "    if (instr->opcode == eNoOp) continue;"
 echo "    switch(instr->opcode) {"
 for info in ${list}
 do

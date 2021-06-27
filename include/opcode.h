@@ -406,6 +406,7 @@ ANN static inline void dump_opcodes(const VM_Code code) {
   m_uint j = 0;
   for(m_uint i = 0; i < vector_size(&code->instr); i++) {
     const Instr instr = (Instr)vector_at(&code->instr, i);
+    if (instr->opcode == eNoOp) continue;
     switch(instr->opcode) {
       case eRegSetImm:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegSetImm   ", j);
