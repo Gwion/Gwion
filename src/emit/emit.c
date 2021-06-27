@@ -2569,6 +2569,7 @@ ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
 ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
   const VM_Code code = _emit_func_def_code(emit, func);
   if (emit->info->memoize && fflag(func, fflag_pure)) code->is_memoize = true;
+  code->ret_type = func->def->base->ret_type;
   return code;
 }
 
@@ -2672,7 +2673,6 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     const Func base =
         nspc_lookup_func1(func->value_ref->from->owner, f->base->xid);
     builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);
-    func->code->ret_type = fdef->base->ret_type;
     return GW_OK;
   }
   if (fdef_is_file_global(emit, fdef))
