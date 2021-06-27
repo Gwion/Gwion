@@ -2508,11 +2508,8 @@ ANN static inline void emit_func_def_fglobal(const Emitter emit,
   set_mem->m_val2     = (m_uint)value->d.func_ref->code;
 }
 
-ANN static void emit_func_def_init(const Emitter emit, const Func func) {
-  const Type t = emit->env->class_def;
-  char       c[(t ? strlen(t->name) + 1 : 0) + strlen(func->name) + 6];
-  sprintf(c, "%s%s%s(...)", t ? t->name : "", t ? "." : "", func->name);
-  emit_push_code(emit, c);
+ANN static inline void emit_func_def_init(const Emitter emit, const Func func) {
+  emit_push_code(emit, func->name);
 }
 
 ANN static void emit_func_def_args(const Emitter emit, Arg_List a) {
