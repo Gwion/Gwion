@@ -479,6 +479,16 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
   if (vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
+  if(is_func(emit->gwion, v->type) && !is_fptr(emit->gwion, v->type)) {
+    const Func f = v->type->info->func;
+    if(f->code)
+      regpushi(emit, (m_uint)f->code);
+    else {
+      const Instr instr = emit_add_instr(emit, SetFunc);
+      instr->m_val = (m_uint)f;
+    }
+    return GW_OK;
+  }
   if (!strncmp(v->type->name, "Ref:[", 5)) {
     if (exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
@@ -2631,18 +2641,9 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
   return GW_OK;
 }
 
-static ANN int fdef_is_file_global(const Emitter emit, const Func_Def fdef) {
-  return !fbflag(fdef->base, fbflag_lambda) && !emit->env->class_def &&
-         !GET_FLAG(fdef->base, global) && !fdef->base->tmpl &&
-         !fbflag(fdef->base, fbflag_op) &&
-         !emit->env->scope->depth;
-}
-
 ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
   const Func func = fdef->base->func;
   func->code      = emit_func_def_code(emit, func);
-  if (fdef_is_file_global(emit, fdef))
-    emit_func_def_fglobal(emit, func->value_ref);
   if (emit->info->memoize && fflag(func, fflag_pure))
     func->code->memoize = memoize_ini(emit, func);
 }
@@ -2662,8 +2663,6 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
     builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);
     return GW_OK;
   }
-  if (fdef_is_file_global(emit, fdef))
-    func->value_ref->from->offset = emit_local(emit, emit->gwion->type[et_int]);
   const uint   global = GET_FLAG(f->base, global);
   const m_uint scope =
       !global ? emit->env->scope->depth : env_push_global(emit->env);
