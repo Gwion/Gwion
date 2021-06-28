@@ -25,7 +25,6 @@ struct Env_Scope_ {
   uint16_t       depth;
   bool           in_try;
   bool           in_loop;
-  bool           allow_curry;
 };
 
 typedef struct Env_ {

@@ -77,7 +77,6 @@ static OP_CHECK(opck_curry) {
   const MemPool mp = env->gwion->mp;
   free_exp(mp, base.args);
   free_exp(mp, lhs);
-  env->scope->allow_curry = true;
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
