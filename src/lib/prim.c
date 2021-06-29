@@ -18,17 +18,17 @@
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
 
-static inline int is_prim(const Exp e) { return e->exp_type == ae_exp_primary; }
+static inline bool is_prim(const Exp e) { return e->exp_type == ae_exp_primary; }
 
-static inline int is_prim_int(const Exp e) {
+static inline bool is_prim_int(const Exp e) {
   return (is_prim(e) && e->d.prim.prim_type == ae_prim_num);
 }
 
-static inline int is_prim_float(const Exp e) {
+static inline bool is_prim_float(const Exp e) {
   return (is_prim(e) && e->d.prim.prim_type == ae_prim_float);
 }
 
-uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
+static inline uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
 
 #define POWEROF2_OPT(name, OP)                                                 \
   if (is_prim_int(bin->rhs) && pot(bin->rhs->d.prim.d.num)) {                  \
@@ -37,14 +37,14 @@ uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
     return check_exp(env, exp_self(bin));                                      \
   }
 
-#define BINARY_FOLD(ntype, name, TYPE, OP, pre, post, funcl, funcr, ctype,     \
+#define BINARY_FOLD(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,     \
                     exptype, lmember, rmember, retmember)                      \
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
     const Type            t   = env->gwion->type[TYPE];                        \
     if (!exp_self(bin)->pos.first.line) return t;                              \
     pre if (!funcl(bin->lhs) || !funcr(bin->rhs)) return t;                    \
-    post const ctype                  num =                                    \
+    const ctype                  num =                                    \
         bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
     free_exp(env->gwion->mp, bin->lhs);                                        \
     free_exp(env->gwion->mp, bin->rhs);                                        \
@@ -54,32 +54,52 @@ uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
     return t;                                                                  \
   }
 
-#define BINARY_INT_FOLD(name, TYPE, OP, pre, post)                             \
-  BINARY_FOLD(int, name, TYPE, OP, pre, post, is_prim_int, is_prim_int, m_int, \
+#define BINARY_FOLD_Z(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,   \
+                    exptype, lmember, rmember, retmember)                      \
+  static OP_CHECK(opck_##ntype##_##name) {                                     \
+    /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
+    const Type            t   = env->gwion->type[TYPE];                        \
+    if (!exp_self(bin)->pos.first.line) return t;                              \
+    const bool rconst = funcr(bin->rhs);                                       \
+    if(rconst && !bin->rhs->d.prim.d.retmember)                                \
+      ERR_N(bin->rhs->pos, _("ZeroDivideException"));                          \
+    pre if (!funcl(bin->lhs) || !rconst) return t;                             \
+    const ctype                  num =                                    \
+        bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
+    free_exp(env->gwion->mp, bin->lhs);                                        \
+    free_exp(env->gwion->mp, bin->rhs);                                        \
+    exp_self(bin)->exp_type           = ae_exp_primary;                        \
+    exp_self(bin)->d.prim.prim_type   = exptype;                               \
+    exp_self(bin)->d.prim.d.retmember = num;                                   \
+    return t;                                                                  \
+  }
+
+#define BINARY_INT_FOLD(name, TYPE, OP, pre)                             \
+  BINARY_FOLD(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
               ae_prim_num, num, num, num)
 
-BINARY_INT_FOLD(add, et_int, +, , )
-BINARY_INT_FOLD(sub, et_int, -, , )
-BINARY_INT_FOLD(mul, et_int, *, POWEROF2_OPT(name, <<), )
-BINARY_INT_FOLD(div, et_int, /, POWEROF2_OPT(name, >>),
-                if (bin->rhs->d.prim.d.num == 0)
-                    ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
-BINARY_INT_FOLD(mod, et_int, %, ,
-                if (bin->rhs->d.prim.d.num == 0)
-                    ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
-BINARY_INT_FOLD(sl, et_int, <<, , )
-BINARY_INT_FOLD(sr, et_int, >>, , )
-BINARY_INT_FOLD(sand, et_int, &, , )
-BINARY_INT_FOLD(sor, et_int, |, , )
-BINARY_INT_FOLD(xor, et_int, ^, , )
-BINARY_INT_FOLD(gt, et_bool, >, , )
-BINARY_INT_FOLD(lt, et_bool, <, , )
-BINARY_INT_FOLD(ge, et_bool, >=, , )
-BINARY_INT_FOLD(le, et_bool, <=, , )
-BINARY_INT_FOLD(and, et_bool, &&, , )
-BINARY_INT_FOLD(or, et_bool, ||, , )
-BINARY_INT_FOLD(eq, et_bool, ==, , )
-BINARY_INT_FOLD(neq, et_bool, !=, , )
+#define BINARY_INT_FOLD_Z(name, TYPE, OP, pre)                             \
+  BINARY_FOLD_Z(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
+              ae_prim_num, num, num, num)
+
+BINARY_INT_FOLD(add, et_int, +,)
+BINARY_INT_FOLD(sub, et_int, -,)
+BINARY_INT_FOLD(mul, et_int, *, POWEROF2_OPT(name, <<))
+BINARY_INT_FOLD_Z(div, et_int, /, POWEROF2_OPT(name, >>))
+BINARY_INT_FOLD_Z(mod, et_int, %,)
+BINARY_INT_FOLD(sl, et_int, <<,)
+BINARY_INT_FOLD(sr, et_int, >>,)
+BINARY_INT_FOLD(sand, et_int, &,)
+BINARY_INT_FOLD(sor, et_int, |,)
+BINARY_INT_FOLD(xor, et_int, ^,)
+BINARY_INT_FOLD(gt, et_bool, >,)
+BINARY_INT_FOLD(lt, et_bool, <,)
+BINARY_INT_FOLD(ge, et_bool, >=,)
+BINARY_INT_FOLD(le, et_bool, <=,)
+BINARY_INT_FOLD(and, et_bool, &&,)
+BINARY_INT_FOLD(or, et_bool, ||,)
+BINARY_INT_FOLD(eq, et_bool, ==,)
+BINARY_INT_FOLD(neq, et_bool, !=,)
 
 GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
@@ -90,7 +110,6 @@ GWION_IMPORT(int_op) {
   GWI_BB(gwi_oper_add(gwi, opck_int_mul))
   GWI_BB(gwi_oper_end(gwi, "*", int_mul))
   GWI_BB(gwi_oper_add(gwi, opck_int_div))
-  GWI_BB(gwi_oper_eff(gwi, "ZeroDivideException"))
   GWI_BB(gwi_oper_end(gwi, "/", int_div))
   GWI_BB(gwi_oper_add(gwi, opck_int_mod))
   return gwi_oper_end(gwi, "%", int_modulo);
@@ -250,27 +269,28 @@ static OP_CHECK(opck_implicit_i2f) { return env->gwion->type[et_float]; }
 #define CHECK_IF(op, check, func) _CHECK_OP(op, check, int_float_##func)
 #define CHECK_FI(op, check, func) _CHECK_OP(op, check, float_int_##func)
 
-#define BINARY_INT_FLOAT_FOLD(name, TYPE, OP, pre, post)                       \
-  BINARY_FOLD(int_float, name, TYPE, OP, pre, post, is_prim_int,               \
+#define BINARY_INT_FLOAT_FOLD(name, TYPE, OP, pre)                       \
+  BINARY_FOLD(int_float, name, TYPE, OP, pre, is_prim_int,               \
               is_prim_float, m_float, ae_prim_float, num, fnum, fnum)
-#define BINARY_INT_FLOAT_FOLD2(name, TYPE, OP, pre, post)                      \
-  BINARY_FOLD(int_float, name, TYPE, OP, pre, post, is_prim_int,               \
+#define BINARY_INT_FLOAT_FOLD_Z(name, TYPE, OP, pre)                       \
+  BINARY_FOLD_Z(int_float, name, TYPE, OP, pre, is_prim_int,               \
+              is_prim_float, m_float, ae_prim_float, num, fnum, fnum)
+#define BINARY_INT_FLOAT_FOLD2(name, TYPE, OP, pre)                      \
+  BINARY_FOLD(int_float, name, TYPE, OP, pre, is_prim_int,               \
               is_prim_float, m_float, ae_prim_num, num, fnum, num)
 
-BINARY_INT_FLOAT_FOLD(add, et_float, +, , )
-BINARY_INT_FLOAT_FOLD(sub, et_float, -, , )
-BINARY_INT_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/, )
-BINARY_INT_FLOAT_FOLD(div, et_float, /, /*POWEROF2_OPT(name, >>)*/,
-                      if (bin->rhs->d.prim.d.fnum == 0)
-                          ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
-BINARY_INT_FLOAT_FOLD2(gt, et_bool, >, , )
-BINARY_INT_FLOAT_FOLD2(ge, et_bool, >=, , )
-BINARY_INT_FLOAT_FOLD2(lt, et_bool, <=, , )
-BINARY_INT_FLOAT_FOLD2(le, et_bool, <=, , )
-BINARY_INT_FLOAT_FOLD2(and, et_bool, &&, , )
-BINARY_INT_FLOAT_FOLD2(or, et_bool, ||, , )
-BINARY_INT_FLOAT_FOLD2(eq, et_bool, ==, , )
-BINARY_INT_FLOAT_FOLD2(neq, et_bool, !=, , )
+BINARY_INT_FLOAT_FOLD(add, et_float, +,)
+BINARY_INT_FLOAT_FOLD(sub, et_float, -,)
+BINARY_INT_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_INT_FLOAT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
+BINARY_INT_FLOAT_FOLD2(gt, et_bool, >,)
+BINARY_INT_FLOAT_FOLD2(ge, et_bool, >=,)
+BINARY_INT_FLOAT_FOLD2(lt, et_bool, <=,)
+BINARY_INT_FLOAT_FOLD2(le, et_bool, <=,)
+BINARY_INT_FLOAT_FOLD2(and, et_bool, &&,)
+BINARY_INT_FLOAT_FOLD2(or, et_bool, ||,)
+BINARY_INT_FLOAT_FOLD2(eq, et_bool, ==,)
+BINARY_INT_FLOAT_FOLD2(neq, et_bool, !=,)
 
 static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_ini(gwi, "int", "float", "int"))
@@ -290,7 +310,6 @@ static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_add(gwi, opck_int_float_sub))
   GWI_BB(gwi_oper_end(gwi, "-", int_float_minus))
   GWI_BB(gwi_oper_add(gwi, opck_int_float_div))
-  GWI_BB(gwi_oper_eff(gwi, "ZeroDivideException"))
   GWI_BB(gwi_oper_end(gwi, "/", int_float_div))
   CHECK_IF("=>", rassign, r_assign)
   CHECK_IF("+=>", rassign, r_plus)
@@ -311,29 +330,31 @@ static GWION_IMPORT(intfloat) {
   return GW_OK;
 }
 
-#define BINARY_FLOAT_INT_FOLD(name, TYPE, OP, pre, post)                       \
-  BINARY_FOLD(float_int, name, TYPE, OP, pre, post, is_prim_float,             \
+#define BINARY_FLOAT_INT_FOLD(name, TYPE, OP, pre)                       \
+  BINARY_FOLD(float_int, name, TYPE, OP, pre, is_prim_float,             \
               is_prim_int, m_float, ae_prim_float, fnum, num, fnum)
 
-#define BINARY_FLOAT_INT_FOLD2(name, TYPE, OP, pre, post)                      \
-  BINARY_FOLD(float_int, name, TYPE, OP, pre, post, is_prim_float,             \
+#define BINARY_FLOAT_INT_FOLD_Z(name, TYPE, OP, pre)                       \
+  BINARY_FOLD_Z(float_int, name, TYPE, OP, pre, is_prim_float,             \
+              is_prim_int, m_float, ae_prim_float, fnum, num, fnum)
+
+#define BINARY_FLOAT_INT_FOLD2(name, TYPE, OP, pre)                      \
+  BINARY_FOLD(float_int, name, TYPE, OP, pre, is_prim_float,             \
               is_prim_int, m_int, ae_prim_num, fnum, num, num)
 
-BINARY_FLOAT_INT_FOLD(add, et_float, +, , )
-BINARY_FLOAT_INT_FOLD(sub, et_float, -, , )
-BINARY_FLOAT_INT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/, )
-BINARY_FLOAT_INT_FOLD(div, et_float, /, /*POWEROF2_OPT(name, >>)*/,
-                      if (bin->rhs->d.prim.d.num == 0)
-                          ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
+BINARY_FLOAT_INT_FOLD(add, et_float, +,)
+BINARY_FLOAT_INT_FOLD(sub, et_float, -,)
+BINARY_FLOAT_INT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_FLOAT_INT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
 
-BINARY_FLOAT_INT_FOLD2(gt, et_bool, >, , )
-BINARY_FLOAT_INT_FOLD2(ge, et_bool, >=, , )
-BINARY_FLOAT_INT_FOLD2(lt, et_bool, <=, , )
-BINARY_FLOAT_INT_FOLD2(le, et_bool, <=, , )
-BINARY_FLOAT_INT_FOLD2(and, et_bool, &&, , )
-BINARY_FLOAT_INT_FOLD2(or, et_bool, ||, , )
-BINARY_FLOAT_INT_FOLD2(eq, et_bool, ==, , )
-BINARY_FLOAT_INT_FOLD2(neq, et_bool, !=, , )
+BINARY_FLOAT_INT_FOLD2(gt, et_bool, >,)
+BINARY_FLOAT_INT_FOLD2(ge, et_bool, >=,)
+BINARY_FLOAT_INT_FOLD2(lt, et_bool, <=,)
+BINARY_FLOAT_INT_FOLD2(le, et_bool, <=,)
+BINARY_FLOAT_INT_FOLD2(and, et_bool, &&,)
+BINARY_FLOAT_INT_FOLD2(or, et_bool, ||,)
+BINARY_FLOAT_INT_FOLD2(eq, et_bool, ==,)
+BINARY_FLOAT_INT_FOLD2(neq, et_bool, !=,)
 
 static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "float"))
@@ -344,7 +365,6 @@ static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_add(gwi, opck_float_int_mul))
   GWI_BB(gwi_oper_end(gwi, "*", float_int_mul))
   GWI_BB(gwi_oper_add(gwi, opck_float_int_div))
-  GWI_BB(gwi_oper_eff(gwi, "ZeroDivideException"))
   GWI_BB(gwi_oper_end(gwi, "/", float_int_div))
   CHECK_FI("=>", rassign, r_assign)
   CHECK_FI("+=>", rassign, r_plus)
@@ -442,30 +462,31 @@ static GWION_IMPORT(time) {
   return gwi_oper_end(gwi, "<=", float_le);
 }
 
-#define BINARY_FLOAT_FOLD(name, TYPE, OP, pre, post)                           \
-  BINARY_FOLD(float, name, TYPE, OP, pre, post, is_prim_float, is_prim_float,  \
+#define BINARY_FLOAT_FOLD(name, TYPE, OP, pre)                           \
+  BINARY_FOLD(float, name, TYPE, OP, pre, is_prim_float, is_prim_float,  \
               m_float, ae_prim_float, fnum, fnum, fnum)
 
-#define BINARY_FLOAT_FOLD2(name, TYPE, OP, pre, post)                          \
-  BINARY_FOLD(float, name, TYPE, OP, pre, post, is_prim_float, is_prim_float,  \
+#define BINARY_FLOAT_FOLD_Z(name, TYPE, OP, pre)                           \
+  BINARY_FOLD_Z(float, name, TYPE, OP, pre, is_prim_float, is_prim_float,  \
+              m_float, ae_prim_float, fnum, fnum, fnum)
+
+#define BINARY_FLOAT_FOLD2(name, TYPE, OP, pre)                          \
+  BINARY_FOLD(float, name, TYPE, OP, pre, is_prim_float, is_prim_float,  \
               m_int, ae_prim_num, fnum, fnum, num)
 
-BINARY_FLOAT_FOLD(add, et_float, +, , )
-BINARY_FLOAT_FOLD(sub, et_float, -, , )
-BINARY_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/, )
-BINARY_FLOAT_FOLD(div, et_float, /, /*POWEROF2_OPT(name, >>)*/,
-                  if (bin->rhs->d.prim.d.fnum == 0)
-                      ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
-// BINARY_FLOAT_FOLD(mod, et_float, %,, if(bin->rhs->d.prim.d.fnum ==
-// 0)ERR_N(exp_self(bin)->pos, _("ZeroDivideException"));)
-BINARY_FLOAT_FOLD2(and, et_bool, &&, , )
-BINARY_FLOAT_FOLD2(or, et_bool, ||, , )
-BINARY_FLOAT_FOLD2(eq, et_bool, ==, , )
-BINARY_FLOAT_FOLD2(neq, et_bool, !=, , )
-BINARY_FLOAT_FOLD2(gt, et_bool, >, , )
-BINARY_FLOAT_FOLD2(ge, et_bool, >=, , )
-BINARY_FLOAT_FOLD2(lt, et_bool, <, , )
-BINARY_FLOAT_FOLD2(le, et_bool, <=, , )
+BINARY_FLOAT_FOLD(add, et_float, +,)
+BINARY_FLOAT_FOLD(sub, et_float, -,)
+BINARY_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_FLOAT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
+
+BINARY_FLOAT_FOLD2(and, et_bool, &&,)
+BINARY_FLOAT_FOLD2(or, et_bool, ||,)
+BINARY_FLOAT_FOLD2(eq, et_bool, ==,)
+BINARY_FLOAT_FOLD2(neq, et_bool, !=,)
+BINARY_FLOAT_FOLD2(gt, et_bool, >,)
+BINARY_FLOAT_FOLD2(ge, et_bool, >=,)
+BINARY_FLOAT_FOLD2(lt, et_bool, <,)
+BINARY_FLOAT_FOLD2(le, et_bool, <=,)
 
 #define UNARY_FLOAT_FOLD(name, TYPE, OP)                                       \
   UNARY_FOLD(float, name, TYPE, OP, is_prim_int, m_float, ae_prim_float, fnum)
@@ -483,7 +504,6 @@ static GWION_IMPORT(float) {
   GWI_BB(gwi_oper_add(gwi, opck_float_mul))
   GWI_BB(gwi_oper_end(gwi, "*", FloatTimes))
   GWI_BB(gwi_oper_add(gwi, opck_float_div))
-  GWI_BB(gwi_oper_eff(gwi, "ZeroDivideException"))
   GWI_BB(gwi_oper_end(gwi, "/", FloatDivide))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   CHECK_FF("=>", rassign, r_assign)
