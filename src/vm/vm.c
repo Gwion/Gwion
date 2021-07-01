@@ -1202,6 +1202,17 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
   }
 }
 
+static inline next_bbq_pos(const VM *vm) {
+  Driver *const di = vm->bbq;
+  if(++di->pos == 16777216-1) {
+    for(m_uint i = 0; i < vector_size(&vm->shreduler->shreds); i++) {
+      const VM_Shred shred = (VM_Shred)vector_at(&vm->shreduler->shreds, i);
+      shred->tick->wake_time -= 16777216.0;
+    }
+    di->pos = 0;
+  }
+}
+
 static void vm_run_audio(const VM *vm) {
   vm_run(vm);
   vm_ugen_init(vm);

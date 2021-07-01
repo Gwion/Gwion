@@ -31,7 +31,7 @@ ANN void driver_alloc(Driver *d) {
 static DRVRUN(dummy_run) {
   while (di->is_running) {
     di->run(vm);
-    ++di->pos;
+    next_bbq_pos(vm);
   }
 }
 
