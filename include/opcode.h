@@ -35,11 +35,16 @@ enum {
   eAllocWord,
   eAllocWord2,
   eAllocWord3,
-  eint_plus,
-  eint_minus,
+  eint_add,
+  eint_sub,
   eint_mul,
   eint_div,
-  eint_modulo,
+  eint_mod,
+  eint_add_imm,
+  eint_sub_imm,
+  eint_mul_imm,
+  eint_div_imm,
+  eint_mod_imm,
   eint_eq,
   eint_neq,
   eint_and,
@@ -48,6 +53,10 @@ enum {
   eint_ge,
   eint_lt,
   eint_le,
+  eint_gt_imm,
+  eint_ge_imm,
+  eint_lt_imm,
+  eint_le_imm,
   eint_sl,
   eint_sr,
   eint_sand,
@@ -71,10 +80,14 @@ enum {
   eint_pre_dec,
   eint_post_inc,
   eint_post_dec,
-  eFloatPlus,
-  eFloatMinus,
-  eFloatTimes,
-  eFloatDivide,
+  efloat_add,
+  efloat_sub,
+  efloat_mul,
+  efloat_div,
+  efloat_add_imm,
+  efloat_sub_imm,
+  efloat_mul_imm,
+  efloat_div_imm,
   efloat_and,
   efloat_or,
   efloat_eq,
@@ -83,6 +96,10 @@ enum {
   efloat_ge,
   efloat_lt,
   efloat_le,
+  efloat_gt_imm,
+  efloat_ge_imm,
+  efloat_lt_imm,
+  efloat_le_imm,
   efloat_negate,
   efloat_not,
   efloat_r_assign,
@@ -236,11 +253,16 @@ enum {
 #define  AllocWord            (f_instr)eAllocWord
 #define  AllocWord2           (f_instr)eAllocWord2
 #define  AllocWord3           (f_instr)eAllocWord3
-#define  int_plus             (f_instr)eint_plus
-#define  int_minus            (f_instr)eint_minus
+#define  int_add              (f_instr)eint_add
+#define  int_sub              (f_instr)eint_sub
 #define  int_mul              (f_instr)eint_mul
 #define  int_div              (f_instr)eint_div
-#define  int_modulo           (f_instr)eint_modulo
+#define  int_mod              (f_instr)eint_mod
+#define  int_add_imm          (f_instr)eint_add_imm
+#define  int_sub_imm          (f_instr)eint_sub_imm
+#define  int_mul_imm          (f_instr)eint_mul_imm
+#define  int_div_imm          (f_instr)eint_div_imm
+#define  int_mod_imm          (f_instr)eint_mod_imm
 #define  int_eq               (f_instr)eint_eq
 #define  int_neq              (f_instr)eint_neq
 #define  int_and              (f_instr)eint_and
@@ -249,6 +271,10 @@ enum {
 #define  int_ge               (f_instr)eint_ge
 #define  int_lt               (f_instr)eint_lt
 #define  int_le               (f_instr)eint_le
+#define  int_gt_imm           (f_instr)eint_gt_imm
+#define  int_ge_imm           (f_instr)eint_ge_imm
+#define  int_lt_imm           (f_instr)eint_lt_imm
+#define  int_le_imm           (f_instr)eint_le_imm
 #define  int_sl               (f_instr)eint_sl
 #define  int_sr               (f_instr)eint_sr
 #define  int_sand             (f_instr)eint_sand
@@ -272,10 +298,14 @@ enum {
 #define  int_pre_dec          (f_instr)eint_pre_dec
 #define  int_post_inc         (f_instr)eint_post_inc
 #define  int_post_dec         (f_instr)eint_post_dec
-#define  FloatPlus            (f_instr)eFloatPlus
-#define  FloatMinus           (f_instr)eFloatMinus
-#define  FloatTimes           (f_instr)eFloatTimes
-#define  FloatDivide          (f_instr)eFloatDivide
+#define  float_add            (f_instr)efloat_add
+#define  float_sub            (f_instr)efloat_sub
+#define  float_mul            (f_instr)efloat_mul
+#define  float_div            (f_instr)efloat_div
+#define  float_add_imm        (f_instr)efloat_add_imm
+#define  float_sub_imm        (f_instr)efloat_sub_imm
+#define  float_mul_imm        (f_instr)efloat_mul_imm
+#define  float_div_imm        (f_instr)efloat_div_imm
 #define  float_and            (f_instr)efloat_and
 #define  float_or             (f_instr)efloat_or
 #define  float_eq             (f_instr)efloat_eq
@@ -284,6 +314,10 @@ enum {
 #define  float_ge             (f_instr)efloat_ge
 #define  float_lt             (f_instr)efloat_lt
 #define  float_le             (f_instr)efloat_le
+#define  float_gt_imm         (f_instr)efloat_gt_imm
+#define  float_ge_imm         (f_instr)efloat_ge_imm
+#define  float_lt_imm         (f_instr)efloat_lt_imm
+#define  float_le_imm         (f_instr)efloat_le_imm
 #define  float_negate         (f_instr)efloat_negate
 #define  float_not            (f_instr)efloat_not
 #define  float_r_assign       (f_instr)efloat_r_assign
@@ -592,12 +626,12 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
-      case eint_plus:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: int_plus    ", j);
+      case eint_add:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_add     ", j);
         gw_out("\n");
         break;
-      case eint_minus:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: int_minus   ", j);
+      case eint_sub:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_sub     ", j);
         gw_out("\n");
         break;
       case eint_mul:
@@ -608,8 +642,33 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: int_div     ", j);
         gw_out("\n");
         break;
-      case eint_modulo:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: int_modulo  ", j);
+      case eint_mod:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_mod     ", j);
+        gw_out("\n");
+        break;
+      case eint_add_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_add_imm ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_sub_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_sub_imm ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_mul_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_mul_imm ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_div_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_div_imm ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_mod_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_mod_imm ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
       case eint_eq:
@@ -642,6 +701,26 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eint_le:
         gw_out("{Y}┃{0}{-}% 4lu{0}: int_le      ", j);
+        gw_out("\n");
+        break;
+      case eint_gt_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_gt_imm  ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_ge_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_ge_imm  ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_lt_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_lt_imm  ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eint_le_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: int_le_imm  ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
       case eint_sl:
@@ -736,20 +815,40 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: int_post_dec", j);
         gw_out("\n");
         break;
-      case eFloatPlus:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: FloatPlus   ", j);
+      case efloat_add:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_add   ", j);
         gw_out("\n");
         break;
-      case eFloatMinus:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: FloatMinus  ", j);
+      case efloat_sub:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_sub   ", j);
         gw_out("\n");
         break;
-      case eFloatTimes:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: FloatTimes  ", j);
+      case efloat_mul:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_mul   ", j);
         gw_out("\n");
         break;
-      case eFloatDivide:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: FloatDivide ", j);
+      case efloat_div:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_div   ", j);
+        gw_out("\n");
+        break;
+      case efloat_add_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_add_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_sub_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_sub_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_mul_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_mul_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_div_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_div_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
         gw_out("\n");
         break;
       case efloat_and:
@@ -782,6 +881,26 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case efloat_le:
         gw_out("{Y}┃{0}{-}% 4lu{0}: float_le    ", j);
+        gw_out("\n");
+        break;
+      case efloat_gt_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_gt_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_ge_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_ge_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_lt_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_lt_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
+        gw_out("\n");
+        break;
+      case efloat_le_imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: float_le_imm", j);
+        gw_out(" {-R}%-14f", instr->f);
         gw_out("\n");
         break;
       case efloat_negate:

@@ -212,9 +212,9 @@ __attribute__((hot)) ANN static inline void vm_ugen_init(const VM *vm) {
 #define VM_INFO
 #endif
 
-ANN static inline m_bool overflow_(const m_bit *mem, const VM_Shred c) {
+ANN static inline bool overflow_(const m_bit *mem, const VM_Shred c) {
   return mem > (((m_bit *)c + sizeof(struct VM_Shred_) + SIZEOF_REG) +
-                (SIZEOF_MEM) - (MEM_STEP * 16));
+                (SIZEOF_MEM));
 }
 
 ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
@@ -282,17 +282,24 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   DISPATCH();
 
 #define INT_OP(op, ...)   OP(m_int, SZ_INT, op, __VA_ARGS__)
+#define INT_IMM_OP(op)   *(m_int*)(reg-SZ_INT) op VAL; DISPATCH()
 #define FLOAT_OP(op, ...) OP(m_float, SZ_FLOAT, op, __VA_ARGS__)
+#define FLOAT_IMM_OP(op)   *(m_float*)(reg-SZ_FLOAT) op VAL; DISPATCH()
 
 #define LOGICAL(t, sz0, sz, op)                                                \
   reg -= sz0;                                                                  \
-  *(m_int *)(reg - SZ_INT) = (*(t *)(reg - SZ_INT) op * (t *)(reg + sz));      \
+  *(m_uint *)(reg - SZ_INT) = (*(t *)(reg - SZ_INT) op * (t *)(reg + sz));      \
   DISPATCH()
 
 #define INT_LOGICAL(op) LOGICAL(m_int, SZ_INT, 0, op)
+#define INT_IMM_LOGICAL(op) *(m_int *)(reg - SZ_INT) = *(m_int*)(reg-SZ_INT) op IVAL; DISPATCH();
 
 #define FLOAT_LOGICAL(op)                                                      \
   LOGICAL(m_float, SZ_FLOAT * 2 - SZ_INT, SZ_FLOAT - SZ_INT, op)
+
+#define FLOAT_IMM_LOGICAL(op) \
+  reg -= SZ_FLOAT - SZ_INT;\
+  *(m_uint *)(reg - SZ_INT) = *(m_float*)(reg-SZ_INT) op FVAL; DISPATCH();
 
 #define SELF(t, sz, op)                                                        \
   *(t *)(reg - sz) = op * (t *)(reg - sz);                                     \
@@ -376,10 +383,12 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define VMSZ (SZ_INT > SZ_FLOAT ? SZ_INT : SZ_FLOAT)
 
 #define VAL   (*(m_uint *)(byte + VMSZ))
+#define IVAL  (*(m_int *)(byte + VMSZ))
 #define FVAL  (*(m_float *)(byte + VMSZ))
 #define VAL2  (*(m_uint *)(byte + SZ_INT + SZ_INT))
-#define UVAL  (*(uint16_t *)(byte + SZ_INT + SZ_INT))
-#define UVAL2 (*(uint16_t *)(byte + SZ_INT + SZ_INT + sizeof(uint16_t)))
+#define IVAL2  (*(m_int *)(byte + SZ_INT + SZ_INT))
+#define SVAL  (*(uint16_t *)(byte + SZ_INT + SZ_INT))
+#define SVAL2 (*(uint16_t *)(byte + SZ_INT + SZ_INT + sizeof(uint16_t)))
 
 #define BRANCH_DISPATCH(check)                                                 \
   if (check)                                                                   \
@@ -404,25 +413,33 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&structmember, &&structmemberfloat, &&structmemberother,
       &&structmemberaddr, &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
       &&regpushme, &&regpushmaybe, &&funcreturn, &&_goto, &&allocint,
-      &&allocfloat, &&allocother, &&intplus, &&intminus, &&intmul, &&intdiv,
-      &&intmod,
+      &&allocfloat, &&allocother,
+      &&intplus, &&intminus, &&intmul, &&intdiv, &&intmod,
+      &&intplusimm, &&intminusimm, &&intmulimm, &&intdivimm, &&intmodimm,
       // int relationnal
-      &&inteq, &&intne, &&intand, &&intor, &&intgt, &&intge, &&intlt, &&intle,
+      &&inteq, &&intne, &&intand, &&intor,
+      &&intgt, &&intge, &&intlt, &&intle,
+      &&intgtimm, &&intgeimm, &&intltimm, &&intleimm,
       &&intsl, &&intsr, &&intsand, &&intsor, &&intxor, &&intnegate, &&intnot,
       &&intcmp, &&intrassign, &&intradd, &&intrsub, &&intrmul, &&intrdiv,
       &&intrmod, &&intrsl, &&intrsr, &&intrsand, &&intrsor, &&intrxor, &&preinc,
-      &&predec, &&postinc, &&postdec, &&floatadd, &&floatsub, &&floatmul,
-      &&floatdiv,
+      &&predec, &&postinc, &&postdec,
+      &&floatadd, &&floatsub, &&floatmul, &&floatdiv,
+      &&floataddimm, &&floatsubimm, &&floatmulimm, &&floatdivimm,
       // logical
-      &&floatand, &&floator, &&floateq, &&floatne, &&floatgt, &&floatge,
-      &&floatlt, &&floatle, &&floatneg, &&floatnot, &&floatrassign, &&floatradd,
+      &&floatand, &&floator, &&floateq, &&floatne,
+      &&floatgt, &&floatge, &&floatlt, &&floatle,
+      &&floatgtimm, &&floatgeimm, &&floatltimm, &&floatleimm,
+      &&floatneg, &&floatnot, &&floatrassign, &&floatradd,
       &&floatrsub, &&floatrmul, &&floatrdiv, &&ifadd, &&ifsub, &&ifmul, &&ifdiv,
       &&ifand, &&ifor, &&ifeq, &&ifne, &&ifgt, &&ifge, &&iflt, &&ifle,
       &&ifrassign, &&ifradd, &&ifrsub, &&ifrmul, &&ifrdiv, &&fiadd, &&fisub,
       &&fimul, &&fidiv, &&fiand, &&fior, &&fieq, &&fine, &&figt, &&fige, &&filt,
       &&file, &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv, &&itof,
-      &&ftoi, &&timeadv, &&recurs, &&setcode, &&regmove, &&regtomem,
-      &&regtomemother, &&overflow, &&funcusrend, &&funcusrend2, &&funcmemberend,
+      &&ftoi, &&timeadv, &&recurs, &&setcode, &&regmove,
+      &&regtomem, &&regtomemother,
+      &&overflow,
+      &&funcusrend, &&funcusrend2, &&funcmemberend,
       &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp,
       &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
@@ -457,7 +474,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     do {
       SDISPATCH();
     regsetimm:
-      *(m_uint *)(reg + (m_int)VAL2) = VAL;
+      *(m_uint *)(reg + IVAL2) = VAL;
       DISPATCH();
     regpushimm:
       *(m_uint *)reg = VAL;
@@ -478,24 +495,24 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     regpushmem:
-      *(m_uint *)reg = *(m_uint *)(mem + (m_int)VAL);
+      *(m_uint *)reg = *(m_uint *)(mem + IVAL);
       reg += SZ_INT;
       DISPATCH();
     regpushmemfloat:
-      *(m_float *)reg = *(m_float *)(mem + (m_int)VAL);
+      *(m_float *)reg = *(m_float *)(mem + IVAL);
       reg += SZ_FLOAT;
       DISPATCH();
     regpushmemother:
       for (m_uint i = 0; i <= VAL2; i += SZ_INT)
-        *(m_uint *)(reg + i) = *(m_uint *)((m_bit *)(mem + (m_int)VAL) + i);
+        *(m_uint *)(reg + i) = *(m_uint *)((m_bit *)(mem + IVAL) + i);
       reg += VAL2;
       DISPATCH();
     regpushmemaddr:
-      *(m_bit **)reg = &*(m_bit *)(mem + (m_int)VAL);
+      *(m_bit **)reg = &*(m_bit *)(mem + IVAL);
       reg += SZ_INT;
       DISPATCH()
     regpushmemderef:
-      memcpy(reg, *(m_uint **)(mem + (m_int)VAL), VAL2);
+      memcpy(reg, *(m_uint **)(mem + IVAL), VAL2);
       reg += VAL2;
       DISPATCH()
     pushnow:
@@ -517,41 +534,41 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       reg += VAL2;
       DISPATCH();
     baseaddr:
-      *(m_uint **)reg = &*(m_uint *)(shred->base + (m_int)VAL);
+      *(m_uint **)reg = &*(m_uint *)(shred->base + IVAL);
       reg += SZ_INT;
       DISPATCH();
     regtoreg:
-      *(m_uint *)(reg + (m_int)VAL) = *(m_uint *)(reg + (m_int)VAL2);
+      *(m_uint *)(reg + IVAL) = *(m_uint *)(reg + IVAL2);
       DISPATCH()
     regtoregother:
-      memcpy(*(m_bit **)(reg - SZ_INT), reg + (m_int)VAL, VAL2);
+      memcpy(*(m_bit **)(reg - SZ_INT), reg + IVAL, VAL2);
       DISPATCH()
     regtoregaddr:
-      *(m_uint **)(reg + (m_int)VAL) = &*(m_uint *)(reg + (m_int)VAL2);
+      *(m_uint **)(reg + IVAL) = &*(m_uint *)(reg + IVAL2);
       DISPATCH()
     regtoregderef:
-      memcpy(*(m_bit **)(reg - SZ_INT), *(m_bit **)(reg + (m_int)VAL), VAL2);
+      memcpy(*(m_bit **)(reg - SZ_INT), *(m_bit **)(reg + IVAL), VAL2);
       DISPATCH()
     structmember:
       *(m_bit **)(reg - SZ_INT) =
-          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + (m_int)VAL);
+          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + IVAL);
       DISPATCH()
     structmemberfloat:
       *(m_bit **)(reg - SZ_INT) =
-          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + (m_int)VAL);
+          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + IVAL);
       DISPATCH()
     structmemberother:
       *(m_bit **)(reg - SZ_INT) =
-          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + (m_int)VAL);
+          *(m_bit **)(*(m_bit **)(reg - SZ_INT) + IVAL);
       DISPATCH()
     structmemberaddr:
-      *(m_bit **)(reg - SZ_INT) = &*(*(m_bit **)(reg - SZ_INT) + (m_int)VAL);
+      *(m_bit **)(reg - SZ_INT) = &*(*(m_bit **)(reg - SZ_INT) + IVAL);
       DISPATCH()
     memsetimm:
       *(m_uint *)(mem + VAL) = VAL2;
       DISPATCH();
     memaddimm:
-      *(m_int *)(mem + VAL) += (m_int)VAL2;
+      *(m_int *)(mem + VAL) += IVAL2;
       //  (*(m_int*)(mem+VAL))--;
       DISPATCH();
     repeatidx:
@@ -601,6 +618,17 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     intmod:
       INT_OP(%, TEST0(m_int, 0))
 
+    intplusimm:
+      INT_IMM_OP(+=)
+    intminusimm:
+      INT_IMM_OP(-=)
+    intmulimm:
+      INT_IMM_OP(*=)
+    intdivimm:
+      INT_IMM_OP(/=)
+    intmodimm:
+      INT_IMM_OP(%=)
+
     inteq:
       INT_LOGICAL(==)
     intne:
@@ -616,7 +644,15 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     intlt:
       INT_LOGICAL(<)
     intle:
-      INT_LOGICAL(<=)
+      INT_IMM_LOGICAL(<=)
+    intgtimm:
+      INT_IMM_LOGICAL(>)
+    intgeimm:
+      INT_IMM_LOGICAL(>=)
+    intltimm:
+      INT_IMM_LOGICAL(<)
+    intleimm:
+      INT_IMM_LOGICAL(<=)
     intsl:
       INT_LOGICAL(<<)
     intsr:
@@ -683,6 +719,15 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     floatdiv:
       FLOAT_OP(/)
 
+    floataddimm:
+      FLOAT_IMM_OP(+=)
+    floatsubimm:
+      FLOAT_IMM_OP(-=)
+    floatmulimm:
+      FLOAT_IMM_OP(*=)
+    floatdivimm:
+      FLOAT_IMM_OP(/=)
+
     floatand:
       FLOAT_LOGICAL(&&)
     floator:
@@ -699,6 +744,14 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       FLOAT_LOGICAL(<)
     floatle:
       FLOAT_LOGICAL(<=)
+    floatgtimm:
+      FLOAT_IMM_LOGICAL(>)
+    floatgeimm:
+      FLOAT_IMM_LOGICAL(>=)
+    floatltimm:
+      FLOAT_IMM_LOGICAL(<)
+    floatleimm:
+      FLOAT_IMM_LOGICAL(<=)
 
     floatneg:
       SELF(m_float, SZ_FLOAT, -)
@@ -815,11 +868,11 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       VM_OUT
       break;
     recurs : {
-      register const uint push = UVAL2;
+      register const uint push = SVAL2;
       mem += push;
       *(frame_t *)(mem - sizeof(frame_t)) =
-          (frame_t) {.code = code, .pc = UVAL, .push = push};
-      reg += (m_int)VAL;
+          (frame_t) {.code = code, .pc = SVAL, .push = push};
+      reg += IVAL;
       next = eFuncUsrEnd2;
     }
       DISPATCH();
@@ -831,7 +884,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
             *(m_uint *)reg /*+ code->stack_depth*/ + sizeof(frame_t);
         mem += push;
         *(frame_t *)(mem - sizeof(frame_t)) =
-            (frame_t) {.code = code, .pc = PC + UVAL, .push = push};
+            (frame_t) {.code = code, .pc = PC + SVAL, .push = push};
         next = eFuncUsrEnd;
       } else {
         mem += *(m_uint *)reg;
@@ -839,10 +892,10 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       }
       PRAGMA_POP()
     regmove:
-      reg += (m_int)VAL;
+      reg += IVAL;
       DISPATCH();
     regtomem:
-      *(m_uint *)(mem + VAL) = *(m_uint *)(reg + (m_int)VAL2);
+      *(m_uint *)(mem + VAL) = *(m_uint *)(reg + IVAL2);
       DISPATCH()
     regtomemother:
       memcpy(mem + VAL, reg, VAL2);
@@ -883,7 +936,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH() sporkfunc :
           //  LOOP_OPTIM
           PRAGMA_PUSH() for (m_uint i = 0; i < VAL; i += SZ_INT) *
-          (m_uint *)(child->reg + i) = *(m_uint *)(reg + i + (m_int)VAL2);
+          (m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
       child->reg += VAL;
       DISPATCH()
       PRAGMA_POP()
@@ -964,12 +1017,12 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     }
     arrayget:
       PRAGMA_PUSH()
-      m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg + (m_int)VAL2));
+      m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg + IVAL2));
       PRAGMA_POP()
       DISPATCH()
     arrayaddr:
       PRAGMA_PUSH()
-      *(m_bit **)(reg + (m_int)VAL2) =
+      *(m_bit **)(reg + IVAL2) =
           m_vector_addr(ARRAY(a.obj), *(m_int *)(reg + VAL));
       PRAGMA_POP()
       DISPATCH()
@@ -978,21 +1031,21 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     addref : {
-      const M_Object o = *(M_Object *)(reg + (m_int)VAL);
+      const M_Object o = *(M_Object *)(reg + IVAL);
       //    if(o)
       ++o->ref;
     }
       DISPATCH()
     addrefaddr : {
-      const M_Object o = **(M_Object **)(reg + (m_int)VAL);
+      const M_Object o = **(M_Object **)(reg + IVAL);
       if (o) ++o->ref;
     }
       DISPATCH()
     structaddref:
-      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + (m_int)VAL));
+      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
       DISPATCH()
     structaddrefaddr:
-      struct_addref(vm->gwion, (Type)VAL2, **(m_bit ***)(reg + (m_int)VAL));
+      struct_addref(vm->gwion, (Type)VAL2, **(m_bit ***)(reg + IVAL));
       DISPATCH()
     objassign : {
       const M_Object o = **(M_Object **)(reg - SZ_INT);
@@ -1122,7 +1175,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       vector_add(&shred->gc, 0);
       DISPATCH();
     gcadd:
-      vector_add(&shred->gc, *(vtype *)(reg + (m_int)VAL));
+      vector_add(&shred->gc, *(vtype *)(reg + IVAL));
       DISPATCH();
     gcend : {
       M_Object o;
