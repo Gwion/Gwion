@@ -140,5 +140,5 @@ ANN void     handle(VM_Shred shred, const m_str effect);
 
 #define BBQ_POS_MAX 16777216
 
-void next_bbq_pos(const VM *vm);
+ANN void next_bbq_pos(const VM *vm);
 #endif
