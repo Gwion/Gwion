@@ -593,9 +593,7 @@ ANN static inline m_bool scan_internal_int(const Env        env,
 ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   const Symbol op = base->xid;
   if (op == insert_symbol("@dtor")) {
-    if(!env->class_def)
-      ERR_B(base->pos, "'@dtor' must be use in a class");
-    if(tflag(env->class_def, tflag_struct))
+    if(safe_tflag(env->class_def, tflag_struct))
       ERR_B(base->pos, "can't use '@dtor' for structures");
     return class_internal(env, base);
   }
