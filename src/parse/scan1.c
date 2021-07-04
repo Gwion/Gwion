@@ -592,7 +592,12 @@ ANN static inline m_bool scan_internal_int(const Env        env,
 
 ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   const Symbol op = base->xid;
-  if (op == insert_symbol("@dtor") || op == insert_symbol("@gack"))
+  if (op == insert_symbol("@dtor")) {
+    if(tflag(env->class_def, tflag_struct))
+      ERR_B(base->pos, "can't use '@dtor' for structures");
+    return class_internal(env, base);
+  }
+  if (op == insert_symbol("@gack"))
     return class_internal(env, base);
   if (op == insert_symbol("@implicit")) return scan_internal_arg(env, base);
   if (op == insert_symbol("@conditional") ||
