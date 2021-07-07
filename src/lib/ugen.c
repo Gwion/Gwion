@@ -16,15 +16,20 @@
 static TICK(dac_tick) {
   m_float *out = ((VM *)u->module.gen.data)->bbq->out;
   uint     i   = 0;
-  do out[i] = UGEN(u->connect.multi->channel[i])->in;
-  while (++i < u->connect.multi->n_out);
+  m_float sum = 0;
+  do {
+    sum += out[i] = UGEN(u->connect.multi->channel[i])->in;
+  } while (++i < u->connect.multi->n_out);
+  u->out = sum / u->connect.multi->n_out;
 }
 
 static TICK(adc_tick) {
   const m_float *in = ((VM *)u->module.gen.data)->bbq->in;
   uint           i  = 0;
-  do UGEN(u->connect.multi->channel[i])->out = in[i];
+  m_float sum = 0;
+  do sum += UGEN(u->connect.multi->channel[i])->out = in[i];
   while (++i < u->connect.multi->n_out);
+  u->out = sum / u->connect.multi->n_out;
 }
 
 #define COMPUTE(a)                                                             \
