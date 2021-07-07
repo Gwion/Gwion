@@ -1,10 +1,9 @@
 #ifndef BUILD_ON_WINDOWS
-#include <glob.h>
-#include <dlfcn.h>
-#include <limits.h>
-#else
-#include <windows.h>
+  #include <glob.h>
+  #include <dlfcn.h>
+  #include <limits.h>
 #endif
+
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
