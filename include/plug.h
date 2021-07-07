@@ -17,9 +17,9 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname);
 #define GWDEPEND_NAME gwdepend
 #define GWMODINI(a)                                                            \
   ANN2(1)                                                                      \
-  void *GWMODINI_NAME(const struct Gwion_ *gwion NUSED, const Vector args NUSED)
+  void *GWMODINI_NAME(struct Gwion_ *const gwion NUSED, const Vector args NUSED)
 #define GWMODEND(a)                                                            \
-  ANN void GWMODEND_NAME(const struct Gwion_ *gwion NUSED, void *self NUSED)
+  ANN void GWMODEND_NAME(struct Gwion_ *const gwion NUSED, void *self NUSED)
 #define GWDRIVER(a) ANN void GWDRIVER_NAME(DriverData *d)
 #define GWDEPEND    ANN m_str const *GWDEPEND_NAME(void)
 

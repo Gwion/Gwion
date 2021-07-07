@@ -260,6 +260,31 @@ ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
   return NULL;
 }
 
+ANN void* op_get(const Env env, struct Op_Import *opi) {
+  for (int i = 0; i < 2; ++i) {
+    Nspc nspc = env->curr;
+    do {
+      Type l = opi->lhs;
+      if (!nspc->info->op_map.ptr) continue;
+      const Map map = &nspc->info->op_map;
+      do {
+        Type r = opi->rhs;
+        do {
+           const m_int idx = map_index(map, (vtype)opi->op);
+           if(idx != -1) {
+             M_Operator *const mo = !i
+                    ? operator_find2((Vector)&VVAL(map, idx), l, r)
+                    : operator_find((Vector)&VVAL(map, idx), l, r);
+            if (mo)
+              return mo;
+          }
+        } while (r && (r = op_parent(env, r)));
+      } while (l && (l = op_parent(env, l)));
+    } while ((nspc = nspc->parent));
+  }
+  return NULL;
+}
+
 ANN Type op_check(const Env env, struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = env->curr;
