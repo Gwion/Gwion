@@ -921,7 +921,7 @@ ANN static M_Object do_alloc_array_loop(const VM_Shred shred, ArrayInfo *info,
 ANN static M_Object do_alloc_array(const VM_Shred shred, ArrayInfo *info) {
   const m_int cap = *(m_int *)REG(info->depth * SZ_INT);
   if (cap < 0) {
-    gw_err("[gwion](VM): NegativeArraySize: while allocating arrays...\n");
+    gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} NegativeArraySize: while allocating arrays...\n");
     return NULL;
   }
   const M_Object base = do_alloc_array_object(shred->info->mp, info, cap);
@@ -949,7 +949,7 @@ INSTR(ArrayAlloc) {
   if (info->is_obj) aai.data = init_array(shred, info, &num_obj);
   const M_Object ref = do_alloc_array(shred, &aai);
   if (!ref) {
-    gw_err("[Gwion](VM): (note: in shred[id=%" UINT_F ":%s])\n",
+    gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} (note: in shred[id=%" UINT_F ":%s])\n",
            shred->tick->xid, shred->code->name);
     vm_shred_exit(shred);
     if (info->is_obj) free(aai.data);

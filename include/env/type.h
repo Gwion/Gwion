@@ -36,6 +36,7 @@ enum tflag {
   tflag_distinct = 1 << 17,
   tflag_noret    = 1 << 18,
   tflag_contract = 1 << 19,
+  tflag_float    = 1 << 20,
 } __attribute__((packed));
 
 struct Type_ {

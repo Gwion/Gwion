@@ -42,6 +42,8 @@ Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size,
   const Type parent = get_parent(gwi, parent_name);
   const Type t      = new_type(gwi->gwion->mp, name, parent);
   t->size           = size;
+  if(safe_tflag(parent, tflag_float))
+    set_tflag(t, tflag_float);
   return t;
 }
 

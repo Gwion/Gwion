@@ -112,16 +112,19 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_float, gack_float))
   GWI_BB(gwi_set_global_type(gwi, t_float, et_float))
+  set_tflag(t_float, tflag_float);
 
   gwidoc(gwi, "represent duration.");
   const Type t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_dur, gack_float))
   GWI_BB(gwi_add_type(gwi, t_dur))
+  set_tflag(t_dur, tflag_float);
 
   gwidoc(gwi, "represent time.");
   const Type t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL);
   GWI_BB(gwi_gack(gwi, t_time, gack_float))
   GWI_BB(gwi_add_type(gwi, t_time))
+  set_tflag(t_time, tflag_float);
 
   gwidoc(gwi, "internal time for `{/}now{0}{-}`.");
   const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, "time");
