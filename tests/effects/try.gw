@@ -1,3 +1,4 @@
+#! [contains] value of i at the end 42
 0 => var auto i;
 
 try { #! it will resume here
