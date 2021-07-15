@@ -1150,7 +1150,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   const Func f = t->info->func;
   if (is_fptr(emit->gwion, t) || strstr(emit->code->name, "ork~") ||
-      (f != emit->env->func || f->value_ref->from->owner_class))
+      (f != emit->env->func || (f && f->value_ref->from->owner_class)))
     CHECK_BB(prepare_call(emit, exp_call));
   else
     CHECK_BB(emit_func_args(emit, exp_call));

@@ -1,9 +1,6 @@
-#! [contains] 12
+#! [contains] val: 12
 var int? i;
 
-<<< 12 => i.val >>>;
+12 => i.val;
 if(i.is(val))
-  <<< i.val >>>;
-#!<<< None => i.none >>>;
-#!if(i.is(none))
-#!  <<< "option unset" >>>;
+  <<< "val: ${i.val}" >>>;

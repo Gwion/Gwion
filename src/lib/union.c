@@ -133,7 +133,6 @@ static OP_CHECK(opck_union_ctor) {
 
 static INSTR(UnionCtor) {
   POP_REG(shred, instr->m_val2);
-  POP_REG(shred, SZ_INT);
   const m_uint   index = *(m_uint *)REG(-SZ_INT);
   const M_Object o     = *(M_Object *)REG(-SZ_INT) =
       new_object(shred->info->mp, NULL, (Type)instr->m_val);
@@ -142,11 +141,11 @@ static INSTR(UnionCtor) {
 }
 
 static OP_EMIT(opem_union_ctor) {
-  Exp_Call *  call  = (Exp_Call *)data;
-  const Type  base  = actual_type(emit->gwion, call->func->type);
-  const Instr instr = emit_add_instr(emit, UnionCtor);
-  instr->m_val      = (m_uint)base;
-  instr->m_val2     = call->args->next->type->size;
+  Exp_Call *const  call  = (Exp_Call *)data;
+  const Type       base  = actual_type(emit->gwion, call->func->type);
+  const Instr      instr = emit_add_instr(emit, UnionCtor);
+  instr->m_val           = (m_uint)base;
+  instr->m_val2          = call->args->next->type->size;
   return GW_OK;
 }
 

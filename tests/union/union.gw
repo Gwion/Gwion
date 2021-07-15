@@ -1,10 +1,12 @@
+#! [contains] 2.4
 union U {
   int i;
   float f;
 }
 
-var U u;
+U(i, 1) => var U u;
 <<< u.i >>>;
 
+2.4 => u.f;
 <<< u.f >>>;
 
