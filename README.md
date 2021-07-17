@@ -16,7 +16,6 @@ Gwion is a programming language, aimed at making music
 
 
 <img src=".img/gwion_bear-transparent-up.webp" 
-     width="400" 
      height="500" /> < Bran, our mascot, kindly provided by [neverRare](https://github.com/neverRare)  
 
 
