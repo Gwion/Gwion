@@ -1,0 +1,14 @@
+#! [contains] 42
+class C {
+  var int i;
+  operator new(int arg) {
+    arg => i;
+  }
+  operator new() {}
+}
+
+new C() => var auto c;
+new C(2) => var auto d;
+<<< "c:${c.i}, d:${d.i}" >>>;
+
+<<< "the answer: ${(new C(42)).i}" >>>;

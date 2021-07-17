@@ -1551,7 +1551,8 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
     CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code));
     env->scope->depth++;
   }
-  if (fdef->base->ret_type &&
+  // check fdef->base->td for `new`
+  if (fdef->base->td && fdef->base->ret_type &&
       fdef->base->ret_type != env->gwion->type[et_void] && fdef->d.code &&
       !fflag(fdef->base->func, fflag_return))
     ERR_B(fdef->base->td->pos,

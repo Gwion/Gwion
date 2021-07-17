@@ -546,6 +546,11 @@ static inline int is_cpy(const Func_Def fdef) {
 ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
   if (tmpl_base(fdef->base->tmpl) && fbflag(fdef->base, fbflag_op))
     return GW_OK;
+  if(!strcmp(s_name(fdef->base->xid), "new")) {
+    if(!env->class_def)
+      ERR_B(fdef->base->pos, _("{G-}new{0} operator must be set inside {C+}class{0}"));
+    fdef->base->ret_type = env->class_def;
+  }
   if (GET_FLAG(fdef->base, global) && !env->class_def) env->context->global = 1;
   const Func_Def f = !is_cpy(fdef) ? fdef : scan2_cpy_fdef(env, fdef);
   const m_uint   scope =

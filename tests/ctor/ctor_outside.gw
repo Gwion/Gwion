@@ -1,0 +1,5 @@
+#! [contains] new operator must be set inside class
+var int i;
+operator new(int arg) {
+  arg => i;
+}

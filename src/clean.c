@@ -75,7 +75,9 @@ ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
     clean_exp(a, b->exp);
     break;
   case unary_td:
-    clean_type_decl(a, b->td);
+    clean_type_decl(a, b->ctor.td);
+    if(b->ctor.exp)
+      clean_exp(a, b->ctor.exp);
     break;
   case unary_code:
     clean_stmt(a, b->code);
