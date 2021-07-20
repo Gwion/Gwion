@@ -95,6 +95,12 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
 }
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
+
+  if(!strcmp(s_name(f->def->base->xid), "new")) {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)f->code;
+    return;
+  }
   if (f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else if (is_static_call(emit, exp_self(member))) {
@@ -156,20 +162,32 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
 }
 
 OP_CHECK(opck_object_dot) {
-  const Exp_Dot *member      = (Exp_Dot *)data;
+  Exp_Dot *const member      = (Exp_Dot *)data;
   const m_str    str         = s_name(member->xid);
   const m_bool   base_static = is_class(env->gwion, member->base->type);
   const Type     the_base =
       base_static ? _class_base(member->base->type) : member->base->type;
-
   if (member->xid == insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if (v && member->is_call && is_func(env->gwion, v->type))
-      return v->type;
+    if (v && member->is_call) {
+      if (is_func(env->gwion, v->type))
+        return v->type;
+    if (is_class(env->gwion, v->type)) {
+       const Type parent = actual_type(env->gwion, v->type);
+       if (isa(the_base, parent) > 0) { // beware templates
+          const Symbol sym = insert_symbol(env->gwion->st, "new");
+          const Value ret = nspc_lookup_value1(parent->nspc, sym);
+          member->xid = sym;
+//          member->base->type = parent;
+          if(ret)
+            return ret->type;
+        }
+      }
+    }
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
