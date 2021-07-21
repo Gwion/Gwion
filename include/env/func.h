@@ -21,6 +21,7 @@ struct Func_ {
   struct Map_      upvalues;
   float            inline_mult;
   uint16_t         weight;
+  uint16_t         memoize;
   uint16_t         ref;
   uint16_t         vt_index;
   ae_flag          flag;

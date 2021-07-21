@@ -33,7 +33,6 @@ struct EmitterInfo_ {
   char *         escape;
   VM_Code (*emit_code)(const Emitter);
   VM_Code  code;
-  uint16_t memoize;
   uint16_t unroll;
   uint16_t line;
   bool     debug;

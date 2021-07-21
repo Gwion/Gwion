@@ -1,9 +1,12 @@
-#pragma memoize 3
 fun int recursive_fib(int n) {
-    if (n < 2)
-        return n;
-    return recursive_fib(n - 2) + recursive_fib(n - 1);
+#pragma memoize 3
+
+  if (n < 2)
+      return n;
+
+  return recursive_fib(n - 2) + recursive_fib(n - 1);
 }
+
 <<< 6 => recursive_fib >>>;
 <<< 6 => recursive_fib >>>;
 <<< 12 => recursive_fib >>>;

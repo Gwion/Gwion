@@ -1411,6 +1411,10 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 
 ANN static m_bool check_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
+  // check for memoization
+  if (env->func && stmt->pp_type == ae_pp_pragma &&
+      !strncmp(stmt->data, "memoize", strlen("memoize")))
+    env->func->memoize = strtol(stmt->data + 7, NULL, 10);
   return GW_OK;
 }
 

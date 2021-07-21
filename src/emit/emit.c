@@ -2536,9 +2536,10 @@ ANN static m_bool emit_func_def_return(const Emitter emit) {
   CHECK_BB(emit_defers(emit));
   emit_return_pc(emit, val);
   vector_clear(&emit->code->stack_return);
-  if (emit->info->memoize && fflag(emit->env->func, fflag_pure)) {
+  const Func f = emit->env->func;
+  if (f->memoize && fflag(f, fflag_pure)) {
     const Instr instr = emit_add_instr(emit, MemoizeStore);
-    instr->m_val      = emit->env->func->def->stack_depth;
+    instr->m_val      = f->def->stack_depth;
   }
   return GW_OK;
 }
@@ -2568,7 +2569,7 @@ ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
 
 ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
   const VM_Code code = _emit_func_def_code(emit, func);
-  if (emit->info->memoize && fflag(func, fflag_pure)) code->is_memoize = true;
+  if (func->memoize && fflag(func, fflag_pure)) code->is_memoize = true;
   code->ret_type = func->def->base->ret_type;
   return code;
 }
@@ -2636,7 +2637,8 @@ ANN static m_bool emit_memoize(const Emitter emit, const Func_Def fdef) {
 }
 
 ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
-  if (emit->info->memoize && fflag(fdef->base->func, fflag_pure))
+  const Func f = fdef->base->func;
+  if (f->memoize && fflag(f, fflag_pure))
     CHECK_BB(emit_memoize(emit, fdef));
   CHECK_BB(emit_func_def_body(emit, fdef));
   emit_func_def_return(emit);
@@ -2646,7 +2648,7 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
 ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
   const Func func = fdef->base->func;
   func->code      = emit_func_def_code(emit, func);
-  if (emit->info->memoize && fflag(func, fflag_pure))
+  if (func->memoize && fflag(func, fflag_pure))
     func->code->memoize = memoize_ini(emit, func);
 }
 
@@ -2775,7 +2777,6 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
 }
 
 ANN static inline void emit_clear(const Emitter emit) {
-  emit->info->memoize = 0;
   emit->info->unroll  = 0;
   emit->info->line    = 0;
   emit->this_offset   = 0;

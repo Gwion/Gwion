@@ -20,7 +20,7 @@ Memoize memoize_ini(const Emitter emit, const Func f) {
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
   m->arg_sz = f->def->stack_depth;
-  m->limit  = emit->info->memoize;
+  m->limit  = f->memoize;
   return m;
 }
 
