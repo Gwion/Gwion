@@ -2461,9 +2461,7 @@ ANN static m_bool emit_stmt_match(const Emitter             emit,
 ANN static m_bool emit_stmt_pp(const Emitter          emit,
                                const struct Stmt_PP_ *stmt) {
   if (stmt->pp_type == ae_pp_pragma) {
-    if (!strncmp(stmt->data, "memoize", strlen("memoize")))
-      emit->info->memoize = strtol(stmt->data + 7, NULL, 10);
-    else if (!strncmp(stmt->data, "unroll", strlen("unroll")))
+    if (!strncmp(stmt->data, "unroll", strlen("unroll")))
       emit->info->unroll = strtol(stmt->data + 6, NULL, 10);
   } else if (stmt->pp_type == ae_pp_include)
     emit->env->name = stmt->data;
