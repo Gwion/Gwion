@@ -1220,11 +1220,14 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
     ERR_B(stmt_self(stmt)->pos,
           _("'return' statement found outside function definition"))
-  if (!strcmp(s_name(env->func->def->base->xid), "new"))
-    ERR_B(stmt_self(stmt)->pos,
-          _("'return' statement found inside constructor function"))
   if (env->scope->depth == 1) // so ops no dot set scope->depth ?
     set_fflag(env->func, fflag_return);
+  if (!strcmp(s_name(env->func->def->base->xid), "new")) {
+    if(stmt->val)
+      ERR_B(stmt_self(stmt)->pos,
+            _("'return' statement inside constructor function should have no expression"))
+    return GW_OK;
+  }
   DECL_OB(const Type, ret_type,
           = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void]);
   if (!env->func->def->base->ret_type) {

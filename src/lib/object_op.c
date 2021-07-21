@@ -97,8 +97,10 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
   if(!strcmp(s_name(f->def->base->xid), "new")) {
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)f->code;
+    if(f != emit->env->func) {
+      const Instr instr = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
+      instr->m_val = (m_uint)f->code ?: (m_uint)f;
+    }
     return;
   }
   if (f->def->base->tmpl)

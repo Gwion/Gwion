@@ -30,7 +30,6 @@ enum {
   eRepeat,
   eRegPushMe,
   eRegPushMaybe,
-  eCtorReturn,
   eFuncReturn,
   eGoto,
   eAllocWord,
@@ -249,7 +248,6 @@ enum {
 #define  Repeat               (f_instr)eRepeat
 #define  RegPushMe            (f_instr)eRegPushMe
 #define  RegPushMaybe         (f_instr)eRegPushMaybe
-#define  CtorReturn           (f_instr)eCtorReturn
 #define  FuncReturn           (f_instr)eFuncReturn
 #define  Goto                 (f_instr)eGoto
 #define  AllocWord            (f_instr)eAllocWord
@@ -601,10 +599,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eRegPushMaybe:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushMaybe", j);
-        gw_out("\n");
-        break;
-      case eCtorReturn:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: CtorReturn  ", j);
         gw_out("\n");
         break;
       case eFuncReturn:

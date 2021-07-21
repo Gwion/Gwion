@@ -412,7 +412,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregaddr, &&regtoregderef,
       &&structmember, &&structmemberfloat, &&structmemberother,
       &&structmemberaddr, &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
-      &&regpushme, &&regpushmaybe, &&ctorreturn, &&funcreturn, &&_goto, &&allocint,
+      &&regpushme, &&regpushmaybe, &&funcreturn, &&_goto, &&allocint,
       &&allocfloat, &&allocother,
       &&intplus, &&intminus, &&intmul, &&intdiv, &&intmod,
       &&intplusimm, &&intminusimm, &&intmulimm, &&intdivimm, &&intmodimm,
@@ -584,9 +584,6 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       *(m_uint *)reg = gw_rand((uint32_t *)vm->rand) > (UINT32_MAX / 2);
       reg += SZ_INT;
       DISPATCH();
-ctorreturn:
-*(M_Object*)(reg) = *(M_Object*)mem;
-reg += SZ_INT;
     funcreturn : {
       register frame_t frame = *(frame_t *)(mem - sizeof(frame_t));
       bytecode               = (code = frame.code)->bytecode;

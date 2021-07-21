@@ -1517,7 +1517,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   }
   const m_uint offset = emit_code_offset(emit);
   if (f != emit->env->func || !is_static)
-    regseti(emit, offset /*+ f->def->stack_depth + */ /*+ sizeof(frame_t)*/);
+    regseti(emit, offset /*+ f->def->stack_depth + sizeof(frame_t)*/);
   const Instr instr   = emit_call(emit, f, is_static);
   instr->m_val        = f->def->base->ret_type->size;
   instr->m_val2       = offset;
@@ -2560,8 +2560,7 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
 ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
                                               const Func    func) {
   if(!strcmp(s_name(func->def->base->xid), "new"))
-    return finalyze(emit, CtorReturn);
-//    emit_add_instr(emit, RegPushMem);
+    emit_add_instr(emit, RegPushMem);
   return !fbflag(func->def->base, fbflag_internal) ? finalyze(emit, FuncReturn)
                                                    : emit_internal(emit, func);
 }
