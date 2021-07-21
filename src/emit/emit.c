@@ -2560,7 +2560,8 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
 ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
                                               const Func    func) {
   if(!strcmp(s_name(func->def->base->xid), "new"))
-    emit_add_instr(emit, RegPushMem);
+    return finalyze(emit, CtorReturn);
+//    emit_add_instr(emit, RegPushMem);
   return !fbflag(func->def->base, fbflag_internal) ? finalyze(emit, FuncReturn)
                                                    : emit_internal(emit, func);
 }

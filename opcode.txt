@@ -27,6 +27,7 @@ RepeatIdx~pc~u
 Repeat~pc
 RegPushMe
 RegPushMaybe
+CtorReturn
 FuncReturn
 Goto~pc
 AllocWord~u

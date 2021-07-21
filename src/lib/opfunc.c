@@ -101,8 +101,9 @@ OP_CHECK(opck_new) {
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
   if(unary->ctor.exp) {
     const Exp self   = exp_self(unary);
-    const Exp args   = unary->ctor.exp;
-    const Exp base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, NULL, self->pos);
+    const Exp args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
+    const Exp base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->pos);
+base->type = t;
     const Exp func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->pos);
     self->d.exp_call.func = func;
     self->d.exp_call.args = args;
@@ -127,6 +128,9 @@ OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
-  emit_gc(emit, -SZ_INT);
+// we don't need gc for arrays?
+// also when in rewrote exp
+//  if(!(unary->ctor.td->array || unary->ctor.exp))
+//    emit_gc(emit, -SZ_INT);
   return GW_OK;
 }

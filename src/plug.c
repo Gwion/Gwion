@@ -115,6 +115,9 @@ ANN void set_module(const struct Gwion_ *gwion, const m_str name,
       return;
     }
   }
+  const Plug plug  = new_plug(gwion->mp, name);
+  plug->self = ptr;
+  map_set(map, (m_uint)name, (m_uint)plug);
 }
 
 ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {

@@ -1220,6 +1220,9 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
     ERR_B(stmt_self(stmt)->pos,
           _("'return' statement found outside function definition"))
+  if (!strcmp(s_name(env->func->def->base->xid), "new"))
+    ERR_B(stmt_self(stmt)->pos,
+          _("'return' statement found inside constructor function"))
   if (env->scope->depth == 1) // so ops no dot set scope->depth ?
     set_fflag(env->func, fflag_return);
   DECL_OB(const Type, ret_type,
@@ -1834,6 +1837,8 @@ ANN static inline void check_unhandled(const Env env) {
   for (m_uint j = 0; j < m_vector_size(w); j++) {
     struct ScopeEffect eff;
     m_vector_get(w, j, &eff);
+    if(s_name(eff.sym)[0] == '!')
+      continue;
     gwerr_secondary("Unhandled effect", env->name, eff.pos);
     env->context->error = false;
   }

@@ -78,7 +78,7 @@ static INSTR(PredicateCheck) {
 
 ANN static m_bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "one type to rule them all.");
-  const Type t_class = gwi_mk_type(gwi, "@Class", SZ_INT, NULL);
+  const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
   GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
   GWI_BB(gwi_gack(gwi, t_class, gack_class))
@@ -194,7 +194,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_ref(gwi))
 
   gwidoc(gwi, "Operators class types.");
-  GWI_BB(gwi_oper_ini(gwi, "@Class", "@Class", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "Class", "Class", "int"))
   GWI_BB(gwi_oper_end(gwi, "==", int_eq))
   GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
   GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
@@ -214,13 +214,13 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
   gwidoc(gwi, "allow static access.");
-  GWI_BB(gwi_oper_ini(gwi, "@Class", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
   gwidoc(gwi, "Allow binary call to constructors.");
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Class", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Class", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_class_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
 
