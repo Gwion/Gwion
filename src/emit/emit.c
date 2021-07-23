@@ -1006,11 +1006,12 @@ ANN static m_uint vararg_size(const Gwion gwion, const Exp_Call *exp_call,
 ANN static void emit_func_arg_vararg(const Emitter   emit,
                                      const Exp_Call *exp_call) {
   const Instr  instr = emit_add_instr(emit, VarargIni);
-  const Vector kinds = new_vector(emit->gwion->mp);
-  if ((instr->m_val = vararg_size(emit->gwion, exp_call, kinds)))
-    instr->m_val2 = (m_uint)kinds;
+  struct Vector_ kinds;
+  vector_init(&kinds);
+  if ((instr->m_val = vararg_size(emit->gwion, exp_call, &kinds)))
+    instr->m_val2 = (m_uint)kinds.ptr;
   else
-    free_vector(emit->gwion->mp, kinds);
+    vector_release(&kinds);
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call *exp_call) {

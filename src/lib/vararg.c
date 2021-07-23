@@ -70,7 +70,7 @@ INSTR(VarargIni) {
   POP_REG(shred, instr->m_val - SZ_INT)
   if ((*(m_uint *)(o->data + SZ_INT * 2) = instr->m_val)) {
     arg->d             = (m_bit *)xmalloc(round2szint(instr->m_val));
-    const Vector kinds = (Vector)instr->m_val2;
+    const Vector kinds = (Vector)&instr->m_val2;
     vector_copy2(kinds, &arg->t);
     m_uint offset = 0;
     for (m_uint i = 0; i < vector_size(&arg->t); ++i) {
@@ -137,7 +137,7 @@ static OP_EMIT(opem_vararg_cast) {
 }
 
 static FREEARG(freearg_vararg) {
-  if (instr->m_val2) free_vector(((Gwion)gwion)->mp, (Vector)instr->m_val2);
+  if (instr->m_val2) vector_release((Vector)&instr->m_val2);
 }
 
 static ID_CHECK(idck_vararg) {
