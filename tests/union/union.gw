@@ -4,7 +4,7 @@ union U {
   float f;
 }
 
-U(i, 1) => var U u;
+new U(i, 1) => var U u;
 <<< u.i >>>;
 
 2.4 => u.f;
