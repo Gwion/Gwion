@@ -2659,8 +2659,8 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   if (func->code || tmpl_base(fdef->base->tmpl) || fflag(func, fflag_emit))
     return GW_OK;
   set_fflag(func, fflag_emit);
-  if (vflag(func->value_ref, vflag_builtin) &&
-      safe_tflag(emit->env->class_def, tflag_tmpl)) {
+  if ((vflag(func->value_ref, vflag_builtin) &&
+      safe_tflag(emit->env->class_def, tflag_tmpl)) || (fdef->base->tmpl && !strcmp(s_name(f->base->xid), "new"))) {
     const Func base =
         nspc_lookup_func1(func->value_ref->from->owner, f->base->xid);
     builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);

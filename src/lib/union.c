@@ -103,7 +103,12 @@ static MFUN(union_is) {
   *(m_uint *)RETURN = *(m_uint *)MEM(SZ_INT) == *(m_uint *)o->data;
 }
 
-static OP_CHECK(opck_union_ctor) {
+static MFUN(union_new) {
+  memcpy(o->data, MEM(SZ_INT*2), *(m_uint*)MEM(SZ_INT));
+  *(M_Object *)RETURN = o;
+}
+
+static OP_CHECK(opck_union_new) {
   Exp_Call *call = (Exp_Call *)data;
   const Exp name = call->args;
   if (!name || !name->next || name->next->next)
@@ -112,7 +117,7 @@ static OP_CHECK(opck_union_ctor) {
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
     return NULL;
   const Exp  val  = name->next;
-  const Type base = actual_type(env->gwion, call->func->type);
+  const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     if (VKEY(map, i) == (m_uint)name->d.prim.d.var) {
@@ -125,28 +130,14 @@ static OP_CHECK(opck_union_ctor) {
         ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'", t->name,
               v->name, v->type->name);
       }
+      const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->pos);
+      e->next = name;
+      e->type = env->gwion->type[et_int];
+      call->args = e;
       return base;
     }
   }
   return NULL;
-}
-
-static INSTR(UnionCtor) {
-  POP_REG(shred, instr->m_val2);
-  const m_uint   index = *(m_uint *)REG(-SZ_INT);
-  const M_Object o     = *(M_Object *)REG(-SZ_INT) =
-      new_object(shred->info->mp, NULL, (Type)instr->m_val);
-  *(m_uint *)o->data = index; // + 1;
-  memcpy(o->data + SZ_INT, REG(0), instr->m_val2);
-}
-
-static OP_EMIT(opem_union_ctor) {
-  Exp_Call *const  call  = (Exp_Call *)data;
-  const Type       base  = actual_type(emit->gwion, call->func->type);
-  const Instr      instr = emit_add_instr(emit, UnionCtor);
-  instr->m_val           = (m_uint)base;
-  instr->m_val2          = call->args->next->type->size;
-  return GW_OK;
 }
 
 ANN GWION_IMPORT(union) {
@@ -165,17 +156,19 @@ ANN GWION_IMPORT(union) {
 
   const Type t_union = gwi_class_ini(gwi, "@Union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);
+  gwi->gwion->type[et_union] = t_union;
+
   GWI_BB(gwi_item_ini(gwi, "int", "@index"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   GWI_BB(gwi_func_ini(gwi, "bool", "is"))
   GWI_BB(gwi_func_arg(gwi, "int", "member"))
   GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))
+  GWI_BB(gwi_func_ini(gwi, "auto", "new:[T]"))
+  GWI_BB(gwi_func_arg(gwi, "int", "size"))
+  GWI_BB(gwi_func_arg(gwi, "int", "id"))
+  GWI_BB(gwi_func_arg(gwi, "T", "value"))
+  GWI_BB(gwi_func_end(gwi, union_new, ae_flag_none))
   GWI_BB(gwi_class_end(gwi))
-
-  GWI_BB(gwi_oper_ini(gwi, NULL, "@Union", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_union_ctor))
-  GWI_BB(gwi_oper_emi(gwi, opem_union_ctor))
-  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
 
   const Func             f      = (Func)vector_front(&t_union->nspc->vtable);
   const struct Op_Func   opfunc = {.ck = opck_union_is};
@@ -186,6 +179,18 @@ ANN GWION_IMPORT(union) {
       .pos  = gwi->loc,
       .op   = insert_symbol(gwi->gwion->st, "@func_check")};
   CHECK_BB(add_op(gwi->gwion, &opi));
+
+  const Func             f1      = (Func)vector_at(&t_union->nspc->vtable, 1);
+  const struct Op_Func   opfunc1 = {.ck = opck_union_new};
+  const struct Op_Import opi1    = {
+      .rhs  = f1->value_ref->type,
+      .func = &opfunc1,
+      .data = (uintptr_t)f1,
+      .pos  = gwi->loc,
+      .op   = insert_symbol(gwi->gwion->st, "@func_check")};
+  CHECK_BB(add_op(gwi->gwion, &opi1));
+
+builtin_func(gwi->gwion->mp, f1, union_new);
   gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))

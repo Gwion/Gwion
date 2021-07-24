@@ -727,7 +727,8 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   Tmpl tmpl               = {.call = tl};
   ((Exp_Call *)exp)->tmpl = &tmpl;
   DECL_OO(const Func, func, = get_template_func(env, exp, value));
-  return func->def->base->ret_type;
+  return func->def->base->ret_type != env->gwion->type[et_auto] ?
+    func->def->base->ret_type : exp->func->d.exp_dot.base->type;
 }
 
 ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
@@ -832,7 +833,8 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
     if (func == env->func) set_fflag(env->func, fflag_recurs);
-    return func->def->base->ret_type;
+    return func->def->base->ret_type != env->gwion->type[et_auto] ?
+      func->def->base->ret_type : exp->func->d.exp_dot.base->type;
   }
   const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
   function_alternative(env, exp->func->type, exp->args, pos);
