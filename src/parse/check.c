@@ -496,7 +496,7 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     while (e) {
       if (!e->type) // investigate
         return NULL;
-      if (!strncmp(e->type->name, "Ref:[", 5)) exp_setvar(e, true);
+//      if (!strncmp(e->type->name, "Ref:[", 5)) exp_setvar(e, true);
       if (!e1) {
         if (fbflag(func->def->base, fbflag_variadic)) return func;
         CHECK_OO(func->next);
