@@ -994,10 +994,10 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     autoloop:
       *(m_bit **)(mem + VAL2 + SZ_INT) =
           m_vector_addr(ARRAY(*(M_Object *)(mem + VAL2 - SZ_INT)),
-                        *(m_uint *)(mem + VAL2) + 1);
+                        ++*(m_uint *)(mem + VAL2));
       BRANCH_DISPATCH(
           m_vector_size(ARRAY(*(M_Object *)(mem + VAL2 - SZ_INT))) ==
-          ++*(m_uint *)(mem + VAL2));
+          *(m_uint *)(mem + VAL2));
     arraytop:
       if (*(m_uint *)(reg - SZ_INT * 2) < *(m_uint *)(reg - SZ_INT))
         goto newobj;

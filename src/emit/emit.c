@@ -2120,8 +2120,6 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   emit_local(emit, emit->gwion->type[et_int]);
   const Instr tomem     = emit_add_instr(emit, Reg2Mem);
   tomem->m_val          = offset;
-  const Instr s1        = emit_add_instr(emit, MemSetImm);
-  s1->m_val             = offset + SZ_INT;
   const Instr loop_idx  = emit_add_instr(emit, MemSetImm);
   loop_idx->m_val       = offset + SZ_INT;
   loop_idx->m_val2      = -1;

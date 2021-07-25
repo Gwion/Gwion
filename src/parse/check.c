@@ -1517,7 +1517,7 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
               fbflag(f2->def->base, fbflag_unary) &&
           fbflag(f1->def->base, fbflag_postfix) ==
               fbflag(f2->def->base, fbflag_postfix))
-        ERR_B(f2->def->base->td->pos,
+        ERR_B(f2->def->base->pos,
               _("global function '%s' already defined"
                 " for those arguments"),
               s_name(fdef->base->xid))
