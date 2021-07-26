@@ -185,7 +185,7 @@ OP_CHECK(opck_object_dot) {
   if (!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if (v && member->is_call) {
-      if (is_func(env->gwion, v->type))
+      if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0))
         return v->type;
     if (is_class(env->gwion, v->type)) {
        const Type parent = actual_type(env->gwion, v->type);
