@@ -99,6 +99,12 @@ ANN Type check_td(const Env env, Type_Decl *td);
 OP_CHECK(opck_new) {
   Exp_Unary *unary = (Exp_Unary *)data;
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
+  if (type_ref(t))
+    ERR_N(unary->ctor.td->pos, _("can't use 'new' on ref type '%s'\n"), t->name);
+  if (tflag(t, tflag_infer))
+    ERR_N(unary->ctor.td->pos, _("can't use 'new' on '%s'\n"),
+          t->name);
+  if (unary->ctor.td->array) CHECK_BN(check_subscripts(env, unary->ctor.td->array, 1));
   if(unary->ctor.exp) {
     const Exp self   = exp_self(unary);
     const Exp args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
@@ -108,19 +114,17 @@ base->type = t;
     self->d.exp_call.func = func;
     self->d.exp_call.args = args;
     self->d.exp_call.tmpl = NULL;
+    self->d.exp_call.allow_curry = 0;
     self->exp_type = ae_exp_call;
     CHECK_BN(traverse_exp(env, self));
     return self->type;
 //    unarytype
   }
-  if (isa(t, env->gwion->type[et_object]) < 0)
-    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));
-  if (type_ref(t))
-    ERR_N(unary->ctor.td->pos, _("can't use 'new' on ref type '%s'\n"), t->name);
   if (GET_FLAG(t, abstract))
     ERR_N(unary->ctor.td->pos, _("can't use 'new' on abstract type '%s'\n"),
           t->name);
-  if (unary->ctor.td->array) CHECK_BN(check_subscripts(env, unary->ctor.td->array, 1));
+  if (isa(t, env->gwion->type[et_object]) < 0)
+    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));
   return t;
 }
 
