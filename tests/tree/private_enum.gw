@@ -1,5 +1,5 @@
 class C {
-  enum private {
+  enum private E {
     TEST
   };
 }

@@ -192,23 +192,12 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   return GW_OK;
 }
 
-ANN static Symbol scan0_sym(const Env env, const m_str name, const loc_t pos) {
-  const size_t line_len = num_digit(pos.first.line);
-  const size_t col_len  = num_digit(pos.first.column);
-  char c[strlen(env->curr->name) + strlen(env->name) + line_len + col_len +
-         strlen(name) + 6];
-  sprintf(c, "@%s:%s:%s:%u:%u", name, env->name, env->curr->name,
-          pos.first.line, pos.first.column);
-  return insert_symbol(c);
-}
-
 #define scan0_nspc(env, a)                                                     \
   GET_FLAG(a, global) ? !env->class_def ? env->global_nspc : NULL : env->curr
 
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type   t    = type_copy(env->gwion->mp, env->gwion->type[et_int]);
-  const Symbol sym  = scan0_sym(env, "enum", edef->pos);
-  t->name           = edef->xid ? s_name(edef->xid) : s_name(sym);
+  t->name           = s_name(edef->xid);
   t->info->parent   = env->gwion->type[et_int];
   const bool global = GET_FLAG(edef, global); // TODO: handle global in class
   if (global) {

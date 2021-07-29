@@ -1,7 +1,7 @@
 #! [contains] unary operator '--' cannot be used on non-mutable data-types
 class C
 {
-  enum { a, b };
+  enum E { a, b };
 }
 
 C.a;
