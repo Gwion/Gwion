@@ -129,7 +129,6 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   }
   if (!gwi->gwion->env->class_def)
     GWI_ERR_B(_("import: too many class_end called."))
-  nspc_allocdata(gwi->gwion->mp, gwi->gwion->env->class_def->nspc);
   const Type t = gwi->gwion->env->class_def;
   if (tflag(t, tflag_tmpl)) {
     --gwi->tmpls;

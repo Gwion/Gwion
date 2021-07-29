@@ -1342,7 +1342,7 @@ ANN static Instr get_prelude(const Emitter emit, const Func f,
   if (is_fptr(emit->gwion, t)) {
     if (f->def->base->tmpl) tmpl_prelude(emit, f);
   }
-  if (fp || f != emit->env->func || !is_static ||
+  if (fp || f != emit->env->func || (!is_static && strcmp(s_name(f->def->base->xid), "new"))||
       strstr(emit->code->name, "ork~")) {
     const Instr instr = emit_add_instr(emit, SetCode);
     instr->udata.one  = 1;
@@ -2217,9 +2217,10 @@ ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
       v->from->offset = emit_local(emit, emit->gwion->type[et_int]);
       v->d.num        = i;
     } else
-      *(m_bit *)(emit->env->class_def->nspc->info->class_data +
+      *(m_uint *)(emit->env->class_def->nspc->info->class_data +
                  v->from->offset) = i;
   }
+  set_tflag(edef->t, tflag_emit);
   return GW_OK;
 }
 
@@ -2736,15 +2737,14 @@ ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
 ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
-  const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_emit)) return GW_OK;
   set_tflag(t, tflag_emit);
+  const Class_Def c = t->info->cdef;
   const Type owner = t->info->value->from->owner_class;
   if (owner) CHECK_BB(ensure_emit(emit, owner));
   if (c->base.ext && t->info->parent->info->cdef &&
       !tflag(t->info->parent, tflag_emit)) // ?????
     CHECK_BB(cdef_parent(emit, c));
-  nspc_allocdata(emit->gwion->mp, t->nspc);
   if (c->body) {
     emit_class_code(emit, t->name);
     if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0)

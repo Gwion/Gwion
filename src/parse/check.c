@@ -31,6 +31,7 @@ ANN static Type check_internal(const Env env, const Symbol sym, const Exp e,
 
 ANN m_bool check_implicit(const Env env, const Exp e, const Type t) {
   if (e->type == t) return GW_OK;
+  if (isa(e->type, t) > 0) return GW_OK;
   const Symbol sym = insert_symbol("@implicit");
   return (e->cast_to = check_internal(env, sym, e, t)) ? GW_OK : GW_ERROR;
 }
@@ -820,7 +821,6 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   if (func) {
     if (!is_fptr(env->gwion, func->value_ref->type)) // skip function pointers
       if (func != env->func && func->def && !fflag(func, fflag_valid)) {
-        //  if(!fflag(func, fflag_valid)) {
         struct EnvSet es = {.env   = env,
                             .data  = env,
                             .func  = (_exp_func)check_cdef,
@@ -830,6 +830,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
         CHECK_BO(check_func_def(env, func->def));
         if (es.run) envset_pop(&es, func->value_ref->from->owner_class);
       }
+
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
     if (func == env->func) set_fflag(env->func, fflag_recurs);
@@ -1815,6 +1816,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
       }
     }
   }
+  nspc_allocdata(env->gwion->mp, t->nspc);
   return GW_OK;
 }
 
