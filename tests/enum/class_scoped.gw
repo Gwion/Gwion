@@ -1,0 +1,7 @@
+class C {
+  enum MyEnum@ {
+    zero, one
+  }
+}
+
+<<< C.MyEnum.one >>>;

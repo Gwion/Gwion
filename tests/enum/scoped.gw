@@ -1,0 +1,6 @@
+#! [contains] 1
+enum MyEnum@ {
+  zero, one
+}
+
+<<< MyEnum.one >>>;

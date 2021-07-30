@@ -366,11 +366,20 @@ ANN static inline m_bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) {
 }
 
 ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
+  const m_bool is_scoped = edef->is_scoped;
+  if(is_scoped)
+    edef->t->nspc = new_nspc(env->gwion->mp, edef->t->name);
+  const Nspc nspc = is_scoped ?
+    edef->t->nspc : edef->t->info->value->from->owner;
+  const m_uint scope = is_scoped ?
+    env_push_type(env, edef->t) : 0;
   ID_List list = edef->list;
   do {
-    CHECK_BB(already_defined(env, list->xid, edef->pos));
-    if (nspc_lookup_value1(edef->t->info->value->from->owner, list->xid))
-      ERR_B(edef->pos, "'%s' already defined", s_name(list->xid));
+    if(!is_scoped) {
+      CHECK_BB(already_defined(env, list->xid, edef->pos));
+      if (nspc_lookup_value1(nspc, list->xid))
+        ERR_B(edef->pos, "'%s' already defined", s_name(list->xid));
+    }
     const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
     valuefrom(env, v->from, edef->pos);
     if (env->class_def) {
@@ -381,9 +390,11 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
-    nspc_add_value(edef->t->info->value->from->owner, list->xid, v);
+    nspc_add_value(nspc, list->xid, v);
     vector_add(&edef->values, (vtype)v);
   } while ((list = list->next));
+  if(is_scoped)
+    env_pop(env, scope);
   return GW_OK;
 }
 

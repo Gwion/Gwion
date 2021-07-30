@@ -1095,10 +1095,17 @@ ANN Type check_exp(const Env env, const Exp exp) {
 }
 
 ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
-  if (env->class_def) {
+  const bool is_scoped = edef->is_scoped;
+  const m_uint scope = is_scoped ?
+    env_push_type(env, edef->t) : 0;
+  if (is_scoped || env->class_def) {
     ID_List list = edef->list;
     do decl_static(env, nspc_lookup_value0(env->curr, list->xid));
     while ((list = list->next));
+  }
+  if (is_scoped) {
+    env_pop(env, scope);
+    nspc_allocdata(env->gwion->mp, edef->t->nspc);
   }
   return GW_OK;
 }
