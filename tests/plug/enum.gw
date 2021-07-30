@@ -1,15 +1,4 @@
 #import enum
-#! untyped global enum
-<<< ENUM0 >>>;
-<<< ENUM1 >>>;
-<<< ENUM2 >>>;
-<<< ENUM3 >>>;
-<<< ENUM4 >>>;
-<<< ENUM5 >>>;
-<<< ENUM6 >>>;
-<<< ENUM7 >>>;
-<<< ENUM8 >>>;
-<<< ENUM9 >>>;
 
 #! typed global enum
 <<< TYPED_ENUM0 >>>;
@@ -35,15 +24,3 @@
 <<< Enum.ENUM7 >>>;
 <<< Enum.ENUM8 >>>;
 <<< Enum.ENUM9 >>>;
-
-#! Enum.typed global enum
-<<< Enum.TYPED_ENUM0 >>>;
-<<< Enum.TYPED_ENUM1 >>>;
-<<< Enum.TYPED_ENUM2 >>>;
-<<< Enum.TYPED_ENUM3 >>>;
-<<< Enum.TYPED_ENUM4 >>>;
-<<< Enum.TYPED_ENUM5 >>>;
-<<< Enum.TYPED_ENUM6 >>>;
-<<< Enum.TYPED_ENUM7 >>>;
-<<< Enum.TYPED_ENUM8 >>>;
-<<< Enum.TYPED_ENUM9 >>>;

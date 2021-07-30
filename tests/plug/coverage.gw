@@ -3,12 +3,13 @@
 
 <<< var float f >>>;
 var Coverage c;
+<<< c >>>;
 c.s_i;
 <<<  Coverage.i()  >>>;
 <<<  Coverage.f()  >>>;
 
 <<< Coverage.s_i  >>>;
-<<< Coverage.s_f  >>>;
+<<< "s_f ", Coverage.s_f  >>>;
 
 <<< Coverage.sc_i  >>>;
 <<< Coverage.sc_f  >>>;

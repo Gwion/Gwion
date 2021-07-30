@@ -22,7 +22,7 @@ GWION_IMPORT(coverage) {
   GWI_BB(gwi_item_ini(gwi, "int", "s_i"))
   GWI_BB(gwi_item_end(gwi, ae_flag_static, num, 5))
 
-  GWI_BB(gwi_item_ini(gwi, "int", "s_f"))
+  GWI_BB(gwi_item_ini(gwi, "float", "s_f"))
   GWI_BB(gwi_item_end(gwi, ae_flag_static, fnum, 2.1))
 
   GWI_BB(gwi_item_ini(gwi, "int", "sc_i"))
