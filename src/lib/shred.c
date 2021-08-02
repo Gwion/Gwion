@@ -104,7 +104,7 @@ static MFUN(shred_args) {
 static MFUN(shred_arg) {
   const VM_Shred s   = ME(o);
   const m_int    idx = *(m_int *)MEM(SZ_INT);
-  if (s->info->args.ptr && idx >= 0) {
+  if (s->info->args.ptr && idx >= 0 && (m_uint)idx < vector_size(&s->info->args)) {
     const m_str str = (m_str)vector_at(&s->info->args, *(m_uint *)MEM(SZ_INT));
     *(M_Object *)RETURN = str ? new_string(shred->info->mp, shred, str) : NULL;
   } else
