@@ -2210,7 +2210,7 @@ ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
              : GW_OK;
 }
 
-ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
+ANN static m_bool emit_enum_def(const Emitter emit NUSED, const Enum_Def edef) {
   LOOP_OPTIM
   for (m_uint i = 0; i < vector_size(&edef->values); ++i) {
     const Value v = (Value)vector_at(&edef->values, i);

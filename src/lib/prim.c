@@ -255,9 +255,9 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_set_global_type(gwi, t_bool, et_bool))
   GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
   gwi_item_ini(gwi, "bool", "true");
-  gwi_item_end(gwi, ae_flag_const, num, 0);
-  gwi_item_ini(gwi, "bool", "false");
   gwi_item_end(gwi, ae_flag_const, num, 1);
+  gwi_item_ini(gwi, "bool", "false");
+  gwi_item_end(gwi, ae_flag_const, num, 0);
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
   GWI_BB(gwi_oper_add(gwi, opck_int_not))
