@@ -1,5 +1,5 @@
 #! [contains] 1
-enum MyEnum@ {
+enum MyEnum {
   zero, one
 }
 

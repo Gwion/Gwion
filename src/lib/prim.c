@@ -251,12 +251,13 @@ static GACK(gack_bool) {
 }
 
 static GWION_IMPORT(int_values) {
-  GWI_BB(gwi_enum_ini(gwi, "bool"))
-  GWI_BB(gwi_enum_add(gwi, "false", 0))
-  GWI_BB(gwi_enum_add(gwi, "true", 1))
-  const Type t_bool = gwi_enum_end(gwi);
+  DECL_OB(const Type, t_bool, = gwi_mk_type(gwi, "bool", SZ_INT, "int"));
+  GWI_BB(gwi_set_global_type(gwi, t_bool, et_bool))
   GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
-  gwi->gwion->type[et_bool] = t_bool;
+  gwi_item_ini(gwi, "bool", "true");
+  gwi_item_end(gwi, ae_flag_const, num, 0);
+  gwi_item_ini(gwi, "bool", "false");
+  gwi_item_end(gwi, ae_flag_const, num, 1);
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
   GWI_BB(gwi_oper_add(gwi, opck_int_not))

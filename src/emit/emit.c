@@ -2214,12 +2214,7 @@ ANN static m_bool emit_enum_def(const Emitter emit, const Enum_Def edef) {
   LOOP_OPTIM
   for (m_uint i = 0; i < vector_size(&edef->values); ++i) {
     const Value v = (Value)vector_at(&edef->values, i);
-    if(edef->is_scoped || emit->env->class_def)
-      *(m_uint *)(v->from->owner->info->class_data + v->from->offset) = i;
-    else {
-      v->from->offset = emit_local(emit, emit->gwion->type[et_int]);
-      v->d.num        = i;
-    }
+    *(m_uint *)(v->from->owner->info->class_data + v->from->offset) = i;
   }
   set_tflag(edef->t, tflag_emit);
   return GW_OK;

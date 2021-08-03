@@ -1,4 +1,4 @@
 enum E {
   zero, one, two, three
 };
-<<< zero, " ", one, " ", two, " ", three >>>;
+<<< E.zero, " ", E.one, " ", E.two, " ", E.three >>>;

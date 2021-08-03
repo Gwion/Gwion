@@ -1,5 +1,5 @@
 class C {
-  enum MyEnum@ {
+  enum MyEnum {
     zero, one
   }
 }

@@ -5,7 +5,7 @@ class C {
     two,
     three
   }
-  <<< zero, " ", one, " ", two, " ", three >>>;
+  <<< E.zero, " ", E.one, " ", E.two, " ", E.three >>>;
 }
 var C c;
 <<< c >>>;
