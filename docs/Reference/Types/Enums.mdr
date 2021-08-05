@@ -7,17 +7,17 @@ you can read about those
 
 ## Enums in gwion
 
-You use an enum like this
+enums require a name and at least one member.
+
+You use them like this:
 
 ```gwion,editable
-enum Optionnal_name {
+enum MyEnum {
   zero, one, two
 };
-<<< zero, one, two >>>;
+<<< "${MyEnum.zero} ${MyEnum.one} ${MyEnum.two} >>>;
 ```
 
 ## Storage and access Specifiers
 
-When inside a class,
-Enums are automatically declared **static**, and can't be **global**
-but they accept **private** or **protect** specifiers.
+When inside a class, enums accept **private** or **protect** specifiers.
