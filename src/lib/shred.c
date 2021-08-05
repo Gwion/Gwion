@@ -256,7 +256,7 @@ static ANN THREAD_FUNC(fork_run) {
   MUTEX_LOCK(vm->parent->shreduler->mutex);
   if (!*(m_int *)(me->data + o_shred_cancel) &&
       me->type_ref != vm->gwion->type[et_fork])
-    memcpy(me->data + vm->gwion->type[et_fork]->nspc->info->offset, ME(me)->reg,
+    memcpy(me->data + vm->gwion->type[et_fork]->nspc->offset, ME(me)->reg,
            FORK_RETSIZE(me));
   *(m_int *)(me->data + o_fork_done) = 1;
   if (!*(m_int *)(me->data + o_shred_cancel))

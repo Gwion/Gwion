@@ -15,23 +15,23 @@ ANN void nspc_commit(const Nspc nspc) {
 
 ANN static inline void nspc_release_object(const Nspc a, Value value,
                                            Gwion gwion) {
-  if ((GET_FLAG(value, static) && a->info->class_data) ||
+  if ((GET_FLAG(value, static) && a->class_data) ||
       (value->d.ptr && vflag(value, vflag_builtin))) {
     const M_Object obj =
         value->d.ptr ? (M_Object)value->d.ptr
-                     : *(M_Object *)(a->info->class_data + value->from->offset);
+                     : *(M_Object *)(a->class_data + value->from->offset);
     release(obj, gwion->vm->cleaner_shred);
   }
 }
 
 ANN2(1, 3)
 static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
-  if (value && ((GET_FLAG(value, static) && a->info->class_data) ||
+  if (value && ((GET_FLAG(value, static) && a->class_data) ||
                 (vflag(value, vflag_builtin) && value->d.ptr))) {
     const m_bit *ptr =
         (value && value->d.ptr)
             ? (m_bit *)value->d.ptr
-            : (m_bit *)(a->info->class_data + value->from->offset);
+            : (m_bit *)(a->class_data + value->from->offset);
     for (m_uint i = 0; i < vector_size(&value->type->info->tuple->types); ++i) {
       const Type t = (Type)vector_at(&value->type->info->tuple->types, i);
       if (isa(t, gwion->type[et_object]) > 0)
@@ -80,8 +80,8 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   if (a->info->op_map.ptr) free_op_map(&a->info->op_map, gwion);
   if (a->info->op_tmpl.ptr) free_op_tmpl(&a->info->op_tmpl, gwion);
   nspc_free_type(a, gwion);
-  if (a->info->class_data && a->info->class_data_size)
-    mp_free2(gwion->mp, a->info->class_data_size, a->info->class_data);
+  if (a->class_data && a->class_data_size)
+    mp_free2(gwion->mp, a->class_data_size, a->class_data);
   if (a->vtable.ptr) vector_release(&a->vtable);
   mp_free(gwion->mp, NspcInfo, a->info);
   if (a->pre_ctor) vmcode_remref(a->pre_ctor, gwion);

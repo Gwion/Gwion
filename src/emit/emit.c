@@ -799,7 +799,7 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v,
                                        const bool emit_var) {
   const m_uint size  = v->type->size;
   const Instr  instr = emit_dotstatic(emit, size, emit_var);
-  instr->m_val  = (m_uint)(v->from->owner->info->class_data + v->from->offset);
+  instr->m_val  = (m_uint)(v->from->owner->class_data + v->from->offset);
   instr->m_val2 = size;
   return GW_OK;
 }
@@ -2228,7 +2228,7 @@ ANN static m_bool emit_enum_def(const Emitter emit NUSED, const Enum_Def edef) {
   LOOP_OPTIM
   for (m_uint i = 0; i < vector_size(&edef->values); ++i) {
     const Value v = (Value)vector_at(&edef->values, i);
-    *(m_uint *)(v->from->owner->info->class_data + v->from->offset) = i;
+    *(m_uint *)(v->from->owner->class_data + v->from->offset) = i;
   }
   set_tflag(edef->t, tflag_emit);
   return GW_OK;

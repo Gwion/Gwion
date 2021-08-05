@@ -88,7 +88,7 @@ ANN static void emit_dot_static_data(const Emitter emit, const Value v,
                                      const bool emit_addr) {
   const m_uint size  = v->type->size;
   const Instr  instr = emit_dotstatic(emit, size, emit_addr);
-  instr->m_val  = (m_uint)(v->from->owner->info->class_data + v->from->offset);
+  instr->m_val  = (m_uint)(v->from->owner->class_data + v->from->offset);
   instr->m_val2 = size;
 }
 

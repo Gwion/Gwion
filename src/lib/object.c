@@ -26,8 +26,8 @@ M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
   a->type_ref      = t;
   if (t->nspc) {
     a->vtable.ptr = t->nspc->vtable.ptr;
-    if (t->nspc->info->offset)
-      a->data = (m_bit *)_mp_calloc(p, t->nspc->info->offset);
+    if (t->nspc->offset)
+      a->data = (m_bit *)_mp_calloc(p, t->nspc->offset);
   }
   if (shred) vector_add(&shred->gc, (vtype)a);
   return a;
@@ -86,8 +86,8 @@ __attribute__((hot)) ANN void __release(const M_Object o,
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-  if (o->type_ref->nspc && o->type_ref->nspc->info->offset)
-    mp_free2(p, o->type_ref->nspc->info->offset, o->data);
+  if (o->type_ref->nspc && o->type_ref->nspc->offset)
+    mp_free2(p, o->type_ref->nspc->offset, o->data);
   mp_free(p, M_Object, o);
 }
 

@@ -60,12 +60,12 @@ ANN static inline m_bool check_exp_decl_parent(const Env      env,
   return GW_OK;
 }
 
-#define describe_check_decl(a, b, flag)                                        \
-  ANN static inline void decl_##a(const Env env, const Value v) {              \
-    const Nspc nspc = env->curr;                                               \
-    flag;                                                                      \
-    v->from->offset = nspc->info->b;                                           \
-    nspc->info->b += v->type->size;                                            \
+#define describe_check_decl(a, b, flag)                            \
+  ANN static inline void decl_##a(const Env env, const Value v) {  \
+    const Nspc nspc = env->curr;                                   \
+    flag;                                                          \
+    v->from->offset = nspc->b;                                     \
+    nspc->b += v->type->size;                                      \
   }
 
 describe_check_decl(member, offset, v->vflag |= vflag_member);

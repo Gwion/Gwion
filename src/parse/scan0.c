@@ -266,9 +266,9 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   CHECK_BB(scan0_defined(env, udef->xid, udef->pos));
   udef->type   = union_type(env, udef->xid, udef->pos);
   Union_List l = udef->l;
-  do udef->type->nspc->info->offset += SZ_INT;
+  do udef->type->nspc->offset += SZ_INT;
   while ((l = l->next));
-  udef->type->nspc->info->offset += SZ_INT;
+  udef->type->nspc->offset += SZ_INT;
   SET_ACCESS(udef, udef->type);
   if (udef->tmpl) union_tmpl(env, udef);
   if (global) env_pop(env, 0);

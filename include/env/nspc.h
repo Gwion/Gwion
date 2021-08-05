@@ -1,25 +1,25 @@
 #ifndef __NSPC
 #define __NSPC
 struct NspcInfo_ {
-  m_bit *        class_data;
   struct Map_    op_map;
   Scope          value;
   Scope          type;
   Scope          func;
   Scope          trait;
   struct Vector_ op_tmpl;
-  uint16_t       offset;
-  uint16_t       class_data_size;
 };
 
 struct Nspc_ {
-  struct NspcInfo_ *info;
-  Nspc              parent;
-  m_str             name;
   struct Vector_    vtable;
+  m_bit *           class_data;
   struct VM_Code_ * pre_ctor;
   struct VM_Code_ * dtor;
+  Nspc              parent;
+  m_str             name;
+  struct NspcInfo_ *info;
+  uint16_t       offset;
   uint16_t          ref;
+  uint16_t       class_data_size;
 };
 
 REF_FUNC(Nspc, nspc)
@@ -78,9 +78,9 @@ ANN void did_you_mean_type(const Type, const char *);
   if (strlen(b) < DID_YOU_MEAN_LIMIT) did_you_mean_type(a, b);
 
 ANN static inline void nspc_allocdata(MemPool mp, const Nspc nspc) {
-  if (nspc->info->class_data_size) {
-    nspc->info->class_data =
-        (m_bit *)mp_calloc2(mp, nspc->info->class_data_size);
+  if (nspc->class_data_size) {
+    nspc->class_data =
+        (m_bit *)mp_calloc2(mp, nspc->class_data_size);
   }
 }
 #endif

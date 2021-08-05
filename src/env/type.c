@@ -154,6 +154,6 @@ ANN Type actual_type(const struct Gwion_ *gwion, const Type t) {
 ANN void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->info->parent->nspc;
   if (!nspc || !parent) return;
-  nspc->info->offset = parent->info->offset;
+  nspc->offset = parent->offset;
   if (parent->vtable.ptr) vector_copy2(&parent->vtable, &nspc->vtable);
 }

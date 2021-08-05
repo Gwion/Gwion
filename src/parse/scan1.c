@@ -499,7 +499,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
     nspc_add_value_front(env->curr, l->xid, v);
     if (t->size > sz) sz = t->size;
   } while ((l = l->next));
-  udef->type->nspc->info->offset = SZ_INT + sz;
+  udef->type->nspc->offset = SZ_INT + sz;
   return GW_OK;
 }
 
