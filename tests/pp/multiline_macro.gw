@@ -1,0 +1,13 @@
+#! [contains] 1
+
+fun void func_1() { <<< "foo" >>>;}
+
+fun void func_2() { <<< "bar" >>>;}
+
+#define SET_FADER(i) \
+set_fader_##i();\
+<<< i >>>
+
+
+SET_FADER(1);
+SET_FADER(2);
