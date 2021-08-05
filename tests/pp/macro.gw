@@ -1,0 +1,7 @@
+#! [contains] 1
+
+#define TEST_MULITLINE_MACRO(i) \
+more stuff.\
+and more
+
+<<< 1 >>>;

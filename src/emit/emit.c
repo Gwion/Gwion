@@ -1431,6 +1431,17 @@ ANN static Instr emit_call(const Emitter emit, const Func f,
   return emit_add_instr(emit, Overflow);
 }
 
+ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
+  const struct ValueFrom_ *from = f->value_ref->from;
+  if(from->owner_class)
+    CHECK_BB(ensure_emit(emit, from->owner_class));
+  if(f->code) return GW_OK;
+  const m_uint scope = emit_push(emit, from->owner_class, from->owner);
+  const m_bool ret = emit_func_def(emit, f->def);
+  emit_pop(emit, scope);
+  return ret;
+}
+
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
                           const bool is_static) {
   const m_uint this_offset   = emit->this_offset;
@@ -1450,8 +1461,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       }
     } else if (emit->env->func != f && !f->value_ref->from->owner_class &&
                !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
-      // ensure env?
-      CHECK_BB(emit_func_def(emit, f->def));
+      CHECK_BB(emit_ensure_func(emit, f));
       if (fbflag(f->def->base, fbflag_op)) {
         const Instr back = (Instr)vector_back(&emit->code->instr);
         assert(back->execute == SetFunc);
@@ -1503,6 +1513,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
              !is_fptr(emit->gwion, f->value_ref->type)) {
     // not yet emitted static func
     if (f->value_ref->from->owner_class) {
+      assert(GET_FLAG(f->value_ref, static));
       const Instr instr = vector_size(&emit->code->instr)
                               ? (Instr)vector_back(&emit->code->instr)
                               : emit_add_instr(emit, SetFunc);
@@ -1601,10 +1612,13 @@ ANN static m_bool spork_prepare_code(const Emitter         emit,
 
 ANN static m_bool spork_prepare_func(const Emitter         emit,
                                      const struct Sporker *sp) {
+  const Type t = actual_type(emit->gwion, sp->exp->d.exp_call.func->type);
+  const Func f = t->info->func;
+  if(!f->code && f != emit->env->func)
+    CHECK_BB(emit_ensure_func(emit, f));
   push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX,
                   sp->exp->pos);
-  const Type t = actual_type(emit->gwion, sp->exp->d.exp_call.func->type);
-  return emit_exp_call1(emit, t->info->func, false);
+  return emit_exp_call1(emit, f, false);
 }
 
 ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {

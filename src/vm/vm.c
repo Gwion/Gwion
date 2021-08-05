@@ -933,10 +933,12 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     forkini:
       reg -= SZ_INT;
       child = init_fork_shred(shred, (VM_Code)VAL, *(Type *)reg, VAL2),
-      DISPATCH() sporkfunc :
-          //  LOOP_OPTIM
-          PRAGMA_PUSH() for (m_uint i = 0; i < VAL; i += SZ_INT) *
-          (m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
+      DISPATCH()
+    sporkfunc:
+      PRAGMA_PUSH()
+      //  LOOP_OPTIM
+      for (m_uint i = 0; i < VAL; i += SZ_INT)
+        *(m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
       child->reg += VAL;
       DISPATCH()
       PRAGMA_POP()
