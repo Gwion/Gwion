@@ -1,0 +1,7 @@
+#! [contains] non-global type in a global class
+
+class State{}
+
+class global States extends State[16] {
+    var State current;
+}

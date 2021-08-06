@@ -35,10 +35,37 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
+ANN static inline bool from_global_nspc(const Env env, const Nspc nspc) {
+  Nspc global = env->global_nspc;
+  while(global) {
+    if (nspc == global)
+      return true;
+    global = global->parent;
+  }
+  return false;
+}
+
+ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
+  const struct ValueFrom_ *from = t->info->value->from;
+  if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
+    return true;
+  if(!GET_FLAG(t, global) || !from_global_nspc(env, from->owner)) {
+    gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
+    gwerr_secondary("not declared global", from->filename, from->loc);
+    const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;
+    gwerr_secondary("is global", ownerFrom->filename, ownerFrom->loc);
+    return false;
+  }
+  return true;
+}
+
 ANN static Type scan1_type(const Env env, Type_Decl *td) {
   DECL_OO(const Type, t, = known_type(env, td));
-  if (!env->func && env->class_def && !GET_FLAG(td, late))
+  if (!env->func && env->class_def && !GET_FLAG(td, late)) {
     CHECK_BO(type_cyclic(env, t, td));
+    if(GET_FLAG(env->class_def, global) && !check_global(env, t, td->pos))
+      return NULL;
+  }
   CHECK_BO(ensure_scan1(env, t));
   return t;
 }
