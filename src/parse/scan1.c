@@ -45,11 +45,23 @@ ANN static inline bool from_global_nspc(const Env env, const Nspc nspc) {
   return false;
 }
 
+ANN static bool owner_global(const Env env, const Type t) {
+  Type owner = t->info->value->from->owner_class;
+  while(owner) {
+    if(from_global_nspc(env, owner->info->value->from->owner)) return true;
+
+    owner = owner->info->value->from->owner_class;
+  }
+  return false;
+}
+
 ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const struct ValueFrom_ *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
-  if(!GET_FLAG(t, global) || !from_global_nspc(env, from->owner)) {
+  if(!from_global_nspc(env, from->owner) && !GET_FLAG(t, global)) {
+    if(owner_global(env, t))
+      return true;
     gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
     gwerr_secondary("not declared global", from->filename, from->loc);
     const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;
@@ -63,8 +75,6 @@ ANN static Type scan1_type(const Env env, Type_Decl *td) {
   DECL_OO(const Type, t, = known_type(env, td));
   if (!env->func && env->class_def && !GET_FLAG(td, late)) {
     CHECK_BO(type_cyclic(env, t, td));
-    if(GET_FLAG(env->class_def, global) && !check_global(env, t, td->pos))
-      return NULL;
   }
   CHECK_BO(ensure_scan1(env, t));
   return t;
@@ -79,6 +89,8 @@ ANN static Type void_type(const Env env, Type_Decl *td) {
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
   if (decl->type) return decl->type;
   DECL_OO(const Type, t, = void_type(env, decl->td));
+  if(SAFE_FLAG(env->class_def, global) && !check_global(env, t, decl->td->pos))
+      return NULL;
   if (decl->td->xid == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
