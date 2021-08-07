@@ -128,6 +128,11 @@ static OP_CHECK(opck_array_at) {
   return bin->rhs->type;
 }
 
+ANN static inline bool shift_match(const Type base, const Type more) {
+  return isa(more, base) > 0 &&
+    get_depth(base) == get_depth(more);
+}
+
 ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
                                   const m_str str, const loc_t pos) {
   /*  if(a->type == env->gwion->type[et_error] &&
@@ -136,7 +141,7 @@ ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
   ARRAY_OPCK(a, b, pos)
   if (a->type->array_depth == b->type->array_depth + 1)
     return a->type;
-  else if (a->type->array_depth == b->type->array_depth)
+  else if (shift_match(a->type, b->type))
     return a->type;
   ERR_N(pos, "array depths do not match for '%s'.", str);
 }
@@ -198,11 +203,6 @@ static INSTR(ArrayConcatRight) {
   memmove(ARRAY_PTR(base) + (ARRAY_LEN(more) + len - 1) * sz, ARRAY_PTR(base),
           len * sz);
   memmove(ARRAY_PTR(base), ARRAY_PTR(more), ARRAY_LEN(more) * sz);
-}
-
-ANN static inline bool shift_match(const Type base, const Type more) {
-  return isa(more, base) > 0 &&
-    get_depth(base) == get_depth(more);
 }
 
 static OP_EMIT(opem_array_sr) {
