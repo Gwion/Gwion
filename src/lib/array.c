@@ -129,8 +129,7 @@ static OP_CHECK(opck_array_at) {
 }
 
 ANN static inline bool shift_match(const Type base, const Type more) {
-  return isa(more, base) > 0 &&
-    get_depth(base) == get_depth(more);
+  return get_depth(base) == get_depth(more);
 }
 
 ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
@@ -139,7 +138,7 @@ ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
         b->type->array_depth > 1)
       return a->type;*/
   ARRAY_OPCK(a, b, pos)
-  if (a->type->array_depth == b->type->array_depth + 1)
+  if (get_depth(a->type) == get_depth(b->type) + 1)
     return a->type;
   else if (shift_match(a->type, b->type))
     return a->type;
