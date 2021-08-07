@@ -45,12 +45,10 @@ ANN static inline bool from_global_nspc(const Env env, const Nspc nspc) {
   return false;
 }
 
-ANN static bool owner_global(const Env env, const Type t) {
-  Type owner = t->info->value->from->owner_class;
-  while(owner) {
-    if(from_global_nspc(env, owner->info->value->from->owner)) return true;
-
-    owner = owner->info->value->from->owner_class;
+ANN static bool type_global(const Env env, Type t) {
+  while(t) {
+    if(from_global_nspc(env, t->info->value->from->owner)) return true;
+    t = t->info->value->from->owner_class;
   }
   return false;
 }
@@ -59,8 +57,8 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const struct ValueFrom_ *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
-  if(!from_global_nspc(env, from->owner) && !GET_FLAG(t, global)) {
-    if(owner_global(env, t))
+  if(!GET_FLAG(t, global) && !from_global_nspc(env, from->owner)) {
+    if(from->owner_class && type_global(env, from->owner_class))
       return true;
     gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
     gwerr_secondary("not declared global", from->filename, from->loc);
@@ -89,7 +87,7 @@ ANN static Type void_type(const Env env, Type_Decl *td) {
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
   if (decl->type) return decl->type;
   DECL_OO(const Type, t, = void_type(env, decl->td));
-  if(SAFE_FLAG(env->class_def, global) && !check_global(env, t, decl->td->pos))
+  if(env->class_def && type_global(env, env->class_def) && !check_global(env, t, decl->td->pos))
       return NULL;
   if (decl->td->xid == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
@@ -164,13 +162,6 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
   return GW_OK;
 }
 
-ANN int is_global(const Nspc nspc, Nspc global) {
-  do
-    if (nspc == global) return 1;
-  while ((global = global->parent));
-  return 0;
-}
-
 ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl *decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
@@ -178,7 +169,7 @@ ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl *decl) {
   const bool global = GET_FLAG(decl->td, global);
   if (global) {
     if (env->context) env->context->global = true;
-    if (!is_global(decl->type->info->value->from->owner, env->global_nspc))
+    if (!type_global(env, decl->type))
       ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
