@@ -200,9 +200,14 @@ static INSTR(ArrayConcatRight) {
   memmove(ARRAY_PTR(base), ARRAY_PTR(more), ARRAY_LEN(more) * sz);
 }
 
+ANN static inline bool shift_match(const Type base, const Type more) {
+  return isa(more, base) > 0 &&
+    get_depth(base) == get_depth(more);
+}
+
 static OP_EMIT(opem_array_sr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  if (bin->rhs->type->array_depth == bin->lhs->type->array_depth)
+  if (shift_match(bin->lhs->type, bin->rhs->type))
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -SZ_INT;
@@ -214,7 +219,7 @@ static OP_EMIT(opem_array_sr) {
 
 static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  if (bin->lhs->type->array_depth == bin->rhs->type->array_depth)
+  if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -bin->rhs->type->size;
