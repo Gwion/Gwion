@@ -124,8 +124,8 @@ ANN bool check_trait_requests(const Env env, const Type t, const ID_List list) {
     gwerr_secondary("duplicated trait", trait->filename, trait->loc);
     return false;
   }
-  const bool value_error = check_trait_variables(env, t, trait);
-  const bool funcs_error = check_trait_functions(env, t, trait);
+  const bool value_error = trait->requested_values.ptr  ? check_trait_variables(env, t, trait) : false;
+  const bool funcs_error = trait->requested_funcs.ptr ? check_trait_functions(env, t, trait) : false;
   if (!value_error && !funcs_error) return true;
   const Value request = (Value)vector_front(&trait->requested_values);
   gwerr_secondary("from trait", request->from->filename, trait->loc);

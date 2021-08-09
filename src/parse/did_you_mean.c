@@ -29,9 +29,9 @@ static m_bool wagner_fisher(const char *s, const char *t) {
   return (i && j && d[m - 1][n - 1] < MAX_DISTANCE);
 }
 
-ANN static void ressembles(const Nspc nspc, const char *name,
+ANN static void ressembles(const Scope scope, const char *name,
                            bool *const done) {
-  struct scope_iter iter = {nspc->info->value, 0, 0};
+  struct scope_iter iter = { scope, 0, 0 };
   Value             value;
   while (scope_iter(&iter, &value) > 0) {
     if (wagner_fisher(name, value->name)) {
@@ -44,6 +44,22 @@ ANN static void ressembles(const Nspc nspc, const char *name,
   }
 }
 
+ANN static void trait_ressembles(const Scope scope, const char *name,
+                           bool *const done) {
+  struct scope_iter iter = { scope, 0, 0 };
+  Trait trait;
+  while (scope_iter(&iter, &trait) > 0) {
+    if (wagner_fisher(name, trait->name)) {
+      if (!*done) {
+        *done = true;
+        gw_err("{-/}did you mean{0}:\n");
+      }
+      if (trait->filename) // TODO: check why is that from check
+        gwerr_secondary(_("defined here"), trait->filename, trait->loc);
+    }
+  }
+}
+
 #define MAX_NAME_LEN 16
 #define CHECK_LEN(name)                                                        \
   if (strlen(name) > MAX_NAME_LEN) return;
@@ -52,7 +68,7 @@ ANN static void ressembles(const Nspc nspc, const char *name,
 ANN void did_you_mean_nspc(Nspc nspc, const char *name) {
   CHECK_LEN(name)
   bool done = false;
-  do ressembles(nspc, name, &done);
+  do ressembles(nspc->info->value, name, &done);
   while ((nspc = nspc->parent));
 }
 
@@ -60,6 +76,13 @@ ANN void did_you_mean_nspc(Nspc nspc, const char *name) {
 ANN void did_you_mean_type(Type type, const char *name) {
   CHECK_LEN(name)
   bool done = false;
-  do ressembles(type->nspc, name, &done);
+  do ressembles(type->nspc->info->value, name, &done);
   while ((type = type->info->parent) && type->nspc);
+}
+
+ANN void did_you_mean_trait(Nspc nspc, const char *name) {
+  CHECK_LEN(name)
+  bool done = false;
+  do trait_ressembles(nspc->info->trait, name, &done);
+  while ((nspc = nspc->parent));
 }

@@ -318,8 +318,12 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
 
 ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
   do {
-    if (!nspc_lookup_trait1(env->curr, traits->xid))
-      ERR_B(pos, _("can't find trait"));
+    if (!nspc_lookup_trait1(env->curr, traits->xid)) {
+      gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
+      did_you_mean_trait(env->curr, s_name(traits->xid));
+      env->context->error = true;
+      return GW_ERROR;
+    }
   } while ((traits = traits->next));
   return GW_OK;
 }
@@ -435,6 +439,7 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
 ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   const Trait trait = new_trait(env->gwion->mp, pdef->pos);
   trait->loc        = pdef->pos;
+  trait->name       = s_name(pdef->xid);
   trait->filename   = env->name;
   nspc_add_trait(env->curr, pdef->xid, trait);
   Ast ast = pdef->body;
