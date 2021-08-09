@@ -6,13 +6,13 @@
 #include "gwion.h"
 #include "arg.h"
 
+static struct Gwion_ gwion = {};
+
 static void sig(int unused NUSED) {
-//#ifdef BUILD_ON_WINDOWS
-  exit(EXIT_FAILURE);
-//#else
-//  pthread_kill(pthread_self(), SIGKILL);
-//  pthread_exit(NULL);
-//#endif
+  if(gwion.vm)
+    gwion.vm->bbq->is_running = false;
+  else
+    exit(EXIT_FAILURE);
 }
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
@@ -31,7 +31,6 @@ static void afl_run(const Gwion gwion) {
 
 int main(int argc, char **argv) {
   Arg arg = {};
-  struct Gwion_ gwion = {};
   gwion_ini(&gwion, &arg);
   arg_release(&arg);
   afl_run(&gwion);
