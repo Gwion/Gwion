@@ -283,9 +283,8 @@ ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN static void cdef_flag(const Class_Def cdef, const Type t) {
+ANN static inline void cdef_flag(const Class_Def cdef, const Type t) {
   if (cdef->base.tmpl) set_tflag(t, tflag_tmpl);
-  if (cdef->base.ext && cdef->base.ext->array) set_tflag(t, tflag_typedef);
 }
 
 ANN static Type get_parent_base(const Env env, Type_Decl *td) {
@@ -345,7 +344,6 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->flag |= cdef->flag;
   //  add_type(env, t->info->value->from->owner, t);
   cdef_flag(cdef, t);
-  if (cdef->base.ext && cdef->base.ext->array) set_tflag(t, tflag_typedef);
   return t;
 }
 

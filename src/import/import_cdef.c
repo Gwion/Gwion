@@ -92,7 +92,6 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   t->info->cdef->base.type = t;
   t->info->tuple           = new_tupleform(gwi->gwion->mp, p);
   t->info->parent          = p;
-  if (td->array) set_tflag(t, tflag_typedef);
   if (ck.sl)
     set_tflag(t, tflag_tmpl | tflag_ntmpl);
   else
