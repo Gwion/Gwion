@@ -1574,7 +1574,7 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN m_bool check_func_def(const Env env, const Func_Def f) {
+ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
@@ -1631,6 +1631,14 @@ ANN m_bool check_func_def(const Env env, const Func_Def f) {
     func->inline_mult += 3;
   else
     func->inline_mult += 4;
+  return ret;
+}
+
+ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
+  const uint16_t depth = env->scope->depth;
+  env->scope->depth = 0;
+  const m_bool ret = _check_func_def(env, fdef);
+  env->scope->depth = depth;
   return ret;
 }
 

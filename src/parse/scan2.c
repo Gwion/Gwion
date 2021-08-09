@@ -543,7 +543,7 @@ static inline int is_cpy(const Func_Def fdef) {
          (fdef->base->tmpl && !fdef->base->tmpl->call);
 }
 
-ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
+ANN m_bool _scan2_func_def(const Env env, const Func_Def fdef) {
   if (tmpl_base(fdef->base->tmpl) && fbflag(fdef->base, fbflag_op))
     return GW_OK;
   if(!strcmp(s_name(fdef->base->xid), "new")) {
@@ -566,6 +566,14 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
   CHECK_BB(ret);
   fdef->base->func = f->base->func; // only needed if 'is_cpy()'
   return GW_OK;
+}
+
+ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
+  const uint16_t depth = env->scope->depth;
+  env->scope->depth = 0;
+  const m_bool ret = _scan2_func_def(env, fdef);
+  env->scope->depth = depth;
+  return ret;
 }
 
 ANN static m_bool scan2_extend_def(const Env env, const Extend_Def xdef) {

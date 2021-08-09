@@ -2660,7 +2660,7 @@ ANN static void emit_fdef_finish(const Emitter emit, const Func_Def fdef) {
     func->code->memoize = memoize_ini(emit, func);
 }
 
-ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
+ANN m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func   = f->base->func;
   const Func_Def fdef   = func->def;
@@ -2695,6 +2695,14 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def f) {
   else
     emit_pop_code(emit);
   if (global) env_pop(emit->env, scope);
+  return ret;
+}
+
+ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
+  const uint16_t depth = emit->env->scope->depth;
+  emit->env->scope->depth = 0;
+  const m_bool ret = _emit_func_def(emit, fdef);
+  emit->env->scope->depth = depth;
   return ret;
 }
 

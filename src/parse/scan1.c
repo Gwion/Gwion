@@ -677,7 +677,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
   return GW_OK;
 }
 
-ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
+ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   if (fdef->base->td)
@@ -692,6 +692,14 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   --env->scope->depth;
   env->func = former;
   if (global) env_pop(env, scope);
+  return ret;
+}
+
+ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
+  const uint16_t depth = env->scope->depth;
+  env->scope->depth = 0;
+  const m_bool ret = _scan1_func_def(env, fdef);
+  env->scope->depth = depth;
   return ret;
 }
 
