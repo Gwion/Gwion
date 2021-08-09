@@ -13,6 +13,7 @@ ANN void shreduler_set_loop(const Shreduler s, const bool loop) {
 }
 
 ANN VM_Shred shreduler_get(const Shreduler s) {
+  MUTEX_LOCK(s->mutex);
   Driver *const            bbq = s->bbq;
   struct ShredTick_ *const tk  = s->list;
   if (tk) {
@@ -21,10 +22,12 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
       if ((s->list = tk->next)) s->list->prev = NULL;
       tk->next = tk->prev = NULL;
       s->curr             = tk;
+      MUTEX_UNLOCK(s->mutex);
       return tk->self;
     }
   }
   if (!s->loop && !vector_size(&s->shreds)) bbq->is_running = 0;
+  MUTEX_UNLOCK(s->mutex);
   return NULL;
 }
 
@@ -63,6 +66,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
 
 ANN void shredule(const Shreduler s, const VM_Shred shred,
                   const m_float wake_time) {
+  MUTEX_LOCK(s->mutex);
   const m_float      time = wake_time + (m_float)s->bbq->pos;
   struct ShredTick_ *tk   = shred->tick;
   tk->wake_time           = time;
@@ -83,6 +87,7 @@ ANN void shredule(const Shreduler s, const VM_Shred shred,
   } else
     s->list = tk;
   if (tk == s->curr) s->curr = NULL;
+  MUTEX_UNLOCK(s->mutex);
 }
 
 ANN void shreduler_ini(const Shreduler s, const VM_Shred shred) {
