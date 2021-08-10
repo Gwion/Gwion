@@ -639,19 +639,19 @@ static OP_CHECK(opck_array_scan) {
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
   if (!strncmp(base->name, "Ref:[", 5)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
   if (!strncmp(base->name, "Option:[", 5)) {
     gwerr_basic("Can't use option types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
   const Symbol sym  = array_sym(env, array_base(base), base->array_depth + 1);

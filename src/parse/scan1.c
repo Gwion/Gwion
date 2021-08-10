@@ -64,6 +64,7 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
     gwerr_secondary("not declared global", from->filename, from->loc);
     const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;
     gwerr_secondary("is global", ownerFrom->filename, ownerFrom->loc);
+    env_set_error(env);
     return false;
   }
   return true;
@@ -347,7 +348,7 @@ ANN static inline m_bool shadow_err(const Env env, const Value v,
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
-  env->context->error = true;
+  env_set_error(env);
   return GW_ERROR;
 }
 

@@ -321,7 +321,7 @@ ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
     if (!nspc_lookup_trait1(env->curr, traits->xid)) {
       gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
       did_you_mean_trait(env->curr, s_name(traits->xid));
-      env->context->error = true;
+      env_set_error(env);
       return GW_ERROR;
     }
   } while ((traits = traits->next));
@@ -460,7 +460,7 @@ ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
   if (exists) {
     gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->pos, 0);
     gwerr_secondary("defined here", env->name, exists->loc);
-    env->context->error = true;
+    env_set_error(env);
     return already_defined(env, s, pdef->pos);
   }
   if (pdef->traits) CHECK_BB(find_traits(env, pdef->traits, pdef->pos));

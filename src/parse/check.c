@@ -199,7 +199,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
     if (prim_array_inner(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
   if (!err) return array_type(env, array_base(type), type->array_depth + 1);
-  env->context->error = true;
+  env_set_error(env);
   return NULL;
 }
 
@@ -332,7 +332,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
-    env->context->error = true;
+    env_set_error(env);
     return NULL;
   }
   prim_self(data)->value = v;
@@ -407,7 +407,7 @@ ANN static Type check_prim_map(const Env env, const Exp *data) {
     prim_exp(data)->type = t;
     return t;
   }
-  env->context->error = true;
+  env_set_error(env);
   return NULL;
 }
 */
@@ -628,7 +628,7 @@ static void function_alternative(const Env env, const Type f, const Exp args,
     print_current_args(args);
   else
     gw_err(_("and not:\n  {G}void{0}\n"));
-  if (env->context) env->context->error = true;
+  env_set_error(env);
 }
 
 ANN static m_uint get_type_number(Specialized_List list) {
@@ -1039,7 +1039,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       char from[strlen(tdef->type->name) + 39];
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
       gwerr_secondary(from, env->name, tdef->pos);
-      if (env->context) env->context->error = true;
+      env_set_error(env);
       return GW_ERROR;
     }
     /*
@@ -1193,7 +1193,7 @@ ANN static inline m_bool cond_type(const Env env, const Exp e) {
     gwerr_basic(_("invalid repeat condition type"), explain,
                 _("use an integer or cast to int if possible"), env->name,
                 e->pos, 0);
-    env->context->error = true;
+    env_set_error(env);
     return GW_ERROR;
   }
   return GW_OK;
@@ -1723,7 +1723,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
       }
       struct ValueFrom_ *from = f->value_ref->from;
       gwerr_secondary("implementation missing", from->filename, from->loc);
-      env->context->error = true;
+      env_set_error(env);
     }
   }
   return !err ? GW_OK : GW_ERROR;
@@ -1801,7 +1801,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     if (value_error) {
       env->class_def = t;
       env_error_footer(env);
-      env->context->error = true;
+      env_set_error(env);
       return GW_ERROR;
     }
   }
@@ -1819,7 +1819,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
           env_err(env, v->from->loc, _("recursive type"));
           env->context->error = false;
           env_err(env, value->from->loc, _("recursive type"));
-          env->context->error = true;
+          env_set_error(env);
           type_remref(t, env->gwion);
           return GW_ERROR;
         }

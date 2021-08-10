@@ -424,7 +424,7 @@ static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
                 _("Decayed operators take two arguments"), NULL, env->name, loc,
                 0);
     if (fdef) defined_here(fdef->base->func->value_ref);
-    env->context->error = true;
+    env_set_error(env);
   }
 }
 static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {
