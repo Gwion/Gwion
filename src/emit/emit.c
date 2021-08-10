@@ -1277,7 +1277,16 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
 }
 
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
-  if (!vector_size(&emit->code->instr)) return GW_OK;
+  if (!vector_size(&emit->code->instr)) {
+    if(fflag(f, fflag_tmpl)) {
+    // we are sporking a template
+    // assume static call for now
+    const Instr instr = emit_add_instr(emit, RegSetImm);
+    instr->m_val  = (m_uint)f->code;
+    instr->m_val2  = (m_uint)-SZ_INT;
+    }
+    return GW_OK;
+  }
   const Instr instr = (Instr)vector_back(&emit->code->instr);
   if (instr->opcode == eDotTmplVal) {
     size_t len = strlen(f->name);
@@ -1484,7 +1493,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     push_func_code(emit, f);
   else if (vector_size(&emit->code->instr)) {
     const Instr back = (Instr)vector_back(&emit->code->instr);
-    if ((f_instr)(m_uint)back->opcode == DotFunc) back->m_val = f->vt_index;
+    if (back->opcode == eDotFunc) back->m_val = f->vt_index;
   }
   if (vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
       is_fptr(emit->gwion, f->value_ref->type)) {

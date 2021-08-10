@@ -628,6 +628,7 @@ static void function_alternative(const Env env, const Type f, const Exp args,
     print_current_args(args);
   else
     gw_err(_("and not:\n  {G}void{0}\n"));
+  if (env->context) env->context->error = true;
 }
 
 ANN static m_uint get_type_number(Specialized_List list) {

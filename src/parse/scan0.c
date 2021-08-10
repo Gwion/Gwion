@@ -345,7 +345,6 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->flag |= cdef->flag;
   //  add_type(env, t->info->value->from->owner, t);
   cdef_flag(cdef, t);
-  if (cdef->base.ext && cdef->base.ext->array) set_tflag(t, tflag_typedef);
   return t;
 }
 
