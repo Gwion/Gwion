@@ -139,7 +139,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
     Type_Decl *next        = td->next;
     td->next               = NULL;
     const Type maybe_array = known_type(env, td);
-    const Type owner       = array_base(maybe_array);
+    const Type owner       = array_base_simple(maybe_array);
     td->next               = next;
     CHECK_OO(owner);
     if (!owner->nspc) ERR_O(td->pos, "type '%s' has no namespace", owner->name)
