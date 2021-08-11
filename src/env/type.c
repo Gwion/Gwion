@@ -79,7 +79,7 @@ ANN /*static */ Symbol array_sym(const Env env, const Type src,
                                  const m_uint depth) {
   if (src->array_depth == depth) return insert_symbol(src->name);
   const m_uint total_depth = src->array_depth + depth;
-  const Type   t           = array_base(src);
+  const Type   t           = array_base_simple(src);
   size_t       len         = strlen(t->name);
   char         name[len + 2 * total_depth + 1];
   strcpy(name, t->name);

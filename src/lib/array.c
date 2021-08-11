@@ -627,8 +627,6 @@ static MFUN(vm_vector_foldr) {
     memcpy((m_bit *)RETURN, MEM(SZ_INT * 2), acc_sz);
 }
 
-ANN /*static */ Symbol array_sym(const Env env, const Type src,
-                                 const m_uint depth);
 #include "template.h"
 static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
@@ -654,7 +652,7 @@ static OP_CHECK(opck_array_scan) {
     env_set_error(env);
     return env->gwion->type[et_error];
   }
-  const Symbol sym  = array_sym(env, array_base(base), base->array_depth + 1);
+  const Symbol sym  = array_sym(env, array_base_simple(base), base->array_depth + 1);
   const Type   type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if (type) return type;
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
