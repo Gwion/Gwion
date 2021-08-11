@@ -35,24 +35,6 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
-ANN static inline bool from_global_nspc(const Env env, const Nspc nspc) {
-  Nspc global = env->global_nspc;
-  while(global) {
-    if (nspc == global)
-      return true;
-    global = global->parent;
-  }
-  return false;
-}
-
-ANN static bool type_global(const Env env, Type t) {
-  while(t) {
-    if(from_global_nspc(env, t->info->value->from->owner)) return true;
-    t = t->info->value->from->owner_class;
-  }
-  return false;
-}
-
 ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const struct ValueFrom_ *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
@@ -754,8 +736,6 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan1)) return GW_OK;
   set_tflag(t, tflag_scan1);
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_scan1(env, t->info->value->from->owner_class));
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan1_section));
   return GW_OK;

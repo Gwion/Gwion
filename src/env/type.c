@@ -157,3 +157,21 @@ ANN void inherit(const Type t) {
   nspc->offset = parent->offset;
   if (parent->vtable.ptr) vector_copy2(&parent->vtable, &nspc->vtable);
 }
+
+ANN bool from_global_nspc(const Env env, const Nspc nspc) {
+  Nspc global = env->global_nspc;
+  while(global) {
+    if (nspc == global)
+      return true;
+    global = global->parent;
+  }
+  return false;
+}
+
+ANN bool type_global(const Env env, Type t) {
+  while(t) {
+    if(from_global_nspc(env, t->info->value->from->owner)) return true;
+    t = t->info->value->from->owner_class;
+  }
+  return false;
+}

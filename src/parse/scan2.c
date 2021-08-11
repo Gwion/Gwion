@@ -610,8 +610,6 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   const Type      t = cdef->base.type;
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan2)) return GW_OK;
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_scan2(env, t->info->value->from->owner_class));
   set_tflag(t, tflag_scan2);
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan2_section));

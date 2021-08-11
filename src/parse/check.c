@@ -1839,8 +1839,6 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
                           .data = (uintptr_t)c,
                           .pos  = c->pos};
   CHECK_OB(op_check(env, &opi));
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_check(env, t->info->value->from->owner_class));
   if (tflag(t, tflag_check)) return GW_OK;
   set_tflag(t, tflag_check);
   return _check_class_def(env, c);

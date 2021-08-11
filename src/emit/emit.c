@@ -2766,8 +2766,6 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
   if (tflag(t, tflag_emit)) return GW_OK;
   set_tflag(t, tflag_emit);
   const Class_Def c = t->info->cdef;
-  const Type owner = t->info->value->from->owner_class;
-  if (owner) CHECK_BB(ensure_emit(emit, owner));
   if (c->base.ext && t->info->parent->info->cdef &&
       !tflag(t->info->parent, tflag_emit)) // ?????
     CHECK_BB(cdef_parent(emit, c));

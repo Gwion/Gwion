@@ -82,6 +82,8 @@ ANN __attribute__((returns_nonnull)) static inline Type _class_base(Type t) {
 }
 ANN m_uint get_depth(const Type type);
 ANN void   inherit(const Type);
+ANN bool type_global(const Env env, Type t);
+ANN bool from_global_nspc(const Env env, const Nspc nspc);
 
 __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
   do
