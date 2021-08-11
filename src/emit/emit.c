@@ -297,16 +297,20 @@ ANN m_uint emit_localn(const Emitter emit, const Type t) {
 ANN void emit_ext_ctor(const Emitter emit, const Type t);
 
 ANN static inline void maybe_ctor(const Emitter emit, const Type t) {
-  if (tflag(t, tflag_ctor)) emit_ext_ctor(emit, t);
+  if (tflag(t, tflag_ctor))emit_ext_ctor(emit, t);
 }
 
-ANN static void emit_pre_ctor(const Emitter emit, const Type type) {
+ANN2(1, 2)
+static ArrayInfo *emit_array_extend_inner(const Emitter emit, const Type t,
+                                          const Exp e, const uint is_ref);
+ANN static m_bool emit_pre_ctor(const Emitter emit, const Type type) {
   if (type->info->parent) {
-    emit_pre_ctor(emit, type->info->parent);
+    CHECK_BB(emit_pre_ctor(emit, type->info->parent));
     if (tflag(type, tflag_typedef) && type->info->parent->array_depth)
-      emit_array_extend(emit, type, type->info->cdef->base.ext->array->exp);
+      CHECK_OB(emit_array_extend_inner(emit, type, type->info->cdef->base.ext->array->exp, false));
   }
   maybe_ctor(emit, type);
+  return GW_OK;
 }
 
 ANN static void struct_expand(const Emitter emit, const Type t) {
@@ -315,7 +319,7 @@ ANN static void struct_expand(const Emitter emit, const Type t) {
   instr->m_val2     = t->size;
 }
 
-ANN static void emit_pre_constructor_array(const Emitter emit,
+ANN static m_bool emit_pre_constructor_array(const Emitter emit,
                                            const Type    type) {
   const m_uint start_index = emit_code_size(emit);
   const Instr  top         = emit_add_instr(emit, ArrayTop);
@@ -324,7 +328,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit,
     const Instr instr = emit_add_instr(emit, ArrayStruct);
     instr->m_val      = type->size;
   }
-  emit_pre_ctor(emit, type);
+  CHECK_BB(emit_pre_ctor(emit, type));
   if (!tflag(type, tflag_struct))
     emit_add_instr(emit, ArrayBottom);
   else
@@ -335,6 +339,7 @@ ANN static void emit_pre_constructor_array(const Emitter emit,
   top->m_val     = emit_code_size(emit);
   regpop(emit, SZ_INT * 3);
   emit_add_instr(emit, ArrayPost);
+  return GW_OK;
 }
 
 ANN2(1)
@@ -361,13 +366,14 @@ ANEW ANN static ArrayInfo *new_arrayinfo(const Emitter emit, const Type t) {
   return info;
 }
 
-ANN static inline void arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
+ANN static inline m_bool arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
   const Type base = info->base;
   if (isa(base, emit->gwion->type[et_compound]) > 0 &&
       !GET_FLAG(base, abstract)) {
-    emit_pre_constructor_array(emit, base);
+    CHECK_BB(emit_pre_constructor_array(emit, base));
     info->is_obj = 1;
   }
+  return GW_OK;
 }
 
 ANN2(1, 2)
@@ -377,7 +383,7 @@ static ArrayInfo *emit_array_extend_inner(const Emitter emit, const Type t,
   ArrayInfo * info  = new_arrayinfo(emit, t);
   const Instr alloc = emit_add_instr(emit, ArrayAlloc);
   alloc->m_val      = (m_uint)info;
-  if (!is_ref) arrayinfo_ctor(emit, info);
+  if (!is_ref) CHECK_BO(arrayinfo_ctor(emit, info));
   return info;
 }
 
@@ -404,15 +410,6 @@ ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   next->m_val2     = offset;
 }
 
-ANN m_bool emit_array_extend(const Emitter emit, const Type t, const Exp e) {
-  CHECK_OB(emit_array_extend_inner(emit, t, e, 0));
-  regpop(emit, SZ_INT);
-  const Instr instr = emit_add_instr(emit, Reg2Reg);
-  instr->m_val      = -SZ_INT;
-  //  emit_add_instr(emit, RegAddRef);
-  return GW_OK;
-}
-
 ANN static inline void emit_notpure(const Emitter emit) {
   ++VPTR(&emit->info->pure, VLEN(&emit->info->pure) - 1);
 }
@@ -427,9 +424,11 @@ m_bool emit_instantiate_object(const Emitter emit, const Type type,
                                       is_ref));
     return GW_OK;
   } else if (!is_ref) {
-    const Instr instr = emit_add_instr(emit, ObjectInstantiate);
-    instr->m_val2     = (m_uint)type;
-    emit_pre_ctor(emit, type);
+    if(!tflag(type, tflag_typedef)) {
+      const Instr instr = emit_add_instr(emit, ObjectInstantiate);
+      instr->m_val2     = (m_uint)type;
+    }
+    CHECK_BB(emit_pre_ctor(emit, type));
   }
   return GW_OK;
 }
