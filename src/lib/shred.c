@@ -84,9 +84,10 @@ static MFUN(shred_yield) {
 static SFUN(vm_shred_from_id) {
   const m_int index = *(m_int *)MEM(0);
   if (index > 0) {
-    for (m_uint i = 0; i < vector_size(&shred->tick->shreduler->shreds); ++i) {
+    const Vector v = &shred->tick->shreduler->active_shreds;
+    for (m_uint i = 0; i < vector_size(v); ++i) {
       const VM_Shred s =
-          (VM_Shred)vector_at(&shred->tick->shreduler->shreds, i);
+          (VM_Shred)vector_at(v, i);
       if (s->tick->xid == (m_uint)index) {
         *(M_Object *)RETURN = s->info->me;
         return;

@@ -140,7 +140,15 @@ ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
   if (gwion->data->child2.ptr) fork_clean2(shred, &gwion->data->child2);
 }
 
+ANN static inline void free_killed_shred(const Vector v) {
+  for (m_uint i = 0; i < vector_size(v); i++) {
+    const VM_Shred shred = (VM_Shred)vector_at(v, i);
+    free_vm_shred(shred);
+  }
+}
+
 ANN void gwion_end(const Gwion gwion) {
+  free_killed_shred(&gwion->vm->shreduler->killed_shreds);
   gwion_end_child(gwion->vm->cleaner_shred, gwion);
   free_env(gwion->env);
   if (gwion->vm->cleaner_shred) free_vm_shred(gwion->vm->cleaner_shred);

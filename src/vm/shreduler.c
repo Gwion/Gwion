@@ -26,7 +26,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
       return tk->self;
     }
   }
-  if (!s->loop && !vector_size(&s->shreds)) bbq->is_running = 0;
+  if (!s->loop && !vector_size(&s->active_shreds)) bbq->is_running = 0;
   MUTEX_UNLOCK(s->mutex);
   return NULL;
 }
@@ -42,7 +42,7 @@ ANN static void shreduler_erase(const Shreduler          s,
                                 struct ShredTick_ *const tk) {
   if (tk->parent) vector_rem2(&tk->parent->child, (vtype)tk->self);
   if (tk->child.ptr) shreduler_child(&tk->child);
-  vector_rem2(&s->shreds, (vtype)tk->self);
+  vector_rem2(&s->active_shreds, (vtype)tk->self);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
@@ -99,6 +99,21 @@ ANN void shreduler_ini(const Shreduler s, const VM_Shred shred) {
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
   shreduler_ini(s, shred);
   shred->tick->xid = ++s->shred_ids;
-  vector_add(&s->shreds, (vtype)shred);
+  vector_add(&s->active_shreds, (vtype)shred);
   shredule(s, shred, GWION_EPSILON);
+}
+
+ANN Shreduler new_shreduler(const MemPool mp) {
+  Shreduler s = (Shreduler)mp_calloc(mp, Shreduler);
+  vector_init(&s->active_shreds);
+  vector_init(&s->killed_shreds);
+  MUTEX_SETUP(s->mutex);
+  return s;
+}
+
+ANN void free_shreduler(const MemPool mp, const Shreduler s) {
+  vector_release(&s->active_shreds);
+  vector_release(&s->killed_shreds);
+  MUTEX_CLEANUP(s->mutex);
+  mp_free(mp, Shreduler, s);
 }
