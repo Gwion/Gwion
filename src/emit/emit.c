@@ -588,7 +588,7 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   regseti(emit, count);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val      = (m_uint)type;
-  instr->m_val2     = array_base(type)->size;
+  instr->m_val2     = array_base_simple(type)->size;
   emit_gc(emit, -SZ_INT);
   emit_notpure(emit);
   return GW_OK;

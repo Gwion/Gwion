@@ -159,9 +159,12 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import *opi) {
 
 ANN static inline Type op_parent(const Env env, const Type t) {
   const size_t depth = t->array_depth;
-  return !depth || !array_base(t)->info->parent
-             ? t->info->parent
-             : array_type(env, array_base(t)->info->parent, depth);
+  if (!depth)
+    return t->info->parent;
+  const Type base = array_base_simple(t);
+  return !base->info->parent
+         ? t->info->parent
+         : array_type(env, base->info->parent, depth);
 }
 
 ANN static Type op_check_inner(const Env env, struct OpChecker *ock,

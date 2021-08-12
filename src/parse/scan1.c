@@ -109,11 +109,12 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
       if (var->array->exp) CHECK_BB(scan1_exp(env, var->array->exp));
       CHECK_OB((t = array_type(env, decl->type, var->array->depth)));
     }
-    if (GET_FLAG(array_base(t), abstract) &&
+    const Type base = array_base_simple(t);
+    if (GET_FLAG(base, abstract) &&
         ((var->array && var->array->exp) ||
          (decl->td->array && decl->td->array->exp)))
       ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
-            array_base(t)->name);
+            base->name);
     const Value v = var->value =
         var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(env->curr, var->xid, v);

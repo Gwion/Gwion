@@ -198,7 +198,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   do
     if (prim_array_inner(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
-  if (!err) return array_type(env, array_base(type), type->array_depth + 1);
+  if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1);
   env_set_error(env);
   return NULL;
 }
@@ -1152,7 +1152,7 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
             " This is not allowed in foreach loop"),
           et->name)
   DECL_OO(Type, base, = typedef_base(et));
-  DECL_OO(const Type, t, = array_base(base));
+  DECL_OO(const Type, t, = array_base_simple(base));
   const m_uint depth = base->array_depth - 1;
   return depth ? array_type(env, t, depth) : t;
 }
