@@ -175,11 +175,25 @@ ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt,
 #endif
 }
 
+ANN static void _env_warn(const Env env, const loc_t pos, const m_str fmt,
+                        va_list arg) {
+#ifndef __FUZZING__
+  va_list tmpa;
+  va_copy(tmpa, arg);
+  const int size = vsnprintf(NULL, 0, fmt, tmpa);
+  va_end(tmpa);
+  char c[size + 1];
+  vsprintf(c, fmt, arg);
+  gwerr_warn(c, NULL, NULL, env->name, pos);
+  env_error_footer(env);
+#endif
+}
+
 ANN void env_warn(const Env env, const loc_t pos, const m_str fmt, ...) {
 #ifndef __FUZZING__
   va_list arg;
   va_start(arg, fmt);
-  env_xxx(env, pos, fmt, arg);
+  _env_warn(env, pos, fmt, arg);
   va_end(arg);
 #endif
 }
