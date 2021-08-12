@@ -124,6 +124,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
 ANN m_int gwi_class_end(const Gwi gwi) {
   if (gwi->gwion->data->cdoc) {
     gwi->lint->indent--;
+    lint_indent(gwi->lint);
     lint_rbrace(gwi->lint);
     lint_nl(gwi->lint);
   }
