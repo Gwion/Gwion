@@ -435,6 +435,7 @@ enum {
 #define  Unroll2              (f_instr)eUnroll2
 #define  OP_MAX               (f_instr)eOP_MAX
 #define  DotTmplVal           (f_instr)eDotTmplVal
+#ifndef __cplusplus
 ANN static inline void dump_opcodes(const VM_Code code) {
   gw_out("{Y}┏━━━━┓{0}{-Y} {+}%s{0}\n{Y}┃{0}\n", code->name);
   m_uint j = 0;
@@ -1443,4 +1444,5 @@ ANN static inline void dump_opcodes(const VM_Code code) {
   }
   gw_out("{Y}┃\n┗━━━━┛{0}\n");
 }
+#endif
 #endif
