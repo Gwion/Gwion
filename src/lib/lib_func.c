@@ -273,15 +273,15 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   UNSET_FLAG(l->def->base, global);
   l->def->base->values = env->curr->info->value;
   const m_uint scope   = env->scope->depth;
-  //  if(GET_FLAG(def->base, global) && !l->owner &&
-  //  def->base->func->value_ref->from->owner_class)
-  // env_push(env, NULL, env->context->nspc);
+  if(GET_FLAG(def->base, global) && !l->owner &&
+    def->base->func->value_ref->from->owner_class)
+   env_push(env, NULL, env->context->nspc);
   env->scope->depth = 0;
   const m_bool ret  = traverse_func_def(env, l->def);
   env->scope->depth = scope;
-  //  if(GET_FLAG(def->base, global) && !l->owner &&
-  //  def->base->func->value_ref->from->owner_class)
-  // env_pop(env, scope);
+    if(GET_FLAG(def->base, global) && !l->owner &&
+    def->base->func->value_ref->from->owner_class)
+   env_pop(env, scope);
 
   if (l->def->base->func) {
     if (env->curr->info->value != l->def->base->values) {
