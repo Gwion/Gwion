@@ -1161,6 +1161,7 @@ ANN static void check_idx(const Env env, struct EachIdx_ *const idx) {
   idx->v =
       new_value(env->gwion->mp, env->gwion->type[et_int], s_name(idx->sym));
   valuefrom(env, idx->v->from, idx->pos);
+  idx->v->from->owner_class = NULL;
   set_vflag(idx->v, vflag_valid);
   nspc_add_value(env->curr, idx->sym, idx->v);
 }

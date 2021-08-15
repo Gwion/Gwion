@@ -163,7 +163,8 @@ ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
-  if (b->v) value_remref(b->v, a->gwion);
+//  if (b->v) value_remref(b->v, a->gwion);
+  if (b->v) mp_free(a->gwion->mp, Value, b);
   if (b->idx) clean_idx(a, b->idx);
   --a->scope;
 }
