@@ -348,9 +348,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   return v->type;
 }
 
-ANN Type check_prim_str(const Env env, const m_str *data) {
+ANN Type check_prim_str(const Env env, const struct AstString *data) {
   if (!prim_self(data)->value)
-    prim_self(data)->value = global_string(env, *data);
+    prim_self(data)->value = global_string(env, data->data);
   return env->gwion->type[et_string]; // prim->value
 }
 

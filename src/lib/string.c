@@ -45,8 +45,8 @@ describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
     return env->gwion->type[et_bool];                                          \
   }
 
-opck_str(eq, !strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
-    opck_str(neq, strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
+opck_str(eq, !strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.data))
+    opck_str(neq, strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.data))
 
         static CTOR(string_ctor) {
   STRING(o) = _mp_calloc(shred->info->mp, 1);
@@ -56,10 +56,11 @@ static DTOR(string_dtor) { free_mstr(shred->info->mp, STRING(o)); }
 
 ID_CHECK(check_funcpp) {
   ((Exp_Primary *)prim)->prim_type = ae_prim_str;
-  ((Exp_Primary *)prim)->d.str     = env->func        ? env->func->name
+  ((Exp_Primary *)prim)->d.string.data     = env->func        ? env->func->name
                                      : env->class_def ? env->class_def->name
                                                       : env->name;
-  ((Exp_Primary *)prim)->value     = global_string(env, prim->d.str);
+// handle delim?
+  ((Exp_Primary *)prim)->value     = global_string(env, prim->d.string.data);
   return prim->value->type;
 }
 

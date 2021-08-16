@@ -713,13 +713,14 @@ ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
   return GW_OK;
 }
 
-ANN static m_bool emit_prim_str(const Emitter emit, const m_str *str) {
+ANN static m_bool emit_prim_str(const Emitter emit, const struct AstString *str) {
   const Value v = prim_self(str)->value;
   if (!v->d.obj) {
-    char c[strlen(*str) + 1];
-    if (strlen(*str)) {
-      strcpy(c, *str);
-      CHECK_BB(escape_str(emit, c, prim_pos(str)));
+    const size_t sz = strlen(str->data);
+    char c[sz + 1];
+    if (sz) {
+      strcpy(c, str->data);
+      CHECK_BB(escape_str(emit, c, prim_pos(str->data)));
       ;
     } else
       c[0] = '\0';
