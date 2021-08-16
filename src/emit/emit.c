@@ -936,7 +936,7 @@ ANN static void set_late(const Gwion gwion, const Exp_Decl *decl,
   const uint  array_ref = (decl->td->array && !decl->td->array->exp) ||
                          (var->array && !var->array->exp);
   if (!exp_getvar(exp_self(decl)) &&
-      (GET_FLAG(array_base(v->type), abstract) || GET_FLAG(decl->td, late) ||
+      (GET_FLAG(array_base_simple(v->type), abstract) || GET_FLAG(decl->td, late) ||
        is_fptr(gwion, v->type) || array_ref)) {
     SET_FLAG(v, late);
   } else
@@ -974,7 +974,7 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl *decl) {
       CHECK_BB(op_emit(emit, &opi));
     }
     set_late(emit->gwion, decl, list->self);
-    if (!exp_self(decl)->emit_var && GET_FLAG(array_base(v->type), abstract) && !GET_FLAG(decl->td, late) &&
+    if (!exp_self(decl)->emit_var && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->td, late) &&
         GET_FLAG(v, late) && late_array(decl->td, list->self)) {
       env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
                v->type->name, !GET_FLAG(decl->td, const) ? "var" : "const");

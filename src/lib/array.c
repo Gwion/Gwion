@@ -104,15 +104,14 @@ static MFUN(vm_vector_random) {
   m_vector_get(array, idx, (void *)RETURN);
 }
 
-#define ARRAY_OPCK(a, b, pos)                                                  \
-  const Type l = array_base(a->type);                                          \
-  const Type r = array_base(b->type);                                          \
+#define ARRAY_OPCK(a, b, pos)                                    \
+  const Type l = array_base(a->type);                            \
+  const Type r = array_base(b->type);                            \
   if (isa(r, l) < 0) ERR_N(pos, _("array types do not match."));
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  if (opck_const_rhs(env, data) == env->gwion->type[et_error])
-    return env->gwion->type[et_error];
+  CHECK_NN(opck_const_rhs(env, data));
   if (bin->lhs->type != env->gwion->type[et_error]) {
     ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
     if (bin->lhs->type->array_depth != bin->rhs->type->array_depth)
@@ -138,9 +137,8 @@ ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
         b->type->array_depth > 1)
       return a->type;*/
   ARRAY_OPCK(a, b, pos)
-  if (get_depth(a->type) == get_depth(b->type) + 1)
-    return a->type;
-  else if (shift_match(a->type, b->type))
+  const m_int diff = get_depth(a->type) - get_depth(b->type);
+  if (diff >= 0 && diff <= 1)
     return a->type;
   ERR_N(pos, "array depths do not match for '%s'.", str);
 }
@@ -953,8 +951,8 @@ INSTR(ArrayAlloc) {
   if (!ref) {
     gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} (note: in shred[id=%" UINT_F ":%s])\n",
            shred->tick->xid, shred->code->name);
-    vm_shred_exit(shred);
     if (info->is_obj) free(aai.data);
+    handle(shred, "ArrayAllocException");
     return; // TODO make exception vararg
   }
   *(void **)(ref->data + SZ_INT) = aai.data;
