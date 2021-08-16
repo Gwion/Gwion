@@ -1158,7 +1158,7 @@ ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
 }
 
 ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
-
+/*
   #ifndef GWION_NOINLINE
     const Func _f = is_inlinable(emit, exp_call);
     if(_f) {
@@ -1171,7 +1171,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
       return ret;
     }
   #endif
-
+*/
   // skip when recursing
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   const Func f = t->info->func;
