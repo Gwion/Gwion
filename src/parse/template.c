@@ -112,7 +112,8 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     if (tflag(t, tflag_ntmpl) && !td->types) return t;
     struct TemplateScan ts = {.t = t, .td = td};
     Type_List           tl = td->types;
-    Specialized_List    sl = t->info->cdef->base.tmpl->list;
+    Specialized_List    sl = t->info->cdef->base.tmpl
+        ? t->info->cdef->base.tmpl->list : NULL;
 
     while (tl && sl) {
       DECL_OO(const Type, t, = known_type(env, tl->td));
