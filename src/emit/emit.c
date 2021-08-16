@@ -1060,8 +1060,8 @@ ANN static inline bool check_inline(const Emitter emit, const Func f) {
   return f->weight < threshold;
 }
 
-ANN static inline bool member_inlinable(const Func f, const Exp e) {
-  if (fflag(f, fflag_recurs)) return false;
+ANN static inline bool member_inlinable(const Emitter emit, const Func f, const Exp e) {
+  if (f!= emit->env->func)return false;
   const Type owner_class = f->value_ref->from->owner_class;
   if (!owner_class) return true;
   return GET_FLAG(owner_class, final) || GET_FLAG(f->def->base, final) ||
@@ -1076,13 +1076,16 @@ ANN static inline Func is_inlinable(const Emitter   emit,
       !ftype->info->func->code || ftype->info->func->code->builtin)
     return false;
   const Func f = ftype->info->func;
-  return (member_inlinable(f, exp_call->func) && check_inline(emit, f)) ? f
+  return (member_inlinable(emit, f, exp_call->func) && check_inline(emit, f)) ? f
                                                                         : NULL;
 }
 
 ANN static inline void inline_args_ini(const Emitter emit, const Func f,
                                        const Vector v) {
-  const m_uint start_offset = emit_code_offset(emit);
+  const bool member =  f->value_ref->from->owner_class && vflag(f->value_ref, vflag_member);
+  if(member)
+    emit->this_offset = emit_local(emit, emit->gwion->type[et_int]);
+  const m_uint start_offset = emit_code_offset(emit) - (member ? SZ_INT : 0);
   Arg_List     arg          = f->def->base->args;
   while (arg) {
     const Value value = arg->var_decl->value;
@@ -1116,8 +1119,8 @@ ANN static inline m_bool inline_body(const Emitter emit, const Func f) {
   vector_init(&emit->code->stack_return);
   nspc_push_value(emit->gwion->mp, emit->env->curr);
   const m_bool ret = scoped_stmt(emit, f->def->d.code, 1);
-  nspc_pop_value(emit->gwion->mp, emit->env->curr);
   emit_return_pc(emit, emit_code_size(emit));
+  nspc_pop_value(emit->gwion->mp, emit->env->curr);
   vector_release(&emit->code->stack_return);
   emit->code->stack_return.ptr = v.ptr;
   return ret;
@@ -1126,36 +1129,49 @@ ANN static inline m_bool inline_body(const Emitter emit, const Func f) {
 ANN static inline m_bool inline_run(const Emitter emit, const Func f) {
   struct Vector_ arg_offset;
   vector_init(&arg_offset);
-  const uint16_t this_offset   = emit->this_offset;
-  const uint16_t vararg_offset = emit->vararg_offset;
   inline_args_ini(emit, f, &arg_offset);
   const m_bool ret    = inline_body(emit, f);
-  emit->this_offset   = this_offset;
-  emit->vararg_offset = vararg_offset;
   inline_args_end(f, &arg_offset);
   vector_release(&arg_offset);
   return ret;
 }
 
-ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
+ANN static inline m_bool _emit_inline(const Emitter emit, const Func f,
                                      const Exp_Call *exp_call) {
   if (!f->weight) return GW_OK;
-  if (f->value_ref->from->owner_class && vflag(f->value_ref, vflag_member)) {
+  if (f->value_ref->from->owner_class && vflag(f->value_ref, vflag_member))
     CHECK_BB(emit_exp(emit, exp_call->func->d.exp_dot.base));
-    emit->this_offset = emit_local(emit, emit->gwion->type[et_int]);
-  }
   CHECK_BB(emit_func_args(emit, exp_call));
   return inline_run(emit, f);
 }
 
+ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
+                                     const Exp_Call *exp_call) {
+  const uint16_t this_offset   = emit->this_offset;
+  const uint16_t vararg_offset = emit->vararg_offset;
+  nspc_push_value(emit->gwion->mp, emit->env->curr);
+  const m_bool ret = _emit_inline(emit, f, exp_call);
+  nspc_pop_value(emit->gwion->mp, emit->env->curr);
+  emit->this_offset   = this_offset;
+  emit->vararg_offset = vararg_offset;
+  return ret;
+}
+
 ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
-  /*
+
   #ifndef GWION_NOINLINE
-    const Func f = is_inlinable(emit, exp_call);
-    if(f)
-      return emit_inline(emit, f, exp_call);
+    const Func _f = is_inlinable(emit, exp_call);
+    if(_f) {
+      const Func base = emit->env->func;
+      emit->env->func = _f;
+      const m_uint scope = emit_push(emit, _f->value_ref->from->owner_class, _f->value_ref->from->owner);
+      const m_bool ret = emit_inline(emit, _f, exp_call);
+      emit_pop(emit, scope);
+      emit->env->func = base;
+      return ret;
+    }
   #endif
-  */
+
   // skip when recursing
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   const Func f = t->info->func;

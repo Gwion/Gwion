@@ -561,7 +561,7 @@ ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
 
 ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   struct Vector_ v     = {};
-  const m_uint   scope = env->scope->depth;
+  const m_uint scope   = env->scope->depth;
   env->scope->depth    = 0;
   vector_init(&v);
   while (vector_size((Vector)&env->curr->info->value->ptr) > 1)
@@ -570,7 +570,7 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   for (m_uint i = vector_size(&v) + 1; --i;)
     vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i - 1));
   vector_release(&v);
-  env->scope->depth = scope;
+  env->scope->depth     = scope;
   return ret;
 }
 
