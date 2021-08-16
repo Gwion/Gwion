@@ -337,8 +337,8 @@ static MFUN(string_rfindStrStart) {
   const m_str    base = STRING(o);
   const size_t   sz   = strlen(base);
   const char     pos  = *(m_int *)MEM(SZ_INT * 2);
-  const M_Object obj  = *(M_Object *)MEM(SZ_INT * 2);
-  if (sz) {
+  const M_Object obj  = *(M_Object *)MEM(SZ_INT);
+  if (sz && pos < sz) {
     const m_str arg = STRING(obj);
     m_str       tmp = base + pos, str = NULL;
     while ((tmp = strstr(tmp, arg))) str = tmp++;
