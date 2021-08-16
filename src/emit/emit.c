@@ -944,7 +944,7 @@ ANN static void set_late(const Gwion gwion, const Exp_Decl *decl,
 }
 
 static inline bool _late_array(const Array_Sub array) {
-  return array && !array->exp;
+  return !array || !array->exp;
 }
 
 ANN static inline bool late_array(const Type_Decl *td, const Var_Decl var) {
