@@ -1287,6 +1287,8 @@ ANN static inline m_bool traverse_emit_func_def(const Emitter  emit,
 
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
   const m_uint  scope = emit->env->scope->depth;
+  const bool    shadowing = emit->env->scope->shadowing;
+  emit->env->scope->shadowing = true;
   struct EnvSet es    = {.env   = emit->env,
                       .data  = emit,
                       .func  = (_exp_func)emit_cdef,
@@ -1297,6 +1299,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt) {
   const m_bool ret = traverse_emit_func_def(emit, dt->def);
   if (es.run) envset_pop(&es, dt->owner_class);
   emit_pop(emit, scope);
+  emit->env->scope->shadowing = shadowing;
   return ret;
 }
 

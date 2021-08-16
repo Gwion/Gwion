@@ -328,6 +328,8 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env,
 
 ANN static inline m_bool shadow_err(const Env env, const Value v,
                                     const loc_t loc) {
+  if(env->scope->shadowing)
+    return GW_OK;
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
