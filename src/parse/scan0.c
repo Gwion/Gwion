@@ -279,7 +279,6 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
 ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
   CHECK_BB(env_storage(env, cdef->flag, cdef->pos));
   CHECK_BB(isres(env, cdef->base.xid, cdef->pos));
-  CHECK_BB(scan0_global(env, cdef->flag, cdef->pos));
   return GW_OK;
 }
 
@@ -476,11 +475,14 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->pos);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
-  if (cdef->body) CHECK_BB(env_body(env, cdef, scan0_section));
-  return GW_OK;
+  const m_uint scope = env_push(env, cdef->base.type->info->value->from->owner_class, cdef->base.type->info->value->from->owner);
+  const m_bool ret = cdef->body ? env_body(env, cdef, scan0_section) : GW_OK;
+  env_pop(env, scope);
+  return ret;
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
+  CHECK_BB(scan0_global(env, c->flag, c->pos));
   const int       cpy  = tmpl_base(c->base.tmpl) || GET_FLAG(c, global);
   const Class_Def cdef = !cpy ? c : cpy_class_def(env->gwion->mp, c);
   if (GET_FLAG(cdef, global)) { // could be updated
@@ -491,6 +493,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   const m_bool ret = scan0_class_def_pre(env, cdef) > 0
                          ? scan0_class_def_inner(env, cdef)
                          : GW_ERROR;
+
   if (GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   if (cpy && cdef->base.type) {
