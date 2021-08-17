@@ -438,7 +438,7 @@ static INSTR(map_run_ini) {
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 3));
+  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 3 + frame->code->stack_depth));
 }
 
 static INSTR(map_run_end) {
@@ -562,7 +562,7 @@ static INSTR(foldl_run_ini) {
   const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(ARRAY(self), frame->index,
-               &*(m_bit **)(shred->mem + SZ_INT * 2));
+               &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(foldr_run_ini) {
@@ -576,7 +576,7 @@ static INSTR(foldr_run_ini) {
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   const M_Vector array = ARRAY(self);
   m_vector_get(array, ARRAY_LEN(array) - frame->index - 1,
-               &*(m_bit **)(shred->mem + SZ_INT * 2));
+               &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(fold_run_end) {
