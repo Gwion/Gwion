@@ -1026,7 +1026,7 @@ ANN static void emit_func_arg_vararg(const Emitter   emit,
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call *exp_call) {
   if (exp_call->args) {
     CHECK_BB(emit_exp(emit, exp_call->args));
-    //    emit_exp_addref(emit, exp_call->args, -exp_totalsize(exp_call->args));
+//    emit_exp_addref_array(emit, exp_call->args, -exp_totalsize(exp_call->args));
   }
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   if (is_func(emit->gwion, t) &&

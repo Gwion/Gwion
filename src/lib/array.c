@@ -208,8 +208,8 @@ static OP_EMIT(opem_array_sr) {
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -SZ_INT;
-  if (isa(bin->rhs->type, emit->gwion->type[et_object]) > 0)
-    emit_add_instr(emit, RegAddRef);
+  if (isa(bin->lhs->type, emit->gwion->type[et_compound]) > 0)
+    emit_compound_addref(emit, bin->lhs->type, -SZ_INT, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
@@ -218,12 +218,10 @@ static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
+  if (isa(bin->rhs->type, emit->gwion->type[et_compound]) > 0)
+    emit_compound_addref(emit, bin->rhs->type, -SZ_INT, false);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -bin->rhs->type->size;
-  if (isa(bin->rhs->type, emit->gwion->type[et_object]) > 0) {
-    const Instr ref = emit_add_instr(emit, RegAddRef);
-    ref->m_val      = -SZ_INT;
-  }
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }

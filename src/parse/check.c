@@ -815,23 +815,26 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     if (value->from->owner_class)
       CHECK_BO(ensure_traverse(env, value->from->owner_class));
   }
-  if (exp->args) CHECK_OO(check_exp(env, exp->args));
+  if (exp->args) {
+    CHECK_OO(check_exp(env, exp->args));
+    Exp e = exp->args;
+    do exp_setuse(e, true);
+    while((e = e->next));
+  }
   if (tflag(t, tflag_ftmpl))
     return check_exp_call_template(env, (Exp_Call *)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
   if (func) {
     if (!is_fptr(env->gwion, func->value_ref->type)) // skip function pointers
       if (func != env->func && func->def && !fflag(func, fflag_valid)) {
-        struct EnvSet es = {.env   = env,
-                            .data  = env,
-                            .func  = (_exp_func)check_cdef,
-                            .scope = env->scope->depth,
-                            .flag  = tflag_check};
-        CHECK_BO(envset_pushv(&es, func->value_ref));
-        CHECK_BO(check_func_def(env, func->def));
-        if (es.run) envset_pop(&es, func->value_ref->from->owner_class);
+        if(func->value_ref->from->owner_class)
+          CHECK_BO(ensure_check(env, func->value_ref->from->owner_class));
+        else {
+          const m_uint scope = env_push(env, NULL, func->value_ref->from->owner);
+          CHECK_BO(check_func_def(env, func->def));
+          env_pop(env, scope);
+        }
       }
-
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
     if (func == env->func) set_fflag(env->func, fflag_recurs);
@@ -987,6 +990,9 @@ ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
   if (isa(if_exp, else_exp) < 0)
     ERR_O(exp_self(exp_if)->pos, _("condition type '%s' does not match '%s'"),
           cond->name, ret->name)
+  exp_setuse(exp_if->cond, true);
+  exp_setuse(exp_if->if_exp, true);
+  exp_setuse(exp_if->else_exp, true);
   return ret;
 }
 
@@ -1581,7 +1587,7 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
   if(fflag(func, fflag_valid))return GW_OK;
-  set_fflag(fdef->base->func, fflag_valid);
+  set_fflag(func, fflag_valid);
   assert(func == fdef->base->func);
   if (env->class_def) // tmpl ?
     CHECK_BB(check_parent_match(env, fdef));
