@@ -336,7 +336,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
 
 #define FLOAT_IMM_LOGICAL(op) \
   reg -= SZ_FLOAT - SZ_INT;\
-  *(m_uint *)(reg - SZ_INT) = *(m_float*)(reg-SZ_INT) op FVAL; DISPATCH();
+  *(m_uint *)(reg - SZ_INT) = *(m_float*)(reg-SZ_INT+SZ_FLOAT) op FVAL; DISPATCH();
 
 #define SELF(t, sz, op)                                                        \
   *(t *)(reg - sz) = op * (t *)(reg - sz);                                     \
