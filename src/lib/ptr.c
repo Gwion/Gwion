@@ -181,8 +181,7 @@ GWION_IMPORT(ptr) {
   const Type t_ptr         = gwi_struct_ini(gwi, "Ptr:[A]");
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_gack(gwi, t_ptr, gack_ptr))
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
-  GWI_BB(gwi_item_end(gwi, 0, num, 0))
+  t_ptr->nspc->offset += SZ_INT;
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))

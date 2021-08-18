@@ -91,8 +91,7 @@ GWION_IMPORT(ref) {
   set_tflag(t_foreach, tflag_infer);
 
   gwinote(gwi, "a pointer to the referenced variable.");
-  GWI_BB(gwi_item_ini(gwi, "@internal", "val"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  t_foreach->nspc->offset += SZ_INT;
 
   GWI_BB(gwi_struct_end(gwi))
 

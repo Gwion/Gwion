@@ -755,10 +755,6 @@ GWION_IMPORT(array) {
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
   t_array->nspc->offset += SZ_INT*2;
-//  GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
-//  GWI_BB(gwi_item_end(gwi, 0, num, 0))
-//  GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
-//  GWI_BB(gwi_item_end(gwi, 0, num, 0))
 
   GWI_BB(gwi_fptr_ini(gwi, "A", "map_t:[A]"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))

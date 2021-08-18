@@ -304,8 +304,7 @@ GWION_IMPORT(shred) {
   const Type t_shred = gwi_class_ini(gwi, "Shred", NULL);
   gwi_class_xtor(gwi, NULL, shred_dtor);
 
-  gwi_item_ini(gwi, "@internal", "@me");
-  GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
+  t_shred->nspc->offset += SZ_INT;
 
   gwi_item_ini(gwi, "int", "cancel");
   GWI_BB((o_shred_cancel = gwi_item_end(gwi, ae_flag_const, num, 0)))
@@ -375,13 +374,13 @@ GWION_IMPORT(shred) {
   const Type t_fork = gwi_class_ini(gwi, "Fork", "Shred");
   gwi_class_xtor(gwi, NULL, fork_dtor);
   gwi->gwion->type[et_fork] = t_fork;
+  o_fork_thread = t_fork->nspc->offset;
+  t_fork->nspc->offset += SZ_INT;
+  o_fork_cond = t_fork->nspc->offset;
+  t_fork->nspc->offset += SZ_INT;
+  o_fork_mutex = t_fork->nspc->offset;
+  t_fork->nspc->offset += SZ_INT;
 
-  gwi_item_ini(gwi, "@internal", "@thread");
-  GWI_BB((o_fork_thread = gwi_item_end(gwi, ae_flag_const, num, 0)))
-  gwi_item_ini(gwi, "@internal", "@cond");
-  GWI_BB((o_fork_cond = gwi_item_end(gwi, ae_flag_const, num, 0)))
-  gwi_item_ini(gwi, "@internal", "@mutex");
-  GWI_BB((o_fork_mutex = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "int", "is_done");
   GWI_BB((o_fork_done = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "Event", "ev");
