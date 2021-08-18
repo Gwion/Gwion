@@ -390,7 +390,7 @@ static SFUN(string_load) {
   rewind(f);
   fread(c, 1, sz, f);
   fclose(f);
-  *(m_uint*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
+  *(M_Object*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
 }
 
 GWION_IMPORT(string) {
