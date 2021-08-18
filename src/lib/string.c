@@ -369,20 +369,19 @@ static MFUN(string_save) {
   const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
   FILE *f = fopen(path, "w");
   if(!f) {
-    *(m_uint*)RETURN = false;
+    handle(shred, "StringLoadException");
     return;
   }
   const m_str str = STRING(o);
   fprintf(f, "%s", str);
   fclose(f);
-  *(m_uint*)RETURN = true;
 }
 
-static MFUN(string_load) {
-  const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
+static SFUN(string_load) {
+  const m_str path = STRING(*(M_Object*)MEM(0));
   FILE *f = fopen(path, "r");
   if(!f) {
-    *(m_uint*)RETURN = false;
+    handle(shred, "StringLoadException");
     return;
   }
   fseek(f, 0, SEEK_END);
@@ -391,8 +390,7 @@ static MFUN(string_load) {
   rewind(f);
   fread(c, 1, sz, f);
   fclose(f);
-  STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
-  *(m_uint*)RETURN = true;
+  *(m_uint*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
 }
 
 GWION_IMPORT(string) {
@@ -486,13 +484,13 @@ GWION_IMPORT(string) {
   gwi_func_arg(gwi, "int", "length");
   GWI_BB(gwi_func_end(gwi, string_erase, ae_flag_none))
 
-  gwi_func_ini(gwi, "bool", "save");
+  gwi_func_ini(gwi, "void", "save");
   gwi_func_arg(gwi, "string", "path");
   GWI_BB(gwi_func_end(gwi, string_save, ae_flag_none))
 
-  gwi_func_ini(gwi, "bool", "load");
+  gwi_func_ini(gwi, "string", "load");
   gwi_func_arg(gwi, "string", "path");
-  GWI_BB(gwi_func_end(gwi, string_load, ae_flag_none))
+  GWI_BB(gwi_func_end(gwi, string_load, ae_flag_static))
 
   GWI_BB(gwi_class_end(gwi))
 
