@@ -106,8 +106,10 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   fdef->base->tmpl->base = i;
   const Func func        = ensure_tmpl(env, fdef, ra->e);
   if (!func && !fdef->base->func) free_func_def(env->gwion->mp, fdef);
-  if (func && vflag(ra->v, vflag_builtin))
+  if (func && vflag(ra->v, vflag_builtin)) {
+    builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
+  }
   return func;
 }
 
