@@ -365,6 +365,36 @@ static MFUN(string_erase) {
   STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
 }
 
+static MFUN(string_save) {
+  const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
+  FILE *f = fopen(path, "w");
+  if(!f) {
+    *(m_uint*)RETURN = false;
+    return;
+  }
+  const m_str str = STRING(o);
+  fprintf(f, "%s", str);
+  fclose(f);
+  *(m_uint*)RETURN = true;
+}
+
+static MFUN(string_load) {
+  const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
+  FILE *f = fopen(path, "r");
+  if(!f) {
+    *(m_uint*)RETURN = false;
+    return;
+  }
+  fseek(f, 0, SEEK_END);
+  const size_t sz = ftell(f);
+  char c[sz + 1];
+  rewind(f);
+  fread(c, 1, sz, f);
+  fclose(f);
+  STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
+  *(m_uint*)RETURN = true;
+}
+
 GWION_IMPORT(string) {
   const Type t_string         = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
@@ -455,6 +485,14 @@ GWION_IMPORT(string) {
   gwi_func_arg(gwi, "int", "start");
   gwi_func_arg(gwi, "int", "length");
   GWI_BB(gwi_func_end(gwi, string_erase, ae_flag_none))
+
+  gwi_func_ini(gwi, "bool", "save");
+  gwi_func_arg(gwi, "string", "path");
+  GWI_BB(gwi_func_end(gwi, string_save, ae_flag_none))
+
+  gwi_func_ini(gwi, "bool", "load");
+  gwi_func_arg(gwi, "string", "path");
+  GWI_BB(gwi_func_end(gwi, string_load, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
 
