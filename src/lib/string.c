@@ -71,7 +71,7 @@ static GACK(gack_string) {
 
 static inline m_bool bounds(const m_str str, const m_int i) {
   CHECK_BB(i);
-  return (m_uint)i < strlen(str) ? GW_OK : GW_ERROR;
+  return (m_uint)i <= strlen(str) ? GW_OK : GW_ERROR;
 }
 
 static INSTR(StringSlice) {
