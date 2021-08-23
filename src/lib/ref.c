@@ -69,6 +69,7 @@ static OP_CHECK(opck_ref_scan) {
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const Type base = known_type(env, ts->td->types->td);
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
+  t->size = SZ_INT;
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
   set_tflag(t, tflag_noret);

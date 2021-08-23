@@ -37,7 +37,8 @@ static OP_CHECK(opck_ptr_assign) {
     Type u = bin->rhs->type;
     do {
       const Type base = ptr_base(env, u);
-      if (isa(t, base) > 0) return t;
+//      if (isa(t, base) > 0) return t;
+      if (isa(t, base) > 0) return bin->rhs->type;
     } while ((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while ((t = t->info->parent));
   return env->gwion->type[et_error];
@@ -147,6 +148,7 @@ static OP_CHECK(opck_ptr_scan) {
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const Type base = known_type(env, ts->td->types->td);
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
+  t->size = SZ_INT;
   t->info->parent = env->gwion->type[et_ptr];
   SET_FLAG(t, abstract | ae_flag_final);
   t->info->tuple = new_tupleform(env->gwion->mp, NULL);
