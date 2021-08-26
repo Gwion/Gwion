@@ -121,7 +121,7 @@ clean-all: clean
 update: clean-all
 	git pull
 	git submodule update --recursive --init
-	make
+	CFLAGS= ${MAKE}
 
 clean: clean_core
 	$(info cleaning ...)
