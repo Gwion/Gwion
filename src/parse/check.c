@@ -841,8 +841,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
       func->def->base->ret_type : exp->func->d.exp_dot.base->type;
   }
-  const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
-  function_alternative(env, exp->func->type, exp->args, pos);
+  function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;
 }
 
