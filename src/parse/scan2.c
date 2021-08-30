@@ -519,7 +519,7 @@ ANN m_bool scan2_fdef(const Env env, const Func_Def fdef) {
   if (overload) CHECK_BB(scan2_func_def_overload(env, fdef, overload));
   CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(
       env, fdef, overload));
-  if (env->class_def) upfunction(env, fdef->base);
+  if (env->class_def && !fdef->base->func->next) upfunction(env, fdef->base);
   return GW_OK;
 }
 
