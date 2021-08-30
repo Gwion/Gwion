@@ -720,8 +720,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const struct AstString *str)
     char c[sz + 1];
     if (sz) {
       strcpy(c, str->data);
-      CHECK_BB(escape_str(emit, c, prim_pos(str->data)));
-      ;
+      CHECK_BB(escape_str(emit, c, prim_pos(str)));
     } else
       c[0] = '\0';
     v->d.obj = new_string2(emit->gwion, NULL, c);
