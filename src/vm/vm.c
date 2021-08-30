@@ -1071,7 +1071,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     addref : {
       const M_Object o = *(M_Object *)(reg + IVAL);
-      //    if(o)
+          if(o)
       ++o->ref;
     }
       DISPATCH()
@@ -1088,7 +1088,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     objassign : {
       const M_Object o = **(M_Object **)(reg - SZ_INT);
-      release(o, shred);
+//      release(o, shred);
     }
     assign:
       reg -= SZ_INT;
