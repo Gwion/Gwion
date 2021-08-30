@@ -252,6 +252,11 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
   return NULL;
 }
 
+ANN static inline bool is_value_global(const Env env, const Value v) {
+  if(GET_FLAG(v, global)) return true;
+  return from_global_nspc(env, v->from->owner);
+}
+
 ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   const Symbol var   = *data;
   const Value  value = get_value(env, var);
@@ -270,7 +275,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
     return v;
   } else if (SAFE_FLAG(env->class_def, global) ||
              (env->func && GET_FLAG(env->func->def->base, global))) {
-    if (!value || !GET_FLAG(value, global))
+    if (!value || !is_value_global(env, value))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
