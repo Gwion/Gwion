@@ -827,7 +827,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
 //  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", eNoOp))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
   GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
