@@ -1472,9 +1472,12 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def fdef,
           c_name, f_name, p_name, c_name,
           GET_FLAG(fdef->base, static) ? c_name : p_name, f_name)
   }
-  return !fdef->base->tmpl
-             ? isa(fdef->base->ret_type, parent->def->base->ret_type)
-             : GW_OK;
+  if(fdef->base->tmpl || isa(fdef->base->ret_type, parent->def->base->ret_type) > 0)
+    return GW_OK;
+  gwerr_basic("invalid overriding", NULL, NULL, fdef->base->func->value_ref->from->filename, fdef->base->func->value_ref->from->loc, 0);
+  gwerr_secondary("does not match", parent->value_ref->from->filename, parent->value_ref->from->loc);
+  env->context->error = true;
+  return GW_ERROR;
 }
 
 ANN static m_bool parent_match_actual(const Env               env,
@@ -1593,7 +1596,7 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   if(fflag(func, fflag_valid))return GW_OK;
   set_fflag(func, fflag_valid);
   assert(func == fdef->base->func);
-  if (env->class_def) // tmpl ?
+  if (env->class_def)
     CHECK_BB(check_parent_match(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return GW_OK;
   Value override = NULL;
@@ -1825,11 +1828,12 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
       Value             v;
       struct scope_iter inner = {value->type->nspc->info->value, 0, 0};
       while (scope_iter(&inner, &v) > 0) {
-        //      if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
-        if (v->type == t) {
+        const Type tgt = array_base(v->type);
+        if(isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple &&vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1)) {
           env_err(env, v->from->loc, _("recursive type"));
           env->context->error = false;
           env_err(env, value->from->loc, _("recursive type"));
+          gw_err("use {+G}late{0} on one (or more) of the variables?\n");
           env_set_error(env);
           type_remref(t, env->gwion);
           return GW_ERROR;
