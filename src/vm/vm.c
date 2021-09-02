@@ -480,7 +480,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp,
       &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
-      &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&arraygetobj, &&newobj, &&addref,
+      &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
       &&remref, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat,
       &&dotother, &&dotaddr, &&unioncheck, &&unionint, &&unionfloat,
@@ -1063,15 +1063,6 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       PRAGMA_PUSH()
       *(m_bit **)(reg + IVAL2) =
           m_vector_addr(ARRAY(a.obj), *(m_int *)(reg + VAL));
-      PRAGMA_POP()
-      DISPATCH()
-    arraygetobj:
-      PRAGMA_PUSH()
-      m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg + IVAL2));
-      if(!*(M_Object*)(reg + IVAL2)) {
-        handle(shred, "EmptyArrayAccess");
-        continue;
-      }
       PRAGMA_POP()
       DISPATCH()
     newobj:
