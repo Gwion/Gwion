@@ -58,21 +58,24 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
-  s->mem -= SZ_INT;
-  vm_shred_exit(s);
+  if(s)
+    vm_shred_exit(s);
 }
 
 static MFUN(vm_shred_id) {
   const VM_Shred s = ME(o);
-  *(m_int *)RETURN = s ? (m_int)s->tick->xid : -1;
+  *(m_int *)RETURN = s ? (m_int)s->tick->xid : 0;
 }
 
 static MFUN(vm_shred_is_running) {
   const VM_Shred s  = ME(o);
-  *(m_uint *)RETURN = (s->tick->next || s->tick->prev) ? 1 : 0;
+  if(s)
+    *(m_uint *)RETURN = (s->tick->next || s->tick->prev) ? true : false;
+  else
+    *(m_int *)RETURN = false;
 }
 
-static MFUN(vm_shred_is_done) { *(m_uint *)RETURN = ME(o) ? 0 : 1; }
+static MFUN(vm_shred_is_done) { *(m_uint *)RETURN = !ME(o) ? true : false; }
 
 static MFUN(shred_yield) {
   const VM_Shred  s  = ME(o);
@@ -151,12 +154,10 @@ describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
     describe_path_and_dir(, s->info->orig->name)
         describe_path_and_dir(_code, s->code->name)
 
-            static DTOR(shred_dtor) {
+static DTOR(shred_dtor) {
   if (ME(o)) {
-    MUTEX_TYPE mutex = ME(o)->tick->shreduler->mutex;
-    MUTEX_LOCK(mutex);
-    free_vm_shred(ME(o));
-    MUTEX_UNLOCK(mutex);
+    VM_Shred s = ME(o);
+    free_vm_shred(s);
   }
 }
 
@@ -312,10 +313,10 @@ GWION_IMPORT(shred) {
   gwi_func_ini(gwi, "void", "exit");
   GWI_BB(gwi_func_end(gwi, gw_shred_exit, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "running");
+  gwi_func_ini(gwi, "bool", "running");
   GWI_BB(gwi_func_end(gwi, vm_shred_is_running, ae_flag_none))
 
-  gwi_func_ini(gwi, "int", "done");
+  gwi_func_ini(gwi, "bool", "done");
   GWI_BB(gwi_func_end(gwi, vm_shred_is_done, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "id");
