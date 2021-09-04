@@ -812,8 +812,8 @@ ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl,
       emit_instantiate_decl(emit, v->type, decl->td, var_decl->array, is_ref));
   CHECK_BB(emit_dot_static_data(emit, v, 1));
   emit_add_instr(emit, Assign);
-  if(get_depth(var_decl->value->type) && !is_ref)
-    (void)emit_object_addref(emit, -SZ_INT, 0);
+//  if(get_depth(var_decl->value->type) && !is_ref)
+//    (void)emit_object_addref(emit, -SZ_INT, 0);
   regpop(emit, SZ_INT);
   emit->code = code;
   return GW_OK;
