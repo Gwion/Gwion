@@ -157,8 +157,7 @@ describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
 static DTOR(shred_dtor) {
   if (ME(o)) {
     VM_Shred s = ME(o);
-//    free_vm_shred(s);
-//    ME(o) = NULL;
+    free_vm_shred(s);
   }
 }
 

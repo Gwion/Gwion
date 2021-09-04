@@ -61,7 +61,6 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
     shreduler_erase(s, tk);
     ME(out->info->me) = NULL;
     release(out->info->me, out);
-    free_vm_shred(out);
   }
   MUTEX_UNLOCK(s->mutex);
 }
