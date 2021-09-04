@@ -154,13 +154,15 @@ ANN static inline void add_to_killed(const VM_Shred shred) {
   vector_add(&shreduler->killed_shreds, (m_uint)shred);
 }
 
-ANN static inline void unhandled_pp(VM_Shred shred, const m_str effect) {
-  gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}: {-R}Unhandled {+R}%s{0}\n",
+ANN static inline void unhandled_pp(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
+  gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} {-}in code {/+}'%s'{0}{-}. origin: {/+}'%s'{0}{-}\n",
+    ts->code->name, shred->info->orig->name);
+  gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}:{-R}Unhandled {+R}%s{0}\n",
          shred->tick->xid, effect);
 }
 
 ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
-  unhandled_pp(shred, effect);
+  unhandled_pp(shred, effect, ts);
   if (shred->info->line.ptr) // trace if available
     shred_trace(shred, ts);
   add_to_killed(shred);
