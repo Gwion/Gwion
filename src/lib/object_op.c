@@ -36,20 +36,21 @@ static OP_CHECK(opck_object_at) {
   CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
   return bin->rhs->type;
 }
-
+/*
 static bool exp_func(const Exp exp) {
 // was is_new
-  return exp->exp_type == ae_exp_call /*&&
-         exp->d.exp_call.func->exp_type == ae_exp_dot &&
-         !strcmp(s_name(exp->d.exp_call.func->type->info->func->def->base->xid), "new")*/;
+  return exp->exp_type == ae_exp_call;
+//&&
+//         exp->d.exp_call.func->exp_type == ae_exp_dot &&
+//         !strcmp(s_name(exp->d.exp_call.func->type->info->func->def->base->xid), "new"):
 }
-
+*/
 static OP_EMIT(opem_object_at) {
-  const Exp_Binary *bin = (Exp_Binary *)data;
-  if(!exp_func(bin->lhs)) {
-    const Instr addref = emit_add_instr(emit, RegAddRef);
-    addref->m_val      = -SZ_INT * 2;
-  }
+//  const Exp_Binary *bin = (Exp_Binary *)data;
+//  if(!exp_func(bin->lhs)) {
+  const Instr addref = emit_add_instr(emit, RegAddRef);
+  addref->m_val      = -SZ_INT * 2;
+//  }
   (void)emit_add_instr(emit, ObjectAssign);
   return GW_OK;
 }

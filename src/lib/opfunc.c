@@ -134,7 +134,7 @@ OP_EMIT(opem_new) {
                                    unary->ctor.td->array, 0));
   // we don't need gc for arrays?
   // also when in rewrote exp
-  if(!(unary->ctor.td->array || unary->ctor.exp))
+//  if(!(unary->ctor.td->array || unary->ctor.exp))
     emit_gc(emit, -SZ_INT);
   return GW_OK;
 }
