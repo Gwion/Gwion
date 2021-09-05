@@ -458,6 +458,13 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
     const m_uint size  = v->type->size;
     const Instr  instr = emit_dotstatic(emit, size, exp_getvar(prim_exp(data)));
     instr->m_val       = (m_uint)&v->d.ptr;
+    // prevent invalid access to global variables
+    if(!exp_getvar(exp_self(prim_self(data))) &&
+       isa(v->type, emit->gwion->type[et_object]) > 0) {
+      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+      instr->m_val      = -SZ_INT;
+      // use m_val2 to set some info?
+    }
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_regpushimm(emit, size, exp_getvar(prim_exp(data)));

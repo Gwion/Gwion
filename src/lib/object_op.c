@@ -258,7 +258,9 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;
   }
-  if (GET_FLAG(value, late) && !exp_getvar(exp_self(member))) {
+  if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
+     !exp_getvar(exp_self(member)) &&
+    (GET_FLAG(value, static) || GET_FLAG(value, late))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
     instr->m_val      = -SZ_INT;
   }
@@ -345,9 +347,10 @@ static OP_EMIT(opem_not_object) {
   const Vector v    = &emit->code->instr;
   const Instr  back = (Instr)vector_back(v);
   if (back->opcode == eGWOP_EXCEPT) {
-    vector_pop(v);
-    mp_free(emit->gwion->mp, Instr, back);
-    emit_add_instr(emit, IntNot);
+    back->opcode = eIntNot;
+//    vector_pop(v);
+//    mp_free(emit->gwion->mp, Instr, back);
+//    emit_add_instr(emit, IntNot);
     return GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegSetImm);

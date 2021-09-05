@@ -310,6 +310,8 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
     const Instr get    = emit_add_instr(emit, ArrayGet);
     get->m_val         = i * SZ_INT;
     get->m_val2        = -SZ_INT;
+    const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
+    ex->m_val          = -SZ_INT;
   }
   const Instr post_pop = emit_add_instr(emit, RegMove);
   post_pop->m_val      = -SZ_INT;
@@ -318,12 +320,18 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
 }
 
 ANN static void array_finish(const Emitter emit, const m_uint depth,
-                             const m_uint size, const m_bool is_var) {
+                             const Type t, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
+  // determine if we have an object here
+  if(!is_var) {
+    const m_uint _depth = get_depth(t);
+    if(_depth < depth || isa(array_base(t), emit->gwion->type[et_object]) > 0)
+      emit_add_instr(emit, GWOP_EXCEPT);
+  }
   get->m_val      = depth * SZ_INT;
   //  emit_add_instr(emit, ArrayValid);
   const Instr push = emit_add_instr(emit, RegMove);
-  push->m_val      = is_var ? SZ_INT : size;
+  push->m_val      = is_var ? SZ_INT : t->size;
 }
 
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
@@ -331,7 +339,7 @@ ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
   //  emit_gc(emit, -SZ_INT);
   CHECK_BB(emit_exp(emit, array->exp));
   array_loop(emit, array->depth);
-  array_finish(emit, array->depth, array->type->size, is_var);
+  array_finish(emit, array->depth, array->type, is_var);
   return GW_OK;
 }
 
