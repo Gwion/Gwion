@@ -10,14 +10,18 @@
 #include "operator.h"
 #include "import.h"
 
+ANN void free_instr(const Gwion gwion, const Instr instr) {
+  const f_freearg f     = (f_freearg)(
+      map_get(&gwion->data->freearg, instr->opcode)
+              ?: map_get(&gwion->data->freearg, (vtype)instr->execute));
+  if (f) f(instr, gwion);
+  mp_free(gwion->mp, Instr, instr);
+}
+
 ANN void free_code_instr(const Vector v, const Gwion gwion) {
   for (m_uint i = vector_size(v) + 1; --i;) {
     const Instr     instr = (Instr)vector_at(v, i - 1);
-    const f_freearg f     = (f_freearg)(
-        map_get(&gwion->data->freearg, instr->opcode)
-                ?: map_get(&gwion->data->freearg, (vtype)instr->execute));
-    if (f) f(instr, gwion);
-    mp_free(gwion->mp, Instr, instr);
+    free_instr(gwion, instr);
   }
 }
 
