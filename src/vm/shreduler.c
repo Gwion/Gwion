@@ -59,7 +59,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
     tk->prev = tk->next = NULL;
   else {
     shreduler_erase(s, tk);
-    ME(out->info->me) = NULL;
+    tk->prev = (struct ShredTick_*)-1;
     release(out->info->me, out);
   }
   MUTEX_UNLOCK(s->mutex);

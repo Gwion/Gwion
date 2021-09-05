@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -58,27 +59,24 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
-  if(s)
-    vm_shred_exit(s);
+  vm_shred_exit(s);
 }
 
 static MFUN(vm_shred_id) {
   const VM_Shred s = ME(o);
-  *(m_int *)RETURN = s ? (m_int)s->tick->xid : 0;
+  *(m_int *)RETURN = s->tick->xid;
 }
 
 static MFUN(vm_shred_is_running) {
   const VM_Shred s  = ME(o);
-  if(s)
-    *(m_uint *)RETURN = (s->tick->next || s->tick->prev) ? true : false;
-  else
-    *(m_int *)RETURN = false;
+  *(m_uint *)RETURN = ((m_int)s->tick->prev != -1 && (s->tick->prev || s->tick->next)) ? true : false;
 }
 
 static MFUN(vm_shred_is_done) { *(m_uint *)RETURN = !ME(o) ? true : false; }
 
 static MFUN(shred_yield) {
   const VM_Shred  s  = ME(o);
+  if((m_int)s->tick->prev == -1) return;
   const Shreduler sh = s->tick->shreduler;
   if (s != shred) shreduler_remove(sh, s, false);
   shredule(sh, s, GWION_EPSILON);
@@ -161,9 +159,9 @@ static DTOR(shred_dtor) {
   }
 }
 
-static MFUN(shred_lock) { MUTEX_LOCK(ME(o)->tick->shreduler->mutex); }
+static MFUN(shred_lock) { if(ME(o)->tick) MUTEX_LOCK(ME(o)->tick->shreduler->mutex); }
 
-static MFUN(shred_unlock) { MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex); }
+static MFUN(shred_unlock) { if(ME(o)->tick) MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex); }
 
 static void stop(const M_Object o) {
   VM *vm = ME(o)->info->vm;
@@ -199,11 +197,13 @@ static DTOR(fork_dtor) {
 
 static MFUN(fork_join) {
   if (*(m_int *)(o->data + o_fork_done)) return;
+  if (!ME(o)->tick) return;
   shreduler_remove(shred->tick->shreduler, shred, false);
   vector_add(&EV_SHREDS(*(M_Object *)(o->data + o_fork_ev)), (vtype)shred);
 }
 
 static MFUN(shred_cancel) {
+  if(!ME(o)->tick)return;
   MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
   *(m_int *)(o->data + o_shred_cancel) = *(m_int *)MEM(SZ_INT);
   MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
@@ -279,6 +279,7 @@ ANN void fork_launch(const M_Object o, const m_uint sz) {
   MUTEX_COND_UNLOCK(tl.mutex);
   THREAD_COND_CLEANUP(FORK_COND(o));
   MUTEX_CLEANUP(FORK_MUTEX(o));
+//  sleep(0);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
