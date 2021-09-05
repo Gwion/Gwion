@@ -446,7 +446,7 @@ static INSTR(map_run_ini) {
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 3 + frame->code->stack_depth));
+  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->offset + frame->code->stack_depth));
 }
 
 static INSTR(map_run_end) {
