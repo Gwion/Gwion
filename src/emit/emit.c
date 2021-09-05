@@ -1503,20 +1503,16 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       }
     } else if (emit->env->func != f && !f->value_ref->from->owner_class &&
                !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
-      CHECK_BB(emit_ensure_func(emit, f));
       if (fbflag(f->def->base, fbflag_op)) {
+        if(f->def->base->tmpl)
+          CHECK_BB(emit_ensure_func(emit, f));
         const Instr back = (Instr)vector_back(&emit->code->instr);
         assert(back->execute == SetFunc);
         if(f->code) {
           back->opcode = eRegPushImm;
           back->m_val = (m_uint)f->code;
-          //  back->m_val2     = SZ_INT;
         } else
           back->m_val      = (m_uint)f;
-      } else {
-        const Instr instr = emit_add_instr(emit, RegSetImm);
-        instr->m_val      = (m_uint)f->code;
-        instr->m_val2     = -SZ_INT;
       }
     }
   } else if ((f->value_ref->from->owner_class &&
@@ -1563,7 +1559,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       instr->execute    = SetFunc;
       instr->m_val      = (m_uint)f;
     } else {
-        const Instr back = (Instr)vector_back(&emit->code->instr);
+      const Instr back = (Instr)vector_back(&emit->code->instr);
         if(back->execute != SetFunc) {
           const Instr instr = emit_add_instr(emit, SetFunc);
           instr->m_val      = (m_uint)f;
