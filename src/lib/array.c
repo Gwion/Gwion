@@ -209,7 +209,7 @@ static OP_EMIT(opem_array_sr) {
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -SZ_INT;
   if (isa(bin->lhs->type, emit->gwion->type[et_compound]) > 0)
-    emit_compound_addref(emit, bin->lhs->type, -SZ_INT, false);
+    emit_compound_addref(emit, bin->lhs->type, -SZ_INT*2, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
