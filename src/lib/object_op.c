@@ -348,13 +348,32 @@ static OP_EMIT(opem_not_object) {
   const Instr  back = (Instr)vector_back(v);
   if (back->opcode == eGWOP_EXCEPT) {
     back->opcode = eIntNot;
-//    vector_pop(v);
-//    mp_free(emit->gwion->mp, Instr, back);
-//    emit_add_instr(emit, IntNot);
     return GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegSetImm);
   instr->m_val2     = -SZ_INT;
+  return GW_OK;
+}
+
+static OP_EMIT(opem_uncond_object) {
+  const Vector v    = &emit->code->instr;
+  const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
+  if (back->opcode == eGWOP_EXCEPT) {
+    free_instr(emit->gwion, back);
+    vector_rem(v, vector_size(v) - 2);
+  }
+  emit_add_instr(emit, BranchNeqInt);
+  return GW_OK;
+}
+
+static OP_EMIT(opem_cond_object) {
+  const Vector v    = &emit->code->instr;
+  const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
+  if (back->opcode == eGWOP_EXCEPT) {
+    free_instr(emit->gwion, back);
+    vector_rem(v, vector_size(v) - 2);
+  }
+  emit_add_instr(emit, BranchEqInt);
   return GW_OK;
 }
 
@@ -371,12 +390,13 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
   GWI_BB(gwi_oper_add(gwi, opck_object_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  //.  GWI_BB(gwi_oper_add(gwi, opck_implicit_null2obj))
-  //  GWI_BB(gwi_oper_emi(gwi, opem_implicit_null2obj))
-  //  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
+  GWI_BB(gwi_oper_emi(gwi, opem_uncond_object))
+  GWI_BB(gwi_oper_end(gwi, "@unconditionnal", NULL))
+  GWI_BB(gwi_oper_emi(gwi, opem_cond_object))
+  GWI_BB(gwi_oper_end(gwi, "@conditional", NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_not_object))
-  GWI_BB(gwi_oper_end(gwi, "!", IntNot))
+  GWI_BB(gwi_oper_end(gwi, "!", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
