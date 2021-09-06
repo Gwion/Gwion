@@ -59,7 +59,8 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
 
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
-  vm_shred_exit(s);
+  if((m_int)s->tick->prev != -1)
+   shreduler_remove(s->tick->shreduler, s, true);
 }
 
 static MFUN(vm_shred_id) {
@@ -153,10 +154,8 @@ describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
         describe_path_and_dir(_code, s->code->name)
 
 static DTOR(shred_dtor) {
-  if (ME(o)) {
-    VM_Shred s = ME(o);
-    free_vm_shred(s);
-  }
+  VM_Shred s = ME(o);
+  free_vm_shred(s);
 }
 
 static MFUN(shred_lock) { if(ME(o)->tick) MUTEX_LOCK(ME(o)->tick->shreduler->mutex); }
