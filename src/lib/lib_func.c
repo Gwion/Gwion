@@ -16,7 +16,6 @@
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
-  call.allow_curry = true;
   Exp         e    = exp_self(bin);
   e->exp_type      = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));

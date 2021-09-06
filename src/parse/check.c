@@ -917,7 +917,7 @@ ANN2(1) static inline bool curried(const Env env, Exp exp) {
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if (exp->allow_curry && curried(env, exp->args))
+  if (curried(env, exp->args))
     return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
