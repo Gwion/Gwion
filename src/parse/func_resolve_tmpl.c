@@ -109,6 +109,8 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   if (func && vflag(ra->v, vflag_builtin)) {
     builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
+    struct Op_Import opi = { .lhs = ra->v->d.func_ref->value_ref->type, .rhs = func->value_ref->type };
+    op_cpy(env, &opi);
   }
   return func;
 }
