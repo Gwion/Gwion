@@ -1,0 +1,7 @@
+#! [contains] 42
+
+fun void test(int i, int j) {
+  <<< i + j >>>;
+}
+
+2 => test(40, _);
