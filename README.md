@@ -122,7 +122,7 @@ When all those plugin `.so` files are in your `~/.gwplug` directory, you should 
 
 ## Installation
 
-It's a good idea to install Gwion now that you have tried it out. Use the following command to install it
+It's a good idea to install Gwion now that you have tried it out. Use the following command to install it:
 ```
 sudo make install
 ```
@@ -143,11 +143,15 @@ To run it with Jack as the driver: `gwion hello_world.gw -dJack`. Hopefully you 
 
 ## Documentation
 
-Do you want to know more? :smile: Look [here](https://Gwion.github.io/Gwion/)
-Both outdated and WIP :construction_worker: but a nice place to learn and [contribute](https://github.com/Gwion/gwion/issues)
+Run gwion with the --cdoc flag and it will show you everything that Gwion has to offer. Like so: 
 
+`gwion --cdoc --color=always | less -R` 
 
-## Reporting bugs / Contributing
+Online documentation is a work in progress :construction_worker: You can [view it here](https://Gwion.github.io/Gwion/). Please consider contributing 🙂 
+
+If you need help with anything just [talk to us on Discord](https://discord.gg/KmHqbTKSmS). In general the audio programming community is very friendly and the people involved with Gwion are no exception.
+
+## Contributing / Reporting bugs
 
 :+1: Every helping hand is welcome!!! :+1:  
 
