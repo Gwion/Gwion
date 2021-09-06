@@ -324,8 +324,7 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
 ANN static void array_finish(const Emitter emit, const m_uint depth,
                              const Type t, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
-  // determine if we have an object here
-  if(!is_var) {
+  if(!is_var && isa(t, emit->gwion->type[et_object]) > 0) {
     const m_uint _depth = get_depth(t);
     if(_depth < depth || isa(array_base(t), emit->gwion->type[et_object]) > 0)
       emit_add_instr(emit, GWOP_EXCEPT);
