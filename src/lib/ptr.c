@@ -37,7 +37,8 @@ static OP_CHECK(opck_ptr_assign) {
     Type u = bin->rhs->type;
     do {
       const Type base = ptr_base(env, u);
-      if (isa(t, base) > 0) return t;
+//      if (isa(t, base) > 0) return t;
+      if (isa(t, base) > 0) return bin->rhs->type;
     } while ((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while ((t = t->info->parent));
   return env->gwion->type[et_error];
@@ -147,6 +148,7 @@ static OP_CHECK(opck_ptr_scan) {
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const Type base = known_type(env, ts->td->types->td);
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
+  t->size = SZ_INT;
   t->info->parent = env->gwion->type[et_ptr];
   SET_FLAG(t, abstract | ae_flag_final);
   t->info->tuple = new_tupleform(env->gwion->mp, NULL);
@@ -181,8 +183,7 @@ GWION_IMPORT(ptr) {
   const Type t_ptr         = gwi_struct_ini(gwi, "Ptr:[A]");
   gwi->gwion->type[et_ptr] = t_ptr;
   GWI_BB(gwi_gack(gwi, t_ptr, gack_ptr))
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@val"))
-  GWI_BB(gwi_item_end(gwi, 0, num, 0))
+  t_ptr->nspc->offset += SZ_INT;
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))

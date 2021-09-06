@@ -47,48 +47,68 @@ ANN static inline void shred_unwind(const VM_Shred shred) {
   shred->mem -= frame->push;
 }
 
-ANN static bool unwind(VM_Shred shred, const Symbol effect, const m_uint size) {
+ANN static void clean_values(const VM_Shred shred) {
   const VM_Code code = shred->code;
-  if (code->live_values.ptr) {
-    const uint16_t pc = shred->pc;
-    for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
-      VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
-      if (pc <= vmval->start) break;
-      if (pc >= vmval->end) continue;
-      m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
-      compound_release(shred, vmval->t, data);
+  const uint16_t pc = shred->pc;
+  for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
+    VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
+    if (pc <= vmval->start) break;
+    if (pc >= vmval->end) continue;
+    m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
+    compound_release(shred, vmval->t, data);
+  }
+}
+
+ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_uint size) {
+  const VM_Code code = shred->code;
+  const m_uint start = VKEY(&shred->info->frame, size - 1);
+  if (start > shred->pc) return true;
+  const Map m  = &shred->code->handlers;
+  for (m_uint i = 0; i < map_size(m); i++) {
+    if (start > shred->pc) break;
+    if (start < shred->pc && VKEY(m, i) > shred->pc) {
+      const m_uint next  = VKEY(m, i);
+      const Instr  instr = (Instr)vector_at(&code->instr, next + 1);
+      if (!instr->m_val2 || (Symbol)instr->m_val2 == effect)
+        return next + 1;
     }
   }
-  if (!size) return true;
-  if (code->handlers.ptr) {
-    const m_uint start = VKEY(&shred->info->frame, size - 1);
-    if (start > shred->pc) return true;
-    const Map m  = &code->handlers;
-    m_uint    pc = 0;
-    for (m_uint i = 0; i < map_size(m); i++) {
-      if (start > shred->pc) break;
-      if (start < shred->pc && VKEY(m, i) > shred->pc) {
-        const m_uint next  = VKEY(m, i);
-        const Instr  instr = (Instr)vector_at(&code->instr, next + 1);
-        if (!instr->m_val2 || (Symbol)instr->m_val2 == effect) {
-          pc = next + 1;
-          break;
-        }
-      }
-    }
-    if (!pc) // outside of a try statement
-      return true;
-    shred->reg =
-        (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
-    shredule(shred->tick->shreduler, shred, 0);
-    shred->pc = pc; // VKEY(m, i);
-    // should we pop?
-    VLEN(&shred->info->frame) = size;
+  return 0;
+}
+
+ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, const m_uint size) {
+  const m_uint start = VKEY(&shred->info->frame, size - 1);
+  if (start > shred->pc) return true;
+  const uint16_t pc = find_pc(shred, effect, size);
+  if (!pc) // outside of a try statement
+//    return true;
     return false;
-  }
-  // there might be no more stack to unwind
-  if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
-    return true;
+  // we should clean values here
+  shred->reg = // restore reg
+      (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
+  shredule(shred->tick->shreduler, shred, 0);
+  shred->pc = pc; // VKEY(m, i);
+  vector_pop(&shred->info->frame);
+//  return false;
+  return true;
+}
+
+ANN static bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
+  const VM_Code code = shred->code;
+  if (code->live_values.ptr)
+    clean_values(shred);
+//  if (!size) return true;
+  if (!size) return false;
+  if (size) {
+    if (code->handlers.ptr)
+      return find_handle(shred, effect, size);
+    // there might be no more stack to unwind
+    if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
+//      return true;
+      return false;
+  } else
+//    return true;
+    return false;
   shred_unwind(shred);
   return unwind(shred, effect, size - 1);
 }
@@ -114,29 +134,57 @@ ANN static void trace(VM_Shred shred, const m_uint size) {
   trace(shred, i);
 }
 
+struct TraceStart {
+  const VM_Code code;
+  m_bit *const reg;
+  m_bit *const mem;
+};
+
+ANN static inline void shred_trace(const VM_Shred shred, const struct TraceStart *ts) {
+  shred->code = ts->code;
+  shred->reg  = ts->reg;
+  shred->mem  = ts->mem;
+  gw_err("\n{-/}here is the trace:\n");
+  trace(shred, vector_size(&shred->info->line));
+}
+
+ANN static inline void add_to_killed(const VM_Shred shred) {
+  const Shreduler shreduler = shred->tick->shreduler;
+  vector_rem2(&shreduler->active_shreds, (m_uint)shred);
+  vector_add(&shreduler->killed_shreds, (m_uint)shred);
+}
+
+ANN static inline void unhandled_pp(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
+  gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} {-}in code {/+}'%s'{0}{-}. origin: {/+}'%s'{0}{-}\n",
+    ts->code->name, shred->info->orig->name);
+  gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}:{-R}Unhandled {+R}%s{0}\n",
+         shred->tick->xid, effect);
+}
+
+ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
+  unhandled_pp(shred, effect, ts);
+  if (shred->info->line.ptr) // trace if available
+    shred_trace(shred, ts);
+  add_to_killed(shred);
+}
+
 ANN void handle(VM_Shred shred, const m_str effect) {
-  m_bit *const reg = shred->reg;
-  m_bit *const mem = shred->mem;
+  shreduler_remove(shred->tick->shreduler, shred, false);
+  // store trace info
+  struct TraceStart ts = {
+    .code = shred->code,
+    .reg  = shred->reg,
+    .mem  = shred->mem
+  };
   const m_uint size =
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
-  const VM_Code code = shred->code;
-  shreduler_remove(shred->tick->shreduler, shred, false);
+  // maybe we should use a string to avoid the insert_symbol call
   if (!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size))
-    return;
-  gw_err("{-C}shred{W}[{Y}% 5" UINT_F "{W}]{-}: {-R}Unhandled {+R}%s{0}\n",
-         shred->tick->xid, effect);
-  if (shred->info->line.ptr) { // trace if available
-    shred->reg  = reg;
-    shred->mem  = mem;
-    shred->code = code;
-    gw_err("\n{-/}here is the trace:\n");
-    trace(shred, vector_size(&shred->info->line));
-  }
-  vm_shred_exit(shred);
+    handle_fail(shred, effect, &ts);
 }
 
 ANN bool vm_remove(const VM *vm, const m_uint index) {
-  const Vector v = (Vector)&vm->shreduler->shreds;
+  const Vector v = (Vector)&vm->shreduler->active_shreds;
   LOOP_OPTIM
   for (m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred sh = (VM_Shred)vector_at(v, i - 1);
@@ -146,15 +194,6 @@ ANN bool vm_remove(const VM *vm, const m_uint index) {
     }
   }
   return false;
-}
-
-ANN void free_vm(VM *vm) {
-  vector_release(&vm->shreduler->shreds);
-  vector_release(&vm->ugen);
-  if (vm->bbq) free_driver(vm->bbq, vm);
-  MUTEX_CLEANUP(vm->shreduler->mutex);
-  mp_free(vm->gwion->mp, Shreduler, vm->shreduler);
-  mp_free(vm->gwion->mp, VM, vm);
 }
 
 ANN void vm_add_shred(const VM *vm, const VM_Shred shred) {
@@ -224,7 +263,7 @@ ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
   sh->tick->parent = shred->tick;
   if (!shred->tick->child.ptr) vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
-  vector_add(&shred->gc, (vtype)sh->info->me);
+//  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
@@ -1034,7 +1073,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     addref : {
       const M_Object o = *(M_Object *)(reg + IVAL);
-      //    if(o)
+          if(o)
       ++o->ref;
     }
       DISPATCH()
@@ -1257,11 +1296,13 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
   }
 }
 
+// remove me
 ANN void next_bbq_pos(const VM *vm) {
   Driver *const di = vm->bbq;
   if(++di->pos == 16777216-1) {
-    for(m_uint i = 0; i < vector_size(&vm->shreduler->shreds); i++) {
-      const VM_Shred shred = (VM_Shred)vector_at(&vm->shreduler->shreds, i);
+    const Vector v = &vm->shreduler->active_shreds;
+    for(m_uint i = 0; i < vector_size(v); i++) {
+      const VM_Shred shred = (VM_Shred)vector_at(v, i);
       shred->tick->wake_time -= 16777216.0;
     }
     di->pos = 0;
@@ -1276,16 +1317,23 @@ static void vm_run_audio(const VM *vm) {
 VM *new_vm(MemPool p, const bool audio) {
   VM *vm = (VM *)mp_calloc(p, VM);
   vector_init(&vm->ugen);
-  vm->bbq       = new_driver(p);
-  vm->bbq->run  = audio ? vm_run_audio : vm_run;
-  vm->shreduler = (Shreduler)mp_calloc(p, Shreduler);
-  vector_init(&vm->shreduler->shreds);
-  MUTEX_SETUP(vm->shreduler->mutex);
-  vm->shreduler->bbq = vm->bbq;
+  vm->shreduler = new_shreduler(p);
+  vm->bbq       = vm->shreduler->bbq = new_driver(p);
+  vm->bbq->run  = audio
+    ? vm_run_audio
+    : vm_run;
 #ifndef __AFL_COMPILER
   gw_seed(vm->rand, (uint64_t)time(NULL));
 #else
   gw_seed(vm->rand, 0);
 #endif
   return vm;
+}
+
+ANN void free_vm(VM *vm) {
+  const MemPool mp = vm->gwion->mp;
+  free_shreduler(mp, vm->shreduler);
+  if (vm->bbq) free_driver(vm->bbq, vm);
+  vector_release(&vm->ugen);
+  mp_free(mp, VM, vm);
 }

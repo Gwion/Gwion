@@ -64,6 +64,11 @@ ANN Type      array_type(const Env, const Type, const m_uint);
 ANN Type      find_common_anc(const Type, const Type) __attribute__((pure));
 ANN Type      typedef_base(Type) __attribute__((pure));
 ANN Type      array_base(Type) __attribute__((pure));
+ANN Symbol array_sym(const Env env, const Type src,
+                                 const m_uint depth);
+ANN static inline Type array_base_simple(Type t) {
+  return t->array_depth ? t->info->base_type : t;
+}
 ANN m_bool    type_ref(Type) __attribute__((pure));
 ANN Type      actual_type(const struct Gwion_ *gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) {
@@ -77,6 +82,8 @@ ANN __attribute__((returns_nonnull)) static inline Type _class_base(Type t) {
 }
 ANN m_uint get_depth(const Type type);
 ANN void   inherit(const Type);
+ANN bool type_global(const Env env, Type t);
+ANN bool from_global_nspc(const Env env, const Nspc nspc);
 
 __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
   do

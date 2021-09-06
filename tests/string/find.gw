@@ -2,25 +2,25 @@
 <<< "test".find('a') >>>;
 <<< "".find('a') >>>;
 
-<<< "test".find(-1, 'e') >>>;
-<<< "test".find(0, 'e') >>>;
-<<< "test".find(1, 'a') >>>;
-<<< "".find(1, 'a') >>>;
+<<< "test".find('e', -1) >>>;
+<<< "test".find('e', 0) >>>;
+<<< "test".find('a', 1) >>>;
+<<< "".find('a', 0) >>>;
 
 <<< "test".find("es") >>>;
 <<< "test".find("a") >>>;
 <<< "".find("") >>>;
 
-<<< "test".find(-1, "es") >>>;
-<<< "test".find(0, "es") >>>;
-<<< "test".find(1, "a") >>>;
-<<< "".find(1, "") >>>;
+<<< "test".find("es", -1) >>>;
+<<< "test".find("es", 0) >>>;
+<<< "test".find("a", 1) >>>;
+<<< "".find("", 1) >>>;
 
 <<< "test".rfind("es") >>>;
 <<< "test".rfind("a") >>>;
 <<< "".rfind("") >>>;
 
-<<< "test".rfind(-1, "es") >>>;
-<<< "test".rfind(0, "e") >>>;
-<<< "test".rfind(1, "a") >>>;
-<<< "".rfind(1, "") >>>;
+<<< "test".rfind("es", -1) >>>;
+<<< "test".rfind("e", 0) >>>;
+<<< "test".rfind("a", 1) >>>;
+<<< "".rfind("", 1) >>>;

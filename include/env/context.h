@@ -15,4 +15,8 @@ REF_FUNC(Context, context)
 ANN2(1, 3) ANEW Context new_context(MemPool p, const Ast, const m_str);
 ANN void load_context(const Context, const Env);
 ANN void unload_context(const Context, const Env);
+
+ANN static inline void env_set_error(const Env env) {
+  if(env->context) env->context->error = true;
+}
 #endif

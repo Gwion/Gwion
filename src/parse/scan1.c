@@ -35,24 +35,6 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
-ANN static inline bool from_global_nspc(const Env env, const Nspc nspc) {
-  Nspc global = env->global_nspc;
-  while(global) {
-    if (nspc == global)
-      return true;
-    global = global->parent;
-  }
-  return false;
-}
-
-ANN static bool type_global(const Env env, Type t) {
-  while(t) {
-    if(from_global_nspc(env, t->info->value->from->owner)) return true;
-    t = t->info->value->from->owner_class;
-  }
-  return false;
-}
-
 ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const struct ValueFrom_ *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
@@ -64,6 +46,7 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
     gwerr_secondary("not declared global", from->filename, from->loc);
     const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;
     gwerr_secondary("is global", ownerFrom->filename, ownerFrom->loc);
+    env_set_error(env);
     return false;
   }
   return true;
@@ -126,11 +109,12 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
       if (var->array->exp) CHECK_BB(scan1_exp(env, var->array->exp));
       CHECK_OB((t = array_type(env, decl->type, var->array->depth)));
     }
-    if (GET_FLAG(array_base(t), abstract) &&
+    const Type base = array_base_simple(t);
+    if (GET_FLAG(base, abstract) &&
         ((var->array && var->array->exp) ||
          (decl->td->array && decl->td->array->exp)))
       ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
-            array_base(t)->name);
+            base->name);
     const Value v = var->value =
         var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(env->curr, var->xid, v);
@@ -344,10 +328,12 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env,
 
 ANN static inline m_bool shadow_err(const Env env, const Value v,
                                     const loc_t loc) {
+  if(env->scope->shadowing)
+    return GW_OK;
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
-  env->context->error = true;
+  env_set_error(env);
   return GW_ERROR;
 }
 
@@ -753,8 +739,6 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan1)) return GW_OK;
   set_tflag(t, tflag_scan1);
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_scan1(env, t->info->value->from->owner_class));
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan1_section));
   return GW_OK;

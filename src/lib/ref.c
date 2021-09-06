@@ -69,6 +69,7 @@ static OP_CHECK(opck_ref_scan) {
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const Type base = known_type(env, ts->td->types->td);
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
+  t->size = SZ_INT;
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
   set_tflag(t, tflag_noret);
@@ -91,8 +92,7 @@ GWION_IMPORT(ref) {
   set_tflag(t_foreach, tflag_infer);
 
   gwinote(gwi, "a pointer to the referenced variable.");
-  GWI_BB(gwi_item_ini(gwi, "@internal", "val"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  t_foreach->nspc->offset += SZ_INT;
 
   GWI_BB(gwi_struct_end(gwi))
 

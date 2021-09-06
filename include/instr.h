@@ -36,6 +36,7 @@ struct Instr_ {
 #define BYTECODE_SZ                                                            \
   ((2 * sizeof(unsigned)) + sizeof(struct Instr_) - SZ_INT * 2)
 
+ANN void free_instr(const Gwion, const Instr);
 INSTR(EOC);
 INSTR(DTOR_EOC);
 INSTR(DtorReturn);

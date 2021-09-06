@@ -17,7 +17,8 @@
 static DTOR(array_dtor) {
   if (*(void **)(o->data + SZ_INT)) xfree(*(void **)(o->data + SZ_INT));
   struct M_Vector_ *a = ARRAY(o);
-  free_m_vector(shred->info->mp, a);
+//  free_m_vector(shred->info->mp, a);
+  m_vector_release(a);
 }
 
 static DTOR(array_dtor_obj) {
@@ -38,7 +39,8 @@ ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const m_uint   depth =
       !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
-  ARRAY(a)          = new_m_vector(p, size, length);
+  //ARRAY(a)          = new_m_vector(p, size, length);
+  m_vector_init(ARRAY(a), size, length);
   return a;
 }
 
@@ -104,15 +106,14 @@ static MFUN(vm_vector_random) {
   m_vector_get(array, idx, (void *)RETURN);
 }
 
-#define ARRAY_OPCK(a, b, pos)                                                  \
-  const Type l = array_base(a->type);                                          \
-  const Type r = array_base(b->type);                                          \
+#define ARRAY_OPCK(a, b, pos)                                    \
+  const Type l = array_base(a->type);                            \
+  const Type r = array_base(b->type);                            \
   if (isa(r, l) < 0) ERR_N(pos, _("array types do not match."));
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  if (opck_const_rhs(env, data) == env->gwion->type[et_error])
-    return env->gwion->type[et_error];
+  CHECK_NN(opck_const_rhs(env, data));
   if (bin->lhs->type != env->gwion->type[et_error]) {
     ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
     if (bin->lhs->type->array_depth != bin->rhs->type->array_depth)
@@ -138,9 +139,8 @@ ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
         b->type->array_depth > 1)
       return a->type;*/
   ARRAY_OPCK(a, b, pos)
-  if (get_depth(a->type) == get_depth(b->type) + 1)
-    return a->type;
-  else if (shift_match(a->type, b->type))
+  const m_int diff = get_depth(a->type) - get_depth(b->type);
+  if (diff >= 0 && diff <= 1)
     return a->type;
   ERR_N(pos, "array depths do not match for '%s'.", str);
 }
@@ -210,8 +210,8 @@ static OP_EMIT(opem_array_sr) {
     return emit_array_shift(emit, ArrayConcatRight);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -SZ_INT;
-  if (isa(bin->rhs->type, emit->gwion->type[et_object]) > 0)
-    emit_add_instr(emit, RegAddRef);
+  if (isa(bin->lhs->type, emit->gwion->type[et_compound]) > 0)
+    emit_compound_addref(emit, bin->lhs->type, -SZ_INT*2, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
@@ -220,12 +220,10 @@ static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
+  if (isa(bin->rhs->type, emit->gwion->type[et_compound]) > 0)
+    emit_compound_addref(emit, bin->rhs->type, -SZ_INT, false);
   const Instr pop = emit_add_instr(emit, RegMove);
   pop->m_val      = -bin->rhs->type->size;
-  if (isa(bin->rhs->type, emit->gwion->type[et_object]) > 0) {
-    const Instr ref = emit_add_instr(emit, RegAddRef);
-    ref->m_val      = -SZ_INT;
-  }
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }
@@ -314,6 +312,8 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
     const Instr get    = emit_add_instr(emit, ArrayGet);
     get->m_val         = i * SZ_INT;
     get->m_val2        = -SZ_INT;
+    const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
+    ex->m_val          = -SZ_INT;
   }
   const Instr post_pop = emit_add_instr(emit, RegMove);
   post_pop->m_val      = -SZ_INT;
@@ -322,12 +322,17 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
 }
 
 ANN static void array_finish(const Emitter emit, const m_uint depth,
-                             const m_uint size, const m_bool is_var) {
+                             const Type t, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
+  if(!is_var && isa(t, emit->gwion->type[et_object]) > 0) {
+    const m_uint _depth = get_depth(t);
+    if(_depth < depth || isa(array_base(t), emit->gwion->type[et_object]) > 0)
+      emit_add_instr(emit, GWOP_EXCEPT);
+  }
   get->m_val      = depth * SZ_INT;
   //  emit_add_instr(emit, ArrayValid);
   const Instr push = emit_add_instr(emit, RegMove);
-  push->m_val      = is_var ? SZ_INT : size;
+  push->m_val      = is_var ? SZ_INT : t->size;
 }
 
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
@@ -335,7 +340,7 @@ ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
   //  emit_gc(emit, -SZ_INT);
   CHECK_BB(emit_exp(emit, array->exp));
   array_loop(emit, array->depth);
-  array_finish(emit, array->depth, array->type->size, is_var);
+  array_finish(emit, array->depth, array->type, is_var);
   return GW_OK;
 }
 
@@ -442,7 +447,7 @@ static INSTR(map_run_ini) {
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
-  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 3));
+  m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->offset + frame->code->stack_depth));
 }
 
 static INSTR(map_run_end) {
@@ -566,7 +571,7 @@ static INSTR(foldl_run_ini) {
   const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(ARRAY(self), frame->index,
-               &*(m_bit **)(shred->mem + SZ_INT * 2));
+               &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(foldr_run_ini) {
@@ -580,7 +585,7 @@ static INSTR(foldr_run_ini) {
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   const M_Vector array = ARRAY(self);
   m_vector_get(array, ARRAY_LEN(array) - frame->index - 1,
-               &*(m_bit **)(shred->mem + SZ_INT * 2));
+               &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(fold_run_end) {
@@ -627,8 +632,6 @@ static MFUN(vm_vector_foldr) {
     memcpy((m_bit *)RETURN, MEM(SZ_INT * 2), acc_sz);
 }
 
-ANN /*static */ Symbol array_sym(const Env env, const Type src,
-                                 const m_uint depth);
 #include "template.h"
 static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
@@ -639,22 +642,22 @@ static OP_CHECK(opck_array_scan) {
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
   if (!strncmp(base->name, "Ref:[", 5)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
   if (!strncmp(base->name, "Option:[", 5)) {
     gwerr_basic("Can't use option types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env->context->error = true;
+    env_set_error(env);
     return env->gwion->type[et_error];
   }
-  const Symbol sym  = array_sym(env, array_base(base), base->array_depth + 1);
+  const Symbol sym  = array_sym(env, array_base_simple(base), base->array_depth + 1);
   const Type   type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if (type) return type;
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
@@ -760,10 +763,7 @@ GWION_IMPORT(array) {
   set_tflag(t_array, tflag_infer);
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@array"))
-  GWI_BB(gwi_item_end(gwi, 0, num, 0))
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@ctor_data"))
-  GWI_BB(gwi_item_end(gwi, 0, num, 0))
+  t_array->nspc->offset += SZ_INT*2;
 
   GWI_BB(gwi_fptr_ini(gwi, "A", "map_t:[A]"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
@@ -835,7 +835,8 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+//  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
   GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
@@ -955,12 +956,12 @@ INSTR(ArrayAlloc) {
   if (!ref) {
     gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} (note: in shred[id=%" UINT_F ":%s])\n",
            shred->tick->xid, shred->code->name);
-    vm_shred_exit(shred);
     if (info->is_obj) free(aai.data);
+    handle(shred, "ArrayAllocException");
     return; // TODO make exception vararg
   }
   *(void **)(ref->data + SZ_INT) = aai.data;
-  vector_add(&shred->gc, (m_uint)ref);
+//  vector_add(&shred->gc, (m_uint)ref); // heyo
   if (!info->is_obj) {
     POP_REG(shred, SZ_INT * (info->depth - 1));
     *(M_Object *)REG(-SZ_INT) = ref;

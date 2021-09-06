@@ -45,8 +45,8 @@ describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
     return env->gwion->type[et_bool];                                          \
   }
 
-opck_str(eq, !strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
-    opck_str(neq, strcmp(bin->lhs->d.prim.d.str, bin->rhs->d.prim.d.str))
+opck_str(eq, !strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.data))
+    opck_str(neq, strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.data))
 
         static CTOR(string_ctor) {
   STRING(o) = _mp_calloc(shred->info->mp, 1);
@@ -56,10 +56,11 @@ static DTOR(string_dtor) { free_mstr(shred->info->mp, STRING(o)); }
 
 ID_CHECK(check_funcpp) {
   ((Exp_Primary *)prim)->prim_type = ae_prim_str;
-  ((Exp_Primary *)prim)->d.str     = env->func        ? env->func->name
+  ((Exp_Primary *)prim)->d.string.data     = env->func        ? env->func->name
                                      : env->class_def ? env->class_def->name
                                                       : env->name;
-  ((Exp_Primary *)prim)->value     = global_string(env, prim->d.str);
+// handle delim?
+  ((Exp_Primary *)prim)->value     = global_string(env, prim->d.string.data);
   return prim->value->type;
 }
 
@@ -70,7 +71,7 @@ static GACK(gack_string) {
 
 static inline m_bool bounds(const m_str str, const m_int i) {
   CHECK_BB(i);
-  return (m_uint)i < strlen(str) ? GW_OK : GW_ERROR;
+  return (m_uint)i <= strlen(str) ? GW_OK : GW_ERROR;
 }
 
 static INSTR(StringSlice) {
@@ -335,9 +336,9 @@ static MFUN(string_rfindStr) {
 static MFUN(string_rfindStrStart) {
   const m_str    base = STRING(o);
   const size_t   sz   = strlen(base);
-  const char     pos  = *(m_int *)MEM(SZ_INT * 2);
-  const M_Object obj  = *(M_Object *)MEM(SZ_INT * 2);
-  if (sz) {
+  const m_int    pos  = *(m_int *)MEM(SZ_INT * 2);
+  const M_Object obj  = *(M_Object *)MEM(SZ_INT);
+  if (sz && (size_t)pos < sz) {
     const m_str arg = STRING(obj);
     m_str       tmp = base + pos, str = NULL;
     while ((tmp = strstr(tmp, arg))) str = tmp++;
@@ -364,14 +365,40 @@ static MFUN(string_erase) {
   STRING(o) = s_name(insert_symbol(shred->info->vm->gwion->st, c));
 }
 
+static MFUN(string_save) {
+  const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
+  FILE *f = fopen(path, "w");
+  if(!f) {
+    handle(shred, "StringLoadException");
+    return;
+  }
+  const m_str str = STRING(o);
+  fprintf(f, "%s", str);
+  fclose(f);
+}
+
+static SFUN(string_load) {
+  const m_str path = STRING(*(M_Object*)MEM(0));
+  FILE *f = fopen(path, "r");
+  if(!f) {
+    handle(shred, "StringLoadException");
+    return;
+  }
+  fseek(f, 0, SEEK_END);
+  const size_t sz = ftell(f);
+  char c[sz + 1];
+  rewind(f);
+  fread(c, 1, sz, f);
+  fclose(f);
+  *(M_Object*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
+}
+
 GWION_IMPORT(string) {
   const Type t_string         = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
   gwi_class_xtor(gwi, string_ctor, string_dtor);
   GWI_BB(gwi_gack(gwi, t_string, gack_string))
-
-  gwi_item_ini(gwi, "@internal", "@data");
-  GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
+  t_string->nspc->offset += SZ_INT;
 
   gwi_func_ini(gwi, "int", "size");
   GWI_BB(gwi_func_end(gwi, string_len, ae_flag_none))
@@ -456,6 +483,14 @@ GWION_IMPORT(string) {
   gwi_func_arg(gwi, "int", "start");
   gwi_func_arg(gwi, "int", "length");
   GWI_BB(gwi_func_end(gwi, string_erase, ae_flag_none))
+
+  gwi_func_ini(gwi, "void", "save");
+  gwi_func_arg(gwi, "string", "path");
+  GWI_BB(gwi_func_end(gwi, string_save, ae_flag_none))
+
+  gwi_func_ini(gwi, "string", "load");
+  gwi_func_arg(gwi, "string", "path");
+  GWI_BB(gwi_func_end(gwi, string_load, ae_flag_static))
 
   GWI_BB(gwi_class_end(gwi))
 

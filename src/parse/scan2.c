@@ -294,7 +294,7 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f,
   }
   const Func obase =
       !fptr ? overload->d.func_ref : _class_base(overload->type)->info->func;
-  if (GET_FLAG(obase->def->base, final))
+  if (GET_FLAG(obase->def->base, final) && obase->value_ref->from->owner_class != env->class_def)
     ERR_B(f->base->pos, _("can't overload final function %s"), overload->name)
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = fflag(obase, fflag_tmpl);
@@ -519,7 +519,7 @@ ANN m_bool scan2_fdef(const Env env, const Func_Def fdef) {
   if (overload) CHECK_BB(scan2_func_def_overload(env, fdef, overload));
   CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(
       env, fdef, overload));
-  if (env->class_def) upfunction(env, fdef->base);
+  if (env->class_def && !fdef->base->func->next) upfunction(env, fdef->base);
   return GW_OK;
 }
 
@@ -610,8 +610,6 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   const Type      t = cdef->base.type;
   const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan2)) return GW_OK;
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_scan2(env, t->info->value->from->owner_class));
   set_tflag(t, tflag_scan2);
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan2_section));

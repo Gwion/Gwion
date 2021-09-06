@@ -198,8 +198,8 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   do
     if (prim_array_inner(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
-  if (!err) return array_type(env, array_base(type), type->array_depth + 1);
-  env->context->error = true;
+  if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1);
+  env_set_error(env);
   return NULL;
 }
 
@@ -252,6 +252,11 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
   return NULL;
 }
 
+ANN static inline bool is_value_global(const Env env, const Value v) {
+  if(GET_FLAG(v, global)) return true;
+  return from_global_nspc(env, v->from->owner);
+}
+
 ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   const Symbol var   = *data;
   const Value  value = get_value(env, var);
@@ -270,7 +275,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
     return v;
   } else if (SAFE_FLAG(env->class_def, global) ||
              (env->func && GET_FLAG(env->func->def->base, global))) {
-    if (!value || !GET_FLAG(value, global))
+    if (!value || !is_value_global(env, value))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
@@ -332,7 +337,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
-    env->context->error = true;
+    env_set_error(env);
     return NULL;
   }
   prim_self(data)->value = v;
@@ -348,9 +353,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   return v->type;
 }
 
-ANN Type check_prim_str(const Env env, const m_str *data) {
+ANN Type check_prim_str(const Env env, const struct AstString *data) {
   if (!prim_self(data)->value)
-    prim_self(data)->value = global_string(env, *data);
+    prim_self(data)->value = global_string(env, data->data);
   return env->gwion->type[et_string]; // prim->value
 }
 
@@ -407,7 +412,7 @@ ANN static Type check_prim_map(const Env env, const Exp *data) {
     prim_exp(data)->type = t;
     return t;
   }
-  env->context->error = true;
+  env_set_error(env);
   return NULL;
 }
 */
@@ -561,7 +566,7 @@ ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
 
 ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   struct Vector_ v     = {};
-  const m_uint   scope = env->scope->depth;
+  const m_uint scope   = env->scope->depth;
   env->scope->depth    = 0;
   vector_init(&v);
   while (vector_size((Vector)&env->curr->info->value->ptr) > 1)
@@ -570,7 +575,7 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   for (m_uint i = vector_size(&v) + 1; --i;)
     vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i - 1));
   vector_release(&v);
-  env->scope->depth = scope;
+  env->scope->depth     = scope;
   return ret;
 }
 
@@ -628,6 +633,7 @@ static void function_alternative(const Env env, const Type f, const Exp args,
     print_current_args(args);
   else
     gw_err(_("and not:\n  {G}void{0}\n"));
+  env_set_error(env);
 }
 
 ANN static m_uint get_type_number(Specialized_List list) {
@@ -814,31 +820,33 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     if (value->from->owner_class)
       CHECK_BO(ensure_traverse(env, value->from->owner_class));
   }
-  if (exp->args) CHECK_OO(check_exp(env, exp->args));
+  if (exp->args) {
+    CHECK_OO(check_exp(env, exp->args));
+    Exp e = exp->args;
+    do exp_setuse(e, true);
+    while((e = e->next));
+  }
   if (tflag(t, tflag_ftmpl))
     return check_exp_call_template(env, (Exp_Call *)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
   if (func) {
     if (!is_fptr(env->gwion, func->value_ref->type)) // skip function pointers
       if (func != env->func && func->def && !fflag(func, fflag_valid)) {
-        struct EnvSet es = {.env   = env,
-                            .data  = env,
-                            .func  = (_exp_func)check_cdef,
-                            .scope = env->scope->depth,
-                            .flag  = tflag_check};
-        CHECK_BO(envset_pushv(&es, func->value_ref));
-        CHECK_BO(check_func_def(env, func->def));
-        if (es.run) envset_pop(&es, func->value_ref->from->owner_class);
+        if(func->value_ref->from->owner_class)
+          CHECK_BO(ensure_check(env, func->value_ref->from->owner_class));
+        else {
+          const m_uint scope = env_push(env, NULL, func->value_ref->from->owner);
+          CHECK_BO(check_func_def(env, func->def));
+          env_pop(env, scope);
+        }
       }
-
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
     if (func == env->func) set_fflag(env->func, fflag_recurs);
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
       func->def->base->ret_type : exp->func->d.exp_dot.base->type;
   }
-  const loc_t pos = exp->args ? exp->args->pos : exp->func->pos;
-  function_alternative(env, exp->func->type, exp->args, pos);
+  function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;
 }
 
@@ -909,7 +917,7 @@ ANN2(1) static inline bool curried(const Env env, Exp exp) {
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if (exp->allow_curry && curried(env, exp->args))
+  if (curried(env, exp->args))
     return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
@@ -986,6 +994,9 @@ ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
   if (isa(if_exp, else_exp) < 0)
     ERR_O(exp_self(exp_if)->pos, _("condition type '%s' does not match '%s'"),
           cond->name, ret->name)
+  exp_setuse(exp_if->cond, true);
+  exp_setuse(exp_if->if_exp, true);
+  exp_setuse(exp_if->else_exp, true);
   return ret;
 }
 
@@ -1038,7 +1049,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       char from[strlen(tdef->type->name) + 39];
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
       gwerr_secondary(from, env->name, tdef->pos);
-      if (env->context) env->context->error = true;
+      env_set_error(env);
       return GW_ERROR;
     }
     /*
@@ -1151,7 +1162,7 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
             " This is not allowed in foreach loop"),
           et->name)
   DECL_OO(Type, base, = typedef_base(et));
-  DECL_OO(const Type, t, = array_base(base));
+  DECL_OO(const Type, t, = array_base_simple(base));
   const m_uint depth = base->array_depth - 1;
   return depth ? array_type(env, t, depth) : t;
 }
@@ -1160,6 +1171,7 @@ ANN static void check_idx(const Env env, struct EachIdx_ *const idx) {
   idx->v =
       new_value(env->gwion->mp, env->gwion->type[et_int], s_name(idx->sym));
   valuefrom(env, idx->v->from, idx->pos);
+  idx->v->from->owner_class = NULL;
   set_vflag(idx->v, vflag_valid);
   nspc_add_value(env->curr, idx->sym, idx->v);
 }
@@ -1192,7 +1204,7 @@ ANN static inline m_bool cond_type(const Env env, const Exp e) {
     gwerr_basic(_("invalid repeat condition type"), explain,
                 _("use an integer or cast to int if possible"), env->name,
                 e->pos, 0);
-    env->context->error = true;
+    env_set_error(env);
     return GW_ERROR;
   }
   return GW_OK;
@@ -1460,9 +1472,12 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def fdef,
           c_name, f_name, p_name, c_name,
           GET_FLAG(fdef->base, static) ? c_name : p_name, f_name)
   }
-  return !fdef->base->tmpl
-             ? isa(fdef->base->ret_type, parent->def->base->ret_type)
-             : GW_OK;
+  if(fdef->base->tmpl || isa(fdef->base->ret_type, parent->def->base->ret_type) > 0)
+    return GW_OK;
+  gwerr_basic("invalid overriding", NULL, NULL, fdef->base->func->value_ref->from->filename, fdef->base->func->value_ref->from->loc, 0);
+  gwerr_secondary("does not match", parent->value_ref->from->filename, parent->value_ref->from->loc);
+  env->context->error = true;
+  return GW_ERROR;
 }
 
 ANN static m_bool parent_match_actual(const Env               env,
@@ -1579,9 +1594,9 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
   if(fflag(func, fflag_valid))return GW_OK;
-  set_fflag(fdef->base->func, fflag_valid);
+  set_fflag(func, fflag_valid);
   assert(func == fdef->base->func);
-  if (env->class_def) // tmpl ?
+  if (env->class_def)
     CHECK_BB(check_parent_match(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return GW_OK;
   Value override = NULL;
@@ -1722,7 +1737,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
       }
       struct ValueFrom_ *from = f->value_ref->from;
       gwerr_secondary("implementation missing", from->filename, from->loc);
-      env->context->error = true;
+      env_set_error(env);
     }
   }
   return !err ? GW_OK : GW_ERROR;
@@ -1800,7 +1815,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     if (value_error) {
       env->class_def = t;
       env_error_footer(env);
-      env->context->error = true;
+      env_set_error(env);
       return GW_ERROR;
     }
   }
@@ -1813,12 +1828,13 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
       Value             v;
       struct scope_iter inner = {value->type->nspc->info->value, 0, 0};
       while (scope_iter(&inner, &v) > 0) {
-        //      if(isa(v->type, t) > 0 || isa(t, v->type) > 0) {
-        if (v->type == t) {
+        const Type tgt = array_base(v->type);
+        if(isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple &&vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1)) {
           env_err(env, v->from->loc, _("recursive type"));
           env->context->error = false;
           env_err(env, value->from->loc, _("recursive type"));
-          env->context->error = true;
+          gw_err("use {+G}late{0} on one (or more) of the variables?\n");
+          env_set_error(env);
           type_remref(t, env->gwion);
           return GW_ERROR;
         }
@@ -1838,8 +1854,6 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
                           .data = (uintptr_t)c,
                           .pos  = c->pos};
   CHECK_OB(op_check(env, &opi));
-  if (t->info->value->from->owner_class)
-    CHECK_BB(ensure_check(env, t->info->value->from->owner_class));
   if (tflag(t, tflag_check)) return GW_OK;
   set_tflag(t, tflag_check);
   return _check_class_def(env, c);

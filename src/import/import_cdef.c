@@ -63,10 +63,9 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
     gwi->tmpls++;
     add_template(gwi->gwion->env, t);
   }
-  if (gwi->gwion->data->cdoc) {
+  if (gwi->gwion->data->cdoc && t->info->cdef) {
     lint_indent(gwi->lint);
     gwi->lint->indent++;
-    assert(t->info->cdef);
     lint_class_def(gwi->lint, t->info->cdef);
   }
   return t;
@@ -121,8 +120,9 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
 }
 
 ANN m_int gwi_class_end(const Gwi gwi) {
-  if (gwi->gwion->data->cdoc) {
+  if (gwi->gwion->data->cdoc && gwi->gwion->env->class_def->info->cdef) {
     gwi->lint->indent--;
+    lint_indent(gwi->lint);
     lint_rbrace(gwi->lint);
     lint_nl(gwi->lint);
   }

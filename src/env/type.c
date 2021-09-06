@@ -79,7 +79,7 @@ ANN /*static */ Symbol array_sym(const Env env, const Type src,
                                  const m_uint depth) {
   if (src->array_depth == depth) return insert_symbol(src->name);
   const m_uint total_depth = src->array_depth + depth;
-  const Type   t           = array_base(src);
+  const Type   t           = array_base_simple(src);
   size_t       len         = strlen(t->name);
   char         name[len + 2 * total_depth + 1];
   strcpy(name, t->name);
@@ -156,4 +156,22 @@ ANN void inherit(const Type t) {
   if (!nspc || !parent) return;
   nspc->offset = parent->offset;
   if (parent->vtable.ptr) vector_copy2(&parent->vtable, &nspc->vtable);
+}
+
+ANN bool from_global_nspc(const Env env, const Nspc nspc) {
+  Nspc global = env->global_nspc;
+  while(global) {
+    if (nspc == global)
+      return true;
+    global = global->parent;
+  }
+  return false;
+}
+
+ANN bool type_global(const Env env, Type t) {
+  while(t) {
+    if(from_global_nspc(env, t->info->value->from->owner)) return true;
+    t = t->info->value->from->owner_class;
+  }
+  return false;
 }

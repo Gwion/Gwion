@@ -72,12 +72,6 @@ describe_nspc_func(Value, value) describe_nspc_func(Type, type)
 ANN void did_you_mean_type(const Type, const char *);
 ANN void did_you_mean_trait(Nspc nspc, const char *name);
 
-#define DID_YOU_MEAN_LIMIT 128
-#define did_you_mean_nspc(a, b)                                                \
-  if (strlen(b) < DID_YOU_MEAN_LIMIT) did_you_mean_nspc(a, b);
-#define did_you_mean_type(a, b)                                                \
-  if (strlen(b) < DID_YOU_MEAN_LIMIT) did_you_mean_type(a, b);
-
 ANN static inline void nspc_allocdata(MemPool mp, const Nspc nspc) {
   if (nspc->class_data_size) {
     nspc->class_data =

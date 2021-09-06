@@ -4,9 +4,13 @@ struct Shreduler_ {
   struct BBQ_ *      bbq;
   struct ShredTick_ *list;
   struct ShredTick_ *curr;
-  struct Vector_     shreds;
+  struct Vector_     active_shreds;
   MUTEX_TYPE         mutex;
   size_t             shred_ids;
+  struct Vector_     killed_shreds;
   bool               loop;
 };
+
+ANN Shreduler new_shreduler(const MemPool mp);
+ANN void free_shreduler(const MemPool mp, const Shreduler s);
 #endif

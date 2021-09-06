@@ -16,7 +16,6 @@
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
-  call.allow_curry = true;
   Exp         e    = exp_self(bin);
   e->exp_type      = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
@@ -273,15 +272,15 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   UNSET_FLAG(l->def->base, global);
   l->def->base->values = env->curr->info->value;
   const m_uint scope   = env->scope->depth;
-  //  if(GET_FLAG(def->base, global) && !l->owner &&
-  //  def->base->func->value_ref->from->owner_class)
-  // env_push(env, NULL, env->context->nspc);
+  if(GET_FLAG(def->base, global) && !l->owner &&
+    def->base->func->value_ref->from->owner_class)
+   env_push(env, NULL, env->context->nspc);
   env->scope->depth = 0;
   const m_bool ret  = traverse_func_def(env, l->def);
   env->scope->depth = scope;
-  //  if(GET_FLAG(def->base, global) && !l->owner &&
-  //  def->base->func->value_ref->from->owner_class)
-  // env_pop(env, scope);
+    if(GET_FLAG(def->base, global) && !l->owner &&
+    def->base->func->value_ref->from->owner_class)
+   env_pop(env, scope);
 
   if (l->def->base->func) {
     if (env->curr->info->value != l->def->base->values) {
@@ -424,7 +423,7 @@ static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
                 _("Decayed operators take two arguments"), NULL, env->name, loc,
                 0);
     if (fdef) defined_here(fdef->base->func->value_ref);
-    env->context->error = true;
+    env_set_error(env);
   }
 }
 static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {

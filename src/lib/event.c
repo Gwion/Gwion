@@ -45,9 +45,7 @@ GWION_IMPORT(event) {
   const Type t_event = gwi_class_ini(gwi, "Event", "Object");
   gwi_class_xtor(gwi, event_ctor, event_dtor);
   gwi->gwion->type[et_event] = t_event; // use func
-
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@shreds"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  t_event->nspc->offset += SZ_INT;
   GWI_BB(gwi_func_ini(gwi, "void", "signal"))
   GWI_BB(gwi_func_end(gwi, event_signal, ae_flag_none))
   GWI_BB(gwi_func_ini(gwi, "void", "broadcast"))

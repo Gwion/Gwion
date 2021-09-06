@@ -122,6 +122,7 @@ ANN bool check_trait_requests(const Env env, const Type t, const ID_List list) {
   const Trait trait = nspc_lookup_trait1(env->curr, list->xid);
   if (!trait_nodup(t, list->xid, list->next)) {
     gwerr_secondary("duplicated trait", trait->filename, trait->loc);
+    env_set_error(env);
     return false;
   }
   const bool value_error = trait->requested_values.ptr  ? check_trait_variables(env, t, trait) : false;
@@ -129,5 +130,6 @@ ANN bool check_trait_requests(const Env env, const Type t, const ID_List list) {
   if (!value_error && !funcs_error) return true;
   const Value request = (Value)vector_front(&trait->requested_values);
   gwerr_secondary("from trait", request->from->filename, trait->loc);
+  env_set_error(env);
   return false;
 }

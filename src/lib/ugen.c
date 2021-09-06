@@ -393,9 +393,7 @@ GWION_IMPORT(ugen) {
   const Type t_ugen = gwi_class_ini(gwi, "UGen", NULL);
   gwi_class_xtor(gwi, ugen_ctor, ugen_dtor);
   gwi->gwion->type[et_ugen] = t_ugen; // use func
-
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@ugen"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  t_ugen->nspc->offset += SZ_INT;
 
   GWI_BB(gwi_func_ini(gwi, "UGen", "chan"))
   GWI_BB(gwi_func_arg(gwi, "int", "arg0"))

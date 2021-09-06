@@ -25,6 +25,7 @@ struct Env_Scope_ {
   uint16_t       depth;
   bool           in_try;
   bool           in_loop;
+  bool           shadowing;
 };
 
 typedef struct Env_ {
@@ -72,4 +73,5 @@ struct ScopeEffect {
 ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos);
 ANN void call_add_effect(const Env env, const Func func, const loc_t pos);
 ANN bool check_effect_overload(const Vector base, const Func override);
+
 #endif

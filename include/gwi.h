@@ -6,18 +6,18 @@
   if (a->gwion->data->cdoc) do {                                               \
       lint_nl(gwi->lint);                                                      \
       lint_indent(gwi->lint);                                                  \
-      lint(gwi->lint, "{-}#!+ {/}%s{0}\n", __VA_ARGS__);                       \
+      lint(gwi->lint, (m_str)"{-}#!+ {/}%s{0}\n", __VA_ARGS__);                \
   } while (0)
 #define gwidoc(a, ...)                                                         \
   if (a->gwion->data->cdoc) do {                                               \
       lint_nl(a->lint);                                                        \
       lint_indent(a->lint);                                                    \
-      lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__);                         \
+      lint(a->lint, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
   } while (0)
 #define gwinote(a, ...)                                                        \
   if (a->gwion->data->cdoc) do {                                               \
       lint_indent(a->lint);                                                    \
-      lint(a->lint, "{-}#!- {/}%s{0}\n", __VA_ARGS__);                         \
+      lint(a->lint, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
   } while (0)
 
 struct Gwi_ {

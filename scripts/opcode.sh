@@ -50,6 +50,7 @@ do
   [ -z "$a" ] || echo "#define  $a (f_instr)e$a"
 done | column -t
 
+echo "#ifndef __cplusplus"
 echo "ANN static inline void dump_opcodes(const VM_Code code) {"
 echo "  gw_out(\"{Y}┏━━━━┓{0}{-Y} {+}%s{0}\n{Y}┃{0}\n\", code->name);"
 echo "  m_uint j = 0;"
@@ -80,5 +81,5 @@ echo "  gw_out(\"{Y}┃\n┗━━━━┛{0}\n\");"
 echo "}"
 
 echo "#endif"
-
+echo "#endif"
 echo "generated" "$COUNT" "opcodes" >&2

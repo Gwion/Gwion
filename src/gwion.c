@@ -140,7 +140,15 @@ ANN void gwion_end_child(const VM_Shred shred, const Gwion gwion) {
   if (gwion->data->child2.ptr) fork_clean2(shred, &gwion->data->child2);
 }
 
+ANN static inline void free_killed_shred(const Vector v) {
+  for (m_uint i = 0; i < vector_size(v); i++) {
+    const VM_Shred shred = (VM_Shred)vector_at(v, i);
+    free_vm_shred(shred);
+  }
+}
+
 ANN void gwion_end(const Gwion gwion) {
+  free_killed_shred(&gwion->vm->shreduler->killed_shreds);
   gwion_end_child(gwion->vm->cleaner_shred, gwion);
   free_env(gwion->env);
   if (gwion->vm->cleaner_shred) free_vm_shred(gwion->vm->cleaner_shred);
@@ -175,11 +183,25 @@ ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt,
 #endif
 }
 
+ANN static void _env_warn(const Env env, const loc_t pos, const m_str fmt,
+                        va_list arg) {
+#ifndef __FUZZING__
+  va_list tmpa;
+  va_copy(tmpa, arg);
+  const int size = vsnprintf(NULL, 0, fmt, tmpa);
+  va_end(tmpa);
+  char c[size + 1];
+  vsprintf(c, fmt, arg);
+  gwerr_warn(c, NULL, NULL, env->name, pos);
+  env_error_footer(env);
+#endif
+}
+
 ANN void env_warn(const Env env, const loc_t pos, const m_str fmt, ...) {
 #ifndef __FUZZING__
   va_list arg;
   va_start(arg, fmt);
-  env_xxx(env, pos, fmt, arg);
+  _env_warn(env, pos, fmt, arg);
   va_end(arg);
 #endif
 }
@@ -192,7 +214,7 @@ ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
   env_xxx(env, pos, fmt, arg);
   va_end(arg);
 #endif
-  if (env->context) env->context->error = 1;
+  env_set_error(env);
 }
 
 ANN struct SpecialId_ *specialid_get(const Gwion gwion, const Symbol sym) {

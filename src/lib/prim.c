@@ -101,7 +101,7 @@ BINARY_INT_FOLD(or, et_bool, ||,)
 BINARY_INT_FOLD(eq, et_bool, ==,)
 BINARY_INT_FOLD(neq, et_bool, !=,)
 
-#define BINARY_OP_EMIT(name, type, member) \
+#define BINARY_OP_EMIT(name, type, member, val) \
 static OP_EMIT(opem_##type##_##name) { \
   Exp_Binary *const bin = (Exp_Binary *)data; \
   if(!is_prim_##type(bin->rhs)) \
@@ -109,12 +109,12 @@ static OP_EMIT(opem_##type##_##name) { \
   else { \
     const Instr instr = (Instr)vector_back(&emit->code->instr); \
     instr->opcode = e##type##_##name##_imm; \
-    instr->m_val = bin->rhs->d.prim.d.member; \
+    instr->val = bin->rhs->d.prim.d.member; \
   } \
   return GW_OK; \
 }
 
-#define BINARY_INT_EMIT(name) BINARY_OP_EMIT(name, int, num)
+#define BINARY_INT_EMIT(name) BINARY_OP_EMIT(name, int, num, m_val)
 BINARY_INT_EMIT(add)
 BINARY_INT_EMIT(sub)
 BINARY_INT_EMIT(mul)
@@ -512,7 +512,7 @@ BINARY_FLOAT_FOLD2(ge, et_bool, >=,)
 BINARY_FLOAT_FOLD2(lt, et_bool, <,)
 BINARY_FLOAT_FOLD2(le, et_bool, <=,)
 
-#define BINARY_FLOAT_EMIT(name) BINARY_OP_EMIT(name, float, fnum)
+#define BINARY_FLOAT_EMIT(name) BINARY_OP_EMIT(name, float, fnum, f)
 BINARY_FLOAT_EMIT(add)
 BINARY_FLOAT_EMIT(sub)
 BINARY_FLOAT_EMIT(mul)

@@ -167,8 +167,7 @@ GWION_IMPORT(vararg) {
   const Type t_vararg = gwi_class_ini(gwi, "Vararg", "Object");
   gwi_class_xtor(gwi, NULL, vararg_dtor);
   gwi_gack(gwi, t_vararg, gack_vararg);
-  GWI_BB(gwi_item_ini(gwi, "@internal", "@data"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  t_vararg->nspc->offset += SZ_INT;
   GWI_BB(gwi_item_ini(gwi, "int", "@inLoop"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   GWI_BB(gwi_item_ini(gwi, "int", "@len"))
