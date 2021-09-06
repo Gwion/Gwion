@@ -1726,7 +1726,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   if (!cdef->base.type->nspc->vtable.ptr) return GW_OK;
   bool err = false;
   for (m_uint i = 0; i < vector_size(&cdef->base.type->nspc->vtable); ++i) {
-    Func f = (Func)vector_at(&cdef->base.type->nspc->vtable, i);
+    const Func f = (Func)vector_at(&cdef->base.type->nspc->vtable, i);
     if (f && GET_FLAG(f->def->base, abstract)) {
       if (!err) {
         err = true;

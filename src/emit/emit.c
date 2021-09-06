@@ -1560,10 +1560,10 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       instr->m_val      = (m_uint)f;
     } else {
       const Instr back = (Instr)vector_back(&emit->code->instr);
-        if(back->execute != SetFunc) {
-          const Instr instr = emit_add_instr(emit, SetFunc);
-          instr->m_val      = (m_uint)f;
-        }
+      if(back->execute != SetFunc) {
+        const Instr instr = emit_add_instr(emit, SetFunc);
+        instr->m_val      = (m_uint)f;
+      }
     }
   }
   const m_uint offset = emit_code_offset(emit);

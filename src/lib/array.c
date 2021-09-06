@@ -17,7 +17,6 @@
 static DTOR(array_dtor) {
   if (*(void **)(o->data + SZ_INT)) xfree(*(void **)(o->data + SZ_INT));
   struct M_Vector_ *a = ARRAY(o);
-//  free_m_vector(shred->info->mp, a);
   m_vector_release(a);
 }
 
@@ -321,26 +320,23 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
   access->m_val        = depth * SZ_INT;
 }
 
-ANN static void array_finish(const Emitter emit, const m_uint depth,
-                             const Type t, const m_bool is_var) {
+ANN static void array_finish(const Emitter emit, const Array_Sub array, const m_bool is_var) {
   const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
-  if(!is_var && isa(t, emit->gwion->type[et_object]) > 0) {
-    const m_uint _depth = get_depth(t);
-    if(_depth < depth || isa(array_base(t), emit->gwion->type[et_object]) > 0)
+  const Type t = array->type;
+  if(!is_var) {
+    if(array->depth < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object]) > 0)
       emit_add_instr(emit, GWOP_EXCEPT);
   }
-  get->m_val      = depth * SZ_INT;
-  //  emit_add_instr(emit, ArrayValid);
+  get->m_val      = array->depth * SZ_INT;
   const Instr push = emit_add_instr(emit, RegMove);
   push->m_val      = is_var ? SZ_INT : t->size;
 }
 
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
                                   const m_bool is_var) {
-  //  emit_gc(emit, -SZ_INT);
   CHECK_BB(emit_exp(emit, array->exp));
   array_loop(emit, array->depth);
-  array_finish(emit, array->depth, array->type, is_var);
+  array_finish(emit, array, is_var);
   return GW_OK;
 }
 
