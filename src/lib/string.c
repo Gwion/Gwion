@@ -388,7 +388,7 @@ static SFUN(string_load) {
   const size_t sz = ftell(f);
   char c[sz + 1];
   rewind(f);
-  fread(c, 1, sz, f);
+  (void)fread(c, 1, sz, f);
   fclose(f);
   *(M_Object*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
 }
