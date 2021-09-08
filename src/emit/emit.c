@@ -927,7 +927,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
   instr->m_val = (m_uint)&v->d.ptr;
   set_vflag(v, vflag_direct); // mpalloc
   instr->m_val2 = v->type->size;
-  if (is_obj && (is_array || !is_ref || emit_addr)) {
+  if (is_obj && (is_array || !is_ref)) {
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val      = emit_var;
     (void)emit_object_addref(emit, -SZ_INT, emit_var);
