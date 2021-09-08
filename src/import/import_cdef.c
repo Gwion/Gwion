@@ -68,6 +68,9 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
     gwi->lint->indent++;
     lint_class_def(gwi->lint, t->info->cdef);
   }
+  if(t->info->cdef && t->info->cdef->base.ext &&
+     t->info->cdef->base.ext->array)
+    set_tflag(t, tflag_typedef);
   return t;
 }
 
