@@ -99,6 +99,7 @@ ANN Type check_td(const Env env, Type_Decl *td);
 OP_CHECK(opck_new) {
   Exp_Unary *unary = (Exp_Unary *)data;
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
+  CHECK_BN(ensure_traverse(env, t));
   if (type_ref(t))
     ERR_N(unary->ctor.td->pos, _("can't use 'new' on ref type '%s'\n"), t->name);
   if (tflag(t, tflag_infer))
