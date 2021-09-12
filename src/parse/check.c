@@ -836,8 +836,9 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
           CHECK_BO(ensure_check(env, func->value_ref->from->owner_class));
         else {
           const m_uint scope = env_push(env, NULL, func->value_ref->from->owner);
-          CHECK_BO(check_func_def(env, func->def));
+          const m_bool ret = check_func_def(env, func->def);
           env_pop(env, scope);
+          CHECK_BO(ret);
         }
       }
     exp->func->type = func->value_ref->type;
