@@ -99,16 +99,16 @@ ANN static bool unwind(const VM_Shred shred, const Symbol effect, const m_uint s
     clean_values(shred);
 //  if (!size) return true;
   if (!size) return false;
-  if (size) {
-    if (code->handlers.ptr)
-      return find_handle(shred, effect, size);
-    // there might be no more stack to unwind
-    if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
-//      return true;
-      return false;
-  } else
-//    return true;
+//  if (code->live_values.ptr)
+//    clean_values(shred);
+  if (code->handlers.ptr)
+    return find_handle(shred, effect, size);
+  // there might be no more stack to unwind
+  if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return false;
+//  else
+//    return true;
+//    return false;
   shred_unwind(shred);
   return unwind(shred, effect, size - 1);
 }
@@ -117,6 +117,8 @@ ANN static void trace(VM_Shred shred, const m_uint size) {
   const m_uint line = vector_at(&shred->info->line, size - 1);
   m_uint       i;
   bool         can_skip = false;
+//printf("size %lu\n", size);
+if(!size)return;
   for (i = size; --i;) {
     const m_uint val = VPTR(&shred->info->line, i - 1);
     if (!val)
@@ -278,9 +280,10 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   return ME(o);
 }
 
+#define handle(a, b) VM_OUT handle(a, b);
 #define TEST0(t, pos)                                                          \
   if (!*(t *)(reg - pos)) {                                                    \
-    shred->pc = PC;                                                            \
+/*    shred->pc = PC;*/                                                            \
     handle(shred, "ZeroDivideException");                                      \
     break;                                                                     \
   }
@@ -941,7 +944,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     overflow:
       if (overflow_(mem + VAL2, shred)) {
-        shred->pc = PC;
+//        shred->pc = PC;
         handle(shred, "StackOverflow");
         continue;
       }
@@ -1050,7 +1053,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       if (idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
         gw_err(_("{-}  ... at index {W}[{Y}%" INT_F "{W}]{0}\n"), idx);
         //    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
-        VM_OUT
+//        VM_OUT
         handle(shred, "ArrayOutofBounds");
         continue; // or break ?
       }
@@ -1106,7 +1109,6 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
        *  VAL2 = error message                         *
        * grep for GWOP_EXCEPT and Except, exception... */
       if (!*(m_bit **)(reg + (m_int)(VAL))) {
-        shred->pc = PC;
         handle(shred, "NullPtrException");
         continue;
       }
@@ -1254,7 +1256,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       // this should check the *xid* of the exception
       DISPATCH();
     performeffect:
-      VM_OUT
+//      VM_OUT
       handle(shred, (m_str)VAL);
       break;
     noop:

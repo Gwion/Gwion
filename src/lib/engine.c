@@ -16,7 +16,7 @@
 
 static GACK(gack_class) {
   const Type type = actual_type(shred->info->vm->gwion, t) ?: t;
-  INTERP_PRINTF("class(%s)", type->name)
+  INTERP_PRINTF("%s", type->name)
 }
 
 static GACK(gack_function) { INTERP_PRINTF("%s", t->name) }

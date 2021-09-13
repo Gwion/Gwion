@@ -54,9 +54,9 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
 
 ANN static Type scan1_type(const Env env, Type_Decl *td) {
   DECL_OO(const Type, t, = known_type(env, td));
-  if (!env->func && env->class_def && !GET_FLAG(td, late)) {
-    CHECK_BO(type_cyclic(env, t, td));
-  }
+  const Type base = array_base(t);
+  if (!env->func && env->class_def && !GET_FLAG(td, late))
+    CHECK_BO(type_cyclic(env, base, td));
   CHECK_BO(ensure_scan1(env, t));
   return t;
 }
@@ -664,6 +664,9 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
 }
 
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
+  if(GET_FLAG(fdef->base, abstract) && !env->class_def)
+    ERR_B(fdef->base->pos, "file scope function can't be abstract");
+//exit(12);
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   if (fdef->base->td)

@@ -379,7 +379,7 @@ ANN static Exp arglist2exp(MemPool p, Arg_List arg, const Exp default_arg) {
   return exp;
 }
 
-ANN static Ast scan0_func_def_default(const MemPool p, const Ast ast,
+ANN2(1,2) static Ast scan0_func_def_default(const MemPool p, const Ast ast,
                                       const Ast next) {
   const Func_Def base_fdef = ast->section->d.func_def;
   Arg_List       base_arg = base_fdef->base->args, former = NULL;
@@ -388,7 +388,7 @@ ANN static Ast scan0_func_def_default(const MemPool p, const Ast ast,
       if (former) former->next = NULL;
       // use cpy_func_base?
       Func_Base *base = new_func_base(
-          p, cpy_type_decl(p, base_fdef->base->td), base_fdef->base->xid,
+          p, base_fdef->base->td ? cpy_type_decl(p, base_fdef->base->td) : NULL, base_fdef->base->xid,
           former ? cpy_arg_list(p, base_fdef->base->args) : NULL,
           base_fdef->base->flag, base_fdef->base->pos);
       const Exp efunc =
@@ -512,7 +512,7 @@ ANN m_bool scan0_ast(const Env env, Ast ast) {
       continue;
     const Ast next = ast->next;
     scan0_func_def_default(env->gwion->mp, ast, next);
-    ast = next;
+    if(!(ast = next))break;
   } while ((ast = ast->next));
   return GW_OK;
 }

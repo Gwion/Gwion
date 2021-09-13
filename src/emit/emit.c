@@ -495,7 +495,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     }
     return GW_OK;
   }
-  if (!strncmp(v->type->name, "Ref:[", 5)) {
+  if (!strncmp(v->type->name, "Ref:[", 5) && (!prim_exp(data)->cast_to || strncmp(prim_exp(data)->cast_to->name, "Ref:[", 5))) {
     if (exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
       instr->m_val      = v->from->offset;
@@ -1513,7 +1513,8 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
           back->m_val = (m_uint)f->code;
         } else
           back->m_val      = (m_uint)f;
-      }
+      } else // calling a local func not emitted yet
+        vector_pop(&emit->code->instr);
     }
   } else if ((f->value_ref->from->owner_class &&
               tflag(f->value_ref->from->owner_class, tflag_struct)) ||
@@ -1559,11 +1560,11 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
       instr->execute    = SetFunc;
       instr->m_val      = (m_uint)f;
     } else {
-      const Instr back = (Instr)vector_back(&emit->code->instr);
-      if(back->execute != SetFunc) {
+//      const Instr back = (Instr)vector_back(&emit->code->instr);
+//      if(back->execute != SetFunc || back->m_val != f) {
         const Instr instr = emit_add_instr(emit, SetFunc);
         instr->m_val      = (m_uint)f;
-      }
+//      }
     }
   }
   const m_uint offset = emit_code_offset(emit);
@@ -1754,7 +1755,7 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e));
-  emit_exp_addref1(emit, e, -exp_size(e));
+  emit_exp_addref1(emit, e, -exp_size(e)); // ????
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
       .rhs  = e->type,
@@ -1796,7 +1797,6 @@ ANN static m_bool emit_upvalues(const Emitter emit, const Func func) {
     const Exp_Primary *prim = (Exp_Primary *)VKEY(map, i);
     const Value        v    = prim->value;
     CHECK_BB(emit_prim_novar(emit, prim));
-    ;
     if (isa(prim->value->type, emit->gwion->type[et_compound]) > 0) {
       if (vflag(v, vflag_fglobal) && !vflag(v, vflag_closed))
         emit_exp_addref1(emit, exp_self(prim), -v->type->size);
@@ -2168,6 +2168,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
   regpop(emit, SZ_INT);
+//  emit_exp_addref(emit, stmt->exp, 0);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]); // array?
   emit_local(emit, emit->gwion->type[et_int]);
   emit_local(emit, emit->gwion->type[et_int]);

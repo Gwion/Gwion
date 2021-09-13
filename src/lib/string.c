@@ -88,6 +88,10 @@ static INSTR(StringSlice) {
   }
   const m_int  op = start < end ? 1 : -1;
   const m_uint sz = op > 0 ? end - start : start - end;
+  if(sz >= SIZE_MAX/SZ_INT) {
+    handle(shred, "SliceTooBig");
+    return;
+  }
   char         c[sz + 1];
   for (m_int i = start, j = 0; i != end; i += op, ++j) c[j] = str[i];
   c[sz]                     = '\0';

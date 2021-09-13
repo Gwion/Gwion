@@ -18,6 +18,7 @@ static OP_CHECK(opck_func_call) {
   Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
   Exp         e    = exp_self(bin);
   e->exp_type      = ae_exp_call;
+  call.apms = true;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
@@ -92,9 +93,8 @@ static OP_EMIT(opem_func_assign) {
   if (bin->rhs->type->info->func->def->base->tmpl)
     fptr_instr(emit, bin->lhs->type->info->func, 2);
   (void)emit_add_instr(emit, int_r_assign);
-  if (!is_fptr(emit->gwion, bin->lhs->type) &&
-      vflag(bin->rhs->type->info->func->value_ref, vflag_member)/*&&
-      bin->lhs->exp_type != ae_exp_td*/) {
+  if (vflag(bin->lhs->type->info->func->value_ref, vflag_member) &&
+      !is_fptr(emit->gwion, bin->lhs->type)) {
     const Instr pop = emit_add_instr(emit, RegMove);
     pop->m_val      = -SZ_INT;
     const Instr cpy = emit_add_instr(emit, Reg2Reg);
@@ -147,6 +147,12 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
 
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
+  if(!base[0]->func->value_ref->from->owner_class &&
+      base[1]->func->value_ref->from->owner_class)
+    arg0 = arg0->next;
+  if(!base[1]->func->value_ref->from->owner_class &&
+      base[0]->func->value_ref->from->owner_class)
+    arg1 = arg1->next;
   while (arg0) {
     CHECK_OB(arg1);
     if (arg0->type && arg1->type)
@@ -183,21 +189,26 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   //    return GW_ERROR;
   const Type l_type = info->lhs->value_ref->from->owner_class;
   const Type r_type = info->rhs->value_ref->from->owner_class;
-  if (!r_type && l_type)
+  if (!r_type && l_type) {
+    if (/*!GET_FLAG(info->lhs, global) && */(!info->rhs->def->base->args ||
+isa(l_type, info->rhs->def->base->args->var_decl->value->type) < 0)
+)
     ERR_B(info->pos,
           _("can't assign member function to non member function pointer"))
-  else if (!l_type && r_type) {
-    if (!GET_FLAG(info->rhs, global))
+  } else if (!l_type && r_type) {
+    if (!GET_FLAG(info->rhs, global) && (!info->lhs->def->base->args ||
+isa(r_type, info->lhs->def->base->args->var_decl->value->type) < 0)
+)
       ERR_B(info->pos,
             _("can't assign non member function to member function pointer"))
   } else if (l_type && isa(r_type, l_type) < 0)
     ERR_B(info->pos,
           _("can't assign member function to a pointer of an other class"))
   if (vflag(info->rhs->value_ref, vflag_member)) {
-    if (!vflag(info->lhs->value_ref, vflag_member))
+    if (!vflag(info->lhs->value_ref, vflag_member) && l_type)
       ERR_B(info->pos,
             _("can't assign static function to member function pointer"))
-  } else if (vflag(info->lhs->value_ref, vflag_member))
+  } else if (vflag(info->lhs->value_ref, vflag_member) && r_type)
     ERR_B(info->pos,
           _("can't assign member function to static function pointer"))
   return GW_OK;
@@ -288,6 +299,17 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       env->curr->info->value = l->def->base->values;
     }
   }
+
+  if(ret < 0) {
+    Arg_List args = l->def->base->args;
+    while(args) {
+      if(!args->var_decl->value) break;
+      free_value(args->var_decl->value, env->gwion);
+      args->var_decl->value = NULL;
+      args = args->next;
+    }
+
+  }
   return ret;
 }
 
@@ -319,6 +341,8 @@ static OP_CHECK(opck_auto_fptr) {
   if (bin->rhs->exp_type != ae_exp_decl &&
       bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
     return env->gwion->type[et_error];
+  if (bin->lhs->exp_type == ae_exp_td)
+    ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
   // create a matching signature
   // TODO: we could check first if there a matching existing one
   Func_Base *const fbase =
@@ -332,7 +356,7 @@ static OP_CHECK(opck_auto_fptr) {
   const m_bool ret    = traverse_fptr_def(env, fptr_def);
   const Type   t      = fptr_def->type;
   free_fptr_def(env->gwion->mp, fptr_def);
-  type_remref(t, env->gwion);
+//  type_remref(t, env->gwion);
   bin->rhs->d.exp_decl.list->self->value->type = bin->rhs->type =
       bin->rhs->d.exp_decl.type                = t;
   exp_setvar(bin->rhs, 1);

@@ -140,6 +140,7 @@ ANN static inline m_bool scan2_exp_binary(const Env         env,
                                           const Exp_Binary *bin) {
   CHECK_BB(scan2_exp(env, bin->lhs));
   CHECK_BB(scan2_exp(env, bin->rhs));
+if(bin->rhs->exp_type == ae_exp_call)bin->rhs->d.exp_call.apms = true;
   CHECK_BB(multi_decl(env, bin->lhs, bin->op));
   return multi_decl(env, bin->rhs, bin->op);
 }
@@ -548,7 +549,7 @@ ANN m_bool _scan2_func_def(const Env env, const Func_Def fdef) {
     return GW_OK;
   if(!strcmp(s_name(fdef->base->xid), "new")) {
     if(!env->class_def)
-      ERR_B(fdef->base->pos, _("{G-}new{0} operator must be set inside {C+}class{0}"));
+      ERR_B(fdef->base->pos, _("{G+}new{0} operator must be set inside {C+}class{0}"));
     if(!fdef->base->ret_type)
       fdef->base->ret_type = env->class_def;
   }

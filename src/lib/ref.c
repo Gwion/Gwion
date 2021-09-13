@@ -31,6 +31,14 @@ static OP_CHECK(opck_implicit_similar) {
   return imp->t;
 }
 
+static OP_CHECK(opck_implicit_ref) {
+  const struct Implicit *imp = (struct Implicit *)data;
+  CHECK_BN(ref_access(env, imp->e));
+  exp_setvar(imp->e, 1);
+  imp->e->cast_to = imp->t;
+  return imp->t;
+}
+
 static OP_CHECK(opck_cast_similar) {
   const Exp_Cast *cast = (Exp_Cast *)data;
   return exp_self(cast)->type;
@@ -61,6 +69,18 @@ ANN static void ref2base(Env env, const Type lhs, const Type rhs) {
   add_op(env->gwion, &opi);
 }
 
+ANN static void ref2ref(Env env, const Type lhs, const Type rhs) {
+  struct Op_Func   opfunc = {.ck = opck_implicit_ref };
+  struct Op_Import opi = {.op                      = insert_symbol("$"),
+                          .lhs                     = lhs,
+                          .ret                     = rhs,
+                          .rhs                     = rhs,
+                          .func=&opfunc, .data = eNoOp};
+  add_op(env->gwion, &opi);
+  opi.op = insert_symbol("@implicit");
+  add_op(env->gwion, &opi);
+}
+
 static OP_CHECK(opck_ref_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
   struct tmpl_info     info = {
@@ -73,12 +93,21 @@ static OP_CHECK(opck_ref_scan) {
   SET_FLAG(t, abstract | ae_flag_final);
   set_tflag(t, tflag_infer);
   set_tflag(t, tflag_noret);
+  set_tflag(t, tflag_scan0);
+  set_tflag(t, tflag_scan1);
+  set_tflag(t, tflag_scan2);
+  set_tflag(t, tflag_check);
+  set_tflag(t, tflag_emit);
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
   mk_class(env, t, (loc_t) {});
   base2ref(env, base, t);
   ref2base(env, t, base);
+  ref2ref(env, t, t);
   env_pop(env, scope);
+  t->info->tuple = new_tupleform(env->gwion->mp, base);
+  type_addref(base);
+  vector_add(&t->info->tuple->contains, (vtype)base);
   nspc_add_type_front(t->info->value->from->owner, info.name, t);
   return t;
 }

@@ -117,7 +117,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   if (f->def->base->tmpl)
     emit_add_instr(emit, DotTmplVal);
   else if (is_static_call(emit, exp_self(member))) {
-    if (f == emit->env->func) return;
+    if (member->is_call && f == emit->env->func) return;
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
     return;
@@ -191,7 +191,7 @@ OP_CHECK(opck_object_dot) {
         return v->type;
     if (is_class(env->gwion, v->type)) {
        const Type parent = actual_type(env->gwion, v->type);
-       if (isa(the_base, parent) > 0) { // beware templates
+       if (isa(the_base, parent) > 0 && parent->nspc) { // beware templates
           const Symbol sym = insert_symbol(env->gwion->st, "new");
           const Value ret = nspc_lookup_value1(parent->nspc, sym);
           member->xid = sym;
@@ -259,7 +259,7 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;
   }
-  if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
+  if((isa(value->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion, value->type)) &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late))) {
     const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);

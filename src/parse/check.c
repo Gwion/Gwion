@@ -502,7 +502,9 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     while (e) {
       if (!e->type) // investigate
         return NULL;
-//      if (!strncmp(e->type->name, "Ref:[", 5)) exp_setvar(e, true);
+      if (!strncmp(e->type->name, "Ref:[", 5)) {
+if(!e->cast_to)e->cast_to = e->type;
+      }
       if (!e1) {
         if (fbflag(func->def->base, fbflag_variadic)) return func;
         CHECK_OO(func->next);
@@ -918,7 +920,7 @@ ANN2(1) static inline bool curried(const Env env, Exp exp) {
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if (curried(env, exp->args))
+  if (exp->apms && curried(env, exp->args))
     return env->gwion->type[et_curry];
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
@@ -1728,7 +1730,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   bool err = false;
   for (m_uint i = 0; i < vector_size(&cdef->base.type->nspc->vtable); ++i) {
     const Func f = (Func)vector_at(&cdef->base.type->nspc->vtable, i);
-    if (f && GET_FLAG(f->def->base, abstract)) {
+    if (f && f->def->base && GET_FLAG(f->def->base, abstract)) {
       if (!err) {
         err = true;
         gwerr_basic(_("missing function definition"),
@@ -1795,6 +1797,10 @@ ANN static bool class_def_has_body(const Env env, Ast ast) {
   return false;
 }
 
+ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
+  return isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
+}
+
 ANN bool check_trait_requests(const Env env, const Type t, const ID_List list);
 ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
@@ -1825,21 +1831,41 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   struct scope_iter iter = {t->nspc->info->value, 0, 0};
   while (scope_iter(&iter, &value) > 0) {
     if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
+//        const Type t = array_base(value->type);
     if (value->type->nspc && !GET_FLAG(value, late)) {
       Value             v;
       struct scope_iter inner = {value->type->nspc->info->value, 0, 0};
+bool error = false;
       while (scope_iter(&inner, &v) > 0) {
         const Type tgt = array_base(v->type);
-        if(isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple &&vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1)) {
+//        if(isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1)) {
+        if(type_is_recurs(t, tgt)) {
           env_err(env, v->from->loc, _("recursive type"));
           env->context->error = false;
           env_err(env, value->from->loc, _("recursive type"));
           gw_err("use {+G}late{0} on one (or more) of the variables?\n");
-          env_set_error(env);
-          type_remref(t, env->gwion);
-          return GW_ERROR;
+//          env_set_error(env);
+vector_rem2(&t->info->tuple->contains, (m_uint)tgt);
+vector_rem2(&tgt->info->tuple->contains, (m_uint)t);
+type_remref(t, env->gwion);
+//type_remref(tgt, env->gwion);
+//nspc_add_type_front(t->nspc, insert_symbol(tgt->name), tgt);
+//nspc_add_type_front(tgt->nspc, insert_symbol(tgt->name), t);
+          set_tflag(t, tflag_infer);
+          set_tflag(tgt, tflag_infer);
+          unset_tflag(t, tflag_check);
+          unset_tflag(tgt, tflag_check);
+//value->type =  env->gwion->type[et_error];
+//v->type =  env->gwion->type[et_error];
+//env->gwion->type[et_error]->ref += 2;
+
+error = true;
+//          return GW_OK;
         }
       }
+if(error)
+//          return GW_OK;
+          return GW_ERROR;
     }
   }
   nspc_allocdata(env->gwion->mp, t->nspc);
