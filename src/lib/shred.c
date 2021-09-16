@@ -178,10 +178,12 @@ static inline void join(const M_Object o) {
 }
 
 static DTOR(fork_dtor) {
+  VM *parent = ME(o)->info->vm->parent;
+  MUTEX_LOCK(parent->shreduler->mutex);
   *(m_int *)(o->data + o_fork_done) = 1;
+  MUTEX_UNLOCK(parent->shreduler->mutex);
   stop(o);
   join(o);
-  VM *parent = ME(o)->info->vm->parent;
   MUTEX_LOCK(parent->shreduler->mutex);
   if (parent->gwion->data->child.ptr) {
     const m_int idx = vector_find(&parent->gwion->data->child, (vtype)o);
@@ -190,8 +192,8 @@ static DTOR(fork_dtor) {
   if (!parent->gwion->data->child2.ptr)
     vector_init(&parent->gwion->data->child2);
   vector_add(&parent->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
-  vmcode_remref(ME(o)->code, ME(o)->info->vm->gwion);
   MUTEX_UNLOCK(parent->shreduler->mutex);
+  vmcode_remref(ME(o)->code, ME(o)->info->vm->gwion);
 }
 
 static MFUN(fork_join) {
@@ -203,22 +205,29 @@ static MFUN(fork_join) {
 
 static MFUN(shred_cancel) {
   if(!ME(o)->tick)return;
-  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+//  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
   *(m_int *)(o->data + o_shred_cancel) = *(m_int *)MEM(SZ_INT);
-  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+//  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
 }
 
 static MFUN(shred_test_cancel) {
+//  VM *parent = ME(o)->info->vm;
+//  MUTEX_LOCK(parent->shreduler->mutex);
   if (*(m_int *)(o->data + o_shred_cancel)) vm_shred_exit(ME(o));
+//  MUTEX_UNLOCK(parent->shreduler->mutex);
 }
 
 static MFUN(fork_test_cancel) {
+  VM *parent = ME(o)->info->vm;
+  MUTEX_LOCK(parent->shreduler->mutex);
   if (*(m_int *)(o->data + o_shred_cancel)) {
+    MUTEX_UNLOCK(parent->shreduler->mutex);
     stop(o);
     join(o);
     _release(o, ME(o));
     vm_shred_exit(ME(o));
-  }
+  } else
+    MUTEX_UNLOCK(parent->shreduler->mutex);
 }
 
 static MFUN(shred_now) {
@@ -245,7 +254,6 @@ static ANN THREAD_FUNC(fork_run) {
   VM *                   vm    = tl->vm;
   MUTEX_TYPE             mutex = tl->mutex;
   const M_Object         me    = vm->shreduler->list->self->info->me;
-  ++me->ref;
   MUTEX_COND_LOCK(mutex);
   THREAD_COND_SIGNAL(FORK_COND(me));
   MUTEX_COND_UNLOCK(mutex);
@@ -253,8 +261,8 @@ static ANN THREAD_FUNC(fork_run) {
     vm_run(vm);
     ++vm->bbq->pos;
   }
-  gwion_end_child(ME(me), vm->gwion);
   MUTEX_LOCK(vm->parent->shreduler->mutex);
+  gwion_end_child(ME(me), vm->gwion);
   if (!*(m_int *)(me->data + o_shred_cancel) &&
       me->type_ref != vm->gwion->type[et_fork])
     memcpy(me->data + vm->gwion->type[et_fork]->nspc->offset, ME(me)->reg,
@@ -272,13 +280,14 @@ ANN void fork_launch(const M_Object o, const m_uint sz) {
   THREAD_COND_SETUP(FORK_COND(o));
   struct ThreadLauncher tl = {
       .mutex = FORK_MUTEX(o), .cond = FORK_COND(o), .vm = ME(o)->info->vm};
+  ++o->ref;
   MUTEX_COND_LOCK(tl.mutex);
   THREAD_CREATE(FORK_THREAD(o), fork_run, &tl);
   THREAD_COND_WAIT(FORK_COND(o), tl.mutex);
   MUTEX_COND_UNLOCK(tl.mutex);
   THREAD_COND_CLEANUP(FORK_COND(o));
   MUTEX_CLEANUP(FORK_MUTEX(o));
-//  sleep(0);
+  sleep(0);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
