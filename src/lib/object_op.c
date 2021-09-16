@@ -261,7 +261,8 @@ OP_EMIT(opem_object_dot) {
   if((isa(value->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion, value->type)) &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late))) {
-    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    const Instr instr = emit_add_instr(emit, fast_except);
     instr->m_val      = -SZ_INT;
   }
   return GW_OK;
@@ -349,6 +350,9 @@ static OP_EMIT(opem_not_object) {
   if (back->opcode == eGWOP_EXCEPT) {
     back->opcode = eIntNot;
     return GW_OK;
+  } else if (back->opcode == eOP_MAX && back->execute == fast_except) {
+    back->opcode = eIntNot;
+    return GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegSetImm);
   instr->m_val2     = -SZ_INT;
@@ -358,7 +362,7 @@ static OP_EMIT(opem_not_object) {
 static OP_EMIT(opem_uncond_object) {
   const Vector v    = &emit->code->instr;
   const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
-  if (back->opcode == eGWOP_EXCEPT) {
+  if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
     free_instr(emit->gwion, back);
     vector_rem(v, vector_size(v) - 2);
   }
@@ -369,7 +373,7 @@ static OP_EMIT(opem_uncond_object) {
 static OP_EMIT(opem_cond_object) {
   const Vector v    = &emit->code->instr;
   const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
-  if (back->opcode == eGWOP_EXCEPT) {
+  if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
     free_instr(emit->gwion, back);
     vector_rem(v, vector_size(v) - 2);
   }

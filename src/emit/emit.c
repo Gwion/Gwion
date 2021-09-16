@@ -461,7 +461,8 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
     // prevent invalid access to global variables
     if(!exp_getvar(exp_self(prim_self(data))) &&
        isa(v->type, emit->gwion->type[et_object]) > 0) {
-      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+//      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+      const Instr instr = emit_add_instr(emit, fast_except);
       instr->m_val      = -SZ_INT;
       // use m_val2 to set some info?
     }
@@ -516,7 +517,8 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
       (isa(v->type, emit->gwion->type[et_object]) > 0 ||
        is_fptr(emit->gwion, v->type))) {
-    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    const Instr instr = emit_add_instr(emit, fast_except);
     instr->m_val      = -SZ_INT;
   }
   return GW_OK;
@@ -643,7 +645,8 @@ ANN m_bool emit_array_access(const Emitter                 emit,
                           .data = (uintptr_t)info};
   if (!info->is_var &&
       (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type))) {
-    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+    const Instr instr = emit_add_instr(emit, fast_except);
     instr->m_val      = -SZ_INT;
   }
   return op_emit(emit, &opi);
@@ -1528,7 +1531,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   if (vector_size(&emit->code->instr) && vflag(f->value_ref, vflag_member) &&
       is_fptr(emit->gwion, f->value_ref->type)) {
     const Instr back      = (Instr)vector_back(&emit->code->instr);
-    const bool  is_except = back->opcode == eGWOP_EXCEPT;
+    const bool  is_except = back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except);
     const Instr base =
         !is_except ? back
                    : (Instr)vector_at(&emit->code->instr,
@@ -1873,7 +1876,8 @@ ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
         exp_getuse(e) && !exp_getvar(e) &&
         GET_FLAG(e->d.exp_decl.list->self->value, late)) {
       //         e->exp_type == ae_exp_decl && !exp_getvar(e)) {
-      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+//      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
+      const Instr instr = emit_add_instr(emit, fast_except);
       instr->m_val      = -SZ_INT;
     }
   } while ((exp = exp->next));

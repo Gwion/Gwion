@@ -144,3 +144,10 @@ INSTR(SetCtor) {
   VAL = *(m_uint *)(shred->reg + SZ_INT) = (m_uint)t->nspc->pre_ctor;
   VAL2                                   = SZ_INT;
 }
+
+INSTR(fast_except) {
+  if(*(m_uint*)REG((m_int)instr->m_val)) {
+    BYTE(eNoOp)
+  } else
+    handle(shred, "NullPtrException");
+}

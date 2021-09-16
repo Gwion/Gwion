@@ -44,6 +44,8 @@ INSTR(DtorReturn);
 INSTR(ComplexReal);
 INSTR(ComplexImag);
 
+
+INSTR(fast_except);
 /* function */
 INSTR(DtorReturn);
 
