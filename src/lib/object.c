@@ -21,14 +21,12 @@
 #undef insert_symbol
 
 M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
-  const M_Object a = mp_calloc(p, M_Object);
+  const uint32_t offset = sizeof(struct M_Object_) + t->nspc->offset;
+  const M_Object a = _mp_calloc(p, offset);
   a->ref           = 1;
   a->type_ref      = t;
-  if (t->nspc) {
-    a->vtable.ptr = t->nspc->vtable.ptr;
-    if (t->nspc->offset)
-      a->data = (m_bit *)_mp_calloc(p, t->nspc->offset);
-  }
+  a->offset = t->nspc->offset;
+  a->vtable.ptr = t->nspc->vtable.ptr;
   if (shred) vector_add(&shred->gc, (vtype)a);
   return a;
 }
@@ -47,7 +45,8 @@ M_Object new_string2(const struct Gwion_ *gwion, const VM_Shred shred,
   return o;
 }
 
-ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
+ANN static void user_dtor(const M_Object o, const VM_Shred shred, const Type t) {
+  o->type_ref = t;
   const VM_Shred sh = new_vm_shred(shred->info->mp, o->type_ref->nspc->dtor);
   vmcode_addref(o->type_ref->nspc->dtor);
   sh->base             = shred->base;
@@ -56,39 +55,47 @@ ANN static void handle_dtor(const M_Object o, const VM_Shred shred) {
   ++sh->info->me->ref;
 }
 
-__attribute__((hot)) ANN void __release(const M_Object o,
-                                        const VM_Shred shred) {
-  vector_rem2(&shred->gc, (vtype)o);
-  MemPool p = shred->info->mp;
-  Type    t = o->type_ref;
-  do {
-    if (!t->nspc) continue;
-    if (isa(t, shred->info->vm->gwion->type[et_union]) < 0) {
-      struct scope_iter iter = {t->nspc->info->value, 0, 0};
-      Value             v;
-      while (scope_iter(&iter, &v) > 0) {
-        if (!GET_FLAG(v, static) &&
-            isa(v->type, shred->info->vm->gwion->type[et_compound]) > 0)
-          compound_release(shred, v->type, o->data + v->from->offset);
-      }
-    }
-    if (tflag(t, tflag_dtor)) {
-      if (t->nspc->dtor->builtin)
-        ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
-      else {
-        o->type_ref = t;
-        handle_dtor(o, shred);
-        return;
-      }
-    }
-  } while ((t = t->info->parent));
-  free_object(p, o);
+static DTOR(object_dtor) {
+  free_object(shred->info->mp, o);
+}
+
+ANN static inline Type next_type(Type t) {
+  do if(t->nspc) return t;
+  while((t = t->info->parent));
+  return NULL;
+}
+
+ANN static inline void release_not_union(const m_bit *data, const VM_Shred shred, const Scope s) {
+  const Map m = &s->map;
+  for(m_uint i = map_size(m) + 1; --i;) {
+    const Value v = (Value) VVAL(m, i-1);
+    if (vflag(v, vflag_release))
+      compound_release(shred, v->type, data + v->from->offset);
+  }
+}
+
+ANN static void do_release(const M_Object o,
+                                        const VM_Shred shred, const Type t) {
+  const Type next = next_type(t);
+  if(!next) return;
+  if (!tflag(t, tflag_union))
+    release_not_union(o->data, shred, t->nspc->info->value);
+  if (tflag(t, tflag_dtor)) {
+    if (t->nspc->dtor->builtin)
+      ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
+    else
+      return user_dtor(o, shred, t);
+  }
+  return do_release(o, shred, t->info->parent);
+}
+
+ANN void __release(const M_Object o, const VM_Shred shred) {
+//  vector_rem2(&shred->gc, (vtype)o);
+  do_release(o, shred, o->type_ref);
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-  if (o->type_ref->nspc && o->type_ref->nspc->offset)
-    mp_free2(p, o->type_ref->nspc->offset, o->data);
-  mp_free(p, M_Object, o);
+    mp_free2(p, o->offset, o);
 }
 
 static ID_CHECK(opck_this) {
@@ -119,6 +126,10 @@ static ID_EMIT(opem_this) {
 GWION_IMPORT(object) {
   const Type t_object = gwi_mk_type(gwi, "Object", SZ_INT, "@Compound");
   gwi_set_global_type(gwi, t_object, et_object);
+  t_object->nspc = new_nspc(gwi->gwion->mp, "Object");
+  t_object->nspc->dtor = new_vmcode(gwi->gwion->mp, NULL, NULL, "Object", SZ_INT, true, false);
+  t_object->nspc->dtor->native_func = (m_uint)object_dtor;
+  t_object->tflag |= tflag_dtor;
   struct SpecialId_ spid = {.ck = opck_this, .em = opem_this, .is_const = 1};
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;

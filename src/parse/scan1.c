@@ -128,6 +128,8 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
         if (env->class_def->info->tuple) tuple_contains(env, v);
         if (!GET_FLAG(decl->td, static)) {
           set_vflag(v, vflag_member);
+          if(isa(t, env->gwion->type[et_object]) > 0)
+            set_vflag(v, vflag_release);
           if (tflag(env->class_def, tflag_struct)) {
             v->from->offset = env->class_def->size;
             env->class_def->size += t->size;
@@ -508,9 +510,10 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
     if (nspc_lookup_value0(env->curr, l->xid))
       ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
     const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
-    if (!tflag(t, tflag_scan1)) // ???
+//    if (!tflag(t, tflag_scan1)) // ???
       tuple_contains(env, v);   // ???
-    v->from->offset = SZ_INT;
+//    v->from->offset = SZ_INT;
+    v->from->offset = v->type->size;
     valuefrom(env, v->from, udef->pos);
     nspc_add_value_front(env->curr, l->xid, v);
     if (t->size > sz) sz = t->size;

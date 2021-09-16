@@ -163,13 +163,18 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
   }
   if (!decl->type) ERR_O(decl->td->pos, _("can't find type"));
   {
-    CHECK_BO(inferable(env, decl->type, decl->td->pos));
     CHECK_BO(ensure_check(env, decl->type));
+    if(inferable(env, decl->type, decl->td->pos) < 0) {
+      if(!tflag(decl->type, tflag_check) && decl->type->ref > 1 && env->class_def && !env->scope->depth)
+        type_remref(decl->type, env->gwion);
+      return NULL;
+   }
   }
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret    = check_decl(env, decl);
   if (global) env_pop(env, scope);
+  env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]) > 0);
   return ret > 0 ? decl->list->self->value->type : NULL;
 }
 
@@ -209,6 +214,7 @@ ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
   if (!e)
     ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"))
   CHECK_OO(check_exp(env, e));
+  env_weight(env, 1);
   return array->type = prim_array_match(env, e);
 }
 
@@ -225,6 +231,7 @@ ANN static m_bool check_range(const Env env, Range *range) {
 ANN static Type check_prim_range(const Env env, Range **data) {
   Range *range = *data;
   CHECK_BO(check_range(env, range));
+  env_weight(env, 1);
   const Exp e = range->start ?: range->end;
   assert(e);
   const Symbol     sym = insert_symbol("@range");
@@ -288,6 +295,7 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
                           .lhs  = member->base->type,
                           .data = (uintptr_t)member,
                           .pos  = exp_self(member)->pos};
+  env_weight(env, 1);
   return op_check(env, &opi);
 }
 
@@ -367,17 +375,20 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 
 ANN static Type check_prim_perform(const Env env, const Symbol *data) {
   env_add_effect(env, *data, prim_pos(data));
+  env_weight(env, 1);
   return env->gwion->type[et_void];
 }
 
 ANN static Type check_prim_interp(const Env env, const Exp *exp) {
   CHECK_OO(check_exp(env, *exp));
+  env_weight(env, 1);
   return env->gwion->type[et_string];
 }
 
 ANN static Type check_prim_hack(const Env env, const Exp *data) {
   if (env->func) unset_fflag(env->func, fflag_pure);
   CHECK_OO(check_prim_interp(env, data));
+  env_weight(env, 1);
   return env->gwion->type[et_gack];
 }
 /*
@@ -452,6 +463,7 @@ static ANN Type check_exp_array(const Env env, const Exp_Array *array) {
 static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
   CHECK_OO(check_exp(env, range->base));
   CHECK_BO(check_range(env, range->range));
+  env_weight(env, 1);
   const Symbol sym = insert_symbol("@slice");
   const Exp    e   = range->range->start ?: range->range->end;
   assert(e);
@@ -1801,6 +1813,78 @@ ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
   return isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
 }
 
+ANN static m_bool recursive_type_base(const Env env, const Type t);
+ANN static bool recursive_type(const Env env, const Type t, const Type tgt);
+ANN static bool recursive_value(const Env env, const Type t, const Value v) {
+//if(!v->from->owner_class)exit(13);
+  const Type tgt = array_base(v->type);
+  if(type_is_recurs(t, tgt)) {
+    env_err(env, v->from->loc, _("recursive type"));
+    env->context->error = false;
+    gwerr_secondary("in class", t->name, t->info->cdef->base.pos);
+
+    const Type first = tgt->info->value->from->loc.first.line < t->info->value->from->loc.first.line ?
+//      tgt : t;
+      v->type : t;
+    const Type second = tgt->info->value->from->loc.first.line > t->info->value->from->loc.first.line ?
+//      tgt : t;
+      v->type : t;
+
+printf("%s %s\n", first->name, second->name);
+
+    if(first != second) {
+      const Map m1 = &first->info->value->from->owner->info->type->map;
+      map_remove(m1, (m_uint)insert_symbol(first->name));
+      const Map m2 = &second->info->value->from->owner->info->type->map;
+      map_remove(m2, (m_uint)insert_symbol(second->name));
+      if(first->ref > 2)
+        type_remref(first, env->gwion);
+      if(second->ref > 2)
+        type_remref(second, env->gwion);
+    if(tgt != t && v->type == tgt && strncmp(tgt->name, "Option:[", 8))
+      recursive_type_base(env, tgt);
+    }
+    set_tflag(t, tflag_infer);
+    set_tflag(tgt, tflag_infer);
+    unset_tflag(t, tflag_check);
+    unset_tflag(tgt, tflag_check);
+    return true;
+  }
+  if(v->type->nspc && !GET_FLAG(v, late) &&
+      isa(tgt, env->gwion->type[et_compound]) > 0)
+    return recursive_type(env, t, tgt);
+  return false;
+}
+
+ANN static bool recursive_type(const Env env, const Type t, const Type tgt) {
+  Value             v;
+  struct scope_iter inner = {tgt->nspc->info->value, 0, 0};
+  bool error = false;
+  while (scope_iter(&inner, &v) > 0) {
+    if(!GET_FLAG(v, late) && recursive_value(env, t, v)) {
+      error = true;
+    }
+  }
+  return error;
+}
+
+ANN static m_bool recursive_type_base(const Env env, const Type t) {
+  Value             value;
+  bool error = false;
+  struct scope_iter iter = {t->nspc->info->value, 0, 0};
+  while (scope_iter(&iter, &value) > 0) {
+    if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
+    if (value->type->nspc && !GET_FLAG(value, late)) {
+      if(recursive_type(env, t, value->type)) {
+        env_err(env, value->from->loc, _("recursive type"));
+        gw_err("use {+G}late{0} on one (or more) of the variables?\n");
+        error = true;
+      }
+    }
+  }
+  return error;
+}
+
 ANN bool check_trait_requests(const Env env, const Type t, const ID_List list);
 ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
@@ -1826,48 +1910,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
       return GW_ERROR;
     }
   }
-
-  Value             value;
-  struct scope_iter iter = {t->nspc->info->value, 0, 0};
-  while (scope_iter(&iter, &value) > 0) {
-    if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
-//        const Type t = array_base(value->type);
-    if (value->type->nspc && !GET_FLAG(value, late)) {
-      Value             v;
-      struct scope_iter inner = {value->type->nspc->info->value, 0, 0};
-bool error = false;
-      while (scope_iter(&inner, &v) > 0) {
-        const Type tgt = array_base(v->type);
-//        if(isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1)) {
-        if(type_is_recurs(t, tgt)) {
-          env_err(env, v->from->loc, _("recursive type"));
-          env->context->error = false;
-          env_err(env, value->from->loc, _("recursive type"));
-          gw_err("use {+G}late{0} on one (or more) of the variables?\n");
-//          env_set_error(env);
-vector_rem2(&t->info->tuple->contains, (m_uint)tgt);
-vector_rem2(&tgt->info->tuple->contains, (m_uint)t);
-type_remref(t, env->gwion);
-//type_remref(tgt, env->gwion);
-//nspc_add_type_front(t->nspc, insert_symbol(tgt->name), tgt);
-//nspc_add_type_front(tgt->nspc, insert_symbol(tgt->name), t);
-          set_tflag(t, tflag_infer);
-          set_tflag(tgt, tflag_infer);
-          unset_tflag(t, tflag_check);
-          unset_tflag(tgt, tflag_check);
-//value->type =  env->gwion->type[et_error];
-//v->type =  env->gwion->type[et_error];
-//env->gwion->type[et_error]->ref += 2;
-
-error = true;
-//          return GW_OK;
-        }
-      }
-if(error)
-//          return GW_OK;
-          return GW_ERROR;
-    }
-  }
+  CHECK_BB(recursive_type_base(env, t));
   nspc_allocdata(env->gwion->mp, t->nspc);
   return GW_OK;
 }

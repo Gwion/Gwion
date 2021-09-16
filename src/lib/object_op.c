@@ -229,7 +229,6 @@ OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Type     t_base = actual_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
-
   if (is_class(emit->gwion, value->type)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;

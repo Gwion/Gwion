@@ -235,6 +235,7 @@ ANN static Type union_type(const Env env, const Symbol s, const loc_t loc) {
   t->nspc          = new_nspc(env->gwion->mp, name);
   t->nspc->parent  = env->curr;
   t->info->tuple   = new_tupleform(env->gwion->mp, NULL); // ???
+  set_tflag(t, tflag_union);
   add_type(env, env->curr, t);
   mk_class(env, t, loc);
   SET_FLAG(t, final);
@@ -380,7 +381,7 @@ ANN static Exp arglist2exp(MemPool p, Arg_List arg, const Exp default_arg) {
 }
 
 ANN2(1,2) static Ast scan0_func_def_default(const MemPool p, const Ast ast,
-                                      const Ast next) {
+                                            const Ast next) {
   const Func_Def base_fdef = ast->section->d.func_def;
   Arg_List       base_arg = base_fdef->base->args, former = NULL;
   while (base_arg) {
@@ -505,14 +506,14 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
 }
 
 ANN m_bool scan0_ast(const Env env, Ast ast) {
+  Ast next;
   do {
+    next = ast->next;
     CHECK_BB(scan0_section(env, ast->section));
     if (ast->section->section_type != ae_section_func ||
         !fdef_defaults(ast->section->d.func_def))
       continue;
-    const Ast next = ast->next;
-    scan0_func_def_default(env->gwion->mp, ast, next);
-    if(!(ast = next))break;
-  } while ((ast = ast->next));
+    (void)scan0_func_def_default(env->gwion->mp, ast, ast->next);
+  } while ((ast = next));
   return GW_OK;
 }

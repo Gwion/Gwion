@@ -21,7 +21,8 @@ static void sig(int unused NUSED) {
 
 static void afl_run(const Gwion gwion) {
   __AFL_INIT();
-  while (__AFL_LOOP(128)) {
+//  while (__AFL_LOOP(128)) {
+  while (__AFL_LOOP(32)) {
     push_global(gwion, "[afl]");
     FILE *f = fdopen(0, "r");
     if (compile_file(gwion, "afl", f)) gwion_run(gwion);

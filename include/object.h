@@ -2,10 +2,11 @@
 #define __OBJECT
 typedef struct M_Object_ *M_Object;
 struct M_Object_ {
-  m_bit *         data;
-  Type            type_ref;
-  struct Vector_  vtable;
-  volatile size_t ref;
+  Type                  type_ref;
+  struct Vector_        vtable;
+  /*volatile */uint32_t ref;
+  uint32_t              offset;
+  m_bit                 data[];
 };
 
 ANN void           instantiate_object(const VM_Shred, const Type);
@@ -60,7 +61,7 @@ static inline void struct_addref(const Gwion gwion, const Type type,
   }
 }
 
-static inline void compound_release(const VM_Shred shred, const Type t,
+ANN static inline void compound_release(const VM_Shred shred, const Type t,
                                     const m_bit *ptr) {
   if (!tflag(t, tflag_struct))
     object_release(shred, t, ptr);
