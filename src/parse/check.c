@@ -1165,7 +1165,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
     ERR_B(stmt_self(stmt)->pos,
           _("empty for loop condition..."
             "...(note: explicitly use 'true' if it's the intent)"
-            "...(e.g., 'for(; true;{{ /*...*/ }')"))
+            "...(e.g., 'for(; true;){{ /*...*/ }')"))
   return GW_OK;
 }
 
@@ -1829,8 +1829,6 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
     const Type second = tgt->info->value->from->loc.first.line > t->info->value->from->loc.first.line ?
 //      tgt : t;
       v->type : t;
-
-printf("%s %s\n", first->name, second->name);
 
     if(first != second) {
       const Map m1 = &first->info->value->from->owner->info->type->map;

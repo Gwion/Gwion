@@ -11,6 +11,6 @@
 GWION_IMPORT(enum_test) {
   GWI_BB(gwi_enum_ini(gwi, "test"))
   GWI_BB(gwi_enum_add(gwi, "adc", 0))
-  GWI_BB(gwi_enum_ini(gwi, NULL))
+  GWI_BB(gwi_enum_ini(gwi, "error"))
   return GW_OK;
 }

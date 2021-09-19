@@ -1819,7 +1819,7 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
 
 ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e));
-  emit_exp_addref1(emit, e, -exp_size(e)); // ????
+//  emit_exp_addref1(emit, e, -exp_size(e)); // ????
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
       .rhs  = e->type,
@@ -2412,9 +2412,9 @@ ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
                                  const Exp e, const Symbol op, const Vector v) {
   CHECK_BB(emit_exp1(emit, base));
-  emit_exp_addref1(emit, base, -exp_size(base));
+//  emit_exp_addref1(emit, base, -exp_size(base));
   CHECK_BB(emit_exp1(emit, e));
-  emit_exp_addref1(emit, e, -exp_size(e));
+//  emit_exp_addref1(emit, e, -exp_size(e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = op};
   struct Exp_      ebin = {
       .d = {.exp_binary = bin},
@@ -2460,7 +2460,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
       if (!nspc_lookup_value1(emit->env->curr, e->d.prim.d.var)) {
         if (!n) {
           CHECK_BO(emit_exp(emit, base));
-          emit_exp_addref(emit, base, -exp_totalsize(base));
+//          emit_exp_addref(emit, base, -exp_totalsize(base));
           regpop(emit, base->type->size);
         }
         CHECK_BO(case_value(emit, base, e));
@@ -2679,6 +2679,10 @@ ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
                                               const Func    func) {
   if(!strcmp(s_name(func->def->base->xid), "new"))
     emit_add_instr(emit, RegPushMem);
+  if (fbflag(func->def->base, fbflag_variadic)) {
+    Instr instr  = emit_add_instr(emit, ObjectRelease);
+    instr->m_val = func->def->stack_depth - SZ_INT;
+  }
   return !fbflag(func->def->base, fbflag_internal) ? finalyze(emit, FuncReturn)
                                                    : emit_internal(emit, func);
 }

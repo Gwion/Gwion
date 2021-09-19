@@ -52,7 +52,7 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
   vm->parent            = parent;
   const M_Object o = sh->info->me = fork_object(shred, t);
   ME(o)                           = sh;
-  ++o->ref;
+//  ++o->ref;
   shreduler_add(vm->shreduler, sh);
   return o;
 }

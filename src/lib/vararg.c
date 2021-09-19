@@ -43,8 +43,9 @@ static DTOR(vararg_dtor) {
 static MFUN(mfun_vararg_cpy) {
   struct Vararg_ *src = *(struct Vararg_ **)o->data;
   struct Vararg_ *arg = mp_calloc(shred->info->mp, Vararg);
-  vector_copy2(&src->t, &arg->t);
-  arg->d = (m_bit *)xmalloc(round2szint(*(m_uint *)(o->data + SZ_INT * 2)));
+  if(*(m_uint*)(o->data + SZ_INT * 2)) {
+    vector_copy2(&src->t, &arg->t);
+    arg->d = (m_bit *)xmalloc(round2szint(*(m_uint *)(o->data + SZ_INT * 2)));
   m_uint offset = 0;
   for (m_uint i = 0; i < vector_size(&arg->t); ++i) {
     const Type t = (Type)vector_at(&arg->t, *(m_uint *)(o->data + SZ_INT * 4));
@@ -53,12 +54,13 @@ static MFUN(mfun_vararg_cpy) {
       ++(*(M_Object *)(arg->d + offset))->ref;
     offset += t->size;
   }
+  }
   const M_Object obj = new_object(shred->info->mp, o->type_ref);
   *(struct Vararg_ **)obj->data       = arg;
   *(m_uint *)(obj->data + SZ_INT * 2) = *(m_uint *)(o->data + SZ_INT * 2);
   *(m_uint *)(obj->data + SZ_INT * 3) = *(m_uint *)(o->data + SZ_INT * 3);
   *(m_uint *)(obj->data + SZ_INT * 4) = *(m_uint *)(o->data + SZ_INT * 4);
-  *(m_uint *)(obj->data + SZ_INT * 4) = vector_size(&arg->t); // can we copy?
+  *(m_uint *)(obj->data + SZ_INT * 4) = arg->t.ptr ? vector_size(&arg->t) : 0; // can we copy?
   *(M_Object *)RETURN                 = obj;
 }
 
@@ -84,6 +86,7 @@ INSTR(VarargIni) {
     *(m_uint *)(o->data + SZ_INT * 5) = vector_size(kinds);
   }
   *(M_Object *)REG(-SZ_INT) = o;
+//  ++o->ref;
 }
 
 static INSTR(VarargEnd) {

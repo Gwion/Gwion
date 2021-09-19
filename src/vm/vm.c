@@ -117,8 +117,7 @@ ANN static void trace(VM_Shred shred, const m_uint size) {
   const m_uint line = vector_at(&shred->info->line, size - 1);
   m_uint       i;
   bool         can_skip = false;
-//printf("size %lu\n", size);
-if(!size)return;
+  if(!size)return;
   for (i = size; --i;) {
     const m_uint val = VPTR(&shred->info->line, i - 1);
     if (!val)
