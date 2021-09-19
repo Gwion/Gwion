@@ -37,6 +37,7 @@
 typedef struct Local_ {
   Type   type;
   m_uint offset;
+  Instr instr;
   bool   skip;
   bool   is_compound;
 } Local;
@@ -296,6 +297,25 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
     ++emit->code->frame->value_count;
   }
   return l->offset;
+}
+
+ANN void* emit_localx(const Emitter emit, const Type t) {
+  Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
+  l->is_compound = true;
+  VMValue vmval  = {
+      .t = t, .offset = l->offset, .start = emit_code_size(emit)};
+  m_vector_add(&emit->code->live_values, &vmval);
+  ++emit->code->frame->value_count;
+  l->instr = emit_add_instr(emit, Reg2Mem);
+  l->instr->m_val  = l->offset;
+  l->instr->m_val2 = -SZ_INT;
+  return l;
+}
+
+ANN void emit_local_exp(const Emitter emit, const Exp e) {
+  Local *const l = emit_localx(emit, e->type);
+  if(e->ref)
+    e->ref->data = l;
 }
 
 ANN m_uint emit_localn(const Emitter emit, const Type t) {
@@ -608,7 +628,7 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val      = (m_uint)type;
   instr->m_val2     = array_base_simple(type)->size;
-  emit_gc(emit, -SZ_INT);
+  emit_local_exp(emit, prim_exp(data));
   emit_notpure(emit);
   return GW_OK;
 }
@@ -638,7 +658,7 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
                           .pos  = e->pos,
                           .data = (uintptr_t)prim_exp(data)};
   CHECK_BB(op_emit(emit, &opi));
-  emit_gc(emit, -SZ_INT);
+  emit_local_exp(emit, prim_exp(data));
   return GW_OK;
 }
 
@@ -680,7 +700,9 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {
                           .rhs  = range->base->type,
                           .pos  = e->pos,
                           .data = (uintptr_t)exp_self(range)};
-  return op_emit(emit, &opi);
+  CHECK_BB(op_emit(emit, &opi));
+  emit_local_exp(emit, exp_self(range));
+  return GW_OK;
 }
 
 ANN static inline Instr specialid_instr(const Emitter      emit,
@@ -707,6 +729,8 @@ ANN static m_bool    emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ *spid = specialid_get(emit->gwion, *data);
   if (spid)
     return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
+
+  if(vflag(prim->value, vflag_fglobal)) exp_self(prim)->acquire = 1;
   return emit_symbol(emit, prim_self(data));
 }
 
@@ -743,10 +767,10 @@ ANN static m_bool emit_prim_str(const Emitter emit, const struct AstString *str)
       CHECK_BB(escape_str(emit, c, prim_pos(str)));
     } else
       c[0] = '\0';
-    v->d.obj = new_string2(emit->gwion, NULL, c);
+    v->d.obj = new_string(emit->gwion, c);
   }
   regpushi(emit, (m_uint)v->d.obj);
-  emit_object_addref(emit, -SZ_INT, 0);
+//  emit_object_addref(emit, -SZ_INT, 0);
   return GW_OK;
 }
 
@@ -806,6 +830,7 @@ ANN static m_bool emit_prim_interp(const Emitter emit, const Exp *exp) {
   CHECK_BB(emit_interp(emit, e));
   const Instr instr = emit_add_instr(emit, GackEnd);
   instr->m_val      = 1;
+  emit_localx(emit, emit->gwion->type[et_string]);
   return GW_OK;
 }
 
@@ -879,6 +904,26 @@ ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
   return instr;
 }
 
+ANN void unset_local(const Emitter emit, Local *const l) {
+  l->instr->opcode = eNoOp;
+//  l->is_compound = false;
+//  l-> = false;
+  for(m_uint i = m_vector_size(&emit->code->live_values) + 1; --i;) {
+    VMValue vmval = *(VMValue*)(ARRAY_PTR((&emit->code->live_values)) + (i-1) * sizeof(VMValue));
+    if(vmval.offset != l->offset) continue;
+    m_vector_rem(&emit->code->live_values, i-1);
+    break;
+  }
+  --emit->code->frame->value_count;
+}
+
+ANN static m_uint decl_non_static_offset(const Emitter emit, const Exp_Decl *decl, const Type t) {
+  if(!exp_self(decl)->data)
+    return emit_local(emit, t);
+  Local *const l = exp_self(decl)->data;
+  return l->offset;
+}
+
 ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
                                            const Exp_Decl *decl,
                                            const Var_Decl  var_decl,
@@ -895,7 +940,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
   f_instr *exec = (f_instr *)allocmember;
   if (!emit->env->scope->depth) emit_debug(emit, v);
   if (!vflag(v, vflag_member)) {
-    v->from->offset = emit_local(emit, type);
+//    v->from->offset = exp_self(decl)->data ? ((Local*)exp_self(decl)->data)->offset : emit_local(emit, type);
+    v->from->offset = decl_non_static_offset(emit, decl, type);
     exec            = (f_instr *)(allocword);
     if (GET_FLAG(v, late)) { // ref or emit_var ?
       const Instr clean = emit_add_instr(emit, MemSetImm);
@@ -1216,13 +1262,22 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   const Exp e = exp_self(exp_call);
   if (exp_getvar(e)) regpush(emit, SZ_INT);
   CHECK_BB(_emit_exp_call(emit, exp_call));
+  const Type t = exp_self(exp_call)->type;
   if (exp_getvar(e)) {
     regpop(emit, exp_self(exp_call)->type->size);
+    if(isa(t, emit->gwion->type[et_object]) > 0)
+      emit_local_exp(emit, e);
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val      = -SZ_INT;
-  } else if (!is_func(emit->gwion, exp_call->func->type) &&
+  } else {
+//    if(isa(t, emit->gwion->type[et_object]) > 0)
+//    if(isa(t, emit->gwion->type[et_object]) > 0)
+//      emit_local_exp(emit, e);
+//      emit_localx(emit, t);
+    if (!is_func(emit->gwion, exp_call->func->type) &&
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
+  }
   return GW_OK;
 }
 
@@ -1605,28 +1660,21 @@ stack_alloc(const Emitter emit) { // maybe vararg could use t_vararg instead
   emit->code->stack_depth += SZ_INT;
 }
 
-ANN static inline Instr scoped_ini(const Emitter emit) {
+ANN static inline void scoped_ini(const Emitter emit) {
   ++emit->env->scope->depth;
   emit_push_scope(emit);
-  return emit_add_instr(emit, NoOp);
 }
 
-ANN static inline void scoped_end(const Emitter emit, const Instr gc) {
+ANN static inline void scoped_end(const Emitter emit) {
   emit_pop_scope(emit);
-  const m_bool pure =
-      vector_size(&emit->info->pure) && !vector_back(&emit->info->pure);
-  if (!pure) {
-    gc->opcode = eGcIni;
-    emit_add_instr(emit, GcEnd);
-  }
   --emit->env->scope->depth;
 }
 
 ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt,
                               const m_bool pop) {
-  const Instr  gc  = scoped_ini(emit);
+  scoped_ini(emit);
   const m_bool ret = emit_stmt(emit, stmt, pop);
-  scoped_end(emit, gc);
+  scoped_end(emit);
   return ret;
 }
 
@@ -1735,7 +1783,10 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .is_spork = (unary->op == insert_symbol("spork")),
       .emit_var = exp_getvar(exp_self(unary))};
   CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)));
+  if(!sporker.is_spork)
+    emit_local_exp(emit, exp_self(unary));
   spork_ini(emit, &sporker);
+//puts("here");
   (unary->unary_type == unary_code ? spork_code : spork_func)(emit, &sporker);
   return GW_OK;
 }
@@ -1949,6 +2000,10 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
     CHECK_BB(emit_exp_pop_next(emit, stmt->val));
+
+   if(isa(stmt->val->type, emit->gwion->type[et_object]) > 0 &&
+       (!stmt->val->data && stmt->val->acquire))
+      emit_object_addref(emit, -SZ_INT, exp_getvar(stmt->val));
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
@@ -2147,7 +2202,7 @@ ANN static inline m_bool unroll_run(const Emitter        emit,
 }
 
 ANN static m_bool unroll(const Emitter emit, const struct Looper *loop) {
-  const Instr gc     = scoped_ini(emit);
+  scoped_ini(emit);
   const Instr unroll = emit_add_instr(emit, Unroll);
   unroll->m_val      = loop->offset;
   const m_uint start = emit_code_size(emit);
@@ -2157,7 +2212,7 @@ ANN static m_bool unroll(const Emitter emit, const struct Looper *loop) {
   unroll->m_val2      = end - start;
   const Instr unroll2 = emit_add_instr(emit, Unroll2);
   unroll2->m_val      = (m_uint)unroll;
-  scoped_end(emit, gc);
+  scoped_end(emit);
   return GW_OK;
 }
 

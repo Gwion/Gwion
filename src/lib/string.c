@@ -95,7 +95,7 @@ static INSTR(StringSlice) {
   char         c[sz + 1];
   for (m_int i = start, j = 0; i != end; i += op, ++j) c[j] = str[i];
   c[sz]                     = '\0';
-  *(M_Object *)REG(-SZ_INT) = new_string(shred->info->mp, shred, c);
+  *(M_Object *)REG(-SZ_INT) = new_string(shred->info->vm->gwion, c);
 }
 
 static MFUN(string_len) { *(m_uint *)RETURN = strlen(STRING(o)); }
@@ -105,7 +105,7 @@ static MFUN(string_upper) {
   strcpy(c, STRING(o));
   for (m_uint i = 0; i < strlen(c); i++)
     if (c[i] >= 'a' && c[i] <= 'z') c[i] += 'A' - 'a';
-  *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
 }
 
 static MFUN(string_lower) {
@@ -113,7 +113,7 @@ static MFUN(string_lower) {
   strcpy(c, STRING(o));
   for (m_uint i = 0; i < strlen(c); i++)
     if (c[i] >= 'A' && c[i] <= 'Z') c[i] -= 'A' - 'a';
-  *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
 }
 
 static MFUN(string_ltrim) {
@@ -122,7 +122,7 @@ static MFUN(string_ltrim) {
   while (str[i] == ' ') i++;
   char c[strlen(str) - i + 1];
   strcpy(c, STRING(o) + i);
-  *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
 }
 
 static MFUN(string_rtrim) {
@@ -134,7 +134,7 @@ static MFUN(string_rtrim) {
     char c[len + 2];
     strncpy(c, str, len + 1);
     c[len + 1]          = '\0';
-    *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+    *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
   } else {
     ++o->ref;
     *(M_Object *)RETURN = o;
@@ -164,7 +164,7 @@ static MFUN(string_trim) {
   char c[len - start - end + 1];
   for (i = start; i < len - end; i++) c[i - start] = str[i];
   c[len - start - end] = '\0';
-  *(M_Object *)RETURN  = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN  = new_string(shred->info->vm->gwion, c);
 }
 
 static MFUN(string_charAt) {
@@ -205,7 +205,7 @@ static MFUN(string_insert) {
   for (i = 0; i < len_insert; i++) c[i + index] = insert[i];
   for (i = index; i < (m_int)len; i++) c[i + len_insert] = str[i];
   c[len + len_insert] = '\0';
-  *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
   ;
 }
 
@@ -230,7 +230,7 @@ static MFUN(string_replace) {
   for (i = 0; i < index; i++) c[i] = str[i];
   for (i = 0; i < len_insert; i++) c[i + index] = insert[i];
   c[index + len_insert] = '\0';
-  *(M_Object *)RETURN   = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN   = new_string(shred->info->vm->gwion, c);
   ;
 }
 
@@ -257,7 +257,7 @@ static MFUN(string_replaceN) {
   for (i = 0; i < _len; i++) c[i + index] = insert[i];
   for (i = index + _len; i < (m_int)len; i++) c[i] = str[i];
   c[len + _len - 1]   = '\0';
-  *(M_Object *)RETURN = new_string(shred->info->mp, shred, c);
+  *(M_Object *)RETURN = new_string(shred->info->vm->gwion, c);
   ;
 }
 
@@ -394,7 +394,7 @@ static SFUN(string_load) {
   rewind(f);
   (void)fread(c, 1, sz, f);
   fclose(f);
-  *(M_Object*)RETURN = new_string2(shred->info->vm->gwion, shred, c);
+  *(M_Object*)RETURN = new_string(shred->info->vm->gwion, c);
 }
 
 GWION_IMPORT(string) {

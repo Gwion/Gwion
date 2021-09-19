@@ -36,14 +36,10 @@ VM_Shred new_vm_shred(MemPool p, VM_Code c) {
   shred->reg           = (m_bit *)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
   shred->info              = new_shredinfo(p, c);
-  vector_init(&shred->gc);
   return shred;
 }
 
 void free_vm_shred(VM_Shred shred) {
-  for (m_uint i = vector_size(&shred->gc) + 1; --i;)
-    release((M_Object)vector_at(&shred->gc, i - 1), shred);
-  vector_release(&shred->gc);
   if (shred->info->frame.ptr) vector_release(&shred->info->frame);
   if (shred->tick->child.ptr) vector_release(&shred->tick->child);
   vmcode_remref(shred->info->orig, shred->info->vm->gwion);

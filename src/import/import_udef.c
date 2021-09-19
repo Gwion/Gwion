@@ -50,7 +50,7 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   //      gwi->gwion->env->class_def->nspc->offset =
   //       udef->o + udef->s;
   //  set_vflag(udef->value, vflag_builtin);
-  //  const M_Object o = new_object(gwi->gwion->mp, NULL, udef->value->type);
+  //  const M_Object o = new_object(gwi->gwion->mp, udef->value->type);
   //  udef->value->d.ptr = (m_uint*)o;
   if (gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);

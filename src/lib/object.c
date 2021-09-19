@@ -20,27 +20,18 @@
 
 #undef insert_symbol
 
-M_Object new_object(MemPool p, const VM_Shred shred, const Type t) {
+M_Object new_object(MemPool p, const Type t) {
   const uint32_t offset = sizeof(struct M_Object_) + t->nspc->offset;
   const M_Object a = _mp_calloc(p, offset);
   a->ref           = 1;
   a->type_ref      = t;
   a->offset = t->nspc->offset;
   a->vtable.ptr = t->nspc->vtable.ptr;
-  if (shred) vector_add(&shred->gc, (vtype)a);
   return a;
 }
 
-M_Object new_string(MemPool p, const VM_Shred shred, const m_str str) {
-  const M_Object o =
-      new_object(p, shred, shred->info->vm->gwion->type[et_string]);
-  STRING(o) = mstrdup(p, str);
-  return o;
-}
-
-M_Object new_string2(const struct Gwion_ *gwion, const VM_Shred shred,
-                     const m_str str) {
-  const M_Object o = new_object(gwion->mp, shred, gwion->type[et_string]);
+M_Object new_string(const struct Gwion_ *gwion, const m_str str) {
+  const M_Object o = new_object(gwion->mp, gwion->type[et_string]);
   STRING(o)        = mstrdup(gwion->mp, str);
   return o;
 }

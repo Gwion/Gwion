@@ -199,9 +199,6 @@ enum {
   eUpvalueOther,
   eUpvalueAddr,
   eDotFunc,
-  eGcIni,
-  eGcAdd,
-  eGcEnd,
   eGackType,
   eGackEnd,
   eGack,
@@ -418,9 +415,6 @@ enum {
 #define  UpvalueOther         (f_instr)eUpvalueOther
 #define  UpvalueAddr          (f_instr)eUpvalueAddr
 #define  DotFunc              (f_instr)eDotFunc
-#define  GcIni                (f_instr)eGcIni
-#define  GcAdd                (f_instr)eGcAdd
-#define  GcEnd                (f_instr)eGcEnd
 #define  GackType             (f_instr)eGackType
 #define  GackEnd              (f_instr)eGackEnd
 #define  Gack                 (f_instr)eGack
@@ -1363,19 +1357,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: DotFunc     ", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eGcIni:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: GcIni       ", j);
-        gw_out("\n");
-        break;
-      case eGcAdd:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: GcAdd       ", j);
-        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eGcEnd:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: GcEnd       ", j);
         gw_out("\n");
         break;
       case eGackType:

@@ -65,12 +65,9 @@ m_bool     emit_instantiate_object(const Emitter, const Type, const Array_Sub,
                                    const m_bool);
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
+ANN void* emit_localx(const Emitter emit, const Type t);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
 ANN m_bool emit_exp(const Emitter, const Exp);
-ANN static inline void emit_gc(const Emitter emit, const m_int offset) {
-  const Instr gc = emit_add_instr(emit, GcAdd);
-  gc->m_val      = offset;
-}
 
 ANN Instr emit_object_addref(const Emitter emit, const m_int size,
                              const bool emit_var);

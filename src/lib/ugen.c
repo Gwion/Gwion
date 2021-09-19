@@ -95,7 +95,7 @@ describe_compute(mono, , ) describe_compute(multi, , )
 }
 
 ANEW M_Object new_M_UGen(const struct Gwion_ *gwion) {
-  const M_Object o = new_object(gwion->mp, NULL, gwion->type[et_ugen]);
+  const M_Object o = new_object(gwion->mp, gwion->type[et_ugen]);
   UGEN(o)          = new_UGen(gwion->mp);
   return o;
 }
@@ -159,9 +159,10 @@ ANN void connect_init(const VM_Shred shred, restrict M_Object *lhs,
     func(&lhs->connect.net->to, (vtype)rhs);                                   \
     rhs->connect.net->size = (uint)vector_size(&rhs->connect.net->from);       \
   }
-describe_connect(C, vector_add) describe_connect(Disc, vector_rem2)
+describe_connect(C, vector_add)
+describe_connect(Disc, vector_rem2)
 
-    ANN static void release_connect(const VM_Shred shred) {
+ANN static void release_connect(const VM_Shred shred) {
   *(M_Object *)REG(0) = *(M_Object *)REG(SZ_INT);
   PUSH_REG(shred, SZ_INT);
 }

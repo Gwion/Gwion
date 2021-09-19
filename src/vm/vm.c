@@ -265,7 +265,6 @@ ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
   sh->tick->parent = shred->tick;
   if (!shred->tick->child.ptr) vector_init(&shred->tick->child);
   vector_add(&shred->tick->child, (vtype)sh);
-//  vector_add(&shred->gc, (vtype)sh->info->me);
   return sh;
 }
 
@@ -491,7 +490,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&dotother, &&dotaddr, &&unioncheck, &&unionint, &&unionfloat,
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr, &&dotfunc,
-      &&gcini, &&gcadd, &&gcend, &&gacktype, &&gackend, &&gack, &&try_ini,
+      &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
       &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
       &&regpushimm};
@@ -1071,7 +1070,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       PRAGMA_POP()
       DISPATCH()
     newobj:
-      *(M_Object *)reg = new_object(vm->gwion->mp, NULL, (Type)VAL2);
+      *(M_Object *)reg = new_object(vm->gwion->mp, (Type)VAL2);
       reg += SZ_INT;
       DISPATCH()
     addref : {
@@ -1219,17 +1218,6 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       *(VM_Code *)(reg + (m_uint)VAL2) =
           ((Func)(*(M_Object *)(reg - SZ_INT))->vtable.ptr[OFFSET + VAL])->code;
       DISPATCH()
-    gcini:
-      vector_add(&shred->gc, 0);
-      DISPATCH();
-    gcadd:
-      vector_add(&shred->gc, *(vtype *)(reg + IVAL));
-      DISPATCH();
-    gcend : {
-      M_Object o;
-      while ((o = (M_Object)vector_pop(&shred->gc))) _release(o, shred);
-    }
-      DISPATCH()
     gacktype : {
       const M_Object o = *(M_Object *)(reg - SZ_INT);
       if (o) *(Type *)reg = o->type_ref;
@@ -1240,7 +1228,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       if (!VAL)
         gw_out("%s\n", str);
       else
-        *(M_Object *)(reg - SZ_INT) = new_string(vm->gwion->mp, shred, str);
+        *(M_Object *)(reg - SZ_INT) = new_string(vm->gwion, str);
       if (str) mp_free2(vm->gwion->mp, strlen(str), str);
       DISPATCH();
     }

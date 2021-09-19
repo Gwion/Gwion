@@ -53,7 +53,7 @@ static MFUN(mfun_vararg_cpy) {
       ++(*(M_Object *)(arg->d + offset))->ref;
     offset += t->size;
   }
-  const M_Object obj = new_object(shred->info->mp, shred, o->type_ref);
+  const M_Object obj = new_object(shred->info->mp, o->type_ref);
   *(struct Vararg_ **)obj->data       = arg;
   *(m_uint *)(obj->data + SZ_INT * 2) = *(m_uint *)(o->data + SZ_INT * 2);
   *(m_uint *)(obj->data + SZ_INT * 3) = *(m_uint *)(o->data + SZ_INT * 3);
@@ -63,8 +63,7 @@ static MFUN(mfun_vararg_cpy) {
 }
 
 INSTR(VarargIni) {
-  const M_Object  o           = new_object(shred->info->mp, shred,
-                                shred->info->vm->gwion->type[et_vararg]);
+  const M_Object  o           = new_object(shred->info->mp, shred->info->vm->gwion->type[et_vararg]);
   struct Vararg_ *arg         = mp_calloc(shred->info->mp, Vararg);
   *(struct Vararg_ **)o->data = arg;
   POP_REG(shred, instr->m_val - SZ_INT)

@@ -77,7 +77,7 @@ static INSTR(PredicateCheck) {
 }
 
 static FREEARG(freearg_release) {
-  struct Vector_ v = { .ptr = instr->m_val };
+  struct Vector_ v = { .ptr = (m_uint*)instr->m_val };
   vector_release(&v);
 }
 

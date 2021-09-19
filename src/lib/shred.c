@@ -31,16 +31,16 @@ VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
 
 M_Object new_shred(const VM_Shred shred) {
   const M_Object obj =
-      new_object(shred->info->mp, NULL, shred->info->vm->gwion->type[et_shred]);
+      new_object(shred->info->mp, shred->info->vm->gwion->type[et_shred]);
   ME(obj) = shred;
   return obj;
 }
 
 ANN static inline M_Object fork_object(const VM_Shred shred, const Type t) {
   const Gwion    gwion = shred->info->vm->gwion;
-  const M_Object o     = new_object(gwion->mp, shred, t);
+  const M_Object o     = new_object(gwion->mp, t);
   *(M_Object *)(o->data + o_fork_ev) =
-      new_object(gwion->mp, NULL, gwion->type[et_event]);
+      new_object(gwion->mp, gwion->type[et_event]);
   vector_init(&EV_SHREDS(*(M_Object *)(o->data + o_fork_ev)));
   return o;
 }
@@ -109,7 +109,7 @@ static MFUN(shred_arg) {
   const m_int    idx = *(m_int *)MEM(SZ_INT);
   if (s->info->args.ptr && idx >= 0 && (m_uint)idx < vector_size(&s->info->args)) {
     const m_str str = (m_str)vector_at(&s->info->args, *(m_uint *)MEM(SZ_INT));
-    *(M_Object *)RETURN = new_string(shred->info->mp, shred, str);
+    *(M_Object *)RETURN = new_string(shred->info->vm->gwion, str);
   } else
     handle(shred, "InvalidShredArgumentRequest");
 }
@@ -124,7 +124,7 @@ static MFUN(shred_arg) {
   static MFUN(shred##name##_name) {                                            \
     const VM_Shred s   = ME(o);                                                \
     const m_str    str = code_name((src), 0);                                  \
-    *(m_uint *)RETURN  = (m_uint)new_string(shred->info->mp, shred, str);      \
+    *(m_uint *)RETURN  = (m_uint)new_string(shred->info->vm->gwion, str);      \
   }
 describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
 
@@ -132,7 +132,7 @@ describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
   static MFUN(shred##name##_path) {                                            \
     const VM_Shred s   = ME(o);                                                \
     const m_str    str = code_name((src), 1);                                  \
-    *(m_uint *)RETURN  = (m_uint)new_string(shred->info->mp, shred, str);      \
+    *(m_uint *)RETURN  = (m_uint)new_string(shred->info->vm->gwion, str);      \
   }                                                                            \
   static MFUN(shred##name##_dir) {                                             \
     const VM_Shred s   = ME(o);                                                \
@@ -148,7 +148,7 @@ describe_name(, s->info->orig->name) describe_name(_code, s->code->name)
       }                                                                        \
       --sz;                                                                    \
     }                                                                          \
-    *(m_uint *)RETURN = (m_uint)new_string(shred->info->mp, shred, c);         \
+    *(m_uint *)RETURN = (m_uint)new_string(shred->info->vm->gwion, c);         \
   }
     describe_path_and_dir(, s->info->orig->name)
         describe_path_and_dir(_code, s->code->name)

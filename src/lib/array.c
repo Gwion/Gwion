@@ -34,7 +34,7 @@ static DTOR(array_dtor_struct) {
 }
 
 ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
-  const M_Object a = new_object(p, NULL, t);
+  const M_Object a = new_object(p, t);
   const m_uint   depth =
       !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
   const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
@@ -273,7 +273,6 @@ static INSTR(ArraySlice) {
 
 static OP_EMIT(opem_array_slice) {
   emit_add_instr(emit, ArraySlice);
-  emit_gc(emit, -SZ_INT);
   return GW_OK;
 }
 
@@ -517,7 +516,6 @@ static MFUN(vm_vector_map) {
   const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
   const M_Object ret =
       new_array(shred->info->mp, o->type_ref, ARRAY_LEN(ARRAY(o)));
-  vector_add(&shred->gc, (m_uint)ret);
   if (ARRAY_LEN(ARRAY(o))) {
     _init(shred, &map_run_code, offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
@@ -529,7 +527,6 @@ static MFUN(vm_vector_compactmap) {
   const VM_Code  code   = *(VM_Code *)REG(SZ_INT * 2);
   const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
   const M_Object ret    = new_array(shred->info->mp, code->ret_type, 0);
-  vector_add(&shred->gc, (m_uint)ret);
   if (ARRAY_LEN(ARRAY(o))) {
     _init(shred, &compactmap_run_code, offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
@@ -540,7 +537,6 @@ static MFUN(vm_vector_compactmap) {
 static MFUN(vm_vector_filter) {
   const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
   const M_Object ret    = new_array(shred->info->mp, o->type_ref, 0);
-  vector_add(&shred->gc, (m_uint)ret);
   if (ARRAY_LEN(ARRAY(o))) {
     _init(shred, &filter_run_code, offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
@@ -957,7 +953,6 @@ INSTR(ArrayAlloc) {
     return; // TODO make exception vararg
   }
   *(void **)(ref->data + SZ_INT) = aai.data;
-//  vector_add(&shred->gc, (m_uint)ref); // heyo
   if (!info->is_obj) {
     POP_REG(shred, SZ_INT * (info->depth - 1));
     *(M_Object *)REG(-SZ_INT) = ref;

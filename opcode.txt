@@ -196,9 +196,6 @@ UpvalueFloat~u
 UpvalueOther~u~u
 UpvalueAddr~u
 DotFunc~u~u
-GcIni
-GcAdd~i
-GcEnd
 GackType
 GackEnd~u
 Gack

@@ -132,9 +132,7 @@ OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
-  // we don't need gc for arrays?
-  // also when in rewrote exp
-//  if(!(unary->ctor.td->array || unary->ctor.exp))
-    emit_gc(emit, -SZ_INT);
+  if(!unary->ctor.exp)
+    emit_localx(emit, exp_self(unary)->type);
   return GW_OK;
 }

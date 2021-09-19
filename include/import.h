@@ -81,11 +81,10 @@ OP_CHECK(opck_usr_implicit);
 OP_CHECK(opck_new);
 OP_EMIT(opem_new);
 
-ANN2(1, 3)
-static inline M_Object new_object_str(const Gwion gwion, const VM_Shred shred,
-                                      const m_str str) {
+ANN
+static inline M_Object new_object_str(const Gwion gwion, const m_str str) {
   struct loc_t_ loc = {};
   DECL_OO(const Type, t, = str2type(gwion, str, loc));
-  return new_object(gwion->mp, shred, t);
+  return new_object(gwion->mp, t);
 }
 #endif

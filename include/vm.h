@@ -92,7 +92,6 @@ struct VM_Shred_ {
   m_bit *            mem;
   m_bit *            base;
   size_t             pc;
-  struct Vector_     gc;
   struct ShredTick_ *tick;
   struct ShredInfo_ *info;
 };

@@ -1165,7 +1165,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
     ERR_B(stmt_self(stmt)->pos,
           _("empty for loop condition..."
             "...(note: explicitly use 'true' if it's the intent)"
-            "...(e.g., 'for(; true;){{ /*...*/ }')"))
+            "...(e.g., 'for(; true;{{ /*...*/ }')"))
   return GW_OK;
 }
 
