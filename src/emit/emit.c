@@ -248,9 +248,19 @@ ANN static void free_code(MemPool p, Code *code) {
 
 ANN static void emit_pop_scope(const Emitter emit) {
   m_int offset;
-  while ((offset = frame_pop(emit)) > -1) {
+  struct Vector_ v;
+  vector_init(&v);
+  while ((offset = frame_pop(emit)) > -1)
+    vector_add(&v, offset);
+  if(!vector_size(&v))
+    vector_release(&v);
+  else if(vector_size(&v) == 1) {
     Instr instr  = emit_add_instr(emit, ObjectRelease);
-    instr->m_val = (m_uint)offset;
+    instr->m_val = vector_front(&v);
+    vector_release(&v);
+  } else {
+    Instr instr  = emit_add_instr(emit, ObjectRelease2);
+    instr->m_val = (m_uint)v.ptr;
   }
   vector_pop(&emit->info->pure);
   if (emit->info->debug) emit_add_instr(emit, DebugPop);

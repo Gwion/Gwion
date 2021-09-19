@@ -176,6 +176,7 @@ StructRegAddRefAddr~i
 ObjectAssign
 Assign
 ObjectRelease~u
+ObjectRelease2~p
 GWOP_EXCEPT~u
 AllocMember4~u
 DotMember~u

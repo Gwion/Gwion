@@ -179,6 +179,7 @@ enum {
   eObjectAssign,
   eAssign,
   eObjectRelease,
+  eObjectRelease2,
   eGWOP_EXCEPT,
   eAllocMember4,
   eDotMember,
@@ -397,6 +398,7 @@ enum {
 #define  ObjectAssign         (f_instr)eObjectAssign
 #define  Assign               (f_instr)eAssign
 #define  ObjectRelease        (f_instr)eObjectRelease
+#define  ObjectRelease2       (f_instr)eObjectRelease2
 #define  GWOP_EXCEPT          (f_instr)eGWOP_EXCEPT
 #define  AllocMember4         (f_instr)eAllocMember4
 #define  DotMember            (f_instr)eDotMember
@@ -1252,6 +1254,11 @@ ANN static inline void dump_opcodes(const VM_Code code) {
       case eObjectRelease:
         gw_out("{Y}┃{0}{-}% 4lu{0}: ObjectRelease", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eObjectRelease2:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: ObjectRelease2", j);
+        gw_out(" {-R}%-14p{0}", instr->m_val);
         gw_out("\n");
         break;
       case eGWOP_EXCEPT:

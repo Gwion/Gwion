@@ -487,7 +487,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
-      &&remref, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat,
+      &&remref, &&remref2, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat,
       &&dotother, &&dotaddr, &&unioncheck, &&unionint, &&unionfloat,
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr, &&dotfunc,
@@ -1101,6 +1101,11 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     remref:
       release(*(M_Object *)(mem + VAL), shred);
+      DISPATCH()
+    remref2:
+      struct Vector_ v = { .ptr = (m_uint*)VAL };
+      for(m_uint i = 0; i < vector_size(&v); i++)
+        release(*(M_Object *)(mem + vector_at(&v, i)), shred);
       DISPATCH()
     except:
       /* TODO: Refactor except instruction             *

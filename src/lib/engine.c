@@ -76,6 +76,11 @@ static INSTR(PredicateCheck) {
   if (!*(m_uint *)REG(-SZ_INT)) handle(shred, "PredicateFail");
 }
 
+static FREEARG(freearg_release) {
+  struct Vector_ v = { .ptr = instr->m_val };
+  vector_release(&v);
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "one type to rule them all.");
   const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
@@ -227,6 +232,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 gwi_enum_ini(gwi, "@hidden_enum");
 gwi_enum_add(gwi, "@hidden_enum", 0);
 gwi_enum_end(gwi);
+
+gwi_register_freearg(gwi, ObjectRelease2, freearg_release);
+
   return GW_OK;
 }
 
