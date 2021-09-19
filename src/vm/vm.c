@@ -1102,9 +1102,11 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       release(*(M_Object *)(mem + VAL), shred);
       DISPATCH()
     remref2:
+{
       struct Vector_ v = { .ptr = (m_uint*)VAL };
       for(m_uint i = 0; i < vector_size(&v); i++)
         release(*(M_Object *)(mem + vector_at(&v, i)), shred);
+}
       DISPATCH()
     except:
       /* TODO: Refactor except instruction             *
