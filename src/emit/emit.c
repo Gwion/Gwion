@@ -2494,14 +2494,14 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
       }
     }
   }
-  if (!n) return insert_symbol("==");
+  if (!n) return insert_symbol("?=");
   regpush(emit, SZ_INT);
   CHECK_BO(emit_exp(emit, e));
-  const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = insert_symbol("==")};
+  const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = insert_symbol("?=")};
   struct Exp_      ebin = {
       .d = {.exp_binary = bin},
   };
-  struct Op_Import opi = {.op   = insert_symbol("=="),
+  struct Op_Import opi = {.op   = insert_symbol("?="),
                           .lhs  = base->type,
                           .rhs  = e->type,
                           .data = (uintptr_t)&ebin.d.exp_binary,

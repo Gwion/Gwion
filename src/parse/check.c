@@ -1337,7 +1337,7 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
       }
     }
   }
-  return insert_symbol("==");
+  return insert_symbol("?=");
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
