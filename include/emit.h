@@ -65,6 +65,7 @@ m_bool     emit_instantiate_object(const Emitter, const Type, const Array_Sub,
                                    const m_bool);
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
+ANN m_uint emit_localn(const Emitter emit, const Type t);
 ANN void* emit_localx(const Emitter emit, const Type t);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
 ANN m_bool emit_exp(const Emitter, const Exp);
@@ -98,4 +99,12 @@ ANN Instr emit_dotstatic(Emitter, const m_uint, const bool);
 ANN Instr emit_dotmember(Emitter, const m_uint, const bool);
 ANN Instr emit_structmember(Emitter, const m_uint, const bool);
 ANN Instr emit_unionmember(Emitter, const m_uint, const bool);
+
+
+ANN static inline m_uint emit_code_size(const Emitter emit) {
+  return vector_size(&emit->code->instr);
+}
+
+ANN void emit_push_scope(const Emitter emit);
+ANN void emit_pop_scope(const Emitter emit);
 #endif

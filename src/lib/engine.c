@@ -229,6 +229,8 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_add(gwi, opck_class_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
 
+  GWI_BB(import_deep_equal(gwi));
+
 gwi_enum_ini(gwi, "@hidden_enum");
 gwi_enum_add(gwi, "@hidden_enum", 0);
 gwi_enum_end(gwi);

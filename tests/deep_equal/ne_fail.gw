@@ -1,0 +1,13 @@
+#! [contains] no deep operation
+struct C {
+  12 => const int i;
+  12 => const int j;
+}
+struct D {
+  42 => const int i;
+}
+
+var C c;
+var D d;
+
+<<< c <> d >>>;

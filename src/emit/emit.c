@@ -133,11 +133,11 @@ ANN static inline m_bool ensure_emit(const Emitter emit, const Type t) {
                       .flag  = tflag_emit};
   return envset_run(&es, t);
 }
-
+/*
 ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
-
+*/
 ANN static void emit_struct_ctor(const Emitter emit, const Type type,
                                  const m_uint offset) {
   emit->code->frame->curr_offset += SZ_INT;
@@ -247,7 +247,7 @@ ANN static void free_code(MemPool p, Code *code) {
   mp_free(p, Code, code);
 }
 
-ANN static void emit_pop_scope(const Emitter emit) {
+ANN void emit_pop_scope(const Emitter emit) {
   m_int offset;
   struct Vector_ v;
   vector_init(&v);
@@ -277,7 +277,7 @@ ANN static inline void emit_pop_code(const Emitter emit) {
   emit->code = (Code *)vector_pop(&emit->stack);
 }
 
-ANN static inline void emit_push_scope(const Emitter emit) {
+ANN void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
   vector_add(&emit->info->pure, 0);
   if (emit->info->debug) emit_add_instr(emit, DebugPush);

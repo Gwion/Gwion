@@ -234,9 +234,17 @@ OP_CHECK(opck_object_dot) {
   return value->type;
 }
 
+ANN static Type member_type(const Gwion gwion, const Type base) {
+  const Type t = actual_type(gwion, base);
+  if(strncmp(t->name, "Ref:[", 5))
+    return t;
+  return (Type)vector_front(&t->info->tuple->contains);
+}
+
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
-  const Type     t_base = actual_type(emit->gwion, member->base->type);
+//  const Type     t_base = actual_type(emit->gwion, member->base->type);
+  const Type     t_base = member_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
   if (is_class(emit->gwion, value->type)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
