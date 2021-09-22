@@ -1097,6 +1097,8 @@ ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
   DECL_OO(const Type, t, = known_type(env, *td));
+  if(t == env->gwion->type[et_class])
+    ERR_O(exp_self(td)->pos, "can't use {G+}Class{0} in type decl expression");
   if (!is_func(env->gwion, t) || is_fptr(env->gwion, t))
     return type_class(env->gwion, t);
   return t;
@@ -1355,7 +1357,7 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       e->next        = next;
       CHECK_OB(t);
       Exp_Binary       bin  = {.lhs = base, .rhs = e, .op = op};
-      struct Exp_      ebin = {.d = {.exp_binary = bin}};
+      struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary};
       struct Op_Import opi  = {.op   = op,
                               .lhs  = base->type,
                               .rhs  = e->type,
@@ -1810,6 +1812,7 @@ ANN static bool class_def_has_body(const Env env, Ast ast) {
 }
 
 ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
+//  if(tflag(tgt, tflag_union)) return false;
   return isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
 }
 
@@ -1839,18 +1842,23 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
         type_remref(first, env->gwion);
       if(second->ref > 2)
         type_remref(second, env->gwion);
-    if(tgt != t && v->type == tgt && strncmp(tgt->name, "Option:[", 8))
-      recursive_type_base(env, tgt);
+      if(v->from->owner_class->ref > 2)
+        type_remref(v->from->owner_class, env->gwion);
+      if(t->ref > 2)
+        type_remref(t, env->gwion);
     }
+    set_tflag(t, tflag_error);
     set_tflag(t, tflag_infer);
     set_tflag(tgt, tflag_infer);
     unset_tflag(t, tflag_check);
     unset_tflag(tgt, tflag_check);
     return true;
   }
-  if(v->type->nspc && !GET_FLAG(v, late) &&
+
+  if(t != tgt && v->type->nspc && !GET_FLAG(v, late) && strncmp(tgt->name, "Option:[", 8) &&
       isa(tgt, env->gwion->type[et_compound]) > 0)
     return recursive_type(env, t, tgt);
+
   return false;
 }
 
@@ -1859,7 +1867,7 @@ ANN static bool recursive_type(const Env env, const Type t, const Type tgt) {
   struct scope_iter inner = {tgt->nspc->info->value, 0, 0};
   bool error = false;
   while (scope_iter(&inner, &v) > 0) {
-    if(!GET_FLAG(v, late) && recursive_value(env, t, v)) {
+    if(!GET_FLAG(v, late) && v->type != tgt && recursive_value(env, t, v)) {
       error = true;
     }
   }
@@ -1873,7 +1881,7 @@ ANN static m_bool recursive_type_base(const Env env, const Type t) {
   while (scope_iter(&iter, &value) > 0) {
     if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
     if (value->type->nspc && !GET_FLAG(value, late)) {
-      if(recursive_type(env, t, value->type)) {
+      if(/*value->type != t && */recursive_type(env, t, value->type)) {
         env_err(env, value->from->loc, _("recursive type"));
         gw_err("use {+G}late{0} on one (or more) of the variables?\n");
         error = true;

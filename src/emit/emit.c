@@ -895,6 +895,7 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
 
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
                                   const bool emit_addr) {
+printf("emit %s\n", v->name);
   emit_add_instr(emit, RegPushMem);
   const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   if (!emit_addr) {
@@ -906,8 +907,6 @@ ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
 
 ANN void unset_local(const Emitter emit, Local *const l) {
   l->instr->opcode = eNoOp;
-//  l->is_compound = false;
-//  l-> = false;
   for(m_uint i = m_vector_size(&emit->code->live_values) + 1; --i;) {
     VMValue vmval = *(VMValue*)(ARRAY_PTR((&emit->code->live_values)) + (i-1) * sizeof(VMValue));
     if(vmval.offset != l->offset) continue;
@@ -940,7 +939,6 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
   f_instr *exec = (f_instr *)allocmember;
   if (!emit->env->scope->depth) emit_debug(emit, v);
   if (!vflag(v, vflag_member)) {
-//    v->from->offset = exp_self(decl)->data ? ((Local*)exp_self(decl)->data)->offset : emit_local(emit, type);
     v->from->offset = decl_non_static_offset(emit, decl, type);
     exec            = (f_instr *)(allocword);
     if (GET_FLAG(v, late)) { // ref or emit_var ?

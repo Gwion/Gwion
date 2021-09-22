@@ -378,10 +378,12 @@ static OP_EMIT(opem_not_object) {
 
 static OP_EMIT(opem_uncond_object) {
   const Vector v    = &emit->code->instr;
-  const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
-  if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
-    free_instr(emit->gwion, back);
-    vector_rem(v, vector_size(v) - 2);
+  if(vector_size(v) >= 2) {
+    const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
+    if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
+      free_instr(emit->gwion, back);
+      vector_rem(v, vector_size(v) - 2);
+    }
   }
   emit_add_instr(emit, BranchNeqInt);
   return GW_OK;
@@ -389,10 +391,13 @@ static OP_EMIT(opem_uncond_object) {
 
 static OP_EMIT(opem_cond_object) {
   const Vector v    = &emit->code->instr;
-  const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
-  if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
-    free_instr(emit->gwion, back);
-    vector_rem(v, vector_size(v) - 2);
+  printf("size %lu\n", vector_size(v));
+  if(vector_size(v) >= 2) {
+    const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
+    if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {
+      free_instr(emit->gwion, back);
+      vector_rem(v, vector_size(v) - 2);
+    }
   }
   emit_add_instr(emit, BranchEqInt);
   return GW_OK;

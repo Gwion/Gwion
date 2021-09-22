@@ -144,7 +144,8 @@ ANN bool is_fptr(const struct Gwion_ *gwion, const Type t) {
   return isa(actual_type(gwion, t), gwion->type[et_fptr]) > 0;
 }
 ANN inline bool is_class(const struct Gwion_ *gwion, const Type t) {
-  return isa(t, gwion->type[et_class]) > 0;
+//  return isa(t, gwion->type[et_class]) > 0;
+  return t->info->parent ==  gwion->type[et_class];
 }
 
 ANN Type actual_type(const struct Gwion_ *gwion, const Type t) {

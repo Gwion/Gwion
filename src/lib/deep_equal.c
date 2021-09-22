@@ -15,8 +15,6 @@
 #define deep_any(_name, _data, action, ACTION, _test, _t, _op) \
 static OP_##ACTION(op##action##_deep_##_t##_any) {             \
   Exp_Binary *bin = data;                                      \
-  _test(_name##_exp(_data, bin->lhs));                         \
-  _test(_name##_exp(_data, bin->rhs));                         \
   struct Op_Import opi = {                                     \
     .lhs  = bin->lhs->type,                                    \
     .rhs  = bin->rhs->type,                                    \
@@ -26,10 +24,20 @@ static OP_##ACTION(op##action##_deep_##_t##_any) {             \
   };                                                           \
   return op_##_name(_data, &opi);                              \
 }
+static OP_CHECK(opck_deep_eq_any) {
+  Exp_Binary *bin = data;
+  bin->op = insert_symbol(env->gwion->st, "==");
+  DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
+  return t;
+}
+static OP_CHECK(opck_deep_ne_any) {
+  Exp_Binary *bin = data;
+  bin->op = insert_symbol(env->gwion->st, "!=");
+  const Type t = check_exp(env, exp_self(bin));
+  return !t ? env->gwion->type[et_error] : env->gwion->type[et_bool];
+}
 
-deep_any(check, env, ck, CHECK, CHECK_ON, eq, ==);
 deep_any(emit, emit, em, EMIT,  CHECK_BB, eq, ==);
-deep_any(check, env, ck, CHECK, CHECK_ON, ne, !=);
 deep_any(emit, emit, em, EMIT,  CHECK_BB, ne, !=);
 
 // get members of a specific type
@@ -109,7 +117,7 @@ static OP_CHECK(opck_deep_equal) {
   const bool ret = deep_check(env, bin, &l, &r);
   vector_release(&l);
   vector_release(&r);
-  if(ret > 0) return env->gwion->type[et_bool];
+  if(ret) return env->gwion->type[et_bool];
   ERR_N(exp_self(bin)->pos, "no deep operation for: {G+/}%s{0} {+}%s{0} {G+/}%s{0}",
         bin->lhs->type->name, s_name(bin->op), bin->rhs->type->name);
 }
@@ -156,9 +164,9 @@ struct DeepEmits {
 };
 
 static void deep_emits_init(const Emitter emit, struct DeepEmits *ds) {
-  emit_add_instr(emit, RegMove)->m_val = -SZ_INT*2;
-  deep_emit_init(emit, ds->lhs, 0);
-  deep_emit_init(emit, ds->rhs, SZ_INT);
+  emit_add_instr(emit, RegMove)->m_val = -SZ_INT;
+  deep_emit_init(emit, ds->lhs, -SZ_INT);
+  deep_emit_init(emit, ds->rhs, 0);
   vector_init(&ds->acc);
 }
 
@@ -174,7 +182,6 @@ ANN static void emit_deep_fail(const Emitter emit, const Vector v) {
     const Instr branch = (Instr)vector_at(v, i);
     branch->m_val = sz;
   }
-  emit_add_instr(emit, RegMove)->m_val = -SZ_INT;
   emit_add_instr(emit, RegSetImm)->m_val2 = -SZ_INT;
 }
 
@@ -186,10 +193,12 @@ ANN static bool deep_emit(const Emitter emit, struct DeepEmits *ds) {
     struct Exp_ rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
     struct Exp_ temp = MK_BIN(lexp, rexp, ds->bin);
     temp.type=emit->gwion->type[et_bool];
+    if(tflag(lexp.type, tflag_struct))
+      exp_setvar(&lexp, true);
+    if(tflag(rexp.type, tflag_struct))
+      exp_setvar(&rexp, true);
     if(emit_exp(emit, &temp) < 0) return false;
     vector_add(&ds->acc, (m_uint)emit_add_instr(emit, BranchEqInt));
-    const Instr pop = emit_add_instr(emit, RegMove);
-    pop->m_val = -SZ_INT;
   }
   const Instr jmp = emit_add_instr(emit, Goto);
   emit_deep_fail(emit, &ds->acc);
