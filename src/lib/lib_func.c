@@ -187,6 +187,9 @@ ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
 ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   //  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
   //    return GW_ERROR;
+  if(!info->lhs)
+    ERR_B(info->pos,
+          _("can't resolve operator"))
   const Type l_type = info->lhs->value_ref->from->owner_class;
   const Type r_type = info->rhs->value_ref->from->owner_class;
   if (!r_type && l_type) {
@@ -340,7 +343,7 @@ static OP_CHECK(opck_auto_fptr) {
   // we'll only deal with auto fptr declaration
   if (bin->rhs->exp_type != ae_exp_decl &&
       bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
-    return env->gwion->type[et_error];
+    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}@=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
   // create a matching signature
@@ -372,14 +375,14 @@ static OP_CHECK(opck_fptr_at) {
   //    UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   if (bin->rhs->type->info->func->def->base->tmpl &&
       bin->rhs->type->info->func->def->base->tmpl->call) {
-    struct FptrInfo info = {bin->lhs->type->info->func,
+    struct FptrInfo info = {bin->lhs->type->info->func ?: bin->lhs->type->info->parent->info->func,
                             bin->rhs->type->info->parent->info->func, bin->lhs,
                             exp_self(bin)->pos};
     CHECK_BN(fptr_do(env, &info));
     exp_setvar(bin->rhs, 1);
     return bin->rhs->type;
   }
-  struct FptrInfo info = {bin->lhs->type->info->func,
+  struct FptrInfo info = {bin->lhs->type->info->func ?: bin->lhs->type->info->parent->info->func,
                           bin->rhs->type->info->func, bin->lhs,
                           exp_self(bin)->pos};
   CHECK_BN(fptr_do(env, &info));
