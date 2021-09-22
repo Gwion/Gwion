@@ -684,7 +684,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     intlt:
       INT_LOGICAL(<)
     intle:
-      INT_IMM_LOGICAL(<=)
+      INT_LOGICAL(<=)
     intgtimm:
       INT_IMM_LOGICAL(>)
     intgeimm:

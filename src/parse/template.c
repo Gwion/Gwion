@@ -18,7 +18,7 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
   Type_List        call = tmpl->call;
   do {
     if (!call) break;
-    const Type t = known_type(env, call->td);
+    const Type t = call->td ? known_type(env, call->td) : NULL;
     if (!t) return GW_OK;
     nspc_add_type(nspc, list->xid, t);
     call = call->next;

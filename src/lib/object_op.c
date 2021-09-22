@@ -144,8 +144,14 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     if (!vflag(f->value_ref, vflag_member))
       instr->m_val2 = -SZ_INT;
     else {
-      const Instr instr = emit_add_instr(emit, RegMove);
-      instr->m_val      = SZ_INT;
+      if(member->is_call){
+        const Instr instr = emit_add_instr(emit, RegMove);
+        instr->m_val      = SZ_INT;
+      } else {
+        const Instr instr = (Instr)vector_back(&emit->code->instr);
+        instr->opcode = eRegPushImm;
+        instr->m_val = (m_uint)f->code;
+      }
     }
   }
   return;
