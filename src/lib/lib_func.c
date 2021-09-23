@@ -52,7 +52,7 @@ ANN static Exp order_curry(const Env env, Exp fn, Exp arg) {
     }
     if (!base)
       base = next = cpy_nonext(env, curr);
-    else {
+    else if(next) { // check me (added after a fuzzing session)
       next->next = cpy_nonext(env, curr);
       next       = next->next;
     }

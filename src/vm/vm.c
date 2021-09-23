@@ -68,7 +68,7 @@ ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_u
     if (start > shred->pc) break;
     if (start < shred->pc && VKEY(m, i) > shred->pc) {
       const m_uint next  = VKEY(m, i);
-      const Instr  instr = (Instr)vector_at(&code->instr, next + 1);
+      const Instr  instr = (Instr)vector_at(&code->instr, next);
       if (!instr->m_val2 || (Symbol)instr->m_val2 == effect)
         return next + 1;
     }

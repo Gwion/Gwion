@@ -27,14 +27,16 @@ static OP_##ACTION(op##action##_deep_##_t##_any) {             \
 static OP_CHECK(opck_deep_eq_any) {
   Exp_Binary *bin = data;
   bin->op = insert_symbol(env->gwion->st, "==");
+  exp_self(bin)->exp_type = ae_exp_binary;
   DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
   return t;
 }
 static OP_CHECK(opck_deep_ne_any) {
   Exp_Binary *bin = data;
   bin->op = insert_symbol(env->gwion->st, "!=");
-  const Type t = check_exp(env, exp_self(bin));
-  return !t ? env->gwion->type[et_error] : env->gwion->type[et_bool];
+  exp_self(bin)->exp_type = ae_exp_binary;
+  DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
+  return t;
 }
 
 deep_any(emit, emit, em, EMIT,  CHECK_BB, eq, ==);
