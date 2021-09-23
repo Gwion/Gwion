@@ -89,6 +89,7 @@ ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, co
   shredule(shred->tick->shreduler, shred, 0);
   shred->pc = pc; // VKEY(m, i);
   vector_pop(&shred->info->frame);
+  vector_pop(&shred->info->frame);
 //  return false;
   return true;
 }
