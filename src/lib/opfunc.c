@@ -80,6 +80,7 @@ OP_CHECK(opck_unary) {
           _("unary operator '%s' cannot be used on %s data-types."),
           s_name(unary->op), access);
   exp_setvar(unary->exp, 1);
+  exp_setmeta(exp_self(unary), 1);
   return unary->exp->type;
 }
 
@@ -91,6 +92,7 @@ OP_CHECK(opck_post) {
           _("post operator '%s' cannot be used on %s data-type."),
           s_name(post->op), access);
   exp_setvar(post->exp, 1);
+  exp_setmeta(exp_self(post), 1);
   return post->exp->type;
 }
 

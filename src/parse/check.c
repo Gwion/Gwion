@@ -869,11 +869,15 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   CHECK_OO(check_exp(env, bin->lhs));
-  const m_bool is_auto = bin->rhs->exp_type == ae_exp_decl &&
+  const m_bool is_auto = (bin->op == insert_symbol("=>") || bin->op == insert_symbol("@=>")) &&
+                         bin->rhs->exp_type == ae_exp_decl &&
                          bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;
   CHECK_OO(check_exp(env, bin->rhs));
-  if (is_auto) bin->rhs->type = bin->lhs->type;
+  if (is_auto) {
+    bin->rhs->type = bin->lhs->type;
+    set_vflag(bin->rhs->d.exp_decl.list->self->value, vflag_assigned);
+  }
   struct Op_Import opi = {.op   = bin->op,
                           .lhs  = bin->lhs->type,
                           .rhs  = bin->rhs->type,
@@ -1857,7 +1861,7 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
     return true;
   }
 
-  if(t != tgt && v->type->nspc && !GET_FLAG(v, late) && strncmp(tgt->name, "Option:[", 8) &&
+  if(t != tgt && v->type->nspc && (!GET_FLAG(v, late) ||  vflag(v, vflag_assigned)) && strncmp(tgt->name, "Option:[", 8) &&
       isa(tgt, env->gwion->type[et_compound]) > 0)
     return recursive_type(env, t, tgt);
 
@@ -1869,7 +1873,7 @@ ANN static bool recursive_type(const Env env, const Type t, const Type tgt) {
   struct scope_iter inner = {tgt->nspc->info->value, 0, 0};
   bool error = false;
   while (scope_iter(&inner, &v) > 0) {
-    if(!GET_FLAG(v, late) && v->type != tgt && recursive_value(env, t, v)) {
+    if((!GET_FLAG(v, late) || vflag(v, vflag_assigned)) && v->type != tgt && recursive_value(env, t, v)) {
       error = true;
     }
   }
@@ -1882,8 +1886,8 @@ ANN static m_bool recursive_type_base(const Env env, const Type t) {
   struct scope_iter iter = {t->nspc->info->value, 0, 0};
   while (scope_iter(&iter, &value) > 0) {
     if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
-    if (value->type->nspc && !GET_FLAG(value, late)) {
-      if(/*value->type != t && */recursive_type(env, t, value->type)) {
+    if (value->type->nspc && (!GET_FLAG(value, late) || vflag(value, vflag_assigned))) {
+      if(value->type == t || recursive_type(env, t, value->type)) {
         env_err(env, value->from->loc, _("recursive type"));
         gw_err("use {+G}late{0} on one (or more) of the variables?\n");
         error = true;
