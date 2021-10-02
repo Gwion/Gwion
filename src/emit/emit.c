@@ -526,7 +526,9 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     }
     return GW_OK;
   }
-  if (!strncmp(v->type->name, "Ref:[", 5) && (!prim_exp(data)->cast_to || strncmp(prim_exp(data)->cast_to->name, "Ref:[", 5))) {
+//  if (!strncmp(v->type->name, "Ref:[", 5) && (!prim_exp(data)->cast_to || strncmp(prim_exp(data)->cast_to->name, "Ref:[", 5))) {
+  if (tflag(v->type, tflag_ref) && !safe_tflag(prim_exp(data)->cast_to, tflag_ref)) {
+//puts("here");
     if (exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
       instr->m_val      = v->from->offset;

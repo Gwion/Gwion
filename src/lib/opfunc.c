@@ -18,6 +18,11 @@ OP_CHECK(opck_basic_cast) {
              : env->gwion->type[et_error];
 }
 
+OP_CHECK(opck_similar_cast) {
+  const Exp_Cast *cast = (Exp_Cast *)data;
+  return exp_self(cast)->type;
+}
+
 OP_CHECK(opck_usr_implicit) {
   struct Implicit *imp = (struct Implicit *)data;
   /*
@@ -39,6 +44,17 @@ OP_CHECK(opck_usr_implicit) {
     }
   */
   return imp->t;
+}
+
+//#include "emit.h"
+// contracts only
+OP_EMIT(opem_contract_similar) {
+  const Exp_Cast *cast = (Exp_Cast *)data;
+  const Env env = emit->env;
+  struct Implicit imp = { .t=exp_self(cast)->type, .e=cast->exp};
+  struct Op_Import opi    = {
+      .op = insert_symbol("@implicit"), .lhs = cast->exp->type, .rhs = exp_self(cast)->type, .data=(m_uint)&imp };
+  return op_emit(emit, &opi);
 }
 
 OP_CHECK(opck_const_rhs) {

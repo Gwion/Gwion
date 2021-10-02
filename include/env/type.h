@@ -39,6 +39,7 @@ enum tflag {
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
   tflag_error    = 1 << 22,
+  tflag_ref      = 1 << 23,
 } __attribute__((packed));
 
 struct Type_ {

@@ -88,14 +88,20 @@ static OP_CHECK(opck_implicit_similar) {
   return imp->e->type;
 }
 
-static OP_CHECK(opck_cast_similar) {
+static OP_CHECK(opck_contract_similar) {
   const Exp_Cast *cast = (Exp_Cast *)data;
-  return exp_self(cast)->type;
+  if(tflag(exp_self(cast)->type, tflag_contract)) {
+    struct Implicit imp = { .t=exp_self(cast)->type, .e=cast->exp};
+    struct Op_Import opi    = {
+      .op = insert_symbol("@implicit"), .lhs = cast->exp->type, .rhs = exp_self(cast)->type, .data=(m_uint)&imp };
+    CHECK_NN(op_check(env, &opi));
+  }
+  return opck_similar_cast(env, data);
 }
 
 ANN /*static */ void scan0_implicit_similar(const Env env, const Type lhs,
                                             const Type rhs) {
-  struct Op_Func   opfunc = {.ck = opck_cast_similar};
+  struct Op_Func   opfunc = {.ck = opck_similar_cast};
   struct Op_Import opi    = {
       .op = insert_symbol("$"), .lhs = lhs, .rhs = rhs, .func = &opfunc};
   add_op(env->gwion, &opi);
@@ -109,9 +115,16 @@ ANN /*static */ void scan0_implicit_similar(const Env env, const Type lhs,
 
 ANN static void scan0_explicit_distinct(const Env env, const Type lhs,
                                         const Type rhs) {
-  struct Op_Func   opfunc = {.ck = opck_cast_similar};
+  struct Op_Func   opfunc = {.ck = opck_similar_cast};
+  if(tflag(rhs, tflag_contract)) {
+    opfunc.ck = opck_contract_similar;
+    opfunc.em = opem_contract_similar;
+  }
   struct Op_Import opi    = {
       .op = insert_symbol("$"), .lhs = lhs, .rhs = rhs, .func = &opfunc};
+  add_op(env->gwion, &opi);
+  opi.lhs = rhs;
+  opi.rhs = lhs;
   add_op(env->gwion, &opi);
 }
 
@@ -174,10 +187,11 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
       CHECK_BB(typedef_complex(env, tdef, base));
   } else
     typedef_fptr(env, tdef, base);
+  if (tdef->when) set_tflag(tdef->type, tflag_contract);
   if (!tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, base, tdef->type);
-  if (tdef->distinct) {
-    tdef->type->info->parent = base->info->parent;
+  if (tdef->distinct || tdef->when) {
+//    tdef->type->info->parent = base->info->parent;
     if (base->info->gack)
       vmcode_addref(tdef->type->info->gack = base->info->gack);
     set_tflag(tdef->type, tflag_distinct);
@@ -187,6 +201,10 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
   } else
     set_tflag(tdef->type, tflag_typedef);
+  if(tflag(base, tflag_ref)) {
+    set_tflag(tdef->type, tflag_ref);
+    set_tflag(tdef->type, tflag_infer);
+  }
   if (global) env_pop(env, 0);
   tdef->type->info->base_type = base;
   return GW_OK;

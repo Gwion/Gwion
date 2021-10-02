@@ -516,7 +516,8 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     while (e) {
       if (!e->type) // investigate
         return NULL;
-      if (!strncmp(e->type->name, "Ref:[", 5)) {
+//      if (!strncmp(e->type->name, "Ref:[", 5)) {
+      if (tflag(e->type, tflag_ref)) {
 if(!e->cast_to)e->cast_to = e->type;
       }
       if (!e1) {

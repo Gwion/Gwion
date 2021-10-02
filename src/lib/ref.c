@@ -24,11 +24,35 @@ static m_bool ref_access(const Env env, const Exp e) {
   return GW_ERROR;
 }
 
-static OP_CHECK(opck_implicit_similar) {
+static OP_CHECK(opck_ref_implicit_similar) {
   const struct Implicit *imp = (struct Implicit *)data;
   CHECK_BN(ref_access(env, imp->e));
   exp_setvar(imp->e, 1);
   return imp->t;
+}
+
+static inline Type ref_base(Type t) {
+  do if(!tflag(t->info->parent, tflag_ref))
+    return t;
+  while((t = t->info->parent));
+  return NULL;
+}
+
+static OP_EMIT(opem_ref_implicit_similar) {
+  const struct Implicit *imp = (struct Implicit *)data;
+  if(!tflag(imp->t, tflag_contract)) return GW_OK;
+  const Env env = emit->env;
+  const Type base = ref_base(imp->t);
+  struct Op_Import opi    = {.op   = insert_symbol("@implicit"),
+                             .lhs  = base,
+                             .rhs  = imp->t,
+                             .data = (m_uint)imp};
+  CHECK_BB(op_emit(emit, &opi));
+  const Instr instr = emit_add_instr(emit, RegMove);
+  instr->m_val = -imp->e->type->size;
+  exp_setvar(imp->e, true);
+  imp->e->cast_to = NULL;
+  return emit_exp(emit, imp->e);
 }
 
 static OP_CHECK(opck_implicit_ref) {
@@ -39,13 +63,37 @@ static OP_CHECK(opck_implicit_ref) {
   return imp->t;
 }
 
-static OP_CHECK(opck_cast_similar) {
-  const Exp_Cast *cast = (Exp_Cast *)data;
-  return exp_self(cast)->type;
+static OP_CHECK(opck_ref_contract_similar) {
+  const struct Implicit *imp = (struct Implicit *)data;
+  CHECK_BN(ref_access(env, imp->e));
+  const Type base = (Type)vector_front(&imp->t->info->tuple->contains);
+  struct Op_Import opi    = {.op   = insert_symbol("@implicit"),
+                          .lhs  = imp->e->type,
+                          .rhs  = base,
+                          .data = (m_uint)imp};
+  return op_check(env, &opi);
+}
+
+static OP_EMIT(opem_ref_contract_similar) {
+  const struct Implicit *imp = (struct Implicit *)data;
+  const Env env = emit->env;
+  const Type base = (Type)vector_front(&imp->t->info->tuple->contains);
+  struct Exp_ cast = {.type=base, .d={.exp_cast={.exp=imp->e}}};
+  struct Op_Import opi    = {.op   = insert_symbol("$"),
+                          .lhs  = imp->e->type,
+                          .rhs  = base,
+                          .data = (m_uint)&cast};
+  CHECK_BB(op_emit(emit, &opi));
+  const Instr instr = emit_add_instr(emit, RegMove);
+  instr->m_val = -imp->e->type->size;
+  exp_setvar(imp->e, true);
+  imp->e->cast_to = NULL;
+  emit_exp(emit, imp->e);
+  return GW_OK;
 }
 
 ANN static void base2ref(Env env, const Type lhs, const Type rhs) {
-  struct Op_Func   opfunc = {.ck = opck_cast_similar};
+  struct Op_Func   opfunc = {.ck = opck_similar_cast};
   struct Op_Import opi    = {.op   = insert_symbol("$"),
                           .lhs  = lhs,
                           .ret  = rhs,
@@ -53,9 +101,19 @@ ANN static void base2ref(Env env, const Type lhs, const Type rhs) {
                           .func = &opfunc,
                           .data = eNoOp};
   add_op(env->gwion, &opi);
-  opfunc.ck = opck_implicit_similar;
+  opfunc.ck = opck_ref_implicit_similar;
+  opfunc.em = opem_ref_implicit_similar;
   opi.op    = insert_symbol("@implicit");
   add_op(env->gwion, &opi);
+
+  if(tflag(lhs, tflag_contract)) {
+    opi.lhs = lhs->info->base_type;
+    opfunc.ck = opck_ref_contract_similar;
+    opfunc.em = opem_ref_contract_similar;
+    opi.op    = insert_symbol("@implicit");
+    add_op(env->gwion, &opi);
+  }
+
 }
 
 ANN static void ref2base(Env env, const Type lhs, const Type rhs) {
@@ -98,6 +156,7 @@ static OP_CHECK(opck_ref_scan) {
   set_tflag(t, tflag_scan2);
   set_tflag(t, tflag_check);
   set_tflag(t, tflag_emit);
+  set_tflag(t, tflag_ref);
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
   mk_class(env, t, (loc_t) {});
