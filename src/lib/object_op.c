@@ -397,7 +397,6 @@ static OP_EMIT(opem_uncond_object) {
 
 static OP_EMIT(opem_cond_object) {
   const Vector v    = &emit->code->instr;
-  printf("size %lu\n", vector_size(v));
   if(vector_size(v) >= 2) {
     const Instr  back = (Instr)vector_at(v, vector_size(v) -2);
     if (back->opcode == eGWOP_EXCEPT || (back->opcode == eOP_MAX && back->execute == fast_except)) {

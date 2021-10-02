@@ -897,7 +897,6 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
 
 ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
                                   const bool emit_addr) {
-printf("emit %s\n", v->name);
   emit_add_instr(emit, RegPushMem);
   const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   if (!emit_addr) {
