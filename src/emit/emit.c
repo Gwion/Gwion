@@ -138,7 +138,7 @@ ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
 */
-ANN static void emit_struct_ctor(const Emitter emit, const Type type,
+ANN static void emit_struct_dtor(const Emitter emit, const Type type,
                                  const m_uint offset) {
   emit->code->frame->curr_offset += SZ_INT;
   const Instr instr = emit_add_instr(emit, RegPushMem4);
@@ -168,7 +168,7 @@ ANN static void emit_struct_ctor(const Emitter emit, const Type type,
 ANN static void struct_pop(const Emitter emit, const Type type,
                            const m_uint offset) {
   if (!type->info->tuple) return;
-  if (type->nspc->dtor) emit_struct_ctor(emit, type, offset);
+  if (type->nspc->dtor) emit_struct_dtor(emit, type, offset);
   for (m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
     const Type t = (Type)vector_at(&type->info->tuple->types, i);
     if (isa(t, emit->gwion->type[et_object]) > 0) {
@@ -528,7 +528,6 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
 //  if (!strncmp(v->type->name, "Ref:[", 5) && (!prim_exp(data)->cast_to || strncmp(prim_exp(data)->cast_to->name, "Ref:[", 5))) {
   if (tflag(v->type, tflag_ref) && !safe_tflag(prim_exp(data)->cast_to, tflag_ref)) {
-//puts("here");
     if (exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
       instr->m_val      = v->from->offset;
@@ -595,8 +594,8 @@ ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
                              const bool emit_var) {
   const Instr instr =
       emit_add_instr(emit, !emit_var ? StructRegAddRef : StructRegAddRefAddr);
-  instr->m_val  = (m_uint)t;
-  instr->m_val2 = size;
+  instr->m_val2  = (m_uint)t;
+  instr->m_val = size;
   return instr;
 }
 
@@ -892,6 +891,9 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
     CHECK_BB(decl_static(emit, decl, var_decl, 0));
   CHECK_BB(emit_dot_static_data(emit, v, !struct_ctor(v) ? emit_addr : 1));
   if (struct_ctor(v)) emit_struct_decl_finish(emit, v->type, emit_addr);
+  if (isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref)
+  if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
+    emit_object_addref(emit, 0, emit_addr);
   return GW_OK;
 }
 
@@ -962,6 +964,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
       const Instr instr = emit_add_instr(emit, Reg2Reg);
       instr->m_val      = -SZ_INT;
     }
+//    if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
+//      emit_object_addref(emit, 0, emit_addr);
   } else if (struct_ctor(v))
     emit_struct_decl_finish(emit, v->type, emit_addr);
   return GW_OK;
@@ -989,8 +993,10 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     const Instr assign = emit_add_instr(emit, Assign);
     assign->m_val      = emit_var;
     (void)emit_object_addref(emit, -SZ_INT, emit_var);
-  } else if (struct_ctor(v))
+  } else if (struct_ctor(v)) {
     emit_struct_decl_finish(emit, v->type, emit_addr);
+    (void)emit_struct_addref(emit, v->type, -v->type->size, emit_addr);
+  }
   return GW_OK;
 }
 
@@ -1785,7 +1791,6 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
   if(!sporker.is_spork)
     emit_local_exp(emit, exp_self(unary));
   spork_ini(emit, &sporker);
-//puts("here");
   (unary->unary_type == unary_code ? spork_code : spork_func)(emit, &sporker);
   return GW_OK;
 }
