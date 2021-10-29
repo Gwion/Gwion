@@ -211,7 +211,7 @@ ANN static m_bool scan1_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary *prim) {
-  if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_interp)
+  if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
     return scan1_exp(env, prim->d.exp);
   if (prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
@@ -637,7 +637,7 @@ ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
     CHECK_BB(scan1_fdef_args(env, fdef->base->args));
     CHECK_BB(scan1_args(env, fdef->base->args));
   }
-  if (fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
+  if (!fdef->builtin && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
     CHECK_BB(scan1_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list));
   return GW_OK;
 }

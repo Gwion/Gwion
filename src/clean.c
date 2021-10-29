@@ -41,7 +41,7 @@ ANN static void clean_type_decl(Clean *a, Type_Decl *b) {
 }
 
 ANN static void clean_prim(Clean *a, Exp_Primary *b) {
-  if (b->prim_type == ae_prim_hack || b->prim_type == ae_prim_interp)
+  if (b->prim_type == ae_prim_hack || b->prim_type == ae_prim_dict || b->prim_type == ae_prim_interp)
     clean_exp(a, b->d.exp);
   else if (b->prim_type == ae_prim_array)
     clean_array_sub(a, b->d.array);
@@ -271,7 +271,7 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
 ANN static void clean_func_def(Clean *a, Func_Def b) {
   clean_func_base(a, b->base);
   ++a->scope;
-  if (b->d.code &&
+  if (!b->builtin && b->d.code &&
       !(b->base->func && safe_vflag(b->base->func->value_ref, vflag_builtin)))
     clean_stmt(a, b->d.code);
   else

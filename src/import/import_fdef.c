@@ -82,8 +82,15 @@ ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
 
 ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
-  if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl))
-    return section_fdef(gwi, fdef);
+  fdef->builtin = true;
+  if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
+    if(!gwi->gwion->env->class_def->nspc->vtable.ptr)
+      vector_init(&gwi->gwion->env->class_def->nspc->vtable);
+    section_fdef(gwi, fdef);
+    fdef->d.dl_func_ptr = ck->addr;
+//  builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);
+    return GW_OK;
+  }
   if (traverse_func_def(gwi->gwion->env, fdef) < 0)
     return error_fdef(gwi, fdef);
   builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);

@@ -27,12 +27,16 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
 }
 
 ANN static m_bool push_types(const Env env, const Nspc nspc, const Tmpl *tmpl) {
-  if (nspc->parent) env->curr = env->curr->parent;
   const Type t = env->class_def;
-  if (t) env->class_def = t->info->value->from->owner_class;
+  if (t) {
+    env->class_def = t->info->value->from->owner_class;
+    env->curr = t->info->value->from->owner;
+  }
   const m_bool ret = _push_types(env, nspc, tmpl);
-  if (nspc->parent) env->curr = nspc;
-  env->class_def = t;
+  if (t) {
+    env->class_def = t;
+    env->curr = t->nspc;
+  }
   return ret;
 }
 
@@ -110,6 +114,15 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
 ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
   if (tflag(t, tflag_tmpl) && !is_func(env->gwion, t)) {
     if (tflag(t, tflag_ntmpl) && !td->types) return t;
+    if(!td->types) {
+      const Type new_type = nspc_lookup_type1(env->curr, td->xid);
+      Type_Decl *new_td = type2td(env->gwion, new_type, td->pos);
+      if(!new_td->types)
+        ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
+      const Type ret = _scan_type(env, t, new_td);
+      free_type_decl(env->gwion->mp, new_td);
+      return ret;
+    }
     struct TemplateScan ts = {.t = t, .td = td};
     Type_List           tl = td->types;
     Specialized_List    sl = t->info->cdef->base.tmpl
@@ -150,7 +163,6 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
                         .flag  = tflag_none};
     envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
-    //    const Type ret = scan_type(env, t, td->next);
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
     if (es.run) envset_pop(&es, owner);

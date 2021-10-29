@@ -16,4 +16,5 @@ ANN m_bool import_values(const Gwi gwi);
 ANN m_bool import_union(const Gwi gwi);
 ANN m_bool import_ref(const Gwi gwi);
 ANN m_bool import_deep_equal(const Gwi gwi);
+ANN m_bool import_dict(const Gwi gwi);
 #endif

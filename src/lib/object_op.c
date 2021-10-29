@@ -79,18 +79,9 @@ static OP_CHECK(opck_object_cast) {
 ANN /*static*/ Type scan_class(const Env env, const Type t,
                                const Type_Decl *td);
 
-static Type opck_object_scan(const Env env, const struct TemplateScan *ts) {
-  if (ts->td->types)
-    return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
-  Type_Decl *td = (Type_Decl *)ts->td;
-  ERR_N(td->pos, _("you must provide template types for type '%s'"),
-        ts->t->name);
-}
-
 static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan *)data;
-  CHECK_OO(ts->td);
-  return opck_object_scan(env, ts);
+  return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
 }
 
 ANN static void emit_dot_static_data(const Emitter emit, const Value v,
@@ -199,6 +190,11 @@ OP_CHECK(opck_object_dot) {
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
+    if(!tflag(the_base, tflag_check) && env->class_def != the_base) {
+      set_tflag(the_base, tflag_cdef);
+      CHECK_BN(ensure_traverse(env, the_base));
+      return check_exp(env, exp_self(member));
+    }
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if (v && member->is_call) {
       if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0))
@@ -252,6 +248,9 @@ OP_EMIT(opem_object_dot) {
 //  const Type     t_base = actual_type(emit->gwion, member->base->type);
   const Type     t_base = member_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
+  if(!tflag(t_base, tflag_emit) /*&& emit->env->class_def != t_base*/) {
+      ensure_emit(emit, t_base);
+  }
   if (is_class(emit->gwion, value->type)) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;
@@ -335,6 +334,15 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 }
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
+
+ANN bool tmpl_global(const Env env, Type_List call) {
+  do {
+    if(!type_global(env, known_type(env, call->td)))
+      return false;
+  } while((call = call->next));
+  return true;
+}
+
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
       .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};
@@ -347,7 +355,10 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
                       .flag  = tflag_scan0};
   const Type    owner = t->info->value->from->owner_class;
   CHECK_BO(envset_pushv(&es, t->info->value));
+  const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
+  if(local)env_push(env, NULL, env->context->nspc);
   const Type ret = _scan_class(env, &info);
+  if(local)env_pop(env, es.scope);
   if (es.run) envset_pop(&es, owner);
   return ret;
 }

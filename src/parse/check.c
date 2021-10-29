@@ -126,7 +126,7 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   return GW_OK;
 }
 
-ANN static inline m_bool ensure_check(const Env env, const Type t) {
+ANN /*static inline*/ m_bool ensure_check(const Env env, const Type t) {
   if (tflag(t, tflag_check) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
   struct EnvSet es = {.env   = env,
@@ -178,7 +178,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
   return ret > 0 ? decl->list->self->value->type : NULL;
 }
 
-ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e,
+ANN static m_bool check_collection(const Env env, Type type, const Exp e,
                                    const loc_t loc) {
   const Type common = find_common_anc(e->type, type);
   if (common) return GW_OK;
@@ -192,7 +192,6 @@ ANN static m_bool prim_array_inner(const Env env, Type type, const Exp e,
   char sec[16 + strlen(e->type->name)];
   sprintf(sec, "got `{+/}%s{0}`", e->type->name);
   gwerr_secondary(sec, env->name, e->pos);
-
   return GW_ERROR;
 }
 
@@ -201,7 +200,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   bool        err  = false;
   const loc_t loc  = e->pos;
   do
-    if (prim_array_inner(env, type, e, loc) < 0) err = true;
+    if (check_collection(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
   if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1);
   env_set_error(env);
@@ -240,6 +239,24 @@ ANN static Type check_prim_range(const Env env, Range **data) {
                           .pos  = e->pos,
                           .data = (uintptr_t)prim_exp(data)};
   return op_check(env, &opi);
+}
+
+ANN static Type check_prim_dict(const Env env, Exp *data) {
+  const Exp base = *data;
+  CHECK_OO(check_exp(env, base));
+  const Type  key = base->type;
+  const Type  val = base->next->type;
+  bool        err = false;
+  const loc_t loc = base->pos;
+  Exp e = base;
+  env_weight(env, 1);
+  do {
+    if (check_collection(env, key, e, loc) < 0) err = true;
+    e = e->next;
+    if (check_collection(env, val, e, loc) < 0) err = true;
+  } while ((e = e->next));
+  if (!err) return dict_type(env->gwion, key, val, base->pos);
+  env_set_error(env); return NULL;
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
@@ -393,42 +410,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   env_weight(env, 1);
   return env->gwion->type[et_gack];
 }
-/*
-ANN static Type check_prim_map(const Env env, const Exp *data) {
-  CHECK_OO(check_exp(env, *data));
-  if(env->func) // really?
-    unset_fflag(env->func, fflag_pure);
-  bool err = false;
-  Exp key = *data;
-  Exp val = key->next;
-  const Type type_key = key->type;
-  const Type type_val = val->type;
-  const loc_t loc_key = (*data)->pos;
-  const loc_t loc_val = (*data)->next->pos;
-  do {
-    val = key->next;
-    if(prim_array_inner(env, type_key, key, loc_key) < 0)
-      err = true;
-    if(prim_array_inner(env, type_val, val, loc_val) < 0)
-      err = true;
-  } while((key = val->next));
-  if(!err) {
-    Type_Decl *td_key = type2td(env->gwion, type_key, loc_key);
-    Type_Decl *td_val = type2td(env->gwion, type_val, loc_val);
-    struct Type_List_ tl_val = { .td=td_val };
-    struct Type_List_ tl_key = { .td=td_key, .next=&tl_val };
-    Type_Decl td = { .xid=insert_symbol("Map"), .types=&tl_key };
-    const Type t = known_type(env, &td);
-    free_type_decl(env->gwion->mp, td_key);
-    free_type_decl(env->gwion->mp, td_val);
-    ensure_traverse(env, t);
-    prim_exp(data)->type = t;
-    return t;
-  }
-  env_set_error(env);
-  return NULL;
-}
-*/
+
 #define describe_prim_xxx(name, type)                                          \
   ANN static Type check_prim_##name(const Env env               NUSED,         \
                                     const union prim_data *data NUSED) {       \
@@ -1599,6 +1581,7 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef,
 
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if (fdef->base->args) CHECK_BB(check_func_args(env, fdef->base->args));
+  if(fdef->builtin) return GW_OK;
   if (fdef->d.code) {
     env->scope->depth--;
     CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code));

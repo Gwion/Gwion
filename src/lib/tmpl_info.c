@@ -79,15 +79,13 @@ ANN static m_bool template_match(Specialized_List base, Type_List call) {
 ANN static Type _tmpl_exists(const Env env, const Symbol name) {
   if (env->class_def && name == insert_symbol(env->class_def->name))
     return env->class_def;
-  return nspc_lookup_type1(env->curr, name);
+  return nspc_lookup_type1(env->curr, name) ?: env->context ?  nspc_lookup_type1(env->context->nspc, name) : NULL;
 }
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
   if (template_match(info->list, info->td->types) < 0) // invalid template
     ERR_N(info->td->pos, _("invalid template types number"));
-  if (!info->name) {
-    DECL_ON(const Symbol, name, = info->name = template_id(env, info));
-    return _tmpl_exists(env, name);
-  }
+  if (!info->name)
+    info->name = template_id(env, info);
   return _tmpl_exists(env, info->name);
 }

@@ -82,4 +82,7 @@ INSTR(SetCtor);
 INSTR(PutArgsInMem);
 #endif
 #include "opcode.h"
+
+INSTR(dict_ctor_alt);
+INSTR(dict_lit_ctor);
 #endif

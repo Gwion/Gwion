@@ -101,7 +101,7 @@ ANN static m_bool scan2_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary *prim) {
-  if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_interp)
+  if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
     CHECK_BB(scan2_exp(env, prim->d.exp));
   /*  else if(prim->prim_type == ae_prim_id) {
       const Value v = prim_value(env, prim->d.var);
@@ -497,7 +497,7 @@ m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
   else
     f->base->func = base;
   if (f->base->args) CHECK_BB(scan2_args(f));
-  if (f->d.code) CHECK_BB(scan2_func_def_code(env, f));
+  if (!f->builtin && f->d.code) CHECK_BB(scan2_func_def_code(env, f));
   if (!base) {
     if (fbflag(f->base, fbflag_op)) CHECK_BB(scan2_func_def_op(env, f));
     set_vflag(f->base->func->value_ref, vflag_valid);

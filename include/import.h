@@ -89,4 +89,10 @@ static inline M_Object new_object_str(const Gwion gwion, const m_str str) {
   DECL_OO(const Type, t, = str2type(gwion, str, loc));
   return new_object(gwion->mp, t);
 }
+
+static inline Type dict_type(const Gwion gwion, const Type key, const Type val, const loc_t pos) {
+   char c[1024];
+   sprintf(c, "Dict:[%s,%s]", key->name, val->name);
+   return str2type(gwion, c, pos);
+}
 #endif

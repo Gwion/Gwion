@@ -140,6 +140,7 @@ typedef enum {
   et_auto,
   et_none,
   et_curry,
+  et_dict,
   MAX_TYPE
 } type_enum;
 #endif
