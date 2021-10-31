@@ -1,0 +1,5 @@
+#! ensure no leaks
+const Dict:[string, Event] d;
+new Object => d["foo"];
+new Object => d["bar"];
+new Object => d["baz"];

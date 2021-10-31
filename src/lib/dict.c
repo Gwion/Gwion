@@ -66,7 +66,7 @@ static SFUN(mfun_float_h) {
 }
 
 static SFUN(mfun_string_h) {
-  *(m_int*)RETURN = hash(STRING(MEM(0)));
+  *(m_int*)RETURN = hash(STRING(*(M_Object*)MEM(0)));
 }
 
 ANN static void clear_oo(const HMap *a, const VM_Shred shred, const HMapInfo *info NUSED, const m_uint idx) {
@@ -238,11 +238,11 @@ static INSTR(hmap_iter) {
   size_t bucket =  *(m_uint*)(shred->reg - SZ_INT) % hmap->capacity;
   const HState *state = (HState*)(hmap->state + sizeof(HState) * bucket);
   if (state->set) {
-    const m_bit *data = hmap->data + hinfo->sz * bucket;
     m_int *const tombstone = (m_int*)(shred->reg - SZ_INT*2);
     if (state->deleted && *tombstone == -1) {
       *tombstone = bucket++;
     }
+    const m_bit *data = hmap->data + hinfo->sz * bucket;
     *(m_uint*)(shred->reg - SZ_INT) = bucket;
     memcpy(REG(0), data, hmap->key_size);
     shred->reg += hmap->key_size;
@@ -341,7 +341,8 @@ static INSTR(hmap_val) {
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   const m_uint bucket = *(m_uint*)REG(0);
   const m_bit *new_data = hmap->data + hinfo->sz * bucket;
-
+  HState *const new_state = (HState*)(hmap->state + sizeof(HState) * bucket);
+  if(new_state->deleted) exit(3);
   const m_int tombstone = *(m_int*)(shred->reg - SZ_INT);
   if (tombstone != -1) {
     m_bit  *const old_data = hmap->data + (hmap->key_size + hmap->val_size) * tombstone;
@@ -350,7 +351,7 @@ static INSTR(hmap_val) {
     memcpy(old_state, new_state, sizeof(HState));
     memcpy(old_data, new_data, hinfo->sz);
     new_state->deleted = true;
-  }
+ }
 
   shred->reg -= SZ_INT*2 - hmap->val_size;
   memcpy(REG(-hmap->val_size), new_data + hmap->key_size, hmap->val_size);
@@ -367,10 +368,11 @@ static INSTR(hmap_remove_clear) {
 
 static INSTR(hmap_remove) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
-  const HMap *hmap = (HMap*)o->data;
+  HMap *const hmap = (HMap*)o->data;
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   const m_uint bucket = *(m_uint*)REG(0);
   m_bit *data = hmap->data + hinfo->sz * bucket;
+  hmap->count--;
   HState *const state = (HState *)(hmap->state + bucket * sizeof(HState));
   state->deleted = true;
   shred->reg -= SZ_INT*3 - hmap->val_size;

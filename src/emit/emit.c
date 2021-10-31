@@ -673,16 +673,20 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp *data) {
   const Type  val = e->next->type;
   const Type t = dict_type(emit->gwion, key, val, e->pos);
   const Instr init = emit_add_instr(emit, dict_ctor_alt);
+  const Exp next = e->next;
+  e->next = NULL;
   struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
+  struct Exp_ call = { .exp_type = ae_exp_call, .d = { .exp_call = { .func = &func, .args = e}}};
+  CHECK_BB(traverse_exp(emit->env, &call));
+  e->next = next;
   m_uint count = 0;
-  CHECK_BB(traverse_exp(emit->env, &func));
   do {
     const Exp next = e->next;
     const Exp nnext = next->next;
     next->next = NULL;
     e->next = NULL;
     CHECK_BB(emit_exp(emit, e));
-    e->next = nnext;
+    e->next = next;
     CHECK_BB(emit_exp(emit, next));
     next->next = nnext;
     if(key->size == SZ_INT) {
