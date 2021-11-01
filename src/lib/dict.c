@@ -341,8 +341,6 @@ static INSTR(hmap_val) {
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   const m_uint bucket = *(m_uint*)REG(0);
   const m_bit *new_data = hmap->data + hinfo->sz * bucket;
-  HState *const new_state = (HState*)(hmap->state + sizeof(HState) * bucket);
-  if(new_state->deleted) exit(3);
   const m_int tombstone = *(m_int*)(shred->reg - SZ_INT);
   if (tombstone != -1) {
     m_bit  *const old_data = hmap->data + (hmap->key_size + hmap->val_size) * tombstone;
@@ -462,7 +460,6 @@ if(info->is_var) {
   not_ok->m_val = top_pc;
   ok->m_val = emit_code_size(emit);
 
-//  if(isa(val, emit->gwion->type[et_compound]) > 0) exit(3);
   const Instr iseq = emit_add_instr(emit, hmap_addr);
   iseq->m_val = key->size;
   fast->m_val = emit_code_size(emit);
@@ -543,8 +540,6 @@ static OP_EMIT(opem_dict_remove) {
   const Instr pushval = emit_add_instr(emit, hmap_remove);
   pushval->m_val2 = hinfo->key->size;
   return GW_OK;
-
-//  exit(3);
 }
 
 ANN static m_bool emit_next_access(const Emitter emit, struct ArrayAccessInfo *const info) {

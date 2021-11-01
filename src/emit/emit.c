@@ -2227,10 +2227,11 @@ struct Looper {
   /*const */ m_uint   offset;
   const m_uint        n;
   const f_looper_init roll;
-  const f_looper      unroll;
+  const f_looper_init unroll;
+  struct Vector_ unroll_v;
 };
 
-ANN static inline m_bool roll(const Emitter emit, const struct Looper *loop) {
+ANN static inline m_bool roll(const Emitter emit, struct Looper *const loop) {
   const Instr instr = loop->roll(emit, loop);
   CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
   instr->m_val = emit_code_size(emit) + 1; // pass after goto
@@ -2252,11 +2253,18 @@ ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
 
 ANN static inline m_bool unroll_run(const Emitter        emit,
                                     const struct Looper *loop) {
-  if (loop->unroll) loop->unroll(emit, loop);
-  return emit_stmt(emit, loop->stmt, 1);
+  const Instr instr = loop->unroll ? loop->unroll(emit, loop) : NULL;
+  CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
+  if(instr)
+//    instr->m_val = emit_code_size(emit) + 13; // pass after goto
+printf("code size %lu\n", emit_code_size(emit));
+//    instr->m_val = 46;
+  vector_add(&loop->unroll_v, (m_uint)instr);
+  return GW_OK;
+//  return emit_stmt(emit, loop->stmt, 1);
 }
 
-ANN static m_bool unroll(const Emitter emit, const struct Looper *loop) {
+ANN static m_bool _unroll(const Emitter emit, struct Looper *loop) {
   scoped_ini(emit);
   const Instr unroll = emit_add_instr(emit, Unroll);
   unroll->m_val      = loop->offset;
@@ -2271,14 +2279,28 @@ ANN static m_bool unroll(const Emitter emit, const struct Looper *loop) {
   return GW_OK;
 }
 
-ANN static void stmt_each_unroll(const Emitter        emit,
+ANN static m_bool unroll(const Emitter emit, struct Looper *loop) {
+  if(loop->unroll)
+    vector_init(&loop->unroll_v);
+  const m_bool ret = _unroll(emit, loop);
+  if(loop->unroll) {
+    for(m_uint i = 0; i < vector_size(&loop->unroll_v); i++) {
+      const Instr instr = (Instr)vector_at(&loop->unroll_v, i);
+      instr->m_val = emit_code_size(emit) + 2;
+    }
+    vector_release(&loop->unroll_v);
+  }
+  return ret;
+}
+ANN static Instr stmt_each_unroll(const Emitter        emit,
                                  const struct Looper *loop) {
   const Instr instr = emit_add_instr(emit, AutoLoop);
-  instr->m_val      = loop->offset + SZ_INT * 2;
+  instr->m_val2     = loop->offset + SZ_INT * 2;
+  return instr;
 }
 
 ANN static inline m_bool looper_run(const Emitter        emit,
-                                    const struct Looper *loop) {
+                                    struct Looper *const loop) {
   return (!loop->n ? roll : unroll)(emit, loop);
 }
 
@@ -2292,7 +2314,6 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
   regpop(emit, SZ_INT);
-//  emit_exp_addref(emit, stmt->exp, 0);
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]); // array?
   emit_local(emit, emit->gwion->type[et_int]);
   emit_local(emit, emit->gwion->type[et_int]);
