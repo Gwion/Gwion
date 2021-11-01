@@ -2252,16 +2252,12 @@ ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
 }
 
 ANN static inline m_bool unroll_run(const Emitter        emit,
-                                    const struct Looper *loop) {
+                                    struct Looper *const loop) {
   const Instr instr = loop->unroll ? loop->unroll(emit, loop) : NULL;
   CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
   if(instr)
-//    instr->m_val = emit_code_size(emit) + 13; // pass after goto
-printf("code size %lu\n", emit_code_size(emit));
-//    instr->m_val = 46;
-  vector_add(&loop->unroll_v, (m_uint)instr);
+    vector_add(&loop->unroll_v, (m_uint)instr);
   return GW_OK;
-//  return emit_stmt(emit, loop->stmt, 1);
 }
 
 ANN static m_bool _unroll(const Emitter emit, struct Looper *loop) {
