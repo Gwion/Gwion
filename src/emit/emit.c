@@ -2223,12 +2223,16 @@ struct Looper;
 typedef Instr (*f_looper_init)(const Emitter, const struct Looper *);
 typedef void (*f_looper)(const Emitter, const struct Looper *);
 struct Looper {
+  const Exp           exp;
   const Stmt          stmt;
   /*const */ m_uint   offset;
   const m_uint        n;
   const f_looper_init roll;
   const f_looper_init unroll;
-  struct Vector_ unroll_v;
+//  union {
+    struct Vector_ unroll_v;
+    Instr instr;
+//  };
 };
 
 ANN static inline m_bool roll(const Emitter emit, struct Looper *const loop) {
@@ -2239,9 +2243,16 @@ ANN static inline m_bool roll(const Emitter emit, struct Looper *const loop) {
 }
 
 ANN static Instr stmt_each_roll(const Emitter emit, const struct Looper *loop) {
-  const Instr instr = emit_add_instr(emit, AutoLoop);
-  instr->m_val2     = loop->offset + SZ_INT;
-  return instr;
+//  const Instr instr = emit_add_instr(emit, AutoLoop);
+//  instr->m_val2     = loop->offset + SZ_INT;
+//  return instr;
+  struct Op_Import opi = {
+    .lhs = loop->exp->type,
+    .op = insert_symbol("@autoloop"),
+    .data = (m_uint)loop
+  };
+  CHECK_BO(op_emit(emit, &opi));
+  return loop->instr;
 }
 
 ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
@@ -2290,9 +2301,16 @@ ANN static m_bool unroll(const Emitter emit, struct Looper *loop) {
 }
 ANN static Instr stmt_each_unroll(const Emitter        emit,
                                  const struct Looper *loop) {
-  const Instr instr = emit_add_instr(emit, AutoLoop);
-  instr->m_val2     = loop->offset + SZ_INT * 2;
-  return instr;
+  struct Op_Import opi = {
+    .lhs = loop->exp->type,
+    .op = insert_symbol("@autoloop"),
+    .data = (m_uint)loop
+  };
+  CHECK_BO(op_emit(emit, &opi));
+  return loop->instr;
+//  const Instr instr = emit_add_instr(emit, AutoLoop);
+//  instr->m_val2     = loop->offset + SZ_INT * 2;
+//  return instr;
 }
 
 ANN static inline m_bool looper_run(const Emitter        emit,
@@ -2326,7 +2344,8 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
     instr->m_val      = offset - SZ_INT;
   }
   const m_uint  ini_pc = emit_code_size(emit);
-  struct Looper loop   = {.stmt   = stmt->body,
+  struct Looper loop   = {.exp  = stmt->exp,
+                        .stmt   = stmt->body,
                         .offset = offset,
                         .n      = n,
                         .roll   = stmt_each_roll,
@@ -2378,7 +2397,8 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
   const Instr tomem  = emit_add_instr(emit, Reg2Mem);
   tomem->m_val       = offset + (!stmt->idx ? 0 : SZ_INT);
   *index             = emit_code_size(emit);
-  struct Looper loop = {.stmt   = stmt->body,
+  struct Looper loop = {.exp    = stmt->cond,
+                        .stmt   = stmt->body,
                         .offset = offset,
                         .n      = n,
                         .roll =

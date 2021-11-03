@@ -725,6 +725,35 @@ static OP_CHECK(opck_array_implicit) {
   return imp->t;
 }
 
+struct Looper;
+typedef Instr (*f_looper_init)(const Emitter, const struct Looper *);
+typedef void (*f_looper)(const Emitter, const struct Looper *);
+struct Looper {
+  const Exp           exp;
+  const Stmt          stmt;
+  /*const */ m_uint   offset;
+  const m_uint        n;
+  const f_looper_init roll;
+  const f_looper_init unroll;
+//  union {
+    struct Vector_ unroll_v;
+    Instr instr;
+//  };
+};
+
+static OP_EMIT(opem_array_autoloop) {
+  struct Looper *loop = (struct Looper *)data;
+  const Instr instr = emit_add_instr(emit, AutoLoop);
+  if(!loop->n) {
+    instr->m_val2     = loop->offset + SZ_INT;
+  } else {
+    instr->m_val2     = loop->offset + SZ_INT*2;
+    vector_add(&loop->unroll_v, (m_uint)instr);
+  }
+  loop->instr = instr;
+  return GW_OK;
+}
+
 ANN static void prepare_run(m_bit *const byte, const f_instr ini,
                             const f_instr end) {
   *(unsigned *)byte                                 = eOP_MAX;
@@ -848,6 +877,9 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "int"))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_autoloop))
+  GWI_BB(gwi_oper_end(gwi, "@autoloop", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
