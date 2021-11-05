@@ -252,8 +252,6 @@ static INSTR(hmap_iter) {
   handle(shred, "InvalidMapAccess");
 }
 
-static inline size_t grow(size_t c) { return c * 2; }
-
 static INSTR(hmap_grow) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT);
   const HMap *hmap = (HMap*)o->data;

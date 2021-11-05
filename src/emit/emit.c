@@ -1178,6 +1178,10 @@ ANN static inline void emit_return_pc(const Emitter emit, const m_uint val) {
 
 ANN static inline void pop_exp(const Emitter emit, Exp e);
 
+ANN static m_bool        scoped_stmt(const Emitter emit, const Stmt stmt,
+                                     const m_bool pop);
+
+#ifdef GWION_INLINE
 ANN static inline bool check_inline(const Emitter emit, const Func f) {
   const uint16_t caller_size = emit->env->func ? emit->env->func->weight
                                : emit->env->class_def
@@ -1240,8 +1244,6 @@ ANN static inline void inline_args_end(const Func f, const Vector v) {
   }
 }
 
-ANN static m_bool        scoped_stmt(const Emitter emit, const Stmt stmt,
-                                     const m_bool pop);
 ANN static inline m_bool inline_body(const Emitter emit, const Func f) {
   struct Vector_ v = {.ptr = emit->code->stack_return.ptr};
   vector_init(&emit->code->stack_return);
@@ -1284,7 +1286,7 @@ ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
   emit->vararg_offset = vararg_offset;
   return ret;
 }
-
+#endif
 ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
 /*
   #ifndef GWION_NOINLINE
@@ -2712,13 +2714,6 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot *member) {
                           .data = (uintptr_t)member,
                           .pos  = exp_self(member)->pos};
   return op_emit(emit, &opi);
-}
-
-ANN static inline void emit_func_def_fglobal(const Emitter emit,
-                                             const Value   value) {
-  const Instr set_mem = emit_add_instr(emit, MemSetImm);
-  set_mem->m_val      = value->from->offset;
-  set_mem->m_val2     = (m_uint)value->d.func_ref->code;
 }
 
 ANN static inline void emit_func_def_init(const Emitter emit, const Func func) {

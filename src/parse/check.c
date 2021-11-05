@@ -1163,19 +1163,6 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   return GW_OK;
 }
 
-ANN static inline Type foreach_type(const Env env, const Exp exp) {
-  const Type et = exp->type;
-  if (isa(et, env->gwion->type[et_array]) < 0)
-    ERR_O(exp->pos,
-          _("type '%s' is not array.\n"
-            " This is not allowed in foreach loop"),
-          et->name)
-  DECL_OO(Type, base, = typedef_base(et));
-  DECL_OO(const Type, t, = array_base_simple(base));
-  const m_uint depth = base->array_depth - 1;
-  return depth ? array_type(env, t, depth) : t;
-}
-
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
   idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
   valuefrom(env, idx->v->from, idx->pos);
@@ -1188,7 +1175,7 @@ ANN static m_bool check_each_idx(const Env env, const Exp exp, struct EachIdx_ *
   struct Op_Import opi = {
     .lhs = exp->type,
     .op  = insert_symbol("@each_idx"),
-    .data = exp,
+    .data = (m_uint)exp,
     .pos = idx->pos
   };
   DECL_OB(const Type, t, = op_check(env, &opi));

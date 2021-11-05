@@ -36,10 +36,11 @@ ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
   return ret;
 }
 
-ANN static Exp order_curry(const Env env, Exp fn, Exp arg) {
+ANN static Exp order_curry(const Env env, Exp fn, const Exp _arg) {
   const MemPool mp   = env->gwion->mp;
   Exp           base = NULL;
   Exp           next = NULL;
+  Exp           arg  = _arg;
   do {
     const bool hole = is_hole(env, fn);
     const Exp  curr = !hole ? fn : arg;

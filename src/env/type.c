@@ -7,6 +7,9 @@
 #include "gwion.h"
 #include "clean.h"
 #include "object.h"
+#include "instr.h"
+#include "operator.h"
+#include "import.h"
 
 ANN static inline m_bool freeable(const Type a) {
   return tflag(a, tflag_tmpl) || GET_FLAG(a, global);
@@ -91,9 +94,6 @@ ANN /*static */ Symbol array_sym(const Env env, const Type src,
   return insert_symbol(name);
 }
 
-#include "instr.h"
-#include "operator.h"
-#include "import.h"
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const Symbol sym  = array_sym(env, src, depth);
   const Type   type = nspc_lookup_type1(src->info->value->from->owner, sym);
@@ -170,9 +170,7 @@ ANN bool from_global_nspc(const Env env, const Nspc nspc) {
 }
 
 ANN bool type_global(const Env env, Type t) {
-  while(t) {
-    if(from_global_nspc(env, t->info->value->from->owner)) return true;
-    t = t->info->value->from->owner_class;
-  }
+  do if(from_global_nspc(env, t->info->value->from->owner)) return true;
+  while((t = t->info->value->from->owner_class));
   return false;
 }
