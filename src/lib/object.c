@@ -25,8 +25,6 @@ M_Object new_object(MemPool p, const Type t) {
   const M_Object a = _mp_calloc(p, offset);
   a->ref           = 1;
   a->type_ref      = t;
-  a->offset = t->nspc->offset;
-  a->vtable.ptr = t->nspc->vtable.ptr;
   return a;
 }
 
@@ -37,11 +35,11 @@ M_Object new_string(const struct Gwion_ *gwion, const m_str str) {
 }
 
 ANN static void user_dtor(const M_Object o, const VM_Shred shred, const Type t) {
-  o->type_ref = t;
-  const VM_Shred sh = new_vm_shred(shred->info->mp, o->type_ref->nspc->dtor);
-  vmcode_addref(o->type_ref->nspc->dtor);
+  const VM_Shred sh = new_vm_shred(shred->info->mp, t->nspc->dtor);
+  vmcode_addref(t->nspc->dtor);
   sh->base             = shred->base;
   *(M_Object *)sh->mem = o;
+  *(Type *)(sh->mem + SZ_INT) = t;
   vm_add_shred(shred->info->vm, sh);
   ++sh->info->me->ref;
 }
@@ -80,13 +78,21 @@ ANN static void do_release(const M_Object o,
   return do_release(o, shred, t->info->parent);
 }
 
+
+INSTR(DTOR_EOC) {
+  const M_Object o = *(M_Object *)MEM(0);
+  const Type t     = *(Type *)MEM(SZ_INT);
+  do_release(o, shred, t->info->parent);
+  shred->info->me->ref = 1;
+  vm_shred_exit(shred);
+}
+
 ANN void __release(const M_Object o, const VM_Shred shred) {
-//  vector_rem2(&shred->gc, (vtype)o);
   do_release(o, shred, o->type_ref);
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-    mp_free2(p, o->offset, o);
+  mp_free2(p, o->type_ref->nspc->offset, o);
 }
 
 static ID_CHECK(opck_this) {

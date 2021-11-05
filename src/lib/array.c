@@ -13,7 +13,7 @@
 #include "parse.h"
 #include "gwi.h"
 #include "emit.h"
-
+#include "looper.h"
 static DTOR(array_dtor) {
   if (*(void **)(o->data + SZ_INT)) xfree(*(void **)(o->data + SZ_INT));
   struct M_Vector_ *a = ARRAY(o);
@@ -124,6 +124,10 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos,
             _("do not provide array for 'xxx => declaration'."));
   }
+  bin->rhs->ref = bin->lhs;
+//  bin->rhs->data = bin->lhs;
+  if(bin->rhs->exp_type == ae_exp_decl)
+    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -725,32 +729,43 @@ static OP_CHECK(opck_array_implicit) {
   return imp->t;
 }
 
-struct Looper;
-typedef Instr (*f_looper_init)(const Emitter, const struct Looper *);
-typedef void (*f_looper)(const Emitter, const struct Looper *);
-struct Looper {
-  const Exp           exp;
-  const Stmt          stmt;
-  /*const */ m_uint   offset;
-  const m_uint        n;
-  const f_looper_init roll;
-  const f_looper_init unroll;
-//  union {
-    struct Vector_ unroll_v;
-    Instr instr;
-//  };
-};
+static OP_EMIT(opem_array_each_init) {
+  Looper *loop = (Looper *)data;
+  const Instr instr = emit_add_instr(emit, AutoUnrollInit);
+  instr->m_val = loop->offset;
+  return GW_OK;
+}
 
-static OP_EMIT(opem_array_autoloop) {
-  struct Looper *loop = (struct Looper *)data;
+
+ANN static inline Type foreach_type(const Env env, const Exp exp) {
+  const Type et = exp->type;
+  DECL_OO(Type, base, = typedef_base(et));
+  DECL_OO(const Type, t, = array_base_simple(base));
+  const m_uint depth = base->array_depth - 1;
+  return depth ? array_type(env, t, depth) : t;
+}
+
+// rewrite me
+static OP_CHECK(opck_array_each_val) {
+  const Exp exp = (const Exp) data;
+  DECL_ON(const Type, base, = foreach_type(env, exp));
+  CHECK_BN(ensure_traverse(env, base));
+  const m_str basename = type2str(env->gwion, base, exp->pos);
+  char c[15 + strlen(basename)];
+  sprintf(c, "Ref:[%s]", basename);
+  return str2type(env->gwion, c, exp->pos);
+}
+
+static OP_EMIT(opem_array_each) {
+  Looper *loop = (Looper *)data;
   const Instr instr = emit_add_instr(emit, AutoLoop);
   if(!loop->n) {
     instr->m_val2     = loop->offset + SZ_INT;
+    loop->instr = instr;
   } else {
     instr->m_val2     = loop->offset + SZ_INT*2;
     vector_add(&loop->unroll_v, (m_uint)instr);
   }
-  loop->instr = instr;
   return GW_OK;
 }
 
@@ -877,9 +892,17 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "void"))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_each_init))
+  GWI_BB(gwi_oper_end(gwi, "@each_init", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "int"))
-  GWI_BB(gwi_oper_emi(gwi, opem_array_autoloop))
-  GWI_BB(gwi_oper_end(gwi, "@autoloop", NULL))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_each))
+  GWI_BB(gwi_oper_end(gwi, "@each", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_array_each_val))
+  GWI_BB(gwi_oper_end(gwi, "@each_val", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "int"))
+  GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
@@ -980,7 +1003,7 @@ INSTR(ArrayAlloc) {
   if (!ref) {
     gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} (note: in shred[id=%" UINT_F ":%s])\n",
            shred->tick->xid, shred->code->name);
-    if (info->is_obj) free(aai.data);
+    if (info->is_obj) xfree(aai.data);
     handle(shred, "ArrayAllocException");
     return; // TODO make exception vararg
   }

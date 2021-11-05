@@ -1032,7 +1032,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     autounrollinit:
       *(m_uint *)(mem + VAL) =
-          m_vector_size(ARRAY(*(M_Object *)(mem + VAL + SZ_INT)));
+          m_vector_size(ARRAY(*(M_Object *)(mem + VAL + SZ_INT))) + 1;
       DISPATCH()
     autoloop: {
       const M_Vector array = ARRAY(*(M_Object *)(mem + VAL2 - SZ_INT));
@@ -1217,7 +1217,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     dotfunc:
       *(VM_Code *)(reg + (m_uint)VAL2) =
-          ((Func)(*(M_Object *)(reg - SZ_INT))->vtable.ptr[OFFSET + VAL])->code;
+          ((Func)(*(M_Object *)(reg - SZ_INT))->type_ref->nspc->vtable.ptr[OFFSET + VAL])->code;
       DISPATCH()
     gacktype : {
       const M_Object o = *(M_Object *)(reg - SZ_INT);

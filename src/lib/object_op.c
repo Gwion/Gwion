@@ -35,6 +35,7 @@ static OP_CHECK(opck_object_at) {
   exp_setvar(bin->rhs, 1);
   CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
   bin->lhs->ref = bin->rhs;
+//  bin->lhs->acquire = true;
 //  bin->rhs-> = bin->lhs;
   return bin->rhs->type;
 }
@@ -51,7 +52,6 @@ static bool exp_func(const Exp exp) {
 ANN void unset_local(const Emitter emit, void *const l);
 static OP_EMIT(opem_object_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-
   if(!bin->rhs->data) {
     const Instr addref = emit_add_instr(emit, RegAddRef);
     addref->m_val      = -SZ_INT * 2;

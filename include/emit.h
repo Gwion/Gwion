@@ -12,6 +12,7 @@ typedef struct Frame_ {
 
 typedef struct VMValue_ {
   Type     t;
+  void *local; /// :.....
   uint16_t offset;
   uint16_t start;
   uint16_t end;

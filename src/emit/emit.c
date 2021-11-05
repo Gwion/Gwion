@@ -17,6 +17,7 @@
 #include "match.h"
 #include "specialid.h"
 #include "vararg.h"
+#include "looper.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -80,8 +81,8 @@ ANN static void free_frame(MemPool p, Frame *a) {
   mp_free(p, Frame, a);
 }
 
-ANN static Local *new_local(MemPool p, const Type type) {
-  Local *local = mp_calloc(p, Local);
+ANN static inline Local *new_local(MemPool p, const Type type) {
+  Local *const local = mp_calloc(p, Local);
   local->type  = type;
   return local;
 }
@@ -292,7 +293,7 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
   if (isa(t, emit->gwion->type[et_compound]) > 0) {
     l->is_compound = true;
     VMValue vmval  = {
-        .t = t, .offset = l->offset, .start = emit_code_size(emit)};
+        .t = t, .local = l, .offset = l->offset, .start = emit_code_size(emit)};
     m_vector_add(&emit->code->live_values, &vmval);
     ++emit->code->frame->value_count;
   }
@@ -303,7 +304,7 @@ ANN void* emit_localx(const Emitter emit, const Type t) {
   Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
   l->is_compound = true;
   VMValue vmval  = {
-      .t = t, .offset = l->offset, .start = emit_code_size(emit)};
+      .t = t, .local = l, .offset = l->offset, .start = emit_code_size(emit)};
   m_vector_add(&emit->code->live_values, &vmval);
   ++emit->code->frame->value_count;
   l->instr = emit_add_instr(emit, Reg2Mem);
@@ -960,21 +961,26 @@ ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
 }
 
 ANN void unset_local(const Emitter emit, Local *const l) {
+puts("unset");
   l->instr->opcode = eNoOp;
   for(m_uint i = m_vector_size(&emit->code->live_values) + 1; --i;) {
     VMValue vmval = *(VMValue*)(ARRAY_PTR((&emit->code->live_values)) + (i-1) * sizeof(VMValue));
-    if(vmval.offset != l->offset) continue;
+//    if(vmval.offset != l->offset) continue;
+    if(vmval.local != l) continue;
     m_vector_rem(&emit->code->live_values, i-1);
+    vector_rem2(&emit->code->frame->stack, (vtype)l);
+//vector_rem2(&emit->code->instr, l->instr);
+// free instr
+    --emit->code->frame->value_count;
     break;
   }
-  --emit->code->frame->value_count;
 }
 
 ANN static m_uint decl_non_static_offset(const Emitter emit, const Exp_Decl *decl, const Type t) {
-  if(!exp_self(decl)->data)
+//  if(!exp_self(decl)->data)
     return emit_local(emit, t);
-  Local *const l = exp_self(decl)->data;
-  return l->offset;
+//  Local *const l = exp_self(decl)->data;
+//  return l->offset;
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
@@ -988,7 +994,8 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
   const bool      is_array = array && array->exp;
   const bool      is_obj   = isa(type, emit->gwion->type[et_object]) > 0;
   const bool emit_addr = (!is_obj || (is_ref && !is_array)) ? emit_var : true;
-  if (is_obj && (is_array || !is_ref))
+  if (is_obj && (is_array || !is_ref) && !exp_self(decl)->ref)
+//  if (is_obj && ((is_array && !exp_self(decl)->ref) || !is_ref))
     CHECK_BB(emit_instantiate_decl(emit, type, decl->td, array, is_ref));
   f_instr *exec = (f_instr *)allocmember;
   if (!emit->env->scope->depth) emit_debug(emit, v);
@@ -1007,7 +1014,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
                       exec)
           : emit_struct_decl(emit, v, !struct_ctor(v) ? emit_addr : 1);
   instr->m_val = v->from->offset;
-  if (is_obj && (is_array || !is_ref)) {
+  if (is_obj && (is_array || !is_ref) && !exp_self(decl)->ref) {
     if (!emit_var)
       emit_add_instr(emit, Assign);
     else {
@@ -1326,10 +1333,11 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val      = -SZ_INT;
   } else {
-//    if(isa(t, emit->gwion->type[et_object]) > 0)
-//    if(isa(t, emit->gwion->type[et_object]) > 0)
-//      emit_local_exp(emit, e);
-//      emit_localx(emit, t);
+    if(isa(t, emit->gwion->type[et_object]) > 0) {
+//emit_object_addref(emit, -SZ_INT, 0);
+      emit_local_exp(emit, e);
+//       emit_localx(emit, t);
+    }
     if (!is_func(emit->gwion, exp_call->func->type) &&
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
@@ -2219,59 +2227,40 @@ ANN static m_bool emit_stmt_for(const Emitter emit, const Stmt_For stmt) {
   return ret;
 }
 
-struct Looper;
-typedef Instr (*f_looper_init)(const Emitter, const struct Looper *);
-typedef void (*f_looper)(const Emitter, const struct Looper *);
-struct Looper {
-  const Exp           exp;
-  const Stmt          stmt;
-  /*const */ m_uint   offset;
-  const m_uint        n;
-  const f_looper_init roll;
-  const f_looper_init unroll;
-//  union {
-    struct Vector_ unroll_v;
-    Instr instr;
-//  };
-};
-
-ANN static inline m_bool roll(const Emitter emit, struct Looper *const loop) {
-  const Instr instr = loop->roll(emit, loop);
-  CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
-  instr->m_val = emit_code_size(emit) + 1; // pass after goto
-  return GW_OK;
-}
-
-ANN static Instr stmt_each_roll(const Emitter emit, const struct Looper *loop) {
-//  const Instr instr = emit_add_instr(emit, AutoLoop);
-//  instr->m_val2     = loop->offset + SZ_INT;
-//  return instr;
+ANN static Instr each_op(const Emitter emit, const Looper *loop) {
   struct Op_Import opi = {
     .lhs = loop->exp->type,
-    .op = insert_symbol("@autoloop"),
+    .op = insert_symbol("@each"),
     .data = (m_uint)loop
   };
   CHECK_BO(op_emit(emit, &opi));
   return loop->instr;
 }
 
+ANN static inline m_bool roll(const Emitter emit, Looper*const loop) {
+const Instr instr = loop->roll(emit, loop);
+//  DECL_OB(const Instr, instr, = each_op(emit, loop)); // maybe check in check.c
+  CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
+  instr->m_val = emit_code_size(emit) + 1; // pass after goto
+  return GW_OK;
+}
+
 ANN static inline void unroll_init(const Emitter emit, const m_uint n) {
-  emit->info->unroll = 0;
   const Instr instr  = emit_add_instr(emit, MemSetImm);
   instr->m_val       = emit_local(emit, emit->gwion->type[et_int]);
   instr->m_val2      = n;
 }
 
 ANN static inline m_bool unroll_run(const Emitter        emit,
-                                    struct Looper *const loop) {
-  const Instr instr = loop->unroll ? loop->unroll(emit, loop) : NULL;
+                                    struct Looper *loop) {
+  const Instr instr = each_op(emit, loop);
   CHECK_BB(scoped_stmt(emit, loop->stmt, 1));
   if(instr)
     vector_add(&loop->unroll_v, (m_uint)instr);
   return GW_OK;
 }
 
-ANN static m_bool _unroll(const Emitter emit, struct Looper *loop) {
+ANN static m_bool _unroll(const Emitter emit, Looper *loop) {
   scoped_ini(emit);
   const Instr unroll = emit_add_instr(emit, Unroll);
   unroll->m_val      = loop->offset;
@@ -2286,71 +2275,63 @@ ANN static m_bool _unroll(const Emitter emit, struct Looper *loop) {
   return GW_OK;
 }
 
-ANN static m_bool unroll(const Emitter emit, struct Looper *loop) {
+ANN static m_bool unroll(const Emitter emit, Looper *loop) {
   if(loop->unroll)
     vector_init(&loop->unroll_v);
   const m_bool ret = _unroll(emit, loop);
   if(loop->unroll) {
     for(m_uint i = 0; i < vector_size(&loop->unroll_v); i++) {
       const Instr instr = (Instr)vector_at(&loop->unroll_v, i);
-      instr->m_val = emit_code_size(emit) + 2;
+      instr->m_val = emit_code_size(emit) + 1; // + 2 for arrays
     }
     vector_release(&loop->unroll_v);
   }
   return ret;
 }
-ANN static Instr stmt_each_unroll(const Emitter        emit,
-                                 const struct Looper *loop) {
-  struct Op_Import opi = {
-    .lhs = loop->exp->type,
-    .op = insert_symbol("@autoloop"),
-    .data = (m_uint)loop
-  };
-  CHECK_BO(op_emit(emit, &opi));
-  return loop->instr;
-//  const Instr instr = emit_add_instr(emit, AutoLoop);
-//  instr->m_val2     = loop->offset + SZ_INT * 2;
-//  return instr;
-}
 
 ANN static inline m_bool looper_run(const Emitter        emit,
-                                    struct Looper *const loop) {
+                                    Looper *const loop) {
   return (!loop->n ? roll : unroll)(emit, loop);
 }
 
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
                                   m_uint *end_pc) {
   const uint n = emit->info->unroll;
-  if (n) {
-    unroll_init(emit, n);
-    emit_local(emit, emit->gwion->type[et_int]);
-  }
-
-  CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
-  regpop(emit, SZ_INT);
-  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]); // array?
-  emit_local(emit, emit->gwion->type[et_int]);
-  emit_local(emit, emit->gwion->type[et_int]);
+  const m_uint arr_offset = emit_local(emit, emit->gwion->type[et_int]); // array?
+  const m_uint key_offset = /*!stmt->idx
+     ? */emit_local(emit, emit->gwion->type[et_int])
+     /*: emit_local(emit, stmt->idx->v->type)*/;
+  const m_uint val_offset = emit_local(emit, stmt->v->type);
   const Instr tomem     = emit_add_instr(emit, Reg2Mem);
-  tomem->m_val          = offset;
+  tomem->m_val          = arr_offset;
   const Instr loop_idx  = emit_add_instr(emit, MemSetImm);
-  loop_idx->m_val       = offset + SZ_INT;
+  loop_idx->m_val       = key_offset;
   loop_idx->m_val2      = -1;
-  stmt->v->from->offset = offset + SZ_INT * 2;
+  stmt->v->from->offset = val_offset;
   emit_debug(emit, stmt->v);
-  if (stmt->idx) stmt->idx->v->from->offset = offset + SZ_INT;
-  if (n) {
-    const Instr instr = emit_add_instr(emit, AutoUnrollInit);
-    instr->m_val      = offset - SZ_INT;
+  if (stmt->idx) {
+    stmt->idx->v->from->offset = key_offset;
+    emit_debug(emit, stmt->v);
   }
-  const m_uint  ini_pc = emit_code_size(emit);
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,
-                        .offset = offset,
+                        .offset = arr_offset,
                         .n      = n,
-                        .roll   = stmt_each_roll,
-                        .unroll = stmt_each_unroll};
-  if (n) loop.offset -= SZ_INT;
+                        .roll   = each_op,
+                        .unroll = each_op,
+                        .idx    = stmt->idx,
+.init = false
+                        };
+  if (n) {
+    loop.offset -= SZ_INT;
+    struct Op_Import opi = {
+      .lhs = loop.exp->type,
+      .op = insert_symbol("@each_init"),
+      .data = (m_uint)&loop
+    };
+    CHECK_BB(op_emit(emit, &opi));
+  }
+  const m_uint  ini_pc = emit_code_size(emit);
   CHECK_BB(looper_run(emit, &loop));
   *end_pc         = emit_code_size(emit);
   const Instr tgt = emit_add_instr(emit, Goto);
@@ -2359,21 +2340,32 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
 }
 
 ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
+  const uint n = emit->info->unroll;
+
+  CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
+  regpop(emit, SZ_INT);
+
+  if (n) {
+    unroll_init(emit, n);
+    emit_local(emit, emit->gwion->type[et_int]);
+  }
+
   emit_push_stack(emit);
   m_uint       end_pc = 0;
   const m_bool ret    = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
+  emit->info->unroll = 0;
   return ret;
 }
 
-ANN static Instr stmt_loop_roll(const Emitter emit, const struct Looper *loop) {
+ANN static Instr stmt_loop_roll(const Emitter emit, const Looper *loop) {
   const Instr eq = emit_add_instr(emit, Repeat);
   eq->m_val2     = loop->offset;
   return eq;
 }
 
 ANN static Instr stmt_loop_roll_idx(const Emitter        emit,
-                                    const struct Looper *loop) {
+                                    const Looper *loop) {
   const Instr instr = emit_add_instr(emit, RepeatIdx);
   instr->m_val2     = loop->offset;
   return instr;
@@ -2382,7 +2374,10 @@ ANN static Instr stmt_loop_roll_idx(const Emitter        emit,
 ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
                                   m_uint *index) {
   const uint n = emit->info->unroll;
-  if (n) unroll_init(emit, n);
+  if (n) {
+    unroll_init(emit, n);
+    emit->info->unroll = 0;
+  }
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   if (stmt->idx) {
     const Instr instr          = emit_add_instr(emit, MemSetImm);
@@ -2787,6 +2782,7 @@ ANN static VM_Code emit_func_def_code(const Emitter emit, const Func func) {
 }
 
 ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
+  if (fdef->base->xid == insert_symbol("@dtor")) emit_local(emit, emit->gwion->type[et_int]);
   if (fdef->base->args) emit_func_def_args(emit, fdef->base->args);
   if (fbflag(fdef->base, fbflag_variadic)) stack_alloc(emit);
   if (fdef->d.code) {

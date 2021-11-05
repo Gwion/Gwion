@@ -13,7 +13,7 @@
 #include "import.h"
 #include "emit.h"
 #include "template.h"
-
+/*
 INSTR(DTOR_EOC) {
   const M_Object o = *(M_Object *)MEM(0);
   o->type_ref      = o->type_ref->info->parent;
@@ -21,7 +21,7 @@ INSTR(DTOR_EOC) {
   shred->info->me->ref = 1;
   vm_shred_exit(shred);
 }
-
+*/
 ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt,
                               const Nspc nspc) {
   const Func_Def fdef = dt->def ?: dt->base;

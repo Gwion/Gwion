@@ -15,6 +15,7 @@
 #include "gwi.h"
 #include "tmpl_info.h"
 #include "array.h"
+#include "looper.h"
 
 #define HMAP_MIN_CAP 32
 #define HMAP_MAX_LOAD 0.75
@@ -167,17 +168,17 @@ INSTR(dict_lit_ctor) {
 
 static CTOR(dict_ctor) {
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
-  HMap *a = &*(struct HMap*)o->data;
-  a->key_size = hinfo->key->size;
-  a->val_size = hinfo->val->size;
-  a->data  = (m_bit*)mp_calloc2(shred->info->mp, hinfo->sz * HMAP_MIN_CAP);
-  a->state = (m_bit*)mp_calloc2(shred->info->mp, sizeof(HState) * HMAP_MIN_CAP);
-  a->capacity = HMAP_MIN_CAP;
-  a->count    = 0;
+  HMap *const a = &*(struct HMap*)o->data;
+  a->key_size   = hinfo->key->size;
+  a->val_size   = hinfo->val->size;
+  a->data       = (m_bit*)mp_calloc2(shred->info->mp, hinfo->sz * HMAP_MIN_CAP);
+  a->state      = (m_bit*)mp_calloc2(shred->info->mp, sizeof(HState) * HMAP_MIN_CAP);
+  a->capacity   = HMAP_MIN_CAP;
+  a->count      = 0;
 }
 
 static DTOR(dict_dtor) {
-  HMap *a = &*(struct HMap*)o->data;
+  HMap *const a = &*(struct HMap*)o->data;
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   mp_free2(shred->info->mp, hinfo->sz * a->capacity, a->data);
   mp_free2(shred->info->mp, sizeof(HState) * a->capacity, a->state);
@@ -295,7 +296,7 @@ static INSTR(hmap_grow_dec) {
   *(m_uint*)(shred->reg -SZ_INT) = 1;
 }
 
-static INSTR(hmap_wtf) {
+static INSTR(hmap_find) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT*6);
   HMap *const hmap = (HMap*)o->data;
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
@@ -435,7 +436,7 @@ if(info->is_var) {
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
   emit_exp(emit, call.d.exp_call.func);
   emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true);
-  emit_add_instr(emit, hmap_wtf);
+  emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);
   regrow->m_val = grow_pc;
   nogrow->m_val = emit_code_size(emit);
@@ -572,6 +573,71 @@ static OP_CHECK(opck_dict_access) {
   return check_array_access(env, &next) ?: env->gwion->type[et_error];
 }
 
+static INSTR(DictEach) {
+  const M_Object o = *(M_Object *)(shred->mem + instr->m_val2);
+  HMapInfo *const hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
+  const HMap *hmap = (HMap*)o->data;
+  m_uint bucket = ++*(m_uint *)(shred->mem + instr->m_val2 + SZ_INT);
+  while(bucket < hmap->capacity) {
+    const HState *state = (HState *)(hmap->state + bucket * sizeof(HState));
+    if (state->set && !state->deleted)
+      break;
+    bucket++;
+  }
+  *(m_uint *)(shred->mem + instr->m_val2 + SZ_INT) = bucket;
+  memcpy(shred->mem + instr->m_val2 + SZ_INT*2, hmap->data + (bucket * hinfo->sz) + hinfo->key->size, hinfo->val->size);
+  *(m_uint*)shred->reg = (bucket == hmap->capacity);
+  PUSH_REG(shred, SZ_INT);
+}
+
+static INSTR(DictEachIdx) {
+  const M_Object o = *(M_Object *)(shred->mem + instr->m_val2);
+  HMapInfo *const hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
+  const HMap *hmap = (HMap*)o->data;
+  DictEach(shred, instr);
+  const m_int bucket = *(m_uint *)(shred->mem + instr->m_val2 + SZ_INT);
+  memcpy(shred->mem + instr->m_val, hmap->data + (bucket * hinfo->sz), hinfo->key->size);
+}
+
+static OP_EMIT(opem_dict_each) {
+  Looper *loop = (Looper *)data;
+  HMapInfo *const hinfo = (HMapInfo*)loop->exp->type->nspc->class_data;
+  if(loop->idx && !loop->init) loop->idx->v->from->offset = emit_localn(emit, hinfo->key);
+  const Instr instr = emit_add_instr(emit, !loop->idx ? DictEach : DictEachIdx);
+  instr->m_val2 = loop->offset;
+  if(loop->idx) instr->m_val = loop->idx->v->from->offset;
+  if(loop->n)instr->m_val2 += SZ_INT;
+  const Instr go = emit_add_instr(emit, BranchNeqInt);
+  if(!loop->n) loop->instr = go;
+  else vector_add(&loop->unroll_v, (m_uint)go);
+  loop->init = true;
+  return GW_OK;
+}
+
+static INSTR(DictEachInit) {
+  const M_Object o = *(M_Object *)(shred->mem + instr->m_val + SZ_INT);
+  *(m_uint *)(shred->mem + instr->m_val) = ((HMap*)o->data)->capacity;
+}
+
+static OP_EMIT(opem_dict_each_init) {
+  const Looper *loop = (Looper *)data;
+  const Instr instr = emit_add_instr(emit, DictEachInit);
+  instr->m_val = loop->offset;
+  return GW_OK;
+}
+
+static OP_CHECK(opck_dict_each_key) {
+  const Exp exp = (const Exp)data;
+  HMapInfo *const hinfo = (HMapInfo*)exp->type->nspc->class_data;
+  return hinfo->key;
+}
+
+static OP_CHECK(opck_dict_each_val) {
+  const Exp exp = (const Exp)data;
+  HMapInfo *const hinfo = (HMapInfo*)exp->type->nspc->class_data;
+  return hinfo->val;
+}
+
 static OP_CHECK(opck_dict_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
   struct tmpl_info     info = {
@@ -621,7 +687,6 @@ static OP_CHECK(opck_dict_scan) {
   }
 
   return ret > 0 ? t : NULL;
-//  return t;
 }
 
 GWION_IMPORT(dict) {
@@ -645,6 +710,22 @@ GWION_IMPORT(dict) {
   GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_dict_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "int"))
+  GWI_BB(gwi_oper_emi(gwi, opem_dict_each))
+  GWI_BB(gwi_oper_end(gwi, "@each", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "void"))
+  GWI_BB(gwi_oper_emi(gwi, opem_dict_each_init))
+  GWI_BB(gwi_oper_end(gwi, "@each_init", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_dict_each_val))
+  GWI_BB(gwi_oper_end(gwi, "@each_val", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_dict_each_key))
+  GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
 
   GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
   GWI_BB(gwi_func_arg(gwi, "int",    "key"));

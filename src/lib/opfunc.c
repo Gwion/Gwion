@@ -150,7 +150,7 @@ OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
-  if(!unary->ctor.exp)
-    emit_localx(emit, exp_self(unary)->type);
+//  if(!unary->ctor.exp)
+//    emit_local_exp(emit, exp_self(unary)->type);
   return GW_OK;
 }

@@ -112,6 +112,11 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var,
   return GW_OK;
 }
 
+ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
+  set_vflag(v, vflag_valid);
+  nspc_add_value(env->curr, xid, v);
+}
+
 ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
   do {
@@ -119,9 +124,8 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
     CHECK_BB(check_var(env, var));
     CHECK_BB(check_var_td(env, var, decl->td));
     if (is_fptr(env->gwion, decl->type)) CHECK_BB(check_fptr_decl(env, var));
-    set_vflag(var->value, vflag_valid);
+    valid_value(env, var->xid, var->value);
     // set_vflag(var->value, vflag_used));
-    nspc_add_value(env->curr, var->xid, var->value);
   } while ((list = list->next));
   return GW_OK;
 }
@@ -583,8 +587,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List arg_list) {
     const Var_Decl decl = arg_list->var_decl;
     const Value    v    = decl->value;
     CHECK_BB(already_defined(env, decl->xid, decl->pos));
-    set_vflag(v, vflag_valid);
-    nspc_add_value(env->curr, decl->xid, v);
+    valid_value(env, decl->xid, v);
   } while ((arg_list = arg_list->next));
   return GW_OK;
 }
@@ -1161,7 +1164,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static inline Type foreach_type(const Env env, const Exp exp) {
-  DECL_OO(Type, et, = check_exp(env, exp));
+  const Type et = exp->type;
   if (isa(et, env->gwion->type[et_array]) < 0)
     ERR_O(exp->pos,
           _("type '%s' is not array.\n"
@@ -1173,36 +1176,53 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   return depth ? array_type(env, t, depth) : t;
 }
 
-ANN static void check_idx(const Env env, struct EachIdx_ *const idx) {
-  idx->v =
-      new_value(env->gwion->mp, env->gwion->type[et_int], s_name(idx->sym));
+ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
+  idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
   valuefrom(env, idx->v->from, idx->pos);
-  idx->v->from->owner_class = NULL;
-  set_vflag(idx->v, vflag_valid);
-  nspc_add_value(env->curr, idx->sym, idx->v);
+  valid_value(env, idx->sym, idx->v);
+}
+
+/** sets for the key expression value
+    with eg  type *int* for an array or the *Key* type of a Dict **/
+ANN static m_bool check_each_idx(const Env env, const Exp exp, struct EachIdx_ *const idx) {
+  struct Op_Import opi = {
+    .lhs = exp->type,
+    .op  = insert_symbol("@each_idx"),
+    .data = exp,
+    .pos = idx->pos
+  };
+  DECL_OB(const Type, t, = op_check(env, &opi));
+  check_idx(env, t, idx);
+  return GW_OK;
+}
+
+/** return the base type for the foreach expression
+    eg the base type of an array or the *Val* type of a Dict **/
+ANN static Type check_each_val(const Env env, const Exp exp) {
+  struct Op_Import opi = {
+    .lhs  = exp->type,
+    .op   = insert_symbol("@each_val"),
+    .data = (m_uint)exp
+  };
+  return op_check(env, &opi);
 }
 
 ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
-  DECL_OB(const Type, base, = foreach_type(env, stmt->exp));
-  CHECK_BB(ensure_traverse(env, base));
-  const m_str basename = type2str(env->gwion, base, stmt->exp->pos);
-  char        c[15 + strlen(basename)];
-  sprintf(c, "Ref:[%s]", basename);
-  const Type ret = str2type(env->gwion, c, stmt->exp->pos);
-  if (base->array_depth) set_tflag(ret, tflag_typedef);
+  CHECK_OB(check_exp(env, stmt->exp));
+  if (stmt->idx)
+    CHECK_BB(check_each_idx(env, stmt->exp, stmt->idx));
+  DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
-  set_vflag(stmt->v, vflag_valid);
-  nspc_add_value(env->curr, stmt->sym, stmt->v);
-  if (stmt->idx) check_idx(env, stmt->idx);
+  valid_value(env, stmt->sym, stmt->v);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
 ANN static m_bool do_stmt_repeat(const Env env, const Stmt_Loop stmt) {
-  if (stmt->idx) check_idx(env, stmt->idx);
+  if (stmt->idx) check_idx(env, env->gwion->type[et_int], stmt->idx);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
-ANN static inline m_bool cond_type(const Env env, const Exp e) {
+ANN static inline m_bool repeat_type(const Env env, const Exp e) {
   const Type t_int = env->gwion->type[et_int];
   if (check_implicit(env, e, t_int) < 0) {
     char explain[40 + strlen(e->type->name)];
@@ -1234,7 +1254,7 @@ stmt_func_xxx(for, Stmt_For, env_inline_mult(env, 1.5), !(
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
   check_conts(env, stmt_self(stmt), stmt->body) < 0) ? 1 : -1)
 stmt_func_xxx(loop, Stmt_Loop, env_inline_mult(env, 1.5); check_idx(env, stmt->idx), !(!check_exp(env, stmt->cond) ||
-  cond_type(env, stmt->cond) < 0 ||
+  repeat_type(env, stmt->cond) < 0 ||
   do_stmt_repeat(env, stmt) < 0) ? 1 : -1)
 stmt_func_xxx(each, Stmt_Each, env_inline_mult(env, 1.5), do_stmt_each(env, stmt))
 
@@ -1301,8 +1321,7 @@ ANN static Value match_value(const Env env, const Type base,
                              const Exp_Primary *prim) {
   const Symbol sym = prim->d.var;
   const Value  v   = new_value(env->gwion->mp, base, s_name(sym));
-  set_vflag(v, vflag_valid);
-  nspc_add_value(env->curr, sym, v);
+  valid_value(env, sym, v);
   return v;
 }
 
@@ -1914,13 +1933,13 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
 ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type       t   = cdef->base.type;
+  if (tflag(t, tflag_check)) return GW_OK;
   const Class_Def  c   = t->info->cdef;
   struct Op_Import opi = {.op   = insert_symbol("@class_check"),
                           .lhs  = t,
                           .data = (uintptr_t)c,
                           .pos  = c->pos};
   CHECK_OB(op_check(env, &opi));
-  if (tflag(t, tflag_check)) return GW_OK;
   set_tflag(t, tflag_check);
   return _check_class_def(env, c);
 }
