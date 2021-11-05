@@ -395,10 +395,31 @@ static OP_CHECK(opck_dict_remove_toop) {
   return e->type = hinfo->val;
 }
 
+ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
+                          const struct Op_Import *opi, const Exp call, const Exp exp) {
+  const Instr room_for_tombstone = emit_add_instr(emit, RegPushImm);
+  room_for_tombstone->m_val = -1;
+  CHECK_BB(emit_exp(emit, call));
+  const m_uint pc = emit_code_size(emit);
+  const Instr iter = emit_add_instr(emit, hmap_iter);
+  iter->m_val = hinfo->key->size + SZ_INT;
+  CHECK_BB(emit_exp(emit, exp));
+  op_emit(emit, opi);
+  const Instr ok = emit_add_instr(emit, BranchNeqInt);
+  emit_add_instr(emit, hmap_iter_inc);
+  const Instr top = emit_add_instr(emit, Goto);
+  top->m_val = pc;
+  ok->m_val = emit_code_size(emit);
+  const Instr _pop = emit_add_instr(emit, RegMove);
+  _pop->m_val = -SZ_INT;// - key->size;
+  return GW_OK;
+}
+
 static OP_EMIT(_opem_dict_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo *const)data;
   Array_Sub array = &info->array;
   const Env env = emit->env;
+  const HMapInfo *hinfo = (HMapInfo*)array->type->nspc->class_data;
   const Type key = *(Type*)array->type->nspc->class_data;
 
   struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
@@ -466,21 +487,7 @@ if(info->is_var) {
   fast->m_val = emit_code_size(emit);
   return GW_OK;
 }
-  const Instr room_for_tombstone = emit_add_instr(emit, RegPushImm);
-  room_for_tombstone->m_val = -1;
-  CHECK_BB(emit_exp(emit, &call));
-  const m_uint pc = emit_code_size(emit);
-  const Instr iter = emit_add_instr(emit, hmap_iter);
-  iter->m_val = key->size + SZ_INT;
-  CHECK_BB(emit_exp(emit, array->exp));
-  op_emit(emit, &opi);
-  const Instr ok = emit_add_instr(emit, BranchNeqInt);
-  emit_add_instr(emit, hmap_iter_inc);
-  const Instr top = emit_add_instr(emit, Goto);
-  top->m_val = pc;
-  ok->m_val = emit_code_size(emit);
-  const Instr _pop = emit_add_instr(emit, RegMove);
-  _pop->m_val = -SZ_INT;// - key->size;
+  CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, array->exp));
   const Instr pushval = emit_add_instr(emit, hmap_val);
   pushval->m_val2 = key->size;
   return GW_OK;
@@ -514,24 +521,7 @@ static OP_EMIT(opem_dict_remove) {
   };
 
   CHECK_BB(traverse_exp(env, &call));
-//
-  const Instr room_for_tombstone = emit_add_instr(emit, RegPushImm);
-  room_for_tombstone->m_val = -1;
-
-  CHECK_BB(emit_exp(emit, &call));
-  const m_uint pc = emit_code_size(emit);
-  const Instr iter = emit_add_instr(emit, hmap_iter);
-  iter->m_val = hinfo->key->size;
-  CHECK_BB(emit_exp(emit, bin->lhs));
-  op_emit(emit, &opi);
-  const Instr ok = emit_add_instr(emit, BranchNeqInt);
-  emit_add_instr(emit, hmap_iter_inc);
-  const Instr top = emit_add_instr(emit, Goto);
-  top->m_val = pc;
-  ok->m_val = emit_code_size(emit);
-  const Instr _pop = emit_add_instr(emit, RegMove);
-  _pop->m_val = -SZ_INT;// - key->size;
-//
+  CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
   if(hinfo->keyk || hinfo->valk) {
     clear_fn *const fn = clear[hinfo->keyk][hinfo->valk];
     const Instr clear = emit_add_instr(emit, hmap_remove_clear);
