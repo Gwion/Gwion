@@ -293,7 +293,7 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
   if (isa(t, emit->gwion->type[et_compound]) > 0) {
     l->is_compound = true;
     VMValue vmval  = {
-        .t = t, .local = l, .offset = l->offset, .start = emit_code_size(emit)};
+        .t = t, .offset = l->offset, .start = emit_code_size(emit)};
     m_vector_add(&emit->code->live_values, &vmval);
     ++emit->code->frame->value_count;
   }
@@ -304,7 +304,7 @@ ANN void* emit_localx(const Emitter emit, const Type t) {
   Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
   l->is_compound = true;
   VMValue vmval  = {
-      .t = t, .local = l, .offset = l->offset, .start = emit_code_size(emit)};
+      .t = t, .offset = l->offset, .start = emit_code_size(emit)};
   m_vector_add(&emit->code->live_values, &vmval);
   ++emit->code->frame->value_count;
   l->instr = emit_add_instr(emit, Reg2Mem);
@@ -961,26 +961,26 @@ ANN static Instr emit_struct_decl(const Emitter emit, const Value v,
 }
 
 ANN void unset_local(const Emitter emit, Local *const l) {
-puts("unset");
   l->instr->opcode = eNoOp;
   for(m_uint i = m_vector_size(&emit->code->live_values) + 1; --i;) {
     VMValue vmval = *(VMValue*)(ARRAY_PTR((&emit->code->live_values)) + (i-1) * sizeof(VMValue));
-//    if(vmval.offset != l->offset) continue;
-    if(vmval.local != l) continue;
+    if(vmval.offset != l->offset) continue;
     m_vector_rem(&emit->code->live_values, i-1);
-    vector_rem2(&emit->code->frame->stack, (vtype)l);
-//vector_rem2(&emit->code->instr, l->instr);
-// free instr
+    vector_rem2(&emit->code->frame->stack, (m_uint)l);
+    vector_rem2(&emit->code->instr, (m_uint)l->instr);
+    free_instr(emit->gwion, l->instr);
+    emit->code->frame->curr_offset -= l->type->size;
     --emit->code->frame->value_count;
     break;
   }
 }
 
 ANN static m_uint decl_non_static_offset(const Emitter emit, const Exp_Decl *decl, const Type t) {
-//  if(!exp_self(decl)->data)
+  if(!exp_self(decl)->data)
     return emit_local(emit, t);
-//  Local *const l = exp_self(decl)->data;
-//  return l->offset;
+  const Local *l = exp_self(decl)->data;
+  exp_self(decl)->data = (void*)-1;
+  return l->offset;
 }
 
 ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,

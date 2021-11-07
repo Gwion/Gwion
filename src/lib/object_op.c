@@ -35,19 +35,8 @@ static OP_CHECK(opck_object_at) {
   exp_setvar(bin->rhs, 1);
   CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
   bin->lhs->ref = bin->rhs;
-//  bin->lhs->acquire = true;
-//  bin->rhs-> = bin->lhs;
   return bin->rhs->type;
 }
-/*
-static bool exp_func(const Exp exp) {
-// was is_new
-  return exp->exp_type == ae_exp_call;
-//&&
-//         exp->d.exp_call.func->exp_type == ae_exp_dot &&
-//         !strcmp(s_name(exp->d.exp_call.func->type->info->func->def->base->xid), "new"):
-}
-*/
 
 ANN void unset_local(const Emitter emit, void *const l);
 static OP_EMIT(opem_object_at) {
@@ -55,7 +44,8 @@ static OP_EMIT(opem_object_at) {
   if(!bin->rhs->data) {
     const Instr addref = emit_add_instr(emit, RegAddRef);
     addref->m_val      = -SZ_INT * 2;
-  } else unset_local(emit, bin->rhs->data);
+  } else if(bin->rhs->data != (void*)-1)
+    unset_local(emit, bin->rhs->data);
   if (bin->rhs->exp_type != ae_exp_decl)
     (void)emit_add_instr(emit, ObjectAssign);
   else

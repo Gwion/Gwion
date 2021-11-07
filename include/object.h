@@ -3,9 +3,7 @@
 typedef struct M_Object_ *M_Object;
 struct M_Object_ {
   Type                  type_ref;
-//  struct Vector_        vtable;
   /*volatile */uint64_t ref;
-//  uint32_t              offset;
   m_bit                 data[];
 };
 

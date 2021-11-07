@@ -11,10 +11,9 @@ typedef struct Frame_ {
 } Frame;
 
 typedef struct VMValue_ {
-  Type     t;
-  void *local; /// :.....
-  uint16_t offset;
-  uint16_t start;
+  const Type     t;
+  const uint16_t offset;
+  const uint16_t start;
   uint16_t end;
 } VMValue;
 
