@@ -82,6 +82,7 @@ ANN static void doc_mode(const Gwion gwion) {
   vector_init(&v);
   vector_add(&v, (m_uint) "scan0");
   pass_set(gwion, &v);
+  vector_release(&v);
 }
 
 ANN m_bool gwion_ini(const Gwion gwion, Arg *arg) {

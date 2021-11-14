@@ -754,6 +754,14 @@ GWION_IMPORT(dict) {
   GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
 
   GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_BB(gwi_func_arg(gwi, "time",    "key"));
+  GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
+
+  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_BB(gwi_func_arg(gwi, "dur",    "key"));
+  GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
+
+  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
   GWI_BB(gwi_func_arg(gwi, "string",    "key"));
   GWI_BB(gwi_func_end(gwi, mfun_string_h, ae_flag_none));
 
