@@ -555,6 +555,32 @@ static OP_EMIT(opem_dict_access) {
 static OP_CHECK(opck_dict_access) {
   const Array_Sub array = (Array_Sub)data;
   HMapInfo *const hinfo = (HMapInfo*)array->type->nspc->class_data;
+
+  struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
+
+  struct Exp_ call = {
+   .exp_type = ae_exp_call,
+   .d = {
+     .exp_call = {
+       .func = &func,
+       .args = array->exp // beware next
+     }
+   }
+};
+struct Exp_ lhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+struct Exp_ rhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+struct Exp_ bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
+struct Op_Import opi = {
+  .lhs = hinfo->key,
+  .rhs = hinfo->key,
+  .op  = bin.d.exp_binary.op,
+  .data = (m_uint)&bin
+};
+
+
+  CHECK_BN(traverse_exp(env, &call));
+  CHECK_ON(op_check(env, &opi));
+
   if(!array->exp->next) return hinfo->val;
   struct Array_Sub_ next = { array->exp->next, hinfo->val,
                             array->depth - 1};

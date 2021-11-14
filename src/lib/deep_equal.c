@@ -31,6 +31,7 @@ static OP_CHECK(opck_deep_eq_any) {
   DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
   return t;
 }
+
 static OP_CHECK(opck_deep_ne_any) {
   Exp_Binary *bin = data;
   bin->op = insert_symbol(env->gwion->st, "!=");
@@ -120,8 +121,15 @@ static OP_CHECK(opck_deep_equal) {
   vector_release(&l);
   vector_release(&r);
   if(ret) return env->gwion->type[et_bool];
+  const Symbol op = bin->op;
+  bin->op = !strcmp(s_name(bin->op), "?=")
+    ? insert_symbol(env->gwion->st, "==") : insert_symbol(env->gwion->st, "!=");
+  env->context->error = true;
+  const Type ret_type = check_exp(env, exp_self(bin));
+  env->context->error = false;
+  if(ret_type) return env->gwion->type[et_bool];
   ERR_N(exp_self(bin)->pos, "no deep operation for: {G+/}%s{0} {+}%s{0} {G+/}%s{0}",
-        bin->lhs->type->name, s_name(bin->op), bin->rhs->type->name);
+      bin->lhs->type->name, s_name(op), bin->rhs->type->name);
 }
 
 struct DeepEmit {
