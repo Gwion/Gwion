@@ -695,7 +695,7 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp *data) {
       instr->m_val2 = -SZ_INT - val->size;
       regpush(emit, SZ_INT);
     } else {
-      const Instr instr = emit_add_instr(emit, Reg2RegOther);
+      const Instr instr = emit_add_instr(emit, Reg2RegOther2);
       instr->m_val  = -key->size;
       instr->m_val2 = key->size;
       regpush(emit, key->size);

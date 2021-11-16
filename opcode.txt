@@ -15,6 +15,7 @@ RegPushBase3~p
 RegPushBase4~p
 Reg2Reg~u~u
 Reg2RegOther~u~u
+Reg2RegOther2~u~u
 Reg2RegAddr~u~u
 Reg2RegDeref~u~u
 StructMember~u

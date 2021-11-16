@@ -450,7 +450,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
       &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
       &&regpushmemderef, &&pushnow, &&baseint, &&basefloat, &&baseother,
-      &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregaddr, &&regtoregderef,
+      &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
       &&structmember, &&structmemberfloat, &&structmemberother,
       &&structmemberaddr, &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
       &&regpushme, &&regpushmaybe, &&funcreturn, &&_goto, &&allocint,
@@ -583,6 +583,9 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     regtoregother:
       memcpy(*(m_bit **)(reg - SZ_INT), reg + IVAL, VAL2);
+      DISPATCH()
+    regtoregother2:
+      memcpy(reg - VAL2, reg + IVAL, VAL2);
       DISPATCH()
     regtoregaddr:
       *(m_uint **)(reg + IVAL) = &*(m_uint *)(reg + IVAL2);
