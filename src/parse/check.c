@@ -1167,6 +1167,7 @@ ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const
   idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
   valuefrom(env, idx->v->from, idx->pos);
   valid_value(env, idx->sym, idx->v);
+  SET_FLAG(idx->v, const);
 }
 
 /** sets for the key expression value
