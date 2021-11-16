@@ -16,40 +16,12 @@
 #include "tmpl_info.h"
 #include "array.h"
 #include "looper.h"
+#include "dict.h"
 
 #define HMAP_MIN_CAP 32
 #define HMAP_MAX_LOAD 0.75
 
-typedef struct HState {
-  bool set;
-  bool deleted;
-} HState;
-
-typedef struct HMap {
-  m_bit  *state;
-  m_bit  *data;
-  m_uint  key_size;
-  m_uint  val_size;
-  m_uint  capacity;
-  m_uint  count;
-} HMap;
-
-enum HMapKind {
-  HKIND_NONE,
-  HKIND_OBJ,
-  HKIND_STRUCT
-};
-
-struct HMapInfo;
 typedef void (clear_fn)(const HMap*, const VM_Shred, const struct HMapInfo*, const m_uint);
-
-typedef struct HMapInfo {
-  Type key;
-  Type val;
-  m_uint sz;
-  enum HMapKind keyk;
-  enum HMapKind valk;
-} HMapInfo;
 
 // TODO: arch sensible hash
 static SFUN(mfun_int_h) {
@@ -136,8 +108,6 @@ INSTR(dict_ctor_alt) {
   const M_Object o = new_object(shred->info->mp, t);
   const HMapInfo *hinfo = (HMapInfo*)t->nspc->class_data;
   HMap *a = &*(struct HMap*)o->data;
-  a->key_size = hinfo->key->size;
-  a->val_size = hinfo->val->size;
   a->data  = (m_bit*)mp_calloc2(shred->info->mp, hinfo->sz * instr->m_val);
   a->state = (m_bit*)mp_calloc2(shred->info->mp, sizeof(HState) * instr->m_val);
   a->capacity = instr->m_val;
@@ -169,8 +139,6 @@ INSTR(dict_lit_ctor) {
 static CTOR(dict_ctor) {
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   HMap *const a = &*(struct HMap*)o->data;
-  a->key_size   = hinfo->key->size;
-  a->val_size   = hinfo->val->size;
   a->data       = (m_bit*)mp_calloc2(shred->info->mp, hinfo->sz * HMAP_MIN_CAP);
   a->state      = (m_bit*)mp_calloc2(shred->info->mp, sizeof(HState) * HMAP_MIN_CAP);
   a->capacity   = HMAP_MIN_CAP;
@@ -218,12 +186,12 @@ static INSTR(hmap_iter_set) {
     state->deleted = false;
     memcpy(data, REG(-instr->m_val), instr->m_val);
     POP_REG(shred, instr->m_val);
-    *(m_bit**)REG(-SZ_INT*2) = data + hmap->key_size;
+    *(m_bit**)REG(-SZ_INT*2) = data + hinfo->key->size;
     *(m_uint*)REG(-SZ_INT) = 1;
     hmap->count++;
   } else {
-    memcpy(REG(0), data, hmap->key_size);
-    shred->reg += SZ_INT + hmap->key_size;
+    memcpy(REG(0), data, hinfo->key->size);
+    shred->reg += SZ_INT + hinfo->key->size;
     *(m_uint**)REG(-SZ_INT) = 0;
   }
 }
@@ -245,8 +213,8 @@ static INSTR(hmap_iter) {
     }
     const m_bit *data = hmap->data + hinfo->sz * bucket;
     *(m_uint*)(shred->reg - SZ_INT) = bucket;
-    memcpy(REG(0), data, hmap->key_size);
-    shred->reg += hmap->key_size;
+    memcpy(REG(0), data, hinfo->key->size);
+    shred->reg += hinfo->key->size;
     return;
   }
   handle(shred, "InvalidMapAccess");
@@ -276,7 +244,6 @@ static INSTR(hmap_grow_init) {
 
 static INSTR(hmap_grow_dec) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT*4);
-  const HMap *hmap = (HMap*)o->data;
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   const m_bit *old_data = *(m_bit**)REG(-SZ_INT*3);
   const m_bit *old_state = *(m_bit**)REG(-SZ_INT*2);
@@ -284,8 +251,8 @@ static INSTR(hmap_grow_dec) {
     const HState *state = (HState *)(old_state + (*(m_uint*)REG(-SZ_INT)) * sizeof(HState));
     if(!state->set || state->deleted)continue;
     m_bit *const data   = (m_bit*)(old_data + (*(m_uint*)REG(-SZ_INT)) * hinfo->sz);
-    memcpy(shred->reg + SZ_INT, data, hmap->key_size);
-    PUSH_REG(shred, SZ_INT + hmap->key_size);
+    memcpy(shred->reg + SZ_INT, data, hinfo->key->size);
+    PUSH_REG(shred, SZ_INT + hinfo->key->size);
     *(m_uint*)shred->reg = 0;
     PUSH_REG(shred, SZ_INT);
     return;
@@ -342,7 +309,7 @@ static INSTR(hmap_val) {
   const m_bit *new_data = hmap->data + hinfo->sz * bucket;
   const m_int tombstone = *(m_int*)(shred->reg - SZ_INT);
   if (tombstone != -1) {
-    m_bit  *const old_data = hmap->data + (hmap->key_size + hmap->val_size) * tombstone;
+    m_bit  *const old_data = hmap->data + (hinfo->key->size + hinfo->val->size) * tombstone;
     HState *const old_state = (HState*)(hmap->state + sizeof(HState) * tombstone);
     HState *const new_state = (HState*)(hmap->state + sizeof(HState) * bucket);
     memcpy(old_state, new_state, sizeof(HState));
@@ -350,8 +317,8 @@ static INSTR(hmap_val) {
     new_state->deleted = true;
  }
 
-  shred->reg -= SZ_INT*2 - hmap->val_size;
-  memcpy(REG(-hmap->val_size), new_data + hmap->key_size, hmap->val_size);
+  shred->reg -= SZ_INT*2 - hinfo->val->size;
+  memcpy(REG(-hinfo->val->size), new_data + hinfo->key->size, hinfo->val->size);
 }
 
 static INSTR(hmap_remove_clear) {
@@ -372,8 +339,8 @@ static INSTR(hmap_remove) {
   hmap->count--;
   HState *const state = (HState *)(hmap->state + bucket * sizeof(HState));
   state->deleted = true;
-  shred->reg -= SZ_INT*3 - hmap->val_size;
-  memcpy(REG(-hmap->val_size), data + hmap->key_size, hmap->val_size);
+  shred->reg -= SZ_INT*3 - hinfo->val->size;
+  memcpy(REG(-hinfo->val->size), data + hinfo->key->size, hinfo->val->size);
 }
 
 static OP_CHECK(opck_dict_remove_toop) {
@@ -437,7 +404,6 @@ struct Exp_ bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lh
 struct Op_Import opi = {
   .lhs = key,
   .rhs = key,
-//  .op  = insert_symbol("=="),
   .op  = bin.d.exp_binary.op,
   .data = (m_uint)&bin
 };
