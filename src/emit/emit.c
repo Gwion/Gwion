@@ -1560,13 +1560,40 @@ ANN static Instr me_push(const MemoizeEmitter *me, const m_uint sz) {
 
 static m_bool me_cmp(MemoizeEmitter *me, const Arg_List arg) {
   const Emitter    emit = me->emit;
-  const Symbol     sym  = insert_symbol("==");
-  struct Exp_      exp  = {};
+  const Symbol     sym  = insert_symbol("?=");
+  struct Exp_      lhs  = {
+    .exp_type = ae_exp_primary,
+    .type = arg->type,
+    .pos = arg->td->pos,
+    .d = {
+      .prim = { .prim_type = ae_prim_id }
+    }
+  };
+  struct Exp_      rhs  = {
+    .exp_type = ae_exp_primary,
+    .type     = me->emit->gwion->type[et_bool],
+    .pos = arg->td->pos,
+    .d = {
+      .prim = { .prim_type = ae_prim_id }
+    }
+  };
+  struct Exp_      bin  = {
+    .exp_type = ae_exp_binary,
+    .type = arg->type,
+    .pos = arg->td->pos,
+    .d = {
+      .exp_binary = {
+        .lhs = &lhs,
+        .op = sym,
+        .rhs = &rhs
+      }
+    }
+  };
   struct Op_Import opi  = {.op   = sym,
                           .lhs  = arg->type,
                           .rhs  = arg->type,
                           .pos  = me->fdef->base->pos,
-                          .data = (uintptr_t)&exp.d};
+                          .data = (uintptr_t)&bin.d};
   CHECK_BB(op_emit(emit, &opi));
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(&me->branch, (vtype)instr);
