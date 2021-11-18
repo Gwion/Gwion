@@ -261,16 +261,16 @@ static ANN THREAD_FUNC(fork_run) {
     vm_run(vm);
     ++vm->bbq->pos;
   }
-  MUTEX_LOCK(vm->parent->shreduler->mutex);
   gwion_end_child(ME(me), vm->gwion);
+  MUTEX_LOCK(vm->parent->shreduler->mutex);
   if (!*(m_int *)(me->data + o_shred_cancel) &&
       me->type_ref != vm->gwion->type[et_fork])
     memcpy(me->data + vm->gwion->type[et_fork]->nspc->offset, ME(me)->reg,
            FORK_RETSIZE(me));
+  MUTEX_UNLOCK(vm->parent->shreduler->mutex);
   *(m_int *)(me->data + o_fork_done) = 1;
   if (!*(m_int *)(me->data + o_shred_cancel))
     broadcast(*(M_Object *)(me->data + o_fork_ev));
-  MUTEX_UNLOCK(vm->parent->shreduler->mutex);
   THREAD_RETURN(0);
 }
 
@@ -287,7 +287,6 @@ ANN void fork_launch(const M_Object o, const m_uint sz) {
   MUTEX_COND_UNLOCK(tl.mutex);
   THREAD_COND_CLEANUP(FORK_COND(o));
   MUTEX_CLEANUP(FORK_MUTEX(o));
-  sleep(0);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
