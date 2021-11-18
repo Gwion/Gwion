@@ -108,4 +108,11 @@ ANN static inline bool is_hole(const Env env, const Exp exp) {
   }
   return false;
 }
+
+static inline bool exp_is_zero(const Exp exp) {
+  return exp->exp_type == ae_exp_primary &&
+  exp->d.prim.prim_type == ae_prim_num &&
+  !exp->d.prim.d.num;
+}
+
 #endif

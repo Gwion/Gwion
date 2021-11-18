@@ -1103,7 +1103,8 @@ ANN static m_bool emit_decl(const Emitter emit, const Exp_Decl *decl) {
     }
     set_late(emit->gwion, decl, list->self);
     if (!exp_self(decl)->emit_var && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->td, late) &&
-        GET_FLAG(v, late) && late_array(decl->td, list->self)) {
+        GET_FLAG(v, late) && late_array(decl->td, list->self)
+        && GET_FLAG(v->type, abstract)) {
       env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
                v->type->name, !GET_FLAG(decl->td, const) ? "var" : "const");
     }

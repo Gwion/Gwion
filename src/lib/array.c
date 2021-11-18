@@ -668,14 +668,15 @@ static OP_CHECK(opck_array_scan) {
                                 base->info->value->from->owner);
   (void)scan0_class_def(env, cdef);
   const Type   t   = cdef->base.type;
-  const m_bool ret = traverse_cdef(env, t);
-  env_pop(env, scope);
-  env->context = ctx;
-  if (ret == GW_ERROR) return NULL;
-  if (GET_FLAG(base, abstract))
+  if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))
     SET_FLAG(t, abstract);
   else
     UNSET_FLAG(t, abstract);
+  const m_bool ret = traverse_cdef(env, t);
+    UNSET_FLAG(t, abstract);
+  env_pop(env, scope);
+  env->context = ctx;
+  if (ret == GW_ERROR) return NULL;
   set_tflag(t, tflag_emit);
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);

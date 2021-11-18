@@ -97,6 +97,10 @@ static inline uint array_ref(const Array_Sub array) {
   return array && !array->exp;
 }
 
+static inline bool array_ref2(const Array_Sub array) {
+  return array && !(array->exp && exp_is_zero(array->exp));
+}
+
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list     = decl->list;
   const uint    decl_ref = array_ref(decl->td->array);
@@ -110,11 +114,13 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
       CHECK_OB((t = array_type(env, decl->type, var->array->depth)));
     }
     const Type base = array_base_simple(t);
+
     if (GET_FLAG(base, abstract) &&
-        ((var->array && var->array->exp) ||
-         (decl->td->array && decl->td->array->exp)))
+        (array_ref2(var->array) ||
+        array_ref2(decl->td->array)))
       ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
             base->name);
+
     const Value v = var->value =
         var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
     nspc_add_value(env->curr, var->xid, v);
