@@ -87,13 +87,13 @@ static INSTR(StringSlice) {
     return;
   }
   const m_int  op = start < end ? 1 : -1;
-  const m_uint sz = op > 0 ? end - start : start - end;
+  const m_uint sz = (op > 0 ? end - start : start - end) + 1;
   if(sz >= SIZE_MAX/SZ_INT) {
     handle(shred, "SliceTooBig");
     return;
   }
   char         c[sz + 1];
-  for (m_int i = start, j = 0; i != end; i += op, ++j) c[j] = str[i];
+  for (m_int i = start, j = 0; j < (m_int)sz; i += op, ++j) c[j] = str[i];
   c[sz]                     = '\0';
   *(M_Object *)REG(-SZ_INT) = new_string(shred->info->vm->gwion, c);
 }
