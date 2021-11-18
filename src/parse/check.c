@@ -1603,6 +1603,14 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+ANN static bool effect_find(const M_Vector v, const Symbol sym) {
+  for(m_uint i = 0; i < m_vector_size(v); i++) {
+    struct ScopeEffect *eff = (struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
+    if(eff->sym == sym) return true;
+  }
+  return false;
+}
+
 ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func = f->base->func;
@@ -1633,15 +1641,15 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   if (_v) {
     if (fdef->base->xid == insert_symbol("@dtor"))
       ERR_B(fdef->base->pos, _("can't use effects in destructors"));
-    const Vector v    = (Vector)&_v;
+    const M_Vector v    = (M_Vector)&_v;
     const Vector base = &fdef->base->effects;
     if (!base->ptr) vector_init(base);
-    for (m_uint i = 0; i < vector_size(v); i += 2) {
-      const Symbol effect = (Symbol)vector_at(v, i);
-      if (vector_find(base, (m_uint)effect) == -1)
-        vector_add(base, (m_uint)effect);
+    for (m_uint i = 0; i < m_vector_size(v); i++) {
+      struct ScopeEffect *eff = (struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
+      if(!effect_find(v, eff->sym))
+        vector_add(base, (m_uint)eff->sym);
     }
-    vector_release(v);
+    m_vector_release(v);
   }
   vector_pop(&env->scope->effects);
   if (fbflag(fdef->base, fbflag_op)) operator_resume(&opi);
