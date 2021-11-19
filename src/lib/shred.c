@@ -14,11 +14,10 @@
 #include "specialid.h"
 #include "gwi.h"
 
-static m_int o_fork_thread, o_fork_cond, o_fork_mutex, o_shred_cancel,
+static m_int o_fork_thread, o_fork_mutex, o_shred_cancel,
     o_fork_done, o_fork_ev, o_fork_retsize;
 
 #define FORK_THREAD(o)  *(THREAD_TYPE *)(o->data + o_fork_thread)
-#define FORK_COND(o)    *(THREAD_COND_TYPE *)(o->data + o_fork_cond)
 #define FORK_MUTEX(o)   *(MUTEX_TYPE *)(o->data + o_fork_mutex)
 #define FORK_RETSIZE(o) *(m_int *)(o->data + o_fork_retsize)
 
@@ -255,7 +254,7 @@ static ANN THREAD_FUNC(fork_run) {
   MUTEX_TYPE             mutex = tl->mutex;
   const M_Object         me    = vm->shreduler->list->self->info->me;
   MUTEX_COND_LOCK(mutex);
-  THREAD_COND_SIGNAL(FORK_COND(me));
+  THREAD_COND_SIGNAL(tl->cond);
   MUTEX_COND_UNLOCK(mutex);
   while (fork_running(vm, me)) {
     vm_run(vm);
@@ -277,15 +276,16 @@ static ANN THREAD_FUNC(fork_run) {
 ANN void fork_launch(const M_Object o, const m_uint sz) {
   FORK_RETSIZE(o) = sz;
   MUTEX_SETUP(FORK_MUTEX(o));
-  THREAD_COND_SETUP(FORK_COND(o));
+  THREAD_COND_TYPE cond;
+  THREAD_COND_SETUP(cond);
   struct ThreadLauncher tl = {
-      .mutex = FORK_MUTEX(o), .cond = FORK_COND(o), .vm = ME(o)->info->vm};
+      .mutex = FORK_MUTEX(o), .cond = cond, .vm = ME(o)->info->vm};
   ++o->ref;
   MUTEX_COND_LOCK(tl.mutex);
   THREAD_CREATE(FORK_THREAD(o), fork_run, &tl);
-  THREAD_COND_WAIT(FORK_COND(o), tl.mutex);
+  THREAD_COND_WAIT(cond, tl.mutex);
   MUTEX_COND_UNLOCK(tl.mutex);
-  THREAD_COND_CLEANUP(FORK_COND(o));
+  THREAD_COND_CLEANUP(cond);
   MUTEX_CLEANUP(FORK_MUTEX(o));
 }
 
@@ -384,8 +384,6 @@ GWION_IMPORT(shred) {
   gwi_class_xtor(gwi, NULL, fork_dtor);
   gwi->gwion->type[et_fork] = t_fork;
   o_fork_thread = t_fork->nspc->offset;
-  t_fork->nspc->offset += SZ_INT;
-  o_fork_cond = t_fork->nspc->offset;
   t_fork->nspc->offset += SZ_INT;
   o_fork_mutex = t_fork->nspc->offset;
   t_fork->nspc->offset += SZ_INT;
