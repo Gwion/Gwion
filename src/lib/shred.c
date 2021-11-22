@@ -14,12 +14,10 @@
 #include "specialid.h"
 #include "gwi.h"
 
-static m_int o_fork_thread, o_fork_mutex, o_shred_cancel,
-    o_fork_done, o_fork_ev, o_fork_retsize;
+static m_int o_fork_thread, o_shred_cancel,
+    o_fork_done, o_fork_ev;
 
 #define FORK_THREAD(o)  *(THREAD_TYPE *)(o->data + o_fork_thread)
-#define FORK_MUTEX(o)   *(MUTEX_TYPE *)(o->data + o_fork_mutex)
-#define FORK_RETSIZE(o) *(m_int *)(o->data + o_fork_retsize)
 
 VM_Shred new_shred_base(const VM_Shred shred, const VM_Code code) {
   const VM_Shred sh = new_vm_shred(shred->info->mp, code);
@@ -157,15 +155,17 @@ static DTOR(shred_dtor) {
   free_vm_shred(s);
 }
 
-static MFUN(shred_lock) { if(ME(o)->tick) MUTEX_LOCK(ME(o)->tick->shreduler->mutex); }
+static MFUN(shred_lock) { if(ME(o)->tick) MUTEX_LOCK(ME(o)->mutex); }
 
-static MFUN(shred_unlock) { if(ME(o)->tick) MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex); }
+static MFUN(shred_unlock) { if(ME(o)->tick) MUTEX_UNLOCK(ME(o)->mutex); }
 
 static void stop(const M_Object o) {
   VM *vm = ME(o)->info->vm;
   MUTEX_LOCK(vm->shreduler->mutex);
+  MUTEX_LOCK(ME(o)->mutex);
   vm->shreduler->bbq->is_running       = 0;
   *(m_int *)(o->data + o_shred_cancel) = 1;
+  MUTEX_UNLOCK(ME(o)->mutex);
   MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
@@ -178,12 +178,15 @@ static inline void join(const M_Object o) {
 
 static DTOR(fork_dtor) {
   VM *parent = ME(o)->info->vm->parent;
-  MUTEX_LOCK(parent->shreduler->mutex);
+//  MUTEX_LOCK(parent->shreduler->mutex);
+  MUTEX_LOCK(ME(o)->mutex);
   *(m_int *)(o->data + o_fork_done) = 1;
-  MUTEX_UNLOCK(parent->shreduler->mutex);
+  MUTEX_UNLOCK(ME(o)->mutex);
   stop(o);
   join(o);
+//  MUTEX_UNLOCK(parent->shreduler->mutex);
   MUTEX_LOCK(parent->shreduler->mutex);
+//  MUTEX_LOCK(ME(o)->mutex);
   if (parent->gwion->data->child.ptr) {
     const m_int idx = vector_find(&parent->gwion->data->child, (vtype)o);
     if (idx > -1) VPTR(&parent->gwion->data->child, idx) = 0;
@@ -191,6 +194,7 @@ static DTOR(fork_dtor) {
   if (!parent->gwion->data->child2.ptr)
     vector_init(&parent->gwion->data->child2);
   vector_add(&parent->gwion->data->child2, (vtype)ME(o)->info->vm->gwion);
+//  MUTEX_UNLOCK(ME(o)->mutex);
   MUTEX_UNLOCK(parent->shreduler->mutex);
   vmcode_remref(ME(o)->code, ME(o)->info->vm->gwion);
 }
@@ -204,16 +208,20 @@ static MFUN(fork_join) {
 
 static MFUN(shred_cancel) {
   if(!ME(o)->tick)return;
-//  MUTEX_LOCK(ME(o)->tick->shreduler->mutex);
+//  vm_lock(ME(o)->info->vm);
+  MUTEX_LOCK(ME(o)->mutex);
   *(m_int *)(o->data + o_shred_cancel) = *(m_int *)MEM(SZ_INT);
-//  MUTEX_UNLOCK(ME(o)->tick->shreduler->mutex);
+  MUTEX_UNLOCK(ME(o)->mutex);
+//  vm_unlock(ME(o)->info->vm);
 }
 
 static MFUN(shred_test_cancel) {
-//  VM *parent = ME(o)->info->vm;
-//  MUTEX_LOCK(parent->shreduler->mutex);
-  if (*(m_int *)(o->data + o_shred_cancel)) vm_shred_exit(ME(o));
-//  MUTEX_UNLOCK(parent->shreduler->mutex);
+  MUTEX_LOCK(ME(o)->mutex);
+  if (*(m_int *)(o->data + o_shred_cancel)) {
+    MUTEX_UNLOCK(ME(o)->mutex);
+    vm_shred_exit(ME(o));
+  } else
+  MUTEX_UNLOCK(ME(o)->mutex);
 }
 
 static MFUN(fork_test_cancel) {
@@ -230,9 +238,11 @@ static MFUN(fork_test_cancel) {
 }
 
 static MFUN(shred_now) {
-  VM *vm = shred->info->vm;
+  VM *vm = ME(o)->info->vm;
   while (vm->parent) vm = vm->parent;
+  MUTEX_LOCK(vm->shreduler->mutex);
   *(m_float *)RETURN = vm->bbq->pos;
+  MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
 struct ThreadLauncher {
@@ -242,8 +252,12 @@ struct ThreadLauncher {
 };
 
 static inline int fork_running(VM *vm, const M_Object o) {
+  MUTEX_LOCK(ME(o)->mutex);
+  const int cancel = *(m_int *)(o->data + o_shred_cancel);
+  MUTEX_UNLOCK(ME(o)->mutex);
+  if(cancel)return false;
   MUTEX_LOCK(vm->shreduler->mutex);
-  const int ret = vm->bbq->is_running && !*(m_int *)(o->data + o_shred_cancel);
+  const int ret = vm->bbq->is_running;
   MUTEX_UNLOCK(vm->shreduler->mutex);
   return ret;
 }
@@ -256,37 +270,45 @@ static ANN THREAD_FUNC(fork_run) {
   MUTEX_COND_LOCK(mutex);
   THREAD_COND_SIGNAL(tl->cond);
   MUTEX_COND_UNLOCK(mutex);
+// THREAD_COND_CLEANUP(tl->cond);
+//  MUTEX_CLEANUP(tl->mutex);
   while (fork_running(vm, me)) {
     vm_run(vm);
     ++vm->bbq->pos;
   }
   gwion_end_child(ME(me), vm->gwion);
-  MUTEX_LOCK(vm->parent->shreduler->mutex);
+vm_lock(vm);
+//  MUTEX_LOCK(vm->shreduler->mutex);
+//  MUTEX_LOCK(vm->parent->shreduler->mutex);
+  MUTEX_LOCK(ME(me)->mutex);
   if (!*(m_int *)(me->data + o_shred_cancel) &&
       me->type_ref != vm->gwion->type[et_fork])
     memcpy(me->data + vm->gwion->type[et_fork]->nspc->offset, ME(me)->reg,
-           FORK_RETSIZE(me));
-  MUTEX_UNLOCK(vm->parent->shreduler->mutex);
+  ((Type)vector_front(&me->type_ref->info->tuple->types))->size);
   *(m_int *)(me->data + o_fork_done) = 1;
+  MUTEX_UNLOCK(ME(me)->mutex);
   if (!*(m_int *)(me->data + o_shred_cancel))
     broadcast(*(M_Object *)(me->data + o_fork_ev));
+vm_unlock(vm);
+//  MUTEX_UNLOCK(vm->parent->shreduler->mutex);
+//  MUTEX_UNLOCK(vm->shreduler->mutex);
   THREAD_RETURN(0);
 }
 
-ANN void fork_launch(const M_Object o, const m_uint sz) {
-  FORK_RETSIZE(o) = sz;
-  MUTEX_SETUP(FORK_MUTEX(o));
+ANN void fork_launch(const M_Object o) {
+  MUTEX_TYPE mutex;
+  MUTEX_SETUP(mutex);
   THREAD_COND_TYPE cond;
   THREAD_COND_SETUP(cond);
   struct ThreadLauncher tl = {
-      .mutex = FORK_MUTEX(o), .cond = cond, .vm = ME(o)->info->vm};
+      .mutex = mutex, .cond = cond, .vm = ME(o)->info->vm};
   ++o->ref;
-  MUTEX_COND_LOCK(tl.mutex);
+  MUTEX_COND_LOCK(mutex);
   THREAD_CREATE(FORK_THREAD(o), fork_run, &tl);
-  THREAD_COND_WAIT(cond, tl.mutex);
-  MUTEX_COND_UNLOCK(tl.mutex);
+  THREAD_COND_WAIT(cond, mutex);
+  MUTEX_COND_UNLOCK(mutex);
   THREAD_COND_CLEANUP(cond);
-  MUTEX_CLEANUP(FORK_MUTEX(o));
+  MUTEX_CLEANUP(mutex);
 }
 
 ANN void fork_clean(const VM_Shred shred, const Vector v) {
@@ -385,15 +407,11 @@ GWION_IMPORT(shred) {
   gwi->gwion->type[et_fork] = t_fork;
   o_fork_thread = t_fork->nspc->offset;
   t_fork->nspc->offset += SZ_INT;
-  o_fork_mutex = t_fork->nspc->offset;
-  t_fork->nspc->offset += SZ_INT;
 
   gwi_item_ini(gwi, "int", "is_done");
   GWI_BB((o_fork_done = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_item_ini(gwi, "Event", "ev");
   GWI_BB((o_fork_ev = gwi_item_end(gwi, ae_flag_const, num, 0)))
-  gwi_item_ini(gwi, "int", "retsize");
-  GWI_BB((o_fork_retsize = gwi_item_end(gwi, ae_flag_const, num, 0)))
   gwi_func_ini(gwi, "void", "join");
   GWI_BB(gwi_func_end(gwi, fork_join, ae_flag_none))
   gwi_func_ini(gwi, "void", "test_cancel");

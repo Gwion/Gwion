@@ -16,7 +16,7 @@ ANN void           fork_clean(const VM_Shred, const Vector);
 ANN ANEW M_Object  new_array(MemPool, const Type t, const m_uint length);
 ANEW M_Object new_string(const struct Gwion_ *, const m_str);
 ANEW M_Object new_shred(const VM_Shred);
-ANN void      fork_launch(const M_Object, const m_uint);
+ANN void      fork_launch(const M_Object);
 ANN void      __release(const M_Object, const VM_Shred);
 ANN void      broadcast(const M_Object);
 
@@ -27,9 +27,23 @@ ANN void      broadcast(const M_Object);
 #define ARRAY(o)     (&*(struct M_Vector_ *)((M_Object)o)->data)
 #define IO_FILE(o)   (*(FILE **)(((M_Object)o)->data + SZ_INT))
 
+#ifdef USE_HELGRIND
+#include "valgrind/helgrind.h"
+#endif
 static inline void _release(const restrict M_Object obj,
                             const restrict VM_Shred shred) {
-  if (!--obj->ref) __release(obj, shred);
+  if (!--obj->ref) {
+#ifdef USE_HELGRIND
+    ANNOTATE_HAPPENS_AFTER(obj);
+    ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(obj);
+#endif
+    __release(obj, shred);
+  }
+#ifdef USE_HELGRIND
+ else {
+  ANNOTATE_HAPPENS_BEFORE(obj);
+  }
+#endif
 }
 static inline void release(const restrict M_Object obj,
                            const restrict VM_Shred shred) {

@@ -98,18 +98,12 @@ ANN static bool unwind(const VM_Shred shred, const Symbol effect, const m_uint s
   const VM_Code code = shred->code;
   if (code->live_values.ptr)
     clean_values(shred);
-//  if (!size) return true;
   if (!size) return false;
-//  if (code->live_values.ptr)
-//    clean_values(shred);
   if (code->handlers.ptr)
     return find_handle(shred, effect, size);
   // there might be no more stack to unwind
   if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return false;
-//  else
-//    return true;
-//    return false;
   shred_unwind(shred);
   return unwind(shred, effect, size - 1);
 }
@@ -270,12 +264,12 @@ ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
 
 ANN M_Object        new_fork(const VM_Shred, const VM_Code code, const Type);
 ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
-                                    const Type t, const m_uint retsz) {
+                                    const Type t) {
   const M_Object o  = new_fork(shred, code, t);
   VM *           vm = shred->info->vm;
   if (!vm->gwion->data->child.ptr) vector_init(&vm->gwion->data->child);
   vector_add(&vm->gwion->data->child, (vtype)o);
-  fork_launch(o, retsz);
+  fork_launch(o);
   return ME(o);
 }
 
@@ -511,7 +505,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     PRAGMA_PUSH()
     register VM_Shred child;
     PRAGMA_POP()
-    MUTEX_LOCK(s->mutex);
+//    MUTEX_LOCK(s->mutex);
     do {
       SDISPATCH();
     regsetimm:
@@ -976,7 +970,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     forkini:
       reg -= SZ_INT;
-      child = init_fork_shred(shred, (VM_Code)VAL, *(Type *)reg, VAL2),
+      child = init_fork_shred(shred, (VM_Code)VAL, *(Type *)reg),
       DISPATCH()
     sporkfunc:
       PRAGMA_PUSH()
@@ -1291,13 +1285,14 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       VM_OUT
       vm_shred_exit(shred);
     } while (s->curr);
-    MUTEX_UNLOCK(s->mutex);
+//    MUTEX_UNLOCK(s->mutex);
   }
 }
 
 // remove me
 ANN void next_bbq_pos(const VM *vm) {
   Driver *const di = vm->bbq;
+  MUTEX_LOCK(vm->shreduler->mutex);
   if(++di->pos == 16777216-1) {
     const Vector v = &vm->shreduler->active_shreds;
     for(m_uint i = 0; i < vector_size(v); i++) {
@@ -1306,6 +1301,7 @@ ANN void next_bbq_pos(const VM *vm) {
     }
     di->pos = 0;
   }
+  MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
 static void vm_run_audio(const VM *vm) {

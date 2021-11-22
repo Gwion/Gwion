@@ -33,6 +33,10 @@ ifneq (${BUILD_ON_WINDOWS}, 1)
 LDFLAGS += -ldl -lpthread
 endif
 
+ifeq (${USE_HELGRIND}, 1)
+CFLAGS += -DUSE_HELGRIND
+endif
+
 src_obj := $(src:.c=.o)
 gcda := $(src:.c=.gcda)
 gcno := $(src:.c=.gcno)

@@ -66,7 +66,8 @@ ANN static inline void release_not_union(const m_bit *data, const VM_Shred shred
 ANN static void do_release(const M_Object o,
                                         const VM_Shred shred, const Type t) {
   const Type next = next_type(t);
-  if(!next) return;
+  if(!next)
+    return;
   if (!tflag(t, tflag_union))
     release_not_union(o->data, shred, t->nspc->info->value);
   if (tflag(t, tflag_dtor)) {

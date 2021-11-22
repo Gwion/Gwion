@@ -94,6 +94,7 @@ struct VM_Shred_ {
   size_t             pc;
   struct ShredTick_ *tick;
   struct ShredInfo_ *info;
+  MUTEX_TYPE mutex;
 };
 REF_FUNC(VM_Code, vmcode)
 ANN2(1, 4)
