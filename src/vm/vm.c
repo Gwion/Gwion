@@ -969,8 +969,7 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       child = init_spork_shred(shred, (VM_Code)VAL);
       DISPATCH()
     forkini:
-      reg -= SZ_INT;
-      child = init_fork_shred(shred, (VM_Code)VAL, *(Type *)reg),
+      child = init_fork_shred(shred, (VM_Code)VAL, (Type)VAL2);
       DISPATCH()
     sporkfunc:
       PRAGMA_PUSH()

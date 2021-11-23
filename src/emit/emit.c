@@ -1860,12 +1860,11 @@ ANN static void spork_ini(const Emitter emit, const struct Sporker *sp) {
   if (sp->is_spork) {
     const Instr instr = emit_add_instr(emit, SporkIni);
     instr->m_val      = (m_uint)sp->vm_code;
-    instr->m_val2     = sp->is_spork;
     return;
   }
-  regpushi(emit, (m_uint)sp->type);
   const Instr instr = emit_add_instr(emit, ForkIni);
   instr->m_val      = (m_uint)sp->vm_code;
+  instr->m_val2 = (m_uint)sp->type;
 }
 
 ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
