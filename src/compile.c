@@ -27,7 +27,7 @@ ANN static void compiler_name(struct Compiler *c) {
   c->name = strsep(&d, ":");
   if (d) vector_init(&c->args);
   while (d) vector_add(&c->args, (vtype)strdup(strsep(&d, ":")));
-  free(d);
+  xfree(d);
 }
 
 ANN static inline void compiler_error(struct Compiler *const c) {

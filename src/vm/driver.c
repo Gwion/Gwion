@@ -10,7 +10,7 @@ ANN Driver *new_driver(MemPool p) {
   Driver *di     = (Driver *)mp_calloc(p, BBQ);
   di->func       = dummy_driver;
   di->driver     = (DriverData *)mp_calloc(p, DriverData);
-  di->is_running = 1;
+  di->is_running = true;
   return di;
 }
 

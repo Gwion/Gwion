@@ -16,7 +16,7 @@ struct Memoize_ {
 };
 
 Memoize memoize_ini(const Emitter emit, const Func f) {
-  Memoize m = mp_calloc(emit->gwion->mp, Memoize);
+  const Memoize m = mp_calloc(emit->gwion->mp, Memoize);
   vector_init(&m->v);
   m->ret_sz = f->def->base->ret_type->size;
   m->arg_sz = f->def->stack_depth;
@@ -24,14 +24,14 @@ Memoize memoize_ini(const Emitter emit, const Func f) {
   return m;
 }
 
-void memoize_end(MemPool p, Memoize m) {
+void memoize_end(MemPool p, const Memoize m) {
   for (m_uint i = 0; i < vector_size(&m->v); ++i)
     mp_free2(p, m->arg_sz + m->arg_sz, (void *)vector_at(&m->v, i));
   vector_release(&m->v);
   mp_free(p, Memoize, m);
 }
 
-ANN static inline m_bit *get_data(MemPool mp, Memoize m) {
+ANN static inline m_bit *get_data(MemPool mp, const Memoize m) {
   if (vector_size(&m->v) >= m->limit)
     return (m_bit *)vector_at(&m->v, m->curr++ % m->limit);
   m_bit *data = mp_calloc2(mp, m->arg_sz + m->ret_sz);
@@ -41,7 +41,7 @@ ANN static inline m_bit *get_data(MemPool mp, Memoize m) {
 
 INSTR(MemoizeStore) {
   const Memoize m    = shred->code->memoize;
-  m_bit *       data = get_data(shred->info->mp, m);
+  m_bit *const  data = get_data(shred->info->mp, m);
   memcpy(data, shred->mem, m->arg_sz);
   memcpy(data + m->arg_sz, shred->reg - m->ret_sz, m->ret_sz);
 }

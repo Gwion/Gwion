@@ -15,11 +15,10 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t,
   Type owner = env->class_def;
   do {
     Type parent = t;
-    while (parent) {
+    do {
       if (parent == owner)
         ERR_B(td->pos, _("%s declared inside %s"), t->name, owner->name);
-      parent = parent->info->parent;
-    }
+    } while ((parent = parent->info->parent));
   } while ((owner = owner->info->value->from->owner_class));
   return GW_OK;
 }
@@ -77,7 +76,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if (GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
     ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
-  return decl->type = t;
+  return t;
 }
 
 static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
@@ -93,7 +92,7 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
   return GW_OK;
 }
 
-static inline uint array_ref(const Array_Sub array) {
+static inline bool array_ref(const Array_Sub array) {
   return array && !array->exp;
 }
 
@@ -103,7 +102,7 @@ static inline bool array_ref2(const Array_Sub array) {
 
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list     = decl->list;
-  const uint    decl_ref = array_ref(decl->td->array);
+  const bool    decl_ref = array_ref(decl->td->array);
   do {
     const Var_Decl var = list->self;
     CHECK_BB(isres(env, var->xid, exp_self(decl)->pos));
@@ -242,9 +241,8 @@ ANN static inline m_bool scan1_exp_cast(const Env env, const Exp_Cast *cast) {
 }
 
 ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix *post) {
-  if (opiscall(post->op)) {
+  if (opiscall(post->op))
     return exp2call(env, exp_self(post), post->op, post->exp);
-  }
   CHECK_BB(scan1_exp(env, post->exp));
   const m_str access = exp_access(post->exp);
   if (!access) return GW_OK;
@@ -275,9 +273,8 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env,
                                          const Exp_Unary *  unary) {
   if (unary->unary_type == unary_code) {
     RET_NSPC(scan1_stmt(env, unary->code))
-  } else if (opiscall(unary->op)) {
+  } else if (opiscall(unary->op))
     return exp2call(env, exp_self(unary), unary->op, unary->exp);
-  }
   return unary->unary_type == unary_exp ? scan1_exp(env, unary->exp) : GW_OK;
 }
 
@@ -675,7 +672,6 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if(GET_FLAG(fdef->base, abstract) && !env->class_def)
     ERR_B(fdef->base->pos, "file scope function can't be abstract");
-//exit(12);
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   if (fdef->base->td)
@@ -715,7 +711,6 @@ HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   const Type parent = known_type(env, tdef->ext);
   CHECK_OO((tdef->type->info->parent = parent));
-  ;
   Type t = parent;
   do
     if (tdef->type == t)

@@ -23,20 +23,16 @@ ANN m_bool gwion_audio(const Gwion gwion) {
   if (di->si->arg) driver_ini(gwion);
   di->func(di->driver);
   CHECK_BB(di->driver->ini(gwion->vm, di));
-  ;
   driver_alloc(di);
   return GW_OK;
 }
 
-ANN static inline m_bool gwion_engine(const Gwion gwion) {
-  return type_engine_init(gwion) > 0;
-}
-
-ANN static void gwion_cleaner(const Gwion gwion) {
+ANN static VM_Shred gwion_cleaner(const Gwion gwion) {
   const VM_Code code =
       new_vmcode(gwion->mp, NULL, NULL, "in code dtor", 0, true, false);
-  gwion->vm->cleaner_shred = new_vm_shred(gwion->mp, code);
-  vm_ini_shred(gwion->vm, gwion->vm->cleaner_shred);
+  const VM_Shred shred = new_vm_shred(gwion->mp, code);
+  vm_ini_shred(gwion->vm, shred);
+  return shred;
 }
 
 ANN VM *gwion_cpy(const VM *src) {
@@ -66,8 +62,8 @@ ANN static m_bool gwion_ok(const Gwion gwion, Arg *arg) {
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if (gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);
-    if (gwion_engine(gwion)) {
-      gwion_cleaner(gwion);
+    if (type_engine_init(gwion)) {
+      gwion->vm->cleaner_shred = gwion_cleaner(gwion);
       (void)arg_compile(gwion, arg);
       return GW_OK;
     }
