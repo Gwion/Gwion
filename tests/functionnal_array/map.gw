@@ -1,13 +1,13 @@
 fun float t(float i) { return 2; }
-for(a : [12., 1, 2 ,3].map:[float](t))
+foreach(a : [12., 1, 2 ,3].map:[float](t))
   <<< "mapped to => ${a}" >>>;
-#!for(a : [12, 1, 2 ,3].map:[int](t))
+#!foreach(a : [12, 1, 2 ,3].map:[int](t))
 #!  <<< "mapped to => ${a}" >>>;
-#!for(a : [12, 1, 2 ,3].map:[int](t))
+#!foreach(a : [12, 1, 2 ,3].map:[int](t))
 #!  <<< "mapped to => ${a}" >>>;
-#!for(a : [12, 1, 2 ,3].map:[int](t))
+#!foreach(a : [12, 1, 2 ,3].map:[int](t))
 #!  <<< "mapped to => ${a}" >>>;
-#!for(a : [12, 1, 2 ,3].map:[int]( \a {145 => a;return 2;}))
+#!foreach(a : [12, 1, 2 ,3].map:[int]( \a {145 => a;return 2;}))
 #!  <<< "mapped to => ${a}" >>>;
-#!for(a : [12, 1, 2 ,3].map:[int]( \a {145 => a;return 2;}))
+#!foreach(a : [12, 1, 2 ,3].map:[int]( \a {145 => a;return 2;}))
 #!  <<< "mapped to => ${a}" >>>;

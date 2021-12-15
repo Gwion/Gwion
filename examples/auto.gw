@@ -1,3 +1,3 @@
 var Object i[4];
-for(a: i)
+foreach(a: i)
   <<< a >>>;
