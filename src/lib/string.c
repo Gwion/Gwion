@@ -397,6 +397,26 @@ static SFUN(string_load) {
   *(M_Object*)RETURN = new_string(shred->info->vm->gwion, c);
 }
 
+static MFUN(string_atoi) {
+  const M_Object obj = *(M_Object*)MEM(0);
+  const m_str str = STRING(obj);
+  *(m_int*)RETURN = atoi(str);
+}
+
+static MFUN(string_atof) {
+  const M_Object obj = *(M_Object*)MEM(0);
+  const m_str str = STRING(obj);
+  *(m_float*)RETURN = (m_float)atof(str);
+}
+/*
+static MFUN(string_atoi2) {
+  const M_Object obj = *(M_Object*)MEM(0);
+  const m_str str = STRING(obj);
+  char *endptr;
+  *(m_int*)RETURN = strtol(str, &endptr, 10);
+  **(m_uint**)MEM(SZ_INT) = endptr - str;
+}
+*/
 GWION_IMPORT(string) {
   const Type t_string         = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
@@ -496,6 +516,16 @@ GWION_IMPORT(string) {
   gwi_func_arg(gwi, "string", "path");
   GWI_BB(gwi_func_end(gwi, string_load, ae_flag_static))
 
+  gwi_func_ini(gwi, "int", "atoi");
+  GWI_BB(gwi_func_end(gwi, string_atoi, ae_flag_none))
+
+  gwi_func_ini(gwi, "float", "atof");
+  GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))
+/*
+  gwi_func_ini(gwi, "int", "atoi");
+  gwi_func_arg(gwi, "Ref:[int]", "idx");
+  GWI_BB(gwi_func_end(gwi, string_atoi2, ae_flag_none))
+*/
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "string", "string", "bool"))
