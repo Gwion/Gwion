@@ -114,7 +114,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
     }
     const Type base = array_base_simple(t);
 
-    if (GET_FLAG(base, abstract) &&
+    if ((!GET_FLAG(decl->td, late) && GET_FLAG(base, abstract)) &&
         (array_ref2(var->array) ||
         array_ref2(decl->td->array)))
       ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
