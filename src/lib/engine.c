@@ -232,12 +232,12 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_deep_equal(gwi));
 
   GWI_BB(import_dict(gwi));
-/*
+
   // seemed need at a point to ease liking
   gwi_enum_ini(gwi, "@hidden_enum");
   gwi_enum_add(gwi, "@hidden_enum", 0);
   gwi_enum_end(gwi);
-*/
+
   gwi_register_freearg(gwi, ObjectRelease2, freearg_release);
 
   return GW_OK;
