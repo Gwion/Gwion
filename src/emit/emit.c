@@ -527,7 +527,6 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
     }
     return GW_OK;
   }
-//  if (!strncmp(v->type->name, "Ref:[", 5) && (!prim_exp(data)->cast_to || strncmp(prim_exp(data)->cast_to->name, "Ref:[", 5))) {
   if (tflag(v->type, tflag_ref) && !safe_tflag(prim_exp(data)->cast_to, tflag_ref)) {
     if (exp_getvar(exp_self(prim_self(data)))) {
       const Instr instr = emit_add_instr(emit, RegPushMem);
@@ -901,11 +900,9 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v,
   return GW_OK;
 }
 
-ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl,
+ANN static m_bool _decl_static(const Emitter emit, const Exp_Decl *decl,
                               const Var_Decl var_decl, const uint is_ref) {
   const Value v    = var_decl->value;
-  Code *      code = emit->code;
-  emit->code       = (Code *)vector_back(&emit->stack);
   CHECK_BB(
       emit_instantiate_decl(emit, v->type, decl->td, var_decl->array, is_ref));
   CHECK_BB(emit_dot_static_data(emit, v, 1));
@@ -913,8 +910,16 @@ ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl,
 //  if(get_depth(var_decl->value->type) && !is_ref)
 //    (void)emit_object_addref(emit, -SZ_INT, 0);
   regpop(emit, SZ_INT);
-  emit->code = code;
   return GW_OK;
+}
+
+ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl,
+                              const Var_Decl var_decl, const uint is_ref) {
+  Code *const code = emit->code;
+  emit->code       = (Code *)vector_back(&emit->stack);
+  const m_bool ret = _decl_static(emit, decl, var_decl, is_ref);
+  emit->code = code;
+  return ret;
 }
 
 ANN static inline int struct_ctor(const Value v) {

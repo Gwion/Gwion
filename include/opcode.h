@@ -1090,6 +1090,8 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eSetCode:
         gw_out("{Y}┃{0}{-}% 4lu{0}: SetCode     ", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out(" {-M}%-14"INT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegMove:

@@ -1,5 +1,5 @@
 var int i[4];
-foreach(a : i)
+for(a : i)
   <<< 1 => a >>>;
-foreach(a : i)
+for(a : i)
   <<< a >>>;

@@ -100,12 +100,14 @@ static ID_CHECK(opck_this) {
   if (!env->class_def)
     ERR_O(exp_self(prim)->pos,
           _("keyword 'this' can be used only inside class definition..."))
-  if (env->func && !vflag(env->func->value_ref, vflag_member))
-    ERR_O(exp_self(prim)->pos,
+  if(env->func) {
+    if (!vflag(env->func->value_ref, vflag_member))
+      ERR_O(exp_self(prim)->pos,
           _("keyword 'this' cannot be used inside static functions..."))
-  if (!exp_getuse(exp_self(prim)) && env->func &&
-      !strcmp(s_name(env->func->def->base->xid), "@gack"))
-    return get_gack(env->class_def->info->parent); // get_gack ?
+    if (!exp_getuse(exp_self(prim)) &&
+        !strcmp(s_name(env->func->def->base->xid), "@gack"))
+      return get_gack(env->class_def->info->parent); // get_gack ?
+  }
   return env->class_def;
 }
 

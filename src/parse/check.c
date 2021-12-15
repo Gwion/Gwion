@@ -502,9 +502,8 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     while (e) {
       if (!e->type) // investigate
         return NULL;
-//      if (!strncmp(e->type->name, "Ref:[", 5)) {
-      if (tflag(e->type, tflag_ref)) {
-if(!e->cast_to)e->cast_to = e->type;
+      if (tflag(e->type, tflag_ref) && isa(e->type, e1->type) > 0) {
+        if(!e->cast_to)e->cast_to = e1->type;
       }
       if (!e1) {
         if (fbflag(func->def->base, fbflag_variadic)) return func;

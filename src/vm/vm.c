@@ -896,9 +896,12 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       *(m_float *)(reg - SZ_FLOAT) = (m_float) * (m_int *)(reg - SZ_FLOAT);
       DISPATCH()
     ftoi:
+{
+      const m_float f = * (m_float *)(reg - SZ_FLOAT);
       reg -= SZ_FLOAT - SZ_INT;
-      *(m_int *)(reg - SZ_INT) = (m_int) * (m_float *)(reg - SZ_INT);
+      *(m_int *)(reg - SZ_INT) = (m_int)f;
       DISPATCH()
+}
     timeadv:
       reg -= SZ_FLOAT;
       shredule(s, shred, *(m_float *)(reg - SZ_FLOAT));

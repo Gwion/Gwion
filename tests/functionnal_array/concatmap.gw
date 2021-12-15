@@ -6,7 +6,7 @@
 const float ii;
 123=> var float f;
 
-foreach(a : [12, 1, 2 ,3].compactMap:[int]( \a {
+for(a : [12, 1, 2 ,3].compactMap:[int]( \a {
     var int?i;
     145 => i.val;
     if(maybe)
@@ -24,6 +24,6 @@ fun int? t(int x) {
     i.val++;
   return i;
 }
-foreach(a : [12, 1, 2 ,3].compactMap:[int](t))
+for(a : [12, 1, 2 ,3].compactMap:[int](t))
   <<< "mapped to => ${a}" >>>;
 <<< "test" >>>;
