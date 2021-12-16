@@ -551,7 +551,8 @@ ANN m_bool _scan2_func_def(const Env env, const Func_Def fdef) {
     if(!env->class_def)
       ERR_B(fdef->base->pos, _("{G+}new{0} operator must be set inside {C+}class{0}"));
     if(!fdef->base->ret_type)
-      fdef->base->ret_type = env->class_def;
+//      fdef->base->ret_type = env->class_def;
+      fdef->base->ret_type = env->gwion->type[et_auto];
   }
   if (GET_FLAG(fdef->base, global) && !env->class_def) env->context->global = 1;
   const Func_Def f = !is_cpy(fdef) ? fdef : scan2_cpy_fdef(env, fdef);

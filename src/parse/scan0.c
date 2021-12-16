@@ -516,10 +516,12 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   if (GET_FLAG(cdef, global))
     env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   if (cpy && cdef->base.type) {
-    c->base.type             = cdef->base.type;
+    c->base.type = cdef->base.type;
     c->base.type->info->cdef = cdef;
     set_tflag(c->base.type, tflag_cdef);
   }
+//  if (GET_FLAG(cdef, global))
+//    type_addref(c->base.type);
   return ret;
 }
 

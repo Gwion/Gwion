@@ -1341,15 +1341,12 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val      = -SZ_INT;
   } else {
-    if(isa(t, emit->gwion->type[et_object]) > 0) {
-//emit_object_addref(emit, -SZ_INT, 0);
-      emit_local_exp(emit, e);
-//       emit_localx(emit, t);
-    }
     if (!is_func(emit->gwion, exp_call->func->type) &&
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
   }
+  if(isa(e->type, emit->gwion->type[et_object]) > 0)
+    emit_local_exp(emit, e);
   return GW_OK;
 }
 
@@ -2096,10 +2093,6 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
     CHECK_BB(emit_exp_pop_next(emit, stmt->val));
-
-   if(isa(stmt->val->type, emit->gwion->type[et_object]) > 0 &&
-       (!stmt->val->data && stmt->val->acquire))
-      emit_object_addref(emit, -SZ_INT, exp_getvar(stmt->val));
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
