@@ -280,8 +280,8 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
     break;                                                                     \
   }
 
-#define ADVANCE() { byte += BYTECODE_SZ; shred->pc++;}
-//#define ADVANCE() byte += BYTECODE_SZ
+//#define ADVANCE() { byte += BYTECODE_SZ; shred->pc++;}
+#define ADVANCE() byte += BYTECODE_SZ
 
 //#define SDISPATCH() goto *dispatch[*(m_bit *)byte];
 #define SDISPATCH() goto **(void***)byte;
