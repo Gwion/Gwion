@@ -276,14 +276,15 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
 #define handle(a, b) VM_OUT handle(a, b);
 #define TEST0(t, pos)                                                          \
   if (!*(t *)(reg - pos)) {                                                    \
-/*    shred->pc = PC;*/                                                            \
     handle(shred, "ZeroDivideException");                                      \
     break;                                                                     \
   }
 
-#define ADVANCE() byte += BYTECODE_SZ;
+#define ADVANCE() { byte += BYTECODE_SZ; shred->pc++;}
+//#define ADVANCE() byte += BYTECODE_SZ
 
-#define SDISPATCH() goto *dispatch[*(m_bit *)byte];
+//#define SDISPATCH() goto *dispatch[*(m_bit *)byte];
+#define SDISPATCH() goto **(void***)byte;
 #define IDISPATCH()                                                            \
   {                                                                            \
     VM_INFO;                                                                   \
@@ -292,15 +293,14 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
 
 #define SET_BYTE(pc) (byte = bytecode + (pc)*BYTECODE_SZ)
 
-#define PC_DISPATCH(pc)                                                        \
-  SET_BYTE((pc));                                                              \
+#define PC_DISPATCH(_pc)                                                        \
+  SET_BYTE((_pc));                                                            \
+/*  shred->pc = _pc + 1;*/\
   IDISPATCH();
 
 #define DISPATCH()                                                             \
   ADVANCE();                                                                   \
   IDISPATCH();
-
-#define ADVANCE() byte += BYTECODE_SZ;
 
 #define ADISPATCH()                                                            \
   {                                                                            \
@@ -308,7 +308,8 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
     SDISPATCH();                                                               \
   }
 
-#define PC (*(unsigned *)(byte + 1))
+#define PC (*(m_uint *)(byte + SZ_INT*3))
+//#define PC (shred->pc)
 
 #define OP(t, sz, op, ...)                                                     \
   reg -= sz;                                                                   \
@@ -426,9 +427,10 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define SVAL2 (*(uint16_t *)(byte + SZ_INT + SZ_INT + sizeof(uint16_t)))
 
 #define BRANCH_DISPATCH(check)                                                 \
-  if (check)                                                                   \
+  if (check) {                                                                   \
     SET_BYTE(VAL);                                                             \
-  else                                                                         \
+    shred->pc = VAL + 1;\
+  } else                                                                         \
     ADVANCE();                                                                 \
   IDISPATCH();
 
@@ -438,8 +440,8 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
   shred->mem  = mem;                                                           \
   shred->pc   = PC;
 
-__attribute__((hot)) ANN void
-vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
+__attribute__((hot)) void
+vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
   static const void *dispatch[] = {
       &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
       &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
@@ -488,10 +490,14 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
       &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
       &&regpushimm};
+//  const Shreduler   s = vm->shreduler;
+//  register VM_Shred shred;
+//  register m_bit    next;
+
+  if(!prepare_code) {
   const Shreduler   s = vm->shreduler;
   register VM_Shred shred;
   register m_bit    next;
-
   while ((shred = shreduler_get(s))) {
     register VM_Code code     = shred->code;
     register m_bit * bytecode = code->bytecode;
@@ -943,7 +949,6 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     overflow:
       if (overflow_(mem + VAL2, shred)) {
-//        shred->pc = PC;
         handle(shred, "StackOverflow");
         continue;
       }
@@ -1289,6 +1294,332 @@ vm_run(const VM *vm) { // lgtm [cpp/use-of-goto]
     } while (s->curr);
 //    MUTEX_UNLOCK(s->mutex);
   }
+//}
+} else {
+//exit(3);
+//return;
+static void *_dispatch[] = {
+      &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
+      &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,
+      &&_regpushmemderef, &&_pushnow, &&_baseint, &&_basefloat, &&_baseother,
+      &&_baseaddr, &&_regtoreg, &&_regtoregother, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
+      &&_structmember, &&_structmemberfloat, &&_structmemberother,
+      &&_structmemberaddr, &&_memsetimm, &&_memaddimm, &&_repeatidx, &&_repeat,
+      &&_regpushme, &&_regpushmaybe, &&_funcreturn, &&__goto, &&_allocint,
+      &&_allocfloat, &&_allocother,
+      &&_intplus, &&_intminus, &&_intmul, &&_intdiv, &&_intmod,
+      &&_intplusimm, &&_intminusimm, &&_intmulimm, &&_intdivimm, &&_intmodimm,
+      // int relationnal
+      &&_inteq, &&_intne, &&_intand, &&_intor,
+      &&_intgt, &&_intge, &&_intlt, &&_intle,
+      &&_intgtimm, &&_intgeimm, &&_intltimm, &&_intleimm,
+      &&_intsl, &&_intsr, &&_intsand, &&_intsor, &&_intxor, &&_intnegate, &&_intnot,
+      &&_intcmp, &&_intrassign, &&_intradd, &&_intrsub, &&_intrmul, &&_intrdiv,
+      &&_intrmod, &&_intrsl, &&_intrsr, &&_intrsand, &&_intrsor, &&_intrxor, &&_preinc,
+      &&_predec, &&_postinc, &&_postdec,
+      &&_floatadd, &&_floatsub, &&_floatmul, &&_floatdiv,
+      &&_floataddimm, &&_floatsubimm, &&_floatmulimm, &&_floatdivimm,
+      // logical
+      &&_floatand, &&_floator, &&_floateq, &&_floatne,
+      &&_floatgt, &&_floatge, &&_floatlt, &&_floatle,
+      &&_floatgtimm, &&_floatgeimm, &&_floatltimm, &&_floatleimm,
+      &&_floatneg, &&_floatnot, &&_floatrassign, &&_floatradd,
+      &&_floatrsub, &&_floatrmul, &&_floatrdiv, &&_ifadd, &&_ifsub, &&_ifmul, &&_ifdiv,
+      &&_ifand, &&_ifor, &&_ifeq, &&_ifne, &&_ifgt, &&_ifge, &&_iflt, &&_ifle,
+      &&_ifrassign, &&_ifradd, &&_ifrsub, &&_ifrmul, &&_ifrdiv, &&_fiadd, &&_fisub,
+      &&_fimul, &&_fidiv, &&_fiand, &&_fior, &&_fieq, &&_fine, &&_figt, &&_fige, &&_filt,
+      &&_file, &&_firassign, &&_firadd, &&_firsub, &&_firmul, &&_firdiv, &&_itof,
+      &&_ftoi, &&_timeadv, &&_recurs, &&_setcode, &&_regmove,
+      &&_regtomem, &&_regtomemother,
+      &&_overflow,
+      &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
+      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkmemberfptr, &&_sporkexp,
+      &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
+      &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
+      &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
+      &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
+      &&_remref, &&_remref2, &&_except, &&_allocmemberaddr, &&_dotmember, &&_dotfloat,
+      &&_dotother, &&_dotaddr, &&_unioncheck, &&_unionint, &&_unionfloat,
+      &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
+      &&_upvalueint, &&_upvaluefloat, &&_upvalueother, &&_upvalueaddr, &&_dotfunc,
+      &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
+      &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
+      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_unroll2, &&_other,
+      &&_regpushimm};
+
+#define PREPARE(a) \
+_##a: \
+ *(void**)prepare_code = &&a;\
+prepare_code += BYTECODE_SZ;\
+goto *_dispatch[*(m_bit*)prepare_code];
+
+goto *_dispatch[*(m_bit*)prepare_code];
+    PREPARE(regsetimm);
+    PREPARE(regpushimm);
+    PREPARE(regpushfloat);
+    PREPARE(regpushother);
+    PREPARE(regpushaddr);
+    PREPARE(regpushmem);
+    PREPARE(regpushmemfloat);
+    PREPARE(regpushmemother);
+    PREPARE(regpushmemaddr);
+    PREPARE(regpushmemderef);
+    PREPARE(pushnow);
+    PREPARE(baseint);
+    PREPARE(basefloat);
+    PREPARE(baseother);
+    PREPARE(baseaddr);
+    PREPARE(regtoreg);
+    PREPARE(regtoregother);
+    PREPARE(regtoregother2);
+    PREPARE(regtoregaddr);
+    PREPARE(regtoregderef);
+    PREPARE(structmember);
+    PREPARE(structmemberfloat);
+    PREPARE(structmemberother);
+    PREPARE(structmemberaddr)
+    PREPARE(memsetimm);
+    PREPARE(memaddimm);
+    PREPARE(repeatidx);
+    PREPARE(repeat);
+    PREPARE(regpushme);
+    PREPARE(regpushmaybe);
+//    PREPARE(funcreturn);
+_funcreturn:
+ *(void**)prepare_code = &&funcreturn;
+return;
+
+    PREPARE(_goto);
+    PREPARE(allocint);
+    PREPARE(allocfloat);
+    PREPARE(allocother)
+    PREPARE(intplus);
+    PREPARE(intminus);
+    PREPARE(intmul);
+    PREPARE(intdiv);
+    PREPARE(intmod);
+    PREPARE(intplusimm);
+    PREPARE(intminusimm);
+    PREPARE(intmulimm);
+    PREPARE(intdivimm);
+    PREPARE(intmodimm);
+
+    PREPARE(inteq);
+    PREPARE(intne);
+    PREPARE(intand);
+    PREPARE(intor);
+    PREPARE(intgt);
+    PREPARE(intge);
+    PREPARE(intlt);
+    PREPARE(intle);
+    PREPARE(intgtimm);
+    PREPARE(intgeimm);
+    PREPARE(intltimm);
+    PREPARE(intleimm);
+    PREPARE(intsl);
+    PREPARE(intsr);
+    PREPARE(intsand);
+    PREPARE(intsor);
+    PREPARE(intxor);
+
+    PREPARE(intnegate);
+    PREPARE(intnot);
+    PREPARE(intcmp);
+
+    PREPARE(intrassign);
+
+    PREPARE(intradd);
+    PREPARE(intrsub);
+    PREPARE(intrmul);
+    PREPARE(intrdiv);
+    PREPARE(intrmod);
+    PREPARE(intrsl);
+    PREPARE(intrsr);
+    PREPARE(intrsand);
+    PREPARE(intrsor);
+    PREPARE(intrxor)
+
+    PREPARE(preinc);
+    PREPARE(predec);
+    PREPARE(postinc);
+    PREPARE(postdec);
+
+    PREPARE(floatadd);
+    PREPARE(floatsub);
+    PREPARE(floatmul);
+    PREPARE(floatdiv);
+    PREPARE(floataddimm);
+    PREPARE(floatsubimm);
+    PREPARE(floatmulimm);
+    PREPARE(floatdivimm);
+
+    PREPARE(floatand);
+    PREPARE(floator);
+    PREPARE(floateq);
+    PREPARE(floatne);
+    PREPARE(floatgt);
+    PREPARE(floatge);
+    PREPARE(floatlt);
+    PREPARE(floatle);
+    PREPARE(floatgtimm);
+    PREPARE(floatgeimm);
+    PREPARE(floatltimm);
+    PREPARE(floatleimm);
+
+    PREPARE(floatneg);
+    PREPARE(floatnot);
+
+    PREPARE(floatrassign);
+
+    PREPARE(floatradd);
+    PREPARE(floatrsub);
+    PREPARE(floatrmul);
+    PREPARE(floatrdiv);
+
+    PREPARE(ifadd);
+    PREPARE(ifsub);
+    PREPARE(ifmul);
+    PREPARE(ifdiv);
+
+    PREPARE(ifand);
+    PREPARE(ifor);
+    PREPARE(ifeq);
+    PREPARE(ifne);
+    PREPARE(ifgt);
+    PREPARE(ifge);
+    PREPARE(iflt);
+    PREPARE(ifle);
+
+    PREPARE(ifrassign);
+    PREPARE(ifradd);
+    PREPARE(ifrsub);
+    PREPARE(ifrmul);
+    PREPARE(ifrdiv);
+
+    PREPARE(fiadd);
+    PREPARE(fisub);
+    PREPARE(fimul);
+    PREPARE(fidiv);
+
+    PREPARE(fiand);
+    PREPARE(fior);
+    PREPARE(fieq);
+    PREPARE(fine);
+    PREPARE(figt);
+    PREPARE(fige);
+    PREPARE(filt);
+    PREPARE(file);
+
+    PREPARE(firassign);
+
+    PREPARE(firadd);
+    PREPARE(firsub);
+    PREPARE(firmul);
+    PREPARE(firdiv);
+
+    PREPARE(itof);
+    PREPARE(ftoi);
+
+    PREPARE(timeadv);
+
+    PREPARE(recurs);
+
+    PREPARE(setcode);
+    PREPARE(regmove);
+    PREPARE(regtomem);
+    PREPARE(regtomemother);
+    PREPARE(overflow);
+    PREPARE(funcusrend);
+    PREPARE(funcusrend2);
+    PREPARE(funcmemberend);
+    PREPARE(sporkini);
+    PREPARE(forkini);
+    PREPARE(sporkfunc);
+    PREPARE(sporkmemberfptr);
+    PREPARE(sporkexp);
+    PREPARE(sporkend);
+    PREPARE(brancheqint);
+    PREPARE(branchneint);
+    PREPARE(brancheqfloat);
+    PREPARE(branchnefloat);
+    PREPARE(unroll);
+    PREPARE(arrayappend);
+    PREPARE(autounrollinit);
+    PREPARE(autoloop);
+    PREPARE(arraytop);
+    PREPARE(arrayaccess);
+    PREPARE(arrayget);
+    PREPARE(arrayaddr);
+    PREPARE(newobj);
+    PREPARE(addref);
+    PREPARE(addrefaddr);
+    PREPARE(structaddref);
+    PREPARE(structaddrefaddr);
+    PREPARE(objassign);
+    PREPARE(assign);
+    PREPARE(remref);
+    PREPARE(remref2);
+    PREPARE(except);
+    PREPARE(allocmemberaddr);
+    PREPARE(dotmember);
+    PREPARE(dotfloat);
+    PREPARE(dotother);
+    PREPARE(dotaddr);
+    PREPARE(unioncheck);
+    PREPARE(unionint);
+    PREPARE(unionfloat);
+    PREPARE(unionother);
+    PREPARE(unionaddr);
+    PREPARE(staticint);
+    PREPARE(staticfloat);
+    PREPARE(staticother);
+    PREPARE(upvalueint);
+    PREPARE(upvaluefloat);
+    PREPARE(upvalueother);
+    PREPARE(upvalueaddr);
+    PREPARE(dotfunc);
+    PREPARE(gacktype);
+    PREPARE(gackend);
+    PREPARE(gack);
+    PREPARE(try_ini);
+    PREPARE(try_end);
+    PREPARE(handleeffect);
+    PREPARE(performeffect);
+    PREPARE(noop);
+//    PREPARE(other);
+_other:
+ *(void**)prepare_code = &&other;
+if(*(void**)(prepare_code + SZ_INT *2) == DTOR_EOC)return;
+if(*(void**)(prepare_code + SZ_INT *2) == fast_except) {
+//  find the instr
+// set instr opcode to addr
+const Instr instr = *(Instr*)(prepare_code + SZ_INT);
+instr->opcode = (m_uint)&&noop;
+//*(void**)(prepare_code
+//exit(3);
+}
+if(*(void**)(prepare_code + SZ_INT *2) == SetFunc) {
+//  find the instr
+// set instr opcode to addr
+const Instr instr = *(Instr*)(prepare_code + SZ_INT);
+instr->opcode = (m_uint)&&regpushimm;
+//*(void**)(prepare_code
+//exit(3);
+}
+//return;
+prepare_code += BYTECODE_SZ;\
+goto *_dispatch[*(m_bit*)prepare_code];
+
+    PREPARE(unroll2);
+    PREPARE(debugline);
+    PREPARE(debugvalue);
+    PREPARE(debugpush);
+    PREPARE(debugpop);
+//    PREPARE(eoc);
+_eoc:
+ *(void**)prepare_code = &&eoc;
+return;
+}
 }
 
 // remove me

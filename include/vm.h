@@ -26,6 +26,7 @@ struct VM_Code_ {
   struct M_Vector_ live_values;
   uint16_t         stack_depth;
   uint16_t         ref;
+  bool             is_prepared;
   bool             builtin;
   bool             callback;
   bool             is_memoize;
@@ -122,7 +123,10 @@ vm_shred_exit(const VM_Shred shred) {
 }
 void free_vm_shred(const VM_Shred shred) __attribute__((hot, nonnull));
 
-ANN void vm_run(const VM *vm) __attribute__((hot));
+void vm_prepare(const VM *vm, m_bit*) __attribute__((hot));
+ANN static inline void vm_run(const VM *vm) {
+  vm_prepare(vm, NULL);
+}
 ANEW VM * new_vm(MemPool, const bool);
 ANN void  vm_lock(VM const *);
 ANN void  vm_unlock(VM const *);

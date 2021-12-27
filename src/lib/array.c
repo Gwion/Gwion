@@ -373,27 +373,27 @@ static OP_EMIT(opem_array_access) {
   return exp ? emit_array_access(emit, info) : GW_ERROR;
 }
 
-static m_bit                 map_byte[BYTECODE_SZ * 4];
+static m_bit                 map_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ map_run_code = {.name     = "map_run_code",
                                              .bytecode = map_byte};
 
-static m_bit                 compactmap_byte[BYTECODE_SZ * 4];
+static m_bit                 compactmap_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ compactmap_run_code = {
     .name = "compactmap_run_code", .bytecode = compactmap_byte};
 
-static m_bit                 filter_byte[BYTECODE_SZ * 4];
+static m_bit                 filter_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ filter_run_code = {.name     = "filter_run_code",
                                                 .bytecode = filter_byte};
 
-static m_bit                 count_byte[BYTECODE_SZ * 4];
+static m_bit                 count_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ count_run_code = {.name     = "count_run_code",
                                                .bytecode = count_byte};
 
-static m_bit                 foldl_byte[BYTECODE_SZ * 4];
+static m_bit                 foldl_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ foldl_run_code = {.name     = "foldl_run_code",
                                                .bytecode = foldl_byte};
 
-static m_bit                 foldr_byte[BYTECODE_SZ * 4];
+static m_bit                 foldr_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ foldr_run_code = {.name     = "foldr_run_code",
                                                .bytecode = foldr_byte};
 
@@ -779,14 +779,17 @@ ANN static void prepare_run(m_bit *const byte, const f_instr ini,
   *(unsigned *)(byte + BYTECODE_SZ * 2)             = eOverflow;
   *(unsigned *)(byte + BYTECODE_SZ * 3)             = eOP_MAX;
   *(f_instr *)(byte + BYTECODE_SZ * 3 + SZ_INT * 2) = end;
+  *(unsigned *)(byte + BYTECODE_SZ * 4)             = eEOC;
 }
 
 ANN static void prepare_map_run(m_bit *const byte, const f_instr end) {
   prepare_run(byte, map_run_ini, end);
+  vm_prepare(NULL, byte);
 }
 
 ANN static void prepare_fold_run(m_bit *const byte, const f_instr ini) {
   prepare_run(byte, ini, fold_run_end);
+  vm_prepare(NULL, byte);
 }
 
 GWION_IMPORT(array) {
