@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -44,16 +42,6 @@ ANN static void user_dtor(const M_Object o, const VM_Shred shred, const Type t) 
   ++sh->info->me->ref;
 }
 
-static DTOR(object_dtor) {
-  free_object(shred->info->mp, o);
-}
-
-ANN static inline Type next_type(Type t) {
-  do if(t->nspc) return t;
-  while((t = t->info->parent));
-  return NULL;
-}
-
 ANN static inline void release_not_union(const m_bit *data, const VM_Shred shred, const Scope s) {
   const Map m = &s->map;
   for(m_uint i = map_size(m) + 1; --i;) {
@@ -65,9 +53,10 @@ ANN static inline void release_not_union(const m_bit *data, const VM_Shred shred
 
 ANN static void do_release(const M_Object o,
                                         const VM_Shred shred, const Type t) {
-  const Type next = next_type(t);
-  if(!next)
+  if(!t->nspc->offset) {
+    free_object(shred->info->mp, o);
     return;
+  }
   if (!tflag(t, tflag_union))
     release_not_union(o->data, shred, t->nspc->info->value);
   if (tflag(t, tflag_dtor)) {
@@ -127,9 +116,6 @@ GWION_IMPORT(object) {
   const Type t_object = gwi_mk_type(gwi, "Object", SZ_INT, "@Compound");
   gwi_set_global_type(gwi, t_object, et_object);
   t_object->nspc = new_nspc(gwi->gwion->mp, "Object");
-  t_object->nspc->dtor = new_vmcode(gwi->gwion->mp, NULL, NULL, "Object", SZ_INT, true, false);
-  t_object->nspc->dtor->native_func = (m_uint)object_dtor;
-  t_object->tflag |= tflag_dtor;
   struct SpecialId_ spid = {.ck = opck_this, .em = opem_this, .is_const = 1};
   gwi_specialid(gwi, "this", &spid);
   return GW_OK;

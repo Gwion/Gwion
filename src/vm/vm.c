@@ -81,7 +81,6 @@ ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, co
   if (start > shred->pc) return true;
   const uint16_t pc = find_pc(shred, effect, size);
   if (!pc) // outside of a try statement
-//    return true;
     return false;
   // we should clean values here
   shred->reg = // restore reg
@@ -90,7 +89,6 @@ ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, co
   shred->pc = pc; // VKEY(m, i);
   vector_pop(&shred->info->frame);
   vector_pop(&shred->info->frame);
-//  return false;
   return true;
 }
 
@@ -416,11 +414,9 @@ _Pragma(STRINGIFY(COMPILER diagnostic push)) \
 _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define PRAGMA_POP() _Pragma(STRINGIFY(COMPILER diagnostic pop))
 
-#define VMSZ (SZ_INT > SZ_FLOAT ? SZ_INT : SZ_FLOAT)
-
-#define VAL   (*(m_uint *)(byte + VMSZ))
-#define IVAL  (*(m_int *)(byte + VMSZ))
-#define FVAL  (*(m_float *)(byte + VMSZ))
+#define VAL   (*(m_uint *)(byte + SZ_INT))
+#define IVAL  (*(m_int *)(byte + SZ_INT))
+#define FVAL  (*(m_float *)(byte + SZ_INT))
 #define VAL2  (*(m_uint *)(byte + SZ_INT + SZ_INT))
 #define IVAL2  (*(m_int *)(byte + SZ_INT + SZ_INT))
 #define SVAL  (*(uint16_t *)(byte + SZ_INT + SZ_INT))
@@ -490,28 +486,23 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
       &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
       &&regpushimm};
-//  const Shreduler   s = vm->shreduler;
-//  register VM_Shred shred;
-//  register m_bit    next;
 
   if(!prepare_code) {
+    PRAGMA_PUSH()
   const Shreduler   s = vm->shreduler;
-  register VM_Shred shred;
-  register m_bit    next;
+  VM_Shred shred;
   while ((shred = shreduler_get(s))) {
-    register VM_Code code     = shred->code;
-    register m_bit * bytecode = code->bytecode;
-    register m_bit * byte     = bytecode + shred->pc * BYTECODE_SZ;
-    register m_bit * reg      = shred->reg;
-    register m_bit * mem      = shred->mem;
-    register union {
+    VM_Code code     = shred->code;
+    m_bit * bytecode = code->bytecode;
+    m_bit * byte     = bytecode + shred->pc * BYTECODE_SZ;
+    m_bit * reg      = shred->reg;
+    m_bit * mem      = shred->mem;
+    m_bit   next;
+    union {
       M_Object obj;
       VM_Code  code;
     } a;
-    PRAGMA_PUSH()
-    register VM_Shred child;
-    PRAGMA_POP()
-//    MUTEX_LOCK(s->mutex);
+    VM_Shred child;
     do {
       SDISPATCH();
     regsetimm:
@@ -924,7 +915,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     }
       DISPATCH();
     setcode:
-      PRAGMA_PUSH()
       a.code = *(VM_Code *)(reg - SZ_INT);
       if (!a.code->builtin) {
         register const uint push =
@@ -937,7 +927,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         mem += *(m_uint *)reg;
         next = eFuncMemberEnd;
       }
-      PRAGMA_POP()
     regmove:
       reg += IVAL;
       DISPATCH();
@@ -952,13 +941,9 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         handle(shred, "StackOverflow");
         continue;
       }
-      PRAGMA_PUSH()
       goto *dispatch[next];
-      PRAGMA_POP()
     funcusrend:
-      PRAGMA_PUSH()
       byte = bytecode = (code = a.code)->bytecode;
-      PRAGMA_POP()
       SDISPATCH();
     funcusrend2:
       byte = bytecode;
@@ -980,13 +965,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       child = init_fork_shred(shred, (VM_Code)VAL, (Type)VAL2);
       DISPATCH()
     sporkfunc:
-      PRAGMA_PUSH()
       //  LOOP_OPTIM
       for (m_uint i = 0; i < VAL; i += SZ_INT)
         *(m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
       child->reg += VAL;
       DISPATCH()
-      PRAGMA_POP()
     sporkmemberfptr:
       for (m_uint i = SZ_INT; i < VAL; i += SZ_INT)
         *(m_uint *)(child->reg + i) = *(m_uint *)(reg - VAL + i);
@@ -1002,9 +985,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     sporkend:
       assert(!VAL); // spork are not mutable
-      PRAGMA_PUSH()
       *(M_Object *)(reg - SZ_INT) = child->info->me;
-      PRAGMA_POP()
       DISPATCH()
     brancheqint:
       reg -= SZ_INT;
@@ -1062,15 +1043,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     }
     arrayget:
-      PRAGMA_PUSH()
       m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg + IVAL2));
-      PRAGMA_POP()
       DISPATCH()
     arrayaddr:
-      PRAGMA_PUSH()
       *(m_bit **)(reg + IVAL2) =
           m_vector_addr(ARRAY(a.obj), *(m_int *)(reg + VAL));
-      PRAGMA_POP()
       DISPATCH()
     newobj:
       *(M_Object *)reg = new_object(vm->gwion->mp, (Type)VAL2);
@@ -1137,11 +1114,9 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     dotother:
       //  LOOP_OPTIM
-      PRAGMA_PUSH()
       for (m_uint i = 0; i <= VAL2; i += SZ_INT)
         *(m_uint *)(reg + i - SZ_INT) =
             *(m_uint *)(((*(M_Object *)(reg - SZ_INT))->data + VAL) + i);
-      PRAGMA_POP()
       reg += VAL2 - SZ_INT;
       DISPATCH()
     dotaddr:
@@ -1175,10 +1150,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     }
     unionother : {
       UNION_CHECK
-      PRAGMA_PUSH()
       for (m_uint i = 0; i <= VAL2; i += SZ_INT)
         *(m_uint *)(reg + i - SZ_INT) = *(m_uint *)(data + SZ_INT + i);
-      PRAGMA_POP()
       reg += VAL2 - SZ_INT;
       DISPATCH()
     }
@@ -1292,9 +1265,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       VM_OUT
       vm_shred_exit(shred);
     } while (s->curr);
-//    MUTEX_UNLOCK(s->mutex);
   }
-//}
+    PRAGMA_POP()
 } else {
 //exit(3);
 //return;
@@ -1586,36 +1558,24 @@ return;
     PREPARE(handleeffect);
     PREPARE(performeffect);
     PREPARE(noop);
-//    PREPARE(other);
 _other:
- *(void**)prepare_code = &&other;
-if(*(void**)(prepare_code + SZ_INT *2) == DTOR_EOC)return;
-if(*(void**)(prepare_code + SZ_INT *2) == fast_except) {
-//  find the instr
-// set instr opcode to addr
-const Instr instr = *(Instr*)(prepare_code + SZ_INT);
-instr->opcode = (m_uint)&&noop;
-//*(void**)(prepare_code
-//exit(3);
+{
+  *(void**)prepare_code = &&other;
+  const f_instr exec = *(f_instr*)(prepare_code + SZ_INT *2);
+  if(exec == DTOR_EOC)return;
+  const Instr instr = *(Instr*)(prepare_code + SZ_INT);
+  if(exec == fast_except)
+    instr->opcode = (m_uint)&&noop;
+  else if(exec == SetFunc)
+    instr->opcode = (m_uint)&&regpushimm;
+  prepare_code += BYTECODE_SZ;\
+  goto *_dispatch[*(m_bit*)prepare_code];
 }
-if(*(void**)(prepare_code + SZ_INT *2) == SetFunc) {
-//  find the instr
-// set instr opcode to addr
-const Instr instr = *(Instr*)(prepare_code + SZ_INT);
-instr->opcode = (m_uint)&&regpushimm;
-//*(void**)(prepare_code
-//exit(3);
-}
-//return;
-prepare_code += BYTECODE_SZ;\
-goto *_dispatch[*(m_bit*)prepare_code];
-
     PREPARE(unroll2);
     PREPARE(debugline);
     PREPARE(debugvalue);
     PREPARE(debugpush);
     PREPARE(debugpop);
-//    PREPARE(eoc);
 _eoc:
  *(void**)prepare_code = &&eoc;
 return;

@@ -150,7 +150,6 @@ INSTR(SetCtor) {
 }
 
 INSTR(fast_except) {
-puts("here!!!!!!!!!!!!!!");
   if(*(m_uint*)REG((m_int)instr->m_val)) {
 //    BYTE(eNoOp)
   m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
