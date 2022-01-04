@@ -93,7 +93,7 @@ ANN void __release(const M_Object o, const VM_Shred shred) {
 }
 
 ANN void free_object(MemPool p, const M_Object o) {
-  mp_free2(p, o->type_ref->nspc->offset, o);
+  mp_free2(p, sizeof(struct M_Object_) + o->type_ref->nspc->offset, o);
 }
 
 static ID_CHECK(opck_this) {
