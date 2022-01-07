@@ -377,10 +377,24 @@ static GWION_IMPORT(global_ugens) {
   struct ugen_importer imp_hole = {vm, compute_mono, "blackhole", 1};
   const UGen           hole     = add_ugen(gwi, &imp_hole);
   struct ugen_importer imp_dac  = {vm, dac_tick, "dac", vm->bbq->si->out};
-  const UGen           dac      = add_ugen(gwi, &imp_dac);
+
+  // dac needs to have *multi*
+  const M_Object dac  = new_M_UGen(gwi->gwion);
+  const UGen     u  = UGEN(dac);
+    u->connect.multi         = mp_calloc(gwi->gwion->mp, ugen_multi);
+    u->connect.multi->n_in   = vm->bbq->si->out;
+    u->connect.multi->n_out  = vm->bbq->si->out;
+    u->connect.multi->n_chan = vm->bbq->si->out;
+    assign_channel(gwi->gwion, u);
+  ugen_gen(vm->gwion, u, dac_tick, (void *)vm, 0);
+  vector_add(&vm->ugen, (vtype)u);
+  gwi_item_ini(gwi, "UGen", "dac");
+  gwi_item_end(gwi, ae_flag_const, obj, dac);
+  ugen_connect(u, hole);
+
+
   struct ugen_importer imp_adc  = {vm, adc_tick, "adc", vm->bbq->si->in};
   (void)add_ugen(gwi, &imp_adc);
-  ugen_connect(dac, hole);
   SET_FLAG(gwi->gwion->type[et_ugen], abstract);
   return GW_OK;
 }
