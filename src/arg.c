@@ -14,6 +14,7 @@
 enum {
   CONFIG,
   PLUGIN,
+  LOAD_PLUGIN,
   MODULE,
   LOOP,
   PASS,
@@ -57,6 +58,7 @@ ANN static m_str plug_dir(void) {
 enum arg_type {
   ARG_FILE,
   ARG_STDIN,
+  ARG_LOAD_PLUGIN,
   ARG_DEFINE,
   ARG_UNDEF,
   ARG_INCLUDE,
@@ -113,6 +115,11 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
       break;
     case ARG_STDIN:
       compile_file(gwion, "stdin", stdin);
+      break;
+    case ARG_LOAD_PLUGIN:
+      char c[1024];
+      sprintf(c, "#import %s\n", VPTR(v, ++i));
+      compile_string(gwion, "<command-line>", c);
       break;
     case ARG_DEFINE:
       pparg_add(gwion->ppa, (m_str)VPTR(v, ++i));
@@ -174,6 +181,8 @@ static void setup_options(cmdapp_t *app, cmdopt_t *opt) {
              "number of input channel", &opt[NINPUT]);
   cmdapp_set(app, 'o', "output", CMDOPT_TAKESARG, NULL,
              "number of output channel", &opt[NOUTPUT]);
+  cmdapp_set(app, 'P', "plugin", CMDOPT_TAKESARG, NULL, "(force-)load a plugin",
+             &opt[LOAD_PLUGIN]);
   cmdapp_set(app, 'D', "define", CMDOPT_TAKESARG, NULL, "define a macro",
              &opt[DEFINE]);
   cmdapp_set(app, 'U', "undef", CMDOPT_TAKESARG, NULL, "undefine a macro",
@@ -270,6 +279,10 @@ static void myproc(void *data, cmdopt_t *option, const char *arg) {
       break;
     case '\0':
       vector_add(&_arg->add, (vtype)ARG_STDIN);
+      break;
+    case 'P':
+      vector_add(&_arg->add, (vtype)ARG_LOAD_PLUGIN);
+      vector_add(&_arg->add, (vtype)option->value);
       break;
     case 'c':
       if (!strcmp(option->value, "never"))
