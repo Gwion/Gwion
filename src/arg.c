@@ -118,7 +118,7 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
       break;
     case ARG_LOAD_PLUGIN:
       char c[1024];
-      sprintf(c, "#import %s\n", VPTR(v, ++i));
+      sprintf(c, "#import %s\n", (m_str)VPTR(v, ++i));
       compile_string(gwion, "<command-line>", c);
       break;
     case ARG_DEFINE:
