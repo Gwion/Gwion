@@ -1,11 +1,18 @@
 #ifndef EMIT_H
 #define EMIT_H
 
+typedef struct {
+  m_bit *ptr;
+  uint32_t reg;
+  uint32_t limit;
+} MaybeVal;
+
 typedef struct Frame_ {
   struct Vector_ stack;
   struct Map_    handlers;
   struct Vector_ defer;
   m_uint         value_count;
+  struct M_Vector_ maybe_stack;
   uint16_t       curr_offset;
   uint16_t       try_top;
 } Frame;
