@@ -122,17 +122,21 @@ INSTR(DotTmpl) {
 #define FVAL (*(m_float *)(byte + SZ_INT))
 #define VAL2 (*(m_uint *)(byte + SZ_INT * 2))
 #define BYTE(a)                                                                \
-  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * SZ_INT * 3;       \
-  *(m_bit *)byte = a;
+  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
+  *(m_uint *)byte = a;
 
 INSTR(SetFunc) {
-  BYTE(eRegPushImm)
+//  BYTE(eRegPushImm)
+  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
+  *(m_uint *)byte = instr->opcode;
+  instr->opcode = eRegPushImm;
   const Func f = (Func)instr->m_val;
   VAL = *(m_uint *)(shred->reg) = (m_uint)f->code;
   shred->reg += SZ_INT;
 }
 
 INSTR(SetRecurs) {
+exit(4);
   BYTE(eRegPushImm)
   VAL = *(m_uint *)(shred->reg) = (m_uint)shred->code;
   shred->reg += SZ_INT;
@@ -147,7 +151,10 @@ INSTR(SetCtor) {
 
 INSTR(fast_except) {
   if(*(m_uint*)REG((m_int)instr->m_val)) {
-    BYTE(eNoOp)
+//    BYTE(eNoOp)
+  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
+  *(m_uint *)byte = instr->opcode;
+  instr->opcode = eNoOp;
   } else
     handle(shred, "NullPtrException");
 }

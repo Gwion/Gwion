@@ -83,13 +83,13 @@ util/include/generated.h:
 util/libtermcolor/libtermcolor.a:
 	@+${MAKE} BUILD_ON_WINDOWS=${BUILD_ON_WINDOWS} -s -C util/libtermcolor static
 
-util/libgwion_util.a:
+util/libgwion_util.a: util/include/generated.h
 	@+GWION_PACKAGE= ${MAKE} -s -C util
 
 util: util/libgwion_util.a
 	@(info build util)
 
-ast/libgwion_ast.a:
+ast/libgwion_ast.a: util/libgwion_util.a
 	@+GWION_PACKAGE= ${MAKE} -s -C ast
 
 libcmdapp/libcmdapp.a:

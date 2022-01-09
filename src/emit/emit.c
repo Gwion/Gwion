@@ -2843,7 +2843,8 @@ ANN static void me_ret(MemoizeEmitter *me) {
   const Instr instr =
       emit_regpushmem(me->emit, me->fdef->base->ret_type->size, false);
   instr->m_val = (me->offset + SZ_INT) * 2;
-  emit_add_instr(me->emit, FuncReturn);
+//  emit_add_instr(me->emit, FuncReturn);
+vector_add(&me->emit->code->stack_return, (vtype)emit_add_instr(me->emit, Goto));
 }
 
 ANN static m_bool me_run(MemoizeEmitter *me, const m_uint pc) {

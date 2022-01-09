@@ -53,7 +53,7 @@ static inline uint isgoto(const unsigned opcode) {
 }
 
 ANN static inline void setpc(const m_bit *data, const m_uint i) {
-  *(unsigned *)(data + 1) = i + 1;
+  *(m_uint *)(data + SZ_INT*3) = i + 1;
 }
 
 ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
@@ -78,7 +78,11 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
           next->opcode = eNoOp;
         }
         if ((instr->m_val = move)) {
+// *(m_uint*)data = instr->opcode;
+//          memcpy(data, instr, SZ_INT);
+//          memcpy(data + SZ_INT*2, instr + SZ_INT, SZ_INT*2);
           memcpy(data, instr, BYTECODE_SZ);
+
           setpc(data, i);
         } else {
           vector_add(&nop, i);
@@ -108,9 +112,9 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
       if (instr->opcode == eGoto && instr->m_val == i + 1) {
         instr->opcode = eNoOp;
         vector_add(&nop, i);
-      } else if (instr->opcode != eNoOp)
+      } else if (instr->opcode != eNoOp) {
         memcpy(data, instr, BYTECODE_SZ);
-      else
+      } else
         vector_add(&nop, i);
     } else {
       *(m_bit *)(data)                = instr->opcode;
@@ -121,6 +125,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
   }
   if (!vector_size(&nop)) {
     vector_release(&nop);
+    vm_prepare(NULL, ptr);
     return ptr;
   }
   m_bit *const final =
@@ -154,6 +159,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
   }
   vector_release(&nop);
   mp_free2(p, sz * BYTECODE_SZ, ptr);
+    vm_prepare(NULL, final);
   return final;
 }
 
