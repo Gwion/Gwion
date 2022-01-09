@@ -120,7 +120,10 @@ ANN void arg_compile(const Gwion gwion, Arg *arg) {
 {
       char c[1024];
       sprintf(c, "#import %s\n", (m_str)VPTR(v, ++i));
+      const bool cdoc = gwion->data->cdoc;
+      gwion->data->cdoc = true;
       compile_string(gwion, "<command-line>", c);
+      gwion->data->cdoc = cdoc;
       break;
 }
     case ARG_DEFINE:

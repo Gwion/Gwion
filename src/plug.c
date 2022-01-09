@@ -166,7 +166,10 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
       const plugin imp = DLSYM(plug->dl, plugin, GWIMPORT_NAME);
       if (!imp) break;
       plug->imp = 1;
+      const bool cdoc = gwion->data->cdoc;
+      gwion->data->cdoc = 0;
       CHECK_BB(dependencies(gwion, plug));
+      gwion->data->cdoc = cdoc;
       const m_uint scope = env_push_global(gwion->env);
       const m_str  name  = gwion->env->name;
       gwion->env->name   = iname;

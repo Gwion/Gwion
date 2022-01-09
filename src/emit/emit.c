@@ -70,12 +70,23 @@ ANEW static Frame *new_frame(MemPool p) {
   return frame;
 }
 
+ANN static void release_maybe_stack(const M_Vector ms) {
+ for (vtype i = m_vector_size(ms) + 1; --i;) {
+    const MaybeVal mv = *(MaybeVal*)(ms->ptr + ARRAY_OFFSET + (i-1) * sizeof(MaybeVal));
+    struct M_Vector_ v = { .ptr = mv.ptr };
+    m_vector_release(&v);
+  }
+  m_vector_release(ms);
+}
+
 ANN static void free_frame(MemPool p, Frame *a) {
   LOOP_OPTIM
   for (vtype i = vector_size(&a->stack) + 1; --i;)
     if (vector_at(&a->stack, i - 1))
       mp_free(p, Local, (Local *)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
+  if(a->maybe_stack.ptr)
+    release_maybe_stack(&a->maybe_stack);
   vector_release(&a->defer);
   if (a->handlers.ptr) map_release(&a->handlers);
   mp_free(p, Frame, a);
@@ -214,8 +225,24 @@ ANN static m_int _frame_pop(const Emitter emit) {
   return _frame_pop(emit);
 }
 
+ANN static void emit_maybe_release(const Emitter emit, const M_Vector ms) {
+  for(m_uint i = 0; i < m_vector_size(ms); i++) {
+    const MaybeVal mv = *(MaybeVal*)(ms->ptr + ARRAY_OFFSET + i * sizeof(MaybeVal));
+    struct M_Vector_ vals = { .ptr = mv.ptr };
+    for(m_uint j = 0; j < m_vector_size(&vals); j++) {
+      const VMValue val = *(VMValue*)(vals.ptr + ARRAY_OFFSET + j * sizeof(VMValue));
+      if(!tflag(val.t, tflag_struct)) {
+       const Instr instr = emit_add_instr(emit, ObjectRelease);
+       instr->m_val      = val.offset;
+      } else struct_pop(emit, val.t, val.offset);
+    }
+  }
+}
+
 ANN static m_int frame_pop(const Emitter emit) {
   emit_defers(emit);
+  if(emit->code->frame->maybe_stack.ptr)
+    emit_maybe_release(emit, &emit->code->frame->maybe_stack);
   return _frame_pop(emit);
 }
 
@@ -1910,8 +1937,10 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
   return op_emit(emit, &opi);
 }
 
-ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
+ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, const bool b) {
   CHECK_BO(emit_exp_pop_next(emit, e));
+  if(instr)
+    *instr = emit_add_instr(emit, NoOp);
 //  emit_exp_addref1(emit, e, -exp_size(e)); // ????
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
@@ -1921,19 +1950,71 @@ ANN static Instr _flow(const Emitter emit, const Exp e, const m_bool b) {
   CHECK_BO(op_emit(emit, &opi));
   return (Instr)vector_back(&emit->code->instr);
 }
-#define emit_flow(emit, b) _flow(emit, b, 1)
+#define emit_flow(emit, b) _flow(emit, b, NULL, true)
+
+static void emit_maybe_stack(const Instr instr, const M_Vector stack, const MaybeVal *mv) {
+  instr->opcode = eReg2Mem;
+  instr->m_val = -SZ_INT;
+  instr->m_val2 = mv->reg;
+  if(!stack->ptr)
+    m_vector_init(stack, sizeof(MaybeVal), 0);
+  m_vector_add(stack, mv);
+}
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
   const Exp e = exp_if->if_exp ?: exp_if->cond;
+  Instr instr;
+  struct M_Vector_ v = {};
+  const m_uint reg = emit_local(emit, emit->gwion->type[et_bool]);
+  DECL_OB(const Instr, op, = _flow(emit, exp_if->cond, &instr, true));
   if (exp_getvar(exp_self(exp_if))) {
     exp_setvar(e, 1);
     exp_setvar(exp_if->else_exp, 1);
   }
-  DECL_OB(const Instr, op, = emit_flow(emit, exp_if->cond));
+  const m_uint nloc = vector_size(&emit->code->frame->stack);
+  const m_uint nval = m_vector_size(&emit->code->live_values);
+  const uint16_t offset = emit->code->frame->curr_offset;
+  const uint16_t vcount = emit->code->frame->value_count;
   CHECK_BB(emit_exp_pop_next(emit, e));
+  const m_uint nval_if = m_vector_size(&emit->code->live_values);
+  if(nval < nval_if) {
+    const m_uint diff = nval_if - nval;
+    m_vector_init(&v, sizeof(VMValue), diff);
+    memcpy(v.ptr + ARRAY_OFFSET, emit->code->live_values.ptr + ARRAY_OFFSET + nval * sizeof(VMValue), diff * sizeof(VMValue));
+  }
+  emit->code->frame->curr_offset = offset;
+  emit->code->frame->value_count = vcount;
+  VLEN(&emit->code->live_values) = nval;
+  VLEN(&emit->code->frame->stack) = nloc;
+
   const Instr op2  = emit_add_instr(emit, Goto);
   op->m_val        = emit_code_size(emit);
   const m_bool ret = emit_exp_pop_next(emit, exp_if->else_exp);
+  const m_uint nval_else = m_vector_size(&emit->code->live_values);
+  if(nval < nval_else) {
+    const m_uint diff = nval_else - nval;
+    if(!v.ptr) {
+      m_vector_init(&v, sizeof(VMValue), diff);
+      memcpy(v.ptr + ARRAY_OFFSET, emit->code->live_values.ptr + ARRAY_OFFSET + nval * sizeof(VMValue), diff * sizeof(VMValue));
+    } else {
+      for(m_uint i = 0; i < diff; i++) {
+        m_vector_add(&v, m_vector_addr(&emit->code->live_values, i + nval));
+      }
+    }
+  }
+  emit->code->frame->curr_offset = offset;
+  emit->code->frame->value_count = vcount;
+  VLEN(&emit->code->live_values) = nval;
+  VLEN(&emit->code->frame->stack) = nloc;
+
+  if(v.ptr) {
+    MaybeVal mv = (MaybeVal) {
+      .ptr = v.ptr,
+      .reg = reg,
+      .limit = nval_if - nval,
+    };
+    emit_maybe_stack(instr, &emit->code->frame->maybe_stack, &mv);
+  }
   op2->m_val       = emit_code_size(emit);
   return ret;
 }
@@ -2159,12 +2240,12 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
 ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
                                   const m_uint index) {
   Instr           op       = NULL;
-  const ae_stmt_t is_while = stmt_self(stmt)->stmt_type == ae_stmt_while;
-  const uint      is_const = stmt->cond->exp_type == ae_exp_primary &&
+  const bool is_while = stmt_self(stmt)->stmt_type == ae_stmt_while;
+  const bool is_const = stmt->cond->exp_type == ae_exp_primary &&
                         stmt->cond->d.prim.prim_type == ae_prim_num;
   if (!stmt->is_do) {
     if (!is_const)
-      op = _flow(emit, stmt->cond, is_while);
+      op = _flow(emit, stmt->cond, NULL, is_while);
     else if ((!is_while && stmt->cond->d.prim.d.num) ||
              (is_while && !stmt->cond->d.prim.d.num))
       return GW_OK;
@@ -2172,7 +2253,7 @@ ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
   CHECK_BB(scoped_stmt(emit, stmt->body, 1));
   if (stmt->is_do) {
     if (!is_const) {
-      CHECK_OB((op = _flow(emit, stmt->cond, !is_while)));
+      CHECK_OB((op = _flow(emit, stmt->cond, NULL, !is_while)));
       op->m_val = index;
     } else if ((is_while && stmt->cond->d.prim.d.num) ||
                (!is_while && !stmt->cond->d.prim.d.num)) {

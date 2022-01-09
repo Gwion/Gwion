@@ -293,7 +293,6 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
 
 #define PC_DISPATCH(_pc)                                                        \
   SET_BYTE((_pc));                                                            \
-/*  shred->pc = _pc + 1;*/\
   IDISPATCH();
 
 #define DISPATCH()                                                             \
@@ -307,7 +306,6 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   }
 
 #define PC (*(m_uint *)(byte + SZ_INT*3))
-//#define PC (shred->pc)
 
 #define OP(t, sz, op, ...)                                                     \
   reg -= sz;                                                                   \
