@@ -123,9 +123,7 @@ clean-all: clean
 		${MAKE} -s -C util/libtermcolor clean
 
 update: clean-all
-	git pull
-	git submodule update --recursive --init
-	CFLAGS= ${MAKE}
+	bash scripts/update.sh
 
 clean: clean_core
 	$(info cleaning ...)
