@@ -1372,8 +1372,8 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
   }
-  if(isa(e->type, emit->gwion->type[et_object]) > 0)
-    emit_local_exp(emit, e);
+//  if(isa(e->type, emit->gwion->type[et_object]) > 0)
+//    emit_local_exp(emit, e);
   return GW_OK;
 }
 
