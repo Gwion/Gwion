@@ -60,7 +60,7 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: util/include/generated.h options-show ${GWLIBS} src/main.o
+all: options-show ${GWLIBS} src/main.o
 	@$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
 
@@ -77,13 +77,10 @@ lto:
 lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
 
-util/include/generated.h:
-	@${MAKE} -C util include/generated.h
-
 util/libtermcolor/libtermcolor.a:
 	@+${MAKE} BUILD_ON_WINDOWS=${BUILD_ON_WINDOWS} -s -C util/libtermcolor static
 
-util/libgwion_util.a: util/include/generated.h
+util/libgwion_util.a:
 	@+GWION_PACKAGE= ${MAKE} -s -C util
 
 util: util/libgwion_util.a
