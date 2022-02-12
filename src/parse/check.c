@@ -413,6 +413,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   CHECK_OO(check_prim_interp(env, data));
   env_weight(env, 1);
   return env->gwion->type[et_gack];
+//  return (*data)->type;
 }
 
 #define describe_prim_xxx(name, type)                                          \
@@ -500,6 +501,7 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
     Exp      e  = args;
     Arg_List e1 = func->def->base->args;
     while (e) {
+      e->cast_to = NULL;
       if (!e->type) // investigate
         return NULL;
       if (tflag(e->type, tflag_ref) && isa(e->type, e1->type) > 0) {
@@ -525,6 +527,7 @@ static Func find_func_match_actual(const Env env, Func func, const Exp args,
       e1 = e1->next;
     }
     if (!e1) return func;
+//    if (!e && !e1) return func;
   } while ((func = func->next));
   return NULL;
 }
@@ -860,7 +863,8 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;
   CHECK_OO(check_exp(env, bin->rhs));
   if (is_auto) {
-    bin->rhs->type = bin->lhs->type;
+    assert(bin->rhs->type == bin->lhs->type);
+//    bin->rhs->type = bin->lhs->type;
     set_vflag(bin->rhs->d.exp_decl.list->self->value, vflag_assigned);
   }
   struct Op_Import opi = {.op   = bin->op,
@@ -916,7 +920,8 @@ ANN static m_bool predefined_call(const Env env, const Type t,
 
 ANN2(1) static inline bool curried(const Env env, Exp exp) {
   while (exp) {
-    if (is_hole(env, exp)) return true;
+    if (is_hole(env, exp))
+      return true;
     exp = exp->next;
   }
   return false;

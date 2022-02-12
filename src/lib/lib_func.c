@@ -47,7 +47,7 @@ ANN static Exp order_curry(const Env env, Exp fn, const Exp _arg) {
     if (hole) {
       if (!arg) {
         if (base) free_exp(mp, base);
-        ERR_O(fn->pos, "no enough arguments for holes");
+        ERR_O(fn->pos, "not enough arguments for holes");
       }
       arg = arg->next;
     }
@@ -76,9 +76,11 @@ static OP_CHECK(opck_curry) {
   e->exp_type   = ae_exp_call;
   e->type       = NULL;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+
   const MemPool mp = env->gwion->mp;
   free_exp(mp, base.args);
   free_exp(mp, lhs);
+
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 

@@ -665,11 +665,12 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e);
 
 ANN static m_bool emit_range(const Emitter emit, Range *range) {
   if (range->start)
-    CHECK_BB(emit_exp_pop_next(emit, range->start));
+//    CHECK_BB(emit_exp_pop_next(emit, range->start));
+    CHECK_BB(emit_exp(emit, range->start));
   else
     regpushi(emit, 0);
   if (range->end)
-    CHECK_BB(emit_exp_pop_next(emit, range->end));
+    CHECK_BB(emit_exp(emit, range->end));
   else
     regpushi(emit, -1);
   return GW_OK;
@@ -884,7 +885,7 @@ ANN /*static*/ m_bool emit_interp(const Emitter emit, const Exp exp) {
     regseti(emit, (m_uint)e->type);
     interp_size(emit, e->type);
     const m_bool isobj = isa(e->type, emit->gwion->type[et_object]) > 0;
-    if (isobj && e->exp_type != ae_exp_cast) emit_add_instr(emit, GackType);
+    if (isobj && e->exp_type != ae_exp_cast && !GET_FLAG(e->type, final)) emit_add_instr(emit, GackType);
     const Instr instr = emit_add_instr(emit, Gack);
     instr->m_val      = emit_code_offset(emit);
   } while ((e = e->next = next));
@@ -1938,7 +1939,8 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
 }
 
 ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, const bool b) {
-  CHECK_BO(emit_exp_pop_next(emit, e));
+//  CHECK_BO(emit_exp_pop_next(emit, e));
+  CHECK_BO(emit_exp(emit, e));
   if(instr)
     *instr = emit_add_instr(emit, NoOp);
 //  emit_exp_addref1(emit, e, -exp_size(e)); // ????
@@ -2173,7 +2175,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
       if (stmt->val->exp_type == ae_exp_call && emit->env->func == f)
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
-    CHECK_BB(emit_exp_pop_next(emit, stmt->val));
+    CHECK_BB(emit_exp(emit, stmt->val));
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
