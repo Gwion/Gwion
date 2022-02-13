@@ -151,10 +151,10 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
   Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
   if(!base[0]->func->value_ref->from->owner_class &&
-      base[1]->func->value_ref->from->owner_class)
+      (!GET_FLAG(base[1], global) && base[1]->func->value_ref->from->owner_class))
     arg0 = arg0->next;
   if(!base[1]->func->value_ref->from->owner_class &&
-      base[0]->func->value_ref->from->owner_class)
+      (!GET_FLAG(base[0], global) && base[0]->func->value_ref->from->owner_class))
     arg1 = arg1->next;
   while (arg0) {
     CHECK_OB(arg1);

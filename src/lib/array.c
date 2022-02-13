@@ -402,6 +402,7 @@ typedef struct FunctionalFrame {
   uint16_t pc;
   uint16_t offset;
   uint16_t index;
+  uint16_t ret_size;
 } FunctionalFrame;
 
 ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
@@ -438,12 +439,14 @@ ANN static inline void _finish(const VM_Shred         shred,
 
 #define MAP_CODE_OFFSET (sizeof(FunctionalFrame) + sizeof(struct frame_t))
 static INSTR(map_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   PUSH_REG(shred, SZ_INT);
   const M_Object   self  = *(M_Object *)MEM(0);
   const M_Vector   array = ARRAY(self);
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->offset + frame->code->stack_depth));
@@ -453,8 +456,8 @@ static INSTR(map_run_end) {
   shred->mem -= MAP_CODE_OFFSET + SZ_INT;
   const M_Object ret_obj = *(M_Object *)MEM(SZ_INT * 2);
   const M_Vector array   = ARRAY(*(M_Object *)MEM(0));
-  POP_REG(shred, ARRAY_SIZE(array));
   FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  POP_REG(shred, frame->ret_size);
   m_vector_set(ARRAY(ret_obj), frame->index, shred->reg);
   if (++frame->index == ARRAY_LEN(array)) {
     _return(shred, frame);
@@ -470,8 +473,8 @@ static INSTR(compactmap_run_end) {
   const M_Vector self_array = ARRAY(self);
   const M_Object ret_obj    = *(M_Object *)MEM(SZ_INT * 2);
   const M_Vector ret_array  = ARRAY(ret_obj);
-  POP_REG(shred, ARRAY_SIZE(ret_array));
   FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  POP_REG(shred, frame->ret_size);
   const m_uint           size  = m_vector_size(self_array);
   const M_Object         obj   = *(M_Object *)REG(0);
   if (*(m_uint *)obj->data)
@@ -558,26 +561,30 @@ static MFUN(vm_vector_count) {
 }
 
 static INSTR(foldl_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   const M_Object self              = *(M_Object *)MEM(0);
   *(m_uint *)(shred->reg + SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   shred->pc++;
-  const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(ARRAY(self), frame->index,
                &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(foldr_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   const M_Object self              = *(M_Object *)MEM(0);
   *(m_uint *)(shred->reg + SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   shred->pc++;
-  const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   const M_Vector array = ARRAY(self);
   m_vector_get(array, ARRAY_LEN(array) - frame->index - 1,
@@ -591,7 +598,7 @@ static INSTR(fold_run_end) {
   const VM_Code          code    = *(VM_Code *)MEM(SZ_INT);
   const m_uint           sz      = code->stack_depth - ARRAY_SIZE(ARRAY(self));
   const m_uint           base_sz = code->stack_depth - sz;
-  POP_REG(shred, base_sz);
+  POP_REG(shred, base_sz); // ret_sz?
   if (++frame->index == ARRAY_LEN(ARRAY(self))) {
     POP_REG(shred, SZ_INT - base_sz);
     shred->pc   = frame->pc;
