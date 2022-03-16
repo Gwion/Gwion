@@ -137,20 +137,20 @@ ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {
   }
 }
 
-ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug) {
+ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
   const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
   if (dep) {
     m_str *const base = dep();
     m_str *      deps = base;
     while (*deps) {
-      CHECK_BB(plugin_ini(gwion, *deps));
+      CHECK_BB(plugin_ini(gwion, *deps, loc));
       ++deps;
     }
   }
   return GW_OK;
 }
 
-ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
+ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Map map = &gwion->data->plug;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
@@ -168,7 +168,7 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
       plug->imp = 1;
       const bool cdoc = gwion->data->cdoc;
       gwion->data->cdoc = 0;
-      CHECK_BB(dependencies(gwion, plug));
+      CHECK_BB(dependencies(gwion, plug, loc));
       gwion->data->cdoc = cdoc;
       const m_uint scope = env_push_global(gwion->env);
       const m_str  name  = gwion->env->name;
@@ -179,16 +179,18 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname) {
       return ret;
     }
   }
-  gw_err("no such plugin '%s'\n", iname);
   return GW_ERROR;
 }
 
-ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname) {
-  const Context ctx   = gwion->env->context;
+ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
+  const Env env = gwion->env;
+  const Context ctx   = env->context;
   gwion->env->context = NULL;
-  const m_bool ret    = _plugin_ini(gwion, iname);
+  const m_bool ret    = _plugin_ini(gwion, iname, loc);
   gwion->env->context = ctx;
-  return ret;
+  if(ret > 0) return GW_OK;
+  env_err(env, loc, "no such plugin\n");
+  return GW_ERROR;
 }
 
 ANN m_bool driver_ini(const struct Gwion_ *gwion) {

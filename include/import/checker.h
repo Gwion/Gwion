@@ -18,6 +18,7 @@ typedef struct ImportCK { // name_checker ?
   union {
     Union_List     list; // union
     struct Vector_ v;
+    MP_Vector *mpv;
     //    ID_List curr;// enum
   };
   union {
@@ -44,8 +45,7 @@ ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 
 ANN Symbol        str2sym(const Gwion, const m_str, const loc_t);
 ANN ID_List       str2symlist(const Gwion, const m_str, const loc_t);
-ANN Var_Decl      str2var(const Gwion, const m_str, const loc_t);
-ANN Var_Decl_List str2varlist(const Gwion, const m_str, const loc_t);
+ANN m_bool str2var(const Gwion, Var_Decl, const m_str, const loc_t);
 ANN Type_Decl *str2td(const Gwion, const m_str, const loc_t);
 ANN Type       str2type(const Gwion, const m_str, const loc_t);
 
@@ -63,8 +63,7 @@ ANN static inline Type_Decl *type2td(const Gwion gwion, const Type t,
 
 #define gwi_str2sym(gwi, path)     str2sym(gwi->gwion, path, gwi->loc)
 #define gwi_str2symlist(gwi, path) str2symlist(gwi->gwion, path, gwi->loc)
-#define gwi_str2var(gwi, path)     str2var(gwi->gwion, path, gwi->loc)
-#define gwi_str2varlist(gwi, path) str2varlist(gwi->gwion, path, gwi->loc)
+#define gwi_str2var(gwi, decl, path)     str2var(gwi->gwion, decl, path, gwi->loc)
 #define gwi_str2td(gwi, path)      str2td(gwi->gwion, path, gwi->loc)
 #define gwi_str2type(gwi, path)    str2type(gwi->gwion, path, gwi->loc)
 

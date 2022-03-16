@@ -79,11 +79,12 @@ ANN static bool request_fun(const Env env, const Type t,
     const m_bool   ret   = traverse_func_def(env, cpy);
     env_pop(env, scope);
     if (ret > 0) {
-      Section * section = new_section_func_def(env->gwion->mp, cpy);
-      const Ast ast     = new_ast(env->gwion->mp, section, NULL);
-      Ast       last    = t->info->cdef->body;
-      while (last->next) last = last->next;
-      last->next = ast;
+      Section section = (Section) {
+        .section_type = ae_section_func,
+        .d = { .func_def = cpy }
+      };
+      // ensure body?
+      mp_vector_add(env->gwion->mp, &t->info->cdef->body, Section, section);
       return true;
     } else
       free_func_def(env->gwion->mp, cpy);
@@ -105,31 +106,44 @@ ANN static bool check_trait_functions(const Env env, const Type t,
   }
   return error;
 }
-
+/*
 ANN2(1, 2)
 static inline bool trait_nodup(Type t, const Symbol trait, ID_List list) {
   bool nodup = true;
   do {
-    while (list) {
-      if (trait == list->xid) nodup = false;
-      list = list->next;
+    for(uint32_t i = 0; i < list->len; i++) {
+      Symbol xid = *mp_vector_at(list, Symbol, i);
+      if (trait == xid) nodup = false;
     }
   } while ((t = t->info->parent));
   return nodup;
 }
+*/
+ANN bool trait_nodup(const ID_List list, const uint32_t i) {
+  Symbol fst = *mp_vector_at(list, Symbol, i);
+  for(uint32_t j = i; j < list->len; j++) {
+    Symbol snd = *mp_vector_at(list, Symbol, j);
+    if (fst == snd) return false;
+  }
+  return true;
+}
 
 ANN bool check_trait_requests(const Env env, const Type t, const ID_List list) {
-  const Trait trait = nspc_lookup_trait1(env->curr, list->xid);
-  if (!trait_nodup(t, list->xid, list->next)) {
-    gwerr_secondary("duplicated trait", trait->filename, trait->loc);
+  for(uint32_t i = 0; i < list->len; i++) {
+    Symbol xid = *mp_vector_at(list, Symbol, i);
+    const Trait trait = nspc_lookup_trait1(env->curr, xid);
+    if (!trait_nodup(list, i)) {
+      gwerr_secondary("duplicated trait", trait->filename, trait->loc);
+      env_set_error(env);
+      return false;
+    }
+    const bool value_error = trait->requested_values.ptr  ? check_trait_variables(env, t, trait) : false;
+    const bool funcs_error = trait->requested_funcs.ptr ? check_trait_functions(env, t, trait) : false;
+    if (!value_error && !funcs_error) continue;
+    const Value request = (Value)vector_front(&trait->requested_values);
+    gwerr_secondary("from trait", request->from->filename, trait->loc);
     env_set_error(env);
     return false;
   }
-  const bool value_error = trait->requested_values.ptr  ? check_trait_variables(env, t, trait) : false;
-  const bool funcs_error = trait->requested_funcs.ptr ? check_trait_functions(env, t, trait) : false;
-  if (!value_error && !funcs_error) return true;
-  const Value request = (Value)vector_front(&trait->requested_values);
-  gwerr_secondary("from trait", request->from->filename, trait->loc);
-  env_set_error(env);
-  return false;
+  return true;
 }

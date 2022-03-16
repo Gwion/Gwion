@@ -36,7 +36,7 @@
     return NULL;                                                               \
   }
 
-ANN void gwi_body(const Gwi, const Ast);
+ANN void gwi_body(const Gwi, const Section*);
 
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name);
 

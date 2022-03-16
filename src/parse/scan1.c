@@ -101,34 +101,33 @@ static inline bool array_ref2(const Array_Sub array) {
 }
 
 ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
-  Var_Decl_List list     = decl->list;
   const bool    decl_ref = array_ref(decl->td->array);
-  do {
-    const Var_Decl var = list->self;
-    CHECK_BB(isres(env, var->xid, exp_self(decl)->pos));
+  Var_Decl_List list     = decl->list;
+  for(uint32_t i = 0; i < list->len; i++) {
+    const Var_Decl vd = mp_vector_at(list, struct Var_Decl_, i);
+    CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
     Type t = decl->type;
-    CHECK_BB(scan1_defined(env, var));
-    if (var->array) {
-      if (var->array->exp) CHECK_BB(scan1_exp(env, var->array->exp));
-      CHECK_OB((t = array_type(env, decl->type, var->array->depth)));
+    CHECK_BB(scan1_defined(env, vd));
+    if (vd->array) {
+      if (vd->array->exp) CHECK_BB(scan1_exp(env, vd->array->exp));
+      CHECK_OB((t = array_type(env, decl->type, vd->array->depth)));
     }
     const Type base = array_base_simple(t);
-
     if ((!GET_FLAG(decl->td, late) && GET_FLAG(base, abstract)) &&
-        (array_ref2(var->array) ||
+        (array_ref2(vd->array) ||
         array_ref2(decl->td->array)))
-      ERR_B(var->pos, _("arrays of abstract type '%s' must be declared empty"),
+      ERR_B(vd->pos, _("arrays of abstract type '%s' must be declared empty"),
             base->name);
 
-    const Value v = var->value =
-        var->value ?: new_value(env->gwion->mp, t, s_name(var->xid));
-    nspc_add_value(env->curr, var->xid, v);
+    const Value v = vd->value =
+        vd->value ?: new_value(env->gwion->mp, t, s_name(vd->xid));
+    nspc_add_value(env->curr, vd->xid, v);
     if (GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
     v->type = t;
-    if (decl_ref || array_ref(var->array)) SET_FLAG(v, late);
+    if (decl_ref || array_ref(vd->array)) SET_FLAG(v, late);
     v->flag |= decl->td->flag;
     if (!env->scope->depth) {
-      valuefrom(env, v->from, var->pos);
+      valuefrom(env, v->from, vd->pos);
       if (env->class_def) {
         if (env->class_def->info->tuple) tuple_contains(env, v);
         if (!GET_FLAG(decl->td, static)) {
@@ -144,12 +143,13 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
         set_vflag(v, vflag_fglobal); // file global
     } else if (GET_FLAG(decl->td, global))
       SET_FLAG(v, global);
-    else if(v->type != env->gwion->type[et_auto] && (v->type != env->class_def || env->scope->depth)) {
+//    else if(v->type != env->gwion->type[et_auto] && (v->type != env->class_def || env->scope->depth)) {
+    else if(v->type != env->gwion->type[et_auto] && (v->type != env->class_def)) {
       type_addref(v->type);
       set_vflag(v, vflag_inner); // file global
     }
-  } while ((list = list->next));
-  ((Exp_Decl *)decl)->type = decl->list->self->value->type;
+  }
+  ((Exp_Decl *)decl)->type = (mp_vector_at(decl->list, struct Var_Decl_, 0))->value->type;
   return GW_OK;
 }
 
@@ -296,9 +296,12 @@ ANN static inline m_bool scan1_stmt_match_case(const restrict Env env,
 ANN static inline m_bool
     _scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   if (stmt->where) CHECK_BB(scan1_stmt(env, stmt->where));
-  Stmt_List list = stmt->list;
-  do CHECK_BB(scan1_stmt_match_case(env, &list->stmt->d.stmt_match));
-  while ((list = list->next));
+  Stmt_List l = stmt->list;
+  for(m_uint i = 0; i < l->len; i++) {
+    const m_uint offset = i * sizeof(struct Stmt_);
+    const Stmt s = (Stmt)(l->ptr + offset);
+    CHECK_BB(scan1_stmt_match_case(env, &s->d.stmt_match));
+  }
   return GW_OK;
 }
 
@@ -308,10 +311,18 @@ ANN static inline m_bool scan1_stmt_match(const restrict Env env,
   RET_NSPC(_scan1_stmt_match(env, stmt))
 }
 
+ANN static inline m_bool scan1_handler(const restrict Env env,
+                                            const Handler *handler) {
+  RET_NSPC(scan1_stmt(env, handler->stmt));
+}
+
 ANN static inline m_bool scan1_handler_list(const restrict Env env,
-                                            const Handler_List handler) {
-  if (handler->next) CHECK_BB(scan1_handler_list(env, handler->next));
-  RET_NSPC(scan1_stmt(env, handler->stmt))
+                                            const Handler_List handlers) {
+  for(uint32_t i = 0; i < handlers->len; i++) {
+    Handler * handler = mp_vector_at(handlers, Handler, i);
+    CHECK_BB(scan1_handler(env, handler));
+  }
+  return GW_OK;
 }
 
 ANN static inline m_bool scan1_stmt_try(const restrict Env env,
@@ -391,8 +402,9 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   const Nspc nspc = edef->t->nspc;
   const m_uint scope = env_push_type(env, edef->t);
   ID_List list = edef->list;
-  do {
-    const Value v = new_value(env->gwion->mp, edef->t, s_name(list->xid));
+  for(uint32_t i = 0; i < list->len; i++) {
+    Symbol xid = *mp_vector_at(list, Symbol, i);
+    const Value v = new_value(env->gwion->mp, edef->t, s_name(xid));
     valuefrom(env, v->from, edef->pos);
     if (env->class_def) {
       SET_FLAG(v, static);
@@ -402,38 +414,39 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
-    nspc_add_value(nspc, list->xid, v);
+    nspc_add_value(nspc, xid, v);
     vector_add(&edef->values, (vtype)v);
-  } while ((list = list->next));
+  }
   env_pop(env, scope);
   return GW_OK;
 }
 
-ANN static Value arg_value(const Env env, const Arg_List list) {
-  const Var_Decl var = list->var_decl;
-  const Value    v   = new_value(env->gwion->mp, list->type,
-                            var->xid ? s_name(var->xid) : (m_str) __func__);
-  if (var->array)
-    v->type = list->type = array_type(env, list->type, var->array->depth);
-  if (list->td) {
-    v->flag = list->td->flag;
+ANN static Value arg_value(const Env env, Arg *const arg) {
+  const Var_Decl vd = &arg->var_decl;
+  const Value    v   = new_value(env->gwion->mp, arg->type,
+                            vd->xid ? s_name(vd->xid) : (m_str) __func__);
+  if (vd->array)
+    v->type = arg->type = array_type(env, arg->type, vd->array->depth);
+  if (arg->td) {
+    v->flag = arg->td->flag;
     //    SET_FLAG(v, global); ???
   }
   return v;
 }
 
-ANN static m_bool scan1_args(const Env env, Arg_List list) {
-  do {
-    const Var_Decl var = list->var_decl;
-    if (var->xid) CHECK_BB(isres(env, var->xid, var->pos));
-    if (list->td) {
-      SET_FLAG(list->td, late);
-      CHECK_OB((list->type = void_type(env, list->td)));
-      UNSET_FLAG(list->td, late);
+ANN static m_bool scan1_args(const Env env, Arg_List args) {
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    const Var_Decl vd = &arg->var_decl;
+    if (vd->xid) CHECK_BB(isres(env, vd->xid, vd->pos));
+    if (arg->td) {
+      SET_FLAG(arg->td, late);
+      CHECK_OB((arg->type = void_type(env, arg->td)));
+      UNSET_FLAG(arg->td, late);
     }
-    var->value = arg_value(env, list);
-    if (var->xid) nspc_add_value(env->curr, var->xid, var->value);
-  } while ((list = list->next));
+    vd->value = arg_value(env, arg);
+    if (vd->xid) nspc_add_value(env->curr, vd->xid, vd->value);
+  }
   return GW_OK;
 }
 
@@ -445,14 +458,18 @@ ANN static Type scan1_noret(const Env env, const Func_Base *base) {
 }
 
 ANN static m_bool _scan1_fbase_tmpl(const Env env, Func_Base *base) {
-  Specialized_List id = base->tmpl->list;
-  do nspc_add_type(env->curr, id->xid, env->gwion->type[et_auto]);
-  while ((id = id->next));
+  Specialized_List sl = base->tmpl->list;
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    nspc_add_type(env->curr, spec->xid, env->gwion->type[et_auto]);
+  }
   CHECK_OB((base->ret_type = scan1_noret(env, base)));
   if (base->args) {
-    Arg_List arg = base->args;
-    do CHECK_OB(known_type(env, arg->td));
-    while ((arg = arg->next));
+    Arg_List args = base->args;
+    for(uint32_t i = 0; i < args->len; i++) {
+      Arg *arg = mp_vector_at(args, Arg, i);
+      CHECK_OB(known_type(env, arg->td));
+    }
   }
   return GW_OK;
 }
@@ -467,12 +484,15 @@ ANN static m_bool scan1_fbase_tmpl(const Env env, Func_Base *const base) {
 ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   Func_Base *const base = fdef->base;
   if (!fbflag(base, fbflag_op)) return scan1_fbase_tmpl(env, base);
-  Arg_List         arg = fdef->base->args;
-  Specialized_List sl  = fdef->base->tmpl->list;
-  do {
-    if (!arg->td->next && sl && arg->td->xid == sl->xid) { sl = sl->next; }
-  } while ((arg = arg->next));
-  if (sl) ERR_B(base->pos, "too many template types for operator");
+  Arg_List         args = fdef->base->args;
+  Specialized_List sl   = fdef->base->tmpl->list;
+  uint32_t j = 0;
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    Specialized *spec = mp_vector_at(sl, Specialized, j);
+    if (!arg->td->next && spec && arg->td->xid == spec->xid) { j++; }
+  }
+  if (j < sl->len) ERR_B(base->pos, "too many template types for operator");
   const Vector v = &env->curr->info->op_tmpl;
   if (!v->ptr) vector_init(v);
   vector_add(v, (m_uint)cpy_func_def(env->gwion->mp, fdef));
@@ -508,19 +528,17 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
   const Value v = new_value(env->gwion->mp, env->gwion->type[et_int], "@index");
   nspc_add_value_front(env->curr, insert_symbol("@index"), v);
   valuefrom(env, v->from, udef->pos);
-  do {
-    DECL_OB(const Type, t, = known_type(env, l->td));
-    if (nspc_lookup_value0(env->curr, l->xid))
-      ERR_B(l->pos, _("'%s' already declared in union"), s_name(l->xid))
-    const Value v = new_value(env->gwion->mp, t, s_name(l->xid));
-//    if (!tflag(t, tflag_scan1)) // ???
-      tuple_contains(env, v);   // ???
-//    v->from->offset = SZ_INT;
-    v->from->offset = v->type->size;
+  for(uint32_t i = 0; i < l->len; i++) {
+    Union_Member *um = mp_vector_at(l, Union_Member, i);
+    DECL_OB(const Type, t, = known_type(env, um->td));
+    if (nspc_lookup_value0(env->curr, um->vd.xid))
+      ERR_B(um->vd.pos, _("'%s' already declared in union"), s_name(um->vd.xid))
+    const Value v = new_value(env->gwion->mp, t, s_name(um->vd.xid));
+    tuple_contains(env, v);
     valuefrom(env, v->from, udef->pos);
-    nspc_add_value_front(env->curr, l->xid, v);
+    nspc_add_value_front(env->curr, um->vd.xid, v);
     if (t->size > sz) sz = t->size;
-  } while ((l = l->next));
+  }
   udef->type->nspc->offset = SZ_INT + sz;
   return GW_OK;
 }
@@ -565,6 +583,12 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
 }
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
+  for(m_uint i = 0; i < l->len; i++) {
+    const m_uint offset = i * sizeof(struct Stmt_);
+    const Stmt s = (Stmt)(l->ptr + offset);
+    CHECK_BB(scan1_stmt(env, s));
+  }
+/*
   do {
     CHECK_BB(scan1_stmt(env, l->stmt));
     if (l->next) {
@@ -583,6 +607,7 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
       }
     }
   } while ((l = l->next));
+*/
   return GW_OK;
 }
 
@@ -599,7 +624,7 @@ ANN static m_bool class_internal(const Env env, const Func_Base *base) {
 
 ANN static inline m_bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
-  if (base->args && !base->args->next) return GW_OK;
+  if (base->args->len == 1) return GW_OK;
   assert(base->td);
   ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"),
         s_name(base->xid))
@@ -629,9 +654,11 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   return GW_OK;
 }
 
-ANN static m_bool scan1_fdef_args(const Env env, Arg_List list) {
-  do CHECK_BB(shadow_arg(env, list->var_decl->xid, list->var_decl->pos));
-  while ((list = list->next));
+ANN static m_bool scan1_fdef_args(const Env env, Arg_List args) {
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    CHECK_BB(shadow_arg(env, arg->var_decl.xid, arg->var_decl.pos));
+  }
   return GW_OK;
 }
 
@@ -700,7 +727,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 ANN static m_bool scan1_extend_def(const Env env, const Extend_Def xdef) {
   CHECK_BB(ensure_scan1(env, xdef->t));
   CHECK_BB(extend_push(env, xdef->t));
-  const m_bool ret = scan1_ast(env, xdef->body);
+  const m_bool ret = scan1_ast(env, &xdef->body);
   extend_pop(env, xdef->t);
   return ret;
 }
@@ -751,8 +778,12 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN m_bool scan1_ast(const Env env, Ast ast) {
-  do CHECK_BB(scan1_section(env, ast->section));
-  while ((ast = ast->next));
+ANN m_bool scan1_ast(const Env env, Ast *ast) {
+  Ast a = *ast;
+  for(m_uint i = 0; i < a->len; i++) {
+    const m_uint offset = i * sizeof(Section);
+    Section *section = (Section*)(a->ptr + offset);
+    CHECK_BB(scan1_section(env, section));
+  }
   return GW_OK;
 }

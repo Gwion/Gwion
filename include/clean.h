@@ -11,7 +11,6 @@ typedef struct {
 } Clean;
 
 ANN static void clean_array_sub(Clean *a, Array_Sub b);
-ANN static void clean_id_list(Clean *a, ID_List b);
 ANN static void clean_type_list(Clean *a, Type_List b);
 ANN static void clean_tmpl(Clean *a, Tmpl *b);
 ANN static void clean_range(Clean *a, Range *b);

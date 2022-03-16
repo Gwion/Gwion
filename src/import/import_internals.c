@@ -10,13 +10,14 @@
 #include "import.h"
 #include "gwi.h"
 
-void gwi_body(const Gwi gwi, const Ast body) {
+void gwi_body(const Gwi gwi, const Section *section) {
   const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
-  if (!cdef->body)
-    cdef->body = body;
-  else
-    gwi->body->next = body;
-  gwi->body = body;
+  if (!cdef->body) {
+    mp_vector_first(gwi->gwion->mp, a, Section, *section);
+    cdef->body = a;
+  } else {
+    mp_vector_add(gwi->gwion->mp, &cdef->body, Section, (*section));
+  }
 }
 
 ANN void gwi_reset(const Gwi gwi) {
@@ -48,3 +49,4 @@ ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   //  gwion->env->context = ctx;
   return ret;
 }
+

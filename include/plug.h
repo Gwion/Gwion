@@ -8,7 +8,7 @@ ANN void   free_plug(const struct Gwion_ *);
 ANN void * get_module(const struct Gwion_ *, const m_str);
 ANN void   set_module(const struct Gwion_ *gwion, const m_str name,
                       void *const ptr);
-ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname);
+ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t);
 
 #define GWIMPORT_NAME import
 #define GWMODINI_NAME gwmodini

@@ -624,10 +624,9 @@ static OP_CHECK(opck_dict_scan) {
       .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
   const Type  exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
-  CHECK_ON(ts->td->types);
-  DECL_ON(const Type, key, = known_type(env, ts->td->types->td));
-  CHECK_ON(ts->td->types->next);
-  DECL_ON(const Type, val, = known_type(env, ts->td->types->next->td));
+  if(!ts->td->types || ts->td->types->len != 2) return env->gwion->type[et_error];
+  DECL_ON(const Type, key, = known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0)));
+  DECL_ON(const Type, val, = known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 1)));
   if(tflag(key, tflag_ref) || tflag(val, tflag_ref))
     ERR_N(ts->td->pos, "can't use Ref:[] in dicts");
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, env->gwion->type[et_dict]->info->cdef);

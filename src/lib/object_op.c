@@ -30,8 +30,10 @@ static OP_CHECK(opck_object_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
-  if (bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
+  if (bin->rhs->exp_type == ae_exp_decl) {
+    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+    SET_FLAG(vd->value, late);
+  }
   exp_setvar(bin->rhs, 1);
   CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
   bin->lhs->ref = bin->rhs;
@@ -285,7 +287,8 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def cdef = new_class_def(
       env->gwion->mp, c->flag, info->name,
       c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
-      c->body ? cpy_ast(env->gwion->mp, c->body) : NULL, c->pos);
+      NULL, c->pos);
+  if(c->body) cdef->body = cpy_ast(env->gwion->mp, c->body);
   cdef->cflag      = c->cflag;
   cdef->base.tmpl  = mk_tmpl(env, c->base.tmpl, info->td->types);
   const m_bool ret = scan0_class_def(env, cdef);
@@ -325,11 +328,12 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
 
-ANN bool tmpl_global(const Env env, Type_List call) {
-  do {
-    if(!type_global(env, known_type(env, call->td)))
+ANN bool tmpl_global(const Env env, Type_List tl) {
+  for(uint32_t i = 0; i < tl->len; i++) {
+    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+    if(!type_global(env, known_type(env, td)))
       return false;
-  } while((call = call->next));
+  };
   return true;
 }
 

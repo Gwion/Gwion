@@ -53,11 +53,10 @@ ANN Type find_initial(const Env env, const Symbol xid) {
 #undef RETURN_TYPE
 
 ANN Type find_type(const Env env, Type_Decl *path) {
-  DECL_OO(const Type, type, = find_initial(env, path->xid));
+  DECL_OO(Type, type, = find_initial(env, path->xid));
   while ((path = path->next) && type && type->nspc) {
     const Nspc nspc  = type->nspc;
-    const Type child = find_in_parent(type, path->xid);
-    if (!child)
+    if(!(type = find_in_parent(type, path->xid)))
       ERR_O(path->pos, _("...(cannot find class '%s' in nspc '%s')"),
             s_name(path->xid), nspc->name)
   }

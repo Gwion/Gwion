@@ -145,7 +145,7 @@ static OP_CHECK(opck_ref_scan) {
       .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
   const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
-  const Type base = known_type(env, ts->td->types->td);
+  const Type base = known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0));
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
   t->size = SZ_INT;
   SET_FLAG(t, abstract | ae_flag_final);

@@ -35,12 +35,11 @@ ANN2(1, 2) static void import_class_ini(const Env env, const Type t) {
 }
 
 ANN2(1) void add_template(const Env env, const Type t) {
-  Tmpl *tmpl = t->info->cdef->base.tmpl;
-  if (tmpl) {
-    nspc_push_type(env->gwion->mp, env->curr); //
-    Specialized_List il = tmpl->list;
-    do nspc_add_type(env->curr, il->xid, env->gwion->type[et_auto]);
-    while ((il = il->next));
+  nspc_push_type(env->gwion->mp, env->curr); //
+  Specialized_List sl = t->info->cdef->base.tmpl->list;
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    nspc_add_type(env->curr, spec->xid, env->gwion->type[et_auto]);
   }
 }
 
@@ -62,6 +61,7 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
   if (t->info->cdef && t->info->cdef->base.tmpl) {
     gwi->tmpls++;
     add_template(gwi->gwion->env, t);
+    set_tflag(t, tflag_cdef);
   }
   if (gwi->gwion->data->cdoc && t->info->cdef) {
     lint_indent(gwi->lint);

@@ -542,7 +542,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     regpushmemderef:
-      memcpy(reg, *(m_uint **)(mem + IVAL), VAL2);
+      memcpy(reg, *(m_bit **)(mem + IVAL), VAL2);
       reg += VAL2;
       DISPATCH()
     pushnow:
@@ -1019,9 +1019,12 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     autoloop: {
       const M_Vector array = ARRAY(*(M_Object *)(mem + VAL2 - SZ_INT));
-      *(m_bit **)(mem + VAL2 + SZ_INT) =
-          m_vector_addr(array, ++*(m_uint *)(mem + VAL2));
-      BRANCH_DISPATCH(m_vector_size(array) == *(m_uint *)(mem + VAL2));
+      const bool end = ++*(m_uint *)(mem + VAL2) == m_vector_size(array);
+      if(!end) {
+        *(m_bit **)(mem + VAL2 + SZ_INT) =
+            m_vector_addr(array, *(m_uint *)(mem + VAL2));
+      }
+      BRANCH_DISPATCH(end);
     }
     arraytop:
       if (*(m_uint *)(reg - SZ_INT * 2) < *(m_uint *)(reg - SZ_INT))
@@ -1201,8 +1204,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     gackend : {
       m_str str = *(m_str *)(reg - SZ_INT);
-      if (!VAL)
+      if (!VAL) {
         gw_out("%s\n", str);
+fflush(stdout);
+}
       else
         *(M_Object *)(reg - SZ_INT) = new_string(vm->gwion, str);
       if (str) mp_free2(vm->gwion->mp, strlen(str), str);

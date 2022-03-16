@@ -14,6 +14,7 @@
 #include "gwi.h"
 #include "emit.h"
 #include "looper.h"
+
 static DTOR(array_dtor) {
   if (*(void **)(o->data + SZ_INT)) xfree(*(void **)(o->data + SZ_INT));
   struct M_Vector_ *a = ARRAY(o);
@@ -119,15 +120,15 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos, _("array depths do not match."));
   }
   if (bin->rhs->exp_type == ae_exp_decl) {
-    if (bin->rhs->d.exp_decl.list->self->array &&
-        bin->rhs->d.exp_decl.list->self->array->exp)
+    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+    if (vd->array &&
+        vd->array->exp)
       ERR_N(exp_self(bin)->pos,
             _("do not provide array for 'xxx => declaration'."));
+    SET_FLAG(vd->value, late);
   }
   bin->rhs->ref = bin->lhs;
 //  bin->rhs->data = bin->lhs;
-  if(bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -412,8 +413,7 @@ ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
   frame->code            = shred->code;
   frame->offset          = offset;
   frame->index           = 0;
-  *(m_uint *)REG(SZ_INT) =
-      offset; // + sizeof(frame_t);// + shred->code->stack_depth;
+  *(m_uint *)REG(SZ_INT) = offset;
   shred->code = (VM_Code)code;
   shred->pc   = 0;
   shredule(shred->tick->shreduler, shred, 0);
@@ -421,7 +421,7 @@ ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
 
 ANN static inline void _next(const VM_Shred shred, const m_uint offset) {
   shred->pc         = 0;
-  *(m_uint *)REG(0) = offset; // + sizeof(frame_t);
+  *(m_uint *)REG(0) = offset;
   POP_REG(shred, SZ_INT);
 }
 
@@ -641,7 +641,7 @@ static OP_CHECK(opck_array_scan) {
   const Type           t_array = env->gwion->type[et_array];
   const Class_Def      c       = t_array->info->cdef;
   DECL_ON(const Type, base,
-          = ts->t != t_array ? ts->t : known_type(env, ts->td->types->td));
+          = ts->t != t_array ? ts->t : known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0)));
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
@@ -667,8 +667,8 @@ static OP_CHECK(opck_array_scan) {
   cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
   cdef->base.xid        = sym;
   cdef->base.tmpl->base = 1; // could store depth here?
-  cdef->base.tmpl->call = new_type_list(
-      env->gwion->mp, type2td(env->gwion, base, (loc_t) {}), NULL);
+  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  mp_vector_set(cdef->base.tmpl->call, Type_Decl*, 0, type2td(env->gwion, base, (loc_t) {}));
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,

@@ -69,44 +69,41 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
   struct td_checker tdc = {.str = path, .pos = pos};
   return _str2sym(gwion, &tdc, path);
 }
-
+/*
 // only in enum.c
 ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
   DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos));
   return new_id_list(gwion->mp, sym);
 }
-
-ANN Var_Decl str2var(const Gwion gwion, const m_str path, const loc_t pos) {
+*/
+ANN m_bool str2var(const Gwion gwion, Var_Decl vd, const m_str path, const loc_t pos) {
   struct td_checker tdc = {.str = path, .pos = pos};
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, &tdc));
+  DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
   struct AC ac = {.str = tdc.str, .pos = pos};
-  CHECK_BO(ac_run(gwion, &ac));
-  const Array_Sub array = ac.depth ? mk_array(gwion->mp, &ac) : NULL;
-  return new_var_decl(gwion->mp, sym, array, pos);
-}
-
-// only in udef.c
-ANN Var_Decl_List str2varlist(const Gwion gwion, const m_str path,
-                              const loc_t pos) {
-  DECL_OO(const Var_Decl, var, = str2var(gwion, path, pos));
-  return new_var_decl_list(gwion->mp, var, NULL);
+  CHECK_BB(ac_run(gwion, &ac));
+  vd->xid = sym;
+  vd->value = NULL;
+  vd->array = ac.depth ? mk_array(gwion->mp, &ac) : NULL;
+  vd->pos = pos;
+  return GW_OK;
 }
 
 #define SPEC_ERROR (Specialized_List) GW_ERROR
-ANN static Specialized_List _tmpl_list(const Gwion        gwion,
-                                       struct td_checker *tdc) {
+ANN static bool _tmpl_list(const Gwion        gwion,
+                                       struct td_checker *tdc, Specialized_List *sl) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
-  Specialized_List next = NULL;
+  // TODO: handle traits?
+  Specialized spec = {
+    .xid = sym,
+    .pos = tdc->pos
+  };
+  mp_vector_add(gwion->mp, sl, Specialized, spec);
   if (*tdc->str == ',') {
     ++tdc->str;
-    if (!(next = _tmpl_list(gwion, tdc)) || next == SPEC_ERROR)
-      return SPEC_ERROR;
+    if (!_tmpl_list(gwion, tdc, sl))
+      return false;
   }
-  // TODO: handle traits?
-  const Specialized_List list =
-      new_specialized_list(gwion->mp, sym, NULL, tdc->pos);
-  list->next = next;
-  return list;
+  return true;
 }
 
 ANN static Specialized_List __tmpl_list(const Gwion        gwion,
@@ -114,14 +111,12 @@ ANN static Specialized_List __tmpl_list(const Gwion        gwion,
   if (tdc->str[0] != ':') return NULL;
   if (tdc->str[1] != '[') return SPEC_ERROR;
   tdc->str += 2;
-  const Specialized_List list = _tmpl_list(gwion, tdc);
-  if (list == SPEC_ERROR) return SPEC_ERROR;
-  if (tdc->str[0] != ']') { // unfinished template
-    if (list) free_specialized_list(gwion->mp, list);
-    return SPEC_ERROR;
+  Specialized_List sl = new_mp_vector(gwion->mp, sizeof(Specialized), 0);
+  if(!_tmpl_list(gwion, tdc, &sl) || tdc->str[0] != ']') {
+    free_specialized_list(gwion->mp, sl);
   }
   ++tdc->str;
-  return list;
+  return sl;
 }
 
 ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
@@ -135,18 +130,16 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc);
-ANN Type_List         __str2tl(const Gwion gwion, struct td_checker *tdc) {
+ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
   Type_Decl *td = _str2td(gwion, tdc);
-  if (!td) GWION_ERR_O(tdc->pos, "invalid types");
-  Type_List next = NULL;
+  if (!td) GWION_ERR_B(tdc->pos, "invalid types");
+  mp_vector_add(gwion->mp, tl, Type_Decl*, td);
   if (*tdc->str == ',') {
     ++tdc->str;
-    if (!(next = __str2tl(gwion, tdc))) {
-      free_type_decl(gwion->mp, td);
-      return NULL;
-    }
+    if (!str2tl(gwion, tdc, tl))
+      return false;
   }
-  return new_type_list(gwion->mp, td, next);
+  return true;
 }
 
 ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
@@ -157,8 +150,11 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = __str2tl(gwion, tdc);
-  if (!tl) return (Type_List)GW_ERROR;
+  Type_List tl = new_mp_vector(gwion->mp, sizeof(Type_Decl*), 0);
+  if (!str2tl(gwion, tdc, &tl)) {
+    free_type_list(gwion->mp, tl);
+    return (Type_List)GW_ERROR;
+  }
   if (tdc->str[0] != ']') {
     free_type_list(gwion->mp, tl);
     GWION_ERR(tdc->pos, "unfinished template");
@@ -237,11 +233,12 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
 
 ANN static m_bool td_info_run(const Env env, struct td_info *info) {
   Type_List tl = info->tl;
-  do {
-    DECL_OB(const Type, t, = known_type(env, tl->td));
+  for(uint32_t i = 0; i < tl->len; i++) {
+    if (i) text_add(&info->text, ",");
+    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+    DECL_OB(const Type, t, = known_type(env, td));
     td_fullname(env, &info->text, t);
-    if (tl->next) text_add(&info->text, ",");
-  } while ((tl = tl->next));
+  }
   return GW_OK;
 }
 

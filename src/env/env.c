@@ -7,7 +7,7 @@
 #include "traverse.h"
 #include "vm.h"
 #include "parse.h"
-#include "clean.h"
+//#include "clean.h"
 
 ANN static struct Env_Scope_ *new_envscope(MemPool p) {
   struct Env_Scope_ *a = mp_calloc(p, Env_Scope);
@@ -48,7 +48,7 @@ ANN void release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion) {
   const m_uint size = vector_size(&a->known_ctx);
   for (m_uint i = size + 1; --i;) {
     const Context ctx = (Context)vector_at(&a->known_ctx, i - 1);
-    if (!ctx->error && ctx->global) ast_cleaner(gwion, ctx->tree);
+//    if (!ctx->error && ctx->global) ast_cleaner(gwion, ctx->tree);
     context_remref(ctx, gwion);
   }
 }

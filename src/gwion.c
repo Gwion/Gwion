@@ -57,7 +57,7 @@ ANN static void gwion_core(const Gwion gwion) {
   gwion->vm->gwion = gwion->emit->gwion = gwion->env->gwion = gwion;
 }
 
-ANN static m_bool gwion_ok(const Gwion gwion, Arg *arg) {
+ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
   CHECK_BB(plug_ini(gwion, &arg->lib));
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if (gwion_audio(gwion) > 0) {
@@ -81,7 +81,7 @@ ANN static void doc_mode(const Gwion gwion) {
   vector_release(&v);
 }
 
-ANN m_bool gwion_ini(const Gwion gwion, Arg *arg) {
+ANN m_bool gwion_ini(const Gwion gwion, CliArg *arg) {
 #ifdef USE_GETTEXT
   setlocale(LC_ALL, NULL);
   bindtextdomain(GWION_PACKAGE, LOCALE_INFO);

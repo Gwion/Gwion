@@ -33,6 +33,12 @@ ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
     const compilation_pass pass =
         (compilation_pass)map_get(&gwion->data->passes->map, (vtype)sym);
     if (!pass) {
+/*
+if(!strcmp(name, "none")) {
+  vector_clear(v);
+  return GW_OK;
+}
+*/
       gw_err("Failed to set compilation passes, back to default\n");
       pass_default(gwion);
       return GW_ERROR;

@@ -118,12 +118,12 @@ ANN static void _fptr_tmpl_push(const Env env, const Func f) {
   if (!tmpl) return;
   Type_List tl = tmpl->call;
   if (!tl) return;
-  Specialized_List il = tmpl->list;
-  while (il) {
-    const Type t = known_type(env, tl->td);
-    nspc_add_type(env->curr, il->xid, t);
-    il = il->next;
-    tl = tl->next;
+  Specialized_List sl = tmpl->list;
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+    const Type t = known_type(env, td);
+    nspc_add_type(env->curr, spec->xid, t);
   }
 }
 
@@ -148,26 +148,30 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
   return t1 == env->gwion->type[et_auto] ? GW_OK : GW_ERROR;
 }
 
+ANN static inline bool handle_global(Func_Base *a, Func_Base *b) {
+  return (!b->func->value_ref->from->owner_class &&
+      (!GET_FLAG(a, global) && a->func->value_ref->from->owner_class));
+}
+
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
-  Arg_List arg0 = base[0]->args, arg1 = base[1]->args;
-  if(!base[0]->func->value_ref->from->owner_class &&
-      (!GET_FLAG(base[1], global) && base[1]->func->value_ref->from->owner_class))
-    arg0 = arg0->next;
-  if(!base[1]->func->value_ref->from->owner_class &&
-      (!GET_FLAG(base[0], global) && base[0]->func->value_ref->from->owner_class))
-    arg1 = arg1->next;
-  while (arg0) {
-    CHECK_OB(arg1);
+  Arg_List args0 = base[0]->args, args1 = base[1]->args;
+  const bool offset0 = handle_global(base[0], base[1]);
+  const bool offset1 = handle_global(base[1], base[0]);
+  const uint32_t len0 = args0 ? args0->len : 0;
+  const uint32_t len1 = args1 ? args1->len : 0;
+  if(len0 - offset0 != len1 - offset1)
+    return GW_ERROR;
+  for(uint32_t i = 0; i < len1 - offset0; i++) {
+    const Arg *arg0 = (Arg*)(args0->ptr + (i + offset0) * sizeof(Arg));
+    const Arg *arg1 = (Arg*)(args1->ptr + (i + offset1) * sizeof(Arg));
     if (arg0->type && arg1->type)
       CHECK_BB(isa(arg0->type, arg1->type));
-    else {
+    else if(!tmpl_base(base[0]->tmpl) && !tmpl_base(base[1]->tmpl)){
       Type_Decl *td[2] = {arg0->td, arg1->td};
       CHECK_BB(td_match(env, td));
     }
-    arg0 = arg0->next;
-    arg1 = arg1->next;
   }
-  return !arg1 ? GW_OK : GW_ERROR;
+  return GW_OK;
 }
 
 ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
@@ -195,15 +199,21 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
           _("can't resolve operator"))
   const Type l_type = info->lhs->value_ref->from->owner_class;
   const Type r_type = info->rhs->value_ref->from->owner_class;
+  const Arg *l_arg = info->lhs->def->base->args ? mp_vector_at(info->lhs->def->base->args, Arg, 0) : NULL;
+  const Arg *r_arg = info->rhs->def->base->args ? mp_vector_at(info->rhs->def->base->args, Arg, 0) : NULL;
+// added when parsing bases template
+  const Type l_this = l_arg && l_arg->var_decl.value ? l_arg->var_decl.value->type : NULL;
+  const Type r_this = r_arg && r_arg->var_decl.value? r_arg->var_decl.value->type : NULL;
+
   if (!r_type && l_type) {
     if (/*!GET_FLAG(info->lhs, global) && */(!info->rhs->def->base->args ||
-isa(l_type, info->rhs->def->base->args->var_decl->value->type) < 0)
+isa(l_type, r_this) < 0)
 )
     ERR_B(info->pos,
           _("can't assign member function to non member function pointer"))
   } else if (!l_type && r_type) {
     if (!GET_FLAG(info->rhs, global) && (!info->lhs->def->base->args ||
-isa(r_type, info->lhs->def->base->args->var_decl->value->type) < 0)
+isa(r_type, l_this) < 0)
 )
       ERR_B(info->pos,
             _("can't assign non member function to member function pointer"))
@@ -265,24 +275,29 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
                                 const Func_Def def) {
-  // if(l->def->base->func)return GW_OK;
+//   if(l->def->base->func) return GW_OK;
+  Arg_List bases = def->base->args;
+  Arg_List args = l->def->base->args;
+  // arity match
+  if ((bases ? bases->len : 0) != (args ? args->len : 0))
+    ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   const bool is_tmpl =
       safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl);
   if (is_tmpl)
     template_push_types(
         env,
         def->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
-  Arg_List base = def->base->args, arg = l->def->base->args;
-  while (base && arg) {
-    arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
-    base    = base->next;
-    arg     = arg->next;
+  if(bases) {
+    for(uint32_t i = 0; i < bases->len; i++) {
+      Arg *base = (Arg*)(bases->ptr + i * sizeof(Arg));
+      Arg *arg  = (Arg*)(args->ptr + i * sizeof(Arg));
+      arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
+    }
+
   }
   l->def->base->td =
       type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
   if (is_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
-  if (base || arg)
-    ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
   l->def->base->flag = def->base->flag;
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
@@ -307,6 +322,14 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   }
 
   if(ret < 0) {
+    if(args) {
+      for(uint32_t i = 0; i < bases->len; i++) {
+        Arg *arg  = (Arg*)(args->ptr + i * sizeof(Arg));
+        free_value(arg->var_decl.value, env->gwion);
+        arg->var_decl.value = NULL;
+      }
+    }
+/*
     Arg_List args = l->def->base->args;
     while(args) {
       if(!args->var_decl->value) break;
@@ -314,7 +337,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       args->var_decl->value = NULL;
       args = args->next;
     }
-
+*/
   }
   return ret;
 }
@@ -363,7 +386,8 @@ static OP_CHECK(opck_auto_fptr) {
   const Type   t      = fptr_def->type;
   free_fptr_def(env->gwion->mp, fptr_def);
 //  type_remref(t, env->gwion);
-  bin->rhs->d.exp_decl.list->self->value->type = bin->rhs->type =
+    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+  vd->value->type = bin->rhs->type =
       bin->rhs->d.exp_decl.type                = t;
   exp_setvar(bin->rhs, 1);
   return ret > 0 ? t : env->gwion->type[et_error];
@@ -371,8 +395,10 @@ static OP_CHECK(opck_auto_fptr) {
 
 static OP_CHECK(opck_fptr_at) {
   Exp_Binary *bin = (Exp_Binary *)data;
-  if (bin->rhs->exp_type == ae_exp_decl)
-    UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
+  if (bin->rhs->exp_type == ae_exp_decl) {
+    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+    UNSET_FLAG(vd->value, late);
+  }
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use type_decl expression");
   //    UNSET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
@@ -483,30 +509,40 @@ ANN Type check_op_call(const Env env, Exp_Call *const exp) {
 
 static m_bool op_impl_narg(const Env env, const Func_Def fdef,
                            const loc_t loc) {
+/*
   m_uint   narg = 0;
   Arg_List arg  = fdef->base->args;
   while (arg) {
     narg++;
     arg = arg->next;
   }
-  if (narg == 2) return GW_OK;
+*/
+  Arg_List arg  = fdef->base->args;
+  if (!arg && arg->len == 2) return GW_OK;
   op_narg_err(env, fdef, loc);
   return GW_ERROR;
 }
 
 static inline void op_impl_ensure_types(const Env env, const Func func) {
-  Arg_List   arg = func->def->base->args;
   const bool owner_tmpl =
       safe_tflag(func->value_ref->from->owner_class, tflag_tmpl);
-  const bool func_tmpl = fflag(func, fflag_tmpl);
   if (owner_tmpl)
     template_push_types(
         env, func->value_ref->from->owner_class->info->cdef->base.tmpl);
+  const bool func_tmpl = fflag(func, fflag_tmpl);
   if (func_tmpl) template_push_types(env, func->def->base->tmpl);
+
+  Arg_List args = func->def->base->args;
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = (Arg*)(args->ptr + i * sizeof(Arg));
+    if (!arg->type) arg->type = known_type(env, arg->td);
+  }
+/*
   while (arg) {
     if (!arg->type) arg->type = known_type(env, arg->td);
     arg = arg->next;
   }
+*/
   if (!func->def->base->ret_type)
     func->def->base->ret_type = known_type(env, func->def->base->td);
   if (owner_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
@@ -521,16 +557,18 @@ static OP_CHECK(opck_op_impl) {
   op_impl_ensure_types(env, func);
   const Symbol lhs_sym = insert_symbol("@lhs");
   const Symbol rhs_sym = insert_symbol("@rhs");
+  const Arg *arg0 = (Arg*)(func->def->base->args->ptr);
+  const Arg *arg1 = (Arg*)(func->def->base->args->ptr + sizeof(Arg));
   struct Exp_  _lhs    = {
       .d        = {.prim = {.d = {.var = lhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
-      .type     = func->def->base->args->type,
-      .pos      = func->def->base->args->td->pos};
+      .type     = arg0->type,
+      .pos      = arg0->td->pos};
   struct Exp_ _rhs = {
       .d        = {.prim = {.d = {.var = rhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
-      .type     = func->def->base->args->next->type,
-      .pos      = func->def->base->args->next->td->pos};
+      .type     = arg1->type,
+      .pos      = arg1->td->pos};
   struct Exp_ self = {.pos = impl->e->pos};
   //  Exp_Binary _bin = { .lhs=&_lhs, .op=impl->e->d.prim.d.var, .rhs=&_rhs };//
   //  .lhs=func->def->base->args // TODO
@@ -538,8 +576,8 @@ static OP_CHECK(opck_op_impl) {
   self.d.exp_binary.rhs = &_rhs;
   self.d.exp_binary.op  = impl->e->d.prim.d.var;
   struct Op_Import opi  = {.op   = impl->e->d.prim.d.var,
-                          .lhs  = func->def->base->args->type,
-                          .rhs  = func->def->base->args->next->type,
+                          .lhs  = arg0->type,
+                          .rhs  = arg1->type,
                           .data = (uintptr_t)&self.d.exp_binary,
                           .pos  = impl->e->pos};
   vector_add(&env->scope->effects, 0);
@@ -568,9 +606,10 @@ static OP_CHECK(opck_op_impl) {
     }
   }
   const Arg_List args = cpy_arg_list(env->gwion->mp, func->def->base->args);
-  // beware shadowing ?
-  args->var_decl->xid       = lhs_sym;
-  args->next->var_decl->xid = rhs_sym;
+  Arg *larg0 = (Arg*)(args->ptr);
+  Arg *larg1 = (Arg*)(args->ptr + sizeof(Arg));
+  larg0->var_decl.xid       = rhs_sym;
+  larg1->var_decl.xid = rhs_sym;
   Func_Base *base =
       new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
                     impl->e->d.prim.d.var, args, ae_flag_none, impl->e->pos);
@@ -584,15 +623,17 @@ static OP_CHECK(opck_op_impl) {
     m_vector_release(eff);
   }
   const Exp lhs =
-      new_prim_id(env->gwion->mp, args->var_decl->xid, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg0->var_decl.xid, impl->e->pos);
   const Exp rhs =
-      new_prim_id(env->gwion->mp, args->next->var_decl->xid, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
-  const Stmt stmt =
-      new_stmt_exp(env->gwion->mp, ae_stmt_return, bin, impl->e->pos);
-  const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
-  const Stmt      code = new_stmt_code(env->gwion->mp, list, impl->e->pos);
+  mp_vector_first(env->gwion->mp, slist, struct Stmt_,
+    ((struct Stmt_) {
+    .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
+    .pos = impl->e->pos
+  }));
+  const Stmt      code = new_stmt_code(env->gwion->mp, slist, impl->e->pos);
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->xid       = impl->e->d.prim.d.var;
   const m_uint scope   = env_push(env, NULL, opi.nspc);
@@ -618,10 +659,12 @@ static OP_EMIT(opem_op_impl) {
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
-  const Stmt stmt =
-      new_stmt_exp(env->gwion->mp, ae_stmt_exp, unary->exp, unary->exp->pos);
-  const Stmt_List list = new_stmt_list(env->gwion->mp, stmt, NULL);
-  const Stmt      code = new_stmt_code(env->gwion->mp, list, unary->exp->pos);
+  mp_vector_first(env->gwion->mp, slist, struct Stmt_,
+    ((struct Stmt_) {
+      .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = unary->exp, } },
+      .pos = unary->exp->pos
+  }));
+  const Stmt      code = new_stmt_code(env->gwion->mp, slist, unary->exp->pos);
   ((Exp_Unary *)unary)->exp        = NULL;
   ((Exp_Unary *)unary)->code       = code;
   ((Exp_Unary *)unary)->unary_type = unary_code;

@@ -70,10 +70,15 @@ ANEW ANN static Symbol template_id(const Env               env,
   return sym;
 }
 
-ANN static m_bool template_match(Specialized_List base, Type_List call) {
-  while ((call = call->next) && (base = base->next))
-    ;
-  return !call ? GW_OK : GW_ERROR;
+ANN static m_bool template_match(Specialized_List sl, Type_List tl) {
+//  uint32_t i = 0;
+//  while ((call = call->next)) i++;
+//&& (base = base->next))
+//  while ((call = call->next) && (base = base->next))
+//    ;
+//  return i = base->len ? GW_OK : GW_ERROR;
+//  return !call ? GW_OK : GW_ERROR;
+  return tl->len >= sl->len;
 }
 
 ANN static Type _tmpl_exists(const Env env, const Symbol name) {

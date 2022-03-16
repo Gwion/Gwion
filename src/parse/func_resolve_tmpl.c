@@ -35,6 +35,7 @@ tmpl_valid(const Env env, const Func_Def fdef /*, Exp_Call *const exp*/) {
   //  CHECK_BO(template_push_types(env, &tmpl));;
   const bool ret = check_traverse_fdef(env, fdef) > 0;
   //  nspc_pop_type(env->gwion->mp, env->curr);
+  if(!ret)free_func_def(env->gwion->mp, fdef);
   return ret;
 }
 
@@ -105,7 +106,6 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
   fdef->base->tmpl->base = i;
   const Func func        = ensure_tmpl(env, fdef, ra->e);
-  if (!func && !fdef->base->func) free_func_def(env->gwion->mp, fdef);
   if (func && vflag(ra->v, vflag_builtin)) {
     builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
@@ -165,10 +165,13 @@ ANN static Func _find_template_match(const Env env, const Value v,
   DECL_OO(const Func, f, = __find_template_match(env, v, exp));
   Type_List        tl = exp->tmpl->call;
   Specialized_List sl = f->def->base->tmpl->list;
-  while (tl) {
-    DECL_OO(const Type, t, = known_type(env, tl->td));
-    if (miss_traits(t, sl)) return NULL;
-    tl = tl->next;
+  for(uint32_t i = 0; i < tl->len; i++) {
+    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+    DECL_OO(const Type, t, = known_type(env, td));
+    if(t->info->traits) {
+      Specialized * spec = mp_vector_at(sl, Specialized, i);
+      if (miss_traits(t, spec)) return NULL;
+    }
   }
   return f;
 }

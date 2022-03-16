@@ -10,18 +10,14 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
   if (b->exp) clean_exp(a, b->exp);
 }
 
-ANN static void clean_id_list(Clean *a, ID_List b) {
-  if (b->next) clean_id_list(a, b->next);
-}
-
-ANN static void clean_specialized_list(Clean *a, Specialized_List b) {
-  if (b->traits) clean_id_list(a, b->traits);
-  if (b->next) clean_specialized_list(a, b->next);
-}
+#define clean_id_list(a, b) {}
+#define clean_specialized_list(a, b) {}
 
 ANN static void clean_type_list(Clean *a, Type_List b) {
-  clean_type_decl(a, b->td);
-  if (b->next) clean_type_list(a, b->next);
+  for(uint32_t i = 0; i < b->len; i++) {
+    Type_Decl *td = *mp_vector_at(b, Type_Decl*, i);
+    clean_type_decl(a, td);
+  }
 }
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
@@ -37,6 +33,7 @@ ANN static void clean_range(Clean *a, Range *b) {
 ANN static void clean_type_decl(Clean *a, Type_Decl *b) {
   if (b->array) clean_array_sub(a, b->array);
   if (b->types) clean_type_list(a, b->types);
+  if (b->fptr) clean_fptr_def(a, b->fptr);
   if (b->next) clean_type_decl(a, b->next);
 }
 
@@ -55,8 +52,10 @@ ANN static void clean_var_decl(Clean *a, Var_Decl b) {
 }
 
 ANN static void clean_var_decl_list(Clean *a, Var_Decl_List b) {
-  clean_var_decl(a, b->self);
-  if (b->next) clean_var_decl_list(a, b->next);
+  for(uint32_t i = 0; i < b->len; i++) {
+    Var_Decl vd = mp_vector_at(b, struct Var_Decl_, i);
+    clean_var_decl(a, vd);
+  }
 }
 
 ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
@@ -163,7 +162,6 @@ ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
-//  if (b->v) value_remref(b->v, a->gwion);
   if (b->v) mp_free(a->gwion->mp, Value, b->v);
   if (b->idx) clean_idx(a, b->idx);
   --a->scope;
@@ -202,16 +200,22 @@ ANN static void clean_stmt_return(Clean *a, Stmt_Exp b) {
 }
 
 ANN static void clean_case_list(Clean *a, Stmt_List b) {
-  clean_stmt_case(a, &b->stmt->d.stmt_match);
-  if (b->next) clean_case_list(a, b->next);
+  for(m_uint i = 0; i < b->len; i++) {
+    const m_uint offset = i * sizeof(struct Stmt_);
+    const Stmt stmt = (Stmt)(b->ptr + offset);
+    clean_stmt_case(a, &stmt->d.stmt_match);
+  }
 }
 
 ANN static void clean_handler_list(Clean *a, Handler_List b) {
   ++a->scope;
-  clean_stmt(a, b->stmt);
+  for(uint32_t i = 0; i < b->len; i++) {
+    Handler *handler = mp_vector_at(b, Handler, i);
+    clean_stmt(a, handler->stmt);
+  }
   --a->scope;
-  if (b->next) clean_handler_list(a, b->next);
 }
+
 ANN static void clean_stmt_try(Clean *a, Stmt_Try b) {
   ++a->scope;
   clean_stmt(a, b->stmt);
@@ -252,14 +256,19 @@ ANN static void clean_stmt(Clean *a, Stmt b) {
 }
 
 ANN static void clean_arg_list(Clean *a, Arg_List b) {
-  if (b->td) clean_type_decl(a, b->td);
-  clean_var_decl(a, b->var_decl);
-  if (b->next) clean_arg_list(a, b->next);
+  for(uint32_t i = 0; i < b->len; i++) {
+    Arg *arg = (Arg*)(b->ptr + i * sizeof(Arg));
+    if (arg->td) clean_type_decl(a, arg->td);
+    clean_var_decl(a, &arg->var_decl);
+  }
 }
 
 ANN static void clean_stmt_list(Clean *a, Stmt_List b) {
-  clean_stmt(a, b->stmt);
-  if (b->next) clean_stmt_list(a, b->next);
+  for(m_uint i = 0; i < b->len; i++) {
+    const m_uint offset = i * sizeof(struct Stmt_);
+    const Stmt stmt = (Stmt)(b->ptr + offset);
+    clean_stmt(a, stmt);
+  }
 }
 
 ANN static void clean_func_base(Clean *a, Func_Base *b) {
@@ -302,14 +311,17 @@ ANN void class_def_cleaner(const Gwion gwion, Class_Def b) {
   free_class_def(gwion->mp, b);
 }
 
-ANN static void clean_enum_def(Clean *a, Enum_Def b) {
+ANN static void clean_enum_def(Clean *a NUSED, Enum_Def b) {
   clean_id_list(a, b->list);
   if (b->values.ptr) vector_release(&b->values);
 }
 
 ANN static void clean_union_list(Clean *a, Union_List b) {
-  clean_type_decl(a, b->td);
-  if (b->next) clean_union_list(a, b->next);
+  for(uint32_t i = 0; i < b->len; i++) {
+    Union_Member *tgt = mp_vector_at(b, Union_Member, i);
+    clean_type_decl(a, tgt->td);
+    clean_var_decl(a, &tgt->vd);
+  }
 }
 
 ANN static void clean_union_def(Clean *a, Union_Def b) {
@@ -343,8 +355,10 @@ ANN static inline void clean_section(Clean *a, Section *b) {
 }
 
 ANN static void clean_ast(Clean *a, Ast b) {
-  clean_section(a, b->section);
-  if (b->next) clean_ast(a, b->next);
+  for(m_uint i = 0; i < b->len; i++) {
+    const m_uint offset = i * sizeof(Section);
+    clean_section(a, (Section*)(b->ptr + offset));
+  }
 }
 
 ANN void ast_cleaner(const Gwion gwion, Ast b) {
