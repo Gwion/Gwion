@@ -12,7 +12,7 @@ typedef struct Frame_ {
   struct Map_    handlers;
   struct Vector_ defer;
   m_uint         value_count;
-  struct M_Vector_ maybe_stack;
+  MP_Vector *maybe_stack;
   uint16_t       curr_offset;
   uint16_t       try_top;
 } Frame;

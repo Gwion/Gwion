@@ -70,13 +70,13 @@ ANEW static Frame *new_frame(MemPool p) {
   return frame;
 }
 
-ANN static void release_maybe_stack(const M_Vector ms) {
- for (vtype i = m_vector_size(ms) + 1; --i;) {
-    const MaybeVal mv = *(MaybeVal*)(ms->ptr + ARRAY_OFFSET + (i-1) * sizeof(MaybeVal));
-    struct M_Vector_ v = { .ptr = mv.ptr };
+ANN static void release_maybe_stack(const MemPool mp, MP_Vector * ms) {
+  for (vtype i = ms->len + 1; --i;) {
+    const MaybeVal *mv = mp_vector_at(ms, MaybeVal, i);
+    struct M_Vector_ v = { .ptr = mv->ptr };
     m_vector_release(&v);
   }
-  m_vector_release(ms);
+  free_mp_vector(mp, sizeof(MaybeVal), ms);
 }
 
 ANN static void free_frame(MemPool p, Frame *a) {
@@ -85,8 +85,8 @@ ANN static void free_frame(MemPool p, Frame *a) {
     if (vector_at(&a->stack, i - 1))
       mp_free(p, Local, (Local *)vector_at(&a->stack, i - 1));
   vector_release(&a->stack);
-  if(a->maybe_stack.ptr)
-    release_maybe_stack(&a->maybe_stack);
+  if(a->maybe_stack)
+    release_maybe_stack(p, a->maybe_stack);
   vector_release(&a->defer);
   if (a->handlers.ptr) map_release(&a->handlers);
   mp_free(p, Frame, a);
@@ -225,10 +225,10 @@ ANN static m_int _frame_pop(const Emitter emit) {
   return _frame_pop(emit);
 }
 
-ANN static void emit_maybe_release(const Emitter emit, const M_Vector ms) {
-  for(m_uint i = 0; i < m_vector_size(ms); i++) {
-    const MaybeVal mv = *(MaybeVal*)(ms->ptr + ARRAY_OFFSET + i * sizeof(MaybeVal));
-    struct M_Vector_ vals = { .ptr = mv.ptr };
+ANN static void emit_maybe_release(const Emitter emit, MP_Vector *const ms) {
+  for(m_uint i = 0; i < ms->len; i++) {
+    const MaybeVal *mv = mp_vector_at(ms, MaybeVal, i);
+    struct M_Vector_ vals = { .ptr = mv->ptr };
     for(m_uint j = 0; j < m_vector_size(&vals); j++) {
       const VMValue val = *(VMValue*)(vals.ptr + ARRAY_OFFSET + j * sizeof(VMValue));
       if(!tflag(val.t, tflag_struct)) {
@@ -241,8 +241,8 @@ ANN static void emit_maybe_release(const Emitter emit, const M_Vector ms) {
 
 ANN static m_int frame_pop(const Emitter emit) {
   emit_defers(emit);
-  if(emit->code->frame->maybe_stack.ptr)
-    emit_maybe_release(emit, &emit->code->frame->maybe_stack);
+  if(emit->code->frame->maybe_stack)
+    emit_maybe_release(emit, emit->code->frame->maybe_stack);
   return _frame_pop(emit);
 }
 
@@ -1982,13 +1982,13 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
 }
 #define emit_flow(emit, b) _flow(emit, b, NULL, true)
 
-static void emit_maybe_stack(const Instr instr, const M_Vector stack, const MaybeVal *mv) {
+static void emit_maybe_stack(const Emitter emit, const Instr instr, const MaybeVal *mv) {
   instr->opcode = eReg2Mem;
   instr->m_val = -SZ_INT;
   instr->m_val2 = mv->reg;
-  if(!stack->ptr)
-    m_vector_init(stack, sizeof(MaybeVal), 0);
-  m_vector_add(stack, mv);
+  if(!emit->code->frame->maybe_stack)
+    emit->code->frame->maybe_stack = new_mp_vector(emit->gwion->mp, sizeof(MaybeVal), 0);
+  mp_vector_add(emit->gwion->mp, &emit->code->frame->maybe_stack, MaybeVal, *mv);
 }
 
 ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
@@ -2043,7 +2043,7 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
       .reg = reg,
       .limit = nval_if - nval,
     };
-    emit_maybe_stack(instr, &emit->code->frame->maybe_stack, &mv);
+    emit_maybe_stack(emit, instr, &mv);
   }
   op2->m_val       = emit_code_size(emit);
   return ret;
