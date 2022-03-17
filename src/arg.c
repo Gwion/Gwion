@@ -234,7 +234,6 @@ ANN static Vector get_config(const char *name) {
   CHECK_OO(f);
   const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
   vector_init(v);
-  vector_add(v, (vtype)name);
   while (getline(&line, &len, f) != -1) {
     if (line[0] != '#') split_line(line, v);
   }
