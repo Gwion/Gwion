@@ -149,7 +149,7 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
       set_vflag(v, vflag_inner); // file global
     }
   }
-  ((Exp_Decl *)decl)->type = (mp_vector_at(decl->list, struct Var_Decl_, 0))->value->type;
+  ((Exp_Decl *)decl)->type = mp_vector_at(decl->list, struct Var_Decl_, 0)->value->type;
   return GW_OK;
 }
 
@@ -298,8 +298,7 @@ ANN static inline m_bool
   if (stmt->where) CHECK_BB(scan1_stmt(env, stmt->where));
   Stmt_List l = stmt->list;
   for(m_uint i = 0; i < l->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt s = (Stmt)(l->ptr + offset);
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt_match_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -584,8 +583,7 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt s = (Stmt)(l->ptr + offset);
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt(env, s));
   }
 /*
@@ -781,8 +779,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   for(m_uint i = 0; i < a->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-    Section *section = (Section*)(a->ptr + offset);
+    Section *section = mp_vector_at(a, Section, i);
     CHECK_BB(scan1_section(env, section));
   }
   return GW_OK;

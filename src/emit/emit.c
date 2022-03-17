@@ -1661,7 +1661,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg *arg) {
 ANN static m_bool me_arg(MemoizeEmitter *me) {
   Arg_List args = me->fdef->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = (Arg*)(args->ptr + i * sizeof(Arg));
+    Arg *arg = mp_vector_at(args, Arg, i);
     const m_uint sz = arg->type->size;
     (void)me_push(me, sz);
     const Instr instr = me_push(me, sz);
@@ -2139,7 +2139,7 @@ ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
         (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) > 0 : 1) &&
         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) &&
         exp_getuse(e) && !exp_getvar(e) &&
-        GET_FLAG((mp_vector_at(e->d.exp_decl.list, struct Var_Decl_, 0))->value, late)) {
+        GET_FLAG(mp_vector_at(e->d.exp_decl.list, struct Var_Decl_, 0)->value, late)) {
 //        GET_FLAG(e->d.exp_decl.list->self->value, late)) {
       //         e->exp_type == ae_exp_decl && !exp_getvar(e)) {
 //      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
@@ -2781,8 +2781,7 @@ ANN static inline void match_unvec(struct Match_ *const match,
 
 ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list) {
   for(m_uint i = 0; i < list->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt stmt = (Stmt)(list->ptr + offset);
+    const Stmt stmt = mp_vector_at(list, struct Stmt_, i);
     CHECK_BB(emit_stmt_match_case(emit, &stmt->d.stmt_match));
   }
   return GW_OK;
@@ -2845,8 +2844,7 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt,
 
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt stmt = (Stmt)(l->ptr + offset);
+    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(emit_stmt(emit, stmt, 1));
   }
   return GW_OK;
@@ -2867,7 +2865,7 @@ ANN static inline void emit_func_def_init(const Emitter emit, const Func func) {
 
 ANN static void emit_func_def_args(const Emitter emit, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = (Arg*)(args->ptr + i * sizeof(Arg));
+    Arg *arg = mp_vector_at(args, Arg, i);
     const Type type = arg->var_decl.value->type;
     emit->code->stack_depth += type->size;
     arg->var_decl.value->from->offset = emit_localn(emit, type);
@@ -3063,8 +3061,8 @@ HANDLE_SECTION_FUNC(emit, m_bool, Emitter)
 
 ANN static inline m_bool emit_ast_inner(const Emitter emit, Ast ast) {
   for(m_uint i = 0; i < ast->len; i++) {
-    const m_uint offset = i * sizeof(struct Section_);
-    CHECK_BB(emit_section(emit, (Section*)(ast->ptr + offset)));
+    Section * section = mp_vector_at(ast, Section, i);
+    CHECK_BB(emit_section(emit, section));
   }
   return emit_defers(emit);
 }

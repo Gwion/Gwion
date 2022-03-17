@@ -201,8 +201,7 @@ ANN static void clean_stmt_return(Clean *a, Stmt_Exp b) {
 
 ANN static void clean_case_list(Clean *a, Stmt_List b) {
   for(m_uint i = 0; i < b->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt stmt = (Stmt)(b->ptr + offset);
+    const Stmt stmt = mp_vector_at(b, struct Stmt_, i);
     clean_stmt_case(a, &stmt->d.stmt_match);
   }
 }
@@ -257,7 +256,7 @@ ANN static void clean_stmt(Clean *a, Stmt b) {
 
 ANN static void clean_arg_list(Clean *a, Arg_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    Arg *arg = (Arg*)(b->ptr + i * sizeof(Arg));
+    Arg *arg = mp_vector_at(b, Arg, i);
     if (arg->td) clean_type_decl(a, arg->td);
     clean_var_decl(a, &arg->var_decl);
   }
@@ -265,8 +264,7 @@ ANN static void clean_arg_list(Clean *a, Arg_List b) {
 
 ANN static void clean_stmt_list(Clean *a, Stmt_List b) {
   for(m_uint i = 0; i < b->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt stmt = (Stmt)(b->ptr + offset);
+    const Stmt stmt = mp_vector_at(b, struct Stmt_, i);
     clean_stmt(a, stmt);
   }
 }
@@ -356,8 +354,8 @@ ANN static inline void clean_section(Clean *a, Section *b) {
 
 ANN static void clean_ast(Clean *a, Ast b) {
   for(m_uint i = 0; i < b->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-    clean_section(a, (Section*)(b->ptr + offset));
+    Section *section = mp_vector_at(b, Section, i);
+    clean_section(a, section);
   }
 }
 

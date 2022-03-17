@@ -340,7 +340,7 @@ ANN bool tmpl_global(const Env env, Type_List tl) {
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
       .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};
-  const Type exists = tmpl_exists(env, &info);
+  const Type exists = t->info->cdef->base.tmpl->call ? t : tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es    = {.env   = env,
                       .data  = env,

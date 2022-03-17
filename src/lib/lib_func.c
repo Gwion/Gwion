@@ -289,8 +289,8 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
         def->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
   if(bases) {
     for(uint32_t i = 0; i < bases->len; i++) {
-      Arg *base = (Arg*)(bases->ptr + i * sizeof(Arg));
-      Arg *arg  = (Arg*)(args->ptr + i * sizeof(Arg));
+      Arg *base = mp_vector_at(bases, Arg, i);
+      Arg *arg  = mp_vector_at(args, Arg, i);
       arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
     }
 
@@ -324,7 +324,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   if(ret < 0) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
-        Arg *arg  = (Arg*)(args->ptr + i * sizeof(Arg));
+      Arg *arg  = mp_vector_at(args, Arg, i);
         free_value(arg->var_decl.value, env->gwion);
         arg->var_decl.value = NULL;
       }
@@ -534,7 +534,7 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
 
   Arg_List args = func->def->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = (Arg*)(args->ptr + i * sizeof(Arg));
+    Arg *arg = mp_vector_at(args, Arg, i);
     if (!arg->type) arg->type = known_type(env, arg->td);
   }
 /*
@@ -628,7 +628,8 @@ static OP_CHECK(opck_op_impl) {
       new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
-  mp_vector_first(env->gwion->mp, slist, struct Stmt_,
+  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+  mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
     .pos = impl->e->pos
@@ -659,7 +660,8 @@ static OP_EMIT(opem_op_impl) {
 ANN Type check_exp_unary_spork(const Env env, const Stmt code);
 
 ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
-  mp_vector_first(env->gwion->mp, slist, struct Stmt_,
+  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+  mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = unary->exp, } },
       .pos = unary->exp->pos

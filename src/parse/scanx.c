@@ -8,8 +8,7 @@
 
 ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
   for(m_uint i = 0; i < b->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-    Section *section = (Section*)(b->ptr + offset);
+    Section *section = mp_vector_at(b, Section, i);
     CHECK_BB(f(e, section));
   }
   return GW_OK;

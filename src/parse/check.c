@@ -179,7 +179,7 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
   const m_bool ret    = check_decl(env, decl);
   if (global) env_pop(env, scope);
   env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]) > 0);
-  return ret > 0 ? (mp_vector_at(decl->list, struct Var_Decl_, 0))->value->type : NULL;
+  return ret > 0 ? mp_vector_at(decl->list, struct Var_Decl_, 0)->value->type : NULL;
 }
 
 ANN static m_bool check_collection(const Env env, Type type, const Exp e,
@@ -878,7 +878,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);
 //    bin->rhs->type = bin->lhs->type;
-    set_vflag((mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0))->value, vflag_assigned);
+    set_vflag(mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0)->value, vflag_assigned);
   }
   struct Op_Import opi = {.op   = bin->op,
                           .lhs  = bin->lhs->type,
@@ -889,7 +889,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   exp_setuse(bin->rhs, 1);
   const Type ret = op_check(env, &opi);
   if (!ret && is_auto && exp_self(bin)->exp_type == ae_exp_binary)
-    (mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0))->value->type = env->gwion->type[et_auto];
+    mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0)->value->type = env->gwion->type[et_auto];
   return ret;
 }
 
@@ -1047,9 +1047,8 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     set_tflag(tdef->type, tflag_contract);
     struct Var_Decl_ decl = { .xid = insert_symbol("self"), .pos = tdef->when->pos };
     Type_Decl *td = cpy_type_decl(env->gwion->mp, tdef->ext);
-    mp_vector_first(env->gwion->mp, args, Arg, ((Arg) { .td = td, .var_decl = decl }));
-//    const Arg_List args = new_arg_list(
-//        env->gwion->mp, cpy_type_decl(env->gwion->mp, tdef->ext), decl, NULL);
+    Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 1);
+    mp_vector_set(args, Arg, 0, ((Arg) { .td = td, .var_decl = decl }));
     Func_Base *fb = new_func_base(
         env->gwion->mp, type2td(env->gwion, tdef->type, tdef->pos),
         insert_symbol("@implicit"), args, ae_flag_none, tdef->pos);
@@ -1058,16 +1057,12 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
                                    tdef->when->pos);
     const Exp when   = cpy_exp(env->gwion->mp, tdef->when);
     when->next       = helper;
-//    const Stmt stmt =
-//        new_stmt_exp(env->gwion->mp, ae_stmt_exp, when, when->pos);
-//    const Stmt_List body =
-//        new_stmt_list(env->gwion->mp, stmt, NULL); // ret_list);
-//  Stmt_List body;
-  mp_vector_first(env->gwion->mp, body, struct Stmt_,
-   ((struct Stmt_) {
-    .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
-    .pos = when->pos
-  }));
+    Stmt_List body = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+    mp_vector_set(body, struct Stmt_, 0,
+      ((struct Stmt_) {
+      .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
+      .pos = when->pos
+    }));
     const Stmt     code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     if(traverse_func_def(env, fdef) < 0) {
@@ -1408,8 +1403,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Match stmt) {
 
 ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   for(m_uint i = 0; i < stmt->list->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt s = (Stmt)(stmt->list->ptr + offset);
+    const Stmt s = mp_vector_at(stmt->list, struct Stmt_, i);
     CHECK_BB(check_stmt_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -1508,8 +1502,7 @@ ANN m_bool check_stmt(const Env env, const Stmt stmt) {
 
 ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt s = (Stmt)(l->ptr + offset);
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(check_stmt(env, s));
   }
   return GW_OK;
@@ -1738,16 +1731,11 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
 //  while (ast) {
 //    Section *section = ast->section;
   for(m_uint i = 0; i < ast->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-    Section * section = (Section*)(ast->ptr + offset);
+    Section * section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_stmt) {
   Stmt_List l = section->d.stmt_list;
   for(m_uint i = 0; i < l->len; i++) {
-    const m_uint offset = i * sizeof(struct Stmt_);
-    const Stmt stmt = (Stmt)(l->ptr + offset);
-//      Stmt_List list = section->d.stmt_list;
-//      while (list) {
-//        const Stmt stmt = list->stmt;
+    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
         if (stmt->stmt_type == ae_stmt_exp) {
           CHECK_BB(traverse_exp(env, stmt->d.stmt_exp.val));
           Var_Decl_List list = stmt->d.stmt_exp.val->d.exp_decl.list;
@@ -1841,14 +1829,11 @@ ANN static m_bool check_body(const Env env, Section *const section) {
 ANN static bool class_def_has_body(const Env env, Ast ast) {
 //  do {
   for(m_uint i = 0; i < ast->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-//    const Section *section = ast->section;
-    const Section *section = (Section*)(ast->ptr + offset);
+    const Section *section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_stmt) {
       Stmt_List l = section->d.stmt_list;
       for(m_uint i = 0; i < l->len; i++) {
-        const m_uint offset = i * sizeof(struct Stmt_);
-        const Stmt stmt = (Stmt)(l->ptr + offset);
+        const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
         if (stmt->stmt_type == ae_stmt_pp) continue;
         if (stmt->stmt_type == ae_stmt_exp) {
           const Exp exp = stmt->d.stmt_exp.val;
@@ -2012,8 +1997,7 @@ ANN static inline void check_unhandled(const Env env) {
 ANN m_bool check_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   for(m_uint i = 0; i < a->len; i++) {
-    const m_uint offset = i * sizeof(Section);
-    Section * section = (Section*)(a->ptr + offset);
+    Section * section = mp_vector_at(a, Section, i);
     CHECK_BB(check_section(env, section));
   }
   check_unhandled(env);

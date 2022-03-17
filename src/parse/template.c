@@ -133,14 +133,14 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     for(uint32_t i = 0; i < tl->len; i++) {
       Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
       DECL_OO(const Type, t, = known_type(env, td));
-      Specialized *spec = mp_vector_at(sl, Specialized, i);
-      if(spec->traits) {
-        Symbol missing = miss_traits(t, spec);
-        if (missing) {
-          ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
-                s_name(missing));
+        Specialized *spec = mp_vector_at(sl, Specialized, i);
+        if(spec->traits) {
+          Symbol missing = miss_traits(t, spec);
+          if (missing) {
+            ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
+                  s_name(missing));
+          }
         }
-      }
     }
     struct Op_Import opi = {.op   = insert_symbol("@scan"),
                             .lhs  = t,
