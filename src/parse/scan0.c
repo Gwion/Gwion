@@ -284,10 +284,6 @@ ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
   if (GET_FLAG(udef, global)) context_global(env);
   CHECK_BB(scan0_defined(env, udef->xid, udef->pos));
   udef->type   = union_type(env, udef->xid, udef->pos);
-  Union_List l = udef->l;
-  do udef->type->nspc->offset += SZ_INT;
-  while ((l = l->next));
-  udef->type->nspc->offset += SZ_INT;
   SET_ACCESS(udef, udef->type);
   if (udef->tmpl) union_tmpl(env, udef);
   if (global) env_pop(env, 0);
@@ -335,14 +331,15 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
-  do {
-    if (!nspc_lookup_trait1(env->curr, traits->xid)) {
+  for(uint32_t i = 0; i < traits->len; i++) {
+    Symbol xid = *mp_vector_at(traits, Symbol, i);
+    if (!nspc_lookup_trait1(env->curr, xid)) {
       gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
-      did_you_mean_trait(env->curr, s_name(traits->xid));
+      did_you_mean_trait(env->curr, s_name(xid));
       env_set_error(env);
       return GW_ERROR;
     }
-  } while ((traits = traits->next));
+  }
   return GW_OK;
 }
 
@@ -361,77 +358,73 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->nspc->parent = env->curr;
   t->info->cdef   = cdef;
   t->flag |= cdef->flag;
-  //  add_type(env, t->info->value->from->owner, t);
+  //add_type(env, t->info->value->from->owner, t);
   cdef_flag(cdef, t);
   return t;
 }
 
-ANN static m_bool scan0_stmt_list(const Env env, Stmt_List list) {
-  do
-    if (list->stmt->stmt_type == ae_stmt_pp) {
-      if (list->stmt->d.stmt_pp.pp_type == ae_pp_include)
-        env->name = list->stmt->d.stmt_pp.data;
-      else if (list->stmt->d.stmt_pp.pp_type == ae_pp_import)
-        CHECK_BB(plugin_ini(env->gwion, list->stmt->d.stmt_pp.data));
+ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
+  for(m_uint i = 0; i < l->len; i++) {
+    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    if (stmt->stmt_type == ae_stmt_pp) {
+      if (stmt->d.stmt_pp.pp_type == ae_pp_include)
+        env->name = stmt->d.stmt_pp.data;
+      else if (stmt->d.stmt_pp.pp_type == ae_pp_import)
+        CHECK_BB(plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->pos));
     }
-  while ((list = list->next));
+  }
   return GW_OK;
 }
 
-//#define scan0_func_def dummy_func
-
-ANN static m_bool fdef_defaults(const Func_Def fdef) {
-  Arg_List list = fdef->base->args;
-  while (list) {
-    if (list->exp) return true;
-    list = list->next;
+ANN static Exp mk_default_args(const MemPool p, const Arg_List args, const uint32_t max) {
+  Exp exp = NULL, base_exp = NULL;
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    const Exp arg_exp = new_prim_id(p, arg->var_decl.xid, arg->var_decl.pos);
+    if(exp)
+      exp = (exp->next = arg_exp);
+    else
+      base_exp = exp = arg_exp;
   }
-  return false;
+  // now add default args
+  for(uint32_t i = args->len; i < max; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    const Exp arg_exp = cpy_exp(p, arg->exp);
+    if(exp)
+      exp = (exp->next = arg_exp);
+    else
+      base_exp = exp = arg_exp;
+  }
+  return base_exp;
 }
 
-ANN static Exp arglist2exp(MemPool p, Arg_List arg, const Exp default_arg) {
-  Exp exp = new_prim_id(p, arg->var_decl->xid, arg->var_decl->pos);
-  if (arg->next)
-    exp->next = arglist2exp(p, arg->next, default_arg);
-  else
-    exp->next = cpy_exp(p, default_arg);
-  return exp;
-}
-
-ANN2(1,2) static Ast scan0_func_def_default(const MemPool p, const Ast ast,
-                                            const Ast next) {
-  const Func_Def base_fdef = ast->section->d.func_def;
-  Arg_List       base_arg = base_fdef->base->args, former = NULL;
-  while (base_arg) {
-    if (!base_arg->next && base_arg->exp) {
-      if (former) former->next = NULL;
-      // use cpy_func_base?
-      Func_Base *base = new_func_base(
-          p, base_fdef->base->td ? cpy_type_decl(p, base_fdef->base->td) : NULL, base_fdef->base->xid,
-          former ? cpy_arg_list(p, base_fdef->base->args) : NULL,
-          base_fdef->base->flag, base_fdef->base->pos);
-      const Exp efunc =
-          new_prim_id(p, base_fdef->base->xid, base_fdef->base->pos);
-      Exp        arg_exp = former
-                               ? arglist2exp(p, base_fdef->base->args, base_arg->exp)
-                               : cpy_exp(p, base_arg->exp);
-      const Exp  ecall = new_exp_call(p, efunc, arg_exp, base_fdef->base->pos);
-      const Stmt code =
-          new_stmt_exp(p, ae_stmt_return, ecall, base_fdef->base->pos);
-      const Stmt_List slist = new_stmt_list(p, code, NULL);
-      const Stmt      body  = new_stmt_code(p, slist, base_fdef->base->pos);
-      const Func_Def  fdef  = new_func_def(p, base, body);
-      Section *       new_section = new_section_func_def(p, fdef);
-      if (former) former->next = base_arg;
-      const Ast tmp_ast = new_ast(p, new_section, NULL);
-      ast->next         = scan0_func_def_default(p, tmp_ast, next);
-      return ast;
-    }
-    former   = base_arg;
-    base_arg = base_arg->next;
+ANN2(1) static void scan0_func_def_default(const MemPool p, const Section *s,
+                                            Ast *acc) {
+  const Func_Def base_fdef = s->d.func_def;
+  Arg_List       args = base_fdef->base->args;
+  const uint32_t len = args->len;
+  while(args->len--) {
+    Arg *arg = mp_vector_at(args, Arg, args->len);
+    if(!arg->exp) break;
+    Func_Base *base = new_func_base(
+        p, base_fdef->base->td ? cpy_type_decl(p, base_fdef->base->td) : NULL, base_fdef->base->xid,
+        cpy_arg_list(p, args),
+        base_fdef->base->flag, base_fdef->base->pos);
+    const Exp efunc = new_prim_id(p, base->xid, base->pos);
+    const Exp exp_arg = mk_default_args(p, args, len);
+    const Exp ecall = new_exp_call(p, efunc, exp_arg, base->pos);
+    Stmt_List slist = new_mp_vector(p, sizeof(struct Stmt_), 1);
+    mp_vector_set(slist, struct Stmt_, 0,
+      ((struct Stmt_) {
+        .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ecall }},
+        .pos = base_fdef->base->pos
+    }));
+    const Stmt      body  = new_stmt_code(p, slist, base->pos);
+    const Func_Def  fdef  = new_func_def(p, base, body);
+    Section       section = MK_SECTION(func, func_def, fdef);
+    mp_vector_add(p, acc, Section, section);
   }
-  ast->next = next;
-  return ast;
+  args->len = len;
 }
 
 #define scan0_func_def dummy_func
@@ -443,12 +436,13 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
   if (GET_FLAG(t, final)) // TODO: add type initial declaration
     ERR_B(xdef->td->pos, _("can't extend final type"))
   Ast ast = xdef->body;
-  do {
-    if (ast->section->section_type == ae_section_func &&
-        GET_FLAG(ast->section->d.func_def->base, abstract))
-      ERR_B(ast->section->d.func_def->base->pos,
+  for(m_uint i = 0; i < ast->len; i++) {
+    Section * section = mp_vector_at(ast, Section, i);
+    if (section->section_type == ae_section_func &&
+        GET_FLAG(section->d.func_def->base, abstract))
+      ERR_B(section->d.func_def->base->pos,
             _("can't use {/+}abstract{0} functions in {+/}extends{0}"))
-  } while ((ast = ast->next));
+  }
   xdef->t = t;
   return GW_OK;
 }
@@ -460,14 +454,14 @@ ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   trait->filename   = env->name;
   nspc_add_trait(env->curr, pdef->xid, trait);
   Ast ast = pdef->body;
-  while (ast) {
-    Section *section = ast->section;
+  if(!ast) return GW_OK; // ???
+  for(m_uint i = 0; i < ast->len; i++) {
+    Section *section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_func) {
       const Func_Def fdef = section->d.func_def;
       if (!trait->requested_funcs.ptr) vector_init(&trait->requested_funcs);
       vector_add(&trait->requested_funcs, (m_uint)fdef);
     }
-    ast = ast->next;
   }
   return GW_OK;
 }
@@ -525,15 +519,25 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   return ret;
 }
 
-ANN m_bool scan0_ast(const Env env, Ast ast) {
-  Ast next;
-  do {
-    next = ast->next;
-    CHECK_BB(scan0_section(env, ast->section));
-    if (ast->section->section_type != ae_section_func ||
-        !fdef_defaults(ast->section->d.func_def))
+ANN m_bool scan0_ast(const Env env, Ast *ast) {
+  Ast a = *ast;
+  Ast acc = new_mp_vector(env->gwion->mp, sizeof(Section), 0);
+  for(m_uint i = 0; i < a->len; i++) {
+    Section * section = mp_vector_at(a, Section, i);
+    CHECK_BB(scan0_section(env, section));
+
+    if (section->section_type != ae_section_func ||
+        !fbflag(section->d.func_def->base, fbflag_default))
       continue;
-    (void)scan0_func_def_default(env->gwion->mp, ast, ast->next);
-  } while ((ast = next));
+    scan0_func_def_default(env->gwion->mp, section, &acc);
+
+  }
+
+  for(m_uint i = 0; i < acc->len; i++) {
+    Section * section = mp_vector_at(acc, Section, i);
+    mp_vector_add(env->gwion->mp, ast, Section, *section);
+  }
+  free_mp_vector(env->gwion->mp, sizeof(Section), acc);
+
   return GW_OK;
 }

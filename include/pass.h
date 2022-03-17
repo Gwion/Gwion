@@ -2,7 +2,7 @@
 #define __GWIONPASS
 
 typedef union __attribute__((__transparent_union__)) {
-  struct Ast_ *ast;
+  Ast    *ast;
   m_bool *     ret;
 } PassArg;
 

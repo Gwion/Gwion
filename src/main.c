@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 #else
 
 int main(int argc, char **argv) {
-  Arg arg = {.arg = {.argc = argc, .argv = argv}, .loop = false};
+  CliArg arg = {.arg = {.argc = argc, .argv = argv}, .loop = false};
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   struct Gwion_ gwion = {};

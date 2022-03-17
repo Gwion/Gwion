@@ -7,8 +7,10 @@
 #include "parse.h"
 
 ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
-  do CHECK_BB(f(e, b->section));
-  while ((b = b->next));
+  for(m_uint i = 0; i < b->len; i++) {
+    Section *section = mp_vector_at(b, Section, i);
+    CHECK_BB(f(e, section));
+  }
   return GW_OK;
 }
 

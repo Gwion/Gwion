@@ -21,8 +21,6 @@ static GACK(gack_class) {
 
 static GACK(gack_function) { INTERP_PRINTF("%s", t->name) }
 
-static GACK(gack_gack) { INTERP_PRINTF("%s", *(m_str *)VALUE) }
-
 static GACK(gack_fptr) {
   const VM_Code code = *(VM_Code *)VALUE;
   if (code)
@@ -40,32 +38,9 @@ static GACK(gack_char) { INTERP_PRINTF("%c", *(char *)VALUE); }
 static GACK(gack_float) { INTERP_PRINTF("%.4f", *(m_float *)VALUE); }
 
 static GACK(gack_compound) { INTERP_PRINTF("%p", *(void **)VALUE); }
-#define mk_class_instr(op, arg0, arg1, ...)                                    \
-  static INSTR(instr_class_##op) {                                             \
-    POP_REG(shred, SZ_INT);                                                    \
-    const Type l                     = *(Type *)(shred->reg - SZ_INT);         \
-    const Type r                     = *(Type *)(shred->reg);                  \
-    *(m_uint *)(shred->reg - SZ_INT) = isa(arg0, arg1) > 0 __VA_ARGS__;        \
-  }
-mk_class_instr(ge, l, r) mk_class_instr(gt, l, r, &&l != r)
-    mk_class_instr(le, r, l) mk_class_instr(lt, r, l, &&l != r)
 
-        OP_CHECK(opck_object_dot);
+OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
-
-static OP_CHECK(opck_basic_ctor) {
-  const Exp_Call *call = (Exp_Call *)data;
-  ERR_N(exp_self(call)->pos, _("can't call a non-callable value"));
-}
-
-static OP_CHECK(opck_class_call) {
-  const Exp_Binary *bin = (Exp_Binary *)data;
-  Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
-  Exp         e    = exp_self(bin);
-  e->exp_type      = ae_exp_call;
-  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
-  return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
-}
 
 static ID_CHECK(idck_predicate) {
   set_fflag(env->func, fflag_return);
@@ -97,11 +72,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_void = gwi_mk_type(gwi, "void", 0, NULL);
   GWI_BB(gwi_gack(gwi, t_void, gack_void))
   GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
-
-  gwidoc(gwi, "a type for *pretty print*.");
-  const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_gack, gack_gack))
-  GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack))
 
   gwidoc(gwi, "integer type.");
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
@@ -198,40 +168,23 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_modules(gwi))
   GWI_BB(import_ref(gwi))
 
-  gwidoc(gwi, "Operators class types.");
-  GWI_BB(gwi_oper_ini(gwi, "Class", "Class", "bool"))
-  GWI_BB(gwi_oper_end(gwi, "==", int_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
-  GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
-  GWI_BB(gwi_oper_end(gwi, ">", instr_class_gt))
-  GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
-  GWI_BB(gwi_oper_end(gwi, "<", instr_class_lt))
-
-  gwidoc(gwi, "internal constructor operator.");
-  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
-  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
-
   gwidoc(gwi, "allow member access.");
   GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 
+  GWI_BB(import_class(gwi))
+
   gwidoc(gwi, "allow static access.");
   GWI_BB(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
-
-  gwidoc(gwi, "Allow binary call to constructors.");
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Class", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_class_call))
-  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
-
   GWI_BB(import_deep_equal(gwi));
 
   GWI_BB(import_dict(gwi));
+  GWI_BB(import_gack(gwi));
 
   // seemed need at a point to ease liking
   gwi_enum_ini(gwi, "@hidden_enum");

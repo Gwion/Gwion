@@ -14,6 +14,7 @@
 #include "gwi.h"
 #include "emit.h"
 #include "looper.h"
+
 static DTOR(array_dtor) {
   if (*(void **)(o->data + SZ_INT)) xfree(*(void **)(o->data + SZ_INT));
   struct M_Vector_ *a = ARRAY(o);
@@ -119,15 +120,15 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos, _("array depths do not match."));
   }
   if (bin->rhs->exp_type == ae_exp_decl) {
-    if (bin->rhs->d.exp_decl.list->self->array &&
-        bin->rhs->d.exp_decl.list->self->array->exp)
+    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+    if (vd->array &&
+        vd->array->exp)
       ERR_N(exp_self(bin)->pos,
             _("do not provide array for 'xxx => declaration'."));
+    SET_FLAG(vd->value, late);
   }
   bin->rhs->ref = bin->lhs;
 //  bin->rhs->data = bin->lhs;
-  if(bin->rhs->exp_type == ae_exp_decl)
-    SET_FLAG(bin->rhs->d.exp_decl.list->self->value, late);
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
@@ -402,6 +403,7 @@ typedef struct FunctionalFrame {
   uint16_t pc;
   uint16_t offset;
   uint16_t index;
+  uint16_t ret_size;
 } FunctionalFrame;
 
 ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
@@ -411,8 +413,7 @@ ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
   frame->code            = shred->code;
   frame->offset          = offset;
   frame->index           = 0;
-  *(m_uint *)REG(SZ_INT) =
-      offset; // + sizeof(frame_t);// + shred->code->stack_depth;
+  *(m_uint *)REG(SZ_INT) = offset;
   shred->code = (VM_Code)code;
   shred->pc   = 0;
   shredule(shred->tick->shreduler, shred, 0);
@@ -420,7 +421,7 @@ ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
 
 ANN static inline void _next(const VM_Shred shred, const m_uint offset) {
   shred->pc         = 0;
-  *(m_uint *)REG(0) = offset; // + sizeof(frame_t);
+  *(m_uint *)REG(0) = offset;
   POP_REG(shred, SZ_INT);
 }
 
@@ -438,12 +439,14 @@ ANN static inline void _finish(const VM_Shred         shred,
 
 #define MAP_CODE_OFFSET (sizeof(FunctionalFrame) + sizeof(struct frame_t))
 static INSTR(map_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   PUSH_REG(shred, SZ_INT);
   const M_Object   self  = *(M_Object *)MEM(0);
   const M_Vector   array = ARRAY(self);
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->pc++;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(array, frame->index, &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->offset + frame->code->stack_depth));
@@ -453,8 +456,8 @@ static INSTR(map_run_end) {
   shred->mem -= MAP_CODE_OFFSET + SZ_INT;
   const M_Object ret_obj = *(M_Object *)MEM(SZ_INT * 2);
   const M_Vector array   = ARRAY(*(M_Object *)MEM(0));
-  POP_REG(shred, ARRAY_SIZE(array));
   FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  POP_REG(shred, frame->ret_size);
   m_vector_set(ARRAY(ret_obj), frame->index, shred->reg);
   if (++frame->index == ARRAY_LEN(array)) {
     _return(shred, frame);
@@ -470,8 +473,8 @@ static INSTR(compactmap_run_end) {
   const M_Vector self_array = ARRAY(self);
   const M_Object ret_obj    = *(M_Object *)MEM(SZ_INT * 2);
   const M_Vector ret_array  = ARRAY(ret_obj);
-  POP_REG(shred, ARRAY_SIZE(ret_array));
   FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  POP_REG(shred, frame->ret_size);
   const m_uint           size  = m_vector_size(self_array);
   const M_Object         obj   = *(M_Object *)REG(0);
   if (*(m_uint *)obj->data)
@@ -558,26 +561,30 @@ static MFUN(vm_vector_count) {
 }
 
 static INSTR(foldl_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   const M_Object self              = *(M_Object *)MEM(0);
   *(m_uint *)(shred->reg + SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   shred->pc++;
-  const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   m_vector_get(ARRAY(self), frame->index,
                &*(m_bit **)(shred->mem + SZ_INT * 2 + frame->code->stack_depth));
 }
 
 static INSTR(foldr_run_ini) {
+  const VM_Code code = *(VM_Code*)REG(0);
   const m_uint offset = *(m_uint *)REG(SZ_INT);
   if (offset) PUSH_MEM(shred, offset);
   const M_Object self              = *(M_Object *)MEM(0);
   *(m_uint *)(shred->reg + SZ_INT) = 0;
   PUSH_REG(shred, SZ_INT);
   shred->pc++;
-  const FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  FunctionalFrame *const frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  frame->ret_size = code->ret_type->size;
   shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
   const M_Vector array = ARRAY(self);
   m_vector_get(array, ARRAY_LEN(array) - frame->index - 1,
@@ -591,7 +598,7 @@ static INSTR(fold_run_end) {
   const VM_Code          code    = *(VM_Code *)MEM(SZ_INT);
   const m_uint           sz      = code->stack_depth - ARRAY_SIZE(ARRAY(self));
   const m_uint           base_sz = code->stack_depth - sz;
-  POP_REG(shred, base_sz);
+  POP_REG(shred, base_sz); // ret_sz?
   if (++frame->index == ARRAY_LEN(ARRAY(self))) {
     POP_REG(shred, SZ_INT - base_sz);
     shred->pc   = frame->pc;
@@ -634,7 +641,7 @@ static OP_CHECK(opck_array_scan) {
   const Type           t_array = env->gwion->type[et_array];
   const Class_Def      c       = t_array->info->cdef;
   DECL_ON(const Type, base,
-          = ts->t != t_array ? ts->t : known_type(env, ts->td->types->td));
+          = ts->t != t_array ? ts->t : known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0)));
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
@@ -660,8 +667,8 @@ static OP_CHECK(opck_array_scan) {
   cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
   cdef->base.xid        = sym;
   cdef->base.tmpl->base = 1; // could store depth here?
-  cdef->base.tmpl->call = new_type_list(
-      env->gwion->mp, type2td(env->gwion, base, (loc_t) {}), NULL);
+  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  mp_vector_set(cdef->base.tmpl->call, Type_Decl*, 0, type2td(env->gwion, base, (loc_t) {}));
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,

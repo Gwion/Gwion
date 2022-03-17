@@ -14,11 +14,13 @@ ANN void func_operator(const Func_Def fdef, struct Op_Import *opi) {
       fbflag(fdef->base, fbflag_unary) +
       (!strcmp(str, "@conditional") || !strcmp(str, "@unconditional"));
   const Arg_List args = fdef->base->args;
-  opi->lhs = is_unary ? NULL : args ? args->var_decl->value->type : NULL;
+  Arg *arg0 = args ? mp_vector_at(args, Arg, 0) : NULL;
+  Arg *arg1 = (args && args->len >= 2) ? mp_vector_at(args, Arg, 1) : NULL;
+  opi->lhs = is_unary ? NULL : args ? arg0->var_decl.value->type : NULL;
   if (strcmp(str, "@implicit"))
-    opi->rhs = args ? is_unary ? args->var_decl->value->type
-                               : (args->next ? args->next->var_decl->value->type
-                                             : NULL)
+//    opi->rhs = args ? is_unary ? arg0->var_decl->value->type
+    opi->rhs = args ? is_unary ? (arg0 ? arg0->var_decl.value->type : NULL)
+                               : (arg1 ? arg1->var_decl.value->type : NULL)
                     : NULL;
   else
     opi->rhs = fdef->base->ret_type;

@@ -3,14 +3,16 @@
 #include "gwion_env.h"
 #include "vm.h"
 #include "gwion.h"
+#include "clean.h"
 
 ANN void free_context(const Context a, Gwion gwion) {
   nspc_remref(a->nspc, gwion);
   free_mstr(gwion->mp, a->name);
+  ast_cleaner(gwion, a->tree);
   mp_free(gwion->mp, Context, a);
 }
 
-ANN2(2) Context new_context(MemPool p, const Ast ast, const m_str str) {
+ANN2(1,3) Context new_context(MemPool p, const Ast ast, const m_str str) {
   const Context context = mp_calloc(p, Context);
   context->name         = mstrdup(p, str);
   context->nspc         = new_nspc(p, context->name);

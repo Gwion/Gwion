@@ -205,10 +205,10 @@ static DTOR(usrugen_dtor) {
 static OP_CHECK(opck_usrugen) {
   Exp_Binary *   bin = (Exp_Binary *)data;
   const Arg_List arg = bin->lhs->type->info->func->def->base->args;
-  if (!arg || arg->next)
+  if (!arg || arg->len > 1)
     ERR_N(exp_self(bin)->pos,
           _("Tick function take one and only one argument"));
-  if (isa(arg->type, env->gwion->type[et_float]) < 0)
+  if (isa(((Arg*)(arg->ptr))->type, env->gwion->type[et_float]) < 0)
     ERR_N(exp_self(bin)->pos,
           _("Tick functions argument must be of type float"));
   if (isa(bin->lhs->type->info->func->def->base->ret_type,

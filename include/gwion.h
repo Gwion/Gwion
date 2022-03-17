@@ -2,6 +2,7 @@
 #define __GWION
 
 // typedef struct Gwion_* Gwion;
+#include "arg.h"
 #include "plug.h"
 #include "driver.h"
 #include "gwiondata.h"
@@ -18,7 +19,7 @@ struct Gwion_ {
   struct PPArg_ *    ppa;
 };
 
-ANN m_bool gwion_ini(const Gwion, struct Arg_ *);
+ANN m_bool gwion_ini(const Gwion, CliArg*);
 ANN VM * gwion_cpy(const VM *);
 ANN void gwion_run(const Gwion gwion);
 ANN void gwion_end(const Gwion gwion);

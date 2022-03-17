@@ -17,16 +17,21 @@
 // move me
 ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
   DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, type));
-  const Var_Decl_List vlist = gwi_str2varlist(gwi, name);
-  if (vlist) return new_exp_decl(gwi->gwion->mp, td, vlist, gwi->loc);
-  free_type_decl(gwi->gwion->mp, td);
-  return NULL;
+  struct Var_Decl_ vd;
+  if(gwi_str2var(gwi, &vd, name) < 0) {
+    free_type_decl(gwi->gwion->mp, td);
+    return NULL;
+  }
+  const Var_Decl_List list = new_mp_vector(gwi->gwion->mp, sizeof(struct Var_Decl_), 1);
+  mp_vector_set(list, struct Var_Decl_, 0, vd);
+  return new_exp_decl(gwi->gwion->mp, td, list, gwi->loc);
 }
 
 ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
   CHECK_BB(check_typename_def(gwi, gwi->ck));
+  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, sizeof(Union_Member), 0);
   return GW_OK;
 }
 
@@ -35,9 +40,11 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type,
   CHECK_BB(ck_ok(gwi, ck_udef));
   DECL_OB(Type_Decl *, td, = str2td(gwi->gwion, type, gwi->loc));
   DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc));
-  const Union_List l = new_union_list(gwi->gwion->mp, td, xid, gwi->loc);
-  l->next            = gwi->ck->list;
-  gwi->ck->list      = l;
+  Union_Member um = { .td = td, .vd = { .xid = xid, .pos = gwi->loc } };
+  mp_vector_add(gwi->gwion->mp, &gwi->ck->list, Union_Member, um);
+//  const Union_List l = new_union_list(gwi->gwion->mp, td, xid, gwi->loc);
+//  l->next            = gwi->ck->list;
+//  gwi->ck->list      = l;
   return GW_OK;
 }
 
@@ -61,8 +68,8 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 
 ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_BO(ck_ok(gwi, ck_udef));
-  if (!gwi->ck->list) GWI_ERR_O(_("union is empty"));
-  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, gwi->loc);
+  if (!gwi->ck->mpv->len) GWI_ERR_O(_("union is empty"));
+  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->mpv, gwi->loc);
   gwi->ck->list        = NULL;
   udef->flag           = flag;
   udef->xid            = gwi->ck->sym;
@@ -77,6 +84,6 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
 }
 
 ANN void ck_clean_udef(MemPool mp, ImportCK *ck) {
-  if (ck->list) free_union_list(mp, ck->list);
+  if (ck->mpv) free_mp_vector(mp, sizeof(Union_Member), ck->mpv);
   if (ck->tmpl) free_id_list(mp, ck->tmpl);
 }

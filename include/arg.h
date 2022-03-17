@@ -7,7 +7,7 @@ enum COLOR {
   COLOR_ALWAYS,
 } __attribute__((packed));
 
-typedef struct Arg_ {
+typedef struct CliArg_ {
   struct CArg        arg;
   struct Map_        mod;
   struct Vector_     add;
@@ -17,9 +17,9 @@ typedef struct Arg_ {
   bool               loop;
   bool               quit;
   enum COLOR         color;
-} Arg;
+} CliArg;
 
-ANN void   arg_release(Arg *);
-ANN m_bool arg_parse(const Gwion, Arg *);
-ANN void   arg_compile(const Gwion, Arg *);
+ANN void   arg_release(CliArg *);
+ANN m_bool arg_parse(const Gwion, CliArg *);
+ANN void   arg_compile(const Gwion, CliArg *);
 #endif

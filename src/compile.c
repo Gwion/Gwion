@@ -7,7 +7,6 @@
 #include "compile.h"
 #include "gwion.h"
 #include "pass.h"
-#include "clean.h"
 
 enum compile_type { COMPILE_NAME, COMPILE_MSTR, COMPILE_FILE };
 
@@ -96,7 +95,7 @@ ANN static inline m_bool _passes(struct Gwion_ *gwion, struct Compiler *c) {
   for (m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass pass =
         (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    CHECK_BB(pass(gwion->env, c->ast));
+    CHECK_BB(pass(gwion->env, &c->ast));
   }
   return GW_OK;
 }
@@ -107,15 +106,12 @@ ANN static inline m_bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   env_reset(env);
   load_context(ctx, env);
   const m_bool ret = _passes(gwion, c);
+  ctx->tree = c->ast;
   if (ret > 0) //{
     nspc_commit(env->curr);
   if (ret > 0 || env->context->global)
     vector_add(&env->scope->known_ctx, (vtype)ctx);
   else { // nspc_rollback(env->global_nspc);
-    if (!ctx->error) {
-      gw_err(_("{-}while compiling file `{0}{/}%s{-}`{0}\n"), c->base);
-      ctx->error = 1;
-    }
     context_remref(ctx, env->gwion);
   }
   unload_context(ctx, env);
@@ -127,7 +123,6 @@ ANN static inline m_bool _check(struct Gwion_ *gwion, struct Compiler *c) {
   CHECK_OB((c->ast = parse(&arg)));
   gwion->env->name = c->name;
   const m_bool ret = passes(gwion, c);
-  if (!arg.global) ast_cleaner(gwion, c->ast);
   return ret;
 }
 

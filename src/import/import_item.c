@@ -18,12 +18,20 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type,
 }
 
 ANN static m_int gwi_item_tmpl(const Gwi gwi) {
-  const MemPool   mp    = gwi->gwion->mp;
-  const Stmt      stmt  = new_stmt_exp(mp, ae_stmt_exp, gwi->ck->exp, gwi->loc);
-  const Stmt_List slist = new_stmt_list(mp, stmt, NULL);
-  Section *       section = new_section_stmt_list(mp, slist);
-  const Ast       body    = new_ast(mp, section, NULL);
-  gwi_body(gwi, body);
+  Stmt_List slist = new_mp_vector(gwi->gwion->mp, sizeof(struct Stmt_), 1);
+  mp_vector_set(slist, struct Stmt_, 0,  ((struct Stmt_) {
+      .stmt_type = ae_stmt_exp,
+      .d = { .stmt_exp = { .val = gwi->ck->exp } },
+      .pos = gwi->loc
+    }));
+  Section section = (Section) {
+    .section_type = ae_section_stmt,
+    .d = { .stmt_list = slist }
+  };
+//  Section *       section = new_section_stmt_list(mp, slist);
+//  const Ast       body    = new_ast(mp, section, NULL);
+//  gwi_body(gwi, body);
+  gwi_body(gwi, &section);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;
   return GW_OK;
@@ -44,7 +52,7 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_BB(traverse_exp(env, gwi->ck->exp));
-  const Value value = gwi->ck->exp->d.exp_decl.list->self->value;
+  const Value value = mp_vector_at(gwi->ck->exp->d.exp_decl.list, struct Var_Decl_, 0)->value;
   value->d          = addr;
   set_vflag(value, vflag_builtin);
   if (!env->class_def) SET_FLAG(value, global);

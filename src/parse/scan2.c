@@ -29,12 +29,12 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
   const Type t = decl->type;
   CHECK_BB(ensure_scan2(env, t));
   Var_Decl_List list = decl->list;
-  do {
-    const Var_Decl var   = list->self;
-    const Exp      array = var->array ? var->array->exp : NULL;
+  for(uint32_t i = 0; i < list->len; i++) {
+    const Var_Decl vd   = mp_vector_at(list, struct Var_Decl_, i);
+    const Exp array = vd->array ? vd->array->exp : NULL;
     if (array) CHECK_BB(scan2_exp(env, array));
-    nspc_add_value(env->curr, var->xid, var->value);
-  } while ((list = list->next));
+    nspc_add_value(env->curr, vd->xid, vd->value);
+  }
   return GW_OK;
 }
 
@@ -46,15 +46,16 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
   return ret;
 }
 
-ANN static m_bool scan2_args(const Func_Def f) {
-  Arg_List   list   = f->base->args;
+ANN static m_bool scan2_args(const Env env, const Func_Def f) {
+  Arg_List   args   = f->base->args;
   const bool global = GET_FLAG(f->base, global);
-  do {
-    const Value v   = list->var_decl->value;
+  for(uint32_t i = 0; i < args->len; i++) {
+    Arg *arg = mp_vector_at(args, Arg, i);
+    const Value v   = arg->var_decl.value;
     v->from->offset = f->stack_depth;
     f->stack_depth += v->type->size;
     if (global) SET_FLAG(v, global);
-  } while ((list = list->next));
+  }
   return GW_OK;
 }
 
@@ -79,7 +80,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   if (!tmpl_base(fptr->base->tmpl)) {
     const Func_Def def = fptr->type->info->func->def;
-    if (def->base->args) { RET_NSPC(scan2_args(def)) }
+    if (def->base->args) { RET_NSPC(scan2_args(env, def)) }
   } else
     set_tflag(fptr->type, tflag_ftmpl);
   return GW_OK;
@@ -128,7 +129,7 @@ ANN static inline m_bool scan2_exp_slice(const Env env, const Exp_Slice *exp) {
 
 ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if (e->exp_type == ae_exp_decl) {
-    if (e->d.exp_decl.list->next)
+    if (e->d.exp_decl.list->len > 1)
       ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."),
             s_name(op))
     //    set_vflag(e->d.exp_decl.list->self->value, vflag_used);
@@ -194,16 +195,26 @@ ANN static inline m_bool scan2_stmt_match_case(const restrict Env env,
 ANN static inline m_bool
     _scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   if (stmt->where) CHECK_BB(scan2_stmt(env, stmt->where));
-  Stmt_List list = stmt->list;
-  do CHECK_BB(scan2_stmt_match_case(env, &list->stmt->d.stmt_match));
-  while ((list = list->next));
+  Stmt_List l = stmt->list;
+  for(m_uint i = 0; i < l->len; i++) {
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    CHECK_BB(scan2_stmt_match_case(env, &s->d.stmt_match));
+  }
   return GW_OK;
 }
 
+ANN static inline m_bool scan2_handler(const restrict Env env,
+                                            const Handler *handler) {
+  RET_NSPC(scan2_stmt(env, handler->stmt));
+}
+
 ANN static inline m_bool scan2_handler_list(const restrict Env env,
-                                            const Handler_List handler) {
-  if (handler->next) CHECK_BB(scan2_handler_list(env, handler->next));
-  RET_NSPC(scan2_stmt(env, handler->stmt))
+                                            const Handler_List handlers) {
+  for(uint32_t i = 0; i < handlers->len; i++) {
+    Handler * handler = mp_vector_at(handlers, Handler, i);
+    CHECK_BB(scan2_handler(env, handler));
+  }
+  return GW_OK;
 }
 
 ANN static inline m_bool scan2_stmt_try(const restrict Env env,
@@ -277,9 +288,11 @@ ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {
   return scan2_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
-ANN static m_bool scan2_stmt_list(const Env env, Stmt_List list) {
-  do CHECK_BB(scan2_stmt(env, list->stmt));
-  while ((list = list->next));
+ANN static m_bool scan2_stmt_list(const Env env, Stmt_List l) {
+  for(m_uint i = 0; i < l->len; i++) {
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    CHECK_BB(scan2_stmt(env, s));
+  }
   return GW_OK;
 }
 
@@ -390,9 +403,11 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
               func_symbol(env, env->curr->name, name, "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
           if (!overload) {
-            value_addref(value);
+//            value_addref(value);
             nspc_add_value(env->curr, f->base->xid, value);
+//    nspc_add_func(env->curr, f->base->xid, func);
           }
+    nspc_add_func(env->curr, sym, func);
           func->vt_index = ff->vt_index;
           return GW_OK;
         }
@@ -402,10 +417,11 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
+nspc_add_func(env->curr, sym, func);
   if (!overload) {
-    value_addref(value);
+//    value_addref(value);
     nspc_add_value(env->curr, f->base->xid, value);
-    nspc_add_func(env->curr, f->base->xid, func);
+//    nspc_add_func(env->curr, f->base->xid, func);
   } else
     func->vt_index = ++overload->from->offset;
   return GW_OK;
@@ -442,15 +458,17 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str      name = s_name(f->base->xid);
   struct Vector_   v;
-  Specialized_List id   = f->base->tmpl->list;
+  Specialized_List sl   = f->base->tmpl->list;
   m_uint           tlen = 0;
   vector_init(&v);
-  do {
-    const Type t = nspc_lookup_type0(env->curr, id->xid);
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized * spec = mp_vector_at(sl, Specialized, i);
+    const Type t = nspc_lookup_type0(env->curr, spec->xid);
     if (!t) return NULL;
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name);
-  } while ((id = id->next) && ++tlen);
+    ++tlen;
+  } //while ((id = id->next) && ++tlen);
   char  tmpl_name[tlen + 2];
   m_str str = tmpl_name;
   for (m_uint i = 0; i < vector_size(&v); ++i) {
@@ -496,7 +514,7 @@ m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
     CHECK_OB(func_create(env, f, overload, name));
   else
     f->base->func = base;
-  if (f->base->args) CHECK_BB(scan2_args(f));
+  if (f->base->args) CHECK_BB(scan2_args(env, f));
   if (!f->builtin && f->d.code) CHECK_BB(scan2_func_def_code(env, f));
   if (!base) {
     if (fbflag(f->base, fbflag_op)) CHECK_BB(scan2_func_def_op(env, f));
@@ -528,12 +546,12 @@ __attribute__((returns_nonnull)) static ANN Func_Def
 scan2_cpy_fdef(const Env env, const Func_Def fdef) {
   const Func_Def f  = cpy_func_def(env->gwion->mp, fdef);
   f->base->ret_type = fdef->base->ret_type;
-  Arg_List a = f->base->args, b = fdef->base->args;
-  while (a) {
-    a->var_decl->value = b->var_decl->value;
-    a->type            = b->type;
-    a                  = a->next;
-    b                  = b->next;
+  Arg_List args0 = f->base->args, args1 = fdef->base->args;
+  for(uint32_t i = 0; i < (args0 ? args0->len : 0); i++) {
+    Arg *arg0 = mp_vector_at(args0, Arg, i);
+    Arg *arg1 = mp_vector_at(args1, Arg, i);
+    arg0->var_decl.value = arg1->var_decl.value;
+    arg0->type            = arg1->type;
   }
   scan1_func_def(env, f);
   return f;
@@ -581,7 +599,7 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
 ANN static m_bool scan2_extend_def(const Env env, const Extend_Def xdef) {
   CHECK_BB(ensure_scan2(env, xdef->t));
   CHECK_BB(extend_push(env, xdef->t));
-  const m_bool ret = scan2_ast(env, xdef->body);
+  const m_bool ret = scan2_ast(env, &xdef->body);
   extend_pop(env, xdef->t);
   return ret;
 }
@@ -618,8 +636,11 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
-ANN m_bool scan2_ast(const Env env, Ast ast) {
-  do CHECK_BB(scan2_section(env, ast->section));
-  while ((ast = ast->next));
+ANN m_bool scan2_ast(const Env env, Ast *ast) {
+  Ast a = *ast;
+  for(m_uint i = 0; i < a->len; i++) {
+    Section *section = mp_vector_at(a, Section, i);
+    CHECK_BB(scan2_section(env, section));
+  }
   return GW_OK;
 }

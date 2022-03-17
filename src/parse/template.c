@@ -14,16 +14,19 @@
 
 ANN static m_bool _push_types(const Env env, const Nspc nspc,
                               const Tmpl *tmpl) {
-  Specialized_List list = tmpl->list;
-  Type_List        call = tmpl->call;
-  do {
-    if (!call) break;
-    const Type t = call->td ? known_type(env, call->td) : NULL;
+  Specialized_List sl = tmpl->list;
+  Type_List        tl = tmpl->call;
+  if(!tl) return GW_OK;
+  for(uint32_t i = 0; i < sl->len; i++) {
+    if (i >= tl->len) return GW_OK;
+    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+//    const Type t = td ? known_type(env, td) : NULL;
+    const Type t = known_type(env, td);
     if (!t) return GW_OK;
-    nspc_add_type(nspc, list->xid, t);
-    call = call->next;
-  } while ((list = list->next));
-  return !call ? GW_OK : GW_ERROR;
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    nspc_add_type(nspc, spec->xid, t);
+  };
+  return tl->len == sl->len ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool push_types(const Env env, const Nspc nspc, const Tmpl *tmpl) {
@@ -127,16 +130,17 @@ ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     Type_List           tl = td->types;
     Specialized_List    sl = t->info->cdef->base.tmpl
         ? t->info->cdef->base.tmpl->list : NULL;
-
-    while (tl && sl) {
-      DECL_OO(const Type, t, = known_type(env, tl->td));
-      ID_List missing = miss_traits(t, sl);
-      if (missing) {
-        ERR_O(tl->td->pos, "does not implement requested trait '{/}%s{0}'",
-              s_name(missing->xid));
-      }
-      tl = tl->next;
-      sl = sl->next;
+    for(uint32_t i = 0; i < tl->len; i++) {
+      Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+      DECL_OO(const Type, t, = known_type(env, td));
+        Specialized *spec = mp_vector_at(sl, Specialized, i);
+        if(spec->traits) {
+          Symbol missing = miss_traits(t, spec);
+          if (missing) {
+            ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
+                  s_name(missing));
+          }
+        }
     }
     struct Op_Import opi = {.op   = insert_symbol("@scan"),
                             .lhs  = t,

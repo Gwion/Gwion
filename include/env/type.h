@@ -98,21 +98,22 @@ __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
 // trait helpers
 ANN static inline bool has_trait(const Type t, const Symbol trait) {
   ID_List list = t->info->traits;
-  while (list) {
-    if (list->xid == trait) return true;
-    list = list->next;
+  for(uint32_t i = 0; i < list->len; i++) {
+    Symbol xid = *mp_vector_at(list, Symbol, i);
+    if (xid == trait) return true;
   }
   return false;
 }
 
-ANN static inline ID_List miss_traits(const Type t, const Specialized_List sl) {
-  ID_List traits = sl->traits;
-  while (traits) {
-    if (!has_trait(t, traits->xid)) return traits;
-    traits = traits->next;
+ANN static inline Symbol miss_traits(const Type t, const Specialized *spec) {
+  ID_List traits = spec->traits;
+  for(uint32_t i = 0; i < traits->len; i++) {
+    Symbol xid = *mp_vector_at(traits, Symbol, i);
+    if (!has_trait(t, xid)) return xid;
   }
   return NULL;
 }
+
 typedef enum {
   et_void,
   et_int,

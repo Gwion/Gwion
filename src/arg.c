@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -67,7 +68,7 @@ enum arg_type {
   ARG_CDOC,
 };
 
-ANN static void arg_init(Arg *arg) {
+ANN static void arg_init(CliArg *arg) {
   map_init(&arg->mod);
   vector_init(&arg->add);
   vector_init(&arg->lib);
@@ -76,7 +77,7 @@ ANN static void arg_init(Arg *arg) {
   arg->color = COLOR_AUTO;
 }
 
-ANN void arg_release(Arg *arg) {
+ANN void arg_release(CliArg *arg) {
   map_release(&arg->mod);
   vector_release(&arg->add);
   xfree((m_str)vector_front(&arg->lib));
@@ -88,7 +89,13 @@ ANN void arg_release(Arg *arg) {
 static inline bool str2bool(const char *str) {
   if (!str || !strcmp(str, "true")) return true;
   if (!strcmp(str, "false")) return false;
-  return atoi(str) ? true : false;
+  char *rem = NULL;
+  long opt = strtol(str, &rem, 10);
+  if(rem || errno == EINVAL) {
+    gw_err("invalid argument for boolean option, setting to `false`\n");
+    return false;
+  }
+  return !!opt;
 }
 
 ANN static inline void get_debug(const Gwion gwion, const char *dbg) {
@@ -106,7 +113,7 @@ ANN static inline void get_cdoc(const Gwion gwion, const char *cdoc) {
   gwion_set_cdoc(gwion, is_cdoc);
 }
 
-ANN void arg_compile(const Gwion gwion, Arg *arg) {
+ANN void arg_compile(const Gwion gwion, CliArg *arg) {
   const Vector v = &arg->add;
   for (m_uint i = 0; i < vector_size(v); i++) {
     switch (vector_at(v, i)) {
@@ -202,7 +209,7 @@ static void setup_options(cmdapp_t *app, cmdopt_t *opt) {
              &opt[CDOC]);
 }
 
-static inline void add2arg(Arg *const arg, const char *data,
+static inline void add2arg(CliArg *const arg, const char *data,
                            const enum arg_type type) {
   vector_add(&arg->add, type);
   vector_add(&arg->add, (vtype)data);
@@ -238,7 +245,7 @@ ANN static Vector get_config(const char *name) {
 
 struct ArgInternal {
   const Gwion gwion;
-  Arg *       arg;
+  CliArg     *arg;
 };
 
 ANN m_bool _arg_parse(struct ArgInternal *arg);
@@ -259,7 +266,7 @@ ANN static void config_parse(struct ArgInternal *arg, const char *name) {
 
 static void myproc(void *data, cmdopt_t *option, const char *arg) {
   struct ArgInternal *arg_int = data;
-  Arg *               _arg    = arg_int->arg;
+  CliArg *            _arg    = arg_int->arg;
   if (arg) {
     if (!_arg->arg.idx)
       _arg->arg.idx++;
@@ -372,7 +379,7 @@ ANN static void config_default(struct ArgInternal *arg) {
   config_parse(arg, c);
 }
 
-ANN m_bool arg_parse(const Gwion gwion, Arg *a) {
+ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
   struct ArgInternal arg = {.gwion = gwion, .arg = a};
   arg_init(a);
 #ifdef __FUZZING

@@ -23,7 +23,7 @@ static m_bool ptr_access(const Env env, const Exp e) {
 
 ANN static inline Type ptr_base(const Env env, const Type t) {
   return (Type)vector_front(&t->info->tuple->types);
-  return known_type(env, t->info->cdef->base.tmpl->call->td);
+//  return known_type(env, *mp_vector_at(t->info->cdef->base.tmpl->call, Type_Decl*, 0));
 }
 
 static OP_CHECK(opck_ptr_assign) {
@@ -37,11 +37,10 @@ static OP_CHECK(opck_ptr_assign) {
     Type u = bin->rhs->type;
     do {
       const Type base = ptr_base(env, u);
-//      if (isa(t, base) > 0) return t;
       if (isa(t, base) > 0) return bin->rhs->type;
     } while ((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while ((t = t->info->parent));
-  return env->gwion->type[et_error];
+  ERR_N(exp_self(bin)->pos, "can't assign to pointer");
 }
 
 static OP_EMIT(opem_ptr_assign) {
@@ -60,12 +59,12 @@ static OP_CHECK(opck_ptr_deref) {
 
 static OP_CHECK(opck_ptr_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
-  if (!cast->td->types || !cast->td->types->td)
+  if (!cast->td->types || !cast->td->types->len)
     ERR_N(exp_self(cast)->pos, "'Ptr' needs types to cast");
   DECL_ON(const Type, t, = known_type(env, cast->td));
   if (t->info->cdef && !tflag(t, tflag_check))
     CHECK_BN(ensure_traverse(env, t));
-  const Type to = known_type(env, cast->td->types->td);
+  const Type to = known_type(env, *mp_vector_at(cast->td->types, Type_Decl*, 0));
   exp_setvar(cast->exp, 1);
   if (isa(cast->exp->type, to) > 0) return t;
   ERR_N(exp_self(cast)->pos, "invalid pointer cast");
@@ -135,7 +134,7 @@ static DTOR(ptr_struct_dtor) {
                                 base->info->value->from->owner_class,
                                 base->info->value->from->owner);
   const Type   t     = known_type(shred->info->vm->gwion->env,
-                            base->info->cdef->base.tmpl->call->td);
+                            *mp_vector_at(base->info->cdef->base.tmpl->call, Type_Decl*, 0));
   env_pop(shred->info->vm->gwion->env, scope);
   struct_release(shred, t, *(m_bit **)o);
 }
@@ -146,7 +145,7 @@ static OP_CHECK(opck_ptr_scan) {
       .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
   const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
-  const Type base = known_type(env, ts->td->types->td);
+  const Type base = known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0));
   const Type t    = new_type(env->gwion->mp, s_name(info.name), base);
   t->size = SZ_INT;
   t->info->parent = env->gwion->type[et_ptr];

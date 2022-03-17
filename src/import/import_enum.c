@@ -24,24 +24,19 @@ ANN m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_BB(ck_ini(gwi, ck_edef));
   CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
   vector_init(&gwi->ck->v);
+  gwi->ck->tmpl = new_mp_vector(gwi->gwion->mp, sizeof(Symbol), 0);
   return GW_OK;
 }
-
+/*
 // adds the id_list to the enum
 // change that algo?
 ANN static void add2list(struct ImportCK *ck, const ID_List list) {
-  if (!ck->tmpl)
-    ck->tmpl = list;
-  else
+  if (!ck->tmpl) {
+    ck->tmpl = new_mp_vector(list, ;
+  } else {
     ck->curr->next = list;
+  }
   ck->curr = list;
-}
-/*
-void Append(DL_Enum* d, const ID_List list) {
-  List* next = &d->base;
-  while (*next != NULL) next = &(*next)->Next;
-  *next = list;
-  next->next = NULL;
 }
 */
 //! add an enum entry
@@ -50,8 +45,11 @@ void Append(DL_Enum* d, const ID_List list) {
 //! TODO: change return type to m_bool
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_BB(ck_ok(gwi, ck_edef));
-  DECL_OB(const ID_List, list, = gwi_str2symlist(gwi, name));
-  add2list(gwi->ck, list);
+//  DECL_OB(const ID_List, list, = gwi_str2symlist(gwi, name));
+
+  DECL_OB(const Symbol, xid, = gwi_str2sym(gwi, name));
+  mp_vector_add(gwi->gwion->mp, &gwi->ck->tmpl, Symbol, xid);
+//  add2list(gwi->ck, list);
   vector_add(&gwi->ck->v, (vtype)i);
   return GW_OK;
 }
