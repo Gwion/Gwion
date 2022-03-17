@@ -286,13 +286,44 @@ static GWION_IMPORT(int) {
   return GW_OK;
 }
 
-static OP_CHECK(opck_cast_f2i) { return env->gwion->type[et_int]; }
+static OP_CHECK(opck_cast_f2i) {
+  Exp_Cast *cast = (Exp_Cast*)data;
+  if(is_prim_float(cast->exp)) {
+    const m_float f = cast->exp->d.prim.d.fnum;
+    free_type_decl(env->gwion->mp, cast->td);
+    free_exp(env->gwion->mp, cast->exp);
+    Exp e = exp_self(cast);
+    e->exp_type = ae_exp_primary;
+    e->d.prim.prim_type = ae_prim_num;
+    e->d.prim.d.num = f;
+  }
+  return env->gwion->type[et_int];
+}
 
-static OP_CHECK(opck_implicit_f2i) { return env->gwion->type[et_error]; }
+ANN static void tofloat(Exp e, const m_int i) {
+  e->exp_type = ae_exp_primary;
+  e->d.prim.prim_type = ae_prim_float;
+  e->d.prim.d.fnum = i;
+}
 
-static OP_CHECK(opck_cast_i2f) { return env->gwion->type[et_float]; }
+static OP_CHECK(opck_cast_i2f) {
+  Exp_Cast *cast = (Exp_Cast*)data;
+  if(is_prim_int(cast->exp)) {
+    const m_int i = cast->exp->d.prim.d.num;
+    free_type_decl(env->gwion->mp, cast->td);
+    free_exp(env->gwion->mp, cast->exp);
+    Exp e = exp_self(cast);
+    e->exp_type = ae_exp_primary;
+    e->d.prim.prim_type = ae_prim_float;
+    e->d.prim.d.fnum = i;
+  }
+  return env->gwion->type[et_float];
+}
 
-static OP_CHECK(opck_implicit_i2f) { return env->gwion->type[et_float]; }
+static OP_CHECK(opck_implicit_i2f) {
+  // TODO: same as in cast_i2f
+  return env->gwion->type[et_float];
+}
 
 #define CHECK_FF(op, check, func) _CHECK_OP(op, check, float_##func)
 #define CHECK_IF(op, check, func) _CHECK_OP(op, check, int_float_##func)
@@ -401,7 +432,6 @@ static GWION_IMPORT(floatint) {
   CHECK_FI("*=>", rassign, r_mul)
   CHECK_FI("/=>", rassign, r_div)
   _CHECK_OP("$", cast_f2i, CastF2I)
-  _CHECK_OP("@implicit", implicit_f2i, CastF2I)
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_float_int_and))
   GWI_BB(gwi_oper_end(gwi, "&&", float_int_and))

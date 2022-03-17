@@ -1433,8 +1433,10 @@ ANN static inline bool find_handler(const Handler_List handlers, const Symbol xi
 
 ANN static inline m_bool check_stmt_try_start(const restrict Env env,
                                               const Stmt_Try     stmt) {
-    RET_NSPC(check_stmt(env, stmt->stmt))} ANN static inline m_bool
-    _check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+    RET_NSPC(check_stmt(env, stmt->stmt))
+}
+
+ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
   CHECK_BB(check_handler_list(env, stmt->handler));
   vector_add(&env->scope->effects, 0);
   const m_bool ret = check_stmt_try_start(env, stmt);
