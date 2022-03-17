@@ -550,6 +550,7 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
 }
 
 #include "tmp_resolve.h"
+
 static OP_CHECK(opck_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   const Func       func = impl->t->info->func;
@@ -583,10 +584,10 @@ static OP_CHECK(opck_op_impl) {
   vector_add(&env->scope->effects, 0);
   DECL_ON(const Type, t, = op_check(env, &opi));
   CHECK_BN(isa(t, func->def->base->ret_type)); // error message?
-  const m_uint _eff = vector_back(&env->scope->effects);
-  if (!check_effect_overload((Vector)&_eff, func))
-    ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
-          s_name(impl->e->d.prim.d.var), func->name);
+  MP_Vector *const eff = (MP_Vector*)vector_back(&env->scope->effects);
+//  if (eff && !check_effect_overload(eff, func))
+//    ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
+//          s_name(impl->e->d.prim.d.var), func->name);
   Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if (v) {
     const m_uint scope = env_push(env, NULL, opi.nspc);
@@ -595,9 +596,8 @@ static OP_CHECK(opck_op_impl) {
     const Func exists  = (Func)find_func_match(env, v->d.func_ref, &call);
     env_pop(env, scope);
     if (exists) { // improve me
-      if (_eff) {
-        const M_Vector eff = (M_Vector)&_eff;
-        m_vector_release(eff);
+      if (eff) {
+        free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), eff);
         ERR_N(impl->pos,
               _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
               s_name(impl->e->d.prim.d.var), func->name);
@@ -613,14 +613,12 @@ static OP_CHECK(opck_op_impl) {
   Func_Base *base =
       new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
                     impl->e->d.prim.d.var, args, ae_flag_none, impl->e->pos);
-  if (_eff) {
-    const M_Vector eff = (M_Vector)&_eff;
-    for (m_uint i = 0; i < m_vector_size(eff); i++) {
-      struct ScopeEffect effect;
-      m_vector_get(eff, i, &effect);
-      vector_add(&base->effects, (m_uint)effect.sym);
+  if (eff) {
+    for (m_uint i = 0; i < eff->len; i++) {
+      struct ScopeEffect *effect = mp_vector_at(eff, struct ScopeEffect, i);
+      vector_add(&base->effects, (m_uint)effect->sym);
     }
-    m_vector_release(eff);
+    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), eff);
   }
   const Exp lhs =
       new_prim_id(env->gwion->mp, larg0->var_decl.xid, impl->e->pos);

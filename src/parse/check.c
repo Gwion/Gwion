@@ -1440,16 +1440,14 @@ ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try 
   CHECK_BB(check_handler_list(env, stmt->handler));
   vector_add(&env->scope->effects, 0);
   const m_bool ret = check_stmt_try_start(env, stmt);
-  const m_uint _v  = vector_pop(&env->scope->effects);
-  if (_v) {
-    const M_Vector v = (M_Vector)&_v;
-    for (m_uint i = 0; i < m_vector_size(v); i++) {
-      struct ScopeEffect eff;
-      m_vector_get(v, i, &eff);
-      bool         found   = find_handler(stmt->handler, eff.sym);
-      if (!found) env_add_effect(env, eff.sym, eff.pos);
+  MP_Vector *const v = (MP_Vector*)vector_pop(&env->scope->effects);
+  if (v) {
+    for (m_uint i = 0; i < v->len; i++) {
+      struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
+      bool found   = find_handler(stmt->handler, eff->sym);
+      if (!found) env_add_effect(env, eff->sym, eff->pos);
     }
-    m_vector_release(v);
+    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), v);
   }
   return ret;
 }
@@ -1596,12 +1594,12 @@ ANN static m_bool check_func_overload(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN bool check_effect_overload(const Vector base, const Func override) {
+ANN static bool check_effect_overload(const Vector base, const Func override) {
   if (!base->ptr) return true;
-  if (!override->def->base->effects.ptr) return false; // TODO: error message
+  if (!override->def->base->effects.ptr) return false;
   const Vector v = &override->def->base->effects;
   for (m_uint i = 0; i < vector_size(v); i++) {
-    if (vector_find((Vector)base, vector_at(v, i)) == -1) return false;
+    if (vector_find(base, vector_at(v, i)) == -1) return false;
   }
   return true;
 }
@@ -1643,9 +1641,9 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-ANN static bool effect_find(const M_Vector v, const Symbol sym) {
-  for(m_uint i = 0; i < m_vector_size(v); i++) {
-    struct ScopeEffect *eff = (struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
+ANN static bool effect_find(const MP_Vector *v, const Symbol sym) {
+  for(m_uint i = 0; i < v->len; i++) {
+    struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
     if(eff->sym == sym) return true;
   }
   return false;
@@ -1677,19 +1675,19 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   }
   vector_add(&env->scope->effects, 0);
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
-  const m_uint _v  = vector_back(&env->scope->effects);
-  if (_v) {
+  MP_Vector *v = (MP_Vector*)vector_back(&env->scope->effects);
+  if (v) {
     if (fdef->base->xid == insert_symbol("@dtor"))
       ERR_B(fdef->base->pos, _("can't use effects in destructors"));
-    const M_Vector v    = (M_Vector)&_v;
     const Vector base = &fdef->base->effects;
     if (!base->ptr) vector_init(base);
-    for (m_uint i = 0; i < m_vector_size(v); i++) {
-      struct ScopeEffect *eff = (struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
+    for (uint32_t i = 0; i < v->len; i++) {
+      struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
+//(struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
       if(!effect_find(v, eff->sym))
         vector_add(base, (m_uint)eff->sym);
     }
-    m_vector_release(v);
+    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), v);
   }
   vector_pop(&env->scope->effects);
   if (fbflag(fdef->base, fbflag_op)) operator_resume(&opi);
@@ -1809,16 +1807,14 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
 
 ANN static inline void ctor_effects(const Env env) {
   const Vector v  = &env->scope->effects;
-  const m_uint _w = vector_back(v);
-  if (!_w) return;
+  MP_Vector *const w = (MP_Vector*)vector_back(v);
+  if (!w) return;
   vector_init(&env->class_def->effects);
-  const M_Vector w = (M_Vector)&_w;
-  for (m_uint j = 0; j < m_vector_size(w); j++) {
-    struct ScopeEffect eff;
-    m_vector_get(w, j, &eff);
-    vector_add(&env->class_def->effects, (m_uint)eff.sym);
+  for (uint32_t j = 0; j < w->len; j++) {
+    struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
+    vector_add(&env->class_def->effects, (m_uint)eff->sym);
   }
-  m_vector_release(w);
+  free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), w);
   vector_pop(v);
 }
 
@@ -1981,18 +1977,16 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
 
 ANN static inline void check_unhandled(const Env env) {
   const Vector v  = &env->scope->effects;
-  const m_uint _w = vector_back(v);
-  if (!_w) return;
-  const M_Vector w = (M_Vector)&_w;
-  for (m_uint j = 0; j < m_vector_size(w); j++) {
-    struct ScopeEffect eff;
-    m_vector_get(w, j, &eff);
-    if(s_name(eff.sym)[0] == '!')
+  MP_Vector *const w = (MP_Vector*)vector_back(v);
+  if(!w) return;
+  for (m_uint j = 0; j < w->len; j++) {
+    struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
+    if(s_name(eff->sym)[0] == '!')
       continue;
-    gwerr_secondary("Unhandled effect", env->name, eff.pos);
+    gwerr_secondary("Unhandled effect", env->name, eff->pos);
     env->context->error = false;
   }
-  m_vector_release(w);
+  free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), w);
   vector_pop(v);
 }
 
