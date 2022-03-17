@@ -73,6 +73,7 @@ ANN /*static*/ Type scan_class(const Env env, const Type t,
 
 static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan *)data;
+  if(ts->t->info->cdef->base.tmpl->call) return ts->t;
   return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
 }
 
@@ -340,7 +341,7 @@ ANN bool tmpl_global(const Env env, Type_List tl) {
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
       .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};
-  const Type exists = t->info->cdef->base.tmpl->call ? t : tmpl_exists(env, &info);
+  const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es    = {.env   = env,
                       .data  = env,
