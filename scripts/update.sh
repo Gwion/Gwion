@@ -8,16 +8,11 @@ get_latest_release() {
 
 update() {
   new_release=$(get_latest_release $1 $2)
-#  url=https://github.com/$1/$2/releases/download
   file=${2}*.zip
   wget "$new_release"
   7z e $file
   rm $file
 }
-
-#git clone --recursive https://github.com/Gwion/Gwion
-#make -C Gwion
-#cp Gwion/gwion .
 
 update Gwion      gwion
 update fennecdjay mdr
