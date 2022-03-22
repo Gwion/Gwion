@@ -33,11 +33,11 @@ jobs:
 
     - name: Core Reference
       run: |
-        echo "#Core Reference" > docs/Reference/Core_Reference.mdr
-        echo "compiler generated documentation" >> docs/Reference/Core_Reference.mdr
-        echo '```gwion' >> docs/Reference/Core_Reference.mdr
-        ./gwion --cdoc >> docs/Reference/Core_Reference.mdr
-        echo '```' >> docs/Reference/Core_Reference.mdr
+        echo "#Core Reference" > docs/Reference/README.mdr
+        echo "compiler generated documentation" >> docs/Reference/README.mdr
+        echo '```gwion' >> docs/Reference/README.mdr
+        ./gwion --cdoc >> docs/Reference/README.mdr
+        echo '```' >> docs/Reference/README.mdr
         
     - name: Build book
       run: PATH=$PWD:$PATH make build
