@@ -33,7 +33,7 @@ jobs:
 
     - name: Core Reference
       run: |
-        echo "#Core Reference" > docs/Reference/README.mdr
+        echo "# Core Reference" > docs/Reference/README.mdr
         echo "compiler generated documentation" >> docs/Reference/README.mdr
         echo '```gwion' >> docs/Reference/README.mdr
         ./gwion --cdoc >> docs/Reference/README.mdr
