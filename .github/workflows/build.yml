@@ -35,9 +35,9 @@ jobs:
       run: |
         echo "#Core Reference" > docs/Reference/Core_Reference.mdr
         echo "compiler generated documentation" >> docs/Reference/Core_Reference.mdr
-        echo "```gwion" >> docs/Reference/Core_Reference.mdr
+        echo '```gwion' >> docs/Reference/Core_Reference.mdr
         ./gwion --cdoc >> docs/Reference/Core_Reference.mdr
-        echo "```" >> docs/Reference/Core_Reference.mdr
+        echo '```' >> docs/Reference/Core_Reference.mdr
         
     - name: Build book
       run: PATH=$PWD:$PATH make build
