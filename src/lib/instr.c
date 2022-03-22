@@ -150,11 +150,20 @@ INSTR(SetCtor) {
 }
 
 INSTR(fast_except) {
-  if(*(m_uint*)REG((m_int)instr->m_val)) {
-//    BYTE(eNoOp)
-  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
-  *(m_uint *)byte = instr->opcode;
-  instr->opcode = eNoOp;
-  } else
-    handle(shred, "NullPtrException");
+  struct FastExceptInfo *info = (struct FastExceptInfo *)instr->m_val2;
+  if(*(m_uint*)REG(-SZ_INT)) {
+    m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
+    *(m_uint *)byte = instr->opcode;
+    VAL = -SZ_INT;
+    instr->opcode = eNoOp;
+    if(info) mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+    return;
+  } else if(info) {
+    if(info->file)
+      gwerr_basic("Object not instantiated", NULL, NULL, info->file, info->loc, 0);
+    if(info->file2)
+      gwerr_warn("declared here", NULL, NULL, info->file2, info->loc2);
+    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+  }
+  handle(shred, "NullPtrException");
 }

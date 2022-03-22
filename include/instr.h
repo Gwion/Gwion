@@ -43,6 +43,12 @@ INSTR(DtorReturn);
 INSTR(ComplexReal);
 INSTR(ComplexImag);
 
+struct FastExceptInfo {
+  m_str file;
+  loc_t loc;
+  m_str file2;
+  loc_t loc2;
+};
 
 INSTR(fast_except);
 /* function */

@@ -289,14 +289,18 @@ static FREEARG(freearg_array) {
 
 ANN Type check_array_access(const Env env, const Array_Sub array);
 
+ANN static inline Type get_array_type(const Type type) {
+  const Type t = !tflag(type, tflag_ref) ? type : (Type)vector_front(&type->info->tuple->contains);
+  return t->array_depth ? t : typedef_base(t);
+}
+
 static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
   const Type      t_int = env->gwion->type[et_int];
   Exp             e     = array->exp;
   do CHECK_BN(check_implicit(env, e, t_int));
   while ((e = e->next));
-  const Type t =
-      array->type->array_depth ? array->type : typedef_base(array->type);
+  const Type t = get_array_type(array->type);
   if (t->array_depth >= array->depth)
     return array_type(env, array_base(t), t->array_depth - array->depth);
   const Exp         curr = take_exp(array->exp, t->array_depth);
@@ -356,17 +360,27 @@ ANN static inline Exp emit_n_exp(const Emitter                 emit,
   return ret > 0 ? next : NULL;
 }
 
+ANN static Type emit_get_array_type(const Emitter emit, const Type t) {
+  if(!tflag(t, tflag_ref)) return t;
+  const Instr instr = emit_add_instr(emit, Reg2RegDeref);
+  instr->m_val = -SZ_INT;
+  instr->m_val2 = -SZ_INT;
+  return (Type)vector_front(&t->info->tuple->contains);
+
+}
+
 static OP_EMIT(opem_array_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo *)data;
-  if (info->array.type->array_depth >= info->array.depth) {
+  const Type t = emit_get_array_type(emit, info->array.type);
+  if (t->array_depth >= info->array.depth) {
     struct Array_Sub_ next = {
         .exp = info->array.exp, .type = info->type, .depth = info->array.depth};
     return array_do(emit, &next, info->is_var);
   }
-  struct Array_Sub_ partial = {info->array.exp, info->array.type,
-                               info->array.type->array_depth};
-  struct Array_Sub_ next    = {info->array.exp, array_base(info->array.type),
-                            info->array.depth - info->array.type->array_depth};
+  struct Array_Sub_ partial = {info->array.exp, t,
+                               t->array_depth};
+  struct Array_Sub_ next    = {info->array.exp, array_base(t),
+                            info->array.depth - t->array_depth};
   info->array               = partial;
   const Exp exp             = emit_n_exp(emit, info);
   next.exp                  = exp;

@@ -47,3 +47,15 @@ __attribute__((returns_nonnull)) ANN2(1) Instr
   vector_add(&emit->code->instr, (vtype)instr);
   return instr;
 }
+
+ANN2(1) void emit_fast_except(const Emitter emit, const struct ValueFrom_ *vf, const loc_t loc) {
+  const Instr instr = emit_add_instr(emit, fast_except);
+  if(vf) {
+    struct FastExceptInfo *info = mp_malloc2(emit->gwion->mp, sizeof(struct FastExceptInfo));
+    info->file = emit->env->name;
+    info->loc = loc;
+    info->file2 = vf->filename;
+    info->loc2 = vf->loc;
+    instr->m_val2 = (m_uint)info;
+  }
+}

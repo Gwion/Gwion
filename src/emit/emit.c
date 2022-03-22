@@ -518,12 +518,8 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
     instr->m_val       = (m_uint)&v->d.ptr;
     // prevent invalid access to global variables
     if(!exp_getvar(exp_self(prim_self(data))) &&
-       isa(v->type, emit->gwion->type[et_object]) > 0) {
-//      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-      const Instr instr = emit_add_instr(emit, fast_except);
-      instr->m_val      = -SZ_INT;
-      // use m_val2 to set some info?
-    }
+       isa(v->type, emit->gwion->type[et_object]) > 0)
+      emit_fast_except(emit, v->from, prim_pos(data));
   } else {
     const m_uint size = v->type->size;
     const Instr instr = emit_regpushimm(emit, size, exp_getvar(prim_exp(data)));
@@ -575,11 +571,8 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   instr->m_val = v->from->offset;
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
       (isa(v->type, emit->gwion->type[et_object]) > 0 ||
-       is_fptr(emit->gwion, v->type))) {
-//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    const Instr instr = emit_add_instr(emit, fast_except);
-    instr->m_val      = -SZ_INT;
-  }
+       is_fptr(emit->gwion, v->type)))
+    emit_fast_except(emit, v->from, prim_pos(data));
   return GW_OK;
 }
 
@@ -755,11 +748,8 @@ ANN m_bool emit_array_access(const Emitter                 emit,
                           .rhs  = info->array.type,
                           .data = (uintptr_t)info};
   if (!info->is_var &&
-      (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type))) {
-//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    const Instr instr = emit_add_instr(emit, fast_except);
-    instr->m_val      = -SZ_INT;
-  }
+      (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type)))
+    emit_fast_except(emit, NULL, info->array.exp->pos);
   return op_emit(emit, &opi);
 }
 
@@ -2139,13 +2129,8 @@ ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
         (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) > 0 : 1) &&
         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.td, late) &&
         exp_getuse(e) && !exp_getvar(e) &&
-        GET_FLAG(mp_vector_at(e->d.exp_decl.list, struct Var_Decl_, 0)->value, late)) {
-//        GET_FLAG(e->d.exp_decl.list->self->value, late)) {
-      //         e->exp_type == ae_exp_decl && !exp_getvar(e)) {
-//      const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-      const Instr instr = emit_add_instr(emit, fast_except);
-      instr->m_val      = -SZ_INT;
-    }
+        GET_FLAG(mp_vector_at(e->d.exp_decl.list, struct Var_Decl_, 0)->value, late))
+    emit_fast_except(emit, mp_vector_at(e->d.exp_decl.list, struct Var_Decl_, 0)->value->from, e->pos);
   } while ((exp = exp->next));
   return GW_OK;
 }

@@ -275,11 +275,8 @@ OP_EMIT(opem_object_dot) {
   }
   if((isa(value->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion, value->type)) &&
      !exp_getvar(exp_self(member)) &&
-    (GET_FLAG(value, static) || GET_FLAG(value, late))) {
-//    const Instr instr = emit_add_instr(emit, GWOP_EXCEPT);
-    const Instr instr = emit_add_instr(emit, fast_except);
-    instr->m_val      = -SZ_INT;
-  }
+    (GET_FLAG(value, static) || GET_FLAG(value, late)))
+    emit_fast_except(emit, value->from, exp_self(member)->pos);
   return GW_OK;
 }
 
