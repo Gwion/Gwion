@@ -108,7 +108,7 @@ ANN Instr emit_dotmember(Emitter, const m_uint, const bool);
 ANN Instr emit_structmember(Emitter, const m_uint, const bool);
 ANN Instr emit_unionmember(Emitter, const m_uint, const bool);
 
-
+void emit_fast_except(const Emitter emit, const struct ValueFrom_ *vf, const loc_t loc);
 ANN static inline m_uint emit_code_size(const Emitter emit) {
   return vector_size(&emit->code->instr);
 }
