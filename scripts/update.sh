@@ -15,5 +15,6 @@ update() {
 }
 
 update Gwion      gwion
+update Gwion      gwion-plug
 update fennecdjay mdr
 update fennecdjay cmojify

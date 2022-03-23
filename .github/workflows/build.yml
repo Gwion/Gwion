@@ -39,6 +39,10 @@ jobs:
         ./gwion --cdoc >> docs/Reference/README.mdr
         echo '```' >> docs/Reference/README.mdr
         
+    - name: Plugin Reference
+      run: |
+        for plug in *.so; do bash scripts/mk_page.sh $plug; done
+
     - name: Build book
       run: PATH=$PWD:$PATH make build
 
