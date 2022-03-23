@@ -1,5 +1,4 @@
 NAME=$(echo $1 | sed 's/\.so//')
-DATA="./gwion -p. -P $NAME"
 
 mkpage() {
 cat << EOF
@@ -16,7 +15,4 @@ echo '```'
 }
 
 mkpage > docs/Reference/Plugins/$NAME.mdr
-echo $NAME >> docs/Reference/Plugins/list
-
-echo $NAME
-cat docs/Reference/Plugins/list
+echo $NAME.md >> docs/Reference/Plugins/list
