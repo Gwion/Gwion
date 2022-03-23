@@ -44,6 +44,7 @@ jobs:
         ls *.so
         rm -rf docs/Reference/Plugins/list
         for plug in *.so; do bash scripts/mk_page.sh $plug; done
+        cat docs/Reference/Plugins/list
 
     - name: Build book
       run: PATH=$PWD:$PATH make build
