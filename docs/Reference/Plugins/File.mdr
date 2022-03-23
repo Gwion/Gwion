@@ -1,0 +1,11 @@
+# File
+
+compiler generated documentation
+
+```gwion
+#!+ File
+class File:[ module ] extends Event {
+}
+operator File @scan ();
+operator @ctor (File);
+```
