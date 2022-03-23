@@ -41,6 +41,7 @@ jobs:
         
     - name: Plugin Reference
       run: |
+        rm -rf docs/Reference/Plugins/list
         for plug in *.so; do bash scripts/mk_page.sh $plug; done
 
     - name: Build book

@@ -16,3 +16,4 @@ echo '```'
 }
 
 mkpage > docs/Reference/Plugins/$NAME.mdr
+echo $NAME >> docs/Reference/Plugins/list
