@@ -1959,6 +1959,11 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
 ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, const bool b) {
 //  CHECK_BO(emit_exp_pop_next(emit, e));
   CHECK_BO(emit_exp(emit, e));
+  {
+    const Instr instr = (Instr)vector_back(&emit->code->instr);
+    if(instr->execute == fast_except)
+      vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
+  }
   if(instr)
     *instr = emit_add_instr(emit, NoOp);
 //  emit_exp_addref1(emit, e, -exp_size(e)); // ????
