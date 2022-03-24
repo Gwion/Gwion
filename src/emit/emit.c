@@ -1961,8 +1961,12 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
   CHECK_BO(emit_exp(emit, e));
   {
     const Instr instr = (Instr)vector_back(&emit->code->instr);
-    if(instr->execute == fast_except)
+    if(instr->execute == fast_except) {
       vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
+      if(instr->m_val2)
+        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)instr->m_val2);
+      free_instr(emit->gwion, instr);
+    }
   }
   if(instr)
     *instr = emit_add_instr(emit, NoOp);
