@@ -21,9 +21,8 @@ static m_bool ptr_access(const Env env, const Exp e) {
   ERR_B(e->pos, _("operand is %s"), access);
 }
 
-ANN static inline Type ptr_base(const Env env, const Type t) {
+ANN static inline Type ptr_base(const Type t) {
   return (Type)vector_front(&t->info->tuple->types);
-//  return known_type(env, *mp_vector_at(t->info->cdef->base.tmpl->call, Type_Decl*, 0));
 }
 
 static OP_CHECK(opck_ptr_assign) {
@@ -36,7 +35,7 @@ static OP_CHECK(opck_ptr_assign) {
   do {
     Type u = bin->rhs->type;
     do {
-      const Type base = ptr_base(env, u);
+      const Type base = ptr_base(u);
       if (isa(t, base) > 0) return bin->rhs->type;
     } while ((u = u->info->parent) && u->info->cdef->base.tmpl->call);
   } while ((t = t->info->parent));
@@ -54,7 +53,7 @@ static OP_EMIT(opem_ptr_assign) {
 
 static OP_CHECK(opck_ptr_deref) {
   const Exp_Unary *unary = (Exp_Unary *)data;
-  return ptr_base(env, unary->exp->type);
+  return ptr_base(unary->exp->type);
 }
 
 static OP_CHECK(opck_ptr_cast) {
@@ -73,7 +72,7 @@ static OP_CHECK(opck_ptr_cast) {
 static OP_CHECK(opck_ptr_implicit) {
   const struct Implicit *imp  = (struct Implicit *)data;
   const Exp              e    = imp->e;
-  const Type             base = ptr_base(env, imp->t);
+  const Type             base = ptr_base(imp->t);
   if (isa(e->type, base) > 0) {
     const m_str access = exp_access(e);
     if (access) ERR_N(e->pos, _("can't cast %s value to Ptr"), access);

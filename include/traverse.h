@@ -1,6 +1,6 @@
 #ifndef __TRAVERSE
 #define __TRAVERSE
-ANN m_bool traverse_ast(const Env, const Ast*);
+ANN m_bool traverse_ast(const Env, Ast *const);
 ANN m_bool traverse_class_def(const Env, const Class_Def);
 ANN m_bool traverse_func_def(const Env, const Func_Def);
 ANN m_bool traverse_union_def(const Env, const Union_Def);

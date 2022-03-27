@@ -46,7 +46,7 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
   return ret;
 }
 
-ANN static m_bool scan2_args(const Env env, const Func_Def f) {
+ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List   args   = f->base->args;
   const bool global = GET_FLAG(f->base, global);
   for(uint32_t i = 0; i < args->len; i++) {
@@ -80,7 +80,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   if (!tmpl_base(fptr->base->tmpl)) {
     const Func_Def def = fptr->type->info->func->def;
-    if (def->base->args) { RET_NSPC(scan2_args(env, def)) }
+    if (def->base->args) { RET_NSPC(scan2_args(def)) }
   } else
     set_tflag(fptr->type, tflag_ftmpl);
   return GW_OK;
@@ -514,7 +514,7 @@ m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
     CHECK_OB(func_create(env, f, overload, name));
   else
     f->base->func = base;
-  if (f->base->args) CHECK_BB(scan2_args(env, f));
+  if (f->base->args) CHECK_BB(scan2_args(f));
   if (!f->builtin && f->d.code) CHECK_BB(scan2_func_def_code(env, f));
   if (!base) {
     if (fbflag(f->base, fbflag_op)) CHECK_BB(scan2_func_def_op(env, f));

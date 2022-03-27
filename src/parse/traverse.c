@@ -3,7 +3,7 @@
 #include "gwion_env.h"
 #include "traverse.h"
 
-ANN m_bool traverse_ast(const Env env, const Ast *ast) {
+ANN m_bool traverse_ast(const Env env, Ast *const ast) {
   CHECK_BB(scan0_ast(env, ast));
   CHECK_BB(scan1_ast(env, ast));
   CHECK_BB(scan2_ast(env, ast));

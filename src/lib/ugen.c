@@ -373,11 +373,9 @@ ANN static UGen add_ugen(const Gwi gwi, struct ugen_importer *imp) {
 }
 
 static GWION_IMPORT(global_ugens) {
-  const VM *           vm       = gwi_vm(gwi);
+  VM *const vm       = gwi_vm(gwi);
   struct ugen_importer imp_hole = {vm, compute_mono, "blackhole", 1};
   const UGen           hole     = add_ugen(gwi, &imp_hole);
-  struct ugen_importer imp_dac  = {vm, dac_tick, "dac", vm->bbq->si->out};
-
   // dac needs to have *multi*
   const M_Object dac  = new_M_UGen(gwi->gwion);
   const UGen     u  = UGEN(dac);

@@ -299,13 +299,13 @@ static OP_CHECK(opck_cast_f2i) {
   }
   return env->gwion->type[et_int];
 }
-
+/*
 ANN static void tofloat(Exp e, const m_int i) {
   e->exp_type = ae_exp_primary;
   e->d.prim.prim_type = ae_prim_float;
   e->d.prim.d.fnum = i;
 }
-
+*/
 static OP_CHECK(opck_cast_i2f) {
   Exp_Cast *cast = (Exp_Cast*)data;
   if(is_prim_int(cast->exp)) {
