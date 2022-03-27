@@ -36,7 +36,7 @@ static OP_CHECK(opck_object_at) {
   }
   exp_setvar(bin->rhs, 1);
   CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
-  bin->lhs->ref = bin->rhs;
+  bin->rhs->ref = bin->lhs;
   return bin->rhs->type;
 }
 
