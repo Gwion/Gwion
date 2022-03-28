@@ -274,7 +274,10 @@ ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
 
 ANN static inline Value get_value(const Env env, const Symbol sym) {
   const Value value = nspc_lookup_value1(env->curr, sym);
-  if (value) return value;
+  if(value) {
+    if (!value->from->owner_class || isa(env->class_def, value->from->owner_class) > 0)
+      return value;
+  }
   if (env->func && env->func->def->base->values)
     return (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
   return NULL;

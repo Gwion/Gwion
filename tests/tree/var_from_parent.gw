@@ -1,0 +1,17 @@
+#! [contains] Gotcha!
+class ParentClass {
+    var string name;
+}
+
+class UncleClass {
+
+    var string name;
+
+    class ChildClass extends ParentClass {
+        "Gotcha!" => name;
+    }
+}
+
+var UncleClass.ChildClass c;
+
+<<< c.name >>>;
