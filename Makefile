@@ -126,7 +126,7 @@ clean: clean_core
 	$(info cleaning ...)
 	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a ${gcno} ${gcda}
 
-install: ${PRG} translation-install
+install: all translation-install
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
 	@mkdir -p ${DESTDIR}/${PREFIX}/{bin,lib,include,share}
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
