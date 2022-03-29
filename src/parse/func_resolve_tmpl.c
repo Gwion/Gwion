@@ -29,19 +29,18 @@ ANN static inline Value template_get_ready(const Env env, const Value v,
 }
 
 ANN static inline bool
-tmpl_valid(const Env env, const Func_Def fdef /*, Exp_Call *const exp*/) {
+tmpl_valid(const Env env, const Func_Def fdef /*, Exp_Call *const exp*/, const m_str filename) {
   if (safe_fflag(fdef->base->func, fflag_valid)) return true;
-  //  const Tmpl tmpl = { .list=fdef->base->tmpl->list, .call=exp->tmpl->call };
-  //  CHECK_BO(template_push_types(env, &tmpl));;
+  const m_str old_file = env->name;
+  env->name = filename;
   const bool ret = check_traverse_fdef(env, fdef) > 0;
-  //  nspc_pop_type(env->gwion->mp, env->curr);
-  if(!ret)free_func_def(env->gwion->mp, fdef);
+  env->name = old_file;
   return ret;
 }
 
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
-                            Exp_Call *const exp) {
-  if (!tmpl_valid(env, fdef /*, exp*/)) return NULL;
+                            Exp_Call *const exp, const m_str filename) {
+  if (!tmpl_valid(env, fdef /*, exp*/, filename)) return NULL;
   if (exp->args && !exp->args->type) return NULL;
   const Func f    = fdef->base->func;
   const Func next = f->next;
@@ -94,7 +93,7 @@ ANN static Func tmpl_exists(const Env env, struct ResolverArgs *ra,
                             const Value exists) {
   if (env->func == exists->d.func_ref)
     return find_func_match(env, env->func, ra->e) ? env->func : NULL;
-  return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
+  return ensure_tmpl(env, exists->d.func_ref->def, ra->e, ra->v->from->filename);
 }
 
 ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
@@ -105,7 +104,7 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   if (vflag(ra->v, vflag_builtin)) set_vflag(value, vflag_builtin);
   fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
   fdef->base->tmpl->base = i;
-  const Func func        = ensure_tmpl(env, fdef, ra->e);
+  const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
   if (func && vflag(ra->v, vflag_builtin)) {
     builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
