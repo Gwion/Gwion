@@ -62,7 +62,6 @@ static void fptr_def(const Env env, const Fptr_Def fptr) {
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(env_access(env, fptr->base->flag, fptr->base->td->pos));
   CHECK_BB(scan0_defined(env, fptr->base->xid, fptr->base->td->pos));
-  ;
   const m_str name   = s_name(fptr->base->xid);
   const Type  t      = scan0_type(env, name, env->gwion->type[et_fptr]);
   const bool  global = !env->class_def && GET_FLAG(fptr->base, global);
