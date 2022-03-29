@@ -588,7 +588,7 @@ static OP_CHECK(opck_op_impl) {
 //  if (eff && !check_effect_overload(eff, func))
 //    ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
 //          s_name(impl->e->d.prim.d.var), func->name);
-  Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
+  const Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if (v) {
     const m_uint scope = env_push(env, NULL, opi.nspc);
     _lhs.next          = &_rhs;

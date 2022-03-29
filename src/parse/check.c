@@ -1867,7 +1867,6 @@ ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
 ANN static m_bool recursive_type_base(const Env env, const Type t);
 ANN static bool recursive_type(const Env env, const Type t, const Type tgt);
 ANN static bool recursive_value(const Env env, const Type t, const Value v) {
-//if(!v->from->owner_class)exit(13);
   const Type tgt = array_base(v->type);
   if(type_is_recurs(t, tgt)) {
     env_err(env, v->from->loc, _("recursive type"));
@@ -1948,6 +1947,11 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     CHECK_BB(env_body(env, cdef, check_body));
     if (cflag(cdef, cflag_struct) || class_def_has_body(env, cdef->body))
       set_tflag(t, tflag_ctor);
+  }
+  if(t->info->parent->nspc && nspc_lookup_value0(t->info->parent->nspc, insert_symbol("new")) && !nspc_lookup_value0(t->nspc, insert_symbol("new"))) {
+    env_err(env, cdef->pos, "must define 'new' operator");
+    env_warn(env, t->info->parent->info->value->from->loc, "defined here");
+    return GW_ERROR;
   }
   if (!GET_FLAG(cdef, abstract)) CHECK_BB(check_abstract(env, cdef));
   if (cdef->traits) {

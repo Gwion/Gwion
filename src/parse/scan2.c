@@ -568,6 +568,7 @@ ANN m_bool _scan2_func_def(const Env env, const Func_Def fdef) {
   if(!strcmp(s_name(fdef->base->xid), "new")) {
     if(!env->class_def)
       ERR_B(fdef->base->pos, _("{G+}new{0} operator must be set inside {C+}class{0}"));
+    SET_FLAG(env->class_def, abstract);
     if(!fdef->base->ret_type)
 //      fdef->base->ret_type = env->class_def;
       fdef->base->ret_type = env->gwion->type[et_auto];

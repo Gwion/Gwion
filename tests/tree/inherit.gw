@@ -1,0 +1,14 @@
+class baseClass {}
+
+class childClass extends baseClass {
+    "test" => var string param;
+}
+
+class testClass {
+    var static baseClass classHolder;
+}
+
+var testClass tc;
+
+var childClass cc => tc.classHolder;
+<<< cc.param >>>;
