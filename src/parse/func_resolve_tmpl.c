@@ -35,6 +35,7 @@ tmpl_valid(const Env env, const Func_Def fdef /*, Exp_Call *const exp*/, const m
   env->name = filename;
   const bool ret = check_traverse_fdef(env, fdef) > 0;
   env->name = old_file;
+  if(!fdef->base->func)free_func_def(env->gwion->mp, fdef);
   return ret;
 }
 
