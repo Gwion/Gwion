@@ -183,8 +183,7 @@ OP_CHECK(opck_object_dot) {
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
-    if(!tflag(the_base, tflag_check) && env->class_def != the_base) {
-      set_tflag(the_base, tflag_cdef);
+    if(tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check) && env->class_def != the_base) {
       CHECK_BN(ensure_traverse(env, the_base));
       return check_exp(env, exp_self(member));
     }
