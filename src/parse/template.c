@@ -119,9 +119,11 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     if(!td->types) {
       const Type new_type = nspc_lookup_type1(env->curr, td->xid);
       Type_Decl *new_td = type2td(env->gwion, new_type, td->pos);
-      if(!new_td->types)
+      Type_Decl *d = new_td;
+      while(d->next) d = d->next;
+      if(!d->types)
         ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
-      const Type ret = _scan_type(env, t, new_td);
+      const Type ret = _scan_type(env, t, d);
       free_type_decl(env->gwion->mp, new_td);
       return ret;
     }

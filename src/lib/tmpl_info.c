@@ -47,6 +47,7 @@ ANN static ssize_t template_size(const Env env, struct tmpl_info *info) {
   const size_t tmpl_sz = tmpl_set(info, str);
   const m_str  base    = type2str(env->gwion, info->base, info->td->pos);
   return tmpl_sz + tmpl_set(info, base) + 4;
+//  return tmpl_sz + tmpl_set(info, info->base->name) + 4;
 }
 
 ANEW ANN static Symbol _template_id(const Env env, struct tmpl_info *const info,

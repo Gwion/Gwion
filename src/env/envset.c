@@ -43,8 +43,8 @@ ANN2(1, 3)
 m_bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
   if (t) {
     check(es, t);
-    if(es->run && type_global(es->env, t))
-      env_push_global(es->env);
+//    if(es->run && type_global(es->env, t))
+//      env_push_global(es->env);
     return es->run ? push(es, t) : GW_OK;
   }
   if (nspc != es->env->curr) {
@@ -68,8 +68,8 @@ ANN2(1) static void _envset_pop(struct EnvSet *es, const Type t) {
 
 ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
   _envset_pop(es, t);
-  if(t && type_global(es->env, t))
-    env_pop(es->env, es->scope);
+//  if(t && type_global(es->env, t))
+//    env_pop(es->env, es->scope);
   if (es->_ctx) es->env->context = es->_ctx;
   if (es->_filename) es->env->name = es->_filename;
 }
