@@ -216,7 +216,7 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   Specialized_List sl  = base->tmpl->list;
   const Arg_List   args = base->args;
   Arg *arg0 = mp_vector_at(args, Arg, 0);
-  Arg *arg1 = mp_vector_at(args, Arg, 1);
+  Arg *arg1 = args->len > 1 ? mp_vector_at(args, Arg, 1) : NULL;
   uint32_t idx = 0;
   if (opi->lhs) {
     if (!_tmpl_match(env, opi->lhs, arg0->td, mp_vector_at(sl, Specialized, idx), &idx)) return false;
@@ -235,16 +235,20 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
 }
 
 //! make template operator Func_def
-ANN Type op_def(const Env env, struct Op_Import *const opi,
+ANN static Type op_def(const Env env, struct Op_Import *const opi,
                 const Func_Def fdef) {
   const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
   tmpl_fdef->base->tmpl->base = 0;
   tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
-    sizeof(Type_Decl*), !!opi->lhs + !!opi->rhs);
+    sizeof(Type_Decl*), fdef->base->tmpl->list->len);
   if (opi->lhs) {
-     mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, 0, type2td(env->gwion, opi->lhs, opi->pos));
-     if(opi->rhs)
-       mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, 1, type2td(env->gwion, opi->rhs, opi->pos));
+     uint32_t idx = 0;
+     const Type lhs = find_type(env, mp_vector_at(fdef->base->args, Arg, 0)->td);
+     if(!lhs)
+       mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, idx++, type2td(env->gwion, opi->lhs, opi->pos));
+     const Type rhs = find_type(env, mp_vector_at(fdef->base->args, Arg, 1)->td);
+     if(!rhs)
+       mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, idx, type2td(env->gwion, opi->rhs, opi->pos));
   } else
      mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, 0, type2td(env->gwion, opi->rhs, opi->pos));
   if (traverse_func_def(env, tmpl_fdef) < 0) {

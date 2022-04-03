@@ -20,7 +20,6 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
   for(uint32_t i = 0; i < sl->len; i++) {
     if (i >= tl->len) return GW_OK;
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-//    const Type t = td ? known_type(env, td) : NULL;
     const Type t = known_type(env, td);
     if (!t) return GW_OK;
     Specialized *spec = mp_vector_at(sl, Specialized, i);
@@ -114,7 +113,7 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
         t->name)
 }
 
-ANN Type _scan_type(const Env env, const Type t, Type_Decl *td) {
+ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
   if (tflag(t, tflag_tmpl) && !is_func(env->gwion, t)) {
     if (tflag(t, tflag_ntmpl) && !td->types) return t;
     if(!td->types) {

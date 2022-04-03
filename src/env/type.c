@@ -22,6 +22,8 @@ ANN void free_type(const Type a, struct Gwion_ *const gwion) {
     else if (tflag(a, tflag_cdef))
       class_def_cleaner(gwion, a->info->cdef);
   }
+  if (tflag(a, tflag_cdef) && a->info->parent)
+    type_remref(a->info->parent, gwion);
   if (a->effects.ptr) vector_release(&a->effects);
   if (a->nspc) nspc_remref(a->nspc, gwion);
   if (a->info->tuple) free_tupleform(a->info->tuple, gwion);

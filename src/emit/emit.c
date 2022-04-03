@@ -485,7 +485,7 @@ m_bool emit_instantiate_object(const Emitter emit, const Type type,
     if(!tflag(type, tflag_typedef)) {
       const Instr instr = emit_add_instr(emit, ObjectInstantiate);
       instr->m_val2     = (m_uint)type;
-    }
+    } // maybe we should instantiate the first actual type
     CHECK_BB(emit_pre_ctor(emit, type));
   }
   return GW_OK;
@@ -2546,6 +2546,11 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(emit_func_def(emit, tdef->when_def));
+
+  if (!is_fptr(emit->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+    if(!tflag(tdef->type->info->parent, tflag_emit))
+                    return emit_class_def(emit, tdef->type->info->parent->info->cdef);
+  }
   return (!is_fptr(emit->gwion, tdef->type) && tdef->type->info->cdef)
              ? emit_class_def(emit, tdef->type->info->cdef)
              : GW_OK;

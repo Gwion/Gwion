@@ -1105,6 +1105,11 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     ret_id->type             = tdef->type;
     tdef->when_def           = fdef;
   }
+  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+    if(!tflag(tdef->type->info->parent, tflag_check))
+                    return check_class_def(env, tdef->type->info->parent->info->cdef);
+  }
+
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
              ? check_class_def(env, tdef->type->info->cdef)
              : GW_OK;
@@ -1948,11 +1953,14 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     if (cflag(cdef, cflag_struct) || class_def_has_body(env, cdef->body))
       set_tflag(t, tflag_ctor);
   }
+/*
+  // enforce new to be defined in every child class
   if(t->info->parent->nspc && nspc_lookup_value0(t->info->parent->nspc, insert_symbol("new")) && !nspc_lookup_value0(t->nspc, insert_symbol("new"))) {
     env_err(env, cdef->pos, "must define 'new' operator");
     env_warn(env, t->info->parent->info->value->from->loc, "defined here");
     return GW_ERROR;
   }
+*/
   if (!GET_FLAG(cdef, abstract)) CHECK_BB(check_abstract(env, cdef));
   if (cdef->traits) {
     ID_List list        = cdef->traits;

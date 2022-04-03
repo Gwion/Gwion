@@ -1,6 +1,0 @@
-#! [contains] must define 'new' operator
-class C {
-  operator new() {}
-}
-class D extends C {}
-<<< "lol" >>>;

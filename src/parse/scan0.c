@@ -153,6 +153,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
   CHECK_BB(scan0_class_def(env, cdef));
   tdef->type      = cdef->base.type;
   cdef->base.tmpl = tdef->tmpl; // check cpy
+  set_tflag(tdef->type, tflag_cdef);
   mk_class(env, tdef->type, tdef->pos);
   return GW_OK;
 }
@@ -180,14 +181,14 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     env_push_global(env);
   }
   if (!is_func(env->gwion, base)) {
-    if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
+    if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp)) {
       typedef_simple(env, tdef, base);
-    else
+    } else
       CHECK_BB(typedef_complex(env, tdef, base));
   } else
     typedef_fptr(env, tdef, base);
   if (tdef->when) set_tflag(tdef->type, tflag_contract);
-  if (!tdef->distinct && !tdef->when)
+  if (tdef->type != base && !tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, base, tdef->type);
   if (tdef->distinct || tdef->when) {
 //    tdef->type->info->parent = base->info->parent;
@@ -198,14 +199,15 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     op_cpy(env, &opi);
     scan0_explicit_distinct(env, base, tdef->type);
     type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
-  } else
+  } else if(tdef->ext->array)
     set_tflag(tdef->type, tflag_typedef);
   if(tflag(base, tflag_ref)) {
     set_tflag(tdef->type, tflag_ref);
     set_tflag(tdef->type, tflag_infer);
   }
   if (global) env_pop(env, 0);
-  tdef->type->info->base_type = base;
+  if (tdef->type != base)
+    tdef->type->info->base_type = base;
   return GW_OK;
 }
 
@@ -346,6 +348,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
   const Type parent = cdef_parent(env, cdef);
   if (parent == (Type)GW_ERROR) return NULL;
+  if(parent) type_addref(parent);
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if (cflag(cdef, cflag_struct)) {

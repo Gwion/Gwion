@@ -477,6 +477,13 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
+  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+    if(!tflag(tdef->type->info->parent, tflag_scan1))
+                    return scan1_class_def(env, tdef->type->info->parent->info->cdef);
+  }
+  if (!is_fptr(env->gwion, tdef->type) && !tdef->type->info->cdef) {
+    if(!tflag(tdef->type->info->parent, tflag_scan1))exit(12);
+  }
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
              ? scan1_cdef(env, tdef->type)
              : GW_OK;

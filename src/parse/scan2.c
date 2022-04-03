@@ -89,6 +89,10 @@ ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f);
 ANN m_bool        scan2_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan2_exp(env, tdef->when));
+  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+    if(!tflag(tdef->type->info->parent, tflag_scan2))
+                    return scan2_class_def(env, tdef->type->info->parent->info->cdef);
+  }
   if (!tdef->type->info->cdef) return GW_OK;
   return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
                     ? scan2_class_def(env, tdef->type->info->cdef)
