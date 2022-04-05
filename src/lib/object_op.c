@@ -172,6 +172,16 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
   return NULL;
 }
 
+ANN static Type class_type(const Env env, const Exp_Dot *member, const Type base) {
+  const Type parent = actual_type(env->gwion, base);
+  if(!tflag(parent, tflag_tmpl)) return parent;
+  Type_Decl td = {
+       .xid=insert_symbol(env->gwion->st, parent->name),
+       .types = member->is_call->tmpl ? member->is_call->tmpl->call : NULL
+  };
+  return known_type(env, &td);
+}
+
 OP_CHECK(opck_object_dot) {
   Exp_Dot *const member      = (Exp_Dot *)data;
   const m_str    str         = s_name(member->xid);
@@ -192,12 +202,11 @@ OP_CHECK(opck_object_dot) {
       if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0))
         return v->type;
     if (is_class(env->gwion, v->type)) {
-       const Type parent = actual_type(env->gwion, v->type);
-       if (isa(the_base, parent) > 0 && parent->nspc) { // beware templates
+       DECL_OO(const Type, parent, = class_type(env, member, v->type));
+       if (isa(the_base, parent) > 0 && parent->nspc) {
           const Symbol sym = insert_symbol(env->gwion->st, "new");
           const Value ret = nspc_lookup_value1(parent->nspc, sym);
           member->xid = sym;
-//          member->base->type = parent;
           if(ret)
             return ret->type;
         }

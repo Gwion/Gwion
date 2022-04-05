@@ -60,7 +60,9 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: options-show ${GWLIBS} src/main.o
+all: options-show ${PRG}
+
+${PRG}: ${GWLIBS} src/main.o
 	@$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
 
@@ -149,7 +151,7 @@ uninstall: translation-uninstall
 	@rm ${DESTDIR}/${PREFIX}/include/gwion/*.h
 	@rmdir --ignore-fail-on-non-empty ${DESTDIR}/${PREFIX}/include/gwion
 
-test:
+test: ${PRG}
 	@bash scripts/test.sh ${test_dir}
 
 scan:

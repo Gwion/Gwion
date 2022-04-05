@@ -10,6 +10,7 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
+#include "default_args.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -145,7 +146,7 @@ ANN static inline m_bool scan2_exp_binary(const Env         env,
                                           const Exp_Binary *bin) {
   CHECK_BB(scan2_exp(env, bin->lhs));
   CHECK_BB(scan2_exp(env, bin->rhs));
-if(bin->rhs->exp_type == ae_exp_call)bin->rhs->d.exp_call.apms = true;
+  if(bin->rhs->exp_type == ae_exp_call)bin->rhs->d.exp_call.apms = true;
   CHECK_BB(multi_decl(env, bin->lhs, bin->op));
   return multi_decl(env, bin->rhs, bin->op);
 }
@@ -511,13 +512,11 @@ static m_str func_name(const Env env, const Func_Def f, const Value v) {
 
 ANN2(1, 2)
 m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
-  const m_str name = func_name(env, f, overload ?: NULL);
+  const m_str name = func_name(env, f, overload);
   if (!name) return GW_ERROR;
   const Func base = f->base->func;
   if (!base)
     CHECK_OB(func_create(env, f, overload, name));
-  else
-    f->base->func = base;
   if (f->base->args) CHECK_BB(scan2_args(f));
   if (!f->builtin && f->d.code) CHECK_BB(scan2_func_def_code(env, f));
   if (!base) {
@@ -637,15 +636,37 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if (tflag(t, tflag_scan2)) return GW_OK;
   set_tflag(t, tflag_scan2);
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
-  if (c->body) CHECK_BB(env_body(env, c, scan2_section));
+  if (c->body) {
+    const m_uint scope = env_push_type(env, t);
+    const Tmpl *tmpl = cdef->base.tmpl;
+    if(tmpl && tmpl->call && tmpl->call != (Type_List)1 && tmpl->list)
+      template_push_types(env, tmpl);
+    const m_bool ret = scan2_ast(env, &c->body);
+    if(tmpl && tmpl->call && tmpl->call != (Type_List)1 && tmpl->list)
+      nspc_pop_type(env->gwion->mp, env->curr);
+    env_pop(env, scope);
+    return ret;
+  }
   return GW_OK;
 }
 
 ANN m_bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
+  Ast acc = new_mp_vector(env->gwion->mp, sizeof(Section), 0);
+  m_bool ret = GW_OK;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
-    CHECK_BB(scan2_section(env, section));
+    if((ret = scan2_section(env, section)) < 0) break;
+    if (section->section_type == ae_section_func &&
+        fbflag(section->d.func_def->base, fbflag_default)) {
+      mp_vector_add(env->gwion->mp, &acc, Section, *section);
+    }
   }
-  return GW_OK;
+
+  for(uint32_t i = 0; i < acc->len; i++) {
+    Section * section = mp_vector_at(acc, Section, i);
+    default_args(env, section, ast);
+  }
+  free_mp_vector(env->gwion->mp, sizeof(Section), acc);
+  return ret;
 }

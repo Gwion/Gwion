@@ -348,7 +348,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
   const Type parent = cdef_parent(env, cdef);
   if (parent == (Type)GW_ERROR) return NULL;
-  if(parent) type_addref(parent);
+  //if(parent) type_addref(parent);
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if (cflag(cdef, cflag_struct)) {
@@ -376,57 +376,6 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
     }
   }
   return GW_OK;
-}
-
-ANN static Exp mk_default_args(const MemPool p, const Arg_List args, const uint32_t max) {
-  Exp exp = NULL, base_exp = NULL;
-  for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    const Exp arg_exp = new_prim_id(p, arg->var_decl.xid, arg->var_decl.pos);
-    if(exp)
-      exp = (exp->next = arg_exp);
-    else
-      base_exp = exp = arg_exp;
-  }
-  // now add default args
-  for(uint32_t i = args->len; i < max; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    const Exp arg_exp = cpy_exp(p, arg->exp);
-    if(exp)
-      exp = (exp->next = arg_exp);
-    else
-      base_exp = exp = arg_exp;
-  }
-  return base_exp;
-}
-
-ANN2(1) static void scan0_func_def_default(const MemPool p, const Section *s,
-                                            Ast *acc) {
-  const Func_Def base_fdef = s->d.func_def;
-  Arg_List       args = base_fdef->base->args;
-  const uint32_t len = args->len;
-  while(args->len--) {
-    Arg *arg = mp_vector_at(args, Arg, args->len);
-    if(!arg->exp) break;
-    Func_Base *base = new_func_base(
-        p, base_fdef->base->td ? cpy_type_decl(p, base_fdef->base->td) : NULL, base_fdef->base->xid,
-        cpy_arg_list(p, args),
-        base_fdef->base->flag, base_fdef->base->pos);
-    const Exp efunc = new_prim_id(p, base->xid, base->pos);
-    const Exp exp_arg = mk_default_args(p, args, len);
-    const Exp ecall = new_exp_call(p, efunc, exp_arg, base->pos);
-    Stmt_List slist = new_mp_vector(p, sizeof(struct Stmt_), 1);
-    mp_vector_set(slist, struct Stmt_, 0,
-      ((struct Stmt_) {
-        .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ecall }},
-        .pos = base_fdef->base->pos
-    }));
-    const Stmt      body  = new_stmt_code(p, slist, base->pos);
-    const Func_Def  fdef  = new_func_def(p, base, body);
-    Section       section = MK_SECTION(func, func_def, fdef);
-    mp_vector_add(p, acc, Section, section);
-  }
-  args->len = len;
 }
 
 #define scan0_func_def dummy_func
@@ -490,9 +439,9 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->pos);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
-  const m_uint scope = env_push(env, cdef->base.type->info->value->from->owner_class, cdef->base.type->info->value->from->owner);
+//  const m_uint scope = env_push(env, cdef->base.type->info->value->from->owner_class, cdef->base.type->info->value->from->owner);
   const m_bool ret = cdef->body ? env_body(env, cdef, scan0_section) : GW_OK;
-  env_pop(env, scope);
+//  env_pop(env, scope);
   return ret;
 }
 
@@ -523,23 +472,9 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
 
 ANN m_bool scan0_ast(const Env env, Ast *ast) {
   Ast a = *ast;
-  Ast acc = new_mp_vector(env->gwion->mp, sizeof(Section), 0);
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
     CHECK_BB(scan0_section(env, section));
-
-    if (section->section_type != ae_section_func ||
-        !fbflag(section->d.func_def->base, fbflag_default))
-      continue;
-    scan0_func_def_default(env->gwion->mp, section, &acc);
-
   }
-
-  for(m_uint i = 0; i < acc->len; i++) {
-    Section * section = mp_vector_at(acc, Section, i);
-    mp_vector_add(env->gwion->mp, ast, Section, *section);
-  }
-  free_mp_vector(env->gwion->mp, sizeof(Section), acc);
-
   return GW_OK;
 }

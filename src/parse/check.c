@@ -787,7 +787,7 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
 
 ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   if(exp->func->exp_type == ae_exp_dot)
-    exp->func->d.exp_dot.is_call = true;
+    exp->func->d.exp_dot.is_call = exp;
   CHECK_OB(check_exp(env, exp->func));
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
@@ -863,7 +863,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       }
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
-    if (func == env->func) set_fflag(env->func, fflag_recurs);
+//    if (func == env->func) set_fflag(env->func, fflag_recurs);
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
       func->def->base->ret_type : exp->func->d.exp_dot.base->type;
   }
@@ -943,6 +943,26 @@ ANN2(1) static inline bool curried(const Env env, Exp exp) {
   return false;
 }
 
+ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) {
+  if(isa(t, env->gwion->type[et_lambda]) > 0)
+    if  (!t->info->func)
+      ERR_O(exp->func->pos, _("invalid lambda use."))
+  if (exp->args) CHECK_OO(check_exp(env, exp->args));
+  if (!t->info->func->def->base->tmpl)
+    ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
+  if (t->info->func->def->base->tmpl->call) {
+    if (env->func == t->info->func) {
+      exp->func->type = env->func->value_ref->type;
+      return env->func->def->base->ret_type;
+    } else
+      CHECK_BO(predefined_call(env, t, exp_self(exp)->pos));
+  }
+  const Value v = type_value(env->gwion, t);
+  DECL_OO(const Func, f, = find_template_match(env, v, exp));
+  exp->func->type = f->value_ref->type;
+  return f->def->base->ret_type;
+}
+
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
   if (exp->apms && curried(env, exp->args))
     return env->gwion->type[et_curry];
@@ -951,23 +971,8 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     if (!ret) return exp_self(exp)->type;
     const Type t = actual_type(env->gwion, exp->func->type);
     if (!is_func(env->gwion, t)) return check_exp_call1(env, exp);
-    if(isa(t, env->gwion->type[et_lambda]) > 0)
-      if  (!t->info->func)
-        ERR_O(exp->func->pos, _("invalid lambda use."))
-    if (exp->args) CHECK_OO(check_exp(env, exp->args));
-    if (!t->info->func->def->base->tmpl)
-      ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
-    if (t->info->func->def->base->tmpl->call) {
-      if (env->func == t->info->func) {
-        exp->func->type = env->func->value_ref->type;
-        return env->func->def->base->ret_type;
-      } else
-        CHECK_BO(predefined_call(env, t, exp_self(exp)->pos));
-    }
-    const Value v = type_value(env->gwion, t);
-    DECL_OO(const Func, f, = find_template_match(env, v, exp));
-    exp->func->type = f->value_ref->type;
-    return f->def->base->ret_type;
+    if(strcmp("new", s_name(t->info->func->def->base->xid)))
+      return check_exp_call_tmpl(env, exp, t);
   }
   return check_exp_call1(env, exp);
 }
@@ -1736,8 +1741,6 @@ ANN static m_bool check_extend_def(const Env env, const Extend_Def xdef) {
 ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
   const Trait trait = nspc_lookup_trait1(env->curr, pdef->xid);
   Ast         ast   = pdef->body;
-//  while (ast) {
-//    Section *section = ast->section;
   for(m_uint i = 0; i < ast->len; i++) {
     Section * section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_stmt) {
@@ -1757,10 +1760,8 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
             vector_add(&trait->requested_values, (m_uint)value);
           }
         }
-//        list = list->next;
       }
     }
-//    ast = ast->next;
   }
   return GW_OK;
 }
