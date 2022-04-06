@@ -187,7 +187,7 @@ static INSTR(ArrayConcatLeft) {
     base->ptr = ptr;
   }
   m_bit *data = more->ptr + ARRAY_OFFSET;
-  memmove(ARRAY_PTR(base) + (len - 1) * sz, data, sz);
+  memmove(ARRAY_PTR(base) + len * sz, data, sz);
 }
 
 static INSTR(ArrayConcatRight) {
