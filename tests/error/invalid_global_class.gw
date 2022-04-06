@@ -1,4 +1,4 @@
-#! [contains] 'global' can only be used at class scope
+#! [contains] can only be used at class scope
 class C {
   {
     var global int i;

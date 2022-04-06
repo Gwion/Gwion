@@ -1,0 +1,4 @@
+#! [contains] at class scope only valid for function pointers
+class global C {
+  var global Event ev;
+}

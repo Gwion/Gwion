@@ -1,2 +1,2 @@
-#! [contains] argument number does not match for lambda
+#! [contains] not enough arguments for lambda
 \a b { <<< a, " ", b >>>; }(1);

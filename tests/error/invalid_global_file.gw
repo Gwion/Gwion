@@ -1,4 +1,4 @@
-#! [contains] 'global' can only be used at file scope
+#! [contains] can only be used at file scope
 {
 var global int i;
 }

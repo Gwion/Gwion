@@ -9,19 +9,21 @@
 ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
   if (env->scope->depth) {
     if (GET(flag, ae_flag_global))
-      ERR_B(pos, _("'global' can only be used at %s scope."),
+      ERR_B(pos, _("`{G}global{0}` can only be used at %s scope."),
             GET(flag, ae_flag_global) && !env->class_def ? "file" : "class")
   }
   if ((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
        GET(flag, ae_flag_protect)) &&
       (!env->class_def || env->scope->depth))
-    ERR_B(pos, _("static/private/protect can only be used at class scope."))
+    ERR_B(pos, _("`{G}static/private/protect{0}` can only be used at class scope."))
   return GW_OK;
 }
 
 ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
   CHECK_BB(env_access(env, flag, pos));
-  return !(env->class_def && GET(flag, ae_flag_global)) ? GW_OK : GW_ERROR;
+  if(env->class_def && GET(flag, ae_flag_global))
+    ERR_B(pos, _("`{G}global{0}` at class scope only valid for function pointers"));
+  return GW_OK;
 }
 #undef GET
 
