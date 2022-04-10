@@ -316,7 +316,7 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
 #define INT_OP(op, ...)   OP(m_int, SZ_INT, op, __VA_ARGS__)
 #define INT_IMM_OP(op)   *(m_int*)(reg-SZ_INT) op VAL; DISPATCH()
 #define FLOAT_OP(op, ...) OP(m_float, SZ_FLOAT, op, __VA_ARGS__)
-#define FLOAT_IMM_OP(op)   *(m_float*)(reg-SZ_FLOAT) op VAL; DISPATCH()
+#define FLOAT_IMM_OP(op)   *(m_float*)(reg-SZ_FLOAT) op FVAL; DISPATCH()
 
 #define LOGICAL(t, sz0, sz, op)                                                \
   reg -= sz0;                                                                  \
