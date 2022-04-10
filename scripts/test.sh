@@ -11,7 +11,7 @@
 : "${ANSI_CLEAR:=\033[0K}"
 : "${ANSI_BOLD:=\033[33;1m}"
 
-: "${DRIVER:=dummy}"
+#!: "${DRIVER:=dummy}"
 
 : "${ASYNC:=4}"
 : "${async:=$ASYNC}"
@@ -132,7 +132,8 @@ test_gw(){
   slog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").std.log
   elog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").err.log
   rlog=${GWION_TEST_DIR}${separator}${GWION_TEST_PREFIX}$(printf "%04i" "$n").log
-  LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+#!  LANG=C ./"$PRG" "$GWOPT" -d "$DRIVER" "$file" > "$slog" 2>"$elog" |:
+  LANG=C ./"$PRG" "$GWOPT" "$file" > "$slog" 2>"$elog" |:
   ret=$?
   #enable skip
   do_skip "$1" "$n" "$file" "$rlog" && return 0
