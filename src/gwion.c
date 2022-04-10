@@ -17,6 +17,7 @@
 #include "object.h" // fork_clean
 #include "pass.h"   // fork_clean
 #include "shreduler_private.h"
+#include "ugen.h"
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
@@ -35,9 +36,18 @@ ANN static VM_Shred gwion_cleaner(const Gwion gwion) {
   return shred;
 }
 
+ANN void gwion_cpy_blackhole(const Gwion gwion) {
+  dummy_driver(gwion->vm->bbq->driver);
+  const M_Object o  = new_M_UGen(gwion);
+  const UGen     u  = UGEN(o);
+  ugen_ini(gwion, u, 1, 1);
+  ugen_gen(gwion, u, compute_mono, o, 0);
+  vector_add(&gwion->vm->ugen, (vtype)u);
+}
+
 ANN VM *gwion_cpy(const VM *src) {
   const Gwion gwion  = mp_calloc(src->gwion->mp, Gwion);
-  gwion->vm          = new_vm(src->gwion->mp, false);
+  gwion->vm          = new_vm(src->gwion->mp, true);
   gwion->vm->gwion   = gwion;
   gwion->vm->bbq->si = soundinfo_cpy(src->gwion->mp, src->bbq->si);
   gwion->emit        = src->gwion->emit;
@@ -46,6 +56,7 @@ ANN VM *gwion_cpy(const VM *src) {
   gwion->st          = src->gwion->st;
   gwion->mp          = src->gwion->mp;
   gwion->type        = src->gwion->type;
+  gwion_cpy_blackhole(gwion);
   return gwion->vm;
 }
 
@@ -118,6 +129,9 @@ ANN void gwion_run(const Gwion gwion) {
 
 ANN static inline void free_gwion_cpy(const Gwion gwion, const VM_Shred shred) {
   gwion_end_child(shred, gwion);
+  const UGen u = (UGen)vector_front(&gwion->vm->ugen);
+  M_Object blackhole = u->module.gen.data;
+  release(blackhole, shred);
   free_vm(gwion->vm);
   free_gwiondata_cpy(gwion->mp, gwion->data);
   mp_free(gwion->mp, Gwion, gwion);

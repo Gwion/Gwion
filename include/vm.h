@@ -127,6 +127,7 @@ void vm_prepare(const VM *vm, m_bit*) __attribute__((hot));
 ANN static inline void vm_run(const VM *vm) {
   vm_prepare(vm, NULL);
 }
+ANN void vm_run_audio(const VM *vm);
 ANEW VM * new_vm(MemPool, const bool);
 ANN void  vm_lock(VM const *);
 ANN void  vm_unlock(VM const *);

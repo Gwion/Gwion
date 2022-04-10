@@ -13,6 +13,7 @@
 #include "emit.h"
 #include "specialid.h"
 #include "gwi.h"
+#include "ugen.h"
 
 static m_int o_fork_thread, o_shred_cancel,
     o_fork_done, o_fork_ev;
@@ -245,6 +246,15 @@ static MFUN(shred_now) {
   MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
+static MFUN(shred_blackhole) {
+  VM *vm = ME(o)->info->vm;
+  const UGen u = (UGen)vector_front(&vm->ugen);
+  M_Object blackhole = u->module.gen.data;
+  // adding ref for the moment
+  blackhole->ref++;
+  *(void**)RETURN = u->module.gen.data;
+}
+
 struct ThreadLauncher {
   MUTEX_TYPE       mutex;
   THREAD_COND_TYPE cond;
@@ -273,7 +283,7 @@ static ANN THREAD_FUNC(fork_run) {
 // THREAD_COND_CLEANUP(tl->cond);
 //  MUTEX_CLEANUP(tl->mutex);
   while (fork_running(vm, me)) {
-    vm_run(vm);
+    vm_run_audio(vm);
     ++vm->bbq->pos;
   }
   gwion_end_child(ME(me), vm->gwion);
@@ -395,6 +405,11 @@ GWION_IMPORT(shred) {
   GWI_BB(gwi_func_end(gwi, shred_unlock, ae_flag_none))
   gwi_func_ini(gwi, "float", "get_now");
   GWI_BB(gwi_func_end(gwi, shred_now, ae_flag_none))
+
+  gwi_func_ini(gwi, "UGen", "get_blackhole");
+  GWI_BB(gwi_func_end(gwi, shred_blackhole, ae_flag_none))
+
+
   GWI_BB(gwi_class_end(gwi))
   SET_FLAG(t_shred, abstract | ae_flag_final);
   gwi->gwion->type[et_shred] = t_shred;

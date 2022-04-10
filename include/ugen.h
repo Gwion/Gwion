@@ -46,4 +46,5 @@ ANN void ugen_gen(const struct Gwion_ *, const UGen, const f_tick, void *,
                   const m_bool);
 ANN void ugen_connect(const UGen lhs, const UGen rhs);
 ANN void ugen_disconnect(const UGen lhs, const UGen rhs);
+ANN void compute_mono(const UGen u);
 #endif

@@ -281,7 +281,7 @@ describe_connect_instr(Ugen, Connect, UGEN(rhs), ) describe_connect_instr(
                                                 UGEN(rhs)->module.gen.trig,
                                                 TRIG_EX)
 
-                                                static CTOR(ugen_ctor) {
+static CTOR(ugen_ctor) {
   UGEN(o) = new_UGen(shred->info->mp);
   vector_add(&shred->info->vm->ugen, (vtype)UGEN(o));
 }
@@ -365,7 +365,8 @@ ANN static UGen add_ugen(const Gwi gwi, struct ugen_importer *imp) {
   const M_Object o  = new_M_UGen(gwi->gwion);
   const UGen     u  = UGEN(o);
   ugen_ini(vm->gwion, u, imp->nchan, imp->nchan);
-  ugen_gen(vm->gwion, u, imp->tick, (void *)imp->vm, 0);
+//  ugen_gen(vm->gwion, u, imp->tick, (void *)imp->vm, 0);
+  ugen_gen(vm->gwion, u, imp->tick, o, 0);
   vector_add(&vm->ugen, (vtype)u);
   gwi_item_ini(gwi, "UGen", imp->name);
   gwi_item_end(gwi, ae_flag_const, obj, o);

@@ -1600,7 +1600,7 @@ ANN void next_bbq_pos(const VM *vm) {
   MUTEX_UNLOCK(vm->shreduler->mutex);
 }
 
-static void vm_run_audio(const VM *vm) {
+ANN void vm_run_audio(const VM *vm) {
   vm_run(vm);
   vm_ugen_init(vm);
 }
