@@ -5,7 +5,7 @@ provide-module -override gwion %{
 	add-highlighter shared/gwion/other default-region group
 
 	# comment
-	add-highlighter shared/gwion/comment region '#!' '$' group
+	add-highlighter shared/gwion/comment region '#!' '($|!#)' group
 	add-highlighter shared/gwion/comment/ fill comment
 
 	# preprocessor
@@ -25,7 +25,7 @@ provide-module -override gwion %{
 			new spork fork'
 
 		attributes='const var static private public protect variadic template samp ms second minute delay'
-		types='auto int float void Object Shred Event'
+		types='auto int float bool void Object Shred Event'
 		values='true false none this now me adc dac maybe'
 		builtins='__file__ __line__ __func__'
 		entities='class struct trait union enum'
@@ -45,9 +45,18 @@ provide-module -override gwion %{
 		"
 	}
 
+	# user operator
+	add-highlighter shared/gwion/other/ regex "@\w+" 0:operator
+
 	# literals
-	add-highlighter shared/gwion/other/ regex "\d*" 0:value
-	add-highlighter shared/gwion/other/ regex "\B'((\\.)|[^'\\])'\B" 0:value
+	add-highlighter shared/gwion/other/ regex "\B'((\\.)|[^'\\])'\B" 0:value  # char
+
+	add-highlighter shared/gwion/other/ regex "\d+(u|U|l|L)?" 0:value                   # decimal
+	add-highlighter shared/gwion/other/ regex "((\d+\.\d*)|(\d*\.\d+))([eE][\+-]\d+)*" 0:value           # float
+
+	add-highlighter shared/gwion/other/ regex "0[xX][a-fA-F0-9]+(u|U|l|L)?" 0:value     # hex
+	add-highlighter shared/gwion/other/ regex "0[bB][0-1]+(u|U|l|L)?" 0:value           # binary
+	add-highlighter shared/gwion/other/ regex "0[cC][0-7]+(u|U|l|L)?" 0:value           # octal
 
 	# string
 	add-highlighter shared/gwion/string region '"' (?<!\\)(\\\\)*" group
