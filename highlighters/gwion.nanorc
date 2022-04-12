@@ -1,0 +1,79 @@
+## Gwion config for GNU nano
+##
+
+syntax "gwion" "\.gw"
+
+formatter gwion-nano-fmt
+linter gwion -g check
+
+color bold,mauve "\<auto\>"
+color bold,mauve "\<void\>"
+color bold,mauve "\<int\>"
+color bold,mauve "\<char\>"
+color bold,mauve "\<float\>"
+color bold,mauve "\<dur\>"
+color bold,mauve "\<time\>"
+color italic,lightyellow "\<now\>"
+color bold,mauve "\<Object\>"
+color italic,lightyellow "\<this\>"
+color italic,mauve "\<bool\>"
+color italic,lightyellow "\<maybe\>"
+color italic,mauve "\<t\>"
+color bold,mauve "\<None\>"
+color italic,lightyellow "\<None\>"
+color mauve "\<UGen\>"
+color italic,lightyellow "\<__func__\>"
+color mauve "\<Shred\>"
+color italic,lightyellow "\<me\>"
+color mauve "\<Fork\>"
+color mauve "\<TypedFork\>"
+color mauve "\<Gain\>"
+color mauve "\<Impulse\>"
+color mauve "\<FullRect\>"
+color mauve "\<HalfRect\>"
+color mauve "\<Step\>"
+color mauve "\<ZeroX\>"
+color mauve "\<UsrUGen\>"
+color mauve "\<Ref\>"
+comment "#!"
+
+color italic,red start="#\<(pragma|include|define|ifdef|ifndef|undef|endif|import)\>" end="$"
+
+color brightred "\<(typeof|spork|fork)\>"
+color lightred "\<(second|ms|day|samp|minute|hour)\>"
+color brightcyan "\<(maybe)\>"
+color cyan "\<(adc|blackhole)\>"
+
+color brightgreen "\<(try|handle|perform|retry|class|struct|trait|union|enum|fun|operator|funptr|typedef|distinct|new)\>"
+color italic,yellow "extends"
+color italic,brightgreen "\<(final|abstract)\>"
+color lightgreen "@[a-zA-Z]+[a-zA-Z0-9_]*|&[a-zA-Z]+[a-zA-Z0-9_]*"
+color green "\<(static|global)\>"
+color italic,green "\<(protect|private)\>"
+color bold,green "\<(var|late|const)\>"
+#color bold,italic,green "\<(const)\>"
+
+color bold,yellow "\<(for|foreach|repeat|until|if|while|do|else|match|case|when|where|defer)\>"
+color magenta "\<(goto|continue|break|return)\>"
+
+## Comment highlighting
+color italic,lightblue start="#!" end="$|!#"
+
+color italic,white "\?|:|$||\+|\-||\*|/|%|~|^|&|!||^|@|=|<|>|\+"
+
+color pink "\<(\.[0-9]([0-9]*)|[0-9]+(\.)*)\>"
+
+#String highlighting.  You will in general want your comments and
+## strings to come last, because syntax highlighting rules will be
+## applied in the order they are read in.
+#color brightyellow "(\.|[^"])*""
+#color brightyellow "(\.|[^'])*'"
+##
+## This string is VERY resource intensive!
+#color italic,brightyellow start=""(\.|[^"])*\[[:space:]]*$" end="^(\.|[^"])*""
+color italic,brightyellow start="\"" end="\""
+color italic,lightyellow start="`" end="`"
+color lightyellow start="'" end="'"
+
+## Trailing whitespace
+color ,green "[[:space:]]+$"
