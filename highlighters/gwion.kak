@@ -25,7 +25,7 @@ provide-module -override gwion %{
 			new spork fork'
 
 		attributes='const var static private public protect variadic template samp ms second minute delay'
-		types='auto int float bool void Object Shred Event'
+		types='auto int float bool dur void Object Shred Event'
 		values='true false none this now me adc dac maybe'
 		builtins='__file__ __line__ __func__'
 		entities='class struct trait union enum'
