@@ -34,11 +34,12 @@ jobs:
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
 
-    - name: Get benchmarks
-      run: |
-        git submodule update --init gwion-benchmark
-        cd gwion-benchmark
-        git pull origin results
+    - name: Checkout benchmark repo
+      uses: actions/checkout@v3
+      with:
+        repository: Gwion/gwion-benchmark
+        path: gwion-benchmark
+        ref: results
 
     - name: Core Reference
       run: |
