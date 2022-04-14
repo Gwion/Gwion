@@ -3,6 +3,7 @@ git pull
 git submodule update
 make clean-all
 make -j
+make -C plug clean
 make -C plug
 sudo make install
 for a in $(cat plug/list.txt)
