@@ -402,6 +402,8 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 ANN static Type check_prim_perform(const Env env, const Symbol *data) {
   env_add_effect(env, *data, prim_pos(data));
   env_weight(env, 1);
+  if (env->func && env->scope->depth == 1) // so ops no dot set scope->depth ?
+    set_fflag(env->func, fflag_return);
   return env->gwion->type[et_void];
 }
 
@@ -791,7 +793,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   CHECK_OB(check_exp(env, exp->func));
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
-                            "site. did you meant to use `@=>`?"))
+                            "site. did you meant to use `=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
   if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot &&
       !t->info->value->from->owner_class) {
