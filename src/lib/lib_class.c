@@ -35,7 +35,7 @@ static OP_CHECK(opck_class_call) {
 static OP_CHECK(opck_basic_ctor) {
   const Exp_Call *call = (Exp_Call *)data;
 // change to *no know constructor for {+G}%s{0}*?
-  ERR_N(exp_self(call)->pos, _("can't call a non-callable value"));
+  ERR_N(call->func->pos, _("can't call a non-callable value"));
 }
 
 GWION_IMPORT(class) {
