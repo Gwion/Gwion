@@ -332,9 +332,13 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   if (opi->op == insert_symbol(env->gwion->st, "@func_check")) return NULL;
   if (opi->op == insert_symbol(env->gwion->st, "@class_check"))
     return env->gwion->type[et_error];
-  if (opi->op != insert_symbol(env->gwion->st, "@implicit"))
+  if(opi->op == insert_symbol(env->gwion->st, "=>") && !strcmp(opi->rhs->name, "@now")) {
+    gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
+    env->context->error = true;
+  } else if (opi->op != insert_symbol(env->gwion->st, "@implicit")) {
     env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
             type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));
+  }
   return NULL;
 }
 
