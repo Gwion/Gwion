@@ -1,0 +1,3 @@
+#! [contains] can't overload final function
+fun final void test() {}
+fun final void test(int i) {}
