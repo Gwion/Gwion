@@ -121,7 +121,7 @@ msgid   "array index %i must be of type 'int', not '%s'"
 msgstr  ""
 
 #: src/parse/check.c:303
-msgid   "invalid array access expression."
+msgid   "invalid array acces expression."
 msgstr  ""
 
 #: src/parse/check.c:311
@@ -152,13 +152,13 @@ msgid   "and not:\n"
 msgstr  ""
 
 #: src/parse/check.c:575
-msgid   "function is a template for which automatic type inference is not fully implemented "
+msgid   "function is template. automatic type guess not fully implemented "
         "yet.\n"
         "  please provide template types. eg: '<type1, type2, ...>'"
 msgstr  ""
 
 #: src/parse/check.c:606
-msgid   "not able to infer types for template call."
+msgid   "not able to guess types for template call."
 msgstr  ""
 
 #: src/parse/check.c:618
@@ -227,7 +227,7 @@ msgstr  ""
 
 #: src/parse/check.c:847
 #, c-format
-msgid   "type '%s' is not an array.\n"
+msgid   "type '%s' is not array.\n"
         " This is not allowed in auto loop"
 msgstr  ""
 
@@ -258,7 +258,7 @@ msgstr  ""
 
 #: src/parse/check.c:954
 #, c-format
-msgid   "invalid type '%s' in case expression. should be 'int'"
+msgid   "invalid type '%s' case expression. should be 'int'"
 msgstr  ""
 
 #: src/parse/check.c:959
@@ -277,7 +277,7 @@ msgstr  ""
 
 #: src/parse/check.c:1043
 #, c-format
-msgid   "function '%s.%s' resembles '%s.%s' but cannot override...\n"
+msgid   "function '%s.%s' ressembles '%s.%s' but cannot override...\n"
         "  ...(reason: '%s.%s' is declared as 'static')"
 msgstr  ""
 
@@ -294,7 +294,7 @@ msgstr  ""
 
 #: src/parse/scan2.c:161
 #, c-format
-msgid   "can't '%s' from/to a multi-variable declaration."
+msgid   "cant '%s' from/to a multi-variable declaration."
 msgstr  ""
 
 #: src/parse/scan2.c:266
@@ -468,7 +468,7 @@ msgid   "unrecognized escape sequence '\\%c'"
 msgstr  ""
 
 #: src/emit/escape.c:40
-msgid   "invalid: string ends with escape character '\\'"
+msgid   "invalid: string ends with escape charactor '\\'"
 msgstr  ""
 
 #: src/emit/escape.c:54
