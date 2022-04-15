@@ -135,7 +135,7 @@ ANN static inline m_bool scan2_exp_slice(const Env env, const Exp_Slice *exp) {
 ANN static m_bool multi_decl(const Env env, const Exp e, const Symbol op) {
   if (e->exp_type == ae_exp_decl) {
     if (e->d.exp_decl.list->len > 1)
-      ERR_B(e->pos, _("cant '%s' from/to a multi-variable declaration."),
+      ERR_B(e->pos, _("can't '%s' from/to a multi-variable declaration."),
             s_name(op))
     //    set_vflag(e->d.exp_decl.list->self->value, vflag_used);
   }

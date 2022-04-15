@@ -45,7 +45,7 @@ ANN m_bool check_subscripts(Env env, const Array_Sub array,
     if (is_decl) CHECK_BB(check_implicit(env, e, env->gwion->type[et_int]));
   while (++depth && (e = e->next));
   if (depth != array->depth)
-    ERR_B(array->exp->pos, _("invalid array acces expression."))
+    ERR_B(array->exp->pos, _("invalid array access expression."))
   return GW_OK;
 }
 
@@ -667,9 +667,7 @@ ANN static Func get_template_func(const Env env, Exp_Call *const func,
   ((Exp_Call *)func)->tmpl = NULL;
   assert(exp_self(func));
   ERR_O(exp_self(func)->pos,
-        _("function is template. automatic type guess not fully implemented "
-          "yet.\n"
-          "  please provide template types. eg: ':[type1, type2, ...]'"))
+        _("function is a template for which automatic type inference is not fully implemented"
 }
 
 ANN static Func predefined_func(const Env env, const Value v, Exp_Call *exp,
@@ -728,7 +726,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     }
   }
   if (args_number < type_number) // TODO: free type_list
-    ERR_O(exp->func->pos, _("not able to guess types for template call."))
+    ERR_O(exp->func->pos, _("not able to infer types for template call."))
   return tl;
 }
 
