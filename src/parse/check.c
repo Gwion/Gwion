@@ -667,7 +667,7 @@ ANN static Func get_template_func(const Env env, Exp_Call *const func,
   ((Exp_Call *)func)->tmpl = NULL;
   assert(exp_self(func));
   ERR_O(exp_self(func)->pos,
-        _("function is a template for which automatic type inference is not fully implemented"
+        _("function is a template for which automatic type inference is not fully implemented"));
 }
 
 ANN static Func predefined_func(const Env env, const Value v, Exp_Call *exp,
