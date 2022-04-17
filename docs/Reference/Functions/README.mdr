@@ -16,3 +16,27 @@ fun int test_function(int arg) {
 #! or use alternate syntax
 <<< 1 => test_function >>>;
 ```
+
+
+## Any Position Method syntax
+
+Due to the hybrid nature of function call syntax
+and the left to right workflow in gwion,
+some syntaxic sugar is provided
+to call a function with arguments
+from both the left and right side
+﻿
+Arguments coming from the left are referenced as `_`
+in the right hand side
+
+```gwion,editable
+fun void myfunc(int i, int j) {
+  <<< "${i} ${j}" >>>;
+}
+
+#! prints '1 2'
+1 => myfunc(_, 2);
+
+#! prints '1 2'
+2 => myfunc(1, _);
+```
