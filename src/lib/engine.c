@@ -186,6 +186,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_dict(gwi));
   GWI_BB(import_gack(gwi));
 
+
+  GWI_BB(import_curry(gwi));
+
   // seemed need at a point to ease liking
   gwi_enum_ini(gwi, "@hidden_enum");
   gwi_enum_add(gwi, "@hidden_enum", 0);
