@@ -30,7 +30,12 @@ CFLAGS += -DDEBUG_STACK
 endif
 
 ifneq (${BUILD_ON_WINDOWS}, 1)
-LDFLAGS += -ldl -lpthread
+LDFLAGS += -lpthread
+ifeq ($(uname -s), NetBSD)
+else ifeq ($(uname -s), OpenBSD)
+else
+LDFLAGS += -ldl
+endif
 endif
 
 ifeq (${USE_HELGRIND}, 1)
