@@ -11,11 +11,21 @@ var Object o;
 
 ## Declaring a reference
 
+sometimes you just want an object to be instantiated later.
+This is done using the `late` keyword
 ```gwion,editable
 late Object object_ref;
-<<< "Reference points to no object yet: ", object_ref >>>;
-new Object => object_ref;
-<<< "But now it does: ", object_ref >>>;
+
+if(object_ref)
+  <<< "We have an object: ", object_ref >>>;
+else
+  <<< "We have no object" >>>;
+```
+
+trying to access, print or pass an non instantiated object will perform `NullPtrException`
+```gwion,editable
+late Object object_ref;
+<<< object_ref >>>;
 ```
 
 ## Arrays
