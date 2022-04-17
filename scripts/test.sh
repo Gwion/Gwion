@@ -1,5 +1,19 @@
 #!/bin/bash
 
+if [ "$(uname -s)" = "OpenBSD" ]; then
+	gseq --version >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "gseq was not found."
+		echo "You can install gseq with installing coreutils, should we install it?"
+		read -p "(y/N): " yn
+		case "$yn" in
+			[yY]*) doas pkg_add coreutils;;
+			*) echo "Test aborted." ; exit 1;;
+		esac
+	fi
+	alias seq="gseq"
+fi
+
 : "${PRG:=gwion}"
 : "${GWION_TEST_DIR:=/tmp}"
 : "${GWION_TEST_PREFIX:=gwt_}"
@@ -405,4 +419,3 @@ then
 else
   exit 0
 fi
-
