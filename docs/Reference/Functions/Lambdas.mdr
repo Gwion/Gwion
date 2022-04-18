@@ -20,7 +20,7 @@ You can even use it to
 ### Passing to a function pointer
 ```gwion,editable
 funptr void fptr_t(int);
-\ i { <<< "passed '", i, "'" >>>; } => var fptr_t fptr;
+\ i { <<< "passed '", i, "'" >>>; } @=> var fptr_t fptr;
 fptr(4);
 ```  
 
