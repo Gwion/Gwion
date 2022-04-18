@@ -15,7 +15,7 @@ You use them like this:
 enum MyEnum {
   zero, one, two
 };
-<<< "${MyEnum.zero} ${MyEnum.one} ${MyEnum.two} >>>;
+<<< "${MyEnum.zero} ${MyEnum.one} ${MyEnum.two}" >>>;
 ```
 
 ## Storage and access Specifiers
