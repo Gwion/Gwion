@@ -674,14 +674,6 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
     ERR_B(fdef->base->pos, "file scope function can't be abstract");
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
-  if(fbflag(fdef->base, fbflag_locale) && fdef->base->args) {
-    Arg_List args = fdef->base->args;
-    for(uint32_t i = 0; i < args->len; i++) {
-      const Arg *arg = mp_vector_at(args, Arg, i);
-      if(!arg->exp)
-        ERR_B(arg->td->pos, _("all arguments in a locale must have a default value"))
-    }
-  }
   if (fdef->base->td)
     CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos));
   CHECK_BB(scan1_fdef_defined(env, fdef));
