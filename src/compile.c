@@ -103,7 +103,7 @@ ANN static inline m_bool _passes(struct Gwion_ *gwion, struct Compiler *c) {
 ANN static inline m_bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   const Env     env = gwion->env;
   const Context ctx = new_context(env->gwion->mp, c->ast, env->name);
-ctx->locale = nspc_lookup_value1(gwion->env->global_nspc, insert_symbol(gwion->st, "@DefaultLocale"))->d.func_ref;
+//ctx->locale = nspc_lookup_value1(gwion->env->global_nspc, insert_symbol(gwion->st, "@DefaultLocale"))->d.func_ref;
   env_reset(env);
   load_context(ctx, env);
   const m_bool ret = _passes(gwion, c);
