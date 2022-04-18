@@ -40,3 +40,20 @@ fun void myfunc(int i, int j) {
 #! prints '1 2'
 2 => myfunc(1, _);
 ```
+
+## Partial Application
+
+According to wikipeda:
+*In computer science, partial application (or partial function application) refers to the process of fixing a number of arguments to a function, producing another function of smaller arity.*
+
+In gwion, you can use the `curry` function to achieve that
+
+```gwion,editable
+fun int test(int i, int j) {
+  return i + j;
+}
+
+curry(test, _, 2) @=> const auto mytest;
+
+<<< 40 => mytest >>>;
+```
