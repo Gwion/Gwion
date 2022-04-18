@@ -150,10 +150,13 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
   const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->xid,
                                        cpy_type_decl(env->gwion->mp, tdef->ext),
                                        NULL, tdef->ext->pos);
+  const bool final = GET_FLAG(base, final);
+  if(final) UNSET_FLAG(base, final);
   CHECK_BB(scan0_class_def(env, cdef));
   tdef->type      = cdef->base.type;
   cdef->base.tmpl = tdef->tmpl; // check cpy
   set_tflag(tdef->type, tflag_cdef);
+  if(final) SET_FLAG(base, final);
   mk_class(env, tdef->type, tdef->pos);
   return GW_OK;
 }
