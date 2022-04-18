@@ -62,7 +62,7 @@ ANN static Stmt curry_code(const Env env, const Exp efun, const Exp earg) {
   const Exp arg = curry_call(env, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
   Stmt stmt = mp_vector_at(slist, struct Stmt_, 0);
-  stmt->stmt_type = ae_stmt_exp;
+  stmt->stmt_type = ae_stmt_return;
   stmt->d.stmt_exp.val = exp;
   return new_stmt_code(env->gwion->mp, slist, efun->pos);
 }
