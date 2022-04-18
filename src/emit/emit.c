@@ -912,6 +912,47 @@ ANN static m_bool emit_prim_interp(const Emitter emit, const Exp *exp) {
   emit_localx(emit, emit->gwion->type[et_string]);
   return GW_OK;
 }
+#include "shreduler_private.h"
+ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
+  const struct ValueFrom_ *from = f->value_ref->from;
+  if(from->owner_class)
+    CHECK_BB(ensure_emit(emit, from->owner_class));
+  if(f->code) return GW_OK;
+  const m_uint scope = emit_push(emit, from->owner_class, from->owner);
+  const m_bool ret = emit_func_def(emit, f->def);
+  emit_pop(emit, scope);
+  return ret;
+}
+
+ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
+  CHECK_BB(emit_ensure_func(emit, emit->env->context->locale));
+  emit_push_code(emit, "locale"); // new code {
+
+  //   push args
+  const M_Object string = new_string(emit->gwion, s_name(*id));
+  regpushi(emit, (m_uint)string);
+
+  regpushi(emit, (m_uint)emit->env->context->locale->code);
+  emit_exp_call1(emit, emit->env->context->locale, true);
+
+  regpop(emit, emit->env->context->locale->def->base->ret_type->size);
+  const VM_Code code = finalyze(emit, EOC);
+  const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
+  vm_add_shred(emit->gwion->vm, shred);
+  shred->info->me->ref++;
+  vm_run(emit->gwion->vm);
+  emit->gwion->vm->bbq->is_running = true;
+  if(tflag(emit->env->context->locale->def->base->ret_type, tflag_float)) {
+    const Instr instr = emit_add_instr(emit, RegPushImm2);
+    instr->f = *(m_float*)shred->reg;
+  } else if(emit->env->context->locale->def->base->ret_type->size == SZ_INT)
+    regpushi(emit, *(m_uint*)shred->reg);
+  else {
+    // here we would need to deallocate
+    ERR_B(prim_pos(id), "not implemented atm");
+  }
+  return GW_OK;
+}
 
 DECL_PRIM_FUNC(emit, m_bool, Emitter);
 ANN static m_bool emit_prim(const Emitter emit, Exp_Primary *const prim) {
@@ -1681,17 +1722,6 @@ ANN static Instr emit_call(const Emitter emit, const Func f,
     }
   }
   return emit_add_instr(emit, Overflow);
-}
-
-ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
-  const struct ValueFrom_ *from = f->value_ref->from;
-  if(from->owner_class)
-    CHECK_BB(ensure_emit(emit, from->owner_class));
-  if(f->code) return GW_OK;
-  const m_uint scope = emit_push(emit, from->owner_class, from->owner);
-  const m_bool ret = emit_func_def(emit, f->def);
-  emit_pop(emit, scope);
-  return ret;
 }
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f,

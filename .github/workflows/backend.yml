@@ -1,0 +1,15 @@
+name: Update Backend
+
+on:
+  push:
+    branches:    
+    - 'master'
+
+jobs:
+  build:
+    name: Push to bot repo
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - run: curl https://TheGwionPlayground.fennecdjay.repl.co/bumcledyfynaghat

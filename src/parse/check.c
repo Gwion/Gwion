@@ -421,6 +421,10 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
 //  return (*data)->type;
 }
 
+ANN static Type check_prim_locale(const Env env, const Symbol *data NUSED) {
+  return env->context->locale->def->base->ret_type;
+}
+
 #define describe_prim_xxx(name, type)                                          \
   ANN static Type check_prim_##name(const Env env               NUSED,         \
                                     const union prim_data *data NUSED) {       \
