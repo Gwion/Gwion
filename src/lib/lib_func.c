@@ -329,21 +329,12 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
         arg->var_decl.value = NULL;
       }
     }
-/*
-    Arg_List args = l->def->base->args;
-    while(args) {
-      if(!args->var_decl->value) break;
-      free_value(args->var_decl->value, env->gwion);
-      args->var_decl->value = NULL;
-      args = args->next;
-    }
-*/
   }
   return ret;
 }
 
 ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
-  if (l->def->base->func) return GW_ERROR;
+//  if (!l->def->base->func) return GW_ERROR;
   const Func_Def fdef = t->info->func->def;
   if (!GET_FLAG(t->info->func->value_ref, global))
     l->owner = t->info->value->from->owner_class;
@@ -360,8 +351,18 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;
-  return check_lambda(env, actual_type(env->gwion, info->rhs->value_ref->type),
-                      l);
+  return check_lambda(env, actual_type(env->gwion, info->rhs->value_ref->type), l);
+}
+
+ANN static Type curry2auto(const Env env, const Exp_Binary *bin) {
+  const Func_Def fdef = bin->lhs->d.exp_lambda.def;
+  unset_fbflag(fdef->base, fbflag_lambda);
+  CHECK_BN(traverse_func_def(env, fdef));
+  const Type actual = fdef->base->func->value_ref->type;
+  set_fbflag(fdef->base, fbflag_lambda);
+  Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+  exp_setvar(bin->rhs, true);
+  return vd->value->type = bin->rhs->type = bin->rhs->d.exp_decl.type = actual;
 }
 
 static OP_CHECK(opck_auto_fptr) {
@@ -372,6 +373,8 @@ static OP_CHECK(opck_auto_fptr) {
     ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}@=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
+  if(!bin->lhs->type->info->func)
+    return curry2auto(env, bin);
   // create a matching signature
   // TODO: we could check first if there a matching existing one
   Func_Base *const fbase =
@@ -386,7 +389,7 @@ static OP_CHECK(opck_auto_fptr) {
   const Type   t      = fptr_def->type;
   free_fptr_def(env->gwion->mp, fptr_def);
 //  type_remref(t, env->gwion);
-    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
+  Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
   vd->value->type = bin->rhs->type =
       bin->rhs->d.exp_decl.type                = t;
   exp_setvar(bin->rhs, 1);
@@ -537,12 +540,6 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
     Arg *arg = mp_vector_at(args, Arg, i);
     if (!arg->type) arg->type = known_type(env, arg->td);
   }
-/*
-  while (arg) {
-    if (!arg->type) arg->type = known_type(env, arg->td);
-    arg = arg->next;
-  }
-*/
   if (!func->def->base->ret_type)
     func->def->base->ret_type = known_type(env, func->def->base->td);
   if (owner_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
@@ -754,7 +751,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_end(gwi, "fork", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@function", "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;

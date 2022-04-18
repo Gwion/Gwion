@@ -138,7 +138,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   gwidoc(gwi, "the base of lamdbas.");
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
-  set_tflag(t_lambda, tflag_infer);
+  /*set_tflag(t_lambda, tflag_infer);*/
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
   gwidoc(gwi, "Mark function as curried.");

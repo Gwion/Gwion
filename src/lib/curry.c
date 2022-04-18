@@ -12,26 +12,29 @@
 #include "traverse.h"
 #include "parse.h"
 
-ANN static Arg_List curry_arg_list(const Env env, const Exp e) {
+ANN static Arg_List curry_arg_list(const Env env, const Arg_List base, const Exp e) {
   Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
   Exp next = e;
+  uint32_t i = 0;
   while(next) {
     if(is_hole(env, next)) {
       char c[256];
       sprintf(c, "@%u\n", args->len);
-      Arg arg = { .var_decl = { .xid = insert_symbol(c) }};
+      Type_Decl *td = cpy_type_decl(env->gwion->mp, mp_vector_at(base, Arg, i)->td);
+      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c) }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
+    i++;
     next = next->next;
   }
   return args;
 }
 
-ANN2(1) static Func_Base *curry_base(const Env env, Exp earg, const loc_t loc) {
-  Arg_List args = earg ? curry_arg_list(env, earg) : NULL;
-  Func_Base *base = new_func_base(env->gwion->mp, NULL, lambda_name(env->gwion->st, loc.first), args, ae_flag_none, loc);
-  base->fbflag |= fbflag_lambda;
-  return base;
+ANN2(1) static Func_Base *curry_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
+  Arg_List args = earg ? curry_arg_list(env, base->args, earg) : NULL;
+  Func_Base *fb = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), lambda_name(env->gwion->st, loc.first), args, ae_flag_none, loc);
+  fb->fbflag |= fbflag_lambda;
+  return fb;
 }
 
 ANN static Exp curry_call(const Env env, Exp e) {
@@ -56,27 +59,34 @@ ANN static Exp curry_call(const Env env, Exp e) {
 
 ANN static Stmt curry_code(const Env env, const Exp efun, const Exp earg) {
   Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
-  const Exp _args = curry_call(env, earg);
-  mp_free(env->gwion->mp, Exp, earg);
-  const Exp new = new_exp_call(env->gwion->mp, efun, _args, efun->pos);
+  const Exp arg = curry_call(env, earg);
+  const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
   Stmt stmt = mp_vector_at(slist, struct Stmt_, 0);
   stmt->stmt_type = ae_stmt_exp;
-  stmt->d.stmt_exp.val = new;
+  stmt->d.stmt_exp.val = exp;
   return new_stmt_code(env->gwion->mp, slist, efun->pos);
+}
+
+ANN static Type curry_type(const Env env, const Exp exp, const Exp efun, const Exp earg) {
+  Func_Base *base = curry_base(env, efun->type->info->func->def->base, earg, exp->pos);
+  Stmt code = curry_code(env, efun, earg);
+  exp->d.exp_lambda.def = new_func_def(env->gwion->mp, base, code);
+  exp->exp_type = ae_exp_lambda;
+  return check_exp(env, exp);
 }
 
 static OP_CHECK(opck_curry) {
   Exp_Call *call = (Exp_Call*)data;
-  if(!call->args) exit(2);
+  if(!call->args)
+    ERR_N(exp_self(call)->pos, _("`curry` requires a function as first argument"));
   const Exp efun = call->args;
   const Exp earg = efun->next;
   efun->next = NULL;
-  Func_Base *base = curry_base(env, earg, exp_self(call)->pos);
-  base->fbflag |= fbflag_lambda;
-  Stmt code = curry_code(env, efun, earg);
-  exp_self(call)->d.exp_lambda.def = new_func_def(env->gwion->mp, base, code);
-  exp_self(call)->exp_type = ae_exp_lambda;
-  return check_exp(env, exp_self(call));
+  const Type ret = check_exp(env, efun)
+    ? curry_type(env, exp_self(call), efun, earg)
+    : env->gwion->type[et_error];
+  mp_free(env->gwion->mp, Exp, earg);
+  return ret;
 }
 
 GWION_IMPORT(curry) {
@@ -94,3 +104,4 @@ GWION_IMPORT(curry) {
   CHECK_BB(add_op(gwi->gwion, &opi));
   return GW_OK;
 }
+
