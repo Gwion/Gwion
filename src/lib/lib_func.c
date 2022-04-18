@@ -36,7 +36,7 @@ ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
   return ret;
 }
 
-ANN static Exp order_curry(const Env env, Exp fn, const Exp _arg) {
+ANN static Exp order_apms(const Env env, Exp fn, const Exp _arg) {
   const MemPool mp   = env->gwion->mp;
   Exp           base = NULL;
   Exp           next = NULL;
@@ -66,11 +66,11 @@ ANN static Exp order_curry(const Env env, Exp fn, const Exp _arg) {
   return base;
 }
 
-static OP_CHECK(opck_curry) {
+static OP_CHECK(opck_apms) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   Exp         lhs  = bin->lhs;
   Exp_Call    base = bin->rhs->d.exp_call;
-  DECL_ON(const Exp, args, = order_curry(env, base.args, lhs));
+  DECL_ON(const Exp, args, = order_apms(env, base.args, lhs));
   Exp_Call call = {.func = base.func, .args = args};
   Exp      e    = exp_self(bin);
   e->exp_type   = ae_exp_call;
@@ -723,8 +723,8 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Curry", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_curry))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@apms", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_apms))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "bool"))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
