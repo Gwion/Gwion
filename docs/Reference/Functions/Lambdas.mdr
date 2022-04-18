@@ -19,14 +19,14 @@ You can even use it to
 
 ### Passing to a function pointer
 ```gwion,editable
-funcdef void fptr_t(int);
+funptr void fptr_t(int);
 \ i { <<< "passed '", i, "'" >>>; } => var fptr_t fptr;
 fptr(4);
 ```  
 
 ### As Argument to Functions
 ```gwion,editable
-funcdef void fptr_t(int);
+funptr void fptr_t(int);
 fun void test(fptr_t fptr) {
    fptr(5);
 }

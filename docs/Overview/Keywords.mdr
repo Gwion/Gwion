@@ -22,7 +22,7 @@
  * typeof
 
  * typedef
- * funcdef
+ * funptr
  * class
    * dtor
    * extends
