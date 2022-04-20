@@ -1,12 +1,7 @@
 # Contributors
 
-@hide curl "https://raw.githubusercontent.com/Gwion/Gwion/master/README.md" -o master_readme.md
+Thanks goes to these wonderful people:
 
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable MD033 -->
-<table><tr>
-@hide grep avatar master_readme.md
-</tr></table>
-<!-- markdownlint-restore -->
-
-@hide rm master_readme.md
+@hide wget https://api.github.com/repos/Gwion/Gwion/contributors
+@hide cat contributors  | jq ".[]|objects|.login,.avatar_url,.html_url"  > contributor_list
+@hide bash scripts/contributors.sh
