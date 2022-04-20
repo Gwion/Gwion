@@ -488,8 +488,8 @@ static OP_EMIT(opem_dict_remove) {
   CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
   if(hinfo->keyk || hinfo->valk) {
     clear_fn *const fn = clear[hinfo->keyk][hinfo->valk];
-    const Instr clear = emit_add_instr(emit, hmap_remove_clear);
-    clear->m_val = (m_uint)fn;
+    const Instr instr = emit_add_instr(emit, hmap_remove_clear);
+    instr->m_val = (m_uint)fn;
   }
 
   const Instr pushval = emit_add_instr(emit, hmap_remove);

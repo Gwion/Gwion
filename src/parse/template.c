@@ -132,8 +132,8 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     Specialized_List    sl = t->info->cdef->base.tmpl
         ? t->info->cdef->base.tmpl->list : NULL;
     for(uint32_t i = 0; i < tl->len; i++) {
-      Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-      DECL_OO(const Type, t, = known_type(env, td));
+      Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
+      DECL_OO(const Type, t, = known_type(env, tmp));
         Specialized *spec = mp_vector_at(sl, Specialized, i);
         if(spec->traits) {
           Symbol missing = miss_traits(t, spec);

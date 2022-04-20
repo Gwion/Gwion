@@ -18,6 +18,7 @@
 #include "specialid.h"
 #include "vararg.h"
 #include "looper.h"
+#include "shreduler_private.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -912,7 +913,7 @@ ANN static m_bool emit_prim_interp(const Emitter emit, const Exp *exp) {
   emit_localx(emit, emit->gwion->type[et_string]);
   return GW_OK;
 }
-#include "shreduler_private.h"
+
 ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
   const struct ValueFrom_ *from = f->value_ref->from;
   if(from->owner_class)
@@ -925,32 +926,26 @@ ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
 }
 
 ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
-  CHECK_BB(emit_ensure_func(emit, emit->env->context->locale));
+  if(emit->locale->def->d.code) {
+    const Stmt stmt = mp_vector_at((emit->locale->def->d.code->d.stmt_code.stmt_list), struct Stmt_, 0);
+    const Func f = stmt->d.stmt_exp.val->d.exp_call.func->type->info->func;
+    CHECK_OB(emit_ensure_func(emit, f));
+  }
+  CHECK_OB(emit_ensure_func(emit, emit->locale));
   emit_push_code(emit, "locale"); // new code {
-
-  //   push args
   const M_Object string = new_string(emit->gwion, s_name(*id));
   regpushi(emit, (m_uint)string);
-
-  regpushi(emit, (m_uint)emit->env->context->locale->code);
-  emit_exp_call1(emit, emit->env->context->locale, true);
-
-  regpop(emit, emit->env->context->locale->def->base->ret_type->size);
+  regpushi(emit, (m_uint)emit->locale->code);
+  emit_exp_call1(emit, emit->locale, true);
+  regpop(emit, emit->locale->def->base->ret_type->size);
   const VM_Code code = finalyze(emit, EOC);
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
   vm_add_shred(emit->gwion->vm, shred);
   shred->info->me->ref++;
   vm_run(emit->gwion->vm);
   emit->gwion->vm->bbq->is_running = true;
-  if(tflag(emit->env->context->locale->def->base->ret_type, tflag_float)) {
-    const Instr instr = emit_add_instr(emit, RegPushImm2);
-    instr->f = *(m_float*)shred->reg;
-  } else if(emit->env->context->locale->def->base->ret_type->size == SZ_INT)
-    regpushi(emit, *(m_uint*)shred->reg);
-  else {
-    // here we would need to deallocate
-    ERR_B(prim_pos(id), "not implemented atm");
-  }
+  const Instr instr = emit_add_instr(emit, RegPushImm2);
+  instr->f = *(m_float*)shred->reg;
   return GW_OK;
 }
 
@@ -1990,12 +1985,12 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
 //  CHECK_BO(emit_exp_pop_next(emit, e));
   CHECK_BO(emit_exp(emit, e));
   {
-    const Instr instr = (Instr)vector_back(&emit->code->instr);
-    if(instr->execute == fast_except) {
+    const Instr ex = (Instr)vector_back(&emit->code->instr);
+    if(ex->execute == fast_except) {
       vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
-      if(instr->m_val2)
-        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)instr->m_val2);
-      free_instr(emit->gwion, instr);
+      if(ex->m_val2)
+        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)ex->m_val2);
+      free_instr(emit->gwion, ex);
     }
   }
   if(instr)
@@ -2837,11 +2832,14 @@ ANN static m_bool emit_stmt_match(const Emitter             emit,
 
 ANN static m_bool emit_stmt_pp(const Emitter          emit,
                                const struct Stmt_PP_ *stmt) {
-  if (stmt->pp_type == ae_pp_pragma) {
+  if (stmt->pp_type == ae_pp_include)
+    emit->env->name = stmt->data;
+  else if (stmt->pp_type == ae_pp_locale)
+    emit->locale = stmt->exp->d.exp_lambda.def->base->func;
+  else if (stmt->pp_type == ae_pp_pragma) {
     if (!strncmp(stmt->data, "unroll", strlen("unroll")))
       emit->info->unroll = strtol(stmt->data + 6, NULL, 10);
-  } else if (stmt->pp_type == ae_pp_include)
-    emit->env->name = stmt->data;
+  }
   return GW_OK;
 }
 
@@ -3078,7 +3076,9 @@ ANN m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
 ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   const uint16_t depth = emit->env->scope->depth;
   emit->env->scope->depth = 0;
+  const Func locale = emit->locale;
   const m_bool ret = _emit_func_def(emit, fdef);
+  emit->locale = locale;
   emit->env->scope->depth = depth;
   return ret;
 }
@@ -3131,10 +3131,8 @@ ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
   return ret;
 }
 
-ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
-  if (tmpl_base(cdef->base.tmpl)) return GW_OK;
+ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type      t = cdef->base.type;
-  if (tflag(t, tflag_emit)) return GW_OK;
   set_tflag(t, tflag_emit);
   const Class_Def c = t->info->cdef;
   if (c->base.ext && t->info->parent->info->cdef &&
@@ -3151,6 +3149,15 @@ ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
     }
   }
   return GW_OK;
+}
+
+ANN static m_bool emit_class_def(const Emitter emit, const Class_Def cdef) {
+  if (tmpl_base(cdef->base.tmpl)) return GW_OK;
+  if (tflag(cdef->base.type, tflag_emit)) return GW_OK;
+  const Func locale = emit->locale;
+  const m_bool ret = _emit_class_def(emit, cdef);
+  emit->locale = locale;
+  return ret;
 }
 
 ANN static inline void emit_free_code(const Emitter emit, Code *code) {
@@ -3177,6 +3184,7 @@ ANN static inline void emit_clear(const Emitter emit) {
 
 ANN m_bool emit_ast(const Env env, Ast *ast) {
   const Emitter emit  = env->gwion->emit;
+  const Func locale = emit->locale;
   emit_clear(emit);
   emit->code          = new_code(emit, emit->env->name);
   emit_push_scope(emit);
@@ -3187,5 +3195,6 @@ ANN m_bool emit_ast(const Env env, Ast *ast) {
   else
     emit_free_stack(emit);
   emit_clear(emit);
+  emit->locale = locale;
   return ret;
 }

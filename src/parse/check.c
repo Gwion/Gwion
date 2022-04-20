@@ -14,6 +14,7 @@
 #include "match.h"
 #include "specialid.h"
 #include "tmp_resolve.h"
+#include "partial.h"
 
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool        check_class_def(const Env env, const Class_Def class_def);
@@ -310,6 +311,9 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
+  } else if(env->func && fbflag(env->func->def->base, fbflag_locale)) {
+    if(!is_func(env->gwion, value->type) && value->from->owner && !from_global_nspc(env, value->from->owner))
+      ERR_O(prim_pos(data), _("invalid variable access from locale definition"));
   }
   return value;
 }
@@ -422,7 +426,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
 }
 
 ANN static Type check_prim_locale(const Env env, const Symbol *data NUSED) {
-  return env->context->locale->def->base->ret_type;
+  return env->gwion->type[et_float];
 }
 
 #define describe_prim_xxx(name, type)                                          \
@@ -494,14 +498,6 @@ ANN static Type_Decl* mk_td(const Env env, const Arg *arg,
   return type2td(env->gwion, t, pos);
 }
 
-ANN static inline bool func_match_inner(const Env env, const Exp e,
-                                        const Type t, const bool implicit,
-                                        const bool specific) {
-  if (specific ? e->type == t : isa(e->type, t) > 0) // match
-    return true;
-  return !implicit ? false : check_implicit(env, e, t) > 0;
-}
-
 ANN2(1, 2)
 static Func find_func_match_actual(const Env env, Func func, const Exp exp,
                                    const bool implicit, const bool specific) {
@@ -514,7 +510,6 @@ static Func find_func_match_actual(const Env env, Func func, const Exp exp,
       e->cast_to = NULL;
       if (!e->type) // investigate
         return NULL;
-// rewrite
       Arg *arg = i < args_len ? mp_vector_at(args, Arg, i++) : NULL;
       if (!arg) {
         if (fbflag(func->def->base, fbflag_variadic)) return func;
@@ -621,16 +616,6 @@ ANN static void print_current_args(Exp e) {
   gw_err("\n");
 }
 
-ANN static void print_arg(Arg_List args) {
-  for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    gw_err("{G}%s{0} {/}%s{0}", arg->type ? arg->type->name : NULL,
-           arg->var_decl.xid ? s_name(arg->var_decl.xid) : "");
-    if(i < args->len - 1) gw_err(", ");
-  }
-//  while ((e = next_arg_Arg_List(e)));
-}
-
 ANN2(1)
 static void function_alternative(const Env env, const Type f, const Exp args,
                                  const loc_t pos) {
@@ -639,15 +624,8 @@ static void function_alternative(const Env env, const Type f, const Exp args,
   gwerr_basic("Argument type mismatch", "call site",
               "valid alternatives:", env->name, pos, 0);
   Func up = f->info->func;
-  do {
-    gw_err("  {-}(%s){0}  ", up->name);
-    const Arg_List e = up->def->base->args;
-    if (e)
-      print_arg(e);
-    else
-      gw_err("{G}void{0}");
-    gw_err("\n");
-  } while ((up = up->next));
+  do print_signature(up);
+  while ((up = up->next));
   if (args)
     print_current_args(args);
   else
@@ -765,17 +743,6 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(e)
      ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-/*
-  while (arg && e) {
-    arg->type = e->type;
-    if(is_class(env->gwion, arg->type))
-      type_addref(arg->type);
-    arg       = arg->next;
-    e         = e->next;
-  }
-  if (arg || e)
-    ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-*/
   l->def->base->values = env->curr->info->value;
   const m_bool ret     = traverse_func_def(env, l->def);
   if (l->def->base->func) {
@@ -867,9 +834,12 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       }
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
-//    if (func == env->func) set_fflag(env->func, fflag_recurs);
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
       func->def->base->ret_type : exp->func->d.exp_dot.base->type;
+  }
+  if(exp->func->exp_type == ae_exp_lambda) {
+    const Type tt = partial_type(env, exp);
+    if(tt) return tt;
   }
   function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;
@@ -884,7 +854,6 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   CHECK_OO(check_exp(env, bin->rhs));
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);
-//    bin->rhs->type = bin->lhs->type;
     set_vflag(mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0)->value, vflag_assigned);
   }
   struct Op_Import opi = {.op   = bin->op,
@@ -938,9 +907,9 @@ ANN static m_bool predefined_call(const Env env, const Type t,
   return GW_ERROR;
 }
 
-ANN2(1) static inline bool apms(const Env env, Exp exp) {
+ANN2(1) static inline bool is_partial(const Env env, Exp exp) {
   while (exp) {
-    if (is_hole(env, exp))
+    if (is_hole(env, exp) || is_typed_hole(env, exp))
       return true;
     exp = exp->next;
   }
@@ -968,8 +937,10 @@ ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) 
 }
 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
-  if (exp->apms && apms(env, exp->args))
-    return env->gwion->type[et_apms];
+  if (is_partial(env, exp->args)) {
+    CHECK_OO(check_exp(env, exp->func));
+    return partial_type(env, exp);
+  }
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;
@@ -1345,6 +1316,13 @@ ANN m_bool check_union_def(const Env env NUSED, const Union_Def udef) {
 }
 
 ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
+  if(stmt->val) {
+    CHECK_OB(check_exp(env, stmt->val));
+    if(stmt->val->exp_type == ae_exp_lambda) {
+     const loc_t loc = stmt->val->d.exp_lambda.def->base->pos;
+     env_warn(env, loc, _("Partial application not used"));
+    }
+  }
   return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;
 }
 
@@ -1500,9 +1478,19 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 ANN static m_bool check_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
   // check for memoization
-  if (env->func && stmt->pp_type == ae_pp_pragma &&
+  else if (env->func && stmt->pp_type == ae_pp_pragma &&
       !strncmp(stmt->data, "memoize", strlen("memoize")))
     env->func->memoize = strtol(stmt->data + 7, NULL, 10);
+  else if(stmt->pp_type == ae_pp_locale) {
+    const loc_t loc = stmt_self(stmt)->pos;
+    const Exp id   = new_prim_id(env->gwion->mp, stmt->xid, loc);
+    const Exp arg   = new_prim_id(env->gwion->mp, insert_symbol("_"), loc);
+    arg->next = stmt->exp;
+    const Exp call = new_exp_call(env->gwion->mp, id, arg, loc);
+    stmt->exp = call;
+    CHECK_BB(traverse_exp(env, id));
+    CHECK_OB(partial_type(env, &call->d.exp_call));
+  }
   return GW_OK;
 }
 
@@ -1673,7 +1661,7 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   if(fflag(func, fflag_valid))return GW_OK;
   set_fflag(func, fflag_valid);
   assert(func == fdef->base->func);
-  if (env->class_def && !strstr(func->name, "lambda:"))
+  if (env->class_def && !fbflag(func->def->base, fbflag_lambda))
     CHECK_BB(check_parent_match(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return GW_OK;
   Value override = NULL;

@@ -4,9 +4,6 @@
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coverage](https://raw.githubusercontent.com/Gwion/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/Gwion/Gwion)](https://github.com/fennecdjay/Gwion)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-16-orange.svg)](#contributors)
-<!-- ALL-CONTRIBUTORS-BADGE:END --> 
 ![Linux](https://github.com/Gwion/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/Gwion/Gwion/workflows/MacOs/badge.svg)
 ![Windows](https://github.com/Gwion/Gwion/workflows/Windows/badge.svg)
@@ -162,41 +159,4 @@ If there's anything you see that can make Gwion better, please let us know!
 ## Acknowledgements.
 The whole [Chuck](http://chuck.cs.princeton.edu/) team, for inspiration.  
 [Paul Batchelor](https://github.com/PaulBatchelor) and the awesome [soundpipe](https://github.com/PaulBatchelor/Soundpipe) library, that got me started.
-
-## Contributors
-
-Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tr>
-    <td align="center"><a href="http://paulbatchelor.github.io"><img src="https://avatars3.githubusercontent.com/u/8139389?v=4" width="100px;" alt=""/><br /><sub><b>Paul Batchelor</b></sub></a><br /><a href="#question-PaulBatchelor" title="Answering Questions">💬</a> <a href="https://github.com/Gwion/Gwion/issues?q=author%3APaulBatchelor" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=PaulBatchelor" title="Code">💻</a> <a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/originalsouth"><img src="https://avatars1.githubusercontent.com/u/5300799?v=4" width="100px;" alt=""/><br /><sub><b>Benny</b></sub></a><br /><a href="#question-originalsouth" title="Answering Questions">💬</a> <a href="https://github.com/Gwion/Gwion/issues?q=author%3Aoriginalsouth" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=originalsouth" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/scalarwaves"><img src="https://avatars1.githubusercontent.com/u/4212896?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Prentice</b></sub></a><br /><a href="#question-scalarwaves" title="Answering Questions">💬</a> <a href="https://github.com/Gwion/Gwion/issues?q=author%3Ascalarwaves" title="Bug reports">🐛</a> <a href="https://github.com/fennecdjay/Gwion/commits?author=scalarwaves" title="Code">💻</a> <a href="#ideas-scalarwaves" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/Aleserche"><img src="https://avatars3.githubusercontent.com/u/2920837?v=4" width="100px;" alt=""/><br /><sub><b>aleserche</b></sub></a><br /><a href="https://github.com/Gwion/Gwion/commits?author=Aleserche" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Pranav2612000"><img src="https://avatars3.githubusercontent.com/u/20909078?v=4" width="100px;" alt=""/><br /><sub><b>Pranav Joglekar</b></sub></a><br /><a href="#userTesting-Pranav2612000" title="User Testing">📓</a> <a href="https://github.com/Gwion/Gwion/commits?author=Pranav2612000" title="Documentation">📖</a></td>
-    <td align="center"><a href="http://dev.to/amberisvibin"><img src="https://avatars3.githubusercontent.com/u/63863236?v=4" width="100px;" alt=""/><br /><sub><b>Amber</b></sub></a><br /><a href="#question-amberisvibin" title="Answering Questions">💬</a> <a href="https://github.com/Gwion/Gwion/commits?author=amberisvibin" title="Documentation">📖</a> <a href="#ideas-amberisvibin" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/TotallyNotChase"><img src="https://avatars0.githubusercontent.com/u/44284917?v=4" width="100px;" alt=""/><br /><sub><b>Chase</b></sub></a><br /><a href="https://github.com/Gwion/Gwion/commits?author=TotallyNotChase" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/nithin-pankaj"><img src="https://avatars2.githubusercontent.com/u/15152472?v=4" width="100px;" alt=""/><br /><sub><b>Nithin Pankaj</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=nithin-pankaj" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/evayde"><img src="https://avatars1.githubusercontent.com/u/25255815?v=4" width="100px;" alt=""/><br /><sub><b>Enrico Gruner</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=evayde" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/umer2001"><img src="https://avatars2.githubusercontent.com/u/35496058?v=4" width="100px;" alt=""/><br /><sub><b>Muhammad Umer Farooq</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=umer2001" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/a-mere-peasant"><img src="https://avatars3.githubusercontent.com/u/50142453?s=400&u=4844f21d4f48431d854307ecdf4d1f4d80977ab9&v=4" width="100px;" alt=""/><br /><sub><b>Harsh Jain</b></sub></a><br /><a href="https://github.com/Gwion/Gwion/commits?author=a-mere-peasant" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://github.com/ry-v1"><img src="https://avatars1.githubusercontent.com/u/72290009?v=4" width="100px;" alt=""/><br /><sub><b>ry-v1</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=ry-v1" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://github.com/deekts"><img src="https://avatars0.githubusercontent.com/u/51462833?v=4" width="100px;" alt=""/><br /><sub><b>deekts</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=deekts" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/forrcaho"><img src="https://avatars3.githubusercontent.com/u/492742?v=4" width="100px;" alt=""/><br /><sub><b>Forrest Cahoon</b></sub></a><br /><a href="#ideas-forrcaho" title="Ideas, Planning, & Feedback">🤔</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/SenorGrande"><img src="https://avatars2.githubusercontent.com/u/22025776?v=4" width="100px;" alt=""/><br /><sub><b>Connor Hewett</b></sub></a><br /><a href="https://github.com/fennecdjay/Gwion/commits?author=SenorGrande" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/euppal"><img src="https://avatars2.githubusercontent.com/u/67026187?v=4" width="100px;" alt=""/><br /><sub><b>Ethan Uppal</b></sub></a><br /><a href="#ideas-PaulBatchelor" title="Ideas, Planning, & Feedback">🤔</a></td>
-  </tr>
-</table>
-
-<!-- markdownlint-enable -->
-<!-- prettier-ignore-end -->
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
-
->    NOTE: if you should be on the list of contributors but we forgot you, don't be shy and let us know!
+not to forget these wonderful people ([emoji key](https://gwion.github.io/Gwion/Contributing/Contributors.html)):

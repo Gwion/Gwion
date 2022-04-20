@@ -37,14 +37,14 @@ color mauve "\<UsrUGen\>"
 color mauve "\<Ref\>"
 comment "#!"
 
-color italic,red start="#\<(pragma|include|define|ifdef|ifndef|undef|endif|import)\>" end="$"
-
 color brightred "\<(typeof|spork|fork)\>"
 color lightred "\<(second|ms|day|samp|minute|hour)\>"
 color brightcyan "\<(maybe)\>"
 color cyan "\<(adc|blackhole)\>"
 
-color brightgreen "\<(try|handle|perform|retry|class|struct|trait|union|enum|fun|operator|funptr|typedef|distinct|new)\>"
+color brightgreen "\<(try|handle|perform|retry|class|struct|trait|union|enum|fun|locale|operator|funptr|typedef|distinct|new)\>"
+color italic,red start="#\<(pragma|include|define|ifdef|ifndef|undef|endif|import|locale)\>" end="$"
+color italic,red "#locale"
 color italic,yellow "extends"
 color italic,brightgreen "\<(final|abstract)\>"
 color lightgreen "@[a-zA-Z]+[a-zA-Z0-9_]*|&[a-zA-Z]+[a-zA-Z0-9_]*"

@@ -18,7 +18,6 @@ static OP_CHECK(opck_func_call) {
   Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
   Exp         e    = exp_self(bin);
   e->exp_type      = ae_exp_call;
-  call.apms = true;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
@@ -34,54 +33,6 @@ ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
     return NULL;
   }
   return ret;
-}
-
-ANN static Exp order_apms(const Env env, Exp fn, const Exp _arg) {
-  const MemPool mp   = env->gwion->mp;
-  Exp           base = NULL;
-  Exp           next = NULL;
-  Exp           arg  = _arg;
-  do {
-    const bool hole = is_hole(env, fn);
-    const Exp  curr = !hole ? fn : arg;
-    if (hole) {
-      if (!arg) {
-        if (base) free_exp(mp, base);
-        ERR_O(fn->pos, "not enough arguments for holes");
-      }
-      arg = arg->next;
-    }
-    if (!base)
-      base = next = cpy_nonext(env, curr);
-    else if(next) { // check me (added after a fuzzing session)
-      next->next = cpy_nonext(env, curr);
-      next       = next->next;
-    }
-  } while ((fn = fn->next));
-  assert(base);
-  if (arg) {
-    free_exp(mp, base);
-    ERR_O(arg->pos, "too many arguments for holes");
-  }
-  return base;
-}
-
-static OP_CHECK(opck_apms) {
-  Exp_Binary *bin  = (Exp_Binary *)data;
-  Exp         lhs  = bin->lhs;
-  Exp_Call    base = bin->rhs->d.exp_call;
-  DECL_ON(const Exp, args, = order_apms(env, base.args, lhs));
-  Exp_Call call = {.func = base.func, .args = args};
-  Exp      e    = exp_self(bin);
-  e->exp_type   = ae_exp_call;
-  e->type       = NULL;
-  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
-
-  const MemPool mp = env->gwion->mp;
-  free_exp(mp, base.args);
-  free_exp(mp, lhs);
-
-  return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
 static inline void fptr_instr(const Emitter emit, const Func f,
@@ -354,10 +305,11 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   return check_lambda(env, actual_type(env->gwion, info->rhs->value_ref->type), l);
 }
 
-ANN static Type curry2auto(const Env env, const Exp_Binary *bin) {
+ANN static Type partial2auto(const Env env, const Exp_Binary *bin) {
   const Func_Def fdef = bin->lhs->d.exp_lambda.def;
   unset_fbflag(fdef->base, fbflag_lambda);
   CHECK_BN(traverse_func_def(env, fdef));
+  set_fbflag(fdef->base, fbflag_lambda);
   const Type actual = fdef->base->func->value_ref->type;
   set_fbflag(fdef->base, fbflag_lambda);
   Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
@@ -374,7 +326,7 @@ static OP_CHECK(opck_auto_fptr) {
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
   if(!bin->lhs->type->info->func)
-    return curry2auto(env, bin);
+    return partial2auto(env, bin);
   // create a matching signature
   // TODO: we could check first if there a matching existing one
   Func_Base *const fbase =
@@ -723,18 +675,12 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@apms", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_apms))
-  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, NULL, "@func_ptr", "bool"))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
   GWI_BB(gwi_oper_ini(gwi, "@function", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_at))
   GWI_BB(gwi_oper_emi(gwi, opem_func_assign))
   GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
-  //  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
-  //  GWI_BB(gwi_oper_emi(gwi, opem_fptr_cast))
-  //  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))

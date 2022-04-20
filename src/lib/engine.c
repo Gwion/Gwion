@@ -56,6 +56,28 @@ static FREEARG(freearg_release) {
   vector_release(&v);
 }
 
+ANN static m_float basic_locale(m_str str) {
+  const char base = str[0];
+  str++;
+  if(base < 'A' || base > 'G') return -1;
+  m_int bnote = base - 'A';
+  if(*str == '#') { bnote++; str++; }
+  else if(*str == 'b') { bnote--; str++; }
+  char *remainder;
+  const long octave = strtol(str, &remainder, 10);
+  if(*remainder != '\0') return -1;
+  const int note = bnote + 12 * octave + 21;
+  return (pow(2, (note - 69) / 12.0) * 440.0);
+}
+
+static SFUN(BasicLocale) {
+  const M_Object arg = *(M_Object*)MEM(0);
+  const m_float ret = basic_locale(STRING(arg));
+  if(ret == -1.0)
+    handle(shred, "invalid value for locale");
+  *(m_float*)RETURN = ret;
+}
+
 ANN static m_bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "one type to rule them all.");
   const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
@@ -141,10 +163,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   /*set_tflag(t_lambda, tflag_infer);*/
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
-  gwidoc(gwi, "Mark function as apms.");
-  const Type t_apms = gwi_mk_type(gwi, "@apms", 0, NULL);
-  GWI_BB(gwi_set_global_type(gwi, t_apms, et_apms))
-
   gwidoc(gwi, "type for internal pointer data.");
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
   GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
@@ -187,7 +205,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_gack(gwi));
 
 
-  GWI_BB(import_curry(gwi));
+gwi_func_ini(gwi, "float", "BasicLocale");
+gwi_func_arg(gwi, "string", "str");
+gwi_func_end(gwi, BasicLocale, ae_flag_none);
 
   // seemed need at a point to ease liking
   gwi_enum_ini(gwi, "@hidden_enum");

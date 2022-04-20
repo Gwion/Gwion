@@ -1,0 +1,5 @@
+#! [contains] 440
+locale Test(float base : 432) { return base; }
+
+#locale Test 440
+<<< `foo` >>>;
