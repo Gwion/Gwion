@@ -138,12 +138,12 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   gwidoc(gwi, "the base of lamdbas.");
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
-  set_tflag(t_lambda, tflag_infer);
+  /*set_tflag(t_lambda, tflag_infer);*/
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
-  gwidoc(gwi, "Mark function as curried.");
-  const Type t_curry = gwi_mk_type(gwi, "@Curry", 0, NULL);
-  GWI_BB(gwi_set_global_type(gwi, t_curry, et_curry))
+  gwidoc(gwi, "Mark function as apms.");
+  const Type t_apms = gwi_mk_type(gwi, "@apms", 0, NULL);
+  GWI_BB(gwi_set_global_type(gwi, t_apms, et_apms))
 
   gwidoc(gwi, "type for internal pointer data.");
   GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
@@ -185,6 +185,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   GWI_BB(import_dict(gwi));
   GWI_BB(import_gack(gwi));
+
+
+  GWI_BB(import_curry(gwi));
 
   // seemed need at a point to ease liking
   gwi_enum_ini(gwi, "@hidden_enum");

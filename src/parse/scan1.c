@@ -725,7 +725,8 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp));
   DECL_OB(const Type, parent, = scan1_get_parent(env, &cdef->base));
-  if (isa(parent, env->gwion->type[et_object]) < 0)
+  if (isa(parent, env->gwion->type[et_object]) < 0 &&
+      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   CHECK_BB(ensure_scan1(env, parent));
   if (type_ref(parent)) ERR_B(pos, _("can't use ref type in class extend"))

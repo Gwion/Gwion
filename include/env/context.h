@@ -5,6 +5,7 @@ struct Context_ {
   Nspc     nspc;
   m_str    name;
   Ast      tree;
+  Func locale;
   uint16_t ref;
   uint16_t weight;
   bool     error;
