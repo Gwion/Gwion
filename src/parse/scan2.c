@@ -54,7 +54,8 @@ ANN static m_bool scan2_args(const Func_Def f) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Value v   = arg->var_decl.value;
     v->from->offset = f->stack_depth;
-    f->stack_depth += v->type->size;
+    //f->stack_depth += v->type->size;
+    f->stack_depth += v->type ? v->type->size : SZ_INT;
     if (global) SET_FLAG(v, global);
   }
   return GW_OK;
@@ -146,7 +147,6 @@ ANN static inline m_bool scan2_exp_binary(const Env         env,
                                           const Exp_Binary *bin) {
   CHECK_BB(scan2_exp(env, bin->lhs));
   CHECK_BB(scan2_exp(env, bin->rhs));
-  if(bin->rhs->exp_type == ae_exp_call)bin->rhs->d.exp_call.apms = true;
   CHECK_BB(multi_decl(env, bin->lhs, bin->op));
   return multi_decl(env, bin->rhs, bin->op);
 }
