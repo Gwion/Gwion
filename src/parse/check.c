@@ -1318,7 +1318,7 @@ ANN m_bool check_union_def(const Env env NUSED, const Union_Def udef) {
 ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
   if(stmt->val) {
     CHECK_OB(check_exp(env, stmt->val));
-    if(!strncmp(stmt->val->type->name, "partial:", 8)) {
+    if(stmt->val->exp_type == ae_exp_lambda) {
      const loc_t loc = stmt->val->d.exp_lambda.def->base->pos;
      env_warn(env, loc, "Partial application not used");
     }
