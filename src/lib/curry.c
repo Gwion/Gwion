@@ -11,6 +11,7 @@
 #include "gwi.h"
 #include "traverse.h"
 #include "parse.h"
+#include "curry.h"
 
 ANN static Arg_List curry_arg_list(const Env env, const Arg_List base, const Exp e) {
   Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
@@ -30,10 +31,9 @@ ANN static Arg_List curry_arg_list(const Env env, const Arg_List base, const Exp
   return args;
 }
 
-ANN2(1) static Func_Base *curry_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
+ANN2(1, 2) static inline Func_Base *curry_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
   Arg_List args = earg ? curry_arg_list(env, base->args, earg) : NULL;
   Func_Base *fb = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), lambda_name(env->gwion->st, loc.first), args, ae_flag_none, loc);
-  fb->fbflag |= fbflag_lambda;
   return fb;
 }
 
@@ -67,9 +67,10 @@ ANN static Stmt curry_code(const Env env, const Exp efun, const Exp earg) {
   return new_stmt_code(env->gwion->mp, slist, efun->pos);
 }
 
-ANN static Type curry_type(const Env env, const Exp exp, const Exp efun, const Exp earg) {
-  Func_Base *base = curry_base(env, efun->type->info->func->def->base, earg, exp->pos);
-  Stmt code = curry_code(env, efun, earg);
+ANN2(1,2,3) Type curry_type(const Env env, const Exp exp, const Exp func, const Exp args, const bool lambda) {
+  Func_Base *const base = curry_base(env, func->type->info->func->def->base, args, exp->pos);
+  const Stmt code = curry_code(env, func, args);
+  if(lambda)base->fbflag |= fbflag_lambda; // rewritem
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, base, code);
   exp->exp_type = ae_exp_lambda;
   return check_exp(env, exp);
@@ -83,7 +84,7 @@ static OP_CHECK(opck_curry) {
   const Exp earg = efun->next;
   efun->next = NULL;
   const Type ret = check_exp(env, efun)
-    ? curry_type(env, exp_self(call), efun, earg)
+    ? curry_type(env, exp_self(call), efun, earg, true)
     : env->gwion->type[et_error];
   mp_free(env->gwion->mp, Exp, earg);
   return ret;
@@ -104,4 +105,3 @@ GWION_IMPORT(curry) {
   CHECK_BB(add_op(gwi->gwion, &opi));
   return GW_OK;
 }
-

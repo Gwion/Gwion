@@ -14,6 +14,7 @@
 #include "match.h"
 #include "specialid.h"
 #include "tmp_resolve.h"
+#include "curry.h"
 
 ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool        check_class_def(const Env env, const Class_Def class_def);
@@ -310,6 +311,9 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
+  } else if(env->func && fbflag(env->func->def->base, fbflag_locale)) {
+    if(!is_func(env->gwion, value->type) && value->from->owner && !from_global_nspc(env, value->from->owner))
+      ERR_O(prim_pos(data), _("invalid variable access from locale definition"));
   }
   return value;
 }
@@ -422,7 +426,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
 }
 
 ANN static Type check_prim_locale(const Env env, const Symbol *data NUSED) {
-  return env->context->locale->def->base->ret_type;
+  return env->gwion->type[et_float];
 }
 
 #define describe_prim_xxx(name, type)                                          \
@@ -765,17 +769,6 @@ ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
   }
   if(e)
      ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-/*
-  while (arg && e) {
-    arg->type = e->type;
-    if(is_class(env->gwion, arg->type))
-      type_addref(arg->type);
-    arg       = arg->next;
-    e         = e->next;
-  }
-  if (arg || e)
-    ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-*/
   l->def->base->values = env->curr->info->value;
   const m_bool ret     = traverse_func_def(env, l->def);
   if (l->def->base->func) {
@@ -1500,9 +1493,20 @@ ANN static m_bool check_stmt_match(const Env env, const Stmt_Match stmt) {
 ANN static m_bool check_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
   // check for memoization
-  if (env->func && stmt->pp_type == ae_pp_pragma &&
+  else if (env->func && stmt->pp_type == ae_pp_pragma &&
       !strncmp(stmt->data, "memoize", strlen("memoize")))
     env->func->memoize = strtol(stmt->data + 7, NULL, 10);
+  else if(stmt->pp_type == ae_pp_locale) {
+    const loc_t loc = stmt_self(stmt)->pos;
+    const Exp id   = new_prim_id(env->gwion->mp, stmt->xid, loc);
+    const Exp arg   = new_prim_id(env->gwion->mp, insert_symbol("_"), loc);
+    arg->next = stmt->exp;
+    const Exp call = new_exp_call(env->gwion->mp, id, arg, loc);
+    stmt->exp = call;
+    CHECK_BB(traverse_exp(env, id));
+    CHECK_OB(curry_type(env, call, id, call->d.exp_call.args, false));
+    CHECK_OB(traverse_func_def(env, call->d.exp_lambda.def));
+  }
   return GW_OK;
 }
 

@@ -358,6 +358,7 @@ ANN static Type curry2auto(const Env env, const Exp_Binary *bin) {
   const Func_Def fdef = bin->lhs->d.exp_lambda.def;
   unset_fbflag(fdef->base, fbflag_lambda);
   CHECK_BN(traverse_func_def(env, fdef));
+  set_fbflag(fdef->base, fbflag_lambda);
   const Type actual = fdef->base->func->value_ref->type;
   set_fbflag(fdef->base, fbflag_lambda);
   Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);

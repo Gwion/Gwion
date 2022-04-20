@@ -52,6 +52,7 @@ struct Emitter_ {
   struct Gwion_ *      gwion;
   struct EmitterInfo_ *info;
   struct Vector_       stack;
+  Func                 locale;
   uint16_t             this_offset;   // reset
   uint16_t             vararg_offset; // reset
 };

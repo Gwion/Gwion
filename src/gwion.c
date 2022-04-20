@@ -68,6 +68,14 @@ ANN static void gwion_core(const Gwion gwion) {
   gwion->vm->gwion = gwion->emit->gwion = gwion->env->gwion = gwion;
 }
 
+
+ANN static Func gwion_locale(const Gwion gwion) {
+   const Nspc nspc = gwion->env->curr;
+   const Symbol sym = insert_symbol(gwion->st, "BasicLocale");
+   const Value v = nspc_lookup_value1(nspc, sym);
+   return v->d.func_ref;
+}
+
 ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
   CHECK_BB(plug_ini(gwion, &arg->lib));
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
@@ -75,6 +83,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
     plug_run(gwion, &arg->mod);
     if (type_engine_init(gwion)) {
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
+      gwion->emit->locale = gwion_locale(gwion);
       (void)arg_compile(gwion, arg);
       return GW_OK;
     }
