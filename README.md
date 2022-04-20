@@ -1,9 +1,9 @@
 # Gwion
 
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Gwion/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/fennecdjay/Gwion/context:cpp)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Gwion/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Gwion/Gwion/context:cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
-[![Coverage](https://raw.githubusercontent.com/Gwion/gwion-coverage-report/master/badge.svg?sanitize=true)](https://fennecdjay.github.io/gwion-coverage-report/master)
-[![Line Count](https://tokei.rs/b1/github/Gwion/Gwion)](https://github.com/fennecdjay/Gwion)
+[![Coverage](https://raw.githubusercontent.com/Gwion/gwion-coverage-report/master/badge.svg?sanitize=true)](https://gwion.github.io/gwion-coverage-report/master)
+[![Line Count](https://tokei.rs/b1/github/Gwion/Gwion)](https://github.com/Gwion/Gwion)
 ![Linux](https://github.com/Gwion/Gwion/workflows/Linux/badge.svg)
 ![MacOs](https://github.com/Gwion/Gwion/workflows/MacOs/badge.svg)
 ![Windows](https://github.com/Gwion/Gwion/workflows/Windows/badge.svg)
@@ -22,7 +22,7 @@ Gwion is a programming language, aimed at making music
 
 It aims to be simple, small,
  [fast](https://Gwion.github.io/Gwion/#Benchmarks/),
- [extendable](https://github.com/Gwion/Gwion-plug) and [embeddable](https://github.com/fennecdjay/Gwion/blob/master/src/main.c#L18-L31).
+ [extendable](https://github.com/Gwion/Gwion-plug) and [embeddable](https://github.com/Gwion/Gwion/blob/master/src/main.c#L18-L31).
 
 Checkout the community, and join us on discord: https://discord.gg/KmHqbTKSmS.
 You can also check this very nice server about programming language devlopment: https://discord.gg/4Kjt3ZE,
