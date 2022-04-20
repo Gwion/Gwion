@@ -18,42 +18,18 @@ fun int test_function(int arg) {
 ```
 
 
-## Any Position Method syntax
-
-Due to the hybrid nature of function call syntax
-and the left to right workflow in gwion,
-some syntaxic sugar is provided
-to call a function with arguments
-from both the left and right side
-﻿
-Arguments coming from the left are referenced as `_`
-in the right hand side
-
-```gwion,editable
-fun void myfunc(int i, int j) {
-  <<< "${i} ${j}" >>>;
-}
-
-#! prints '1 2'
-1 => myfunc(_, 2);
-
-#! prints '1 2'
-2 => myfunc(1, _);
-```
-
 ## Partial Application
 
 According to wikipeda:
 *In computer science, partial application (or partial function application) refers to the process of fixing a number of arguments to a function, producing another function of smaller arity.*
 
-In gwion, you can use the `curry` function to achieve that
+In gwion, you can use a *hole* `_` to achieve that
 
 ```gwion,editable
 fun int test(int i, int j) {
   return i + j;
 }
 
-curry(test, _, 2) @=> const auto mytest;
-
+test(_, 2) @=> const auto mytest;
 <<< 40 => mytest >>>;
 ```
