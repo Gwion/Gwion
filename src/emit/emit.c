@@ -1985,12 +1985,12 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
 //  CHECK_BO(emit_exp_pop_next(emit, e));
   CHECK_BO(emit_exp(emit, e));
   {
-    const Instr instr = (Instr)vector_back(&emit->code->instr);
-    if(instr->execute == fast_except) {
+    const Instr ex = (Instr)vector_back(&emit->code->instr);
+    if(ex->execute == fast_except) {
       vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
-      if(instr->m_val2)
-        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)instr->m_val2);
-      free_instr(emit->gwion, instr);
+      if(ex->m_val2)
+        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)ex->m_val2);
+      free_instr(emit->gwion, ex);
     }
   }
   if(instr)
