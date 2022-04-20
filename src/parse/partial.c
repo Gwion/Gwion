@@ -138,8 +138,8 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
     if(f->next) {
       const Func next = partial_match(env, f->next, args, loc);
       if(next) {
-        gwerr_basic("can't resolve ambiguity", "in this partial application", "use typed holes: _ $ type", env->name, loc, 0);
-        gw_err("\nthose functions could match:\n");
+        gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
+        gw_err(_("\nthose functions could match:\n"));
         print_signature(f);
         ambiguity(env, next, args, loc);
         env->context->error = true;
@@ -199,7 +199,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
       call->args = e;
       return partial_type(env, call);
     }
-    ERR_O(call->func->pos, "not match found for partial application");
+    ERR_O(call->func->pos, _("no match found for partial application"));
   }
   Func_Base *const base = partial_base(env, f->def->base, call->args, call->func->pos);
   const Stmt code = partial_code(env, call->func, call->args);

@@ -1320,7 +1320,7 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
     CHECK_OB(check_exp(env, stmt->val));
     if(stmt->val->exp_type == ae_exp_lambda) {
      const loc_t loc = stmt->val->d.exp_lambda.def->base->pos;
-     env_warn(env, loc, "Partial application not used");
+     env_warn(env, loc, _("Partial application not used"));
     }
   }
   return stmt->val ? check_exp(env, stmt->val) ? 1 : -1 : 1;

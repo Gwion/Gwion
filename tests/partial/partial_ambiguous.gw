@@ -1,0 +1,4 @@
+#! [contains] can't resolve ambiguity
+fun void test(int i, int j) {}
+fun void test(int i, string s) {}
+test(_, _);

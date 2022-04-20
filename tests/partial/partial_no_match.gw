@@ -1,0 +1,3 @@
+#! [contains] no match found for partial application
+fun void test(int i) {}
+test(_, _);
