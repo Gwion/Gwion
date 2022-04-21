@@ -1,0 +1,12 @@
+#! [contains] 1.0
+
+fun void foo(float f)  {
+  <<< f >>>;
+}
+
+var Impulse imp ~> dac;
+imp |> foo;
+1 => imp.next;
+
+2::samp => now;
+
