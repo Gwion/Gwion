@@ -181,7 +181,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   GWI_BB(import_dict(gwi));
   GWI_BB(import_gack(gwi));
-  GWI_BB(import_ctrl(gwi));
+  GWI_BB(import_sift(gwi));
   GWI_BB(import_locale(gwi));
 
 
