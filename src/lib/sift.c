@@ -70,7 +70,8 @@ static OP_CHECK(opck_ctrl) {
 }
 
 GWION_IMPORT(sift) {
-  GWI_BB(gwi_class_ini(gwi, "Sift", "Shred"));
+  const Type sift = gwi_class_ini(gwi, "Sift", "Shred");
+  SET_FLAG(sift, abstract | ae_flag_final);
   GWI_BB(gwi_class_end(gwi));
 
   gwidoc(gwi, "This operator expands too\n"
