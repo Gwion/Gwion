@@ -1,0 +1,3 @@
+#! [contains] can't use declaration
+var Impulse imp |> \a{ return 2.0; };
+5::samp => now;

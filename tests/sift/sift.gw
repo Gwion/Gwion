@@ -1,0 +1,7 @@
+#! [contains] var: 2.0
+
+var Impulse imp ~> blackhole;
+
+imp |> \a{ return 2.0; } |> \a{ <<< "var: ${a}" >>>; return 2.0; };
+
+5::samp => now;
