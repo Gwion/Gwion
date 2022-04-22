@@ -139,15 +139,19 @@ ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {
 
 ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
   const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
+  bool ret = true;
   if (dep) {
     m_str *const base = dep();
     m_str *      deps = base;
     while (*deps) {
-      CHECK_BB(plugin_ini(gwion, *deps, loc));
+      if(plugin_ini(gwion, *deps, loc) < 0) {
+        gw_err("{-}[{0}{R+}missing plugin dependency{0}{-}]{0} missing {Y-}%s{0} plugin\n", *deps);
+        ret = false;
+      }
       ++deps;
     }
   }
-  return GW_OK;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
@@ -189,7 +193,8 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) 
   const m_bool ret    = _plugin_ini(gwion, iname, loc);
   gwion->env->context = ctx;
   if(ret > 0) return GW_OK;
-  env_err(env, loc, "no such plugin\n");
+  if(gwion->env->context && !gwion->env->context->error)
+    env_err(env, loc, "no such plugin\n");
   return GW_ERROR;
 }
 
