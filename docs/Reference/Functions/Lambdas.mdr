@@ -13,7 +13,13 @@ You can even use it to
 ```gwion,editable
 \ i { <<< "passed '", i, "'" >>>; }(3);
 ```  
+### Short lambdas
 
+if the lambda consists of only one expression, the result of that expression is implicetely returned.
+Notice there is no semicolon in the lambda body;
+```gwion,editable
+<<< \ { 42 }() >>>;
+```
 
 ## Use case
 
