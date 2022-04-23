@@ -9,17 +9,25 @@
 #include "import.h"
 #include "gwi.h"
 
+static int basic_note(const char c) {
+  if(c == 'A' || c == 'a') return 0;
+  if(c == 'B' || c == 'b') return 2;
+  if(c == 'C' || c == 'c') return 3;
+  if(c == 'D' || c == 'd') return 5;
+  if(c == 'E' || c == 'e') return 7;
+  if(c == 'F' || c == 'f') return 8;
+  if(c == 'G' || c == 'g') return 10;
+  return -1;
+}
+
 ANN static m_float basic_locale(m_str str) {
-  const char base = str[0];
+  const char base = basic_note(str[0]);
+  if(base == -1) return -1;
   str++;
-  if(base < 'A' || base > 'G') return -1;
-  m_int bnote = base - 'A';
-  if(*str == '#') { bnote++; str++; }
-  else if(*str == 'b') { bnote--; str++; }
   char *remainder;
   const long octave = strtol(str, &remainder, 10);
   if(*remainder != '\0') return -1;
-  const int note = bnote + 12 * octave + 21;
+  const int note = base + 12 * octave + 21;
   return (pow(2, (note - 69) / 12.0) * 440.0);
 }
 

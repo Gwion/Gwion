@@ -333,7 +333,7 @@ static inline Nspc value_owner(const Env env, const Value v) {
 
 ANN static void check_upvalue(const Env env, const Exp_Primary *prim) {
   const Value v = prim->value;
-  if (GET_FLAG(v, global) ||
+  if (GET_FLAG(v, global) || vflag(v, vflag_fglobal) ||
       (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
       nspc_lookup_value1(env->curr, insert_symbol(v->name)))
     return;
