@@ -51,6 +51,8 @@ provide-module -override gwion %{
 	# literals
 	add-highlighter shared/gwion/other/ regex "\B'((\\.)|[^'\\])'\B" 0:value  # char
 
+	add-highlighter shared/gwion/other/ regex "\B`((\\.)|[^'\\])*`\B" 0:value  # locales
+
 	add-highlighter shared/gwion/other/ regex "\d+(u|U|l|L)?" 0:value                   # decimal
 	add-highlighter shared/gwion/other/ regex "((\d+\.\d*)|(\d*\.\d+))([eE][\+-]\d+)*" 0:value           # float
 
