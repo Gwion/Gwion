@@ -239,9 +239,7 @@ OP_CHECK(opck_object_dot) {
 
 ANN static Type member_type(const Gwion gwion, const Type base) {
   const Type t = actual_type(gwion, base);
-  if(strncmp(t->name, "Ref:[", 5))
-    return t;
-  return (Type)vector_front(&t->info->tuple->contains);
+  return !tflag(t, tflag_ref) ? t: (Type)vector_front(&t->info->tuple->contains);
 }
 
 OP_EMIT(opem_object_dot) {

@@ -17,7 +17,6 @@ struct Func_ {
   Value            value_ref;
   Func             next;
   m_str            name;
-  struct Map_      upvalues;
   float            inline_mult;
   uint16_t         weight;
   uint16_t         memoize;

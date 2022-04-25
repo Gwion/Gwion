@@ -662,7 +662,7 @@ static OP_CHECK(opck_array_scan) {
     env_set_error(env);
     return env->gwion->type[et_error];
   }
-  if (!strncmp(base->name, "Ref:[", 5)) {
+  if (tflag(base, tflag_ref)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
     env_set_error(env);
@@ -772,10 +772,7 @@ static OP_CHECK(opck_array_each_val) {
   const Exp exp = (const Exp) data;
   DECL_ON(const Type, base, = foreach_type(env, exp));
   CHECK_BN(ensure_traverse(env, base));
-  const m_str basename = type2str(env->gwion, base, exp->pos);
-  char c[15 + strlen(basename)];
-  sprintf(c, "Ref:[%s]", basename);
-  return str2type(env->gwion, c, exp->pos);
+  return ref_type(env->gwion, base, exp->pos);
 }
 
 static OP_EMIT(opem_array_each) {

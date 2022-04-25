@@ -275,8 +275,16 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
   if (b->tmpl) clean_tmpl(a, b->tmpl);
 }
 
+ANN static void clean_captures(Clean *a, Capture_List b) {
+  for(uint32_t i = 0; i < b->len; i++) {
+    const Capture *cap = mp_vector_at(b, Capture, i);
+    if(cap->v) value_remref(cap->v, a->gwion);
+  }
+}
+
 ANN static void clean_func_def(Clean *a, Func_Def b) {
   clean_func_base(a, b->base);
+  if(b->captures) clean_captures(a, b->captures);
   ++a->scope;
   if (!b->builtin && b->d.code &&
       !(b->base->func && safe_vflag(b->base->func->value_ref, vflag_builtin)))

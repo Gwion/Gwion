@@ -11,8 +11,7 @@
 #include "import.h"
 
 ANN Closure *new_closure(MemPool mp, const m_uint sz) {
-  Closure *a = mp_malloc(mp, Closure);
-  a->data    = mp_malloc2(mp, sz);
+  Closure *a = mp_malloc2(mp, sizeof(Closure) + sz);
   map_init(&a->m);
   a->sz = sz;
   return a;
@@ -24,5 +23,5 @@ ANN void free_closure(Closure *a, const Gwion gwion) {
     compound_release(gwion->vm->cleaner_shred, (Type)VKEY(m, i),
                      a->data + VVAL(m, i));
   map_release(m);
-  _mp_free(gwion->mp, a->sz, a->data);
+  _mp_free(gwion->mp, sizeof(Closure) + a->sz, a);
 }

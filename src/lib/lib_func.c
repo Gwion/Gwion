@@ -225,19 +225,31 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 }
 
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
-                                const Func_Def def) {
+                                const Func_Def fdef) {
 //   if(l->def->base->func) return GW_OK;
-  Arg_List bases = def->base->args;
+  Arg_List bases = fdef->base->args;
   Arg_List args = l->def->base->args;
   // arity match
   if ((bases ? bases->len : 0) != (args ? args->len : 0))
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
+    if(fdef->captures) {
+    // here move to arguments
+    uint32_t offset = 0;
+    for(uint32_t i = 0; i < fdef->captures->len; i++) {
+      Capture *cap = mp_vector_at(fdef->captures, Capture, i);
+      const Value v = nspc_lookup_value1(env->curr, cap->xid);
+      if(!v) ERR_B(cap->pos, _("unknown value in capture"));
+      offset += (!cap->is_ref ? SZ_INT : v->type->size);
+      cap->v = v;
+      cap->offset = offset;
+    }
+  }
   const bool is_tmpl =
-      safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl);
+      safe_tflag(fdef->base->func->value_ref->from->owner_class, tflag_tmpl);
   if (is_tmpl)
     template_push_types(
         env,
-        def->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
+        fdef->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
   if(bases) {
     for(uint32_t i = 0; i < bases->len; i++) {
       Arg *base = mp_vector_at(bases, Arg, i);
@@ -247,22 +259,22 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
 
   }
   l->def->base->td =
-      type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
+      type2td(env->gwion, known_type(env, fdef->base->td), exp_self(l)->pos);
   if (is_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
-  l->def->base->flag = def->base->flag;
+  l->def->base->flag = fdef->base->flag;
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
   UNSET_FLAG(l->def->base, global);
   l->def->base->values = env->curr->info->value;
   const m_uint scope   = env->scope->depth;
-  if(GET_FLAG(def->base, global) && !l->owner &&
-    def->base->func->value_ref->from->owner_class)
+  if(GET_FLAG(fdef->base, global) && !l->owner &&
+    fdef->base->func->value_ref->from->owner_class)
    env_push(env, NULL, env->context->nspc);
   env->scope->depth = 0;
   const m_bool ret  = traverse_func_def(env, l->def);
   env->scope->depth = scope;
-    if(GET_FLAG(def->base, global) && !l->owner &&
-    def->base->func->value_ref->from->owner_class)
+    if(GET_FLAG(fdef->base, global) && !l->owner &&
+    fdef->base->func->value_ref->from->owner_class)
    env_pop(env, scope);
 
   if (l->def->base->func) {

@@ -17,6 +17,12 @@
 #include "gwi.h"
 #include "tmpl_info.h"
 
+ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc) {
+  char c[7 + strlen(t->name)];
+  sprintf(c, "Ref:[%s]", t->name);
+  return str2type(gwion, c, loc);
+}
+
 static m_bool ref_access(const Env env, const Exp e) {
   const m_str access = exp_access(e);
   if (!access) return GW_OK;

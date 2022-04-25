@@ -331,23 +331,20 @@ static inline Nspc value_owner(const Env env, const Value v) {
   return v ? v->from->owner : env->curr;
 }
 
-ANN static void check_upvalue(const Env env, const Exp_Primary *prim) {
-  const Value v = prim->value;
-  if (GET_FLAG(v, global) || vflag(v, vflag_fglobal) ||
+ANN bool not_upvalue(const Env env, const Value v) {
+  return GET_FLAG(v, global) || vflag(v, vflag_fglobal) ||
       (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
-      nspc_lookup_value1(env->curr, insert_symbol(v->name)))
-    return;
-  const Map map = &env->func->upvalues;
-  if (!map->ptr) {
-    map_init(map);
-    map_set(&env->func->upvalues, (vtype)prim, 0);
-  } else {
-    if (map_get(map, (vtype)v)) return;
-    const m_uint offset =
-        VVAL(map, VLEN(map) - 1) +
-        ((Exp_Primary *)VKEY(map, VLEN(map) - 1))->value->type->size;
-    map_set(&env->func->upvalues, (vtype)prim, offset);
-  }
+      nspc_lookup_value1(env->curr, insert_symbol(v->name));
+}
+
+ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim) {
+  const Value v = prim->value;
+  if(not_upvalue(env, v))
+    return GW_OK;
+  gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->pos, 4242);
+  gwerr_warn("declared here", NULL, _("{-}try adding it to capture list{0}"), v->from->filename, v->from->loc);
+  env->context->error = true;
+  return GW_ERROR;
 }
 
 ANN static Type prim_owned(const Env env, const Symbol *data) {
@@ -385,7 +382,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     if (!GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
     if (fbflag(env->func->def->base, fbflag_lambda))
-      check_upvalue(env, prim_self(data));
+      CHECK_BO(check_upvalue(env, prim_self(data)));
   }
   // set_vflag(v->vflag, vflag_used);
   return v->type;
@@ -727,8 +724,49 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
     func->def->base->ret_type : exp->func->d.exp_dot.base->type;
 }
 
-ANN static Type check_lambda_call(const Env env, const Exp_Call *exp) {
-  if (exp->args) CHECK_OO(check_exp(env, exp->args));
+ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
+  const Func_Def fdef = exp->func->d.exp_lambda.def;
+  if (exp->args) {
+    Exp e = exp->args;
+    CHECK_OO(check_exp(env, exp->args));
+    do if(tflag(e->type, tflag_ref) && !safe_tflag(exp_self(e)->cast_to, tflag_ref))
+       exp_setvar(e, true);
+    while((e = e->next));
+  }
+  Exp _args = NULL, tmp;
+  if(fdef->captures) {
+    if(!fdef->base->args)
+      fdef->base->args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
+    for(uint32_t i = 0; i < fdef->captures->len; i++) {
+      Capture *const cap = mp_vector_at(fdef->captures, Capture, i);
+      const Value v = nspc_lookup_value1(env->curr, cap->xid);
+      if(!v)exit(3);
+      if(cap->is_ref && not_upvalue(env, v))
+        ERR_O(cap->pos, _("can't take ref of a scoped value"));
+      cap->v = v;
+      const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
+      const Type t = !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
+      Arg arg = {
+        .td = type2td(env->gwion, t, exp->func->pos),
+        .var_decl = { .xid = cap->xid }
+      };
+      mp_vector_add(env->gwion->mp, &fdef->base->args, Arg, arg);
+      const Exp exp = new_prim_id(env->gwion->mp, cap->xid, cap->pos);
+      if(_args) tmp = tmp->next = exp;
+      else _args = tmp = exp;
+    }
+    free_mp_vector(env->gwion->mp, sizeof(Capture), fdef->captures);
+    fdef->captures = NULL;
+  }
+  if(_args) {
+    if (exp->args) {
+      puts("here");
+      Exp e = exp->args;
+      while(e->next) e = e->next;
+      e->next = _args;
+    } else exp->args = _args;
+    CHECK_OO(traverse_exp(env, _args));
+  }
   Exp_Lambda *l   = &exp->func->d.exp_lambda;
   Arg_List    args = l->def->base->args;
   Exp         e   = exp->args;
@@ -1077,6 +1115,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp ret_id =
         new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
     ret_id->d.prim.value = new_value(env->gwion->mp, tdef->type, "self");
+    // valuefrom?
     struct Stmt_ ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .pos = when->pos
@@ -1215,6 +1254,7 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   valid_value(env, stmt->sym, stmt->v);
+  valuefrom(env, stmt->v->from, stmt->vpos);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -1330,6 +1370,7 @@ ANN static Value match_value(const Env env, const Type base,
                              const Exp_Primary *prim) {
   const Symbol sym = prim->d.var;
   const Value  v   = new_value(env->gwion->mp, base, s_name(sym));
+  // valuefrom?
   valid_value(env, sym, v);
   return v;
 }

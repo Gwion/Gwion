@@ -239,6 +239,8 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env,
     const loc_t pos = exp_self(unary)->pos;
     const Symbol sym = lambda_name(env->gwion->st, pos.first);
     Exp lambda = new_exp_lambda(env->gwion->mp, sym, NULL, unary->code, pos);
+    lambda->d.exp_lambda.def->captures = unary->captures;
+    unary->captures = NULL;
     mp_free(env->gwion->mp, Stmt, unary->code);
     unary->exp = new_exp_call(env->gwion->mp, lambda, NULL, pos);
     unary->unary_type = unary_exp;
@@ -394,10 +396,10 @@ ANN static Value arg_value(const Env env, Arg *const arg) {
                             vd->xid ? s_name(vd->xid) : (m_str) __func__);
   if (vd->array)
     v->type = arg->type = array_type(env, arg->type, vd->array->depth);
-  if (arg->td) {
+  if (arg->td)
     v->flag = arg->td->flag;
-    //    SET_FLAG(v, global); ???
-  }
+  v->from->loc = arg->var_decl.pos;
+  v->from->filename = env->name;
   return v;
 }
 
