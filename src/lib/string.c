@@ -81,7 +81,7 @@ static INSTR(StringSlice) {
   const m_int    start = *(m_uint *)REG(0);
   const size_t   strsz = strlen(str);
   m_int          end   = *(m_uint *)REG(SZ_INT);
-  if (end < 0) end = strsz + end;
+  if (end < 0) end = strsz + end - 1;
   if (bounds(str, start) < 0 || bounds(str, end) < 0) {
     handle(shred, "OutOfBoundsStringSlice");
     return;
