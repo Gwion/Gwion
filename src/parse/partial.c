@@ -194,7 +194,7 @@ ANN static Exp expand(const Env env, const Func func, const Exp e, const loc_t l
 
 ANN Type partial_type(const Env env, Exp_Call *const call) {
   const Func base = call->func->type->info->func;
-  if(!base) ERR_O(call->func->pos, _("can't partially apply call a literal lambda"));
+  if(!base) ERR_O(call->func->pos, _("can't do partiall application on a literal lambda"));
   const Func f = partial_match(env, base, call->args, call->func->pos);
   if(!f) {
     const Exp e = expand(env, call->func->type->info->func, call->args, call->func->pos);

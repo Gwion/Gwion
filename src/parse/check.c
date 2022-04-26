@@ -763,9 +763,10 @@ ANN static Exp check_lambda_captures(const Env env, const Func_Def fdef) {
 
 ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   const Func_Def fdef = exp->func->d.exp_lambda.def;
+  const bool captures = !!fdef->captures;
   if (exp->args) CHECK_BO(lambda_args_ref(env, exp));
-  const Exp _args = !fdef->captures ? NULL : check_lambda_captures(env, fdef);
-  if(fdef->captures) CHECK_BO(lambda_append_args(env, exp, _args));
+  const Exp _args = !captures ? NULL : check_lambda_captures(env, fdef);
+  if(captures) CHECK_BO(lambda_append_args(env, exp, _args));
   Exp_Lambda *l   = &exp->func->d.exp_lambda;
   Arg_List    args = l->def->base->args;
   Exp         e   = exp->args;
