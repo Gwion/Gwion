@@ -1,0 +1,2 @@
+#! [contains] can't do partial application on a literal lambda
+<<< \a {  }(_) >>>;
