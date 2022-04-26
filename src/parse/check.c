@@ -358,7 +358,6 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
-puts(s_name(*data));
     const m_str hint = (!env->func || strcmp(env->func->name, "in spork")) ?
         NULL : "vapturelist?";
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), hint,

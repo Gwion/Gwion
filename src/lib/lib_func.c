@@ -256,7 +256,6 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       Arg *arg  = mp_vector_at(args, Arg, i);
       arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
     }
-
   }
   l->def->base->td =
       type2td(env->gwion, known_type(env, fdef->base->td), exp_self(l)->pos);

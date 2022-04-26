@@ -79,8 +79,9 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
         if(!is_typed_hole(env, e)) {
           const Exp next = e->next;
           e->next = NULL;
-          check_exp(env, e);
+          const m_bool ret = check_exp(env, e);
           e->next = next;
+          CHECK_OO(ret);
       } else
           CHECK_OO((e->type = known_type(env, e->d.exp_cast.td)));
         if (!func_match_inner(env, e, arg->type, implicit, specific)) break;
