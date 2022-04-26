@@ -1951,11 +1951,22 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
   if(!sporker.is_spork)
     emit_local_exp(emit, exp_self(unary));
   spork_ini(emit, &sporker);
-
-if(sporker.captures) {
+  // add this if needed
+  uint32_t offset = 0;
+  if(emit->env->class_def && sporker.code) {
+    struct Exp_ exp = {
+      .d = { .prim = {
+        .d = { .var = insert_symbol("this") },
+          .prim_type = ae_prim_id
+        }},
+      .type = emit->env->class_def,
+      .exp_type = ae_exp_primary
+    };
+    emit_exp(emit, &exp);
+    offset += SZ_INT;
+  }
+  if(sporker.captures) {
     Capture_List caps = sporker.captures;
-// what about types?
-    uint32_t offset = 0;
     for (uint32_t i = 0; i < caps->len; i++) {
       Capture *cap = mp_vector_at(caps, Capture, i);
       const Value v = nspc_lookup_value1(emit->env->curr, cap->xid);
@@ -1968,17 +1979,16 @@ if(sporker.captures) {
         .type = v->type,
         .exp_type = ae_exp_primary
       };
-// handle emit var?
-//exp_setvar(&exp, false);
+      if(cap->is_ref) exp_setvar(&exp, true);
+      offset += exp_size(&exp);
       emit_exp(emit, &exp);
     }
-//      pop_exp(emit, &exp);
-regpop(emit, SZ_INT);
-    const Instr args  = emit_add_instr(emit, SporkCode);
-    args->m_val       = 8; //emit->code->stack_depth;
   }
-
-//    emit_local_exp(emit, exp_self(unary));
+  if(offset) {
+    regpop(emit, offset);
+    const Instr args  = emit_add_instr(emit, SporkCode);
+    args->m_val       = offset;
+  }
   (unary->unary_type == unary_code ? spork_code : spork_func)(emit, &sporker);
   return GW_OK;
 }
@@ -2537,6 +2547,7 @@ nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
 
 ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   const uint n = emit->info->unroll;
+  nspc_push_value(emit->gwion->mp, emit->env->curr);
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
   regpop(emit, SZ_INT);
@@ -2550,6 +2561,7 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   m_uint       end_pc = 0;
   const m_bool ret    = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
+nspc_pop_value(emit->gwion->mp, emit->env->curr);
   emit->info->unroll = 0;
   return ret;
 }
@@ -2936,6 +2948,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List args) {
     emit->code->stack_depth += type->size;
     arg->var_decl.value->from->offset = emit_localn(emit, type);
     emit_debug(emit, arg->var_decl.value);
+    nspc_add_value(emit->env->curr, insert_symbol(arg->var_decl.value->name), arg->var_decl.value);
   }
 }
 
@@ -3057,8 +3070,10 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
   const Func f = fdef->base->func;
   if (f->memoize && fflag(f, fflag_pure))
     CHECK_BB(emit_memoize(emit, fdef));
+  nspc_push_value(emit->gwion->mp, emit->env->curr); // handle
   CHECK_BB(emit_func_def_body(emit, fdef));
   emit_func_def_return(emit);
+  nspc_pop_value(emit->gwion->mp, emit->env->curr); // handle
   return GW_OK;
 }
 

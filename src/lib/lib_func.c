@@ -666,7 +666,7 @@ static OP_CHECK(opck_spork) {
   }
   if (unary->unary_type == unary_code) {
     if(unary->captures) {
-      uint32_t offset = 0;
+      uint32_t offset = !env->class_def ? 0 : SZ_INT;
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
@@ -686,7 +686,8 @@ static OP_CHECK(opck_spork) {
     }
     const Func f = env->func;
     struct Value_ value = {};
-    set_vflag(&value, vflag_member);
+    if(env->class_def)
+      set_vflag(&value, vflag_member);
     struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = scope};
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};

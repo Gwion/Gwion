@@ -326,12 +326,6 @@ static inline Nspc value_owner(const Env env, const Value v) {
   return v ? v->from->owner : env->curr;
 }
 
-ANN bool not_upvalue(const Env env, const Value v) {
-  return GET_FLAG(v, global) || vflag(v, vflag_fglobal) ||
-      (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
-      nspc_lookup_value1(env->curr, insert_symbol(v->name));
-}
-
 ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim) {
   const Value v = prim->value;
   if(not_upvalue(env, v))
