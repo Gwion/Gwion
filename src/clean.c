@@ -68,6 +68,13 @@ ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
   clean_exp(a, b->rhs);
 }
 
+ANN static void clean_captures(Clean *a, Capture_List b) {
+  for(uint32_t i = 0; i < b->len; i++) {
+    const Capture *cap = mp_vector_at(b, Capture, i);
+    if(cap->v) value_remref(cap->v, a->gwion);
+  }
+}
+
 ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
   switch (b->unary_type) {
   case unary_exp:
@@ -82,6 +89,7 @@ ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
     clean_stmt(a, b->code);
     break;
   }
+  if(b->captures) clean_captures(a, b->captures);
 }
 
 ANN static void clean_exp_cast(Clean *a, Exp_Cast *b) {
@@ -273,13 +281,6 @@ ANN static void clean_func_base(Clean *a, Func_Base *b) {
   if (b->td) clean_type_decl(a, b->td);
   if (b->args) clean_arg_list(a, b->args);
   if (b->tmpl) clean_tmpl(a, b->tmpl);
-}
-
-ANN static void clean_captures(Clean *a, Capture_List b) {
-  for(uint32_t i = 0; i < b->len; i++) {
-    const Capture *cap = mp_vector_at(b, Capture, i);
-    if(cap->v) value_remref(cap->v, a->gwion);
-  }
 }
 
 ANN static void clean_func_def(Clean *a, Func_Def b) {

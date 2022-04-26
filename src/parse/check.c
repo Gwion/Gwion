@@ -358,6 +358,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
+puts(s_name(*data));
     const m_str hint = (!env->func || strcmp(env->func->name, "in spork")) ?
         NULL : "vapturelist?";
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), hint,
@@ -716,43 +717,56 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap);
+
+ANN static m_bool lambda_args_ref(const Env env, Exp_Call *const call) {
+  Exp e = call->args;
+  CHECK_OB(check_exp(env, e));
+  do if(tflag(e->type, tflag_ref) && !safe_tflag(exp_self(e)->cast_to, tflag_ref))
+     exp_setvar(e, true);
+  while((e = e->next));
+  return GW_OK;
+}
+
+ANN2(1) static m_bool lambda_append_args(const Env env, Exp_Call *const call, const Exp add) {
+  if(!add) return GW_ERROR;
+  if (call->args) {
+    Exp e = call->args;
+    while(e->next) e = e->next;
+    e->next = add;
+  } else call->args = add;
+  return traverse_exp(env, add);
+}
+
+ANN static Exp check_lambda_captures(const Env env, const Func_Def fdef) {
+  if(!fdef->base->args)
+    fdef->base->args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
+  Exp args = NULL, tmp;
+  for(uint32_t i = 0; i < fdef->captures->len; i++) {
+    Capture *const cap = mp_vector_at(fdef->captures, Capture, i);
+    const Type t = upvalue_type(env, cap);
+    if(!t) {
+      if(args) free_exp(env->gwion->mp, args);
+      return NULL;
+    }
+    Arg arg = {
+      .td = type2td(env->gwion, t, cap->pos),
+      .var_decl = { .xid = cap->xid }
+    };
+    mp_vector_add(env->gwion->mp, &fdef->base->args, Arg, arg);
+    const Exp exp = new_prim_id(env->gwion->mp, cap->xid, cap->pos);
+    if(args) tmp = tmp->next = exp;
+    else args = tmp = exp;
+  }
+  free_mp_vector(env->gwion->mp, sizeof(Capture), fdef->captures);
+  fdef->captures = NULL;
+  return args;
+}
+
 ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   const Func_Def fdef = exp->func->d.exp_lambda.def;
-  if (exp->args) {
-    Exp e = exp->args;
-    CHECK_OO(check_exp(env, exp->args));
-    do if(tflag(e->type, tflag_ref) && !safe_tflag(exp_self(e)->cast_to, tflag_ref))
-       exp_setvar(e, true);
-    while((e = e->next));
-  }
-  Exp _args = NULL, tmp;
-  if(fdef->captures) {
-    if(!fdef->base->args)
-      fdef->base->args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
-    for(uint32_t i = 0; i < fdef->captures->len; i++) {
-      Capture *const cap = mp_vector_at(fdef->captures, Capture, i);
-      DECL_OO(const Type, t, = upvalue_type(env, cap)); // could leak
-      Arg arg = {
-        .td = type2td(env->gwion, t, exp->func->pos),
-        .var_decl = { .xid = cap->xid }
-      };
-      mp_vector_add(env->gwion->mp, &fdef->base->args, Arg, arg);
-      const Exp exp = new_prim_id(env->gwion->mp, cap->xid, cap->pos);
-      if(_args) tmp = tmp->next = exp;
-      else _args = tmp = exp;
-    }
-    free_mp_vector(env->gwion->mp, sizeof(Capture), fdef->captures);
-    fdef->captures = NULL;
-  }
-  if(_args) {
-    if (exp->args) {
-      puts("here");
-      Exp e = exp->args;
-      while(e->next) e = e->next;
-      e->next = _args;
-    } else exp->args = _args;
-    CHECK_OO(traverse_exp(env, _args));
-  }
+  if (exp->args) CHECK_BO(lambda_args_ref(env, exp));
+  const Exp _args = !fdef->captures ? NULL : check_lambda_captures(env, fdef);
+  if(fdef->captures) CHECK_BO(lambda_append_args(env, exp, _args));
   Exp_Lambda *l   = &exp->func->d.exp_lambda;
   Arg_List    args = l->def->base->args;
   Exp         e   = exp->args;

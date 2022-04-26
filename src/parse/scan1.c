@@ -235,23 +235,11 @@ ANN static m_bool scan1_exp_if(const Env env, const Exp_If *exp_if) {
 
 ANN static inline m_bool scan1_exp_unary(const restrict Env env,
                                          Exp_Unary *const  unary) {
-  if (unary->unary_type == unary_code) {
-/*
-if(strcmp("fork", s_name(unary->op))) {
-    const loc_t pos = exp_self(unary)->pos;
-    const Symbol sym = lambda_name(env->gwion->st, pos.first);
-    Exp lambda = new_exp_lambda(env->gwion->mp, sym, NULL, unary->code, pos);
-    lambda->d.exp_lambda.def->captures = unary->captures;
-    unary->captures = NULL;
-    mp_free(env->gwion->mp, Stmt, unary->code);
-    unary->exp = new_exp_call(env->gwion->mp, lambda, NULL, pos);
-    unary->unary_type = unary_exp;
-} else */{
-return scan1_stmt(env, unary->code);
-}
-
-  }
-  return unary->unary_type == unary_exp ? scan1_exp(env, unary->exp) : GW_OK;
+  if(unary->unary_type == unary_exp)
+    return scan1_exp(env, unary->exp);
+  if (unary->unary_type == unary_code)
+    return scan1_stmt(env, unary->code);
+  return GW_OK;
 }
 
 #define scan1_exp_lambda dummy_func
