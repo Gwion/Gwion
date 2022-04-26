@@ -225,44 +225,55 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
 }
 
 ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
-                                const Func_Def def) {
+                                const Func_Def fdef) {
 //   if(l->def->base->func) return GW_OK;
-  Arg_List bases = def->base->args;
+  Arg_List bases = fdef->base->args;
   Arg_List args = l->def->base->args;
   // arity match
   if ((bases ? bases->len : 0) != (args ? args->len : 0))
     ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
+    if(fdef->captures) {
+    // here move to arguments
+    uint32_t offset = 0;
+    for(uint32_t i = 0; i < fdef->captures->len; i++) {
+      Capture *cap = mp_vector_at(fdef->captures, Capture, i);
+      const Value v = nspc_lookup_value1(env->curr, cap->xid);
+      if(!v) ERR_B(cap->pos, _("unknown value in capture"));
+      offset += (!cap->is_ref ? SZ_INT : v->type->size);
+      cap->v = v;
+      cap->offset = offset;
+    }
+  }
   const bool is_tmpl =
-      safe_tflag(def->base->func->value_ref->from->owner_class, tflag_tmpl);
+      safe_tflag(fdef->base->func->value_ref->from->owner_class, tflag_tmpl);
   if (is_tmpl)
     template_push_types(
         env,
-        def->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
+        fdef->base->func->value_ref->from->owner_class->info->cdef->base.tmpl);
   if(bases) {
     for(uint32_t i = 0; i < bases->len; i++) {
       Arg *base = mp_vector_at(bases, Arg, i);
       Arg *arg  = mp_vector_at(args, Arg, i);
       arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
     }
-
   }
   l->def->base->td =
-      type2td(env->gwion, known_type(env, def->base->td), exp_self(l)->pos);
+      type2td(env->gwion, known_type(env, fdef->base->td), exp_self(l)->pos);
   if (is_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
-  l->def->base->flag = def->base->flag;
+  l->def->base->flag = fdef->base->flag;
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
   UNSET_FLAG(l->def->base, global);
   l->def->base->values = env->curr->info->value;
   const m_uint scope   = env->scope->depth;
-  if(GET_FLAG(def->base, global) && !l->owner &&
-    def->base->func->value_ref->from->owner_class)
+  if(GET_FLAG(fdef->base, global) && !l->owner &&
+    fdef->base->func->value_ref->from->owner_class)
    env_push(env, NULL, env->context->nspc);
   env->scope->depth = 0;
   const m_bool ret  = traverse_func_def(env, l->def);
   env->scope->depth = scope;
-    if(GET_FLAG(def->base, global) && !l->owner &&
-    def->base->func->value_ref->from->owner_class)
+    if(GET_FLAG(fdef->base, global) && !l->owner &&
+    fdef->base->func->value_ref->from->owner_class)
    env_pop(env, scope);
 
   if (l->def->base->func) {
@@ -603,9 +614,7 @@ static OP_EMIT(opem_op_impl) {
   instr->m_val2          = -SZ_INT;
   return ret;
 }
-
-ANN Type check_exp_unary_spork(const Env env, const Stmt code);
-
+/*
 ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
   Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
   mp_vector_set(slist, struct Stmt_, 0,
@@ -618,10 +627,10 @@ ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
   ((Exp_Unary *)unary)->code       = code;
   ((Exp_Unary *)unary)->unary_type = unary_code;
 }
-
+*/
 ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
   const Type t = unary->exp->type;
-  fork_exp(env, unary);
+//  fork_exp(env, unary);
   if (t == env->gwion->type[et_void]) return env->gwion->type[et_fork];
   char c[21 + strlen(t->name)];
   sprintf(c, "TypedFork:[%s]", t->name);
@@ -638,6 +647,16 @@ ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
   return ret;
 }
 
+ANN Type upvalue_type(const Env env, Capture *cap) {
+  const Value v = nspc_lookup_value1(env->curr, cap->xid);
+  if(!v)exit(3);
+  if(cap->is_ref && not_upvalue(env, v))
+    ERR_O(cap->pos, _("can't take ref of a scoped value"));
+  cap->v = v;
+  const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
+  return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
+}
+
 static OP_CHECK(opck_spork) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   if (unary->unary_type == unary_exp && unary->exp->exp_type == ae_exp_call) {
@@ -645,10 +664,37 @@ static OP_CHECK(opck_spork) {
     return is_spork ? env->gwion->type[et_shred] : fork_type(env, unary);
   }
   if (unary->unary_type == unary_code) {
+    if(unary->captures) {
+      uint32_t offset = !env->class_def ? 0 : SZ_INT;
+      for(uint32_t i = 0; i < unary->captures->len; i++) {
+        Capture *const cap = mp_vector_at(unary->captures, Capture, i);
+        DECL_OO(const Type, t, = upvalue_type(env, cap));
+        cap->v = new_value(env->gwion->mp, t, s_name(cap->xid));
+        cap->v->from->offset = offset;
+        offset += cap->v->type->size;
+      }
+    }
     ++env->scope->depth;
-    nspc_push_value(env->gwion->mp, env->curr);
+    const Scope scope = env->curr->info->value;
+    env->curr->info->value = new_scope(env->gwion->mp);
+    if(unary->captures) {
+      for(uint32_t i = 0; i < unary->captures->len; i++) {
+        Capture *const cap = mp_vector_at(unary->captures, Capture, i);
+        valid_value(env, cap->xid, cap->v);
+      }
+    }
+    const Func f = env->func;
+    struct Value_ value = {};
+    if(env->class_def)
+      set_vflag(&value, vflag_member);
+    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = scope};
+    struct Func_Def_ fdef = { .base = &fbase};
+    struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
+    env->func = &func;
     const m_bool ret = check_stmt(env, unary->code);
-    nspc_pop_value(env->gwion->mp, env->curr);
+    env->func = f;
+    free_scope(env->gwion->mp, env->curr->info->value);
+    env->curr->info->value = scope;
     --env->scope->depth;
     CHECK_BN(ret);
     return env->gwion

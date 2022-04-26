@@ -1,0 +1,4 @@
+#! [contains] 42 1
+foreach(a : [ 1, 2])
+  spork : a : { <<< "42 ${a}" >>>; };
+samp => now;

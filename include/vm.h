@@ -2,9 +2,9 @@
 #define __VM
 
 typedef struct Closure_ {
-  m_bit *     data;
   struct Map_ m;
   m_uint      sz;
+  m_bit   data[];
 } Closure;
 ANN Closure *new_closure(MemPool mp, const m_uint sz);
 ANN void     free_closure(Closure *a, const Gwion gwion);

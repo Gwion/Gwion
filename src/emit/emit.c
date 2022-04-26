@@ -787,13 +787,14 @@ static const f_instr upvalue[] = {UpvalueInt, UpvalueFloat, UpvalueOther,
                                   UpvalueAddr};
 ANN static m_bool    emit_prim_id(const Emitter emit, const Symbol *data) {
   const Exp_Primary *prim = prim_self(data);
-  if (prim->value && emit->env->func && emit->env->func->upvalues.ptr) {
-    const Map map = &emit->env->func->upvalues;
-    for (m_uint i = 0; i < map_size(map); ++i) {
-      if (prim->value == (Value)((Exp_Primary *)VKEY(map, i))->value) {
+  if (prim->value && emit->env->func && emit->env->func->def->captures) {
+    const Capture_List caps = emit->env->func->def->captures;
+    for (uint32_t i = 0; i < caps->len; ++i) {
+      Capture *cap = mp_vector_at(caps, Capture, i);
+      if (!strcmp(prim->value->name, cap->v->name)) {
         const Instr instr = emit_kind(emit, prim->value->type->size,
                                       exp_getvar(exp_self(prim)), upvalue);
-        instr->m_val      = i ? VVAL(map, i) : 0;
+        instr->m_val      = cap->offset;
         return GW_OK;
       }
     }
@@ -1227,10 +1228,7 @@ ANN static void emit_func_arg_vararg(const Emitter   emit,
 }
 
 ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call *exp_call) {
-  if (exp_call->args) {
-    CHECK_BB(emit_exp(emit, exp_call->args));
-//    emit_exp_addref_array(emit, exp_call->args, -exp_totalsize(exp_call->args));
-  }
+  if (exp_call->args) CHECK_BB(emit_exp(emit, exp_call->args));
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   if (is_func(emit->gwion, t) &&
       fbflag(t->info->func->def->base, fbflag_variadic))
@@ -1862,6 +1860,7 @@ struct Sporker {
   const Exp  exp;
   VM_Code    vm_code;
   const Type type;
+  const Capture_List captures;
   const bool emit_var;
   const bool is_spork;
 };
@@ -1902,7 +1901,7 @@ ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
 ANN void spork_code(const Emitter emit, const struct Sporker *sp) {
   const Instr args  = emit_add_instr(emit, SporkExp);
   args->m_val       = emit->code->stack_depth;
-  const Instr instr = emit_add_instr(emit, SporkEnd);
+  const Instr instr = emit_add_instr(emit, sp->is_spork ? SporkEnd : ForkEnd);
   instr->m_val      = sp->emit_var;
 }
 
@@ -1945,12 +1944,51 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .exp      = unary->unary_type == unary_exp ? unary->exp : NULL,
       .code     = unary->unary_type == unary_code ? unary->code : NULL,
       .type     = exp_self(unary)->type,
+      .captures = unary->captures,
       .is_spork = (unary->op == insert_symbol("spork")),
       .emit_var = exp_getvar(exp_self(unary))};
   CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)));
   if(!sporker.is_spork)
     emit_local_exp(emit, exp_self(unary));
   spork_ini(emit, &sporker);
+  // add this if needed
+  uint32_t offset = 0;
+  if(emit->env->class_def && sporker.code) {
+    struct Exp_ exp = {
+      .d = { .prim = {
+        .d = { .var = insert_symbol("this") },
+          .prim_type = ae_prim_id
+        }},
+      .type = emit->env->class_def,
+      .exp_type = ae_exp_primary
+    };
+    emit_exp(emit, &exp);
+    offset += SZ_INT;
+  }
+  if(sporker.captures) {
+    Capture_List caps = sporker.captures;
+    for (uint32_t i = 0; i < caps->len; i++) {
+      Capture *cap = mp_vector_at(caps, Capture, i);
+      const Value v = nspc_lookup_value1(emit->env->curr, cap->xid);
+      struct Exp_ exp = {
+        .d = { .prim = {
+          .d = { .var = cap->xid },
+          .value = v,
+          .prim_type = ae_prim_id
+        }},
+        .type = v->type,
+        .exp_type = ae_exp_primary
+      };
+      if(cap->is_ref) exp_setvar(&exp, true);
+      offset += exp_size(&exp);
+      emit_exp(emit, &exp);
+    }
+  }
+  if(offset) {
+    regpop(emit, offset);
+    const Instr args  = emit_add_instr(emit, SporkCode);
+    args->m_val       = offset;
+  }
   (unary->unary_type == unary_code ? spork_code : spork_func)(emit, &sporker);
   return GW_OK;
 }
@@ -2084,26 +2122,33 @@ ANN static inline m_bool emit_prim_novar(const Emitter      emit,
 }
 
 ANN static m_bool emit_upvalues(const Emitter emit, const Func func) {
-  const Map map = &func->upvalues;
-  for (m_uint i = 0; i < map_size(map); ++i) {
-    const Exp_Primary *prim = (Exp_Primary *)VKEY(map, i);
-    const Value        v    = prim->value;
-    CHECK_BB(emit_prim_novar(emit, prim));
-    if (isa(prim->value->type, emit->gwion->type[et_compound]) > 0) {
-      if (vflag(v, vflag_fglobal) && !vflag(v, vflag_closed))
-        emit_exp_addref1(emit, exp_self(prim), -v->type->size);
-      map_set(&func->code->closure->m, (vtype)v->type, VVAL(map, i));
+  const Capture_List caps = func->def->captures;
+  for (uint32_t i = 0; i < caps->len; ++i) {
+    Capture *cap = mp_vector_at(caps, Capture, i);
+    const Value value = cap->v;
+    struct Exp_ exp = {
+      .d = { .prim = {
+        .d = { .var = cap->xid },
+        .value = value,
+        .prim_type = ae_prim_id
+      }},
+      .type = value->type,
+      .exp_type = ae_exp_primary,
+      .pos = cap->pos
+    };
+    if(cap->is_ref) exp_setvar(&exp, true);
+    CHECK_BB(emit_exp(emit, &exp));
+    if (isa(value->type, emit->gwion->type[et_compound]) > 0) {
+      emit_exp_addref1(emit, &exp, -value->type->size);
+      map_set(&func->code->closure->m, (vtype)value->type, cap->offset);
     }
-    set_vflag(v, vflag_closed);
   }
   return GW_OK;
 }
 
 ANN static m_bool emit_closure(const Emitter emit, const Func func) {
-  const Map    map = &func->upvalues;
-  const m_uint sz =
-      VVAL(map, VLEN(map) - 1) +
-      ((Exp_Primary *)VKEY(map, VLEN(map) - 1))->value->type->size;
+  const Capture *cap = mp_vector_at(func->def->captures, Capture, (func->def->captures->len - 1));
+  const m_uint sz = cap->offset + cap->v->type->size;
   func->code->closure = new_closure(emit->gwion->mp, sz);
   regpushi(emit, (m_uint)func->code->closure->data);
   CHECK_BB(emit_upvalues(emit, func));
@@ -2116,7 +2161,7 @@ ANN static m_bool emit_closure(const Emitter emit, const Func func) {
 
 ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda *lambda) {
   CHECK_BB(emit_func_def(emit, lambda->def));
-  if (lambda->def->base->func->upvalues.ptr)
+  if (lambda->def->captures)
     CHECK_BB(emit_closure(emit, lambda->def->base->func));
   if (vflag(lambda->def->base->func->value_ref, vflag_member) &&
       !exp_getvar(exp_self(lambda)))
@@ -2465,10 +2510,14 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   loop_idx->m_val       = key_offset;
   loop_idx->m_val2      = -1;
   stmt->v->from->offset = val_offset;
+//value_addref(stmt->v);
+nspc_add_value(emit->env->curr, stmt->sym, stmt->v);
   emit_debug(emit, stmt->v);
   if (stmt->idx) {
     stmt->idx->v->from->offset = key_offset;
-    emit_debug(emit, stmt->v);
+nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
+//value_addref(stmt->idx->v);
+    emit_debug(emit, stmt->idx->v);
   }
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,
@@ -2498,6 +2547,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
 
 ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   const uint n = emit->info->unroll;
+  nspc_push_value(emit->gwion->mp, emit->env->curr);
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
   regpop(emit, SZ_INT);
@@ -2511,6 +2561,7 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   m_uint       end_pc = 0;
   const m_bool ret    = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
+nspc_pop_value(emit->gwion->mp, emit->env->curr);
   emit->info->unroll = 0;
   return ret;
 }
@@ -2897,6 +2948,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List args) {
     emit->code->stack_depth += type->size;
     arg->var_decl.value->from->offset = emit_localn(emit, type);
     emit_debug(emit, arg->var_decl.value);
+    nspc_add_value(emit->env->curr, insert_symbol(arg->var_decl.value->name), arg->var_decl.value);
   }
 }
 
@@ -3018,8 +3070,10 @@ ANN static m_bool emit_fdef(const Emitter emit, const Func_Def fdef) {
   const Func f = fdef->base->func;
   if (f->memoize && fflag(f, fflag_pure))
     CHECK_BB(emit_memoize(emit, fdef));
+  nspc_push_value(emit->gwion->mp, emit->env->curr); // handle
   CHECK_BB(emit_func_def_body(emit, fdef));
   emit_func_def_return(emit);
+  nspc_pop_value(emit->gwion->mp, emit->env->curr); // handle
   return GW_OK;
 }
 

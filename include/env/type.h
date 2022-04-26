@@ -114,6 +114,8 @@ ANN static inline Symbol miss_traits(const Type t, const Specialized *spec) {
   return NULL;
 }
 
+ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc);
+
 typedef enum {
   et_void,
   et_int,

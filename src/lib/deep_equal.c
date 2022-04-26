@@ -142,9 +142,7 @@ struct DeepEmit {
 ANN static inline Type deep_type(const Gwion gwion, const Type t) {
   if(!tflag(t, tflag_struct))
     return t;
-  char c[128];
-  sprintf(c, "Ref:[%s]", t->name);
-  return str2type(gwion, c, t->info->value->from->loc);
+  return ref_type(gwion, t, t->info->value->from->loc);
 }
 
 ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_int offset) {

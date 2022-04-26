@@ -662,7 +662,7 @@ static OP_CHECK(opck_array_scan) {
     env_set_error(env);
     return env->gwion->type[et_error];
   }
-  if (!strncmp(base->name, "Ref:[", 5)) {
+  if (tflag(base, tflag_ref)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
     env_set_error(env);
@@ -763,8 +763,14 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   const Type et = exp->type;
   DECL_OO(Type, base, = typedef_base(et));
   DECL_OO(const Type, t, = array_base_simple(base));
-  const m_uint depth = base->array_depth - 1;
-  return depth ? array_type(env, t, depth) : t;
+  if(!tflag(base, tflag_ref)) {
+    const m_uint depth = base->array_depth - 1;
+    return depth ? array_type(env, t, depth) : t;
+  }
+  const Type  inner = (Type)vector_front(&base->info->tuple->contains);
+  const Type  refbase = array_base_simple(inner);
+  const m_uint depth = inner->array_depth - 1;
+  return depth ? array_type(env, refbase, depth) : refbase;
 }
 
 // rewrite me
@@ -772,10 +778,7 @@ static OP_CHECK(opck_array_each_val) {
   const Exp exp = (const Exp) data;
   DECL_ON(const Type, base, = foreach_type(env, exp));
   CHECK_BN(ensure_traverse(env, base));
-  const m_str basename = type2str(env->gwion, base, exp->pos);
-  char c[15 + strlen(basename)];
-  sprintf(c, "Ref:[%s]", basename);
-  return str2type(env->gwion, c, exp->pos);
+  return ref_type(env->gwion, base, exp->pos);
 }
 
 static OP_EMIT(opem_array_each) {

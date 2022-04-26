@@ -81,7 +81,7 @@ static INSTR(StringSlice) {
   const m_int    start = *(m_uint *)REG(0);
   const size_t   strsz = strlen(str);
   m_int          end   = *(m_uint *)REG(SZ_INT);
-  if (end < 0) end = strsz + end;
+  if (end < 0) end = strsz + end - 1;
   if (bounds(str, start) < 0 || bounds(str, end) < 0) {
     handle(shred, "OutOfBoundsStringSlice");
     return;
@@ -521,11 +521,7 @@ GWION_IMPORT(string) {
 
   gwi_func_ini(gwi, "float", "atof");
   GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))
-/*
-  gwi_func_ini(gwi, "int", "atoi");
-  gwi_func_arg(gwi, "Ref:[int]", "idx");
-  GWI_BB(gwi_func_end(gwi, string_atoi2, ae_flag_none))
-*/
+
   GWI_BB(gwi_class_end(gwi))
 
   GWI_BB(gwi_oper_ini(gwi, "string", "string", "bool"))

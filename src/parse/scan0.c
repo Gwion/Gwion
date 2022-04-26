@@ -351,6 +351,13 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
   const Type parent = cdef_parent(env, cdef);
   if (parent == (Type)GW_ERROR) return NULL;
+  if(GET_FLAG(cdef, global) && !type_global(env, parent)) {
+    gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
+    const Value v = parent->info->value;
+    gwerr_warn("declared here", NULL, NULL, v->from->filename, v->from->loc);
+    env->context->error = true;
+    return NULL;
+  }
   //if(parent) type_addref(parent);
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);

@@ -267,7 +267,6 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   VM *           vm = shred->info->vm;
   if (!vm->gwion->data->child.ptr) vector_init(&vm->gwion->data->child);
   vector_add(&vm->gwion->data->child, (vtype)o);
-  fork_launch(o);
   return ME(o);
 }
 
@@ -471,8 +470,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&regtomem, &&regtomemother,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
-      &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp,
-      &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
+      &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkcode,
+      &&forkend, &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
@@ -540,7 +539,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     regpushmemaddr:
       *(m_bit **)reg = &*(m_bit *)(mem + IVAL);
       reg += SZ_INT;
-      DISPATCH()
+      DISPATCH();
     regpushmemderef:
       memcpy(reg, *(m_bit **)(mem + IVAL), VAL2);
       reg += VAL2;
@@ -981,6 +980,13 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       for (m_uint i = 0; i < VAL; i += SZ_INT)
         *(m_uint *)(child->mem + i) = *(m_uint *)(mem + i);
       DISPATCH()
+    sporkcode:
+      //  LOOP_OPTIM
+      for (m_uint i = 0; i < VAL; i += SZ_INT)
+        *(m_uint *)(child->mem + i) = *(m_uint *)(reg + i);
+      DISPATCH()
+    forkend:
+      fork_launch(child->info->me);
     sporkend:
       assert(!VAL); // spork are not mutable
       *(M_Object *)(reg - SZ_INT) = child->info->me;
@@ -1308,7 +1314,7 @@ static void *_dispatch[] = {
       &&_regtomem, &&_regtomemother,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
-      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkmemberfptr, &&_sporkexp,
+      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkmemberfptr, &&_sporkexp, &&_sporkcode, &&_forkend,
       &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
@@ -1512,6 +1518,8 @@ return;
     PREPARE(sporkfunc);
     PREPARE(sporkmemberfptr);
     PREPARE(sporkexp);
+    PREPARE(sporkcode);
+    PREPARE(forkend);
     PREPARE(sporkend);
     PREPARE(brancheqint);
     PREPARE(branchneint);

@@ -159,6 +159,8 @@ enum {
   eSporkFunc,
   eSporkMemberFptr,
   eSporkExp,
+  eSporkCode,
+  eForkEnd,
   eSporkEnd,
   eBranchEqInt,
   eBranchNeqInt,
@@ -376,6 +378,8 @@ enum {
 #define  SporkFunc            (f_instr)eSporkFunc
 #define  SporkMemberFptr      (f_instr)eSporkMemberFptr
 #define  SporkExp             (f_instr)eSporkExp
+#define  SporkCode            (f_instr)eSporkCode
+#define  ForkEnd              (f_instr)eForkEnd
 #define  SporkEnd             (f_instr)eSporkEnd
 #define  BranchEqInt          (f_instr)eBranchEqInt
 #define  BranchNeqInt         (f_instr)eBranchNeqInt
@@ -1151,6 +1155,15 @@ ANN static inline void dump_opcodes(const VM_Code code) {
       case eSporkExp:
         gw_out("{Y}┃{0}{-}% 4lu{0}: SporkExp    ", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eSporkCode:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: SporkCode   ", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eForkEnd:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: ForkEnd     ", j);
         gw_out("\n");
         break;
       case eSporkEnd:
