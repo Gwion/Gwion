@@ -1860,6 +1860,7 @@ struct Sporker {
   const Exp  exp;
   VM_Code    vm_code;
   const Type type;
+  const Capture_List captures;
   const bool emit_var;
   const bool is_spork;
 };
@@ -1900,7 +1901,7 @@ ANN static VM_Code spork_prepare(const Emitter emit, const struct Sporker *sp) {
 ANN void spork_code(const Emitter emit, const struct Sporker *sp) {
   const Instr args  = emit_add_instr(emit, SporkExp);
   args->m_val       = emit->code->stack_depth;
-  const Instr instr = emit_add_instr(emit, SporkEnd);
+  const Instr instr = emit_add_instr(emit, sp->is_spork ? SporkEnd : ForkEnd);
   instr->m_val      = sp->emit_var;
 }
 
@@ -1943,12 +1944,41 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .exp      = unary->unary_type == unary_exp ? unary->exp : NULL,
       .code     = unary->unary_type == unary_code ? unary->code : NULL,
       .type     = exp_self(unary)->type,
+      .captures = unary->captures,
       .is_spork = (unary->op == insert_symbol("spork")),
       .emit_var = exp_getvar(exp_self(unary))};
   CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)));
   if(!sporker.is_spork)
     emit_local_exp(emit, exp_self(unary));
   spork_ini(emit, &sporker);
+
+if(sporker.captures) {
+    Capture_List caps = sporker.captures;
+// what about types?
+    uint32_t offset = 0;
+    for (uint32_t i = 0; i < caps->len; i++) {
+      Capture *cap = mp_vector_at(caps, Capture, i);
+      const Value v = nspc_lookup_value1(emit->env->curr, cap->xid);
+      struct Exp_ exp = {
+        .d = { .prim = {
+          .d = { .var = cap->xid },
+          .value = v,
+          .prim_type = ae_prim_id
+        }},
+        .type = v->type,
+        .exp_type = ae_exp_primary
+      };
+// handle emit var?
+//exp_setvar(&exp, false);
+      emit_exp(emit, &exp);
+    }
+//      pop_exp(emit, &exp);
+regpop(emit, SZ_INT);
+    const Instr args  = emit_add_instr(emit, SporkCode);
+    args->m_val       = 8; //emit->code->stack_depth;
+  }
+
+//    emit_local_exp(emit, exp_self(unary));
   (unary->unary_type == unary_code ? spork_code : spork_func)(emit, &sporker);
   return GW_OK;
 }
@@ -2470,10 +2500,14 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   loop_idx->m_val       = key_offset;
   loop_idx->m_val2      = -1;
   stmt->v->from->offset = val_offset;
+//value_addref(stmt->v);
+nspc_add_value(emit->env->curr, stmt->sym, stmt->v);
   emit_debug(emit, stmt->v);
   if (stmt->idx) {
     stmt->idx->v->from->offset = key_offset;
-    emit_debug(emit, stmt->v);
+nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
+//value_addref(stmt->idx->v);
+    emit_debug(emit, stmt->idx->v);
   }
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,

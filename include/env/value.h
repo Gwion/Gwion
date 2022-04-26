@@ -51,4 +51,9 @@ ANN static inline void defined_here(const Value v) {
   if (v->from->filename) // TODO: check why is that from check
     gwerr_secondary(_("defined here"), v->from->filename, v->from->loc);
 }
+
+ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
+  set_vflag(v, vflag_valid);
+  nspc_add_value(env->curr, xid, v);
+}
 #endif

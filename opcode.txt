@@ -156,6 +156,8 @@ ForkIni~p~i
 SporkFunc
 SporkMemberFptr~u
 SporkExp~u
+SporkCode~u
+ForkEnd
 SporkEnd
 BranchEqInt~pc
 BranchNeqInt~pc

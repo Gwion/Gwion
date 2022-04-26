@@ -763,8 +763,14 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   const Type et = exp->type;
   DECL_OO(Type, base, = typedef_base(et));
   DECL_OO(const Type, t, = array_base_simple(base));
-  const m_uint depth = base->array_depth - 1;
-  return depth ? array_type(env, t, depth) : t;
+  if(!tflag(base, tflag_ref)) {
+    const m_uint depth = base->array_depth - 1;
+    return depth ? array_type(env, t, depth) : t;
+  }
+  const Type  inner = (Type)vector_front(&base->info->tuple->contains);
+  const Type  refbase = array_base_simple(inner);
+  const m_uint depth = inner->array_depth - 1;
+  return depth ? array_type(env, refbase, depth) : refbase;
 }
 
 // rewrite me

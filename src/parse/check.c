@@ -113,11 +113,6 @@ ANN static m_bool check_var_td(const Env env, const Var_Decl var,
   return GW_OK;
 }
 
-ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
-  set_vflag(v, vflag_valid);
-  nspc_add_value(env->curr, xid, v);
-}
-
 ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   Var_Decl_List list = decl->list;
   for(uint32_t i = 0; i < list->len; i++) {
@@ -369,7 +364,9 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
-    gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
+    const m_str hint = (!env->func || strcmp(env->func->name, "in spork")) ?
+        NULL : "vapturelist?";
+    gwerr_basic(_("Invalid variable"), _("not legit at this point."), hint,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
     env_set_error(env);
@@ -724,6 +721,7 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
     func->def->base->ret_type : exp->func->d.exp_dot.base->type;
 }
 
+ANN Type upvalue_type(const Env env, Capture *cap);
 ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   const Func_Def fdef = exp->func->d.exp_lambda.def;
   if (exp->args) {
@@ -739,13 +737,7 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
       fdef->base->args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
     for(uint32_t i = 0; i < fdef->captures->len; i++) {
       Capture *const cap = mp_vector_at(fdef->captures, Capture, i);
-      const Value v = nspc_lookup_value1(env->curr, cap->xid);
-      if(!v)exit(3);
-      if(cap->is_ref && not_upvalue(env, v))
-        ERR_O(cap->pos, _("can't take ref of a scoped value"));
-      cap->v = v;
-      const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
-      const Type t = !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
+      DECL_OO(const Type, t, = upvalue_type(env, cap)); // could leak
       Arg arg = {
         .td = type2td(env->gwion, t, exp->func->pos),
         .var_decl = { .xid = cap->xid }
