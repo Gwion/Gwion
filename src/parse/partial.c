@@ -79,7 +79,7 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
         if(!is_typed_hole(env, e)) {
           const Exp next = e->next;
           e->next = NULL;
-          const m_bool ret = check_exp(env, e);
+          const Type ret = check_exp(env, e);
           e->next = next;
           CHECK_OO(ret);
       } else
@@ -193,7 +193,9 @@ ANN static Exp expand(const Env env, const Func func, const Exp e, const loc_t l
 }
 
 ANN Type partial_type(const Env env, Exp_Call *const call) {
-  const Func f = partial_match(env, call->func->type->info->func, call->args, call->func->pos);
+  const Func base = call->func->type->info->func;
+  if(!base) ERR_O(call->func->pos, _("can't partially apply call a literal lambda"));
+  const Func f = partial_match(env, base, call->args, call->func->pos);
   if(!f) {
     const Exp e = expand(env, call->func->type->info->func, call->args, call->func->pos);
     if(e) {
@@ -202,10 +204,10 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
     }
     ERR_O(call->func->pos, _("no match found for partial application"));
   }
-  Func_Base *const base = partial_base(env, f->def->base, call->args, call->func->pos);
+  Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->pos);
   const Stmt code = partial_code(env, call->func, call->args);
   const Exp exp = exp_self(call);
-  exp->d.exp_lambda.def = new_func_def(env->gwion->mp, base, code);
+  exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;
   CHECK_OO(traverse_func_def(env, exp->d.exp_lambda.def));
   return exp->d.exp_lambda.def->base->func->value_ref->type;
