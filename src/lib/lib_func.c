@@ -387,6 +387,7 @@ static OP_CHECK(opck_fptr_at) {
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
+
 /*
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast *      cast = (Exp_Cast *)data;
@@ -422,6 +423,15 @@ static OP_CHECK(opck_fptr_impl) {
                           impl->e, impl->e->pos};
   CHECK_BN(fptr_do(env, &info));
   return impl->t;
+}
+
+static OP_CHECK(opck_fptr_cast) {
+  Exp_Cast *cast = (Exp_Cast *)data;
+  const Type t = known_type(env, cast->td);
+  struct FptrInfo  info = {cast->exp->type->info->func, t->info->func,
+                          cast->exp, cast->td->pos};
+  CHECK_BN(fptr_do(env, &info));
+  return t;
 }
 
 // smh the VM should be able to do that
@@ -724,6 +734,8 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@op", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_op_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_op_impl))
