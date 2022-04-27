@@ -19,9 +19,12 @@ ANN Closure *new_closure(MemPool mp, const m_uint sz) {
 
 ANN void free_closure(Closure *a, const Gwion gwion) {
   const Map m = &a->m;
-  for (m_uint i = 0; i < map_size(m); ++i)
-    compound_release(gwion->vm->cleaner_shred, (Type)VKEY(m, i),
-                     a->data + VVAL(m, i));
+  for (m_uint i = 0; i < map_size(m); ++i) {
+    const Type t = (Type)VKEY(m, i);
+    const m_bit *data = tflag(t, tflag_ref) ?
+      (a->data + VVAL(m, i)) : *(m_bit**)(a->data + VVAL(m, i));
+    compound_release(gwion->vm->cleaner_shred, t, data);
+  }
   map_release(m);
   _mp_free(gwion->mp, sizeof(Closure) + a->sz, a);
 }
