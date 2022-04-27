@@ -156,6 +156,7 @@ ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_i
   const Instr instr = emit_add_instr(emit, Reg2Mem);
   instr->m_val2 = offset;
   d->val->from->offset = instr->m_val = emit_localn(emit, d->val->type);
+  d->val->from->loc = d->exp->pos;
 }
 
 ANN static void deep_emit_release(const Emitter emit, struct DeepEmit *d) {

@@ -274,8 +274,12 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
     if (!value->from->owner_class || isa(env->class_def, value->from->owner_class) > 0)
       return value;
   }
-  if (env->func && env->func->def->base->values)
-    return (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
+  if (env->func && env->func->def->base->values) {
+    DECL_OO(const Value, v, = (Value)scope_lookup1(env->func->def->base->values, (vtype)sym));
+    if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
+      CHECK_OO(not_upvalue(env, v));
+    return v;
+  }
   return NULL;
 }
 
@@ -326,8 +330,7 @@ static inline Nspc value_owner(const Env env, const Value v) {
   return v ? v->from->owner : env->curr;
 }
 
-ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim) {
-  const Value v = prim->value;
+ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Value v) {
   if(not_upvalue(env, v))
     return GW_OK;
   gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->pos, 4242);
@@ -358,9 +361,11 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
-    const m_str hint = (!env->func || strcmp(env->func->name, "in spork")) ?
-        NULL : "vapturelist?";
-    gwerr_basic(_("Invalid variable"), _("not legit at this point."), hint,
+    if (env->func && fbflag(env->func->def->base, fbflag_lambda) && env->func->def->base->values) {
+      const Value v = (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
+      if(v) CHECK_BO(check_upvalue(env, prim_self(data), v));
+    }
+    gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
     env_set_error(env);
@@ -373,7 +378,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     if (!GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
     if (fbflag(env->func->def->base, fbflag_lambda))
-      CHECK_BO(check_upvalue(env, prim_self(data)));
+      CHECK_BO(check_upvalue(env, prim_self(data), v));
   }
   // set_vflag(v->vflag, vflag_used);
   return v->type;
@@ -1217,8 +1222,9 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
   idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
-  valuefrom(env, idx->v->from, idx->pos);
   valid_value(env, idx->sym, idx->v);
+  idx->v->from->loc = idx->pos;
+  idx->v->from->filename = env->name;
   SET_FLAG(idx->v, const);
 }
 
@@ -1254,7 +1260,8 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
   stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
   valid_value(env, stmt->sym, stmt->v);
-  valuefrom(env, stmt->v->from, stmt->vpos);
+  stmt->v->from->loc = stmt->vpos;
+  stmt->v->from->filename = env->name;
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 

@@ -684,10 +684,11 @@ static OP_CHECK(opck_spork) {
       }
     }
     const Func f = env->func;
-    struct Value_ value = {};
+    struct Value_ value = { .type = env->gwion->type[et_lambda]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
     struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = scope};
+    set_fbflag(&fbase, fbflag_lambda);
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
