@@ -264,7 +264,10 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
   UNSET_FLAG(l->def->base, global);
-  l->def->base->values = env->curr->info->value;
+  Upvalues upvalues = {
+    .values = env->curr->info->value
+  };
+  l->def->base->values = &upvalues;
   const m_uint scope   = env->scope->depth;
   if(GET_FLAG(fdef->base, global) && !l->owner &&
     fdef->base->func->value_ref->from->owner_class)
@@ -277,9 +280,9 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
    env_pop(env, scope);
 
   if (l->def->base->func) {
-    if (env->curr->info->value != l->def->base->values) {
+    if (env->curr->info->value != l->def->base->values->values) {
       free_scope(env->gwion->mp, env->curr->info->value);
-      env->curr->info->value = l->def->base->values;
+      env->curr->info->value = l->def->base->values->values;
     }
   }
 
@@ -661,7 +664,11 @@ static OP_CHECK(opck_spork) {
       }
     }
     ++env->scope->depth;
-    const Scope scope = env->curr->info->value;
+    Upvalues values = {
+      .values = env->curr->info->value
+    };
+    if(env->func && env->func->def->base->values)
+      values.parent = env->func->def->base->values;
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
@@ -673,7 +680,7 @@ static OP_CHECK(opck_spork) {
     struct Value_ value = { .type = env->gwion->type[et_lambda]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = scope};
+    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &values};
     set_fbflag(&fbase, fbflag_lambda);
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
@@ -681,7 +688,7 @@ static OP_CHECK(opck_spork) {
     const m_bool ret = check_stmt(env, unary->code);
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = scope;
+    env->curr->info->value = values.values;
     --env->scope->depth;
     CHECK_BN(ret);
     return env->gwion

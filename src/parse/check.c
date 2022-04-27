@@ -275,7 +275,7 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
       return value;
   }
   if (env->func && env->func->def->base->values) {
-    DECL_OO(const Value, v, = (Value)scope_lookup1(env->func->def->base->values, (vtype)sym));
+    DECL_OO(const Value, v, = upvalues_lookup(env->func->def->base->values, sym));
     if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
       CHECK_OO(not_upvalue(env, v));
     return v;
@@ -362,8 +362,11 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       return env->gwion->type[et_op];
     }
     if (env->func && fbflag(env->func->def->base, fbflag_lambda) && env->func->def->base->values) {
-      const Value v = (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
-      if(v) CHECK_BO(check_upvalue(env, prim_self(data), v));
+      const Value v = upvalues_lookup(env->func->def->base->values, sym);
+      if(v) {
+        CHECK_BO(check_upvalue(env, prim_self(data), v));
+        return v->type;
+      }
     }
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
@@ -786,11 +789,14 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   }
   if(e)
      ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-  l->def->base->values = env->curr->info->value;
+  Upvalues upvalues = { .values = env->curr->info->value};
+  if(env->func && env->func->def->base->values)
+    upvalues.parent = env->func->def->base->values;
+  l->def->base->values = &upvalues;
   const m_bool ret     = traverse_func_def(env, l->def);
   if (l->def->base->func) {
     free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = l->def->base->values;
+    env->curr->info->value = l->def->base->values->values;
     if (env->class_def) set_vflag(l->def->base->func->value_ref, vflag_member);
     exp->func->type = l->def->base->func->value_ref->type;
     if (!l->def->base->ret_type)

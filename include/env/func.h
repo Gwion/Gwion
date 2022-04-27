@@ -36,4 +36,10 @@ Symbol     func_symbol(const Env, const m_str, const m_str, const m_str,
 ANN m_bool check_lambda(const Env, const Type, Exp_Lambda *);
 ANN Type   check_op_call(const Env env, Exp_Call *const exp);
 ANN void   builtin_func(const MemPool mp, const Func f, void *func_ptr);
+
+static inline Value upvalues_lookup(const Upvalues *upvalues, const Symbol sym) {
+  const Value v = (Value)scope_lookup1(upvalues->values, (m_uint)sym);
+  if(v) return v;
+  return upvalues->parent ? upvalues_lookup(upvalues->parent, sym) : NULL;
+}
 #endif
