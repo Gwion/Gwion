@@ -1,0 +1,2 @@
+spork { while(true){} };
+samp => now;
