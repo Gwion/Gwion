@@ -614,23 +614,9 @@ static OP_EMIT(opem_op_impl) {
   instr->m_val2          = -SZ_INT;
   return ret;
 }
-/*
-ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
-  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
-  mp_vector_set(slist, struct Stmt_, 0,
-    ((struct Stmt_) {
-      .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = unary->exp, } },
-      .pos = unary->exp->pos
-  }));
-  const Stmt      code = new_stmt_code(env->gwion->mp, slist, unary->exp->pos);
-  ((Exp_Unary *)unary)->exp        = NULL;
-  ((Exp_Unary *)unary)->code       = code;
-  ((Exp_Unary *)unary)->unary_type = unary_code;
-}
-*/
+
 ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
   const Type t = unary->exp->type;
-//  fork_exp(env, unary);
   if (t == env->gwion->type[et_void]) return env->gwion->type[et_fork];
   char c[21 + strlen(t->name)];
   sprintf(c, "TypedFork:[%s]", t->name);
