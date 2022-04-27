@@ -2332,6 +2332,10 @@ ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {
   emit_pop_scope(emit);
 }
 
+static INSTR(run_always) {
+  shreduler_remove(shred->tick->shreduler, shred, 0);
+}
+
 ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
                                   const m_uint index) {
   Instr           op       = NULL;
@@ -2339,9 +2343,14 @@ ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
   const bool is_const = stmt->cond->exp_type == ae_exp_primary &&
                         stmt->cond->d.prim.prim_type == ae_prim_num;
   if (!stmt->is_do) {
-    if (!is_const)
+    if (!is_const) {
+      if(is_while && !stmt->body->d.stmt_code.stmt_list &&
+          stmt->cond->d.prim.prim_type == ae_prim_id &&
+          !strcmp("true", s_name(stmt->cond->d.prim.d.var))) {
+        (void)emit_add_instr(emit, run_always);
+      }
       op = _flow(emit, stmt->cond, NULL, is_while);
-    else if ((!is_while && stmt->cond->d.prim.d.num) ||
+    } else if ((!is_while && stmt->cond->d.prim.d.num) ||
              (is_while && !stmt->cond->d.prim.d.num))
       return GW_OK;
   }
