@@ -49,10 +49,7 @@ int main(int argc, char **argv) {
   if (ini > 0) gwion_run(&gwion);
   gwion_end(&gwion);
   gwion.vm = NULL;
-#ifndef BUILD_ON_WINDOWS
-  pthread_exit(NULL);
-#endif
-  return EXIT_SUCCESS;
+  exit(EXIT_SUCCESS);
 }
 
 #endif
