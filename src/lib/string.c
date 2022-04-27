@@ -60,7 +60,7 @@ ID_CHECK(check_funcpp) {
                                      : env->class_def ? env->class_def->name
                                                       : env->name;
 // handle delim?
-  ((Exp_Primary *)prim)->value     = global_string(env, prim->d.string.data);
+  ((Exp_Primary *)prim)->value = global_string(env, prim->d.string.data, prim_pos(prim));
   return prim->value->type;
 }
 

@@ -386,7 +386,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
 
 ANN Type check_prim_str(const Env env, const struct AstString *data) {
   if (!prim_self(data)->value)
-    prim_self(data)->value = global_string(env, data->data);
+    prim_self(data)->value = global_string(env, data->data, prim_pos(data));
   return env->gwion->type[et_string]; // prim->value
 }
 
@@ -1119,8 +1119,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     // casting while defining it*
     const Exp ret_id =
         new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
-    ret_id->d.prim.value = new_value(env->gwion->mp, tdef->type, "self");
-    // valuefrom?
+    ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->pos);
     struct Stmt_ ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .pos = when->pos
@@ -1221,10 +1220,8 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
-  idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
+  idx->v = new_value(env, base, s_name(idx->sym), idx->pos);
   valid_value(env, idx->sym, idx->v);
-  idx->v->from->loc = idx->pos;
-  idx->v->from->filename = env->name;
   SET_FLAG(idx->v, const);
 }
 
@@ -1258,10 +1255,8 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   if (stmt->idx)
     CHECK_BB(check_each_idx(env, stmt->exp, stmt->idx));
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
-  stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
+  stmt->v = new_value(env, ret, s_name(stmt->sym), stmt->vpos);
   valid_value(env, stmt->sym, stmt->v);
-  stmt->v->from->loc = stmt->vpos;
-  stmt->v->from->filename = env->name;
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -1376,7 +1371,7 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
 ANN static Value match_value(const Env env, const Type base,
                              const Exp_Primary *prim) {
   const Symbol sym = prim->d.var;
-  const Value  v   = new_value(env->gwion->mp, base, s_name(sym));
+  const Value  v   = new_value(env, base, s_name(sym), prim_pos(prim));
   // valuefrom?
   valid_value(env, sym, v);
   return v;
@@ -1793,8 +1788,7 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
           for(uint32_t i = 0; i < list->len; i++) {
             Var_Decl vd = mp_vector_at(list, struct Var_Decl_, i);
             const Value value = vd->value;
-            valuefrom(env, value->from,
-                      vd->pos); // we do not need owner
+            valuefrom(env, value->from);
             if (!trait->requested_values.ptr)
               vector_init(&trait->requested_values);
             vector_add(&trait->requested_values, (m_uint)value);

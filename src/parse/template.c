@@ -86,7 +86,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
   const Func_Def def  = cpy_func_def(env->gwion->mp, t->info->func->def);
   const Func     func = ret->info->func =
       new_func(env->gwion->mp, s_name(sym), def);
-  const Value value = new_value(env->gwion->mp, ret, s_name(sym));
+  const Value value = new_value(env, ret, s_name(sym), def->base->pos);
   func->flag        = def->base->flag;
   if (vflag(t->info->func->value_ref, vflag_member))
     set_vflag(value, vflag_member);

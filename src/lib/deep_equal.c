@@ -148,7 +148,7 @@ ANN static inline Type deep_type(const Gwion gwion, const Type t) {
 ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_int offset) {
   char name[256];
   sprintf(name, "@%u:%u", d->exp->pos.first.line, d->exp->pos.first.column);
-  d->val = new_value(emit->gwion->mp, deep_type(emit->gwion, d->exp->type), name);
+  d->val = new_value(emit->env, deep_type(emit->gwion, d->exp->type), name, d->exp->pos);
   d->tmp = new_prim_id(emit->gwion->mp, insert_symbol(emit->gwion->st, d->val->name), d->exp->pos);
   d->tmp->d.prim.value = d->val;
   d->tmp->type = d->val->type;

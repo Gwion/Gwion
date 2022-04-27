@@ -669,7 +669,7 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->v = new_value(env->gwion->mp, t, s_name(cap->xid));
+        cap->v = new_value(env, t, s_name(cap->xid), cap->pos);
         cap->v->from->offset = offset;
         offset += cap->v->type->size;
       }

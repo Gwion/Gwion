@@ -120,14 +120,14 @@ ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
             base->name);
 
     const Value v = vd->value =
-        vd->value ?: new_value(env->gwion->mp, t, s_name(vd->xid));
+        vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
     nspc_add_value(env->curr, vd->xid, v);
     if (GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
     v->type = t;
     if (decl_ref || array_ref(vd->array)) SET_FLAG(v, late);
     v->flag |= decl->td->flag;
     if (!env->scope->depth) {
-      valuefrom(env, v->from, vd->pos);
+      valuefrom(env, v->from);
       if (env->class_def) {
         if (env->class_def->info->tuple) tuple_contains(env, v);
         if (!GET_FLAG(decl->td, static)) {
@@ -367,8 +367,8 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   ID_List list = edef->list;
   for(uint32_t i = 0; i < list->len; i++) {
     Symbol xid = *mp_vector_at(list, Symbol, i);
-    const Value v = new_value(env->gwion->mp, edef->t, s_name(xid));
-    valuefrom(env, v->from, edef->pos);
+    const Value v = new_value(env, edef->t, s_name(xid), edef->pos);
+    valuefrom(env, v->from);
     if (env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
@@ -386,14 +386,12 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
 
 ANN static Value arg_value(const Env env, Arg *const arg) {
   const Var_Decl vd = &arg->var_decl;
-  const Value    v   = new_value(env->gwion->mp, arg->type,
-                            vd->xid ? s_name(vd->xid) : (m_str) __func__);
+  const Value    v   = new_value(env, arg->type,
+                            vd->xid ? s_name(vd->xid) : (m_str) __func__, arg->var_decl.pos);
   if (vd->array)
     v->type = arg->type = array_type(env, arg->type, vd->array->depth);
   if (arg->td)
     v->flag = arg->td->flag;
-  v->from->loc = arg->var_decl.pos;
-  v->from->filename = env->name;
   return v;
 }
 
@@ -495,17 +493,17 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
   nspc_allocdata(env->gwion->mp, udef->type->nspc);
   Union_List  l  = udef->l;
   m_uint      sz = 0;
-  const Value v = new_value(env->gwion->mp, env->gwion->type[et_int], "@index");
+  const Value v = new_value(env, env->gwion->type[et_int], "@index", udef->pos);
   nspc_add_value_front(env->curr, insert_symbol("@index"), v);
-  valuefrom(env, v->from, udef->pos);
+  valuefrom(env, v->from);
   for(uint32_t i = 0; i < l->len; i++) {
     Union_Member *um = mp_vector_at(l, Union_Member, i);
     DECL_OB(const Type, t, = known_type(env, um->td));
     if (nspc_lookup_value0(env->curr, um->vd.xid))
       ERR_B(um->vd.pos, _("'%s' already declared in union"), s_name(um->vd.xid))
-    const Value v = new_value(env->gwion->mp, t, s_name(um->vd.xid));
+    const Value v = new_value(env, t, s_name(um->vd.xid), um->vd.pos);
     tuple_contains(env, v);
-    valuefrom(env, v->from, udef->pos);
+    valuefrom(env, v->from);
     nspc_add_value_front(env->curr, um->vd.xid, v);
     if (t->size > sz) sz = t->size;
   }

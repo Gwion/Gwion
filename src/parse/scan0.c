@@ -73,7 +73,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   }
   fptr->value = mk_class(env, t, fptr->base->pos);
   if (global) env_pop(env, 0);
-  valuefrom(env, fptr->value->from, fptr->base->pos);
+  valuefrom(env, fptr->value->from);
   fptr_def(env, fptr);
   if (env->class_def) fptr_assign(fptr);
   set_vflag(fptr->value, vflag_func);
