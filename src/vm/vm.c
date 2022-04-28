@@ -1260,8 +1260,7 @@ fflush(stdout);
   }
     PRAGMA_POP()
 } else {
-//exit(3);
-//return;
+
 static void *_dispatch[] = {
       &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
       &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,

@@ -649,7 +649,7 @@ ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
   const Value v = nspc_lookup_value1(env->curr, cap->xid);
-  if(!v)exit(3);
+  if(!v) ERR_O(cap->pos, _("non existing value")); // did_you_mean
   if(cap->is_ref && not_upvalue(env, v))
     ERR_O(cap->pos, _("can't take ref of a scoped value"));
   cap->orig = v;

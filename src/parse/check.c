@@ -1065,19 +1065,6 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot *member) {
   return check_dot(env, member);
 }
 
-/*
-// enable static checking
-ANN static OP_CHECK(opck_predicate) {
-  const Exp_Call *call = (Exp_Call*)data;
-  const Exp predicate = call->args;
-const Func f = exp_self(call)->type->info->func;
-//f->def->d.code->d.stmt_code.stmt_list->stmt->d.stmt_exp.val;
-  if(predicate->exp_type != ae_exp_primary ||
-     predicate->d.prim.prim_type != ae_prim_num ||
-     !predicate->d.prim.d.num) exit(12);
-}
-*/
-
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) {
     set_tflag(tdef->type, tflag_contract);
