@@ -2099,16 +2099,6 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
   return ret;
 }
 
-ANN static inline m_bool emit_prim_novar(const Emitter      emit,
-                                         const Exp_Primary *prim) {
-  const Exp  e   = exp_self(prim);
-  const uint var = exp_getvar(e);
-  exp_setvar(e, 0);
-  CHECK_BB(emit_symbol(emit, prim));
-  exp_setvar(e, var);
-  return GW_OK;
-}
-
 ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda *lambda) {
   CHECK_BB(emit_func_def(emit, lambda->def));
   if (vflag(lambda->def->base->func->value_ref, vflag_member) &&
