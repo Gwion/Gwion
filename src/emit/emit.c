@@ -1714,12 +1714,6 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     if (tmpl && !is_fptr(emit->gwion, f->value_ref->type)) {
       if (emit->env->func != f)
         CHECK_BB(emit_template_code(emit, f));
-      else { // recursive function. (maybe should be used only for global funcs)
-        /*  const Instr back = (Instr) vector_size(&emit->code->instr) ?
-              (Instr)vector_back(&emit->code->instr) : emit_add_instr(emit,
-          RegPushImm); back->opcode = eOP_MAX; back->execute = SetRecurs;
-          back->m_val = 0;*/
-      }
     } else if (emit->env->func != f && !f->value_ref->from->owner_class &&
                !f->code && !is_fptr(emit->gwion, f->value_ref->type)) {
       if (fbflag(f->def->base, fbflag_op)) {
