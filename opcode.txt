@@ -194,10 +194,6 @@ UnionMember4~u~u
 DotStatic~p
 DotStatic2~p
 DotStatic3~p~u
-UpvalueInt~u
-UpvalueFloat~u
-UpvalueOther~u~u
-UpvalueAddr~u
 DotFunc~u~u
 GackType
 GackEnd~u

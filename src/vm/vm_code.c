@@ -29,12 +29,7 @@ ANN void free_vmcode(VM_Code a, Gwion gwion) {
   if (!a->builtin) {
     _mp_free(gwion->mp, vector_size(&a->instr) * BYTECODE_SZ, a->bytecode);
     if (likely(!a->callback)) {
-      if (a->closure) {
-        if (!a->is_memoize)
-          free_closure(a->closure, gwion);
-        else
-          memoize_end(gwion->mp, a->memoize);
-      }
+      if(a->memoize) memoize_end(gwion->mp, a->memoize);
       free_code_instr(&a->instr, gwion);
     }
     if (a->handlers.ptr) map_release(&a->handlers);
@@ -190,7 +185,6 @@ VM_Code vmcode_callback(MemPool mp, VM_Code base) {
   instr->opcode      = eEOC;
   const VM_Code code = new_vmcode(mp, &base->instr, &base->live_values, name,
                                   base->stack_depth, base->builtin, false);
-  code->closure      = base->closure;
   code->callback     = 1;
   instr->opcode      = eFuncReturn;
   return code;

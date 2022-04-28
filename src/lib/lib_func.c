@@ -240,7 +240,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       const Value v = nspc_lookup_value1(env->curr, cap->xid);
       if(!v) ERR_B(cap->pos, _("unknown value in capture"));
       offset += (!cap->is_ref ? SZ_INT : v->type->size);
-      cap->v = v;
+      cap->orig = v;
       cap->offset = offset;
     }
   }
@@ -651,7 +651,7 @@ ANN Type upvalue_type(const Env env, Capture *cap) {
   if(!v)exit(3);
   if(cap->is_ref && not_upvalue(env, v))
     ERR_O(cap->pos, _("can't take ref of a scoped value"));
-  cap->v = v;
+  cap->orig = v;
   const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
   return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
 }
@@ -668,38 +668,38 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->v = new_value(env, t, s_name(cap->xid), cap->pos);
-        cap->v->from->offset = offset;
-        offset += cap->v->type->size;
+        cap->new = new_value(env, t, s_name(cap->xid), cap->pos);
+        cap->new->from->offset = offset;
+        offset += cap->new->type->size;
       }
     }
-    ++env->scope->depth;
-    Upvalues values = {
-      .values = env->curr->info->value
-    };
+    Upvalues upvalues = { .values = env->curr->info->value };
     if(env->func && env->func->def->base->values)
-      values.parent = env->func->def->base->values;
+      upvalues.parent = env->func->def->base->values;
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->xid, cap->v);
+        valid_value(env, cap->xid, cap->new);
       }
     }
     const Func f = env->func;
     struct Value_ value = { .type = env->gwion->type[et_lambda]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &values};
+    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &upvalues};
     set_fbflag(&fbase, fbflag_lambda);
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
+//    ++env->scope->depth;
+//nspc_push_value(env->gwion->mp, env->curr);
     const m_bool ret = check_stmt(env, unary->code);
+// nspc_push_value(env->gwion->mp, env->curr);
+//    --env->scope->depth;
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = values.values;
-    --env->scope->depth;
+    env->curr->info->value = upvalues.values;
     CHECK_BN(ret);
     return env->gwion
         ->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];

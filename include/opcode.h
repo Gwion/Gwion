@@ -197,10 +197,6 @@ enum {
   eDotStatic,
   eDotStatic2,
   eDotStatic3,
-  eUpvalueInt,
-  eUpvalueFloat,
-  eUpvalueOther,
-  eUpvalueAddr,
   eDotFunc,
   eGackType,
   eGackEnd,
@@ -416,10 +412,6 @@ enum {
 #define  DotStatic            (f_instr)eDotStatic
 #define  DotStatic2           (f_instr)eDotStatic2
 #define  DotStatic3           (f_instr)eDotStatic3
-#define  UpvalueInt           (f_instr)eUpvalueInt
-#define  UpvalueFloat         (f_instr)eUpvalueFloat
-#define  UpvalueOther         (f_instr)eUpvalueOther
-#define  UpvalueAddr          (f_instr)eUpvalueAddr
 #define  DotFunc              (f_instr)eDotFunc
 #define  GackType             (f_instr)eGackType
 #define  GackEnd              (f_instr)eGackEnd
@@ -1353,27 +1345,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: DotStatic3  ", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eUpvalueInt:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: UpvalueInt  ", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eUpvalueFloat:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: UpvalueFloat", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eUpvalueOther:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: UpvalueOther", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eUpvalueAddr:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: UpvalueAddr ", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
       case eDotFunc:

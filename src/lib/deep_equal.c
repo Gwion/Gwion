@@ -97,8 +97,8 @@ static bool deep_check(const Env env, const Exp_Binary *bin,
                        const Vector l, const Vector r) {
   const m_uint lsz = vector_size(l),
                rsz = vector_size(r);
-  if(lsz && rsz >= lsz) {
-//  if(rsz >= lsz) {
+//  if(lsz && rsz >= lsz) {
+  if(rsz >= lsz) {
     for(m_uint i = 0; i < lsz; i++) {
       const Value lval = (Value)vector_at(l, i),
                   rval = (Value)vector_at(r, i);

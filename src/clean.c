@@ -71,7 +71,7 @@ ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
 ANN static void clean_captures(Clean *a, Capture_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
     const Capture *cap = mp_vector_at(b, Capture, i);
-    if(cap->v) value_remref(cap->v, a->gwion);
+    if(cap->new) value_remref(cap->new, a->gwion);
   }
 }
 
