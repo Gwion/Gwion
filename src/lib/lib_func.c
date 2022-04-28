@@ -12,6 +12,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "partial.h"
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
@@ -712,6 +713,20 @@ static OP_EMIT(opem_spork) {
   return emit_exp_spork(emit, unary);
 }
 
+static OP_CHECK(opck_func_partial) {
+  Exp_Call *call = (Exp_Call*)data;
+  return partial_type(env, call);
+}
+
+static OP_CHECK(opck_class_partial) {
+  Exp_Call *call = (Exp_Call*)data;
+  struct Op_Import opi = {.op   = insert_symbol("@partial"),
+                          .lhs  = actual_type(env->gwion, call->func->type),
+                          .pos  = call->func->pos,
+                          .data = (uintptr_t)data};
+   return op_check(env, &opi);
+}
+
 static FREEARG(freearg_xork) { vmcode_remref((VM_Code)instr->m_val, gwion); }
 
 static FREEARG(freearg_dottmpl) {
@@ -750,6 +765,12 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, "@function", "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
   GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
+  GWI_BB(gwi_oper_ini(gwi, "@function", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_func_partial))
+  GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Class", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_class_partial))
+  GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;

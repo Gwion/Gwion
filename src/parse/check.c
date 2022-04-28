@@ -988,7 +988,11 @@ ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
   if (is_partial(env, exp->args)) {
     CHECK_OO(check_exp(env, exp->func));
-    return partial_type(env, exp);
+    struct Op_Import opi = {.op   = insert_symbol("@partial"),
+                            .lhs  = exp->func->type,
+                            .pos  = exp->func->pos,
+                            .data = (uintptr_t)exp};
+    return op_check(env, &opi);
   }
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
