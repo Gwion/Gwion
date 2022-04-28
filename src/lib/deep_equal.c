@@ -24,10 +24,10 @@ static OP_##ACTION(op##action##_deep_##_t##_any) {             \
   };                                                           \
   return op_##_name(_data, &opi);                              \
 }
+
 static OP_CHECK(opck_deep_eq_any) {
   Exp_Binary *bin = data;
   bin->op = insert_symbol(env->gwion->st, "==");
-  exp_self(bin)->exp_type = ae_exp_binary;
   DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
   return t;
 }
@@ -35,7 +35,6 @@ static OP_CHECK(opck_deep_eq_any) {
 static OP_CHECK(opck_deep_ne_any) {
   Exp_Binary *bin = data;
   bin->op = insert_symbol(env->gwion->st, "!=");
-  exp_self(bin)->exp_type = ae_exp_binary;
   DECL_ON(const Type, t, = check_exp(env, exp_self(bin)));
   return t;
 }
@@ -99,6 +98,7 @@ static bool deep_check(const Env env, const Exp_Binary *bin,
   const m_uint lsz = vector_size(l),
                rsz = vector_size(r);
   if(lsz && rsz >= lsz) {
+//  if(rsz >= lsz) {
     for(m_uint i = 0; i < lsz; i++) {
       const Value lval = (Value)vector_at(l, i),
                   rval = (Value)vector_at(r, i);
@@ -156,7 +156,6 @@ ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_i
   const Instr instr = emit_add_instr(emit, Reg2Mem);
   instr->m_val2 = offset;
   d->val->from->offset = instr->m_val = emit_localn(emit, d->val->type);
-  d->val->from->loc = d->exp->pos;
 }
 
 ANN static void deep_emit_release(const Emitter emit, struct DeepEmit *d) {

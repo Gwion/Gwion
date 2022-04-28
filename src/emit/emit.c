@@ -2724,13 +2724,9 @@ ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
                                  const Exp e, const Symbol op, const Vector v) {
   CHECK_BB(emit_exp1(emit, base));
-//  emit_exp_addref1(emit, base, -exp_size(base));
   CHECK_BB(emit_exp1(emit, e));
-//  emit_exp_addref1(emit, e, -exp_size(e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = op};
-  struct Exp_      ebin = {
-      .d = {.exp_binary = bin},
-  };
+  struct Exp_      ebin = { .d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .pos = e->pos };
   struct Op_Import opi = {.op   = op,
                           .lhs  = base->type,
                           .rhs  = e->type,
@@ -2772,7 +2768,6 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
       if (!nspc_lookup_value1(emit->env->curr, e->d.prim.d.var)) {
         if (!n) {
           CHECK_BO(emit_exp(emit, base));
-//          emit_exp_addref(emit, base, -exp_totalsize(base));
           regpop(emit, base->type->size);
         }
         CHECK_BO(case_value(emit, base, e));
@@ -2810,9 +2805,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
   regpush(emit, SZ_INT);
   CHECK_BO(emit_exp(emit, e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = insert_symbol("?=")};
-  struct Exp_      ebin = {
-      .d = {.exp_binary = bin},
-  };
+  struct Exp_      ebin = {.d = {.exp_binary = bin}, .pos = e->pos };
   struct Op_Import opi = {.op   = insert_symbol("?="),
                           .lhs  = base->type,
                           .rhs  = e->type,

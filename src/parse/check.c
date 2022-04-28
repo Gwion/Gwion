@@ -1410,8 +1410,7 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
   Exp last = e;
-  for (m_uint i = 0; i < vector_size(&env->scope->match->cond);
-       e        = e->next, ++i) {
+  for (m_uint i = 0; i < vector_size(&env->scope->match->cond); e = e->next, ++i) {
     if (!e) ERR_B(last->pos, _("no enough to match"))
     last              = e;
     const Exp    base = (Exp)vector_at(&env->scope->match->cond, i);
@@ -1422,14 +1421,20 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       const Type t   = check_exp(env, e);
       e->next        = next;
       CHECK_OB(t);
-      Exp_Binary       bin  = {.lhs = base, .rhs = e, .op = op};
-      struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary};
+      Exp_Binary       bin  = {.lhs = cpy_exp(env->gwion->mp, base), .rhs = cpy_exp(env->gwion->mp, e), .op = op};
+      struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .pos = e->pos };
       struct Op_Import opi  = {.op   = op,
                               .lhs  = base->type,
                               .rhs  = e->type,
                               .data = (uintptr_t)&ebin.d.exp_binary,
                               .pos  = e->pos};
-      CHECK_OB(op_check(env, &opi));
+      traverse_exp(env, &ebin);
+      const Type ret = op_check(env, &opi);
+      if(ebin.exp_type == ae_exp_binary) {
+        free_exp(env->gwion->mp, bin.lhs);
+        free_exp(env->gwion->mp, bin.rhs);
+      }
+      CHECK_OB(ret);
     }
   }
   if (e) ERR_B(e->pos, _("too many expression to match"))
