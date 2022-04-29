@@ -45,6 +45,6 @@ ANN static inline Value upvalues_lookup(const Upvalues *upvalues, const Symbol s
 
 ANN static inline m_uint captures_sz(const Capture_List captures) {
   const Capture *cap = mp_vector_at(captures, Capture, (captures->len - 1));
-  return cap->new->from->offset + cap->new->type->size;
+  return cap->temp->from->offset + cap->temp->type->size;
 }
 #endif

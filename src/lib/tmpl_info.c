@@ -44,8 +44,11 @@ ANN static inline size_t tmpl_set(struct tmpl_info *info, const m_str str) {
 ANN static ssize_t template_size(const Env env, struct tmpl_info *info) {
   DECL_OB(const m_str, str,
           = tl2str(env->gwion, info->td->types, info->td->pos));
+printf("ùù %s ùù\n", str);
   const size_t tmpl_sz = tmpl_set(info, str);
+puts("jeje");
   const m_str  base    = type2str(env->gwion, info->base, info->td->pos);
+printf("mm %s mm\n", str);
   return tmpl_sz + tmpl_set(info, base) + 4;
 //  return tmpl_sz + tmpl_set(info, info->base->name) + 4;
 }

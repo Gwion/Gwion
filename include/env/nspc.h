@@ -1,13 +1,13 @@
 #ifndef __NSPC
 #define __NSPC
-struct NspcInfo_ {
+typedef struct NspcInfo_ {
   struct Map_    op_map;
   Scope          value;
   Scope          type;
   Scope          func;
   Scope          trait;
   struct Vector_ op_tmpl;
-};
+} NspcInfo;
 
 struct Nspc_ {
   struct Vector_    vtable;
@@ -16,7 +16,7 @@ struct Nspc_ {
   struct VM_Code_ * dtor;
   Nspc              parent;
   m_str             name;
-  struct NspcInfo_ *info;
+  NspcInfo       *info;
   uint16_t       offset;
   uint16_t          ref;
   uint16_t       class_data_size;

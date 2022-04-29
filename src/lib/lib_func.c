@@ -669,9 +669,9 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->new = new_value(env, t, s_name(cap->xid), cap->pos);
-        cap->new->from->offset = offset;
-        offset += cap->new->type->size;
+        cap->temp = new_value(env, t, s_name(cap->xid), cap->pos);
+        cap->temp->from->offset = offset;
+        offset += cap->temp->type->size;
       }
     }
     Upvalues upvalues = { .values = env->curr->info->value };
@@ -681,7 +681,7 @@ static OP_CHECK(opck_spork) {
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->xid, cap->new);
+        valid_value(env, cap->xid, cap->temp);
       }
     }
     const Func f = env->func;
