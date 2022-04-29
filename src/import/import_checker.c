@@ -201,11 +201,10 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
 }
 
 ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t pos) {
-puts(str);
   struct td_checker tdc = {.str = str, .pos = pos};
   DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
-//*(m_uint*)0 = 1;
   if(*tdc.str) {
+/*
     Type_Decl *tmp = td;
     while(tmp->next) tmp = tmp->next;
     while(!strcmp(tdc.str, "[]")) {
@@ -214,6 +213,7 @@ puts(str);
       else td->array->depth++;
       return td;
     }
+*/
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c' in '%s'", *tdc.str, str);
   }
@@ -258,7 +258,6 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
   const Type owner = t->info->value->from->owner_class;
   if (owner) {
     td_fullname(gwion->env, &text, owner);
-printf("%s %s\n", text.str, t->name);
     text_add(&text, ".");
   }
   text_add(&text, t->name);
@@ -269,7 +268,6 @@ ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl,
                       const loc_t pos NUSED) {
   struct td_info info = {.tl = tl, {.mp = gwion->mp}};
   CHECK_BO(td_info_run(gwion->env, &info));
-printf("=== %s ===\n", info.text.str);
   return info.text.str;
 }
 

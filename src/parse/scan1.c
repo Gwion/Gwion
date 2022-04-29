@@ -41,7 +41,6 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   if(!GET_FLAG(t, global) && !from_global_nspc(env, from->owner)) {
     if(from->owner_class && type_global(env, from->owner_class))
       return true;
-puts(t->name);
     gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
     gwerr_secondary("not declared global", from->filename, from->loc);
     const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;

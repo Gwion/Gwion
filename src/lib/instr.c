@@ -39,9 +39,6 @@ ANN static Func_Def from_base(const Env env, struct dottmpl_ *const dt,
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, dt->tl);
   def->base->tmpl->base = dt->base->base->tmpl->base;
   dt->def               = def;
-printf("%s %p\n", v->from->owner->name, v->from->owner_class);
-printf("%p %p\n", v->from->owner->parent, v->from->owner);
-printf("%p %p\n", v->from->owner->parent->parent, v->from->owner);
   dt->owner             = v->from->owner;
   dt->owner_class       = v->from->owner_class;
   return def;
