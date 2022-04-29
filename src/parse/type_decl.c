@@ -4,6 +4,10 @@
 #include "vm.h"
 #include "traverse.h"
 #include "parse.h"
+#include "object.h"
+#include "operator.h"
+#include "instr.h"
+#include "import.h"
 
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   Type_List tl  = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
@@ -39,10 +43,50 @@ ANN static inline Type ref(const Env env, Type_Decl *td) {
   return t;
 }
 
+ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
+  GwText text = { .mp = env->gwion->mp };
+  text_add(&text, "(");
+  const Type t = known_type(env, base->td);
+  const m_str name = type2str(env->gwion, t, base->td->pos);
+  text_add(&text, name);
+  free_mstr(env->gwion->mp, name);
+	text_add(&text, "(");
+  *global = type_global(env, t);
+  if(base->args) {
+    for(uint32_t i = 0; i < base->args->len; i++) {
+      if(i) text_add(&text, ",");
+      Arg *arg = mp_vector_at(base->args, Arg, i);
+      const Type t = known_type(env, arg->td);
+      const m_str name = type2str(env->gwion, t, arg->td->pos);
+      text_add(&text, name);
+      free_mstr(env->gwion->mp, name);
+      if(*global)
+        *global = type_global(env, t);
+    }
+  }
+  text_add(&text, ")");
+  text_add(&text, ")");
+  base->xid = insert_symbol(text.str);
+  text_release(&text);
+  return base->xid;
+}
+
 ANN static inline Type find(const Env env, Type_Decl *td) {
   if (!td->fptr) return find_type(env, td);
-  if (!td->fptr->type) CHECK_BO(traverse_fptr_def(env, td->fptr));
-  return td->fptr->type;
+  bool global;
+  td->xid = symname(env, td->fptr->base, &global);
+  const Fptr_Def fptr = td->fptr;
+  td->fptr = NULL;
+  const Type exists = find_type(env, td);
+  if(exists) return exists;
+  const m_uint scope = !global
+      ? env_push_global(env)
+      : env_push(env, NULL, env->context->nspc);
+  const m_bool ret = traverse_fptr_def(env, fptr);
+  env_pop(env, scope);
+  const Type t = fptr->type;
+  free_fptr_def(env->gwion->mp, fptr);
+  return ret > 0 ? t : NULL;
 }
 
 ANN static inline Type find1(const Env env, const Type base, Type_Decl *td) {
