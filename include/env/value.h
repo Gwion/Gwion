@@ -19,7 +19,8 @@ enum vflag {
   vflag_member   = 1 << 6,
   vflag_inner    = 1 << 7, // value is in a scope
   vflag_release  = 1 << 8,
-  vflag_assigned = 1 << 9
+  vflag_assigned = 1 << 9,
+  vflag_arg      = 1 << 10
   //  vflag_used = 1 << 3
 } __attribute__((packed));
 

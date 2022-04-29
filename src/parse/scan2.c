@@ -49,14 +49,13 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
 
 ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List   args   = f->base->args;
-  const bool global = GET_FLAG(f->base, global);
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Value v   = arg->var_decl.value;
     v->from->offset = f->stack_depth;
-    //f->stack_depth += v->type->size;
+    // when can there be no type?
     f->stack_depth += v->type ? v->type->size : SZ_INT;
-    if (global) SET_FLAG(v, global);
+    set_vflag(v, vflag_arg);
   }
   return GW_OK;
 }

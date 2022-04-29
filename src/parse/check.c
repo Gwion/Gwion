@@ -306,7 +306,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
     return v;
   } else if (SAFE_FLAG(env->class_def, global) ||
              (env->func && GET_FLAG(env->func->def->base, global))) {
-    if (!value || !is_value_global(env, value))
+    if (!value || !(is_value_global(env, value) || vflag(value, vflag_arg)))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
