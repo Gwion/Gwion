@@ -64,6 +64,10 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_BB(scan0_defined(env, fptr->base->xid, fptr->base->td->pos));
   const m_str name   = s_name(fptr->base->xid);
   const Type  t      = scan0_type(env, name, env->gwion->type[et_fptr]);
+  if(env->class_def && !strncmp(s_name(fptr->base->xid), "@sig", 4)) {
+    SET_FLAG(fptr->base, static);
+    SET_FLAG(fptr->base, global);
+  }
   const bool  global = !env->class_def && GET_FLAG(fptr->base, global);
   t->flag |= fptr->base->flag;
   fptr->type = t;
