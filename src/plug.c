@@ -162,8 +162,8 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc
     const size_t size = strlen(iname);
     char         name[size + 1];
     strcpy(name, iname);
-    for (size_t i = 0; i < size; i++) {
-      if (name[i] == ':' || name[i] == '[' || name[i] == ']') name[i] = '_';
+    for (size_t j = 0; j < size; j++) {
+      if (name[j] == ':' || name[j] == '[' || name[j] == ']') name[j] = '_';
     }
     if (!strcmp(name, base)) {
       if (plug->imp) return GW_OK;
