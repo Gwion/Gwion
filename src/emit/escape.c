@@ -50,7 +50,7 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
             return GW_ERROR;
           }
         }
-      } else if (c == 'x' || c == 'x' || c == 'u' || c == 'U') {
+      } else if (c == 'x' || c == 'X' || c == 'u' || c == 'U') {
         ++str_lit;
         const unsigned char c1 = *(str_lit);
         const unsigned char c3 = *(str_lit + 1);
