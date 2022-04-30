@@ -21,7 +21,6 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
     if (i >= tl->len) return GW_OK;
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
     const Type t = known_type(env, td);
-    if (!t) return GW_OK;
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     nspc_add_type(nspc, spec->xid, t);
   };
@@ -51,12 +50,21 @@ ANN static m_bool _template_push(const Env env, const Type t) {
 }
 
 ANN m_bool template_push(const Env env, const Type t) {
-  nspc_push_type(env->gwion->mp, env->curr);
-  return _template_push(env, t);
+   nspc_push_type(env->gwion->mp, env->curr);
+   return _template_push(env, t);
 }
 
+ANN void check_call(const Env env, const Tmpl *tmpl) {
+  for(uint32_t i = 0; i < tmpl->call->len; i++) {
+    Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
+    Type_Decl *call = *mp_vector_at(tmpl->call, Type_Decl*, i);
+    if(spec->xid == call->xid)
+      call->xid = insert_symbol("auto");
+  }
+}
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
+  if(tmpl->call) check_call(env, tmpl);
   if (push_types(env, env->curr, tmpl) > 0) return GW_OK;
   POP_RET(GW_ERROR);
 }
