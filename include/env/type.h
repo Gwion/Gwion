@@ -38,8 +38,9 @@ enum tflag {
   tflag_contract = 1 << 19,
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
-  tflag_error    = 1 << 22,
-  tflag_ref      = 1 << 23,
+  tflag_enum     = 1 << 22,
+  tflag_error    = 1 << 23,
+  tflag_ref      = 1 << 24,
 } __attribute__((packed));
 
 struct Type_ {

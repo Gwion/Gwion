@@ -232,6 +232,7 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   }
   add_type(env, env->curr, t);
   mk_class(env, t, edef->pos);
+  set_tflag(t, tflag_enum);
   if (global) env_pop(env, 0);
 //  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
 //  scan0_implicit_similar(env, env->gwion->type[et_int], t);
