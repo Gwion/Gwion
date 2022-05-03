@@ -14,6 +14,7 @@
 #include "specialid.h"
 #include "gwi.h"
 #include "gack.h"
+#include "array.h"
 
 #define describe_string_logical(name, action)                                  \
   static INSTR(String_##name) {                                                \
@@ -165,30 +166,6 @@ static MFUN(string_trim) {
   for (i = start; i < len - end; i++) c[i - start] = str[i];
   c[len - start - end] = '\0';
   *(M_Object *)RETURN  = new_string(shred->info->vm->gwion, c);
-}
-
-static MFUN(string_charAt) {
-  const m_str  str = STRING(o);
-  const m_int  i   = *(m_int *)MEM(SZ_INT);
-  const m_uint len = strlen(str);
-  if (i < 0 || (m_uint)i >= len)
-    *(m_uint *)RETURN = -1;
-  else
-    *(m_uint *)RETURN = str[i];
-}
-
-static MFUN(string_setCharAt) {
-  const m_str  str = STRING(o);
-  const m_int  i   = *(m_int *)MEM(SZ_INT);
-  const m_int  c   = *(m_int *)MEM(SZ_INT * 2);
-  const m_uint len = strlen(str);
-  if (i < 0 || (m_uint)i >= len)
-    *(m_uint *)RETURN = -1;
-  else {
-    str[i]            = c;
-    STRING(o)         = s_name(insert_symbol(shred->info->vm->gwion->st, str));
-    *(m_uint *)RETURN = c;
-  }
 }
 
 static MFUN(string_insert) {
@@ -417,6 +394,59 @@ static MFUN(string_atoi2) {
   **(m_uint**)MEM(SZ_INT) = endptr - str;
 }
 */
+
+ANN Type check_array_access(const Env env, const Array_Sub array);
+
+static OP_CHECK(opck_string_access) {
+  const Array_Sub array = (Array_Sub)data;
+  const Exp exp = array->exp;
+  if(!exp->next)
+    return env->gwion->type[et_char];
+  struct Array_Sub_ next = { exp->next, env->gwion->type[et_char], array->depth - 1 };
+  return check_array_access(env, &next);
+}
+
+static INSTR(string_at) {
+  POP_REG(shred, SZ_INT);
+  const m_str  str = STRING(*(M_Object*)REG(-SZ_INT));
+  const m_int  i   = *(m_int *)REG(0);
+  const m_uint len = strlen(str);
+  if (i < 0 || (m_uint)i >= len) {
+    handle(shred, "invalid string access");
+    return;
+  } else
+    *(m_int *)REG(-SZ_INT) = str[i];
+}
+
+static INSTR(string_at_set) {
+  POP_REG(shred, SZ_INT);
+  const m_str  str = STRING((*(M_Object*)REG(-SZ_INT)));
+  const m_int  i   = *(m_int *)REG(0);
+  const m_uint len = strlen(str);
+  if (i < 0 || (m_uint)i >= len) {
+    handle(shred, "StringAccessException");
+    return;
+  }
+  const m_int c = *(m_int*)REG(-SZ_INT*2);
+  if(c == '\0') {
+    handle(shred, "StringAccessException");
+    return;
+  }
+  *(char**)REG(-SZ_INT) = str + i;
+  memcpy(REG(-SZ_INT*2 + 1), str + i + 1, SZ_INT - 1);
+}
+
+
+static OP_EMIT(opem_string_access) {
+  struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)data;
+  const Exp exp = info->array.exp;
+  const Exp next = exp->next;
+  CHECK_BB(emit_exp(emit, exp));
+  exp->next = next;
+  emit_add_instr(emit, !info->is_var ? string_at : string_at_set);
+  return GW_OK;
+}
+
 GWION_IMPORT(string) {
   const Type t_string         = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
@@ -441,15 +471,6 @@ GWION_IMPORT(string) {
 
   gwi_func_ini(gwi, "string", "trim");
   GWI_BB(gwi_func_end(gwi, string_trim, ae_flag_none))
-
-  gwi_func_ini(gwi, "char", "charAt");
-  gwi_func_arg(gwi, "int", "pos");
-  GWI_BB(gwi_func_end(gwi, string_charAt, ae_flag_none))
-
-  gwi_func_ini(gwi, "char", "charAt");
-  gwi_func_arg(gwi, "int", "pos");
-  gwi_func_arg(gwi, "char", "c");
-  GWI_BB(gwi_func_end(gwi, string_setCharAt, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "insert");
   gwi_func_arg(gwi, "int", "pos");
@@ -523,6 +544,11 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
+
+  GWI_BB(gwi_oper_ini(gwi, "int", "string", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_string_access))
+  GWI_BB(gwi_oper_emi(gwi, opem_string_access))
+  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "string", "string", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_string_eq))
