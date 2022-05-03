@@ -4,7 +4,7 @@
 ANN m_bool plug_ini(const struct Gwion_ *, const Vector);
 ANN m_bool driver_ini(const struct Gwion_ *);
 ANN void   plug_run(const struct Gwion_ *, const Map);
-ANN void   free_plug(const struct Gwion_ *);
+ANN void   free_plug(const Gwion);
 ANN void * get_module(const struct Gwion_ *, const m_str);
 ANN void   set_module(const struct Gwion_ *gwion, const m_str name,
                       void *const ptr);

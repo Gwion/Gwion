@@ -32,14 +32,21 @@ ANN void load_context(const Context context, const Env env) {
   env->curr = context->nspc;
 }
 
+ANN static void clean(const Nspc nspc, const Env env) {
+  env->global_nspc = nspc->parent;
+  nspc_remref(nspc, env->gwion);
+}
+
 ANN void unload_context(const Context ctx, const Env env) {
-  const Nspc global = env->global_nspc;
+  const Nspc global = ctx->nspc->parent;
+  if(global != env->global_nspc) exit(3);
   context_remref(ctx, env->gwion);
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
-  if(ctx->error) {
-    nspc_remref(global, env->gwion);
-    env->global_nspc = global->parent;
-  }
-  else if(!ctx->global)
-    env->global_nspc = global->parent;
+  const Nspc user = (Nspc)vector_at(&env->scope->nspc_stack, 1);
+  user->parent = (Nspc)vector_at(&env->scope->nspc_stack, 0);
+  if(ctx->error) clean(global, env);
+  else if(!ctx->global) {
+    ctx->nspc->parent = global->parent;
+    clean(global, env);
+  } else vector_set(&env->scope->nspc_stack, 2, (m_uint)global);
 }

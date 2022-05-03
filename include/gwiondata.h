@@ -1,5 +1,11 @@
 #ifndef __GWIONDATA
 #define __GWIONDATA
+
+typedef struct Plugs {
+  struct Map_ map; //! map of plugs
+  struct Vector_ vec; //! dependencies
+} Plugs;
+
 typedef struct GwionData_ {
   struct Map_     freearg;
   struct Map_     id;
@@ -7,7 +13,7 @@ typedef struct GwionData_ {
   struct Vector_  child;
   struct Vector_  child2;
   struct Passes_ *passes;
-  struct Map_     plug;
+  Plugs *plugs;
   bool            cdoc;
 } GwionData;
 
