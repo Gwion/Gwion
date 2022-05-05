@@ -45,9 +45,10 @@ ANN static ssize_t template_size(const Env env, struct tmpl_info *info) {
   DECL_OB(const m_str, str,
           = tl2str(env->gwion, info->td->types, info->td->pos));
   const size_t tmpl_sz = tmpl_set(info, str);
-  const m_str  base    = type2str(env->gwion, info->base, info->td->pos);
+  const m_str  base    = !is_func(env->gwion, info->base)
+   ? mstrdup(env->gwion->mp, info->base->name)
+   : type2str(env->gwion, info->base, info->td->pos);
   return tmpl_sz + tmpl_set(info, base) + 4;
-//  return tmpl_sz + tmpl_set(info, info->base->name) + 4;
 }
 
 ANEW ANN static Symbol _template_id(const Env env, struct tmpl_info *const info,

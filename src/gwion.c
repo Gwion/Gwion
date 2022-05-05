@@ -1,7 +1,3 @@
-#ifdef USE_GETTEXT
-#include <locale.h>
-#include <libintl.h>
-#endif
 #include <unistd.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -14,8 +10,8 @@
 #include "engine.h"
 #include "arg.h"
 #include "compile.h"
-#include "object.h" // fork_clean
-#include "pass.h"   // fork_clean
+#include "object.h"
+#include "pass.h"
 #include "shreduler_private.h"
 #include "ugen.h"
 
@@ -82,6 +78,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
   if (gwion_audio(gwion) > 0) {
     plug_run(gwion, &arg->mod);
     if (type_engine_init(gwion)) {
+      vector_add(&gwion->data->plugs->vec, (m_uint)gwion->env->global_nspc);
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
       gwion->emit->locale = gwion_locale(gwion);
       (void)arg_compile(gwion, arg);
@@ -170,6 +167,8 @@ ANN static inline void free_killed_shred(const Vector v) {
 ANN void gwion_end(const Gwion gwion) {
   free_killed_shred(&gwion->vm->shreduler->killed_shreds);
   gwion_end_child(gwion->vm->cleaner_shred, gwion);
+  release_ctx(gwion->env->scope, gwion);
+  if (gwion->data->plugs) free_plug(gwion);
   free_env(gwion->env);
   if (gwion->vm->cleaner_shred) free_vm_shred(gwion->vm->cleaner_shred);
   free_emitter(gwion->mp, gwion->emit);
@@ -251,10 +250,12 @@ ANN void push_global(struct Gwion_ *gwion, const m_str name) {
   gwion->env->curr = gwion->env->global_nspc = nspc;
 }
 
-ANN Nspc pop_global(struct Gwion_ *gwion) {
-  const Nspc nspc = gwion->env->global_nspc->parent;
-  nspc_remref(gwion->env->global_nspc, gwion);
-  return gwion->env->curr = gwion->env->global_nspc = nspc;
+ANN void pop_global(const Gwion gwion) {
+   Nspc nspc = gwion->env->global_nspc, parent;
+   do {
+     parent = nspc->parent;
+     nspc_remref(nspc, gwion);
+   } while((nspc = parent));
 }
 
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {

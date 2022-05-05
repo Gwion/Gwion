@@ -19,7 +19,8 @@ enum vflag {
   vflag_member   = 1 << 6,
   vflag_inner    = 1 << 7, // value is in a scope
   vflag_release  = 1 << 8,
-  vflag_assigned = 1 << 9
+  vflag_assigned = 1 << 9,
+  vflag_arg      = 1 << 10
   //  vflag_used = 1 << 3
 } __attribute__((packed));
 
@@ -44,8 +45,8 @@ struct Value_ {
 REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 
-ANEW ANN Value new_value(MemPool p, const Type type, const m_str name);
-ANN void       valuefrom(const Env, struct ValueFrom_ *, const loc_t loc);
+ANEW ANN Value new_value(const Env, const Type type, const m_str name, const loc_t loc);
+ANN void       valuefrom(const Env, struct ValueFrom_ *);
 
 ANN static inline void defined_here(const Value v) {
   if (v->from->filename) // TODO: check why is that from check

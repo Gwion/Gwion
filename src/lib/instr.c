@@ -135,13 +135,6 @@ INSTR(SetFunc) {
   shred->reg += SZ_INT;
 }
 
-INSTR(SetRecurs) {
-exit(4);
-  BYTE(eRegPushImm)
-  VAL = *(m_uint *)(shred->reg) = (m_uint)shred->code;
-  shred->reg += SZ_INT;
-}
-
 INSTR(SetCtor) {
   BYTE(eRegSetImm)
   const Type t = (Type)instr->m_val;

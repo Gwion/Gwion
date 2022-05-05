@@ -106,6 +106,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   CHECK_BO(check_typename_def(gwi, &ck));
   const Type t =
       new_type(gwi->gwion->mp, s_name(ck.sym), gwi->gwion->type[et_compound]);
+  t->size = 0;
   set_tflag(t, tflag_struct);
   if (!ck.sl)
     gwi_type_flag(t);

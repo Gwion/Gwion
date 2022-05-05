@@ -85,8 +85,8 @@ ANN static Type class_type(const Env env, const Type base) {
 ANN Value mk_class(const Env env, const Type base, const loc_t loc) {
   const Type   t   = class_type(env, base);
   const Symbol sym = insert_symbol(base->name);
-  const Value  v   = new_value(env->gwion->mp, t, s_name(sym));
-  valuefrom(env, v->from, loc);
+  const Value  v   = new_value(env, t, s_name(sym), loc);
+  valuefrom(env, v->from);
   SET_FLAG(v, const);
   set_vflag(v, vflag_valid);
   nspc_add_value_front(env->curr, sym, v);
@@ -94,14 +94,14 @@ ANN Value mk_class(const Env env, const Type base, const loc_t loc) {
   return v;
 }
 
-ANN Value global_string(const Env env, const m_str str) {
+ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   char c[strlen(str) + 8];
   sprintf(c, "%s:string", str);
   const Symbol sym = insert_symbol(c);
   const Value  v   = nspc_lookup_value0(env->global_nspc, sym);
   if (v) return v;
   const Value value =
-      new_value(env->gwion->mp, env->gwion->type[et_string], s_name(sym));
+      new_value(env, env->gwion->type[et_string], s_name(sym), loc);
   nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }

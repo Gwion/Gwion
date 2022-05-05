@@ -478,8 +478,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&remref, &&remref2, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat,
       &&dotother, &&dotaddr, &&unioncheck, &&unionint, &&unionfloat,
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
-      &&upvalueint, &&upvaluefloat, &&upvalueother, &&upvalueaddr, &&dotfunc,
-      &&gacktype, &&gackend, &&gack, &&try_ini,
+      &&dotfunc, &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
       &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
       &&regpushimm};
@@ -1183,22 +1182,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       memcpy(reg, (m_bit *)VAL, VAL2);
       reg += VAL2;
       DISPATCH()
-    upvalueint:
-      *(m_uint *)reg = *(m_uint *)(code->closure->data + VAL);
-      reg += SZ_INT;
-      DISPATCH()
-    upvaluefloat:
-      *(m_float *)reg = *(m_float *)(code->closure->data + VAL);
-      reg += SZ_FLOAT;
-      DISPATCH()
-    upvalueother:
-      memcpy(reg, code->closure->data + VAL, VAL2);
-      reg += VAL2;
-      DISPATCH()
-    upvalueaddr:
-      *(m_uint **)reg = (m_uint *)(code->closure->data + VAL);
-      reg += SZ_INT;
-      DISPATCH()
     dotfunc:
       *(VM_Code *)(reg + (m_uint)VAL2) =
           ((Func)(*(M_Object *)(reg - SZ_INT))->type_ref->nspc->vtable.ptr[OFFSET + VAL])->code;
@@ -1277,8 +1260,7 @@ fflush(stdout);
   }
     PRAGMA_POP()
 } else {
-//exit(3);
-//return;
+
 static void *_dispatch[] = {
       &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
       &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,
@@ -1322,8 +1304,7 @@ static void *_dispatch[] = {
       &&_remref, &&_remref2, &&_except, &&_allocmemberaddr, &&_dotmember, &&_dotfloat,
       &&_dotother, &&_dotaddr, &&_unioncheck, &&_unionint, &&_unionfloat,
       &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
-      &&_upvalueint, &&_upvaluefloat, &&_upvalueother, &&_upvalueaddr, &&_dotfunc,
-      &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
+      &&_dotfunc, &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
       &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
       &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_unroll2, &&_other,
       &&_regpushimm};
@@ -1556,10 +1537,6 @@ return;
     PREPARE(staticint);
     PREPARE(staticfloat);
     PREPARE(staticother);
-    PREPARE(upvalueint);
-    PREPARE(upvaluefloat);
-    PREPARE(upvalueother);
-    PREPARE(upvalueaddr);
     PREPARE(dotfunc);
     PREPARE(gacktype);
     PREPARE(gackend);

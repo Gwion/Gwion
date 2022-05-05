@@ -69,13 +69,7 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
   struct td_checker tdc = {.str = path, .pos = pos};
   return _str2sym(gwion, &tdc, path);
 }
-/*
-// only in enum.c
-ANN ID_List str2symlist(const Gwion gwion, const m_str path, const loc_t pos) {
-  DECL_OO(const Symbol, sym, = str2sym(gwion, path, pos));
-  return new_id_list(gwion->mp, sym);
-}
-*/
+
 ANN m_bool str2var(const Gwion gwion, Var_Decl vd, const m_str path, const loc_t pos) {
   struct td_checker tdc = {.str = path, .pos = pos};
   DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
@@ -203,7 +197,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
 ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t pos) {
   struct td_checker tdc = {.str = str, .pos = pos};
   DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
-  if (*tdc.str) {
+  if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(pos, "excedental character '%c' in '%s'", *tdc.str, str);
   }
@@ -235,7 +229,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
   Type_List tl = info->tl;
   for(uint32_t i = 0; i < tl->len; i++) {
     if (i) text_add(&info->text, ",");
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
+    DECL_OB(Type_Decl *, td, = *mp_vector_at(tl, Type_Decl*, i));
     DECL_OB(const Type, t, = known_type(env, td));
     td_fullname(env, &info->text, t);
   }
@@ -245,12 +239,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
 ANEW ANN m_str type2str(const Gwion gwion, const Type t,
                         const loc_t pos NUSED) {
   GwText     text  = {.mp = gwion->mp};
-  const Type owner = t->info->value->from->owner_class;
-  if (owner) {
-    td_fullname(gwion->env, &text, owner);
-    text_add(&text, ".");
-  }
-  text_add(&text, t->name);
+  td_fullname(gwion->env, &text, t);
   return text.str;
 }
 

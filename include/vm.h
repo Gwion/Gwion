@@ -1,14 +1,6 @@
 #ifndef __VM
 #define __VM
 
-typedef struct Closure_ {
-  struct Map_ m;
-  m_uint      sz;
-  m_bit   data[];
-} Closure;
-ANN Closure *new_closure(MemPool mp, const m_uint sz);
-ANN void     free_closure(Closure *a, const Gwion gwion);
-
 typedef struct VM_Code_ *VM_Code;
 struct VM_Code_ {
   m_bit *bytecode;
@@ -17,10 +9,7 @@ struct VM_Code_ {
     m_uint         native_func;
   };
   Type ret_type; // could be `struct Vector_ tmpl_types;`
-  union {
-    void *   memoize;
-    Closure *closure;
-  };
+  void *   memoize;
   m_str            name;
   struct Map_      handlers;
   struct M_Vector_ live_values;

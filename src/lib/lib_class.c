@@ -38,6 +38,21 @@ static OP_CHECK(opck_basic_ctor) {
   ERR_N(call->func->pos, _("can't call a non-callable value"));
 }
 
+static OP_EMIT(opem_implicit_class) {
+  struct Implicit *imp = (struct Implicit*)data;
+  const Type t = actual_type(emit->gwion, imp->e->type);
+  const Instr instr = emit_add_instr(emit, RegPushImm);
+  instr->m_val = map_size(&t->nspc->info->value->map);
+  return GW_OK; emit_exp(emit, imp->e);
+}
+
+static OP_CHECK(opck_implicit_class) {
+  struct Implicit *imp = (struct Implicit*)data;
+  const Type t = actual_type(env->gwion, imp->e->type);
+  if(tflag(t, tflag_enum)) return env->gwion->type[et_int];
+  return env->gwion->type[et_error];
+}
+
 GWION_IMPORT(class) {
 
   gwidoc(gwi, "Operators class types.");
@@ -58,6 +73,12 @@ GWION_IMPORT(class) {
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
   GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+
+  gwidoc(gwi, "Allow enum for array size");
+  GWI_BB(gwi_oper_ini(gwi, "Class", "int", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_implicit_class))
+  GWI_BB(gwi_oper_emi(gwi, opem_implicit_class))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
 
   return GW_OK;
 }

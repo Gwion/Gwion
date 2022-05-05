@@ -49,21 +49,20 @@ ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
 
 ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List   args   = f->base->args;
-  const bool global = GET_FLAG(f->base, global);
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Value v   = arg->var_decl.value;
     v->from->offset = f->stack_depth;
-    //f->stack_depth += v->type->size;
+    // when can there be no type?
     f->stack_depth += v->type ? v->type->size : SZ_INT;
-    if (global) SET_FLAG(v, global);
+    set_vflag(v, vflag_arg);
   }
   return GW_OK;
 }
 
 ANN static Value scan2_func_assign(const Env env, const Func_Def d,
                                    const Func f, const Value v) {
-  valuefrom(env, v->from, d->base->pos);
+  valuefrom(env, v->from);
   SET_FLAG(v, const);
   set_vflag(v, vflag_func);
   if (!env->class_def) {
@@ -360,8 +359,8 @@ ANN static void func_no_overload(const Env env, const Func f, const Value v) {
 ANN2(1, 2)
 static Value func_value(const Env env, const Func f, const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = t->info->value = new_value(env->gwion->mp, t, t->name);
-  valuefrom(env, v->from, f->def->base->pos);
+  const Value v = t->info->value = new_value(env, t, t->name, f->def->base->pos);
+  valuefrom(env, v->from);
   CHECK_OO(scan2_func_assign(env, f->def, f, v));
   if (!overload)
     func_no_overload(env, f, v);

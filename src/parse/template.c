@@ -21,7 +21,6 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
     if (i >= tl->len) return GW_OK;
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
     const Type t = known_type(env, td);
-    if (!t) return GW_OK;
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     nspc_add_type(nspc, spec->xid, t);
   };
@@ -51,12 +50,21 @@ ANN static m_bool _template_push(const Env env, const Type t) {
 }
 
 ANN m_bool template_push(const Env env, const Type t) {
-  nspc_push_type(env->gwion->mp, env->curr);
-  return _template_push(env, t);
+   nspc_push_type(env->gwion->mp, env->curr);
+   return _template_push(env, t);
 }
 
+ANN void check_call(const Env env, const Tmpl *tmpl) {
+  for(uint32_t i = 0; i < tmpl->call->len; i++) {
+    Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
+    Type_Decl *call = *mp_vector_at(tmpl->call, Type_Decl*, i);
+    if(spec->xid == call->xid)
+      call->xid = insert_symbol("auto");
+  }
+}
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
+  if(tmpl->call) check_call(env, tmpl);
   if (push_types(env, env->curr, tmpl) > 0) return GW_OK;
   POP_RET(GW_ERROR);
 }
@@ -86,7 +94,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
   const Func_Def def  = cpy_func_def(env->gwion->mp, t->info->func->def);
   const Func     func = ret->info->func =
       new_func(env->gwion->mp, s_name(sym), def);
-  const Value value = new_value(env->gwion->mp, ret, s_name(sym));
+  const Value value = new_value(env, ret, s_name(sym), def->base->pos);
   func->flag        = def->base->flag;
   if (vflag(t->info->func->value_ref, vflag_member))
     set_vflag(value, vflag_member);
@@ -134,14 +142,15 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     for(uint32_t i = 0; i < tl->len; i++) {
       Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
       DECL_OO(const Type, t, = known_type(env, tmp));
-        Specialized *spec = mp_vector_at(sl, Specialized, i);
-        if(spec->traits) {
-          Symbol missing = miss_traits(t, spec);
-          if (missing) {
-            ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
-                  s_name(missing));
-          }
+      if(!sl) continue;
+      Specialized *spec = mp_vector_at(sl, Specialized, i);
+      if(spec->traits) {
+        Symbol missing = miss_traits(t, spec);
+        if (missing) {
+          ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
+                s_name(missing));
         }
+      }
     }
     struct Op_Import opi = {.op   = insert_symbol("@scan"),
                             .lhs  = t,

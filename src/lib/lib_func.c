@@ -12,6 +12,7 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "partial.h"
 
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
@@ -240,7 +241,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       const Value v = nspc_lookup_value1(env->curr, cap->xid);
       if(!v) ERR_B(cap->pos, _("unknown value in capture"));
       offset += (!cap->is_ref ? SZ_INT : v->type->size);
-      cap->v = v;
+      cap->orig = v;
       cap->offset = offset;
     }
   }
@@ -264,7 +265,10 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   //  if(GET_FLAG(def->base, global) && !l->owner &&
   //  def->base->func->value_ref->from->owner_class)
   UNSET_FLAG(l->def->base, global);
-  l->def->base->values = env->curr->info->value;
+  Upvalues upvalues = {
+    .values = env->curr->info->value
+  };
+  l->def->base->values = &upvalues;
   const m_uint scope   = env->scope->depth;
   if(GET_FLAG(fdef->base, global) && !l->owner &&
     fdef->base->func->value_ref->from->owner_class)
@@ -277,9 +281,9 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
    env_pop(env, scope);
 
   if (l->def->base->func) {
-    if (env->curr->info->value != l->def->base->values) {
+    if (env->curr->info->value != l->def->base->values->values) {
       free_scope(env->gwion->mp, env->curr->info->value);
-      env->curr->info->value = l->def->base->values;
+      env->curr->info->value = l->def->base->values->values;
     }
   }
 
@@ -384,6 +388,7 @@ static OP_CHECK(opck_fptr_at) {
   exp_setvar(bin->rhs, 1);
   return bin->rhs->type;
 }
+
 /*
 static OP_CHECK(opck_fptr_cast) {
   Exp_Cast *      cast = (Exp_Cast *)data;
@@ -419,6 +424,15 @@ static OP_CHECK(opck_fptr_impl) {
                           impl->e, impl->e->pos};
   CHECK_BN(fptr_do(env, &info));
   return impl->t;
+}
+
+static OP_CHECK(opck_fptr_cast) {
+  Exp_Cast *cast = (Exp_Cast *)data;
+  const Type t = known_type(env, cast->td);
+  struct FptrInfo  info = {cast->exp->type->info->func, t->info->func,
+                          cast->exp, cast->td->pos};
+  CHECK_BN(fptr_do(env, &info));
+  return t;
 }
 
 // smh the VM should be able to do that
@@ -614,23 +628,9 @@ static OP_EMIT(opem_op_impl) {
   instr->m_val2          = -SZ_INT;
   return ret;
 }
-/*
-ANN static void fork_exp(const Env env, const Exp_Unary *unary) {
-  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
-  mp_vector_set(slist, struct Stmt_, 0,
-    ((struct Stmt_) {
-      .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = unary->exp, } },
-      .pos = unary->exp->pos
-  }));
-  const Stmt      code = new_stmt_code(env->gwion->mp, slist, unary->exp->pos);
-  ((Exp_Unary *)unary)->exp        = NULL;
-  ((Exp_Unary *)unary)->code       = code;
-  ((Exp_Unary *)unary)->unary_type = unary_code;
-}
-*/
+
 ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
   const Type t = unary->exp->type;
-//  fork_exp(env, unary);
   if (t == env->gwion->type[et_void]) return env->gwion->type[et_fork];
   char c[21 + strlen(t->name)];
   sprintf(c, "TypedFork:[%s]", t->name);
@@ -649,10 +649,10 @@ ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
   const Value v = nspc_lookup_value1(env->curr, cap->xid);
-  if(!v)exit(3);
+  if(!v) ERR_O(cap->pos, _("non existing value")); // did_you_mean
   if(cap->is_ref && not_upvalue(env, v))
     ERR_O(cap->pos, _("can't take ref of a scoped value"));
-  cap->v = v;
+  cap->orig = v;
   const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
   return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
 }
@@ -669,33 +669,38 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->v = new_value(env->gwion->mp, t, s_name(cap->xid));
-        cap->v->from->offset = offset;
-        offset += cap->v->type->size;
+        cap->temp = new_value(env, t, s_name(cap->xid), cap->pos);
+        cap->temp->from->offset = offset;
+        offset += cap->temp->type->size;
       }
     }
-    ++env->scope->depth;
-    const Scope scope = env->curr->info->value;
+    Upvalues upvalues = { .values = env->curr->info->value };
+    if(env->func && env->func->def->base->values)
+      upvalues.parent = env->func->def->base->values;
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->xid, cap->v);
+        valid_value(env, cap->xid, cap->temp);
       }
     }
     const Func f = env->func;
-    struct Value_ value = {};
+    struct Value_ value = { .type = env->gwion->type[et_lambda]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = scope};
+    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &upvalues};
+    set_fbflag(&fbase, fbflag_lambda);
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
+//    ++env->scope->depth;
+//nspc_push_value(env->gwion->mp, env->curr);
     const m_bool ret = check_stmt(env, unary->code);
+// nspc_push_value(env->gwion->mp, env->curr);
+//    --env->scope->depth;
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = scope;
-    --env->scope->depth;
+    env->curr->info->value = upvalues.values;
     CHECK_BN(ret);
     return env->gwion
         ->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
@@ -706,6 +711,20 @@ static OP_CHECK(opck_spork) {
 static OP_EMIT(opem_spork) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   return emit_exp_spork(emit, unary);
+}
+
+static OP_CHECK(opck_func_partial) {
+  Exp_Call *call = (Exp_Call*)data;
+  return partial_type(env, call);
+}
+
+static OP_CHECK(opck_class_partial) {
+  Exp_Call *call = (Exp_Call*)data;
+  struct Op_Import opi = {.op   = insert_symbol("@partial"),
+                          .lhs  = actual_type(env->gwion, call->func->type),
+                          .pos  = call->func->pos,
+                          .data = (uintptr_t)data};
+   return op_check(env, &opi);
 }
 
 static FREEARG(freearg_xork) { vmcode_remref((VM_Code)instr->m_val, gwion); }
@@ -730,6 +749,8 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@op", "@func_ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_op_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_op_impl))
@@ -744,6 +765,12 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, "@function", "@function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
   GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
+  GWI_BB(gwi_oper_ini(gwi, "@function", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_func_partial))
+  GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Class", NULL, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_class_partial))
+  GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
   return GW_OK;

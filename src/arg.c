@@ -40,7 +40,7 @@ enum {
 ANN static inline void config_end(const Vector config) {
   for (m_uint i = 0; i < vector_size(config); ++i) {
     const Vector v = (Vector)vector_at(config, i);
-    for (m_uint i = 0; i < vector_size(v); ++i) xfree((m_str)vector_at(v, i));
+    for (m_uint j = 0; j < vector_size(v); ++j) xfree((m_str)vector_at(v, j));
     vector_release(v);
     xfree(v);
   }

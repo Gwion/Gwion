@@ -62,7 +62,7 @@ ANN m_bool traverse_func_template(const Env, const Func_Def);
 ANN void   env_err(const Env, const loc_t pos, const m_str fmt, ...);
 ANN void   env_warn(const Env, const loc_t pos, const m_str fmt, ...);
 ANN void   env_error_footer(const Env env);
-ANN Value  global_string(const Env env, const m_str str);
+ANN Value  global_string(const Env env, const m_str str, const loc_t);
 ANN void   release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion);
 
 struct ScopeEffect {

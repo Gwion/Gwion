@@ -274,8 +274,12 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
     if (!value->from->owner_class || isa(env->class_def, value->from->owner_class) > 0)
       return value;
   }
-  if (env->func && env->func->def->base->values)
-    return (Value)scope_lookup1(env->func->def->base->values, (vtype)sym);
+  if (env->func && env->func->def->base->values) {
+    DECL_OO(const Value, v, = upvalues_lookup(env->func->def->base->values, sym));
+    if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
+      CHECK_OO(not_upvalue(env, v));
+    return v;
+  }
   return NULL;
 }
 
@@ -302,7 +306,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
     return v;
   } else if (SAFE_FLAG(env->class_def, global) ||
              (env->func && GET_FLAG(env->func->def->base, global))) {
-    if (!value || !is_value_global(env, value))
+    if (!value || !(is_value_global(env, value) || vflag(value, vflag_arg)))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
@@ -326,8 +330,7 @@ static inline Nspc value_owner(const Env env, const Value v) {
   return v ? v->from->owner : env->curr;
 }
 
-ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim) {
-  const Value v = prim->value;
+ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Value v) {
   if(not_upvalue(env, v))
     return GW_OK;
   gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->pos, 4242);
@@ -358,9 +361,14 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
-    const m_str hint = (!env->func || strcmp(env->func->name, "in spork")) ?
-        NULL : "vapturelist?";
-    gwerr_basic(_("Invalid variable"), _("not legit at this point."), hint,
+    if (env->func && fbflag(env->func->def->base, fbflag_lambda) && env->func->def->base->values) {
+      const Value v = upvalues_lookup(env->func->def->base->values, sym);
+      if(v) {
+        CHECK_BO(check_upvalue(env, prim_self(data), v));
+        return v->type;
+      }
+    }
+    gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
     env_set_error(env);
@@ -373,7 +381,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     if (!GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
     if (fbflag(env->func->def->base, fbflag_lambda))
-      CHECK_BO(check_upvalue(env, prim_self(data)));
+      CHECK_BO(check_upvalue(env, prim_self(data), v));
   }
   // set_vflag(v->vflag, vflag_used);
   return v->type;
@@ -381,7 +389,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
 
 ANN Type check_prim_str(const Env env, const struct AstString *data) {
   if (!prim_self(data)->value)
-    prim_self(data)->value = global_string(env, data->data);
+    prim_self(data)->value = global_string(env, data->data, prim_pos(data));
   return env->gwion->type[et_string]; // prim->value
 }
 
@@ -781,11 +789,14 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   }
   if(e)
      ERR_O(exp_self(exp)->pos, _("argument number does not match for lambda"))
-  l->def->base->values = env->curr->info->value;
+  Upvalues upvalues = { .values = env->curr->info->value};
+  if(env->func && env->func->def->base->values)
+    upvalues.parent = env->func->def->base->values;
+  l->def->base->values = &upvalues;
   const m_bool ret     = traverse_func_def(env, l->def);
   if (l->def->base->func) {
     free_scope(env->gwion->mp, env->curr->info->value);
-    env->curr->info->value = l->def->base->values;
+    env->curr->info->value = l->def->base->values->values;
     if (env->class_def) set_vflag(l->def->base->func->value_ref, vflag_member);
     exp->func->type = l->def->base->func->value_ref->type;
     if (!l->def->base->ret_type)
@@ -977,7 +988,11 @@ ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) 
 ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
   if (is_partial(env, exp->args)) {
     CHECK_OO(check_exp(env, exp->func));
-    return partial_type(env, exp);
+    struct Op_Import opi = {.op   = insert_symbol("@partial"),
+                            .lhs  = exp->func->type,
+                            .pos  = exp->func->pos,
+                            .data = (uintptr_t)exp};
+    return op_check(env, &opi);
   }
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
@@ -1050,19 +1065,6 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot *member) {
   return check_dot(env, member);
 }
 
-/*
-// enable static checking
-ANN static OP_CHECK(opck_predicate) {
-  const Exp_Call *call = (Exp_Call*)data;
-  const Exp predicate = call->args;
-const Func f = exp_self(call)->type->info->func;
-//f->def->d.code->d.stmt_code.stmt_list->stmt->d.stmt_exp.val;
-  if(predicate->exp_type != ae_exp_primary ||
-     predicate->d.prim.prim_type != ae_prim_num ||
-     !predicate->d.prim.d.num) exit(12);
-}
-*/
-
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) {
     set_tflag(tdef->type, tflag_contract);
@@ -1114,8 +1116,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     // casting while defining it*
     const Exp ret_id =
         new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
-    ret_id->d.prim.value = new_value(env->gwion->mp, tdef->type, "self");
-    // valuefrom?
+    ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->pos);
     struct Stmt_ ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .pos = when->pos
@@ -1216,8 +1217,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
-  idx->v = new_value(env->gwion->mp, base, s_name(idx->sym));
-  valuefrom(env, idx->v->from, idx->pos);
+  idx->v = new_value(env, base, s_name(idx->sym), idx->pos);
   valid_value(env, idx->sym, idx->v);
   SET_FLAG(idx->v, const);
 }
@@ -1252,9 +1252,8 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   if (stmt->idx)
     CHECK_BB(check_each_idx(env, stmt->exp, stmt->idx));
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
-  stmt->v = new_value(env->gwion->mp, ret, s_name(stmt->sym));
+  stmt->v = new_value(env, ret, s_name(stmt->sym), stmt->vpos);
   valid_value(env, stmt->sym, stmt->v);
-  valuefrom(env, stmt->v->from, stmt->vpos);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -1369,7 +1368,7 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
 ANN static Value match_value(const Env env, const Type base,
                              const Exp_Primary *prim) {
   const Symbol sym = prim->d.var;
-  const Value  v   = new_value(env->gwion->mp, base, s_name(sym));
+  const Value  v   = new_value(env, base, s_name(sym), prim_pos(prim));
   // valuefrom?
   valid_value(env, sym, v);
   return v;
@@ -1402,8 +1401,7 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
   Exp last = e;
-  for (m_uint i = 0; i < vector_size(&env->scope->match->cond);
-       e        = e->next, ++i) {
+  for (m_uint i = 0; i < vector_size(&env->scope->match->cond); e = e->next, ++i) {
     if (!e) ERR_B(last->pos, _("no enough to match"))
     last              = e;
     const Exp    base = (Exp)vector_at(&env->scope->match->cond, i);
@@ -1414,14 +1412,20 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       const Type t   = check_exp(env, e);
       e->next        = next;
       CHECK_OB(t);
-      Exp_Binary       bin  = {.lhs = base, .rhs = e, .op = op};
-      struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary};
+      Exp_Binary       bin  = {.lhs = cpy_exp(env->gwion->mp, base), .rhs = cpy_exp(env->gwion->mp, e), .op = op};
+      struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .pos = e->pos };
       struct Op_Import opi  = {.op   = op,
                               .lhs  = base->type,
                               .rhs  = e->type,
                               .data = (uintptr_t)&ebin.d.exp_binary,
                               .pos  = e->pos};
-      CHECK_OB(op_check(env, &opi));
+      traverse_exp(env, &ebin);
+      const Type ret = op_check(env, &opi);
+      if(ebin.exp_type == ae_exp_binary) {
+        free_exp(env->gwion->mp, bin.lhs);
+        free_exp(env->gwion->mp, bin.rhs);
+      }
+      CHECK_OB(ret);
     }
   }
   if (e) ERR_B(e->pos, _("too many expression to match"))
@@ -1729,7 +1733,6 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
     if (!base->ptr) vector_init(base);
     for (uint32_t i = 0; i < v->len; i++) {
       struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-//(struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
       if(!effect_find(v, eff->sym))
         vector_add(base, (m_uint)eff->sym);
     }
@@ -1786,8 +1789,7 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
           for(uint32_t i = 0; i < list->len; i++) {
             Var_Decl vd = mp_vector_at(list, struct Var_Decl_, i);
             const Value value = vd->value;
-            valuefrom(env, value->from,
-                      vd->pos); // we do not need owner
+            valuefrom(env, value->from);
             if (!trait->requested_values.ptr)
               vector_init(&trait->requested_values);
             vector_add(&trait->requested_values, (m_uint)value);
