@@ -1733,7 +1733,6 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
     if (!base->ptr) vector_init(base);
     for (uint32_t i = 0; i < v->len; i++) {
       struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-//(struct ScopeEffect *)(ARRAY_PTR(v) + ARRAY_SIZE(v) * i);
       if(!effect_find(v, eff->sym))
         vector_add(base, (m_uint)eff->sym);
     }
