@@ -46,8 +46,8 @@ ANN static inline Type ref(const Env env, Type_Decl *td) {
 ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
   GwText text = { .mp = env->gwion->mp };
   text_add(&text, "(");
-  const Type t = known_type(env, base->td);
-  const m_str name = type2str(env->gwion, t, base->td->pos);
+  DECL_OO(const Type, t, = known_type(env, base->td));
+  DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->pos));
   text_add(&text, name);
   free_mstr(env->gwion->mp, name);
 	text_add(&text, "(");
@@ -56,8 +56,8 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
     for(uint32_t i = 0; i < base->args->len; i++) {
       if(i) text_add(&text, ",");
       Arg *arg = mp_vector_at(base->args, Arg, i);
-      const Type t = known_type(env, arg->td);
-      const m_str name = type2str(env->gwion, t, arg->td->pos);
+      DECL_OO(const Type, t, = known_type(env, arg->td));
+      DECL_OO(const m_str, name, = type2str(env->gwion, t, arg->td->pos));
       text_add(&text, name);
       free_mstr(env->gwion->mp, name);
       if(*global)
@@ -74,7 +74,7 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
 ANN static inline Type find(const Env env, Type_Decl *td) {
   if (!td->fptr) return find_type(env, td);
   bool global;
-  td->xid = symname(env, td->fptr->base, &global);
+  CHECK_OO((td->xid = symname(env, td->fptr->base, &global)));
   const Fptr_Def fptr = td->fptr;
   td->fptr = NULL;
   const Type exists = find_type(env, td);
