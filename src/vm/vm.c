@@ -1606,10 +1606,23 @@ VM *new_vm(MemPool p, const bool audio) {
   return vm;
 }
 
+ANN static inline void free_killed_shred(const Vector v) {
+  for (m_uint i = 0; i < vector_size(v); i++) {
+    const VM_Shred shred = (VM_Shred)vector_at(v, i);
+    free_vm_shred(shred);
+  }
+}
+
+ANN void vm_clean(const VM* vm, const Gwion gwion) {
+  free_killed_shred(&vm->shreduler->killed_shreds);
+  gwion_end_child(vm->cleaner_shred, gwion);
+  if (vm->bbq) free_driver(vm->bbq, gwion->vm);
+}
+
 ANN void free_vm(VM *vm) {
   const MemPool mp = vm->gwion->mp;
+  if (vm->cleaner_shred) free_vm_shred(vm->cleaner_shred);
   free_shreduler(mp, vm->shreduler);
-  if (vm->bbq) free_driver(vm->bbq, vm);
   vector_release(&vm->ugen);
   mp_free(mp, VM, vm);
 }

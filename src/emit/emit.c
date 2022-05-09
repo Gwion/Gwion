@@ -1277,13 +1277,13 @@ ANN static inline void inline_args_ini(const Emitter emit, const Func f,
   if(member)
     emit->this_offset = emit_local(emit, emit->gwion->type[et_int]);
   const m_uint start_offset = emit_code_offset(emit) - (member ? SZ_INT : 0);
-  Arg_List     arg          = f->def->base->args;
-  while (arg) {
-    const Value value = arg->var_decl->value;
+  Arg_List args          = f->def->base->args;
+  for(uint32_t i = 0; i < args->len; i++) {
+    const Arg *arg = mp_vector_at(args, Arg, i);
+    const Value value = arg->var_decl.value;
     vector_add(v, value->from->offset);
     value->from->offset = emit_local(emit, value->type);
-    nspc_add_value(emit->env->curr, arg->var_decl->xid, value);
-    arg = arg->next;
+    nspc_add_value(emit->env->curr, arg->var_decl.xid, value);
   }
   if (fbflag(f->def->base, fbflag_variadic))
     emit->vararg_offset = emit_local(emit, emit->gwion->type[et_int]) + SZ_INT;
@@ -1294,12 +1294,11 @@ ANN static inline void inline_args_ini(const Emitter emit, const Func f,
 }
 
 ANN static inline void inline_args_end(const Func f, const Vector v) {
-  Arg_List arg = f->def->base->args;
-  m_uint   i   = 0;
-  while (arg) {
-    const Value value   = arg->var_decl->value;
+  Arg_List args = f->def->base->args;
+  for(uint32_t i = 0; i < args->len; i++) {
+    const Arg *arg = mp_vector_at(args, Arg, i);
+    const Value value   = arg->var_decl.value;
     value->from->offset = vector_at(v, i++);
-    arg                 = arg->next;
   }
 }
 
@@ -1346,9 +1345,9 @@ ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
   return ret;
 }
 #endif
+
 ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
-/*
-  #ifndef GWION_NOINLINE
+  #ifdef GWION_INLINE
     const Func _f = is_inlinable(emit, exp_call);
     if(_f) {
       const Func base = emit->env->func;
@@ -1360,7 +1359,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
       return ret;
     }
   #endif
-*/
+
   // skip when recursing
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   const Func f = t->info->func;

@@ -813,10 +813,12 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
                             "site. did you meant to use `@=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
-  if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot &&
-      !t->info->value->from->owner_class) {
-    if (exp->args) CHECK_OB(check_exp(env, exp->args));
-    return call2ufcs(env, exp, t->info->func->value_ref) ? GW_OK : GW_ERROR;
+  if(!is_fptr(env->gwion, t)) {
+    if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot &&
+        !t->info->value->from->owner_class) {
+      if (exp->args) CHECK_OB(check_exp(env, exp->args));
+      return call2ufcs(env, exp, t->info->func->value_ref) ? GW_OK : GW_ERROR;
+    }
   }
   const Exp        e   = exp_self(exp);
   struct Op_Import opi = {.op   = insert_symbol("@func_check"),
@@ -850,8 +852,10 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
     const Type       t   = op_check(env, &opi);
     return t;
   }
-  if (_class) // need an instance
+  if (_class) {
+    // need an instance
     ERR_O(exp->func->pos, "can't call a function pointer type");
+  }
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (t == env->gwion->type[et_lambda]) // TODO: effects?
     return check_lambda_call(env, exp);
