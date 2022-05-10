@@ -21,7 +21,7 @@ static int basic_note(const char c) {
 }
 
 ANN static m_float basic_locale(m_str str) {
-  const char base = basic_note(str[0]);
+  const int base = basic_note(str[0]);
   if(base == -1) return -1;
   str++;
   char *remainder;
