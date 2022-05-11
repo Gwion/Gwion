@@ -73,15 +73,15 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
 
 ANN static inline Type find(const Env env, Type_Decl *td) {
   if (!td->fptr) return find_type(env, td);
-  bool global;
+  bool global = false;
   CHECK_OO((td->xid = symname(env, td->fptr->base, &global)));
   const Fptr_Def fptr = td->fptr;
   td->fptr = NULL;
   const Type exists = find_type(env, td);
   if(exists) return exists;
-  const m_uint scope = !global
-      ? env_push_global(env)
-      : env_push(env, NULL, env->context->nspc);
+  const m_uint scope = env->context
+      ? env_push(env, NULL, env->context->nspc)
+      : env_push_global(env);
   const m_bool ret = traverse_fptr_def(env, fptr);
   env_pop(env, scope);
   const Type t = fptr->type;
