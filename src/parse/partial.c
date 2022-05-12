@@ -136,15 +136,19 @@ ANN void ambiguity(const Env env, Func f, const Exp args, const loc_t loc) {
 ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc) {
   const Func f = find_match_actual(env, up, args);
   if(f) {
+    const Type t = f->value_ref->from->owner_class;
     if(f->next) {
       const Func next = partial_match(env, f->next, args, loc);
       if(next) {
-        gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
-        gw_err(_("\nthose functions could match:\n"));
-        print_signature(f);
-        ambiguity(env, next, args, loc);
-        env->context->error = true;
-        return NULL;
+        const Type tnext = next->value_ref->from->owner_class;
+        if(!t || !tnext || isa(t, tnext) < 0) {
+          gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
+          gw_err(_("\nthose functions could match:\n"));
+          print_signature(f);
+          ambiguity(env, next, args, loc);
+          env->context->error = true;
+          return NULL;
+        }
       }
     }
     return f;
