@@ -650,7 +650,7 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   regseti(emit, count);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val      = (m_uint)type;
-  instr->m_val2     = array_base_simple(type)->size;
+  instr->m_val2     = type->array_depth == 1 ? array_base_simple(type)->size : SZ_INT;
   emit_local_exp(emit, prim_exp(data));
   emit_notpure(emit);
   return GW_OK;

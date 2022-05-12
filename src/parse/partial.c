@@ -23,7 +23,8 @@ ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, const E
       sprintf(c, "@%u", args->len);
       const Arg *src = mp_vector_at(base, Arg, i);
       Type_Decl *td = src->td ? cpy_type_decl(env->gwion->mp, src->td) : NULL;
-      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c) }};
+      const Array_Sub array = src->var_decl.array ? cpy_array_sub(env->gwion->mp, src->var_decl.array) : NULL;
+      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c), .array = array }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
     i++;
