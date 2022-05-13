@@ -69,10 +69,7 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: deps options-show ${PRG}
-
-deps:
-	[ "$(shell ls util | wc -l)" = "0" ] && git submodule update --init --recursive || true
+all: options-show ${PRG}
 
 ${PRG}: ${GWLIBS} src/main.o
 	@$(info link ${PRG})
