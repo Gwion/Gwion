@@ -932,7 +932,9 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   vm_run(emit->gwion->vm);
   emit->gwion->vm->bbq->is_running = true;
   const m_float ret = *(m_float*)shred->reg;
-  if(ret == -1.0) return GW_ERROR;
+  if(ret == -1.0) {
+    ERR_B(prim_pos(id), "error in locale");
+  }
   const Instr instr = emit_add_instr(emit, RegPushImm2);
   instr->f = ret;
   return GW_OK;
