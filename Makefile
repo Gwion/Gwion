@@ -69,10 +69,7 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: deps options-show ${PRG}
-
-deps:
-	[ "$(shell ls util | wc -l)" = "0" ] && git submodule update --init --recursive || true
+all: options-show ${PRG}
 
 ${PRG}: ${GWLIBS} src/main.o
 	@$(info link ${PRG})
@@ -95,13 +92,13 @@ util/libtermcolor/libtermcolor.a:
 	@+${MAKE} BUILD_ON_WINDOWS=${BUILD_ON_WINDOWS} -s -C util/libtermcolor static
 
 util/libgwion_util.a:
-	@+GWION_PACKAGE= ${MAKE} -s -C util
+	@+${MAKE} -s -C util
 
 util: util/libgwion_util.a
 	@(info build util)
 
 ast/libgwion_ast.a: util/libgwion_util.a
-	@+GWION_PACKAGE= ${MAKE} -s -C ast
+	@+ ${MAKE} -s -C ast
 
 libcmdapp/libcmdapp.a:
 	@+${MAKE} -s -C libcmdapp static
