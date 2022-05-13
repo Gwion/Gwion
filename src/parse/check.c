@@ -418,7 +418,6 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
   CHECK_OO(check_prim_interp(env, data));
   env_weight(env, 1);
   return env->gwion->type[et_gack];
-//  return (*data)->type;
 }
 
 ANN static Type check_prim_locale(const Env env, const Symbol *data NUSED) {
@@ -1246,7 +1245,8 @@ ANN static Type check_each_val(const Env env, const Exp exp) {
   struct Op_Import opi = {
     .lhs  = exp->type,
     .op   = insert_symbol("@each_val"),
-    .data = (m_uint)exp
+    .data = (m_uint)exp,
+    .pos = exp->pos
   };
   return op_check(env, &opi);
 }

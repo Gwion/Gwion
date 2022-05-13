@@ -45,21 +45,26 @@ ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base 
   return fb;
 }
 
-ANN static Exp partial_call(const Env env, Exp e) {
+ANN static Exp partial_exp(const Env env, Exp e, const uint i) {
+  if(is_hole(env, e) || is_typed_hole(env, e)) {
+    char c[256];
+    sprintf(c, "@%u", i);
+    return new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
+  }
+  const Exp next = e->next;
+  e->next = NULL;
+  const Exp exp = cpy_exp(env->gwion->mp, e);
+  e->next = next;
+  return exp;
+}
+
+ANN2(1) static Exp partial_call(const Env env, Exp e) {
   Exp base = NULL, arg;
   uint32_t i = 0;
   while(e) {
-    if(is_hole(env, e) || is_typed_hole(env, e)) {
-      char c[256];
-      sprintf(c, "@%u", i++);
-      const Exp next = new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
-      if(base) arg = arg->next = next;
-      else arg = base = next;
-    } else {
-      const Exp next = cpy_exp(env->gwion->mp, e);
-      if(base) arg = arg->next = next;
-      else arg = base = next;
-    }
+    const Exp exp = partial_exp(env, e, i++);
+    if(base) arg = arg->next = exp;
+    else arg = base = exp;
     e = e->next;
   }
   return base;
@@ -95,13 +100,11 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
 }
 
 ANN Func find_match_actual(const Env env, const Func up, const Exp args) {
-  Func func;
-  if ((func = find_match(env, up, args, false, true)) ||
-      (func = find_match(env, up, args, true, true)) ||
-      (func = find_match(env, up, args, false, true)) ||
-      (func = find_match(env, up, args, true, false)))
-    return func;
-  return NULL;
+  return find_match(env, up, args, false, true)  ?:
+         find_match(env, up, args, true,  true)  ?:
+         find_match(env, up, args, false, true)  ?:
+         find_match(env, up, args, true,  false) ?:
+         NULL;
 }
 
 ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc);

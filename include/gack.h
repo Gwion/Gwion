@@ -10,4 +10,5 @@ ANN void gack(const VM_Shred, const m_uint);
   }
 
 ANN2(2) int gw_asprintf(MemPool mp, char **str, const char *fmt, ...);
+ANN m_bool mk_gack(MemPool p, const Type type, const f_gack d);
 #endif
