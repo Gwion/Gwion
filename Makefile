@@ -1,6 +1,6 @@
 GWION_PACKAGE=gwion
 
-ifeq (,$(wildcard util/Makefile))
+ifeq (,$(wildcard util/config.mk.orig))
   $(warning "missing git submodules, please run:")
   $(error "git submodules update --init --recursive")
 endif
@@ -69,7 +69,10 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: options-show ${PRG}
+all: deps options-show ${PRG}
+
+deps:
+	[ "$(shell ls util | wc -l)" = "0" ] && git submodule update --init --recursive || true
 
 ${PRG}: ${GWLIBS} src/main.o
 	@$(info link ${PRG})
