@@ -1,0 +1,11 @@
+#! [contains] gotcha
+fun void foo() { foo(); }
+
+fun void run() {
+  try {
+    foo();
+  } handle StackOverflow {
+    <<< "gotcha" >>>;
+  }
+}
+run();
