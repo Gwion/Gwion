@@ -84,8 +84,8 @@ static inline uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); 
 
 BINARY_INT_FOLD(add, et_int, +,)
 BINARY_INT_FOLD(sub, et_int, -,)
-BINARY_INT_FOLD(mul, et_int, *, POWEROF2_OPT(name, <<))
-BINARY_INT_FOLD_Z(div, et_int, /, POWEROF2_OPT(name, >>))
+BINARY_INT_FOLD(mul, et_int, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_INT_FOLD_Z(div, et_int, /,/* POWEROF2_OPT(name, >>)*/)
 BINARY_INT_FOLD_Z(mod, et_int, %,)
 BINARY_INT_FOLD(sl, et_int, <<,)
 BINARY_INT_FOLD(sr, et_int, >>,)

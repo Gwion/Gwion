@@ -110,6 +110,7 @@ __attribute__((hot)) ANN static inline void
 vm_shred_exit(const VM_Shred shred) {
   shreduler_remove(shred->tick->shreduler, shred, true);
 }
+ANN void vm_clean(const VM* vm, const Gwion gwion);
 void free_vm_shred(const VM_Shred shred) __attribute__((hot, nonnull));
 
 void vm_prepare(const VM *vm, m_bit*) __attribute__((hot));

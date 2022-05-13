@@ -1,0 +1,12 @@
+#! [contains] during rewriting operation
+2 => var int i;
+
+fun int test() {
+  return i;
+}
+
+fun int test(int tmp) {
+  return tmp => i;
+}
+
+<<< me +=> test >>>;

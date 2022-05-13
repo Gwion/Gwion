@@ -14,13 +14,58 @@
 #include "parse.h"
 #include "partial.h"
 
-static OP_CHECK(opck_func_call) {
-  Exp_Binary *bin  = (Exp_Binary *)data;
-  Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
-  Exp         e    = exp_self(bin);
+ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
+  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
+  const Exp ecall = stmt->d.stmt_exp.val;
+  const Exp_Call *call = &ecall->d.exp_call;
+  Exp args = call->args;
+  Exp lhs = bin->lhs;
+  Exp base = NULL, tmp = NULL;
+  while(args) {
+    if(args->exp_type != ae_exp_primary || args->d.prim.prim_type != ae_prim_id || *s_name(args->d.prim.d.var) != '@') {
+      // we should check better => use longer name
+      const Exp next = args->next;
+      args->next = NULL;
+      if(tmp) tmp = (tmp->next = cpy_exp(env->gwion->mp, args));
+      else base = (tmp = cpy_exp(env->gwion->mp, args));
+        args->next = next;
+      } else {
+      if(!lhs) {
+        free_exp(env->gwion->mp, base);
+        return NULL;
+      }
+      const Exp next = lhs->next;
+      lhs->next = NULL;
+      if(tmp) tmp = (tmp->next = cpy_exp(env->gwion->mp, lhs));
+      else base = (tmp = cpy_exp(env->gwion->mp, lhs));
+      lhs = lhs->next = next;
+    }
+    args = args->next;
+  }
+  if(traverse_exp(env, base) > 0) {
+    free_exp(env->gwion->mp, bin->lhs);
+    return base;
+  }
+  free_exp(env->gwion->mp, base);
+  return NULL;
+}
+
+ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp args) {
+  Exp_Call    call = {.func = func, .args = args };
   e->exp_type      = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
+}
+
+static OP_CHECK(opck_func_call) {
+  Exp_Binary *bin  = (Exp_Binary *)data;
+  if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
+    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
+    const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
+    const Exp args = uncurry(env, bin);
+    if(args) return mk_call(env, exp_self(bin), call->func, args);
+  }
+  return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
 }
 
 ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
@@ -688,7 +733,7 @@ static OP_CHECK(opck_spork) {
     struct Value_ value = { .type = env->gwion->type[et_lambda]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &upvalues};
+    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &upvalues, .pos = exp_self(unary)->pos};
     set_fbflag(&fbase, fbflag_lambda);
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};

@@ -248,7 +248,7 @@ static MFUN(string_find) {
 static MFUN(string_findStart) {
   const m_str  base = STRING(o);
   const size_t sz   = strlen(base);
-  const char   pos  = *(m_int *)MEM(SZ_INT * 2);
+  const int   pos  = *(m_int *)MEM(SZ_INT * 2);
   if (pos >= 0 && (size_t)pos < sz) {
     const char arg    = *(m_int *)MEM(SZ_INT);
     char *     str    = strchr(base + pos, arg);
@@ -272,7 +272,7 @@ static MFUN(string_findStr) {
 static MFUN(string_findStrStart) {
   const m_str    base = STRING(o);
   const size_t   sz   = strlen(base);
-  const char     pos  = *(m_int *)MEM(SZ_INT * 2);
+  const int      pos  = *(m_int *)MEM(SZ_INT * 2);
   const M_Object obj  = *(M_Object *)MEM(SZ_INT);
   if (pos >= 0 && (size_t)pos < sz) {
     const m_str arg   = STRING(obj);
@@ -292,7 +292,7 @@ static MFUN(string_rfind) {
 static MFUN(string_rfindStart) {
   const m_str  base = STRING(o);
   const size_t sz   = strlen(base);
-  const char   pos  = *(m_int *)MEM(SZ_INT);
+  const int   pos  = *(m_int *)MEM(SZ_INT);
   if (pos >= 0 && (size_t)pos < sz) {
     const char arg    = *(m_int *)MEM(SZ_INT * 2);
     char *     str    = strrchr(base + pos, arg);

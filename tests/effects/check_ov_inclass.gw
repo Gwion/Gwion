@@ -1,0 +1,14 @@
+#! [contains] gotcha
+fun void foo() { foo(); }
+
+class C {
+  fun void run() {
+    try {
+      foo();
+    } handle StackOverflow {
+      <<< "gotcha" >>>;
+    }
+  }
+  run();
+}
+new C;

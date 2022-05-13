@@ -299,6 +299,26 @@ ANN void* op_get(const Env env, struct Op_Import *opi) {
   return NULL;
 }
 
+ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const m_str op, const size_t len) {
+  Exp_Binary *base = (Exp_Binary*)opi->data;
+  const Exp lhs = cpy_exp(env->gwion->mp, base->lhs); // no need to copy
+  const Exp call = new_exp_call(env->gwion->mp, cpy_exp(env->gwion->mp, base->rhs), NULL, lhs->pos);
+  char c[len - 1];
+  strncpy(c, op, len - 2);
+  c[len - 2] = '\0';
+  const Exp bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->pos);
+  base->lhs = bin;
+  const Symbol orig = base->op;
+  base->op = insert_symbol(env->gwion->st, "=>");
+  const Type ret = check_exp(env, exp_self(base));
+  if(ret) return ret;
+  env->context->error = false;
+  base->op = orig;
+  env_warn(env, opi->pos, _("during rewriting operation"));
+  env->context->error = true;
+  return NULL;
+}
+
 ANN Type op_check(const Env env, struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = env->curr;
@@ -326,16 +346,21 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   }
   const Type try_tmpl = op_check_tmpl(env, opi);
   if (try_tmpl) return try_tmpl;
-  // this should be an any case
-  if (opi->op == insert_symbol(env->gwion->st, "$") && opi->rhs == opi->lhs)
+  const m_str op = s_name(opi->op);
+  if (!strcmp(op, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
-  if (opi->op == insert_symbol(env->gwion->st, "@func_check")) return NULL;
-  if (opi->op == insert_symbol(env->gwion->st, "@class_check"))
+  if (!strcmp(op, "@func_check")) return NULL;
+  if (!strcmp(op, "@class_check"))
     return env->gwion->type[et_error];
-  if(opi->op == insert_symbol(env->gwion->st, "=>") && !strcmp(opi->rhs->name, "@now")) {
+  if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
     gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
     env->context->error = true;
-  } else if (opi->op != insert_symbol(env->gwion->st, "@implicit")) {
+  } else if (strcmp(op, "@implicit")) {
+    if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) {
+      const size_t len = strlen(op);
+      if (len > 2 && !strcmp(op + len - 2, "=>"))
+        return chuck_rewrite(env, opi, op, len);
+    }
     env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
             type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));
   }

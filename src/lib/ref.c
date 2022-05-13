@@ -18,8 +18,9 @@
 #include "tmpl_info.h"
 
 ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc) {
-  char c[7 + strlen(t->name)];
-  sprintf(c, "Ref:[%s]", t->name);
+  const m_str name = type2str(gwion, t, loc);
+  char c[7 + strlen(name)];
+  sprintf(c, "Ref:[%s]", name);
   return str2type(gwion, c, loc);
 }
 

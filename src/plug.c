@@ -90,6 +90,12 @@ ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
 }
 
 void free_plug(const Gwion gwion) {
+  const Vector vec = &gwion->data->plugs->vec;
+  for (m_uint i = vector_size(vec) + 1; --i;) {
+    const Nspc nspc = (Nspc)vector_at(vec, i-1);
+    nspc_remref(nspc, gwion);
+  }
+  vector_release(&gwion->data->plugs->vec);
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
@@ -99,12 +105,6 @@ void free_plug(const Gwion gwion) {
     DLCLOSE(plug->dl);
   }
   map_release(map);
-  const Vector vec = &gwion->data->plugs->vec;
-  for (m_uint i = vector_size(vec) + 1; --i;) {
-    const Nspc nspc = (Nspc)vector_at(vec, i-1);
-    nspc_remref(nspc, gwion);
-  }
-  vector_release(&gwion->data->plugs->vec);
   mp_free2(gwion->mp, sizeof(Plugs), gwion->data->plugs);
 }
 

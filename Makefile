@@ -142,7 +142,10 @@ clean: clean_core
 
 install: all translation-install
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
-	@mkdir -p ${DESTDIR}/${PREFIX}/{bin,lib,include,share}
+	@mkdir -p ${DESTDIR}/${PREFIX}/bin
+	@mkdir -p ${DESTDIR}/${PREFIX}/lib
+	@mkdir -p ${DESTDIR}/${PREFIX}/include
+	@mkdir -p ${DESTDIR}/${PREFIX}/share
 	@install ${PRG} ${DESTDIR}/${PREFIX}/bin
 	@install lib${PRG}.a ${DESTDIR}/${PREFIX}/lib
 	@PREFIX=${PREFIX} sed 's#PREFIX#${PREFIX}#g' scripts/gwion-config > gwion-config

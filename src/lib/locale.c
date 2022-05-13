@@ -21,9 +21,12 @@ static int basic_note(const char c) {
 }
 
 ANN static m_float basic_locale(m_str str) {
-  const char base = basic_note(str[0]);
+  int base = basic_note(str[0]);
   if(base == -1) return -1;
   str++;
+  const char mod = *str;
+  if(mod == '#') { base++; str++; }
+  else if(mod == 'b') { base--; str++; }
   char *remainder;
   const long octave = strtol(str, &remainder, 10);
   if(*remainder != '\0') return -1;

@@ -221,6 +221,12 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
 #define scan0_nspc(env, a)                                                     \
   GET_FLAG(a, global) ? !env->class_def ? env->global_nspc : NULL : env->curr
 
+#include "gack.h"
+static GACK(gack_enum) {
+  const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
+  INTERP_PRINTF("%s", v->name);
+}
+
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type   t    = type_copy(env->gwion->mp, env->gwion->type[et_int]);
   t->name           = s_name(edef->xid);
@@ -233,6 +239,7 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   add_type(env, env->curr, t);
   mk_class(env, t, edef->pos);
   set_tflag(t, tflag_enum);
+  CHECK_BO(mk_gack(env->gwion->mp, t, gack_enum));
   if (global) env_pop(env, 0);
 //  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
 //  scan0_implicit_similar(env, env->gwion->type[et_int], t);

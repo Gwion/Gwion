@@ -87,8 +87,7 @@ ANN static void emit_dot_static_data(const Emitter emit, const Value v,
 
 ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
                                             const bool emit_addr) {
-  //  if(v->d.ptr && vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
-  if (vflag(v, vflag_builtin) && GET_FLAG(v, const)) {
+  if (vflag(v, vflag_builtin) /*&& GET_FLAG(v, const)*/) {
     const m_uint size  = v->type->size;
     const Instr  instr = emit_regpushimm(emit, size, emit_addr);
     instr->m_val       = (m_uint)v->d.ptr;

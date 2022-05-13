@@ -23,7 +23,8 @@ ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, const E
       sprintf(c, "@%u", args->len);
       const Arg *src = mp_vector_at(base, Arg, i);
       Type_Decl *td = src->td ? cpy_type_decl(env->gwion->mp, src->td) : NULL;
-      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c) }};
+      const Array_Sub array = src->var_decl.array ? cpy_array_sub(env->gwion->mp, src->var_decl.array) : NULL;
+      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c), .array = array }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
     i++;
@@ -44,21 +45,26 @@ ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base 
   return fb;
 }
 
-ANN static Exp partial_call(const Env env, Exp e) {
+ANN static Exp partial_exp(const Env env, Exp e, const uint i) {
+  if(is_hole(env, e) || is_typed_hole(env, e)) {
+    char c[256];
+    sprintf(c, "@%u", i);
+    return new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
+  }
+  const Exp next = e->next;
+  e->next = NULL;
+  const Exp exp = cpy_exp(env->gwion->mp, e);
+  e->next = next;
+  return exp;
+}
+
+ANN2(1) static Exp partial_call(const Env env, Exp e) {
   Exp base = NULL, arg;
   uint32_t i = 0;
   while(e) {
-    if(is_hole(env, e) || is_typed_hole(env, e)) {
-      char c[256];
-      sprintf(c, "@%u", i++);
-      const Exp next = new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
-      if(base) arg = arg->next = next;
-      else arg = base = next;
-    } else {
-      const Exp next = cpy_exp(env->gwion->mp, e);
-      if(base) arg = arg->next = next;
-      else arg = base = next;
-    }
+    const Exp exp = partial_exp(env, e, i++);
+    if(base) arg = arg->next = exp;
+    else arg = base = exp;
     e = e->next;
   }
   return base;
@@ -94,13 +100,11 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
 }
 
 ANN Func find_match_actual(const Env env, const Func up, const Exp args) {
-  Func func;
-  if ((func = find_match(env, up, args, false, true)) ||
-      (func = find_match(env, up, args, true, true)) ||
-      (func = find_match(env, up, args, false, true)) ||
-      (func = find_match(env, up, args, true, false)))
-    return func;
-  return NULL;
+  return find_match(env, up, args, false, true)  ?:
+         find_match(env, up, args, true,  true)  ?:
+         find_match(env, up, args, false, true)  ?:
+         find_match(env, up, args, true,  false) ?:
+         NULL;
 }
 
 ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc);
@@ -136,15 +140,19 @@ ANN void ambiguity(const Env env, Func f, const Exp args, const loc_t loc) {
 ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc) {
   const Func f = find_match_actual(env, up, args);
   if(f) {
+    const Type t = f->value_ref->from->owner_class;
     if(f->next) {
       const Func next = partial_match(env, f->next, args, loc);
       if(next) {
-        gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
-        gw_err(_("\nthose functions could match:\n"));
-        print_signature(f);
-        ambiguity(env, next, args, loc);
-        env->context->error = true;
-        return NULL;
+        const Type tnext = next->value_ref->from->owner_class;
+        if(!t || !tnext || isa(t, tnext) < 0) {
+          gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
+          gw_err(_("\nthose functions could match:\n"));
+          print_signature(f);
+          ambiguity(env, next, args, loc);
+          env->context->error = true;
+          return NULL;
+        }
       }
     }
     return f;
