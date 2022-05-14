@@ -37,7 +37,7 @@ now, look for something like `ast/libprettyerr/libprettyerr.a:`, and replace the
 ```
 @+set CFLAGS_=${CFLAGS} && set CFLAGS=-I<your current dir>/util/libtermcolor/include && ${MAKE} -s -C ast/libprettyerr static && set CFLAGS=CFLAGS_
 ```
-where <your current dir> is the absolute path to the current working directory
+where \<your current dir> is the absolute path to the current working directory
 
 and finally run
 ```
