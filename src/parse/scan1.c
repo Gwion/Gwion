@@ -182,8 +182,12 @@ ANN static m_bool scan1_range(const Env env, Range *range) {
 }
 
 ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary *prim) {
-  if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
+  if (prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
     return scan1_exp(env, prim->d.exp);
+  if (prim->prim_type == ae_prim_hack) {
+    if(env->func) env->func->weight = 1; // mark function has having gack
+    return scan1_exp(env, prim->d.exp);
+  }
   if (prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
   if (prim->prim_type == ae_prim_range) return scan1_range(env, prim->d.range);
@@ -680,6 +684,8 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   --env->scope->depth;
   env->func = former;
   if (global) env_pop(env, scope);
+  if (fdef->base->xid == insert_symbol("@gack") && !fake.weight)
+    ERR_B(fdef->base->pos, "`@gack` operator not printing anything");
   return ret;
 }
 
