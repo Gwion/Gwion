@@ -1,0 +1,3 @@
+class C {
+  operator new() { return this; }
+}
