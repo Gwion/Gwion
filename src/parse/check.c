@@ -357,7 +357,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Value  v   = check_non_res_value(env, data);
   if (!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
     const m_str name = s_name(*data);
-    if (!isalpha(*name) && *name != '_') { /* && *name != '@' ???*/
+    if (!isalpha(*name) && *name != '_') {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }

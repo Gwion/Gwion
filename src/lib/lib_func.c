@@ -28,8 +28,8 @@ ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
       args->next = NULL;
       if(tmp) tmp = (tmp->next = cpy_exp(env->gwion->mp, args));
       else base = (tmp = cpy_exp(env->gwion->mp, args));
-        args->next = next;
-      } else {
+      args->next = next;
+    } else {
       if(!lhs) {
         free_exp(env->gwion->mp, base);
         return NULL;
@@ -62,8 +62,8 @@ static OP_CHECK(opck_func_call) {
   if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
     const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
     const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
-    const Exp args = uncurry(env, bin);
-    if(args) return mk_call(env, exp_self(bin), call->func, args);
+    DECL_ON(const Exp, args, = uncurry(env, bin));
+    return mk_call(env, exp_self(bin), call->func, args);
   }
   return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
 }
