@@ -43,7 +43,6 @@ OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
 
 static ID_CHECK(idck_predicate) {
-  set_fflag(env->func, fflag_return);
   return exp_self(prim)->type;
 }
 

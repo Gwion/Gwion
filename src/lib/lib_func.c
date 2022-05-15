@@ -249,7 +249,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
     if (!is_class(env->gwion, info->lhs->value_ref->type)) {
       if (!(info->lhs = nspc_lookup_func1(nspc, sym))) {
         const Value v = nspc_lookup_value1(nspc, insert_symbol(c));
-        if (!is_func(env->gwion, v->type)) return NULL;
+        if (!is_func(env->gwion, v->type)) return NULL; // is_callable
         info->lhs = v->type->info->func;
       }
     } else {

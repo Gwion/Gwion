@@ -8,7 +8,6 @@ enum fflag {
   fflag_tmpl   = 1 << 3,
   fflag_valid  = 1 << 4,
   fflag_emit   = 1 << 5,
-  fflag_return = 1 << 6,
 } __attribute__((packed));
 
 struct Func_ {
@@ -18,8 +17,8 @@ struct Func_ {
   Func             next;
   m_str            name;
   float            inline_mult;
-  uint16_t         weight;
-  uint16_t         memoize;
+  uint16_t         weight;  // used to mark gack use in scan1
+  uint16_t         memoize; // used to mark return in scan1
   uint16_t         ref;
   uint16_t         vt_index;
   ae_flag          flag;

@@ -197,7 +197,7 @@ OP_CHECK(opck_object_dot) {
     }
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if (v && member->is_call) {
-      if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0))
+      if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
         return v->type;
     if (is_class(env->gwion, v->type)) {
        DECL_OO(const Type, parent, = class_type(env, member, v->type));
@@ -255,12 +255,12 @@ OP_EMIT(opem_object_dot) {
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
-       (is_func(emit->gwion, exp_self(member)->type) &&
+       (is_func(emit->gwion, exp_self(member)->type) && // is_func
         !is_fptr(emit->gwion, exp_self(member)->type)))) {
     if (!tflag(t_base, tflag_struct) && vflag(value, vflag_member))
       CHECK_BB(emit_exp(emit, member->base));
   }
-  if (is_func(emit->gwion, exp_self(member)->type) &&
+  if (is_func(emit->gwion, exp_self(member)->type) && // is_func
       !is_fptr(emit->gwion, exp_self(member)->type))
     emit_member_func(emit, member);
   else if (vflag(value, vflag_member)) {

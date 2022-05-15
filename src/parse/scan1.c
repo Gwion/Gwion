@@ -536,8 +536,16 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 #define scan1_stmt_until    scan1_stmt_flow
 #define scan1_stmt_continue dummy_func
 #define scan1_stmt_break    dummy_func
-#define scan1_stmt_return   scan1_stmt_exp
 #define scan1_stmt_retry    dummy_func
+
+ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
+  if (!env->func)
+    ERR_B(stmt_self(stmt)->pos,
+          _("'return' statement found outside function definition"))
+  if (env->scope->depth <= 2) env->func->memoize = 1;
+  if(stmt->val) scan1_exp(env, stmt->val);
+  return GW_OK;
+}
 
 ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
@@ -658,7 +666,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
                                             const Func_Def fdef) {
   const Value v = nspc_lookup_value1(env->curr, fdef->base->xid);
   if (!v) return GW_OK;
-  if (is_func(env->gwion, actual_type(env->gwion, v->type))) return GW_OK;
+  if (is_func(env->gwion, actual_type(env->gwion, v->type))) return GW_OK; // is_callable
   if ((!env->class_def || !GET_FLAG(env->class_def, final)) &&
       !nspc_lookup_value0(env->curr, fdef->base->xid))
     ERR_B(fdef->base->pos,
@@ -684,6 +692,11 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   --env->scope->depth;
   env->func = former;
   if (global) env_pop(env, scope);
+  if ((strcmp(s_name(fdef->base->xid), "@implicit") || fbflag(fdef->base, fbflag_internal)) && !fdef->builtin && fdef->base->ret_type &&
+       fdef->base->ret_type != env->gwion->type[et_void] && fdef->d.code &&
+       !fake.memoize)
+     ERR_B(fdef->base->td->pos,
+           _("missing return statement in a non void function %u"), fake.memoize);
   if (fdef->base->xid == insert_symbol("@gack") && !fake.weight) {
     gwerr_basic(_("`@gack` operator does not print anything"), NULL,
       _("use `<<<` `>>>` in the function"), env->name, fdef->base->pos, 0);

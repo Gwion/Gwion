@@ -541,7 +541,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
   if (vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
-  if(is_func(emit->gwion, v->type) && !is_fptr(emit->gwion, v->type)) {
+  if(is_func(emit->gwion, v->type) && !is_fptr(emit->gwion, v->type)) { // is_func
     const Func f = v->type->info->func;
     if(f->code)
       regpushi(emit, (m_uint)f->code);
@@ -1220,7 +1220,7 @@ ANN static m_bool emit_func_args(const Emitter emit, const Exp_Call *exp_call) {
   if (exp_call->args) CHECK_BB(emit_exp(emit, exp_call->args));
   const Type t = actual_type(emit->gwion, exp_call->func->type);
   if (is_func(emit->gwion, t) &&
-      fbflag(t->info->func->def->base, fbflag_variadic))
+      fbflag(t->info->func->def->base, fbflag_variadic)) // is_callable
     emit_func_arg_vararg(emit, exp_call);
   return GW_OK;
 }
@@ -1266,7 +1266,7 @@ ANN static inline bool member_inlinable(const Emitter emit, const Func f, const 
 ANN static inline Func is_inlinable(const Emitter   emit,
                                     const Exp_Call *exp_call) {
   const Type ftype = exp_call->func->type;
-  if (!is_func(emit->gwion, ftype) || is_fptr(emit->gwion, ftype) ||
+  if (!is_func(emit->gwion, ftype) || is_fptr(emit->gwion, ftype) || // is_fptr
       !ftype->info->func->code || ftype->info->func->code->builtin)
     return false;
   const Func f = ftype->info->func;
@@ -1371,7 +1371,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     CHECK_BB(prepare_call(emit, exp_call));
   else
     CHECK_BB(emit_func_args(emit, exp_call));
-  if (is_func(emit->gwion, t))
+  if (is_func(emit->gwion, t)) // is_callable needs type
     CHECK_BB(emit_exp_call1(emit, t->info->func,
                             is_static_call(emit, exp_call->func)));
   else {
@@ -1396,7 +1396,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
     instr->m_val      = -SZ_INT;
   } else {
-    if (!is_func(emit->gwion, exp_call->func->type) &&
+    if (!is_func(emit->gwion, exp_call->func->type) && // is_callable
              tflag(e->type, tflag_struct))
     regpop(emit, SZ_INT);
   }
@@ -2564,7 +2564,7 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
 }
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
-  if (tdef->when) CHECK_BB(emit_func_def(emit, tdef->when_def));
+  if (tdef->when_def) CHECK_BB(emit_func_def(emit, tdef->when_def));
 
   if (!is_fptr(emit->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
     if(!tflag(tdef->type->info->parent, tflag_emit))
