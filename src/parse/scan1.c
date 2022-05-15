@@ -684,8 +684,12 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   --env->scope->depth;
   env->func = former;
   if (global) env_pop(env, scope);
-  if (fdef->base->xid == insert_symbol("@gack") && !fake.weight)
-    ERR_B(fdef->base->pos, "`@gack` operator not printing anything");
+  if (fdef->base->xid == insert_symbol("@gack") && !fake.weight) {
+    gwerr_basic(_("`@gack` operator does not print anything"), NULL,
+      _("use `<<<` `>>>` in the function"), env->name, fdef->base->pos, 0);
+    env->context->error = true;
+    return GW_ERROR;
+  }
   return ret;
 }
 
