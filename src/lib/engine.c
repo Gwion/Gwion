@@ -140,10 +140,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   /*set_tflag(t_lambda, tflag_infer);*/
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
-  gwidoc(gwi, "type for internal pointer data.");
-  GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
-  GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
-
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))
   GWI_BB(import_union(gwi))
