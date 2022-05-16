@@ -43,7 +43,6 @@ OP_CHECK(opck_object_dot);
 OP_EMIT(opem_object_dot);
 
 static ID_CHECK(idck_predicate) {
-  set_fflag(env->func, fflag_return);
   return exp_self(prim)->type;
 }
 
@@ -140,10 +139,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "@function");
   /*set_tflag(t_lambda, tflag_infer);*/
   GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
-
-  gwidoc(gwi, "type for internal pointer data.");
-  GWI_BB(gwi_typedef_ini(gwi, "int", "@internal"))
-  GWI_BB(gwi_typedef_end(gwi, ae_flag_none))
 
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))

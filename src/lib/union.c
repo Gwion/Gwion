@@ -32,7 +32,7 @@ static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Map      map    = &member->base->type->nspc->info->value->map;
   CHECK_BB(emit_exp(emit, member->base));
-  if (is_func(emit->gwion, exp_self(member)->type)) {
+  if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
     const Instr instr = emit_add_instr(emit, RegPushImm);
     const Func  f =
         (Func)vector_front(&member->base->type->info->parent->nspc->vtable);

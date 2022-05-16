@@ -301,7 +301,7 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List l) {
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f,
                                           const Value overload) {
   const m_bool fptr = is_fptr(env->gwion, overload->type);
-  if (!is_func(env->gwion, overload->type) ||
+  if (!is_func(env->gwion, overload->type) || // is_fptr
       is_fptr(env->gwion, overload->type)) {
     if (!fbflag(f->base, fbflag_internal))
       ERR_B(f->base->pos,

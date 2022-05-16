@@ -311,7 +311,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
             _("non-global variable '%s' used from global function/class."),
             s_name(var))
   } else if(env->func && fbflag(env->func->def->base, fbflag_locale)) {
-    if(!is_func(env->gwion, value->type) && value->from->owner && !from_global_nspc(env, value->from->owner))
+    if(!is_func(env->gwion, value->type) && value->from->owner && !from_global_nspc(env, value->from->owner)) // is_callable
       ERR_O(prim_pos(data), _("invalid variable access from locale definition"));
   }
   return value;
@@ -357,7 +357,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Value  v   = check_non_res_value(env, data);
   if (!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
     const m_str name = s_name(*data);
-    if (!isalpha(*name) && *name != '_') { /* && *name != '@' ???*/
+    if (!isalpha(*name) && *name != '_') {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
       return env->gwion->type[et_op];
     }
@@ -402,8 +402,6 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 ANN static Type check_prim_perform(const Env env, const Symbol *data) {
   env_add_effect(env, *data, prim_pos(data));
   env_weight(env, 1);
-  if (env->func && env->scope->depth == 1) // so ops no dot set scope->depth ?
-    set_fflag(env->func, fflag_return);
   return env->gwion->type[et_void];
 }
 
@@ -481,7 +479,7 @@ ANN static inline Type type_list_base_func(const Type type) {
 }
 
 ANN static inline Type type_list_base(const Gwion gwion, const Type type) {
-  return !(is_func(gwion, type) && !is_fptr(gwion, type)) ?
+  return !(is_func(gwion, type) && !is_fptr(gwion, type)) ? // is_func
     type : type_list_base_func(type);
 }
 
@@ -549,7 +547,7 @@ ANN static Func call2ufcs(const Env env, Exp_Call *call, const Value v) {
 
 ANN Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
-  if (v && is_func(env->gwion, v->type) && !v->from->owner_class)
+  if (v && is_func(env->gwion, v->type) && !v->from->owner_class) // is_callable
     return call2ufcs(env, call, v);
   return NULL;
 }
@@ -813,7 +811,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
                             "site. did you meant to use `@=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
   if(!is_fptr(env->gwion, t)) {
-    if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot &&
+    if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot && // is_callable
         !t->info->value->from->owner_class) {
       if (exp->args) CHECK_OB(check_exp(env, exp->args));
       return call2ufcs(env, exp, t->info->func->value_ref) ? GW_OK : GW_ERROR;
@@ -1081,22 +1079,25 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     set_fbflag(fb, fbflag_op);
     const Exp helper = new_prim_id(env->gwion->mp, insert_symbol("@predicate"),
                                    tdef->when->pos);
-    const Exp when   = cpy_exp(env->gwion->mp, tdef->when);
+    const Exp when   = tdef->when;
+    tdef->when = NULL;
     when->next       = helper;
-    Stmt_List body = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+    Stmt_List body = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 2);
     mp_vector_set(body, struct Stmt_, 0,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
       .pos = when->pos
     }));
+    mp_vector_set(body, struct Stmt_, 1,
+      ((struct Stmt_) {
+      .stmt_type = ae_stmt_exp,
+      .pos = when->pos
+    }));
     const Stmt     code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
-    if(traverse_func_def(env, fdef) < 0) {
-      free_mp_vector(env->gwion->mp, sizeof(struct Stmt_), body);
-      return GW_ERROR;
-    }
+    tdef->when_def           = fdef;
+    CHECK_BB(traverse_func_def(env, fdef));
     if (isa(when->type, env->gwion->type[et_bool]) < 0) {
-      free_mp_vector(env->gwion->mp, sizeof(struct Stmt_), body);
       char explain[strlen(when->type->name) + 20];
       sprintf(explain, "found `{/+}%s{0}`", when->type->name);
       gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain,
@@ -1107,35 +1108,18 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       env_set_error(env);
       return GW_ERROR;
     }
-    /*
-        // enable static checking
-        const Func f = fdef->base->func;
-        const struct Op_Func opfunc = { .ck=opck_predicate };
-        const struct Op_Import opi = { .rhs=f->value_ref->type,
-           .func=&opfunc, .data=(uintptr_t)f, .pos=tdef->pos,
-       .op=insert_symbol("@func_check") }; CHECK_BB(add_op(env->gwion, &opi));
-    */
     // we handle the return after, so that we don't get *cant' use implicit
     // casting while defining it*
-    const Exp ret_id =
-        new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
+    const Exp ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), when->pos);
     ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->pos);
     struct Stmt_ ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .pos = when->pos
     };
-    mp_vector_add(env->gwion->mp, &fdef->d.code->d.stmt_code.stmt_list, struct Stmt_, ret);
-    ret_id->type             = tdef->type;
-    tdef->when_def           = fdef;
+    mp_vector_set(fdef->d.code->d.stmt_code.stmt_list, struct Stmt_, 1, ret);
+    ret_id->type = tdef->type;
   }
-  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
-    if(!tflag(tdef->type->info->parent, tflag_check))
-                    return check_class_def(env, tdef->type->info->parent->info->cdef);
-  }
-
-  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
-             ? check_class_def(env, tdef->type->info->cdef)
-             : GW_OK;
+  return GW_OK;
 }
 ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
   return env->gwion->type[et_lambda];
@@ -1303,11 +1287,6 @@ stmt_func_xxx(loop, Stmt_Loop, env_inline_mult(env, 1.5); check_idx(env, stmt->i
 stmt_func_xxx(each, Stmt_Each, env_inline_mult(env, 1.5), do_stmt_each(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
-  if (!env->func)
-    ERR_B(stmt_self(stmt)->pos,
-          _("'return' statement found outside function definition"))
-  if (env->scope->depth == 1) // so ops no dot set scope->depth ?
-    set_fflag(env->func, fflag_return);
   if (!strcmp(s_name(env->func->def->base->xid), "new")) {
     if(stmt->val)
       ERR_B(stmt_self(stmt)->pos,
@@ -1686,12 +1665,6 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
     CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code));
     env->scope->depth++;
   }
-  // check fdef->base->td for `new`
-  if (fdef->base->td && fdef->base->ret_type &&
-      fdef->base->ret_type != env->gwion->type[et_void] && fdef->d.code &&
-      !fflag(fdef->base->func, fflag_return))
-    ERR_B(fdef->base->td->pos,
-          _("missing return statement in a non void function"));
   return GW_OK;
 }
 

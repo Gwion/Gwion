@@ -356,7 +356,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
     gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
     env->context->error = true;
   } else if (strcmp(op, "@implicit")) {
-    if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) {
+    if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) { // is_callable
       const size_t len = strlen(op);
       if (len > 2 && !strcmp(op + len - 2, "=>"))
         return chuck_rewrite(env, opi, op, len);

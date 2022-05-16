@@ -187,7 +187,7 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     context_global(env);
     env_push_global(env);
   }
-  if (!is_func(env->gwion, base)) {
+  if (!is_func(env->gwion, base)) { // is_callable
     if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp)) {
       typedef_simple(env, tdef, base);
     } else

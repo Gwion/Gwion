@@ -1,6 +1,6 @@
 GWION_PACKAGE=gwion
 
-ifeq (,$(wildcard util/config.mk.orig))
+ifeq (,$(wildcard util/Makefile))
   $(warning "missing git submodules, please run:")
   $(error "git submodules update --init --recursive")
 endif
