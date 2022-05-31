@@ -542,7 +542,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   if (vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
   if(is_func(emit->gwion, v->type) && !is_fptr(emit->gwion, v->type)) { // is_func
-    const Func f = v->type->info->func;
+    const Func f = prim_exp(data)->type->info->func;
     if(f->code)
       regpushi(emit, (m_uint)f->code);
     else {
