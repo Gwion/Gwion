@@ -168,7 +168,6 @@ struct FptrInfo {
   Func        lhs;
   const Func  rhs;
   const Exp   exp;
-  const loc_t pos;
 };
 
 ANN static void _fptr_tmpl_push(const Env env, const Func f) {
@@ -230,14 +229,14 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
   if (!info->lhs->def->base->effects.ptr) return true;
   if (!info->rhs->def->base->effects.ptr) {
-    gwerr_secondary("too many effects", env->name, info->pos);
+    gwerr_secondary("too many effects", env->name, info->exp->pos);
     return false;
   }
   const Vector lhs = &info->lhs->def->base->effects;
   const Vector rhs = &info->rhs->def->base->effects;
   for (m_uint i = 0; i < vector_size(lhs); i++) {
     if (vector_find(rhs, vector_at(lhs, 0)) == -1) {
-      gwerr_secondary("effect not handled", env->name, info->pos);
+      gwerr_secondary("effect not handled", env->name, info->exp->pos);
       return false;
     }
   }
@@ -248,7 +247,7 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   //  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
   //    return GW_ERROR;
   if(!info->lhs)
-    ERR_B(info->pos,
+    ERR_B(info->exp->pos,
           _("can't resolve operator"))
   return GW_OK;
 }
@@ -386,7 +385,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if (isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
     CHECK_BB(fptr_check(env, info));
     if (!(info->exp->type = fptr_type(env, info)))
-      ERR_B(info->pos, _("no match found"))
+      ERR_B(info->exp->pos, _("no match found"))
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;
@@ -436,9 +435,9 @@ static OP_CHECK(opck_auto_fptr) {
 static OP_CHECK(opck_fptr_assign) {
   Exp_Binary *bin = (Exp_Binary *)data;
   const Func_Def rhs = closure_def(bin->rhs->type);
-  struct FptrInfo info = {bin->lhs->type->info->func,
-                          rhs->base->func, bin->lhs,
-                          exp_self(bin)->pos};
+  struct FptrInfo info = {.lhs = bin->lhs->type->info->func,
+                          .rhs = rhs->base->func,
+                          .exp = bin->lhs};
   CHECK_BN(fptr_do(env, &info));
   return bin->rhs->type;
 }
@@ -450,8 +449,9 @@ static inline int is_member(const Type from) {
 static OP_CHECK(opck_fptr_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   const Func f = closure_def(impl->t)->base->func;
-  struct FptrInfo  info = {impl->e->type->info->func, f,
-                          impl->e, impl->e->pos};
+  struct FptrInfo  info = {.lhs = impl->e->type->info->func,
+                           .rhs = f,
+                           .exp = impl->e};
   CHECK_BN(fptr_do(env, &info));
   return impl->t;
 }
