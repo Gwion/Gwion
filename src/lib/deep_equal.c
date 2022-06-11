@@ -48,7 +48,7 @@ static void type_get_member(const Gwion gwion, const Type t, const Vector v) {
   for(m_uint i = 0; i < map_size(m); i++) {
     const Value value = (Value)map_at(m, i);
     if(!vflag(value, vflag_member)) continue;
-    if(is_func(gwion, value->type) && !is_fptr(gwion, value->type)) continue; // is_func
+    if(is_func(gwion, value->type)) continue;
     vector_add(v, (m_uint)value);
   }
 }

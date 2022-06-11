@@ -25,7 +25,7 @@ ANN m_bool check_func_def(const Env, const Func_Def);
 ANN m_bool scan0_fptr_def(const Env, const Fptr_Def);
 ANN m_bool scan1_fptr_def(const Env, const Fptr_Def);
 ANN m_bool scan2_fptr_def(const Env, const Fptr_Def);
-// ANN m_bool check_fptr_def(const Env, const Fptr);
+ANN m_bool check_fptr_def(const Env, const Fptr_Def);
 
 ANN m_bool scan0_union_def(const Env, const Union_Def);
 ANN m_bool scan1_union_def(const Env, const Union_Def);

@@ -45,28 +45,29 @@ ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base 
   return fb;
 }
 
-ANN static Exp partial_exp(const Env env, Exp e, const uint i) {
+ANN static Exp partial_exp(const Env env, Arg_List args, Exp e, const uint i) {
   if(is_hole(env, e) || is_typed_hole(env, e)) {
     char c[256];
     sprintf(c, "@%u", i);
     const Exp exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
-    exp->type = e->type;
-    exp->d.prim.value = new_value(env, e->type, c, e->pos);
+    exp->type = known_type(env, mp_vector_at(args, Arg, i)->td);
+    exp->d.prim.value = new_value(env, exp->type, c, e->pos);
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
   }
   const Exp next = e->next;
   e->next = NULL;
   const Exp exp = cpy_exp(env->gwion->mp, e);
+  exp->type = e->type;
   e->next = next;
   return exp;
 }
 
-ANN2(1) static Exp partial_call(const Env env, Exp e) {
+ANN2(1) static Exp partial_call(const Env env, Arg_List args, Exp e) {
   Exp base = NULL, arg;
   uint32_t i = 0;
   while(e) {
-    const Exp exp = partial_exp(env, e, i++);
+    const Exp exp = partial_exp(env, args, e, i++);
     if(base) arg = arg->next = exp;
     else arg = base = exp;
     e = e->next;
@@ -164,10 +165,10 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
   return NULL;
 }
 
-ANN static Stmt partial_code(const Env env, const Exp efun, const Exp earg) {
-  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
-  const Exp arg = partial_call(env, earg);
+ANN static Stmt partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
+  const Exp arg = partial_call(env, args, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
+  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
   Stmt stmt = mp_vector_at(slist, struct Stmt_, 0);
   stmt->stmt_type = ae_stmt_return;
   stmt->d.stmt_exp.val = exp;
@@ -218,11 +219,11 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   }
   nspc_push_value(env->gwion->mp, env->curr);
   Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->pos);
-  const Stmt code = partial_code(env, call->func, call->args);
+  const Stmt code = partial_code(env, f->def->base->args, call->func, call->args);
   const Exp exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;
-  CHECK_OO(traverse_func_def(env, exp->d.exp_lambda.def));
+  const m_bool ret = traverse_func_def(env, exp->d.exp_lambda.def);
   nspc_pop_value(env->gwion->mp, env->curr);
-  return exp->d.exp_lambda.def->base->func->value_ref->type;
+  return ret ? exp->d.exp_lambda.def->base->func->value_ref->type : NULL;
 }

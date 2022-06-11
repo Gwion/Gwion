@@ -58,13 +58,21 @@ ANN void check_call(const Env env, const Tmpl *tmpl) {
   for(uint32_t i = 0; i < tmpl->call->len; i++) {
     Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
     Type_Decl *call = *mp_vector_at(tmpl->call, Type_Decl*, i);
-    if(spec->xid == call->xid)
-      call->xid = insert_symbol("auto");
+    if(spec->xid == call->xid) {
+      if (!nspc_lookup_type1(env->curr, spec->xid))
+        call->xid = insert_symbol("auto");
+      else {
+         const Type t = nspc_lookup_type1(env->curr, spec->xid);
+         Type_Decl *td = type2td(env->gwion, t, call->pos);
+         free_type_decl(env->gwion->mp, call);
+         mp_vector_set(tmpl->call, Type_Decl*, i, td);
+      }
+    }
   }
 }
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
-  if(tmpl->call) check_call(env, tmpl);
+  if (tmpl->call) check_call(env, tmpl);
   if (push_types(env, env->curr, tmpl) > 0) return GW_OK;
   POP_RET(GW_ERROR);
 }

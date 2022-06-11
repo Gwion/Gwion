@@ -61,7 +61,7 @@ GWION_IMPORT(ctrl) {
               "#!-     samp => now;\n"
               "#!-   }\n"
               "#!- }");
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "@function", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "UGen", "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ctrl))
   GWI_BB(gwi_oper_end(gwi, "|>", NULL))
   return GW_OK;

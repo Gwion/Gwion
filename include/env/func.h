@@ -8,6 +8,7 @@ enum fflag {
   fflag_tmpl   = 1 << 3,
   fflag_valid  = 1 << 4,
   fflag_emit   = 1 << 5,
+  fflag_fptr   = 1 << 6,
 } __attribute__((packed));
 
 struct Func_ {

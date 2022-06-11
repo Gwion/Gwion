@@ -1414,7 +1414,7 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eOP_MAX:
         gw_out("{Y}┃{0}{-}% 4lu{0}: OP_MAX      ", j);
-        gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-R}%-14p %p{0}", instr->m_val, instr->execute);
         gw_out("\n");
         break;
       case eDotTmplVal:

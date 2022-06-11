@@ -74,7 +74,6 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
       v->d.func_ref ? v->d.func_ref->def : ra->e->func->type->info->func->def;
   const Tmpl tmpl = {.list = base->base->tmpl->list, .call = ra->types};
   CHECK_BO(template_push_types(env, &tmpl));
-  ;
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->xid             = sym;
   fbase->tmpl->base      = 0;
@@ -84,7 +83,6 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   if (m_func)
     nspc_add_type_front(v->from->owner, sym,
                         actual_type(env->gwion, m_func->value_ref->type));
-  if (fptr->type) type_remref(fptr->type, env->gwion);
   free_fptr_def(env->gwion->mp, fptr);
   nspc_pop_type(env->gwion->mp, env->curr);
   return m_func;
@@ -102,11 +100,13 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   DECL_OO(const Value, value, = template_get_ready(env, ra->v, "template", i));
   const Func_Def fdef =
       (Func_Def)cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-  if (vflag(ra->v, vflag_builtin)) set_vflag(value, vflag_builtin);
+//  if (vflag(ra->v, vflag_builtin)) set_vflag(value, vflag_builtin);
+  if (value->d.func_ref->def->builtin) set_vflag(value, vflag_builtin);
   fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
   fdef->base->tmpl->base = i;
   const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
-  if (func && vflag(ra->v, vflag_builtin)) {
+//  if (func && vflag(ra->v, vflag_builtin)) {
+  if (func && func->def->builtin) {
     builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
     struct Op_Import opi = { .lhs = ra->v->d.func_ref->value_ref->type, .rhs = func->value_ref->type };
@@ -141,8 +141,9 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
   (void)env_push(env, v->from->owner_class, v->from->owner);
   if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
-  const Func m_func = !is_fptr(env->gwion, v->type) ? func_match(env, &ra)
-                                                    : fptr_match(env, &ra);
+  const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]) > 0;
+  const Func m_func = !is_clos ? func_match(env, &ra)
+                               : fptr_match(env, &ra);
   if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);

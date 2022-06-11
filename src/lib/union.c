@@ -39,7 +39,7 @@ static OP_EMIT(opem_union_dot) {
     instr->m_val = (m_uint)f->code;
     return GW_OK;
   }
-  if (!strcmp(s_name(member->xid), "@index")) {
+  if (!strcmp(s_name(member->xid), "index")) {
     emit_add_instr(emit, DotMember);
     return GW_OK;
   }
@@ -86,7 +86,7 @@ static OP_CHECK(opck_union_is) {
       e->exp_type         = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
       e->d.exp_binary.lhs->d.exp_dot.xid =
-          insert_symbol(env->gwion->st, "@index");
+          insert_symbol(env->gwion->st, "index");
       //      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->pos);
       e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i, e->pos);
       free_exp(env->gwion->mp, exp_func);
@@ -154,12 +154,12 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_oper_emi(gwi, opem_none))
   GWI_BB(gwi_oper_end(gwi, "=>", NoOp))
 
-  const Type t_union = gwi_class_ini(gwi, "@Union", "Object");
+  const Type t_union = gwi_class_ini(gwi, "union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);
   gwi->gwion->type[et_union] = t_union;
 
-  GWI_BB(gwi_item_ini(gwi, "int", "@index"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
+  GWI_BB(gwi_item_ini(gwi, "int", "index"))
+  GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
   GWI_BB(gwi_func_ini(gwi, "bool", "is"))
   GWI_BB(gwi_func_arg(gwi, "int", "member"))
   GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))
@@ -193,7 +193,7 @@ ANN GWION_IMPORT(union) {
 builtin_func(gwi->gwion->mp, f1, union_new);
   gwi->gwion->type[et_union] = t_union;
 
-  GWI_BB(gwi_oper_ini(gwi, "@Union", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))
   GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
 

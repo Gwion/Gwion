@@ -159,9 +159,9 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
   if (fptr->base->func) // is it needed ?
     set_vflag(fptr->base->func->value_ref, vflag_builtin);
-  const Type t = ret > 0 ? fptr->type : NULL;
+  const Type t = ret > 0 ? fptr->cdef->base.type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
-  if (fptr->type) type_remref(fptr->type, gwi->gwion);
+//  if (fptr->type) type_remref(fptr->type, gwi->gwion);
   ck_end(gwi);
   return t;
 }

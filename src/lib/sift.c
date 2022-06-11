@@ -81,11 +81,19 @@ GWION_IMPORT(sift) {
               "#!-     samp => now;\n"
               "#!-   }\n"
               "#!- }");
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "@function", "Sift"));
+  GWI_BB(gwi_oper_ini(gwi, "UGen", "function", "Sift"));
   GWI_BB(gwi_oper_add(gwi, opck_ctrl));
   GWI_BB(gwi_oper_end(gwi, "|>", NULL));
 
-  GWI_BB(gwi_oper_ini(gwi, "Sift", "@function", "Sift"));
+  GWI_BB(gwi_oper_ini(gwi, "Sift", "function", "Sift"));
+  GWI_BB(gwi_oper_add(gwi, opck_sift));
+  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+
+  GWI_BB(gwi_oper_ini(gwi, "UGen", "funptr", "Sift"));
+  GWI_BB(gwi_oper_add(gwi, opck_ctrl));
+  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+
+  GWI_BB(gwi_oper_ini(gwi, "Sift", "funptr", "Sift"));
   GWI_BB(gwi_oper_add(gwi, opck_sift));
   GWI_BB(gwi_oper_end(gwi, "|>", NULL));
   return GW_OK;

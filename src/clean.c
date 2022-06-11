@@ -10,8 +10,8 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
   if (b->exp) clean_exp(a, b->exp);
 }
 
-#define clean_id_list(a, b) {}
-#define clean_specialized_list(a, b) {}
+#define clean_id_list(a, b) do {} while(0)
+#define clean_specialized_list(a, b) do {} while(0)
 
 ANN static void clean_type_list(Clean *a, Type_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
@@ -21,8 +21,8 @@ ANN static void clean_type_list(Clean *a, Type_List b) {
 }
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
-  if (b->base < 0 && b->list) clean_specialized_list(a, b->list);
-  if (b->call) clean_type_list(a, b->call);
+  if (!b->call) clean_specialized_list(a, b->list);
+  else clean_type_list(a, b->call);
 }
 
 ANN static void clean_range(Clean *a, Range *b) {
@@ -338,7 +338,7 @@ ANN static void clean_union_def(Clean *a, Union_Def b) {
 
 ANN static void clean_fptr_def(Clean *a, Fptr_Def b) {
   clean_func_base(a, b->base);
-  if (b->type) type_remref(b->type, a->gwion);
+//  if (b->type) type_remref(b->type, a->gwion);
 }
 
 ANN static void clean_type_def(Clean *a, Type_Def b) {

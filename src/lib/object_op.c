@@ -95,6 +95,7 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
   } else
     emit_dot_static_data(emit, v, emit_addr);
 }
+
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
@@ -105,8 +106,25 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     }
     return;
   }
-  if (f->def->base->tmpl)
-    emit_add_instr(emit, DotTmplVal);
+  if (f->def->base->tmpl) {
+if(member->is_call)
+emit_add_instr(emit, DotTmplVal);
+else {
+// don't emit the expression if not call
+
+if(vflag(f->value_ref, vflag_member)) {
+const Instr instr = emit_add_instr(emit, RegMove);
+instr->m_val = -SZ_INT;
+
+//emit_exp(emit, member->base);
+//exit(33);
+}
+const Instr instr = emit_add_instr(emit, RegPushImm);
+instr->m_val = (m_uint)f;
+return;//
+//}
+  }
+}
   else if (is_static_call(emit, exp_self(member))) {
     if (member->is_call && f == emit->env->func) return;
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
@@ -131,9 +149,10 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
         const Instr instr = emit_add_instr(emit, RegMove);
         instr->m_val      = SZ_INT;
       } else {
-        const Instr instr = (Instr)vector_back(&emit->code->instr);
-        instr->opcode = eRegPushImm;
-        instr->m_val = (m_uint)f->code;
+instr->m_val2 = -SZ_INT;
+//        const Instr instr = (Instr)vector_back(&emit->code->instr);
+//        instr->opcode = eRegPushImm;
+//        instr->m_val = (m_uint)f->code;
       }
     }
   }
@@ -255,13 +274,12 @@ OP_EMIT(opem_object_dot) {
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
-       (is_func(emit->gwion, exp_self(member)->type) && // is_func
-        !is_fptr(emit->gwion, exp_self(member)->type)))) {
+       (is_func(emit->gwion, exp_self(member)->type)))) {
     if (!tflag(t_base, tflag_struct) && vflag(value, vflag_member))
       CHECK_BB(emit_exp(emit, member->base));
   }
   if (is_func(emit->gwion, exp_self(member)->type) && // is_func
-      !is_fptr(emit->gwion, exp_self(member)->type))
+!fflag(exp_self(member)->type->info->func, fflag_fptr))
     emit_member_func(emit, member);
   else if (vflag(value, vflag_member)) {
     if (!tflag(t_base, tflag_struct))
@@ -277,7 +295,7 @@ OP_EMIT(opem_object_dot) {
     const Instr instr = emit_add_instr(emit, RegPushImm);
     instr->m_val      = (m_uint)value->type;
   }
-  if((isa(value->type, emit->gwion->type[et_object]) > 0 || is_fptr(emit->gwion, value->type)) &&
+  if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
     emit_fast_except(emit, value->from, exp_self(member)->pos);
@@ -348,7 +366,7 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
                       .data  = env,
                       .func  = (_exp_func)scan0_cdef,
                       .scope = env->scope->depth,
-                      .flag  = tflag_scan0};
+                      .flag  = tflag_check};
   const Type    owner = t->info->value->from->owner_class;
   CHECK_BO(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);

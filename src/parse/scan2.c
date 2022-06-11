@@ -79,25 +79,21 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
-  if (!tmpl_base(fptr->base->tmpl)) {
-    const Func_Def def = fptr->type->info->func->def;
-    if (def->base->args) { RET_NSPC(scan2_args(def)) }
-  } else
-    set_tflag(fptr->type, tflag_ftmpl);
+  CHECK_BB(scan2_class_def(env, fptr->cdef));
+  const Func_Def fdef = mp_vector_at(fptr->cdef->body, struct Section_ , 0)->d.func_def;
+  if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
   return GW_OK;
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f);
 ANN m_bool        scan2_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan2_exp(env, tdef->when));
-  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+  if (tflag(tdef->type, tflag_cdef)) {
     if(!tflag(tdef->type->info->parent, tflag_scan2))
                     return scan2_class_def(env, tdef->type->info->parent->info->cdef);
   }
   if (!tdef->type->info->cdef) return GW_OK;
-  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
-                    ? scan2_class_def(env, tdef->type->info->cdef)
-                    : GW_OK;
+  return tdef->type->info->cdef ? scan2_class_def(env, tdef->type->info->cdef) : GW_OK;
 }
 
 ANN static m_bool scan2_range(const Env env, Range *range) {
@@ -300,16 +296,13 @@ ANN static m_bool scan2_stmt_list(const Env env, Stmt_List l) {
 
 ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f,
                                           const Value overload) {
-  const m_bool fptr = is_fptr(env->gwion, overload->type);
-  if (!is_func(env->gwion, overload->type) || // is_fptr
-      is_fptr(env->gwion, overload->type)) {
+  if (!is_func(env->gwion, overload->type)) {
     if (!fbflag(f->base, fbflag_internal))
       ERR_B(f->base->pos,
             _("function name '%s' is already used by another value"),
             overload->name)
   }
-  const Func obase =
-      !fptr ? overload->d.func_ref : _class_base(overload->type)->info->func;
+  const Func obase = overload->d.func_ref;
   if (GET_FLAG(obase->def->base, final) && (!env->class_def || (obase->value_ref->from->owner_class != env->class_def))) {
     env_err(env, f->base->pos, _("can't overload final function `{G}%s{0}`"), s_name(f->base->xid));
     env_warn(env, obase->def->base->pos, _("first declared here"));
@@ -368,10 +361,8 @@ static Value func_value(const Env env, const Func f, const Value overload) {
     f->next                    = overload->d.func_ref->next;
     overload->d.func_ref->next = f;
   }
-  if (env->class_def && !GET_FLAG(f->def->base, static)) {
-    t->size += SZ_INT;
+  if (env->class_def && !GET_FLAG(f->def->base, static))
     set_vflag(v, vflag_member);
-  }
   return v;
 }
 

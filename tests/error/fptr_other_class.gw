@@ -1,8 +1,0 @@
-#! [contains] can't use non global fptr of other class
-class C {
-  funptr void t_ptr();
-}
-class D {
-  funptr void t_ptr();
-  var C.t_ptr ptr;
-}

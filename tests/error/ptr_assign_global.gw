@@ -1,9 +1,0 @@
-#! [contains] can't assign non member function to member function pointer
-class C {
-  funptr void Test();
-  var Test test;
-}
-
-fun void test(){}
-var C c;
-test @=> c.test;

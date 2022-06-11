@@ -464,32 +464,23 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+#include "object.h"
+#include "instr.h"
+#include "operator.h"
+#include "import.h"
+
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  if (tmpl_base(fptr->base->tmpl)) return scan1_fbase_tmpl(env, fptr->base);
-  if (!fptr->base->func) {
-    fptr->base->func =
-        nspc_lookup_value0(env->curr, fptr->base->xid)->d.func_ref;
-    fptr->type = nspc_lookup_type0(env->curr, fptr->base->xid);
-  }
-  const Func_Def fdef = fptr->base->func->def;
-  CHECK_OB((fdef->base->ret_type = scan1_noret(env, fdef->base)));
-  if (!fdef->base->args) return GW_OK;
-  RET_NSPC(scan1_args(env, fdef->base->args))
+  return scan1_class_def(env, fptr->cdef);
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
-  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+  if (!tflag(tdef->type, tflag_cdef)) {
     if(!tflag(tdef->type->info->parent, tflag_scan1))
                     return scan1_class_def(env, tdef->type->info->parent->info->cdef);
   }
-  if (!is_fptr(env->gwion, tdef->type) && !tdef->type->info->cdef) {
-    if(!tflag(tdef->type->info->parent, tflag_scan1))exit(12);
-  }
-  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
-             ? scan1_cdef(env, tdef->type)
-             : GW_OK;
+  return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
 }
 
 ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
@@ -761,8 +752,8 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
-  const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan1)) return GW_OK;
+  const Class_Def c = t->info->cdef;
   set_tflag(t, tflag_scan1);
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan1_section));
