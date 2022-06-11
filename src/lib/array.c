@@ -689,7 +689,7 @@ static OP_CHECK(opck_array_scan) {
   cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
   cdef->base.xid        = sym;
   cdef->base.tmpl->base = 1; // could store depth here?
-  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
   mp_vector_set(cdef->base.tmpl->call, Type_Decl*, 0, type2td(env->gwion, base, (loc_t) {}));
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;

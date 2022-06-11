@@ -22,7 +22,7 @@ static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
   gwi->ck->name = n;
   CHECK_BB(check_typename_def(gwi, gwi->ck));
   CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, sizeof(Arg), 0);
+  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
   return GW_OK;
 }
 

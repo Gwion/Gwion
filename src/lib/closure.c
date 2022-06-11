@@ -574,7 +574,7 @@ static OP_CHECK(opck_op_impl) {
     env_pop(env, scope);
     if (exists) { // improve me
       if (eff) {
-        free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), eff);
+        free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
         ERR_N(impl->pos,
               _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
               s_name(impl->e->d.prim.d.var), func->name);
@@ -595,7 +595,7 @@ static OP_CHECK(opck_op_impl) {
       struct ScopeEffect *effect = mp_vector_at(eff, struct ScopeEffect, i);
       vector_add(&base->effects, (m_uint)effect->sym);
     }
-    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), eff);
+    free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
   }
   const Exp lhs =
       new_prim_id(env->gwion->mp, larg0->var_decl.xid, impl->e->pos);
@@ -603,7 +603,7 @@ static OP_CHECK(opck_op_impl) {
       new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
-  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+  Stmt_List slist = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
   mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},

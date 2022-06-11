@@ -643,7 +643,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
 
 ANN m_bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
-  Ast acc = new_mp_vector(env->gwion->mp, sizeof(Section), 0);
+  Ast acc = new_mp_vector(env->gwion->mp, Section, 0);
   m_bool ret = GW_OK;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
@@ -658,6 +658,6 @@ ANN m_bool scan2_ast(const Env env, Ast *ast) {
     Section * section = mp_vector_at(acc, Section, i);
     default_args(env, section, ast);
   }
-  free_mp_vector(env->gwion->mp, sizeof(Section), acc);
+  free_mp_vector(env->gwion->mp, Section, acc);
   return ret;
 }

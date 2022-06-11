@@ -77,7 +77,7 @@ ANN static void release_maybe_stack(const MemPool mp, MP_Vector * ms) {
     struct M_Vector_ v = { .ptr = mv->ptr };
     m_vector_release(&v);
   }
-  free_mp_vector(mp, sizeof(MaybeVal), ms);
+  free_mp_vector(mp, MaybeVal, ms);
 }
 
 ANN static void free_frame(MemPool p, Frame *a) {
@@ -1948,7 +1948,7 @@ static void emit_maybe_stack(const Emitter emit, const Instr instr, const MaybeV
   instr->m_val = -SZ_INT;
   instr->m_val2 = mv->reg;
   if(!emit->code->frame->maybe_stack)
-    emit->code->frame->maybe_stack = new_mp_vector(emit->gwion->mp, sizeof(MaybeVal), 0);
+    emit->code->frame->maybe_stack = new_mp_vector(emit->gwion->mp, MaybeVal, 0);
   mp_vector_add(emit->gwion->mp, &emit->code->frame->maybe_stack, MaybeVal, *mv);
 }
 

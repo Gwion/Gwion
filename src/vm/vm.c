@@ -218,7 +218,7 @@ ANN bool vm_running(VM const *vm) {
   return vm->shreduler->bbq->is_running = vm_running(vm->parent);
 }
 
-__attribute__((hot)) ANN static inline void vm_ugen_init(const VM *vm) {
+__attribute__((hot)) ANN static inline void compute_audio(const VM *vm) {
   const Vector v = (Vector)&vm->ugen;
   LOOP_OPTIM
   for (m_uint i = vector_size(v) + 1; --i;) {
@@ -1587,7 +1587,7 @@ ANN void next_bbq_pos(const VM *vm) {
 
 ANN void vm_run_audio(const VM *vm) {
   vm_run(vm);
-  vm_ugen_init(vm);
+  compute_audio(vm);
 }
 
 VM *new_vm(MemPool p, const bool audio) {

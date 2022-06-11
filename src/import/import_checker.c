@@ -105,7 +105,7 @@ ANN static Specialized_List __tmpl_list(const Gwion        gwion,
   if (tdc->str[0] != ':') return NULL;
   if (tdc->str[1] != '[') return SPEC_ERROR;
   tdc->str += 2;
-  Specialized_List sl = new_mp_vector(gwion->mp, sizeof(Specialized), 0);
+  Specialized_List sl = new_mp_vector(gwion->mp, Specialized, 0);
   if(!_tmpl_list(gwion, tdc, &sl) || tdc->str[0] != ']') {
     free_specialized_list(gwion->mp, sl);
   }
@@ -144,7 +144,7 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = new_mp_vector(gwion->mp, sizeof(Type_Decl*), 0);
+  Type_List tl = new_mp_vector(gwion->mp, Type_Decl*, 0);
   if (!str2tl(gwion, tdc, &tl)) {
     free_type_list(gwion->mp, tl);
     return (Type_List)GW_ERROR;
@@ -170,7 +170,7 @@ ANN static inline uint get_n(struct td_checker *tdc, const char c) {
 ANN static Arg_List fptr_args(const Gwion gwion, struct td_checker *tdc) {
   if(tdc->str[1] == ')')
     return NULL;
-  Arg_List args = new_mp_vector(gwion->mp, sizeof(Arg), 0);
+  Arg_List args = new_mp_vector(gwion->mp, Arg, 0);
   do {
     Type_Decl *td = _str2td(gwion, tdc);
     if(!td) {

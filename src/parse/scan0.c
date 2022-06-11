@@ -35,7 +35,7 @@ ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
   if(env->class_def && !GET_FLAG(fptr->base, static)) {
     Arg arg = { .td = type2td(env->gwion, env->class_def, fptr->base->td->pos) };
     if(fptr->base->args) {
-      Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), fptr->base->args->len + 1);
+      Arg_List args = new_mp_vector(env->gwion->mp, Arg, fptr->base->args->len + 1);
       mp_vector_set(args, Arg, 0, arg);
       for(uint32_t i = 0; i < fptr->base->args->len; i++) {
         Arg *base  = mp_vector_at(fptr->base->args, Arg, i);
@@ -44,7 +44,7 @@ ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
       }
       return args;
     } else {
-      Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 1);
+      Arg_List args = new_mp_vector(env->gwion->mp, Arg, 1);
       mp_vector_set(args, Arg, 0, arg);
       return args;
     }
@@ -61,7 +61,7 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, fptr->base->td),
     insert_symbol("func"), args, ae_flag_static | ae_flag_private, loc);
   const Func_Def fdef = new_func_def(env->gwion->mp, fbase, NULL);
-  Ast body = new_mp_vector(env->gwion->mp, sizeof(Section), 1);
+  Ast body = new_mp_vector(env->gwion->mp, Section, 1);
   mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
   Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
   const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->xid, td, body, loc);

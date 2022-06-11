@@ -52,7 +52,7 @@ static OP_CHECK(opck_ctrl) {
 
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);
-  Stmt_List slist = new_mp_vector(mp, sizeof(struct Stmt_), 2);
+  Stmt_List slist = new_mp_vector(mp, struct Stmt_, 2);
   mp_vector_set(slist, struct Stmt_, 0, one);
   mp_vector_set(slist, struct Stmt_, 1, two);
   const Stmt stmt = new_stmt_code(mp, slist, func->pos);

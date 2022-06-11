@@ -34,7 +34,7 @@ traverse_exp(env, func);
   struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
 traverse_exp(env, time);
 
-  Stmt_List slist = new_mp_vector(mp, sizeof(struct Stmt_), 2);
+  Stmt_List slist = new_mp_vector(mp, struct Stmt_, 2);
   mp_vector_set(slist, struct Stmt_, 0, one);
   mp_vector_set(slist, struct Stmt_, 1, two);
 

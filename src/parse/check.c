@@ -662,7 +662,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
                                          const Tmpl *tm, const Func_Def fdef) {
   m_uint       args_number = 0;
   const m_uint type_number = tm->list->len;
-  Type_List    tl = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), type_number);
+  Type_List    tl = new_mp_vector(env->gwion->mp, Type_Decl*, type_number);
   Specialized_List sl = tm->list;
   for(uint32_t i = 0; i < sl->len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
@@ -732,7 +732,7 @@ ANN2(1) static m_bool lambda_append_args(const Env env, Exp_Call *const call, co
 
 ANN static Exp check_lambda_captures(const Env env, const Func_Def fdef) {
   if(!fdef->base->args)
-    fdef->base->args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
+    fdef->base->args = new_mp_vector(env->gwion->mp, Arg, 0);
   Exp args = NULL, tmp;
   for(uint32_t i = 0; i < fdef->captures->len; i++) {
     Capture *const cap = mp_vector_at(fdef->captures, Capture, i);
@@ -750,7 +750,7 @@ ANN static Exp check_lambda_captures(const Env env, const Func_Def fdef) {
     if(args) tmp = tmp->next = exp;
     else args = tmp = exp;
   }
-  free_mp_vector(env->gwion->mp, sizeof(Capture), fdef->captures);
+  free_mp_vector(env->gwion->mp, Capture, fdef->captures);
   fdef->captures = NULL;
   return args;
 }
@@ -1088,7 +1088,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     set_tflag(tdef->type, tflag_contract);
     struct Var_Decl_ decl = { .xid = insert_symbol("self"), .pos = tdef->when->pos };
     Type_Decl *td = cpy_type_decl(env->gwion->mp, tdef->ext);
-    Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 1);
+    Arg_List args = new_mp_vector(env->gwion->mp, Arg, 1);
     mp_vector_set(args, Arg, 0, ((Arg) { .td = td, .var_decl = decl }));
     Func_Base *fb = new_func_base(
         env->gwion->mp, type2td(env->gwion, tdef->type, tdef->pos),
@@ -1099,7 +1099,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp when   = tdef->when;
     tdef->when = NULL;
     when->next       = helper;
-    Stmt_List body = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 2);
+    Stmt_List body = new_mp_vector(env->gwion->mp, struct Stmt_, 2);
     mp_vector_set(body, struct Stmt_, 0,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
@@ -1486,7 +1486,7 @@ ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try 
       bool found   = find_handler(stmt->handler, eff->sym);
       if (!found) env_add_effect(env, eff->sym, eff->pos);
     }
-    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), v);
+    free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
   }
   return ret;
 }
@@ -1738,7 +1738,7 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
       if(!effect_find(v, eff->sym))
         vector_add(base, (m_uint)eff->sym);
     }
-    free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), v);
+    free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
   }
   vector_pop(&env->scope->effects);
   if (fbflag(fdef->base, fbflag_op)) operator_resume(&opi);
@@ -1864,7 +1864,7 @@ ANN static inline void ctor_effects(const Env env) {
     struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
     vector_add(&env->class_def->effects, (m_uint)eff->sym);
   }
-  free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), w);
+  free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
   vector_pop(v);
 }
 
@@ -2043,7 +2043,7 @@ ANN static inline void check_unhandled(const Env env) {
     gwerr_secondary("Unhandled effect", env->name, eff->pos);
     env->context->error = false;
   }
-  free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), w);
+  free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
   vector_pop(v);
 }
 

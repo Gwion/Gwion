@@ -14,7 +14,7 @@
 #include "partial.h"
 
 ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, const Exp e) {
-  Arg_List args = new_mp_vector(env->gwion->mp, sizeof(Arg), 0);
+  Arg_List args = new_mp_vector(env->gwion->mp, Arg, 0);
   Exp next = e;
   uint32_t i = 0;
   while(next) {
@@ -168,7 +168,7 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
 ANN static Stmt partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
   const Exp arg = partial_call(env, args, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
-  Stmt_List slist = new_mp_vector(env->gwion->mp, sizeof(struct Stmt_), 1);
+  Stmt_List slist = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
   Stmt stmt = mp_vector_at(slist, struct Stmt_, 0);
   stmt->stmt_type = ae_stmt_return;
   stmt->d.stmt_exp.val = exp;
