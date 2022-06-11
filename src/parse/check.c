@@ -170,7 +170,7 @@ ANN static m_bool check_collection(const Env env, Type type, const Exp e,
 
   char fst[20 + strlen(type->name)];
   sprintf(fst, "expected `{+/}%s{0}`", type->name);
-  gwerr_basic(_("literal contains incompatible types"), fst, NULL, env->name,
+  gwerr_basic(_("literal contains incompatible types"), fst, "the first element determines the type", env->name,
               loc, 0);
   // suggested fix: rewrite int 2 as float 2.0"
   char sec[16 + strlen(e->type->name)];
