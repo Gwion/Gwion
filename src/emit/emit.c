@@ -541,8 +541,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   }
   if (vflag(v, vflag_builtin) || vflag(v, vflag_direct))
     return emit_symbol_builtin(emit, data);
-const Type t = prim_exp(data)->type;
-//const Type t = v->type;
+  const Type t = prim_exp(data)->type;
   if(is_func(emit->gwion, v->type)) { // is_func
     const Func f = t->info->func;
     if(f->code)
@@ -550,9 +549,7 @@ const Type t = prim_exp(data)->type;
     else if(!f->def->base->tmpl) {
       const Instr instr = emit_add_instr(emit, SetFunc);
       instr->m_val = (m_uint)f;
-    } else {
-      regpushi(emit, (m_uint)f);
-    }
+    } else regpushi(emit, (m_uint)f);
     return GW_OK;
   }
   if (tflag(v->type, tflag_ref) && !safe_tflag(prim_exp(data)->cast_to, tflag_ref)) {
@@ -1124,8 +1121,7 @@ ANN static void set_late(const Exp_Decl *decl, const Var_Decl var) {
   if (!exp_getvar(exp_self(decl)) &&
       (GET_FLAG(array_base_simple(v->type), abstract) || GET_FLAG(decl->td, late)))
     SET_FLAG(v, late);
-  else
-    UNSET_FLAG(v, late);
+  else UNSET_FLAG(v, late);
 }
 
 static inline bool _late_array(const Array_Sub array) {

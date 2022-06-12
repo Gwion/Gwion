@@ -570,8 +570,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List args) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Var_Decl decl = &arg->var_decl;
     const Value    v    = decl->value;
-if(decl->xid)
-    CHECK_BB(already_defined(env, decl->xid, decl->pos));
+    if(decl->xid) CHECK_BB(already_defined(env, decl->xid, decl->pos));
     valid_value(env, decl->xid, v);
   }
   return GW_OK;
@@ -822,24 +821,18 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
 }
 
 ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
-//  DECL_BO(const m_bool, ret, = func_check(env, exp));
-//  if (!ret) return exp_self(exp)->type;
-  const bool _class = is_class(env->gwion, exp->func->type);
-/*  const */Type t =
-      _class ? actual_type(env->gwion, exp->func->type) : exp->func->type;
+  /* const */Type t = exp->func->type;
   if (!is_func(env->gwion, t)) { // use func flag?
-if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
-t = closure_def(t)->base->func->value_ref->type;
-
-
-} else {
-    struct Op_Import opi = {.op   = insert_symbol("@ctor"),
-                            .rhs  = actual_type(env->gwion, exp->func->type),
-                            .data = (uintptr_t)exp,
-                            .pos  = exp_self(exp)->pos};
-    const Type       t   = op_check(env, &opi);
-    return t;
-}
+    if(isa(exp->func->type, env->gwion->type[et_closure]) > 0)
+      t = closure_def(t)->base->func->value_ref->type;
+    else {
+      struct Op_Import opi = {.op   = insert_symbol("@ctor"),
+                              .rhs  = actual_type(env->gwion, exp->func->type),
+                              .data = (uintptr_t)exp,
+                              .pos  = exp_self(exp)->pos};
+      const Type       t   = op_check(env, &opi);
+      return t;
+    }
   }
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (!t->info->func) // TODO: effects?
@@ -881,13 +874,10 @@ t = closure_def(t)->base->func->value_ref->type;
   return NULL;
 }
 
-
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if (!ret) return exp_self(exp)->type;
-  const bool _class = is_class(env->gwion, exp->func->type);
-  Type t =
-      _class ? actual_type(env->gwion, exp->func->type) : exp->func->type;
+  const Type t = exp->func->type;
   const Type _ret = _check_exp_call1(env, exp);
   if(_ret) return _ret;
   if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
@@ -1006,7 +996,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     if (!ret) return exp_self(exp)->type;
 /*    const */Type t = actual_type(env->gwion, exp->func->type);
     if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
-      while(tflag(t, tflag_typedef)) t = t->info->parent;
+      t = typedef_base(t);
       t = mp_vector_at(t->info->cdef->body, Section , 0)->d.func_def->base->func->value_ref->type;
     }
 // check for closure and b ring it back

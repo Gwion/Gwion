@@ -107,25 +107,17 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     return;
   }
   if (f->def->base->tmpl) {
-if(member->is_call)
-emit_add_instr(emit, DotTmplVal);
-else {
-// don't emit the expression if not call
-
-if(vflag(f->value_ref, vflag_member)) {
-const Instr instr = emit_add_instr(emit, RegMove);
-instr->m_val = -SZ_INT;
-
-//emit_exp(emit, member->base);
-//exit(33);
-}
-const Instr instr = emit_add_instr(emit, RegPushImm);
-instr->m_val = (m_uint)f;
-return;//
-//}
-  }
-}
-  else if (is_static_call(emit, exp_self(member))) {
+    if(member->is_call) emit_add_instr(emit, DotTmplVal);
+    else {
+      if(vflag(f->value_ref, vflag_member)) {
+        const Instr instr = emit_add_instr(emit, RegMove);
+        instr->m_val = -SZ_INT;
+      }
+      const Instr instr = emit_add_instr(emit, RegPushImm);
+      instr->m_val = (m_uint)f;
+      return;
+    }
+  } else if (is_static_call(emit, exp_self(member))) {
     if (member->is_call && f == emit->env->func) return;
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
@@ -148,12 +140,7 @@ return;//
       if(member->is_call){
         const Instr instr = emit_add_instr(emit, RegMove);
         instr->m_val      = SZ_INT;
-      } else {
-instr->m_val2 = -SZ_INT;
-//        const Instr instr = (Instr)vector_back(&emit->code->instr);
-//        instr->opcode = eRegPushImm;
-//        instr->m_val = (m_uint)f->code;
-      }
+      } else instr->m_val2 = -SZ_INT;
     }
   }
   return;
