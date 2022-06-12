@@ -1277,7 +1277,7 @@ ANN static inline void inline_args_ini(const Emitter emit, const Func f,
                                        const Vector v) {
   const bool member =  f->value_ref->from->owner_class && vflag(f->value_ref, vflag_member);
   if(member)
-    emit->this_offset = emit_local(emit, emit->gwion->type[et_int]);
+    emit->status.this_offset = emit_local(emit, emit->gwion->type[et_int]);
   const m_uint start_offset = emit_code_offset(emit) - (member ? SZ_INT : 0);
   Arg_List args          = f->def->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
@@ -1337,13 +1337,11 @@ ANN static inline m_bool _emit_inline(const Emitter emit, const Func f,
 
 ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
                                      const Exp_Call *exp_call) {
-  const uint16_t this_offset   = emit->this_offset;
-  const uint16_t vararg_offset = emit->vararg_offset;
+  const EmitterStatus status = emit->status;
   nspc_push_value(emit->gwion->mp, emit->env->curr);
   const m_bool ret = _emit_inline(emit, f, exp_call);
   nspc_pop_value(emit->gwion->mp, emit->env->curr);
-  emit->this_offset   = this_offset;
-  emit->vararg_offset = vararg_offset;
+  emitter->status = status;
   return ret;
 }
 #endif
@@ -1709,9 +1707,8 @@ ANN static void call_finish(const Emitter emit, const Func f,
 
 ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
                           const bool is_static) {
-  const m_uint this_offset   = emit->this_offset;
-  const m_uint vararg_offset = emit->vararg_offset;
-  emit->this_offset          = 0;
+  const EmitterStatus status = emit->status;
+  emit->status =  (EmitterStatus){};
   const int tmpl             = fflag(f, fflag_tmpl);
   if(unlikely(fflag(f, fflag_fptr))) emit_fptr_call(emit, f);
   else if (unlikely(!f->code && emit->env->func != f)) {
@@ -1719,8 +1716,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
     else CHECK_BB(emit_ensure_func(emit, f));
   } else push_func_code(emit, f);
   call_finish(emit, f, is_static);
-  emit->this_offset   = this_offset;
-  emit->vararg_offset = vararg_offset;
+  emit->status = status;
   return GW_OK;
 }
 
@@ -2047,9 +2043,9 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
   Exp exp = e;
   do {
-    if (emit->info->debug && emit->info->line < e->pos.first.line) {
+    if (emit->info->debug && emit->status.line < e->pos.first.line) {
       const Instr instr = emit_add_instr(emit, DebugLine);
-      instr->m_val = emit->info->line = e->pos.first.line;
+      instr->m_val = emit->status.line = e->pos.first.line;
     }
     CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d));
     if (exp->cast_to) CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to));
@@ -2356,7 +2352,7 @@ ANN static inline m_bool looper_run(const Emitter        emit,
 
 ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
                                   m_uint *end_pc) {
-  const uint n = emit->info->unroll;
+  const uint n = emit->status.unroll;
   const m_uint arr_offset = emit_local(emit, emit->gwion->type[et_int]); // array?
   const m_uint key_offset = /*!stmt->idx
      ? */emit_local(emit, emit->gwion->type[et_int])
@@ -2404,7 +2400,7 @@ nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
 }
 
 ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
-  const uint n = emit->info->unroll;
+  const uint n = emit->status.unroll;
   nspc_push_value(emit->gwion->mp, emit->env->curr);
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
@@ -2420,7 +2416,7 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   const m_bool ret    = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
 nspc_pop_value(emit->gwion->mp, emit->env->curr);
-  emit->info->unroll = 0;
+  emit->status.unroll = 0;
   return ret;
 }
 
@@ -2439,10 +2435,10 @@ ANN static Instr stmt_loop_roll_idx(const Emitter        emit,
 
 ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
                                   m_uint *index) {
-  const uint n = emit->info->unroll;
+  const uint n = emit->status.unroll;
   if (n) {
     unroll_init(emit, n);
-    emit->info->unroll = 0;
+    emit->status.unroll = 0;
   }
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   if (stmt->idx) {
@@ -2738,7 +2734,7 @@ ANN static m_bool emit_stmt_pp(const Emitter          emit,
     emit->locale = stmt->exp->d.exp_lambda.def->base->func;
   else if (stmt->pp_type == ae_pp_pragma) {
     if (!strncmp(stmt->data, "unroll", strlen("unroll")))
-      emit->info->unroll = strtol(stmt->data + 6, NULL, 10);
+      emit->status.unroll = strtol(stmt->data + 6, NULL, 10);
   }
   return GW_OK;
 }
@@ -3095,10 +3091,7 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
 }
 
 ANN static inline void emit_clear(const Emitter emit) {
-  emit->info->unroll  = 0;
-  emit->info->line    = 0;
-  emit->this_offset   = 0;
-  emit->vararg_offset = 0;
+  emit->status = (EmitterStatus){};
 }
 
 ANN m_bool emit_ast(const Env env, Ast *ast) {

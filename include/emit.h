@@ -40,11 +40,16 @@ struct EmitterInfo_ {
   char *         escape;
   VM_Code (*emit_code)(const Emitter);
   VM_Code  code;
-  uint16_t unroll;
-  uint16_t line;
   bool     debug;
   bool     dump;
 };
+
+typedef struct EmitterStatus {
+  uint16_t             this_offset;   // reset
+  uint16_t             vararg_offset; // reset
+  uint16_t unroll;
+  uint16_t line;
+} EmitterStatus;
 
 struct Emitter_ {
   Env                  env;
@@ -53,8 +58,7 @@ struct Emitter_ {
   struct EmitterInfo_ *info;
   struct Vector_       stack;
   Func                 locale;
-  uint16_t             this_offset;   // reset
-  uint16_t             vararg_offset; // reset
+  EmitterStatus status;
 };
 
 ANEW ANN Emitter new_emitter(MemPool);
