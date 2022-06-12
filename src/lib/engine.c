@@ -112,31 +112,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   GWI_BB(import_prim(gwi))
   GWI_BB(import_func(gwi))
-/*
-  gwidoc(gwi, "the base of all functions.");
-  const Type t_function = gwi_mk_type(gwi, "function", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_function, gack_function))
-  GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
-
-  gwidoc(gwi, "the base of function pointers.");
-  const Type t_closure = gwi_class_ini(gwi, "funptr", "Object");
-  t_closure->nspc->offset = SZ_INT*3;
-  GWI_BB(gwi_set_global_type(gwi, t_closure, et_closure))
-  gwi_class_end(gwi);
-
-//  gwidoc(gwi, "internal `Ref` type creation.");
-  GWI_BB(gwi_oper_ini(gwi, "funptr", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_closure_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
-
-  gwidoc(gwi, "the base of decayed operators.");
-  const Type t_op = gwi_mk_type(gwi, "operator", SZ_INT, "function");
-  GWI_BB(gwi_set_global_type(gwi, t_op, et_op))
-
-  gwidoc(gwi, "the base of lamdbas.");
-  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "function");
-  GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
-*/
   GWI_BB(import_object_op(gwi))
   GWI_BB(import_values(gwi))
   GWI_BB(import_union(gwi))
