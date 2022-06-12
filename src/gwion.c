@@ -225,7 +225,7 @@ ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
   env_xxx(env, pos, fmt, arg);
   va_end(arg);
 #endif
-  env_set_error(env);
+  env_set_error(env, true);
 }
 
 ANN struct SpecialId_ *specialid_get(const Gwion gwion, const Symbol sym) {

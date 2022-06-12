@@ -187,7 +187,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
     if (check_collection(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
   if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1);
-  env_set_error(env);
+  env_set_error(env, true);
   return NULL;
 }
 
@@ -240,7 +240,7 @@ ANN static Type check_prim_dict(const Env env, Exp *data) {
     if (check_collection(env, val, e, loc) < 0) err = true;
   } while ((e = e->next));
   if (!err) return dict_type(env->gwion, key, val, base->pos);
-  env_set_error(env); return NULL;
+  env_set_error(env, true); return NULL;
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
@@ -319,7 +319,7 @@ ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Va
     return GW_OK;
   gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->pos, 4242);
   gwerr_warn("declared here", NULL, _("{-}try adding it to capture list{0}"), v->from->filename, v->from->loc);
-  env->context->error = true;
+  env_set_error(env,  true);
   return GW_ERROR;
 }
 
@@ -355,7 +355,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
     did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
-    env_set_error(env);
+    env_set_error(env, true);
     return NULL;
   }
   prim_self(data)->value = v;
@@ -607,7 +607,7 @@ static void function_alternative(const Env env, const Type t, const Exp args,
     print_current_args(args);
   else
     gw_err(_("and not:\n  {G}void{0}\n"));
-  env_set_error(env);
+  env_set_error(env, true);
 }
 
 ANN static Func get_template_func(const Env env, Exp_Call *const func,
@@ -1106,7 +1106,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       char from[strlen(tdef->type->name) + 39];
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
       gwerr_secondary(from, env->name, tdef->pos);
-      env_set_error(env);
+      env_set_error(env, true);
       return GW_ERROR;
     }
     // we handle the return after, so that we don't get *cant' use implicit
@@ -1257,7 +1257,7 @@ ANN static inline m_bool repeat_type(const Env env, const Exp e) {
     gwerr_basic(_("invalid repeat condition type"), explain,
                 _("use an integer or cast to int if possible"), env->name,
                 e->pos, 0);
-    env_set_error(env);
+    env_set_error(env, true);
     return GW_ERROR;
   }
   return GW_OK;
@@ -1558,7 +1558,7 @@ ANN static m_bool check_signature_match(const Env env, const Func_Def fdef,
     return GW_OK;
   gwerr_basic("invalid overriding", NULL, NULL, fdef->base->func->value_ref->from->filename, fdef->base->func->value_ref->from->loc, 0);
   gwerr_secondary("does not match", parent->value_ref->from->filename, parent->value_ref->from->loc);
-  env->context->error = true;
+  env_set_error(env,  true);
   return GW_ERROR;
 }
 
@@ -1831,7 +1831,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
       }
       struct ValueFrom_ *from = f->value_ref->from;
       gwerr_secondary("implementation missing", from->filename, from->loc);
-      env_set_error(env);
+      env_set_error(env, true);
     }
   }
   return !err ? GW_OK : GW_ERROR;
@@ -1899,7 +1899,7 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
   const Type tgt = array_base(v->type);
   if(type_is_recurs(t, tgt)) {
     env_err(env, v->from->loc, _("recursive type"));
-    env->context->error = false;
+    env_set_error(env,  false);
     gwerr_secondary("in class", t->name, t->info->cdef->base.pos);
 
     const Type first = tgt->info->value->from->loc.first.line < t->info->value->from->loc.first.line ?
@@ -1991,7 +1991,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     if (!check_trait_requests(env, t, list)) {
       env->class_def = t;
       env_error_footer(env);
-      env_set_error(env);
+      env_set_error(env, true);
       return GW_ERROR;
     }
   }
@@ -2023,7 +2023,7 @@ ANN static inline void check_unhandled(const Env env) {
     if(s_name(eff->sym)[0] == '!')
       continue;
     gwerr_secondary("Unhandled effect", env->name, eff->pos);
-    env->context->error = false;
+    env_set_error(env,  false);
   }
   free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
   vector_pop(v);

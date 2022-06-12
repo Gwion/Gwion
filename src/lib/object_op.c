@@ -228,7 +228,7 @@ OP_CHECK(opck_object_dot) {
                   exp_self(member)->pos, 0);
       env_error_footer(env);
       defined_here(value);
-      env_set_error(env);
+      env_set_error(env, true);
     } else if (GET_FLAG(value, protect))
       exp_setprot(exp_self(member), 1);
   }

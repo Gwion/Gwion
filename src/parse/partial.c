@@ -155,7 +155,7 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
           gw_err(_("\nthose functions could match:\n"));
           print_signature(f);
           ambiguity(env, next, args, loc);
-          env->context->error = true;
+          env_set_error(env,  true);
           return NULL;
         }
       }

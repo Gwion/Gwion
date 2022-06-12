@@ -124,9 +124,9 @@ static OP_CHECK(opck_deep_equal) {
   const Symbol op = bin->op;
   bin->op = !strcmp(s_name(bin->op), "?=")
     ? insert_symbol(env->gwion->st, "==") : insert_symbol(env->gwion->st, "!=");
-  env->context->error = true;
+  env_set_error(env,  true);
   const Type ret_type = check_exp(env, exp_self(bin));
-  env->context->error = false;
+  env_set_error(env,  false);
   if(ret_type) return env->gwion->type[et_bool];
   ERR_N(exp_self(bin)->pos, "no deep operation for: {G+/}%s{0} {+}%s{0} {G+/}%s{0}",
       bin->lhs->type->name, s_name(op), bin->rhs->type->name);

@@ -340,7 +340,7 @@ ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
     if (!nspc_lookup_trait1(env->curr, xid)) {
       gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
       did_you_mean_trait(env->curr, s_name(xid));
-      env_set_error(env);
+      env_set_error(env, true);
       return GW_ERROR;
     }
   }
@@ -355,7 +355,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
     const Value v = parent->info->value;
     gwerr_warn("declared here", NULL, NULL, v->from->filename, v->from->loc);
-    env->context->error = true;
+    env_set_error(env,  true);
     return NULL;
   }
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
@@ -431,7 +431,7 @@ ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
   if (exists) {
     gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->pos, 0);
     gwerr_secondary("defined here", env->name, exists->loc);
-    env_set_error(env);
+    env_set_error(env, true);
     return already_defined(env, s, pdef->pos);
   }
   if (pdef->traits) CHECK_BB(find_traits(env, pdef->traits, pdef->pos));

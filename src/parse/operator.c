@@ -312,10 +312,10 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   base->op = insert_symbol(env->gwion->st, "=>");
   const Type ret = check_exp(env, exp_self(base));
   if(ret) return ret;
-  env->context->error = false;
+  env_set_error(env,  false);
   base->op = orig;
   env_warn(env, opi->pos, _("during rewriting operation"));
-  env->context->error = true;
+  env_set_error(env,  true);
   return NULL;
 }
 
@@ -354,7 +354,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
     return env->gwion->type[et_error];
   if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
     gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
-    env->context->error = true;
+    env_set_error(env,  true);
   } else if (strcmp(op, "@implicit")) {
     if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) { // is_callable
       const size_t len = strlen(op);
