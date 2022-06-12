@@ -1,6 +1,6 @@
 class C {
   funptr void ptr_t(int i,int j);
-  \a b { <<< this, " ", a, " ", b, " test" >>>; } @=> var ptr_t ptr;
+  \a b c { <<< "${a} ${b} ${c}" >>>; } @=> var ptr_t ptr;
   fun void test(int i, int j) { <<< this, " ", i, " ", j >>>; }
 }
 var C c;

@@ -260,7 +260,7 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
   }
   if (env->func && env->func->def->base->values) {
     DECL_OO(const Value, v, = upvalues_lookup(env->func->def->base->values, sym));
-    if(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0)
+    if(fbflag(env->func->def->base, fbflag_lambda))
       CHECK_OO(not_upvalue(env, v));
     return v;
   }
@@ -673,9 +673,6 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     while (count < args_len && template_arg) {
       Arg *arg = mp_vector_at(args, Arg, count);
       if (spec->xid == arg->td->xid) {
-        if  (isa(template_arg->type, env->gwion->type[et_lambda]) > 0 &&
-             !template_arg->type->info->func)
-          break;
         mp_vector_set(tl, Type_Decl*, args_number,
           mk_td(env, arg, template_arg->type, fdef->base->pos));
         ++args_number;
@@ -845,7 +842,7 @@ t = closure_def(t)->base->func->value_ref->type;
 }
   }
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
-  if (t == env->gwion->type[et_lambda]) // TODO: effects?
+  if (!t->info->func) // TODO: effects?
     return check_lambda_call(env, exp);
   if (fflag(t->info->func, fflag_ftmpl)) {
     const Value value = t->info->func->value_ref;
@@ -979,9 +976,6 @@ ANN2(1) static inline bool is_partial(const Env env, Exp exp) {
 }
 
 ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) {
-  if(isa(t, env->gwion->type[et_lambda]) > 0)
-    if  (!t->info->func)
-      ERR_O(exp->func->pos, _("invalid lambda use."))
   if (exp->args) CHECK_OO(check_exp(env, exp->args));
   if (!t->info->func->def->base->tmpl)
     ERR_O(exp_self(exp)->pos, _("template call of non-template function."))
@@ -1139,7 +1133,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   return GW_OK;
 }
 ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
-  return env->gwion->type[et_lambda];
+  return env->gwion->type[et_function];
 }
 
 ANN static Type check_exp_td(const Env env, Type_Decl **td) {
@@ -1159,7 +1153,6 @@ ANN Type check_exp(const Env env, const Exp exp) {
     do {
       CHECK_OO((curr->type = check_exp_func[curr->exp_type](env, &curr->d)));
       if (env->func && !is_class(env->gwion, curr->type) &&
-          isa(curr->type, env->gwion->type[et_lambda]) < 0 &&
           is_func(env->gwion, curr->type) &&
           !safe_fflag(curr->type->info->func, fflag_pure))
         unset_fflag(env->func, fflag_pure);
@@ -1312,7 +1305,6 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   DECL_OB(const Type, ret_type,
           = stmt->val ? check_exp(env, stmt->val) : env->gwion->type[et_void]);
   if (!env->func->def->base->ret_type) {
-    assert(isa(env->func->value_ref->type, env->gwion->type[et_lambda]) > 0);
     env->func->def->base->ret_type = ret_type;
     return GW_OK;
   }

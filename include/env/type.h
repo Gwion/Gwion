@@ -98,8 +98,7 @@ ANN static inline Func_Def closure_def(Type t) {
 }
 
 __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
-  do
-    if (t->info->gack) return t;
+  do if (t->info->gack) return t;
   while ((t = t->info->parent));
   return t; // unreachable
 }
@@ -143,9 +142,7 @@ typedef enum {
   et_array,
   et_gack,
   et_function,
-//  et_fptr,
   et_vararg,
-  et_lambda,
   et_closure,
   et_op,
   et_class,

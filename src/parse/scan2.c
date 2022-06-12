@@ -326,9 +326,7 @@ ANN static Func scan_new_func(const Env env, const Func_Def f,
 }
 
 ANN static Type func_type(const Env env, const Func func) {
-  const Type base =
-      env->gwion->type[!fbflag(func->def->base, fbflag_lambda) ? et_function
-                                                               : et_lambda];
+  const Type base = env->gwion->type[et_function];
   const Type t    = type_copy(env->gwion->mp, base);
   t->info->parent = base;
   t->name         = func->name;

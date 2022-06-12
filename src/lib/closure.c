@@ -132,7 +132,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
   const Instr instr = emit_add_instr(emit, fptr_assign);
   if(rhs->info->cdef && rhs->info->cdef->base.tmpl)
     instr->m_val = SZ_INT*2;
-  if(isa(lhs, emit->gwion->type[et_lambda]) > 0) {
+  if(!lhs->info->func) {
     const Func_Def fdef = lhs->info->func->def;
     const Capture_List captures = fdef->captures;
     if(captures) {
@@ -344,9 +344,11 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   l->def->base->values = &upvalues;
   const m_uint scope   = env->scope->depth;
   env->scope->depth = 0;
-if(env->class_def)SET_FLAG(l->def->base, static);
+  const bool shadowing = env->scope->shadowing;
+  env->scope->shadowing = true;
+  if(env->class_def)SET_FLAG(l->def->base, static);
   const m_bool ret  = traverse_func_def(env, l->def);
-
+  env->scope->shadowing = shadowing;
   env->scope->depth = scope;
 
   if (l->def->base->func) {
@@ -382,7 +384,7 @@ ANN m_bool check_lambda(const Env env, const Type t, Exp_Lambda *l) {
 }
 
 ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
-  if (isa(info->exp->type, env->gwion->type[et_lambda]) < 0) {
+  if(info->exp->type->info->func) {
     CHECK_BB(fptr_check(env, info));
     if (!(info->exp->type = fptr_type(env, info)))
       ERR_B(info->exp->pos, _("no match found"))
@@ -704,10 +706,6 @@ GWION_IMPORT(func) {
   gwidoc(gwi, "the base of decayed operators.");
   const Type t_op = gwi_mk_type(gwi, "operator", SZ_INT, "function");
   GWI_BB(gwi_set_global_type(gwi, t_op, et_op))
-
-  gwidoc(gwi, "the base of lamdbas.");
-  const Type t_lambda = gwi_mk_type(gwi, "@lambda", SZ_INT, "function");
-  GWI_BB(gwi_set_global_type(gwi, t_lambda, et_lambda))
 
   gwidoc(gwi, "the base of function pointers.");
   const Type t_closure = gwi_class_ini(gwi, "funptr", "Object");
