@@ -2004,14 +2004,8 @@ ANN m_bool check_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type       t   = cdef->base.type;
   if (tflag(t, tflag_check)) return GW_OK;
-  const Class_Def  c   = t->info->cdef;
-  struct Op_Import opi = {.op   = insert_symbol("@class_check"),
-                          .lhs  = t,
-                          .data = (uintptr_t)c,
-                          .pos  = c->pos};
-  CHECK_OB(op_check(env, &opi));
   set_tflag(t, tflag_check);
-  return _check_class_def(env, c);
+  return _check_class_def(env, t->info->cdef);
 }
 
 ANN static inline void check_unhandled(const Env env) {
