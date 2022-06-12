@@ -3086,14 +3086,9 @@ ANN static VM_Code emit_free_stack(const Emitter emit) {
   return NULL;
 }
 
-ANN static inline void emit_clear(const Emitter emit) {
-  emit->status = (EmitterStatus){};
-}
-
 ANN m_bool emit_ast(const Env env, Ast *ast) {
   const Emitter emit  = env->gwion->emit;
   const Func locale = emit->locale;
-  emit_clear(emit);
   emit->code          = new_code(emit, emit->env->name);
   emit_push_scope(emit);
   const m_bool ret = emit_ast_inner(emit, *ast);
@@ -3102,7 +3097,7 @@ ANN m_bool emit_ast(const Env env, Ast *ast) {
     emit->info->code = finalyze(emit, EOC);
   else
     emit_free_stack(emit);
-  emit_clear(emit);
+  emit->status = (EmitterStatus){};
   emit->locale = locale;
   return ret;
 }
