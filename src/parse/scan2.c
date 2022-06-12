@@ -396,12 +396,8 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
           const Symbol sym =
               func_symbol(env, env->curr->name, name, "template", ff->vt_index);
           nspc_add_value(env->curr, sym, value);
-          if (!overload) {
-//            value_addref(value);
-            nspc_add_value(env->curr, f->base->xid, value);
-//    nspc_add_func(env->curr, f->base->xid, func);
-          }
-    nspc_add_func(env->curr, sym, func);
+          if (!overload) nspc_add_value(env->curr, f->base->xid, value);
+          nspc_add_func(env->curr, sym, func);
           func->vt_index = ff->vt_index;
           return GW_OK;
         }
@@ -411,13 +407,9 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
-nspc_add_func(env->curr, sym, func);
-  if (!overload) {
-//    value_addref(value);
-    nspc_add_value(env->curr, f->base->xid, value);
-//    nspc_add_func(env->curr, f->base->xid, func);
-  } else
-    func->vt_index = ++overload->from->offset;
+  nspc_add_func(env->curr, sym, func);
+  if (!overload) nspc_add_value(env->curr, f->base->xid, value);
+  else func->vt_index = ++overload->from->offset;
   return GW_OK;
 }
 
