@@ -30,6 +30,5 @@
 #include "template.h"
 #include "traverse.h"
 #include "ugen.h"
-#include "vararg.h"
 #include "vm.h"
 #endif

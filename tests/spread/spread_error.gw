@@ -1,0 +1,16 @@
+#! [contains] syntax error
+
+class C:[...] {
+
+  ... T : arg {
+    zvar T arg;
+  }...
+
+
+  ... T : arg {
+    <<< "${T} ${arg}" >>>;
+  }...
+
+}
+
+var C:[float, int] ci;

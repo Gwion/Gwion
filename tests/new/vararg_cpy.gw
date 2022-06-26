@@ -1,5 +1,0 @@
-fun void test(...) {
-  <<< vararg >>>;
-  <<< vararg.cpy() => var Vararg new_arg >>>;
-}
-test(1);

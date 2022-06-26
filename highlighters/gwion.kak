@@ -19,12 +19,12 @@ provide-module -override gwion %{
 			default late if else
 			break continue return while do
 			until repeat for foreach match
-			where when case varloop
+			where when case
 			defer try perform handle retry
 			fun function typedef distinct funptr
 			new spork fork locale'
 
-		attributes='const var static private public protect variadic template samp ms second minute delay'
+		attributes='const var static private public protect template samp ms second minute delay'
 		types='auto int float bool dur time void Object Shred Event'
 		values='true false none this now me adc dac maybe'
 		builtins='__file__ __line__ __func__'

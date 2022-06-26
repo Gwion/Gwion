@@ -79,7 +79,7 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   struct ImportCK ck = {.name = name};
   CHECK_BO(check_typename_def(gwi, &ck));
   DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, parent ?: "Object"));
-  Tmpl *tmpl = ck.sl ? new_tmpl_base(gwi->gwion->mp, ck.sl) : NULL;
+  Tmpl *tmpl = ck.sl ? new_tmpl(gwi->gwion->mp, ck.sl) : NULL;
   if (tmpl) CHECK_BO(template_push_types(gwi->gwion->env, tmpl));
   const Type      base = find_type(gwi->gwion->env, td);
   const Type_List tl   = td->types;
@@ -114,7 +114,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
     t->info->cdef =
         new_class_def(gwi->gwion->mp, 0, ck.sym, NULL, NULL, gwi->loc);
     t->info->cdef->base.type = t;
-    t->info->cdef->base.tmpl = new_tmpl_base(gwi->gwion->mp, ck.sl);
+    t->info->cdef->base.tmpl = new_tmpl(gwi->gwion->mp, ck.sl);
     t->info->tuple           = new_tupleform(gwi->gwion->mp, NULL);
     t->info->parent          = NULL;
     t->info->cdef->cflag |= cflag_struct;

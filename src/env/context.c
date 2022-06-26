@@ -6,7 +6,9 @@
 #include "clean.h"
 
 ANN void free_context(const Context a, Gwion gwion) {
+  const Nspc global = a->nspc->parent;
   nspc_remref(a->nspc, gwion);
+  if(a->error) nspc_remref(global, gwion);
   free_mstr(gwion->mp, a->name);
   ast_cleaner(gwion, a->tree);
   mp_free(gwion->mp, Context, a);
@@ -34,7 +36,7 @@ ANN void load_context(const Context context, const Env env) {
 
 ANN static void clean(const Nspc nspc, const Env env) {
   env->global_nspc = nspc->parent;
-  nspc_remref(nspc, env->gwion);
+//  nspc_remref(nspc, env->gwion);
 }
 
 ANN void unload_context(const Context ctx, const Env env) {
@@ -48,5 +50,6 @@ ANN void unload_context(const Context ctx, const Env env) {
   else if(!ctx->global) {
     ctx->nspc->parent = global->parent;
     clean(global, env);
+    nspc_remref(global, env->gwion);
   } else vector_set(&env->scope->nspc_stack, 2, (m_uint)global);
 }

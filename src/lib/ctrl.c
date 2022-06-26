@@ -11,7 +11,6 @@
 #include "gwi.h"
 
 static OP_CHECK(opck_ctrl) {
-
   Exp_Binary *bin = (Exp_Binary*)data;
   MemPool mp = env->gwion->mp;
 
@@ -19,12 +18,12 @@ static OP_CHECK(opck_ctrl) {
   Exp exp = exp_self(data);
   Exp func = cpy_exp(mp, exp); // set operator
 
-const Exp dot = new_exp_dot(mp, func->d.exp_binary.lhs, insert_symbol(env->gwion->st, "last"), func->pos);
-const Exp call = new_exp_call(mp, dot, NULL, func->pos);
-func->d.exp_binary.lhs = call;
+  const Exp dot = new_exp_dot(mp, func->d.exp_binary.lhs, insert_symbol(env->gwion->st, "last"), func->pos);
+  const Exp call = new_exp_call(mp, dot, NULL, func->pos);
+  func->d.exp_binary.lhs = call;
 
   func->d.exp_binary.op = chuck;
-traverse_exp(env, func);
+  traverse_exp(env, func);
 
   struct Stmt_ one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
 
@@ -32,9 +31,9 @@ traverse_exp(env, func);
   Exp _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->pos);
   Exp time = new_exp_binary(mp, samp, chuck, _now, func->pos);
   struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
-traverse_exp(env, time);
+  traverse_exp(env, time);
 
-  Stmt_List slist = new_mp_vector(mp, sizeof(struct Stmt_), 2);
+  Stmt_List slist = new_mp_vector(mp, struct Stmt_, 2);
   mp_vector_set(slist, struct Stmt_, 0, one);
   mp_vector_set(slist, struct Stmt_, 1, two);
 
@@ -61,7 +60,7 @@ GWION_IMPORT(ctrl) {
               "#!-     samp => now;\n"
               "#!-   }\n"
               "#!- }");
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "@function", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "UGen", "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ctrl))
   GWI_BB(gwi_oper_end(gwi, "|>", NULL))
   return GW_OK;

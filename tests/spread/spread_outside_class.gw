@@ -1,0 +1,6 @@
+#! [contains] spread statement outside of variadic environment
+class C {
+  ... T : arg {
+    <<< "error" >>>;
+  }...
+}

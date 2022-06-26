@@ -70,14 +70,13 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
   return _str2sym(gwion, &tdc, path);
 }
 
-ANN m_bool str2var(const Gwion gwion, Var_Decl vd, const m_str path, const loc_t pos) {
+ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t pos) {
   struct td_checker tdc = {.str = path, .pos = pos};
   DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
   struct AC ac = {.str = tdc.str, .pos = pos};
   CHECK_BB(ac_run(gwion, &ac));
   vd->xid = sym;
   vd->value = NULL;
-  vd->array = ac.depth ? mk_array(gwion->mp, &ac) : NULL;
   vd->pos = pos;
   return GW_OK;
 }
@@ -105,7 +104,7 @@ ANN static Specialized_List __tmpl_list(const Gwion        gwion,
   if (tdc->str[0] != ':') return NULL;
   if (tdc->str[1] != '[') return SPEC_ERROR;
   tdc->str += 2;
-  Specialized_List sl = new_mp_vector(gwion->mp, sizeof(Specialized), 0);
+  Specialized_List sl = new_mp_vector(gwion->mp, Specialized, 0);
   if(!_tmpl_list(gwion, tdc, &sl) || tdc->str[0] != ']') {
     free_specialized_list(gwion->mp, sl);
   }
@@ -144,7 +143,7 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = new_mp_vector(gwion->mp, sizeof(Type_Decl*), 0);
+  Type_List tl = new_mp_vector(gwion->mp, Type_Decl*, 0);
   if (!str2tl(gwion, tdc, &tl)) {
     free_type_list(gwion->mp, tl);
     return (Type_List)GW_ERROR;
@@ -170,7 +169,7 @@ ANN static inline uint get_n(struct td_checker *tdc, const char c) {
 ANN static Arg_List fptr_args(const Gwion gwion, struct td_checker *tdc) {
   if(tdc->str[1] == ')')
     return NULL;
-  Arg_List args = new_mp_vector(gwion->mp, sizeof(Arg), 0);
+  Arg_List args = new_mp_vector(gwion->mp, Arg, 0);
   do {
     Type_Decl *td = _str2td(gwion, tdc);
     if(!td) {
@@ -215,6 +214,7 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   const Fptr_Def fptr = new_fptr_def(gwion->mp, fbase);
   Type_Decl *td = new_type_decl(gwion->mp, insert_symbol(gwion->st, base), tdc->pos);
   td->fptr = fptr;
+  td->types = tl;
   if (ac.depth) td->array = mk_array(gwion->mp, &ac);
   tdc->str = ac.str;
   td->option = option;
@@ -229,10 +229,10 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
     return td;
   }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
+  Type_List tl = td_tmpl(gwion, tdc);
   struct AC ac = {.str = tdc->str, .pos = tdc->pos};
   CHECK_BO(ac_run(gwion, &ac));
   tdc->str     = ac.str;
-  Type_List tl = td_tmpl(gwion, tdc);
   if (tl == (Type_List)GW_ERROR) return NULL;
   const uint option = get_n(tdc, '?');
   Type_Decl *next   = NULL;

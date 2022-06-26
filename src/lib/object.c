@@ -108,7 +108,7 @@ static ID_EMIT(opem_this) {
     return (Instr)GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegPushMem);
-  instr->m_val      = emit->this_offset;
+  instr->m_val      = emit->status.this_offset;
   return instr;
 }
 

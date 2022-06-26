@@ -48,7 +48,7 @@ __attribute__((returns_nonnull)) ANN2(1) Instr
   return instr;
 }
 
-ANN2(1) void emit_fast_except(const Emitter emit, const struct ValueFrom_ *vf, const loc_t loc) {
+ANN2(1) void emit_fast_except(const Emitter emit, const ValueFrom *vf, const loc_t loc) {
   const Instr instr = emit_add_instr(emit, fast_except);
   if(vf) {
     struct FastExceptInfo *info = mp_malloc2(emit->gwion->mp, sizeof(struct FastExceptInfo));

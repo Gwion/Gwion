@@ -1,4 +1,3 @@
-#include <string.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -11,6 +10,7 @@
 #include "instr.h"
 #include "operator.h"
 #include "import.h"
+#include "spread.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
@@ -31,59 +31,47 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s,
   return already_defined(env, s, pos);
 }
 
-ANN static void fptr_assign(const Fptr_Def fptr) {
-  const Func_Def def = fptr->type->info->func->def;
-  if (GET_FLAG(fptr->base, global)) {
-    SET_FLAG(fptr->value, global);
-    SET_FLAG(fptr->base->func, global);
-    SET_FLAG(def->base, global);
-  } else if (!GET_FLAG(fptr->base, static)) {
-    set_vflag(fptr->value, vflag_member);
-    set_vflag(fptr->base->func->value_ref, vflag_member);
-    def->stack_depth += SZ_INT;
-  } else {
-    SET_FLAG(fptr->value, static);
-    SET_FLAG(fptr->base->func, static);
-    SET_FLAG(def->base, static);
-  }
-  if (fbflag(def->base, fbflag_variadic)) def->stack_depth += SZ_INT;
-}
-
-static void fptr_def(const Env env, const Fptr_Def fptr) {
-  const Func_Def def = new_func_def(
-      env->gwion->mp, cpy_func_base(env->gwion->mp, fptr->base), NULL);
-  fptr->base->func = new_func(env->gwion->mp, s_name(fptr->base->xid), def);
-  fptr->value->d.func_ref     = fptr->base->func;
-  fptr->base->func->value_ref = fptr->value;
-  fptr->type->info->func      = fptr->base->func;
-  def->base->func             = fptr->base->func;
+ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
+  if(env->class_def && !GET_FLAG(fptr->base, static)) {
+    Arg arg = { .td = type2td(env->gwion, env->class_def, fptr->base->td->pos) };
+    if(fptr->base->args) {
+      Arg_List args = new_mp_vector(env->gwion->mp, Arg, fptr->base->args->len + 1);
+      mp_vector_set(args, Arg, 0, arg);
+      for(uint32_t i = 0; i < fptr->base->args->len; i++) {
+        Arg *base  = mp_vector_at(fptr->base->args, Arg, i);
+        Arg arg = { .td = cpy_type_decl(env->gwion->mp, base->td) };
+        mp_vector_set(args, Arg, i+1, arg);
+      }
+      return args;
+    } else {
+      Arg_List args = new_mp_vector(env->gwion->mp, Arg, 1);
+      mp_vector_set(args, Arg, 0, arg);
+      return args;
+    }
+  } else if(fptr->base->args)
+    return cpy_arg_list(env->gwion->mp, fptr->base->args);
+  return NULL;
 }
 
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
-  CHECK_BB(env_access(env, fptr->base->flag, fptr->base->td->pos));
-  CHECK_BB(scan0_defined(env, fptr->base->xid, fptr->base->td->pos));
-  const m_str name   = s_name(fptr->base->xid);
-  const Type  t      = scan0_type(env, name, env->gwion->type[et_fptr]);
-  if(env->class_def && !strncmp(s_name(fptr->base->xid), "@sig", 4)) {
-    SET_FLAG(fptr->base, static);
-    SET_FLAG(fptr->base, global);
+  const loc_t loc = fptr->base->td->pos;
+  CHECK_BB(env_access(env, fptr->base->flag, loc));
+  CHECK_BB(scan0_defined(env, fptr->base->xid, loc));
+  const Arg_List args = fptr_arg_list(env, fptr);
+  Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, fptr->base->td),
+    insert_symbol("func"), args, ae_flag_static | ae_flag_private, loc);
+  const Func_Def fdef = new_func_def(env->gwion->mp, fbase, NULL);
+  Ast body = new_mp_vector(env->gwion->mp, Section, 1);
+  mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
+  Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
+  const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->xid, td, body, loc);
+  if(GET_FLAG(fptr->base, global)) SET_FLAG(cdef, global);
+  if(fptr->base->tmpl) {
+    fbase->tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
+    cdef->base.tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
   }
-  const bool  global = !env->class_def && GET_FLAG(fptr->base, global);
-  t->flag |= fptr->base->flag;
-  fptr->type = t;
-  if (global) {
-    context_global(env);
-    env_push_global(env);
-  }
-  fptr->value = mk_class(env, t, fptr->base->pos);
-  if (global) env_pop(env, 0);
-  valuefrom(env, fptr->value->from);
-  fptr_def(env, fptr);
-  if (env->class_def) fptr_assign(fptr);
-  set_vflag(fptr->value, vflag_func);
-  add_type(env, t->info->value->from->owner, t);
-  type_addref(t);
-  return GW_OK;
+  fptr->cdef = cdef;
+  return scan0_class_def(env, cdef);
 }
 
 static OP_CHECK(opck_implicit_similar) {
@@ -206,7 +194,7 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     op_cpy(env, &opi);
     scan0_explicit_distinct(env, base, tdef->type);
     type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
-  } else if(tdef->ext->array)
+  } else //if(tdef->ext->array)
     set_tflag(tdef->type, tflag_typedef);
   if(tflag(base, tflag_ref)) {
     set_tflag(tdef->type, tflag_ref);
@@ -352,7 +340,7 @@ ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
     if (!nspc_lookup_trait1(env->curr, xid)) {
       gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
       did_you_mean_trait(env->curr, s_name(xid));
-      env_set_error(env);
+      env_set_error(env, true);
       return GW_ERROR;
     }
   }
@@ -363,14 +351,13 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
   const Type parent = cdef_parent(env, cdef);
   if (parent == (Type)GW_ERROR) return NULL;
-  if(GET_FLAG(cdef, global) && !type_global(env, parent)) {
+  if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
     const Value v = parent->info->value;
     gwerr_warn("declared here", NULL, NULL, v->from->filename, v->from->loc);
-    env->context->error = true;
+    env_set_error(env,  true);
     return NULL;
   }
-  //if(parent) type_addref(parent);
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
   const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
   if (cflag(cdef, cflag_struct)) {
@@ -382,9 +369,43 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   t->nspc->parent = env->curr;
   t->info->cdef   = cdef;
   t->flag |= cdef->flag;
-  //add_type(env, t->info->value->from->owner, t);
   cdef_flag(cdef, t);
   return t;
+}
+
+
+ANN static m_bool _spread_tmpl(const Env env, const Type t, const Spread_Def spread) {
+  if(t->info->value->from->owner_class)
+    CHECK_BB(_spread_tmpl(env, t->info->value->from->owner_class, spread));
+  const Tmpl *tmpl = t->info->cdef->base.tmpl;
+  if(!tmpl || !tmpl->call) return GW_OK;
+  if(is_spread_tmpl(tmpl))
+    CHECK_BB(spread_ast(env, spread, tmpl));
+  return GW_OK;
+}
+
+ANN static m_bool spread_tmpl(const Env env, const Spread_Def spread) {
+  if(env->class_def) CHECK_BB(_spread_tmpl(env, env->class_def, spread));
+  if(!env->func) return GW_OK;
+  const Tmpl *tmpl = env->func->def->base->tmpl;
+  if(!tmpl || !tmpl->call) return GW_OK;
+  if(is_spread_tmpl(tmpl))
+      CHECK_BB(spread_ast(env, spread, tmpl));
+  return GW_OK;
+}
+
+ANN static bool spreadable(const Env env) {
+  const Func f = env->func;
+  if(f && f->def->base->tmpl && is_spread_tmpl(f->def->base->tmpl))
+    return true;
+  Type t = env->class_def;
+  while(t) {
+    const Tmpl *tmpl = t->info->cdef->base.tmpl;
+    if(tmpl && is_spread_tmpl(tmpl))
+      return true;
+    t = t->info->value->from->owner_class;
+  }
+  return false;
 }
 
 ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
@@ -395,26 +416,48 @@ ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
         env->name = stmt->d.stmt_pp.data;
       else if (stmt->d.stmt_pp.pp_type == ae_pp_import)
         CHECK_BB(plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->pos));
+    } else if (stmt->stmt_type == ae_stmt_spread) {
+      if(!spreadable(env))
+        ERR_B(stmt->pos, "spread statement outside of variadic environment");
+      if(!env->context->extend)
+         env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
+      CHECK_BB(spread_tmpl(env, &stmt->d.stmt_spread));
     }
   }
   return GW_OK;
 }
 
-#define scan0_func_def dummy_func
+ANN m_bool scan0_func_def(const Env env, const Func_Def fdef) {
+  const Ast old_extend = env->context ? env->context->extend : NULL;
+  if(!fdef->base->tmpl || !fdef->base->tmpl->call) return GW_OK;
+  if(env->context) {
+    if(fdef->base->tmpl && fdef->base->tmpl->call && is_spread_tmpl(fdef->base->tmpl)) {
+    struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
+                                                            env->func;
+    env->func = &fake;
+    if(!fdef->builtin && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
+      scan0_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list);
+    if(env->context->extend)
+      fdef->d.code->d.stmt_code.stmt_list = spread_func(env, fdef->d.code->d.stmt_code.stmt_list);
+    env->func = former;
+    env->context->extend = old_extend;
+  }}
+  return GW_OK;
+}
 
 ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
   DECL_OB(const Type, t, = known_type(env, xdef->td));
-  if (isa(t, env->gwion->type[et_compound]) < 0)
-    ERR_B(xdef->td->pos, _("only compound types can be extended"))
-  if (GET_FLAG(t, final)) // TODO: add type initial declaration
-    ERR_B(xdef->td->pos, _("can't extend final type"))
-  Ast ast = xdef->body;
-  for(m_uint i = 0; i < ast->len; i++) {
-    Section * section = mp_vector_at(ast, Section, i);
-    if (section->section_type == ae_section_func &&
-        GET_FLAG(section->d.func_def->base, abstract))
-      ERR_B(section->d.func_def->base->pos,
-            _("can't use {/+}abstract{0} functions in {+/}extends{0}"))
+  if(type_global(env, t)) {
+    for(uint32_t i = 0; i < xdef->traits->len; i++) {
+      const Symbol xid = *mp_vector_at(xdef->traits, Symbol, i);
+      const Trait global = nspc_lookup_trait1(env->global_nspc, xid);
+      if(!global) {
+        const Trait trait = nspc_lookup_trait1(env->curr, xid);
+        gwerr_basic("trait should be declared global", NULL, NULL, trait->filename, trait->loc, 0);
+        gwerr_secondary("from the request ", env->name, xdef->td->pos);
+        env_set_error(env, true);
+      }
+    }
   }
   xdef->t = t;
   return GW_OK;
@@ -425,15 +468,20 @@ ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   trait->loc        = pdef->pos;
   trait->name       = s_name(pdef->xid);
   trait->filename   = env->name;
-  nspc_add_trait(env->curr, pdef->xid, trait);
+  if(GET_FLAG(pdef, global))
+    nspc_add_trait(env->global_nspc, pdef->xid, trait);
+  else nspc_add_trait(env->curr, pdef->xid, trait);
   Ast ast = pdef->body;
   if(!ast) return GW_OK; // ???
   for(m_uint i = 0; i < ast->len; i++) {
     Section *section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_func) {
       const Func_Def fdef = section->d.func_def;
-      if (!trait->requested_funcs.ptr) vector_init(&trait->requested_funcs);
-      vector_add(&trait->requested_funcs, (m_uint)fdef);
+      if (fdef->base->flag != ae_flag_none &&
+          fdef->base->flag != (ae_flag_none | ae_flag_abstract))
+        ERR_B(fdef->base->pos, "Trait function must be declared without qualifiers");
+      if (!trait->fun) trait->fun = new_mp_vector(env->gwion->mp, Func_Def, 0);
+      mp_vector_add(env->gwion->mp, &trait->fun, Func_Def, fdef);
     }
   }
   return GW_OK;
@@ -445,7 +493,7 @@ ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
   if (exists) {
     gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->pos, 0);
     gwerr_secondary("defined here", env->name, exists->loc);
-    env_set_error(env);
+    env_set_error(env, true);
     return already_defined(env, s, pdef->pos);
   }
   if (pdef->traits) CHECK_BB(find_traits(env, pdef->traits, pdef->pos));
@@ -461,14 +509,16 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->pos);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
-//  const m_uint scope = env_push(env, cdef->base.type->info->value->from->owner_class, cdef->base.type->info->value->from->owner);
   const m_bool ret = cdef->body ? env_body(env, cdef, scan0_section) : GW_OK;
-//  env_pop(env, scope);
   return ret;
 }
 
+
+
+ANN Ast spread_class(const Env env, const Ast body);
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   CHECK_BB(scan0_global(env, c->flag, c->pos));
+  const Ast old_extend = env->context ? env->context->extend : NULL;
   const int       cpy  = tmpl_base(c->base.tmpl) || GET_FLAG(c, global);
   const Class_Def cdef = !cpy ? c : cpy_class_def(env->gwion->mp, c);
   if (GET_FLAG(cdef, global)) { // could be updated
@@ -487,8 +537,10 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
     c->base.type->info->cdef = cdef;
     set_tflag(c->base.type, tflag_cdef);
   }
-//  if (GET_FLAG(cdef, global))
-//    type_addref(c->base.type);
+  if(env->context) {
+    if(!tmpl_base(c->base.tmpl) && env->context->extend) cdef->body = spread_class(env, cdef->body);
+    env->context->extend = old_extend;
+  }
   return ret;
 }
 

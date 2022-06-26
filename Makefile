@@ -23,7 +23,7 @@ test_dir += examples
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
-CFLAGS += -Iutil/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
+CFLAGS += -Iutil/include -Iutil/libtermcolor/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
 CFLAGS += -Iast/libprettyerr/src -Ifmt/include
 
 # add commit hash to version for now
@@ -101,7 +101,7 @@ ast/libgwion_ast.a: util/libgwion_util.a
 	@+ ${MAKE} -s -C ast
 
 libcmdapp/libcmdapp.a:
-	@+${MAKE} -s -C libcmdapp static
+	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C libcmdapp static
 
 fmt/libgwion-fmt.a:
 	@+${MAKE} -s -C fmt libgwion-fmt.a

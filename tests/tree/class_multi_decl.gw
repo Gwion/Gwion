@@ -1,4 +1,0 @@
-class C {
-	var int i, j;
-}
-

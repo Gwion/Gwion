@@ -35,17 +35,17 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
 }
 
 ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
-  const struct ValueFrom_ *from = t->info->value->from;
+  const ValueFrom *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
   if(!GET_FLAG(t, global) && !from_global_nspc(env, from->owner)) {
     if(from->owner_class && type_global(env, from->owner_class))
       return true;
     gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
-    gwerr_secondary("not declared global", from->filename, from->loc);
-    const struct ValueFrom_ *ownerFrom = env->class_def->info->value->from;
-    gwerr_secondary("is global", ownerFrom->filename, ownerFrom->loc);
-    env_set_error(env);
+    gwerr_secondary_from("not declared global", from);
+    const ValueFrom *ownerFrom = env->class_def->info->value->from;
+    gwerr_secondary_from("is global", ownerFrom);
+    env_set_error(env, true);
     return false;
   }
   return true;
@@ -79,7 +79,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
   return t;
 }
 
-static inline m_bool scan1_defined(const Env env, const Var_Decl var) {
+static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
   if (var->value) // from an auto declaration
     return GW_OK;
   if (((!env->class_def || !GET_FLAG(env->class_def, final) ||
@@ -100,60 +100,48 @@ static inline bool array_ref2(const Array_Sub array) {
   return array && !(array->exp && exp_is_zero(array->exp));
 }
 
-ANN static m_bool scan1_decl(const Env env, const Exp_Decl *decl) {
+ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
   const bool    decl_ref = array_ref(decl->td->array);
-  Var_Decl_List list     = decl->list;
-  for(uint32_t i = 0; i < list->len; i++) {
-    const Var_Decl vd = mp_vector_at(list, struct Var_Decl_, i);
-    CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
-    Type t = decl->type;
-    CHECK_BB(scan1_defined(env, vd));
-    if (vd->array) {
-      if (vd->array->exp) CHECK_BB(scan1_exp(env, vd->array->exp));
-      CHECK_OB((t = array_type(env, decl->type, vd->array->depth)));
-    }
-    const Type base = array_base_simple(t);
-    if ((!GET_FLAG(decl->td, late) && GET_FLAG(base, abstract)) &&
-        (array_ref2(vd->array) ||
-        array_ref2(decl->td->array)))
-      ERR_B(vd->pos, _("arrays of abstract type '%s' must be declared empty"),
-            base->name);
-
-    const Value v = vd->value =
-        vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
-    nspc_add_value(env->curr, vd->xid, v);
-    if (GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
-    v->type = t;
-    if (decl_ref || array_ref(vd->array)) SET_FLAG(v, late);
-    v->flag |= decl->td->flag;
-    if (!env->scope->depth) {
-      valuefrom(env, v->from);
-      if (env->class_def) {
-        if (env->class_def->info->tuple) tuple_contains(env, v);
-        if (!GET_FLAG(decl->td, static)) {
-          set_vflag(v, vflag_member);
-          if(isa(t, env->gwion->type[et_object]) > 0)
-            set_vflag(v, vflag_release);
-          if (tflag(env->class_def, tflag_struct)) {
-            v->from->offset = env->class_def->size;
-            env->class_def->size += t->size;
-          }
+  Var_Decl *const vd = &decl->vd;
+  CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
+  Type t = decl->type;
+  CHECK_BB(scan1_defined(env, vd));
+  const Type base = array_base_simple(t);
+  if ((!GET_FLAG(decl->td, late) && GET_FLAG(base, abstract)) && array_ref2(decl->td->array))
+    ERR_B(vd->pos, _("arrays of abstract type '%s' must be declared empty"),
+          base->name);
+  const Value v = vd->value =
+      vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
+  nspc_add_value(env->curr, vd->xid, v);
+  if (GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
+  v->type = t;
+  if (decl_ref) SET_FLAG(v, late);
+  v->flag |= decl->td->flag;
+  if (!env->scope->depth) {
+    valuefrom(env, v->from);
+    if (env->class_def) {
+      if (env->class_def->info->tuple) tuple_contains(env, v);
+      if (!GET_FLAG(decl->td, static)) {
+        set_vflag(v, vflag_member);
+        if(isa(t, env->gwion->type[et_object]) > 0)
+          set_vflag(v, vflag_release);
+        if (tflag(env->class_def, tflag_struct)) {
+          v->from->offset = env->class_def->size;
+          env->class_def->size += t->size;
         }
-      } else
-        set_vflag(v, vflag_fglobal); // file global
-    } else if (GET_FLAG(decl->td, global))
-      SET_FLAG(v, global);
-//    else if(v->type != env->gwion->type[et_auto] && (v->type != env->class_def || env->scope->depth)) {
-    else if(v->type != env->gwion->type[et_auto] && (v->type != env->class_def)) {
+      }
+    } else set_vflag(v, vflag_fglobal); // file global
+  } else if (GET_FLAG(decl->td, global))
+    SET_FLAG(v, global);
+    else if(v->type != env->gwion->type[et_auto] && v->type != env->class_def) {
       type_addref(v->type);
-      set_vflag(v, vflag_inner); // file global
-    }
+    set_vflag(v, vflag_inner); // file global
   }
-  ((Exp_Decl *)decl)->type = mp_vector_at(decl->list, struct Var_Decl_, 0)->value->type;
+  ((Exp_Decl *)decl)->type = decl->vd.value->type;
   return GW_OK;
 }
 
-ANN m_bool scan1_exp_decl(const Env env, const Exp_Decl *decl) {
+ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
   CHECK_OB(decl->type);
@@ -316,7 +304,7 @@ ANN static inline m_bool shadow_err(const Env env, const Value v,
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
-  env_set_error(env);
+  env_set_error(env, true);
   return GW_ERROR;
 }
 
@@ -339,8 +327,6 @@ ANN static inline m_bool shadow_var(const Env env, const Symbol sym,
 #define describe_ret_nspc(name, type, prolog, exp)                             \
   describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(scan1_exp(env, stmt->cond) < 0 ||
-    scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(varloop, Stmt_VarLoop,, !(scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->c2) < 0 ||
@@ -389,11 +375,9 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
 }
 
 ANN static Value arg_value(const Env env, Arg *const arg) {
-  const Var_Decl vd = &arg->var_decl;
+  const Var_Decl *vd = &arg->var_decl;
   const Value    v   = new_value(env, arg->type,
                             vd->xid ? s_name(vd->xid) : (m_str) __func__, arg->var_decl.pos);
-  if (vd->array)
-    v->type = arg->type = array_type(env, arg->type, vd->array->depth);
   if (arg->td)
     v->flag = arg->td->flag;
   return v;
@@ -402,11 +386,13 @@ ANN static Value arg_value(const Env env, Arg *const arg) {
 ANN static m_bool scan1_args(const Env env, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    const Var_Decl vd = &arg->var_decl;
+    Var_Decl *const vd = &arg->var_decl;
     if (vd->xid) CHECK_BB(isres(env, vd->xid, vd->pos));
     if (arg->td) {
       SET_FLAG(arg->td, late);
       CHECK_OB((arg->type = void_type(env, arg->td)));
+      if (GET_FLAG(env->func->def->base, global) && !type_global(env, arg->type))
+        ERR_B(arg->td->pos, "is not global");
       UNSET_FLAG(arg->td, late);
     }
     vd->value = arg_value(env, arg);
@@ -429,13 +415,6 @@ ANN static m_bool _scan1_fbase_tmpl(const Env env, Func_Base *base) {
     nspc_add_type(env->curr, spec->xid, env->gwion->type[et_auto]);
   }
   CHECK_OB((base->ret_type = scan1_noret(env, base)));
-  if (base->args) {
-    Arg_List args = base->args;
-    for(uint32_t i = 0; i < args->len; i++) {
-      Arg *arg = mp_vector_at(args, Arg, i);
-      CHECK_OB(known_type(env, arg->td));
-    }
-  }
   return GW_OK;
 }
 
@@ -464,32 +443,23 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
+#include "object.h"
+#include "instr.h"
+#include "operator.h"
+#include "import.h"
+
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  if (tmpl_base(fptr->base->tmpl)) return scan1_fbase_tmpl(env, fptr->base);
-  if (!fptr->base->func) {
-    fptr->base->func =
-        nspc_lookup_value0(env->curr, fptr->base->xid)->d.func_ref;
-    fptr->type = nspc_lookup_type0(env->curr, fptr->base->xid);
-  }
-  const Func_Def fdef = fptr->base->func->def;
-  CHECK_OB((fdef->base->ret_type = scan1_noret(env, fdef->base)));
-  if (!fdef->base->args) return GW_OK;
-  RET_NSPC(scan1_args(env, fdef->base->args))
+  return scan1_class_def(env, fptr->cdef);
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
-  if (!is_fptr(env->gwion, tdef->type) && !tflag(tdef->type, tflag_cdef)) {
+  if (!tflag(tdef->type, tflag_cdef)) {
     if(!tflag(tdef->type->info->parent, tflag_scan1))
                     return scan1_class_def(env, tdef->type->info->parent->info->cdef);
   }
-  if (!is_fptr(env->gwion, tdef->type) && !tdef->type->info->cdef) {
-    if(!tflag(tdef->type->info->parent, tflag_scan1))exit(12);
-  }
-  return (!is_fptr(env->gwion, tdef->type) && tdef->type->info->cdef)
-             ? scan1_cdef(env, tdef->type)
-             : GW_OK;
+  return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
 }
 
 ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
@@ -554,6 +524,10 @@ ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
 
 ANN static m_bool scan1_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return scan1_stmt(env, stmt->stmt);
+}
+
+ANN static m_bool scan1_stmt_spread(const Env env, const Spread_Def spread) {
+  ERR_B(stmt_self(spread)->pos, "spread statement outside of variadic environment");
 }
 
 DECL_STMT_FUNC(scan1, m_bool, Env)
@@ -684,7 +658,7 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
     CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos));
   CHECK_BB(scan1_fdef_defined(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef);
-  struct Func_ fake = {.name = s_name(fdef->base->xid)}, *const former =
+  struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                              env->func;
   env->func = &fake;
   ++env->scope->depth;
@@ -700,11 +674,12 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if (fdef->base->xid == insert_symbol("@gack") && !fake.weight) {
     gwerr_basic(_("`@gack` operator does not print anything"), NULL,
       _("use `<<<` `>>>` in the function"), env->name, fdef->base->pos, 0);
-    env->context->error = true;
+    env_set_error(env,  true);
     return GW_ERROR;
   }
   return ret;
 }
+
 
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   const uint16_t depth = env->scope->depth;
@@ -714,15 +689,8 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
-ANN static m_bool scan1_extend_def(const Env env, const Extend_Def xdef) {
-  CHECK_BB(ensure_scan1(env, xdef->t));
-  CHECK_BB(extend_push(env, xdef->t));
-  const m_bool ret = scan1_ast(env, &xdef->body);
-  extend_pop(env, xdef->t);
-  return ret;
-}
-
 #define scan1_trait_def dummy_func
+#define scan1_extend_def dummy_func
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
@@ -761,8 +729,8 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
-  const Class_Def c = t->info->cdef;
   if (tflag(t, tflag_scan1)) return GW_OK;
+  const Class_Def c = t->info->cdef;
   set_tflag(t, tflag_scan1);
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan1_section));

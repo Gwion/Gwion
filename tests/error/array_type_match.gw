@@ -1,2 +1,2 @@
 #! [contains] array types do not match
-[1,2,3,4] => var Object k[1];
+[1,2,3,4] => var Object[1] k;

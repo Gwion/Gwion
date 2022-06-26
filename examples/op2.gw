@@ -10,7 +10,8 @@ operator float  => (float   f, C d){ <<< "float   => C: ", f     => d.f >>>; ret
 operator float =>  (C d, int     c){ <<< "int   => C: ", c => d.f >>>; return 2.0;}
 operator float =>  (C d,  float   f){ <<< "C   => float: ", f     => d.f >>>; return 2.0;}
 
-var C c, d;
+var C c;
+var C d;
 
 12.3 => c.f;
 <<<  c                     => d  >>>;

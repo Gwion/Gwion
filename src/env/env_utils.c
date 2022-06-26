@@ -68,8 +68,9 @@ ANN Type find_type(const Env env, Type_Decl *path) {
 ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
   if (!v || is_class(env->gwion, v->type)) return GW_OK;
-  env_err(env, pos, _("'%s' already declared as variable of type '%s'."),
-          s_name(s), v->type->name);
+  gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, pos, 0);
+  gwerr_secondary_from("declared here", v->from);
+  env_error_footer(env);
   return GW_ERROR;
 }
 

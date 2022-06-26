@@ -11,19 +11,24 @@
 #include "instr.h"
 #include "object.h"
 #include "import.h"
+#include "spread.h"
 
 ANN static m_bool _push_types(const Env env, const Nspc nspc,
                               const Tmpl *tmpl) {
   Specialized_List sl = tmpl->list;
   Type_List        tl = tmpl->call;
+  Specialized *spec = mp_vector_at(sl, Specialized, sl->len - 1);
+
+  const uint32_t len = strcmp(s_name(spec->xid), "...") ? sl->len : sl->len-1;
   if(!tl) return GW_OK;
-  for(uint32_t i = 0; i < sl->len; i++) {
+  for(uint32_t i = 0; i < len; i++) {
     if (i >= tl->len) return GW_OK;
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
     const Type t = known_type(env, td);
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     nspc_add_type(nspc, spec->xid, t);
   };
+if(len != sl->len) return GW_OK;
   return tl->len == sl->len ? GW_OK : GW_ERROR;
 }
 
@@ -58,19 +63,27 @@ ANN void check_call(const Env env, const Tmpl *tmpl) {
   for(uint32_t i = 0; i < tmpl->call->len; i++) {
     Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
     Type_Decl *call = *mp_vector_at(tmpl->call, Type_Decl*, i);
-    if(spec->xid == call->xid)
-      call->xid = insert_symbol("auto");
+    if(spec->xid == call->xid) {
+      if (!nspc_lookup_type1(env->curr, spec->xid))
+        call->xid = insert_symbol("auto");
+      else {
+         const Type t = nspc_lookup_type1(env->curr, spec->xid);
+         Type_Decl *td = type2td(env->gwion, t, call->pos);
+         free_type_decl(env->gwion->mp, call);
+         mp_vector_set(tmpl->call, Type_Decl*, i, td);
+      }
+    }
   }
 }
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
-  if(tmpl->call) check_call(env, tmpl);
+  if (tmpl->call) check_call(env, tmpl);
   if (push_types(env, env->curr, tmpl) > 0) return GW_OK;
   POP_RET(GW_ERROR);
 }
 
 ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
-  Tmpl *tmpl = new_tmpl(env->gwion->mp, tm->list, 0);
+  Tmpl *tmpl = new_tmpl(env->gwion->mp, tm->list);
   tmpl->call = cpy_type_list(env->gwion->mp, types);
   return tmpl;
 }
@@ -139,10 +152,11 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     Type_List           tl = td->types;
     Specialized_List    sl = t->info->cdef->base.tmpl
         ? t->info->cdef->base.tmpl->list : NULL;
-    for(uint32_t i = 0; i < tl->len; i++) {
+    if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread_tmpl(t->info->cdef->base.tmpl)))
+       ERR_O(td->pos, "invalid template type number");
+    for (uint32_t i = 0; i < sl->len; i++) {
       Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
       DECL_OO(const Type, t, = known_type(env, tmp));
-      if(!sl) continue;
       Specialized *spec = mp_vector_at(sl, Specialized, i);
       if(spec->traits) {
         Symbol missing = miss_traits(t, spec);

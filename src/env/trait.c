@@ -9,7 +9,7 @@ ANN Trait new_trait(MemPool mp, const loc_t loc) {
 }
 
 ANN void free_trait(MemPool mp, Trait a) {
-  if (a->requested_values.ptr) vector_release(&a->requested_values);
-  if (a->requested_funcs.ptr) vector_release(&a->requested_funcs);
+  if (a->var) free_mp_vector(mp, Value, a->var);
+  if (a->fun) free_mp_vector(mp, Func_Def, a->fun);
   mp_free(mp, Trait, a);
 }

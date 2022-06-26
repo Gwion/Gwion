@@ -1,8 +1,0 @@
-class C:[A] {}
-
-extends C:[int] {
-  fun void test() { <<< __func__ >>>; }
-}
-
-const C:[int] c;
-c.test();

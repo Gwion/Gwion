@@ -22,7 +22,7 @@ static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
   gwi->ck->name = n;
   CHECK_BB(check_typename_def(gwi, gwi->ck));
   CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, sizeof(Arg), 0);
+  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
   return GW_OK;
 }
 
@@ -35,7 +35,6 @@ ANEW ANN static Func_Base *gwi_func_base(const Gwi gwi, ImportCK *ck) {
   Arg_List args = gwi->ck->mpv->len ? cpy_arg_list(gwi->gwion->mp, gwi->ck->mpv) : NULL;
   Func_Base *    base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, args,
                                   ck->flag, gwi->loc);
-  if (ck->variadic) base->fbflag |= fbflag_variadic;
   ck->td = NULL;
   if (ck->tmpl) {
     base->tmpl = gwi_tmpl(gwi);
@@ -60,8 +59,6 @@ ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
-//  Section * section = new_section_func_def(gwi->gwion->mp, fdef);
-//  const Ast body    = new_ast(gwi->gwion->mp, section, NULL);
   Section section = (Section) {
     .section_type = ae_section_func,
     .d = { .func_def = fdef }
@@ -79,11 +76,8 @@ ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
   fdef->builtin = true;
   if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
-    if(!gwi->gwion->env->class_def->nspc->vtable.ptr)
-      vector_init(&gwi->gwion->env->class_def->nspc->vtable);
     section_fdef(gwi, fdef);
     fdef->d.dl_func_ptr = ck->addr;
-//  builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);
     return GW_OK;
   }
   if (traverse_func_def(gwi->gwion->env, fdef) < 0)
@@ -104,11 +98,6 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
                        const restrict m_str n) {
   CHECK_BB(ck_ok(gwi, ck_fdef));
-  if (gwi->ck->variadic) GWI_ERR_B(_("already declared as variadic"));
-  if (!strcmp(n, "...")) {
-    gwi->ck->variadic = 1;
-    return GW_OK;
-  }
   DECL_OB(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n) > 0) {
@@ -116,7 +105,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
     mp_vector_add(gwi->gwion->mp, &gwi->ck->mpv, Arg, arg);
     return GW_OK;
   }
-  free_type_decl(gwi->gwion->mp, td); // ???
+  free_type_decl(gwi->gwion->mp, td);
   return GW_ERROR;
 }
 
@@ -136,9 +125,6 @@ ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
     .d = { .fptr_def = fdef }
   };
   gwi_body(gwi, &section);
-//  Section * section = new_section_fptr_def(gwi->gwion->mp, fdef);
-//  const Ast body    = new_ast(gwi->gwion->mp, section, NULL);
-//  gwi_body(gwi, body);
   return GW_OK;
 }
 
@@ -151,17 +137,16 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     lint_fptr_def(gwi->lint, fptr);
   }
   if (safe_tflag(gwi->gwion->env->class_def,
-                 tflag_tmpl) /* && !fptr->base->tmpl*/) {
+                 tflag_tmpl) /*&& !fptr->base->tmpl*/) {
     section_fptr(gwi, fptr);
     ck_end(gwi);
     return (Type)GW_OK;
   }
   const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
-  if (fptr->base->func) // is it needed ?
-    set_vflag(fptr->base->func->value_ref, vflag_builtin);
-  const Type t = ret > 0 ? fptr->type : NULL;
+//  if (fptr->base->func) // is it needed ?
+//    set_vflag(fptr->base->func->value_ref, vflag_builtin);
+  const Type t = ret > 0 ? fptr->cdef->base.type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
-  if (fptr->type) type_remref(fptr->type, gwi->gwion);
   ck_end(gwi);
   return t;
 }

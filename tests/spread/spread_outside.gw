@@ -1,0 +1,5 @@
+#! [contains] spread statement outside of variadic environment
+
+... T : arg {
+  <<< "error" >>>;
+}...

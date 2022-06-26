@@ -8,4 +8,4 @@ fun void test:[A]() {
 
 test @=> var B b;
 <<< b() >>>;
-<<< b:[int]() >>>;
+<<< b:[float]() >>>;

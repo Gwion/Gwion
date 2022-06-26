@@ -38,10 +38,6 @@ struct Instr_ {
 ANN void free_instr(const Gwion, const Instr);
 INSTR(EOC);
 INSTR(DTOR_EOC);
-INSTR(DtorReturn);
-
-INSTR(ComplexReal);
-INSTR(ComplexImag);
 
 struct FastExceptInfo {
   m_str file;
@@ -51,8 +47,6 @@ struct FastExceptInfo {
 };
 
 INSTR(fast_except);
-/* function */
-INSTR(DtorReturn);
 
 /* array */
 INSTR(ArrayBottom);
@@ -61,30 +55,18 @@ INSTR(ArrayInit);
 INSTR(ArrayAlloc);
 INSTR(ArrayStruct);
 
-/* vararg */
-INSTR(VarargIni);
-
 INSTR(DotTmpl);
 INSTR(GTmpl);
 
 struct dottmpl_ {
-  size_t    len;
   m_str     name;
   Func_Def  base, def;
-  Type      owner_class;
-  Nspc      owner;
   Type_List tl;
-  void *    xfun; // (type is f_xfun)
 };
-ANN void   free_dottmpl(struct dottmpl_ *);
-ANN m_bool traverse_dot_tmpl(const Emitter emit, const struct dottmpl_ *dt);
+ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value v);
 
 INSTR(SetFunc);
 INSTR(SetCtor);
-// optimizations
-#ifdef OPTIMIZE
-INSTR(PutArgsInMem);
-#endif
 #include "opcode.h"
 
 INSTR(dict_ctor_alt);

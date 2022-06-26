@@ -1,6 +1,0 @@
-#! [contains] extend final type
-class final C {}
-
-extends C {
-  fun void test() {}
-}

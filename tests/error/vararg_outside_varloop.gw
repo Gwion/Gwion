@@ -1,5 +1,0 @@
-#! [contains] outside varloop
-fun void test(...) {
-  <<<vararg $ int >>>;
-}
-new Object => test;

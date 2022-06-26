@@ -1,7 +1,0 @@
-fun void test:[A](...) {
-  varloop vararg {
-    <<< vararg $ int >>>;
-  }
-}
-test:[int](1, 2);
-test:[float](1, 2, 3);

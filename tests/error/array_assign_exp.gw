@@ -1,2 +1,2 @@
 #! [contains] do not provide array
-[1,2,3,4] => var int loop[1];
+[1,2,3,4] => var int[1] loop;

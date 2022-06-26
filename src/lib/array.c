@@ -120,12 +120,11 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos, _("array depths do not match."));
   }
   if (bin->rhs->exp_type == ae_exp_decl) {
-    Var_Decl vd = mp_vector_at(bin->rhs->d.exp_decl.list, struct Var_Decl_, 0);
-    if (vd->array &&
-        vd->array->exp)
+    Type_Decl *td = bin->rhs->d.exp_decl.td;
+    if (td->array && td->array->exp)
       ERR_N(exp_self(bin)->pos,
             _("do not provide array for 'xxx => declaration'."));
-    SET_FLAG(vd->value, late);
+    SET_FLAG(bin->rhs->d.exp_decl.vd.value, late);
   }
   bin->rhs->ref = bin->lhs;
 //  bin->rhs->data = bin->lhs;
@@ -414,13 +413,14 @@ static const struct VM_Code_ foldr_run_code = {.name     = "foldr_run_code",
 
 typedef struct FunctionalFrame {
   VM_Code  code;
+  M_Object o;
   uint16_t pc;
   uint16_t offset;
   uint16_t index;
   uint16_t ret_size;
 } FunctionalFrame;
 
-ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
+ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code, const M_Object o,
                              const m_uint offset, const m_uint start) {
   FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 2 + start);
   frame->pc              = shred->pc;
@@ -431,6 +431,8 @@ ANN static inline void _init(const VM_Shred shred, const struct VM_Code_ *code,
   shred->code = (VM_Code)code;
   shred->pc   = 0;
   shredule(shred->tick->shreduler, shred, 0);
+  if(!(*(VM_Code *)REG(0) = *(VM_Code*)o->data))
+    handle(shred, "MissingCodeException");
 }
 
 ANN static inline void _next(const VM_Shred shred, const m_uint offset) {
@@ -538,8 +540,8 @@ static MFUN(vm_vector_map) {
   const M_Object ret =
       new_array(shred->info->mp, o->type_ref, ARRAY_LEN(ARRAY(o)));
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &map_run_code, offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
+    _init(shred, &map_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
   } else
     *(M_Object *)RETURN = ret;
 }
@@ -549,7 +551,7 @@ static MFUN(vm_vector_compactmap) {
   const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
   const M_Object ret    = new_array(shred->info->mp, code->ret_type, 0);
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &compactmap_run_code, offset, SZ_INT);
+    _init(shred, &compactmap_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
   } else
     *(M_Object *)RETURN = ret;
@@ -559,7 +561,7 @@ static MFUN(vm_vector_filter) {
   const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
   const M_Object ret    = new_array(shred->info->mp, o->type_ref, 0);
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &filter_run_code, offset, SZ_INT);
+    _init(shred, &filter_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
     *(M_Object *)MEM(SZ_INT * 2) = ret;
   } else
     *(M_Object *)RETURN = ret;
@@ -568,7 +570,7 @@ static MFUN(vm_vector_filter) {
 static MFUN(vm_vector_count) {
   const m_uint offset = *(m_uint *)REG(SZ_INT * 3);
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &count_run_code, offset, SZ_INT);
+    _init(shred, &count_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
     *(m_uint *)MEM(SZ_INT * 2) = 0;
   } else
     *(m_uint *)RETURN = 0;
@@ -609,7 +611,7 @@ static INSTR(fold_run_end) {
   shred->mem -= MAP_CODE_OFFSET + SZ_INT;
   FunctionalFrame *const frame   = &*(FunctionalFrame *)MEM(SZ_INT * 3);
   const M_Object         self    = *(M_Object *)MEM(0);
-  const VM_Code          code    = *(VM_Code *)MEM(SZ_INT);
+  const VM_Code          code    = *(VM_Code *)(*(M_Object*)MEM(SZ_INT))->data;
   const m_uint           sz      = code->stack_depth - ARRAY_SIZE(ARRAY(self));
   const m_uint           base_sz = code->stack_depth - sz;
   POP_REG(shred, base_sz); // ret_sz?
@@ -630,7 +632,7 @@ static MFUN(vm_vector_foldl) {
   const m_uint acc_sz = *(m_uint *)(byte + SZ_INT);
   const m_uint offset = *(m_uint *)REG(SZ_INT * 3 + acc_sz);
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &foldl_run_code, offset, SZ_INT);
+    _init(shred, &foldl_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
     memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT * 3 + acc_sz, MEM(SZ_INT * 2),
            acc_sz);
   } else
@@ -642,7 +644,7 @@ static MFUN(vm_vector_foldr) {
   const m_uint acc_sz = *(m_uint *)(byte + SZ_INT);
   const m_uint offset = *(m_uint *)REG(SZ_INT * 3 + acc_sz);
   if (ARRAY_LEN(ARRAY(o))) {
-    _init(shred, &foldr_run_code, offset, SZ_INT);
+    _init(shred, &foldr_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
     memcpy(shred->mem + MAP_CODE_OFFSET + SZ_INT * 3 + acc_sz, MEM(SZ_INT * 2),
            acc_sz);
   } else
@@ -650,6 +652,11 @@ static MFUN(vm_vector_foldr) {
 }
 
 #include "template.h"
+static void array_func(const Env env, const Type t, const m_str name, f_xfun fun) {
+  const Value v = nspc_lookup_value0(t->nspc, insert_symbol(name));
+  builtin_func(env->gwion->mp, v->d.func_ref, fun);
+}
+
 static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
   const Type           t_array = env->gwion->type[et_array];
@@ -659,19 +666,19 @@ static OP_CHECK(opck_array_scan) {
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
-    env_set_error(env);
+    env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   if (tflag(base, tflag_ref)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env_set_error(env);
+    env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   if (!strncmp(base->name, "Option:[", 5)) {
     gwerr_basic("Can't use option types as array base", NULL, NULL, "/dev/null",
                 (loc_t) {}, 0);
-    env_set_error(env);
+    env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   const Symbol sym  = array_sym(env, array_base_simple(base), base->array_depth + 1);
@@ -680,8 +687,7 @@ static OP_CHECK(opck_array_scan) {
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
   cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
   cdef->base.xid        = sym;
-  cdef->base.tmpl->base = 1; // could store depth here?
-  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
   mp_vector_set(cdef->base.tmpl->call, Type_Decl*, 0, type2td(env->gwion, base, (loc_t) {}));
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
@@ -711,27 +717,19 @@ static OP_CHECK(opck_array_scan) {
                      ? !tflag(base, tflag_struct) ? vm_vector_insert_obj
                                                   : vm_vector_insert_struct
                      : vm_vector_insert;
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 1), insert);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 2),
-               vm_vector_size);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 3),
-               vm_vector_depth);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 4),
-               vm_vector_cap);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 5),
-               vm_vector_random);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 6),
-               vm_vector_map);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 7),
-               vm_vector_compactmap);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 8),
-               vm_vector_filter);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 9),
-               vm_vector_count);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 10),
-               vm_vector_foldl);
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 11),
-               vm_vector_foldr);
+  array_func(env, t, "insert", insert);
+  array_func(env, t, "size", vm_vector_size);
+  array_func(env, t, "depth", vm_vector_depth);
+  array_func(env, t, "cap", vm_vector_cap);
+  array_func(env, t, "random", vm_vector_random);
+
+  array_func(env, t, "map", vm_vector_map);
+  array_func(env, t, "compactMap", vm_vector_compactmap);
+  array_func(env, t, "filter", vm_vector_filter);
+  array_func(env, t, "count", vm_vector_count);
+  array_func(env, t, "foldl", vm_vector_foldl);
+  array_func(env, t, "foldr", vm_vector_foldr);
+
   if (isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
                                "array component dtor", SZ_INT, true, false);
@@ -796,10 +794,10 @@ static OP_EMIT(opem_array_each) {
 
 ANN static void prepare_run(m_bit *const byte, const f_instr ini,
                             const f_instr end) {
-  *(unsigned *)byte                                 = eOP_MAX;
-  *(f_instr *)(byte + SZ_INT * 2)                   = ini;
-  *(unsigned *)(byte + BYTECODE_SZ)                 = eSetCode;
-  *(uint16_t *)(byte + BYTECODE_SZ + SZ_INT * 2)    = 3;
+  *(unsigned *)(byte)                               = eOP_MAX;
+  *(f_instr *)(byte+ SZ_INT * 2)                   = ini;
+  *(unsigned *)(byte + BYTECODE_SZ)               = eSetCode;
+  *(uint16_t *)(byte + BYTECODE_SZ + SZ_INT * 2)  = 3;
   *(unsigned *)(byte + BYTECODE_SZ * 2)             = eOverflow;
   *(unsigned *)(byte + BYTECODE_SZ * 3)             = eOP_MAX;
   *(f_instr *)(byte + BYTECODE_SZ * 3 + SZ_INT * 2) = end;
@@ -823,7 +821,7 @@ GWION_IMPORT(array) {
   prepare_map_run(count_byte, count_run_end);
   prepare_fold_run(foldl_byte, foldl_run_ini);
   prepare_fold_run(foldr_byte, foldr_run_ini);
-  const Type t_array = gwi_class_ini(gwi, "@Array:[T]", "Object");
+  const Type t_array = gwi_class_ini(gwi, "Array:[T]", "Object");
   set_tflag(t_array, tflag_infer);
   gwi->gwion->type[et_array] = t_array;
   gwi_class_xtor(gwi, NULL, array_dtor);
@@ -831,20 +829,20 @@ GWION_IMPORT(array) {
 
   GWI_BB(gwi_fptr_ini(gwi, "A", "map_t:[A]"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
-  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
 
   GWI_BB(gwi_fptr_ini(gwi, "Option:[A]", "compactmap_t:[A]"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
-  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
 
   GWI_BB(gwi_fptr_ini(gwi, "A", "fold_t:[A]"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
   GWI_BB(gwi_func_arg(gwi, "A", "acc"))
-  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
 
   GWI_BB(gwi_fptr_ini(gwi, "bool", "filter_t"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
-  GWI_BB(gwi_fptr_end(gwi, ae_flag_global))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
 
   // put functions using T first
   GWI_BB(gwi_func_ini(gwi, "bool", "remove"))
@@ -884,54 +882,54 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_end(gwi, vm_vector_count, ae_flag_none))
 
   GWI_BB(gwi_func_ini(gwi, "A", "foldl:[A]"))
-  GWI_BB(gwi_func_arg(gwi, "fold_t", "data"))
+  GWI_BB(gwi_func_arg(gwi, "fold_t:[A]", "data"))
   GWI_BB(gwi_func_arg(gwi, "A", "initial"))
   GWI_BB(gwi_func_end(gwi, vm_vector_foldl, ae_flag_none))
 
   GWI_BB(gwi_func_ini(gwi, "A", "foldr:[A]"))
-  GWI_BB(gwi_func_arg(gwi, "fold_t", "data"))
+  GWI_BB(gwi_func_arg(gwi, "fold_t:[A]", "data"))
   GWI_BB(gwi_func_arg(gwi, "A", "initial"))
   GWI_BB(gwi_func_end(gwi, vm_vector_foldr, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_at))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_implicit))
 //  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sl))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sl))
   GWI_BB(gwi_oper_end(gwi, "<<", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_sr))
   GWI_BB(gwi_oper_emi(gwi, opem_array_sr))
   GWI_BB(gwi_oper_end(gwi, ">>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", "int"))
+  GWI_BB(gwi_oper_ini(gwi, "int", "Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
   GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "int", "@Array", NULL))
+  GWI_BB(gwi_oper_ini(gwi, "int", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
   GWI_BB(gwi_oper_end(gwi, "@array", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "void"))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, "void"))
   GWI_BB(gwi_oper_emi(gwi, opem_array_each_init))
   GWI_BB(gwi_oper_end(gwi, "@each_init", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "int"))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, "int"))
   GWI_BB(gwi_oper_emi(gwi, opem_array_each))
   GWI_BB(gwi_oper_end(gwi, "@each", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_each_val))
   GWI_BB(gwi_oper_end(gwi, "@each_val", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, "int"))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, "int"))
   GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Array", NULL, NULL))
+  GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);

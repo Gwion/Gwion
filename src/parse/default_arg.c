@@ -31,7 +31,7 @@ ANN static Stmt_List std_code(const MemPool p, Func_Base *base, const Arg_List a
   const Exp efunc = new_prim_id(p, base->xid, base->pos);
   const Exp exp_arg = mk_default_args(p, args, len);
   const Exp ecall = new_exp_call(p, efunc, exp_arg, base->pos);
-  Stmt_List slist = new_mp_vector(p, sizeof(struct Stmt_), 1);
+  Stmt_List slist = new_mp_vector(p, struct Stmt_, 1);
   mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ecall }},
@@ -46,7 +46,7 @@ ANN static Stmt_List new_code(const Env env, Func_Base *base, const Arg_List arg
   const Exp dot  = new_exp_dot(p, dbase, insert_symbol(env->gwion->st, env->class_def->name), base->pos);
   const Exp exp_args = mk_default_args(p, args, len);
   const Exp ecall = new_exp_call(p, dot, exp_args, base->pos);
-  Stmt_List slist = new_mp_vector(p, sizeof(struct Stmt_), 1);
+  Stmt_List slist = new_mp_vector(p, struct Stmt_, 1);
   mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = ecall }},

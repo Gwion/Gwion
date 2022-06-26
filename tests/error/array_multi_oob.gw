@@ -1,3 +1,3 @@
 #! [contains] ArrayOutofBounds
-var Object o[1][1];
+var Object[1][1] o;
 o[1];

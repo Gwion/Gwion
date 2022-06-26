@@ -63,7 +63,7 @@ ANN static void free_env_scope(struct Env_Scope_ *a, Gwion gwion) {
   const Vector v = &a->effects;
   for (m_uint i = 0; i < vector_size(v); i++) {
     MP_Vector *eff = (MP_Vector*)vector_at(v, i);
-    if (eff) free_mp_vector(gwion->mp, sizeof(struct ScopeEffect), eff);
+    if (eff) free_mp_vector(gwion->mp, struct ScopeEffect, eff);
   }
   vector_release(&a->effects);
   mp_free(gwion->mp, Env_Scope, a);
@@ -73,7 +73,7 @@ ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos) {
   const Vector   v = &a->scope->effects;
   MP_Vector *w = (MP_Vector*)vector_back(v);
   if (!w) {
-    w = new_mp_vector(a->gwion->mp, sizeof(struct ScopeEffect), 0);
+    w = new_mp_vector(a->gwion->mp, struct ScopeEffect, 0);
     VPTR(v, VLEN(v) - 1) = (vtype)w;
   }
   struct ScopeEffect eff = {effect, pos};
@@ -101,7 +101,7 @@ ANN void env_pop(const Env env, const m_uint scope) {
   env->class_def  = (Type)vector_pop(&env->scope->class_stack);
   env->curr       = (Nspc)vector_pop(&env->scope->nspc_stack);
   MP_Vector *const v = (MP_Vector*)vector_pop(&env->scope->effects);
-  if (v) free_mp_vector(env->gwion->mp, sizeof(struct ScopeEffect), v);
+  if (v) free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
   env->scope->depth = scope;
 }
 

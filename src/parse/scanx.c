@@ -28,7 +28,7 @@ ANN static inline m_int _push(const Env env, const Class_Def c) {
 }
 
 ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
-  if (c->base.tmpl && actual(c->base.tmpl) && c->base.tmpl->list)
+  if (c->base.tmpl && actual(c->base.tmpl))
     nspc_pop_type(e->gwion->mp, e->curr);
   env_pop(e, s);
 }

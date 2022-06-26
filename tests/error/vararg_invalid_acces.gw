@@ -1,7 +1,0 @@
-#! [contains] InvalidVariadicAccess
-fun void test(...) {
-  varloop vararg {
-    <<<vararg $ int >>>;
-  }
-}
-new Object => test;

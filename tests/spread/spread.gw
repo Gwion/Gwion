@@ -1,0 +1,15 @@
+#! [contains] bar
+class C:[...] {
+  <<< "foo" >>>;
+  ... T : arg {
+    var T arg;
+  }...
+
+   <<< "bar" >>>;
+  ... T : arg {
+    <<< "${T} ${arg}" >>>;
+  }...
+  <<< "baz" >>>;
+}
+
+var C:[float, int] ci;

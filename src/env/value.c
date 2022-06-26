@@ -29,7 +29,7 @@ ANN Value new_value(const Env env, const Type type, const m_str name, const loc_
   return a;
 }
 
-ANN void valuefrom(const Env env, struct ValueFrom_ *from) {
+ANN void valuefrom(const Env env, ValueFrom *from) {
   from->owner       = env->curr;
   from->owner_class = env->scope->depth ? NULL : env->class_def;
   from->ctx         = env->context;

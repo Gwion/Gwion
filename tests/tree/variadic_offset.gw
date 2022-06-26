@@ -1,5 +1,0 @@
-fun void test(int i, float f, ...){
-  varloop vararg {
-  }
-}
-test(1, 2.3, 1);

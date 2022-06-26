@@ -10,12 +10,12 @@
 #include "import.h"
 
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
-  Type_List tl  = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  Type_List tl  = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
   mp_vector_set(tl, Type_Decl*, 0, td);
   Type_Decl         tmp = {
       .xid = insert_symbol("Option"), .types = tl, .pos = td->pos};
   const Type t = !(n - 1) ? known_type(env, &tmp) : _option(env, &tmp, n - 1);
-  free_mp_vector(env->gwion->mp, sizeof(Type_Decl*), tl);
+  free_mp_vector(env->gwion->mp, Type_Decl*, tl);
   return t;
 }
 
@@ -28,11 +28,11 @@ ANN static Type option(const Env env, Type_Decl *td) {
 }
 
 ANN static Type _ref(const Env env, Type_Decl *td) {
-  Type_List tl  = new_mp_vector(env->gwion->mp, sizeof(Type_Decl*), 1);
+  Type_List tl  = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
   mp_vector_set(tl, Type_Decl*, 0, td);
   Type_Decl tmp = {.xid = insert_symbol("Ref"), .types = tl, .pos = td->pos};
   const Type t = known_type(env, &tmp);
-  free_mp_vector(env->gwion->mp, sizeof(Type_Decl*), tl);
+  free_mp_vector(env->gwion->mp, Type_Decl*, tl);
   return t;
 }
 
@@ -84,18 +84,18 @@ ANN static inline Type find(const Env env, Type_Decl *td) {
       : env_push_global(env);
   const m_bool ret = traverse_fptr_def(env, fptr);
   env_pop(env, scope);
-  const Type t = fptr->type;
+  const Type t = fptr->cdef->base.type;
   free_fptr_def(env->gwion->mp, fptr);
   return ret > 0 ? t : NULL;
 }
 
 ANN static inline Type find1(const Env env, const Type base, Type_Decl *td) {
   if (!td->fptr) return scan_type(env, base, td);
-  if (!td->fptr->type) {
+  if (!td->fptr->cdef->base.type) {
     CHECK_BO(scan0_fptr_def(env, td->fptr));
     CHECK_BO(traverse_fptr_def(env, td->fptr));
   }
-  return td->fptr->type;
+  return td->fptr->cdef->base.type;
 }
 
 ANN static Type resolve(const Env env, Type_Decl *td) {

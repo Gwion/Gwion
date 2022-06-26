@@ -1,8 +1,0 @@
-class C {}
-
-extends C {
-  fun void test() { <<< __func__ >>>; }
-}
-
-const C c;
-c.test();

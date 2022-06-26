@@ -1,2 +1,2 @@
 #! [contains] partially empty array init
-var int i[2][];
+var int[2][] i;

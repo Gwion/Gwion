@@ -1,0 +1,7 @@
+#! [contains] spread statement outside of variadic environment
+
+fun void test() {
+  ... T : arg {
+    <<< "error" >>>;
+  }...
+}

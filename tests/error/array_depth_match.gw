@@ -1,2 +1,2 @@
 #! [contains] array depths do not match
-[1,2,3,4] => var int k[1][1];
+[1,2,3,4] => var int[1][1] k;

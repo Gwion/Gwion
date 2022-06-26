@@ -22,16 +22,14 @@ ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
     free_type_decl(gwi->gwion->mp, td);
     return NULL;
   }
-  const Var_Decl_List list = new_mp_vector(gwi->gwion->mp, sizeof(struct Var_Decl_), 1);
-  mp_vector_set(list, struct Var_Decl_, 0, vd);
-  return new_exp_decl(gwi->gwion->mp, td, list, gwi->loc);
+  return new_exp_decl(gwi->gwion->mp, td, &vd, gwi->loc);
 }
 
 ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
   CHECK_BB(check_typename_def(gwi, gwi->ck));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, sizeof(Union_Member), 0);
+  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Union_Member, 0);
   return GW_OK;
 }
 
@@ -84,6 +82,6 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
 }
 
 ANN void ck_clean_udef(MemPool mp, ImportCK *ck) {
-  if (ck->mpv) free_mp_vector(mp, sizeof(Union_Member), ck->mpv);
+  if (ck->mpv) free_mp_vector(mp, Union_Member, ck->mpv);
   if (ck->tmpl) free_id_list(mp, ck->tmpl);
 }

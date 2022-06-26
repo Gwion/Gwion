@@ -66,7 +66,6 @@ ANN m_bool    isa(const Type, const Type) __attribute__((pure));
 ANN m_bool    isres(const Env, const Symbol, const loc_t pos);
 ANN Type      array_type(const Env, const Type, const m_uint);
 ANN Type      find_common_anc(const Type, const Type) __attribute__((pure));
-ANN Type      typedef_base(Type) __attribute__((pure));
 ANN Type      array_base(Type) __attribute__((pure));
 ANN Symbol array_sym(const Env env, const Type src,
                                  const m_uint depth);
@@ -79,7 +78,6 @@ ANN static inline m_uint env_push_type(const Env env, const Type type) {
   return env_push(env, type, type->nspc);
 }
 ANN bool is_func(const struct Gwion_ *, const Type t);
-ANN bool is_fptr(const struct Gwion_ *, const Type t);
 ANN bool is_class(const struct Gwion_ *, const Type t);
 ANN __attribute__((returns_nonnull)) static inline Type _class_base(Type t) {
   return t->info->base_type;
@@ -89,9 +87,18 @@ ANN void   inherit(const Type);
 ANN bool type_global(const Env env, Type t);
 ANN bool from_global_nspc(const Env env, const Nspc nspc);
 
+ANN static inline Type typedef_base(Type t) {
+  while (tflag(t, tflag_typedef)) t = t->info->parent;
+  return t;
+}
+
+ANN static inline Func_Def closure_def(Type t) {
+  t = typedef_base(t);
+  return mp_vector_at(t->info->cdef->body, Section, 0)->d.func_def;
+}
+
 __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
-  do
-    if (t->info->gack) return t;
+  do if (t->info->gack) return t;
   while ((t = t->info->parent));
   return t; // unreachable
 }
@@ -135,9 +142,7 @@ typedef enum {
   et_array,
   et_gack,
   et_function,
-  et_fptr,
-  et_vararg,
-  et_lambda,
+  et_closure,
   et_op,
   et_class,
   et_union,

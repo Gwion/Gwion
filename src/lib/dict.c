@@ -632,7 +632,6 @@ static OP_CHECK(opck_dict_scan) {
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, env->gwion->type[et_dict]->info->cdef);
   cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], (loc_t) {});
   cdef->base.xid        = info.name;
-  cdef->base.tmpl->base = 1; // could store depth here?
   cdef->base.tmpl->call = cpy_type_list(env->gwion->mp, info.td->types);
 
   (void)scan0_class_def(env, cdef);

@@ -18,7 +18,7 @@ ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type,
 }
 
 ANN static m_int gwi_item_tmpl(const Gwi gwi) {
-  Stmt_List slist = new_mp_vector(gwi->gwion->mp, sizeof(struct Stmt_), 1);
+  Stmt_List slist = new_mp_vector(gwi->gwion->mp, struct Stmt_, 1);
   mp_vector_set(slist, struct Stmt_, 0,  ((struct Stmt_) {
       .stmt_type = ae_stmt_exp,
       .d = { .stmt_exp = { .val = gwi->ck->exp } },
@@ -52,7 +52,7 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_BB(traverse_exp(env, gwi->ck->exp));
-  const Value value = mp_vector_at(gwi->ck->exp->d.exp_decl.list, struct Var_Decl_, 0)->value;
+  const Value value = gwi->ck->exp->d.exp_decl.vd.value;
   value->d          = addr;
   set_vflag(value, vflag_builtin);
   if (!env->class_def) SET_FLAG(value, global);

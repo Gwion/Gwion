@@ -70,11 +70,6 @@ ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
 describe_find(value, Value)
     // describe_find(func,  Func)
 
-    ANN Type typedef_base(Type t) {
-  while (tflag(t, tflag_typedef)) t = t->info->parent;
-  return t;
-}
-
 ANN Type array_base(Type type) {
   const Type t = typedef_base(type);
   return t->array_depth ? array_base(t->info->base_type) : t;
@@ -102,7 +97,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   if (type) return type;
   const size_t tdepth     = depth + src->array_depth;
   const Type   base       = tdepth > 1 ? array_type(env, src, tdepth - 1) : src;
-  struct TemplateScan ts  = {.t = base, /*.td=td*/};
+  struct TemplateScan ts  = {.t = base, /*.td=td*/ };
   struct Op_Import    opi = {.op   = insert_symbol("@scan"),
                           .lhs  = env->gwion->type[et_array],
                           .data = (uintptr_t)&ts};
@@ -142,9 +137,7 @@ ANN m_uint get_depth(const Type type) {
 ANN bool is_func(const struct Gwion_ *gwion, const Type t) {
   return isa(actual_type(gwion, t), gwion->type[et_function]) > 0;
 }
-ANN bool is_fptr(const struct Gwion_ *gwion, const Type t) {
-  return isa(actual_type(gwion, t), gwion->type[et_fptr]) > 0;
-}
+
 ANN inline bool is_class(const struct Gwion_ *gwion, const Type t) {
 //  return isa(t, gwion->type[et_class]) > 0;
   return t->info->parent ==  gwion->type[et_class];

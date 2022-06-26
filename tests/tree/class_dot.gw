@@ -1,6 +1,6 @@
 class C {
-	var int i[];
-	var int j[2];
+	var int[] i;
+	var int[2] j;
 }
 
 var C c;

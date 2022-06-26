@@ -238,7 +238,6 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
 ANN static Type op_def(const Env env, struct Op_Import *const opi,
                 const Func_Def fdef) {
   const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
-  tmpl_fdef->base->tmpl->base = 0;
   tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
     sizeof(Type_Decl*), fdef->base->tmpl->list->len);
   if (opi->lhs) {
@@ -312,10 +311,10 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   base->op = insert_symbol(env->gwion->st, "=>");
   const Type ret = check_exp(env, exp_self(base));
   if(ret) return ret;
-  env->context->error = false;
+  env_set_error(env,  false);
   base->op = orig;
   env_warn(env, opi->pos, _("during rewriting operation"));
-  env->context->error = true;
+  env_set_error(env,  true);
   return NULL;
 }
 
@@ -350,11 +349,9 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   if (!strcmp(op, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
   if (!strcmp(op, "@func_check")) return NULL;
-  if (!strcmp(op, "@class_check"))
-    return env->gwion->type[et_error];
   if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
     gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
-    env->context->error = true;
+    env_set_error(env,  true);
   } else if (strcmp(op, "@implicit")) {
     if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) { // is_callable
       const size_t len = strlen(op);

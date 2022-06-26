@@ -24,7 +24,7 @@ ANN m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_BB(ck_ini(gwi, ck_edef));
   CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
   vector_init(&gwi->ck->v);
-  gwi->ck->tmpl = new_mp_vector(gwi->gwion->mp, sizeof(Symbol), 0);
+  gwi->ck->tmpl = new_mp_vector(gwi->gwion->mp, Symbol, 0);
   return GW_OK;
 }
 /*

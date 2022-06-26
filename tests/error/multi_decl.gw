@@ -1,2 +1,0 @@
-#! [contains] from/to a multi-variable declaration
-var int i, ii => var float f;

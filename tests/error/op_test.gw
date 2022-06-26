@@ -4,6 +4,6 @@ class C
 
 }
 
-var C c[1];
-var C d[2][4];
+var C[1] c;
+var C[2][4]d;
 c :=> d;

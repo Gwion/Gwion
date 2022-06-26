@@ -10,8 +10,8 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
   if (b->exp) clean_exp(a, b->exp);
 }
 
-#define clean_id_list(a, b) {}
-#define clean_specialized_list(a, b) {}
+#define clean_id_list(a, b) do {} while(0)
+#define clean_specialized_list(a, b) do {} while(0)
 
 ANN static void clean_type_list(Clean *a, Type_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
@@ -21,8 +21,8 @@ ANN static void clean_type_list(Clean *a, Type_List b) {
 }
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
-  if (b->base < 0 && b->list) clean_specialized_list(a, b->list);
-  if (b->call) clean_type_list(a, b->call);
+  if (!b->call) clean_specialized_list(a, b->list);
+  else clean_type_list(a, b->call);
 }
 
 ANN static void clean_range(Clean *a, Range *b) {
@@ -46,21 +46,13 @@ ANN static void clean_prim(Clean *a, Exp_Primary *b) {
     clean_range(a, b->d.range);
 }
 
-ANN static void clean_var_decl(Clean *a, Var_Decl b) {
-  if (b->array) clean_array_sub(a, b->array);
+ANN static void clean_var_decl(Clean *a, Var_Decl *b) {
   if (a->scope && b->value && !tflag(b->value->type, tflag_error)) value_remref(b->value, a->gwion);
-}
-
-ANN static void clean_var_decl_list(Clean *a, Var_Decl_List b) {
-  for(uint32_t i = 0; i < b->len; i++) {
-    Var_Decl vd = mp_vector_at(b, struct Var_Decl_, i);
-    clean_var_decl(a, vd);
-  }
 }
 
 ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
   if (b->td) clean_type_decl(a, b->td);
-  clean_var_decl_list(a, b->list);
+  clean_var_decl(a, &b->vd);
 }
 
 ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
@@ -196,13 +188,6 @@ ANN static void clean_stmt_code(Clean *a, Stmt_Code b) {
   --a->scope;
 }
 
-ANN static void clean_stmt_varloop(Clean *a, Stmt_VarLoop b) {
-  ++a->scope;
-  clean_exp(a, b->exp);
-  clean_stmt(a, b->body);
-  --a->scope;
-}
-
 ANN static void clean_stmt_return(Clean *a, Stmt_Exp b) {
   if (b->val) clean_exp(a, b->val);
 }
@@ -256,6 +241,7 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_break    clean_dummy
 #define clean_stmt_continue clean_dummy
 #define clean_stmt_retry    clean_dummy
+#define clean_stmt_spread   clean_dummy
 
 DECL_STMT_FUNC(clean, void, Clean *)
 ANN static void clean_stmt(Clean *a, Stmt b) {
@@ -303,7 +289,6 @@ ANN void func_def_cleaner(const Gwion gwion, Func_Def b) {
 
 ANN static void clean_extend_def(Clean *a, Extend_Def b) {
   clean_type_decl(a, b->td);
-  clean_ast(a, b->body);
 }
 
 ANN static void clean_class_def(Clean *a, Class_Def b) {
@@ -338,7 +323,7 @@ ANN static void clean_union_def(Clean *a, Union_Def b) {
 
 ANN static void clean_fptr_def(Clean *a, Fptr_Def b) {
   clean_func_base(a, b->base);
-  if (b->type) type_remref(b->type, a->gwion);
+//  if (b->type) type_remref(b->type, a->gwion);
 }
 
 ANN static void clean_type_def(Clean *a, Type_Def b) {
@@ -355,7 +340,7 @@ ANN static void clean_trait_def(Clean *a, Trait_Def b) {
   if (b->body) clean_ast(a, b->body);
 }
 
-DECL_SECTION_FUNC(clean, void, Clean *)
+DECL_SECTION_FUNC(clean, void, Clean *);
 
 ANN static inline void clean_section(Clean *a, Section *b) {
   clean_section_func[b->section_type](a, *(void **)&b->d);

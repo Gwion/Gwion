@@ -1,7 +1,7 @@
 class C:[A] {
   \a{};
   [ 1 ];
-  var int i,j;
+  var int i;
   'a';
   true $ int;
   i++;

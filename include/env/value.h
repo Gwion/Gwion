@@ -1,13 +1,13 @@
 #ifndef __VALUE
 #define __VALUE
-struct ValueFrom_ {
+typedef struct ValueFrom_ {
   Nspc             owner;
   Type             owner_class;
   struct Context_ *ctx;
   size_t           offset;
   m_str            filename;
   loc_t            loc;
-};
+} ValueFrom;
 
 enum vflag {
   vflag_none     = 1 << 0,
@@ -35,7 +35,7 @@ union value_data {
 struct Value_ {
   Type               type;
   m_str              name;
-  struct ValueFrom_ *from;
+  ValueFrom *from;
   union value_data   d;
   uint16_t           ref;
   ae_flag            flag;
@@ -46,7 +46,7 @@ REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 
 ANEW ANN Value new_value(const Env, const Type type, const m_str name, const loc_t loc);
-ANN void       valuefrom(const Env, struct ValueFrom_ *);
+ANN void       valuefrom(const Env, ValueFrom *);
 
 ANN static inline void defined_here(const Value v) {
   if (v->from->filename) // TODO: check why is that from check

@@ -25,7 +25,6 @@ typedef struct ImportCK { // name_checker ?
     Type_Decl *td;   // typedef
     ID_List    curr; // enum
   };
-  bool               variadic;
   enum importck_type type;
   ae_flag            flag; // ????
 } ImportCK;
@@ -45,7 +44,7 @@ ANN m_bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 
 ANN Symbol        str2sym(const Gwion, const m_str, const loc_t);
 ANN ID_List       str2symlist(const Gwion, const m_str, const loc_t);
-ANN m_bool str2var(const Gwion, Var_Decl, const m_str, const loc_t);
+ANN m_bool str2var(const Gwion, Var_Decl*, const m_str, const loc_t);
 ANN Type_Decl *str2td(const Gwion, const m_str, const loc_t);
 ANN Type       str2type(const Gwion, const m_str, const loc_t);
 
