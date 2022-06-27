@@ -1765,7 +1765,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
     Capture_List caps = sporker.captures;
     for (uint32_t i = 0; i < caps->len; i++) {
       Capture *cap = mp_vector_at(caps, Capture, i);
-      const Value v = nspc_lookup_value1(emit->env->curr, cap->xid);
+      const Value v = cap->orig;
       struct Exp_ exp = {
         .d = { .prim = {
           .d = { .var = cap->xid },
