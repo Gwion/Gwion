@@ -55,7 +55,9 @@ static void type_get_member(const Gwion gwion, const Type t, const Vector v) {
 
 // get members of a type, starting from parents
 static void compound_get_member(const Env env, const Type t, const Vector v) {
-  if(t->info->parent && t->info->parent->nspc)
+  const Type parent = t->info->parent && t->info->parent->nspc
+                    ? t->info->parent : NULL;
+  if(parent)
     compound_get_member(env, t->info->parent, v);
   type_get_member(env->gwion, t, v);
 }
@@ -97,7 +99,6 @@ static bool deep_check(const Env env, const Exp_Binary *bin,
                        const Vector l, const Vector r) {
   const m_uint lsz = vector_size(l),
                rsz = vector_size(r);
-//  if(lsz && rsz >= lsz) {
   if(rsz >= lsz) {
     for(m_uint i = 0; i < lsz; i++) {
       const Value lval = (Value)vector_at(l, i),
@@ -114,6 +115,17 @@ static bool deep_check(const Env env, const Exp_Binary *bin,
 
 static OP_CHECK(opck_deep_equal) {
   Exp_Binary *const bin = data;
+  const Symbol base_op = !strcmp(s_name(bin->op), "?=")
+      ? insert_symbol(env->gwion->st, "==") : insert_symbol(env->gwion->st, "!=");
+  struct Op_Import opi = {.op   = base_op,
+                          .lhs  = bin->lhs->type,
+                          .rhs  = bin->rhs->type,
+                          .data = (uintptr_t)bin,
+                          .pos  = exp_self(bin)->pos};
+  if(op_get(env, &opi)) {
+    bin->op = base_op;
+    return op_check(env, &opi);
+  }
   struct Vector_ l, r;
   check_deep_equal_exp(env, bin->lhs, &l);
   check_deep_equal_exp(env, bin->rhs, &r);
@@ -122,8 +134,7 @@ static OP_CHECK(opck_deep_equal) {
   vector_release(&r);
   if(ret) return env->gwion->type[et_bool];
   const Symbol op = bin->op;
-  bin->op = !strcmp(s_name(bin->op), "?=")
-    ? insert_symbol(env->gwion->st, "==") : insert_symbol(env->gwion->st, "!=");
+  bin->op = base_op;
   env_set_error(env,  true);
   const Type ret_type = check_exp(env, exp_self(bin));
   env_set_error(env,  false);

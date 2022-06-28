@@ -2471,6 +2471,7 @@ ANN static m_bool case_value(const Emitter emit, const Exp base, const Exp e) {
   return GW_OK;
 }
 
+ANN Symbol case_basic_op(const Env env, const Type base, const Exp e);
 #define CASE_PASS (Symbol)1
 ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
                           const Vector vec, const uint n) {
@@ -2513,7 +2514,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
       }
     }
   }
-  if (!n) return insert_symbol("?=");
+  if (!n) return case_basic_op(emit->env, base->type, e);
   regpush(emit, SZ_INT);
   CHECK_BO(emit_exp(emit, e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = insert_symbol("?=")};

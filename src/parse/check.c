@@ -1369,6 +1369,18 @@ ANN static Value match_value(const Env env, const Type base,
   return v;
 }
 
+ANN Symbol case_basic_op(const Env env, const Type base, const Exp e) {
+  const Symbol _op = insert_symbol("==");
+  struct Op_Import opi = {.op   = _op,
+                          .lhs  = base,
+                          .rhs  = e->type,
+                          .data = (uintptr_t)NULL,
+                          .pos  = e->pos};
+  return op_get(env, &opi)
+         ? insert_symbol("==")
+         : insert_symbol("?=");
+}
+
 ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
   if (e->exp_type == ae_exp_primary) {
     if (e->d.prim.prim_type == ae_prim_id) {
@@ -1391,7 +1403,7 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
       }
     }
   }
-  return insert_symbol("?=");
+  return case_basic_op(env, base, e);
 }
 
 ANN static m_bool match_case_exp(const Env env, Exp e) {
@@ -1409,13 +1421,8 @@ ANN static m_bool match_case_exp(const Env env, Exp e) {
       CHECK_OB(t);
       Exp_Binary       bin  = {.lhs = cpy_exp(env->gwion->mp, base), .rhs = cpy_exp(env->gwion->mp, e), .op = op};
       struct Exp_      ebin = {.d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .pos = e->pos };
-      struct Op_Import opi  = {.op   = op,
-                              .lhs  = base->type,
-                              .rhs  = e->type,
-                              .data = (uintptr_t)&ebin.d.exp_binary,
-                              .pos  = e->pos};
-      traverse_exp(env, &ebin);
-      const Type ret = op_check(env, &opi);
+      CHECK_BB(traverse_exp(env, &ebin));
+      const Type ret = ebin.type;
       if(ebin.exp_type == ae_exp_binary) {
         free_exp(env->gwion->mp, bin.lhs);
         free_exp(env->gwion->mp, bin.rhs);
