@@ -464,6 +464,17 @@ static OP_EMIT(opem_fptr_impl) {
   return emit_fptr_assign(emit, impl->e->type, impl->t);
 }
 
+static OP_CHECK(opck_fptr_cast) {
+  Exp_Cast *cast = (Exp_Cast *)data;
+  const Type t = known_type(env, cast->td);
+  const Func f = closure_def(t)->base->func;
+  struct FptrInfo  info = {.lhs = cast->exp->type->info->func,
+                           .rhs = f,
+                           .exp = cast->exp};
+  CHECK_BN(fptr_do(env, &info));
+  return t;
+}
+
 static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
   if (!env->context->error) {
     gwerr_basic(_("invalid operator decay"),
@@ -500,8 +511,7 @@ ANN Type check_op_call(const Env env, Exp_Call *const exp) {
 
 static m_bool op_impl_narg(const Env env, const Func_Def fdef,
                            const loc_t loc) {
-  Arg_List arg  = fdef->base->args;
-  if (!arg && arg->len == 2) return GW_OK;
+  if (mp_vector_len(fdef->base->args) == 2) return GW_OK;
   op_narg_err(env, fdef, loc);
   return GW_ERROR;
 }
@@ -526,9 +536,18 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
   if (func_tmpl) nspc_pop_type(env->gwion->mp, env->curr);
 }
 
+static OP_EMIT(opem_op_impl) {
+  struct Implicit *impl = (struct Implicit *)data;
+  if(!impl->e->type->info->func->code)
+    emit_ensure_func(emit, impl->e->type->info->func);
+  const Instr instr = emit_add_instr(emit, RegPushImm);
+  instr->m_val = (m_uint)impl->e->type->info->func->code;
+  return emit_fptr_assign(emit, impl->e->type, impl->t);
+}
+
 static OP_CHECK(opck_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
-  const Func       func = impl->t->info->func;
+  const Func       func = closure_def(impl->t)->base->func;
   CHECK_BN(op_impl_narg(env, func->def, impl->e->pos));
   op_impl_ensure_types(env, func);
   const Symbol lhs_sym = insert_symbol("@lhs");
@@ -575,13 +594,13 @@ static OP_CHECK(opck_op_impl) {
               _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
               s_name(impl->e->d.prim.d.var), func->name);
       }
-      return actual_type(env->gwion, func->value_ref->type);
+      return func->value_ref->from->owner_class;
     }
   }
   const Arg_List args = cpy_arg_list(env->gwion->mp, func->def->base->args);
   Arg *larg0 = (Arg*)(args->ptr);
   Arg *larg1 = (Arg*)(args->ptr + sizeof(Arg));
-  larg0->var_decl.xid       = rhs_sym;
+  larg0->var_decl.xid = lhs_sym;
   larg1->var_decl.xid = rhs_sym;
   Func_Base *base =
       new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
@@ -615,9 +634,15 @@ static OP_CHECK(opck_op_impl) {
   /*const m_bool ret = */ traverse_func_def(env, def);
   env_pop(env, scope);
   def->base->func->value_ref->type->info->parent = env->gwion->type[et_op];
-  impl->e->type         = def->base->func->value_ref->type;
+	  impl->e->type         = def->base->func->value_ref->type;
   impl->e->d.prim.value = def->base->func->value_ref;
-  return actual_type(env->gwion, func->value_ref->type);
+  return opck_fptr_impl(env, impl);
+}
+
+static OP_CHECK(opck_op_cast) {
+  Exp_Cast *cast = (Exp_Cast*)data;
+  struct Implicit impl = { .e = cast->exp, .t = known_type(env, cast->td) };
+  return opck_op_impl(env, &impl);
 }
 
 static OP_CHECK(opck_func_partial) {
@@ -734,9 +759,14 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_fptr_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "operator", "funptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_op_impl))
+  GWI_BB(gwi_oper_emi(gwi, opem_op_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_op_cast))
+  GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "function", "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
   GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))

@@ -774,7 +774,6 @@ ANN static m_bool    emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ *spid = specialid_get(emit->gwion, *data);
   if (spid)
     return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
-
   if(vflag(prim->value, vflag_fglobal)) exp_self(prim)->acquire = 1;
   return emit_symbol(emit, prim_self(data));
 }
@@ -874,7 +873,7 @@ ANN static m_bool emit_prim_interp(const Emitter emit, const Exp *exp) {
   return GW_OK;
 }
 
-ANN static m_bool emit_ensure_func(const Emitter emit, const Func f) {
+ANN m_bool emit_ensure_func(const Emitter emit, const Func f) {
   const ValueFrom *from = f->value_ref->from;
   if(from->owner_class)
     CHECK_BB(ensure_emit(emit, from->owner_class));
