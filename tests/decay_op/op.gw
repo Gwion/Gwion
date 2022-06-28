@@ -1,3 +1,4 @@
+#! [contains] 3
 funptr int test_t(int, int);
 fun void test(test_t t) {
   <<<t(1,2)>>>;

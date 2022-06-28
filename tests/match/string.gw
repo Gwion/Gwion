@@ -1,0 +1,5 @@
+#! [contains] foo
+match "foo" {
+  case "bar": <<< "bar" >>>;
+  case "foo": <<< "foo" >>>;
+}
