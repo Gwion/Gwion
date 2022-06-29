@@ -1,0 +1,14 @@
+#! [contains] baz
+
+#! check that functions are called from the vtable
+
+class C {
+  fun void foo() { <<< "bar" >>>; }
+}
+
+class D extends C{
+  fun void foo() { <<< "baz" >>>; }
+}
+
+var D d;
+d.foo();
