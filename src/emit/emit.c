@@ -1616,12 +1616,10 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   else if (unlikely(!f->code && emit->env->func != f)) {
     if (tmpl) CHECK_BB(emit_template_code(emit, f));
     else CHECK_BB(emit_ensure_func(emit, f));
-  } else {
-    if(!f->value_ref->from->owner_class ||
+  } else if(!f->value_ref->from->owner_class ||
        GET_FLAG(f->value_ref->from->owner_class, final) ||
-       GET_FLAG(f->value_ref->from->owner_class, static))
+       GET_FLAG(f, static) || tmpl)
     push_func_code(emit, f);
-  }
   call_finish(emit, f, is_static);
   emit->status = status;
   return GW_OK;
