@@ -659,8 +659,12 @@ static OP_CHECK(opck_class_partial) {
    return op_check(env, &opi);
 }
 
+static FREEARG(freearg_gtmpl) {
+  free_mstr(((Gwion)gwion)->mp, (m_str)instr->m_val2);
+}
 static FREEARG(freearg_dottmpl) {
-  if (instr->m_val2) free_mstr(((Gwion)gwion)->mp, (m_str)instr->m_val2);
+  struct dottmpl_ *dt = (struct dottmpl_*) instr->m_val2;
+  free_mstr(((Gwion)gwion)->mp, dt->tmpl_name);
 }
 
 #include "tmpl_info.h"
@@ -777,7 +781,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_class_partial))
   GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
 
+  gwi_register_freearg(gwi, GTmpl, freearg_gtmpl);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
-  gwi_register_freearg(gwi, GTmpl, freearg_dottmpl);
   return GW_OK;
 }

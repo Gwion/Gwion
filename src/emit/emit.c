@@ -1436,13 +1436,6 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     return GW_OK;
   }
   const Instr instr = (Instr)vector_back(&emit->code->instr);
-  if (instr->opcode == eDotTmplVal) {
-    instr->opcode  = eOP_MAX;
-    instr->m_val   = (m_uint)f->def;
-    instr->m_val2  = (m_uint)tl2str(emit->gwion, f->def->base->tmpl->call, f->def->base->pos);
-    instr->execute = DotTmpl;
-    return GW_OK;
-  }
   instr->opcode = eRegPushImm;
   instr->m_val  = (m_uint)f->code;
   return GW_OK;
@@ -1616,9 +1609,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
   else if (unlikely(!f->code && emit->env->func != f)) {
     if (tmpl) CHECK_BB(emit_template_code(emit, f));
     else CHECK_BB(emit_ensure_func(emit, f));
-  } else if(!f->value_ref->from->owner_class ||
-       GET_FLAG(f->value_ref->from->owner_class, final) ||
-       GET_FLAG(f, static) || tmpl)
+  } else if(is_static)
     push_func_code(emit, f);
   call_finish(emit, f, is_static);
   emit->status = status;

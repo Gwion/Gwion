@@ -96,6 +96,16 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
     emit_dot_static_data(emit, v, emit_addr);
 }
 
+ANN static void emit_dottmpl(const Emitter emit, const Func f) {
+  const Instr instr = emit_add_instr(emit, DotTmpl);
+  instr->m_val = (m_uint)f->def;
+  struct dottmpl_ *dt = mp_malloc(emit->gwion->mp, dottmpl);
+  dt->nspc = emit->env->curr;
+  dt->type = emit->env->class_def;
+  dt->tmpl_name = tl2str(emit->gwion, f->def->base->tmpl->call, f->def->base->pos);
+  instr->m_val2 = (m_uint)dt;
+}
+
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
@@ -107,7 +117,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     return;
   }
   if (f->def->base->tmpl) {
-    if(member->is_call) emit_add_instr(emit, DotTmplVal);
+    if(member->is_call) emit_dottmpl(emit, f);
     else {
       if(vflag(f->value_ref, vflag_member)) {
         const Instr instr = emit_add_instr(emit, RegMove);

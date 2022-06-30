@@ -10,6 +10,8 @@
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
+#include "traverse.h"
+#include "parse.h"
 
 ANN static Func_Def traverse_tmpl(const Emitter emit, Func_Def fdef, Func_Def fbase,
                               const Nspc nspc) {
@@ -37,7 +39,7 @@ ANN static void foo(const VM_Shred shred, Type t, const Func_Def fbase, const m_
     const Symbol sym  = func_symbol(emit->env, t->name, base->name, tmpl_name, base->def->vt_index);
     const Func f = nspc_lookup_func0(t->nspc, sym);
     if (f) {
-      if(!f->code) exit(15); //continue;
+      if(!f->code) continue;
       if (vflag(f->value_ref, vflag_member)) shred->reg += SZ_INT;
       *(VM_Code *)(shred->reg - SZ_INT) = f->code;
       return;
@@ -90,7 +92,7 @@ INSTR(GTmpl) {
       const Symbol sym  = func_symbol(emit->env, t->name, f->name, tmpl, f->def->vt_index);
       const Func f = nspc_lookup_func0(t->nspc, sym);
       if (f) {
-        if (!f->code) exit(15); //continue;
+        if (!f->code) continue;
         *(VM_Code *)(shred->reg - SZ_INT) = f->code;
         return;
       } else {
@@ -106,9 +108,24 @@ INSTR(GTmpl) {
 
 INSTR(DotTmpl) {
   const Func_Def fbase = (Func_Def)instr->m_val;
-  const m_str tmpl = (m_str)instr->m_val2;
-  const M_Object   o    = *(M_Object *)REG(-SZ_INT); // orig
-  foo(shred, o->type_ref, fbase, tmpl);
+  const M_Object   o    = *(M_Object *)REG(-SZ_INT);
+  const Func f = fbase->base->func;
+  if(o->type_ref == f->value_ref->from->owner_class) {
+    if (vflag(f->value_ref, vflag_member)) shred->reg += SZ_INT;
+    *(VM_Code *)(shred->reg - SZ_INT) = f->code;
+    return;
+  }
+  const Emitter emit = shred->info->vm->gwion->emit;
+  const struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val2;
+  struct EnvSet es    = {.env   = emit->env,
+                         .data  = emit,
+//                         .func  = (_exp_func)emit_cdef,
+                         .func  = (_exp_func)dummy_func,
+                         .scope = 0,
+                         .flag  = tflag_emit};
+  if(envset_push(&es, dt->type, dt->nspc) < 0) return;
+  foo(shred, o->type_ref, fbase, dt->tmpl_name);
+  if (es.run) envset_pop(&es, dt->type);
 }
 
 #define VAL  (*(m_uint *)(byte + SZ_INT))
