@@ -257,6 +257,16 @@ static GACK(gack_bool) {
   INTERP_PRINTF("%s", *(m_uint *)VALUE ? "true" : "false");
 }
 
+static OP_CHECK(bool2float) {
+  struct Implicit *impl = (struct Implicit *)data;
+  if(!env->context->error) {
+    gwerr_basic("Can't implicitely cast {G+}bool{0} to {G+}float{0}", NULL, "Did you forget a cast?",
+       env->name, impl->e->pos, 0);
+    env_set_error(env, true);
+  }
+  return env->gwion->type[et_error];
+}
+
 static GWION_IMPORT(int_values) {
   DECL_OB(const Type, t_bool, = gwi_mk_type(gwi, "bool", SZ_INT, "int"));
   GWI_BB(gwi_set_global_type(gwi, t_bool, et_bool))
@@ -269,6 +279,9 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
   GWI_BB(gwi_oper_add(gwi, opck_int_not))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
+  GWI_BB(gwi_oper_ini(gwi, "bool", "float", NULL))
+  GWI_BB(gwi_oper_add(gwi, bool2float));
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   struct SpecialId_ spid = {
       .type = t_bool, .exec = RegPushMaybe, .is_const = 1};
   gwi_specialid(gwi, "maybe", &spid);

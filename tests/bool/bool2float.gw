@@ -1,0 +1,3 @@
+fun void foo(float f) {}
+
+true => foo;
