@@ -104,7 +104,7 @@ libcmdapp/libcmdapp.a:
 	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C libcmdapp static
 
 fmt/libgwion-fmt.a: ast/libgwion_ast.a
-	@+${MAKE} -s -C fmt libfmt.a
+	@+${MAKE} -s -C fmt libgwion_fmt.a
 
 ast/libprettyerr/libprettyerr.a:
 	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C ast/libprettyerr static
