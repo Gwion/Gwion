@@ -211,8 +211,13 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
 
 #include "gack.h"
 static GACK(gack_enum) {
-  const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
-  INTERP_PRINTF("%s", v->name);
+  const Map m = &t->nspc->info->value->map;
+  const m_uint value = *(m_uint*)VALUE;
+  if(value < map_size(m)) {
+    const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
+    INTERP_PRINTF("%s", v->name);
+  } else
+    INTERP_PRINTF("%s", t->name);
 }
 
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
