@@ -2008,6 +2008,8 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
       if (stmt->val->exp_type == ae_exp_call && emit->env->func == f)
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
+    if(!stmt->val->ref && isa(stmt->val->type, emit->gwion->type[et_compound]) > 0)
+      emit_local(emit, stmt->val->type);
     CHECK_BB(emit_exp(emit, stmt->val));
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
