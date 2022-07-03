@@ -343,17 +343,6 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
   return info->ret;
 }
 
-ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
-
-ANN bool tmpl_global(const Env env, Type_List tl) {
-  for(uint32_t i = 0; i < tl->len; i++) {
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    if(!type_global(env, known_type(env, td)))
-      return false;
-  };
-  return true;
-}
-
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
       .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};

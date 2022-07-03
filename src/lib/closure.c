@@ -672,8 +672,6 @@ static FREEARG(freearg_dottmpl) {
 #include "traverse.h"
 #include "gwi.h"
 
-ANN bool tmpl_global(const Env env, Type_List tl);
-
 ANN static bool is_base(const Env env, const Type_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
