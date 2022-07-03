@@ -40,15 +40,19 @@ ANN static inline void shreduler_child(const Vector v) {
 
 ANN static void shreduler_erase(const Shreduler          s,
                                 struct ShredTick_ *const tk) {
-  MUTEX_LOCK(tk->self->mutex);
+  const VM_Shred shred = tk->self;
+  const m_uint size =
+      shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
+  unwind(shred, (Symbol)-1, size);
+  MUTEX_LOCK(shred->mutex);
   if (tk->parent) {
     MUTEX_LOCK(tk->parent->self->mutex);
     vector_rem2(&tk->parent->child, (vtype)tk->self);
     MUTEX_UNLOCK(tk->parent->self->mutex);
   }
   if (tk->child.ptr) shreduler_child(&tk->child);
-  vector_rem2(&s->active_shreds, (vtype)tk->self);
-  MUTEX_UNLOCK(tk->self->mutex);
+  vector_rem2(&s->active_shreds, (vtype)shred);
+  MUTEX_UNLOCK(shred->mutex);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out,

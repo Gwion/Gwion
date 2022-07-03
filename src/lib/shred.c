@@ -58,7 +58,7 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
   if((m_int)s->tick->prev != -1)
-   shreduler_remove(s->tick->shreduler, s, true);
+    shreduler_remove(s->tick->shreduler, s, true);
 }
 
 static MFUN(vm_shred_id) {

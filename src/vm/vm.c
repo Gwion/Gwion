@@ -92,7 +92,7 @@ ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, co
   return true;
 }
 
-ANN static bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
+ANN bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
   const VM_Code code = shred->code;
   if (code->live_values.ptr)
     clean_values(shred);
