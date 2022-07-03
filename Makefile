@@ -58,7 +58,7 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif
 
-ALMOST_LIBS := libcmdapp/libcmdapp.a fmt/libgwion-fmt.a
+ALMOST_LIBS := libcmdapp/libcmdapp.a fmt/libgwion_fmt.a
 ALMOST_LIBS += ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a
 ALMOST_LIBS += util/libgwion_util.a util/libtermcolor/libtermcolor.a
 GWLIBS := lib${PRG}.a ${ALMOST_LIBS}
@@ -103,7 +103,7 @@ ast/libgwion_ast.a: util/libgwion_util.a
 libcmdapp/libcmdapp.a:
 	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C libcmdapp static
 
-fmt/libgwion-fmt.a: ast/libgwion_ast.a
+fmt/libgwion_fmt.a: ast/libgwion_ast.a
 	@+${MAKE} -s -C fmt libgwion_fmt.a
 
 ast/libprettyerr/libprettyerr.a:
