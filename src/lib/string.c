@@ -55,6 +55,13 @@ opck_str(eq, !strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.d
 
 static DTOR(string_dtor) { free_mstr(shred->info->mp, STRING(o)); }
 
+ID_CHECK(check_filepp) {
+  ((Exp_Primary *)prim)->prim_type = ae_prim_str;
+  ((Exp_Primary *)prim)->d.string.data     = env->name;
+  ((Exp_Primary *)prim)->value = global_string(env, prim->d.string.data, prim_pos(prim));
+  return prim->value->type;
+}
+
 ID_CHECK(check_funcpp) {
   ((Exp_Primary *)prim)->prim_type = ae_prim_str;
   ((Exp_Primary *)prim)->d.string.data     = env->func        ? env->func->name
@@ -63,6 +70,12 @@ ID_CHECK(check_funcpp) {
 // handle delim?
   ((Exp_Primary *)prim)->value = global_string(env, prim->d.string.data, prim_pos(prim));
   return prim->value->type;
+}
+
+ID_CHECK(check_linepp) {
+  ((Exp_Primary *)prim)->prim_type = ae_prim_num;
+  ((Exp_Primary *)prim)->d.num = prim_pos(prim).first.line;
+  return env->gwion->type[et_int];
 }
 
 static GACK(gack_string) {
@@ -559,8 +572,14 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
   GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
 
-  struct SpecialId_ spid = {
-      .ck = check_funcpp, .exec = RegPushMe, .is_const = 1};
-  gwi_specialid(gwi, "__func__", &spid);
+  struct SpecialId_ file_spid = {
+      .ck = check_filepp, .is_const = 1};
+  gwi_specialid(gwi, "__file__", &file_spid);
+  struct SpecialId_ func_spid = {
+      .ck = check_funcpp, .is_const = 1};
+  gwi_specialid(gwi, "__func__", &func_spid);
+  struct SpecialId_ line_spid = {
+      .ck = check_linepp, .is_const = 1};
+  gwi_specialid(gwi, "__line__", &line_spid);
   return GW_OK;
 }
