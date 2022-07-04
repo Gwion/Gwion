@@ -40,7 +40,7 @@ ANN static inline Symbol partial_name(const Env env, const pos_t pos) {
 
 ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
   Arg_List args = earg ? partial_arg_list(env, base->args, earg) : NULL;
-  Func_Base *fb = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), partial_name(env, loc.first), args, ae_flag_none, loc);
+  Func_Base *fb = new_func_base(env->gwion->mp, base->td ? cpy_type_decl(env->gwion->mp, base->td) : NULL, partial_name(env, loc.first), args, ae_flag_none, loc);
   return fb;
 }
 
