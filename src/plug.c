@@ -79,8 +79,8 @@ ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
   map_init(map);
   vector_init(&gwion->data->plugs->vec);
   struct PlugHandle h = {.mp = gwion->mp, .map = map};
-  for (m_uint i = 0; i < vector_size(list); i++) {
-    const m_str dir = (m_str)vector_at(list, i);
+  for (m_uint i = vector_size(list) + 1 ; --i;) {
+    const m_str dir = (m_str)vector_at(list, i - 1);
     h.len           = strlen(dir);
     char name[PATH_MAX];
     sprintf(name, "%s/*.so" /**/, dir);
