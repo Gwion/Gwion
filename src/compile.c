@@ -7,6 +7,7 @@
 #include "compile.h"
 #include "gwion.h"
 #include "pass.h"
+#include "shreduler_private.h"
 
 enum compile_type { COMPILE_NAME, COMPILE_MSTR, COMPILE_FILE };
 
@@ -178,6 +179,7 @@ ANN m_uint compile_string_xid(struct Gwion_ *gwion, const m_str filename,
   struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data};
   if (!compile(gwion, &c)) return 0;
   assert(c.shred);
+  gwion->vm->shreduler->shred_ids--;
   return c.shred->tick->xid = xid;
 }
 

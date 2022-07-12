@@ -17,7 +17,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   Driver *const            bbq = s->bbq;
   struct ShredTick_ *const tk  = s->list;
   if (tk) {
-    const m_float time = (m_float)bbq->pos + (m_float)GWION_EPSILON;
+    const m_float time = (m_float)bbq->pos + GWION_EPSILON;
     if (tk->wake_time <= time) {
       if ((s->list = tk->next)) s->list->prev = NULL;
       tk->next = tk->prev = NULL;
@@ -31,45 +31,46 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   return NULL;
 }
 
-ANN static inline void shreduler_child(const Vector v) {
+ANN static void shreduler_erase(const Shreduler, struct ShredTick_ *const);
+
+ANN static void tk_remove(const Shreduler s, struct ShredTick_ *const tk) {
+  if (tk == s->curr) s->curr = NULL;
+  else if (tk == s->list) s->list = tk->next;
+  if (tk->prev) tk->prev->next = tk->next;
+  if (tk->next) tk->next->prev = tk->prev;
+}
+
+ANN static inline void child(const Shreduler s, const Vector v) {
   for (m_uint i = vector_size(v) + 1; --i;) {
     const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-    shreduler_remove(child->tick->shreduler, child, true);
+    struct ShredTick_ *const tk = child->tick;
+    tk_remove(s, tk);
+    shreduler_erase(s, tk);
   }
 }
 
 ANN static void shreduler_erase(const Shreduler          s,
                                 struct ShredTick_ *const tk) {
   const VM_Shred shred = tk->self;
+  if (tk->child.ptr) child(s, &tk->child);
+  MUTEX_LOCK(shred->mutex);
+  tk->prev = (struct ShredTick_*)-1;
+  MUTEX_UNLOCK(shred->mutex);
   const m_uint size =
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
   unwind(shred, (Symbol)-1, size);
-  MUTEX_LOCK(shred->mutex);
-  if (tk->parent) {
-    MUTEX_LOCK(tk->parent->self->mutex);
-    vector_rem2(&tk->parent->child, (vtype)tk->self);
-    MUTEX_UNLOCK(tk->parent->self->mutex);
-  }
-  if (tk->child.ptr) shreduler_child(&tk->child);
   vector_rem2(&s->active_shreds, (vtype)shred);
-  MUTEX_UNLOCK(shred->mutex);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
                           const bool erase) {
   MUTEX_LOCK(s->mutex);
   struct ShredTick_ *const tk = out->tick;
-  if (tk == s->curr)
-    s->curr = NULL;
-  else if (tk == s->list)
-    s->list = tk->next;
-  if (tk->prev) tk->prev->next = tk->next;
-  if (tk->next) tk->next->prev = tk->prev;
-  if (!erase)
-    tk->prev = tk->next = NULL;
+  tk_remove(s, tk);
+  if (likely(!erase)) tk->prev = tk->next = NULL;
   else {
     shreduler_erase(s, tk);
-    tk->prev = (struct ShredTick_*)-1;
+    if (tk->parent) vector_rem2(&tk->parent->child, (vtype)out);
     release(out->info->me, out);
   }
   MUTEX_UNLOCK(s->mutex);
