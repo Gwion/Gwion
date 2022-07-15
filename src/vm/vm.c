@@ -50,7 +50,7 @@ ANN static inline void shred_unwind(const VM_Shred shred) {
 ANN static void clean_values(const VM_Shred shred) {
   const VM_Code code = shred->code;
   const uint16_t pc = shred->pc;
-  for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
+  for (m_uint i = m_vector_size(&code->live_values) + 1; --i;) {
     VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
     if (pc <= vmval->start) break;
     if (pc >= vmval->end) continue;
