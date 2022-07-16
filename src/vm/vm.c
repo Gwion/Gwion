@@ -51,7 +51,7 @@ ANN static void clean_values(const VM_Shred shred) {
   const VM_Code code = shred->code;
   const uint16_t pc = shred->pc;
   for (m_uint i = m_vector_size(&code->live_values) + 1; --i;) {
-    VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
+    VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i - 1);
     if (pc <= vmval->start) break;
     if (pc >= vmval->end) continue;
     m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
