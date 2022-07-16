@@ -1,2 +1,2 @@
-#! [contains] must be declared empty
+#! [contains] arrays of abstract type
 var Shred[12] shreds;

@@ -120,4 +120,6 @@ ANN static inline bool not_upvalue(const Env env, const Value v) {
       (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
       nspc_lookup_value1(env->curr, insert_symbol(v->name));
 }
+
+ANN m_bool abstract_array(const Env env, const Array_Sub array);
 #endif

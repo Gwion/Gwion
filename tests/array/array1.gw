@@ -1,0 +1,3 @@
+class abstract C {}
+
+late C[2] c;

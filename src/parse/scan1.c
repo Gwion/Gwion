@@ -96,8 +96,14 @@ static inline bool array_ref(const Array_Sub array) {
   return array && !array->exp;
 }
 
-static inline bool array_ref2(const Array_Sub array) {
-  return array && !(array->exp && exp_is_zero(array->exp));
+ANN m_bool abstract_array(const Env env, const Array_Sub array) {
+  Exp e = array->exp;
+  while(e) {
+    if(!exp_is_zero(e))
+      ERR_B(e->pos, _("arrays of abstract type should use `0` size"));
+    e = e->next;
+  }
+  return GW_OK;
 }
 
 ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
@@ -107,9 +113,13 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
   Type t = decl->type;
   CHECK_BB(scan1_defined(env, vd));
   const Type base = array_base_simple(t);
-  if ((!GET_FLAG(decl->td, late) && GET_FLAG(base, abstract)) && array_ref2(decl->td->array))
-    ERR_B(vd->pos, _("arrays of abstract type '%s' must be declared empty"),
-          base->name);
+  if(decl->td->array) {
+    if (!GET_FLAG(decl->td, late) && !decl->td->array->exp)
+      ERR_B(decl->td->pos, _("arrays with no expressions should be declared `late`"));
+    if (GET_FLAG(decl->td, late) && decl->td->array->exp)
+      ERR_B(decl->td->array->exp->pos, _("late array should have no size"));
+    if (GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->td->array));
+  }
   const Value v = vd->value =
       vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
   nspc_add_value(env->curr, vd->xid, v);

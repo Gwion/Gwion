@@ -1,0 +1,3 @@
+class abstract C {}
+
+new C[2];
