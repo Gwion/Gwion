@@ -306,8 +306,10 @@ ANN static Func scan_new_func(const Env env, const Func_Def f,
   const Func func = new_func(env->gwion->mp, name, f);
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     set_fflag(func, fflag_ftmpl);
-  if (fbflag(f->base, fbflag_lambda))
+  if (fbflag(f->base, fbflag_lambda)) {
+    if(env->class_def) env->class_def->info->values = env->curr->info->value;
     env->curr->info->value = new_scope(env->gwion->mp);
+  }
   return func;
 }
 

@@ -183,6 +183,8 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
     return value;
   if (env->func && env->func->def->base->values)
     return upvalues_lookup(env->func->def->base->values, member->xid);
+  if(t->info->values)
+    return (Value)scope_lookup1(t->info->values, (m_uint)member->xid);
   return NULL;
 }
 

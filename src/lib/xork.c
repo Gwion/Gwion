@@ -50,6 +50,7 @@ static OP_CHECK(opck_spork) {
     Upvalues upvalues = { .values = env->curr->info->value };
     if(env->func && env->func->def->base->values)
       upvalues.parent = env->func->def->base->values;
+    if(env->class_def) env->class_def->info->values = env->curr->info->value;
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {

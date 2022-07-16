@@ -900,7 +900,7 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   const VM_Code code = finalyze(emit, EOC);
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
   vm_add_shred(emit->gwion->vm, shred);
-  shred->info->me->ref++;
+//  shred->info->me->ref++;
   vm_run(emit->gwion->vm);
   emit->gwion->vm->bbq->is_running = true;
   const m_float ret = *(m_float*)shred->reg;
@@ -2008,8 +2008,8 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
       if (stmt->val->exp_type == ae_exp_call && emit->env->func == f)
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
-    if(!stmt->val->ref && isa(stmt->val->type, emit->gwion->type[et_compound]) > 0)
-      emit_local(emit, stmt->val->type);
+//    if(!stmt->val->ref && isa(stmt->val->type, emit->gwion->type[et_compound]) > 0)
+//      emit_local(emit, stmt->val->type);
     CHECK_BB(emit_exp(emit, stmt->val));
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));

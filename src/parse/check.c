@@ -120,6 +120,7 @@ ANN /*static inline*/ m_bool ensure_check(const Env env, const Type t) {
 ANN m_bool ensure_traverse(const Env env, const Type t) {
   if (tflag(t, tflag_check) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
+  if(!tflag(t, tflag_tmpl)) return GW_OK;
   struct EnvSet es = {.env   = env,
                       .data  = env,
                       .func  = (_exp_func)traverse_cdef,
@@ -1041,8 +1042,6 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary *unary) {
                           .data = (uintptr_t)unary,
                           .pos  = exp_self(unary)->pos};
   DECL_OO(const Type, ret, = op_check(env, &opi));
-  const Type t = actual_type(env->gwion, ret);
-  CHECK_BO(ensure_traverse(env, t));
   return ret;
 }
 
@@ -1090,6 +1089,8 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot *member) {
 }
 
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
+  if(tdef->ext->array && tdef->ext->array->exp)
+    CHECK_OB(check_exp(env, tdef->type->info->cdef->base.ext->array->exp));
   if (tdef->when) {
     set_tflag(tdef->type, tflag_contract);
     struct Var_Decl_ decl = { .xid = insert_symbol("self"), .pos = tdef->when->pos };
@@ -1144,6 +1145,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   }
   return GW_OK;
 }
+
 ANN static Type check_exp_lambda(const Env env, const Exp_If *exp_if NUSED) {
   return env->gwion->type[et_function];
 }
