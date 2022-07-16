@@ -120,7 +120,7 @@ OP_CHECK(opck_new) {
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
   if(array) {
     const Type base = array_base(t);
-    if(GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, array));
+    if(GET_FLAG(base, abstract)) CHECK_BN(abstract_array(env, array));
   }
   CHECK_BN(ensure_traverse(env, t));
   if (type_ref(t))
