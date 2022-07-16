@@ -78,9 +78,10 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
 
 ANN void shredule(const Shreduler s, const VM_Shred shred,
                   const m_float wake_time) {
+  struct ShredTick_ *tk   = shred->tick;
+  if(tk->prev == (struct ShredTick_*)-1) return;
   MUTEX_LOCK(s->mutex);
   const m_float      time = wake_time + (m_float)s->bbq->pos;
-  struct ShredTick_ *tk   = shred->tick;
   tk->wake_time           = time;
   if (s->list) {
     struct ShredTick_ *curr = s->list, *prev = NULL;
