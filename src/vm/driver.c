@@ -35,7 +35,10 @@ static DRVRUN(dummy_run) {
   }
 }
 
-static DRVINI(dummy_ini) { return GW_OK; }
+static DRVINI(dummy_ini) {
+  gw_err("{-/}using dummy driver{0}\n");
+  return GW_OK;
+}
 
 void dummy_driver(DriverData *dd) {
   dd->ini = dummy_ini;
