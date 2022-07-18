@@ -359,7 +359,15 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   CHECK_BO(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
   if(local)env_push(env, NULL, env->context->nspc);
+  // these context and env command may fit better somewhere else
+  const m_str env_filename = env->name;
+  const m_str ctx_filename = env->context->name;
+  env->name = t->info->value->from->filename;
+  env->context->name = t->info->value->from->ctx->name;
+  env->context->name = ctx_filename;
   const Type ret = _scan_class(env, &info);
+  env->name = env_filename;
+  env->context->name = ctx_filename;
   if(local)env_pop(env, es.scope);
   if (es.run) envset_pop(&es, owner);
   return ret;
