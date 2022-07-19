@@ -138,6 +138,7 @@ ANN /*static */ m_bool emit_cdef(const Emitter, const Type);
 ANN /*static inline*/ m_bool ensure_emit(const Emitter emit, const Type t) {
   if (tflag(t, tflag_emit) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK; // clean callers
+if(!tflag(t, tflag_tmpl))return GW_OK;
   struct EnvSet es = {.env   = emit->env,
                       .data  = emit,
                       .func  = (_exp_func)emit_cdef,
