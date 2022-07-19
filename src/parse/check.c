@@ -1824,7 +1824,10 @@ ANN static m_bool check_trait_def(const Env env, const Trait_Def pdef) {
 }
 
 ANN m_bool check_fptr_def(const Env env, const Fptr_Def fptr) {
-  return check_class_def(env, fptr->cdef);
+  if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
+  const m_bool ret = check_class_def(env, fptr->cdef);
+  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  return ret;
 }
 
 //#define check_fptr_def dummy_func

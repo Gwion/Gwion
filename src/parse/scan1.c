@@ -459,7 +459,10 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
 #include "import.h"
 
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  return scan1_class_def(env, fptr->cdef);
+  if(GET_FLAG(fptr->cdef, global))env_push_global(env);
+  const m_bool ret = scan1_class_def(env, fptr->cdef);
+  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  return ret;
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {

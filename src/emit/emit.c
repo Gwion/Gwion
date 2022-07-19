@@ -1817,8 +1817,6 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
     const Instr ex = (Instr)vector_back(&emit->code->instr);
     if(ex->execute == fast_except) {
       vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
-      if(ex->m_val2)
-        mp_free2(emit->gwion->mp, sizeof(struct FastExceptInfo), (struct FastExceptInfo*)ex->m_val2);
       free_instr(emit->gwion, ex);
     }
   }
@@ -2391,7 +2389,6 @@ ANN static inline m_bool emit_handler_list(const restrict Emitter emit,
     const Instr instr = emit_add_instr(emit, HandleEffect);
     instr->m_val2     = (m_uint)handler->xid;
     CHECK_BB(scoped_stmt(emit, handler->stmt, 1));
-  //if (handler->next) CHECK_BB(emit_handler_list(emit, handler->next, v));
     emit_try_goto(emit, v);
     instr->m_val = emit_code_size(emit);
   }

@@ -61,7 +61,7 @@ ANN static void clean_values(const VM_Shred shred) {
 
 ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_uint size) {
   const VM_Code code = shred->code;
-  const m_uint start = VKEY(&shred->info->frame, size - 1);
+  const m_uint start = vector_at(&shred->info->frame, vector_size(&shred->info->frame) - 2);
   if (start > shred->pc) return true;
   const Map m  = &shred->code->handlers;
   for (m_uint i = 0; i < map_size(m); i++) {
@@ -77,12 +77,8 @@ ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_u
 }
 
 ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, const m_uint size) {
-  const m_uint start = VKEY(&shred->info->frame, size - 1);
-  if (start > shred->pc) return true;
   const uint16_t pc = find_pc(shred, effect, size);
-  if (!pc) // outside of a try statement
-    return false;
-  // we should clean values here
+  if (!pc) return false; // outside of a try statement
   shred->reg = // restore reg
       (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
   shredule(shred->tick->shreduler, shred, 0);

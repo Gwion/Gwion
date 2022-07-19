@@ -159,13 +159,15 @@ INSTR(fast_except) {
     VAL = -SZ_INT;
     instr->opcode = eNoOp;
     if(info) mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+    instr->m_val2 = 0;
     return;
   } else if(info) {
     if(info->file)
       gwerr_basic("Object not instantiated", NULL, NULL, info->file, info->loc, 0);
     if(info->file2)
       gwerr_warn("declared here", NULL, NULL, info->file2, info->loc2);
-    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+//    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+//    instr->m_val2 = 0;
   }
   handle(shred, "NullPtrException");
 }

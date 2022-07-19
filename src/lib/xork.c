@@ -84,6 +84,11 @@ static OP_EMIT(opem_spork) {
 
 static FREEARG(freearg_xork) { vmcode_remref((VM_Code)instr->m_val, gwion); }
 
+static FREEARG(clean_fast_except) {
+  struct FastExceptInfo *info = (struct FastExceptInfo *)instr->m_val2;
+  if(info) mp_free2(((Gwion)gwion)->mp, sizeof(struct FastExceptInfo), info);
+}
+
 GWION_IMPORT(xork) {
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_spork))
@@ -93,5 +98,6 @@ GWION_IMPORT(xork) {
   GWI_BB(gwi_oper_emi(gwi, opem_spork))
   GWI_BB(gwi_oper_end(gwi, "fork", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
+  gwi_register_freearg(gwi, fast_except, clean_fast_except);
   return GW_OK;
 }

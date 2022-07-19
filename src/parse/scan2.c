@@ -75,10 +75,12 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
-  CHECK_BB(scan2_class_def(env, fptr->cdef));
-  const Func_Def fdef = mp_vector_at(fptr->cdef->body, struct Section_ , 0)->d.func_def;
+  if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
+  const m_bool ret = scan2_class_def(env, fptr->cdef);
+  const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
-  return GW_OK;
+  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  return ret;
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f);
