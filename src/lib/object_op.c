@@ -209,10 +209,12 @@ OP_CHECK(opck_object_dot) {
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
-    if(tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check) && env->class_def != the_base) {
+/*
+    if(env->class_def != the_base && tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check))
       CHECK_BN(ensure_traverse(env, the_base));
       return check_exp(env, exp_self(member));
     }
+*/
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if (v && member->is_call) {
       if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
