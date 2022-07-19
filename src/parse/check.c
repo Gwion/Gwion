@@ -2067,7 +2067,7 @@ ANN m_bool check_ast(const Env env, Ast *ast) {
     Section * section = mp_vector_at(a, Section, i);
     CHECK_BB(check_section(env, section));
   }
-  check_unhandled(env);
+  if(vector_size(&env->scope->effects)) check_unhandled(env);
   if(env->context->extend) check_extend(env, env->context->extend);
   return GW_OK;
 }
