@@ -70,7 +70,9 @@ static MFUN(vm_shred_is_running) {
   *(m_uint *)RETURN = ((m_int)s->tick->prev != -1 && (s->tick->prev || s->tick->next)) ? true : false;
 }
 
-static MFUN(vm_shred_is_done) { *(m_uint *)RETURN = !ME(o) ? true : false; }
+static MFUN(vm_shred_is_done) {
+  *(m_uint *)RETURN = (m_int)s->tick->prev == -1;
+}
 
 static MFUN(shred_yield) {
   const VM_Shred  s  = ME(o);
