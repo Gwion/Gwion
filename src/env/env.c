@@ -81,8 +81,8 @@ ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos) {
 }
 
 ANN void free_env(const Env a) {
-  free_env_scope(a->scope, a->gwion);
   pop_global(a->gwion);
+  free_env_scope(a->scope, a->gwion);
   mp_free(a->gwion->mp, Env, a);
 }
 
