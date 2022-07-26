@@ -206,9 +206,6 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   return GW_OK;
 }
 
-#define scan0_nspc(env, a)                                                     \
-  GET_FLAG(a, global) ? !env->class_def ? env->global_nspc : NULL : env->curr
-
 #include "gack.h"
 static GACK(gack_enum) {
   const Map m = &t->nspc->info->value->map;
@@ -323,9 +320,9 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
 }
 
 ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = known_type(env, td));
-  if (!GET_FLAG(t, final)) return t;
-  ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
+  const Type t = find_type(env, td);
+  if(!t) ERR_O(td->pos, _("can't find parent class %s\n."), s_name(td->xid));
+  return t;
 }
 
 ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
@@ -336,7 +333,7 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   if (tmpl) template_push_types(env, cdef->base.tmpl);
   const Type t = scan0_final(env, cdef->base.ext);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
-  return t ?: (Type)GW_ERROR;
+  return t;
 }
 
 ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
@@ -354,8 +351,7 @@ ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
-  const Type parent = cdef_parent(env, cdef);
-  if (parent == (Type)GW_ERROR) return NULL;
+  DECL_OO(const Type, parent, = cdef_parent(env, cdef));
   if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
     const Value v = parent->info->value;
@@ -518,9 +514,8 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-
-
 ANN Ast spread_class(const Env env, const Ast body);
+
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   CHECK_BB(scan0_global(env, c->flag, c->pos));
   const Ast old_extend = env->context ? env->context->extend : NULL;

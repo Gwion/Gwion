@@ -143,8 +143,8 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     } else set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
-    else if(v->type != env->gwion->type[et_auto] && v->type != env->class_def) {
-      type_addref(v->type);
+  else if(v->type != env->gwion->type[et_auto] && v->type != env->class_def) {
+    type_addref(v->type);
     set_vflag(v, vflag_inner); // file global
   }
   ((Exp_Decl *)decl)->type = decl->vd.value->type;
@@ -731,7 +731,14 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN static inline Type scan1_final(const Env env, Type_Decl *td, const bool tdef) {
+  DECL_OO(const Type, t, = known_type(env, td));
+  if (!GET_FLAG(t, final) || tdef) return t;
+  ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
+}
+
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
+  CHECK_OB((cdef->base.type->info->parent = scan1_final(env, cdef->base.ext, tflag(cdef->base.type, tflag_typedef))));
   const bool tmpl = !!cdef->base.tmpl;
   if (tmpl) CHECK_BB(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = scan1_parent(env, cdef);
@@ -743,8 +750,8 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
   if (tflag(t, tflag_scan1)) return GW_OK;
-  const Class_Def c = t->info->cdef;
   set_tflag(t, tflag_scan1);
+  const Class_Def c = t->info->cdef;
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(env_body(env, c, scan1_section));
   return GW_OK;
