@@ -243,12 +243,13 @@ ANN void push_global(struct Gwion_ *gwion, const m_str name) {
 }
 
 ANN void pop_global(const Gwion gwion) {
-   Nspc nspc = gwion->env->global_nspc->parent, parent;
+   Nspc nspc = gwion->env->global_nspc->parent;
 //   Nspc nspc = gwion->env->global_nspc, parent;
-   do {
-     parent = nspc->parent;
+   while (nspc) {
+     const Nspc parent = nspc->parent;
      nspc_remref(nspc, gwion);
-   } while((nspc = parent));
+     nspc = parent;
+   }
 }
 
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {
