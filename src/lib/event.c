@@ -11,12 +11,19 @@
 
 static CTOR(event_ctor) { vector_init(&EV_SHREDS(o)); }
 
-static DTOR(event_dtor) { vector_release(&EV_SHREDS(o)); }
+static DTOR(event_dtor) {
+  for (m_uint i = 0; i < vector_size(&EV_SHREDS(o)); i++) {
+    const VM_Shred sh = (VM_Shred)vector_at(&EV_SHREDS(o), i);
+    release(sh->info->me, sh);
+  }
+  vector_release(&EV_SHREDS(o));
+}
 
 static INSTR(EventWait) {
   POP_REG(shred, SZ_FLOAT);
   const M_Object event = *(M_Object *)REG(-SZ_INT);
   shreduler_remove(shred->tick->shreduler, shred, false);
+  shred->info->me->ref++;
   const Vector v = &EV_SHREDS(event);
   vector_add(v, (vtype)shred);
   *(m_int *)REG(-SZ_INT) = 1;
@@ -29,12 +36,14 @@ static MFUN(event_signal) {
     shredule(sh->tick->shreduler, sh, GWION_EPSILON);
     vector_rem(v, 0);
   }
+  release(sh->info->me, sh);
 }
 
 ANN void broadcast(const M_Object o) {
   for (m_uint i = 0; i < vector_size(&EV_SHREDS(o)); i++) {
     const VM_Shred sh = (VM_Shred)vector_at(&EV_SHREDS(o), i);
     shredule(sh->tick->shreduler, sh, GWION_EPSILON);
+    release(sh->info->me, sh);
   }
   vector_clear(&EV_SHREDS(o));
 }

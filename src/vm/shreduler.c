@@ -42,8 +42,8 @@ ANN static void tk_remove(const Shreduler s, struct ShredTick_ *const tk) {
 
 ANN static inline void child(const Shreduler s, const Vector v) {
   for (m_uint i = vector_size(v) + 1; --i;) {
-    const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-    struct ShredTick_ *const tk = child->tick;
+    const VM_Shred shred = (VM_Shred)vector_at(v, i - 1);
+    struct ShredTick_ *const tk = shred->tick;
     tk_remove(s, tk);
     shreduler_erase(s, tk);
   }
@@ -60,6 +60,7 @@ ANN static void shreduler_erase(const Shreduler          s,
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
   unwind(shred, (Symbol)-1, size);
   vector_rem2(&s->active_shreds, (vtype)shred);
+  release(shred->info->me, shred);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
@@ -69,9 +70,8 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
   tk_remove(s, tk);
   if (likely(!erase)) tk->prev = tk->next = NULL;
   else {
-    shreduler_erase(s, tk);
     if (tk->parent) vector_rem2(&tk->parent->child, (vtype)out);
-    release(out->info->me, out);
+    shreduler_erase(s, tk);
   }
   MUTEX_UNLOCK(s->mutex);
 }
