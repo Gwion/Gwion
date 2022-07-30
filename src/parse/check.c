@@ -135,20 +135,15 @@ ANN static inline m_bool inferable(const Env env, const Type t,
   ERR_B(pos, _("can't infer type."))
 }
 
-ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
+ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
   if (decl->td->array && decl->td->array->exp)
     CHECK_OO(check_exp(env, decl->td->array->exp));
-  if (decl->args) {
-    struct Exp_ e = {
-      .d = { .exp_unary = {
-        .op = insert_symbol("new"),
-        .ctor = { .td = decl->td, .exp = decl->args },
-        .unary_type = unary_td
-      }},
-      .exp_type = ae_exp_unary,
-      .pos = decl->td->pos
-    };
-    CHECK_OO(check_exp(env, &e));
+  if (decl->args && !decl->args->type) { // for some reason this can be parsed twice
+    Exp e = new_exp_unary2(env->gwion->mp, insert_symbol("new"), cpy_type_decl(env->gwion->mp, decl->td), decl->args, decl->td->pos);
+    CHECK_OO(check_exp(env, e));
+    Exp args = decl->args;
+    decl->args = e;
+    free_exp(env->gwion->mp, args);
   }
   if (decl->td->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)));
@@ -166,7 +161,10 @@ ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret    = check_decl(env, decl);
-  if (global) env_pop(env, scope);
+  if (global) {
+    env_pop(env, scope);
+    set_vflag(decl->vd.value, vflag_direct);
+  }
   env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]) > 0);
   return ret > 0 ? decl->vd.value->type : NULL;
 }

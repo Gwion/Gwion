@@ -926,26 +926,11 @@ ANN static m_bool emit_dot_static_data(const Emitter emit, const Value v,
   return GW_OK;
 }
 
-ANN static m_bool emit_instantiate_new(const Emitter emit, const Exp_Decl *decl) {
-  struct Exp_ e = {
-    .d = { .exp_unary = {
-      .op = insert_symbol("new"),
-      .ctor = { .td = decl->td, .exp = decl->args },
-      .unary_type = unary_td
-    }},
-    .exp_type = ae_exp_unary,
-    .pos = decl->td->pos
-  };
-  CHECK_BB(traverse_exp(emit->env, &e));
-  CHECK_BB(emit_exp(emit, &e));
-  return GW_OK;
-}
-
 ANN static m_bool _decl_static(const Emitter emit, const Exp_Decl *decl,
                               const Var_Decl *var_decl, const uint is_ref) {
   const Value v    = var_decl->value;
   if(!decl->args) CHECK_BB(emit_instantiate_decl(emit, v->type, decl->td, is_ref));
-  else CHECK_BB(emit_instantiate_new(emit, decl));
+  else CHECK_BB(emit_exp(emit, decl->args));
   CHECK_BB(emit_dot_static_data(emit, v, 1));
   emit_add_instr(emit, Assign);
 //  if(get_depth(var_decl->value->type) && !is_ref)
@@ -1041,7 +1026,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
   if (is_obj && !is_ref && !exp_self(decl)->ref) {
 //  if (is_obj && ((is_array && !exp_self(decl)->ref) || !is_ref))
     if(!decl->args) CHECK_BB(emit_instantiate_decl(emit, type, decl->td, is_ref));
-    else CHECK_BB(emit_instantiate_new(emit, decl));
+    else CHECK_BB(emit_exp(emit, decl->args));
   }
   f_instr *exec = (f_instr *)allocmember;
   if (!emit->env->scope->depth) emit_debug(emit, v);
@@ -1084,7 +1069,7 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
   const bool emit_addr = (!is_obj || is_ref) ? emit_var : true;
   if (is_obj && !is_ref) {
     if(!decl->args) CHECK_BB(emit_instantiate_decl(emit, type, decl->td, is_ref));
-    else CHECK_BB(emit_instantiate_new(emit, decl));
+    else CHECK_BB(emit_exp(emit, decl->args));
   }
   const Instr instr =
       emit_dotstatic(emit, v->type->size, !struct_ctor(v) ? emit_addr : 1);

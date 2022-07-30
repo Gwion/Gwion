@@ -122,8 +122,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
   }
   const Value v = vd->value =
       vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
-  nspc_add_value(env->curr, vd->xid, v);
-  if (GET_FLAG(t, abstract) && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
+  if (GET_FLAG(t, abstract) && !decl->args && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
   v->type = t;
   if (decl_ref) SET_FLAG(v, late);
   v->flag |= decl->td->flag;
@@ -164,6 +163,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret   = scan1_decl(env, decl);
+  valid_value(env, decl->vd.xid, decl->vd.value);
   if (global) env_pop(env, scope);
   return ret;
 }
@@ -363,13 +363,13 @@ ANN static inline m_bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) {
 
 ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   edef->t->nspc = new_nspc(env->gwion->mp, edef->t->name);
-  const Nspc nspc = edef->t->nspc;
   const m_uint scope = env_push_type(env, edef->t);
   ID_List list = edef->list;
   for(uint32_t i = 0; i < list->len; i++) {
     Symbol xid = *mp_vector_at(list, Symbol, i);
     const Value v = new_value(env, edef->t, s_name(xid), edef->pos);
     valuefrom(env, v->from);
+    valid_value(env, xid, v);
     if (env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
@@ -378,7 +378,6 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
     set_vflag(v, vflag_valid);
-    nspc_add_value(nspc, xid, v);
     vector_add(&edef->values, (vtype)v);
   }
   env_pop(env, scope);
