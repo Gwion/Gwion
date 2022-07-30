@@ -84,6 +84,15 @@ ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_
 #define SPEC_ERROR (Specialized_List) GW_ERROR
 ANN static bool _tmpl_list(const Gwion        gwion,
                                        struct td_checker *tdc, Specialized_List *sl) {
+  if(unlikely(!strncmp(tdc->str, "...", 3))) {
+    tdc->str += 3;
+    Specialized spec = {
+      .xid = insert_symbol(gwion->st, "..."),
+      .pos = tdc->pos
+    };
+    mp_vector_add(gwion->mp, sl, Specialized, spec);
+    return true;
+  }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   // TODO: handle traits?
   Specialized spec = {
@@ -286,6 +295,10 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
 
 ANN static m_bool td_info_run(const Env env, struct td_info *info) {
   Type_List tl = info->tl;
+  if(unlikely(!tl->len)) {
+    text_add(&info->text, "");
+    return GW_OK;
+  }
   for(uint32_t i = 0; i < tl->len; i++) {
     if (i) text_add(&info->text, ",");
     DECL_OB(Type_Decl *, td, = *mp_vector_at(tl, Type_Decl*, i));

@@ -147,12 +147,14 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_BO(envset_pushv(&es, v));
   (void)env_push(env, v->from->owner_class, v->from->owner);
-  if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+  const bool in_tmpl = v->from->owner_class && v->from->owner_class->info->cdef &&
+      v->from->owner_class->info->cdef->base.tmpl;
+  if(in_tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
   const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]) > 0;
   const Func m_func = !is_clos ? func_match(env, &ra)
                                : fptr_match(env, &ra);
-  if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+  if(in_tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   if (es.run) envset_pop(&es, v->from->owner_class);
