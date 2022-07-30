@@ -1,4 +1,4 @@
 #! [contains] Hello, interpolation! 1
-1 => var int my;
-"Hello, interpolation! ${ my }" => var string s;
+1 :=> var int my;
+"Hello, interpolation! ${ my }" :=> var string s;
 <<< s >>>;

@@ -6,6 +6,6 @@ fun void test:[A]() {
   <<< __func__ >>>;
 }
 
-test @=> var B b;
+test :=> var B b;
 <<< b() >>>;
 <<< b:[float]() >>>;

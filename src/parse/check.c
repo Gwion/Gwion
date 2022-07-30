@@ -816,7 +816,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
     exp->func->d.exp_dot.is_call = exp;
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
-                            "site. did you meant to use `@=>`?"))
+                            "site. did you meant to use `:=>`?"))
   const Type t = actual_type(env->gwion, exp->func->type);
   if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot && // is_callable
       !t->info->value->from->owner_class) {
@@ -917,7 +917,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   CHECK_OO(check_exp(env, bin->lhs));
-  const m_bool is_auto = (bin->op == insert_symbol("=>") || bin->op == insert_symbol("@=>")) &&
+  const m_bool is_auto = bin->op == insert_symbol(":=>")  &&
                          bin->rhs->exp_type == ae_exp_decl &&
                          bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;

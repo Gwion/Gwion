@@ -1,5 +1,5 @@
 #import typedef
 var Typedef t;
 #!fun int test(int i) { <<< i >>>; }
-#!test @=> t;
+#!test :=> t;
 <<< t >>>;

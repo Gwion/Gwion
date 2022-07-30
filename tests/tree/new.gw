@@ -1,7 +1,7 @@
 new Object;
-new Object => var Object refref;
+new Object :=> var Object refref;
 new Event;
 var Event ev;
-ev => var Event e;
-new Event => e;
-ev => e;
+ev :=> var Event e;
+new Event :=> e;
+ev :=> e;

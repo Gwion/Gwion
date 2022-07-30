@@ -4,6 +4,6 @@ fun void inc(Ref:[int] a) {
    <<< a >>>;
 }
 
-12 => var int i;
+12 :=> var int i;
 i => inc;
 <<< i >>>;

@@ -169,7 +169,7 @@ static GWION_IMPORT(int_logical) {
 
 static GWION_IMPORT(int_r) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_OP("=>", rassign, r_assign)
+  CHECK_OP(":=>", rassign, r_assign)
   CHECK_OP("+=>", rassign, r_plus)
   CHECK_OP("-=>", rassign, r_minus)
   CHECK_OP("*=>", rassign, r_mul)
@@ -384,7 +384,7 @@ static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_end(gwi, "-", int_float_minus))
   GWI_BB(gwi_oper_add(gwi, opck_int_float_div))
   GWI_BB(gwi_oper_end(gwi, "/", int_float_div))
-  CHECK_IF("=>", rassign, r_assign)
+  CHECK_IF(":=>", rassign, r_assign)
   CHECK_IF("+=>", rassign, r_plus)
   CHECK_IF("-=>", rassign, r_minus)
   CHECK_IF("*=>", rassign, r_mul)
@@ -439,7 +439,7 @@ static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_end(gwi, "*", float_int_mul))
   GWI_BB(gwi_oper_add(gwi, opck_float_int_div))
   GWI_BB(gwi_oper_end(gwi, "/", float_int_div))
-  CHECK_FI("=>", rassign, r_assign)
+  CHECK_FI(":=>", rassign, r_assign)
   CHECK_FI("+=>", rassign, r_plus)
   CHECK_FI("-=>", rassign, r_minus)
   CHECK_FI("*=>", rassign, r_mul)
@@ -468,7 +468,7 @@ static GWION_IMPORT(floatint) {
 static GWION_IMPORT(dur) {
   GWI_BB(gwi_oper_cond(gwi, "dur", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   CHECK_FF("+=>", rassign, r_plus)
   CHECK_FF("-=>", rassign, r_minus)
   CHECK_FF("*=>", rassign, r_mul)
@@ -513,7 +513,7 @@ static OP_CHECK(opck_now) {
 static GWION_IMPORT(time) {
   GWI_BB(gwi_oper_cond(gwi, "time", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "time"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   GWI_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
   GWI_BB(gwi_oper_end(gwi, "+", float_add))
   GWI_BB(gwi_oper_end(gwi, "*", float_mul))
@@ -525,7 +525,7 @@ static GWION_IMPORT(time) {
   CHECK_FF("*=>", rassign, r_mul)
   CHECK_FF("/=>", rassign, r_div)
   GWI_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   GWI_BB(gwi_oper_end(gwi, "+", float_add))
   GWI_BB(gwi_oper_ini(gwi, "dur", "@now", "time"))
   _CHECK_OP("=>", now, Time_Advance)
@@ -591,7 +591,7 @@ static GWION_IMPORT(float) {
   IMPORT_BINARY_FLOAT(mul, *);
   IMPORT_BINARY_FLOAT(div, /);
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   CHECK_FF("+=>", rassign, r_plus)
   CHECK_FF("-=>", rassign, r_minus)
   CHECK_FF("*=>", rassign, r_mul)

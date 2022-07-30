@@ -438,7 +438,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_at))
   GWI_BB(gwi_oper_emi(gwi, opem_object_at))
-  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==", EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))

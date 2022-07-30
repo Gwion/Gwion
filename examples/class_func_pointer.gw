@@ -8,14 +8,14 @@ class C {
 	fun void test() { <<< "member function." >>>; }
 	fun void test2() { <<< "member function variant." >>>; }
 #!	fun  static void s_test() { <<< "member fun." >>>; }
-#!	test @=> func_p;
-#!	test @=> s_ptr;
+#!	test :=> func_p;
+#!	test :=> s_ptr;
 
 #! those are forbidden
 #!func_p();
 #!this.func_p();
 
-	test2 @=> func_p;
+	test2 :=> func_p;
 
 #!func_p();
 test();
@@ -26,8 +26,8 @@ test();
 var C c;
 c.func_p();
 
-#!test @=> c.s_func_p;
-c.test @=> c.func_p;
+#!test :=> c.s_func_p;
+c.test :=> c.func_p;
 c.func_p();
-c.test2 @=> c.func_p;
+c.test2 :=> c.func_p;
 c.func_p();

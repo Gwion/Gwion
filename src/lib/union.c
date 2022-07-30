@@ -150,7 +150,7 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_oper_ini(gwi, "None", "None", "None"))
   GWI_BB(gwi_oper_add(gwi, opck_none))
   GWI_BB(gwi_oper_emi(gwi, opem_none))
-  GWI_BB(gwi_oper_end(gwi, "=>", NoOp))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NoOp))
 
   const Type t_union = gwi_class_ini(gwi, "union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);

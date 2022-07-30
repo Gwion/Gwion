@@ -405,7 +405,7 @@ static OP_CHECK(opck_auto_fptr) {
   // we'll only deal with auto fptr declaration
   if (bin->rhs->exp_type != ae_exp_decl &&
       bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
-    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}@=>{0} {+G}function{0} assignment");
+    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
   if(!bin->lhs->type->info->func)
@@ -758,7 +758,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, "function", "funptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_assign))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_assign))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
@@ -772,7 +772,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "function", "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
-  GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
+  GWI_BB(gwi_oper_end(gwi, ":=>", int_r_assign))
   GWI_BB(gwi_oper_ini(gwi, "function", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_partial))
   GWI_BB(gwi_oper_end(gwi, "@partial", NULL))

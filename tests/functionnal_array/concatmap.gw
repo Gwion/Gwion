@@ -4,26 +4,26 @@
 #!- this also
 
 const float ii;
-123=> var float f;
+123 :=> var float f;
 
 foreach(a : [12, 1, 2 ,3].compactMap:[int]( \a {
     var int?i;
-    145 => i.val;
+    145 :=> i.val;
     if(maybe)
       i.val++;
     return i;
   }
 )) {
-  <<< "mapped to => ${a}" >>>;
+  <<< "mapped to :=> ${a}" >>>;
 }
 
 fun int? t(int x) {
   var int?i;
-  145 => i.val;
+  145 :=> i.val;
   if(maybe)
     i.val++;
   return i;
 }
 foreach(a : [12, 1, 2 ,3].compactMap:[int](t))
-  <<< "mapped to => ${a}" >>>;
+  <<< "mapped to :=> ${a}" >>>;
 <<< "test" >>>;

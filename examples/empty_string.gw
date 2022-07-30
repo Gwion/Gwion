@@ -1,2 +1,2 @@
-"test" => var string s;
+"test" :=> var string s;
 <<<  s  >>>;

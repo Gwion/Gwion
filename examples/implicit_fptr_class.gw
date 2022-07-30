@@ -10,6 +10,6 @@ class C {
   test $ t_ptr;
   \{ <<< __func__ >>>; } $ t_ptr;#!; => test;
   \{ <<< __func__ >>>; } => test;
-  \a{} @=> var t_ptr1 ptr1;
+  \a{} :=> var t_ptr1 ptr1;
 }
 var C c;

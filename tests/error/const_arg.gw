@@ -1,6 +1,6 @@
 #! [contains] right-side operand is non-mutable
 fun void test(const int i) {
-  10 => i;
+  10 :=> i;
 }
 
 test(2);

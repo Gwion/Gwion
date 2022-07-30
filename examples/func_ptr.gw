@@ -10,15 +10,15 @@ fun void test3(){ <<< "yet another test" >>>; };
 var Test test;
 
 #! assign it a fun
-test1 @=> test;
+test1 :=> test;
 #! test it
 test();
 
 #!  ...
-test2 @=> test;
+test2 :=> test;
 test();
 
-test3 @=> test;
+test3 :=> test;
 test();
 
 <<<  test3 $ Test >>>;

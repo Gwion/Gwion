@@ -1,6 +1,6 @@
 struct S {
-  4 => var int i;
-  12 => var int j;
+  4 :=> var int i;
+  12 :=> var int j;
   fun int test() { <<< "test", i >>>; }
   test();
 }

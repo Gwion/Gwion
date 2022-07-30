@@ -5,7 +5,7 @@ var A a;
 <<<a>>>;
 
 fun void test() { <<< __func__ >>>; }
-test @=> a;
+test :=> a;
 a();
 a();
 a();

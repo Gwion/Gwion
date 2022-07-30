@@ -1,9 +1,9 @@
 class C {
   fun static void test(int i) { <<<  "int arg"  >>>; }
   funptr static void PtrType(int i);
-  test @=> var static PtrType p;
+  test :=> var static PtrType p;
   p(1);
-  test @=> p;
+  test :=> p;
   p(1);
 }
 

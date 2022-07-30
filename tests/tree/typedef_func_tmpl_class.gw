@@ -7,7 +7,7 @@ class C {
     <<< this, " ", __func__ >>>;
   }
 
-  test @=> iptr;
+  test :=> iptr;
   <<< iptr() >>>;
 #!  <<< iptr() >>>;
 }

@@ -2,7 +2,7 @@ class C {
   funptr void t_fptr(int i, int);
   fun void test(int i, int j) { <<< this ,
        " ", __func__, " ", i, " " , j >>>;}
-  test @=> var t_fptr ptr;
+  test :=> var t_fptr ptr;
   <<< this, ptr >>>;
   spork ptr(1,2);
   second => now;

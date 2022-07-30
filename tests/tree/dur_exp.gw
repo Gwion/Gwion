@@ -1,2 +1,2 @@
-second => var dur d;
+second :=> var dur d;
 2.3::d;

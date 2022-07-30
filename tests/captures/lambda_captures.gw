@@ -1,5 +1,5 @@
 #! [contains] 42
-40 => var int a;
+40 :=> var int a;
 {
 \ : a : { <<< a + 2 >>>; }();
 }

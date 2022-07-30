@@ -1,5 +1,6 @@
+
 struct S {
-  13 => var int i;
+  13 :=> var int i;
   operator void @gack () { <<< "test", i >>>; }
   <<< this >>>;
 }

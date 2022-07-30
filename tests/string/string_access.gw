@@ -1,5 +1,5 @@
 #! [contains] tezt
-"test" => var string t;
+"test" :=> var string t;
 <<< t[2] >>>;
-'z' => t[2];
+'z' :=> t[2];
 <<< t >>>;

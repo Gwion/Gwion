@@ -3,7 +3,7 @@ var int i;
 #! define a funs that returns 1 if 'i' is non zero, and 0 othervise.
 fun int test() { return i ? 1 : 0; }
 <<< test() >>>;
-1 => i;
+1 :=> i;
 <<< test() >>>;
-2 => i;
+2 :=> i;
 <<< test() >>>;

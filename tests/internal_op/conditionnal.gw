@@ -1,7 +1,7 @@
 #! [skip] Do to a window bug
 #! was #! [contains] 1
 class C {
-  10 => var int i;
+  10 :=> var int i;
 }
 
 operator int @conditional (C c) {

@@ -1,6 +1,6 @@
 #! [contains] while defining
 class C {
-  0 => var int i;
+  0 :=> var int i;
 }
 operator int @implicit (C c) {
   return c;

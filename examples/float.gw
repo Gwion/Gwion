@@ -103,7 +103,7 @@ var float a;
 {
 	var float	variable1;
 	var float	variable2;
-	<<<  variable1=>variable2  >>>;
+	<<<  variable1:=>variable2  >>>;
 }
 
 #!testing operator for float and float
@@ -129,8 +129,8 @@ var float a;
 
 #!testing operator for float and float
 {
-	1 => var float	variable1;
-	1 => var float	variable2;
+	1 :=> var float	variable1;
+	1 :=> var float	variable2;
 	<<<  variable1/=>variable2  >>>;
 }
 
@@ -222,7 +222,7 @@ var float a;
 {
 	var int	variable1;
 	var float	variable2;
-	<<<  variable1=>variable2  >>>;
+	<<<  variable1:=>variable2  >>>;
 }
 
 #!testing operator for int and float
@@ -249,7 +249,7 @@ var float a;
 #!testing operator for int and float
 {
 	var int	variable1;
-	1 => var float	variable2;
+	1 :=> var float	variable2;
 	<<<  variable1/=>variable2  >>>;
 }
 
@@ -343,7 +343,7 @@ var float a;
 {
 	var float	variable1;
 	var int	variable2;
-	<<<  variable1=>variable2  >>>;
+	<<<  variable1:=>variable2  >>>;
 }
 
 #!testing operator for float and int
@@ -369,7 +369,7 @@ var float a;
 
 #!testing operator for float and int
 {
-	1 => var float	variable1;
-	1 => var int	variable2;
+	1 :=> var float	variable1;
+	1 :=> var int	variable2;
 	<<<  variable1/=>variable2  >>>;
 }

@@ -1,10 +1,10 @@
 #! [contains] no deep operation
 struct C {
-  12 => const int i;
-  12 => const int j;
+  12 :=> const int i;
+  12 :=> const int j;
 }
 struct D {
-  42 => const int i;
+  42 :=> const int i;
 }
 
 var C c;
