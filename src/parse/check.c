@@ -919,6 +919,23 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
                          bin->rhs->exp_type == ae_exp_decl &&
                          bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;
+  // allow foo => new C to mean new C(foo)
+  if(bin->op == insert_symbol("=>") &&
+     bin->rhs->exp_type == ae_exp_unary && bin->rhs->d.exp_unary.unary_type == unary_td &&
+     !bin->rhs->d.exp_unary.ctor.td->array &&
+     !bin->rhs->d.exp_unary.ctor.exp) {
+   Exp lhs = bin->lhs;
+   Exp rhs = bin->rhs;
+   Exp e = exp_self(bin);
+   Exp_Unary *const unary = &e->d.exp_unary;
+   e->exp_type = ae_exp_unary;
+   unary->unary_type = unary_td;
+   unary->op = insert_symbol("new");
+   unary->ctor.td = cpy_type_decl(env->gwion->mp, bin->rhs->d.exp_unary.ctor.td);
+   unary->ctor.exp = lhs;
+   free_exp(env->gwion->mp, rhs);
+   return check_exp(env, e);
+  }
   CHECK_OO(check_exp(env, bin->rhs));
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);

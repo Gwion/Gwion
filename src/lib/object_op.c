@@ -40,6 +40,26 @@ static OP_CHECK(opck_object_at) {
   return bin->rhs->type;
 }
 
+static OP_CHECK(opck_object_instance) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  Exp rhs = bin->rhs;
+  if (rhs->exp_type != ae_exp_decl)
+    return NULL;
+  if (rhs->d.exp_decl.td->array)
+    return NULL;
+  Exp lhs = bin->lhs;
+  Exp e = exp_self(bin);
+  Exp_Decl *const decl = &e->d.exp_decl;
+  e->exp_type = ae_exp_decl;
+  decl->td = cpy_type_decl(env->gwion->mp, rhs->d.exp_decl.td);
+  decl->vd = rhs->d.exp_decl.vd;
+  decl->type = rhs->type;
+  decl->args = lhs;
+  free_exp(env->gwion->mp, rhs);
+  CHECK_ON(check_exp(env, e));
+  return e->type;
+}
+
 ANN void unset_local(const Emitter emit, void *const l);
 static OP_EMIT(opem_object_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
@@ -439,6 +459,9 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_add(gwi, opck_object_at))
   GWI_BB(gwi_oper_emi(gwi, opem_object_at))
   GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_instance))
+  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==", EqObject))
   GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
