@@ -138,6 +138,18 @@ ANN static inline m_bool inferable(const Env env, const Type t,
 ANN Type check_exp_decl(const Env env, const Exp_Decl *decl) {
   if (decl->td->array && decl->td->array->exp)
     CHECK_OO(check_exp(env, decl->td->array->exp));
+  if (decl->args) {
+    struct Exp_ e = {
+      .d = { .exp_unary = {
+        .op = insert_symbol("new"),
+        .ctor = { .td = decl->td, .exp = decl->args },
+        .unary_type = unary_td
+      }},
+      .exp_type = ae_exp_unary,
+      .pos = decl->td->pos
+    };
+    CHECK_OO(check_exp(env, &e));
+  }
   if (decl->td->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)));
     CHECK_BO(scan2_exp(env, exp_self(decl)));

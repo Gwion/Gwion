@@ -155,6 +155,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
   CHECK_OB(decl->type);
+  if(decl->args) CHECK_BB(scan1_exp(env, decl->args));
   const bool global = GET_FLAG(decl->td, global);
   if (global) {
     if (env->context) env->context->global = true;

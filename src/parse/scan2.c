@@ -36,6 +36,7 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
+  if(decl->args) CHECK_BB(scan2_exp(env, decl->args));
   const bool   global = GET_FLAG(decl->td, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret    = scan2_decl(env, decl);
