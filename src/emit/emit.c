@@ -2821,7 +2821,7 @@ ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
       safe_tflag(emit->env->class_def, tflag_tmpl)) || (fdef->base->tmpl && !strcmp(s_name(f->base->xid), "new"))) {
     const Func base =
         nspc_lookup_func1(func->value_ref->from->owner, f->base->xid);
-    builtin_func(emit->gwion->mp, func, (f_xfun)base->code->native_func);
+    builtin_func(emit->gwion, func, (f_xfun)base->code->native_func);
     return GW_OK;
   }
   const uint   global = GET_FLAG(f->base, global);

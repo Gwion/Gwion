@@ -654,7 +654,7 @@ static MFUN(vm_vector_foldr) {
 #include "template.h"
 static void array_func(const Env env, const Type t, const m_str name, f_xfun fun) {
   const Value v = nspc_lookup_value0(t->nspc, insert_symbol(name));
-  builtin_func(env->gwion->mp, v->d.func_ref, fun);
+  builtin_func(env->gwion, v->d.func_ref, fun);
 }
 
 static OP_CHECK(opck_array_scan) {
@@ -712,7 +712,7 @@ static OP_CHECK(opck_array_scan) {
                   ? !tflag(base, tflag_struct) ? vm_vector_rem_obj
                                                : vm_vector_rem_struct
                   : vm_vector_rem;
-  builtin_func(env->gwion->mp, (Func)vector_at(&t->nspc->vtable, 0), rem);
+  builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), rem);
   void *insert = isa(base, env->gwion->type[et_compound]) > 0
                      ? !tflag(base, tflag_struct) ? vm_vector_insert_obj
                                                   : vm_vector_insert_struct

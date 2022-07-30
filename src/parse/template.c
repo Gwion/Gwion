@@ -120,7 +120,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
   def->base->func = func;
   nspc_add_value_front(t->info->value->from->owner, sym, value);
   if (vflag(t->info->func->value_ref, vflag_builtin)) {
-    builtin_func(env->gwion->mp, func, func_ptr);
+    builtin_func(env->gwion, func, func_ptr);
     t->info->func->def->d.dl_func_ptr = func_ptr;
   }
   return ret;

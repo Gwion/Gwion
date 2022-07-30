@@ -3,10 +3,15 @@
 
 typedef struct VM_Code_ *VM_Code;
 struct VM_Code_ {
-  m_bit *bytecode;
   union {
-    struct Vector_ instr;
-    m_uint         native_func;
+    struct {
+      m_bit *bytecode;
+      struct Vector_ instr;
+    };
+    struct {
+      m_uint         native_func;
+      MP_Vector *types;
+    };
   };
   Type ret_type; // could be `struct Vector_ tmpl_types;`
   void *   memoize;

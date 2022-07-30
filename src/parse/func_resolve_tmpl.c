@@ -114,7 +114,7 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
 
   const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
   if (func && func->def->builtin) {
-    builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
+    builtin_func(env->gwion, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
     struct Op_Import opi = { .lhs = ra->v->d.func_ref->value_ref->type, .rhs = func->value_ref->type };
     op_cpy(env, &opi);
