@@ -146,6 +146,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     type_addref(v->type);
     set_vflag(v, vflag_inner); // file global
   }
+  nspc_add_value(env->curr, vd->xid, v);
   ((Exp_Decl *)decl)->type = decl->vd.value->type;
   return GW_OK;
 }
@@ -163,7 +164,6 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret   = scan1_decl(env, decl);
-  valid_value(env, decl->vd.xid, decl->vd.value);
   if (global) env_pop(env, scope);
   return ret;
 }
@@ -369,7 +369,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
     Symbol xid = *mp_vector_at(list, Symbol, i);
     const Value v = new_value(env, edef->t, s_name(xid), edef->pos);
     valuefrom(env, v->from);
-    valid_value(env, xid, v);
+    nspc_add_value(env->curr, xid, v);
     if (env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
@@ -377,7 +377,6 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
     } else
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);
-    set_vflag(v, vflag_valid);
     vector_add(&edef->values, (vtype)v);
   }
   env_pop(env, scope);
