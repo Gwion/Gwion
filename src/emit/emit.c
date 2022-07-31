@@ -1433,11 +1433,11 @@ static INSTR(fptr_call) {
 static inline m_bool push_func_code(const Emitter emit, const Func f) {
   if (!vector_size(&emit->code->instr)) {
     if(fflag(f, fflag_tmpl)) {
-    // we are sporking a template
-    // assume static call for now
-    const Instr instr = emit_add_instr(emit, RegSetImm);
-    instr->m_val  = (m_uint)f->code;
-    instr->m_val2  = (m_uint)-SZ_INT;
+      // we are sporking a template
+      // assume static call for now
+      const Instr instr = emit_add_instr(emit, RegSetImm);
+      instr->m_val  = (m_uint)f->code;
+      instr->m_val2  = (m_uint)-SZ_INT;
     }
     return GW_OK;
   }
