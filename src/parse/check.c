@@ -138,12 +138,11 @@ ANN static inline m_bool inferable(const Env env, const Type t,
 ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
   if (decl->td->array && decl->td->array->exp)
     CHECK_OO(check_exp(env, decl->td->array->exp));
-  if (decl->args && !decl->args->type) { // for some reason this can be parsed twice
-    Exp e = new_exp_unary2(env->gwion->mp, insert_symbol("new"), cpy_type_decl(env->gwion->mp, decl->td), decl->args, decl->td->pos);
+//  if (decl->args && !decl->args->type) { // for some reason this can be parsed twice
+  if (decl->args) {
+    const Exp e = new_exp_unary2(env->gwion->mp, insert_symbol("new"), cpy_type_decl(env->gwion->mp, decl->td), decl->args, decl->td->pos);
     CHECK_OO(check_exp(env, e));
-    Exp args = decl->args;
     decl->args = e;
-    free_exp(env->gwion->mp, args);
   }
   if (decl->td->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)));
