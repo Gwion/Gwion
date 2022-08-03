@@ -1140,6 +1140,8 @@ ANN /*static */ m_bool emit_exp_decl(const Emitter emit, Exp_Decl *const decl) {
       !global ? emit->env->scope->depth : emit_push_global(emit);
   const m_bool ret = emit_decl(emit, decl);
   if (global) emit_pop(emit, scope);
+  if(isa(t, emit->gwion->type[et_object]) > 0 && emit->status.in_return && GET_FLAG(decl->vd.value, late))
+    emit_add_instr(emit, GWOP_EXCEPT);
   return ret;
 }
 
@@ -1906,11 +1908,14 @@ ANN static m_bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
 }
 
 ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda *lambda) {
+  const EmitterStatus status = emit->status;
+  emit->status = (EmitterStatus){};
   CHECK_BB(emit_func_def(emit, lambda->def));
   if (vflag(lambda->def->base->func->value_ref, vflag_member) &&
       !exp_getvar(exp_self(lambda)))
     emit_add_instr(emit, RegPushMem);
   regpushi(emit, (m_uint)lambda->def->base->func->code);
+  emit->status = status;
   return GW_OK;
 }
 
@@ -2014,7 +2019,9 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
     }
 //    if(!stmt->val->ref && isa(stmt->val->type, emit->gwion->type[et_compound]) > 0)
 //      emit_local(emit, stmt->val->type);
+    emit->status.in_return = true;
     CHECK_BB(emit_exp(emit, stmt->val));
+    emit->status.in_return = false;
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
   return GW_OK;
