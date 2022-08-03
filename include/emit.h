@@ -48,6 +48,7 @@ typedef struct EmitterStatus {
   uint16_t             this_offset;   // reset
   uint16_t unroll;
   uint16_t line;
+  bool in_return;
 } EmitterStatus;
 
 struct Emitter_ {
