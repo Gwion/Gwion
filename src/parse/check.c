@@ -967,11 +967,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   if(bin->rhs->exp_type == ae_exp_call && !bin->rhs->d.exp_call.tmpl)
     bin->rhs->d.exp_call.other = bin->lhs;
   const m_uint scope = env->scope->depth;
-  if(bin->op == insert_symbol(">=>"))
-    env_push_type(env, bin->lhs->type);
   CHECK_OO(check_exp(env, bin->rhs));
-  if(bin->op == insert_symbol(">=>"))
-    env_pop(env, scope);
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);
     set_vflag(bin->rhs->d.exp_decl.vd.value, vflag_assigned);
