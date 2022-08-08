@@ -190,6 +190,8 @@ ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary *prim) {
   if (prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan1_exp(env, prim->d.array->exp);
   if (prim->prim_type == ae_prim_range) return scan1_range(env, prim->d.range);
+  if (env->func && prim->prim_type == ae_prim_perform && env->scope->depth <= 2)
+    env->func->memoize = 1;
   return GW_OK;
 }
 
@@ -465,12 +467,10 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
-  if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
+  //if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
-  if (!tflag(tdef->type, tflag_cdef)) {
-    if(!tflag(tdef->type->info->parent, tflag_scan1))
-                    return scan1_class_def(env, tdef->type->info->parent->info->cdef);
-  }
+  if (tflag(tdef->type, tflag_cdef))
+    return scan1_class_def(env, tdef->type->info->cdef);
   return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
 }
 
@@ -682,7 +682,7 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
        fdef->base->ret_type != env->gwion->type[et_void] && fdef->d.code &&
        !fake.memoize)
      ERR_B(fdef->base->td->pos,
-           _("missing return statement in a non void function %u"), fake.memoize);
+           _("missing return statement in a non void function"));
   if (fdef->base->xid == insert_symbol("@gack") && !fake.weight) {
     gwerr_basic(_("`@gack` operator does not print anything"), NULL,
       _("use `<<<` `>>>` in the function"), env->name, fdef->base->pos, 0);

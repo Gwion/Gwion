@@ -2351,12 +2351,9 @@ ANN static m_bool emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt) {
 
 ANN static m_bool emit_type_def(const Emitter emit, const Type_Def tdef) {
   if (tdef->when_def) CHECK_BB(emit_func_def(emit, tdef->when_def));
-
-  if (tflag(tdef->type, tflag_cdef)) {
-    if(!tflag(tdef->type->info->parent, tflag_emit))
-                    return emit_class_def(emit, tdef->type->info->parent->info->cdef);
-  }
-  return tdef->type->info->cdef ? emit_class_def(emit, tdef->type->info->cdef) : GW_OK;
+  if (tflag(tdef->type, tflag_cdef))
+    return emit_class_def(emit, tdef->type->info->cdef);
+  return GW_OK;
 }
 
 ANN static m_bool emit_enum_def(const Emitter emit NUSED, const Enum_Def edef) {

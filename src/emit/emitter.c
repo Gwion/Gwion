@@ -36,14 +36,19 @@ ANN void free_emitter(MemPool p, Emitter a) {
 }
 
 __attribute__((returns_nonnull)) ANN2(1) Instr
-emit_add_instr(const Emitter emit, const f_instr f) {
-  const Instr instr = mp_calloc(emit->gwion->mp, Instr);
+new_instr(const MemPool mp, const f_instr f) {
+  const Instr instr = mp_calloc(mp, Instr);
   if ((m_uint)f < 255)
     instr->opcode = (m_uint)f;
   else {
     instr->opcode  = eOP_MAX;
     instr->execute = f;
   }
+  return instr;
+}
+__attribute__((returns_nonnull)) ANN2(1) Instr
+emit_add_instr(const Emitter emit, const f_instr f) {
+  const Instr instr = new_instr(emit->gwion->mp, f);
   vector_add(&emit->code->instr, (vtype)instr);
   return instr;
 }

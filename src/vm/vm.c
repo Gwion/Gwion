@@ -59,7 +59,7 @@ ANN static void clean_values(const VM_Shred shred) {
   }
 }
 
-ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_uint size) {
+ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect) {
   const VM_Code code = shred->code;
   const m_uint start = vector_at(&shred->info->frame, vector_size(&shred->info->frame) - 2);
   if (start > shred->pc) return true;
@@ -76,8 +76,8 @@ ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_u
   return 0;
 }
 
-ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, const m_uint size) {
-  const uint16_t pc = find_pc(shred, effect, size);
+ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect) {
+  const uint16_t pc = find_pc(shred, effect);
   if (!pc) return false; // outside of a try statement
   shred->reg = // restore reg
       (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
@@ -94,7 +94,7 @@ ANN bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
     clean_values(shred);
   if (!size) return false;
   if (code->handlers.ptr)
-    return find_handle(shred, effect, size);
+    return find_handle(shred, effect);
   // there might be no more stack to unwind
   if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return false;

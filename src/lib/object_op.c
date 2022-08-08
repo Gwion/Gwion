@@ -477,6 +477,5 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
-
   return GW_OK;
 }

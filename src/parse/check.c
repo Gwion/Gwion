@@ -669,8 +669,32 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
   const bool spread = is_spread_tmpl(fdef->base->tmpl);
   const uint32_t len = sl->len - spread;
   Type_List    tl = new_mp_vector(env->gwion->mp, Type_Decl*, len);
-
   m_uint       args_number = 0;
+
+  if(exp->other) {
+    for(uint32_t i = 0; i < len; i++) {
+      Specialized *spec = mp_vector_at(sl, Specialized, i);
+      if (spec->xid == fdef->base->td->xid) { // check no next?
+        CHECK_OO(check_exp(env, exp->other));
+         if(!is_func(env->gwion, exp->other->type)) {
+           Type_Decl *td = type2td(env->gwion, exp->other->type, fdef->base->pos);
+           mp_vector_set(tl, Type_Decl*, 0, td);
+         } else {
+           Func func = exp->other->type->info->func;
+           do {
+             if(mp_vector_len(func->def->base->args) == 1) {
+               Arg *arg = mp_vector_at(func->def->base->args, Arg, 0);
+               Type_Decl *td = cpy_type_decl(env->gwion->mp, arg->td);
+               mp_vector_set(tl, Type_Decl*, 0, td);
+               break;
+             }
+           } while((func = func->next));
+        }
+        ++args_number;
+        break;
+      }
+    }
+  }
   for(uint32_t i = 0; i < len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     Arg_List args          = fdef->base->args;
@@ -913,8 +937,13 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
 }
 
 ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
+  if(bin->lhs->exp_type == ae_exp_call && !bin->lhs->d.exp_call.tmpl) {
+    CHECK_OO(check_exp(env, bin->lhs->d.exp_call.func));
+    // check is template?
+    bin->lhs->d.exp_call.other = bin->rhs;
+  }
   CHECK_OO(check_exp(env, bin->lhs));
-  const m_bool is_auto = bin->op == insert_symbol(":=>")  &&
+  const m_bool is_auto = //bin->op == insert_symbol(":=>")  &&
                          bin->rhs->exp_type == ae_exp_decl &&
                          bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;
@@ -930,12 +959,19 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
    e->exp_type = ae_exp_unary;
    unary->unary_type = unary_td;
    unary->op = insert_symbol("new");
-   unary->ctor.td = cpy_type_decl(env->gwion->mp, bin->rhs->d.exp_unary.ctor.td);
+   unary->ctor.td = new_type_decl(env->gwion->mp, insert_symbol("auto"), bin->rhs->d.exp_unary.ctor.td->pos);
    unary->ctor.exp = lhs;
    free_exp(env->gwion->mp, rhs);
    return check_exp(env, e);
   }
+  if(bin->rhs->exp_type == ae_exp_call && !bin->rhs->d.exp_call.tmpl)
+    bin->rhs->d.exp_call.other = bin->lhs;
+  const m_uint scope = env->scope->depth;
+  if(bin->op == insert_symbol(">=>"))
+    env_push_type(env, bin->lhs->type);
   CHECK_OO(check_exp(env, bin->rhs));
+  if(bin->op == insert_symbol(">=>"))
+    env_pop(env, scope);
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);
     set_vflag(bin->rhs->d.exp_decl.vd.value, vflag_assigned);
@@ -1115,8 +1151,6 @@ ANN static Type check_exp_dot(const Env env, Exp_Dot *member) {
 }
 
 ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
-  if(tdef->ext->array && tdef->ext->array->exp)
-    CHECK_OB(check_exp(env, tdef->type->info->cdef->base.ext->array->exp));
   if (tdef->when) {
     set_tflag(tdef->type, tflag_contract);
     struct Var_Decl_ decl = { .xid = insert_symbol("self"), .pos = tdef->when->pos };
@@ -1169,6 +1203,8 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     mp_vector_set(fdef->d.code->d.stmt_code.stmt_list, struct Stmt_, 1, ret);
     ret_id->type = tdef->type;
   }
+  if (tflag(tdef->type, tflag_cdef))
+    return check_class_def(env, tdef->type->info->cdef);
   return GW_OK;
 }
 
