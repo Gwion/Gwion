@@ -467,7 +467,6 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
-  //if (!tdef->type) tdef->type = nspc_lookup_type0(env->curr, tdef->xid);
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
   if (tflag(tdef->type, tflag_cdef))
     return scan1_class_def(env, tdef->type->info->cdef);
