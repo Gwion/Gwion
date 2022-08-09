@@ -118,7 +118,7 @@ OP_CHECK(opck_new) {
   Exp_Unary *unary = (Exp_Unary *)data;
   const Array_Sub array = unary->ctor.td->array;
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
-  if(array) {
+  if(array && !unary->ctor.exp) {
     const Type base = array_base(t);
     if(GET_FLAG(base, abstract)) CHECK_BN(abstract_array(env, array));
   }

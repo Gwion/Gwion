@@ -118,7 +118,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
       ERR_B(decl->td->pos, _("arrays with no expressions should be declared `late`"));
     if (GET_FLAG(decl->td, late) && decl->td->array->exp)
       ERR_B(decl->td->array->exp->pos, _("late array should have no size"));
-    if (GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->td->array));
+    if (!decl->args && GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->td->array));
   }
   const Value v = vd->value =
       vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);

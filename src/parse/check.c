@@ -966,7 +966,6 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
   }
   if(bin->rhs->exp_type == ae_exp_call && !bin->rhs->d.exp_call.tmpl)
     bin->rhs->d.exp_call.other = bin->lhs;
-  const m_uint scope = env->scope->depth;
   CHECK_OO(check_exp(env, bin->rhs));
   if (is_auto) {
     assert(bin->rhs->type == bin->lhs->type);
