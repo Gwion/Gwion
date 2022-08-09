@@ -781,7 +781,8 @@ ANN static m_bool    emit_prim_id(const Emitter emit, const Symbol *data) {
 
 ANN static m_bool emit_prim_perform(const Emitter emit, const Symbol *xid) {
   const Instr instr = emit_add_instr(emit, PerformEffect);
-  instr->m_val      = (m_uint)s_name(*xid);
+  if(*xid) instr->m_val      = (m_uint)s_name(*xid);
+  instr->m_val2      = emit->status.effect;
   return GW_OK;
 }
 
@@ -2393,14 +2394,20 @@ ANN static inline void try_goto_indexes(const Vector v, const m_uint pc) {
 ANN static inline m_bool emit_handler_list(const restrict Emitter emit,
                                            const Handler_List     handlers,
                                            const Vector           v) {
+  emit_push_scope(emit);
+  const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler *handler = mp_vector_at(handlers, Handler, i);
+    // useless args. should be not in the VM
     const Instr instr = emit_add_instr(emit, HandleEffect);
-    instr->m_val2     = (m_uint)handler->xid;
+    instr->m_val      = emit->status.effect = offset;
+    instr->m_val2     = (m_uint)handler->xid; // are we even using this?
     CHECK_BB(scoped_stmt(emit, handler->stmt, 1));
     emit_try_goto(emit, v);
     instr->m_val = emit_code_size(emit);
   }
+//  emit->status.effect = 0;
+  emit_pop_scope(emit);
   return GW_OK;
 }
 

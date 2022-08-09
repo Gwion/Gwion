@@ -83,6 +83,10 @@ ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect) {
       (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
   shredule(shred->tick->shreduler, shred, 0);
   shred->pc = pc; // VKEY(m, i);
+  const Instr instr = vector_at(&shred->code->instr, pc);
+  if(!instr->m_val)
+    *(m_uint*)(shred->mem + instr->m_val2) = s_name(effect);
+
   vector_pop(&shred->info->frame);
   vector_pop(&shred->info->frame);
   return true;
@@ -1215,8 +1219,10 @@ fflush(stdout);
       // this should check the *xid* of the exception
       DISPATCH();
     performeffect:
-//      VM_OUT
-      handle(shred, (m_str)VAL);
+{
+  const m_str effect = (m_str)VAL ?: *(m_str*)(mem + VAL2);
+  handle(shred, effect);
+}
       break;
     noop:
       DISPATCH();

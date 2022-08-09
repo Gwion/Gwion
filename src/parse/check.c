@@ -391,7 +391,9 @@ ANN static Type check_prim_id(const Env env, const Symbol *data) {
 }
 
 ANN static Type check_prim_perform(const Env env, const Symbol *data) {
-  env_add_effect(env, *data, prim_pos(data));
+  if(*data) env_add_effect(env, *data, prim_pos(data));
+  else if(!env->scope->in_try)
+    ERR_O(prim_pos(data), "`rethrow` outside try/handle statement");
   env_weight(env, 1);
   return env->gwion->type[et_void];
 }
@@ -1517,10 +1519,13 @@ ANN static inline m_bool check_handler(const restrict Env env,
 
 ANN static inline m_bool check_handler_list(const restrict Env env,
                                             const Handler_List handlers) {
+  const bool   in_try = env->scope->in_try;
+  env->scope->in_try  = true;
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler *handler = mp_vector_at(handlers, Handler, i);
     CHECK_BB(check_handler(env, handler));
   }
+  env->scope->in_try  = in_try;
   return GW_OK;
 }
 
@@ -1528,6 +1533,7 @@ ANN static inline bool find_handler(const Handler_List handlers, const Symbol xi
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler *handler = mp_vector_at(handlers, Handler, i);
     if(xid == handler->xid) return true;
+    if(!handler->xid) return true;
   }
   return false;
 }
@@ -1537,7 +1543,7 @@ ANN static inline m_bool check_stmt_try_start(const restrict Env env,
     RET_NSPC(check_stmt(env, stmt->stmt))
 }
 
-ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
+ANN static inline m_bool check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
   CHECK_BB(check_handler_list(env, stmt->handler));
   vector_add(&env->scope->effects, 0);
   const m_bool ret = check_stmt_try_start(env, stmt);
@@ -1550,14 +1556,6 @@ ANN static inline m_bool _check_stmt_try(const restrict Env env, const Stmt_Try 
     }
     free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
   }
-  return ret;
-}
-
-ANN static inline m_bool check_stmt_try(const restrict Env env,
-                                        const Stmt_Try     stmt) {
-  const bool   in_try = env->scope->in_try;
-  const m_bool ret    = _check_stmt_try(env, stmt);
-  env->scope->in_try  = in_try;
   return ret;
 }
 

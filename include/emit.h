@@ -48,6 +48,7 @@ typedef struct EmitterStatus {
   uint16_t             this_offset;   // reset
   uint16_t unroll;
   uint16_t line;
+  uint32_t effect; // offset of last throw effect
   bool in_return;
 } EmitterStatus;
 
