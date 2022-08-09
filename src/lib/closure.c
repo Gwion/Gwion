@@ -335,7 +335,6 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     .values = env->curr->info->value
   };
   if(env->class_def) env->class_def->info->values = env->curr->info->value;
-  env->curr->info->value = new_scope(env->gwion->mp);
   l->def->base->values = &upvalues;
   const m_uint scope   = env->scope->depth;
   env->scope->depth = 0;
