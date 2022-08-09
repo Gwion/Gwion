@@ -411,6 +411,10 @@ static m_bit                 foldr_byte[BYTECODE_SZ * 5];
 static const struct VM_Code_ foldr_run_code = {.name     = "foldr_run_code",
                                                .bytecode = foldr_byte};
 
+static m_bit                 new_byte[BYTECODE_SZ * 5];
+static const struct VM_Code_ new_run_code = {.name     = "new_run_code",
+                                             .bytecode = new_byte};
+
 typedef struct FunctionalFrame {
   VM_Code  code;
   M_Object o;
@@ -627,6 +631,35 @@ static INSTR(fold_run_end) {
   _finish(shred, frame);
 }
 
+static INSTR(new_run_ini) {
+  const m_uint offset = *(m_uint *)REG(SZ_INT);
+  if (offset) PUSH_MEM(shred, offset);
+  const M_Object arg  = *(M_Object *)MEM(SZ_INT);
+  const VM_Code code = *(VM_Code*)arg->data;
+  *(VM_Code*)REG(0)  = code;
+  PUSH_REG(shred, SZ_INT);
+  FunctionalFrame *frame = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  shred->pc++;
+  shred->mem += MAP_CODE_OFFSET + SZ_INT; // work in a safe memory space
+  *(m_uint*)MEM(SZ_INT*2+offset)  = frame->index;
+}
+
+static INSTR(new_run_end) {
+  shred->mem -= MAP_CODE_OFFSET + SZ_INT;
+  FunctionalFrame *const frame   = &*(FunctionalFrame *)MEM(SZ_INT * 3);
+  const M_Object   self    = *(M_Object *)MEM(0);
+  const M_Vector   array = ARRAY(self);
+  const m_uint     base_sz = ARRAY_SIZE(array);
+  m_vector_set(array, frame->index,  REG(-base_sz));
+  POP_REG(shred, base_sz);
+  if (++frame->index == ARRAY_LEN(ARRAY(self))) {
+    shred->pc   = frame->pc;
+    shred->code = frame->code;
+    *(M_Object*)REG(-SZ_INT) = self;
+  } else _next(shred, frame->offset);
+  _finish(shred, frame);
+}
+
 static MFUN(vm_vector_foldl) {
   const m_bit *byte   = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;
   const m_uint acc_sz = *(m_uint *)(byte + SZ_INT);
@@ -651,7 +684,14 @@ static MFUN(vm_vector_foldr) {
     memcpy((m_bit *)RETURN, MEM(SZ_INT * 2), acc_sz);
 }
 
-#include "template.h"
+static MFUN(vm_vector_new) {
+  if (ARRAY_LEN(ARRAY(o))) {
+    const m_uint   offset = *(m_uint *)REG(SZ_INT * 3);
+    _init(shred, &new_run_code, *(M_Object*)MEM(SZ_INT*1), offset, SZ_INT);
+  }
+  *(M_Object *)RETURN = o;
+}
+
 static void array_func(const Env env, const Type t, const m_str name, f_xfun fun) {
   const Value v = nspc_lookup_value0(t->nspc, insert_symbol(name));
   builtin_func(env->gwion, v->d.func_ref, fun);
@@ -729,6 +769,7 @@ static OP_CHECK(opck_array_scan) {
   array_func(env, t, "count", vm_vector_count);
   array_func(env, t, "foldl", vm_vector_foldl);
   array_func(env, t, "foldr", vm_vector_foldr);
+//  array_func(env, t, "new", vm_vector_new);
 
   if (isa(base, env->gwion->type[et_compound]) > 0) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
@@ -821,6 +862,8 @@ GWION_IMPORT(array) {
   prepare_map_run(count_byte, count_run_end);
   prepare_fold_run(foldl_byte, foldl_run_ini);
   prepare_fold_run(foldr_byte, foldr_run_ini);
+  prepare_run(new_byte, new_run_ini, new_run_end);
+  vm_prepare(NULL, new_byte);
   const Type t_array = gwi_class_ini(gwi, "Array:[T]", "Object");
   set_tflag(t_array, tflag_infer);
   gwi->gwion->type[et_array] = t_array;
@@ -842,6 +885,10 @@ GWION_IMPORT(array) {
 
   GWI_BB(gwi_fptr_ini(gwi, "bool", "filter_t"))
   GWI_BB(gwi_func_arg(gwi, "T", "elem"))
+  GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
+
+  GWI_BB(gwi_fptr_ini(gwi, "T", "new_t"))
+  GWI_BB(gwi_func_arg(gwi, "int", "idx"))
   GWI_BB(gwi_fptr_end(gwi, ae_flag_static))
 
   // put functions using T first
@@ -890,6 +937,10 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_func_arg(gwi, "fold_t:[A]", "data"))
   GWI_BB(gwi_func_arg(gwi, "A", "initial"))
   GWI_BB(gwi_func_end(gwi, vm_vector_foldr, ae_flag_none))
+
+  GWI_BB(gwi_func_ini(gwi, "auto", "new"))
+  GWI_BB(gwi_func_arg(gwi, "new_t", "init"))
+  GWI_BB(gwi_func_end(gwi, vm_vector_new, ae_flag_none))
 
   GWI_BB(gwi_class_end(gwi))
 
