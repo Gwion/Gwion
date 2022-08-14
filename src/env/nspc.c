@@ -48,10 +48,11 @@ ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
   struct scope_iter iter = {a->info->value, 0, 0};
   Value             v;
   while (scope_iter(&iter, &v) > 0) {
-    if (isa(v->type, gwion->type[et_object]) > 0)
-      nspc_release_object(a, v, gwion);
-    else if (tflag(v->type, tflag_struct))
-      nspc_release_struct(a, v, gwion);
+    if (tflag(v->type, tflag_cdef)) {
+      if (!tflag(v->type, tflag_struct))
+        nspc_release_object(a, v, gwion);
+      else nspc_release_struct(a, v, gwion);
+    }
     value_remref(v, gwion);
   }
   free_scope(gwion->mp, a->info->value);
