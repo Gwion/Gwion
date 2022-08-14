@@ -30,7 +30,7 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
       sprintf(c, "%s=%s%u", name, name, i);
       pparg_add(env->gwion->ppa, c);
     }
-    Ast ast = parse(&arg);
+    Ast ast = parse_pos(&arg, spread->pos);
     pparg_rem(env->gwion->ppa, s_name(spread->xid));
     for(uint32_t j = 0; j < spread->list->len;j++) {
       const Symbol sym = *mp_vector_at(spread->list, Symbol, j);
