@@ -398,15 +398,26 @@ static MFUN(string_atof) {
   const m_str str = STRING(obj);
   *(m_float*)RETURN = (m_float)atof(str);
 }
-/*
+ #include <errno.h>
 static MFUN(string_atoi2) {
   const M_Object obj = *(M_Object*)MEM(0);
   const m_str str = STRING(obj);
-  char *endptr;
-  *(m_int*)RETURN = strtol(str, &endptr, 10);
+puts(str);
+  char *endptr = NULL;
+  if(!(*(m_int*)RETURN = strtol(str, &endptr, 10))) {
+printf("lkjlk j %i\n", errno);
+    if(errno == EINVAL) {
+      handle(shred, "ErrorInvalidValue");
+      return;
+    }
+    if(errno == ERANGE) {
+      handle(shred, "ValueOutOfRange");
+      return;
+    }
+  }
+printf("ret: %li\n", *(m_int*)RETURN);
   **(m_uint**)MEM(SZ_INT) = endptr - str;
 }
-*/
 
 ANN Type check_array_access(const Env env, const Array_Sub array);
 
@@ -552,6 +563,10 @@ GWION_IMPORT(string) {
 
   gwi_func_ini(gwi, "int", "atoi");
   GWI_BB(gwi_func_end(gwi, string_atoi, ae_flag_none))
+
+  gwi_func_ini(gwi, "int", "atoi2");
+  gwi_func_arg(gwi, "&int", "offset");
+  GWI_BB(gwi_func_end(gwi, string_atoi2, ae_flag_none))
 
   gwi_func_ini(gwi, "float", "atof");
   GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))

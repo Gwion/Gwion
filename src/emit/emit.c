@@ -2363,7 +2363,7 @@ ANN static m_bool emit_enum_def(const Emitter emit NUSED, const Enum_Def edef) {
     const Value v = (Value)vector_at(&edef->values, i);
     *(m_uint *)(v->from->owner->class_data + v->from->offset) = i;
   }
-  set_tflag(edef->t, tflag_emit);
+  set_tflag(edef->type, tflag_emit);
   return GW_OK;
 }
 

@@ -364,18 +364,19 @@ ANN static inline m_bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) {
 }
 
 ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
-  edef->t->nspc = new_nspc(env->gwion->mp, edef->t->name);
-  const m_uint scope = env_push_type(env, edef->t);
+  const Type t = edef->type;
+  t->nspc = new_nspc(env->gwion->mp, t->name);
+  const m_uint scope = env_push_type(env, t);
   ID_List list = edef->list;
   for(uint32_t i = 0; i < list->len; i++) {
     Symbol xid = *mp_vector_at(list, Symbol, i);
-    const Value v = new_value(env, edef->t, s_name(xid), edef->pos);
+    const Value v = new_value(env, t, s_name(xid), edef->pos);
     valuefrom(env, v->from);
     nspc_add_value(env->curr, xid, v);
     if (env->class_def) {
       SET_FLAG(v, static);
       SET_ACCESS(edef, v)
-      SET_ACCESS(edef, edef->t)
+      SET_ACCESS(edef, t)
     } else
       set_vflag(v, vflag_builtin);
     SET_FLAG(v, const);

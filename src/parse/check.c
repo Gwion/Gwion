@@ -1248,14 +1248,14 @@ ANN Type check_exp(const Env env, const Exp exp) {
 }
 
 ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
-  const m_uint scope = env_push_type(env, edef->t);
+  const m_uint scope = env_push_type(env, edef->type);
   ID_List list = edef->list;
   for(uint32_t i = 0; i < list->len; i++) {
     Symbol xid = *mp_vector_at(list, Symbol, i);
     decl_static(env, nspc_lookup_value0(env->curr, xid));
   }
   env_pop(env, scope);
-  nspc_allocdata(env->gwion->mp, edef->t->nspc);
+  nspc_allocdata(env->gwion->mp, edef->type->nspc);
   return GW_OK;
 }
 
@@ -1839,21 +1839,22 @@ ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
 
 ANN bool check_trait_requests(const Env env, const Type t, const ID_List list, const ValueFrom *from);
 ANN static m_bool check_extend_def(const Env env, const Extend_Def xdef) {
+  const Type t = xdef->type;
   ValueFrom from = { .filename = env->name, .loc=xdef->td->pos, .ctx=env->context,
       .owner = env->curr, .owner_class = env->class_def
   };
-  const bool ret = check_trait_requests(env, xdef->t, xdef->traits, &from);
+  const bool ret = check_trait_requests(env, t, xdef->traits, &from);
   if(ret) {
-    if(!xdef->t->info->traits) {
-      xdef->t->info->traits = new_mp_vector(env->gwion->mp, Symbol, xdef->traits->len);
+    if(!t->info->traits) {
+      t->info->traits = new_mp_vector(env->gwion->mp, Symbol, xdef->traits->len);
       for(uint32_t i = 0; i < xdef->traits->len; i++) {
-        const Symbol sym = *mp_vector_at(xdef->t->info->traits, Symbol, i);
-        mp_vector_set(xdef->t->info->traits, Symbol, i, sym);
+        const Symbol sym = *mp_vector_at(t->info->traits, Symbol, i);
+        mp_vector_set(t->info->traits, Symbol, i, sym);
       }
     } else {
       for(uint32_t i = 0; i < xdef->traits->len; i++) {
-        const Symbol sym = *mp_vector_at(xdef->t->info->traits, Symbol, i);
-        mp_vector_add(env->gwion->mp, &xdef->t->info->traits, Symbol, sym);
+        const Symbol sym = *mp_vector_at(t->info->traits, Symbol, i);
+        mp_vector_add(env->gwion->mp, &t->info->traits, Symbol, sym);
       }
     }
     return GW_OK;

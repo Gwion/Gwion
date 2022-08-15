@@ -247,7 +247,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   CHECK_BB(env_storage(env, edef->flag, edef->pos));
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos));
   CHECK_BB(scan0_global(env, edef->flag, edef->pos));
-  edef->t = enum_type(env, edef);
+  edef->type = enum_type(env, edef);
   vector_init(&edef->values);
   if (GET_FLAG(edef, global)) context_global(env);
   return GW_OK;
@@ -460,7 +460,7 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
       }
     }
   }
-  xdef->t = t;
+  xdef->type = t;
   return GW_OK;
 }
 
