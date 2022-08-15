@@ -66,8 +66,7 @@ static OP_CHECK(opck_spork) {
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
-// scope depth?
-    const m_bool ret = check_stmt_list(env, unary->code);
+    const m_bool ret = check_stmt(env, unary->code);
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
     env->curr->info->value = upvalues.values;

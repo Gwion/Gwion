@@ -419,13 +419,9 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
   const Func former = env->func;
   env->func         = f->base->func;
-  env->scope->depth++;
-  nspc_push_value(env->gwion->mp, env->curr);
-  const m_bool ret = scan2_stmt_list(env, f->d.code); // scope depth?
-  nspc_pop_value(env->gwion->mp, env->curr);
-  env->scope->depth--;
+  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code));
   env->func = former;
-  return ret;
+  return GW_OK;
 }
 
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {

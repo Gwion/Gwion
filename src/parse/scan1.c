@@ -243,7 +243,7 @@ ANN static inline m_bool scan1_exp_unary(const restrict Env env,
   if(unary->unary_type == unary_exp)
     return scan1_exp(env, unary->exp);
   if (unary->unary_type == unary_code)
-    return scan1_stmt_list(env, unary->code);
+    return scan1_stmt(env, unary->code);
   return GW_OK;
 }
 
@@ -524,7 +524,7 @@ ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
     ERR_B(stmt_self(stmt)->pos,
           _("'return' statement found outside function definition"))
-  if (env->scope->depth == 1) env->func->memoize = 1;
+  if (env->scope->depth <= 2) env->func->memoize = 1;
   if(stmt->val) scan1_exp(env, stmt->val);
   return GW_OK;
 }
@@ -632,8 +632,8 @@ ANN m_bool scan1_fbody(const Env env, const Func_Def fdef) {
     CHECK_BB(scan1_fdef_args(env, fdef->base->args));
     CHECK_BB(scan1_args(env, fdef->base->args));
   }
-  if (!fdef->builtin && fdef->d.code)
-    CHECK_BB(scan1_stmt_list(env, fdef->d.code));
+  if (!fdef->builtin && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
+    CHECK_BB(scan1_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list));
   return GW_OK;
 }
 
@@ -673,7 +673,9 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                              env->func;
   env->func = &fake;
+  ++env->scope->depth;
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)scan1_fdef);
+  --env->scope->depth;
   env->func = former;
   if (global) env_pop(env, scope);
   if ((strcmp(s_name(fdef->base->xid), "@implicit") || fbflag(fdef->base, fbflag_internal)) && !fdef->builtin && fdef->base->ret_type &&

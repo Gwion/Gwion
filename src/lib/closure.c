@@ -16,7 +16,7 @@
 #include "tmp_resolve.h"
 
 ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
-  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
+  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
   const Exp ecall = stmt->d.stmt_exp.val;
   const Exp_Call *call = &ecall->d.exp_call;
   Exp args = call->args;
@@ -60,7 +60,7 @@ ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp ar
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
-    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
+    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
     const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
     DECL_ON(const Exp, args, = uncurry(env, bin));
     return mk_call(env, exp_self(bin), call->func, args);
@@ -618,12 +618,13 @@ static OP_CHECK(opck_op_impl) {
       new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
-  Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
-  mp_vector_set(code, struct Stmt_, 0,
+  Stmt_List slist = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
+  mp_vector_set(slist, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
     .pos = impl->e->pos
   }));
+  const Stmt      code = new_stmt_code(env->gwion->mp, slist, impl->e->pos);
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->xid       = impl->e->d.prim.d.var;
 // use envset
