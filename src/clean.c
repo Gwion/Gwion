@@ -78,7 +78,7 @@ ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
       clean_exp(a, b->ctor.exp);
     break;
   case unary_code:
-    clean_stmt(a, b->code);
+    clean_stmt_list(a, b->code);
     break;
   }
   if(b->captures) clean_captures(a, b->captures);
@@ -275,7 +275,7 @@ ANN static void clean_func_def(Clean *a, Func_Def b) {
   ++a->scope;
   if (!b->builtin && b->d.code &&
       !(b->base->func && safe_vflag(b->base->func->value_ref, vflag_builtin)))
-    clean_stmt(a, b->d.code);
+    clean_stmt_list(a, b->d.code);
   else
     b->d.code = NULL;
   --a->scope;

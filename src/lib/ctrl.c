@@ -45,9 +45,20 @@ static OP_CHECK(opck_ctrl) {
   check_exp(env, cond);
 
   const Stmt loop = new_stmt_flow(mp, ae_stmt_while, cond, stmt, false, func->pos);
+  const Stmt_List code = new_mp_vector(mp, struct Stmt_, 1);
+  mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
+    .stmt_type = ae_stmt_while,
+    .d = {
+      .stmt_flow = {
+        .cond = cond,
+        .body = loop
+      }
+    },
+    .pos = func->pos
+  }));
   exp->exp_type = ae_exp_unary;
   exp->d.exp_unary.unary_type = unary_code;
-  exp->d.exp_unary.code = loop;
+  exp->d.exp_unary.code = code;
   exp->d.exp_unary.op = insert_symbol(env->gwion->st, "spork");
   return env->gwion->type[et_shred];
 }

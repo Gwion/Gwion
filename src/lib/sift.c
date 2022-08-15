@@ -13,11 +13,11 @@
 static OP_CHECK(opck_sift) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Exp lhs = bin->lhs;
-  Stmt stmt = lhs->d.exp_unary.code;
+  Stmt stmt = mp_vector_at(lhs->d.exp_unary.code, struct Stmt_, 0);
   Stmt fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, struct Stmt_, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
   Exp next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->pos);
-  CHECK_BN(traverse_exp(env, next));
+  CHECK_BN(traverse_exp(env, next)); // how do we free it?
   fst->d.stmt_exp.val = next;
   const Exp exp = exp_self(bin);
   exp->exp_type = lhs->exp_type;
@@ -60,12 +60,21 @@ static OP_CHECK(opck_ctrl) {
   const Exp cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->pos);
   check_exp(env, cond);
 
-  const Stmt loop = new_stmt_flow(mp, ae_stmt_while, cond, stmt, false, func->pos);
+  const Stmt_List code = new_mp_vector(mp, struct Stmt_, 1);
+  mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
+      .stmt_type = ae_stmt_while,
+      .d = {
+        .stmt_flow = {
+          .cond = cond,
+          .body = stmt
+        }
+      },
+      .pos = func->pos
+    }));
   exp->exp_type = ae_exp_unary;
   exp->d.exp_unary.unary_type = unary_code;
-  exp->d.exp_unary.code = loop;
+  exp->d.exp_unary.code = code;
   exp->d.exp_unary.op = insert_symbol(env->gwion->st, "spork");
-
   return NULL;
 }
 
