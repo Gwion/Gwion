@@ -886,7 +886,7 @@ ANN m_bool emit_ensure_func(const Emitter emit, const Func f) {
 
 ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   if(emit->locale->def->d.code) {
-    const Stmt stmt = mp_vector_at((emit->locale->def->d.code->d.stmt_code.stmt_list), struct Stmt_, 0);
+    const Stmt stmt = mp_vector_at((emit->locale->def->d.code), struct Stmt_, 0);
     const Func f = stmt->d.stmt_exp.val->d.exp_call.func->type->info->func;
     CHECK_OB(emit_ensure_func(emit, f));
   }
@@ -1665,11 +1665,12 @@ static void push_spork_code(const Emitter emit, const m_str prefix,
 }
 
 struct Sporker {
-  const Stmt code;
+  const Stmt_List code;
   const Exp  exp;
   VM_Code    vm_code;
   const Type type;
   const Capture_List captures;
+  const loc_t pos;
   const bool emit_var;
   const bool is_spork;
 };
@@ -1678,12 +1679,13 @@ ANN static m_bool spork_prepare_code(const Emitter         emit,
                                      const struct Sporker *sp) {
   emit_add_instr(emit, RegPushImm);
   push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX,
-                  sp->code->pos);
+                  sp->pos);
   if (emit->env->class_def) stack_alloc(emit);
   if (emit->env->func && vflag(emit->env->func->value_ref, vflag_member))
     stack_alloc(emit);
   if(sp->captures) emit->code->frame->curr_offset += captures_sz(sp->captures);
-  return scoped_stmt(emit, sp->code);
+//  return scoped_stmt(emit, sp->code);
+  return emit_stmt_list(emit, sp->code);
 }
 
 ANN static m_bool spork_prepare_func(const Emitter         emit,
@@ -1739,6 +1741,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .code     = unary->unary_type == unary_code ? unary->code : NULL,
       .type     = exp_self(unary)->type,
       .captures = unary->captures,
+      .pos = exp_self(unary)->pos,
       .is_spork = (unary->op == insert_symbol("spork")),
       .emit_var = exp_getvar(exp_self(unary))};
   CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)));
@@ -2719,7 +2722,12 @@ ANN static m_bool emit_func_def_body(const Emitter emit, const Func_Def fdef) {
   if (fdef->base->xid == insert_symbol("@dtor")) emit_local(emit, emit->gwion->type[et_int]);
   if (fdef->base->args) emit_func_def_args(emit, fdef->base->args);
   if (fdef->d.code) {
-    if(!fdef->builtin) CHECK_BB(scoped_stmt(emit, fdef->d.code));
+    if(!fdef->builtin) {
+      scoped_ini(emit);
+      const m_bool ret = emit_stmt_list(emit, fdef->d.code);
+      scoped_end(emit);
+      CHECK_BB(ret);
+    }
     else fdef->base->func->code = (VM_Code)vector_at(&fdef->base->func->value_ref->from->owner_class->nspc->vtable, fdef->vt_index);
   }
   emit_func_def_return(emit);

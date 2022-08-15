@@ -17,7 +17,7 @@
 #include "partial.h"
 #include "spread.h"
 
-ANN static m_bool check_stmt_list(const Env env, Stmt_List list);
+ANN m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool        check_class_def(const Env env, const Class_Def class_def);
 
 ANN static Type check_internal(const Env env, const Symbol sym, const Exp e,
@@ -1176,18 +1176,17 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp when   = tdef->when;
     tdef->when = NULL;
     when->next       = helper;
-    Stmt_List body = new_mp_vector(env->gwion->mp, struct Stmt_, 2);
-    mp_vector_set(body, struct Stmt_, 0,
+    Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 2);
+    mp_vector_set(code, struct Stmt_, 0,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
       .pos = when->pos
     }));
-    mp_vector_set(body, struct Stmt_, 1,
+    mp_vector_set(code, struct Stmt_, 1,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp,
       .pos = when->pos
     }));
-    const Stmt     code = new_stmt_code(env->gwion->mp, body, when->pos);
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     tdef->when_def           = fdef;
     CHECK_BB(traverse_func_def(env, fdef));
@@ -1210,7 +1209,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .pos = when->pos
     };
-    mp_vector_set(fdef->d.code->d.stmt_code.stmt_list, struct Stmt_, 1, ret);
+    mp_vector_set(fdef->d.code, struct Stmt_, 1, ret);
     ret_id->type = tdef->type;
   }
   if (tflag(tdef->type, tflag_cdef))
@@ -1623,7 +1622,7 @@ ANN m_bool check_stmt(const Env env, const Stmt stmt) {
   return check_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
-ANN static m_bool check_stmt_list(const Env env, Stmt_List l) {
+ANN m_bool check_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
     const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(check_stmt(env, s));
@@ -1750,8 +1749,14 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef,
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if (fdef->base->args) CHECK_BB(check_func_args(env, fdef->base->args));
   if(fdef->builtin) return GW_OK;
-  if (fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
-    CHECK_BB(check_stmt_code(env, &fdef->d.code->d.stmt_code));
+  if (fdef->d.code && fdef->d.code) {
+    env->scope->depth++;
+    nspc_push_value(env->gwion->mp, env->curr);
+    const m_bool ret = check_stmt_list(env, fdef->d.code);
+    nspc_pop_value(env->gwion->mp, env->curr);
+    env->scope->depth--;
+    return ret;
+  }
   return GW_OK;
 }
 

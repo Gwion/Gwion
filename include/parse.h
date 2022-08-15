@@ -56,6 +56,7 @@ ANN m_bool scan2_exp(const Env, Exp);
   }
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt);
+ANN m_bool check_stmt_list(const Env env, const Stmt_List);
 
 typedef m_bool (*_exp_func)(const void *, const void *);
 ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,

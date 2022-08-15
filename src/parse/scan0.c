@@ -436,10 +436,10 @@ ANN m_bool scan0_func_def(const Env env, const Func_Def fdef) {
     struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                             env->func;
     env->func = &fake;
-    if(!fdef->builtin && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
-      scan0_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list);
+    if(!fdef->builtin && fdef->d.code)
+      scan0_stmt_list(env, fdef->d.code);
     if(env->context->extend)
-      fdef->d.code->d.stmt_code.stmt_list = spread_func(env, fdef->d.code->d.stmt_code.stmt_list);
+      fdef->d.code = spread_func(env, fdef->d.code);
     env->func = former;
     env->context->extend = old_extend;
   }}
