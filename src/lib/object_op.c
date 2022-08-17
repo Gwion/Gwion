@@ -391,7 +391,7 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   env->name = env_filename;
   env->context->name = ctx_filename;
   if(local)env_pop(env, es.scope);
-  if (es.run) envset_pop(&es, owner);
+  envset_pop(&es, owner);
   return ret;
 }
 

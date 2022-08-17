@@ -209,7 +209,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
-    if (es.run) envset_pop(&es, owner);
+    envset_pop(&es, owner);
     if (!td->array) return ret;
     return array_type(env, ret, td->array->depth);
   }

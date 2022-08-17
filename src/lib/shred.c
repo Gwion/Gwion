@@ -204,8 +204,9 @@ static DTOR(fork_dtor) {
 static MFUN(fork_join) {
   if (*(m_int *)(o->data + o_fork_done)) return;
   if (!ME(o)->tick) return;
-  shreduler_remove(shred->tick->shreduler, shred, false);
+  shred->info->me->ref++;
   vector_add(&EV_SHREDS(*(M_Object *)(o->data + o_fork_ev)), (vtype)shred);
+  shreduler_remove(shred->tick->shreduler, shred, false);
 }
 
 static MFUN(shred_cancel) {

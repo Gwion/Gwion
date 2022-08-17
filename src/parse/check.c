@@ -109,6 +109,7 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
 ANN /*static inline*/ m_bool ensure_check(const Env env, const Type t) {
   if (tflag(t, tflag_check) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
     return GW_OK;
+  if(!tflag(t, tflag_tmpl)) return GW_OK;
   struct EnvSet es = {.env   = env,
                       .data  = env,
                       .func  = (_exp_func)check_cdef,
@@ -671,7 +672,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v,
     CHECK_BO(envset_pushv(&es, v));
     func->def->base->fbflag |= fbflag_internal;
     const m_bool ret = check_traverse_fdef(env, func->def);
-    if (es.run) envset_pop(&es, v->from->owner_class);
+    envset_pop(&es, v->from->owner_class);
     CHECK_BO(ret);
   }
   exp->func->type = func->value_ref->type;
@@ -894,11 +895,13 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (!t->info->func) // TODO: effects?
     return check_lambda_call(env, exp);
+/*
   if (fflag(t->info->func, fflag_ftmpl)) {
     const Value value = t->info->func->value_ref;
     if (value->from->owner_class)
       CHECK_BO(ensure_traverse(env, value->from->owner_class));
   }
+*/
   if (exp->args) {
     CHECK_OO(check_exp(env, exp->args));
     Exp e = exp->args;
@@ -909,6 +912,7 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
     return check_exp_call_template(env, (Exp_Call *)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
   if (func) {
+/*
     if (func != env->func && func->def && !fflag(func, fflag_valid)) {
       if(func->value_ref->from->owner_class)
         CHECK_BO(ensure_check(env, func->value_ref->from->owner_class));

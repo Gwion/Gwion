@@ -157,7 +157,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
   if(in_tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
-  if (es.run) envset_pop(&es, v->from->owner_class);
+  envset_pop(&es, v->from->owner_class);
   env->func = former;
   return m_func;
 }

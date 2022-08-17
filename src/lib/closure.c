@@ -357,7 +357,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     nspc_pop_type(env->gwion->mp, env->curr);
     owner = owner->info->value->from->owner_class;
   }
-  if (es.run) envset_pop(&es, owner);
+  envset_pop(&es, owner);
   if(ret < 0) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
@@ -703,7 +703,7 @@ static OP_CHECK(opck_closure_scan) {
   CHECK_BO(envset_pushv(&es, owner->info->value));
   const m_bool ret = traverse_fptr_def(env, fdef);
   const Type t = ret > 0 ? fdef->cdef->base.type : NULL;
-  if (es.run) envset_pop(&es, owner->info->value->from->owner_class);
+  envset_pop(&es, owner->info->value->from->owner_class);
   free_fptr_def(env->gwion->mp, fdef); // clean?
   if(t) set_tflag(t, tflag_emit);
   return t;

@@ -115,17 +115,8 @@ INSTR(DotTmpl) {
     *(VM_Code *)(shred->reg - SZ_INT) = f->code;
     return;
   }
-  const Emitter emit = shred->info->vm->gwion->emit;
   const struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val2;
-  struct EnvSet es    = {.env   = emit->env,
-                         .data  = emit,
-//                         .func  = (_exp_func)emit_cdef,
-                         .func  = (_exp_func)dummy_func,
-                         .scope = 0,
-                         .flag  = tflag_emit};
-  if(envset_push(&es, dt->type, dt->nspc) < 0) return;
   foo(shred, o->type_ref, fbase, dt->tmpl_name);
-  if (es.run) envset_pop(&es, dt->type);
 }
 
 #define VAL  (*(m_uint *)(byte + SZ_INT))

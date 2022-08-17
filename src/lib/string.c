@@ -402,10 +402,8 @@ static MFUN(string_atof) {
 static MFUN(string_atoi2) {
   const M_Object obj = *(M_Object*)MEM(0);
   const m_str str = STRING(obj);
-puts(str);
   char *endptr = NULL;
   if(!(*(m_int*)RETURN = strtol(str, &endptr, 10))) {
-printf("lkjlk j %i\n", errno);
     if(errno == EINVAL) {
       handle(shred, "ErrorInvalidValue");
       return;
@@ -415,7 +413,6 @@ printf("lkjlk j %i\n", errno);
       return;
     }
   }
-printf("ret: %li\n", *(m_int*)RETURN);
   **(m_uint**)MEM(SZ_INT) = endptr - str;
 }
 

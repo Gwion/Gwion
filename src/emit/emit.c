@@ -900,7 +900,7 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   const VM_Code code = finalyze(emit, EOC);
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
   vm_add_shred(emit->gwion->vm, shred);
-//  shred->info->me->ref++;
+  shred->info->me->ref++;
   vm_run(emit->gwion->vm);
   emit->gwion->vm->bbq->is_running = true;
   const m_float ret = *(m_float*)shred->reg;
@@ -1408,13 +1408,12 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Valu
                       .func  = (_exp_func)emit_cdef,
                       .scope = scope,
                       .flag  = tflag_emit};
-  CHECK_BB(envset_push(&es, v->from->owner_class, v->from->owner));
+  CHECK_BB(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const m_bool ret = traverse_emit_func_def(emit, fdef);
-  if (es.run) envset_pop(&es, v->from->owner_class);
   emit_pop(emit, scope);
+  envset_pop(&es, v->from->owner_class);
   emit->env->scope->shadowing = shadowing;
-  if(ret > 0) set_fflag(fdef->base->func, fflag_tmpl);
   return ret;
 }
 
@@ -1458,7 +1457,7 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   CHECK_BB(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const m_bool ret = emit_func_def(emit, f->def);
-  if (es.run) envset_pop(&es, v->from->owner_class);
+  envset_pop(&es, v->from->owner_class);
   emit_pop(emit, scope);
   return ret > 0 ? push_func_code(emit, f) : GW_ERROR;
 }
@@ -1932,7 +1931,7 @@ ANN static m_bool emit_exp_lambda(const Emitter     emit,
                       .flag  = tflag_emit};
   CHECK_BB(envset_pushv(&es, lambda->def->base->func->value_ref));
   const m_bool ret = emit_lambda(emit, lambda);
-  if (es.run) envset_pop(&es, lambda->owner);
+  envset_pop(&es, lambda->owner);
   return ret;
 }
 
