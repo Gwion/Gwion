@@ -13,7 +13,7 @@
 	active = true
 [submodule "libcmdapp"]
 	path = libcmdapp
-	url = https://github.com/euppal/libcmdapp
+	url = https://github.com/fennecdjay/libcmdapp
 [submodule "fmt"]
 	path = fmt
 	url = https://github.com/Gwion/gwion-fmt
