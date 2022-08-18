@@ -923,6 +923,7 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
         CHECK_BO(ret);
       }
     }
+*/
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
