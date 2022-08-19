@@ -35,8 +35,8 @@ static MFUN(event_signal) {
   if (sh) {
     shredule(sh->tick->shreduler, sh, GWION_EPSILON);
     vector_rem(v, 0);
+    release(sh->info->me, sh);
   }
-  release(sh->info->me, sh);
 }
 
 ANN void broadcast(const M_Object o) {
