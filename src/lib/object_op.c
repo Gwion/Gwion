@@ -241,7 +241,9 @@ OP_CHECK(opck_object_dot) {
         return v->type;
     if (is_class(env->gwion, v->type)) {
        DECL_OO(const Type, parent, = class_type(env, member, v->type));
-       if (isa(the_base, parent) > 0 && parent->nspc) {
+    // allow only direct parent or smth?
+    // mark the function as ctor_ok
+    if (isa(the_base, parent) > 0 && parent->nspc) {
           const Symbol sym = insert_symbol(env->gwion->st, "new");
           const Value ret = nspc_lookup_value1(parent->nspc, sym);
           member->xid = sym;
@@ -270,6 +272,7 @@ OP_CHECK(opck_object_dot) {
     ERR_N(exp_self(member)->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
+// if current function is a constructor
   if (GET_FLAG(value, const)) exp_setmeta(exp_self(member), 1);
   exp_self(member)->acquire = 1;
   return value->type;
@@ -380,17 +383,16 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   const Type    owner = t->info->value->from->owner_class;
   CHECK_BO(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
-  if(local)env_push(env, NULL, env->context->nspc);
+  if(local && env->context) env_push(env, NULL, env->context->nspc);
   // these context and env command may fit better somewhere else
-  const m_str env_filename = env->name;
-  const m_str ctx_filename = env->context->name;
-  env->name = t->info->value->from->filename;
-  env->context->name = t->info->value->from->ctx->name;
-  env->context->name = ctx_filename;
+//  const m_str env_filename = env->name;
+//  const m_str ctx_filename = env->context->name;
+//  env->name = t->info->value->from->filename;
+//  env->context->name = t->info->value->from->ctx->name;
   const Type ret = _scan_class(env, &info);
-  env->name = env_filename;
-  env->context->name = ctx_filename;
-  if(local)env_pop(env, es.scope);
+//  env->name = env_filename;
+//  env->context->name = ctx_filename;
+  if(local && env->context)env_pop(env, es.scope);
   envset_pop(&es, owner);
   return ret;
 }
