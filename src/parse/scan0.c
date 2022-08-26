@@ -133,6 +133,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
     nspc_addref((t->nspc = base->nspc));
   t->flag = tdef->ext->flag;
   if (tdef->ext->array && !tdef->ext->array->exp) set_tflag(t, tflag_empty);
+  inherit(t);
   mk_class(env, tdef->type, tdef->pos);
 }
 
