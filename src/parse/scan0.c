@@ -126,15 +126,14 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global))
                         ? env->global_nspc
                         : env->curr;
-  if (GET_FLAG(tdef->ext, global)) context_global(env);
   add_type(env, nspc, t);
   tdef->type = t;
-  if (base->nspc) // create a new nspc if `distinct`?
-    nspc_addref((t->nspc = base->nspc));
+  if (base->nspc) { // create a new nspc if `distinct`?
+    t->nspc = new_nspc(env->gwion->mp, t->name);
+    t->nspc->parent = base->nspc;
+  }
   t->flag = tdef->ext->flag;
   if (tdef->ext->array && !tdef->ext->array->exp) set_tflag(t, tflag_empty);
-  inherit(t);
-  mk_class(env, tdef->type, tdef->pos);
 }
 
 ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
@@ -150,19 +149,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
   cdef->base.tmpl = tdef->tmpl; // check cpy
   set_tflag(tdef->type, tflag_cdef);
   if(final) SET_FLAG(base, final);
-  mk_class(env, tdef->type, tdef->pos);
   return GW_OK;
-}
-
-ANN static void typedef_fptr(const Env env, const Type_Def tdef,
-                             const Type base) {
-  tdef->type               = type_copy(env->gwion->mp, base);
-  tdef->type->info->func   = base->info->func;
-  tdef->type->name         = s_name(tdef->xid);
-  tdef->type->info->parent = base;
-  add_type(env, env->curr, tdef->type);
-  mk_class(env, tdef->type, tdef->pos);
-  if (base->info->func->def->base->tmpl) set_tflag(tdef->type, tflag_ftmpl);
 }
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
@@ -176,13 +163,10 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     context_global(env);
     env_push_global(env);
   }
-  if (!is_func(env->gwion, base)) { // is_callable
-    if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp)) {
-      typedef_simple(env, tdef, base);
-    } else
-      CHECK_BB(typedef_complex(env, tdef, base));
-  } else
-    typedef_fptr(env, tdef, base);
+  if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
+    typedef_simple(env, tdef, base);
+  else CHECK_BB(typedef_complex(env, tdef, base));
+  mk_class(env, tdef->type, tdef->pos);
   if (tdef->when) set_tflag(tdef->type, tflag_contract);
   if (tdef->type != base && !tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, base, tdef->type);
