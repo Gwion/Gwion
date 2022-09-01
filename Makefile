@@ -23,7 +23,7 @@ test_dir += examples
 src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
-CFLAGS += -Iutil/include -Iutil/libtermcolor/include -Iast/include -Ilibcmdapp/src -D_GNU_SOURCE
+CFLAGS += -Iutil/include -Iast/include -D_GNU_SOURCE
 CFLAGS += -Iast/libprettyerr/src -Ifmt/include
 
 # add commit hash to version for now
@@ -58,9 +58,9 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif
 
-ALMOST_LIBS := libcmdapp/libcmdapp.a fmt/libgwion_fmt.a
+ALMOST_LIBS := fmt/libgwion_fmt.a
 ALMOST_LIBS += ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a
-ALMOST_LIBS += util/libgwion_util.a util/libtermcolor/libtermcolor.a
+ALMOST_LIBS += util/libgwion_util.a
 GWLIBS := lib${PRG}.a ${ALMOST_LIBS}
 LDFLAGS := ${GWLIBS} ${LDFLAGS}
 
@@ -88,9 +88,6 @@ lto:
 lib${PRG}.a: ${lib_obj}
 	@${AR} ${AR_OPT}
 
-util/libtermcolor/libtermcolor.a:
-	@+${MAKE} BUILD_ON_WINDOWS=${BUILD_ON_WINDOWS} -s -C util/libtermcolor static
-
 util/libgwion_util.a:
 	@+${MAKE} -s -C util
 
@@ -100,14 +97,11 @@ util: util/libgwion_util.a
 ast/libgwion_ast.a: util/libgwion_util.a
 	@+ ${MAKE} -s -C ast
 
-libcmdapp/libcmdapp.a:
-	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C libcmdapp static
-
 fmt/libgwion_fmt.a: ast/libgwion_ast.a
 	@+${MAKE} -s -C fmt libgwion_fmt.a
 
-ast/libprettyerr/libprettyerr.a:
-	@+CFLAGS=-I$(shell pwd)/util/libtermcolor/include ${MAKE} -s -C ast/libprettyerr static
+ast/libprettyerr/libprettyerr.a: options-show
+	@+CFLAGS=-I$(shell pwd)/util/include ${MAKE} -s -C ast/libprettyerr static
 
 ast: ast/libgwion_ast.a
 	@(info build ast)
@@ -123,12 +117,10 @@ clean_core:
 	@rm -f core.* *vgcore.*
 
 clean-all: clean
-		${MAKE} -s -C libcmdapp clean
 		${MAKE} -s -C fmt clean
 		${MAKE} -s -C ast clean
 		${MAKE} -s -C ast/libprettyerr clean
 		${MAKE} -s -C util clean
-		${MAKE} -s -C util/libtermcolor clean
 
 update: clean-all
 	bash scripts/update.sh
