@@ -180,17 +180,17 @@ ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, 
 
 ANN static uint32_t count_args_exp(Exp args) {
   uint32_t i = 0;
-  while(args && ++i) args = args->next;
+  do i++;
+  while ((args = args->next));
   return i;
 }
 
 ANN static uint32_t count_args_func(Func f, const uint32_t i) {
   uint32_t max = 0;
-  while(f) {
+  do {
     const uint32_t len =  mp_vector_len(f->def->base->args);
     if(len > i && len > max) max = len;
-    f = f->next;
-  }
+  } while ((f = f->next));
   return max;
 }
 
