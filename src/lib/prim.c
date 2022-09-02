@@ -28,8 +28,6 @@ static inline bool is_prim_float(const Exp e) {
   return (is_prim(e) && e->d.prim.prim_type == ae_prim_float);
 }
 
-static inline uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
-
 #define POWEROF2_OPT(name, OP)                                                 \
   if (is_prim_int(bin->rhs) && pot(bin->rhs->d.prim.d.num)) {                  \
     bin->op                = insert_symbol(#OP);                               \
