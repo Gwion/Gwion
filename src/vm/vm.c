@@ -278,10 +278,6 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   }
 
 //#define ADVANCE() { byte += BYTECODE_SZ; shred->pc++;}
-#define ADVANCE() byte += BYTECODE_SZ
-
-//#define SDISPATCH() goto *dispatch[*(m_bit *)byte];
-#define SDISPATCH() goto **(void***)byte;
 #define IDISPATCH()                                                            \
   {                                                                            \
     VM_INFO;                                                                   \
@@ -427,12 +423,6 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
     ADVANCE();                                                                 \
   IDISPATCH();
 
-#define VM_OUT                                                                 \
-  shred->code = code;                                                          \
-  shred->reg  = reg;                                                           \
-  shred->mem  = mem;                                                           \
-  shred->pc   = PC;
-
 __attribute__((hot)) void
 vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
   static const void *dispatch[] = {
@@ -494,6 +484,16 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     m_bit * reg      = shred->reg;
     m_bit * mem      = shred->mem;
     m_bit   next;
+
+#define VM_OUT                                                                 \
+  shred->code = code;                                                          \
+  shred->reg  = reg;                                                           \
+  shred->mem  = mem;                                                           \
+  shred->pc   = PC;
+
+#define ADVANCE() byte += BYTECODE_SZ
+#define SDISPATCH() goto **(void***)byte;
+
     union {
       M_Object obj;
       VM_Code  code;
