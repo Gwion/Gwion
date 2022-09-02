@@ -153,7 +153,6 @@ ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const str
   unhandled_pp(shred, effect, ts);
   if (shred->info->line.ptr) // trace if available
     shred_trace(shred, ts);
-//  add_to_killed(shred);
   shreduler_remove(shred->tick->shreduler, shred, true);
 }
 
@@ -1603,15 +1602,7 @@ VM *new_vm(MemPool p, const bool audio) {
   return vm;
 }
 
-ANN static inline void free_killed_shred(const Vector v) {
-  for (m_uint i = 0; i < vector_size(v); i++) {
-    const VM_Shred shred = (VM_Shred)vector_at(v, i);
-    free_vm_shred(shred);
-  }
-}
-
 ANN void vm_clean(const VM* vm, const Gwion gwion) {
-  free_killed_shred(&vm->shreduler->killed_shreds);
   gwion_end_child(vm->cleaner_shred, gwion);
   if (vm->bbq) free_driver(vm->bbq, gwion->vm);
 }
