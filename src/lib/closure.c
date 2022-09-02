@@ -73,19 +73,6 @@ static OP_CHECK(opck_fptr_call) {
   return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
 }
 
-ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
-  const MemPool mp   = env->gwion->mp;
-  const Exp     next = e->next;
-  e->next            = NULL;
-  const Exp ret      = cpy_exp(mp, e);
-  e->next            = next;
-  if (!check_exp(env, ret)) {
-    free_exp(mp, ret);
-    return NULL;
-  }
-  return ret;
-}
-
 ANN Type upvalue_type(const Env env, Capture *cap) {
   const Value v = nspc_lookup_value1(env->curr, cap->xid);
   if(!v) ERR_O(cap->pos, _("non existing value")); // did_you_mean
@@ -195,11 +182,6 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_OB(const Type, t1, = known_type(env, id[1]));
   if (isa(t0, t1) > 0) return GW_OK;
   return t1 == env->gwion->type[et_auto] ? GW_OK : GW_ERROR;
-}
-
-ANN static inline bool handle_global(Func_Base *a, Func_Base *b) {
-  return (!b->func->value_ref->from->owner_class &&
-      (!GET_FLAG(a, global) && a->func->value_ref->from->owner_class));
 }
 
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
@@ -436,10 +418,6 @@ static OP_CHECK(opck_fptr_assign) {
                           .exp = bin->lhs};
   CHECK_BN(fptr_do(env, &info));
   return bin->rhs->type;
-}
-
-static inline int is_member(const Type from) {
-  return vflag(from->info->func->value_ref, vflag_member);
 }
 
 static OP_CHECK(opck_fptr_impl) {
