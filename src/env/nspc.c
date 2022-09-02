@@ -44,38 +44,30 @@ static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
   }
 }
 
-ANN static void free_nspc_value(const Nspc a, Gwion gwion) {
-  struct scope_iter iter = {a->info->value, 0, 0};
-  Value             v;
-  while (scope_iter(&iter, &v) > 0) {
-    if (tflag(v->type, tflag_cdef)) {
-      if (!tflag(v->type, tflag_struct))
-        nspc_release_object(a, v, gwion);
-      else nspc_release_struct(a, v, gwion);
-    }
-    value_remref(v, gwion);
+static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
+  if (isa(v->type, gwion->type[et_compound]) > 0 ) {
+    if (!tflag(v->type, tflag_struct))
+      nspc_release_object(a, v, gwion);
+    else nspc_release_struct(a, v, gwion);
   }
-  free_scope(gwion->mp, a->info->value);
+  value_remref(v, gwion);
 }
 
-#define describe_nspc_free(A, b)                                               \
+#define describe_nspc_free(A, b, dofree)                                       \
   ANN static void nspc_free_##b(Nspc n, Gwion gwion) {                         \
     struct scope_iter iter = {n->info->b, 0, 0};                               \
     A                 a;                                                       \
-    while (scope_iter(&iter, &a) > 0) b##_remref(a, gwion);                    \
+    while (scope_iter(&iter, &a) > 0) dofree;                                  \
     free_scope(gwion->mp, n->info->b);                                         \
   }
 
-describe_nspc_free(Func, func) describe_nspc_free(Type, type) ANN
-    static void nspc_free_trait(Nspc n, Gwion gwion) {
-  struct scope_iter iter = {n->info->trait, 0, 0};
-  Trait             a;
-  while (scope_iter(&iter, &a) > 0) free_trait(gwion->mp, a);
-  free_scope(gwion->mp, n->info->trait);
-}
+describe_nspc_free(Value, value, _free_nspc_value(n, a, gwion));
+describe_nspc_free(Func, func, func_remref(a, gwion));
+describe_nspc_free(Type, type, type_remref(a, gwion));
+describe_nspc_free(Trait, trait, free_trait(gwion->mp, a));
 
 ANN void free_nspc(const Nspc a, const Gwion gwion) {
-  free_nspc_value(a, gwion);
+  nspc_free_value(a, gwion);
   nspc_free_func(a, gwion);
   nspc_free_trait(a, gwion);
   if (a->info->op_map.ptr) free_op_map(&a->info->op_map, gwion);
