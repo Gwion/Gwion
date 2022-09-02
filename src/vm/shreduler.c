@@ -126,14 +126,12 @@ ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
 ANN Shreduler new_shreduler(const MemPool mp) {
   Shreduler s = (Shreduler)mp_calloc(mp, Shreduler);
   vector_init(&s->active_shreds);
-  vector_init(&s->killed_shreds);
   MUTEX_SETUP(s->mutex);
   return s;
 }
 
 ANN void free_shreduler(const MemPool mp, const Shreduler s) {
   vector_release(&s->active_shreds);
-  vector_release(&s->killed_shreds);
   MUTEX_CLEANUP(s->mutex);
   mp_free(mp, Shreduler, s);
 }

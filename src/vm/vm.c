@@ -142,12 +142,6 @@ ANN static inline void shred_trace(const VM_Shred shred, const struct TraceStart
   trace(shred, vector_size(&shred->info->line));
 }
 
-ANN static inline void add_to_killed(const VM_Shred shred) {
-  const Shreduler shreduler = shred->tick->shreduler;
-  vector_rem2(&shreduler->active_shreds, (m_uint)shred);
-  vector_add(&shreduler->killed_shreds, (m_uint)shred);
-}
-
 ANN static inline void unhandled_pp(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
   gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} {-}in code {/+}'%s'{0}{-}. origin: {/+}'%s'{0}{-}\n",
     ts->code->name, shred->info->orig->name);
@@ -159,7 +153,8 @@ ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const str
   unhandled_pp(shred, effect, ts);
   if (shred->info->line.ptr) // trace if available
     shred_trace(shred, ts);
-  add_to_killed(shred);
+//  add_to_killed(shred);
+  shreduler_remove(shred->tick->shreduler, shred, true);
 }
 
 ANN void handle(VM_Shred shred, const m_str effect) {
