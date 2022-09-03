@@ -16,7 +16,7 @@ of course this also works with a block code.
 
 ```gwion,editable
 repeat(3) {
-   maybe ? "You" : "Me" => var string s;
+   maybe ? "You" : "Me" :=> var string s;
    <<< "Hello, ", s, "!" >>>;
 }
 ```  

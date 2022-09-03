@@ -11,12 +11,12 @@ union U {
 };
 
 #! create an union with field `i` set to `1`
-new U(i, 1) => var U u;
+new U(i, 1) :=> var U u;
 
 <<< u.i >>>;
 
 #! set field f to 2.4
-2.4 => u.f;
+2.4 :=> u.f;
 <<< u.f >>>;
 
 #! this will trigger an invalid access error

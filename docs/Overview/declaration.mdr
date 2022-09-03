@@ -34,6 +34,6 @@ late Object object_ref;
 
 ```gwion,editable
 var int array_ref[];
-new int[2] => array_ref;
+new int[2] :=> array_ref;
 <<< array_ref >>>;
 ```

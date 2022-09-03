@@ -30,6 +30,6 @@ fun int test(int i, int j) {
   return i + j;
 }
 
-test(_, 2) @=> const auto mytest;
+test(_, 2) :=> const auto mytest;
 <<< 40 => mytest >>>;
 ```

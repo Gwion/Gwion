@@ -11,8 +11,8 @@ It also works with a block of code.
 
 ```gwion,editable
 for(var int i; i < 3; ++i) {
-   i/2 => var float f1;
-   i/2. => var float f2;
+   i/2 :=> var float f1;
+   i/2. :=> var float f2;
    <<< i, " " , f1, " ", f2 >>>;
 }
 ```  
@@ -48,7 +48,7 @@ var int array[2][3];
 var int i;
 foreach(a: array) {
   foreach(b: a)
-    <<< ++i => b >>>;
+    <<< ++i :=> b >>>;
 }
 foreach(a: array) {
   foreach(b: a)
