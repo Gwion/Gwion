@@ -73,7 +73,7 @@ ANN Symbol array_sym(const Env env, const Type src,
 ANN static inline Type array_base_simple(Type t) {
   return t->array_depth ? t->info->base_type : t;
 }
-ANN m_bool    type_ref(Type) __attribute__((pure));
+ANN bool    type_ref(Type) __attribute__((pure));
 ANN Type      actual_type(const struct Gwion_ *gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) {
   return env_push(env, type, type->nspc);
