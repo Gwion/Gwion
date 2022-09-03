@@ -142,10 +142,6 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     } else set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
-  else if(v->type != env->gwion->type[et_auto] && v->type != env->class_def) {
-    type_addref(v->type);
-    set_vflag(v, vflag_inner); // file global
-  }
   nspc_add_value(env->curr, vd->xid, v);
   ((Exp_Decl *)decl)->type = decl->vd.value->type;
   return GW_OK;
@@ -711,8 +707,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
-  const Type parent = known_type(env, tdef->ext);
-  CHECK_OO((tdef->type->info->parent = parent));
+  const Type parent = tdef->type->info->parent;
   Type t = parent;
   do
     if (tdef->type == t)
@@ -730,7 +725,6 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
   if (isa(parent, env->gwion->type[et_object]) < 0 &&
       !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
-  CHECK_BB(ensure_scan1(env, parent));
   if (type_ref(parent)) ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;
 }

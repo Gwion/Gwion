@@ -5,7 +5,7 @@ struct TupleForm_ {
   struct Vector_ contains;
   struct Vector_ types;
   struct Vector_ offset;
-  m_uint         start;
+  uint64_t       start;
 };
 
 ANN Type tuple_type(const Env, const Vector, const loc_t);

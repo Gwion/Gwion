@@ -154,8 +154,7 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_BB(env_access(env, tdef->ext->flag, tdef->ext->pos));
-  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext)
-                                         : known_type(env, tdef->ext));
+  DECL_OB(const Type, base, = known_type(env, tdef->ext));
   CHECK_BB(scan0_defined(env, tdef->xid, tdef->ext->pos));
   const bool global =
       GET_FLAG(tdef->ext, global); // TODO: handle global in class
@@ -171,14 +170,12 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   if (tdef->type != base && !tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, base, tdef->type);
   if (tdef->distinct || tdef->when) {
-//    tdef->type->info->parent = base->info->parent;
     if (base->info->gack)
       vmcode_addref(tdef->type->info->gack = base->info->gack);
     set_tflag(tdef->type, tflag_distinct);
     struct Op_Import opi = {.lhs = base, .rhs = tdef->type};
     op_cpy(env, &opi);
     scan0_explicit_distinct(env, base, tdef->type);
-    type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
   } else //if(tdef->ext->array)
     set_tflag(tdef->type, tflag_typedef);
   if(tflag(base, tflag_ref)) {
@@ -186,8 +183,6 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     set_tflag(tdef->type, tflag_infer);
   }
   if (global) env_pop(env, 0);
-  if (tdef->type != base)
-    tdef->type->info->base_type = base;
   return GW_OK;
 }
 
@@ -294,7 +289,7 @@ ANN static inline void cdef_flag(const Class_Def cdef, const Type t) {
 }
 
 ANN static Type get_parent_base(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = find_type(env, td));
+  DECL_OO(const Type, t, = known_type(env, td));
   Type owner = env->class_def;
   while (owner) {
     if (t == owner)
@@ -305,7 +300,7 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
 }
 
 ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
-  const Type t = find_type(env, td);
+  const Type t = known_type(env, td);
   if(!t) ERR_O(td->pos, _("can't find parent class %s\n."), s_name(td->xid));
   return t;
 }

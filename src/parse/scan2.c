@@ -589,8 +589,6 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
-  const Type parent = cdef->base.type->info->parent;
-  CHECK_BB(ensure_scan2(env, parent));
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp));
   return GW_OK;

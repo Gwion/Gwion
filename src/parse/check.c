@@ -926,6 +926,7 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
 */
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
+// used in new. why???
     return func->def->base->ret_type != env->gwion->type[et_auto] ?
       func->def->base->ret_type : exp->func->d.exp_dot.base->type;
   }
@@ -1094,7 +1095,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
   if (exp->tmpl) {
     DECL_BO(const m_bool, ret, = func_check(env, exp));
     if (!ret) return exp_self(exp)->type;
-/*    const */Type t = actual_type(env->gwion, exp->func->type);
+    Type t = actual_type(env->gwion, exp->func->type);
     if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
       t = typedef_base(t);
       t = mp_vector_at(t->info->cdef->body, Section , 0)->d.func_def->base->func->value_ref->type;
@@ -1219,6 +1220,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
   }
   if (tflag(tdef->type, tflag_cdef))
     return check_class_def(env, tdef->type->info->cdef);
+  else inherit(tdef->type);
   return GW_OK;
 }
 
@@ -1909,7 +1911,6 @@ ANN m_bool check_fptr_def(const Env env, const Fptr_Def fptr) {
   return ret;
 }
 
-//#define check_fptr_def dummy_func
 HANDLE_SECTION_FUNC(check, m_bool, Env)
 
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
@@ -1917,10 +1918,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   const Type_Decl *td     = cdef->base.ext;
   if (td->array && td->array->exp)
     CHECK_BB(check_subscripts(env, td->array, 1));
-  CHECK_BB(ensure_check(env, parent));
-  //  if(tflag(parent, tflag_typedef)) {
-  //    set_tflag(cdef->base.type, tflag_typedef);
-  //  }
+  CHECK_BB(ensure_traverse(env, parent));
   return GW_OK;
 }
 
@@ -1973,7 +1971,6 @@ ANN static m_bool check_body(const Env env, Section *const section) {
 }
 
 ANN static bool class_def_has_body(const Env env, Ast ast) {
-//  do {
   for(m_uint i = 0; i < ast->len; i++) {
     const Section *section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_stmt) {
@@ -1990,16 +1987,14 @@ ANN static bool class_def_has_body(const Env env, Ast ast) {
           if (GET_FLAG(vd.value, late)) continue;
           if (isa(vd.value->type, env->gwion->type[et_compound]) > 0)
               return true;
-        } else
-          return true;
-      } //while ((list = list->next));
+        } else return true;
+      }
     }
-  } //while ((ast = ast->next));
+  }
   return false;
 }
 
 ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
-//  if(tflag(tgt, tflag_union)) return false;
   return isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
 }
 
@@ -2013,10 +2008,8 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
     gwerr_secondary("in class", t->name, t->info->cdef->base.pos);
 
     const Type first = tgt->info->value->from->loc.first.line < t->info->value->from->loc.first.line ?
-//      tgt : t;
       v->type : t;
     const Type second = tgt->info->value->from->loc.first.line > t->info->value->from->loc.first.line ?
-//      tgt : t;
       v->type : t;
 
     if(first != second) {
@@ -2033,7 +2026,6 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
       if(t->ref > 2)
         type_remref(t, env->gwion);
     }
-    set_tflag(t, tflag_error);
     set_tflag(t, tflag_infer);
     set_tflag(tgt, tflag_infer);
     unset_tflag(t, tflag_check);
@@ -2087,14 +2079,6 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
     if (cflag(cdef, cflag_struct) || class_def_has_body(env, cdef->body))
       set_tflag(t, tflag_ctor);
   }
-/*
-  // enforce new to be defined in every child class
-  if(t->info->parent->nspc && nspc_lookup_value0(t->info->parent->nspc, insert_symbol("new")) && !nspc_lookup_value0(t->nspc, insert_symbol("new"))) {
-    env_err(env, cdef->pos, "must define 'new' operator");
-    env_warn(env, t->info->parent->info->value->from->loc, "defined here");
-    return GW_ERROR;
-  }
-*/
   if (!GET_FLAG(cdef, abstract)) CHECK_BB(check_abstract(env, cdef));
   if (cdef->traits) {
     ID_List list        = cdef->traits;
@@ -2137,7 +2121,7 @@ ANN static void check_extend(const Env env, Ast ast) {
   for(m_uint i = 0; i < ast->len; i++) {
     Section * section = mp_vector_at(ast, Section, i);
     (void)check_section(env, section);
-    mp_vector_add(env->gwion->mp, &env->context->extend, Section, *section);
+    mp_vector_add(env->gwion->mp, &env->context->tree, Section, *section);
   }
   free_mp_vector(env->gwion->mp, Section, env->context->extend);
   env->context->extend = NULL;

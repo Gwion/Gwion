@@ -40,16 +40,15 @@ enum tflag {
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
   tflag_enum     = 1 << 22,
-  tflag_error    = 1 << 23,
-  tflag_ref      = 1 << 24,
+  tflag_ref      = 1 << 23,
 } __attribute__((packed));
 
 struct Type_ {
   m_str             name;
   Nspc              nspc;
   struct TypeInfo_ *info;
-  size_t            size;
-  size_t            array_depth;
+  uint64_t            size;
+  uint32_t            array_depth;
   struct Vector_    effects; // pre-ctor effects
   uint16_t          ref;
   uint16_t          weight;

@@ -1,4 +1,4 @@
-#! [contains] find parent
+#! [contains] unknown type
 class C extends Undefined {}
 var C c;
 <<< c >>>;

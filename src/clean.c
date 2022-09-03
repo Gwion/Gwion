@@ -47,7 +47,7 @@ ANN static void clean_prim(Clean *a, Exp_Primary *b) {
 }
 
 ANN static void clean_var_decl(Clean *a, Var_Decl *b) {
-  if (a->scope && b->value && !tflag(b->value->type, tflag_error)) value_remref(b->value, a->gwion);
+  if (a->scope && b->value) value_remref(b->value, a->gwion);
 }
 
 ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
