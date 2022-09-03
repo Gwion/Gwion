@@ -104,21 +104,21 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   return op_check(env, &opi);
 }
 
-ANN m_bool type_ref(Type t) {
+ANN bool type_ref(Type t) {
   do {
-    if (tflag(t, tflag_empty)) return GW_OK;
+    if (tflag(t, tflag_empty)) return true;
     if (tflag(t, tflag_typedef) && tflag(t, tflag_cdef)) {
       if (t->info->cdef->base.ext && t->info->cdef->base.ext->array) {
         if (!t->info->cdef->base.ext->array->exp)
-          return GW_OK;
+          return true;
         else {
           const Type type = t->info->parent->info->base_type;
-          if (tflag(type, tflag_empty)) return GW_OK;
+          if (tflag(type, tflag_empty)) return true;
         }
       }
     }
   } while ((t = t->info->parent));
-  return 0;
+  return false;
 }
 
 ANN m_uint get_depth(const Type type) {
@@ -149,9 +149,8 @@ ANN Type actual_type(const struct Gwion_ *gwion, const Type t) {
 
 ANN void inherit(const Type t) {
   const Nspc nspc = t->nspc, parent = t->info->parent->nspc;
-  if (!nspc || !parent) return;
-  nspc->offset = parent->offset;
-  if (parent->vtable.ptr) vector_copy2(&parent->vtable, &nspc->vtable);
+  if (nspc) nspc->offset = parent->offset;
+  if (parent && parent->vtable.ptr) vector_copy2(&parent->vtable, &nspc->vtable);
 }
 
 ANN bool from_global_nspc(const Env env, const Nspc nspc) {

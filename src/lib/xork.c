@@ -50,6 +50,7 @@ static OP_CHECK(opck_spork) {
     Upvalues upvalues = { .values = env->curr->info->value };
     if(env->func && env->func->def->base->values)
       upvalues.parent = env->func->def->base->values;
+    if(env->class_def) env->class_def->info->values = env->curr->info->value;
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
@@ -65,7 +66,8 @@ static OP_CHECK(opck_spork) {
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
-    const m_bool ret = check_stmt(env, unary->code);
+// scope depth?
+    const m_bool ret = check_stmt_list(env, unary->code);
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
     env->curr->info->value = upvalues.values;
@@ -83,6 +85,11 @@ static OP_EMIT(opem_spork) {
 
 static FREEARG(freearg_xork) { vmcode_remref((VM_Code)instr->m_val, gwion); }
 
+static FREEARG(clean_fast_except) {
+  struct FastExceptInfo *info = (struct FastExceptInfo *)instr->m_val2;
+  if(info) mp_free2(((Gwion)gwion)->mp, sizeof(struct FastExceptInfo), info);
+}
+
 GWION_IMPORT(xork) {
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_spork))
@@ -92,5 +99,6 @@ GWION_IMPORT(xork) {
   GWI_BB(gwi_oper_emi(gwi, opem_spork))
   GWI_BB(gwi_oper_end(gwi, "fork", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
+  gwi_register_freearg(gwi, fast_except, clean_fast_except);
   return GW_OK;
 }

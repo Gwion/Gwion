@@ -120,7 +120,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
   def->base->func = func;
   nspc_add_value_front(t->info->value->from->owner, sym, value);
   if (vflag(t->info->func->value_ref, vflag_builtin)) {
-    builtin_func(env->gwion->mp, func, func_ptr);
+    builtin_func(env->gwion, func, func_ptr);
     t->info->func->def->d.dl_func_ptr = func_ptr;
   }
   return ret;
@@ -134,16 +134,44 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
         t->name)
 }
 
+static ANN bool is_single_variadic(const MP_Vector *v) {
+  if(v->len != 1) return false;
+  const Specialized *spec = mp_vector_at(v, Specialized, 0);
+  return !strcmp(s_name(spec->xid), "...");
+}
+
+ANN2(1,2) static m_bool check_tmpl(const Env env, const Type_List tl, const Specialized_List sl, const loc_t pos, const bool is_spread) {
+  if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
+     ERR_B(pos, "invalid template type number");
+  for (uint32_t i = 0; i < sl->len; i++) {
+    Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
+    DECL_OB(const Type, t, = known_type(env, tmp));
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    if(spec->traits) {
+      Symbol missing = miss_traits(t, spec);
+      if (missing) {
+        ERR_B(pos, "does not implement requested trait '{/}%s{0}'",
+              s_name(missing));
+      }
+    }
+  }
+  return GW_OK;
+}
+
 ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
   if (tflag(t, tflag_tmpl) && !is_func(env->gwion, t)) { // is_callable
     if (tflag(t, tflag_ntmpl) && !td->types) return t;
+    const bool single_variadic = is_single_variadic(t->info->cdef->base.tmpl->list);
     if(!td->types) {
       const Type new_type = nspc_lookup_type1(env->curr, td->xid);
       Type_Decl *new_td = type2td(env->gwion, new_type, td->pos);
       Type_Decl *d = new_td;
       while(d->next) d = d->next;
-      if(!d->types)
-        ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
+      if(!d->types) {
+        if(!single_variadic)
+          ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
+        d->types = new_mp_vector(env->gwion->mp, Type_Decl*, 0);
+      }
       const Type ret = _scan_type(env, t, d);
       free_type_decl(env->gwion->mp, new_td);
       return ret;
@@ -152,20 +180,8 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     Type_List           tl = td->types;
     Specialized_List    sl = t->info->cdef->base.tmpl
         ? t->info->cdef->base.tmpl->list : NULL;
-    if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread_tmpl(t->info->cdef->base.tmpl)))
-       ERR_O(td->pos, "invalid template type number");
-    for (uint32_t i = 0; i < sl->len; i++) {
-      Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
-      DECL_OO(const Type, t, = known_type(env, tmp));
-      Specialized *spec = mp_vector_at(sl, Specialized, i);
-      if(spec->traits) {
-        Symbol missing = miss_traits(t, spec);
-        if (missing) {
-          ERR_O(td->pos, "does not implement requested trait '{/}%s{0}'",
-                s_name(missing));
-        }
-      }
-    }
+    const bool is_spread = is_spread_tmpl(t->info->cdef->base.tmpl);
+    if(!single_variadic) CHECK_BO(check_tmpl(env, tl, sl, td->pos, is_spread));
     struct Op_Import opi = {.op   = insert_symbol("@scan"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,
@@ -193,7 +209,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
-    if (es.run) envset_pop(&es, owner);
+    envset_pop(&es, owner);
     if (!td->array) return ret;
     return array_type(env, ret, td->array->depth);
   }

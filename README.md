@@ -1,6 +1,5 @@
 # Gwion
 
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/Gwion/Gwion.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Gwion/Gwion/context:cpp)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/2417/badge)](https://bestpractices.coreinfrastructure.org/projects/2417)
 [![Coverage](https://raw.githubusercontent.com/Gwion/gwion-coverage-report/master/badge.svg?sanitize=true)](https://gwion.github.io/gwion-coverage-report/master)
 [![Line Count](https://tokei.rs/b1/github/Gwion/Gwion)](https://github.com/Gwion/Gwion)

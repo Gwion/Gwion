@@ -1,11 +1,11 @@
 class C {
   funptr void t_fptr(int i);
   fun void test(int i) { <<< this , " ", __func__, " ", i >>>;}
-  test @=> var t_fptr ptr;
+  test :=> var t_fptr ptr;
 }
 funptr void t_fptr(int i);
 fun void test(int i) { <<< __func__, " ", i >>>;}
-test @=> var t_fptr ptr;
+test :=> var t_fptr ptr;
 <<< ptr >>>;
 spork ptr(2);
 me.yield();

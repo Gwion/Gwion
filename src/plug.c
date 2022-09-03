@@ -79,8 +79,8 @@ ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
   map_init(map);
   vector_init(&gwion->data->plugs->vec);
   struct PlugHandle h = {.mp = gwion->mp, .map = map};
-  for (m_uint i = 0; i < vector_size(list); i++) {
-    const m_str dir = (m_str)vector_at(list, i);
+  for (m_uint i = vector_size(list) + 1 ; --i;) {
+    const m_str dir = (m_str)vector_at(list, i - 1);
     h.len           = strlen(dir);
     char name[PATH_MAX];
     sprintf(name, "%s/*.so" /**/, dir);
@@ -129,21 +129,28 @@ ANN void set_module(const struct Gwion_ *gwion, const m_str name,
   map_set(map, (m_uint)name, (m_uint)plug);
 }
 
-ANN void plug_run(const struct Gwion_ *gwion, const Map mod) {
+ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(mod); ++i) {
     const m_str name = (m_str)VKEY(mod, i);
     const m_str opt  = (m_str)VVAL(mod, i);
-    for (m_uint j = 0; j < map_size(map); ++j) {
+    m_uint j;
+    for (j = 0; j < map_size(map); ++j) {
       if (!strcmp(name, (m_str)VKEY(map, j))) {
         Plug         plug = (Plug)VVAL(map, j);
         const Vector arg  = opt ? split_args(gwion->mp, opt) : NULL;
         const modini ini  = DLSYM(plug->dl, modini, GWMODINI_NAME);
         plug->self        = ini(gwion, arg);
         if (arg) plug_free_arg(gwion->mp, arg);
+        break;
       }
     }
+    if(j == map_size(map)) {
+      gw_err("{+R}[module]{0} {C}%s{0} not found\n", name);
+      return GW_ERROR;
+    }
   }
+  return GW_OK;
 }
 
 ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {

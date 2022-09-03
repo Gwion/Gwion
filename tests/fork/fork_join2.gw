@@ -1,2 +1,2 @@
-fork { <<< __func__ >>>; minute => now; } => var Fork f;
+fork { <<< __func__ >>>; minute => now; } :=> var Fork f;
 f.join();

@@ -1,8 +1,8 @@
 class C {
   struct S {
-    12 => var int i;
-    "testing::" => var string s;
-    13 => var float f;
+    12 :=> var int i;
+    "testing::" :=> var string s;
+    13 :=> var float f;
     <<< __func__ >>>;
   }
   var static S s;

@@ -8,7 +8,7 @@ class UncleClass {
     var string name;
 
     class ChildClass extends ParentClass {
-        "Gotcha!" => name;
+        "Gotcha!" :=> name;
     }
 }
 

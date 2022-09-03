@@ -1,4 +1,4 @@
 funptr void Test();
 fun void t0(){}
-t0 @=> var Test test;
+t0 :=> var Test test;
 test();

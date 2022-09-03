@@ -1,6 +1,6 @@
 class C extends int[2] {
   <<< "test" >>>;
-  123 => var int i;
+  123 :=> var int i;
 }
 
 var C c;

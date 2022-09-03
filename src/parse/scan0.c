@@ -126,14 +126,14 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global))
                         ? env->global_nspc
                         : env->curr;
-  if (GET_FLAG(tdef->ext, global)) context_global(env);
   add_type(env, nspc, t);
   tdef->type = t;
-  if (base->nspc) // create a new nspc if `distinct`?
-    nspc_addref((t->nspc = base->nspc));
+  if (base->nspc) { // create a new nspc if `distinct`?
+    t->nspc = new_nspc(env->gwion->mp, t->name);
+    t->nspc->parent = base->nspc;
+  }
   t->flag = tdef->ext->flag;
   if (tdef->ext->array && !tdef->ext->array->exp) set_tflag(t, tflag_empty);
-  mk_class(env, tdef->type, tdef->pos);
 }
 
 ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
@@ -149,25 +149,12 @@ ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
   cdef->base.tmpl = tdef->tmpl; // check cpy
   set_tflag(tdef->type, tflag_cdef);
   if(final) SET_FLAG(base, final);
-  mk_class(env, tdef->type, tdef->pos);
   return GW_OK;
-}
-
-ANN static void typedef_fptr(const Env env, const Type_Def tdef,
-                             const Type base) {
-  tdef->type               = type_copy(env->gwion->mp, base);
-  tdef->type->info->func   = base->info->func;
-  tdef->type->name         = s_name(tdef->xid);
-  tdef->type->info->parent = base;
-  add_type(env, env->curr, tdef->type);
-  mk_class(env, tdef->type, tdef->pos);
-  if (base->info->func->def->base->tmpl) set_tflag(tdef->type, tflag_ftmpl);
 }
 
 ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_BB(env_access(env, tdef->ext->flag, tdef->ext->pos));
-  DECL_OB(const Type, base, = tdef->tmpl ? find_type(env, tdef->ext)
-                                         : known_type(env, tdef->ext));
+  DECL_OB(const Type, base, = known_type(env, tdef->ext));
   CHECK_BB(scan0_defined(env, tdef->xid, tdef->ext->pos));
   const bool global =
       GET_FLAG(tdef->ext, global); // TODO: handle global in class
@@ -175,25 +162,20 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     context_global(env);
     env_push_global(env);
   }
-  if (!is_func(env->gwion, base)) { // is_callable
-    if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp)) {
-      typedef_simple(env, tdef, base);
-    } else
-      CHECK_BB(typedef_complex(env, tdef, base));
-  } else
-    typedef_fptr(env, tdef, base);
+  if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
+    typedef_simple(env, tdef, base);
+  else CHECK_BB(typedef_complex(env, tdef, base));
+  mk_class(env, tdef->type, tdef->pos);
   if (tdef->when) set_tflag(tdef->type, tflag_contract);
   if (tdef->type != base && !tdef->distinct && !tdef->when)
     scan0_implicit_similar(env, base, tdef->type);
   if (tdef->distinct || tdef->when) {
-//    tdef->type->info->parent = base->info->parent;
     if (base->info->gack)
       vmcode_addref(tdef->type->info->gack = base->info->gack);
     set_tflag(tdef->type, tflag_distinct);
     struct Op_Import opi = {.lhs = base, .rhs = tdef->type};
     op_cpy(env, &opi);
     scan0_explicit_distinct(env, base, tdef->type);
-    type_addref(tdef->type); // maybe because of scope_iter in nspc_free_values
   } else //if(tdef->ext->array)
     set_tflag(tdef->type, tflag_typedef);
   if(tflag(base, tflag_ref)) {
@@ -201,18 +183,18 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
     set_tflag(tdef->type, tflag_infer);
   }
   if (global) env_pop(env, 0);
-  if (tdef->type != base)
-    tdef->type->info->base_type = base;
   return GW_OK;
 }
 
-#define scan0_nspc(env, a)                                                     \
-  GET_FLAG(a, global) ? !env->class_def ? env->global_nspc : NULL : env->curr
-
 #include "gack.h"
 static GACK(gack_enum) {
-  const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
-  INTERP_PRINTF("%s", v->name);
+  const Map m = &t->nspc->info->value->map;
+  const m_uint value = *(m_uint*)VALUE;
+  if(value < map_size(m)) {
+    const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
+    INTERP_PRINTF("%s", v->name);
+  } else
+    INTERP_PRINTF("%s", t->name);
 }
 
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
@@ -245,7 +227,7 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   CHECK_BB(env_storage(env, edef->flag, edef->pos));
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos));
   CHECK_BB(scan0_global(env, edef->flag, edef->pos));
-  edef->t = enum_type(env, edef);
+  edef->type = enum_type(env, edef);
   vector_init(&edef->values);
   if (GET_FLAG(edef, global)) context_global(env);
   return GW_OK;
@@ -307,7 +289,7 @@ ANN static inline void cdef_flag(const Class_Def cdef, const Type t) {
 }
 
 ANN static Type get_parent_base(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = find_type(env, td));
+  DECL_OO(const Type, t, = known_type(env, td));
   Type owner = env->class_def;
   while (owner) {
     if (t == owner)
@@ -318,9 +300,9 @@ ANN static Type get_parent_base(const Env env, Type_Decl *td) {
 }
 
 ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = known_type(env, td));
-  if (!GET_FLAG(t, final)) return t;
-  ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
+  const Type t = known_type(env, td);
+  if(!t) ERR_O(td->pos, _("can't find parent class %s\n."), s_name(td->xid));
+  return t;
 }
 
 ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
@@ -331,7 +313,7 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   if (tmpl) template_push_types(env, cdef->base.tmpl);
   const Type t = scan0_final(env, cdef->base.ext);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
-  return t ?: (Type)GW_ERROR;
+  return t;
 }
 
 ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
@@ -349,8 +331,7 @@ ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_BO(scan0_defined(env, cdef->base.xid, cdef->pos));
-  const Type parent = cdef_parent(env, cdef);
-  if (parent == (Type)GW_ERROR) return NULL;
+  DECL_OO(const Type, parent, = cdef_parent(env, cdef));
   if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
     const Value v = parent->info->value;
@@ -435,10 +416,10 @@ ANN m_bool scan0_func_def(const Env env, const Func_Def fdef) {
     struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                             env->func;
     env->func = &fake;
-    if(!fdef->builtin && fdef->d.code && fdef->d.code->d.stmt_code.stmt_list)
-      scan0_stmt_list(env, fdef->d.code->d.stmt_code.stmt_list);
+    if(!fdef->builtin && fdef->d.code)
+      scan0_stmt_list(env, fdef->d.code);
     if(env->context->extend)
-      fdef->d.code->d.stmt_code.stmt_list = spread_func(env, fdef->d.code->d.stmt_code.stmt_list);
+      fdef->d.code = spread_func(env, fdef->d.code);
     env->func = former;
     env->context->extend = old_extend;
   }}
@@ -459,7 +440,7 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
       }
     }
   }
-  xdef->t = t;
+  xdef->type = t;
   return GW_OK;
 }
 
@@ -513,9 +494,8 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-
-
 ANN Ast spread_class(const Env env, const Ast body);
+
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   CHECK_BB(scan0_global(env, c->flag, c->pos));
   const Ast old_extend = env->context ? env->context->extend : NULL;

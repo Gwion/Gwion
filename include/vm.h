@@ -3,10 +3,15 @@
 
 typedef struct VM_Code_ *VM_Code;
 struct VM_Code_ {
-  m_bit *bytecode;
   union {
-    struct Vector_ instr;
-    m_uint         native_func;
+    struct {
+      m_bit *bytecode;
+      struct Vector_ instr;
+    };
+    struct {
+      m_uint         native_func;
+      MP_Vector *types;
+    };
   };
   Type ret_type; // could be `struct Vector_ tmpl_types;`
   void *   memoize;
@@ -131,7 +136,7 @@ ANN m_str code_name(const m_str, const bool);
 ANN uint32_t gw_rand(uint32_t s[2]);
 ANN void     gw_seed(uint32_t s[2], const uint64_t);
 ANN void     handle(VM_Shred shred, const m_str effect);
-
+ANN bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size);
 
 #define BBQ_POS_MAX 16777216
 

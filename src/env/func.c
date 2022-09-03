@@ -34,9 +34,19 @@ Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
   return insert_symbol(env->gwion->st, name);
 }
 
-ANN void builtin_func(const MemPool mp, const Func f, void *func_ptr) {
+ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
   set_vflag(f->value_ref, vflag_builtin);
-  f->code = new_vmcode(mp, NULL, NULL, f->name, f->def->stack_depth, true, false);
+  f->code = new_vmcode(gwion->mp, NULL, NULL, f->name, f->def->stack_depth, true, false);
   f->code->native_func = (m_uint)func_ptr;
   f->code->ret_type = f->def->base->ret_type;
+  if(f->def->base->tmpl && f->def->base->tmpl->call) {
+    const Specialized *spec = mp_vector_at(f->def->base->tmpl->list, Specialized, f->def->base->tmpl->list->len - 1);
+    if(!strcmp(s_name(spec->xid), "...")) {
+      f->code->types = new_mp_vector(gwion->mp, Type_Decl*, f->def->base->tmpl->call->len);
+      for(uint32_t i = 0; i < f->def->base->tmpl->call->len; i++)  {
+        Type_Decl *const td = *mp_vector_at(f->def->base->tmpl->call, Type_Decl*, i);
+        mp_vector_set(f->code->types, Type, i, known_type(gwion->env, td));
+      }
+    }
+  }
 }

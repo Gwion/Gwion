@@ -47,7 +47,7 @@ ANN static void clean_prim(Clean *a, Exp_Primary *b) {
 }
 
 ANN static void clean_var_decl(Clean *a, Var_Decl *b) {
-  if (a->scope && b->value && !tflag(b->value->type, tflag_error)) value_remref(b->value, a->gwion);
+  if (a->scope && b->value) value_remref(b->value, a->gwion);
 }
 
 ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
@@ -78,7 +78,7 @@ ANN static void clean_exp_unary(Clean *a, Exp_Unary *b) {
       clean_exp(a, b->ctor.exp);
     break;
   case unary_code:
-    clean_stmt(a, b->code);
+    clean_stmt_list(a, b->code);
     break;
   }
   if(b->captures) clean_captures(a, b->captures);
@@ -275,7 +275,7 @@ ANN static void clean_func_def(Clean *a, Func_Def b) {
   ++a->scope;
   if (!b->builtin && b->d.code &&
       !(b->base->func && safe_vflag(b->base->func->value_ref, vflag_builtin)))
-    clean_stmt(a, b->d.code);
+    clean_stmt_list(a, b->d.code);
   else
     b->d.code = NULL;
   --a->scope;

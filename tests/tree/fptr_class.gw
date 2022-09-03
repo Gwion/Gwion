@@ -1,9 +1,9 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
   funptr void ptr_t(int i);
-  test @=> var ptr_t p;
+  test :=> var ptr_t p;
   p(1);
-  test @=> p;
+  test :=> p;
   p(1);
 }
 

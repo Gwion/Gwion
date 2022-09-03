@@ -1,8 +1,8 @@
 #! [contains] InvalidMapAccess
 const Dict:[string, int] d;
-0 => d["foo"];
-1 => d["bar"];
-2 => d["baz"];
+0 :=> d["foo"];
+1 :=> d["bar"];
+2 :=> d["baz"];
 
 #! could be "foo" ~~ d
 <<< d.remove("foo") >>>;

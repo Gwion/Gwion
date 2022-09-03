@@ -35,6 +35,8 @@ struct Instr_ {
 };
 #define BYTECODE_SZ (SZ_INT * 4)
 
+__attribute__((returns_nonnull)) ANN2(1) Instr
+new_instr(const MemPool mp, const f_instr f);
 ANN void free_instr(const Gwion, const Instr);
 INSTR(EOC);
 INSTR(DTOR_EOC);
@@ -59,9 +61,9 @@ INSTR(DotTmpl);
 INSTR(GTmpl);
 
 struct dottmpl_ {
-  m_str     name;
-  Func_Def  base, def;
-  Type_List tl;
+  Nspc  nspc;
+  Type  type;
+  m_str tmpl_name;
 };
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value v);
 

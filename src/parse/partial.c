@@ -40,7 +40,7 @@ ANN static inline Symbol partial_name(const Env env, const pos_t pos) {
 
 ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
   Arg_List args = earg ? partial_arg_list(env, base->args, earg) : NULL;
-  Func_Base *fb = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), partial_name(env, loc.first), args, ae_flag_none, loc);
+  Func_Base *fb = new_func_base(env->gwion->mp, base->td ? cpy_type_decl(env->gwion->mp, base->td) : NULL, partial_name(env, loc.first), args, ae_flag_none, loc);
   return fb;
 }
 
@@ -164,29 +164,33 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
   return NULL;
 }
 
-ANN static Stmt partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
+ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
   const Exp arg = partial_call(env, args, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
-  Stmt_List slist = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
-  Stmt stmt = mp_vector_at(slist, struct Stmt_, 0);
-  stmt->stmt_type = ae_stmt_return;
-  stmt->d.stmt_exp.val = exp;
-  return new_stmt_code(env->gwion->mp, slist, efun->pos);
+  Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
+  mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
+    .stmt_type = ae_stmt_return,
+    .d = { .stmt_exp = { .val = exp }}
+  }));
+//  stmt->stmt_type = ae_stmt_return;
+//  stmt->d.stmt_exp.val = exp;
+  return code;
+//  return new_stmt_code(env->gwion->mp, slist, efun->pos);
 }
 
 ANN static uint32_t count_args_exp(Exp args) {
   uint32_t i = 0;
-  while(args && ++i) args = args->next;
+  do i++;
+  while ((args = args->next));
   return i;
 }
 
 ANN static uint32_t count_args_func(Func f, const uint32_t i) {
   uint32_t max = 0;
-  while(f) {
+  do {
     const uint32_t len =  mp_vector_len(f->def->base->args);
     if(len > i && len > max) max = len;
-    f = f->next;
-  }
+  } while ((f = f->next));
   return max;
 }
 
@@ -218,7 +222,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   }
   nspc_push_value(env->gwion->mp, env->curr);
   Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->pos);
-  const Stmt code = partial_code(env, f->def->base->args, call->func, call->args);
+  const Stmt_List code = partial_code(env, f->def->base->args, call->func, call->args);
   const Exp exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;

@@ -1,4 +1,4 @@
 #! [contains] right-side operand is non-mutable
-10 => const int i;
-12 => i;
+10 :=> const int i;
+12 :=> i;
 <<< i >>>;

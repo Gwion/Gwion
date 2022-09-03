@@ -1,5 +1,5 @@
 var int i;
-now + 1.0::samp => var time t;
+now + 1.0::samp :=> var time t;
 until(now >= t) {
   i++;
   if(i == 3)

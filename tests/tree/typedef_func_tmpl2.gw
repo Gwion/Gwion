@@ -6,7 +6,7 @@ fun void test:[A]() {
 typedef t_ptr:[int] B;
 var B b;
 <<< b >>>;
-test @=> b;
+test :=> b;
 <<< b >>>;
 <<< b() >>>;
 <<< b() >>>;
@@ -15,7 +15,7 @@ test @=> b;
 typedef t_ptr:[float] C;
 var C c;
 <<< c >>>;
-test @=> c;
+test :=> c;
 <<< c >>>;
 <<< c() >>>;
 <<< c() >>>;

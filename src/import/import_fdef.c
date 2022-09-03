@@ -82,7 +82,7 @@ ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   }
   if (traverse_func_def(gwi->gwion->env, fdef) < 0)
     return error_fdef(gwi, fdef);
-  builtin_func(gwi->gwion->mp, fdef->base->func, ck->addr);
+  builtin_func(gwi->gwion, fdef->base->func, ck->addr);
   return GW_OK;
 }
 

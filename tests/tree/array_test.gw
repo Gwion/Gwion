@@ -4,7 +4,7 @@ fun void print_array(int a[]){
 }
 
 var int i[5][3];
-1 => i[2][0];
+1 :=> i[2][0];
 
 <<< i.size() >>>;
 <<< i.depth() >>>;

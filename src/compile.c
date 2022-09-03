@@ -7,17 +7,21 @@
 #include "compile.h"
 #include "gwion.h"
 #include "pass.h"
+#include "shreduler_private.h"
 
 enum compile_type { COMPILE_NAME, COMPILE_MSTR, COMPILE_FILE };
 
 struct Compiler {
   const m_str       base;
   m_str             name;
-  m_str             data;
-  FILE *            file;
+  union {
+    m_str             data;
+    FILE *            file;
+  };
   Ast               ast;
   struct Vector_    args;
   VM_Shred          shred;
+  MP_Vector        *values;
   enum compile_type type;
 };
 
@@ -105,6 +109,17 @@ ANN static inline m_bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   const Context ctx = new_context(env->gwion->mp, c->ast, env->name);
   env_reset(env);
   load_context(ctx, env);
+  for(uint32_t i = 0; i < mp_vector_len(c->values); i++) {
+    const Value v = *mp_vector_at(c->values, Value, i);
+    set_vflag(v, vflag_builtin);
+    if(isa(v->type, gwion->type[et_class]) > 0) {
+      const Type t = (Type)v->d.ptr;
+      type_addref(t);
+      mk_class(gwion->env, t, (loc_t) {});
+      nspc_add_type(gwion->env->curr, insert_symbol(gwion->st, v->name), t);
+    } else
+      valid_value(gwion->env, insert_symbol(gwion->st, v->name), v);
+  }
   const m_bool ret = _passes(gwion, c);
   ctx->tree = c->ast;
   if (ret > 0) //{
@@ -148,42 +163,43 @@ ANN static m_uint compile(struct Gwion_ *gwion, struct Compiler *c) {
   return ret;
 }
 
-ANN m_uint compile_filename(struct Gwion_ *gwion, const m_str filename) {
-  struct Compiler c = {.base = filename, .type = COMPILE_NAME};
+ANN m_uint compile_filename_values(struct Gwion_ *gwion, const m_str filename, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_NAME, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_string(struct Gwion_ *gwion, const m_str filename,
-                          const m_str data) {
-  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data};
+ANN m_uint compile_string_values(struct Gwion_ *gwion, const m_str filename,
+                          const m_str data, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_file(struct Gwion_ *gwion, const m_str filename,
-                        FILE *file) {
-  struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file};
+ANN m_uint compile_file_values(struct Gwion_ *gwion, const m_str filename,
+                        FILE *file, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_filename_xid(struct Gwion_ *gwion, const m_str filename,
-                                const m_uint xid) {
-  struct Compiler c = {.base = filename, .type = COMPILE_NAME};
+ANN m_uint compile_filename_xid_values(struct Gwion_ *gwion, const m_str filename,
+                                const m_uint xid, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_NAME, .values=values};
   if (!compile(gwion, &c)) return 0;
   assert(c.shred);
   return c.shred->tick->xid = xid;
 }
 
-ANN m_uint compile_string_xid(struct Gwion_ *gwion, const m_str filename,
-                              const m_str data, const m_uint xid) {
-  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data};
+ANN m_uint compile_string_xid_values(struct Gwion_ *gwion, const m_str filename,
+                              const m_str data, const m_uint xid, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data, .values=values};
   if (!compile(gwion, &c)) return 0;
   assert(c.shred);
+  gwion->vm->shreduler->shred_ids--;
   return c.shred->tick->xid = xid;
 }
 
-ANN m_uint compile_file_xid(struct Gwion_ *gwion, const m_str filename,
-                            FILE *file, const m_uint xid) {
-  struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file};
+ANN m_uint compile_file_xid_values(struct Gwion_ *gwion, const m_str filename,
+                            FILE *file, const m_uint xid, MP_Vector *values) {
+  struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file, .values=values};
   if (!compile(gwion, &c)) return 0;
   assert(c.shred);
   return c.shred->tick->xid = xid;

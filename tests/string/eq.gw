@@ -1,5 +1,5 @@
-"test" => var string s0;
-"_test" => var string s1;
+"test" :=> var string s0;
+"_test" :=> var string s1;
 
 <<< s0 == s0 >>>;
 <<< s0 == s1 >>>;

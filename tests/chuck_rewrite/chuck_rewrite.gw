@@ -1,12 +1,12 @@
 #! [contains] 42
-2 => var int i;
+2 :=> var int i;
 
 fun int test() {
   return i;
 }
 
 fun int test(int tmp) {
-  return tmp => i;
+  return tmp :=> i;
 }
 
 <<< 40 +=> test >>>;

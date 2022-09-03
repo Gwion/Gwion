@@ -3,7 +3,7 @@ var ptr_t ptr;
 <<<ptr>>>;
 
 fun int test:[A](A a) { <<< a >>>; }
-test @=> ptr;
+test :=> ptr;
 <<< ptr >>>;
 ptr:[int](2);
 ptr:[float](2.3);

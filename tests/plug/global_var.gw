@@ -1,4 +1,4 @@
 #import global_var
 <<< i >>>;
-<<< "other test" => i >>>;
-<<< 12 => f >>>;
+<<< "other test" :=> i >>>;
+<<< 12 :=> f >>>;

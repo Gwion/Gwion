@@ -50,8 +50,8 @@ ANN static inline void shred_unwind(const VM_Shred shred) {
 ANN static void clean_values(const VM_Shred shred) {
   const VM_Code code = shred->code;
   const uint16_t pc = shred->pc;
-  for (m_uint i = 0; i < m_vector_size(&code->live_values); i++) {
-    VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i);
+  for (m_uint i = m_vector_size(&code->live_values) + 1; --i;) {
+    VMValue *vmval = (VMValue *)m_vector_addr(&code->live_values, i - 1);
     if (pc <= vmval->start) break;
     if (pc >= vmval->end) continue;
     m_bit *const data = &*(m_bit *)(shred->mem + vmval->offset);
@@ -59,9 +59,9 @@ ANN static void clean_values(const VM_Shred shred) {
   }
 }
 
-ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_uint size) {
+ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect) {
   const VM_Code code = shred->code;
-  const m_uint start = VKEY(&shred->info->frame, size - 1);
+  const m_uint start = vector_at(&shred->info->frame, vector_size(&shred->info->frame) - 2);
   if (start > shred->pc) return true;
   const Map m  = &shred->code->handlers;
   for (m_uint i = 0; i < map_size(m); i++) {
@@ -76,29 +76,29 @@ ANN static uint16_t find_pc(const VM_Shred shred, const Symbol effect, const m_u
   return 0;
 }
 
-ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect, const m_uint size) {
-  const m_uint start = VKEY(&shred->info->frame, size - 1);
-  if (start > shred->pc) return true;
-  const uint16_t pc = find_pc(shred, effect, size);
-  if (!pc) // outside of a try statement
-    return false;
-  // we should clean values here
+ANN static inline bool find_handle(const VM_Shred shred, const Symbol effect) {
+  const uint16_t pc = find_pc(shred, effect);
+  if (!pc) return false; // outside of a try statement
   shred->reg = // restore reg
       (m_bit *)VPTR(&shred->info->frame, VLEN(&shred->info->frame) - 1);
   shredule(shred->tick->shreduler, shred, 0);
   shred->pc = pc; // VKEY(m, i);
+  const Instr instr = (Instr)vector_at(&shred->code->instr, pc);
+  if(!instr->m_val)
+    *(m_str*)(shred->mem + instr->m_val2) = s_name(effect);
+
   vector_pop(&shred->info->frame);
   vector_pop(&shred->info->frame);
   return true;
 }
 
-ANN static bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
+ANN bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size) {
   const VM_Code code = shred->code;
   if (code->live_values.ptr)
     clean_values(shred);
   if (!size) return false;
   if (code->handlers.ptr)
-    return find_handle(shred, effect, size);
+    return find_handle(shred, effect);
   // there might be no more stack to unwind
   if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return false;
@@ -142,12 +142,6 @@ ANN static inline void shred_trace(const VM_Shred shred, const struct TraceStart
   trace(shred, vector_size(&shred->info->line));
 }
 
-ANN static inline void add_to_killed(const VM_Shred shred) {
-  const Shreduler shreduler = shred->tick->shreduler;
-  vector_rem2(&shreduler->active_shreds, (m_uint)shred);
-  vector_add(&shreduler->killed_shreds, (m_uint)shred);
-}
-
 ANN static inline void unhandled_pp(VM_Shred shred, const m_str effect, const struct TraceStart *ts) {
   gw_err("{-}[{0}{+}Gwion{0}{-}](VM):{0} {-}in code {/+}'%s'{0}{-}. origin: {/+}'%s'{0}{-}\n",
     ts->code->name, shred->info->orig->name);
@@ -159,7 +153,7 @@ ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const str
   unhandled_pp(shred, effect, ts);
   if (shred->info->line.ptr) // trace if available
     shred_trace(shred, ts);
-  add_to_killed(shred);
+  shreduler_remove(shred->tick->shreduler, shred, true);
 }
 
 ANN void handle(VM_Shred shred, const m_str effect) {
@@ -278,10 +272,6 @@ ANN static VM_Shred init_fork_shred(const VM_Shred shred, const VM_Code code,
   }
 
 //#define ADVANCE() { byte += BYTECODE_SZ; shred->pc++;}
-#define ADVANCE() byte += BYTECODE_SZ
-
-//#define SDISPATCH() goto *dispatch[*(m_bit *)byte];
-#define SDISPATCH() goto **(void***)byte;
 #define IDISPATCH()                                                            \
   {                                                                            \
     VM_INFO;                                                                   \
@@ -427,12 +417,6 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
     ADVANCE();                                                                 \
   IDISPATCH();
 
-#define VM_OUT                                                                 \
-  shred->code = code;                                                          \
-  shred->reg  = reg;                                                           \
-  shred->mem  = mem;                                                           \
-  shred->pc   = PC;
-
 __attribute__((hot)) void
 vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
   static const void *dispatch[] = {
@@ -494,6 +478,16 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     m_bit * reg      = shred->reg;
     m_bit * mem      = shred->mem;
     m_bit   next;
+
+#define VM_OUT                                                                 \
+  shred->code = code;                                                          \
+  shred->reg  = reg;                                                           \
+  shred->mem  = mem;                                                           \
+  shred->pc   = PC;
+
+#define ADVANCE() byte += BYTECODE_SZ
+#define SDISPATCH() goto **(void***)byte;
+
     union {
       M_Object obj;
       VM_Code  code;
@@ -1219,8 +1213,10 @@ fflush(stdout);
       // this should check the *xid* of the exception
       DISPATCH();
     performeffect:
-//      VM_OUT
-      handle(shred, (m_str)VAL);
+{
+  const m_str effect = (m_str)VAL ?: *(m_str*)(mem + VAL2);
+  handle(shred, effect);
+}
       break;
     noop:
       DISPATCH();
@@ -1606,15 +1602,7 @@ VM *new_vm(MemPool p, const bool audio) {
   return vm;
 }
 
-ANN static inline void free_killed_shred(const Vector v) {
-  for (m_uint i = 0; i < vector_size(v); i++) {
-    const VM_Shred shred = (VM_Shred)vector_at(v, i);
-    free_vm_shred(shred);
-  }
-}
-
 ANN void vm_clean(const VM* vm, const Gwion gwion) {
-  free_killed_shred(&vm->shreduler->killed_shreds);
   gwion_end_child(vm->cleaner_shred, gwion);
   if (vm->bbq) free_driver(vm->bbq, gwion->vm);
 }

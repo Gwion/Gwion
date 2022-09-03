@@ -4,8 +4,8 @@ class C {
   funptr void t_fptr1(int i);
   fun void test() { <<< this , " ", __func__ >>>;}
   fun void test(int i) { <<< __func__, " ", i >>>;}
-  test @=> var t_fptr0 ptr0;
-  test @=> var t_fptr1 ptr1;
+  test :=> var t_fptr0 ptr0;
+  test :=> var t_fptr1 ptr1;
   <<<ptr0>>>;
   spork ptr0();
   me.yield();

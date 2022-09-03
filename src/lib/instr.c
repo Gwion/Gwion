@@ -10,6 +10,8 @@
 #include "operator.h"
 #include "import.h"
 #include "emit.h"
+#include "traverse.h"
+#include "parse.h"
 
 ANN static Func_Def traverse_tmpl(const Emitter emit, Func_Def fdef, Func_Def fbase,
                               const Nspc nspc) {
@@ -25,7 +27,7 @@ ANN static Func_Def traverse_tmpl(const Emitter emit, Func_Def fdef, Func_Def fb
   if (vflag(v, vflag_builtin)) v->d.func_ref->def->d.dl_func_ptr = xfun;
   def->base->tmpl->call = cpy_type_list(env->gwion->mp, fbase->base->tmpl->call);
   CHECK_BO(traverse_dot_tmpl(emit, def, v));
-  if (vflag(v, vflag_builtin)) builtin_func(emit->gwion->mp, def->base->func, xfun);
+  if (vflag(v, vflag_builtin)) builtin_func(emit->gwion, def->base->func, xfun);
   return def;
 }
 
@@ -37,7 +39,7 @@ ANN static void foo(const VM_Shred shred, Type t, const Func_Def fbase, const m_
     const Symbol sym  = func_symbol(emit->env, t->name, base->name, tmpl_name, base->def->vt_index);
     const Func f = nspc_lookup_func0(t->nspc, sym);
     if (f) {
-      if(!f->code) exit(15); //continue;
+      if(!f->code) continue;
       if (vflag(f->value_ref, vflag_member)) shred->reg += SZ_INT;
       *(VM_Code *)(shred->reg - SZ_INT) = f->code;
       return;
@@ -90,7 +92,7 @@ INSTR(GTmpl) {
       const Symbol sym  = func_symbol(emit->env, t->name, f->name, tmpl, f->def->vt_index);
       const Func f = nspc_lookup_func0(t->nspc, sym);
       if (f) {
-        if (!f->code) exit(15); //continue;
+        if (!f->code) continue;
         *(VM_Code *)(shred->reg - SZ_INT) = f->code;
         return;
       } else {
@@ -106,9 +108,15 @@ INSTR(GTmpl) {
 
 INSTR(DotTmpl) {
   const Func_Def fbase = (Func_Def)instr->m_val;
-  const m_str tmpl = (m_str)instr->m_val2;
-  const M_Object   o    = *(M_Object *)REG(-SZ_INT); // orig
-  foo(shred, o->type_ref, fbase, tmpl);
+  const M_Object   o    = *(M_Object *)REG(-SZ_INT);
+  const Func f = fbase->base->func;
+  if(o->type_ref == f->value_ref->from->owner_class) {
+    if (vflag(f->value_ref, vflag_member)) shred->reg += SZ_INT;
+    *(VM_Code *)(shred->reg - SZ_INT) = f->code;
+    return;
+  }
+  const struct dottmpl_ *dt = (struct dottmpl_*)instr->m_val2;
+  foo(shred, o->type_ref, fbase, dt->tmpl_name);
 }
 
 #define VAL  (*(m_uint *)(byte + SZ_INT))
@@ -142,13 +150,15 @@ INSTR(fast_except) {
     VAL = -SZ_INT;
     instr->opcode = eNoOp;
     if(info) mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+    instr->m_val2 = 0;
     return;
   } else if(info) {
     if(info->file)
       gwerr_basic("Object not instantiated", NULL, NULL, info->file, info->loc, 0);
     if(info->file2)
       gwerr_warn("declared here", NULL, NULL, info->file2, info->loc2);
-    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+//    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
+//    instr->m_val2 = 0;
   }
   handle(shred, "NullPtrException");
 }

@@ -1,13 +1,13 @@
 class C
 {
-  12 => var int i;
+  12 :=> var int i;
   var Object o;
   spork  {
     "test";
     second => now;
     var string s;
     <<<   "test spork exp."  >>>;
-  } => var Shred shred;
+  } :=> var Shred shred;
 }
 
 var C c;

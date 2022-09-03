@@ -6,4 +6,4 @@ class C
 }
 
 var C c;
-c.func @=> c.test;
+c.func :=> c.test;

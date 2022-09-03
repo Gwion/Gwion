@@ -36,6 +36,7 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
+  if(decl->args) CHECK_BB(scan2_exp(env, decl->args));
   const bool   global = GET_FLAG(decl->td, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret    = scan2_decl(env, decl);
@@ -75,19 +76,19 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
-  CHECK_BB(scan2_class_def(env, fptr->cdef));
-  const Func_Def fdef = mp_vector_at(fptr->cdef->body, struct Section_ , 0)->d.func_def;
+  if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
+  const m_bool ret = scan2_class_def(env, fptr->cdef);
+  const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
-  return GW_OK;
+  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  return ret;
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f);
 ANN m_bool        scan2_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan2_exp(env, tdef->when));
-  if (tflag(tdef->type, tflag_cdef)) {
-    if(!tflag(tdef->type->info->parent, tflag_scan2))
-                    return scan2_class_def(env, tdef->type->info->parent->info->cdef);
-  }
+  if (tflag(tdef->type, tflag_cdef))
+    return scan2_class_def(env, tdef->type->info->cdef);
   if (!tdef->type->info->cdef) return GW_OK;
   return tdef->type->info->cdef ? scan2_class_def(env, tdef->type->info->cdef) : GW_OK;
 }
@@ -306,8 +307,10 @@ ANN static Func scan_new_func(const Env env, const Func_Def f,
   const Func func = new_func(env->gwion->mp, name, f);
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     set_fflag(func, fflag_ftmpl);
-  if (fbflag(f->base, fbflag_lambda))
+  if (fbflag(f->base, fbflag_lambda)) {
+    if(env->class_def) env->class_def->info->values = env->curr->info->value;
     env->curr->info->value = new_scope(env->gwion->mp);
+  }
   return func;
 }
 
@@ -416,9 +419,13 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
 ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
   const Func former = env->func;
   env->func         = f->base->func;
-  CHECK_BB(scan2_stmt_code(env, &f->d.code->d.stmt_code));
+  env->scope->depth++;
+  nspc_push_value(env->gwion->mp, env->curr);
+  const m_bool ret = scan2_stmt_list(env, f->d.code); // scope depth?
+  nspc_pop_value(env->gwion->mp, env->curr);
+  env->scope->depth--;
   env->func = former;
-  return GW_OK;
+  return ret;
 }
 
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
@@ -582,8 +589,6 @@ ANN m_bool scan2_func_def(const Env env, const Func_Def fdef) {
 HANDLE_SECTION_FUNC(scan2, m_bool, Env)
 
 ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
-  const Type parent = cdef->base.type->info->parent;
-  CHECK_BB(ensure_scan2(env, parent));
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan2_exp(env, cdef->base.ext->array->exp));
   return GW_OK;

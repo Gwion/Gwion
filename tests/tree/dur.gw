@@ -2,5 +2,5 @@ samp;
 minute;
 5::samp;
 var float f;
-2.4 => f;
+2.4 :=> f;
 f ::samp => now;

@@ -1,2 +1,2 @@
-12 => var int i;
+12 :=> var int i;
 <<<i $ Ptr:[int] >>>;

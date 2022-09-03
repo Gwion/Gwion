@@ -1,6 +1,6 @@
 #! [contains] val: 12
 var int? i;
 
-12 => i.val;
+12 :=> i.val;
 if(i.is(val))
   <<< "val: ${i.val}" >>>;

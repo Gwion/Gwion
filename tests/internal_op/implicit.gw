@@ -1,6 +1,6 @@
 #! [contains] 12
 class C {
-  12 => var int i;
+  12 :=> var int i;
 }
 
 operator int @implicit (C c) {

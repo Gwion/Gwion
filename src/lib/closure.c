@@ -16,7 +16,7 @@
 #include "tmp_resolve.h"
 
 ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
-  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
+  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
   const Exp ecall = stmt->d.stmt_exp.val;
   const Exp_Call *call = &ecall->d.exp_call;
   Exp args = call->args;
@@ -60,7 +60,7 @@ ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp ar
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
-    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code->d.stmt_code.stmt_list, struct Stmt_, 0);
+    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
     const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
     DECL_ON(const Exp, args, = uncurry(env, bin));
     return mk_call(env, exp_self(bin), call->func, args);
@@ -71,19 +71,6 @@ static OP_CHECK(opck_func_call) {
 static OP_CHECK(opck_fptr_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
-}
-
-ANN static inline Exp cpy_nonext(const Env env, const Exp e) {
-  const MemPool mp   = env->gwion->mp;
-  const Exp     next = e->next;
-  e->next            = NULL;
-  const Exp ret      = cpy_exp(mp, e);
-  e->next            = next;
-  if (!check_exp(env, ret)) {
-    free_exp(mp, ret);
-    return NULL;
-  }
-  return ret;
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
@@ -195,11 +182,6 @@ static m_bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_OB(const Type, t1, = known_type(env, id[1]));
   if (isa(t0, t1) > 0) return GW_OK;
   return t1 == env->gwion->type[et_auto] ? GW_OK : GW_ERROR;
-}
-
-ANN static inline bool handle_global(Func_Base *a, Func_Base *b) {
-  return (!b->func->value_ref->from->owner_class &&
-      (!GET_FLAG(a, global) && a->func->value_ref->from->owner_class));
 }
 
 ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
@@ -334,7 +316,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   Upvalues upvalues = {
     .values = env->curr->info->value
   };
-  env->curr->info->value = new_scope(env->gwion->mp);
+  if(env->class_def) env->class_def->info->values = env->curr->info->value;
   l->def->base->values = &upvalues;
   const m_uint scope   = env->scope->depth;
   env->scope->depth = 0;
@@ -357,7 +339,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     nspc_pop_type(env->gwion->mp, env->curr);
     owner = owner->info->value->from->owner_class;
   }
-  if (es.run) envset_pop(&es, owner);
+  envset_pop(&es, owner);
   if(ret < 0) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
@@ -404,7 +386,7 @@ static OP_CHECK(opck_auto_fptr) {
   // we'll only deal with auto fptr declaration
   if (bin->rhs->exp_type != ae_exp_decl &&
       bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
-    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}@=>{0} {+G}function{0} assignment");
+    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
   if(!bin->lhs->type->info->func)
@@ -436,10 +418,6 @@ static OP_CHECK(opck_fptr_assign) {
                           .exp = bin->lhs};
   CHECK_BN(fptr_do(env, &info));
   return bin->rhs->type;
-}
-
-static inline int is_member(const Type from) {
-  return vflag(from->info->func->value_ref, vflag_member);
 }
 
 static OP_CHECK(opck_fptr_impl) {
@@ -618,13 +596,12 @@ static OP_CHECK(opck_op_impl) {
       new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
-  Stmt_List slist = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
-  mp_vector_set(slist, struct Stmt_, 0,
+  Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
+  mp_vector_set(code, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
     .pos = impl->e->pos
   }));
-  const Stmt      code = new_stmt_code(env->gwion->mp, slist, impl->e->pos);
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->xid       = impl->e->d.prim.d.var;
 // use envset
@@ -659,16 +636,18 @@ static OP_CHECK(opck_class_partial) {
    return op_check(env, &opi);
 }
 
+static FREEARG(freearg_gtmpl) {
+  free_mstr(((Gwion)gwion)->mp, (m_str)instr->m_val2);
+}
 static FREEARG(freearg_dottmpl) {
-  if (instr->m_val2) free_mstr(((Gwion)gwion)->mp, (m_str)instr->m_val2);
+  struct dottmpl_ *dt = (struct dottmpl_*) instr->m_val2;
+  free_mstr(((Gwion)gwion)->mp, dt->tmpl_name);
 }
 
 #include "tmpl_info.h"
 #include "parse.h"
 #include "traverse.h"
 #include "gwi.h"
-
-ANN bool tmpl_global(const Env env, Type_List tl);
 
 ANN static bool is_base(const Env env, const Type_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
@@ -702,7 +681,7 @@ static OP_CHECK(opck_closure_scan) {
   CHECK_BO(envset_pushv(&es, owner->info->value));
   const m_bool ret = traverse_fptr_def(env, fdef);
   const Type t = ret > 0 ? fdef->cdef->base.type : NULL;
-  if (es.run) envset_pop(&es, owner->info->value->from->owner_class);
+  envset_pop(&es, owner->info->value->from->owner_class);
   free_fptr_def(env->gwion->mp, fdef); // clean?
   if(t) set_tflag(t, tflag_emit);
   return t;
@@ -755,7 +734,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_ini(gwi, "function", "funptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_assign))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_assign))
-  GWI_BB(gwi_oper_end(gwi, "@=>", NULL))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_fptr_impl))
   GWI_BB(gwi_oper_emi(gwi, opem_fptr_impl))
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
@@ -769,7 +748,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "function", "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_auto_fptr))
-  GWI_BB(gwi_oper_end(gwi, "@=>", int_r_assign))
+  GWI_BB(gwi_oper_end(gwi, ":=>", int_r_assign))
   GWI_BB(gwi_oper_ini(gwi, "function", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_partial))
   GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
@@ -777,7 +756,7 @@ GWION_IMPORT(func) {
   GWI_BB(gwi_oper_add(gwi, opck_class_partial))
   GWI_BB(gwi_oper_end(gwi, "@partial", NULL))
 
+  gwi_register_freearg(gwi, GTmpl, freearg_gtmpl);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
-  gwi_register_freearg(gwi, GTmpl, freearg_dottmpl);
   return GW_OK;
 }

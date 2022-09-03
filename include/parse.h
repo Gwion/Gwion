@@ -56,6 +56,7 @@ ANN m_bool scan2_exp(const Env, Exp);
   }
 
 ANN m_bool check_stmt(const Env env, const Stmt stmt);
+ANN m_bool check_stmt_list(const Env env, const Stmt_List);
 
 typedef m_bool (*_exp_func)(const void *, const void *);
 ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,
@@ -120,4 +121,6 @@ ANN static inline bool not_upvalue(const Env env, const Value v) {
       (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
       nspc_lookup_value1(env->curr, insert_symbol(v->name));
 }
+
+ANN m_bool abstract_array(const Env env, const Array_Sub array);
 #endif

@@ -1,7 +1,7 @@
 class Parent:[A] {
   class C:[B] {
-    12 => var A a;
-    13 => var B B;
+    12 :=> var A a;
+    13 :=> var B B;
   }
 }
 var Parent:[int].C:[int] c;

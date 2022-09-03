@@ -7,8 +7,8 @@ fun void test:[A]() {
   <<< __func__ >>>;
 }
 
-test @=> iptr;
-test @=> fptr;
+test :=> iptr;
+test :=> fptr;
 
 <<< iptr() >>>;
 <<< iptr() >>>;

@@ -102,10 +102,10 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   fdef->vt_index = i;
   if(is_spread_tmpl(value->d.func_ref->def->base->tmpl)) {
     Arg_List args = fdef->base->args ?: new_mp_vector(env->gwion->mp, Arg, 0);
-    for(uint32_t i = 0; i < ra->types->len; i++) {
+    for(uint32_t idx = 0; idx < ra->types->len; idx++) {
       char c[256];
-      sprintf(c, "arg%u", i);
-      Type_Decl *td = *mp_vector_at(ra->types, Type_Decl*, i);
+      sprintf(c, "arg%u", idx);
+      Type_Decl *td = *mp_vector_at(ra->types, Type_Decl*, idx);
       Arg arg = { .td = cpy_type_decl(env->gwion->mp, td), .var_decl = {.xid = insert_symbol(c), /*.value = v*/ }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
@@ -114,7 +114,7 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
 
   const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
   if (func && func->def->builtin) {
-    builtin_func(env->gwion->mp, func, (void*)ra->v->d.func_ref->code->native_func);
+    builtin_func(env->gwion, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
     struct Op_Import opi = { .lhs = ra->v->d.func_ref->value_ref->type, .rhs = func->value_ref->type };
     op_cpy(env, &opi);
@@ -147,15 +147,17 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_BO(envset_pushv(&es, v));
   (void)env_push(env, v->from->owner_class, v->from->owner);
-  if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+  const bool in_tmpl = v->from->owner_class && v->from->owner_class->info->cdef &&
+      v->from->owner_class->info->cdef->base.tmpl;
+  if(in_tmpl)
     (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
   const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]) > 0;
   const Func m_func = !is_clos ? func_match(env, &ra)
                                : fptr_match(env, &ra);
-  if (v->from->owner_class && v->from->owner_class->info->cdef->base.tmpl)
+  if(in_tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
-  if (es.run) envset_pop(&es, v->from->owner_class);
+  envset_pop(&es, v->from->owner_class);
   env->func = former;
   return m_func;
 }

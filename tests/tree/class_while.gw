@@ -1,6 +1,6 @@
 class C {
 	var int i;
-	now + 3::samp => var time t;
+	now + 3::samp :=> var time t;
 	while(now < t) {
 	  i++;
 	  samp => now;

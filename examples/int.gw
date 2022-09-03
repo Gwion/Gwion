@@ -26,14 +26,14 @@ var int a;
 #!testing operator for int and int
 {
 	var int	variable1;
-	1 => var int	variable2;
+	1 :=> var int	variable2;
 <<<  variable1/variable2  >>>;
 }
 
 #!testing operator for int and int
 {
 	var int	variable1;
-	1 => var int	variable2;
+	1 :=> var int	variable2;
 <<<  variable1%variable2  >>>;
 }
 
@@ -168,7 +168,7 @@ var int a;
 {
 	var int	variable1;
 	var int	variable2;
-<<<  variable1=>variable2  >>>;
+<<<  variable1:=>variable2  >>>;
 }
 
 #!testing operator for int and int
@@ -194,14 +194,14 @@ var int a;
 
 #!testing operator for int and int
 {
-	1 => var int	variable1;
-	1 => var int	variable2;
+	1 :=> var int	variable1;
+	1 :=> var int	variable2;
 <<<  variable1/=>variable2  >>>;
 }
 
 #!testing operator for int and int
 {
-	1 => var int	variable1;
+	1 :=> var int	variable1;
 	var int	variable2;
 <<<  variable1%=>variable2  >>>;
 }

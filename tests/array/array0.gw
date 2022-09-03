@@ -1,0 +1,7 @@
+class abstract C {
+
+}
+
+class D {
+    var C[2] modules;
+}

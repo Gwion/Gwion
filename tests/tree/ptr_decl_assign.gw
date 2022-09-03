@@ -1,4 +1,4 @@
 funptr void Test();
 fun void t(){<<< "lol" >>>;}
-t @=> var Test test;
+t :=> var Test test;
 test();

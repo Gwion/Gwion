@@ -40,6 +40,26 @@ static OP_CHECK(opck_object_at) {
   return bin->rhs->type;
 }
 
+static OP_CHECK(opck_object_instance) {
+  Exp_Binary *bin = (Exp_Binary*)data;
+  Exp rhs = bin->rhs;
+  if (rhs->exp_type != ae_exp_decl)
+    return NULL;
+  if (rhs->d.exp_decl.td->array)
+    return NULL;
+  Exp lhs = bin->lhs;
+  Exp e = exp_self(bin);
+  Exp_Decl *const decl = &e->d.exp_decl;
+  e->exp_type = ae_exp_decl;
+  decl->td = cpy_type_decl(env->gwion->mp, rhs->d.exp_decl.td);
+  decl->vd = rhs->d.exp_decl.vd;
+  decl->type = rhs->type;
+  decl->args = lhs;
+  free_exp(env->gwion->mp, rhs);
+  CHECK_ON(check_exp(env, e));
+  return e->type;
+}
+
 ANN void unset_local(const Emitter emit, void *const l);
 static OP_EMIT(opem_object_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
@@ -96,6 +116,16 @@ ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
     emit_dot_static_data(emit, v, emit_addr);
 }
 
+ANN static void emit_dottmpl(const Emitter emit, const Func f) {
+  const Instr instr = emit_add_instr(emit, DotTmpl);
+  instr->m_val = (m_uint)f->def;
+  struct dottmpl_ *dt = mp_malloc(emit->gwion->mp, dottmpl);
+  dt->nspc = emit->env->curr;
+  dt->type = emit->env->class_def;
+  dt->tmpl_name = tl2str(emit->gwion, f->def->base->tmpl->call, f->def->base->pos);
+  instr->m_val2 = (m_uint)dt;
+}
+
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
@@ -107,7 +137,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     return;
   }
   if (f->def->base->tmpl) {
-    if(member->is_call) emit_add_instr(emit, DotTmplVal);
+    if(member->is_call) emit_dottmpl(emit, f);
     else {
       if(vflag(f->value_ref, vflag_member)) {
         const Instr instr = emit_add_instr(emit, RegMove);
@@ -173,6 +203,8 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
     return value;
   if (env->func && env->func->def->base->values)
     return upvalues_lookup(env->func->def->base->values, member->xid);
+  if(t->info->values)
+    return (Value)scope_lookup1(t->info->values, (m_uint)member->xid);
   return NULL;
 }
 
@@ -197,17 +229,21 @@ OP_CHECK(opck_object_dot) {
           _("keyword 'this' must be associated with object instance..."));
   const Value value = get_value(env, member, the_base);
   if (!value) {
-    if(tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check) && env->class_def != the_base) {
+/*
+    if(env->class_def != the_base && tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check))
       CHECK_BN(ensure_traverse(env, the_base));
       return check_exp(env, exp_self(member));
     }
+*/
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if (v && member->is_call) {
       if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
         return v->type;
     if (is_class(env->gwion, v->type)) {
        DECL_OO(const Type, parent, = class_type(env, member, v->type));
-       if (isa(the_base, parent) > 0 && parent->nspc) {
+    // allow only direct parent or smth?
+    // mark the function as ctor_ok
+    if (isa(the_base, parent) > 0 && parent->nspc) {
           const Symbol sym = insert_symbol(env->gwion->st, "new");
           const Value ret = nspc_lookup_value1(parent->nspc, sym);
           member->xid = sym;
@@ -236,6 +272,7 @@ OP_CHECK(opck_object_dot) {
     ERR_N(exp_self(member)->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
+// if current function is a constructor
   if (GET_FLAG(value, const)) exp_setmeta(exp_self(member), 1);
   exp_self(member)->acquire = 1;
   return value->type;
@@ -333,17 +370,6 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
   return info->ret;
 }
 
-ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
-
-ANN bool tmpl_global(const Env env, Type_List tl) {
-  for(uint32_t i = 0; i < tl->len; i++) {
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    if(!type_global(env, known_type(env, td)))
-      return false;
-  };
-  return true;
-}
-
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
       .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};
@@ -357,10 +383,17 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   const Type    owner = t->info->value->from->owner_class;
   CHECK_BO(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
-  if(local)env_push(env, NULL, env->context->nspc);
+  if(local && env->context) env_push(env, NULL, env->context->nspc);
+  // these context and env command may fit better somewhere else
+//  const m_str env_filename = env->name;
+//  const m_str ctx_filename = env->context->name;
+//  env->name = t->info->value->from->filename;
+//  env->context->name = t->info->value->from->ctx->name;
   const Type ret = _scan_class(env, &info);
-  if(local)env_pop(env, es.scope);
-  if (es.run) envset_pop(&es, owner);
+//  env->name = env_filename;
+//  env->context->name = ctx_filename;
+  if(local && env->context)env_pop(env, es.scope);
+  envset_pop(&es, owner);
   return ret;
 }
 
@@ -427,6 +460,9 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_at))
   GWI_BB(gwi_oper_emi(gwi, opem_object_at))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_instance))
   GWI_BB(gwi_oper_end(gwi, "=>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
   GWI_BB(gwi_oper_end(gwi, "==", EqObject))
@@ -443,6 +479,5 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
-
   return GW_OK;
 }

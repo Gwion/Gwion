@@ -7,7 +7,6 @@ struct Shreduler_ {
   struct Vector_     active_shreds;
   MUTEX_TYPE         mutex;
   size_t             shred_ids;
-  struct Vector_     killed_shreds;
   bool               loop;
 };
 

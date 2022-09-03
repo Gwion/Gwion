@@ -34,9 +34,7 @@ static OP_EMIT(opem_union_dot) {
   CHECK_BB(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
     const Instr instr = emit_add_instr(emit, RegPushImm);
-    const Func  f =
-        (Func)vector_front(&member->base->type->info->parent->nspc->vtable);
-    instr->m_val = (m_uint)f->code;
+    instr->m_val = (m_uint)exp_self(member)->type->info->func->code;
     return GW_OK;
   }
   if (!strcmp(s_name(member->xid), "index")) {
@@ -152,7 +150,7 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_oper_ini(gwi, "None", "None", "None"))
   GWI_BB(gwi_oper_add(gwi, opck_none))
   GWI_BB(gwi_oper_emi(gwi, opem_none))
-  GWI_BB(gwi_oper_end(gwi, "=>", NoOp))
+  GWI_BB(gwi_oper_end(gwi, ":=>", NoOp))
 
   const Type t_union = gwi_class_ini(gwi, "union", "Object");
   gwi_class_xtor(gwi, NULL, UnionDtor);
@@ -190,7 +188,6 @@ ANN GWION_IMPORT(union) {
       .op   = insert_symbol(gwi->gwion->st, "@func_check")};
   CHECK_BB(add_op(gwi->gwion, &opi1));
 
-builtin_func(gwi->gwion->mp, f1, union_new);
   gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))

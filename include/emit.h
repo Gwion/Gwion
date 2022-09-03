@@ -48,6 +48,8 @@ typedef struct EmitterStatus {
   uint16_t             this_offset;   // reset
   uint16_t unroll;
   uint16_t line;
+  uint32_t effect; // offset of last throw effect
+  bool in_return;
 } EmitterStatus;
 
 struct Emitter_ {
@@ -96,9 +98,10 @@ ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t,
 ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
   if (e->exp_type != ae_exp_dot) return true;
   const Exp_Dot *member = &e->d.exp_dot;
-  return GET_FLAG(member->base->type, final) ||
-         !vflag(exp_self(member)->type->info->value, vflag_member) ||
+  return GET_FLAG(e->type, final) ||
+         GET_FLAG(member->base->type, final) ||
          is_class(emit->gwion, member->base->type) ||
+//         GET_FLAG(e->type->info->func, static) ||
          member->base->exp_type == ae_exp_cast;
 }
 

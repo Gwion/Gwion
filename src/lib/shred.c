@@ -50,7 +50,6 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
   vm->parent            = parent;
   const M_Object o = sh->info->me = fork_object(shred, t);
   ME(o)                           = sh;
-//  ++o->ref;
   shreduler_add(vm->shreduler, sh);
   return o;
 }
@@ -58,7 +57,7 @@ ANN M_Object new_fork(const VM_Shred shred, const VM_Code code, const Type t) {
 static MFUN(gw_shred_exit) {
   const VM_Shred s = ME(o);
   if((m_int)s->tick->prev != -1)
-   shreduler_remove(s->tick->shreduler, s, true);
+    shreduler_remove(s->tick->shreduler, s, true);
 }
 
 static MFUN(vm_shred_id) {
@@ -71,7 +70,9 @@ static MFUN(vm_shred_is_running) {
   *(m_uint *)RETURN = ((m_int)s->tick->prev != -1 && (s->tick->prev || s->tick->next)) ? true : false;
 }
 
-static MFUN(vm_shred_is_done) { *(m_uint *)RETURN = !ME(o) ? true : false; }
+static MFUN(vm_shred_is_done) {
+  *(m_uint *)RETURN = (m_int)ME(o)->tick->prev == -1;
+}
 
 static MFUN(shred_yield) {
   const VM_Shred  s  = ME(o);
@@ -203,8 +204,9 @@ static DTOR(fork_dtor) {
 static MFUN(fork_join) {
   if (*(m_int *)(o->data + o_fork_done)) return;
   if (!ME(o)->tick) return;
-  shreduler_remove(shred->tick->shreduler, shred, false);
+  shred->info->me->ref++;
   vector_add(&EV_SHREDS(*(M_Object *)(o->data + o_fork_ev)), (vtype)shred);
+  shreduler_remove(shred->tick->shreduler, shred, false);
 }
 
 static MFUN(shred_cancel) {

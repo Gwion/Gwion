@@ -17,7 +17,7 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   Driver *const            bbq = s->bbq;
   struct ShredTick_ *const tk  = s->list;
   if (tk) {
-    const m_float time = (m_float)bbq->pos + (m_float)GWION_EPSILON;
+    const m_float time = (m_float)bbq->pos + GWION_EPSILON;
     if (tk->wake_time <= time) {
       if ((s->list = tk->next)) s->list->prev = NULL;
       tk->next = tk->prev = NULL;
@@ -31,51 +31,55 @@ ANN VM_Shred shreduler_get(const Shreduler s) {
   return NULL;
 }
 
-ANN static inline void shreduler_child(const Vector v) {
+ANN static void shreduler_erase(const Shreduler, struct ShredTick_ *const);
+
+ANN static void tk_remove(const Shreduler s, struct ShredTick_ *const tk) {
+  if (tk == s->curr) s->curr = NULL;
+  else if (tk == s->list) s->list = tk->next;
+  if (tk->prev) tk->prev->next = tk->next;
+  if (tk->next) tk->next->prev = tk->prev;
+}
+
+ANN static inline void child(const Shreduler s, const Vector v) {
   for (m_uint i = vector_size(v) + 1; --i;) {
-    const VM_Shred child = (VM_Shred)vector_at(v, i - 1);
-    shreduler_remove(child->tick->shreduler, child, true);
+    const VM_Shred shred = (VM_Shred)vector_at(v, i - 1);
+    struct ShredTick_ *const tk = shred->tick;
+    tk_remove(s, tk);
+    shreduler_erase(s, tk);
   }
 }
 
 ANN static void shreduler_erase(const Shreduler          s,
                                 struct ShredTick_ *const tk) {
-  MUTEX_LOCK(tk->self->mutex);
-  if (tk->parent) {
-    MUTEX_LOCK(tk->parent->self->mutex);
-    vector_rem2(&tk->parent->child, (vtype)tk->self);
-    MUTEX_UNLOCK(tk->parent->self->mutex);
-  }
-  if (tk->child.ptr) shreduler_child(&tk->child);
-  vector_rem2(&s->active_shreds, (vtype)tk->self);
-  MUTEX_UNLOCK(tk->self->mutex);
+  const VM_Shred shred = tk->self;
+  if (tk->child.ptr) child(s, &tk->child);
+  MUTEX_LOCK(shred->mutex);
+  tk->prev = (struct ShredTick_*)-1;
+  MUTEX_UNLOCK(shred->mutex);
+  const m_uint size =
+      shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
+  unwind(shred, (Symbol)-1, size);
+  vector_rem2(&s->active_shreds, (vtype)shred);
+  release(shred->info->me, shred);
 }
 
 ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
                           const bool erase) {
   MUTEX_LOCK(s->mutex);
   struct ShredTick_ *const tk = out->tick;
-  if (tk == s->curr)
-    s->curr = NULL;
-  else if (tk == s->list)
-    s->list = tk->next;
-  if (tk->prev) tk->prev->next = tk->next;
-  if (tk->next) tk->next->prev = tk->prev;
-  if (!erase)
-    tk->prev = tk->next = NULL;
+  tk_remove(s, tk);
+  if (likely(!erase)) tk->prev = tk->next = NULL;
   else {
+    if (tk->parent) vector_rem2(&tk->parent->child, (vtype)out);
     shreduler_erase(s, tk);
-    tk->prev = (struct ShredTick_*)-1;
-    release(out->info->me, out);
   }
   MUTEX_UNLOCK(s->mutex);
 }
 
-ANN void shredule(const Shreduler s, const VM_Shred shred,
+ANN void _shredule(const Shreduler s,   struct ShredTick_ *tk,
                   const m_float wake_time) {
-  MUTEX_LOCK(s->mutex);
+  if(tk->prev == (struct ShredTick_*)-1) return;
   const m_float      time = wake_time + (m_float)s->bbq->pos;
-  struct ShredTick_ *tk   = shred->tick;
   tk->wake_time           = time;
   if (s->list) {
     struct ShredTick_ *curr = s->list, *prev = NULL;
@@ -94,6 +98,13 @@ ANN void shredule(const Shreduler s, const VM_Shred shred,
   } else
     s->list = tk;
   if (tk == s->curr) s->curr = NULL;
+}
+
+ANN void shredule(const Shreduler s, const VM_Shred shred,
+                  const m_float wake_time) {
+  struct ShredTick_ *tk   = shred->tick;
+  MUTEX_LOCK(s->mutex);
+  _shredule(s, tk, wake_time);
   MUTEX_UNLOCK(s->mutex);
 }
 
@@ -106,21 +117,21 @@ ANN void shreduler_ini(const Shreduler s, const VM_Shred shred) {
 ANN void shreduler_add(const Shreduler s, const VM_Shred shred) {
   shreduler_ini(s, shred);
   shred->tick->xid = ++s->shred_ids;
+  MUTEX_LOCK(s->mutex);
   vector_add(&s->active_shreds, (vtype)shred);
-  shredule(s, shred, GWION_EPSILON);
+  _shredule(s, shred->tick, GWION_EPSILON);
+  MUTEX_UNLOCK(s->mutex);
 }
 
 ANN Shreduler new_shreduler(const MemPool mp) {
   Shreduler s = (Shreduler)mp_calloc(mp, Shreduler);
   vector_init(&s->active_shreds);
-  vector_init(&s->killed_shreds);
   MUTEX_SETUP(s->mutex);
   return s;
 }
 
 ANN void free_shreduler(const MemPool mp, const Shreduler s) {
   vector_release(&s->active_shreds);
-  vector_release(&s->killed_shreds);
   MUTEX_CLEANUP(s->mutex);
   mp_free(mp, Shreduler, s);
 }

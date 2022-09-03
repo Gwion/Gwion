@@ -2,8 +2,8 @@ class C {
   struct S {
     var string s;
     var float a;
-    11 => var int i;
-    13 => var float f;
+    11 :=> var int i;
+    13 :=> var float f;
   }
   var S s;
   <<< "after ctor" >>>;

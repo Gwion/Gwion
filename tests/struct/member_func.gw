@@ -1,7 +1,7 @@
 class C {
-  1 => test;
+  1 :=> test;
   fun int test(int i) {
-   13 => var int j;
+   13 :=> var int j;
    return j;
   }
 }

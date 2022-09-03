@@ -1,11 +1,11 @@
 #! [contains] false
 
 struct C {
-  12 => const int i;
+  12 :=> const int i;
 }
 
 struct D {
-  42 => const int i;
+  42 :=> const int i;
 }
 
 const C c;

@@ -85,7 +85,7 @@ ANN Type gwi_enum_end(const Gwi gwi) {
     lint_indent(gwi->lint);
     lint_enum_def(gwi->lint, edef);
   }
-  const Type t = ret > 0 ? edef->t : NULL;
+  const Type t = ret > 0 ? edef->type : NULL;
   if (edef->values.ptr) vector_release(&edef->values);
   free_enum_def(gwion->mp, edef);
   vector_release(&gwi->ck->v);

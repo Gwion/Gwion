@@ -1,6 +1,6 @@
 #! [contains] argument number does not match for lambda
 funptr void ptr_t(int i);
-\a b { <<< a, " ", b >>>; } @=> var ptr_t ptr;
+\a b { <<< a, " ", b >>>; } :=> var ptr_t ptr;
 fun void test(ptr_t p) {
   p(2);
 }

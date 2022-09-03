@@ -4,5 +4,5 @@ var A a;
 <<<a>>>;
 
 fun void test(int i) { <<< __func__ , " ", i>>>; }
-test @=> a;
+test :=> a;
 a(1);

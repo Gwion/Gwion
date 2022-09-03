@@ -4,5 +4,5 @@ struct S {
 }
 
 var S s;
-12.3 => s.f;
+12.3 :=> s.f;
 s.test();

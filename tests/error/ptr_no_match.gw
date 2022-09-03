@@ -4,4 +4,4 @@ fun void test(float f){}
 
 funptr void Test();
 var Test t;
-test @=> t;
+test :=> t;

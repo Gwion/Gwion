@@ -1,10 +1,10 @@
-5 => var int i;
+5 :=> var int i;
 do { <<< i-- >>>; } while(i);
-5 => var float f;
+5 :=> var float f;
 do { <<<  1 -=> f  >>>; } while(f > 0.0);
 #! do { <<<  1 -=> f  >>>; } while(f > 0);
-5 => f;
+5 :=> f;
 do { <<<  1 -=> f  >>>; } until(f == 0);
 #!do { <<<  1 -=> f  >>>; } until(f == 0.0);
-5 => i;
+5 :=> i;
 do { <<<  i--  >>>; } until(!i);

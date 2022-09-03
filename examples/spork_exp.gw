@@ -1,6 +1,6 @@
 class C
 {
-  12 => var int i;
+  12 :=> var int i;
   var Object o;
 <<< this >>>;
   spork  {
@@ -9,7 +9,7 @@ class C
     var string s;
     <<<  this,  " test spork exp. " , s >>>;
 
-  } => var Shred shred;
+  } :=> var Shred shred;
 }
 
 var C c;

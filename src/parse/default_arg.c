@@ -64,11 +64,11 @@ ANN void default_args(const Env env, const Section *s, Ast *acc) {
     Arg *arg = mp_vector_at(args, Arg, args->len);
     if(!arg->exp) break;
     Func_Base *const base = cpy_func_base(p, base_fdef->base);
-    Stmt_List slist = strcmp("new", s_name(base->xid))
+    Stmt_List code = strcmp("new", s_name(base->xid))
         ? std_code(env->gwion->mp, base, args, len)
         : new_code(env, base, args, len);
-    const Stmt      body  = new_stmt_code(p, slist, base->pos);
-    const Func_Def  fdef  = new_func_def(p, base, body);
+//    const Stmt      body  = new_stmt_code(p, slist, base->pos);
+    const Func_Def  fdef  = new_func_def(p, base, code);
     scan1_func_def(env, fdef);
     scan2_func_def(env, fdef);
     Section section = MK_SECTION(func, func_def, fdef);

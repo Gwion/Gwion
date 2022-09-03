@@ -13,6 +13,7 @@ struct TypeInfo_ {
   struct TupleForm_ *tuple;
   struct VM_Code_ *  gack;
   ID_List            traits;
+  Scope values;
 };
 
 enum tflag {
@@ -39,16 +40,15 @@ enum tflag {
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
   tflag_enum     = 1 << 22,
-  tflag_error    = 1 << 23,
-  tflag_ref      = 1 << 24,
+  tflag_ref      = 1 << 23,
 } __attribute__((packed));
 
 struct Type_ {
   m_str             name;
   Nspc              nspc;
   struct TypeInfo_ *info;
-  size_t            size;
-  size_t            array_depth;
+  uint64_t            size;
+  uint32_t            array_depth;
   struct Vector_    effects; // pre-ctor effects
   uint16_t          ref;
   uint16_t          weight;
@@ -72,7 +72,7 @@ ANN Symbol array_sym(const Env env, const Type src,
 ANN static inline Type array_base_simple(Type t) {
   return t->array_depth ? t->info->base_type : t;
 }
-ANN m_bool    type_ref(Type) __attribute__((pure));
+ANN bool    type_ref(Type) __attribute__((pure));
 ANN Type      actual_type(const struct Gwion_ *gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) {
   return env_push(env, type, type->nspc);

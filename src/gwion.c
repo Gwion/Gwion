@@ -76,7 +76,7 @@ ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
   CHECK_BB(plug_ini(gwion, &arg->lib));
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if (gwion_audio(gwion) > 0) {
-    plug_run(gwion, &arg->mod);
+    CHECK_BB(plug_run(gwion, &arg->mod));
     if (type_engine_init(gwion)) {
       vector_add(&gwion->data->plugs->vec, (m_uint)gwion->env->global_nspc);
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
@@ -243,11 +243,12 @@ ANN void push_global(struct Gwion_ *gwion, const m_str name) {
 }
 
 ANN void pop_global(const Gwion gwion) {
-   Nspc nspc = gwion->env->global_nspc, parent;
-   do {
-     parent = nspc->parent;
+   Nspc nspc = gwion->env->global_nspc->parent;
+   while (nspc) {
+     const Nspc parent = nspc->parent;
      nspc_remref(nspc, gwion);
-   } while((nspc = parent));
+     nspc = parent;
+   }
 }
 
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg) {

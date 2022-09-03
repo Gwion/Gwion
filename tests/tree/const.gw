@@ -1,2 +1,2 @@
-10 => const int i;
+10 :=> const int i;
 <<< i >>>;

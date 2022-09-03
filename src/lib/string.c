@@ -55,6 +55,13 @@ opck_str(eq, !strcmp(bin->lhs->d.prim.d.string.data, bin->rhs->d.prim.d.string.d
 
 static DTOR(string_dtor) { free_mstr(shred->info->mp, STRING(o)); }
 
+ID_CHECK(check_filepp) {
+  ((Exp_Primary *)prim)->prim_type = ae_prim_str;
+  ((Exp_Primary *)prim)->d.string.data     = env->name;
+  ((Exp_Primary *)prim)->value = global_string(env, prim->d.string.data, prim_pos(prim));
+  return prim->value->type;
+}
+
 ID_CHECK(check_funcpp) {
   ((Exp_Primary *)prim)->prim_type = ae_prim_str;
   ((Exp_Primary *)prim)->d.string.data     = env->func        ? env->func->name
@@ -63,6 +70,12 @@ ID_CHECK(check_funcpp) {
 // handle delim?
   ((Exp_Primary *)prim)->value = global_string(env, prim->d.string.data, prim_pos(prim));
   return prim->value->type;
+}
+
+ID_CHECK(check_linepp) {
+  ((Exp_Primary *)prim)->prim_type = ae_prim_num;
+  ((Exp_Primary *)prim)->d.num = prim_pos(prim).first.line;
+  return env->gwion->type[et_int];
 }
 
 static GACK(gack_string) {
@@ -385,15 +398,23 @@ static MFUN(string_atof) {
   const m_str str = STRING(obj);
   *(m_float*)RETURN = (m_float)atof(str);
 }
-/*
+ #include <errno.h>
 static MFUN(string_atoi2) {
   const M_Object obj = *(M_Object*)MEM(0);
   const m_str str = STRING(obj);
-  char *endptr;
-  *(m_int*)RETURN = strtol(str, &endptr, 10);
+  char *endptr = NULL;
+  if(!(*(m_int*)RETURN = strtol(str, &endptr, 10))) {
+    if(errno == EINVAL) {
+      handle(shred, "ErrorInvalidValue");
+      return;
+    }
+    if(errno == ERANGE) {
+      handle(shred, "ValueOutOfRange");
+      return;
+    }
+  }
   **(m_uint**)MEM(SZ_INT) = endptr - str;
 }
-*/
 
 ANN Type check_array_access(const Env env, const Array_Sub array);
 
@@ -540,6 +561,10 @@ GWION_IMPORT(string) {
   gwi_func_ini(gwi, "int", "atoi");
   GWI_BB(gwi_func_end(gwi, string_atoi, ae_flag_none))
 
+  gwi_func_ini(gwi, "int", "atoi2");
+  gwi_func_arg(gwi, "&int", "offset");
+  GWI_BB(gwi_func_end(gwi, string_atoi2, ae_flag_none))
+
   gwi_func_ini(gwi, "float", "atof");
   GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))
 
@@ -559,8 +584,14 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
   GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
 
-  struct SpecialId_ spid = {
-      .ck = check_funcpp, .exec = RegPushMe, .is_const = 1};
-  gwi_specialid(gwi, "__func__", &spid);
+  struct SpecialId_ file_spid = {
+      .ck = check_filepp, .is_const = 1};
+  gwi_specialid(gwi, "__file__", &file_spid);
+  struct SpecialId_ func_spid = {
+      .ck = check_funcpp, .is_const = 1};
+  gwi_specialid(gwi, "__func__", &func_spid);
+  struct SpecialId_ line_spid = {
+      .ck = check_linepp, .is_const = 1};
+  gwi_specialid(gwi, "__line__", &line_spid);
   return GW_OK;
 }

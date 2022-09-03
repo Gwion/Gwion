@@ -28,8 +28,6 @@ static inline bool is_prim_float(const Exp e) {
   return (is_prim(e) && e->d.prim.prim_type == ae_prim_float);
 }
 
-static inline uint pot(const m_int x) { return (x > 0) && ((x & (x - 1)) == 0); }
-
 #define POWEROF2_OPT(name, OP)                                                 \
   if (is_prim_int(bin->rhs) && pot(bin->rhs->d.prim.d.num)) {                  \
     bin->op                = insert_symbol(#OP);                               \
@@ -169,7 +167,7 @@ static GWION_IMPORT(int_logical) {
 
 static GWION_IMPORT(int_r) {
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  CHECK_OP("=>", rassign, r_assign)
+  CHECK_OP(":=>", rassign, r_assign)
   CHECK_OP("+=>", rassign, r_plus)
   CHECK_OP("-=>", rassign, r_minus)
   CHECK_OP("*=>", rassign, r_mul)
@@ -257,6 +255,16 @@ static GACK(gack_bool) {
   INTERP_PRINTF("%s", *(m_uint *)VALUE ? "true" : "false");
 }
 
+static OP_CHECK(bool2float) {
+  struct Implicit *impl = (struct Implicit *)data;
+  if(!env->context->error) {
+    gwerr_basic("Can't implicitely cast {G+}bool{0} to {G+}float{0}", NULL, "Did you forget a cast?",
+       env->name, impl->e->pos, 0);
+    env_set_error(env, true);
+  }
+  return env->gwion->type[et_error];
+}
+
 static GWION_IMPORT(int_values) {
   DECL_OB(const Type, t_bool, = gwi_mk_type(gwi, "bool", SZ_INT, "int"));
   GWI_BB(gwi_set_global_type(gwi, t_bool, et_bool))
@@ -269,6 +277,9 @@ static GWION_IMPORT(int_values) {
   GWI_BB(gwi_oper_add(gwi, opck_unary_meta))
   GWI_BB(gwi_oper_add(gwi, opck_int_not))
   GWI_BB(gwi_oper_end(gwi, "!", IntNot))
+  GWI_BB(gwi_oper_ini(gwi, "bool", "float", NULL))
+  GWI_BB(gwi_oper_add(gwi, bool2float));
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
   struct SpecialId_ spid = {
       .type = t_bool, .exec = RegPushMaybe, .is_const = 1};
   gwi_specialid(gwi, "maybe", &spid);
@@ -371,7 +382,7 @@ static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_end(gwi, "-", int_float_minus))
   GWI_BB(gwi_oper_add(gwi, opck_int_float_div))
   GWI_BB(gwi_oper_end(gwi, "/", int_float_div))
-  CHECK_IF("=>", rassign, r_assign)
+  CHECK_IF(":=>", rassign, r_assign)
   CHECK_IF("+=>", rassign, r_plus)
   CHECK_IF("-=>", rassign, r_minus)
   CHECK_IF("*=>", rassign, r_mul)
@@ -426,7 +437,7 @@ static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_end(gwi, "*", float_int_mul))
   GWI_BB(gwi_oper_add(gwi, opck_float_int_div))
   GWI_BB(gwi_oper_end(gwi, "/", float_int_div))
-  CHECK_FI("=>", rassign, r_assign)
+  CHECK_FI(":=>", rassign, r_assign)
   CHECK_FI("+=>", rassign, r_plus)
   CHECK_FI("-=>", rassign, r_minus)
   CHECK_FI("*=>", rassign, r_mul)
@@ -455,7 +466,7 @@ static GWION_IMPORT(floatint) {
 static GWION_IMPORT(dur) {
   GWI_BB(gwi_oper_cond(gwi, "dur", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "dur", "dur", "dur"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   CHECK_FF("+=>", rassign, r_plus)
   CHECK_FF("-=>", rassign, r_minus)
   CHECK_FF("*=>", rassign, r_mul)
@@ -500,7 +511,7 @@ static OP_CHECK(opck_now) {
 static GWION_IMPORT(time) {
   GWI_BB(gwi_oper_cond(gwi, "time", BranchEqFloat, BranchNeqFloat))
   GWI_BB(gwi_oper_ini(gwi, "time", "time", "time"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   GWI_BB(gwi_oper_ini(gwi, "time", "dur", "time"))
   GWI_BB(gwi_oper_end(gwi, "+", float_add))
   GWI_BB(gwi_oper_end(gwi, "*", float_mul))
@@ -512,7 +523,7 @@ static GWION_IMPORT(time) {
   CHECK_FF("*=>", rassign, r_mul)
   CHECK_FF("/=>", rassign, r_div)
   GWI_BB(gwi_oper_ini(gwi, "dur", "time", "time"))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   GWI_BB(gwi_oper_end(gwi, "+", float_add))
   GWI_BB(gwi_oper_ini(gwi, "dur", "@now", "time"))
   _CHECK_OP("=>", now, Time_Advance)
@@ -578,7 +589,7 @@ static GWION_IMPORT(float) {
   IMPORT_BINARY_FLOAT(mul, *);
   IMPORT_BINARY_FLOAT(div, /);
   GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
-  CHECK_FF("=>", rassign, r_assign)
+  CHECK_FF(":=>", rassign, r_assign)
   CHECK_FF("+=>", rassign, r_plus)
   CHECK_FF("-=>", rassign, r_minus)
   CHECK_FF("*=>", rassign, r_mul)
