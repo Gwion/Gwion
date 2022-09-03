@@ -95,11 +95,12 @@ ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t,
                                  : emit_struct_addref(emit, t, size, emit_var);
 }
 
-ANN static inline bool is_static_call(const Exp e) {
+ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
   if (e->exp_type != ae_exp_dot) return true;
   const Exp_Dot *member = &e->d.exp_dot;
   return GET_FLAG(e->type, final) ||
          GET_FLAG(member->base->type, final) ||
+         is_class(emit->gwion, member->base->type) ||
 //         GET_FLAG(e->type->info->func, static) ||
          member->base->exp_type == ae_exp_cast;
 }

@@ -1317,7 +1317,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     CHECK_BB(emit_func_args(emit, exp_call));
   if (is_func(emit->gwion, t)) // is_callable needs type
     CHECK_BB(emit_exp_call1(emit, t->info->func,
-                            is_static_call(exp_call->func)));
+                            is_static_call(emit, exp_call->func)));
   else {
     struct Op_Import opi = {.op   = insert_symbol("@ctor"),
                             .rhs  = t,
@@ -1487,8 +1487,7 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
 
 ANN static Instr get_prelude(const Emitter emit, const Func f,
                              const bool is_static) {
-  if (f != emit->env->func || (!is_static && strcmp(s_name(f->def->base->xid), "new")) /* ||
-//      strstr(emit->code->name, "ork~")*/) {
+  if (f != emit->env->func || (!is_static && strcmp(s_name(f->def->base->xid), "new"))) {
     const Instr instr = emit_add_instr(emit, SetCode);
     instr->udata.one  = 1;
     return instr;
@@ -1816,19 +1815,18 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
   return op_emit(emit, &opi);
 }
 
-ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, const bool b) {
-//  CHECK_BO(emit_exp_pop_next(emit, e));
+ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, /*const */bool b) {
   CHECK_BO(emit_exp(emit, e));
   {
     const Instr ex = (Instr)vector_back(&emit->code->instr);
-    if(ex->execute == fast_except) {
+    if(ex->opcode == eOP_MAX && ex->execute == fast_except) {
       vector_rem(&emit->code->instr, vector_size(&emit->code->instr) - 1);
       free_instr(emit->gwion, ex);
     }
   }
+
   if(instr)
     *instr = emit_add_instr(emit, NoOp);
-//  emit_exp_addref1(emit, e, -exp_size(e)); // ????
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
       .rhs  = e->type,
