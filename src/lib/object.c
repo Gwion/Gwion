@@ -9,16 +9,13 @@
 #include "import.h"
 #include "emit.h"
 #include "traverse.h"
-#include "template.h"
 #include "parse.h"
 #include "specialid.h"
 
 #include "gwi.h"
 #include "gack.h"
 
-#undef insert_symbol
-
-M_Object new_object(MemPool p, const Type t) {
+ANN M_Object new_object(MemPool p, const Type t) {
   const uint32_t offset = sizeof(struct M_Object_) + t->nspc->offset;
   const M_Object a = _mp_calloc(p, offset);
   a->ref           = 1;
@@ -26,7 +23,7 @@ M_Object new_object(MemPool p, const Type t) {
   return a;
 }
 
-M_Object new_string(const struct Gwion_ *gwion, const m_str str) {
+ANN M_Object new_string(const struct Gwion_ *gwion, const m_str str) {
   const M_Object o = new_object(gwion->mp, gwion->type[et_string]);
   STRING(o)        = mstrdup(gwion->mp, str);
   return o;
@@ -62,8 +59,7 @@ ANN static void do_release(const M_Object o,
   if (tflag(t, tflag_dtor)) {
     if (t->nspc->dtor->builtin)
       ((f_xtor)t->nspc->dtor->native_func)(o, NULL, shred);
-    else
-      return user_dtor(o, shred, t);
+    else return user_dtor(o, shred, t);
   }
   return do_release(o, shred, t->info->parent);
 }
