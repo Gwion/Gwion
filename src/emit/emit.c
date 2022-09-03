@@ -724,10 +724,8 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp *data) {
 
 ANN m_bool emit_array_access(const Emitter                 emit,
                              struct ArrayAccessInfo *const info) {
-  if (tflag(info->array.type, tflag_typedef)) {
-    info->array.type = info->array.type->info->parent;
-    return emit_array_access(emit, info);
-  }
+  if (tflag(info->array.type, tflag_typedef))
+    info->array.type = typedef_base(info->array.type);
   // look mum no pos
   struct Op_Import opi = {.op   = insert_symbol("@array"),
                           .lhs  = info->array.exp->type,
@@ -1288,7 +1286,7 @@ ANN static inline m_bool emit_inline(const Emitter emit, const Func f,
   nspc_push_value(emit->gwion->mp, emit->env->curr);
   const m_bool ret = _emit_inline(emit, f, exp_call);
   nspc_pop_value(emit->gwion->mp, emit->env->curr);
-  emitter->status = status;
+  emit->status = status;
   return ret;
 }
 #endif
@@ -1919,7 +1917,7 @@ ANN static m_bool emit_lambda(const Emitter emit, const Exp_Lambda *lambda) {
 ANN static m_bool emit_exp_lambda(const Emitter     emit,
                                   const Exp_Lambda *lambda) {
   if (!lambda->def->base->func) {
-    regpushi(emit, SZ_INT);
+    exp_self(lambda)->type = emit->gwion->type[et_void];
     return GW_OK;
   }
   struct EnvSet es = {.env   = emit->env,
