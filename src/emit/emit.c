@@ -1300,7 +1300,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     CHECK_BB(emit_func_args(emit, exp_call));
   if (is_func(emit->gwion, t)) // is_callable needs type
     CHECK_BB(emit_exp_call1(emit, t->info->func,
-                            is_static_call(emit, exp_call->func)));
+                            is_static_call(exp_call->func)));
   else {
     struct Op_Import opi = {.op   = insert_symbol("@ctor"),
                             .rhs  = t,

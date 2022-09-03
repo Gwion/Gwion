@@ -147,7 +147,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
       instr->m_val = (m_uint)f;
       return;
     }
-  } else if (is_static_call(emit, exp_self(member))) {
+  } else if (is_static_call(exp_self(member))) {
     if (member->is_call && f == emit->env->func) return;
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
