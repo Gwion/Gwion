@@ -1172,7 +1172,22 @@ ANN static inline void emit_return_pc(const Emitter emit, const m_uint val) {
 
 ANN static inline void pop_exp(const Emitter emit, Exp e);
 
-ANN static m_bool        scoped_stmt(const Emitter emit, const Stmt stmt);
+ANN static inline void scoped_ini(const Emitter emit) {
+  ++emit->env->scope->depth;
+  emit_push_scope(emit);
+}
+
+ANN static inline void scoped_end(const Emitter emit) {
+  emit_pop_scope(emit);
+  --emit->env->scope->depth;
+}
+
+ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt) {
+  scoped_ini(emit);
+  const m_bool ret = emit_stmt(emit, stmt);
+  scoped_end(emit);
+  return ret;
+}
 
 #ifdef GWION_INLINE
 ANN static inline bool check_inline(const Emitter emit, const Func f) {
@@ -1238,7 +1253,9 @@ ANN static inline m_bool inline_body(const Emitter emit, const Func f) {
   struct Vector_ v = {.ptr = emit->code->stack_return.ptr};
   vector_init(&emit->code->stack_return);
   nspc_push_value(emit->gwion->mp, emit->env->curr);
-  const m_bool ret = scoped_stmt(emit, f->def->d.code);
+  scoped_ini(emit);
+  const m_bool ret = emit_stmt_list(emit, f->def->d.code);
+  scoped_end(emit);
   emit_return_pc(emit, emit_code_size(emit));
   nspc_pop_value(emit->gwion->mp, emit->env->curr);
   vector_release(&emit->code->stack_return);
@@ -1632,23 +1649,6 @@ ANN static inline void stack_alloc(const Emitter emit) {
   emit_local(emit,
              emit->gwion->type[et_int]); // hiding the fact it is an object
   emit->code->stack_depth += SZ_INT;
-}
-
-ANN static inline void scoped_ini(const Emitter emit) {
-  ++emit->env->scope->depth;
-  emit_push_scope(emit);
-}
-
-ANN static inline void scoped_end(const Emitter emit) {
-  emit_pop_scope(emit);
-  --emit->env->scope->depth;
-}
-
-ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt) {
-  scoped_ini(emit);
-  const m_bool ret = emit_stmt(emit, stmt);
-  scoped_end(emit);
-  return ret;
 }
 
 #define SPORK_FUNC_PREFIX "spork~func:%u"
