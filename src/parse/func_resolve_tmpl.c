@@ -102,10 +102,10 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   fdef->vt_index = i;
   if(is_spread_tmpl(value->d.func_ref->def->base->tmpl)) {
     Arg_List args = fdef->base->args ?: new_mp_vector(env->gwion->mp, Arg, 0);
-    for(uint32_t i = 0; i < ra->types->len; i++) {
+    for(uint32_t idx = 0; idx < ra->types->len; idx++) {
       char c[256];
-      sprintf(c, "arg%u", i);
-      Type_Decl *td = *mp_vector_at(ra->types, Type_Decl*, i);
+      sprintf(c, "arg%u", idx);
+      Type_Decl *td = *mp_vector_at(ra->types, Type_Decl*, idx);
       Arg arg = { .td = cpy_type_decl(env->gwion->mp, td), .var_decl = {.xid = insert_symbol(c), /*.value = v*/ }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
