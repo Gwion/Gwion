@@ -204,12 +204,10 @@ ANN void ugen_disconnect(const restrict UGen lhs, const restrict UGen rhs) {
     opt _do_(func, UGEN(lhs), tgt);                                            \
     release_connect(shred);                                                    \
   }
-describe_connect_instr(Ugen, Connect, UGEN(rhs), ) describe_connect_instr(
-    Ugen, Disconnect,
-    UGEN(rhs), ) describe_connect_instr(Trig, Connect,
-                                        UGEN(rhs)->module.gen.trig, TRIG_EX)
-    describe_connect_instr(Trig, Disconnect, UGEN(rhs)->module.gen.trig,
-                           TRIG_EX)
+describe_connect_instr(Ugen, Connect, UGEN(rhs), );
+describe_connect_instr(Ugen, Disconnect, UGEN(rhs), );
+describe_connect_instr(Trig, Connect, UGEN(rhs)->module.gen.trig, TRIG_EX);
+describe_connect_instr(Trig, Disconnect, UGEN(rhs)->module.gen.trig, TRIG_EX);
 
 #define describe_connectaa_instr(name, func, tgt, opt)                         \
   static INSTR(name##func) {                                                   \
