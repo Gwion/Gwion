@@ -23,7 +23,7 @@ enum vflag {
 } __attribute__((packed));
 
 union value_data {
-  m_uint            num;
+  m_int            num;
   m_float           fnum;
   m_uint *          ptr;
   struct M_Object_ *obj;
