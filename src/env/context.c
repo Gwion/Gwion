@@ -7,7 +7,8 @@
 
 ANN void free_context(const Context a, Gwion gwion) {
   const Nspc global = a->nspc->parent;
-  nspc_remref(a->nspc, gwion);
+  if(!a->error) // this is quite a hack
+    nspc_remref(a->nspc, gwion);
   if(a->error) nspc_remref(global, gwion);
   free_mstr(gwion->mp, a->name);
   ast_cleaner(gwion, a->tree);

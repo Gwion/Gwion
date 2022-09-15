@@ -148,7 +148,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
       return;
     }
   } else if (is_static_call(emit, exp_self(member))) {
-    if (member->is_call && f == emit->env->func) return;
+    if (member->is_call && f == emit->env->func && strcmp(s_name(f->def->base->xid), "new")) return;
     const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
     func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
     return;
@@ -252,6 +252,7 @@ OP_CHECK(opck_object_dot) {
         }
       }
     }
+    if(isa(the_base, v->type->info->base_type) > 0) return v->type->info->base_type;
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);

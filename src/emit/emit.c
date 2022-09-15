@@ -1120,12 +1120,24 @@ ANN static m_bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
     CHECK_BB(op_emit(emit, &opi));
   }
   set_late(decl, vd);
-  if (!decl->args && !exp_self(decl)->emit_var && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->td, late) &&
+  if (!decl->args && !exp_getvar(exp_self(decl)) && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->td, late) &&
       GET_FLAG(v, late) && late_array(decl->td)
       && GET_FLAG(v->type, abstract)) {
     env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
              v->type->name, !GET_FLAG(decl->td, const) ? "var" : "const");
+    if(v->type->nspc->vtable.ptr) {
+      const Vector vec = &v->type->nspc->vtable;
+      for(m_uint i = 0; i < vector_size(vec); i++) {
+        const Func f = (Func)vector_at(vec, i);
+        if(!strcmp(s_name(f->def->base->xid), "new")) {
+          gw_err(_("maybe use a constructor?\n"));
+          break;
+        }
+      }
+    }
   }
+  if(GET_FLAG(v, late) && exp_getuse(exp_self(decl)))
+    emit_add_instr(emit, GWOP_EXCEPT);
   return GW_OK;
 }
 
@@ -1456,8 +1468,10 @@ static inline m_bool push_func_code(const Emitter emit, const Func f) {
     return GW_OK;
   }
   const Instr instr = (Instr)vector_back(&emit->code->instr);
-  instr->opcode = eRegPushImm;
-  instr->m_val  = (m_uint)f->code;
+  if(f->code) {
+    instr->opcode = eRegPushImm;
+    instr->m_val  = (m_uint)f->code;
+  }
   return GW_OK;
 }
 
@@ -1485,7 +1499,7 @@ ANN static void tmpl_prelude(const Emitter emit, const Func f) {
 
 ANN static Instr get_prelude(const Emitter emit, const Func f,
                              const bool is_static) {
-  if (f != emit->env->func || (!is_static && strcmp(s_name(f->def->base->xid), "new"))) {
+  if (f != emit->env->func || !is_static) {
     const Instr instr = emit_add_instr(emit, SetCode);
     instr->udata.one  = 1;
     return instr;
@@ -1612,7 +1626,7 @@ ANN static void emit_fptr_call(const Emitter emit, const Func f) {
 ANN static void call_finish(const Emitter emit, const Func f,
                           const bool is_static) {
   const m_uint offset = emit_code_offset(emit);
-  if (f != emit->env->func || !is_static)
+  if (f != emit->env->func || !is_static || strcmp(s_name(f->def->base->xid), "new"))
     regseti(emit, offset);
   const Instr instr   = emit_call(emit, f, is_static);
   instr->m_val        = f->def->base->ret_type->size;
@@ -2046,7 +2060,7 @@ ANN static inline m_bool emit_stmt_continue(const Emitter    emit,
     vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
   else if (stmt->idx) {
     if (emit_jump_index(emit, &emit->code->stack_cont, stmt->idx) < 0)
-      ERR_B(stmt_self(stmt)->pos, _("to many jumps required."))
+      ERR_B(stmt_self(stmt)->pos, _("too many jumps required."))
   }
   return GW_OK;
 }
@@ -2058,7 +2072,7 @@ ANN static inline m_bool emit_stmt_break(const Emitter         emit,
     vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
   else if (stmt->idx) {
     if (emit_jump_index(emit, &emit->code->stack_break, stmt->idx) < 0)
-      ERR_B(stmt_self(stmt)->pos, _("to many jumps required."))
+      ERR_B(stmt_self(stmt)->pos, _("too many jumps required."))
   }
   return GW_OK;
 }

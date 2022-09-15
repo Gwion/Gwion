@@ -81,7 +81,7 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, parent ?: "Object"));
   Tmpl *tmpl = ck.sl ? new_tmpl(gwi->gwion->mp, ck.sl) : NULL;
   if (tmpl) CHECK_BO(template_push_types(gwi->gwion->env, tmpl));
-  const Type      base = find_type(gwi->gwion->env, td);
+  DECL_OO(const Type, base, = known_type(gwi->gwion->env, td));
   const Type_List tl   = td->types;
   if (tflag(base, tflag_ntmpl)) td->types = NULL;
   const Type p = !td->types ? known_type(gwi->gwion->env, td) : NULL;

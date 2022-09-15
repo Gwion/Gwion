@@ -101,6 +101,8 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   const Var_Decl *vd = &decl->vd;
   CHECK_BB(check_var(env, vd));
   CHECK_BB(check_var_td(env, vd, decl->td));
+  if(decl->td->array && decl->td->array->exp && !decl->args && GET_FLAG(array_base(decl->type), abstract))
+    ERR_B(decl->td->pos, "declaration of abstract type arrays needs lambda");
   valid_value(env, vd->xid, vd->value);
   // set_vflag(var->value, vflag_used));
   return GW_OK;
@@ -253,8 +255,9 @@ ANN static Type check_prim_dict(const Env env, Exp *data) {
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
                                 const loc_t pos) {
   if (!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
-    ERR_B(pos, _("'%s' from owner namespace '%s' used in '%s'."), v->name,
-          v->from->owner ? v->from->owner->name : "?", t->name)
+    if(!is_class(env->gwion, v->type))
+      ERR_B(pos, _("'%s' from owner namespace '%s' used in '%s'."), v->name,
+            v->from->owner ? v->from->owner->name : "?", t->name)
   }
   return GW_OK;
 }
@@ -264,6 +267,11 @@ ANN static inline Value get_value(const Env env, const Symbol sym) {
   if(value) {
     if (!value->from->owner_class || isa(env->class_def, value->from->owner_class) > 0)
       return value;
+    if(env->class_def) {
+      if (isa(env->class_def, value->from->owner_class) > 0 || value == env->class_def->info->value)
+        return value;
+
+    }
   }
   if (env->func && env->func->def->base->values) {
     DECL_OO(const Value, v, = upvalues_lookup(env->func->def->base->values, sym));
