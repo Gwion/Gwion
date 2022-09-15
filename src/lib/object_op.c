@@ -236,23 +236,25 @@ OP_CHECK(opck_object_dot) {
     }
 */
     const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if (v && member->is_call) {
-      if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
-        return v->type;
-    if (is_class(env->gwion, v->type)) {
-       DECL_OO(const Type, parent, = class_type(env, member, v->type));
-    // allow only direct parent or smth?
-    // mark the function as ctor_ok
-    if (isa(the_base, parent) > 0 && parent->nspc) {
-          const Symbol sym = insert_symbol(env->gwion->st, "new");
-          const Value ret = nspc_lookup_value1(parent->nspc, sym);
-          member->xid = sym;
-          if(ret)
-            return ret->type;
+    if(v) {
+      if (member->is_call) {
+        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
+          return v->type;
+        if (is_class(env->gwion, v->type)) {
+           DECL_OO(const Type, parent, = class_type(env, member, v->type));
+          // allow only direct parent or smth?
+          // mark the function as ctor_ok
+          if (isa(the_base, parent) > 0 && parent->nspc) {
+            const Symbol sym = insert_symbol(env->gwion->st, "new");
+            const Value ret = nspc_lookup_value1(parent->nspc, sym);
+            member->xid = sym;
+            if(ret)
+              return ret->type;
+          }
         }
-      }
+      } else if(is_class(env->gwion, v->type) && the_base == v->type->info->base_type)
+        return v->type->info->base_type;
     }
-    if(isa(the_base, v->type->info->base_type) > 0) return v->type->info->base_type;
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
