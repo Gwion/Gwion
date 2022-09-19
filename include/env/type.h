@@ -47,9 +47,10 @@ struct Type_ {
   m_str             name;
   Nspc              nspc;
   struct TypeInfo_ *info;
-  uint64_t            size;
-  uint32_t            array_depth;
+  uint64_t          size;
+  uint64_t          actual_size;
   struct Vector_    effects; // pre-ctor effects
+  uint32_t            array_depth;
   uint16_t          ref;
   uint16_t          weight;
   ae_flag           flag;

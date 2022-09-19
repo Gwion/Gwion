@@ -38,7 +38,8 @@ ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, t);
   const m_uint   depth =
       !tflag(t, tflag_typedef) ? t->array_depth : t->info->parent->array_depth;
-  const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
+//  const m_uint size = depth > 1 ? SZ_INT : array_base(t)->size;
+  const m_uint size = depth > 1 ? SZ_INT : array_base(t)->actual_size ?: array_base(t)->size;
   //ARRAY(a)          = new_m_vector(p, size, length);
   m_vector_init(ARRAY(a), size, length);
   return a;
