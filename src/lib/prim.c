@@ -622,8 +622,32 @@ static GWION_IMPORT(float) {
   return GW_OK;
 }
 
+static GACK(gack_u8) {
+  INTERP_PRINTF("%u", *(uint8_t*)VALUE);
+}
+
+static GACK(gack_u16) {
+  INTERP_PRINTF("%u", *(uint16_t*)VALUE);
+}
+
+static GACK(gack_u32) {
+  INTERP_PRINTF("%u", *(uint32_t*)VALUE);
+}
+
 GWION_IMPORT(prim) {
   GWI_BB(import_int(gwi))      // const folded + imm optimized
+  const Type t_u8 = gwi_mk_type(gwi, "u8", SZ_INT, "int");
+  t_u8->actual_size = 1;
+  gwi_gack(gwi, t_u8, gack_u8);
+  gwi_add_type(gwi, t_u8);
+  const Type t_u16 = gwi_mk_type(gwi, "u16", SZ_INT, "int");
+  t_u16->actual_size = 2;
+  gwi_gack(gwi, t_u16, gack_u16);
+  gwi_add_type(gwi, t_u16);
+  const Type t_u32 = gwi_mk_type(gwi, "u32", SZ_INT, "int");
+  t_u32->actual_size = 4;
+  gwi_gack(gwi, t_u32, gack_u32);
+  gwi_add_type(gwi, t_u32);
   GWI_BB(import_float(gwi))    // const folded
   GWI_BB(import_intfloat(gwi)) // const folded
   GWI_BB(import_floatint(gwi)) // const folded
