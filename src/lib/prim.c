@@ -640,14 +640,20 @@ GWION_IMPORT(prim) {
   t_u8->actual_size = 1;
   gwi_gack(gwi, t_u8, gack_u8);
   gwi_add_type(gwi, t_u8);
+  GWI_BB(gwi_oper_ini(gwi, "int", "u8", "u8"))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
   const Type t_u16 = gwi_mk_type(gwi, "u16", SZ_INT, "int");
   t_u16->actual_size = 2;
   gwi_gack(gwi, t_u16, gack_u16);
   gwi_add_type(gwi, t_u16);
+  GWI_BB(gwi_oper_ini(gwi, "int", "u16", "u16"))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
   const Type t_u32 = gwi_mk_type(gwi, "u32", SZ_INT, "int");
   t_u32->actual_size = 4;
   gwi_gack(gwi, t_u32, gack_u32);
   gwi_add_type(gwi, t_u32);
+  GWI_BB(gwi_oper_ini(gwi, "int", "u32", "u32"))
+  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
   GWI_BB(import_float(gwi))    // const folded
   GWI_BB(import_intfloat(gwi)) // const folded
   GWI_BB(import_floatint(gwi)) // const folded
