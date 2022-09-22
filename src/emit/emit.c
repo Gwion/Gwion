@@ -624,18 +624,37 @@ static void emit_exp_addref(const Emitter emit, /* const */ Exp exp,
   } while ((exp = exp->next));
 }
 
+ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
+  const Exp next   = e->next;
+  e->next          = NULL;
+  const m_bool ret = emit_exp(emit, e);
+  e->next          = next;
+  return ret;
+}
+
+ANN static m_bool emit_prim_array_exp(const Emitter emit, const Type t, Exp e) {
+  do {
+    CHECK_BB(emit_exp1(emit, e));
+    regpop(emit, t->size - t->actual_size);
+  } while((e = e->next));
+  return GW_OK;
+}
+
 ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   Exp e = (*data)->exp;
-  CHECK_BB(emit_exp(emit, e));
+  const Type type = (*data)->type;
+  const Type base = array_base_simple(type);
+  if(!base->actual_size) CHECK_BB(emit_exp(emit, e));
+  else CHECK_BB(emit_prim_array_exp(emit, base, e));
   emit_exp_addref(emit, e, -exp_totalsize(e));
   m_uint count = 0;
   do ++count;
   while ((e = e->next));
-  const Type type = (*data)->type;
   regseti(emit, count);
   const Instr instr = emit_add_instr(emit, ArrayInit);
   instr->m_val      = (m_uint)type;
-  instr->m_val2     = type->array_depth == 1 ? array_base_simple(type)->size : SZ_INT;
+  const m_uint sz = base->actual_size ?: base->size;
+  instr->m_val2     = type->array_depth == 1 ? sz : SZ_INT;
   emit_local_exp(emit, prim_exp(data));
   emit_notpure(emit);
   return GW_OK;
@@ -2440,14 +2459,6 @@ ANN static inline m_bool emit_stmt_try(const restrict Emitter emit,
 ANN static m_bool emit_stmt_exp(const Emitter           emit,
                                 const struct Stmt_Exp_ *exp) {
   return exp->val ? emit_exp(emit, exp->val) : GW_OK;
-}
-
-ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
-  const Exp next   = e->next;
-  e->next          = NULL;
-  const m_bool ret = emit_exp(emit, e);
-  e->next          = next;
-  return ret;
 }
 
 ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
