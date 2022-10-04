@@ -172,7 +172,7 @@ static MFUN(string_trim) {
       break;
   }
   if (len - start - end <= 0) {
-    handle(shred, "InvalidStringTrimRequest");
+    xfun_handle(shred, "InvalidStringTrimRequest");
     return;
   }
   char c[len - start - end + 1];
@@ -213,7 +213,7 @@ static MFUN(string_replace) {
   const m_uint len = strlen(str);
   len_insert       = strlen(insert);
   if (index >= (m_int)len || index < 0 || (index + len_insert + 1) <= 0) {
-    handle(shred, "InvalidStringReplace");
+    xfun_handle(shred, "InvalidStringReplace");
     return;
   }
   char c[index + len_insert + 1];
@@ -232,7 +232,7 @@ static MFUN(string_replaceN) {
   const m_int    _len = *(m_int *)MEM(SZ_INT * 2);
   if (!arg || index > (m_int)strlen(STRING(o)) ||
       _len > (m_int)strlen(STRING(arg))) {
-    handle(shred, "InvalidStringReplace");
+    xfun_handle(shred, "InvalidStringReplace");
     return;
   }
   char         insert[strlen(STRING(arg)) + 1];
@@ -349,7 +349,7 @@ static MFUN(string_erase) {
   const m_int size  = len - rem + 1;
   const m_int start = _start >= 0 ? _start : len - _start;
   if (start >= len || size <= 0) {
-    handle(shred, "InvalidStringErase");
+    xfun_handle(shred, "InvalidStringErase");
     return;
   }
   char c[size];
@@ -363,7 +363,7 @@ static MFUN(string_save) {
   const m_str path = STRING(*(M_Object*)MEM(SZ_INT));
   FILE *f = fopen(path, "w");
   if(!f) {
-    handle(shred, "StringLoadException");
+    xfun_handle(shred, "StringLoadException");
     return;
   }
   const m_str str = STRING(o);
@@ -375,7 +375,7 @@ static SFUN(string_load) {
   const m_str path = STRING(*(M_Object*)MEM(0));
   FILE *f = fopen(path, "r");
   if(!f) {
-    handle(shred, "StringLoadException");
+    xfun_handle(shred, "StringLoadException");
     return;
   }
   fseek(f, 0, SEEK_END);
@@ -405,11 +405,11 @@ static MFUN(string_atoi2) {
   char *endptr = NULL;
   if(!(*(m_int*)RETURN = strtol(str, &endptr, 10))) {
     if(errno == EINVAL) {
-      handle(shred, "ErrorInvalidValue");
+      xfun_handle(shred, "ErrorInvalidValue");
       return;
     }
     if(errno == ERANGE) {
-      handle(shred, "ValueOutOfRange");
+      xfun_handle(shred, "ValueOutOfRange");
       return;
     }
   }

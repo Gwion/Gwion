@@ -322,7 +322,7 @@ ANN static inline m_bool shadow_arg(const Env env, const Symbol sym,
   Nspc nspc = env->curr;
   do {
     const Value v = nspc_lookup_value0(nspc, sym);
-    if (v) return shadow_err(env, v, loc);
+    if (v && !env->func->def->builtin) return shadow_err(env, v, loc);
   } while ((nspc = nspc->parent));
   return GW_OK;
 }

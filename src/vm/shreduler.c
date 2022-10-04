@@ -58,7 +58,7 @@ ANN static void shreduler_erase(const Shreduler          s,
   MUTEX_UNLOCK(shred->mutex);
   const m_uint size =
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
-  unwind(shred, (Symbol)-1, size);
+  if(size) unwind(shred, (Symbol)-1, size);
   vector_rem2(&s->active_shreds, (vtype)shred);
   release(shred->info->me, shred);
 }

@@ -697,7 +697,7 @@ static DTOR(fptr_dtor) {
 }
 
 static MFUN(fptr_default) {
-  handle(shred, "EmptyFunctionPointer");
+  xfun_handle(shred, "EmptyFunctionPointer");
 }
 
 static GACK(gack_function) { INTERP_PRINTF("%s", t->name); }

@@ -38,7 +38,7 @@ static SFUN(BasicLocale) {
   const M_Object arg = *(M_Object*)MEM(0);
   const m_float ret = basic_locale(STRING(arg));
   if(ret == -1.0)
-    handle(shred, "invalid value for locale");
+    xfun_handle(shred, "invalid value for locale");
   *(m_float*)RETURN = ret;
 }
 

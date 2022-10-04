@@ -245,10 +245,6 @@ static INSTR(UsrUGenTick) {
   const m_uint offset = !instr->m_val ? SZ_INT : 0;
   shred->reg -= SZ_INT * 2 - offset;
   const M_Object o = *(M_Object *)(shred->reg + SZ_INT - offset);
-  if (!o) {
-    handle(shred, "NullPtrException");
-    return;
-  }
   struct UUGen_ *uu = UGEN(o)->module.gen.data;
   if (uu->shred) {
     free_vm_shred(uu->shred);

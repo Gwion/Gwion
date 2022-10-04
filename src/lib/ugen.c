@@ -330,7 +330,7 @@ static MFUN(ugen_channel) {
   else if (i >= 0 && (m_uint)i < UGEN(o)->connect.multi->n_chan)
     *(M_Object *)RETURN = UGEN(o)->connect.multi->channel[i];
   else
-    handle(shred, "InvalidChannelRequest");
+    xfun_handle(shred, "InvalidChannelRequest");
 }
 
 static MFUN(ugen_get_op) { *(m_uint *)RETURN = UGEN(o)->op + 1; }
