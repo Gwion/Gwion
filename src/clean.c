@@ -339,6 +339,7 @@ ANN static void clean_trait_def(Clean *a, Trait_Def b) {
   if (b->traits) clean_id_list(a, b->traits);
   if (b->body) clean_ast(a, b->body);
 }
+ANN static void clean_prim_def(Clean *a NUSED, Prim_Def b NUSED) {}
 
 DECL_SECTION_FUNC(clean, void, Clean *);
 

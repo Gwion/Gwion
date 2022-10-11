@@ -1,0 +1,6 @@
+#! [contains] true
+var u8 u;
+2 :=> var int i;
+true :=> u[i];
+<<< u >>>;
+<<< u[i] >>>;

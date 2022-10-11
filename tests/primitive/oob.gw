@@ -1,0 +1,4 @@
+#! [contains] OutOfBoundByteAccess
+9 :=> var int i;
+var u8 u;
+u[i];

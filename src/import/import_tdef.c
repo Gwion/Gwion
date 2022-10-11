@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -13,8 +10,6 @@
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
-#include "mpool.h"
-#include "specialid.h"
 
 ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
                           const restrict m_str name) {

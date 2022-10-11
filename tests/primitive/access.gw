@@ -1,0 +1,4 @@
+#! [contains] true
+var u8 u;
+true :=> u[2];
+<<< u[2] >>>;

@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -17,16 +18,6 @@
 #include "gack.h"
 
 #define CHECK_OP(op, check, func) _CHECK_OP(op, check, int_##func)
-
-static inline bool is_prim(const Exp e) { return e->exp_type == ae_exp_primary; }
-
-static inline bool is_prim_int(const Exp e) {
-  return (is_prim(e) && e->d.prim.prim_type == ae_prim_num);
-}
-
-static inline bool is_prim_float(const Exp e) {
-  return (is_prim(e) && e->d.prim.prim_type == ae_prim_float);
-}
 
 #define POWEROF2_OPT(name, OP)                                                 \
   if (is_prim_int(bin->rhs) && pot(bin->rhs->d.prim.d.num)) {                  \
@@ -622,38 +613,20 @@ static GWION_IMPORT(float) {
   return GW_OK;
 }
 
-static GACK(gack_u8) {
-  INTERP_PRINTF("%u", *(uint8_t*)VALUE);
-}
-
-static GACK(gack_u16) {
-  INTERP_PRINTF("%u", *(uint16_t*)VALUE);
-}
-
-static GACK(gack_u32) {
-  INTERP_PRINTF("%u", *(uint32_t*)VALUE);
+ANN static m_bool import_ux(const Gwi gwi) {
+  char c[8] = { 'u' };
+  const Env env = gwi->gwion->env;
+  for(uint i = 1; i <= SZ_INT; i *= 2) {
+    sprintf(c+1, "%u", i * CHAR_BIT);
+    const Symbol s = insert_symbol(c);
+    GWI_OB(gwi_primitive(gwi, s_name(s), i, ae_flag_none));
+  }
+  return GW_OK;
 }
 
 GWION_IMPORT(prim) {
-  GWI_BB(import_int(gwi))      // const folded + imm optimized
-  const Type t_u8 = gwi_mk_type(gwi, "u8", SZ_INT, "int");
-  t_u8->actual_size = 1;
-  gwi_gack(gwi, t_u8, gack_u8);
-  gwi_add_type(gwi, t_u8);
-  GWI_BB(gwi_oper_ini(gwi, "int", "u8", "u8"))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
-  const Type t_u16 = gwi_mk_type(gwi, "u16", SZ_INT, "int");
-  t_u16->actual_size = 2;
-  gwi_gack(gwi, t_u16, gack_u16);
-  gwi_add_type(gwi, t_u16);
-  GWI_BB(gwi_oper_ini(gwi, "int", "u16", "u16"))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
-  const Type t_u32 = gwi_mk_type(gwi, "u32", SZ_INT, "int");
-  t_u32->actual_size = 4;
-  gwi_gack(gwi, t_u32, gack_u32);
-  gwi_add_type(gwi, t_u32);
-  GWI_BB(gwi_oper_ini(gwi, "int", "u32", "u32"))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NoOp))
+  GWI_BB(import_int(gwi))
+  GWI_BB(import_ux(gwi));
   GWI_BB(import_float(gwi))    // const folded
   GWI_BB(import_intfloat(gwi)) // const folded
   GWI_BB(import_floatint(gwi)) // const folded

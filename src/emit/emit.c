@@ -757,9 +757,13 @@ ANN m_bool emit_array_access(const Emitter                 emit,
 }
 
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array *array) {
-  CHECK_BB(emit_exp(emit, array->base));
   const Exp              e    = exp_self(array);
-  struct ArrayAccessInfo info = {*array->array, e->type, exp_getvar(e)};
+  exp_setvar(array->base, get_emit_var(emit, array->base->type, exp_getvar(e)));
+  CHECK_BB(emit_exp(emit, array->base));
+  struct ArrayAccessInfo info = {
+    .array = *array->array,
+    .type = e->type,
+    .is_var = exp_getvar(e)};
   return emit_array_access(emit, &info);
 }
 
@@ -965,7 +969,8 @@ ANN static m_bool decl_static(const Emitter emit, const Exp_Decl *decl,
 }
 
 ANN static inline int struct_ctor(const Value v) {
-  return tflag(v->type, tflag_struct) && v->type->nspc->pre_ctor;
+  return tflag(v->type, tflag_struct) && v->type->nspc && v->type->nspc->pre_ctor;
+//  return tflag(v->type, tflag_struct) && v->type->nspc->pre_ctor;
 }
 
 ANN static void decl_expand(const Emitter emit, const Type t) {
@@ -2898,6 +2903,7 @@ ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
 #define emit_fptr_def  dummy_func
 #define emit_trait_def dummy_func
 #define emit_extend_def dummy_func
+#define emit_prim_def dummy_func
 
 HANDLE_SECTION_FUNC(emit, m_bool, Emitter);
 

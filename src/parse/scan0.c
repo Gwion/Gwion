@@ -482,6 +482,23 @@ ANN static m_bool scan0_trait_def(const Env env, const Trait_Def pdef) {
   return GW_OK;
 }
 
+ANN m_bool scan0_prim_def(const Env env, const Prim_Def pdef) {
+  const loc_t loc = pdef->loc;
+  CHECK_BB(env_access(env, pdef->flag, loc));
+  CHECK_BB(scan0_defined(env, pdef->name, loc));
+  const bool global = GET_FLAG(pdef, global);
+  if(global) {
+    context_global(env);
+    env_push_global(env);
+  }
+  const Type t = mk_primitive(env, s_name(pdef->name), pdef->size);
+  add_type(env, env->curr, t);
+  mk_class(env, t, pdef->loc);
+  t->flag = pdef->flag;
+  if(global) env_pop(env, 0);
+  return GW_OK;
+}
+
 HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {

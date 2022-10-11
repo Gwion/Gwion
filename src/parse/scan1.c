@@ -527,6 +527,10 @@ ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
 
 ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
+  if (stmt->pp_type == ae_pp_pragma && !strcmp(stmt->data, "packed")) {
+    if(env->class_def && !tflag(env->class_def, tflag_union)) set_tflag(env->class_def, tflag_packed);
+    else ERR_B(stmt_self(stmt)->pos, "`packed` pragma outside of {G+}class{0} or {G+}struct{0} declaration");
+  }
   return GW_OK;
 }
 
@@ -649,6 +653,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
   const Value v = nspc_lookup_value1(env->curr, fdef->base->xid);
   if (!v) return GW_OK;
   if (is_func(env->gwion, actual_type(env->gwion, v->type))) return GW_OK; // is_callable
+  if(fdef->builtin) return GW_OK;
   if ((!env->class_def || !GET_FLAG(env->class_def, final)) &&
       !nspc_lookup_value0(env->curr, fdef->base->xid))
     ERR_B(fdef->base->pos,
@@ -686,7 +691,6 @@ ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
-
 ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
   const uint16_t depth = env->scope->depth;
   env->scope->depth = 0;
@@ -697,6 +701,7 @@ ANN m_bool scan1_func_def(const Env env, const Func_Def fdef) {
 
 #define scan1_trait_def dummy_func
 #define scan1_extend_def dummy_func
+#define scan1_prim_def dummy_func
 HANDLE_SECTION_FUNC(scan1, m_bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {

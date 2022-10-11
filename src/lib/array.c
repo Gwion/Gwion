@@ -348,6 +348,16 @@ ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
   return GW_OK;
 }
 
+ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
+  const Env env = emit->env;
+  bool vars[2] = { is_var };
+  struct Op_Import opi = {.op   = insert_symbol("@array_init"),
+                          .lhs  = t,
+                          .data = (uintptr_t)vars};
+  CHECK_BB(op_emit(emit, &opi));
+  return vars[1];
+}
+
 ANN static inline Exp emit_n_exp(const Emitter                 emit,
                                  struct ArrayAccessInfo *const info) {
   const Exp e               = take_exp(info->array.exp, info->array.depth);
@@ -355,7 +365,8 @@ ANN static inline Exp emit_n_exp(const Emitter                 emit,
   e->next                   = NULL;
   struct Array_Sub_ partial = {info->array.exp, info->array.type,
                                info->array.depth};
-  const m_bool      ret     = array_do(emit, &partial, 0);
+  const bool is_var = get_emit_var(emit, array_base(info->array.type), info->is_var);
+  const m_bool      ret     = array_do(emit, &partial, is_var);
   e->next                   = next;
   return ret > 0 ? next : NULL;
 }
@@ -986,6 +997,10 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
   GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+
+  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, NULL, "bool"))
+  GWI_BB(gwi_oper_end(gwi, "@array_init", NoOp))
+
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
   return GW_OK;
 }

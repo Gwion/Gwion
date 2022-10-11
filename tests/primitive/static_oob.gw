@@ -1,0 +1,3 @@
+#! [contains] out of bound
+var u8 u;
+u[-3];

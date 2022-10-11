@@ -62,12 +62,19 @@ ANN static inline m_bool check_exp_decl_parent(const Env      env,
   return GW_OK;
 }
 
+ANN static m_uint get_decl_size(const Env env, const Value v) {
+  if(safe_tflag(env->class_def, tflag_packed) && v->type->actual_size)
+    return v->type->actual_size;
+  return v->type->size;
+
+}
+
 #define describe_check_decl(a, b, flag)                            \
   ANN static inline void decl_##a(const Env env, const Value v) {  \
     const Nspc nspc = env->curr;                                   \
     flag;                                                          \
     v->from->offset = nspc->b;                                     \
-    nspc->b += v->type->size;                                      \
+    nspc->b += get_decl_size(env, v);                              \
   }
 
 describe_check_decl(member, offset, v->vflag |= vflag_member);
@@ -1919,6 +1926,7 @@ ANN m_bool check_fptr_def(const Env env, const Fptr_Def fptr) {
   return ret;
 }
 
+#define check_prim_def dummy_func
 HANDLE_SECTION_FUNC(check, m_bool, Env)
 
 ANN static m_bool check_parent(const Env env, const Class_Def cdef) {

@@ -125,4 +125,5 @@ ANN void emit_pop_scope(const Emitter emit);
 
 ANN m_bool ensure_emit(const Emitter, const Type);
 ANN m_bool emit_ensure_func(const Emitter emit, const Func f);
+ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var);
 #endif
