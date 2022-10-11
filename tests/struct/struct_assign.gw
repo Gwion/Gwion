@@ -1,0 +1,8 @@
+struct Foo {
+  var string s;
+}
+
+var Foo f;
+"test" :=> f.s;
+f :=> var auto g;
+<<< g.s >>>;

@@ -11,6 +11,7 @@
 #include "operator.h"
 #include "import.h"
 #include "spread.h"
+#include "emit.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
@@ -513,6 +514,29 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 
 ANN Ast spread_class(const Env env, const Ast body);
 
+static OP_EMIT(opem_struct_assign) {
+  const Exp_Binary *bin = data;
+  const Type t = bin->lhs->type;
+  if(t->size == SZ_INT) emit_add_instr(emit, int_r_assign);
+  else if(t->size == SZ_FLOAT) emit_add_instr(emit, float_r_assign);
+  else {
+    const Instr instr = emit_add_instr(emit, Reg2RegOther);
+    instr->m_val  = -(t->size + SZ_INT);
+    instr->m_val2 = t->size;
+    const Instr pop = emit_add_instr(emit, RegMove);
+    pop->m_val = -SZ_INT;
+  }
+  emit_struct_addref(emit, t, 0, false);
+  return GW_OK;
+}
+
+ANN static void scan0_struct_assign(const Env env, const Type t) {
+  struct Op_Func   opfunc = {.ck = opck_rassign, .em = opem_struct_assign };
+  struct Op_Import opi    = {
+      .op = insert_symbol(":=>"), .lhs = t, .rhs = t, .ret = t, .func = &opfunc};
+  add_op(env->gwion, &opi);
+}
+
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   CHECK_BB(scan0_global(env, c->flag, c->pos));
   const Ast old_extend = env->context ? env->context->extend : NULL;
@@ -538,6 +562,7 @@ ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
     if(!tmpl_base(c->base.tmpl) && env->context->extend) cdef->body = spread_class(env, cdef->body);
     env->context->extend = old_extend;
   }
+  if(cflag(cdef, cflag_struct)) scan0_struct_assign(env, cdef->base.type);
   return ret;
 }
 
