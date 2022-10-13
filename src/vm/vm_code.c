@@ -85,6 +85,24 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
         }
         i += j;
         continue;
+      } else if (instr->opcode == eRegPushMem) {
+        const Instr next = (Instr)vector_at(v, i+1);
+        if(next->opcode == eDotMember) {
+          instr->opcode = eDotMemberMem;
+          instr->m_val2 = instr->m_val;
+          instr->m_val = next->m_val;
+          next->opcode = eNoOp;
+        } else if(next->opcode == eDotMember2) {
+          instr->opcode = eDotMemberMem2;
+          instr->m_val2 = instr->m_val;
+          instr->m_val = next->m_val;
+          next->opcode = eNoOp;
+        } else if(next->opcode == eDotMember4) {
+          instr->opcode = eDotMemberMem4;
+          instr->m_val2 = instr->m_val;
+          instr->m_val = next->m_val;
+          next->opcode = eNoOp;
+        }
       } else if (instr->opcode == eUnroll2) {
         const Instr  unroll     = (Instr)instr->m_val;
         const m_uint pc         = vector_find(v, (m_uint)unroll);

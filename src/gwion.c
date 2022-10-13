@@ -121,10 +121,11 @@ ANN m_bool gwion_ini(const Gwion gwion, CliArg *arg) {
     tcol_override_color_checks(isatty(1));
   else if (arg->color == COLOR_ALWAYS)
     tcol_override_color_checks(1);
-  if (!gwion->data->cdoc)
+  if(!vector_size(&gwion->data->passes->vec)) {
+    if (!gwion->data->cdoc)
     pass_default(gwion);
-  else
-    doc_mode(gwion);
+    else doc_mode(gwion);
+  }
   return !arg->quit ? gwion_ok(gwion, arg) : GW_ERROR;
 }
 

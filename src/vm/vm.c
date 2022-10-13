@@ -459,8 +459,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
-      &&remref, &&remref2, &&except, &&allocmemberaddr, &&dotmember, &&dotfloat,
-      &&dotother, &&dotaddr, &&unioncheck, &&unionint, &&unionfloat,
+      &&remref, &&remref2, &&except, &&allocmemberaddr,
+      &&dotmembermem, &&dotmembermem2, /*&&dotmembermem3, */&&dotmembermem4,
+      &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
+      &&unioncheck, &&unionint, &&unionfloat,
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&dotfunc, &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
@@ -1103,6 +1105,22 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       *(m_bit **)reg = (*(M_Object *)mem)->data + VAL;
       reg += SZ_INT;
       DISPATCH()
+    dotmembermem:
+      reg += SZ_INT;
+      *(m_uint *)(reg - SZ_INT) =
+          *(m_uint *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      DISPATCH()
+    dotmembermem2:
+      reg += SZ_INT - SZ_FLOAT;
+      *(m_float *)(reg - SZ_FLOAT) =
+          *(m_float *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      DISPATCH()
+//    dotmembermem3:
+    dotmembermem4:
+      reg += SZ_INT;
+      *(m_bit **)(reg - SZ_INT) =
+          ((*(M_Object *)(mem + VAL2))->data + VAL);
+      DISPATCH()
     dotmember:
       *(m_uint *)(reg - SZ_INT) =
           *(m_uint *)((*(M_Object *)(reg - SZ_INT))->data + VAL);
@@ -1297,8 +1315,10 @@ static void *_dispatch[] = {
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
       &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
-      &&_remref, &&_remref2, &&_except, &&_allocmemberaddr, &&_dotmember, &&_dotfloat,
-      &&_dotother, &&_dotaddr, &&_unioncheck, &&_unionint, &&_unionfloat,
+      &&_remref, &&_remref2, &&_except, &&_allocmemberaddr,
+      &&_dotmembermem, &&_dotmembermem2, /*&&_dotmembermem3, */&&_dotmembermem4,
+      &&_dotmember, &&_dotfloat, &&_dotother, &&_dotaddr,
+      &&_unioncheck, &&_unionint, &&_unionfloat,
       &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
       &&_dotfunc, &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
       &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
@@ -1521,6 +1541,10 @@ return;
     PREPARE(remref2);
     PREPARE(except);
     PREPARE(allocmemberaddr);
+    PREPARE(dotmembermem);
+    PREPARE(dotmembermem2);
+    //PREPARE(dotmembermem3);
+    PREPARE(dotmembermem4);
     PREPARE(dotmember);
     PREPARE(dotfloat);
     PREPARE(dotother);

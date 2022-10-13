@@ -1659,7 +1659,8 @@ ANN static void call_finish(const Emitter emit, const Func f,
   const m_uint offset = emit_code_offset(emit);
   if (f != emit->env->func || !is_static || strcmp(s_name(f->def->base->xid), "new"))
     regseti(emit, offset);
-  const Instr instr   = emit_call(emit, f, is_static);
+  const bool _is_static = !strcmp(s_name(f->def->base->xid), "new") ? true : is_static;
+  const Instr instr   = emit_call(emit, f, _is_static);
   instr->m_val        = f->def->base->ret_type->size;
   instr->m_val2       = offset;
 }
@@ -2958,9 +2959,20 @@ ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_BB(cdef_parent(emit, c));
   if (c->body) {
     emit_class_code(emit, t->name);
+//    if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0 && vector_size(&emit->code->instr) > 1)
     if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0)
+{
+//    if (vector_size(&emit->code->instr))
+//    if (tflag(t, tflag_ctor))
       t->nspc->pre_ctor = finalyze(emit, FuncReturn);
-    else {
+/*
+else{
+puts("hehe");
+free_code(emit->gwion->mp, emit->code);
+      emit_pop_code(emit);
+}
+*/
+}    else {
       free_code(emit->gwion->mp, emit->code);
       emit_pop_code(emit);
       return GW_ERROR;

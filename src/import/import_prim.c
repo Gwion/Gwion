@@ -90,7 +90,6 @@ static OP_EMIT(opem_bit_access) {
       instr->udata.two = (m_int)((offset / CHAR_BIT) - SZ_INT);
     } else {
       const Instr instr = emit_add_instr(emit, bit_set_fast);
-      const m_uint offset = info->array.exp->d.prim.d.num;
       instr->m_val2  = offset % CHAR_BIT;
       instr->m_val = (offset / CHAR_BIT);
     }

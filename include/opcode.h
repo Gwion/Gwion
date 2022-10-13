@@ -185,6 +185,9 @@ enum {
   eObjectRelease2,
   eGWOP_EXCEPT,
   eAllocMember4,
+  eDotMemberMem,
+  eDotMemberMem2,
+  eDotMemberMem4,
   eDotMember,
   eDotMember2,
   eDotMember3,
@@ -400,6 +403,9 @@ enum {
 #define  ObjectRelease2       (f_instr)eObjectRelease2
 #define  GWOP_EXCEPT          (f_instr)eGWOP_EXCEPT
 #define  AllocMember4         (f_instr)eAllocMember4
+#define  DotMemberMem         (f_instr)eDotMemberMem
+#define  DotMemberMem2        (f_instr)eDotMemberMem2
+#define  DotMemberMem4        (f_instr)eDotMemberMem4
 #define  DotMember            (f_instr)eDotMember
 #define  DotMember2           (f_instr)eDotMember2
 #define  DotMember3           (f_instr)eDotMember3
@@ -1277,6 +1283,21 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eAllocMember4:
         gw_out("{Y}┃{0}{-}% 4lu{0}: AllocMember4", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eDotMemberMem:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: DotMemberMem", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eDotMemberMem2:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: DotMemberMem2", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
+      case eDotMemberMem4:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: DotMemberMem4", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out("\n");
         break;

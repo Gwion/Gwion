@@ -182,6 +182,9 @@ ObjectRelease~u
 ObjectRelease2~p
 GWOP_EXCEPT~u
 AllocMember4~u
+DotMemberMem~u
+DotMemberMem2~u
+DotMemberMem4~u
 DotMember~u
 DotMember2~u
 DotMember3~u~u
