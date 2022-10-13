@@ -848,6 +848,14 @@ ANN static inline void interp_size(const Emitter emit, const Exp e) {
   instr->m_val2     = SZ_INT;
 }
 
+ANN static void emit_gack_type(const Emitter emit, const Exp e) {
+   if (e->exp_type != ae_exp_cast ||
+      (e->exp_type == ae_exp_primary && e->d.prim.prim_type == ae_prim_str))
+     return;
+  const m_bool isobj = isa(e->type, emit->gwion->type[et_object]) > 0;
+  if (isobj && !GET_FLAG(e->type, final)) emit_add_instr(emit, GackType);
+}
+
 ANN /*static*/ m_bool emit_interp(const Emitter emit, const Exp exp) {
   regpushi(emit, 0);
   Exp e = exp, next = NULL;
@@ -864,8 +872,7 @@ ANN /*static*/ m_bool emit_interp(const Emitter emit, const Exp exp) {
     } else
       regseti(emit, (m_uint)e->type);
     interp_size(emit, e);
-    const m_bool isobj = isa(e->type, emit->gwion->type[et_object]) > 0;
-    if (isobj && e->exp_type != ae_exp_cast && !GET_FLAG(e->type, final)) emit_add_instr(emit, GackType);
+    emit_gack_type(emit, e);
     const Instr instr = emit_add_instr(emit, Gack);
     instr->m_val      = emit_code_offset(emit);
   } while ((e = e->next = next));
