@@ -6,6 +6,7 @@ enum {
   eRegPushImm2,
   eRegPushImm3,
   eRegPushImm4,
+  eRegPush2Imm,
   eRegPushMem,
   eRegPushMem2,
   eRegPushMem3,
@@ -224,6 +225,7 @@ enum {
 #define  RegPushImm2          (f_instr)eRegPushImm2
 #define  RegPushImm3          (f_instr)eRegPushImm3
 #define  RegPushImm4          (f_instr)eRegPushImm4
+#define  RegPush2Imm          (f_instr)eRegPush2Imm
 #define  RegPushMem           (f_instr)eRegPushMem
 #define  RegPushMem2          (f_instr)eRegPushMem2
 #define  RegPushMem3          (f_instr)eRegPushMem3
@@ -469,6 +471,12 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eRegPushImm4:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushImm4 ", j);
+        gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
+        gw_out("\n");
+        break;
+      case eRegPush2Imm:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: RegPush2Imm ", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");

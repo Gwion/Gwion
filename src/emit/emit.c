@@ -2438,10 +2438,9 @@ ANN static inline m_bool emit_handler_list(const restrict Emitter emit,
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler *handler = mp_vector_at(handlers, Handler, i);
-    // useless args. should be not in the VM
     const Instr instr = emit_add_instr(emit, HandleEffect);
     instr->m_val      = emit->status.effect = offset;
-    instr->m_val2     = (m_uint)handler->xid; // are we even using this?
+    instr->m_val2     = (m_uint)handler->xid;
     CHECK_BB(scoped_stmt(emit, handler->stmt));
     emit_try_goto(emit, v);
     instr->m_val = emit_code_size(emit);
@@ -2959,24 +2958,14 @@ ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_BB(cdef_parent(emit, c));
   if (c->body) {
     emit_class_code(emit, t->name);
-//    if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0 && vector_size(&emit->code->instr) > 1)
-    if (scanx_body(emit->env, c, (_exp_func)emit_section, emit) > 0)
-{
-//    if (vector_size(&emit->code->instr))
-//    if (tflag(t, tflag_ctor))
+    const m_bool ret = scanx_body(emit->env, c, (_exp_func)emit_section, emit);
+    if (ret > 0 && tflag(t, tflag_ctor))
       t->nspc->pre_ctor = finalyze(emit, FuncReturn);
-/*
-else{
-puts("hehe");
-free_code(emit->gwion->mp, emit->code);
-      emit_pop_code(emit);
-}
-*/
-}    else {
+    else{
       free_code(emit->gwion->mp, emit->code);
       emit_pop_code(emit);
-      return GW_ERROR;
     }
+    return ret;
   }
   return GW_OK;
 }

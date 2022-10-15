@@ -420,7 +420,7 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 __attribute__((hot)) void
 vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
   static const void *dispatch[] = {
-      &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
+      &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr, &&regpushtwoimm,
       &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
       &&regpushmemderef, &&pushnow, &&baseint, &&basefloat, &&baseother,
       &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
@@ -517,6 +517,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     regpushaddr:
       *(m_uint **)reg = &VAL;
       reg += SZ_INT;
+      DISPATCH()
+    regpushtwoimm:
+      *(m_uint *)reg = VAL;
+      *(m_uint *)(reg + SZ_INT)= VAL2;
+      reg += SZ_INT*2;
       DISPATCH()
     regpushmem:
       *(m_uint *)reg = *(m_uint *)(mem + IVAL);
@@ -1276,7 +1281,7 @@ fflush(stdout);
 } else {
 
 static void *_dispatch[] = {
-      &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
+      &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr, &&_regpushtwoimm,
       &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,
       &&_regpushmemderef, &&_pushnow, &&_baseint, &&_basefloat, &&_baseother,
       &&_baseaddr, &&_regtoreg, &&_regtoregother, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
@@ -1337,6 +1342,7 @@ goto *_dispatch[*(m_bit*)prepare_code];
     PREPARE(regpushfloat);
     PREPARE(regpushother);
     PREPARE(regpushaddr);
+    PREPARE(regpushtwoimm);
     PREPARE(regpushmem);
     PREPARE(regpushmemfloat);
     PREPARE(regpushmemother);

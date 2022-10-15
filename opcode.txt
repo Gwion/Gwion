@@ -3,6 +3,7 @@ RegPushImm~p~u
 RegPushImm2~f~u
 RegPushImm3~p~u
 RegPushImm4~p~u
+RegPush2Imm~p~u
 RegPushMem~u~u
 RegPushMem2~f~u
 RegPushMem3~u~u
