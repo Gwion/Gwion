@@ -50,6 +50,7 @@ typedef struct EmitterStatus {
   uint16_t line;
   uint32_t effect; // offset of last throw effect
   bool in_return;
+  bool in_defer;
 } EmitterStatus;
 
 struct Emitter_ {
